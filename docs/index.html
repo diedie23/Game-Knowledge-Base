@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>游戏项目知识库</title>
+<style>
+:root{--bg:#0f1117;--sidebar-bg:#161822;--card-bg:#1c1f2e;--border:#2a2d3e;--text:#c9cdd4;--dim:#8b8fa3;--heading:#e8eaed;--accent:#6c8cff;--accent-light:#8ba3ff;--accent-bg:rgba(108,140,255,.08);--green:#4ade80;--green-bg:rgba(74,222,128,.08);--orange:#fb923c;--orange-bg:rgba(251,191,36,.08);--red:#f87171;--purple:#a78bfa;--purple-bg:rgba(167,139,250,.08);--pink:#f472b6;--pink-bg:rgba(244,114,182,.08);--code-bg:#1a1d2d;--st:#3d4155}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;display:flex;height:100vh;overflow:hidden}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--st);border-radius:3px}
+.sidebar{width:300px;min-width:300px;background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh}
+.sidebar-header{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+.sidebar-header h1{font-size:17px;color:var(--heading);font-weight:700;display:flex;align-items:center;gap:8px}
+.sidebar-header .logo{width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;flex-shrink:0}
+.sidebar-header p{font-size:12px;color:var(--dim);margin-top:4px;margin-left:36px}
+.search-box{padding:12px 16px;border-bottom:1px solid var(--border);position:relative}
+.search-box::before{content:'🔍';position:absolute;left:26px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;z-index:1}
+.search-box input{width:100%;padding:8px 12px 8px 32px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s;font-family:inherit}
+.search-box input:focus{border-color:var(--accent)}.search-box input::placeholder{color:var(--dim)}
+.sidebar-nav{flex:1;overflow-y:auto;padding:8px 12px}
+.nav-cat{margin-bottom:4px}
+.nav-cat-title{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:12px;font-weight:600;color:var(--dim);cursor:pointer;border-radius:6px;transition:all .15s;user-select:none;letter-spacing:.3px}
+.nav-cat-title:hover{background:rgba(255,255,255,.03)}
+.nav-cat-title .arrow{font-size:10px;transition:transform .2s;color:var(--dim)}
+.nav-cat.open .nav-cat-title .arrow{transform:rotate(90deg)}
+.nav-cat-title .ci{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.nav-cat-items{max-height:0;overflow:hidden;transition:max-height .3s ease;padding-left:8px}
+.nav-cat.open .nav-cat-items{max-height:1000px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 12px;margin:1px 0;border-radius:6px;cursor:pointer;font-size:13px;color:var(--text);transition:all .15s;border:none;background:none;width:100%;text-align:left;font-family:inherit;line-height:1.5}
+.nav-item:hover{background:var(--accent-bg);color:var(--accent-light)}
+.nav-item.active{background:var(--accent-bg);color:var(--accent);font-weight:500}
+.nav-item .badge{font-size:10px;padding:1px 6px;border-radius:10px;margin-left:auto;flex-shrink:0}
+.badge-doc{background:var(--accent-bg);color:var(--accent)}.badge-tool{background:var(--green-bg);color:var(--green)}
+.nav-toc{padding-left:12px;max-height:0;overflow:hidden;transition:max-height .3s ease}
+.nav-item.active~.nav-toc{max-height:800px}
+.toc-item{display:block;padding:3px 12px;font-size:12px;color:var(--dim);cursor:pointer;border-radius:4px;transition:all .15s;border:none;background:none;width:100%;text-align:left;font-family:inherit;border-left:2px solid var(--border);margin:1px 0}
+.toc-item:hover{color:var(--accent-light);border-left-color:var(--accent)}
+.toc-item.active{color:var(--accent);border-left-color:var(--accent)}
+.sidebar-footer{padding:10px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--dim);display:flex;justify-content:space-between;align-items:center}
+.sidebar-footer a{color:var(--accent);text-decoration:none;font-size:11px;cursor:pointer}
+.sidebar-footer a:hover{text-decoration:underline}
+.main{flex:1;overflow-y:auto;scroll-behavior:smooth}
+.home{max-width:1000px;margin:0 auto;padding:48px 40px}
+.home-hero{text-align:center;padding:40px 0 48px}
+.home-hero h1{font-size:32px;color:var(--heading);font-weight:800;margin-bottom:8px}
+.home-hero h1 span{background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.home-hero p{font-size:15px;color:var(--dim);max-width:500px;margin:0 auto}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:24px}
+.home-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all .2s}
+.home-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.home-card .ci{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
+.home-card h3{font-size:15px;color:var(--heading);font-weight:600;margin-bottom:6px}
+.home-card p{font-size:13px;color:var(--dim);line-height:1.6}
+.home-card .tags{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.home-card .tag{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--accent-bg);color:var(--accent)}
+.hst{font-size:14px;color:var(--dim);font-weight:600;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.hst::after{content:'';flex:1;height:1px;background:var(--border)}
+.stats-bar{display:flex;gap:24px;justify-content:center;margin:24px 0 40px}
+.stat .num{font-size:24px;font-weight:700;color:var(--heading);text-align:center}.stat .label{font-size:12px;color:var(--dim);margin-top:2px;text-align:center}
+.doc-page{max-width:900px;margin:0 auto;padding:40px 60px 80px;display:none}
+.doc-page.active{display:block}
+.doc-bc{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);margin-bottom:20px}
+.doc-bc a{color:var(--accent);text-decoration:none;cursor:pointer}.doc-bc a:hover{text-decoration:underline}
+.dc h1{font-size:28px;color:var(--heading);font-weight:700;margin-bottom:8px;padding-bottom:12px;border-bottom:2px solid var(--accent)}
+.dc h2{font-size:22px;color:var(--heading);font-weight:600;margin:40px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border);scroll-margin-top:20px}
+.dc h3{font-size:17px;color:var(--heading);font-weight:600;margin:28px 0 12px;scroll-margin-top:20px}
+.dc h4{font-size:15px;color:var(--accent-light);font-weight:600;margin:20px 0 8px}
+.dc p{margin:10px 0}.dc blockquote{border-left:3px solid var(--accent);padding:12px 16px;margin:16px 0;background:var(--accent-bg);border-radius:0 6px 6px 0;color:var(--dim);font-size:14px}
+.dc blockquote strong{color:var(--accent-light)}
+.dc ul,.dc ol{padding-left:24px;margin:8px 0}.dc li{margin:4px 0}.dc strong{color:var(--heading)}
+.dc code{background:var(--code-bg);padding:2px 6px;border-radius:3px;font-size:13px;font-family:'Menlo','Consolas',monospace;color:var(--accent-light);border:1px solid var(--border)}
+.dc pre{background:var(--code-bg);padding:16px 20px;border-radius:8px;overflow-x:auto;margin:16px 0;border:1px solid var(--border);font-size:13px;line-height:1.6}
+.dc pre code{background:none;padding:0;border:none;color:var(--text)}
+.dc table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+.dc th{background:var(--card-bg);padding:10px 14px;text-align:left;font-weight:600;color:var(--heading);border:1px solid var(--border);white-space:nowrap}
+.dc td{padding:8px 14px;border:1px solid var(--border);vertical-align:top}
+.dc tr:hover td{background:rgba(108,140,255,.03)}
+.dc hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+.dc input[type="checkbox"]{margin-right:6px;accent-color:var(--accent)}
+.share-btn{position:fixed;bottom:24px;right:80px;padding:8px 16px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .2s;z-index:50}
+.share-btn:hover{border-color:var(--accent);color:var(--accent)}
+.btt{position:fixed;bottom:24px;right:24px;width:40px;height:40px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--dim);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;opacity:0;transition:opacity .2s;z-index:50}
+.btt.show{opacity:1}.btt:hover{color:var(--accent);border-color:var(--accent)}
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-60px);background:var(--green);color:#000;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:500;z-index:999;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.menu-toggle{display:none;position:fixed;top:12px;left:12px;z-index:100;background:var(--card-bg);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;cursor:pointer;font-size:16px}
+@media(max-width:768px){.sidebar{position:fixed;left:-300px;z-index:99;transition:left .3s}.sidebar.open{left:0}.menu-toggle{display:block}.doc-page{padding:20px;padding-top:56px}.home{padding:20px;padding-top:56px}.home-hero h1{font-size:24px}}
+@media print{.sidebar,.menu-toggle,.btt,.share-btn{display:none!important}.main{padding:20px}body{background:#fff;color:#333}.dc h1,.dc h2,.dc h3{color:#111}.dc table{border-color:#ddd}.dc th{background:#f5f5f5}}
+</style>
+</head>
+<body>
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+<div class="toast" id="toast"></div>
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h1><span class="logo">📖</span> 游戏项目知识库</h1>
+    <p>Game Project Knowledge Base</p>
+  </div>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="搜索全部文档..." oninput="handleSearch(this.value)">
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav">
+    <button class="nav-item active" onclick="goHome(this)" id="navHome" style="margin-bottom:8px">🏠 知识库首页</button>
+    <div class="nav-cat open" id="cat-character">
+      <div class="nav-cat-title" onclick="toggleCat('cat-character')">
+        <span class="arrow">▸</span><span class="ci" style="background:var(--accent-bg);color:var(--accent)">👤</span> 角色 · Character
+      </div>
+      <div class="nav-cat-items">
+        <button class="nav-item" onclick="showDoc('d1',this)">2D UGC 角色出图规范<span class="badge badge-doc">文档</span></button>
+        <div class="nav-toc" id="toc-d1"></div>
+        <button class="nav-item" onclick="showDoc('d2',this)">2D 角色换色资源规范<span class="badge badge-doc">文档</span></button>
+        <div class="nav-toc" id="toc-d2"></div>
+        <button class="nav-item" onclick="openTool('auto-mask')">自动 Mask 生成器<span class="badge badge-tool">工具</span></button>
+        <button class="nav-item" onclick="openTool('mask-tool')">Mask 手动编辑器<span class="badge badge-tool">工具</span></button>
+      </div>
+    </div>
+    <div class="nav-cat" id="cat-ui">
+      <div class="nav-cat-title" onclick="toggleCat('cat-ui')">
+        <span class="arrow">▸</span><span class="ci" style="background:var(--purple-bg);color:var(--purple)">🖥️</span> UI · 界面
+      </div>
+      <div class="nav-cat-items"><button class="nav-item" style="color:var(--dim);cursor:default;font-style:italic">📝 待补充...</button></div>
+    </div>
+    <div class="nav-cat" id="cat-scene">
+      <div class="nav-cat-title" onclick="toggleCat('cat-scene')">
+        <span class="arrow">▸</span><span class="ci" style="background:var(--green-bg);color:var(--green)">🏔️</span> 场景 · Scene
+      </div>
+      <div class="nav-cat-items"><button class="nav-item" style="color:var(--dim);cursor:default;font-style:italic">📝 待补充...</button></div>
+    </div>
+    <div class="nav-cat" id="cat-fx">
+      <div class="nav-cat-title" onclick="toggleCat('cat-fx')">
+        <span class="arrow">▸</span><span class="ci" style="background:var(--orange-bg);color:var(--orange)">✨</span> 特效 · FX
+      </div>
+      <div class="nav-cat-items"><button class="nav-item" style="color:var(--dim);cursor:default;font-style:italic">📝 待补充...</button></div>
+    </div>
+    <div class="nav-cat" id="cat-tech">
+      <div class="nav-cat-title" onclick="toggleCat('cat-tech')">
+        <span class="arrow">▸</span><span class="ci" style="background:var(--pink-bg);color:var(--pink)">⚙️</span> 技术 · Tech
+      </div>
+      <div class="nav-cat-items"><button class="nav-item" style="color:var(--dim);cursor:default;font-style:italic">📝 待补充...</button></div>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <span>v1.0 · 2026-03-31</span>
+    <a onclick="copyShareLink()">🔗 分享链接</a>
+  </div>
+</aside>
+<main class="main" id="mainContent">
+  <div class="home" id="pageHome">
+    <div class="home-hero"><h1>🎮 游戏项目<span>知识库</span></h1><p>团队共享的美术规范、技术方案与生产工具，持续更新中</p></div>
+    <div class="stats-bar">
+      <div class="stat"><div class="num">2</div><div class="label">规范文档</div></div>
+      <div class="stat"><div class="num">2</div><div class="label">生产工具</div></div>
+      <div class="stat"><div class="num">5</div><div class="label">知识分类</div></div>
+    </div>
+    <div class="hst">📋 角色 · Character</div>
+    <div class="home-grid">
+      <div class="home-card" onclick="showDoc('d1')"><div class="ci" style="background:var(--accent-bg)">📐</div><h3>2D UGC 角色出图规范</h3><p>基于主流 UGC 游戏总结的全流程规范，涵盖分辨率、部件拆分、色彩等</p><div class="tags"><span class="tag">分辨率</span><span class="tag">部件拆分</span><span class="tag">动画</span><span class="tag">命名</span></div></div>
+      <div class="home-card" onclick="showDoc('d2')"><div class="ci" style="background:var(--purple-bg)">🎨</div><h3>2D 角色换色资源规范</h3><p>换色场景下的资源清单，Mask 遮罩图、调色板替换、灰度叠色等方案</p><div class="tags"><span class="tag">Mask 遮罩</span><span class="tag">HSV</span><span class="tag">通道互斥</span></div></div>
+    </div>
+    <div class="hst" style="margin-top:32px">🔧 生产工具 · Tools</div>
+    <div class="home-grid">
+      <div class="home-card" onclick="openTool('auto-mask')"><div class="ci" style="background:var(--green-bg)">🤖</div><h3>自动 Mask 生成器</h3><p>导入原图自动识别颜色区域，一键生成 R/G/B/A 通道图并打包 ZIP</p><div class="tags"><span class="tag" style="background:var(--green-bg);color:var(--green)">在线工具</span><span class="tag">自动验算</span></div></div>
+      <div class="home-card" onclick="openTool('mask-tool')"><div class="ci" style="background:var(--orange-bg)">🖌️</div><h3>Mask 手动编辑器</h3><p>手动绘制 RGBA 换色遮罩图，支持画笔、油漆桶、橡皮擦</p><div class="tags"><span class="tag" style="background:var(--green-bg);color:var(--green)">在线工具</span><span class="tag">画笔绘制</span></div></div>
+    </div>
+    <div class="hst" style="margin-top:32px">📂 更多分类（建设中）</div>
+    <div class="home-grid">
+      <div class="home-card" style="opacity:.5;cursor:default"><div class="ci" style="background:var(--purple-bg)">🖥️</div><h3>UI · 界面规范</h3><p>UI 组件设计、适配方案、交互标准 —— 待补充</p></div>
+      <div class="home-card" style="opacity:.5;cursor:default"><div class="ci" style="background:var(--green-bg)">🏔️</div><h3>场景 · Scene</h3><p>场景搭建规范、地编标准 —— 待补充</p></div>
+      <div class="home-card" style="opacity:.5;cursor:default"><div class="ci" style="background:var(--orange-bg)">✨</div><h3>特效 · FX</h3><p>粒子特效、动效规范 —— 待补充</p></div>
+      <div class="home-card" style="opacity:.5;cursor:default"><div class="ci" style="background:var(--pink-bg)">⚙️</div><h3>技术 · Tech</h3><p>Shader、性能优化 —— 待补充</p></div>
+    </div>
+  </div>
+  <div class="doc-page" id="page-d1"><div class="doc-bc"><a onclick="goHome()">🏠 首页</a><span>›</span><span>角色</span><span>›</span><span>2D UGC 角色出图规范</span></div><div class="dc" id="ct-d1"></div></div>
+  <div class="doc-page" id="page-d2"><div class="doc-bc"><a onclick="goHome()">🏠 首页</a><span>›</span><span>角色</span><span>›</span><span>2D 角色换色资源规范</span></div><div class="dc" id="ct-d2"></div></div>
+  <div class="doc-page" id="page-search" style="display:none"><div class="doc-bc"><a onclick="goHome()">🏠 首页</a><span>›</span><span>搜索结果</span></div><div class="dc" id="searchResults"></div></div>
+</main>
+<button class="share-btn" onclick="copyShareLink()">🔗 分享此页</button>
+<button class="btt" id="backToTop" onclick="document.getElementById('mainContent').scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script id="md-d1" type="text/markdown">
+# 2D UGC 角色出图规范与注意事项
+
+> 基于市面主流 UGC 游戏（Minecraft / 我的世界、蛋仔派对、元梦之星、口袋方舟 Ark Online、Roblox、Gacha 系列、迷你世界等）的实践经验提炼。
+
+---
+
+## 一、基础技术规范
+
+### 1.1 画布与分辨率
+
+| 要素 | 规范说明 |
+|------|----------|
+| **尺寸必须为 2 的 N 次幂** | 常见尺寸：32×32、64×64、128×128、256×256、512×512、1024×1024、2048×2048 |
+| **像素风格** | 16×16 / 32×32 / 64×64 按需选择 |
+| **高清风格** | 推荐 512×512 或 1024×1024 |
+| **长方形贴图** | 允许非正方形但仍需满足 2^N，如 256×512 |
+| **性能推荐** | 口袋方舟推荐 256×256（±10%）作为性能最优基准 |
+
+**典型案例**：
+- **Minecraft**：基础皮肤贴图为 **64×64** 像素
+- **Roblox**：缩略图推荐 **1920×1080**（16:9）
+
+### 1.2 文件格式
+
+| 格式 | 适用场景 |
+|------|----------|
+| **PNG**（推荐） | 支持透明通道，无损压缩，2D 角色首选 |
+| **TGA** | PBR 流程使用 |
+| **JPEG** | 仅用于展示图/缩略图 |
+| **PSD/ASE** | 源文件格式，不直接用于引擎 |
+
+### 1.3 透明通道（Alpha）
+
+- 角色轮廓外必须为完全透明（Alpha = 0）
+- 导出 PNG 时确认保留 Alpha 通道
+- 避免半透明像素残留
+- 无透贴需求时不要包含 A 通道
+
+---
+
+## 二、角色部件拆分规范
+
+### 2.1 模块化部件划分
+
+| 部件层级 | 包含内容 | 说明 |
+|----------|----------|------|
+| **头发** | 前发、后发、发饰 | 需区分前后层级，支持独立换色 |
+| **面部** | 眼睛、眉毛、嘴巴、腮红 | 独立小图叠加 |
+| **身体/上装** | 躯干、上衣、外套 | 需与下装在腰线处精确对接 |
+| **下装** | 裤子、裙子 | 与上装衔接线需点对点对齐 |
+| **四肢/手套** | 手臂、手套 | 分长款/短款 |
+| **鞋子** | 鞋、袜 | 注意归属规则 |
+| **配饰** | 帽子、眼镜、翅膀等 | 独立图层，灵活叠加 |
+
+### 2.2 拆分对接核心要求
+
+- **衔接线必须精确对齐**
+- **统一锚点/原点**：所有部件共用同一原点坐标系
+- **裸模补齐**：未被服装遮盖的皮肤部分需用基础裸模补全
+- **层级（Z-Order）明确定义**
+- **镜像对称处理**
+
+### 2.3 面数/复杂度控制
+
+| 部件 | 高精模型 | 低精模型 |
+|------|---------|---------|
+| 上衣+身体 | ≤10,000 面 | ≤2,500 面 |
+| 手套+手 | ≤3,500 面 | ≤1,500 面 |
+| 下装+腿 | ≤4,000 面 | ≤1,700 面 |
+| 鞋子+脚 | ≤3,500 面 | ≤1,500 面 |
+| 头发+发饰 | ≤10,000 面 | ≤3,000 面 |
+| **总计** | **≤30,000** | **≤10,000** |
+
+---
+
+## 三、美术风格与色彩规范
+
+### 3.1 头身比与体型
+
+| 风格 | 头身比 | 代表产品 |
+|------|--------|----------|
+| Q 版圆润 | 1:1~2:1 | 蛋仔派对 |
+| Q 版人形 | 2:1~3:1 | 元梦之星、Gacha |
+| 像素复古 | 取决于精度 | Minecraft |
+| 写实卡通 | 3:1~5:1 | 部分 Roblox |
+
+### 3.2 色彩规范
+
+| 要素 | 规范 |
+|------|------|
+| **主色数量** | 3~5 个主色 + 1~2 个点缀色 |
+| **饱和度** | 避免过高饱和，推荐中间调 |
+| **明度对比** | 不同部件之间保持足够明度差 |
+| **色板统一** | 提供统一调色板 |
+| **肤色范围** | 预设多样化肤色选项 |
+| **描边色** | 比填充色深 20%~30% |
+
+### 3.3 光影处理
+
+- **像素风格**：2~3 级明暗
+- **卡通风格**：赛璐珞式硬边阴影或简单渐变
+- **统一光源方向**：固定左上方 45°
+- **避免极端对比**
+
+---
+
+## 四、动画与精灵图规范
+
+### 4.1 精灵图（Sprite Sheet）
+
+| 要素 | 规范 |
+|------|------|
+| **排列方式** | 水平或网格排列，帧间距统一 |
+| **帧尺寸** | 所有帧保持相同画布尺寸 |
+| **帧间距** | 预留 1~2px |
+| **帧率** | 像素 8~12 FPS；高清 12~24 FPS |
+| **帧数参考** | Idle 4~8、Walk 6~8、Run 6~10、Jump 3~6 |
+
+### 4.2 动画兼容性
+
+- 所有部件共用同一套骨骼/关键帧
+- 部件锚点在动画帧中位置一致
+- 预留动画安全区
+
+---
+
+## 五、命名与资源管理规范
+
+### 5.1 文件命名
+
+格式：`类型_性别_部件_编号_变体`
+
+```
+SK_Female_Body_001_Show
+SK_Male_Hair_012
+SP_Unisex_Hat_003_Red
+```
+
+### 5.2 目录结构
+
+```
+/Characters
+  /Base    /Hair    /Face
+  /UpperBody    /LowerBody
+  /Shoes    /Accessories
+  /Thumbnails
+```
+
+---
+
+## 六、UGC 审核与合规
+
+### 6.1 内容安全
+
+- 禁止暴露/色情内容
+- 禁止暴力/血腥元素
+- 禁止敏感符号
+- 版权合规
+
+### 6.2 技术审核
+
+- 文件大小 ≤ 1~5MB
+- 格式验证
+- 尺寸校验 2^N
+- Alpha 通道检查
+- 部件兼容性测试
+
+---
+
+## 七、跨平台与性能优化
+
+| 平台 | 注意事项 |
+|------|----------|
+| **手机** | 贴图 ≤512，减少 Draw Call |
+| **PC** | 可提高到 1024 |
+| **Web** | 单图 ≤200KB，用 WebP |
+
+- 图集合并（Atlas）
+- Mipmap
+- POT 尺寸
+- 压缩格式：ETC2 / PVRTC / ASTC
+- LOD 层级
+
+---
+
+## 八、出图检查清单
+
+- [ ] 画布尺寸为 2^N
+- [ ] PNG 含正确 Alpha
+- [ ] 部件统一锚点
+- [ ] 衔接处无缝隙
+- [ ] Z-Order 正确
+- [ ] 色彩饱和度适中
+- [ ] 光源方向统一
+- [ ] 动画帧尺寸一致
+- [ ] 换装兼容性通过
+- [ ] 文件大小合规
+- [ ] 命名规范
+- [ ] 无合规风险
+- [ ] 多端测试通过
+
+---
+
+## 九、各平台差异速查
+
+| 平台 | 核心特点 | 关键规范 |
+|------|----------|---------|
+| **Minecraft** | 像素风格 | 64×64 PNG，固定UV |
+| **蛋仔派对** | 圆形Q版 | 极简造型，球形体型 |
+| **元梦之星** | 人形Q版 | 联动 IP 多 |
+| **口袋方舟** | 二次元/卡通 | 五大部件拆分 |
+| **Roblox** | 多风格 | 1920×1080 缩略图 |
+| **Gacha** | 纸娃娃 | 100+ 自定义项 |
+
+---
+
+## 十、核心设计原则
+
+1. **一致性优先**：头身比、色板、光影全局统一
+2. **模块化设计**：部件独立、接口标准化
+3. **性能敏感**：移动端优先思维
+4. **安全区预留**：动画换装容错空间
+5. **可扩展性**：命名目录支持持续扩充
+6. **合规底线**：审核规则前置
+7. **跨端适配**：设计阶段考虑多平台
+</script>
+
+<script id="md-d2" type="text/markdown">
+# 2D 角色换色 —— 美术出图资源提供规范
+
+> 本文档面向 2D 美术，梳理"角色换色"场景下需要提供给程序的资源清单、制作规范与注意事项。
+
+---
+
+## 一、换色方案概览
+
+| 方案 | 原理 | 美术资源 | 适用场景 |
+|------|------|---------|----------|
+| **① 调色板替换** | 索引色/LUT 映射 | 原图 + 调色板贴图 | 像素风格 |
+| **② 遮罩分区+HSV** | Mask 标记区域 | 原图 + Mask 遮罩图 | **最主流** |
+| **③ 灰度叠色** | 灰度×目标色 | 灰度底图 | 纯色服装 |
+| **④ 通道混合** | RGB 矩阵运算 | 原图 + Mask | 高品质 |
+| **⑤ 多套贴图** | 每色一套 | N 套贴图 | 颜色少 |
+
+> **推荐**：方案②（遮罩分区 + HSV/Tint），兼顾效果、性能和扩展性。
+
+---
+
+## 二、遮罩分区换色（重点方案）
+
+### 2.1 资源清单
+
+```
+📁 角色资源包
+├── character_base.png     ← 基础原图
+├── character_mask.png     ← 换色遮罩图（RGBA）
+├── palette_config.json    ← 配色方案表（可选）
+└── preview_thumbnail.png  ← 换色预览（可选）
+```
+
+### 2.2 基础原图规范
+
+| 要素 | 规范 |
+|------|------|
+| **格式** | PNG（带 Alpha） |
+| **尺寸** | 2^N，如 512×512 |
+| **色彩** | 正常绘制完整色彩 |
+| **注意** | 换色区域不要纯黑/纯白 |
+| **饱和度** | 中等（40%~70%） |
+
+### 2.3 换色遮罩图 —— 最关键
+
+#### 通道定义
+
+```
+R（红色）→ 换色区域 1（如：头发）
+G（绿色）→ 换色区域 2（如：上衣）
+B（蓝色）→ 换色区域 3（如：裤子）
+A（Alpha）→ 总开关（白=可染，黑=不染）
+```
+
+#### 通道值
+
+| 值 | 含义 |
+|----|------|
+| **255** | 完全受换色影响 |
+| **0** | 不受影响 |
+| **中间值** | 渐变过渡 |
+
+#### 制作要求
+
+| 要素 | 规范 |
+|------|------|
+| **尺寸** | 与原图完全一致 |
+| **对齐** | 像素级对齐 |
+| **格式** | PNG/TGA 无损 |
+| **边缘** | 1~2px 渐变过渡 |
+| **互斥** | R/G/B 同一像素只能一个有值 |
+| **非染色** | A 通道涂黑 |
+
+### 2.4 配色方案表
+
+```json
+{
+  "colorSchemes": [
+    { "name": "默认", "hair": "#8B4513", "top": "#4169E1", "bottom": "#2F4F4F" },
+    { "name": "暖色", "hair": "#D2691E", "top": "#FF6347", "bottom": "#CD853F" },
+    { "name": "冷色", "hair": "#4682B4", "top": "#5F9EA0", "bottom": "#708090" }
+  ]
+}
+```
+
+---
+
+## 三、调色板替换（Palette Swap）
+
+### 3.1 资源
+
+```
+📁 角色资源包
+├── character_indexed.png
+└── palettes/
+    ├── palette_default.png  (256×1)
+    ├── palette_fire.png
+    └── palette_ice.png
+```
+
+### 3.2 索引色原图规范
+
+- 颜色控制在 8~32 色
+- 被独立换色的区域 R 通道值必须唯一
+- 避免渐变，每种颜色为纯色色块
+- 必须导出颜色对照表
+
+### 3.3 调色板贴图规范
+
+- 尺寸 256×1
+- PNG 无压缩/无抗锯齿
+- 第 X 像素 = R 值为 X 的像素替换色
+- 采样模式设为 Point（最近邻）
+
+---
+
+## 四、灰度底图 + 叠色
+
+### 4.1 资源
+
+```
+📁 角色资源包
+├── character_grayscale.png
+├── character_mask.png  (可选)
+└── character_detail.png  (可选)
+```
+
+### 4.2 灰度图规范
+
+- 完全去色，只保留明暗
+- 基础亮度 128~200
+- 褶皱/阴影/高光用灰度表现
+- 原理：最终颜色 = 灰度 × 目标色
+
+---
+
+## 五、超过 3 个换色区域的扩展
+
+### 方案 A：灰度分段
+
+```
+0          不换色
+1~50       区域1（头发）
+51~100     区域2（上衣）
+101~150    区域3（裤子）
+151~200    区域4（鞋子）
+201~255    区域5（配饰）
+```
+
+### 方案 B：多张 Mask
+
+```
+mask_1.png → R=头发, G=上衣, B=裤子
+mask_2.png → R=鞋子, G=手套, B=配饰
+```
+
+---
+
+## 六、对接检查清单
+
+### 出图前
+
+- [ ] 确认换色方案
+- [ ] 确认换色区域数量
+- [ ] 确认通道分配定义
+- [ ] 确认尺寸和格式
+
+### 出图时
+
+- [ ] 原图换色区域无纯黑/纯白
+- [ ] Mask 与原图尺寸一致、像素对齐
+- [ ] 无损格式（不要 JPEG）
+- [ ] 通道互斥
+- [ ] A 通道正确标记
+- [ ] 边缘处理干净
+
+### 交付时
+
+- [ ] 基础原图 `.png`
+- [ ] 遮罩图 `.png` + 通道说明
+- [ ] 配色方案 `.json`
+- [ ] 换色区域说明
+- [ ] 至少 3 套配色预览
+
+---
+
+## 七、常见踩坑
+
+| 问题 | 原因 | 解决 |
+|------|------|------|
+| 杂色/噪点 | Mask 用了 JPEG | 用 PNG/TGA |
+| 边缘锯齿 | 硬切像素 | 1~2px 渐变 |
+| 黑白换不了色 | HSV 偏移无效 | 用深灰/浅灰 |
+| 串色 | 多通道有值 | 确保互斥 |
+| 光影消失 | 阴影不够 | 保持明暗层次 |
+| 脸部被染色 | A 通道未涂黑 | 检查 Alpha |
+| 调色板错乱 | R 值重复 | R 通道唯一 |
+| Mask 对不上 | 尺寸偏移 | 同画布分层导出 |
+
+---
+
+## 八、核心原则
+
+1. **先定方案再出图**
+2. **Mask 是关键**
+3. **无损格式是铁律**
+4. **通道互斥**
+5. **保留明暗层次**
+6. **充分沟通**
+</script>
+
+<script>
+// ─── Markdown Parser ───
+function parseMd(md){
+  let h=md;
+  h=h.replace(/```(\w*)\n([\s\S]*?)```/g,(_,l,c)=>`<pre><code>${esc(c.trim())}</code></pre>`);
+  h=h.replace(/^(\|.+\|)\n(\|[-| :]+\|)\n((?:\|.+\|\n?)*)/gm,(_,hdr,sep,body)=>{
+    const ths=hdr.split('|').filter(c=>c.trim()).map(c=>`<th>${il(c.trim())}</th>`).join('');
+    const rows=body.trim().split('\n').map(r=>{const tds=r.split('|').filter(c=>c.trim()).map(c=>`<td>${il(c.trim())}</td>`).join('');return`<tr>${tds}</tr>`;}).join('');
+    return`<table><thead><tr>${ths}</tr></thead><tbody>${rows}</tbody></table>`;
+  });
+  h=h.replace(/^#### (.+)$/gm,'<h4>$1</h4>');
+  h=h.replace(/^### (.+)$/gm,(_,t)=>`<h3 id="${sl(t)}">${il(t)}</h3>`);
+  h=h.replace(/^## (.+)$/gm,(_,t)=>`<h2 id="${sl(t)}">${il(t)}</h2>`);
+  h=h.replace(/^# (.+)$/gm,(_,t)=>`<h1>${il(t)}</h1>`);
+  h=h.replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>');
+  h=h.replace(/<\/blockquote>\n<blockquote>/g,'<br>');
+  h=h.replace(/^---$/gm,'<hr>');
+  h=h.replace(/^- \[( |x)\] (.+)$/gm,(_,c,t)=>`<p><input type="checkbox"${c==='x'?' checked':''} disabled>${il(t)}</p>`);
+  h=h.replace(/^- (.+)$/gm,'<li>$1</li>');
+  h=h.replace(/(<li>.*<\/li>\n?)+/g,m=>`<ul>${m}</ul>`);
+  h=h.replace(/^\d+\. (.+)$/gm,'<li>$1</li>');
+  h=h.replace(/^(?!<[a-z/])((?!<).+)$/gm,m=>m.trim()?`<p>${il(m)}</p>`:m);
+  h=h.replace(/<p><\/p>/g,'');
+  return h;
+}
+function il(t){t=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');t=t.replace(/`([^`]+)`/g,'<code>$1</code>');return t;}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function sl(t){return t.replace(/[^\w\u4e00-\u9fff]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');}
+function er(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+
+// ─── Data ───
+const docs={};
+const meta={'d1':{cat:'character',title:'2D UGC 角色出图规范'},'d2':{cat:'character',title:'2D 角色换色资源规范'}};
+let curPage='home';
+
+function initDocs(){
+  document.querySelectorAll('script[type="text/markdown"]').forEach(el=>{
+    const id=el.id.replace('md-','');
+    docs[id]=el.textContent.trim();
+  });
+  const hash=location.hash.slice(1);
+  if(hash&&docs[hash])showDoc(hash);
+  else if(hash==='auto-mask'||hash==='mask-tool')openTool(hash);
+}
+
+function goHome(btn){
+  curPage='home';location.hash='';
+  document.getElementById('pageHome').style.display='block';
+  document.querySelectorAll('.doc-page').forEach(p=>{p.style.display='none';p.classList.remove('active');});
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('navHome').classList.add('active');
+  document.querySelectorAll('.nav-toc').forEach(t=>t.innerHTML='');
+  document.getElementById('mainContent').scrollTop=0;
+  document.querySelector('.sidebar').classList.remove('open');
+}
+
+function showDoc(docId,btn){
+  curPage=docId;location.hash=docId;
+  document.getElementById('pageHome').style.display='none';
+  document.querySelectorAll('.doc-page').forEach(p=>{p.style.display='none';p.classList.remove('active');});
+  const page=document.getElementById(`page-${docId}`);
+  if(page){page.style.display='block';page.classList.add('active');
+    const ct=document.getElementById(`ct-${docId}`);
+    if(!ct.innerHTML.trim())ct.innerHTML=parseMd(docs[docId]);
+  }
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(btn){btn.classList.add('active');}
+  else{document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes(docId))n.classList.add('active');});}
+  const m=meta[docId];
+  if(m){const cat=document.getElementById(`cat-${m.cat}`);if(cat)cat.classList.add('open');}
+  buildToc(docId);
+  document.getElementById('mainContent').scrollTop=0;
+  document.querySelector('.sidebar').classList.remove('open');
+}
+
+function openTool(name){
+  // 尝试相对路径打开工具，同时支持多种目录结构
+  const paths=[`knowledge-base/${name}.html`,`${name}.html`,`../knowledge-base/${name}.html`];
+  const w=window.open(paths[0],'_blank');
+  if(!w)showToast('请允许弹出窗口后重试');
+}
+function toggleCat(id){document.getElementById(id).classList.toggle('open');}
+
+function buildToc(docId){
+  document.querySelectorAll('.nav-toc').forEach(t=>t.innerHTML='');
+  const tc=document.getElementById(`toc-${docId}`);if(!tc)return;
+  const ct=document.getElementById(`ct-${docId}`);
+  ct.querySelectorAll('h2').forEach(h=>{
+    const b=document.createElement('button');b.className='toc-item';b.textContent=h.textContent;
+    b.onclick=()=>{h.scrollIntoView({behavior:'smooth',block:'start'});document.querySelectorAll('.toc-item').forEach(t=>t.classList.remove('active'));b.classList.add('active');};
+    tc.appendChild(b);
+  });
+}
+
+// ─── Search ───
+function handleSearch(q){
+  q=q.toLowerCase().trim();
+  if(!q){if(curPage==='home'||curPage==='search')goHome();else showDoc(curPage);return;}
+  let res=[];
+  for(const[id,md]of Object.entries(docs)){
+    const m=meta[id]||{};
+    md.split('\n').forEach((line,i)=>{if(line.toLowerCase().includes(q))res.push({docId:id,title:m.title||id,line:line.trim(),i});});
+  }
+  document.getElementById('pageHome').style.display='none';
+  document.querySelectorAll('.doc-page').forEach(p=>{p.style.display='none';p.classList.remove('active');});
+  const sp=document.getElementById('page-search');sp.style.display='block';
+  const c=document.getElementById('searchResults');
+  if(!res.length){c.innerHTML=`<p style="color:var(--dim);padding:40px 0;text-align:center">未找到「${esc(q)}」</p>`;return;}
+  let html=`<h2>搜索「${esc(q)}」— ${res.length} 条结果</h2>`;
+  res.slice(0,40).forEach(r=>{
+    const hl=r.line.replace(new RegExp(`(${er(q)})`,'gi'),'<mark style="background:var(--accent);color:#fff;padding:0 2px;border-radius:2px">$1</mark>');
+    html+=`<div style="padding:12px 16px;margin:8px 0;background:var(--card-bg);border-radius:8px;border:1px solid var(--border);cursor:pointer" onclick="showDoc('${r.docId}');document.getElementById('searchInput').value=''">
+      <div style="font-size:11px;color:var(--accent);margin-bottom:4px">${r.title}</div>
+      <div style="font-size:13px">${hl}</div></div>`;
+  });
+  c.innerHTML=html;
+}
+
+// ─── Share ───
+function copyShareLink(){
+  const url=location.href;
+  navigator.clipboard.writeText(url).then(()=>showToast('链接已复制到剪贴板')).catch(()=>showToast('复制失败，请手动复制'));
+}
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+// ─── Scroll ───
+const mainEl=document.getElementById('mainContent');
+mainEl.addEventListener('scroll',()=>{
+  document.getElementById('backToTop').classList.toggle('show',mainEl.scrollTop>300);
+  const hs=document.querySelectorAll('.doc-page.active h2');
+  const ts=document.querySelectorAll('.toc-item');
+  let ai=0;hs.forEach((h,i)=>{if(h.getBoundingClientRect().top<100)ai=i;});
+  ts.forEach((t,i)=>t.classList.toggle('active',i===ai));
+});
+
+// ─── Init ───
+initDocs();
+</script>
+</body>
+</html>

@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2D 角色换色 Mask 通道生成工具</title>
+<style>
+:root {
+  --bg: #0d0f15;
+  --panel: #141620;
+  --card: #1a1d2b;
+  --border: #262a3a;
+  --text: #c5c9d6;
+  --text-dim: #6b7085;
+  --heading: #e4e6ed;
+  --accent: #6c8cff;
+  --accent2: #a78bfa;
+  --red: #f87171;
+  --green: #4ade80;
+  --blue: #60a5fa;
+  --yellow: #fbbf24;
+  --orange: #fb923c;
+  --pink: #f472b6;
+  --cyan: #22d3ee;
+  --r: 240;
+  --g: 120;
+  --b: 80;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.header h1 { font-size: 15px; color: var(--heading); font-weight: 600; }
+.header-actions { display: flex; gap: 8px; }
+
+/* Buttons */
+.btn {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  transition: all .15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn:hover { border-color: var(--accent); color: var(--heading); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: #5a7aee; }
+.btn-danger { border-color: var(--red); color: var(--red); }
+.btn-danger:hover { background: rgba(248,113,113,.1); }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+
+/* Layout */
+.workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Left Panel - Tools */
+.tool-panel {
+  width: 260px;
+  min-width: 260px;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.panel-section {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.panel-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 10px;
+}
+
+/* Channel buttons */
+.channel-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.channel-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  background: var(--card);
+  transition: all .15s;
+  font-family: inherit;
+  color: var(--text);
+  font-size: 12px;
+  width: 100%;
+  text-align: left;
+}
+.channel-btn:hover { border-color: var(--border); }
+.channel-btn.active { border-color: var(--accent); background: rgba(108,140,255,.08); }
+.channel-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.channel-label { flex:1; }
+.channel-key {
+  font-size: 10px;
+  color: var(--text-dim);
+  background: var(--bg);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* Brush settings */
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.setting-label { font-size: 12px; color: var(--text-dim); }
+.setting-value { font-size: 12px; color: var(--heading); min-width: 36px; text-align: right; }
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+  margin: 4px 0 8px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+
+/* Region list */
+.region-list { display: flex; flex-direction: column; gap: 4px; }
+.region-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--card);
+  border-radius: 6px;
+  font-size: 12px;
+}
+.region-item input[type="text"] {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  padding: 3px 6px;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+}
+.region-item input[type="text"]:focus { border-color: var(--accent); }
+.region-color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* Canvas Area */
+.canvas-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+.canvas-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.toolbar-sep { width: 1px; height: 20px; background: var(--border); }
+.canvas-info { font-size: 11px; color: var(--text-dim); margin-left: auto; }
+
+.canvas-viewport {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background:
+    linear-gradient(45deg, #1a1c28 25%, transparent 25%),
+    linear-gradient(-45deg, #1a1c28 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #1a1c28 75%),
+    linear-gradient(-45deg, transparent 75%, #1a1c28 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  cursor: crosshair;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.canvas-container {
+  position: relative;
+  transform-origin: center;
+}
+.canvas-container canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  image-rendering: pixelated;
+}
+#baseCanvas { z-index: 1; }
+#maskCanvas { z-index: 2; }
+#cursorCanvas { z-index: 3; pointer-events: none; }
+
+/* Right Panel - Preview */
+.preview-panel {
+  width: 240px;
+  min-width: 240px;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.preview-box {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.preview-box canvas {
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  image-rendering: pixelated;
+  background:
+    linear-gradient(45deg, #1a1c28 25%, transparent 25%),
+    linear-gradient(-45deg, #1a1c28 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #1a1c28 75%),
+    linear-gradient(-45deg, transparent 75%, #1a1c28 75%);
+  background-size: 12px 12px;
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
+}
+.preview-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.preview-label .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* Drop zone */
+.drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+  color: var(--text-dim);
+  text-align: center;
+}
+.drop-zone-icon { font-size: 48px; opacity: .3; }
+.drop-zone-text { font-size: 14px; }
+.drop-zone-hint { font-size: 12px; opacity: .6; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--heading);
+  z-index: 999;
+  transition: transform .3s;
+  pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Opacity slider overlay */
+.opacity-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.opacity-control label { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+.opacity-control input[type="range"] { width: 80px; margin: 0; }
+
+/* Color scheme preview */
+.scheme-row {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+  align-items: center;
+}
+.scheme-row label { font-size: 11px; color: var(--text-dim); width: 50px; flex-shrink: 0; }
+.scheme-row input[type="color"] {
+  width: 28px; height: 22px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--card);
+  cursor: pointer;
+  padding: 0;
+}
+
+/* History indicator */
+.history-info { font-size: 11px; color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>2D 角色换色 Mask 通道生成工具</h1>
+  <div class="header-actions">
+    <button class="btn" onclick="importImage()">导入原图</button>
+    <button class="btn" onclick="importMask()">导入 Mask</button>
+    <button class="btn btn-primary" onclick="exportMask()">导出 Mask PNG</button>
+    <button class="btn" onclick="exportScheme()">导出配色 JSON</button>
+  </div>
+</div>
+
+<div class="workspace">
+  <!-- Left Tool Panel -->
+  <div class="tool-panel">
+    <div class="panel-section">
+      <div class="panel-title">绘制工具</div>
+      <div style="display:flex;gap:4px;margin-bottom:10px;">
+        <button class="btn btn-sm" id="toolBrush" onclick="setTool('brush')" style="flex:1;justify-content:center;">画笔</button>
+        <button class="btn btn-sm" id="toolEraser" onclick="setTool('eraser')" style="flex:1;justify-content:center;">橡皮擦</button>
+        <button class="btn btn-sm" id="toolFill" onclick="setTool('fill')" style="flex:1;justify-content:center;">油漆桶</button>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">通道选择（快捷键 1-5）</div>
+      <div class="channel-grid" id="channelGrid"></div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">画笔设置</div>
+      <div class="setting-row">
+        <span class="setting-label">大小</span>
+        <span class="setting-value" id="brushSizeVal">10</span>
+      </div>
+      <input type="range" id="brushSize" min="1" max="100" value="10" oninput="updateBrushSize(this.value)">
+      <div class="setting-row">
+        <span class="setting-label">硬度</span>
+        <span class="setting-value" id="hardnessVal">100%</span>
+      </div>
+      <input type="range" id="hardness" min="0" max="100" value="100" oninput="updateHardness(this.value)">
+      <div class="setting-row">
+        <span class="setting-label">强度</span>
+        <span class="setting-value" id="strengthVal">255</span>
+      </div>
+      <input type="range" id="strength" min="1" max="255" value="255" oninput="updateStrength(this.value)">
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">区域命名</div>
+      <div class="region-list" id="regionList"></div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">换色预览配色</div>
+      <div id="schemeColors"></div>
+      <button class="btn btn-sm" onclick="applyColorPreview()" style="width:100%;justify-content:center;margin-top:8px;">刷新预览</button>
+    </div>
+
+    <div class="panel-section">
+      <div style="display:flex;gap:4px;">
+        <button class="btn btn-sm btn-danger" onclick="clearMask()" style="flex:1;justify-content:center;">清空 Mask</button>
+        <button class="btn btn-sm" onclick="undo()" style="flex:1;justify-content:center;">撤销 (Z)</button>
+        <button class="btn btn-sm" onclick="redo()" style="flex:1;justify-content:center;">重做 (Y)</button>
+      </div>
+      <div class="history-info" id="historyInfo" style="margin-top:6px;text-align:center;"></div>
+    </div>
+  </div>
+
+  <!-- Canvas Area -->
+  <div class="canvas-area">
+    <div class="canvas-toolbar">
+      <button class="btn btn-sm" onclick="zoomIn()">放大 (+)</button>
+      <button class="btn btn-sm" onclick="zoomOut()">缩小 (-)</button>
+      <button class="btn btn-sm" onclick="resetZoom()">适应</button>
+      <div class="toolbar-sep"></div>
+      <div class="opacity-control">
+        <label>Mask 透明度</label>
+        <input type="range" id="maskOpacity" min="0" max="100" value="60" oninput="updateMaskOpacity(this.value)">
+        <span style="font-size:11px;color:var(--text-dim);min-width:28px;" id="maskOpacityVal">60%</span>
+      </div>
+      <div class="toolbar-sep"></div>
+      <label style="font-size:11px;color:var(--text-dim);display:flex;align-items:center;gap:4px;">
+        <input type="checkbox" id="showBase" checked onchange="render()"> 显示底图
+      </label>
+      <div class="canvas-info" id="canvasInfo">请导入图片开始</div>
+    </div>
+    <div class="canvas-viewport" id="viewport">
+      <div id="dropZone" class="drop-zone">
+        <div class="drop-zone-icon">+</div>
+        <div class="drop-zone-text">拖放角色原图到此处</div>
+        <div class="drop-zone-hint">支持 PNG / JPG / TGA · 或点击上方「导入原图」按钮</div>
+      </div>
+      <div class="canvas-container" id="canvasContainer" style="display:none;">
+        <canvas id="baseCanvas"></canvas>
+        <canvas id="maskCanvas"></canvas>
+        <canvas id="cursorCanvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Preview Panel -->
+  <div class="preview-panel">
+    <div class="preview-box">
+      <div class="preview-label">合成 Mask（RGBA）</div>
+      <canvas id="previewComposite" width="200" height="200"></canvas>
+    </div>
+    <div class="preview-box">
+      <div class="preview-label"><span class="dot" style="background:#f66;"></span>R 通道 — <span id="rLabel">区域1</span></div>
+      <canvas id="previewR" width="200" height="200"></canvas>
+    </div>
+    <div class="preview-box">
+      <div class="preview-label"><span class="dot" style="background:#6f6;"></span>G 通道 — <span id="gLabel">区域2</span></div>
+      <canvas id="previewG" width="200" height="200"></canvas>
+    </div>
+    <div class="preview-box">
+      <div class="preview-label"><span class="dot" style="background:#66f;"></span>B 通道 — <span id="bLabel">区域3</span></div>
+      <canvas id="previewB" width="200" height="200"></canvas>
+    </div>
+    <div class="preview-box">
+      <div class="preview-label"><span class="dot" style="background:#fff;"></span>A 通道 — 染色开关</div>
+      <canvas id="previewA" width="200" height="200"></canvas>
+    </div>
+    <div class="preview-box">
+      <div class="preview-label">换色效果预览</div>
+      <canvas id="previewColor" width="200" height="200"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" accept="image/*" style="display:none">
+<input type="file" id="maskFileInput" accept="image/*" style="display:none">
+
+<script>
+// ─── State ───
+const state = {
+  tool: 'brush',
+  channel: 0,           // 0=R,1=G,2=B,3=A(paint),4=Eraser-all
+  brushSize: 10,
+  hardness: 100,
+  strength: 255,
+  zoom: 1,
+  panX: 0, panY: 0,
+  maskOpacity: 0.6,
+  imgW: 0, imgH: 0,
+  loaded: false,
+  drawing: false,
+  lastX: -1, lastY: -1,
+  regions: ['头发', '上衣', '裤子'],
+  schemeColors: ['#8B4513', '#4169E1', '#2F4F4F'],
+};
+
+const channels = [
+  { name: 'R 通道', color: '#f66', key: '1', desc: '区域1' },
+  { name: 'G 通道', color: '#6f6', key: '2', desc: '区域2' },
+  { name: 'B 通道', color: '#66f', key: '3', desc: '区域3' },
+  { name: 'A 通道（开关）', color: '#eee', key: '4', desc: '染色开关' },
+  { name: '擦除所有通道', color: '#666', key: '5', desc: '清除' },
+];
+
+// History
+let history = [];
+let historyIdx = -1;
+const MAX_HISTORY = 30;
+
+// Canvases
+let baseCanvas, maskCanvas, cursorCanvas;
+let baseCtx, maskCtx, cursorCtx;
+let maskData = null;    // ImageData of mask
+let baseImage = null;   // original Image
+
+// ─── Init ───
+function init() {
+  baseCanvas = document.getElementById('baseCanvas');
+  maskCanvas = document.getElementById('maskCanvas');
+  cursorCanvas = document.getElementById('cursorCanvas');
+  baseCtx = baseCanvas.getContext('2d');
+  maskCtx = maskCanvas.getContext('2d');
+  cursorCtx = cursorCanvas.getContext('2d');
+
+  buildChannelGrid();
+  buildRegionList();
+  buildSchemeColors();
+  setTool('brush');
+  setChannel(0);
+  setupEvents();
+  updateHistoryInfo();
+}
+
+function buildChannelGrid() {
+  const grid = document.getElementById('channelGrid');
+  grid.innerHTML = channels.map((c, i) =>
+    `<button class="channel-btn" id="ch${i}" onclick="setChannel(${i})">
+      <span class="channel-dot" style="background:${c.color}"></span>
+      <span class="channel-label">${c.name}</span>
+      <span class="channel-key">${c.key}</span>
+    </button>`
+  ).join('');
+}
+
+function buildRegionList() {
+  const list = document.getElementById('regionList');
+  const cols = ['#f66', '#6f6', '#66f'];
+  list.innerHTML = state.regions.map((r, i) =>
+    `<div class="region-item">
+      <span class="region-color-dot" style="background:${cols[i]}"></span>
+      <input type="text" value="${r}" onchange="updateRegionName(${i}, this.value)">
+    </div>`
+  ).join('');
+}
+
+function buildSchemeColors() {
+  const el = document.getElementById('schemeColors');
+  const labels = ['区域1', '区域2', '区域3'];
+  el.innerHTML = state.schemeColors.map((c, i) =>
+    `<div class="scheme-row">
+      <label>${state.regions[i] || labels[i]}</label>
+      <input type="color" value="${c}" onchange="state.schemeColors[${i}]=this.value">
+    </div>`
+  ).join('');
+}
+
+function updateRegionName(idx, name) {
+  state.regions[idx] = name;
+  const labels = ['rLabel', 'gLabel', 'bLabel'];
+  if (labels[idx]) document.getElementById(labels[idx]).textContent = name;
+  buildSchemeColors();
+}
+
+// ─── Tools ───
+function setTool(tool) {
+  state.tool = tool;
+  document.getElementById('toolBrush').style.borderColor = tool === 'brush' ? 'var(--accent)' : '';
+  document.getElementById('toolEraser').style.borderColor = tool === 'eraser' ? 'var(--accent)' : '';
+  document.getElementById('toolFill').style.borderColor = tool === 'fill' ? 'var(--accent)' : '';
+  if (tool === 'eraser') setChannel(4);
+  else if (state.channel === 4) setChannel(0);
+}
+
+function setChannel(idx) {
+  state.channel = idx;
+  channels.forEach((_, i) => {
+    document.getElementById(`ch${i}`).classList.toggle('active', i === idx);
+  });
+  if (idx === 4) {
+    state.tool = 'eraser';
+    document.getElementById('toolEraser').style.borderColor = 'var(--accent)';
+    document.getElementById('toolBrush').style.borderColor = '';
+  }
+}
+
+function updateBrushSize(v) {
+  state.brushSize = parseInt(v);
+  document.getElementById('brushSizeVal').textContent = v;
+}
+
+function updateHardness(v) {
+  state.hardness = parseInt(v);
+  document.getElementById('hardnessVal').textContent = v + '%';
+}
+
+function updateStrength(v) {
+  state.strength = parseInt(v);
+  document.getElementById('strengthVal').textContent = v;
+}
+
+function updateMaskOpacity(v) {
+  state.maskOpacity = parseInt(v) / 100;
+  document.getElementById('maskOpacityVal').textContent = v + '%';
+  render();
+}
+
+// ─── Image Import ───
+function importImage() {
+  const input = document.getElementById('fileInput');
+  input.onchange = e => { if (e.target.files[0]) loadImage(e.target.files[0]); };
+  input.click();
+}
+
+function importMask() {
+  if (!state.loaded) { showToast('请先导入原图'); return; }
+  const input = document.getElementById('maskFileInput');
+  input.onchange = e => { if (e.target.files[0]) loadMaskFile(e.target.files[0]); };
+  input.click();
+}
+
+function loadImage(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      baseImage = img;
+      state.imgW = img.width;
+      state.imgH = img.height;
+      setupCanvases();
+      baseCtx.drawImage(img, 0, 0);
+      maskData = maskCtx.createImageData(img.width, img.height);
+      // Default: A channel = 0 (all not dyeable)
+      state.loaded = true;
+      document.getElementById('dropZone').style.display = 'none';
+      document.getElementById('canvasContainer').style.display = 'block';
+      resetZoom();
+      saveHistory();
+      render();
+      updatePreviews();
+      showToast(`已加载 ${img.width}×${img.height} 图片`);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function loadMaskFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const tmpCanvas = document.createElement('canvas');
+      tmpCanvas.width = state.imgW;
+      tmpCanvas.height = state.imgH;
+      const tmpCtx = tmpCanvas.getContext('2d');
+      tmpCtx.drawImage(img, 0, 0, state.imgW, state.imgH);
+      maskData = tmpCtx.getImageData(0, 0, state.imgW, state.imgH);
+      saveHistory();
+      render();
+      updatePreviews();
+      showToast('Mask 已导入');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function setupCanvases() {
+  [baseCanvas, maskCanvas, cursorCanvas].forEach(c => {
+    c.width = state.imgW;
+    c.height = state.imgH;
+  });
+  const cont = document.getElementById('canvasContainer');
+  cont.style.width = state.imgW + 'px';
+  cont.style.height = state.imgH + 'px';
+}
+
+// ─── Render ───
+function render() {
+  if (!state.loaded) return;
+  // Base
+  baseCtx.clearRect(0, 0, state.imgW, state.imgH);
+  if (document.getElementById('showBase').checked) {
+    baseCtx.drawImage(baseImage, 0, 0);
+  }
+  // Mask overlay
+  maskCtx.clearRect(0, 0, state.imgW, state.imgH);
+  const tmpCanvas = document.createElement('canvas');
+  tmpCanvas.width = state.imgW;
+  tmpCanvas.height = state.imgH;
+  const tmpCtx = tmpCanvas.getContext('2d');
+  const display = tmpCtx.createImageData(state.imgW, state.imgH);
+  const d = display.data;
+  const m = maskData.data;
+  for (let i = 0; i < m.length; i += 4) {
+    const r = m[i], g = m[i+1], b = m[i+2], a = m[i+3];
+    // Show channels as colored overlay
+    if (a > 0) {
+      if (r > 0) { d[i] = 255; d[i+1] = 60; d[i+2] = 60; d[i+3] = Math.min(255, r * state.maskOpacity); }
+      else if (g > 0) { d[i] = 60; d[i+1] = 255; d[i+2] = 60; d[i+3] = Math.min(255, g * state.maskOpacity); }
+      else if (b > 0) { d[i] = 60; d[i+1] = 100; d[i+2] = 255; d[i+3] = Math.min(255, b * state.maskOpacity); }
+      else { d[i] = 255; d[i+1] = 255; d[i+2] = 255; d[i+3] = Math.min(255, a * state.maskOpacity * 0.3); }
+    }
+  }
+  tmpCtx.putImageData(display, 0, 0);
+  maskCtx.drawImage(tmpCanvas, 0, 0);
+  updateCanvasInfo();
+}
+
+function updateCanvasInfo() {
+  document.getElementById('canvasInfo').textContent =
+    `${state.imgW}×${state.imgH}px · 缩放 ${Math.round(state.zoom * 100)}%`;
+}
+
+// ─── Zoom & Pan ───
+function applyTransform() {
+  const cont = document.getElementById('canvasContainer');
+  cont.style.transform = `scale(${state.zoom})`;
+}
+
+function zoomIn() { state.zoom = Math.min(10, state.zoom * 1.25); applyTransform(); updateCanvasInfo(); }
+function zoomOut() { state.zoom = Math.max(0.1, state.zoom / 1.25); applyTransform(); updateCanvasInfo(); }
+
+function resetZoom() {
+  if (!state.loaded) return;
+  const vp = document.getElementById('viewport');
+  const scaleX = (vp.clientWidth - 40) / state.imgW;
+  const scaleY = (vp.clientHeight - 40) / state.imgH;
+  state.zoom = Math.min(scaleX, scaleY, 4);
+  applyTransform();
+  updateCanvasInfo();
+}
+
+// ─── Drawing ───
+function getCanvasPos(e) {
+  const rect = maskCanvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / state.zoom;
+  const y = (e.clientY - rect.top) / state.zoom;
+  return { x: Math.round(x), y: Math.round(y) };
+}
+
+function drawBrushStroke(x, y) {
+  if (!maskData) return;
+  const r = state.brushSize;
+  const d = maskData.data;
+  const w = state.imgW;
+  const h = state.imgH;
+  const ch = state.channel;
+  const str = state.strength;
+  const hard = state.hardness / 100;
+
+  for (let dy = -r; dy <= r; dy++) {
+    for (let dx = -r; dx <= r; dx++) {
+      const px = x + dx;
+      const py = y + dy;
+      if (px < 0 || px >= w || py < 0 || py >= h) continue;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist > r) continue;
+
+      let intensity = str;
+      if (hard < 1) {
+        const edge = 1 - (dist / r);
+        const softFactor = hard + (1 - hard) * edge;
+        intensity = Math.round(str * softFactor);
+      }
+
+      const idx = (py * w + px) * 4;
+
+      if (state.tool === 'eraser' || ch === 4) {
+        // Erase all channels
+        d[idx] = 0; d[idx+1] = 0; d[idx+2] = 0; d[idx+3] = 0;
+      } else if (ch === 3) {
+        // A channel only (toggle dyeable)
+        d[idx+3] = Math.max(d[idx+3], intensity);
+      } else {
+        // R/G/B channel - enforce mutual exclusion
+        d[idx] = ch === 0 ? Math.max(d[idx], intensity) : 0;
+        d[idx+1] = ch === 1 ? Math.max(d[idx+1], intensity) : 0;
+        d[idx+2] = ch === 2 ? Math.max(d[idx+2], intensity) : 0;
+        // Auto-set A channel when painting R/G/B
+        d[idx+3] = Math.max(d[idx+3], intensity);
+      }
+    }
+  }
+}
+
+function floodFill(startX, startY) {
+  if (!maskData) return;
+  if (startX < 0 || startX >= state.imgW || startY < 0 || startY >= state.imgH) return;
+
+  // Use base image to determine fill region
+  const baseData = baseCtx.getImageData(0, 0, state.imgW, state.imgH).data;
+  const w = state.imgW;
+  const h = state.imgH;
+  const d = maskData.data;
+  const ch = state.channel;
+  const str = state.strength;
+  const tolerance = 32;
+
+  const startIdx = (startY * w + startX) * 4;
+  const sr = baseData[startIdx], sg = baseData[startIdx+1], sb = baseData[startIdx+2], sa = baseData[startIdx+3];
+
+  const visited = new Uint8Array(w * h);
+  const stack = [[startX, startY]];
+
+  function colorMatch(idx) {
+    return Math.abs(baseData[idx] - sr) + Math.abs(baseData[idx+1] - sg) +
+           Math.abs(baseData[idx+2] - sb) + Math.abs(baseData[idx+3] - sa) <= tolerance * 4;
+  }
+
+  while (stack.length > 0) {
+    const [px, py] = stack.pop();
+    const pi = py * w + px;
+    if (visited[pi]) continue;
+    visited[pi] = 1;
+
+    const idx = pi * 4;
+    if (!colorMatch(idx)) continue;
+
+    if (state.tool === 'eraser' || ch === 4) {
+      d[idx] = 0; d[idx+1] = 0; d[idx+2] = 0; d[idx+3] = 0;
+    } else if (ch === 3) {
+      d[idx+3] = str;
+    } else {
+      d[idx] = ch === 0 ? str : 0;
+      d[idx+1] = ch === 1 ? str : 0;
+      d[idx+2] = ch === 2 ? str : 0;
+      d[idx+3] = str;
+    }
+
+    if (px > 0) stack.push([px-1, py]);
+    if (px < w-1) stack.push([px+1, py]);
+    if (py > 0) stack.push([px, py-1]);
+    if (py < h-1) stack.push([px, py+1]);
+  }
+}
+
+function interpolateStroke(x0, y0, x1, y1) {
+  const dx = Math.abs(x1 - x0);
+  const dy = Math.abs(y1 - y0);
+  const steps = Math.max(dx, dy, 1);
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const x = Math.round(x0 + (x1 - x0) * t);
+    const y = Math.round(y0 + (y1 - y0) * t);
+    drawBrushStroke(x, y);
+  }
+}
+
+// ─── Cursor ───
+function drawCursor(x, y) {
+  cursorCtx.clearRect(0, 0, state.imgW, state.imgH);
+  cursorCtx.beginPath();
+  cursorCtx.arc(x, y, state.brushSize, 0, Math.PI * 2);
+  cursorCtx.strokeStyle = 'rgba(255,255,255,0.6)';
+  cursorCtx.lineWidth = 1 / state.zoom;
+  cursorCtx.stroke();
+}
+
+// ─── Events ───
+function setupEvents() {
+  const vp = document.getElementById('viewport');
+
+  vp.addEventListener('mousedown', e => {
+    if (!state.loaded || e.button !== 0) return;
+    const pos = getCanvasPos(e);
+    state.drawing = true;
+    state.lastX = pos.x;
+    state.lastY = pos.y;
+    if (state.tool === 'fill') {
+      floodFill(pos.x, pos.y);
+      saveHistory();
+      render();
+      updatePreviews();
+      state.drawing = false;
+    } else {
+      drawBrushStroke(pos.x, pos.y);
+      render();
+    }
+  });
+
+  vp.addEventListener('mousemove', e => {
+    if (!state.loaded) return;
+    const pos = getCanvasPos(e);
+    drawCursor(pos.x, pos.y);
+    if (state.drawing && state.tool !== 'fill') {
+      interpolateStroke(state.lastX, state.lastY, pos.x, pos.y);
+      state.lastX = pos.x;
+      state.lastY = pos.y;
+      render();
+    }
+  });
+
+  vp.addEventListener('mouseup', () => {
+    if (state.drawing) {
+      state.drawing = false;
+      saveHistory();
+      updatePreviews();
+    }
+  });
+
+  vp.addEventListener('mouseleave', () => {
+    if (state.drawing) {
+      state.drawing = false;
+      saveHistory();
+      updatePreviews();
+    }
+    cursorCtx.clearRect(0, 0, state.imgW, state.imgH);
+  });
+
+  vp.addEventListener('wheel', e => {
+    e.preventDefault();
+    if (e.deltaY < 0) zoomIn();
+    else zoomOut();
+  }, { passive: false });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    switch(e.key) {
+      case '1': setChannel(0); setTool('brush'); break;
+      case '2': setChannel(1); setTool('brush'); break;
+      case '3': setChannel(2); setTool('brush'); break;
+      case '4': setChannel(3); setTool('brush'); break;
+      case '5': setChannel(4); setTool('eraser'); break;
+      case 'b': case 'B': setTool('brush'); break;
+      case 'e': case 'E': setTool('eraser'); break;
+      case 'g': case 'G': setTool('fill'); break;
+      case 'z': case 'Z': if (e.ctrlKey || e.metaKey) { e.preventDefault(); undo(); } break;
+      case 'y': case 'Y': if (e.ctrlKey || e.metaKey) { e.preventDefault(); redo(); } break;
+      case '[': updateBrushSize(Math.max(1, state.brushSize - 2)); document.getElementById('brushSize').value = state.brushSize; break;
+      case ']': updateBrushSize(Math.min(100, state.brushSize + 2)); document.getElementById('brushSize').value = state.brushSize; break;
+      case '=': case '+': e.preventDefault(); zoomIn(); break;
+      case '-': e.preventDefault(); zoomOut(); break;
+    }
+  });
+
+  // Drag & drop
+  const dropZone = document.getElementById('viewport');
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); });
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) loadImage(file);
+  });
+}
+
+// ─── History ───
+function saveHistory() {
+  if (!maskData) return;
+  // Truncate future
+  history = history.slice(0, historyIdx + 1);
+  // Save copy
+  const copy = new ImageData(new Uint8ClampedArray(maskData.data), state.imgW, state.imgH);
+  history.push(copy);
+  if (history.length > MAX_HISTORY) history.shift();
+  historyIdx = history.length - 1;
+  updateHistoryInfo();
+}
+
+function undo() {
+  if (historyIdx <= 0) return;
+  historyIdx--;
+  maskData = new ImageData(new Uint8ClampedArray(history[historyIdx].data), state.imgW, state.imgH);
+  render();
+  updatePreviews();
+  updateHistoryInfo();
+}
+
+function redo() {
+  if (historyIdx >= history.length - 1) return;
+  historyIdx++;
+  maskData = new ImageData(new Uint8ClampedArray(history[historyIdx].data), state.imgW, state.imgH);
+  render();
+  updatePreviews();
+  updateHistoryInfo();
+}
+
+function updateHistoryInfo() {
+  document.getElementById('historyInfo').textContent =
+    `历史 ${historyIdx + 1}/${history.length}`;
+}
+
+function clearMask() {
+  if (!state.loaded) return;
+  if (!confirm('确定清空所有 Mask 数据？')) return;
+  maskData = maskCtx.createImageData(state.imgW, state.imgH);
+  saveHistory();
+  render();
+  updatePreviews();
+  showToast('Mask 已清空');
+}
+
+// ─── Previews ───
+function updatePreviews() {
+  if (!maskData) return;
+  const w = state.imgW, h = state.imgH;
+  const m = maskData.data;
+
+  const drawChannel = (canvasId, chIdx) => {
+    const c = document.getElementById(canvasId);
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    const img = ctx.createImageData(w, h);
+    const d = img.data;
+    for (let i = 0; i < m.length; i += 4) {
+      const v = m[i + chIdx];
+      d[i] = v; d[i+1] = v; d[i+2] = v; d[i+3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  };
+
+  drawChannel('previewR', 0);
+  drawChannel('previewG', 1);
+  drawChannel('previewB', 2);
+  drawChannel('previewA', 3);
+
+  // Composite preview (show colored channels)
+  const cc = document.getElementById('previewComposite');
+  cc.width = w; cc.height = h;
+  const cctx = cc.getContext('2d');
+  const cimg = cctx.createImageData(w, h);
+  const cd = cimg.data;
+  for (let i = 0; i < m.length; i += 4) {
+    cd[i] = m[i]; cd[i+1] = m[i+1]; cd[i+2] = m[i+2]; cd[i+3] = m[i+3];
+  }
+  cctx.putImageData(cimg, 0, 0);
+
+  applyColorPreview();
+}
+
+function applyColorPreview() {
+  if (!maskData || !baseImage) return;
+  const w = state.imgW, h = state.imgH;
+
+  const tmpC = document.createElement('canvas');
+  tmpC.width = w; tmpC.height = h;
+  const tmpCtx = tmpC.getContext('2d');
+  tmpCtx.drawImage(baseImage, 0, 0);
+  const baseData = tmpCtx.getImageData(0, 0, w, h);
+  const bd = baseData.data;
+  const m = maskData.data;
+
+  const cc = document.getElementById('previewColor');
+  cc.width = w; cc.height = h;
+  const ctx = cc.getContext('2d');
+  const out = ctx.createImageData(w, h);
+  const od = out.data;
+
+  // Parse scheme colors
+  const colors = state.schemeColors.map(hex => {
+    const r = parseInt(hex.slice(1,3), 16);
+    const g = parseInt(hex.slice(3,5), 16);
+    const b = parseInt(hex.slice(5,7), 16);
+    return [r, g, b];
+  });
+
+  for (let i = 0; i < bd.length; i += 4) {
+    let or = bd[i], og = bd[i+1], ob = bd[i+2], oa = bd[i+3];
+    const mr = m[i], mg = m[i+1], mb = m[i+2], ma = m[i+3];
+
+    if (ma > 0) {
+      // Determine which channel dominates
+      const maxCh = Math.max(mr, mg, mb);
+      if (maxCh > 0) {
+        let tc;
+        if (mr >= mg && mr >= mb) tc = colors[0];
+        else if (mg >= mr && mg >= mb) tc = colors[1];
+        else tc = colors[2];
+
+        // HSV-like tint: multiply base luminance with target color
+        const lum = (or * 0.299 + og * 0.587 + ob * 0.114) / 255;
+        const blendAmount = maxCh / 255 * (ma / 255);
+        or = Math.round(or * (1 - blendAmount) + tc[0] * lum * blendAmount);
+        og = Math.round(og * (1 - blendAmount) + tc[1] * lum * blendAmount);
+        ob = Math.round(ob * (1 - blendAmount) + tc[2] * lum * blendAmount);
+      }
+    }
+
+    od[i] = Math.min(255, or);
+    od[i+1] = Math.min(255, og);
+    od[i+2] = Math.min(255, ob);
+    od[i+3] = oa;
+  }
+
+  ctx.putImageData(out, 0, 0);
+}
+
+// ─── Export ───
+function exportMask() {
+  if (!maskData) { showToast('请先绘制 Mask'); return; }
+  const c = document.createElement('canvas');
+  c.width = state.imgW; c.height = state.imgH;
+  const ctx = c.getContext('2d');
+  ctx.putImageData(maskData, 0, 0);
+  const link = document.createElement('a');
+  link.download = 'character_mask.png';
+  link.href = c.toDataURL('image/png');
+  link.click();
+  showToast('Mask PNG 已导出');
+}
+
+function exportScheme() {
+  const scheme = {
+    format: 'mask_channel_definition',
+    version: '1.0',
+    channels: {
+      R: { region: state.regions[0], color: state.schemeColors[0] },
+      G: { region: state.regions[1], color: state.schemeColors[1] },
+      B: { region: state.regions[2], color: state.schemeColors[2] },
+      A: { region: '染色开关', desc: '255=可染色, 0=不染色' }
+    },
+    colorSchemes: [
+      {
+        name: '默认',
+        region1: state.schemeColors[0],
+        region2: state.schemeColors[1],
+        region3: state.schemeColors[2]
+      }
+    ],
+    imageSize: { width: state.imgW, height: state.imgH }
+  };
+  const blob = new Blob([JSON.stringify(scheme, null, 2)], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.download = 'mask_config.json';
+  link.href = URL.createObjectURL(blob);
+  link.click();
+  showToast('配色 JSON 已导出');
+}
+
+// ─── Toast ───
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ─── Start ───
+init();
+</script>
+</body>
+</html>

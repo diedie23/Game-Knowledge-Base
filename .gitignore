@@ -1,0 +1,13 @@
+node_modules/
+.netlify/
+*.zip
+*.exe
+*.txt
+*.ps1
+tunnel.*
+package*
+.codebuddy/
+cf_output.txt
+lt_output.txt
+lt_error.txt
+tunnel_ngrok.py

@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>游戏项目知识库</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --sidebar-bg: #161822;
+    --card-bg: #1c1f2e;
+    --border: #2a2d3e;
+    --text: #c9cdd4;
+    --text-secondary: #8b8fa3;
+    --heading: #e8eaed;
+    --accent: #6c8cff;
+    --accent-light: #8ba3ff;
+    --accent-bg: rgba(108,140,255,0.08);
+    --green: #4ade80;
+    --orange: #fb923c;
+    --red: #f87171;
+    --code-bg: #1a1d2d;
+    --scrollbar: #2a2d3e;
+    --scrollbar-thumb: #3d4155;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #525672; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-header h1 {
+    font-size: 18px;
+    color: var(--heading);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sidebar-header h1::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  .sidebar-header p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 6px;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+  }
+
+  .nav-group {
+    margin-bottom: 8px;
+  }
+
+  .nav-group-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 12px 4px;
+  }
+
+  .nav-item {
+    display: block;
+    padding: 8px 12px;
+    margin: 2px 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text);
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    line-height: 1.5;
+  }
+
+  .nav-item:hover { background: var(--accent-bg); color: var(--accent-light); }
+  .nav-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+
+  .nav-toc {
+    padding-left: 12px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .nav-item.active + .nav-toc { max-height: 600px; }
+
+  .toc-item {
+    display: block;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    border-left: 2px solid var(--border);
+    margin: 1px 0;
+  }
+
+  .toc-item:hover { color: var(--accent-light); border-left-color: var(--accent); }
+  .toc-item.active { color: var(--accent); border-left-color: var(--accent); }
+
+  /* Main Content */
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40px 60px;
+    scroll-behavior: smooth;
+  }
+
+  .main > .doc-content { max-width: 900px; margin: 0 auto; }
+
+  /* Markdown Styles */
+  .doc-content h1 {
+    font-size: 28px;
+    color: var(--heading);
+    font-weight: 700;
+    margin-bottom: 8px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--accent);
+  }
+
+  .doc-content h2 {
+    font-size: 22px;
+    color: var(--heading);
+    font-weight: 600;
+    margin: 40px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 20px;
+  }
+
+  .doc-content h3 {
+    font-size: 17px;
+    color: var(--heading);
+    font-weight: 600;
+    margin: 28px 0 12px;
+    scroll-margin-top: 20px;
+  }
+
+  .doc-content h4 {
+    font-size: 15px;
+    color: var(--accent-light);
+    font-weight: 600;
+    margin: 20px 0 8px;
+  }
+
+  .doc-content p { margin: 10px 0; }
+
+  .doc-content blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    margin: 16px 0;
+    background: var(--accent-bg);
+    border-radius: 0 6px 6px 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  .doc-content blockquote strong { color: var(--accent-light); }
+
+  .doc-content ul, .doc-content ol {
+    padding-left: 24px;
+    margin: 8px 0;
+  }
+
+  .doc-content li { margin: 4px 0; }
+
+  .doc-content strong { color: var(--heading); }
+
+  .doc-content code {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: 'Menlo', 'Consolas', 'Monaco', monospace;
+    color: var(--accent-light);
+    border: 1px solid var(--border);
+  }
+
+  .doc-content pre {
+    background: var(--code-bg);
+    padding: 16px 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 16px 0;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .doc-content pre code {
+    background: none;
+    padding: 0;
+    border: none;
+    color: var(--text);
+  }
+
+  .doc-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+
+  .doc-content th {
+    background: var(--card-bg);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--heading);
+    border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .doc-content td {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .doc-content tr:hover td { background: rgba(108,140,255,0.03); }
+
+  .doc-content hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+
+  .doc-content input[type="checkbox"] {
+    margin-right: 6px;
+    accent-color: var(--accent);
+  }
+
+  /* Search */
+  .search-box {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .search-box input {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+    font-family: inherit;
+  }
+
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box input::placeholder { color: var(--text-secondary); }
+
+  /* Tab switcher */
+  .doc-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+    padding-top: 4px;
+    display: none;
+  }
+
+  .doc-tab {
+    padding: 10px 20px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .doc-tab:hover { color: var(--text); }
+  .doc-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* Footer */
+  .sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-align: center;
+  }
+
+  /* Mobile */
+  .menu-toggle {
+    display: none;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 100;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  @media (max-width: 768px) {
+    .sidebar {
+      position: fixed;
+      left: -280px;
+      z-index: 99;
+      transition: left 0.3s;
+    }
+    .sidebar.open { left: 0; }
+    .menu-toggle { display: block; }
+    .main { padding: 20px; padding-top: 56px; }
+  }
+
+  /* Back to top */
+  .back-to-top {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 40px;
+    height: 40px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 50;
+  }
+
+  .back-to-top.show { opacity: 1; }
+  .back-to-top:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* Print */
+  @media print {
+    .sidebar, .menu-toggle, .back-to-top { display: none !important; }
+    .main { padding: 20px; }
+    body { background: #fff; color: #333; }
+    .doc-content h1, .doc-content h2, .doc-content h3 { color: #111; }
+    .doc-content table { border-color: #ddd; }
+    .doc-content th { background: #f5f5f5; }
+  }
+</style>
+</head>
+<body>
+
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h1>游戏项目知识库</h1>
+    <p>Art & Design Standards</p>
+  </div>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="搜索文档内容..." oninput="handleSearch(this.value)">
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav">
+    <div class="nav-group">
+      <div class="nav-group-title">美术规范</div>
+      <button class="nav-item active" onclick="showDoc('doc1', this)">2D UGC 角色出图规范</button>
+      <div class="nav-toc" id="toc-doc1"></div>
+      <button class="nav-item" onclick="showDoc('doc2', this)">2D 角色换色资源规范</button>
+      <div class="nav-toc" id="toc-doc2"></div>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    v1.0 · 更新于 2026-03-31
+  </div>
+</aside>
+
+<main class="main" id="mainContent">
+  <div class="doc-content" id="docContent"></div>
+</main>
+
+<button class="back-to-top" id="backToTop" onclick="document.getElementById('mainContent').scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<!-- Markdown source embedded as script blocks -->
+<script id="md-doc1" type="text/markdown">
+# 2D UGC 角色出图规范与注意事项
+
+> 基于市面主流 UGC 游戏（Minecraft / 我的世界、蛋仔派对、元梦之星、口袋方舟 Ark Online、Roblox、Gacha 系列、迷你世界等）的实践经验提炼。
+
+---
+
+## 一、基础技术规范
+
+### 1.1 画布与分辨率
+
+| 要素 | 规范说明 |
+|------|----------|
+| **尺寸必须为 2 的 N 次幂** | 常见尺寸：32×32、64×64、128×128、256×256、512×512、1024×1024、2048×2048 |
+| **像素风格** | 16×16 / 32×32 / 64×64 按需选择；像素越大细节越丰富，但风格一致性要求越高 |
+| **高清风格** | 推荐 512×512 或 1024×1024；过大会增加包体与内存开销 |
+| **长方形贴图** | 允许非正方形但仍需满足 2^N，如 256×512、512×1024 |
+| **性能推荐** | 口袋方舟推荐 256×256（±10%）作为性能最优基准 |
+
+**典型案例**：
+- **Minecraft / 我的世界**：基础皮肤贴图为 **64×64** 像素（旧版 64×32），标准 16x 像素网格结构
+- **Roblox**：缩略图推荐 **1920×1080**（16:9），资产图片 **PNG/JPEG**，≤50MB
+
+### 1.2 文件格式
+
+| 格式 | 适用场景 |
+|------|----------|
+| **PNG**（推荐） | 支持透明通道（Alpha），无损压缩，2D 角色首选格式 |
+| **TGA** | PBR 流程使用，适合需要多通道信息的场景（金属度/粗糙度/AO/自发光） |
+| **JPEG** | 仅用于不需要透明的展示图/缩略图 |
+| **PSD/ASE** | 源文件格式，用于工作流交接，不直接用于引擎 |
+
+### 1.3 透明通道（Alpha）
+
+- 角色轮廓外的区域**必须为完全透明**（Alpha = 0），否则会出现白边/黑边
+- 导出 PNG 时需确认**保留 Alpha 通道**
+- 避免半透明像素残留在轮廓边缘（尤其手动擦除背景时）
+- 如果无透贴/自发光需求，**不要包含 A 通道**，避免不必要的资源开销
+
+---
+
+## 二、角色部件拆分规范
+
+### 2.1 模块化部件划分
+
+2D UGC 角色通常采用**分层/模块化**设计，以支持换装和自定义。常见拆分方式：
+
+| 部件层级 | 包含内容 | 说明 |
+|----------|----------|------|
+| **头发** | 前发、后发、发饰 | 需区分前后层级，支持独立换色 |
+| **面部** | 眼睛、眉毛、嘴巴、腮红 | 通常为独立小图叠加在面部底层上 |
+| **身体/上装** | 躯干、上衣、外套、披风 | 需与下装在腰线处精确对接 |
+| **下装** | 裤子、裙子 | 与上装的衔接线需点对点对齐 |
+| **四肢/手套** | 手臂、手套 | 分长款/短款，不可超出预设范围 |
+| **鞋子** | 鞋、袜 | 注意过膝/未过膝的归属规则 |
+| **配饰** | 帽子、眼镜、翅膀、尾巴等 | 独立图层，灵活叠加 |
+
+### 2.2 拆分对接核心要求
+
+- **衔接线必须精确对齐**：各部件在拼合处的边缘像素需严格对齐，避免出现缝隙或错位
+- **统一锚点/原点**：所有部件共用同一原点坐标系，确保换装时位置不偏移
+- **裸模补齐**：未被服装遮盖的皮肤部分需用基础裸模补全（口袋方舟规范）
+- **层级（Z-Order）明确定义**：前后遮挡关系需有统一的层级编号规范
+- **镜像对称处理**：Minecraft 单层皮肤中，一侧手臂/腿会自动镜像；需注意不对称设计的兼容性
+
+### 2.3 面数/复杂度控制（参考口袋方舟标准）
+
+| 部件 | 高精模型（展示用） | 低精模型（游戏内） |
+|------|-------------------|-------------------|
+| 上衣 + 身体 | ≤10,000 面 | ≤2,500 面 |
+| 手套 + 手 | ≤3,500 面 | ≤1,500 面 |
+| 下装 + 腿 | ≤4,000 面 | ≤1,700 面 |
+| 鞋子 + 脚 | ≤3,500 面 | ≤1,500 面 |
+| 头发 + 发饰 | ≤7,500~10,000 面 | ≤2,500~3,000 面 |
+| **总计** | **≤30,000 面** | **≤10,000 面** |
+
+> 对于纯 2D 游戏可类比为"单个部件精灵图的像素复杂度"——控制每个部件的精灵图尺寸和帧数。
+
+---
+
+## 三、美术风格与色彩规范
+
+### 3.1 头身比与体型
+
+| 风格 | 头身比 | 代表产品 |
+|------|--------|----------|
+| Q 版圆润 | 1:1 ~ 2:1 | 蛋仔派对（球形身体） |
+| Q 版人形 | 2:1 ~ 3:1 | 元梦之星、Gacha 系列 |
+| 像素复古 | 取决于精度 | Minecraft |
+| 写实卡通 | 3:1 ~ 5:1 | 部分 Roblox 体验 |
+
+**注意点**：
+- 确定头身比后**全套部件必须统一**，否则换装会出现比例失调
+- Q 版角色的头部通常占整体 40%~50%，需给面部表情留足像素空间
+
+### 3.2 色彩规范
+
+| 要素 | 规范 |
+|------|------|
+| **主色数量** | 单个角色建议 3~5 个主色 + 1~2 个点缀色 |
+| **饱和度** | 避免过高饱和（纯红、纯蓝），推荐使用中间调，便于加阴影/高光 |
+| **明度对比** | 不同部件之间保持足够明度差，确保在小尺寸下仍可辨识 |
+| **色板统一** | 提供统一调色板（Palette），确保所有 UGC 创作者的角色风格协调 |
+| **肤色范围** | 需预设多样化肤色选项，避免过暗或过亮的极端值 |
+| **描边色** | 如有描边，统一使用比填充色深 20%~30% 的同色系色值 |
+
+### 3.3 光影处理
+
+- **像素风格**：通常使用 2~3 级明暗（亮面 → 固有色 → 暗面），不做平滑渐变
+- **卡通风格**：可使用赛璐珞式硬边阴影或简单渐变
+- **统一光源方向**：建议固定左上方 45° 或正上方光源，所有部件光影一致
+- **避免极端对比**：布料类明暗对比不宜过强，保持柔和过渡
+
+---
+
+## 四、动画与精灵图规范
+
+### 4.1 精灵图（Sprite Sheet）
+
+| 要素 | 规范 |
+|------|------|
+| **排列方式** | 推荐水平排列或网格排列，帧间距统一 |
+| **帧尺寸** | 所有帧保持完全相同的画布尺寸 |
+| **帧间距（Padding）** | 帧与帧之间预留 1~2px 间距，防止采样溢出 |
+| **帧率** | 像素动画常用 8~12 FPS；高清动画 12~24 FPS |
+| **每组动画帧数** | Idle（4~8帧）、Walk（6~8帧）、Run（6~10帧）、Jump（3~6帧） |
+
+### 4.2 动画兼容性
+
+- **所有部件必须共用同一套骨骼/关键帧**：换装后动画不能错位
+- **部件锚点在动画帧中位置一致**：帽子、头发等附属物需跟随头部运动
+- **预留动画安全区**：角色动作幅度大时（如跳跃、挥手），需确保精灵图画布足够大，不会裁切
+
+---
+
+## 五、命名与资源管理规范
+
+### 5.1 文件命名约定
+
+推荐格式：`类型_性别_部件_编号_变体`
+
+```
+示例：
+SK_Female_Body_001_Show    // 女性上装-编号001-展示用
+SK_Male_Hair_012           // 男性头发-编号012-游戏内
+SP_Unisex_Hat_003_Red      // 通用帽子-编号003-红色变体
+```
+
+### 5.2 材质球命名（参考口袋方舟）
+
+| 部件 | 材质名 | 透贴 |
+|------|--------|------|
+| 上装 | `ClothUpper` | `ClothUpper_Mask` |
+| 下装 | `ClothLower` | `ClothLower_Mask` |
+| 手套 | `Glove` | `Glove_Mask` |
+| 鞋子 | `ClothShoes` | `ClothShoes_Mask` |
+| 身体 | `Body` | — |
+| 头发 | `Hair` | — |
+| 发饰 | `HairAcc` | `HairAcc_Mask` |
+
+### 5.3 目录结构建议
+
+```
+/Characters
+  /Base         // 基础裸模
+  /Hair         // 头发
+  /Face         // 面部表情
+  /UpperBody    // 上装
+  /LowerBody    // 下装
+  /Shoes        // 鞋子
+  /Accessories  // 配饰
+  /Thumbnails   // 缩略图/预览图
+```
+
+---
+
+## 六、UGC 审核与合规注意事项
+
+### 6.1 内容安全
+
+- **禁止暴露/色情内容**：角色服装需有最低覆盖标准
+- **禁止暴力/血腥元素**：武器、伤痕等需符合目标年龄分级
+- **禁止敏感符号**：避免包含宗教、种族歧视等敏感内容
+- **版权合规**：UGC 创作不得直接复制他人作品或知名 IP 角色
+
+### 6.2 技术审核
+
+- **文件大小限制**：单个资源通常需控制在 **1~5MB** 以内
+- **格式验证**：仅接受指定格式（PNG/TGA），拒绝非标准格式
+- **尺寸校验**：必须为 2^N 且不超过最大限制（通常 2048×2048）
+- **透明通道检查**：背景区域 Alpha 必须为 0
+- **部件兼容性测试**：新部件需与所有现有基础部件无穿插、无错位
+
+---
+
+## 七、跨平台与性能优化
+
+### 7.1 多端适配
+
+| 平台 | 注意事项 |
+|------|----------|
+| **手机** | 贴图尽量 ≤512×512，减少 Draw Call；精灵图合并 Atlas |
+| **PC** | 可适当提高到 1024×1024，支持更多细节 |
+| **小程序/Web** | 严格控制总包体，单图 ≤200KB 为佳；使用 WebP 压缩 |
+
+### 7.2 性能优化建议
+
+- **图集合并（Atlas）**：将同一角色的所有部件打入一张图集，减少渲染批次
+- **Mipmap**：对非像素风格资源开启 Mipmap，提升远距离显示效果
+- **POT（Power of Two）**：确保纹理为 2 的幂次尺寸，兼容更多 GPU
+- **压缩格式**：针对目标平台选择 ETC2（Android）/ PVRTC（iOS）/ ASTC（通用）
+- **LOD（细节层级）**：远景使用低精度版本，口袋方舟提供了"局外/局内"两套精度
+
+---
+
+## 八、出图检查清单（Checklist）
+
+- [ ] 画布尺寸为 2 的 N 次幂
+- [ ] 文件格式为 PNG（含正确 Alpha 通道）
+- [ ] 所有部件统一原点和锚点
+- [ ] 各部件衔接处无缝隙、无错位
+- [ ] 层级（Z-Order）正确，无异常遮挡
+- [ ] 色彩饱和度适中，无极端色值
+- [ ] 光源方向统一
+- [ ] 动画帧尺寸一致，帧间距正确
+- [ ] 换装兼容性测试通过（与所有基础部件组合无穿插）
+- [ ] 文件大小在限制范围内
+- [ ] 命名符合约定规范
+- [ ] 无版权/合规风险内容
+- [ ] 多端显示测试通过（手机/PC/Web）
+
+---
+
+## 九、各平台关键差异速查
+
+| 平台 | 核心特点 | 角色出图关键规范 |
+|------|----------|-----------------|
+| **Minecraft** | 像素风格，UV展开式贴图 | 64×64 PNG，固定UV布局，单/双层结构 |
+| **蛋仔派对** | 圆形Q版，3D渲染但2D展示 | 极简造型，统一球形体型，配饰为主要差异化 |
+| **元梦之星** | 人形Q版，3D为主 | 人型小人，联动 IP 多，服装拆分较细 |
+| **口袋方舟** | 二次元/卡通，完整换装系统 | 五大部件拆分（上装/下装/鞋/手套/头发），严格面数和UV规范 |
+| **Roblox** | 多风格混合，3D + 2D纹理 | 缩略图 1920×1080，PNG/JPEG ≤50MB，自由度极高 |
+| **Gacha 系列** | 纸娃娃式2D换装 | 分层叠加，部件极细（100+可自定义项），统一画风 |
+| **迷你世界** | 类MC像素风 | 类似MC的UV贴图结构，像素化设计 |
+
+---
+
+## 十、核心设计原则
+
+1. **一致性优先**：头身比、色板、光影方向、像素密度全局统一
+2. **模块化设计**：部件独立、接口标准化、支持自由组合
+3. **性能敏感**：移动端优先思维，严控贴图尺寸和文件大小
+4. **安全区预留**：动画、换装都需要额外的容错空间
+5. **可扩展性**：命名和目录结构支持持续扩充新部件
+6. **合规底线**：内容审核规则前置，避免返工
+7. **跨端适配**：从设计阶段就考虑多分辨率、多平台的适配方案
+</script>
+
+<script id="md-doc2" type="text/markdown">
+# 2D 角色换色 —— 美术出图资源提供规范
+
+> 本文档面向 2D 美术，梳理"角色换色"场景下需要提供给程序的资源清单、制作规范与注意事项。
+
+---
+
+## 一、换色方案概览与资源需求对照
+
+不同的换色技术路线，对美术的出图要求差异很大。先了解方案再出图，可以避免返工。
+
+| 方案 | 原理简述 | 美术需要提供的资源 | 适用场景 |
+|------|----------|-------------------|----------|
+| **① 调色板替换（Palette Swap）** | 用索引色/LUT 表做颜色映射 | 原图 + 调色板贴图（256×1） | 像素风格、复古游戏 |
+| **② 遮罩分区 + HSV/Tint** | 用 Mask 图标记换色区域，Shader 做色相/叠色偏移 | 原图 + Mask 遮罩图 | **最主流方案**，卡通/Q版角色 |
+| **③ 灰度底图 + 叠色** | 原图去色只保留明暗，程序乘以目标色 | 灰度底图（+ 可选 Mask） | 简单场景、纯色服装 |
+| **④ 通道混合染色** | 利用 RGB 通道矩阵运算混合 | 原图 + Mask 遮罩图 | 高品质需求、美术预设配色 |
+| **⑤ 多套贴图直出** | 每种颜色出一套图 | N 套完整贴图 | 颜色种类少、品质要求极高 |
+
+> **推荐方案**：绝大多数 2D UGC 游戏采用 **方案②（遮罩分区 + HSV/Tint）**，兼顾效果、性能和扩展性。以下重点展开。
+
+---
+
+## 二、遮罩分区换色（重点方案）
+
+### 2.1 美术需要提供的资源清单
+
+```
+📁 角色资源包
+├── character_base.png        ← ① 基础原图（带完整色彩和细节）
+├── character_mask.png        ← ② 换色遮罩图（RGBA 四通道）
+├── palette_config.json       ← ③ 配色方案表（可选，美术预设的推荐配色）
+└── preview_thumbnail.png     ← ④ 换色效果预览缩略图（可选）
+```
+
+### 2.2 基础原图（Base Texture）
+
+| 要素 | 规范 |
+|------|------|
+| **格式** | PNG（带 Alpha 通道） |
+| **尺寸** | 与正常角色出图一致（2^N，如 512×512） |
+| **色彩要求** | 正常绘制完整色彩，包含光影、褶皱等细节 |
+| **注意** | 换色区域的颜色**不要用纯黑(0,0,0)或纯白(255,255,255)**，否则 HSV 偏移无效 |
+| **饱和度** | 换色区域建议使用**中等饱和度**的颜色（40%~70%），偏移后效果最自然 |
+
+### 2.3 换色遮罩图（Mask Texture）—— 最关键
+
+#### 通道定义规范
+
+```
+┌─────────────┬──────────────────────────────────┐
+│   通道       │           含义                    │
+├─────────────┼──────────────────────────────────┤
+│ R（红色）    │ 换色区域 1（如：头发）             │
+│ G（绿色）    │ 换色区域 2（如：上衣）             │
+│ B（蓝色）    │ 换色区域 3（如：裤子/裙子）        │
+│ A（Alpha）   │ 总开关 —— 白=可染色，黑=不染色     │
+└─────────────┴──────────────────────────────────┘
+```
+
+#### 通道值含义
+
+| 值 | 含义 |
+|----|------|
+| **255（白色）** | 该像素**完全受**对应换色区域影响 |
+| **0（黑色）** | 该像素**不受**对应换色区域影响 |
+| **中间值（如 128）** | 半透明过渡，产生渐变混合效果（用于边缘柔化） |
+
+#### 遮罩图绘制示意
+
+```
+          原图                      Mask 图
+
+    ┌──────────────┐          ┌──────────────┐
+    │   ★ 头发     │          │  R=255       │  ← 头发区域：R通道涂白
+    │  ┌────────┐  │          │  ┌────────┐  │
+    │  │  脸部  │  │          │  │ A=0    │  │  ← 脸部：Alpha 涂黑（不染色）
+    │  └────────┘  │          │  └────────┘  │
+    │   上衣       │          │  G=255       │  ← 上衣区域：G通道涂白
+    │   裤子       │          │  B=255       │  ← 裤子区域：B通道涂白
+    │   鞋子       │          │  A=0         │  ← 鞋子：Alpha 涂黑（不染色）
+    └──────────────┘          └──────────────┘
+```
+
+#### 遮罩图制作要求
+
+| 要素 | 规范 |
+|------|------|
+| **尺寸** | 必须与基础原图**完全一致** |
+| **UV 对齐** | 必须与原图像素级对齐，不能有偏移 |
+| **格式** | PNG（RGBA 32bit）或 TGA |
+| **压缩** | **不要使用有损压缩**（如 JPEG），会导致通道值出现杂色噪点 |
+| **边缘处理** | 区域边缘建议留 1~2px 的渐变过渡，避免硬边锯齿 |
+| **区域互斥** | 同一像素在 R/G/B 三个通道中**只能有一个通道有值**（不能同时属于两个区域） |
+| **非染色区域** | A 通道涂黑（0），无论 R/G/B 是什么值都不会变色 |
+
+### 2.4 配色方案表（可选但推荐）
+
+美术提供预设的推荐配色组合，程序可直接使用或作为默认值：
+
+```json
+{
+  "colorSchemes": [
+    {
+      "name": "默认",
+      "region1_hair": "#8B4513",
+      "region2_top": "#4169E1",
+      "region3_bottom": "#2F4F4F"
+    },
+    {
+      "name": "暖色系",
+      "region1_hair": "#D2691E",
+      "region2_top": "#FF6347",
+      "region3_bottom": "#CD853F"
+    },
+    {
+      "name": "冷色系",
+      "region1_hair": "#4682B4",
+      "region2_top": "#5F9EA0",
+      "region3_bottom": "#708090"
+    }
+  ]
+}
+```
+
+---
+
+## 三、调色板替换（Palette Swap）
+
+适用于**像素风格**游戏，原理是用一张小贴图做颜色映射。
+
+### 3.1 美术需要提供的资源
+
+```
+📁 角色资源包
+├── character_indexed.png     ← ① 索引色原图（颜色数量受限）
+└── palettes/
+    ├── palette_default.png   ← ② 默认调色板（256×1 像素）
+    ├── palette_fire.png      ← ③ 火焰配色调色板
+    └── palette_ice.png       ← ④ 冰霜配色调色板
+```
+
+### 3.2 索引色原图制作规范
+
+| 要素 | 规范 |
+|------|------|
+| **颜色数量** | 控制在 **8~32 色** 以内（像素画的常规范围） |
+| **颜色唯一性** | 需要被独立换色的区域，其颜色的 **R 通道值必须唯一** |
+| **避免渐变** | 不要使用大面积的平滑渐变，每种颜色应为纯色色块 |
+| **记录色表** | 必须导出一份**颜色对照表**，标明每个颜色对应的部位 |
+
+### 3.3 调色板贴图制作规范
+
+| 要素 | 规范 |
+|------|------|
+| **尺寸** | **256×1** 像素（一行，256 列） |
+| **格式** | PNG（无压缩/无抗锯齿） |
+| **映射规则** | 第 X 个像素的颜色 = 原图中 R 值为 X 的像素的替换色 |
+| **透明像素** | 调色板中 Alpha=0 的位置表示"保持原色不变" |
+| **采样模式** | 程序需设置为 **Point（最近邻）** 采样，禁止线性插值 |
+
+---
+
+## 四、灰度底图 + 叠色
+
+最简单的方案，适合纯色面积大、细节需求低的场景。
+
+### 4.1 美术需要提供的资源
+
+```
+📁 角色资源包
+├── character_grayscale.png   ← ① 灰度图（只有明暗，无色彩）
+├── character_mask.png        ← ② 分区 Mask（同方案②，可选）
+└── character_detail.png      ← ③ 细节叠加层（可选，如花纹/图案）
+```
+
+### 4.2 灰度图制作规范
+
+| 要素 | 规范 |
+|------|------|
+| **色彩** | 完全去色，只保留明暗关系（亮面→暗面的灰度过渡） |
+| **中间灰** | 基础亮度建议在 **128~200** 之间（过暗叠色后太黑，过亮则没有暗部） |
+| **细节** | 褶皱、阴影、高光全部用灰度表现 |
+| **原理** | 程序做 `最终颜色 = 灰度值 × 目标颜色`，所以灰度=1(白)时显示纯目标色 |
+
+### 4.3 注意事项
+
+- 灰度叠色方案**只能让颜色变暗**（乘法特性），想要提亮需要程序使用 HDR 值（>1.0）
+- 如果角色有多个需要独立换色的区域，仍然需要配合 **Mask 遮罩图**
+- 适合做"纯色T恤换色"这类简单需求，复杂图案不适用
+
+---
+
+## 五、超过 3 个换色区域的扩展方案
+
+### 方案 A：灰度分段（单通道多区域）
+
+```
+灰度值范围          对应区域
+─────────────────────────────
+0                   不换色
+1 ~ 50              区域 1（头发）
+51 ~ 100            区域 2（上衣）
+101 ~ 150           区域 3（裤子）
+151 ~ 200           区域 4（鞋子）
+201 ~ 250           区域 5（配饰）
+251 ~ 255           区域 6（特殊）
+```
+
+### 方案 B：多张 Mask 图
+
+```
+mask_1.png → R=头发, G=上衣, B=裤子, A=开关
+mask_2.png → R=鞋子, G=手套, B=配饰, A=开关
+```
+
+### 方案 C：UV 多象限
+
+将不同换色区域的 UV 放到不同象限（第1~第4象限），程序根据象限判断区域。
+
+---
+
+## 六、美术与程序对接检查清单
+
+### 出图前确认
+
+- [ ] 与程序确认采用哪种换色方案（Palette / Mask+HSV / 灰度叠色）
+- [ ] 确认需要支持几个独立换色区域
+- [ ] 确认遮罩图的通道分配定义（哪个通道对应哪个部件）
+- [ ] 确认贴图尺寸和格式要求
+
+### 出图时检查
+
+- [ ] 基础原图换色区域无纯黑/纯白（HSV 方案）
+- [ ] 遮罩图与原图尺寸完全一致、像素对齐
+- [ ] 遮罩图使用**无损格式**导出（PNG/TGA），不要 JPEG
+- [ ] 同一像素不同时归属多个换色区域（通道互斥）
+- [ ] A 通道正确标记了不参与换色的区域（脸部/皮肤/金属扣等）
+- [ ] 遮罩图边缘处理干净，无杂色溢出
+
+### 交付时提供
+
+- [ ] 基础原图 `.png`
+- [ ] 遮罩图 `.png`（附通道定义说明）
+- [ ] 配色方案表 `.json`（推荐配色组合）
+- [ ] 换色区域说明文档（标注哪些部位可换色、哪些不可）
+- [ ] 效果预览图（至少 3 套配色的预览）
+
+---
+
+## 七、常见踩坑与避免
+
+| 问题 | 原因 | 解决方案 |
+|------|------|----------|
+| 换色后出现杂色/噪点 | Mask 图用了 JPEG 或有损压缩 | **必须使用 PNG/TGA 无损格式** |
+| 换色边缘有明显锯齿 | Mask 图边缘是硬切的像素 | 边缘做 1~2px 的灰度渐变过渡 |
+| 黑色/白色区域换不了色 | 纯黑 HSV 色相偏移无效 | 换色区域避免纯黑纯白，用深灰/浅灰替代 |
+| 两个区域换色互相串色 | Mask 中同一像素多个通道都有值 | 确保 R/G/B 通道互斥 |
+| 换色后光影消失/变平 | 原图绘制时阴影不够 | 保证换色区域有足够的明暗层次 |
+| 皮肤/脸部意外被染色 | A 通道没有正确涂黑 | 仔细检查 Alpha 通道的非染色区域标记 |
+| 调色板换色颜色错乱 | 原图中两种颜色的 R 值相同 | 确保索引色的 R 通道唯一 |
+| Mask 图和原图对不上 | 导出尺寸不一致或有偏移 | 使用同一画布分层导出，确保 1:1 对齐 |
+
+---
+
+## 八、核心原则
+
+1. **先定方案再出图**：不同技术路线对资源的要求完全不同
+2. **Mask 是关键**：遮罩图质量直接决定换色效果好坏
+3. **无损格式是铁律**：Mask 图绝对不能用有损压缩
+4. **通道互斥**：一个像素只能属于一个换色区域
+5. **保留明暗层次**：换色区域要有足够的光影细节，否则换色后一片死板
+6. **充分沟通**：通道定义、区域划分、配色范围都需要美术与程序达成共识
+</script>
+
+<script>
+// ─── Simple Markdown Parser ───
+function parseMd(md) {
+  let html = md;
+  // Code blocks
+  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+    return `<pre><code class="lang-${lang}">${escHtml(code.trim())}</code></pre>`;
+  });
+  // Tables
+  html = html.replace(/^(\|.+\|)\n(\|[-| :]+\|)\n((?:\|.+\|\n?)*)/gm, (_, hdr, sep, body) => {
+    const ths = hdr.split('|').filter(c => c.trim()).map(c => `<th>${parseInline(c.trim())}</th>`).join('');
+    const rows = body.trim().split('\n').map(r => {
+      const tds = r.split('|').filter(c => c.trim()).map(c => `<td>${parseInline(c.trim())}</td>`).join('');
+      return `<tr>${tds}</tr>`;
+    }).join('');
+    return `<table><thead><tr>${ths}</tr></thead><tbody>${rows}</tbody></table>`;
+  });
+  // Headers
+  html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+  html = html.replace(/^### (.+)$/gm, (_, t) => `<h3 id="${slugify(t)}">${parseInline(t)}</h3>`);
+  html = html.replace(/^## (.+)$/gm, (_, t) => `<h2 id="${slugify(t)}">${parseInline(t)}</h2>`);
+  html = html.replace(/^# (.+)$/gm, (_, t) => `<h1>${parseInline(t)}</h1>`);
+  // Blockquotes
+  html = html.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+  html = html.replace(/<\/blockquote>\n<blockquote>/g, '<br>');
+  // Horizontal rules
+  html = html.replace(/^---$/gm, '<hr>');
+  // Checkbox lists
+  html = html.replace(/^- \[( |x)\] (.+)$/gm, (_, c, t) => {
+    const checked = c === 'x' ? ' checked' : '';
+    return `<p><input type="checkbox"${checked} disabled>${parseInline(t)}</p>`;
+  });
+  // Unordered lists
+  html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+  html = html.replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`);
+  // Ordered lists
+  html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+  // Paragraphs
+  html = html.replace(/^(?!<[a-z/])((?!<).+)$/gm, (m) => {
+    if (m.trim() === '') return m;
+    return `<p>${parseInline(m)}</p>`;
+  });
+  // Clean up empty paragraphs
+  html = html.replace(/<p><\/p>/g, '');
+  return html;
+}
+
+function parseInline(t) {
+  t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
+  return t;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function slugify(text) {
+  return text.replace(/[^\w\u4e00-\u9fff]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+}
+
+// ─── Document Management ───
+const docs = {};
+let currentDoc = 'doc1';
+
+function initDocs() {
+  document.querySelectorAll('script[type="text/markdown"]').forEach(el => {
+    const id = el.id.replace('md-', '');
+    docs[id] = el.textContent.trim();
+  });
+  showDoc('doc1', document.querySelector('.nav-item'));
+}
+
+function showDoc(docId, btn) {
+  currentDoc = docId;
+  const content = document.getElementById('docContent');
+  content.innerHTML = parseMd(docs[docId]);
+  document.getElementById('mainContent').scrollTop = 0;
+
+  // Update nav active state
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  // Build TOC
+  buildToc(docId);
+}
+
+function buildToc(docId) {
+  // Clear all TOCs
+  document.querySelectorAll('.nav-toc').forEach(t => t.innerHTML = '');
+
+  const tocContainer = document.getElementById(`toc-${docId}`);
+  if (!tocContainer) return;
+
+  const headers = document.querySelectorAll('#docContent h2');
+  headers.forEach(h => {
+    const btn = document.createElement('button');
+    btn.className = 'toc-item';
+    btn.textContent = h.textContent;
+    btn.onclick = () => {
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.querySelectorAll('.toc-item').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+    };
+    tocContainer.appendChild(btn);
+  });
+}
+
+// ─── Search ───
+function handleSearch(query) {
+  const q = query.toLowerCase().trim();
+  if (!q) {
+    showDoc(currentDoc, document.querySelector('.nav-item.active'));
+    return;
+  }
+
+  let results = [];
+  for (const [id, md] of Object.entries(docs)) {
+    const lines = md.split('\n');
+    lines.forEach((line, i) => {
+      if (line.toLowerCase().includes(q)) {
+        results.push({ docId: id, line: line.trim(), index: i });
+      }
+    });
+  }
+
+  const content = document.getElementById('docContent');
+  if (results.length === 0) {
+    content.innerHTML = `<p style="color:var(--text-secondary);padding:40px 0;text-align:center;">未找到包含「${escHtml(query)}」的内容</p>`;
+    return;
+  }
+
+  const docNames = { doc1: '2D UGC 角色出图规范', doc2: '2D 角色换色资源规范' };
+  let html = `<h2>搜索结果：${results.length} 条匹配</h2>`;
+  results.slice(0, 30).forEach(r => {
+    const highlighted = r.line.replace(new RegExp(`(${escRegExp(query)})`, 'gi'), '<mark style="background:var(--accent);color:#fff;padding:0 2px;border-radius:2px;">$1</mark>');
+    html += `<div style="padding:10px 14px;margin:8px 0;background:var(--card-bg);border-radius:6px;border:1px solid var(--border);cursor:pointer;" onclick="showDoc('${r.docId}', document.querySelectorAll('.nav-item')[${r.docId === 'doc1' ? 0 : 1}]);document.getElementById('searchInput').value='';">
+      <div style="font-size:11px;color:var(--accent);margin-bottom:4px;">${docNames[r.docId]}</div>
+      <div style="font-size:13px;">${highlighted}</div>
+    </div>`;
+  });
+  content.innerHTML = html;
+}
+
+function escRegExp(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+// ─── Scroll tracking ───
+const mainEl = document.getElementById('mainContent');
+mainEl.addEventListener('scroll', () => {
+  const btn = document.getElementById('backToTop');
+  btn.classList.toggle('show', mainEl.scrollTop > 300);
+
+  // Highlight active TOC item
+  const headers = document.querySelectorAll('#docContent h2');
+  const tocItems = document.querySelectorAll('.toc-item');
+  let activeIdx = 0;
+  headers.forEach((h, i) => {
+    if (h.getBoundingClientRect().top < 100) activeIdx = i;
+  });
+  tocItems.forEach((t, i) => t.classList.toggle('active', i === activeIdx));
+});
+
+// ─── Init ───
+initDocs();
+</script>
+</body>
+</html>
