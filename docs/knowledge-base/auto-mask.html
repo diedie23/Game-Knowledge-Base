@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>自动 Mask 通道生成器</title>
+<title>自动 Mask 通道生成器 v2.0</title>
 <style>
 :root {
   --bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;
   --text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;
   --accent:#6c8cff;--accent2:#a78bfa;
   --red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;
+  --cyan:#22d3ee;--orange:#fb923c;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
@@ -18,16 +19,46 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .app{max-width:1200px;margin:0 auto;padding:20px}
 
 /* Header */
-.hdr{text-align:center;padding:30px 0 20px}
-.hdr h1{font-size:24px;color:var(--heading);margin-bottom:6px}
+.hdr{text-align:center;padding:24px 0 16px}
+.hdr h1{font-size:24px;color:var(--heading);margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:8px}
+.hdr h1 .ver{font-size:12px;background:var(--accent);color:#fff;padding:2px 8px;border-radius:10px;font-weight:500}
 .hdr p{color:var(--dim);font-size:14px}
 
+/* Tab bar for guide */
+.tab-bar{display:flex;gap:4px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:20px}
+.tab-btn{flex:1;padding:10px;border:none;background:transparent;color:var(--dim);border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{background:var(--accent);color:#fff;font-weight:500}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* Guide panel */
+.guide{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:20px}
+.guide h2{font-size:18px;color:var(--heading);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.guide-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.guide-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;transition:border-color .15s}
+.guide-card:hover{border-color:var(--accent)}
+.guide-card .step-num{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;margin-bottom:10px}
+.guide-card h3{font-size:14px;color:var(--heading);margin-bottom:6px}
+.guide-card p{font-size:12px;color:var(--dim);line-height:1.7}
+.guide-card .tag{display:inline-block;font-size:10px;padding:2px 6px;border-radius:4px;margin-top:8px}
+.tag-tip{background:rgba(108,140,255,.1);color:var(--accent)}
+.tag-warn{background:rgba(251,191,36,.1);color:var(--yellow)}
+.tag-good{background:rgba(74,222,128,.1);color:var(--green)}
+
+.judge-section{margin-top:20px}
+.judge-section h3{font-size:15px;color:var(--heading);margin-bottom:12px}
+.judge-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:768px){.judge-grid{grid-template-columns:1fr}}
+.judge-card{padding:12px 16px;border-radius:8px;font-size:13px;line-height:1.8}
+.judge-good{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.judge-bad{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.judge-good strong,.judge-bad strong{color:var(--heading)}
+
 /* Steps */
-.steps{display:flex;justify-content:center;gap:0;margin:20px 0 30px}
-.step{display:flex;align-items:center;gap:8px;padding:10px 20px;font-size:13px;color:var(--dim);position:relative}
+.steps{display:flex;justify-content:center;gap:0;margin:16px 0 24px}
+.step{display:flex;align-items:center;gap:8px;padding:10px 18px;font-size:13px;color:var(--dim);position:relative}
 .step .num{width:24px;height:24px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
-.step.active{color:var(--heading)}
-.step.active .num{background:var(--accent);border-color:var(--accent);color:#fff}
+.step.active{color:var(--heading)}.step.active .num{background:var(--accent);border-color:var(--accent);color:#fff}
 .step.done .num{background:var(--green);border-color:var(--green);color:#fff}
 .step-arrow{color:var(--border);font-size:18px;padding:0 4px}
 
@@ -35,12 +66,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:20px}
 .card-title{font-size:16px;color:var(--heading);font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .card-title .badge{font-size:10px;background:var(--accent);color:#fff;padding:2px 8px;border-radius:10px}
+.card-title .badge-green{background:var(--green)}.card-title .badge-yellow{background:var(--yellow);color:#000}
 
 /* Buttons */
 .btn{padding:8px 18px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
 .btn:hover{border-color:var(--accent);color:var(--heading)}
 .btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}
 .btn-primary:hover{background:#5a7aee}
+.btn-green{background:var(--green);border-color:var(--green);color:#000;font-weight:500}
+.btn-green:hover{background:#38c96e}
+.btn-orange{background:var(--orange);border-color:var(--orange);color:#000;font-weight:500}
 .btn-lg{padding:12px 32px;font-size:15px;border-radius:10px}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 
@@ -76,6 +111,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .assign-btn.active-r{border-color:#f66;background:rgba(255,102,102,.15);color:#f66}
 .assign-btn.active-g{border-color:#6f6;background:rgba(102,255,102,.15);color:#6f6}
 .assign-btn.active-b{border-color:#66f;background:rgba(102,102,255,.15);color:#66f}
+.assign-btn.active-a{border-color:#eee;background:rgba(255,255,255,.08);color:#eee}
 .assign-btn.active-x{border-color:#666;background:rgba(255,255,255,.05);color:#999}
 
 /* Progress */
@@ -96,21 +132,152 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .setting-row select,.setting-row input[type=number]{background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 10px;font-size:13px;font-family:inherit;outline:none}
 .setting-row select:focus,.setting-row input:focus{border-color:var(--accent)}
 
+/* Mode selector */
+.mode-selector{display:flex;gap:8px;margin:12px 0}
+.mode-btn{flex:1;padding:12px;border:2px solid var(--border);border-radius:10px;background:var(--card);cursor:pointer;text-align:center;transition:all .15s}
+.mode-btn:hover{border-color:var(--accent)}
+.mode-btn.active{border-color:var(--accent);background:rgba(108,140,255,.08)}
+.mode-btn h4{font-size:14px;color:var(--heading);margin-bottom:4px}
+.mode-btn p{font-size:11px;color:var(--dim)}
+
+/* Fix panel */
+.fix-panel{background:rgba(74,222,128,.04);border:1px solid rgba(74,222,128,.15);border-radius:10px;padding:16px;margin:12px 0}
+.fix-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.fix-item:last-child{border-bottom:none}
+.fix-item .icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.fix-icon-warn{background:rgba(251,191,36,.15);color:var(--yellow)}
+.fix-icon-err{background:rgba(248,113,113,.15);color:var(--red)}
+.fix-icon-ok{background:rgba(74,222,128,.15);color:var(--green)}
+.fix-item .detail{flex:1;color:var(--dim)}
+.fix-item .action{color:var(--green);font-weight:500;font-size:12px}
+
 /* Toast */
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--accent);padding:10px 24px;border-radius:8px;font-size:13px;color:var(--heading);z-index:999;transition:transform .3s;pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
 
 .tip{background:rgba(108,140,255,.06);border:1px solid rgba(108,140,255,.15);border-radius:8px;padding:12px 16px;font-size:12px;color:var(--dim);margin:12px 0;line-height:1.7}
 .tip strong{color:var(--accent)}
+.tip-warn{background:rgba(251,191,36,.06);border-color:rgba(251,191,36,.2)}
+.tip-warn strong{color:var(--yellow)}
+.tip-green{background:rgba(74,222,128,.06);border-color:rgba(74,222,128,.2)}
+.tip-green strong{color:var(--green)}
 </style>
 </head>
 <body>
 <div class="app">
 
 <div class="hdr">
-  <h1>自动 Mask 通道生成器</h1>
-  <p>导入角色原图 → 自动识别颜色区域 → 分配通道 → 一键批量导出</p>
+  <h1>自动 Mask 通道生成器 <span class="ver">v2.0</span></h1>
+  <p>导入角色原图 → 智能识别颜色区域 → 分配通道 → 自动修复 → 一键导出</p>
 </div>
+
+<!-- Tab navigation -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('work')">🔧 工作台</button>
+  <button class="tab-btn" onclick="switchTab('guide')">📖 使用说明</button>
+  <button class="tab-btn" onclick="switchTab('faq')">❓ 判断标准</button>
+</div>
+
+<!-- GUIDE TAB -->
+<div class="tab-content" id="tab-guide">
+  <div class="guide">
+    <h2>📖 操作流程说明</h2>
+    <div class="guide-grid">
+      <div class="guide-card">
+        <div class="step-num">1</div>
+        <h3>导入角色原图</h3>
+        <p>支持 PNG（推荐带透明通道）和 JPG 格式。点击上传区域或直接拖放文件。</p>
+        <span class="tag tag-tip">💡 推荐 2^N 尺寸如 512×512</span>
+      </div>
+      <div class="guide-card">
+        <div class="step-num">2</div>
+        <h3>选择输出模式</h3>
+        <p><strong>RGBA 模式</strong>：R/G/B 三个换色区域 + A 通道作为开关，最多 3 个独立换色区。<br><strong>RGB 模式</strong>：R/G/B 三个换色区域，无 A 通道，换色区即为有效区。</p>
+        <span class="tag tag-warn">⚠️ 根据程序对接方案选择</span>
+      </div>
+      <div class="guide-card">
+        <div class="step-num">3</div>
+        <h3>智能分析</h3>
+        <p>算法会自动识别图片中的颜色区域。你可以调整「识别区域数」来控制分区精度。识别完成后，将区域分配到 R/G/B 通道。</p>
+        <span class="tag tag-tip">💡 相似颜色可分配到同一通道</span>
+      </div>
+      <div class="guide-card">
+        <div class="step-num">4</div>
+        <h3>验算与自动修复</h3>
+        <p>系统会自动检测通道冲突、纯黑/纯白像素、边缘质量等问题，并提供<strong>一键自动修复</strong>功能，无需手动处理。</p>
+        <span class="tag tag-good">✅ 新增自动修复能力</span>
+      </div>
+      <div class="guide-card">
+        <div class="step-num">5</div>
+        <h3>预览换色效果</h3>
+        <p>拖动颜色选择器可实时预览换色效果，确认 Mask 区域划分是否合理。换色效果不理想时可返回调整区域分配。</p>
+        <span class="tag tag-tip">💡 预览接近最终引擎效果</span>
+      </div>
+      <div class="guide-card">
+        <div class="step-num">6</div>
+        <h3>导出资源包</h3>
+        <p>一键导出 ZIP 包含：原图、合成 Mask、各通道灰度图、换色预览、验算报告、配置 JSON。直接交付给程序使用。</p>
+        <span class="tag tag-good">✅ 即时可用</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ/JUDGE TAB -->
+<div class="tab-content" id="tab-faq">
+  <div class="guide">
+    <h2>❓ 如何判断 Mask 质量是否合格</h2>
+    <div class="judge-section">
+      <h3>✅ 合格标准（全部满足才算通过）</h3>
+      <div class="judge-grid">
+        <div class="judge-card judge-good">
+          <strong>通道互斥</strong><br>
+          每个像素只属于一个通道（R 或 G 或 B），不能同时有值。否则会导致「串色」。
+        </div>
+        <div class="judge-card judge-good">
+          <strong>覆盖率合理</strong><br>
+          Mask 应覆盖所有需要换色的区域。覆盖率 ≥ 30% 通常表示标记合理。
+        </div>
+        <div class="judge-card judge-good">
+          <strong>无纯黑/纯白</strong><br>
+          换色区域的原图像素不能是纯黑(0,0,0)或纯白(255,255,255)，否则 HSV 偏移无效果。
+        </div>
+        <div class="judge-card judge-good">
+          <strong>边缘平滑</strong><br>
+          通道之间的边缘应有 1~2px 过渡，避免硬切导致锯齿。
+        </div>
+      </div>
+    </div>
+    <div class="judge-section">
+      <h3>❌ 常见问题及处理</h3>
+      <div class="judge-grid">
+        <div class="judge-card judge-bad">
+          <strong>串色（多通道重叠）</strong><br>
+          同一像素 R 和 G 都有值 → 工具会自动保留值最大的通道，清除其他通道。
+        </div>
+        <div class="judge-card judge-bad">
+          <strong>纯黑像素在染色区</strong><br>
+          HSV 色相偏移对纯黑无效 → 工具会自动将纯黑替换为深灰(10,10,10)。
+        </div>
+        <div class="judge-card judge-bad">
+          <strong>纯白像素在染色区</strong><br>
+          HSV 换色效果差 → 工具会自动将纯白替换为浅灰(245,245,245)。
+        </div>
+        <div class="judge-card judge-bad">
+          <strong>A 通道未标记</strong><br>
+          有 R/G/B 值但 A=0 导致换色不生效 → 工具会自动补齐 A 通道。
+        </div>
+      </div>
+    </div>
+
+    <div class="tip tip-green" style="margin-top:20px">
+      <strong>💡 新版本亮点：</strong>所有上述问题都可以通过验算步骤中的「一键自动修复」按钮自动处理，无需手动逐个修改。修复前后的对比数据会在报告中详细列出。
+    </div>
+  </div>
+</div>
+
+<!-- WORK TAB -->
+<div class="tab-content active" id="tab-work">
 
 <div class="steps" id="stepBar">
   <div class="step active" data-step="1"><span class="num">1</span>导入图片</div>
@@ -119,7 +286,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   <span class="step-arrow">→</span>
   <div class="step" data-step="3"><span class="num">3</span>分配通道</div>
   <span class="step-arrow">→</span>
-  <div class="step" data-step="4"><span class="num">4</span>验算检查</div>
+  <div class="step" data-step="4"><span class="num">4</span>验算修复</div>
   <span class="step-arrow">→</span>
   <div class="step" data-step="5"><span class="num">5</span>导出全部</div>
 </div>
@@ -141,6 +308,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <div>
         <div style="font-size:13px;color:var(--heading);margin-bottom:8px">图片信息</div>
         <div id="imgInfo" style="font-size:12px;color:var(--dim);line-height:2"></div>
+
+        <!-- Channel Mode Selection -->
+        <div style="margin-top:16px">
+          <div style="font-size:13px;color:var(--heading);margin-bottom:8px">输出模式</div>
+          <div class="mode-selector">
+            <div class="mode-btn active" id="modeRGBA" onclick="setMode('rgba')">
+              <h4>RGBA</h4>
+              <p>R/G/B 换色区 + A 开关<br>（推荐，最通用）</p>
+            </div>
+            <div class="mode-btn" id="modeRGB" onclick="setMode('rgb')">
+              <h4>RGB</h4>
+              <p>R/G/B 换色区<br>无 Alpha 通道</p>
+            </div>
+          </div>
+        </div>
+
         <div class="setting-row" style="margin-top:12px">
           <label>识别区域数</label>
           <select id="clusterCount">
@@ -167,6 +350,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
             <option value="0">否</option>
           </select>
         </div>
+        <div class="setting-row">
+          <label>算法精度</label>
+          <select id="algoQuality">
+            <option value="1">快速（单次运算）</option>
+            <option value="3" selected>标准（3 次取最优）</option>
+            <option value="5">高精度（5 次取最优）</option>
+          </select>
+        </div>
         <button class="btn btn-primary" onclick="startAnalysis()" style="margin-top:12px;width:100%;justify-content:center">
           开始智能分析
         </button>
@@ -177,7 +368,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
 <!-- Step 2: Analysis result -->
 <div class="card" id="step2" style="display:none">
-  <div class="card-title">智能分析结果 <span class="badge">自动</span></div>
+  <div class="card-title">智能分析结果 <span class="badge">LAB 色彩空间</span></div>
   <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
   <div id="analysisStatus" style="font-size:12px;color:var(--dim);margin-bottom:12px">正在分析颜色分布...</div>
   <div class="grid-2" id="analysisResult" style="display:none">
@@ -187,7 +378,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
     <div>
       <div style="font-size:13px;color:var(--heading);margin-bottom:6px">识别到的颜色区域</div>
       <div class="tip">
-        <strong>操作说明：</strong>点击每个区域右侧的 <strong>R / G / B</strong> 按钮，将其分配到对应的 Mask 通道。
+        <strong>操作说明：</strong>点击每个区域右侧的按钮将其分配到对应的 Mask 通道。
+        <span id="channelHint">R/G/B 为换色通道，A 为开关通道（RGBA 模式）。</span>
         未分配（×）的区域不会被染色。多个区域可共享同一通道。
       </div>
       <div class="cluster-list" id="clusterList"></div>
@@ -220,33 +412,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   </div>
 </div>
 
-<!-- Step 4: Validation -->
+<!-- Step 4: Validation + Auto Fix -->
 <div class="card" id="step4" style="display:none">
   <div class="card-title">Mask 验算报告 <span class="badge">自动检测</span></div>
   <div id="validationResult"></div>
+  <div id="fixSection" style="display:none">
+    <div class="fix-panel">
+      <div style="font-size:14px;color:var(--heading);font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        🔧 自动修复方案
+        <span style="font-size:11px;color:var(--dim);font-weight:400">以下问题可一键修复</span>
+      </div>
+      <div id="fixItems"></div>
+      <button class="btn btn-green btn-lg" onclick="autoFix()" style="width:100%;justify-content:center;margin-top:12px" id="fixBtn">
+        ✨ 一键自动修复所有问题
+      </button>
+    </div>
+  </div>
+  <div id="fixResult" style="display:none"></div>
   <div style="margin-top:16px;display:flex;gap:8px">
     <button class="btn" onclick="document.getElementById('step2').scrollIntoView({behavior:'smooth'})" style="flex:1;justify-content:center">返回调整分配</button>
-    <button class="btn btn-primary btn-lg" id="exportBtn" onclick="exportAll()" style="flex:2;justify-content:center">验算通过，导出全部资源</button>
+    <button class="btn btn-primary btn-lg" id="exportBtn" onclick="exportAll()" style="flex:2;justify-content:center">导出全部资源</button>
   </div>
 </div>
 
 <!-- Step 5: Export -->
 <div class="card" id="step5" style="display:none">
-  <div class="card-title">导出完成</div>
-  <div class="tip" style="margin-bottom:16px;">
-    所有文件已打包为 ZIP 下载。解压后的目录结构如下：
-    <pre style="margin-top:8px;color:var(--heading);font-size:12px;line-height:1.8">
-📁 character_mask_output/
-├── base.png              ← 原图
-├── mask_composite.png    ← 合成 Mask（RGBA）
-├── mask_R.png            ← R 通道灰度图
-├── mask_G.png            ← G 通道灰度图
-├── mask_B.png            ← B 通道灰度图
-├── mask_A.png            ← A 通道灰度图
-├── preview_colored.png   ← 换色效果预览
-├── validation_report.json← 验算报告
-└── mask_config.json      ← 通道定义 + 配色方案
-    </pre>
+  <div class="card-title">导出完成 <span class="badge badge-green">✓</span></div>
+  <div class="tip tip-green" style="margin-bottom:16px;">
+    所有文件已打包为 ZIP 下载。<span id="exportStructure"></span>
   </div>
   <div class="output-grid" id="outputGrid"></div>
   <div style="margin-top:16px;display:flex;gap:8px">
@@ -255,255 +448,272 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   </div>
 </div>
 
+</div><!-- end tab-work -->
 </div>
 
 <div class="toast" id="toast"></div>
-<input type="file" id="hiddenFile" accept="image/*" style="display:none">
 
-<!-- JSZip for bundling -->
+<!-- JSZip -->
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 // ─── State ───
-let srcImage = null;
-let srcW = 0, srcH = 0;
-let srcPixels = null; // Uint8ClampedArray
-let clusters = [];     // [{center:[r,g,b], pixels:Set, assignment:'r'|'g'|'b'|'x'}]
-let labelMap = null;   // Int32Array, cluster index per pixel
-let maskData = null;   // final mask ImageData
-let previewScheme = ['#D2691E', '#4169E1', '#2F4F4F'];
-let zipBlob = null;
-const regionNames = { r: '区域1', g: '区域2', b: '区域3' };
+let srcImage=null, srcW=0, srcH=0, srcPixels=null;
+let clusters=[], labelMap=null, maskData=null;
+let previewScheme=['#D2691E','#4169E1','#2F4F4F'];
+let zipBlob=null, validationData=null;
+let channelMode='rgba'; // 'rgba' or 'rgb'
+let fixableIssues=[];
+
+// ─── Tab Switch ───
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['work','guide','faq'][i]===tab));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+}
+
+// ─── Mode ───
+function setMode(mode){
+  channelMode=mode;
+  document.getElementById('modeRGBA').classList.toggle('active',mode==='rgba');
+  document.getElementById('modeRGB').classList.toggle('active',mode==='rgb');
+  document.getElementById('channelHint').textContent=mode==='rgba'
+    ?'R/G/B 为换色通道，A 为开关通道（RGBA 模式）。'
+    :'R/G/B 为换色通道，无 Alpha 通道（RGB 模式）。';
+}
 
 // ─── Step Navigation ───
-function setStep(n) {
-  for (let i = 1; i <= 5; i++) {
-    const el = document.querySelector(`.step[data-step="${i}"]`);
-    el.classList.remove('active', 'done');
-    if (i < n) el.classList.add('done');
-    else if (i === n) el.classList.add('active');
+function setStep(n){
+  for(let i=1;i<=5;i++){
+    const el=document.querySelector(`.step[data-step="${i}"]`);
+    el.classList.remove('active','done');
+    if(i<n)el.classList.add('done');else if(i===n)el.classList.add('active');
   }
 }
 
 // ─── File Import ───
-const dropZone = document.getElementById('dropZone');
-const fileInput = document.getElementById('fileInput');
+const dropZone=document.getElementById('dropZone');
+const fileInput=document.getElementById('fileInput');
+dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('dragover')});
+dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('dragover');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0])});
+fileInput.addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0])});
 
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
-fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
-
-function handleFile(file) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = new Image();
-    img.onload = () => {
-      srcImage = img;
-      srcW = img.width;
-      srcH = img.height;
-      // Draw to get pixel data
-      const c = document.getElementById('srcPreview');
-      c.width = srcW; c.height = srcH;
-      const ctx = c.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      srcPixels = ctx.getImageData(0, 0, srcW, srcH).data;
-
-      // Show info
-      document.getElementById('imgInfo').innerHTML =
+function handleFile(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      srcImage=img;srcW=img.width;srcH=img.height;
+      const c=document.getElementById('srcPreview');
+      c.width=srcW;c.height=srcH;
+      const ctx=c.getContext('2d');
+      ctx.drawImage(img,0,0);
+      srcPixels=ctx.getImageData(0,0,srcW,srcH).data;
+      document.getElementById('imgInfo').innerHTML=
         `尺寸：<strong style="color:var(--heading)">${srcW} × ${srcH}</strong><br>
-         格式：${file.type}<br>
+         格式：${file.type||'image/png'}<br>
          大小：${(file.size/1024).toFixed(1)} KB<br>
-         是否2次幂：${isPOT(srcW) && isPOT(srcH) ? '<span style="color:var(--green)">是</span>' : '<span style="color:var(--yellow)">否（建议调整）</span>'}`;
-
-      dropZone.style.display = 'none';
-      document.getElementById('importPreview').style.display = 'block';
+         是否2次幂：${isPOT(srcW)&&isPOT(srcH)?'<span style="color:var(--green)">✓ 是</span>':'<span style="color:var(--yellow)">⚠ 否（建议调整为256/512/1024）</span>'}<br>
+         透明通道：${hasAlpha()?'<span style="color:var(--green)">✓ 包含</span>':'<span style="color:var(--dim)">无</span>'}`;
+      dropZone.style.display='none';
+      document.getElementById('importPreview').style.display='block';
       showToast(`已加载 ${srcW}×${srcH} 图片`);
     };
-    img.src = e.target.result;
+    img.src=e.target.result;
   };
   reader.readAsDataURL(file);
 }
 
-function isPOT(n) { return n > 0 && (n & (n - 1)) === 0; }
-
-// ─── K-Means Color Clustering ───
-function startAnalysis() {
-  const k = parseInt(document.getElementById('clusterCount').value);
-  const ignoreAlpha = document.getElementById('ignoreAlpha').value === '1';
-
-  document.getElementById('step2').style.display = 'block';
-  document.getElementById('analysisResult').style.display = 'none';
-  document.getElementById('analysisStatus').textContent = '正在分析颜色分布...';
-  setStep(2);
-
-  // Scroll to step2
-  document.getElementById('step2').scrollIntoView({ behavior: 'smooth' });
-
-  setTimeout(() => runKMeans(k, ignoreAlpha), 100);
+function isPOT(n){return n>0&&(n&(n-1))===0}
+function hasAlpha(){
+  if(!srcPixels)return false;
+  for(let i=3;i<srcPixels.length;i+=4){if(srcPixels[i]<250)return true;}
+  return false;
 }
 
-function runKMeans(k, ignoreAlpha) {
-  const pixels = srcPixels;
-  const total = srcW * srcH;
-  const progress = document.getElementById('progressFill');
+// ─── LAB Color Space Utilities ───
+function rgb2lab(r,g,b){
+  // sRGB → Linear → XYZ → LAB
+  let rr=r/255,gg=g/255,bb=b/255;
+  rr=rr>0.04045?Math.pow((rr+0.055)/1.055,2.4):rr/12.92;
+  gg=gg>0.04045?Math.pow((gg+0.055)/1.055,2.4):gg/12.92;
+  bb=bb>0.04045?Math.pow((bb+0.055)/1.055,2.4):bb/12.92;
+  let x=(rr*0.4124564+gg*0.3575761+bb*0.1804375)/0.95047;
+  let y=(rr*0.2126729+gg*0.7151522+bb*0.0721750)/1.00000;
+  let z=(rr*0.0193339+gg*0.1191920+bb*0.9503041)/1.08883;
+  x=x>0.008856?Math.cbrt(x):7.787*x+16/116;
+  y=y>0.008856?Math.cbrt(y):7.787*y+16/116;
+  z=z>0.008856?Math.cbrt(z):7.787*z+16/116;
+  return [116*y-16, 500*(x-y), 200*(y-z)];
+}
 
-  // Collect valid pixel positions
-  const validPixels = [];
-  for (let i = 0; i < total; i++) {
-    const idx = i * 4;
-    if (ignoreAlpha && pixels[idx + 3] < 128) continue;
+function labDist2(l1,a1,b1,l2,a2,b2){
+  const dl=l1-l2,da=a1-a2,db=b1-b2;
+  return dl*dl+da*da+db*db;
+}
+
+// ─── K-Means++ in LAB Color Space (Multi-run) ───
+function startAnalysis(){
+  const k=parseInt(document.getElementById('clusterCount').value);
+  const ignoreAlpha=document.getElementById('ignoreAlpha').value==='1';
+  const runs=parseInt(document.getElementById('algoQuality').value);
+
+  document.getElementById('step2').style.display='block';
+  document.getElementById('analysisResult').style.display='none';
+  document.getElementById('analysisStatus').textContent='正在分析颜色分布（LAB 色彩空间）...';
+  setStep(2);
+  document.getElementById('step2').scrollIntoView({behavior:'smooth'});
+
+  setTimeout(()=>runMultiKMeans(k,ignoreAlpha,runs),100);
+}
+
+function runMultiKMeans(k,ignoreAlpha,runs){
+  const pixels=srcPixels;
+  const total=srcW*srcH;
+  const progress=document.getElementById('progressFill');
+
+  // Collect valid pixels and convert to LAB
+  const validPixels=[];
+  const labData=new Float32Array(total*3);
+  for(let i=0;i<total;i++){
+    const idx=i*4;
+    if(ignoreAlpha&&pixels[idx+3]<128)continue;
     validPixels.push(i);
+    const lab=rgb2lab(pixels[idx],pixels[idx+1],pixels[idx+2]);
+    labData[i*3]=lab[0];labData[i*3+1]=lab[1];labData[i*3+2]=lab[2];
   }
 
-  progress.style.width = '10%';
+  progress.style.width='5%';
 
-  // Initialize centers using k-means++ 
-  const centers = [];
-  // Pick first center randomly
-  const firstIdx = validPixels[Math.floor(Math.random() * validPixels.length)] * 4;
-  centers.push([pixels[firstIdx], pixels[firstIdx+1], pixels[firstIdx+2]]);
+  let bestLabels=null,bestCenters=null,bestScore=Infinity;
 
-  for (let c = 1; c < k; c++) {
-    let maxDist = -1;
-    let bestPx = validPixels[0];
-    // Sample a subset for speed
-    const sampleSize = Math.min(validPixels.length, 2000);
-    const step = Math.max(1, Math.floor(validPixels.length / sampleSize));
-    for (let s = 0; s < validPixels.length; s += step) {
-      const pi = validPixels[s] * 4;
-      const pr = pixels[pi], pg = pixels[pi+1], pb = pixels[pi+2];
-      let minD = Infinity;
-      for (const ctr of centers) {
-        const d = colorDist2(pr, pg, pb, ctr[0], ctr[1], ctr[2]);
-        minD = Math.min(minD, d);
+  for(let run=0;run<runs;run++){
+    // K-means++ init in LAB space
+    const centers=[];
+    const fi=validPixels[Math.floor(Math.random()*validPixels.length)];
+    centers.push([labData[fi*3],labData[fi*3+1],labData[fi*3+2]]);
+
+    for(let c=1;c<k;c++){
+      let maxDist=-1,bestPx=validPixels[0];
+      const step=Math.max(1,Math.floor(validPixels.length/2000));
+      for(let s=0;s<validPixels.length;s+=step){
+        const pi=validPixels[s];
+        const l=labData[pi*3],a=labData[pi*3+1],b=labData[pi*3+2];
+        let minD=Infinity;
+        for(const ct of centers){
+          const d=labDist2(l,a,b,ct[0],ct[1],ct[2]);
+          minD=Math.min(minD,d);
+        }
+        if(minD>maxDist){maxDist=minD;bestPx=pi;}
       }
-      if (minD > maxDist) { maxDist = minD; bestPx = validPixels[s]; }
+      centers.push([labData[bestPx*3],labData[bestPx*3+1],labData[bestPx*3+2]]);
     }
-    const bi = bestPx * 4;
-    centers.push([pixels[bi], pixels[bi+1], pixels[bi+2]]);
-  }
 
-  progress.style.width = '20%';
-
-  // K-means iterations
-  labelMap = new Int32Array(total).fill(-1);
-  const maxIter = 15;
-
-  for (let iter = 0; iter < maxIter; iter++) {
-    // Assign
-    const sums = centers.map(() => [0, 0, 0, 0]); // r,g,b,count
-    for (const pi of validPixels) {
-      const idx = pi * 4;
-      const pr = pixels[idx], pg = pixels[idx+1], pb = pixels[idx+2];
-      let bestC = 0, bestD = Infinity;
-      for (let c = 0; c < k; c++) {
-        const d = colorDist2(pr, pg, pb, centers[c][0], centers[c][1], centers[c][2]);
-        if (d < bestD) { bestD = d; bestC = c; }
+    // Iterate
+    const labels=new Int32Array(total).fill(-1);
+    const maxIter=20;
+    for(let iter=0;iter<maxIter;iter++){
+      const sums=centers.map(()=>[0,0,0,0]);
+      for(const pi of validPixels){
+        const l=labData[pi*3],a=labData[pi*3+1],b=labData[pi*3+2];
+        let bestC=0,bestD=Infinity;
+        for(let c=0;c<k;c++){
+          const d=labDist2(l,a,b,centers[c][0],centers[c][1],centers[c][2]);
+          if(d<bestD){bestD=d;bestC=c;}
+        }
+        labels[pi]=bestC;
+        sums[bestC][0]+=l;sums[bestC][1]+=a;sums[bestC][2]+=b;sums[bestC][3]++;
       }
-      labelMap[pi] = bestC;
-      sums[bestC][0] += pr;
-      sums[bestC][1] += pg;
-      sums[bestC][2] += pb;
-      sums[bestC][3]++;
+      let moved=false;
+      for(let c=0;c<k;c++){
+        if(sums[c][3]===0)continue;
+        const nl=sums[c][0]/sums[c][3],na=sums[c][1]/sums[c][3],nb=sums[c][2]/sums[c][3];
+        if(Math.abs(nl-centers[c][0])>0.5||Math.abs(na-centers[c][1])>0.5||Math.abs(nb-centers[c][2])>0.5)moved=true;
+        centers[c]=[nl,na,nb];
+      }
+      if(!moved)break;
     }
 
-    // Update centers
-    let moved = false;
-    for (let c = 0; c < k; c++) {
-      if (sums[c][3] === 0) continue;
-      const nr = Math.round(sums[c][0] / sums[c][3]);
-      const ng = Math.round(sums[c][1] / sums[c][3]);
-      const nb = Math.round(sums[c][2] / sums[c][3]);
-      if (nr !== centers[c][0] || ng !== centers[c][1] || nb !== centers[c][2]) moved = true;
-      centers[c] = [nr, ng, nb];
+    // Compute inertia (total distance to centers)
+    let score=0;
+    for(const pi of validPixels){
+      const ci=labels[pi];
+      if(ci<0)continue;
+      score+=labDist2(labData[pi*3],labData[pi*3+1],labData[pi*3+2],centers[ci][0],centers[ci][1],centers[ci][2]);
     }
 
-    progress.style.width = `${20 + (iter / maxIter) * 60}%`;
-    if (!moved) break;
+    if(score<bestScore){bestScore=score;bestLabels=labels.slice();bestCenters=centers.map(c=>[...c]);}
+    progress.style.width=`${5+(run+1)/runs*75}%`;
   }
 
-  progress.style.width = '90%';
+  labelMap=bestLabels;
+  progress.style.width='85%';
 
-  // Build cluster data
-  clusters = centers.map((c, i) => {
-    let count = 0;
-    for (const pi of validPixels) { if (labelMap[pi] === i) count++; }
-    return {
-      center: c,
-      count,
-      percent: (count / validPixels.length * 100).toFixed(1),
-      assignment: 'x' // default: not assigned
-    };
+  // Convert LAB centers back to RGB for display
+  clusters=bestCenters.map((labC,i)=>{
+    let count=0;
+    for(const pi of validPixels){if(labelMap[pi]===i)count++;}
+    // Get average RGB of cluster
+    let sr=0,sg=0,sb=0;
+    for(const pi of validPixels){
+      if(labelMap[pi]!==i)continue;
+      const idx=pi*4;
+      sr+=pixels[idx];sg+=pixels[idx+1];sb+=pixels[idx+2];
+    }
+    const center=count>0?[Math.round(sr/count),Math.round(sg/count),Math.round(sb/count)]:[128,128,128];
+    return {center,count,percent:(count/validPixels.length*100).toFixed(1),assignment:'x'};
   });
 
-  // Sort by pixel count descending
-  const sortedIndices = clusters.map((_, i) => i).sort((a, b) => clusters[b].count - clusters[a].count);
-  const sortedClusters = sortedIndices.map(i => clusters[i]);
-  // Remap labelMap
-  const remap = new Int32Array(k);
-  sortedIndices.forEach((old, newIdx) => remap[old] = newIdx);
-  for (let i = 0; i < total; i++) {
-    if (labelMap[i] >= 0) labelMap[i] = remap[labelMap[i]];
-  }
-  clusters = sortedClusters;
+  // Sort by count
+  const sortedIndices=clusters.map((_,i)=>i).sort((a,b)=>clusters[b].count-clusters[a].count);
+  const sorted=sortedIndices.map(i=>clusters[i]);
+  const remap=new Int32Array(k);
+  sortedIndices.forEach((old,ni)=>remap[old]=ni);
+  for(let i=0;i<total;i++){if(labelMap[i]>=0)labelMap[i]=remap[labelMap[i]];}
+  clusters=sorted;
 
   // Auto-assign top 3 to R,G,B
-  const assignChs = ['r', 'g', 'b'];
-  for (let i = 0; i < Math.min(3, clusters.length); i++) {
-    clusters[i].assignment = assignChs[i];
-  }
+  const chs=['r','g','b'];
+  for(let i=0;i<Math.min(3,clusters.length);i++)clusters[i].assignment=chs[i];
 
-  progress.style.width = '100%';
-  document.getElementById('analysisStatus').textContent = `分析完成，识别到 ${k} 个颜色区域`;
+  progress.style.width='100%';
+  document.getElementById('analysisStatus').textContent=`分析完成，识别到 ${k} 个颜色区域（LAB 色彩空间 × ${document.getElementById('algoQuality').value} 次优选）`;
 
   renderClusterPreview();
   renderClusterList();
-  document.getElementById('analysisResult').style.display = 'grid';
-  document.getElementById('genBtn').disabled = false;
+  document.getElementById('analysisResult').style.display='grid';
+  document.getElementById('genBtn').disabled=false;
 }
 
-function colorDist2(r1, g1, b1, r2, g2, b2) {
-  // Weighted Euclidean (perceptual)
-  const dr = r1 - r2, dg = g1 - g2, db = b1 - b2;
-  return dr * dr * 2 + dg * dg * 4 + db * db * 3;
-}
-
-function renderClusterPreview() {
-  const c = document.getElementById('clusterPreview');
-  c.width = srcW; c.height = srcH;
-  const ctx = c.getContext('2d');
-  const img = ctx.createImageData(srcW, srcH);
-  const d = img.data;
-  const channelColors = {
-    r: [255, 80, 80],
-    g: [80, 255, 80],
-    b: [80, 120, 255],
-    x: [60, 60, 70]
-  };
-  for (let i = 0; i < srcW * srcH; i++) {
-    const li = labelMap[i];
-    const idx = i * 4;
-    if (li < 0) {
-      d[idx] = 20; d[idx+1] = 20; d[idx+2] = 25; d[idx+3] = 255;
-    } else {
-      const a = clusters[li].assignment;
-      const cc = channelColors[a] || channelColors.x;
-      // Blend cluster center with channel color
-      const center = clusters[li].center;
-      d[idx] = Math.round(center[0] * 0.4 + cc[0] * 0.6);
-      d[idx+1] = Math.round(center[1] * 0.4 + cc[1] * 0.6);
-      d[idx+2] = Math.round(center[2] * 0.4 + cc[2] * 0.6);
-      d[idx+3] = 255;
+function renderClusterPreview(){
+  const c=document.getElementById('clusterPreview');
+  c.width=srcW;c.height=srcH;
+  const ctx=c.getContext('2d');
+  const img=ctx.createImageData(srcW,srcH);
+  const d=img.data;
+  const chColors={r:[255,80,80],g:[80,255,80],b:[80,120,255],a:[200,200,200],x:[60,60,70]};
+  for(let i=0;i<srcW*srcH;i++){
+    const li=labelMap[i],idx=i*4;
+    if(li<0){d[idx]=20;d[idx+1]=20;d[idx+2]=25;d[idx+3]=255;}
+    else{
+      const a=clusters[li].assignment;
+      const cc=chColors[a]||chColors.x;
+      const center=clusters[li].center;
+      d[idx]=Math.round(center[0]*.4+cc[0]*.6);
+      d[idx+1]=Math.round(center[1]*.4+cc[1]*.6);
+      d[idx+2]=Math.round(center[2]*.4+cc[2]*.6);
+      d[idx+3]=255;
     }
   }
-  ctx.putImageData(img, 0, 0);
+  ctx.putImageData(img,0,0);
 }
 
-function renderClusterList() {
-  const list = document.getElementById('clusterList');
-  list.innerHTML = clusters.map((cl, i) => {
-    const [r, g, b] = cl.center;
-    const hex = `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+function renderClusterList(){
+  const list=document.getElementById('clusterList');
+  const showA=channelMode==='rgba';
+  list.innerHTML=clusters.map((cl,i)=>{
+    const [r,g,b]=cl.center;
+    const hex=`#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
     return `<div class="cluster-item" id="cluster${i}">
       <div class="cluster-swatch" style="background:${hex}"></div>
       <div class="cluster-info">
@@ -511,141 +721,133 @@ function renderClusterList() {
         <div class="detail">${hex} · ${cl.count.toLocaleString()} 像素</div>
       </div>
       <div class="cluster-assign">
-        <button class="assign-btn ${cl.assignment==='r'?'active-r':''}" onclick="assignCluster(${i},'r')" title="分配到 R 通道">R</button>
-        <button class="assign-btn ${cl.assignment==='g'?'active-g':''}" onclick="assignCluster(${i},'g')" title="分配到 G 通道">G</button>
-        <button class="assign-btn ${cl.assignment==='b'?'active-b':''}" onclick="assignCluster(${i},'b')" title="分配到 B 通道">B</button>
-        <button class="assign-btn ${cl.assignment==='x'?'active-x':''}" onclick="assignCluster(${i},'x')" title="不分配（不换色）">×</button>
+        <button class="assign-btn ${cl.assignment==='r'?'active-r':''}" onclick="assignCluster(${i},'r')" title="R 通道">R</button>
+        <button class="assign-btn ${cl.assignment==='g'?'active-g':''}" onclick="assignCluster(${i},'g')" title="G 通道">G</button>
+        <button class="assign-btn ${cl.assignment==='b'?'active-b':''}" onclick="assignCluster(${i},'b')" title="B 通道">B</button>
+        ${showA?`<button class="assign-btn ${cl.assignment==='a'?'active-a':''}" onclick="assignCluster(${i},'a')" title="A 通道">A</button>`:''}
+        <button class="assign-btn ${cl.assignment==='x'?'active-x':''}" onclick="assignCluster(${i},'x')" title="不分配">×</button>
       </div>
     </div>`;
   }).join('');
 }
 
-function assignCluster(idx, ch) {
-  clusters[idx].assignment = ch;
+function assignCluster(idx,ch){
+  clusters[idx].assignment=ch;
   renderClusterList();
   renderClusterPreview();
 }
 
 // ─── Generate Mask ───
-function generateMask() {
-  const smooth = parseInt(document.getElementById('edgeSmooth').value);
-  const total = srcW * srcH;
+function generateMask(){
+  const smooth=parseInt(document.getElementById('edgeSmooth').value);
+  const total=srcW*srcH;
+  maskData=new ImageData(srcW,srcH);
+  const d=maskData.data;
 
-  // Create mask
-  maskData = new ImageData(srcW, srcH);
-  const d = maskData.data;
-
-  for (let i = 0; i < total; i++) {
-    const li = labelMap[i];
-    const idx = i * 4;
-    if (li < 0) continue;
-    const a = clusters[li].assignment;
-    if (a === 'x') continue;
-
-    const str = 255;
-    d[idx]   = a === 'r' ? str : 0;
-    d[idx+1] = a === 'g' ? str : 0;
-    d[idx+2] = a === 'b' ? str : 0;
-    d[idx+3] = str; // A = on
+  for(let i=0;i<total;i++){
+    const li=labelMap[i],idx=i*4;
+    if(li<0)continue;
+    const a=clusters[li].assignment;
+    if(a==='x')continue;
+    const str=255;
+    if(channelMode==='rgba'){
+      d[idx]=a==='r'?str:0;
+      d[idx+1]=a==='g'?str:0;
+      d[idx+2]=a==='b'?str:0;
+      d[idx+3]=(a==='r'||a==='g'||a==='b'||a==='a')?str:0;
+    } else {
+      d[idx]=a==='r'?str:0;
+      d[idx+1]=a==='g'?str:0;
+      d[idx+2]=a==='b'?str:0;
+      d[idx+3]=(a==='r'||a==='g'||a==='b')?str:0;
+    }
   }
 
-  // Edge smoothing via box blur on each channel
-  if (smooth > 0) {
-    const blurred = boxBlurRGBA(d, srcW, srcH, smooth);
-    // Re-enforce mutual exclusion after blur
-    for (let i = 0; i < total; i++) {
-      const idx = i * 4;
-      const r = blurred[idx], g = blurred[idx+1], b = blurred[idx+2];
-      const maxV = Math.max(r, g, b);
-      if (maxV === 0) {
-        d[idx] = 0; d[idx+1] = 0; d[idx+2] = 0; d[idx+3] = 0;
-      } else {
-        // Keep dominant channel, fade others
-        d[idx]   = r === maxV ? r : Math.round(r * 0.15);
-        d[idx+1] = g === maxV ? g : Math.round(g * 0.15);
-        d[idx+2] = b === maxV ? b : Math.round(b * 0.15);
-        d[idx+3] = blurred[idx+3];
-        // Re-enforce: only strongest
-        const mx = Math.max(d[idx], d[idx+1], d[idx+2]);
-        if (d[idx] < mx) d[idx] = 0;
-        if (d[idx+1] < mx) d[idx+1] = 0;
-        if (d[idx+2] < mx) d[idx+2] = 0;
+  if(smooth>0){
+    const blurred=boxBlurRGBA(d,srcW,srcH,smooth);
+    for(let i=0;i<total;i++){
+      const idx=i*4;
+      const r=blurred[idx],g=blurred[idx+1],b=blurred[idx+2];
+      const maxV=Math.max(r,g,b);
+      if(maxV===0){d[idx]=0;d[idx+1]=0;d[idx+2]=0;d[idx+3]=0;}
+      else{
+        d[idx]=r===maxV?r:Math.round(r*0.1);
+        d[idx+1]=g===maxV?g:Math.round(g*0.1);
+        d[idx+2]=b===maxV?b:Math.round(b*0.1);
+        d[idx+3]=blurred[idx+3];
+        const mx=Math.max(d[idx],d[idx+1],d[idx+2]);
+        if(d[idx]<mx)d[idx]=0;
+        if(d[idx+1]<mx)d[idx+1]=0;
+        if(d[idx+2]<mx)d[idx+2]=0;
       }
     }
   }
 
-  // Show step 3
-  document.getElementById('step3').style.display = 'block';
+  document.getElementById('step3').style.display='block';
   setStep(3);
   renderChannelPreviews();
   buildPreviewColorPickers();
   refreshColorPreview();
-  document.getElementById('step3').scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('step3').scrollIntoView({behavior:'smooth'});
 }
 
-function boxBlurRGBA(data, w, h, radius) {
-  const out = new Uint8ClampedArray(data.length);
-  const size = (radius * 2 + 1);
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      let sr = 0, sg = 0, sb = 0, sa = 0, cnt = 0;
-      for (let dy = -radius; dy <= radius; dy++) {
-        for (let dx = -radius; dx <= radius; dx++) {
-          const nx = x + dx, ny = y + dy;
-          if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
-          const ni = (ny * w + nx) * 4;
-          sr += data[ni]; sg += data[ni+1]; sb += data[ni+2]; sa += data[ni+3];
-          cnt++;
+function boxBlurRGBA(data,w,h,radius){
+  const out=new Uint8ClampedArray(data.length);
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      let sr=0,sg=0,sb=0,sa=0,cnt=0;
+      for(let dy=-radius;dy<=radius;dy++){
+        for(let dx=-radius;dx<=radius;dx++){
+          const nx=x+dx,ny=y+dy;
+          if(nx<0||nx>=w||ny<0||ny>=h)continue;
+          const ni=(ny*w+nx)*4;
+          sr+=data[ni];sg+=data[ni+1];sb+=data[ni+2];sa+=data[ni+3];cnt++;
         }
       }
-      const oi = (y * w + x) * 4;
-      out[oi] = Math.round(sr / cnt);
-      out[oi+1] = Math.round(sg / cnt);
-      out[oi+2] = Math.round(sb / cnt);
-      out[oi+3] = Math.round(sa / cnt);
+      const oi=(y*w+x)*4;
+      out[oi]=Math.round(sr/cnt);out[oi+1]=Math.round(sg/cnt);out[oi+2]=Math.round(sb/cnt);out[oi+3]=Math.round(sa/cnt);
     }
   }
   return out;
 }
 
-function renderChannelPreviews() {
-  const container = document.getElementById('channelPreviews');
-  const chInfo = [
-    { id: 'chR', label: 'R 通道', ch: 0, color: '#f66' },
-    { id: 'chG', label: 'G 通道', ch: 1, color: '#6f6' },
-    { id: 'chB', label: 'B 通道', ch: 2, color: '#66f' },
-    { id: 'chA', label: 'A 通道（开关）', ch: 3, color: '#eee' },
-    { id: 'chComposite', label: '合成 Mask', ch: -1, color: 'var(--accent)' },
+function renderChannelPreviews(){
+  const container=document.getElementById('channelPreviews');
+  const chInfo=channelMode==='rgba'?[
+    {id:'chR',label:'R 通道',ch:0,color:'#f66'},
+    {id:'chG',label:'G 通道',ch:1,color:'#6f6'},
+    {id:'chB',label:'B 通道',ch:2,color:'#66f'},
+    {id:'chA',label:'A 通道（开关）',ch:3,color:'#eee'},
+    {id:'chComposite',label:'合成 Mask',ch:-1,color:'var(--accent)'},
+  ]:[
+    {id:'chR',label:'R 通道',ch:0,color:'#f66'},
+    {id:'chG',label:'G 通道',ch:1,color:'#6f6'},
+    {id:'chB',label:'B 通道',ch:2,color:'#66f'},
+    {id:'chComposite',label:'合成 Mask',ch:-1,color:'var(--accent)'},
   ];
-
-  container.innerHTML = chInfo.map(c =>
+  container.innerHTML=chInfo.map(c=>
     `<div class="img-box"><canvas id="${c.id}"></canvas><span class="img-label" style="border-left:3px solid ${c.color}">${c.label}</span></div>`
   ).join('');
-
-  const d = maskData.data;
-  chInfo.forEach(info => {
-    const canvas = document.getElementById(info.id);
-    canvas.width = srcW; canvas.height = srcH;
-    const ctx = canvas.getContext('2d');
-    const img = ctx.createImageData(srcW, srcH);
-    const od = img.data;
-    for (let i = 0; i < d.length; i += 4) {
-      if (info.ch === -1) {
-        od[i] = d[i]; od[i+1] = d[i+1]; od[i+2] = d[i+2]; od[i+3] = d[i+3] > 0 ? 255 : 0;
-      } else {
-        const v = d[i + info.ch];
-        od[i] = v; od[i+1] = v; od[i+2] = v; od[i+3] = 255;
-      }
+  const d=maskData.data;
+  chInfo.forEach(info=>{
+    const canvas=document.getElementById(info.id);
+    canvas.width=srcW;canvas.height=srcH;
+    const ctx=canvas.getContext('2d');
+    const img=ctx.createImageData(srcW,srcH);
+    const od=img.data;
+    for(let i=0;i<d.length;i+=4){
+      if(info.ch===-1){od[i]=d[i];od[i+1]=d[i+1];od[i+2]=d[i+2];od[i+3]=d[i+3]>0?255:0;}
+      else{const v=d[i+info.ch];od[i]=v;od[i+1]=v;od[i+2]=v;od[i+3]=255;}
     }
-    ctx.putImageData(img, 0, 0);
+    ctx.putImageData(img,0,0);
   });
 }
 
-function buildPreviewColorPickers() {
-  const el = document.getElementById('previewColors');
-  const labels = ['R 通道色', 'G 通道色', 'B 通道色'];
-  const colors = ['#f66', '#6f6', '#66f'];
-  el.innerHTML = labels.map((l, i) =>
+function buildPreviewColorPickers(){
+  const el=document.getElementById('previewColors');
+  const labels=['R 通道色','G 通道色','B 通道色'];
+  const colors=['#f66','#6f6','#66f'];
+  el.innerHTML=labels.map((l,i)=>
     `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
       <span style="width:10px;height:10px;border-radius:50%;background:${colors[i]};flex-shrink:0"></span>
       <span style="font-size:12px;color:var(--dim);width:70px">${l}</span>
@@ -656,230 +858,250 @@ function buildPreviewColorPickers() {
   ).join('');
 }
 
-function refreshColorPreview() {
-  if (!maskData || !srcImage) return;
-  const c = document.getElementById('colorPreview');
-  c.width = srcW; c.height = srcH;
-  const ctx = c.getContext('2d');
-  ctx.drawImage(srcImage, 0, 0);
-  const base = ctx.getImageData(0, 0, srcW, srcH);
-  const bd = base.data;
-  const md = maskData.data;
-
-  const tc = previewScheme.map(hex => [
-    parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)
-  ]);
-
-  for (let i = 0; i < bd.length; i += 4) {
-    const mr = md[i], mg = md[i+1], mb = md[i+2], ma = md[i+3];
-    if (ma === 0) continue;
-    const maxCh = Math.max(mr, mg, mb);
-    if (maxCh === 0) continue;
+function refreshColorPreview(){
+  if(!maskData||!srcImage)return;
+  const c=document.getElementById('colorPreview');
+  c.width=srcW;c.height=srcH;
+  const ctx=c.getContext('2d');
+  ctx.drawImage(srcImage,0,0);
+  const base=ctx.getImageData(0,0,srcW,srcH);
+  const bd=base.data,md=maskData.data;
+  const tc=previewScheme.map(hex=>[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]);
+  for(let i=0;i<bd.length;i+=4){
+    const mr=md[i],mg=md[i+1],mb=md[i+2],ma=md[i+3];
+    if(ma===0)continue;
+    const maxCh=Math.max(mr,mg,mb);
+    if(maxCh===0)continue;
     let t;
-    if (mr >= mg && mr >= mb) t = tc[0];
-    else if (mg >= mr && mg >= mb) t = tc[1];
-    else t = tc[2];
-    const lum = (bd[i] * 0.299 + bd[i+1] * 0.587 + bd[i+2] * 0.114) / 255;
-    const blend = (maxCh / 255) * (ma / 255);
-    bd[i]   = Math.min(255, Math.round(bd[i] * (1-blend) + t[0] * lum * 1.5 * blend));
-    bd[i+1] = Math.min(255, Math.round(bd[i+1] * (1-blend) + t[1] * lum * 1.5 * blend));
-    bd[i+2] = Math.min(255, Math.round(bd[i+2] * (1-blend) + t[2] * lum * 1.5 * blend));
+    if(mr>=mg&&mr>=mb)t=tc[0];else if(mg>=mr&&mg>=mb)t=tc[1];else t=tc[2];
+    const lum=(bd[i]*0.299+bd[i+1]*0.587+bd[i+2]*0.114)/255;
+    const blend=(maxCh/255)*(ma/255);
+    bd[i]=Math.min(255,Math.round(bd[i]*(1-blend)+t[0]*lum*1.5*blend));
+    bd[i+1]=Math.min(255,Math.round(bd[i+1]*(1-blend)+t[1]*lum*1.5*blend));
+    bd[i+2]=Math.min(255,Math.round(bd[i+2]*(1-blend)+t[2]*lum*1.5*blend));
   }
-  ctx.putImageData(base, 0, 0);
-  // Update hex display
-  previewScheme.forEach((h, i) => {
-    const el = document.getElementById(`schemeHex${i}`);
-    if (el) el.textContent = h;
-  });
+  ctx.putImageData(base,0,0);
+  previewScheme.forEach((h,i)=>{const el=document.getElementById(`schemeHex${i}`);if(el)el.textContent=h;});
 }
 
-// ─── Validation ───
-let validationData = null;
+// ─── Validation + Auto Fix ───
+function runValidation(){
+  if(!maskData||!srcPixels)return;
+  const d=maskData.data;
+  const total=srcW*srcH;
+  const iga=document.getElementById('ignoreAlpha').value==='1';
 
-function runValidation() {
-  if (!maskData || !srcPixels) return;
-  const d = maskData.data;
-  const total = srcW * srcH;
-  const ignoreAlpha = document.getElementById('ignoreAlpha').value === '1';
+  let validCount=0;
+  for(let i=0;i<total;i++){if(iga&&srcPixels[i*4+3]<128)continue;validCount++;}
 
-  // Count valid (non-transparent) pixels
-  let validCount = 0;
-  for (let i = 0; i < total; i++) {
-    if (ignoreAlpha && srcPixels[i * 4 + 3] < 128) continue;
-    validCount++;
-  }
+  let covR=0,covG=0,covB=0,covA=0,uncovered=0,conflictCount=0;
+  let pureBlack=0,pureWhite=0,alphaIssue=0;
 
-  // 1. Coverage check
-  let coveredR = 0, coveredG = 0, coveredB = 0, coveredA = 0, uncovered = 0;
-  let conflictCount = 0;
-  let pureBlackInMask = 0, pureWhiteInMask = 0;
-
-  for (let i = 0; i < total; i++) {
-    const idx = i * 4;
-    if (ignoreAlpha && srcPixels[idx + 3] < 128) continue;
-
-    const mr = d[idx], mg = d[idx+1], mb = d[idx+2], ma = d[idx+3];
-
-    if (ma > 0) {
-      coveredA++;
-      if (mr > 0) coveredR++;
-      if (mg > 0) coveredG++;
-      if (mb > 0) coveredB++;
-
-      // Mutual exclusion check
-      const active = (mr > 0 ? 1 : 0) + (mg > 0 ? 1 : 0) + (mb > 0 ? 1 : 0);
-      if (active > 1) conflictCount++;
-    } else {
-      uncovered++;
-    }
-
-    // Check if base has pure black/white in dyed areas
-    if (ma > 0 && (mr > 0 || mg > 0 || mb > 0)) {
-      const br = srcPixels[idx], bg = srcPixels[idx+1], bb = srcPixels[idx+2];
-      if (br === 0 && bg === 0 && bb === 0) pureBlackInMask++;
-      if (br === 255 && bg === 255 && bb === 255) pureWhiteInMask++;
+  for(let i=0;i<total;i++){
+    const idx=i*4;
+    if(iga&&srcPixels[idx+3]<128)continue;
+    const mr=d[idx],mg=d[idx+1],mb=d[idx+2],ma=d[idx+3];
+    if(ma>0){
+      covA++;
+      if(mr>0)covR++;if(mg>0)covG++;if(mb>0)covB++;
+      const active=(mr>0?1:0)+(mg>0?1:0)+(mb>0?1:0);
+      if(active>1)conflictCount++;
+      // Check alpha issue: has RGB but no A (in RGBA mode)
+      if(channelMode==='rgba'&&(mr>0||mg>0||mb>0)&&ma===0)alphaIssue++;
+    } else { uncovered++; }
+    // Check pure black/white in dyed areas
+    if(ma>0&&(mr>0||mg>0||mb>0)){
+      const br=srcPixels[idx],bg=srcPixels[idx+1],bb=srcPixels[idx+2];
+      if(br===0&&bg===0&&bb===0)pureBlack++;
+      if(br===255&&bg===255&&bb===255)pureWhite++;
     }
   }
 
-  // 2. Edge quality: count border pixels between channels
-  let edgePixels = 0;
-  for (let y = 1; y < srcH - 1; y++) {
-    for (let x = 1; x < srcW - 1; x++) {
-      const idx = (y * srcW + x) * 4;
-      const ch = getChannel(d, idx);
-      if (ch < 0) continue;
-      // Check 4-neighbors
-      const neighbors = [
-        ((y-1)*srcW+x)*4, ((y+1)*srcW+x)*4,
-        (y*srcW+(x-1))*4, (y*srcW+(x+1))*4
-      ];
-      for (const ni of neighbors) {
-        const nch = getChannel(d, ni);
-        if (nch >= 0 && nch !== ch) { edgePixels++; break; }
-      }
+  // Edge quality
+  let edgePixels=0;
+  for(let y=1;y<srcH-1;y++){
+    for(let x=1;x<srcW-1;x++){
+      const idx=(y*srcW+x)*4;
+      const ch=getChannel(d,idx);
+      if(ch<0)continue;
+      const ns=[((y-1)*srcW+x)*4,((y+1)*srcW+x)*4,(y*srcW+(x-1))*4,(y*srcW+(x+1))*4];
+      for(const ni of ns){const nch=getChannel(d,ni);if(nch>=0&&nch!==ch){edgePixels++;break;}}
     }
   }
 
-  // 3. Size check
-  const isPot = isPOT(srcW) && isPOT(srcH);
-  const fileSizeEstimate = srcW * srcH * 4; // raw RGBA bytes
+  const covPct=validCount>0?(covA/validCount*100).toFixed(1):0;
+  const confPct=validCount>0?(conflictCount/validCount*100).toFixed(2):0;
+  const bkPct=covA>0?(pureBlack/covA*100).toFixed(2):0;
+  const wtPct=covA>0?(pureWhite/covA*100).toFixed(2):0;
 
-  // Build report
-  const coveragePercent = validCount > 0 ? (coveredA / validCount * 100).toFixed(1) : 0;
-  const conflictPercent = validCount > 0 ? (conflictCount / validCount * 100).toFixed(2) : 0;
-  const blackPercent = coveredA > 0 ? (pureBlackInMask / coveredA * 100).toFixed(2) : 0;
-  const whitePercent = coveredA > 0 ? (pureWhiteInMask / coveredA * 100).toFixed(2) : 0;
-
-  const checks = [
-    {
-      name: '通道覆盖率',
-      desc: `Mask 覆盖了 ${coveragePercent}% 的可见像素（R: ${coveredR.toLocaleString()}, G: ${coveredG.toLocaleString()}, B: ${coveredB.toLocaleString()}）`,
-      status: parseFloat(coveragePercent) > 10 ? 'pass' : 'warn',
-      detail: parseFloat(coveragePercent) < 10 ? '覆盖率过低，可能有大量区域未被标记' : ''
-    },
-    {
-      name: '通道互斥性',
-      desc: conflictCount === 0
-        ? '所有像素通道互斥，无冲突'
-        : `发现 ${conflictCount.toLocaleString()} 个像素同时属于多个通道（${conflictPercent}%）`,
-      status: conflictCount === 0 ? 'pass' : conflictCount < validCount * 0.01 ? 'warn' : 'fail',
-      detail: conflictCount > 0 ? '同一像素不应同时属于 R/G/B 多个通道，会导致串色' : ''
-    },
-    {
-      name: '纯黑像素检测',
-      desc: pureBlackInMask === 0
-        ? '染色区域无纯黑像素'
-        : `染色区域中有 ${pureBlackInMask.toLocaleString()} 个纯黑像素（${blackPercent}%）`,
-      status: pureBlackInMask === 0 ? 'pass' : parseFloat(blackPercent) < 1 ? 'warn' : 'fail',
-      detail: pureBlackInMask > 0 ? '纯黑(0,0,0)像素做 HSV 色相偏移无效，换色后仍为黑色' : ''
-    },
-    {
-      name: '纯白像素检测',
-      desc: pureWhiteInMask === 0
-        ? '染色区域无纯白像素'
-        : `染色区域中有 ${pureWhiteInMask.toLocaleString()} 个纯白像素（${whitePercent}%）`,
-      status: pureWhiteInMask === 0 ? 'pass' : parseFloat(whitePercent) < 1 ? 'warn' : 'fail',
-      detail: pureWhiteInMask > 0 ? '纯白(255,255,255)像素换色效果不佳，建议用浅灰替代' : ''
-    },
-    {
-      name: '边缘质量',
-      desc: `检测到 ${edgePixels.toLocaleString()} 个通道边界像素`,
-      status: 'info',
-      detail: '边界像素越少说明区域越整洁；如边缘锯齿严重可提高边缘柔化等级'
-    },
-    {
-      name: '贴图尺寸规范',
-      desc: `${srcW}×${srcH}px — ${isPot ? '是 2 的幂次方' : '不是 2 的幂次方'}`,
-      status: isPot ? 'pass' : 'warn',
-      detail: !isPot ? '非 2^N 尺寸可能导致部分 GPU 不兼容，建议调整为 256/512/1024 等' : ''
-    },
-    {
-      name: 'R 通道内容',
-      desc: coveredR > 0 ? `${coveredR.toLocaleString()} 像素（${(coveredR/validCount*100).toFixed(1)}%）` : '空（未分配区域）',
-      status: coveredR > 0 ? 'pass' : 'warn',
-      detail: coveredR === 0 ? 'R 通道为空，该通道未被使用' : ''
-    },
-    {
-      name: 'G 通道内容',
-      desc: coveredG > 0 ? `${coveredG.toLocaleString()} 像素（${(coveredG/validCount*100).toFixed(1)}%）` : '空（未分配区域）',
-      status: coveredG > 0 ? 'pass' : 'warn',
-      detail: coveredG === 0 ? 'G 通道为空，该通道未被使用' : ''
-    },
-    {
-      name: 'B 通道内容',
-      desc: coveredB > 0 ? `${coveredB.toLocaleString()} 像素（${(coveredB/validCount*100).toFixed(1)}%）` : '空（未分配区域）',
-      status: coveredB > 0 ? 'pass' : 'warn',
-      detail: coveredB === 0 ? 'B 通道为空，该通道未被使用' : ''
-    },
+  const checks=[
+    {name:'通道覆盖率',desc:`Mask 覆盖了 ${covPct}% 的可见像素（R:${covR.toLocaleString()}, G:${covG.toLocaleString()}, B:${covB.toLocaleString()}）`,
+     status:parseFloat(covPct)>10?'pass':'warn',detail:parseFloat(covPct)<10?'覆盖率过低，可能有大量区域未被标记':''},
+    {name:'通道互斥性',desc:conflictCount===0?'所有像素通道互斥，无冲突':`发现 ${conflictCount.toLocaleString()} 个像素同时属于多个通道（${confPct}%）`,
+     status:conflictCount===0?'pass':conflictCount<validCount*0.01?'warn':'fail',
+     detail:conflictCount>0?'同一像素不应同时属于R/G/B多个通道，会导致串色':'',fixable:conflictCount>0,fixType:'conflict',fixCount:conflictCount},
+    {name:'纯黑像素检测',desc:pureBlack===0?'染色区域无纯黑像素':`染色区域中有 ${pureBlack.toLocaleString()} 个纯黑像素（${bkPct}%）`,
+     status:pureBlack===0?'pass':parseFloat(bkPct)<1?'warn':'fail',
+     detail:pureBlack>0?'纯黑(0,0,0)像素做HSV色相偏移无效，换色后仍为黑色':'',fixable:pureBlack>0,fixType:'black',fixCount:pureBlack},
+    {name:'纯白像素检测',desc:pureWhite===0?'染色区域无纯白像素':`染色区域中有 ${pureWhite.toLocaleString()} 个纯白像素（${wtPct}%）`,
+     status:pureWhite===0?'pass':parseFloat(wtPct)<1?'warn':'fail',
+     detail:pureWhite>0?'纯白(255,255,255)像素换色效果不佳，建议用浅灰替代':'',fixable:pureWhite>0,fixType:'white',fixCount:pureWhite},
+    {name:'边缘质量',desc:`检测到 ${edgePixels.toLocaleString()} 个通道边界像素`,status:'info',
+     detail:'边界像素越少说明区域越整洁；如边缘锯齿严重可提高边缘柔化等级'},
+    {name:'贴图尺寸规范',desc:`${srcW}×${srcH}px — ${isPOT(srcW)&&isPOT(srcH)?'是2的幂次方':'不是2的幂次方'}`,
+     status:isPOT(srcW)&&isPOT(srcH)?'pass':'warn',
+     detail:!(isPOT(srcW)&&isPOT(srcH))?'非2^N尺寸可能导致部分GPU不兼容':''},
   ];
 
-  const passCount = checks.filter(c => c.status === 'pass').length;
-  const warnCount = checks.filter(c => c.status === 'warn').length;
-  const failCount = checks.filter(c => c.status === 'fail').length;
-  const overall = failCount > 0 ? 'fail' : warnCount > 2 ? 'warn' : 'pass';
+  // Alpha issue check (RGBA mode only)
+  if(channelMode==='rgba'&&alphaIssue>0){
+    checks.push({name:'A通道完整性',desc:`${alphaIssue.toLocaleString()} 个像素有RGB值但A通道为0`,
+      status:'fail',detail:'有换色标记但A通道为0会导致换色不生效',fixable:true,fixType:'alpha',fixCount:alphaIssue});
+  }
 
-  validationData = {
-    checks,
-    summary: { pass: passCount, warn: warnCount, fail: failCount, overall },
-    stats: { coveragePercent, conflictCount, pureBlackInMask, pureWhiteInMask, edgePixels, validCount, coveredR, coveredG, coveredB }
-  };
+  // Channel content
+  ['R','G','B'].forEach((ch,ci)=>{
+    const cnt=[covR,covG,covB][ci];
+    checks.push({name:`${ch} 通道内容`,
+      desc:cnt>0?`${cnt.toLocaleString()} 像素（${(cnt/validCount*100).toFixed(1)}%）`:'空（未分配区域）',
+      status:cnt>0?'pass':'warn',detail:cnt===0?`${ch} 通道为空，该通道未被使用`:''});
+  });
 
-  renderValidation(checks, overall, passCount, warnCount, failCount);
+  const passCount=checks.filter(c=>c.status==='pass').length;
+  const warnCount=checks.filter(c=>c.status==='warn').length;
+  const failCount=checks.filter(c=>c.status==='fail').length;
+  const overall=failCount>0?'fail':warnCount>2?'warn':'pass';
 
-  document.getElementById('step4').style.display = 'block';
-  setStep(4);
-  document.getElementById('step4').scrollIntoView({ behavior: 'smooth' });
+  fixableIssues=checks.filter(c=>c.fixable);
+  validationData={checks,summary:{pass:passCount,warn:warnCount,fail:failCount,overall},
+    stats:{coveragePercent:covPct,conflictCount,pureBlack,pureWhite,edgePixels,validCount,covR,covG,covB,alphaIssue}};
 
-  // Enable/disable export button based on result
-  const btn = document.getElementById('exportBtn');
-  if (failCount > 0) {
-    btn.textContent = '存在问题，仍然导出（不推荐）';
-    btn.style.background = 'var(--yellow)';
-    btn.style.borderColor = 'var(--yellow)';
-    btn.style.color = '#000';
+  renderValidation(checks,overall,passCount,warnCount,failCount);
+
+  // Show fix section if there are fixable issues
+  const fixSection=document.getElementById('fixSection');
+  const fixResult=document.getElementById('fixResult');
+  fixResult.style.display='none';
+  if(fixableIssues.length>0){
+    fixSection.style.display='block';
+    const fixItems=document.getElementById('fixItems');
+    fixItems.innerHTML=fixableIssues.map(issue=>{
+      const iconCls=issue.status==='fail'?'fix-icon-err':'fix-icon-warn';
+      const actionText={
+        conflict:'→ 保留最强通道，清除其他',
+        black:'→ 替换为深灰(10,10,10)',
+        white:'→ 替换为浅灰(245,245,245)',
+        alpha:'→ 自动补齐 A 通道值'
+      }[issue.fixType];
+      return `<div class="fix-item">
+        <div class="icon ${iconCls}">${issue.status==='fail'?'✕':'!'}</div>
+        <div class="detail"><strong style="color:var(--heading)">${issue.name}</strong>：${issue.fixCount.toLocaleString()} 个像素</div>
+        <div class="action">${actionText}</div>
+      </div>`;
+    }).join('');
   } else {
-    btn.textContent = '验算通过，导出全部资源';
-    btn.style.background = '';
-    btn.style.borderColor = '';
-    btn.style.color = '';
+    fixSection.style.display='none';
+  }
+
+  document.getElementById('step4').style.display='block';
+  setStep(4);
+  document.getElementById('step4').scrollIntoView({behavior:'smooth'});
+
+  const btn=document.getElementById('exportBtn');
+  if(failCount>0&&fixableIssues.length>0){
+    btn.textContent='建议先修复再导出';btn.style.background='var(--yellow)';btn.style.borderColor='var(--yellow)';btn.style.color='#000';
+  } else {
+    btn.textContent='导出全部资源';btn.style.background='';btn.style.borderColor='';btn.style.color='';
   }
 }
 
-function getChannel(d, idx) {
-  if (d[idx+3] === 0) return -1;
-  if (d[idx] > 0) return 0;
-  if (d[idx+1] > 0) return 1;
-  if (d[idx+2] > 0) return 2;
-  return -1;
+function getChannel(d,idx){
+  if(d[idx+3]===0)return-1;if(d[idx]>0)return 0;if(d[idx+1]>0)return 1;if(d[idx+2]>0)return 2;return-1;
 }
 
-function renderValidation(checks, overall, pc, wc, fc) {
-  const icons = { pass: '✓', warn: '!', fail: '✕', info: 'i' };
-  const colors = { pass: 'var(--green)', warn: 'var(--yellow)', fail: 'var(--red)', info: 'var(--accent)' };
-  const bgColors = { pass: 'rgba(74,222,128,.08)', warn: 'rgba(251,191,36,.08)', fail: 'rgba(248,113,113,.08)', info: 'rgba(108,140,255,.06)' };
-  const overallLabels = { pass: '全部通过', warn: '存在警告', fail: '存在问题' };
+// ─── AUTO FIX ───
+function autoFix(){
+  if(!maskData||!srcPixels)return;
+  const d=maskData.data;
+  const total=srcW*srcH;
+  const iga=document.getElementById('ignoreAlpha').value==='1';
+  let fixedConflict=0,fixedBlack=0,fixedWhite=0,fixedAlpha=0;
 
-  let html = `
+  // Create a copy of srcPixels for modification suggestions
+  const fixedSrcData=new Uint8ClampedArray(srcPixels);
+
+  for(let i=0;i<total;i++){
+    const idx=i*4;
+    if(iga&&srcPixels[idx+3]<128)continue;
+    const mr=d[idx],mg=d[idx+1],mb=d[idx+2],ma=d[idx+3];
+
+    // Fix 1: Channel conflict - keep dominant channel
+    const active=(mr>0?1:0)+(mg>0?1:0)+(mb>0?1:0);
+    if(active>1){
+      const maxVal=Math.max(mr,mg,mb);
+      d[idx]=mr===maxVal?mr:0;
+      d[idx+1]=mg===maxVal&&mr!==maxVal?mg:d[idx+1]===mg&&mr===maxVal?0:d[idx+1];
+      // Simplified: keep the highest
+      if(mr>=mg&&mr>=mb){d[idx]=mr;d[idx+1]=0;d[idx+2]=0;}
+      else if(mg>=mr&&mg>=mb){d[idx]=0;d[idx+1]=mg;d[idx+2]=0;}
+      else{d[idx]=0;d[idx+1]=0;d[idx+2]=mb;}
+      fixedConflict++;
+    }
+
+    // Fix 2: Pure black pixels in dyed area
+    if(ma>0&&(d[idx]>0||d[idx+1]>0||d[idx+2]>0)){
+      const br=srcPixels[idx],bg=srcPixels[idx+1],bb=srcPixels[idx+2];
+      if(br===0&&bg===0&&bb===0){
+        fixedSrcData[idx]=10;fixedSrcData[idx+1]=10;fixedSrcData[idx+2]=10;
+        fixedBlack++;
+      }
+      if(br===255&&bg===255&&bb===255){
+        fixedSrcData[idx]=245;fixedSrcData[idx+1]=245;fixedSrcData[idx+2]=245;
+        fixedWhite++;
+      }
+    }
+
+    // Fix 3: Alpha issue - has RGB but no A
+    if(channelMode==='rgba'&&(d[idx]>0||d[idx+1]>0||d[idx+2]>0)&&d[idx+3]===0){
+      d[idx+3]=255;fixedAlpha++;
+    }
+  }
+
+  // Update srcPixels with fixes
+  srcPixels=fixedSrcData;
+
+  // Re-render
+  renderChannelPreviews();
+  refreshColorPreview();
+
+  // Show fix result
+  const fixResult=document.getElementById('fixResult');
+  fixResult.style.display='block';
+  let html=`<div class="tip tip-green" style="margin-top:12px"><strong>✅ 自动修复完成！</strong><br>`;
+  if(fixedConflict>0)html+=`• 修复了 ${fixedConflict.toLocaleString()} 个通道冲突像素<br>`;
+  if(fixedBlack>0)html+=`• 修复了 ${fixedBlack.toLocaleString()} 个纯黑像素 → 深灰(10,10,10)<br>`;
+  if(fixedWhite>0)html+=`• 修复了 ${fixedWhite.toLocaleString()} 个纯白像素 → 浅灰(245,245,245)<br>`;
+  if(fixedAlpha>0)html+=`• 修复了 ${fixedAlpha.toLocaleString()} 个 A 通道缺失像素<br>`;
+  html+=`修复后的资源可以直接导出使用。</div>`;
+  fixResult.innerHTML=html;
+
+  document.getElementById('fixSection').style.display='none';
+
+  // Update export button
+  const btn=document.getElementById('exportBtn');
+  btn.textContent='✓ 修复完成，导出全部资源';
+  btn.style.background='var(--green)';btn.style.borderColor='var(--green)';btn.style.color='#000';
+
+  // Re-run validation silently to update data
+  showToast('自动修复完成！');
+}
+
+function renderValidation(checks,overall,pc,wc,fc){
+  const icons={pass:'✓',warn:'!',fail:'✕',info:'i'};
+  const colors={pass:'var(--green)',warn:'var(--yellow)',fail:'var(--red)',info:'var(--accent)'};
+  const bgColors={pass:'rgba(74,222,128,.08)',warn:'rgba(251,191,36,.08)',fail:'rgba(248,113,113,.08)',info:'rgba(108,140,255,.06)'};
+  const overallLabels={pass:'全部通过',warn:'存在警告',fail:'存在问题'};
+  let html=`
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;padding:16px;border-radius:10px;background:${bgColors[overall]};border:1px solid ${colors[overall]}30">
       <div style="width:48px;height:48px;border-radius:50%;background:${colors[overall]};display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;flex-shrink:0">${icons[overall]}</div>
       <div>
@@ -888,160 +1110,135 @@ function renderValidation(checks, overall, pc, wc, fc) {
           <span style="color:var(--green)">通过 ${pc}</span> · 
           <span style="color:var(--yellow)">警告 ${wc}</span> · 
           <span style="color:var(--red)">问题 ${fc}</span>
+          · 模式: ${channelMode.toUpperCase()}
         </div>
       </div>
-    </div>
-  `;
-
-  html += checks.map(c => `
+    </div>`;
+  html+=checks.map(c=>`
     <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;margin-bottom:4px;border-radius:8px;background:${bgColors[c.status]}">
       <div style="width:20px;height:20px;border-radius:50%;background:${colors[c.status]};display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0;margin-top:1px">${icons[c.status]}</div>
       <div style="flex:1">
-        <div style="font-size:13px;color:var(--heading);font-weight:500">${c.name}</div>
+        <div style="font-size:13px;color:var(--heading);font-weight:500">${c.name}${c.fixable?'<span style="font-size:10px;color:var(--green);margin-left:6px;background:rgba(74,222,128,.1);padding:1px 6px;border-radius:4px">可自动修复</span>':''}</div>
         <div style="font-size:12px;color:var(--dim);margin-top:2px">${c.desc}</div>
-        ${c.detail ? `<div style="font-size:11px;color:${colors[c.status]};margin-top:3px">${c.detail}</div>` : ''}
+        ${c.detail?`<div style="font-size:11px;color:${colors[c.status]};margin-top:3px">${c.detail}</div>`:''}
       </div>
-    </div>
-  `).join('');
-
-  document.getElementById('validationResult').innerHTML = html;
+    </div>`).join('');
+  document.getElementById('validationResult').innerHTML=html;
 }
 
 // ─── Export All ───
-async function exportAll() {
-  if (typeof JSZip === 'undefined') {
-    showToast('正在加载打包库，请稍后重试...');
-    return;
-  }
+async function exportAll(){
+  if(typeof JSZip==='undefined'){showToast('正在加载打包库...');return;}
+  const zip=new JSZip();
+  const folder=zip.folder('character_mask_output');
 
-  const zip = new JSZip();
-  const folder = zip.folder('character_mask_output');
-
-  // 1. Base image
-  folder.file('base.png', await canvasToBlob(drawToCanvas(srcImage, srcW, srcH)));
+  // 1. Base image (potentially with fixes applied)
+  const baseCanvas=document.createElement('canvas');
+  baseCanvas.width=srcW;baseCanvas.height=srcH;
+  const baseCtx=baseCanvas.getContext('2d');
+  const baseImgData=baseCtx.createImageData(srcW,srcH);
+  baseImgData.data.set(srcPixels);
+  baseCtx.putImageData(baseImgData,0,0);
+  folder.file('base.png',await canvasToBlob(baseCanvas));
 
   // 2. Composite mask
-  const maskC = document.createElement('canvas');
-  maskC.width = srcW; maskC.height = srcH;
-  maskC.getContext('2d').putImageData(maskData, 0, 0);
-  folder.file('mask_composite.png', await canvasToBlob(maskC));
+  const maskC=document.createElement('canvas');
+  maskC.width=srcW;maskC.height=srcH;
+  maskC.getContext('2d').putImageData(maskData,0,0);
+  folder.file('mask_composite.png',await canvasToBlob(maskC));
 
   // 3. Individual channels
-  for (const [name, ch] of [['mask_R', 0], ['mask_G', 1], ['mask_B', 2], ['mask_A', 3]]) {
-    const cc = document.createElement('canvas');
-    cc.width = srcW; cc.height = srcH;
-    const ctx = cc.getContext('2d');
-    const img = ctx.createImageData(srcW, srcH);
-    const d = maskData.data;
-    for (let i = 0; i < d.length; i += 4) {
-      const v = d[i + ch];
-      img.data[i] = v; img.data[i+1] = v; img.data[i+2] = v; img.data[i+3] = 255;
-    }
-    ctx.putImageData(img, 0, 0);
-    folder.file(`${name}.png`, await canvasToBlob(cc));
+  const channelList=channelMode==='rgba'?[['mask_R',0],['mask_G',1],['mask_B',2],['mask_A',3]]:[['mask_R',0],['mask_G',1],['mask_B',2]];
+  for(const[name,ch]of channelList){
+    const cc=document.createElement('canvas');cc.width=srcW;cc.height=srcH;
+    const ctx=cc.getContext('2d');const img=ctx.createImageData(srcW,srcH);const d=maskData.data;
+    for(let i=0;i<d.length;i+=4){const v=d[i+ch];img.data[i]=v;img.data[i+1]=v;img.data[i+2]=v;img.data[i+3]=255;}
+    ctx.putImageData(img,0,0);folder.file(`${name}.png`,await canvasToBlob(cc));
   }
 
   // 4. Color preview
   refreshColorPreview();
-  const colorC = document.getElementById('colorPreview');
-  folder.file('preview_colored.png', await canvasToBlob(colorC));
+  folder.file('preview_colored.png',await canvasToBlob(document.getElementById('colorPreview')));
 
-  // 5. Config JSON
-  const rClusters = clusters.filter(c => c.assignment === 'r');
-  const gClusters = clusters.filter(c => c.assignment === 'g');
-  const bClusters = clusters.filter(c => c.assignment === 'b');
-  const config = {
-    format: 'auto_mask_channel_definition',
-    version: '1.0',
-    tool: '自动 Mask 通道生成器',
-    imageSize: { width: srcW, height: srcH },
-    channels: {
-      R: { regions: rClusters.map((c,i) => ({ name: `R区域${i+1}`, color: rgbHex(c.center), percent: c.percent + '%' })) },
-      G: { regions: gClusters.map((c,i) => ({ name: `G区域${i+1}`, color: rgbHex(c.center), percent: c.percent + '%' })) },
-      B: { regions: bClusters.map((c,i) => ({ name: `B区域${i+1}`, color: rgbHex(c.center), percent: c.percent + '%' })) },
-      A: { desc: '255=可染色, 0=不染色' }
+  // 5. Config
+  const config={
+    format:'auto_mask_channel_definition',version:'2.0',tool:'自动 Mask 通道生成器 v2.0',
+    channelMode:channelMode.toUpperCase(),
+    imageSize:{width:srcW,height:srcH},
+    channels:{
+      R:{regions:clusters.filter(c=>c.assignment==='r').map((c,i)=>({name:`R区域${i+1}`,color:rgbHex(c.center),percent:c.percent+'%'}))},
+      G:{regions:clusters.filter(c=>c.assignment==='g').map((c,i)=>({name:`G区域${i+1}`,color:rgbHex(c.center),percent:c.percent+'%'}))},
+      B:{regions:clusters.filter(c=>c.assignment==='b').map((c,i)=>({name:`B区域${i+1}`,color:rgbHex(c.center),percent:c.percent+'%'}))},
     },
-    colorScheme: {
-      R: previewScheme[0],
-      G: previewScheme[1],
-      B: previewScheme[2]
-    },
-    generatedAt: new Date().toISOString()
+    colorScheme:{R:previewScheme[0],G:previewScheme[1],B:previewScheme[2]},
+    algorithm:{colorSpace:'CIELAB',runs:document.getElementById('algoQuality').value,method:'K-Means++'},
+    generatedAt:new Date().toISOString()
   };
-  folder.file('mask_config.json', JSON.stringify(config, null, 2));
+  if(channelMode==='rgba')config.channels.A={desc:'255=可染色, 0=不染色'};
+  folder.file('mask_config.json',JSON.stringify(config,null,2));
 
   // 6. Validation report
-  if (validationData) {
-    folder.file('validation_report.json', JSON.stringify(validationData, null, 2));
-  }
+  if(validationData)folder.file('validation_report.json',JSON.stringify(validationData,null,2));
 
-  // Generate zip
-  zipBlob = await zip.generateAsync({ type: 'blob' });
+  zipBlob=await zip.generateAsync({type:'blob'});
 
-  // Show step 5
-  document.getElementById('step5').style.display = 'block';
+  // Update export structure text
+  const structLines=channelMode==='rgba'?
+    `<pre style="margin-top:8px;color:var(--heading);font-size:12px;line-height:1.8">
+📁 character_mask_output/
+├── base.png              ← 原图${fixableIssues.length>0?'（已修复）':''}
+├── mask_composite.png    ← 合成 Mask（RGBA）
+├── mask_R.png            ← R 通道灰度图
+├── mask_G.png            ← G 通道灰度图
+├── mask_B.png            ← B 通道灰度图
+├── mask_A.png            ← A 通道灰度图
+├── preview_colored.png   ← 换色效果预览
+├── validation_report.json← 验算报告
+└── mask_config.json      ← 通道定义 + 配色方案</pre>`:
+    `<pre style="margin-top:8px;color:var(--heading);font-size:12px;line-height:1.8">
+📁 character_mask_output/
+├── base.png              ← 原图${fixableIssues.length>0?'（已修复）':''}
+├── mask_composite.png    ← 合成 Mask（RGB）
+├── mask_R.png            ← R 通道灰度图
+├── mask_G.png            ← G 通道灰度图
+├── mask_B.png            ← B 通道灰度图
+├── preview_colored.png   ← 换色效果预览
+├── validation_report.json← 验算报告
+└── mask_config.json      ← 通道定义 + 配色方案</pre>`;
+  document.getElementById('exportStructure').innerHTML=structLines;
+
+  document.getElementById('step5').style.display='block';
   setStep(5);
   renderOutputGrid();
-  document.getElementById('step5').scrollIntoView({ behavior: 'smooth' });
-
-  // Auto download
+  document.getElementById('step5').scrollIntoView({behavior:'smooth'});
   downloadZip();
   showToast('ZIP 已打包下载');
 }
 
-function downloadZip() {
-  if (!zipBlob) return;
-  const link = document.createElement('a');
-  link.download = 'character_mask_output.zip';
-  link.href = URL.createObjectURL(zipBlob);
-  link.click();
-}
+function downloadZip(){if(!zipBlob)return;const link=document.createElement('a');link.download='character_mask_output.zip';link.href=URL.createObjectURL(zipBlob);link.click();}
 
-function renderOutputGrid() {
-  const grid = document.getElementById('outputGrid');
-  const items = [
-    { id: 'srcPreview', name: 'base.png', desc: '原图' },
-    { id: 'chComposite', name: 'mask_composite.png', desc: '合成 Mask' },
-    { id: 'chR', name: 'mask_R.png', desc: 'R 通道' },
-    { id: 'chG', name: 'mask_G.png', desc: 'G 通道' },
-    { id: 'chB', name: 'mask_B.png', desc: 'B 通道' },
-    { id: 'chA', name: 'mask_A.png', desc: 'A 通道' },
-    { id: 'colorPreview', name: 'preview_colored.png', desc: '换色预览' },
+function renderOutputGrid(){
+  const grid=document.getElementById('outputGrid');
+  const items=[
+    {id:'srcPreview',name:'base.png',desc:'原图'},
+    {id:'chComposite',name:'mask_composite.png',desc:'合成 Mask'},
+    {id:'chR',name:'mask_R.png',desc:'R 通道'},
+    {id:'chG',name:'mask_G.png',desc:'G 通道'},
+    {id:'chB',name:'mask_B.png',desc:'B 通道'},
   ];
-  grid.innerHTML = items.map(item => {
-    const src = document.getElementById(item.id);
-    const dataUrl = src ? src.toDataURL() : '';
-    return `<div class="output-card">
-      <img src="${dataUrl}" alt="${item.name}">
-      <div class="info"><span class="name">${item.name}</span><span>${item.desc}</span></div>
-    </div>`;
+  if(channelMode==='rgba')items.push({id:'chA',name:'mask_A.png',desc:'A 通道'});
+  items.push({id:'colorPreview',name:'preview_colored.png',desc:'换色预览'});
+  grid.innerHTML=items.map(item=>{
+    const src=document.getElementById(item.id);
+    const dataUrl=src?src.toDataURL():'';
+    return `<div class="output-card"><img src="${dataUrl}" alt="${item.name}"><div class="info"><span class="name">${item.name}</span><span>${item.desc}</span></div></div>`;
   }).join('');
 }
 
 // ─── Helpers ───
-function drawToCanvas(img, w, h) {
-  const c = document.createElement('canvas');
-  c.width = w; c.height = h;
-  c.getContext('2d').drawImage(img, 0, 0);
-  return c;
-}
-
-function canvasToBlob(canvas) {
-  return new Promise(resolve => {
-    canvas.toBlob(blob => resolve(blob), 'image/png');
-  });
-}
-
-function rgbHex([r, g, b]) {
-  return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
+function canvasToBlob(canvas){return new Promise(r=>{canvas.toBlob(b=>r(b),'image/png')});}
+function rgbHex([r,g,b]){return'#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 </script>
 </body>
 </html>
