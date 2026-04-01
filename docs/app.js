@@ -1,42 +1,110 @@
-// ═══ Markdown Parser ═══
-function parseMd(md){let h=md;h=h.replace(/```(\w*)\n([\s\S]*?)```/g,(_,l,c)=>'<pre><code>'+esc(c.trim())+'</code></pre>');h=h.replace(/^(\|.+\|)\n(\|[-| :]+\|)\n((?:\|.+\|\n?)*)/gm,(_,hdr,sep,body)=>{const ths=hdr.split('|').filter(c=>c.trim()).map(c=>'<th>'+il(c.trim())+'</th>').join('');const rows=body.trim().split('\n').map(r=>{const tds=r.split('|').filter(c=>c.trim()).map(c=>'<td>'+il(c.trim())+'</td>').join('');return'<tr>'+tds+'</tr>';}).join('');return'<table><thead><tr>'+ths+'</tr></thead><tbody>'+rows+'</tbody></table>';});h=h.replace(/^#### (.+)$/gm,'<h4>$1</h4>');h=h.replace(/^### (.+)$/gm,function(_,t){return'<h3 id="'+sl(t)+'">'+il(t)+'</h3>';});h=h.replace(/^## (.+)$/gm,function(_,t){return'<h2 id="'+sl(t)+'">'+il(t)+'</h2>';});h=h.replace(/^# (.+)$/gm,function(_,t){return'<h1>'+il(t)+'</h1>';});h=h.replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>');h=h.replace(/<\/blockquote>\n<blockquote>/g,'<br>');h=h.replace(/^---$/gm,'<hr>');h=h.replace(/^- \[( |x)\] (.+)$/gm,function(_,c,t){return'<p><input type="checkbox"'+(c==='x'?' checked':'')+' disabled>'+il(t)+'</p>';});h=h.replace(/^- (.+)$/gm,'<li>$1</li>');h=h.replace(/(<li>.*<\/li>\n?)+/g,function(m){return'<ul>'+m+'</ul>';});h=h.replace(/^\d+\. (.+)$/gm,'<li>$1</li>');h=h.replace(/^(?!<[a-z/])((?!<).+)$/gm,function(m){return m.trim()?'<p>'+il(m)+'</p>':m;});h=h.replace(/<p><\/p>/g,'');return h;}
-function il(t){t=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');t=t.replace(/`([^`]+)`/g,'<code>$1</code>');return t;}
+// ═══ Markdown Parser (智能表格增强) ═══
+function parseMd(md){var h=md;
+  h=h.replace(/```(\w*)\n([\s\S]*?)```/g,function(_,l,c){return'<pre><code>'+esc(c.trim())+'</code></pre>';});
+  h=h.replace(/^(\|.+\|)\n(\|[-| :]+\|)\n((?:\|.+\|\n?)*)/gm,function(_,hdr,sep,body){
+    var cols=hdr.split('|').filter(function(c){return c.trim();});
+    var ths=cols.map(function(c){return'<th>'+il(c.trim())+'</th>';}).join('');
+    var rows=body.trim().split('\n').map(function(r){
+      var cells=r.split('|').filter(function(c){return c.trim();});
+      var tds=cells.map(function(c,ci){
+        var v=c.trim();
+        // 智能优先级标签：最后一列含 高/中/低
+        if(ci===cells.length-1){
+          v=v.replace(/🔴\s*高/g,'<span class="pri pri-h">🔴 高</span>');
+          v=v.replace(/🟡\s*中/g,'<span class="pri pri-m">🟡 中</span>');
+          v=v.replace(/🟢\s*低/g,'<span class="pri pri-l">🟢 低</span>');
+        }
+        return'<td>'+il(v)+'</td>';
+      }).join('');
+      return'<tr>'+tds+'</tr>';
+    }).join('');
+    return'<table><thead><tr>'+ths+'</tr></thead><tbody>'+rows+'</tbody></table>';
+  });
+  h=h.replace(/^#### (.+)$/gm,function(_,t){return'<h4 id="'+sl(t)+'">'+il(t)+'</h4>';});
+  h=h.replace(/^### (.+)$/gm,function(_,t){return'<h3 id="'+sl(t)+'">'+il(t)+'</h3>';});
+  h=h.replace(/^## (.+)$/gm,function(_,t){return'<h2 id="'+sl(t)+'">'+il(t)+'</h2>';});
+  h=h.replace(/^# (.+)$/gm,function(_,t){return'<h1>'+il(t)+'</h1>';});
+  h=h.replace(/^> ?(.*)$/gm,function(_,c){return'<blockquote>'+(c||'')+'</blockquote>';});
+  h=h.replace(/<\/blockquote>\n<blockquote>/g,'<br>');
+  h=h.replace(/^---$/gm,'<hr>');
+  h=h.replace(/^- \[( |x)\] (.+)$/gm,function(_,c,t){return'<p><input type="checkbox"'+(c==='x'?' checked':'')+' disabled>'+il(t)+'</p>';});
+  h=h.replace(/^- (.+)$/gm,'<li>$1</li>');
+  h=h.replace(/(<li>.*<\/li>\n?)+/g,function(m){return'<ul>'+m+'</ul>';});
+  h=h.replace(/^\d+\. (.+)$/gm,'<li>$1</li>');
+  h=h.replace(/^(?!<[a-z/])((?!<).+)$/gm,function(m){return m.trim()?'<p>'+il(m)+'</p>':m;});
+  h=h.replace(/<p><\/p>/g,'');
+  return h;
+}
+function il(t){return t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>');}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function sl(t){return t.replace(/[^\w\u4e00-\u9fff]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');}
 
 // ═══ Data & State ═══
-var docs={};
-var meta={'d1':{cat:'角色',title:'2D UGC 角色出图规范'},'d2':{cat:'角色',title:'2D 角色换色资源规范'}};
+var sidebarData=null;  // sidebar.json 数据
+var docs={};           // 已加载的 MD 内容缓存
 var curPage='home';
 var fuse=null;
+var pageRegistry={};   // pageId → {type, file, download, ...}
 
-var iframePages={
-  'ui-slice-naming':'knowledge-base/ui-slice-naming.html',
-  'ui-9slice-color':'knowledge-base/ui-9slice-color.html',
-  'ui-layout':'knowledge-base/ui-layout.html',
-  'ui-umg-tips':'knowledge-base/ui-umg-tips.html',
-  'cp-management':'knowledge-base/cp-management.html',
-  'game-art-pipeline':'knowledge-base/md-viewer.html?file=game-art-pipeline.md',
-  'image-skew-corrector':'knowledge-base/image-skew-corrector.html',
-  'game-resource-toolkit':'knowledge-base/game-resource-toolkit.html'
-};
-
-var downloadMap={
-  'image-skew-corrector':{icon:'📐',name:'图片倾斜矫正工具',file:'downloads/ImageSkewCorrector.exe'},
-  'game-resource-toolkit':{icon:'🛠️',name:'游戏资源工具集',file:'downloads/GameResourceToolkit.exe'}
-};
-
+// 工具页数据（保留不变）
 var toolData={
-  'auto-mask':{icon:'🤖',iconBg:'var(--green-bg)',name:'自动 Mask 通道生成器',ver:'v2.0',status:'online',subtitle:'LAB 色彩空间 K-Means++ 聚类 · 一键生成换色遮罩图',desc:'上传角色原图后，工具自动在 LAB 色彩空间中通过 K-Means++ 聚类识别颜色区域，3 秒内生成 RGBA 换色遮罩图。内置通道互斥检测、纯黑/纯白自动修复、质量评分。',pain:'角色换色 Mask 遮罩图过去全靠美术手工在 PS 中逐通道绘制，一张图平均耗时 30~60 分钟。外包 CP 经常交付出错，返工率高达 40%。',solution:'上传原图后 3 秒自动完成颜色区域识别与通道分配，内置自动修复，零 PS 基础也能产出合格 Mask。',tags:['在线工具','自动验算','K-Means++','通道互斥','质量评分'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-03-31',url:'knowledge-base/auto-mask.html'},
-  'mask-tool':{icon:'🖌️',iconBg:'var(--orange-bg)',name:'Mask 手动编辑器',ver:'v1.0',status:'online',subtitle:'画笔 / 油漆桶 / 橡皮擦 · 实时四通道预览',desc:'专为 Mask 精修设计的轻量编辑器。导入原图后直接在浏览器中用画笔逐通道绘制或修改，R/G/B/A 四通道独立显示并可实时预览换色效果。',pain:'自动生成的 Mask 有时无法精确覆盖复杂区域，需要人工微调。但 PS 操作门槛高。',solution:'专为 Mask 编辑设计的轻量工具，导入原图后浏览器中画笔逐通道绘制，实时预览换色效果。',tags:['在线工具','画笔绘制','RGBA预览','所见即所得'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-03-31',url:'knowledge-base/mask-tool.html'},
-  'spine-split':{icon:'✂️',iconBg:'var(--purple-bg)',name:'Spine 角色拆分工具',ver:'v1.0',status:'online',subtitle:'矩形 / 套索 / 魔棒选区 · 拓扑延展 · Atlas 导出',desc:'上传角色原画后，使用选区工具圈选各部件，工具自动裁切并执行拓扑延展，最终导出含 Atlas 图集 + Spine JSON 配置的 ZIP 包。',pain:'Spine 动画要求角色原画按部件拆分，传统流程依赖 PS 手动裁切+补边，一张角色拆分 2~4 小时。',solution:'选区工具圈选部件，工具自动裁切+拓扑延展，导出 Atlas + Spine JSON ZIP 包。',tags:['在线工具','选区拆分','拓扑延展','Atlas导出','Spine兼容'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-03-31',url:'knowledge-base/spine-split.html'}
+  'auto-mask':{icon:'🤖',iconBg:'var(--green-bg)',name:'自动 Mask 通道生成器',ver:'v2.0',status:'online',subtitle:'LAB 色彩空间 K-Means++ 聚类 · 一键生成换色遮罩图',desc:'上传角色原图后，工具自动在 LAB 色彩空间中通过 K-Means++ 聚类识别颜色区域，3 秒内生成 RGBA 换色遮罩图。内置通道互斥检测、纯黑/纯白自动修复、质量评分。',tags:['在线工具','自动验算','K-Means++','通道互斥','质量评分'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-03-31',url:'knowledge-base/auto-mask.html'},
+  'mask-tool':{icon:'🖌️',iconBg:'var(--orange-bg)',name:'Mask 手动编辑器',ver:'v1.0',status:'online',subtitle:'画笔 / 油漆桶 / 橡皮擦 · 实时四通道预览',desc:'专为 Mask 精修设计的轻量编辑器。导入原图后直接在浏览器中用画笔逐通道绘制或修改，R/G/B/A 四通道独立显示并可实时预览换色效果。',tags:['在线工具','画笔绘制','RGBA预览','所见即所得'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-03-31',url:'knowledge-base/mask-tool.html'},
+  'spine-split':{icon:'✂️',iconBg:'var(--purple-bg)',name:'Spine 角色拆分工具',ver:'v1.0',status:'online',subtitle:'矩形 / 套索 / 魔棒选区 · 拓扑延展 · Atlas 导出',desc:'上传角色原画后，使用选区工具圈选各部件，工具自动裁切并执行拓扑延展，最终导出含 Atlas 图集 + Spine JSON 配置的 ZIP 包。',tags:['在线工具','选区拆分','拓扑延展','Atlas导出','Spine兼容'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-03-31',url:'knowledge-base/spine-split.html'}
 };
-
-var catMap={'d1':'cat-character','d2':'cat-character','auto-mask':'cat-character','mask-tool':'cat-character','spine-split':'cat-character','ui-slice-naming':'cat-ui','ui-9slice-color':'cat-ui','ui-layout':'cat-ui','ui-umg-tips':'cat-ui','image-skew-corrector':'cat-ui','game-resource-toolkit':'cat-ui','cp-management':'cat-mgmt','game-art-pipeline':'cat-mgmt'};
 
 // ═══ Loading Bar ═══
 function showLoading(){var b=document.getElementById('loadingBar');b.style.width='0';b.classList.add('on');setTimeout(function(){b.style.width='60%';},50);}
 function hideLoading(){var b=document.getElementById('loadingBar');b.style.width='100%';setTimeout(function(){b.classList.remove('on');b.style.width='0';},300);}
+
+// ═══ Sidebar.json 驱动构建侧边栏 ═══
+function buildSidebar(data){
+  sidebarData=data;
+  var nav=document.getElementById('sidebarNav');
+  // 保留首页按钮
+  var html='<button class="nav-home active" onclick="navigate(\'home\')" id="navHome">🏠 知识库首页</button>';
+  var totalItems=0;
+
+  data.categories.forEach(function(cat){
+    var itemCount=0;
+    cat.groups.forEach(function(g){itemCount+=g.items?g.items.length:0;});
+    totalItems+=itemCount;
+
+    var colorVar=cat.color||'accent';
+    html+='<div class="t1'+(cat.groups.length&&itemCount?' open':'')+'" id="'+cat.id+'">';
+    html+='<div class="t1-h" onclick="this.parentElement.classList.toggle(\'open\')"><span class="chv">▶</span><span class="ci" style="background:var(--'+colorVar+'-bg);color:var(--'+colorVar+')">'+cat.icon+'</span><span class="cl">'+cat.name+'</span><span class="cc">'+itemCount+'</span></div>';
+    html+='<div class="t1-c">';
+
+    if(!cat.groups.length){
+      html+='<button class="leaf" style="color:var(--dim);cursor:default;font-style:italic;font-size:11px" disabled>📝 待补充...</button>';
+    } else {
+      cat.groups.forEach(function(grp){
+        html+='<div class="t2"><div class="t2-h" onclick="this.parentElement.classList.toggle(\'open\')"><span class="chv">▶</span><span class="si">'+grp.icon+'</span><span class="sl">'+grp.name+'</span></div><div class="t2-c">';
+        if(grp.items) grp.items.forEach(function(item){
+          // 注册页面
+          pageRegistry[item.id]={type:item.type,file:item.file||'',download:item.download||'',catId:cat.id};
+          var badgeCls=item.badge==='工具'?'bt':'bd';
+          html+='<button class="leaf" data-page="'+item.id+'" onclick="navigate(\''+item.id+'\',this)"><span class="li">'+item.icon+'</span>'+item.title+'<span class="badge '+badgeCls+'">'+item.badge+'</span></button>';
+          html+='<div class="toc-box" id="toc-'+item.id+'"></div>';
+        });
+        html+='</div></div>';
+      });
+    }
+    html+='</div></div>';
+  });
+
+  nav.innerHTML=html;
+  // 更新首页统计
+  var docCount=0,toolCount=0;
+  for(var k in pageRegistry){
+    if(pageRegistry[k].type==='md'||pageRegistry[k].type==='iframe') docCount++;
+    if(pageRegistry[k].type==='tool') toolCount++;
+  }
+  var numEls=document.querySelectorAll('.stat .num');
+  if(numEls[0]) numEls[0].textContent=String(docCount+toolCount);
+  if(numEls[1]) numEls[1].textContent=String(Object.keys(toolData).length + Object.keys(pageRegistry).filter(function(k){return pageRegistry[k].download;}).length);
+  if(numEls[2]) numEls[2].textContent=String(data.categories.length);
+}
 
 // ═══ Core Navigation ═══
 function navigate(pageId,btn){
@@ -47,7 +115,6 @@ function navigate(pageId,btn){
   var home=document.getElementById('pageHome');
   var tp=document.getElementById('page-tool');
 
-  // Hide everything
   home.style.display='none';
   document.querySelectorAll('.doc-page').forEach(function(p){p.style.display='none';p.classList.remove('active');});
   tp.style.display='none';tp.classList.remove('active');
@@ -55,7 +122,6 @@ function navigate(pageId,btn){
   scroll.style.display='none';
   document.getElementById('iframeToolbar').style.display='none';
 
-  // 收起所有 TOC（非活动大纲自动收起）
   collapseAllToc();
   clearIframeScrollSpy();
   clearIframeBtt();
@@ -63,42 +129,66 @@ function navigate(pageId,btn){
 
   if(pageId==='home'){
     scroll.style.display='block';home.style.display='block';scroll.scrollTop=0;
-  } else if(docs[pageId]){
-    showLoading();scroll.style.display='block';
-    var pg=document.getElementById('page-'+pageId);
-    if(pg){
-      pg.style.display='block';pg.classList.add('active');
-      var ct=document.getElementById('ct-'+pageId);
-      if(!ct.innerHTML.trim()) ct.innerHTML=parseMd(docs[pageId]);
-    }
-    buildToc(pageId);
-    scroll.scrollTop=0;
-    setTimeout(hideLoading,400);
   } else if(toolData[pageId]){
     showLoading();scroll.style.display='block';renderToolPage(pageId);
     tp.style.display='block';tp.classList.add('active');scroll.scrollTop=0;setTimeout(hideLoading,400);
-  } else if(iframePages[pageId]){
-    showLoading();
-    // 显示下载工具栏
-    var dlInfo=downloadMap[pageId];
-    var toolbar=document.getElementById('iframeToolbar');
-    if(dlInfo){
-      toolbar.innerHTML='<div class="ift-title"><span class="ift-icon">'+dlInfo.icon+'</span>'+dlInfo.name+'</div><a class="ift-dl" href="'+dlInfo.file+'" download>⬇ 下载 exe</a>';
-      toolbar.style.display='flex';
+  } else {
+    var reg=pageRegistry[pageId];
+    if(!reg) return;
+
+    if(reg.type==='md'){
+      // Fetch MD 文件并渲染
+      showLoading();scroll.style.display='block';
+      var pg=getOrCreateDocPage(pageId);
+      pg.style.display='block';pg.classList.add('active');
+      var ct=pg.querySelector('.dc');
+
+      if(docs[pageId]){
+        // 已缓存
+        if(!ct.innerHTML.trim()) ct.innerHTML=parseMd(docs[pageId]);
+        buildToc(pageId);scroll.scrollTop=0;setTimeout(hideLoading,400);
+      } else {
+        ct.innerHTML='<p style="color:var(--dim)">⏳ 加载中...</p>';
+        fetch(reg.file).then(function(r){return r.text();}).then(function(md){
+          docs[pageId]=md;
+          ct.innerHTML=parseMd(md);
+          buildToc(pageId);scroll.scrollTop=0;hideLoading();
+        }).catch(function(e){ct.innerHTML='<p style="color:var(--red)">加载失败：'+e.message+'</p>';hideLoading();});
+      }
+    } else if(reg.type==='iframe'){
+      showLoading();
+      // 下载工具栏
+      if(reg.download){
+        var toolbar=document.getElementById('iframeToolbar');
+        var name=btn?btn.textContent.trim():(pageId);
+        toolbar.innerHTML='<div class="ift-title"><span class="ift-icon">📦</span>'+name+'</div><a class="ift-dl" href="'+reg.download+'" download>⬇ 下载 exe</a>';
+        toolbar.style.display='flex';
+      }
+      frame.style.display='block';
+      frame.src=reg.file;
+      frame.onload=function(){
+        hideLoading();
+        buildIframeToc(pageId);
+        setupIframeScrollSpy(pageId);
+        setupIframeBackToTop();
+      };
+      setTimeout(hideLoading,3000);
     }
-    frame.style.display='block';
-    frame.src=iframePages[pageId];
-    frame.onload=function(){
-      hideLoading();
-      buildIframeToc(pageId);
-      setupIframeScrollSpy(pageId);
-      // iframe内滚动也控制返回顶部按钮
-      setupIframeBackToTop(pageId);
-    };
-    setTimeout(hideLoading,3000);
   }
   updateNavActive(pageId,btn);
   document.querySelector('.sidebar').classList.remove('open');
+}
+
+// 动态创建文档页容器
+function getOrCreateDocPage(pageId){
+  var pg=document.getElementById('page-'+pageId);
+  if(pg) return pg;
+  pg=document.createElement('div');
+  pg.id='page-'+pageId;
+  pg.className='doc-page';
+  pg.innerHTML='<div class="dc" id="ct-'+pageId+'"></div>';
+  document.getElementById('contentScroll').appendChild(pg);
+  return pg;
 }
 
 // ═══ Render Tool Page (Embedded Directly) ═══
@@ -125,47 +215,48 @@ function renderToolPage(id){
 // ═══ Nav Active State ═══
 function updateNavActive(pageId,btn){
   document.querySelectorAll('.leaf').forEach(function(n){n.classList.remove('active');});
-  document.querySelector('.nav-home').classList.remove('active');
-  if(pageId==='home'){document.querySelector('.nav-home').classList.add('active');return;}
+  var nh=document.querySelector('.nav-home');
+  if(nh) nh.classList.remove('active');
+  if(pageId==='home'){if(nh)nh.classList.add('active');return;}
   if(btn&&btn.classList.contains('leaf')){btn.classList.add('active');}
   else{document.querySelectorAll('.leaf[data-page]').forEach(function(n){if(n.dataset.page===pageId)n.classList.add('active');});}
-  // Auto-expand parent categories
-  if(catMap[pageId]){var cat=document.getElementById(catMap[pageId]);if(cat&&!cat.classList.contains('open'))cat.classList.add('open');}
+  // Auto-expand parents
+  var reg=pageRegistry[pageId];
+  if(reg&&reg.catId){var cat=document.getElementById(reg.catId);if(cat&&!cat.classList.contains('open'))cat.classList.add('open');}
   var al=document.querySelector('.leaf.active');
-  if(al){var l2=al.closest('.t2');if(l2&&!l2.classList.contains('open'))l2.classList.add('open');var l3=al.closest('.t3');if(l3&&!l3.classList.contains('open'))l3.classList.add('open');}
+  if(al){
+    var l2=al.closest('.t2');if(l2&&!l2.classList.contains('open'))l2.classList.add('open');
+    var l3=al.closest('.t3');if(l3&&!l3.classList.contains('open'))l3.classList.add('open');
+  }
 }
 
-// ═══ TOC 三级大纲 (h2 + h3) ═══
-
-// 收起所有 TOC
+// ═══ TOC 四级大纲 (h2 + h3 + h4) ═══
 function collapseAllToc(){
-  document.querySelectorAll('.toc-box').forEach(function(t){
-    t.classList.remove('open');
-    t.innerHTML='';
-  });
+  document.querySelectorAll('.toc-box').forEach(function(t){t.classList.remove('open');t.innerHTML='';});
 }
 
-// 为嵌入式 Markdown 文档构建 h2/h3 三级 TOC
 function buildToc(docId){
   collapseAllToc();
   var tc=document.getElementById('toc-'+docId);
   if(!tc) return;
   var ct=document.getElementById('ct-'+docId);
   if(!ct) return;
-  var hs=ct.querySelectorAll('h2, h3');
+  var hs=ct.querySelectorAll('h2, h3, h4');
   if(!hs.length) return;
   var html='';
   hs.forEach(function(h){
     var id=h.getAttribute('id')||'';
-    var isH3=h.tagName==='H3';
-    var cls='toc-a'+(isH3?' toc-h3':' toc-h2');
+    var tag=h.tagName;
+    var cls='toc-a';
+    if(tag==='H3') cls+=' toc-h3';
+    else if(tag==='H4') cls+=' toc-h4';
+    else cls+=' toc-h2';
     html+='<button class="'+cls+'" data-anchor="'+id+'" onclick="tocScrollTo(\''+id+'\')">'+h.textContent+'</button>';
   });
   tc.innerHTML=html;
   tc.classList.add('open');
 }
 
-// 为 iframe 加载的页面构建 h2/h3 TOC
 function buildIframeToc(pageId){
   collapseAllToc();
   var tc=document.getElementById('toc-'+pageId);
@@ -173,23 +264,23 @@ function buildIframeToc(pageId){
   var frame=document.getElementById('contentFrame');
   try{
     var doc=frame.contentDocument||frame.contentWindow.document;
-    var hs=doc.querySelectorAll('h2, h3');
+    var hs=doc.querySelectorAll('h2, h3, h4');
     if(!hs.length) return;
     var html='';var idx=0;
     hs.forEach(function(h){
       if(!h.id) h.id='ifr-h-'+(idx++);
-      var isH3=h.tagName==='H3';
-      var cls='toc-a'+(isH3?' toc-h3':' toc-h2');
+      var tag=h.tagName;
+      var cls='toc-a';
+      if(tag==='H3') cls+=' toc-h3';
+      else if(tag==='H4') cls+=' toc-h4';
+      else cls+=' toc-h2';
       html+='<button class="'+cls+'" data-iframe-anchor="'+h.id+'" onclick="iframeTocScrollTo(\''+h.id+'\')">'+h.textContent+'</button>';
     });
     tc.innerHTML=html;
     tc.classList.add('open');
-  }catch(e){
-    console.log('Cannot access iframe for TOC:',e);
-  }
+  }catch(e){console.log('Cannot access iframe for TOC:',e);}
 }
 
-// 点击 TOC 节点 → 平滑滚动到锚点（嵌入 MD 文档）
 function tocScrollTo(anchorId){
   var el=document.getElementById(anchorId);
   if(!el) return;
@@ -197,22 +288,20 @@ function tocScrollTo(anchorId){
   var rect=el.getBoundingClientRect();
   var scrollRect=scroll.getBoundingClientRect();
   scroll.scrollTo({top:scroll.scrollTop+rect.top-scrollRect.top-20,behavior:'smooth'});
-  highlightTocItem(anchorId, false);
+  highlightTocItem(anchorId,false);
 }
 
-// 点击 TOC 节点 → iframe 内锚点滚动
 function iframeTocScrollTo(anchorId){
   try{
     var frame=document.getElementById('contentFrame');
     var doc=frame.contentDocument||frame.contentWindow.document;
     var el=doc.getElementById(anchorId);
     if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
-    highlightTocItem(anchorId, true);
-  }catch(e){console.log('iframe scroll error:',e);}
+    highlightTocItem(anchorId,true);
+  }catch(e){}
 }
 
-// 高亮指定 TOC 节点
-function highlightTocItem(anchorId, isIframe){
+function highlightTocItem(anchorId,isIframe){
   document.querySelectorAll('.toc-a').forEach(function(t){t.classList.remove('active');});
   var attr=isIframe?'data-iframe-anchor':'data-anchor';
   var btn=document.querySelector('.toc-a['+attr+'="'+anchorId+'"]');
@@ -222,16 +311,8 @@ function highlightTocItem(anchorId, isIframe){
 // ═══ Search ═══
 function initSearch(){
   try{
-    fetch('index.json').then(function(res){
-      if(!res.ok) return;
-      return res.json();
-    }).then(function(data){
+    fetch('index.json').then(function(res){if(!res.ok) return;return res.json();}).then(function(data){
       var items=[];
-      for(var id in docs){
-        if(!docs.hasOwnProperty(id)) continue;
-        var m=meta[id]||{};
-        items.push({id:id,title:m.title||id,type:'doc',content:docs[id],action:'navigate'});
-      }
       if(data&&data.categories){
         data.categories.forEach(function(cat){
           cat.items.forEach(function(item){
@@ -239,9 +320,19 @@ function initSearch(){
           });
         });
       }
+      // 也加 sidebar 数据
+      if(sidebarData){
+        sidebarData.categories.forEach(function(cat){
+          cat.groups.forEach(function(g){
+            if(g.items) g.items.forEach(function(item){
+              items.push({id:item.id,title:item.title,type:item.type,content:item.title,action:'navigate'});
+            });
+          });
+        });
+      }
       fuse=new Fuse(items,{keys:[{name:'title',weight:3},{name:'content',weight:1}],threshold:0.35,includeMatches:true,minMatchCharLength:1});
     });
-  }catch(e){console.log('Search init skipped:',e);}
+  }catch(e){}
 }
 
 function handleSearch(q){
@@ -290,59 +381,47 @@ function submitFeedback(){
   showToast('✅ 感谢反馈！');
 }
 
-// ═══ Scroll 滚动高亮 TOC 当前阅读节点 ═══
+// ═══ ScrollSpy (h2 + h3 + h4) ═══
 var iframeScrollHandler=null;
 
 function setupScrollSpy(){
   var scrollEl=document.getElementById('contentScroll');
   scrollEl.addEventListener('scroll',function(){
     document.getElementById('backToTop').classList.toggle('show',scrollEl.scrollTop>300);
-    // 找到当前活动文档页
     var activePage=document.querySelector('.doc-page.active');
     if(!activePage) return;
-    var hs=activePage.querySelectorAll('h2, h3');
+    var hs=activePage.querySelectorAll('h2, h3, h4');
     var tocBtns=document.querySelectorAll('.toc-a[data-anchor]');
     if(!hs.length||!tocBtns.length) return;
-    // 找出当前可见标题
     var activeIdx=0;
-    hs.forEach(function(h,i){
-      if(h.getBoundingClientRect().top<120) activeIdx=i;
-    });
+    hs.forEach(function(h,i){if(h.getBoundingClientRect().top<120) activeIdx=i;});
     var activeId=hs[activeIdx].getAttribute('id')||'';
-    tocBtns.forEach(function(btn){
-      btn.classList.toggle('active',btn.getAttribute('data-anchor')===activeId);
-    });
+    tocBtns.forEach(function(btn){btn.classList.toggle('active',btn.getAttribute('data-anchor')===activeId);});
   });
 }
 
-// 为 iframe 文档绑定滚动监听，实时高亮 TOC
 function setupIframeScrollSpy(pageId){
   clearIframeScrollSpy();
   var frame=document.getElementById('contentFrame');
   try{
     var doc=frame.contentDocument||frame.contentWindow.document;
-    var hs=doc.querySelectorAll('h2, h3');
+    var hs=doc.querySelectorAll('h2, h3, h4');
     if(!hs.length) return;
     iframeScrollHandler=function(){
       var activeIdx=0;
-      hs.forEach(function(h,i){
-        if(h.getBoundingClientRect().top<120) activeIdx=i;
-      });
+      hs.forEach(function(h,i){if(h.getBoundingClientRect().top<120) activeIdx=i;});
       var activeId=hs[activeIdx].id||'';
       document.querySelectorAll('.toc-a[data-iframe-anchor]').forEach(function(btn){
         btn.classList.toggle('active',btn.getAttribute('data-iframe-anchor')===activeId);
       });
     };
     (frame.contentWindow||frame.contentDocument.defaultView).addEventListener('scroll',iframeScrollHandler);
-  }catch(e){console.log('Cannot setup iframe scroll spy:',e);}
+  }catch(e){}
 }
 
 function clearIframeScrollSpy(){
   if(iframeScrollHandler){
-    try{
-      var frame=document.getElementById('contentFrame');
-      (frame.contentWindow||frame.contentDocument.defaultView).removeEventListener('scroll',iframeScrollHandler);
-    }catch(e){}
+    try{var frame=document.getElementById('contentFrame');(frame.contentWindow||frame.contentDocument.defaultView).removeEventListener('scroll',iframeScrollHandler);}catch(e){}
     iframeScrollHandler=null;
   }
 }
@@ -360,19 +439,14 @@ function setupIframeBackToTop(){
       btt.classList.toggle('show',st>300);
     };
     win.addEventListener('scroll',iframeBttHandler);
-    // 覆盖返回顶部按钮的点击行为
     btt.onclick=function(){win.scrollTo({top:0,behavior:'smooth'});};
   }catch(e){}
 }
 function clearIframeBtt(){
   if(iframeBttHandler){
-    try{
-      var frame=document.getElementById('contentFrame');
-      (frame.contentWindow||frame.contentDocument.defaultView).removeEventListener('scroll',iframeBttHandler);
-    }catch(e){}
+    try{var frame=document.getElementById('contentFrame');(frame.contentWindow||frame.contentDocument.defaultView).removeEventListener('scroll',iframeBttHandler);}catch(e){}
     iframeBttHandler=null;
   }
-  // 恢复默认返回顶部行为
   var btt=document.getElementById('backToTop');
   btt.onclick=function(){document.getElementById('contentScroll').scrollTo({top:0,behavior:'smooth'});};
 }
@@ -390,16 +464,20 @@ window.addEventListener('hashchange',function(){
 
 // ═══ Init ═══
 document.addEventListener('DOMContentLoaded', function(){
-  document.querySelectorAll('script[type="text/markdown"]').forEach(function(el){
-    var id=el.id.replace('md-','');
-    docs[id]=el.textContent.trim();
+  // 1. 从 sidebar.json 构建侧边栏
+  fetch('sidebar.json').then(function(r){return r.json();}).then(function(data){
+    buildSidebar(data);
+    // 2. 初始化搜索
+    initSearch();
+    // 3. 处理 hash 路由
+    setupScrollSpy();
+    var hash=location.hash.slice(1);
+    if(hash) navigate(hash);
+  }).catch(function(e){
+    console.error('Failed to load sidebar.json:',e);
   });
-  setupScrollSpy();
-  var hash=location.hash.slice(1);
-  if(hash) navigate(hash);
-  initSearch();
 
-  // 监听 md-viewer iframe 渲染完成通知，重新构建 TOC
+  // 监听 md-viewer iframe 渲染完成通知
   window.addEventListener('message',function(e){
     if(e.data&&e.data.type==='md-viewer-ready'&&curPage){
       buildIframeToc(curPage);
