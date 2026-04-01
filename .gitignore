@@ -1,6 +1,6 @@
 # Build artifacts
 *.exe
-docs/downloads/*.exe
+!docs/downloads/*.exe
 
 # PyInstaller
 build/
@@ -20,4 +20,3 @@ start_tunnel.ps1
 tunnel.js
 tunnel_ngrok.py
 .netlify/
-.gitattributes
