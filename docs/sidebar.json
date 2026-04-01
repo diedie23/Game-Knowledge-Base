@@ -50,13 +50,6 @@
               "badge": "工具"
             },
             {
-              "id": "hsv-extractor",
-              "icon": "🎨",
-              "title": "HSV 色相精准提取",
-              "type": "tool",
-              "badge": "工具"
-            },
-            {
               "id": "mask-tool",
               "icon": "🖌️",
               "title": "Mask 手动编辑器",
