@@ -110,9 +110,10 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
 <body>
 
 <div class="header">
-  <h1>✂️ Spine 角色拆分工具 <span class="ver">v1.0</span></h1>
+  <h1>✂️ Spine 角色拆分工具 <span class="ver">v2.0</span></h1>
   <div class="header-actions">
     <button class="btn" onclick="importImage()">📂 导入原图</button>
+    <button class="btn" onclick="showTemplateModal()">📐 应用模板</button>
     <button class="btn" onclick="showGuide()">📖 使用说明</button>
     <button class="btn btn-primary" onclick="autoSplitAll()" id="autoSplitBtn" disabled>⚡ 自动拆分全部</button>
     <button class="btn btn-green" onclick="showExportModal()" id="exportBtn" disabled>📦 导出拆分资源</button>
@@ -149,6 +150,10 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
         <button class="btn btn-sm" onclick="addCustomPart()" style="flex:1;justify-content:center">+ 添加部件</button>
         <button class="btn btn-sm btn-danger" onclick="removeLastPart()" style="flex:1;justify-content:center">删除末项</button>
       </div>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:var(--dim);cursor:pointer">
+        <input type="checkbox" id="edgeSnap" checked style="accent-color:var(--accent)"> 智能边缘收缩（Alpha感知）
+      </label>
+      <button class="btn btn-sm" onclick="showTemplateModal()" style="width:100%;justify-content:center;margin-top:6px">📐 应用通用模板</button>
     </div>
 
     <div class="panel-section">
@@ -254,6 +259,31 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
     <div style="margin-top:16px;display:flex;gap:8px">
       <button class="btn btn-green" onclick="doExport()" style="flex:1;justify-content:center">下载 ZIP</button>
       <button class="btn" onclick="closeExportModal()" style="flex:1;justify-content:center">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- Template Modal -->
+<div class="modal-overlay" id="templateModal">
+  <div class="modal" style="max-width:520px">
+    <h2>📐 部件模板</h2>
+    <p style="font-size:12px;color:var(--dim);margin-bottom:16px">选择预设模板或上传自定义模板，自动按比例映射部件位置到当前原画上。</p>
+    <div style="font-size:12px;color:var(--heading);margin-bottom:8px">预设模板</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <button class="btn" onclick="applyPresetTemplate('humanoid')" style="justify-content:center;padding:12px">👤 人形角色（7部件）</button>
+      <button class="btn" onclick="applyPresetTemplate('chibi')" style="justify-content:center;padding:12px">🧸 Q版角色（5部件）</button>
+      <button class="btn" onclick="applyPresetTemplate('quadruped')" style="justify-content:center;padding:12px">🐾 四足动物（6部件）</button>
+      <button class="btn" onclick="applyPresetTemplate('mecha')" style="justify-content:center;padding:12px">🤖 机甲（8部件）</button>
+    </div>
+    <div style="font-size:12px;color:var(--heading);margin-bottom:8px">自定义模板</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn" onclick="document.getElementById('tplFileInput').click()" style="flex:1;justify-content:center">📁 上传模板 (JSON)</button>
+      <button class="btn" onclick="exportCurrentAsTemplate()" style="flex:1;justify-content:center">💾 保存当前为模板</button>
+    </div>
+    <input type="file" id="tplFileInput" accept=".json" style="display:none" onchange="loadCustomTemplate(this.files[0])">
+    <div id="tplStatus" style="font-size:11px;color:var(--dim);min-height:20px"></div>
+    <div style="margin-top:12px;display:flex;justify-content:flex-end">
+      <button class="btn" onclick="closeTemplateModal()">关闭</button>
     </div>
   </div>
 </div>
@@ -496,7 +526,9 @@ function setupEvents(){
       const w=Math.abs(pos.x-state.startX),h=Math.abs(pos.y-state.startY);
       if(w>5&&h>5){
         saveHistory();
-        parts[state.currentPart].region={x,y,w,h};
+        let region={x,y,w,h};
+        if(document.getElementById('edgeSnap').checked) region=shrinkToAlpha(region);
+        parts[state.currentPart].region=region;
         parts[state.currentPart].split=null;
         buildPartGrid();render();updatePartPreview();updateStats();
       }
@@ -506,7 +538,9 @@ function setupEvents(){
       const w=Math.max(...xs)-x,h=Math.max(...ys)-y;
       if(w>5&&h>5){
         saveHistory();
-        parts[state.currentPart].region={x,y,w,h,lasso:state.lassoPoints};
+        let region={x,y,w,h,lasso:state.lassoPoints};
+        if(document.getElementById('edgeSnap').checked) region=shrinkToAlpha(region);
+        parts[state.currentPart].region=region;
         parts[state.currentPart].split=null;
         buildPartGrid();render();updatePartPreview();updateStats();
       }
@@ -919,6 +953,140 @@ function hexToRgba(hex,a){
 function showToast(msg){
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ─── Smart Edge-Aware Shrink (Alpha-based) ───
+function shrinkToAlpha(region){
+  if(!basePixels)return region;
+  const w=state.imgW,h=state.imgH;
+  let minX=region.x+region.w,maxX=region.x,minY=region.y+region.h,maxY=region.y;
+  const endX=Math.min(w,region.x+region.w),endY=Math.min(h,region.y+region.h);
+  let found=false;
+  for(let y=Math.max(0,region.y);y<endY;y++){
+    for(let x=Math.max(0,region.x);x<endX;x++){
+      const alpha=basePixels[(y*w+x)*4+3];
+      if(alpha>10){
+        if(x<minX)minX=x;if(x>maxX)maxX=x;
+        if(y<minY)minY=y;if(y>maxY)maxY=y;
+        found=true;
+      }
+    }
+  }
+  if(!found)return region;
+  // Add 1px padding
+  minX=Math.max(0,minX-1);minY=Math.max(0,minY-1);
+  maxX=Math.min(w-1,maxX+1);maxY=Math.min(h-1,maxY+1);
+  const shrunk={x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1};
+  const origArea=region.w*region.h,newArea=shrunk.w*shrunk.h;
+  if(newArea<origArea) showToast(`边缘收缩: ${region.w}×${region.h} → ${shrunk.w}×${shrunk.h}`);
+  return shrunk;
+}
+
+// ─── Template System ───
+const presetTemplates={
+  humanoid:{name:'人形角色',parts:[
+    {name:'头部',color:'#f66',rx:0.25,ry:0,rw:0.5,rh:0.25},
+    {name:'躯干',color:'#6f6',rx:0.2,ry:0.22,rw:0.6,rh:0.28},
+    {name:'左臂',color:'#66f',rx:0,ry:0.2,rw:0.25,rh:0.3},
+    {name:'右臂',color:'#fa0',rx:0.75,ry:0.2,rw:0.25,rh:0.3},
+    {name:'左腿',color:'#0cf',rx:0.15,ry:0.5,rw:0.3,rh:0.35},
+    {name:'右腿',color:'#f0a',rx:0.55,ry:0.5,rw:0.3,rh:0.35},
+    {name:'配饰',color:'#ff0',rx:0.3,ry:0.85,rw:0.4,rh:0.15}
+  ]},
+  chibi:{name:'Q版角色',parts:[
+    {name:'头部',color:'#f66',rx:0.1,ry:0,rw:0.8,rh:0.45},
+    {name:'身体',color:'#6f6',rx:0.15,ry:0.4,rw:0.7,rh:0.3},
+    {name:'左手',color:'#66f',rx:0,ry:0.35,rw:0.2,rh:0.25},
+    {name:'右手',color:'#fa0',rx:0.8,ry:0.35,rw:0.2,rh:0.25},
+    {name:'腿/脚',color:'#0cf',rx:0.2,ry:0.65,rw:0.6,rh:0.35}
+  ]},
+  quadruped:{name:'四足动物',parts:[
+    {name:'头部',color:'#f66',rx:0.6,ry:0,rw:0.4,rh:0.35},
+    {name:'身体',color:'#6f6',rx:0.15,ry:0.1,rw:0.6,rh:0.45},
+    {name:'前腿左',color:'#66f',rx:0.5,ry:0.5,rw:0.2,rh:0.5},
+    {name:'前腿右',color:'#fa0',rx:0.7,ry:0.5,rw:0.2,rh:0.5},
+    {name:'后腿',color:'#0cf',rx:0.1,ry:0.5,rw:0.3,rh:0.5},
+    {name:'尾巴',color:'#f0a',rx:0,ry:0.05,rw:0.2,rh:0.3}
+  ]},
+  mecha:{name:'机甲',parts:[
+    {name:'头部',color:'#f66',rx:0.3,ry:0,rw:0.4,rh:0.18},
+    {name:'胸甲',color:'#6f6',rx:0.2,ry:0.15,rw:0.6,rh:0.2},
+    {name:'左臂',color:'#66f',rx:0,ry:0.12,rw:0.22,rh:0.35},
+    {name:'右臂',color:'#fa0',rx:0.78,ry:0.12,rw:0.22,rh:0.35},
+    {name:'腰部',color:'#0cf',rx:0.25,ry:0.33,rw:0.5,rh:0.12},
+    {name:'左腿',color:'#f0a',rx:0.15,ry:0.44,rw:0.3,rh:0.4},
+    {name:'右腿',color:'#ff0',rx:0.55,ry:0.44,rw:0.3,rh:0.4},
+    {name:'背包/武器',color:'#a7f',rx:0.35,ry:0.84,rw:0.3,rh:0.16}
+  ]}
+};
+
+function showTemplateModal(){document.getElementById('templateModal').classList.add('show');}
+function closeTemplateModal(){document.getElementById('templateModal').classList.remove('show');}
+
+function applyPresetTemplate(key){
+  if(!state.loaded){showToast('请先导入图片');return;}
+  const tpl=presetTemplates[key];
+  if(!tpl)return;
+  saveHistory();
+  // Reset parts to template
+  const colors=['#f66','#6f6','#66f','#fa0','#0cf','#f0a','#ff0','#a7f','#8f8','#f88'];
+  parts=tpl.parts.map((p,i)=>({
+    name:p.name,
+    color:p.color||colors[i%colors.length],
+    region:null,split:null
+  }));
+  state.currentPart=0;
+  // Map template regions to image (with alpha-aware adjustment)
+  const snap=document.getElementById('edgeSnap').checked;
+  tpl.parts.forEach((tp,i)=>{
+    let region={
+      x:Math.round(tp.rx*state.imgW),
+      y:Math.round(tp.ry*state.imgH),
+      w:Math.round(tp.rw*state.imgW),
+      h:Math.round(tp.rh*state.imgH)
+    };
+    // Clamp
+    region.x=Math.max(0,Math.min(state.imgW-1,region.x));
+    region.y=Math.max(0,Math.min(state.imgH-1,region.y));
+    region.w=Math.min(state.imgW-region.x,region.w);
+    region.h=Math.min(state.imgH-region.y,region.h);
+    if(snap) region=shrinkToAlpha(region);
+    parts[i].region=region;
+  });
+  buildPartGrid();render();updatePartPreview();updateStats();
+  closeTemplateModal();
+  document.getElementById('autoSplitBtn').disabled=false;
+  showToast(`已应用「${tpl.name}」模板 (${tpl.parts.length} 部件)`);
+}
+
+function exportCurrentAsTemplate(){
+  const tplParts=parts.filter(p=>p.region).map(p=>{
+    const r=p.region;
+    return{name:p.name,color:p.color,rx:+(r.x/state.imgW).toFixed(4),ry:+(r.y/state.imgH).toFixed(4),rw:+(r.w/state.imgW).toFixed(4),rh:+(r.h/state.imgH).toFixed(4)};
+  });
+  if(!tplParts.length){showToast('请先标记部件区域');return;}
+  const tpl={name:'自定义模板',sourceSize:[state.imgW,state.imgH],parts:tplParts,created:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(tpl,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='spine_template.json';a.click();
+  showToast('模板已导出');
+}
+
+function loadCustomTemplate(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const tpl=JSON.parse(e.target.result);
+      if(!tpl.parts||!tpl.parts.length)throw new Error('无效模板');
+      // Convert to preset format and apply
+      presetTemplates._custom=tpl;
+      document.getElementById('tplStatus').innerHTML='✅ 已加载「'+tpl.name+'」('+tpl.parts.length+'部件)';
+      applyPresetTemplate('_custom');
+    }catch(err){
+      document.getElementById('tplStatus').innerHTML='❌ 模板格式错误：'+err.message;
+    }
+  };
+  reader.readAsText(file);
 }
 
 // ─── Start ───
