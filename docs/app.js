@@ -543,20 +543,26 @@ function downloadMd(){
   showToast('已下载 '+name);
 }
 
-// ═══ GitHub API 发布 ═══
+// ═══ GitHub API 发布（新手引导式） ═══
+function getGHSettings(){
+  return JSON.parse(localStorage.getItem('kb_gh_settings')||'{}');
+}
+
 function loadEditorSettings(){
-  var s=JSON.parse(localStorage.getItem('kb_gh_settings')||'{}');
-  if(s.token) document.getElementById('ghToken').value=s.token;
-  if(s.repo) document.getElementById('ghRepo').value=s.repo;
-  if(s.branch) document.getElementById('ghBranch').value=s.branch;
+  var s=getGHSettings();
+  var tokenEl=document.getElementById('ghTokenSettings');
+  if(tokenEl&&s.token) tokenEl.value=s.token;
+  var repoEl=document.getElementById('ghRepo');
+  if(repoEl&&s.repo) repoEl.value=s.repo;
 }
 
 function saveEditorSettings(){
   var s={
-    token:document.getElementById('ghToken').value.trim(),
-    repo:document.getElementById('ghRepo').value.trim(),
-    branch:document.getElementById('ghBranch').value.trim()
+    token:(document.getElementById('ghTokenSettings')||{}).value||'',
+    repo:(document.getElementById('ghRepo')||{}).value||'diedie23/Game-Knowledge-Base',
+    branch:'main'
   };
+  s.token=s.token.trim();s.repo=s.repo.trim();
   localStorage.setItem('kb_gh_settings',JSON.stringify(s));
   document.getElementById('settingsDialog').classList.remove('show');
   showToast('设置已保存');
@@ -567,29 +573,64 @@ function openEditorSettings(){
   document.getElementById('settingsDialog').classList.add('show');
 }
 
+function saveTokenAndNext(){
+  var token=document.getElementById('ghToken').value.trim();
+  if(!token){showToast('请粘贴访问密钥');return;}
+  var s=getGHSettings();
+  s.token=token;
+  if(!s.repo) s.repo='diedie23/Game-Knowledge-Base';
+  if(!s.branch) s.branch='main';
+  localStorage.setItem('kb_gh_settings',JSON.stringify(s));
+  showPublishStep2();
+}
+
 function showPublishDialog(){
   if(!vditorInstance||!vditorInstance.getValue().trim()){showToast('请先编写内容');return;}
-  var name=getEditorFileName();
-  var path='docs/knowledge-base/art/'+name+'.md';
-  document.getElementById('publishPath').textContent=path;
-  document.getElementById('publishMsg').value='docs: 新增 '+name;
+  if(!getEditorFileName()||document.getElementById('editorFileName').value.trim()===''){
+    showToast('请先填写文档名称');document.getElementById('editorFileName').focus();return;
+  }
+  var s=getGHSettings();
+  // 有 token → 直接到步骤2；没有 → 先显示步骤1
+  if(s.token){
+    document.getElementById('pubStep1').style.display='none';
+    document.getElementById('pubStep2').style.display='block';
+    fillPublishPreview();
+  }else{
+    document.getElementById('pubStep1').style.display='block';
+    document.getElementById('pubStep2').style.display='none';
+  }
   document.getElementById('publishDialog').classList.add('show');
 }
 
+function showPublishStep2(){
+  document.getElementById('pubStep1').style.display='none';
+  document.getElementById('pubStep2').style.display='block';
+  fillPublishPreview();
+}
+
+function fillPublishPreview(){
+  var name=getEditorFileName();
+  var catEl=document.getElementById('editorCategory');
+  var catName=catEl.options[catEl.selectedIndex].text;
+  document.getElementById('pubName').textContent=name;
+  document.getElementById('pubLocation').textContent='knowledge-base/art/'+name+'.md';
+  document.getElementById('pubCat').textContent=catName;
+}
+
 async function publishToGitHub(){
-  var s=JSON.parse(localStorage.getItem('kb_gh_settings')||'{}');
-  if(!s.token){showToast('请先在设置中填写 GitHub Token');return;}
+  var s=getGHSettings();
+  if(!s.token){showToast('缺少访问密钥');return;}
 
   var repo=s.repo||'diedie23/Game-Knowledge-Base';
   var branch=s.branch||'main';
   var name=getEditorFileName();
   var filePath='docs/knowledge-base/art/'+name+'.md';
   var content=vditorInstance.getValue();
-  var msg=document.getElementById('publishMsg').value.trim()||'docs: 新增 '+name;
+  var msg='docs: 新增 '+name;
   var updateSidebar=document.getElementById('publishUpdateSidebar').checked;
 
-  var btn=document.querySelector('#publishDialog .eh-btn-primary');
-  btn.textContent='发布中...';btn.disabled=true;
+  var btn=document.getElementById('pubConfirmBtn');
+  btn.textContent='⏳ 发布中...';btn.disabled=true;
 
   try{
     var base='https://api.github.com/repos/'+repo+'/contents/';
@@ -597,52 +638,50 @@ async function publishToGitHub(){
 
     // 1. 上传 MD 文件
     var body={message:msg,content:btoa(unescape(encodeURIComponent(content))),branch:branch};
-    // 检查文件是否已存在（需要 sha）
     try{
       var exist=await fetch(base+filePath+'?ref='+branch,{headers:headers});
       if(exist.ok){var ed=await exist.json();body.sha=ed.sha;}
     }catch(e){}
 
     var res=await fetch(base+filePath,{method:'PUT',headers:headers,body:JSON.stringify(body)});
-    if(!res.ok){var err=await res.json();throw new Error(err.message||res.status);}
+    if(!res.ok){
+      var err=await res.json();
+      if(err.message&&err.message.indexOf('Bad credentials')>=0) throw new Error('密钥无效，请检查后重试');
+      throw new Error(err.message||'发布失败');
+    }
 
-    // 2. 如果勾选了更新 sidebar.json
+    // 2. 更新 sidebar.json
     if(updateSidebar){
       try{
         var sbRes=await fetch(base+'docs/sidebar.json?ref='+branch,{headers:headers});
         if(sbRes.ok){
           var sbData=await sbRes.json();
           var sbContent=JSON.parse(decodeURIComponent(escape(atob(sbData.content.replace(/\n/g,'')))));
-          // 找到目标分类
           var catId=document.getElementById('editorCategory').value;
           var cat=sbContent.categories.find(function(c){return c.id===catId;});
           if(cat){
-            // 确保有"文档"分组
             var docGroup=cat.groups.find(function(g){return g.name==='文档';});
             if(!docGroup){docGroup={name:'文档',icon:'📄',items:[]};cat.groups.unshift(docGroup);}
-            // 检查是否已存在
             var docId=name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'-').toLowerCase();
             if(!docGroup.items.find(function(i){return i.id===docId;})){
               docGroup.items.push({id:docId,icon:'📝',title:name,type:'md',file:'knowledge-base/art/'+name+'.md',badge:'文档'});
-              // 提交 sidebar.json
-              var sbBody={message:'docs: 更新 sidebar.json - 添加 '+name,content:btoa(unescape(encodeURIComponent(JSON.stringify(sbContent,null,2)))),sha:sbData.sha,branch:branch};
+              var sbBody={message:'docs: 更新菜单 - 添加 '+name,content:btoa(unescape(encodeURIComponent(JSON.stringify(sbContent,null,2)))),sha:sbData.sha,branch:branch};
               await fetch(base+'docs/sidebar.json',{method:'PUT',headers:headers,body:JSON.stringify(sbBody)});
             }
           }
         }
-      }catch(e){console.log('sidebar update failed:',e);}
+      }catch(e){console.log('sidebar update skipped:',e);}
     }
 
     document.getElementById('publishDialog').classList.remove('show');
-    showToast('发布成功！文件已推送到 GitHub');
-    // 清除草稿
+    showToast('🎉 发布成功！刷新页面即可看到新文档');
     localStorage.removeItem('kb_editor_draft');
     if(vditorInstance) vditorInstance.setValue('');
     document.getElementById('editorFileName').value='';
   }catch(e){
-    showToast('发布失败：'+e.message);
+    showToast('❌ '+e.message);
   }finally{
-    btn.textContent='确认发布';btn.disabled=false;
+    btn.textContent='✅ 确认发布';btn.disabled=false;
   }
 }
 

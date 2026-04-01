@@ -114,27 +114,55 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vditor@3.10.8/dist/index.css"/>
 <script src="https://cdn.jsdelivr.net/npm/vditor@3.10.8/dist/index.min.js"></script>
 
-<!-- 发布对话框 -->
+<!-- 发布弹窗 — 引导式步骤 -->
 <div class="fb-overlay" id="publishDialog">
-  <div class="dialog-card">
-    <h3>🚀 发布到 GitHub 仓库</h3>
-    <div class="dlg-field"><label>文件路径</label><div class="dlg-path" id="publishPath">docs/knowledge-base/art/xxx.md</div></div>
-    <div class="dlg-field"><label>Commit 信息</label><input type="text" id="publishMsg" class="dlg-input" value="docs: 新增文档"></div>
-    <div class="dlg-field"><label>同时更新 sidebar.json</label><label class="dlg-toggle"><input type="checkbox" id="publishUpdateSidebar" checked><span class="dlg-slider"></span> 自动添加到侧边栏</label></div>
-    <div class="dlg-actions">
-      <button class="eh-btn" onclick="document.getElementById('publishDialog').classList.remove('show')">取消</button>
-      <button class="eh-btn eh-btn-primary" onclick="publishToGitHub()">确认发布</button>
+  <div class="dialog-card" style="max-width:480px">
+    <!-- 步骤1：未绑定密钥时显示 -->
+    <div id="pubStep1">
+      <h3>🔑 首次发布，需要先绑定权限</h3>
+      <p class="dlg-desc">为了把文档同步到知识库，需要一个「访问密钥」。<br>只需设置一次，之后可以直接发布。</p>
+      <div class="dlg-field">
+        <label>访问密钥（找管理员获取）</label>
+        <input type="password" id="ghToken" class="dlg-input" placeholder="粘贴密钥到这里">
+        <p class="dlg-hint">💡 密钥仅保存在你的浏览器中，不会发送到其他地方。</p>
+      </div>
+      <div class="dlg-actions">
+        <button class="eh-btn" onclick="document.getElementById('publishDialog').classList.remove('show')">以后再说</button>
+        <button class="eh-btn eh-btn-primary" onclick="saveTokenAndNext()">下一步 →</button>
+      </div>
+    </div>
+    <!-- 步骤2：确认发布 -->
+    <div id="pubStep2" style="display:none">
+      <h3>📤 确认发布文档</h3>
+      <div class="pub-preview">
+        <div class="pub-row"><span class="pub-label">📄 文档名称</span><span class="pub-val" id="pubName">—</span></div>
+        <div class="pub-row"><span class="pub-label">📁 存放位置</span><span class="pub-val" id="pubLocation">—</span></div>
+        <div class="pub-row"><span class="pub-label">🗂️ 所属分类</span><span class="pub-val" id="pubCat">—</span></div>
+      </div>
+      <div class="dlg-field" style="margin-top:16px">
+        <label class="dlg-check-label"><input type="checkbox" id="publishUpdateSidebar" checked> 发布后自动显示在侧边栏菜单中</label>
+      </div>
+      <div class="dlg-actions">
+        <button class="eh-btn" onclick="document.getElementById('publishDialog').classList.remove('show')">取消</button>
+        <button class="eh-btn eh-btn-primary" id="pubConfirmBtn" onclick="publishToGitHub()">✅ 确认发布</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- 设置对话框 -->
+<!-- 设置弹窗 — 极简 -->
 <div class="fb-overlay" id="settingsDialog">
-  <div class="dialog-card">
-    <h3>⚙️ 编辑器设置</h3>
-    <div class="dlg-field"><label>GitHub Personal Access Token</label><input type="password" id="ghToken" class="dlg-input" placeholder="ghp_xxxxxxxxxxxx"><p class="dlg-hint">Token 仅存储在浏览器本地，不会上传。需要 repo 权限。</p></div>
-    <div class="dlg-field"><label>GitHub 仓库</label><input type="text" id="ghRepo" class="dlg-input" value="diedie23/Game-Knowledge-Base"></div>
-    <div class="dlg-field"><label>分支</label><input type="text" id="ghBranch" class="dlg-input" value="main"></div>
+  <div class="dialog-card" style="max-width:440px">
+    <h3>⚙️ 发布设置</h3>
+    <div class="dlg-field">
+      <label>访问密钥</label>
+      <input type="password" id="ghTokenSettings" class="dlg-input" placeholder="粘贴密钥">
+      <p class="dlg-hint">💡 找管理员获取。只保存在你的浏览器中。</p>
+    </div>
+    <div class="dlg-field">
+      <label>仓库地址 <span style="color:var(--dim);font-weight:400">（一般不用改）</span></label>
+      <input type="text" id="ghRepo" class="dlg-input" value="diedie23/Game-Knowledge-Base">
+    </div>
     <div class="dlg-actions">
       <button class="eh-btn" onclick="document.getElementById('settingsDialog').classList.remove('show')">取消</button>
       <button class="eh-btn eh-btn-primary" onclick="saveEditorSettings()">保存</button>
