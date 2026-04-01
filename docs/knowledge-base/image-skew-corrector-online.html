@@ -745,7 +745,7 @@ function correctSkew(canvas,angle){
   // transparent: default canvas is transparent
   
   ctx.translate(nw/2,nh/2);
-  ctx.rotate(rad);
+  ctx.rotate(-rad);
   ctx.drawImage(canvas,-w/2,-h/2);
   return c;
 }
