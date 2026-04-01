@@ -1,5 +1,5 @@
 {
-  "version": "1.3",
+  "version": "1.4",
   "lastUpdate": "2026-04-01",
   "categories": [
     {
@@ -24,7 +24,11 @@
         {"id": "ui-slice-naming", "type": "doc", "title": "切图与命名规范", "desc": "UI 切图标准与文件命名规则", "tags": ["切图","命名"], "action": "openTool", "path": "knowledge-base/ui-slice-naming.html"},
         {"id": "ui-9slice-color", "type": "doc", "title": "9宫格与颜色空间", "desc": "9-Slice 拉伸与色彩空间规范", "tags": ["9宫格","颜色空间"], "action": "openTool", "path": "knowledge-base/ui-9slice-color.html"},
         {"id": "ui-layout", "type": "doc", "title": "Layout 拼接规范", "desc": "界面布局与自适应拼接方案", "tags": ["Layout","适配"], "action": "openTool", "path": "knowledge-base/ui-layout.html"},
-        {"id": "ui-umg-tips", "type": "doc", "title": "UMG 生成技巧", "desc": "AI 辅助生成 UE UMG Widget 的技巧", "tags": ["UMG","AI Prompt"], "action": "openTool", "path": "knowledge-base/ui-umg-tips.html"}
+        {"id": "ui-umg-tips", "type": "doc", "title": "UMG 生成技巧", "desc": "AI 辅助生成 UE UMG Widget 的技巧", "tags": ["UMG","AI Prompt"], "action": "openTool", "path": "knowledge-base/ui-umg-tips.html"},
+        {"id": "image-skew-corrector-online", "type": "tool", "title": "图片倾斜矫正 (在线版)", "desc": "多算法融合检测倾斜角度，自动矫正到垂直，纯浏览器运行", "tags": ["在线工具","倾斜矫正","批量处理","霍夫变换"], "action": "openTool", "path": "knowledge-base/image-skew-corrector-online.html"},
+        {"id": "image-skew-corrector", "type": "tool", "title": "图片倾斜矫正 (exe下载)", "desc": "Windows桌面版，四算法融合检测+自动矫正+批量处理", "tags": ["桌面工具","exe下载","倾斜矫正"], "action": "openTool", "path": "knowledge-base/image-skew-corrector.html"},
+        {"id": "game-resource-toolkit-online", "type": "tool", "title": "游戏资源工具集 (在线版)", "desc": "资源检测+图片续排+版本对比+问题修复，纯浏览器运行", "tags": ["在线工具","资源检测","续排","版本对比","修复"], "action": "openTool", "path": "knowledge-base/game-resource-toolkit-online.html"},
+        {"id": "game-resource-toolkit", "type": "tool", "title": "游戏资源工具集 (exe下载)", "desc": "Windows桌面版，All-in-one资源管理工具", "tags": ["桌面工具","exe下载","资源检测"], "action": "openTool", "path": "knowledge-base/game-resource-toolkit.html"}
       ]
     },
     {

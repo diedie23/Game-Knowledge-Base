@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>游戏资源工具集 - 在线版</title>
+<style>
+:root{--bg:#0f1117;--card:#1c1f2e;--border:#2a2d3e;--text:#c9cdd4;--dim:#8b8fa3;--heading:#e8eaed;--accent:#6c8cff;--green:#4ade80;--green-bg:rgba(74,222,128,.08);--orange:#fb923c;--orange-bg:rgba(251,191,36,.08);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.08);--red:#f87171;--red-bg:rgba(248,113,113,.08);--cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.08);--code-bg:#1a1d2d}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* Header */
+.header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap;flex-shrink:0}
+.header .icon{width:40px;height:40px;background:var(--cyan-bg);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.header h1{font-size:20px;color:var(--heading);font-weight:700}
+.header h1 .ver{font-size:11px;background:var(--accent);color:#fff;padding:2px 10px;border-radius:10px;font-weight:500;margin-left:8px}
+.header h1 .web-badge{font-size:11px;background:var(--green-bg);color:var(--green);padding:2px 10px;border-radius:10px;font-weight:500;margin-left:6px}
+.header p{font-size:12px;color:var(--dim);width:100%;margin-top:2px}
+
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 24px;flex-shrink:0}
+.tab{padding:10px 20px;font-size:13px;font-weight:500;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;display:flex;align-items:center;gap:6px}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* Tab Content */
+.tab-content{flex:1;overflow:hidden;display:none}
+.tab-content.active{display:flex;flex-direction:column}
+
+/* ═══ Tab 1: Resource Checker ═══ */
+.checker-layout{display:flex;flex:1;overflow:hidden}
+.checker-sidebar{width:320px;min-width:280px;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.checker-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+.section{padding:14px 18px;border-bottom:1px solid var(--border)}
+.section-title{font-size:12px;font-weight:600;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.param-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}
+.param-row label{min-width:72px;color:var(--dim);flex-shrink:0}
+.param-row input,.param-row select{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:4px 8px;color:var(--text);font-size:12px;font-family:inherit}
+.param-row input[type="text"]{flex:1}
+.param-row input[type="number"]{width:80px}
+.param-row select{width:120px}
+.checkbox-row{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);margin-bottom:4px}
+.checkbox-row input[type="checkbox"]{accent-color:var(--accent)}
+
+/* Drop Zone */
+.drop-zone{margin:12px 18px;border:2px dashed var(--border);border-radius:10px;padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;flex-shrink:0}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:rgba(108,140,255,.04)}
+.drop-zone .dz-icon{font-size:28px;margin-bottom:6px}
+.drop-zone .dz-text{font-size:13px;color:var(--heading);font-weight:500}
+.drop-zone .dz-hint{font-size:11px;color:var(--dim);margin-top:3px}
+
+/* Buttons */
+.btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit;display:inline-flex;align-items:center;gap:4px}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{background:#5a7aee}
+.btn.danger{color:var(--red);border-color:transparent}
+.btn.danger:hover{background:var(--red-bg)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-bar{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0}
+
+/* Result Table */
+.result-table-wrap{flex:1;overflow:auto;padding:0}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{position:sticky;top:0;background:var(--card);padding:8px 12px;text-align:left;font-weight:600;color:var(--heading);border-bottom:1px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap;z-index:1}
+th:hover{color:var(--accent)}
+td{padding:6px 12px;border-bottom:1px solid rgba(42,45,62,.4);vertical-align:middle}
+tr:hover td{background:rgba(108,140,255,.03)}
+.status-ok{color:var(--green)}
+.status-warn{color:var(--orange)}
+.status-err{color:var(--red)}
+.status-dup{color:var(--purple)}
+.status-skip{color:var(--dim)}
+
+/* Stats Bar */
+.stats-bar{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:16px;flex-wrap:wrap;font-size:12px;flex-shrink:0}
+.stat-item{display:flex;align-items:center;gap:4px}
+.stat-dot{width:8px;height:8px;border-radius:50%}
+
+/* Filter bar */
+.filter-bar{padding:8px 18px;border-bottom:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0}
+.filter-btn{padding:4px 12px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--dim);font-size:11px;cursor:pointer;font-family:inherit}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ═══ Tab 2: Image Renamer ═══ */
+.renamer-layout{display:flex;flex:1;overflow:hidden}
+.renamer-left{width:340px;min-width:280px;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.renamer-right{flex:1;overflow:auto;padding:18px}
+
+.rename-preview{font-size:12px}
+.rename-preview .rp-item{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:6px;margin-bottom:4px}
+.rename-preview .rp-item:hover{background:rgba(108,140,255,.04)}
+.rename-preview .rp-old{color:var(--dim);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rename-preview .rp-arrow{color:var(--accent);flex-shrink:0}
+.rename-preview .rp-new{color:var(--green);flex:1;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ═══ Tab 3: Duplicate Finder ═══ */
+.dup-layout{display:flex;flex:1;overflow:hidden}
+.dup-sidebar{width:340px;min-width:280px;border-right:1px solid var(--border);display:flex;flex-direction:column}
+.dup-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.dup-groups{flex:1;overflow-y:auto;padding:12px 18px}
+.dup-group{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px}
+.dup-group-header{font-size:13px;font-weight:600;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.dup-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.dup-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;text-align:center;cursor:pointer;transition:all .15s}
+.dup-card:hover{border-color:var(--accent)}
+.dup-card img{width:100%;height:80px;object-fit:contain;border-radius:4px;margin-bottom:4px}
+.dup-card .dc-name{font-size:10px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dup-card .dc-size{font-size:10px;color:var(--dim)}
+
+/* Progress */
+.progress-bar{height:3px;background:var(--border);position:relative;overflow:hidden;flex-shrink:0}
+.progress-bar .pb-fill{height:100%;background:var(--accent);transition:width .3s;width:0}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);color:var(--text);padding:10px 24px;border-radius:10px;font-size:13px;border:1px solid var(--border);opacity:0;transition:all .3s;z-index:999;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:5px;background:rgba(108,140,255,.08);color:#8ba3ff}
+
+@media(max-width:900px){
+  .checker-layout,.renamer-layout,.dup-layout{flex-direction:column}
+  .checker-sidebar,.renamer-left,.dup-sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--border);max-height:40vh}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="icon">🛠️</div>
+  <h1>游戏资源工具集 <span class="ver">v3.8</span><span class="web-badge">🌐 在线版</span></h1>
+  <p>资源检测 · 图片续排 · 重复查找 — 拖拽上传，纯浏览器运行，无需安装</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(0)" id="tab0">📋 资源检测</div>
+  <div class="tab" onclick="switchTab(1)" id="tab1">🔢 图片续排</div>
+  <div class="tab" onclick="switchTab(2)" id="tab2">🔍 重复查找</div>
+</div>
+
+<div class="progress-bar" id="progressBar"><div class="pb-fill" id="progressFill"></div></div>
+
+<!-- ═══ Tab 0: Resource Checker ═══ -->
+<div class="tab-content active" id="tabContent0">
+  <div class="checker-layout">
+    <div class="checker-sidebar">
+      <div class="section">
+        <div class="section-title">⚙️ 检测规则</div>
+        <div class="param-row"><label>最大尺寸</label><input type="number" id="maxDim" value="2048" min="1"> px</div>
+        <div class="param-row"><label>尺寸规则</label><select id="dimRule">
+          <option value="pot">2的幂次方</option>
+          <option value="mul4">4的倍数</option>
+          <option value="mul8">8的倍数</option>
+          <option value="none">不检查</option>
+        </select></div>
+        <div class="param-row"><label>命名规则</label><input type="text" id="nameRule" value="^[A-Za-z0-9_\\-]+$" placeholder="正则表达式"></div>
+        <div class="param-row"><label>最大文件</label><input type="number" id="maxFileKB" value="500" min="1"> KB</div>
+        <div class="param-row"><label>检查格式</label><input type="text" id="includeFormats" value="png,jpg,jpeg,bmp,tga,webp,psd,tiff" placeholder="逗号分隔"></div>
+        <div class="checkbox-row"><input type="checkbox" id="checkDup" checked><label for="checkDup">检查重复资源（基于内容哈希）</label></div>
+      </div>
+      <div class="drop-zone" id="checkerDrop" onclick="document.getElementById('checkerInput').click()">
+        <div class="dz-icon">📂</div>
+        <div class="dz-text">拖拽图片文件夹到此处</div>
+        <div class="dz-hint">或点击选择图片文件 · 支持多选</div>
+      </div>
+      <input type="file" id="checkerInput" multiple accept="image/*" style="display:none" onchange="addCheckerFiles(this.files)">
+      <div class="btn-bar">
+        <button class="btn primary" id="btnCheck" onclick="startCheck()" disabled>▶ 开始检测</button>
+        <button class="btn" id="btnExport" onclick="exportReport()" disabled>📊 导出报告</button>
+        <button class="btn danger" onclick="clearChecker()">🗑 清空</button>
+      </div>
+    </div>
+    <div class="checker-main">
+      <div class="filter-bar" id="filterBar">
+        <button class="filter-btn active" onclick="filterResults('all',this)">全部 <span id="fAll">0</span></button>
+        <button class="filter-btn" onclick="filterResults('ok',this)">🟢 通过 <span id="fOk">0</span></button>
+        <button class="filter-btn" onclick="filterResults('problem',this)">🔴 问题 <span id="fProblem">0</span></button>
+        <button class="filter-btn" onclick="filterResults('dup',this)">🟣 重复 <span id="fDup">0</span></button>
+      </div>
+      <div class="result-table-wrap" id="resultTableWrap">
+        <table id="resultTable">
+          <thead><tr>
+            <th onclick="sortBy('status')" style="width:30px">状态</th>
+            <th onclick="sortBy('name')">文件名</th>
+            <th onclick="sortBy('width')" style="width:70px">宽</th>
+            <th onclick="sortBy('height')" style="width:70px">高</th>
+            <th onclick="sortBy('size')" style="width:80px">大小</th>
+            <th style="width:160px">问题</th>
+          </tr></thead>
+          <tbody id="resultBody"></tbody>
+        </table>
+      </div>
+      <div class="stats-bar" id="statsBar">
+        <div class="stat-item"><div class="stat-dot" style="background:var(--dim)"></div> 等待检测</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Tab 1: Image Renamer ═══ -->
+<div class="tab-content" id="tabContent1">
+  <div class="renamer-layout">
+    <div class="renamer-left">
+      <div class="section">
+        <div class="section-title">🔢 续排设置</div>
+        <div class="param-row"><label>前缀</label><input type="text" id="renPrefix" value="img_" placeholder="文件名前缀"></div>
+        <div class="param-row"><label>起始编号</label><input type="number" id="renStart" value="1" min="0"></div>
+        <div class="param-row"><label>数字位数</label><input type="number" id="renDigits" value="3" min="1" max="6"></div>
+        <div class="param-row"><label>保留扩展名</label><select id="renExt"><option value="keep">保持原格式</option><option value="png">.png</option><option value="jpg">.jpg</option></select></div>
+      </div>
+      <div class="drop-zone" id="renamerDrop" onclick="document.getElementById('renamerInput').click()">
+        <div class="dz-icon">📁</div>
+        <div class="dz-text">拖拽图片到此处</div>
+        <div class="dz-hint">将预览重命名结果</div>
+      </div>
+      <input type="file" id="renamerInput" multiple accept="image/*" style="display:none" onchange="addRenamerFiles(this.files)">
+      <div class="btn-bar">
+        <button class="btn primary" id="btnRename" onclick="downloadRenamed()" disabled>⬇️ 下载重命名文件</button>
+        <button class="btn danger" onclick="clearRenamer()">🗑 清空</button>
+      </div>
+    </div>
+    <div class="renamer-right">
+      <div class="section-title" style="margin-bottom:12px">📋 重命名预览</div>
+      <div class="rename-preview" id="renamePreview">
+        <div style="text-align:center;color:var(--dim);padding:40px;font-size:13px">拖拽图片到左侧查看重命名预览</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Tab 2: Duplicate Finder ═══ -->
+<div class="tab-content" id="tabContent2">
+  <div class="dup-layout">
+    <div class="dup-sidebar">
+      <div class="section">
+        <div class="section-title">🔍 重复检测设置</div>
+        <div class="param-row"><label>匹配方式</label><select id="dupMode">
+          <option value="exact">精确匹配（像素级）</option>
+          <option value="perceptual">感知匹配（相似图片）</option>
+        </select></div>
+        <div class="param-row" id="simThreshRow"><label>相似阈值</label><input type="number" id="simThresh" value="95" min="50" max="100"> %</div>
+      </div>
+      <div class="drop-zone" id="dupDrop" onclick="document.getElementById('dupInput').click()">
+        <div class="dz-icon">📂</div>
+        <div class="dz-text">拖拽图片到此处</div>
+        <div class="dz-hint">将自动查找重复/相似图片</div>
+      </div>
+      <input type="file" id="dupInput" multiple accept="image/*" style="display:none" onchange="addDupFiles(this.files)">
+      <div class="btn-bar">
+        <button class="btn primary" id="btnFindDup" onclick="findDuplicates()" disabled>🔍 查找重复</button>
+        <button class="btn danger" onclick="clearDup()">🗑 清空</button>
+      </div>
+    </div>
+    <div class="dup-main">
+      <div class="dup-groups" id="dupGroups">
+        <div style="text-align:center;color:var(--dim);padding:60px 20px;font-size:14px">
+          <div style="font-size:36px;margin-bottom:12px">🔍</div>
+          添加图片后点击"查找重复"检测重复/相似资源
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// Tab switching
+// ═══════════════════════════════════════════
+function switchTab(idx){
+  document.querySelectorAll('.tab').forEach(function(t,i){ t.classList.toggle('active', i===idx); });
+  document.querySelectorAll('.tab-content').forEach(function(c,i){ c.classList.toggle('active', i===idx); });
+}
+
+// ═══════════════════════════════════════════
+// Shared utils
+// ═══════════════════════════════════════════
+function showProgress(pct){ document.getElementById('progressFill').style.width = pct+'%'; }
+function hideProgress(){ document.getElementById('progressFill').style.width = '0'; }
+function showToast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},2500); }
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtSize(b){ return b<1024?b+'B':b<1048576?(b/1024).toFixed(1)+'KB':(b/1048576).toFixed(1)+'MB'; }
+
+// Setup drag-drop for all zones
+function setupDrop(zoneId, handler){
+  var z = document.getElementById(zoneId);
+  z.addEventListener('dragover', function(e){ e.preventDefault(); z.classList.add('dragover'); });
+  z.addEventListener('dragleave', function(e){ e.preventDefault(); z.classList.remove('dragover'); });
+  z.addEventListener('drop', function(e){ e.preventDefault(); z.classList.remove('dragover'); handler(e.dataTransfer.files); });
+}
+setupDrop('checkerDrop', addCheckerFiles);
+setupDrop('renamerDrop', addRenamerFiles);
+setupDrop('dupDrop', addDupFiles);
+
+// ═══════════════════════════════════════════
+// Tab 0: Resource Checker
+// ═══════════════════════════════════════════
+var checkerFiles = []; // {name,file,img,width,height,size,status,problems,hash}
+var checkerFilter = 'all';
+var sortCol = null, sortAsc = true;
+
+function addCheckerFiles(fileList){
+  var added = 0;
+  for(var i=0;i<fileList.length;i++){
+    var f = fileList[i];
+    if(!f.type.startsWith('image/')) continue;
+    checkerFiles.push({name:f.name, file:f, img:null, width:0, height:0, size:f.size, status:'pending', problems:[], hash:null});
+    added++;
+  }
+  if(added) showToast('已添加 '+added+' 个文件');
+  document.getElementById('btnCheck').disabled = !checkerFiles.length;
+  renderCheckerTable();
+}
+
+function startCheck(){
+  if(!checkerFiles.length) return;
+  var maxDim = parseInt(document.getElementById('maxDim').value)||2048;
+  var dimRule = document.getElementById('dimRule').value;
+  var nameRule = document.getElementById('nameRule').value;
+  var maxFileKB = parseInt(document.getElementById('maxFileKB').value)||500;
+  var checkDup = document.getElementById('checkDup').checked;
+  var fmts = document.getElementById('includeFormats').value.split(',').map(function(s){return s.trim().toLowerCase();});
+  
+  var nameRegex = null;
+  try{ if(nameRule) nameRegex = new RegExp(nameRule); }catch(e){ showToast('命名规则正则无效: '+e.message); return; }
+  
+  document.getElementById('btnCheck').disabled = true;
+  var total = checkerFiles.length, done = 0;
+  var hashMap = {};
+  showProgress(0);
+  
+  function checkNext(idx){
+    if(idx >= total){
+      showProgress(100);
+      setTimeout(hideProgress, 500);
+      document.getElementById('btnCheck').disabled = false;
+      document.getElementById('btnExport').disabled = false;
+      updateCheckerStats();
+      renderCheckerTable();
+      return;
+    }
+    var entry = checkerFiles[idx];
+    entry.problems = [];
+    
+    // Check format
+    var ext = entry.name.split('.').pop().toLowerCase();
+    if(fmts.length && fmts.indexOf(ext) === -1){
+      entry.status = 'skip';
+      showProgress(((idx+1)/total)*100);
+      checkNext(idx+1);
+      return;
+    }
+    
+    // Check name
+    var baseName = entry.name.replace(/\.[^.]+$/, '');
+    if(nameRegex && !nameRegex.test(baseName)){
+      entry.problems.push('命名不规范');
+    }
+    
+    // Check file size
+    if(entry.size > maxFileKB * 1024){
+      entry.problems.push('文件过大 ('+fmtSize(entry.size)+' > '+maxFileKB+'KB)');
+    }
+    
+    // Load image to check dimensions
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var img = new Image();
+      img.onload = function(){
+        entry.img = img;
+        entry.width = img.naturalWidth;
+        entry.height = img.naturalHeight;
+        
+        // Check max dimension
+        if(entry.width > maxDim || entry.height > maxDim){
+          entry.problems.push('尺寸超限 ('+entry.width+'×'+entry.height+')');
+        }
+        
+        // Check dimension rule
+        if(dimRule === 'pot'){
+          if(!isPOT(entry.width) || !isPOT(entry.height)){
+            entry.problems.push('非2的幂 ('+entry.width+'×'+entry.height+')');
+          }
+        } else if(dimRule === 'mul4'){
+          if(entry.width%4!==0 || entry.height%4!==0){
+            entry.problems.push('非4倍数 ('+entry.width+'×'+entry.height+')');
+          }
+        } else if(dimRule === 'mul8'){
+          if(entry.width%8!==0 || entry.height%8!==0){
+            entry.problems.push('非8倍数 ('+entry.width+'×'+entry.height+')');
+          }
+        }
+        
+        // Hash for duplicate detection
+        if(checkDup){
+          var hash = computeImageHash(img);
+          entry.hash = hash;
+          if(hashMap[hash]){
+            entry.problems.push('重复 (与 '+hashMap[hash]+')');
+            entry.status = 'dup';
+          } else {
+            hashMap[hash] = entry.name;
+          }
+        }
+        
+        if(entry.status !== 'dup'){
+          entry.status = entry.problems.length > 0 ? 'problem' : 'ok';
+        }
+        
+        done++;
+        showProgress(((idx+1)/total)*100);
+        // Update table periodically
+        if(done%10===0 || done===total) renderCheckerTable();
+        checkNext(idx+1);
+      };
+      img.onerror = function(){
+        entry.problems.push('无法读取');
+        entry.status = 'problem';
+        done++;
+        showProgress(((idx+1)/total)*100);
+        checkNext(idx+1);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(entry.file);
+  }
+  
+  checkNext(0);
+}
+
+function isPOT(n){ return n>0 && (n&(n-1))===0; }
+
+function computeImageHash(img){
+  // Simple perceptual hash: resize to 8x8, grayscale, average
+  var c = document.createElement('canvas');
+  c.width = 8; c.height = 8;
+  var ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0, 8, 8);
+  var data = ctx.getImageData(0,0,8,8).data;
+  var vals = [];
+  for(var i=0;i<64;i++){
+    vals.push(data[i*4]*0.299 + data[i*4+1]*0.587 + data[i*4+2]*0.114);
+  }
+  var avg = vals.reduce(function(s,v){return s+v;},0)/64;
+  var hash = '';
+  for(var i=0;i<64;i++) hash += vals[i]>=avg?'1':'0';
+  return hash;
+}
+
+function renderCheckerTable(){
+  var body = document.getElementById('resultBody');
+  var filtered = checkerFiles.filter(function(f){
+    if(checkerFilter==='all') return true;
+    if(checkerFilter==='ok') return f.status==='ok';
+    if(checkerFilter==='problem') return f.status==='problem';
+    if(checkerFilter==='dup') return f.status==='dup';
+    return true;
+  });
+  
+  if(sortCol){
+    filtered.sort(function(a,b){
+      var va = a[sortCol], vb = b[sortCol];
+      if(typeof va==='string') return sortAsc?va.localeCompare(vb):vb.localeCompare(va);
+      return sortAsc?(va-vb):(vb-va);
+    });
+  }
+  
+  var html = '';
+  for(var i=0;i<filtered.length;i++){
+    var f = filtered[i];
+    var statusIcon = f.status==='ok'?'🟢':f.status==='problem'?'🔴':f.status==='dup'?'🟣':f.status==='skip'?'⚪':'⏳';
+    var cls = f.status==='ok'?'status-ok':f.status==='problem'?'status-err':f.status==='dup'?'status-dup':'status-skip';
+    html += '<tr class="'+cls+'">'
+      +'<td>'+statusIcon+'</td>'
+      +'<td>'+escHtml(f.name)+'</td>'
+      +'<td>'+(f.width||'—')+'</td>'
+      +'<td>'+(f.height||'—')+'</td>'
+      +'<td>'+fmtSize(f.size)+'</td>'
+      +'<td>'+(f.problems.length?f.problems.map(function(p){return'<span class="tag" style="background:var(--red-bg);color:var(--red)">'+escHtml(p)+'</span>';}).join(' '):'<span style="color:var(--green)">✓ 通过</span>')+'</td>'
+      +'</tr>';
+  }
+  body.innerHTML = html;
+}
+
+function updateCheckerStats(){
+  var ok=0,prob=0,dup=0,skip=0;
+  checkerFiles.forEach(function(f){
+    if(f.status==='ok')ok++;
+    else if(f.status==='problem')prob++;
+    else if(f.status==='dup')dup++;
+    else if(f.status==='skip')skip++;
+  });
+  document.getElementById('fAll').textContent = checkerFiles.length;
+  document.getElementById('fOk').textContent = ok;
+  document.getElementById('fProblem').textContent = prob;
+  document.getElementById('fDup').textContent = dup;
+  
+  document.getElementById('statsBar').innerHTML = 
+    '<div class="stat-item"><div class="stat-dot" style="background:var(--text)"></div> 总计 '+checkerFiles.length+'</div>'
+    +'<div class="stat-item"><div class="stat-dot" style="background:var(--green)"></div> 通过 '+ok+'</div>'
+    +'<div class="stat-item"><div class="stat-dot" style="background:var(--red)"></div> 问题 '+prob+'</div>'
+    +'<div class="stat-item"><div class="stat-dot" style="background:var(--purple)"></div> 重复 '+dup+'</div>'
+    +(skip?'<div class="stat-item"><div class="stat-dot" style="background:var(--dim)"></div> 跳过 '+skip+'</div>':'');
+}
+
+function filterResults(mode, btn){
+  checkerFilter = mode;
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+  if(btn) btn.classList.add('active');
+  renderCheckerTable();
+}
+
+function sortBy(col){
+  if(sortCol===col) sortAsc=!sortAsc;
+  else{ sortCol=col; sortAsc=true; }
+  renderCheckerTable();
+}
+
+function exportReport(){
+  if(!checkerFiles.length) return;
+  var lines = ['文件名,宽,高,大小(KB),状态,问题'];
+  checkerFiles.forEach(function(f){
+    lines.push([
+      '"'+f.name+'"', f.width, f.height, (f.size/1024).toFixed(1),
+      f.status, '"'+(f.problems.join('; '))+'"'
+    ].join(','));
+  });
+  var blob = new Blob(['\ufeff'+lines.join('\n')], {type:'text/csv;charset=utf-8'});
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'resource_check_report.csv';
+  link.click();
+  showToast('已导出 CSV 报告');
+}
+
+function clearChecker(){
+  checkerFiles = [];
+  document.getElementById('resultBody').innerHTML = '';
+  document.getElementById('btnCheck').disabled = true;
+  document.getElementById('btnExport').disabled = true;
+  updateCheckerStats();
+}
+
+// ═══════════════════════════════════════════
+// Tab 1: Image Renamer
+// ═══════════════════════════════════════════
+var renamerFiles = []; // {name, file, dataUrl}
+
+function addRenamerFiles(fileList){
+  var added = 0;
+  for(var i=0;i<fileList.length;i++){
+    if(!fileList[i].type.startsWith('image/')) continue;
+    renamerFiles.push({name:fileList[i].name, file:fileList[i], dataUrl:null});
+    added++;
+  }
+  if(added) showToast('已添加 '+added+' 个文件');
+  document.getElementById('btnRename').disabled = !renamerFiles.length;
+  previewRename();
+}
+
+function previewRename(){
+  var prefix = document.getElementById('renPrefix').value || 'img_';
+  var start = parseInt(document.getElementById('renStart').value) || 1;
+  var digits = parseInt(document.getElementById('renDigits').value) || 3;
+  var extMode = document.getElementById('renExt').value;
+  
+  var container = document.getElementById('renamePreview');
+  if(!renamerFiles.length){
+    container.innerHTML = '<div style="text-align:center;color:var(--dim);padding:40px;font-size:13px">拖拽图片到左侧查看重命名预览</div>';
+    return;
+  }
+  
+  var html = '';
+  for(var i=0;i<renamerFiles.length;i++){
+    var f = renamerFiles[i];
+    var num = String(start + i);
+    while(num.length < digits) num = '0' + num;
+    var origExt = f.name.split('.').pop();
+    var newExt = extMode==='keep'? origExt : extMode;
+    var newName = prefix + num + '.' + newExt;
+    f._newName = newName;
+    
+    html += '<div class="rp-item">'
+      +'<span class="rp-old">'+escHtml(f.name)+'</span>'
+      +'<span class="rp-arrow">→</span>'
+      +'<span class="rp-new">'+escHtml(newName)+'</span>'
+      +'</div>';
+  }
+  container.innerHTML = html;
+}
+
+// Listen to settings changes
+['renPrefix','renStart','renDigits','renExt'].forEach(function(id){
+  document.getElementById(id).addEventListener('input', previewRename);
+  document.getElementById(id).addEventListener('change', previewRename);
+});
+
+function downloadRenamed(){
+  if(!renamerFiles.length) return;
+  previewRename();
+  
+  var downloaded = 0;
+  renamerFiles.forEach(function(f){
+    if(!f._newName) return;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var link = document.createElement('a');
+      link.href = e.target.result;
+      link.download = f._newName;
+      link.click();
+      downloaded++;
+      if(downloaded === renamerFiles.length) showToast('已下载 '+downloaded+' 个重命名文件');
+    };
+    reader.readAsDataURL(f.file);
+  });
+}
+
+function clearRenamer(){
+  renamerFiles = [];
+  document.getElementById('btnRename').disabled = true;
+  previewRename();
+}
+
+// ═══════════════════════════════════════════
+// Tab 2: Duplicate Finder
+// ═══════════════════════════════════════════
+var dupFiles = []; // {name, file, img, dataUrl, hash, width, height, size}
+
+function addDupFiles(fileList){
+  var added = 0;
+  for(var i=0;i<fileList.length;i++){
+    if(!fileList[i].type.startsWith('image/')) continue;
+    dupFiles.push({name:fileList[i].name, file:fileList[i], img:null, dataUrl:null, hash:null, width:0, height:0, size:fileList[i].size});
+    added++;
+  }
+  if(added) showToast('已添加 '+added+' 个文件');
+  document.getElementById('btnFindDup').disabled = !dupFiles.length;
+}
+
+function findDuplicates(){
+  if(!dupFiles.length) return;
+  document.getElementById('btnFindDup').disabled = true;
+  var mode = document.getElementById('dupMode').value;
+  var threshold = parseInt(document.getElementById('simThresh').value) || 95;
+  var total = dupFiles.length, done = 0;
+  showProgress(0);
+  
+  function loadNext(idx){
+    if(idx >= total){
+      // All loaded, now find duplicates
+      var groups = findDupGroups(mode, threshold);
+      renderDupGroups(groups);
+      hideProgress();
+      document.getElementById('btnFindDup').disabled = false;
+      return;
+    }
+    
+    var entry = dupFiles[idx];
+    var reader = new FileReader();
+    reader.onload = function(e){
+      entry.dataUrl = e.target.result;
+      var img = new Image();
+      img.onload = function(){
+        entry.img = img;
+        entry.width = img.naturalWidth;
+        entry.height = img.naturalHeight;
+        
+        // Compute hash
+        if(mode === 'exact'){
+          entry.hash = computeExactHash(img);
+        } else {
+          entry.hash = computePerceptualHash(img);
+        }
+        
+        done++;
+        showProgress((done/total)*100);
+        loadNext(idx+1);
+      };
+      img.onerror = function(){ done++; showProgress((done/total)*100); loadNext(idx+1); };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(entry.file);
+  }
+  
+  loadNext(0);
+}
+
+function computeExactHash(img){
+  // 16x16 pixel fingerprint
+  var c = document.createElement('canvas');
+  c.width = 16; c.height = 16;
+  c.getContext('2d').drawImage(img, 0, 0, 16, 16);
+  var data = c.getContext('2d').getImageData(0,0,16,16).data;
+  var hash = '';
+  for(var i=0;i<data.length;i+=4){
+    hash += String.fromCharCode(data[i]>>4, data[i+1]>>4, data[i+2]>>4);
+  }
+  return hash;
+}
+
+function computePerceptualHash(img){
+  // Average hash 8x8
+  var c = document.createElement('canvas');
+  c.width = 8; c.height = 8;
+  c.getContext('2d').drawImage(img, 0, 0, 8, 8);
+  var data = c.getContext('2d').getImageData(0,0,8,8).data;
+  var vals = [];
+  for(var i=0;i<64;i++) vals.push(data[i*4]*0.299+data[i*4+1]*0.587+data[i*4+2]*0.114);
+  var avg = vals.reduce(function(s,v){return s+v;},0)/64;
+  var bits = '';
+  for(var i=0;i<64;i++) bits += vals[i]>=avg?'1':'0';
+  return bits;
+}
+
+function hammingDistance(a, b){
+  var d = 0;
+  for(var i=0;i<Math.min(a.length,b.length);i++) if(a[i]!==b[i]) d++;
+  return d;
+}
+
+function findDupGroups(mode, threshold){
+  var groups = []; // [{files:[entry,...]}]
+  var assigned = new Set();
+  
+  for(var i=0;i<dupFiles.length;i++){
+    if(assigned.has(i) || !dupFiles[i].hash) continue;
+    var group = [i];
+    
+    for(var j=i+1;j<dupFiles.length;j++){
+      if(assigned.has(j) || !dupFiles[j].hash) continue;
+      
+      var match = false;
+      if(mode === 'exact'){
+        match = dupFiles[i].hash === dupFiles[j].hash;
+      } else {
+        var dist = hammingDistance(dupFiles[i].hash, dupFiles[j].hash);
+        var similarity = ((64 - dist) / 64) * 100;
+        match = similarity >= threshold;
+      }
+      
+      if(match){
+        group.push(j);
+        assigned.add(j);
+      }
+    }
+    
+    if(group.length > 1){
+      assigned.add(i);
+      groups.push({files: group.map(function(idx){return dupFiles[idx];})});
+    }
+  }
+  
+  return groups;
+}
+
+function renderDupGroups(groups){
+  var container = document.getElementById('dupGroups');
+  if(!groups.length){
+    container.innerHTML = '<div style="text-align:center;color:var(--green);padding:60px 20px;font-size:14px"><div style="font-size:36px;margin-bottom:12px">✅</div>未发现重复/相似资源！共检测 '+dupFiles.length+' 个文件</div>';
+    showToast('未发现重复资源');
+    return;
+  }
+  
+  var html = '';
+  for(var g=0;g<groups.length;g++){
+    var grp = groups[g];
+    html += '<div class="dup-group">'
+      +'<div class="dup-group-header">🟣 重复组 #'+(g+1)+' <span class="tag">'+grp.files.length+' 个文件</span></div>'
+      +'<div class="dup-grid">';
+    for(var f=0;f<grp.files.length;f++){
+      var entry = grp.files[f];
+      html += '<div class="dup-card">'
+        +'<img src="'+(entry.dataUrl||'')+'">'
+        +'<div class="dc-name">'+escHtml(entry.name)+'</div>'
+        +'<div class="dc-size">'+entry.width+'×'+entry.height+' · '+fmtSize(entry.size)+'</div>'
+        +'</div>';
+    }
+    html += '</div></div>';
+  }
+  container.innerHTML = html;
+  showToast('发现 '+groups.length+' 组重复资源');
+}
+
+function clearDup(){
+  dupFiles = [];
+  document.getElementById('dupGroups').innerHTML = '<div style="text-align:center;color:var(--dim);padding:60px 20px;font-size:14px"><div style="font-size:36px;margin-bottom:12px">🔍</div>添加图片后点击"查找重复"检测重复/相似资源</div>';
+  document.getElementById('btnFindDup').disabled = true;
+}
+
+// Toggle similarity threshold visibility
+document.getElementById('dupMode').addEventListener('change', function(){
+  document.getElementById('simThreshRow').style.display = this.value==='perceptual'?'flex':'none';
+});
+</script>
+</body>
+</html>

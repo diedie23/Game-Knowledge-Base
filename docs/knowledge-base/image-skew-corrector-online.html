@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片倾斜矫正工具 - 在线版</title>
+<style>
+:root{--bg:#0f1117;--card:#1c1f2e;--border:#2a2d3e;--text:#c9cdd4;--dim:#8b8fa3;--heading:#e8eaed;--accent:#6c8cff;--green:#4ade80;--green-bg:rgba(74,222,128,.08);--orange:#fb923c;--orange-bg:rgba(251,191,36,.08);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.08);--red:#f87171;--red-bg:rgba(248,113,113,.08);--code-bg:#1a1d2d}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+
+/* Header */
+.header{padding:24px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.header .icon{width:44px;height:44px;background:var(--orange-bg);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.header h1{font-size:22px;color:var(--heading);font-weight:700}
+.header h1 .ver{font-size:11px;background:var(--accent);color:#fff;padding:2px 10px;border-radius:10px;font-weight:500;margin-left:8px;vertical-align:middle}
+.header h1 .web-badge{font-size:11px;background:var(--green-bg);color:var(--green);padding:2px 10px;border-radius:10px;font-weight:500;margin-left:6px;vertical-align:middle}
+.header p{font-size:13px;color:var(--dim);width:100%;margin-top:4px}
+
+/* Layout */
+.app{display:flex;height:calc(100vh - 110px);overflow:hidden}
+.panel-left{width:340px;min-width:300px;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.panel-right{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* Settings Panel */
+.section{padding:16px 20px;border-bottom:1px solid var(--border)}
+.section-title{font-size:13px;font-weight:600;color:var(--heading);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.param-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:13px}
+.param-row label{min-width:80px;color:var(--dim)}
+.param-row input[type="number"],.param-row select{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--text);font-size:12px;width:100px}
+.param-row input[type="range"]{flex:1;accent-color:var(--accent)}
+.param-val{font-size:12px;color:var(--accent);min-width:40px;text-align:right}
+
+/* Drop Zone */
+.drop-zone{margin:16px 20px;border:2px dashed var(--border);border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:rgba(108,140,255,.04)}
+.drop-zone .dz-icon{font-size:36px;margin-bottom:8px}
+.drop-zone .dz-text{font-size:14px;color:var(--heading);font-weight:500}
+.drop-zone .dz-hint{font-size:12px;color:var(--dim);margin-top:4px}
+
+/* File List */
+.file-list{flex:1;overflow-y:auto;padding:0 20px 16px}
+.file-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all .15s;font-size:12px}
+.file-item:hover{border-color:var(--accent)}
+.file-item.active{border-color:var(--accent);background:rgba(108,140,255,.06)}
+.file-item .fi-thumb{width:40px;height:40px;border-radius:6px;background:var(--bg);object-fit:contain;flex-shrink:0}
+.file-item .fi-info{flex:1;overflow:hidden}
+.file-item .fi-name{color:var(--heading);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-item .fi-meta{color:var(--dim);font-size:11px;margin-top:2px}
+.file-item .fi-angle{font-size:12px;font-weight:600;min-width:50px;text-align:right}
+.file-item .fi-angle.has-skew{color:var(--orange)}
+.file-item .fi-angle.no-skew{color:var(--green)}
+.file-item .fi-remove{color:var(--dim);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px}
+.file-item .fi-remove:hover{color:var(--red);background:var(--red-bg)}
+
+/* Action Buttons */
+.actions{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap}
+.btn{padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit;display:flex;align-items:center;gap:5px}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{background:#5a7aee}
+.btn.danger{color:var(--red);border-color:transparent}
+.btn.danger:hover{background:var(--red-bg)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Preview Area */
+.preview-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow:auto;position:relative}
+.preview-empty{text-align:center;color:var(--dim)}
+.preview-empty .pe-icon{font-size:48px;margin-bottom:12px}
+.preview-empty p{font-size:14px}
+.preview-container{display:flex;gap:24px;align-items:flex-start;justify-content:center;flex-wrap:wrap;width:100%;max-height:100%;overflow:auto}
+.preview-box{text-align:center}
+.preview-box .pb-label{font-size:12px;color:var(--dim);margin-bottom:6px;font-weight:500}
+.preview-box canvas{max-width:420px;max-height:400px;border:1px solid var(--border);border-radius:8px;background:repeating-conic-gradient(#1a1d2d 0% 25%,#22253a 0% 50%) 50%/16px 16px}
+
+/* Toolbar */
+.toolbar{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.toolbar .tl-title{font-size:13px;font-weight:600;color:var(--heading)}
+.toolbar .tl-info{font-size:12px;color:var(--dim);margin-left:auto}
+
+/* Manual adjust */
+.manual-adjust{padding:12px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.manual-adjust label{font-size:12px;color:var(--dim)}
+.manual-adjust input[type="range"]{width:200px;accent-color:var(--accent)}
+.manual-adjust .ma-val{font-size:13px;color:var(--accent);font-weight:600;min-width:60px}
+
+/* Progress bar */
+.progress-bar{height:3px;background:var(--border);position:relative;overflow:hidden}
+.progress-bar .pb-fill{height:100%;background:var(--accent);transition:width .3s;width:0}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);color:var(--text);padding:10px 24px;border-radius:10px;font-size:13px;border:1px solid var(--border);opacity:0;transition:all .3s;z-index:999;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Responsive */
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .panel-left{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--border);max-height:50vh}
+  .panel-right{min-height:50vh}
+  .preview-container{flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="icon">📐</div>
+  <h1>图片倾斜矫正工具 <span class="ver">v3.1</span><span class="web-badge">🌐 在线版</span></h1>
+  <p>拖拽上传图片 → 自动检测倾斜角度 → 一键矫正 · 支持批量处理 · 手动微调 · 保留透明通道</p>
+</div>
+
+<div class="progress-bar" id="progressBar"><div class="pb-fill" id="progressFill"></div></div>
+
+<div class="app">
+  <!-- Left Panel: Settings + File List -->
+  <div class="panel-left">
+    <div class="section">
+      <div class="section-title">⚙️ 检测参数</div>
+      <div class="param-row">
+        <label>角度阈值</label>
+        <input type="range" id="thresholdRange" min="0.1" max="5" step="0.1" value="0.5" oninput="document.getElementById('thresholdVal').textContent=this.value+'°'">
+        <span class="param-val" id="thresholdVal">0.5°</span>
+      </div>
+      <div class="param-row" style="font-size:11px;color:var(--dim)">低于此角度的图片将被跳过（视为无需矫正）</div>
+      <div class="param-row">
+        <label>背景填充</label>
+        <select id="bgMode">
+          <option value="transparent">透明</option>
+          <option value="white">白色</option>
+          <option value="black">黑色</option>
+        </select>
+      </div>
+      <div class="param-row">
+        <label>输出格式</label>
+        <select id="outFormat">
+          <option value="png">PNG</option>
+          <option value="jpeg">JPEG</option>
+          <option value="webp">WebP</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <div class="dz-icon">📁</div>
+      <div class="dz-text">拖拽图片到此处，或点击选择</div>
+      <div class="dz-hint">支持 PNG / JPG / JPEG / BMP / WebP · 可多选</div>
+    </div>
+    <input type="file" id="fileInput" multiple accept="image/*" style="display:none" onchange="handleFiles(this.files)">
+
+    <div class="file-list" id="fileList"></div>
+
+    <div class="actions">
+      <button class="btn primary" id="btnProcess" onclick="processAll()" disabled>▶ 批量矫正</button>
+      <button class="btn" id="btnDownloadAll" onclick="downloadAll()" disabled>⬇️ 全部下载</button>
+      <button class="btn danger" onclick="clearAll()">🗑 清空</button>
+    </div>
+  </div>
+
+  <!-- Right Panel: Preview -->
+  <div class="panel-right">
+    <div class="toolbar">
+      <span class="tl-title" id="previewTitle">📷 预览区域</span>
+      <span class="tl-info" id="previewInfo">添加图片后在左侧列表中点击预览</span>
+    </div>
+    <div class="preview-area" id="previewArea">
+      <div class="preview-empty">
+        <div class="pe-icon">🖼️</div>
+        <p>在左侧添加图片后点击查看预览</p>
+      </div>
+    </div>
+    <div class="manual-adjust" id="manualAdjust" style="display:none">
+      <label>手动微调角度：</label>
+      <input type="range" id="manualRange" min="-45" max="45" step="0.1" value="0" oninput="onManualAdjust(this.value)">
+      <span class="ma-val" id="manualVal">0.0°</span>
+      <button class="btn" onclick="applyManual()">✅ 应用</button>
+      <button class="btn" onclick="resetManual()">↩️ 重置</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// State
+// ═══════════════════════════════════════
+var files = []; // {id, name, file, img, origCanvas, resultCanvas, angle, confidence, status, manualAngle}
+var activeIdx = -1;
+var idCounter = 0;
+
+// ═══════════════════════════════════════
+// File Handling
+// ═══════════════════════════════════════
+var dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', function(e){ e.preventDefault(); e.stopPropagation(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', function(e){ e.preventDefault(); dropZone.classList.remove('dragover'); });
+dropZone.addEventListener('drop', function(e){
+  e.preventDefault(); dropZone.classList.remove('dragover');
+  handleFiles(e.dataTransfer.files);
+});
+
+function handleFiles(fileList){
+  var validTypes = ['image/png','image/jpeg','image/jpg','image/bmp','image/webp','image/tiff'];
+  var added = 0;
+  for(var i = 0; i < fileList.length; i++){
+    var f = fileList[i];
+    if(!f.type.startsWith('image/')) continue;
+    loadImage(f);
+    added++;
+  }
+  if(added > 0) showToast('已添加 ' + added + ' 张图片');
+  updateButtons();
+}
+
+function loadImage(file){
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var img = new Image();
+    img.onload = function(){
+      var entry = {
+        id: ++idCounter,
+        name: file.name,
+        file: file,
+        img: img,
+        origCanvas: null,
+        resultCanvas: null,
+        angle: null,
+        confidence: 0,
+        status: 'pending', // pending, processing, done, skipped
+        manualAngle: null,
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+        size: file.size
+      };
+      // Create original canvas
+      var c = document.createElement('canvas');
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      c.getContext('2d').drawImage(img, 0, 0);
+      entry.origCanvas = c;
+      files.push(entry);
+      renderFileList();
+      updateButtons();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ═══════════════════════════════════════
+// Skew Detection (JS implementation)
+// ═══════════════════════════════════════
+
+function detectSkewAngle(canvas){
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width, h = canvas.height;
+  
+  // Downscale for performance (max 600px)
+  var scale = 1;
+  if(Math.max(w, h) > 600){
+    scale = 600 / Math.max(w, h);
+  }
+  var sw = Math.round(w * scale), sh = Math.round(h * scale);
+  var tmpC = document.createElement('canvas');
+  tmpC.width = sw; tmpC.height = sh;
+  var tmpCtx = tmpC.getContext('2d');
+  tmpCtx.drawImage(canvas, 0, 0, sw, sh);
+  var imgData = tmpCtx.getImageData(0, 0, sw, sh);
+  var data = imgData.data;
+  
+  // Convert to grayscale
+  var gray = new Float64Array(sw * sh);
+  var hasAlpha = false;
+  var alpha = new Uint8Array(sw * sh);
+  for(var i = 0; i < sw * sh; i++){
+    var r = data[i*4], g = data[i*4+1], b = data[i*4+2], a = data[i*4+3];
+    gray[i] = 0.299*r + 0.587*g + 0.114*b;
+    alpha[i] = a;
+    if(a < 250) hasAlpha = true;
+  }
+  
+  // Create content mask
+  var mask = new Uint8Array(sw * sh);
+  if(hasAlpha){
+    for(var i = 0; i < sw*sh; i++) mask[i] = alpha[i] > 10 ? 255 : 0;
+  } else {
+    // Otsu thresholding
+    var hist = new Int32Array(256);
+    for(var i = 0; i < sw*sh; i++) hist[Math.round(gray[i])]++;
+    var total = sw*sh, sum = 0;
+    for(var i = 0; i < 256; i++) sum += i * hist[i];
+    var sumB = 0, wB = 0, maxVar = 0, thresh = 128;
+    for(var t = 0; t < 256; t++){
+      wB += hist[t]; if(!wB) continue;
+      var wF = total - wB; if(!wF) break;
+      sumB += t * hist[t];
+      var mB = sumB/wB, mF = (sum-sumB)/wF;
+      var v = wB * wF * (mB-mF)*(mB-mF);
+      if(v > maxVar){ maxVar = v; thresh = t; }
+    }
+    for(var i = 0; i < sw*sh; i++) mask[i] = gray[i] < thresh ? 255 : 0;
+  }
+  
+  var results = [];
+  
+  // Method 1: Minimum Area Bounding Rectangle (via PCA)
+  var r1 = detectByPCA(mask, sw, sh);
+  if(r1) results.push(r1);
+  
+  // Method 2: Projection Variance
+  var r2 = detectByProjection(gray, mask, sw, sh);
+  if(r2) results.push(r2);
+  
+  // Method 3: Edge-based direction analysis
+  var r3 = detectByEdges(gray, mask, sw, sh);
+  if(r3) results.push(r3);
+  
+  if(!results.length) return {angle: 0, confidence: 0};
+  
+  // Fusion: sort by confidence, weighted average of agreeing methods
+  results.sort(function(a,b){ return b.confidence - a.confidence; });
+  var best = results[0];
+  var agreeA = [best.angle * best.confidence];
+  var agreeW = [best.confidence];
+  
+  for(var i = 1; i < results.length; i++){
+    if(Math.abs(results[i].angle - best.angle) < 5){
+      agreeA.push(results[i].angle * results[i].confidence);
+      agreeW.push(results[i].confidence);
+    }
+  }
+  var totalW = agreeW.reduce(function(s,v){return s+v;}, 0);
+  var finalAngle = totalW > 0 ? agreeA.reduce(function(s,v){return s+v;}, 0) / totalW : best.angle;
+  var finalConf = Math.min(1, totalW / Math.max(agreeW.length * 0.4, 0.5));
+  
+  return {angle: finalAngle, confidence: finalConf};
+}
+
+function detectByPCA(mask, w, h){
+  // Collect content pixel coordinates
+  var pts = [];
+  for(var y = 0; y < h; y++){
+    for(var x = 0; x < w; x++){
+      if(mask[y*w+x] > 0) pts.push([x, y]);
+    }
+  }
+  if(pts.length < 50) return null;
+  
+  // Compute mean
+  var mx = 0, my = 0;
+  for(var i = 0; i < pts.length; i++){ mx += pts[i][0]; my += pts[i][1]; }
+  mx /= pts.length; my /= pts.length;
+  
+  // Compute covariance matrix
+  var cxx = 0, cxy = 0, cyy = 0;
+  for(var i = 0; i < pts.length; i++){
+    var dx = pts[i][0] - mx, dy = pts[i][1] - my;
+    cxx += dx*dx; cxy += dx*dy; cyy += dy*dy;
+  }
+  cxx /= pts.length; cxy /= pts.length; cyy /= pts.length;
+  
+  // Eigenvalues
+  var trace = cxx + cyy;
+  var det = cxx * cyy - cxy * cxy;
+  var disc = Math.sqrt(Math.max(0, trace*trace/4 - det));
+  var e1 = trace/2 + disc;
+  var e2 = trace/2 - disc;
+  
+  // Main axis eigenvector
+  var ex, ey;
+  if(Math.abs(cxy) > 1e-6){
+    ex = e1 - cyy; ey = cxy;
+  } else {
+    ex = cxx > cyy ? 1 : 0; ey = cxx > cyy ? 0 : 1;
+  }
+  
+  // Angle relative to vertical (y-axis)
+  var angle = Math.atan2(ex, ey) * 180 / Math.PI;
+  while(angle > 45) angle -= 90;
+  while(angle < -45) angle += 90;
+  
+  var ratio = Math.max(e1, e2) / Math.max(Math.min(e1, e2), 1e-6);
+  var conf = Math.min(1, (ratio - 1) / 5) * 0.7;
+  
+  if(Math.abs(angle) < 0.1) return null;
+  return {angle: angle, confidence: conf, method: 'PCA'};
+}
+
+function detectByProjection(gray, mask, w, h){
+  // Compute projection variance at different angles
+  function projVariance(deg){
+    var rad = deg * Math.PI / 180;
+    var cosA = Math.cos(rad), sinA = Math.sin(rad);
+    var bins = {};
+    for(var y = 0; y < h; y++){
+      for(var x = 0; x < w; x++){
+        if(mask[y*w+x] === 0) continue;
+        var ny = Math.round(-x * sinA + y * cosA);
+        bins[ny] = (bins[ny] || 0) + gray[y*w+x];
+      }
+    }
+    var vals = Object.values(bins);
+    if(vals.length < 3) return 0;
+    var mean = vals.reduce(function(s,v){return s+v;},0) / vals.length;
+    var variance = vals.reduce(function(s,v){return s+(v-mean)*(v-mean);},0) / vals.length;
+    return variance;
+  }
+  
+  var baseVar = projVariance(0);
+  if(baseVar < 100) return null;
+  
+  // Coarse search: -15° to 15°, step 1°
+  var bestAngle = 0, bestVar = baseVar;
+  for(var deg = -15; deg <= 15; deg++){
+    if(deg === 0) continue;
+    var v = projVariance(deg);
+    if(v > bestVar){ bestVar = v; bestAngle = deg; }
+  }
+  
+  // Fine search: ±1° around best, step 0.2°
+  for(var d = -10; d <= 10; d++){
+    var deg = bestAngle + d * 0.1;
+    if(Math.abs(deg) < 0.05) continue;
+    var v = projVariance(deg);
+    if(v > bestVar){ bestVar = v; bestAngle = deg; }
+  }
+  
+  if(Math.abs(bestAngle) < 0.2) return null;
+  
+  var improvement = (bestVar - baseVar) / Math.max(baseVar, 1);
+  var conf = Math.min(1, improvement * 3) * 0.6;
+  
+  return {angle: bestAngle, confidence: conf, method: 'Projection'};
+}
+
+function detectByEdges(gray, mask, w, h){
+  // Simple Sobel edge detection + dominant angle via histogram
+  var angles = [], weights = [];
+  
+  for(var y = 1; y < h-1; y++){
+    for(var x = 1; x < w-1; x++){
+      if(mask[y*w+x] === 0) continue;
+      // Sobel
+      var gx = -gray[(y-1)*w+(x-1)] + gray[(y-1)*w+(x+1)]
+              -2*gray[y*w+(x-1)] + 2*gray[y*w+(x+1)]
+              -gray[(y+1)*w+(x-1)] + gray[(y+1)*w+(x+1)];
+      var gy = -gray[(y-1)*w+(x-1)] - 2*gray[(y-1)*w+x] - gray[(y-1)*w+(x+1)]
+              +gray[(y+1)*w+(x-1)] + 2*gray[(y+1)*w+x] + gray[(y+1)*w+(x+1)];
+      var mag = Math.sqrt(gx*gx + gy*gy);
+      if(mag < 30) continue; // skip weak edges
+      var a = Math.atan2(gy, gx) * 180 / Math.PI;
+      // Normalize to [-45, 45] — we want line direction, not gradient direction
+      a = a + 90; // perpendicular to gradient
+      if(a > 45) a -= 90;
+      if(a > 45) a -= 90;
+      if(a < -45) a += 90;
+      if(a < -45) a += 90;
+      angles.push(a);
+      weights.push(mag);
+    }
+  }
+  
+  if(angles.length < 20) return null;
+  
+  // Weighted histogram to find dominant angle
+  var bins = new Float64Array(181); // -90 to 90
+  var binW = new Float64Array(181);
+  for(var i = 0; i < angles.length; i++){
+    var bin = Math.round(angles[i] * 2) + 90;
+    if(bin < 0) bin = 0; if(bin > 180) bin = 180;
+    bins[bin] += weights[i];
+    binW[bin]++;
+  }
+  
+  // Find peak
+  var peakBin = 90, peakVal = 0;
+  for(var b = 0; b <= 180; b++){
+    if(bins[b] > peakVal){ peakVal = bins[b]; peakBin = b; }
+  }
+  var angle = (peakBin - 90) / 2;
+  
+  if(Math.abs(angle) < 0.3) return null;
+  
+  // Confidence based on how concentrated the peak is
+  var totalWeight = bins.reduce(function(s,v){return s+v;},0);
+  var peakWeight = 0;
+  for(var b = Math.max(0, peakBin-3); b <= Math.min(180, peakBin+3); b++) peakWeight += bins[b];
+  var conf = Math.min(1, peakWeight / Math.max(totalWeight * 0.3, 1)) * 0.65;
+  
+  return {angle: angle, confidence: conf, method: 'Edges'};
+}
+
+// ═══════════════════════════════════════
+// Image Rotation
+// ═══════════════════════════════════════
+function rotateImage(origCanvas, angle){
+  var w = origCanvas.width, h = origCanvas.height;
+  var rad = angle * Math.PI / 180;
+  var cosA = Math.abs(Math.cos(rad)), sinA = Math.abs(Math.sin(rad));
+  var nw = Math.ceil(w * cosA + h * sinA);
+  var nh = Math.ceil(w * sinA + h * cosA);
+  
+  var result = document.createElement('canvas');
+  result.width = nw; result.height = nh;
+  var ctx = result.getContext('2d');
+  
+  // Background fill
+  var bgMode = document.getElementById('bgMode').value;
+  if(bgMode === 'white'){
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, nw, nh);
+  } else if(bgMode === 'black'){
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, nw, nh);
+  }
+  // transparent: leave as is
+  
+  ctx.translate(nw/2, nh/2);
+  ctx.rotate(-rad);
+  ctx.drawImage(origCanvas, -w/2, -h/2);
+  
+  return result;
+}
+
+// ═══════════════════════════════════════
+// Processing
+// ═══════════════════════════════════════
+function processAll(){
+  var threshold = parseFloat(document.getElementById('thresholdRange').value);
+  var pending = files.filter(function(f){ return f.status === 'pending' || f.status === 'skipped'; });
+  if(!pending.length){ showToast('没有待处理的图片'); return; }
+  
+  document.getElementById('btnProcess').disabled = true;
+  var total = pending.length, done = 0;
+  showProgress(0);
+  
+  function processNext(idx){
+    if(idx >= pending.length){
+      showProgress(100);
+      setTimeout(function(){ hideProgress(); }, 500);
+      document.getElementById('btnProcess').disabled = false;
+      updateButtons();
+      showToast('处理完成！' + done + ' 张矫正，' + (total - done) + ' 张跳过');
+      renderFileList();
+      return;
+    }
+    
+    var entry = pending[idx];
+    entry.status = 'processing';
+    renderFileList();
+    
+    // Use setTimeout to allow UI update
+    setTimeout(function(){
+      var result = detectSkewAngle(entry.origCanvas);
+      entry.angle = Math.round(result.angle * 100) / 100;
+      entry.confidence = Math.round(result.confidence * 100) / 100;
+      
+      if(Math.abs(entry.angle) >= threshold){
+        entry.resultCanvas = rotateImage(entry.origCanvas, entry.angle);
+        entry.status = 'done';
+        done++;
+      } else {
+        entry.status = 'skipped';
+      }
+      
+      showProgress(((idx+1)/total)*100);
+      
+      // Update preview if this is the active item
+      if(files.indexOf(entry) === activeIdx) showPreview(activeIdx);
+      
+      processNext(idx + 1);
+    }, 10);
+  }
+  
+  processNext(0);
+}
+
+function processSingle(idx){
+  var entry = files[idx];
+  if(!entry) return;
+  
+  var threshold = parseFloat(document.getElementById('thresholdRange').value);
+  entry.status = 'processing';
+  renderFileList();
+  
+  setTimeout(function(){
+    var result = detectSkewAngle(entry.origCanvas);
+    entry.angle = Math.round(result.angle * 100) / 100;
+    entry.confidence = Math.round(result.confidence * 100) / 100;
+    
+    if(Math.abs(entry.angle) >= threshold){
+      entry.resultCanvas = rotateImage(entry.origCanvas, entry.angle);
+      entry.status = 'done';
+    } else {
+      entry.status = 'skipped';
+    }
+    
+    renderFileList();
+    if(idx === activeIdx) showPreview(idx);
+  }, 10);
+}
+
+// ═══════════════════════════════════════
+// UI Rendering
+// ═══════════════════════════════════════
+function renderFileList(){
+  var list = document.getElementById('fileList');
+  if(!files.length){
+    list.innerHTML = '';
+    return;
+  }
+  
+  var html = '';
+  for(var i = 0; i < files.length; i++){
+    var f = files[i];
+    var cls = 'file-item' + (i === activeIdx ? ' active' : '');
+    var angleStr = '';
+    if(f.status === 'processing') angleStr = '<span class="fi-angle" style="color:var(--accent)">⏳</span>';
+    else if(f.angle !== null){
+      var ac = Math.abs(f.angle) >= parseFloat(document.getElementById('thresholdRange').value) ? 'has-skew' : 'no-skew';
+      angleStr = '<span class="fi-angle ' + ac + '">' + f.angle.toFixed(1) + '°</span>';
+    } else {
+      angleStr = '<span class="fi-angle" style="color:var(--dim)">—</span>';
+    }
+    var statusIcon = '';
+    if(f.status === 'done') statusIcon = '✅ ';
+    else if(f.status === 'skipped') statusIcon = '⏭ ';
+    else if(f.status === 'processing') statusIcon = '⏳ ';
+    
+    var sizeStr = f.size < 1024*1024 ? (f.size/1024).toFixed(0) + ' KB' : (f.size/1024/1024).toFixed(1) + ' MB';
+    
+    html += '<div class="' + cls + '" onclick="selectFile(' + i + ')">'
+      + '<img class="fi-thumb" src="' + f.img.src + '">'
+      + '<div class="fi-info"><div class="fi-name">' + statusIcon + escHtml(f.name) + '</div>'
+      + '<div class="fi-meta">' + f.width + '×' + f.height + ' · ' + sizeStr + '</div></div>'
+      + angleStr
+      + '<span class="fi-remove" onclick="event.stopPropagation();removeFile(' + i + ')">×</span>'
+      + '</div>';
+  }
+  list.innerHTML = html;
+}
+
+function selectFile(idx){
+  activeIdx = idx;
+  renderFileList();
+  showPreview(idx);
+}
+
+function showPreview(idx){
+  var area = document.getElementById('previewArea');
+  var adjust = document.getElementById('manualAdjust');
+  var entry = files[idx];
+  if(!entry){
+    area.innerHTML = '<div class="preview-empty"><div class="pe-icon">🖼️</div><p>在左侧添加图片后点击查看预览</p></div>';
+    adjust.style.display = 'none';
+    return;
+  }
+  
+  document.getElementById('previewTitle').textContent = '📷 ' + entry.name;
+  var infoText = entry.width + '×' + entry.height;
+  if(entry.angle !== null) infoText += ' · 检测角度: ' + entry.angle.toFixed(2) + '° · 置信度: ' + (entry.confidence * 100).toFixed(0) + '%';
+  document.getElementById('previewInfo').textContent = infoText;
+  
+  var html = '<div class="preview-container">';
+  
+  // Original
+  html += '<div class="preview-box"><div class="pb-label">原图</div><canvas id="cvOrig"></canvas></div>';
+  
+  // Result
+  if(entry.resultCanvas || entry.manualAngle !== null){
+    html += '<div class="preview-box"><div class="pb-label">矫正后</div><canvas id="cvResult"></canvas></div>';
+  }
+  
+  html += '</div>';
+  area.innerHTML = html;
+  
+  // Draw original
+  var cvO = document.getElementById('cvOrig');
+  if(cvO){
+    var maxW = 420, maxH = 400;
+    var scaleO = Math.min(1, maxW / entry.origCanvas.width, maxH / entry.origCanvas.height);
+    cvO.width = Math.round(entry.origCanvas.width * scaleO);
+    cvO.height = Math.round(entry.origCanvas.height * scaleO);
+    cvO.getContext('2d').drawImage(entry.origCanvas, 0, 0, cvO.width, cvO.height);
+  }
+  
+  // Draw result
+  var resultC = entry.resultCanvas;
+  if(entry.manualAngle !== null){
+    resultC = rotateImage(entry.origCanvas, entry.manualAngle);
+  }
+  if(resultC){
+    var cvR = document.getElementById('cvResult');
+    if(cvR){
+      var scaleR = Math.min(1, maxW / resultC.width, maxH / resultC.height);
+      cvR.width = Math.round(resultC.width * scaleR);
+      cvR.height = Math.round(resultC.height * scaleR);
+      cvR.getContext('2d').drawImage(resultC, 0, 0, cvR.width, cvR.height);
+    }
+  }
+  
+  // Show manual adjust
+  adjust.style.display = 'flex';
+  var slider = document.getElementById('manualRange');
+  slider.value = entry.manualAngle !== null ? entry.manualAngle : (entry.angle || 0);
+  document.getElementById('manualVal').textContent = parseFloat(slider.value).toFixed(1) + '°';
+}
+
+function onManualAdjust(val){
+  document.getElementById('manualVal').textContent = parseFloat(val).toFixed(1) + '°';
+  if(activeIdx < 0 || !files[activeIdx]) return;
+  
+  var entry = files[activeIdx];
+  entry.manualAngle = parseFloat(val);
+  
+  // Live preview
+  var cvR = document.getElementById('cvResult');
+  if(!cvR){
+    // Need to re-render to add result canvas
+    showPreview(activeIdx);
+    return;
+  }
+  var resultC = rotateImage(entry.origCanvas, entry.manualAngle);
+  var maxW = 420, maxH = 400;
+  var scaleR = Math.min(1, maxW / resultC.width, maxH / resultC.height);
+  cvR.width = Math.round(resultC.width * scaleR);
+  cvR.height = Math.round(resultC.height * scaleR);
+  cvR.getContext('2d').drawImage(resultC, 0, 0, cvR.width, cvR.height);
+}
+
+function applyManual(){
+  if(activeIdx < 0 || !files[activeIdx]) return;
+  var entry = files[activeIdx];
+  if(entry.manualAngle === null) return;
+  entry.angle = entry.manualAngle;
+  entry.resultCanvas = rotateImage(entry.origCanvas, entry.manualAngle);
+  entry.status = 'done';
+  entry.manualAngle = null;
+  renderFileList();
+  showPreview(activeIdx);
+  showToast('已应用手动矫正角度: ' + entry.angle.toFixed(1) + '°');
+  updateButtons();
+}
+
+function resetManual(){
+  if(activeIdx < 0 || !files[activeIdx]) return;
+  var entry = files[activeIdx];
+  entry.manualAngle = null;
+  document.getElementById('manualRange').value = entry.angle || 0;
+  document.getElementById('manualVal').textContent = (entry.angle || 0).toFixed(1) + '°';
+  showPreview(activeIdx);
+}
+
+// ═══════════════════════════════════════
+// Download
+// ═══════════════════════════════════════
+function downloadAll(){
+  var done = files.filter(function(f){ return f.status === 'done' && f.resultCanvas; });
+  if(!done.length){ showToast('没有可下载的矫正结果'); return; }
+  
+  var format = document.getElementById('outFormat').value;
+  var mimeType = format === 'jpeg' ? 'image/jpeg' : format === 'webp' ? 'image/webp' : 'image/png';
+  var ext = format === 'jpeg' ? '.jpg' : '.' + format;
+  
+  done.forEach(function(entry){
+    var link = document.createElement('a');
+    var baseName = entry.name.replace(/\.[^.]+$/, '');
+    link.download = baseName + '_corrected' + ext;
+    link.href = entry.resultCanvas.toDataURL(mimeType, 0.95);
+    link.click();
+  });
+  
+  showToast('已下载 ' + done.length + ' 张矫正图片');
+}
+
+// ═══════════════════════════════════════
+// File Management
+// ═══════════════════════════════════════
+function removeFile(idx){
+  files.splice(idx, 1);
+  if(activeIdx === idx){ activeIdx = -1; showPreview(-1); }
+  else if(activeIdx > idx) activeIdx--;
+  renderFileList();
+  updateButtons();
+}
+
+function clearAll(){
+  files = [];
+  activeIdx = -1;
+  renderFileList();
+  showPreview(-1);
+  document.getElementById('manualAdjust').style.display = 'none';
+  updateButtons();
+}
+
+function updateButtons(){
+  var hasPending = files.some(function(f){ return f.status === 'pending' || f.status === 'skipped'; });
+  var hasDone = files.some(function(f){ return f.status === 'done' && f.resultCanvas; });
+  document.getElementById('btnProcess').disabled = !files.length || !hasPending;
+  document.getElementById('btnDownloadAll').disabled = !hasDone;
+}
+
+// ═══════════════════════════════════════
+// Utilities
+// ═══════════════════════════════════════
+function showProgress(pct){
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+function hideProgress(){
+  document.getElementById('progressFill').style.width = '0';
+}
+
+function showToast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+
+function escHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
