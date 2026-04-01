@@ -679,10 +679,23 @@ async function publishToGitHub(){
     }
 
     document.getElementById('publishDialog').classList.remove('show');
-    showToast('🎉 发布成功！刷新页面即可看到新文档');
+    showToast('🎉 发布成功！');
     localStorage.removeItem('kb_editor_draft');
+    var publishedDocId=name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'-').toLowerCase();
     if(vditorInstance) vditorInstance.setValue('');
     document.getElementById('editorFileName').value='';
+    // 自动刷新侧边栏（从GitHub API拉取最新，绕过CDN缓存）
+    try{
+      var rawRes=await fetch('https://api.github.com/repos/'+repo+'/contents/docs/sidebar.json?ref='+branch,{headers:headers});
+      if(rawRes.ok){
+        var rawData=await rawRes.json();
+        var freshSidebar=JSON.parse(decodeURIComponent(escape(atob(rawData.content.replace(/\n/g,'')))));
+        buildSidebar(freshSidebar);
+      }
+    }catch(e){}
+    closeEditor();
+    // 短暂延迟后导航到新文档
+    setTimeout(function(){if(publishedDocId&&pageRegistry[publishedDocId]) navigate(publishedDocId);},300);
   }catch(e){
     showToast('❌ '+e.message);
   }finally{
