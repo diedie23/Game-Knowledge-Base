@@ -27,6 +27,14 @@
               "type": "md",
               "file": "knowledge-base/art/2D角色换色-美术资源提供规范.md",
               "badge": "文档"
+            },
+            {
+              "id": "2",
+              "icon": "📝",
+              "title": "2",
+              "type": "md",
+              "file": "knowledge-base/art/2.md",
+              "badge": "文档"
             }
           ]
         },
