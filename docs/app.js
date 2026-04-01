@@ -840,8 +840,10 @@ async function publishToGitHub(){
     showToast(editingPageId?'🎉 更新成功！':'🎉 发布成功！');
     localStorage.removeItem('kb_editor_draft');
     var targetPageId=editingPageId||name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'-').toLowerCase();
-    // 清除编辑态缓存，强制重新渲染
-    if(editingPageId){delete docs[editingPageId];var oldPg=document.getElementById('page-'+editingPageId);if(oldPg)oldPg.remove();}
+    // 将当前内容直接缓存到本地，打开时零等待
+    docs[targetPageId]=content;
+    // 清除已渲染的旧页面DOM（下次打开会用新缓存重新渲染）
+    if(editingPageId){var oldPg=document.getElementById('page-'+editingPageId);if(oldPg)oldPg.remove();}
     editingPageId=null;
     if(vditorInstance) vditorInstance.setValue('');
     document.getElementById('editorFileName').value='';
