@@ -21,6 +21,11 @@ var iframePages={
   'game-resource-toolkit':'knowledge-base/game-resource-toolkit.html'
 };
 
+var downloadMap={
+  'image-skew-corrector':{icon:'📐',name:'图片倾斜矫正工具',file:'downloads/ImageSkewCorrector.exe'},
+  'game-resource-toolkit':{icon:'🛠️',name:'游戏资源工具集',file:'downloads/GameResourceToolkit.exe'}
+};
+
 var toolData={
   'auto-mask':{icon:'🤖',iconBg:'var(--green-bg)',name:'自动 Mask 通道生成器',ver:'v2.0',status:'online',subtitle:'LAB 色彩空间 K-Means++ 聚类 · 一键生成换色遮罩图',desc:'上传角色原图后，工具自动在 LAB 色彩空间中通过 K-Means++ 聚类识别颜色区域，3 秒内生成 RGBA 换色遮罩图。内置通道互斥检测、纯黑/纯白自动修复、质量评分。',pain:'角色换色 Mask 遮罩图过去全靠美术手工在 PS 中逐通道绘制，一张图平均耗时 30~60 分钟。外包 CP 经常交付出错，返工率高达 40%。',solution:'上传原图后 3 秒自动完成颜色区域识别与通道分配，内置自动修复，零 PS 基础也能产出合格 Mask。',tags:['在线工具','自动验算','K-Means++','通道互斥','质量评分'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-03-31',url:'knowledge-base/auto-mask.html'},
   'mask-tool':{icon:'🖌️',iconBg:'var(--orange-bg)',name:'Mask 手动编辑器',ver:'v1.0',status:'online',subtitle:'画笔 / 油漆桶 / 橡皮擦 · 实时四通道预览',desc:'专为 Mask 精修设计的轻量编辑器。导入原图后直接在浏览器中用画笔逐通道绘制或修改，R/G/B/A 四通道独立显示并可实时预览换色效果。',pain:'自动生成的 Mask 有时无法精确覆盖复杂区域，需要人工微调。但 PS 操作门槛高。',solution:'专为 Mask 编辑设计的轻量工具，导入原图后浏览器中画笔逐通道绘制，实时预览换色效果。',tags:['在线工具','画笔绘制','RGBA预览','所见即所得'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-03-31',url:'knowledge-base/mask-tool.html'},
@@ -48,10 +53,13 @@ function navigate(pageId,btn){
   tp.style.display='none';tp.classList.remove('active');
   frame.style.display='none';frame.src='about:blank';
   scroll.style.display='none';
+  document.getElementById('iframeToolbar').style.display='none';
 
   // 收起所有 TOC（非活动大纲自动收起）
   collapseAllToc();
   clearIframeScrollSpy();
+  clearIframeBtt();
+  document.getElementById('backToTop').classList.remove('show');
 
   if(pageId==='home'){
     scroll.style.display='block';home.style.display='block';scroll.scrollTop=0;
@@ -71,14 +79,21 @@ function navigate(pageId,btn){
     tp.style.display='block';tp.classList.add('active');scroll.scrollTop=0;setTimeout(hideLoading,400);
   } else if(iframePages[pageId]){
     showLoading();
+    // 显示下载工具栏
+    var dlInfo=downloadMap[pageId];
+    var toolbar=document.getElementById('iframeToolbar');
+    if(dlInfo){
+      toolbar.innerHTML='<div class="ift-title"><span class="ift-icon">'+dlInfo.icon+'</span>'+dlInfo.name+'</div><a class="ift-dl" href="'+dlInfo.file+'" download>⬇ 下载 exe</a>';
+      toolbar.style.display='flex';
+    }
     frame.style.display='block';
     frame.src=iframePages[pageId];
     frame.onload=function(){
       hideLoading();
-      // iframe 加载完成后，动态提取 h2/h3 构建 TOC
       buildIframeToc(pageId);
-      // 绑定 iframe 内滚动监听
       setupIframeScrollSpy(pageId);
+      // iframe内滚动也控制返回顶部按钮
+      setupIframeBackToTop(pageId);
     };
     setTimeout(hideLoading,3000);
   }
@@ -178,7 +193,10 @@ function buildIframeToc(pageId){
 function tocScrollTo(anchorId){
   var el=document.getElementById(anchorId);
   if(!el) return;
-  el.scrollIntoView({behavior:'smooth',block:'start'});
+  var scroll=document.getElementById('contentScroll');
+  var rect=el.getBoundingClientRect();
+  var scrollRect=scroll.getBoundingClientRect();
+  scroll.scrollTo({top:scroll.scrollTop+rect.top-scrollRect.top-20,behavior:'smooth'});
   highlightTocItem(anchorId, false);
 }
 
@@ -327,6 +345,36 @@ function clearIframeScrollSpy(){
     }catch(e){}
     iframeScrollHandler=null;
   }
+}
+
+// ═══ iframe 返回顶部 ═══
+var iframeBttHandler=null;
+function setupIframeBackToTop(){
+  clearIframeBtt();
+  var frame=document.getElementById('contentFrame');
+  var btt=document.getElementById('backToTop');
+  try{
+    var win=frame.contentWindow||frame.contentDocument.defaultView;
+    iframeBttHandler=function(){
+      var st=win.pageYOffset||win.document.documentElement.scrollTop||0;
+      btt.classList.toggle('show',st>300);
+    };
+    win.addEventListener('scroll',iframeBttHandler);
+    // 覆盖返回顶部按钮的点击行为
+    btt.onclick=function(){win.scrollTo({top:0,behavior:'smooth'});};
+  }catch(e){}
+}
+function clearIframeBtt(){
+  if(iframeBttHandler){
+    try{
+      var frame=document.getElementById('contentFrame');
+      (frame.contentWindow||frame.contentDocument.defaultView).removeEventListener('scroll',iframeBttHandler);
+    }catch(e){}
+    iframeBttHandler=null;
+  }
+  // 恢复默认返回顶部行为
+  var btt=document.getElementById('backToTop');
+  btt.onclick=function(){document.getElementById('contentScroll').scrollTo({top:0,behavior:'smooth'});};
 }
 
 // ═══ Keyboard ═══
