@@ -586,8 +586,13 @@ function saveTokenAndNext(){
 
 function showPublishDialog(){
   if(!vditorInstance||!vditorInstance.getValue().trim()){showToast('请先编写内容');return;}
-  if(!getEditorFileName()||document.getElementById('editorFileName').value.trim()===''){
-    showToast('请先填写文档名称');document.getElementById('editorFileName').focus();return;
+  var fnInput=document.getElementById('editorFileName');
+  if(!fnInput.value.trim()){
+    fnInput.style.borderColor='#f87171';
+    fnInput.placeholder='⚠️ 请先输入文档名称！';
+    fnInput.focus();
+    setTimeout(function(){fnInput.style.borderColor='';fnInput.placeholder='文件名（如：角色动画规范）';},3000);
+    return;
   }
   var s=getGHSettings();
   // 有 token → 直接到步骤2；没有 → 先显示步骤1

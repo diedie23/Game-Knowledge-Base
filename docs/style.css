@@ -142,10 +142,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .pub-label{color:var(--dim)}
 .pub-val{color:var(--heading);font-weight:500}
 
-/* Vditor Dark Theme Override */
+/* Vditor Dark Theme Override — 去掉半透明遮罩，提升文字清晰度 */
 .vditor{border:none!important;border-radius:0!important}
-.vditor--dark{--panel-background-color:var(--bg)!important;--toolbar-background-color:#161822!important}
-.vditor-toolbar{border-bottom:1px solid var(--border)!important}
+.vditor--dark{--panel-background-color:#0d0f15!important;--toolbar-background-color:#161822!important}
+.vditor-toolbar{border-bottom:1px solid #222540!important}
+.vditor-ir{background:#0d0f15!important}
+.vditor-ir .vditor-reset{color:#c9cdd4!important;background:transparent!important}
+.vditor--dark .vditor-reset{background:#0d0f15!important;color:#c9cdd4!important}
+.vditor--dark .vditor-ir__marker--heading{color:#6c8cff!important}
+.vditor--dark .vditor-ir__node--expand .vditor-ir__marker{color:#8b8fa3!important}
+.vditor--dark .vditor-ir__marker{color:#8b8fa3!important}
+/* 去掉编辑区域的高亮背景覆盖层 */
+.vditor-ir__node{background:transparent!important}
+.vditor-ir__node--expand{background:transparent!important}
+.vditor-ir__node:hover{background:rgba(108,140,255,.03)!important}
+/* 标题文字更亮 */
+.vditor--dark h1,.vditor--dark h2,.vditor--dark h3,.vditor--dark h4{color:#e8eaed!important}
+/* 表格清晰 */
+.vditor--dark table{border-color:#2a2d3e!important}
+.vditor--dark th{background:#1c1f2e!important;color:#e8eaed!important;border-color:#2a2d3e!important}
+.vditor--dark td{border-color:#2a2d3e!important;color:#c9cdd4!important}
+/* blockquote */
+.vditor--dark blockquote{border-left-color:#6c8cff!important;background:rgba(108,140,255,.05)!important}
+/* 代码块 */
+.vditor--dark pre{background:#1a1d2d!important}
+/* 链接 */
+.vditor--dark a{color:#8ba3ff!important}
+/* 选中高亮 */
+.vditor--dark .vditor-ir__node--expand{border-left:2px solid rgba(108,140,255,.3)!important;padding-left:4px!important;background:transparent!important}
 
 .fb-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:300;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}.fb-overlay.show{display:flex}
 .main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;position:relative}
@@ -230,7 +254,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 /* Utilities */
 .share-btn{position:fixed;bottom:24px;right:80px;padding:8px 16px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .2s;z-index:50}.share-btn:hover{border-color:var(--accent);color:var(--accent)}
 .btt{position:fixed;bottom:24px;right:24px;width:40px;height:40px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--dim);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}.btt.show{opacity:1;pointer-events:auto}.btt:hover{border-color:var(--accent);color:var(--accent)}
-.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-60px);background:var(--green);color:#000;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:500;z-index:999;transition:transform .3s;pointer-events:none}.toast.show{transform:translateX(-50%) translateY(0)}
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-60px);background:var(--green);color:#000;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:500;z-index:9999;transition:transform .3s;pointer-events:none}.toast.show{transform:translateX(-50%) translateY(0)}
 .menu-toggle{display:none;position:fixed;top:12px;left:12px;z-index:100;background:var(--card-bg);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;cursor:pointer;font-size:16px}
 .feedback-btn{position:fixed;top:12px;right:12px;z-index:100;padding:6px 14px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--dim);cursor:pointer;font-size:12px;font-family:inherit;display:flex;align-items:center;gap:5px;transition:all .2s}.feedback-btn:hover{border-color:var(--accent);color:var(--accent)}
 @media(max-width:768px){.sidebar{position:fixed;left:-300px;z-index:99;transition:left .3s}.sidebar.open{left:0}.menu-toggle{display:block}.doc-page,.tool-page,.home{padding:20px;padding-top:56px}.home-hero h1{font-size:24px}.tool-embed-frame{height:60vh;min-height:350px}}
