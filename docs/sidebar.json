@@ -12,17 +12,57 @@
           "name": "文档",
           "icon": "📄",
           "items": [
-            {"id": "d1", "icon": "📐", "title": "2D UGC 角色出图规范", "type": "md", "file": "knowledge-base/art/2D-UGC角色出图规范.md", "badge": "文档"},
-            {"id": "d2", "icon": "🎨", "title": "2D 角色换色资源规范", "type": "md", "file": "knowledge-base/art/2D角色换色-美术资源提供规范.md", "badge": "文档"}
+            {
+              "id": "d1",
+              "icon": "📐",
+              "title": "2D UGC 角色出图规范",
+              "type": "md",
+              "file": "knowledge-base/art/2D-UGC角色出图规范.md",
+              "badge": "文档"
+            },
+            {
+              "id": "d2",
+              "icon": "🎨",
+              "title": "2D 角色换色资源规范",
+              "type": "md",
+              "file": "knowledge-base/art/2D角色换色-美术资源提供规范.md",
+              "badge": "文档"
+            },
+            {
+              "id": "嗯嗯",
+              "icon": "📝",
+              "title": "嗯嗯",
+              "type": "md",
+              "file": "knowledge-base/art/嗯嗯.md",
+              "badge": "文档"
+            }
           ]
         },
         {
           "name": "工具",
           "icon": "🔧",
           "items": [
-            {"id": "auto-mask", "icon": "🤖", "title": "自动 Mask 生成器", "type": "tool", "badge": "工具"},
-            {"id": "mask-tool", "icon": "🖌️", "title": "Mask 手动编辑器", "type": "tool", "badge": "工具"},
-            {"id": "spine-split", "icon": "✂️", "title": "Spine 拆分工具", "type": "tool", "badge": "工具"}
+            {
+              "id": "auto-mask",
+              "icon": "🤖",
+              "title": "自动 Mask 生成器",
+              "type": "tool",
+              "badge": "工具"
+            },
+            {
+              "id": "mask-tool",
+              "icon": "🖌️",
+              "title": "Mask 手动编辑器",
+              "type": "tool",
+              "badge": "工具"
+            },
+            {
+              "id": "spine-split",
+              "icon": "✂️",
+              "title": "Spine 拆分工具",
+              "type": "tool",
+              "badge": "工具"
+            }
           ]
         }
       ]
@@ -37,18 +77,62 @@
           "name": "文档",
           "icon": "📄",
           "items": [
-            {"id": "ui-slice-naming", "icon": "✂️", "title": "切图与命名规范", "type": "iframe", "file": "knowledge-base/ui-slice-naming.html", "badge": "文档"},
-            {"id": "ui-9slice-color", "icon": "🎨", "title": "9宫格与颜色空间", "type": "iframe", "file": "knowledge-base/ui-9slice-color.html", "badge": "文档"},
-            {"id": "ui-layout", "icon": "📐", "title": "Layout 拼接规范", "type": "iframe", "file": "knowledge-base/ui-layout.html", "badge": "文档"},
-            {"id": "ui-umg-tips", "icon": "⚡", "title": "UMG 生成技巧", "type": "iframe", "file": "knowledge-base/ui-umg-tips.html", "badge": "文档"}
+            {
+              "id": "ui-slice-naming",
+              "icon": "✂️",
+              "title": "切图与命名规范",
+              "type": "iframe",
+              "file": "knowledge-base/ui-slice-naming.html",
+              "badge": "文档"
+            },
+            {
+              "id": "ui-9slice-color",
+              "icon": "🎨",
+              "title": "9宫格与颜色空间",
+              "type": "iframe",
+              "file": "knowledge-base/ui-9slice-color.html",
+              "badge": "文档"
+            },
+            {
+              "id": "ui-layout",
+              "icon": "📐",
+              "title": "Layout 拼接规范",
+              "type": "iframe",
+              "file": "knowledge-base/ui-layout.html",
+              "badge": "文档"
+            },
+            {
+              "id": "ui-umg-tips",
+              "icon": "⚡",
+              "title": "UMG 生成技巧",
+              "type": "iframe",
+              "file": "knowledge-base/ui-umg-tips.html",
+              "badge": "文档"
+            }
           ]
         },
         {
           "name": "工具",
           "icon": "🔧",
           "items": [
-            {"id": "image-skew-corrector", "icon": "📐", "title": "图片倾斜矫正", "type": "iframe", "file": "knowledge-base/image-skew-corrector.html", "badge": "下载", "download": "downloads/ImageSkewCorrector.exe"},
-            {"id": "game-resource-toolkit", "icon": "🛠️", "title": "游戏资源工具集", "type": "iframe", "file": "knowledge-base/game-resource-toolkit.html", "badge": "下载", "download": "downloads/GameResourceToolkit.exe"}
+            {
+              "id": "image-skew-corrector",
+              "icon": "📐",
+              "title": "图片倾斜矫正",
+              "type": "iframe",
+              "file": "knowledge-base/image-skew-corrector.html",
+              "badge": "下载",
+              "download": "downloads/ImageSkewCorrector.exe"
+            },
+            {
+              "id": "game-resource-toolkit",
+              "icon": "🛠️",
+              "title": "游戏资源工具集",
+              "type": "iframe",
+              "file": "knowledge-base/game-resource-toolkit.html",
+              "badge": "下载",
+              "download": "downloads/GameResourceToolkit.exe"
+            }
           ]
         }
       ]
@@ -84,8 +168,22 @@
           "name": "文档",
           "icon": "📄",
           "items": [
-            {"id": "cp-management", "icon": "📋", "title": "CP 外包管理手册", "type": "iframe", "file": "knowledge-base/cp-management.html", "badge": "文档"},
-            {"id": "game-art-pipeline", "icon": "📊", "title": "游戏美术流程总结", "type": "iframe", "file": "knowledge-base/md-viewer.html?file=game-art-pipeline.md", "badge": "文档"}
+            {
+              "id": "cp-management",
+              "icon": "📋",
+              "title": "CP 外包管理手册",
+              "type": "iframe",
+              "file": "knowledge-base/cp-management.html",
+              "badge": "文档"
+            },
+            {
+              "id": "game-art-pipeline",
+              "icon": "📊",
+              "title": "游戏美术流程总结",
+              "type": "iframe",
+              "file": "knowledge-base/md-viewer.html?file=game-art-pipeline.md",
+              "badge": "文档"
+            }
           ]
         }
       ]
