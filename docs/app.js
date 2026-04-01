@@ -451,6 +451,201 @@ function clearIframeBtt(){
   btt.onclick=function(){document.getElementById('contentScroll').scrollTo({top:0,behavior:'smooth'});};
 }
 
+// ═══ 创作模式 — Vditor 编辑器 ═══
+var vditorInstance=null;
+
+var templates={
+  'art-req':'# 美术需求单\n\n> 📅 日期：YYYY-MM-DD · 🏷️ 需求单\n\n---\n\n## 一、需求概述\n\n| 项目 | 内容 |\n|------|------|\n| **需求名称** |  |\n| **优先级** | 🔴 高 / 🟡 中 / 🟢 低 |\n| **期望交付日期** |  |\n| **负责人** |  |\n\n## 二、详细描述\n\n### 2.1 参考图\n\n（粘贴参考图片）\n\n### 2.2 具体要求\n\n- [ ] 要求1\n- [ ] 要求2\n\n## 三、验收标准\n\n| 检查项 | 合格标准 | 优先级 |\n|--------|---------|--------|\n|  |  | 🔴 高 |\n|  |  | 🟡 中 |\n\n## 四、备注\n\n',
+  'bug-review':'# Bug 复盘报告\n\n> 📅 日期：YYYY-MM-DD · 🏷️ Bug复盘\n\n---\n\n## 一、Bug 概述\n\n| 项目 | 内容 |\n|------|------|\n| **Bug 标题** |  |\n| **严重等级** | 🔴 高 / 🟡 中 / 🟢 低 |\n| **影响范围** |  |\n| **发现日期** |  |\n| **修复日期** |  |\n\n## 二、问题现象\n\n（描述复现步骤）\n\n## 三、根本原因\n\n\n\n## 四、修复方案\n\n\n\n## 五、预防措施\n\n- [ ] 措施1\n- [ ] 措施2\n\n## 六、经验总结\n\n',
+  'flow-spec':'# 流程规范文档\n\n> 📅 更新时间：YYYY-MM-DD · 🏷️ 流程规范\n\n---\n\n## 一、目的与范围\n\n\n\n## 二、角色与职责\n\n| 角色 | 职责 | 优先级 |\n|------|------|--------|\n|  |  | 🔴 高 |\n\n## 三、流程步骤\n\n### 3.1 第一阶段\n\n\n\n### 3.2 第二阶段\n\n\n\n## 四、交付物清单\n\n- [ ] 交付物1\n- [ ] 交付物2\n\n## 五、注意事项\n\n',
+  'tool-doc':'# 工具说明文档\n\n> 📅 更新时间：YYYY-MM-DD · 🏷️ 工具\n\n---\n\n## 一、工具概述\n\n| 项目 | 内容 |\n|------|------|\n| **工具名称** |  |\n| **版本** | v1.0 |\n| **环境要求** |  |\n\n## 二、安装 / 使用方式\n\n\n\n## 三、功能说明\n\n### 3.1 功能一\n\n\n\n### 3.2 功能二\n\n\n\n## 四、常见问题\n\n| 问题 | 解决方案 |\n|------|----------|\n|  |  |\n\n## 五、更新日志\n\n| 版本 | 日期 | 内容 |\n|------|------|------|\n| v1.0 |  | 初版 |\n'
+};
+
+function openEditor(){
+  // 隐藏主内容区
+  document.getElementById('contentScroll').style.display='none';
+  document.getElementById('contentFrame').style.display='none';
+  document.getElementById('iframeToolbar').style.display='none';
+  // 显示编辑器
+  var ep=document.getElementById('editorPage');
+  ep.style.display='flex';
+
+  if(!vditorInstance){
+    vditorInstance=new Vditor('vditorContainer',{
+      height:'100%',
+      mode:'ir',
+      theme:'dark',
+      icon:'material',
+      placeholder:'开始编写文档...\n\n支持 Markdown 语法，可直接粘贴图片。',
+      toolbar:['headings','bold','italic','strike','|','list','ordered-list','check','|','quote','code','inline-code','|','table','line','|','link','upload','|','undo','redo','|','fullscreen','preview','outline'],
+      preview:{theme:{current:'dark',path:'https://cdn.jsdelivr.net/npm/vditor@3.10.8/dist/css/content-theme'}},
+      cache:{enable:false},
+      upload:{
+        handler:function(files){
+          // 粘贴图片转 Base64
+          var file=files[0];
+          if(!file) return;
+          var reader=new FileReader();
+          reader.onload=function(e){
+            vditorInstance.insertValue('!['+file.name+']('+e.target.result+')');
+          };
+          reader.readAsDataURL(file);
+          return null;
+        },
+        accept:'image/*'
+      },
+      after:function(){
+        // 加载本地草稿
+        var draft=localStorage.getItem('kb_editor_draft');
+        if(draft) vditorInstance.setValue(draft);
+      },
+      input:function(val){
+        localStorage.setItem('kb_editor_draft',val);
+      }
+    });
+  }
+  // 加载设置
+  loadEditorSettings();
+}
+
+function closeEditor(){
+  document.getElementById('editorPage').style.display='none';
+  document.getElementById('contentScroll').style.display='block';
+  navigate(curPage||'home');
+}
+
+function applyTemplate(key){
+  if(!key||!templates[key]) return;
+  if(vditorInstance){
+    var current=vditorInstance.getValue().trim();
+    if(current&&!confirm('当前编辑器有内容，是否覆盖？')) return;
+    vditorInstance.setValue(templates[key]);
+  }
+  document.getElementById('editorTemplate').value='';
+}
+
+function getEditorFileName(){
+  var name=document.getElementById('editorFileName').value.trim();
+  if(!name) name='未命名文档-'+new Date().toISOString().slice(0,10);
+  return name;
+}
+
+function downloadMd(){
+  if(!vditorInstance) return;
+  var md=vditorInstance.getValue();
+  var name=getEditorFileName()+'.md';
+  var blob=new Blob([md],{type:'text/markdown;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('已下载 '+name);
+}
+
+// ═══ GitHub API 发布 ═══
+function loadEditorSettings(){
+  var s=JSON.parse(localStorage.getItem('kb_gh_settings')||'{}');
+  if(s.token) document.getElementById('ghToken').value=s.token;
+  if(s.repo) document.getElementById('ghRepo').value=s.repo;
+  if(s.branch) document.getElementById('ghBranch').value=s.branch;
+}
+
+function saveEditorSettings(){
+  var s={
+    token:document.getElementById('ghToken').value.trim(),
+    repo:document.getElementById('ghRepo').value.trim(),
+    branch:document.getElementById('ghBranch').value.trim()
+  };
+  localStorage.setItem('kb_gh_settings',JSON.stringify(s));
+  document.getElementById('settingsDialog').classList.remove('show');
+  showToast('设置已保存');
+}
+
+function openEditorSettings(){
+  loadEditorSettings();
+  document.getElementById('settingsDialog').classList.add('show');
+}
+
+function showPublishDialog(){
+  if(!vditorInstance||!vditorInstance.getValue().trim()){showToast('请先编写内容');return;}
+  var name=getEditorFileName();
+  var path='docs/knowledge-base/art/'+name+'.md';
+  document.getElementById('publishPath').textContent=path;
+  document.getElementById('publishMsg').value='docs: 新增 '+name;
+  document.getElementById('publishDialog').classList.add('show');
+}
+
+async function publishToGitHub(){
+  var s=JSON.parse(localStorage.getItem('kb_gh_settings')||'{}');
+  if(!s.token){showToast('请先在设置中填写 GitHub Token');return;}
+
+  var repo=s.repo||'diedie23/Game-Knowledge-Base';
+  var branch=s.branch||'main';
+  var name=getEditorFileName();
+  var filePath='docs/knowledge-base/art/'+name+'.md';
+  var content=vditorInstance.getValue();
+  var msg=document.getElementById('publishMsg').value.trim()||'docs: 新增 '+name;
+  var updateSidebar=document.getElementById('publishUpdateSidebar').checked;
+
+  var btn=document.querySelector('#publishDialog .eh-btn-primary');
+  btn.textContent='发布中...';btn.disabled=true;
+
+  try{
+    var base='https://api.github.com/repos/'+repo+'/contents/';
+    var headers={'Authorization':'token '+s.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};
+
+    // 1. 上传 MD 文件
+    var body={message:msg,content:btoa(unescape(encodeURIComponent(content))),branch:branch};
+    // 检查文件是否已存在（需要 sha）
+    try{
+      var exist=await fetch(base+filePath+'?ref='+branch,{headers:headers});
+      if(exist.ok){var ed=await exist.json();body.sha=ed.sha;}
+    }catch(e){}
+
+    var res=await fetch(base+filePath,{method:'PUT',headers:headers,body:JSON.stringify(body)});
+    if(!res.ok){var err=await res.json();throw new Error(err.message||res.status);}
+
+    // 2. 如果勾选了更新 sidebar.json
+    if(updateSidebar){
+      try{
+        var sbRes=await fetch(base+'docs/sidebar.json?ref='+branch,{headers:headers});
+        if(sbRes.ok){
+          var sbData=await sbRes.json();
+          var sbContent=JSON.parse(decodeURIComponent(escape(atob(sbData.content.replace(/\n/g,'')))));
+          // 找到目标分类
+          var catId=document.getElementById('editorCategory').value;
+          var cat=sbContent.categories.find(function(c){return c.id===catId;});
+          if(cat){
+            // 确保有"文档"分组
+            var docGroup=cat.groups.find(function(g){return g.name==='文档';});
+            if(!docGroup){docGroup={name:'文档',icon:'📄',items:[]};cat.groups.unshift(docGroup);}
+            // 检查是否已存在
+            var docId=name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'-').toLowerCase();
+            if(!docGroup.items.find(function(i){return i.id===docId;})){
+              docGroup.items.push({id:docId,icon:'📝',title:name,type:'md',file:'knowledge-base/art/'+name+'.md',badge:'文档'});
+              // 提交 sidebar.json
+              var sbBody={message:'docs: 更新 sidebar.json - 添加 '+name,content:btoa(unescape(encodeURIComponent(JSON.stringify(sbContent,null,2)))),sha:sbData.sha,branch:branch};
+              await fetch(base+'docs/sidebar.json',{method:'PUT',headers:headers,body:JSON.stringify(sbBody)});
+            }
+          }
+        }
+      }catch(e){console.log('sidebar update failed:',e);}
+    }
+
+    document.getElementById('publishDialog').classList.remove('show');
+    showToast('发布成功！文件已推送到 GitHub');
+    // 清除草稿
+    localStorage.removeItem('kb_editor_draft');
+    if(vditorInstance) vditorInstance.setValue('');
+    document.getElementById('editorFileName').value='';
+  }catch(e){
+    showToast('发布失败：'+e.message);
+  }finally{
+    btn.textContent='确认发布';btn.disabled=false;
+  }
+}
+
 // ═══ Keyboard ═══
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){var fb=document.getElementById('feedbackDialog');if(fb)fb.classList.remove('show');}

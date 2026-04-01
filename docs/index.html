@@ -22,12 +22,48 @@
     <button class="nav-home active" onclick="navigate('home')" id="navHome">🏠 知识库首页</button>
     <div style="padding:20px;text-align:center;color:var(--dim);font-size:12px">⏳ 加载中...</div>
   </nav>
-  <div class="sidebar-footer"><span>v4.0 · 2026-04-01</span><a onclick="copyShareLink()">🔗 分享</a><a onclick="showFeedback()" style="margin-left:6px">📮 反馈</a></div>
+  <div class="sidebar-footer">
+    <button class="nav-create" onclick="openEditor()">➕ 新增文档</button>
+    <div class="sf-links"><span>v4.0</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a></div>
+  </div>
 </aside>
 
 <!-- Main Content -->
 <main class="main" id="mainArea">
   <div class="lbar" id="loadingBar"></div>
+  <!-- Editor Page -->
+  <div class="editor-page" id="editorPage" style="display:none">
+    <div class="editor-header">
+      <div class="eh-left">
+        <button class="eh-back" onclick="closeEditor()">← 返回</button>
+        <span class="eh-title">✍️ 创作模式</span>
+      </div>
+      <div class="eh-actions">
+        <select id="editorTemplate" class="eh-select" onchange="applyTemplate(this.value)">
+          <option value="">📋 插入模板...</option>
+          <option value="art-req">美术需求单</option>
+          <option value="bug-review">Bug 复盘模板</option>
+          <option value="flow-spec">流程规范模板</option>
+          <option value="tool-doc">工具说明文档</option>
+        </select>
+        <button class="eh-btn" onclick="downloadMd()">⬇ 下载 MD</button>
+        <button class="eh-btn eh-btn-primary" onclick="showPublishDialog()">🚀 发布到仓库</button>
+        <button class="eh-btn" onclick="openEditorSettings()" title="设置">⚙️</button>
+      </div>
+    </div>
+    <div class="editor-meta">
+      <input type="text" id="editorFileName" class="em-input" placeholder="文件名（如：角色动画规范）" value="">
+      <select id="editorCategory" class="em-select">
+        <option value="cat-character">角色 · Character</option>
+        <option value="cat-ui">UI · 界面</option>
+        <option value="cat-scene">场景 · Scene</option>
+        <option value="cat-fx">特效 · FX</option>
+        <option value="cat-tech">技术 · Tech</option>
+        <option value="cat-mgmt">管理 · Management</option>
+      </select>
+    </div>
+    <div id="vditorContainer"></div>
+  </div>
   <div class="content-scroll" id="contentScroll">
     <!-- Home -->
     <div class="home" id="pageHome">
@@ -74,7 +110,38 @@
 <button class="share-btn" onclick="copyShareLink()">🔗 分享此页</button>
 <button class="btt" id="backToTop" onclick="document.getElementById('contentScroll').scrollTo({top:0,behavior:'smooth'})">↑</button>
 
-<!-- Markdown 内容通过 fetch 从 .md 文件加载，侧边栏由 sidebar.json 驱动 -->
+<!-- Vditor Markdown Editor -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vditor@3.10.8/dist/index.css"/>
+<script src="https://cdn.jsdelivr.net/npm/vditor@3.10.8/dist/index.min.js"></script>
+
+<!-- 发布对话框 -->
+<div class="fb-overlay" id="publishDialog">
+  <div class="dialog-card">
+    <h3>🚀 发布到 GitHub 仓库</h3>
+    <div class="dlg-field"><label>文件路径</label><div class="dlg-path" id="publishPath">docs/knowledge-base/art/xxx.md</div></div>
+    <div class="dlg-field"><label>Commit 信息</label><input type="text" id="publishMsg" class="dlg-input" value="docs: 新增文档"></div>
+    <div class="dlg-field"><label>同时更新 sidebar.json</label><label class="dlg-toggle"><input type="checkbox" id="publishUpdateSidebar" checked><span class="dlg-slider"></span> 自动添加到侧边栏</label></div>
+    <div class="dlg-actions">
+      <button class="eh-btn" onclick="document.getElementById('publishDialog').classList.remove('show')">取消</button>
+      <button class="eh-btn eh-btn-primary" onclick="publishToGitHub()">确认发布</button>
+    </div>
+  </div>
+</div>
+
+<!-- 设置对话框 -->
+<div class="fb-overlay" id="settingsDialog">
+  <div class="dialog-card">
+    <h3>⚙️ 编辑器设置</h3>
+    <div class="dlg-field"><label>GitHub Personal Access Token</label><input type="password" id="ghToken" class="dlg-input" placeholder="ghp_xxxxxxxxxxxx"><p class="dlg-hint">Token 仅存储在浏览器本地，不会上传。需要 repo 权限。</p></div>
+    <div class="dlg-field"><label>GitHub 仓库</label><input type="text" id="ghRepo" class="dlg-input" value="diedie23/Game-Knowledge-Base"></div>
+    <div class="dlg-field"><label>分支</label><input type="text" id="ghBranch" class="dlg-input" value="main"></div>
+    <div class="dlg-actions">
+      <button class="eh-btn" onclick="document.getElementById('settingsDialog').classList.remove('show')">取消</button>
+      <button class="eh-btn eh-btn-primary" onclick="saveEditorSettings()">保存</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
 <script src="app.js"></script>
 </body>
