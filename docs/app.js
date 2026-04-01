@@ -49,6 +49,7 @@ function navigate(pageId,btn){
 
   // 收起所有 TOC（非活动大纲自动收起）
   collapseAllToc();
+  clearIframeScrollSpy();
 
   if(pageId==='home'){
     scroll.style.display='block';home.style.display='block';scroll.scrollTop=0;
@@ -74,6 +75,8 @@ function navigate(pageId,btn){
       hideLoading();
       // iframe 加载完成后，动态提取 h2/h3 构建 TOC
       buildIframeToc(pageId);
+      // 绑定 iframe 内滚动监听
+      setupIframeScrollSpy(pageId);
     };
     setTimeout(hideLoading,3000);
   }
@@ -81,21 +84,25 @@ function navigate(pageId,btn){
   document.querySelector('.sidebar').classList.remove('open');
 }
 
-// ═══ Render Tool Card Page (Embedded) ═══
+// ═══ Render Tool Page (Embedded Directly) ═══
 function renderToolPage(id){
   var d=toolData[id],c=document.getElementById('page-tool');
   if(!d)return;
   var tags='';d.tags.forEach(function(t){tags+='<span class="tag">'+t+'</span>';});
-  c.innerHTML='<div class="doc-bc"><a onclick="navigate(\'home\')">🏠 首页</a><span>›</span><span>角色 · 工具</span><span>›</span><span>'+d.name+'</span></div>'
-  +'<div class="tcv">'
-  +'<div class="tcv-h"><div class="tcv-icon" style="background:'+d.iconBg+'">'+d.icon+'</div><div class="tcv-ta"><h2>'+d.name+' <span class="ver">'+d.ver+'</span> <span class="st-on">🟢 在线</span></h2><div class="tcv-sub">'+d.subtitle+'</div></div><button class="tbtn tbtn-o tbtn-sm" onclick="window.open(\''+d.url+'\',\'_blank\')">↗ 新窗口</button></div>'
-  +'<div class="tcv-embed-wrap"><iframe class="tcv-embed" src="'+d.url+'" sandbox="allow-scripts allow-same-origin allow-popups allow-forms" loading="lazy"></iframe></div>'
-  +'<div class="tcv-b">'
-  +'<div class="tcv-desc">'+d.desc+'</div>'
-  +'<div class="tcv-tags">'+tags+'</div>'
-  +'<div class="tcv-meta"><span class="mi">'+d.env+'</span><span class="mi">💻 '+d.platform+'</span><span class="mi">📦 '+d.install+'</span><span class="mi">📅 '+d.date+'</span></div>'
-  +'</div>'
-  +'</div>';
+  c.innerHTML=
+    '<div class="tool-embed-header">'
+    +'<div class="teh-icon" style="background:'+d.iconBg+'">'+d.icon+'</div>'
+    +'<div class="teh-info"><h2>'+d.name+' <span class="ver">'+d.ver+'</span> <span class="st-on">🟢 在线</span></h2><div class="teh-sub">'+d.subtitle+'</div></div>'
+    +'</div>'
+    +'<div class="tool-embed-desc">'
+    +'<p>'+d.desc+'</p>'
+    +'<div class="tool-embed-tags">'+tags+'</div>'
+    +'<div class="tool-embed-meta"><span class="mi">'+d.env+'</span><span class="mi">💻 '+d.platform+'</span><span class="mi">📦 '+d.install+'</span><span class="mi">📅 '+d.date+'</span></div>'
+    +'</div>'
+    +'<div class="tool-embed-frame-wrap">'
+    +'<div class="tool-embed-toolbar"><span class="tet-label">⚡ 工具已嵌入，可直接使用</span><button class="tet-btn" onclick="window.open(\''+d.url+'\',\'_blank\')">↗ 新窗口打开</button></div>'
+    +'<iframe class="tool-embed-frame" src="'+d.url+'" sandbox="allow-scripts allow-same-origin allow-popups allow-forms" loading="lazy"></iframe>'
+    +'</div>';
 }
 
 // ═══ Nav Active State ═══
@@ -264,6 +271,8 @@ function submitFeedback(){
 }
 
 // ═══ Scroll 滚动高亮 TOC 当前阅读节点 ═══
+var iframeScrollHandler=null;
+
 function setupScrollSpy(){
   var scrollEl=document.getElementById('contentScroll');
   scrollEl.addEventListener('scroll',function(){
@@ -284,6 +293,38 @@ function setupScrollSpy(){
       btn.classList.toggle('active',btn.getAttribute('data-anchor')===activeId);
     });
   });
+}
+
+// 为 iframe 文档绑定滚动监听，实时高亮 TOC
+function setupIframeScrollSpy(pageId){
+  clearIframeScrollSpy();
+  var frame=document.getElementById('contentFrame');
+  try{
+    var doc=frame.contentDocument||frame.contentWindow.document;
+    var hs=doc.querySelectorAll('h2, h3');
+    if(!hs.length) return;
+    iframeScrollHandler=function(){
+      var activeIdx=0;
+      hs.forEach(function(h,i){
+        if(h.getBoundingClientRect().top<120) activeIdx=i;
+      });
+      var activeId=hs[activeIdx].id||'';
+      document.querySelectorAll('.toc-a[data-iframe-anchor]').forEach(function(btn){
+        btn.classList.toggle('active',btn.getAttribute('data-iframe-anchor')===activeId);
+      });
+    };
+    (frame.contentWindow||frame.contentDocument.defaultView).addEventListener('scroll',iframeScrollHandler);
+  }catch(e){console.log('Cannot setup iframe scroll spy:',e);}
+}
+
+function clearIframeScrollSpy(){
+  if(iframeScrollHandler){
+    try{
+      var frame=document.getElementById('contentFrame');
+      (frame.contentWindow||frame.contentDocument.defaultView).removeEventListener('scroll',iframeScrollHandler);
+    }catch(e){}
+    iframeScrollHandler=null;
+  }
 }
 
 // ═══ Keyboard ═══

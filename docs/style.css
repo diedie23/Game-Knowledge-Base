@@ -56,15 +56,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .bd{background:var(--accent-bg);color:var(--accent)}.bt{background:var(--green-bg);color:var(--green)}
 
 /* TOC - 三级大纲 */
-.toc-box{max-height:0;overflow:hidden;transition:max-height .35s ease;margin-left:6px;padding-left:16px;border-left:1px dashed rgba(108,140,255,.2);position:relative}
-.toc-box.open{max-height:1200px;padding-top:2px;padding-bottom:2px}
-.toc-a{display:block;padding:3px 8px;font-size:11px;color:rgba(139,143,163,.65);cursor:pointer;border-radius:4px;transition:all .15s;border:none;background:none;width:100%;text-align:left;font-family:inherit;line-height:1.5;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.toc-a::before{content:'';position:absolute;left:-16px;top:50%;width:10px;height:0;border-top:1px dashed rgba(108,140,255,.18)}
+.toc-box{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1);margin-left:10px;padding-left:18px;border-left:1px dashed rgba(108,140,255,.18);position:relative}
+.toc-box.open{max-height:1500px;padding-top:3px;padding-bottom:3px}
+.toc-a{display:block;padding:3px 8px 3px 10px;font-size:11px;color:rgba(139,143,163,.6);cursor:pointer;border-radius:4px;transition:all .15s;border:none;background:none;width:100%;text-align:left;font-family:inherit;line-height:1.5;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toc-a::before{content:'';position:absolute;left:-18px;top:50%;width:12px;height:0;border-top:1px dashed rgba(108,140,255,.15)}
+.toc-a::after{content:'';position:absolute;left:-21px;top:50%;transform:translateY(-50%);width:5px;height:5px;border-radius:50%;background:transparent;transition:background .2s}
 .toc-a:hover{color:var(--accent-light);background:rgba(108,140,255,.04)}
+.toc-a:hover::after{background:rgba(108,140,255,.3)}
 .toc-a.active{color:var(--accent);font-weight:600;background:rgba(108,140,255,.06)}
-/* TOC H3 子节点 */
-.toc-a.toc-h3{font-size:10.5px;color:rgba(139,143,163,.5);padding-left:20px}
-.toc-a.toc-h3::before{left:-16px;width:10px}
+.toc-a.active::after{background:var(--accent);box-shadow:0 0 6px rgba(108,140,255,.4)}
+/* TOC H2 节点 */
+.toc-a.toc-h2{font-size:11px;color:rgba(139,143,163,.65);font-weight:500}
+/* TOC H3 子节点 — 更小更淡更缩进 */
+.toc-a.toc-h3{font-size:10px;color:rgba(139,143,163,.45);padding-left:26px;font-weight:400}
+.toc-a.toc-h3::before{left:-18px;width:12px}
 .toc-a.toc-h3:hover{color:var(--accent-light)}
 .toc-a.toc-h3.active{color:var(--accent);font-weight:500}
 
