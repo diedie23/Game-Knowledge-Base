@@ -674,16 +674,20 @@ async function deleteDocument(pageId){
     document.getElementById('deleteDialog').classList.remove('show');
     showToast('已删除「'+name+'」');
     delete docs[pageId];
+    delete pageRegistry[pageId];
+    // 移除已渲染的文档页
+    var oldPg=document.getElementById('page-'+pageId);
+    if(oldPg) oldPg.remove();
 
-    // 刷新侧边栏
-    try{
-      var rawRes=await fetch(base+'docs/sidebar.json?ref='+branch,{headers:headers});
-      if(rawRes.ok){
-        var rawData=await rawRes.json();
-        var freshSidebar=JSON.parse(decodeURIComponent(escape(atob(rawData.content.replace(/\n/g,'')))));
-        buildSidebar(freshSidebar);
-      }
-    }catch(e){}
+    // 直接在本地 sidebarData 中移除条目，立即刷新
+    if(sidebarData){
+      sidebarData.categories.forEach(function(cat){
+        cat.groups.forEach(function(g){
+          if(g.items) g.items=g.items.filter(function(i){return i.id!==pageId;});
+        });
+      });
+      buildSidebar(sidebarData);
+    }
     navigate('home');
   }catch(e){
     showToast('❌ '+e.message);
@@ -841,15 +845,20 @@ async function publishToGitHub(){
     editingPageId=null;
     if(vditorInstance) vditorInstance.setValue('');
     document.getElementById('editorFileName').value='';
-    // 自动刷新侧边栏（从GitHub API拉取最新，绕过CDN缓存）
-    try{
-      var rawRes=await fetch('https://api.github.com/repos/'+repo+'/contents/docs/sidebar.json?ref='+branch,{headers:headers});
-      if(rawRes.ok){
-        var rawData=await rawRes.json();
-        var freshSidebar=JSON.parse(decodeURIComponent(escape(atob(rawData.content.replace(/\n/g,'')))));
-        buildSidebar(freshSidebar);
+    // 直接在本地 sidebarData 中添加新条目，即时刷新
+    if(updateSidebar&&sidebarData){
+      var catId=document.getElementById('editorCategory').value;
+      var cat=sidebarData.categories.find(function(c){return c.id===catId;});
+      if(cat){
+        var docGroup=cat.groups.find(function(g){return g.name==='文档';});
+        if(!docGroup){docGroup={name:'文档',icon:'📄',items:[]};cat.groups.unshift(docGroup);}
+        var docId=name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'-').toLowerCase();
+        if(!docGroup.items.find(function(i){return i.id===docId;})){
+          docGroup.items.push({id:docId,icon:'📝',title:name,type:'md',file:'knowledge-base/art/'+name+'.md',badge:'文档'});
+        }
       }
-    }catch(e){}
+      buildSidebar(sidebarData);
+    }
     closeEditor();
     // 短暂延迟后导航到新文档
     setTimeout(function(){if(targetPageId&&pageRegistry[targetPageId]) navigate(targetPageId);},300);
