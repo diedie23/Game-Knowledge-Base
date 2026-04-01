@@ -3,822 +3,1112 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>图片倾斜矫正工具 - 在线版</title>
+<title>图片倾斜矫正工具 - 在线版 v3.1</title>
 <style>
 :root{--bg:#0f1117;--card:#1c1f2e;--border:#2a2d3e;--text:#c9cdd4;--dim:#8b8fa3;--heading:#e8eaed;--accent:#6c8cff;--green:#4ade80;--green-bg:rgba(74,222,128,.08);--orange:#fb923c;--orange-bg:rgba(251,191,36,.08);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.08);--red:#f87171;--red-bg:rgba(248,113,113,.08);--code-bg:#1a1d2d}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
-/* Header */
-.header{padding:24px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.header .icon{width:44px;height:44px;background:var(--orange-bg);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
-.header h1{font-size:22px;color:var(--heading);font-weight:700}
-.header h1 .ver{font-size:11px;background:var(--accent);color:#fff;padding:2px 10px;border-radius:10px;font-weight:500;margin-left:8px;vertical-align:middle}
-.header h1 .web-badge{font-size:11px;background:var(--green-bg);color:var(--green);padding:2px 10px;border-radius:10px;font-weight:500;margin-left:6px;vertical-align:middle}
-.header p{font-size:13px;color:var(--dim);width:100%;margin-top:4px}
+.header{padding:20px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap;flex-shrink:0}
+.header .icon{width:42px;height:42px;background:var(--orange-bg);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
+.header h1{font-size:20px;color:var(--heading);font-weight:700}
+.header h1 .ver{font-size:11px;background:var(--accent);color:#fff;padding:2px 10px;border-radius:10px;font-weight:500;margin-left:8px}
+.header h1 .web{font-size:11px;background:var(--green-bg);color:var(--green);padding:2px 10px;border-radius:10px;font-weight:500;margin-left:6px}
+.header p{font-size:12px;color:var(--dim);width:100%;margin-top:2px}
+
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 24px;flex-shrink:0}
+.tab{padding:10px 22px;font-size:13px;font-weight:500;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;display:flex;align-items:center;gap:6px;user-select:none}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.tab-content{flex:1;overflow:hidden;display:none}
+.tab-content.active{display:flex;flex-direction:column}
 
 /* Layout */
-.app{display:flex;height:calc(100vh - 110px);overflow:hidden}
-.panel-left{width:340px;min-width:300px;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
-.panel-right{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.app-layout{display:flex;flex:1;overflow:hidden}
+.sidebar{width:360px;min-width:320px;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.main-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
 
-/* Settings Panel */
-.section{padding:16px 20px;border-bottom:1px solid var(--border)}
-.section-title{font-size:13px;font-weight:600;color:var(--heading);margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.param-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:13px}
-.param-row label{min-width:80px;color:var(--dim)}
-.param-row input[type="number"],.param-row select{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--text);font-size:12px;width:100px}
-.param-row input[type="range"]{flex:1;accent-color:var(--accent)}
-.param-val{font-size:12px;color:var(--accent);min-width:40px;text-align:right}
+.section{padding:14px 18px;border-bottom:1px solid var(--border)}
+.section-title{font-size:12px;font-weight:600;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.param-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}
+.param-row label{min-width:76px;color:var(--dim);flex-shrink:0}
+.param-row select,.param-row input{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:4px 8px;color:var(--text);font-size:12px;font-family:inherit}
+.param-row select{width:140px}
+.param-row input[type="text"]{flex:1;min-width:80px}
+.param-row input[type="number"]{width:70px}
 
-/* Drop Zone */
-.drop-zone{margin:16px 20px;border:2px dashed var(--border);border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s}
+.radio-group{display:flex;gap:10px;flex-wrap:wrap}
+.radio-group label{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--dim);cursor:pointer}
+.radio-group input{accent-color:var(--accent)}
+
+.drop-zone{margin:12px 18px;border:2px dashed var(--border);border-radius:10px;padding:28px 16px;text-align:center;cursor:pointer;transition:all .2s;flex-shrink:0}
 .drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:rgba(108,140,255,.04)}
-.drop-zone .dz-icon{font-size:36px;margin-bottom:8px}
-.drop-zone .dz-text{font-size:14px;color:var(--heading);font-weight:500}
-.drop-zone .dz-hint{font-size:12px;color:var(--dim);margin-top:4px}
+.drop-zone .dz-icon{font-size:28px;margin-bottom:6px}
+.drop-zone .dz-text{font-size:13px;color:var(--heading);font-weight:500}
+.drop-zone .dz-hint{font-size:11px;color:var(--dim);margin-top:4px}
 
-/* File List */
-.file-list{flex:1;overflow-y:auto;padding:0 20px 16px}
-.file-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all .15s;font-size:12px}
+.file-list{flex:1;overflow-y:auto;padding:0 18px 14px}
+.file-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--card);border:1px solid var(--border);border-radius:7px;margin-bottom:5px;cursor:pointer;transition:all .15s;font-size:12px}
 .file-item:hover{border-color:var(--accent)}
 .file-item.active{border-color:var(--accent);background:rgba(108,140,255,.06)}
-.file-item .fi-thumb{width:40px;height:40px;border-radius:6px;background:var(--bg);object-fit:contain;flex-shrink:0}
+.file-item .fi-thumb{width:36px;height:36px;border-radius:5px;background:var(--bg);object-fit:contain;flex-shrink:0}
 .file-item .fi-info{flex:1;overflow:hidden}
-.file-item .fi-name{color:var(--heading);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.file-item .fi-meta{color:var(--dim);font-size:11px;margin-top:2px}
-.file-item .fi-angle{font-size:12px;font-weight:600;min-width:50px;text-align:right}
-.file-item .fi-angle.has-skew{color:var(--orange)}
-.file-item .fi-angle.no-skew{color:var(--green)}
-.file-item .fi-remove{color:var(--dim);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px}
-.file-item .fi-remove:hover{color:var(--red);background:var(--red-bg)}
+.file-item .fi-name{color:var(--heading);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+.file-item .fi-meta{color:var(--dim);font-size:10px;margin-top:1px}
+.file-item .fi-status{font-size:11px;font-weight:600;min-width:60px;text-align:right}
+.file-item .fi-del{color:var(--dim);cursor:pointer;padding:2px 6px;border-radius:4px;font-size:14px}
+.file-item .fi-del:hover{color:var(--red);background:var(--red-bg)}
 
-/* Action Buttons */
-.actions{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap}
-.btn{padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit;display:flex;align-items:center;gap:5px}
-.btn:hover{border-color:var(--accent);color:var(--accent)}
-.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-.btn.primary:hover{background:#5a7aee}
-.btn.danger{color:var(--red);border-color:transparent}
-.btn.danger:hover{background:var(--red-bg)}
-.btn:disabled{opacity:.4;cursor:not-allowed}
+.status-ok{color:var(--green)}
+.status-skip{color:var(--orange)}
+.status-err{color:var(--red)}
+.status-wait{color:var(--dim)}
+.status-proc{color:var(--accent)}
 
-/* Preview Area */
-.preview-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow:auto;position:relative}
-.preview-empty{text-align:center;color:var(--dim)}
-.preview-empty .pe-icon{font-size:48px;margin-bottom:12px}
-.preview-empty p{font-size:14px}
-.preview-container{display:flex;gap:24px;align-items:flex-start;justify-content:center;flex-wrap:wrap;width:100%;max-height:100%;overflow:auto}
-.preview-box{text-align:center}
-.preview-box .pb-label{font-size:12px;color:var(--dim);margin-bottom:6px;font-weight:500}
-.preview-box canvas{max-width:420px;max-height:400px;border:1px solid var(--border);border-radius:8px;background:repeating-conic-gradient(#1a1d2d 0% 25%,#22253a 0% 50%) 50%/16px 16px}
+/* Preview area */
+.preview-area{flex:1;display:flex;align-items:center;justify-content:center;background:var(--bg);position:relative;overflow:hidden}
+.preview-area canvas{max-width:100%;max-height:100%;object-fit:contain}
+.preview-placeholder{text-align:center;color:var(--dim)}
+.preview-placeholder .pp-icon{font-size:48px;margin-bottom:12px;opacity:.3}
+.preview-placeholder .pp-text{font-size:14px}
 
-/* Toolbar */
-.toolbar{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.toolbar .tl-title{font-size:13px;font-weight:600;color:var(--heading)}
-.toolbar .tl-info{font-size:12px;color:var(--dim);margin-left:auto}
+.info-bar{padding:10px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--dim);display:flex;justify-content:space-between;flex-shrink:0}
 
-/* Manual adjust */
-.manual-adjust{padding:12px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.manual-adjust label{font-size:12px;color:var(--dim)}
-.manual-adjust input[type="range"]{width:200px;accent-color:var(--accent)}
-.manual-adjust .ma-val{font-size:13px;color:var(--accent);font-weight:600;min-width:60px}
+/* Action bar */
+.action-bar{padding:12px 18px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+.btn{padding:7px 18px;border:none;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{opacity:.85}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid transparent}
+.btn-danger:hover{border-color:var(--red)}
+.btn-sm{padding:4px 12px;font-size:12px;border-radius:5px}
 
-/* Progress bar */
-.progress-bar{height:3px;background:var(--border);position:relative;overflow:hidden}
-.progress-bar .pb-fill{height:100%;background:var(--accent);transition:width .3s;width:0}
+.progress-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-bar .fill{height:100%;background:var(--accent);border-radius:3px;transition:width .3s}
 
-/* Toast */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);color:var(--text);padding:10px 24px;border-radius:10px;font-size:13px;border:1px solid var(--border);opacity:0;transition:all .3s;z-index:999;pointer-events:none}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* Log area */
+.log-area{flex:1;background:#1a1d2d;border-radius:8px;margin:0 18px 14px;overflow-y:auto;padding:10px 14px;font-family:'Consolas','Monaco',monospace;font-size:11px;line-height:1.6}
+.log-area .log-info{color:#89b4fa}
+.log-area .log-ok{color:#a6e3a1}
+.log-area .log-warn{color:#f9e2af}
+.log-area .log-err{color:#f38ba8}
+.log-area .log-head{color:#cba6f7;font-weight:bold}
+
+/* Classify tab */
+.classify-layout{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:18px}
+.classify-layout .section{border:1px solid var(--border);border-radius:8px;margin-bottom:12px;padding:14px 16px}
+.chip-group{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{padding:5px 14px;background:var(--card);border:1px solid var(--border);border-radius:16px;font-size:12px;color:var(--dim);cursor:pointer;transition:all .15s;user-select:none}
+.chip:hover{border-color:var(--accent);color:var(--text)}
+.chip.active{background:rgba(108,140,255,.1);border-color:var(--accent);color:var(--accent)}
+
+.classify-result{flex:1;overflow-y:auto;margin-top:10px}
+.group-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px}
+.group-card .gc-title{font-size:13px;font-weight:600;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.group-card .gc-count{font-size:11px;background:var(--accent);color:#fff;padding:1px 8px;border-radius:10px}
+.group-card .gc-files{font-size:11px;color:var(--dim);line-height:1.8}
+.group-card .gc-file{display:flex;align-items:center;gap:8px;padding:3px 0}
+.group-card .gc-arrow{color:var(--accent)}
+.group-card .gc-new{color:var(--green)}
+
+.stat-row{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;text-align:center;min-width:100px}
+.stat-box .sb-num{font-size:20px;font-weight:700;color:var(--heading)}
+.stat-box .sb-label{font-size:11px;color:var(--dim);margin-top:2px}
 
 /* Responsive */
 @media(max-width:900px){
-  .app{flex-direction:column;height:auto}
-  .panel-left{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--border);max-height:50vh}
-  .panel-right{min-height:50vh}
-  .preview-container{flex-direction:column;align-items:center}
+  .sidebar{width:280px;min-width:240px}
+}
+@media(max-width:700px){
+  .app-layout{flex-direction:column}
+  .sidebar{width:100%;min-width:0;max-height:45vh;border-right:none;border-bottom:1px solid var(--border)}
 }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="icon">📐</div>
-  <h1>图片倾斜矫正工具 <span class="ver">v3.1</span><span class="web-badge">🌐 在线版</span></h1>
-  <p>拖拽上传图片 → 自动检测倾斜角度 → 一键矫正 · 支持批量处理 · 手动微调 · 保留透明通道</p>
+  <div class="icon">🔄</div>
+  <h1>图片倾斜矫正工具 <span class="ver">v3.1</span> <span class="web">🌐 在线版</span></h1>
+  <p>高精度多算法融合：霍夫变换 + 外接矩形 + PCA主轴分析 + 投影方差法 | 支持批量处理 + 一键分类命名</p>
 </div>
 
-<div class="progress-bar" id="progressBar"><div class="pb-fill" id="progressFill"></div></div>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(0,this)">🔄 倾斜矫正</div>
+  <div class="tab" onclick="switchTab(1,this)">📋 一键分类命名</div>
+</div>
 
-<div class="app">
-  <!-- Left Panel: Settings + File List -->
-  <div class="panel-left">
+<!-- ══════════════ Tab 0: 倾斜矫正 ══════════════ -->
+<div class="tab-content active" id="tab0">
+<div class="app-layout">
+  <div class="sidebar">
     <div class="section">
-      <div class="section-title">⚙️ 检测参数</div>
-      <div class="param-row">
-        <label>角度阈值</label>
-        <input type="range" id="thresholdRange" min="0.1" max="5" step="0.1" value="0.5" oninput="document.getElementById('thresholdVal').textContent=this.value+'°'">
-        <span class="param-val" id="thresholdVal">0.5°</span>
+      <div class="section-title">⚙️ 矫正参数</div>
+      <div class="param-row"><label>填充背景</label>
+        <div class="radio-group">
+          <label><input type="radio" name="bgColor" value="white" checked> 白色</label>
+          <label><input type="radio" name="bgColor" value="black"> 黑色</label>
+          <label><input type="radio" name="bgColor" value="transparent"> 透明(PNG)</label>
+        </div>
       </div>
-      <div class="param-row" style="font-size:11px;color:var(--dim)">低于此角度的图片将被跳过（视为无需矫正）</div>
-      <div class="param-row">
-        <label>背景填充</label>
-        <select id="bgMode">
-          <option value="transparent">透明</option>
-          <option value="white">白色</option>
-          <option value="black">黑色</option>
-        </select>
+      <div class="param-row"><label>置信阈值</label>
+        <input type="range" id="confThreshold" min="0" max="50" value="10" oninput="document.getElementById('confVal').textContent=this.value+'%'">
+        <span class="param-val" id="confVal">10%</span>
       </div>
-      <div class="param-row">
-        <label>输出格式</label>
-        <select id="outFormat">
-          <option value="png">PNG</option>
-          <option value="jpeg">JPEG</option>
-          <option value="webp">WebP</option>
-        </select>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px;padding:6px 8px;background:var(--bg);border-radius:6px;line-height:1.5">
+        <b style="color:var(--heading)">算法说明</b><br>
+        ① 霍夫变换：检测全图直线方向<br>
+        ② 外接矩形：内容区域最小旋转矩形<br>
+        ③ PCA主轴：内容像素分布主方向<br>
+        ④ 投影方差：精细搜索最佳旋转角度<br>
+        多方法一致时提升置信度，不一致取最可靠结果
       </div>
     </div>
-
-    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+    <div class="drop-zone" id="dropZone0" onclick="document.getElementById('fileInput0').click()">
       <div class="dz-icon">📁</div>
-      <div class="dz-text">拖拽图片到此处，或点击选择</div>
-      <div class="dz-hint">支持 PNG / JPG / JPEG / BMP / WebP · 可多选</div>
+      <div class="dz-text">拖拽图片到此处 或 点击选择</div>
+      <div class="dz-hint">支持 PNG / JPG / BMP / WebP / TIFF，可批量</div>
     </div>
-    <input type="file" id="fileInput" multiple accept="image/*" style="display:none" onchange="handleFiles(this.files)">
-
-    <div class="file-list" id="fileList"></div>
-
-    <div class="actions">
-      <button class="btn primary" id="btnProcess" onclick="processAll()" disabled>▶ 批量矫正</button>
-      <button class="btn" id="btnDownloadAll" onclick="downloadAll()" disabled>⬇️ 全部下载</button>
-      <button class="btn danger" onclick="clearAll()">🗑 清空</button>
+    <input type="file" id="fileInput0" multiple accept="image/*" style="display:none">
+    <div style="padding:0 18px 6px;display:flex;gap:6px">
+      <button class="btn btn-sm btn-secondary" onclick="clearFiles0()" title="清空列表">🗑️ 清空</button>
+      <span style="flex:1"></span>
+      <span style="font-size:11px;color:var(--dim);line-height:26px" id="fileCount0">0 个文件</span>
     </div>
+    <div class="file-list" id="fileList0"></div>
   </div>
-
-  <!-- Right Panel: Preview -->
-  <div class="panel-right">
-    <div class="toolbar">
-      <span class="tl-title" id="previewTitle">📷 预览区域</span>
-      <span class="tl-info" id="previewInfo">添加图片后在左侧列表中点击预览</span>
-    </div>
-    <div class="preview-area" id="previewArea">
-      <div class="preview-empty">
-        <div class="pe-icon">🖼️</div>
-        <p>在左侧添加图片后点击查看预览</p>
+  <div class="main-area">
+    <div class="preview-area" id="previewArea0">
+      <div class="preview-placeholder">
+        <div class="pp-icon">🖼️</div>
+        <div class="pp-text">添加图片后选择查看预览</div>
       </div>
     </div>
-    <div class="manual-adjust" id="manualAdjust" style="display:none">
-      <label>手动微调角度：</label>
-      <input type="range" id="manualRange" min="-45" max="45" step="0.1" value="0" oninput="onManualAdjust(this.value)">
-      <span class="ma-val" id="manualVal">0.0°</span>
-      <button class="btn" onclick="applyManual()">✅ 应用</button>
-      <button class="btn" onclick="resetManual()">↩️ 重置</button>
+    <div class="info-bar" id="infoBar0">
+      <span id="infoLeft0">就绪</span>
+      <span id="infoRight0">-</span>
+    </div>
+    <div class="action-bar">
+      <button class="btn btn-primary" id="btnStart0" onclick="startCorrect()">▶ 开始矫正</button>
+      <button class="btn btn-secondary" id="btnStop0" onclick="stopProcess()" disabled>■ 停止</button>
+      <div class="progress-bar"><div class="fill" id="progressFill0" style="width:0"></div></div>
+      <span style="font-size:12px;color:var(--dim)" id="progressText0">就绪</span>
+      <button class="btn btn-secondary btn-sm" onclick="downloadAllCorrected()">💾 下载全部</button>
     </div>
   </div>
 </div>
+</div>
 
-<div class="toast" id="toast"></div>
+<!-- ══════════════ Tab 1: 一键分类命名 ══════════════ -->
+<div class="tab-content" id="tab1">
+<div class="classify-layout">
+  <div class="section">
+    <div class="section-title">📂 添加图片</div>
+    <div class="drop-zone" id="dropZone1" onclick="document.getElementById('fileInput1').click()" style="margin:8px 0">
+      <div class="dz-icon">📁</div>
+      <div class="dz-text">拖拽图片到此处 或 点击选择</div>
+      <div class="dz-hint">支持 PNG / JPG / BMP / WebP / TIFF，可批量选择</div>
+    </div>
+    <input type="file" id="fileInput1" multiple accept="image/*" style="display:none">
+    <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+      <span style="font-size:12px;color:var(--dim)" id="fileCount1">已添加 0 个文件</span>
+      <span style="flex:1"></span>
+      <button class="btn btn-sm btn-secondary" onclick="clearFiles1()">🗑️ 清空</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">📊 分类依据</div>
+    <div class="chip-group" id="classifyByGroup">
+      <div class="chip active" data-value="content_type">内容类型</div>
+      <div class="chip" data-value="size_category">尺寸大小</div>
+      <div class="chip" data-value="aspect_type">宽高比</div>
+      <div class="chip" data-value="color_type">颜色类型</div>
+      <div class="chip" data-value="dominant_color">主色调</div>
+      <div class="chip" data-value="ext">文件格式</div>
+      <div class="chip" data-value="has_alpha">透明通道</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">📝 命名规则</div>
+    <div class="chip-group" id="namingGroup">
+      <div class="chip active" data-value="type_number">类型+编号</div>
+      <div class="chip" data-value="type_size_number">类型+尺寸+编号</div>
+      <div class="chip" data-value="prefix_number">前缀+编号</div>
+      <div class="chip" data-value="color_number">色调+编号</div>
+      <div class="chip" data-value="dim_number">分辨率+编号</div>
+      <div class="chip" data-value="keep_original">保持原名</div>
+    </div>
+    <div class="param-row" style="margin-top:8px">
+      <label>自定义前缀</label>
+      <input type="text" id="customPrefix" value="img" style="width:120px" placeholder="前缀+编号时生效">
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-bottom:8px">
+    <button class="btn btn-secondary" onclick="previewClassify()">🔍 预览分类结果</button>
+    <button class="btn btn-primary" onclick="executeClassify()">📦 打包下载分类结果</button>
+  </div>
+
+  <div class="classify-result" id="classifyResult">
+    <div style="text-align:center;padding:40px 0;color:var(--dim)">
+      <div style="font-size:36px;opacity:.3;margin-bottom:8px">📋</div>
+      <div>添加图片后点击「预览分类结果」查看</div>
+    </div>
+  </div>
+</div>
+</div>
 
 <script>
-// ═══════════════════════════════════════
-// State
-// ═══════════════════════════════════════
-var files = []; // {id, name, file, img, origCanvas, resultCanvas, angle, confidence, status, manualAngle}
-var activeIdx = -1;
-var idCounter = 0;
+// ══════════════════════════════════════════════
+//  Tab 切换
+// ══════════════════════════════════════════════
+function switchTab(idx, el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab'+idx).classList.add('active');
+}
 
-// ═══════════════════════════════════════
-// File Handling
-// ═══════════════════════════════════════
-var dropZone = document.getElementById('dropZone');
-dropZone.addEventListener('dragover', function(e){ e.preventDefault(); e.stopPropagation(); dropZone.classList.add('dragover'); });
-dropZone.addEventListener('dragleave', function(e){ e.preventDefault(); dropZone.classList.remove('dragover'); });
-dropZone.addEventListener('drop', function(e){
-  e.preventDefault(); dropZone.classList.remove('dragover');
-  handleFiles(e.dataTransfer.files);
+// ══════════════════════════════════════════════
+//  全局状态
+// ══════════════════════════════════════════════
+var files0=[], files1=[], correctedResults=[], processing=false, stopFlag=false, selectedIdx0=-1;
+var classifyBy='content_type', namingTemplate='type_number';
+
+// ══════════════════════════════════════════════
+//  文件处理 - Tab 0 (矫正)
+// ══════════════════════════════════════════════
+document.getElementById('fileInput0').addEventListener('change', function(e){
+  addFiles0(Array.from(e.target.files));
+  e.target.value='';
 });
 
-function handleFiles(fileList){
-  var validTypes = ['image/png','image/jpeg','image/jpg','image/bmp','image/webp','image/tiff'];
-  var added = 0;
-  for(var i = 0; i < fileList.length; i++){
-    var f = fileList[i];
-    if(!f.type.startsWith('image/')) continue;
-    loadImage(f);
-    added++;
-  }
-  if(added > 0) showToast('已添加 ' + added + ' 张图片');
-  updateButtons();
+var dz0=document.getElementById('dropZone0');
+dz0.addEventListener('dragover',function(e){e.preventDefault();e.stopPropagation();dz0.classList.add('dragover')});
+dz0.addEventListener('dragleave',function(e){e.preventDefault();dz0.classList.remove('dragover')});
+dz0.addEventListener('drop',function(e){e.preventDefault();dz0.classList.remove('dragover');addFiles0(Array.from(e.dataTransfer.files))});
+
+function addFiles0(newFiles){
+  var valid=['image/png','image/jpeg','image/bmp','image/webp','image/tiff'];
+  newFiles.forEach(function(f){
+    if(valid.indexOf(f.type)!==-1 || f.name.match(/\.(png|jpe?g|bmp|webp|tiff?)$/i)){
+      files0.push({file:f,status:'wait',angle:0,confidence:0,message:'',corrected:null,origUrl:null,corrUrl:null});
+    }
+  });
+  renderFileList0();
 }
 
+function clearFiles0(){
+  files0.forEach(function(f){if(f.origUrl)URL.revokeObjectURL(f.origUrl);if(f.corrUrl)URL.revokeObjectURL(f.corrUrl)});
+  files0=[];correctedResults=[];selectedIdx0=-1;
+  renderFileList0();
+  document.getElementById('previewArea0').innerHTML='<div class="preview-placeholder"><div class="pp-icon">🖼️</div><div class="pp-text">添加图片后选择查看预览</div></div>';
+  document.getElementById('infoLeft0').textContent='就绪';
+  document.getElementById('infoRight0').textContent='-';
+}
+
+function renderFileList0(){
+  var el=document.getElementById('fileList0');
+  document.getElementById('fileCount0').textContent=files0.length+' 个文件';
+  if(!files0.length){el.innerHTML='';return}
+  var html='';
+  files0.forEach(function(f,i){
+    var cls=i===selectedIdx0?' active':'';
+    var sc=f.status==='corrected'?'status-ok':f.status==='skipped'?'status-skip':f.status==='error'?'status-err':f.status==='processing'?'status-proc':'status-wait';
+    var st=f.status==='corrected'?f.angle.toFixed(2)+'°':f.status==='skipped'?'跳过':f.status==='error'?'错误':f.status==='processing'?'处理中':'等待';
+    html+='<div class="file-item'+cls+'" onclick="selectFile0('+i+')"><div class="fi-info"><div class="fi-name">'+esc(f.file.name)+'</div><div class="fi-meta">'+(f.file.size/1024).toFixed(1)+'KB'+(f.message?' · '+esc(f.message):'')+'</div></div><span class="fi-status '+sc+'">'+st+'</span><span class="fi-del" onclick="event.stopPropagation();removeFile0('+i+')">×</span></div>';
+  });
+  el.innerHTML=html;
+}
+
+function removeFile0(i){
+  var f=files0[i];
+  if(f.origUrl)URL.revokeObjectURL(f.origUrl);
+  if(f.corrUrl)URL.revokeObjectURL(f.corrUrl);
+  files0.splice(i,1);
+  if(selectedIdx0===i)selectedIdx0=-1;
+  else if(selectedIdx0>i)selectedIdx0--;
+  renderFileList0();
+}
+
+function selectFile0(i){
+  selectedIdx0=i;
+  renderFileList0();
+  showPreview0(i);
+}
+
+function showPreview0(i){
+  var f=files0[i];
+  var area=document.getElementById('previewArea0');
+  var src=f.corrUrl||f.origUrl;
+  if(!src){
+    f.origUrl=URL.createObjectURL(f.file);
+    src=f.origUrl;
+  }
+  area.innerHTML='<img src="'+src+'" style="max-width:100%;max-height:100%;object-fit:contain">';
+  var info=f.file.name+' · '+(f.file.size/1024).toFixed(1)+'KB';
+  if(f.status==='corrected')info+=' · 矫正了 '+f.angle.toFixed(2)+'° (置信度 '+(f.confidence*100).toFixed(0)+'%)';
+  document.getElementById('infoLeft0').textContent=info;
+  document.getElementById('infoRight0').textContent=f.status==='corrected'?'✅ 已矫正':f.status==='skipped'?'⏭ 已跳过':'';
+}
+
+// ══════════════════════════════════════════════
+//  核心算法 - 多算法融合倾斜检测（Canvas 实现）
+// ══════════════════════════════════════════════
 function loadImage(file){
-  var reader = new FileReader();
-  reader.onload = function(e){
-    var img = new Image();
-    img.onload = function(){
-      var entry = {
-        id: ++idCounter,
-        name: file.name,
-        file: file,
-        img: img,
-        origCanvas: null,
-        resultCanvas: null,
-        angle: null,
-        confidence: 0,
-        status: 'pending', // pending, processing, done, skipped
-        manualAngle: null,
-        width: img.naturalWidth,
-        height: img.naturalHeight,
-        size: file.size
-      };
-      // Create original canvas
-      var c = document.createElement('canvas');
-      c.width = img.naturalWidth;
-      c.height = img.naturalHeight;
-      c.getContext('2d').drawImage(img, 0, 0);
-      entry.origCanvas = c;
-      files.push(entry);
-      renderFileList();
-      updateButtons();
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+  return new Promise(function(resolve,reject){
+    var img=new Image();
+    img.onload=function(){resolve(img)};
+    img.onerror=reject;
+    img.src=URL.createObjectURL(file);
+  });
 }
 
-// ═══════════════════════════════════════
-// Skew Detection (JS implementation)
-// ═══════════════════════════════════════
+function getImageData(img){
+  var c=document.createElement('canvas');
+  c.width=img.width;c.height=img.height;
+  var ctx=c.getContext('2d');
+  ctx.drawImage(img,0,0);
+  return {canvas:c,ctx:ctx,data:ctx.getImageData(0,0,c.width,c.height),width:c.width,height:c.height};
+}
 
-function detectSkewAngle(canvas){
-  var ctx = canvas.getContext('2d');
-  var w = canvas.width, h = canvas.height;
-  
-  // Downscale for performance (max 600px)
-  var scale = 1;
-  if(Math.max(w, h) > 600){
-    scale = 600 / Math.max(w, h);
+function toGrayscale(imageData){
+  var d=imageData.data,w=imageData.width,h=imageData.height;
+  var gray=new Float64Array(w*h);
+  for(var i=0;i<w*h;i++){
+    var idx=i*4;
+    gray[i]=0.299*d[idx]+0.587*d[idx+1]+0.114*d[idx+2];
   }
-  var sw = Math.round(w * scale), sh = Math.round(h * scale);
-  var tmpC = document.createElement('canvas');
-  tmpC.width = sw; tmpC.height = sh;
-  var tmpCtx = tmpC.getContext('2d');
-  tmpCtx.drawImage(canvas, 0, 0, sw, sh);
-  var imgData = tmpCtx.getImageData(0, 0, sw, sh);
-  var data = imgData.data;
-  
-  // Convert to grayscale
-  var gray = new Float64Array(sw * sh);
-  var hasAlpha = false;
-  var alpha = new Uint8Array(sw * sh);
-  for(var i = 0; i < sw * sh; i++){
-    var r = data[i*4], g = data[i*4+1], b = data[i*4+2], a = data[i*4+3];
-    gray[i] = 0.299*r + 0.587*g + 0.114*b;
-    alpha[i] = a;
-    if(a < 250) hasAlpha = true;
+  return {data:gray,width:w,height:h};
+}
+
+function getContentMask(imageData){
+  var d=imageData.data,w=imageData.width,h=imageData.height;
+  var mask=new Uint8Array(w*h);
+  var hasAlpha=false;
+  // Check if has meaningful alpha
+  for(var i=0;i<w*h;i++){
+    if(d[i*4+3]<250){hasAlpha=true;break}
   }
-  
-  // Create content mask
-  var mask = new Uint8Array(sw * sh);
   if(hasAlpha){
-    for(var i = 0; i < sw*sh; i++) mask[i] = alpha[i] > 10 ? 255 : 0;
-  } else {
-    // Otsu thresholding
-    var hist = new Int32Array(256);
-    for(var i = 0; i < sw*sh; i++) hist[Math.round(gray[i])]++;
-    var total = sw*sh, sum = 0;
-    for(var i = 0; i < 256; i++) sum += i * hist[i];
-    var sumB = 0, wB = 0, maxVar = 0, thresh = 128;
-    for(var t = 0; t < 256; t++){
-      wB += hist[t]; if(!wB) continue;
-      var wF = total - wB; if(!wF) break;
-      sumB += t * hist[t];
-      var mB = sumB/wB, mF = (sum-sumB)/wF;
-      var v = wB * wF * (mB-mF)*(mB-mF);
-      if(v > maxVar){ maxVar = v; thresh = t; }
+    for(var i=0;i<w*h;i++) mask[i]=d[i*4+3]>10?255:0;
+  }else{
+    // Otsu threshold on grayscale
+    var gray=toGrayscale(imageData);
+    var hist=new Array(256).fill(0);
+    for(var i=0;i<gray.data.length;i++) hist[Math.min(255,Math.max(0,Math.round(gray.data[i])))]++;
+    var total=w*h,sum=0;
+    for(var i=0;i<256;i++) sum+=i*hist[i];
+    var sumB=0,wB=0,wF=0,maxVar=0,threshold=0;
+    for(var t=0;t<256;t++){
+      wB+=hist[t];if(wB===0)continue;
+      wF=total-wB;if(wF===0)break;
+      sumB+=t*hist[t];
+      var mB=sumB/wB,mF=(sum-sumB)/wF;
+      var v=wB*wF*(mB-mF)*(mB-mF);
+      if(v>maxVar){maxVar=v;threshold=t}
     }
-    for(var i = 0; i < sw*sh; i++) mask[i] = gray[i] < thresh ? 255 : 0;
+    for(var i=0;i<gray.data.length;i++) mask[i]=gray.data[i]<threshold?255:0;
   }
-  
-  var results = [];
-  
-  // Method 1: Minimum Area Bounding Rectangle (via PCA)
-  var r1 = detectByPCA(mask, sw, sh);
-  if(r1) results.push(r1);
-  
-  // Method 2: Projection Variance
-  var r2 = detectByProjection(gray, mask, sw, sh);
-  if(r2) results.push(r2);
-  
-  // Method 3: Edge-based direction analysis
-  var r3 = detectByEdges(gray, mask, sw, sh);
-  if(r3) results.push(r3);
-  
-  if(!results.length) return {angle: 0, confidence: 0};
-  
-  // Fusion: sort by confidence, weighted average of agreeing methods
-  results.sort(function(a,b){ return b.confidence - a.confidence; });
-  var best = results[0];
-  var agreeA = [best.angle * best.confidence];
-  var agreeW = [best.confidence];
-  
-  for(var i = 1; i < results.length; i++){
-    if(Math.abs(results[i].angle - best.angle) < 5){
-      agreeA.push(results[i].angle * results[i].confidence);
-      agreeW.push(results[i].confidence);
-    }
-  }
-  var totalW = agreeW.reduce(function(s,v){return s+v;}, 0);
-  var finalAngle = totalW > 0 ? agreeA.reduce(function(s,v){return s+v;}, 0) / totalW : best.angle;
-  var finalConf = Math.min(1, totalW / Math.max(agreeW.length * 0.4, 0.5));
-  
-  return {angle: finalAngle, confidence: finalConf};
+  return {data:mask,width:w,height:h};
 }
 
-function detectByPCA(mask, w, h){
-  // Collect content pixel coordinates
-  var pts = [];
-  for(var y = 0; y < h; y++){
-    for(var x = 0; x < w; x++){
-      if(mask[y*w+x] > 0) pts.push([x, y]);
-    }
+// 方法1: 霍夫变换（简化版 - 使用 Sobel 边缘 + 累加器）
+function detectByHough(gray,mask){
+  var w=gray.width,h=gray.height;
+  // Sobel edge detection
+  var edges=sobelEdges(gray);
+  // Apply mask (dilated)
+  if(mask){
+    for(var i=0;i<w*h;i++) if(!mask.data[i]) edges.data[i]=0;
   }
-  if(pts.length < 50) return null;
+  // Simple Hough transform for angles near horizontal/vertical
+  var angles=[],weights=[];
+  var angleStep=0.5,minAngle=-45,maxAngle=45;
+  var rhoMax=Math.sqrt(w*w+h*h);
+  var numAngles=Math.ceil((maxAngle-minAngle)/angleStep);
+  var numRho=Math.ceil(rhoMax*2);
+  var accum=new Int32Array(numAngles*numRho);
   
-  // Compute mean
-  var mx = 0, my = 0;
-  for(var i = 0; i < pts.length; i++){ mx += pts[i][0]; my += pts[i][1]; }
-  mx /= pts.length; my /= pts.length;
-  
-  // Compute covariance matrix
-  var cxx = 0, cxy = 0, cyy = 0;
-  for(var i = 0; i < pts.length; i++){
-    var dx = pts[i][0] - mx, dy = pts[i][1] - my;
-    cxx += dx*dx; cxy += dx*dy; cyy += dy*dy;
-  }
-  cxx /= pts.length; cxy /= pts.length; cyy /= pts.length;
-  
-  // Eigenvalues
-  var trace = cxx + cyy;
-  var det = cxx * cyy - cxy * cxy;
-  var disc = Math.sqrt(Math.max(0, trace*trace/4 - det));
-  var e1 = trace/2 + disc;
-  var e2 = trace/2 - disc;
-  
-  // Main axis eigenvector
-  var ex, ey;
-  if(Math.abs(cxy) > 1e-6){
-    ex = e1 - cyy; ey = cxy;
-  } else {
-    ex = cxx > cyy ? 1 : 0; ey = cxx > cyy ? 0 : 1;
-  }
-  
-  // Angle relative to vertical (y-axis)
-  var angle = Math.atan2(ex, ey) * 180 / Math.PI;
-  while(angle > 45) angle -= 90;
-  while(angle < -45) angle += 90;
-  
-  var ratio = Math.max(e1, e2) / Math.max(Math.min(e1, e2), 1e-6);
-  var conf = Math.min(1, (ratio - 1) / 5) * 0.7;
-  
-  if(Math.abs(angle) < 0.1) return null;
-  return {angle: angle, confidence: conf, method: 'PCA'};
-}
-
-function detectByProjection(gray, mask, w, h){
-  // Compute projection variance at different angles
-  function projVariance(deg){
-    var rad = deg * Math.PI / 180;
-    var cosA = Math.cos(rad), sinA = Math.sin(rad);
-    var bins = {};
-    for(var y = 0; y < h; y++){
-      for(var x = 0; x < w; x++){
-        if(mask[y*w+x] === 0) continue;
-        var ny = Math.round(-x * sinA + y * cosA);
-        bins[ny] = (bins[ny] || 0) + gray[y*w+x];
+  for(var y=0;y<h;y++){
+    for(var x=0;x<w;x++){
+      if(edges.data[y*w+x]<50) continue;
+      for(var ai=0;ai<numAngles;ai++){
+        var theta=(minAngle+ai*angleStep)*Math.PI/180;
+        var rho=x*Math.cos(theta)+y*Math.sin(theta);
+        var ri=Math.round(rho+rhoMax);
+        if(ri>=0&&ri<numRho) accum[ai*numRho+ri]++;
       }
     }
-    var vals = Object.values(bins);
-    if(vals.length < 3) return 0;
-    var mean = vals.reduce(function(s,v){return s+v;},0) / vals.length;
-    var variance = vals.reduce(function(s,v){return s+(v-mean)*(v-mean);},0) / vals.length;
-    return variance;
   }
   
-  var baseVar = projVariance(0);
-  if(baseVar < 100) return null;
+  // Find peaks
+  var threshold=Math.max(Math.min(w,h)/10,20);
+  for(var ai=0;ai<numAngles;ai++){
+    for(var ri=0;ri<numRho;ri++){
+      if(accum[ai*numRho+ri]>threshold){
+        var a=minAngle+ai*angleStep;
+        angles.push(a);
+        weights.push(accum[ai*numRho+ri]);
+      }
+    }
+  }
   
-  // Coarse search: -15° to 15°, step 1°
-  var bestAngle = 0, bestVar = baseVar;
-  for(var deg = -15; deg <= 15; deg++){
-    if(deg === 0) continue;
-    var v = projVariance(deg);
-    if(v > bestVar){ bestVar = v; bestAngle = deg; }
+  if(!angles.length) return {angle:null,confidence:0};
+  
+  // Weighted average with MAD outlier removal
+  var median=angles.slice().sort(function(a,b){return a-b})[Math.floor(angles.length/2)];
+  var mad=angles.map(function(a){return Math.abs(a-median)}).sort(function(a,b){return a-b})[Math.floor(angles.length/2)];
+  
+  var sumW=0,sumA=0;
+  for(var i=0;i<angles.length;i++){
+    if(mad>0 && Math.abs(angles[i]-median)>3*mad) continue;
+    sumA+=angles[i]*weights[i];
+    sumW+=weights[i];
+  }
+  if(sumW===0) return {angle:null,confidence:0};
+  
+  var avg=sumA/sumW;
+  var conf=Math.min(1,angles.length/10)*0.8;
+  return {angle:avg,confidence:conf};
+}
+
+function sobelEdges(gray){
+  var w=gray.width,h=gray.height,d=gray.data;
+  var out=new Float64Array(w*h);
+  for(var y=1;y<h-1;y++){
+    for(var x=1;x<w-1;x++){
+      var gx=(-d[(y-1)*w+(x-1)]+d[(y-1)*w+(x+1)]-2*d[y*w+(x-1)]+2*d[y*w+(x+1)]-d[(y+1)*w+(x-1)]+d[(y+1)*w+(x+1)]);
+      var gy=(-d[(y-1)*w+(x-1)]-2*d[(y-1)*w+x]-d[(y-1)*w+(x+1)]+d[(y+1)*w+(x-1)]+2*d[(y+1)*w+x]+d[(y+1)*w+(x+1)]);
+      out[y*w+x]=Math.sqrt(gx*gx+gy*gy);
+    }
+  }
+  return {data:out,width:w,height:h};
+}
+
+// 方法2: 最小面积外接矩形（通过凸包+旋转卡壳近似）
+function detectByMinAreaRect(mask){
+  var w=mask.width,h=mask.height,d=mask.data;
+  var points=[];
+  // Sample points for performance
+  var step=Math.max(1,Math.floor(Math.min(w,h)/200));
+  for(var y=0;y<h;y+=step){
+    for(var x=0;x<w;x+=step){
+      if(d[y*w+x]>0) points.push([x,y]);
+    }
+  }
+  if(points.length<5) return {angle:null,confidence:0};
+  
+  // Simplified: try angles from -45 to 45, find angle with smallest bounding box area
+  var bestAngle=0,bestArea=Infinity;
+  for(var deg=-45;deg<=45;deg+=0.5){
+    var rad=deg*Math.PI/180;
+    var cos=Math.cos(rad),sin=Math.sin(rad);
+    var minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+    for(var i=0;i<points.length;i++){
+      var rx=points[i][0]*cos-points[i][1]*sin;
+      var ry=points[i][0]*sin+points[i][1]*cos;
+      if(rx<minX)minX=rx;if(rx>maxX)maxX=rx;
+      if(ry<minY)minY=ry;if(ry>maxY)maxY=ry;
+    }
+    var area=(maxX-minX)*(maxY-minY);
+    if(area<bestArea){bestArea=area;bestAngle=deg}
+  }
+  
+  // Refine ±0.5° with 0.05° steps
+  var refStart=bestAngle-0.5,refEnd=bestAngle+0.5;
+  for(var deg=refStart;deg<=refEnd;deg+=0.05){
+    var rad=deg*Math.PI/180;
+    var cos=Math.cos(rad),sin=Math.sin(rad);
+    var minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+    for(var i=0;i<points.length;i++){
+      var rx=points[i][0]*cos-points[i][1]*sin;
+      var ry=points[i][0]*sin+points[i][1]*cos;
+      if(rx<minX)minX=rx;if(rx>maxX)maxX=rx;
+      if(ry<minY)minY=ry;if(ry>maxY)maxY=ry;
+    }
+    var area=(maxX-minX)*(maxY-minY);
+    if(area<bestArea){bestArea=area;bestAngle=deg}
+  }
+  
+  var totalArea=0;
+  for(var i=0;i<d.length;i++) if(d[i]>0) totalArea++;
+  totalArea*=step*step;
+  var fillRatio=totalArea/Math.max(bestArea,1);
+  var sizeRatio=totalArea/Math.max(w*h,1);
+  var conf=Math.min(1,fillRatio*0.6+sizeRatio*2);
+  
+  return {angle:bestAngle,confidence:conf};
+}
+
+// 方法3: PCA主轴分析
+function detectByPCA(mask){
+  var w=mask.width,h=mask.height,d=mask.data;
+  var pts=[];
+  var step=Math.max(1,Math.floor(Math.min(w,h)/300));
+  for(var y=0;y<h;y+=step){
+    for(var x=0;x<w;x+=step){
+      if(d[y*w+x]>0) pts.push([y,x]);// row,col
+    }
+  }
+  if(pts.length<20) return {angle:null,confidence:0};
+  
+  var n=pts.length;
+  var my=0,mx=0;
+  for(var i=0;i<n;i++){my+=pts[i][0];mx+=pts[i][1]}
+  my/=n;mx/=n;
+  
+  var cov00=0,cov01=0,cov11=0;
+  for(var i=0;i<n;i++){
+    var dy=pts[i][0]-my,dx=pts[i][1]-mx;
+    cov00+=dy*dy;cov01+=dy*dx;cov11+=dx*dx;
+  }
+  cov00/=n;cov01/=n;cov11/=n;
+  
+  // Eigenvalues of 2x2 covariance matrix
+  var trace=cov00+cov11;
+  var det=cov00*cov11-cov01*cov01;
+  var disc=Math.sqrt(Math.max(0,trace*trace/4-det));
+  var ev1=trace/2+disc,ev2=trace/2-disc;
+  
+  // Eigenvector for largest eigenvalue
+  var dy,dx;
+  if(Math.abs(cov01)>1e-6){
+    dy=ev1-cov11;dx=cov01;
+  }else{
+    dy=cov00>cov11?1:0;dx=cov00>cov11?0:1;
+  }
+  
+  var angle=Math.atan2(dx,dy)*180/Math.PI;
+  while(angle>45)angle-=90;
+  while(angle<-45)angle+=90;
+  
+  var ratio=Math.max(ev1,ev2)/Math.max(Math.min(ev1,ev2),1e-6);
+  var conf=Math.min(1,(ratio-1)/5)*0.7;
+  
+  return {angle:angle,confidence:conf};
+}
+
+// 方法4: 投影方差法
+function detectByProjection(gray,mask){
+  var w=gray.width,h=gray.height;
+  if(w<30||h<30) return {angle:null,confidence:0};
+  
+  var gd=gray.data;
+  // Apply mask
+  if(mask){
+    var md=mask.data;
+    gd=new Float64Array(gd);
+    for(var i=0;i<gd.length;i++) if(!md[i]) gd[i]=0;
+  }
+  
+  function projVariance(data,w,h){
+    var sums=new Float64Array(h);
+    for(var y=0;y<h;y++){
+      var s=0;
+      for(var x=0;x<w;x++) s+=data[y*w+x];
+      sums[y]=s;
+    }
+    var mean=0;
+    for(var y=0;y<h;y++) mean+=sums[y];
+    mean/=h;
+    var v=0;
+    for(var y=0;y<h;y++){var d=sums[y]-mean;v+=d*d}
+    return v/h;
+  }
+  
+  function rotatedVariance(data,w,h,deg){
+    var rad=deg*Math.PI/180;
+    var cos=Math.cos(rad),sin=Math.sin(rad);
+    var cx=w/2,cy=h/2;
+    var rot=new Float64Array(w*h);
+    for(var y=0;y<h;y++){
+      for(var x=0;x<w;x++){
+        var sx=Math.round((x-cx)*cos+(y-cy)*sin+cx);
+        var sy=Math.round(-(x-cx)*sin+(y-cy)*cos+cy);
+        if(sx>=0&&sx<w&&sy>=0&&sy<h) rot[y*w+x]=data[sy*w+sx];
+      }
+    }
+    return projVariance(rot,w,h);
+  }
+  
+  var baseVar=projVariance(gd,w,h);
+  if(baseVar<10) return {angle:null,confidence:0};
+  
+  // Coarse search: -15 to 15, step 1
+  var bestAngle=0,bestVar=baseVar;
+  for(var deg=-15;deg<=15;deg++){
+    if(deg===0)continue;
+    var v=rotatedVariance(gd,w,h,deg);
+    if(v>bestVar){bestVar=v;bestAngle=deg}
   }
   
   // Fine search: ±1° around best, step 0.2°
-  for(var d = -10; d <= 10; d++){
-    var deg = bestAngle + d * 0.1;
-    if(Math.abs(deg) < 0.05) continue;
-    var v = projVariance(deg);
-    if(v > bestVar){ bestVar = v; bestAngle = deg; }
+  for(var i=-10;i<=10;i++){
+    var deg=bestAngle+i*0.1;
+    if(Math.abs(deg)<0.05)continue;
+    var v=rotatedVariance(gd,w,h,deg);
+    if(v>bestVar){bestVar=v;bestAngle=deg}
   }
   
-  if(Math.abs(bestAngle) < 0.2) return null;
+  if(Math.abs(bestAngle)<0.3) return {angle:null,confidence:0};
   
-  var improvement = (bestVar - baseVar) / Math.max(baseVar, 1);
-  var conf = Math.min(1, improvement * 3) * 0.6;
-  
-  return {angle: bestAngle, confidence: conf, method: 'Projection'};
+  var improvement=(bestVar-baseVar)/Math.max(baseVar,1);
+  var conf=Math.min(1,improvement*3)*0.6;
+  return {angle:bestAngle,confidence:conf};
 }
 
-function detectByEdges(gray, mask, w, h){
-  // Simple Sobel edge detection + dominant angle via histogram
-  var angles = [], weights = [];
+// 多算法融合
+function detectSkewAngle(imageData){
+  var gray=toGrayscale(imageData);
+  var mask=getContentMask(imageData);
+  var results=[];
   
-  for(var y = 1; y < h-1; y++){
-    for(var x = 1; x < w-1; x++){
-      if(mask[y*w+x] === 0) continue;
-      // Sobel
-      var gx = -gray[(y-1)*w+(x-1)] + gray[(y-1)*w+(x+1)]
-              -2*gray[y*w+(x-1)] + 2*gray[y*w+(x+1)]
-              -gray[(y+1)*w+(x-1)] + gray[(y+1)*w+(x+1)];
-      var gy = -gray[(y-1)*w+(x-1)] - 2*gray[(y-1)*w+x] - gray[(y-1)*w+(x+1)]
-              +gray[(y+1)*w+(x-1)] + 2*gray[(y+1)*w+x] + gray[(y+1)*w+(x+1)];
-      var mag = Math.sqrt(gx*gx + gy*gy);
-      if(mag < 30) continue; // skip weak edges
-      var a = Math.atan2(gy, gx) * 180 / Math.PI;
-      // Normalize to [-45, 45] — we want line direction, not gradient direction
-      a = a + 90; // perpendicular to gradient
-      if(a > 45) a -= 90;
-      if(a > 45) a -= 90;
-      if(a < -45) a += 90;
-      if(a < -45) a += 90;
-      angles.push(a);
-      weights.push(mag);
+  var r1=detectByHough(gray,mask);
+  if(r1.angle!==null) results.push({angle:r1.angle,conf:r1.confidence,method:'霍夫变换'});
+  
+  var r2=detectByMinAreaRect(mask);
+  if(r2.angle!==null) results.push({angle:r2.angle,conf:r2.confidence,method:'外接矩形'});
+  
+  var r3=detectByPCA(mask);
+  if(r3.angle!==null) results.push({angle:r3.angle,conf:r3.confidence,method:'PCA主轴'});
+  
+  var r4=detectByProjection(gray,mask);
+  if(r4.angle!==null) results.push({angle:r4.angle,conf:r4.confidence,method:'投影方差'});
+  
+  if(!results.length) return {angle:0,confidence:0,methods:[]};
+  
+  results.sort(function(a,b){return b.conf-a.conf});
+  
+  var best=results[0];
+  var agreeAngles=[best.angle*best.conf];
+  var agreeWeights=[best.conf];
+  var usedMethods=[best.method];
+  
+  for(var i=1;i<results.length;i++){
+    if(Math.abs(results[i].angle-best.angle)<5){
+      agreeAngles.push(results[i].angle*results[i].conf);
+      agreeWeights.push(results[i].conf);
+      usedMethods.push(results[i].method);
     }
   }
   
-  if(angles.length < 20) return null;
+  var totalW=0;
+  for(var i=0;i<agreeWeights.length;i++) totalW+=agreeWeights[i];
   
-  // Weighted histogram to find dominant angle
-  var bins = new Float64Array(181); // -90 to 90
-  var binW = new Float64Array(181);
-  for(var i = 0; i < angles.length; i++){
-    var bin = Math.round(angles[i] * 2) + 90;
-    if(bin < 0) bin = 0; if(bin > 180) bin = 180;
-    bins[bin] += weights[i];
-    binW[bin]++;
+  var finalAngle,finalConf;
+  if(totalW>0){
+    var sumA=0;
+    for(var i=0;i<agreeAngles.length;i++) sumA+=agreeAngles[i];
+    finalAngle=sumA/totalW;
+    finalConf=Math.min(1,totalW/Math.max(agreeWeights.length*0.4,0.5));
+  }else{
+    finalAngle=best.angle;
+    finalConf=best.conf;
   }
   
-  // Find peak
-  var peakBin = 90, peakVal = 0;
-  for(var b = 0; b <= 180; b++){
-    if(bins[b] > peakVal){ peakVal = bins[b]; peakBin = b; }
-  }
-  var angle = (peakBin - 90) / 2;
-  
-  if(Math.abs(angle) < 0.3) return null;
-  
-  // Confidence based on how concentrated the peak is
-  var totalWeight = bins.reduce(function(s,v){return s+v;},0);
-  var peakWeight = 0;
-  for(var b = Math.max(0, peakBin-3); b <= Math.min(180, peakBin+3); b++) peakWeight += bins[b];
-  var conf = Math.min(1, peakWeight / Math.max(totalWeight * 0.3, 1)) * 0.65;
-  
-  return {angle: angle, confidence: conf, method: 'Edges'};
+  return {angle:finalAngle,confidence:finalConf,methods:usedMethods};
 }
 
-// ═══════════════════════════════════════
-// Image Rotation
-// ═══════════════════════════════════════
-function rotateImage(origCanvas, angle){
-  var w = origCanvas.width, h = origCanvas.height;
-  var rad = angle * Math.PI / 180;
-  var cosA = Math.abs(Math.cos(rad)), sinA = Math.abs(Math.sin(rad));
-  var nw = Math.ceil(w * cosA + h * sinA);
-  var nh = Math.ceil(w * sinA + h * cosA);
-  
-  var result = document.createElement('canvas');
-  result.width = nw; result.height = nh;
-  var ctx = result.getContext('2d');
-  
-  // Background fill
-  var bgMode = document.getElementById('bgMode').value;
-  if(bgMode === 'white'){
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, nw, nh);
-  } else if(bgMode === 'black'){
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, nw, nh);
-  }
-  // transparent: leave as is
-  
-  ctx.translate(nw/2, nh/2);
-  ctx.rotate(-rad);
-  ctx.drawImage(origCanvas, -w/2, -h/2);
-  
-  return result;
+function shouldCorrect(angle,confidence){
+  var aa=Math.abs(angle);
+  var confThresh=parseInt(document.getElementById('confThreshold').value)/100;
+  if(aa<0.3) return {fix:false,reason:'角度极小('+angle.toFixed(2)+'°)，基本水平'};
+  if(aa>=3&&confidence>=Math.max(0.05,confThresh)) return {fix:true,reason:'明显倾斜 '+angle.toFixed(2)+'° (置信度 '+(confidence*100).toFixed(0)+'%)'};
+  if(aa>=1&&confidence>=Math.max(0.1,confThresh)) return {fix:true,reason:'倾斜 '+angle.toFixed(2)+'° (置信度 '+(confidence*100).toFixed(0)+'%)'};
+  if(aa>=0.5&&confidence>=Math.max(0.2,confThresh)) return {fix:true,reason:'轻微倾斜 '+angle.toFixed(2)+'° (置信度 '+(confidence*100).toFixed(0)+'%)'};
+  if(aa>=0.3&&confidence>=Math.max(0.35,confThresh)) return {fix:true,reason:'微小倾斜 '+angle.toFixed(2)+'° (置信度 '+(confidence*100).toFixed(0)+'%)'};
+  return {fix:false,reason:'角度 '+angle.toFixed(2)+'° 置信度 '+(confidence*100).toFixed(0)+'%，不确定，跳过'};
 }
 
-// ═══════════════════════════════════════
-// Processing
-// ═══════════════════════════════════════
-function processAll(){
-  var threshold = parseFloat(document.getElementById('thresholdRange').value);
-  var pending = files.filter(function(f){ return f.status === 'pending' || f.status === 'skipped'; });
-  if(!pending.length){ showToast('没有待处理的图片'); return; }
+function correctSkew(canvas,angle){
+  var w=canvas.width,h=canvas.height;
+  var rad=angle*Math.PI/180;
+  var cosA=Math.abs(Math.cos(rad)),sinA=Math.abs(Math.sin(rad));
+  var nw=Math.ceil(h*sinA+w*cosA);
+  var nh=Math.ceil(h*cosA+w*sinA);
   
-  document.getElementById('btnProcess').disabled = true;
-  var total = pending.length, done = 0;
-  showProgress(0);
+  var bgVal=document.querySelector('input[name="bgColor"]:checked').value;
+  var c=document.createElement('canvas');
+  c.width=nw;c.height=nh;
+  var ctx=c.getContext('2d');
   
-  function processNext(idx){
-    if(idx >= pending.length){
-      showProgress(100);
-      setTimeout(function(){ hideProgress(); }, 500);
-      document.getElementById('btnProcess').disabled = false;
-      updateButtons();
-      showToast('处理完成！' + done + ' 张矫正，' + (total - done) + ' 张跳过');
-      renderFileList();
-      return;
-    }
+  if(bgVal==='white'){ctx.fillStyle='#fff';ctx.fillRect(0,0,nw,nh)}
+  else if(bgVal==='black'){ctx.fillStyle='#000';ctx.fillRect(0,0,nw,nh)}
+  // transparent: default canvas is transparent
+  
+  ctx.translate(nw/2,nh/2);
+  ctx.rotate(rad);
+  ctx.drawImage(canvas,-w/2,-h/2);
+  return c;
+}
+
+// ══════════════════════════════════════════════
+//  批量处理
+// ══════════════════════════════════════════════
+async function startCorrect(){
+  if(!files0.length){alert('请先添加图片');return}
+  if(processing)return;
+  processing=true;stopFlag=false;
+  correctedResults=[];
+  document.getElementById('btnStart0').disabled=true;
+  document.getElementById('btnStop0').disabled=false;
+  
+  var total=files0.length,done=0,corrected=0,skipped=0,errors=0;
+  
+  for(var i=0;i<files0.length;i++){
+    if(stopFlag)break;
+    files0[i].status='processing';
+    renderFileList0();
+    document.getElementById('progressText0').textContent='处理 '+(i+1)+'/'+total+' '+files0[i].file.name;
     
-    var entry = pending[idx];
-    entry.status = 'processing';
-    renderFileList();
-    
-    // Use setTimeout to allow UI update
-    setTimeout(function(){
-      var result = detectSkewAngle(entry.origCanvas);
-      entry.angle = Math.round(result.angle * 100) / 100;
-      entry.confidence = Math.round(result.confidence * 100) / 100;
+    try{
+      var img=await loadImage(files0[i].file);
+      var id=getImageData(img);
+      URL.revokeObjectURL(img.src);
       
-      if(Math.abs(entry.angle) >= threshold){
-        entry.resultCanvas = rotateImage(entry.origCanvas, entry.angle);
-        entry.status = 'done';
-        done++;
-      } else {
-        entry.status = 'skipped';
+      var result=detectSkewAngle(id.data);
+      var check=shouldCorrect(result.angle,result.confidence);
+      
+      files0[i].angle=result.angle;
+      files0[i].confidence=result.confidence;
+      
+      if(check.fix){
+        var corrCanvas=correctSkew(id.canvas,result.angle);
+        files0[i].status='corrected';
+        files0[i].message=check.reason+' ['+result.methods.join('+')+']';
+        // Convert to blob for download
+        var blob=await new Promise(function(resolve){
+          var ext=files0[i].file.name.split('.').pop().toLowerCase();
+          var mime=ext==='png'?'image/png':ext==='webp'?'image/webp':'image/jpeg';
+          corrCanvas.toBlob(resolve,mime,0.95);
+        });
+        files0[i].corrected=blob;
+        if(files0[i].corrUrl) URL.revokeObjectURL(files0[i].corrUrl);
+        files0[i].corrUrl=URL.createObjectURL(blob);
+        correctedResults.push({name:files0[i].file.name,blob:blob});
+        corrected++;
+      }else{
+        files0[i].status='skipped';
+        files0[i].message=check.reason;
+        skipped++;
       }
-      
-      showProgress(((idx+1)/total)*100);
-      
-      // Update preview if this is the active item
-      if(files.indexOf(entry) === activeIdx) showPreview(activeIdx);
-      
-      processNext(idx + 1);
-    }, 10);
-  }
-  
-  processNext(0);
-}
-
-function processSingle(idx){
-  var entry = files[idx];
-  if(!entry) return;
-  
-  var threshold = parseFloat(document.getElementById('thresholdRange').value);
-  entry.status = 'processing';
-  renderFileList();
-  
-  setTimeout(function(){
-    var result = detectSkewAngle(entry.origCanvas);
-    entry.angle = Math.round(result.angle * 100) / 100;
-    entry.confidence = Math.round(result.confidence * 100) / 100;
-    
-    if(Math.abs(entry.angle) >= threshold){
-      entry.resultCanvas = rotateImage(entry.origCanvas, entry.angle);
-      entry.status = 'done';
-    } else {
-      entry.status = 'skipped';
+    }catch(e){
+      files0[i].status='error';
+      files0[i].message='处理出错: '+e.message;
+      errors++;
     }
     
-    renderFileList();
-    if(idx === activeIdx) showPreview(idx);
-  }, 10);
-}
-
-// ═══════════════════════════════════════
-// UI Rendering
-// ═══════════════════════════════════════
-function renderFileList(){
-  var list = document.getElementById('fileList');
-  if(!files.length){
-    list.innerHTML = '';
-    return;
+    done++;
+    document.getElementById('progressFill0').style.width=(done/total*100)+'%';
+    renderFileList0();
+    if(selectedIdx0===i) showPreview0(i);
+    // Yield to UI
+    await new Promise(function(r){setTimeout(r,10)});
   }
   
-  var html = '';
-  for(var i = 0; i < files.length; i++){
-    var f = files[i];
-    var cls = 'file-item' + (i === activeIdx ? ' active' : '');
-    var angleStr = '';
-    if(f.status === 'processing') angleStr = '<span class="fi-angle" style="color:var(--accent)">⏳</span>';
-    else if(f.angle !== null){
-      var ac = Math.abs(f.angle) >= parseFloat(document.getElementById('thresholdRange').value) ? 'has-skew' : 'no-skew';
-      angleStr = '<span class="fi-angle ' + ac + '">' + f.angle.toFixed(1) + '°</span>';
-    } else {
-      angleStr = '<span class="fi-angle" style="color:var(--dim)">—</span>';
+  processing=false;
+  document.getElementById('btnStart0').disabled=false;
+  document.getElementById('btnStop0').disabled=true;
+  document.getElementById('progressText0').textContent='完成 | 矫正:'+corrected+' 跳过:'+skipped+' 错误:'+errors;
+}
+
+function stopProcess(){stopFlag=true}
+
+async function downloadAllCorrected(){
+  if(!correctedResults.length){alert('没有矫正后的图片可下载');return}
+  if(correctedResults.length===1){
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(correctedResults[0].blob);
+    a.download='corrected_'+correctedResults[0].name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    return;
+  }
+  // Use JSZip if available, otherwise download individually
+  if(typeof JSZip!=='undefined'){
+    var zip=new JSZip();
+    correctedResults.forEach(function(r){zip.file('corrected_'+r.name,r.blob)});
+    var blob=await zip.generateAsync({type:'blob'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='corrected_images.zip';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }else{
+    correctedResults.forEach(function(r,i){
+      setTimeout(function(){
+        var a=document.createElement('a');
+        a.href=URL.createObjectURL(r.blob);
+        a.download='corrected_'+r.name;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      },i*200);
+    });
+  }
+}
+
+// ══════════════════════════════════════════════
+//  Tab 1: 分类命名
+// ══════════════════════════════════════════════
+document.getElementById('fileInput1').addEventListener('change',function(e){
+  addFiles1(Array.from(e.target.files));
+  e.target.value='';
+});
+
+var dz1=document.getElementById('dropZone1');
+dz1.addEventListener('dragover',function(e){e.preventDefault();dz1.classList.add('dragover')});
+dz1.addEventListener('dragleave',function(){dz1.classList.remove('dragover')});
+dz1.addEventListener('drop',function(e){e.preventDefault();dz1.classList.remove('dragover');addFiles1(Array.from(e.dataTransfer.files))});
+
+function addFiles1(newFiles){
+  newFiles.forEach(function(f){
+    if(f.type.startsWith('image/')||f.name.match(/\.(png|jpe?g|bmp|webp|tiff?|gif)$/i)){
+      files1.push(f);
     }
-    var statusIcon = '';
-    if(f.status === 'done') statusIcon = '✅ ';
-    else if(f.status === 'skipped') statusIcon = '⏭ ';
-    else if(f.status === 'processing') statusIcon = '⏳ ';
-    
-    var sizeStr = f.size < 1024*1024 ? (f.size/1024).toFixed(0) + ' KB' : (f.size/1024/1024).toFixed(1) + ' MB';
-    
-    html += '<div class="' + cls + '" onclick="selectFile(' + i + ')">'
-      + '<img class="fi-thumb" src="' + f.img.src + '">'
-      + '<div class="fi-info"><div class="fi-name">' + statusIcon + escHtml(f.name) + '</div>'
-      + '<div class="fi-meta">' + f.width + '×' + f.height + ' · ' + sizeStr + '</div></div>'
-      + angleStr
-      + '<span class="fi-remove" onclick="event.stopPropagation();removeFile(' + i + ')">×</span>'
-      + '</div>';
-  }
-  list.innerHTML = html;
+  });
+  document.getElementById('fileCount1').textContent='已添加 '+files1.length+' 个文件';
+}
+function clearFiles1(){
+  files1=[];
+  document.getElementById('fileCount1').textContent='已添加 0 个文件';
+  document.getElementById('classifyResult').innerHTML='<div style="text-align:center;padding:40px 0;color:var(--dim)"><div style="font-size:36px;opacity:.3;margin-bottom:8px">📋</div><div>添加图片后点击「预览分类结果」查看</div></div>';
 }
 
-function selectFile(idx){
-  activeIdx = idx;
-  renderFileList();
-  showPreview(idx);
+// Chip group selection
+document.querySelectorAll('#classifyByGroup .chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('#classifyByGroup .chip').forEach(function(x){x.classList.remove('active')});
+    c.classList.add('active');
+    classifyBy=c.dataset.value;
+  });
+});
+document.querySelectorAll('#namingGroup .chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('#namingGroup .chip').forEach(function(x){x.classList.remove('active')});
+    c.classList.add('active');
+    namingTemplate=c.dataset.value;
+  });
+});
+
+// 图片属性分析
+async function analyzeImage(file){
+  return new Promise(function(resolve){
+    var info={
+      file:file,filename:file.name,ext:'.'+file.name.split('.').pop().toLowerCase(),
+      width:0,height:0,has_alpha:false,is_square:false,
+      aspect_type:'unknown',size_category:'unknown',color_type:'unknown',
+      dominant_color:'unknown',transparency_ratio:0,content_type:'unknown'
+    };
+    var img=new Image();
+    img.onload=function(){
+      var w=img.width,h=img.height;
+      info.width=w;info.height=h;
+      
+      // Aspect type
+      var ratio=w/Math.max(h,1);
+      if(ratio>=0.85&&ratio<=1.15){info.aspect_type='square';info.is_square=true}
+      else if(ratio>1.15) info.aspect_type='landscape';
+      else info.aspect_type='portrait';
+      
+      // Size category
+      var px=w*h;
+      if(px<64*64) info.size_category='tiny';
+      else if(px<256*256) info.size_category='small';
+      else if(px<1024*1024) info.size_category='medium';
+      else if(px<4096*4096) info.size_category='large';
+      else info.size_category='huge';
+      
+      // Canvas analysis
+      var c=document.createElement('canvas');c.width=Math.min(w,128);c.height=Math.min(h,128);
+      var ctx=c.getContext('2d');
+      ctx.drawImage(img,0,0,c.width,c.height);
+      var id=ctx.getImageData(0,0,c.width,c.height).data;
+      var totalPx=c.width*c.height;
+      
+      // Alpha analysis
+      var transparentCount=0,hasAlpha=false;
+      for(var i=3;i<id.length;i+=4){
+        if(id[i]<250) hasAlpha=true;
+        if(id[i]<128) transparentCount++;
+      }
+      info.has_alpha=hasAlpha;
+      info.transparency_ratio=transparentCount/totalPx;
+      
+      // Color analysis (HSV)
+      var sumH=0,sumS=0,sumV=0,sumR=0,sumG=0,sumB=0,count=0;
+      for(var i=0;i<id.length;i+=4){
+        if(hasAlpha&&id[i+3]<128)continue;
+        var r=id[i],g=id[i+1],b=id[i+2];
+        sumR+=r;sumG+=g;sumB+=b;
+        var max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;
+        var hh=0,s=max===0?0:d/max,v=max/255;
+        if(d!==0){
+          if(max===r) hh=((g-b)/d+(g<b?6:0))/6;
+          else if(max===g) hh=((b-r)/d+2)/6;
+          else hh=((r-g)/d+4)/6;
+        }
+        sumH+=hh*180;sumS+=s*255;sumV+=v*255;count++;
+      }
+      if(count>0){
+        var avgS=sumS/count,avgV=sumV/count,avgH=sumH/count;
+        info.color_type=avgS<15?'grayscale':avgS<40?'low_color':'color';
+        
+        if(avgS<30){
+          info.dominant_color=avgV<50?'black':avgV<160?'gray':'white';
+        }else{
+          if(avgH<10||avgH>=170) info.dominant_color='red';
+          else if(avgH<20) info.dominant_color='orange';
+          else if(avgH<35) info.dominant_color='yellow';
+          else if(avgH<80) info.dominant_color='green';
+          else if(avgH<100) info.dominant_color='cyan';
+          else if(avgH<130) info.dominant_color='blue';
+          else if(avgH<155) info.dominant_color='purple';
+          else info.dominant_color='pink';
+        }
+      }
+      if(hasAlpha&&info.transparency_ratio>0.5) info.dominant_color='transparent';
+      
+      // Content type inference
+      if(hasAlpha&&info.transparency_ratio>0.2&&Math.max(w,h)<=512) info.content_type='icon';
+      else if(info.is_square&&Math.max(w,h)<=256) info.content_type='icon';
+      else if(w>h*2.5&&w>=400) info.content_type='banner';
+      else if(info.is_square&&[32,64,128,256,512,1024,2048,4096].indexOf(w)!==-1) info.content_type='texture';
+      else if(h>w&&h>=800&&(info.color_type==='grayscale'||info.color_type==='low_color')) info.content_type='document';
+      else if(Math.max(w,h)>=800&&info.color_type==='color') info.content_type='photo';
+      else if(hasAlpha&&info.transparency_ratio>0.1) info.content_type='ui_element';
+      else info.content_type='other';
+      
+      URL.revokeObjectURL(img.src);
+      resolve(info);
+    };
+    img.onerror=function(){URL.revokeObjectURL(img.src);resolve(info)};
+    img.src=URL.createObjectURL(file);
+  });
 }
 
-function showPreview(idx){
-  var area = document.getElementById('previewArea');
-  var adjust = document.getElementById('manualAdjust');
-  var entry = files[idx];
-  if(!entry){
-    area.innerHTML = '<div class="preview-empty"><div class="pe-icon">🖼️</div><p>在左侧添加图片后点击查看预览</p></div>';
-    adjust.style.display = 'none';
-    return;
-  }
-  
-  document.getElementById('previewTitle').textContent = '📷 ' + entry.name;
-  var infoText = entry.width + '×' + entry.height;
-  if(entry.angle !== null) infoText += ' · 检测角度: ' + entry.angle.toFixed(2) + '° · 置信度: ' + (entry.confidence * 100).toFixed(0) + '%';
-  document.getElementById('previewInfo').textContent = infoText;
-  
-  var html = '<div class="preview-container">';
-  
-  // Original
-  html += '<div class="preview-box"><div class="pb-label">原图</div><canvas id="cvOrig"></canvas></div>';
-  
-  // Result
-  if(entry.resultCanvas || entry.manualAngle !== null){
-    html += '<div class="preview-box"><div class="pb-label">矫正后</div><canvas id="cvResult"></canvas></div>';
-  }
-  
-  html += '</div>';
-  area.innerHTML = html;
-  
-  // Draw original
-  var cvO = document.getElementById('cvOrig');
-  if(cvO){
-    var maxW = 420, maxH = 400;
-    var scaleO = Math.min(1, maxW / entry.origCanvas.width, maxH / entry.origCanvas.height);
-    cvO.width = Math.round(entry.origCanvas.width * scaleO);
-    cvO.height = Math.round(entry.origCanvas.height * scaleO);
-    cvO.getContext('2d').drawImage(entry.origCanvas, 0, 0, cvO.width, cvO.height);
-  }
-  
-  // Draw result
-  var resultC = entry.resultCanvas;
-  if(entry.manualAngle !== null){
-    resultC = rotateImage(entry.origCanvas, entry.manualAngle);
-  }
-  if(resultC){
-    var cvR = document.getElementById('cvResult');
-    if(cvR){
-      var scaleR = Math.min(1, maxW / resultC.width, maxH / resultC.height);
-      cvR.width = Math.round(resultC.width * scaleR);
-      cvR.height = Math.round(resultC.height * scaleR);
-      cvR.getContext('2d').drawImage(resultC, 0, 0, cvR.width, cvR.height);
-    }
-  }
-  
-  // Show manual adjust
-  adjust.style.display = 'flex';
-  var slider = document.getElementById('manualRange');
-  slider.value = entry.manualAngle !== null ? entry.manualAngle : (entry.angle || 0);
-  document.getElementById('manualVal').textContent = parseFloat(slider.value).toFixed(1) + '°';
+var CLASSIFY_LABELS={
+  size_category:{tiny:'微型(64以下)',small:'小型(64-256)',medium:'中型(256-1024)',large:'大型(1024-4096)',huge:'超大(4096以上)',unknown:'未知尺寸'},
+  aspect_type:{square:'正方形',landscape:'横向',portrait:'纵向',unknown:'未知'},
+  color_type:{color:'彩色',grayscale:'灰度',low_color:'低饱和',unknown:'未知'},
+  dominant_color:{red:'红色系',orange:'橙色系',yellow:'黄色系',green:'绿色系',cyan:'青色系',blue:'蓝色系',purple:'紫色系',pink:'粉色系',white:'白色系',black:'黑色系',gray:'灰色系',transparent:'透明',unknown:'未知色调'},
+  content_type:{icon:'图标',photo:'照片',document:'文档',texture:'纹理贴图',banner:'横幅',ui_element:'UI素材',other:'其他'},
+  ext:{'.png':'PNG','.jpg':'JPG','.jpeg':'JPEG','.bmp':'BMP','.tiff':'TIFF','.tif':'TIF','.webp':'WEBP','.gif':'GIF'},
+  has_alpha:{'true':'有透明通道','false':'无透明通道'}
+};
+
+function getLabel(dim,key){
+  var map=CLASSIFY_LABELS[dim]||{};
+  return map[String(key)]||String(key);
 }
 
-function onManualAdjust(val){
-  document.getElementById('manualVal').textContent = parseFloat(val).toFixed(1) + '°';
-  if(activeIdx < 0 || !files[activeIdx]) return;
-  
-  var entry = files[activeIdx];
-  entry.manualAngle = parseFloat(val);
-  
-  // Live preview
-  var cvR = document.getElementById('cvResult');
-  if(!cvR){
-    // Need to re-render to add result canvas
-    showPreview(activeIdx);
-    return;
+function generateName(info,idx,template){
+  var ext=info.ext||'.png';
+  var prefix=document.getElementById('customPrefix').value||'img';
+  var num=String(idx+1).padStart(4,'0');
+  var orig=info.filename.replace(/\.[^.]+$/,'');
+  switch(template){
+    case 'prefix_number': return prefix+'_'+num+ext;
+    case 'type_number': return info.content_type+'_'+num+ext;
+    case 'type_size_number': return info.content_type+'_'+info.size_category+'_'+num+ext;
+    case 'color_number': return info.dominant_color+'_'+num+ext;
+    case 'dim_number': return info.width+'x'+info.height+'_'+num+ext;
+    case 'keep_original': return info.filename;
+    default: return prefix+'_'+num+ext;
   }
-  var resultC = rotateImage(entry.origCanvas, entry.manualAngle);
-  var maxW = 420, maxH = 400;
-  var scaleR = Math.min(1, maxW / resultC.width, maxH / resultC.height);
-  cvR.width = Math.round(resultC.width * scaleR);
-  cvR.height = Math.round(resultC.height * scaleR);
-  cvR.getContext('2d').drawImage(resultC, 0, 0, cvR.width, cvR.height);
 }
 
-function applyManual(){
-  if(activeIdx < 0 || !files[activeIdx]) return;
-  var entry = files[activeIdx];
-  if(entry.manualAngle === null) return;
-  entry.angle = entry.manualAngle;
-  entry.resultCanvas = rotateImage(entry.origCanvas, entry.manualAngle);
-  entry.status = 'done';
-  entry.manualAngle = null;
-  renderFileList();
-  showPreview(activeIdx);
-  showToast('已应用手动矫正角度: ' + entry.angle.toFixed(1) + '°');
-  updateButtons();
-}
-
-function resetManual(){
-  if(activeIdx < 0 || !files[activeIdx]) return;
-  var entry = files[activeIdx];
-  entry.manualAngle = null;
-  document.getElementById('manualRange').value = entry.angle || 0;
-  document.getElementById('manualVal').textContent = (entry.angle || 0).toFixed(1) + '°';
-  showPreview(activeIdx);
-}
-
-// ═══════════════════════════════════════
-// Download
-// ═══════════════════════════════════════
-function downloadAll(){
-  var done = files.filter(function(f){ return f.status === 'done' && f.resultCanvas; });
-  if(!done.length){ showToast('没有可下载的矫正结果'); return; }
+async function previewClassify(){
+  if(!files1.length){alert('请先添加图片');return}
+  var el=document.getElementById('classifyResult');
+  el.innerHTML='<div style="text-align:center;padding:20px;color:var(--accent)">⏳ 正在分析 '+files1.length+' 张图片...</div>';
   
-  var format = document.getElementById('outFormat').value;
-  var mimeType = format === 'jpeg' ? 'image/jpeg' : format === 'webp' ? 'image/webp' : 'image/png';
-  var ext = format === 'jpeg' ? '.jpg' : '.' + format;
+  var infos=[];
+  for(var i=0;i<files1.length;i++){
+    infos.push(await analyzeImage(files1[i]));
+  }
   
-  done.forEach(function(entry){
-    var link = document.createElement('a');
-    var baseName = entry.name.replace(/\.[^.]+$/, '');
-    link.download = baseName + '_corrected' + ext;
-    link.href = entry.resultCanvas.toDataURL(mimeType, 0.95);
-    link.click();
+  // Group by classify dimension
+  var groups={};
+  infos.forEach(function(info){
+    var key=String(info[classifyBy]===undefined?'unknown':info[classifyBy]);
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(info);
   });
   
-  showToast('已下载 ' + done.length + ' 张矫正图片');
+  var keys=Object.keys(groups).sort();
+  var html='<div class="stat-row"><div class="stat-box"><div class="sb-num">'+files1.length+'</div><div class="sb-label">总文件数</div></div><div class="stat-box"><div class="sb-num">'+keys.length+'</div><div class="sb-label">分类数量</div></div></div>';
+  
+  keys.forEach(function(key){
+    var items=groups[key];
+    var label=getLabel(classifyBy,key);
+    html+='<div class="group-card"><div class="gc-title">📁 '+esc(label)+' <span class="gc-count">'+items.length+' 个文件</span></div><div class="gc-files">';
+    items.slice(0,8).forEach(function(info,idx){
+      var newName=generateName(info,idx,namingTemplate);
+      html+='<div class="gc-file"><span>'+esc(info.filename)+'</span> <span style="color:var(--dim)">('+info.width+'×'+info.height+')</span> <span class="gc-arrow">→</span> <span class="gc-new">'+esc(newName)+'</span></div>';
+    });
+    if(items.length>8) html+='<div style="color:var(--dim);padding:2px 0">... 还有 '+(items.length-8)+' 个文件</div>';
+    html+='</div></div>';
+  });
+  
+  el.innerHTML=html;
+  window._classifyInfos=infos;
+  window._classifyGroups=groups;
 }
 
-// ═══════════════════════════════════════
-// File Management
-// ═══════════════════════════════════════
-function removeFile(idx){
-  files.splice(idx, 1);
-  if(activeIdx === idx){ activeIdx = -1; showPreview(-1); }
-  else if(activeIdx > idx) activeIdx--;
-  renderFileList();
-  updateButtons();
+async function executeClassify(){
+  if(!files1.length){alert('请先添加图片');return}
+  if(!window._classifyGroups) await previewClassify();
+  
+  var groups=window._classifyGroups;
+  var keys=Object.keys(groups).sort();
+  
+  if(typeof JSZip!=='undefined'){
+    var zip=new JSZip();
+    keys.forEach(function(key){
+      var items=groups[key];
+      var label=getLabel(classifyBy,key).replace(/[<>:"/\\|?*]/g,'_');
+      items.forEach(function(info,idx){
+        var newName=generateName(info,idx,namingTemplate);
+        zip.file(label+'/'+newName,info.file);
+      });
+    });
+    var blob=await zip.generateAsync({type:'blob'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='classified_images.zip';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }else{
+    // Without JSZip, download files individually with folder prefix in name
+    var delay=0;
+    keys.forEach(function(key){
+      var items=groups[key];
+      var label=getLabel(classifyBy,key).replace(/[<>:"/\\|?*]/g,'_');
+      items.forEach(function(info,idx){
+        var newName=label+'_'+generateName(info,idx,namingTemplate);
+        setTimeout(function(){
+          var a=document.createElement('a');
+          a.href=URL.createObjectURL(info.file);
+          a.download=newName;
+          a.click();
+          URL.revokeObjectURL(a.href);
+        },delay);
+        delay+=150;
+      });
+    });
+  }
 }
 
-function clearAll(){
-  files = [];
-  activeIdx = -1;
-  renderFileList();
-  showPreview(-1);
-  document.getElementById('manualAdjust').style.display = 'none';
-  updateButtons();
-}
-
-function updateButtons(){
-  var hasPending = files.some(function(f){ return f.status === 'pending' || f.status === 'skipped'; });
-  var hasDone = files.some(function(f){ return f.status === 'done' && f.resultCanvas; });
-  document.getElementById('btnProcess').disabled = !files.length || !hasPending;
-  document.getElementById('btnDownloadAll').disabled = !hasDone;
-}
-
-// ═══════════════════════════════════════
-// Utilities
-// ═══════════════════════════════════════
-function showProgress(pct){
-  document.getElementById('progressFill').style.width = pct + '%';
-}
-function hideProgress(){
-  document.getElementById('progressFill').style.width = '0';
-}
-
-function showToast(msg){
-  var t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(function(){ t.classList.remove('show'); }, 2500);
-}
-
-function escHtml(s){
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous"></script>
 </body>
 </html>
