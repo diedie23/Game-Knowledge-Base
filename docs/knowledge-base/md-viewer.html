@@ -115,7 +115,7 @@ function parseMd(md){
   h=h.replace(/^### (.+)$/gm,(_,t)=>'<h3 id="'+slug(t)+'">'+inl(t)+'</h3>');
   h=h.replace(/^## (.+)$/gm,(_,t)=>'<h2 id="'+slug(t)+'">'+inl(t)+'</h2>');
   h=h.replace(/^# (.+)$/gm,(_,t)=>'<h1>'+inl(t)+'</h1>');
-  h=h.replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>');
+  h=h.replace(/^> ?(.*)$/gm,function(_,c){return '<blockquote>'+(c||'')+'</blockquote>';});
   h=h.replace(/<\/blockquote>\n<blockquote>/g,'<br>');
   h=h.replace(/^---$/gm,'<hr>');
   h=h.replace(/^- \[( |x)\] (.+)$/gm,(_,c,t)=>'<p><input type="checkbox"'+(c==='x'?' checked':'')+' disabled>'+inl(t)+'</p>');
