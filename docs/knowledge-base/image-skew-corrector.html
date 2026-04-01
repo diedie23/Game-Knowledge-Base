@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片倾斜矫正工具 - Image Skew Corrector</title>
+<style>
+:root{--bg:#0f1117;--card:#1c1f2e;--border:#2a2d3e;--text:#c9cdd4;--dim:#8b8fa3;--heading:#e8eaed;--accent:#6c8cff;--green:#4ade80;--green-bg:rgba(74,222,128,.08);--orange:#fb923c;--orange-bg:rgba(251,191,36,.08);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.08);--code-bg:#1a1d2d}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:40px 60px 80px;max-width:960px;margin:0 auto}
+h1{font-size:28px;color:var(--heading);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+h1 .icon{width:48px;height:48px;background:var(--orange-bg);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px}
+h1 .ver{font-size:12px;background:var(--accent);color:#fff;padding:2px 10px;border-radius:10px;font-weight:500}
+.subtitle{font-size:14px;color:var(--dim);margin-bottom:24px}
+h2{font-size:20px;color:var(--heading);font-weight:600;margin:32px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+h3{font-size:16px;color:var(--heading);font-weight:600;margin:20px 0 10px}
+p{margin:8px 0;font-size:14px}
+ul,ol{padding-left:24px;margin:8px 0}
+li{margin:4px 0;font-size:14px}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+th{background:var(--card);padding:10px 14px;text-align:left;font-weight:600;color:var(--heading);border:1px solid var(--border)}
+td{padding:8px 14px;border:1px solid var(--border)}
+code{background:var(--code-bg);padding:2px 6px;border-radius:3px;font-size:13px;font-family:'Consolas',monospace;color:#8ba3ff;border:1px solid var(--border)}
+pre{background:var(--code-bg);padding:16px 20px;border-radius:8px;overflow-x:auto;margin:16px 0;border:1px solid var(--border);font-size:13px;line-height:1.6}
+pre code{background:none;padding:0;border:none;color:var(--text)}
+.download-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 32px;margin:24px 0}
+.download-section h3{margin-top:0}
+.dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.dl-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;transition:all .2s}
+.dl-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.dl-card .dl-icon{font-size:36px;margin-bottom:10px}
+.dl-card .dl-name{font-size:15px;font-weight:600;color:var(--heading);margin-bottom:4px}
+.dl-card .dl-desc{font-size:12px;color:var(--dim);margin-bottom:12px}
+.dl-btn{display:inline-block;padding:10px 24px;background:var(--accent);color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:500;transition:all .15s}
+.dl-btn:hover{background:#5a7aee;transform:scale(1.02)}
+.dl-btn.secondary{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.dl-btn.secondary:hover{border-color:var(--accent);color:var(--accent)}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin:16px 0}
+.feature-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.feature-card .fi{font-size:20px;margin-bottom:8px}
+.feature-card h4{font-size:13px;color:var(--heading);font-weight:600;margin-bottom:4px}
+.feature-card p{font-size:12px;color:var(--dim);margin:0;line-height:1.6}
+.tag{display:inline-block;font-size:10px;padding:3px 8px;border-radius:6px;margin:2px;background:rgba(108,140,255,.08);color:#8ba3ff;border:1px solid rgba(108,140,255,.08)}
+.tag.green{background:var(--green-bg);color:var(--green)}
+.info-row{display:flex;flex-wrap:wrap;gap:16px;margin:16px 0;font-size:13px;color:var(--dim)}
+.info-row span{display:flex;align-items:center;gap:5px}
+blockquote{border-left:3px solid var(--accent);padding:12px 16px;margin:16px 0;background:rgba(108,140,255,.04);border-radius:0 6px 6px 0;font-size:13px;color:var(--dim)}
+hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+@media(max-width:768px){body{padding:20px}.dl-grid{grid-template-columns:1fr}.feature-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<h1><span class="icon">📐</span> 图片倾斜矫正工具 <span class="ver">v3.1</span></h1>
+<p class="subtitle">高精度内容倾斜检测 + 自动矫正到垂直 · 多算法融合 · 批量处理 · 拖拽支持</p>
+
+<div class="info-row">
+  <span>🖥️ Windows 桌面应用</span>
+  <span>💻 Win 10/11</span>
+  <span>📦 独立 exe，无需安装</span>
+  <span>📅 2026-04</span>
+</div>
+
+<div class="download-section">
+  <h3>📥 下载安装</h3>
+  <div class="dl-grid">
+    <div class="dl-card">
+      <div class="dl-icon">💾</div>
+      <div class="dl-name">ImageSkewCorrector.exe</div>
+      <div class="dl-desc">独立 exe · 约 60 MB · 双击即用</div>
+      <a href="../downloads/ImageSkewCorrector.exe" download class="dl-btn">⬇️ 下载 exe</a>
+    </div>
+    <div class="dl-card">
+      <div class="dl-icon">🐍</div>
+      <div class="dl-name">Python 源码运行</div>
+      <div class="dl-desc">需要 Python 3.8+ 环境</div>
+      <a href="https://github.com/diedie23/Game-Knowledge-Base" target="_blank" class="dl-btn secondary">📂 GitHub 仓库</a>
+    </div>
+  </div>
+</div>
+
+<h2 id="features">🎯 功能特性</h2>
+
+<div class="feature-grid">
+  <div class="feature-card"><div class="fi">🔍</div><h4>自动检测倾斜</h4><p>霍夫变换 + 最小面积外接矩形 + PCA主轴分析 + 投影方差法，四种算法融合检测</p></div>
+  <div class="feature-card"><div class="fi">🔄</div><h4>自动矫正</h4><p>将倾斜图片自动旋转至垂直状态，保持画质</p></div>
+  <div class="feature-card"><div class="fi">📦</div><h4>批量处理</h4><p>支持一次性处理多个文件或整个文件夹</p></div>
+  <div class="feature-card"><div class="fi">🖱️</div><h4>拖拽支持</h4><p>直接将文件/文件夹拖入窗口即可添加</p></div>
+  <div class="feature-card"><div class="fi">📁</div><h4>多种输出模式</h4><p>子文件夹输出 / 覆盖原文件 / 自定义目录</p></div>
+  <div class="feature-card"><div class="fi">🎚️</div><h4>可调阈值</h4><p>自定义角度阈值，低于阈值的图片自动跳过</p></div>
+  <div class="feature-card"><div class="fi">🖼️</div><h4>透明通道支持</h4><p>PNG 透明图片矫正时保留 Alpha 通道</p></div>
+  <div class="feature-card"><div class="fi">🔤</div><h4>中文路径支持</h4><p>完整支持中文文件名和路径</p></div>
+</div>
+
+<h2 id="formats">📋 支持格式</h2>
+
+<p>
+  <span class="tag green">PNG</span>
+  <span class="tag green">JPG</span>
+  <span class="tag green">JPEG</span>
+  <span class="tag green">BMP</span>
+  <span class="tag green">TIFF</span>
+  <span class="tag green">TIF</span>
+  <span class="tag green">WEBP</span>
+</p>
+
+<h2 id="usage">📖 使用说明</h2>
+
+<h3>操作步骤</h3>
+<ol>
+  <li><strong>添加文件</strong> — 点击"添加文件"或"添加文件夹"按钮，或将文件拖拽到窗口中</li>
+  <li><strong>设置参数</strong> — 调整角度阈值、输出模式、背景填充色</li>
+  <li><strong>开始处理</strong> — 点击"开始处理"按钮</li>
+  <li><strong>查看日志</strong> — 底部日志区域显示处理进度和结果</li>
+</ol>
+
+<h3>检测算法说明</h3>
+<table>
+  <tr><th>算法</th><th>原理</th><th>适用场景</th></tr>
+  <tr><td>霍夫变换</td><td>检测图像中的直线，计算主要方向</td><td>有明显线条的图片</td></tr>
+  <tr><td>最小面积外接矩形</td><td>找到包围内容的最小矩形，计算旋转角</td><td>规则形状内容</td></tr>
+  <tr><td>PCA 主轴分析</td><td>通过主成分分析确定内容方向</td><td>不规则分布内容</td></tr>
+  <tr><td>投影方差法</td><td>尝试不同角度，找到投影方差最大的方向</td><td>文本类图片</td></tr>
+</table>
+
+<h2 id="env">🔧 环境要求</h2>
+
+<table>
+  <tr><th>项目</th><th>要求</th></tr>
+  <tr><td>操作系统</td><td>Windows 10 / 11</td></tr>
+  <tr><td>exe 运行</td><td>无需额外环境，双击即用</td></tr>
+  <tr><td>源码运行</td><td>Python 3.8+，安装依赖：<code>pip install -r requirements.txt</code></td></tr>
+</table>
+
+<h3>依赖清单</h3>
+<pre><code>opencv-python    # 图像处理与倾斜检测
+numpy            # 数值计算
+Pillow           # 图片读写
+windnd           # 拖拽支持 (可选)</code></pre>
+
+<hr>
+
+<blockquote>
+  <strong>💡 提示：</strong>如果 exe 文件被杀毒软件拦截，请添加到白名单。这是 PyInstaller 打包的正常现象。
+</blockquote>
+
+</body>
+</html>

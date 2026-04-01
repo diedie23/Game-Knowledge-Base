@@ -16,7 +16,9 @@ var iframePages={
   'ui-layout':'knowledge-base/ui-layout.html',
   'ui-umg-tips':'knowledge-base/ui-umg-tips.html',
   'cp-management':'knowledge-base/cp-management.html',
-  'game-art-pipeline':'knowledge-base/md-viewer.html?file=game-art-pipeline.md'
+  'game-art-pipeline':'knowledge-base/md-viewer.html?file=game-art-pipeline.md',
+  'image-skew-corrector':'knowledge-base/image-skew-corrector.html',
+  'game-resource-toolkit':'knowledge-base/game-resource-toolkit.html'
 };
 
 var toolData={
@@ -25,7 +27,7 @@ var toolData={
   'spine-split':{icon:'✂️',iconBg:'var(--purple-bg)',name:'Spine 角色拆分工具',ver:'v1.0',status:'online',subtitle:'矩形 / 套索 / 魔棒选区 · 拓扑延展 · Atlas 导出',desc:'上传角色原画后，使用选区工具圈选各部件，工具自动裁切并执行拓扑延展，最终导出含 Atlas 图集 + Spine JSON 配置的 ZIP 包。',pain:'Spine 动画要求角色原画按部件拆分，传统流程依赖 PS 手动裁切+补边，一张角色拆分 2~4 小时。',solution:'选区工具圈选部件，工具自动裁切+拓扑延展，导出 Atlas + Spine JSON ZIP 包。',tags:['在线工具','选区拆分','拓扑延展','Atlas导出','Spine兼容'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-03-31',url:'knowledge-base/spine-split.html'}
 };
 
-var catMap={'d1':'cat-character','d2':'cat-character','auto-mask':'cat-character','mask-tool':'cat-character','spine-split':'cat-character','ui-slice-naming':'cat-ui','ui-9slice-color':'cat-ui','ui-layout':'cat-ui','ui-umg-tips':'cat-ui','cp-management':'cat-mgmt','game-art-pipeline':'cat-mgmt'};
+var catMap={'d1':'cat-character','d2':'cat-character','auto-mask':'cat-character','mask-tool':'cat-character','spine-split':'cat-character','ui-slice-naming':'cat-ui','ui-9slice-color':'cat-ui','ui-layout':'cat-ui','ui-umg-tips':'cat-ui','image-skew-corrector':'cat-ui','game-resource-toolkit':'cat-ui','cp-management':'cat-mgmt','game-art-pipeline':'cat-mgmt'};
 
 // ═══ Loading Bar ═══
 function showLoading(){var b=document.getElementById('loadingBar');b.style.width='0';b.classList.add('on');setTimeout(function(){b.style.width='60%';},50);}

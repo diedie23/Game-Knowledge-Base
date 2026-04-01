@@ -1,13 +1,23 @@
-node_modules/
-.netlify/
-*.zip
+# Build artifacts
 *.exe
-*.txt
-*.ps1
-tunnel.*
-package*
-.codebuddy/
+docs/downloads/*.exe
+
+# PyInstaller
+build/
+*.spec
+
+# Node
+node_modules/
+package-lock.json
+package.json
+
+# Tunnel/deploy temp files
 cf_output.txt
 lt_output.txt
 lt_error.txt
+public_url.txt
+start_tunnel.ps1
+tunnel.js
 tunnel_ngrok.py
+.netlify/
+.gitattributes

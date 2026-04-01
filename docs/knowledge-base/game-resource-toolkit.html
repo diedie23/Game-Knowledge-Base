@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>游戏资源工具集 - Game Resource Toolkit</title>
+<style>
+:root{--bg:#0f1117;--card:#1c1f2e;--border:#2a2d3e;--text:#c9cdd4;--dim:#8b8fa3;--heading:#e8eaed;--accent:#6c8cff;--green:#4ade80;--green-bg:rgba(74,222,128,.08);--orange:#fb923c;--orange-bg:rgba(251,191,36,.08);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.08);--red:#f87171;--cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.08);--code-bg:#1a1d2d}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:40px 60px 80px;max-width:960px;margin:0 auto}
+h1{font-size:28px;color:var(--heading);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+h1 .icon{width:48px;height:48px;background:var(--cyan-bg);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px}
+h1 .ver{font-size:12px;background:var(--accent);color:#fff;padding:2px 10px;border-radius:10px;font-weight:500}
+.subtitle{font-size:14px;color:var(--dim);margin-bottom:24px}
+h2{font-size:20px;color:var(--heading);font-weight:600;margin:32px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border);scroll-margin-top:20px}
+h3{font-size:16px;color:var(--heading);font-weight:600;margin:20px 0 10px;scroll-margin-top:20px}
+p{margin:8px 0;font-size:14px}
+ul,ol{padding-left:24px;margin:8px 0}
+li{margin:4px 0;font-size:14px}
+strong{color:var(--heading)}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+th{background:var(--card);padding:10px 14px;text-align:left;font-weight:600;color:var(--heading);border:1px solid var(--border);white-space:nowrap}
+td{padding:8px 14px;border:1px solid var(--border);vertical-align:top}
+code{background:var(--code-bg);padding:2px 6px;border-radius:3px;font-size:13px;font-family:'Consolas',monospace;color:#8ba3ff;border:1px solid var(--border)}
+pre{background:var(--code-bg);padding:16px 20px;border-radius:8px;overflow-x:auto;margin:16px 0;border:1px solid var(--border);font-size:13px;line-height:1.6}
+pre code{background:none;padding:0;border:none;color:var(--text)}
+.download-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 32px;margin:24px 0}
+.download-section h3{margin-top:0}
+.dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.dl-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;transition:all .2s}
+.dl-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.dl-card .dl-icon{font-size:36px;margin-bottom:10px}
+.dl-card .dl-name{font-size:15px;font-weight:600;color:var(--heading);margin-bottom:4px}
+.dl-card .dl-desc{font-size:12px;color:var(--dim);margin-bottom:12px}
+.dl-btn{display:inline-block;padding:10px 24px;background:var(--accent);color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:500;transition:all .15s}
+.dl-btn:hover{background:#5a7aee;transform:scale(1.02)}
+.dl-btn.secondary{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.dl-btn.secondary:hover{border-color:var(--accent);color:var(--accent)}
+.tab-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.tab-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;transition:all .2s}
+.tab-card:hover{border-color:var(--accent)}
+.tab-card .tc-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.tab-card .tc-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.tab-card .tc-title{font-size:15px;font-weight:600;color:var(--heading)}
+.tab-card .tc-ver{font-size:10px;color:var(--dim)}
+.tab-card p{font-size:12px;color:var(--dim);margin:0;line-height:1.6}
+.tab-card .tc-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.tag{display:inline-block;font-size:10px;padding:3px 8px;border-radius:6px;margin:2px;background:rgba(108,140,255,.08);color:#8ba3ff;border:1px solid rgba(108,140,255,.08)}
+.tag.green{background:var(--green-bg);color:var(--green)}
+.tag.orange{background:var(--orange-bg);color:var(--orange)}
+.tag.purple{background:var(--purple-bg);color:var(--purple)}
+.tag.cyan{background:var(--cyan-bg);color:var(--cyan)}
+.info-row{display:flex;flex-wrap:wrap;gap:16px;margin:16px 0;font-size:13px;color:var(--dim)}
+.info-row span{display:flex;align-items:center;gap:5px}
+.feature-table td:first-child{text-align:center;font-size:16px;width:50px}
+blockquote{border-left:3px solid var(--accent);padding:12px 16px;margin:16px 0;background:rgba(108,140,255,.04);border-radius:0 6px 6px 0;font-size:13px;color:var(--dim)}
+blockquote strong{color:#8ba3ff}
+.flow-box{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:12px 0;font-size:13px;line-height:1.8}
+hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+@media(max-width:768px){body{padding:20px}.dl-grid,.tab-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<h1><span class="icon">🛠️</span> 游戏资源工具集 <span class="ver">v3.8</span></h1>
+<p class="subtitle">All-in-one 资源管理工具 · 资源检测 + 图片续排 + 版本对比 + 问题修复 + 以图搜图</p>
+
+<div class="info-row">
+  <span>🖥️ Windows 桌面应用</span>
+  <span>💻 Win 10/11</span>
+  <span>📦 独立 exe，无需安装</span>
+  <span>📅 2026-04</span>
+</div>
+
+<div class="download-section">
+  <h3>📥 下载安装</h3>
+  <div class="dl-grid">
+    <div class="dl-card">
+      <div class="dl-icon">💾</div>
+      <div class="dl-name">GameResourceToolkit.exe</div>
+      <div class="dl-desc">独立 exe · 约 30 MB · 双击即用</div>
+      <a href="../downloads/GameResourceToolkit.exe" download class="dl-btn">⬇️ 下载 exe</a>
+    </div>
+    <div class="dl-card">
+      <div class="dl-icon">🐍</div>
+      <div class="dl-name">Python 源码运行</div>
+      <div class="dl-desc">需要 Python 3.8+ 环境</div>
+      <a href="https://github.com/diedie23/Game-Knowledge-Base" target="_blank" class="dl-btn secondary">📂 GitHub 仓库</a>
+    </div>
+  </div>
+</div>
+
+<h2 id="modules">🧩 功能模块概览</h2>
+
+<div class="tab-grid">
+  <div class="tab-card">
+    <div class="tc-header">
+      <div class="tc-icon" style="background:rgba(108,140,255,.08)">📋</div>
+      <div><div class="tc-title">Tab 1：资源检测</div><div class="tc-ver">核心模块</div></div>
+    </div>
+    <p>扫描文件夹中的图片资源，检测尺寸、命名、文件大小、重复等问题。支持多文件夹扫描、暂停/继续、4种导出格式。</p>
+    <div class="tc-tags"><span class="tag">5大检测维度</span><span class="tag">暂停/继续</span><span class="tag">Excel导出</span><span class="tag">图表统计</span></div>
+  </div>
+  <div class="tab-card">
+    <div class="tc-header">
+      <div class="tc-icon" style="background:var(--green-bg)">🔢</div>
+      <div><div class="tc-title">Tab 2：图片续排</div><div class="tc-ver">命名管理</div></div>
+    </div>
+    <p>将图片按统一命名格式（前缀 + 递增序号）重命名，智能检测已有文件的命名格式，自动从最大序号续排。</p>
+    <div class="tc-tags"><span class="tag green">智能续排</span><span class="tag green">零填充</span><span class="tag green">拖拽添加</span></div>
+  </div>
+  <div class="tab-card">
+    <div class="tc-header">
+      <div class="tc-icon" style="background:var(--orange-bg)">🔄</div>
+      <div><div class="tc-title">Tab 3：版本变化检测</div><div class="tc-ver">版本对比</div></div>
+    </div>
+    <p>对比新旧版本资源文件夹（或APK/ZIP），检测新增、删除、修改的资源。双击图片弹出三图对比预览。</p>
+    <div class="tc-tags"><span class="tag orange">MD5对比</span><span class="tag orange">像素差异</span><span class="tag orange">APK支持</span><span class="tag orange">快照管理</span></div>
+  </div>
+  <div class="tab-card">
+    <div class="tc-header">
+      <div class="tc-icon" style="background:var(--purple-bg)">🔧</div>
+      <div><div class="tc-title">Tab 4：问题快速修复</div><div class="tc-ver">批量修复</div></div>
+    </div>
+    <p>从资源检测结果导入问题资源，提供批量自动修复：命名修复、尺寸调整、格式转换、文件压缩、去重清理。</p>
+    <div class="tc-tags"><span class="tag purple">5大修复能力</span><span class="tag purple">自动备份</span><span class="tag purple">智能匹配</span></div>
+  </div>
+</div>
+
+<h2 id="tab1">📋 Tab 1：资源检测</h2>
+
+<h3>检测维度</h3>
+<table>
+  <tr><th>检测项</th><th>说明</th><th>规则示例</th></tr>
+  <tr><td>尺寸超限</td><td>图片宽高超过设定最大尺寸</td><td>最大 2048px</td></tr>
+  <tr><td>尺寸规则</td><td>宽高不符合 2 的幂/倍数规则</td><td>2的幂次方 / 4的倍数</td></tr>
+  <tr><td>命名规范</td><td>文件名不匹配正则表达式</td><td><code>^[A-Za-z0-9_]+$</code></td></tr>
+  <tr><td>文件大小</td><td>文件体积超过设定上限</td><td>最大 500KB</td></tr>
+  <tr><td>重复资源</td><td>MD5 + 多哈希初筛 + 8 层验证</td><td>跨尺寸重复检测</td></tr>
+</table>
+
+<h3>使用流程</h3>
+<div class="flow-box">
+1️⃣ 设置检测规则（最大尺寸、尺寸规则、命名规则、最大文件大小、包含格式）<br>
+2️⃣ 添加扫描文件夹（按钮添加 / 拖拽添加，支持多个）<br>
+3️⃣ 点击【开始检测】（支持暂停/继续/取消）<br>
+4️⃣ 查看检测结果（颜色区分：🟢通过 🔴问题 🟠重复 ⚪忽略）<br>
+5️⃣ 后续操作：右键菜单 / 导出报告（Excel/CSV/JSON/HTML）/ 图表统计
+</div>
+
+<h2 id="tab2">🔢 Tab 2：图片续排</h2>
+
+<h3>使用流程</h3>
+<div class="flow-box">
+1️⃣ 选择目标文件夹（自动扫描已有图片，分析命名格式）<br>
+2️⃣ 确认/修改命名设置（前缀、数字位数）<br>
+3️⃣ 选择处理方式（移动文件 / 复制文件）<br>
+4️⃣ 拖拽待处理图片到拖拽区<br>
+5️⃣ 点击【开始续排】→ 自动从最大序号+1开始编号
+</div>
+
+<blockquote>
+  <strong>💡 示例：</strong>目标文件夹已有 <code>hero_001.png</code> ~ <code>hero_042.png</code>，拖入5张新图片 → 自动生成 <code>hero_043.png</code> ~ <code>hero_047.png</code>
+</blockquote>
+
+<h2 id="tab3">🔄 Tab 3：版本变化检测</h2>
+
+<h3>核心能力</h3>
+<table>
+  <tr><th>能力</th><th>说明</th></tr>
+  <tr><td>双模式对比</td><td>文件夹 vs 文件夹 / 文件夹 vs 历史快照</td></tr>
+  <tr><td>APK/ZIP 支持</td><td>自动解压进行对比，对比后可清理临时文件</td></tr>
+  <tr><td>像素级差异</td><td>双击图片弹出三图预览窗口，差异区域红色高亮</td></tr>
+  <tr><td>大小分析</td><td>按模块/目录聚合统计大小变化</td></tr>
+  <tr><td>快照管理</td><td>生成 JSON 格式快照（MD5 + 大小 + 尺寸）</td></tr>
+  <tr><td>更新包清单</td><td>一键生成新增/修改/删除文件列表</td></tr>
+</table>
+
+<h2 id="tab4">🔧 Tab 4：问题快速修复</h2>
+
+<h3>5 大修复能力</h3>
+<table>
+  <tr><th>修复类型</th><th>实现逻辑</th></tr>
+  <tr><td><strong>命名修复</strong></td><td>正则替换不合规字符，多下划线合并，处理命名冲突</td></tr>
+  <tr><td><strong>尺寸调整</strong></td><td>等比缩小到最大尺寸，再按规则对齐（2的幂 / 4的倍数 / 8的倍数），LANCZOS 高质量缩放</td></tr>
+  <tr><td><strong>格式转换</strong></td><td>自动处理色彩模式（RGBA→RGB），保存为目标格式</td></tr>
+  <tr><td><strong>文件压缩</strong></td><td>两阶段：质量压缩 + 尺寸缩小（最多5次，每次缩小15%）</td></tr>
+  <tr><td><strong>去重清理</strong></td><td>删除重复文件（建议先备份）</td></tr>
+</table>
+
+<h2 id="global">🌐 全局特性</h2>
+
+<table>
+  <tr><th>特性</th><th>Tab1 检测</th><th>Tab2 续排</th><th>Tab3 版本</th><th>Tab4 修复</th></tr>
+  <tr><td>拖拽支持</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+  <tr><td>多线程</td><td>✅</td><td>❌</td><td>✅</td><td>✅</td></tr>
+  <tr><td>暂停/取消</td><td>✅</td><td>❌</td><td>✅</td><td>❌</td></tr>
+  <tr><td>搜索过滤</td><td>✅</td><td>❌</td><td>✅</td><td>❌</td></tr>
+  <tr><td>右键菜单</td><td>✅</td><td>❌</td><td>✅</td><td>✅</td></tr>
+  <tr><td>导出报告</td><td>✅ 4种</td><td>❌</td><td>✅ 3种</td><td>❌</td></tr>
+  <tr><td>配置持久化</td><td>✅</td><td>❌</td><td>✅</td><td>✅</td></tr>
+</table>
+
+<h2 id="tech">⚙️ 技术栈</h2>
+
+<table>
+  <tr><th>项目</th><th>技术</th></tr>
+  <tr><td>语言</td><td>Python 3</td></tr>
+  <tr><td>GUI 框架</td><td>Tkinter + ttk</td></tr>
+  <tr><td>图片处理</td><td>Pillow (PIL)</td></tr>
+  <tr><td>Excel 导出</td><td>openpyxl</td></tr>
+  <tr><td>图像差异</td><td>NumPy</td></tr>
+  <tr><td>图表统计</td><td>matplotlib (可选)</td></tr>
+  <tr><td>拖拽支持</td><td>tkinterdnd2 (可选)</td></tr>
+  <tr><td>打包</td><td>PyInstaller</td></tr>
+</table>
+
+<hr>
+
+<blockquote>
+  <strong>💡 提示：</strong>如果 exe 文件被杀毒软件拦截，请添加到白名单。这是 PyInstaller 打包的正常现象。
+</blockquote>
+
+</body>
+</html>

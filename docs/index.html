@@ -37,14 +37,17 @@
     </div>
 
     <!-- UI -->
-    <div class="t1" id="cat-ui"><div class="t1-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="ci" style="background:var(--purple-bg);color:var(--purple)">🖥️</span><span class="cl">UI · 界面</span><span class="cc">4</span></div>
+    <div class="t1" id="cat-ui"><div class="t1-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="ci" style="background:var(--purple-bg);color:var(--purple)">🖥️</span><span class="cl">UI · 界面</span><span class="cc">6</span></div>
       <div class="t1-c"><div class="t2"><div class="t2-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="si">📄</span><span class="sl">文档</span></div><div class="t2-c">
         <button class="leaf" data-page="ui-slice-naming" onclick="navigate('ui-slice-naming',this)"><span class="li">✂️</span>切图与命名规范<span class="badge bd">文档</span></button><div class="toc-box" id="toc-ui-slice-naming"></div>
         <button class="leaf" data-page="ui-9slice-color" onclick="navigate('ui-9slice-color',this)"><span class="li">🎨</span>9宫格与颜色空间<span class="badge bd">文档</span></button><div class="toc-box" id="toc-ui-9slice-color"></div>
         <button class="leaf" data-page="ui-layout" onclick="navigate('ui-layout',this)"><span class="li">📐</span>Layout 拼接规范<span class="badge bd">文档</span></button><div class="toc-box" id="toc-ui-layout"></div>
         <button class="leaf" data-page="ui-umg-tips" onclick="navigate('ui-umg-tips',this)"><span class="li">⚡</span>UMG 生成技巧<span class="badge bd">文档</span></button><div class="toc-box" id="toc-ui-umg-tips"></div>
       </div></div>
-      <div class="t2"><div class="t2-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="si">🔧</span><span class="sl">工具</span></div><div class="t2-c"><button class="leaf" style="color:var(--dim);cursor:default;font-style:italic;font-size:11px" disabled>📝 待补充...</button></div></div></div>
+      <div class="t2"><div class="t2-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="si">🔧</span><span class="sl">工具</span></div><div class="t2-c">
+          <button class="leaf" data-page="image-skew-corrector" onclick="navigate('image-skew-corrector',this)"><span class="li">📐</span>图片倾斜矫正工具<span class="badge bt">工具</span></button><div class="toc-box" id="toc-image-skew-corrector"></div>
+          <button class="leaf" data-page="game-resource-toolkit" onclick="navigate('game-resource-toolkit',this)"><span class="li">🛠️</span>游戏资源工具集<span class="badge bt">工具</span></button><div class="toc-box" id="toc-game-resource-toolkit"></div>
+      </div></div></div>
     </div>
 
     <!-- 场景 -->
@@ -64,7 +67,7 @@
       </div></div></div>
     </div>
   </nav>
-  <div class="sidebar-footer"><span>v3.2 · 2026-04-01</span><a onclick="copyShareLink()">🔗 分享</a><a onclick="showFeedback()" style="margin-left:6px">📮 反馈</a></div>
+  <div class="sidebar-footer"><span>v3.3 · 2026-04-01</span><a onclick="copyShareLink()">🔗 分享</a><a onclick="showFeedback()" style="margin-left:6px">📮 反馈</a></div>
 </aside>
 
 <!-- Main Content -->
@@ -74,7 +77,7 @@
     <!-- Home -->
     <div class="home" id="pageHome">
       <div class="home-hero"><h1>🎮 游戏项目<span>知识库</span></h1><p>团队共享的美术规范、技术方案与生产工具，持续更新中</p></div>
-      <div class="stats-bar"><div class="stat"><div class="num">10</div><div class="label">规范文档</div></div><div class="stat"><div class="num">3</div><div class="label">生产工具</div></div><div class="stat"><div class="num">7</div><div class="label">知识分类</div></div></div>
+      <div class="stats-bar"><div class="stat"><div class="num">10</div><div class="label">规范文档</div></div><div class="stat"><div class="num">5</div><div class="label">生产工具</div></div><div class="stat"><div class="num">7</div><div class="label">知识分类</div></div></div>
       <div class="hst">📋 角色 · Character</div>
       <div class="home-grid">
         <div class="home-card" onclick="navigate('d1')"><div class="hci" style="background:var(--accent-bg)">📐</div><h3>2D UGC 角色出图规范</h3><p>基于主流 UGC 游戏总结的全流程规范</p><div class="tags"><span class="tag">分辨率</span><span class="tag">部件拆分</span><span class="tag">动画</span></div></div>
@@ -90,6 +93,11 @@
       <div class="home-grid">
         <div class="home-card" onclick="navigate('cp-management')"><div class="hci" style="background:var(--cyan-bg)">📋</div><h3>CP 外包管理手册</h3><p>全流程管理：需求下发、验收、结算</p><div class="tags"><span class="tag" style="background:var(--cyan-bg);color:var(--cyan)">外包</span></div></div>
         <div class="home-card" onclick="navigate('game-art-pipeline')"><div class="hci" style="background:var(--orange-bg)">📊</div><h3>游戏美术流程总结</h3><p>2D休闲 / 3D / 二次元美术流程对比</p><div class="tags"><span class="tag" style="background:var(--orange-bg);color:var(--orange)">流程</span></div></div>
+      </div>
+      <div class="hst" style="margin-top:32px">🔧 UI 工具</div>
+      <div class="home-grid">
+        <div class="home-card" onclick="navigate('image-skew-corrector')"><div class="hci" style="background:var(--orange-bg)">📐</div><h3>图片倾斜矫正工具</h3><p>多算法融合检测倾斜角度，自动矫正到垂直</p><div class="tags"><span class="tag" style="background:var(--purple-bg);color:var(--purple)">桌面工具</span><span class="tag">批量处理</span></div></div>
+        <div class="home-card" onclick="navigate('game-resource-toolkit')"><div class="hci" style="background:var(--cyan-bg)">🛠️</div><h3>游戏资源工具集</h3><p>资源检测 + 图片续排 + 版本对比 + 问题修复</p><div class="tags"><span class="tag" style="background:var(--purple-bg);color:var(--purple)">桌面工具</span><span class="tag">All-in-one</span></div></div>
       </div>
       <div class="hst" style="margin-top:32px">📂 更多分类</div>
       <div class="home-grid">
