@@ -398,4 +398,12 @@ document.addEventListener('DOMContentLoaded', function(){
   var hash=location.hash.slice(1);
   if(hash) navigate(hash);
   initSearch();
+
+  // 监听 md-viewer iframe 渲染完成通知，重新构建 TOC
+  window.addEventListener('message',function(e){
+    if(e.data&&e.data.type==='md-viewer-ready'&&curPage){
+      buildIframeToc(curPage);
+      setupIframeScrollSpy(curPage);
+    }
+  });
 });

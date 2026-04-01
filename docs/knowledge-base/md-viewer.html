@@ -5,16 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>文档查看 · 游戏项目知识库</title>
 <style>
-:root{--bg:#0d0f15;--card:#161829;--border:#222540;--text:#c5c9d6;--dim:#6b7085;--heading:#e8eaed;--accent:#6c8cff;--accent-light:#8ba3ff;--accent-bg:rgba(108,140,255,.07);--green:#4ade80;--green-bg:rgba(74,222,128,.07);--orange:#fb923c;--orange-bg:rgba(251,146,60,.07);--red:#f87171;--purple:#a78bfa;--purple-bg:rgba(167,139,250,.07);--code-bg:#1a1d2d}
+:root{--bg:#0d0f15;--card:#161829;--border:#222540;--text:#c5c9d6;--dim:#6b7085;--heading:#e8eaed;--accent:#6c8cff;--accent-light:#8ba3ff;--accent-bg:rgba(108,140,255,.07);--green:#4ade80;--green-bg:rgba(74,222,128,.07);--orange:#fb923c;--orange-bg:rgba(251,146,60,.07);--red:#f87171;--purple:#a78bfa;--purple-bg:rgba(167,139,250,.07);--code-bg:#1a1d2d;--glow:rgba(108,140,255,.35)}
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
-.topbar{position:sticky;top:0;z-index:100;background:rgba(13,15,21,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:56px}
-.topbar-brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--heading);cursor:pointer}.topbar-brand .logo{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff}
-.topbar-nav{display:flex;gap:4px}.topbar-nav a{padding:8px 16px;border-radius:8px;font-size:13px;color:var(--dim);transition:all .15s;text-decoration:none}.topbar-nav a:hover{color:var(--text);background:rgba(255,255,255,.04)}
-.page{max-width:960px;margin:0 auto;padding:40px 32px 80px}
+
+/* Page container */
+.page{max-width:1000px;margin:0 auto;padding:40px 32px 80px}
+
+/* Info Card - 毛玻璃效果 */
+.info-card{background:rgba(22,24,41,.65);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(108,140,255,.15);border-radius:16px;padding:24px 28px;margin-bottom:32px;position:relative;overflow:hidden}
+.info-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--purple),var(--accent));opacity:.6}
+.info-card .ic-title{font-size:13px;color:var(--dim);font-weight:600;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase}
+.info-card .ic-desc{font-size:14px;color:var(--text);line-height:1.8;margin-bottom:12px}
+.info-card .ic-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.info-card .ic-tag{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--accent-bg);color:var(--accent-light);border:1px solid rgba(108,140,255,.12)}
+.info-card .ic-date{font-size:12px;color:var(--dim);display:flex;align-items:center;gap:4px}
+
+/* Document Content */
 .dc h1{font-size:26px;color:var(--heading);font-weight:700;margin-bottom:8px;padding-bottom:12px;border-bottom:2px solid var(--accent)}
-.dc h2{font-size:20px;color:var(--heading);font-weight:600;margin:36px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
-.dc h3{font-size:16px;color:var(--heading);font-weight:600;margin:24px 0 10px}
+.dc h2{font-size:20px;color:var(--heading);font-weight:600;margin:42px 0 16px;padding:12px 0 10px 0;border-bottom:1px solid var(--border);scroll-margin-top:20px;position:relative;display:flex;align-items:center;gap:12px}
+.dc h2 .h-idx{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;font-size:14px;font-weight:700;flex-shrink:0;box-shadow:0 0 12px var(--glow)}
+.dc h2 .h-line{position:absolute;left:-20px;top:12px;bottom:10px;width:3px;border-radius:2px;background:linear-gradient(180deg,var(--accent),var(--purple));opacity:.5}
+.dc h3{font-size:16px;color:var(--heading);font-weight:600;margin:28px 0 12px;scroll-margin-top:20px;position:relative;display:flex;align-items:center;gap:10px;padding-left:6px;border-left:3px solid rgba(108,140,255,.3)}
+.dc h3 .h-idx{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;border-radius:7px;background:var(--accent-bg);color:var(--accent);font-size:12px;font-weight:600;flex-shrink:0;padding:0 6px}
 .dc h4{font-size:14px;color:var(--accent-light);font-weight:600;margin:18px 0 8px}
 .dc p{margin:8px 0;font-size:14px;line-height:1.8}
 .dc blockquote{border-left:3px solid var(--accent);padding:12px 16px;margin:16px 0;background:var(--accent-bg);border-radius:0 6px 6px 0;color:var(--dim);font-size:14px}
@@ -29,54 +42,257 @@
 .dc tr:hover td{background:rgba(108,140,255,.03)}
 .dc hr{border:none;border-top:1px solid var(--border);margin:28px 0}
 .dc input[type="checkbox"]{margin-right:6px;accent-color:var(--accent)}
+
+/* Mermaid 流程图容器 */
+.flow-wrap{margin:24px 0;padding:28px 20px;background:rgba(22,24,41,.5);border:1px solid rgba(108,140,255,.12);border-radius:16px;position:relative;overflow:hidden}
+.flow-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),var(--purple),transparent)}
+.flow-wrap .flow-title{font-size:13px;color:var(--dim);font-weight:600;text-align:center;margin-bottom:16px;letter-spacing:1px}
+.flow-wrap .mermaid{display:flex;justify-content:center}
+.flow-wrap .mermaid svg{max-width:100%}
+
+/* Mermaid dark theme override */
+.mermaid .node rect,.mermaid .node polygon{rx:10;ry:10}
+.mermaid .edgeLabel{background:var(--bg)!important;color:var(--dim)!important;font-size:11px!important}
+
+/* Back to top */
+.btt-inner{position:fixed;bottom:24px;right:24px;width:40px;height:40px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--dim);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;opacity:0;pointer-events:none;transition:all .2s;z-index:50}
+.btt-inner.show{opacity:1;pointer-events:auto}
+.btt-inner:hover{border-color:var(--accent);color:var(--accent)}
+
 .loading{text-align:center;padding:60px;color:var(--dim);font-size:15px}
-.footer{text-align:center;padding:40px 20px 32px;border-top:1px solid var(--border);margin-top:40px}.footer p{font-size:12px;color:var(--dim)}
-@media(max-width:768px){.topbar{padding:0 16px}.page{padding:20px 16px 60px}}
+@media(max-width:768px){.page{padding:20px 16px 60px}.flow-wrap{padding:16px 8px}}
 </style>
 </head>
 <body>
-<header class="topbar"><div class="topbar-brand" onclick="location.href='../index.html'"><span class="logo">📖</span> 游戏项目知识库</div><nav class="topbar-nav"><a href="../index.html">🏠 首页</a><a href="../tools.html">🔧 工具集</a></nav></header>
 <div class="page">
   <div id="content" class="dc"><div class="loading">⏳ 加载中...</div></div>
-  <div class="footer"><p>🎮 游戏项目知识库 · <a href="../index.html">返回首页</a></p></div>
 </div>
+<button class="btt-inner" id="bttInner" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <script>
+// Mermaid 初始化 - 深色主题
+mermaid.initialize({
+  startOnLoad:false,
+  theme:'dark',
+  themeVariables:{
+    primaryColor:'#1e2240',
+    primaryTextColor:'#e8eaed',
+    primaryBorderColor:'#6c8cff',
+    lineColor:'#6c8cff',
+    secondaryColor:'#1a1d35',
+    tertiaryColor:'#161829',
+    fontFamily:'-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,sans-serif',
+    fontSize:'13px',
+    nodeBorder:'#6c8cff',
+    mainBkg:'#1e2240',
+    clusterBkg:'rgba(108,140,255,.05)',
+    clusterBorder:'rgba(108,140,255,.2)',
+    edgeLabelBackground:'#0d0f15'
+  },
+  flowchart:{
+    htmlLabels:true,
+    curve:'basis',
+    padding:16,
+    nodeSpacing:30,
+    rankSpacing:50,
+    useMaxWidth:true
+  }
+});
+
+// ═══ Markdown Parser (增强版) ═══
 function parseMd(md){
   let h=md;
-  h=h.replace(/```(\w*)\n([\s\S]*?)```/g,(_,l,c)=>`<pre><code>${c.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').trim()}</code></pre>`);
+  // 代码块
+  h=h.replace(/```(\w*)\n([\s\S]*?)```/g,(_,l,c)=>'<pre><code>'+c.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').trim()+'</code></pre>');
+  // 表格
   h=h.replace(/^(\|.+\|)\n(\|[-| :]+\|)\n((?:\|.+\|\n?)*)/gm,(_,hdr,sep,body)=>{
-    const ths=hdr.split('|').filter(c=>c.trim()).map(c=>`<th>${c.trim().replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}</th>`).join('');
-    const rows=body.trim().split('\n').map(r=>{const tds=r.split('|').filter(c=>c.trim()).map(c=>`<td>${c.trim().replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>')}</td>`).join('');return`<tr>${tds}</tr>`;}).join('');
-    return`<table><thead><tr>${ths}</tr></thead><tbody>${rows}</tbody></table>`;
+    const ths=hdr.split('|').filter(c=>c.trim()).map(c=>'<th>'+inl(c.trim())+'</th>').join('');
+    const rows=body.trim().split('\n').map(r=>{const tds=r.split('|').filter(c=>c.trim()).map(c=>'<td>'+inl(c.trim())+'</td>').join('');return'<tr>'+tds+'</tr>';}).join('');
+    return'<table><thead><tr>'+ths+'</tr></thead><tbody>'+rows+'</tbody></table>';
   });
   h=h.replace(/^#### (.+)$/gm,'<h4>$1</h4>');
-  h=h.replace(/^### (.+)$/gm,(_,t)=>`<h3>${t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}</h3>`);
-  h=h.replace(/^## (.+)$/gm,(_,t)=>`<h2>${t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}</h2>`);
-  h=h.replace(/^# (.+)$/gm,(_,t)=>`<h1>${t}</h1>`);
+  h=h.replace(/^### (.+)$/gm,(_,t)=>'<h3 id="'+slug(t)+'">'+inl(t)+'</h3>');
+  h=h.replace(/^## (.+)$/gm,(_,t)=>'<h2 id="'+slug(t)+'">'+inl(t)+'</h2>');
+  h=h.replace(/^# (.+)$/gm,(_,t)=>'<h1>'+inl(t)+'</h1>');
   h=h.replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>');
   h=h.replace(/<\/blockquote>\n<blockquote>/g,'<br>');
   h=h.replace(/^---$/gm,'<hr>');
-  h=h.replace(/^- \[( |x)\] (.+)$/gm,(_,c,t)=>`<p><input type="checkbox"${c==='x'?' checked':''} disabled>${t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}</p>`);
+  h=h.replace(/^- \[( |x)\] (.+)$/gm,(_,c,t)=>'<p><input type="checkbox"'+(c==='x'?' checked':'')+' disabled>'+inl(t)+'</p>');
   h=h.replace(/^- (.+)$/gm,'<li>$1</li>');
-  h=h.replace(/(<li>.*<\/li>\n?)+/g,m=>`<ul>${m}</ul>`);
+  h=h.replace(/(<li>.*<\/li>\n?)+/g,m=>'<ul>'+m+'</ul>');
   h=h.replace(/^\d+\. (.+)$/gm,'<li>$1</li>');
-  h=h.replace(/^(?!<[a-z/])((?!<).+)$/gm,m=>{m=m.trim();return m?`<p>${m.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>')}</p>`:m;});
+  h=h.replace(/^(?!<[a-z/])((?!<).+)$/gm,m=>{m=m.trim();return m?'<p>'+inl(m)+'</p>':m;});
   h=h.replace(/<p><\/p>/g,'');
   return h;
 }
+function inl(t){return t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>');}
+function slug(t){return t.replace(/[^\w\u4e00-\u9fff]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');}
+
+// ═══ 流程图定义 ═══
+var flowcharts={
+  '轻度2D休闲游戏':{
+    title:'轻度 2D 休闲游戏 · 美术制作流程',
+    mermaid:`graph LR
+  A["① 概念阶段<br/><small>美术风格定义<br/>参考图收集<br/>色板确定</small>"]
+  B["② 角色/元素设计<br/><small>角色三视图<br/>场景元素设计<br/>UI 元素设计</small>"]
+  C["③ 动画制作<br/><small>帧动画/骨骼<br/>Spine/序列帧<br/>特效动画</small>"]
+  D["④ 资源拆分切图<br/><small>部件拆分<br/>图集打包<br/>命名规范化</small>"]
+  E["⑤ 引擎集成测试<br/><small>引擎导入验证<br/>适配测试<br/>性能检测</small>"]
+  F["⑥ 优化与发布<br/><small>包体优化<br/>压缩导出<br/>多端发布</small>"]
+  A --> B --> C --> D --> E --> F`
+  },
+  '重度3D游戏':{
+    title:'重度 3D 游戏 · 美术制作流程',
+    mermaid:`graph LR
+  A["① 概念设计<br/><small>概念原画<br/>三视图<br/>材质方案</small>"]
+  B["② 高模制作<br/><small>ZBrush高模<br/>细节雕刻<br/>多组件制作</small>"]
+  C["③ 低模 & 拓扑<br/><small>拓扑减面<br/>UV展开<br/>面数控制</small>"]
+  D["④ 贴图烘焙<br/><small>法线贴图<br/>AO/Curvature<br/>ID Map</small>"]
+  E["⑤ 材质制作<br/><small>PBR材质<br/>材质球调试<br/>LOD材质</small>"]
+  F["⑥ 骨骼 & 动画<br/><small>骨骼绑定<br/>权重绘制<br/>动作K帧</small>"]
+  G["⑦ 引擎集成<br/><small>引擎导入<br/>Shader适配<br/>光照测试</small>"]
+  H["⑧ 性能优化<br/><small>LOD层级<br/>材质简化<br/>DrawCall优化</small>"]
+  I["⑨ 终审发布<br/><small>多端测试<br/>问题修复<br/>资源归档</small>"]
+  A --> B --> C --> D --> E --> F --> G --> H --> I`
+  },
+  '二次元手游':{
+    title:'二次元手游 · 美术制作流程',
+    mermaid:`graph LR
+  A["① 角色企划<br/><small>世界观设定<br/>角色设定<br/>IP/联动确认</small>"]
+  B["② 立绘/原画<br/><small>角色立绘<br/>表情差分<br/>武器/道具</small>"]
+  C["③ 建模（可选）<br/><small>3D建模<br/>卡通渲染<br/>Toon Shader</small>"]
+  D["④ Live2D/Spine<br/><small>模型拆分<br/>动态立绘<br/>待机动画</small>"]
+  E["⑤ UI/界面<br/><small>角色卡界面<br/>抽卡演出<br/>主界面设计</small>"]
+  F["⑥ 特效 & 演出<br/><small>技能特效<br/>战斗演出<br/>剧情CG</small>"]
+  G["⑦ 本地化适配<br/><small>多语言文本<br/>文化适配<br/>审核适配</small>"]
+  H["⑧ 性能优化<br/><small>贴图压缩<br/>动画优化<br/>内存控制</small>"]
+  I["⑨ 终审上线<br/><small>合规审查<br/>版号材料<br/>资源归档</small>"]
+  A --> B --> C --> D --> E --> F --> G --> H --> I`
+  }
+};
+
+// ═══ 后处理：替换流程图、注入InfoCard、装饰标题 ═══
+function postProcess(html){
+  // 1. 提取并替换 InfoCard（从第一个 blockquote 提取信息）
+  html=html.replace(/<blockquote>([\s\S]*?)<\/blockquote>/,function(m,content){
+    // 提取日期和标签
+    var dateMatch=content.match(/📅\s*更新时间[：:]\s*([\d-]+)/);
+    var tagMatch=content.match(/🏷️\s*(.*)/);
+    var desc=content.replace(/<br>/g,' ').replace(/📅.*$/,'').replace(/🏷️.*$/,'').replace(/<\/?[^>]+>/g,'').trim();
+    var date=dateMatch?dateMatch[1]:'';
+    var tags=tagMatch?tagMatch[1].split(/[·、,，]/).map(function(t){return t.trim()}).filter(Boolean):[];
+
+    var card='<div class="info-card"><div class="ic-title">📋 文档概述</div>';
+    if(desc) card+='<div class="ic-desc">'+desc+'</div>';
+    card+='<div class="ic-meta">';
+    if(date) card+='<span class="ic-date">📅 '+date+'</span>';
+    tags.forEach(function(t){card+='<span class="ic-tag">'+t+'</span>';});
+    card+='</div></div>';
+    return card;
+  });
+
+  // 2. 替换ASCII流程图为Mermaid
+  var flowIdx=0;
+  html=html.replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/g,function(m,code){
+    var decoded=code.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+    // 检测是否是 ASCII 流程图
+    if(decoded.indexOf('┌')>=0 && decoded.indexOf('───')>=0){
+      // 识别是哪个流程图
+      var key=null;
+      for(var k in flowcharts){
+        if(decoded.indexOf(k)>=0){key=k;break;}
+      }
+      if(key){
+        var fc=flowcharts[key];
+        var id='flow-'+(flowIdx++);
+        return '<div class="flow-wrap"><div class="flow-title">'+fc.title+'</div><div class="mermaid" id="'+id+'">'+fc.mermaid+'</div></div>';
+      }
+    }
+    return m;
+  });
+
+  // 3. 为 H2 添加数字索引图标和装饰线
+  var h2Idx=0;
+  var h2Labels=['一','二','三','四','五','六','七','八','九','十'];
+  html=html.replace(/<h2 id="([^"]*)">(.*?)<\/h2>/g,function(m,id,text){
+    var cleanText=text.replace(/^[一二三四五六七八九十]+[、．.]\s*/,'');
+    var label=h2Labels[h2Idx]||String(h2Idx+1);
+    h2Idx++;
+    return '<h2 id="'+id+'"><span class="h-line"></span><span class="h-idx">'+label+'</span>'+cleanText+'</h2>';
+  });
+
+  // 4. 为 H3 添加数字索引
+  html=html.replace(/<h3 id="([^"]*)">(.*?)<\/h3>/g,function(m,id,text){
+    var numMatch=text.match(/^(\d+\.\d+)\s*/);
+    var idx=numMatch?numMatch[1]:'';
+    var cleanText=numMatch?text.replace(/^\d+\.\d+\s*/,''):text;
+    return '<h3 id="'+id+'"><span class="h-idx">'+idx+'</span>'+cleanText+'</h3>';
+  });
+
+  return html;
+}
+
+// ═══ 初始化 ═══
 async function init(){
-  const params=new URLSearchParams(location.search);
-  const file=params.get('file');
+  var params=new URLSearchParams(location.search);
+  var file=params.get('file');
   if(!file){document.getElementById('content').innerHTML='<p>未指定文件</p>';return;}
   try{
-    const res=await fetch(file);
+    var res=await fetch(file);
     if(!res.ok)throw new Error(res.status);
-    const md=await res.text();
-    document.getElementById('content').innerHTML=parseMd(md);
-    const h1=document.querySelector('.dc h1');
-    if(h1)document.title=h1.textContent+' · 游戏项目知识库';
-  }catch(e){document.getElementById('content').innerHTML=`<p style="color:var(--red)">加载失败：${e.message}</p>`;}
+    var md=await res.text();
+    var html=parseMd(md);
+    html=postProcess(html);
+    document.getElementById('content').innerHTML=html;
+
+    var h1=document.querySelector('.dc h1');
+    if(h1) document.title=h1.textContent+' · 游戏项目知识库';
+
+    // 渲染 Mermaid 图
+    await mermaid.run({nodes:document.querySelectorAll('.mermaid')});
+
+    // 为 Mermaid 节点添加发光效果
+    document.querySelectorAll('.mermaid .node rect, .mermaid .node polygon').forEach(function(el){
+      el.style.filter='drop-shadow(0 0 6px rgba(108,140,255,.3))';
+    });
+
+    // 给流程图节点添加点击跳转锚点
+    addFlowAnchors();
+
+    // 通知父级 iframe 内容已渲染完毕，可以构建 TOC
+    if(window.parent && window.parent!==window){
+      window.parent.postMessage({type:'md-viewer-ready'},'*');
+    }
+  }catch(e){document.getElementById('content').innerHTML='<p style="color:var(--red)">加载失败：'+e.message+'</p>';}
+
+  // 返回顶部按钮
+  window.addEventListener('scroll',function(){
+    document.getElementById('bttInner').classList.toggle('show',window.scrollY>300);
+  });
 }
+
+function addFlowAnchors(){
+  document.querySelectorAll('.mermaid .node').forEach(function(node){
+    node.style.cursor='pointer';
+    node.addEventListener('click',function(){
+      var text=node.textContent||'';
+      // 尝试匹配阶段编号找到对应的 H3
+      var stageMatch=text.match(/[①②③④⑤⑥⑦⑧⑨]\s*(\S+)/);
+      if(stageMatch){
+        var keyword=stageMatch[1].replace(/[/&]/g,'');
+        var headings=document.querySelectorAll('h2, h3');
+        for(var i=0;i<headings.length;i++){
+          if(headings[i].textContent.indexOf(keyword)>=0){
+            headings[i].scrollIntoView({behavior:'smooth',block:'start'});
+            return;
+          }
+        }
+      }
+    });
+  });
+}
+
 init();
 </script>
 </body>
