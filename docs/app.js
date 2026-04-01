@@ -186,7 +186,16 @@ function getOrCreateDocPage(pageId){
   pg=document.createElement('div');
   pg.id='page-'+pageId;
   pg.className='doc-page';
-  pg.innerHTML='<div class="dc" id="ct-'+pageId+'"></div>';
+  var reg=pageRegistry[pageId]||{};
+  var isEditable=reg.type==='md';
+  var toolbar='';
+  if(isEditable){
+    toolbar='<div class="doc-toolbar"><span class="doc-toolbar-title">📄 '+((reg.file||'').split('/').pop()||'')+'</span><div class="doc-toolbar-actions">'
+      +'<button class="dt-btn" onclick="editDocument(\''+pageId+'\')">✏️ 编辑</button>'
+      +'<button class="dt-btn dt-btn-danger" onclick="confirmDeleteDocument(\''+pageId+'\')">🗑️ 删除</button>'
+      +'</div></div>';
+  }
+  pg.innerHTML=toolbar+'<div class="dc" id="ct-'+pageId+'"></div>';
   document.getElementById('contentScroll').appendChild(pg);
   return pg;
 }
@@ -461,7 +470,10 @@ var templates={
   'tool-doc':'# 工具说明文档\n\n> 📅 更新时间：YYYY-MM-DD · 🏷️ 工具\n\n---\n\n## 一、工具概述\n\n| 项目 | 内容 |\n|------|------|\n| **工具名称** |  |\n| **版本** | v1.0 |\n| **环境要求** |  |\n\n## 二、安装 / 使用方式\n\n\n\n## 三、功能说明\n\n### 3.1 功能一\n\n\n\n### 3.2 功能二\n\n\n\n## 四、常见问题\n\n| 问题 | 解决方案 |\n|------|----------|\n|  |  |\n\n## 五、更新日志\n\n| 版本 | 日期 | 内容 |\n|------|------|------|\n| v1.0 |  | 初版 |\n'
 };
 
-function openEditor(){
+var editingPageId=null; // 正在编辑的文档ID（null=新建）
+
+function openEditor(existingPageId){
+  editingPageId=existingPageId||null;
   // 隐藏主内容区
   document.getElementById('contentScroll').style.display='none';
   document.getElementById('contentFrame').style.display='none';
@@ -495,17 +507,28 @@ function openEditor(){
         accept:'image/*'
       },
       after:function(){
-        // 加载本地草稿
-        var draft=localStorage.getItem('kb_editor_draft');
-        if(draft) vditorInstance.setValue(draft);
+        loadEditorContent();
       },
       input:function(val){
         localStorage.setItem('kb_editor_draft',val);
       }
     });
+  } else {
+    // 编辑器已存在，直接加载内容
+    loadEditorContent();
   }
   // 加载设置
   loadEditorSettings();
+  // 更新标题
+  var titleEl=document.querySelector('.eh-title');
+  var pubBtn=document.querySelector('.eh-btn-primary');
+  if(editingPageId){
+    if(titleEl) titleEl.textContent='✏️ 编辑模式';
+    if(pubBtn) pubBtn.textContent='💾 保存更新';
+  }else{
+    if(titleEl) titleEl.textContent='✍️ 创作模式';
+    if(pubBtn) pubBtn.textContent='🚀 发布到仓库';
+  }
 }
 
 function closeEditor(){
@@ -541,6 +564,132 @@ function downloadMd(){
   a.click();
   URL.revokeObjectURL(a.href);
   showToast('已下载 '+name);
+}
+
+// ═══ 编辑器内容加载 ═══
+function loadEditorContent(){
+  if(!vditorInstance) return;
+  if(editingPageId&&docs[editingPageId]){
+    // 编辑已有文档
+    vditorInstance.setValue(docs[editingPageId]);
+    var reg=pageRegistry[editingPageId]||{};
+    var fileName=(reg.file||'').split('/').pop().replace(/\.md$/,'');
+    document.getElementById('editorFileName').value=fileName;
+    // 选择对应分类
+    if(reg.catId){
+      var catSel=document.getElementById('editorCategory');
+      for(var i=0;i<catSel.options.length;i++){if(catSel.options[i].value===reg.catId){catSel.selectedIndex=i;break;}}
+    }
+  } else if(editingPageId&&pageRegistry[editingPageId]){
+    // 需要先 fetch
+    var reg=pageRegistry[editingPageId];
+    vditorInstance.setValue('⏳ 加载中...');
+    fetch(reg.file).then(function(r){return r.text();}).then(function(md){
+      docs[editingPageId]=md;
+      vditorInstance.setValue(md);
+      var fileName=(reg.file||'').split('/').pop().replace(/\.md$/,'');
+      document.getElementById('editorFileName').value=fileName;
+      if(reg.catId){
+        var catSel=document.getElementById('editorCategory');
+        for(var i=0;i<catSel.options.length;i++){if(catSel.options[i].value===reg.catId){catSel.selectedIndex=i;break;}}
+      }
+    });
+  } else {
+    // 新建文档 — 加载草稿
+    var draft=localStorage.getItem('kb_editor_draft');
+    if(draft) vditorInstance.setValue(draft);
+  }
+}
+
+function editDocument(pageId){
+  openEditor(pageId);
+}
+
+function confirmDeleteDocument(pageId){
+  var reg=pageRegistry[pageId];
+  if(!reg) return;
+  var name=(reg.file||'').split('/').pop();
+  var dlg=document.getElementById('deleteDialog');
+  if(!dlg){
+    dlg=document.createElement('div');dlg.id='deleteDialog';dlg.className='fb-overlay';
+    dlg.innerHTML='<div class="dialog-card" style="max-width:420px">'
+      +'<h3>🗑️ 确认删除</h3>'
+      +'<p class="dlg-desc" id="deleteDesc"></p>'
+      +'<p class="dlg-hint" style="color:#f87171">⚠️ 删除后无法恢复（除非通过 GitHub 历史记录）。</p>'
+      +'<div class="dlg-actions">'
+      +'<button class="eh-btn" onclick="document.getElementById(\'deleteDialog\').classList.remove(\'show\')">取消</button>'
+      +'<button class="eh-btn" id="deleteConfirmBtn" style="background:#f87171;color:#fff;border:none">确认删除</button>'
+      +'</div></div>';
+    document.body.appendChild(dlg);
+    dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.classList.remove('show');});
+  }
+  document.getElementById('deleteDesc').textContent='确定要删除「'+name+'」吗？文档将从知识库和侧边栏中移除。';
+  document.getElementById('deleteConfirmBtn').onclick=function(){deleteDocument(pageId);};
+  dlg.classList.add('show');
+}
+
+async function deleteDocument(pageId){
+  var s=getGHSettings();
+  if(!s.token){showToast('请先在设置中绑定访问密钥');return;}
+  var reg=pageRegistry[pageId];
+  if(!reg) return;
+
+  var repo=s.repo||'diedie23/Game-Knowledge-Base';
+  var branch=s.branch||'main';
+  var filePath='docs/'+reg.file.replace(/\?.*$/,'');
+  var name=(reg.file||'').split('/').pop().replace(/\.md$/,'');
+
+  var btn=document.getElementById('deleteConfirmBtn');
+  btn.textContent='删除中...';btn.disabled=true;
+
+  try{
+    var base='https://api.github.com/repos/'+repo+'/contents/';
+    var headers={'Authorization':'token '+s.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};
+
+    // 1. 获取文件 sha
+    var fileRes=await fetch(base+filePath+'?ref='+branch,{headers:headers});
+    if(!fileRes.ok) throw new Error('找不到文件');
+    var fileData=await fileRes.json();
+
+    // 2. 删除文件
+    var res=await fetch(base+filePath,{method:'DELETE',headers:headers,body:JSON.stringify({message:'docs: 删除 '+name,sha:fileData.sha,branch:branch})});
+    if(!res.ok) throw new Error('删除失败');
+
+    // 3. 更新 sidebar.json — 移除条目
+    try{
+      var sbRes=await fetch(base+'docs/sidebar.json?ref='+branch,{headers:headers});
+      if(sbRes.ok){
+        var sbData=await sbRes.json();
+        var sbContent=JSON.parse(decodeURIComponent(escape(atob(sbData.content.replace(/\n/g,'')))));
+        sbContent.categories.forEach(function(cat){
+          cat.groups.forEach(function(g){
+            if(g.items) g.items=g.items.filter(function(i){return i.id!==pageId;});
+          });
+        });
+        var sbBody={message:'docs: 更新菜单 - 删除 '+name,content:btoa(unescape(encodeURIComponent(JSON.stringify(sbContent,null,2)))),sha:sbData.sha,branch:branch};
+        await fetch(base+'docs/sidebar.json',{method:'PUT',headers:headers,body:JSON.stringify(sbBody)});
+      }
+    }catch(e){}
+
+    document.getElementById('deleteDialog').classList.remove('show');
+    showToast('已删除「'+name+'」');
+    delete docs[pageId];
+
+    // 刷新侧边栏
+    try{
+      var rawRes=await fetch(base+'docs/sidebar.json?ref='+branch,{headers:headers});
+      if(rawRes.ok){
+        var rawData=await rawRes.json();
+        var freshSidebar=JSON.parse(decodeURIComponent(escape(atob(rawData.content.replace(/\n/g,'')))));
+        buildSidebar(freshSidebar);
+      }
+    }catch(e){}
+    navigate('home');
+  }catch(e){
+    showToast('❌ '+e.message);
+  }finally{
+    btn.textContent='确认删除';btn.disabled=false;
+  }
 }
 
 // ═══ GitHub API 发布（新手引导式） ═══
@@ -629,10 +778,15 @@ async function publishToGitHub(){
   var repo=s.repo||'diedie23/Game-Knowledge-Base';
   var branch=s.branch||'main';
   var name=getEditorFileName();
-  var filePath='docs/knowledge-base/art/'+name+'.md';
+  var filePath;
+  if(editingPageId&&pageRegistry[editingPageId]){
+    filePath='docs/'+pageRegistry[editingPageId].file.replace(/\?.*$/,'');
+  } else {
+    filePath='docs/knowledge-base/art/'+name+'.md';
+  }
   var content=vditorInstance.getValue();
-  var msg='docs: 新增 '+name;
-  var updateSidebar=document.getElementById('publishUpdateSidebar').checked;
+  var msg=editingPageId?'docs: 更新 '+name:'docs: 新增 '+name;
+  var updateSidebar=editingPageId?false:document.getElementById('publishUpdateSidebar').checked;
 
   var btn=document.getElementById('pubConfirmBtn');
   btn.textContent='⏳ 发布中...';btn.disabled=true;
@@ -679,9 +833,12 @@ async function publishToGitHub(){
     }
 
     document.getElementById('publishDialog').classList.remove('show');
-    showToast('🎉 发布成功！');
+    showToast(editingPageId?'🎉 更新成功！':'🎉 发布成功！');
     localStorage.removeItem('kb_editor_draft');
-    var publishedDocId=name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'-').toLowerCase();
+    var targetPageId=editingPageId||name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'-').toLowerCase();
+    // 清除编辑态缓存，强制重新渲染
+    if(editingPageId){delete docs[editingPageId];var oldPg=document.getElementById('page-'+editingPageId);if(oldPg)oldPg.remove();}
+    editingPageId=null;
     if(vditorInstance) vditorInstance.setValue('');
     document.getElementById('editorFileName').value='';
     // 自动刷新侧边栏（从GitHub API拉取最新，绕过CDN缓存）
@@ -695,7 +852,7 @@ async function publishToGitHub(){
     }catch(e){}
     closeEditor();
     // 短暂延迟后导航到新文档
-    setTimeout(function(){if(publishedDocId&&pageRegistry[publishedDocId]) navigate(publishedDocId);},300);
+    setTimeout(function(){if(targetPageId&&pageRegistry[targetPageId]) navigate(targetPageId);},300);
   }catch(e){
     showToast('❌ '+e.message);
   }finally{
