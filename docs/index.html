@@ -4,380 +4,119 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>游戏项目知识库</title>
-<style>
-:root{--bg:#0f1117;--sidebar-bg:#161822;--card-bg:#1c1f2e;--border:#2a2d3e;--text:#c9cdd4;--dim:#8b8fa3;--heading:#e8eaed;--accent:#6c8cff;--accent-light:#8ba3ff;--accent-bg:rgba(108,140,255,.08);--green:#4ade80;--green-bg:rgba(74,222,128,.08);--orange:#fb923c;--orange-bg:rgba(251,191,36,.08);--red:#f87171;--purple:#a78bfa;--purple-bg:rgba(167,139,250,.08);--pink:#f472b6;--pink-bg:rgba(244,114,182,.08);--cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.08);--code-bg:#1a1d2d;--st:#3d4155;--guide:rgba(255,255,255,.06)}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;display:flex;height:100vh;overflow:hidden}
-::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--st);border-radius:3px}
-
-/* ═══ Sidebar ═══ */
-.sidebar{width:300px;min-width:300px;background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;z-index:10}
-.sidebar-header{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
-.sidebar-header h1{font-size:17px;color:var(--heading);font-weight:700;display:flex;align-items:center;gap:8px}
-.sidebar-header .logo{width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;flex-shrink:0}
-.sidebar-header p{font-size:12px;color:var(--dim);margin-top:4px;margin-left:36px}
-.search-box{padding:12px 16px;border-bottom:1px solid var(--border);position:relative}
-.search-box::before{content:'🔍';position:absolute;left:26px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;z-index:1}
-.search-box input{width:100%;padding:8px 12px 8px 32px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s;font-family:inherit}
-.search-box input:focus{border-color:var(--accent)}.search-box input::placeholder{color:var(--dim)}
-.search-dropdown{position:absolute;top:100%;left:16px;right:16px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;max-height:320px;overflow-y:auto;z-index:10;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
-.search-dropdown.show{display:block}
-.sr-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--border);font-size:13px}
-.sr-item:last-child{border-bottom:none}.sr-item:hover{background:var(--accent-bg)}
-.sr-item .sr-type{font-size:10px;padding:2px 6px;border-radius:4px;flex-shrink:0}
-.sr-item .sr-title{color:var(--heading);font-weight:500;flex:1}.sr-item .sr-cat{font-size:11px;color:var(--dim)}
-
-/* ═══ Tree Navigation ═══ */
-.sidebar-nav{flex:1;overflow-y:auto;padding:8px 0;scroll-behavior:smooth}
-.nav-home{display:flex;align-items:center;gap:8px;padding:8px 18px;margin:0 8px 6px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text);transition:all .15s;border:none;background:none;width:calc(100% - 16px);text-align:left;font-family:inherit;font-weight:500}
-.nav-home:hover{background:var(--accent-bg);color:var(--accent-light)}
-.nav-home.active{background:var(--accent-bg);color:var(--accent);font-weight:600}
-
-/* L1: Category */
-.tree-l1{margin:2px 0}
-.tree-l1-hd{display:flex;align-items:center;padding:7px 10px 7px 14px;cursor:pointer;user-select:none;border:none;background:none;width:100%;text-align:left;font-family:inherit;transition:background .12s}
-.tree-l1-hd:hover{background:rgba(255,255,255,.025)}
-.tree-l1-hd .chv{width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--dim);transition:transform .25s ease;flex-shrink:0}
-.tree-l1.open>.tree-l1-hd .chv{transform:rotate(90deg)}
-.tree-l1-hd .ci{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin:0 6px 0 2px}
-.tree-l1-hd .cl{font-size:13px;font-weight:600;color:var(--heading);letter-spacing:.2px}
-.tree-l1-hd .cc{font-size:10px;color:var(--dim);margin-left:auto;padding-right:4px}
-.tree-l1-ch{overflow:hidden;max-height:0;transition:max-height .35s ease;position:relative}
-.tree-l1.open>.tree-l1-ch{max-height:2000px}
-.tree-l1-ch::before{content:'';position:absolute;left:23px;top:0;bottom:0;width:1px;background:var(--guide)}
-
-/* L2: Sub-category (文档/工具) */
-.tree-l2{margin:1px 0}
-.tree-l2-hd{display:flex;align-items:center;padding:5px 10px 5px 36px;cursor:pointer;user-select:none;border:none;background:none;width:100%;text-align:left;font-family:inherit;transition:background .12s}
-.tree-l2-hd:hover{background:rgba(255,255,255,.025)}
-.tree-l2-hd .chv{width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--dim);transition:transform .25s ease;flex-shrink:0}
-.tree-l2.open>.tree-l2-hd .chv{transform:rotate(90deg)}
-.tree-l2-hd .si{font-size:11px;margin:0 5px 0 2px;flex-shrink:0}
-.tree-l2-hd .sl{font-size:12px;font-weight:500;color:var(--dim)}
-.tree-l2-hd .sc{font-size:10px;color:var(--st);margin-left:auto;padding-right:4px}
-.tree-l2-ch{overflow:hidden;max-height:0;transition:max-height .3s ease;position:relative}
-.tree-l2.open>.tree-l2-ch{max-height:1500px}
-.tree-l2-ch::before{content:'';position:absolute;left:43px;top:0;bottom:0;width:1px;background:var(--guide)}
-
-/* Leaf node */
-.tree-leaf{display:flex;align-items:center;gap:6px;padding:5px 12px 5px 54px;cursor:pointer;font-size:12.5px;color:var(--text);transition:all .12s;border:none;background:none;width:100%;text-align:left;font-family:inherit;line-height:1.5}
-.tree-leaf:hover{background:rgba(108,140,255,.05);color:var(--accent-light)}
-.tree-leaf.active{background:var(--accent-bg);color:var(--accent);font-weight:500}
-.tree-leaf .ld{width:5px;height:5px;border-radius:50%;flex-shrink:0;opacity:.5}
-.tree-leaf.active .ld{opacity:1}
-.tree-leaf .lb{font-size:9px;padding:1px 6px;border-radius:8px;margin-left:auto;flex-shrink:0}
-.badge-doc{background:var(--accent-bg);color:var(--accent)}.badge-tool{background:var(--green-bg);color:var(--green)}
-
-/* TOC anchors (L4 inside doc) */
-.tree-toc{overflow:hidden;max-height:0;transition:max-height .3s ease;position:relative}
-.tree-leaf.active+.tree-toc{max-height:600px}
-.tree-toc::before{content:'';position:absolute;left:62px;top:0;bottom:0;width:1px;background:var(--guide)}
-.toc-a{display:block;padding:3px 12px 3px 72px;font-size:11.5px;color:var(--dim);cursor:pointer;transition:all .12s;border:none;background:none;width:100%;text-align:left;font-family:inherit;position:relative}
-.toc-a:hover{color:var(--accent-light);background:rgba(108,140,255,.03)}
-.toc-a.active{color:var(--accent)}
-.toc-a::before{content:'';position:absolute;left:62px;top:50%;width:8px;height:1px;background:var(--guide)}
-
-.sidebar-footer{padding:10px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--dim);display:flex;justify-content:space-between;align-items:center}
-.sidebar-footer a{color:var(--accent);text-decoration:none;font-size:11px;cursor:pointer}
-.sidebar-footer a:hover{text-decoration:underline}
-
-/* ═══ Main Content Area ═══ */
-.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;position:relative}
-.loading-bar{position:absolute;top:0;left:0;width:100%;height:3px;z-index:50;overflow:hidden;opacity:0;transition:opacity .15s}
-.loading-bar.show{opacity:1}
-.loading-bar::after{content:'';position:absolute;top:0;left:-40%;width:40%;height:100%;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:ldSlide 1s ease-in-out infinite}
-@keyframes ldSlide{0%{left:-40%}100%{left:100%}}
-.content-frame{flex:1;border:none;width:100%;height:100%;display:none;background:var(--bg)}
-.content-scroll{flex:1;overflow-y:auto;scroll-behavior:smooth}
-
-/* ═══ Home Page ═══ */
-.home{max-width:1000px;margin:0 auto;padding:48px 40px}
-.home-hero{text-align:center;padding:40px 0 48px}
-.home-hero h1{font-size:32px;color:var(--heading);font-weight:800;margin-bottom:8px}
-.home-hero h1 span{background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.home-hero p{font-size:15px;color:var(--dim);max-width:500px;margin:0 auto}
-.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:24px}
-.home-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all .2s}
-.home-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
-.home-card .ci{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
-.home-card h3{font-size:15px;color:var(--heading);font-weight:600;margin-bottom:6px}
-.home-card p{font-size:13px;color:var(--dim);line-height:1.6}
-.home-card .tags{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
-.home-card .tag{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--accent-bg);color:var(--accent)}
-.hst{font-size:14px;color:var(--dim);font-weight:600;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.hst::after{content:'';flex:1;height:1px;background:var(--border)}
-.stats-bar{display:flex;gap:24px;justify-content:center;margin:24px 0 40px}
-.stat .num{font-size:24px;font-weight:700;color:var(--heading);text-align:center}.stat .label{font-size:12px;color:var(--dim);margin-top:2px;text-align:center}
-
-/* ═══ Doc Page (embedded markdown) ═══ */
-.doc-page{max-width:900px;margin:0 auto;padding:40px 60px 80px;display:none}
-.doc-page.active{display:block}
-.doc-bc{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);margin-bottom:20px}
-.doc-bc a{color:var(--accent);text-decoration:none;cursor:pointer}.doc-bc a:hover{text-decoration:underline}
-.dc h1{font-size:28px;color:var(--heading);font-weight:700;margin-bottom:8px;padding-bottom:12px;border-bottom:2px solid var(--accent)}
-.dc h2{font-size:22px;color:var(--heading);font-weight:600;margin:40px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border);scroll-margin-top:20px}
-.dc h3{font-size:17px;color:var(--heading);font-weight:600;margin:28px 0 12px;scroll-margin-top:20px}
-.dc h4{font-size:15px;color:var(--accent-light);font-weight:600;margin:20px 0 8px}
-.dc p{margin:10px 0}.dc blockquote{border-left:3px solid var(--accent);padding:12px 16px;margin:16px 0;background:var(--accent-bg);border-radius:0 6px 6px 0;color:var(--dim);font-size:14px}
-.dc blockquote strong{color:var(--accent-light)}
-.dc ul,.dc ol{padding-left:24px;margin:8px 0}.dc li{margin:4px 0}.dc strong{color:var(--heading)}
-.dc code{background:var(--code-bg);padding:2px 6px;border-radius:3px;font-size:13px;font-family:'Menlo','Consolas',monospace;color:var(--accent-light);border:1px solid var(--border)}
-.dc pre{background:var(--code-bg);padding:16px 20px;border-radius:8px;overflow-x:auto;margin:16px 0;border:1px solid var(--border);font-size:13px;line-height:1.6}
-.dc pre code{background:none;padding:0;border:none;color:var(--text)}
-.dc table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
-.dc th{background:var(--card-bg);padding:10px 14px;text-align:left;font-weight:600;color:var(--heading);border:1px solid var(--border);white-space:nowrap}
-.dc td{padding:8px 14px;border:1px solid var(--border);vertical-align:top}
-.dc tr:hover td{background:rgba(108,140,255,.03)}
-.dc hr{border:none;border-top:1px solid var(--border);margin:32px 0}
-.dc input[type="checkbox"]{margin-right:6px;accent-color:var(--accent)}
-
-/* ═══ Tool Card Page ═══ */
-.tool-page{max-width:800px;margin:0 auto;padding:48px 60px 80px;display:none}
-.tool-page.active{display:block}
-.tool-bc{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);margin-bottom:24px}
-.tool-bc a{color:var(--accent);text-decoration:none;cursor:pointer}.tool-bc a:hover{text-decoration:underline}
-.tool-hero{display:flex;gap:20px;align-items:flex-start;margin-bottom:28px}
-.tool-hero-icon{width:72px;height:72px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0}
-.tool-hero-info h1{font-size:24px;color:var(--heading);font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.tool-hero-info h1 .ver{font-size:11px;background:var(--accent);color:#fff;padding:2px 10px;border-radius:10px;font-weight:500}
-.tool-hero-info h1 .st{font-size:11px;padding:2px 10px;border-radius:10px;font-weight:500}
-.st-on{background:var(--green-bg);color:var(--green)}.st-soon{background:var(--orange-bg);color:var(--orange)}
-.tool-hero-info .sub{font-size:14px;color:var(--dim);margin-top:4px}
-.tool-gif{margin-bottom:28px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center}
-.tool-gif .ph{color:var(--dim);font-size:13px;padding:40px 0}.tool-gif .ph span{display:block;font-size:40px;margin-bottom:8px}
-.tool-desc{font-size:14px;color:var(--text);line-height:1.9;margin-bottom:24px;padding:20px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px}
-.tool-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
-.tool-tags .tag{font-size:11px;padding:5px 12px;border-radius:8px;background:var(--accent-bg);color:var(--accent-light);border:1px solid rgba(108,140,255,.1)}
-.tool-meta{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:28px}
-.tool-mi{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
-.tool-mi .ico{font-size:20px;margin-bottom:4px}.tool-mi .val{font-size:13px;color:var(--heading);font-weight:500}.tool-mi .lbl{font-size:11px;color:var(--dim);margin-top:2px}
-.tool-acts{display:flex;gap:12px;flex-wrap:wrap}
-.tool-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:all .15s;text-decoration:none}
-.tool-btn-p{background:var(--accent);color:#fff}.tool-btn-p:hover{background:#5a7aee;transform:scale(1.02)}
-.tool-btn-o{background:transparent;border:1px solid var(--border);color:var(--dim)}.tool-btn-o:hover{border-color:var(--accent);color:var(--accent)}
-.tool-btn-d{background:var(--card-bg);color:var(--dim);border:1px solid var(--border);cursor:default;opacity:.6}
-
-/* ═══ Feedback Dialog ═══ */
-.fb-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:300;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
-.fb-overlay.show{display:flex}
-
-/* ═══ Utilities ═══ */
-.share-btn{position:fixed;bottom:24px;right:80px;padding:8px 16px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .2s;z-index:50}
-.share-btn:hover{border-color:var(--accent);color:var(--accent)}
-.btt{position:fixed;bottom:24px;right:24px;width:40px;height:40px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--dim);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;opacity:0;transition:opacity .2s;z-index:50}
-.btt.show{opacity:1}.btt:hover{color:var(--accent);border-color:var(--accent)}
-.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-60px);background:var(--green);color:#000;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:500;z-index:999;transition:transform .3s;pointer-events:none}
-.toast.show{transform:translateX(-50%) translateY(0)}
-.menu-toggle{display:none;position:fixed;top:12px;left:12px;z-index:100;background:var(--card-bg);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;cursor:pointer;font-size:16px}
-.feedback-btn{position:fixed;top:12px;right:12px;z-index:100;padding:6px 14px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--dim);cursor:pointer;font-size:12px;font-family:inherit;display:flex;align-items:center;gap:5px;transition:all .2s}
-.feedback-btn:hover{border-color:var(--accent);color:var(--accent)}
-.license-bar{padding:12px 20px;background:rgba(0,0,0,.3);border-top:1px solid var(--border);font-size:11px;color:var(--dim);text-align:center;line-height:1.6}
-.license-bar a{color:var(--accent)}
-@media(max-width:768px){.sidebar{position:fixed;left:-300px;z-index:99;transition:left .3s}.sidebar.open{left:0}.menu-toggle{display:block}.doc-page{padding:20px;padding-top:56px}.home{padding:20px;padding-top:56px}.home-hero h1{font-size:24px}.tool-page{padding:20px;padding-top:56px}}
-@media print{.sidebar,.menu-toggle,.btt,.share-btn,.feedback-btn{display:none!important}.main{padding:20px}body{background:#fff;color:#333}.dc h1,.dc h2,.dc h3{color:#111}.dc table{border-color:#ddd}.dc th{background:#f5f5f5}}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
-<button class="feedback-btn" onclick="showFeedback()" title="反馈问题或建议">💬 反馈</button>
+<button class="feedback-btn" onclick="showFeedback()">💬 反馈</button>
 <div class="toast" id="toast"></div>
 
-<!-- ═══ Sidebar ═══ -->
+<!-- Sidebar -->
 <aside class="sidebar">
-  <div class="sidebar-header">
-    <h1><span class="logo">📖</span> 游戏项目知识库</h1>
-    <p>Game Project Knowledge Base</p>
-  </div>
+  <div class="sidebar-header"><h1><span class="logo">📖</span> 游戏项目知识库</h1><p>Game Project Knowledge Base</p></div>
   <div class="search-box">
-    <input type="text" id="searchInput" placeholder="搜索全部文档与工具..." oninput="handleFuseSearch(this.value)" onfocus="handleFuseSearch(this.value)" onblur="setTimeout(()=>document.getElementById('searchDropdown').classList.remove('show'),200)">
+    <input type="text" id="searchInput" placeholder="搜索文档与工具... Ctrl+K" oninput="handleSearch(this.value)" onfocus="handleSearch(this.value)" onblur="setTimeout(()=>document.getElementById('searchDropdown').classList.remove('show'),200)">
     <div class="search-dropdown" id="searchDropdown"></div>
   </div>
   <nav class="sidebar-nav" id="sidebarNav">
     <button class="nav-home active" onclick="navigate('home')" id="navHome">🏠 知识库首页</button>
 
-    <!-- 角色 · Character -->
-    <div class="tree-l1 open" id="cat-character">
-      <button class="tree-l1-hd" onclick="toggleTree(this.parentElement)">
-        <span class="chv">▶</span><span class="ci" style="background:var(--accent-bg);color:var(--accent)">👤</span><span class="cl">角色 · Character</span><span class="cc">2文档 3工具</span>
-      </button>
-      <div class="tree-l1-ch">
-        <div class="tree-l2 open" id="char-docs">
-          <button class="tree-l2-hd" onclick="toggleTree(this.parentElement)">
-            <span class="chv">▶</span><span class="si">📄</span><span class="sl">文档</span><span class="sc">2</span>
-          </button>
-          <div class="tree-l2-ch">
-            <button class="tree-leaf" onclick="navigate('d1',this)" data-page="d1"><span class="ld" style="background:var(--accent)"></span>2D UGC 角色出图规范<span class="lb badge-doc">文档</span></button>
-            <div class="tree-toc" id="toc-d1"></div>
-            <button class="tree-leaf" onclick="navigate('d2',this)" data-page="d2"><span class="ld" style="background:var(--accent)"></span>2D 角色换色资源规范<span class="lb badge-doc">文档</span></button>
-            <div class="tree-toc" id="toc-d2"></div>
-          </div>
-        </div>
-        <div class="tree-l2" id="char-tools">
-          <button class="tree-l2-hd" onclick="toggleTree(this.parentElement)">
-            <span class="chv">▶</span><span class="si">🔧</span><span class="sl">工具</span><span class="sc">3</span>
-          </button>
-          <div class="tree-l2-ch">
-            <button class="tree-leaf" onclick="navigate('tool:auto-mask',this)" data-page="tool:auto-mask"><span class="ld" style="background:var(--green)"></span>自动 Mask 生成器<span class="lb badge-tool">工具</span></button>
-            <button class="tree-leaf" onclick="navigate('tool:mask-tool',this)" data-page="tool:mask-tool"><span class="ld" style="background:var(--green)"></span>Mask 手动编辑器<span class="lb badge-tool">工具</span></button>
-            <button class="tree-leaf" onclick="navigate('tool:spine-split',this)" data-page="tool:spine-split"><span class="ld" style="background:var(--green)"></span>Spine 拆分工具<span class="lb badge-tool">工具</span></button>
-          </div>
-        </div>
+    <!-- 角色 -->
+    <div class="t1 open" id="cat-character"><div class="t1-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="ci" style="background:var(--accent-bg);color:var(--accent)">👤</span><span class="cl">角色 · Character</span><span class="cc">5</span></div>
+      <div class="t1-c">
+        <div class="t2 open"><div class="t2-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="si">📄</span><span class="sl">文档</span></div><div class="t2-c">
+          <button class="leaf" data-page="d1" onclick="navigate('d1',this)"><span class="li">📐</span>2D UGC 角色出图规范<span class="badge bd">文档</span></button><div class="toc-box" id="toc-d1"></div>
+          <button class="leaf" data-page="d2" onclick="navigate('d2',this)"><span class="li">🎨</span>2D 角色换色资源规范<span class="badge bd">文档</span></button><div class="toc-box" id="toc-d2"></div>
+        </div></div>
+        <div class="t2"><div class="t2-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="si">🔧</span><span class="sl">工具</span></div><div class="t2-c">
+          <button class="leaf" data-page="auto-mask" onclick="navigate('auto-mask',this)"><span class="li">🤖</span>自动 Mask 生成器<span class="badge bt">工具</span></button>
+          <button class="leaf" data-page="mask-tool" onclick="navigate('mask-tool',this)"><span class="li">🖌️</span>Mask 手动编辑器<span class="badge bt">工具</span></button>
+          <button class="leaf" data-page="spine-split" onclick="navigate('spine-split',this)"><span class="li">✂️</span>Spine 拆分工具<span class="badge bt">工具</span></button>
+        </div></div>
       </div>
     </div>
 
-    <!-- UI · 界面 -->
-    <div class="tree-l1" id="cat-ui">
-      <button class="tree-l1-hd" onclick="toggleTree(this.parentElement)">
-        <span class="chv">▶</span><span class="ci" style="background:var(--purple-bg);color:var(--purple)">🖥️</span><span class="cl">UI · 界面</span><span class="cc">4文档</span>
-      </button>
-      <div class="tree-l1-ch">
-        <div class="tree-l2" id="ui-docs">
-          <button class="tree-l2-hd" onclick="toggleTree(this.parentElement)">
-            <span class="chv">▶</span><span class="si">📄</span><span class="sl">文档</span><span class="sc">4</span>
-          </button>
-          <div class="tree-l2-ch">
-            <button class="tree-leaf" onclick="navigate('ui-slice-naming',this)" data-page="ui-slice-naming"><span class="ld" style="background:var(--purple)"></span>切图与命名规范<span class="lb badge-doc">文档</span></button>
-            <button class="tree-leaf" onclick="navigate('ui-9slice-color',this)" data-page="ui-9slice-color"><span class="ld" style="background:var(--purple)"></span>9宫格与颜色空间<span class="lb badge-doc">文档</span></button>
-            <button class="tree-leaf" onclick="navigate('ui-layout',this)" data-page="ui-layout"><span class="ld" style="background:var(--purple)"></span>Layout 拼接规范<span class="lb badge-doc">文档</span></button>
-            <button class="tree-leaf" onclick="navigate('ui-umg-tips',this)" data-page="ui-umg-tips"><span class="ld" style="background:var(--purple)"></span>UMG 生成技巧<span class="lb badge-doc">文档</span></button>
-          </div>
-        </div>
-      </div>
+    <!-- UI -->
+    <div class="t1" id="cat-ui"><div class="t1-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="ci" style="background:var(--purple-bg);color:var(--purple)">🖥️</span><span class="cl">UI · 界面</span><span class="cc">4</span></div>
+      <div class="t1-c"><div class="t2"><div class="t2-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="si">📄</span><span class="sl">文档</span></div><div class="t2-c">
+        <button class="leaf" data-page="ui-slice-naming" onclick="navigate('ui-slice-naming',this)"><span class="li">✂️</span>切图与命名规范<span class="badge bd">文档</span></button><div class="toc-box" id="toc-ui-slice-naming"></div>
+        <button class="leaf" data-page="ui-9slice-color" onclick="navigate('ui-9slice-color',this)"><span class="li">🎨</span>9宫格与颜色空间<span class="badge bd">文档</span></button><div class="toc-box" id="toc-ui-9slice-color"></div>
+        <button class="leaf" data-page="ui-layout" onclick="navigate('ui-layout',this)"><span class="li">📐</span>Layout 拼接规范<span class="badge bd">文档</span></button><div class="toc-box" id="toc-ui-layout"></div>
+        <button class="leaf" data-page="ui-umg-tips" onclick="navigate('ui-umg-tips',this)"><span class="li">⚡</span>UMG 生成技巧<span class="badge bd">文档</span></button><div class="toc-box" id="toc-ui-umg-tips"></div>
+      </div></div>
+      <div class="t2"><div class="t2-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="si">🔧</span><span class="sl">工具</span></div><div class="t2-c"><button class="leaf" style="color:var(--dim);cursor:default;font-style:italic;font-size:11px" disabled>📝 待补充...</button></div></div></div>
     </div>
 
-    <!-- 场景 · Scene -->
-    <div class="tree-l1" id="cat-scene">
-      <button class="tree-l1-hd" onclick="toggleTree(this.parentElement)">
-        <span class="chv">▶</span><span class="ci" style="background:var(--green-bg);color:var(--green)">🏔️</span><span class="cl">场景 · Scene</span><span class="cc">待补充</span>
-      </button>
-      <div class="tree-l1-ch">
-        <div style="padding:8px 16px 8px 54px;font-size:12px;color:var(--dim);font-style:italic">📝 内容建设中...</div>
-      </div>
-    </div>
+    <!-- 场景 -->
+    <div class="t1" id="cat-scene"><div class="t1-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="ci" style="background:var(--green-bg);color:var(--green)">🏔️</span><span class="cl">场景 · Scene</span><span class="cc">0</span></div><div class="t1-c"><div class="t2"><div class="t2-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="si">📄</span><span class="sl">文档</span></div><div class="t2-c"><button class="leaf" style="color:var(--dim);cursor:default;font-style:italic;font-size:11px" disabled>📝 待补充...</button></div></div></div></div>
 
-    <!-- 特效 · FX -->
-    <div class="tree-l1" id="cat-fx">
-      <button class="tree-l1-hd" onclick="toggleTree(this.parentElement)">
-        <span class="chv">▶</span><span class="ci" style="background:var(--orange-bg);color:var(--orange)">✨</span><span class="cl">特效 · FX</span><span class="cc">待补充</span>
-      </button>
-      <div class="tree-l1-ch">
-        <div style="padding:8px 16px 8px 54px;font-size:12px;color:var(--dim);font-style:italic">📝 内容建设中...</div>
-      </div>
-    </div>
+    <!-- 特效 -->
+    <div class="t1" id="cat-fx"><div class="t1-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="ci" style="background:var(--orange-bg);color:var(--orange)">✨</span><span class="cl">特效 · FX</span><span class="cc">0</span></div><div class="t1-c"><div class="t2"><div class="t2-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="si">📄</span><span class="sl">文档</span></div><div class="t2-c"><button class="leaf" style="color:var(--dim);cursor:default;font-style:italic;font-size:11px" disabled>📝 待补充...</button></div></div></div></div>
 
-    <!-- 技术 · Tech -->
-    <div class="tree-l1" id="cat-tech">
-      <button class="tree-l1-hd" onclick="toggleTree(this.parentElement)">
-        <span class="chv">▶</span><span class="ci" style="background:var(--pink-bg);color:var(--pink)">⚙️</span><span class="cl">技术 · Tech</span><span class="cc">待补充</span>
-      </button>
-      <div class="tree-l1-ch">
-        <div style="padding:8px 16px 8px 54px;font-size:12px;color:var(--dim);font-style:italic">📝 内容建设中...</div>
-      </div>
-    </div>
+    <!-- 技术 -->
+    <div class="t1" id="cat-tech"><div class="t1-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="ci" style="background:var(--pink-bg);color:var(--pink)">⚙️</span><span class="cl">技术 · Tech</span><span class="cc">0</span></div><div class="t1-c"><div class="t2"><div class="t2-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="si">📄</span><span class="sl">文档</span></div><div class="t2-c"><button class="leaf" style="color:var(--dim);cursor:default;font-style:italic;font-size:11px" disabled>📝 待补充...</button></div></div></div></div>
 
-    <!-- 管理 · Management -->
-    <div class="tree-l1" id="cat-mgmt">
-      <button class="tree-l1-hd" onclick="toggleTree(this.parentElement)">
-        <span class="chv">▶</span><span class="ci" style="background:var(--cyan-bg);color:var(--cyan)">📋</span><span class="cl">管理 · Management</span><span class="cc">2文档</span>
-      </button>
-      <div class="tree-l1-ch">
-        <div class="tree-l2" id="mgmt-docs">
-          <button class="tree-l2-hd" onclick="toggleTree(this.parentElement)">
-            <span class="chv">▶</span><span class="si">📄</span><span class="sl">文档</span><span class="sc">2</span>
-          </button>
-          <div class="tree-l2-ch">
-            <button class="tree-leaf" onclick="navigate('cp-management',this)" data-page="cp-management"><span class="ld" style="background:var(--cyan)"></span>CP 外包管理手册<span class="lb badge-doc">文档</span></button>
-            <button class="tree-leaf" onclick="navigate('game-art-pipeline',this)" data-page="game-art-pipeline"><span class="ld" style="background:var(--cyan)"></span>游戏美术流程总结<span class="lb badge-doc">文档</span></button>
-          </div>
-        </div>
-      </div>
+    <!-- 管理 -->
+    <div class="t1" id="cat-mgmt"><div class="t1-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="ci" style="background:var(--cyan-bg);color:var(--cyan)">📋</span><span class="cl">管理 · Management</span><span class="cc">2</span></div>
+      <div class="t1-c"><div class="t2"><div class="t2-h" onclick="this.parentElement.classList.toggle('open')"><span class="chv">▶</span><span class="si">📄</span><span class="sl">文档</span></div><div class="t2-c">
+        <button class="leaf" data-page="cp-management" onclick="navigate('cp-management',this)"><span class="li">📋</span>CP 外包管理手册<span class="badge bd">文档</span></button><div class="toc-box" id="toc-cp-management"></div>
+        <button class="leaf" data-page="game-art-pipeline" onclick="navigate('game-art-pipeline',this)"><span class="li">📊</span>游戏美术流程总结<span class="badge bd">文档</span></button><div class="toc-box" id="toc-game-art-pipeline"></div>
+      </div></div></div>
     </div>
   </nav>
-  <div class="sidebar-footer">
-    <span>v3.0 · 2026-04-01</span>
-    <a onclick="copyShareLink()">🔗 分享链接</a>
-    <a onclick="showFeedback()" style="margin-left:4px">📮 反馈</a>
-  </div>
+  <div class="sidebar-footer"><span>v3.1 · 2026-04-01</span><a onclick="copyShareLink()">🔗 分享</a><a onclick="showFeedback()" style="margin-left:6px">📮 反馈</a></div>
 </aside>
 
-<!-- ═══ Main Content ═══ -->
+<!-- Main Content -->
 <main class="main" id="mainArea">
-  <div class="loading-bar" id="loadingBar"></div>
-  <!-- Scrollable content (home + embedded docs + tool cards) -->
+  <div class="lbar" id="loadingBar"></div>
   <div class="content-scroll" id="contentScroll">
     <!-- Home -->
     <div class="home" id="pageHome">
       <div class="home-hero"><h1>🎮 游戏项目<span>知识库</span></h1><p>团队共享的美术规范、技术方案与生产工具，持续更新中</p></div>
-      <div class="stats-bar">
-        <div class="stat"><div class="num">10</div><div class="label">规范文档</div></div>
-        <div class="stat"><div class="num">3</div><div class="label">生产工具</div></div>
-        <div class="stat"><div class="num">7</div><div class="label">知识分类</div></div>
-      </div>
-
+      <div class="stats-bar"><div class="stat"><div class="num">10</div><div class="label">规范文档</div></div><div class="stat"><div class="num">3</div><div class="label">生产工具</div></div><div class="stat"><div class="num">7</div><div class="label">知识分类</div></div></div>
       <div class="hst">📋 角色 · Character</div>
       <div class="home-grid">
-        <div class="home-card" onclick="navigate('d1')"><div class="ci" style="background:var(--accent-bg)">📐</div><h3>2D UGC 角色出图规范</h3><p>基于主流 UGC 游戏总结的全流程规范，涵盖分辨率、部件拆分、色彩等</p><div class="tags"><span class="tag">分辨率</span><span class="tag">部件拆分</span><span class="tag">动画</span><span class="tag">命名</span></div></div>
-        <div class="home-card" onclick="navigate('d2')"><div class="ci" style="background:var(--purple-bg)">🎨</div><h3>2D 角色换色资源规范</h3><p>换色场景下的资源清单，Mask 遮罩图、调色板替换、灰度叠色等方案</p><div class="tags"><span class="tag">Mask 遮罩</span><span class="tag">HSV</span><span class="tag">通道互斥</span></div></div>
+        <div class="home-card" onclick="navigate('d1')"><div class="hci" style="background:var(--accent-bg)">📐</div><h3>2D UGC 角色出图规范</h3><p>基于主流 UGC 游戏总结的全流程规范</p><div class="tags"><span class="tag">分辨率</span><span class="tag">部件拆分</span><span class="tag">动画</span></div></div>
+        <div class="home-card" onclick="navigate('d2')"><div class="hci" style="background:var(--purple-bg)">🎨</div><h3>2D 角色换色资源规范</h3><p>Mask 遮罩图、调色板替换、灰度叠色等方案</p><div class="tags"><span class="tag">Mask</span><span class="tag">HSV</span><span class="tag">通道互斥</span></div></div>
       </div>
-
-      <div class="hst" style="margin-top:32px">🔧 生产工具 · Tools</div>
+      <div class="hst" style="margin-top:32px">🔧 角色工具</div>
       <div class="home-grid">
-        <div class="home-card" onclick="navigate('tool:auto-mask')"><div class="ci" style="background:var(--green-bg)">🤖</div><h3>自动 Mask 生成器</h3><p>导入原图自动识别颜色区域，一键生成 R/G/B/A 通道图并打包 ZIP</p><div class="tags"><span class="tag" style="background:var(--green-bg);color:var(--green)">在线工具</span><span class="tag">自动验算</span></div></div>
-        <div class="home-card" onclick="navigate('tool:mask-tool')"><div class="ci" style="background:var(--orange-bg)">🖌️</div><h3>Mask 手动编辑器</h3><p>手动绘制 RGBA 换色遮罩图，支持画笔、油漆桶、橡皮擦</p><div class="tags"><span class="tag" style="background:var(--green-bg);color:var(--green)">在线工具</span><span class="tag">画笔绘制</span></div></div>
-        <div class="home-card" onclick="navigate('tool:spine-split')"><div class="ci" style="background:var(--purple-bg)">✂️</div><h3>Spine 拆分工具</h3><p>上传角色原画，选区拆分各部件，自动拓扑延展并导出 Spine 兼容格式</p><div class="tags"><span class="tag" style="background:var(--green-bg);color:var(--green)">在线工具</span><span class="tag">选区拆分</span><span class="tag">拓扑延展</span></div></div>
+        <div class="home-card" onclick="navigate('auto-mask')"><div class="hci" style="background:var(--green-bg)">🤖</div><h3>自动 Mask 生成器</h3><p>一键生成 RGBA 通道换色遮罩图</p><div class="tags"><span class="tag" style="background:var(--green-bg);color:var(--green)">在线工具</span></div></div>
+        <div class="home-card" onclick="navigate('mask-tool')"><div class="hci" style="background:var(--orange-bg)">🖌️</div><h3>Mask 手动编辑器</h3><p>画笔绘制 RGBA 换色遮罩图</p><div class="tags"><span class="tag" style="background:var(--green-bg);color:var(--green)">在线工具</span></div></div>
+        <div class="home-card" onclick="navigate('spine-split')"><div class="hci" style="background:var(--purple-bg)">✂️</div><h3>Spine 拆分工具</h3><p>选区拆分 + 拓扑延展 + Atlas 导出</p><div class="tags"><span class="tag" style="background:var(--green-bg);color:var(--green)">在线工具</span></div></div>
       </div>
-
-      <div class="hst" style="margin-top:32px">📂 外包管理 & 流程参考</div>
+      <div class="hst" style="margin-top:32px">📂 外包管理 & 流程</div>
       <div class="home-grid">
-        <div class="home-card" onclick="navigate('cp-management')"><div class="ci" style="background:var(--cyan-bg)">📋</div><h3>CP 外包管理手册</h3><p>外包全流程管理：需求下发、制作跟进、验收、结算 — 含模板和 Checklist</p><div class="tags"><span class="tag" style="background:var(--cyan-bg);color:var(--cyan)">外包流程</span><span class="tag" style="background:var(--cyan-bg);color:var(--cyan)">验收标准</span><span class="tag" style="background:var(--cyan-bg);color:var(--cyan)">模板</span></div></div>
-        <div class="home-card" onclick="navigate('game-art-pipeline')"><div class="ci" style="background:var(--orange-bg)">📊</div><h3>游戏美术流程总结</h3><p>轻度2D休闲 / 重度3D / 二次元手游三类游戏的完整美术制作流程对比</p><div class="tags"><span class="tag" style="background:var(--orange-bg);color:var(--orange)">2D休闲</span><span class="tag" style="background:var(--orange-bg);color:var(--orange)">3D</span><span class="tag" style="background:var(--orange-bg);color:var(--orange)">二次元</span></div></div>
+        <div class="home-card" onclick="navigate('cp-management')"><div class="hci" style="background:var(--cyan-bg)">📋</div><h3>CP 外包管理手册</h3><p>全流程管理：需求下发、验收、结算</p><div class="tags"><span class="tag" style="background:var(--cyan-bg);color:var(--cyan)">外包</span></div></div>
+        <div class="home-card" onclick="navigate('game-art-pipeline')"><div class="hci" style="background:var(--orange-bg)">📊</div><h3>游戏美术流程总结</h3><p>2D休闲 / 3D / 二次元美术流程对比</p><div class="tags"><span class="tag" style="background:var(--orange-bg);color:var(--orange)">流程</span></div></div>
       </div>
-
-      <div class="hst" style="margin-top:32px">📂 更多分类（建设中）</div>
+      <div class="hst" style="margin-top:32px">📂 更多分类</div>
       <div class="home-grid">
-        <div class="home-card" onclick="navigate('ui-slice-naming')"><div class="ci" style="background:var(--purple-bg)">🖥️</div><h3>UI · 界面规范</h3><p>切图命名、9宫格、颜色空间、Layout适配、UMG生成技巧 — 4 篇文档</p><div class="tags"><span class="tag" style="background:var(--purple-bg);color:var(--purple)">切图命名</span><span class="tag" style="background:var(--purple-bg);color:var(--purple)">9宫格</span><span class="tag" style="background:var(--purple-bg);color:var(--purple)">Layout</span><span class="tag" style="background:var(--purple-bg);color:var(--purple)">UMG</span></div></div>
-        <div class="home-card" style="opacity:.5;cursor:default"><div class="ci" style="background:var(--green-bg)">🏔️</div><h3>场景 · Scene</h3><p>场景搭建规范、地编标准 —— 待补充</p></div>
-        <div class="home-card" style="opacity:.5;cursor:default"><div class="ci" style="background:var(--orange-bg)">✨</div><h3>特效 · FX</h3><p>粒子特效、动效规范 —— 待补充</p></div>
-        <div class="home-card" style="opacity:.5;cursor:default"><div class="ci" style="background:var(--pink-bg)">⚙️</div><h3>技术 · Tech</h3><p>Shader、性能优化 —— 待补充</p></div>
+        <div class="home-card" onclick="navigate('ui-slice-naming')"><div class="hci" style="background:var(--purple-bg)">🖥️</div><h3>UI · 界面规范</h3><p>切图、9宫格、Layout、UMG — 4 篇</p><div class="tags"><span class="tag" style="background:var(--purple-bg);color:var(--purple)">UI</span></div></div>
+        <div class="home-card" style="opacity:.5;cursor:default"><div class="hci" style="background:var(--green-bg)">🏔️</div><h3>场景 · Scene</h3><p>待补充</p></div>
+        <div class="home-card" style="opacity:.5;cursor:default"><div class="hci" style="background:var(--orange-bg)">✨</div><h3>特效 · FX</h3><p>待补充</p></div>
+        <div class="home-card" style="opacity:.5;cursor:default"><div class="hci" style="background:var(--pink-bg)">⚙️</div><h3>技术 · Tech</h3><p>待补充</p></div>
       </div>
-
-      <div style="margin-top:48px;padding:24px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px">
-          <div style="flex:1;min-width:240px">
-            <h4 style="font-size:13px;color:var(--heading);margin-bottom:8px">⚠️ 使用声明</h4>
-            <p style="font-size:12px;color:var(--dim);line-height:1.8;margin:0">本知识库及所有配套工具仅供项目内部学习与工作使用，不得用于商业目的或对外传播。所有文档和工具按"现状"提供，不构成任何商业承诺。如有疑问请联系 APM 团队。</p>
-          </div>
-          <div style="min-width:180px;text-align:right">
-            <h4 style="font-size:13px;color:var(--heading);margin-bottom:8px">📮 反馈与联系</h4>
-            <p style="font-size:12px;color:var(--dim);margin:0;line-height:1.8">发现问题或有改进建议？<br><a style="color:var(--accent);cursor:pointer" onclick="showFeedback()">💬 提交反馈</a></p>
-          </div>
-        </div>
-      </div>
+      <div style="margin-top:48px;padding:24px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px"><div style="flex:1;min-width:240px"><h4 style="font-size:13px;color:var(--heading);margin-bottom:8px">⚠️ 使用声明</h4><p style="font-size:12px;color:var(--dim);line-height:1.8;margin:0">本知识库仅供项目内部使用，不得对外传播。</p></div><div style="min-width:180px;text-align:right"><h4 style="font-size:13px;color:var(--heading);margin-bottom:8px">📮 反馈</h4><p style="font-size:12px;color:var(--dim);margin:0"><a style="color:var(--accent);cursor:pointer" onclick="showFeedback()">💬 提交反馈</a></p></div></div></div>
     </div>
-
-    <!-- Embedded Markdown Doc Pages -->
+    <!-- Doc pages -->
     <div class="doc-page" id="page-d1"><div class="doc-bc"><a onclick="navigate('home')">🏠 首页</a><span>›</span><span>角色</span><span>›</span><span>2D UGC 角色出图规范</span></div><div class="dc" id="ct-d1"></div></div>
     <div class="doc-page" id="page-d2"><div class="doc-bc"><a onclick="navigate('home')">🏠 首页</a><span>›</span><span>角色</span><span>›</span><span>2D 角色换色资源规范</span></div><div class="dc" id="ct-d2"></div></div>
-
-    <!-- Tool Card Page (dynamically rendered) -->
+    <!-- Tool card page -->
     <div class="tool-page" id="page-tool"></div>
   </div>
-
-  <!-- iframe for external HTML docs -->
   <iframe class="content-frame" id="contentFrame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
 </main>
 
-<!-- Tool Modal removed — tools now render as full card pages -->
-
-<!-- Share / BackToTop -->
 <button class="share-btn" onclick="copyShareLink()">🔗 分享此页</button>
 <button class="btt" id="backToTop" onclick="document.getElementById('contentScroll').scrollTo({top:0,behavior:'smooth'})">↑</button>
 
-<!-- ═══ Embedded Markdown Data ═══ -->
+<!-- Markdown Data -->
 <script id="md-d1" type="text/markdown">
 # 2D UGC 角色出图规范与注意事项
 
-> 基于市面主流 UGC 游戏（Minecraft / 我的世界、蛋仔派对、元梦之星、口袋方舟 Ark Online、Roblox、Gacha 系列、迷你世界等）的实践经验提炼。
+> 基于市面主流 UGC 游戏（Minecraft / 我的世界、蛋仔派对、元梦之星、口袋方舟、Roblox、Gacha 系列等）的实践经验提炼。
 
 ---
 
@@ -387,31 +126,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
 | 要素 | 规范说明 |
 |------|----------|
-| **尺寸必须为 2 的 N 次幂** | 常见尺寸：32×32、64×64、128×128、256×256、512×512、1024×1024、2048×2048 |
-| **像素风格** | 16×16 / 32×32 / 64×64 按需选择 |
+| **尺寸必须为 2 的 N 次幂** | 32×32、64×64、128×128、256×256、512×512、1024×1024、2048×2048 |
+| **像素风格** | 16×16 / 32×32 / 64×64 |
 | **高清风格** | 推荐 512×512 或 1024×1024 |
-| **长方形贴图** | 允许非正方形但仍需满足 2^N，如 256×512 |
-| **性能推荐** | 口袋方舟推荐 256×256（±10%）作为性能最优基准 |
-
-**典型案例**：
-- **Minecraft**：基础皮肤贴图为 **64×64** 像素
-- **Roblox**：缩略图推荐 **1920×1080**（16:9）
+| **性能推荐** | 口袋方舟推荐 256×256（±10%） |
 
 ### 1.2 文件格式
 
 | 格式 | 适用场景 |
 |------|----------|
-| **PNG**（推荐） | 支持透明通道，无损压缩，2D 角色首选 |
-| **TGA** | PBR 流程使用 |
-| **JPEG** | 仅用于展示图/缩略图 |
-| **PSD/ASE** | 源文件格式，不直接用于引擎 |
+| **PNG**（推荐） | 支持透明通道，2D 角色首选 |
+| **TGA** | PBR 流程 |
+| **JPEG** | 仅展示图/缩略图 |
 
 ### 1.3 透明通道（Alpha）
 
-- 角色轮廓外必须为完全透明（Alpha = 0）
+- 角色轮廓外必须完全透明（Alpha = 0）
 - 导出 PNG 时确认保留 Alpha 通道
 - 避免半透明像素残留
-- 无透贴需求时不要包含 A 通道
 
 ---
 
@@ -421,142 +153,83 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
 | 部件层级 | 包含内容 | 说明 |
 |----------|----------|------|
-| **头发** | 前发、后发、发饰 | 需区分前后层级，支持独立换色 |
-| **面部** | 眼睛、眉毛、嘴巴、腮红 | 独立小图叠加 |
-| **身体/上装** | 躯干、上衣、外套 | 需与下装在腰线处精确对接 |
-| **下装** | 裤子、裙子 | 与上装衔接线需点对点对齐 |
-| **四肢/手套** | 手臂、手套 | 分长款/短款 |
-| **鞋子** | 鞋、袜 | 注意归属规则 |
-| **配饰** | 帽子、眼镜、翅膀等 | 独立图层，灵活叠加 |
+| **头发** | 前发、后发、发饰 | 支持独立换色 |
+| **面部** | 眼睛、眉毛、嘴巴 | 独立小图叠加 |
+| **身体/上装** | 躯干、上衣、外套 | 与下装腰线精确对接 |
+| **下装** | 裤子、裙子 | 衔接线点对点对齐 |
+| **配饰** | 帽子、眼镜、翅膀 | 独立图层 |
 
-### 2.2 拆分对接核心要求
+### 2.2 拆分核心要求
 
 - **衔接线必须精确对齐**
-- **统一锚点/原点**：所有部件共用同一原点坐标系
-- **裸模补齐**：未被服装遮盖的皮肤部分需用基础裸模补全
+- **统一锚点/原点**
+- **裸模补齐**
 - **层级（Z-Order）明确定义**
-- **镜像对称处理**
 
-### 2.3 面数/复杂度控制
+### 2.3 面数控制
 
-| 部件 | 高精模型 | 低精模型 |
-|------|---------|---------|
-| 上衣+身体 | ≤10,000 面 | ≤2,500 面 |
-| 手套+手 | ≤3,500 面 | ≤1,500 面 |
-| 下装+腿 | ≤4,000 面 | ≤1,700 面 |
-| 鞋子+脚 | ≤3,500 面 | ≤1,500 面 |
-| 头发+发饰 | ≤10,000 面 | ≤3,000 面 |
+| 部件 | 高精 | 低精 |
+|------|------|------|
+| 上衣+身体 | ≤10,000 | ≤2,500 |
+| 头发+发饰 | ≤10,000 | ≤3,000 |
 | **总计** | **≤30,000** | **≤10,000** |
 
 ---
 
 ## 三、美术风格与色彩规范
 
-### 3.1 头身比与体型
+### 3.1 头身比
 
-| 风格 | 头身比 | 代表产品 |
-|------|--------|----------|
+| 风格 | 头身比 | 代表 |
+|------|--------|------|
 | Q 版圆润 | 1:1~2:1 | 蛋仔派对 |
-| Q 版人形 | 2:1~3:1 | 元梦之星、Gacha |
+| Q 版人形 | 2:1~3:1 | 元梦之星 |
 | 像素复古 | 取决于精度 | Minecraft |
-| 写实卡通 | 3:1~5:1 | 部分 Roblox |
 
 ### 3.2 色彩规范
 
-| 要素 | 规范 |
-|------|------|
-| **主色数量** | 3~5 个主色 + 1~2 个点缀色 |
-| **饱和度** | 避免过高饱和，推荐中间调 |
-| **明度对比** | 不同部件之间保持足够明度差 |
-| **色板统一** | 提供统一调色板 |
-| **肤色范围** | 预设多样化肤色选项 |
-| **描边色** | 比填充色深 20%~30% |
-
-### 3.3 光影处理
-
-- **像素风格**：2~3 级明暗
-- **卡通风格**：赛璐珞式硬边阴影或简单渐变
-- **统一光源方向**：固定左上方 45°
-- **避免极端对比**
+- 3~5 个主色 + 1~2 个点缀色
+- 避免过高饱和，推荐中间调
+- 统一光源方向：固定左上方 45°
 
 ---
 
 ## 四、动画与精灵图规范
 
-### 4.1 精灵图（Sprite Sheet）
-
 | 要素 | 规范 |
 |------|------|
-| **排列方式** | 水平或网格排列，帧间距统一 |
-| **帧尺寸** | 所有帧保持相同画布尺寸 |
-| **帧间距** | 预留 1~2px |
+| **排列方式** | 水平或网格，帧间距统一 |
+| **帧尺寸** | 所有帧保持相同画布 |
 | **帧率** | 像素 8~12 FPS；高清 12~24 FPS |
-| **帧数参考** | Idle 4~8、Walk 6~8、Run 6~10、Jump 3~6 |
-
-### 4.2 动画兼容性
-
-- 所有部件共用同一套骨骼/关键帧
-- 部件锚点在动画帧中位置一致
-- 预留动画安全区
 
 ---
 
-## 五、命名与资源管理规范
-
-### 5.1 文件命名
+## 五、命名与资源管理
 
 格式：`类型_性别_部件_编号_变体`
 
 ```
 SK_Female_Body_001_Show
 SK_Male_Hair_012
-SP_Unisex_Hat_003_Red
-```
-
-### 5.2 目录结构
-
-```
-/Characters
-  /Base    /Hair    /Face
-  /UpperBody    /LowerBody
-  /Shoes    /Accessories
-  /Thumbnails
 ```
 
 ---
 
-## 六、UGC 审核与合规
+## 六、审核与合规
 
-### 6.1 内容安全
-
-- 禁止暴露/色情内容
-- 禁止暴力/血腥元素
-- 禁止敏感符号
-- 版权合规
-
-### 6.2 技术审核
-
+- 禁止暴露/暴力/敏感符号
 - 文件大小 ≤ 1~5MB
-- 格式验证
 - 尺寸校验 2^N
-- Alpha 通道检查
-- 部件兼容性测试
 
 ---
 
-## 七、跨平台与性能优化
+## 七、跨平台优化
 
 | 平台 | 注意事项 |
 |------|----------|
-| **手机** | 贴图 ≤512，减少 Draw Call |
+| **手机** | 贴图 ≤512 |
 | **PC** | 可提高到 1024 |
-| **Web** | 单图 ≤200KB，用 WebP |
-
-- 图集合并（Atlas）
-- Mipmap
-- POT 尺寸
-- 压缩格式：ETC2 / PVRTC / ASTC
-- LOD 层级
+| **Web** | 单图 ≤200KB |
 
 ---
 
@@ -566,14 +239,7 @@ SP_Unisex_Hat_003_Red
 - [ ] PNG 含正确 Alpha
 - [ ] 部件统一锚点
 - [ ] 衔接处无缝隙
-- [ ] Z-Order 正确
-- [ ] 色彩饱和度适中
-- [ ] 光源方向统一
-- [ ] 动画帧尺寸一致
-- [ ] 换装兼容性通过
-- [ ] 文件大小合规
 - [ ] 命名规范
-- [ ] 无合规风险
 - [ ] 多端测试通过
 
 ---
@@ -582,44 +248,35 @@ SP_Unisex_Hat_003_Red
 
 | 平台 | 核心特点 | 关键规范 |
 |------|----------|---------|
-| **Minecraft** | 像素风格 | 64×64 PNG，固定UV |
-| **蛋仔派对** | 圆形Q版 | 极简造型，球形体型 |
-| **元梦之星** | 人形Q版 | 联动 IP 多 |
-| **口袋方舟** | 二次元/卡通 | 五大部件拆分 |
+| **Minecraft** | 像素风格 | 64×64 PNG |
+| **蛋仔派对** | 圆形Q版 | 极简造型 |
 | **Roblox** | 多风格 | 1920×1080 缩略图 |
-| **Gacha** | 纸娃娃 | 100+ 自定义项 |
 
 ---
 
 ## 十、核心设计原则
 
-1. **一致性优先**：头身比、色板、光影全局统一
-2. **模块化设计**：部件独立、接口标准化
-3. **性能敏感**：移动端优先思维
-4. **安全区预留**：动画换装容错空间
-5. **可扩展性**：命名目录支持持续扩充
-6. **合规底线**：审核规则前置
-7. **跨端适配**：设计阶段考虑多平台
+1. **一致性优先**
+2. **模块化设计**
+3. **性能敏感**
+4. **可扩展性**
+5. **合规底线**
 </script>
 
 <script id="md-d2" type="text/markdown">
 # 2D 角色换色 —— 美术出图资源提供规范
 
-> 本文档面向 2D 美术，梳理"角色换色"场景下需要提供给程序的资源清单、制作规范与注意事项。
+> 本文档面向 2D 美术，梳理"角色换色"场景下需要提供给程序的资源清单与制作规范。
 
 ---
 
 ## 一、换色方案概览
 
-| 方案 | 原理 | 美术资源 | 适用场景 |
-|------|------|---------|----------|
-| **① 调色板替换** | 索引色/LUT 映射 | 原图 + 调色板贴图 | 像素风格 |
-| **② 遮罩分区+HSV** | Mask 标记区域 | 原图 + Mask 遮罩图 | **最主流** |
-| **③ 灰度叠色** | 灰度×目标色 | 灰度底图 | 纯色服装 |
-| **④ 通道混合** | RGB 矩阵运算 | 原图 + Mask | 高品质 |
-| **⑤ 多套贴图** | 每色一套 | N 套贴图 | 颜色少 |
-
-> **推荐**：方案②（遮罩分区 + HSV/Tint），兼顾效果、性能和扩展性。
+| 方案 | 原理 | 适用场景 |
+|------|------|----------|
+| **② 遮罩分区+HSV** | Mask 标记区域 | **最主流** |
+| **① 调色板替换** | 索引色映射 | 像素风格 |
+| **③ 灰度叠色** | 灰度×目标色 | 纯色服装 |
 
 ---
 
@@ -631,8 +288,7 @@ SP_Unisex_Hat_003_Red
 📁 角色资源包
 ├── character_base.png     ← 基础原图
 ├── character_mask.png     ← 换色遮罩图（RGBA）
-├── palette_config.json    ← 配色方案表（可选）
-└── preview_thumbnail.png  ← 换色预览（可选）
+└── palette_config.json    ← 配色方案表
 ```
 
 ### 2.2 基础原图规范
@@ -641,117 +297,49 @@ SP_Unisex_Hat_003_Red
 |------|------|
 | **格式** | PNG（带 Alpha） |
 | **尺寸** | 2^N，如 512×512 |
-| **色彩** | 正常绘制完整色彩 |
 | **注意** | 换色区域不要纯黑/纯白 |
-| **饱和度** | 中等（40%~70%） |
 
-### 2.3 换色遮罩图 —— 最关键
-
-#### 通道定义
+### 2.3 换色遮罩图
 
 ```
-R（红色）→ 换色区域 1（如：头发）
-G（绿色）→ 换色区域 2（如：上衣）
-B（蓝色）→ 换色区域 3（如：裤子）
-A（Alpha）→ 总开关（白=可染，黑=不染）
+R → 换色区域 1（头发）
+G → 换色区域 2（上衣）
+B → 换色区域 3（裤子）
+A → 总开关（白=可染，黑=不染）
 ```
-
-#### 通道值
-
-| 值 | 含义 |
-|----|------|
-| **255** | 完全受换色影响 |
-| **0** | 不受影响 |
-| **中间值** | 渐变过渡 |
-
-#### 制作要求
 
 | 要素 | 规范 |
 |------|------|
-| **尺寸** | 与原图完全一致 |
 | **对齐** | 像素级对齐 |
 | **格式** | PNG/TGA 无损 |
-| **边缘** | 1~2px 渐变过渡 |
 | **互斥** | R/G/B 同一像素只能一个有值 |
-| **非染色** | A 通道涂黑 |
-
-### 2.4 配色方案表
-
-```json
-{
-  "colorSchemes": [
-    { "name": "默认", "hair": "#8B4513", "top": "#4169E1", "bottom": "#2F4F4F" },
-    { "name": "暖色", "hair": "#D2691E", "top": "#FF6347", "bottom": "#CD853F" },
-    { "name": "冷色", "hair": "#4682B4", "top": "#5F9EA0", "bottom": "#708090" }
-  ]
-}
-```
 
 ---
 
-## 三、调色板替换（Palette Swap）
+## 三、调色板替换
 
-### 3.1 资源
-
-```
-📁 角色资源包
-├── character_indexed.png
-└── palettes/
-    ├── palette_default.png  (256×1)
-    ├── palette_fire.png
-    └── palette_ice.png
-```
-
-### 3.2 索引色原图规范
-
-- 颜色控制在 8~32 色
-- 被独立换色的区域 R 通道值必须唯一
-- 避免渐变，每种颜色为纯色色块
-- 必须导出颜色对照表
-
-### 3.3 调色板贴图规范
-
-- 尺寸 256×1
-- PNG 无压缩/无抗锯齿
-- 第 X 像素 = R 值为 X 的像素替换色
-- 采样模式设为 Point（最近邻）
+- 颜色 8~32 色，R 通道值唯一
+- 调色板 256×1，采样 Point
 
 ---
 
 ## 四、灰度底图 + 叠色
 
-### 4.1 资源
-
-```
-📁 角色资源包
-├── character_grayscale.png
-├── character_mask.png  (可选)
-└── character_detail.png  (可选)
-```
-
-### 4.2 灰度图规范
-
-- 完全去色，只保留明暗
-- 基础亮度 128~200
-- 褶皱/阴影/高光用灰度表现
+- 完全去色，亮度 128~200
 - 原理：最终颜色 = 灰度 × 目标色
 
 ---
 
-## 五、超过 3 个换色区域的扩展
+## 五、扩展方案
 
-### 方案 A：灰度分段
+### 灰度分段
 
 ```
-0          不换色
-1~50       区域1（头发）
-51~100     区域2（上衣）
-101~150    区域3（裤子）
-151~200    区域4（鞋子）
-201~255    区域5（配饰）
+0=不换色  1~50=头发  51~100=上衣
+101~150=裤子  151~200=鞋子  201~255=配饰
 ```
 
-### 方案 B：多张 Mask
+### 多张 Mask
 
 ```
 mask_1.png → R=头发, G=上衣, B=裤子
@@ -760,46 +348,23 @@ mask_2.png → R=鞋子, G=手套, B=配饰
 
 ---
 
-## 六、对接检查清单
+## 六、检查清单
 
-### 出图前
-
-- [ ] 确认换色方案
-- [ ] 确认换色区域数量
-- [ ] 确认通道分配定义
-- [ ] 确认尺寸和格式
-
-### 出图时
-
-- [ ] 原图换色区域无纯黑/纯白
-- [ ] Mask 与原图尺寸一致、像素对齐
-- [ ] 无损格式（不要 JPEG）
-- [ ] 通道互斥
-- [ ] A 通道正确标记
-- [ ] 边缘处理干净
-
-### 交付时
-
-- [ ] 基础原图 `.png`
-- [ ] 遮罩图 `.png` + 通道说明
-- [ ] 配色方案 `.json`
-- [ ] 换色区域说明
-- [ ] 至少 3 套配色预览
+- [ ] 确认换色方案与区域数量
+- [ ] Mask 尺寸一致、像素对齐
+- [ ] 无损格式、通道互斥
+- [ ] 交付：原图 + 遮罩图 + 配色方案
 
 ---
 
 ## 七、常见踩坑
 
-| 问题 | 原因 | 解决 |
-|------|------|------|
-| 杂色/噪点 | Mask 用了 JPEG | 用 PNG/TGA |
-| 边缘锯齿 | 硬切像素 | 1~2px 渐变 |
-| 黑白换不了色 | HSV 偏移无效 | 用深灰/浅灰 |
-| 串色 | 多通道有值 | 确保互斥 |
-| 光影消失 | 阴影不够 | 保持明暗层次 |
-| 脸部被染色 | A 通道未涂黑 | 检查 Alpha |
-| 调色板错乱 | R 值重复 | R 通道唯一 |
-| Mask 对不上 | 尺寸偏移 | 同画布分层导出 |
+| 问题 | 解决 |
+|------|------|
+| 杂色/噪点 | 用 PNG 不要 JPEG |
+| 边缘锯齿 | 1~2px 渐变 |
+| 串色 | 确保互斥 |
+| 脸部被染色 | 检查 Alpha |
 
 ---
 
@@ -809,279 +374,10 @@ mask_2.png → R=鞋子, G=手套, B=配饰
 2. **Mask 是关键**
 3. **无损格式是铁律**
 4. **通道互斥**
-5. **保留明暗层次**
-6. **充分沟通**
+5. **充分沟通**
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
-<script>
-// ═══════════════════════════════════════════
-// Markdown Parser
-// ═══════════════════════════════════════════
-function parseMd(md){
-  let h=md;
-  h=h.replace(/```(\w*)\n([\s\S]*?)```/g,(_,l,c)=>`<pre><code>${esc(c.trim())}</code></pre>`);
-  h=h.replace(/^(\|.+\|)\n(\|[-| :]+\|)\n((?:\|.+\|\n?)*)/gm,(_,hdr,sep,body)=>{
-    const ths=hdr.split('|').filter(c=>c.trim()).map(c=>`<th>${il(c.trim())}</th>`).join('');
-    const rows=body.trim().split('\n').map(r=>{const tds=r.split('|').filter(c=>c.trim()).map(c=>`<td>${il(c.trim())}</td>`).join('');return`<tr>${tds}</tr>`;}).join('');
-    return`<table><thead><tr>${ths}</tr></thead><tbody>${rows}</tbody></table>`;
-  });
-  h=h.replace(/^#### (.+)$/gm,'<h4>$1</h4>');
-  h=h.replace(/^### (.+)$/gm,(_,t)=>`<h3 id="${sl(t)}">${il(t)}</h3>`);
-  h=h.replace(/^## (.+)$/gm,(_,t)=>`<h2 id="${sl(t)}">${il(t)}</h2>`);
-  h=h.replace(/^# (.+)$/gm,(_,t)=>`<h1>${il(t)}</h1>`);
-  h=h.replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>');
-  h=h.replace(/<\/blockquote>\n<blockquote>/g,'<br>');
-  h=h.replace(/^---$/gm,'<hr>');
-  h=h.replace(/^- \[( |x)\] (.+)$/gm,(_,c,t)=>`<p><input type="checkbox"${c==='x'?' checked':''} disabled>${il(t)}</p>`);
-  h=h.replace(/^- (.+)$/gm,'<li>$1</li>');
-  h=h.replace(/(<li>.*<\/li>\n?)+/g,m=>`<ul>${m}</ul>`);
-  h=h.replace(/^\d+\. (.+)$/gm,'<li>$1</li>');
-  h=h.replace(/^(?!<[a-z/])((?!<).+)$/gm,m=>m.trim()?`<p>${il(m)}</p>`:m);
-  h=h.replace(/<p><\/p>/g,'');
-  return h;
-}
-function il(t){t=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');t=t.replace(/`([^`]+)`/g,'<code>$1</code>');return t;}
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function sl(t){return t.replace(/[^\w\u4e00-\u9fff]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');}
-
-// ═══════════════════════════════════════════
-// Data & State
-// ═══════════════════════════════════════════
-const docs={};
-const meta={'d1':{cat:'角色',title:'2D UGC 角色出图规范'},'d2':{cat:'角色',title:'2D 角色换色资源规范'}};
-let curPage='home';
-let fuse=null;
-let indexData=null;
-
-const iframePages={
-  'ui-slice-naming':'knowledge-base/ui-slice-naming.html',
-  'ui-9slice-color':'knowledge-base/ui-9slice-color.html',
-  'ui-layout':'knowledge-base/ui-layout.html',
-  'ui-umg-tips':'knowledge-base/ui-umg-tips.html',
-  'cp-management':'knowledge-base/cp-management.html',
-  'game-art-pipeline':'knowledge-base/md-viewer.html?file=game-art-pipeline.md'
-};
-
-const toolInfo={
-  'auto-mask':{icon:'🤖',iconBg:'linear-gradient(135deg,rgba(74,222,128,.12),rgba(74,222,128,.2))',name:'自动 Mask 通道生成器',ver:'v2.0',status:'online',subtitle:'LAB 色彩空间 K-Means++ 聚类 · 一键生成换色遮罩图',desc:'上传角色原图后，工具自动在 LAB 色彩空间中通过 K-Means++ 聚类识别颜色区域，3 秒内生成 RGBA 换色遮罩图。内置通道互斥检测、纯黑/纯白自动修复、质量评分，零 PS 基础也能产出合格 Mask。',tags:['在线工具','自动验算','K-Means++','通道互斥','质量评分'],platform:'Win / Mac / Linux',date:'2026-03-31',url:'knowledge-base/auto-mask.html',cat:'角色 · Character'},
-  'mask-tool':{icon:'🖌️',iconBg:'linear-gradient(135deg,rgba(251,146,60,.12),rgba(251,146,60,.2))',name:'Mask 手动编辑器',ver:'v1.0',status:'online',subtitle:'画笔 / 油漆桶 / 橡皮擦 · 实时四通道预览',desc:'专为 Mask 精修设计的轻量编辑器。导入原图后直接在浏览器中用画笔逐通道绘制或修改，R/G/B/A 四通道独立显示并可实时预览换色效果，所见即所得。导出即可用于引擎。',tags:['在线工具','画笔绘制','RGBA预览','所见即所得'],platform:'Win / Mac / Linux',date:'2026-03-31',url:'knowledge-base/mask-tool.html',cat:'角色 · Character'},
-  'spine-split':{icon:'✂️',iconBg:'linear-gradient(135deg,rgba(167,139,250,.12),rgba(167,139,250,.2))',name:'Spine 角色拆分工具',ver:'v1.0',status:'online',subtitle:'矩形 / 套索 / 魔棒选区 · 拓扑延展 · Atlas 导出',desc:'上传角色原画后，使用选区工具（矩形/套索/魔棒）圈选各部件，工具自动裁切并执行拓扑延展（内容感知/边缘扩展/镜像/纯色 4 种模式）。最终导出包含 Atlas 图集 + Spine JSON 配置的 ZIP 包，可零配置导入 Spine。',tags:['在线工具','选区拆分','拓扑延展','Atlas导出','Spine兼容'],platform:'Win / Mac / Linux',date:'2026-03-31',url:'knowledge-base/spine-split.html',cat:'角色 · Character'}
-};
-
-const pageCatMap={'d1':'cat-character','d2':'cat-character','tool:auto-mask':'cat-character','tool:mask-tool':'cat-character','tool:spine-split':'cat-character','ui-slice-naming':'cat-ui','ui-9slice-color':'cat-ui','ui-layout':'cat-ui','ui-umg-tips':'cat-ui','cp-management':'cat-mgmt','game-art-pipeline':'cat-mgmt'};
-
-// ═══════════════════════════════════════════
-// Tree Toggle
-// ═══════════════════════════════════════════
-function toggleTree(el){el.classList.toggle('open');}
-
-// ═══════════════════════════════════════════
-// Loading Bar
-// ═══════════════════════════════════════════
-function showLoading(){document.getElementById('loadingBar').classList.add('show');}
-function hideLoading(){document.getElementById('loadingBar').classList.remove('show');}
-
-// ═══════════════════════════════════════════
-// Core Navigation (SPA)
-// ═══════════════════════════════════════════
-function navigate(pageId, btn){
-  curPage=pageId;
-  location.hash=pageId==='home'?'':pageId;
-
-  const scroll=document.getElementById('contentScroll');
-  const frame=document.getElementById('contentFrame');
-  const home=document.getElementById('pageHome');
-  const toolPage=document.getElementById('page-tool');
-
-  home.style.display='none';
-  document.querySelectorAll('.doc-page').forEach(p=>{p.style.display='none';p.classList.remove('active');});
-  toolPage.style.display='none';toolPage.classList.remove('active');
-  frame.style.display='none';
-  scroll.style.display='none';
-  hideLoading();
-
-  if(pageId==='home'){
-    scroll.style.display='block';home.style.display='block';scroll.scrollTop=0;
-  } else if(pageId.startsWith('tool:')){
-    const toolId=pageId.replace('tool:','');
-    renderToolPage(toolId);
-    scroll.style.display='block';toolPage.style.display='block';toolPage.classList.add('active');scroll.scrollTop=0;
-  } else if(docs[pageId]){
-    scroll.style.display='block';
-    const page=document.getElementById(`page-${pageId}`);
-    if(page){page.style.display='block';page.classList.add('active');const ct=document.getElementById(`ct-${pageId}`);if(!ct.innerHTML.trim())ct.innerHTML=parseMd(docs[pageId]);}
-    buildToc(pageId);scroll.scrollTop=0;
-  } else if(iframePages[pageId]){
-    showLoading();frame.style.display='block';frame.src=iframePages[pageId];frame.onload=()=>hideLoading();
-  }
-
-  updateNavActive(pageId, btn);
-  document.querySelector('.sidebar').classList.remove('open');
-}
-
-function updateNavActive(pageId, btn){
-  document.querySelectorAll('.sidebar-nav .tree-leaf, .sidebar-nav .nav-home').forEach(n=>n.classList.remove('active'));
-  document.querySelectorAll('.tree-toc').forEach(t=>t.innerHTML='');
-
-  if(pageId==='home'){document.getElementById('navHome').classList.add('active');return;}
-
-  if(btn){btn.classList.add('active');}
-  else{document.querySelectorAll('.tree-leaf[data-page]').forEach(leaf=>{if(leaf.getAttribute('data-page')===pageId)leaf.classList.add('active');});}
-
-  // Auto-expand parent tree nodes
-  const catId=pageCatMap[pageId];
-  if(catId){
-    const cat=document.getElementById(catId);
-    if(cat)cat.classList.add('open');
-    const activeLeaf=document.querySelector('.tree-leaf.active');
-    if(activeLeaf){const l2=activeLeaf.closest('.tree-l2');if(l2)l2.classList.add('open');}
-  }
-}
-
-// ═══════════════════════════════════════════
-// Render Tool Card Page
-// ═══════════════════════════════════════════
-function renderToolPage(toolId){
-  const info=toolInfo[toolId];
-  if(!info)return;
-  const page=document.getElementById('page-tool');
-  const stHtml=info.status==='online'?'<span class="st st-on">🟢 在线</span>':'<span class="st st-soon">🟡 规划中</span>';
-  let tags='';info.tags.forEach(t=>{tags+=`<span class="tag">${t}</span>`;});
-  let acts='';
-  if(info.status==='online'){acts=`<button class="tool-btn tool-btn-p" onclick="openToolInFrame('${toolId}')">🚀 在右侧打开工具</button><button class="tool-btn tool-btn-o" onclick="window.open('${info.url}','_blank')">↗ 新窗口打开</button>`;}
-  else{acts=`<button class="tool-btn tool-btn-d">📅 即将推出</button>`;}
-  page.innerHTML=`
-    <div class="tool-bc"><a onclick="navigate('home')">🏠 首页</a><span>›</span><span>${info.cat||'工具'}</span><span>›</span><span>${info.name}</span></div>
-    <div class="tool-hero"><div class="tool-hero-icon" style="background:${info.iconBg}">${info.icon}</div><div class="tool-hero-info"><h1>${info.name} <span class="ver">${info.ver}</span> ${stHtml}</h1><div class="sub">${info.subtitle}</div></div></div>
-    <div class="tool-gif"><div class="ph"><span>🎬</span>功能演示（GIF / 截图待补充）</div></div>
-    <div class="tool-desc">${info.desc}</div>
-    <div class="tool-tags">${tags}</div>
-    <div class="tool-meta">
-      <div class="tool-mi"><div class="ico">🌐</div><div class="val">浏览器在线</div><div class="lbl">运行环境</div></div>
-      <div class="tool-mi"><div class="ico">💻</div><div class="val">${info.platform}</div><div class="lbl">支持平台</div></div>
-      <div class="tool-mi"><div class="ico">📦</div><div class="val">无需安装</div><div class="lbl">安装方式</div></div>
-      <div class="tool-mi"><div class="ico">📅</div><div class="val">${info.date}</div><div class="lbl">更新时间</div></div>
-    </div>
-    <div class="tool-acts">${acts}</div>`;
-}
-
-function openToolInFrame(toolId){
-  const info=toolInfo[toolId];if(!info)return;
-  showLoading();
-  const frame=document.getElementById('contentFrame');
-  const scroll=document.getElementById('contentScroll');
-  scroll.style.display='none';frame.style.display='block';frame.src=info.url;frame.onload=()=>hideLoading();
-}
-
-// ═══════════════════════════════════════════
-// TOC (Level 4 anchors)
-// ═══════════════════════════════════════════
-function buildToc(docId){
-  document.querySelectorAll('.tree-toc').forEach(t=>t.innerHTML='');
-  const tc=document.getElementById(`toc-${docId}`);if(!tc)return;
-  const ct=document.getElementById(`ct-${docId}`);
-  ct.querySelectorAll('h2').forEach(h=>{
-    const b=document.createElement('button');b.className='toc-a';b.textContent=h.textContent;
-    b.onclick=()=>{h.scrollIntoView({behavior:'smooth',block:'start'});document.querySelectorAll('.toc-a').forEach(t=>t.classList.remove('active'));b.classList.add('active');};
-    tc.appendChild(b);
-  });
-}
-
-// ═══════════════════════════════════════════
-// Fuse.js Search
-// ═══════════════════════════════════════════
-async function initFuseSearch(){
-  try{
-    const res=await fetch('index.json');if(!res.ok)return;
-    indexData=await res.json();
-    const items=[];
-    for(const[id,md]of Object.entries(docs)){const m=meta[id]||{};items.push({id,title:m.title||id,type:'doc',content:md,action:'navigate',cat:m.cat||''});}
-    for(const[id,info]of Object.entries(toolInfo)){items.push({id:'tool:'+id,title:info.name,type:'tool',content:info.desc+' '+info.tags.join(' '),action:'navigate',cat:info.cat||''});}
-    if(indexData&&indexData.categories){indexData.categories.forEach(cat=>{cat.items.forEach(item=>{if(!items.find(s=>s.id===item.id||s.id==='tool:'+item.id)){items.push({id:item.id,title:item.title,type:item.type,content:(item.desc||'')+' '+(item.tags||[]).join(' '),action:'navigate',cat:cat.name});}});});}
-    fuse=new Fuse(items,{keys:[{name:'title',weight:3},{name:'content',weight:1},{name:'cat',weight:.5}],threshold:.35,includeMatches:true,minMatchCharLength:1});
-  }catch(e){console.log('Fuse init skipped:',e);}
-}
-
-function handleFuseSearch(q){
-  const dd=document.getElementById('searchDropdown');q=q.trim();
-  if(!q){dd.classList.remove('show');dd.innerHTML='';return;}
-  if(fuse){
-    const results=fuse.search(q).slice(0,10);
-    if(!results.length){dd.innerHTML='<div style="padding:14px;text-align:center;color:var(--dim);font-size:13px">未找到相关内容</div>';dd.classList.add('show');return;}
-    let html='';
-    results.forEach(r=>{const item=r.item;const tc=item.type==='tool'?'background:rgba(74,222,128,.08);color:#4ade80':'background:rgba(108,140,255,.08);color:#6c8cff';const tl=item.type==='tool'?'工具':'文档';
-    html+=`<div class="sr-item" onmousedown="navigate('${item.id}');document.getElementById('searchDropdown').classList.remove('show');document.getElementById('searchInput').value=''"><span class="sr-type" style="${tc}">${tl}</span><span class="sr-title">${item.title}</span><span class="sr-cat">${item.cat||''}</span></div>`;});
-    dd.innerHTML=html;dd.classList.add('show');
-  } else {
-    let results=[];
-    for(const[id,md]of Object.entries(docs)){const m=meta[id]||{};if(m.title&&m.title.toLowerCase().includes(q.toLowerCase()))results.push({id,title:m.title,type:'doc'});}
-    for(const[id,info]of Object.entries(toolInfo)){if(info.name.toLowerCase().includes(q.toLowerCase()))results.push({id:'tool:'+id,title:info.name,type:'tool'});}
-    if(!results.length){dd.classList.remove('show');return;}
-    let html='';results.slice(0,8).forEach(r=>{const tc=r.type==='tool'?'background:rgba(74,222,128,.08);color:#4ade80':'background:rgba(108,140,255,.08);color:#6c8cff';
-    html+=`<div class="sr-item" onmousedown="navigate('${r.id}');document.getElementById('searchDropdown').classList.remove('show')"><span class="sr-type" style="${tc}">${r.type==='tool'?'工具':'文档'}</span><span class="sr-title">${r.title}</span></div>`;});
-    dd.innerHTML=html;dd.classList.add('show');
-  }
-}
-
-// ═══════════════════════════════════════════
-// Share / Toast / Feedback
-// ═══════════════════════════════════════════
-function copyShareLink(){navigator.clipboard.writeText(location.href).then(()=>showToast('链接已复制到剪贴板')).catch(()=>showToast('复制失败，请手动复制'));}
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
-
-function showFeedback(){
-  let d=document.getElementById('feedbackDialog');
-  if(!d){d=document.createElement('div');d.id='feedbackDialog';d.className='fb-overlay';
-  d.innerHTML=`<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:28px 32px;max-width:460px;width:90%;box-shadow:0 16px 48px rgba(0,0,0,.4)"><h3 style="color:var(--heading);font-size:18px;margin-bottom:16px">📮 反馈与建议</h3><p style="font-size:13px;color:var(--dim);margin-bottom:16px;line-height:1.7">发现 Bug、有改进建议、或想要新功能？欢迎反馈！</p><textarea id="feedbackText" rows="4" style="width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;outline:none" placeholder="请描述你的问题或建议..."></textarea><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button onclick="document.getElementById('feedbackDialog').classList.remove('show')" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--dim);cursor:pointer;font-family:inherit;font-size:13px">取消</button><button onclick="submitFeedback()" style="padding:8px 18px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500">提交反馈</button></div></div>`;
-  document.body.appendChild(d);d.addEventListener('click',e=>{if(e.target===d)d.classList.remove('show');});}
-  d.classList.add('show');setTimeout(()=>{const ta=document.getElementById('feedbackText');if(ta){ta.value='';ta.focus();}},100);
-}
-function submitFeedback(){
-  const text=document.getElementById('feedbackText').value.trim();
-  if(!text){showToast('请输入反馈内容');return;}
-  const fb=JSON.parse(localStorage.getItem('kb_feedback')||'[]');
-  fb.push({text,time:new Date().toISOString(),page:curPage});
-  localStorage.setItem('kb_feedback',JSON.stringify(fb));
-  document.getElementById('feedbackDialog').classList.remove('show');showToast('✅ 感谢反馈！已记录');
-}
-
-// ═══════════════════════════════════════════
-// Scroll events
-// ═══════════════════════════════════════════
-const scrollEl=document.getElementById('contentScroll');
-scrollEl.addEventListener('scroll',()=>{
-  document.getElementById('backToTop').classList.toggle('show',scrollEl.scrollTop>300);
-  const hs=document.querySelectorAll('.doc-page.active h2');
-  const ts=document.querySelectorAll('.toc-a');
-  let ai=0;hs.forEach((h,i)=>{if(h.getBoundingClientRect().top<100)ai=i;});
-  ts.forEach((t,i)=>t.classList.toggle('active',i===ai));
-});
-
-// ═══════════════════════════════════════════
-// Keyboard shortcuts
-// ═══════════════════════════════════════════
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){const fb=document.getElementById('feedbackDialog');if(fb)fb.classList.remove('show');}
-  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();document.getElementById('searchInput').focus();}
-});
-
-// ═══════════════════════════════════════════
-// Init
-// ═══════════════════════════════════════════
-function initDocs(){
-  document.querySelectorAll('script[type="text/markdown"]').forEach(el=>{const id=el.id.replace('md-','');docs[id]=el.textContent.trim();});
-  const hash=location.hash.slice(1);
-  if(hash){navigate(hash);}
-  initFuseSearch();
-}
-
-window.addEventListener('hashchange',()=>{
-  const hash=location.hash.slice(1)||'home';
-  if(hash!==curPage)navigate(hash);
-});
-
-initDocs();
-</script>
+<script src="app.js"></script>
 </body>
 </html>
