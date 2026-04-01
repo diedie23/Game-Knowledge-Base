@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CP 外包管理手册 · 游戏美术项目知识库</title>
+<style>
+:root{--bg:#0d0f15;--panel:#111320;--card:#161829;--border:#222540;--text:#c5c9d6;--dim:#6b7085;--heading:#e8eaed;--accent:#6c8cff;--accent-light:#8ba3ff;--accent-bg:rgba(108,140,255,.07);--green:#4ade80;--green-bg:rgba(74,222,128,.07);--orange:#fb923c;--orange-bg:rgba(251,146,60,.07);--red:#f87171;--red-bg:rgba(248,113,113,.07);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.07);--cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.07);--yellow:#fbbf24;--yellow-bg:rgba(251,191,36,.07);--code-bg:#1a1d2d;--st:#3d4155}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--st);border-radius:3px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+/* Top Bar */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(13,15,21,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:56px}
+.topbar-brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--heading);cursor:pointer}
+.topbar-brand .logo{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff}
+.topbar-nav{display:flex;gap:4px}
+.topbar-nav a{padding:8px 16px;border-radius:8px;font-size:13px;color:var(--dim);transition:all .15s;text-decoration:none}
+.topbar-nav a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.topbar-nav a.active{color:var(--accent);background:var(--accent-bg);font-weight:500}
+
+/* Layout */
+.layout{display:flex;max-width:1200px;margin:0 auto;padding:0 24px}
+.toc-sidebar{width:240px;min-width:240px;position:sticky;top:72px;height:calc(100vh - 72px);overflow-y:auto;padding:24px 0;border-right:1px solid var(--border)}
+.toc-sidebar h4{font-size:11px;color:var(--dim);letter-spacing:1px;padding:0 16px 8px;font-weight:600}
+.toc-link{display:block;padding:6px 16px;font-size:13px;color:var(--dim);cursor:pointer;border-left:2px solid transparent;transition:all .15s;text-decoration:none}
+.toc-link:hover{color:var(--accent-light);background:rgba(255,255,255,.02);text-decoration:none}
+.toc-link.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-bg)}
+.toc-link.sub{padding-left:28px;font-size:12px}
+.content{flex:1;padding:32px 40px 80px;min-width:0}
+
+/* Typography */
+.content h1{font-size:28px;color:var(--heading);font-weight:800;margin-bottom:8px;padding-bottom:12px;border-bottom:2px solid var(--accent)}
+.content h2{font-size:22px;color:var(--heading);font-weight:700;margin:48px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border);scroll-margin-top:80px}
+.content h3{font-size:17px;color:var(--heading);font-weight:600;margin:32px 0 12px;scroll-margin-top:80px}
+.content h4{font-size:15px;color:var(--accent-light);font-weight:600;margin:20px 0 8px}
+.content p{margin:10px 0;font-size:14px}
+.content ul,.content ol{padding-left:24px;margin:8px 0}.content li{margin:4px 0;font-size:14px}
+.content strong{color:var(--heading)}
+.content code{background:var(--code-bg);padding:2px 6px;border-radius:3px;font-size:13px;font-family:'Consolas','Menlo',monospace;color:var(--accent-light);border:1px solid var(--border)}
+.content blockquote{border-left:3px solid var(--accent);padding:12px 16px;margin:16px 0;background:var(--accent-bg);border-radius:0 6px 6px 0;font-size:14px;color:var(--dim)}
+.content blockquote strong{color:var(--accent-light)}
+.content hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+.content table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.content th{background:var(--card);padding:10px 14px;text-align:left;font-weight:600;color:var(--heading);border:1px solid var(--border);white-space:nowrap}
+.content td{padding:8px 14px;border:1px solid var(--border);vertical-align:top}
+.content tr:hover td{background:rgba(108,140,255,.03)}
+
+/* Flow Chart */
+.flow-chart{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin:20px 0;overflow-x:auto}
+.flow-steps{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-width:max-content}
+.flow-step{display:flex;flex-direction:column;align-items:center;min-width:120px;text-align:center}
+.flow-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;margin-bottom:6px}
+.flow-step-title{font-size:12px;font-weight:600;color:var(--heading);margin-bottom:2px}
+.flow-step-desc{font-size:11px;color:var(--dim);max-width:120px}
+.flow-arrow{font-size:18px;color:var(--dim);flex-shrink:0}
+
+/* Alert Cards */
+.alert{border-radius:10px;padding:16px 18px;margin:16px 0;display:flex;align-items:flex-start;gap:12px}
+.alert-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.alert-text{font-size:13px;line-height:1.8}
+.alert-danger{background:var(--red-bg);border:1px solid rgba(248,113,113,.15)}
+.alert-danger .alert-text strong{color:var(--red)}
+.alert-success{background:var(--green-bg);border:1px solid rgba(74,222,128,.15)}
+.alert-success .alert-text strong{color:var(--green)}
+.alert-warning{background:var(--orange-bg);border:1px solid rgba(251,146,60,.15)}
+.alert-warning .alert-text strong{color:var(--orange)}
+.alert-info{background:var(--accent-bg);border:1px solid rgba(108,140,255,.15)}
+.alert-info .alert-text strong{color:var(--accent-light)}
+.alert-purple{background:var(--purple-bg);border:1px solid rgba(167,139,250,.15)}
+.alert-purple .alert-text strong{color:var(--purple)}
+
+/* Checklist */
+.checklist{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin:16px 0}
+.checklist h4{margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.cl-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:13px;border-bottom:1px solid rgba(255,255,255,.03)}
+.cl-item:last-child{border-bottom:none}
+.cl-check{color:var(--green);flex-shrink:0;margin-top:2px}
+.cl-label{flex:1}
+
+/* Copyable Card */
+.copy-card{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;margin:16px 0;overflow:hidden}
+.copy-card-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border)}
+.copy-card-title{font-size:12px;font-weight:600;color:var(--heading);display:flex;align-items:center;gap:6px}
+.copy-btn{background:var(--accent-bg);border:1px solid rgba(108,140,255,.2);color:var(--accent);padding:4px 12px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s}
+.copy-btn:hover{background:var(--accent);color:#fff}
+.copy-card-body{padding:16px;font-size:13px;line-height:1.8;white-space:pre-wrap;font-family:'Consolas','Menlo',monospace;color:var(--text)}
+
+/* Tags */
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.tag{font-size:11px;padding:3px 10px;border-radius:6px}
+.tag-red{background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.15)}
+.tag-orange{background:var(--orange-bg);color:var(--orange);border:1px solid rgba(251,146,60,.15)}
+.tag-green{background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,.15)}
+.tag-blue{background:var(--accent-bg);color:var(--accent);border:1px solid rgba(108,140,255,.15)}
+.tag-purple{background:var(--purple-bg);color:var(--purple);border:1px solid rgba(167,139,250,.15)}
+
+/* Collapsible */
+details{background:var(--card);border:1px solid var(--border);border-radius:10px;margin:12px 0;overflow:hidden}
+details summary{padding:14px 18px;cursor:pointer;font-size:14px;font-weight:600;color:var(--heading);display:flex;align-items:center;gap:8px;user-select:none;transition:background .15s}
+details summary:hover{background:rgba(255,255,255,.02)}
+details summary::marker{display:none;content:''}
+details summary::before{content:'▸';font-size:12px;color:var(--dim);transition:transform .2s}
+details[open] summary::before{transform:rotate(90deg)}
+details .detail-body{padding:4px 18px 18px}
+
+/* Back to top */
+.btt{position:fixed;bottom:24px;right:24px;width:40px;height:40px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--dim);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;opacity:0;transition:opacity .2s;z-index:50}
+.btt.show{opacity:1}.btt:hover{color:var(--accent);border-color:var(--accent)}
+
+/* Footer */
+.footer{text-align:center;padding:40px 20px 32px;border-top:1px solid var(--border);margin-top:40px}
+.footer p{font-size:12px;color:var(--dim)}
+
+/* Responsive */
+@media(max-width:768px){
+  .topbar{padding:0 16px}
+  .toc-sidebar{display:none}
+  .content{padding:20px 16px 60px}
+  .flow-steps{flex-direction:column}
+  .flow-arrow{transform:rotate(90deg)}
+}
+@media print{
+  .topbar,.toc-sidebar,.btt{display:none!important}
+  body{background:#fff;color:#333}
+  .content h1,.content h2,.content h3{color:#111}
+  .content{padding:20px}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-brand" onclick="location.href='../index.html'">
+    <span class="logo">📖</span> 游戏项目知识库
+  </div>
+  <nav class="topbar-nav">
+    <a href="../index.html">🏠 首页</a>
+    <a href="../tools.html">🔧 工具集</a>
+    <a href="#" class="active">📋 外包管理</a>
+  </nav>
+</header>
+
+<div class="layout">
+
+<!-- ─── TOC Sidebar ─── -->
+<aside class="toc-sidebar">
+  <h4>目录导航</h4>
+  <a class="toc-link" href="#sec1">📋 完整对接流程</a>
+  <a class="toc-link sub" href="#sec1-1">需求下发</a>
+  <a class="toc-link sub" href="#sec1-2">制作跟进</a>
+  <a class="toc-link sub" href="#sec1-3">验收</a>
+  <a class="toc-link sub" href="#sec1-4">结算</a>
+  <a class="toc-link" href="#sec2">🚨 常见问题处理</a>
+  <a class="toc-link sub" href="#sec2-1">资源不达标</a>
+  <a class="toc-link sub" href="#sec2-2">延期处理</a>
+  <a class="toc-link sub" href="#sec2-3">沟通失联</a>
+  <a class="toc-link sub" href="#sec2-4">其他问题</a>
+  <a class="toc-link" href="#sec3">✅ 验收 Checklist</a>
+  <a class="toc-link sub" href="#sec3-1">角色模型</a>
+  <a class="toc-link sub" href="#sec3-2">角色立绘</a>
+  <a class="toc-link sub" href="#sec3-3">场景资产</a>
+  <a class="toc-link sub" href="#sec3-4">UI 资源</a>
+  <a class="toc-link sub" href="#sec3-5">动画资源</a>
+  <a class="toc-link sub" href="#sec3-6">特效资源</a>
+  <a class="toc-link" href="#sec4">📝 模板与文档</a>
+  <a class="toc-link" href="#sec5">💡 APM 经验总结</a>
+</aside>
+
+<!-- ─── Content ─── -->
+<main class="content">
+
+<h1>📋 CP 外包管理手册</h1>
+<p style="color:var(--dim);margin-bottom:24px">面向游戏美术 APM 的外包全流程管理指南 — 需求下发、制作跟进、验收、结算</p>
+
+<div class="alert alert-info">
+  <span class="alert-icon">💡</span>
+  <div class="alert-text"><strong>适用范围：</strong>本手册适用于游戏美术项目中各类 CP（Content Provider）外包管理场景，涵盖角色、场景、UI、特效、动画等资源类型的全流程管理。所有模板和 Checklist 均可直接复制使用。</div>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<h2 id="sec1">一、外包对接完整流程</h2>
+<!-- ════════════════════════════════════ -->
+
+<div class="flow-chart">
+  <div class="flow-steps">
+    <div class="flow-step"><div class="flow-num" style="background:var(--accent)">1</div><div class="flow-step-title">需求下发</div><div class="flow-step-desc">规范 + Brief + 参考 + 排期</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-num" style="background:var(--cyan)">2</div><div class="flow-step-title">首件确认</div><div class="flow-step-desc">首件审核通过后才批量</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-num" style="background:var(--orange)">3</div><div class="flow-step-title">制作跟进</div><div class="flow-step-desc">周进度 + 中间检查点</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-num" style="background:var(--purple)">4</div><div class="flow-step-title">交付验收</div><div class="flow-step-desc">Checklist 逐项检查</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-num" style="background:var(--green)">5</div><div class="flow-step-title">修改闭环</div><div class="flow-step-desc">问题清单 → 复验</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-num" style="background:var(--yellow)">6</div><div class="flow-step-title">结算归档</div><div class="flow-step-desc">签收 + 付款 + 资料存档</div></div>
+  </div>
+</div>
+
+<!-- 1.1 需求下发 -->
+<h3 id="sec1-1">1.1 需求下发</h3>
+
+<div class="alert alert-purple">
+  <span class="alert-icon">📋</span>
+  <div class="alert-text"><strong>核心原则：</strong>需求越清晰，返工越少。下发时必须做到"四有"——有规范、有参考、有排期、有验收标准。</div>
+</div>
+
+<h4>需求下发必备材料</h4>
+<table>
+  <thead><tr><th>材料</th><th>内容</th><th>格式</th><th>必要性</th></tr></thead>
+  <tbody>
+    <tr><td><strong>美术规范文档</strong></td><td>风格定义、技术规范、命名规范、目录结构</td><td>PDF</td><td>🔴 必须</td></tr>
+    <tr><td><strong>需求 Brief</strong></td><td>具体任务描述、数量、尺寸、格式要求</td><td>Excel / 文档</td><td>🔴 必须</td></tr>
+    <tr><td><strong>参考图 / 设定画</strong></td><td>风格参考、角色设定、三视图等</td><td>PSD / PNG</td><td>🔴 必须</td></tr>
+    <tr><td><strong>排期计划</strong></td><td>里程碑节点、交付日期、检查点</td><td>Excel / 甘特图</td><td>🔴 必须</td></tr>
+    <tr><td><strong>验收标准</strong></td><td>Checklist、质量分级、面数/贴图预算</td><td>文档</td><td>🔴 必须</td></tr>
+    <tr><td><strong>引擎环境包</strong></td><td>Checker Scene、标准灯光、Master Material</td><td>引擎工程</td><td>🟡 建议</td></tr>
+    <tr><td><strong>交付模板</strong></td><td>文件命名示例、目录结构模板</td><td>ZIP</td><td>🟡 建议</td></tr>
+  </tbody>
+</table>
+
+<div class="copy-card">
+  <div class="copy-card-header">
+    <span class="copy-card-title">📝 需求下发邮件模板</span>
+    <button class="copy-btn" onclick="copyCard(this)">📋 复制</button>
+  </div>
+  <div class="copy-card-body">主题：【项目名】美术外包需求 — [资源类型] 第 [N] 批
+
+Hi [CP名称] 团队，
+
+以下是本批次美术外包需求，请查收：
+
+■ 需求概述
+  · 资源类型：[角色模型 / 立绘 / 场景 / UI / 特效]
+  · 数量：[X] 件
+  · 风格：[写实 / 卡通 / 二次元 / 像素]
+
+■ 附件清单
+  1. 美术规范文档 v[X.X]（PDF）
+  2. 需求 Brief 表（Excel）
+  3. 参考图/设定画（ZIP）
+  4. 排期计划（Excel）
+  5. 验收 Checklist（PDF）
+  6. 交付模板（ZIP）
+
+■ 关键节点
+  · 首件提交：[日期]（提交 1 件完成品供审核）
+  · 中期检查：[日期]（完成 50% 提交进度截图）
+  · 最终交付：[日期]
+  · 修改 Buffer：[X] 个工作日
+
+■ 注意事项
+  · 请严格按照规范文档中的命名和目录结构交付
+  · 首件未通过审核前，请勿批量制作
+  · 如有疑问请在 [沟通渠道] 中及时提出
+
+请确认收到并回复预计首件提交时间。
+
+Best,
+[你的名字] · APM</div>
+</div>
+
+<!-- 1.2 制作跟进 -->
+<h3 id="sec1-2">1.2 制作跟进</h3>
+
+<h4>跟进节奏</h4>
+<table>
+  <thead><tr><th>检查点</th><th>时间</th><th>检查内容</th><th>形式</th></tr></thead>
+  <tbody>
+    <tr><td><strong>首件审核</strong></td><td>启动后 3~5 天</td><td>完成 1 件成品，全面评审风格/质量/格式</td><td>在线会议 + 标注截图</td></tr>
+    <tr><td><strong>周进度同步</strong></td><td>每周固定时间</td><td>完成数量、在制数量、问题清单</td><td>进度表 + 截图</td></tr>
+    <tr><td><strong>中期检查</strong></td><td>50% 进度时</td><td>批量质量抽检、风格一致性、排期偏差</td><td>抽查 3~5 件 + 进度报告</td></tr>
+    <tr><td><strong>交付前预检</strong></td><td>交付前 2~3 天</td><td>提前抽检最终成品，确认无重大问题</td><td>在线预览</td></tr>
+    <tr><td><strong>正式交付</strong></td><td>约定日期</td><td>全量检查，出具验收报告</td><td>Checklist + 验收报告</td></tr>
+  </tbody>
+</table>
+
+<div class="alert alert-warning">
+  <span class="alert-icon">⚠️</span>
+  <div class="alert-text"><strong>首件制度是核心：</strong>80% 的批量返工源于首件审核不严格。首件必须由 Art Lead 亲自审核，审核通过后形成书面确认，作为后续批量制作的质量基准。</div>
+</div>
+
+<h4>进度跟踪表模板</h4>
+<div class="copy-card">
+  <div class="copy-card-header">
+    <span class="copy-card-title">📊 周进度跟踪表</span>
+    <button class="copy-btn" onclick="copyCard(this)">📋 复制</button>
+  </div>
+  <div class="copy-card-body">┌──────┬──────────┬──────┬──────┬──────┬──────┬───────────┐
+│ 编号 │ 资源名称  │ 状态 │ 负责人│ 计划日│ 实际日│ 备注      │
+├──────┼──────────┼──────┼──────┼──────┼──────┼───────────┤
+│ 001  │ 角色_A   │ ✅完成│ 张三 │ 3/15 │ 3/14 │ 已验收    │
+│ 002  │ 角色_B   │ 🔄修改│ 李四 │ 3/18 │  -   │ 面数超标  │
+│ 003  │ 角色_C   │ 🔨制作│ 王五 │ 3/22 │  -   │ 正常进行  │
+│ 004  │ 角色_D   │ ⏳等待│  -   │ 3/25 │  -   │ 待设定确认│
+└──────┴──────────┴──────┴──────┴──────┴──────┴───────────┘
+
+状态说明：✅完成  🔄修改中  🔨制作中  ⏳等待  ❌搁置</div>
+</div>
+
+<!-- 1.3 验收 -->
+<h3 id="sec1-3">1.3 验收</h3>
+
+<h4>三轮验收制度</h4>
+<table>
+  <thead><tr><th>轮次</th><th>检查重点</th><th>参与人</th><th>输出物</th></tr></thead>
+  <tbody>
+    <tr><td><strong>第一轮：技术验收</strong></td><td>格式、尺寸、命名、面数、UV、通道等硬性指标</td><td>APM / TA</td><td>技术问题清单</td></tr>
+    <tr><td><strong>第二轮：美术验收</strong></td><td>风格、质量、细节、色彩、一致性</td><td>Art Lead / 主美</td><td>美术修改意见</td></tr>
+    <tr><td><strong>第三轮：引擎验收</strong></td><td>引擎内实际表现、性能、LOD、材质效果</td><td>TA / 程序</td><td>引擎截图 + 性能数据</td></tr>
+  </tbody>
+</table>
+
+<div class="copy-card">
+  <div class="copy-card-header">
+    <span class="copy-card-title">📝 验收反馈模板</span>
+    <button class="copy-btn" onclick="copyCard(this)">📋 复制</button>
+  </div>
+  <div class="copy-card-body">主题：【验收反馈】[资源名称] — 第 [N] 轮
+
+资源名称：[XXX]
+验收日期：[YYYY-MM-DD]
+验收人：[姓名]
+验收结论：[✅ 通过 / 🔄 需修改 / ❌ 不通过]
+
+━━ 问题清单 ━━
+
+#1 [P0-严重] 面数超标
+   · 当前：18,000 面 | 预算：15,000 面
+   · 修改要求：减面至 15K 以内，重点优化腰带和鞋底
+
+#2 [P1-中等] 法线方向错误
+   · 位置：左手手指第 3 关节
+   · 修改要求：翻转法线
+
+#3 [P2-轻微] UV 密度不均
+   · 位置：后背区域 UV 岛过小
+   · 修改要求：放大后背 UV 岛至与前胸接近
+
+━━ 修改截止日期 ━━
+请在 [日期] 前完成修改并重新提交。
+
+优先级说明：
+  P0 = 必须修改，否则无法通过
+  P1 = 需要修改，影响质量
+  P2 = 建议修改，提升品质</div>
+</div>
+
+<!-- 1.4 结算 -->
+<h3 id="sec1-4">1.4 结算</h3>
+
+<h4>结算流程</h4>
+<table>
+  <thead><tr><th>步骤</th><th>内容</th><th>负责人</th><th>输出</th></tr></thead>
+  <tbody>
+    <tr><td>1. 验收签收</td><td>全量资源通过验收，双方签字确认</td><td>APM + CP</td><td>验收签收单</td></tr>
+    <tr><td>2. 工作量核算</td><td>统计实际交付数量、规格、品质等级</td><td>APM</td><td>工作量确认表</td></tr>
+    <tr><td>3. 费用计算</td><td>按合同单价 × 实际数量，扣除不达标项</td><td>APM + 财务</td><td>费用明细表</td></tr>
+    <tr><td>4. 申请付款</td><td>提交付款申请 + 验收材料</td><td>APM</td><td>付款申请单</td></tr>
+    <tr><td>5. 资料归档</td><td>合同/验收单/沟通记录/源文件归档</td><td>APM</td><td>项目档案</td></tr>
+  </tbody>
+</table>
+
+<div class="alert alert-success">
+  <span class="alert-icon">✅</span>
+  <div class="alert-text"><strong>结算注意事项：</strong><br>· 验收签收前不启动付款流程<br>· 修改超过 3 轮的资源，评估是否需要调整单价<br>· 保留完整的沟通记录和每版本文件，作为争议解决依据<br>· 建议分阶段付款（首件通过 30% + 中期 30% + 终验 40%）</div>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<h2 id="sec2">二、常见问题处理手册</h2>
+<!-- ════════════════════════════════════ -->
+
+<!-- 2.1 资源不达标 -->
+<h3 id="sec2-1">2.1 资源不达标</h3>
+
+<details>
+  <summary>🔴 问题 A：模型面数超标</summary>
+  <div class="detail-body">
+    <div class="tag-row"><span class="tag tag-red">高频</span><span class="tag tag-blue">3D角色</span><span class="tag tag-blue">3D场景</span></div>
+    <h4>典型表现</h4>
+    <ul>
+      <li>角色模型交付面数远超预算（如预算 15K，实际 25K）</li>
+      <li>场景单个资产面数过高，导致整体 Draw Call 爆炸</li>
+    </ul>
+    <h4>根因分析</h4>
+    <ul>
+      <li>CP 未认真阅读面数预算要求</li>
+      <li>高模拓扑时未做减面优化</li>
+      <li>不了解目标平台性能限制</li>
+    </ul>
+    <h4>处理方案</h4>
+    <table>
+      <thead><tr><th>优先级</th><th>动作</th></tr></thead>
+      <tbody>
+        <tr><td>立即</td><td>发送明确的面数超标通知，标注具体数值和预算上限</td></tr>
+        <tr><td>短期</td><td>提供减面参考（哪些区域可减面，保持轮廓的优先级）</td></tr>
+        <tr><td>长期</td><td>在需求下发时附带面数检测脚本（3ds Max / Maya 脚本）</td></tr>
+      </tbody>
+    </table>
+  </div>
+</details>
+
+<details>
+  <summary>🔴 问题 B：PBR 材质效果差</summary>
+  <div class="detail-body">
+    <div class="tag-row"><span class="tag tag-red">高频</span><span class="tag tag-blue">3D角色</span><span class="tag tag-blue">3D场景</span></div>
+    <h4>典型表现</h4>
+    <ul>
+      <li>金属看起来像塑料 / 布料看起来像金属</li>
+      <li>Substance Painter 中效果好，引擎中差异大</li>
+      <li>法线贴图烘焙出现接缝 / 黑斑</li>
+    </ul>
+    <h4>处理方案</h4>
+    <ul>
+      <li>提供标准 <strong>Checker Scene</strong>（固定灯光 + 参考球 + 对比材质）</li>
+      <li>要求 CP 在引擎内截图而非 SP 内截图验收</li>
+      <li>提供 PBR 数值参考表（金属 Metallic=1, Roughness=0.3~0.6 等）</li>
+    </ul>
+  </div>
+</details>
+
+<details>
+  <summary>🟡 问题 C：命名和目录不规范</summary>
+  <div class="detail-body">
+    <div class="tag-row"><span class="tag tag-orange">中频</span><span class="tag tag-blue">所有类型</span></div>
+    <h4>典型表现</h4>
+    <ul>
+      <li>文件名包含中文 / 空格 / 特殊字符</li>
+      <li>目录结构与规范不一致</li>
+      <li>编号不连续 / 重复</li>
+    </ul>
+    <h4>处理方案</h4>
+    <ul>
+      <li>随需求下发提供 <strong>交付目录模板 ZIP</strong>（空目录结构 + README）</li>
+      <li>使用批量重命名工具自检后再提交</li>
+      <li>首次违规口头提醒，累计 3 次写入质量评估</li>
+    </ul>
+  </div>
+</details>
+
+<details>
+  <summary>🟡 问题 D：风格不统一</summary>
+  <div class="detail-body">
+    <div class="tag-row"><span class="tag tag-red">高影响</span><span class="tag tag-blue">立绘</span><span class="tag tag-blue">角色</span></div>
+    <h4>典型表现</h4>
+    <ul>
+      <li>不同批次或不同美术师的产出风格差异明显</li>
+      <li>配色偏离项目调色板</li>
+      <li>细节精细度不一致</li>
+    </ul>
+    <h4>处理方案</h4>
+    <ul>
+      <li>指定同一批资源由同一美术师完成</li>
+      <li>提供 <strong>5~10 张已审核通过的标杆作品</strong> 作为风格基准</li>
+      <li>每批次首件必须由 Art Lead 确认后才批量</li>
+      <li>严重不统一时要求换人或终止合作</li>
+    </ul>
+  </div>
+</details>
+
+<!-- 2.2 延期处理 -->
+<h3 id="sec2-2">2.2 延期处理</h3>
+
+<details>
+  <summary>🔴 CP 交付延期</summary>
+  <div class="detail-body">
+    <h4>预防措施</h4>
+    <ul>
+      <li>排期预留 <strong>20% Buffer</strong>（如实际需 10 天，约定 12 天）</li>
+      <li>设置 <strong>中间检查点</strong>，50% 进度时强制确认</li>
+      <li>同类资源准备 <strong>备选 CP</strong>，可在紧急时分流</li>
+    </ul>
+    <h4>延期后应对</h4>
+    <table>
+      <thead><tr><th>延期程度</th><th>应对措施</th></tr></thead>
+      <tbody>
+        <tr><td>1~3 天</td><td>口头沟通原因，要求赶工 + 每日进度更新</td></tr>
+        <tr><td>3~7 天</td><td>书面警告 + 评估是否影响项目里程碑 + 通知项目组</td></tr>
+        <tr><td>&gt;7 天</td><td>启动备选 CP + 评估合同违约条款 + 重新评估合作关系</td></tr>
+      </tbody>
+    </table>
+    <h4>延期沟通模板</h4>
+    <div class="copy-card">
+      <div class="copy-card-header">
+        <span class="copy-card-title">📝 延期沟通邮件</span>
+        <button class="copy-btn" onclick="copyCard(this)">📋 复制</button>
+      </div>
+      <div class="copy-card-body">主题：【紧急】[资源名称] 交付延期跟进
+
+Hi [CP名称] 团队，
+
+本批次资源原定 [日期] 交付，目前已逾期 [X] 天，请反馈以下信息：
+
+1. 延期原因说明
+2. 当前实际完成进度（百分比 + 截图）
+3. 预计最终交付日期
+4. 是否需要协调支持
+
+请在今日内回复，感谢配合。
+
+[你的名字] · APM</div>
+    </div>
+  </div>
+</details>
+
+<!-- 2.3 沟通失联 -->
+<h3 id="sec2-3">2.3 沟通失联</h3>
+
+<details>
+  <summary>🔴 CP 失联/不回复</summary>
+  <div class="detail-body">
+    <h4>升级流程</h4>
+    <table>
+      <thead><tr><th>时间</th><th>动作</th></tr></thead>
+      <tbody>
+        <tr><td>失联 1 天</td><td>工作群 + 邮件 + 电话三渠道同时联系</td></tr>
+        <tr><td>失联 2 天</td><td>联系 CP 对接人的直属上级</td></tr>
+        <tr><td>失联 3 天</td><td>发送正式书面函件（邮件，抄送双方管理层）</td></tr>
+        <tr><td>失联 5 天</td><td>启动应急预案：备选 CP 接手 + 评估合同违约</td></tr>
+        <tr><td>失联 7 天+</td><td>终止合作 + 法务介入（如涉及预付款）</td></tr>
+      </tbody>
+    </table>
+    <div class="alert alert-danger">
+      <span class="alert-icon">🚨</span>
+      <div class="alert-text"><strong>预防建议：</strong><br>· 合同中明确约定"响应时效"条款（如 24 小时内必须回复）<br>· 每个 CP 至少 2 个联系人（对接人 + 其上级）<br>· 重要沟通全部通过邮件留档，群聊内容定期截图备份</div>
+    </div>
+  </div>
+</details>
+
+<!-- 2.4 其他问题 -->
+<h3 id="sec2-4">2.4 其他常见问题</h3>
+
+<details>
+  <summary>🟡 版权争议 / 素材来源不明</summary>
+  <div class="detail-body">
+    <ul>
+      <li>合同中明确要求 CP 签署 <strong>原创性声明</strong></li>
+      <li>敏感资源（角色脸部/标志性元素）进行 <strong>相似度查重</strong></li>
+      <li>禁止使用 AI 生成素材作为最终交付物（除非合同明确允许）</li>
+      <li>如发现抄袭，立即停止使用 + 要求 CP 承担全部法律责任</li>
+    </ul>
+  </div>
+</details>
+
+<details>
+  <summary>🟡 多 CP 协作冲突</summary>
+  <div class="detail-body">
+    <ul>
+      <li>不同 CP 负责同一项目的不同模块时，由 APM 统一分配任务边界</li>
+      <li>避免不同 CP 之间直接沟通（信息需通过 APM 中转）</li>
+      <li>资源衔接点（如角色 CP 交模型 → 动画 CP 做动画）明确交接标准</li>
+      <li>建立 <strong>资源交接 Checklist</strong>，防止中间环节信息丢失</li>
+    </ul>
+  </div>
+</details>
+
+<details>
+  <summary>🟡 CP 更换核心人员</summary>
+  <div class="detail-body">
+    <ul>
+      <li>合同中约定 <strong>核心人员变更需提前通知</strong></li>
+      <li>新人员必须通过 <strong>首件测试</strong> 后才能接手批量任务</li>
+      <li>APM 需评估人员变更对排期的影响并及时上报</li>
+    </ul>
+  </div>
+</details>
+
+<!-- ════════════════════════════════════ -->
+<h2 id="sec3">三、按资源类型分类的验收 Checklist</h2>
+<!-- ════════════════════════════════════ -->
+
+<div class="alert alert-info">
+  <span class="alert-icon">💡</span>
+  <div class="alert-text"><strong>使用说明：</strong>以下 Checklist 按资源类型分类，每个 Checklist 包含技术验收（硬性指标）和美术验收（主观评估）两部分。P0 项为必须通过项，任一 P0 项不通过即判定为不合格。</div>
+</div>
+
+<!-- 3.1 角色模型 -->
+<h3 id="sec3-1">3.1 角色 3D 模型</h3>
+
+<div class="checklist">
+  <h4>🔧 技术验收（P0 全部必须通过）</h4>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 三角面数符合预算 — 主角 ≤30K / 精英 NPC ≤15K / 杂兵 ≤8K</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 法线方向全部正确，无黑面/翻面</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> UV 展开无重叠（UV0），Texel Density 偏差 ≤15%</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> Lightmap UV（UV1）无重叠，Padding ≥2px</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> PBR 贴图套装齐全 — BaseColor / Normal / ORM</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 贴图尺寸为 2^N（如 2048×2048）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 文件命名符合规范，无中文/空格/特殊字符</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> LOD 至少 3 级（LOD0/LOD1/LOD2），切换距离合理</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> 骨骼蒙皮权重正确，极端 Pose 无穿模/塌陷</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> Pivot Point 位于底部中心</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P2]</strong> 碰撞体简化合理，面数 ≤ 模型 10%</span></div>
+</div>
+
+<div class="checklist">
+  <h4>🎨 美术验收</h4>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 模型造型与设定原画一致，比例正确</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> PBR 材质在引擎标准灯光下表现准确（金属像金属、布料像布料）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> 细节精度符合项目标准（纽扣/缝线/花纹等）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> 与同项目其他角色风格统一</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P2]</strong> 360° 无死角检查通过</span></div>
+</div>
+
+<!-- 3.2 角色立绘 -->
+<h3 id="sec3-2">3.2 角色立绘（2D）</h3>
+
+<div class="checklist">
+  <h4>🔧 技术验收</h4>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 分辨率 ≥ 2048px（长边）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> PSD 图层分组清晰 — 线稿/底色/阴影/高光/特效分层</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> PNG 导出含正确 Alpha 通道</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 色彩模式 sRGB</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> 文件命名符合规范</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> 同角色多版本立绘尺寸/角度一致（便于切换）</span></div>
+</div>
+
+<div class="checklist">
+  <h4>🎨 美术验收</h4>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 角色比例与设定画一致，头身比误差 ≤5%</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 配色与设定方案 HEX 值偏差 ΔE < 3</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 画风与项目基准统一（眼睛/头发/皮肤上色手法）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> 饰品/纹样/材质质感符合设定</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> 光影方向统一（默认左上方 45°）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P2]</strong> 无版权风险（非抄袭、非 AI 直出）</span></div>
+</div>
+
+<!-- 3.3 场景资产 -->
+<h3 id="sec3-3">3.3 场景资产</h3>
+
+<div class="checklist">
+  <h4>🔧 技术验收</h4>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 面数符合预算 — 大物件 ≤5K / 中物件 ≤2K / 小物件 ≤500</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 模块化拼接无缝隙、无法线错误</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> Lightmap UV 无重叠</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 贴图分辨率匹配 — 大物件 2048 / 中物件 1024 / 小物件 512</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> Pivot Point 正确（地面物体底部中心 / 悬挂物体顶部中心）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> 碰撞体简化合理</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P2]</strong> 支持 Instancing（相同资产共用材质）</span></div>
+</div>
+
+<!-- 3.4 UI 资源 -->
+<h3 id="sec3-4">3.4 UI 资源</h3>
+
+<div class="checklist">
+  <h4>🔧 技术验收</h4>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 切图精确，无多余透明像素</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> PNG 格式，含正确 Alpha</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 9 宫格切片标注正确，拉伸测试无变形</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 命名规范 — <code>ui_模块_元素_状态.png</code></span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> 交互状态齐全 — Normal / Pressed / Disabled / Hover</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> 标注文档齐全 — 字号/字重/颜色/间距</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P2]</strong> 支持多分辨率适配（标注安全区）</span></div>
+</div>
+
+<!-- 3.5 动画资源 -->
+<h3 id="sec3-5">3.5 动画资源</h3>
+
+<div class="checklist">
+  <h4>🔧 技术验收</h4>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 帧率 30FPS（3D）/ 12~24FPS（2D 帧动画）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> Root Motion 与实际位移匹配</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> Loop 动画首尾帧无跳变</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 骨骼命名英文规范，层级清晰</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> 无自穿插（武器/头发/披风/裙摆）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> 重心符合物理规律，无漂浮感</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> Spine/Live2D 文件完整（JSON + Atlas + PNG / .moc3 + .model3.json）</span></div>
+</div>
+
+<!-- 3.6 特效资源 -->
+<h3 id="sec3-6">3.6 特效资源</h3>
+
+<div class="checklist">
+  <h4>🔧 技术验收</h4>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 单特效 Draw Call ≤10</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> Overdraw ≤ 屏幕 30%（峰值）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 特效结束后无残留粒子</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P0]</strong> 贴图格式正确（TGA/EXR，非 JPEG）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> 风格与项目统一（日系 / 写实 / 卡通）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P1]</strong> 节奏感 — 前摇 → 爆发 → 残留 清晰</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label"><strong>[P2]</strong> 手绘帧动画 ≥ 8 帧/秒</span></div>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<h2 id="sec4">四、模板与文档</h2>
+<!-- ════════════════════════════════════ -->
+
+<h3>4.1 CP 评估表</h3>
+
+<div class="copy-card">
+  <div class="copy-card-header">
+    <span class="copy-card-title">📊 CP 综合评估模板</span>
+    <button class="copy-btn" onclick="copyCard(this)">📋 复制</button>
+  </div>
+  <div class="copy-card-body">━━━━━━━━━━━━━━━━━━━━━━━━
+CP 综合评估表
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+CP 名称：_______________
+评估周期：_____ 至 _____
+评估人：_______________
+
+■ 质量评分（满分 30 分）
+  · 首件通过率：_____ / 10
+  · 最终验收通过率：_____ / 10
+  · 风格一致性：_____ / 10
+
+■ 效率评分（满分 30 分）
+  · 按时交付率：_____ / 10
+  · 修改轮次（越少越好）：_____ / 10
+  · 响应速度：_____ / 10
+
+■ 协作评分（满分 20 分）
+  · 沟通主动性：_____ / 10
+  · 规范遵循度：_____ / 10
+
+■ 性价比评分（满分 20 分）
+  · 价格合理性：_____ / 10
+  · 综合性价比：_____ / 10
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+总分：_____ / 100
+等级：□ S（90+）□ A（80~89）□ B（70~79）□ C（60~69）□ D（&lt;60）
+续约建议：□ 优先续约  □ 正常续约  □ 观察  □ 不推荐
+━━━━━━━━━━━━━━━━━━━━━━━━</div>
+</div>
+
+<h3>4.2 外包合同核心条款 Checklist</h3>
+
+<div class="checklist">
+  <h4>📝 合同必备条款</h4>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label">明确交付物清单（资源类型 + 数量 + 格式 + 规格）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label">明确排期节点（首件 / 中期 / 终验日期）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label">明确验收标准（引用验收 Checklist 作为合同附件）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label">明确修改次数上限（通常 3 轮，超出另计费）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label">明确付款方式（分阶段：30% + 30% + 40%）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label">原创性声明（CP 保证资源非抄袭、非 AI 直出）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label">版权归属条款（通常全部归属甲方）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label">保密条款（NDA，含泄露赔偿）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label">延期违约条款（延期扣款比例）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label">响应时效条款（24 小时内必须回复）</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label">核心人员变更通知义务</span></div>
+  <div class="cl-item"><span class="cl-check">☐</span><span class="cl-label">争议解决条款</span></div>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<h2 id="sec5">五、APM 外包管理经验总结</h2>
+<!-- ════════════════════════════════════ -->
+
+<h3>5.1 核心原则</h3>
+
+<div class="alert alert-purple">
+  <span class="alert-icon">🎯</span>
+  <div class="alert-text">
+    <strong>外包管理六字诀：清晰、前置、留痕</strong><br><br>
+    · <strong>清晰</strong> — 需求越清晰，返工越少。模糊需求 = 返工成本 × 3<br>
+    · <strong>前置</strong> — 首件制度、规范前置、风险前置。后期补救的成本是前期预防的 5~10 倍<br>
+    · <strong>留痕</strong> — 所有关键决策通过邮件确认。口头约定 = 没有约定
+  </div>
+</div>
+
+<h3>5.2 常见误区</h3>
+
+<table>
+  <thead><tr><th>误区</th><th>后果</th><th>正确做法</th></tr></thead>
+  <tbody>
+    <tr><td>❌ "CP 是专业的，不用说太细"</td><td>每家 CP 标准不同，不说清就各做各的</td><td>✅ 提供详细规范 + 参考图 + 交付模板</td></tr>
+    <tr><td>❌ "首件差不多就行，批量再改"</td><td>批量返工成本是首件修改的 10x</td><td>✅ 首件必须严格达标后才批量</td></tr>
+    <tr><td>❌ "群里说了就算数"</td><td>事后扯皮无据可查</td><td>✅ 重要决定邮件确认</td></tr>
+    <tr><td>❌ "只看最终效果，过程不管"</td><td>到最后才发现问题，补救困难</td><td>✅ 设置中间检查点 + 周进度同步</td></tr>
+    <tr><td>❌ "便宜的 CP 更省钱"</td><td>低价 CP 返工率高，综合成本反而更贵</td><td>✅ 用 CP 评估表综合评分选择</td></tr>
+    <tr><td>❌ "一家 CP 做所有"</td><td>单点依赖风险大</td><td>✅ 核心资源至少 2 家 CP 备选</td></tr>
+  </tbody>
+</table>
+
+<h3>5.3 推荐流程优化</h3>
+
+<table>
+  <thead><tr><th>优化点</th><th>描述</th><th>效果</th></tr></thead>
+  <tbody>
+    <tr><td>🔧 工具化验收</td><td>使用自动化检测工具替代人工逐项检查</td><td>验收效率提升 60%+</td></tr>
+    <tr><td>📊 数据化管理</td><td>建立 CP 评分数据库，量化质量/效率/成本</td><td>选 CP 有据可依</td></tr>
+    <tr><td>📝 模板化沟通</td><td>统一使用本手册中的模板进行沟通</td><td>减少信息遗漏</td></tr>
+    <tr><td>🔄 首件快速循环</td><td>首件审核 24 小时内反馈，加速进入批量</td><td>整体周期缩短 15%+</td></tr>
+    <tr><td>📦 标准化交付</td><td>提供交付 ZIP 模板 + 自检工具</td><td>格式问题降低 80%+</td></tr>
+  </tbody>
+</table>
+
+<hr>
+
+<div class="footer">
+  <p>📋 CP 外包管理手册 · 游戏项目知识库 · v1.0 · 2026-04-01</p>
+  <p style="margin-top:4px"><a href="../index.html">← 返回首页</a></p>
+</div>
+
+</main>
+</div>
+
+<button class="btt" id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+// Copy card content
+function copyCard(btn){
+  const body=btn.closest('.copy-card').querySelector('.copy-card-body');
+  navigator.clipboard.writeText(body.textContent).then(()=>{
+    btn.textContent='✅ 已复制';
+    setTimeout(()=>btn.textContent='📋 复制',1500);
+  });
+}
+
+// TOC active state
+const tocLinks=document.querySelectorAll('.toc-link');
+const sections=document.querySelectorAll('h2[id],h3[id]');
+window.addEventListener('scroll',()=>{
+  document.getElementById('btt').classList.toggle('show',window.scrollY>300);
+  let cur='';
+  sections.forEach(s=>{if(s.getBoundingClientRect().top<100)cur=s.id;});
+  tocLinks.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+});
+</script>
+</body>
+</html>

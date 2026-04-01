@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文档查看 · 游戏项目知识库</title>
+<style>
+:root{--bg:#0d0f15;--card:#161829;--border:#222540;--text:#c5c9d6;--dim:#6b7085;--heading:#e8eaed;--accent:#6c8cff;--accent-light:#8ba3ff;--accent-bg:rgba(108,140,255,.07);--green:#4ade80;--green-bg:rgba(74,222,128,.07);--orange:#fb923c;--orange-bg:rgba(251,146,60,.07);--red:#f87171;--purple:#a78bfa;--purple-bg:rgba(167,139,250,.07);--code-bg:#1a1d2d}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(13,15,21,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:56px}
+.topbar-brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--heading);cursor:pointer}.topbar-brand .logo{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff}
+.topbar-nav{display:flex;gap:4px}.topbar-nav a{padding:8px 16px;border-radius:8px;font-size:13px;color:var(--dim);transition:all .15s;text-decoration:none}.topbar-nav a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.page{max-width:960px;margin:0 auto;padding:40px 32px 80px}
+.dc h1{font-size:26px;color:var(--heading);font-weight:700;margin-bottom:8px;padding-bottom:12px;border-bottom:2px solid var(--accent)}
+.dc h2{font-size:20px;color:var(--heading);font-weight:600;margin:36px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.dc h3{font-size:16px;color:var(--heading);font-weight:600;margin:24px 0 10px}
+.dc h4{font-size:14px;color:var(--accent-light);font-weight:600;margin:18px 0 8px}
+.dc p{margin:8px 0;font-size:14px;line-height:1.8}
+.dc blockquote{border-left:3px solid var(--accent);padding:12px 16px;margin:16px 0;background:var(--accent-bg);border-radius:0 6px 6px 0;color:var(--dim);font-size:14px}
+.dc blockquote strong{color:var(--accent-light)}
+.dc ul,.dc ol{padding-left:24px;margin:8px 0}.dc li{margin:4px 0;font-size:14px}.dc strong{color:var(--heading)}
+.dc code{background:var(--code-bg);padding:2px 6px;border-radius:3px;font-size:13px;font-family:monospace;color:var(--accent-light);border:1px solid var(--border)}
+.dc pre{background:var(--code-bg);padding:16px 20px;border-radius:8px;overflow-x:auto;margin:16px 0;border:1px solid var(--border);font-size:13px;line-height:1.6}
+.dc pre code{background:none;padding:0;border:none;color:var(--text)}
+.dc table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.dc th{background:var(--card);padding:10px 14px;text-align:left;font-weight:600;color:var(--heading);border:1px solid var(--border);white-space:nowrap}
+.dc td{padding:8px 14px;border:1px solid var(--border);vertical-align:top;line-height:1.5}
+.dc tr:hover td{background:rgba(108,140,255,.03)}
+.dc hr{border:none;border-top:1px solid var(--border);margin:28px 0}
+.dc input[type="checkbox"]{margin-right:6px;accent-color:var(--accent)}
+.loading{text-align:center;padding:60px;color:var(--dim);font-size:15px}
+.footer{text-align:center;padding:40px 20px 32px;border-top:1px solid var(--border);margin-top:40px}.footer p{font-size:12px;color:var(--dim)}
+@media(max-width:768px){.topbar{padding:0 16px}.page{padding:20px 16px 60px}}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="topbar-brand" onclick="location.href='../index.html'"><span class="logo">📖</span> 游戏项目知识库</div><nav class="topbar-nav"><a href="../index.html">🏠 首页</a><a href="../tools.html">🔧 工具集</a></nav></header>
+<div class="page">
+  <div id="content" class="dc"><div class="loading">⏳ 加载中...</div></div>
+  <div class="footer"><p>🎮 游戏项目知识库 · <a href="../index.html">返回首页</a></p></div>
+</div>
+<script>
+function parseMd(md){
+  let h=md;
+  h=h.replace(/```(\w*)\n([\s\S]*?)```/g,(_,l,c)=>`<pre><code>${c.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').trim()}</code></pre>`);
+  h=h.replace(/^(\|.+\|)\n(\|[-| :]+\|)\n((?:\|.+\|\n?)*)/gm,(_,hdr,sep,body)=>{
+    const ths=hdr.split('|').filter(c=>c.trim()).map(c=>`<th>${c.trim().replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}</th>`).join('');
+    const rows=body.trim().split('\n').map(r=>{const tds=r.split('|').filter(c=>c.trim()).map(c=>`<td>${c.trim().replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>')}</td>`).join('');return`<tr>${tds}</tr>`;}).join('');
+    return`<table><thead><tr>${ths}</tr></thead><tbody>${rows}</tbody></table>`;
+  });
+  h=h.replace(/^#### (.+)$/gm,'<h4>$1</h4>');
+  h=h.replace(/^### (.+)$/gm,(_,t)=>`<h3>${t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}</h3>`);
+  h=h.replace(/^## (.+)$/gm,(_,t)=>`<h2>${t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}</h2>`);
+  h=h.replace(/^# (.+)$/gm,(_,t)=>`<h1>${t}</h1>`);
+  h=h.replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>');
+  h=h.replace(/<\/blockquote>\n<blockquote>/g,'<br>');
+  h=h.replace(/^---$/gm,'<hr>');
+  h=h.replace(/^- \[( |x)\] (.+)$/gm,(_,c,t)=>`<p><input type="checkbox"${c==='x'?' checked':''} disabled>${t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}</p>`);
+  h=h.replace(/^- (.+)$/gm,'<li>$1</li>');
+  h=h.replace(/(<li>.*<\/li>\n?)+/g,m=>`<ul>${m}</ul>`);
+  h=h.replace(/^\d+\. (.+)$/gm,'<li>$1</li>');
+  h=h.replace(/^(?!<[a-z/])((?!<).+)$/gm,m=>{m=m.trim();return m?`<p>${m.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>')}</p>`:m;});
+  h=h.replace(/<p><\/p>/g,'');
+  return h;
+}
+async function init(){
+  const params=new URLSearchParams(location.search);
+  const file=params.get('file');
+  if(!file){document.getElementById('content').innerHTML='<p>未指定文件</p>';return;}
+  try{
+    const res=await fetch(file);
+    if(!res.ok)throw new Error(res.status);
+    const md=await res.text();
+    document.getElementById('content').innerHTML=parseMd(md);
+    const h1=document.querySelector('.dc h1');
+    if(h1)document.title=h1.textContent+' · 游戏项目知识库';
+  }catch(e){document.getElementById('content').innerHTML=`<p style="color:var(--red)">加载失败：${e.message}</p>`;}
+}
+init();
+</script>
+</body>
+</html>

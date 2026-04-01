@@ -18,6 +18,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .search-box::before{content:'🔍';position:absolute;left:26px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;z-index:1}
 .search-box input{width:100%;padding:8px 12px 8px 32px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s;font-family:inherit}
 .search-box input:focus{border-color:var(--accent)}.search-box input::placeholder{color:var(--dim)}
+.search-dropdown{position:absolute;top:100%;left:16px;right:16px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;max-height:320px;overflow-y:auto;z-index:10;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.search-dropdown.show{display:block}
+.sr-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--border);font-size:13px}
+.sr-item:last-child{border-bottom:none}
+.sr-item:hover{background:var(--accent-bg)}
+.sr-item .sr-type{font-size:10px;padding:2px 6px;border-radius:4px;flex-shrink:0}
+.sr-item .sr-title{color:var(--heading);font-weight:500;flex:1}
+.sr-item .sr-cat{font-size:11px;color:var(--dim)}
+.sr-item mark{background:var(--accent);color:#fff;padding:0 2px;border-radius:2px}
 .sidebar-nav{flex:1;overflow-y:auto;padding:8px 12px}
 .nav-cat{margin-bottom:4px}
 .nav-cat-title{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:12px;font-weight:600;color:var(--dim);cursor:pointer;border-radius:6px;transition:all .15s;user-select:none;letter-spacing:.3px}
@@ -86,11 +95,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .toast.show{transform:translateX(-50%) translateY(0)}
 .menu-toggle{display:none;position:fixed;top:12px;left:12px;z-index:100;background:var(--card-bg);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;cursor:pointer;font-size:16px}
 @media(max-width:768px){.sidebar{position:fixed;left:-300px;z-index:99;transition:left .3s}.sidebar.open{left:0}.menu-toggle{display:block}.doc-page{padding:20px;padding-top:56px}.home{padding:20px;padding-top:56px}.home-hero h1{font-size:24px}}
-@media print{.sidebar,.menu-toggle,.btt,.share-btn{display:none!important}.main{padding:20px}body{background:#fff;color:#333}.dc h1,.dc h2,.dc h3{color:#111}.dc table{border-color:#ddd}.dc th{background:#f5f5f5}}
+.feedback-btn{position:fixed;top:12px;right:12px;z-index:100;padding:6px 14px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--dim);cursor:pointer;font-size:12px;font-family:inherit;display:flex;align-items:center;gap:5px;transition:all .2s}
+.feedback-btn:hover{border-color:var(--accent);color:var(--accent)}
+.license-bar{padding:12px 20px;background:rgba(0,0,0,.3);border-top:1px solid var(--border);font-size:11px;color:var(--dim);text-align:center;line-height:1.6}
+.license-bar a{color:var(--accent)}
+@media print{.sidebar,.menu-toggle,.btt,.share-btn,.feedback-btn{display:none!important}.main{padding:20px}body{background:#fff;color:#333}.dc h1,.dc h2,.dc h3{color:#111}.dc table{border-color:#ddd}.dc th{background:#f5f5f5}}
 </style>
 </head>
 <body>
 <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+<button class="feedback-btn" onclick="showFeedback()" title="反馈问题或建议">💬 反馈</button>
 <div class="toast" id="toast"></div>
 <aside class="sidebar">
   <div class="sidebar-header">
@@ -98,10 +112,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
     <p>Game Project Knowledge Base</p>
   </div>
   <div class="search-box">
-    <input type="text" id="searchInput" placeholder="搜索全部文档..." oninput="handleSearch(this.value)">
+    <input type="text" id="searchInput" placeholder="搜索全部文档与工具..." oninput="handleFuseSearch(this.value)" onfocus="handleFuseSearch(this.value)" onblur="setTimeout(()=>document.getElementById('searchDropdown').classList.remove('show'),200)">
+    <div class="search-dropdown" id="searchDropdown"></div>
   </div>
   <nav class="sidebar-nav" id="sidebarNav">
-    <button class="nav-item active" onclick="goHome(this)" id="navHome" style="margin-bottom:8px">🏠 知识库首页</button>
+    <button class="nav-item active" onclick="goHome(this)" id="navHome" style="margin-bottom:4px">🏠 知识库首页</button>
+    <button class="nav-item" onclick="window.open('tools.html','_blank')" style="margin-bottom:8px;color:var(--green)">🔧 APM 工具集<span class="badge badge-tool">NEW</span></button>
     <div class="nav-cat open" id="cat-character">
       <div class="nav-cat-title" onclick="toggleCat('cat-character')">
         <span class="arrow">▸</span><span class="ci" style="background:var(--accent-bg);color:var(--accent)">👤</span> 角色 · Character
@@ -120,7 +136,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <div class="nav-cat-title" onclick="toggleCat('cat-ui')">
         <span class="arrow">▸</span><span class="ci" style="background:var(--purple-bg);color:var(--purple)">🖥️</span> UI · 界面
       </div>
-      <div class="nav-cat-items"><button class="nav-item" style="color:var(--dim);cursor:default;font-style:italic">📝 待补充...</button></div>
+      <div class="nav-cat-items">
+        <button class="nav-item" onclick="openTool('ui-slice-naming')">切图与命名规范<span class="badge badge-doc">文档</span></button>
+        <button class="nav-item" onclick="openTool('ui-9slice-color')">9宫格与颜色空间<span class="badge badge-doc">文档</span></button>
+        <button class="nav-item" onclick="openTool('ui-layout')">Layout 拼接规范<span class="badge badge-doc">文档</span></button>
+        <button class="nav-item" onclick="openTool('ui-umg-tips')">UMG 生成技巧<span class="badge badge-doc">文档</span></button>
+      </div>
     </div>
     <div class="nav-cat" id="cat-scene">
       <div class="nav-cat-title" onclick="toggleCat('cat-scene')">
@@ -140,37 +161,65 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       </div>
       <div class="nav-cat-items"><button class="nav-item" style="color:var(--dim);cursor:default;font-style:italic">📝 待补充...</button></div>
     </div>
+    <div class="nav-cat" id="cat-mgmt">
+      <div class="nav-cat-title" onclick="toggleCat('cat-mgmt')">
+        <span class="arrow">▸</span><span class="ci" style="background:rgba(34,211,238,.08);color:#22d3ee">📋</span> 管理 · Management
+      </div>
+      <div class="nav-cat-items">
+        <button class="nav-item" onclick="openTool('cp-management')">CP 外包管理手册<span class="badge badge-doc">文档</span></button>
+        <button class="nav-item" onclick="openTool('game-art-pipeline')">游戏美术流程总结<span class="badge badge-doc">文档</span></button>
+      </div>
+    </div>
   </nav>
   <div class="sidebar-footer">
-    <span>v1.1 · 2026-03-31</span>
+    <span>v1.3 · 2026-04-01</span>
     <a onclick="copyShareLink()">🔗 分享链接</a>
+    <a onclick="showFeedback()" style="margin-left:4px">📮 反馈</a>
   </div>
 </aside>
 <main class="main" id="mainContent">
   <div class="home" id="pageHome">
     <div class="home-hero"><h1>🎮 游戏项目<span>知识库</span></h1><p>团队共享的美术规范、技术方案与生产工具，持续更新中</p></div>
     <div class="stats-bar">
-      <div class="stat"><div class="num">2</div><div class="label">规范文档</div></div>
+      <div class="stat"><div class="num">10</div><div class="label">规范文档</div></div>
       <div class="stat"><div class="num">3</div><div class="label">生产工具</div></div>
-      <div class="stat"><div class="num">5</div><div class="label">知识分类</div></div>
+      <div class="stat"><div class="num">7</div><div class="label">知识分类</div></div>
     </div>
     <div class="hst">📋 角色 · Character</div>
     <div class="home-grid">
       <div class="home-card" onclick="showDoc('d1')"><div class="ci" style="background:var(--accent-bg)">📐</div><h3>2D UGC 角色出图规范</h3><p>基于主流 UGC 游戏总结的全流程规范，涵盖分辨率、部件拆分、色彩等</p><div class="tags"><span class="tag">分辨率</span><span class="tag">部件拆分</span><span class="tag">动画</span><span class="tag">命名</span></div></div>
       <div class="home-card" onclick="showDoc('d2')"><div class="ci" style="background:var(--purple-bg)">🎨</div><h3>2D 角色换色资源规范</h3><p>换色场景下的资源清单，Mask 遮罩图、调色板替换、灰度叠色等方案</p><div class="tags"><span class="tag">Mask 遮罩</span><span class="tag">HSV</span><span class="tag">通道互斥</span></div></div>
     </div>
-    <div class="hst" style="margin-top:32px">🔧 生产工具 · Tools</div>
+    <div class="hst" style="margin-top:32px">🔧 生产工具 · Tools <a href="tools.html" style="font-size:12px;color:var(--accent);font-weight:400;margin-left:8px;text-decoration:none" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">查看全部工具 →</a></div>
     <div class="home-grid">
       <div class="home-card" onclick="openTool('auto-mask')"><div class="ci" style="background:var(--green-bg)">🤖</div><h3>自动 Mask 生成器</h3><p>导入原图自动识别颜色区域，一键生成 R/G/B/A 通道图并打包 ZIP</p><div class="tags"><span class="tag" style="background:var(--green-bg);color:var(--green)">在线工具</span><span class="tag">自动验算</span></div></div>
       <div class="home-card" onclick="openTool('mask-tool')"><div class="ci" style="background:var(--orange-bg)">🖌️</div><h3>Mask 手动编辑器</h3><p>手动绘制 RGBA 换色遮罩图，支持画笔、油漆桶、橡皮擦</p><div class="tags"><span class="tag" style="background:var(--green-bg);color:var(--green)">在线工具</span><span class="tag">画笔绘制</span></div></div>
       <div class="home-card" onclick="openTool('spine-split')"><div class="ci" style="background:var(--purple-bg)">✂️</div><h3>Spine 拆分工具</h3><p>上传角色原画，选区拆分各部件，自动拓扑延展并导出 Spine 兼容格式</p><div class="tags"><span class="tag" style="background:var(--green-bg);color:var(--green)">在线工具</span><span class="tag">选区拆分</span><span class="tag">拓扑延展</span></div></div>
     </div>
+    <div class="hst" style="margin-top:32px">📂 外包管理 & 流程参考</div>
+    <div class="home-grid">
+      <div class="home-card" onclick="openTool('cp-management')"><div class="ci" style="background:var(--cyan-bg)">📋</div><h3>CP 外包管理手册</h3><p>外包全流程管理：需求下发、制作跟进、验收、结算 — 含模板和 Checklist</p><div class="tags"><span class="tag" style="background:var(--cyan-bg);color:var(--cyan)">外包流程</span><span class="tag" style="background:var(--cyan-bg);color:var(--cyan)">验收标准</span><span class="tag" style="background:var(--cyan-bg);color:var(--cyan)">模板</span></div></div>
+      <div class="home-card" onclick="openTool('game-art-pipeline')"><div class="ci" style="background:var(--orange-bg)">📊</div><h3>游戏美术流程总结</h3><p>轻度2D休闲 / 重度3D / 二次元手游三类游戏的完整美术制作流程对比</p><div class="tags"><span class="tag" style="background:var(--orange-bg);color:var(--orange)">2D休闲</span><span class="tag" style="background:var(--orange-bg);color:var(--orange)">3D</span><span class="tag" style="background:var(--orange-bg);color:var(--orange)">二次元</span></div></div>
+    </div>
     <div class="hst" style="margin-top:32px">📂 更多分类（建设中）</div>
     <div class="home-grid">
-      <div class="home-card" style="opacity:.5;cursor:default"><div class="ci" style="background:var(--purple-bg)">🖥️</div><h3>UI · 界面规范</h3><p>UI 组件设计、适配方案、交互标准 —— 待补充</p></div>
+      <div class="home-card" onclick="openTool('ui-slice-naming')"><div class="ci" style="background:var(--purple-bg)">🖥️</div><h3>UI · 界面规范</h3><p>切图命名、9宫格、颜色空间、Layout适配、UMG生成技巧 — 4 篇文档</p><div class="tags"><span class="tag" style="background:var(--purple-bg);color:var(--purple)">切图命名</span><span class="tag" style="background:var(--purple-bg);color:var(--purple)">9宫格</span><span class="tag" style="background:var(--purple-bg);color:var(--purple)">Layout</span><span class="tag" style="background:var(--purple-bg);color:var(--purple)">UMG</span></div></div>
       <div class="home-card" style="opacity:.5;cursor:default"><div class="ci" style="background:var(--green-bg)">🏔️</div><h3>场景 · Scene</h3><p>场景搭建规范、地编标准 —— 待补充</p></div>
       <div class="home-card" style="opacity:.5;cursor:default"><div class="ci" style="background:var(--orange-bg)">✨</div><h3>特效 · FX</h3><p>粒子特效、动效规范 —— 待补充</p></div>
       <div class="home-card" style="opacity:.5;cursor:default"><div class="ci" style="background:var(--pink-bg)">⚙️</div><h3>技术 · Tech</h3><p>Shader、性能优化 —— 待补充</p></div>
+    </div>
+    <!-- License & Feedback -->
+    <div style="margin-top:48px;padding:24px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px">
+        <div style="flex:1;min-width:240px">
+          <h4 style="font-size:13px;color:var(--heading);margin-bottom:8px">⚠️ 使用声明</h4>
+          <p style="font-size:12px;color:var(--dim);line-height:1.8;margin:0">本知识库及所有配套工具仅供项目内部学习与工作使用，不得用于商业目的或对外传播。所有文档和工具按"现状"提供，不构成任何商业承诺。如有疑问请联系 APM 团队。</p>
+        </div>
+        <div style="min-width:180px;text-align:right">
+          <h4 style="font-size:13px;color:var(--heading);margin-bottom:8px">📮 反馈与联系</h4>
+          <p style="font-size:12px;color:var(--dim);margin:0;line-height:1.8">发现问题或有改进建议？<br><a style="color:var(--accent);cursor:pointer" onclick="showFeedback()">💬 提交反馈</a></p>
+        </div>
+      </div>
     </div>
   </div>
   <div class="doc-page" id="page-d1"><div class="doc-bc"><a onclick="goHome()">🏠 首页</a><span>›</span><span>角色</span><span>›</span><span>2D UGC 角色出图规范</span></div><div class="dc" id="ct-d1"></div></div>
@@ -619,6 +668,7 @@ mask_2.png → R=鞋子, G=手套, B=配饰
 6. **充分沟通**
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
 <script>
 // ─── Markdown Parser ───
 function parseMd(md){
@@ -653,6 +703,32 @@ function er(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
 const docs={};
 const meta={'d1':{cat:'character',title:'2D UGC 角色出图规范'},'d2':{cat:'character',title:'2D 角色换色资源规范'}};
 let curPage='home';
+let fuse=null;
+let indexData=null;
+
+// ─── Fuse.js Search Index ───
+async function initFuseSearch(){
+  try{
+    const res=await fetch('index.json');
+    if(!res.ok)return;
+    indexData=await res.json();
+    const searchItems=[];
+    // Add embedded docs
+    for(const[id,md]of Object.entries(docs)){
+      const m=meta[id]||{};
+      searchItems.push({id,title:m.title||id,type:'doc',content:md,action:'showDoc'});
+    }
+    // Add index.json items
+    if(indexData&&indexData.categories){
+      indexData.categories.forEach(cat=>{
+        cat.items.forEach(item=>{
+          searchItems.push({id:item.id,title:item.title,type:item.type,content:item.desc+' '+item.tags.join(' '),action:item.action,url:item.url,file:item.file,cat:cat.name});
+        });
+      });
+    }
+    fuse=new Fuse(searchItems,{keys:[{name:'title',weight:3},{name:'content',weight:1},{name:'cat',weight:0.5}],threshold:0.35,includeMatches:true,minMatchCharLength:1});
+  }catch(e){console.log('Fuse init skipped:',e);}
+}
 
 function initDocs(){
   document.querySelectorAll('script[type="text/markdown"]').forEach(el=>{
@@ -661,7 +737,8 @@ function initDocs(){
   });
   const hash=location.hash.slice(1);
   if(hash&&docs[hash])showDoc(hash);
-  else if(hash==='auto-mask'||hash==='mask-tool'||hash==='spine-split')openTool(hash);
+  else if(['auto-mask','mask-tool','spine-split','ui-slice-naming','ui-9slice-color','ui-layout','ui-umg-tips','cp-management','game-art-pipeline'].includes(hash))openTool(hash);
+  initFuseSearch();
 }
 
 function goHome(btn){
@@ -695,12 +772,59 @@ function showDoc(docId,btn){
 }
 
 function openTool(name){
-  // 尝试相对路径打开工具，同时支持多种目录结构
-  const paths=[`knowledge-base/${name}.html`,`${name}.html`,`../knowledge-base/${name}.html`];
+  // Markdown files: open in viewer
+  const mdFiles={'game-art-pipeline':'knowledge-base/game-art-pipeline.md'};
+  if(mdFiles[name]){
+    window.open(`knowledge-base/md-viewer.html?file=${encodeURIComponent(name+'.md')}`,'_blank');
+    return;
+  }
+  const paths=[`knowledge-base/${name}.html`,`${name}.html`];
   const w=window.open(paths[0],'_blank');
   if(!w)showToast('请允许弹出窗口后重试');
 }
+
 function toggleCat(id){document.getElementById(id).classList.toggle('open');}
+
+// ─── Fuse.js Dropdown Search ───
+function handleFuseSearch(q){
+  const dd=document.getElementById('searchDropdown');
+  q=q.trim();
+  if(!q||q.length<1){dd.classList.remove('show');dd.innerHTML='';return;}
+  // Fuse search
+  if(fuse){
+    const results=fuse.search(q).slice(0,10);
+    if(!results.length){dd.innerHTML='<div style="padding:14px;text-align:center;color:var(--dim);font-size:13px">未找到相关内容</div>';dd.classList.add('show');return;}
+    let html='';
+    results.forEach(r=>{
+      const item=r.item;
+      const typeCls=item.type==='tool'?'background:rgba(74,222,128,.08);color:#4ade80':'background:rgba(108,140,255,.08);color:#6c8cff';
+      const typeLabel=item.type==='tool'?'工具':'文档';
+      let onclick='';
+      if(item.action==='showDoc')onclick=`showDoc('${item.id}')`;
+      else onclick=`openTool('${item.id}')`;
+      html+=`<div class="sr-item" onmousedown="${onclick};document.getElementById('searchDropdown').classList.remove('show');document.getElementById('searchInput').value=''">`+
+        `<span class="sr-type" style="${typeCls}">${typeLabel}</span>`+
+        `<span class="sr-title">${item.title}</span>`+
+        `<span class="sr-cat">${item.cat||''}</span></div>`;
+    });
+    dd.innerHTML=html;dd.classList.add('show');
+  } else {
+    // Fallback: basic search in embedded docs
+    let results=[];
+    for(const[id,md]of Object.entries(docs)){
+      const m=meta[id]||{};
+      if(m.title&&m.title.toLowerCase().includes(q.toLowerCase())){
+        results.push({id,title:m.title,type:'doc',action:'showDoc'});
+      }
+    }
+    if(!results.length){dd.classList.remove('show');return;}
+    let html='';
+    results.slice(0,8).forEach(r=>{
+      html+=`<div class="sr-item" onmousedown="showDoc('${r.id}');document.getElementById('searchDropdown').classList.remove('show')"><span class="sr-type" style="background:rgba(108,140,255,.08);color:#6c8cff">文档</span><span class="sr-title">${r.title}</span></div>`;
+    });
+    dd.innerHTML=html;dd.classList.add('show');
+  }
+}
 
 function buildToc(docId){
   document.querySelectorAll('.nav-toc').forEach(t=>t.innerHTML='');
@@ -713,30 +837,6 @@ function buildToc(docId){
   });
 }
 
-// ─── Search ───
-function handleSearch(q){
-  q=q.toLowerCase().trim();
-  if(!q){if(curPage==='home'||curPage==='search')goHome();else showDoc(curPage);return;}
-  let res=[];
-  for(const[id,md]of Object.entries(docs)){
-    const m=meta[id]||{};
-    md.split('\n').forEach((line,i)=>{if(line.toLowerCase().includes(q))res.push({docId:id,title:m.title||id,line:line.trim(),i});});
-  }
-  document.getElementById('pageHome').style.display='none';
-  document.querySelectorAll('.doc-page').forEach(p=>{p.style.display='none';p.classList.remove('active');});
-  const sp=document.getElementById('page-search');sp.style.display='block';
-  const c=document.getElementById('searchResults');
-  if(!res.length){c.innerHTML=`<p style="color:var(--dim);padding:40px 0;text-align:center">未找到「${esc(q)}」</p>`;return;}
-  let html=`<h2>搜索「${esc(q)}」— ${res.length} 条结果</h2>`;
-  res.slice(0,40).forEach(r=>{
-    const hl=r.line.replace(new RegExp(`(${er(q)})`,'gi'),'<mark style="background:var(--accent);color:#fff;padding:0 2px;border-radius:2px">$1</mark>');
-    html+=`<div style="padding:12px 16px;margin:8px 0;background:var(--card-bg);border-radius:8px;border:1px solid var(--border);cursor:pointer" onclick="showDoc('${r.docId}');document.getElementById('searchInput').value=''">
-      <div style="font-size:11px;color:var(--accent);margin-bottom:4px">${r.title}</div>
-      <div style="font-size:13px">${hl}</div></div>`;
-  });
-  c.innerHTML=html;
-}
-
 // ─── Share ───
 function copyShareLink(){
   const url=location.href;
@@ -745,6 +845,39 @@ function copyShareLink(){
 function showToast(msg){
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+// ─── Feedback Dialog ───
+function showFeedback(){
+  let d=document.getElementById('feedbackDialog');
+  if(!d){
+    d=document.createElement('div');d.id='feedbackDialog';
+    d.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
+    d.innerHTML=`<div style="background:var(--card-bg,#1c1f2e);border:1px solid var(--border,#2a2d3e);border-radius:16px;padding:28px 32px;max-width:460px;width:90%;box-shadow:0 16px 48px rgba(0,0,0,.4)">
+      <h3 style="color:var(--heading,#e8eaed);font-size:18px;margin-bottom:16px;display:flex;align-items:center;gap:8px">📮 反馈与建议</h3>
+      <p style="font-size:13px;color:var(--dim,#8b8fa3);margin-bottom:16px;line-height:1.7">发现 Bug、有改进建议、或想要新功能？欢迎反馈！</p>
+      <textarea id="feedbackText" rows="4" style="width:100%;padding:12px;background:var(--bg,#0f1117);border:1px solid var(--border,#2a2d3e);border-radius:8px;color:var(--text,#c9cdd4);font-size:13px;font-family:inherit;resize:vertical;outline:none" placeholder="请描述你的问题或建议..."></textarea>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+        <button onclick="document.getElementById('feedbackDialog').style.display='none'" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border,#2a2d3e);background:none;color:var(--dim,#8b8fa3);cursor:pointer;font-family:inherit;font-size:13px">取消</button>
+        <button onclick="submitFeedback()" style="padding:8px 18px;border-radius:8px;border:none;background:var(--accent,#6c8cff);color:#fff;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500">提交反馈</button>
+      </div>
+    </div>`;
+    document.body.appendChild(d);
+    d.addEventListener('click',e=>{if(e.target===d)d.style.display='none';});
+  }
+  d.style.display='flex';
+  document.getElementById('feedbackText').value='';
+  document.getElementById('feedbackText').focus();
+}
+function submitFeedback(){
+  const text=document.getElementById('feedbackText').value.trim();
+  if(!text){showToast('请输入反馈内容');return;}
+  // Store locally (in real project would send to server)
+  const feedback=JSON.parse(localStorage.getItem('kb_feedback')||'[]');
+  feedback.push({text,time:new Date().toISOString(),page:curPage});
+  localStorage.setItem('kb_feedback',JSON.stringify(feedback));
+  document.getElementById('feedbackDialog').style.display='none';
+  showToast('✅ 感谢反馈！已记录');
 }
 
 // ─── Scroll ───

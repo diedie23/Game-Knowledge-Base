@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APM 工具集 · 游戏美术项目知识库</title>
+<style>
+:root{
+  --bg:#0d0f15;--panel:#111320;--card:#161829;--card-hover:#1a1d30;
+  --border:#222540;--border-hover:#6c8cff;
+  --text:#c5c9d6;--dim:#6b7085;--heading:#e8eaed;--white:#fff;
+  --accent:#6c8cff;--accent-light:#8ba3ff;--accent-bg:rgba(108,140,255,.07);
+  --green:#4ade80;--green-bg:rgba(74,222,128,.07);--green-dim:#2d8a52;
+  --orange:#fb923c;--orange-bg:rgba(251,146,60,.07);
+  --red:#f87171;--red-bg:rgba(248,113,113,.07);
+  --purple:#a78bfa;--purple-bg:rgba(167,139,250,.07);
+  --cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.07);
+  --yellow:#fbbf24;--yellow-bg:rgba(251,191,36,.07);
+  --pink:#f472b6;--pink-bg:rgba(244,114,182,.07);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+/* ─── Top Bar ─── */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(13,15,21,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:56px}
+.topbar-brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--heading);cursor:pointer}
+.topbar-brand .logo{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff}
+.topbar-nav{display:flex;gap:4px}
+.topbar-nav a{padding:8px 16px;border-radius:8px;font-size:13px;color:var(--dim);transition:all .15s;text-decoration:none}
+.topbar-nav a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.topbar-nav a.active{color:var(--accent);background:var(--accent-bg);font-weight:500}
+
+/* ─── Page Container ─── */
+.page{max-width:1120px;margin:0 auto;padding:40px 32px 80px}
+
+/* ─── Hero ─── */
+.hero{text-align:center;padding:32px 0 12px}
+.hero h1{font-size:30px;color:var(--heading);font-weight:800;margin-bottom:6px}
+.hero h1 .grad{background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:15px;color:var(--dim);max-width:640px;margin:0 auto;line-height:1.8}
+.hero-note{margin:20px auto 0;max-width:700px;background:var(--accent-bg);border:1px solid rgba(108,140,255,.15);border-radius:10px;padding:14px 20px;font-size:13px;color:var(--accent-light);display:flex;align-items:flex-start;gap:10px;text-align:left;line-height:1.7}
+.hero-note .icon{font-size:18px;flex-shrink:0;margin-top:1px}
+
+/* ─── Stats ─── */
+.stats{display:flex;gap:20px;justify-content:center;margin:28px 0 40px;flex-wrap:wrap}
+.stat-chip{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 20px}
+.stat-chip .num{font-size:22px;font-weight:700;color:var(--heading)}
+.stat-chip .label{font-size:12px;color:var(--dim)}
+
+/* ─── Category Section ─── */
+.cat-section{margin-bottom:48px}
+.cat-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.cat-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.cat-header h2{font-size:18px;color:var(--heading);font-weight:700;flex:1}
+.cat-header .cat-count{font-size:11px;color:var(--dim);background:var(--card);border:1px solid var(--border);padding:3px 10px;border-radius:20px}
+
+/* ─── Tool Card ─── */
+.tool-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:0;margin-bottom:20px;transition:all .25s;overflow:hidden}
+.tool-card:hover{border-color:var(--border-hover);box-shadow:0 8px 32px rgba(108,140,255,.08);transform:translateY(-2px)}
+.tool-card-inner{padding:24px 28px}
+
+/* Card Header */
+.tc-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:16px}
+.tc-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.tc-title-area{flex:1;min-width:0}
+.tc-title-area h3{font-size:17px;color:var(--heading);font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tc-title-area h3 .ver{font-size:10px;background:var(--accent);color:#fff;padding:2px 8px;border-radius:10px;font-weight:500}
+.tc-title-area h3 .status{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500}
+.status-online{background:var(--green-bg);color:var(--green)}
+.status-coming{background:var(--yellow-bg);color:var(--yellow)}
+.tc-subtitle{font-size:13px;color:var(--dim)}
+
+/* Pain Point */
+.tc-pain{background:var(--red-bg);border:1px solid rgba(248,113,113,.12);border-radius:10px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px}
+.tc-pain .pain-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.tc-pain-text{font-size:13px;line-height:1.7}
+.tc-pain-text strong{color:var(--red)}
+
+/* Solution */
+.tc-solution{background:var(--green-bg);border:1px solid rgba(74,222,128,.12);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:flex-start;gap:10px}
+.tc-solution .sol-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.tc-solution-text{font-size:13px;line-height:1.7}
+.tc-solution-text strong{color:var(--green)}
+
+/* Before / After */
+.tc-ba{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.ba-box{border-radius:10px;padding:14px 16px}
+.ba-before{background:rgba(248,113,113,.05);border:1px solid rgba(248,113,113,.1)}
+.ba-after{background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.1)}
+.ba-label{font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.ba-before .ba-label{color:var(--red)}
+.ba-after .ba-label{color:var(--green)}
+.ba-box ul{list-style:none;padding:0;margin:0}
+.ba-box li{font-size:12px;color:var(--dim);padding:3px 0;display:flex;align-items:flex-start;gap:6px;line-height:1.6}
+.ba-box li::before{flex-shrink:0;margin-top:2px}
+.ba-before li::before{content:'✗';color:var(--red);font-size:11px;font-weight:700}
+.ba-after li::before{content:'✓';color:var(--green);font-size:11px;font-weight:700}
+
+/* Scene Tags */
+.tc-scenes{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.scene-tag{font-size:11px;padding:4px 10px;border-radius:6px;background:var(--accent-bg);color:var(--accent-light);border:1px solid rgba(108,140,255,.1)}
+
+/* Meta Row */
+.tc-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--border)}
+.meta-item{font-size:11px;color:var(--dim);display:flex;align-items:center;gap:4px}
+.meta-item .mi-icon{font-size:13px}
+.tc-meta .spacer{flex:1}
+
+/* Action Button */
+.tc-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+.tc-btn-primary{background:var(--accent);color:#fff}
+.tc-btn-primary:hover{background:#5a7aee;transform:scale(1.02)}
+.tc-btn-outline{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.tc-btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.tc-btn-disabled{background:var(--card);color:var(--dim);border:1px solid var(--border);cursor:default;opacity:.6}
+
+/* ─── Environment Badge ─── */
+.env-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:3px 8px;border-radius:6px;background:var(--cyan-bg);color:var(--cyan);border:1px solid rgba(34,211,238,.1)}
+
+/* ─── APM Tip ─── */
+.apm-tip{background:var(--purple-bg);border:1px solid rgba(167,139,250,.12);border-radius:10px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px}
+.apm-tip .tip-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.apm-tip-text{font-size:13px;line-height:1.7;color:var(--text)}
+.apm-tip-text strong{color:var(--purple)}
+
+/* ─── Footer ─── */
+.footer{text-align:center;padding:40px 20px 32px;border-top:1px solid var(--border);margin-top:40px}
+.footer p{font-size:12px;color:var(--dim)}
+.footer a{color:var(--accent)}
+
+/* ─── Responsive ─── */
+@media(max-width:768px){
+  .topbar{padding:0 16px}
+  .page{padding:20px 16px 60px}
+  .hero h1{font-size:22px}
+  .tc-ba{grid-template-columns:1fr}
+  .tc-head{flex-direction:column;gap:10px}
+  .topbar-nav{gap:0}
+  .topbar-nav a{padding:8px 10px;font-size:12px}
+}
+@media print{
+  .topbar{position:static;background:#fff;border-bottom:2px solid #ddd}
+  body{background:#fff;color:#333}
+  .tool-card{break-inside:avoid;border:1px solid #ddd}
+  .tc-pain,.tc-solution,.apm-tip,.hero-note{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<!-- ─── Top Bar ─── -->
+<header class="topbar">
+  <div class="topbar-brand" onclick="location.href='index.html'">
+    <span class="logo">📖</span> 游戏项目知识库
+  </div>
+  <nav class="topbar-nav">
+    <a href="index.html">🏠 首页</a>
+    <a href="tools.html" class="active">🔧 工具集</a>
+  </nav>
+</header>
+
+<!-- ─── Main Content ─── -->
+<div class="page">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>🔧 APM 美术<span class="grad">生产工具集</span></h1>
+    <p>每个工具从真实项目痛点出发开发，服务于美术团队内部与外包 CP，<br>旨在减少人工重复劳动，降低资源返工率</p>
+    <div class="hero-note">
+      <span class="icon">💡</span>
+      <span>本工具集为<strong>项目 APM（美术项目管理）</strong>工作积累的实用产出。所有工具均为<strong>浏览器在线运行</strong>，无需安装任何软件，直接打开即用。发给外包 CP 也无需额外部署——发链接即可。</span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-chip"><span class="num" id="statOnline">3</span><span class="label">在线工具</span></div>
+    <div class="stat-chip"><span class="num" id="statComing">3</span><span class="label">规划中</span></div>
+    <div class="stat-chip"><span class="num">4</span><span class="label">功能分类</span></div>
+    <div class="stat-chip"><span class="num">0</span><span class="label">需安装</span></div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- Category 1: 图像处理类 -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="cat-section" id="cat-image">
+    <div class="cat-header">
+      <div class="cat-icon" style="background:var(--green-bg);color:var(--green)">🎨</div>
+      <h2>图像处理类</h2>
+      <span class="cat-count">3 个工具</span>
+    </div>
+
+    <!-- Tool 1: 自动 Mask 生成器 -->
+    <div class="tool-card">
+      <div class="tool-card-inner">
+        <div class="tc-head">
+          <div class="tc-icon" style="background:var(--green-bg)">🤖</div>
+          <div class="tc-title-area">
+            <h3>自动 Mask 通道生成器 <span class="ver">v2.0</span> <span class="status status-online">🟢 在线</span></h3>
+            <div class="tc-subtitle">LAB 色彩空间 K-Means++ 聚类 · 一键生成换色遮罩图</div>
+          </div>
+        </div>
+
+        <div class="tc-pain">
+          <span class="pain-icon">🔥</span>
+          <div class="tc-pain-text"><strong>解决的实际问题：</strong>角色换色 Mask 遮罩图过去全靠美术手工在 PS 中逐通道绘制，一张图平均耗时 30~60 分钟。外包 CP 经常交付通道互斥出错、边缘硬切的 Mask，返工率高达 40% 以上。</div>
+        </div>
+        <div class="tc-solution">
+          <span class="sol-icon">✅</span>
+          <div class="tc-solution-text"><strong>现在：</strong>上传原图后 3 秒内自动完成颜色区域识别与通道分配，内置自动修复（纯黑/纯白/通道冲突检测+修正），零 PS 基础的外包也能产出合格 Mask。</div>
+        </div>
+
+        <div class="tc-ba">
+          <div class="ba-box ba-before">
+            <div class="ba-label">❌ BEFORE</div>
+            <ul>
+              <li>手工 PS 绘制每张 30~60 min</li>
+              <li>外包 CP 不理解通道互斥，返工频繁</li>
+              <li>验收全靠肉眼，无法量化质量</li>
+              <li>纯黑/纯白像素导致 HSV 染色失效</li>
+            </ul>
+          </div>
+          <div class="ba-box ba-after">
+            <div class="ba-label">✅ AFTER</div>
+            <ul>
+              <li>上传原图 → 3 秒自动生成</li>
+              <li>算法保证通道互斥，输出即合规</li>
+              <li>内置质量评分 + 自动修复</li>
+              <li>支持 RGBA / RGB 双模式，适配不同引擎</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="tc-scenes">
+          <span class="scene-tag">📤 外包 CP 资源交付</span>
+          <span class="scene-tag">👤 角色换色系统</span>
+          <span class="scene-tag">🔄 批量资源生产</span>
+          <span class="scene-tag">✅ 美术验收</span>
+        </div>
+
+        <div class="apm-tip">
+          <span class="tip-icon">📋</span>
+          <div class="apm-tip-text"><strong>APM 管理建议：</strong>建议将此工具链接写入外包交付规范，要求 CP 在提交 Mask 前用工具自检。工具生成的质量评分截图可作为验收附件，减少主观争议。</div>
+        </div>
+
+        <div class="tc-meta">
+          <span class="env-badge">🌐 浏览器在线</span>
+          <span class="meta-item"><span class="mi-icon">💻</span> Win / Mac / Linux</span>
+          <span class="meta-item"><span class="mi-icon">📦</span> 无需安装</span>
+          <span class="meta-item"><span class="mi-icon">📅</span> 2026-03-31</span>
+          <span class="spacer"></span>
+          <button class="tc-btn tc-btn-primary" onclick="window.open('knowledge-base/auto-mask.html','_blank')">🚀 打开工具</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tool 2: Mask 手动编辑器 -->
+    <div class="tool-card">
+      <div class="tool-card-inner">
+        <div class="tc-head">
+          <div class="tc-icon" style="background:var(--orange-bg)">🖌️</div>
+          <div class="tc-title-area">
+            <h3>Mask 手动编辑器 <span class="ver">v1.0</span> <span class="status status-online">🟢 在线</span></h3>
+            <div class="tc-subtitle">画笔 / 油漆桶 / 橡皮擦 · 实时四通道预览</div>
+          </div>
+        </div>
+
+        <div class="tc-pain">
+          <span class="pain-icon">🔥</span>
+          <div class="tc-pain-text"><strong>解决的实际问题：</strong>自动生成的 Mask 有时无法精确覆盖复杂区域（如渐变发色、花纹装饰），需要人工微调。但 PS 操作通道编辑门槛高，非专业美术（如 TA 或制作人）很难快速修改。</div>
+        </div>
+        <div class="tc-solution">
+          <span class="sol-icon">✅</span>
+          <div class="tc-solution-text"><strong>现在：</strong>专为 Mask 编辑设计的轻量工具，导入原图后直接在浏览器中用画笔逐通道绘制或修改，实时预览换色效果，导出即可用。</div>
+        </div>
+
+        <div class="tc-ba">
+          <div class="ba-box ba-before">
+            <div class="ba-label">❌ BEFORE</div>
+            <ul>
+              <li>PS 通道面板操作繁琐，容易误编辑</li>
+              <li>无法实时预览换色结果</li>
+              <li>TA / 制作人需要学 PS 才能微调</li>
+              <li>导出时容易遗漏通道</li>
+            </ul>
+          </div>
+          <div class="ba-box ba-after">
+            <div class="ba-label">✅ AFTER</div>
+            <ul>
+              <li>可视化画笔，所见即所得</li>
+              <li>R/G/B/A 四通道独立显示 + 换色实时预览</li>
+              <li>零学习成本，打开即用</li>
+              <li>一键导出完整 RGBA PNG</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="tc-scenes">
+          <span class="scene-tag">🔧 Mask 精修微调</span>
+          <span class="scene-tag">👤 非美术人员操作</span>
+          <span class="scene-tag">🔍 验收问题定位</span>
+        </div>
+
+        <div class="apm-tip">
+          <span class="tip-icon">📋</span>
+          <div class="apm-tip-text"><strong>APM 管理建议：</strong>验收发现 Mask 局部问题时，可直接在此工具中修复，避免整张退回重做。配合自动生成器使用效率最高：先自动生成 → 再手动精修。</div>
+        </div>
+
+        <div class="tc-meta">
+          <span class="env-badge">🌐 浏览器在线</span>
+          <span class="meta-item"><span class="mi-icon">💻</span> Win / Mac / Linux</span>
+          <span class="meta-item"><span class="mi-icon">📦</span> 无需安装</span>
+          <span class="meta-item"><span class="mi-icon">📅</span> 2026-03-31</span>
+          <span class="spacer"></span>
+          <button class="tc-btn tc-btn-primary" onclick="window.open('knowledge-base/mask-tool.html','_blank')">🚀 打开工具</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tool 3: Spine 拆分工具 -->
+    <div class="tool-card">
+      <div class="tool-card-inner">
+        <div class="tc-head">
+          <div class="tc-icon" style="background:var(--purple-bg)">✂️</div>
+          <div class="tc-title-area">
+            <h3>Spine 角色拆分工具 <span class="ver">v1.0</span> <span class="status status-online">🟢 在线</span></h3>
+            <div class="tc-subtitle">矩形 / 套索 / 魔棒选区 · 拓扑延展 · Atlas 导出</div>
+          </div>
+        </div>
+
+        <div class="tc-pain">
+          <span class="pain-icon">🔥</span>
+          <div class="tc-pain-text"><strong>解决的实际问题：</strong>Spine 动画要求角色原画按部件（头、身体、手臂、腿等）拆分为独立图片，且部件边缘需延展填充以避免骨骼旋转时露白。传统流程依赖 PS 手动裁切+补边，一张角色拆分 2~4 小时，且外包理解偏差大。</div>
+        </div>
+        <div class="tc-solution">
+          <span class="sol-icon">✅</span>
+          <div class="tc-solution-text"><strong>现在：</strong>上传原画后用选区工具（矩形/套索/魔棒）圈选部件，工具自动裁切并执行拓扑延展（内容感知/边缘扩展/镜像/纯色 4 种模式），最终导出含 Atlas 图集 + Spine JSON 配置的 ZIP 包。</div>
+        </div>
+
+        <div class="tc-ba">
+          <div class="ba-box ba-before">
+            <div class="ba-label">❌ BEFORE</div>
+            <ul>
+              <li>PS 手动裁切+补边，一张角色 2~4 小时</li>
+              <li>边缘延展全靠经验，不同人结果差异大</li>
+              <li>手动拼 Atlas 图集容易坐标出错</li>
+              <li>外包对 Spine 格式理解偏差，返工率高</li>
+            </ul>
+          </div>
+          <div class="ba-box ba-after">
+            <div class="ba-label">✅ AFTER</div>
+            <ul>
+              <li>可视化选区圈选，15~30 分钟完成拆分</li>
+              <li>4 种拓扑延展模式，效果标准化</li>
+              <li>自动生成 Atlas 图集 + POT 尺寸</li>
+              <li>直出 Spine 兼容 JSON，零配置导入</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="tc-scenes">
+          <span class="scene-tag">🦴 Spine 2D 动画</span>
+          <span class="scene-tag">📤 外包 CP 拆分交付</span>
+          <span class="scene-tag">🎮 角色换装系统</span>
+          <span class="scene-tag">⚡ 快速原型验证</span>
+        </div>
+
+        <div class="apm-tip">
+          <span class="tip-icon">📋</span>
+          <div class="apm-tip-text"><strong>APM 管理建议：</strong>在 Spine 项目启动前，向外包 CP 提供此工具作为标准拆分流程。可要求 CP 使用工具导出的 ZIP 作为交付物，避免不同 CP 的拆分格式不统一。</div>
+        </div>
+
+        <div class="tc-meta">
+          <span class="env-badge">🌐 浏览器在线</span>
+          <span class="meta-item"><span class="mi-icon">💻</span> Win / Mac / Linux</span>
+          <span class="meta-item"><span class="mi-icon">📦</span> 无需安装</span>
+          <span class="meta-item"><span class="mi-icon">📅</span> 2026-03-31</span>
+          <span class="spacer"></span>
+          <button class="tc-btn tc-btn-primary" onclick="window.open('knowledge-base/spine-split.html','_blank')">🚀 打开工具</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- Category 2: 资源检测类 -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="cat-section" id="cat-check">
+    <div class="cat-header">
+      <div class="cat-icon" style="background:var(--red-bg);color:var(--red)">🔍</div>
+      <h2>资源检测类</h2>
+      <span class="cat-count">1 个工具 · 规划中</span>
+    </div>
+
+    <!-- Tool: 贴图规范检测器 (Coming) -->
+    <div class="tool-card" style="opacity:.75">
+      <div class="tool-card-inner">
+        <div class="tc-head">
+          <div class="tc-icon" style="background:var(--red-bg)">🔎</div>
+          <div class="tc-title-area">
+            <h3>贴图规范检测器 <span class="status status-coming">🟡 规划中</span></h3>
+            <div class="tc-subtitle">批量检测 PNG/TGA 尺寸、Alpha、色彩规范等</div>
+          </div>
+        </div>
+
+        <div class="tc-pain">
+          <span class="pain-icon">🔥</span>
+          <div class="tc-pain-text"><strong>解决的实际问题：</strong>外包交付的贴图资源经常出现尺寸非 2^N、缺少 Alpha 通道、JPEG 伪装成 PNG、颜色空间错误等问题。人工逐张检查效率极低，漏检造成后期集成阶段才暴露问题。</div>
+        </div>
+        <div class="tc-solution">
+          <span class="sol-icon">💡</span>
+          <div class="tc-solution-text"><strong>规划方案：</strong>批量拖入贴图文件，自动检测尺寸/格式/Alpha/色彩空间等规范项，生成检测报告，支持导出 CSV 作为验收记录。</div>
+        </div>
+
+        <div class="tc-ba">
+          <div class="ba-box ba-before">
+            <div class="ba-label">❌ BEFORE</div>
+            <ul>
+              <li>手动打开每张图在 PS 中查看属性</li>
+              <li>100 张图验收需要 1~2 小时</li>
+              <li>漏检在引擎集成阶段才暴露</li>
+              <li>验收标准靠口头约定，无客观记录</li>
+            </ul>
+          </div>
+          <div class="ba-box ba-after">
+            <div class="ba-label">✅ AFTER（规划）</div>
+            <ul>
+              <li>批量拖入 → 秒级全量扫描</li>
+              <li>红/黄/绿三级问题标记</li>
+              <li>导出 CSV 检测报告，作为验收凭证</li>
+              <li>自定义检测规则，适配不同项目</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="apm-tip">
+          <span class="tip-icon">📋</span>
+          <div class="apm-tip-text"><strong>APM 应用场景：</strong>外包交付验收节点，将检测报告附在验收单中，作为资源质量的客观依据。可大幅缩短验收周期，减少主观误判。</div>
+        </div>
+
+        <div class="tc-meta">
+          <span class="env-badge">🌐 浏览器在线</span>
+          <span class="meta-item"><span class="mi-icon">💻</span> Win / Mac / Linux</span>
+          <span class="spacer"></span>
+          <button class="tc-btn tc-btn-disabled">📅 规划中</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- Category 3: 命名处理类 -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="cat-section" id="cat-naming">
+    <div class="cat-header">
+      <div class="cat-icon" style="background:var(--cyan-bg);color:var(--cyan)">📝</div>
+      <h2>命名处理类</h2>
+      <span class="cat-count">1 个工具 · 规划中</span>
+    </div>
+
+    <!-- Tool: 批量重命名工具 (Coming) -->
+    <div class="tool-card" style="opacity:.75">
+      <div class="tool-card-inner">
+        <div class="tc-head">
+          <div class="tc-icon" style="background:var(--cyan-bg)">📁</div>
+          <div class="tc-title-area">
+            <h3>美术资源批量重命名 <span class="status status-coming">🟡 规划中</span></h3>
+            <div class="tc-subtitle">按命名规则批量重命名 · 预览 · 冲突检测</div>
+          </div>
+        </div>
+
+        <div class="tc-pain">
+          <span class="pain-icon">🔥</span>
+          <div class="tc-pain-text"><strong>解决的实际问题：</strong>多 CP 并行时命名规范难统一，常见问题：中文文件名/空格/特殊字符/大小写混乱/编号不连续。引擎导入后因命名冲突导致资源丢失，排查代价极高。</div>
+        </div>
+        <div class="tc-solution">
+          <span class="sol-icon">💡</span>
+          <div class="tc-solution-text"><strong>规划方案：</strong>拖入文件列表后，按自定义模板（<code>类型_性别_部件_编号_变体</code>）批量重命名，预览更改，检测名称冲突，导出命名对照表。</div>
+        </div>
+
+        <div class="tc-ba">
+          <div class="ba-box ba-before">
+            <div class="ba-label">❌ BEFORE</div>
+            <ul>
+              <li>手动逐个改名，100 个文件耗时 30min+</li>
+              <li>不同 CP 命名风格各异</li>
+              <li>中文/空格导致引擎报错</li>
+              <li>编号跳跃或重复，缺乏全局校验</li>
+            </ul>
+          </div>
+          <div class="ba-box ba-after">
+            <div class="ba-label">✅ AFTER（规划）</div>
+            <ul>
+              <li>拖入 → 选模板 → 一键重命名</li>
+              <li>强制统一命名规范</li>
+              <li>自动过滤非法字符</li>
+              <li>导出新旧命名对照表</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="apm-tip">
+          <span class="tip-icon">📋</span>
+          <div class="apm-tip-text"><strong>APM 应用场景：</strong>在资源入库环节前置使用，确保所有资源命名符合项目规范。配合出图规范文档中的命名章节使用。</div>
+        </div>
+
+        <div class="tc-meta">
+          <span class="env-badge">🌐 浏览器在线</span>
+          <span class="meta-item"><span class="mi-icon">💻</span> Win / Mac / Linux</span>
+          <span class="spacer"></span>
+          <button class="tc-btn tc-btn-disabled">📅 规划中</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- Category 4: 版本管理类 -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="cat-section" id="cat-version">
+    <div class="cat-header">
+      <div class="cat-icon" style="background:var(--yellow-bg);color:var(--yellow)">📦</div>
+      <h2>版本管理类</h2>
+      <span class="cat-count">1 个工具 · 规划中</span>
+    </div>
+
+    <!-- Tool: 资源版本对比器 (Coming) -->
+    <div class="tool-card" style="opacity:.75">
+      <div class="tool-card-inner">
+        <div class="tc-head">
+          <div class="tc-icon" style="background:var(--yellow-bg)">🔄</div>
+          <div class="tc-title-area">
+            <h3>资源版本对比器 <span class="status status-coming">🟡 规划中</span></h3>
+            <div class="tc-subtitle">图像 Diff · 像素级差异高亮 · 变更记录</div>
+          </div>
+        </div>
+
+        <div class="tc-pain">
+          <span class="pain-icon">🔥</span>
+          <div class="tc-pain-text"><strong>解决的实际问题：</strong>美术资源多版本迭代中，肉眼难以确认"这次修改了哪里"。CP 说已修改但其实没改、或改了不该改的地方，缺乏快速可视化对比手段。</div>
+        </div>
+        <div class="tc-solution">
+          <span class="sol-icon">💡</span>
+          <div class="tc-solution-text"><strong>规划方案：</strong>上传旧版/新版两张图，自动生成差异热力图 + 滑动对比 + 逐像素 Diff，支持导出对比报告。</div>
+        </div>
+
+        <div class="tc-ba">
+          <div class="ba-box ba-before">
+            <div class="ba-label">❌ BEFORE</div>
+            <ul>
+              <li>PS 叠图肉眼对比，微调难以察觉</li>
+              <li>CP 版本声称已改，无法快速验证</li>
+              <li>无变更记录，责任追溯困难</li>
+            </ul>
+          </div>
+          <div class="ba-box ba-after">
+            <div class="ba-label">✅ AFTER（规划）</div>
+            <ul>
+              <li>上传两张 → 秒级像素 Diff</li>
+              <li>差异区域热力图高亮</li>
+              <li>滑块拖动对比 + 闪烁切换模式</li>
+              <li>导出变更报告，留档可追溯</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="apm-tip">
+          <span class="tip-icon">📋</span>
+          <div class="apm-tip-text"><strong>APM 应用场景：</strong>每次外包修改交付时使用，客观记录每个版本的差异。可作为验收依据，也可用于复盘"修改了几轮才达标"的效率分析。</div>
+        </div>
+
+        <div class="tc-meta">
+          <span class="env-badge">🌐 浏览器在线</span>
+          <span class="meta-item"><span class="mi-icon">💻</span> Win / Mac / Linux</span>
+          <span class="spacer"></span>
+          <button class="tc-btn tc-btn-disabled">📅 规划中</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Footer ─── -->
+  <div class="footer">
+    <p>🎮 游戏美术项目知识库 · APM 工具集 · <a href="https://diedie23.github.io/Game-Knowledge-Base/" target="_blank">在线访问</a></p>
+    <p style="margin-top:6px">工具从项目实际痛点出发，持续迭代中 · v1.3 · 2026-04-01</p>
+  </div>
+
+</div>
+
+<script>
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t)t.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+</script>
+</body>
+</html>

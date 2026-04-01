@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9宫格与颜色空间规范 · UI资源规范 · 游戏项目知识库</title>
+<style>
+:root{
+  --bg:#0d0f15;--panel:#111320;--card:#161829;--card-hover:#1a1d30;
+  --border:#222540;--border-hover:#6c8cff;
+  --text:#c5c9d6;--dim:#6b7085;--heading:#e8eaed;--white:#fff;
+  --accent:#6c8cff;--accent-light:#8ba3ff;--accent-bg:rgba(108,140,255,.07);
+  --green:#4ade80;--green-bg:rgba(74,222,128,.07);
+  --orange:#fb923c;--orange-bg:rgba(251,146,60,.07);
+  --red:#f87171;--red-bg:rgba(248,113,113,.07);
+  --purple:#a78bfa;--purple-bg:rgba(167,139,250,.07);
+  --cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.07);
+  --yellow:#fbbf24;--yellow-bg:rgba(251,191,36,.07);
+  --pink:#f472b6;--pink-bg:rgba(244,114,182,.07);
+  --code-bg:#1a1d2d;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+.topbar{position:sticky;top:0;z-index:100;background:rgba(13,15,21,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:56px}
+.topbar-brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--heading);cursor:pointer;text-decoration:none}
+.topbar-brand .logo{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff}
+.topbar-nav{display:flex;gap:4px}
+.topbar-nav a{padding:8px 16px;border-radius:8px;font-size:13px;color:var(--dim);transition:all .15s;text-decoration:none}
+.topbar-nav a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.topbar-nav a.active{color:var(--accent);background:var(--accent-bg);font-weight:500}
+
+.page{max-width:960px;margin:0 auto;padding:40px 32px 80px}
+.breadcrumb{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);margin-bottom:28px;flex-wrap:wrap}
+.breadcrumb a{color:var(--accent);text-decoration:none;font-size:12px}
+.breadcrumb a:hover{text-decoration:underline}
+
+.doc-header{margin-bottom:36px;padding-bottom:24px;border-bottom:2px solid var(--accent)}
+.doc-header h1{font-size:28px;color:var(--heading);font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.doc-header h1 .badge{font-size:11px;background:var(--purple);color:#fff;padding:3px 12px;border-radius:20px;font-weight:500}
+.doc-header p{font-size:14px;color:var(--dim);line-height:1.8}
+.doc-meta{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap}
+.doc-meta span{font-size:11px;color:var(--dim);background:var(--card);border:1px solid var(--border);padding:4px 12px;border-radius:6px;display:flex;align-items:center;gap:4px}
+
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.section h3{font-size:16px;color:var(--heading);font-weight:600;margin:24px 0 12px;display:flex;align-items:center;gap:8px}
+.section h4{font-size:14px;color:var(--accent-light);font-weight:600;margin:18px 0 8px}
+.section p{margin:8px 0;font-size:14px;line-height:1.8}
+
+/* Tables */
+.doc-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.doc-table th{background:var(--card);padding:10px 14px;text-align:left;font-weight:600;color:var(--heading);border:1px solid var(--border);white-space:nowrap}
+.doc-table td{padding:10px 14px;border:1px solid var(--border);vertical-align:top}
+.doc-table tr:hover td{background:rgba(108,140,255,.03)}
+.doc-table code{background:var(--code-bg);padding:2px 6px;border-radius:3px;font-size:12px;font-family:'Consolas','Menlo',monospace;color:var(--accent-light);border:1px solid var(--border)}
+
+/* Engine Compare Table */
+.engine-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.engine-table th{padding:12px 14px;text-align:left;font-weight:700;border:1px solid var(--border)}
+.engine-table td{padding:12px 14px;border:1px solid var(--border);vertical-align:top;line-height:1.7}
+.engine-table tr:hover td{background:rgba(108,140,255,.03)}
+.engine-table code{background:var(--code-bg);padding:2px 6px;border-radius:3px;font-size:12px;font-family:'Consolas','Menlo',monospace;color:var(--accent-light);border:1px solid var(--border)}
+.engine-unity{background:rgba(108,140,255,.06);color:var(--accent)}
+.engine-ue{background:rgba(167,139,250,.06);color:var(--purple)}
+.engine-cocos{background:rgba(74,222,128,.06);color:var(--green)}
+
+/* Box styles */
+.apm-box{background:var(--purple-bg);border:1px solid rgba(167,139,250,.15);border-radius:10px;padding:14px 18px;margin:16px 0;font-size:13px;line-height:1.8;display:flex;align-items:flex-start;gap:10px}
+.apm-box .icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.apm-box strong{color:var(--purple)}
+.warn-box{background:var(--orange-bg);border:1px solid rgba(251,146,60,.15);border-radius:10px;padding:14px 18px;margin:12px 0;font-size:13px;line-height:1.8;display:flex;align-items:flex-start;gap:10px}
+.warn-box .icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.warn-box strong{color:var(--orange)}
+.error-box{background:var(--red-bg);border:1px solid rgba(248,113,113,.15);border-radius:10px;padding:14px 18px;margin:12px 0;font-size:13px;line-height:1.8}
+.error-box .err-title{color:var(--red);font-weight:700;font-size:12px;letter-spacing:.5px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.error-box ul{padding-left:16px;margin:0}
+.error-box li{margin:4px 0;color:var(--text)}
+.info-box{background:var(--accent-bg);border:1px solid rgba(108,140,255,.15);border-radius:10px;padding:14px 18px;margin:12px 0;font-size:13px;line-height:1.8;display:flex;align-items:flex-start;gap:10px}
+.info-box .icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.info-box strong{color:var(--accent)}
+.tip-box{background:var(--green-bg);border:1px solid rgba(74,222,128,.15);border-radius:10px;padding:14px 18px;margin:12px 0;font-size:13px;line-height:1.8;display:flex;align-items:flex-start;gap:10px}
+.tip-box .icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.tip-box strong{color:var(--green)}
+
+/* 9-Slice Visual */
+.nine-slice-demo{display:inline-grid;grid-template-columns:60px 120px 60px;grid-template-rows:40px 60px 40px;gap:2px;margin:16px 0;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:12px}
+.nine-slice-demo .cell{display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:10px;font-weight:600;padding:4px}
+.corner{background:var(--red-bg);color:var(--red)}
+.edge-h{background:var(--orange-bg);color:var(--orange)}
+.edge-v{background:var(--accent-bg);color:var(--accent)}
+.center{background:var(--green-bg);color:var(--green)}
+
+/* Before/After */
+.ba-compare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+.ba-box{border-radius:10px;padding:16px 18px}
+.ba-before{background:rgba(248,113,113,.05);border:1px solid rgba(248,113,113,.12)}
+.ba-after{background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.12)}
+.ba-label{font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:8px}
+.ba-before .ba-label{color:var(--red)}
+.ba-after .ba-label{color:var(--green)}
+.ba-box ul{list-style:none;padding:0;margin:0}
+.ba-box li{font-size:12px;color:var(--dim);padding:3px 0;display:flex;align-items:flex-start;gap:6px;line-height:1.6}
+.ba-before li::before{content:'✗';color:var(--red);font-weight:700;flex-shrink:0}
+.ba-after li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0}
+
+pre{background:var(--code-bg);padding:16px 20px;border-radius:10px;overflow-x:auto;margin:16px 0;border:1px solid var(--border);font-size:13px;line-height:1.7}
+pre code{font-family:'Consolas','Menlo',monospace;color:var(--text)}
+
+.color-swatch{display:inline-block;width:40px;height:20px;border-radius:4px;vertical-align:middle;margin:0 4px;border:1px solid var(--border)}
+
+.footer{text-align:center;padding:32px;font-size:12px;color:var(--dim);border-top:1px solid var(--border);margin-top:60px}
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-60px);background:var(--green);color:#000;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:500;z-index:999;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:768px){
+  .topbar{padding:0 16px}
+  .page{padding:20px 16px 60px}
+  .ba-compare{grid-template-columns:1fr}
+  .nine-slice-demo{grid-template-columns:40px 80px 40px;grid-template-rows:30px 40px 30px}
+}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<header class="topbar">
+  <a class="topbar-brand" href="index.html">
+    <span class="logo">📖</span> 游戏项目知识库
+  </a>
+  <nav class="topbar-nav">
+    <a href="index.html">首页</a>
+    <a href="tools.html">工具集</a>
+    <a class="active">UI 资源规范</a>
+  </nav>
+</header>
+
+<div class="page">
+
+<div class="breadcrumb">
+  <a href="index.html">🏠 首页</a><span>›</span>
+  <span>UI · 界面</span><span>›</span>
+  <span style="color:var(--heading)">9宫格与颜色空间规范</span>
+</div>
+
+<div class="doc-header">
+  <h1>🧩 9宫格与颜色空间规范 <span class="badge">UI 规范</span></h1>
+  <p>9宫格（Nine-Slice / Nine-Patch）是 UI 中最重要的优化技术之一，合理使用可以极大减少内存占用。同时，颜色空间的正确设置直接决定了美术资源在引擎中是否"所见即所得"。</p>
+  <div class="doc-meta">
+    <span>📂 UI · 界面</span>
+    <span>🎯 适用：所有引擎的 UI 开发</span>
+    <span>👥 受众：UI美术 / 技术美术 / 外包CP</span>
+    <span>📅 更新：2026-04</span>
+  </div>
+</div>
+
+<!-- ══════════════════ Part 1: 9宫格 ══════════════════ -->
+
+<div class="section" id="sec-9slice-intro">
+  <h2>🧩 一、9宫格基础概念</h2>
+
+  <h3>1.1 什么是9宫格？</h3>
+  <p>9宫格（Nine-Slice Scaling）是一种将图像分为 9 个区域的拉伸策略：<strong>4个角落保持原样，4条边只在一个方向拉伸，中心区域双向拉伸</strong>。这使得一张小尺寸的按钮底图可以适配任意大小，且边角不变形。</p>
+
+  <div class="nine-slice-demo">
+    <div class="cell corner">左上角<br>🔒 不变</div>
+    <div class="cell edge-h">上边缘<br>↔ 水平拉伸</div>
+    <div class="cell corner">右上角<br>🔒 不变</div>
+    <div class="cell edge-v">左边缘<br>↕ 垂直拉伸</div>
+    <div class="cell center">中心<br>↔↕ 双向拉伸</div>
+    <div class="cell edge-v">右边缘<br>↕ 垂直拉伸</div>
+    <div class="cell corner">左下角<br>🔒 不变</div>
+    <div class="cell edge-h">下边缘<br>↔ 水平拉伸</div>
+    <div class="cell corner">右下角<br>🔒 不变</div>
+  </div>
+
+  <h3>1.2 为什么9宫格如此重要</h3>
+  <table class="doc-table">
+    <thead>
+      <tr><th>场景</th><th>无9宫格</th><th>有9宫格</th><th>节省</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>10种尺寸的按钮</td>
+        <td>10张切图 ≈ 200KB</td>
+        <td>1张 20×20 切图 ≈ 2KB</td>
+        <td><strong>~99%</strong></td>
+      </tr>
+      <tr>
+        <td>各种大小的面板</td>
+        <td>每种单独切图 ≈ 500KB</td>
+        <td>1张小面板底图 ≈ 5KB</td>
+        <td><strong>~99%</strong></td>
+      </tr>
+      <tr>
+        <td>对话气泡</td>
+        <td>多种宽度逐个切 ≈ 100KB</td>
+        <td>1张气泡底图 ≈ 3KB</td>
+        <td><strong>~97%</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="apm-box">
+    <span class="icon">💼</span>
+    <div><strong>APM 视角：</strong>9宫格使用率直接影响包体大小。一个中型小游戏如果不用9宫格，UI 资源可能占 5~10MB；合理使用后可压到 1~2MB。外包交付时务必要求标注哪些资源为9宫格资源，并验证拉伸后的效果。</div>
+  </div>
+</div>
+
+<div class="section" id="sec-9slice-rules">
+  <h2>📐 二、9宫格制作规范</h2>
+
+  <h3>2.1 切图要求</h3>
+  <table class="doc-table">
+    <thead>
+      <tr><th>要素</th><th>规范</th><th>原因</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>尺寸</strong></td>
+        <td>尽量小！只需包含完整的边角装饰</td>
+        <td>中心和边缘会被拉伸，大尺寸无意义</td>
+      </tr>
+      <tr>
+        <td><strong>角落区域</strong></td>
+        <td>包含完整的圆角/装饰，不可截断</td>
+        <td>角落不会拉伸，截断会导致缺失</td>
+      </tr>
+      <tr>
+        <td><strong>边缘区域</strong></td>
+        <td>必须是可重复/可拉伸的纯色或纹理</td>
+        <td>拉伸后需要看起来自然</td>
+      </tr>
+      <tr>
+        <td><strong>中心区域</strong></td>
+        <td>纯色或均匀渐变（避免复杂花纹）</td>
+        <td>双向拉伸后花纹会变形</td>
+      </tr>
+      <tr>
+        <td><strong>对称性</strong></td>
+        <td>建议上下/左右对称设计</td>
+        <td>不对称时需要更精确的边距设置</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>2.2 边距标注</h3>
+  <p>9宫格的核心参数是<strong>四个边距值（Border / Padding）</strong>：左（L）、右（R）、上（T）、下（B），单位为像素。</p>
+
+  <div class="info-box">
+    <span class="icon">💡</span>
+    <div><strong>标注方法：</strong>美术交付时需要在资源清单中标注每个9宫格资源的边距值。推荐格式：<br>
+    <code>NS_Btn_Blue.png → L:12 R:12 T:12 B:12</code><br>
+    <code>NS_Panel_Dark.png → L:20 R:20 T:24 B:16</code></div>
+  </div>
+
+  <div class="error-box">
+    <div class="err-title">⚠️ 外包常见错误</div>
+    <ul>
+      <li><strong>不标注边距：</strong>只给切图不给数值，程序需反复试错</li>
+      <li><strong>边距包含了渐变区域：</strong>导致角落和边缘不干净</li>
+      <li><strong>图片太大：</strong>给了 512×128 的按钮底图做9宫格，浪费大量内存</li>
+      <li><strong>中心有花纹：</strong>复杂纹理在中心区域，拉伸后严重变形</li>
+      <li><strong>不对称但不标注：</strong>上边有装饰下边没有，但 T/B 给了相同值</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section" id="sec-9slice-engine">
+  <h2>🎮 三、三引擎9宫格设置对比</h2>
+
+  <div class="warn-box">
+    <span class="icon">⚠️</span>
+    <div><strong>核心差异：</strong>三大引擎的9宫格实现思路一致，但<strong>设置入口、参数名称、单位</strong>各不相同。外包交付如果面向多引擎项目，需要分别适配。</div>
+  </div>
+
+  <table class="engine-table">
+    <thead>
+      <tr>
+        <th style="width:160px">对比项</th>
+        <th class="engine-unity">🔷 Unity</th>
+        <th class="engine-ue">🟣 UE (UMG)</th>
+        <th class="engine-cocos">🟢 Cocos Creator</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>术语名称</strong></td>
+        <td>Sprite → Sliced（九宫格切片）</td>
+        <td>Image → Draw As: Box → Margin</td>
+        <td>Sprite → Type: Sliced（九宫格）</td>
+      </tr>
+      <tr>
+        <td><strong>设置入口</strong></td>
+        <td>Sprite Editor → Border（L/R/T/B）</td>
+        <td>UMG Image → Brush → Draw As: Box<br>→ Margin（Left/Right/Top/Bottom）</td>
+        <td>Sprite Editor → 九宫格编辑<br>或 Sprite 属性 → Trim Type: Custom</td>
+      </tr>
+      <tr>
+        <td><strong>边距参数</strong></td>
+        <td><code>border</code>：左(L)、下(B)、右(R)、上(T)<br>⚠️ 注意：<strong>顺序是 L-B-R-T</strong></td>
+        <td><code>Margin</code>：Left / Right / Top / Bottom<br>值为 <strong>0~1 的归一化值</strong>（不是像素！）</td>
+        <td><code>insetLeft/Right/Top/Bottom</code><br>值为<strong>像素值</strong></td>
+      </tr>
+      <tr>
+        <td><strong>单位</strong></td>
+        <td>像素（Pixels）</td>
+        <td><strong>归一化 0~1</strong>（例如 12px / 64px 宽 = 0.1875）</td>
+        <td>像素（Pixels）</td>
+      </tr>
+      <tr>
+        <td><strong>Image Type 设置</strong></td>
+        <td>Image 组件 → Image Type: <code>Sliced</code></td>
+        <td>Image → Draw As: <code>Box</code></td>
+        <td>Sprite 组件 → Type: <code>SLICED</code></td>
+      </tr>
+      <tr>
+        <td><strong>Fill Center 选项</strong></td>
+        <td>✅ 有（勾选 Fill Center 填充中心）</td>
+        <td>✅ 有（勾选 Draw As: Box 自动填充）</td>
+        <td>✅ 有（Type: SLICED 默认填充）</td>
+      </tr>
+      <tr>
+        <td><strong>Tiled 模式</strong></td>
+        <td>Image Type: <code>Tiled</code>（平铺）</td>
+        <td>Draw As: <code>Box</code> + Tiling 选项</td>
+        <td>Type: <code>TILED</code>（平铺）</td>
+      </tr>
+      <tr>
+        <td><strong>常见坑</strong></td>
+        <td>Sprite 必须设置 Mesh Type = Full Rect，否则裁切出错</td>
+        <td>Margin 单位是归一化值<strong>不是像素</strong>，很多人搞错！</td>
+        <td>Auto Atlas 打包后需重新验证9宫格效果</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>3.1 UE 的 Margin 换算公式</h3>
+  <div class="info-box">
+    <span class="icon">📐</span>
+    <div><strong>像素 → 归一化：</strong><br>
+    <code>Left Margin = Left_Pixels / Image_Width</code><br>
+    <code>Right Margin = Right_Pixels / Image_Width</code><br>
+    <code>Top Margin = Top_Pixels / Image_Height</code><br>
+    <code>Bottom Margin = Bottom_Pixels / Image_Height</code><br><br>
+    <strong>举例：</strong>图片 64×32，边距 12px → Left Margin = 12/64 = <code>0.1875</code>，Top Margin = 12/32 = <code>0.375</code></div>
+  </div>
+
+  <h3>3.2 交付时的标注格式建议</h3>
+  <table class="doc-table">
+    <thead>
+      <tr><th>资源名</th><th>尺寸</th><th>像素边距 (L/R/T/B)</th><th>UE归一化 (L/R/T/B)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>NS_Btn_Blue.png</code></td><td>64×32</td><td>12 / 12 / 10 / 10</td><td>0.188 / 0.188 / 0.313 / 0.313</td></tr>
+      <tr><td><code>NS_Panel_Dark.png</code></td><td>80×80</td><td>24 / 24 / 28 / 20</td><td>0.300 / 0.300 / 0.350 / 0.250</td></tr>
+      <tr><td><code>NS_Dialog_Bubble.png</code></td><td>48×40</td><td>16 / 16 / 12 / 16</td><td>0.333 / 0.333 / 0.300 / 0.400</td></tr>
+    </tbody>
+  </table>
+
+  <div class="apm-box">
+    <span class="icon">💼</span>
+    <div><strong>APM 管理建议：</strong>在交付规范中要求外包同时提供<strong>像素值和 UE 归一化值</strong>（如果项目用 UE）。这样可以避免程序手动换算出错。建议做成 Excel 表格随资源包交付。</div>
+  </div>
+</div>
+
+<!-- ══════════════════ Part 2: 颜色空间 ══════════════════ -->
+
+<div class="section" id="sec-color-intro">
+  <h2>🎨 四、颜色空间：sRGB vs Linear</h2>
+
+  <h3>4.1 为什么要关注颜色空间？</h3>
+  <p>颜色空间决定了像素值如何映射到实际亮度。如果美术在 sRGB 空间下制作，但引擎按 Linear 空间读取，画面会<strong>变亮/变灰</strong>；反之会<strong>变暗/过饱和</strong>。</p>
+
+  <table class="doc-table">
+    <thead>
+      <tr><th>颜色空间</th><th>特点</th><th>适用贴图</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>sRGB</strong></td>
+        <td>非线性 Gamma 编码（≈ γ=2.2），人眼感知均匀<br>Photoshop 默认工作空间</td>
+        <td><strong>所有颜色贴图</strong>：Base Color / Albedo / Diffuse / UI 切图 / 图标</td>
+      </tr>
+      <tr>
+        <td><strong>Linear</strong></td>
+        <td>线性空间，物理准确<br>数值与亮度成正比</td>
+        <td><strong>数据贴图</strong>：法线图 / 金属度 / 粗糙度 / Mask / 高度图</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="tip-box">
+    <span class="icon">✅</span>
+    <div><strong>核心原则：</strong><br>
+    • 包含<strong>颜色信息</strong>的贴图 → 标记为 <strong>sRGB</strong><br>
+    • 包含<strong>数据/数值</strong>的贴图 → 标记为 <strong>Linear</strong><br>
+    • UI 切图 99% 情况应标记为 <strong>sRGB</strong></div>
+  </div>
+
+  <h3>4.2 三引擎的颜色空间设置</h3>
+  <table class="engine-table">
+    <thead>
+      <tr>
+        <th style="width:160px">对比项</th>
+        <th class="engine-unity">🔷 Unity</th>
+        <th class="engine-ue">🟣 UE</th>
+        <th class="engine-cocos">🟢 Cocos</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>默认行为</strong></td>
+        <td>导入时自动检测 sRGB<br>Texture → sRGB 勾选框</td>
+        <td>导入时自动检测<br>Texture → sRGB 勾选框</td>
+        <td>自动处理，无显式设置<br>Sprite 默认 sRGB</td>
+      </tr>
+      <tr>
+        <td><strong>UI 贴图设置</strong></td>
+        <td><code>sRGB ☑️</code>（默认已勾选）</td>
+        <td><code>sRGB ☑️</code>（默认已勾选）</td>
+        <td>自动处理（无需手动）</td>
+      </tr>
+      <tr>
+        <td><strong>数据贴图设置</strong></td>
+        <td><code>sRGB ☐</code> 取消勾选</td>
+        <td><code>sRGB ☐</code> 取消勾选<br>Compression: Masks</td>
+        <td>Effect 贴图手动设置</td>
+      </tr>
+      <tr>
+        <td><strong>渲染管线</strong></td>
+        <td>URP/HDRP 默认 Linear 渲染<br>自动 Gamma 校正</td>
+        <td>默认 Linear 渲染<br>Tone Mapping 自动处理</td>
+        <td>默认 sRGB 渲染<br>3.x 支持 Linear</td>
+      </tr>
+      <tr>
+        <td><strong>常见坑</strong></td>
+        <td>法线图忘了取消 sRGB → 法线表现异常</td>
+        <td>Mask 贴图标了 sRGB → 颜色插值不准</td>
+        <td>混用不同色彩空间的 Sprite → 合批失败</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section" id="sec-alpha">
+  <h2>🔲 五、Alpha 通道注意事项</h2>
+
+  <h3>5.1 Premultiplied Alpha vs Straight Alpha</h3>
+  <table class="doc-table">
+    <thead>
+      <tr><th>模式</th><th>原理</th><th>优势</th><th>使用场景</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Straight Alpha</strong><br>（标准 Alpha）</td>
+        <td>RGB 和 A 独立存储<br>混合时：<code>final = src × α + dst × (1-α)</code></td>
+        <td>PS 中查看 RGB 通道是原色</td>
+        <td>Photoshop 默认输出<br>大部分 UI 切图</td>
+      </tr>
+      <tr>
+        <td><strong>Premultiplied Alpha</strong><br>（预乘 Alpha）</td>
+        <td>RGB 已经乘以 A<br>混合时：<code>final = src + dst × (1-α)</code></td>
+        <td>避免半透明边缘黑边<br>混合效率更高</td>
+        <td>Unity Sprite 默认<br>UE Texture 可选</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>5.2 透明边缘黑边问题</h3>
+  <div class="warn-box">
+    <span class="icon">⚠️</span>
+    <div><strong>最常见的 Alpha 问题：</strong>图标/按钮边缘出现一圈黑边或暗色边缘。<br>
+    <strong>原因：</strong>Photoshop 导出的 PNG 是 Straight Alpha，但引擎混合时假设 Premultiplied Alpha。<br>
+    <strong>解决方案：</strong><br>
+    ① 导出时在 PS 中选择 Premultiplied（需插件/脚本）<br>
+    ② 在引擎中设置 Alpha 类型为 Straight（Unity: Alpha Is Transparency ☑️）<br>
+    ③ 导出前对透明像素的 RGB 做<strong>出血填充</strong>（将边缘颜色扩展到透明区域）</div>
+  </div>
+
+  <h3>5.3 各引擎 Alpha 处理</h3>
+  <table class="engine-table">
+    <thead>
+      <tr>
+        <th>设置项</th>
+        <th class="engine-unity">🔷 Unity</th>
+        <th class="engine-ue">🟣 UE</th>
+        <th class="engine-cocos">🟢 Cocos</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Alpha 模式</strong></td>
+        <td>Texture → Alpha Is Transparency ☑️<br>自动处理边缘膨胀</td>
+        <td>Texture → Compression Settings<br>选择 UserInterface2D (RGBA)</td>
+        <td>默认 Straight Alpha<br>Premultiply Alpha 可在材质选项中开启</td>
+      </tr>
+      <tr>
+        <td><strong>防黑边方案</strong></td>
+        <td>勾选 Alpha Is Transparency<br>→ 自动膨胀 RGB 到透明区域</td>
+        <td>Texture Editor → Padding: Dilate<br>→ 膨胀填充</td>
+        <td>美术导出时手动出血<br>或用 TexturePacker 的 Premultiply 选项</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="error-box">
+    <div class="err-title">⚠️ 外包常见 Alpha 错误</div>
+    <ul>
+      <li><strong>白底导出：</strong>把 PSD 背景层也导出了，Alpha 全是 255</li>
+      <li><strong>透明像素 RGB 为黑色：</strong>导致边缘采样时出现黑边</li>
+      <li><strong>Alpha 不干净：</strong>边缘有 0~10 的微弱 Alpha 值，肉眼不可见但引擎会渲染为半透明噪点</li>
+      <li><strong>JPG 交付：</strong>JPG 不支持 Alpha 通道，透明信息全部丢失</li>
+      <li><strong>导出 PNG-8 而非 PNG-24/32：</strong>PNG-8 的 Alpha 只有开/关两种，无法半透明</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section" id="sec-ba">
+  <h2>🔄 六、Before / After 对比</h2>
+
+  <div class="ba-compare">
+    <div class="ba-box ba-before">
+      <div class="ba-label">❌ BEFORE — 无规范时</div>
+      <ul>
+        <li>每种按钮尺寸单独切一张大图，UI 包体 8MB+</li>
+        <li>9宫格不标注边距，程序反复试错花费半天</li>
+        <li>Unity 项目用 UE 的归一化边距值，显示全错</li>
+        <li>切图颜色在引擎中偏亮/偏暗，反复调色</li>
+        <li>所有贴图都设 sRGB，Mask 通道插值失准</li>
+        <li>图标边缘一圈黑边，不知道怎么解决</li>
+      </ul>
+    </div>
+    <div class="ba-box ba-after">
+      <div class="ba-label">✅ AFTER — 执行规范后</div>
+      <ul>
+        <li>复用9宫格，同类按钮只需1张小图，包体降 80%</li>
+        <li>交付清单含像素边距+UE归一化值，一次导入成功</li>
+        <li>多引擎项目有各自的参数表，无需换算</li>
+        <li>颜色贴图 sRGB、数据贴图 Linear，颜色精准</li>
+        <li>Mask 正确设为 Linear，换色效果准确</li>
+        <li>Alpha 出血处理，零黑边问题</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Related -->
+<div class="section">
+  <h2>🔗 相关规范文档</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
+    <a href="ui-slice-naming.html" style="display:block;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-decoration:none;transition:all .2s" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:16px;margin-bottom:4px">✂️</div>
+      <div style="font-size:14px;color:var(--heading);font-weight:600">切图与命名规范</div>
+      <div style="font-size:12px;color:var(--dim);margin-top:4px">命名规则 · 格式说明 · Checklist</div>
+    </a>
+    <a href="ui-layout.html" style="display:block;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-decoration:none;transition:all .2s" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:16px;margin-bottom:4px">📐</div>
+      <div style="font-size:14px;color:var(--heading);font-weight:600">Layout 界面拼接规范</div>
+      <div style="font-size:12px;color:var(--dim);margin-top:4px">锚点 · 适配 · 安全区</div>
+    </a>
+    <a href="ui-umg-tips.html" style="display:block;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-decoration:none;transition:all .2s" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:16px;margin-bottom:4px">🤖</div>
+      <div style="font-size:14px;color:var(--heading);font-weight:600">UMG 生成工具使用技巧</div>
+      <div style="font-size:12px;color:var(--dim);margin-top:4px">Prompt 模板 · 验收要点</div>
+    </a>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">
+  <p>游戏项目知识库 · UI 资源规范 · 9宫格与颜色空间 · v1.0</p>
+</div>
+
+<script>
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+</script>
+</body>
+</html>

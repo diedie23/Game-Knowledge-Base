@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Layout 界面拼接规范 · UI资源规范 · 游戏项目知识库</title>
+<style>
+:root{
+  --bg:#0d0f15;--panel:#111320;--card:#161829;--card-hover:#1a1d30;
+  --border:#222540;--border-hover:#6c8cff;
+  --text:#c5c9d6;--dim:#6b7085;--heading:#e8eaed;--white:#fff;
+  --accent:#6c8cff;--accent-light:#8ba3ff;--accent-bg:rgba(108,140,255,.07);
+  --green:#4ade80;--green-bg:rgba(74,222,128,.07);
+  --orange:#fb923c;--orange-bg:rgba(251,146,60,.07);
+  --red:#f87171;--red-bg:rgba(248,113,113,.07);
+  --purple:#a78bfa;--purple-bg:rgba(167,139,250,.07);
+  --cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.07);
+  --yellow:#fbbf24;--yellow-bg:rgba(251,191,36,.07);
+  --pink:#f472b6;--pink-bg:rgba(244,114,182,.07);
+  --code-bg:#1a1d2d;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+.topbar{position:sticky;top:0;z-index:100;background:rgba(13,15,21,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:56px}
+.topbar-brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--heading);cursor:pointer;text-decoration:none}
+.topbar-brand .logo{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff}
+.topbar-nav{display:flex;gap:4px}
+.topbar-nav a{padding:8px 16px;border-radius:8px;font-size:13px;color:var(--dim);transition:all .15s;text-decoration:none}
+.topbar-nav a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.topbar-nav a.active{color:var(--accent);background:var(--accent-bg);font-weight:500}
+
+.page{max-width:960px;margin:0 auto;padding:40px 32px 80px}
+.breadcrumb{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);margin-bottom:28px;flex-wrap:wrap}
+.breadcrumb a{color:var(--accent);text-decoration:none;font-size:12px}
+
+.doc-header{margin-bottom:36px;padding-bottom:24px;border-bottom:2px solid var(--accent)}
+.doc-header h1{font-size:28px;color:var(--heading);font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.doc-header h1 .badge{font-size:11px;background:var(--purple);color:#fff;padding:3px 12px;border-radius:20px;font-weight:500}
+.doc-header p{font-size:14px;color:var(--dim);line-height:1.8}
+.doc-meta{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap}
+.doc-meta span{font-size:11px;color:var(--dim);background:var(--card);border:1px solid var(--border);padding:4px 12px;border-radius:6px}
+
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.section h3{font-size:16px;color:var(--heading);font-weight:600;margin:24px 0 12px}
+.section h4{font-size:14px;color:var(--accent-light);font-weight:600;margin:18px 0 8px}
+.section p{margin:8px 0;font-size:14px;line-height:1.8}
+
+.doc-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.doc-table th{background:var(--card);padding:10px 14px;text-align:left;font-weight:600;color:var(--heading);border:1px solid var(--border);white-space:nowrap}
+.doc-table td{padding:10px 14px;border:1px solid var(--border);vertical-align:top;line-height:1.7}
+.doc-table tr:hover td{background:rgba(108,140,255,.03)}
+.doc-table code{background:var(--code-bg);padding:2px 6px;border-radius:3px;font-size:12px;font-family:'Consolas','Menlo',monospace;color:var(--accent-light);border:1px solid var(--border)}
+
+.engine-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.engine-table th{padding:12px 14px;text-align:left;font-weight:700;border:1px solid var(--border)}
+.engine-table td{padding:12px 14px;border:1px solid var(--border);vertical-align:top;line-height:1.7}
+.engine-table tr:hover td{background:rgba(108,140,255,.03)}
+.engine-table code{background:var(--code-bg);padding:2px 6px;border-radius:3px;font-size:12px;font-family:'Consolas','Menlo',monospace;color:var(--accent-light);border:1px solid var(--border)}
+.engine-unity{background:rgba(108,140,255,.06);color:var(--accent)}
+.engine-ue{background:rgba(167,139,250,.06);color:var(--purple)}
+.engine-cocos{background:rgba(74,222,128,.06);color:var(--green)}
+
+.apm-box{background:var(--purple-bg);border:1px solid rgba(167,139,250,.15);border-radius:10px;padding:14px 18px;margin:16px 0;font-size:13px;line-height:1.8;display:flex;align-items:flex-start;gap:10px}
+.apm-box .icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.apm-box strong{color:var(--purple)}
+.warn-box{background:var(--orange-bg);border:1px solid rgba(251,146,60,.15);border-radius:10px;padding:14px 18px;margin:12px 0;font-size:13px;line-height:1.8;display:flex;align-items:flex-start;gap:10px}
+.warn-box .icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.warn-box strong{color:var(--orange)}
+.error-box{background:var(--red-bg);border:1px solid rgba(248,113,113,.15);border-radius:10px;padding:14px 18px;margin:12px 0;font-size:13px;line-height:1.8}
+.error-box .err-title{color:var(--red);font-weight:700;font-size:12px;letter-spacing:.5px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.error-box ul{padding-left:16px;margin:0}
+.error-box li{margin:4px 0;color:var(--text)}
+.info-box{background:var(--accent-bg);border:1px solid rgba(108,140,255,.15);border-radius:10px;padding:14px 18px;margin:12px 0;font-size:13px;line-height:1.8;display:flex;align-items:flex-start;gap:10px}
+.info-box .icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.info-box strong{color:var(--accent)}
+.tip-box{background:var(--green-bg);border:1px solid rgba(74,222,128,.15);border-radius:10px;padding:14px 18px;margin:12px 0;font-size:13px;line-height:1.8;display:flex;align-items:flex-start;gap:10px}
+.tip-box .icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.tip-box strong{color:var(--green)}
+
+pre{background:var(--code-bg);padding:16px 20px;border-radius:10px;overflow-x:auto;margin:16px 0;border:1px solid var(--border);font-size:13px;line-height:1.7}
+pre code{font-family:'Consolas','Menlo',monospace;color:var(--text)}
+
+/* Anchor Visual */
+.anchor-demo{display:inline-grid;grid-template-columns:80px 80px 80px;grid-template-rows:50px 50px 50px;gap:4px;margin:16px 0;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:12px}
+.anchor-demo .cell{display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:10px;font-weight:600;padding:4px;text-align:center;line-height:1.3}
+.anchor-tl{background:var(--red-bg);color:var(--red)}
+.anchor-tc{background:var(--orange-bg);color:var(--orange)}
+.anchor-tr{background:var(--yellow-bg);color:var(--yellow)}
+.anchor-ml{background:var(--accent-bg);color:var(--accent)}
+.anchor-mc{background:var(--purple-bg);color:var(--purple)}
+.anchor-mr{background:var(--cyan-bg);color:var(--cyan)}
+.anchor-bl{background:var(--green-bg);color:var(--green)}
+.anchor-bc{background:var(--pink-bg);color:var(--pink)}
+.anchor-br{background:rgba(255,255,255,.05);color:var(--dim)}
+
+/* Strategy Cards */
+.strategy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:16px 0}
+.strategy-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;transition:all .2s}
+.strategy-card:hover{border-color:var(--border-hover);transform:translateY(-2px)}
+.strategy-card h4{font-size:15px;color:var(--heading);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.strategy-card .desc{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:12px}
+.strategy-card .use-for{font-size:12px;color:var(--green);margin-bottom:6px;font-weight:600}
+.strategy-card .not-for{font-size:12px;color:var(--red);font-weight:600}
+.strategy-card ul{padding-left:16px;margin:4px 0;font-size:12px;color:var(--text)}
+.strategy-card li{margin:2px 0}
+
+.ba-compare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+.ba-box{border-radius:10px;padding:16px 18px}
+.ba-before{background:rgba(248,113,113,.05);border:1px solid rgba(248,113,113,.12)}
+.ba-after{background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.12)}
+.ba-label{font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:8px}
+.ba-before .ba-label{color:var(--red)}
+.ba-after .ba-label{color:var(--green)}
+.ba-box ul{list-style:none;padding:0;margin:0}
+.ba-box li{font-size:12px;color:var(--dim);padding:3px 0;display:flex;align-items:flex-start;gap:6px;line-height:1.6}
+.ba-before li::before{content:'✗';color:var(--red);font-weight:700;flex-shrink:0}
+.ba-after li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0}
+
+/* Safety Zone Visual */
+.safety-visual{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin:16px 0;text-align:center}
+.phone-frame{display:inline-block;width:200px;height:360px;border:3px solid var(--dim);border-radius:28px;position:relative;overflow:hidden;background:var(--bg)}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:100px;height:24px;background:var(--dim);border-radius:0 0 14px 14px}
+.phone-safe{position:absolute;top:32px;left:8px;right:8px;bottom:20px;border:2px dashed var(--green);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--green);font-weight:600}
+.phone-danger-top{position:absolute;top:0;left:0;right:0;height:32px;background:rgba(248,113,113,.15);display:flex;align-items:flex-end;justify-content:center;font-size:9px;color:var(--red);padding-bottom:2px}
+.phone-danger-bottom{position:absolute;bottom:0;left:0;right:0;height:20px;background:rgba(248,113,113,.15);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--red)}
+
+.footer{text-align:center;padding:32px;font-size:12px;color:var(--dim);border-top:1px solid var(--border);margin-top:60px}
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-60px);background:var(--green);color:#000;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:500;z-index:999;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:768px){
+  .topbar{padding:0 16px}
+  .page{padding:20px 16px 60px}
+  .ba-compare{grid-template-columns:1fr}
+  .strategy-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<header class="topbar">
+  <a class="topbar-brand" href="index.html">
+    <span class="logo">📖</span> 游戏项目知识库
+  </a>
+  <nav class="topbar-nav">
+    <a href="index.html">首页</a>
+    <a href="tools.html">工具集</a>
+    <a class="active">UI 资源规范</a>
+  </nav>
+</header>
+
+<div class="page">
+
+<div class="breadcrumb">
+  <a href="index.html">🏠 首页</a><span>›</span>
+  <span>UI · 界面</span><span>›</span>
+  <span style="color:var(--heading)">Layout 界面拼接规范</span>
+</div>
+
+<div class="doc-header">
+  <h1>📐 Layout 界面拼接规范 <span class="badge">UI 规范</span></h1>
+  <p>涵盖锚点系统、多分辨率适配策略、三大引擎 Layout 差异对比，以及小游戏场景下的安全区处理。帮助美术和程序在界面拼接环节减少沟通成本与返工。</p>
+  <div class="doc-meta">
+    <span>📂 UI · 界面</span>
+    <span>🎯 适用：所有平台 UI 开发</span>
+    <span>👥 受众：UI美术 / 前端程序 / 技术美术 / APM</span>
+    <span>📅 更新：2026-04</span>
+  </div>
+</div>
+
+<!-- ══════════════════ Section 1: 基础概念 ══════════════════ -->
+<div class="section" id="sec-basics">
+  <h2>📌 一、基础概念</h2>
+
+  <h3>1.1 锚点（Anchor）</h3>
+  <p>锚点定义了 UI 元素相对于父容器的<strong>参考位置</strong>。当屏幕尺寸变化时，元素会以锚点为基准进行位置计算。</p>
+
+  <div class="anchor-demo">
+    <div class="cell anchor-tl">左上<br>0,0</div>
+    <div class="cell anchor-tc">上中<br>0.5,0</div>
+    <div class="cell anchor-tr">右上<br>1,0</div>
+    <div class="cell anchor-ml">左中<br>0,0.5</div>
+    <div class="cell anchor-mc">居中<br>0.5,0.5</div>
+    <div class="cell anchor-mr">右中<br>1,0.5</div>
+    <div class="cell anchor-bl">左下<br>0,1</div>
+    <div class="cell anchor-bc">下中<br>0.5,1</div>
+    <div class="cell anchor-br">右下<br>1,1</div>
+  </div>
+
+  <table class="doc-table">
+    <thead>
+      <tr><th>UI 元素</th><th>推荐锚点</th><th>原因</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>顶部状态栏（血条/金币）</td><td>上中 / 上方拉伸</td><td>始终贴顶，横向适配</td></tr>
+      <tr><td>底部操作按钮</td><td>下中 / 下方拉伸</td><td>始终贴底，手指操作区</td></tr>
+      <tr><td>返回/关闭按钮</td><td>右上角</td><td>固定位置，不随内容变化</td></tr>
+      <tr><td>全屏弹窗/面板</td><td>居中</td><td>水平垂直居中，与分辨率无关</td></tr>
+      <tr><td>聊天/信息列表</td><td>上下拉伸</td><td>高度自适应，内容可滚动</td></tr>
+      <tr><td>小地图</td><td>右上角</td><td>固定在角落，不干扰主要操作</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1.2 对齐方式</h3>
+  <table class="doc-table">
+    <thead>
+      <tr><th>对齐方式</th><th>说明</th><th>典型场景</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>绝对定位</strong></td><td>相对锚点的固定偏移量（px）</td><td>固定位置的图标、按钮</td></tr>
+      <tr><td><strong>比例定位</strong></td><td>相对父容器的百分比</td><td>需要随屏幕等比移动的元素</td></tr>
+      <tr><td><strong>自动布局</strong></td><td>Horizontal/Vertical Layout 自动排列</td><td>列表项、网格背包、底部Tab栏</td></tr>
+      <tr><td><strong>拉伸填充</strong></td><td>锚点设为两端，元素随容器拉伸</td><td>全宽进度条、分割线、背景</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1.3 间距系统</h3>
+  <div class="info-box">
+    <span class="icon">📏</span>
+    <div><strong>推荐使用 8px 基准间距系统：</strong><br>
+    • 基础间距：<code>8px</code>（元素内部间距）<br>
+    • 标准间距：<code>16px</code>（元素之间）<br>
+    • 大间距：<code>24px</code> / <code>32px</code>（区块之间）<br>
+    • 所有间距值应为 <strong>4 的倍数</strong>，避免出现 5px / 7px / 13px 等奇数值<br>
+    • 统一间距系统有助于视觉节奏一致，也方便程序批量调整</div>
+  </div>
+</div>
+
+<!-- ══════════════════ Section 2: 适配策略 ══════════════════ -->
+<div class="section" id="sec-adapt">
+  <h2>📱 二、多分辨率适配策略</h2>
+
+  <div class="strategy-grid">
+    <div class="strategy-card">
+      <h4>📌 固定尺寸</h4>
+      <div class="desc">UI 元素使用固定像素值，不随屏幕缩放。适合需要像素精准的场景。</div>
+      <div class="use-for">✅ 适用场景：</div>
+      <ul>
+        <li>像素风格游戏</li>
+        <li>固定分辨率的街机/主机游戏</li>
+        <li>需要锐利边缘的 HUD 元素</li>
+      </ul>
+      <div class="not-for" style="margin-top:8px">❌ 不适用：</div>
+      <ul>
+        <li>需要跨多种分辨率的手游</li>
+        <li>小游戏（设备差异极大）</li>
+      </ul>
+    </div>
+
+    <div class="strategy-card">
+      <h4>📐 弹性布局（推荐）</h4>
+      <div class="desc">使用锚点+约束实现自适应。元素位置相对父容器确定，尺寸可拉伸或保持。</div>
+      <div class="use-for">✅ 适用场景：</div>
+      <ul>
+        <li>大部分手游 UI（推荐默认方案）</li>
+        <li>微信小游戏 / H5 游戏</li>
+        <li>需要适配横竖屏的项目</li>
+      </ul>
+      <div class="not-for" style="margin-top:8px">❌ 不适用：</div>
+      <ul>
+        <li>对布局精度要求极高的场景</li>
+      </ul>
+    </div>
+
+    <div class="strategy-card">
+      <h4>🔍 等比缩放</h4>
+      <div class="desc">以设计稿分辨率为基准，整体等比缩放适配目标屏幕。简单但可能浪费屏幕空间。</div>
+      <div class="use-for">✅ 适用场景：</div>
+      <ul>
+        <li>休闲小游戏（快速开发优先）</li>
+        <li>竖屏固定比例的游戏</li>
+        <li>原型/Demo 阶段</li>
+      </ul>
+      <div class="not-for" style="margin-top:8px">❌ 不适用：</div>
+      <ul>
+        <li>横屏全屏游戏（16:9 vs 18:9 差异大）</li>
+        <li>需要充分利用屏幕空间的项目</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>2.1 常用设计基准分辨率</h3>
+  <table class="doc-table">
+    <thead>
+      <tr><th>方向</th><th>设计基准</th><th>覆盖范围</th><th>推荐场景</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>竖屏</td><td><code>750 × 1334</code></td><td>iPhone 6/7/8 比例</td><td>休闲小游戏、微信小游戏</td></tr>
+      <tr><td>竖屏（高清）</td><td><code>1080 × 1920</code></td><td>Android 主流</td><td>中重度手游竖屏</td></tr>
+      <tr><td>横屏</td><td><code>1920 × 1080</code></td><td>16:9 标准</td><td>横屏手游、PC</td></tr>
+      <tr><td>横屏（宽）</td><td><code>2436 × 1125</code></td><td>iPhone X 系列 19.5:9</td><td>需要适配刘海屏的横屏项目</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════════════════ Section 3: 常见错误 ══════════════════ -->
+<div class="section" id="sec-mistakes">
+  <h2>⚠️ 三、常见拼接错误</h2>
+
+  <table class="doc-table">
+    <thead>
+      <tr><th>错误类型</th><th>描述</th><th>后果</th><th>正确做法</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>硬编码位置</strong></td>
+        <td>所有元素都用绝对坐标定位</td>
+        <td>换分辨率后元素跑出屏幕或重叠</td>
+        <td>使用锚点+相对偏移</td>
+      </tr>
+      <tr>
+        <td><strong>未考虑分辨率适配</strong></td>
+        <td>只在 1920×1080 上验证</td>
+        <td>手机端元素太小看不清或溢出</td>
+        <td>至少在 3 个分辨率下测试</td>
+      </tr>
+      <tr>
+        <td><strong>层级混乱</strong></td>
+        <td>UI 元素 Z-Order 随意设定</td>
+        <td>弹窗被背景遮挡、按钮无法点击</td>
+        <td>制定层级规范（Background → HUD → Popup → Toast）</td>
+      </tr>
+      <tr>
+        <td><strong>忽略安全区</strong></td>
+        <td>刘海屏/挖孔屏下内容被遮挡</td>
+        <td>按钮/文字被手机刘海挡住</td>
+        <td>获取系统安全区 Insets，留出安全边距</td>
+      </tr>
+      <tr>
+        <td><strong>文本溢出</strong></td>
+        <td>固定宽度文本框但内容超长</td>
+        <td>多语言/长文本被截断或溢出</td>
+        <td>设置最大宽度 + 省略号 + 自适应字号</td>
+      </tr>
+      <tr>
+        <td><strong>Scroll 区域设置错误</strong></td>
+        <td>滚动列表没有 Mask/ClipRect</td>
+        <td>列表项溢出到其他区域</td>
+        <td>添加 Mask 组件或 Clip Children</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="error-box">
+    <div class="err-title">⚠️ 外包交付常见 Layout 问题</div>
+    <ul>
+      <li><strong>PSD 标注不含锚点信息：</strong>只标注了像素位置，没有说明哪些元素需要居中/贴边/拉伸</li>
+      <li><strong>设计稿只有一个分辨率：</strong>没有提供竖屏适配或宽屏适配的方案变体</li>
+      <li><strong>元素间距不统一：</strong>有的间距 10px 有的 13px 有的 17px，没有节奏</li>
+      <li><strong>层级未标注：</strong>多个面板的前后关系不清楚，交付后需要反复调整</li>
+      <li><strong>Safe Area 未留白：</strong>重要交互元素放在刘海区域，用户无法操作</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ══════════════════ Section 4: 引擎对比 ══════════════════ -->
+<div class="section" id="sec-engine">
+  <h2>🎮 四、不同引擎 Layout 差异对比</h2>
+
+  <table class="engine-table">
+    <thead>
+      <tr>
+        <th style="width:140px">功能</th>
+        <th class="engine-unity">🔷 Unity (UGUI)</th>
+        <th class="engine-ue">🟣 UE (UMG)</th>
+        <th class="engine-cocos">🟢 Cocos Creator</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>基础容器</strong></td>
+        <td><code>RectTransform</code><br>所有 UI 元素的基础</td>
+        <td><code>Canvas Panel</code>（自由定位）<br><code>Overlay</code>（层叠）</td>
+        <td><code>Node</code> + <code>UITransform</code></td>
+      </tr>
+      <tr>
+        <td><strong>锚点系统</strong></td>
+        <td>Anchors（Min/Max）<br>4个锚点值 0~1</td>
+        <td>Canvas Panel → Anchors<br>或使用不同 Panel 类型</td>
+        <td><code>Widget</code> 组件<br>Top/Bottom/Left/Right 对齐</td>
+      </tr>
+      <tr>
+        <td><strong>自动布局</strong></td>
+        <td><code>Horizontal Layout Group</code><br><code>Vertical Layout Group</code><br><code>Grid Layout Group</code></td>
+        <td><code>Horizontal Box</code><br><code>Vertical Box</code><br><code>Wrap Box</code><br><code>Uniform Grid Panel</code></td>
+        <td><code>Layout</code> 组件<br>Type: HORIZONTAL / VERTICAL / GRID</td>
+      </tr>
+      <tr>
+        <td><strong>尺寸适配</strong></td>
+        <td><code>Canvas Scaler</code><br>• Constant Pixel Size<br>• Scale With Screen Size<br>• Constant Physical Size</td>
+        <td><code>DPI Scaling</code><br><code>Size Box</code>（约束大小）<br><code>Scale Box</code>（等比缩放）</td>
+        <td><code>Canvas</code> 组件<br>• Fit Height / Fit Width<br>• Show All / No Border</td>
+      </tr>
+      <tr>
+        <td><strong>推荐缩放模式</strong></td>
+        <td><code>Scale With Screen Size</code><br>Match: Width or Height<br>Reference: 1920×1080</td>
+        <td>DPI Scaling: Auto<br>用 <code>Scale Box</code> 包裹根部</td>
+        <td>Fit Height（竖屏）<br>Fit Width（横屏）</td>
+      </tr>
+      <tr>
+        <td><strong>滚动容器</strong></td>
+        <td><code>Scroll Rect</code> + <code>Mask</code></td>
+        <td><code>Scroll Box</code></td>
+        <td><code>ScrollView</code> 组件</td>
+      </tr>
+      <tr>
+        <td><strong>Safe Area</strong></td>
+        <td><code>Screen.safeArea</code><br>或 SafeArea 脚本组件</td>
+        <td><code>Safe Zone</code> 组件<br>放在根部自动裁切</td>
+        <td><code>cc.sys.getSafeAreaRect()</code><br>手动计算偏移</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>4.1 UE UMG 容器选择速查</h3>
+  <table class="doc-table">
+    <thead>
+      <tr><th>容器</th><th>用途</th><th>选择场景</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>Canvas Panel</code></td><td>自由定位，类似 PS 图层</td><td>需要精确控制每个元素位置（HUD、地图标记）</td></tr>
+      <tr><td><code>Vertical Box</code></td><td>子元素垂直排列</td><td>菜单列表、设置项、信息面板</td></tr>
+      <tr><td><code>Horizontal Box</code></td><td>子元素水平排列</td><td>底部Tab栏、工具栏、按钮组</td></tr>
+      <tr><td><code>Overlay</code></td><td>子元素层叠堆放</td><td>背景 + 内容 + 前景叠加</td></tr>
+      <tr><td><code>Size Box</code></td><td>约束子元素为固定/最小/最大尺寸</td><td>限制图标大小、面板最大宽度</td></tr>
+      <tr><td><code>Scale Box</code></td><td>子元素等比缩放</td><td>全局 UI 缩放、适配不同 DPI</td></tr>
+      <tr><td><code>Wrap Box</code></td><td>自动换行排列</td><td>背包物品网格、标签流式布局</td></tr>
+      <tr><td><code>Scroll Box</code></td><td>可滚动容器</td><td>长列表、聊天窗口、商城列表</td></tr>
+      <tr><td><code>Uniform Grid Panel</code></td><td>均匀网格</td><td>技能栏、装备格子</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════════════════ Section 5: 安全区 ══════════════════ -->
+<div class="section" id="sec-safe">
+  <h2>📱 五、安全区适配（小游戏场景重点）</h2>
+
+  <div class="safety-visual">
+    <div class="phone-frame">
+      <div class="phone-notch">刘海/挖孔</div>
+      <div class="phone-danger-top">⚠️ 危险区域</div>
+      <div class="phone-safe">✅ 安全区域<br>交互元素放这里</div>
+      <div class="phone-danger-bottom">⚠️ 底部手势区</div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--dim)">
+      刘海屏/全面屏手机的安全区示意
+    </div>
+  </div>
+
+  <h3>5.1 不同机型的安全区差异</h3>
+  <table class="doc-table">
+    <thead>
+      <tr><th>机型类型</th><th>顶部安全区</th><th>底部安全区</th><th>侧面</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>iPhone X/11/12/13/14/15</td><td>44~59px</td><td>34px（Home 指示条）</td><td>0px</td></tr>
+      <tr><td>iPhone 14 Pro / 15 Pro（灵动岛）</td><td>59px</td><td>34px</td><td>0px</td></tr>
+      <tr><td>Android 挖孔屏</td><td>24~48px（因厂商而异）</td><td>0~48px（因手势导航）</td><td>0~24px</td></tr>
+      <tr><td>Android 全面屏（无挖孔）</td><td>24px（状态栏）</td><td>0~48px</td><td>0px</td></tr>
+      <tr><td>横屏游戏（刘海在侧）</td><td>0px</td><td>0px</td><td>44~59px</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn-box">
+    <span class="icon">⚠️</span>
+    <div><strong>小游戏场景特别注意：</strong><br>
+    • 微信小游戏通过 <code>wx.getSystemInfoSync()</code> 获取 <code>safeArea</code> 字段<br>
+    • <strong>横屏小游戏</strong>时刘海在左/右侧，需要左右留白而非上下<br>
+    • <strong>底部虚拟键区域</strong>（如 iPhone 的 Home 指示条）不仅视觉遮挡，还会拦截触摸事件！<br>
+    • 不同 Android 厂商的安全区数据可能不准确，建议<strong>额外留 4~8px 容错</strong></div>
+  </div>
+
+  <div class="apm-box">
+    <span class="icon">💼</span>
+    <div><strong>APM 外包管理要点：</strong><br>
+    • 在 UI 设计稿中<strong>必须标注安全区边界</strong>（红线/虚线框）<br>
+    • 外包交付的设计稿必须附带<strong>至少 2 个分辨率的适配方案</strong>（标准 + 刘海屏）<br>
+    • <strong>验收时必须在真机上测试</strong>，模拟器的安全区数据可能不准<br>
+    • Layout 相关返工是外包中最常见的返工原因之一（约占 UI 返工的 40%），应前置沟通</div>
+  </div>
+</div>
+
+<!-- ══════════════════ Section 6: 层级规范 ══════════════════ -->
+<div class="section" id="sec-zorder">
+  <h2>📑 六、UI 层级（Z-Order）规范</h2>
+
+  <table class="doc-table">
+    <thead>
+      <tr><th>层级</th><th>Z-Order 范围</th><th>包含内容</th><th>说明</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>背景层</strong></td><td>0 ~ 99</td><td>全屏背景、场景 UI</td><td>最底层</td></tr>
+      <tr><td><strong>主界面层</strong></td><td>100 ~ 199</td><td>主 HUD、Tab 栏、状态栏</td><td>常驻显示</td></tr>
+      <tr><td><strong>弹窗层</strong></td><td>200 ~ 299</td><td>弹出面板、对话框</td><td>需配半透明遮罩</td></tr>
+      <tr><td><strong>浮动层</strong></td><td>300 ~ 399</td><td>Tooltip、下拉菜单</td><td>跟随鼠标/手指</td></tr>
+      <tr><td><strong>Toast/提示层</strong></td><td>400 ~ 499</td><td>消息提示、Loading</td><td>最高优先级显示</td></tr>
+      <tr><td><strong>系统遮罩层</strong></td><td>500+</td><td>全屏 Loading、系统弹窗</td><td>阻断所有交互</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════════════════ Section 7: BA ══════════════════ -->
+<div class="section" id="sec-ba">
+  <h2>🔄 七、Before / After 对比</h2>
+
+  <div class="ba-compare">
+    <div class="ba-box ba-before">
+      <div class="ba-label">❌ BEFORE — 无规范时</div>
+      <ul>
+        <li>元素全部用绝对坐标，换手机就乱</li>
+        <li>设计稿只有 1920×1080 一种</li>
+        <li>锚点全在左上角，窄屏看不到右侧元素</li>
+        <li>刘海屏按钮被遮挡，用户投诉</li>
+        <li>弹窗被背景遮挡，找不到层级问题</li>
+        <li>外包交付后每次适配改 2~3 天</li>
+        <li>元素间距随意，界面看着"不舒服"</li>
+      </ul>
+    </div>
+    <div class="ba-box ba-after">
+      <div class="ba-label">✅ AFTER — 执行规范后</div>
+      <ul>
+        <li>锚点+弹性布局，自动适配多种分辨率</li>
+        <li>设计稿附带标准/刘海屏两套方案</li>
+        <li>锚点根据功能合理分配（贴边/居中/拉伸）</li>
+        <li>安全区适配，所有设备操作正常</li>
+        <li>层级按规范分区，弹窗/Toast 不会被遮挡</li>
+        <li>一次交付基本通过，返工减少 60%</li>
+        <li>8px 间距系统，视觉节奏统一专业</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Related -->
+<div class="section">
+  <h2>🔗 相关规范文档</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
+    <a href="ui-slice-naming.html" style="display:block;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-decoration:none;transition:all .2s" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:16px;margin-bottom:4px">✂️</div>
+      <div style="font-size:14px;color:var(--heading);font-weight:600">切图与命名规范</div>
+      <div style="font-size:12px;color:var(--dim);margin-top:4px">命名规则 · 格式说明 · Checklist</div>
+    </a>
+    <a href="ui-9slice-color.html" style="display:block;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-decoration:none;transition:all .2s" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:16px;margin-bottom:4px">🧩</div>
+      <div style="font-size:14px;color:var(--heading);font-weight:600">9宫格与颜色空间规范</div>
+      <div style="font-size:12px;color:var(--dim);margin-top:4px">引擎差异 · sRGB vs Linear</div>
+    </a>
+    <a href="ui-umg-tips.html" style="display:block;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-decoration:none;transition:all .2s" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:16px;margin-bottom:4px">🤖</div>
+      <div style="font-size:14px;color:var(--heading);font-weight:600">UMG 生成工具使用技巧</div>
+      <div style="font-size:12px;color:var(--dim);margin-top:4px">Prompt 模板 · 验收要点</div>
+    </a>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">
+  <p>游戏项目知识库 · UI 资源规范 · Layout 界面拼接 · v1.0</p>
+</div>
+
+<script>
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+</script>
+</body>
+</html>

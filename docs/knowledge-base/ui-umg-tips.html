@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UMG 生成工具使用技巧 · 游戏项目知识库</title>
+<style>
+:root{--bg:#0d0f15;--panel:#111320;--card:#161829;--border:#222540;--text:#c5c9d6;--dim:#6b7085;--heading:#e8eaed;--accent:#6c8cff;--accent-light:#8ba3ff;--accent-bg:rgba(108,140,255,.07);--green:#4ade80;--green-bg:rgba(74,222,128,.07);--orange:#fb923c;--orange-bg:rgba(251,146,60,.07);--red:#f87171;--red-bg:rgba(248,113,113,.07);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.07);--cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.07);--yellow:#fbbf24;--yellow-bg:rgba(251,191,36,.07);--pink:#f472b6;--pink-bg:rgba(244,114,182,.07);--code-bg:#1a1d2d}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+/* Top Bar */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(13,15,21,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:56px}
+.topbar-brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--heading);cursor:pointer}
+.topbar-brand .logo{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff}
+.topbar-nav{display:flex;gap:4px}
+.topbar-nav a{padding:8px 16px;border-radius:8px;font-size:13px;color:var(--dim);transition:all .15s;text-decoration:none}
+.topbar-nav a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.topbar-nav a.active{color:var(--accent);background:var(--accent-bg);font-weight:500}
+
+/* Page */
+.page{max-width:960px;margin:0 auto;padding:40px 32px 80px}
+
+/* Breadcrumb */
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);margin-bottom:24px}
+.breadcrumb a{color:var(--accent);text-decoration:none;cursor:pointer}
+.breadcrumb a:hover{text-decoration:underline}
+
+/* Title Area */
+.title-area{margin-bottom:36px;padding-bottom:20px;border-bottom:2px solid var(--accent)}
+.title-area h1{font-size:28px;color:var(--heading);font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.title-area h1 .badge{font-size:11px;background:var(--purple);color:#fff;padding:3px 10px;border-radius:10px;font-weight:500}
+.title-area .subtitle{font-size:14px;color:var(--dim);line-height:1.7}
+.title-area .meta{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap}
+.title-area .meta span{font-size:12px;color:var(--dim);display:flex;align-items:center;gap:4px}
+
+/* TOC */
+.toc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:36px}
+.toc h3{font-size:13px;color:var(--dim);font-weight:600;margin-bottom:12px;letter-spacing:.5px}
+.toc-list{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px}
+.toc-list a{font-size:13px;color:var(--accent-light);text-decoration:none;padding:4px 0;display:flex;align-items:center;gap:6px;transition:color .15s}
+.toc-list a:hover{color:var(--accent)}
+.toc-list a::before{content:'›';color:var(--dim);font-size:14px}
+
+/* Section */
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;scroll-margin-top:80px}
+.section h3{font-size:16px;color:var(--heading);font-weight:600;margin:24px 0 12px;scroll-margin-top:80px}
+.section h4{font-size:14px;color:var(--accent-light);font-weight:600;margin:16px 0 8px}
+.section p{margin:8px 0;font-size:14px;line-height:1.8}
+
+/* Prompt Tip Cards */
+.prompt-tips{display:flex;flex-direction:column;gap:16px;margin:16px 0}
+.prompt-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all .2s}
+.prompt-card:hover{border-color:var(--accent);box-shadow:0 4px 20px rgba(108,140,255,.08)}
+.prompt-card-header{display:flex;align-items:center;gap:12px;padding:16px 20px;background:rgba(108,140,255,.04);border-bottom:1px solid var(--border);cursor:pointer}
+.prompt-card-header .num{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.prompt-card-header h4{font-size:14px;color:var(--heading);font-weight:600;margin:0;flex:1}
+.prompt-card-header .toggle{color:var(--dim);font-size:12px;transition:transform .2s}
+.prompt-card.open .prompt-card-header .toggle{transform:rotate(180deg)}
+.prompt-card-body{padding:0 20px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease}
+.prompt-card.open .prompt-card-body{max-height:600px;padding:16px 20px}
+
+/* Prompt Example Box */
+.prompt-example{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:10px 0;position:relative}
+.prompt-example-label{font-size:10px;color:var(--accent);font-weight:600;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.prompt-example pre{font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-all;font-family:'Menlo','Consolas',monospace;margin:0}
+.prompt-example .copy-btn{position:absolute;top:10px;right:10px;background:var(--card);border:1px solid var(--border);color:var(--dim);padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s}
+.prompt-example .copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Bad Example */
+.bad-example{border-color:rgba(248,113,113,.2)}
+.bad-example .prompt-example-label{color:var(--red)}
+.good-example{border-color:rgba(74,222,128,.2)}
+.good-example .prompt-example-label{color:var(--green)}
+
+/* Explain */
+.explain{font-size:13px;color:var(--dim);margin:6px 0 0;line-height:1.7;padding-left:16px;border-left:2px solid var(--border)}
+
+/* Component Table */
+.comp-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.comp-table th{background:var(--card);padding:10px 14px;text-align:left;font-weight:600;color:var(--heading);border:1px solid var(--border);white-space:nowrap}
+.comp-table td{padding:8px 14px;border:1px solid var(--border);vertical-align:top;line-height:1.6}
+.comp-table tr:hover td{background:rgba(108,140,255,.03)}
+.comp-table code{background:var(--code-bg);padding:1px 5px;border-radius:3px;font-size:12px;font-family:'Menlo','Consolas',monospace;color:var(--accent-light);border:1px solid var(--border)}
+
+/* Check Card */
+.check-section{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.check-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.check-card h4{font-size:13px;color:var(--heading);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.check-card ul{list-style:none;padding:0;margin:0}
+.check-card li{font-size:12px;color:var(--text);padding:4px 0;display:flex;align-items:flex-start;gap:6px;line-height:1.6}
+.check-card li::before{content:'⚠';flex-shrink:0;font-size:11px}
+.check-card.warn li::before{content:'⚠';color:var(--orange)}
+.check-card.pass li::before{content:'✓';color:var(--green)}
+
+/* Template Card */
+.template-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin:16px 0}
+.template-card h4{font-size:14px;color:var(--heading);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.template-card .scenario{font-size:10px;padding:2px 8px;border-radius:6px;background:var(--purple-bg);color:var(--purple);font-weight:500}
+.template-content{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:10px;position:relative}
+.template-content pre{font-size:13px;color:var(--text);line-height:1.8;white-space:pre-wrap;word-break:break-all;font-family:'Menlo','Consolas',monospace;margin:0}
+.template-content .copy-btn{position:absolute;top:10px;right:10px;background:var(--card);border:1px solid var(--border);color:var(--dim);padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s}
+.template-content .copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* APM Tip */
+.apm-tip{background:var(--purple-bg);border:1px solid rgba(167,139,250,.12);border-radius:10px;padding:14px 18px;margin:16px 0;display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.7}
+.apm-tip strong{color:var(--purple)}
+
+/* Warning */
+.warn-box{background:var(--orange-bg);border:1px solid rgba(251,146,60,.12);border-radius:10px;padding:14px 18px;margin:16px 0;display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.7}
+.warn-box strong{color:var(--orange)}
+
+/* Info */
+.info-box{background:var(--accent-bg);border:1px solid rgba(108,140,255,.12);border-radius:10px;padding:14px 18px;margin:16px 0;display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.7}
+.info-box strong{color:var(--accent-light)}
+
+/* Footer */
+.footer{text-align:center;padding:40px 20px 32px;border-top:1px solid var(--border);margin-top:40px}
+.footer p{font-size:12px;color:var(--dim)}
+
+@media(max-width:768px){
+  .topbar{padding:0 16px}
+  .page{padding:20px 16px 60px}
+  .title-area h1{font-size:22px}
+  .toc-list{grid-template-columns:1fr}
+  .check-section{grid-template-columns:1fr}
+  .prompt-card-body{padding:12px 14px}
+}
+@media print{
+  .topbar{position:static}body{background:#fff;color:#333}
+  .prompt-card,.template-card,.check-card{break-inside:avoid;border:1px solid #ddd}
+}
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<header class="topbar">
+  <div class="topbar-brand" onclick="location.href='../index.html'">
+    <span class="logo">📖</span> 游戏项目知识库
+  </div>
+  <nav class="topbar-nav">
+    <a href="../index.html">🏠 首页</a>
+    <a href="../tools.html">🔧 工具集</a>
+    <a class="active">📋 UI 规范</a>
+  </nav>
+</header>
+
+<div class="page">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="../index.html">🏠 首页</a><span>›</span>
+    <a href="ui-slice-naming.html">UI · 界面</a><span>›</span>
+    <span>UMG 生成工具使用技巧</span>
+  </div>
+
+  <!-- Title -->
+  <div class="title-area">
+    <h1>🎯 UMG 生成工具使用技巧 <span class="badge">AI 辅助</span></h1>
+    <div class="subtitle">如何用 AI（Claude / ChatGPT / Copilot）高效生成 UE UMG Widget 蓝图代码，以及生成后的验收要点和外包沟通模板</div>
+    <div class="meta">
+      <span>📅 2026-04-01</span>
+      <span>🏷️ UMG · UE · AI Prompt · 外包管理</span>
+      <span>📖 阅读约 10 分钟</span>
+    </div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <h3>📑 目录</h3>
+    <div class="toc-list">
+      <a href="#sec1">Prompt 技巧总结（5 大原则）</a>
+      <a href="#sec2">常见 UMG 组件速查表</a>
+      <a href="#sec3">生成后验收要点</a>
+      <a href="#sec4">外包沟通 UMG 需求模板</a>
+      <a href="#sec5">完整 Prompt 示例</a>
+      <a href="#sec6">APM 管理建议</a>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- Section 1: Prompt 技巧 -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="sec1">
+    <h2>🧠 一、Prompt 技巧总结 —— 5 大原则</h2>
+    <p>使用 AI 工具生成 UMG Widget 时，Prompt 的质量直接决定输出质量。以下 5 条原则从实际项目经验中提炼，每条配有正反对比示例。</p>
+
+    <div class="prompt-tips">
+
+      <!-- Tip 1 -->
+      <div class="prompt-card open" id="tip1">
+        <div class="prompt-card-header" onclick="toggleCard('tip1')">
+          <span class="num">1</span>
+          <h4>明确指定容器类型</h4>
+          <span class="toggle">▼</span>
+        </div>
+        <div class="prompt-card-body">
+          <p style="font-size:13px;color:var(--dim)">AI 默认倾向使用 Canvas Panel + 绝对坐标定位，这会导致适配灾难。<strong style="color:var(--heading)">务必在 Prompt 中明确要求使用哪种容器布局。</strong></p>
+
+          <div class="prompt-example bad-example">
+            <div class="prompt-example-label">❌ 不推荐写法</div>
+            <pre>请帮我做一个商城界面，顶部有标题栏，下面是商品列表。</pre>
+          </div>
+          <div class="explain">问题：AI 会用 Canvas Panel 绝对定位所有元素，不同分辨率下布局崩溃。</div>
+
+          <div class="prompt-example good-example">
+            <div class="prompt-example-label">✅ 推荐写法</div>
+            <pre>用 Vertical Box 作为根容器：
+- 第一个子元素：Horizontal Box 作为标题栏，高度固定 64px，子元素间距 16px，垂直居中对齐
+- 第二个子元素：Scroll Box 包裹一个 Uniform Grid Panel，列数 3，作为商品网格列表，Fill 占满剩余空间</pre>
+            <button class="copy-btn" onclick="copyText(this)">📋 复制</button>
+          </div>
+          <div class="explain">明确了容器嵌套关系、尺寸约束和对齐方式，AI 输出的蓝图可直接使用。</div>
+        </div>
+      </div>
+
+      <!-- Tip 2 -->
+      <div class="prompt-card" id="tip2">
+        <div class="prompt-card-header" onclick="toggleCard('tip2')">
+          <span class="num">2</span>
+          <h4>描述响应式行为而不是固定数值</h4>
+          <span class="toggle">▼</span>
+        </div>
+        <div class="prompt-card-body">
+          <p style="font-size:13px;color:var(--dim)">写死像素值是最常见的适配问题根源。<strong style="color:var(--heading)">用"填满""自适应""比例"等相对描述替代绝对数值。</strong></p>
+
+          <div class="prompt-example bad-example">
+            <div class="prompt-example-label">❌ 不推荐写法</div>
+            <pre>按钮宽度 200px，高度 50px，距离左边 100px，距离顶部 300px。</pre>
+          </div>
+          <div class="explain">绝对坐标 + 固定尺寸 = 只能在一种分辨率下正确显示。</div>
+
+          <div class="prompt-example good-example">
+            <div class="prompt-example-label">✅ 推荐写法</div>
+            <pre>按钮宽度填满父容器（Fill），高度自适应内容（Auto），
+内边距：上下 12px、左右 24px。
+如果需要固定宽度，使用 Size Box 包裹并设置 Width Override = 200。</pre>
+            <button class="copy-btn" onclick="copyText(this)">📋 复制</button>
+          </div>
+          <div class="explain">使用 Fill/Auto 等 UMG 原生布局概念，配合 Size Box 做必要约束。</div>
+        </div>
+      </div>
+
+      <!-- Tip 3 -->
+      <div class="prompt-card" id="tip3">
+        <div class="prompt-card-header" onclick="toggleCard('tip3')">
+          <span class="num">3</span>
+          <h4>用锚点描述位置关系</h4>
+          <span class="toggle">▼</span>
+        </div>
+        <div class="prompt-card-body">
+          <p style="font-size:13px;color:var(--dim)">对于需要绝对定位的元素（如 HUD 元素），<strong style="color:var(--heading)">用锚点 + 偏移量描述比用坐标更可靠。</strong></p>
+
+          <div class="prompt-example bad-example">
+            <div class="prompt-example-label">❌ 不推荐写法</div>
+            <pre>在屏幕右下角放一个小地图，位置 X=1720, Y=880。</pre>
+          </div>
+          <div class="explain">1920x1080 以外的分辨率下小地图位置完全错误。</div>
+
+          <div class="prompt-example good-example">
+            <div class="prompt-example-label">✅ 推荐写法</div>
+            <pre>在 Canvas Panel 中放置小地图组件：
+- 锚点（Anchor）设置为右下角（1.0, 1.0）
+- 对齐（Alignment）设置为 (1.0, 1.0)
+- 偏移量（Position）：X = -20, Y = -20
+- 使用 Size Box 固定尺寸 240×240</pre>
+            <button class="copy-btn" onclick="copyText(this)">📋 复制</button>
+          </div>
+          <div class="explain">锚点定位在任何分辨率下都保持正确的相对位置。</div>
+        </div>
+      </div>
+
+      <!-- Tip 4 -->
+      <div class="prompt-card" id="tip4">
+        <div class="prompt-card-header" onclick="toggleCard('tip4')">
+          <span class="num">4</span>
+          <h4>指定适配目标分辨率</h4>
+          <span class="toggle">▼</span>
+        </div>
+        <div class="prompt-card-body">
+          <p style="font-size:13px;color:var(--dim)">不同项目的目标分辨率差异很大。<strong style="color:var(--heading)">明确告知 AI 设计基准和需要适配的范围。</strong></p>
+
+          <div class="prompt-example bad-example">
+            <div class="prompt-example-label">❌ 不推荐写法</div>
+            <pre>做一个手机游戏的主界面。</pre>
+          </div>
+          <div class="explain">AI 不知道你的基准分辨率，可能按 PC 1920x1080 设计。</div>
+
+          <div class="prompt-example good-example">
+            <div class="prompt-example-label">✅ 推荐写法</div>
+            <pre>设计基准分辨率为 1920×1080（DPI Scale = 1.0）。
+需要适配的目标设备：
+- PC：1920×1080, 2560×1440
+- 手机竖屏：750×1334（iPhone 8）, 1170×2532（iPhone 14）
+- 平板：2048×1536（iPad）
+
+Canvas Scaler 策略使用 DPI Scale Rule = Shortest Side。
+UI 元素最小可触区域 ≥ 44×44 逻辑像素。</pre>
+            <button class="copy-btn" onclick="copyText(this)">📋 复制</button>
+          </div>
+          <div class="explain">给出完整的适配上下文，AI 能输出考虑多分辨率的布局方案。</div>
+        </div>
+      </div>
+
+      <!-- Tip 5 -->
+      <div class="prompt-card" id="tip5">
+        <div class="prompt-card-header" onclick="toggleCard('tip5')">
+          <span class="num">5</span>
+          <h4>说明交互状态</h4>
+          <span class="toggle">▼</span>
+        </div>
+        <div class="prompt-card-body">
+          <p style="font-size:13px;color:var(--dim)">按钮等交互元素如果不指明状态，AI 只会生成默认外观。<strong style="color:var(--heading)">明确列出所有需要的交互状态和视觉反馈。</strong></p>
+
+          <div class="prompt-example bad-example">
+            <div class="prompt-example-label">❌ 不推荐写法</div>
+            <pre>在底部放一个"开始游戏"按钮。</pre>
+          </div>
+          <div class="explain">只会得到一个静态按钮，无交互反馈。</div>
+
+          <div class="prompt-example good-example">
+            <div class="prompt-example-label">✅ 推荐写法</div>
+            <pre>"开始游戏"按钮需要 4 个状态：
+- Normal：背景色 #4A90D9，文字白色 16px Bold
+- Hovered：背景色变亮 #5AA0E9，增加 2px 外发光
+- Pressed：背景色变暗 #3A80C9，按钮整体缩放 0.95
+- Disabled：背景色 #555555，文字色 #888888，不响应点击
+
+状态切换使用 UButton 的 Style 属性配置。
+需要在 Hovered 时播放一个音效提示（仅预留接口）。</pre>
+            <button class="copy-btn" onclick="copyText(this)">📋 复制</button>
+          </div>
+          <div class="explain">完整的状态描述让 AI 输出可直接用于生产的交互配置。</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- Section 2: 组件速查表 -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="sec2">
+    <h2>📦 二、常见 UMG 组件使用场景速查表</h2>
+    <p>在写 Prompt 时，准确使用 UMG 组件名称能大幅提升 AI 输出质量。以下是常用组件的适用场景速查。</p>
+
+    <h3>🔲 布局容器类</h3>
+    <table class="comp-table">
+      <thead>
+        <tr><th>组件</th><th>适用场景</th><th>Prompt 中的描述方式</th><th>⚠ 注意事项</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>Canvas Panel</code></td>
+          <td>HUD 覆盖层、自由定位元素</td>
+          <td>"在 Canvas Panel 中放置，锚点设置为…"</td>
+          <td>尽量只用于最外层或 HUD，内部布局避免使用</td>
+        </tr>
+        <tr>
+          <td><code>Vertical Box</code></td>
+          <td>纵向排列（列表、表单、侧栏）</td>
+          <td>"用 Vertical Box 纵向排列，间距 8px"</td>
+          <td>子元素用 Slot Padding 控制间距</td>
+        </tr>
+        <tr>
+          <td><code>Horizontal Box</code></td>
+          <td>横向排列（工具栏、Tab 栏、按钮组）</td>
+          <td>"用 Horizontal Box 横向排列，子元素垂直居中"</td>
+          <td>注意子元素的 Fill / Auto 设置</td>
+        </tr>
+        <tr>
+          <td><code>Overlay</code></td>
+          <td>层叠（背景图 + 前景内容）</td>
+          <td>"用 Overlay 层叠：底层背景图 + 上层内容"</td>
+          <td>子元素按添加顺序层叠，后加的在上方</td>
+        </tr>
+        <tr>
+          <td><code>Size Box</code></td>
+          <td>强制固定/限制子元素尺寸</td>
+          <td>"用 Size Box 包裹，Width Override = 300"</td>
+          <td>常用于限制头像、图标等的尺寸</td>
+        </tr>
+        <tr>
+          <td><code>Scale Box</code></td>
+          <td>整体等比缩放</td>
+          <td>"用 Scale Box 包裹，Stretch = Scale To Fit"</td>
+          <td>适合需要等比缩放的独立 UI 组件</td>
+        </tr>
+        <tr>
+          <td><code>Scroll Box</code></td>
+          <td>可滚动列表、长页面</td>
+          <td>"用 Scroll Box 包裹列表，纵向滚动"</td>
+          <td>子元素高度必须大于 Scroll Box 才会出现滚动</td>
+        </tr>
+        <tr>
+          <td><code>Uniform Grid Panel</code></td>
+          <td>等宽等高网格（背包、商城）</td>
+          <td>"用 Uniform Grid Panel，每行 4 列"</td>
+          <td>子元素大小由 Cell 统一控制</td>
+        </tr>
+        <tr>
+          <td><code>Wrap Box</code></td>
+          <td>自动换行（标签云、技能列表）</td>
+          <td>"用 Wrap Box 自动换行排列标签"</td>
+          <td>子元素宽度不一致时自动排列</td>
+        </tr>
+        <tr>
+          <td><code>Widget Switcher</code></td>
+          <td>Tab 页切换、多状态面板</td>
+          <td>"用 Widget Switcher 切换页面内容"</td>
+          <td>一次只显示一个子 Widget</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>🎨 显示元素类</h3>
+    <table class="comp-table">
+      <thead>
+        <tr><th>组件</th><th>适用场景</th><th>Prompt 中的描述方式</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>Image</code></td><td>图片/图标/背景</td><td>"Image 组件显示头像，Brush Size = 64×64"</td></tr>
+        <tr><td><code>Text Block</code></td><td>文本显示</td><td>"Text Block 显示玩家名称，字号 18，Bold"</td></tr>
+        <tr><td><code>Rich Text Block</code></td><td>混合样式文本（颜色/链接）</td><td>"Rich Text Block 显示公告，支持多色文本"</td></tr>
+        <tr><td><code>Progress Bar</code></td><td>血条/经验条/加载条</td><td>"Progress Bar 显示血量百分比，前景色红色"</td></tr>
+        <tr><td><code>Border</code></td><td>带背景和内边距的容器</td><td>"用 Border 包裹，背景色半透明黑，圆角 8px"</td></tr>
+      </tbody>
+    </table>
+
+    <h3>🕹️ 交互元素类</h3>
+    <table class="comp-table">
+      <thead>
+        <tr><th>组件</th><th>适用场景</th><th>Prompt 中的描述方式</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>Button</code></td><td>可点击按钮</td><td>"Button 包裹 Text Block，4 种状态样式"</td></tr>
+        <tr><td><code>Check Box</code></td><td>开关/多选</td><td>"Check Box 用于设置项开关"</td></tr>
+        <tr><td><code>Slider</code></td><td>滑动条（音量/亮度）</td><td>"Slider 范围 0~100，默认值 50"</td></tr>
+        <tr><td><code>Combo Box</code></td><td>下拉选择</td><td>"Combo Box 下拉选择分辨率"</td></tr>
+        <tr><td><code>Editable Text</code></td><td>输入框</td><td>"Editable Text Box 用于输入玩家昵称"</td></tr>
+        <tr><td><code>List View</code></td><td>大量数据虚拟列表</td><td>"List View 虚拟化渲染好友列表"</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- Section 3: 验收要点 -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="sec3">
+    <h2>🔍 三、生成后验收要点</h2>
+    <p>AI 生成的 UMG 代码/蓝图常见以下问题，验收时需重点检查：</p>
+
+    <div class="check-section">
+      <div class="check-card warn">
+        <h4>⚠️ 适配问题（最高频）</h4>
+        <ul>
+          <li>是否使用了绝对坐标定位（Canvas Panel 内部嵌套布局）</li>
+          <li>是否有硬编码像素值（Width/Height 写死而非 Fill/Auto）</li>
+          <li>锚点是否设置正确（不应全部在左上角 0,0）</li>
+          <li>在非基准分辨率下是否布局正常（切换 16:9 / 18:9 / 4:3 测试）</li>
+          <li>DPI Scale Rule 是否配置（特别是移动端项目）</li>
+        </ul>
+      </div>
+      <div class="check-card warn">
+        <h4>⚠️ 层级与嵌套问题</h4>
+        <ul>
+          <li>容器嵌套是否过深（超过 5 层需优化）</li>
+          <li>是否存在不必要的 Canvas Panel 嵌套</li>
+          <li>Overlay 内的子元素 Z-Order 是否正确</li>
+          <li>Scroll Box 内是否嵌套了另一个 Scroll Box（冲突）</li>
+          <li>Widget Switcher 的子页面是否正确索引</li>
+        </ul>
+      </div>
+      <div class="check-card warn">
+        <h4>⚠️ 性能问题</h4>
+        <ul>
+          <li>是否有大量 Tick 更新（应使用事件驱动替代）</li>
+          <li>列表是否使用虚拟化（超过 20 项应用 List View）</li>
+          <li>材质/特效是否过重（半透明叠加层数）</li>
+          <li>是否有未释放的 Widget 引用（内存泄漏）</li>
+          <li>Invalidation Box 是否用于静态区域</li>
+        </ul>
+      </div>
+      <div class="check-card pass">
+        <h4>✅ 合格标准</h4>
+        <ul>
+          <li>在 3 种以上分辨率下布局无错位</li>
+          <li>所有交互元素有 4 种状态（Normal/Hover/Press/Disable）</li>
+          <li>文本支持本地化（无硬编码中文，使用 Text Table）</li>
+          <li>容器嵌套层级 ≤ 5 层</li>
+          <li>列表 > 20 项使用 List View 虚拟化</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      <span>⚠️</span>
+      <span><strong>外包常见返工原因 TOP 3：</strong>① 只在 1920×1080 下正确，切换分辨率全乱 ② 按钮没有 Hover/Pressed 状态，交互体验缺失 ③ Canvas Panel 滥用导致无法自适应</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- Section 4: 外包沟通模板 -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="sec4">
+    <h2>📝 四、外包沟通 UMG 需求模板</h2>
+    <p>向外包 CP 描述 UMG 需求时，使用标准化模板可以大幅减少沟通歧义和返工。以下是实战验证过的模板格式。</p>
+
+    <!-- Template 1 -->
+    <div class="template-card">
+      <h4>📋 模板 A：通用 UI 界面需求 <span class="scenario">日常需求</span></h4>
+      <div class="template-content">
+        <pre>【需求名称】商城主界面
+【目标引擎】UE 5.3
+【基准分辨率】1920×1080
+【适配要求】16:9 和 18:9 竖屏（手机），最小安全区 1080×1920
+
+【界面结构描述】
+根容器：Vertical Box
+├─ 顶部栏（Horizontal Box，高度 64px Fixed）
+│  ├─ 返回按钮（左侧，Size Box 48×48）
+│  ├─ 标题文本（Fill，居中）
+│  └─ 货币显示（右侧，Auto）
+├─ Tab 栏（Horizontal Box，高度 48px Fixed）
+│  └─ 4 个 Tab 按钮（均分 Fill）
+└─ 内容区（Scroll Box，Fill）
+   └─ Uniform Grid Panel（3 列，间距 12px）
+      └─ 商品卡片 × N
+
+【交互要求】
+- Tab 按钮：选中态底部 2px 高亮线 + 文字变色
+- 商品卡片：Hover 放大 1.02 + 边框高亮
+- 购买按钮：4 态（Normal/Hover/Press/已购买灰色）
+
+【交付物】
+□ Widget Blueprint（.uasset）
+□ 分辨率适配截图（1080×1920 / 1170×2532 / 2048×1536）
+□ 蓝图中文注释</pre>
+        <button class="copy-btn" onclick="copyText(this)">📋 复制</button>
+      </div>
+    </div>
+
+    <!-- Template 2 -->
+    <div class="template-card">
+      <h4>📋 模板 B：HUD 元素需求 <span class="scenario">实时显示</span></h4>
+      <div class="template-content">
+        <pre>【需求名称】战斗 HUD
+【目标引擎】UE 5.3
+【Canvas Scaler】DPI Scale Rule = Shortest Side
+
+【元素列表】
+1. 血条（左上角）
+   - 锚点：(0, 0)，偏移 (20, 20)
+   - Progress Bar + 数值文本叠加
+   - 低血量（<30%）时红色闪烁动画
+
+2. 小地图（右上角）
+   - 锚点：(1, 0)，对齐 (1, 0)，偏移 (-20, 20)
+   - Size Box 200×200，圆形遮罩
+   - 内含旋转指针 Image
+
+3. 技能栏（底部居中）
+   - 锚点：(0.5, 1)，对齐 (0.5, 1)，偏移 (0, -20)
+   - Horizontal Box，4 个技能槽
+   - 每个槽：Overlay（图标 + CD 遮罩 + 快捷键文本）
+
+【性能要求】
+- 血条数值变化用事件驱动，禁止 Tick
+- 小地图刷新率 ≤ 10 FPS
+- 使用 Invalidation Box 包裹静态装饰</pre>
+        <button class="copy-btn" onclick="copyText(this)">📋 复制</button>
+      </div>
+    </div>
+
+    <!-- Template 3 -->
+    <div class="template-card">
+      <h4>📋 模板 C：AI 生成 Prompt 模板 <span class="scenario">自用 / 给 AI</span></h4>
+      <div class="template-content">
+        <pre>请用 UE5 C++ 或蓝图为我生成一个 [界面名称] 的 UMG Widget：
+
+## 基础信息
+- 引擎版本：UE 5.3
+- 设计基准：[1920×1080 / 750×1334]
+- 适配策略：[DPI Scale Rule 设置]
+
+## 界面结构（从外到内描述）
+- 根容器类型：[Vertical Box / Overlay / Canvas Panel]
+- 层级 1：[组件类型]，[尺寸约束]，[对齐方式]
+  - 层级 2：[组件类型]，[尺寸约束]
+    - ...
+
+## 交互状态
+- [组件名]：Normal / Hovered / Pressed / Disabled 四态样式
+- [动画描述]：缩放/位移/透明度变化
+
+## 数据绑定
+- [变量名]：绑定到 [Text Block / Progress Bar / Image]
+- 更新方式：[事件驱动 / 定时器]
+
+## 约束
+- 禁止使用 Canvas Panel 做内部布局
+- 容器嵌套 ≤ 5 层
+- 所有文本预留本地化接口
+- 添加中文注释</pre>
+        <button class="copy-btn" onclick="copyText(this)">📋 复制</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- Section 5: 完整示例 -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="sec5">
+    <h2>💡 五、完整 Prompt 示例</h2>
+    <p>以下是一个融合了 5 大原则的完整 Prompt，可直接发送给 AI 工具生成高质量 UMG：</p>
+
+    <div class="template-card">
+      <h4>🎯 完整示例：背包界面</h4>
+      <div class="template-content">
+        <pre>请用 UE5 蓝图为我创建一个背包界面的 UMG Widget Blueprint：
+
+## 基础信息
+- 引擎：UE 5.3
+- 基准分辨率：1920×1080
+- 需适配：2560×1440 / 1080×1920（手机竖屏）
+- DPI Scale Rule：Shortest Side
+
+## 界面结构
+根容器：Overlay
+├─ 层 0：全屏半透明黑色背景（Image，Tint = 0,0,0,0.6）
+└─ 层 1：居中面板（Size Box 包裹，Width Override = 800, Height Override = 600）
+   └─ Border（背景色 #1a1d2e，圆角 12px，内边距 24px）
+      └─ Vertical Box
+         ├─ 标题栏（Horizontal Box，高度 Auto）
+         │  ├─ "背包" Text Block（字号 22，Bold，白色，Fill）
+         │  └─ 关闭按钮 ×（Size Box 36×36，右对齐）
+         │     - 4 态：Normal 灰色 / Hover 白色 / Press 红色 / Disable 隐藏
+         ├─ 分隔线（Border，高度 1px，背景色 #333）
+         ├─ 筛选栏（Horizontal Box，高度 Auto，间距 8px，Padding Top 12）
+         │  └─ 5 个筛选按钮："全部" "武器" "防具" "消耗品" "材料"
+         │     - 选中态：底色 #6c8cff，文字白色
+         │     - 未选态：底色透明，文字 #888
+         └─ 物品网格（Scroll Box，Fill，Padding Top 12）
+            └─ Uniform Grid Panel（每行 5 列，Slot Padding 6px）
+               └─ 物品格子 Widget（Overlay）
+                  ├─ 底图 Image（64×64 边框图）
+                  ├─ 物品图标 Image（Fill）
+                  ├─ 数量 Text Block（右下角，字号 11，描边）
+                  └─ 品质边框 Image（颜色按品质：白/绿/蓝/紫/橙）
+
+## 交互
+- 物品格子 Hover：放大 1.05 + 边框高亮
+- 物品格子 Click：弹出详情 Tooltip
+- 关闭按钮 Click：播放淡出动画后 Remove From Parent
+
+## 约束
+- 禁止内部使用 Canvas Panel
+- 嵌套 ≤ 5 层
+- 所有 Text Block 使用 FText，预留本地化
+- 关键节点添加中文注释</pre>
+        <button class="copy-btn" onclick="copyText(this)">📋 复制</button>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <span>💡</span>
+      <span><strong>提示：</strong>使用此模板时，可以根据项目实际情况调整分辨率、容器类型和组件配置。关键是保持<strong>结构化描述</strong>（从外到内）+<strong>明确的约束条件</strong>（禁止/必须），让 AI 减少猜测。</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- Section 6: APM 管理建议 -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section" id="sec6">
+    <h2>📋 六、APM 管理建议</h2>
+
+    <div class="apm-tip">
+      <span>🔑</span>
+      <span><strong>核心原则：</strong>AI 是加速器，不是替代者。APM 需要建立"AI 生成 → 人工审核 → 规范沉淀"的闭环流程，把 AI 输出转化为团队可复用的资产。</span>
+    </div>
+
+    <h3>6.1 AI 辅助 UMG 开发的管理流程</h3>
+    <table class="comp-table">
+      <thead>
+        <tr><th>阶段</th><th>负责人</th><th>动作</th><th>产出</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>需求描述</td><td>APM / 策划</td><td>使用模板 A/B 撰写结构化需求</td><td>需求文档</td></tr>
+        <tr><td>AI 生成</td><td>TA / 美术</td><td>使用模板 C 输入 AI 工具</td><td>初版 Widget</td></tr>
+        <tr><td>自审</td><td>TA / 美术</td><td>按验收要点 Checklist 自查</td><td>自查报告</td></tr>
+        <tr><td>评审</td><td>APM + 主美</td><td>多分辨率测试 + 交互走查</td><td>修改意见</td></tr>
+        <tr><td>沉淀</td><td>APM</td><td>合格 Widget 归档 + Prompt 模板更新</td><td>组件库/模板库</td></tr>
+      </tbody>
+    </table>
+
+    <h3>6.2 外包场景注意事项</h3>
+    <div class="check-section">
+      <div class="check-card warn">
+        <h4>⚠️ 外包常见风险</h4>
+        <ul>
+          <li>外包可能直接用 AI 生成不做任何适配测试就交付</li>
+          <li>不同 CP 使用不同 AI 工具，输出风格和质量差异大</li>
+          <li>Prompt 模板不统一导致每次需求沟通成本高</li>
+          <li>AI 生成的代码缺少注释和文档，后续维护困难</li>
+        </ul>
+      </div>
+      <div class="check-card pass">
+        <h4>✅ APM 对策</h4>
+        <ul>
+          <li>在合同/需求文档中附加本页的验收 Checklist</li>
+          <li>统一发放 Prompt 模板，要求 CP 按模板描述需求</li>
+          <li>要求 CP 提交时附带 3 种分辨率截图</li>
+          <li>建立内部 UMG 组件库，优先复用而非每次重新生成</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="apm-tip">
+      <span>💡</span>
+      <span><strong>进阶建议：</strong>将高频使用的 UI 组件（按钮、弹窗、列表）封装为标准 Widget 模板，让 AI 在此基础上组合拼装，而非每次从零生成。这样既提升效率，又保证视觉一致性。</span>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>🎮 游戏项目知识库 · UI 资源规范 · <a href="../index.html">返回首页</a></p>
+    <p style="margin-top:6px">v1.0 · 2026-04-01</p>
+  </div>
+
+</div>
+
+<script>
+// Toggle Prompt Cards
+function toggleCard(id){
+  document.getElementById(id).classList.toggle('open');
+}
+
+// Copy text from prompt-example or template-content
+function copyText(btn){
+  const container = btn.parentElement;
+  const pre = container.querySelector('pre');
+  if(!pre) return;
+  navigator.clipboard.writeText(pre.textContent).then(()=>{
+    const orig = btn.textContent;
+    btn.textContent = '✅ 已复制';
+    btn.style.color = '#4ade80';
+    btn.style.borderColor = '#4ade80';
+    setTimeout(()=>{
+      btn.textContent = orig;
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 1500);
+  }).catch(()=>{
+    btn.textContent = '❌ 失败';
+    setTimeout(()=>{ btn.textContent = '📋 复制'; }, 1500);
+  });
+}
+
+// Smooth scroll for TOC links
+document.querySelectorAll('.toc-list a').forEach(a=>{
+  a.addEventListener('click', e=>{
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+});
+</script>
+</body>
+</html>

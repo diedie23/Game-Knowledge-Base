@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>切图与命名规范 · UI资源规范 · 游戏项目知识库</title>
+<style>
+:root{
+  --bg:#0d0f15;--panel:#111320;--card:#161829;--card-hover:#1a1d30;
+  --border:#222540;--border-hover:#6c8cff;
+  --text:#c5c9d6;--dim:#6b7085;--heading:#e8eaed;--white:#fff;
+  --accent:#6c8cff;--accent-light:#8ba3ff;--accent-bg:rgba(108,140,255,.07);
+  --green:#4ade80;--green-bg:rgba(74,222,128,.07);
+  --orange:#fb923c;--orange-bg:rgba(251,146,60,.07);
+  --red:#f87171;--red-bg:rgba(248,113,113,.07);
+  --purple:#a78bfa;--purple-bg:rgba(167,139,250,.07);
+  --cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.07);
+  --yellow:#fbbf24;--yellow-bg:rgba(251,191,36,.07);
+  --pink:#f472b6;--pink-bg:rgba(244,114,182,.07);
+  --code-bg:#1a1d2d;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+/* ─── Top Bar ─── */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(13,15,21,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:56px}
+.topbar-brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--heading);cursor:pointer;text-decoration:none}
+.topbar-brand .logo{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff}
+.topbar-nav{display:flex;gap:4px}
+.topbar-nav a{padding:8px 16px;border-radius:8px;font-size:13px;color:var(--dim);transition:all .15s;text-decoration:none}
+.topbar-nav a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.topbar-nav a.active{color:var(--accent);background:var(--accent-bg);font-weight:500}
+
+/* ─── Page ─── */
+.page{max-width:960px;margin:0 auto;padding:40px 32px 80px}
+
+/* ─── Breadcrumb ─── */
+.breadcrumb{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);margin-bottom:28px;flex-wrap:wrap}
+.breadcrumb a{color:var(--accent);text-decoration:none;font-size:12px}
+.breadcrumb a:hover{text-decoration:underline}
+
+/* ─── Doc Header ─── */
+.doc-header{margin-bottom:36px;padding-bottom:24px;border-bottom:2px solid var(--accent)}
+.doc-header h1{font-size:28px;color:var(--heading);font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.doc-header h1 .badge{font-size:11px;background:var(--purple);color:#fff;padding:3px 12px;border-radius:20px;font-weight:500}
+.doc-header p{font-size:14px;color:var(--dim);line-height:1.8}
+.doc-meta{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap}
+.doc-meta span{font-size:11px;color:var(--dim);background:var(--card);border:1px solid var(--border);padding:4px 12px;border-radius:6px;display:flex;align-items:center;gap:4px}
+
+/* ─── Section ─── */
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.section h3{font-size:16px;color:var(--heading);font-weight:600;margin:24px 0 12px;display:flex;align-items:center;gap:8px}
+
+/* ─── APM Box ─── */
+.apm-box{background:var(--purple-bg);border:1px solid rgba(167,139,250,.15);border-radius:10px;padding:14px 18px;margin:16px 0;font-size:13px;line-height:1.8;display:flex;align-items:flex-start;gap:10px}
+.apm-box .icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.apm-box strong{color:var(--purple)}
+
+/* ─── Warning Box ─── */
+.warn-box{background:var(--orange-bg);border:1px solid rgba(251,146,60,.15);border-radius:10px;padding:14px 18px;margin:12px 0;font-size:13px;line-height:1.8;display:flex;align-items:flex-start;gap:10px}
+.warn-box .icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.warn-box strong{color:var(--orange)}
+
+/* ─── Error Box (外包常见错误) ─── */
+.error-box{background:var(--red-bg);border:1px solid rgba(248,113,113,.15);border-radius:10px;padding:14px 18px;margin:12px 0;font-size:13px;line-height:1.8}
+.error-box .err-title{color:var(--red);font-weight:700;font-size:12px;letter-spacing:.5px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.error-box ul{padding-left:16px;margin:0}
+.error-box li{margin:4px 0;color:var(--text)}
+
+/* ─── Table ─── */
+.doc-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.doc-table th{background:var(--card);padding:10px 14px;text-align:left;font-weight:600;color:var(--heading);border:1px solid var(--border);white-space:nowrap}
+.doc-table td{padding:10px 14px;border:1px solid var(--border);vertical-align:top}
+.doc-table tr:hover td{background:rgba(108,140,255,.03)}
+.doc-table code{background:var(--code-bg);padding:2px 6px;border-radius:3px;font-size:12px;font-family:'Consolas','Menlo',monospace;color:var(--accent-light);border:1px solid var(--border)}
+
+/* ─── Code Block ─── */
+pre{background:var(--code-bg);padding:16px 20px;border-radius:10px;overflow-x:auto;margin:16px 0;border:1px solid var(--border);font-size:13px;line-height:1.7;position:relative}
+pre code{font-family:'Consolas','Menlo',monospace;color:var(--text)}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:var(--card);border:1px solid var(--border);border-bottom:none;border-radius:10px 10px 0 0;font-size:12px;color:var(--dim);margin-top:16px}
+.code-header+pre{margin-top:0;border-radius:0 0 10px 10px}
+.copy-btn{background:var(--accent-bg);border:1px solid rgba(108,140,255,.2);color:var(--accent);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-family:inherit;transition:all .15s}
+.copy-btn:hover{background:var(--accent);color:#fff}
+
+/* ─── Naming Pattern Card ─── */
+.naming-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin:16px 0;transition:all .2s}
+.naming-card:hover{border-color:var(--border-hover)}
+.naming-label{font-size:11px;color:var(--dim);font-weight:600;letter-spacing:.5px;margin-bottom:8px}
+.naming-pattern{font-size:20px;font-weight:700;color:var(--accent);font-family:'Consolas','Menlo',monospace;letter-spacing:1px;padding:12px 16px;background:var(--code-bg);border-radius:8px;border:1px solid var(--border);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.naming-pattern .copy-icon{cursor:pointer;font-size:14px;opacity:.5;transition:opacity .15s}
+.naming-pattern .copy-icon:hover{opacity:1}
+.naming-parts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.naming-part{font-size:11px;padding:4px 10px;border-radius:6px;display:flex;align-items:center;gap:4px}
+.naming-example{font-size:13px;color:var(--dim);line-height:1.8;padding-top:8px;border-top:1px solid var(--border)}
+.naming-example code{background:var(--code-bg);padding:2px 6px;border-radius:3px;font-size:12px;font-family:'Consolas','Menlo',monospace;color:var(--green);border:1px solid var(--border)}
+
+/* ─── Format Card ─── */
+.format-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:16px 0}
+.format-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;transition:all .2s}
+.format-card:hover{border-color:var(--border-hover);transform:translateY(-1px)}
+.format-card .ext{font-size:22px;font-weight:800;margin-bottom:4px}
+.format-card .ext-name{font-size:13px;color:var(--heading);font-weight:600;margin-bottom:6px}
+.format-card .ext-desc{font-size:12px;color:var(--dim);line-height:1.6}
+.format-card .ext-tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;margin-top:8px;font-weight:500}
+
+/* ─── Checklist ─── */
+.checklist{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin:20px 0}
+.checklist h3{font-size:16px;color:var(--heading);font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.checklist-group{margin-bottom:20px}
+.checklist-group:last-child{margin-bottom:0}
+.checklist-group-title{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.5px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;font-size:13px;line-height:1.6}
+.check-item input[type="checkbox"]{margin-top:3px;accent-color:var(--accent);flex-shrink:0;width:16px;height:16px}
+.check-item .risk-tag{font-size:10px;padding:1px 6px;border-radius:4px;margin-left:6px;flex-shrink:0}
+.risk-high{background:var(--red-bg);color:var(--red)}
+.risk-mid{background:var(--orange-bg);color:var(--orange)}
+.risk-low{background:var(--green-bg);color:var(--green)}
+
+/* ─── Before / After ─── */
+.ba-compare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+.ba-box{border-radius:10px;padding:16px 18px}
+.ba-before{background:rgba(248,113,113,.05);border:1px solid rgba(248,113,113,.12)}
+.ba-after{background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.12)}
+.ba-label{font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:8px}
+.ba-before .ba-label{color:var(--red)}
+.ba-after .ba-label{color:var(--green)}
+.ba-box ul{list-style:none;padding:0;margin:0}
+.ba-box li{font-size:12px;color:var(--dim);padding:3px 0;display:flex;align-items:flex-start;gap:6px;line-height:1.6}
+.ba-before li::before{content:'✗';color:var(--red);font-weight:700;flex-shrink:0}
+.ba-after li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0}
+
+/* ─── TOC ─── */
+.toc{position:fixed;right:24px;top:80px;width:180px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:12px;max-height:calc(100vh - 120px);overflow-y:auto}
+.toc-title{font-size:11px;color:var(--dim);font-weight:600;letter-spacing:.5px;margin-bottom:10px}
+.toc a{display:block;padding:4px 0;color:var(--dim);text-decoration:none;transition:color .15s;line-height:1.5}
+.toc a:hover,.toc a.active{color:var(--accent)}
+.toc a.active{font-weight:500}
+
+/* ─── Footer ─── */
+.footer{text-align:center;padding:32px;font-size:12px;color:var(--dim);border-top:1px solid var(--border);margin-top:60px}
+
+/* ─── Toast ─── */
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-60px);background:var(--green);color:#000;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:500;z-index:999;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:1200px){.toc{display:none}}
+@media(max-width:768px){
+  .topbar{padding:0 16px}
+  .page{padding:20px 16px 60px}
+  .ba-compare{grid-template-columns:1fr}
+  .format-grid{grid-template-columns:1fr 1fr}
+  .naming-pattern{font-size:14px}
+}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- Top Bar -->
+<header class="topbar">
+  <a class="topbar-brand" href="index.html">
+    <span class="logo">📖</span> 游戏项目知识库
+  </a>
+  <nav class="topbar-nav">
+    <a href="index.html">首页</a>
+    <a href="tools.html">工具集</a>
+    <a class="active">UI 资源规范</a>
+  </nav>
+</header>
+
+<div class="page">
+
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+  <a href="index.html">🏠 首页</a><span>›</span>
+  <span>UI · 界面</span><span>›</span>
+  <span style="color:var(--heading)">切图与命名规范</span>
+</div>
+
+<!-- Header -->
+<div class="doc-header">
+  <h1>✂️ UI 切图与命名规范 <span class="badge">UI 规范</span></h1>
+  <p>面向小游戏/休闲游戏场景的 UI 资源切图标准与统一命名规则。帮助美术团队和外包 CP 减少因命名混乱、格式错误导致的返工问题。</p>
+  <div class="doc-meta">
+    <span>📂 UI · 界面</span>
+    <span>🎯 适用：小游戏 / 休闲游戏 / 轻量级项目</span>
+    <span>👥 受众：UI美术 / 外包CP / APM</span>
+    <span>📅 更新：2026-04</span>
+  </div>
+</div>
+
+<!-- ──────── Section 1: 命名规则 ──────── -->
+<div class="section" id="sec-naming">
+  <h2>📝 一、统一命名规则</h2>
+  
+  <div class="apm-box">
+    <span class="icon">💼</span>
+    <div><strong>APM 视角：</strong>命名不规范是外包交付中返工率最高的问题之一。据统计，约 30% 的资源返工源于命名不合规——包括中文路径、空格、大小写混乱、缺少状态后缀等。制定统一命名规则并在合同中明确写入，能节省大量校验时间。</div>
+  </div>
+
+  <h3>1.1 核心命名模式</h3>
+  
+  <div class="naming-card">
+    <div class="naming-label">通用 UI 资源命名格式</div>
+    <div class="naming-pattern">
+      <span>模块_类型_名称_状态.png</span>
+      <span class="copy-icon" onclick="copyText('模块_类型_名称_状态.png')">📋</span>
+    </div>
+    <div class="naming-parts">
+      <span class="naming-part" style="background:var(--accent-bg);color:var(--accent)">📦 模块 — 所属功能页面</span>
+      <span class="naming-part" style="background:var(--purple-bg);color:var(--purple)">🏷️ 类型 — 控件类型</span>
+      <span class="naming-part" style="background:var(--green-bg);color:var(--green)">📝 名称 — 具体描述</span>
+      <span class="naming-part" style="background:var(--orange-bg);color:var(--orange)">🔄 状态 — 交互状态</span>
+    </div>
+    <div class="naming-example">
+      <strong>示例：</strong><br>
+      <code>Login_Btn_Start_Normal.png</code> — 登录页 / 按钮 / 开始 / 正常态<br>
+      <code>Shop_Icon_Coin_Gold.png</code> — 商城页 / 图标 / 金币 / 金色<br>
+      <code>Battle_Bg_Sky_Night.png</code> — 战斗页 / 背景 / 天空 / 夜晚<br>
+      <code>Main_Tab_Home_Selected.png</code> — 主页 / 标签 / 首页 / 选中态
+    </div>
+  </div>
+
+  <h3>1.2 各字段取值规范</h3>
+
+  <table class="doc-table">
+    <thead>
+      <tr><th>字段</th><th>取值范围</th><th>说明</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>模块（Module）</strong></td>
+        <td><code>Login</code> <code>Main</code> <code>Shop</code> <code>Battle</code> <code>Setting</code> <code>Common</code> <code>Lobby</code> <code>Chat</code> <code>Rank</code> <code>Result</code></td>
+        <td>所属功能页面/模块名，首字母大写</td>
+      </tr>
+      <tr>
+        <td><strong>类型（Type）</strong></td>
+        <td><code>Btn</code> <code>Bg</code> <code>Icon</code> <code>Text</code> <code>Bar</code> <code>Panel</code> <code>Tab</code> <code>Popup</code> <code>Deco</code> <code>Avatar</code> <code>Frame</code> <code>Mask</code> <code>Spine</code></td>
+        <td>控件/资源类型缩写，首字母大写</td>
+      </tr>
+      <tr>
+        <td><strong>名称（Name）</strong></td>
+        <td>自由命名，驼峰式</td>
+        <td>具体功能描述，如 <code>Start</code> <code>Close</code> <code>GoldCoin</code></td>
+      </tr>
+      <tr>
+        <td><strong>状态（State）</strong></td>
+        <td><code>Normal</code> <code>Pressed</code> <code>Disabled</code> <code>Selected</code> <code>Hover</code> <code>Locked</code> <code>Glow</code></td>
+        <td>交互状态后缀（无状态可省略）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="error-box">
+    <div class="err-title">⚠️ 外包常见错误</div>
+    <ul>
+      <li><strong>中文文件名：</strong><code>登录_开始按钮.png</code> → 导入引擎会乱码/路径失效</li>
+      <li><strong>含空格：</strong><code>Login Btn Start.png</code> → 程序引用出错</li>
+      <li><strong>缺状态后缀：</strong>只给一个 <code>Login_Btn_Start.png</code>，不区分 Normal/Pressed</li>
+      <li><strong>大小写不一致：</strong><code>login_btn_start.png</code> vs <code>Login_Btn_Start.png</code> 混用</li>
+      <li><strong>编号代替语义名：</strong><code>UI_001.png</code> <code>UI_002.png</code> → 无法辨别用途</li>
+      <li><strong>特殊字符：</strong><code>Shop【金币】icon.png</code> → 含中文标点和括号</li>
+    </ul>
+  </div>
+
+  <h3>1.3 不同引擎的命名惯例</h3>
+  <table class="doc-table">
+    <thead>
+      <tr><th>引擎</th><th>推荐前缀/习惯</th><th>注意事项</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Unity</strong></td>
+        <td>无硬性前缀，按 <code>模块/类型</code> 文件夹分组</td>
+        <td>路径区分大小写（Android 端），避免重名</td>
+      </tr>
+      <tr>
+        <td><strong>UE</strong></td>
+        <td><code>T_</code>（贴图）<code>M_</code>（材质）<code>WBP_</code>（Widget）</td>
+        <td>遵循 Epic 前缀约定，Texture 用 <code>T_模块_名称</code></td>
+      </tr>
+      <tr>
+        <td><strong>Cocos</strong></td>
+        <td>无硬性规定，按目录分类</td>
+        <td>UUID 引用，改名后需检查引用是否丢失</td>
+      </tr>
+      <tr>
+        <td><strong>微信小游戏</strong></td>
+        <td>无前缀要求，全小写+下划线更安全</td>
+        <td>包体大小敏感，文件名短一些节约字节</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ──────── Section 2: 切图规范 ──────── -->
+<div class="section" id="sec-slice">
+  <h2>✂️ 二、切图标准</h2>
+
+  <h3>2.1 切图基本要求</h3>
+  <table class="doc-table">
+    <thead>
+      <tr><th>要求</th><th>说明</th><th>常见错误</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>尺寸对齐</strong></td>
+        <td>宽高建议为偶数（最好 4 的倍数），部分引擎纹理压缩要求 4×4 block</td>
+        <td>切出 337×251 的奇数尺寸，纹理压缩出错</td>
+      </tr>
+      <tr>
+        <td><strong>去除多余透明</strong></td>
+        <td>裁切到内容边界，去除大面积空白</td>
+        <td>切图保留了大量透明区域浪费内存</td>
+      </tr>
+      <tr>
+        <td><strong>保留安全边距</strong></td>
+        <td>内容周围保留 1~2px 透明边距，防止图集合并后出血</td>
+        <td>紧贴像素切图，打进图集后边缘出现色线</td>
+      </tr>
+      <tr>
+        <td><strong>统一画布</strong></td>
+        <td>同一组件的不同状态应保持画布尺寸一致</td>
+        <td>Normal 120×40、Pressed 118×39，导致按钮闪跳</td>
+      </tr>
+      <tr>
+        <td><strong>独立图层导出</strong></td>
+        <td>每个可复用/可换色的元素应单独切图</td>
+        <td>把按钮文字和按钮底图合并到一张切图里</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="error-box">
+    <div class="err-title">⚠️ 外包常见错误</div>
+    <ul>
+      <li><strong>合并切图：</strong>把多个独立UI元素合到一张大图交付，程序无法分别控制</li>
+      <li><strong>PSD直出：</strong>直接导出整个PSD的合并图层，不分图切割</li>
+      <li><strong>尺寸随意：</strong>不关注尺寸是否为偶数/4的倍数，纹理压缩后出现绿边</li>
+      <li><strong>遮挡残留：</strong>切图时隐藏图层不彻底，残留了其他元素像素</li>
+      <li><strong>色彩模式错误：</strong>以CMYK模式导出，导入引擎后颜色偏差</li>
+    </ul>
+  </div>
+
+  <div class="ba-compare">
+    <div class="ba-box ba-before">
+      <div class="ba-label">❌ BEFORE — 不规范切图</div>
+      <ul>
+        <li>按钮底图+文字合为一张图</li>
+        <li>大量透明区域未裁切</li>
+        <li>不同状态尺寸不一致</li>
+        <li>奇数像素尺寸（337×251）</li>
+        <li>9宫格拉伸区域被合并</li>
+      </ul>
+    </div>
+    <div class="ba-box ba-after">
+      <div class="ba-label">✅ AFTER — 规范切图</div>
+      <ul>
+        <li>底图与文字分离，程序可独立控制</li>
+        <li>裁切到内容边缘 + 1px 安全边距</li>
+        <li>所有状态统一 120×40 画布</li>
+        <li>尺寸为 4 的倍数（120×40）</li>
+        <li>9宫格元素单独切图并标注拉伸区域</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>2.2 9宫格切图特别注意</h3>
+  <div class="warn-box">
+    <span class="icon">⚠️</span>
+    <div><strong>9宫格（Nine-Slice/Nine-Patch）资源</strong>必须单独切图，不能与其他元素合并。切图时确保四边可拉伸区域是纯色或可重复的纹理，否则拉伸后会变形。详见 <a href="ui-9slice-color.html">9宫格与颜色空间规范</a>。</div>
+  </div>
+</div>
+
+<!-- ──────── Section 3: 格式说明 ──────── -->
+<div class="section" id="sec-format">
+  <h2>📦 三、输出格式选择</h2>
+  
+  <p style="margin-bottom:16px;color:var(--dim)">不同场景需要不同的文件格式。选错格式会导致透明度丢失、色彩偏移或文件体积过大。</p>
+
+  <div class="format-grid">
+    <div class="format-card">
+      <div class="ext" style="color:var(--green)">PNG</div>
+      <div class="ext-name">Portable Network Graphics</div>
+      <div class="ext-desc">无损压缩 + Alpha 通道<br>适用：<strong>UI 切图首选</strong>，按钮、图标、面板等所有需要透明的资源</div>
+      <span class="ext-tag" style="background:var(--green-bg);color:var(--green)">首选格式</span>
+    </div>
+    <div class="format-card">
+      <div class="ext" style="color:var(--accent)">PSD</div>
+      <div class="ext-name">Photoshop Document</div>
+      <div class="ext-desc">源文件/工作文件<br>适用：<strong>交付源文件</strong>，保留图层结构，便于二次修改</div>
+      <span class="ext-tag" style="background:var(--accent-bg);color:var(--accent)">源文件</span>
+    </div>
+    <div class="format-card">
+      <div class="ext" style="color:var(--orange)">TGA</div>
+      <div class="ext-name">Targa Image</div>
+      <div class="ext-desc">无压缩 + Alpha<br>适用：<strong>UE 项目贴图</strong>，需要无损精度且引擎可内部压缩</div>
+      <span class="ext-tag" style="background:var(--orange-bg);color:var(--orange)">UE 首选</span>
+    </div>
+    <div class="format-card">
+      <div class="ext" style="color:var(--purple)">FBX</div>
+      <div class="ext-name">Filmbox Format</div>
+      <div class="ext-desc">3D 模型/骨骼动画<br>适用：<strong>3D UI 元素</strong>、Spine 导出后的骨骼动画数据</div>
+      <span class="ext-tag" style="background:var(--purple-bg);color:var(--purple)">3D 模型</span>
+    </div>
+    <div class="format-card">
+      <div class="ext" style="color:var(--red)">JPG</div>
+      <div class="ext-name">JPEG Image</div>
+      <div class="ext-desc">有损压缩，无 Alpha<br>适用：<strong>仅用于全屏背景图</strong>且无需透明时，可节省 50%+ 体积</div>
+      <span class="ext-tag" style="background:var(--red-bg);color:var(--red)">仅限背景</span>
+    </div>
+    <div class="format-card">
+      <div class="ext" style="color:var(--cyan)">WebP</div>
+      <div class="ext-name">Web Picture</div>
+      <div class="ext-desc">支持 Alpha + 高压缩率<br>适用：<strong>小游戏/Web 平台</strong>，体积仅为 PNG 的 40~60%</div>
+      <span class="ext-tag" style="background:var(--cyan-bg);color:var(--cyan)">小游戏优选</span>
+    </div>
+  </div>
+
+  <div class="apm-box">
+    <span class="icon">💼</span>
+    <div><strong>APM 管理建议：</strong>在外包合同中明确规定交付格式。常见约定：<br>① 切图交付 = PNG（带 Alpha）<br>② 源文件交付 = PSD（保留图层）<br>③ UE 项目 = TGA + PSD 源文件<br>④ 小游戏项目 = WebP + PNG 双格式</div>
+  </div>
+
+  <div class="error-box">
+    <div class="err-title">⚠️ 外包常见错误</div>
+    <ul>
+      <li><strong>全用 JPG：</strong>按钮、图标也用 JPG 交付，Alpha 通道全部丢失</li>
+      <li><strong>不交源文件：</strong>只给切图 PNG，不给 PSD 源文件，后续无法修改</li>
+      <li><strong>BMP 交付：</strong>使用 BMP 格式，无 Alpha 且文件巨大</li>
+      <li><strong>色彩空间错误：</strong>导出时未转换为 sRGB，颜色在引擎中偏差严重</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ──────── Section 4: 目录结构 ──────── -->
+<div class="section" id="sec-dir">
+  <h2>📁 四、推荐目录结构</h2>
+  
+  <div class="code-header">
+    <span>📂 标准 UI 资源目录结构</span>
+    <button class="copy-btn" onclick="copyBlock('dirStructure')">📋 复制</button>
+  </div>
+  <pre id="dirStructure"><code>📁 UI/
+├── 📁 Common/                 # 全局通用资源
+│   ├── Common_Btn_Close_Normal.png
+│   ├── Common_Btn_Close_Pressed.png
+│   ├── Common_Btn_Confirm_Normal.png
+│   ├── Common_Bar_HP.png
+│   ├── Common_Frame_Avatar.png
+│   └── Common_Icon_Loading.png
+│
+├── 📁 Login/                  # 登录模块
+│   ├── Login_Bg_Main.png
+│   ├── Login_Btn_Start_Normal.png
+│   ├── Login_Btn_Start_Pressed.png
+│   ├── Login_Panel_Account.png
+│   └── Login_Deco_Logo.png
+│
+├── 📁 Main/                   # 主界面
+│   ├── Main_Tab_Home_Normal.png
+│   ├── Main_Tab_Home_Selected.png
+│   ├── Main_Tab_Shop_Normal.png
+│   ├── Main_Tab_Shop_Selected.png
+│   └── Main_Panel_TopBar.png
+│
+├── 📁 Shop/                   # 商城模块
+│   ├── Shop_Bg_Main.png
+│   ├── Shop_Icon_Coin_Gold.png
+│   ├── Shop_Icon_Diamond.png
+│   ├── Shop_Btn_Buy_Normal.png
+│   └── Shop_Panel_ItemCard.png
+│
+├── 📁 Battle/                 # 战斗模块
+│   ├── Battle_Bg_Sky_Day.png
+│   ├── Battle_Bg_Sky_Night.png
+│   ├── Battle_Bar_HP.png
+│   ├── Battle_Icon_Skill_Fire.png
+│   └── Battle_Panel_Result.png
+│
+└── 📁 _NineSlice/             # 9宫格资源（独立管理）
+    ├── NS_Btn_Blue.png
+    ├── NS_Btn_Green.png
+    ├── NS_Panel_Dark.png
+    └── NS_Dialog_Bubble.png</code></pre>
+</div>
+
+<!-- ──────── Section 5: Checklist ──────── -->
+<div class="section" id="sec-checklist">
+  <h2>✅ 五、出图检查清单</h2>
+
+  <p style="color:var(--dim);margin-bottom:16px">以下 Checklist 可直接复制到项目管理工具中。每次外包交付前由美术 QA 逐项勾选。</p>
+
+  <div class="checklist" id="checklistBlock">
+    <h3>📋 UI 切图交付 Checklist</h3>
+    
+    <div class="checklist-group">
+      <div class="checklist-group-title">命名规范检查</div>
+      <div class="check-item"><input type="checkbox"><span>所有文件使用英文命名（无中文、无空格、无特殊字符）<span class="risk-tag risk-high">高频</span></span></div>
+      <div class="check-item"><input type="checkbox"><span>命名遵循 <code>模块_类型_名称_状态.png</code> 格式</span></div>
+      <div class="check-item"><input type="checkbox"><span>首字母大写（PascalCase），下划线分隔字段</span></div>
+      <div class="check-item"><input type="checkbox"><span>按钮类资源包含完整状态后缀（Normal/Pressed/Disabled）<span class="risk-tag risk-high">高频</span></span></div>
+      <div class="check-item"><input type="checkbox"><span>无重复文件名（跨模块也不重名）</span></div>
+    </div>
+
+    <div class="checklist-group">
+      <div class="checklist-group-title">切图质量检查</div>
+      <div class="check-item"><input type="checkbox"><span>宽高为偶数（推荐 4 的倍数）<span class="risk-tag risk-mid">中频</span></span></div>
+      <div class="check-item"><input type="checkbox"><span>已去除多余透明区域</span></div>
+      <div class="check-item"><input type="checkbox"><span>保留 1~2px 安全边距</span></div>
+      <div class="check-item"><input type="checkbox"><span>同组件不同状态画布尺寸一致<span class="risk-tag risk-high">高频</span></span></div>
+      <div class="check-item"><input type="checkbox"><span>无图层残留/遮挡像素</span></div>
+      <div class="check-item"><input type="checkbox"><span>Alpha 通道正确（边缘无锯齿残留）</span></div>
+    </div>
+
+    <div class="checklist-group">
+      <div class="checklist-group-title">格式与色彩检查</div>
+      <div class="check-item"><input type="checkbox"><span>输出格式正确（PNG/TGA/WebP 按需）<span class="risk-tag risk-high">高频</span></span></div>
+      <div class="check-item"><input type="checkbox"><span>色彩空间为 sRGB（非 CMYK/Adobe RGB）</span></div>
+      <div class="check-item"><input type="checkbox"><span>位深度正确（通常 8bit/通道）</span></div>
+      <div class="check-item"><input type="checkbox"><span>PSD 源文件同步交付且图层完整<span class="risk-tag risk-mid">中频</span></span></div>
+    </div>
+
+    <div class="checklist-group">
+      <div class="checklist-group-title">目录与交付物检查</div>
+      <div class="check-item"><input type="checkbox"><span>文件按模块分目录存放</span></div>
+      <div class="check-item"><input type="checkbox"><span>包含资源清单/交付说明文档</span></div>
+      <div class="check-item"><input type="checkbox"><span>9宫格资源独立标注拉伸区域</span></div>
+      <div class="check-item"><input type="checkbox"><span>文件总数与清单数一致</span></div>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:16px">
+    <button class="copy-btn" style="padding:10px 24px;font-size:13px" onclick="copyChecklist()">📋 复制 Checklist 为文本</button>
+  </div>
+</div>
+
+<!-- ──────── Section 6: Before/After 总结 ──────── -->
+<div class="section" id="sec-ba">
+  <h2>🔄 六、Before / After 对比总结</h2>
+
+  <div class="ba-compare">
+    <div class="ba-box ba-before">
+      <div class="ba-label">❌ BEFORE — 无规范时</div>
+      <ul>
+        <li>文件命名混乱：<code>按钮1.png</code> <code>UI 002.png</code> <code>aaa_final.png</code></li>
+        <li>切图尺寸随意，各状态大小不一</li>
+        <li>全用 JPG 交付，缺少透明通道</li>
+        <li>文件散落在根目录，无分类</li>
+        <li>9宫格和普通切图混在一起</li>
+        <li>每次交付花 2~3 小时校验返工</li>
+        <li>外包反复沟通修改标准</li>
+      </ul>
+    </div>
+    <div class="ba-box ba-after">
+      <div class="ba-label">✅ AFTER — 执行规范后</div>
+      <ul>
+        <li>统一 <code>模块_类型_名称_状态.png</code> 命名，一目了然</li>
+        <li>切图尺寸统一、偶数像素、有安全边距</li>
+        <li>格式按需：PNG/TGA/WebP 明确分工</li>
+        <li>模块化目录结构，快速定位资源</li>
+        <li>9宫格独立目录，标注拉伸区域</li>
+        <li>交付校验 10 分钟完成</li>
+        <li>外包合同附带 Checklist，一次通过率 90%+</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ──────── Related Links ──────── -->
+<div class="section">
+  <h2>🔗 相关规范文档</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
+    <a href="ui-9slice-color.html" style="display:block;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-decoration:none;transition:all .2s" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:16px;margin-bottom:4px">🧩</div>
+      <div style="font-size:14px;color:var(--heading);font-weight:600">9宫格与颜色空间规范</div>
+      <div style="font-size:12px;color:var(--dim);margin-top:4px">引擎差异对比 · sRGB vs Linear</div>
+    </a>
+    <a href="ui-layout.html" style="display:block;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-decoration:none;transition:all .2s" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:16px;margin-bottom:4px">📐</div>
+      <div style="font-size:14px;color:var(--heading);font-weight:600">Layout 界面拼接规范</div>
+      <div style="font-size:12px;color:var(--dim);margin-top:4px">锚点 · 适配 · 安全区</div>
+    </a>
+    <a href="ui-umg-tips.html" style="display:block;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-decoration:none;transition:all .2s" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:16px;margin-bottom:4px">🤖</div>
+      <div style="font-size:14px;color:var(--heading);font-weight:600">UMG 生成工具使用技巧</div>
+      <div style="font-size:12px;color:var(--dim);margin-top:4px">Prompt 模板 · 验收要点</div>
+    </a>
+  </div>
+</div>
+
+</div><!-- .page -->
+
+<div class="footer">
+  <p>游戏项目知识库 · UI 资源规范 · 切图与命名 · v1.0</p>
+</div>
+
+<script>
+function copyText(t){navigator.clipboard.writeText(t).then(()=>showToast('已复制: '+t)).catch(()=>showToast('复制失败'));}
+function copyBlock(id){const el=document.getElementById(id);const t=el.innerText;navigator.clipboard.writeText(t).then(()=>showToast('已复制代码块')).catch(()=>showToast('复制失败'));}
+function copyChecklist(){
+  const groups=document.querySelectorAll('.checklist-group');
+  let text='# UI 切图交付 Checklist\n\n';
+  groups.forEach(g=>{
+    const title=g.querySelector('.checklist-group-title').textContent;
+    text+=`## ${title}\n`;
+    g.querySelectorAll('.check-item').forEach(item=>{
+      const t=item.querySelector('span').textContent.replace(/高频|中频|低频/g,'').trim();
+      text+=`- [ ] ${t}\n`;
+    });
+    text+='\n';
+  });
+  navigator.clipboard.writeText(text).then(()=>showToast('Checklist 已复制为 Markdown')).catch(()=>showToast('复制失败'));
+}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+</script>
+</body>
+</html>
