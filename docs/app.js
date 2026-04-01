@@ -119,7 +119,7 @@ function updateNavActive(pageId,btn){
   // Auto-expand parent categories
   if(catMap[pageId]){var cat=document.getElementById(catMap[pageId]);if(cat&&!cat.classList.contains('open'))cat.classList.add('open');}
   var al=document.querySelector('.leaf.active');
-  if(al){var l2=al.closest('.t2');if(l2&&!l2.classList.contains('open'))l2.classList.add('open');}
+  if(al){var l2=al.closest('.t2');if(l2&&!l2.classList.contains('open'))l2.classList.add('open');var l3=al.closest('.t3');if(l3&&!l3.classList.contains('open'))l3.classList.add('open');}
 }
 
 // ═══ TOC 三级大纲 (h2 + h3) ═══
