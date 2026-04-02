@@ -85,7 +85,7 @@ function buildSidebar(data){
         html+='<div class="t2"><div class="t2-h" onclick="this.parentElement.classList.toggle(\'open\')"><span class="chv">▶</span><span class="si">'+grp.icon+'</span><span class="sl">'+grp.name+'</span></div><div class="t2-c">';
         if(grp.items) grp.items.forEach(function(item){
           // 注册页面
-          pageRegistry[item.id]={type:item.type,file:item.file||'',download:item.download||'',catId:cat.id};
+          pageRegistry[item.id]={type:item.type,file:item.file||'',download:item.download||'',badge:item.badge||'',catId:cat.id};
           var badgeCls=item.badge==='工具'?'bt':'bd';
           html+='<button class="leaf" data-page="'+item.id+'" onclick="navigate(\''+item.id+'\',this)"><span class="li">'+item.icon+'</span>'+item.title+'<span class="badge '+badgeCls+'">'+item.badge+'</span></button>';
           html+='<div class="toc-box" id="toc-'+item.id+'"></div>';
@@ -100,12 +100,16 @@ function buildSidebar(data){
   // 更新首页统计
   var docCount=0,toolCount=0;
   for(var k in pageRegistry){
-    if(pageRegistry[k].type==='md'||pageRegistry[k].type==='iframe') docCount++;
-    if(pageRegistry[k].type==='tool') toolCount++;
+    // 规范文档：badge 为"文档"的条目（md 或 iframe 文档类）
+    if(pageRegistry[k].badge==='文档') docCount++;
+    // 生产工具：type==='tool' 或有 download 的条目
+    if(pageRegistry[k].type==='tool'||pageRegistry[k].download) toolCount++;
   }
+  // 加上 toolData 中注册但不在 pageRegistry 中的工具
+  var toolDataCount=Object.keys(toolData).length;
   var numEls=document.querySelectorAll('.stat .num');
-  if(numEls[0]) numEls[0].textContent=String(docCount+toolCount);
-  if(numEls[1]) numEls[1].textContent=String(Object.keys(toolData).length + Object.keys(pageRegistry).filter(function(k){return pageRegistry[k].download;}).length);
+  if(numEls[0]) numEls[0].textContent=String(docCount);
+  if(numEls[1]) numEls[1].textContent=String(toolDataCount + Object.keys(pageRegistry).filter(function(k){return pageRegistry[k].download;}).length);
   if(numEls[2]) numEls[2].textContent=String(data.categories.length);
 }
 
