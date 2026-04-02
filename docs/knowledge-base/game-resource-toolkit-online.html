@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>游戏资源工具集 (在线版) - Game Resource Toolkit Online</title>
+<style>
+:root{--bg:#0d0f15;--panel:#111320;--card:#161829;--card-hover:#1a1d30;--border:#222540;--border-hover:#6c8cff;--text:#c5c9d6;--dim:#6b7085;--heading:#e8eaed;--white:#fff;--accent:#6c8cff;--accent-light:#8ba3ff;--accent-bg:rgba(108,140,255,.07);--green:#4ade80;--green-bg:rgba(74,222,128,.07);--orange:#fb923c;--orange-bg:rgba(251,146,60,.07);--red:#f87171;--red-bg:rgba(248,113,113,.07);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.07);--cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.07);--yellow:#fbbf24;--yellow-bg:rgba(251,191,36,.07)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;overflow:hidden;height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.app{display:flex;flex-direction:column;height:100vh}
+/* Header */
+.header{padding:16px 24px;border-bottom:1px solid var(--border);background:var(--panel);display:flex;align-items:center;gap:14px;flex-shrink:0}
+.header-icon{width:40px;height:40px;background:var(--cyan-bg);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.header-info h1{font-size:17px;color:var(--heading);font-weight:700}
+.header-info p{font-size:12px;color:var(--dim)}
+.header-badges{display:flex;gap:6px;margin-left:auto;flex-shrink:0}
+.badge{font-size:10px;padding:3px 10px;border-radius:6px;font-weight:500}
+.badge-online{background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,.15)}
+.badge-ver{background:var(--accent-bg);color:var(--accent);border:1px solid rgba(108,140,255,.15)}
+/* Tabs */
+.tab-bar{display:flex;padding:0 20px;border-bottom:1px solid var(--border);background:var(--panel);flex-shrink:0}
+.tab{padding:10px 20px;font-size:13px;color:var(--dim);cursor:pointer;border:none;background:none;font-family:inherit;border-bottom:2px solid transparent;transition:all .15s;display:flex;align-items:center;gap:6px}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
+.tab .tab-icon{font-size:15px}
+/* Main */
+.main-area{flex:1;overflow:hidden;position:relative}
+.tab-panel{position:absolute;inset:0;overflow-y:auto;padding:24px;display:none}
+.tab-panel.active{display:block}
+/* Common */
+.section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+.section-title{font-size:14px;font-weight:600;color:var(--heading);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:32px 16px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(108,140,255,.02)}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:var(--accent-bg)}
+.drop-zone .dz-icon{font-size:32px;margin-bottom:8px}
+.drop-zone .dz-text{font-size:13px;color:var(--dim)}
+.drop-zone .dz-hint{font-size:11px;color:var(--dim);margin-top:4px;opacity:.7}
+.btn{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#5a7aee}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.15)}
+.btn-success{background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,.15)}
+.btn-group{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.param-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.param-label{font-size:12px;color:var(--text)}
+.param-value{font-size:12px;color:var(--accent);font-weight:600;min-width:50px;text-align:right}
+.slider{width:100%;-webkit-appearance:none;background:var(--border);height:4px;border-radius:2px;outline:none;margin-top:4px}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer}
+.input-wrap{width:100%}
+.input-wrap input,.input-wrap select{width:100%;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:inherit;outline:none}
+.input-wrap input:focus,.input-wrap select:focus{border-color:var(--accent)}
+.checkbox-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;cursor:pointer}
+.checkbox-row input{accent-color:var(--accent)}
+/* Results Table */
+.result-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+.result-table th{background:var(--card);padding:8px 12px;text-align:left;font-weight:600;color:var(--heading);border:1px solid var(--border);position:sticky;top:0;z-index:1}
+.result-table td{padding:6px 12px;border:1px solid var(--border);vertical-align:middle}
+.result-table tr:hover td{background:rgba(108,140,255,.03)}
+.tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:500}
+.tag-pass{background:var(--green-bg);color:var(--green)}
+.tag-fail{background:var(--red-bg);color:var(--red)}
+.tag-warn{background:var(--orange-bg);color:var(--orange)}
+.tag-dup{background:var(--purple-bg);color:var(--purple)}
+.tag-info{background:var(--accent-bg);color:var(--accent)}
+/* Progress */
+.progress-wrap{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:8px}
+.progress-bar{height:100%;background:var(--accent);border-radius:2px;transition:width .3s;width:0}
+/* Stats */
+.stats-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.stat-chip{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 14px}
+.stat-chip .num{font-size:18px;font-weight:700;color:var(--heading)}
+.stat-chip .label{font-size:10px;color:var(--dim)}
+/* Compare */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.compare-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.compare-card h4{font-size:13px;color:var(--heading);margin-bottom:10px}
+.compare-card .preview-img{max-width:100%;max-height:200px;border-radius:6px;margin:8px 0}
+.compare-card .meta{font-size:11px;color:var(--dim)}
+/* Diff canvas */
+.diff-wrap{text-align:center;margin-top:16px}
+.diff-wrap canvas{max-width:100%;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+/* File input hidden */
+.file-input{display:none}
+/* Empty state */
+.empty-state{text-align:center;padding:60px 20px;color:var(--dim)}
+.empty-state .es-icon{font-size:48px;margin-bottom:12px;opacity:.5}
+.empty-state p{font-size:13px}
+/* Log */
+.log-panel{max-height:120px;overflow-y:auto;padding:8px 12px;background:rgba(0,0,0,.2);border-radius:8px;font-size:11px;font-family:'Consolas',monospace;margin-top:12px}
+.log-line{padding:1px 0;color:var(--dim)}
+.log-line.info{color:var(--accent-light)}
+.log-line.success{color:var(--green)}
+.log-line.warn{color:var(--orange)}
+.log-line.error{color:var(--red)}
+/* Responsive */
+@media(max-width:768px){.compare-grid{grid-template-columns:1fr}.stats-row{gap:8px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-icon">🛠️</div>
+    <div class="header-info">
+      <h1>游戏资源工具集 <small style="font-size:12px;color:var(--dim)">在线版</small></h1>
+      <p>资源检测 + 图片续排 + 版本对比 + 问题修复 · 纯浏览器运行</p>
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-online">🟢 在线工具</span>
+      <span class="badge badge-ver">v1.0</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab active" data-tab="check" onclick="switchTab('check')"><span class="tab-icon">📋</span> 资源检测</button>
+    <button class="tab" data-tab="rename" onclick="switchTab('rename')"><span class="tab-icon">🔢</span> 图片续排</button>
+    <button class="tab" data-tab="compare" onclick="switchTab('compare')"><span class="tab-icon">🔄</span> 版本对比</button>
+    <button class="tab" data-tab="fix" onclick="switchTab('fix')"><span class="tab-icon">🔧</span> 问题修复</button>
+  </div>
+
+  <!-- Main -->
+  <div class="main-area">
+
+    <!-- ═══ Tab 1: 资源检测 ═══ -->
+    <div class="tab-panel active" id="panel-check">
+      <div class="section">
+        <div class="section-title">📁 添加资源文件</div>
+        <div class="drop-zone" id="checkDropZone" onclick="document.getElementById('checkFileInput').click()">
+          <div class="dz-icon">📁</div>
+          <div class="dz-text">点击选择 或 拖拽图片到此处</div>
+          <div class="dz-hint">支持 PNG / JPG / JPEG / WEBP / BMP / TGA / TIF</div>
+        </div>
+        <input type="file" id="checkFileInput" class="file-input" multiple accept="image/*">
+      </div>
+
+      <div class="section">
+        <div class="section-title">⚙️ 检测规则</div>
+        <div class="param-row">
+          <span class="param-label">最大尺寸限制</span>
+          <span class="param-value" id="maxSizeVal">2048 px</span>
+        </div>
+        <input type="range" class="slider" id="maxSize" min="256" max="8192" step="256" value="2048" oninput="document.getElementById('maxSizeVal').textContent=this.value+' px'">
+        <div class="param-row" style="margin-top:12px">
+          <span class="param-label">尺寸规则</span>
+        </div>
+        <div class="input-wrap" style="margin-bottom:12px">
+          <select id="sizeRule">
+            <option value="pot">2 的幂次方 (POT)</option>
+            <option value="mul4">4 的倍数</option>
+            <option value="mul8">8 的倍数</option>
+            <option value="none">不检查</option>
+          </select>
+        </div>
+        <div class="param-row">
+          <span class="param-label">命名规则 (正则)</span>
+        </div>
+        <div class="input-wrap" style="margin-bottom:12px">
+          <input type="text" id="nameRegex" value="^[A-Za-z0-9_\\-]+$" placeholder="正则表达式">
+        </div>
+        <div class="param-row">
+          <span class="param-label">最大文件大小</span>
+          <span class="param-value" id="maxFileSizeVal">500 KB</span>
+        </div>
+        <input type="range" class="slider" id="maxFileSize" min="50" max="5000" step="50" value="500" oninput="document.getElementById('maxFileSizeVal').textContent=this.value+' KB'">
+        <label class="checkbox-row" style="margin-top:10px"><input type="checkbox" id="checkDup" checked> 检测重复资源 (MD5)</label>
+      </div>
+
+      <div class="section">
+        <div class="btn-group">
+          <button class="btn btn-primary" id="checkStartBtn" onclick="startCheck()" disabled>🔍 开始检测</button>
+          <button class="btn btn-secondary" onclick="exportCheckReport()">📊 导出报告</button>
+          <button class="btn btn-danger" onclick="clearCheck()">🗑️ 清空</button>
+        </div>
+        <div class="progress-wrap" id="checkProgress" style="display:none"><div class="progress-bar" id="checkProgressBar"></div></div>
+      </div>
+
+      <div id="checkStatsArea" style="display:none">
+        <div class="stats-row" id="checkStats"></div>
+      </div>
+
+      <div id="checkResultArea">
+        <div class="empty-state"><div class="es-icon">📋</div><p>添加文件后点击"开始检测"查看结果</p></div>
+      </div>
+    </div>
+
+    <!-- ═══ Tab 2: 图片续排 ═══ -->
+    <div class="tab-panel" id="panel-rename">
+      <div class="section">
+        <div class="section-title">🔢 图片续排重命名</div>
+        <div class="param-row"><span class="param-label">命名前缀</span></div>
+        <div class="input-wrap" style="margin-bottom:12px"><input type="text" id="renamePrefix" value="hero_" placeholder="命名前缀"></div>
+        <div class="param-row"><span class="param-label">起始编号</span></div>
+        <div class="input-wrap" style="margin-bottom:12px"><input type="number" id="renameStart" value="1" min="0" step="1"></div>
+        <div class="param-row"><span class="param-label">编号位数</span><span class="param-value" id="renamePadVal">3</span></div>
+        <input type="range" class="slider" id="renamePad" min="1" max="6" step="1" value="3" oninput="document.getElementById('renamePadVal').textContent=this.value">
+      </div>
+      <div class="section">
+        <div class="section-title">📁 添加待重命名图片</div>
+        <div class="drop-zone" id="renameDropZone" onclick="document.getElementById('renameFileInput').click()">
+          <div class="dz-icon">🖼️</div>
+          <div class="dz-text">拖拽图片到此处</div>
+          <div class="dz-hint">将按顺序分配新名称</div>
+        </div>
+        <input type="file" id="renameFileInput" class="file-input" multiple accept="image/*">
+        <div class="btn-group">
+          <button class="btn btn-primary" id="renameBtn" onclick="doRename()" disabled>🔢 预览重命名</button>
+          <button class="btn btn-success" id="renameDownloadBtn" onclick="downloadRenamed()" disabled>⬇ 下载全部</button>
+          <button class="btn btn-danger" onclick="clearRename()">🗑️ 清空</button>
+        </div>
+      </div>
+      <div id="renameResultArea">
+        <div class="empty-state"><div class="es-icon">🔢</div><p>添加图片后预览重命名结果</p></div>
+      </div>
+    </div>
+
+    <!-- ═══ Tab 3: 版本对比 ═══ -->
+    <div class="tab-panel" id="panel-compare">
+      <div class="compare-grid">
+        <div class="section">
+          <div class="section-title">📁 旧版本图片</div>
+          <div class="drop-zone" id="compareOldDrop" onclick="document.getElementById('compareOldInput').click()">
+            <div class="dz-icon">📄</div>
+            <div class="dz-text">拖拽旧版本图片</div>
+          </div>
+          <input type="file" id="compareOldInput" class="file-input" multiple accept="image/*">
+          <div id="compareOldCount" style="font-size:11px;color:var(--dim);margin-top:8px"></div>
+        </div>
+        <div class="section">
+          <div class="section-title">📁 新版本图片</div>
+          <div class="drop-zone" id="compareNewDrop" onclick="document.getElementById('compareNewInput').click()">
+            <div class="dz-icon">📄</div>
+            <div class="dz-text">拖拽新版本图片</div>
+          </div>
+          <input type="file" id="compareNewInput" class="file-input" multiple accept="image/*">
+          <div id="compareNewCount" style="font-size:11px;color:var(--dim);margin-top:8px"></div>
+        </div>
+      </div>
+      <div class="section" style="margin-top:16px">
+        <div class="btn-group">
+          <button class="btn btn-primary" id="compareBtn" onclick="startCompare()" disabled>🔄 开始对比</button>
+          <button class="btn btn-danger" onclick="clearCompare()">🗑️ 清空</button>
+        </div>
+      </div>
+      <div id="compareResultArea">
+        <div class="empty-state"><div class="es-icon">🔄</div><p>分别添加旧版和新版图片，按文件名匹配对比</p></div>
+      </div>
+    </div>
+
+    <!-- ═══ Tab 4: 问题修复 ═══ -->
+    <div class="tab-panel" id="panel-fix">
+      <div class="section">
+        <div class="section-title">🔧 批量问题修复</div>
+        <div class="drop-zone" id="fixDropZone" onclick="document.getElementById('fixFileInput').click()">
+          <div class="dz-icon">🔧</div>
+          <div class="dz-text">拖拽需要修复的图片</div>
+          <div class="dz-hint">支持批量修复命名、尺寸、格式等问题</div>
+        </div>
+        <input type="file" id="fixFileInput" class="file-input" multiple accept="image/*">
+      </div>
+      <div class="section">
+        <div class="section-title">🛠️ 修复选项</div>
+        <label class="checkbox-row"><input type="checkbox" id="fixName" checked> 📝 命名修复 — 移除中文/空格/特殊字符</label>
+        <label class="checkbox-row"><input type="checkbox" id="fixSize"> 📐 尺寸调整 — 等比缩放到最大尺寸限制</label>
+        <label class="checkbox-row"><input type="checkbox" id="fixFormat"> 🔄 格式转换 — 统一转为 PNG</label>
+        <div class="param-row" style="margin-top:12px">
+          <span class="param-label">尺寸上限</span>
+          <span class="param-value" id="fixMaxSizeVal">2048 px</span>
+        </div>
+        <input type="range" class="slider" id="fixMaxSize" min="256" max="8192" step="256" value="2048" oninput="document.getElementById('fixMaxSizeVal').textContent=this.value+' px'">
+      </div>
+      <div class="section">
+        <div class="btn-group">
+          <button class="btn btn-primary" id="fixStartBtn" onclick="startFix()" disabled>🔧 开始修复</button>
+          <button class="btn btn-success" id="fixDownloadBtn" onclick="downloadFixed()" disabled>⬇ 下载修复后文件</button>
+          <button class="btn btn-danger" onclick="clearFix()">🗑️ 清空</button>
+        </div>
+        <div class="progress-wrap" id="fixProgress" style="display:none"><div class="progress-bar" id="fixProgressBar"></div></div>
+      </div>
+      <div id="fixResultArea">
+        <div class="empty-state"><div class="es-icon">🔧</div><p>添加文件后选择修复选项开始批量修复</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══ Tab Switching ═══
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab === tab); });
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.toggle('active', p.id === 'panel-' + tab); });
+}
+
+// ═══ Utility ═══
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1024/1024).toFixed(1) + ' MB';
+}
+
+function isPOT(n) { return n > 0 && (n & (n-1)) === 0; }
+
+async function computeHash(file) {
+  var buffer = await file.arrayBuffer();
+  var hash = await crypto.subtle.digest('SHA-256', buffer);
+  return Array.from(new Uint8Array(hash)).map(function(b){return b.toString(16).padStart(2,'0')}).join('');
+}
+
+function loadImg(file) {
+  return new Promise(function(resolve, reject) {
+    var img = new Image();
+    img.onload = function() { resolve(img); URL.revokeObjectURL(img.src); };
+    img.onerror = function() { reject(new Error('无法加载')); URL.revokeObjectURL(img.src); };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+// ═══ Drag & Drop Setup ═══
+function setupDrop(dropId, inputId, callback) {
+  var dz = document.getElementById(dropId);
+  var input = document.getElementById(inputId);
+  dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', function() { dz.classList.remove('dragover'); });
+  dz.addEventListener('drop', function(e) { e.preventDefault(); dz.classList.remove('dragover'); callback(e.dataTransfer.files); });
+  input.addEventListener('change', function() { callback(input.files); input.value=''; });
+}
+
+// ═══════════════════════════
+// Tab 1: 资源检测
+// ═══════════════════════════
+var checkFiles = [];
+var checkResults = [];
+
+setupDrop('checkDropZone', 'checkFileInput', function(fileList) {
+  for (var i = 0; i < fileList.length; i++) {
+    if (fileList[i].type.startsWith('image/') || fileList[i].name.match(/\.(png|jpe?g|webp|bmp|tga|tiff?)$/i)) {
+      checkFiles.push(fileList[i]);
+    }
+  }
+  document.getElementById('checkStartBtn').disabled = checkFiles.length === 0;
+  document.getElementById('checkResultArea').innerHTML = '<div class="empty-state"><div class="es-icon">✅</div><p>已添加 ' + checkFiles.length + ' 个文件，点击"开始检测"</p></div>';
+});
+
+async function startCheck() {
+  if (checkFiles.length === 0) return;
+  checkResults = [];
+  var btn = document.getElementById('checkStartBtn');
+  btn.disabled = true; btn.textContent = '⏳ 检测中...';
+  var progressWrap = document.getElementById('checkProgress');
+  var progressBar = document.getElementById('checkProgressBar');
+  progressWrap.style.display = 'block';
+
+  var maxSize = parseInt(document.getElementById('maxSize').value);
+  var sizeRule = document.getElementById('sizeRule').value;
+  var nameRegex = document.getElementById('nameRegex').value;
+  var maxFileSize = parseInt(document.getElementById('maxFileSize').value) * 1024;
+  var checkDup = document.getElementById('checkDup').checked;
+
+  var regex = null;
+  try { regex = new RegExp(nameRegex); } catch(e) {}
+
+  var hashMap = {};
+
+  for (var i = 0; i < checkFiles.length; i++) {
+    progressBar.style.width = Math.round((i / checkFiles.length) * 100) + '%';
+    var f = checkFiles[i];
+    var issues = [];
+    var baseName = f.name.replace(/\.\w+$/, '');
+
+    try {
+      var img = await loadImg(f);
+      var w = img.width, h = img.height;
+
+      // Size check
+      if (w > maxSize || h > maxSize) {
+        issues.push({ type: 'size', msg: '尺寸超限: ' + w + '×' + h + ' > ' + maxSize });
+      }
+
+      // Size rule
+      if (sizeRule === 'pot' && (!isPOT(w) || !isPOT(h))) {
+        issues.push({ type: 'rule', msg: '尺寸非 2^N: ' + w + '×' + h });
+      } else if (sizeRule === 'mul4' && (w%4!==0 || h%4!==0)) {
+        issues.push({ type: 'rule', msg: '尺寸非 4 倍数: ' + w + '×' + h });
+      } else if (sizeRule === 'mul8' && (w%8!==0 || h%8!==0)) {
+        issues.push({ type: 'rule', msg: '尺寸非 8 倍数: ' + w + '×' + h });
+      }
+
+      // Name check
+      if (regex && !regex.test(baseName)) {
+        issues.push({ type: 'name', msg: '命名不规范: ' + baseName });
+      }
+
+      // File size
+      if (f.size > maxFileSize) {
+        issues.push({ type: 'filesize', msg: '文件过大: ' + formatBytes(f.size) + ' > ' + formatBytes(maxFileSize) });
+      }
+
+      // Duplicate
+      if (checkDup) {
+        var hash = await computeHash(f);
+        if (hashMap[hash]) {
+          issues.push({ type: 'dup', msg: '重复: 与 ' + hashMap[hash] + ' 相同' });
+        } else {
+          hashMap[hash] = f.name;
+        }
+      }
+
+      checkResults.push({ name: f.name, size: f.size, width: w, height: h, issues: issues, file: f });
+    } catch(e) {
+      checkResults.push({ name: f.name, size: f.size, width: 0, height: 0, issues: [{ type: 'error', msg: '加载失败' }], file: f });
+    }
+
+    await new Promise(function(r) { setTimeout(r, 5); });
+  }
+
+  progressBar.style.width = '100%';
+  btn.disabled = false; btn.textContent = '🔍 开始检测';
+  setTimeout(function() { progressWrap.style.display = 'none'; progressBar.style.width = '0'; }, 800);
+
+  renderCheckResults();
+}
+
+function renderCheckResults() {
+  var pass = 0, fail = 0, dup = 0;
+  checkResults.forEach(function(r) {
+    if (r.issues.length === 0) pass++;
+    else {
+      r.issues.forEach(function(iss) { if (iss.type === 'dup') dup++; else fail++; });
+      if (r.issues.every(function(i){return i.type==='dup';})) ; else fail = fail;
+    }
+  });
+  fail = checkResults.filter(function(r){return r.issues.some(function(i){return i.type!=='dup';});}).length;
+  dup = checkResults.filter(function(r){return r.issues.some(function(i){return i.type==='dup';});}).length;
+  pass = checkResults.length - fail - dup + (dup > 0 && fail > 0 ? 0 : 0);
+  pass = checkResults.filter(function(r){return r.issues.length===0;}).length;
+
+  document.getElementById('checkStatsArea').style.display = 'block';
+  document.getElementById('checkStats').innerHTML =
+    '<div class="stat-chip"><span class="num">' + checkResults.length + '</span><span class="label">总文件</span></div>'
+    + '<div class="stat-chip"><span class="num" style="color:var(--green)">' + pass + '</span><span class="label">通过</span></div>'
+    + '<div class="stat-chip"><span class="num" style="color:var(--red)">' + fail + '</span><span class="label">问题</span></div>'
+    + '<div class="stat-chip"><span class="num" style="color:var(--purple)">' + dup + '</span><span class="label">重复</span></div>';
+
+  var html = '<div style="max-height:400px;overflow:auto"><table class="result-table"><thead><tr><th>#</th><th>文件名</th><th>尺寸</th><th>大小</th><th>状态</th><th>问题</th></tr></thead><tbody>';
+  checkResults.forEach(function(r, i) {
+    var statusTag = r.issues.length === 0 ? '<span class="tag tag-pass">✓ 通过</span>' : '<span class="tag tag-fail">✗ 问题</span>';
+    var issueHtml = r.issues.map(function(iss) {
+      var cls = iss.type === 'dup' ? 'tag-dup' : iss.type === 'name' ? 'tag-warn' : 'tag-fail';
+      return '<span class="tag ' + cls + '">' + iss.msg + '</span>';
+    }).join(' ');
+    if (r.issues.length === 0) issueHtml = '<span style="color:var(--dim)">—</span>';
+    html += '<tr><td>' + (i+1) + '</td><td title="' + r.name + '" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + r.name + '</td><td>' + r.width + '×' + r.height + '</td><td>' + formatBytes(r.size) + '</td><td>' + statusTag + '</td><td>' + issueHtml + '</td></tr>';
+  });
+  html += '</tbody></table></div>';
+  document.getElementById('checkResultArea').innerHTML = html;
+}
+
+function exportCheckReport() {
+  if (checkResults.length === 0) return;
+  var csv = '文件名,宽度,高度,大小(KB),状态,问题\n';
+  checkResults.forEach(function(r) {
+    var status = r.issues.length === 0 ? '通过' : '问题';
+    var issues = r.issues.map(function(i){return i.msg;}).join('; ');
+    csv += '"' + r.name + '",' + r.width + ',' + r.height + ',' + (r.size/1024).toFixed(1) + ',' + status + ',"' + issues + '"\n';
+  });
+  var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '资源检测报告_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+function clearCheck() {
+  checkFiles = []; checkResults = [];
+  document.getElementById('checkStartBtn').disabled = true;
+  document.getElementById('checkStatsArea').style.display = 'none';
+  document.getElementById('checkResultArea').innerHTML = '<div class="empty-state"><div class="es-icon">📋</div><p>添加文件后点击"开始检测"查看结果</p></div>';
+}
+
+// ═══════════════════════════
+// Tab 2: 图片续排
+// ═══════════════════════════
+var renameFiles = [];
+var renameResults = [];
+
+setupDrop('renameDropZone', 'renameFileInput', function(fileList) {
+  for (var i = 0; i < fileList.length; i++) {
+    if (fileList[i].type.startsWith('image/')) renameFiles.push(fileList[i]);
+  }
+  document.getElementById('renameBtn').disabled = renameFiles.length === 0;
+  document.getElementById('renameResultArea').innerHTML = '<div class="empty-state"><div class="es-icon">✅</div><p>已添加 ' + renameFiles.length + ' 个文件</p></div>';
+});
+
+function doRename() {
+  if (renameFiles.length === 0) return;
+  renameResults = [];
+  var prefix = document.getElementById('renamePrefix').value || 'img_';
+  var start = parseInt(document.getElementById('renameStart').value) || 1;
+  var pad = parseInt(document.getElementById('renamePad').value) || 3;
+
+  var html = '<div style="max-height:300px;overflow:auto"><table class="result-table"><thead><tr><th>#</th><th>原始文件名</th><th>→</th><th>新文件名</th></tr></thead><tbody>';
+  renameFiles.forEach(function(f, i) {
+    var ext = f.name.match(/\.\w+$/);
+    ext = ext ? ext[0] : '.png';
+    var num = String(start + i).padStart(pad, '0');
+    var newName = prefix + num + ext;
+    renameResults.push({ file: f, newName: newName });
+    html += '<tr><td>' + (i+1) + '</td><td>' + f.name + '</td><td>→</td><td style="color:var(--green);font-weight:600">' + newName + '</td></tr>';
+  });
+  html += '</tbody></table></div>';
+  document.getElementById('renameResultArea').innerHTML = html;
+  document.getElementById('renameDownloadBtn').disabled = false;
+}
+
+async function downloadRenamed() {
+  if (renameResults.length === 0) return;
+  for (var i = 0; i < renameResults.length; i++) {
+    var r = renameResults[i];
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(r.file);
+    a.download = r.newName;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    await new Promise(function(r){setTimeout(r,200);});
+  }
+}
+
+function clearRename() {
+  renameFiles = []; renameResults = [];
+  document.getElementById('renameBtn').disabled = true;
+  document.getElementById('renameDownloadBtn').disabled = true;
+  document.getElementById('renameResultArea').innerHTML = '<div class="empty-state"><div class="es-icon">🔢</div><p>添加图片后预览重命名结果</p></div>';
+}
+
+// ═══════════════════════════
+// Tab 3: 版本对比
+// ═══════════════════════════
+var compareOldFiles = [];
+var compareNewFiles = [];
+
+setupDrop('compareOldDrop', 'compareOldInput', function(fileList) {
+  for (var i = 0; i < fileList.length; i++) {
+    if (fileList[i].type.startsWith('image/')) compareOldFiles.push(fileList[i]);
+  }
+  document.getElementById('compareOldCount').textContent = '已添加 ' + compareOldFiles.length + ' 个旧版文件';
+  document.getElementById('compareBtn').disabled = compareOldFiles.length === 0 || compareNewFiles.length === 0;
+});
+
+setupDrop('compareNewDrop', 'compareNewInput', function(fileList) {
+  for (var i = 0; i < fileList.length; i++) {
+    if (fileList[i].type.startsWith('image/')) compareNewFiles.push(fileList[i]);
+  }
+  document.getElementById('compareNewCount').textContent = '已添加 ' + compareNewFiles.length + ' 个新版文件';
+  document.getElementById('compareBtn').disabled = compareOldFiles.length === 0 || compareNewFiles.length === 0;
+});
+
+async function startCompare() {
+  if (compareOldFiles.length === 0 || compareNewFiles.length === 0) return;
+
+  var oldMap = {};
+  compareOldFiles.forEach(function(f) { oldMap[f.name] = f; });
+  var newMap = {};
+  compareNewFiles.forEach(function(f) { newMap[f.name] = f; });
+
+  var allNames = {};
+  Object.keys(oldMap).forEach(function(n) { allNames[n] = true; });
+  Object.keys(newMap).forEach(function(n) { allNames[n] = true; });
+
+  var results = [];
+  var names = Object.keys(allNames).sort();
+
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    var old = oldMap[name];
+    var nw = newMap[name];
+
+    if (!old) {
+      results.push({ name: name, status: 'added', oldSize: 0, newSize: nw.size });
+    } else if (!nw) {
+      results.push({ name: name, status: 'deleted', oldSize: old.size, newSize: 0 });
+    } else {
+      var oldHash = await computeHash(old);
+      var newHash = await computeHash(nw);
+      if (oldHash === newHash) {
+        results.push({ name: name, status: 'unchanged', oldSize: old.size, newSize: nw.size });
+      } else {
+        results.push({ name: name, status: 'modified', oldSize: old.size, newSize: nw.size, oldFile: old, newFile: nw });
+      }
+    }
+  }
+
+  var added = results.filter(function(r){return r.status==='added';}).length;
+  var deleted = results.filter(function(r){return r.status==='deleted';}).length;
+  var modified = results.filter(function(r){return r.status==='modified';}).length;
+  var unchanged = results.filter(function(r){return r.status==='unchanged';}).length;
+
+  var html = '<div class="stats-row" style="margin-top:16px">'
+    + '<div class="stat-chip"><span class="num">' + names.length + '</span><span class="label">总文件</span></div>'
+    + '<div class="stat-chip"><span class="num" style="color:var(--green)">+' + added + '</span><span class="label">新增</span></div>'
+    + '<div class="stat-chip"><span class="num" style="color:var(--red)">-' + deleted + '</span><span class="label">删除</span></div>'
+    + '<div class="stat-chip"><span class="num" style="color:var(--orange)">' + modified + '</span><span class="label">修改</span></div>'
+    + '<div class="stat-chip"><span class="num" style="color:var(--dim)">' + unchanged + '</span><span class="label">未变</span></div>'
+    + '</div>';
+
+  html += '<div style="max-height:350px;overflow:auto"><table class="result-table"><thead><tr><th>文件名</th><th>状态</th><th>旧大小</th><th>新大小</th><th>差异</th></tr></thead><tbody>';
+  results.forEach(function(r) {
+    var statusTag = '';
+    if (r.status === 'added') statusTag = '<span class="tag tag-pass">+ 新增</span>';
+    else if (r.status === 'deleted') statusTag = '<span class="tag tag-fail">- 删除</span>';
+    else if (r.status === 'modified') statusTag = '<span class="tag tag-warn">~ 修改</span>';
+    else statusTag = '<span class="tag tag-info">= 未变</span>';
+
+    var diff = r.newSize - r.oldSize;
+    var diffStr = diff > 0 ? '+' + formatBytes(diff) : diff < 0 ? '-' + formatBytes(-diff) : '—';
+    var diffColor = diff > 0 ? 'var(--red)' : diff < 0 ? 'var(--green)' : 'var(--dim)';
+
+    html += '<tr><td>' + r.name + '</td><td>' + statusTag + '</td><td>' + (r.oldSize ? formatBytes(r.oldSize) : '—') + '</td><td>' + (r.newSize ? formatBytes(r.newSize) : '—') + '</td><td style="color:' + diffColor + '">' + diffStr + '</td></tr>';
+  });
+  html += '</tbody></table></div>';
+  document.getElementById('compareResultArea').innerHTML = html;
+}
+
+function clearCompare() {
+  compareOldFiles = []; compareNewFiles = [];
+  document.getElementById('compareOldCount').textContent = '';
+  document.getElementById('compareNewCount').textContent = '';
+  document.getElementById('compareBtn').disabled = true;
+  document.getElementById('compareResultArea').innerHTML = '<div class="empty-state"><div class="es-icon">🔄</div><p>分别添加旧版和新版图片，按文件名匹配对比</p></div>';
+}
+
+// ═══════════════════════════
+// Tab 4: 问题修复
+// ═══════════════════════════
+var fixFiles = [];
+var fixResults = [];
+
+setupDrop('fixDropZone', 'fixFileInput', function(fileList) {
+  for (var i = 0; i < fileList.length; i++) {
+    if (fileList[i].type.startsWith('image/')) fixFiles.push(fileList[i]);
+  }
+  document.getElementById('fixStartBtn').disabled = fixFiles.length === 0;
+  document.getElementById('fixResultArea').innerHTML = '<div class="empty-state"><div class="es-icon">✅</div><p>已添加 ' + fixFiles.length + ' 个文件，选择修复选项后点击开始</p></div>';
+});
+
+async function startFix() {
+  if (fixFiles.length === 0) return;
+  fixResults = [];
+  var btn = document.getElementById('fixStartBtn');
+  btn.disabled = true; btn.textContent = '⏳ 修复中...';
+  var progressWrap = document.getElementById('fixProgress');
+  var progressBar = document.getElementById('fixProgressBar');
+  progressWrap.style.display = 'block';
+
+  var doName = document.getElementById('fixName').checked;
+  var doSize = document.getElementById('fixSize').checked;
+  var doFormat = document.getElementById('fixFormat').checked;
+  var maxDim = parseInt(document.getElementById('fixMaxSize').value);
+
+  for (var i = 0; i < fixFiles.length; i++) {
+    progressBar.style.width = Math.round((i / fixFiles.length) * 100) + '%';
+    var f = fixFiles[i];
+    var fixes = [];
+    var newName = f.name;
+
+    // Name fix
+    if (doName) {
+      var base = newName.replace(/\.\w+$/, '');
+      var ext = newName.match(/\.\w+$/); ext = ext ? ext[0] : '.png';
+      var fixed = base.replace(/[^\w\-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+      if (fixed !== base) {
+        newName = fixed + ext;
+        fixes.push('命名修复');
+      }
+    }
+
+    try {
+      var img = await loadImg(f);
+      var w = img.width, h = img.height;
+      var needResize = doSize && (w > maxDim || h > maxDim);
+      var needConvert = doFormat && !f.name.match(/\.png$/i);
+
+      if (needResize || needConvert) {
+        var c = document.createElement('canvas');
+        var nw = w, nh = h;
+        if (needResize) {
+          var scale = maxDim / Math.max(w, h);
+          nw = Math.round(w * scale);
+          nh = Math.round(h * scale);
+          fixes.push('尺寸调整: ' + w + '×' + h + ' → ' + nw + '×' + nh);
+        }
+        c.width = nw; c.height = nh;
+        c.getContext('2d').drawImage(img, 0, 0, nw, nh);
+
+        if (needConvert) {
+          newName = newName.replace(/\.\w+$/, '.png');
+          fixes.push('格式转换 → PNG');
+        }
+
+        var blob = await new Promise(function(resolve) { c.toBlob(function(b) { resolve(b); }, 'image/png'); });
+        fixResults.push({ name: newName, fixes: fixes, blob: blob });
+      } else {
+        fixResults.push({ name: newName, fixes: fixes.length > 0 ? fixes : ['无需修复'], blob: f });
+      }
+    } catch(e) {
+      fixResults.push({ name: newName, fixes: ['错误: ' + e.message], blob: f });
+    }
+
+    await new Promise(function(r) { setTimeout(r, 5); });
+  }
+
+  progressBar.style.width = '100%';
+  btn.disabled = false; btn.textContent = '🔧 开始修复';
+  document.getElementById('fixDownloadBtn').disabled = false;
+  setTimeout(function() { progressWrap.style.display = 'none'; progressBar.style.width = '0'; }, 800);
+
+  var html = '<div style="max-height:300px;overflow:auto"><table class="result-table"><thead><tr><th>#</th><th>文件名</th><th>修复内容</th></tr></thead><tbody>';
+  fixResults.forEach(function(r, i) {
+    var fixTags = r.fixes.map(function(fx) {
+      var cls = fx === '无需修复' ? 'tag-info' : 'tag-pass';
+      return '<span class="tag ' + cls + '">' + fx + '</span>';
+    }).join(' ');
+    html += '<tr><td>' + (i+1) + '</td><td>' + r.name + '</td><td>' + fixTags + '</td></tr>';
+  });
+  html += '</tbody></table></div>';
+  document.getElementById('fixResultArea').innerHTML = html;
+}
+
+async function downloadFixed() {
+  if (fixResults.length === 0) return;
+  for (var i = 0; i < fixResults.length; i++) {
+    var r = fixResults[i];
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(r.blob);
+    a.download = r.name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    await new Promise(function(r){setTimeout(r,200);});
+  }
+}
+
+function clearFix() {
+  fixFiles = []; fixResults = [];
+  document.getElementById('fixStartBtn').disabled = true;
+  document.getElementById('fixDownloadBtn').disabled = true;
+  document.getElementById('fixResultArea').innerHTML = '<div class="empty-state"><div class="es-icon">🔧</div><p>添加文件后选择修复选项开始批量修复</p></div>';
+}
+</script>
+</body>
+</html>

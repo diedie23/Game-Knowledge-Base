@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdate": "2026-04-01",
+  "lastUpdate": "2026-04-02",
   "categories": [
     {
       "id": "cat-character",
@@ -26,14 +26,6 @@
               "title": "2D 角色换色资源规范",
               "type": "md",
               "file": "knowledge-base/art/2D角色换色-美术资源提供规范.md",
-              "badge": "文档"
-            },
-            {
-              "id": "额",
-              "icon": "📝",
-              "title": "额",
-              "type": "md",
-              "file": "knowledge-base/art/额.md",
               "badge": "文档"
             }
           ]
@@ -118,20 +110,36 @@
             {
               "id": "image-skew-corrector",
               "icon": "📐",
-              "title": "图片倾斜矫正",
+              "title": "图片倾斜矫正 (exe)",
               "type": "iframe",
               "file": "knowledge-base/image-skew-corrector.html",
               "badge": "下载",
               "download": "downloads/ImageSkewCorrector.exe"
             },
             {
+              "id": "image-skew-corrector-online",
+              "icon": "📐",
+              "title": "图片倾斜矫正 (在线)",
+              "type": "iframe",
+              "file": "knowledge-base/image-skew-corrector-online.html",
+              "badge": "工具"
+            },
+            {
               "id": "game-resource-toolkit",
               "icon": "🛠️",
-              "title": "游戏资源工具集",
+              "title": "游戏资源工具集 (exe)",
               "type": "iframe",
               "file": "knowledge-base/game-resource-toolkit.html",
               "badge": "下载",
               "download": "downloads/GameResourceToolkit.exe"
+            },
+            {
+              "id": "game-resource-toolkit-online",
+              "icon": "🛠️",
+              "title": "游戏资源工具集 (在线)",
+              "type": "iframe",
+              "file": "knowledge-base/game-resource-toolkit-online.html",
+              "badge": "工具"
             }
           ]
         }

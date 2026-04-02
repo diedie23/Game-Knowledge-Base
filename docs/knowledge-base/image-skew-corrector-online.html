@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片倾斜矫正工具 (在线版) - Image Skew Corrector Online</title>
+<style>
+:root{--bg:#0d0f15;--panel:#111320;--card:#161829;--card-hover:#1a1d30;--border:#222540;--border-hover:#6c8cff;--text:#c5c9d6;--dim:#6b7085;--heading:#e8eaed;--white:#fff;--accent:#6c8cff;--accent-light:#8ba3ff;--accent-bg:rgba(108,140,255,.07);--green:#4ade80;--green-bg:rgba(74,222,128,.07);--orange:#fb923c;--orange-bg:rgba(251,146,60,.07);--red:#f87171;--red-bg:rgba(248,113,113,.07);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.07);--cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.07);--yellow:#fbbf24;--yellow-bg:rgba(251,191,36,.07)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;overflow:hidden;height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.app{display:flex;flex-direction:column;height:100vh}
+/* Header */
+.header{padding:16px 24px;border-bottom:1px solid var(--border);background:var(--panel);display:flex;align-items:center;gap:14px;flex-shrink:0}
+.header-icon{width:40px;height:40px;background:var(--orange-bg);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.header-info h1{font-size:17px;color:var(--heading);font-weight:700}
+.header-info p{font-size:12px;color:var(--dim)}
+.header-badges{display:flex;gap:6px;margin-left:auto;flex-shrink:0}
+.badge{font-size:10px;padding:3px 10px;border-radius:6px;font-weight:500}
+.badge-online{background:var(--green-bg);color:var(--green);border:1px solid rgba(74,222,128,.15)}
+.badge-ver{background:var(--accent-bg);color:var(--accent);border:1px solid rgba(108,140,255,.15)}
+/* Main */
+.main{flex:1;display:flex;gap:0;overflow:hidden}
+/* Left Panel - Controls */
+.panel-left{width:300px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.section{padding:16px 20px;border-bottom:1px solid var(--border)}
+.section-title{font-size:12px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:28px 16px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(108,140,255,.02)}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:var(--accent-bg)}
+.drop-zone .dz-icon{font-size:32px;margin-bottom:8px}
+.drop-zone .dz-text{font-size:13px;color:var(--dim)}
+.drop-zone .dz-hint{font-size:11px;color:var(--dim);margin-top:4px;opacity:.7}
+.file-input{display:none}
+/* Params */
+.param-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.param-label{font-size:12px;color:var(--text)}
+.param-value{font-size:12px;color:var(--accent);font-weight:600;min-width:40px;text-align:right}
+.slider{width:100%;-webkit-appearance:none;background:var(--border);height:4px;border-radius:2px;outline:none;margin-top:4px}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer}
+.select-wrap{width:100%}
+.select-wrap select{width:100%;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:inherit;outline:none;cursor:pointer}
+.select-wrap select:focus{border-color:var(--accent)}
+.checkbox-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;cursor:pointer}
+.checkbox-row input{accent-color:var(--accent)}
+.btn{padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;width:100%}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#5a7aee}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,.15)}
+.btn-danger:hover{background:rgba(248,113,113,.12)}
+.btn-group{display:flex;gap:8px;margin-top:12px}
+.btn-group .btn{flex:1}
+/* File list */
+.file-list{max-height:200px;overflow-y:auto}
+.file-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,.03)}
+.file-item .fi-icon{font-size:14px;flex-shrink:0}
+.file-item .fi-name{flex:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-item .fi-size{color:var(--dim);flex-shrink:0}
+.file-item .fi-status{flex-shrink:0;font-size:10px;padding:2px 6px;border-radius:4px}
+.file-item .fi-remove{cursor:pointer;color:var(--dim);font-size:12px;flex-shrink:0;opacity:.5;transition:opacity .15s}
+.file-item .fi-remove:hover{opacity:1;color:var(--red)}
+.status-pending{background:var(--yellow-bg);color:var(--yellow)}
+.status-done{background:var(--green-bg);color:var(--green)}
+.status-skip{background:rgba(255,255,255,.04);color:var(--dim)}
+.status-error{background:var(--red-bg);color:var(--red)}
+/* Right Panel - Preview */
+.panel-right{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.preview-header{padding:10px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;background:var(--panel)}
+.preview-tabs{display:flex;gap:4px}
+.preview-tab{padding:6px 14px;border-radius:6px;font-size:12px;color:var(--dim);cursor:pointer;transition:all .15s;border:none;background:none;font-family:inherit}
+.preview-tab:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.preview-tab.active{color:var(--accent);background:var(--accent-bg);font-weight:500}
+.preview-info{margin-left:auto;font-size:11px;color:var(--dim)}
+.preview-area{flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;position:relative;padding:20px}
+.preview-area canvas{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,.3)}
+.preview-empty{text-align:center;color:var(--dim)}
+.preview-empty .pe-icon{font-size:48px;margin-bottom:12px;opacity:.5}
+.preview-empty p{font-size:13px}
+/* Result bar */
+.result-bar{padding:10px 20px;border-top:1px solid var(--border);background:var(--panel);display:flex;align-items:center;gap:12px;flex-shrink:0;font-size:12px}
+.result-bar .rb-item{display:flex;align-items:center;gap:4px;color:var(--dim)}
+.result-bar .rb-item strong{color:var(--heading)}
+.result-bar .spacer{flex:1}
+/* Log */
+.log-panel{max-height:120px;overflow-y:auto;padding:8px 20px;border-top:1px solid var(--border);background:rgba(0,0,0,.2);font-size:11px;font-family:'Consolas',monospace;flex-shrink:0}
+.log-line{padding:1px 0;color:var(--dim)}
+.log-line.info{color:var(--accent-light)}
+.log-line.success{color:var(--green)}
+.log-line.warn{color:var(--orange)}
+.log-line.error{color:var(--red)}
+/* Progress */
+.progress-wrap{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:8px}
+.progress-bar{height:100%;background:var(--accent);border-radius:2px;transition:width .3s;width:0}
+/* Compare slider */
+.compare-container{position:relative;display:inline-block;cursor:col-resize;user-select:none}
+.compare-container canvas{display:block;border-radius:8px}
+.compare-line{position:absolute;top:0;width:2px;height:100%;background:var(--accent);z-index:2;pointer-events:none}
+.compare-label{position:absolute;top:8px;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;z-index:3;pointer-events:none}
+.compare-label.left{left:8px;background:var(--red-bg);color:var(--red)}
+.compare-label.right{right:8px;background:var(--green-bg);color:var(--green)}
+/* Responsive */
+@media(max-width:768px){.main{flex-direction:column}.panel-left{width:100%;max-height:40vh;border-right:none;border-bottom:1px solid var(--border)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-icon">📐</div>
+    <div class="header-info">
+      <h1>图片倾斜矫正工具 <small style="font-size:12px;color:var(--dim)">在线版</small></h1>
+      <p>多算法融合检测倾斜角度 · 自动矫正到垂直 · 纯浏览器运行</p>
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-online">🟢 在线工具</span>
+      <span class="badge badge-ver">v1.0</span>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Left Panel -->
+    <div class="panel-left">
+      <div class="section">
+        <div class="section-title">📁 添加图片</div>
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+          <div class="dz-icon">📁</div>
+          <div class="dz-text">点击选择 或 拖拽图片到此处</div>
+          <div class="dz-hint">支持 PNG / JPG / JPEG / WEBP / BMP</div>
+        </div>
+        <input type="file" id="fileInput" class="file-input" multiple accept="image/*">
+        <div class="file-list" id="fileList"></div>
+        <div class="btn-group" id="fileActions" style="display:none">
+          <button class="btn btn-danger" onclick="clearFiles()">🗑️ 清空</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">⚙️ 参数设置</div>
+        <div class="param-row">
+          <span class="param-label">检测算法</span>
+        </div>
+        <div class="select-wrap" style="margin-bottom:12px">
+          <select id="algorithm">
+            <option value="auto">🔄 自动融合（推荐）</option>
+            <option value="hough">📏 霍夫变换</option>
+            <option value="minrect">📐 最小外接矩形</option>
+            <option value="projection">📊 投影方差法</option>
+          </select>
+        </div>
+        <div class="param-row">
+          <span class="param-label">角度阈值（小于此值跳过）</span>
+          <span class="param-value" id="thresholdVal">0.5°</span>
+        </div>
+        <input type="range" class="slider" id="threshold" min="0" max="5" step="0.1" value="0.5" oninput="document.getElementById('thresholdVal').textContent=this.value+'°'">
+        <div class="param-row" style="margin-top:12px">
+          <span class="param-label">边缘填充方式</span>
+        </div>
+        <div class="select-wrap" style="margin-bottom:12px">
+          <select id="fillMode">
+            <option value="transparent">🔲 透明填充</option>
+            <option value="black">⬛ 黑色填充</option>
+            <option value="white">⬜ 白色填充</option>
+            <option value="replicate">🔁 边缘复制</option>
+          </select>
+        </div>
+        <label class="checkbox-row"><input type="checkbox" id="autoCrop" checked> 自动裁剪黑边</label>
+        <label class="checkbox-row"><input type="checkbox" id="keepAlpha" checked> 保留 Alpha 通道</label>
+      </div>
+
+      <div class="section">
+        <button class="btn btn-primary" id="startBtn" onclick="startProcess()" disabled>🚀 开始矫正</button>
+        <div class="progress-wrap" id="progressWrap" style="display:none">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="panel-right">
+      <div class="preview-header">
+        <div class="preview-tabs">
+          <button class="preview-tab active" data-tab="original" onclick="switchTab('original')">原图</button>
+          <button class="preview-tab" data-tab="corrected" onclick="switchTab('corrected')">矫正后</button>
+          <button class="preview-tab" data-tab="compare" onclick="switchTab('compare')">对比</button>
+        </div>
+        <div class="preview-info" id="previewInfo"></div>
+      </div>
+      <div class="preview-area" id="previewArea">
+        <div class="preview-empty">
+          <div class="pe-icon">📐</div>
+          <p>添加图片后，选择文件即可预览</p>
+          <p style="font-size:11px;margin-top:4px;opacity:.6">支持批量处理，处理完成后可逐张下载或打包下载</p>
+        </div>
+      </div>
+      <div class="result-bar" id="resultBar" style="display:none">
+        <span class="rb-item">📊 检测角度: <strong id="rbAngle">—</strong></span>
+        <span class="rb-item">🔄 矫正角度: <strong id="rbCorrect">—</strong></span>
+        <span class="rb-item">📐 算法: <strong id="rbAlgo">—</strong></span>
+        <span class="rb-item">📏 尺寸: <strong id="rbSize">—</strong></span>
+        <span class="spacer"></span>
+        <button class="btn btn-secondary" style="width:auto;padding:5px 14px;font-size:11px" onclick="downloadCurrent()">⬇ 下载此张</button>
+        <button class="btn btn-secondary" style="width:auto;padding:5px 14px;font-size:11px" onclick="downloadAll()">📦 打包下载</button>
+      </div>
+      <div class="log-panel" id="logPanel"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══ State ═══
+var files = [];
+var results = {};
+var currentIdx = -1;
+var processing = false;
+
+// ═══ File Handling ═══
+var dropZone = document.getElementById('dropZone');
+var fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('dragover'); });
+dropZone.addEventListener('drop', function(e) { e.preventDefault(); dropZone.classList.remove('dragover'); addFiles(e.dataTransfer.files); });
+fileInput.addEventListener('change', function() { addFiles(fileInput.files); fileInput.value = ''; });
+
+function addFiles(fileList) {
+  var validExts = ['image/png','image/jpeg','image/jpg','image/webp','image/bmp'];
+  for (var i = 0; i < fileList.length; i++) {
+    if (validExts.indexOf(fileList[i].type) >= 0 || fileList[i].name.match(/\.(png|jpe?g|webp|bmp)$/i)) {
+      files.push({ file: fileList[i], status: 'pending' });
+    }
+  }
+  renderFileList();
+  if (files.length > 0) {
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('fileActions').style.display = 'flex';
+    if (currentIdx < 0) selectFile(0);
+  }
+}
+
+function renderFileList() {
+  var html = '';
+  files.forEach(function(f, i) {
+    var statusCls = 'status-' + f.status;
+    var statusText = f.status === 'pending' ? '待处理' : f.status === 'done' ? '✓ 完成' : f.status === 'skip' ? '跳过' : '错误';
+    var size = (f.file.size / 1024).toFixed(1) + ' KB';
+    html += '<div class="file-item" onclick="selectFile(' + i + ')" style="cursor:pointer;' + (i === currentIdx ? 'background:var(--accent-bg);border-radius:6px;padding:6px 8px;' : '') + '">'
+      + '<span class="fi-icon">🖼️</span>'
+      + '<span class="fi-name" title="' + f.file.name + '">' + f.file.name + '</span>'
+      + '<span class="fi-size">' + size + '</span>'
+      + '<span class="fi-status ' + statusCls + '">' + statusText + '</span>'
+      + '<span class="fi-remove" onclick="event.stopPropagation();removeFile(' + i + ')">✕</span>'
+      + '</div>';
+  });
+  document.getElementById('fileList').innerHTML = html;
+}
+
+function removeFile(idx) {
+  files.splice(idx, 1);
+  if (currentIdx >= files.length) currentIdx = files.length - 1;
+  if (files.length === 0) {
+    currentIdx = -1;
+    document.getElementById('startBtn').disabled = true;
+    document.getElementById('fileActions').style.display = 'none';
+    clearPreview();
+  }
+  renderFileList();
+}
+
+function clearFiles() {
+  files = []; results = {}; currentIdx = -1;
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('fileActions').style.display = 'none';
+  renderFileList();
+  clearPreview();
+}
+
+function clearPreview() {
+  document.getElementById('previewArea').innerHTML = '<div class="preview-empty"><div class="pe-icon">📐</div><p>添加图片后，选择文件即可预览</p></div>';
+  document.getElementById('resultBar').style.display = 'none';
+  document.getElementById('previewInfo').textContent = '';
+}
+
+// ═══ Preview ═══
+var activeTab = 'original';
+
+function selectFile(idx) {
+  currentIdx = idx;
+  renderFileList();
+  showPreview();
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.preview-tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab === tab); });
+  showPreview();
+}
+
+function showPreview() {
+  if (currentIdx < 0 || !files[currentIdx]) return;
+  var f = files[currentIdx];
+  var area = document.getElementById('previewArea');
+
+  if (activeTab === 'original') {
+    var img = new Image();
+    img.onload = function() {
+      var c = document.createElement('canvas');
+      c.width = img.width; c.height = img.height;
+      var ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      area.innerHTML = '';
+      area.appendChild(c);
+      document.getElementById('previewInfo').textContent = img.width + ' × ' + img.height + ' px';
+    };
+    img.src = URL.createObjectURL(f.file);
+  } else if (activeTab === 'corrected' && results[currentIdx]) {
+    area.innerHTML = '';
+    var c = document.createElement('canvas');
+    var r = results[currentIdx];
+    c.width = r.width; c.height = r.height;
+    c.getContext('2d').putImageData(r.imageData, 0, 0);
+    area.appendChild(c);
+    document.getElementById('previewInfo').textContent = r.width + ' × ' + r.height + ' px (矫正后)';
+  } else if (activeTab === 'compare' && results[currentIdx]) {
+    showCompare();
+  } else if ((activeTab === 'corrected' || activeTab === 'compare') && !results[currentIdx]) {
+    area.innerHTML = '<div class="preview-empty"><div class="pe-icon">⏳</div><p>请先执行矫正</p></div>';
+  }
+
+  // Update result bar
+  if (results[currentIdx]) {
+    var r = results[currentIdx];
+    document.getElementById('resultBar').style.display = 'flex';
+    document.getElementById('rbAngle').textContent = r.angle.toFixed(2) + '°';
+    document.getElementById('rbCorrect').textContent = r.corrected ? r.angle.toFixed(2) + '°' : '未矫正';
+    document.getElementById('rbAlgo').textContent = r.algorithm;
+    document.getElementById('rbSize').textContent = r.width + '×' + r.height;
+  }
+}
+
+function showCompare() {
+  if (!results[currentIdx]) return;
+  var area = document.getElementById('previewArea');
+  area.innerHTML = '';
+
+  var r = results[currentIdx];
+  var container = document.createElement('div');
+  container.className = 'compare-container';
+
+  var c = document.createElement('canvas');
+  var maxW = area.clientWidth - 40;
+  var maxH = area.clientHeight - 40;
+  var scale = Math.min(1, maxW / r.width, maxH / r.height);
+  c.width = Math.floor(r.width * scale);
+  c.height = Math.floor(r.height * scale);
+  var ctx = c.getContext('2d');
+
+  // Draw corrected first as base
+  var tmpC = document.createElement('canvas');
+  tmpC.width = r.width; tmpC.height = r.height;
+  tmpC.getContext('2d').putImageData(r.imageData, 0, 0);
+
+  ctx.drawImage(tmpC, 0, 0, c.width, c.height);
+
+  // Draw original on left side (clipped)
+  var splitX = Math.floor(c.width / 2);
+  var origImg = new Image();
+  origImg.onload = function() {
+    var line = document.createElement('div');
+    line.className = 'compare-line';
+    line.style.left = splitX + 'px';
+
+    var lblL = document.createElement('div');
+    lblL.className = 'compare-label left';
+    lblL.textContent = '原图';
+
+    var lblR = document.createElement('div');
+    lblR.className = 'compare-label right';
+    lblR.textContent = '矫正后';
+
+    container.appendChild(c);
+    container.appendChild(line);
+    container.appendChild(lblL);
+    container.appendChild(lblR);
+    area.appendChild(container);
+
+    function drawCompare(x) {
+      ctx.clearRect(0, 0, c.width, c.height);
+      // Right: corrected
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x, 0, c.width - x, c.height);
+      ctx.clip();
+      ctx.drawImage(tmpC, 0, 0, c.width, c.height);
+      ctx.restore();
+      // Left: original
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, 0, x, c.height);
+      ctx.clip();
+      ctx.drawImage(origImg, 0, 0, c.width, c.height);
+      ctx.restore();
+      line.style.left = x + 'px';
+    }
+
+    drawCompare(splitX);
+
+    var dragging = false;
+    container.onmousedown = function(e) { dragging = true; };
+    document.onmouseup = function() { dragging = false; };
+    container.onmousemove = function(e) {
+      if (!dragging) return;
+      var rect = c.getBoundingClientRect();
+      var x = Math.max(0, Math.min(c.width, e.clientX - rect.left));
+      drawCompare(x);
+    };
+    container.ontouchstart = function(e) { dragging = true; };
+    container.ontouchend = function() { dragging = false; };
+    container.ontouchmove = function(e) {
+      if (!dragging) return;
+      var rect = c.getBoundingClientRect();
+      var x = Math.max(0, Math.min(c.width, e.touches[0].clientX - rect.left));
+      drawCompare(x);
+      e.preventDefault();
+    };
+  };
+  origImg.src = URL.createObjectURL(files[currentIdx].file);
+}
+
+// ═══ Detection Algorithms ═══
+
+// Grayscale conversion
+function toGrayscale(imageData) {
+  var d = imageData.data;
+  var w = imageData.width, h = imageData.height;
+  var gray = new Float32Array(w * h);
+  for (var i = 0; i < w * h; i++) {
+    gray[i] = 0.299 * d[i*4] + 0.587 * d[i*4+1] + 0.114 * d[i*4+2];
+  }
+  return { data: gray, width: w, height: h };
+}
+
+// Sobel edge detection
+function sobelEdge(gray) {
+  var w = gray.width, h = gray.height, d = gray.data;
+  var edges = new Float32Array(w * h);
+  var angles = new Float32Array(w * h);
+  for (var y = 1; y < h - 1; y++) {
+    for (var x = 1; x < w - 1; x++) {
+      var gx = -d[(y-1)*w+(x-1)] + d[(y-1)*w+(x+1)]
+              -2*d[y*w+(x-1)] + 2*d[y*w+(x+1)]
+              -d[(y+1)*w+(x-1)] + d[(y+1)*w+(x+1)];
+      var gy = -d[(y-1)*w+(x-1)] - 2*d[(y-1)*w+x] - d[(y-1)*w+(x+1)]
+              +d[(y+1)*w+(x-1)] + 2*d[(y+1)*w+x] + d[(y+1)*w+(x+1)];
+      edges[y*w+x] = Math.sqrt(gx*gx + gy*gy);
+      angles[y*w+x] = Math.atan2(gy, gx);
+    }
+  }
+  return { magnitude: edges, angle: angles, width: w, height: h };
+}
+
+// Hough Transform for line detection
+function houghDetect(gray) {
+  var edge = sobelEdge(gray);
+  var w = edge.width, h = edge.height;
+  // Find edge threshold
+  var maxMag = 0;
+  for (var i = 0; i < edge.magnitude.length; i++) {
+    if (edge.magnitude[i] > maxMag) maxMag = edge.magnitude[i];
+  }
+  var edgeThresh = maxMag * 0.2;
+
+  var maxRho = Math.ceil(Math.sqrt(w*w + h*h));
+  var thetaSteps = 360;
+  var accumulator = new Int32Array(2 * maxRho * thetaSteps);
+
+  // Accumulate
+  for (var y = 0; y < h; y++) {
+    for (var x = 0; x < w; x++) {
+      if (edge.magnitude[y*w+x] < edgeThresh) continue;
+      for (var t = 0; t < thetaSteps; t++) {
+        var theta = (t / thetaSteps) * Math.PI;
+        var rho = Math.round(x * Math.cos(theta) + y * Math.sin(theta)) + maxRho;
+        accumulator[rho * thetaSteps + t]++;
+      }
+    }
+  }
+
+  // Find top peaks
+  var peaks = [];
+  for (var r = 0; r < 2 * maxRho; r++) {
+    for (var t = 0; t < thetaSteps; t++) {
+      if (accumulator[r * thetaSteps + t] > 50) {
+        peaks.push({ rho: r - maxRho, theta: (t / thetaSteps) * Math.PI, votes: accumulator[r * thetaSteps + t] });
+      }
+    }
+  }
+  peaks.sort(function(a, b) { return b.votes - a.votes; });
+  peaks = peaks.slice(0, 20);
+
+  if (peaks.length === 0) return 0;
+
+  // Calculate dominant angle relative to vertical/horizontal
+  var angles = [];
+  peaks.forEach(function(p) {
+    var deg = (p.theta * 180 / Math.PI) - 90;
+    // Normalize to -45..45
+    while (deg > 45) deg -= 90;
+    while (deg < -45) deg += 90;
+    angles.push({ deg: deg, weight: p.votes });
+  });
+
+  var totalWeight = 0, totalAngle = 0;
+  angles.forEach(function(a) {
+    totalWeight += a.weight;
+    totalAngle += a.deg * a.weight;
+  });
+
+  return totalWeight > 0 ? totalAngle / totalWeight : 0;
+}
+
+// Minimum bounding rectangle
+function minRectDetect(gray) {
+  var w = gray.width, h = gray.height, d = gray.data;
+  // Threshold to find content pixels
+  var thresh = 30;
+  var points = [];
+  var step = Math.max(1, Math.floor(Math.min(w, h) / 200));
+  for (var y = 0; y < h; y += step) {
+    for (var x = 0; x < w; x += step) {
+      if (d[y*w+x] > thresh) {
+        points.push([x, y]);
+      }
+    }
+  }
+  if (points.length < 10) return 0;
+
+  // Simple PCA-like: covariance matrix
+  var cx = 0, cy = 0;
+  points.forEach(function(p) { cx += p[0]; cy += p[1]; });
+  cx /= points.length; cy /= points.length;
+
+  var cxx = 0, cxy = 0, cyy = 0;
+  points.forEach(function(p) {
+    var dx = p[0] - cx, dy = p[1] - cy;
+    cxx += dx*dx; cxy += dx*dy; cyy += dy*dy;
+  });
+
+  var angle = 0.5 * Math.atan2(2 * cxy, cxx - cyy);
+  var deg = angle * 180 / Math.PI;
+
+  // Normalize to small angle
+  while (deg > 45) deg -= 90;
+  while (deg < -45) deg += 90;
+
+  return deg;
+}
+
+// Projection variance method
+function projectionDetect(gray) {
+  var w = gray.width, h = gray.height, d = gray.data;
+  var bestAngle = 0, bestVariance = -1;
+  var step = Math.max(1, Math.floor(Math.min(w, h) / 150));
+
+  // Sample points
+  var px = [], py = [], pv = [];
+  for (var y = 0; y < h; y += step) {
+    for (var x = 0; x < w; x += step) {
+      var v = d[y*w+x];
+      if (v > 20) { px.push(x); py.push(y); pv.push(v); }
+    }
+  }
+  if (px.length < 10) return 0;
+
+  // Try angles from -15 to 15
+  for (var a = -15; a <= 15; a += 0.5) {
+    var rad = a * Math.PI / 180;
+    var cosA = Math.cos(rad), sinA = Math.sin(rad);
+    var projections = {};
+    for (var i = 0; i < px.length; i++) {
+      var projY = Math.round(-px[i] * sinA + py[i] * cosA);
+      projections[projY] = (projections[projY] || 0) + pv[i];
+    }
+    var vals = Object.values(projections);
+    if (vals.length < 2) continue;
+    var mean = 0;
+    vals.forEach(function(v) { mean += v; });
+    mean /= vals.length;
+    var variance = 0;
+    vals.forEach(function(v) { variance += (v - mean) * (v - mean); });
+    variance /= vals.length;
+    if (variance > bestVariance) { bestVariance = variance; bestAngle = a; }
+  }
+
+  return bestAngle;
+}
+
+// Auto: fusion of multiple algorithms
+function autoDetect(gray) {
+  var a1 = houghDetect(gray);
+  var a2 = minRectDetect(gray);
+  var a3 = projectionDetect(gray);
+
+  // Weighted average: if values are close, average; otherwise trust hough & projection more
+  var angles = [a1, a2, a3];
+  var median = angles.sort(function(a,b){return a-b;})[1];
+
+  // Filter outliers
+  var filtered = angles.filter(function(a) { return Math.abs(a - median) < 5; });
+  if (filtered.length === 0) return median;
+
+  var sum = 0;
+  filtered.forEach(function(a) { sum += a; });
+  return sum / filtered.length;
+}
+
+// ═══ Correction ═══
+function rotateImage(imgData, angleDeg) {
+  var w = imgData.width, h = imgData.height;
+  var rad = -angleDeg * Math.PI / 180;
+  var cos = Math.cos(rad), sin = Math.sin(rad);
+  var abscos = Math.abs(cos), abssin = Math.abs(sin);
+  var nw = Math.ceil(w * abscos + h * abssin);
+  var nh = Math.ceil(w * abssin + h * abscos);
+
+  var c = document.createElement('canvas');
+  c.width = nw; c.height = nh;
+  var ctx = c.getContext('2d');
+
+  var fillMode = document.getElementById('fillMode').value;
+  if (fillMode === 'black') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, nw, nh); }
+  else if (fillMode === 'white') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, nw, nh); }
+
+  var tmpC = document.createElement('canvas');
+  tmpC.width = w; tmpC.height = h;
+  tmpC.getContext('2d').putImageData(imgData, 0, 0);
+
+  ctx.translate(nw/2, nh/2);
+  ctx.rotate(rad);
+  ctx.drawImage(tmpC, -w/2, -h/2);
+
+  var result = ctx.getImageData(0, 0, nw, nh);
+
+  // Auto crop
+  if (document.getElementById('autoCrop').checked) {
+    result = autoCrop(result);
+  }
+
+  return result;
+}
+
+function autoCrop(imgData) {
+  var d = imgData.data, w = imgData.width, h = imgData.height;
+  var top = h, left = w, bottom = 0, right = 0;
+  var thresh = 5;
+
+  for (var y = 0; y < h; y++) {
+    for (var x = 0; x < w; x++) {
+      var i = (y * w + x) * 4;
+      var a = d[i+3];
+      var brightness = d[i] + d[i+1] + d[i+2];
+      if (a > 10 && brightness > thresh) {
+        if (y < top) top = y;
+        if (y > bottom) bottom = y;
+        if (x < left) left = x;
+        if (x > right) right = x;
+      }
+    }
+  }
+
+  if (top >= bottom || left >= right) return imgData;
+
+  var margin = 2;
+  top = Math.max(0, top - margin);
+  left = Math.max(0, left - margin);
+  bottom = Math.min(h - 1, bottom + margin);
+  right = Math.min(w - 1, right + margin);
+
+  var cw = right - left + 1, ch = bottom - top + 1;
+  var c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  c.getContext('2d').putImageData(imgData, 0, 0);
+
+  var c2 = document.createElement('canvas');
+  c2.width = cw; c2.height = ch;
+  c2.getContext('2d').drawImage(c, left, top, cw, ch, 0, 0, cw, ch);
+
+  return c2.getContext('2d').getImageData(0, 0, cw, ch);
+}
+
+// ═══ Process ═══
+function log(msg, cls) {
+  var panel = document.getElementById('logPanel');
+  var line = document.createElement('div');
+  line.className = 'log-line ' + (cls || '');
+  line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  panel.appendChild(line);
+  panel.scrollTop = panel.scrollHeight;
+}
+
+async function startProcess() {
+  if (processing || files.length === 0) return;
+  processing = true;
+  var btn = document.getElementById('startBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ 处理中...';
+
+  var progressWrap = document.getElementById('progressWrap');
+  var progressBar = document.getElementById('progressBar');
+  progressWrap.style.display = 'block';
+
+  var algoName = document.getElementById('algorithm').value;
+  var threshold = parseFloat(document.getElementById('threshold').value);
+
+  log('开始批量矫正 ' + files.length + ' 张图片...', 'info');
+
+  for (var i = 0; i < files.length; i++) {
+    if (files[i].status === 'done') continue;
+
+    var f = files[i];
+    var pct = Math.round((i / files.length) * 100);
+    progressBar.style.width = pct + '%';
+
+    log('处理 ' + (i+1) + '/' + files.length + ': ' + f.file.name, 'info');
+
+    try {
+      var imgData = await loadImageData(f.file);
+      var gray = toGrayscale(imgData);
+
+      var angle = 0;
+      var algoUsed = algoName;
+      if (algoName === 'auto') {
+        angle = autoDetect(gray);
+        algoUsed = '自动融合';
+      } else if (algoName === 'hough') {
+        angle = houghDetect(gray);
+        algoUsed = '霍夫变换';
+      } else if (algoName === 'minrect') {
+        angle = minRectDetect(gray);
+        algoUsed = '最小外接矩形';
+      } else {
+        angle = projectionDetect(gray);
+        algoUsed = '投影方差法';
+      }
+
+      if (Math.abs(angle) < threshold) {
+        f.status = 'skip';
+        results[i] = { angle: angle, corrected: false, algorithm: algoUsed, imageData: imgData, width: imgData.width, height: imgData.height };
+        log('  ↳ 角度 ' + angle.toFixed(2) + '° < 阈值 ' + threshold + '°, 跳过', 'warn');
+      } else {
+        var corrected = rotateImage(imgData, angle);
+        f.status = 'done';
+        results[i] = { angle: angle, corrected: true, algorithm: algoUsed, imageData: corrected, width: corrected.width, height: corrected.height };
+        log('  ↳ 检测角度 ' + angle.toFixed(2) + '° → 已矫正 (' + algoUsed + ')', 'success');
+      }
+    } catch (e) {
+      f.status = 'error';
+      log('  ↳ 错误: ' + e.message, 'error');
+    }
+
+    renderFileList();
+    // Allow UI update
+    await new Promise(function(r) { setTimeout(r, 10); });
+  }
+
+  progressBar.style.width = '100%';
+  processing = false;
+  btn.disabled = false;
+  btn.textContent = '🚀 开始矫正';
+
+  var doneCount = files.filter(function(f) { return f.status === 'done'; }).length;
+  var skipCount = files.filter(function(f) { return f.status === 'skip'; }).length;
+  log('✅ 完成！矫正 ' + doneCount + ' 张，跳过 ' + skipCount + ' 张', 'success');
+
+  // Show first corrected result
+  if (currentIdx >= 0 && results[currentIdx]) {
+    switchTab('corrected');
+    showPreview();
+  }
+
+  setTimeout(function() { progressWrap.style.display = 'none'; progressBar.style.width = '0'; }, 1000);
+}
+
+function loadImageData(file) {
+  return new Promise(function(resolve, reject) {
+    var img = new Image();
+    img.onload = function() {
+      // Limit size for performance
+      var maxDim = 2048;
+      var w = img.width, h = img.height;
+      var scale = 1;
+      if (w > maxDim || h > maxDim) scale = maxDim / Math.max(w, h);
+      var sw = Math.round(w * scale), sh = Math.round(h * scale);
+
+      var c = document.createElement('canvas');
+      c.width = sw; c.height = sh;
+      var ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0, sw, sh);
+      resolve(ctx.getImageData(0, 0, sw, sh));
+      URL.revokeObjectURL(img.src);
+    };
+    img.onerror = function() { reject(new Error('无法加载图片')); URL.revokeObjectURL(img.src); };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+// ═══ Download ═══
+function downloadCurrent() {
+  if (currentIdx < 0 || !results[currentIdx]) return;
+  var r = results[currentIdx];
+  var c = document.createElement('canvas');
+  c.width = r.width; c.height = r.height;
+  c.getContext('2d').putImageData(r.imageData, 0, 0);
+
+  c.toBlob(function(blob) {
+    var a = document.createElement('a');
+    var name = files[currentIdx].file.name.replace(/\.\w+$/, '_corrected.png');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    log('已下载: ' + name, 'success');
+  }, 'image/png');
+}
+
+async function downloadAll() {
+  var count = 0;
+  for (var i = 0; i < files.length; i++) {
+    if (!results[i]) continue;
+    var r = results[i];
+    var c = document.createElement('canvas');
+    c.width = r.width; c.height = r.height;
+    c.getContext('2d').putImageData(r.imageData, 0, 0);
+
+    await new Promise(function(resolve) {
+      c.toBlob(function(blob) {
+        var a = document.createElement('a');
+        var name = files[i].file.name.replace(/\.\w+$/, '_corrected.png');
+        a.href = URL.createObjectURL(blob);
+        a.download = name;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        count++;
+        resolve();
+      }, 'image/png');
+    });
+    await new Promise(function(r) { setTimeout(r, 200); });
+  }
+  log('已下载 ' + count + ' 张图片', 'success');
+}
+</script>
+</body>
+</html>
