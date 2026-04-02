@@ -59,6 +59,14 @@
               "type": "iframe",
               "file": "knowledge-base/spine-split-spec.html",
               "badge": "规范"
+            },
+            {
+              "id": "spine-perf-guide",
+              "icon": "🦴",
+              "title": "Spine 性能红线与排查指南",
+              "type": "iframe",
+              "file": "knowledge-base/spine-perf-guide.html",
+              "badge": "性能"
             }
           ]
         },
@@ -276,6 +284,22 @@
               "type": "iframe",
               "file": "knowledge-base/perf-redline-glossary.html",
               "badge": "速查"
+            },
+            {
+              "id": "accident-troubleshoot",
+              "icon": "🚨",
+              "title": "典型事故排雷手册",
+              "type": "iframe",
+              "file": "knowledge-base/accident-troubleshoot.html",
+              "badge": "实战"
+            },
+            {
+              "id": "cross-dept-collab",
+              "icon": "🤝",
+              "title": "跨部门协作痛点与解法",
+              "type": "iframe",
+              "file": "knowledge-base/cross-dept-collab.html",
+              "badge": "实战"
             }
           ]
         }

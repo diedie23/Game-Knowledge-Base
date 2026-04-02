@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>典型事故排雷手册 — APM 实战指南</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--pink:#f472b6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:24px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.doc-header h1 .ver{font-size:11px;background:var(--red);color:#fff;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim);flex-wrap:wrap}
+.badge{display:inline-block;background:linear-gradient(135deg,var(--red),var(--orange));color:#fff;padding:4px 14px;border-radius:16px;font-size:11px;font-weight:600;margin-top:12px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--red);display:flex;align-items:center;gap:8px}
+.section h3{font-size:15px;color:var(--heading);margin:20px 0 8px;font-weight:600}
+.section p,.section li{font-size:13px;margin-bottom:6px}
+.section ul,.section ol{padding-left:20px;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(248,113,113,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+.case{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-bottom:24px;overflow:hidden}
+.case-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.case-head .sev{font-size:10px;padding:2px 10px;border-radius:10px;font-weight:700}
+.sev-p0{background:var(--red);color:#fff}
+.sev-p1{background:var(--orange);color:#fff}
+.sev-p2{background:var(--yellow);color:#000}
+.case-head .title{font-size:15px;color:var(--heading);font-weight:700}
+.case-body{padding:16px 20px}
+.case-body h4{font-size:13px;color:var(--accent2);margin:14px 0 6px;font-weight:600}
+.case-body h4:first-child{margin-top:0}
+.resp-tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600;margin-right:4px}
+.resp-art{background:rgba(167,139,250,.15);color:var(--accent2)}
+.resp-prog{background:rgba(96,165,250,.15);color:var(--blue)}
+.resp-ta{background:rgba(74,222,128,.15);color:var(--green)}
+.resp-qa{background:rgba(251,191,36,.15);color:var(--yellow)}
+.resp-plan{background:rgba(244,114,182,.15);color:var(--pink)}
+.resp-apm{background:rgba(251,146,60,.15);color:var(--orange)}
+.timeline{border-left:2px solid var(--border);margin:12px 0 12px 8px;padding-left:16px}
+.timeline .step{margin-bottom:10px;position:relative}
+.timeline .step::before{content:'';position:absolute;left:-21px;top:7px;width:10px;height:10px;border-radius:50%;border:2px solid var(--accent);background:var(--bg)}
+.timeline .step.done::before{background:var(--green);border-color:var(--green)}
+.timeline .step .st{font-size:12px;color:var(--heading);font-weight:600}
+.timeline .step .sd{font-size:11px;color:var(--dim);margin-top:2px}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>🚨 典型事故排雷手册 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Game Production Incident Playbook — "别人踩过的坑，你不必再踩"</div>
+  <div class="meta"><span>🎮 中大型手游项目</span><span>👤 APM / 制作人</span><span>📅 2026-04-02</span></div>
+  <div class="badge">🔥 血泪经验 · 实战复盘</div>
+</div>
+
+<div class="alert alert-red" style="margin-bottom:24px"><strong>⚠️ 使用说明：</strong>本手册收录的每个事故都来自<strong>真实项目的复盘简化版</strong>。每个 Case 包含：现场还原 → 根因分析 → 排查 SOP → 责任矩阵 → 事后防线。建议打印贴工位。</div>
+
+<div class="toc"><h3>📑 目录</h3>
+<ol>
+  <li><a href="#c1">Case 1：包体一夜暴增 400MB</a></li>
+  <li><a href="#c2">Case 2：UI 界面严重发热掉帧</a></li>
+  <li><a href="#c3">Case 3：引擎内效果与设计图严重不符</a></li>
+  <li><a href="#c4">Case 4：上线后低端机闪退率飙升</a></li>
+  <li><a href="#c5">Case 5：热更包下发后角色动画"抽搐"</a></li>
+  <li><a href="#s-matrix">责任速查矩阵（总表）</a></li>
+  <li><a href="#s-prevent">事故预防体系：5 道防线</a></li>
+</ol></div>
+
+<!-- ═══════ CASE 1 ═══════ -->
+<div class="section" id="c1">
+<h2>💣 Case 1：包体一夜暴增 400MB</h2>
+
+<div class="case">
+<div class="case-head"><span class="sev sev-p0">P0</span><span class="title">周五出包发现包体从 1.2GB 飙到 1.6GB，无人知道原因</span></div>
+<div class="case-body">
+
+<h4>🔍 现场还原</h4>
+<p>周五下午例行出包，QA 发现安卓 APK 从上周的 <code>1.2GB</code> 飙到 <code>1.6GB</code>。团队一片混乱，没人承认提交了大文件。距离提审只剩 3 天。</p>
+
+<h4>🧪 根因分析</h4>
+<ul>
+  <li><strong>直接原因</strong>：美术同学提交了 <code>12 张未压缩的 4096×4096 TGA 源文件</code>到资源目录，被打包脚本误扫进包</li>
+  <li><strong>间接原因</strong>：打包脚本的 <code>ignore 规则</code>只排除了 <code>.psd</code>，没排除 <code>.tga</code> 源文件</li>
+  <li><strong>根本原因</strong>：资源目录结构没有分离「源文件」和「导出文件」，CI 也没有包体增量检测</li>
+</ul>
+
+<h4>🛠️ 排查 SOP（15 分钟定位法）</h4>
+<div class="timeline">
+  <div class="step done"><div class="st">Step 1：跑包体 Diff（2 min）</div><div class="sd">对比本次与上次构建产物的文件列表：<code>diff &lt;(ls -laSr old/) &lt;(ls -laSr new/)</code>，按大小排序找出增量 Top 10 文件</div></div>
+  <div class="step done"><div class="st">Step 2：查 Git 提交记录（3 min）</div><div class="sd"><code>git log --stat --since="7 days ago" -- Assets/</code>，找出本周所有大文件提交</div></div>
+  <div class="step done"><div class="st">Step 3：检查资源格式（5 min）</div><div class="sd">用脚本扫描所有 <code>＞5MB</code> 的文件，标记非法格式（TGA/BMP/未压缩 PNG）</div></div>
+  <div class="step done"><div class="st">Step 4：确认打包 ignore 规则（3 min）</div><div class="sd">检查 <code>.gitignore</code>、打包脚本的 exclude 列表、AssetBundle 的 filter 规则</div></div>
+  <div class="step"><div class="st">Step 5：修复 + 验证（2 min）</div><div class="sd">删除源文件 / 移到 <code>_Source/</code> 目录 / 更新 ignore → 重新出包确认包体恢复</div></div>
+</div>
+
+<h4>👥 责任矩阵</h4>
+<table>
+<tr><th>角色</th><th>责任</th><th>本次问题</th></tr>
+<tr><td><span class="resp-tag resp-art">美术</span></td><td>按规范目录提交导出文件</td><td>❌ 把源文件扔到了导出目录</td></tr>
+<tr><td><span class="resp-tag resp-ta">TA</span></td><td>维护打包 ignore 规则和资源校验脚本</td><td>❌ ignore 规则不完整</td></tr>
+<tr><td><span class="resp-tag resp-prog">程序</span></td><td>CI 流水线应有包体增量告警</td><td>❌ 没有增量检测</td></tr>
+<tr><td><span class="resp-tag resp-apm">APM</span></td><td>确保目录规范和 CI 卡点在项目初期落地</td><td>⚠️ 未推动落地</td></tr>
+</table>
+
+<h4>🛡️ 事后防线</h4>
+<div class="alert alert-green"><strong>✅ 修复措施：</strong><br>
+① CI 增加「包体增量告警」：超过上版 <code>50MB</code> 自动阻断 + 钉钉/飞书通知<br>
+② 资源目录强制分离 <code>_Source/</code>（源文件）和 <code>Export/</code>（导出文件），前者加入 .gitignore<br>
+③ 提交钩子 (pre-commit hook) 禁止 <code>＞10MB</code> 的单文件直接提交<br>
+④ 每周自动报告包体组成 Top 20 文件
+</div>
+</div>
+</div>
+</div>
+
+<!-- ═══════ CASE 2 ═══════ -->
+<div class="section" id="c2">
+<h2>🔥 Case 2：UI 界面严重发热掉帧</h2>
+
+<div class="case">
+<div class="case-head"><span class="sev sev-p0">P0</span><span class="title">主城界面打开背包后帧率从 30fps 暴跌到 12fps，手机烫到能煎蛋</span></div>
+<div class="case-body">
+
+<h4>🔍 现场还原</h4>
+<p>Beta 测试期间，大量玩家反馈"打开背包后手机发烫、明显卡顿"。复现环境：iPhone 12，主城场景打开背包 UI → 帧率从 <code>30fps</code> 暴跌到 <code>12fps</code>，GPU 占用从 60% 飙到 98%。</p>
+
+<h4>🧪 根因分析（三层递进）</h4>
+<table>
+<tr><th>层级</th><th>发现</th><th>影响</th></tr>
+<tr><td><strong>表面</strong></td><td>背包有 200 个物品格子，每个格子都是独立的 UI 节点 + 独立材质球</td><td>Drawcall 从 80 飙到 <code>350+</code></td></tr>
+<tr><td><strong>中层</strong></td><td>每个物品图标是独立的 <code>512×512</code> 散图，没合图集</td><td>200 张散图 = 200 次纹理切换</td></tr>
+<tr><td><strong>深层</strong></td><td>背包底部有一层<strong>全屏高斯模糊</strong>后处理作为毛玻璃背景</td><td>每帧做 2 次全屏降采样 + 混合，Overdraw <code>4x+</code></td></tr>
+</table>
+
+<h4>🛠️ 排查 SOP</h4>
+<div class="timeline">
+  <div class="step done"><div class="st">Step 1：RenderDoc / Xcode GPU 抓帧</div><div class="sd">看 Drawcall 列表，发现 UI 层占了 <code>270+ DC</code>（占总 DC 的 77%）</div></div>
+  <div class="step done"><div class="st">Step 2：定位 Overdraw 热点</div><div class="sd">开启引擎 Overdraw 可视化，发现背包区域一片<strong>血红色</strong>（4x 以上）</div></div>
+  <div class="step done"><div class="st">Step 3：UI Profiler 分析节点数</div><div class="sd">Unity UI Profiler / UE Slate Debugger 看到 <code>200+ Canvas/Widget</code> 节点全部标记 dirty</div></div>
+  <div class="step done"><div class="st">Step 4：逐层关闭定位</div><div class="sd">关掉毛玻璃背景 → 帧率回 22fps；再合图集 → 帧率回 28fps；加对象池 → 30fps</div></div>
+</div>
+
+<h4>👥 责任矩阵</h4>
+<table>
+<tr><th>角色</th><th>责任</th><th>本次问题</th></tr>
+<tr><td><span class="resp-tag resp-plan">策划</span></td><td>定义 UI 功能需求</td><td>⚠️ 要求 200 格一次性全展示（应分页/虚拟列表）</td></tr>
+<tr><td><span class="resp-tag resp-art">UI 美术</span></td><td>按规范切图、合图集</td><td>❌ 200 个图标全是散图没合 Atlas</td></tr>
+<tr><td><span class="resp-tag resp-prog">UI 程序</span></td><td>实现虚拟列表/对象池</td><td>❌ 暴力实例化 200 个格子</td></tr>
+<tr><td><span class="resp-tag resp-ta">TA</span></td><td>审查后处理开销</td><td>❌ 毛玻璃用了全屏后处理没降分辨率</td></tr>
+<tr><td><span class="resp-tag resp-apm">APM</span></td><td>推动 UI 性能卡点进 Review 流程</td><td>⚠️ UI 功能没经过性能评审就上了</td></tr>
+</table>
+
+<h4>🛡️ 事后防线</h4>
+<div class="alert alert-green"><strong>✅ 修复措施：</strong><br>
+① 物品图标合成 <code>2048×2048</code> 图集（200 个 128×128 图标 → 1 张图集 → DC 降到 3）<br>
+② 背包改为<strong>虚拟列表</strong>（只实例化可见的 20 个格子 + 复用池）<br>
+③ 毛玻璃改为<strong>预截图 + 1/4 分辨率模糊</strong>（开包时截一次，之后用静态图）<br>
+④ 建立「UI 性能 Checklist」：任何新 UI 上线前必须通过 DC/Overdraw/节点数三项检查
+</div>
+</div>
+</div>
+</div>
+
+<!-- ═══════ CASE 3 ═══════ -->
+<div class="section" id="c3">
+<h2>😡 Case 3：引擎内效果与设计图严重不符</h2>
+
+<div class="case">
+<div class="case-head"><span class="sev sev-p1">P1</span><span class="title">角色在引擎里"灰蒙蒙的"、"塑料感"，和原画差距巨大，主美暴怒要返工</span></div>
+<div class="case-body">
+
+<h4>🔍 现场还原</h4>
+<p>美术按原画完成了 3D 角色制作，在 Maya/Blender 里渲染效果很好。导入 UE5 后，主美评审时当场炸了："颜色全偏了、头发像塑料、衣服没质感"。美术说"我这边看是好的"，程序说"我没动 Shader"。互相推诿，3 天没人动手修。</p>
+
+<h4>🧪 根因分析</h4>
+<table>
+<tr><th>问题</th><th>原因</th><th>本质</th></tr>
+<tr><td>颜色偏灰/偏暗</td><td>贴图在 <code>sRGB 色彩空间</code>制作，但引擎 Albedo 槽位被误设为 <strong>Linear</strong></td><td>色彩空间（Color Space）配置错误</td></tr>
+<tr><td>头发塑料感</td><td>DCC 工具用的是 <code>Phong</code> 光照模型，引擎用的是 <code>GGX PBR</code>，Roughness 映射不匹配</td><td>光照模型差异 + Roughness 制作标准不统一</td></tr>
+<tr><td>衣服没质感</td><td>法线贴图从 <code>OpenGL</code> 规范导出，引擎用的是 <code>DirectX</code> 规范（绿通道反了）</td><td>法线贴图 Y 轴翻转</td></tr>
+<tr><td>整体偏暗</td><td>引擎场景里只有一个平行光，没有环境光/反射球（美术在 DCC 里有 HDR 环境）</td><td>审查场景灯光配置不标准</td></tr>
+</table>
+
+<h4>🛠️ 排查 SOP</h4>
+<div class="timeline">
+  <div class="step done"><div class="st">Step 1：校准审查环境</div><div class="sd">建立<strong>标准审查场景</strong>（Standard Lookdev Scene）：统一灯光、HDR 天空球、灰球/色球参考</div></div>
+  <div class="step done"><div class="st">Step 2：逐通道检查贴图</div><div class="sd">① Albedo 导入是否勾选 sRGB ② Normal Map 是否设置为 Linear ③ Roughness 范围是否 0-1 映射正确</div></div>
+  <div class="step done"><div class="st">Step 3：法线方向验证</div><div class="sd">放一个标准圆球看法线凹凸是否反了（UE5 = DirectX 法线，Unity = OpenGL 法线）</div></div>
+  <div class="step done"><div class="st">Step 4：材质参数对照</div><div class="sd">用 TA 提供的<strong>标准材质模板</strong>替换当前材质，确认是参数问题还是贴图问题</div></div>
+</div>
+
+<h4>👥 责任矩阵</h4>
+<table>
+<tr><th>角色</th><th>责任</th><th>本次问题</th></tr>
+<tr><td><span class="resp-tag resp-art">3D 美术</span></td><td>按引擎标准制作贴图和导出</td><td>❌ 没对齐引擎的色彩空间和法线规范</td></tr>
+<tr><td><span class="resp-tag resp-ta">TA</span></td><td>提供标准审查场景和材质模板</td><td>❌ 没有建立 Lookdev Scene，也没写导入 Checklist</td></tr>
+<tr><td><span class="resp-tag resp-prog">引擎程序</span></td><td>确保贴图导入设置正确</td><td>⚠️ 导入管线没有自动校验 sRGB/Linear 设置</td></tr>
+<tr><td><span class="resp-tag resp-apm">APM</span></td><td>推动跨 DCC↔引擎的规范落地</td><td>⚠️ 没确认美术到引擎的移交标准</td></tr>
+</table>
+
+<h4>🛡️ 事后防线</h4>
+<div class="alert alert-green"><strong>✅ 修复措施：</strong><br>
+① TA 搭建「Standard Lookdev Scene」作为<strong>唯一审查环境</strong>，全组统一<br>
+② 编写《DCC → Engine 导出清单》：色彩空间、法线规范、贴图命名后缀（<code>_BC</code> <code>_N</code> <code>_ORM</code>）强制校验<br>
+③ 导入脚本自动检测：BaseColor 后缀 → 强制 sRGB ｜ Normal 后缀 → 强制 Linear ｜ 法线绿通道按引擎自动翻转<br>
+④ <strong>冒烟环节前置</strong>：美术交付后 TA 先在标准场景过一遍，通过后再进主美评审
+</div>
+</div>
+</div>
+</div>
+
+<!-- ═══════ CASE 4 ═══════ -->
+<div class="section" id="c4">
+<h2>💥 Case 4：上线后低端机闪退率飙升</h2>
+
+<div class="case">
+<div class="case-head"><span class="sev sev-p0">P0</span><span class="title">上线首日低端安卓闪退率 8%，商店评分 48 小时内从 4.5 跌到 3.2</span></div>
+<div class="case-body">
+
+<h4>🔍 现场还原</h4>
+<p>项目在中高端测试机上表现良好，通过提审上线。首日涌入大量<strong>红米 Note 系 / OPPO A 系</strong>用户，主城+副本场景闪退率 <code>8%</code>。Crash 日志关键字：<code>signal 9 (SIGKILL) - jetsam</code>、<code>java.lang.OutOfMemoryError</code>。</p>
+
+<h4>🧪 根因分析</h4>
+<ul>
+  <li><strong>内存峰值 1.8GB</strong>：在 3GB 低端机上直接触发 OOM Kill</li>
+  <li>贴图内存占 <code>900MB</code>（其中 300MB 是已离开场景但<strong>未卸载</strong>的旧贴图）</li>
+  <li>切换场景时<strong>新旧场景贴图同时驻留</strong>（没做异步卸载，而是 Load 新 → 再 Unload 旧）</li>
+  <li>测试阶段只用了<strong>骁龙 888 / iPhone 13</strong>测试，没有覆盖低端机</li>
+</ul>
+
+<h4>👥 责任矩阵</h4>
+<table>
+<tr><th>角色</th><th>责任</th><th>本次问题</th></tr>
+<tr><td><span class="resp-tag resp-prog">程序</span></td><td>资源加载/卸载生命周期管理</td><td>❌ 场景切换时没做先卸后加</td></tr>
+<tr><td><span class="resp-tag resp-ta">TA</span></td><td>监控纹理内存，制定画质分级</td><td>❌ 没有按机型分级降贴图分辨率</td></tr>
+<tr><td><span class="resp-tag resp-qa">QA</span></td><td>覆盖低端机型测试</td><td>❌ 测试矩阵没有低端安卓</td></tr>
+<tr><td><span class="resp-tag resp-apm">APM</span></td><td>确定目标机型矩阵和上线前性能验收</td><td>❌ 没有强制要求低端机通过</td></tr>
+</table>
+
+<h4>🛡️ 事后防线</h4>
+<div class="alert alert-green"><strong>✅ 修复措施：</strong><br>
+① 建立<strong>三档画质</strong>（高/中/低），低端机贴图分辨率自动降 50%<br>
+② 场景切换改为「先 Unload 旧 → Loading 过渡 → 再 Load 新」<br>
+③ 增加<strong>内存水位告警</strong>：接近设备上限 80% 时主动释放缓存<br>
+④ QA 测试矩阵强制覆盖至少 <strong>3 款 2-3GB 安卓机</strong>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ═══════ CASE 5 ═══════ -->
+<div class="section" id="c5">
+<h2>🤪 Case 5：热更后角色动画"抽搐"</h2>
+
+<div class="case">
+<div class="case-head"><span class="sev sev-p1">P1</span><span class="title">热更包推送后，部分玩家反馈角色行走动画"鬼畜抽搐"</span></div>
+<div class="case-body">
+
+<h4>🔍 现场还原</h4>
+<p>运营推送热更包修复了若干 Bug。更新后客服涌入大量"角色抖动/动画错乱"反馈。但团队成员更新后<strong>无法复现</strong>。最终发现只在"旧版 App + 新版资源"的情况下触发。</p>
+
+<h4>🧪 根因分析</h4>
+<ul>
+  <li>动作同学重新导出了骨骼动画，<strong>骨骼层级结构发生了变化</strong>（多了一根辅助骨）</li>
+  <li>但配套的<strong>骨骼模型文件（Skeleton/Mesh）没有同步热更</strong>，只更新了动画文件</li>
+  <li>旧骨骼绑定 + 新动画数据 → 骨骼索引错位 → 动画表现为"抽搐"</li>
+  <li>团队成员全量清缓存安装所以复现不了，玩家是<strong>增量热更</strong></li>
+</ul>
+
+<h4>👥 责任矩阵</h4>
+<table>
+<tr><th>角色</th><th>责任</th><th>本次问题</th></tr>
+<tr><td><span class="resp-tag resp-art">动作</span></td><td>导出时确保骨骼结构不变或同步更新</td><td>❌ 只更新了动画文件没更新骨骼</td></tr>
+<tr><td><span class="resp-tag resp-prog">程序</span></td><td>热更依赖校验（动画↔骨骼版本一致性）</td><td>❌ 没做资源依赖版本校验</td></tr>
+<tr><td><span class="resp-tag resp-qa">QA</span></td><td>热更测试需模拟"增量更新"场景</td><td>❌ 全量安装测试，没测增量</td></tr>
+</table>
+
+<h4>🛡️ 事后防线</h4>
+<div class="alert alert-green"><strong>✅ 修复措施：</strong><br>
+① 热更打包工具增加<strong>资源依赖分析</strong>：动画文件变更 → 自动把关联的骨骼/Mesh 一起打入热更包<br>
+② QA 热更测试 SOP：<strong>必须</strong>在旧版本基础上做增量更新测试，禁止全量安装后直接 PASS<br>
+③ 资源版本号绑定：骨骼结构变更必须<strong>升 Major 版本号</strong>，动画引用时校验版本匹配
+</div>
+</div>
+</div>
+</div>
+
+<!-- ═══════ 责任矩阵总表 ═══════ -->
+<div class="section" id="s-matrix">
+<h2>📊 责任速查矩阵（总表）</h2>
+<p>当事故发生时，快速定位该找谁：</p>
+<table>
+<tr><th>事故类型</th><th><span class="resp-tag resp-art">美术</span></th><th><span class="resp-tag resp-prog">程序</span></th><th><span class="resp-tag resp-ta">TA</span></th><th><span class="resp-tag resp-qa">QA</span></th><th><span class="resp-tag resp-plan">策划</span></th><th><span class="resp-tag resp-apm">APM</span></th></tr>
+<tr><td>包体暴增</td><td>⚠️ 源文件管理</td><td>🔴 CI 卡点</td><td>🔴 ignore 规则</td><td>—</td><td>—</td><td>⚠️ 推动规范</td></tr>
+<tr><td>UI 掉帧发热</td><td>🔴 散图没合Atlas</td><td>🔴 虚拟列表/对象池</td><td>🔴 后处理审计</td><td>⚠️ 性能测试</td><td>⚠️ 需求合理性</td><td>⚠️ 性能评审</td></tr>
+<tr><td>效果不一致</td><td>🔴 贴图/导出规范</td><td>⚠️ 导入管线</td><td>🔴 Lookdev + 模板</td><td>—</td><td>—</td><td>⚠️ 移交标准</td></tr>
+<tr><td>低端机闪退</td><td>⚠️ 贴图规格</td><td>🔴 内存管理</td><td>🔴 画质分级</td><td>🔴 机型覆盖</td><td>—</td><td>🔴 机型矩阵</td></tr>
+<tr><td>热更动画异常</td><td>🔴 骨骼同步更新</td><td>🔴 依赖校验</td><td>—</td><td>🔴 增量更新测试</td><td>—</td><td>⚠️ 热更流程</td></tr>
+</table>
+<p style="font-size:11px;color:var(--dim);margin-top:4px">🔴 = 主要责任 ｜ ⚠️ = 辅助责任/应推动</p>
+</div>
+
+<!-- ═══════ 预防体系 ═══════ -->
+<div class="section" id="s-prevent">
+<h2>🛡️ 事故预防体系：5 道防线</h2>
+<table>
+<tr><th>防线</th><th>措施</th><th>负责人</th></tr>
+<tr><td><strong>第 1 道：规范先行</strong></td><td>立项期制定《美术资源规范》《目录结构规范》《热更发布 SOP》</td><td>APM + TA</td></tr>
+<tr><td><strong>第 2 道：自动化卡点</strong></td><td>CI 流水线集成：包体增量检测、贴图格式/尺寸校验、资源依赖分析</td><td>程序 + TA</td></tr>
+<tr><td><strong>第 3 道：性能评审</strong></td><td>每个功能上线前必须通过「性能 Checklist」（DC / 内存 / Overdraw / 帧率）</td><td>TA + APM</td></tr>
+<tr><td><strong>第 4 道：QA 矩阵</strong></td><td>测试矩阵覆盖低/中/高三档机型 × 全量/增量两种安装方式</td><td>QA Lead</td></tr>
+<tr><td><strong>第 5 道：监控 & 告警</strong></td><td>上线后接入 Crash 监控（Bugly/Firebase）+ 性能埋点 + OOM 告警</td><td>程序 + 运维</td></tr>
+</table>
+
+<div class="alert alert-yellow"><strong>💡 APM 生存法则：</strong>事故本身不可怕，可怕的是<strong>同一个坑踩两次</strong>。每次事故复盘后，确保修复措施<strong>固化为流程/自动化</strong>而不是"口头承诺下次注意"。</div>
+</div>
+
+<div class="doc-footer">
+  🚨 典型事故排雷手册 v1.0 · APM 实战指南 · 2026-04-02<br>
+  "别人踩过的坑，你不必再踩" · 每次复盘，都是团队升级
+</div>
+
+</div>
+</body>
+</html>
