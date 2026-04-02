@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>自动 Mask 通道生成器 v3.0</title>
+<title>自动 Mask 通道生成器 v3.1</title>
 <style>
 :root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -32,56 +32,60 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .drop-zone:hover,.drop-zone.dg{border-color:var(--accent);background:rgba(108,140,255,.04)}
 .drop-zone h3{color:var(--heading);font-size:15px;margin-bottom:4px}
 .drop-zone p{color:var(--dim);font-size:12px}
-/* Params */
 .pr{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .pr label{font-size:12px;color:var(--dim);min-width:80px;flex-shrink:0}
 .pr input[type=range]{flex:1;accent-color:var(--accent);height:4px}
 .pr .v{font-size:11px;color:var(--accent);min-width:36px;text-align:right;font-weight:600}
-/* Hue bar */
 .hue-bar{width:100%;height:18px;border-radius:6px;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);border:1px solid var(--border);position:relative;margin:6px 0 10px}
 .hue-mk{position:absolute;top:-2px;width:3px;height:22px;background:#fff;border-radius:2px;pointer-events:none;box-shadow:0 0 4px rgba(0,0,0,.5)}
 .hue-rng{position:absolute;top:0;height:100%;background:rgba(255,255,255,.2);border-radius:6px;pointer-events:none}
-/* Channel btns */
 .ch-btns{display:flex;gap:6px;margin:8px 0}
 .ch-b{flex:1;padding:7px;border:2px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;text-align:center;font-size:12px;font-weight:600;font-family:inherit;color:var(--dim);transition:all .15s}
 .ch-b:hover{border-color:var(--accent)}
 .ch-b.act-r{border-color:#f66;color:#f66;background:rgba(255,100,100,.06)}
 .ch-b.act-g{border-color:#6f6;color:#6f6;background:rgba(100,255,100,.06)}
 .ch-b.act-b{border-color:#66f;color:#66f;background:rgba(100,100,255,.06)}
-/* Region list */
 .rg-list{display:flex;flex-direction:column;gap:6px;margin:8px 0;max-height:240px;overflow-y:auto}
 .rg-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:12px}
 .rg-sw{width:24px;height:24px;border-radius:6px;flex-shrink:0;border:1px solid rgba(255,255,255,.1)}
-.rg-info{flex:1;color:var(--dim)}
-.rg-info b{color:var(--heading);font-size:12px}
+.rg-info{flex:1;color:var(--dim)}.rg-info b{color:var(--heading);font-size:12px}
+.rg-pct{font-size:10px;color:var(--green);font-weight:600;min-width:36px;text-align:right}
 .rg-ch{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px}
 .rg-ch-r{background:rgba(255,100,100,.15);color:#f66}
 .rg-ch-g{background:rgba(100,255,100,.15);color:#6f6}
 .rg-ch-b{background:rgba(100,100,255,.15);color:#66f}
-.rg-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:2px 4px}
-.rg-del:hover{color:var(--red)}
-/* Steps */
+.rg-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:2px 4px}.rg-del:hover{color:var(--red)}
 .steps{display:flex;justify-content:center;gap:0;margin:10px 0 16px}
 .stp{display:flex;align-items:center;gap:6px;padding:8px 14px;font-size:12px;color:var(--dim)}
 .stp .n{width:22px;height:22px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600}
 .stp.act{color:var(--heading)}.stp.act .n{background:var(--accent);border-color:var(--accent);color:#fff}
 .stp.done .n{background:var(--green);border-color:var(--green);color:#fff}
 .sa{color:var(--border);font-size:16px;padding:0 2px}
-.tip{background:rgba(108,140,255,.06);border:1px solid rgba(108,140,255,.15);border-radius:8px;padding:10px 14px;font-size:11px;color:var(--dim);line-height:1.7;margin:8px 0}
-.tip b{color:var(--accent)}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--accent);padding:10px 24px;border-radius:8px;font-size:13px;color:var(--heading);z-index:999;transition:transform .3s;pointer-events:none}
-.toast.show{transform:translateX(-50%) translateY(0)}
-/* Preview tabs */
-.pv-tabs{display:flex;gap:4px;margin-bottom:10px}
+.tip-bar{background:linear-gradient(90deg,rgba(108,140,255,.1),rgba(167,139,250,.1));border:1px solid rgba(108,140,255,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:8px;transition:all .3s}
+.tip-bar .tip-icon{font-size:16px;flex-shrink:0}
+.tip{background:rgba(108,140,255,.06);border:1px solid rgba(108,140,255,.15);border-radius:8px;padding:10px 14px;font-size:11px;color:var(--dim);line-height:1.7;margin:8px 0}.tip b{color:var(--accent)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--accent);padding:10px 24px;border-radius:8px;font-size:13px;color:var(--heading);z-index:999;transition:transform .3s;pointer-events:none}.toast.show{transform:translateX(-50%) translateY(0)}
+.pv-tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
 .pv-tab{padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--dim);cursor:pointer;font-size:11px;font-family:inherit;transition:all .15s}
-.pv-tab:hover{color:var(--text)}
-.pv-tab.act{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pv-tab:hover{color:var(--text)}.pv-tab.act{background:var(--accent);color:#fff;border-color:var(--accent)}
+/* Onboarding overlay */
+.ob-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:900;display:flex;align-items:center;justify-content:center}
+.ob-card{background:var(--panel);border:1px solid var(--accent);border-radius:16px;padding:32px;max-width:460px;width:90%;text-align:center;box-shadow:0 0 40px rgba(108,140,255,.2)}
+.ob-card h2{color:var(--heading);font-size:20px;margin-bottom:12px}
+.ob-card p{color:var(--dim);font-size:13px;line-height:1.8;margin-bottom:8px}
+.ob-steps{text-align:left;margin:16px 0}
+.ob-step{display:flex;align-items:flex-start;gap:10px;padding:8px 0;font-size:13px;color:var(--text)}
+.ob-step .ob-n{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.ob-step span{line-height:1.6}
+/* Mask overlay toggle */
+.mask-toggle{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim);cursor:pointer;margin-top:6px}
+.mask-toggle input{accent-color:var(--accent);cursor:pointer}
 </style>
 </head>
 <body>
 <div class="app">
 <div class="hdr">
-  <h1>🤖 自动 Mask 通道生成器 <span class="ver">v3.0</span></h1>
+  <h1>🤖 自动 Mask 通道生成器 <span class="ver">v3.1</span></h1>
   <p>HSV 色相识别 · 灰度明度保留 · 边缘羽化 · 实时三视窗预览 · 一键导出</p>
 </div>
 
@@ -103,17 +107,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 <!-- Step 2 -->
 <div class="card" id="s2" style="display:none">
   <div class="card-title">🎯 吸色 & 通道分配</div>
+  <div class="tip-bar" id="tipBar"><span class="tip-icon">👆</span><span id="tipText">第一步：点击左侧图片上的颜色进行采样</span></div>
   <div class="g2">
     <div>
       <div class="img-box" style="cursor:crosshair" id="srcBox">
         <canvas id="srcC"></canvas>
-        <span class="img-label">点击吸取颜色</span>
+        <span class="img-label" id="srcLabel">点击吸取颜色</span>
       </div>
       <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
-        <div id="pkSw" style="width:32px;height:32px;border-radius:6px;background:#444;border:1px solid var(--border)"></div>
+        <div id="pkSw" style="width:32px;height:32px;border-radius:6px;background:#444;border:1px solid var(--border);transition:background .2s"></div>
         <div id="pkInfo" style="font-size:11px;color:var(--dim);flex:1">点击左侧图片吸取颜色</div>
         <button class="btn btn-p" onclick="addRegion()" id="addBtn" disabled>➕ 添加到通道</button>
       </div>
+      <label class="mask-toggle"><input type="checkbox" id="showMask" onchange="refreshSrc()"> 显示选区蒙版（红色高亮匹配区域）</label>
     </div>
     <div>
       <div style="font-size:12px;color:var(--heading);margin-bottom:6px">色相范围</div>
@@ -121,18 +127,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <div class="pr"><label>色相容差</label><input type="range" id="pHT" min="5" max="60" value="20" oninput="upP()"><span class="v" id="vHT">±20°</span></div>
       <div class="pr"><label>饱和度下限</label><input type="range" id="pSM" min="0" max="100" value="15" oninput="upP()"><span class="v" id="vSM">15%</span></div>
       <div class="pr"><label>边缘平滑</label><input type="range" id="pES" min="0" max="5" value="2" oninput="upP()"><span class="v" id="vES">2px</span></div>
-
       <div style="font-size:12px;color:var(--heading);margin:10px 0 4px">当前通道</div>
       <div class="ch-btns">
         <button class="ch-b act-r" id="cbR" onclick="setCh('R')">R 通道</button>
         <button class="ch-b" id="cbG" onclick="setCh('G')">G 通道</button>
         <button class="ch-b" id="cbB" onclick="setCh('B')">B 通道</button>
       </div>
-
       <div class="rg-list" id="rgList"><div style="color:var(--dim);padding:6px;font-size:11px">暂无 — 请在原图上点击吸取颜色</div></div>
-
-      <div class="tip"><b>操作流程：</b>1️⃣ 在原图上点击吸取目标色 → 2️⃣ 调整参数 → 3️⃣ 点击「添加到通道」→ 4️⃣ 切换通道继续吸色 → 5️⃣ 点击生成</div>
-
       <button class="btn btn-p" onclick="genMask()" style="margin-top:10px;width:100%;justify-content:center" id="genBtn" disabled>🔬 生成 Mask &amp; 预览</button>
     </div>
   </div>
@@ -168,6 +169,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   </div>
 </div>
 </div>
+
+<!-- Onboarding -->
+<div class="ob-overlay" id="onboard" style="display:none">
+  <div class="ob-card">
+    <h2>👋 欢迎使用 Mask 生成器</h2>
+    <p>3 步即可生成高质量的角色换色遮罩图：</p>
+    <div class="ob-steps">
+      <div class="ob-step"><span class="ob-n">1</span><span><b>导入图片</b> — 上传角色原图（PNG/JPG）</span></div>
+      <div class="ob-step"><span class="ob-n">2</span><span><b>点击吸色</b> — 在图片上点击颜色，工具自动识别同色区域。调整容差后分配到 R/G/B 通道</span></div>
+      <div class="ob-step"><span class="ob-n">3</span><span><b>生成导出</b> — 一键生成灰度 Mask，预览效果后下载</span></div>
+    </div>
+    <button class="btn btn-p" onclick="dismissOnboard()" style="margin-top:12px;padding:10px 32px;font-size:14px">✨ 开始使用</button>
+    <div style="margin-top:8px"><label style="font-size:11px;color:var(--dim);cursor:pointer"><input type="checkbox" id="obDontShow"> 下次不再显示</label></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
@@ -175,9 +192,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 var srcImg=null,W=0,H=0,px=null,hsv=null;
 var pkH=-1,pkS=0,pkV=0,pkRGB=[0,0,0];
 var curCh='R';
-var regions=[];// [{ch,hue,tol,satMin,rgb}]
-var maskRGBA=null;// Final ImageData
-var rawR=null,rawG=null,rawB=null;// Float32
+var regions=[];
+var maskRGBA=null;
+var rawR=null,rawG=null,rawB=null;
+
+// ═══ Onboarding ═══
+if(!localStorage.getItem('mask_ob_dismiss')){
+  document.getElementById('onboard').style.display='flex';
+}
+function dismissOnboard(){
+  document.getElementById('onboard').style.display='none';
+  if(document.getElementById('obDontShow').checked) localStorage.setItem('mask_ob_dismiss','1');
+}
+
+// ═══ Dynamic Tip ═══
+function setTip(icon,text){
+  document.getElementById('tipBar').querySelector('.tip-icon').textContent=icon;
+  document.getElementById('tipText').textContent=text;
+}
 
 // ═══ RGB→HSV ═══
 function r2h(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,h=0,s=mx?d/mx:0,v=mx;if(d){if(mx===r)h=60*((g-b)/d%6);else if(mx===g)h=60*((b-r)/d+2);else h=60*((r-g)/d+4);if(h<0)h+=360}return[h,s*100,v*100]}
@@ -197,13 +229,14 @@ function load(f){
     srcImg=img;W=img.width;H=img.height;
     var c=document.getElementById('srcC');c.width=W;c.height=H;
     var ctx=c.getContext('2d');ctx.drawImage(img,0,0);
-    px=ctx.getImageData(0,0,W,H).data;
+    px=new Uint8ClampedArray(ctx.getImageData(0,0,W,H).data);
     var n=W*H;hsv=new Float32Array(n*3);
     for(var i=0;i<n;i++){var o=i*4,v=r2h(px[o],px[o+1],px[o+2]);hsv[i*3]=v[0];hsv[i*3+1]=v[1];hsv[i*3+2]=v[2]}
     document.getElementById('s1').style.display='none';
     document.getElementById('s2').style.display='block';
     setStp(2);
-    c.onclick=pick;
+    c.addEventListener('click',pick);
+    setTip('👆','第一步：点击图片上想要换色的区域，吸取颜色');
     toast(W+'×'+H+' 已加载');
   };
   img.src=URL.createObjectURL(f);
@@ -213,23 +246,44 @@ function load(f){
 function pick(e){
   var c=document.getElementById('srcC'),r=c.getBoundingClientRect();
   var sx=Math.floor((e.clientX-r.left)/r.width*W),sy=Math.floor((e.clientY-r.top)/r.height*H);
+  if(sx<0||sx>=W||sy<0||sy>=H)return;
   var i=sy*W+sx,o=i*4;
   pkRGB=[px[o],px[o+1],px[o+2]];
   var v=r2h(pkRGB[0],pkRGB[1],pkRGB[2]);
   pkH=v[0];pkS=v[1];pkV=v[2];
   var hex='#'+pkRGB.map(function(x){return x.toString(16).padStart(2,'0')}).join('');
   document.getElementById('pkSw').style.background=hex;
-  document.getElementById('pkInfo').innerHTML='<b>'+hex+'</b> H:'+pkH.toFixed(0)+'° S:'+pkS.toFixed(0)+'% V:'+pkV.toFixed(0)+'%';
+  // Compute match percentage
+  var matchPct=computeMatchPct();
+  document.getElementById('pkInfo').innerHTML='<b>'+hex+'</b> H:'+pkH.toFixed(0)+'° S:'+pkS.toFixed(0)+'% V:'+pkV.toFixed(0)+'% · <span style="color:var(--green)">匹配 '+matchPct+'%</span>';
   document.getElementById('addBtn').disabled=false;
   document.getElementById('hMk').style.left=(pkH/360*100)+'%';
-  upHR();liveHL();
+  upHR();refreshSrc();
+  setTip('🎨','第二步：调整右侧参数 → 选择通道 → 点击「添加到通道」');
+}
+
+function computeMatchPct(){
+  if(pkH<0||!hsv)return'0';
+  var tol=+document.getElementById('pHT').value,sat=+document.getElementById('pSM').value;
+  var match=0,total=0,n=W*H;
+  for(var i=0;i<n;i++){
+    if(px[i*4+3]<10)continue;total++;
+    if(hDist(hsv[i*3],pkH)<=tol&&hsv[i*3+1]>=sat)match++;
+  }
+  return total>0?(match/total*100).toFixed(1):'0';
 }
 
 function upP(){
   document.getElementById('vHT').textContent='±'+document.getElementById('pHT').value+'°';
   document.getElementById('vSM').textContent=document.getElementById('pSM').value+'%';
   document.getElementById('vES').textContent=document.getElementById('pES').value+'px';
-  upHR();if(pkH>=0)liveHL();
+  upHR();if(pkH>=0)refreshSrc();
+  // Update match pct
+  if(pkH>=0){
+    var pct=computeMatchPct();
+    var hex='#'+pkRGB.map(function(x){return x.toString(16).padStart(2,'0')}).join('');
+    document.getElementById('pkInfo').innerHTML='<b>'+hex+'</b> H:'+pkH.toFixed(0)+'° S:'+pkS.toFixed(0)+'% V:'+pkV.toFixed(0)+'% · <span style="color:var(--green)">匹配 '+pct+'%</span>';
+  }
 }
 
 function upHR(){
@@ -240,47 +294,63 @@ function upHR(){
   rng.style.width=tol*2/360*100+'%';
 }
 
-function liveHL(){
-  if(!hsv||pkH<0)return;
+// ═══ Source Preview (with overlay modes) ═══
+function refreshSrc(){
+  if(!hsv||!srcImg)return;
   var c=document.getElementById('srcC'),ctx=c.getContext('2d');
   ctx.drawImage(srcImg,0,0);
-  var img=ctx.getImageData(0,0,W,H),d=img.data;
-  var tol=+document.getElementById('pHT').value,sat=+document.getElementById('pSM').value;
-  for(var i=0,n=W*H;i<n;i++){
-    if(!(hDist(hsv[i*3],pkH)<=tol&&hsv[i*3+1]>=sat)){var o=i*4;d[o]=d[o]*.25|0;d[o+1]=d[o+1]*.25|0;d[o+2]=d[o+2]*.25|0}
+  var showMask=document.getElementById('showMask').checked;
+
+  if(pkH>=0){
+    var img=ctx.getImageData(0,0,W,H),d=img.data;
+    var tol=+document.getElementById('pHT').value,sat=+document.getElementById('pSM').value;
+    for(var i=0,n=W*H;i<n;i++){
+      var match=hDist(hsv[i*3],pkH)<=tol&&hsv[i*3+1]>=sat;
+      var o=i*4;
+      if(showMask){
+        // Red overlay on matched pixels
+        if(match){d[o]=Math.min(255,d[o]+80);d[o+1]=d[o+1]*.6|0;d[o+2]=d[o+2]*.6|0}
+        else{d[o]=d[o]*.3|0;d[o+1]=d[o+1]*.3|0;d[o+2]=d[o+2]*.3|0}
+      }else{
+        // Dim non-matched
+        if(!match){d[o]=d[o]*.25|0;d[o+1]=d[o+1]*.25|0;d[o+2]=d[o+2]*.25|0}
+      }
+    }
+    ctx.putImageData(img,0,0);
+    document.getElementById('srcLabel').textContent=showMask?'🔴 红色=匹配区域':'明亮=匹配区域';
   }
-  ctx.putImageData(img,0,0);
 }
 
 // ═══ Channel ═══
 function setCh(ch){
   curCh=ch;
-  ['R','G','B'].forEach(function(c){
-    var b=document.getElementById('cb'+c);
-    b.className='ch-b'+(c===ch?' act-'+c.toLowerCase():'');
-  });
+  ['R','G','B'].forEach(function(c){document.getElementById('cb'+c).className='ch-b'+(c===ch?' act-'+c.toLowerCase():'')});
 }
 
 function addRegion(){
   if(pkH<0)return;
-  regions.push({ch:curCh,hue:pkH,tol:+document.getElementById('pHT').value,satMin:+document.getElementById('pSM').value,rgb:pkRGB.slice()});
+  var tol=+document.getElementById('pHT').value,satMin=+document.getElementById('pSM').value;
+  var pct=computeMatchPct();
+  regions.push({ch:curCh,hue:pkH,tol:tol,satMin:satMin,rgb:pkRGB.slice(),matchPct:pct});
   renderRL();
   document.getElementById('genBtn').disabled=false;
-  toast('已添加到 '+curCh+' 通道');
+  toast('已添加到 '+curCh+' 通道（匹配 '+pct+'%）');
   var ctx=document.getElementById('srcC').getContext('2d');ctx.drawImage(srcImg,0,0);
   pkH=-1;document.getElementById('addBtn').disabled=true;
   document.getElementById('pkInfo').textContent='继续点击原图吸取下一种颜色';
+  document.getElementById('srcLabel').textContent='点击吸取颜色';
+  setTip('🔄','已添加！继续吸取其他颜色，或切换通道，完成后点击「生成 Mask」');
 }
 
 function rmRegion(i){regions.splice(i,1);renderRL();if(!regions.length)document.getElementById('genBtn').disabled=true}
 
 function renderRL(){
   var el=document.getElementById('rgList');
-  if(!regions.length){el.innerHTML='<div style="color:var(--dim);padding:6px;font-size:11px">暂无</div>';return}
+  if(!regions.length){el.innerHTML='<div style="color:var(--dim);padding:6px;font-size:11px">暂无 — 请在原图上点击吸取颜色</div>';return}
   el.innerHTML=regions.map(function(r,i){
     var hex='#'+r.rgb.map(function(v){return v.toString(16).padStart(2,'0')}).join('');
     var cls={R:'rg-ch-r',G:'rg-ch-g',B:'rg-ch-b'}[r.ch];
-    return'<div class="rg-item"><div class="rg-sw" style="background:'+hex+'"></div><div class="rg-info"><b>H:'+r.hue.toFixed(0)+'° ±'+r.tol+'°</b> · S≥'+r.satMin+'%</div><span class="rg-ch '+cls+'">'+r.ch+'</span><button class="rg-del" onclick="rmRegion('+i+')">✕</button></div>';
+    return'<div class="rg-item"><div class="rg-sw" style="background:'+hex+'"></div><div class="rg-info"><b>H:'+r.hue.toFixed(0)+'° ±'+r.tol+'°</b> · S≥'+r.satMin+'%</div><span class="rg-pct">'+r.matchPct+'%</span><span class="rg-ch '+cls+'">'+r.ch+'</span><button class="rg-del" onclick="rmRegion('+i+')">✕</button></div>';
   }).join('');
 }
 
@@ -289,30 +359,23 @@ function genMask(){
   if(!hsv||!regions.length)return;
   var n=W*H,es=+document.getElementById('pES').value;
   rawR=new Float32Array(n);rawG=new Float32Array(n);rawB=new Float32Array(n);
-
   for(var i=0;i<n;i++){
     var h=hsv[i*3],s=hsv[i*3+1],v=hsv[i*3+2];
     if(px[i*4+3]<10)continue;
-    // Each channel: find best match across all regions assigned to it
     var mr=0,mg=0,mb=0;
     for(var ri=0;ri<regions.length;ri++){
-      var rg=regions[ri];
-      var hd=hDist(h,rg.hue);
+      var rg=regions[ri],hd=hDist(h,rg.hue);
       if(s<rg.satMin*0.5)continue;
       var hm=hd<=rg.tol?1:hd<=rg.tol*1.5?sm(rg.tol*1.5,rg.tol,hd):0;
       var smm=s>=rg.satMin?1:s>=rg.satMin*0.5?sm(rg.satMin*0.5,rg.satMin,s):0;
-      var val=hm*smm*(v/100);// Preserve luminance
+      var val=hm*smm*(v/100);
       if(rg.ch==='R'&&val>mr)mr=val;
       if(rg.ch==='G'&&val>mg)mg=val;
       if(rg.ch==='B'&&val>mb)mb=val;
     }
     rawR[i]=mr;rawG[i]=mg;rawB[i]=mb;
   }
-
-  // Edge feathering
   if(es>0){rawR=blur(rawR,W,H,es);rawG=blur(rawG,W,H,es);rawB=blur(rawB,W,H,es)}
-
-  // Mutual exclusivity
   for(var i=0;i<n;i++){
     var r=rawR[i],g=rawG[i],b=rawB[i],mx=Math.max(r,g,b);
     if(mx<0.01){rawR[i]=rawG[i]=rawB[i]=0;continue}
@@ -320,22 +383,13 @@ function genMask(){
     else if(g>=r&&g>=b){rawR[i]=0;rawB[i]=0}
     else{rawR[i]=0;rawG[i]=0}
   }
-
-  // Build RGBA ImageData
   maskRGBA=new ImageData(W,H);
   var d=maskRGBA.data;
-  for(var i=0;i<n;i++){
-    var o=i*4;
-    d[o]=(rawR[i]*255+.5)|0;
-    d[o+1]=(rawG[i]*255+.5)|0;
-    d[o+2]=(rawB[i]*255+.5)|0;
-    d[o+3]=(d[o]||d[o+1]||d[o+2])?255:0;
-  }
-
+  for(var i=0;i<n;i++){var o=i*4;d[o]=(rawR[i]*255+.5)|0;d[o+1]=(rawG[i]*255+.5)|0;d[o+2]=(rawB[i]*255+.5)|0;d[o+3]=(d[o]||d[o+1]||d[o+2])?255:0}
   renderAll();
-  document.getElementById('s3').style.display='block';
-  setStp(3);
+  document.getElementById('s3').style.display='block';setStp(3);
   document.getElementById('s3').scrollIntoView({behavior:'smooth'});
+  setTip('✅','Mask 已生成！下方可预览各通道效果，确认后点击下载');
   toast('Mask 生成完成');
 }
 
@@ -348,69 +402,81 @@ function blur(d,w,h,r){
 
 // ═══ Render Previews ═══
 function renderAll(){
-  // Original
   var c=document.getElementById('pvOrig');c.width=W;c.height=H;c.getContext('2d').drawImage(srcImg,0,0);
-  // Grayscale
   rc('pvGray',function(d){var m=maskRGBA.data;for(var i=0;i<m.length;i+=4){var v=Math.max(m[i],m[i+1],m[i+2]);d[i]=v;d[i+1]=v;d[i+2]=v;d[i+3]=255}});
-  // Overlay
   var co=document.getElementById('pvOver');co.width=W;co.height=H;var ctxo=co.getContext('2d');ctxo.drawImage(srcImg,0,0);
   var io=ctxo.getImageData(0,0,W,H),od=io.data,md=maskRGBA.data;
   var ts={R:[255,80,80],G:[80,255,80],B:[80,120,255]};
   for(var i=0;i<od.length;i+=4){var mr=md[i],mg=md[i+1],mb=md[i+2],mx=Math.max(mr,mg,mb);if(mx<5)continue;var t=mr>=mg&&mr>=mb?ts.R:mg>=mr&&mg>=mb?ts.G:ts.B;var bl=mx/255*.45;od[i]=od[i]*(1-bl)+t[0]*bl|0;od[i+1]=od[i+1]*(1-bl)+t[1]*bl|0;od[i+2]=od[i+2]*(1-bl)+t[2]*bl|0}
   ctxo.putImageData(io,0,0);
-  // Per channel
   rc('pvR',function(d){for(var i=0,n=W*H;i<n;i++){var v=(rawR[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}});
   rc('pvG',function(d){for(var i=0,n=W*H;i<n;i++){var v=(rawG[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}});
   rc('pvB',function(d){for(var i=0,n=W*H;i<n;i++){var v=(rawB[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}});
-  // Composite RGBA
   var cc=document.getElementById('pvComp');cc.width=W;cc.height=H;cc.getContext('2d').putImageData(maskRGBA,0,0);
 }
-
 function rc(id,fn){var c=document.getElementById(id);c.width=W;c.height=H;var ctx=c.getContext('2d');var img=ctx.createImageData(W,H);fn(img.data);ctx.putImageData(img,0,0)}
+function pvTab(idx,btn){document.querySelectorAll('.pv-tab').forEach(function(t){t.classList.remove('act')});btn.classList.add('act');for(var i=0;i<5;i++){var el=document.getElementById('pv'+i);if(el)el.style.display=i===idx?'':'none'}}
 
-function pvTab(idx,btn){
-  document.querySelectorAll('.pv-tab').forEach(function(t){t.classList.remove('act')});
-  btn.classList.add('act');
-  for(var i=0;i<5;i++){var el=document.getElementById('pv'+i);if(el)el.style.display=i===idx?'':'none'}
+// ═══ Downloads (fixed: explicit canvas→blob→download) ═══
+function dlComp(){
+  if(!maskRGBA){toast('请先生成 Mask');return}
+  var c=document.createElement('canvas');c.width=W;c.height=H;
+  c.getContext('2d').putImageData(maskRGBA,0,0);
+  savePNG(c,'mask_rgba.png');
 }
-
-// ═══ Downloads ═══
-function dlComp(){if(!maskRGBA)return;var c=document.createElement('canvas');c.width=W;c.height=H;c.getContext('2d').putImageData(maskRGBA,0,0);dlC(c,'mask_rgba.png')}
 function dlCh(ch){
-  if(!rawR)return;
+  if(!rawR){toast('请先生成 Mask');return}
   var raw=ch==='R'?rawR:ch==='G'?rawG:rawB;
-  rc2dl('mask_'+ch+'.png',function(d){for(var i=0,n=W*H;i<n;i++){var v=(raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}});
+  var c=document.createElement('canvas');c.width=W;c.height=H;
+  var ctx=c.getContext('2d'),img=ctx.createImageData(W,H),d=img.data;
+  for(var i=0,n=W*H;i<n;i++){var v=(raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}
+  ctx.putImageData(img,0,0);
+  savePNG(c,'mask_'+ch+'.png');
 }
-function rc2dl(name,fn){var c=document.createElement('canvas');c.width=W;c.height=H;var ctx=c.getContext('2d');var img=ctx.createImageData(W,H);fn(img.data);ctx.putImageData(img,0,0);dlC(c,name)}
-function dlC(c,name){c.toBlob(function(b){var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click()},'image/png')}
-function cBlob(c){return new Promise(function(r){c.toBlob(function(b){r(b)},'image/png')})}
+function savePNG(canvas,filename){
+  try{
+    canvas.toBlob(function(blob){
+      if(!blob){toast('导出失败');return}
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement('a');
+      a.href=url;a.download=filename;
+      document.body.appendChild(a);a.click();
+      document.body.removeChild(a);
+      setTimeout(function(){URL.revokeObjectURL(url)},1000);
+      toast('已下载 '+filename);
+    },'image/png');
+  }catch(e){
+    // Fallback: toDataURL
+    var url=canvas.toDataURL('image/png');
+    var a=document.createElement('a');a.href=url;a.download=filename;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    toast('已下载 '+filename);
+  }
+}
 
 async function dlZip(){
-  if(!maskRGBA||typeof JSZip==='undefined')return;
+  if(!maskRGBA){toast('请先生成 Mask');return}
+  if(typeof JSZip==='undefined'){toast('正在加载打包库...');return}
   var z=new JSZip();
-  // Original
   var c0=document.createElement('canvas');c0.width=W;c0.height=H;c0.getContext('2d').drawImage(srcImg,0,0);
-  z.file('original.png',await cBlob(c0));
-  // RGBA composite
+  z.file('original.png',await cb(c0));
   var c1=document.createElement('canvas');c1.width=W;c1.height=H;c1.getContext('2d').putImageData(maskRGBA,0,0);
-  z.file('mask_rgba.png',await cBlob(c1));
-  // Per channel
+  z.file('mask_rgba.png',await cb(c1));
   var chs=[['R',rawR],['G',rawG],['B',rawB]];
   for(var ci=0;ci<chs.length;ci++){
     var ch=chs[ci][0],raw=chs[ci][1];
     var cc=document.createElement('canvas');cc.width=W;cc.height=H;var ctx=cc.getContext('2d');var img=ctx.createImageData(W,H);var d=img.data;
     for(var i=0,n=W*H;i<n;i++){var v=(raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}
-    ctx.putImageData(img,0,0);z.file('mask_'+ch+'.png',await cBlob(cc));
+    ctx.putImageData(img,0,0);z.file('mask_'+ch+'.png',await cb(cc));
   }
-  // Overlay
-  z.file('preview_overlay.png',await cBlob(document.getElementById('pvOver')));
-  // Config
-  z.file('config.json',JSON.stringify({tool:'Auto Mask v3.0',size:[W,H],regions:regions.map(function(r){return{channel:r.ch,hue:r.hue,tolerance:r.tol,satMin:r.satMin,color:'#'+r.rgb.map(function(v){return v.toString(16).padStart(2,'0')}).join('')}}),edgeSmooth:+document.getElementById('pES').value,generated:new Date().toISOString()},null,2));
-
+  z.file('preview_overlay.png',await cb(document.getElementById('pvOver')));
+  z.file('config.json',JSON.stringify({tool:'Auto Mask v3.1',size:[W,H],regions:regions.map(function(r){return{channel:r.ch,hue:r.hue,tolerance:r.tol,satMin:r.satMin,matchPct:r.matchPct,color:'#'+r.rgb.map(function(v){return v.toString(16).padStart(2,'0')}).join('')}}),edgeSmooth:+document.getElementById('pES').value,generated:new Date().toISOString()},null,2));
   var blob=await z.generateAsync({type:'blob'});
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mask_output.zip';a.click();
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mask_output.zip';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
   toast('ZIP 已下载');
 }
+function cb(c){return new Promise(function(r){c.toBlob(function(b){r(b)},'image/png')})}
 
 // ═══ Helpers ═══
 function setStp(n){document.querySelectorAll('.stp').forEach(function(s){var d=+s.dataset.s;s.className='stp'+(d<n?' done':d===n?' act':'')})}
