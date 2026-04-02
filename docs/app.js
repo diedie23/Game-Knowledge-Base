@@ -206,6 +206,11 @@ function expandTree(el){
   if(!el||el.classList.contains('open')) return;
   var container = getChildContainer(el);
   if(!container) return;
+  // 清除可能残留的动画回调（防止与 expandNode 冲突）
+  if(container._onTransEnd) {
+    container.removeEventListener('transitionend', container._onTransEnd);
+    container._onTransEnd = null;
+  }
   el.classList.add('open');
   container.style.height='auto';
 }
@@ -449,6 +454,11 @@ function updateNavActive(pageId,btn){
 // ═══ TOC 四级大纲 (h2 + h3 + h4) ═══
 function collapseAllToc(){
   document.querySelectorAll('.toc-box').forEach(function(t){
+    // 清除残留的 transitionend 回调（防堆积）
+    if(t._tocTransEnd) {
+      t.removeEventListener('transitionend', t._tocTransEnd);
+      t._tocTransEnd = null;
+    }
     t.style.height='0';
     t.innerHTML='';
   });
@@ -470,11 +480,19 @@ function buildToc(docId){
     if(tag==='H3') cls+=' toc-h3';
     else if(tag==='H4') cls+=' toc-h4';
     else cls+=' toc-h2';
-    html+='<button class="'+cls+'" data-anchor="'+id+'" onclick="tocScrollTo(\''+id+'\')">'+h.textContent+'</button>';
+    html+='<button class="'+cls+'" data-anchor="'+id+'" onclick="event.stopPropagation();tocScrollTo(\''+id+'\')">'+h.textContent+'</button>';
   });
   tc.innerHTML=html;
+  // 丝滑展开动画：使用 max-height + transition
   tc.style.height=tc.scrollHeight+'px';
-  var onEnd=function(){tc.style.height='auto';tc.removeEventListener('transitionend',onEnd);};
+  var onEnd=function(e){
+    if(e.target !== tc) return;
+    if(e.propertyName !== 'height') return;
+    tc.style.height='auto';
+    tc.removeEventListener('transitionend',onEnd);
+    tc._tocTransEnd = null;
+  };
+  tc._tocTransEnd = onEnd;
   tc.addEventListener('transitionend',onEnd);
 }
 
@@ -495,11 +513,18 @@ function buildIframeToc(pageId){
       if(tag==='H3') cls+=' toc-h3';
       else if(tag==='H4') cls+=' toc-h4';
       else cls+=' toc-h2';
-      html+='<button class="'+cls+'" data-iframe-anchor="'+h.id+'" onclick="iframeTocScrollTo(\''+h.id+'\')">'+h.textContent+'</button>';
+      html+='<button class="'+cls+'" data-iframe-anchor="'+h.id+'" onclick="event.stopPropagation();iframeTocScrollTo(\''+h.id+'\')">'+h.textContent+'</button>';
     });
     tc.innerHTML=html;
     tc.style.height=tc.scrollHeight+'px';
-    var onEnd=function(){tc.style.height='auto';tc.removeEventListener('transitionend',onEnd);};
+    var onEnd=function(e){
+      if(e.target !== tc) return;
+      if(e.propertyName !== 'height') return;
+      tc.style.height='auto';
+      tc.removeEventListener('transitionend',onEnd);
+      tc._tocTransEnd = null;
+    };
+    tc._tocTransEnd = onEnd;
     tc.addEventListener('transitionend',onEnd);
   }catch(e){console.log('Cannot access iframe for TOC:',e);}
 }
