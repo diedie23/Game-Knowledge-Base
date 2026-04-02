@@ -325,7 +325,14 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
       <p style="font-size:12px;color:var(--dim);margin-bottom:10px">上传标准素体图，手动框选部件区域，生成项目专用模板。</p>
       <div style="display:flex;gap:8px;margin-bottom:12px">
         <button class="btn" onclick="document.getElementById('tplMakerInput').click()" style="flex:1;justify-content:center">📂 上传素体图</button>
+        <button class="btn" onclick="autoDetectParts()" style="flex:1;justify-content:center;border-color:var(--accent);color:var(--accent)" id="autoDetectBtn" disabled>🔍 自动识别部件</button>
         <button class="btn btn-green" onclick="saveMakerTemplate()" style="flex:1;justify-content:center">💾 保存模板</button>
+      </div>
+      <div id="autoDetectSettings" style="display:none;margin-bottom:12px;padding:10px 12px;background:var(--card);border-radius:8px;border:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><span style="font-size:11px;color:var(--dim)">最小面积阈值（过滤噪点）</span><span style="font-size:11px;color:var(--heading)" id="minAreaVal">100px²</span></div>
+        <input type="range" id="minAreaSlider" min="10" max="2000" value="100" step="10" oninput="document.getElementById('minAreaVal').textContent=this.value+'px²'" style="margin:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px"><span style="font-size:11px;color:var(--dim)">Alpha 阈值</span><span style="font-size:11px;color:var(--heading)" id="alphaThVal">10</span></div>
+        <input type="range" id="alphaThSlider" min="1" max="128" value="10" oninput="document.getElementById('alphaThVal').textContent=this.value" style="margin:0">
       </div>
       <input type="file" id="tplMakerInput" accept="image/*" style="display:none" onchange="loadMakerImage(this.files[0])">
       <div id="tplMakerArea" style="display:none">
@@ -702,7 +709,12 @@ function setupTplMaker(){const canvas=document.getElementById('tplMakerCanvas');
     document.getElementById('tplPartName').value='';document.getElementById('tplPartColor').value=mColors[(tplMakerParts.length)%mColors.length];renderTplMaker();renderTplMakerList();});}
 function loadMakerImage(file){if(!file)return;const reader=new FileReader();reader.onload=e=>{const img=new Image();img.onload=()=>{
   tplMakerImg=img;tplMakerParts=[];const c=document.getElementById('tplMakerCanvas');c.width=img.width;c.height=img.height;
-  document.getElementById('tplMakerArea').style.display='block';renderTplMaker();renderTplMakerList();};img.src=e.target.result;};reader.readAsDataURL(file);}
+  document.getElementById('tplMakerArea').style.display='block';
+  document.getElementById('autoDetectBtn').disabled=false;
+  document.getElementById('autoDetectSettings').style.display='block';
+  renderTplMaker();renderTplMakerList();
+  showToast(`已加载素体图 ${img.width}×${img.height} · 点击「🔍 自动识别」或手动框选`);
+  };img.src=e.target.result;};reader.readAsDataURL(file);}
 function renderTplMaker(){if(!tplMakerImg)return;const c=document.getElementById('tplMakerCanvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.drawImage(tplMakerImg,0,0);
   tplMakerParts.forEach(p=>{ctx.fillStyle=hexToRgba(p.color,0.25);ctx.fillRect(p.x,p.y,p.w,p.h);ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.strokeRect(p.x,p.y,p.w,p.h);
     ctx.font='14px sans-serif';ctx.fillStyle='rgba(0,0,0,.7)';const tw=ctx.measureText(p.name).width;ctx.fillRect(p.x,p.y-18,tw+8,16);ctx.fillStyle=p.color;ctx.fillText(p.name,p.x+4,p.y-5);});}
@@ -713,6 +725,105 @@ function saveMakerTemplate(){if(!tplMakerImg||!tplMakerParts.length){showToast('
   const name=prompt('模板名称：','项目模板')||'自定义模板';
   const tpl={name,version:'3.0',sourceSize:[tplMakerImg.width,tplMakerImg.height],parts:tplMakerParts.map(p=>({name:p.name,color:p.color,mirror:null,rx:+(p.x/tplMakerImg.width).toFixed(4),ry:+(p.y/tplMakerImg.height).toFixed(4),rw:+(p.w/tplMakerImg.width).toFixed(4),rh:+(p.h/tplMakerImg.height).toFixed(4)})),created:new Date().toISOString()};
   const blob=new Blob([JSON.stringify(tpl,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name+'.json';document.body.appendChild(a);a.click();a.remove();showToast('模板已保存');}
+
+// ═══ Connected Component Labeling — 自动识别部件 ═══
+function autoDetectParts(){
+  if(!tplMakerImg){showToast('请先上传素体图');return;}
+  const minArea=parseInt(document.getElementById('minAreaSlider').value)||100;
+  const alphaTh=parseInt(document.getElementById('alphaThSlider').value)||10;
+  showToast('正在分析图像...');
+  // 为避免大图阻塞主线程，先降采样分析再映射回原尺寸
+  const maxDim=800;
+  const ow=tplMakerImg.width,oh=tplMakerImg.height;
+  const scale=Math.min(1,maxDim/Math.max(ow,oh));
+  const sw=Math.round(ow*scale),sh=Math.round(oh*scale);
+  // 降采样到临时canvas
+  const tmpC=document.createElement('canvas');tmpC.width=sw;tmpC.height=sh;
+  const tmpCtx=tmpC.getContext('2d');tmpCtx.drawImage(tplMakerImg,0,0,sw,sh);
+  const imgData=tmpCtx.getImageData(0,0,sw,sh);
+  // 按降采样比例调整最小面积
+  const scaledMinArea=Math.max(1,Math.round(minArea*scale*scale));
+  // 执行CCL
+  setTimeout(()=>{
+    const regions=connectedComponentLabeling(imgData.data,sw,sh,alphaTh,scaledMinArea);
+    if(!regions.length){showToast('未检测到独立部件（图像可能没有透明间隙）');return;}
+    // 按面积从大到小排序
+    regions.sort((a,b)=>(b.w*b.h)-(a.w*a.h));
+    // 映射回原尺寸并生成tplMakerParts
+    tplMakerParts=regions.map((r,i)=>({
+      name:'部件'+(i+1),
+      color:mColors[i%mColors.length],
+      x:Math.round(r.x/scale),y:Math.round(r.y/scale),
+      w:Math.round(r.w/scale),h:Math.round(r.h/scale)
+    }));
+    renderTplMaker();renderTplMakerList();
+    showToast(`已自动识别 ${regions.length} 个部件 · 可手动微调或删除`);
+  },50);
+}
+
+// ─── 核心 CCL 算法（Two-Pass + Union-Find）───
+function connectedComponentLabeling(pixels,w,h,alphaTh,minArea){
+  // Pass 1: 标记 + Union-Find
+  const labels=new Int32Array(w*h); // 0=背景
+  const parent=[];
+  let nextLabel=1;
+  function find(x){while(parent[x]!==x)x=parent[x]=parent[parent[x]];return x;}
+  function union(a,b){a=find(a);b=find(b);if(a!==b)parent[Math.max(a,b)]=Math.min(a,b);}
+
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const alpha=pixels[(y*w+x)*4+3];
+      if(alpha<=alphaTh)continue; // 透明=背景
+      const left=x>0?labels[y*w+(x-1)]:0;
+      const top=y>0?labels[(y-1)*w+x]:0;
+      const topLeft=(x>0&&y>0)?labels[(y-1)*w+(x-1)]:0;
+      const topRight=(x<w-1&&y>0)?labels[(y-1)*w+(x+1)]:0;
+      // 收集邻居标签
+      const neighbors=[];
+      if(left>0)neighbors.push(left);
+      if(top>0)neighbors.push(top);
+      if(topLeft>0)neighbors.push(topLeft);
+      if(topRight>0)neighbors.push(topRight);
+      if(neighbors.length===0){
+        // 新标签
+        parent[nextLabel]=nextLabel;
+        labels[y*w+x]=nextLabel++;
+      }else{
+        // 取最小标签
+        const minL=Math.min(...neighbors);
+        labels[y*w+x]=minL;
+        // Union all neighbors
+        for(const n of neighbors) union(n,minL);
+      }
+    }
+  }
+  // Pass 2: 归一化标签 + 收集 BBox
+  const bboxMap={}; // label → {minX,minY,maxX,maxY,area}
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const lbl=labels[y*w+x];
+      if(lbl===0)continue;
+      const root=find(lbl);
+      labels[y*w+x]=root;
+      if(!bboxMap[root])bboxMap[root]={minX:x,minY:y,maxX:x,maxY:y,area:0};
+      const b=bboxMap[root];
+      if(x<b.minX)b.minX=x;if(x>b.maxX)b.maxX=x;
+      if(y<b.minY)b.minY=y;if(y>b.maxY)b.maxY=y;
+      b.area++;
+    }
+  }
+  // 过滤小区域并转为数组
+  const results=[];
+  for(const key in bboxMap){
+    const b=bboxMap[key];
+    if(b.area<minArea)continue;
+    // +1px padding
+    const rx=Math.max(0,b.minX-1),ry=Math.max(0,b.minY-1);
+    const rw=Math.min(w,b.maxX+2)-rx,rh=Math.min(h,b.maxY+2)-ry;
+    results.push({x:rx,y:ry,w:rw,h:rh,area:b.area});
+  }
+  return results;
+}
 
 // ═══ Export ═══
 function showExportModal(){const sp=parts.filter(p=>p.split);if(!sp.length){showToast('请先标记并拆分');return;}document.getElementById('exportModal').classList.add('show');
