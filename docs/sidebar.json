@@ -252,6 +252,44 @@
       ]
     },
     {
+      "id": "cat-apm-weapons",
+      "name": "⚔️ APM 武器库",
+      "icon": "⚔️",
+      "color": "pink",
+      "groups": [
+        {
+          "name": "排雷文档",
+          "icon": "💣",
+          "items": [
+            {
+              "id": "apm-glossary",
+              "icon": "🚦",
+              "title": "跨工种黑话速查表",
+              "type": "iframe",
+              "file": "knowledge-base/perf-redline-glossary.html",
+              "badge": "排雷"
+            },
+            {
+              "id": "apm-accident",
+              "icon": "🚨",
+              "title": "典型事故排雷手册",
+              "type": "iframe",
+              "file": "knowledge-base/accident-troubleshoot.html",
+              "badge": "排雷"
+            },
+            {
+              "id": "apm-collab",
+              "icon": "🤝",
+              "title": "跨部门协作痛点解法",
+              "type": "iframe",
+              "file": "knowledge-base/cross-dept-collab.html",
+              "badge": "排雷"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "cat-mgmt",
       "name": "管理 · Management",
       "icon": "📋",
