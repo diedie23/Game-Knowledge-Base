@@ -124,8 +124,11 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
   <h1>✂️ Spine 角色拆分工具 <span class="ver">v3.0</span></h1>
   <div class="header-actions">
     <button class="btn" onclick="importImage()">📂 导入原图</button>
+    <button class="btn" onclick="importPSD()" style="border-color:var(--cyan);color:var(--cyan)">🎨 PSD 直读</button>
+    <button class="btn" onclick="importProjectJSON()">📥 恢复工程</button>
     <button class="btn" onclick="showTemplateModal()" style="border-color:var(--accent2);color:var(--accent2)">📐 模板管理</button>
     <button class="btn" onclick="startAnchorAlign()">📍 三点对齐</button>
+    <button class="btn" onclick="runValidation()" id="qaBtn" style="border-color:var(--yellow);color:var(--yellow)">🔍 质检 QA</button>
     <button class="btn" onclick="showGuide()">📖 说明</button>
     <button class="btn btn-primary" onclick="autoSplitAll()" id="autoSplitBtn" disabled>⚡ 自动拆分全部</button>
     <button class="btn btn-green" onclick="showExportModal()" id="exportBtn" disabled>📦 导出资源</button>
@@ -206,6 +209,23 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
         <option value="atlas">图集 Atlas（合并到一张图）</option>
         <option value="both">两种都导出</option>
       </select>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">🏷️ 导出命名</div>
+      <div class="setting-row"><span class="setting-label">命名模板</span></div>
+      <input type="text" id="spNamingTpl" value="{Project}_{CharID}_{PartName}" style="width:100%;padding:5px 8px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:11px;font-family:inherit;margin-bottom:4px" oninput="updateSpNamingPreview()">
+      <div style="display:flex;gap:6px">
+        <input type="text" id="spProject" value="MyGame" placeholder="Project" style="flex:1;padding:3px 6px;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:10px;font-family:inherit" oninput="updateSpNamingPreview()">
+        <input type="text" id="spCharID" value="Hero01" placeholder="CharID" style="flex:1;padding:3px 6px;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:10px;font-family:inherit" oninput="updateSpNamingPreview()">
+      </div>
+      <div style="font-size:9px;color:var(--dim);margin-top:3px">变量：{Project} {CharID} {PartName} {Index} {Date} {W} {H}</div>
+      <div style="font-size:10px;color:var(--green);margin-top:2px" id="spNamingPreview">预览：MyGame_Hero01_头部.png</div>
+    </div>
+
+    <div class="panel-section" id="qaPanel" style="display:none">
+      <div class="panel-title">🔍 质检报告</div>
+      <div id="qaReport" style="font-size:11px;line-height:1.8;max-height:200px;overflow-y:auto"></div>
     </div>
 
     <div class="panel-section">
@@ -356,9 +376,13 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
 
 <div class="toast" id="toast"></div>
 <input type="file" id="fileInput" accept="image/*,.psd" style="display:none">
+<input type="file" id="psdInput" accept=".psd" style="display:none">
+<input type="file" id="projectInput" accept=".json" style="display:none">
 
 <!-- JSZip -->
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<!-- ag-psd for PSD parsing -->
+<script src="https://cdn.jsdelivr.net/npm/ag-psd@19.2.0/dist/browser/index.min.js"></script>
 <script>
 // ═══ Spine 角色拆分工具 v3.0 ═══
 const S={tool:'rect',zoom:1,imgW:0,imgH:0,loaded:false,currentPart:0,drawing:false,
@@ -544,7 +568,7 @@ function setupEvents(){const vp=document.getElementById('viewport');
       if(w>5&&h>5){saveHistory();let r={x,y,w,h,lasso:simplified};parts[S.currentPart].region=r;parts[S.currentPart].split=null;buildPartGrid();render();updatePartPreview();updateStats();
         showToast(`套索选区: ${simplified.length}点 · ${w}×${h}px`);}}});
   vp.addEventListener('wheel',e=>{e.preventDefault();if(e.deltaY<0)zoomIn();else zoomOut();},{passive:false});
-  vp.addEventListener('dragover',e=>e.preventDefault());vp.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)loadImage(f);});
+  vp.addEventListener('dragover',e=>e.preventDefault());vp.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(!f)return;if(f.name.endsWith('.json'))loadProjectConfig(f);else if(f.name.endsWith('.psd'))loadPSDFile(f);else loadImage(f);});
   document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
     switch(e.key){case'1':case'2':case'3':case'4':case'5':case'6':case'7':const idx=parseInt(e.key)-1;if(idx<parts.length)selectPart(idx);break;
     case'r':case'R':setTool('rect');break;case'l':case'L':setTool('lasso');break;case'a':case'A':if(!e.ctrlKey)setTool('auto');break;
@@ -913,11 +937,34 @@ function showExportModal(){const sp=parts.filter(p=>p.split);if(!sp.length){show
   setTimeout(()=>{sp.forEach(p=>{const c=document.getElementById(`exp_${p.name.replace(/[^a-z0-9]/gi,'_')}`);if(!c)return;const ctx=c.getContext('2d'),s=p.split,sc=Math.min(100/s.w,100/s.h);ctx.drawImage(s.canvas,0,0,s.w,s.h,(100-s.w*sc)/2,(100-s.h*sc)/2,s.w*sc,s.h*sc);});},50);}
 function closeExportModal(){document.getElementById('exportModal').classList.remove('show');}
 async function doExport(){if(typeof JSZip==='undefined'){showToast('加载中...');return;}const zip=new JSZip(),folder=zip.folder('spine_parts_output'),sp=parts.filter(p=>p.split),fmt=document.getElementById('outputFormat').value;
-  for(const p of sp)folder.file(`${p.name}.png`,await canvasToBlob(p.split.canvas));
+  // 导出前自动质检
+  const qa=runValidation();
+  if(qa&&qa.errors>0){if(!confirm(`质检发现 ${qa.errors} 个错误，是否仍然继续导出？`))return;}
+  // 使用命名模板导出部件 PNG
+  for(let i=0;i<sp.length;i++){const p=sp[i];const fname=spResolveExportName(p.name,i);folder.file(fname,await canvasToBlob(p.split.canvas));}
   if(fmt==='atlas'||fmt==='both'){const at=createAtlas(sp);folder.file('atlas.png',await canvasToBlob(at.canvas));folder.file('atlas_mapping.json',JSON.stringify(at.mapping,null,2));}
-  folder.file('parts_config.json',JSON.stringify({format:'spine_split_v3',sourceSize:{width:S.imgW,height:S.imgH},parts:sp.map(p=>({name:p.name,source:{x:p.split.originX,y:p.split.originY,w:p.split.originW,h:p.split.originH},output:{x:p.split.x,y:p.split.y,w:p.split.w,h:p.split.h},file:`${p.name}.png`})),generatedAt:new Date().toISOString()},null,2));
+  // 增强版 parts_config.json：包含完整工程恢复数据
+  const configObj={
+    format:'spine_split_v3',version:'3.1',
+    sourceSize:{width:S.imgW,height:S.imgH},
+    topology:{expandPx:parseInt(document.getElementById('expandPx').value)||0,fillMode:document.getElementById('fillMode').value},
+    naming:{template:document.getElementById('spNamingTpl').value,project:document.getElementById('spProject').value,charID:document.getElementById('spCharID').value},
+    parts:sp.map((p,i)=>({
+      name:p.name,color:p.color,mirror:p.mirror||null,
+      source:{x:p.split.originX,y:p.split.originY,w:p.split.originW,h:p.split.originH},
+      output:{x:p.split.x,y:p.split.y,w:p.split.w,h:p.split.h},
+      lasso:p.region&&p.region.lasso?p.region.lasso:null,
+      file:spResolveExportName(p.name,i)
+    })),
+    generatedAt:new Date().toISOString()
+  };
+  // 缓存原图 Base64（<5MB 自动内嵌）
+  try{const srcC=document.createElement('canvas');srcC.width=S.imgW;srcC.height=S.imgH;srcC.getContext('2d').drawImage(baseImage,0,0);
+    const b64=srcC.toDataURL('image/png');if(b64.length<5*1024*1024)configObj.sourceImageBase64=b64;
+  }catch(e){}
+  folder.file('parts_config.json',JSON.stringify(configObj,null,2));
   folder.file('spine_data.json',JSON.stringify({skeleton:{spine:"v3",width:S.imgW,height:S.imgH},bones:[{name:"root"}],slots:sp.map(p=>({name:p.name,bone:"root",attachment:p.name})),skins:[{name:"default",attachments:Object.fromEntries(sp.map(p=>[p.name,{[p.name]:{x:p.split.originX+p.split.originW/2,y:S.imgH-(p.split.originY+p.split.originH/2),width:p.split.w,height:p.split.h}}]))}]},null,2));
-  const blob=await zip.generateAsync({type:'blob'});const link=document.createElement('a');link.download='spine_parts_output.zip';link.href=URL.createObjectURL(blob);document.body.appendChild(link);link.click();link.remove();closeExportModal();showToast(`已导出 ${sp.length} 个部件`);}
+  const blob=await zip.generateAsync({type:'blob'});const link=document.createElement('a');link.download=spResolveExportName('Output',0,'.zip');link.href=URL.createObjectURL(blob);document.body.appendChild(link);link.click();link.remove();closeExportModal();showToast(`已导出 ${sp.length} 个部件`);}
 function createAtlas(sp){const pad=2;let tw=0,mh=0;sp.forEach(p=>{tw+=p.split.w+pad;mh=Math.max(mh,p.split.h);});const tgt=Math.ceil(Math.sqrt(tw*mh));let x=0,y=0,rh=0;const pos=[];let th=0;
   sp.forEach(p=>{if(x+p.split.w>tgt){x=0;y+=rh+pad;rh=0;}pos.push({x,y});x+=p.split.w+pad;rh=Math.max(rh,p.split.h);th=Math.max(th,y+p.split.h);});
   const ac=document.createElement('canvas');ac.width=nextPOT(Math.max(...pos.map((p,i)=>p.x+sp[i].split.w)));ac.height=nextPOT(th);const ctx=ac.getContext('2d'),mapping={};
@@ -928,6 +975,335 @@ function canvasToBlob(c){return new Promise(r=>{c.toBlob(b=>r(b),'image/png');})
 function hexToRgba(hex,a){return`rgba(${parseInt(hex.slice(1,3),16)},${parseInt(hex.slice(3,5),16)},${parseInt(hex.slice(5,7),16)},${a})`;}
 function showToastImport(msg){showToast(msg);setTimeout(function(){if(!S.loaded&&confirm(msg+'\n\n\u662f\u5426\u7acb\u5373\u5bfc\u5165\uff1f'))importImage();},300);}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ═══════════════════════════════════════════════════════════
+//  §新增模块 1：命名模板引擎
+// ═══════════════════════════════════════════════════════════
+function spResolveNameTemplate(tpl,vars){
+  return tpl.replace(/\{(\w+)\}/g,(_,key)=>vars[key]!==undefined?vars[key]:'{'+key+'}');
+}
+function spGetNamingVars(partName,index){
+  return{Project:document.getElementById('spProject').value||'Project',CharID:document.getElementById('spCharID').value||'Char',PartName:partName||'Part',Index:String(index!==undefined?index:0),Date:new Date().toISOString().slice(0,10),W:String(S.imgW),H:String(S.imgH)};
+}
+function spResolveExportName(partName,index,ext){
+  const tpl=document.getElementById('spNamingTpl').value||'{Project}_{CharID}_{PartName}';
+  return spResolveNameTemplate(tpl,spGetNamingVars(partName,index))+(ext||'.png');
+}
+function updateSpNamingPreview(){
+  const el=document.getElementById('spNamingPreview');if(!el)return;
+  const firstName=parts.length>0?parts[0].name:'头部';
+  el.textContent='预览：'+spResolveExportName(firstName,0,'.png');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  §新增模块 2：工程恢复流（双向工作流）
+// ═══════════════════════════════════════════════════════════
+function importProjectJSON(){
+  const input=document.getElementById('projectInput');
+  input.onchange=e=>{if(e.target.files[0])loadProjectConfig(e.target.files[0]);};
+  input.click();
+}
+
+function loadProjectConfig(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const config=JSON.parse(e.target.result);
+      if(!config.format||config.format!=='spine_split_v3'){showToast('无效的 Spine 工程文件');return;}
+      // 检查是否有内嵌 Base64 原图
+      if(config.sourceImageBase64){
+        restoreSpineFromBase64(config.sourceImageBase64,config);
+      }else{
+        showToast('请配合上传原始角色图片');
+        const imgInput=document.createElement('input');imgInput.type='file';imgInput.accept='image/*';
+        imgInput.onchange=()=>{if(imgInput.files[0])restoreSpineWithImage(imgInput.files[0],config)};
+        imgInput.click();
+      }
+    }catch(err){showToast('JSON 解析失败: '+err.message);}
+  };reader.readAsText(file);
+}
+
+function restoreSpineFromBase64(b64,config){
+  const img=new Image();
+  img.onload=()=>{
+    baseImage=img;S.imgW=img.width;S.imgH=img.height;
+    setupCanvases();baseCtx.drawImage(img,0,0);
+    basePixels=baseCtx.getImageData(0,0,S.imgW,S.imgH).data;
+    S.loaded=true;
+    document.getElementById('dropZone').style.display='none';
+    document.getElementById('canvasContainer').style.display='block';
+    document.getElementById('autoSplitBtn').disabled=false;
+    resetZoom();
+    applyRestoredSpineState(config);
+  };
+  img.src=b64;
+}
+
+function restoreSpineWithImage(file,config){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      baseImage=img;S.imgW=img.width;S.imgH=img.height;
+      setupCanvases();baseCtx.drawImage(img,0,0);
+      basePixels=baseCtx.getImageData(0,0,S.imgW,S.imgH).data;
+      S.loaded=true;
+      document.getElementById('dropZone').style.display='none';
+      document.getElementById('canvasContainer').style.display='block';
+      document.getElementById('autoSplitBtn').disabled=false;
+      resetZoom();
+      applyRestoredSpineState(config);
+    };img.src=e.target.result;
+  };reader.readAsDataURL(file);
+}
+
+function applyRestoredSpineState(config){
+  // 恢复部件列表和选区坐标
+  if(config.parts&&config.parts.length){
+    parts=config.parts.map((p,i)=>({
+      name:p.name,
+      color:p.color||mColors[i%mColors.length],
+      region:p.source?{x:p.source.x,y:p.source.y,w:p.source.w,h:p.source.h,lasso:p.lasso||null}:null,
+      split:null,
+      mirror:p.mirror||null
+    }));
+  }
+  // 恢复拓扑参数
+  if(config.topology){
+    if(config.topology.expandPx!==undefined)document.getElementById('expandPx').value=config.topology.expandPx;
+    if(config.topology.fillMode)document.getElementById('fillMode').value=config.topology.fillMode;
+  }
+  // 恢复命名模板
+  if(config.naming){
+    if(config.naming.template)document.getElementById('spNamingTpl').value=config.naming.template;
+    if(config.naming.project)document.getElementById('spProject').value=config.naming.project;
+    if(config.naming.charID)document.getElementById('spCharID').value=config.naming.charID;
+    updateSpNamingPreview();
+  }
+  S.currentPart=0;S.multiSelect.clear();
+  buildPartGrid();render();updateFullPreview();updatePartPreview();updateStats();
+  showToast(`工程已恢复：${parts.length} 个部件, ${parts.filter(p=>p.region).length} 个有选区`);
+  // 如果所有部件都有选区，自动执行拆分
+  const allMarked=parts.every(p=>p.region);
+  if(allMarked){setTimeout(()=>autoSplitAll(),200);}
+}
+
+// ═══════════════════════════════════════════════════════════
+//  §新增模块 3：自动化质检（QA）模块
+// ═══════════════════════════════════════════════════════════
+function runValidation(){
+  if(!S.loaded){showToast('请先导入图片');return;}
+  const issues=[];
+  const expandPx=parseInt(document.getElementById('expandPx').value)||0;
+  let totalAtlasW=0,maxAtlasH=0;
+
+  // ─── 校验 1：完整性校验 ───
+  const unmarked=parts.filter(p=>!p.region);
+  if(unmarked.length>0){
+    issues.push({
+      level:'error',
+      icon:'❌',
+      msg:`完整性校验失败：${unmarked.length} 个部件未标记选区`,
+      detail:unmarked.map(p=>p.name).join('、')
+    });
+  }else{
+    issues.push({level:'pass',icon:'✅',msg:'完整性校验通过：所有部件已标记'});
+  }
+
+  // ─── 校验 2：图集尺寸校验 ───
+  const markedParts=parts.filter(p=>p.region);
+  markedParts.forEach(p=>{
+    const r=p.region;
+    const pw=r.w+expandPx*2,ph=r.h+expandPx*2;
+    totalAtlasW+=pw+2; // +2 padding
+    maxAtlasH=Math.max(maxAtlasH,ph);
+  });
+  // 估算图集排列尺寸（简易行列排列）
+  const estArea=totalAtlasW*maxAtlasH;
+  const estSide=Math.ceil(Math.sqrt(estArea));
+  const atlasW=nextPOT(estSide);
+  const atlasH=nextPOT(estSide);
+  if(atlasW>2048||atlasH>2048){
+    issues.push({
+      level:'error',
+      icon:'🔴',
+      msg:`图集尺寸预警：预估 Atlas 尺寸 ${atlasW}×${atlasH} 超过 2048×2048`,
+      detail:`建议减少部件数量或缩小选区范围。当前边缘扩展: ${expandPx}px`
+    });
+  }else if(atlasW>1024||atlasH>1024){
+    issues.push({
+      level:'warn',
+      icon:'🟡',
+      msg:`图集尺寸提醒：预估 Atlas ${atlasW}×${atlasH}`,
+      detail:'在 2048 限制内但较大，关注运行时内存占用'
+    });
+  }else{
+    issues.push({level:'pass',icon:'✅',msg:`图集尺寸正常：预估 Atlas ${atlasW}×${atlasH}`});
+  }
+
+  // ─── 校验 3：越界校验 ───
+  let oobCount=0;
+  markedParts.forEach(p=>{
+    const r=p.region;
+    const ex=r.x-expandPx,ey=r.y-expandPx;
+    const ew=r.w+expandPx*2,eh=r.h+expandPx*2;
+    const oob=ex<0||ey<0||ex+ew>S.imgW||ey+eh>S.imgH;
+    if(oob){
+      oobCount++;
+      issues.push({
+        level:'warn',
+        icon:'⚠️',
+        msg:`越界警告：「${p.name}」扩展后超出原图边界`,
+        detail:`原区域 [${r.x},${r.y}] ${r.w}×${r.h} → 扩展后 [${ex},${ey}] ${ew}×${eh}，原图 ${S.imgW}×${S.imgH}`
+      });
+    }
+  });
+  if(oobCount===0&&markedParts.length>0){
+    issues.push({level:'pass',icon:'✅',msg:`越界校验通过：所有部件扩展后均在原图范围内 (扩展=${expandPx}px)`});
+  }
+
+  // ─── 校验 4：重叠检测 ───
+  let overlapCount=0;
+  for(let i=0;i<markedParts.length;i++){
+    for(let j=i+1;j<markedParts.length;j++){
+      const a=markedParts[i].region,b=markedParts[j].region;
+      if(!(a.x+a.w<=b.x||b.x+b.w<=a.x||a.y+a.h<=b.y||b.y+b.h<=a.y)){
+        overlapCount++;
+        if(overlapCount<=3){
+          issues.push({level:'info',icon:'ℹ️',msg:`区域重叠：「${markedParts[i].name}」与「${markedParts[j].name}」有交集`,detail:'重叠可能是有意为之（如头发遮挡身体），仅作提示'});
+        }
+      }
+    }
+  }
+  if(overlapCount>3)issues.push({level:'info',icon:'ℹ️',msg:`还有 ${overlapCount-3} 组重叠（已省略）`});
+  if(overlapCount===0&&markedParts.length>1)issues.push({level:'pass',icon:'✅',msg:'无区域重叠'});
+
+  // ─── 校验 5：对称部件一致性 ───
+  markedParts.forEach(p=>{
+    if(!p.mirror)return;
+    const mp=parts.find(q=>q.name===p.mirror);
+    if(!mp||!mp.region)return;
+    const r1=p.region,r2=mp.region;
+    const sizeDiff=Math.abs(r1.w*r1.h-r2.w*r2.h)/(r1.w*r1.h);
+    if(sizeDiff>0.3){
+      issues.push({level:'warn',icon:'⚠️',msg:`对称性警告：「${p.name}」和「${mp.name}」面积差异 ${(sizeDiff*100).toFixed(0)}%`,detail:`${p.name}: ${r1.w}×${r1.h} = ${r1.w*r1.h}px² vs ${mp.name}: ${r2.w}×${r2.h} = ${r2.w*r2.h}px²`});
+    }
+  });
+
+  // ─── 渲染报告 ───
+  const panel=document.getElementById('qaPanel');panel.style.display='block';
+  const report=document.getElementById('qaReport');
+  const errCount=issues.filter(i=>i.level==='error').length;
+  const warnCount=issues.filter(i=>i.level==='warn').length;
+  const passCount=issues.filter(i=>i.level==='pass').length;
+  report.innerHTML=`<div style="margin-bottom:8px;padding:6px 10px;border-radius:6px;background:${errCount>0?'rgba(248,113,113,.1)':warnCount>0?'rgba(251,191,36,.1)':'rgba(74,222,128,.1)'};font-weight:600;color:${errCount>0?'var(--red)':warnCount>0?'var(--yellow)':'var(--green)'}">${errCount>0?'❌ 质检未通过':warnCount>0?'⚠️ 有警告':'✅ 全部通过'} · ${passCount}通过 / ${warnCount}警告 / ${errCount}错误</div>`+
+    issues.map(i=>`<div style="padding:4px 0;${i.level==='error'?'color:var(--red)':i.level==='warn'?'color:var(--yellow)':i.level==='info'?'color:var(--dim)':'color:var(--green)'}">${i.icon} ${i.msg}${i.detail?'<div style="font-size:10px;color:var(--dim);margin-left:20px">'+i.detail+'</div>':''}</div>`).join('');
+
+  showToast(errCount>0?`质检完成：${errCount} 个错误需要修复`:`质检完成：${warnCount} 个警告`);
+  return{errors:errCount,warnings:warnCount,issues};
+}
+
+// ═══════════════════════════════════════════════════════════
+//  §新增模块 4：PSD 直读支持（ag-psd 集成）
+// ═══════════════════════════════════════════════════════════
+function importPSD(){
+  const input=document.getElementById('psdInput');
+  input.onchange=e=>{if(e.target.files[0])loadPSDFile(e.target.files[0]);};
+  input.click();
+}
+
+function loadPSDFile(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      // ag-psd 全局对象在 window.agPsd 或 window['ag-psd']
+      const agPsd=window.agPsd||window['ag-psd'];
+      if(!agPsd||!agPsd.readPsd){
+        showToast('ag-psd 库未加载，请检查网络');return;
+      }
+      const buffer=e.target.result;
+      const psd=agPsd.readPsd(new Uint8Array(buffer),{
+        skipCompositeImageData:false,
+        skipLayerImageData:false,
+        skipThumbnail:true
+      });
+
+      // 1. 加载合成图（Composite）作为 baseImage
+      if(!psd.canvas){
+        showToast('PSD 无合成预览，尝试用图层合成...');
+        // 手动从图层合成
+        const c=document.createElement('canvas');
+        c.width=psd.width;c.height=psd.height;
+        const ctx=c.getContext('2d');
+        if(psd.children){
+          psd.children.forEach(layer=>{
+            if(!layer.hidden&&layer.canvas){
+              ctx.globalAlpha=((layer.opacity!==undefined?layer.opacity:255)/255);
+              ctx.drawImage(layer.canvas,layer.left||0,layer.top||0);
+            }
+          });
+        }
+        ctx.globalAlpha=1;
+        const img=new Image();
+        img.onload=()=>{
+          baseImage=img;S.imgW=psd.width;S.imgH=psd.height;
+          finishPSDLoad(psd);
+        };
+        img.src=c.toDataURL();
+        return;
+      }
+
+      const img=new Image();
+      img.onload=()=>{
+        baseImage=img;S.imgW=psd.width;S.imgH=psd.height;
+        finishPSDLoad(psd);
+      };
+      img.src=psd.canvas.toDataURL();
+    }catch(err){
+      showToast('PSD 解析失败: '+err.message);
+      console.error('PSD parse error:',err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function finishPSDLoad(psd){
+  setupCanvases();baseCtx.drawImage(baseImage,0,0);
+  basePixels=baseCtx.getImageData(0,0,S.imgW,S.imgH).data;
+  S.loaded=true;
+  document.getElementById('dropZone').style.display='none';
+  document.getElementById('canvasContainer').style.display='block';
+  document.getElementById('autoSplitBtn').disabled=false;
+  resetZoom();updateFullPreview();
+
+  // 2. 提取顶层图层 → 自动映射为部件列表
+  if(psd.children&&psd.children.length>0){
+    const visibleLayers=psd.children.filter(l=>!l.hidden&&l.canvas);
+    if(visibleLayers.length>0){
+      saveHistory();
+      parts=visibleLayers.map((layer,i)=>{
+        const left=layer.left||0,top=layer.top||0;
+        const lw=layer.canvas?layer.canvas.width:0;
+        const lh=layer.canvas?layer.canvas.height:0;
+        const name=layer.name||('Layer_'+(i+1));
+        const region=(lw>0&&lh>0)?{x:left,y:top,w:lw,h:lh}:null;
+        // Alpha 感知收缩
+        if(region&&document.getElementById('edgeSnap').checked){
+          const shrunk=shrinkToAlpha(region);
+          return{name,color:mColors[i%mColors.length],region:shrunk,split:null,mirror:null};
+        }
+        return{name,color:mColors[i%mColors.length],region,split:null,mirror:null};
+      });
+      S.currentPart=0;S.multiSelect.clear();
+      buildPartGrid();render();updatePartPreview();updateStats();
+      showToast(`PSD 已加载：${psd.width}×${psd.height}, ${visibleLayers.length} 个图层 → 部件`);
+      return;
+    }
+  }
+  buildPartGrid();render();updateStats();
+  showToast(`PSD 已加载：${psd.width}×${psd.height}（无可用图层）`);
+}
+
 init();
 
 </script>
