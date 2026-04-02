@@ -34,7 +34,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .t2.open>.t2-h .chv-svg,
 .t3.open>.t3-h .chv-svg{transform:rotate(90deg);color:var(--text)}
 
-/* ═══ 文件夹图标（一级模块 — 闭合/展开切换）═══ */
+/* ═══ Emoji 图标通用样式（标志性辨识度 + 深色主题优化）═══ */
+.emoji-icon{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;font-style:normal;transition:transform .15s ease, filter .15s}
+/* 一级模块 Emoji：16px，稍大醒目 */
+.emoji-icon-l1{font-size:16px;width:20px;height:20px;filter:drop-shadow(0 0 1px rgba(255,255,255,.15))}
+.t1-h:hover .emoji-icon-l1{transform:scale(1.12)}
+.t1.open>.t1-h .emoji-icon-l1{filter:drop-shadow(0 0 3px rgba(108,140,255,.25))}
+.t1-arsenal>.t1-h .emoji-icon-l1{filter:drop-shadow(0 0 1px rgba(248,113,113,.2))}
+.t1-arsenal.open>.t1-h .emoji-icon-l1{filter:drop-shadow(0 0 3px rgba(248,113,113,.3))}
+/* 二级分组 Emoji：15px */
+.emoji-icon-l2{font-size:15px;width:18px;height:18px}
+.t2-h:hover .emoji-icon-l2{transform:scale(1.1)}
+/* 三级叶节点 Emoji：14px，精致不夺目 */
+.emoji-icon-leaf{font-size:14px;width:18px;height:18px;opacity:.85}
+.leaf:hover .emoji-icon-leaf{opacity:1;transform:scale(1.08)}
+.leaf.active .emoji-icon-leaf{opacity:1;filter:drop-shadow(0 0 2px rgba(108,140,255,.3))}
+/* 首页按钮 Emoji */
+.nav-home-emoji{font-size:16px;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* ═══ 文件夹图标（一级模块 — 闭合/展开切换）[保留兼容]═══ */
 .folder-wrap{display:inline-flex;align-items:center;flex-shrink:0;width:16px;height:16px;position:relative}
 .folder-icon{width:16px;height:16px;flex-shrink:0;color:rgba(255,255,255,.5);transition:color .18s}
 .folder-wrap .folder-icon:last-child{display:none}
@@ -46,12 +64,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .t1-arsenal.open>.t1-h .folder-icon{color:var(--red)}
 .t1-arsenal>.t1-h:hover .folder-icon{color:var(--red)}
 
-/* ═══ 分组图标（二级 — 子文件夹线性图标）═══ */
+/* ═══ 分组图标（二级 — 子文件夹线性图标）[保留兼容]═══ */
 .group-icon{width:15px;height:15px;flex-shrink:0;color:rgba(255,255,255,.4);transition:color .18s}
 .t2-h:hover .group-icon{color:rgba(255,255,255,.7)}
 .t2.open>.t2-h .group-icon{color:var(--text)}
 
-/* ═══ SVG 叶节点文档图标（统一 16x16，gap 8px）═══ */
+/* ═══ SVG 叶节点文档图标（统一 16x16，gap 8px）[保留兼容]═══ */
 .leaf-icon{width:16px;height:16px;flex-shrink:0;color:rgba(255,255,255,.65);transition:color .15s}
 .leaf:hover .leaf-icon{color:var(--text)}
 .leaf.active .leaf-icon{color:var(--accent)}

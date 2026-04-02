@@ -244,11 +244,11 @@ var SVG_FOLDER_OPEN = '<svg class="folder-icon" viewBox="0 0 16 16" fill="none">
 var SVG_GROUP = '<svg class="group-icon" viewBox="0 0 16 16" fill="none"><path d="M2 4a1 1 0 011-1h3l1.5 1.5H13a1 1 0 011 1v7a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M5 8h6M5 10.5h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>';
 
 // ═══ Sidebar.json 驱动构建侧边栏 ═══
-// 【重构】极简 Notion/Linear 风格 — 无 Emoji，SVG chevron + 文档图标
+// 【优化】恢复标志性 Emoji 图标 — 增强视觉辨识度
 function buildSidebar(data){
   sidebarData=data;
   var nav=document.getElementById('sidebarNav');
-  var html='<button class="nav-home active" onclick="navigate(\'home\')" id="navHome"><svg class="nav-home-icon" viewBox="0 0 16 16" fill="none"><path d="M2 8.5l6-6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 7v6.5a1 1 0 001 1h7a1 1 0 001-1V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>知识库首页</span></button>';
+  var html='<button class="nav-home active" onclick="navigate(\'home\')" id="navHome"><span class="nav-home-emoji">🏠</span><span>知识库首页</span></button>';
 
   // 统计计数器
   var normCount=0, toolCount=0, arsenalCount=0;
@@ -266,12 +266,14 @@ function buildSidebar(data){
 
     // 获取纯文本名称（去掉 Emoji 前缀）
     var catName = cat.name.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]+\s*/u, '');
+    // 一级模块 Emoji 图标（从 JSON icon 字段读取）
+    var catEmoji = cat.icon || '📁';
 
     var extraCls = isArsenal ? ' t1-arsenal' : '';
     html += '<div class="t1' + extraCls + '" id="' + cat.id + '">';
     html += '<div class="t1-h" onclick="handleToggle(event,this)">'
       + SVG_CHEVRON
-      + '<span class="folder-wrap">' + SVG_FOLDER + SVG_FOLDER_OPEN + '</span>'
+      + '<span class="emoji-icon emoji-icon-l1">' + catEmoji + '</span>'
       + '<span class="cl">' + catName + '</span>'
       + '<span class="cc">' + itemCount + '</span>'
       + '</div>';
@@ -281,9 +283,11 @@ function buildSidebar(data){
       html += '<div class="leaf leaf--empty">待补充...</div>';
     } else {
       cat.groups.forEach(function(grp){
+        // 二级分组 Emoji 图标
+        var grpEmoji = grp.icon || '📂';
         html += '<div class="t2"><div class="t2-h" onclick="handleToggle(event,this)">'
           + SVG_CHEVRON
-          + SVG_GROUP
+          + '<span class="emoji-icon emoji-icon-l2">' + grpEmoji + '</span>'
           + '<span class="sl">' + grp.name + '</span></div><div class="t2-c">';
 
         if(grp.items) grp.items.forEach(function(item){
@@ -297,8 +301,10 @@ function buildSidebar(data){
             catId: cat.id
           };
 
+          // 三级叶节点 Emoji 图标
+          var itemEmoji = item.icon || '📄';
           html += '<button class="leaf" data-page="' + item.id + '" title="' + item.title + '" onclick="event.stopPropagation();navigate(\'' + item.id + '\',this)">'
-            + SVG_DOC
+            + '<span class="emoji-icon emoji-icon-leaf">' + itemEmoji + '</span>'
             + '<span class="leaf-text">' + item.title + '</span>'
             + '</button>';
           html += '<div class="toc-box" id="toc-' + item.id + '"></div>';
