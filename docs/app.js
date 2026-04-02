@@ -259,9 +259,9 @@ function buildSidebar(data){
             catId: cat.id
           };
 
-          // badge 样式：排雷用红色，工具用绿色，其他用蓝色
+          // badge 样式：排雷用红色，流程管理用红色，工具用绿色，其他用蓝色
           var badgeCls = 'bd';
-          if(item.badge === '排雷') badgeCls = 'br';
+          if(item.badge === '排雷' || item.badge === '流程管理') badgeCls = 'br';
           else if(item.badge === '工具' || item.download) badgeCls = 'bt';
 
           // 工种小标签

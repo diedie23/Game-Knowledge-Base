@@ -31,12 +31,10 @@
           ]
         },
         {
-          "name": "场景 & 管理",
-          "icon": "🏔️",
+          "name": "场景规范",
+          "icon": "⛰️",
           "items": [
-            { "id": "scene-lod-spec",    "icon": "🏗️", "title": "场景模块化与 LOD 规范", "type": "iframe", "file": "knowledge-base/scene-lod-spec.html",        "badge": "场景", "craft": "场景" },
-            { "id": "cp-management",     "icon": "📋", "title": "CP 外包管理手册",       "type": "iframe", "file": "knowledge-base/cp-management.html",         "badge": "管理", "craft": "管理" },
-            { "id": "game-art-pipeline", "icon": "📊", "title": "游戏美术流程总结",      "type": "iframe", "file": "knowledge-base/game-art-pipeline.html",     "badge": "管理", "craft": "管理" }
+            { "id": "scene-lod-spec",    "icon": "🏗️", "title": "场景模块化与 LOD 规范", "type": "iframe", "file": "knowledge-base/scene-lod-spec.html",        "badge": "场景", "craft": "场景" }
           ]
         }
       ]
@@ -97,6 +95,14 @@
             { "id": "accident-troubleshoot", "icon": "🚨", "title": "典型事故排雷手册",     "type": "iframe", "file": "knowledge-base/accident-troubleshoot.html", "badge": "排雷", "craft": "通用" },
             { "id": "cross-dept-collab",     "icon": "🤝", "title": "跨部门协作痛点解法",   "type": "iframe", "file": "knowledge-base/cross-dept-collab.html",     "badge": "排雷", "craft": "通用" },
             { "id": "cp-outsource",          "icon": "📋", "title": "CP 外包全流程避坑手册","type": "iframe", "file": "knowledge-base/cp-outsource.html",          "badge": "排雷", "craft": "管理" }
+          ]
+        },
+        {
+          "name": "流程管理",
+          "icon": "📊",
+          "items": [
+            { "id": "cp-management",     "icon": "📋", "title": "CP 外包管理手册",       "type": "iframe", "file": "knowledge-base/cp-management.html",     "badge": "流程管理", "craft": "管理" },
+            { "id": "game-art-pipeline", "icon": "📊", "title": "游戏美术流程总结",      "type": "iframe", "file": "knowledge-base/game-art-pipeline.html", "badge": "流程管理", "craft": "管理" }
           ]
         }
       ]

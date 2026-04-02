@@ -141,24 +141,24 @@
     },
     {
       "id": "cp-management",
-      "module": "norm",
+      "module": "arsenal",
       "craft": "管理",
       "type": "iframe",
       "title": "CP 外包管理手册",
       "desc": "从需求下发到结算的完整外包管理流程",
-      "tags": ["外包","验收","流程","CP评级"],
+      "tags": ["流程管理","外包体系","验收","CP评级"],
       "icon": "📋",
       "action": "openTool",
       "path": "knowledge-base/cp-management.html"
     },
     {
       "id": "game-art-pipeline",
-      "module": "norm",
+      "module": "arsenal",
       "craft": "管理",
       "type": "iframe",
       "title": "游戏美术流程总结",
       "desc": "轻度2D/重度3D/二次元手游的美术流程对比",
-      "tags": ["2D","3D","二次元","流程"],
+      "tags": ["流程管理","美术流程","2D","3D","二次元"],
       "icon": "📊",
       "action": "openTool",
       "path": "knowledge-base/game-art-pipeline.html"
