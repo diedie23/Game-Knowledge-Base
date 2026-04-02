@@ -29,6 +29,22 @@
               "badge": "文档"
             },
             {
+              "id": "ugc-character-spec",
+              "icon": "📐",
+              "title": "UGC 角色出图工业化规范",
+              "type": "iframe",
+              "file": "knowledge-base/ugc-character-spec.html",
+              "badge": "规范"
+            },
+            {
+              "id": "color-swap-spec",
+              "icon": "🎨",
+              "title": "角色换色工业化规范",
+              "type": "iframe",
+              "file": "knowledge-base/color-swap-spec.html",
+              "badge": "规范"
+            },
+            {
               "id": "auto-mask-spec",
               "icon": "📋",
               "title": "Mask 生成器工业化规范",
@@ -197,8 +213,8 @@
               "icon": "📊",
               "title": "游戏美术流程总结",
               "type": "iframe",
-              "file": "knowledge-base/md-viewer.html?file=game-art-pipeline.md",
-              "badge": "文档"
+              "file": "knowledge-base/game-art-pipeline.html",
+              "badge": "规范"
             }
           ]
         }

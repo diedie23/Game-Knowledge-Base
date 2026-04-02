@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>游戏美术流程总结 — 全链路 Pipeline</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:24px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:11px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.section h3{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:13px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:12px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:12px;line-height:1.7}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:13px}
+.dd-card .img-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:6px;padding:20px;text-align:center;color:var(--dim);font-size:11px;margin:8px 0}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:12px;line-height:1.8;padding-left:28px}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+.redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;text-align:center;min-width:80px}
+.flow-node strong{display:block;color:var(--heading);font-size:12px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:10px}
+.flow-arrow{color:var(--cyan);font-size:18px;padding:0 4px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+.flow-node.tool{border-color:var(--accent2);background:rgba(167,139,250,.05)}
+.pipeline-stage{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
+.pipeline-stage h4{color:var(--heading);margin-bottom:8px;font-size:14px}
+.pipeline-stage .io{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:12px}
+.pipeline-stage .io div{padding:8px;border-radius:6px}
+.pipeline-stage .input{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2)}
+.pipeline-stage .output{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>📊 游戏美术流程总结 <span class="ver">Pipeline v1.0</span></h1>
+  <div class="subtitle">Game Art Production Pipeline — End-to-End Workflow &amp; Delivery Contracts</div>
+  <div class="meta">
+    <span>📋 适用：2D/2.5D/3D 项目通用</span>
+    <span>👤 维护：美术中心 · TA 组</span>
+    <span>📅 2026-04-02</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ol>
+    <li><a href="#sec1">全链路 Pipeline 总览</a></li>
+    <li><a href="#sec2">各阶段 Input/Output 契约</a></li>
+    <li><a href="#sec3">图文红黑榜</a></li>
+    <li><a href="#sec4">各游戏类型 Pipeline 差异</a></li>
+    <li><a href="#sec5">常见问题 FAQ</a></li>
+  </ol>
+</div>
+
+<!-- SEC1 -->
+<div class="section" id="sec1">
+  <h2>🔗 1. 全链路 Pipeline 总览</h2>
+  <p>从<strong>策划需求</strong>到<strong>引擎最终表现</strong>的完整美术生产线，共 8 个核心阶段：</p>
+
+  <div class="flow">
+    <div class="flow-node start"><strong>①需求</strong><div class="sub">策划文档</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>②原画</strong><div class="sub">概念设计</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>③拆分</strong><div class="sub">PSD分层</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node tool"><strong>④工具链</strong><div class="sub">Mask/Spine/切图</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>⑤QA验证</strong><div class="sub">自动化+人工</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>⑥引擎导入</strong><div class="sub">资产配置</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>⑦材质/表现</strong><div class="sub">Shader接入</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>⑧发布</strong><div class="sub">构建包验证</div></div>
+  </div>
+
+  <div class="alert alert-blue"><strong>核心原则</strong>：每个阶段都有明确的<strong>Input（上游交付物）</strong>和<strong>Output（本阶段交付物）</strong>。上游的 Output = 下游的 Input。<strong>契约不满足 → 不允许进入下一阶段。</strong></div>
+</div>
+
+<!-- SEC2 -->
+<div class="section" id="sec2">
+  <h2>📑 2. 各阶段 Input/Output 契约</h2>
+
+  <div class="pipeline-stage">
+    <h4>① 需求阶段 — 策划 → 美术</h4>
+    <div class="io">
+      <div class="input"><strong>📥 Input</strong><br>• 策划文档（功能描述）<br>• 角色/场景/UI 需求列表<br>• 参考图/情绪板<br>• 数量和优先级排期</div>
+      <div class="output"><strong>📤 Output</strong><br>• 美术制作 Brief<br>• 风格定义文档<br>• 技术规范摘要<br>• 里程碑排期表</div>
+    </div>
+  </div>
+
+  <div class="pipeline-stage">
+    <h4>② 原画阶段 — 概念设计</h4>
+    <div class="io">
+      <div class="input"><strong>📥 Input</strong><br>• 美术 Brief<br>• 项目风格指南<br>• 色板 .aco<br>• 体型/头身比参考</div>
+      <div class="output"><strong>📤 Output</strong><br>• 正面/侧面/背面三视图<br>• 色板标注<br>• 表情 Sheet（如需）<br>• 主美签字确认</div>
+    </div>
+  </div>
+
+  <div class="pipeline-stage">
+    <h4>③ PSD 拆分阶段 — 部件分层</h4>
+    <div class="io">
+      <div class="input"><strong>📥 Input</strong><br>• 已确认的原画<br>• 部件拆分清单<br>• Z-Order 层级表<br>• Padding 规范值</div>
+      <div class="output"><strong>📤 Output</strong><br>• 分层 PSD（每部件一个图层组）<br>• 素体完整安全区<br>• Z-Order 标注文件<br>• 自检 Checklist ✅</div>
+    </div>
+  </div>
+
+  <div class="pipeline-stage">
+    <h4>④ 工具链阶段 — 自动化处理</h4>
+    <div class="io">
+      <div class="input"><strong>📥 Input</strong><br>• 合规的 PSD / PNG<br>• Mask 通道定义<br>• 命名模板配置<br>• 拓扑参数（Spine 用）</div>
+      <div class="output"><strong>📤 Output</strong><br>• Mask 遮罩图 PNG<br>• Spine 部件切片<br>• UI 切图（偶数尺寸）<br>• config.json 工程文件<br>• 命名合规的文件包</div>
+    </div>
+  </div>
+
+  <div class="pipeline-stage">
+    <h4>⑤ QA 验证阶段 — 质量门禁</h4>
+    <div class="io">
+      <div class="input"><strong>📥 Input</strong><br>• 工具链输出的资产包<br>• QA 阈值配置<br>• 工程验收 Checklist</div>
+      <div class="output"><strong>📤 Output</strong><br>• QA 报告（PASS/FAIL）<br>• 自动化校验日志<br>• 不合格项标注<br>• 视觉审核意见（如需）</div>
+    </div>
+  </div>
+
+  <div class="pipeline-stage">
+    <h4>⑥ 引擎导入阶段 — 资产配置</h4>
+    <div class="io">
+      <div class="input"><strong>📥 Input</strong><br>• QA 通过的资产包<br>• 引擎导入设置表<br>（sRGB/Filter/压缩/Mipmap）</div>
+      <div class="output"><strong>📤 Output</strong><br>• 引擎内资产（.uasset / .asset）<br>• 导入验证截图<br>• 纹理压缩后内存报告</div>
+    </div>
+  </div>
+
+  <div class="pipeline-stage">
+    <h4>⑦ 材质/Shader 接入阶段</h4>
+    <div class="io">
+      <div class="input"><strong>📥 Input</strong><br>• 引擎内资产<br>• 材质参数表<br>• 换色配色 JSON<br>• 动画控制器</div>
+      <div class="output"><strong>📤 Output</strong><br>• 材质实例<br>• 换色效果 3 套预览<br>• 动画播放验证<br>• 性能 Profiling 报告</div>
+    </div>
+  </div>
+
+  <div class="pipeline-stage">
+    <h4>⑧ 发布阶段 — 构建包验证</h4>
+    <div class="io">
+      <div class="input"><strong>📥 Input</strong><br>• 材质/动画 OK 的资产<br>• 多端真机列表<br>• 性能预算表</div>
+      <div class="output"><strong>📤 Output</strong><br>• 真机走查报告<br>• 包体大小报告<br>• 最终 SVN/Git 提交<br>• Release Note</div>
+    </div>
+  </div>
+</div>
+
+<!-- SEC3 -->
+<div class="section" id="sec3">
+  <h2>✅❌ 3. 图文红黑榜</h2>
+
+  <h3>3.1 跳过 QA 门禁 → 引擎翻车</h3>
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't — 原画直接扔给程序"你看着导"</h4>
+      <div class="img-placeholder">[此处插入图片：美术把未经拆分、未经QA的 PSD 直接发给程序。程序导入后 Mask 通道全错、命名混乱、尺寸非 POT，引擎中表现完全不对]</div>
+      <p><strong>后果</strong>：跳过③④⑤三个阶段，程序只能"猜"美术意图，猜错了双方反复沟通——<strong>一个资产的集成周期从 1 天膨胀到 1 周</strong>。</p>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ Do — 严格走完 8 阶段 Pipeline</h4>
+      <div class="img-placeholder">[此处插入图片：Pipeline 看板截图，每个资产清晰标注当前阶段，每个阶段有明确的 Input/Output 和验收签字]</div>
+      <p><strong>方法</strong>：使用项目管理工具（TAPD/Jira）创建 Pipeline 看板，每个资产卡片<strong>必须按序流转</strong>，上游签字后才能进入下游。</p>
+    </div>
+  </div>
+
+  <h3>3.2 Input/Output 不定义 → 反复返工</h3>
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't — 口头传达需求，无书面契约</h4>
+      <div class="img-placeholder">[此处插入图片：微信语音截图"帮我画个角色"，没有 Brief、没有规范、没有尺寸要求，结果返工 5 次]</div>
+      <p><strong>后果</strong>：每个人理解不同，交付物不符合下游预期。原画觉得完成了，但 PSD 分层不对；PSD 分层好了，但命名格式不对。<strong>每个衔接点都可能返工。</strong></p>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ Do — 每个阶段有书面 Input/Output 契约</h4>
+      <div class="img-placeholder">[此处插入图片：规范的 Pipeline 契约文档，清晰列出每阶段的 Input 清单、Output 清单、验收标准]</div>
+      <p><strong>方法</strong>：本文档第 2 章的 8 个阶段 I/O 表即为标准契约。打印贴在工位上，每次交接核对。<strong>缺少任何一项 Input = 不开工。缺少任何一项 Output = 不交接。</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- SEC4 -->
+<div class="section" id="sec4">
+  <h2>🎮 4. 各游戏类型 Pipeline 差异</h2>
+
+  <table>
+    <tr><th>游戏类型</th><th>核心差异</th><th>重点阶段</th><th>特殊工具</th></tr>
+    <tr><td><strong>二次元手游</strong></td><td>角色立绘精度高、换装/换色需求大</td><td>②原画（精修）、④Mask生成、⑦换色Shader</td><td>自动 Mask 生成器、换色预览工具</td></tr>
+    <tr><td><strong>轻度 2D 休闲</strong></td><td>角色数量巨大但单个复杂度低、UI 占比大</td><td>③批量拆分、④UI切图、⑤自动化QA</td><td>批量切图脚本、Atlas 自动打包</td></tr>
+    <tr><td><strong>重度 3D 游戏</strong></td><td>PBR 材质流程、LOD 多级、光照烘焙</td><td>②高模→低模、④法线烘焙、⑥LOD配置</td><td>Substance、Marmoset、引擎烘焙</td></tr>
+    <tr><td><strong>Spine 动画向</strong></td><td>骨骼绑定、网格变形、Atlas 打包</td><td>③部件拆分、④Spine工具链、⑤Atlas QA</td><td>Spine 拆分工具、Atlas 验证器</td></tr>
+  </table>
+
+  <div class="alert alert-yellow"><strong>⚠️ 提示</strong>：不同类型项目共用同一 Pipeline 框架（8 阶段），但每个阶段的<strong>具体交付物和验收标准可能不同</strong>。项目启动时需根据类型定制各阶段的 Checklist。</div>
+</div>
+
+<!-- SEC5 -->
+<div class="section" id="sec5">
+  <h2>❓ 5. 常见问题 FAQ</h2>
+
+  <div class="faq-item">
+    <div class="faq-q">💬 Q1：Pipeline 太重了，小团队也要走 8 个阶段吗？</div>
+    <div class="faq-a">
+      <p><strong>答</strong>：阶段可以<strong>合并但不能跳过</strong>。小团队可以：① 将②③合并（原画+拆分同一人完成） ② 将⑥⑦合并（导入+材质同步配置） ③ 但<strong>⑤QA 验证绝不能跳</strong>——自动化脚本跑一次只要 30 秒，但能避免 90% 的返工。</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">💬 Q2：如何加速 Pipeline 周转效率？</div>
+    <div class="faq-a">
+      <p><strong>三大加速器</strong>：</p>
+      <p>① <strong>工具自动化</strong>：Mask 自动生成（替代手动逐通道涂画）、批量命名校验、一键导出工程包。</p>
+      <p>② <strong>模板化</strong>：预设好 PSD 模板（含安全区辅助线）、命名模板、引擎导入 Preset。</p>
+      <p>③ <strong>并行化</strong>：原画确认后，拆分和 Mask 制作可并行；不同角色的 Pipeline 可并行。关键路径上不要有串行瓶颈。</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">💬 Q3：不同阶段由不同人负责，如何保证一致性？</div>
+    <div class="faq-a">
+      <p><strong>答</strong>：靠<strong>契约+工具</strong>而非口头约定：</p>
+      <p>① 每个阶段的 I/O 契约<strong>写成文档</strong>，全员可查。</p>
+      <p>② 工程规范通过<strong>自动化脚本强制执行</strong>（CI/CD 拦截不合规提交）。</p>
+      <p>③ 每周 <strong>Pipeline Review</strong>——TA Lead 抽检各阶段交付物，发现流程偏差及时修正。</p>
+    </div>
+  </div>
+</div>
+
+<div class="doc-footer">📊 游戏美术流程总结 · Pipeline v1.0 · 美术中心 + TA组 · 项目内部资料</div>
+</div>
+</body>
+</html>
