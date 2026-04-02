@@ -83,18 +83,26 @@ function getChildContainer(el){
 
 /**
  * 折叠某个节点（带动画）
+ * 【修复】先递归折叠子节点，使用 requestAnimationFrame 确保回流时序正确
  */
 function collapseNode(el){
   if(!el || !el.classList.contains('open')) return;
   var container = getChildContainer(el);
   if(!container) return;
-  // 先递归折叠所有子节点，防止高度计算错误
+  // 清除可能残留的 transitionend 监听（防止回调堆积）
+  if(container._onTransEnd) {
+    container.removeEventListener('transitionend', container._onTransEnd);
+    container._onTransEnd = null;
+  }
+  // 先递归瞬间折叠所有子节点，防止高度计算错误
   var childNodes = container.querySelectorAll('.t1.open, .t2.open, .t3.open');
   for(var i=0;i<childNodes.length;i++) collapseNodeInstant(childNodes[i]);
+  // 标记为关闭
+  el.classList.remove('open');
+  // 先锁定当前高度，再在下一帧设置为 0 触发 transition
   container.style.height = container.scrollHeight + 'px';
   container.offsetHeight; // 强制回流
   container.style.height = '0';
-  el.classList.remove('open');
 }
 
 /**
@@ -104,25 +112,40 @@ function collapseNodeInstant(el){
   if(!el || !el.classList.contains('open')) return;
   var container = getChildContainer(el);
   if(!container) return;
+  // 清除残留回调
+  if(container._onTransEnd) {
+    container.removeEventListener('transitionend', container._onTransEnd);
+    container._onTransEnd = null;
+  }
   el.classList.remove('open');
   container.style.height = '0';
 }
 
 /**
  * 展开某个节点（带动画）
+ * 【修复】1. 仅响应 height 属性的 transitionend 2. 清除旧回调防止堆积
  */
 function expandNode(el){
   if(!el || el.classList.contains('open')) return;
   var container = getChildContainer(el);
   if(!container) return;
+  // 清除可能残留的旧 transitionend 回调
+  if(container._onTransEnd) {
+    container.removeEventListener('transitionend', container._onTransEnd);
+    container._onTransEnd = null;
+  }
   el.classList.add('open');
-  container.style.height = container.scrollHeight + 'px';
+  var targetHeight = container.scrollHeight;
+  container.style.height = targetHeight + 'px';
   var onEnd = function(e){
-    // 只响应自身容器的 transitionend，忽略子元素冒泡上来的事件
+    // ★★★ 仅响应 height 属性 + 仅响应自身容器（非子元素冒泡）★★★
     if(e.target !== container) return;
+    if(e.propertyName !== 'height') return;
     container.style.height = 'auto';
     container.removeEventListener('transitionend', onEnd);
+    container._onTransEnd = null;
   };
+  container._onTransEnd = onEnd;
   container.addEventListener('transitionend', onEnd);
 }
 
@@ -143,11 +166,12 @@ function collapseSiblings(el){
 
 /**
  * 统一的 Toggle 入口 —— 由 onclick 调用
- * 【核心修复】e.stopPropagation() 防止父子事件互相干扰
+ * 【核心修复】e.stopPropagation() + e.preventDefault() 防止父子事件互相干扰
  */
 function handleToggle(e, headerEl){
-  // ★★★ 阻止事件冒泡：防止点击子级 header 时触发父级 header 的 click ★★★
+  // ★★★ 阻止事件冒泡和默认行为 ★★★
   e.stopPropagation();
+  e.preventDefault();
 
   var treeNode = headerEl.parentElement; // .t1 / .t2 / .t3
   var isOpen = treeNode.classList.contains('open');
@@ -264,19 +288,11 @@ function buildSidebar(data){
           if(item.badge === '排雷' || item.badge === '流程管理') badgeCls = 'br';
           else if(item.badge === '工具' || item.download) badgeCls = 'bt';
 
-          // 工种小标签
-          var craftTag = '';
-          if(item.craft) {
-            var cc = CRAFT_COLORS[item.craft] || CRAFT_COLORS['通用'];
-            craftTag = '<span class="craft-tag" style="background:' + cc.bg + ';color:' + cc.color + '">' + item.craft + '</span>';
-          }
-
           // ★ 叶节点 onclick 也加 stopPropagation，title 属性展示全名 ★
+          // 【优化】侧边栏不再渲染 craft-tag 和 badge，保持清爽，仅显示图标+标题
           html += '<button class="leaf" data-page="' + item.id + '" title="' + item.title + '" onclick="event.stopPropagation();navigate(\'' + item.id + '\',this)">'
             + '<span class="li">' + item.icon + '</span>'
             + '<span class="leaf-text">' + item.title + '</span>'
-            + craftTag
-            + '<span class="badge ' + badgeCls + '">' + item.badge + '</span>'
             + '</button>';
           html += '<div class="toc-box" id="toc-' + item.id + '"></div>';
         });
