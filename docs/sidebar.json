@@ -125,14 +125,6 @@
               "download": "downloads/ImageSkewCorrector.exe"
             },
             {
-              "id": "image-skew-corrector-online",
-              "icon": "📐",
-              "title": "图片倾斜矫正 (在线)",
-              "type": "iframe",
-              "file": "knowledge-base/image-skew-corrector-online.html",
-              "badge": "工具"
-            },
-            {
               "id": "game-resource-toolkit",
               "icon": "🛠️",
               "title": "游戏资源工具集 (exe)",
@@ -140,14 +132,6 @@
               "file": "knowledge-base/game-resource-toolkit.html",
               "badge": "下载",
               "download": "downloads/GameResourceToolkit.exe"
-            },
-            {
-              "id": "game-resource-toolkit-online",
-              "icon": "🛠️",
-              "title": "游戏资源工具集 (在线)",
-              "type": "iframe",
-              "file": "knowledge-base/game-resource-toolkit-online.html",
-              "badge": "工具"
             }
           ]
         }
