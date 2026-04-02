@@ -309,6 +309,28 @@ function buildSidebar(data){
   if(numEls[1]) numEls[1].textContent = toolCount + ' 个';
   if(numEls[2]) numEls[2].textContent = arsenalCount + ' 项';
 
+  // ═══ 统计卡片 → 锚点快捷导航 ═══
+  var statTargets = [
+    { sel: '.stat-norm',    anchor: '#section-norms' },
+    { sel: '.stat-tool',    anchor: '#section-tools' },
+    { sel: '.stat-arsenal', anchor: '#section-arsenal' }
+  ];
+  var scrollContainer = document.getElementById('contentScroll');
+  statTargets.forEach(function(item){
+    var card = document.querySelector(item.sel);
+    if(!card) return;
+    card.addEventListener('click', function(){
+      // 确保首页可见
+      if(curPage !== 'home') navigate('home');
+      var target = document.querySelector(item.anchor);
+      if(!target || !scrollContainer) return;
+      var containerRect = scrollContainer.getBoundingClientRect();
+      var targetRect = target.getBoundingClientRect();
+      var scrollOffset = scrollContainer.scrollTop + targetRect.top - containerRect.top - 24;
+      scrollContainer.scrollTo({ top: scrollOffset, behavior: 'smooth' });
+    });
+  });
+
   // 默认展开第一个分类（规范与常识）
   var firstCat = nav.querySelector('.t1');
   if(firstCat) expandTree(firstCat);
