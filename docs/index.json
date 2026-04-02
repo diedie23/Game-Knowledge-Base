@@ -121,8 +121,8 @@
       "craft": "UI",
       "type": "iframe",
       "title": "UMG 生成技巧",
-      "desc": "AI 辅助生成 UE UMG Widget 的技巧与 Prompt 模板",
-      "tags": ["UMG","AI Prompt"],
+      "desc": "AI 辅助生成 UE UMG Widget 的性能优化、动静分离与 Prompt 编写指南",
+      "tags": ["UMG","AI Prompt","Prompt指南","ue-blueprint-tool"],
       "icon": "⚡",
       "action": "openTool",
       "path": "knowledge-base/ui-umg-tips.html"

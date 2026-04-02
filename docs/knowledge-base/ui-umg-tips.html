@@ -82,6 +82,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#sec4">图文红黑榜</a></li>
     <li><a href="#sec5">标准作业流程 SOP</a></li>
     <li><a href="#sec6">常见问题排查 FAQ</a></li>
+    <li><a href="#sec7">如何提升 AI 生成 UE UMG 界面的准确率（Prompt 编写指南）</a></li>
   </ol>
 </div>
 
@@ -269,6 +270,249 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
       <p><strong>修复</strong>：① 高频元素移出 Box。② 赋值前加 <code>if(NewValue != OldValue)</code> 判断。③ 使用 <code>Slate.InvalidationDebugging 1</code> 可视化哪些元素导致了 Invalidation。</p>
     </div>
   </div>
+</div>
+
+<!-- SEC7 -->
+<div class="section" id="sec7">
+  <h2>🤖 7. 如何提升 AI 生成 UE UMG 界面的准确率（Prompt 编写指南）</h2>
+
+  <div class="alert alert-blue">
+    <strong>📌 背景：</strong>使用 <code>ue-blueprint-tool</code> 等 AI 辅助工具生成 UMG Widget Blueprint 时，Prompt 的结构化程度<strong>直接决定</strong>了产出物的工业级可用率。本章从 6 个核心维度给出可执行的编写规范，目标：<strong>一次生成 → 零手工修补 → 直接入工程</strong>。
+  </div>
+
+  <!-- 7.1 容器与层级结构 -->
+  <h3>7.1 明确的容器与层级结构（Hierarchy &amp; Layout）</h3>
+
+  <div class="redline">
+    <p><strong>🔴 铁律</strong>：Prompt 中<strong>必须指明根节点类型</strong>。未指定根节点的 Prompt 会让 AI 随机选择 Canvas Panel / Overlay / User Widget，导致布局基础不可预测。</p>
+  </div>
+
+  <table>
+    <tr><th>容器类型</th><th>适用场景</th><th>Prompt 关键词示例</th></tr>
+    <tr><td><code>Canvas Panel</code></td><td>全屏 HUD、需要绝对坐标定位的界面</td><td>"根节点为 Canvas Panel，支持绝对坐标布局"</td></tr>
+    <tr><td><code>Overlay</code></td><td>元素需要层叠但不需精确坐标（弹窗遮罩层）</td><td>"使用 Overlay 作为根节点，子元素堆叠排列"</td></tr>
+    <tr><td><code>Vertical Box</code></td><td>线性垂直排列（设置列表、聊天消息流）</td><td>"内容区使用 Vertical Box 依次排列各行"</td></tr>
+    <tr><td><code>Horizontal Box</code></td><td>线性水平排列（底部按钮栏、Tab 导航）</td><td>"底部按钮栏用 Horizontal Box，等间距排列 3 个按钮"</td></tr>
+    <tr><td><code>Grid Panel</code></td><td>网格/背包/道具栏</td><td>"物品列表使用 Grid Panel，4 列自动换行"</td></tr>
+    <tr><td><code>Size Box</code></td><td>强制限制子元素尺寸（固定大小的图标/按钮）</td><td>"每个道具格子用 Size Box 包裹，强制 80×80"</td></tr>
+    <tr><td><code>Scale Box</code></td><td>等比缩放适配不同分辨率</td><td>"最外层用 Scale Box 包裹，缩放策略 Scale to Fit"</td></tr>
+    <tr><td><code>Scroll Box</code></td><td>可滚动内容（但长列表建议 ListView）</td><td>"描述区域使用 Scroll Box，垂直滚动"</td></tr>
+  </table>
+
+  <div class="alert alert-yellow">
+    <strong>⚠️ 最佳实践</strong>：在 Prompt 开头<strong>先声明层级树</strong>，再描述每个节点的细节。例如先写"WBP_Popup 根节点为 Overlay，下辖：Image_BgMask → Vertical Box_Content → [标题/列表/按钮栏]"，再逐一描述各元素。这种"<strong>树形先行</strong>"写法比"自然语言平铺"的准确率高 40%+。
+  </div>
+
+  <!-- 7.2 锚点与对齐 -->
+  <h3>7.2 精准的锚点与对齐规范（Anchors &amp; Alignment）</h3>
+
+  <p>UE UMG 的布局系统核心是 <strong>Anchor（锚点）</strong>+ <strong>Alignment（对齐中心点）</strong>+ <strong>Offset（位置偏移）</strong>。三者的含义经常被混淆，导致 AI 生成的 UI 在分辨率变化时跑偏。</p>
+
+  <table>
+    <tr><th>概念</th><th>含义</th><th>取值范围</th><th>Prompt 中如何描述</th></tr>
+    <tr><td><strong>Anchor</strong></td><td>元素挂靠在父容器的哪个位置（锚定参考点）</td><td>Min(0,0)~Max(1,1)</td><td>"锚点：居中(0.5,0.5)"、"锚点：左上角(0,0)"、"锚点：全屏填充(0,0)~(1,1)"</td></tr>
+    <tr><td><strong>Alignment</strong></td><td>元素自身的对齐中心点偏移比例</td><td>0~1</td><td>"Alignment (0.5, 0.5) 以元素中心对齐锚点"</td></tr>
+    <tr><td><strong>Position / Offset</strong></td><td>从锚点到元素实际位置的像素偏移</td><td>px 值</td><td>"Offset X=0, Y=-40（在锚点上方 40px 处）"</td></tr>
+  </table>
+
+  <div class="redline">
+    <p><strong>🔴 铁律 #1</strong>：描述居中元素时，必须同时写明 <code>Anchor (0.5, 0.5)</code> + <code>Alignment (0.5, 0.5)</code>。缺少 Alignment 会导致元素以左上角对齐锚点中心，视觉上偏右偏下。</p>
+    <p><strong>🔴 铁律 #2</strong>：需要全屏自适应的元素（如背景遮罩、底图），使用 <code>Anchor Min(0,0) Max(1,1) Offset 全 0</code>，<strong>禁止使用绝对尺寸</strong>。</p>
+  </div>
+
+  <h4>常用锚点 Preset 速查</h4>
+  <table>
+    <tr><th>Preset 名称</th><th>Anchor Min/Max</th><th>典型场景</th></tr>
+    <tr><td>Top-Left</td><td>(0,0)~(0,0)</td><td>HUD 左上角信息栏（等级/血量）</td></tr>
+    <tr><td>Top-Center</td><td>(0.5,0)~(0.5,0)</td><td>系统公告 Banner</td></tr>
+    <tr><td>Top-Right</td><td>(1,0)~(1,0)</td><td>Mini Map / 货币显示</td></tr>
+    <tr><td>Center</td><td>(0.5,0.5)~(0.5,0.5)</td><td>弹窗 / 对话框</td></tr>
+    <tr><td>Bottom-Center</td><td>(0.5,1)~(0.5,1)</td><td>操作按钮栏 / 技能槽</td></tr>
+    <tr><td>Fill</td><td>(0,0)~(1,1)</td><td>全屏遮罩 / 背景图</td></tr>
+    <tr><td>Horizontal-Fill + Top</td><td>(0,0)~(1,0)</td><td>顶部导航栏（水平铺满，垂直固定高度）</td></tr>
+  </table>
+
+  <!-- 7.3 命名规范 -->
+  <h3>7.3 工业级命名规范（Naming Conventions）</h3>
+
+  <div class="alert alert-red">
+    <strong>⛔ 核心要求</strong>：Prompt 中<strong>必须</strong>为每个控件显式指定命名，否则 AI 会使用 <code>Image_0</code>、<code>Button_1</code> 等无意义默认名，后续蓝图编程和团队协作成本极高。
+  </div>
+
+  <table>
+    <tr><th>控件类型</th><th>前缀</th><th>命名示例</th><th>说明</th></tr>
+    <tr><td>Button</td><td><code>Btn_</code></td><td><code>Btn_Close</code> / <code>Btn_Confirm</code></td><td>按钮</td></tr>
+    <tr><td>Text Block</td><td><code>Txt_</code></td><td><code>Txt_Title</code> / <code>Txt_Desc</code></td><td>文本</td></tr>
+    <tr><td>Image</td><td><code>Img_</code></td><td><code>Img_Icon</code> / <code>Img_BgMask</code></td><td>图片/图标</td></tr>
+    <tr><td>Horizontal Box</td><td><code>HB_</code></td><td><code>HB_ButtonBar</code></td><td>水平盒</td></tr>
+    <tr><td>Vertical Box</td><td><code>VB_</code></td><td><code>VB_ContentList</code></td><td>垂直盒</td></tr>
+    <tr><td>Overlay</td><td><code>OL_</code></td><td><code>OL_Root</code></td><td>叠加层</td></tr>
+    <tr><td>Canvas Panel</td><td><code>CVS_</code></td><td><code>CVS_HUD</code></td><td>画布面板</td></tr>
+    <tr><td>Scroll Box</td><td><code>SB_</code></td><td><code>SB_ItemList</code></td><td>滚动盒</td></tr>
+    <tr><td>Grid Panel</td><td><code>GP_</code></td><td><code>GP_Inventory</code></td><td>网格面板</td></tr>
+    <tr><td>Size Box</td><td><code>SizeBox_</code></td><td><code>SizeBox_Slot</code></td><td>尺寸盒</td></tr>
+    <tr><td>Progress Bar</td><td><code>PB_</code></td><td><code>PB_HpBar</code></td><td>进度条</td></tr>
+    <tr><td>Border</td><td><code>Bdr_</code></td><td><code>Bdr_Panel</code></td><td>边框容器</td></tr>
+    <tr><td>Widget Blueprint</td><td><code>WBP_</code></td><td><code>WBP_CommonPopUp</code></td><td>Widget 蓝图资产</td></tr>
+  </table>
+
+  <div class="redline">
+    <p><strong>🔴 铁律</strong>：需要在蓝图中写逻辑的控件（如按钮回调、动态文本更新），<strong>必须</strong>在 Prompt 中标注 <code>Is Variable: True</code>（暴露为变量）。格式：<code>"Btn_Close (Is Variable: True) — 关闭按钮，蓝图中绑定 OnClicked 事件"</code>。</p>
+  </div>
+
+  <!-- 7.4 交互与可见性 -->
+  <h3>7.4 交互与可见性设置（Visibility &amp; Hit Test）</h3>
+
+  <p>UMG 的 Visibility 设置对 <strong>UI 性能</strong>和<strong>交互正确性</strong>影响巨大。未明确指定时，AI 往往将所有元素默认为 <code>Visible</code>（可见且响应点击），导致"<strong>幽灵点击拦截</strong>"——一个透明的背景图片意外拦截了下方按钮的点击事件。</p>
+
+  <table>
+    <tr><th>Visibility 设置</th><th>渲染</th><th>响应点击</th><th>适用元素</th><th>Prompt 写法</th></tr>
+    <tr><td><code>Visible</code></td><td>✅</td><td>✅</td><td>按钮、可交互列表项、输入框</td><td>"Btn_Close: Visible"</td></tr>
+    <tr><td><code>Self Hit Test Invisible</code></td><td>✅</td><td>❌ 自身不响应<br>✅ 子元素响应</td><td>装饰性容器（内含可交互子元素）</td><td>"VB_Content: Visibility = Self Hit Test Invisible"</td></tr>
+    <tr><td><code>Hit Test Invisible</code></td><td>✅</td><td>❌ 自身和所有子元素都不响应</td><td>纯装饰层（背景图、边框、分割线）</td><td>"Img_BgPanel: Visibility = Hit Test Invisible（纯装饰）"</td></tr>
+    <tr><td><code>Hidden</code></td><td>❌（但占位）</td><td>❌</td><td>条件隐藏但保留布局空间</td><td>"Txt_Error: Hidden（默认隐藏，逻辑控制显示）"</td></tr>
+    <tr><td><code>Collapsed</code></td><td>❌（不占位）</td><td>❌</td><td>条件隐藏且不影响布局</td><td>"VB_OptionalSection: Collapsed（按条件展开）"</td></tr>
+  </table>
+
+  <div class="alert alert-yellow">
+    <strong>⚠️ 防坑要点</strong>：
+    <br>① 全屏半透明遮罩（如弹窗背景黑幕）如果需要点击关闭，设为 <code>Visible</code>；如果<strong>不需要</strong>点击关闭，必须设为 <code>Hit Test Invisible</code>，否则会拦截遮罩下方的所有点击。
+    <br>② 布局容器（Vertical Box / Horizontal Box / Overlay）如果自身无交互，统一设为 <code>Self Hit Test Invisible</code>，仅让子元素中的按钮响应。
+    <br>③ 纯装饰性 Image（图标、分割线、背景）统一 <code>Hit Test Invisible</code>，减少不必要的 Hit Test 遍历，<strong>提升 UI 交互性能</strong>。
+  </div>
+
+  <!-- 7.5 样式与响应式 -->
+  <h3>7.5 样式与响应式细节（Styling &amp; Responsive）</h3>
+
+  <div class="alert alert-blue">
+    <strong>💡 核心原则</strong>：Prompt 中提供<strong>具体数值</strong>比描述抽象效果更准确。"按钮之间有间距"→ AI 可能给 0~50px 的任意值。"按钮之间 Padding = 12px"→ 精准无歧义。
+  </div>
+
+  <h4>Padding / Margin 速查</h4>
+  <table>
+    <tr><th>场景</th><th>推荐值</th><th>Prompt 写法示例</th></tr>
+    <tr><td>弹窗内容距面板边缘</td><td>24~32 px</td><td>"VB_Content Padding: Top=24, Bottom=24, Left=32, Right=32"</td></tr>
+    <tr><td>列表项之间间距</td><td>4~8 px</td><td>"VB_ItemList 各子元素 Slot Padding Bottom = 8"</td></tr>
+    <tr><td>按钮内部文字距边缘</td><td>12~16 px</td><td>"Btn_Confirm 内部 Padding: 12px 24px"</td></tr>
+    <tr><td>标题与正文间距</td><td>12~16 px</td><td>"Txt_Title Slot Padding Bottom = 16"</td></tr>
+    <tr><td>图标与文字间距（同行）</td><td>8~12 px</td><td>"HB 中 Img_Icon 和 Txt_Name 间距 8px"</td></tr>
+  </table>
+
+  <h4>多分辨率适配指南</h4>
+  <table>
+    <tr><th>适配意图</th><th>Prompt 关键描述</th><th>UMG 实现策略</th></tr>
+    <tr><td>居中弹窗，分辨率变化只影响周边留白</td><td>"弹窗始终屏幕居中，固定宽 600 高 400"</td><td>Anchor Center + 固定 Size</td></tr>
+    <tr><td>底部 HUD 栏，宽度铺满，高度固定</td><td>"底部技能栏水平铺满，高度固定 80px"</td><td>Anchor H-Fill + Bottom, Size Y=80</td></tr>
+    <tr><td>16:9 和 21:9 均保持底部居中不拉伸</td><td>"底部按钮栏 Anchor Bottom-Center, 宽度固定 800px, 不随屏幕宽度拉伸"</td><td>Anchor Bottom-Center + 固定宽度</td></tr>
+    <tr><td>全屏背景不变形</td><td>"背景图使用 Scale Box 包裹，DPI Scale Rule = Shortest Side, Stretch = Scale to Fit"</td><td>Scale Box + 合适的缩放策略</td></tr>
+  </table>
+
+  <div class="alert alert-green">
+    <strong>✅ 小技巧</strong>：在 Prompt 末尾附加一句"<strong>请确保在 1920×1080 和 2560×1080 两种分辨率下均布局正确</strong>"，可以有效提醒 AI 关注超宽屏适配，避免元素跑到屏幕外。
+  </div>
+
+  <!-- 7.6 满分 Prompt 模板 -->
+  <h3>7.6 满分 Prompt 模板示例</h3>
+
+  <div class="alert alert-blue">
+    <strong>📋 以下是一个结构化 Prompt 的标准模板</strong>，展示了如何将上述 6 大维度融合到一段可直接使用的 Prompt 中。目标：生成一个带有标题、关闭按钮和物品列表的通用弹窗 <code>WBP_CommonPopUp</code>。
+  </div>
+
+  <pre>
+## 目标
+生成 UE5 UMG Widget Blueprint：WBP_CommonPopUp
+用途：通用弹窗模板，用于背包道具详情、系统提示、确认对话框等场景。
+
+## 层级结构（Hierarchy）
+WBP_CommonPopUp
+├── [Root] OL_Root (Overlay)
+│   ├── Img_BgMask (Image)            // 全屏半透明遮罩
+│   └── CVS_Dialog (Canvas Panel)     // 弹窗主体定位容器
+│       └── Bdr_Panel (Border)        // 弹窗面板（圆角深色背景）
+│           └── VB_Content (Vertical Box)  // 内容垂直布局
+│               ├── HB_Header (Horizontal Box)     // 标题栏
+│               │   ├── Txt_Title (Text Block)     // 弹窗标题
+│               │   └── Btn_Close (Button)         // 关闭按钮
+│               ├── Img_Divider (Image)            // 分割线
+│               ├── SB_ItemList (Scroll Box)       // 物品列表（可滚动）
+│               │   └── VB_Items (Vertical Box)    // 列表项容器
+│               │       └── [示例] HB_ItemRow      // 单行物品
+│               │           ├── Img_ItemIcon (Image)
+│               │           ├── Txt_ItemName (Text Block)
+│               │           └── Txt_ItemCount (Text Block)
+│               └── HB_Footer (Horizontal Box)     // 底部按钮栏
+│                   ├── Btn_Cancel (Button)
+│                   └── Btn_Confirm (Button)
+
+## 锚点与对齐（Anchors）
+- Img_BgMask: Anchor Fill (0,0)~(1,1), Offset 全 0
+- CVS_Dialog: Anchor Center (0.5,0.5)
+- Bdr_Panel: Anchor Center, Alignment (0.5,0.5), Size Width=600 Height=480
+- HB_Footer: 居底部，子元素右对齐
+
+## 命名 &amp; 变量暴露（Naming）
+所有控件严格使用上述层级中的命名。以下控件标记为 Is Variable: True：
+- Txt_Title       → 蓝图动态设置标题文字
+- Btn_Close       → 绑定 OnClicked 关闭弹窗
+- SB_ItemList     → 蓝图动态添加/清空列表
+- VB_Items        → 蓝图动态添加子项
+- Btn_Cancel      → 绑定取消逻辑
+- Btn_Confirm     → 绑定确认逻辑
+- Txt_ItemName    → 列表项文字
+- Txt_ItemCount   → 列表项数量
+
+## Visibility &amp; Hit Test
+- Img_BgMask:     Visible（点击遮罩可关闭弹窗）
+- Bdr_Panel:      Self Hit Test Invisible（容器本身不拦截点击）
+- VB_Content:     Self Hit Test Invisible
+- Img_Divider:    Hit Test Invisible（纯装饰）
+- Btn_Close/Cancel/Confirm: Visible
+- 所有 Txt_ 和 Img_ItemIcon: Hit Test Invisible
+
+## 样式细节（Styling）
+- Img_BgMask: Tint = (0,0,0,0.6) 半透明黑色
+- Bdr_Panel: Background = (18,20,35,0.95), Corner Radius = 12
+- VB_Content Padding: Top=20, Bottom=20, Left=28, Right=28
+- Txt_Title: Font Size=22, Bold, Color=#E4E6ED
+- Btn_Close: 24×24 图标按钮，右上角
+- Img_Divider: Size Y=1, Tint=(255,255,255,0.08), Hit Test Invisible
+- SB_ItemList: Max Height=280（超出滚动）
+- HB_ItemRow: Padding = (8,8,8,8)
+- Btn_Cancel: 背景透明描边, 文字 #9CA3AF, Padding 12px 32px
+- Btn_Confirm: 背景 #6C8CFF, 文字 #FFFFFF, Padding 12px 32px
+
+## 响应式要求
+- 弹窗固定尺寸 600×480，在 1920×1080 和 2560×1080 下均屏幕居中
+- 弹窗不随屏幕拉伸变形
+- 列表区域超过 280px 高度后出现滚动条
+  </pre>
+
+  <div class="alert alert-green">
+    <strong>✅ 为什么这个模板有效？</strong>
+    <br>① <strong>树形先行</strong>：AI 可直接映射为 UMG 层级，无需猜测嵌套关系。
+    <br>② <strong>锚点精确</strong>：每个关键元素的 Anchor + Alignment 都有明确数值，消除分辨率歧义。
+    <br>③ <strong>命名一致</strong>：所有控件使用项目标准前缀，Is Variable 显式声明。
+    <br>④ <strong>交互明确</strong>：每个元素的 Visibility/HitTest 设置都有指定，杜绝幽灵点击。
+    <br>⑤ <strong>数值具体</strong>：颜色、尺寸、Padding 全部给出精确值，无模糊描述。
+    <br>⑥ <strong>响应式声明</strong>：明确了多分辨率行为预期。
+  </div>
+
+  <h3>7.7 Prompt 编写自检 Checklist</h3>
+
+  <table>
+    <tr><th>#</th><th>检查项</th><th>是否必填</th><th>不填的后果</th></tr>
+    <tr><td>1</td><td>是否指明了根节点类型（Canvas Panel / Overlay / ...）？</td><td><span class="badge badge-red">必填</span></td><td>AI 随机选根节点，布局不可控</td></tr>
+    <tr><td>2</td><td>是否用树形结构描述了层级关系？</td><td><span class="badge badge-red">必填</span></td><td>嵌套关系混乱，需大量手动调整</td></tr>
+    <tr><td>3</td><td>关键元素是否指定了 Anchor + Alignment？</td><td><span class="badge badge-red">必填</span></td><td>分辨率变化后 UI 跑偏</td></tr>
+    <tr><td>4</td><td>每个控件是否使用了项目标准命名前缀？</td><td><span class="badge badge-red">必填</span></td><td>命名混乱，蓝图中难以查找</td></tr>
+    <tr><td>5</td><td>需蓝图编程的控件是否标注了 Is Variable: True？</td><td><span class="badge badge-red">必填</span></td><td>蓝图中无法引用该控件</td></tr>
+    <tr><td>6</td><td>是否区分了 Visible / Hit Test Invisible / Self Hit Test Invisible？</td><td><span class="badge badge-yellow">强烈建议</span></td><td>幽灵点击拦截，UI 交互异常</td></tr>
+    <tr><td>7</td><td>是否提供了具体的 Padding / Margin / Font Size 数值？</td><td><span class="badge badge-yellow">强烈建议</span></td><td>间距不可预测，需手动微调</td></tr>
+    <tr><td>8</td><td>是否描述了颜色值（Hex / RGBA）？</td><td><span class="badge badge-yellow">强烈建议</span></td><td>AI 使用默认白/黑色</td></tr>
+    <tr><td>9</td><td>是否说明了多分辨率适配意图？</td><td><span class="badge badge-green">建议</span></td><td>可能在超宽屏下布局异常</td></tr>
+    <tr><td>10</td><td>是否使用了 Size Box 限制关键尺寸？</td><td><span class="badge badge-green">建议</span></td><td>元素尺寸可能被父容器意外拉伸</td></tr>
+  </table>
+
 </div>
 
 <div class="doc-footer">⚡ UMG 生成技巧 · UI 规范 v1.0 · UI程序 + TA组 · 项目内部资料</div>
