@@ -54,6 +54,14 @@
               "title": "Spine 拆分工具",
               "type": "tool",
               "badge": "工具"
+            },
+            {
+              "id": "mask-core-algorithms",
+              "icon": "🧪",
+              "title": "Mask 核心算法演示",
+              "type": "iframe",
+              "file": "knowledge-base/mask-core-algorithms.html",
+              "badge": "工具"
             }
           ]
         }

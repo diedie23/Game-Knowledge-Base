@@ -12,7 +12,8 @@
         {"id": "d2", "type": "doc", "title": "2D 角色换色资源规范", "desc": "换色场景下的 Mask 遮罩图制作规范", "tags": ["Mask遮罩","HSV","通道互斥"], "action": "showDoc", "path": "embedded"},
         {"id": "auto-mask", "type": "tool", "title": "自动 Mask 生成器", "desc": "LAB色彩空间聚类，一键生成换色遮罩图", "tags": ["在线工具","自动验算"], "action": "openTool", "path": "knowledge-base/auto-mask.html"},
         {"id": "mask-tool", "type": "tool", "title": "Mask 手动编辑器", "desc": "画笔绘制 RGBA 换色遮罩图", "tags": ["在线工具","画笔绘制"], "action": "openTool", "path": "knowledge-base/mask-tool.html"},
-        {"id": "spine-split", "type": "tool", "title": "Spine 拆分工具", "desc": "选区拆分各部件，自动拓扑延展", "tags": ["在线工具","选区拆分","拓扑延展"], "action": "openTool", "path": "knowledge-base/spine-split.html"}
+        {"id": "spine-split", "type": "tool", "title": "Spine 拆分工具", "desc": "选区拆分各部件，自动拓扑延展", "tags": ["在线工具","选区拆分","拓扑延展"], "action": "openTool", "path": "knowledge-base/spine-split.html"},
+        {"id": "mask-core-algorithms", "type": "tool", "title": "Mask 核心算法演示", "desc": "智能魔棒Flood Fill + 边缘保护画笔Sobel检测，Worker并行计算", "tags": ["在线工具","魔棒","边缘检测","Sobel","Web Worker"], "action": "openTool", "path": "knowledge-base/mask-core-algorithms.html"}
       ]
     },
     {

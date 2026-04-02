@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mask 核心算法演示 — 魔棒 & 边缘保护画笔</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.app{max-width:1400px;margin:0 auto;padding:16px}
+.hdr{text-align:center;padding:14px 0 10px}
+.hdr h1{font-size:22px;color:var(--heading);display:flex;align-items:center;justify-content:center;gap:8px}
+.hdr h1 .ver{font-size:10px;background:var(--accent);color:#fff;padding:2px 8px;border-radius:10px}
+.hdr p{color:var(--dim);font-size:12px;margin-top:3px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px}
+.card-title{font-size:15px;color:var(--heading);font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.card-title .badge{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:500}
+.badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-orange{background:rgba(251,146,60,.15);color:var(--orange)}
+.g2{display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:start}
+@media(max-width:900px){.g2{grid-template-columns:1fr}}
+.btn{padding:6px 14px;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--text);cursor:pointer;font-size:11px;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.btn:hover{border-color:var(--accent);color:var(--heading)}
+.btn-p{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}.btn-p:hover{background:#5a7aee}
+.btn-g{background:var(--green);border-color:var(--green);color:#000;font-weight:500}
+.btn-r{background:var(--red);border-color:var(--red);color:#fff;font-weight:500}
+.btn-sm{padding:4px 10px;font-size:10px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:30px 20px;text-align:center;cursor:pointer;transition:all .2s}
+.drop-zone:hover,.drop-zone.dg{border-color:var(--accent);background:rgba(108,140,255,.04)}
+.drop-zone h3{color:var(--heading);font-size:14px;margin-bottom:3px}.drop-zone p{color:var(--dim);font-size:11px}
+.img-box{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:repeating-conic-gradient(#1a1c28 0% 25%,#15171f 0% 50%) 50%/16px 16px}
+.img-box canvas{width:100%;display:block}
+.img-label{position:absolute;top:6px;left:6px;font-size:10px;background:rgba(0,0,0,.75);padding:2px 7px;border-radius:4px;color:#fff;pointer-events:none}
+.pr{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.pr label{font-size:11px;color:var(--dim);min-width:85px;flex-shrink:0}
+.pr input[type=range]{flex:1;accent-color:var(--accent);height:3px}
+.pr .v{font-size:10px;color:var(--accent);min-width:36px;text-align:right;font-weight:600}
+.pr select{padding:3px 6px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:10px;font-family:inherit}
+.tip{background:linear-gradient(90deg,rgba(108,140,255,.08),rgba(167,139,250,.08));border:1px solid rgba(108,140,255,.15);border-radius:7px;padding:8px 12px;font-size:11px;color:var(--accent);margin-bottom:10px}
+.stat-row{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap}
+.stat-item{font-size:10px;color:var(--dim)}.stat-item b{color:var(--heading)}
+.progress-bar{width:100%;height:4px;background:var(--card);border-radius:2px;margin-top:6px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .2s;width:0}
+.tabs{display:flex;gap:3px;margin-bottom:10px}
+.tab{padding:6px 16px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--dim);cursor:pointer;font-size:11px;font-family:inherit;transition:all .15s}
+.tab:hover{color:var(--text)}.tab.act{background:var(--accent);color:#fff;border-color:var(--accent)}
+.section-sep{border:none;border-top:1px solid var(--border);margin:8px 0 12px}
+/* Canvas overlay - 6层画布系统 */
+.canvas-stack{position:relative}
+.canvas-stack canvas{position:absolute;top:0;left:0;width:100%;height:100%}
+.canvas-stack canvas:first-child{position:relative}
+/* Brush cursor */
+.brush-cursor{position:absolute;border:2px solid rgba(255,255,255,.6);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);box-shadow:0 0 0 1px rgba(0,0,0,.3);display:none;z-index:10}
+/* Code preview */
+.code-block{background:#0d0f15;border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:'Fira Code','JetBrains Mono',monospace;font-size:11px;line-height:1.6;overflow-x:auto;margin:8px 0;color:#c5c9d6;max-height:400px;overflow-y:auto}
+.code-block .cm{color:#6b7085}.code-block .kw{color:#c792ea}.code-block .fn{color:#82aaff}
+.code-block .str{color:#c3e88d}.code-block .num{color:#f78c6c}.code-block .op{color:#89ddff}
+/* Toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--accent);padding:8px 20px;border-radius:7px;font-size:12px;color:var(--heading);z-index:999;transition:transform .3s;pointer-events:none}.toast.show{transform:translateX(-50%) translateY(0)}
+/* Brush mode indicator */
+.mode-ind{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.mode-wand{background:rgba(108,140,255,.12);color:var(--accent)}
+.mode-brush{background:rgba(74,222,128,.12);color:var(--green)}
+.mode-off{background:rgba(107,112,133,.12);color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="hdr">
+  <h1>🧪 Mask 核心算法演示 <span class="ver">v2.0</span></h1>
+  <p>智能魔棒 (Flood Fill Worker) · 边缘保护画笔 (Sobel Edge Map) · 6层 Canvas · Float32 精度</p>
+</div>
+
+<!-- ═══ 导入区 ═══ -->
+<div class="card" id="importCard">
+  <div class="card-title">📁 导入图片</div>
+  <div class="drop-zone" id="dz" onclick="document.getElementById('fi').click()">
+    <h3>点击选择或拖放图片</h3>
+    <p>PNG / JPG · 建议 2048×2048 以内</p>
+  </div>
+  <input type="file" id="fi" accept="image/*" style="display:none">
+</div>
+
+<!-- ═══ 主工作区 ═══ -->
+<div id="workspace" style="display:none">
+
+  <!-- 工具切换 Tabs -->
+  <div class="tabs">
+    <button class="tab act" id="tabWand" onclick="switchTab('wand')">🪄 智能魔棒</button>
+    <button class="tab" id="tabBrush" onclick="switchTab('brush')">🖌️ 边缘保护画笔</button>
+    <button class="tab" id="tabPreview" onclick="switchTab('preview')">👁️ Mask 预览</button>
+  </div>
+
+  <!-- ═══ Tab 1: 魔棒 ═══ -->
+  <div class="card" id="wandPanel">
+    <div class="card-title">🪄 智能魔棒 <span class="badge badge-blue">Flood Fill Worker</span></div>
+    <div class="tip">💡 点击画布上任意位置作为种子点，Worker 将在后台执行泛洪算法生成选区 Mask</div>
+    <div class="g2">
+      <div>
+        <div class="img-box canvas-stack" id="wandStack">
+          <canvas id="wandBase"></canvas>
+          <canvas id="wandOverlay" style="cursor:crosshair"></canvas>
+          <span class="img-label" id="wandLabel">点击图片选取区域</span>
+        </div>
+        <div class="stat-row" id="wandStats">
+          <span class="stat-item">状态: <b id="wandStatus">等待操作</b></span>
+        </div>
+        <div class="progress-bar" id="wandProgress"><div class="progress-fill" id="wandProgressFill"></div></div>
+      </div>
+      <div>
+        <div class="pr"><label>颜色模式</label>
+          <select id="pColorMode" onchange="toggleColorMode()">
+            <option value="hsv">HSV 色相</option>
+            <option value="rgb">RGB 距离</option>
+          </select>
+        </div>
+        <div id="hsvParams">
+          <div class="pr"><label>色相容差</label><input type="range" id="pHTol" min="5" max="120" value="25" oninput="upWandUI()"><span class="v" id="vHTol">±25°</span></div>
+          <div class="pr"><label>饱和度容差</label><input type="range" id="pSTol" min="5" max="100" value="35" oninput="upWandUI()"><span class="v" id="vSTol">35</span></div>
+          <div class="pr"><label>明度容差</label><input type="range" id="pVTol" min="5" max="100" value="35" oninput="upWandUI()"><span class="v" id="vVTol">35</span></div>
+        </div>
+        <div id="rgbParams" style="display:none">
+          <div class="pr"><label>RGB 容差</label><input type="range" id="pRGBTol" min="10" max="200" value="60" oninput="upWandUI()"><span class="v" id="vRGBTol">60</span></div>
+        </div>
+        <div class="pr"><label>羽化半径</label><input type="range" id="pFeather" min="0" max="20" value="3" oninput="upWandUI()"><span class="v" id="vFeather">3px</span></div>
+        <div class="pr"><label>连续模式</label>
+          <select id="pContiguous">
+            <option value="1">连续区域</option>
+            <option value="0">全图匹配</option>
+          </select>
+        </div>
+        <hr class="section-sep">
+        <div class="pr"><label>叠加模式</label>
+          <select id="pBlendMode">
+            <option value="replace">替换</option>
+            <option value="add">添加 (并集)</option>
+            <option value="subtract">减去 (差集)</option>
+            <option value="intersect">相交 (交集)</option>
+          </select>
+        </div>
+        <button class="btn btn-r btn-sm" onclick="clearWandMask()" style="width:100%;justify-content:center;margin-top:8px">🗑 清除魔棒选区</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Tab 2: 边缘保护画笔 ═══ -->
+  <div class="card" id="brushPanel" style="display:none">
+    <div class="card-title">🖌️ 边缘保护画笔 <span class="badge badge-green">Sobel Edge Map</span></div>
+    <div class="tip">💡 画笔会参考 Sobel 边缘图，在边缘处自动降低绘制强度，实现"不涂出界"的效果</div>
+    <div class="g2">
+      <div>
+        <div class="img-box canvas-stack" id="brushStack">
+          <canvas id="brushBase"></canvas>
+          <canvas id="brushEdge"></canvas>
+          <canvas id="brushMask"></canvas>
+          <canvas id="brushCursor" style="pointer-events:none"></canvas>
+          <canvas id="brushInput" style="cursor:none"></canvas>
+          <span class="img-label" id="brushLabel">按住鼠标绘制</span>
+          <div class="brush-cursor" id="cursorCircle"></div>
+        </div>
+        <div class="stat-row" id="brushStats">
+          <span class="stat-item">边缘图: <b id="edgeStatus">未生成</b></span>
+          <span class="stat-item">画笔: <b id="brushModeText">绘制</b></span>
+        </div>
+        <div class="progress-bar" id="edgeProgress"><div class="progress-fill" id="edgeProgressFill"></div></div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--heading);margin-bottom:6px;font-weight:600">🔍 边缘检测参数</div>
+        <div class="pr"><label>检测算子</label>
+          <select id="pEdgeMethod">
+            <option value="sobel">Sobel</option>
+            <option value="scharr">Scharr</option>
+          </select>
+        </div>
+        <div class="pr"><label>预模糊</label><input type="range" id="pBlurRadius" min="0" max="5" value="1" oninput="upBrushUI()"><span class="v" id="vBlurRadius">1</span></div>
+        <button class="btn btn-p btn-sm" onclick="buildEdgeMap()" style="width:100%;justify-content:center;margin-bottom:10px">⚡ 生成边缘图</button>
+        <div class="pr"><label>显示边缘图</label>
+          <select id="pShowEdge" onchange="updateEdgeOverlay()">
+            <option value="0">隐藏</option>
+            <option value="1">半透明叠加</option>
+            <option value="2">仅显示边缘</option>
+          </select>
+        </div>
+
+        <hr class="section-sep">
+        <div style="font-size:11px;color:var(--heading);margin-bottom:6px;font-weight:600">🖌️ 画笔参数</div>
+        <div class="pr"><label>画笔模式</label>
+          <select id="pBrushMode" onchange="upBrushUI()">
+            <option value="paint">绘制 (添加)</option>
+            <option value="erase">橡皮 (擦除)</option>
+          </select>
+        </div>
+        <div class="pr"><label>画笔大小</label><input type="range" id="pBrushSize" min="2" max="60" value="15" oninput="upBrushUI()"><span class="v" id="vBrushSize">15</span></div>
+        <div class="pr"><label>画笔硬度</label><input type="range" id="pBrushHardness" min="0" max="100" value="70" oninput="upBrushUI()"><span class="v" id="vBrushHardness">70%</span></div>
+        <div class="pr"><label>边缘灵敏度</label><input type="range" id="pEdgeThreshold" min="0" max="100" value="40" oninput="upBrushUI()"><span class="v" id="vEdgeThreshold">40%</span></div>
+        <div class="pr"><label>边缘影响力</label><input type="range" id="pEdgeStrength" min="0" max="100" value="80" oninput="upBrushUI()"><span class="v" id="vEdgeStrength">80%</span></div>
+
+        <hr class="section-sep">
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-r btn-sm" onclick="clearBrushMask()" style="flex:1;justify-content:center">🗑 清除画笔</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Tab 3: Mask 预览 ═══ -->
+  <div class="card" id="previewPanel" style="display:none">
+    <div class="card-title">👁️ Mask 预览 & 导出 <span class="badge badge-orange">Float32 Precision</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+      <div class="img-box"><canvas id="pvOrig"></canvas><span class="img-label">原图</span></div>
+      <div class="img-box"><canvas id="pvMask"></canvas><span class="img-label">Mask (灰度)</span></div>
+      <div class="img-box"><canvas id="pvOverlay"></canvas><span class="img-label">叠加预览</span></div>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-g" onclick="downloadMask()">⬇ 下载 Mask PNG</button>
+      <button class="btn" onclick="downloadOverlay()">⬇ 下载叠加预览</button>
+    </div>
+  </div>
+
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  全局状态
+// ══════════════════════════════════════════════════════════
+let srcImg = null, W = 0, H = 0;
+let srcPixels = null; // Uint8ClampedArray, RGBA
+let currentTab = 'wand';
+
+// Mask 数据 (Float32Array, 0.0~1.0)
+let wandMask = null;   // 魔棒产生的 mask
+let brushMask = null;  // 画笔产生的 mask
+let finalMask = null;  // 合成 mask = max(wandMask, brushMask)
+
+// 边缘图
+let edgeMap = null; // Float32Array from edge-worker
+
+// Worker 实例
+let wandWorker = null;
+let edgeWorker = null;
+
+// 画笔状态
+let isPainting = false;
+let lastBrushX = -1, lastBrushY = -1;
+
+// ══════════════════════════════════════════════════════════
+//  文件导入
+// ══════════════════════════════════════════════════════════
+const dz = document.getElementById('dz');
+const fi = document.getElementById('fi');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dg'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dg'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dg'); if (e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]); });
+fi.addEventListener('change', function() { if (this.files[0]) loadImage(this.files[0]); });
+
+function loadImage(file) {
+  const img = new Image();
+  img.onload = function() {
+    srcImg = img; W = img.width; H = img.height;
+    srcPixels = getPixels(img, W, H);
+    wandMask = new Float32Array(W * H);
+    brushMask = new Float32Array(W * H);
+    finalMask = new Float32Array(W * H);
+    edgeMap = null;
+
+    // 初始化所有 canvas
+    initCanvases();
+    document.getElementById('importCard').style.display = 'none';
+    document.getElementById('workspace').style.display = 'block';
+    toast(W + '×' + H + ' 已加载');
+
+    // 初始化 Workers
+    initWorkers();
+  };
+  img.src = URL.createObjectURL(file);
+}
+
+function getPixels(img, w, h) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  return new Uint8ClampedArray(ctx.getImageData(0, 0, w, h).data);
+}
+
+// ══════════════════════════════════════════════════════════
+//  Worker 初始化
+// ══════════════════════════════════════════════════════════
+function initWorkers() {
+  // 魔棒 Worker
+  if (wandWorker) wandWorker.terminate();
+  wandWorker = new Worker('wand-worker.js');
+  wandWorker.onmessage = onWandMessage;
+  wandWorker.onerror = e => { console.error('Wand Worker Error:', e); toast('魔棒 Worker 错误'); };
+
+  // 边缘 Worker
+  if (edgeWorker) edgeWorker.terminate();
+  edgeWorker = new Worker('edge-worker.js');
+  edgeWorker.onmessage = onEdgeMessage;
+  edgeWorker.onerror = e => { console.error('Edge Worker Error:', e); toast('边缘 Worker 错误'); };
+}
+
+// ══════════════════════════════════════════════════════════
+//  Canvas 初始化 (6层架构)
+// ══════════════════════════════════════════════════════════
+function initCanvases() {
+  // ── 魔棒画布 ──
+  const wb = document.getElementById('wandBase');
+  wb.width = W; wb.height = H;
+  wb.getContext('2d').drawImage(srcImg, 0, 0);
+
+  const wo = document.getElementById('wandOverlay');
+  wo.width = W; wo.height = H;
+  wo.addEventListener('click', onWandClick);
+
+  // ── 画笔画布 ──
+  const bb = document.getElementById('brushBase');
+  bb.width = W; bb.height = H;
+  bb.getContext('2d').drawImage(srcImg, 0, 0);
+
+  const be = document.getElementById('brushEdge');
+  be.width = W; be.height = H;
+
+  const bm = document.getElementById('brushMask');
+  bm.width = W; bm.height = H;
+
+  const bc = document.getElementById('brushCursor');
+  bc.width = W; bc.height = H;
+
+  const bi = document.getElementById('brushInput');
+  bi.width = W; bi.height = H;
+  bi.addEventListener('mousedown', onBrushDown);
+  bi.addEventListener('mousemove', onBrushMove);
+  bi.addEventListener('mouseup', onBrushUp);
+  bi.addEventListener('mouseleave', onBrushUp);
+
+  // ── 预览画布 ──
+  ['pvOrig', 'pvMask', 'pvOverlay'].forEach(id => {
+    const c = document.getElementById(id);
+    c.width = W; c.height = H;
+  });
+  document.getElementById('pvOrig').getContext('2d').drawImage(srcImg, 0, 0);
+}
+
+// ══════════════════════════════════════════════════════════
+//  Tab 切换
+// ══════════════════════════════════════════════════════════
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tabWand').className = 'tab' + (tab === 'wand' ? ' act' : '');
+  document.getElementById('tabBrush').className = 'tab' + (tab === 'brush' ? ' act' : '');
+  document.getElementById('tabPreview').className = 'tab' + (tab === 'preview' ? ' act' : '');
+  document.getElementById('wandPanel').style.display = tab === 'wand' ? '' : 'none';
+  document.getElementById('brushPanel').style.display = tab === 'brush' ? '' : 'none';
+  document.getElementById('previewPanel').style.display = tab === 'preview' ? '' : 'none';
+  if (tab === 'preview') renderPreview();
+}
+
+// ══════════════════════════════════════════════════════════
+//  §1 魔棒 — 主线程逻辑
+// ══════════════════════════════════════════════════════════
+
+function onWandClick(e) {
+  if (!srcPixels || !wandWorker) return;
+
+  const c = document.getElementById('wandOverlay');
+  const rect = c.getBoundingClientRect();
+  const seedX = Math.floor((e.clientX - rect.left) / rect.width * W);
+  const seedY = Math.floor((e.clientY - rect.top) / rect.height * H);
+
+  if (seedX < 0 || seedX >= W || seedY < 0 || seedY >= H) return;
+
+  // 显示种子点
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  ctx.beginPath();
+  ctx.arc(seedX, seedY, 5, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(108, 140, 255, 0.8)';
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  document.getElementById('wandStatus').textContent = '⏳ 计算中...';
+  document.getElementById('wandProgressFill').style.width = '0%';
+  document.getElementById('wandLabel').textContent = '⏳ Worker 计算中...';
+
+  const colorMode = document.getElementById('pColorMode').value;
+
+  // ── 向 Worker 发送任务 ──
+  wandWorker.postMessage({
+    type: 'floodFill',
+    imageData: srcPixels,
+    width: W,
+    height: H,
+    seedX, seedY,
+    tolerance: +document.getElementById('pHTol').value,
+    satTolerance: +document.getElementById('pSTol').value,
+    valTolerance: +document.getElementById('pVTol').value,
+    contiguous: document.getElementById('pContiguous').value === '1',
+    featherRadius: +document.getElementById('pFeather').value,
+    colorMode,
+    rgbTolerance: +document.getElementById('pRGBTol').value
+  });
+}
+
+/**
+ * 处理魔棒 Worker 返回的消息
+ */
+function onWandMessage(e) {
+  const msg = e.data;
+
+  if (msg.type === 'progress') {
+    document.getElementById('wandProgressFill').style.width = msg.percent + '%';
+    return;
+  }
+
+  if (msg.type === 'floodFillResult') {
+    const { mask, bounds, pixelCount, elapsed } = msg;
+    document.getElementById('wandProgressFill').style.width = '100%';
+
+    // ── 根据叠加模式合并到 wandMask ──
+    const blendMode = document.getElementById('pBlendMode').value;
+    const total = W * H;
+
+    switch (blendMode) {
+      case 'replace':
+        wandMask = new Float32Array(mask);
+        break;
+      case 'add': // 并集: max(old, new)
+        for (let i = 0; i < total; i++)
+          wandMask[i] = Math.max(wandMask[i], mask[i]);
+        break;
+      case 'subtract': // 差集: old - new
+        for (let i = 0; i < total; i++)
+          wandMask[i] = Math.max(0, wandMask[i] - mask[i]);
+        break;
+      case 'intersect': // 交集: min(old, new)
+        for (let i = 0; i < total; i++)
+          wandMask[i] = Math.min(wandMask[i], mask[i]);
+        break;
+    }
+
+    // 更新 UI
+    renderWandOverlay();
+    document.getElementById('wandStatus').textContent =
+      `✅ ${pixelCount} 像素 · ${elapsed}ms · 范围 [${bounds.x},${bounds.y}] ${bounds.w}×${bounds.h}`;
+    document.getElementById('wandLabel').textContent = `选区: ${pixelCount} px · ${elapsed}ms`;
+    mergeFinalMask();
+    toast(`魔棒选取 ${pixelCount} 像素 (${elapsed}ms)`);
+  }
+}
+
+/**
+ * 渲染魔棒选区覆盖层
+ * 在半透明蓝色蒙版中显示选中区域
+ */
+function renderWandOverlay() {
+  const c = document.getElementById('wandOverlay');
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  if (!wandMask) return;
+  const imgData = ctx.createImageData(W, H);
+  const d = imgData.data;
+  for (let i = 0, n = W * H; i < n; i++) {
+    const val = wandMask[i];
+    if (val > 0.01) {
+      d[i * 4] = 108;     // R
+      d[i * 4 + 1] = 140; // G
+      d[i * 4 + 2] = 255; // B
+      d[i * 4 + 3] = (val * 140) | 0; // A (半透明)
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+
+function clearWandMask() {
+  if (!wandMask) return;
+  wandMask.fill(0);
+  renderWandOverlay();
+  mergeFinalMask();
+  document.getElementById('wandStatus').textContent = '已清除';
+  document.getElementById('wandLabel').textContent = '点击图片选取区域';
+  toast('魔棒选区已清除');
+}
+
+// ══════════════════════════════════════════════════════════
+//  §2 边缘保护画笔 — 核心绘制逻辑
+// ══════════════════════════════════════════════════════════
+
+/**
+ * 请求 Worker 构建边缘图
+ */
+function buildEdgeMap() {
+  if (!srcPixels || !edgeWorker) return;
+  document.getElementById('edgeStatus').textContent = '⏳ 计算中...';
+  document.getElementById('edgeProgressFill').style.width = '0%';
+
+  edgeWorker.postMessage({
+    type: 'buildEdgeMap',
+    imageData: srcPixels,
+    width: W,
+    height: H,
+    method: document.getElementById('pEdgeMethod').value,
+    blurRadius: +document.getElementById('pBlurRadius').value,
+    normalize: true
+  });
+}
+
+function onEdgeMessage(e) {
+  const msg = e.data;
+
+  if (msg.type === 'progress') {
+    document.getElementById('edgeProgressFill').style.width = msg.percent + '%';
+    return;
+  }
+
+  if (msg.type === 'edgeMapResult') {
+    edgeMap = msg.edgeMap;
+    document.getElementById('edgeProgressFill').style.width = '100%';
+    document.getElementById('edgeStatus').textContent =
+      `✅ 已生成 (${msg.elapsed}ms · max=${msg.maxEdge.toFixed(3)})`;
+    updateEdgeOverlay();
+    toast(`边缘图生成完成 (${msg.elapsed}ms)`);
+  }
+}
+
+/**
+ * 显示/隐藏边缘图覆盖层
+ */
+function updateEdgeOverlay() {
+  const c = document.getElementById('brushEdge');
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  const mode = document.getElementById('pShowEdge').value;
+  if (mode === '0' || !edgeMap) return;
+
+  const imgData = ctx.createImageData(W, H);
+  const d = imgData.data;
+
+  if (mode === '1') {
+    // 半透明叠加: 边缘 = 红色线条
+    for (let i = 0, n = W * H; i < n; i++) {
+      const e = edgeMap[i];
+      if (e > 0.05) {
+        d[i * 4] = 255;
+        d[i * 4 + 1] = 60;
+        d[i * 4 + 2] = 60;
+        d[i * 4 + 3] = (e * 180) | 0;
+      }
+    }
+  } else {
+    // 仅显示边缘: 白色边缘 on 黑色背景
+    for (let i = 0, n = W * H; i < n; i++) {
+      const v = (edgeMap[i] * 255) | 0;
+      d[i * 4] = v;
+      d[i * 4 + 1] = v;
+      d[i * 4 + 2] = v;
+      d[i * 4 + 3] = 255;
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+
+/**
+ * ══════════════════════════════════════════════════════
+ * 画笔绘制核心 — 边缘保护机制
+ * ══════════════════════════════════════════════════════
+ *
+ * 核心思想：
+ *   在每个画笔触及的像素上，最终写入的 mask 值 = 画笔强度 × 边缘衰减因子
+ *
+ *   画笔强度 (brushStrength):
+ *     基于像素到画笔中心的距离 + 硬度参数
+ *     → 中心=1.0, 边缘→0.0, 硬度越高衰减越快
+ *
+ *   边缘衰减因子 (edgeFactor):
+ *     查询 edgeMap[pixel] 获取该像素的边缘强度 (0~1)
+ *     → 边缘强度高 = 在边界上 → factor 低 → 画笔被"阻挡"
+ *     → 边缘强度低 = 在平坦区 → factor 高 → 画笔正常绘制
+ *
+ *   公式:
+ *     edgeFactor = 1.0 - clamp(edgeMap[i] - threshold, 0, 1) × edgeStrength
+ *     finalValue = brushStrength × edgeFactor
+ *
+ *   参数说明:
+ *     - edgeThreshold: 边缘"起作用"的门槛。低于此值的边缘被忽略
+ *     - edgeStrength:  边缘对画笔的阻挡力度。100%=完全阻挡, 0%=无效果
+ */
+function brushStroke(canvasX, canvasY) {
+  if (!brushMask) return;
+
+  const size = +document.getElementById('pBrushSize').value;
+  const hardness = +document.getElementById('pBrushHardness').value / 100;
+  const edgeThreshold = +document.getElementById('pEdgeThreshold').value / 100;
+  const edgeStrength = +document.getElementById('pEdgeStrength').value / 100;
+  const mode = document.getElementById('pBrushMode').value; // 'paint' | 'erase'
+
+  // 将 canvas 坐标转换为像素坐标
+  const input = document.getElementById('brushInput');
+  const rect = input.getBoundingClientRect();
+  const px = Math.floor((canvasX - rect.left) / rect.width * W);
+  const py = Math.floor((canvasY - rect.top) / rect.height * H);
+
+  // ── Bresenham 线段插值（连接上一点和当前点，避免快速移动时断线） ──
+  const points = [];
+  if (lastBrushX >= 0 && lastBrushY >= 0) {
+    const dx = px - lastBrushX, dy = py - lastBrushY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const step = Math.max(1, size * 0.3); // 步长 = 画笔大小的 30%
+    const steps = Math.ceil(dist / step);
+    for (let s = 0; s <= steps; s++) {
+      const t = steps === 0 ? 0 : s / steps;
+      points.push([
+        Math.round(lastBrushX + dx * t),
+        Math.round(lastBrushY + dy * t)
+      ]);
+    }
+  } else {
+    points.push([px, py]);
+  }
+
+  lastBrushX = px;
+  lastBrushY = py;
+
+  // ── 对每个插值点执行画笔绘制 ──
+  for (const [cx, cy] of points) {
+    for (let dy = -size; dy <= size; dy++) {
+      for (let dx = -size; dx <= size; dx++) {
+        const x = cx + dx, y = cy + dy;
+        if (x < 0 || x >= W || y < 0 || y >= H) continue;
+
+        // ── Step 1: 计算画笔强度 (距离衰减) ──
+        // 像素到画笔中心的归一化距离 [0, 1]
+        const dist = Math.sqrt(dx * dx + dy * dy) / size;
+        if (dist > 1.0) continue; // 超出画笔圆形范围
+
+        // 硬度控制衰减曲线：
+        // hardness=1.0 → 硬边（阶梯函数），只在最外缘衰减
+        // hardness=0.0 → 软边（线性衰减），从中心就开始衰减
+        // 实现: smoothstep(1, hardness, dist)
+        let brushStrength;
+        if (dist <= hardness) {
+          brushStrength = 1.0; // 硬度范围内 = 满强度
+        } else {
+          // 硬度外缘 → 画笔边缘: smoothstep 衰减
+          const t = (dist - hardness) / (1.0 - hardness + 0.001);
+          brushStrength = 1.0 - t * t * (3 - 2 * t); // smoothstep
+        }
+
+        // ── Step 2: 计算边缘衰减因子 ──
+        let edgeFactor = 1.0; // 默认不衰减
+        if (edgeMap) {
+          const edgeVal = edgeMap[y * W + x]; // 查询该像素的边缘强度
+
+          // 边缘强度超过阈值时，开始衰减画笔
+          // edgeThreshold 像是一个"门槛"：
+          //   边缘值 < threshold → 不受影响 (平坦区域)
+          //   边缘值 > threshold → 开始阻挡画笔
+          //   边缘值 → 1.0      → 完全阻挡 (强边缘)
+          if (edgeVal > edgeThreshold) {
+            // 超出阈值的部分，按 edgeStrength 比例衰减
+            // excess ∈ [0, 1]: 0=刚过阈值, 1=最大边缘
+            const excess = Math.min(1, (edgeVal - edgeThreshold) / (1.0 - edgeThreshold + 0.001));
+            edgeFactor = 1.0 - excess * edgeStrength;
+          }
+        }
+
+        // ── Step 3: 合成最终值并写入 mask ──
+        const idx = y * W + x;
+        const finalStrength = brushStrength * edgeFactor;
+
+        if (mode === 'paint') {
+          // 绘制模式: 取 max（多次涂抹不会叠加超过 1.0）
+          brushMask[idx] = Math.max(brushMask[idx], finalStrength);
+        } else {
+          // 橡皮模式: 按强度擦除
+          brushMask[idx] = Math.max(0, brushMask[idx] * (1 - finalStrength));
+        }
+      }
+    }
+  }
+
+  // 实时渲染画笔 mask 覆盖层
+  renderBrushMaskOverlay();
+}
+
+function onBrushDown(e) {
+  isPainting = true;
+  lastBrushX = -1;
+  lastBrushY = -1;
+  brushStroke(e.clientX, e.clientY);
+}
+
+function onBrushMove(e) {
+  updateCursorCircle(e);
+  if (isPainting) brushStroke(e.clientX, e.clientY);
+}
+
+function onBrushUp() {
+  isPainting = false;
+  lastBrushX = -1;
+  lastBrushY = -1;
+  mergeFinalMask();
+}
+
+/**
+ * 更新画笔光标圆圈
+ */
+function updateCursorCircle(e) {
+  const input = document.getElementById('brushInput');
+  const rect = input.getBoundingClientRect();
+  const size = +document.getElementById('pBrushSize').value;
+  const circle = document.getElementById('cursorCircle');
+
+  // 计算画笔在屏幕上的直径
+  const scale = rect.width / W;
+  const diameter = size * 2 * scale;
+  circle.style.display = 'block';
+  circle.style.width = diameter + 'px';
+  circle.style.height = diameter + 'px';
+  circle.style.left = (e.clientX - rect.left) + 'px';
+  circle.style.top = (e.clientY - rect.top) + 'px';
+}
+
+/**
+ * 渲染画笔 mask 覆盖层（绿色半透明）
+ */
+function renderBrushMaskOverlay() {
+  const c = document.getElementById('brushMask');
+  const ctx = c.getContext('2d');
+  const imgData = ctx.createImageData(W, H);
+  const d = imgData.data;
+
+  for (let i = 0, n = W * H; i < n; i++) {
+    const val = brushMask[i];
+    if (val > 0.01) {
+      d[i * 4] = 74;
+      d[i * 4 + 1] = 222;
+      d[i * 4 + 2] = 128;
+      d[i * 4 + 3] = (val * 160) | 0;
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+
+function clearBrushMask() {
+  if (!brushMask) return;
+  brushMask.fill(0);
+  renderBrushMaskOverlay();
+  mergeFinalMask();
+  toast('画笔 mask 已清除');
+}
+
+// ══════════════════════════════════════════════════════════
+//  合成 & 预览
+// ══════════════════════════════════════════════════════════
+
+/**
+ * 合并魔棒 mask 和画笔 mask → finalMask
+ * 使用 max 合并（任一工具选中的区域都保留）
+ */
+function mergeFinalMask() {
+  if (!wandMask || !brushMask) return;
+  const n = W * H;
+  finalMask = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    finalMask[i] = Math.max(wandMask[i], brushMask[i]);
+  }
+}
+
+function renderPreview() {
+  if (!srcImg || !finalMask) return;
+  mergeFinalMask();
+
+  // 原图
+  document.getElementById('pvOrig').getContext('2d').drawImage(srcImg, 0, 0);
+
+  // Mask 灰度图
+  const mc = document.getElementById('pvMask');
+  const mctx = mc.getContext('2d');
+  const mimg = mctx.createImageData(W, H);
+  const md = mimg.data;
+  for (let i = 0, n = W * H; i < n; i++) {
+    const v = (finalMask[i] * 255 + 0.5) | 0;
+    md[i * 4] = v;
+    md[i * 4 + 1] = v;
+    md[i * 4 + 2] = v;
+    md[i * 4 + 3] = 255;
+  }
+  mctx.putImageData(mimg, 0, 0);
+
+  // 叠加预览
+  const oc = document.getElementById('pvOverlay');
+  const octx = oc.getContext('2d');
+  octx.drawImage(srcImg, 0, 0);
+  const oimg = octx.getImageData(0, 0, W, H);
+  const od = oimg.data;
+  for (let i = 0, n = W * H; i < n; i++) {
+    const m = finalMask[i];
+    if (m > 0.01) {
+      const o = i * 4;
+      const blend = m * 0.4;
+      od[o] = (od[o] * (1 - blend) + 255 * blend) | 0;
+      od[o + 1] = (od[o + 1] * (1 - blend) + 80 * blend) | 0;
+      od[o + 2] = (od[o + 2] * (1 - blend) + 80 * blend) | 0;
+    }
+  }
+  octx.putImageData(oimg, 0, 0);
+}
+
+// ══════════════════════════════════════════════════════════
+//  导出
+// ══════════════════════════════════════════════════════════
+
+function downloadMask() {
+  if (!finalMask) return toast('请先生成 Mask');
+  mergeFinalMask();
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  const img = ctx.createImageData(W, H);
+  const d = img.data;
+  for (let i = 0, n = W * H; i < n; i++) {
+    const v = (finalMask[i] * 255 + 0.5) | 0;
+    d[i * 4] = v; d[i * 4 + 1] = v; d[i * 4 + 2] = v; d[i * 4 + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  savePNG(c, 'mask_output.png');
+}
+
+function downloadOverlay() {
+  if (!finalMask) return toast('请先生成 Mask');
+  renderPreview();
+  savePNG(document.getElementById('pvOverlay'), 'mask_overlay.png');
+}
+
+function savePNG(canvas, name) {
+  try {
+    canvas.toBlob(b => {
+      if (!b) { toast('导出失败'); return; }
+      const u = URL.createObjectURL(b);
+      const a = document.createElement('a');
+      a.href = u; a.download = name;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(u), 1000);
+      toast('已下载 ' + name);
+    }, 'image/png');
+  } catch(e) {
+    const u = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = u; a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    toast('已下载 ' + name);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  UI 更新
+// ══════════════════════════════════════════════════════════
+
+function upWandUI() {
+  document.getElementById('vHTol').textContent = '±' + document.getElementById('pHTol').value + '°';
+  document.getElementById('vSTol').textContent = document.getElementById('pSTol').value;
+  document.getElementById('vVTol').textContent = document.getElementById('pVTol').value;
+  document.getElementById('vRGBTol').textContent = document.getElementById('pRGBTol').value;
+  document.getElementById('vFeather').textContent = document.getElementById('pFeather').value + 'px';
+}
+
+function upBrushUI() {
+  document.getElementById('vBlurRadius').textContent = document.getElementById('pBlurRadius').value;
+  document.getElementById('vBrushSize').textContent = document.getElementById('pBrushSize').value;
+  document.getElementById('vBrushHardness').textContent = document.getElementById('pBrushHardness').value + '%';
+  document.getElementById('vEdgeThreshold').textContent = document.getElementById('pEdgeThreshold').value + '%';
+  document.getElementById('vEdgeStrength').textContent = document.getElementById('pEdgeStrength').value + '%';
+  document.getElementById('brushModeText').textContent =
+    document.getElementById('pBrushMode').value === 'paint' ? '绘制' : '橡皮';
+}
+
+function toggleColorMode() {
+  const mode = document.getElementById('pColorMode').value;
+  document.getElementById('hsvParams').style.display = mode === 'hsv' ? '' : 'none';
+  document.getElementById('rgbParams').style.display = mode === 'rgb' ? '' : 'none';
+}
+
+// ══════════════════════════════════════════════════════════
+//  工具函数
+// ══════════════════════════════════════════════════════════
+
+function toast(m) {
+  const t = document.getElementById('toast');
+  t.textContent = m;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
