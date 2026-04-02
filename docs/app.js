@@ -233,9 +233,15 @@ var CRAFT_COLORS = {
   '通用': { bg: 'rgba(139,143,163,.1)', color: 'var(--dim)' }
 };
 
-// ═══ SVG 图标常量（极简单色风格）═══
+// ═══ SVG 图标常量（极简单色线性风格）═══
 var SVG_CHEVRON = '<svg class="chv-svg" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 var SVG_DOC = '<svg class="leaf-icon" viewBox="0 0 16 16" fill="none"><path d="M4 1.5h5.5L13 5v9.5a1 1 0 01-1 1H4a1 1 0 01-1-1v-13a1 1 0 011-1z" stroke="currentColor" stroke-width="1.2"/><path d="M9.5 1.5V5H13" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+// 一级模块文件夹图标（闭合）
+var SVG_FOLDER = '<svg class="folder-icon" viewBox="0 0 16 16" fill="none"><path d="M1.5 3.5a1 1 0 011-1h3.586a1 1 0 01.707.293L8.5 4.5H13.5a1 1 0 011 1v7a1 1 0 01-1 1h-11a1 1 0 01-1-1v-9z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+// 一级模块文件夹图标（展开）
+var SVG_FOLDER_OPEN = '<svg class="folder-icon" viewBox="0 0 16 16" fill="none"><path d="M1.5 3.5a1 1 0 011-1h3.586a1 1 0 01.707.293L8.5 4.5H13.5a1 1 0 011 1V6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 13.5h11.5l1.5-6H3.5l-1.5 6z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+// 二级分组图标（子文件夹/分组线性图标）
+var SVG_GROUP = '<svg class="group-icon" viewBox="0 0 16 16" fill="none"><path d="M2 4a1 1 0 011-1h3l1.5 1.5H13a1 1 0 011 1v7a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M5 8h6M5 10.5h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>';
 
 // ═══ Sidebar.json 驱动构建侧边栏 ═══
 // 【重构】极简 Notion/Linear 风格 — 无 Emoji，SVG chevron + 文档图标
@@ -265,6 +271,7 @@ function buildSidebar(data){
     html += '<div class="t1' + extraCls + '" id="' + cat.id + '">';
     html += '<div class="t1-h" onclick="handleToggle(event,this)">'
       + SVG_CHEVRON
+      + '<span class="folder-wrap">' + SVG_FOLDER + SVG_FOLDER_OPEN + '</span>'
       + '<span class="cl">' + catName + '</span>'
       + '<span class="cc">' + itemCount + '</span>'
       + '</div>';
@@ -276,6 +283,7 @@ function buildSidebar(data){
       cat.groups.forEach(function(grp){
         html += '<div class="t2"><div class="t2-h" onclick="handleToggle(event,this)">'
           + SVG_CHEVRON
+          + SVG_GROUP
           + '<span class="sl">' + grp.name + '</span></div><div class="t2-c">';
 
         if(grp.items) grp.items.forEach(function(item){
