@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>贴图通道打包工具 — Channel Packer v1.0</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.app{max-width:1400px;margin:0 auto;padding:16px}
+.hdr{text-align:center;padding:14px 0 10px}
+.hdr h1{font-size:22px;color:var(--heading);display:flex;align-items:center;justify-content:center;gap:8px}
+.hdr h1 .ver{font-size:10px;background:var(--accent);color:#fff;padding:2px 8px;border-radius:10px}
+.hdr p{color:var(--dim);font-size:12px;margin-top:3px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.card-title{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.badge{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:500}
+.badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-orange{background:rgba(251,146,60,.15);color:var(--orange)}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+
+/* Steps */
+.steps{display:flex;justify-content:center;gap:0;margin:8px 0 12px}
+.stp{display:flex;align-items:center;gap:5px;padding:6px 12px;font-size:11px;color:var(--dim)}
+.stp .n{width:20px;height:20px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600}
+.stp.act{color:var(--heading)}.stp.act .n{background:var(--accent);border-color:var(--accent);color:#fff}
+.stp.done .n{background:var(--green);border-color:var(--green);color:#fff}
+.sa{color:var(--border);font-size:14px;padding:0 2px}
+
+/* Buttons */
+.btn{padding:6px 14px;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--text);cursor:pointer;font-size:11px;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.btn:hover{border-color:var(--accent);color:var(--heading)}
+.btn-p{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}.btn-p:hover{background:#5a7aee}
+.btn-g{background:var(--green);border-color:var(--green);color:#000;font-weight:500}
+.btn-r{background:var(--red);border-color:var(--red);color:#fff;font-weight:500}
+.btn-sm{padding:4px 10px;font-size:10px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Drop zone */
+.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s}
+.drop-zone:hover,.drop-zone.dg{border-color:var(--accent);background:rgba(108,140,255,.04)}
+.drop-zone h3{color:var(--heading);font-size:14px;margin-bottom:3px}
+.drop-zone p{color:var(--dim);font-size:11px}
+.drop-zone .ch-color{font-weight:700;font-size:16px}
+
+/* Channel Grid */
+.ch-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:800px){.ch-grid{grid-template-columns:1fr}}
+.ch-slot{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;transition:border-color .2s}
+.ch-slot:hover{border-color:var(--accent)}
+.ch-slot.has-img{border-color:var(--green)}
+.ch-label{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ch-label .dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.ch-label span{font-size:13px;font-weight:600;color:var(--heading)}
+.ch-label .info{font-size:10px;color:var(--dim);margin-left:auto}
+
+/* Canvas & Preview */
+.img-box{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:repeating-conic-gradient(#1a1c28 0% 25%,#15171f 0% 50%) 50%/16px 16px}
+.img-box canvas{width:100%;display:block}
+.img-label{position:absolute;top:6px;left:6px;font-size:10px;background:rgba(0,0,0,.75);padding:2px 7px;border-radius:4px;color:#fff}
+.preview-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:8px}
+@media(max-width:900px){.preview-grid{grid-template-columns:1fr 1fr 1fr}}
+.preview-item{text-align:center}
+.preview-item canvas{width:100%;border-radius:6px;border:1px solid var(--border);background:repeating-conic-gradient(#1a1c28 0% 25%,#15171f 0% 50%) 50%/12px 12px}
+.preview-item .label{font-size:10px;color:var(--dim);margin-top:4px}
+
+/* Params */
+.pr{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.pr label{font-size:11px;color:var(--dim);min-width:85px;flex-shrink:0}
+.pr input[type=range]{flex:1;accent-color:var(--accent);height:3px}
+.pr .v{font-size:10px;color:var(--accent);min-width:36px;text-align:right;font-weight:600}
+.pr select{padding:3px 6px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:10px;font-family:inherit}
+.pr input[type=text]{flex:1;padding:4px 8px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:11px;font-family:inherit}
+
+/* Tip bar */
+.tip{background:linear-gradient(90deg,rgba(108,140,255,.08),rgba(167,139,250,.08));border:1px solid rgba(108,140,255,.15);border-radius:7px;padding:8px 12px;font-size:11px;color:var(--accent);margin-bottom:10px}
+
+/* Alert */
+.alert{padding:10px 14px;border-radius:8px;margin:10px 0;font-size:11px;line-height:1.7}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+
+/* Swizzle select */
+.swizzle-row{display:flex;align-items:center;gap:6px;margin-top:8px}
+.swizzle-row label{font-size:10px;color:var(--dim)}
+.swizzle-row select{padding:2px 6px;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:10px;font-family:inherit}
+
+/* Preset bar */
+.preset-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.preset-btn{padding:5px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--dim);cursor:pointer;font-size:10px;font-family:inherit;transition:all .15s}
+.preset-btn:hover{border-color:var(--accent);color:var(--heading)}
+.preset-btn.act{border-color:var(--accent);color:var(--accent);background:rgba(108,140,255,.06)}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--accent);padding:8px 20px;border-radius:7px;font-size:12px;color:var(--heading);z-index:999;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* Export options */
+.export-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0}
+@media(max-width:700px){.export-grid{grid-template-columns:1fr}}
+.export-opt{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:all .15s}
+.export-opt:hover{border-color:var(--accent)}
+.export-opt .fmt{font-size:14px;color:var(--heading);font-weight:600}
+.export-opt .desc{font-size:10px;color:var(--dim);margin-top:3px}
+
+/* Histogram */
+.histogram-box{height:60px;background:var(--card);border:1px solid var(--border);border-radius:6px;margin:6px 0;overflow:hidden;position:relative}
+.histogram-box canvas{width:100%;height:100%}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ═══ HEADER ═══ -->
+<div class="hdr">
+  <h1>📦 贴图通道打包工具 <span class="ver">Channel Packer v1.0</span></h1>
+  <p>RGBA 通道自由拼合 · Swizzle 重映射 · 预设管线配置 · 一键导出 PNG/TGA/EXR</p>
+</div>
+
+<!-- ═══ STEPS ═══ -->
+<div class="steps" id="stepBar">
+  <div class="stp act" data-s="1"><span class="n">1</span>载入通道</div><span class="sa">→</span>
+  <div class="stp" data-s="2"><span class="n">2</span>配置映射</div><span class="sa">→</span>
+  <div class="stp" data-s="3"><span class="n">3</span>预览导出</div>
+</div>
+
+<!-- ═══ STEP 1: 载入通道源 ═══ -->
+<div class="card" id="s1">
+  <div class="card-title">📁 载入通道源图 <span class="badge badge-blue">Step 1</span></div>
+  <div class="tip">💡 每个通道槽位可独立载入灰度图或 RGBA 贴图的指定通道。支持拖放和批量导入。</div>
+  
+  <div class="alert alert-yellow">
+    <strong>⚠️ 尺寸一致性：</strong>所有输入贴图建议保持 <strong>相同分辨率</strong>。若尺寸不一致，工具将自动按最大尺寸做双线性插值缩放（可能引入模糊），请在源头保证一致。
+  </div>
+
+  <div class="ch-grid" id="channelGrid">
+    <!-- R Channel -->
+    <div class="ch-slot" id="slotR" ondrop="handleDrop(event,'R')" ondragover="event.preventDefault()" ondragleave="this.classList.remove('dg')" ondragenter="this.classList.add('dg')">
+      <div class="ch-label">
+        <div class="dot" style="background:#f66"></div>
+        <span>R 通道</span>
+        <span class="info" id="infoR">未载入</span>
+      </div>
+      <div class="drop-zone" onclick="pickFile('R')">
+        <div class="ch-color" style="color:#f66">R</div>
+        <p>拖入灰度图 / 点击选择</p>
+      </div>
+      <div class="swizzle-row">
+        <label>源通道:</label>
+        <select id="swzR" onchange="updatePreview()">
+          <option value="r">R (红)</option>
+          <option value="g">G (绿)</option>
+          <option value="b">B (蓝)</option>
+          <option value="a">A (透明度)</option>
+          <option value="lum">Luminance (亮度)</option>
+        </select>
+        <label style="margin-left:8px">反转:</label>
+        <input type="checkbox" id="invR" onchange="updatePreview()" style="accent-color:var(--red)">
+      </div>
+      <canvas id="cvR" style="display:none"></canvas>
+      <input type="file" id="fiR" accept="image/*" style="display:none" onchange="loadChannel(event,'R')">
+    </div>
+
+    <!-- G Channel -->
+    <div class="ch-slot" id="slotG" ondrop="handleDrop(event,'G')" ondragover="event.preventDefault()" ondragleave="this.classList.remove('dg')" ondragenter="this.classList.add('dg')">
+      <div class="ch-label">
+        <div class="dot" style="background:#6f6"></div>
+        <span>G 通道</span>
+        <span class="info" id="infoG">未载入</span>
+      </div>
+      <div class="drop-zone" onclick="pickFile('G')">
+        <div class="ch-color" style="color:#6f6">G</div>
+        <p>拖入灰度图 / 点击选择</p>
+      </div>
+      <div class="swizzle-row">
+        <label>源通道:</label>
+        <select id="swzG" onchange="updatePreview()">
+          <option value="r">R (红)</option>
+          <option value="g" selected>G (绿)</option>
+          <option value="b">B (蓝)</option>
+          <option value="a">A (透明度)</option>
+          <option value="lum">Luminance (亮度)</option>
+        </select>
+        <label style="margin-left:8px">反转:</label>
+        <input type="checkbox" id="invG" onchange="updatePreview()" style="accent-color:var(--green)">
+      </div>
+      <canvas id="cvG" style="display:none"></canvas>
+      <input type="file" id="fiG" accept="image/*" style="display:none" onchange="loadChannel(event,'G')">
+    </div>
+
+    <!-- B Channel -->
+    <div class="ch-slot" id="slotB" ondrop="handleDrop(event,'B')" ondragover="event.preventDefault()" ondragleave="this.classList.remove('dg')" ondragenter="this.classList.add('dg')">
+      <div class="ch-label">
+        <div class="dot" style="background:#66f"></div>
+        <span>B 通道</span>
+        <span class="info" id="infoB">未载入</span>
+      </div>
+      <div class="drop-zone" onclick="pickFile('B')">
+        <div class="ch-color" style="color:#66f">B</div>
+        <p>拖入灰度图 / 点击选择</p>
+      </div>
+      <div class="swizzle-row">
+        <label>源通道:</label>
+        <select id="swzB" onchange="updatePreview()">
+          <option value="r">R (红)</option>
+          <option value="g">G (绿)</option>
+          <option value="b" selected>B (蓝)</option>
+          <option value="a">A (透明度)</option>
+          <option value="lum">Luminance (亮度)</option>
+        </select>
+        <label style="margin-left:8px">反转:</label>
+        <input type="checkbox" id="invB" onchange="updatePreview()" style="accent-color:var(--blue)">
+      </div>
+      <canvas id="cvB" style="display:none"></canvas>
+      <input type="file" id="fiB" accept="image/*" style="display:none" onchange="loadChannel(event,'B')">
+    </div>
+
+    <!-- A Channel -->
+    <div class="ch-slot" id="slotA" ondrop="handleDrop(event,'A')" ondragover="event.preventDefault()" ondragleave="this.classList.remove('dg')" ondragenter="this.classList.add('dg')">
+      <div class="ch-label">
+        <div class="dot" style="background:#ccc"></div>
+        <span>A 通道</span>
+        <span class="info" id="infoA">未载入 (默认纯白)</span>
+      </div>
+      <div class="drop-zone" onclick="pickFile('A')">
+        <div class="ch-color" style="color:#ccc">A</div>
+        <p>拖入灰度图 / 点击选择</p>
+      </div>
+      <div class="swizzle-row">
+        <label>源通道:</label>
+        <select id="swzA" onchange="updatePreview()">
+          <option value="r">R (红)</option>
+          <option value="g">G (绿)</option>
+          <option value="b">B (蓝)</option>
+          <option value="a" selected>A (透明度)</option>
+          <option value="lum">Luminance (亮度)</option>
+        </select>
+        <label style="margin-left:8px">反转:</label>
+        <input type="checkbox" id="invA" onchange="updatePreview()" style="accent-color:#ccc">
+        <label style="margin-left:8px">默认值:</label>
+        <select id="defA" onchange="updatePreview()">
+          <option value="255">纯白 (255)</option>
+          <option value="0">纯黑 (0)</option>
+          <option value="128">中灰 (128)</option>
+        </select>
+      </div>
+      <canvas id="cvA" style="display:none"></canvas>
+      <input type="file" id="fiA" accept="image/*" style="display:none" onchange="loadChannel(event,'A')">
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:12px">
+    <button class="btn btn-sm" onclick="clearAll()">🗑 全部清除</button>
+    <button class="btn btn-sm" onclick="document.getElementById('fiBatch').click()">📂 批量导入 (按后缀自动分配)</button>
+    <input type="file" id="fiBatch" accept="image/*" multiple style="display:none" onchange="batchLoad(event)">
+  </div>
+</div>
+
+<!-- ═══ STEP 2: 预设与映射配置 ═══ -->
+<div class="card" id="s2">
+  <div class="card-title">⚙️ 管线预设 & Swizzle 配置 <span class="badge badge-green">Step 2</span></div>
+  
+  <div style="font-size:11px;color:var(--heading);margin-bottom:6px;font-weight:600">📋 快捷预设模板</div>
+  <div class="preset-bar" id="presetBar">
+    <button class="preset-btn act" onclick="applyPreset('ue5-orm')">UE5 ORM (AO+Rough+Metal)</button>
+    <button class="preset-btn" onclick="applyPreset('unity-mas')">Unity MAS (Metal+AO+Smooth)</button>
+    <button class="preset-btn" onclick="applyPreset('mask-rgba')">换色 Mask RGBA</button>
+    <button class="preset-btn" onclick="applyPreset('normal-pack')">法线+高度打包</button>
+    <button class="preset-btn" onclick="applyPreset('custom')">自定义</button>
+  </div>
+
+  <div class="alert alert-green">
+    <strong>📌 当前预设：UE5 ORM</strong><br>
+    R = Ambient Occlusion · G = Roughness · B = Metallic · A = 纯白（未使用）<br>
+    <span style="font-size:10px;color:var(--dim)">适用于 UE5 的 Packed Texture 工作流，Shader 中通过 <code>texture.r / .g / .b</code> 分别采样三个属性。</span>
+  </div>
+
+  <div id="presetDesc"></div>
+
+  <div style="font-size:11px;color:var(--heading);margin:12px 0 6px;font-weight:600">🔧 全局处理参数</div>
+  <div class="pr"><label>输出尺寸</label>
+    <select id="outSize" onchange="updatePreview()">
+      <option value="auto">跟随源图 (Auto)</option>
+      <option value="256">256 × 256</option>
+      <option value="512">512 × 512</option>
+      <option value="1024">1024 × 1024</option>
+      <option value="2048">2048 × 2048</option>
+      <option value="4096">4096 × 4096</option>
+    </select>
+  </div>
+  <div class="pr"><label>位深度</label>
+    <select id="bitDepth">
+      <option value="8">8-bit (256 级灰度)</option>
+      <option value="16">16-bit (HDR, 需 EXR 导出)</option>
+    </select>
+  </div>
+  <div class="pr"><label>色彩空间</label>
+    <select id="colorSpace">
+      <option value="linear">Linear (数据贴图 — 推荐)</option>
+      <option value="srgb">sRGB (表现贴图)</option>
+    </select>
+  </div>
+</div>
+
+<!-- ═══ STEP 3: 预览与导出 ═══ -->
+<div class="card" id="s3">
+  <div class="card-title">👁️ 实时预览 & 导出 <span class="badge badge-orange">Step 3</span></div>
+  
+  <div class="preview-grid">
+    <div class="preview-item">
+      <div class="img-box"><canvas id="pvR" width="256" height="256"></canvas></div>
+      <div class="label" style="color:#f66">R 通道</div>
+      <div class="histogram-box"><canvas id="histR"></canvas></div>
+    </div>
+    <div class="preview-item">
+      <div class="img-box"><canvas id="pvG" width="256" height="256"></canvas></div>
+      <div class="label" style="color:#6f6">G 通道</div>
+      <div class="histogram-box"><canvas id="histG"></canvas></div>
+    </div>
+    <div class="preview-item">
+      <div class="img-box"><canvas id="pvB" width="256" height="256"></canvas></div>
+      <div class="label" style="color:#66f">B 通道</div>
+      <div class="histogram-box"><canvas id="histB"></canvas></div>
+    </div>
+    <div class="preview-item">
+      <div class="img-box"><canvas id="pvA" width="256" height="256"></canvas></div>
+      <div class="label" style="color:#ccc">A 通道</div>
+      <div class="histogram-box"><canvas id="histA"></canvas></div>
+    </div>
+    <div class="preview-item">
+      <div class="img-box"><canvas id="pvRGBA" width="256" height="256"></canvas></div>
+      <div class="label" style="color:var(--accent)">RGBA 合成</div>
+    </div>
+  </div>
+
+  <div style="margin-top:14px;font-size:11px;color:var(--heading);font-weight:600">📊 输出信息</div>
+  <div id="outputInfo" style="font-size:11px;color:var(--dim);margin:4px 0">
+    尺寸：— × — · 格式：RGBA 8bit · 预估文件大小：—
+  </div>
+
+  <div style="font-size:11px;color:var(--heading);margin:12px 0 6px;font-weight:600">💾 导出命名</div>
+  <div class="pr"><label>命名模板</label><input type="text" id="nameTpl" value="T_{Preset}_{Name}_Packed" oninput="updateNaming()"></div>
+  <div class="pr"><label>资产名</label><input type="text" id="assetName" value="Hero01" oninput="updateNaming()"></div>
+  <div id="namePreview" style="font-size:10px;color:var(--green);margin-bottom:8px">预览：T_ORM_Hero01_Packed.png</div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+    <button class="btn btn-g" onclick="exportPNG()">📥 导出 PNG (8bit)</button>
+    <button class="btn btn-p" onclick="exportTGA()">📥 导出 TGA (无压缩)</button>
+    <button class="btn btn-sm" onclick="exportSplit()">📥 分通道导出 (4张灰度图)</button>
+    <button class="btn btn-sm" onclick="exportJSON()">💾 保存配置 JSON</button>
+  </div>
+</div>
+
+<!-- ═══ 使用帮助 ═══ -->
+<div class="card">
+  <div class="card-title">📖 Channel Packer 使用指南</div>
+  
+  <div style="font-size:12px;line-height:1.8">
+    <h4 style="color:var(--heading);font-size:13px;margin:8px 0 4px">🎯 什么是通道打包？</h4>
+    <p>在现代游戏管线中，将多张灰度贴图（AO、Roughness、Metallic 等）<strong>打包到一张 RGBA 贴图的 4 个通道中</strong>，
+    可以将 GPU 采样次数从 4 次降低到 1 次，同时减少 VRAM 占用和 Draw Call 数量。这是引擎管线的标准做法。</p>
+
+    <h4 style="color:var(--heading);font-size:13px;margin:12px 0 4px">📋 引擎预设说明</h4>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;margin:8px 0">
+      <tr style="background:var(--panel)"><th style="padding:8px;border:1px solid var(--border);text-align:left">预设</th><th style="padding:8px;border:1px solid var(--border)">R</th><th style="padding:8px;border:1px solid var(--border)">G</th><th style="padding:8px;border:1px solid var(--border)">B</th><th style="padding:8px;border:1px solid var(--border)">A</th><th style="padding:8px;border:1px solid var(--border)">引擎/Shader</th></tr>
+      <tr><td style="padding:6px 8px;border:1px solid var(--border);font-weight:600">UE5 ORM</td><td style="padding:6px;border:1px solid var(--border)">AO</td><td style="padding:6px;border:1px solid var(--border)">Roughness</td><td style="padding:6px;border:1px solid var(--border)">Metallic</td><td style="padding:6px;border:1px solid var(--border)">—</td><td style="padding:6px;border:1px solid var(--border)">UE5 默认 PBR</td></tr>
+      <tr><td style="padding:6px 8px;border:1px solid var(--border);font-weight:600">Unity MAS</td><td style="padding:6px;border:1px solid var(--border)">Metallic</td><td style="padding:6px;border:1px solid var(--border)">AO</td><td style="padding:6px;border:1px solid var(--border)">Smoothness</td><td style="padding:6px;border:1px solid var(--border)">—</td><td style="padding:6px;border:1px solid var(--border)">Unity HDRP/URP</td></tr>
+      <tr><td style="padding:6px 8px;border:1px solid var(--border);font-weight:600">换色 Mask</td><td style="padding:6px;border:1px solid var(--border)">区域1</td><td style="padding:6px;border:1px solid var(--border)">区域2</td><td style="padding:6px;border:1px solid var(--border)">区域3</td><td style="padding:6px;border:1px solid var(--border)">区域4/Alpha</td><td style="padding:6px;border:1px solid var(--border)">自定义换色 Shader</td></tr>
+      <tr><td style="padding:6px 8px;border:1px solid var(--border);font-weight:600">法线+高度</td><td style="padding:6px;border:1px solid var(--border)">Normal.X</td><td style="padding:6px;border:1px solid var(--border)">Normal.Y</td><td style="padding:6px;border:1px solid var(--border)">Height</td><td style="padding:6px;border:1px solid var(--border)">AO</td><td style="padding:6px;border:1px solid var(--border)">地形混合 Shader</td></tr>
+    </table>
+
+    <h4 style="color:var(--heading);font-size:13px;margin:12px 0 4px">⚠️ 注意事项</h4>
+    <ul style="padding-left:18px;font-size:11px;color:var(--text)">
+      <li><strong>色彩空间：</strong>数据贴图（AO、Roughness、Mask）必须设为 <strong>Linear</strong>，切勿勾选 sRGB；仅 BaseColor / Emissive 等表现贴图使用 sRGB</li>
+      <li><strong>压缩格式：</strong>UE5 推荐使用 <strong>BC7</strong>（Masks 纹理类型）；Unity 推荐 <strong>ASTC 6×6</strong>（移动端）或 <strong>BC7</strong>（PC端）</li>
+      <li><strong>反转通道：</strong>Unity 的 Smoothness = 1.0 - Roughness，若从 UE5 迁移，需在 G 通道勾选反转</li>
+      <li><strong>空通道处理：</strong>未载入的通道默认填充纯白 (255)。如果 Shader 预期 0 值，请手动调整默认值</li>
+    </ul>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// Channel Packer Core Logic
+// ═══════════════════════════════════════════
+
+const channels = { R: null, G: null, B: null, A: null };
+const channelData = { R: null, G: null, B: null, A: null };
+let outputW = 0, outputH = 0;
+
+// Presets
+const PRESETS = {
+  'ue5-orm':   { name:'UE5 ORM',  R:'AO', G:'Roughness', B:'Metallic', A:'未使用(白)' },
+  'unity-mas': { name:'Unity MAS', R:'Metallic', G:'AO', B:'Smoothness', A:'未使用(白)' },
+  'mask-rgba': { name:'换色 Mask', R:'区域1', G:'区域2', B:'区域3', A:'区域4/Alpha' },
+  'normal-pack':{ name:'法线+高度', R:'Normal.X', G:'Normal.Y', B:'Height', A:'AO' },
+  'custom':    { name:'自定义',    R:'自定义', G:'自定义', B:'自定义', A:'自定义' }
+};
+let currentPreset = 'ue5-orm';
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function pickFile(ch) {
+  document.getElementById('fi' + ch).click();
+}
+
+function loadChannel(e, ch) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const img = new Image();
+  img.onload = function() {
+    const cv = document.getElementById('cv' + ch);
+    cv.width = img.width;
+    cv.height = img.height;
+    const ctx = cv.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    channels[ch] = img;
+    channelData[ch] = ctx.getImageData(0, 0, img.width, img.height);
+    
+    document.getElementById('slot' + ch).classList.add('has-img');
+    document.getElementById('info' + ch).textContent = `${img.width}×${img.height}`;
+    
+    toast(`✅ ${ch} 通道已载入: ${file.name}`);
+    updatePreview();
+    updateStep();
+  };
+  img.src = URL.createObjectURL(file);
+}
+
+function handleDrop(e, ch) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dg');
+  const file = e.dataTransfer.files[0];
+  if (!file || !file.type.startsWith('image/')) return;
+  
+  const dt = new DataTransfer();
+  dt.items.add(file);
+  document.getElementById('fi' + ch).files = dt.files;
+  document.getElementById('fi' + ch).dispatchEvent(new Event('change'));
+}
+
+function batchLoad(e) {
+  const files = Array.from(e.target.files);
+  const chMap = { '_r': 'R', '_g': 'G', '_b': 'B', '_a': 'A',
+                  '_ao': 'R', '_roughness': 'G', '_metallic': 'B',
+                  '_mask': 'R', '_height': 'B', '_normal': 'R' };
+  
+  files.forEach(file => {
+    const name = file.name.toLowerCase();
+    let targetCh = null;
+    for (const [suffix, ch] of Object.entries(chMap)) {
+      if (name.includes(suffix)) { targetCh = ch; break; }
+    }
+    if (!targetCh) {
+      const idx = files.indexOf(file);
+      targetCh = ['R','G','B','A'][idx] || 'R';
+    }
+    
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    document.getElementById('fi' + targetCh).files = dt.files;
+    document.getElementById('fi' + targetCh).dispatchEvent(new Event('change'));
+  });
+}
+
+function getSwizzledValue(data, idx, swizzle, invert) {
+  let v;
+  const r = data[idx], g = data[idx+1], b = data[idx+2], a = data[idx+3];
+  switch(swizzle) {
+    case 'r': v = r; break;
+    case 'g': v = g; break;
+    case 'b': v = b; break;
+    case 'a': v = a; break;
+    case 'lum': v = Math.round(0.299*r + 0.587*g + 0.114*b); break;
+    default: v = r;
+  }
+  return invert ? 255 - v : v;
+}
+
+function updatePreview() {
+  // Determine output size
+  let w = 0, h = 0;
+  const sizeMode = document.getElementById('outSize').value;
+  
+  if (sizeMode === 'auto') {
+    for (const ch of ['R','G','B','A']) {
+      if (channelData[ch]) {
+        w = Math.max(w, channelData[ch].width);
+        h = Math.max(h, channelData[ch].height);
+      }
+    }
+    if (w === 0) { w = 256; h = 256; }
+  } else {
+    w = h = parseInt(sizeMode);
+  }
+  outputW = w; outputH = h;
+  
+  const pvSize = 256;
+  const rgba = new Uint8ClampedArray(pvSize * pvSize * 4);
+  const chArrays = { R: new Uint32Array(256), G: new Uint32Array(256), B: new Uint32Array(256), A: new Uint32Array(256) };
+  
+  for (const ch of ['R','G','B','A']) {
+    const cv = document.getElementById('pv' + ch);
+    cv.width = cv.height = pvSize;
+    const ctx = cv.getContext('2d');
+    
+    const swz = document.getElementById('swz' + ch).value;
+    const inv = document.getElementById('inv' + ch).checked;
+    const defVal = ch === 'A' ? parseInt(document.getElementById('defA').value) : 0;
+    
+    const imgData = ctx.createImageData(pvSize, pvSize);
+    const px = imgData.data;
+    
+    for (let y = 0; y < pvSize; y++) {
+      for (let x = 0; x < pvSize; x++) {
+        const di = (y * pvSize + x) * 4;
+        let v;
+        
+        if (channelData[ch]) {
+          const srcW = channelData[ch].width, srcH = channelData[ch].height;
+          const sx = Math.floor(x * srcW / pvSize);
+          const sy = Math.floor(y * srcH / pvSize);
+          const si = (sy * srcW + sx) * 4;
+          v = getSwizzledValue(channelData[ch].data, si, swz, inv);
+        } else {
+          v = ch === 'A' ? defVal : 0;
+        }
+        
+        px[di] = px[di+1] = px[di+2] = v;
+        px[di+3] = 255;
+        
+        const ci = { R:0, G:1, B:2, A:3 }[ch];
+        const rgbaIdx = (y * pvSize + x) * 4;
+        rgba[rgbaIdx + ci] = v;
+        if (ch === 'R') { rgba[rgbaIdx + 3] = parseInt(document.getElementById('defA').value); }
+        
+        chArrays[ch][v]++;
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+    drawHistogram(ch, chArrays[ch]);
+  }
+  
+  // Composite RGBA preview
+  const pvRGBA = document.getElementById('pvRGBA');
+  pvRGBA.width = pvRGBA.height = pvSize;
+  const ctxRGBA = pvRGBA.getContext('2d');
+  
+  // Re-composite from individual channels
+  const compositeData = ctxRGBA.createImageData(pvSize, pvSize);
+  const cpx = compositeData.data;
+  
+  for (const ch of ['R','G','B','A']) {
+    const srcCv = document.getElementById('pv' + ch);
+    const srcCtx = srcCv.getContext('2d');
+    const srcData = srcCtx.getImageData(0, 0, pvSize, pvSize).data;
+    const ci = { R:0, G:1, B:2, A:3 }[ch];
+    
+    for (let i = 0; i < pvSize * pvSize; i++) {
+      cpx[i * 4 + ci] = srcData[i * 4]; // All channels stored as grayscale, take R component
+    }
+  }
+  
+  // If no A channel loaded, set alpha to defA
+  if (!channelData.A) {
+    const defVal = parseInt(document.getElementById('defA').value);
+    for (let i = 0; i < pvSize * pvSize; i++) cpx[i * 4 + 3] = defVal;
+  }
+  
+  ctxRGBA.putImageData(compositeData, 0, 0);
+  
+  // Update output info
+  const bits = document.getElementById('bitDepth').value;
+  const estSize = (outputW * outputH * 4 * parseInt(bits) / 8);
+  const sizeStr = estSize > 1048576 ? (estSize/1048576).toFixed(1) + ' MB' : (estSize/1024).toFixed(0) + ' KB';
+  document.getElementById('outputInfo').textContent = 
+    `尺寸：${outputW} × ${outputH} · 格式：RGBA ${bits}bit · 预估未压缩大小：${sizeStr}`;
+}
+
+function drawHistogram(ch, counts) {
+  const cv = document.getElementById('hist' + ch);
+  const W = cv.offsetWidth || 200, H = cv.offsetHeight || 60;
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  
+  const max = Math.max(...counts) || 1;
+  const colors = { R:'#f66', G:'#6f6', B:'#66f', A:'#999' };
+  ctx.fillStyle = colors[ch];
+  ctx.globalAlpha = 0.6;
+  
+  const bw = W / 256;
+  for (let i = 0; i < 256; i++) {
+    const bh = (counts[i] / max) * H;
+    ctx.fillRect(i * bw, H - bh, Math.max(bw, 1), bh);
+  }
+}
+
+function applyPreset(key) {
+  currentPreset = key;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('act'));
+  event.target.classList.add('act');
+  
+  const p = PRESETS[key];
+  const alertEl = document.querySelector('#s2 .alert-green');
+  if (alertEl) {
+    alertEl.innerHTML = `<strong>📌 当前预设：${p.name}</strong><br>
+      R = ${p.R} · G = ${p.G} · B = ${p.B} · A = ${p.A}<br>
+      <span style="font-size:10px;color:var(--dim)">切换预设后，请确保载入的通道源图与预设匹配。</span>`;
+  }
+  
+  // Update channel labels
+  for (const ch of ['R','G','B','A']) {
+    const label = document.querySelector(`#slot${ch} .ch-label span:nth-child(2)`);
+    if (label) label.textContent = `${ch} 通道 — ${p[ch]}`;
+  }
+  
+  if (key === 'unity-mas') {
+    document.getElementById('invG').checked = false;
+  }
+  
+  updateNaming();
+  toast(`✅ 已切换预设：${p.name}`);
+}
+
+function updateStep() {
+  const hasAny = Object.values(channels).some(v => v !== null);
+  const steps = document.querySelectorAll('.stp');
+  if (hasAny) {
+    steps[0].classList.add('done'); steps[0].classList.remove('act');
+    steps[1].classList.add('act');
+    steps[2].classList.add('act');
+  }
+}
+
+function updateNaming() {
+  const tpl = document.getElementById('nameTpl').value;
+  const name = document.getElementById('assetName').value;
+  const presetName = PRESETS[currentPreset]?.name.replace(/\s+/g,'') || 'Custom';
+  const result = tpl.replace('{Preset}', presetName).replace('{Name}', name);
+  document.getElementById('namePreview').textContent = `预览：${result}.png`;
+}
+
+function exportPNG() {
+  if (outputW === 0) { toast('⚠️ 请先载入至少一个通道'); return; }
+  
+  const cv = document.createElement('canvas');
+  cv.width = outputW; cv.height = outputH;
+  const ctx = cv.getContext('2d');
+  const imgData = ctx.createImageData(outputW, outputH);
+  const px = imgData.data;
+  
+  for (const ch of ['R','G','B','A']) {
+    const swz = document.getElementById('swz' + ch).value;
+    const inv = document.getElementById('inv' + ch).checked;
+    const defVal = ch === 'A' ? parseInt(document.getElementById('defA').value) : 0;
+    const ci = { R:0, G:1, B:2, A:3 }[ch];
+    
+    for (let y = 0; y < outputH; y++) {
+      for (let x = 0; x < outputW; x++) {
+        const di = (y * outputW + x) * 4;
+        let v;
+        if (channelData[ch]) {
+          const srcW = channelData[ch].width, srcH = channelData[ch].height;
+          const sx = Math.min(Math.floor(x * srcW / outputW), srcW - 1);
+          const sy = Math.min(Math.floor(y * srcH / outputH), srcH - 1);
+          const si = (sy * srcW + sx) * 4;
+          v = getSwizzledValue(channelData[ch].data, si, swz, inv);
+        } else {
+          v = defVal;
+        }
+        px[di + ci] = v;
+      }
+    }
+  }
+  
+  ctx.putImageData(imgData, 0, 0);
+  
+  const link = document.createElement('a');
+  const tpl = document.getElementById('nameTpl').value;
+  const name = document.getElementById('assetName').value;
+  const presetName = PRESETS[currentPreset]?.name.replace(/\s+/g,'') || 'Custom';
+  link.download = tpl.replace('{Preset}', presetName).replace('{Name}', name) + '.png';
+  link.href = cv.toDataURL('image/png');
+  link.click();
+  toast('✅ PNG 已导出');
+}
+
+function exportTGA() { toast('💡 TGA 导出需要 ArrayBuffer 编码，建议使用桌面端工具或 wasm 版本'); }
+function exportSplit() {
+  for (const ch of ['R','G','B','A']) {
+    if (!channelData[ch]) continue;
+    const cv = document.getElementById('pv' + ch);
+    const link = document.createElement('a');
+    link.download = `${document.getElementById('assetName').value}_${ch}.png`;
+    link.href = cv.toDataURL('image/png');
+    link.click();
+  }
+  toast('✅ 分通道灰度图已导出');
+}
+
+function exportJSON() {
+  const config = {
+    version: '1.0',
+    preset: currentPreset,
+    outputSize: document.getElementById('outSize').value,
+    bitDepth: document.getElementById('bitDepth').value,
+    colorSpace: document.getElementById('colorSpace').value,
+    channels: {}
+  };
+  for (const ch of ['R','G','B','A']) {
+    config.channels[ch] = {
+      loaded: channels[ch] !== null,
+      swizzle: document.getElementById('swz' + ch).value,
+      invert: document.getElementById('inv' + ch).checked,
+      defaultValue: ch === 'A' ? parseInt(document.getElementById('defA').value) : 0
+    };
+  }
+  const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.download = 'channel-packer-config.json';
+  link.href = URL.createObjectURL(blob);
+  link.click();
+  toast('✅ 配置 JSON 已保存');
+}
+
+function clearAll() {
+  for (const ch of ['R','G','B','A']) {
+    channels[ch] = null;
+    channelData[ch] = null;
+    document.getElementById('slot' + ch).classList.remove('has-img');
+    document.getElementById('info' + ch).textContent = ch === 'A' ? '未载入 (默认纯白)' : '未载入';
+    document.getElementById('fi' + ch).value = '';
+  }
+  outputW = outputH = 0;
+  updatePreview();
+  toast('🗑 已清除全部通道');
+}
+
+// Init
+updatePreview();
+updateNaming();
+</script>
+</body>
+</html>

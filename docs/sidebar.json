@@ -174,21 +174,74 @@
       "name": "场景 · Scene",
       "icon": "🏔️",
       "color": "green",
-      "groups": []
+      "groups": [
+        {
+          "name": "文档",
+          "icon": "📄",
+          "items": [
+            {
+              "id": "scene-lod-spec",
+              "icon": "🏗️",
+              "title": "场景模块化与 LOD 规范",
+              "type": "iframe",
+              "file": "knowledge-base/scene-lod-spec.html",
+              "badge": "规范"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "cat-fx",
       "name": "特效 · FX",
       "icon": "✨",
       "color": "orange",
-      "groups": []
+      "groups": [
+        {
+          "name": "工具",
+          "icon": "🔧",
+          "items": [
+            {
+              "id": "channel-packer",
+              "icon": "📦",
+              "title": "贴图通道打包工具",
+              "type": "iframe",
+              "file": "knowledge-base/channel-packer.html",
+              "badge": "工具"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "cat-tech",
       "name": "技术 · Tech",
       "icon": "⚙️",
       "color": "pink",
-      "groups": []
+      "groups": [
+        {
+          "name": "方案",
+          "icon": "📋",
+          "items": [
+            {
+              "id": "engine-bridge",
+              "icon": "🔌",
+              "title": "Engine Bridge 引擎直连桥接",
+              "type": "iframe",
+              "file": "knowledge-base/engine-bridge.html",
+              "badge": "方案"
+            },
+            {
+              "id": "asset-library",
+              "icon": "📦",
+              "title": "标准资产库",
+              "type": "iframe",
+              "file": "knowledge-base/asset-library.html",
+              "badge": "资产库"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "cat-mgmt",

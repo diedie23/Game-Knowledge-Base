@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engine Bridge 引擎直连桥接 — 技术方案</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:26px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:11px;background:var(--orange);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim)}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--orange);display:flex;align-items:center;gap:8px}
+.section h3{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section h4{font-size:13px;color:var(--accent2);margin:12px 0 6px;font-weight:600}
+.section p{font-size:13px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(251,146,60,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:12px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;text-align:center;min-width:100px}
+.flow-node strong{display:block;color:var(--heading);font-size:12px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:10px}
+.flow-arrow{color:var(--orange);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.warn{border-color:var(--orange);background:rgba(251,146,60,.05)}
+.arch-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
+.arch-box h4{color:var(--heading);font-size:13px;margin-bottom:8px}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>🔌 Engine Bridge 引擎直连桥接 <span class="ver">技术方案 v1.0</span></h1>
+  <div class="subtitle">Web ↔ Engine Real-time Communication — Architecture & Implementation</div>
+  <div class="meta"><span>📋 UE5 + Unity 双端</span><span>👤 TA 组 · 工程组</span><span>📅 2026-04-02</span></div>
+</div>
+
+<div class="toc"><h3>📑 目录</h3>
+<ol>
+  <li><a href="#s1">系统架构总览</a></li>
+  <li><a href="#s2">通信协议设计 (WebSocket + JSON-RPC)</a></li>
+  <li><a href="#s3">引擎端插件实现 (UE5 / Unity)</a></li>
+  <li><a href="#s4">Web 端 SDK 设计</a></li>
+  <li><a href="#s5">资产传输与自动导入流程</a></li>
+  <li><a href="#s6">安全模型与错误处理</a></li>
+  <li><a href="#s7">部署与运维</a></li>
+  <li><a href="#s8">API Reference</a></li>
+</ol></div>
+
+<!-- §1 -->
+<div class="section" id="s1"><h2>1️⃣ 系统架构总览</h2>
+
+<div class="alert alert-green"><strong>💡 设计目标：</strong>让 Web 端知识库工具（如 Channel Packer、Mask 生成器）在浏览器中处理完资产后，<strong>一键发送到本地运行的 UE5 / Unity 编辑器</strong>，自动完成导入、命名、设置材质等操作，消除手动"导出→找文件→拖入引擎→配置"的繁琐环节。</div>
+
+<h3>1.1 整体架构图</h3>
+<pre>
+┌──────────────────────────────────────────────────────────────────┐
+│                        用户本地机器                                │
+│                                                                    │
+│  ┌─────────────────┐     WebSocket      ┌─────────────────────┐  │
+│  │  Web 浏览器       │ ◀══ localhost ══▶ │  Bridge Agent       │  │
+│  │  (知识库工具)     │     :9876          │  (本地轻量服务)      │  │
+│  │                   │                    │  Node.js / Python   │  │
+│  │  ● Channel Packer│                    │                     │  │
+│  │  ● Mask Generator│                    │  ┌───────────────┐  │  │
+│  │  ● Asset Library │                    │  │ File System    │  │  │
+│  └─────────────────┘                    │  │ Watcher/Writer │  │  │
+│                                          │  └──────┬────────┘  │  │
+│                                          └─────────┼───────────┘  │
+│                                                    │ TCP/Pipe      │
+│                                          ┌─────────┼───────────┐  │
+│                                          │  Engine Editor       │  │
+│                                          │  ┌──────▼────────┐  │  │
+│                                          │  │ Bridge Plugin  │  │  │
+│                                          │  │ (C++ / C#)     │  │  │
+│                                          │  │                │  │  │
+│                                          │  │ ● Auto Import  │  │  │
+│                                          │  │ ● Set Material │  │  │
+│                                          │  │ ● Asset Config │  │  │
+│                                          │  └────────────────┘  │  │
+│                                          │  UE5 / Unity Editor  │  │
+│                                          └──────────────────────┘  │
+└──────────────────────────────────────────────────────────────────┘
+</pre>
+
+<h3>1.2 三层架构</h3>
+<table>
+<tr><th>层级</th><th>组件</th><th>技术栈</th><th>职责</th></tr>
+<tr><td><strong>Presentation</strong></td><td>Web 端 SDK</td><td>JavaScript (ES Module)</td><td>提供 <code>bridge.send()</code> API、连接管理、UI 状态指示</td></tr>
+<tr><td><strong>Transport</strong></td><td>Bridge Agent</td><td>Node.js / Python</td><td>本地 WebSocket Server、文件写入、引擎进程通信</td></tr>
+<tr><td><strong>Engine</strong></td><td>Bridge Plugin</td><td>C++ (UE5) / C# (Unity)</td><td>文件监听 → 自动导入 → 配置资产属性</td></tr>
+</table>
+
+<div class="alert alert-blue"><strong>📌 为什么需要 Bridge Agent 中间层？</strong><br>
+浏览器安全沙箱限制，Web 页面无法直接：① 写入本地文件系统 ② 启动引擎命令 ③ 进行 IPC 通信。<br>
+Bridge Agent 作为本地可信进程，弥合 Web → OS → Engine 的鸿沟。</div>
+</div>
+
+<!-- §2 -->
+<div class="section" id="s2"><h2>2️⃣ 通信协议设计</h2>
+
+<h3>2.1 协议选型</h3>
+<table>
+<tr><th>方案</th><th>延迟</th><th>二进制支持</th><th>跨平台</th><th>选择</th></tr>
+<tr><td>WebSocket</td><td>~1ms</td><td>✅ Binary Frame</td><td>✅</td><td><strong>✅ 主方案</strong></td></tr>
+<tr><td>HTTP REST</td><td>~10ms</td><td>Base64</td><td>✅</td><td>降级方案</td></tr>
+<tr><td>gRPC-Web</td><td>~2ms</td><td>✅ Protobuf</td><td>需 proxy</td><td>备选</td></tr>
+</table>
+
+<h3>2.2 消息格式 (JSON-RPC 2.0)</h3>
+<pre>
+// ═══ Web → Agent: 发送资产 ═══
+{
+  "jsonrpc": "2.0",
+  "id": "msg-001",
+  "method": "asset.import",
+  "params": {
+    "engine": "ue5",                     // "ue5" | "unity"
+    "assetType": "texture",              // "texture" | "mesh" | "material"
+    "name": "T_ORM_Hero01_Packed",       // 资产名
+    "targetPath": "/Game/Characters/Hero01/Textures/",  // 引擎内目标路径
+    "format": "png",
+    "settings": {
+      "sRGB": false,                     // 数据贴图设 false
+      "compressionSettings": "Masks",    // UE5 纹理压缩
+      "lodGroup": "TEXTUREGROUP_WorldNormalMap",
+      "maxSize": 2048
+    },
+    "payload": "base64://iVBORw0KGgo...",  // ≤2MB 内嵌 Base64
+    // 或
+    "payloadRef": "blob-uuid-xxxx"          // >2MB 先传 binary frame
+  }
+}
+
+// ═══ Agent → Web: 响应 ═══
+{
+  "jsonrpc": "2.0",
+  "id": "msg-001",
+  "result": {
+    "status": "imported",
+    "enginePath": "/Game/Characters/Hero01/Textures/T_ORM_Hero01_Packed",
+    "diskPath": "D:/Project/Content/Characters/Hero01/Textures/T_ORM_Hero01_Packed.uasset",
+    "importTime": 1.23
+  }
+}
+
+// ═══ Agent → Web: 进度推送 (Notification) ═══
+{
+  "jsonrpc": "2.0",
+  "method": "progress",
+  "params": {
+    "id": "msg-001",
+    "stage": "importing",       // "writing" → "importing" → "configuring" → "done"
+    "percent": 65,
+    "message": "正在应用纹理压缩设置..."
+  }
+}
+</pre>
+
+<h3>2.3 二进制大文件传输</h3>
+<div class="alert alert-yellow"><strong>⚠️ 大文件策略：</strong>超过 <strong>2MB</strong> 的资产数据不使用 JSON Base64 内嵌，改为先发送 WebSocket Binary Frame（分块 64KB），Agent 接收后写入临时目录，再通过 JSON-RPC 引用 blob UUID。</div>
+
+<pre>
+传输流程 (>2MB):
+
+  Web                    Agent                  Engine
+   │──Binary Chunk 1────▶│                        │
+   │──Binary Chunk 2────▶│                        │
+   │──Binary Chunk N────▶│  write to /tmp/blob-xx │
+   │──JSON asset.import──▶│                        │
+   │  (payloadRef: blob-xx)│──copy to project──────▶│
+   │                      │                        │──auto import
+   │◀──progress: writing──│                        │
+   │◀──progress: importing│◀──import result────────│
+   │◀──result: imported───│                        │
+</pre>
+
+<h3>2.4 完整 Method 列表</h3>
+<table>
+<tr><th>Method</th><th>方向</th><th>说明</th></tr>
+<tr><td><code>bridge.handshake</code></td><td>Web → Agent</td><td>握手：协商版本、引擎类型</td></tr>
+<tr><td><code>bridge.heartbeat</code></td><td>双向</td><td>30s 心跳保活</td></tr>
+<tr><td><code>engine.status</code></td><td>Web → Agent</td><td>查询引擎连接状态</td></tr>
+<tr><td><code>engine.project.info</code></td><td>Web → Agent</td><td>获取当前项目信息（名称、路径）</td></tr>
+<tr><td><code>asset.import</code></td><td>Web → Agent</td><td>导入资产到引擎</td></tr>
+<tr><td><code>asset.batch</code></td><td>Web → Agent</td><td>批量导入多个资产</td></tr>
+<tr><td><code>asset.query</code></td><td>Web → Agent</td><td>查询引擎中是否已存在资产</td></tr>
+<tr><td><code>material.apply</code></td><td>Web → Agent</td><td>将贴图设置到指定材质槽</td></tr>
+<tr><td><code>progress</code></td><td>Agent → Web</td><td>进度推送通知</td></tr>
+<tr><td><code>error</code></td><td>Agent → Web</td><td>错误推送</td></tr>
+</table>
+</div>
+
+<!-- §3 -->
+<div class="section" id="s3"><h2>3️⃣ 引擎端插件实现</h2>
+
+<h3>3.1 UE5 — C++ Editor Plugin</h3>
+<pre>
+// BridgePlugin.uplugin
+{
+  "Modules": [{
+    "Name": "BridgePlugin",
+    "Type": "Editor",        // 仅编辑器模式加载
+    "LoadingPhase": "Default"
+  }]
+}
+</pre>
+
+<h4>核心类设计</h4>
+<table>
+<tr><th>类</th><th>职责</th><th>关键函数</th></tr>
+<tr><td><code>FBridgeFileWatcher</code></td><td>监听 Bridge 投递目录</td><td><code>OnFileChanged()</code> — DirectoryWatcher</td></tr>
+<tr><td><code>FBridgeImporter</code></td><td>自动导入 + 配置</td><td><code>ImportAsset()</code>, <code>ConfigureTexture()</code></td></tr>
+<tr><td><code>FBridgeTcpClient</code></td><td>与 Agent TCP 通信</td><td><code>Connect()</code>, <code>SendResult()</code></td></tr>
+</table>
+
+<pre>
+// 自动导入核心逻辑 (伪代码)
+void FBridgeImporter::ImportAsset(const FBridgeRequest& Req)
+{
+    // 1. 确认目标目录存在
+    FString DestPath = Req.TargetPath / Req.AssetName;
+    
+    // 2. 复制文件到 Content 目录
+    IFileManager::Get().Copy(*ContentPath, *TempFilePath);
+    
+    // 3. 触发 UE5 资产导入
+    FAssetToolsModule& AssetTools = FModuleManager::LoadModuleChecked
+        &lt;FAssetToolsModule&gt;("AssetTools");
+    TArray&lt;UObject*&gt; Imported = AssetTools.Get()
+        .ImportAssets(DestPath, /* bAutoDetect */ true);
+    
+    // 4. 配置贴图属性
+    if (UTexture2D* Tex = Cast&lt;UTexture2D&gt;(Imported[0]))
+    {
+        Tex->SRGB = Req.Settings.bSRGB;
+        Tex->CompressionSettings = ParseCompressionType(
+            Req.Settings.CompressionSettings);
+        Tex->LODGroup = ParseLODGroup(Req.Settings.LODGroup);
+        Tex->MaxTextureSize = Req.Settings.MaxSize;
+        Tex->PostEditChange();
+        Tex->MarkPackageDirty();
+    }
+    
+    // 5. 回报结果
+    BridgeTcpClient->SendResult(Req.Id, "imported", DestPath);
+}
+</pre>
+
+<h3>3.2 Unity — C# Editor Package</h3>
+<pre>
+// Unity Package: com.studio.bridge
+// Editor/BridgeEditorWindow.cs
+
+[InitializeOnLoad]
+public static class BridgeWatcher
+{
+    static FileSystemWatcher _watcher;
+    
+    static BridgeWatcher()
+    {
+        string watchDir = Path.Combine(
+            Application.dataPath, "../BridgeDrop");
+        Directory.CreateDirectory(watchDir);
+        
+        _watcher = new FileSystemWatcher(watchDir);
+        _watcher.Created += OnFileCreated;
+        _watcher.EnableRaisingEvents = true;
+    }
+    
+    static void OnFileCreated(object s, FileSystemEventArgs e)
+    {
+        // 回到主线程执行
+        EditorApplication.delayCall += () => {
+            ImportAndConfigure(e.FullPath);
+        };
+    }
+    
+    static void ImportAndConfigure(string srcPath)
+    {
+        // 1. 读取配套的 .meta.json
+        var meta = JsonUtility.FromJson&lt;BridgeMeta&gt;(
+            File.ReadAllText(srcPath + ".meta.json"));
+        
+        // 2. 复制到 Assets/ 目标路径
+        string destPath = "Assets/" + meta.targetPath 
+            + "/" + meta.assetName + Path.GetExtension(srcPath);
+        File.Copy(srcPath, destPath, overwrite: true);
+        AssetDatabase.ImportAsset(destPath);
+        
+        // 3. 配置 TextureImporter
+        var importer = AssetImporter.GetAtPath(destPath) 
+            as TextureImporter;
+        if (importer != null)
+        {
+            importer.sRGBTexture = meta.sRGB;
+            importer.textureCompression = 
+                TextureImporterCompression.HighQuality;
+            importer.maxTextureSize = meta.maxSize;
+            importer.SaveAndReimport();
+        }
+    }
+}
+</pre>
+</div>
+
+<!-- §4 -->
+<div class="section" id="s4"><h2>4️⃣ Web 端 SDK 设计</h2>
+<pre>
+// bridge-sdk.js — ES Module
+
+class EngineBridge {
+  #ws = null;
+  #pending = new Map();
+  #msgId = 0;
+  #listeners = new Map();
+
+  constructor(url = 'ws://localhost:9876') {
+    this.url = url;
+    this.status = 'disconnected'; // disconnected | connecting | connected
+  }
+
+  async connect() {
+    this.status = 'connecting';
+    return new Promise((resolve, reject) => {
+      this.#ws = new WebSocket(this.url);
+      this.#ws.binaryType = 'arraybuffer';
+      
+      this.#ws.onopen = () => {
+        this.status = 'connected';
+        this.#call('bridge.handshake', { 
+          version: '1.0', client: 'knowledge-base' 
+        }).then(resolve);
+      };
+      
+      this.#ws.onmessage = (e) => {
+        if (e.data instanceof ArrayBuffer) return; // binary ack
+        const msg = JSON.parse(e.data);
+        if (msg.id && this.#pending.has(msg.id)) {
+          this.#pending.get(msg.id).resolve(msg.result || msg.error);
+          this.#pending.delete(msg.id);
+        } else if (msg.method) {
+          this.#emit(msg.method, msg.params);
+        }
+      };
+      
+      this.#ws.onerror = (e) => { this.status = 'disconnected'; reject(e); };
+      this.#ws.onclose = () => { this.status = 'disconnected'; };
+    });
+  }
+
+  async importAsset({ engine, name, targetPath, format, 
+                       settings, data /* ArrayBuffer | Blob */ }) {
+    const MAX_INLINE = 2 * 1024 * 1024; // 2MB
+    let params = { engine, assetType: 'texture', name, targetPath, format, settings };
+    
+    if (data.byteLength <= MAX_INLINE) {
+      params.payload = 'base64://' + arrayBufferToBase64(data);
+    } else {
+      const blobId = await this.#sendBinary(data);
+      params.payloadRef = blobId;
+    }
+    
+    return this.#call('asset.import', params);
+  }
+
+  onProgress(callback) { this.#on('progress', callback); }
+  onError(callback)    { this.#on('error', callback); }
+
+  // ... internal methods
+  #call(method, params) { /* JSON-RPC call */ }
+  #sendBinary(buffer)   { /* chunked binary upload */ }
+  #on(event, fn)        { /* event listener */ }
+  #emit(event, data)    { /* dispatch event */ }
+}
+
+export default EngineBridge;
+</pre>
+
+<h3>4.1 集成到工具页面</h3>
+<pre>
+// 在 Channel Packer 中集成
+import EngineBridge from './bridge-sdk.js';
+
+const bridge = new EngineBridge();
+
+async function sendToEngine() {
+  try {
+    await bridge.connect();
+    
+    bridge.onProgress(({ percent, message }) => {
+      updateProgressBar(percent);
+      showStatus(message);
+    });
+    
+    const pngData = canvasToArrayBuffer(outputCanvas);
+    const result = await bridge.importAsset({
+      engine: 'ue5',
+      name: 'T_ORM_Hero01_Packed',
+      targetPath: '/Game/Characters/Hero01/Textures',
+      format: 'png',
+      settings: { sRGB: false, compressionSettings: 'Masks' },
+      data: pngData
+    });
+    
+    toast(`✅ 导入成功: ${result.enginePath}`);
+  } catch (e) {
+    toast(`❌ 导入失败: ${e.message}`);
+  }
+}
+</pre>
+</div>
+
+<!-- §5 -->
+<div class="section" id="s5"><h2>5️⃣ 资产传输与自动导入流程</h2>
+<div class="flow">
+  <div class="flow-node start"><strong>Web 工具</strong><div class="sub">Channel Packer<br>生成 PNG</div></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node"><strong>SDK 编码</strong><div class="sub">Base64 / Binary<br>JSON-RPC 封装</div></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node warn"><strong>Bridge Agent</strong><div class="sub">WebSocket Server<br>写入 Drop 目录</div></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node"><strong>File Watcher</strong><div class="sub">监听新文件<br>触发导入</div></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node"><strong>Auto Import</strong><div class="sub">UE5/Unity API<br>配置资产属性</div></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node end"><strong>资产就位</strong><div class="sub">Content Browser<br>可直接使用</div></div>
+</div>
+
+<h3>5.1 Drop 目录约定</h3>
+<pre>
+[ProjectRoot]/
+├── BridgeDrop/              ← Bridge Agent 写入目录
+│   ├── textures/
+│   │   ├── T_ORM_Hero01_Packed.png
+│   │   └── T_ORM_Hero01_Packed.meta.json   ← 配套元数据
+│   ├── meshes/
+│   └── materials/
+</pre>
+
+<h3>5.2 meta.json 结构</h3>
+<pre>
+{
+  "bridgeVersion": "1.0",
+  "requestId": "msg-001",
+  "assetType": "texture",
+  "name": "T_ORM_Hero01_Packed",
+  "targetPath": "Characters/Hero01/Textures",
+  "settings": {
+    "sRGB": false,
+    "compressionSettings": "Masks",
+    "maxSize": 2048
+  },
+  "sourceUrl": "knowledge-base://channel-packer",
+  "timestamp": "2026-04-02T19:30:00Z"
+}
+</pre>
+</div>
+
+<!-- §6 -->
+<div class="section" id="s6"><h2>6️⃣ 安全模型与错误处理</h2>
+<div class="alert alert-red"><strong>⛔ 安全红线：</strong><br>
+① Bridge Agent <strong>仅监听 localhost</strong>（127.0.0.1），禁止绑定 0.0.0.0<br>
+② WebSocket 握手时验证 <strong>Origin Header</strong>，仅允许知识库域名<br>
+③ 写入路径必须在项目目录白名单内，禁止路径穿越 (Path Traversal)<br>
+④ 单文件大小上限 <strong>100MB</strong>，超过拒绝</div>
+
+<table>
+<tr><th>错误码</th><th>含义</th><th>处理建议</th></tr>
+<tr><td><code>-32001</code></td><td>引擎未连接</td><td>提示用户启动引擎并加载 Bridge Plugin</td></tr>
+<tr><td><code>-32002</code></td><td>目标路径无权限</td><td>检查项目路径白名单</td></tr>
+<tr><td><code>-32003</code></td><td>文件过大</td><td>压缩后重试或使用分块传输</td></tr>
+<tr><td><code>-32004</code></td><td>导入失败</td><td>检查文件格式、引擎版本兼容</td></tr>
+<tr><td><code>-32005</code></td><td>资产已存在</td><td>弹窗确认覆盖/重命名</td></tr>
+</table>
+</div>
+
+<!-- §7 -->
+<div class="section" id="s7"><h2>7️⃣ 部署与运维</h2>
+
+<h3>7.1 Bridge Agent 安装</h3>
+<pre>
+# 方案 A: npm 全局安装
+npm install -g @studio/bridge-agent
+bridge-agent start --port 9876 --engine ue5
+
+# 方案 B: 引擎插件内置 (推荐)
+# UE5 Plugin 启动时自动在 9876 端口启动 WebSocket Server
+# 无需额外安装，开箱即用
+
+# 方案 C: Electron 桌面端一体化
+# 知识库工具打包为 Electron App，内置 Bridge Agent
+</pre>
+
+<h3>7.2 部署方式对比</h3>
+<table>
+<tr><th>方案</th><th>优点</th><th>缺点</th><th>推荐场景</th></tr>
+<tr><td><strong>引擎内置 WS Server</strong></td><td>零配置、自动启停</td><td>引擎未运行时不可用</td><td>✅ 推荐 — 日常开发</td></tr>
+<tr><td><strong>独立 Agent 进程</strong></td><td>引擎无关、可缓存</td><td>需额外安装维护</td><td>多引擎切换场景</td></tr>
+<tr><td><strong>Electron 一体化</strong></td><td>全套工具一体</td><td>重，资源占用高</td><td>外包团队分发</td></tr>
+</table>
+</div>
+
+<!-- §8 -->
+<div class="section" id="s8"><h2>8️⃣ API Reference</h2>
+<table>
+<tr><th>API</th><th>参数</th><th>返回</th></tr>
+<tr><td><code>bridge.connect(url?)</code></td><td>ws://localhost:9876</td><td>Promise&lt;handshake&gt;</td></tr>
+<tr><td><code>bridge.importAsset(opts)</code></td><td>engine, name, targetPath, format, settings, data</td><td>Promise&lt;{status, enginePath, diskPath}&gt;</td></tr>
+<tr><td><code>bridge.batchImport(assets[])</code></td><td>数组形式多个 asset</td><td>Promise&lt;results[]&gt;</td></tr>
+<tr><td><code>bridge.queryAsset(path)</code></td><td>引擎内资产路径</td><td>Promise&lt;{exists, type, size}&gt;</td></tr>
+<tr><td><code>bridge.applyMaterial(opts)</code></td><td>materialPath, slot, texturePath</td><td>Promise&lt;{status}&gt;</td></tr>
+<tr><td><code>bridge.onProgress(fn)</code></td><td>callback(percent, msg)</td><td>void</td></tr>
+<tr><td><code>bridge.disconnect()</code></td><td>—</td><td>void</td></tr>
+</table>
+</div>
+
+<div class="doc-footer">📄 Engine Bridge 技术方案 v1.0 · TA 组 · 工程组 · 2026-04-02 · 机密文档</div>
+</div>
+</body>
+</html>

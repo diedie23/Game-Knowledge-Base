@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>场景模块化与 LOD 规范 — 工业化规范文档</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:26px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:11px;background:var(--green);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim)}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--green);display:flex;align-items:center;gap:8px}
+.section h3{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section h4{font-size:13px;color:var(--accent2);margin:12px 0 6px;font-weight:600}
+.section p{font-size:13px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(74,222,128,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:12px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;text-align:center;min-width:100px}
+.flow-node strong{display:block;color:var(--heading);font-size:12px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:10px}
+.flow-arrow{color:var(--green);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:12px;line-height:1.7}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:13px}
+.dd-card .img-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:6px;padding:20px;text-align:center;color:var(--dim);font-size:11px;margin:8px 0}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:12px;line-height:1.8;padding-left:28px}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>🏔️ 场景模块化与 LOD 规范 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Scene Modular Kit & Level of Detail — Industrial Pipeline Specification</div>
+  <div class="meta"><span>📋 UE5 / Unity 2022+</span><span>👤 TA 组 · 场景组</span><span>📅 2026-04-02</span></div>
+</div>
+
+<div class="toc"><h3>📑 目录</h3>
+<ol>
+  <li><a href="#s1">模块化设计总则</a></li><li><a href="#s2">网格 Grid 与吸附规范</a></li>
+  <li><a href="#s3">LOD 层级与面数预算</a></li><li><a href="#s4">贴图与材质合批策略</a></li>
+  <li><a href="#s5">命名与目录结构</a></li><li><a href="#s6">碰撞体与 NavMesh</a></li>
+  <li><a href="#s7">Do/Don't 红黑榜</a></li><li><a href="#s8">SOP 流程</a></li><li><a href="#s9">FAQ</a></li>
+</ol></div>
+
+<!-- §1 -->
+<div class="section" id="s1"><h2>1️⃣ 模块化设计总则</h2>
+<div class="alert alert-green"><strong>💡 核心理念：</strong>"一套模块 + 组合规则 = 无限场景"。标准化尺寸网格、连接点与材质规格，让关卡设计师像搭积木般拼装。</div>
+<h3>1.1 模块分类体系</h3>
+<table>
+<tr><th>分类</th><th>代号</th><th>典型尺寸 (cm)</th><th>举例</th></tr>
+<tr><td><strong>Floor 地板</strong></td><td>F</td><td>400×400 / 800×800</td><td>石板、草地</td></tr>
+<tr><td><strong>Wall 墙体</strong></td><td>W</td><td>400×300 / 400×600</td><td>砖墙、门洞墙</td></tr>
+<tr><td><strong>Pillar 柱体</strong></td><td>P</td><td>50×50×300</td><td>罗马柱、木柱</td></tr>
+<tr><td><strong>Ceiling 天花</strong></td><td>C</td><td>跟随 Floor</td><td>穹顶、梁</td></tr>
+<tr><td><strong>Stair 楼梯</strong></td><td>S</td><td>400×300×300</td><td>直梯、旋转梯</td></tr>
+<tr><td><strong>Deco 装饰</strong></td><td>D</td><td>自由</td><td>花瓶、路灯</td></tr>
+<tr><td><strong>Prop 道具</strong></td><td>PR</td><td>自由</td><td>箱子、桌椅</td></tr>
+</table>
+
+<h3>1.2 模块化"三一律"</h3>
+<div class="alert alert-blue"><strong>📐 Three Unities：</strong><br>
+① <strong>统一 Grid</strong>：结构件对齐 100cm 主格 + 50cm 细格<br>
+② <strong>统一 Pivot</strong>：结构件 Pivot 在左下角底部；Deco/Prop 在几何中心底面<br>
+③ <strong>统一 Texel Density</strong>：同场景 TD 差异 ≤ ±15%</div>
+
+<h3>1.3 连接点 Snap Points</h3>
+<table>
+<tr><th>连接类型</th><th>Socket 位置</th><th>容差</th></tr>
+<tr><td>Floor-Floor</td><td>四边中点 + 四角</td><td>0.01cm</td></tr>
+<tr><td>Wall-Floor</td><td>墙底边 ↔ 地板边缘</td><td>0.01cm</td></tr>
+<tr><td>Wall-Wall</td><td>墙左右两侧</td><td>0.01cm</td></tr>
+<tr><td>Wall-Ceiling</td><td>墙顶边</td><td>0.01cm</td></tr>
+</table>
+</div>
+
+<!-- §2 -->
+<div class="section" id="s2"><h2>2️⃣ 网格 Grid 与吸附规范</h2>
+<table>
+<tr><th>Grid 级别</th><th>尺寸</th><th>适用</th><th>引擎设置</th></tr>
+<tr><td><strong>Primary 主格</strong></td><td>100cm</td><td>房间、走廊</td><td>Grid = 100</td></tr>
+<tr><td><strong>Half 半格</strong></td><td>50cm</td><td>门洞偏移</td><td>Grid = 50</td></tr>
+<tr><td><strong>Fine 细格</strong></td><td>25cm</td><td>台阶高度</td><td>Grid = 25</td></tr>
+<tr><td><strong>Micro 微格</strong></td><td>10cm</td><td>装饰微调</td><td>Grid = 10</td></tr>
+</table>
+<div class="alert alert-red"><strong>⛔ 红线：</strong>结构模块(F/W/P/C/S) <strong>禁用 Micro Grid</strong>。对不上 25cm 则返工。仅 Deco/Prop 可用微格。</div>
+
+<h3>Pivot 标准</h3>
+<pre>
+Floor/Wall: Pivot = 左下角底部 (min X, min Y, min Z)
+Deco/Prop:  Pivot = 几何中心底面 (center X, center Y, min Z)
+</pre>
+<h3>旋转步进</h3>
+<table>
+<tr><th>类型</th><th>旋转步进</th></tr>
+<tr><td>结构件</td><td>90°</td></tr><tr><td>斜面/坡道</td><td>45°</td></tr>
+<tr><td>装饰</td><td>15°</td></tr><tr><td>道具</td><td>5°</td></tr>
+</table>
+</div>
+
+<!-- §3 -->
+<div class="section" id="s3"><h2>3️⃣ LOD 层级与面数预算</h2>
+<div class="alert alert-red"><strong>⛔ 红线：</strong>单模块 LOD0 ≤ <strong>50,000 三角面</strong>。LOD 级数至少 3 级，建议 4 级。</div>
+<h3>3.1 LOD 标准</h3>
+<table>
+<tr><th>LOD</th><th>屏占比</th><th>面数比</th><th>距离</th><th>用途</th></tr>
+<tr><td><strong>LOD0</strong></td><td>&gt;30%</td><td>100%</td><td>0~15m</td><td>全精度</td></tr>
+<tr><td><strong>LOD1</strong></td><td>10~30%</td><td>≤50%</td><td>15~40m</td><td>移除小细节</td></tr>
+<tr><td><strong>LOD2</strong></td><td>3~10%</td><td>≤25%</td><td>40~80m</td><td>轮廓模型</td></tr>
+<tr><td><strong>LOD3</strong></td><td>&lt;3%</td><td>≤10%</td><td>80m+</td><td>Impostor</td></tr>
+<tr><td style="color:var(--yellow)"><strong>HLOD</strong></td><td>—</td><td>≤5%</td><td>150m+</td><td>合并 LOD</td></tr>
+</table>
+
+<h3>3.2 面数预算表</h3>
+<table>
+<tr><th>模块</th><th>LOD0</th><th>LOD1</th><th>LOD2</th><th>LOD3</th></tr>
+<tr><td>Floor 4m²</td><td>500</td><td>200</td><td>50</td><td>12</td></tr>
+<tr><td>Wall 标准</td><td>2,000</td><td>800</td><td>200</td><td>50</td></tr>
+<tr><td>Pillar</td><td>3,000</td><td>1,200</td><td>300</td><td>80</td></tr>
+<tr><td>Stair</td><td>5,000</td><td>2,000</td><td>500</td><td>100</td></tr>
+<tr><td>Deco 中型</td><td>8,000</td><td>3,000</td><td>800</td><td>200</td></tr>
+<tr><td>Prop 大型</td><td>15,000</td><td>5,000</td><td>1,500</td><td>400</td></tr>
+<tr><td>Hero Asset</td><td>50,000</td><td>15,000</td><td>5,000</td><td>1,000</td></tr>
+</table>
+
+<div class="alert alert-yellow"><strong>⚠️ LOD 过渡：</strong>必须用 <strong>Dithered Transition / Cross-Fade</strong>，禁止硬切 Pop。<br>UE5: <code>LOD Transition → Dithered</code> · Unity: <code>crossFadeAnimationDuration = 0.5f</code></div>
+
+<h3>3.3 Nanite 适用范围 (UE5)</h3>
+<table>
+<tr><th>场景</th><th>Nanite</th><th>原因</th></tr>
+<tr><td>静态道具</td><td>✅ 推荐</td><td>自动 LOD</td></tr>
+<tr><td>可破坏物</td><td>❌ 禁止</td><td>不支持动态拓扑</td></tr>
+<tr><td>半透明</td><td>❌ 禁止</td><td>不支持透明材质</td></tr>
+<tr><td>骨骼动画</td><td>❌ 禁止</td><td>仅支持静态网格</td></tr>
+<tr><td>植被</td><td>⚠️ 谨慎</td><td>5.1+ 支持但 WPO 有限</td></tr>
+</table>
+</div>
+
+<!-- §4 -->
+<div class="section" id="s4"><h2>4️⃣ 贴图与材质合批策略</h2>
+<h3>4.1 Texel Density</h3>
+<table>
+<tr><th>LOD</th><th>目标 TD</th><th>参考</th></tr>
+<tr><td>LOD0</td><td><strong>10.24 px/cm</strong></td><td>1m → 1024px</td></tr>
+<tr><td>LOD1</td><td>5.12 px/cm</td><td>1m → 512px</td></tr>
+<tr><td>LOD2</td><td>2.56 px/cm</td><td>可用 Trim Sheet</td></tr>
+</table>
+<div class="alert alert-blue"><strong>💡 Trim Sheet：</strong>重复场景部件优先用 Trim Sheet，一张 2048² 覆盖 10~20 个模块 UV，极大减 Draw Call。</div>
+<h3>4.2 贴图规格</h3>
+<table>
+<tr><th>类型</th><th>推荐</th><th>上限</th><th>色彩空间</th><th>压缩</th></tr>
+<tr><td>BaseColor</td><td>1024²</td><td>2048²</td><td>sRGB</td><td>BC7/ASTC</td></tr>
+<tr><td>Normal</td><td>1024²</td><td>2048²</td><td>Linear</td><td>BC5/ASTC</td></tr>
+<tr><td>ORM Packed</td><td>1024²</td><td>2048²</td><td>Linear</td><td>BC7/ASTC</td></tr>
+<tr><td>Trim Sheet</td><td>2048²</td><td>4096²</td><td>Mixed</td><td>BC7</td></tr>
+</table>
+<div class="alert alert-green"><strong>📌 合批铁律：</strong>可见材质实例 ≤ <strong>64 个</strong>。优先 Material Instance + 参数化。</div>
+</div>
+
+<!-- §5 -->
+<div class="section" id="s5"><h2>5️⃣ 命名与目录结构</h2>
+<pre>
+SM_[分类]_[集合名]_[变体]    ← 网格
+T_[集合名]_[物件]_[类型]     ← 贴图 (BC/N/ORM/E/M)
+
+示例:
+  SM_Wall_Medieval_Door_01
+  SM_Floor_SciFi_4x4_02
+  T_Medieval_Wall_BC.png
+  T_Medieval_TrimSheet_ORM.png
+</pre>
+<pre>
+Content/Environment/
+├── Medieval/
+│   ├── Meshes/ (Floor/ Wall/ Pillar/ Deco/ Prop/)
+│   ├── Textures/ (TrimSheet/ Atlas/)
+│   ├── Materials/ (MI_Master + Instances/)
+│   └── Blueprints/
+└── Shared/ (MasterMaterials/ SharedTextures/)
+</pre>
+</div>
+
+<!-- §6 -->
+<div class="section" id="s6"><h2>6️⃣ 碰撞体与 NavMesh</h2>
+<table>
+<tr><th>碰撞类型</th><th>面数</th><th>性能</th><th>适用</th></tr>
+<tr><td><strong>Box</strong></td><td>12</td><td>⭐⭐⭐⭐⭐</td><td>方形墙壁/地板</td></tr>
+<tr><td><strong>Convex Hull</strong></td><td>≤256</td><td>⭐⭐⭐⭐</td><td>不规则凸形</td></tr>
+<tr><td><strong>Multi-Convex</strong></td><td>≤256×N</td><td>⭐⭐⭐</td><td>凹形(楼梯/L墙)</td></tr>
+<tr><td style="color:var(--red)">Complex</td><td>= 渲染面数</td><td>⭐</td><td>❌ 禁止运行时</td></tr>
+</table>
+<div class="alert alert-red"><strong>⛔ 红线：</strong>运行时碰撞 <strong>禁用 Complex Collision</strong>。碰撞面数 ≤ 渲染面数 <strong>1%</strong>。</div>
+<pre>
+碰撞体命名 (FBX):
+  UCX_Wall_Medieval_01_00   ← Convex #0
+  UBX_Wall_Medieval_01_01   ← Box #1
+  USP_Wall_Medieval_01_02   ← Sphere #2
+</pre>
+<div class="alert alert-yellow"><strong>⚠️ NavMesh 规则：</strong>地板斜面坡度 ≤ 45°，台阶高度 ≤ 40cm，相邻地板高差 ≤ Agent Step Height。</div>
+</div>
+
+<!-- §7 -->
+<div class="section" id="s7"><h2>7️⃣ Do/Don't 红黑榜</h2>
+<div class="dd-grid">
+  <div class="dd-card dd-do"><h4>✅ Do — 正确做法</h4>
+    <div class="img-placeholder">[此处插入图片：模块对齐、UV 连续、LOD 完整的正确示例]</div>
+    <p>• 所有结构件对齐 100cm Grid<br>• Pivot 统一在左下角底部<br>• LOD0~LOD3 完整四级链<br>• 使用 Trim Sheet 减少材质数<br>• 碰撞体简化为 Box / Convex<br>• 接缝处顶点焊接 + UV 连续</p>
+  </div>
+  <div class="dd-card dd-dont"><h4>❌ Don't — 错误做法</h4>
+    <div class="img-placeholder">[此处插入图片：模块错位、Z-fighting、LOD 缺失的反面示例]</div>
+    <p>• Pivot 位置随意 → 对齐困难<br>• 不同 Grid 混用 → 缝隙/穿模<br>• 仅 LOD0 无低模 → GPU 过载<br>• 每个模块独立材质 → Draw Call 爆炸<br>• Complex Collision → 物理卡顿<br>• 硬切 LOD → 视觉 Pop 闪烁</p>
+  </div>
+</div>
+<div class="dd-grid">
+  <div class="dd-card dd-do"><h4>✅ Do — Texel Density 一致</h4>
+    <div class="img-placeholder">[此处插入图片：TD Checker 全场景绿色=一致]</div>
+    <p>• 所有模块 TD 在 10.24 px/cm ±15% 以内<br>• Checker 工具验证：全场景无红色区域</p>
+  </div>
+  <div class="dd-card dd-dont"><h4>❌ Don't — TD 差异过大</h4>
+    <div class="img-placeholder">[此处插入图片：TD Checker 花花绿绿=不一致]</div>
+    <p>• 地板 20 px/cm，墙壁 5 px/cm → 观感撕裂<br>• 玩家能直观感受到清晰度落差</p>
+  </div>
+</div>
+</div>
+
+<!-- §8 -->
+<div class="section" id="s8"><h2>8️⃣ SOP 标准作业流程</h2>
+<div class="flow">
+  <div class="flow-node start"><strong>1. 白盒</strong><div class="sub">BSP / ProBuilder<br>验证尺寸与玩法</div></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node"><strong>2. Kit 制作</strong><div class="sub">DCC 建模<br>遵循 Grid + Pivot</div></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node"><strong>3. LOD 生成</strong><div class="sub">手动减面 / Simplygon<br>4 级 LOD 链</div></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node"><strong>4. 碰撞制作</strong><div class="sub">UCX/UBX 命名<br>面数 ≤1%</div></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node"><strong>5. UV & 材质</strong><div class="sub">Trim Sheet UV<br>TD 校验</div></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node end"><strong>6. 引擎验收</strong><div class="sub">Grid 对齐 · LOD<br>Profile 性能</div></div>
+</div>
+</div>
+
+<!-- §9 -->
+<div class="section" id="s9"><h2>9️⃣ 常见问题 FAQ</h2>
+<div class="faq-item"><div class="faq-q">❓ 启用 Nanite 后还需要手动 LOD 吗？</div>
+<div class="faq-a">Nanite 自动处理静态网格 LOD，但 <strong>仅限静态、不透明物体</strong>。半透明/骨骼/可破坏物体仍需手动 LOD。建议混合策略：静态用 Nanite，动态保留手动 LOD 链。</div></div>
+<div class="faq-item"><div class="faq-q">❓ Trim Sheet 和 Texture Atlas 有什么区别？</div>
+<div class="faq-a"><strong>Trim Sheet</strong>：长条形 UV 区域，适合线性重复元素（墙边、管线），UV 可沿 U 轴 Tiling。<br><strong>Atlas</strong>：矩形格子分区，每个模块占一格，UV 不可 Tiling。Trim Sheet 灵活度更高，但 UV 拆分要求更精细。</div></div>
+<div class="faq-item"><div class="faq-q">❓ 碰撞体面数的 1% 规则如何验证？</div>
+<div class="faq-a">UE5：<code>Show → Collision</code> 可视化碰撞体；Statistics 面板查看碰撞面数。<br>Unity：<code>Physics Debugger</code> 显示碰撞网格。自动化脚本可在 CI 中检查 collision tri / render tri 比值。</div></div>
+</div>
+
+<div class="doc-footer">📄 场景模块化与 LOD 规范 v1.0 · TA 组 · 场景组 · 2026-04-02 · 机密文档</div>
+</div>
+</body>
+</html>
