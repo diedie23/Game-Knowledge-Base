@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2D/3D 游戏美术性能红线与专业术语速查表 — APM 专用</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--pink:#f472b6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:24px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.doc-header h1 .ver{font-size:11px;background:var(--orange);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim);flex-wrap:wrap}
+.audience-badge{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;padding:4px 14px;border-radius:16px;font-size:11px;font-weight:600;margin-top:12px}
+
+/* TOC */
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+
+/* Sections */
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--orange);display:flex;align-items:center;gap:8px}
+.section h3{font-size:15px;color:var(--heading);margin:20px 0 8px;font-weight:600}
+.section h4{font-size:13px;color:var(--accent2);margin:12px 0 6px;font-weight:600}
+.section p,.section li{font-size:13px;margin-bottom:6px}
+.section ul{padding-left:20px;margin-bottom:12px}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(251,191,36,.02)}
+
+/* Alerts */
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-orange{background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.2);color:var(--orange)}
+
+/* Inline code */
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:12px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+
+/* Term cards */
+.term-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px;position:relative;overflow:hidden}
+.term-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;border-radius:4px 0 0 4px}
+.term-card.tc-red::before{background:var(--red)}
+.term-card.tc-orange::before{background:var(--orange)}
+.term-card.tc-yellow::before{background:var(--yellow)}
+.term-card.tc-blue::before{background:var(--accent)}
+.term-card.tc-green::before{background:var(--green)}
+.term-card .term-name{font-size:16px;color:var(--heading);font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.term-card .term-en{font-size:11px;color:var(--dim);margin-bottom:10px}
+.term-card .term-tags{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.term-card .tag{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.tag-perf{background:rgba(248,113,113,.12);color:var(--red)}
+.tag-mem{background:rgba(251,191,36,.12);color:var(--yellow)}
+.tag-gpu{background:rgba(108,140,255,.12);color:var(--accent)}
+.tag-cpu{background:rgba(74,222,128,.12);color:var(--green)}
+.tag-size{background:rgba(244,114,182,.12);color:var(--pink)}
+.term-card .term-body{font-size:13px;line-height:1.8}
+.term-card .term-body strong{color:var(--heading)}
+.term-card .term-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+@media(max-width:700px){.term-card .term-grid{grid-template-columns:1fr}}
+.term-card .sub-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;line-height:1.7}
+.term-card .sub-box h5{color:var(--heading);font-size:12px;margin-bottom:6px}
+.term-card .apm-box{background:rgba(251,146,60,.06);border:1px solid rgba(251,146,60,.18);border-radius:8px;padding:12px;margin-top:12px;font-size:12px;line-height:1.7}
+.term-card .apm-box::before{content:'🎯 APM 关注点';display:block;font-size:11px;font-weight:700;color:var(--orange);margin-bottom:6px}
+
+/* Redline table */
+.redline-table{margin:16px 0}
+.redline-table td:first-child{white-space:nowrap;font-weight:600;color:var(--heading)}
+.redline-val{color:var(--red);font-weight:700;font-size:13px}
+.redline-safe{color:var(--green);font-weight:600;font-size:13px}
+.redline-warn{color:var(--yellow);font-weight:600;font-size:13px}
+
+/* Scenario cards */
+.scenario{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden}
+.scenario .sc-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--heading)}
+.scenario .sc-body{padding:16px}
+.scenario table{margin:0}
+
+/* Checklist */
+.checklist{list-style:none;padding:0;margin:12px 0}
+.checklist li{padding:8px 12px;border-radius:8px;margin-bottom:6px;font-size:12px;display:flex;align-items:flex-start;gap:8px;background:var(--card);border:1px solid var(--border);line-height:1.6}
+.checklist li .ck-icon{flex-shrink:0;font-size:14px;margin-top:1px}
+
+/* Footer */
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+
+/* Comparison flow */
+.compare-row{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin:16px 0}
+@media(max-width:700px){.compare-row{grid-template-columns:1fr}}
+.compare-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12px;text-align:center}
+.compare-box.bad{border-color:rgba(248,113,113,.3)}
+.compare-box.good{border-color:rgba(74,222,128,.3)}
+.compare-arrow{color:var(--green);font-size:22px;text-align:center}
+
+/* Quick ref strip */
+.quick-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:16px 0}
+.qs-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.qs-item .qs-val{font-size:20px;font-weight:800;margin-bottom:2px}
+.qs-item .qs-label{font-size:10px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<!-- ═══════════ HEADER ═══════════ -->
+<div class="doc-header">
+  <h1>🚦 2D/3D 游戏美术性能红线<br>与专业术语速查表 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Game Art Performance Redline & Glossary — APM Quick Reference</div>
+  <div class="meta"><span>📱 中型移动端游戏</span><span>🎮 二次元卡牌 / ARPG</span><span>📅 2026-04-02</span></div>
+  <div class="audience-badge">👔 面向游戏项目经理 APM / 制作人</div>
+</div>
+
+<!-- ═══════════ READING GUIDE ═══════════ -->
+<div class="alert alert-blue" style="margin-bottom:24px">
+  <strong>📖 阅读说明：</strong>本文档专为<strong>非纯技术背景的项目经理</strong>编写。每个术语均包含「一句话解释」「性能影响」「APM 应关注的风险」三部分。所有数值基于<strong>中高端移动端设备 (骁龙 870/天玑 8100 级别)</strong> 的经验值，实际红线需根据目标机型和引擎版本微调。
+</div>
+
+<!-- ═══════════ TOC ═══════════ -->
+<div class="toc"><h3>📑 目录</h3>
+<ol>
+  <li><a href="#s1">术语速查：5 大高频词深度解析</a></li>
+  <li><a href="#s2">移动端性能红线参考数值（一页总览）</a></li>
+  <li><a href="#s3">场景化红线：3 种典型游戏品类</a></li>
+  <li><a href="#s4">APM 周会检查清单</a></li>
+  <li><a href="#s5">FAQ：项目经理最常问的 10 个问题</a></li>
+  <li><a href="#s6">附录：缩写对照表</a></li>
+</ol></div>
+
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     ║  §1  术语速查                                                ║
+     ╚══════════════════════════════════════════════════════════════╝ -->
+<div class="section" id="s1">
+<h2>1️⃣ 术语速查：5 大高频词深度解析</h2>
+<p>以下 5 个词是美术、程序、TA 开会时的「口头禅」。读完这一节，你就能在评审会上听懂 80% 的性能讨论。</p>
+
+<!-- ── 1.1 Drawcall / Batching ── -->
+<div class="term-card tc-red">
+  <div class="term-name">📞 Drawcall / Batching</div>
+  <div class="term-en">Draw Call（绘制调用） &amp; Batching（合批）</div>
+  <div class="term-tags">
+    <span class="tag tag-cpu">CPU 瓶颈</span>
+    <span class="tag tag-perf">帧率杀手 Top1</span>
+  </div>
+  <div class="term-body">
+    <h4>🔍 一句话解释</h4>
+    <p>每次 CPU 告诉 GPU「画这个东西」，就产生一次 <strong>Drawcall</strong>。想象你是工地包工头（CPU），每画一堵墙都要打一个电话给工人（GPU）。电话越多，包工头越累 → 游戏越卡。<strong>Batching（合批）</strong>就是把多个电话合成一个："把这 50 堵墙一起画了！"</p>
+    
+    <div class="term-grid">
+      <div class="sub-box">
+        <h5>⚡ 对性能的影响</h5>
+        <ul style="padding-left:14px;margin:0">
+          <li>每个 Drawcall 有 <strong>固定 CPU 开销</strong>（约 0.01~0.05ms）</li>
+          <li>移动端同屏 Drawcall 超过 <code>200~300</code> 就可能导致 CPU 瓶颈</li>
+          <li>最常见原因：<strong>材质太多</strong>（不同材质 = 无法合批）、图集未合并</li>
+        </ul>
+      </div>
+      <div class="sub-box">
+        <h5>🔧 常见优化手段</h5>
+        <ul style="padding-left:14px;margin:0">
+          <li><strong>Static Batching</strong>：静态物体预合并（空间换时间）</li>
+          <li><strong>Dynamic Batching</strong>：动态小物件自动合批</li>
+          <li><strong>GPU Instancing</strong>：相同模型批量绘制（草、树）</li>
+          <li><strong>SRP Batcher</strong>：URP/HDRP 自动材质合批</li>
+          <li><strong>图集合并（Atlas）</strong>：2D/UI 的终极合批方案</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="apm-box">
+      <ul style="padding-left:14px;margin:0">
+        <li>💰 <strong>预算管控</strong>：项目启动时应和 TA 确定 Drawcall 上限（通常 <code>≤200</code>），写入美术规范</li>
+        <li>⏰ <strong>里程碑检查</strong>：每个版本要跑 <code>RenderDoc / Xcode GPU Debugger</code> 检查实际值</li>
+        <li>🚨 <strong>风险信号</strong>：如果 TA 说"合批率很低"或"材质球太多了"，意味着<strong>可能要重做资源</strong>，需评估排期影响</li>
+        <li>📊 <strong>你可以这样问</strong>："这个场景现在 Drawcall 多少？合批率有百分之多少？"</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ── 1.2 Overdraw ── -->
+<div class="term-card tc-orange">
+  <div class="term-name">🎨 Overdraw</div>
+  <div class="term-en">Overdraw（过度绘制 / 像素重绘）</div>
+  <div class="term-tags">
+    <span class="tag tag-gpu">GPU 瓶颈</span>
+    <span class="tag tag-perf">发热元凶</span>
+  </div>
+  <div class="term-body">
+    <h4>🔍 一句话解释</h4>
+    <p>屏幕上同一个像素被<strong>重复涂了好几遍颜色</strong>。想象你在墙上刷油漆，先刷白色，再刷蓝色，最后刷红色 —— 前两遍全浪费了。Overdraw 就是 GPU 做的这种"无用功"。</p>
+    
+    <div class="term-grid">
+      <div class="sub-box">
+        <h5>⚡ 对性能的影响</h5>
+        <ul style="padding-left:14px;margin:0">
+          <li>Overdraw <code>2x</code> = GPU 干两倍活 → <strong>掉帧 + 发热</strong></li>
+          <li>移动端 GPU 填充率有限，全屏 Overdraw <code>≤2.5x</code> 是安全线</li>
+          <li><strong>重灾区</strong>：半透明特效叠加、UI 层级过深、2D 大面积粒子</li>
+        </ul>
+      </div>
+      <div class="sub-box">
+        <h5>🔧 常见优化手段</h5>
+        <ul style="padding-left:14px;margin:0">
+          <li>特效控制<strong>粒子数量和面积</strong>，避免全屏铺满</li>
+          <li>UI 避免大量<strong>透明层重叠</strong>（不可见区域及时隐藏）</li>
+          <li>不透明物体<strong>从前往后排序</strong>（Early-Z 剔除）</li>
+          <li>用<strong>特效预算表</strong>限制单技能最大粒子数</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="apm-box">
+      <ul style="padding-left:14px;margin:0">
+        <li>🔥 <strong>关注场景</strong>：当玩家反馈"一放大招就卡"，八成是 Overdraw 爆了</li>
+        <li>📱 <strong>机型敏感</strong>：低端机 GPU 填充率差，Overdraw 影响翻倍</li>
+        <li>🚨 <strong>风险信号</strong>：特效同学说"效果没法再砍了"、"层数至少要 5 层"，你需要<strong>升级到 TA 评估</strong></li>
+        <li>📊 <strong>你可以这样问</strong>："这套特效的 Overdraw 倍率是多少？在低端机实测过吗？"</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ── 1.3 贴图压缩 ASTC/ETC2 ── -->
+<div class="term-card tc-yellow">
+  <div class="term-name">🗜️ 贴图压缩 (ASTC / ETC2)</div>
+  <div class="term-en">Texture Compression — ASTC / ETC2 / PVRTC</div>
+  <div class="term-tags">
+    <span class="tag tag-mem">内存占用</span>
+    <span class="tag tag-size">包体大小</span>
+  </div>
+  <div class="term-body">
+    <h4>🔍 一句话解释</h4>
+    <p>原始贴图像高清照片（几十 MB），游戏里要<strong>压缩成 GPU 能直接读取的格式</strong>。就像视频有 .mp4，图片有 .jpg，游戏贴图也有自己的"压缩格式"。<strong>ASTC</strong> 和 <strong>ETC2</strong> 是移动端最常用的两种。</p>
+    
+    <div class="term-grid">
+      <div class="sub-box">
+        <h5>📊 主流格式对比</h5>
+        <table style="margin:6px 0 0">
+          <tr><th>格式</th><th>平台</th><th>质量</th><th>大小(1024²)</th></tr>
+          <tr><td><code>ASTC 4x4</code></td><td>iOS / 高端安卓</td><td>⭐⭐⭐⭐⭐</td><td>~1 MB</td></tr>
+          <tr><td><code>ASTC 6x6</code></td><td>同上</td><td>⭐⭐⭐⭐</td><td>~0.45 MB</td></tr>
+          <tr><td><code>ETC2</code></td><td>全安卓(OpenGL ES 3.0+)</td><td>⭐⭐⭐</td><td>~0.5 MB</td></tr>
+          <tr><td><code>RGBA 未压缩</code></td><td>—</td><td>原始</td><td>~4 MB</td></tr>
+        </table>
+      </div>
+      <div class="sub-box">
+        <h5>⚡ 对性能的影响</h5>
+        <ul style="padding-left:14px;margin:0">
+          <li>未压缩 vs ASTC → 内存占用差 <strong>4~8 倍</strong></li>
+          <li>内存爆了 → <strong>闪退（OOM）</strong>，这是玩家最不可接受的体验</li>
+          <li>包体过大 → <strong>下载转化率下降</strong>（每增加 100MB，下载流失约 10-15%）</li>
+          <li>错误的压缩格式 → GPU 要<strong>实时解压</strong>，吃 CPU + 加载变慢</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="apm-box">
+      <ul style="padding-left:14px;margin:0">
+        <li>📦 <strong>包体红线</strong>：立项时必须定包体预算（如初装 ≤1.5GB），贴图通常占 <strong>60-70%</strong></li>
+        <li>💥 <strong>最大风险</strong>：美术交付 PSD 但没配好压缩格式 → 上线后闪退，<strong>这是 P0 事故</strong></li>
+        <li>🚨 <strong>风险信号</strong>：TA 说"某些贴图没走压缩"或"内存超了要重做贴图"，意味着<strong>美术返工 + 排期后延</strong></li>
+        <li>📊 <strong>你可以这样问</strong>："目前项目统一用的什么压缩格式？有没有未压缩的贴图残留？"</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ── 1.4 骨骼数与蒙皮权重 ── -->
+<div class="term-card tc-blue">
+  <div class="term-name">🦴 骨骼数与蒙皮权重</div>
+  <div class="term-en">Bone Count &amp; Skin Weight（骨骼绑定 &amp; 顶点权重）</div>
+  <div class="term-tags">
+    <span class="tag tag-cpu">CPU 开销</span>
+    <span class="tag tag-mem">内存占用</span>
+  </div>
+  <div class="term-body">
+    <h4>🔍 一句话解释</h4>
+    <p><strong>骨骼</strong>就是角色身体里的"骨架"，驱动模型动起来。<strong>蒙皮权重</strong>是告诉每个顶点"你听几根骨骼的话、各听多少"。骨骼越多，动画越细腻，但 CPU 每帧要算的矩阵运算就越多。</p>
+    
+    <div class="term-grid">
+      <div class="sub-box">
+        <h5>⚡ 对性能的影响</h5>
+        <ul style="padding-left:14px;margin:0">
+          <li>每根骨骼每帧需要做<strong>矩阵变换</strong>运算 → 骨骼越多 CPU 越累</li>
+          <li>蒙皮权重 4 骨影响（4 bones per vertex）是移动端标准</li>
+          <li>同屏多角色时骨骼开销<strong>线性叠加</strong>（10个角色×80骨骼=800矩阵计算）</li>
+          <li>骨骼还影响<strong>动画文件大小</strong>和加载速度</li>
+        </ul>
+      </div>
+      <div class="sub-box">
+        <h5>🔧 常见优化手段</h5>
+        <ul style="padding-left:14px;margin:0">
+          <li><strong>LOD 骨骼</strong>：远处角色自动减少骨骼（如 80→30→15）</li>
+          <li><strong>GPU Skinning</strong>：把蒙皮计算搬到 GPU（释放 CPU）</li>
+          <li><strong>Animation Instancing</strong>：相同动作的 NPC 共享计算</li>
+          <li><strong>区分主角/NPC/怪物</strong>：只有主角用高精度骨骼</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="apm-box">
+      <ul style="padding-left:14px;margin:0">
+        <li>👥 <strong>关注同屏人数</strong>：策划想同屏 20 个角色，你得和程序确认<strong>骨骼预算是否够</strong></li>
+        <li>💃 <strong>关注动作需求</strong>：策划想要"披风飘动 + 头发物理"，每个都要额外骨骼链，会<strong>显著增加开销</strong></li>
+        <li>🚨 <strong>风险信号</strong>：动作组说"加几根辅助骨没什么大碍" → 必须让 TA 评估总量</li>
+        <li>📊 <strong>你可以这样问</strong>："主角和 NPC 各用多少根骨骼？同屏最大角色数测试过吗？"</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ── 1.5 纹理内存 ── -->
+<div class="term-card tc-green">
+  <div class="term-name">💾 纹理内存 (Texture Memory)</div>
+  <div class="term-en">Texture Memory / VRAM — 贴图显存占用</div>
+  <div class="term-tags">
+    <span class="tag tag-mem">内存杀手</span>
+    <span class="tag tag-perf">闪退元凶</span>
+    <span class="tag tag-size">包体大户</span>
+  </div>
+  <div class="term-body">
+    <h4>🔍 一句话解释</h4>
+    <p>所有贴图（角色皮肤、场景地面、UI 图片、特效火焰…）加载到内存里占的空间就是<strong>纹理内存</strong>。它通常是游戏内存的<strong>最大头</strong>（占 50-70%）。移动端没有独立显存，纹理直接吃<strong>系统内存</strong>。</p>
+    
+    <div class="term-grid">
+      <div class="sub-box">
+        <h5>⚡ 对性能的影响</h5>
+        <ul style="padding-left:14px;margin:0">
+          <li>一张 <code>2048×2048 RGBA</code> 未压缩 = <strong>16MB</strong></li>
+          <li>ASTC 4x4 压缩后 ≈ <strong>4MB</strong>，但加上 Mipmap 还要 ×1.33</li>
+          <li>iOS 2GB 设备内存警戒线约 <strong>900MB</strong>，超了就闪退</li>
+          <li>安卓碎片化严重，<strong>1.5GB 机型大量存活</strong></li>
+        </ul>
+      </div>
+      <div class="sub-box">
+        <h5>🔧 常见优化手段</h5>
+        <ul style="padding-left:14px;margin:0">
+          <li><strong>贴图降分辨率</strong>：2048→1024 = 内存直接砍 <strong>75%</strong></li>
+          <li><strong>Mipmap</strong>：远处用小贴图（+33% 内存换巨大性能提升）</li>
+          <li><strong>Texture Streaming</strong>：按需加载/卸载贴图</li>
+          <li><strong>通道打包</strong>：4 张灰度图合成 1 张 RGBA（省 3 张贴图的开销）</li>
+          <li><strong>UI 图集</strong>：碎图合并为大图集，减少内存碎片</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="apm-box">
+      <ul style="padding-left:14px;margin:0">
+        <li>💥 <strong>第一风险</strong>：<strong>闪退 = 流失</strong>。纹理内存超标是移动端闪退的 <strong>No.1 原因</strong></li>
+        <li>📱 <strong>机型分级</strong>：必须建立高/中/低三档画质，<strong>低端机用低分辨率贴图</strong></li>
+        <li>🚨 <strong>风险信号</strong>：QA 报"特定场景闪退"、"切换角色后闪退" → 大概率是<strong>纹理内存峰值超标</strong></li>
+        <li>📊 <strong>你可以这样问</strong>："当前版本在 iPhone 12 上的内存峰值是多少？贴图占了多少？"</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</div><!-- end s1 -->
+
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     ║  §2  性能红线参考数值                                        ║
+     ╚══════════════════════════════════════════════════════════════╝ -->
+<div class="section" id="s2">
+<h2>2️⃣ 移动端性能红线参考数值（一页总览）</h2>
+
+<div class="alert alert-orange"><strong>⚠️ 重要前提：</strong>以下数值基于<strong>中型移动端游戏（二次元卡牌 / ARPG）</strong>在<strong>中高端机型（骁龙 870 / A14 级别）</strong>上的经验值。低端机需在此基础上<strong>打 6~7 折</strong>。数值仅供参考，具体红线应由 TA 根据项目实际情况制定。</div>
+
+<!-- Quick glance strip -->
+<div class="quick-strip">
+  <div class="qs-item"><div class="qs-val" style="color:var(--red)">≤10万</div><div class="qs-label">同屏总面数（三角面）</div></div>
+  <div class="qs-item"><div class="qs-val" style="color:var(--red)">≤200</div><div class="qs-label">Drawcall</div></div>
+  <div class="qs-item"><div class="qs-val" style="color:var(--red)">≤500MB</div><div class="qs-label">贴图内存峰值</div></div>
+  <div class="qs-item"><div class="qs-val" style="color:var(--red)">≤1.5GB</div><div class="qs-label">游戏总内存峰值</div></div>
+  <div class="qs-item"><div class="qs-val" style="color:var(--red)">≤80</div><div class="qs-label">主角骨骼数</div></div>
+  <div class="qs-item"><div class="qs-val" style="color:var(--red)">30fps</div><div class="qs-label">最低帧率保证</div></div>
+</div>
+
+<h3>📐 2.1 模型面数红线</h3>
+<table class="redline-table">
+<tr><th>项目</th><th>安全值 ✅</th><th>警戒值 ⚠️</th><th>红线 🚫</th><th>说明</th></tr>
+<tr>
+  <td>同屏总面数</td>
+  <td class="redline-safe">≤7 万</td>
+  <td class="redline-warn">7~10 万</td>
+  <td class="redline-val">＞10 万</td>
+  <td>含角色+场景+特效+UI 3D元素</td>
+</tr>
+<tr>
+  <td>单个主角</td>
+  <td class="redline-safe">≤1.5 万面</td>
+  <td class="redline-warn">1.5~2 万</td>
+  <td class="redline-val">＞2 万</td>
+  <td>二次元角色含头发、饰品</td>
+</tr>
+<tr>
+  <td>单个 NPC / 怪物</td>
+  <td class="redline-safe">≤5000 面</td>
+  <td class="redline-warn">5000~8000</td>
+  <td class="redline-val">＞8000</td>
+  <td>同屏可能 10+ 个</td>
+</tr>
+<tr>
+  <td>场景单 Tile</td>
+  <td class="redline-safe">≤3 万面</td>
+  <td class="redline-warn">3~5 万</td>
+  <td class="redline-val">＞5 万</td>
+  <td>9宫格可视区域</td>
+</tr>
+<tr>
+  <td>单个武器 / 坐骑</td>
+  <td class="redline-safe">≤5000 面</td>
+  <td class="redline-warn">5000~8000</td>
+  <td class="redline-val">＞8000</td>
+  <td>含鞘、特效挂点等附件</td>
+</tr>
+</table>
+
+<h3>🦴 2.2 骨骼与动画红线</h3>
+<table class="redline-table">
+<tr><th>项目</th><th>安全值 ✅</th><th>警戒值 ⚠️</th><th>红线 🚫</th><th>说明</th></tr>
+<tr>
+  <td>主角骨骼数</td>
+  <td class="redline-safe">≤55</td>
+  <td class="redline-warn">55~80</td>
+  <td class="redline-val">＞80</td>
+  <td>含面部骨骼、辅助骨</td>
+</tr>
+<tr>
+  <td>NPC / 怪物骨骼</td>
+  <td class="redline-safe">≤30</td>
+  <td class="redline-warn">30~50</td>
+  <td class="redline-val">＞50</td>
+  <td>远处可降至 15</td>
+</tr>
+<tr>
+  <td>蒙皮权重</td>
+  <td class="redline-safe">≤4 骨影响</td>
+  <td class="redline-warn">—</td>
+  <td class="redline-val">＞4 骨影响</td>
+  <td>移动端必须锁死 4 骨</td>
+</tr>
+<tr>
+  <td>同屏动画角色总骨骼</td>
+  <td class="redline-safe">≤500</td>
+  <td class="redline-warn">500~800</td>
+  <td class="redline-val">＞800</td>
+  <td>10个NPC×50骨=500</td>
+</tr>
+<tr>
+  <td>单个动画文件大小</td>
+  <td class="redline-safe">≤500KB</td>
+  <td class="redline-warn">500KB~1MB</td>
+  <td class="redline-val">＞1MB</td>
+  <td>压缩后，30fps 采样</td>
+</tr>
+</table>
+
+<h3>🖼️ 2.3 贴图与内存红线</h3>
+<table class="redline-table">
+<tr><th>项目</th><th>安全值 ✅</th><th>警戒值 ⚠️</th><th>红线 🚫</th><th>说明</th></tr>
+<tr>
+  <td>角色贴图(单角色总量)</td>
+  <td class="redline-safe">1×1024² + 1×512²</td>
+  <td class="redline-warn">2×1024²</td>
+  <td class="redline-val">＞2×1024²</td>
+  <td>含 BaseColor、Normal、Mask</td>
+</tr>
+<tr>
+  <td>场景贴图 (Tile Set)</td>
+  <td class="redline-safe">2048² ×4 张</td>
+  <td class="redline-warn">2048² ×6</td>
+  <td class="redline-val">＞2048² ×8</td>
+  <td>含 Lightmap、共用贴图</td>
+</tr>
+<tr>
+  <td>UI 图集单张</td>
+  <td class="redline-safe">1024×1024</td>
+  <td class="redline-warn">2048×1024</td>
+  <td class="redline-val">＞2048×2048</td>
+  <td>RGBA, ASTC 4x4 压缩</td>
+</tr>
+<tr>
+  <td>特效贴图(单技能)</td>
+  <td class="redline-safe">≤3 张 256²</td>
+  <td class="redline-warn">3~5 张</td>
+  <td class="redline-val">＞5 张 or 单张＞512²</td>
+  <td>尽量灰度图+颜色曲线</td>
+</tr>
+<tr>
+  <td>贴图内存峰值</td>
+  <td class="redline-safe">≤350MB</td>
+  <td class="redline-warn">350~500MB</td>
+  <td class="redline-val">＞500MB</td>
+  <td>XCode Memory Report</td>
+</tr>
+<tr>
+  <td>游戏总内存峰值</td>
+  <td class="redline-safe">≤1GB</td>
+  <td class="redline-warn">1~1.5GB</td>
+  <td class="redline-val">＞1.5GB</td>
+  <td>iOS 2GB 设备的安全线</td>
+</tr>
+<tr>
+  <td>贴图压缩格式</td>
+  <td colspan="3" style="text-align:center;color:var(--heading)">iOS: <code>ASTC 4x4~6x6</code> ｜ Android: <code>ASTC 4x4</code> (GL ES 3.1+) 或 <code>ETC2</code></td>
+  <td>不允许任何未压缩 RGBA32 上线</td>
+</tr>
+</table>
+
+<h3>📞 2.4 渲染与 GPU 红线</h3>
+<table class="redline-table">
+<tr><th>项目</th><th>安全值 ✅</th><th>警戒值 ⚠️</th><th>红线 🚫</th><th>说明</th></tr>
+<tr>
+  <td>Drawcall (同屏)</td>
+  <td class="redline-safe">≤150</td>
+  <td class="redline-warn">150~200</td>
+  <td class="redline-val">＞200</td>
+  <td>含场景+角色+特效+UI</td>
+</tr>
+<tr>
+  <td>Overdraw 倍率</td>
+  <td class="redline-safe">≤2x</td>
+  <td class="redline-warn">2~2.5x</td>
+  <td class="redline-val">＞2.5x</td>
+  <td>全屏均值</td>
+</tr>
+<tr>
+  <td>同屏粒子发射器</td>
+  <td class="redline-safe">≤20 个</td>
+  <td class="redline-warn">20~30 个</td>
+  <td class="redline-val">＞30 个</td>
+  <td>同时活跃的 Emitter</td>
+</tr>
+<tr>
+  <td>同屏粒子总量</td>
+  <td class="redline-safe">≤500</td>
+  <td class="redline-warn">500~800</td>
+  <td class="redline-val">＞800</td>
+  <td>所有特效的粒子总数</td>
+</tr>
+<tr>
+  <td>Shader 变体数</td>
+  <td class="redline-safe">≤200</td>
+  <td class="redline-warn">200~500</td>
+  <td class="redline-val">＞500</td>
+  <td>影响包体和加载速度</td>
+</tr>
+<tr>
+  <td>实时光源 (点光/聚光)</td>
+  <td class="redline-safe">≤3 个</td>
+  <td class="redline-warn">3~5 个</td>
+  <td class="redline-val">＞5 个</td>
+  <td>移动端每个光源成本极高</td>
+</tr>
+<tr>
+  <td>帧率目标</td>
+  <td class="redline-safe">稳定 30fps</td>
+  <td class="redline-warn">偶尔 25fps</td>
+  <td class="redline-val">低于 20fps</td>
+  <td>高画质模式可目标 60fps</td>
+</tr>
+</table>
+
+<h3>📦 2.5 包体与加载红线</h3>
+<table class="redline-table">
+<tr><th>项目</th><th>安全值 ✅</th><th>警戒值 ⚠️</th><th>红线 🚫</th><th>说明</th></tr>
+<tr>
+  <td>初装包体 (APK/IPA)</td>
+  <td class="redline-safe">≤1.5GB</td>
+  <td class="redline-warn">1.5~2GB</td>
+  <td class="redline-val">＞2GB</td>
+  <td>超 150MB Android 需 WiFi 下载</td>
+</tr>
+<tr>
+  <td>场景加载时间</td>
+  <td class="redline-safe">≤5 秒</td>
+  <td class="redline-warn">5~8 秒</td>
+  <td class="redline-val">＞8 秒</td>
+  <td>中端设备冷启动</td>
+</tr>
+<tr>
+  <td>AssetBundle 单包</td>
+  <td class="redline-safe">≤5MB</td>
+  <td class="redline-warn">5~10MB</td>
+  <td class="redline-val">＞10MB</td>
+  <td>影响热更下载体验</td>
+</tr>
+</table>
+
+</div><!-- end s2 -->
+
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     ║  §3  场景化红线                                              ║
+     ╚══════════════════════════════════════════════════════════════╝ -->
+<div class="section" id="s3">
+<h2>3️⃣ 场景化红线：3 种典型游戏品类</h2>
+<p>不同品类的性能瓶颈截然不同。以下给出 3 种中型移动游戏的典型预算分配。</p>
+
+<div class="scenario">
+  <div class="sc-header">🎴 二次元卡牌 / 回合制 RPG</div>
+  <div class="sc-body">
+    <div class="alert alert-blue"><strong>核心瓶颈：</strong>角色渲染品质 &gt; 性能 — 玩家看角色立绘和 Live2D，对帧率容忍度高</div>
+    <table>
+      <tr><th>重点项</th><th>参考值</th><th>说明</th></tr>
+      <tr><td>主角面数</td><td><strong>1.5~2 万</strong></td><td>立绘级品质，允许稍高</td></tr>
+      <tr><td>同屏角色</td><td><strong>6~8 个</strong></td><td>3v3 或 4v4 对战</td></tr>
+      <tr><td>帧率目标</td><td><strong>30fps</strong></td><td>回合制对帧率不敏感</td></tr>
+      <tr><td>核心风险</td><td colspan="2" style="color:var(--yellow)">卡牌立绘贴图数量爆炸（100+角色 × 多套皮肤），包体和内存是主要战场</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="scenario">
+  <div class="sc-header">⚔️ ARPG / 动作游戏</div>
+  <div class="sc-body">
+    <div class="alert alert-red"><strong>核心瓶颈：</strong>帧率稳定性 — 打击感需要稳定 30fps（理想 60fps），掉帧 = 手感崩塌</div>
+    <table>
+      <tr><th>重点项</th><th>参考值</th><th>说明</th></tr>
+      <tr><td>主角面数</td><td><strong>1~1.5 万</strong></td><td>需要留空间给特效</td></tr>
+      <tr><td>同屏怪物</td><td><strong>10~20 个</strong></td><td>割草类可达 30+，需严控单体面数</td></tr>
+      <tr><td>帧率目标</td><td><strong>稳 30fps / 高端 60fps</strong></td><td>帧率波动 ≤5fps</td></tr>
+      <tr><td>特效预算</td><td><strong>同屏粒子 ≤500</strong></td><td>大招 Overdraw 控制在 3x 以内</td></tr>
+      <tr><td>核心风险</td><td colspan="2" style="color:var(--red)">特效 Overdraw 叠加 + 同屏大量怪物骨骼 → CPU/GPU 双瓶颈</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="scenario">
+  <div class="sc-header">🏠 开放世界 / 沙盒</div>
+  <div class="sc-body">
+    <div class="alert alert-yellow"><strong>核心瓶颈：</strong>场景复杂度 + 内存管理 — 大世界 = 海量资源动态加载/卸载</div>
+    <table>
+      <tr><th>重点项</th><th>参考值</th><th>说明</th></tr>
+      <tr><td>可视范围面数</td><td><strong>15~20 万（含 LOD）</strong></td><td>远处 LOD 大幅减面</td></tr>
+      <tr><td>LOD 层级</td><td><strong>至少 3 级</strong></td><td>LOD0/1/2 + HLOD</td></tr>
+      <tr><td>Texture Streaming</td><td><strong>必须启用</strong></td><td>否则内存秒爆</td></tr>
+      <tr><td>加载策略</td><td><strong>无缝流式加载</strong></td><td>9宫格 or World Partition</td></tr>
+      <tr><td>核心风险</td><td colspan="2" style="color:var(--orange)">场景美术不按 LOD 规范制作 → 远处全是 LOD0 → 性能雪崩</td></tr>
+    </table>
+  </div>
+</div>
+
+</div><!-- end s3 -->
+
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     ║  §4  APM 周会检查清单                                        ║
+     ╚══════════════════════════════════════════════════════════════╝ -->
+<div class="section" id="s4">
+<h2>4️⃣ APM 周会检查清单</h2>
+<p>每周项目例会时，你可以围绕以下清单向 TA / 程序 / 美术主管提问：</p>
+
+<ul class="checklist">
+  <li><div class="ck-icon">📊</div><div><strong>帧率报告</strong> — "本周在目标设备（如 iPhone 12 / 小米 11）上的<strong>帧率数据</strong>出了吗？最低帧出现在哪个场景？"</div></li>
+  <li><div class="ck-icon">💾</div><div><strong>内存峰值</strong> — "最新版本在<strong>低端机</strong>上的内存峰值是多少？有没有超过安全线？哪个模块占比最高？"</div></li>
+  <li><div class="ck-icon">📞</div><div><strong>Drawcall 预算</strong> — "当前最复杂的战斗场景 Drawcall 是多少？合批率在什么水平？"</div></li>
+  <li><div class="ck-icon">📦</div><div><strong>包体增量</strong> — "这个版本<strong>包体增加了多少 MB</strong>？主要是什么资源导致的？"</div></li>
+  <li><div class="ck-icon">🖼️</div><div><strong>贴图审查</strong> — "有没有发现<strong>未压缩的贴图</strong>或<strong>超规格的贴图</strong>？CI 的自动检查通过了吗？"</div></li>
+  <li><div class="ck-icon">🦴</div><div><strong>骨骼用量</strong> — "新上线的角色骨骼数符合规范吗？有没有超标的？"</div></li>
+  <li><div class="ck-icon">🔥</div><div><strong>发热与功耗</strong> — "在目标设备上<strong>连续游玩 30 分钟</strong>，温度和降频情况怎么样？"</div></li>
+  <li><div class="ck-icon">💥</div><div><strong>Crash 报告</strong> — "本周<strong>闪退 Top 5</strong> 里有没有 OOM（内存不足）相关的？"</div></li>
+</ul>
+
+<div class="alert alert-green"><strong>💡 Pro Tip：</strong>在项目 CI/CD 流程中接入<strong>自动化性能检测</strong>（如 UPR / PerfDog / Xcode Instruments），让每次出包都自动生成性能报告，避免人工遗漏。</div>
+
+</div><!-- end s4 -->
+
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     ║  §5  FAQ                                                      ║
+     ╚══════════════════════════════════════════════════════════════╝ -->
+<div class="section" id="s5">
+<h2>5️⃣ FAQ：项目经理最常问的 10 个问题</h2>
+
+<div class="faq-item">
+  <div class="faq-q">❓ Q1：策划说要同屏 50 个怪，我怎么判断可不可行？</div>
+  <div class="faq-a">快速估算公式：<code>50 怪 × 3000面/怪 = 15万面</code>，已经<strong>超红线</strong>。再加上<code>50 × 30骨 = 1500 骨骼矩阵</code>，CPU 也扛不住。对策：1) 远处怪物用 Billboard 替代；2) 近处只渲染 10~15 个精细模型；3) 其余用 2D 特效 fake。</div>
+</div>
+
+<div class="faq-item">
+  <div class="faq-q">❓ Q2：美术说"这个效果必须用 2048 贴图"，我怎么挡？</div>
+  <div class="faq-a">问两个问题：1) "这张贴图在<strong>手机屏幕上实际显示多大</strong>？" —— 如果角色只占屏幕 1/4，2048 和 1024 的区别<strong>肉眼几乎看不出</strong>；2) "目前项目总的贴图内存预算还剩多少？" 拿数字说话比感觉管用。</div>
+</div>
+
+<div class="faq-item">
+  <div class="faq-q">❓ Q3：什么是"合批率"？达标线是多少？</div>
+  <div class="faq-a">合批率 = <code>(1 - 实际Drawcall / 未优化Drawcall) × 100%</code>。通常合批率<strong>≥60%</strong> 是健康的。低于 40% 说明材质混乱严重，需要 TA 介入整理。</div>
+</div>
+
+<div class="faq-item">
+  <div class="faq-q">❓ Q4："Shader 变体爆炸"是什么意思？会影响什么？</div>
+  <div class="faq-a">一个 Shader 配上不同的开关组合（有无法线、有无自发光、有无透明…），每种组合编译出一个"变体"。变体数<strong>指数增长</strong>（10个开关 = 1024 种）。影响：<strong>包体暴涨 + 首次加载卡顿</strong>。让 TA 定期用 Shader Variants Collection 工具清理。</div>
+</div>
+
+<div class="faq-item">
+  <div class="faq-q">❓ Q5：特效说"就加了一层 Bloom"，为什么帧率掉了 5 帧？</div>
+  <div class="faq-a">Bloom 是<strong>全屏后处理</strong>特效，需要多次 Downsample + Upsample + 混合，每次都是全屏 Overdraw。在低端机上<strong>一个 Bloom 就可以吃掉 3~5ms</strong>。建议：Bloom 降低迭代次数、降低后处理分辨率（如半分辨率 Bloom）。</div>
+</div>
+
+<div class="faq-item">
+  <div class="faq-q">❓ Q6：什么时候该上 LOD？LOD 的工作量大吗？</div>
+  <div class="faq-a"><strong>所有 3D 场景物件和非主角角色</strong>都应该有 LOD。工作量：如果项目用 UE5 Nanite 可<strong>自动生成</strong>；Unity 可用 Simplygon/InstaLOD 插件<strong>半自动</strong>生成。手工 LOD 通常额外增加<strong>20-30% 工期</strong>，但对性能的回报是 50% 以上。</div>
+</div>
+
+<div class="faq-item">
+  <div class="faq-q">❓ Q7：QA 说"低端机偶尔闪退"，怎么快速定位是不是美术资源的锅？</div>
+  <div class="faq-a">让程序查 Crash Log 里是否有 <code>OOM / Memory Warning / jetsam</code> 关键字。如果有 → <strong>99% 是纹理内存超标</strong>。接下来让 TA 用 Memory Profiler 抓<strong>内存快照</strong>，看哪些贴图在内存里但<strong>当前场景根本不需要</strong>（资源未卸载）。</div>
+</div>
+
+<div class="faq-item">
+  <div class="faq-q">❓ Q8：安卓和 iOS 的性能差异大吗？需要分别测试吗？</div>
+  <div class="faq-a"><strong>必须分别测</strong>。iOS Metal 渲染效率高但内存限制严（2GB 设备 OOM 阈值约 900MB）；安卓碎片化严重，GPU 品牌多（Adreno/Mali/PowerVR），Shader 兼容性可能不同。建议至少覆盖<strong>3 台 iOS + 5 台安卓</strong>做基准测试。</div>
+</div>
+
+<div class="faq-item">
+  <div class="faq-q">❓ Q9：如何设定合理的性能优化里程碑？</div>
+  <div class="faq-a">推荐 <strong>"三次性能审查"</strong> 节奏：<br>• <strong>Alpha</strong>：确认基准帧率、内存上限，建立自动化监控<br>• <strong>Beta</strong>：全场景全流程真机测试，输出性能热点报告<br>• <strong>RC</strong>：冻结资源规格，只允许优化不允许新增高消耗资源</div>
+</div>
+
+<div class="faq-item">
+  <div class="faq-q">❓ Q10：我不懂技术，但我想监控性能状况，有什么工具推荐？</div>
+  <div class="faq-a">
+    <table style="margin:6px 0">
+      <tr><th>工具</th><th>平台</th><th>适合谁</th><th>用途</th></tr>
+      <tr><td><code>PerfDog</code></td><td>iOS/Android</td><td>⭐ APM 首推</td><td>无需代码，USB 连手机即可看帧率/内存/CPU/GPU</td></tr>
+      <tr><td><code>UPR (Unity)</code></td><td>Unity</td><td>程序/TA</td><td>Unity 官方性能分析云平台</td></tr>
+      <tr><td><code>Unreal Insights</code></td><td>UE5</td><td>程序/TA</td><td>UE5 内置全链路性能分析</td></tr>
+      <tr><td><code>Xcode Instruments</code></td><td>iOS</td><td>程序/TA</td><td>Apple 官方，内存/GPU 分析精准</td></tr>
+      <tr><td><code>RenderDoc</code></td><td>全平台</td><td>TA</td><td>逐帧 GPU 分析，查 Drawcall/Overdraw</td></tr>
+    </table>
+    <strong>建议</strong>：要求 TA 每周用 PerfDog 出一份<strong>一页纸报告</strong>（帧率/内存/温度曲线），发到项目群。
+  </div>
+</div>
+
+</div><!-- end s5 -->
+
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     ║  §6  附录：缩写对照表                                        ║
+     ╚══════════════════════════════════════════════════════════════╝ -->
+<div class="section" id="s6">
+<h2>6️⃣ 附录：缩写对照表</h2>
+<table>
+<tr><th>缩写</th><th>全称</th><th>中文</th><th>一句话说明</th></tr>
+<tr><td><code>DC</code></td><td>Draw Call</td><td>绘制调用</td><td>CPU→GPU 的一次绘制指令</td></tr>
+<tr><td><code>OD</code></td><td>Overdraw</td><td>过度绘制</td><td>同一像素被画了多次</td></tr>
+<tr><td><code>ASTC</code></td><td>Adaptive Scalable Texture Compression</td><td>自适应可缩放纹理压缩</td><td>移动端主流压缩格式</td></tr>
+<tr><td><code>ETC2</code></td><td>Ericsson Texture Compression 2</td><td>爱立信纹理压缩</td><td>安卓通用压缩格式</td></tr>
+<tr><td><code>LOD</code></td><td>Level of Detail</td><td>细节层级</td><td>远处用低模，近处用高模</td></tr>
+<tr><td><code>HLOD</code></td><td>Hierarchical LOD</td><td>分层细节</td><td>大世界远景的合并 LOD</td></tr>
+<tr><td><code>OOM</code></td><td>Out of Memory</td><td>内存溢出</td><td>内存不够 → 系统杀进程（闪退）</td></tr>
+<tr><td><code>VRAM</code></td><td>Video RAM</td><td>显存</td><td>GPU 专用内存（移动端共享系统内存）</td></tr>
+<tr><td><code>FPS</code></td><td>Frames Per Second</td><td>帧率</td><td>每秒画面刷新次数</td></tr>
+<tr><td><code>GPU</code></td><td>Graphics Processing Unit</td><td>图形处理器</td><td>负责画面渲染</td></tr>
+<tr><td><code>CPU</code></td><td>Central Processing Unit</td><td>中央处理器</td><td>负责逻辑运算和 Drawcall 提交</td></tr>
+<tr><td><code>TA</code></td><td>Technical Artist</td><td>技术美术</td><td>美术与程序之间的桥梁角色</td></tr>
+<tr><td><code>SRP</code></td><td>Scriptable Render Pipeline</td><td>可编程渲染管线</td><td>Unity 的渲染架构（URP/HDRP）</td></tr>
+<tr><td><code>URP</code></td><td>Universal Render Pipeline</td><td>通用渲染管线</td><td>Unity 移动端首选管线</td></tr>
+<tr><td><code>Mipmap</code></td><td>Multum in Parvo Map</td><td>多级渐远纹理</td><td>贴图预生成多个缩小版本</td></tr>
+<tr><td><code>AB</code></td><td>AssetBundle</td><td>资源包</td><td>Unity 资源打包/热更单位</td></tr>
+<tr><td><code>CI/CD</code></td><td>Continuous Integration / Continuous Delivery</td><td>持续集成/持续交付</td><td>自动化构建+部署流水线</td></tr>
+</table>
+</div><!-- end s6 -->
+
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<div class="doc-footer">
+  📋 Game Art Performance Redline & Glossary v1.0 · 面向 APM / 制作人 · 2026-04-02<br>
+  本文档由 TA 团队维护 · 如有数值疑问请联系项目 TA Lead
+</div>
+
+</div><!-- end .doc -->
+</body>
+</html>
