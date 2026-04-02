@@ -228,13 +228,16 @@ var CRAFT_COLORS = {
   '通用': { bg: 'rgba(139,143,163,.1)', color: 'var(--dim)' }
 };
 
+// ═══ SVG 图标常量（极简单色风格）═══
+var SVG_CHEVRON = '<svg class="chv-svg" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var SVG_DOC = '<svg class="leaf-icon" viewBox="0 0 16 16" fill="none"><path d="M4 1.5h5.5L13 5v9.5a1 1 0 01-1 1H4a1 1 0 01-1-1v-13a1 1 0 011-1z" stroke="currentColor" stroke-width="1.2"/><path d="M9.5 1.5V5H13" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+
 // ═══ Sidebar.json 驱动构建侧边栏 ═══
-// 【重构】三大模块为一级，模块内的 group 为二级，item 为叶节点
-// 武器库模块特别高亮显示
+// 【重构】极简 Notion/Linear 风格 — 无 Emoji，SVG chevron + 文档图标
 function buildSidebar(data){
   sidebarData=data;
   var nav=document.getElementById('sidebarNav');
-  var html='<button class="nav-home active" onclick="navigate(\'home\')" id="navHome">🏠 知识库首页</button>';
+  var html='<button class="nav-home active" onclick="navigate(\'home\')" id="navHome"><svg class="nav-home-icon" viewBox="0 0 16 16" fill="none"><path d="M2 8.5l6-6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 7v6.5a1 1 0 001 1h7a1 1 0 001-1V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>知识库首页</span></button>';
 
   // 统计计数器
   var normCount=0, toolCount=0, arsenalCount=0;
@@ -248,28 +251,26 @@ function buildSidebar(data){
     if(cat.id === 'mod-tool')    toolCount = itemCount;
     if(cat.id === 'mod-arsenal') arsenalCount = itemCount;
 
-    var ms = MODULE_STYLES[cat.id] || MODULE_STYLES['mod-norm'];
     var isArsenal = cat.id === 'mod-arsenal';
 
-    // 武器库模块加红色强调边框
+    // 获取纯文本名称（去掉 Emoji 前缀）
+    var catName = cat.name.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]+\s*/u, '');
+
     var extraCls = isArsenal ? ' t1-arsenal' : '';
     html += '<div class="t1' + extraCls + '" id="' + cat.id + '">';
-    // ★ 使用 handleToggle(event, this) 替代旧的 toggleTree —— 自带 stopPropagation ★
     html += '<div class="t1-h" onclick="handleToggle(event,this)">'
-      + '<span class="chv">▶</span>'
-      + '<span class="ci" style="background:' + ms.bg + ';color:' + ms.highlight + '">' + cat.icon + '</span>'
-      + '<span class="cl">' + cat.name + '</span>'
+      + SVG_CHEVRON
+      + '<span class="cl">' + catName + '</span>'
       + '<span class="cc">' + itemCount + '</span>'
       + '</div>';
     html += '<div class="t1-c">';
 
     if(!cat.groups.length){
-      html += '<button class="leaf" style="color:var(--dim);cursor:default;font-style:italic;font-size:12px" disabled>📝 待补充...</button>';
+      html += '<div class="leaf leaf--empty">待补充...</div>';
     } else {
       cat.groups.forEach(function(grp){
-        // ★ L2 也用 handleToggle ★
         html += '<div class="t2"><div class="t2-h" onclick="handleToggle(event,this)">'
-          + '<span class="chv">▶</span><span class="si">' + grp.icon + '</span>'
+          + SVG_CHEVRON
           + '<span class="sl">' + grp.name + '</span></div><div class="t2-c">';
 
         if(grp.items) grp.items.forEach(function(item){
@@ -283,15 +284,8 @@ function buildSidebar(data){
             catId: cat.id
           };
 
-          // badge 样式：排雷用红色，流程管理用红色，工具用绿色，其他用蓝色
-          var badgeCls = 'bd';
-          if(item.badge === '排雷' || item.badge === '流程管理') badgeCls = 'br';
-          else if(item.badge === '工具' || item.download) badgeCls = 'bt';
-
-          // ★ 叶节点 onclick 也加 stopPropagation，title 属性展示全名 ★
-          // 【优化】侧边栏不再渲染 craft-tag 和 badge，保持清爽，仅显示图标+标题
           html += '<button class="leaf" data-page="' + item.id + '" title="' + item.title + '" onclick="event.stopPropagation();navigate(\'' + item.id + '\',this)">'
-            + '<span class="li">' + item.icon + '</span>'
+            + SVG_DOC
             + '<span class="leaf-text">' + item.title + '</span>'
             + '</button>';
           html += '<div class="toc-box" id="toc-' + item.id + '"></div>';
