@@ -1,3 +1,8 @@
+// ═══════════════════════════════════════════════════
+// 游戏项目知识库 v3.0 — 矩阵式重构版
+// 核心架构：30% 规范 · 30% 工具 · 40% 武器库
+// ═══════════════════════════════════════════════════
+
 // ═══ Markdown Parser (智能表格增强) ═══
 function parseMd(md){var h=md;
   h=h.replace(/```(\w*)\n([\s\S]*?)```/g,function(_,l,c){return'<pre><code>'+esc(c.trim())+'</code></pre>';});
@@ -8,7 +13,6 @@ function parseMd(md){var h=md;
       var cells=r.split('|').filter(function(c){return c.trim();});
       var tds=cells.map(function(c,ci){
         var v=c.trim();
-        // 智能优先级标签：最后一列含 高/中/低
         if(ci===cells.length-1){
           v=v.replace(/🔴\s*高/g,'<span class="pri pri-h">🔴 高</span>');
           v=v.replace(/🟡\s*中/g,'<span class="pri pri-m">🟡 中</span>');
@@ -40,19 +44,18 @@ function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g
 function sl(t){return t.replace(/[^\w\u4e00-\u9fff]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');}
 
 // ═══ Data & State ═══
-var sidebarData=null;  // sidebar.json 数据
-var docs={};           // 已加载的 MD 内容缓存
+var sidebarData=null;   // sidebar.json 数据
+var indexData=null;      // index.json 数据（含 module 字段）
+var docs={};             // 已加载的 MD 内容缓存
 var curPage='home';
 var fuse=null;
-var pageRegistry={};   // pageId → {type, file, download, ...}
+var pageRegistry={};     // pageId → {type, file, download, badge, craft, catId, module ...}
 
-// 工具页数据（保留不变）
+// 工具页数据（嵌入式工具的详细信息卡片）
 var toolData={
   'auto-mask':{icon:'🤖',iconBg:'var(--green-bg)',name:'自动 Mask 通道生成器',ver:'v4.0',status:'online',subtitle:'RGBA 四通道 · HSV 色相识别 · 手动修正笔 · Float32 精度',desc:'在原图上吸色→HSV色相匹配→RGBA四通道分配→手动画笔微调→32位PNG导出。支持A通道三种模式（吸色/原Alpha/描边）、反选、色彩锁定。',tags:['在线工具','RGBA四通道','HSV色相','手动修正笔','Float32精度'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-02',url:'knowledge-base/auto-mask.html'},
   'mask-tool':{icon:'🖌️',iconBg:'var(--orange-bg)',name:'Mask 手动编辑器',ver:'v1.0',status:'online',subtitle:'画笔 / 油漆桶 / 橡皮擦 · 实时四通道预览',desc:'专为 Mask 精修设计的轻量编辑器。导入原图后直接在浏览器中用画笔逐通道绘制或修改，R/G/B/A 四通道独立显示并可实时预览换色效果。',tags:['在线工具','画笔绘制','RGBA预览','所见即所得'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-03-31',url:'knowledge-base/mask-tool.html'},
   'spine-split':{icon:'✂️',iconBg:'var(--purple-bg)',name:'Spine 角色拆分工具',ver:'v3.0',status:'online',subtitle:'自定义模板 · 三点锚点对齐 · 多选镜像 · Alpha收缩',desc:'上传角色原画，选择/自制模板后通过三点锚点对齐自适应不同头身比。支持多选镜像操作、Alpha边缘收缩、拓扑延展，导出 ZIP 包含 Spine JSON。',tags:['在线工具','自定义模板','三点对齐','镜像操作','Alpha收缩'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-02',url:'knowledge-base/spine-split.html'},
-
-
   'mask-core-algorithms':{icon:'🧪',iconBg:'var(--accent-bg)',name:'Mask 核心算法演示',ver:'v2.0',status:'online',subtitle:'智能魔棒 Flood Fill · 边缘保护画笔 Sobel · Web Worker 并行',desc:'工业级 Mask 绘制的两大核心算法实现：基于扫描线的非递归 Flood Fill 魔棒（HSV/RGB 容差+高斯羽化），以及 Sobel 边缘检测驱动的自动"不出界"画笔。全部在 Worker 中并行计算。',tags:['在线工具','魔棒','Flood Fill','Sobel','边缘检测','Web Worker','Float32'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-02',url:'knowledge-base/mask-core-algorithms.html'}
 };
 
@@ -61,23 +64,16 @@ function showLoading(){var b=document.getElementById('loadingBar');b.style.width
 function hideLoading(){var b=document.getElementById('loadingBar');b.style.width='100%';setTimeout(function(){b.classList.remove('on');b.style.width='0';},300);}
 
 // ═══ 通用折叠/展开工具函数（精确 height 动画）═══
-// 【核心修复】用 JS 精确计算 scrollHeight 控制 height，
-// 替代旧版 CSS max-height 方案。旧方案会导致收起时
-// 从 max-height:2000px 开始计时，前 90% 动画看不到变化，
-// 用户误以为没反应再次点击 → 又展开。
 function toggleTree(el){
   var container=el.querySelector('.t1-c')||el.querySelector('.t2-c')||el.querySelector('.t3-c');
   if(!container) return;
   var isOpen=el.classList.contains('open');
   if(isOpen){
-    // 收起：先设为当前实际高度，再在下一帧设为 0
     container.style.height=container.scrollHeight+'px';
-    // 强制回流
-    container.offsetHeight;
+    container.offsetHeight; // 强制回流
     container.style.height='0';
     el.classList.remove('open');
   } else {
-    // 展开：设为 scrollHeight，动画结束后改为 auto
     el.classList.add('open');
     container.style.height=container.scrollHeight+'px';
     var onEnd=function(){
@@ -97,62 +93,113 @@ function expandTree(el){
   container.style.height='auto';
 }
 
+// ═══ 模块颜色与样式映射 ═══
+var MODULE_STYLES = {
+  'mod-norm':    { color: 'accent', highlight: 'var(--accent)',  bg: 'var(--accent-bg)' },
+  'mod-tool':    { color: 'green',  highlight: 'var(--green)',   bg: 'var(--green-bg)' },
+  'mod-arsenal': { color: 'red',    highlight: 'var(--red)',     bg: 'rgba(248,113,113,.08)' }
+};
+
+// 工种 badge 样式映射
+var CRAFT_COLORS = {
+  '角色': { bg: 'var(--accent-bg)', color: 'var(--accent)' },
+  'UI':   { bg: 'var(--purple-bg)', color: 'var(--purple)' },
+  '场景': { bg: 'var(--green-bg)',  color: 'var(--green)' },
+  '特效': { bg: 'var(--orange-bg)', color: 'var(--orange)' },
+  '技术': { bg: 'var(--pink-bg)',   color: 'var(--pink)' },
+  '管理': { bg: 'var(--cyan-bg)',   color: 'var(--cyan)' },
+  '通用': { bg: 'rgba(139,143,163,.1)', color: 'var(--dim)' }
+};
+
 // ═══ Sidebar.json 驱动构建侧边栏 ═══
+// 【重构】三大模块为一级，模块内的 group 为二级，item 为叶节点
+// 武器库模块特别高亮显示
 function buildSidebar(data){
   sidebarData=data;
   var nav=document.getElementById('sidebarNav');
-  // 保留首页按钮
   var html='<button class="nav-home active" onclick="navigate(\'home\')" id="navHome">🏠 知识库首页</button>';
-  var totalItems=0;
+
+  // 统计计数器
+  var normCount=0, toolCount=0, arsenalCount=0;
 
   data.categories.forEach(function(cat){
     var itemCount=0;
-    cat.groups.forEach(function(g){itemCount+=g.items?g.items.length:0;});
-    totalItems+=itemCount;
+    cat.groups.forEach(function(g){ itemCount += g.items ? g.items.length : 0; });
 
-    var colorVar=cat.color||'accent';
-    // 【修复】默认不带 open，初始高度为 0（由 CSS height:0 控制）
-    html+='<div class="t1" id="'+cat.id+'">';
-    // 【修复】onclick 改为调用 toggleTree，不再直接 classList.toggle
-    html+='<div class="t1-h" onclick="toggleTree(this.parentElement)"><span class="chv">▶</span><span class="ci" style="background:var(--'+colorVar+'-bg);color:var(--'+colorVar+')">'+cat.icon+'</span><span class="cl">'+cat.name+'</span><span class="cc">'+itemCount+'</span></div>';
-    html+='<div class="t1-c">';
+    // 按模块 ID 计数
+    if(cat.id === 'mod-norm')    normCount = itemCount;
+    if(cat.id === 'mod-tool')    toolCount = itemCount;
+    if(cat.id === 'mod-arsenal') arsenalCount = itemCount;
+
+    var ms = MODULE_STYLES[cat.id] || MODULE_STYLES['mod-norm'];
+    var isArsenal = cat.id === 'mod-arsenal';
+
+    // 武器库模块加红色强调边框
+    var extraCls = isArsenal ? ' t1-arsenal' : '';
+    html += '<div class="t1' + extraCls + '" id="' + cat.id + '">';
+    html += '<div class="t1-h" onclick="toggleTree(this.parentElement)">'
+      + '<span class="chv">▶</span>'
+      + '<span class="ci" style="background:' + ms.bg + ';color:' + ms.highlight + '">' + cat.icon + '</span>'
+      + '<span class="cl">' + cat.name + '</span>'
+      + '<span class="cc">' + itemCount + '</span>'
+      + '</div>';
+    html += '<div class="t1-c">';
 
     if(!cat.groups.length){
-      html+='<button class="leaf" style="color:var(--dim);cursor:default;font-style:italic;font-size:12px" disabled>📝 待补充...</button>';
+      html += '<button class="leaf" style="color:var(--dim);cursor:default;font-style:italic;font-size:12px" disabled>📝 待补充...</button>';
     } else {
       cat.groups.forEach(function(grp){
-        // 【修复】t2 同样使用 toggleTree
-        html+='<div class="t2"><div class="t2-h" onclick="toggleTree(this.parentElement)"><span class="chv">▶</span><span class="si">'+grp.icon+'</span><span class="sl">'+grp.name+'</span></div><div class="t2-c">';
+        html += '<div class="t2"><div class="t2-h" onclick="toggleTree(this.parentElement)">'
+          + '<span class="chv">▶</span><span class="si">' + grp.icon + '</span>'
+          + '<span class="sl">' + grp.name + '</span></div><div class="t2-c">';
+
         if(grp.items) grp.items.forEach(function(item){
-          // 注册页面
-          pageRegistry[item.id]={type:item.type,file:item.file||'',download:item.download||'',badge:item.badge||'',catId:cat.id};
-          var badgeCls=item.badge==='工具'?'bt':item.badge==='排雷'?'br':'bd';
-          html+='<button class="leaf" data-page="'+item.id+'" onclick="navigate(\''+item.id+'\',this)"><span class="li">'+item.icon+'</span>'+item.title+'<span class="badge '+badgeCls+'">'+item.badge+'</span></button>';
-          html+='<div class="toc-box" id="toc-'+item.id+'"></div>';
+          // 注册页面到全局 pageRegistry
+          pageRegistry[item.id] = {
+            type: item.type,
+            file: item.file || '',
+            download: item.download || '',
+            badge: item.badge || '',
+            craft: item.craft || '',
+            catId: cat.id
+          };
+
+          // badge 样式：排雷用红色，工具用绿色，其他用蓝色
+          var badgeCls = 'bd';
+          if(item.badge === '排雷') badgeCls = 'br';
+          else if(item.badge === '工具' || item.download) badgeCls = 'bt';
+
+          // 工种小标签
+          var craftTag = '';
+          if(item.craft) {
+            var cc = CRAFT_COLORS[item.craft] || CRAFT_COLORS['通用'];
+            craftTag = '<span class="craft-tag" style="background:' + cc.bg + ';color:' + cc.color + '">' + item.craft + '</span>';
+          }
+
+          html += '<button class="leaf" data-page="' + item.id + '" onclick="navigate(\'' + item.id + '\',this)">'
+            + '<span class="li">' + item.icon + '</span>'
+            + item.title
+            + craftTag
+            + '<span class="badge ' + badgeCls + '">' + item.badge + '</span>'
+            + '</button>';
+          html += '<div class="toc-box" id="toc-' + item.id + '"></div>';
         });
-        html+='</div></div>';
+        html += '</div></div>';
       });
     }
-    html+='</div></div>';
+    html += '</div></div>';
   });
 
-  nav.innerHTML=html;
+  nav.innerHTML = html;
 
-  // 【恢复数据统计】动态计算文档数、工具数、分类数并显示
-  var docCount=0,toolCount=0;
-  for(var k in pageRegistry){
-    if(pageRegistry[k].badge==='文档'||pageRegistry[k].type==='md') docCount++;
-    if(pageRegistry[k].type==='tool'||pageRegistry[k].download) toolCount++;
-  }
-  var toolDataCount=Object.keys(toolData).length;
-  var numEls=document.querySelectorAll('.stat .num');
-  // 统计栏显示：规范常识 / 提效工具 / 排雷武器库 — 带实际计数
-  if(numEls[0]) numEls[0].textContent=docCount+' 篇';
-  if(numEls[1]) numEls[1].textContent=(toolDataCount+Object.keys(pageRegistry).filter(function(k){return pageRegistry[k].download;}).length)+' 个';
-  if(numEls[2]) numEls[2].textContent=data.categories.length+' 类';
+  // 更新首页统计数字
+  var numEls = document.querySelectorAll('.stat .num');
+  if(numEls[0]) numEls[0].textContent = normCount + ' 篇';
+  if(numEls[1]) numEls[1].textContent = toolCount + ' 个';
+  if(numEls[2]) numEls[2].textContent = arsenalCount + ' 项';
 
-  // 默认展开第一个有内容的分类
-  var firstCat=nav.querySelector('.t1');
+  // 默认展开第一个分类（规范与常识）
+  var firstCat = nav.querySelector('.t1');
   if(firstCat) expandTree(firstCat);
 }
 
@@ -187,14 +234,12 @@ function navigate(pageId,btn){
     if(!reg) return;
 
     if(reg.type==='md'){
-      // Fetch MD 文件并渲染
       showLoading();scroll.style.display='block';
       var pg=getOrCreateDocPage(pageId);
       pg.style.display='block';pg.classList.add('active');
       var ct=pg.querySelector('.dc');
 
       if(docs[pageId]){
-        // 已缓存
         if(!ct.innerHTML.trim()) ct.innerHTML=parseMd(docs[pageId]);
         buildToc(pageId);scroll.scrollTop=0;setTimeout(hideLoading,400);
       } else {
@@ -205,7 +250,7 @@ function navigate(pageId,btn){
           buildToc(pageId);scroll.scrollTop=0;hideLoading();
         }).catch(function(e){ct.innerHTML='<p style="color:var(--red)">加载失败：'+e.message+'</p>';hideLoading();});
       }
-    } else if(reg.type==='iframe'){
+    } else if(reg.type==='iframe' || reg.type==='tool'){
       showLoading();
       // 下载工具栏
       if(reg.download){
@@ -214,15 +259,21 @@ function navigate(pageId,btn){
         toolbar.innerHTML='<div class="ift-title"><span class="ift-icon">📦</span>'+name+'</div><a class="ift-dl" href="'+reg.download+'" download>⬇ 下载 exe</a>';
         toolbar.style.display='flex';
       }
-      frame.style.display='block';
-      frame.src=reg.file;
-      frame.onload=function(){
-        hideLoading();
-        buildIframeToc(pageId);
-        setupIframeScrollSpy(pageId);
-        setupIframeBackToTop();
-      };
-      setTimeout(hideLoading,3000);
+      // 如果是内嵌工具（有 toolData），走 renderToolPage
+      if(toolData[pageId]){
+        scroll.style.display='block';renderToolPage(pageId);
+        tp.style.display='block';tp.classList.add('active');scroll.scrollTop=0;setTimeout(hideLoading,400);
+      } else {
+        frame.style.display='block';
+        frame.src=reg.file;
+        frame.onload=function(){
+          hideLoading();
+          buildIframeToc(pageId);
+          setupIframeScrollSpy(pageId);
+          setupIframeBackToTop();
+        };
+        setTimeout(hideLoading,3000);
+      }
     }
   }
   updateNavActive(pageId,btn);
@@ -279,7 +330,7 @@ function updateNavActive(pageId,btn){
   if(pageId==='home'){if(nh)nh.classList.add('active');return;}
   if(btn&&btn.classList.contains('leaf')){btn.classList.add('active');}
   else{document.querySelectorAll('.leaf[data-page]').forEach(function(n){if(n.dataset.page===pageId)n.classList.add('active');});}
-  // Auto-expand parents（使用 expandTree 无动画展开）
+  // Auto-expand parents
   var reg=pageRegistry[pageId];
   if(reg&&reg.catId){var cat=document.getElementById(reg.catId);expandTree(cat);}
   var al=document.querySelector('.leaf.active');
@@ -316,7 +367,6 @@ function buildToc(docId){
     html+='<button class="'+cls+'" data-anchor="'+id+'" onclick="tocScrollTo(\''+id+'\')">'+h.textContent+'</button>';
   });
   tc.innerHTML=html;
-  // 精确展开 TOC
   tc.style.height=tc.scrollHeight+'px';
   var onEnd=function(){tc.style.height='auto';tc.removeEventListener('transitionend',onEnd);};
   tc.addEventListener('transitionend',onEnd);
@@ -342,7 +392,6 @@ function buildIframeToc(pageId){
       html+='<button class="'+cls+'" data-iframe-anchor="'+h.id+'" onclick="iframeTocScrollTo(\''+h.id+'\')">'+h.textContent+'</button>';
     });
     tc.innerHTML=html;
-    // 精确展开 TOC
     tc.style.height=tc.scrollHeight+'px';
     var onEnd=function(){tc.style.height='auto';tc.removeEventListener('transitionend',onEnd);};
     tc.addEventListener('transitionend',onEnd);
@@ -376,29 +425,43 @@ function highlightTocItem(anchorId,isIframe){
   if(btn) btn.classList.add('active');
 }
 
-// ═══ Search ═══
+// ═══ Search (融合 index.json 新结构) ═══
 function initSearch(){
   try{
     fetch('index.json').then(function(res){if(!res.ok) return;return res.json();}).then(function(data){
+      indexData = data; // 保存全局引用
       var items=[];
-      if(data&&data.categories){
-        data.categories.forEach(function(cat){
-          cat.items.forEach(function(item){
-            items.push({id:item.id,title:item.title,type:item.type,content:item.desc+' '+item.tags.join(' '),action:'navigate',cat:cat.name});
+
+      // 从扁平化 items 数组构建搜索数据
+      if(data && data.items){
+        data.items.forEach(function(item){
+          items.push({
+            id: item.id,
+            title: item.title,
+            type: item.type,
+            module: item.module,
+            craft: item.craft,
+            content: item.desc + ' ' + item.tags.join(' '),
+            action: 'navigate'
           });
         });
       }
-      // 也加 sidebar 数据
+
+      // 也加 sidebar 数据（补充搜索索引）
       if(sidebarData){
         sidebarData.categories.forEach(function(cat){
           cat.groups.forEach(function(g){
             if(g.items) g.items.forEach(function(item){
-              items.push({id:item.id,title:item.title,type:item.type,content:item.title,action:'navigate'});
+              // 避免重复添加（index.json 已有的）
+              if(!items.find(function(i){ return i.id === item.id; })){
+                items.push({id:item.id, title:item.title, type:item.type, content:item.title, action:'navigate', craft: item.craft||''});
+              }
             });
           });
         });
       }
-      fuse=new Fuse(items,{keys:[{name:'title',weight:3},{name:'content',weight:1}],threshold:0.35,includeMatches:true,minMatchCharLength:1});
+
+      fuse=new Fuse(items,{keys:[{name:'title',weight:3},{name:'content',weight:1},{name:'craft',weight:0.5}],threshold:0.35,includeMatches:true,minMatchCharLength:1});
     });
   }catch(e){}
 }
@@ -412,9 +475,18 @@ function handleSearch(q){
   var html='';
   results.forEach(function(r){
     var item=r.item;
-    var typeCls=item.type==='tool'?'background:rgba(74,222,128,.08);color:#4ade80':'background:rgba(108,140,255,.08);color:#6c8cff';
-    var typeLabel=item.type==='tool'?'工具':'文档';
-    html+='<div class="sr-item" onmousedown="navigate(\''+item.id+'\');document.getElementById(\'searchDropdown\').classList.remove(\'show\');document.getElementById(\'searchInput\').value=\'\'"><span class="sr-type" style="'+typeCls+'">'+typeLabel+'</span><span class="sr-title">'+item.title+'</span></div>';
+    // 模块标签颜色
+    var modLabel='📋', modCls='background:rgba(108,140,255,.08);color:#6c8cff';
+    if(item.module==='tool')    { modLabel='🔧'; modCls='background:rgba(74,222,128,.08);color:#4ade80'; }
+    if(item.module==='arsenal') { modLabel='⚔️'; modCls='background:rgba(248,113,113,.08);color:#f87171'; }
+    // 工种 Tag
+    var craftHtml = item.craft ? '<span class="sr-craft">['+item.craft+']</span>' : '';
+
+    html+='<div class="sr-item" onmousedown="navigate(\''+item.id+'\');document.getElementById(\'searchDropdown\').classList.remove(\'show\');document.getElementById(\'searchInput\').value=\'\'">'
+      +'<span class="sr-type" style="'+modCls+'">'+modLabel+'</span>'
+      +'<span class="sr-title">'+item.title+'</span>'
+      +craftHtml
+      +'</div>';
   });
   dd.innerHTML=html;dd.classList.add('show');
 }
@@ -529,15 +601,13 @@ var templates={
   'tool-doc':'# 工具说明文档\n\n> 📅 更新时间：YYYY-MM-DD · 🏷️ 工具\n\n---\n\n## 一、工具概述\n\n| 项目 | 内容 |\n|------|------|\n| **工具名称** |  |\n| **版本** | v1.0 |\n| **环境要求** |  |\n\n## 二、安装 / 使用方式\n\n\n\n## 三、功能说明\n\n### 3.1 功能一\n\n\n\n### 3.2 功能二\n\n\n\n## 四、常见问题\n\n| 问题 | 解决方案 |\n|------|----------|\n|  |  |\n\n## 五、更新日志\n\n| 版本 | 日期 | 内容 |\n|------|------|------|\n| v1.0 |  | 初版 |\n'
 };
 
-var editingPageId=null; // 正在编辑的文档ID（null=新建）
+var editingPageId=null;
 
 function openEditor(existingPageId){
   editingPageId=existingPageId||null;
-  // 隐藏主内容区
   document.getElementById('contentScroll').style.display='none';
   document.getElementById('contentFrame').style.display='none';
   document.getElementById('iframeToolbar').style.display='none';
-  // 显示编辑器
   var ep=document.getElementById('editorPage');
   ep.style.display='flex';
 
@@ -553,7 +623,6 @@ function openEditor(existingPageId){
       cache:{enable:false},
       upload:{
         handler:function(files){
-          // 粘贴图片转 Base64
           var file=files[0];
           if(!file) return;
           var reader=new FileReader();
@@ -573,12 +642,9 @@ function openEditor(existingPageId){
       }
     });
   } else {
-    // 编辑器已存在，直接加载内容
     loadEditorContent();
   }
-  // 加载设置
   loadEditorSettings();
-  // 更新标题
   var titleEl=document.querySelector('.eh-title');
   var pubBtn=document.querySelector('.eh-btn-primary');
   if(editingPageId){
@@ -629,18 +695,15 @@ function downloadMd(){
 function loadEditorContent(){
   if(!vditorInstance) return;
   if(editingPageId&&docs[editingPageId]){
-    // 编辑已有文档
     vditorInstance.setValue(docs[editingPageId]);
     var reg=pageRegistry[editingPageId]||{};
     var fileName=(reg.file||'').split('/').pop().replace(/\.md$/,'');
     document.getElementById('editorFileName').value=fileName;
-    // 选择对应分类
     if(reg.catId){
       var catSel=document.getElementById('editorCategory');
       for(var i=0;i<catSel.options.length;i++){if(catSel.options[i].value===reg.catId){catSel.selectedIndex=i;break;}}
     }
   } else if(editingPageId&&pageRegistry[editingPageId]){
-    // 需要先 fetch
     var reg=pageRegistry[editingPageId];
     vditorInstance.setValue('⏳ 加载中...');
     fetch(reg.file).then(function(r){return r.text();}).then(function(md){
@@ -654,7 +717,6 @@ function loadEditorContent(){
       }
     });
   } else {
-    // 新建文档 — 加载草稿
     var draft=localStorage.getItem('kb_editor_draft');
     if(draft) vditorInstance.setValue(draft);
   }
@@ -705,16 +767,13 @@ async function deleteDocument(pageId){
     var base='https://api.github.com/repos/'+repo+'/contents/';
     var headers={'Authorization':'token '+s.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};
 
-    // 1. 获取文件 sha
     var fileRes=await fetch(base+filePath+'?ref='+branch,{headers:headers});
     if(!fileRes.ok) throw new Error('找不到文件');
     var fileData=await fileRes.json();
 
-    // 2. 删除文件
     var res=await fetch(base+filePath,{method:'DELETE',headers:headers,body:JSON.stringify({message:'docs: 删除 '+name,sha:fileData.sha,branch:branch})});
     if(!res.ok) throw new Error('删除失败');
 
-    // 3. 更新 sidebar.json — 移除条目
     try{
       var sbRes=await fetch(base+'docs/sidebar.json?ref='+branch,{headers:headers});
       if(sbRes.ok){
@@ -734,11 +793,9 @@ async function deleteDocument(pageId){
     showToast('已删除「'+name+'」');
     delete docs[pageId];
     delete pageRegistry[pageId];
-    // 移除已渲染的文档页
     var oldPg=document.getElementById('page-'+pageId);
     if(oldPg) oldPg.remove();
 
-    // 直接在本地 sidebarData 中移除条目，立即刷新
     if(sidebarData){
       sidebarData.categories.forEach(function(cat){
         cat.groups.forEach(function(g){
@@ -755,7 +812,7 @@ async function deleteDocument(pageId){
   }
 }
 
-// ═══ GitHub API 发布（新手引导式） ═══
+// ═══ GitHub API 发布 ═══
 function getGHSettings(){
   return JSON.parse(localStorage.getItem('kb_gh_settings')||'{}');
 }
@@ -807,7 +864,6 @@ function showPublishDialog(){
     return;
   }
   var s=getGHSettings();
-  // 有 token → 直接到步骤2；没有 → 先显示步骤1
   if(s.token){
     document.getElementById('pubStep1').style.display='none';
     document.getElementById('pubStep2').style.display='block';
@@ -858,7 +914,6 @@ async function publishToGitHub(){
     var base='https://api.github.com/repos/'+repo+'/contents/';
     var headers={'Authorization':'token '+s.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};
 
-    // 1. 上传 MD 文件
     var body={message:msg,content:btoa(unescape(encodeURIComponent(content))),branch:branch};
     try{
       var exist=await fetch(base+filePath+'?ref='+branch,{headers:headers});
@@ -872,7 +927,6 @@ async function publishToGitHub(){
       throw new Error(err.message||'发布失败');
     }
 
-    // 2. 更新 sidebar.json
     if(updateSidebar){
       try{
         var sbRes=await fetch(base+'docs/sidebar.json?ref='+branch,{headers:headers});
@@ -882,11 +936,11 @@ async function publishToGitHub(){
           var catId=document.getElementById('editorCategory').value;
           var cat=sbContent.categories.find(function(c){return c.id===catId;});
           if(cat){
-            var docGroup=cat.groups.find(function(g){return g.name==='文档';});
+            var docGroup=cat.groups.find(function(g){return g.name==='文档'||g.name==='角色规范'||g.name==='UI 规范';});
             if(!docGroup){docGroup={name:'文档',icon:'📄',items:[]};cat.groups.unshift(docGroup);}
             var docId=name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'-').toLowerCase();
             if(!docGroup.items.find(function(i){return i.id===docId;})){
-              docGroup.items.push({id:docId,icon:'📝',title:name,type:'md',file:'knowledge-base/art/'+name+'.md',badge:'文档'});
+              docGroup.items.push({id:docId,icon:'📝',title:name,type:'md',file:'knowledge-base/art/'+name+'.md',badge:'文档',craft:'角色'});
               var sbBody={message:'docs: 更新菜单 - 添加 '+name,content:btoa(unescape(encodeURIComponent(JSON.stringify(sbContent,null,2)))),sha:sbData.sha,branch:branch};
               await fetch(base+'docs/sidebar.json',{method:'PUT',headers:headers,body:JSON.stringify(sbBody)});
             }
@@ -899,29 +953,26 @@ async function publishToGitHub(){
     showToast(editingPageId?'🎉 更新成功！':'🎉 发布成功！');
     localStorage.removeItem('kb_editor_draft');
     var targetPageId=editingPageId||name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'-').toLowerCase();
-    // 将当前内容直接缓存到本地，打开时零等待
     docs[targetPageId]=content;
-    // 清除已渲染的旧页面DOM（下次打开会用新缓存重新渲染）
     if(editingPageId){var oldPg=document.getElementById('page-'+editingPageId);if(oldPg)oldPg.remove();}
     editingPageId=null;
     if(vditorInstance) vditorInstance.setValue('');
     document.getElementById('editorFileName').value='';
-    // 直接在本地 sidebarData 中添加新条目，即时刷新
     if(updateSidebar&&sidebarData){
-      var catId=document.getElementById('editorCategory').value;
-      var cat=sidebarData.categories.find(function(c){return c.id===catId;});
+      var catId=document.getElementById('editorCategory');
+      var catIdVal=catId.value;
+      var cat=sidebarData.categories.find(function(c){return c.id===catIdVal;});
       if(cat){
-        var docGroup=cat.groups.find(function(g){return g.name==='文档';});
+        var docGroup=cat.groups.find(function(g){return g.name==='文档'||g.name==='角色规范';});
         if(!docGroup){docGroup={name:'文档',icon:'📄',items:[]};cat.groups.unshift(docGroup);}
         var docId=name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'-').toLowerCase();
         if(!docGroup.items.find(function(i){return i.id===docId;})){
-          docGroup.items.push({id:docId,icon:'📝',title:name,type:'md',file:'knowledge-base/art/'+name+'.md',badge:'文档'});
+          docGroup.items.push({id:docId,icon:'📝',title:name,type:'md',file:'knowledge-base/art/'+name+'.md',badge:'文档',craft:'角色'});
         }
       }
       buildSidebar(sidebarData);
     }
     closeEditor();
-    // 短暂延迟后导航到新文档
     setTimeout(function(){if(targetPageId&&pageRegistry[targetPageId]) navigate(targetPageId);},300);
   }catch(e){
     showToast('❌ '+e.message);
@@ -946,7 +997,7 @@ document.addEventListener('DOMContentLoaded', function(){
   // 1. 从 sidebar.json 构建侧边栏
   fetch('sidebar.json').then(function(r){return r.json();}).then(function(data){
     buildSidebar(data);
-    // 2. 初始化搜索
+    // 2. 初始化搜索（会同时加载 index.json）
     initSearch();
     // 3. 处理 hash 路由
     setupScrollSpy();

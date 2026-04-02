@@ -24,7 +24,7 @@
   </nav>
   <div class="sidebar-footer">
     <button class="nav-create" onclick="openEditor()">➕ 新增文档</button>
-    <div class="sf-links"><span>v4.0</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a></div>
+    <div class="sf-links"><span>v3.0</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a></div>
   </div>
 </aside>
 
@@ -54,13 +54,9 @@
     <div class="editor-meta">
       <input type="text" id="editorFileName" class="em-input" placeholder="文件名（如：角色动画规范）" value="">
       <select id="editorCategory" class="em-select">
-        <option value="cat-character">角色 · Character</option>
-        <option value="cat-ui">UI · 界面</option>
-        <option value="cat-scene">场景 · Scene</option>
-        <option value="cat-fx">特效 · FX</option>
-        <option value="cat-tech">技术 · Tech</option>
-        <option value="cat-mgmt">管理 · Management</option>
-        <option value="cat-apm-weapons">⚔️ APM 武器库</option>
+        <option value="mod-norm">📚 规范与常识</option>
+        <option value="mod-tool">🛠️ 提效工具箱</option>
+        <option value="mod-arsenal">⚔️ APM 武器库</option>
       </select>
     </div>
     <div id="vditorContainer"></div>
@@ -68,45 +64,121 @@
   <div class="content-scroll" id="contentScroll">
     <!-- Home -->
     <div class="home" id="pageHome">
-      <div class="home-hero"><h1>🎮 游戏项目<span>知识库</span></h1><p>团队共享的美术规范、技术方案与生产工具，持续更新中</p></div>
-      <div class="stats-bar"><div class="stat"><div class="num" id="statNorm">—</div><div class="label">📋 规范常识</div></div><div class="stat"><div class="num" id="statTool">—</div><div class="label">🔧 提效工具</div></div><div class="stat"><div class="num" id="statWeapon">—</div><div class="label">⚔️ 排雷武器库</div></div></div>
-      <div class="hst">📋 角色 · Character</div>
-      <div class="home-grid">
-        <div class="home-card" onclick="navigate('d1')"><div class="hci" style="background:var(--accent-bg)">📐</div><h3>2D UGC 角色出图规范</h3><p>基于主流 UGC 游戏总结的全流程规范</p><div class="tags"><span class="tag">分辨率</span><span class="tag">部件拆分</span><span class="tag">动画</span></div></div>
-        <div class="home-card" onclick="navigate('d2')"><div class="hci" style="background:var(--purple-bg)">🎨</div><h3>2D 角色换色资源规范</h3><p>Mask 遮罩图、调色板替换、灰度叠色等方案</p><div class="tags"><span class="tag">Mask</span><span class="tag">HSV</span><span class="tag">通道互斥</span></div></div>
-        <div class="home-card" onclick="navigate('spine-perf-guide')"><div class="hci" style="background:var(--pink-bg)">🦴</div><h3>Spine 性能红线与排查</h3><p>Spine 动画 10 项红线指标 + 7 大雷区 + 排查 SOP</p><div class="tags"><span class="tag" style="background:#f871711a;color:#f87171">排雷</span><span class="tag">骨骼</span><span class="tag">图集</span></div></div>
+      <div class="home-hero">
+        <h1>🎮 游戏项目<span>知识库</span></h1>
+        <p>团队共享的美术规范、技术方案与生产工具，持续更新中</p>
+        <div class="home-ratio-bar">
+          <span class="ratio-seg ratio-norm" title="规范与常识 30%">📚 30%</span>
+          <span class="ratio-seg ratio-tool" title="提效工具 30%">🛠️ 30%</span>
+          <span class="ratio-seg ratio-arsenal" title="武器库 40%">⚔️ 40%</span>
+        </div>
       </div>
-      <div class="hst" style="margin-top:32px">🔧 角色工具</div>
-      <div class="home-grid">
-        <div class="home-card" onclick="navigate('auto-mask')"><div class="hci" style="background:var(--green-bg)">🤖</div><h3>自动 Mask 生成器</h3><p>一键生成 RGBA 通道换色遮罩图</p><div class="tags"><span class="tag" style="background:var(--green-bg);color:var(--green)">在线工具</span></div></div>
-        <div class="home-card" onclick="navigate('mask-tool')"><div class="hci" style="background:var(--orange-bg)">🖌️</div><h3>Mask 手动编辑器</h3><p>画笔绘制 RGBA 换色遮罩图</p><div class="tags"><span class="tag" style="background:var(--green-bg);color:var(--green)">在线工具</span></div></div>
-        <div class="home-card" onclick="navigate('spine-split')"><div class="hci" style="background:var(--purple-bg)">✂️</div><h3>Spine 拆分工具</h3><p>选区拆分 + 拓扑延展 + Atlas 导出</p><div class="tags"><span class="tag" style="background:var(--green-bg);color:var(--green)">在线工具</span></div></div>
+
+      <!-- 统计栏 -->
+      <div class="stats-bar">
+        <div class="stat stat-norm"><div class="num">—</div><div class="label">📚 规范与常识</div></div>
+        <div class="stat stat-tool"><div class="num">—</div><div class="label">🛠️ 提效工具</div></div>
+        <div class="stat stat-arsenal"><div class="num">—</div><div class="label">⚔️ 排雷武器库</div></div>
       </div>
-      <div class="hst" style="margin-top:32px">📂 外包管理 & 流程</div>
-      <div class="home-grid">
-        <div class="home-card" onclick="navigate('cp-management')"><div class="hci" style="background:var(--cyan-bg)">📋</div><h3>CP 外包管理手册</h3><p>全流程管理：需求下发、验收、结算</p><div class="tags"><span class="tag" style="background:var(--cyan-bg);color:var(--cyan)">外包</span></div></div>
-        <div class="home-card" onclick="navigate('game-art-pipeline')"><div class="hci" style="background:var(--orange-bg)">📊</div><h3>游戏美术流程总结</h3><p>2D休闲 / 3D / 二次元美术流程对比</p><div class="tags"><span class="tag" style="background:var(--orange-bg);color:var(--orange)">流程</span></div></div>
+
+      <!-- ═══ 板块一：📚 规范与常识 (30%) ═══ -->
+      <div class="module-section module-norm">
+        <div class="module-header">
+          <div class="module-icon" style="background:var(--accent-bg);color:var(--accent)">📚</div>
+          <div class="module-info">
+            <h2>规范与常识</h2>
+            <p>各工种的标准规范、工业化流程与最佳实践</p>
+          </div>
+          <span class="module-weight">30%</span>
+        </div>
+
+        <div class="hst">👤 角色规范</div>
+        <div class="home-grid">
+          <div class="home-card" onclick="navigate('d1')"><div class="hci" style="background:var(--accent-bg)">📐</div><h3>2D UGC 角色出图规范</h3><p>基于主流 UGC 游戏的全流程规范</p><div class="tags"><span class="tag">分辨率</span><span class="tag">部件拆分</span><span class="craft-badge cb-char">角色</span></div></div>
+          <div class="home-card" onclick="navigate('d2')"><div class="hci" style="background:var(--purple-bg)">🎨</div><h3>2D 角色换色资源规范</h3><p>Mask 遮罩图、调色板替换、灰度叠色</p><div class="tags"><span class="tag">Mask</span><span class="tag">HSV</span><span class="craft-badge cb-char">角色</span></div></div>
+          <div class="home-card" onclick="navigate('ugc-character-spec')"><div class="hci" style="background:var(--accent-bg)">📐</div><h3>UGC 出图工业化规范</h3><p>工业化标准与检查清单</p><div class="tags"><span class="tag">工业化</span><span class="craft-badge cb-char">角色</span></div></div>
+          <div class="home-card" onclick="navigate('color-swap-spec')"><div class="hci" style="background:var(--purple-bg)">🎨</div><h3>角色换色工业化规范</h3><p>Mask 制作的工业化标准</p><div class="tags"><span class="tag">换色</span><span class="craft-badge cb-char">角色</span></div></div>
+          <div class="home-card" onclick="navigate('auto-mask-spec')"><div class="hci" style="background:var(--accent-bg)">📋</div><h3>Mask 生成器工业化规范</h3><p>输出标准与质量检查</p><div class="tags"><span class="tag">质检</span><span class="craft-badge cb-char">角色</span></div></div>
+          <div class="home-card" onclick="navigate('spine-split-spec')"><div class="hci" style="background:var(--accent-bg)">📋</div><h3>Spine 拆分工业化规范</h3><p>拆分工具的输出标准</p><div class="tags"><span class="tag">Spine</span><span class="craft-badge cb-char">角色</span></div></div>
+        </div>
+
+        <div class="hst" style="margin-top:28px">🖥️ UI 规范</div>
+        <div class="home-grid">
+          <div class="home-card" onclick="navigate('ui-slice-naming')"><div class="hci" style="background:var(--purple-bg)">✂️</div><h3>切图与命名规范</h3><p>UI 切图标准与文件命名规则</p><div class="tags"><span class="tag">切图</span><span class="craft-badge cb-ui">UI</span></div></div>
+          <div class="home-card" onclick="navigate('ui-9slice-color')"><div class="hci" style="background:var(--purple-bg)">🎨</div><h3>9宫格与颜色空间</h3><p>9-Slice 拉伸与色彩空间规范</p><div class="tags"><span class="tag">9宫格</span><span class="craft-badge cb-ui">UI</span></div></div>
+          <div class="home-card" onclick="navigate('ui-layout')"><div class="hci" style="background:var(--purple-bg)">📐</div><h3>Layout 拼接规范</h3><p>界面布局与自适应拼接方案</p><div class="tags"><span class="tag">Layout</span><span class="craft-badge cb-ui">UI</span></div></div>
+          <div class="home-card" onclick="navigate('ui-umg-tips')"><div class="hci" style="background:var(--purple-bg)">⚡</div><h3>UMG 生成技巧</h3><p>AI 辅助生成 UE UMG Widget</p><div class="tags"><span class="tag">UMG</span><span class="craft-badge cb-ui">UI</span></div></div>
+        </div>
+
+        <div class="hst" style="margin-top:28px">🏔️ 场景 & 📋 管理</div>
+        <div class="home-grid">
+          <div class="home-card" onclick="navigate('scene-lod-spec')"><div class="hci" style="background:var(--green-bg)">🏗️</div><h3>场景模块化与 LOD</h3><p>场景资源模块化拆分与 LOD 分级</p><div class="tags"><span class="tag">LOD</span><span class="craft-badge cb-scene">场景</span></div></div>
+          <div class="home-card" onclick="navigate('cp-management')"><div class="hci" style="background:var(--cyan-bg)">📋</div><h3>CP 外包管理手册</h3><p>全流程管理：需求下发、验收、结算</p><div class="tags"><span class="tag">外包</span><span class="craft-badge cb-mgmt">管理</span></div></div>
+          <div class="home-card" onclick="navigate('game-art-pipeline')"><div class="hci" style="background:var(--orange-bg)">📊</div><h3>游戏美术流程总结</h3><p>2D/3D/二次元美术流程对比</p><div class="tags"><span class="tag">流程</span><span class="craft-badge cb-mgmt">管理</span></div></div>
+        </div>
       </div>
-      <div class="hst" style="margin-top:32px">🔧 UI 工具</div>
-      <div class="home-grid">
-        <div class="home-card" onclick="navigate('image-skew-corrector-online')"><div class="hci" style="background:var(--orange-bg)">📐</div><h3>图片倾斜矫正 (在线版)</h3><p>多算法融合检测倾斜角度，自动矫正到垂直</p><div class="tags"><span class="tag" style="background:var(--green-bg);color:var(--green)">在线工具</span><span class="tag">批量处理</span></div></div>
-        <div class="home-card" onclick="navigate('image-skew-corrector')"><div class="hci" style="background:var(--orange-bg)">📐</div><h3>图片倾斜矫正 (桌面版)</h3><p>四算法融合检测+自动矫正+批量处理</p><div class="tags"><span class="tag" style="background:var(--purple-bg);color:var(--purple)">桌面下载</span><span class="tag">批量处理</span></div></div>
-        <div class="home-card" onclick="navigate('game-resource-toolkit-online')"><div class="hci" style="background:var(--cyan-bg)">🛠️</div><h3>游戏资源工具集 (在线版)</h3><p>资源检测 + 图片续排 + 版本对比 + 问题修复</p><div class="tags"><span class="tag" style="background:var(--green-bg);color:var(--green)">在线工具</span><span class="tag">All-in-one</span></div></div>
-        <div class="home-card" onclick="navigate('game-resource-toolkit')"><div class="hci" style="background:var(--cyan-bg)">🛠️</div><h3>游戏资源工具集 (桌面版)</h3><p>资源检测 + 图片续排 + 版本对比 + 问题修复 + 以图搜图</p><div class="tags"><span class="tag" style="background:var(--purple-bg);color:var(--purple)">桌面下载</span><span class="tag">All-in-one</span></div></div>
+
+      <!-- ═══ 板块二：🛠️ 提效工具箱 (30%) ═══ -->
+      <div class="module-section module-tool">
+        <div class="module-header">
+          <div class="module-icon" style="background:var(--green-bg);color:var(--green)">🛠️</div>
+          <div class="module-info">
+            <h2>提效工具箱</h2>
+            <p>在线工具、桌面工具与技术方案，一键提升生产效率</p>
+          </div>
+          <span class="module-weight">30%</span>
+        </div>
+
+        <div class="hst">👤 角色工具</div>
+        <div class="home-grid">
+          <div class="home-card" onclick="navigate('auto-mask')"><div class="hci" style="background:var(--green-bg)">🤖</div><h3>自动 Mask 生成器</h3><p>一键生成 RGBA 通道换色遮罩图</p><div class="tags"><span class="tag tg-tool">在线工具</span><span class="craft-badge cb-char">角色</span></div></div>
+          <div class="home-card" onclick="navigate('mask-tool')"><div class="hci" style="background:var(--orange-bg)">🖌️</div><h3>Mask 手动编辑器</h3><p>画笔绘制 RGBA 换色遮罩图</p><div class="tags"><span class="tag tg-tool">在线工具</span><span class="craft-badge cb-char">角色</span></div></div>
+          <div class="home-card" onclick="navigate('spine-split')"><div class="hci" style="background:var(--purple-bg)">✂️</div><h3>Spine 拆分工具</h3><p>选区拆分 + 拓扑延展 + Atlas 导出</p><div class="tags"><span class="tag tg-tool">在线工具</span><span class="craft-badge cb-char">角色</span></div></div>
+          <div class="home-card" onclick="navigate('mask-core-algorithms')"><div class="hci" style="background:var(--accent-bg)">🧪</div><h3>Mask 核心算法演示</h3><p>魔棒 + 边缘保护画笔 + Worker 并行</p><div class="tags"><span class="tag tg-tool">在线工具</span><span class="craft-badge cb-char">角色</span></div></div>
+        </div>
+
+        <div class="hst" style="margin-top:28px">🖥️ UI & 桌面工具</div>
+        <div class="home-grid">
+          <div class="home-card" onclick="navigate('image-skew-corrector-online')"><div class="hci" style="background:var(--orange-bg)">📐</div><h3>图片倾斜矫正 (在线)</h3><p>多算法融合检测，在线自动矫正</p><div class="tags"><span class="tag tg-tool">在线工具</span><span class="craft-badge cb-ui">UI</span></div></div>
+          <div class="home-card" onclick="navigate('image-skew-corrector')"><div class="hci" style="background:var(--orange-bg)">📐</div><h3>图片倾斜矫正 (桌面)</h3><p>四算法融合 + 自动矫正 + 批量处理</p><div class="tags"><span class="tag tg-dl">桌面下载</span><span class="craft-badge cb-ui">UI</span></div></div>
+          <div class="home-card" onclick="navigate('game-resource-toolkit-online')"><div class="hci" style="background:var(--cyan-bg)">🛠️</div><h3>游戏资源工具集 (在线)</h3><p>资源检测 + 图片续排 + 版本对比</p><div class="tags"><span class="tag tg-tool">在线工具</span><span class="craft-badge cb-ui">UI</span></div></div>
+          <div class="home-card" onclick="navigate('game-resource-toolkit')"><div class="hci" style="background:var(--cyan-bg)">🛠️</div><h3>游戏资源工具集 (桌面)</h3><p>All-in-one 资源管理工具</p><div class="tags"><span class="tag tg-dl">桌面下载</span><span class="craft-badge cb-ui">UI</span></div></div>
+        </div>
+
+        <div class="hst" style="margin-top:28px">⚙️ 特效 & 技术</div>
+        <div class="home-grid">
+          <div class="home-card" onclick="navigate('channel-packer')"><div class="hci" style="background:var(--orange-bg)">📦</div><h3>贴图通道打包工具</h3><p>R/G/B/A 四通道自由组合打包</p><div class="tags"><span class="tag tg-tool">在线工具</span><span class="craft-badge cb-fx">特效</span></div></div>
+          <div class="home-card" onclick="navigate('engine-bridge')"><div class="hci" style="background:var(--pink-bg)">🔌</div><h3>Engine Bridge 引擎直连</h3><p>浏览器到 UE/Unity 双向桥接</p><div class="tags"><span class="tag">Bridge</span><span class="craft-badge cb-tech">技术</span></div></div>
+          <div class="home-card" onclick="navigate('asset-library')"><div class="hci" style="background:var(--pink-bg)">📦</div><h3>标准资产库</h3><p>团队共享标准资产管理与检索</p><div class="tags"><span class="tag">资产库</span><span class="craft-badge cb-tech">技术</span></div></div>
+        </div>
       </div>
-      <div class="hst" style="margin-top:32px">⚔️ APM 核心武器库 (40%)</div>
-      <div class="home-grid">
-        <div class="home-card" onclick="navigate('perf-redline-glossary')"><div class="hci" style="background:#f871711a">🚦</div><h3>跨工种黑话速查表</h3><p>Drawcall / Overdraw / 贴图压缩 / 骨骼蒙皮 / 纹理内存 — 5 大高频术语 + 移动端性能红线数值</p><div class="tags"><span class="tag" style="background:#f871711a;color:#f87171">排雷</span><span class="tag">术语</span><span class="tag">红线</span></div></div>
-        <div class="home-card" onclick="navigate('accident-troubleshoot')"><div class="hci" style="background:#f871711a">🚨</div><h3>典型事故排雷手册</h3><p>包体暴增 / UI 发热掉帧 / 效果不符 / 低端机闪退 / 骨骼鬼畜 — 5 大 Case + 排查 SOP</p><div class="tags"><span class="tag" style="background:#f871711a;color:#f87171">排雷</span><span class="tag">事故</span><span class="tag">SOP</span></div></div>
-        <div class="home-card" onclick="navigate('cross-dept-collab')"><div class="hci" style="background:#f871711a">🤝</div><h3>跨部门协作痛点解法</h3><p>策划频繁改需求 / 美术程序还原度扯皮 / 进度死锁 — 3 大经典痛点 + APM 破局思路</p><div class="tags"><span class="tag" style="background:#f871711a;color:#f87171">排雷</span><span class="tag">协作</span><span class="tag">破局</span></div></div>
+
+      <!-- ═══ 板块三：⚔️ APM 武器库 (40%) — 重点高亮 ═══ -->
+      <div class="module-section module-arsenal">
+        <div class="module-header module-header-arsenal">
+          <div class="module-icon" style="background:rgba(248,113,113,.12);color:#f87171">⚔️</div>
+          <div class="module-info">
+            <h2>APM 武器库</h2>
+            <p>性能排雷、事故复盘、协作破局 — 40% 核心内容占比</p>
+          </div>
+          <span class="module-weight module-weight-red">40%</span>
+        </div>
+
+        <div class="hst">💣 性能排雷</div>
+        <div class="home-grid">
+          <div class="home-card card-arsenal" onclick="navigate('spine-perf-guide')"><div class="hci" style="background:rgba(248,113,113,.12)">🦴</div><h3>Spine 性能红线与排查</h3><p>10 项红线指标 + 7 大雷区 + 排查 SOP</p><div class="tags"><span class="tag tg-arsenal">排雷</span><span class="tag">骨骼</span><span class="craft-badge cb-char">角色</span></div></div>
+          <div class="home-card card-arsenal" onclick="navigate('perf-redline-glossary')"><div class="hci" style="background:rgba(248,113,113,.12)">🚦</div><h3>跨工种黑话速查表</h3><p>5 大高频术语 + 移动端性能红线数值</p><div class="tags"><span class="tag tg-arsenal">排雷</span><span class="tag">术语</span><span class="craft-badge cb-all">通用</span></div></div>
+        </div>
+
+        <div class="hst" style="margin-top:28px">🚨 事故 & 协作</div>
+        <div class="home-grid">
+          <div class="home-card card-arsenal" onclick="navigate('accident-troubleshoot')"><div class="hci" style="background:rgba(248,113,113,.12)">🚨</div><h3>典型事故排雷手册</h3><p>包体暴增 / UI 发热掉帧 / 低端机闪退 — 5 大 Case + SOP</p><div class="tags"><span class="tag tg-arsenal">排雷</span><span class="tag">事故</span><span class="craft-badge cb-all">通用</span></div></div>
+          <div class="home-card card-arsenal" onclick="navigate('cross-dept-collab')"><div class="hci" style="background:rgba(248,113,113,.12)">🤝</div><h3>跨部门协作痛点解法</h3><p>策划改需求 / 还原度扯皮 / 进度死锁 — APM 破局思路</p><div class="tags"><span class="tag tg-arsenal">排雷</span><span class="tag">协作</span><span class="craft-badge cb-all">通用</span></div></div>
+          <div class="home-card card-arsenal" onclick="navigate('cp-outsource')"><div class="hci" style="background:rgba(248,113,113,.12)">📋</div><h3>CP 外包全流程避坑手册</h3><p>供应商筛选到交付验收的完整避坑经验</p><div class="tags"><span class="tag tg-arsenal">排雷</span><span class="tag">外包</span><span class="craft-badge cb-mgmt">管理</span></div></div>
+        </div>
       </div>
-      <div class="hst" style="margin-top:32px">📂 更多分类</div>
-      <div class="home-grid">
-        <div class="home-card" onclick="navigate('ui-slice-naming')"><div class="hci" style="background:var(--purple-bg)">🖥️</div><h3>UI · 界面规范</h3><p>切图、9宫格、Layout、UMG — 4 篇</p><div class="tags"><span class="tag" style="background:var(--purple-bg);color:var(--purple)">UI</span></div></div>
-        <div class="home-card" style="opacity:.5;cursor:default"><div class="hci" style="background:var(--green-bg)">🏔️</div><h3>场景 · Scene</h3><p>待补充</p></div>
-        <div class="home-card" style="opacity:.5;cursor:default"><div class="hci" style="background:var(--orange-bg)">✨</div><h3>特效 · FX</h3><p>待补充</p></div>
-        <div class="home-card" style="opacity:.5;cursor:default"><div class="hci" style="background:var(--pink-bg)">⚙️</div><h3>技术 · Tech</h3><p>待补充</p></div>
-      </div>
+
+      <!-- 底部声明 -->
       <div style="margin-top:48px;padding:24px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px"><div style="flex:1;min-width:240px"><h4 style="font-size:13px;color:var(--heading);margin-bottom:8px">⚠️ 使用声明</h4><p style="font-size:12px;color:var(--dim);line-height:1.8;margin:0">本知识库仅供项目内部使用，不得对外传播。</p></div><div style="min-width:180px;text-align:right"><h4 style="font-size:13px;color:var(--heading);margin-bottom:8px">📮 反馈</h4><p style="font-size:12px;color:var(--dim);margin:0"><a style="color:var(--accent);cursor:pointer" onclick="showFeedback()">💬 提交反馈</a></p></div></div></div>
     </div>
     <!-- Doc pages (dynamically created by app.js) -->
@@ -127,7 +199,6 @@
 <!-- 发布弹窗 — 引导式步骤 -->
 <div class="fb-overlay" id="publishDialog">
   <div class="dialog-card" style="max-width:480px">
-    <!-- 步骤1：未绑定密钥时显示 -->
     <div id="pubStep1">
       <h3>🔑 首次发布，需要先绑定权限</h3>
       <p class="dlg-desc">为了把文档同步到知识库，需要一个「访问密钥」。<br>只需设置一次，之后可以直接发布。</p>
@@ -141,7 +212,6 @@
         <button class="eh-btn eh-btn-primary" onclick="saveTokenAndNext()">下一步 →</button>
       </div>
     </div>
-    <!-- 步骤2：确认发布 -->
     <div id="pubStep2" style="display:none">
       <h3>📤 确认发布文档</h3>
       <div class="pub-preview">

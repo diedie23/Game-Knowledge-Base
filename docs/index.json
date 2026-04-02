@@ -1,58 +1,361 @@
 {
-  "version": "1.4",
+  "version": "2.0",
   "lastUpdate": "2026-04-02",
-  "categories": [
+  "moduleConfig": {
+    "norm":    { "label": "📚 规范与常识", "icon": "📚", "color": "accent",  "weight": 30 },
+    "tool":    { "label": "🛠️ 提效工具箱", "icon": "🛠️", "color": "green",   "weight": 30 },
+    "arsenal": { "label": "⚔️ APM 武器库", "icon": "⚔️", "color": "red",     "weight": 40 }
+  },
+  "items": [
     {
-      "id": "character",
-      "name": "角色 · Character",
-      "icon": "👤",
-      "color": "accent",
-      "items": [
-        {"id": "d1", "type": "doc", "title": "2D UGC 角色出图规范", "desc": "基于主流 UGC 游戏的全流程规范", "tags": ["分辨率","部件拆分","动画","命名"], "action": "showDoc", "path": "embedded"},
-        {"id": "d2", "type": "doc", "title": "2D 角色换色资源规范", "desc": "换色场景下的 Mask 遮罩图制作规范", "tags": ["Mask遮罩","HSV","通道互斥"], "action": "showDoc", "path": "embedded"},
-        {"id": "auto-mask", "type": "tool", "title": "自动 Mask 生成器", "desc": "LAB色彩空间聚类，一键生成换色遮罩图", "tags": ["在线工具","自动验算"], "action": "openTool", "path": "knowledge-base/auto-mask.html"},
-        {"id": "mask-tool", "type": "tool", "title": "Mask 手动编辑器", "desc": "画笔绘制 RGBA 换色遮罩图", "tags": ["在线工具","画笔绘制"], "action": "openTool", "path": "knowledge-base/mask-tool.html"},
-        {"id": "spine-split", "type": "tool", "title": "Spine 拆分工具", "desc": "选区拆分各部件，自动拓扑延展", "tags": ["在线工具","选区拆分","拓扑延展"], "action": "openTool", "path": "knowledge-base/spine-split.html"},
-        {"id": "mask-core-algorithms", "type": "tool", "title": "Mask 核心算法演示", "desc": "智能魔棒Flood Fill + 边缘保护画笔Sobel检测，Worker并行计算", "tags": ["在线工具","魔棒","边缘检测","Sobel","Web Worker"], "action": "openTool", "path": "knowledge-base/mask-core-algorithms.html"},
-        {"id": "spine-perf-guide", "type": "doc", "title": "Spine 性能红线与排查", "desc": "Spine 动画 10 项红线指标 + 7 大雷区 + 排查 SOP", "tags": ["Spine","性能优化","骨骼动画","排雷"], "action": "openTool", "path": "knowledge-base/spine-perf-guide.html"}
-      ]
+      "id": "d1",
+      "module": "norm",
+      "craft": "角色",
+      "type": "md",
+      "title": "2D UGC 角色出图规范",
+      "desc": "基于主流 UGC 游戏的全流程规范",
+      "tags": ["分辨率","部件拆分","动画","命名"],
+      "icon": "📐",
+      "action": "showDoc",
+      "path": "knowledge-base/art/2D-UGC角色出图规范.md"
     },
     {
-      "id": "ui",
-      "name": "UI · 界面",
-      "icon": "🖥️",
-      "color": "purple",
-      "items": [
-        {"id": "ui-slice-naming", "type": "doc", "title": "切图与命名规范", "desc": "UI 切图标准与文件命名规则", "tags": ["切图","命名"], "action": "openTool", "path": "knowledge-base/ui-slice-naming.html"},
-        {"id": "ui-9slice-color", "type": "doc", "title": "9宫格与颜色空间", "desc": "9-Slice 拉伸与色彩空间规范", "tags": ["9宫格","颜色空间"], "action": "openTool", "path": "knowledge-base/ui-9slice-color.html"},
-        {"id": "ui-layout", "type": "doc", "title": "Layout 拼接规范", "desc": "界面布局与自适应拼接方案", "tags": ["Layout","适配"], "action": "openTool", "path": "knowledge-base/ui-layout.html"},
-        {"id": "ui-umg-tips", "type": "doc", "title": "UMG 生成技巧", "desc": "AI 辅助生成 UE UMG Widget 的技巧", "tags": ["UMG","AI Prompt"], "action": "openTool", "path": "knowledge-base/ui-umg-tips.html"},
-
-        {"id": "image-skew-corrector", "type": "tool", "title": "图片倾斜矫正 (exe下载)", "desc": "Windows桌面版，四算法融合检测+自动矫正+批量处理", "tags": ["桌面工具","exe下载","倾斜矫正"], "action": "openTool", "path": "knowledge-base/image-skew-corrector.html"},
-
-        {"id": "game-resource-toolkit", "type": "tool", "title": "游戏资源工具集 (exe下载)", "desc": "Windows桌面版，All-in-one资源管理工具", "tags": ["桌面工具","exe下载","资源检测"], "action": "openTool", "path": "knowledge-base/game-resource-toolkit.html"}
-      ]
+      "id": "d2",
+      "module": "norm",
+      "craft": "角色",
+      "type": "md",
+      "title": "2D 角色换色资源规范",
+      "desc": "换色场景下的 Mask 遮罩图制作规范",
+      "tags": ["Mask遮罩","HSV","通道互斥"],
+      "icon": "🎨",
+      "action": "showDoc",
+      "path": "knowledge-base/art/2D角色换色-美术资源提供规范.md"
     },
     {
-      "id": "management",
-      "name": "管理 · Management",
+      "id": "ugc-character-spec",
+      "module": "norm",
+      "craft": "角色",
+      "type": "iframe",
+      "title": "UGC 角色出图工业化规范",
+      "desc": "UGC 角色全流程出图的工业化标准与检查清单",
+      "tags": ["工业化","规范","出图"],
+      "icon": "📐",
+      "action": "openTool",
+      "path": "knowledge-base/ugc-character-spec.html"
+    },
+    {
+      "id": "color-swap-spec",
+      "module": "norm",
+      "craft": "角色",
+      "type": "iframe",
+      "title": "角色换色工业化规范",
+      "desc": "角色换色 Mask 制作的工业化标准与交付规范",
+      "tags": ["换色","Mask","工业化"],
+      "icon": "🎨",
+      "action": "openTool",
+      "path": "knowledge-base/color-swap-spec.html"
+    },
+    {
+      "id": "auto-mask-spec",
+      "module": "norm",
+      "craft": "角色",
+      "type": "iframe",
+      "title": "Mask 生成器工业化规范",
+      "desc": "自动 Mask 生成器的输出标准与质量检查规范",
+      "tags": ["Mask","工业化","质检"],
       "icon": "📋",
-      "color": "cyan",
-      "items": [
-        {"id": "cp-management", "type": "doc", "title": "CP 外包管理手册", "desc": "从需求下发到结算的完整外包管理流程", "tags": ["外包","验收","流程","CP评级"], "action": "openTool", "path": "knowledge-base/cp-management.html"},
-        {"id": "game-art-pipeline", "type": "doc", "title": "游戏美术流程总结", "desc": "轻度2D/重度3D/二次元手游的美术流程对比", "tags": ["2D","3D","二次元","流程"], "action": "openTool", "path": "knowledge-base/game-art-pipeline.md"}
-      ]
+      "action": "openTool",
+      "path": "knowledge-base/auto-mask-spec.html"
     },
     {
-      "id": "apm-weapons",
-      "name": "APM 武器库",
-      "icon": "⚔️",
-      "color": "red",
-      "items": [
-        {"id": "perf-redline-glossary", "type": "doc", "title": "跨工种黑话速查表", "desc": "Drawcall / Overdraw / 贴图压缩 / 骨骼蒙皮 / 纹理内存 — 5 大高频术语 + 移动端性能红线数值", "tags": ["性能红线","术语速查","Drawcall","Overdraw","排雷"], "action": "openTool", "path": "knowledge-base/perf-redline-glossary.html"},
-        {"id": "accident-troubleshoot", "type": "doc", "title": "典型事故排雷手册", "desc": "包体暴增 / UI 发热掉帧 / 效果不符 / 低端机闪退 / 骨骼鬼畜 — 5 大 Case + 排查 SOP", "tags": ["Troubleshooting","事故复盘","SOP","排雷"], "action": "openTool", "path": "knowledge-base/accident-troubleshoot.html"},
-        {"id": "cross-dept-collab", "type": "doc", "title": "跨部门协作痛点解法", "desc": "策划频繁改需求 / 美术程序还原度扯皮 / 进度死锁 — 3 大经典痛点 + APM 破局思路", "tags": ["沟通技巧","跨部门协作","流程优化","排雷"], "action": "openTool", "path": "knowledge-base/cross-dept-collab.html"}
-      ]
+      "id": "spine-split-spec",
+      "module": "norm",
+      "craft": "角色",
+      "type": "iframe",
+      "title": "Spine 拆分工业化规范",
+      "desc": "Spine 角色拆分工具的输出标准与工业化流程",
+      "tags": ["Spine","拆分","工业化"],
+      "icon": "📋",
+      "action": "openTool",
+      "path": "knowledge-base/spine-split-spec.html"
+    },
+    {
+      "id": "ui-slice-naming",
+      "module": "norm",
+      "craft": "UI",
+      "type": "iframe",
+      "title": "切图与命名规范",
+      "desc": "UI 切图标准与文件命名规则",
+      "tags": ["切图","命名"],
+      "icon": "✂️",
+      "action": "openTool",
+      "path": "knowledge-base/ui-slice-naming.html"
+    },
+    {
+      "id": "ui-9slice-color",
+      "module": "norm",
+      "craft": "UI",
+      "type": "iframe",
+      "title": "9宫格与颜色空间",
+      "desc": "9-Slice 拉伸与色彩空间规范",
+      "tags": ["9宫格","颜色空间"],
+      "icon": "🎨",
+      "action": "openTool",
+      "path": "knowledge-base/ui-9slice-color.html"
+    },
+    {
+      "id": "ui-layout",
+      "module": "norm",
+      "craft": "UI",
+      "type": "iframe",
+      "title": "Layout 拼接规范",
+      "desc": "界面布局与自适应拼接方案",
+      "tags": ["Layout","适配"],
+      "icon": "📐",
+      "action": "openTool",
+      "path": "knowledge-base/ui-layout.html"
+    },
+    {
+      "id": "ui-umg-tips",
+      "module": "norm",
+      "craft": "UI",
+      "type": "iframe",
+      "title": "UMG 生成技巧",
+      "desc": "AI 辅助生成 UE UMG Widget 的技巧与 Prompt 模板",
+      "tags": ["UMG","AI Prompt"],
+      "icon": "⚡",
+      "action": "openTool",
+      "path": "knowledge-base/ui-umg-tips.html"
+    },
+    {
+      "id": "scene-lod-spec",
+      "module": "norm",
+      "craft": "场景",
+      "type": "iframe",
+      "title": "场景模块化与 LOD 规范",
+      "desc": "场景资源的模块化拆分与 LOD 分级标准",
+      "tags": ["LOD","模块化","场景"],
+      "icon": "🏗️",
+      "action": "openTool",
+      "path": "knowledge-base/scene-lod-spec.html"
+    },
+    {
+      "id": "cp-management",
+      "module": "norm",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "CP 外包管理手册",
+      "desc": "从需求下发到结算的完整外包管理流程",
+      "tags": ["外包","验收","流程","CP评级"],
+      "icon": "📋",
+      "action": "openTool",
+      "path": "knowledge-base/cp-management.html"
+    },
+    {
+      "id": "game-art-pipeline",
+      "module": "norm",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "游戏美术流程总结",
+      "desc": "轻度2D/重度3D/二次元手游的美术流程对比",
+      "tags": ["2D","3D","二次元","流程"],
+      "icon": "📊",
+      "action": "openTool",
+      "path": "knowledge-base/game-art-pipeline.html"
+    },
+    {
+      "id": "auto-mask",
+      "module": "tool",
+      "craft": "角色",
+      "type": "tool",
+      "title": "自动 Mask 生成器",
+      "desc": "LAB 色彩空间聚类，一键生成换色遮罩图",
+      "tags": ["在线工具","自动验算","RGBA"],
+      "icon": "🤖",
+      "action": "openTool",
+      "path": "knowledge-base/auto-mask.html"
+    },
+    {
+      "id": "mask-tool",
+      "module": "tool",
+      "craft": "角色",
+      "type": "tool",
+      "title": "Mask 手动编辑器",
+      "desc": "画笔绘制 RGBA 换色遮罩图，所见即所得",
+      "tags": ["在线工具","画笔绘制","RGBA"],
+      "icon": "🖌️",
+      "action": "openTool",
+      "path": "knowledge-base/mask-tool.html"
+    },
+    {
+      "id": "spine-split",
+      "module": "tool",
+      "craft": "角色",
+      "type": "tool",
+      "title": "Spine 拆分工具",
+      "desc": "选区拆分各部件，自动拓扑延展 + Atlas 导出",
+      "tags": ["在线工具","选区拆分","拓扑延展"],
+      "icon": "✂️",
+      "action": "openTool",
+      "path": "knowledge-base/spine-split.html"
+    },
+    {
+      "id": "mask-core-algorithms",
+      "module": "tool",
+      "craft": "角色",
+      "type": "tool",
+      "title": "Mask 核心算法演示",
+      "desc": "智能魔棒 Flood Fill + 边缘保护画笔 Sobel 检测，Worker 并行计算",
+      "tags": ["在线工具","魔棒","边缘检测","Sobel","Web Worker"],
+      "icon": "🧪",
+      "action": "openTool",
+      "path": "knowledge-base/mask-core-algorithms.html"
+    },
+    {
+      "id": "channel-packer",
+      "module": "tool",
+      "craft": "特效",
+      "type": "iframe",
+      "title": "贴图通道打包工具",
+      "desc": "R/G/B/A 四通道自由组合打包，批量处理",
+      "tags": ["在线工具","通道打包","批处理"],
+      "icon": "📦",
+      "action": "openTool",
+      "path": "knowledge-base/channel-packer.html"
+    },
+    {
+      "id": "engine-bridge",
+      "module": "tool",
+      "craft": "技术",
+      "type": "iframe",
+      "title": "Engine Bridge 引擎直连",
+      "desc": "浏览器到 UE/Unity 的双向桥接方案",
+      "tags": ["引擎直连","UE","Unity","Bridge"],
+      "icon": "🔌",
+      "action": "openTool",
+      "path": "knowledge-base/engine-bridge.html"
+    },
+    {
+      "id": "asset-library",
+      "module": "tool",
+      "craft": "技术",
+      "type": "iframe",
+      "title": "标准资产库",
+      "desc": "团队共享标准资产管理与检索",
+      "tags": ["资产库","标准化","检索"],
+      "icon": "📦",
+      "action": "openTool",
+      "path": "knowledge-base/asset-library.html"
+    },
+    {
+      "id": "image-skew-corrector",
+      "module": "tool",
+      "craft": "UI",
+      "type": "iframe",
+      "title": "图片倾斜矫正 (exe下载)",
+      "desc": "Windows 桌面版，四算法融合检测 + 自动矫正 + 批量处理",
+      "tags": ["桌面工具","exe下载","倾斜矫正"],
+      "icon": "📐",
+      "action": "openTool",
+      "path": "knowledge-base/image-skew-corrector.html",
+      "download": "downloads/ImageSkewCorrector.exe"
+    },
+    {
+      "id": "image-skew-corrector-online",
+      "module": "tool",
+      "craft": "UI",
+      "type": "iframe",
+      "title": "图片倾斜矫正 (在线版)",
+      "desc": "多算法融合检测倾斜角度，在线自动矫正",
+      "tags": ["在线工具","倾斜矫正","批量处理"],
+      "icon": "📐",
+      "action": "openTool",
+      "path": "knowledge-base/image-skew-corrector-online.html"
+    },
+    {
+      "id": "game-resource-toolkit",
+      "module": "tool",
+      "craft": "UI",
+      "type": "iframe",
+      "title": "游戏资源工具集 (exe下载)",
+      "desc": "Windows 桌面版，All-in-one 资源管理工具",
+      "tags": ["桌面工具","exe下载","资源检测"],
+      "icon": "🛠️",
+      "action": "openTool",
+      "path": "knowledge-base/game-resource-toolkit.html",
+      "download": "downloads/GameResourceToolkit.exe"
+    },
+    {
+      "id": "game-resource-toolkit-online",
+      "module": "tool",
+      "craft": "UI",
+      "type": "iframe",
+      "title": "游戏资源工具集 (在线版)",
+      "desc": "资源检测 + 图片续排 + 版本对比 + 问题修复",
+      "tags": ["在线工具","资源检测","All-in-one"],
+      "icon": "🛠️",
+      "action": "openTool",
+      "path": "knowledge-base/game-resource-toolkit-online.html"
+    },
+    {
+      "id": "spine-perf-guide",
+      "module": "arsenal",
+      "craft": "角色",
+      "type": "iframe",
+      "title": "Spine 性能红线与排查",
+      "desc": "Spine 动画 10 项红线指标 + 7 大雷区 + 排查 SOP",
+      "tags": ["Spine","性能优化","骨骼动画","排雷"],
+      "icon": "🦴",
+      "action": "openTool",
+      "path": "knowledge-base/spine-perf-guide.html"
+    },
+    {
+      "id": "perf-redline-glossary",
+      "module": "arsenal",
+      "craft": "通用",
+      "type": "iframe",
+      "title": "跨工种黑话速查表",
+      "desc": "Drawcall / Overdraw / 贴图压缩 / 骨骼蒙皮 / 纹理内存 — 5 大高频术语 + 移动端性能红线数值",
+      "tags": ["性能红线","术语速查","Drawcall","Overdraw","排雷"],
+      "icon": "🚦",
+      "action": "openTool",
+      "path": "knowledge-base/perf-redline-glossary.html"
+    },
+    {
+      "id": "accident-troubleshoot",
+      "module": "arsenal",
+      "craft": "通用",
+      "type": "iframe",
+      "title": "典型事故排雷手册",
+      "desc": "包体暴增 / UI 发热掉帧 / 效果不符 / 低端机闪退 / 骨骼鬼畜 — 5 大 Case + 排查 SOP",
+      "tags": ["Troubleshooting","事故复盘","SOP","排雷"],
+      "icon": "🚨",
+      "action": "openTool",
+      "path": "knowledge-base/accident-troubleshoot.html"
+    },
+    {
+      "id": "cross-dept-collab",
+      "module": "arsenal",
+      "craft": "通用",
+      "type": "iframe",
+      "title": "跨部门协作痛点解法",
+      "desc": "策划频繁改需求 / 美术程序还原度扯皮 / 进度死锁 — 3 大经典痛点 + APM 破局思路",
+      "tags": ["沟通技巧","跨部门协作","流程优化","排雷"],
+      "icon": "🤝",
+      "action": "openTool",
+      "path": "knowledge-base/cross-dept-collab.html"
+    },
+    {
+      "id": "cp-outsource",
+      "module": "arsenal",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "CP 外包全流程避坑手册",
+      "desc": "从供应商筛选到交付验收的完整避坑经验总结",
+      "tags": ["外包","避坑","验收","排雷"],
+      "icon": "📋",
+      "action": "openTool",
+      "path": "knowledge-base/cp-outsource.html"
     }
   ]
 }
