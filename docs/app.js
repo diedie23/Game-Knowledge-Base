@@ -60,6 +60,43 @@ var toolData={
 function showLoading(){var b=document.getElementById('loadingBar');b.style.width='0';b.classList.add('on');setTimeout(function(){b.style.width='60%';},50);}
 function hideLoading(){var b=document.getElementById('loadingBar');b.style.width='100%';setTimeout(function(){b.classList.remove('on');b.style.width='0';},300);}
 
+// ═══ 通用折叠/展开工具函数（精确 height 动画）═══
+// 【核心修复】用 JS 精确计算 scrollHeight 控制 height，
+// 替代旧版 CSS max-height 方案。旧方案会导致收起时
+// 从 max-height:2000px 开始计时，前 90% 动画看不到变化，
+// 用户误以为没反应再次点击 → 又展开。
+function toggleTree(el){
+  var container=el.querySelector('.t1-c')||el.querySelector('.t2-c')||el.querySelector('.t3-c');
+  if(!container) return;
+  var isOpen=el.classList.contains('open');
+  if(isOpen){
+    // 收起：先设为当前实际高度，再在下一帧设为 0
+    container.style.height=container.scrollHeight+'px';
+    // 强制回流
+    container.offsetHeight;
+    container.style.height='0';
+    el.classList.remove('open');
+  } else {
+    // 展开：设为 scrollHeight，动画结束后改为 auto
+    el.classList.add('open');
+    container.style.height=container.scrollHeight+'px';
+    var onEnd=function(){
+      container.style.height='auto';
+      container.removeEventListener('transitionend',onEnd);
+    };
+    container.addEventListener('transitionend',onEnd);
+  }
+}
+
+// 程序化展开（不带动画，用于导航时自动展开父级）
+function expandTree(el){
+  if(!el||el.classList.contains('open')) return;
+  var container=el.querySelector('.t1-c')||el.querySelector('.t2-c')||el.querySelector('.t3-c');
+  if(!container) return;
+  el.classList.add('open');
+  container.style.height='auto';
+}
+
 // ═══ Sidebar.json 驱动构建侧边栏 ═══
 function buildSidebar(data){
   sidebarData=data;
@@ -74,15 +111,18 @@ function buildSidebar(data){
     totalItems+=itemCount;
 
     var colorVar=cat.color||'accent';
-    html+='<div class="t1'+(cat.groups.length&&itemCount?' open':'')+'" id="'+cat.id+'">';
-    html+='<div class="t1-h" onclick="this.parentElement.classList.toggle(\'open\')"><span class="chv">▶</span><span class="ci" style="background:var(--'+colorVar+'-bg);color:var(--'+colorVar+')">'+cat.icon+'</span><span class="cl">'+cat.name+'</span><span class="cc">'+itemCount+'</span></div>';
+    // 【修复】默认不带 open，初始高度为 0（由 CSS height:0 控制）
+    html+='<div class="t1" id="'+cat.id+'">';
+    // 【修复】onclick 改为调用 toggleTree，不再直接 classList.toggle
+    html+='<div class="t1-h" onclick="toggleTree(this.parentElement)"><span class="chv">▶</span><span class="ci" style="background:var(--'+colorVar+'-bg);color:var(--'+colorVar+')">'+cat.icon+'</span><span class="cl">'+cat.name+'</span><span class="cc">'+itemCount+'</span></div>';
     html+='<div class="t1-c">';
 
     if(!cat.groups.length){
-      html+='<button class="leaf" style="color:var(--dim);cursor:default;font-style:italic;font-size:11px" disabled>📝 待补充...</button>';
+      html+='<button class="leaf" style="color:var(--dim);cursor:default;font-style:italic;font-size:12px" disabled>📝 待补充...</button>';
     } else {
       cat.groups.forEach(function(grp){
-        html+='<div class="t2"><div class="t2-h" onclick="this.parentElement.classList.toggle(\'open\')"><span class="chv">▶</span><span class="si">'+grp.icon+'</span><span class="sl">'+grp.name+'</span></div><div class="t2-c">';
+        // 【修复】t2 同样使用 toggleTree
+        html+='<div class="t2"><div class="t2-h" onclick="toggleTree(this.parentElement)"><span class="chv">▶</span><span class="si">'+grp.icon+'</span><span class="sl">'+grp.name+'</span></div><div class="t2-c">';
         if(grp.items) grp.items.forEach(function(item){
           // 注册页面
           pageRegistry[item.id]={type:item.type,file:item.file||'',download:item.download||'',badge:item.badge||'',catId:cat.id};
@@ -97,7 +137,23 @@ function buildSidebar(data){
   });
 
   nav.innerHTML=html;
-  // 统计栏已改为固定百分比展示（30%规范常识 / 30%提效工具 / 40%排雷武器库），无需动态计算
+
+  // 【恢复数据统计】动态计算文档数、工具数、分类数并显示
+  var docCount=0,toolCount=0;
+  for(var k in pageRegistry){
+    if(pageRegistry[k].badge==='文档'||pageRegistry[k].type==='md') docCount++;
+    if(pageRegistry[k].type==='tool'||pageRegistry[k].download) toolCount++;
+  }
+  var toolDataCount=Object.keys(toolData).length;
+  var numEls=document.querySelectorAll('.stat .num');
+  // 统计栏显示：规范常识 / 提效工具 / 排雷武器库 — 带实际计数
+  if(numEls[0]) numEls[0].textContent=docCount+' 篇';
+  if(numEls[1]) numEls[1].textContent=(toolDataCount+Object.keys(pageRegistry).filter(function(k){return pageRegistry[k].download;}).length)+' 个';
+  if(numEls[2]) numEls[2].textContent=data.categories.length+' 类';
+
+  // 默认展开第一个有内容的分类
+  var firstCat=nav.querySelector('.t1');
+  if(firstCat) expandTree(firstCat);
 }
 
 // ═══ Core Navigation ═══
@@ -223,19 +279,22 @@ function updateNavActive(pageId,btn){
   if(pageId==='home'){if(nh)nh.classList.add('active');return;}
   if(btn&&btn.classList.contains('leaf')){btn.classList.add('active');}
   else{document.querySelectorAll('.leaf[data-page]').forEach(function(n){if(n.dataset.page===pageId)n.classList.add('active');});}
-  // Auto-expand parents
+  // Auto-expand parents（使用 expandTree 无动画展开）
   var reg=pageRegistry[pageId];
-  if(reg&&reg.catId){var cat=document.getElementById(reg.catId);if(cat&&!cat.classList.contains('open'))cat.classList.add('open');}
+  if(reg&&reg.catId){var cat=document.getElementById(reg.catId);expandTree(cat);}
   var al=document.querySelector('.leaf.active');
   if(al){
-    var l2=al.closest('.t2');if(l2&&!l2.classList.contains('open'))l2.classList.add('open');
-    var l3=al.closest('.t3');if(l3&&!l3.classList.contains('open'))l3.classList.add('open');
+    var l2=al.closest('.t2');if(l2) expandTree(l2);
+    var l3=al.closest('.t3');if(l3) expandTree(l3);
   }
 }
 
 // ═══ TOC 四级大纲 (h2 + h3 + h4) ═══
 function collapseAllToc(){
-  document.querySelectorAll('.toc-box').forEach(function(t){t.classList.remove('open');t.innerHTML='';});
+  document.querySelectorAll('.toc-box').forEach(function(t){
+    t.style.height='0';
+    t.innerHTML='';
+  });
 }
 
 function buildToc(docId){
@@ -257,7 +316,10 @@ function buildToc(docId){
     html+='<button class="'+cls+'" data-anchor="'+id+'" onclick="tocScrollTo(\''+id+'\')">'+h.textContent+'</button>';
   });
   tc.innerHTML=html;
-  tc.classList.add('open');
+  // 精确展开 TOC
+  tc.style.height=tc.scrollHeight+'px';
+  var onEnd=function(){tc.style.height='auto';tc.removeEventListener('transitionend',onEnd);};
+  tc.addEventListener('transitionend',onEnd);
 }
 
 function buildIframeToc(pageId){
@@ -280,7 +342,10 @@ function buildIframeToc(pageId){
       html+='<button class="'+cls+'" data-iframe-anchor="'+h.id+'" onclick="iframeTocScrollTo(\''+h.id+'\')">'+h.textContent+'</button>';
     });
     tc.innerHTML=html;
-    tc.classList.add('open');
+    // 精确展开 TOC
+    tc.style.height=tc.scrollHeight+'px';
+    var onEnd=function(){tc.style.height='auto';tc.removeEventListener('transitionend',onEnd);};
+    tc.addEventListener('transitionend',onEnd);
   }catch(e){console.log('Cannot access iframe for TOC:',e);}
 }
 
