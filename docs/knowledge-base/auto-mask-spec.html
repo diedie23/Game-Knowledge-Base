@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自动 Mask 通道生成器 — 工业化规范文档</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:26px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:11px;background:var(--accent);color:#fff;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+
+/* TOC */
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}
+.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}
+.toc a:hover{text-decoration:underline}
+
+/* Sections */
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:8px}
+.section h3{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section h4{font-size:13px;color:var(--accent2);margin:12px 0 6px;font-weight:600}
+.section p{font-size:13px;margin-bottom:10px}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+
+/* Alert boxes */
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+
+/* Code */
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:12px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+
+/* Flow chart */
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;text-align:center;min-width:100px}
+.flow-node strong{display:block;color:var(--heading);font-size:12px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:10px}
+.flow-arrow{color:var(--accent);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.tool{border-color:var(--accent2);background:rgba(167,139,250,.05)}
+
+/* Do/Don't cards */
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:12px;line-height:1.7}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:13px}
+.dd-card .img-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:6px;padding:20px;text-align:center;color:var(--dim);font-size:11px;margin:8px 0}
+
+/* FAQ */
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:12px;line-height:1.8;padding-left:28px}
+
+/* Badge */
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}
+
+/* Abbreviation dict */
+.abbr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;margin:12px 0}
+.abbr-item{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--card);border-radius:6px;font-size:11px}
+.abbr-item code{font-size:11px;min-width:50px}
+.abbr-item .zh{color:var(--dim)}
+
+/* Footer */
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<!-- ═══ HEADER ═══ -->
+<div class="doc-header">
+  <h1>🤖 自动 Mask 通道生成器 <span class="ver">工业化规范 v1.0</span></h1>
+  <div class="subtitle">Auto Mask Channel Generator — Industrial Pipeline Specification</div>
+  <div class="meta">
+    <span>📋 适用工具版本：v4.0 ~ v4.1</span>
+    <span>👤 维护：TA 组</span>
+    <span>📅 2026-04-02</span>
+  </div>
+</div>
+
+<!-- ═══ TOC ═══ -->
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ol>
+    <li><a href="#sec1">性能红线与规格限制 (Performance Budgets)</a></li>
+    <li><a href="#sec2">资产命名与目录规范 (Naming Conventions)</a></li>
+    <li><a href="#sec3">图文红黑榜 (Do's & Don'ts)</a></li>
+    <li><a href="#sec4">标准作业流程 SOP (Workflow)</a></li>
+    <li><a href="#sec5">常见问题排查 (FAQ)</a></li>
+  </ol>
+</div>
+
+<!-- ═════════════════════════════════════════════ -->
+<!--  §1  性能红线与规格限制                       -->
+<!-- ═════════════════════════════════════════════ -->
+<div class="section" id="sec1">
+<h2>1️⃣ 性能红线与规格限制</h2>
+
+<div class="alert alert-red">
+  <strong>⛔ 红线原则：</strong>Mask 贴图的任何一条边 <strong>不得超过 4096px</strong>，推荐控制在 <strong>2048×2048</strong> 以内。超过此限制将导致部分移动端 GPU 无法采样，引擎加载时间指数增长。
+</div>
+
+<h3>1.1 贴图尺寸硬性指标</h3>
+<table>
+  <tr><th>指标</th><th>推荐值</th><th>硬性上限</th><th>说明</th></tr>
+  <tr><td>单张 Mask 贴图</td><td><strong>1024×1024</strong></td><td>2048×2048</td><td>角色 Mask 通常 512~1024 即可满足精度</td></tr>
+  <tr><td>Atlas 合图尺寸</td><td><strong>2048×2048</strong></td><td>4096×4096</td><td>多角色合图不得超 4096，建议分页</td></tr>
+  <tr><td>尺寸对齐</td><td>POT 或 4 的倍数</td><td>—</td><td>非 POT 纹理在 OpenGL ES 2.0 设备不支持 mip；建议所有输出为 <strong>Power-of-Two</strong> 或至少 4 的整数倍</td></tr>
+  <tr><td>工程文件 Base64 缓存</td><td>&lt;2MB</td><td>&lt;5MB</td><td>超过 5MB 的原图不会内嵌到 config.json，需手动配合上传</td></tr>
+</table>
+
+<h3>1.2 通道使用原则与内存预算</h3>
+
+<div class="alert alert-blue">
+  <strong>💡 关键认知：</strong>在引擎中，一张 <strong>RGBA 32bit</strong> 贴图占用的 VRAM = 宽 × 高 × 4 字节。一张 <strong>灰度 8bit（单通道）</strong> 仅占 1/4。但 GPU 实际以 4 通道对齐采样，所以 <strong>将 4 个 Mask 合并到 RGBA 4 个通道 = 1 张贴图采样 = 最优方案</strong>。
+</div>
+
+<table>
+  <tr><th>格式</th><th>内存占用 (1024²)</th><th>采样次数</th><th>适用场景</th></tr>
+  <tr><td>RGBA 32bit（4 通道合一）</td><td><strong>4 MB</strong></td><td>1 次</td><td>✅ <strong>推荐</strong>：最多编码 4 组独立 Mask</td></tr>
+  <tr><td>RGB 24bit（3 通道）</td><td>3 MB<sup>*</sup></td><td>1 次</td><td>引擎通常仍按 RGBA 存储，α=1；不省内存</td></tr>
+  <tr><td>Grayscale 8bit × 4 张</td><td>4 × 1 MB = <strong>4 MB</strong></td><td>4 次</td><td>❌ 采样数翻 4 倍，仅调试时使用</td></tr>
+  <tr><td>BC7 / ASTC 压缩</td><td><strong>~1 MB</strong></td><td>1 次</td><td>✅ 引擎推荐的最终格式</td></tr>
+</table>
+<p style="font-size:11px;color:var(--dim)">* 实际 GPU 将 RGB 自动填充为 RGBA，因此 24bit 不省 VRAM。</p>
+
+<h3>1.3 通道分配规范</h3>
+<table>
+  <tr><th>通道</th><th>建议用途</th><th>工具模式</th><th>注意事项</th></tr>
+  <tr><td style="color:#f66;font-weight:700">R 通道</td><td>换色区域 1（如头发 / 主色）</td><td>吸色提取（HSV 色相匹配）</td><td>与 G/B 互斥：winner-take-all</td></tr>
+  <tr><td style="color:#6f6;font-weight:700">G 通道</td><td>换色区域 2（如衣服 / 次色）</td><td>吸色提取（HSV 色相匹配）</td><td>与 R/B 互斥</td></tr>
+  <tr><td style="color:#66f;font-weight:700">B 通道</td><td>换色区域 3（如配饰 / 辅色）</td><td>吸色提取（HSV 色相匹配）</td><td>与 R/G 互斥</td></tr>
+  <tr><td style="color:#ccc;font-weight:700">A 通道</td><td>特殊用途（Alpha / 描边 / 第4区域）</td><td>3 种来源可选</td><td>不参与 RGB 互斥逻辑</td></tr>
+</table>
+
+<div class="alert alert-yellow">
+  <strong>⚠️ 互斥规则：</strong>工具在生成时对 R/G/B 三通道实施<strong>逐像素互斥</strong>（Float32 精度比较后取最大值通道，其余归零）。这意味着任意像素在最终输出中 <strong>最多只有一个 RGB 通道有值</strong>。请勿依赖同一像素的多通道混合。
+</div>
+
+<h3>1.4 算法参数推荐值</h3>
+<table>
+  <tr><th>参数</th><th>推荐范围</th><th>默认值</th><th>说明</th></tr>
+  <tr><td>色相容差 (Hue Tolerance)</td><td>15° ~ 30°</td><td>±20°</td><td>值太大导致跨色区侵入，值太小遗漏渐变区</td></tr>
+  <tr><td>饱和度下限 (Sat Min)</td><td>10% ~ 25%</td><td>15%</td><td>低饱和度像素（灰/白/黑）不应参与颜色匹配</td></tr>
+  <tr><td>边缘平滑 (Edge Smooth)</td><td>1 ~ 3px</td><td>2px</td><td>Box blur 半径；0 = 锯齿边缘，>3 = 通道间出血</td></tr>
+  <tr><td>A 通道模式</td><td>按需选择</td><td>吸色提取</td><td><code>pick</code> / <code>alpha</code> / <code>stroke</code>，引擎如需原图 alpha 用 <code>alpha</code></td></tr>
+</table>
+
+</div>
+
+<!-- ═════════════════════════════════════════════ -->
+<!--  §2  资产命名与目录规范                       -->
+<!-- ═════════════════════════════════════════════ -->
+<div class="section" id="sec2">
+<h2>2️⃣ 资产命名与目录规范</h2>
+
+<h3>2.1 Mask 贴图命名公式</h3>
+<pre>
+T_[类型]_[角色名]_[部位]_[后缀].[ext]
+
+  类型     = Mask | Color | Normal | ...
+  角色名   = CharID (与原画/模型命名一致)
+  部位     = Body | Head | Hair | Weapon | ...
+  后缀     = RGBA | R | G | B | A | Preview
+  ext      = png | tga
+
+示例：
+  T_Mask_Hero01_Body_RGBA.png      ← RGBA 四通道合成
+  T_Mask_Hero01_Body_R.png         ← 仅 R 通道灰度图（调试用）
+  T_Mask_Hero01_Body_Preview.png   ← 叠加预览图（不入引擎）
+</pre>
+
+<h3>2.2 工具内命名模板变量</h3>
+<p>工具内置命名模板引擎，支持以下变量实时替换：</p>
+<table>
+  <tr><th>变量</th><th>含义</th><th>示例值</th></tr>
+  <tr><td><code>{Project}</code></td><td>项目代号</td><td>MoonRPG</td></tr>
+  <tr><td><code>{CharID}</code></td><td>角色 ID</td><td>Hero01</td></tr>
+  <tr><td><code>{Channel}</code></td><td>通道名</td><td>RGBA / R / G / B / A</td></tr>
+  <tr><td><code>{Date}</code></td><td>日期</td><td>2026-04-02</td></tr>
+  <tr><td><code>{W}</code></td><td>图片宽度</td><td>1024</td></tr>
+  <tr><td><code>{H}</code></td><td>图片高度</td><td>1024</td></tr>
+</table>
+<p><strong>推荐模板：</strong><code>T_Mask_{CharID}_{Channel}</code></p>
+
+<h3>2.3 目录结构规范（UE5 / Unity 通用）</h3>
+<pre>
+Content/
+└── Characters/
+    └── Hero01/
+        ├── Textures/
+        │   ├── T_Mask_Hero01_Body_RGBA.png     ← 入引擎的合成 Mask
+        │   ├── T_Color_Hero01_Body_D.png       ← Diffuse
+        │   └── T_Normal_Hero01_Body_N.png      ← Normal
+        ├── Materials/
+        │   └── M_Hero01_Body.uasset            ← 引用 Mask 的材质
+        └── Source/
+            ├── config.json                      ← 工程恢复文件（不入引擎）
+            └── T_Mask_Hero01_Body_Preview.png   ← 叠加预览（不入引擎）
+</pre>
+
+<div class="alert alert-green">
+  <strong>✅ 规则：</strong>仅 <code>*_RGBA.png</code> 导入引擎；<code>config.json</code>、<code>*_Preview.png</code>、单通道灰度图均归档到 <code>Source/</code> 目录，作为工程恢复资产保留。
+</div>
+
+<h3>2.4 常用缩写词典</h3>
+<div class="abbr-grid">
+  <div class="abbr-item"><code>T_</code> Texture 贴图 <span class="zh">（纹理前缀）</span></div>
+  <div class="abbr-item"><code>M_</code> Material 材质 <span class="zh">（材质前缀）</span></div>
+  <div class="abbr-item"><code>MI_</code> Material Instance <span class="zh">（材质实例）</span></div>
+  <div class="abbr-item"><code>_D</code> Diffuse / Base Color <span class="zh">（漫反射）</span></div>
+  <div class="abbr-item"><code>_N</code> Normal Map <span class="zh">（法线贴图）</span></div>
+  <div class="abbr-item"><code>_Mask</code> Mask 蒙版 <span class="zh">（通道蒙版）</span></div>
+  <div class="abbr-item"><code>_RGBA</code> 四通道合成 <span class="zh">（Red+Green+Blue+Alpha）</span></div>
+  <div class="abbr-item"><code>_ORM</code> Occlusion/Roughness/Metallic <span class="zh">（通道合一）</span></div>
+  <div class="abbr-item"><code>POT</code> Power of Two <span class="zh">（2的幂次方尺寸）</span></div>
+  <div class="abbr-item"><code>BC7</code> Block Compression 7 <span class="zh">（DX11+ 压缩格式）</span></div>
+  <div class="abbr-item"><code>ASTC</code> Adaptive Scalable TC <span class="zh">（移动端压缩）</span></div>
+  <div class="abbr-item"><code>HSV</code> Hue/Saturation/Value <span class="zh">（色相/饱和度/明度）</span></div>
+</div>
+</div>
+
+<!-- ═════════════════════════════════════════════ -->
+<!--  §3  图文红黑榜                               -->
+<!-- ═════════════════════════════════════════════ -->
+<div class="section" id="sec3">
+<h2>3️⃣ 图文红黑榜 (Do's & Don'ts)</h2>
+
+<!-- Case 1 -->
+<h3>案例一：边缘半透明导致 Mask 混合错误</h3>
+<div class="dd-grid">
+  <div class="dd-card dd-dont">
+    <h4 style="color:var(--red)">❌ Don't — 抗锯齿边缘未处理</h4>
+    <p>原画导出时保留了角色轮廓的 <strong>半透明抗锯齿像素（Alpha 10~200）</strong>，这些像素的色相不稳定，被工具识别为两个区域的交叉匹配。</p>
+    <p><strong>引擎后果：</strong></p>
+    <ul>
+      <li>Mask 边缘出现 <strong>RGB 通道相互渗透</strong>（如红色头发区域边缘泛绿）</li>
+      <li>材质换色时角色轮廓出现 <strong>"鬼影色带"</strong>，在浅色背景上尤为明显</li>
+      <li>压缩后（BC7/ASTC）半透明区域 <strong>色彩偏移加剧</strong></li>
+    </ul>
+    <div class="img-placeholder">📷 配图建议：截取一张 Mask R 通道灰度图，放大边缘 400%，标注半透明像素呈现灰色渐变而非清晰二值化的区域</div>
+  </div>
+  <div class="dd-card dd-do">
+    <h4 style="color:var(--green)">✅ Do — 正确做法</h4>
+    <p>原画导出前确保角色内部像素 <strong>Alpha = 255（全不透明）</strong>，仅保留最外层 1px 抗锯齿。</p>
+    <p>在工具中：</p>
+    <ul>
+      <li>设置 <strong>饱和度下限 ≥ 15%</strong>，过滤掉低饱和度的半透明像素</li>
+      <li>透明度阈值自动跳过 <code>Alpha &lt; 10</code> 的像素</li>
+      <li>生成后使用 <strong>边缘平滑 = 2px</strong>，Box blur 柔化过渡</li>
+      <li>导出后在引擎中将 Mask 纹理设为 <strong>sRGB = OFF</strong>，<strong>Filter = Nearest</strong>（或 Bilinear 但需配合 step/smoothstep）</li>
+    </ul>
+    <div class="img-placeholder">📷 配图建议：同一区域 Mask 放大图，边缘呈清晰的黑→白二值过渡，无灰色渗透</div>
+  </div>
+</div>
+
+<!-- Case 2 -->
+<h3>案例二：RGB 通道互斥逻辑被忽视</h3>
+<div class="dd-grid">
+  <div class="dd-card dd-dont">
+    <h4 style="color:var(--red)">❌ Don't — 手绘 Mask 通道重叠</h4>
+    <p>美术在 Photoshop 中手绘 Mask，R 通道画了头发区域 0.8，G 通道在相同像素也画了 0.6。两个通道 <strong>在同一像素同时有值</strong>。</p>
+    <p><strong>引擎后果：</strong></p>
+    <ul>
+      <li>材质 Shader 中 <code>lerp(ColorA, ColorB, mask.r)</code> 和 <code>lerp(ColorB, ColorC, mask.g)</code> 同时生效，导致 <strong>颜色被双重叠加</strong></li>
+      <li>换色后该区域颜色 <strong>既不是方案 A 也不是方案 B</strong>，呈现脏混色</li>
+      <li>QA 难以定位问题根源，反复返工</li>
+    </ul>
+    <div class="img-placeholder">📷 配图建议：在 Photoshop 中分别显示 R/G 通道，圈出两者重叠的区域，并截取引擎中换色后的脏色结果对比</div>
+  </div>
+  <div class="dd-card dd-do">
+    <h4 style="color:var(--green)">✅ Do — 使用工具自动互斥</h4>
+    <p>使用 Auto Mask 工具的 <strong>逐像素互斥逻辑</strong>，自动确保：</p>
+    <ul>
+      <li>每个像素的 R/G/B 中 <strong>最多只有一个通道有值</strong>（winner-take-all）</li>
+      <li>Float32 精度计算避免量化误差</li>
+      <li>手动微调时使用笔刷的 <strong>画笔/橡皮模式</strong>，先擦再画，不会产生重叠</li>
+      <li>最终导出前可切换到 R/G/B 单通道灰度预览逐一检查</li>
+    </ul>
+    <div class="img-placeholder">📷 配图建议：工具预览界面截图，分别展示 R（红通道灰度）、G（绿通道灰度）、B（蓝通道灰度）三张图，标注"同一像素只有一个通道有值"</div>
+  </div>
+</div>
+</div>
+
+<!-- ═════════════════════════════════════════════ -->
+<!--  §4  标准作业流程 SOP                         -->
+<!-- ═════════════════════════════════════════════ -->
+<div class="section" id="sec4">
+<h2>4️⃣ 标准作业流程 (SOP)</h2>
+
+<h3>4.1 完整流程总览</h3>
+<div class="flow">
+  <div class="flow-node start"><strong>A. 原画 PSD</strong><span class="sub">角色设计稿</span></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node"><strong>B. PSD 整理</strong><span class="sub">图层合并/Alpha清理</span></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node"><strong>C. 导出 PNG</strong><span class="sub">无压缩/Alpha=255</span></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node tool"><strong>D. Auto Mask 工具</strong><span class="sub">吸色→分配→微调→生成</span></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node"><strong>E. QA 自检</strong><span class="sub">通道检查/边缘检查</span></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node"><strong>F. 导出 ZIP</strong><span class="sub">RGBA + config.json</span></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node"><strong>G. 引擎导入</strong><span class="sub">sRGB=OFF / 压缩设置</span></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node end"><strong>H. 材质应用</strong><span class="sub">Shader 采样 Mask</span></div>
+</div>
+
+<h3>4.2 各节点交付标准</h3>
+<table>
+  <tr><th>节点</th><th>负责人</th><th>交付物</th><th>验收标准</th></tr>
+  <tr>
+    <td><strong>A → B<br>PSD 整理</strong></td>
+    <td>角色原画</td>
+    <td>合并后的 PSD</td>
+    <td>① 换色区域对应的图层颜色饱和度 ≥ 30%<br>② 角色内部像素 Alpha=255<br>③ 无隐藏图层残留</td>
+  </tr>
+  <tr>
+    <td><strong>B → C<br>导出 PNG</strong></td>
+    <td>角色原画</td>
+    <td>PNG 文件</td>
+    <td>① 无 JPEG 压缩痕迹<br>② 尺寸为 POT 或 4 的倍数<br>③ 文件名符合 <code>T_Color_{CharID}_Body_D.png</code></td>
+  </tr>
+  <tr>
+    <td><strong>C → D<br>Mask 生成</strong></td>
+    <td>TA / 美术</td>
+    <td>RGBA Mask PNG</td>
+    <td>① R/G/B 互斥（同像素仅一个通道有值）<br>② 色区边缘平滑无锯齿<br>③ A 通道模式正确</td>
+  </tr>
+  <tr>
+    <td><strong>D → E<br>自检</strong></td>
+    <td>TA / 美术</td>
+    <td>—</td>
+    <td>① 切换到 R/G/B/A 单通道灰度逐一检查<br>② 打开"显示蒙版"模式确认区域覆盖正确<br>③ 检查叠加预览图颜色过渡</td>
+  </tr>
+  <tr>
+    <td><strong>E → F<br>导出</strong></td>
+    <td>TA / 美术</td>
+    <td>ZIP 包</td>
+    <td>① 包含 config.json（支持工程恢复）<br>② 命名符合项目规范<br>③ 预览图包含在内</td>
+  </tr>
+  <tr>
+    <td><strong>F → G<br>引擎导入</strong></td>
+    <td>TA</td>
+    <td>引擎内纹理资产</td>
+    <td>① <strong>sRGB = OFF</strong>（Mask 为线性数据）<br>② 压缩格式 = BC7（PC）/ ASTC 4×4（Mobile）<br>③ Mip = 不生成 或仅 1~2 级<br>④ Filter = Bilinear</td>
+  </tr>
+  <tr>
+    <td><strong>G → H<br>材质应用</strong></td>
+    <td>TA</td>
+    <td>材质/材质实例</td>
+    <td>① Mask.R/.G/.B 对应正确的换色区域<br>② <code>step()</code> 或 <code>smoothstep()</code> 做阈值化<br>③ 最少支持 3 套配色方案验证</td>
+  </tr>
+</table>
+
+<h3>4.3 工程恢复流程（非破坏性工作流）</h3>
+<div class="flow">
+  <div class="flow-node start"><strong>导入 config.json</strong><span class="sub">拖入工具或点击"导入工程"</span></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node"><strong>自动识别格式</strong><span class="sub">校验 tool / format / version</span></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node"><strong>加载原图</strong><span class="sub">Base64 内嵌 或 手动选择</span></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node"><strong>恢复完整状态</strong><span class="sub">通道分配/HSV参数/命名</span></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-node end"><strong>自动重新生成</strong><span class="sub">一键还原到上次导出状态</span></div>
+</div>
+
+</div>
+
+<!-- ═════════════════════════════════════════════ -->
+<!--  §5  常见问题排查 FAQ                         -->
+<!-- ═════════════════════════════════════════════ -->
+<div class="section" id="sec5">
+<h2>5️⃣ 常见问题排查 (FAQ)</h2>
+
+<div class="faq-item">
+  <div class="faq-q"><span>Q1</span> 导入引擎后 Mask 颜色偏暗，换色效果不对？</div>
+  <div class="faq-a">
+    <p><strong>根因：</strong>引擎将 Mask 纹理标记为 <strong>sRGB = ON</strong>（默认），导致 Gamma 校正被重复应用。Mask 中 R=200 的像素在 Shader 中读取到的值 ≈ 0.577 而非预期的 0.784。</p>
+    <p><strong>解决：</strong></p>
+    <ul>
+      <li><strong>UE5：</strong>纹理属性 → sRGB 取消勾选 → Compression = <code>Masks (no sRGB)</code></li>
+      <li><strong>Unity：</strong>Texture Import Settings → sRGB (Color Texture) <strong>取消勾选</strong></li>
+      <li><strong>验证：</strong>在材质中采样后输出到 Emissive 查看，数值 128 应显示为中灰（~0.5）而非深灰</li>
+    </ul>
+  </div>
+</div>
+
+<div class="faq-item">
+  <div class="faq-q"><span>Q2</span> Mask 通道之间出现"出血"——R 区域边缘有微弱的 G 通道值？</div>
+  <div class="faq-a">
+    <p><strong>根因分析（按概率排序）：</strong></p>
+    <ol>
+      <li><strong>边缘平滑值过大（>3px）：</strong>Box blur 在通道互斥之后执行时可能溢出。工具 v4.1 已将 blur 在互斥前执行，互斥后不再二次 blur</li>
+      <li><strong>原图抗锯齿区域色相漂移：</strong>半透明像素的 RGB 值不稳定，HSV 色相计算偏差。降低饱和度下限会加剧此问题</li>
+      <li><strong>引擎纹理压缩伪影：</strong>BC1/DXT1 压缩对低值通道量化误差大。改用 <code>BC7</code>（PC）或 <code>ASTC 4×4</code>（Mobile）</li>
+    </ol>
+    <p><strong>排查步骤：</strong></p>
+    <pre>
+1. 在工具中切换到 G 通道灰度预览，检查 R 区域边缘是否有灰色
+   → 有：调低 Edge Smooth 到 1px，或使用笔刷橡皮擦除
+   → 无：问题在引擎端
+2. 引擎中将压缩改为 Uncompressed，重新检查
+   → 消失：换用 BC7 / ASTC
+   → 仍在：检查 Shader 中是否有跨通道操作（如 mask.r + mask.g）</pre>
+  </div>
+</div>
+
+<div class="faq-item">
+  <div class="faq-q"><span>Q3</span> 同事的 config.json 导入后颜色区域全丢了？</div>
+  <div class="faq-a">
+    <p><strong>根因：</strong>config.json 中存储的是 <strong>HSV 色相匹配参数</strong>（色相角度、容差、饱和度下限），而非像素坐标蒙版。如果原图不匹配（分辨率不同、颜色被修改过），恢复后自动生成的 Mask 会与预期不同。</p>
+    <p><strong>解决：</strong></p>
+    <ul>
+      <li>确保用 <strong>同一张原图</strong> 恢复。config.json 中的 <code>size</code> 字段记录了原始尺寸，可作比对</li>
+      <li>如果原图 <5MB，工具会自动将 Base64 内嵌到 config.json，恢复时无需再提供原图</li>
+      <li>如果原图 >5MB（如 4K 素材），需要将原图和 config.json <strong>放在同一个 ZIP 包 / 同一目录</strong> 一起归档</li>
+      <li>恢复后如有微调需求，直接在工具中修改并重新导出即可，不需要从头开始</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<div class="doc-footer">
+  <p>📋 Auto Mask 通道生成器 — 工业化规范文档 v1.0</p>
+  <p>本文档适配工具版本 v4.0 ~ v4.1 · 由 TA 组维护 · 最后更新 2026-04-02</p>
+</div>
+
+</div>
+</body>
+</html>
