@@ -13,7 +13,8 @@
         {"id": "auto-mask", "type": "tool", "title": "自动 Mask 生成器", "desc": "LAB色彩空间聚类，一键生成换色遮罩图", "tags": ["在线工具","自动验算"], "action": "openTool", "path": "knowledge-base/auto-mask.html"},
         {"id": "mask-tool", "type": "tool", "title": "Mask 手动编辑器", "desc": "画笔绘制 RGBA 换色遮罩图", "tags": ["在线工具","画笔绘制"], "action": "openTool", "path": "knowledge-base/mask-tool.html"},
         {"id": "spine-split", "type": "tool", "title": "Spine 拆分工具", "desc": "选区拆分各部件，自动拓扑延展", "tags": ["在线工具","选区拆分","拓扑延展"], "action": "openTool", "path": "knowledge-base/spine-split.html"},
-        {"id": "mask-core-algorithms", "type": "tool", "title": "Mask 核心算法演示", "desc": "智能魔棒Flood Fill + 边缘保护画笔Sobel检测，Worker并行计算", "tags": ["在线工具","魔棒","边缘检测","Sobel","Web Worker"], "action": "openTool", "path": "knowledge-base/mask-core-algorithms.html"}
+        {"id": "mask-core-algorithms", "type": "tool", "title": "Mask 核心算法演示", "desc": "智能魔棒Flood Fill + 边缘保护画笔Sobel检测，Worker并行计算", "tags": ["在线工具","魔棒","边缘检测","Sobel","Web Worker"], "action": "openTool", "path": "knowledge-base/mask-core-algorithms.html"},
+        {"id": "spine-perf-guide", "type": "doc", "title": "Spine 性能红线与排查", "desc": "Spine 动画 10 项红线指标 + 7 大雷区 + 排查 SOP", "tags": ["Spine","性能优化","骨骼动画","排雷"], "action": "openTool", "path": "knowledge-base/spine-perf-guide.html"}
       ]
     },
     {
@@ -40,6 +41,17 @@
       "items": [
         {"id": "cp-management", "type": "doc", "title": "CP 外包管理手册", "desc": "从需求下发到结算的完整外包管理流程", "tags": ["外包","验收","流程","CP评级"], "action": "openTool", "path": "knowledge-base/cp-management.html"},
         {"id": "game-art-pipeline", "type": "doc", "title": "游戏美术流程总结", "desc": "轻度2D/重度3D/二次元手游的美术流程对比", "tags": ["2D","3D","二次元","流程"], "action": "openTool", "path": "knowledge-base/game-art-pipeline.md"}
+      ]
+    },
+    {
+      "id": "apm-weapons",
+      "name": "APM 武器库",
+      "icon": "⚔️",
+      "color": "red",
+      "items": [
+        {"id": "perf-redline-glossary", "type": "doc", "title": "跨工种黑话速查表", "desc": "Drawcall / Overdraw / 贴图压缩 / 骨骼蒙皮 / 纹理内存 — 5 大高频术语 + 移动端性能红线数值", "tags": ["性能红线","术语速查","Drawcall","Overdraw","排雷"], "action": "openTool", "path": "knowledge-base/perf-redline-glossary.html"},
+        {"id": "accident-troubleshoot", "type": "doc", "title": "典型事故排雷手册", "desc": "包体暴增 / UI 发热掉帧 / 效果不符 / 低端机闪退 / 骨骼鬼畜 — 5 大 Case + 排查 SOP", "tags": ["Troubleshooting","事故复盘","SOP","排雷"], "action": "openTool", "path": "knowledge-base/accident-troubleshoot.html"},
+        {"id": "cross-dept-collab", "type": "doc", "title": "跨部门协作痛点解法", "desc": "策划频繁改需求 / 美术程序还原度扯皮 / 进度死锁 — 3 大经典痛点 + APM 破局思路", "tags": ["沟通技巧","跨部门协作","流程优化","排雷"], "action": "openTool", "path": "knowledge-base/cross-dept-collab.html"}
       ]
     }
   ]
