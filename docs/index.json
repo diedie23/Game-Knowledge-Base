@@ -236,18 +236,6 @@
       "path": "knowledge-base/engine-bridge.html"
     },
     {
-      "id": "asset-library",
-      "module": "tool",
-      "craft": "技术",
-      "type": "iframe",
-      "title": "标准资产库",
-      "desc": "团队共享标准资产管理与检索",
-      "tags": ["资产库","标准化","检索"],
-      "icon": "📦",
-      "action": "openTool",
-      "path": "knowledge-base/asset-library.html"
-    },
-    {
       "id": "image-skew-corrector",
       "module": "tool",
       "craft": "UI",
