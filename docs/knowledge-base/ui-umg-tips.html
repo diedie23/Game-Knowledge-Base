@@ -411,91 +411,109 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <strong>✅ 小技巧</strong>：在 Prompt 末尾附加一句"<strong>请确保在 1920×1080 和 2560×1080 两种分辨率下均布局正确</strong>"，可以有效提醒 AI 关注超宽屏适配，避免元素跑到屏幕外。
   </div>
 
-  <!-- 7.6 满分 Prompt 模板 -->
-  <h3>7.6 满分 Prompt 模板示例</h3>
+  <!-- 7.6 自然语言 Prompt 示例 -->
+  <h3>7.6 自然语言 Prompt 示例（推荐写法）</h3>
 
   <div class="alert alert-blue">
-    <strong>📋 以下是一个结构化 Prompt 的标准模板</strong>，展示了如何将上述 6 大维度融合到一段可直接使用的 Prompt 中。目标：生成一个带有标题、关闭按钮和物品列表的通用弹窗 <code>WBP_CommonPopUp</code>。
+    <strong>📋 核心理念：用"人话"描述界面</strong>。你不需要手写完整的树状结构和锚点参数——只要把"<strong>长什么样</strong>"和"<strong>怎么排布</strong>"说清楚，AI 就能准确生成 UMG 界面。以下 3 个示例覆盖了最常见的游戏界面类型，可直接复制使用。
   </div>
 
+  <h4>示例 ① 通用确认弹窗</h4>
+  <div class="alert alert-green">
+    <strong>🎯 适用场景</strong>：系统提示、退出确认、购买确认、操作二次确认等。
+  </div>
   <pre>
-## 目标
-生成 UE5 UMG Widget Blueprint：WBP_CommonPopUp
-用途：通用弹窗模板，用于背包道具详情、系统提示、确认对话框等场景。
+请帮我生成一个居中的确认弹窗。
 
-## 层级结构（Hierarchy）
-WBP_CommonPopUp
-├── [Root] OL_Root (Overlay)
-│   ├── Img_BgMask (Image)            // 全屏半透明遮罩
-│   └── CVS_Dialog (Canvas Panel)     // 弹窗主体定位容器
-│       └── Bdr_Panel (Border)        // 弹窗面板（圆角深色背景）
-│           └── VB_Content (Vertical Box)  // 内容垂直布局
-│               ├── HB_Header (Horizontal Box)     // 标题栏
-│               │   ├── Txt_Title (Text Block)     // 弹窗标题
-│               │   └── Btn_Close (Button)         // 关闭按钮
-│               ├── Img_Divider (Image)            // 分割线
-│               ├── SB_ItemList (Scroll Box)       // 物品列表（可滚动）
-│               │   └── VB_Items (Vertical Box)    // 列表项容器
-│               │       └── [示例] HB_ItemRow      // 单行物品
-│               │           ├── Img_ItemIcon (Image)
-│               │           ├── Txt_ItemName (Text Block)
-│               │           └── Txt_ItemCount (Text Block)
-│               └── HB_Footer (Horizontal Box)     // 底部按钮栏
-│                   ├── Btn_Cancel (Button)
-│                   └── Btn_Confirm (Button)
+底层需要一个全屏的半透明黑色遮罩，用来盖住后面的游戏画面。
 
-## 锚点与对齐（Anchors）
-- Img_BgMask: Anchor Fill (0,0)~(1,1), Offset 全 0
-- CVS_Dialog: Anchor Center (0.5,0.5)
-- Bdr_Panel: Anchor Center, Alignment (0.5,0.5), Size Width=600 Height=480
-- HB_Footer: 居底部，子元素右对齐
+弹窗主体是一个固定大小的面板（大约 500×300），在屏幕正中间显示，
+带圆角和深色背景。
 
-## 命名 &amp; 变量暴露（Naming）
-所有控件严格使用上述层级中的命名。以下控件标记为 Is Variable: True：
-- Txt_Title       → 蓝图动态设置标题文字
-- Btn_Close       → 绑定 OnClicked 关闭弹窗
-- SB_ItemList     → 蓝图动态添加/清空列表
-- VB_Items        → 蓝图动态添加子项
-- Btn_Cancel      → 绑定取消逻辑
-- Btn_Confirm     → 绑定确认逻辑
-- Txt_ItemName    → 列表项文字
-- Txt_ItemCount   → 列表项数量
+面板内部从上到下垂直排列三部分：
+1. 顶部：标题文本，居中，字号稍大，加粗，白色
+2. 中间：一段提示内容文本，居中，字号正常，浅灰色
+3. 底部：一个水平排列的按钮区域，里面放"取消"和"确认"两个按钮
+   - 取消按钮：透明底 + 白色描边 + 灰色文字
+   - 确认按钮：蓝色底 + 白色文字
+   - 两个按钮之间留一点间距，整体在面板底部居中
 
-## Visibility &amp; Hit Test
-- Img_BgMask:     Visible（点击遮罩可关闭弹窗）
-- Bdr_Panel:      Self Hit Test Invisible（容器本身不拦截点击）
-- VB_Content:     Self Hit Test Invisible
-- Img_Divider:    Hit Test Invisible（纯装饰）
-- Btn_Close/Cancel/Confirm: Visible
-- 所有 Txt_ 和 Img_ItemIcon: Hit Test Invisible
-
-## 样式细节（Styling）
-- Img_BgMask: Tint = (0,0,0,0.6) 半透明黑色
-- Bdr_Panel: Background = (18,20,35,0.95), Corner Radius = 12
-- VB_Content Padding: Top=20, Bottom=20, Left=28, Right=28
-- Txt_Title: Font Size=22, Bold, Color=#E4E6ED
-- Btn_Close: 24×24 图标按钮，右上角
-- Img_Divider: Size Y=1, Tint=(255,255,255,0.08), Hit Test Invisible
-- SB_ItemList: Max Height=280（超出滚动）
-- HB_ItemRow: Padding = (8,8,8,8)
-- Btn_Cancel: 背景透明描边, 文字 #9CA3AF, Padding 12px 32px
-- Btn_Confirm: 背景 #6C8CFF, 文字 #FFFFFF, Padding 12px 32px
-
-## 响应式要求
-- 弹窗固定尺寸 600×480，在 1920×1080 和 2560×1080 下均屏幕居中
-- 弹窗不随屏幕拉伸变形
-- 列表区域超过 280px 高度后出现滚动条
+各部分之间保持适当的上下间距，看起来不要太挤。
   </pre>
 
+  <h4>示例 ② 主界面顶部 HUD 状态栏</h4>
   <div class="alert alert-green">
-    <strong>✅ 为什么这个模板有效？</strong>
-    <br>① <strong>树形先行</strong>：AI 可直接映射为 UMG 层级，无需猜测嵌套关系。
-    <br>② <strong>锚点精确</strong>：每个关键元素的 Anchor + Alignment 都有明确数值，消除分辨率歧义。
-    <br>③ <strong>命名一致</strong>：所有控件使用项目标准前缀，Is Variable 显式声明。
-    <br>④ <strong>交互明确</strong>：每个元素的 Visibility/HitTest 设置都有指定，杜绝幽灵点击。
-    <br>⑤ <strong>数值具体</strong>：颜色、尺寸、Padding 全部给出精确值，无模糊描述。
-    <br>⑥ <strong>响应式声明</strong>：明确了多分辨率行为预期。
+    <strong>🎯 适用场景</strong>：战斗界面顶部信息栏、玩家状态显示、资源总览条等。
   </div>
+  <pre>
+请创建一个贴在屏幕顶部的 HUD 状态栏。
+
+整体是一个横向铺满屏幕顶部的长条区域，高度大约 60~80px，
+带半透明深色背景，让底部游戏画面隐约可见。
+
+状态栏内部分为左、中、右三个区域，均匀分布：
+
+【左侧】玩家信息区 —— 水平排列：
+  - 一个圆形玩家头像（大约 48×48）
+  - 头像右边是玩家等级文本，如"Lv.36"，白色加粗
+
+【中间】状态条区 —— 垂直排列：
+  - 一个血条（红色填充的进度条），上面叠加当前血量数字
+  - 血条下面是一个蓝条（蓝色填充的进度条），上面叠加当前蓝量数字
+  - 两个条的宽度大约 200~300px
+
+【右侧】资源显示区 —— 水平排列：
+  - 金币图标 + 金币数量文本
+  - 钻石图标 + 钻石数量文本
+  - 图标大约 24×24，和数量文字之间留 4~6px 间距
+
+请确保左中右三部分在顶部栏里均匀分布，不会挤在一起。
+  </pre>
+
+  <h4>示例 ③ 简单登录面板</h4>
+  <div class="alert alert-green">
+    <strong>🎯 适用场景</strong>：游戏启动登录界面、账号切换面板等。
+  </div>
+  <pre>
+生成一个登录界面。
+
+背景是一张全屏图片，铺满整个屏幕，不要变形拉伸。
+
+屏幕正中间放一个垂直排列的登录面板（大约 400 宽），
+半透明深色背景 + 圆角，让背景图隐约透出来。
+
+面板里从上到下依次是：
+1. 游戏 Logo 图片，居中显示，大约 180×80 的尺寸
+2. 一个账号输入框，宽度撑满面板（左右留 padding），
+   有一个浅色描边，内部左侧带一个小人图标
+3. 一个密码输入框，样式和账号输入框一致，
+   左侧图标换成锁的样子
+4. 一个宽大的"登录"按钮，醒目的蓝色背景 + 白色文字，
+   宽度撑满面板
+
+元素之间保持 16~20px 的间距，面板内部四周留 32px 的 padding。
+Logo 和第一个输入框之间可以稍微大一点间距（如 24px），
+显得不那么紧凑。
+  </pre>
+
+  <div class="alert alert-yellow">
+    <strong>⚠️ 自然语言 Prompt 写作技巧</strong>：
+    <br>① <strong>先说整体，再说局部</strong>：先描述界面的总体布局和背景，再逐一描述每个区块的内容和排列方式。
+    <br>② <strong>用方位词代替坐标</strong>："屏幕正中间"、"贴在顶部"、"水平铺满"比手写 Anchor(0.5,0.5) 更直观，AI 同样能理解。
+    <br>③ <strong>给参考数值</strong>：尺寸写"大约 500×300"、间距写"16~20px"，给 AI 一个合理范围即可，不必精确到像素。
+    <br>④ <strong>描述视觉效果</strong>："半透明深色背景"、"蓝色底 + 白色文字"、"圆形头像"——这些视觉描述比写 RGBA 数值更容易理解，也更不容易出错。
+    <br>⑤ <strong>用序号和层级</strong>：用"从上到下依次是：1、2、3"来描述排列顺序，比一段混在一起的长文清晰得多。
+  </div>
+
+  <div class="alert alert-blue">
+    <strong>💡 进阶提示</strong>：如果你需要更精确的产出（如严格的命名规范、精确的锚点参数、Visibility 设置等），可以在自然语言描述的基础上，<strong>追加补充要求</strong>。例如在上述 Prompt 末尾附加：
+    <br><br>
+    <code>补充要求：所有按钮命名使用 Btn_ 前缀，文本使用 Txt_ 前缀；确认按钮和取消按钮标记为 Is Variable: True；遮罩层设为 Hit Test Invisible。</code>
+    <br><br>
+    这样既保持了 Prompt 的可读性，又能满足工业级规范要求。关于完整的命名规范和 Visibility 设置细节，请参考本文 7.3~7.4 节。
+  </div>
+
+  <!-- 旧的结构化模板已替换为自然语言示例 -->
 
   <h3>7.7 Prompt 编写自检 Checklist</h3>
 
