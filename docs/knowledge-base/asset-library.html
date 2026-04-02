@@ -90,9 +90,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .changelog h4{color:var(--heading);margin-bottom:6px}
 .changelog li{color:var(--dim);margin-bottom:2px}
 
-/* Toast */
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--accent);padding:8px 20px;border-radius:7px;font-size:12px;color:var(--heading);z-index:999;transition:transform .3s;pointer-events:none}
+/* Toast — 增强版（成功绿色高亮）*/
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--accent);padding:10px 24px;border-radius:10px;font-size:12px;color:var(--heading);z-index:999;transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4);backdrop-filter:blur(8px)}
 .toast.show{transform:translateX(-50%) translateY(0)}
+
+/* 下载按钮 Loading 动画 */
+.btn-downloading{opacity:.7;pointer-events:none;position:relative}
+.btn-downloading .dl-spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:dl-spin .6s linear infinite;vertical-align:middle;margin-right:2px}
+@keyframes dl-spin{to{transform:rotate(360deg)}}
+/* 下载按钮点击脉冲反馈 */
+.btn-p:active:not(.btn-downloading){transform:scale(.94);transition:transform .08s}
+.btn-p{transition:all .15s,transform .08s}
 
 /* Data schema doc */
 .schema-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
@@ -360,7 +368,7 @@ function renderGrid() {
           <span>💾 ${formatSize(a.files.reduce((s,f)=>s+f.size,0))}</span>
         </div>
         <div class="asset-actions">
-          <button class="btn btn-p" onclick="event.stopPropagation();downloadAsset('${a.id}')">⬇️ 下载</button>
+          <button class="btn btn-p" onclick="event.stopPropagation();downloadAsset('${a.id}',this)">⬇️ 下载</button>
           <button class="btn" onclick="event.stopPropagation();sendToEngine('${a.id}')">🔌 Bridge</button>
         </div>
       </div>
@@ -377,7 +385,7 @@ function renderList() {
       <span class="row-cat ${catClass(a.category)}" style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(108,140,255,.1)">${catName(a.category)}</span>
       <span style="color:var(--green)">v${a.version}</span>
       <span>⬇️ ${a.downloads}</span>
-      <button class="btn btn-p" onclick="event.stopPropagation();downloadAsset('${a.id}')" style="font-size:10px;padding:4px 10px">⬇️ 下载</button>
+      <button class="btn btn-p" onclick="event.stopPropagation();downloadAsset('${a.id}',this)" style="font-size:10px;padding:4px 10px">⬇️ 下载</button>
     </div>
   `).join('');
 }
@@ -459,7 +467,7 @@ function openDetail(id) {
     <div class="changelog"><h4>📝 更新日志</h4><ul>${a.changelog.map(c=>
       `<li><strong>v${c.version}</strong> (${c.date}) — ${c.changes.join('；')}</li>`).join('')}</ul></div>
     <div class="modal-actions">
-      <button class="btn btn-p btn-lg" onclick="downloadAsset('${a.id}')">⬇️ 下载资产</button>
+      <button class="btn btn-p btn-lg" onclick="downloadAsset('${a.id}',this)">⬇️ 下载资产</button>
       <button class="btn btn-g btn-lg" onclick="sendToEngine('${a.id}')">🔌 发送到引擎</button>
     </div>
   `;
@@ -468,10 +476,59 @@ function openDetail(id) {
 
 function closeModal() { document.getElementById('modal').classList.remove('show'); }
 
-function downloadAsset(id) {
+function downloadAsset(id, btnEl) {
   const a = ASSET_DATA.assets.find(x=>x.id===id);
   if (!a) return;
-  toast(`⬇️ 正在下载: ${a.files[0].name} (${formatSize(a.files[0].size)})`);
+
+  // ── 按钮视觉反馈：进入 loading 状态 ──
+  if (btnEl) {
+    btnEl.classList.add('btn-downloading');
+    btnEl.disabled = true;
+    const origHtml = btnEl.innerHTML;
+    btnEl.innerHTML = '<span class="dl-spinner"></span> 下载中…';
+    // 1.5s 后恢复按钮状态
+    setTimeout(() => {
+      btnEl.classList.remove('btn-downloading');
+      btnEl.disabled = false;
+      btnEl.innerHTML = origHtml;
+    }, 1500);
+  }
+
+  // ── Toast 提示 ──
+  toast(`✅ 开始下载：${a.name} v${a.version}`);
+
+  // ── 生成模拟资产信息 JSON Blob 并触发浏览器下载 ──
+  const payload = {
+    _note: '此文件由"标准资产库"模拟下载功能生成，实际文件需从内部资产服务器获取。',
+    id: a.id,
+    name: a.name,
+    version: a.version,
+    category: catName(a.category),
+    author: a.author,
+    updateDate: a.updateDate,
+    description: a.description,
+    tags: a.tags,
+    compatibility: a.compatibility,
+    downloads: a.downloads,
+    files: a.files.map(f => ({
+      name: f.name,
+      format: f.format,
+      size: formatSize(f.size),
+      sizeBytes: f.size
+    })),
+    changelog: a.changelog,
+    downloadTime: new Date().toISOString()
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${a.name}_v${a.version}_资产信息.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
 function sendToEngine(id) {
