@@ -3,169 +3,209 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>自动 Mask 通道生成器 v3.1</title>
+<title>自动 Mask 通道生成器 v4.0</title>
 <style>
 :root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
-.app{max-width:1240px;margin:0 auto;padding:20px}
-.hdr{text-align:center;padding:18px 0 14px}
-.hdr h1{font-size:22px;color:var(--heading);display:flex;align-items:center;justify-content:center;gap:8px}
-.hdr h1 .ver{font-size:11px;background:var(--accent);color:#fff;padding:2px 8px;border-radius:10px}
-.hdr p{color:var(--dim);font-size:13px;margin-top:4px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
-.card-title{font-size:15px;color:var(--heading);font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.app{max-width:1280px;margin:0 auto;padding:16px}
+.hdr{text-align:center;padding:14px 0 10px}
+.hdr h1{font-size:20px;color:var(--heading);display:flex;align-items:center;justify-content:center;gap:8px}
+.hdr h1 .ver{font-size:10px;background:var(--accent);color:#fff;padding:2px 8px;border-radius:10px}
+.hdr p{color:var(--dim);font-size:12px;margin-top:3px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.card-title{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.g2{display:grid;grid-template-columns:1fr 340px;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 @media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
 .img-box{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:repeating-conic-gradient(#1a1c28 0% 25%,#15171f 0% 50%) 50%/16px 16px}
 .img-box canvas{width:100%;display:block}
-.img-label{position:absolute;top:8px;left:8px;font-size:10px;background:rgba(0,0,0,.75);padding:3px 8px;border-radius:4px;color:#fff}
-.btn{padding:7px 16px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);cursor:pointer;font-size:12px;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.img-label{position:absolute;top:6px;left:6px;font-size:10px;background:rgba(0,0,0,.75);padding:2px 7px;border-radius:4px;color:#fff}
+.btn{padding:6px 14px;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--text);cursor:pointer;font-size:11px;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
 .btn:hover{border-color:var(--accent);color:var(--heading)}
-.btn-p{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}
-.btn-p:hover{background:#5a7aee}
+.btn-p{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}.btn-p:hover{background:#5a7aee}
 .btn-g{background:var(--green);border-color:var(--green);color:#000;font-weight:500}
+.btn-sm{padding:4px 10px;font-size:10px}
 .btn:disabled{opacity:.4;cursor:not-allowed}
-.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s}
+.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:36px 20px;text-align:center;cursor:pointer;transition:all .2s}
 .drop-zone:hover,.drop-zone.dg{border-color:var(--accent);background:rgba(108,140,255,.04)}
-.drop-zone h3{color:var(--heading);font-size:15px;margin-bottom:4px}
-.drop-zone p{color:var(--dim);font-size:12px}
-.pr{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.pr label{font-size:12px;color:var(--dim);min-width:80px;flex-shrink:0}
-.pr input[type=range]{flex:1;accent-color:var(--accent);height:4px}
-.pr .v{font-size:11px;color:var(--accent);min-width:36px;text-align:right;font-weight:600}
-.hue-bar{width:100%;height:18px;border-radius:6px;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);border:1px solid var(--border);position:relative;margin:6px 0 10px}
-.hue-mk{position:absolute;top:-2px;width:3px;height:22px;background:#fff;border-radius:2px;pointer-events:none;box-shadow:0 0 4px rgba(0,0,0,.5)}
-.hue-rng{position:absolute;top:0;height:100%;background:rgba(255,255,255,.2);border-radius:6px;pointer-events:none}
-.ch-btns{display:flex;gap:6px;margin:8px 0}
-.ch-b{flex:1;padding:7px;border:2px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;text-align:center;font-size:12px;font-weight:600;font-family:inherit;color:var(--dim);transition:all .15s}
+.drop-zone h3{color:var(--heading);font-size:14px;margin-bottom:3px}.drop-zone p{color:var(--dim);font-size:11px}
+/* Params */
+.pr{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.pr label{font-size:11px;color:var(--dim);min-width:70px;flex-shrink:0}
+.pr input[type=range]{flex:1;accent-color:var(--accent);height:3px}
+.pr .v{font-size:10px;color:var(--accent);min-width:32px;text-align:right;font-weight:600}
+/* Hue bar */
+.hue-bar{width:100%;height:16px;border-radius:5px;background:linear-gradient(to right,#f00 0%,#ff0 17%,#0f0 33%,#0ff 50%,#00f 67%,#f0f 83%,#f00 100%);border:1px solid var(--border);position:relative;margin:4px 0 8px;cursor:crosshair}
+.hue-mk{position:absolute;top:-3px;width:2px;height:22px;background:#fff;border-radius:1px;pointer-events:none;box-shadow:0 0 3px rgba(0,0,0,.6);transition:left .1s}
+.hue-rng{position:absolute;top:0;height:100%;border-radius:5px;pointer-events:none;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12)}
+.hue-shadow-l,.hue-shadow-r{position:absolute;top:0;height:100%;background:rgba(0,0,0,.5);pointer-events:none}
+.hue-shadow-l{left:0;border-radius:5px 0 0 5px}.hue-shadow-r{right:0;border-radius:0 5px 5px 0}
+/* Channel btns */
+.ch-btns{display:flex;gap:4px;margin:6px 0}
+.ch-b{flex:1;padding:5px;border:2px solid var(--border);border-radius:6px;background:var(--card);cursor:pointer;text-align:center;font-size:11px;font-weight:600;font-family:inherit;color:var(--dim);transition:all .15s}
 .ch-b:hover{border-color:var(--accent)}
 .ch-b.act-r{border-color:#f66;color:#f66;background:rgba(255,100,100,.06)}
 .ch-b.act-g{border-color:#6f6;color:#6f6;background:rgba(100,255,100,.06)}
 .ch-b.act-b{border-color:#66f;color:#66f;background:rgba(100,100,255,.06)}
-.rg-list{display:flex;flex-direction:column;gap:6px;margin:8px 0;max-height:240px;overflow-y:auto}
-.rg-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:12px}
-.rg-sw{width:24px;height:24px;border-radius:6px;flex-shrink:0;border:1px solid rgba(255,255,255,.1)}
-.rg-info{flex:1;color:var(--dim)}.rg-info b{color:var(--heading);font-size:12px}
-.rg-pct{font-size:10px;color:var(--green);font-weight:600;min-width:36px;text-align:right}
-.rg-ch{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px}
-.rg-ch-r{background:rgba(255,100,100,.15);color:#f66}
-.rg-ch-g{background:rgba(100,255,100,.15);color:#6f6}
-.rg-ch-b{background:rgba(100,100,255,.15);color:#66f}
-.rg-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:2px 4px}.rg-del:hover{color:var(--red)}
-.steps{display:flex;justify-content:center;gap:0;margin:10px 0 16px}
-.stp{display:flex;align-items:center;gap:6px;padding:8px 14px;font-size:12px;color:var(--dim)}
-.stp .n{width:22px;height:22px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600}
+.ch-b.act-a{border-color:#ccc;color:#eee;background:rgba(255,255,255,.04)}
+/* Region list */
+.rg-list{display:flex;flex-direction:column;gap:4px;margin:6px 0;max-height:200px;overflow-y:auto}
+.rg-item{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--card);border:1px solid var(--border);border-radius:6px;font-size:11px}
+.rg-sw{width:20px;height:20px;border-radius:5px;flex-shrink:0;border:1px solid rgba(255,255,255,.1)}
+.rg-info{flex:1;color:var(--dim)}.rg-info b{color:var(--heading);font-size:11px}
+.rg-pct{font-size:9px;color:var(--green);font-weight:600}
+.rg-ch{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px}
+.rg-ch-r{background:rgba(255,100,100,.15);color:#f66}.rg-ch-g{background:rgba(100,255,100,.15);color:#6f6}
+.rg-ch-b{background:rgba(100,100,255,.15);color:#66f}.rg-ch-a{background:rgba(255,255,255,.08);color:#ccc}
+.rg-inv{font-size:9px;color:var(--yellow);cursor:pointer;padding:1px 4px;border-radius:3px;background:rgba(251,191,36,.1)}
+.rg-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:1px 3px}.rg-del:hover{color:var(--red)}
+/* Tip bar */
+.tip-bar{background:linear-gradient(90deg,rgba(108,140,255,.08),rgba(167,139,250,.08));border:1px solid rgba(108,140,255,.15);border-radius:7px;padding:8px 12px;font-size:11px;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+/* Steps */
+.steps{display:flex;justify-content:center;gap:0;margin:8px 0 12px}
+.stp{display:flex;align-items:center;gap:5px;padding:6px 12px;font-size:11px;color:var(--dim)}
+.stp .n{width:20px;height:20px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600}
 .stp.act{color:var(--heading)}.stp.act .n{background:var(--accent);border-color:var(--accent);color:#fff}
 .stp.done .n{background:var(--green);border-color:var(--green);color:#fff}
-.sa{color:var(--border);font-size:16px;padding:0 2px}
-.tip-bar{background:linear-gradient(90deg,rgba(108,140,255,.1),rgba(167,139,250,.1));border:1px solid rgba(108,140,255,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:8px;transition:all .3s}
-.tip-bar .tip-icon{font-size:16px;flex-shrink:0}
-.tip{background:rgba(108,140,255,.06);border:1px solid rgba(108,140,255,.15);border-radius:8px;padding:10px 14px;font-size:11px;color:var(--dim);line-height:1.7;margin:8px 0}.tip b{color:var(--accent)}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--accent);padding:10px 24px;border-radius:8px;font-size:13px;color:var(--heading);z-index:999;transition:transform .3s;pointer-events:none}.toast.show{transform:translateX(-50%) translateY(0)}
-.pv-tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
-.pv-tab{padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--dim);cursor:pointer;font-size:11px;font-family:inherit;transition:all .15s}
+.sa{color:var(--border);font-size:14px;padding:0 2px}
+/* Brush toolbar */
+.brush-bar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--card);border:1px solid var(--border);border-radius:7px;margin-top:8px;flex-wrap:wrap}
+.brush-bar label{font-size:10px;color:var(--dim)}
+.brush-bar input[type=range]{width:80px;accent-color:var(--accent);height:3px}
+/* Preview tabs */
+.pv-tabs{display:flex;gap:3px;margin-bottom:8px;flex-wrap:wrap}
+.pv-tab{padding:5px 12px;border-radius:5px;border:1px solid var(--border);background:var(--card);color:var(--dim);cursor:pointer;font-size:10px;font-family:inherit;transition:all .15s}
 .pv-tab:hover{color:var(--text)}.pv-tab.act{background:var(--accent);color:#fff;border-color:var(--accent)}
-/* Onboarding overlay */
+/* Toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--accent);padding:8px 20px;border-radius:7px;font-size:12px;color:var(--heading);z-index:999;transition:transform .3s;pointer-events:none}.toast.show{transform:translateX(-50%) translateY(0)}
+/* Onboarding */
 .ob-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:900;display:flex;align-items:center;justify-content:center}
-.ob-card{background:var(--panel);border:1px solid var(--accent);border-radius:16px;padding:32px;max-width:460px;width:90%;text-align:center;box-shadow:0 0 40px rgba(108,140,255,.2)}
-.ob-card h2{color:var(--heading);font-size:20px;margin-bottom:12px}
-.ob-card p{color:var(--dim);font-size:13px;line-height:1.8;margin-bottom:8px}
-.ob-steps{text-align:left;margin:16px 0}
-.ob-step{display:flex;align-items:flex-start;gap:10px;padding:8px 0;font-size:13px;color:var(--text)}
-.ob-step .ob-n{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
-.ob-step span{line-height:1.6}
-/* Mask overlay toggle */
-.mask-toggle{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim);cursor:pointer;margin-top:6px}
-.mask-toggle input{accent-color:var(--accent);cursor:pointer}
+.ob-card{background:var(--panel);border:1px solid var(--accent);border-radius:14px;padding:28px;max-width:420px;width:90%;text-align:center;box-shadow:0 0 30px rgba(108,140,255,.15)}
+.ob-card h2{color:var(--heading);font-size:18px;margin-bottom:10px}
+.ob-card p{color:var(--dim);font-size:12px;line-height:1.7;margin-bottom:6px}
+.ob-steps{text-align:left;margin:12px 0}
+.ob-step{display:flex;gap:8px;padding:6px 0;font-size:12px;color:var(--text)}
+.ob-step .ob-n{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+/* A channel mode selector */
+.a-mode{display:flex;gap:4px;margin:4px 0}
+.a-mode button{flex:1;padding:5px;border:1px solid var(--border);border-radius:5px;background:var(--card);color:var(--dim);cursor:pointer;font-size:10px;font-family:inherit;transition:all .15s}
+.a-mode button:hover{border-color:var(--accent)}.a-mode button.act{border-color:#ccc;color:#eee;background:rgba(255,255,255,.04)}
+/* Lock indicator */
+.lock-badge{font-size:9px;color:var(--yellow);background:rgba(251,191,36,.1);padding:1px 5px;border-radius:3px;margin-left:4px}
 </style>
 </head>
 <body>
 <div class="app">
 <div class="hdr">
-  <h1>🤖 自动 Mask 通道生成器 <span class="ver">v3.1</span></h1>
-  <p>HSV 色相识别 · 灰度明度保留 · 边缘羽化 · 实时三视窗预览 · 一键导出</p>
+  <h1>🤖 自动 Mask 通道生成器 <span class="ver">v4.0</span></h1>
+  <p>RGBA 四通道 · HSV 色相识别 · 手动修正笔 · Float32 精度 · 一键导出</p>
 </div>
-
 <div class="steps" id="stepBar">
-  <div class="stp act" data-s="1"><span class="n">1</span>导入图片</div><span class="sa">→</span>
-  <div class="stp" data-s="2"><span class="n">2</span>吸色 & 分配通道</div><span class="sa">→</span>
-  <div class="stp" data-s="3"><span class="n">3</span>预览 & 导出</div>
+  <div class="stp act" data-s="1"><span class="n">1</span>导入</div><span class="sa">→</span>
+  <div class="stp" data-s="2"><span class="n">2</span>吸色分配</div><span class="sa">→</span>
+  <div class="stp" data-s="3"><span class="n">3</span>预览导出</div>
 </div>
 
 <!-- Step 1 -->
 <div class="card" id="s1">
   <div class="card-title">📁 导入角色原图</div>
-  <div class="drop-zone" id="dz" onclick="document.getElementById('fi').click()">
-    <h3>点击选择或拖放图片</h3><p>PNG（推荐带透明通道）/ JPG</p>
-  </div>
+  <div class="drop-zone" id="dz" onclick="document.getElementById('fi').click()"><h3>点击选择或拖放图片</h3><p>PNG（推荐）/ JPG</p></div>
   <input type="file" id="fi" accept="image/*" style="display:none">
 </div>
 
 <!-- Step 2 -->
 <div class="card" id="s2" style="display:none">
-  <div class="card-title">🎯 吸色 & 通道分配</div>
-  <div class="tip-bar" id="tipBar"><span class="tip-icon">👆</span><span id="tipText">第一步：点击左侧图片上的颜色进行采样</span></div>
+  <div class="card-title">🎯 吸色 & 四通道分配</div>
+  <div class="tip-bar" id="tipBar"><span id="tipText">👆 第一步：点击左侧图片上的颜色进行采样</span></div>
   <div class="g2">
     <div>
-      <div class="img-box" style="cursor:crosshair" id="srcBox">
-        <canvas id="srcC"></canvas>
-        <span class="img-label" id="srcLabel">点击吸取颜色</span>
+      <div class="img-box" style="cursor:crosshair"><canvas id="srcC"></canvas><span class="img-label" id="srcLabel">点击吸取颜色</span></div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <div id="pkSw" style="width:28px;height:28px;border-radius:5px;background:#444;border:1px solid var(--border)"></div>
+        <div id="pkInfo" style="font-size:10px;color:var(--dim);flex:1">点击图片吸取</div>
+        <button class="btn btn-p btn-sm" onclick="addRegion()" id="addBtn" disabled>➕ 添加</button>
+        <span id="lockBadge" style="display:none" class="lock-badge">🔒 已锁定</span>
       </div>
-      <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
-        <div id="pkSw" style="width:32px;height:32px;border-radius:6px;background:#444;border:1px solid var(--border);transition:background .2s"></div>
-        <div id="pkInfo" style="font-size:11px;color:var(--dim);flex:1">点击左侧图片吸取颜色</div>
-        <button class="btn btn-p" onclick="addRegion()" id="addBtn" disabled>➕ 添加到通道</button>
+      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+        <label style="font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="showMask" onchange="refreshSrc()" style="accent-color:var(--accent)"> 显示蒙版</label>
+        <label style="font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="lockColor" onchange="toggleLock()" style="accent-color:var(--yellow)"> 锁定吸色</label>
       </div>
-      <label class="mask-toggle"><input type="checkbox" id="showMask" onchange="refreshSrc()"> 显示选区蒙版（红色高亮匹配区域）</label>
+      <!-- Brush toolbar (shown after generate) -->
+      <div class="brush-bar" id="brushBar" style="display:none">
+        <button class="btn btn-sm" id="brPaint" onclick="setBrush('paint')">🖌️ 画笔</button>
+        <button class="btn btn-sm" id="brErase" onclick="setBrush('erase')">⬜ 橡皮</button>
+        <button class="btn btn-sm" onclick="setBrush(null)">🚫 关闭</button>
+        <label>大小</label><input type="range" id="brSize" min="2" max="30" value="8"><span id="brSizeV" style="font-size:10px;color:var(--accent)">8</span>
+        <label>通道</label>
+        <select id="brCh" style="padding:2px 6px;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:10px">
+          <option value="R">R</option><option value="G">G</option><option value="B">B</option><option value="A">A</option>
+        </select>
+      </div>
     </div>
     <div>
-      <div style="font-size:12px;color:var(--heading);margin-bottom:6px">色相范围</div>
-      <div class="hue-bar"><div class="hue-rng" id="hRng"></div><div class="hue-mk" id="hMk" style="left:0"></div></div>
+      <div style="font-size:11px;color:var(--heading);margin-bottom:4px">色相范围</div>
+      <div class="hue-bar" id="hueBar">
+        <div class="hue-shadow-l" id="hSL" style="width:0"></div>
+        <div class="hue-shadow-r" id="hSR" style="width:0"></div>
+        <div class="hue-rng" id="hRng" style="display:none"></div>
+        <div class="hue-mk" id="hMk" style="left:0;display:none"></div>
+      </div>
       <div class="pr"><label>色相容差</label><input type="range" id="pHT" min="5" max="60" value="20" oninput="upP()"><span class="v" id="vHT">±20°</span></div>
       <div class="pr"><label>饱和度下限</label><input type="range" id="pSM" min="0" max="100" value="15" oninput="upP()"><span class="v" id="vSM">15%</span></div>
       <div class="pr"><label>边缘平滑</label><input type="range" id="pES" min="0" max="5" value="2" oninput="upP()"><span class="v" id="vES">2px</span></div>
-      <div style="font-size:12px;color:var(--heading);margin:10px 0 4px">当前通道</div>
+
+      <div style="font-size:11px;color:var(--heading);margin:8px 0 3px">通道分配</div>
       <div class="ch-btns">
-        <button class="ch-b act-r" id="cbR" onclick="setCh('R')">R 通道</button>
-        <button class="ch-b" id="cbG" onclick="setCh('G')">G 通道</button>
-        <button class="ch-b" id="cbB" onclick="setCh('B')">B 通道</button>
+        <button class="ch-b act-r" id="cbR" onclick="setCh('R')">R</button>
+        <button class="ch-b" id="cbG" onclick="setCh('G')">G</button>
+        <button class="ch-b" id="cbB" onclick="setCh('B')">B</button>
+        <button class="ch-b" id="cbA" onclick="setCh('A')">A</button>
       </div>
-      <div class="rg-list" id="rgList"><div style="color:var(--dim);padding:6px;font-size:11px">暂无 — 请在原图上点击吸取颜色</div></div>
-      <button class="btn btn-p" onclick="genMask()" style="margin-top:10px;width:100%;justify-content:center" id="genBtn" disabled>🔬 生成 Mask &amp; 预览</button>
+
+      <!-- A channel mode -->
+      <div id="aModeWrap" style="display:none">
+        <div style="font-size:10px;color:var(--dim);margin-bottom:3px">A 通道来源</div>
+        <div class="a-mode">
+          <button class="act" onclick="setAMode('pick',this)">吸色提取</button>
+          <button onclick="setAMode('alpha',this)">原图Alpha</button>
+          <button onclick="setAMode('stroke',this)">描边生成</button>
+        </div>
+      </div>
+
+      <div class="rg-list" id="rgList"><div style="color:var(--dim);padding:4px;font-size:10px">暂无</div></div>
+      <button class="btn btn-p" onclick="genMask()" style="margin-top:8px;width:100%;justify-content:center" id="genBtn" disabled>🔬 生成 RGBA Mask</button>
     </div>
   </div>
 </div>
 
 <!-- Step 3 -->
 <div class="card" id="s3" style="display:none">
-  <div class="card-title">👁️ 实时预览 & 导出</div>
+  <div class="card-title">👁️ 预览 & 导出</div>
   <div class="pv-tabs">
-    <button class="pv-tab act" onclick="pvTab(0,this)">三视窗对比</button>
-    <button class="pv-tab" onclick="pvTab(1,this)">R 通道</button>
-    <button class="pv-tab" onclick="pvTab(2,this)">G 通道</button>
-    <button class="pv-tab" onclick="pvTab(3,this)">B 通道</button>
-    <button class="pv-tab" onclick="pvTab(4,this)">合成 RGBA</button>
+    <button class="pv-tab act" onclick="pvTab(0,this)">三视窗</button>
+    <button class="pv-tab" onclick="pvTab(1,this)">R</button>
+    <button class="pv-tab" onclick="pvTab(2,this)">G</button>
+    <button class="pv-tab" onclick="pvTab(3,this)">B</button>
+    <button class="pv-tab" onclick="pvTab(4,this)">A</button>
+    <button class="pv-tab" onclick="pvTab(5,this)">合成RGBA</button>
   </div>
   <div id="pvArea">
-    <div class="g3" id="pv0">
-      <div class="img-box"><canvas id="pvOrig"></canvas><span class="img-label">原图</span></div>
-      <div class="img-box"><canvas id="pvGray"></canvas><span class="img-label">灰度 Mask</span></div>
-      <div class="img-box"><canvas id="pvOver"></canvas><span class="img-label">叠加预览</span></div>
-    </div>
-    <div id="pv1" style="display:none"><div class="img-box"><canvas id="pvR"></canvas><span class="img-label" style="border-left:3px solid #f66">R 通道（灰度）</span></div></div>
-    <div id="pv2" style="display:none"><div class="img-box"><canvas id="pvG"></canvas><span class="img-label" style="border-left:3px solid #6f6">G 通道（灰度）</span></div></div>
-    <div id="pv3" style="display:none"><div class="img-box"><canvas id="pvB"></canvas><span class="img-label" style="border-left:3px solid #66f">B 通道（灰度）</span></div></div>
-    <div id="pv4" style="display:none"><div class="img-box"><canvas id="pvComp"></canvas><span class="img-label" style="border-left:3px solid var(--accent)">合成 RGBA</span></div></div>
+    <div class="g3" id="pv0"><div class="img-box"><canvas id="pvOrig"></canvas><span class="img-label">原图</span></div><div class="img-box"><canvas id="pvGray"></canvas><span class="img-label">灰度Mask</span></div><div class="img-box"><canvas id="pvOver"></canvas><span class="img-label">叠加预览</span></div></div>
+    <div id="pv1" style="display:none"><div class="img-box"><canvas id="pvR"></canvas><span class="img-label" style="border-left:3px solid #f66">R（灰度）</span></div></div>
+    <div id="pv2" style="display:none"><div class="img-box"><canvas id="pvG"></canvas><span class="img-label" style="border-left:3px solid #6f6">G（灰度）</span></div></div>
+    <div id="pv3" style="display:none"><div class="img-box"><canvas id="pvB"></canvas><span class="img-label" style="border-left:3px solid #66f">B（灰度）</span></div></div>
+    <div id="pv4" style="display:none"><div class="img-box"><canvas id="pvA"></canvas><span class="img-label" style="border-left:3px solid #ccc">A（灰度）</span></div></div>
+    <div id="pv5" style="display:none"><div class="img-box"><canvas id="pvComp"></canvas><span class="img-label" style="border-left:3px solid var(--accent)">合成RGBA</span></div></div>
   </div>
-  <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-    <button class="btn btn-g" onclick="dlComp()">⬇ 下载合成 Mask (RGBA)</button>
-    <button class="btn" onclick="dlCh('R')">⬇ R 通道</button>
-    <button class="btn" onclick="dlCh('G')">⬇ G 通道</button>
-    <button class="btn" onclick="dlCh('B')">⬇ B 通道</button>
-    <button class="btn btn-p" onclick="dlZip()">📦 下载全部 ZIP</button>
+  <div style="margin-top:10px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+    <button class="btn btn-g" onclick="dlComp()">⬇ RGBA合成</button>
+    <button class="btn" onclick="dlCh(0)">⬇ R</button>
+    <button class="btn" onclick="dlCh(1)">⬇ G</button>
+    <button class="btn" onclick="dlCh(2)">⬇ B</button>
+    <button class="btn" onclick="dlCh(3)">⬇ A</button>
+    <button class="btn btn-p" onclick="dlZip()">📦 ZIP全部</button>
   </div>
 </div>
 </div>
@@ -173,15 +213,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 <!-- Onboarding -->
 <div class="ob-overlay" id="onboard" style="display:none">
   <div class="ob-card">
-    <h2>👋 欢迎使用 Mask 生成器</h2>
-    <p>3 步即可生成高质量的角色换色遮罩图：</p>
+    <h2>👋 欢迎使用 Mask 生成器 v4</h2>
     <div class="ob-steps">
-      <div class="ob-step"><span class="ob-n">1</span><span><b>导入图片</b> — 上传角色原图（PNG/JPG）</span></div>
-      <div class="ob-step"><span class="ob-n">2</span><span><b>点击吸色</b> — 在图片上点击颜色，工具自动识别同色区域。调整容差后分配到 R/G/B 通道</span></div>
-      <div class="ob-step"><span class="ob-n">3</span><span><b>生成导出</b> — 一键生成灰度 Mask，预览效果后下载</span></div>
+      <div class="ob-step"><span class="ob-n">1</span><span><b>导入图片</b> — 上传角色原图</span></div>
+      <div class="ob-step"><span class="ob-n">2</span><span><b>吸色分配</b> — 点击颜色→调参→分配到R/G/B/A通道</span></div>
+      <div class="ob-step"><span class="ob-n">3</span><span><b>手动微调</b> — 用画笔/橡皮修正细节</span></div>
+      <div class="ob-step"><span class="ob-n">4</span><span><b>导出</b> — 下载32位RGBA PNG</span></div>
     </div>
-    <button class="btn btn-p" onclick="dismissOnboard()" style="margin-top:12px;padding:10px 32px;font-size:14px">✨ 开始使用</button>
-    <div style="margin-top:8px"><label style="font-size:11px;color:var(--dim);cursor:pointer"><input type="checkbox" id="obDontShow"> 下次不再显示</label></div>
+    <button class="btn btn-p" onclick="dismissOb()" style="padding:8px 28px;font-size:13px;margin-top:8px">开始使用</button>
+    <div style="margin-top:6px"><label style="font-size:10px;color:var(--dim);cursor:pointer"><input type="checkbox" id="obSkip"> 不再显示</label></div>
   </div>
 </div>
 
@@ -190,31 +230,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 <script>
 // ═══ State ═══
 var srcImg=null,W=0,H=0,px=null,hsv=null;
-var pkH=-1,pkS=0,pkV=0,pkRGB=[0,0,0];
-var curCh='R';
-var regions=[];
+var pkH=-1,pkS=0,pkV=0,pkRGB=[0,0,0],colorLocked=false;
+var curCh='R',aMode='pick';
+var regions=[]; // {ch,hue,tol,satMin,rgb,matchPct,inverted}
+// Float32 per channel
+var rawR=null,rawG=null,rawB=null,rawA=null;
 var maskRGBA=null;
-var rawR=null,rawG=null,rawB=null;
+// Brush
+var brushMode=null,brushCh='R'; // null|'paint'|'erase'
 
 // ═══ Onboarding ═══
-if(!localStorage.getItem('mask_ob_dismiss')){
-  document.getElementById('onboard').style.display='flex';
-}
-function dismissOnboard(){
-  document.getElementById('onboard').style.display='none';
-  if(document.getElementById('obDontShow').checked) localStorage.setItem('mask_ob_dismiss','1');
-}
+if(!localStorage.getItem('mask4_ob'))document.getElementById('onboard').style.display='flex';
+function dismissOb(){document.getElementById('onboard').style.display='none';if(document.getElementById('obSkip').checked)localStorage.setItem('mask4_ob','1')}
 
-// ═══ Dynamic Tip ═══
-function setTip(icon,text){
-  document.getElementById('tipBar').querySelector('.tip-icon').textContent=icon;
-  document.getElementById('tipText').textContent=text;
-}
+function setTip(t){document.getElementById('tipText').textContent=t}
 
-// ═══ RGB→HSV ═══
+// ═══ HSV ═══
 function r2h(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,h=0,s=mx?d/mx:0,v=mx;if(d){if(mx===r)h=60*((g-b)/d%6);else if(mx===g)h=60*((b-r)/d+2);else h=60*((r-g)/d+4);if(h<0)h+=360}return[h,s*100,v*100]}
 function hDist(a,b){var d=Math.abs(a-b);return d>180?360-d:d}
-function sm(e0,e1,x){var t=Math.max(0,Math.min(1,(x-e0)/(e1-e0)));return t*t*(3-2*t)}
+function sms(e0,e1,x){var t=Math.max(0,Math.min(1,(x-e0)/(e1-e0)));return t*t*(3-2*t)}
 
 // ═══ File Import ═══
 var dz=document.getElementById('dz'),fi=document.getElementById('fi');
@@ -233,149 +267,165 @@ function load(f){
     var n=W*H;hsv=new Float32Array(n*3);
     for(var i=0;i<n;i++){var o=i*4,v=r2h(px[o],px[o+1],px[o+2]);hsv[i*3]=v[0];hsv[i*3+1]=v[1];hsv[i*3+2]=v[2]}
     document.getElementById('s1').style.display='none';
-    document.getElementById('s2').style.display='block';
-    setStp(2);
+    document.getElementById('s2').style.display='block';setStp(2);
     c.addEventListener('click',pick);
-    setTip('👆','第一步：点击图片上想要换色的区域，吸取颜色');
+    c.addEventListener('mousedown',brushDown);c.addEventListener('mousemove',brushMove);c.addEventListener('mouseup',brushUp);
+    setTip('👆 点击图片上想换色的区域，吸取颜色');
     toast(W+'×'+H+' 已加载');
   };
   img.src=URL.createObjectURL(f);
 }
 
-// ═══ Color Picker ═══
+// ═══ Picker ═══
 function pick(e){
+  if(brushMode)return; // brush mode active, don't pick
+  if(colorLocked){toast('🔒 色彩已锁定，取消勾选后再吸色');return}
   var c=document.getElementById('srcC'),r=c.getBoundingClientRect();
   var sx=Math.floor((e.clientX-r.left)/r.width*W),sy=Math.floor((e.clientY-r.top)/r.height*H);
   if(sx<0||sx>=W||sy<0||sy>=H)return;
   var i=sy*W+sx,o=i*4;
   pkRGB=[px[o],px[o+1],px[o+2]];
-  var v=r2h(pkRGB[0],pkRGB[1],pkRGB[2]);
-  pkH=v[0];pkS=v[1];pkV=v[2];
-  var hex='#'+pkRGB.map(function(x){return x.toString(16).padStart(2,'0')}).join('');
+  var v=r2h(pkRGB[0],pkRGB[1],pkRGB[2]);pkH=v[0];pkS=v[1];pkV=v[2];
+  var hex=rgb2hex(pkRGB);
   document.getElementById('pkSw').style.background=hex;
-  // Compute match percentage
-  var matchPct=computeMatchPct();
-  document.getElementById('pkInfo').innerHTML='<b>'+hex+'</b> H:'+pkH.toFixed(0)+'° S:'+pkS.toFixed(0)+'% V:'+pkV.toFixed(0)+'% · <span style="color:var(--green)">匹配 '+matchPct+'%</span>';
+  var pct=matchPct();
+  document.getElementById('pkInfo').innerHTML='<b>'+hex+'</b> H:'+pkH.toFixed(0)+'° · <span style="color:var(--green)">'+pct+'%</span>';
   document.getElementById('addBtn').disabled=false;
+  document.getElementById('hMk').style.display='block';
   document.getElementById('hMk').style.left=(pkH/360*100)+'%';
   upHR();refreshSrc();
-  setTip('🎨','第二步：调整右侧参数 → 选择通道 → 点击「添加到通道」');
+  setTip('🎨 调参后点「添加」，或切换通道继续');
 }
 
-function computeMatchPct(){
+function matchPct(){
   if(pkH<0||!hsv)return'0';
   var tol=+document.getElementById('pHT').value,sat=+document.getElementById('pSM').value;
-  var match=0,total=0,n=W*H;
-  for(var i=0;i<n;i++){
-    if(px[i*4+3]<10)continue;total++;
-    if(hDist(hsv[i*3],pkH)<=tol&&hsv[i*3+1]>=sat)match++;
-  }
-  return total>0?(match/total*100).toFixed(1):'0';
+  var m=0,t=0,n=W*H;
+  for(var i=0;i<n;i++){if(px[i*4+3]<10)continue;t++;if(hDist(hsv[i*3],pkH)<=tol&&hsv[i*3+1]>=sat)m++}
+  return t?(m/t*100).toFixed(1):'0';
 }
 
 function upP(){
   document.getElementById('vHT').textContent='±'+document.getElementById('pHT').value+'°';
   document.getElementById('vSM').textContent=document.getElementById('pSM').value+'%';
   document.getElementById('vES').textContent=document.getElementById('pES').value+'px';
-  upHR();if(pkH>=0)refreshSrc();
-  // Update match pct
-  if(pkH>=0){
-    var pct=computeMatchPct();
-    var hex='#'+pkRGB.map(function(x){return x.toString(16).padStart(2,'0')}).join('');
-    document.getElementById('pkInfo').innerHTML='<b>'+hex+'</b> H:'+pkH.toFixed(0)+'° S:'+pkS.toFixed(0)+'% V:'+pkV.toFixed(0)+'% · <span style="color:var(--green)">匹配 '+pct+'%</span>';
-  }
+  upHR();if(pkH>=0){refreshSrc();var pct=matchPct();var hex=rgb2hex(pkRGB);document.getElementById('pkInfo').innerHTML='<b>'+hex+'</b> H:'+pkH.toFixed(0)+'° · <span style="color:var(--green)">'+pct+'%</span>'}
 }
 
 function upHR(){
-  var tol=+document.getElementById('pHT').value,rng=document.getElementById('hRng');
-  if(pkH<0){rng.style.display='none';return}
-  rng.style.display='block';
-  rng.style.left=((pkH-tol+360)%360)/360*100+'%';
-  rng.style.width=tol*2/360*100+'%';
+  var tol=+document.getElementById('pHT').value;
+  if(pkH<0){document.getElementById('hRng').style.display='none';document.getElementById('hSL').style.width='0';document.getElementById('hSR').style.width='0';return}
+  var rng=document.getElementById('hRng');rng.style.display='block';
+  var left=((pkH-tol+360)%360)/360*100,w=tol*2/360*100;
+  rng.style.left=left+'%';rng.style.width=w+'%';
+  // Shadow masks
+  document.getElementById('hSL').style.width=left+'%';
+  document.getElementById('hSR').style.width=Math.max(0,100-left-w)+'%';
 }
 
-// ═══ Source Preview (with overlay modes) ═══
 function refreshSrc(){
   if(!hsv||!srcImg)return;
-  var c=document.getElementById('srcC'),ctx=c.getContext('2d');
-  ctx.drawImage(srcImg,0,0);
+  var c=document.getElementById('srcC'),ctx=c.getContext('2d');ctx.drawImage(srcImg,0,0);
   var showMask=document.getElementById('showMask').checked;
-
   if(pkH>=0){
     var img=ctx.getImageData(0,0,W,H),d=img.data;
     var tol=+document.getElementById('pHT').value,sat=+document.getElementById('pSM').value;
     for(var i=0,n=W*H;i<n;i++){
       var match=hDist(hsv[i*3],pkH)<=tol&&hsv[i*3+1]>=sat;
       var o=i*4;
-      if(showMask){
-        // Red overlay on matched pixels
-        if(match){d[o]=Math.min(255,d[o]+80);d[o+1]=d[o+1]*.6|0;d[o+2]=d[o+2]*.6|0}
-        else{d[o]=d[o]*.3|0;d[o+1]=d[o+1]*.3|0;d[o+2]=d[o+2]*.3|0}
-      }else{
-        // Dim non-matched
-        if(!match){d[o]=d[o]*.25|0;d[o+1]=d[o+1]*.25|0;d[o+2]=d[o+2]*.25|0}
-      }
+      if(showMask){if(match){d[o]=Math.min(255,d[o]+80);d[o+1]=d[o+1]*.6|0;d[o+2]=d[o+2]*.6|0}else{d[o]=d[o]*.3|0;d[o+1]=d[o+1]*.3|0;d[o+2]=d[o+2]*.3|0}}
+      else{if(!match){d[o]=d[o]*.25|0;d[o+1]=d[o+1]*.25|0;d[o+2]=d[o+2]*.25|0}}
     }
     ctx.putImageData(img,0,0);
-    document.getElementById('srcLabel').textContent=showMask?'🔴 红色=匹配区域':'明亮=匹配区域';
+    document.getElementById('srcLabel').textContent=showMask?'🔴 红色=匹配':'明亮=匹配';
   }
 }
+
+// ═══ Lock ═══
+function toggleLock(){colorLocked=document.getElementById('lockColor').checked;document.getElementById('lockBadge').style.display=colorLocked?'inline':'none'}
 
 // ═══ Channel ═══
 function setCh(ch){
   curCh=ch;
-  ['R','G','B'].forEach(function(c){document.getElementById('cb'+c).className='ch-b'+(c===ch?' act-'+c.toLowerCase():'')});
+  ['R','G','B','A'].forEach(function(c){document.getElementById('cb'+c).className='ch-b'+(c===ch?' act-'+c.toLowerCase():'')});
+  document.getElementById('aModeWrap').style.display=ch==='A'?'block':'none';
+}
+function setAMode(mode,btn){
+  aMode=mode;
+  document.querySelectorAll('.a-mode button').forEach(function(b){b.classList.remove('act')});
+  btn.classList.add('act');
 }
 
 function addRegion(){
   if(pkH<0)return;
-  var tol=+document.getElementById('pHT').value,satMin=+document.getElementById('pSM').value;
-  var pct=computeMatchPct();
-  regions.push({ch:curCh,hue:pkH,tol:tol,satMin:satMin,rgb:pkRGB.slice(),matchPct:pct});
-  renderRL();
-  document.getElementById('genBtn').disabled=false;
-  toast('已添加到 '+curCh+' 通道（匹配 '+pct+'%）');
-  var ctx=document.getElementById('srcC').getContext('2d');ctx.drawImage(srcImg,0,0);
-  pkH=-1;document.getElementById('addBtn').disabled=true;
-  document.getElementById('pkInfo').textContent='继续点击原图吸取下一种颜色';
-  document.getElementById('srcLabel').textContent='点击吸取颜色';
-  setTip('🔄','已添加！继续吸取其他颜色，或切换通道，完成后点击「生成 Mask」');
+  var pct=matchPct();
+  regions.push({ch:curCh,hue:pkH,tol:+document.getElementById('pHT').value,satMin:+document.getElementById('pSM').value,rgb:pkRGB.slice(),matchPct:pct,inverted:false});
+  renderRL();document.getElementById('genBtn').disabled=false;
+  toast('已添加到 '+curCh);
+  if(!colorLocked){pkH=-1;document.getElementById('addBtn').disabled=true;document.getElementById('pkInfo').textContent='继续吸色';document.getElementById('srcLabel').textContent='点击吸取颜色';var ctx=document.getElementById('srcC').getContext('2d');ctx.drawImage(srcImg,0,0);document.getElementById('hMk').style.display='none'}
+  setTip('🔄 继续吸色或点击「生成 RGBA Mask」');
 }
 
+function toggleInvert(i){regions[i].inverted=!regions[i].inverted;renderRL();toast(regions[i].inverted?'已反选':'已取消反选')}
 function rmRegion(i){regions.splice(i,1);renderRL();if(!regions.length)document.getElementById('genBtn').disabled=true}
 
 function renderRL(){
   var el=document.getElementById('rgList');
-  if(!regions.length){el.innerHTML='<div style="color:var(--dim);padding:6px;font-size:11px">暂无 — 请在原图上点击吸取颜色</div>';return}
+  if(!regions.length){el.innerHTML='<div style="color:var(--dim);padding:4px;font-size:10px">暂无</div>';return}
   el.innerHTML=regions.map(function(r,i){
-    var hex='#'+r.rgb.map(function(v){return v.toString(16).padStart(2,'0')}).join('');
-    var cls={R:'rg-ch-r',G:'rg-ch-g',B:'rg-ch-b'}[r.ch];
-    return'<div class="rg-item"><div class="rg-sw" style="background:'+hex+'"></div><div class="rg-info"><b>H:'+r.hue.toFixed(0)+'° ±'+r.tol+'°</b> · S≥'+r.satMin+'%</div><span class="rg-pct">'+r.matchPct+'%</span><span class="rg-ch '+cls+'">'+r.ch+'</span><button class="rg-del" onclick="rmRegion('+i+')">✕</button></div>';
+    var hex=rgb2hex(r.rgb);
+    var cls={R:'rg-ch-r',G:'rg-ch-g',B:'rg-ch-b',A:'rg-ch-a'}[r.ch];
+    return'<div class="rg-item"><div class="rg-sw" style="background:'+hex+'"></div><div class="rg-info"><b>H:'+r.hue.toFixed(0)+'°±'+r.tol+'°</b></div><span class="rg-pct">'+r.matchPct+'%</span>'+(r.inverted?'<span class="rg-inv">反选</span>':'')+'<span class="rg-ch '+cls+'">'+r.ch+'</span><button class="rg-inv" onclick="toggleInvert('+i+')" title="反选">⇄</button><button class="rg-del" onclick="rmRegion('+i+')">✕</button></div>';
   }).join('');
 }
 
-// ═══ Generate Mask ═══
+// ═══ Generate RGBA Mask (Float32 precision) ═══
 function genMask(){
   if(!hsv||!regions.length)return;
   var n=W*H,es=+document.getElementById('pES').value;
-  rawR=new Float32Array(n);rawG=new Float32Array(n);rawB=new Float32Array(n);
+  rawR=new Float32Array(n);rawG=new Float32Array(n);rawB=new Float32Array(n);rawA=new Float32Array(n);
+
+  // A channel: based on mode
+  if(aMode==='alpha'){
+    for(var i=0;i<n;i++) rawA[i]=px[i*4+3]/255;
+  } else if(aMode==='stroke'){
+    // Generate stroke from alpha edges
+    for(var y=1;y<H-1;y++)for(var x=1;x<W-1;x++){
+      var i=y*W+x,a=px[i*4+3]/255;
+      var neighbors=[px[((y-1)*W+x)*4+3],px[((y+1)*W+x)*4+3],px[(y*W+x-1)*4+3],px[(y*W+x+1)*4+3]];
+      var minN=Math.min.apply(null,neighbors)/255,maxN=Math.max.apply(null,neighbors)/255;
+      rawA[i]=Math.abs(maxN-minN)*a; // edge strength
+    }
+    if(es>0) rawA=blur(rawA,W,H,Math.max(1,es));
+    // Normalize
+    var maxV=0;for(var i=0;i<n;i++)if(rawA[i]>maxV)maxV=rawA[i];
+    if(maxV>0)for(var i=0;i<n;i++)rawA[i]/=maxV;
+  }
+
+  // R/G/B channels from color regions
   for(var i=0;i<n;i++){
     var h=hsv[i*3],s=hsv[i*3+1],v=hsv[i*3+2];
     if(px[i*4+3]<10)continue;
-    var mr=0,mg=0,mb=0;
+    var mr=0,mg=0,mb=0,ma_pick=0;
     for(var ri=0;ri<regions.length;ri++){
       var rg=regions[ri],hd=hDist(h,rg.hue);
       if(s<rg.satMin*0.5)continue;
-      var hm=hd<=rg.tol?1:hd<=rg.tol*1.5?sm(rg.tol*1.5,rg.tol,hd):0;
-      var smm=s>=rg.satMin?1:s>=rg.satMin*0.5?sm(rg.satMin*0.5,rg.satMin,s):0;
+      var hm=hd<=rg.tol?1:hd<=rg.tol*1.5?sms(rg.tol*1.5,rg.tol,hd):0;
+      var smm=s>=rg.satMin?1:s>=rg.satMin*0.5?sms(rg.satMin*0.5,rg.satMin,s):0;
       var val=hm*smm*(v/100);
+      if(rg.inverted) val=val>0.01?(1-val)*(v/100):0; // invert: flip matched area
       if(rg.ch==='R'&&val>mr)mr=val;
       if(rg.ch==='G'&&val>mg)mg=val;
       if(rg.ch==='B'&&val>mb)mb=val;
+      if(rg.ch==='A'&&aMode==='pick'&&val>ma_pick)ma_pick=val;
     }
     rawR[i]=mr;rawG[i]=mg;rawB[i]=mb;
+    if(aMode==='pick') rawA[i]=Math.max(rawA[i],ma_pick);
   }
-  if(es>0){rawR=blur(rawR,W,H,es);rawG=blur(rawG,W,H,es);rawB=blur(rawB,W,H,es)}
+
+  if(es>0){rawR=blur(rawR,W,H,es);rawG=blur(rawG,W,H,es);rawB=blur(rawB,W,H,es);if(aMode==='pick')rawA=blur(rawA,W,H,es)}
+
+  // Mutual exclusivity for R/G/B
   for(var i=0;i<n;i++){
     var r=rawR[i],g=rawG[i],b=rawB[i],mx=Math.max(r,g,b);
     if(mx<0.01){rawR[i]=rawG[i]=rawB[i]=0;continue}
@@ -383,14 +433,17 @@ function genMask(){
     else if(g>=r&&g>=b){rawR[i]=0;rawB[i]=0}
     else{rawR[i]=0;rawG[i]=0}
   }
-  maskRGBA=new ImageData(W,H);
-  var d=maskRGBA.data;
-  for(var i=0;i<n;i++){var o=i*4;d[o]=(rawR[i]*255+.5)|0;d[o+1]=(rawG[i]*255+.5)|0;d[o+2]=(rawB[i]*255+.5)|0;d[o+3]=(d[o]||d[o+1]||d[o+2])?255:0}
-  renderAll();
-  document.getElementById('s3').style.display='block';setStp(3);
-  document.getElementById('s3').scrollIntoView({behavior:'smooth'});
-  setTip('✅','Mask 已生成！下方可预览各通道效果，确认后点击下载');
-  toast('Mask 生成完成');
+
+  buildImageData();renderAll();
+  document.getElementById('s3').style.display='block';
+  document.getElementById('brushBar').style.display='flex';
+  setStp(3);document.getElementById('s3').scrollIntoView({behavior:'smooth'});
+  setTip('✅ 已生成！可用画笔微调，确认后下载');toast('RGBA Mask 生成完成');
+}
+
+function buildImageData(){
+  var n=W*H;maskRGBA=new ImageData(W,H);var d=maskRGBA.data;
+  for(var i=0;i<n;i++){var o=i*4;d[o]=(rawR[i]*255+.5)|0;d[o+1]=(rawG[i]*255+.5)|0;d[o+2]=(rawB[i]*255+.5)|0;d[o+3]=(rawA[i]*255+.5)|0}
 }
 
 function blur(d,w,h,r){
@@ -400,7 +453,38 @@ function blur(d,w,h,r){
   return o;
 }
 
-// ═══ Render Previews ═══
+// ═══ Manual Brush ═══
+var painting=false;
+function setBrush(mode){
+  brushMode=mode;
+  document.getElementById('brPaint').style.borderColor=mode==='paint'?'var(--accent)':'';
+  document.getElementById('brErase').style.borderColor=mode==='erase'?'var(--red)':'';
+  document.getElementById('srcC').style.cursor=mode?'crosshair':'crosshair';
+}
+document.getElementById('brSize').addEventListener('input',function(){document.getElementById('brSizeV').textContent=this.value});
+
+function brushDown(e){if(!brushMode||!rawR)return;painting=true;brushStroke(e)}
+function brushMove(e){if(!painting)return;brushStroke(e)}
+function brushUp(){painting=false;if(brushMode&&rawR){buildImageData();renderAll()}}
+
+function brushStroke(e){
+  var c=document.getElementById('srcC'),rect=c.getBoundingClientRect();
+  var cx=Math.floor((e.clientX-rect.left)/rect.width*W),cy=Math.floor((e.clientY-rect.top)/rect.height*H);
+  var sz=+document.getElementById('brSize').value,ch=document.getElementById('brCh').value;
+  var raw=ch==='R'?rawR:ch==='G'?rawG:ch==='B'?rawB:rawA;
+  var val=brushMode==='paint'?1:0;
+  for(var dy=-sz;dy<=sz;dy++)for(var dx=-sz;dx<=sz;dx++){
+    if(dx*dx+dy*dy>sz*sz)continue;
+    var x=cx+dx,y=cy+dy;if(x<0||x>=W||y<0||y>=H)continue;
+    var dist=Math.sqrt(dx*dx+dy*dy)/sz;
+    var strength=brushMode==='paint'?sms(1,0.5,dist):sms(0.5,1,dist);
+    var i=y*W+x;
+    if(brushMode==='paint')raw[i]=Math.max(raw[i],strength);
+    else raw[i]*=(1-strength);
+  }
+}
+
+// ═══ Render ═══
 function renderAll(){
   var c=document.getElementById('pvOrig');c.width=W;c.height=H;c.getContext('2d').drawImage(srcImg,0,0);
   rc('pvGray',function(d){var m=maskRGBA.data;for(var i=0;i<m.length;i+=4){var v=Math.max(m[i],m[i+1],m[i+2]);d[i]=v;d[i+1]=v;d[i+2]=v;d[i+3]=255}});
@@ -409,78 +493,38 @@ function renderAll(){
   var ts={R:[255,80,80],G:[80,255,80],B:[80,120,255]};
   for(var i=0;i<od.length;i+=4){var mr=md[i],mg=md[i+1],mb=md[i+2],mx=Math.max(mr,mg,mb);if(mx<5)continue;var t=mr>=mg&&mr>=mb?ts.R:mg>=mr&&mg>=mb?ts.G:ts.B;var bl=mx/255*.45;od[i]=od[i]*(1-bl)+t[0]*bl|0;od[i+1]=od[i+1]*(1-bl)+t[1]*bl|0;od[i+2]=od[i+2]*(1-bl)+t[2]*bl|0}
   ctxo.putImageData(io,0,0);
-  rc('pvR',function(d){for(var i=0,n=W*H;i<n;i++){var v=(rawR[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}});
-  rc('pvG',function(d){for(var i=0,n=W*H;i<n;i++){var v=(rawG[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}});
-  rc('pvB',function(d){for(var i=0,n=W*H;i<n;i++){var v=(rawB[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}});
+  rcF('pvR',rawR);rcF('pvG',rawG);rcF('pvB',rawB);rcF('pvA',rawA);
   var cc=document.getElementById('pvComp');cc.width=W;cc.height=H;cc.getContext('2d').putImageData(maskRGBA,0,0);
 }
 function rc(id,fn){var c=document.getElementById(id);c.width=W;c.height=H;var ctx=c.getContext('2d');var img=ctx.createImageData(W,H);fn(img.data);ctx.putImageData(img,0,0)}
-function pvTab(idx,btn){document.querySelectorAll('.pv-tab').forEach(function(t){t.classList.remove('act')});btn.classList.add('act');for(var i=0;i<5;i++){var el=document.getElementById('pv'+i);if(el)el.style.display=i===idx?'':'none'}}
+function rcF(id,raw){rc(id,function(d){for(var i=0,n=W*H;i<n;i++){var v=(raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}})}
+function pvTab(idx,btn){document.querySelectorAll('.pv-tab').forEach(function(t){t.classList.remove('act')});btn.classList.add('act');for(var i=0;i<6;i++){var el=document.getElementById('pv'+i);if(el)el.style.display=i===idx?'':'none'}}
 
-// ═══ Downloads (fixed: explicit canvas→blob→download) ═══
-function dlComp(){
-  if(!maskRGBA){toast('请先生成 Mask');return}
-  var c=document.createElement('canvas');c.width=W;c.height=H;
-  c.getContext('2d').putImageData(maskRGBA,0,0);
-  savePNG(c,'mask_rgba.png');
+// ═══ Downloads ═══
+function savePNG(canvas,name){
+  try{canvas.toBlob(function(b){if(!b){toast('导出失败');return}var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u)},1e3);toast('已下载 '+name)},'image/png')}
+  catch(e){var u=canvas.toDataURL('image/png');var a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);toast('已下载 '+name)}
 }
-function dlCh(ch){
-  if(!rawR){toast('请先生成 Mask');return}
-  var raw=ch==='R'?rawR:ch==='G'?rawG:rawB;
-  var c=document.createElement('canvas');c.width=W;c.height=H;
-  var ctx=c.getContext('2d'),img=ctx.createImageData(W,H),d=img.data;
-  for(var i=0,n=W*H;i<n;i++){var v=(raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}
-  ctx.putImageData(img,0,0);
-  savePNG(c,'mask_'+ch+'.png');
-}
-function savePNG(canvas,filename){
-  try{
-    canvas.toBlob(function(blob){
-      if(!blob){toast('导出失败');return}
-      var url=URL.createObjectURL(blob);
-      var a=document.createElement('a');
-      a.href=url;a.download=filename;
-      document.body.appendChild(a);a.click();
-      document.body.removeChild(a);
-      setTimeout(function(){URL.revokeObjectURL(url)},1000);
-      toast('已下载 '+filename);
-    },'image/png');
-  }catch(e){
-    // Fallback: toDataURL
-    var url=canvas.toDataURL('image/png');
-    var a=document.createElement('a');a.href=url;a.download=filename;
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-    toast('已下载 '+filename);
-  }
-}
+function dlComp(){if(!maskRGBA)return toast('请先生成');var c=document.createElement('canvas');c.width=W;c.height=H;c.getContext('2d').putImageData(maskRGBA,0,0);savePNG(c,'mask_rgba.png')}
+function dlCh(ci){if(!rawR)return toast('请先生成');var raw=[rawR,rawG,rawB,rawA][ci],name=['mask_R','mask_G','mask_B','mask_A'][ci]+'.png';var c=document.createElement('canvas');c.width=W;c.height=H;var ctx=c.getContext('2d'),img=ctx.createImageData(W,H),d=img.data;for(var i=0,n=W*H;i<n;i++){var v=(raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}ctx.putImageData(img,0,0);savePNG(c,name)}
 
 async function dlZip(){
-  if(!maskRGBA){toast('请先生成 Mask');return}
-  if(typeof JSZip==='undefined'){toast('正在加载打包库...');return}
+  if(!maskRGBA)return toast('请先生成');if(typeof JSZip==='undefined')return toast('加载中...');
   var z=new JSZip();
-  var c0=document.createElement('canvas');c0.width=W;c0.height=H;c0.getContext('2d').drawImage(srcImg,0,0);
-  z.file('original.png',await cb(c0));
-  var c1=document.createElement('canvas');c1.width=W;c1.height=H;c1.getContext('2d').putImageData(maskRGBA,0,0);
-  z.file('mask_rgba.png',await cb(c1));
-  var chs=[['R',rawR],['G',rawG],['B',rawB]];
-  for(var ci=0;ci<chs.length;ci++){
-    var ch=chs[ci][0],raw=chs[ci][1];
-    var cc=document.createElement('canvas');cc.width=W;cc.height=H;var ctx=cc.getContext('2d');var img=ctx.createImageData(W,H);var d=img.data;
-    for(var i=0,n=W*H;i<n;i++){var v=(raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}
-    ctx.putImageData(img,0,0);z.file('mask_'+ch+'.png',await cb(cc));
-  }
+  var c0=document.createElement('canvas');c0.width=W;c0.height=H;c0.getContext('2d').drawImage(srcImg,0,0);z.file('original.png',await cb(c0));
+  var c1=document.createElement('canvas');c1.width=W;c1.height=H;c1.getContext('2d').putImageData(maskRGBA,0,0);z.file('mask_rgba.png',await cb(c1));
+  var chs=[['R',rawR],['G',rawG],['B',rawB],['A',rawA]];
+  for(var ci=0;ci<4;ci++){var c=document.createElement('canvas');c.width=W;c.height=H;var ctx=c.getContext('2d'),img=ctx.createImageData(W,H),d=img.data;var raw=chs[ci][1];for(var i=0,n=W*H;i<n;i++){var v=(raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}ctx.putImageData(img,0,0);z.file('mask_'+chs[ci][0]+'.png',await cb(c))}
   z.file('preview_overlay.png',await cb(document.getElementById('pvOver')));
-  z.file('config.json',JSON.stringify({tool:'Auto Mask v3.1',size:[W,H],regions:regions.map(function(r){return{channel:r.ch,hue:r.hue,tolerance:r.tol,satMin:r.satMin,matchPct:r.matchPct,color:'#'+r.rgb.map(function(v){return v.toString(16).padStart(2,'0')}).join('')}}),edgeSmooth:+document.getElementById('pES').value,generated:new Date().toISOString()},null,2));
-  var blob=await z.generateAsync({type:'blob'});
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mask_output.zip';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  toast('ZIP 已下载');
+  z.file('config.json',JSON.stringify({tool:'Auto Mask v4.0',size:[W,H],aMode:aMode,regions:regions.map(function(r){return{ch:r.ch,hue:r.hue,tol:r.tol,satMin:r.satMin,inverted:r.inverted,matchPct:r.matchPct,color:rgb2hex(r.rgb)}}),edgeSmooth:+document.getElementById('pES').value,generated:new Date().toISOString()},null,2));
+  var blob=await z.generateAsync({type:'blob'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mask_output.zip';document.body.appendChild(a);a.click();document.body.removeChild(a);toast('ZIP 已下载');
 }
 function cb(c){return new Promise(function(r){c.toBlob(function(b){r(b)},'image/png')})}
 
 // ═══ Helpers ═══
 function setStp(n){document.querySelectorAll('.stp').forEach(function(s){var d=+s.dataset.s;s.className='stp'+(d<n?' done':d===n?' act':'')})}
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+function rgb2hex(a){return'#'+a.map(function(v){return v.toString(16).padStart(2,'0')}).join('')}
 </script>
 </body>
 </html>
