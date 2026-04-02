@@ -63,31 +63,124 @@ var toolData={
 function showLoading(){var b=document.getElementById('loadingBar');b.style.width='0';b.classList.add('on');setTimeout(function(){b.style.width='60%';},50);}
 function hideLoading(){var b=document.getElementById('loadingBar');b.style.width='100%';setTimeout(function(){b.classList.remove('on');b.style.width='0';},300);}
 
-// ═══ 通用折叠/展开工具函数（精确 height 动画）═══
-function toggleTree(el){
-  var container=el.querySelector('.t1-c')||el.querySelector('.t2-c')||el.querySelector('.t3-c');
+// ═══ 通用折叠/展开工具函数（精确 height 动画 + 手风琴互斥）═══
+// 【修复核心】所有点击入口统一走 handleToggle，内部用 stopPropagation 隔离事件
+
+/**
+ * 获取当前节点的直接子容器
+ */
+function getChildContainer(el){
+  // 只查直接子节点，避免匹配到更深层的容器
+  var children = el.children;
+  for(var i=0;i<children.length;i++){
+    var cls = children[i].className || '';
+    if(cls.indexOf('t1-c')!==-1 || cls.indexOf('t2-c')!==-1 || cls.indexOf('t3-c')!==-1){
+      return children[i];
+    }
+  }
+  return null;
+}
+
+/**
+ * 折叠某个节点（带动画）
+ */
+function collapseNode(el){
+  if(!el || !el.classList.contains('open')) return;
+  var container = getChildContainer(el);
   if(!container) return;
-  var isOpen=el.classList.contains('open');
+  // 先递归折叠所有子节点，防止高度计算错误
+  var childNodes = container.querySelectorAll('.t1.open, .t2.open, .t3.open');
+  for(var i=0;i<childNodes.length;i++) collapseNodeInstant(childNodes[i]);
+  container.style.height = container.scrollHeight + 'px';
+  container.offsetHeight; // 强制回流
+  container.style.height = '0';
+  el.classList.remove('open');
+}
+
+/**
+ * 瞬间折叠（无动画）
+ */
+function collapseNodeInstant(el){
+  if(!el || !el.classList.contains('open')) return;
+  var container = getChildContainer(el);
+  if(!container) return;
+  el.classList.remove('open');
+  container.style.height = '0';
+}
+
+/**
+ * 展开某个节点（带动画）
+ */
+function expandNode(el){
+  if(!el || el.classList.contains('open')) return;
+  var container = getChildContainer(el);
+  if(!container) return;
+  el.classList.add('open');
+  container.style.height = container.scrollHeight + 'px';
+  var onEnd = function(e){
+    // 只响应自身容器的 transitionend，忽略子元素冒泡上来的事件
+    if(e.target !== container) return;
+    container.style.height = 'auto';
+    container.removeEventListener('transitionend', onEnd);
+  };
+  container.addEventListener('transitionend', onEnd);
+}
+
+/**
+ * 手风琴互斥：折叠同层级的其他同类节点
+ * @param {Element} el  当前要展开的节点
+ */
+function collapseSiblings(el){
+  if(!el || !el.parentElement) return;
+  var siblings = el.parentElement.children;
+  var elTag = el.classList.contains('t1') ? 't1' : el.classList.contains('t2') ? 't2' : 't3';
+  for(var i=0;i<siblings.length;i++){
+    if(siblings[i] !== el && siblings[i].classList.contains(elTag) && siblings[i].classList.contains('open')){
+      collapseNode(siblings[i]);
+    }
+  }
+}
+
+/**
+ * 统一的 Toggle 入口 —— 由 onclick 调用
+ * 【核心修复】e.stopPropagation() 防止父子事件互相干扰
+ */
+function handleToggle(e, headerEl){
+  // ★★★ 阻止事件冒泡：防止点击子级 header 时触发父级 header 的 click ★★★
+  e.stopPropagation();
+
+  var treeNode = headerEl.parentElement; // .t1 / .t2 / .t3
+  var isOpen = treeNode.classList.contains('open');
+
   if(isOpen){
-    container.style.height=container.scrollHeight+'px';
-    container.offsetHeight; // 强制回流
-    container.style.height='0';
-    el.classList.remove('open');
+    // 当前已展开 → 折叠
+    collapseNode(treeNode);
   } else {
-    el.classList.add('open');
-    container.style.height=container.scrollHeight+'px';
-    var onEnd=function(){
-      container.style.height='auto';
-      container.removeEventListener('transitionend',onEnd);
-    };
-    container.addEventListener('transitionend',onEnd);
+    // 先折叠同级的其他节点（手风琴效果）
+    collapseSiblings(treeNode);
+    // 再展开当前节点
+    expandNode(treeNode);
+  }
+}
+
+/**
+ * toggleTree 保留兼容（内部页面 TOC 等可能调用）
+ */
+function toggleTree(el){
+  var container = getChildContainer(el);
+  if(!container) return;
+  if(el.classList.contains('open')){
+    collapseNode(el);
+  } else {
+    collapseSiblings(el);
+    expandNode(el);
   }
 }
 
 // 程序化展开（不带动画，用于导航时自动展开父级）
 function expandTree(el){
   if(!el||el.classList.contains('open')) return;
-  var container=el.querySelector('.t1-c')||el.querySelector('.t2-c')||el.querySelector('.t3-c');
+  var container = getChildContainer(el);
   if(!container) return;
   el.classList.add('open');
   container.style.height='auto';
@@ -137,7 +230,8 @@ function buildSidebar(data){
     // 武器库模块加红色强调边框
     var extraCls = isArsenal ? ' t1-arsenal' : '';
     html += '<div class="t1' + extraCls + '" id="' + cat.id + '">';
-    html += '<div class="t1-h" onclick="toggleTree(this.parentElement)">'
+    // ★ 使用 handleToggle(event, this) 替代旧的 toggleTree —— 自带 stopPropagation ★
+    html += '<div class="t1-h" onclick="handleToggle(event,this)">'
       + '<span class="chv">▶</span>'
       + '<span class="ci" style="background:' + ms.bg + ';color:' + ms.highlight + '">' + cat.icon + '</span>'
       + '<span class="cl">' + cat.name + '</span>'
@@ -149,7 +243,8 @@ function buildSidebar(data){
       html += '<button class="leaf" style="color:var(--dim);cursor:default;font-style:italic;font-size:12px" disabled>📝 待补充...</button>';
     } else {
       cat.groups.forEach(function(grp){
-        html += '<div class="t2"><div class="t2-h" onclick="toggleTree(this.parentElement)">'
+        // ★ L2 也用 handleToggle ★
+        html += '<div class="t2"><div class="t2-h" onclick="handleToggle(event,this)">'
           + '<span class="chv">▶</span><span class="si">' + grp.icon + '</span>'
           + '<span class="sl">' + grp.name + '</span></div><div class="t2-c">';
 
@@ -176,9 +271,10 @@ function buildSidebar(data){
             craftTag = '<span class="craft-tag" style="background:' + cc.bg + ';color:' + cc.color + '">' + item.craft + '</span>';
           }
 
-          html += '<button class="leaf" data-page="' + item.id + '" onclick="navigate(\'' + item.id + '\',this)">'
+          // ★ 叶节点 onclick 也加 stopPropagation，title 属性展示全名 ★
+          html += '<button class="leaf" data-page="' + item.id + '" title="' + item.title + '" onclick="event.stopPropagation();navigate(\'' + item.id + '\',this)">'
             + '<span class="li">' + item.icon + '</span>'
-            + item.title
+            + '<span class="leaf-text">' + item.title + '</span>'
             + craftTag
             + '<span class="badge ' + badgeCls + '">' + item.badge + '</span>'
             + '</button>';

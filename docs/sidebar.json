@@ -58,13 +58,11 @@
           ]
         },
         {
-          "name": "UI & 桌面工具",
+          "name": "UI 桌面工具",
           "icon": "🖥️",
           "items": [
-            { "id": "image-skew-corrector",         "icon": "📐", "title": "图片倾斜矫正 (exe)",  "type": "iframe", "file": "knowledge-base/image-skew-corrector.html",         "badge": "UI", "download": "downloads/ImageSkewCorrector.exe", "craft": "UI" },
-            { "id": "image-skew-corrector-online",  "icon": "📐", "title": "图片倾斜矫正 (在线)", "type": "iframe", "file": "knowledge-base/image-skew-corrector-online.html",  "badge": "UI", "craft": "UI" },
-            { "id": "game-resource-toolkit",        "icon": "🛠️", "title": "游戏资源工具集 (exe)","type": "iframe", "file": "knowledge-base/game-resource-toolkit.html",        "badge": "UI", "download": "downloads/GameResourceToolkit.exe", "craft": "UI" },
-            { "id": "game-resource-toolkit-online",  "icon": "🛠️", "title": "游戏资源工具集 (在线)","type": "iframe", "file": "knowledge-base/game-resource-toolkit-online.html", "badge": "UI", "craft": "UI" }
+            { "id": "image-skew-corrector",         "icon": "📐", "title": "图片倾斜矫正 (桌面版)",  "type": "iframe", "file": "knowledge-base/image-skew-corrector.html",         "badge": "UI", "download": "downloads/ImageSkewCorrector.exe", "craft": "UI" },
+            { "id": "game-resource-toolkit",        "icon": "🛠️", "title": "游戏资源工具集 (桌面版)","type": "iframe", "file": "knowledge-base/game-resource-toolkit.html",        "badge": "UI", "download": "downloads/GameResourceToolkit.exe", "craft": "UI" }
           ]
         },
         {

@@ -252,7 +252,7 @@
       "module": "tool",
       "craft": "UI",
       "type": "iframe",
-      "title": "图片倾斜矫正 (exe下载)",
+      "title": "图片倾斜矫正 (桌面版)",
       "desc": "Windows 桌面版，四算法融合检测 + 自动矫正 + 批量处理",
       "tags": ["桌面工具","exe下载","倾斜矫正"],
       "icon": "📐",
@@ -261,41 +261,17 @@
       "download": "downloads/ImageSkewCorrector.exe"
     },
     {
-      "id": "image-skew-corrector-online",
-      "module": "tool",
-      "craft": "UI",
-      "type": "iframe",
-      "title": "图片倾斜矫正 (在线版)",
-      "desc": "多算法融合检测倾斜角度，在线自动矫正",
-      "tags": ["在线工具","倾斜矫正","批量处理"],
-      "icon": "📐",
-      "action": "openTool",
-      "path": "knowledge-base/image-skew-corrector-online.html"
-    },
-    {
       "id": "game-resource-toolkit",
       "module": "tool",
       "craft": "UI",
       "type": "iframe",
-      "title": "游戏资源工具集 (exe下载)",
+      "title": "游戏资源工具集 (桌面版)",
       "desc": "Windows 桌面版，All-in-one 资源管理工具",
       "tags": ["桌面工具","exe下载","资源检测"],
       "icon": "🛠️",
       "action": "openTool",
       "path": "knowledge-base/game-resource-toolkit.html",
       "download": "downloads/GameResourceToolkit.exe"
-    },
-    {
-      "id": "game-resource-toolkit-online",
-      "module": "tool",
-      "craft": "UI",
-      "type": "iframe",
-      "title": "游戏资源工具集 (在线版)",
-      "desc": "资源检测 + 图片续排 + 版本对比 + 问题修复",
-      "tags": ["在线工具","资源检测","All-in-one"],
-      "icon": "🛠️",
-      "action": "openTool",
-      "path": "knowledge-base/game-resource-toolkit-online.html"
     },
     {
       "id": "spine-perf-guide",
