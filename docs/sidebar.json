@@ -1,15 +1,31 @@
 {
-  "version": "3.0",
+  "version": "4.0",
   "lastUpdate": "2026-04-07",
   "categories": [
     {
-      "id": "mod-norm",
-      "name": "📚 规范与常识",
-      "icon": "📚",
+      "id": "mod-production",
+      "name": "🏭 美术生产与排期",
+      "icon": "🏭",
       "color": "accent",
       "groups": [
         {
-          "name": "角色规范",
+          "name": "管线与排期",
+          "icon": "🔄",
+          "items": [
+            { "id": "game-art-pipeline", "icon": "🔄", "title": "资产生产管线 (Pipeline) 概述", "type": "iframe", "file": "knowledge-base/game-art-pipeline.html", "badge": "管理", "craft": "管理" },
+            { "id": "art-scheduling",    "icon": "📅", "title": "美术排期与里程碑管理",         "type": "iframe", "file": "knowledge-base/placeholder.html",        "badge": "管理", "craft": "管理" }
+          ]
+        },
+        {
+          "name": "外包管理",
+          "icon": "📋",
+          "items": [
+            { "id": "cp-outsource",   "icon": "📋", "title": "外包管理与验收规范",     "type": "iframe", "file": "knowledge-base/cp-outsource.html",   "badge": "管理", "craft": "管理" },
+            { "id": "cp-management",  "icon": "✅", "title": "外包资产验收 Checklist", "type": "iframe", "file": "knowledge-base/cp-management.html",  "badge": "管理", "craft": "管理" }
+          ]
+        },
+        {
+          "name": "角色资产规范",
           "icon": "👤",
           "items": [
             { "id": "d1",                "icon": "📐", "title": "2D UGC 角色出图规范",     "type": "md",     "file": "knowledge-base/art/2D-UGC角色出图规范.md",             "badge": "角色", "craft": "角色" },
@@ -21,131 +37,99 @@
           ]
         },
         {
-          "name": "UI 规范",
+          "name": "UI 资产规范",
           "icon": "🖥️",
           "items": [
             { "id": "ui-slice-naming",   "icon": "✂️", "title": "切图与命名规范",   "type": "iframe", "file": "knowledge-base/ui-slice-naming.html",  "badge": "UI", "craft": "UI" },
             { "id": "ui-9slice-color",   "icon": "🎨", "title": "9宫格与颜色空间", "type": "iframe", "file": "knowledge-base/ui-9slice-color.html",  "badge": "UI", "craft": "UI" },
-            { "id": "ui-layout",         "icon": "📐", "title": "Layout 拼接规范", "type": "iframe", "file": "knowledge-base/ui-layout.html",        "badge": "UI", "craft": "UI" },
-            { "id": "ui-umg-tips",       "icon": "⚡", "title": "UMG 生成技巧",    "type": "iframe", "file": "knowledge-base/ui-umg-tips.html",      "badge": "UI", "craft": "UI" }
+            { "id": "ui-layout",         "icon": "📐", "title": "Layout 拼接规范", "type": "iframe", "file": "knowledge-base/ui-layout.html",        "badge": "UI", "craft": "UI" }
           ]
         },
         {
-          "name": "场景规范",
-          "icon": "⛰️",
+          "name": "场景资产规范",
+          "icon": "🏔️",
           "items": [
-            { "id": "scene-lod-spec",    "icon": "🏗️", "title": "场景模块化与 LOD 规范", "type": "iframe", "file": "knowledge-base/scene-lod-spec.html",        "badge": "场景", "craft": "场景" }
-          ]
-        },
-        {
-          "name": "程序与开发规范",
-          "icon": "💻",
-          "items": [
-            { "id": "code-standard",     "icon": "💻", "title": "代码规范",         "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "程序", "craft": "程序" },
-            { "id": "version-control",   "icon": "🔀", "title": "版本控制规范",     "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "程序", "craft": "程序" }
-          ]
-        },
-        {
-          "name": "策划与设计规范",
-          "icon": "📋",
-          "items": [
-            { "id": "config-table-spec", "icon": "📊", "title": "配置表规范",       "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "策划", "craft": "策划" },
-            { "id": "doc-template-spec", "icon": "📝", "title": "文档模板规范",     "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "策划", "craft": "策划" }
-          ]
-        },
-        {
-          "name": "音频与音效规范",
-          "icon": "🔊",
-          "items": [
-            { "id": "audio-spec",        "icon": "🔊", "title": "音频资源规范",     "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "音频", "craft": "音频" },
-            { "id": "audio-integration", "icon": "🎵", "title": "音频集成规范",     "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "音频", "craft": "音频" }
-          ]
-        },
-        {
-          "name": "QA 与测试规范",
-          "icon": "🧪",
-          "items": [
-            { "id": "qa-test-spec",      "icon": "🧪", "title": "测试用例规范",     "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "QA",   "craft": "QA" },
-            { "id": "qa-bug-flow",       "icon": "🐛", "title": "Bug 提报与跟踪规范", "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "QA", "craft": "QA" }
+            { "id": "scene-lod-spec", "icon": "🏗️", "title": "场景模块化与 LOD 规范", "type": "iframe", "file": "knowledge-base/scene-lod-spec.html", "badge": "场景", "craft": "场景" }
           ]
         }
       ]
     },
     {
-      "id": "mod-tool",
-      "name": "🛠️ 提效工具箱",
-      "icon": "🛠️",
+      "id": "mod-collab",
+      "name": "🤝 跨部门协同与交付",
+      "icon": "🤝",
+      "color": "orange",
+      "groups": [
+        {
+          "name": "美术 vs 策划",
+          "icon": "📝",
+          "items": [
+            { "id": "art-vs-planner-req",      "icon": "📝", "title": "需求对接流转规范", "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "跨部门", "craft": "跨部门" },
+            { "id": "art-vs-planner-template",  "icon": "📄", "title": "UI/原画需求模板", "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "跨部门", "craft": "跨部门" }
+          ]
+        },
+        {
+          "name": "美术 vs 程序/TA",
+          "icon": "⚙️",
+          "items": [
+            { "id": "art-vs-ta-naming",      "icon": "📦", "title": "引擎导入与命名规范",   "type": "iframe", "file": "knowledge-base/placeholder.html",           "badge": "跨部门", "craft": "跨部门" },
+            { "id": "art-vs-ta-perfbudget",  "icon": "🚦", "title": "性能红线与资产预算",   "type": "iframe", "file": "knowledge-base/placeholder.html",           "badge": "跨部门", "craft": "跨部门" },
+            { "id": "spine-perf-guide",      "icon": "🦴", "title": "Spine 性能红线与排查", "type": "iframe", "file": "knowledge-base/spine-perf-guide.html",      "badge": "性能",   "craft": "角色" },
+            { "id": "perf-redline-glossary",  "icon": "📖", "title": "跨工种黑话速查表",    "type": "iframe", "file": "knowledge-base/perf-redline-glossary.html",  "badge": "术语",   "craft": "通用" }
+          ]
+        },
+        {
+          "name": "美术 vs QA",
+          "icon": "🐛",
+          "items": [
+            { "id": "art-vs-qa-buggrade",   "icon": "🐛", "title": "美术表现类 Bug 定级标准", "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "跨部门", "craft": "跨部门" },
+            { "id": "art-vs-qa-checklist",  "icon": "📝", "title": "版本走查验收清单",       "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "跨部门", "craft": "跨部门" }
+          ]
+        },
+        {
+          "name": "协作与事故",
+          "icon": "🚨",
+          "items": [
+            { "id": "cross-dept-collab",     "icon": "🤝", "title": "跨部门协作痛点解法", "type": "iframe", "file": "knowledge-base/cross-dept-collab.html",     "badge": "协作", "craft": "通用" },
+            { "id": "accident-troubleshoot", "icon": "🚨", "title": "典型事故排雷手册",   "type": "iframe", "file": "knowledge-base/accident-troubleshoot.html", "badge": "排雷", "craft": "通用" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mod-toolkit",
+      "name": "🧰 APM 提效工具箱",
+      "icon": "🧰",
       "color": "green",
       "groups": [
         {
-          "name": "美术 / TA 工具",
+          "name": "项目管理工具",
+          "icon": "⚙️",
+          "items": [
+            { "id": "jira-tapd-automation",   "icon": "⚙️", "title": "项目管理工具模板",   "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "管理", "craft": "管理" },
+            { "id": "naming-check-tool",      "icon": "🔍", "title": "资产合规性检查工具", "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "管理", "craft": "管理" },
+            { "id": "progress-visualization", "icon": "📊", "title": "进度可视化工具",     "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "管理", "craft": "管理" }
+          ]
+        },
+        {
+          "name": "美术在线工具",
           "icon": "🎨",
           "items": [
             { "id": "auto-mask",            "icon": "🤖", "title": "自动 Mask 生成器",    "type": "tool",   "badge": "角色", "craft": "角色" },
             { "id": "mask-tool",            "icon": "🖌️", "title": "Mask 手动编辑器",     "type": "tool",   "badge": "角色", "craft": "角色" },
             { "id": "spine-split",          "icon": "✂️", "title": "Spine 拆分工具",      "type": "tool",   "badge": "角色", "craft": "角色" },
-            { "id": "mask-core-algorithms", "icon": "🧪", "title": "Mask 核心算法演示",   "type": "iframe", "file": "knowledge-base/mask-core-algorithms.html", "badge": "角色", "craft": "角色" },
+            { "id": "mask-core-algorithms", "icon": "🧪", "title": "Mask 核心算法演示",   "type": "tool",   "badge": "角色", "craft": "角色" },
             { "id": "channel-packer",       "icon": "📦", "title": "贴图通道打包工具",   "type": "iframe", "file": "knowledge-base/channel-packer.html",  "badge": "特效", "craft": "特效" },
-            { "id": "ta-shader-debugger",   "icon": "🎭", "title": "Shader 调试工具",    "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "TA", "craft": "TA" },
-            { "id": "ta-material-library",  "icon": "🧊", "title": "材质库管理器",       "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "TA", "craft": "TA" }
+            { "id": "ui-umg-tips",          "icon": "⚡", "title": "UMG 生成技巧",        "type": "iframe", "file": "knowledge-base/ui-umg-tips.html",      "badge": "UI", "craft": "UI" }
           ]
         },
         {
-          "name": "策划工具",
-          "icon": "📋",
-          "items": [
-            { "id": "planner-balance-tool",     "icon": "📈", "title": "数值平衡计算器",   "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "策划", "craft": "策划" },
-            { "id": "planner-config-validator",  "icon": "✅", "title": "配置表校验工具",   "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "策划", "craft": "策划" }
-          ]
-        },
-        {
-          "name": "程序 / QA 工具",
-          "icon": "🔧",
-          "items": [
-            { "id": "engine-bridge",            "icon": "🔌", "title": "Engine Bridge 引擎直连", "type": "iframe", "file": "knowledge-base/engine-bridge.html",   "badge": "技术", "craft": "技术" },
-            { "id": "qa-auto-test-framework",   "icon": "🤖", "title": "自动化测试框架",   "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "QA", "craft": "QA" },
-            { "id": "qa-perf-monitor",          "icon": "📊", "title": "性能监控面板",     "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "QA", "craft": "QA" }
-          ]
-        },
-        {
-          "name": "UI 桌面工具",
+          "name": "桌面工具",
           "icon": "🖥️",
           "items": [
-            { "id": "image-skew-corrector",         "icon": "📐", "title": "图片倾斜矫正 (桌面版)",  "type": "iframe", "file": "knowledge-base/image-skew-corrector.html",         "badge": "UI", "download": "downloads/ImageSkewCorrector.exe", "craft": "UI" },
-            { "id": "game-resource-toolkit",        "icon": "🛠️", "title": "游戏资源工具集 (桌面版)","type": "iframe", "file": "knowledge-base/game-resource-toolkit.html",        "badge": "UI", "download": "downloads/GameResourceToolkit.exe", "craft": "UI" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "mod-arsenal",
-      "name": "⚔️ APM 武器库",
-      "icon": "⚔️",
-      "color": "red",
-      "groups": [
-        {
-          "name": "性能排雷",
-          "icon": "💣",
-          "items": [
-            { "id": "spine-perf-guide",      "icon": "🦴", "title": "Spine 性能红线与排查", "type": "iframe", "file": "knowledge-base/spine-perf-guide.html",      "badge": "排雷", "craft": "角色" },
-            { "id": "perf-redline-glossary",  "icon": "🚦", "title": "跨工种黑话速查表",    "type": "iframe", "file": "knowledge-base/perf-redline-glossary.html",  "badge": "排雷", "craft": "通用" }
-          ]
-        },
-        {
-          "name": "事故 & 协作",
-          "icon": "🚨",
-          "items": [
-            { "id": "accident-troubleshoot", "icon": "🚨", "title": "典型事故排雷手册",     "type": "iframe", "file": "knowledge-base/accident-troubleshoot.html", "badge": "排雷", "craft": "通用" },
-            { "id": "cross-dept-collab",     "icon": "🤝", "title": "跨部门协作痛点解法",   "type": "iframe", "file": "knowledge-base/cross-dept-collab.html",     "badge": "排雷", "craft": "通用" },
-            { "id": "cp-outsource",          "icon": "📋", "title": "外包全流程管理指南","type": "iframe", "file": "knowledge-base/cp-outsource.html",          "badge": "排雷", "craft": "管理" }
-          ]
-        },
-        {
-          "name": "流程管理",
-          "icon": "📊",
-          "items": [
-            { "id": "cp-management",     "icon": "📋", "title": "外包资产验收规范",       "type": "iframe", "file": "knowledge-base/cp-management.html",     "badge": "流程管理", "craft": "管理" },
-            { "id": "game-art-pipeline", "icon": "📊", "title": "游戏美术流程总结",      "type": "iframe", "file": "knowledge-base/game-art-pipeline.html", "badge": "流程管理", "craft": "管理" }
+            { "id": "image-skew-corrector",  "icon": "📐", "title": "图片倾斜矫正 (桌面版)",  "type": "iframe", "file": "knowledge-base/image-skew-corrector.html",  "badge": "UI", "download": "downloads/ImageSkewCorrector.exe", "craft": "UI" },
+            { "id": "game-resource-toolkit", "icon": "🛠️", "title": "游戏资源工具集 (桌面版)","type": "iframe", "file": "knowledge-base/game-resource-toolkit.html", "badge": "UI", "download": "downloads/GameResourceToolkit.exe", "craft": "UI" },
+            { "id": "engine-bridge",         "icon": "🔌", "title": "Engine Bridge 引擎直连", "type": "iframe", "file": "knowledge-base/engine-bridge.html",         "badge": "技术", "craft": "技术" }
           ]
         }
       ]

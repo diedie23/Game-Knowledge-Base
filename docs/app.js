@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════
-// 游戏项目知识库 v3.1 — 矩阵式重构版
-// 核心架构：30% 规范 · 30% 工具 · 40% 武器库
-// 新增：面包屑导航 · 标签过滤 · 角标系统 · 全部展开/折叠
+// APM 专属知识库 v4.0 — 美术项目管理重构版
+// 核心架构：35% 美术生产与排期 · 35% 跨部门协同 · 30% 提效工具箱
+// 新增：阶段标签筛选 · 优先级徽标 · 面包屑增强 · 动态卡片渲染
 // ═══════════════════════════════════════════════════
 
 // ═══ Markdown Parser (智能表格增强) ═══
@@ -219,9 +219,9 @@ function expandTree(el){
 
 // ═══ 模块颜色与样式映射 ═══
 var MODULE_STYLES = {
-  'mod-norm':    { color: 'accent', highlight: 'var(--accent)',  bg: 'var(--accent-bg)' },
-  'mod-tool':    { color: 'green',  highlight: 'var(--green)',   bg: 'var(--green-bg)' },
-  'mod-arsenal': { color: 'red',    highlight: 'var(--red)',     bg: 'rgba(248,113,113,.08)' }
+  'mod-production': { color: 'accent', highlight: 'var(--accent)',  bg: 'var(--accent-bg)' },
+  'mod-collab':     { color: 'orange', highlight: 'var(--orange)',  bg: 'var(--orange-bg)' },
+  'mod-toolkit':    { color: 'green',  highlight: 'var(--green)',   bg: 'var(--green-bg)' }
 };
 
 // 工种 badge 样式映射
@@ -237,7 +237,8 @@ var CRAFT_COLORS = {
   '策划': { bg: 'var(--orange-bg)', color: 'var(--orange)' },
   '音频': { bg: 'var(--cyan-bg)',   color: 'var(--cyan)' },
   'QA':   { bg: 'var(--green-bg)',  color: 'var(--green)' },
-  'TA':   { bg: 'var(--pink-bg)',   color: 'var(--pink)' }
+  'TA':   { bg: 'var(--pink-bg)',   color: 'var(--pink)' },
+  '跨部门': { bg: 'var(--orange-bg)', color: 'var(--orange)' }
 };
 
 // ═══ SVG 图标常量（极简单色线性风格）═══
@@ -259,25 +260,25 @@ function buildSidebar(data){
     +'<div class="nav-toggle-btns"><button class="nav-toggle-btn" onclick="expandAllSidebar()" title="全部展开">📂 展开</button><button class="nav-toggle-btn" onclick="collapseAllSidebar()" title="全部折叠">📁 折叠</button></div></div>';
 
   // 统计计数器
-  var normCount=0, toolCount=0, arsenalCount=0;
+  var productionCount=0, collabCount=0, toolkitCount=0;
 
   data.categories.forEach(function(cat){
     var itemCount=0;
     cat.groups.forEach(function(g){ itemCount += g.items ? g.items.length : 0; });
 
     // 按模块 ID 计数
-    if(cat.id === 'mod-norm')    normCount = itemCount;
-    if(cat.id === 'mod-tool')    toolCount = itemCount;
-    if(cat.id === 'mod-arsenal') arsenalCount = itemCount;
+    if(cat.id === 'mod-production')  productionCount = itemCount;
+    if(cat.id === 'mod-collab')      collabCount = itemCount;
+    if(cat.id === 'mod-toolkit')     toolkitCount = itemCount;
 
-    var isArsenal = cat.id === 'mod-arsenal';
+    var isCollab = cat.id === 'mod-collab';
 
     // 获取纯文本名称（去掉 Emoji 前缀）
     var catName = cat.name.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]+\s*/u, '');
     // 一级模块 Emoji 图标（从 JSON icon 字段读取）
     var catEmoji = cat.icon || '📁';
 
-    var extraCls = isArsenal ? ' t1-arsenal' : '';
+    var extraCls = isCollab ? ' t1-collab' : '';
     html += '<div class="t1' + extraCls + '" id="' + cat.id + '">';
     html += '<div class="t1-h" onclick="handleToggle(event,this)">'
       + SVG_CHEVRON
@@ -329,15 +330,15 @@ function buildSidebar(data){
 
   // 更新首页统计数字
   var numEls = document.querySelectorAll('.stat .num');
-  if(numEls[0]) numEls[0].textContent = normCount + ' 篇';
-  if(numEls[1]) numEls[1].textContent = toolCount + ' 个';
-  if(numEls[2]) numEls[2].textContent = arsenalCount + ' 项';
+  if(numEls[0]) numEls[0].textContent = productionCount + ' 篇';
+  if(numEls[1]) numEls[1].textContent = collabCount + ' 篇';
+  if(numEls[2]) numEls[2].textContent = toolkitCount + ' 个';
 
   // ═══ 统计卡片 → 锚点快捷导航 ═══
   var statTargets = [
-    { sel: '.stat-norm',    anchor: '#section-norms' },
-    { sel: '.stat-tool',    anchor: '#section-tools' },
-    { sel: '.stat-arsenal', anchor: '#section-arsenal' }
+    { sel: '.stat-production', anchor: '#section-production' },
+    { sel: '.stat-collab',     anchor: '#section-collab' },
+    { sel: '.stat-toolkit',    anchor: '#section-toolkit' }
   ];
   var scrollContainer = document.getElementById('contentScroll');
   statTargets.forEach(function(item){
@@ -628,14 +629,14 @@ function highlightTocItem(anchorId,isIframe){
   if(btn) btn.classList.add('active');
 }
 
-// ═══ Search (融合 index.json 新结构) ═══
+// ═══ Search (融合 index.json APM 新结构 — 支持阶段/优先级) ═══
 function initSearch(){
   try{
     fetch('index.json').then(function(res){if(!res.ok) return;return res.json();}).then(function(data){
       indexData = data; // 保存全局引用
       var items=[];
 
-      // 从扁平化 items 数组构建搜索数据
+      // 从扁平化 items 数组构建搜索数据（含新字段）
       if(data && data.items){
         data.items.forEach(function(item){
           items.push({
@@ -644,7 +645,9 @@ function initSearch(){
             type: item.type,
             module: item.module,
             craft: item.craft,
-            content: item.desc + ' ' + item.tags.join(' '),
+            content: item.desc + ' ' + item.tags.join(' ') + ' ' + (item.applicable_stage||'') + ' ' + (item.priority||''),
+            applicable_stage: item.applicable_stage || '',
+            priority: item.priority || '',
             action: 'navigate'
           });
         });
@@ -657,16 +660,19 @@ function initSearch(){
             if(g.items) g.items.forEach(function(item){
               // 避免重复添加（index.json 已有的）
               if(!items.find(function(i){ return i.id === item.id; })){
-                items.push({id:item.id, title:item.title, type:item.type, content:item.title, action:'navigate', craft: item.craft||''});
+                items.push({id:item.id, title:item.title, type:item.type, content:item.title, action:'navigate', craft: item.craft||'', applicable_stage:'', priority:''});
               }
             });
           });
         });
       }
 
-      fuse=new Fuse(items,{keys:[{name:'title',weight:3},{name:'content',weight:1},{name:'craft',weight:0.5}],threshold:0.35,includeMatches:true,minMatchCharLength:1});
-      // 加载完毕后渲染动态角标
-      setTimeout(renderCardBadges, 500);
+      fuse=new Fuse(items,{keys:[{name:'title',weight:3},{name:'content',weight:1.5},{name:'craft',weight:0.5},{name:'applicable_stage',weight:1},{name:'priority',weight:0.5}],threshold:0.35,includeMatches:true,minMatchCharLength:1});
+      // 加载完毕后渲染动态首页卡片和角标
+      setTimeout(function(){
+        renderHomeCards();
+        renderCardBadges();
+      }, 300);
     });
   }catch(e){}
 }
@@ -681,15 +687,24 @@ function handleSearch(q){
   results.forEach(function(r){
     var item=r.item;
     // 模块标签颜色
-    var modLabel='📋', modCls='background:rgba(108,140,255,.08);color:#6c8cff';
-    if(item.module==='tool')    { modLabel='🔧'; modCls='background:rgba(74,222,128,.08);color:#4ade80'; }
-    if(item.module==='arsenal') { modLabel='⚔️'; modCls='background:rgba(248,113,113,.08);color:#f87171'; }
+    var modLabel='🏭', modCls='background:rgba(108,140,255,.08);color:#6c8cff';
+    if(item.module==='collab')  { modLabel='🤝'; modCls='background:rgba(251,146,60,.08);color:#fb923c'; }
+    if(item.module==='toolkit') { modLabel='🧰'; modCls='background:rgba(74,222,128,.08);color:#4ade80'; }
     // 工种 Tag
     var craftHtml = item.craft ? '<span class="sr-craft">['+item.craft+']</span>' : '';
+    // 阶段 Tag
+    var stageHtml = '';
+    if(item.applicable_stage){
+      var sc = indexData && indexData.stageConfig && indexData.stageConfig[item.applicable_stage];
+      var stageBg = sc ? sc.bg : 'rgba(167,139,250,.12)';
+      var stageColor = sc ? sc.color : '#a78bfa';
+      stageHtml = '<span class="sr-stage" style="background:'+stageBg+';color:'+stageColor+'">'+item.applicable_stage+'</span>';
+    }
 
     html+='<div class="sr-item" onmousedown="navigate(\''+item.id+'\');document.getElementById(\'searchDropdown\').classList.remove(\'show\');document.getElementById(\'searchInput\').value=\'\'">'
       +'<span class="sr-type" style="'+modCls+'">'+modLabel+'</span>'
       +'<span class="sr-title">'+item.title+'</span>'
+      +stageHtml
       +craftHtml
       +'</div>';
   });
@@ -1186,7 +1201,7 @@ async function publishToGitHub(){
   }
 }
 
-// ═══ 面包屑导航 ═══
+// ═══ 面包屑导航（增强 APM 层级 + 阶段标签）═══
 function updateBreadcrumb(pageId){
   var bar=document.getElementById('breadcrumbBar');
   var bc=document.getElementById('breadcrumb');
@@ -1203,7 +1218,7 @@ function updateBreadcrumb(pageId){
     return;
   }
 
-  var crumbs=['<a class="bc-link" onclick="navigate(\'home\')">🏠 首页</a>'];
+  var crumbs=['<a class="bc-link" onclick="navigate(\'home\')">🏠 APM 知识库</a>'];
   if(reg.catName) crumbs.push('<span class="bc-sep">›</span><span class="bc-text">'+reg.catName+'</span>');
   if(reg.grpName) crumbs.push('<span class="bc-sep">›</span><span class="bc-text">'+reg.grpName+'</span>');
 
@@ -1213,6 +1228,14 @@ function updateBreadcrumb(pageId){
   if(leafEl) leafTitle=leafEl.getAttribute('title')||leafEl.textContent.trim();
 
   crumbs.push('<span class="bc-sep">›</span><span class="bc-current">'+leafTitle+'</span>');
+
+  // 阶段标签（从 indexData 获取）
+  var meta = getItemMeta(pageId);
+  if(meta && meta.applicable_stage){
+    var sc = STAGE_COLORS[meta.applicable_stage] || STAGE_COLORS['全阶段'];
+    crumbs.push('<span class="bc-stage" style="background:'+sc.bg+';color:'+sc.color+';margin-left:8px;padding:2px 10px;border-radius:8px;font-size:11px;font-weight:600">'+meta.applicable_stage+'</span>');
+  }
+
   bc.innerHTML=crumbs.join('');
   bar.style.display='block';
 }
@@ -1313,6 +1336,117 @@ function renderCardBadges(){
       });
     }
   });
+}
+
+// ═══ v4.0 首页动态卡片渲染（从 index.json 数据驱动）═══
+var CARD_GRID_MAP = {
+  // 板块一：美术生产与排期
+  'grid-production-pipeline':  { module:'production', ids:['game-art-pipeline','art-scheduling'] },
+  'grid-production-outsource': { module:'production', ids:['cp-outsource','cp-management'] },
+  'grid-production-char':      { module:'production', ids:['d1','d2','ugc-character-spec','color-swap-spec','auto-mask-spec','spine-split-spec'] },
+  'grid-production-ui':        { module:'production', ids:['ui-slice-naming','ui-9slice-color','ui-layout'] },
+  'grid-production-scene':     { module:'production', ids:['scene-lod-spec'] },
+  // 板块二：跨部门协同
+  'grid-collab-planner':       { module:'collab', ids:['art-vs-planner-req','art-vs-planner-template'] },
+  'grid-collab-ta':            { module:'collab', ids:['art-vs-ta-naming','art-vs-ta-perfbudget','spine-perf-guide','perf-redline-glossary'] },
+  'grid-collab-qa':            { module:'collab', ids:['art-vs-qa-buggrade','art-vs-qa-checklist'] },
+  'grid-collab-accident':      { module:'collab', ids:['cross-dept-collab','accident-troubleshoot'] },
+  // 板块三：提效工具箱
+  'grid-toolkit-mgmt':         { module:'toolkit', ids:['jira-tapd-automation','naming-check-tool','progress-visualization'] },
+  'grid-toolkit-art':          { module:'toolkit', ids:['auto-mask','mask-tool','spine-split','mask-core-algorithms','channel-packer','ui-umg-tips'] },
+  'grid-toolkit-desktop':      { module:'toolkit', ids:['image-skew-corrector','game-resource-toolkit','engine-bridge'] }
+};
+
+// 阶段→背景色配置
+var STAGE_COLORS = {
+  '预研期': { color:'#60a5fa', bg:'rgba(96,165,250,.12)' },
+  '量产期': { color:'#fb923c', bg:'rgba(251,146,60,.12)' },
+  '测试期': { color:'#4ade80', bg:'rgba(74,222,128,.12)' },
+  '全阶段': { color:'#a78bfa', bg:'rgba(167,139,250,.12)' }
+};
+
+// 优先级→图标
+var PRIORITY_ICONS = { 'high':'🔴', 'medium':'🟡', 'low':'🟢' };
+
+function renderHomeCards(){
+  if(!indexData||!indexData.items) return;
+  var itemMap={};
+  indexData.items.forEach(function(item){ itemMap[item.id]=item; });
+
+  Object.keys(CARD_GRID_MAP).forEach(function(gridId){
+    var config=CARD_GRID_MAP[gridId];
+    var container=document.getElementById(gridId);
+    if(!container) return;
+    var html='';
+    config.ids.forEach(function(id){
+      var item=itemMap[id];
+      if(!item) return;
+      // 阶段标签
+      var stageBadge='';
+      if(item.applicable_stage){
+        var sc=STAGE_COLORS[item.applicable_stage]||STAGE_COLORS['全阶段'];
+        stageBadge='<span class="stage-tag" style="background:'+sc.bg+';color:'+sc.color+'">'+item.applicable_stage+'</span>';
+      }
+      // 优先级
+      var priIcon=PRIORITY_ICONS[item.priority]||'';
+      var priHtml=priIcon?'<span class="pri-badge" title="优先级: '+item.priority+'">'+priIcon+'</span>':'';
+      // 图标背景色
+      var iconBg='var(--accent-bg)';
+      if(config.module==='collab') iconBg='var(--orange-bg)';
+      if(config.module==='toolkit') iconBg='var(--green-bg)';
+      // 工种 badge
+      var craftBadge='';
+      if(item.craft){
+        var cc=CRAFT_COLORS[item.craft]||{bg:'rgba(139,143,163,.1)',color:'var(--dim)'};
+        craftBadge='<span class="craft-badge" style="background:'+cc.bg+';color:'+cc.color+'">'+item.craft+'</span>';
+      }
+      // 标签
+      var tagsHtml='';
+      if(item.tags&&item.tags.length){
+        var shown=item.tags.slice(0,3);
+        tagsHtml=shown.map(function(t){return'<span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag(\''+t+'\')">'+t+'</span>';}).join('');
+      }
+
+      html+='<div class="home-card" data-stage="'+(item.applicable_stage||'')+'" data-priority="'+(item.priority||'')+'" onclick="navigate(\''+item.id+'\')">'
+        +priHtml
+        +'<div class="hci" style="background:'+iconBg+'">'+(item.icon||'📄')+'</div>'
+        +'<h3>'+item.title+'</h3>'
+        +'<p>'+item.desc+'</p>'
+        +'<div class="tags">'+stageBadge+tagsHtml+craftBadge+'</div>'
+        +'</div>';
+    });
+    container.innerHTML=html;
+  });
+}
+
+// ═══ v4.0 阶段筛选 ═══
+var activeStageFilter = 'all';
+function filterByStage(stage){
+  activeStageFilter = stage;
+  // 更新按钮 active 状态
+  document.querySelectorAll('.stage-btn').forEach(function(btn){ btn.classList.remove('active'); });
+  if(stage==='all'){
+    document.querySelector('.stage-btn-all').classList.add('active');
+  } else {
+    document.querySelectorAll('.stage-btn').forEach(function(btn){
+      if(btn.textContent.trim().indexOf(stage)!==-1) btn.classList.add('active');
+    });
+  }
+  // 过滤卡片
+  var cards=document.querySelectorAll('.home-card');
+  var visibleCount=0;
+  cards.forEach(function(card){
+    var cardStage=card.getAttribute('data-stage')||'';
+    if(stage==='all' || cardStage===stage || cardStage==='全阶段'){
+      card.style.display='';
+      visibleCount++;
+    } else {
+      card.style.display='none';
+    }
+  });
+  if(stage!=='all'){
+    showToast('📅 筛选「'+stage+'」— 显示 '+visibleCount+' 个条目');
+  }
 }
 
 // ═══ 责任人与时效展示增强 ═══

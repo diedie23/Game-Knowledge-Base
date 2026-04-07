@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>游戏项目知识库</title>
+<title>APM 专属知识库</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,9 +13,9 @@
 
 <!-- Sidebar -->
 <aside class="sidebar">
-  <div class="sidebar-header"><h1><span class="logo">📖</span> 游戏项目知识库</h1><p>Game Project Knowledge Base</p></div>
+  <div class="sidebar-header"><h1><span class="logo">📊</span> APM 专属知识库</h1><p>Art Project Management Knowledge Base</p></div>
   <div class="search-box">
-    <input type="text" id="searchInput" placeholder="搜索文档与工具... Ctrl+K" oninput="handleSearch(this.value)" onfocus="handleSearch(this.value)" onblur="setTimeout(()=>document.getElementById('searchDropdown').classList.remove('show'),200)">
+    <input type="text" id="searchInput" placeholder="搜索文档、阶段、跨部门... Ctrl+K" oninput="handleSearch(this.value)" onfocus="handleSearch(this.value)" onblur="setTimeout(()=>document.getElementById('searchDropdown').classList.remove('show'),200)">
     <div class="search-dropdown" id="searchDropdown"></div>
   </div>
   <nav class="sidebar-nav" id="sidebarNav">
@@ -30,7 +30,7 @@
   </nav>
   <div class="sidebar-footer">
     <button class="nav-create" onclick="openEditor()">➕ 新增文档</button>
-    <div class="sf-links"><span>v3.1</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a></div>
+    <div class="sf-links"><span>v4.0 APM</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a></div>
   </div>
 </aside>
 
@@ -69,9 +69,9 @@
     <div class="editor-meta">
       <input type="text" id="editorFileName" class="em-input" placeholder="文件名（如：角色动画规范）" value="">
       <select id="editorCategory" class="em-select">
-        <option value="mod-norm">📚 规范与常识</option>
-        <option value="mod-tool">🛠️ 提效工具箱</option>
-        <option value="mod-arsenal">⚔️ APM 武器库</option>
+        <option value="mod-production">🏭 美术生产与排期</option>
+        <option value="mod-collab">🤝 跨部门协同与交付</option>
+        <option value="mod-toolkit">🧰 APM 提效工具箱</option>
       </select>
     </div>
     <div id="vditorContainer"></div>
@@ -80,154 +80,101 @@
     <!-- Home -->
     <div class="home" id="pageHome">
       <div class="home-hero">
-        <h1>🎮 游戏项目<span>知识库</span></h1>
-        <p>团队共享的美术规范、技术方案与生产工具，持续更新中</p>
+        <h1>📊 APM 专属<span>知识库</span></h1>
+        <p>美术项目管理核心知识体系 — 生产管控 · 跨部门协同 · 提效工具</p>
         <div class="home-ratio-bar" title="知识库内容分布比例">
-          <span class="ratio-seg ratio-norm" title="📚 规范与常识：占比 30%，涵盖各工种标准规范与工业化流程">📚 30%</span>
-          <span class="ratio-seg ratio-tool" title="🛠️ 提效工具箱：占比 30%，在线工具、桌面工具与技术方案">🛠️ 30%</span>
-          <span class="ratio-seg ratio-arsenal" title="⚔️ APM 武器库：占比 40%，性能排雷、事故复盘与协作破局">⚔️ 40%</span>
+          <span class="ratio-seg ratio-production" title="🏭 美术生产与排期：占比 35%">🏭 35%</span>
+          <span class="ratio-seg ratio-collab" title="🤝 跨部门协同与交付：占比 35%">🤝 35%</span>
+          <span class="ratio-seg ratio-toolkit" title="🧰 APM 提效工具箱：占比 30%">🧰 30%</span>
+        </div>
+        <!-- 阶段快速筛选 -->
+        <div class="stage-filter-row" id="stageFilterRow">
+          <span class="stage-filter-label">按阶段筛选：</span>
+          <button class="stage-btn stage-btn-all active" onclick="filterByStage('all')">全部</button>
+          <button class="stage-btn stage-btn-pre" onclick="filterByStage('预研期')"><span class="stage-dot" style="background:#60a5fa"></span>预研期</button>
+          <button class="stage-btn stage-btn-mass" onclick="filterByStage('量产期')"><span class="stage-dot" style="background:#fb923c"></span>量产期</button>
+          <button class="stage-btn stage-btn-test" onclick="filterByStage('测试期')"><span class="stage-dot" style="background:#4ade80"></span>测试期</button>
+          <button class="stage-btn stage-btn-allstage" onclick="filterByStage('全阶段')"><span class="stage-dot" style="background:#a78bfa"></span>全阶段</button>
         </div>
       </div>
 
       <!-- 统计栏 -->
       <div class="stats-bar">
-        <div class="stat stat-norm"><div class="num">—</div><div class="label">📚 规范与常识</div></div>
-        <div class="stat stat-tool"><div class="num">—</div><div class="label">🛠️ 提效工具</div></div>
-        <div class="stat stat-arsenal"><div class="num">—</div><div class="label">⚔️ 排雷武器库</div></div>
+        <div class="stat stat-production"><div class="num">—</div><div class="label">🏭 美术生产与排期</div></div>
+        <div class="stat stat-collab"><div class="num">—</div><div class="label">🤝 跨部门协同</div></div>
+        <div class="stat stat-toolkit"><div class="num">—</div><div class="label">🧰 提效工具箱</div></div>
       </div>
 
-      <!-- ═══ 板块一：📚 规范与常识 (30%) ═══ -->
-      <div class="module-section module-norm" id="section-norms">
+      <!-- ═══ 板块一：🏭 美术生产与排期 (35%) ═══ -->
+      <div class="module-section module-production" id="section-production">
         <div class="module-header">
-          <div class="module-icon" style="background:var(--accent-bg);color:var(--accent)">📚</div>
+          <div class="module-icon" style="background:var(--accent-bg);color:var(--accent)">🏭</div>
           <div class="module-info">
-            <h2>规范与常识</h2>
-            <p>各工种的标准规范、工业化流程与最佳实践</p>
+            <h2>美术生产与排期管理</h2>
+            <p>资产管线、外包管理、排期控制、美术资产规范 — APM 日常管控核心</p>
+          </div>
+          <span class="module-weight">35%</span>
+        </div>
+
+        <div class="hst">🔄 管线与排期</div>
+        <div class="home-grid" id="grid-production-pipeline"></div>
+
+        <div class="hst" style="margin-top:28px">📋 外包管理</div>
+        <div class="home-grid" id="grid-production-outsource"></div>
+
+        <div class="hst" style="margin-top:28px">👤 角色资产规范</div>
+        <div class="home-grid" id="grid-production-char"></div>
+
+        <div class="hst" style="margin-top:28px">🖥️ UI 资产规范</div>
+        <div class="home-grid" id="grid-production-ui"></div>
+
+        <div class="hst" style="margin-top:28px">🏔️ 场景资产规范</div>
+        <div class="home-grid" id="grid-production-scene"></div>
+      </div>
+
+      <!-- ═══ 板块二：🤝 跨部门协同与交付标准 (35%) ═══ -->
+      <div class="module-section module-collab" id="section-collab">
+        <div class="module-header module-header-collab">
+          <div class="module-icon" style="background:var(--orange-bg);color:var(--orange)">🤝</div>
+          <div class="module-info">
+            <h2>跨部门协同与交付标准</h2>
+            <p>美术与策划/程序/TA/QA 的核心边界定义 — APM 沟通利器</p>
+          </div>
+          <span class="module-weight module-weight-orange">35%</span>
+        </div>
+
+        <div class="hst">📝 美术 vs 策划</div>
+        <div class="home-grid" id="grid-collab-planner"></div>
+
+        <div class="hst" style="margin-top:28px">⚙️ 美术 vs 程序/TA</div>
+        <div class="home-grid" id="grid-collab-ta"></div>
+
+        <div class="hst" style="margin-top:28px">🐛 美术 vs QA</div>
+        <div class="home-grid" id="grid-collab-qa"></div>
+
+        <div class="hst" style="margin-top:28px">🚨 协作与事故</div>
+        <div class="home-grid" id="grid-collab-accident"></div>
+      </div>
+
+      <!-- ═══ 板块三：🧰 APM 提效工具箱 (30%) ═══ -->
+      <div class="module-section module-toolkit" id="section-toolkit">
+        <div class="module-header">
+          <div class="module-icon" style="background:var(--green-bg);color:var(--green)">🧰</div>
+          <div class="module-info">
+            <h2>APM 提效工具箱</h2>
+            <p>项目管理模板、合规性检查、进度可视化、美术在线工具</p>
           </div>
           <span class="module-weight">30%</span>
         </div>
 
-        <div class="hst">👤 角色规范</div>
-        <div class="home-grid">
-          <div class="home-card" onclick="navigate('d1')"><div class="hci" style="background:var(--accent-bg)">📐</div><h3>2D UGC 角色出图规范</h3><p>基于主流 UGC 游戏的全流程规范</p><div class="tags"><span class="tag">分辨率</span><span class="tag">部件拆分</span><span class="craft-badge cb-char">角色</span></div></div>
-          <div class="home-card" onclick="navigate('d2')"><div class="hci" style="background:var(--purple-bg)">🎨</div><h3>2D 角色换色资源规范</h3><p>Mask 遮罩图、调色板替换、灰度叠色</p><div class="tags"><span class="tag">Mask</span><span class="tag">HSV</span><span class="craft-badge cb-char">角色</span></div></div>
-          <div class="home-card" onclick="navigate('ugc-character-spec')"><div class="hci" style="background:var(--accent-bg)">📐</div><h3>UGC 出图工业化规范</h3><p>工业化标准与检查清单</p><div class="tags"><span class="tag">工业化</span><span class="craft-badge cb-char">角色</span></div></div>
-          <div class="home-card" onclick="navigate('color-swap-spec')"><div class="hci" style="background:var(--purple-bg)">🎨</div><h3>角色换色工业化规范</h3><p>Mask 制作的工业化标准</p><div class="tags"><span class="tag">换色</span><span class="craft-badge cb-char">角色</span></div></div>
-          <div class="home-card" onclick="navigate('auto-mask-spec')"><div class="hci" style="background:var(--accent-bg)">📋</div><h3>Mask 生成器工业化规范</h3><p>输出标准与质量检查</p><div class="tags"><span class="tag">质检</span><span class="craft-badge cb-char">角色</span></div></div>
-          <div class="home-card" onclick="navigate('spine-split-spec')"><div class="hci" style="background:var(--accent-bg)">📋</div><h3>Spine 拆分工业化规范</h3><p>拆分工具的输出标准</p><div class="tags"><span class="tag">Spine</span><span class="craft-badge cb-char">角色</span></div></div>
-        </div>
+        <div class="hst">📋 项目管理工具</div>
+        <div class="home-grid" id="grid-toolkit-mgmt"></div>
 
-        <div class="hst" style="margin-top:28px">🖥️ UI 规范</div>
-        <div class="home-grid">
-          <div class="home-card" onclick="navigate('ui-slice-naming')"><div class="hci" style="background:var(--purple-bg)">✂️</div><h3>切图与命名规范</h3><p>UI 切图标准与文件命名规则</p><div class="tags"><span class="tag">切图</span><span class="craft-badge cb-ui">UI</span></div></div>
-          <div class="home-card" onclick="navigate('ui-9slice-color')"><div class="hci" style="background:var(--purple-bg)">🎨</div><h3>9宫格与颜色空间</h3><p>9-Slice 拉伸与色彩空间规范</p><div class="tags"><span class="tag">9宫格</span><span class="craft-badge cb-ui">UI</span></div></div>
-          <div class="home-card" onclick="navigate('ui-layout')"><div class="hci" style="background:var(--purple-bg)">📐</div><h3>Layout 拼接规范</h3><p>界面布局与自适应拼接方案</p><div class="tags"><span class="tag">Layout</span><span class="craft-badge cb-ui">UI</span></div></div>
-          <div class="home-card" onclick="navigate('ui-umg-tips')"><div class="hci" style="background:var(--purple-bg)">⚡</div><h3>UMG 生成技巧</h3><p>性能优化 + AI Prompt 编写指南</p><div class="tags"><span class="tag">UMG</span><span class="tag">Prompt</span><span class="craft-badge cb-ui">UI</span></div></div>
-        </div>
+        <div class="hst" style="margin-top:28px">🎨 美术在线工具</div>
+        <div class="home-grid" id="grid-toolkit-art"></div>
 
-        <div class="hst" style="margin-top:28px">🏔️ 场景 & 📋 管理</div>
-        <div class="home-grid">
-          <div class="home-card" onclick="navigate('scene-lod-spec')"><div class="hci" style="background:var(--green-bg)">🏗️</div><h3>场景模块化与 LOD</h3><p>场景资源模块化拆分与 LOD 分级</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('LOD')">LOD</span><span class="craft-badge cb-scene">场景</span></div></div>
-          <div class="home-card" onclick="navigate('cp-management')"><div class="hci" style="background:var(--cyan-bg)">📋</div><h3>CP 外包管理手册</h3><p>全流程管理：需求下发、验收、结算</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('外包')">外包</span><span class="craft-badge cb-mgmt">管理</span></div></div>
-          <div class="home-card" onclick="navigate('game-art-pipeline')"><div class="hci" style="background:var(--orange-bg)">📊</div><h3>游戏美术流程总结</h3><p>2D/3D/二次元美术流程对比</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('流程')">流程</span><span class="craft-badge cb-mgmt">管理</span></div></div>
-        </div>
-
-        <div class="hst" style="margin-top:28px">💻 程序与开发规范</div>
-        <div class="home-grid">
-          <div class="home-card card-new" onclick="navigate('code-standard')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--pink-bg)">💻</div><h3>代码规范</h3><p>命名约定、注释风格、模块组织与 Review 标准</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('代码规范')">代码规范</span><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('Code Review')">Code Review</span><span class="craft-badge cb-dev">程序</span></div></div>
-          <div class="home-card card-new" onclick="navigate('version-control')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--pink-bg)">🔀</div><h3>版本控制规范</h3><p>Git 分支策略、Commit 规范与 CI/CD 流程</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('Git')">Git</span><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('CI/CD')">CI/CD</span><span class="craft-badge cb-dev">程序</span></div></div>
-        </div>
-
-        <div class="hst" style="margin-top:28px">📋 策划与设计规范</div>
-        <div class="home-grid">
-          <div class="home-card card-new" onclick="navigate('config-table-spec')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--orange-bg)">📊</div><h3>配置表规范</h3><p>字段命名、数据类型、校验规则与版本管理</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('配置表')">配置表</span><span class="craft-badge cb-planner">策划</span></div></div>
-          <div class="home-card card-new" onclick="navigate('doc-template-spec')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--orange-bg)">📝</div><h3>文档模板规范</h3><p>需求文档、系统设计、数值设计等模板说明</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('文档模板')">文档模板</span><span class="craft-badge cb-planner">策划</span></div></div>
-        </div>
-
-        <div class="hst" style="margin-top:28px">🔊 音频与音效规范</div>
-        <div class="home-grid">
-          <div class="home-card card-new" onclick="navigate('audio-spec')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--cyan-bg)">🔊</div><h3>音频资源规范</h3><p>格式要求、码率标准、命名规则与交付流程</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('音效')">音效</span><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('格式标准')">格式标准</span><span class="craft-badge cb-audio">音频</span></div></div>
-          <div class="home-card card-new" onclick="navigate('audio-integration')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--cyan-bg)">🎵</div><h3>音频集成规范</h3><p>Wwise/FMOD 集成标准、事件命名与内存优化</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('Wwise')">Wwise</span><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('FMOD')">FMOD</span><span class="craft-badge cb-audio">音频</span></div></div>
-        </div>
-
-        <div class="hst" style="margin-top:28px">🧪 QA 与测试规范</div>
-        <div class="home-grid">
-          <div class="home-card card-new" onclick="navigate('qa-test-spec')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--green-bg)">🧪</div><h3>测试用例规范</h3><p>功能/兼容性/性能测试的用例编写与执行流程</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('测试用例')">测试用例</span><span class="craft-badge cb-qa">QA</span></div></div>
-          <div class="home-card card-new" onclick="navigate('qa-bug-flow')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--green-bg)">🐛</div><h3>Bug 提报与跟踪规范</h3><p>Bug 等级划分、提报模板与回归验证标准</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('Bug管理')">Bug管理</span><span class="craft-badge cb-qa">QA</span></div></div>
-        </div>
-      </div>
-
-      <!-- ═══ 板块二：🛠️ 提效工具箱 (30%) ═══ -->
-      <div class="module-section module-tool" id="section-tools">
-        <div class="module-header">
-          <div class="module-icon" style="background:var(--green-bg);color:var(--green)">🛠️</div>
-          <div class="module-info">
-            <h2>提效工具箱</h2>
-            <p>在线工具、桌面工具与技术方案，一键提升生产效率</p>
-          </div>
-          <span class="module-weight">30%</span>
-        </div>
-
-        <div class="hst">🎨 美术 / TA 工具</div>
-        <div class="home-grid">
-          <div class="home-card" onclick="navigate('auto-mask')"><div class="hci" style="background:var(--green-bg)">🤖</div><h3>自动 Mask 生成器</h3><p>一键生成 RGBA 通道换色遮罩图</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('在线工具')">在线工具</span><span class="craft-badge cb-char">角色</span></div></div>
-          <div class="home-card" onclick="navigate('mask-tool')"><div class="hci" style="background:var(--orange-bg)">🖌️</div><h3>Mask 手动编辑器</h3><p>画笔绘制 RGBA 换色遮罩图</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('在线工具')">在线工具</span><span class="craft-badge cb-char">角色</span></div></div>
-          <div class="home-card" onclick="navigate('spine-split')"><div class="hci" style="background:var(--purple-bg)">✂️</div><h3>Spine 拆分工具</h3><p>选区拆分 + 拓扑延展 + Atlas 导出</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('在线工具')">在线工具</span><span class="craft-badge cb-char">角色</span></div></div>
-          <div class="home-card" onclick="navigate('mask-core-algorithms')"><div class="hci" style="background:var(--accent-bg)">🧪</div><h3>Mask 核心算法演示</h3><p>魔棒 + 边缘保护画笔 + Worker 并行</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('在线工具')">在线工具</span><span class="craft-badge cb-char">角色</span></div></div>
-          <div class="home-card" onclick="navigate('channel-packer')"><div class="hci" style="background:var(--orange-bg)">📦</div><h3>贴图通道打包工具</h3><p>R/G/B/A 四通道自由组合打包</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('在线工具')">在线工具</span><span class="craft-badge cb-fx">特效</span></div></div>
-          <div class="home-card card-new" onclick="navigate('ta-shader-debugger')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--pink-bg)">🎭</div><h3>Shader 调试工具</h3><p>实时 Shader 参数预览与性能热力图</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('Shader')">Shader</span><span class="craft-badge cb-ta">TA</span></div></div>
-          <div class="home-card card-new" onclick="navigate('ta-material-library')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--pink-bg)">🧊</div><h3>材质库管理器</h3><p>通用材质库分类、预览与参数导出</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('材质库')">材质库</span><span class="craft-badge cb-ta">TA</span></div></div>
-        </div>
-
-        <div class="hst" style="margin-top:28px">📋 策划工具</div>
-        <div class="home-grid">
-          <div class="home-card card-new" onclick="navigate('planner-balance-tool')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--orange-bg)">📈</div><h3>数值平衡计算器</h3><p>数值公式验证、经济系统模拟与曲线可视化</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('数值设计')">数值设计</span><span class="craft-badge cb-planner">策划</span></div></div>
-          <div class="home-card card-new" onclick="navigate('planner-config-validator')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--orange-bg)">✅</div><h3>配置表校验工具</h3><p>自动校验字段类型、引用完整性与数值范围</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('配置校验')">配置校验</span><span class="craft-badge cb-planner">策划</span></div></div>
-        </div>
-
-        <div class="hst" style="margin-top:28px">🔧 程序 / QA 工具</div>
-        <div class="home-grid">
-          <div class="home-card" onclick="navigate('engine-bridge')"><div class="hci" style="background:var(--pink-bg)">🔌</div><h3>Engine Bridge 引擎直连</h3><p>浏览器到 UE/Unity 双向桥接</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('Bridge')">Bridge</span><span class="craft-badge cb-tech">技术</span></div></div>
-          <div class="home-card card-new" onclick="navigate('qa-auto-test-framework')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--green-bg)">🤖</div><h3>自动化测试框架</h3><p>UI 自动化测试脚本管理与报告生成</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('自动化测试')">自动化测试</span><span class="craft-badge cb-qa">QA</span></div></div>
-          <div class="home-card card-new" onclick="navigate('qa-perf-monitor')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--green-bg)">📊</div><h3>性能监控面板</h3><p>实时 FPS/内存/CPU 监控与设备对比</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('性能监控')">性能监控</span><span class="craft-badge cb-qa">QA</span></div></div>
-        </div>
-
-        <div class="hst" style="margin-top:28px">🖥️ UI 桌面工具</div>
-        <div class="home-grid">
-          <div class="home-card" onclick="navigate('image-skew-corrector')"><div class="hci" style="background:var(--orange-bg)">📐</div><h3>图片倾斜矫正 (桌面版)</h3><p>四算法融合 + 自动矫正 + 批量处理</p><div class="tags"><span class="tag tg-dl">桌面下载</span><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('批量处理')">批量处理</span><span class="craft-badge cb-ui">UI</span></div></div>
-          <div class="home-card" onclick="navigate('game-resource-toolkit')"><div class="hci" style="background:var(--cyan-bg)">🛠️</div><h3>游戏资源工具集 (桌面版)</h3><p>资源检测 + 图片续排 + 版本对比 + 问题修复</p><div class="tags"><span class="tag tg-dl">桌面下载</span><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('All-in-one')">All-in-one</span><span class="craft-badge cb-ui">UI</span></div></div>
-        </div>
-      </div>
-
-      <!-- ═══ 板块三：⚔️ APM 武器库 (40%) — 重点高亮 ═══ -->
-      <div class="module-section module-arsenal" id="section-arsenal">
-        <div class="module-header module-header-arsenal">
-          <div class="module-icon" style="background:rgba(248,113,113,.12);color:#f87171">⚔️</div>
-          <div class="module-info">
-            <h2>APM 武器库</h2>
-            <p>性能排雷、事故复盘、协作破局、流程管理 — 40% 核心内容占比</p>
-          </div>
-          <span class="module-weight module-weight-red">40%</span>
-        </div>
-
-        <div class="hst">💣 性能排雷</div>
-        <div class="home-grid">
-          <div class="home-card card-arsenal" onclick="navigate('spine-perf-guide')"><div class="hci" style="background:rgba(248,113,113,.12)">🦴</div><h3>Spine 性能红线与排查</h3><p>10 项红线指标 + 7 大雷区 + 排查 SOP</p><div class="tags"><span class="tag tg-arsenal">排雷</span><span class="tag">骨骼</span><span class="craft-badge cb-char">角色</span></div></div>
-          <div class="home-card card-arsenal" onclick="navigate('perf-redline-glossary')"><div class="hci" style="background:rgba(248,113,113,.12)">🚦</div><h3>跨工种黑话速查表</h3><p>5 大高频术语 + 移动端性能红线数值</p><div class="tags"><span class="tag tg-arsenal">排雷</span><span class="tag">术语</span><span class="craft-badge cb-all">通用</span></div></div>
-        </div>
-
-        <div class="hst" style="margin-top:28px">🚨 事故 & 协作</div>
-        <div class="home-grid">
-          <div class="home-card card-arsenal" onclick="navigate('accident-troubleshoot')"><div class="hci" style="background:rgba(248,113,113,.12)">🚨</div><h3>典型事故排雷手册</h3><p>包体暴增 / UI 发热掉帧 / 低端机闪退 — 5 大 Case + SOP</p><div class="tags"><span class="tag tg-arsenal">排雷</span><span class="tag">事故</span><span class="craft-badge cb-all">通用</span></div></div>
-          <div class="home-card card-arsenal" onclick="navigate('cross-dept-collab')"><div class="hci" style="background:rgba(248,113,113,.12)">🤝</div><h3>跨部门协作痛点解法</h3><p>策划改需求 / 还原度扯皮 / 进度死锁 — APM 破局思路</p><div class="tags"><span class="tag tg-arsenal">排雷</span><span class="tag">协作</span><span class="craft-badge cb-all">通用</span></div></div>
-          <div class="home-card card-arsenal" onclick="navigate('cp-outsource')"><div class="hci" style="background:rgba(248,113,113,.12)">📋</div><h3>外包全流程管理指南</h3><p>面向 APM 的外包全流程管理：需求下发到结算</p><div class="tags"><span class="tag tg-arsenal">排雷</span><span class="tag">外包</span><span class="craft-badge cb-mgmt">管理</span></div></div>
-        </div>
-
-        <div class="hst" style="margin-top:28px">📊 流程管理</div>
-        <div class="home-grid">
-          <div class="home-card card-arsenal" onclick="navigate('cp-management')"><div class="hci" style="background:rgba(248,113,113,.12)">📋</div><h3>CP 外包管理手册</h3><p>从需求下发到结算的完整外包管理流程</p><div class="tags"><span class="tag tg-arsenal">流程管理</span><span class="tag">外包体系</span><span class="craft-badge cb-mgmt">管理</span></div></div>
-          <div class="home-card card-arsenal" onclick="navigate('game-art-pipeline')"><div class="hci" style="background:rgba(248,113,113,.12)">📊</div><h3>游戏美术流程总结</h3><p>轻度2D/重度3D/二次元手游的美术流程对比</p><div class="tags"><span class="tag tg-arsenal">流程管理</span><span class="tag">美术流程</span><span class="craft-badge cb-mgmt">管理</span></div></div>
-        </div>
+        <div class="hst" style="margin-top:28px">🖥️ 桌面工具 & 技术方案</div>
+        <div class="home-grid" id="grid-toolkit-desktop"></div>
       </div>
 
       <!-- ═══ 互动模块占位区域 ═══ -->
@@ -253,7 +200,7 @@
       </div>
 
       <!-- 底部声明 -->
-      <div style="margin-top:48px;padding:24px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px"><div style="flex:1;min-width:240px"><h4 style="font-size:13px;color:var(--heading);margin-bottom:8px">⚠️ 使用声明</h4><p style="font-size:12px;color:var(--dim);line-height:1.8;margin:0">本知识库仅供项目内部使用，不得对外传播。</p></div><div style="min-width:180px;text-align:right"><h4 style="font-size:13px;color:var(--heading);margin-bottom:8px">📮 反馈</h4><p style="font-size:12px;color:var(--dim);margin:0"><a style="color:var(--accent);cursor:pointer" onclick="showFeedback()">💬 提交反馈</a></p></div></div></div>
+      <div style="margin-top:48px;padding:24px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px"><div style="flex:1;min-width:240px"><h4 style="font-size:13px;color:var(--heading);margin-bottom:8px">⚠️ 使用声明</h4><p style="font-size:12px;color:var(--dim);line-height:1.8;margin:0">本知识库仅供项目内部 APM 使用，不得对外传播。</p></div><div style="min-width:180px;text-align:right"><h4 style="font-size:13px;color:var(--heading);margin-bottom:8px">📮 反馈</h4><p style="font-size:12px;color:var(--dim);margin:0"><a style="color:var(--accent);cursor:pointer" onclick="showFeedback()">💬 提交反馈</a></p></div></div></div>
     </div>
     <!-- Doc pages (dynamically created by app.js) -->
     <!-- Tool card page -->
