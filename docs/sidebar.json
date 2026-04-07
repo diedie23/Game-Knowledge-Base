@@ -12,7 +12,7 @@
           "name": "管线与排期",
           "icon": "🔄",
           "items": [
-            { "id": "game-art-pipeline", "icon": "🔄", "title": "资产生产管线 (Pipeline) 概述", "type": "iframe", "file": "knowledge-base/game-art-pipeline.html", "badge": "管理", "craft": "管理" },
+            { "id": "game-art-pipeline", "icon": "🔄", "title": "美术生产管线总览 — 2D/3D/二次元全流程", "type": "iframe", "file": "knowledge-base/game-art-pipeline.html", "badge": "管理", "craft": "管理" },
             { "id": "art-scheduling",    "icon": "📅", "title": "美术排期与里程碑管理",         "type": "md", "file": "knowledge-base/art-scheduling.md",        "badge": "管理", "craft": "管理" }
           ]
         },
