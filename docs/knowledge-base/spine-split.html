@@ -121,7 +121,7 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
 <body>
 
 <div class="header">
-  <h1>✂️ Spine 角色拆分工具 <span class="ver">v3.1</span></h1>
+  <h1>✂️ Spine 角色拆分工具 <span class="ver">v4.0</span></h1>
   <div class="header-actions">
     <button class="btn" onclick="importImage()">📂 导入原图</button>
     <button class="btn" onclick="importPSD()" style="border-color:var(--cyan);color:var(--cyan)">🎨 PSD 直读</button>
@@ -136,8 +136,8 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
 </div>
 
 <div class="guide-bar" id="guideBar">
-  <strong>📖 v3.1：</strong>
-  ① 导入原画 → ② 选择/自制模板 → ③ 📍三点锚点对齐（自适应比例）→ ④ 微调部件框 / 套索（Shift增选 / Alt减选）→ ⑤ 自动拆分导出
+  <strong>📖 v4.0：</strong>
+  ① 导入原画 → ② 选择/自制模板 → ③ 📍三点锚点对齐（Alpha密度自适应）→ ④ 智能选区（泛洪+轮廓追踪）/ 套索 → ⑤ 🧲 Shrink-Wrap 吸附 → ⑥ 自动拆分导出
   <span class="close-guide" onclick="document.getElementById('guideBar').style.display='none'">✕</span>
 </div>
 
@@ -182,6 +182,15 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
       <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:var(--dim);cursor:pointer">
         <input type="checkbox" id="edgeSnap" checked style="accent-color:var(--accent)"> 智能边缘收缩（Alpha感知）
       </label>
+      <div style="display:flex;gap:4px;margin-top:8px">
+        <button class="btn btn-sm" onclick="shrinkWrapCurrent()" style="flex:1;justify-content:center;border-color:var(--cyan);color:var(--cyan)" title="将当前选区自动收缩吸附到非透明像素边缘">🧲 Shrink-Wrap</button>
+        <button class="btn btn-sm" onclick="shrinkWrapAll()" style="flex:1;justify-content:center;border-color:var(--cyan);color:var(--cyan)" title="对所有已标记部件执行 Shrink-Wrap">🧲 全部吸附</button>
+      </div>
+      <div class="setting-row" style="margin-top:8px">
+        <span class="setting-label">Alpha 阈值（Shrink-Wrap）</span>
+        <span class="setting-value" id="swAlphaVal">10</span>
+      </div>
+      <input type="range" id="swAlpha" min="1" max="128" value="10" oninput="document.getElementById('swAlphaVal').textContent=this.value">
     </div>
 
     <div class="panel-section">
@@ -603,44 +612,120 @@ function setupCanvases(){[baseCanvas,regionCanvas,cursorCanvas].forEach(c=>{c.wi
 function render(){
   if(!S.loaded)return;baseCtx.clearRect(0,0,S.imgW,S.imgH);baseCtx.drawImage(baseImage,0,0);
   regionCtx.clearRect(0,0,S.imgW,S.imgH);
-  if(document.getElementById('showOverlay').checked){parts.forEach((p,i)=>{if(!p.region)return;const r=p.region;
+  if(document.getElementById('showOverlay').checked){
+    // ═══ v4.0 全局半透明暗幕：突出选区，减少视觉干扰 ═══
+    regionCtx.save();
+    regionCtx.fillStyle='rgba(0,0,0,0.35)';
+    regionCtx.fillRect(0,0,S.imgW,S.imgH);
+    // 扣除所有选区（让选区内部保持原图亮度）
+    regionCtx.globalCompositeOperation='destination-out';
+    parts.forEach((p)=>{if(!p.region)return;const r=p.region;
+      const hasLasso=r.lasso&&r.lasso.length>2;
+      if(hasLasso){
+        regionCtx.beginPath();regionCtx.moveTo(r.lasso[0].x,r.lasso[0].y);
+        for(let k=1;k<r.lasso.length;k++)regionCtx.lineTo(r.lasso[k].x,r.lasso[k].y);
+        regionCtx.closePath();regionCtx.fillStyle='rgba(0,0,0,1)';regionCtx.fill();
+      }else{
+        regionCtx.fillStyle='rgba(0,0,0,1)';regionCtx.fillRect(r.x,r.y,r.w,r.h);
+      }
+    });
+    regionCtx.globalCompositeOperation='source-over';
+    regionCtx.restore();
+
+    // ═══ 逐部件渲染：内发光 + 蚂蚁线 + 外部标签 ═══
+    const marchOffset=-(Date.now()/80%20);
+    parts.forEach((p,i)=>{if(!p.region)return;const r=p.region;
+    const isCurrent=i===S.currentPart;
     const hasLasso=r.lasso&&r.lasso.length>2;
+
     if(hasLasso){
-      // ═══ 不规则多边形渲染（套索）+ 半透明内阴影 ═══
+      // ── 不规则多边形渲染 ──
       regionCtx.save();
-      // 构建路径
-      function buildLassoPath(){regionCtx.beginPath();regionCtx.moveTo(r.lasso[0].x,r.lasso[0].y);for(let k=1;k<r.lasso.length;k++)regionCtx.lineTo(r.lasso[k].x,r.lasso[k].y);regionCtx.closePath();}
-      // 半透明填充底色
-      buildLassoPath();regionCtx.fillStyle=hexToRgba(p.color,i===S.currentPart?0.15:0.1);regionCtx.fill();
-      // 内阴影效果：clip到多边形内，在外部画一圈大 shadow
-      regionCtx.save();buildLassoPath();regionCtx.clip();
-      regionCtx.shadowColor=hexToRgba(p.color,0.6);regionCtx.shadowBlur=Math.max(8,16/S.zoom);
-      regionCtx.shadowOffsetX=0;regionCtx.shadowOffsetY=0;
-      regionCtx.lineWidth=Math.max(4,10/S.zoom);regionCtx.strokeStyle=hexToRgba(p.color,0.4);
-      buildLassoPath();regionCtx.stroke();
+      function buildLP(){regionCtx.beginPath();regionCtx.moveTo(r.lasso[0].x,r.lasso[0].y);for(let k=1;k<r.lasso.length;k++)regionCtx.lineTo(r.lasso[k].x,r.lasso[k].y);regionCtx.closePath();}
+      // 半透明色调填充
+      buildLP();regionCtx.fillStyle=hexToRgba(p.color,isCurrent?0.12:0.06);regionCtx.fill();
+      // 内发光效果（clip 到多边形内，沿边缘画粗 shadow）
+      regionCtx.save();buildLP();regionCtx.clip();
+      regionCtx.shadowColor=hexToRgba(p.color,0.7);
+      regionCtx.shadowBlur=Math.max(6,12/S.zoom);
+      regionCtx.lineWidth=Math.max(3,8/S.zoom);
+      regionCtx.strokeStyle=hexToRgba(p.color,0.5);
+      buildLP();regionCtx.stroke();
       regionCtx.restore();
-      // 蚂蚁线边框（marching ants）：白底+彩色虚线
-      buildLassoPath();
-      regionCtx.strokeStyle='rgba(255,255,255,0.5)';regionCtx.lineWidth=3/S.zoom;regionCtx.setLineDash([]);regionCtx.stroke();
-      buildLassoPath();
-      regionCtx.strokeStyle=p.color;regionCtx.lineWidth=1.5/S.zoom;
-      regionCtx.setLineDash(i===S.currentPart?[6/S.zoom,4/S.zoom]:[4/S.zoom,4/S.zoom]);
-      regionCtx.lineDashOffset=-(Date.now()/80%20);regionCtx.stroke();regionCtx.setLineDash([]);
+      // 白色底衬线（增强对比度）
+      buildLP();regionCtx.strokeStyle='rgba(255,255,255,0.45)';regionCtx.lineWidth=2.5/S.zoom;regionCtx.setLineDash([]);regionCtx.stroke();
+      // 彩色蚂蚁线
+      buildLP();regionCtx.strokeStyle=p.color;regionCtx.lineWidth=1.5/S.zoom;
+      regionCtx.setLineDash(isCurrent?[6/S.zoom,4/S.zoom]:[4/S.zoom,4/S.zoom]);
+      regionCtx.lineDashOffset=marchOffset;regionCtx.stroke();regionCtx.setLineDash([]);
       regionCtx.restore();
     }else{
-      // ═══ 矩形渲染（增强蚂蚁线动画） ═══
-      regionCtx.fillStyle=hexToRgba(p.color,i===S.currentPart?0.2:0.12);regionCtx.fillRect(r.x,r.y,r.w,r.h);
-      // 白色底框
-      regionCtx.strokeStyle='rgba(255,255,255,0.4)';regionCtx.lineWidth=3/S.zoom;regionCtx.setLineDash([]);regionCtx.strokeRect(r.x,r.y,r.w,r.h);
+      // ── 矩形渲染 ──
+      regionCtx.fillStyle=hexToRgba(p.color,isCurrent?0.12:0.06);regionCtx.fillRect(r.x,r.y,r.w,r.h);
+      // 内发光
+      regionCtx.save();regionCtx.beginPath();regionCtx.rect(r.x,r.y,r.w,r.h);regionCtx.clip();
+      regionCtx.shadowColor=hexToRgba(p.color,0.7);regionCtx.shadowBlur=Math.max(6,12/S.zoom);
+      regionCtx.lineWidth=Math.max(3,8/S.zoom);regionCtx.strokeStyle=hexToRgba(p.color,0.5);
+      regionCtx.strokeRect(r.x,r.y,r.w,r.h);regionCtx.restore();
+      // 白色底衬线
+      regionCtx.strokeStyle='rgba(255,255,255,0.45)';regionCtx.lineWidth=2.5/S.zoom;regionCtx.setLineDash([]);regionCtx.strokeRect(r.x,r.y,r.w,r.h);
       // 彩色蚂蚁线
       regionCtx.strokeStyle=p.color;regionCtx.lineWidth=1.5/S.zoom;
-      regionCtx.setLineDash(i===S.currentPart?[6/S.zoom,4/S.zoom]:[4/S.zoom,4/S.zoom]);
-      regionCtx.lineDashOffset=-(Date.now()/80%20);regionCtx.strokeRect(r.x,r.y,r.w,r.h);regionCtx.setLineDash([]);
+      regionCtx.setLineDash(isCurrent?[6/S.zoom,4/S.zoom]:[4/S.zoom,4/S.zoom]);
+      regionCtx.lineDashOffset=marchOffset;regionCtx.strokeRect(r.x,r.y,r.w,r.h);regionCtx.setLineDash([]);
     }
-    // 标签
-    if(document.getElementById('showLabels').checked){const lx=hasLasso?r.lasso[0].x:r.x,ly=hasLasso?r.lasso[0].y:r.y;
-      regionCtx.font=`${Math.max(12,14/S.zoom)}px sans-serif`;regionCtx.fillStyle='rgba(0,0,0,0.7)';
-      const tw=regionCtx.measureText(p.name).width;regionCtx.fillRect(lx,ly-20/S.zoom,tw+10/S.zoom,18/S.zoom);regionCtx.fillStyle=p.color;regionCtx.fillText(p.name,lx+4/S.zoom,ly-6/S.zoom);}});}
+
+    // ═══ v4.0 标签渲染：定位到选区外部，不遮挡内容 ═══
+    if(document.getElementById('showLabels').checked){
+      const fontSize=Math.max(11,13/S.zoom);
+      regionCtx.font=`600 ${fontSize}px -apple-system,sans-serif`;
+      const tw=regionCtx.measureText(p.name).width;
+      const padX=6/S.zoom,padY=3/S.zoom,labelH=fontSize+padY*2+2/S.zoom;
+      const labelW=tw+padX*2+14/S.zoom;// 额外空间给色块指示器
+
+      // 计算 BBox
+      let bx,by,bw,bh;
+      if(hasLasso){
+        let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+        r.lasso.forEach(pt=>{if(pt.x<minX)minX=pt.x;if(pt.x>maxX)maxX=pt.x;if(pt.y<minY)minY=pt.y;if(pt.y>maxY)maxY=pt.y;});
+        bx=minX;by=minY;bw=maxX-minX;bh=maxY-minY;
+      }else{bx=r.x;by=r.y;bw=r.w;bh=r.h;}
+
+      // 标签优先放在选区上方外侧；空间不够则放下方
+      let lx=bx+2/S.zoom;
+      let ly=by-labelH-3/S.zoom;
+      if(ly<0){ly=by+bh+3/S.zoom;}// 上方溢出 → 放下方
+      if(ly+labelH>S.imgH){ly=by+2/S.zoom;}// 都溢出 → 放内部顶端
+      if(lx+labelW>S.imgW){lx=S.imgW-labelW-2/S.zoom;}// 右侧溢出调整
+      if(lx<0)lx=2/S.zoom;
+
+      // 标签背景：圆角半透明深色底
+      regionCtx.save();
+      const radius=4/S.zoom;
+      regionCtx.beginPath();
+      regionCtx.moveTo(lx+radius,ly);
+      regionCtx.lineTo(lx+labelW-radius,ly);regionCtx.arcTo(lx+labelW,ly,lx+labelW,ly+radius,radius);
+      regionCtx.lineTo(lx+labelW,ly+labelH-radius);regionCtx.arcTo(lx+labelW,ly+labelH,lx+labelW-radius,ly+labelH,radius);
+      regionCtx.lineTo(lx+radius,ly+labelH);regionCtx.arcTo(lx,ly+labelH,lx,ly+labelH-radius,radius);
+      regionCtx.lineTo(lx,ly+radius);regionCtx.arcTo(lx,ly,lx+radius,ly,radius);
+      regionCtx.closePath();
+      regionCtx.fillStyle=isCurrent?'rgba(0,0,0,0.82)':'rgba(0,0,0,0.65)';
+      regionCtx.fill();
+      // 边框
+      regionCtx.strokeStyle=hexToRgba(p.color,isCurrent?0.8:0.4);
+      regionCtx.lineWidth=1/S.zoom;regionCtx.stroke();
+      regionCtx.restore();
+
+      // 色块指示器圆点
+      const dotR=4/S.zoom;
+      regionCtx.beginPath();regionCtx.arc(lx+padX+dotR,ly+labelH/2,dotR,0,Math.PI*2);
+      regionCtx.fillStyle=p.color;regionCtx.fill();
+
+      // 文字
+      regionCtx.fillStyle=isCurrent?'#ffffff':'rgba(255,255,255,0.85)';
+      regionCtx.fillText(p.name,lx+padX+dotR*2+4/S.zoom,ly+labelH/2+fontSize*0.35);
+    }
+  });}
   renderAnchors();updateCanvasInfo();
 }
 function renderAnchors(){
@@ -742,14 +827,185 @@ function setupEvents(){const vp=document.getElementById('viewport');
 }
 function drawCursor(x,y){cursorCtx.clearRect(0,0,S.imgW,S.imgH);cursorCtx.beginPath();cursorCtx.arc(x,y,3,0,Math.PI*2);cursorCtx.fillStyle='rgba(255,255,255,0.8)';cursorCtx.fill();cursorCtx.strokeStyle='rgba(0,0,0,0.5)';cursorCtx.lineWidth=1/S.zoom;cursorCtx.stroke();}
 function autoSelectRegion(sx,sy){if(!basePixels)return;const w=S.imgW,h=S.imgH,tol=parseInt(document.getElementById('tolerance').value);
+  const alphaTh=parseInt(document.getElementById('swAlpha').value)||10;
   const si=(sy*w+sx)*4,sr=basePixels[si],sg=basePixels[si+1],sb=basePixels[si+2],sa=basePixels[si+3];
+  // ═══ Phase 1: Flood Fill — 基于颜色相似度+Alpha扩散 ═══
   const visited=new Uint8Array(w*h),stack=[[sx,sy]];let minX=sx,maxX=sx,minY=sy,maxY=sy;
-  while(stack.length){const[px,py]=stack.pop();const pi=py*w+px;if(visited[pi])continue;visited[pi]=1;
-    const idx=pi*4,diff=Math.abs(basePixels[idx]-sr)+Math.abs(basePixels[idx+1]-sg)+Math.abs(basePixels[idx+2]-sb)+Math.abs(basePixels[idx+3]-sa);
-    if(diff>tol*4)continue;minX=Math.min(minX,px);maxX=Math.max(maxX,px);minY=Math.min(minY,py);maxY=Math.max(maxY,py);
-    if(px>0)stack.push([px-1,py]);if(px<w-1)stack.push([px+1,py]);if(py>0)stack.push([px,py-1]);if(py<h-1)stack.push([px,py+1]);}
-  const rw=maxX-minX+1,rh=maxY-minY+1;if(rw>5&&rh>5){saveHistory();let r={x:minX,y:minY,w:rw,h:rh};if(document.getElementById('edgeSnap').checked)r=shrinkToAlpha(r);
-    parts[S.currentPart].region=r;parts[S.currentPart].split=null;buildPartGrid();render();updatePartPreview();updateStats();showToast(`智能选取: ${r.w}×${r.h}px`);}}
+  let fillCount=0;
+  while(stack.length){const[px,py]=stack.pop();const pi=py*w+px;if(visited[pi])continue;
+    const idx=pi*4;
+    // Alpha 透明度门限：低于阈值的像素不扩散
+    if(basePixels[idx+3]<alphaTh&&!(px===sx&&py===sy)){visited[pi]=2;continue;}
+    // 颜色相似度检测（加权 Lab 近似）
+    const dr=basePixels[idx]-sr,dg=basePixels[idx+1]-sg,db=basePixels[idx+2]-sb,da=basePixels[idx+3]-sa;
+    const colorDist=Math.sqrt(dr*dr*0.3+dg*dg*0.59+db*db*0.11+da*da*0.4);
+    if(colorDist>tol*2){visited[pi]=2;continue;}
+    visited[pi]=1;fillCount++;
+    minX=Math.min(minX,px);maxX=Math.max(maxX,px);minY=Math.min(minY,py);maxY=Math.max(maxY,py);
+    // 8邻域扩散（比4邻域更自然）
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+      if(dx===0&&dy===0)continue;
+      const nx=px+dx,ny=py+dy;
+      if(nx>=0&&nx<w&&ny>=0&&ny<h&&!visited[ny*w+nx])stack.push([nx,ny]);
+    }
+  }
+  if(fillCount<5)return;
+  // ═══ Phase 2: Moore-Neighbor Contour Tracing — 提取像素簇闭合边缘 ═══
+  const rw=maxX-minX+3,rh=maxY-minY+3;
+  const offX=Math.max(0,minX-1),offY=Math.max(0,minY-1);
+  // 找起始点
+  let startX=-1,startY=-1;
+  outer2:for(let y=offY;y<offY+rh&&y<h;y++)
+    for(let x=offX;x<offX+rw&&x<w;x++)
+      if(visited[y*w+x]===1){startX=x;startY=y;break outer2;}
+  if(startX<0){
+    // 回退：无法追踪轮廓，使用矩形
+    let r={x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1};
+    if(document.getElementById('edgeSnap').checked)r=shrinkToAlpha(r);
+    saveHistory();parts[S.currentPart].region=r;parts[S.currentPart].split=null;
+    buildPartGrid();render();updatePartPreview();updateStats();
+    showToast(`智能选取(矩形回退): ${r.w}×${r.h}px`);return;
+  }
+  // Moore-Neighbor Tracing
+  const ndx=[0,1,1,1,0,-1,-1,-1],ndy=[-1,-1,0,1,1,1,0,-1];
+  const rawContour=[{x:startX,y:startY}];
+  let cx=startX,cy=startY,dir=7;
+  const maxIter=rw*rh*4;
+  for(let iter=0;iter<maxIter;iter++){
+    let sd=(dir+6)%8,found=false;
+    for(let i=0;i<8;i++){
+      const d=(sd+i)%8;
+      const nx=cx+ndx[d],ny=cy+ndy[d];
+      if(nx>=0&&nx<w&&ny>=0&&ny<h&&visited[ny*w+nx]===1){
+        cx=nx;cy=ny;dir=d;
+        if(cx===startX&&cy===startY)break;
+        // 每2个点采样，减少冗余
+        if(iter%2===0)rawContour.push({x:cx,y:cy});
+        found=true;break;
+      }
+    }
+    if(!found||(cx===startX&&cy===startY))break;
+  }
+  // ═══ Phase 3: 路径简化 + 平滑 ═══
+  let contour=simplifyPath(rawContour,1.5);
+  if(contour.length<3){
+    // 回退矩形
+    let r={x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1};
+    if(document.getElementById('edgeSnap').checked)r=shrinkToAlpha(r);
+    saveHistory();parts[S.currentPart].region=r;parts[S.currentPart].split=null;
+    buildPartGrid();render();updatePartPreview();updateStats();
+    showToast(`智能选取(矩形回退): ${r.w}×${r.h}px`);return;
+  }
+  // Catmull-Rom 平滑轮廓（减少锯齿感）
+  contour=smoothContour(contour,0.5);
+  // 生成 lasso 型 region
+  const xs=contour.map(p=>p.x),ys=contour.map(p=>p.y);
+  const lx=Math.min(...xs),ly=Math.min(...ys),lw=Math.max(...xs)-lx,lh=Math.max(...ys)-ly;
+  if(lw>5&&lh>5){
+    saveHistory();
+    const r={x:lx,y:ly,w:lw,h:lh,lasso:contour};
+    parts[S.currentPart].region=r;parts[S.currentPart].split=null;
+    buildPartGrid();render();updatePartPreview();updateStats();
+    showToast(`智能选取(泛洪+轮廓): ${contour.length}点 · ${lw}×${lh}px · ${fillCount}像素`);
+  }
+}
+
+// ═══ 轮廓平滑：Catmull-Rom 插值 ═══
+function smoothContour(pts,tension){
+  if(pts.length<4)return pts;
+  const result=[];
+  const n=pts.length;
+  for(let i=0;i<n;i++){
+    const p0=pts[(i-1+n)%n],p1=pts[i],p2=pts[(i+1)%n],p3=pts[(i+2)%n];
+    result.push({x:Math.round(p1.x),y:Math.round(p1.y)});
+    // 在 p1 和 p2 之间插入一个中间点
+    const mx=0.5*((-tension*p0.x+((2-tension)*p1.x)+((tension-2)*p2.x)+tension*p3.x)*0.25+
+              (2*tension*p0.x+((tension-3)*2*p1.x)+((3-2*tension)*p2.x)-tension*p3.x)*0.25+
+              (-tension*p0.x+tension*p2.x)*0.5+2*p1.x)*0.5;
+    const my=0.5*((-tension*p0.y+((2-tension)*p1.y)+((tension-2)*p2.y)+tension*p3.y)*0.25+
+              (2*tension*p0.y+((tension-3)*2*p1.y)+((3-2*tension)*p2.y)-tension*p3.y)*0.25+
+              (-tension*p0.y+tension*p2.y)*0.5+2*p1.y)*0.5;
+    result.push({x:Math.round(mx),y:Math.round(my)});
+  }
+  return simplifyPath(result,1.0);
+}
+
+// ═══ Shrink-Wrap（一键套索收缩）：自动探测区域内非透明像素并吸附边缘 ═══
+function shrinkWrapRegion(region){
+  if(!basePixels||!region)return region;
+  const w=S.imgW,h=S.imgH;
+  const alphaTh=parseInt(document.getElementById('swAlpha').value)||10;
+  const r=region;
+  // Phase 1: 在 region 的 BBox 内构建二值蒙版（非透明像素=1）
+  const rx=Math.max(0,r.x-2),ry=Math.max(0,r.y-2);
+  const rw=Math.min(w,r.x+r.w+4)-rx,rh=Math.min(h,r.y+r.h+4)-ry;
+  const mask=new Uint8Array(rw*rh);
+  // 如果有 lasso，只检测 lasso 内部的像素
+  const hasLasso=r.lasso&&r.lasso.length>2;
+  for(let y=0;y<rh;y++){
+    for(let x=0;x<rw;x++){
+      const gx=rx+x,gy=ry+y;
+      if(gx>=w||gy>=h)continue;
+      // 检查是否在 lasso 内
+      if(hasLasso&&!pointInPolygon(gx,gy,r.lasso))continue;
+      // 检查 Alpha
+      if(basePixels[(gy*w+gx)*4+3]>alphaTh)mask[y*rw+x]=1;
+    }
+  }
+  // Phase 2: Moore 边缘追踪 on mask
+  let sx2=-1,sy2=-1;
+  outer3:for(let y=0;y<rh;y++)for(let x=0;x<rw;x++)if(mask[y*rw+x]===1){sx2=x;sy2=y;break outer3;}
+  if(sx2<0)return region; // 无非透明像素
+  const ndx2=[0,1,1,1,0,-1,-1,-1],ndy2=[-1,-1,0,1,1,1,0,-1];
+  const rawC=[{x:sx2+rx,y:sy2+ry}];
+  let cx2=sx2,cy2=sy2,dir2=7;
+  const maxIter2=rw*rh*4;
+  for(let iter=0;iter<maxIter2;iter++){
+    let sd2=(dir2+6)%8,found2=false;
+    for(let i=0;i<8;i++){
+      const d=(sd2+i)%8;
+      const nx=cx2+ndx2[d],ny=cy2+ndy2[d];
+      if(nx>=0&&nx<rw&&ny>=0&&ny<rh&&mask[ny*rw+nx]===1){
+        cx2=nx;cy2=ny;dir2=d;
+        if(cx2===sx2&&cy2===sy2)break;
+        if(iter%2===0)rawC.push({x:cx2+rx,y:cy2+ry});
+        found2=true;break;
+      }
+    }
+    if(!found2||(cx2===sx2&&cy2===sy2))break;
+  }
+  let swContour=simplifyPath(rawC,1.2);
+  if(swContour.length<3)return region;
+  // 增加 1px 呼吸空间
+  swContour=offsetPolygon(swContour,1);
+  const xs=swContour.map(p=>p.x),ys=swContour.map(p=>p.y);
+  const nx=Math.max(0,Math.min(...xs)),ny=Math.max(0,Math.min(...ys));
+  const nw=Math.min(w,Math.max(...xs))-nx,nh=Math.min(h,Math.max(...ys))-ny;
+  if(nw<3||nh<3)return region;
+  return{x:nx,y:ny,w:nw,h:nh,lasso:swContour};
+}
+
+function shrinkWrapCurrent(){
+  if(!S.loaded){showToast('请先导入图片');return;}
+  const p=parts[S.currentPart];
+  if(!p.region){showToast('当前部件无选区，请先标记');return;}
+  saveHistory();
+  const newR=shrinkWrapRegion(p.region);
+  p.region=newR;p.split=null;
+  buildPartGrid();render();updatePartPreview();updateStats();
+  showToast(`🧲 Shrink-Wrap 完成：${newR.lasso?newR.lasso.length+'点轮廓':'矩形'} · ${newR.w}×${newR.h}px`);
+}
+
+function shrinkWrapAll(){
+  if(!S.loaded){showToast('请先导入图片');return;}
+  saveHistory();let cnt=0;
+  parts.forEach(p=>{if(!p.region)return;
+    const newR=shrinkWrapRegion(p.region);
+    p.region=newR;p.split=null;cnt++;
+  });
+  buildPartGrid();render();updatePartPreview();updateStats();
+  showToast(`🧲 全部吸附完成：${cnt} 个部件`);
+}
 
 // ═══ Three-Point Anchor Alignment ═══
 function startAnchorAlign(){if(!S.loaded){showToastImport('请先导入图片');return;}S.anchorMode=true;S.anchors=[];S.anchorStep=0;document.getElementById('anchorBar').style.display='flex';updateAnchorSteps();showToast('请点击原图上的「头顶」');}
@@ -770,8 +1026,49 @@ function applyAnchorAlignment(){
     const pL=bodyCenter-bodyWidth/2+tp.rx*bodyWidth;
     let r={x:Math.round(Math.max(0,pL)),y:Math.round(Math.max(0,topY)),w:Math.round(Math.max(5,tp.rw*bodyWidth)),h:Math.round(Math.max(5,bottomY-topY))};
     r.x=Math.max(0,Math.min(S.imgW-5,r.x));r.y=Math.max(0,Math.min(S.imgH-5,r.y));r.w=Math.min(S.imgW-r.x,r.w);r.h=Math.min(S.imgH-r.y,r.h);
-    if(snap)r=shrinkToAlpha(r);part.region=r;part.split=null;});
-  cancelAnchorAlign();buildPartGrid();render();updatePartPreview();updateStats();document.getElementById('autoSplitBtn').disabled=false;showToast(`已完成三点锚点对齐（${parts.length}个部件）`);}
+    if(snap)r=shrinkToAlpha(r);
+    // ═══ Alpha 密度自适应微调 ═══
+    // 在初始 BBox 内扫描 Alpha 密度，自动扩展或收缩 BBox 以紧贴像素内容
+    r=alphaDensityAdjust(r);
+    part.region=r;part.split=null;});
+  cancelAnchorAlign();buildPartGrid();render();updatePartPreview();updateStats();document.getElementById('autoSplitBtn').disabled=false;showToast(`已完成三点锚点对齐（${parts.length}个部件）+ Alpha密度微调`);}
+
+// ═══ Alpha 密度自适应：向四周探测非透明像素，自动扩展 BBox ═══
+function alphaDensityAdjust(region){
+  if(!basePixels)return region;
+  const w=S.imgW,h=S.imgH;
+  const alphaTh=parseInt(document.getElementById('swAlpha').value)||10;
+  const expandSearch=Math.max(30,Math.round(Math.max(region.w,region.h)*0.25)); // 向外探测 25% 或 30px
+  // 在扩大的搜索区域内找到实际的像素边界
+  const searchX=Math.max(0,region.x-expandSearch);
+  const searchY=Math.max(0,region.y-expandSearch);
+  const searchX2=Math.min(w,region.x+region.w+expandSearch);
+  const searchY2=Math.min(h,region.y+region.h+expandSearch);
+  let minX=searchX2,maxX=searchX,minY=searchY2,maxY=searchY;
+  let found=false;
+  // 只检测原始 BBox 附近一定范围内的像素
+  for(let y=searchY;y<searchY2;y++){
+    for(let x=searchX;x<searchX2;x++){
+      if(basePixels[(y*w+x)*4+3]>alphaTh){
+        // 检查是否在原始 BBox 的合理延伸范围内（避免抓到无关的像素）
+        const distX=x<region.x?region.x-x:x>(region.x+region.w)?x-(region.x+region.w):0;
+        const distY=y<region.y?region.y-y:y>(region.y+region.h)?y-(region.y+region.h):0;
+        if(distX<=expandSearch&&distY<=expandSearch){
+          if(x<minX)minX=x;if(x>maxX)maxX=x;
+          if(y<minY)minY=y;if(y>maxY)maxY=y;
+          found=true;
+        }
+      }
+    }
+  }
+  if(!found)return region;
+  // 加 2px padding
+  return{
+    x:Math.max(0,minX-2),y:Math.max(0,minY-2),
+    w:Math.min(w,maxX+4)-Math.max(0,minX-2),
+    h:Math.min(h,maxY+4)-Math.max(0,minY-2)
+  };
+}
 function getTemplateData(i){if(currentTemplate&&currentTemplate.parts&&currentTemplate.parts[i])return currentTemplate.parts[i];const f=presetTemplates.humanoid;return i<f.parts.length?f.parts[i]:null;}
 function lerp(a,b,t){return a+(b-a)*t;}
 
@@ -1123,22 +1420,43 @@ async function doExport(){if(typeof JSZip==='undefined'){showToast('加载中...
   // 导出前自动质检
   const qa=runValidation();
   if(qa&&qa.errors>0){if(!confirm(`质检发现 ${qa.errors} 个错误，是否仍然继续导出？`))return;}
-  // 使用命名模板导出部件 PNG
-  for(let i=0;i<sp.length;i++){const p=sp[i];const fname=spResolveExportName(p.name,i);folder.file(fname,await canvasToBlob(p.split.canvas));}
-  if(fmt==='atlas'||fmt==='both'){const at=createAtlas(sp);folder.file('atlas.png',await canvasToBlob(at.canvas));folder.file('atlas_mapping.json',JSON.stringify(at.mapping,null,2));}
-  // 增强版 parts_config.json：包含完整工程恢复数据
+  // ═══ v4.0 增强导出：对每个部件进行透明像素裁剪 ═══
+  const trimmedParts=[];
+  for(let i=0;i<sp.length;i++){
+    const p=sp[i];
+    const trimResult=trimPartCanvas(p);
+    trimmedParts.push(trimResult);
+    const fname=spResolveExportName(p.name,i);
+    folder.file(fname,await canvasToBlob(trimResult.canvas));
+  }
+  if(fmt==='atlas'||fmt==='both'){
+    // Atlas 使用裁剪后的画布
+    const atlasInput=sp.map((p,i)=>({name:p.name,split:{canvas:trimmedParts[i].canvas,w:trimmedParts[i].trimW,h:trimmedParts[i].trimH,originX:p.split.originX,originY:p.split.originY,originW:p.split.originW,originH:p.split.originH}}));
+    const at=createAtlas(atlasInput);folder.file('atlas.png',await canvasToBlob(at.canvas));folder.file('atlas_mapping.json',JSON.stringify(at.mapping,null,2));
+  }
+  // ═══ v4.0 增强版 parts_config.json ═══
   const configObj={
-    format:'spine_split_v3',version:'3.1',
+    format:'spine_split_v4',version:'4.0',
     sourceSize:{width:S.imgW,height:S.imgH},
     topology:{expandPx:parseInt(document.getElementById('expandPx').value)||0,fillMode:document.getElementById('fillMode').value},
     naming:{template:document.getElementById('spNamingTpl').value,project:document.getElementById('spProject').value,charID:document.getElementById('spCharID').value},
-    parts:sp.map((p,i)=>({
-      name:p.name,color:p.color,mirror:p.mirror||null,
-      source:{x:p.split.originX,y:p.split.originY,w:p.split.originW,h:p.split.originH},
-      output:{x:p.split.x,y:p.split.y,w:p.split.w,h:p.split.h},
-      lasso:p.region&&p.region.lasso?p.region.lasso:null,
-      file:spResolveExportName(p.name,i)
-    })),
+    parts:sp.map((p,i)=>{
+      const t=trimmedParts[i];
+      // 原始选区在原图上的中心
+      const srcCX=p.split.originX+p.split.originW/2;
+      const srcCY=p.split.originY+p.split.originH/2;
+      // 裁剪后图片中心相对原始选区的偏移
+      const trimCX=t.trimOffX+t.trimW/2;
+      const trimCY=t.trimOffY+t.trimH/2;
+      return{
+        name:p.name,color:p.color,mirror:p.mirror||null,
+        source:{x:p.split.originX,y:p.split.originY,w:p.split.originW,h:p.split.originH},
+        output:{x:p.split.x,y:p.split.y,w:p.split.w,h:p.split.h},
+        trimmed:{x:t.trimOffX,y:t.trimOffY,w:t.trimW,h:t.trimH},
+        lasso:p.region&&p.region.lasso?p.region.lasso:null,
+        file:spResolveExportName(p.name,i)
+      };
+    }),
     generatedAt:new Date().toISOString()
   };
   // 缓存原图 Base64（<5MB 自动内嵌）
@@ -1146,8 +1464,66 @@ async function doExport(){if(typeof JSZip==='undefined'){showToast('加载中...
     const b64=srcC.toDataURL('image/png');if(b64.length<5*1024*1024)configObj.sourceImageBase64=b64;
   }catch(e){}
   folder.file('parts_config.json',JSON.stringify(configObj,null,2));
-  folder.file('spine_data.json',JSON.stringify({skeleton:{spine:"v3",width:S.imgW,height:S.imgH},bones:[{name:"root"}],slots:sp.map(p=>({name:p.name,bone:"root",attachment:p.name})),skins:[{name:"default",attachments:Object.fromEntries(sp.map(p=>[p.name,{[p.name]:{x:p.split.originX+p.split.originW/2,y:S.imgH-(p.split.originY+p.split.originH/2),width:p.split.w,height:p.split.h}}]))}]},null,2));
-  const blob=await zip.generateAsync({type:'blob'});const link=document.createElement('a');link.download=spResolveExportName('Output',0,'.zip');link.href=URL.createObjectURL(blob);document.body.appendChild(link);link.click();link.remove();closeExportModal();showToast(`已导出 ${sp.length} 个部件`);}
+  // ═══ v4.0 增强版 spine_data.json：含 Pivot 偏移 ═══
+  const imgCX=S.imgW/2, imgCY=S.imgH/2;
+  const spineJson={
+    skeleton:{spine:"v4",width:S.imgW,height:S.imgH},
+    bones:[{name:"root"}],
+    slots:sp.map(p=>({name:p.name,bone:"root",attachment:p.name})),
+    skins:[{name:"default",attachments:Object.fromEntries(sp.map((p,i)=>{
+      const t=trimmedParts[i];
+      // 裁剪后部件在原图坐标系中的真实中心
+      const partCX=p.split.originX+t.trimOffX+t.trimW/2;
+      const partCY=p.split.originY+t.trimOffY+t.trimH/2;
+      // Spine 坐标：x=相对原图中心的水平偏移，y=相对原图中心的垂直偏移（Y轴翻转）
+      const pivotX=Math.round((partCX-imgCX)*100)/100;
+      const pivotY=Math.round((imgCY-partCY)*100)/100;
+      return[p.name,{[p.name]:{
+        x:pivotX,
+        y:pivotY,
+        width:t.trimW,
+        height:t.trimH,
+        // 原始（未裁剪）尺寸，用于 Spine 内对齐参考
+        orig_width:p.split.originW,
+        orig_height:p.split.originH,
+        // 裁剪偏移量（左上角裁去了多少像素）
+        trim_x:t.trimOffX,
+        trim_y:t.trimOffY
+      }}];
+    }))}]
+  };
+  folder.file('spine_data.json',JSON.stringify(spineJson,null,2));
+  const blob=await zip.generateAsync({type:'blob'});const link=document.createElement('a');link.download=spResolveExportName('Output',0,'.zip');link.href=URL.createObjectURL(blob);document.body.appendChild(link);link.click();link.remove();closeExportModal();showToast(`已导出 ${sp.length} 个部件（已 Trim + Pivot）`);}
+
+// ═══ v4.0 新增：部件画布透明像素裁剪（Trim Whitespace） ═══
+function trimPartCanvas(part){
+  const src=part.split.canvas;
+  const sw=src.width,sh=src.height;
+  const ctx=src.getContext('2d');
+  const imgData=ctx.getImageData(0,0,sw,sh);
+  const d=imgData.data;
+  let top=sh,left=sw,bottom=0,right=0;
+  for(let y=0;y<sh;y++){
+    for(let x=0;x<sw;x++){
+      if(d[(y*sw+x)*4+3]>0){// Alpha > 0
+        if(y<top)top=y;if(y>bottom)bottom=y;
+        if(x<left)left=x;if(x>right)right=x;
+      }
+    }
+  }
+  // 没有任何非透明像素 → 返回 1x1 空画布
+  if(bottom<top||right<left){
+    const ec=document.createElement('canvas');ec.width=1;ec.height=1;
+    return{canvas:ec,trimW:1,trimH:1,trimOffX:0,trimOffY:0};
+  }
+  // 加 1px 安全边距
+  const tl=Math.max(0,left-1),tt=Math.max(0,top-1);
+  const tr=Math.min(sw-1,right+1),tb=Math.min(sh-1,bottom+1);
+  const tw=tr-tl+1,th=tb-tt+1;
+  const tc=document.createElement('canvas');tc.width=tw;tc.height=th;
+  tc.getContext('2d').drawImage(src,tl,tt,tw,th,0,0,tw,th);
+  return{canvas:tc,trimW:tw,trimH:th,trimOffX:tl,trimOffY:tt};
+}
 function createAtlas(sp){const pad=2;let tw=0,mh=0;sp.forEach(p=>{tw+=p.split.w+pad;mh=Math.max(mh,p.split.h);});const tgt=Math.ceil(Math.sqrt(tw*mh));let x=0,y=0,rh=0;const pos=[];let th=0;
   sp.forEach(p=>{if(x+p.split.w>tgt){x=0;y+=rh+pad;rh=0;}pos.push({x,y});x+=p.split.w+pad;rh=Math.max(rh,p.split.h);th=Math.max(th,y+p.split.h);});
   const ac=document.createElement('canvas');ac.width=nextPOT(Math.max(...pos.map((p,i)=>p.x+sp[i].split.w)));ac.height=nextPOT(th);const ctx=ac.getContext('2d'),mapping={};
