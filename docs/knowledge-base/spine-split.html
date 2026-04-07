@@ -121,7 +121,7 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
 <body>
 
 <div class="header">
-  <h1>✂️ Spine 角色拆分工具 <span class="ver">v3.0</span></h1>
+  <h1>✂️ Spine 角色拆分工具 <span class="ver">v3.1</span></h1>
   <div class="header-actions">
     <button class="btn" onclick="importImage()">📂 导入原图</button>
     <button class="btn" onclick="importPSD()" style="border-color:var(--cyan);color:var(--cyan)">🎨 PSD 直读</button>
@@ -136,8 +136,8 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
 </div>
 
 <div class="guide-bar" id="guideBar">
-  <strong>📖 v3.0：</strong>
-  ① 导入原画 → ② 选择/自制模板 → ③ 📍三点锚点对齐（自适应比例）→ ④ 微调部件框 → ⑤ 自动拆分导出
+  <strong>📖 v3.1：</strong>
+  ① 导入原画 → ② 选择/自制模板 → ③ 📍三点锚点对齐（自适应比例）→ ④ 微调部件框 / 套索（Shift增选 / Alt减选）→ ⑤ 自动拆分导出
   <span class="close-guide" onclick="document.getElementById('guideBar').style.display='none'">✕</span>
 </div>
 
@@ -384,9 +384,10 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
 <!-- ag-psd for PSD parsing -->
 <script src="https://cdn.jsdelivr.net/npm/ag-psd@19.2.0/dist/browser/index.min.js"></script>
 <script>
-// ═══ Spine 角色拆分工具 v3.0 ═══
+// ═══ Spine 角色拆分工具 v3.1 — 真实套索 + Alpha Shrink v2 ═══
 const S={tool:'rect',zoom:1,imgW:0,imgH:0,loaded:false,currentPart:0,drawing:false,
   startX:0,startY:0,lastX:0,lastY:0,lassoPoints:[],
+  lassoMode:'replace', // 'replace' | 'add'(Shift) | 'subtract'(Alt)
   anchorMode:false,anchors:[],anchorStep:0,multiSelect:new Set()};
 const defaultParts=[
   {name:'头部',color:'#f66',region:null,split:null,mirror:null},
@@ -407,10 +408,10 @@ function init(){
   baseCanvas=document.getElementById('baseCanvas');regionCanvas=document.getElementById('regionCanvas');cursorCanvas=document.getElementById('cursorCanvas');
   baseCtx=baseCanvas.getContext('2d');regionCtx=regionCanvas.getContext('2d');cursorCtx=cursorCanvas.getContext('2d');
   buildPartGrid();setTool('rect');selectPart(0);setupEvents();setupTplMaker();
-  // 蚂蚁线动画循环
+  // 蚂蚁线动画循环（套索+矩形均需动画刷新）
   (function animateAnts(){requestAnimationFrame(animateAnts);
-    const hasLasso=parts.some(p=>p.region&&p.region.lasso);
-    if(hasLasso&&S.loaded)render();
+    const hasRegion=parts.some(p=>p.region);
+    if(hasRegion&&S.loaded&&!S.drawing)render();
   })();
 }
 
@@ -458,6 +459,106 @@ function offsetPolygon(pts,dist){
   }
   return result;
 }
+// ═══ 多边形布尔运算：增选 / 减选（基于栅格化合并）═══
+function pointInPolygon(px,py,poly){
+  let inside=false;
+  for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+    const xi=poly[i].x,yi=poly[i].y,xj=poly[j].x,yj=poly[j].y;
+    if(((yi>py)!==(yj>py))&&(px<(xj-xi)*(py-yi)/(yj-yi)+xi))inside=!inside;
+  }
+  return inside;
+}
+function polyBBox(poly){
+  const xs=poly.map(p=>p.x),ys=poly.map(p=>p.y);
+  return{x:Math.min(...xs),y:Math.min(...ys),x2:Math.max(...xs),y2:Math.max(...ys)};
+}
+// Rasterize polygon to a binary mask, then convert back to contour
+function mergePolygons(existingLasso,newLasso,mode){
+  // mode: 'add' = union, 'subtract' = difference
+  if(!existingLasso||existingLasso.length<3)return mode==='subtract'?null:newLasso;
+  if(!newLasso||newLasso.length<3)return existingLasso;
+  // Compute combined bounding box
+  const b1=polyBBox(existingLasso),b2=polyBBox(newLasso);
+  const minX=Math.min(b1.x,b2.x)-1,minY=Math.min(b1.y,b2.y)-1;
+  const maxX=Math.max(b1.x2,b2.x2)+1,maxY=Math.max(b1.y2,b2.y2)+1;
+  const w=maxX-minX+1,h=maxY-minY+1;
+  if(w>4000||h>4000)return newLasso; // safety: too large
+  // Rasterize both polygons into a bitmask
+  const mask=new Uint8Array(w*h);
+  // Fill existing polygon
+  for(let y=minY;y<=maxY;y++){
+    for(let x=minX;x<=maxX;x++){
+      if(pointInPolygon(x,y,existingLasso))mask[(y-minY)*w+(x-minX)]=1;
+    }
+  }
+  // Merge new polygon
+  for(let y=minY;y<=maxY;y++){
+    for(let x=minX;x<=maxX;x++){
+      if(pointInPolygon(x,y,newLasso)){
+        const idx=(y-minY)*w+(x-minX);
+        if(mode==='add')mask[idx]=1;
+        else mask[idx]=0; // subtract
+      }
+    }
+  }
+  // Extract contour from mask using simple marching
+  const contour=extractContourFromMask(mask,w,h,minX,minY);
+  if(!contour||contour.length<3)return mode==='subtract'?existingLasso:newLasso;
+  return simplifyPath(contour,1.5);
+}
+function extractContourFromMask(mask,w,h,offX,offY){
+  // Find start point
+  let sx=-1,sy=-1;
+  outer:for(let y=0;y<h;y++)for(let x=0;x<w;x++){if(mask[y*w+x]===1){sx=x;sy=y;break outer;}}
+  if(sx<0)return null;
+  // Moore-Neighbor tracing on mask
+  const dx=[0,1,1,1,0,-1,-1,-1],dy=[-1,-1,0,1,1,1,0,-1];
+  const contour=[{x:sx+offX,y:sy+offY}];
+  let cx=sx,cy=sy,dir=7;
+  const maxIter=w*h*2;
+  for(let iter=0;iter<maxIter;iter++){
+    let startDir=(dir+6)%8,found=false;
+    for(let i=0;i<8;i++){
+      const d=(startDir+i)%8;
+      const nx=cx+dx[d],ny=cy+dy[d];
+      if(nx>=0&&nx<w&&ny>=0&&ny<h&&mask[ny*w+nx]===1){
+        cx=nx;cy=ny;dir=d;
+        if(cx===sx&&cy===sy)break;
+        if(iter%2===0)contour.push({x:cx+offX,y:cy+offY});
+        found=true;break;
+      }
+    }
+    if(!found||(cx===sx&&cy===sy))break;
+  }
+  return contour;
+}
+
+// ═══ Minimal Content Bounding Box（Alpha Shrink v2）═══
+// 提取后剔除四周全透明像素行/列，返回紧凑 Canvas
+function trimTransparentPixels(srcCanvas){
+  const w=srcCanvas.width,h=srcCanvas.height;
+  if(w<1||h<1)return{canvas:srcCanvas,trimX:0,trimY:0};
+  const ctx=srcCanvas.getContext('2d');
+  const imgData=ctx.getImageData(0,0,w,h);
+  const data=imgData.data;
+  let minX=w,maxX=0,minY=h,maxY=0,found=false;
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      if(data[(y*w+x)*4+3]>0){
+        if(x<minX)minX=x;if(x>maxX)maxX=x;
+        if(y<minY)minY=y;if(y>maxY)maxY=y;
+        found=true;
+      }
+    }
+  }
+  if(!found)return{canvas:srcCanvas,trimX:0,trimY:0};
+  const tw=maxX-minX+1,th=maxY-minY+1;
+  if(tw===w&&th===h)return{canvas:srcCanvas,trimX:0,trimY:0};
+  const trimC=document.createElement('canvas');trimC.width=tw;trimC.height=th;
+  trimC.getContext('2d').drawImage(srcCanvas,minX,minY,tw,th,0,0,tw,th);
+  return{canvas:trimC,trimX:minX,trimY:minY,trimW:tw,trimH:th};
+}
+
 function buildPartGrid(){
   const g=document.getElementById('partGrid');
   g.innerHTML=parts.map((p,i)=>{
@@ -505,25 +606,36 @@ function render(){
   if(document.getElementById('showOverlay').checked){parts.forEach((p,i)=>{if(!p.region)return;const r=p.region;
     const hasLasso=r.lasso&&r.lasso.length>2;
     if(hasLasso){
-      // ═══ 不规则多边形渲染（套索） ═══
+      // ═══ 不规则多边形渲染（套索）+ 半透明内阴影 ═══
       regionCtx.save();
-      // 半透明填充
-      regionCtx.beginPath();regionCtx.moveTo(r.lasso[0].x,r.lasso[0].y);
-      for(let k=1;k<r.lasso.length;k++)regionCtx.lineTo(r.lasso[k].x,r.lasso[k].y);
-      regionCtx.closePath();regionCtx.fillStyle=hexToRgba(p.color,0.2);regionCtx.fill();
+      // 构建路径
+      function buildLassoPath(){regionCtx.beginPath();regionCtx.moveTo(r.lasso[0].x,r.lasso[0].y);for(let k=1;k<r.lasso.length;k++)regionCtx.lineTo(r.lasso[k].x,r.lasso[k].y);regionCtx.closePath();}
+      // 半透明填充底色
+      buildLassoPath();regionCtx.fillStyle=hexToRgba(p.color,i===S.currentPart?0.15:0.1);regionCtx.fill();
+      // 内阴影效果：clip到多边形内，在外部画一圈大 shadow
+      regionCtx.save();buildLassoPath();regionCtx.clip();
+      regionCtx.shadowColor=hexToRgba(p.color,0.6);regionCtx.shadowBlur=Math.max(8,16/S.zoom);
+      regionCtx.shadowOffsetX=0;regionCtx.shadowOffsetY=0;
+      regionCtx.lineWidth=Math.max(4,10/S.zoom);regionCtx.strokeStyle=hexToRgba(p.color,0.4);
+      buildLassoPath();regionCtx.stroke();
+      regionCtx.restore();
       // 蚂蚁线边框（marching ants）：白底+彩色虚线
-      regionCtx.beginPath();regionCtx.moveTo(r.lasso[0].x,r.lasso[0].y);
-      for(let k=1;k<r.lasso.length;k++)regionCtx.lineTo(r.lasso[k].x,r.lasso[k].y);
-      regionCtx.closePath();
+      buildLassoPath();
       regionCtx.strokeStyle='rgba(255,255,255,0.5)';regionCtx.lineWidth=3/S.zoom;regionCtx.setLineDash([]);regionCtx.stroke();
+      buildLassoPath();
       regionCtx.strokeStyle=p.color;regionCtx.lineWidth=1.5/S.zoom;
       regionCtx.setLineDash(i===S.currentPart?[6/S.zoom,4/S.zoom]:[4/S.zoom,4/S.zoom]);
       regionCtx.lineDashOffset=-(Date.now()/80%20);regionCtx.stroke();regionCtx.setLineDash([]);
       regionCtx.restore();
     }else{
-      // ═══ 矩形渲染 ═══
-      regionCtx.fillStyle=hexToRgba(p.color,0.25);regionCtx.fillRect(r.x,r.y,r.w,r.h);
-      regionCtx.strokeStyle=p.color;regionCtx.lineWidth=2/S.zoom;regionCtx.setLineDash(i===S.currentPart?[]:[4,4]);regionCtx.strokeRect(r.x,r.y,r.w,r.h);regionCtx.setLineDash([]);
+      // ═══ 矩形渲染（增强蚂蚁线动画） ═══
+      regionCtx.fillStyle=hexToRgba(p.color,i===S.currentPart?0.2:0.12);regionCtx.fillRect(r.x,r.y,r.w,r.h);
+      // 白色底框
+      regionCtx.strokeStyle='rgba(255,255,255,0.4)';regionCtx.lineWidth=3/S.zoom;regionCtx.setLineDash([]);regionCtx.strokeRect(r.x,r.y,r.w,r.h);
+      // 彩色蚂蚁线
+      regionCtx.strokeStyle=p.color;regionCtx.lineWidth=1.5/S.zoom;
+      regionCtx.setLineDash(i===S.currentPart?[6/S.zoom,4/S.zoom]:[4/S.zoom,4/S.zoom]);
+      regionCtx.lineDashOffset=-(Date.now()/80%20);regionCtx.strokeRect(r.x,r.y,r.w,r.h);regionCtx.setLineDash([]);
     }
     // 标签
     if(document.getElementById('showLabels').checked){const lx=hasLasso?r.lasso[0].x:r.x,ly=hasLasso?r.lasso[0].y:r.y;
@@ -550,12 +662,47 @@ function setupEvents(){const vp=document.getElementById('viewport');
   vp.addEventListener('mousedown',e=>{if(!S.loaded||e.button!==0)return;const pos=getCanvasPos(e);
     if(S.anchorMode){addAnchorPoint(pos.x,pos.y);return;}
     S.drawing=true;S.startX=pos.x;S.startY=pos.y;
+    // 检测 Shift/Alt 修饰键用于套索增减选区
+    if(S.tool==='lasso'){
+      if(e.shiftKey)S.lassoMode='add';
+      else if(e.altKey)S.lassoMode='subtract';
+      else S.lassoMode='replace';
+    }
     if(S.tool==='auto'){autoSelectRegion(pos.x,pos.y);S.drawing=false;}
     else if(S.tool==='lasso'){S.lassoPoints=[{x:pos.x,y:pos.y}];}});
   vp.addEventListener('mousemove',e=>{if(!S.loaded)return;const pos=getCanvasPos(e);drawCursor(pos.x,pos.y);
     if(S.drawing){if(S.tool==='rect'){render();const x=Math.min(S.startX,pos.x),y=Math.min(S.startY,pos.y),w=Math.abs(pos.x-S.startX),h=Math.abs(pos.y-S.startY);
       regionCtx.strokeStyle=parts[S.currentPart].color;regionCtx.lineWidth=2/S.zoom;regionCtx.setLineDash([6,3]);regionCtx.strokeRect(x,y,w,h);regionCtx.setLineDash([]);regionCtx.fillStyle=hexToRgba(parts[S.currentPart].color,0.15);regionCtx.fillRect(x,y,w,h);
-    }else if(S.tool==='lasso'){S.lassoPoints.push({x:pos.x,y:pos.y});render();regionCtx.beginPath();regionCtx.moveTo(S.lassoPoints[0].x,S.lassoPoints[0].y);S.lassoPoints.forEach(p=>regionCtx.lineTo(p.x,p.y));regionCtx.strokeStyle=parts[S.currentPart].color;regionCtx.lineWidth=2/S.zoom;regionCtx.stroke();}}});
+    }else if(S.tool==='lasso'){S.lassoPoints.push({x:pos.x,y:pos.y});render();
+      // 绘制实时套索轨迹 + 闭合虚线回起点
+      regionCtx.save();
+      regionCtx.beginPath();regionCtx.moveTo(S.lassoPoints[0].x,S.lassoPoints[0].y);
+      S.lassoPoints.forEach(p=>regionCtx.lineTo(p.x,p.y));
+      // 实时闭合回起点的虚线
+      regionCtx.lineTo(S.lassoPoints[0].x,S.lassoPoints[0].y);
+      regionCtx.closePath();
+      // 半透明填充预览
+      regionCtx.fillStyle=hexToRgba(parts[S.currentPart].color,S.lassoMode==='subtract'?0.1:0.15);
+      regionCtx.fill();
+      // 边框线
+      regionCtx.strokeStyle=S.lassoMode==='subtract'?'var(--red)':S.lassoMode==='add'?'var(--green)':parts[S.currentPart].color;
+      regionCtx.lineWidth=2/S.zoom;
+      regionCtx.setLineDash([]);
+      regionCtx.stroke();
+      // 闭合虚线（起点到当前点）
+      if(S.lassoPoints.length>3){
+        regionCtx.beginPath();regionCtx.moveTo(pos.x,pos.y);regionCtx.lineTo(S.lassoPoints[0].x,S.lassoPoints[0].y);
+        regionCtx.strokeStyle='rgba(255,255,255,0.35)';regionCtx.lineWidth=1/S.zoom;regionCtx.setLineDash([4/S.zoom,3/S.zoom]);regionCtx.stroke();regionCtx.setLineDash([]);
+      }
+      // Shift/Alt 模式指示文字
+      if(S.lassoMode!=='replace'){
+        const label=S.lassoMode==='add'?'＋ 增选':'－ 减选';
+        regionCtx.font=`bold ${14/S.zoom}px sans-serif`;
+        regionCtx.fillStyle=S.lassoMode==='add'?'rgba(74,222,128,0.9)':'rgba(248,113,113,0.9)';
+        regionCtx.fillText(label,pos.x+10/S.zoom,pos.y-10/S.zoom);
+      }
+      regionCtx.restore();
+    }}});
   vp.addEventListener('mouseup',e=>{if(!S.drawing)return;const pos=getCanvasPos(e);S.drawing=false;
     if(S.tool==='rect'){const x=Math.min(S.startX,pos.x),y=Math.min(S.startY,pos.y),w=Math.abs(pos.x-S.startX),h=Math.abs(pos.y-S.startY);
       if(w>5&&h>5){saveHistory();let r={x,y,w,h};if(document.getElementById('edgeSnap').checked)r=shrinkToAlpha(r);parts[S.currentPart].region=r;parts[S.currentPart].split=null;buildPartGrid();render();updatePartPreview();updateStats();}}
@@ -563,10 +710,29 @@ function setupEvents(){const vp=document.getElementById('viewport');
       // 路径平滑：RDP简化减少锯齿点
       const simplified=simplifyPath(S.lassoPoints,2);
       if(simplified.length<3)return;
-      const xs=simplified.map(p=>p.x),ys=simplified.map(p=>p.y);
+      saveHistory();
+      const curRegion=parts[S.currentPart].region;
+      let finalLasso;
+      // Shift/Alt 组合选区
+      if(S.lassoMode!=='replace'&&curRegion&&curRegion.lasso&&curRegion.lasso.length>2){
+        finalLasso=mergePolygons(curRegion.lasso,simplified,S.lassoMode);
+        if(!finalLasso||finalLasso.length<3){
+          showToast(S.lassoMode==='subtract'?'减选后无剩余区域':'合并失败');return;
+        }
+      }else{
+        finalLasso=simplified;
+      }
+      const xs=finalLasso.map(p=>p.x),ys=finalLasso.map(p=>p.y);
       const x=Math.min(...xs),y=Math.min(...ys),w=Math.max(...xs)-x,h=Math.max(...ys)-y;
-      if(w>5&&h>5){saveHistory();let r={x,y,w,h,lasso:simplified};parts[S.currentPart].region=r;parts[S.currentPart].split=null;buildPartGrid();render();updatePartPreview();updateStats();
-        showToast(`套索选区: ${simplified.length}点 · ${w}×${h}px`);}}});
+      if(w>5&&h>5){
+        let r={x,y,w,h,lasso:finalLasso};
+        parts[S.currentPart].region=r;parts[S.currentPart].split=null;
+        buildPartGrid();render();updatePartPreview();updateStats();
+        const modeLabel=S.lassoMode==='add'?'（增选）':S.lassoMode==='subtract'?'（减选）':'';
+        showToast(`套索选区${modeLabel}: ${finalLasso.length}点 · ${w}×${h}px`);
+      }
+      S.lassoMode='replace';
+    }});
   vp.addEventListener('wheel',e=>{e.preventDefault();if(e.deltaY<0)zoomIn();else zoomOut();},{passive:false});
   vp.addEventListener('dragover',e=>e.preventDefault());vp.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(!f)return;if(f.name.endsWith('.json'))loadProjectConfig(f);else if(f.name.endsWith('.psd'))loadPSDFile(f);else loadImage(f);});
   document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
@@ -637,10 +803,13 @@ function autoSplitAll(){if(!S.loaded)return;const expand=parseInt(document.getEl
       // 5. 在 clip 内绘制原图（只有多边形内的像素可见）
       pCtx.drawImage(baseImage,ex,ey,ew,eh,0,0,ew,eh);
       pCtx.restore();
-      // 6. 保存 split 数据
-      part.split={canvas:pc,x:ex,y:ey,w:ew,h:eh,
+      // 6. Alpha Shrink v2：剔除四周全透明像素
+      const trimResult=trimTransparentPixels(pc);
+      const finalCanvas=trimResult.canvas;
+      const finalX=ex+trimResult.trimX,finalY=ey+trimResult.trimY;
+      part.split={canvas:finalCanvas,x:finalX,y:finalY,w:finalCanvas.width,h:finalCanvas.height,
         originX:r.x,originY:r.y,originW:r.w,originH:r.h,expand,
-        lasso:expandedPoly};
+        lasso:expandedPoly,trimmed:trimResult.trimX>0||trimResult.trimY>0};
       cnt++;
     }else{
       // ═══ 矩形裁剪（原逻辑） ═══
@@ -649,7 +818,11 @@ function autoSplitAll(){if(!S.loaded)return;const expand=parseInt(document.getEl
       const pc=document.createElement('canvas');pc.width=ew;pc.height=eh;const pCtx=pc.getContext('2d');
       pCtx.drawImage(baseImage,ex,ey,ew,eh,0,0,ew,eh);
       if(expand>0){const d=pCtx.getImageData(0,0,ew,eh);applyTopologyFill(d.data,ew,eh,r.x-ex,r.y-ey,r.w,r.h,expand,fm);pCtx.putImageData(d,0,0);}
-      part.split={canvas:pc,x:ex,y:ey,w:ew,h:eh,originX:r.x,originY:r.y,originW:r.w,originH:r.h,expand};
+      // Alpha Shrink v2：矩形裁剪也剔除全透明像素
+      const trimRect=trimTransparentPixels(pc);
+      const finalRC=trimRect.canvas;
+      const finalRX=ex+trimRect.trimX,finalRY=ey+trimRect.trimY;
+      part.split={canvas:finalRC,x:finalRX,y:finalRY,w:finalRC.width,h:finalRC.height,originX:r.x,originY:r.y,originW:r.w,originH:r.h,expand,trimmed:trimRect.trimX>0||trimRect.trimY>0};
       cnt++;
     }
   });
@@ -930,13 +1103,23 @@ function rdpSimplify(pts,eps){
   });
 }
 
-// ═══ Export ═══
-function showExportModal(){const sp=parts.filter(p=>p.split);if(!sp.length){showToast('请先标记并拆分');return;}document.getElementById('exportModal').classList.add('show');
+// ═══ Export（支持多选批量导出）═══
+function getExportParts(){
+  // 优先导出左侧勾选的已拆分部件，否则导出全部已拆分部件
+  if(S.multiSelect.size>0){
+    const selected=parts.filter((_,i)=>S.multiSelect.has(i)&&parts[i].split);
+    if(selected.length>0)return selected;
+  }
+  return parts.filter(p=>p.split);
+}
+function showExportModal(){const sp=getExportParts();if(!sp.length){showToast('请先标记并拆分（或勾选已拆分的部件）');return;}document.getElementById('exportModal').classList.add('show');
   const fmt=document.getElementById('outputFormat').value;
-  document.getElementById('exportContent').innerHTML=`<div style="font-size:13px;color:var(--dim);margin-bottom:12px">共 ${sp.length} 个部件</div><pre style="background:var(--card);padding:12px;border-radius:8px;font-size:12px;color:var(--heading);line-height:1.8;border:1px solid var(--border)">📁 spine_parts_output/\n${sp.map(p=>`├── ${p.name}.png (${p.split.w}×${p.split.h})`).join('\n')}\n├── parts_config.json\n└── spine_data.json</pre><div class="export-grid">${sp.map(p=>`<div class="export-item"><canvas id="exp_${p.name.replace(/[^a-z0-9]/gi,'_')}" width="100" height="100"></canvas><div class="name">${p.name}</div></div>`).join('')}</div>`;
+  const isFiltered=S.multiSelect.size>0&&sp.length<parts.filter(p=>p.split).length;
+  const filterNote=isFiltered?`<div style="margin-bottom:8px;padding:6px 10px;border-radius:6px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);font-size:12px;color:var(--yellow)">🎯 已筛选：仅导出勾选的 ${sp.length} 个部件（共 ${parts.filter(p=>p.split).length} 个已拆分）</div>`:'';
+  document.getElementById('exportContent').innerHTML=`${filterNote}<div style="font-size:13px;color:var(--dim);margin-bottom:12px">共 ${sp.length} 个部件</div><pre style="background:var(--card);padding:12px;border-radius:8px;font-size:12px;color:var(--heading);line-height:1.8;border:1px solid var(--border)">📁 spine_parts_output/\n${sp.map(p=>`├── ${p.name}.png (${p.split.w}×${p.split.h})`).join('\n')}\n├── parts_config.json\n└── spine_data.json</pre><div class="export-grid">${sp.map(p=>`<div class="export-item"><canvas id="exp_${p.name.replace(/[^a-z0-9]/gi,'_')}" width="100" height="100"></canvas><div class="name">${p.name}</div></div>`).join('')}</div>`;
   setTimeout(()=>{sp.forEach(p=>{const c=document.getElementById(`exp_${p.name.replace(/[^a-z0-9]/gi,'_')}`);if(!c)return;const ctx=c.getContext('2d'),s=p.split,sc=Math.min(100/s.w,100/s.h);ctx.drawImage(s.canvas,0,0,s.w,s.h,(100-s.w*sc)/2,(100-s.h*sc)/2,s.w*sc,s.h*sc);});},50);}
 function closeExportModal(){document.getElementById('exportModal').classList.remove('show');}
-async function doExport(){if(typeof JSZip==='undefined'){showToast('加载中...');return;}const zip=new JSZip(),folder=zip.folder('spine_parts_output'),sp=parts.filter(p=>p.split),fmt=document.getElementById('outputFormat').value;
+async function doExport(){if(typeof JSZip==='undefined'){showToast('加载中...');return;}const zip=new JSZip(),folder=zip.folder('spine_parts_output'),sp=getExportParts(),fmt=document.getElementById('outputFormat').value;
   // 导出前自动质检
   const qa=runValidation();
   if(qa&&qa.errors>0){if(!confirm(`质检发现 ${qa.errors} 个错误，是否仍然继续导出？`))return;}
