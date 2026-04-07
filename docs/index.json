@@ -249,6 +249,23 @@
       "is_hot": false
     },
     {
+      "id": "ui-umg-tips",
+      "module": "production",
+      "craft": "UI",
+      "type": "iframe",
+      "title": "UMG 生成技巧",
+      "desc": "AI 辅助生成 UE UMG Widget 的性能优化、动静分离与 Prompt 编写指南",
+      "tags": ["UMG","AI Prompt","性能优化","动静分离","UI规范"],
+      "icon": "⚡",
+      "action": "openTool",
+      "path": "knowledge-base/ui-umg-tips.html",
+      "owner": "赵六",
+      "last_updated": "2026-04-01",
+      "applicable_stage": "量产期",
+      "priority": "medium",
+      "is_hot": false
+    },
+    {
       "id": "scene-lod-spec",
       "module": "production",
       "craft": "场景",
@@ -622,23 +639,6 @@
       "last_updated": "2026-03-30",
       "applicable_stage": "预研期",
       "priority": "medium",
-      "is_hot": false
-    },
-    {
-      "id": "ui-umg-tips",
-      "module": "toolkit",
-      "craft": "UI",
-      "type": "iframe",
-      "title": "UMG 生成技巧",
-      "desc": "AI 辅助生成 UE UMG Widget 的性能优化、动静分离与 Prompt 编写指南",
-      "tags": ["UMG","AI Prompt","Prompt指南","ue-blueprint-tool"],
-      "icon": "⚡",
-      "action": "openTool",
-      "path": "knowledge-base/ui-umg-tips.html",
-      "owner": "赵六",
-      "last_updated": "2026-04-01",
-      "applicable_stage": "量产期",
-      "priority": "low",
       "is_hot": false
     },
     {
