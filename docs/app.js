@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════
-// APM 专属知识库 v4.1 — 美术项目管理增强版
+// APM 专属知识库 v4.2 — 美术项目管理增强版
 // 核心架构：30% 美术生产 · 30% 跨部门协同 · 20% 提效工具 · 20% 成本·风险·团队
-// 新增：高频速查/最近更新 · Owner/日期卡片 · 复制链接 · governance 模块
+// v4.2新增：APM管理仪表盘(Dashboard) · 文档详情增强(meta-bar/相关推荐) · 面包屑owner
 // ═══════════════════════════════════════════════════
 
 // ═══ Markdown Parser (智能表格增强) ═══
@@ -389,6 +389,10 @@ function navigate(pageId,btn){
 
   // 面包屑导航更新
   updateBreadcrumb(pageId);
+  // v4.2 文档详情元信息条
+  updateDetailMetaBar(pageId);
+  // v4.2 相关文档推荐
+  updateRelatedDocs(pageId);
   // 互动模块占位
   updateInteractionPlaceholder(pageId);
 
@@ -678,6 +682,7 @@ function initSearch(){
         renderHomeCards();
         renderHotCards();
         renderCardBadges();
+        renderDashboard();
       }, 300);
     });
   }catch(e){}
@@ -1242,6 +1247,10 @@ function updateBreadcrumb(pageId){
     var sc = STAGE_COLORS[meta.applicable_stage] || STAGE_COLORS['全阶段'];
     crumbs.push('<span class="bc-stage" style="background:'+sc.bg+';color:'+sc.color+';margin-left:8px;padding:2px 10px;border-radius:8px;font-size:11px;font-weight:600">'+meta.applicable_stage+'</span>');
   }
+  // v4.2 面包屑追加 owner
+  if(meta && meta.owner){
+    crumbs.push('<span class="bc-owner" title="维护人"><span class="bc-owner-avatar">'+meta.owner.charAt(0)+'</span>'+meta.owner+'</span>');
+  }
 
   bc.innerHTML=crumbs.join('');
   bar.style.display='block';
@@ -1559,6 +1568,189 @@ window.addEventListener('hashchange',function(){
   var hash=location.hash.slice(1)||'home';
   if(hash!==curPage) navigate(hash);
 });
+
+// ═══ v4.2 APM 管理仪表盘 ═══
+var dashboardCollapsed=false;
+function toggleDashboard(){
+  dashboardCollapsed=!dashboardCollapsed;
+  var body=document.getElementById('dashboardBody');
+  var btn=document.getElementById('dashboardToggle');
+  if(dashboardCollapsed){
+    body.style.maxHeight=body.scrollHeight+'px';
+    body.offsetHeight;
+    body.style.maxHeight='0';
+    btn.textContent='▼ 展开';
+  } else {
+    body.style.maxHeight=body.scrollHeight+'px';
+    btn.textContent='▲ 收起';
+    var onEnd=function(e){
+      if(e.target!==body) return;
+      body.style.maxHeight='none';
+      body.removeEventListener('transitionend',onEnd);
+    };
+    body.addEventListener('transitionend',onEnd);
+  }
+}
+
+function renderDashboard(){
+  if(!indexData) return;
+  renderMilestones();
+  renderBudgetRing();
+  renderRiskList();
+}
+
+function renderMilestones(){
+  var container=document.getElementById('milestoneTimeline');
+  if(!container||!indexData.milestones) return;
+  var today=new Date();today.setHours(0,0,0,0);
+  var html='';
+  indexData.milestones.forEach(function(ms){
+    var msDate=new Date(ms.date);msDate.setHours(0,0,0,0);
+    var diff=Math.round((msDate-today)/(1000*60*60*24));
+    var diffText='';
+    if(diff<0) diffText='<span class="ms-diff ms-diff-past">已过 '+Math.abs(diff)+' 天</span>';
+    else if(diff===0) diffText='<span class="ms-diff ms-diff-today">今天</span>';
+    else diffText='<span class="ms-diff ms-diff-future">剩余 '+diff+' 天</span>';
+    var statusCls='ms-'+ms.status;
+    var labelCls=ms.status==='completed'?'ms-label-done':ms.status==='in_progress'?'ms-label-active':'ms-label-upcoming';
+    html+='<div class="ms-item '+statusCls+'">'
+      +'<div class="ms-dot-wrap"><div class="ms-dot"></div><div class="ms-line"></div></div>'
+      +'<div class="ms-content">'
+      +'<div class="ms-label '+labelCls+'">'+ms.label+'</div>'
+      +'<div class="ms-date-row"><span class="ms-date-text">'+ms.date+'</span>'+diffText+'</div>'
+      +'</div>'
+      +'</div>';
+  });
+  container.innerHTML=html;
+}
+
+function renderBudgetRing(){
+  var container=document.getElementById('budgetRingWrap');
+  if(!container||!indexData.budget) return;
+  var b=indexData.budget;
+  var pct=Math.round((b.used/b.total)*100);
+  var remain=b.total-b.used;
+  // 颜色分段
+  var ringColor='#4ade80';// 绿色
+  if(pct>=80) ringColor='#f87171';// 红色
+  else if(pct>=60) ringColor='#fb923c';// 橙色
+  // SVG 环形参数
+  var r=70,cx=80,cy=80,circumference=2*Math.PI*r;
+  var offset=circumference-(pct/100)*circumference;
+  var fmtNum=function(n){return b.currency+n.toLocaleString();};
+  container.innerHTML=
+    '<div class="budget-ring-container">'
+    +'<svg class="budget-ring-svg" viewBox="0 0 160 160">'
+    +'<circle class="budget-ring-bg" cx="'+cx+'" cy="'+cy+'" r="'+r+'" />'
+    +'<circle class="budget-ring-fg" cx="'+cx+'" cy="'+cy+'" r="'+r+'" '
+    +'stroke="'+ringColor+'" '
+    +'stroke-dasharray="'+circumference+'" '
+    +'stroke-dashoffset="'+offset+'" '
+    +'style="--ring-color:'+ringColor+'" />'
+    +'</svg>'
+    +'<div class="budget-ring-center">'
+    +'<div class="budget-pct" style="color:'+ringColor+'">'+pct+'%</div>'
+    +'<div class="budget-detail">'+fmtNum(b.used)+' / '+fmtNum(b.total)+'</div>'
+    +'</div>'
+    +'</div>'
+    +'<div class="budget-remain">剩余可用：<strong style="color:'+ringColor+'">'+fmtNum(remain)+'</strong></div>';
+}
+
+function renderRiskList(){
+  var container=document.getElementById('riskList');
+  if(!container||!indexData.risks) return;
+  var severityConfig={
+    high:{color:'#f87171',label:'高'},
+    medium:{color:'#fb923c',label:'中'},
+    low:{color:'#60a5fa',label:'低'}
+  };
+  var html='';
+  indexData.risks.forEach(function(risk){
+    var sc=severityConfig[risk.severity]||severityConfig.low;
+    html+='<div class="risk-item" style="border-left:3px solid '+sc.color+'">'
+      +'<div class="risk-dot" style="background:'+sc.color+'"></div>'
+      +'<div class="risk-info">'
+      +'<div class="risk-title">'+risk.title+'</div>'
+      +'<div class="risk-owner-tag">'+risk.owner+'</div>'
+      +'</div>'
+      +'</div>';
+  });
+  container.innerHTML=html;
+}
+
+// ═══ v4.2 文档详情元信息条 ═══
+function updateDetailMetaBar(pageId){
+  var bar=document.getElementById('detailMetaBar');
+  if(!bar) return;
+  if(pageId==='home'){bar.style.display='none';return;}
+  var meta=getItemMeta(pageId);
+  if(!meta){bar.style.display='none';return;}
+  var html='';
+  // 最后更新
+  if(meta.last_updated) html+='<span class="dm-item"><span class="dm-icon">📅</span> 最后更新：<strong>'+meta.last_updated+'</strong></span>';
+  // 维护人
+  if(meta.owner) html+='<span class="dm-item"><span class="dm-icon">👤</span> 维护人：<strong>'+meta.owner+'</strong></span>';
+  // 阶段标签
+  if(meta.applicable_stage){
+    var sc=STAGE_COLORS[meta.applicable_stage]||STAGE_COLORS['全阶段'];
+    html+='<span class="dm-item"><span class="dm-icon">🏷️</span> <span class="stage-tag stage-tag-solid" style="background:'+sc.bg+';color:'+sc.color+';border:1px solid '+sc.color.replace(')',',0.3)')+'">'+meta.applicable_stage+'</span></span>';
+  }
+  // 优先级
+  if(meta.priority){
+    var priLabels={high:'P0',medium:'P1',low:'P2'};
+    var priColors={high:'#f87171',medium:'#fbbf24',low:'#4ade80'};
+    var priLabel=priLabels[meta.priority]||'P2';
+    var priColor=priColors[meta.priority]||'#4ade80';
+    html+='<span class="dm-item"><span class="dm-icon">⭐</span> <span class="dm-pri" style="background:'+priColor+'">'+priLabel+'</span></span>';
+  }
+  // 快捷操作
+  html+='<span class="dm-actions">';
+  html+='<button class="dm-btn" onclick="copyCardLink(\''+pageId+'\')" title="复制链接">📋 复制链接</button>';
+  html+='<button class="dm-btn" onclick="navigate(\'home\')" title="返回首页">🏠 返回首页</button>';
+  html+='</span>';
+  bar.innerHTML=html;
+  bar.style.display='flex';
+}
+
+// ═══ v4.2 相关文档推荐 ═══
+function updateRelatedDocs(pageId){
+  var bar=document.getElementById('relatedDocsBar');
+  var container=document.getElementById('relatedDocsCards');
+  if(!bar||!container) return;
+  if(pageId==='home'||!indexData||!indexData.items){bar.style.display='none';return;}
+  var currentItem=indexData.items.find(function(i){return i.id===pageId;});
+  if(!currentItem||!currentItem.tags||!currentItem.tags.length){bar.style.display='none';return;}
+  // 查找共享至少一个 tag 的文档
+  var currentTags=currentItem.tags;
+  var related=[];
+  indexData.items.forEach(function(item){
+    if(item.id===pageId) return;
+    var shared=0;
+    if(item.tags){
+      item.tags.forEach(function(t){
+        if(currentTags.indexOf(t)!==-1) shared++;
+      });
+    }
+    if(shared>0) related.push({item:item,shared:shared});
+  });
+  // 按共享标签数降序排序，取前4
+  related.sort(function(a,b){return b.shared-a.shared;});
+  related=related.slice(0,4);
+  if(!related.length){bar.style.display='none';return;}
+  var html='';
+  related.forEach(function(r){
+    var item=r.item;
+    var sc=STAGE_COLORS[item.applicable_stage]||STAGE_COLORS['全阶段'];
+    var stageBadge=item.applicable_stage?'<span class="rd-stage" style="background:'+sc.bg+';color:'+sc.color+'">'+item.applicable_stage+'</span>':'';
+    html+='<div class="rd-card" onclick="navigate(\''+item.id+'\')">'
+      +'<div class="rd-icon">'+(item.icon||'📄')+'</div>'
+      +'<div class="rd-title">'+item.title+'</div>'
+      +stageBadge
+      +'</div>';
+  });
+  container.innerHTML=html;
+  bar.style.display='block';
+}
 
 // ═══ Init ═══
 document.addEventListener('DOMContentLoaded', function(){

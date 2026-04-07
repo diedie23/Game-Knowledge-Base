@@ -498,5 +498,114 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .hot-card-date{font-size:11px;color:var(--st);margin-top:6px;font-family:monospace}
 .hot-empty{padding:24px;text-align:center;color:var(--dim);font-size:13px}
 
+/* ═══ APM v4.2 📊 管理仪表盘 (Dashboard) ═══ */
+.dashboard-section{margin-bottom:36px;padding:0;background:var(--card-bg);border:1px solid var(--border);border-radius:18px;overflow:hidden}
+.dashboard-header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(108,140,255,.04),rgba(167,139,250,.04))}
+.dashboard-title{display:flex;align-items:center;gap:10px;font-size:18px;color:var(--heading);font-weight:700}
+.dashboard-icon{font-size:22px}
+.dashboard-toggle{padding:6px 16px;border-radius:20px;border:1px solid var(--border);background:none;color:var(--dim);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s}
+.dashboard-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.dashboard-body{max-height:600px;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1)}
+.dashboard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+
+/* 三列子模块公共样式 */
+.dash-col{padding:20px 24px;border-right:1px solid var(--border)}
+.dash-col:last-child{border-right:none}
+.dash-col-title{font-size:15px;color:var(--heading);font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:6px}
+
+/* ═══ 列1：里程碑时间线 ═══ */
+.milestone-timeline{display:flex;flex-direction:column;gap:0;position:relative}
+.ms-item{display:flex;gap:14px;position:relative;padding-bottom:4px}
+.ms-item:last-child .ms-line{display:none}
+.ms-dot-wrap{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:18px;padding-top:4px}
+.ms-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;transition:all .2s;position:relative;z-index:1}
+.ms-line{width:2px;flex:1;min-height:20px;background:var(--border);margin:4px auto 0}
+/* completed 绿色实心 */
+.ms-completed .ms-dot{background:#4ade80;box-shadow:0 0 8px rgba(74,222,128,.35)}
+.ms-completed .ms-line{background:rgba(74,222,128,.3)}
+/* in_progress 蓝色呼吸动画 */
+.ms-in_progress .ms-dot{background:#6c8cff;box-shadow:0 0 12px rgba(108,140,255,.5);animation:msBreathe 2s ease-in-out infinite}
+.ms-in_progress .ms-line{background:rgba(108,140,255,.2)}
+@keyframes msBreathe{0%,100%{box-shadow:0 0 8px rgba(108,140,255,.3);transform:scale(1)}50%{box-shadow:0 0 16px rgba(108,140,255,.6);transform:scale(1.15)}}
+/* upcoming 灰色空心 */
+.ms-upcoming .ms-dot{background:transparent;border:2px solid var(--st)}
+.ms-upcoming .ms-line{background:var(--border)}
+.ms-content{flex:1;padding-bottom:14px}
+.ms-label{font-size:14px;color:var(--heading);font-weight:500;margin-bottom:4px}
+.ms-label-done{text-decoration:line-through;color:var(--dim)}
+.ms-label-active{font-weight:700;color:#6c8cff}
+.ms-label-upcoming{color:var(--dim)}
+.ms-date-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ms-date-text{font-size:12px;color:var(--st);font-family:monospace}
+.ms-diff{font-size:11px;padding:2px 8px;border-radius:8px;font-weight:600}
+.ms-diff-past{background:rgba(74,222,128,.1);color:#4ade80}
+.ms-diff-today{background:rgba(108,140,255,.15);color:#6c8cff}
+.ms-diff-future{background:rgba(139,143,163,.1);color:var(--dim)}
+
+/* ═══ 列2：预算环形图 ═══ */
+.budget-ring-container{position:relative;width:160px;height:160px;margin:0 auto 12px}
+.budget-ring-svg{width:160px;height:160px;transform:rotate(-90deg)}
+.budget-ring-bg{fill:none;stroke:var(--border);stroke-width:10}
+.budget-ring-fg{fill:none;stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)}
+.budget-ring-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.budget-pct{font-size:32px;font-weight:800;letter-spacing:-1px;line-height:1}
+.budget-detail{font-size:12px;color:var(--dim);margin-top:6px;white-space:nowrap}
+.budget-remain{text-align:center;font-size:13px;color:var(--dim);padding:8px 0 4px;border-top:1px solid var(--border)}
+.budget-remain strong{font-weight:700}
+
+/* ═══ 列3：风险列表 ═══ */
+.risk-list{display:flex;flex-direction:column;gap:8px}
+.risk-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border-left:3px solid transparent;transition:background .15s}
+.risk-item:hover{background:rgba(255,255,255,.04)}
+.risk-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.risk-info{flex:1;min-width:0}
+.risk-title{font-size:14px;color:var(--heading);font-weight:500;margin-bottom:4px;line-height:1.5}
+.risk-owner-tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:8px;background:rgba(139,143,163,.1);color:var(--dim);font-weight:500}
+
+/* ═══ APM v4.2 面包屑 Owner ═══ */
+.bc-owner{display:inline-flex;align-items:center;gap:5px;margin-left:10px;font-size:12px;color:var(--dim);font-weight:500;cursor:default;position:relative}
+.bc-owner-avatar{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.bc-owner:hover::after{content:'维护人';position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);padding:4px 10px;background:var(--card-bg);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--dim);white-space:nowrap;pointer-events:none;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+
+/* ═══ APM v4.2 文档详情元信息条 ═══ */
+.detail-meta-bar{display:flex;align-items:center;gap:14px;padding:10px 28px;flex-shrink:0;flex-wrap:wrap;background:linear-gradient(90deg,rgba(108,140,255,.03),rgba(167,139,250,.03));border-bottom:1px solid var(--border)}
+.dm-item{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--dim)}
+.dm-item strong{color:var(--heading);font-weight:600}
+.dm-icon{font-size:14px}
+.dm-pri{display:inline-block;padding:2px 10px;border-radius:8px;color:#fff;font-size:11px;font-weight:700;letter-spacing:.5px}
+.dm-actions{display:inline-flex;align-items:center;gap:6px;margin-left:auto}
+.dm-btn{padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--dim);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.dm-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+
+/* ═══ APM v4.2 相关文档推荐 ═══ */
+.related-docs-bar{padding:10px 28px;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--sidebar-bg)}
+.related-docs-title{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:10px}
+.related-docs-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding-bottom:4px}
+.related-docs-scroll::-webkit-scrollbar{height:3px}
+.related-docs-scroll::-webkit-scrollbar-thumb{background:var(--st);border-radius:2px}
+.related-docs-cards{display:flex;gap:10px;min-width:max-content}
+.rd-card{min-width:180px;max-width:240px;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:all .18s;display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.rd-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.25)}
+.rd-icon{font-size:18px}
+.rd-title{font-size:13px;color:var(--heading);font-weight:500;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rd-stage{display:inline-block;font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600;width:fit-content}
+
 /* ═══ Responsive ═══ */
+@media(max-width:900px){
+  .dashboard-grid{grid-template-columns:1fr 1fr}
+  .dash-milestone{grid-column:1/-1;border-right:none;border-bottom:1px solid var(--border)}
+  .dash-budget{border-right:1px solid var(--border)}
+}
 @media(max-width:768px){.sidebar{position:fixed;left:-320px;z-index:99;transition:left .3s}.sidebar.open{left:0}.menu-toggle{display:block}.doc-page{padding:24px 20px 60px}.tool-page,.home{padding:24px 20px;padding-top:56px}.home-hero h1{font-size:26px}.stats-bar{grid-template-columns:1fr;gap:10px}.stats-bar-4{grid-template-columns:repeat(2,1fr)}.home-grid{grid-template-columns:1fr}.tool-embed-frame{height:60vh;min-height:350px}.module-section{padding:18px 16px}.module-header{flex-wrap:wrap;gap:12px}.module-weight{display:none}.home-ratio-bar{max-width:100%}.breadcrumb-bar{padding:10px 16px 0}.breadcrumb{font-size:12px;padding:6px 10px}.tag-filter-bar{padding:6px 16px;flex-wrap:wrap;gap:6px}.doc-meta-bar{gap:10px;padding:10px 0}.interaction-placeholder,.doc-interaction-placeholder{margin-top:24px}.hot-section{padding:16px}.hot-card{min-width:180px;max-width:220px}.card-copy-btn{opacity:.5}}
+@media(max-width:600px){
+  .dashboard-grid{grid-template-columns:1fr}
+  .dash-col{border-right:none;border-bottom:1px solid var(--border)}
+  .dash-col:last-child{border-bottom:none}
+  .dashboard-header{padding:14px 18px}
+  .dashboard-title{font-size:16px}
+  .detail-meta-bar{padding:8px 16px;gap:10px}
+  .dm-actions{margin-left:0;width:100%;justify-content:flex-start}
+  .related-docs-bar{padding:8px 16px}
+  .rd-card{min-width:150px;max-width:200px}
+  .bc-owner{display:none}
+}

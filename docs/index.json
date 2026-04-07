@@ -1,7 +1,19 @@
 {
-  "version": "4.1",
+  "version": "4.2",
   "lastUpdate": "2026-04-07",
   "subtitle": "APM 专属知识库 — 美术项目管理核心知识体系",
+  "milestones": [
+    { "label": "Alpha 版本提交", "date": "2026-04-15", "status": "completed" },
+    { "label": "CB1 内部评审", "date": "2026-05-01", "status": "in_progress" },
+    { "label": "Beta 封版", "date": "2026-06-10", "status": "upcoming" },
+    { "label": "RC 提交 & 上线", "date": "2026-07-01", "status": "upcoming" }
+  ],
+  "budget": { "total": 850000, "used": 476000, "currency": "¥" },
+  "risks": [
+    { "title": "角色模型面数超标", "severity": "high", "owner": "TA组-陈工" },
+    { "title": "外包交付延期风险", "severity": "medium", "owner": "外包PM-李经理" },
+    { "title": "引擎升级兼容问题", "severity": "low", "owner": "技术美术-王工" }
+  ],
   "moduleConfig": {
     "production":  { "label": "🏭 美术生产与排期", "icon": "🏭", "color": "accent",  "weight": 30 },
     "collab":      { "label": "🤝 跨部门协同与交付", "icon": "🤝", "color": "orange",  "weight": 30 },

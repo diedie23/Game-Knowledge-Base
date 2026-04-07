@@ -30,7 +30,7 @@
   </nav>
   <div class="sidebar-footer">
     <button class="nav-create" onclick="openEditor()">➕ 新增文档</button>
-    <div class="sf-links"><span>v4.1 APM</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a></div>
+    <div class="sf-links"><span>v4.2 APM</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a></div>
   </div>
 </aside>
 
@@ -40,6 +40,15 @@
   <!-- 面包屑导航 -->
   <div class="breadcrumb-bar" id="breadcrumbBar" style="display:none">
     <nav class="breadcrumb" id="breadcrumb"></nav>
+  </div>
+  <!-- v4.2 文档详情元信息条 -->
+  <div class="detail-meta-bar" id="detailMetaBar" style="display:none"></div>
+  <!-- v4.2 相关文档推荐 -->
+  <div class="related-docs-bar" id="relatedDocsBar" style="display:none">
+    <div class="related-docs-title">📎 相关推荐</div>
+    <div class="related-docs-scroll">
+      <div class="related-docs-cards" id="relatedDocsCards"></div>
+    </div>
   </div>
   <!-- 标签过滤提示条 -->
   <div class="tag-filter-bar" id="tagFilterBar" style="display:none">
@@ -72,6 +81,7 @@
         <option value="mod-production">🏭 美术生产与排期</option>
         <option value="mod-collab">🤝 跨部门协同与交付</option>
         <option value="mod-toolkit">🧰 APM 提效工具箱</option>
+        <option value="mod-governance">💰 成本·风险·团队</option>
       </select>
     </div>
     <div id="vditorContainer"></div>
@@ -119,6 +129,39 @@
         <div class="hot-scroll" id="hotScrollContainer">
           <div class="hot-cards" id="hotCards">
             <!-- 动态渲染 by app.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ 📊 APM 管理仪表盘 (v4.2 Dashboard) ═══ -->
+      <div class="dashboard-section" id="dashboardSection">
+        <div class="dashboard-header">
+          <div class="dashboard-title"><span class="dashboard-icon">📊</span> APM 管理仪表盘</div>
+          <button class="dashboard-toggle" id="dashboardToggle" onclick="toggleDashboard()">▲ 收起</button>
+        </div>
+        <div class="dashboard-body" id="dashboardBody">
+          <div class="dashboard-grid">
+            <!-- 列1：里程碑进度 -->
+            <div class="dash-col dash-milestone">
+              <h3 class="dash-col-title">🗓️ 里程碑进度</h3>
+              <div class="milestone-timeline" id="milestoneTimeline">
+                <!-- 动态渲染 by app.js -->
+              </div>
+            </div>
+            <!-- 列2：预算消耗环形图 -->
+            <div class="dash-col dash-budget">
+              <h3 class="dash-col-title">💰 预算消耗概览</h3>
+              <div class="budget-ring-wrap" id="budgetRingWrap">
+                <!-- 动态渲染 by app.js -->
+              </div>
+            </div>
+            <!-- 列3：风险登记摘要 -->
+            <div class="dash-col dash-risks">
+              <h3 class="dash-col-title">⚠️ 活跃风险项</h3>
+              <div class="risk-list" id="riskList">
+                <!-- 动态渲染 by app.js -->
+              </div>
+            </div>
           </div>
         </div>
       </div>
