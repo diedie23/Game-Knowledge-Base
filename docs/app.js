@@ -473,8 +473,6 @@ function getOrCreateDocPage(pageId){
   var metaHtml='';
   if(meta){
     metaHtml='<div class="doc-meta-bar">';
-    if(meta.owner) metaHtml+='<span class="doc-meta-item">👤 责任人：<strong>'+meta.owner+'</strong></span>';
-    if(meta.last_updated) metaHtml+='<span class="doc-meta-item">📅 最后更新：<strong>'+meta.last_updated+'</strong></span>';
     if(meta.tags&&meta.tags.length) metaHtml+='<span class="doc-meta-item">🏷️ '+meta.tags.map(function(t){return'<span class="doc-meta-tag tag-clickable" onclick="filterByTag(\''+t+'\')">'+t+'</span>';}).join(' ')+'</span>';
     metaHtml+='</div>';
   }
@@ -495,10 +493,6 @@ function renderToolPage(id){
   var d=toolData[id],c=document.getElementById('page-tool');
   if(!d)return;
   var tags='';d.tags.forEach(function(t){tags+='<span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag(\''+t+'\')">'+t+'</span>';});
-  // 获取元数据
-  var meta=getItemMeta(id);
-  var ownerHtml=meta&&meta.owner?'<span class="mi">👤 '+meta.owner+'</span>':'';
-  var dateHtml=meta&&meta.last_updated?'<span class="mi">📅 '+meta.last_updated+'</span>':'<span class="mi">📅 '+d.date+'</span>';
   c.innerHTML=
     '<div class="tool-embed-header">'
     +'<div class="teh-icon" style="background:'+d.iconBg+'">'+d.icon+'</div>'
@@ -507,7 +501,7 @@ function renderToolPage(id){
     +'<div class="tool-embed-desc">'
     +'<p>'+d.desc+'</p>'
     +'<div class="tool-embed-tags">'+tags+'</div>'
-    +'<div class="tool-embed-meta"><span class="mi">'+d.env+'</span><span class="mi">💻 '+d.platform+'</span><span class="mi">📦 '+d.install+'</span>'+ownerHtml+dateHtml+'</div>'
+    +'<div class="tool-embed-meta"><span class="mi">'+d.env+'</span><span class="mi">💻 '+d.platform+'</span><span class="mi">📦 '+d.install+'</span></div>'
     +'</div>'
     +'<div class="tool-embed-frame-wrap">'
     +'<div class="tool-embed-toolbar"><span class="tet-label">⚡ 工具已嵌入，可直接使用</span><button class="tet-btn" onclick="window.open(\''+d.url+'\',\'_blank\')">↗ 新窗口打开</button></div>'
@@ -1247,10 +1241,7 @@ function updateBreadcrumb(pageId){
     var sc = STAGE_COLORS[meta.applicable_stage] || STAGE_COLORS['全阶段'];
     crumbs.push('<span class="bc-stage" style="background:'+sc.bg+';color:'+sc.color+';margin-left:8px;padding:2px 10px;border-radius:8px;font-size:11px;font-weight:600">'+meta.applicable_stage+'</span>');
   }
-  // v4.2 面包屑追加 owner
-  if(meta && meta.owner){
-    crumbs.push('<span class="bc-owner" title="维护人"><span class="bc-owner-avatar">'+meta.owner.charAt(0)+'</span>'+meta.owner+'</span>');
-  }
+
 
   bc.innerHTML=crumbs.join('');
   bar.style.display='block';
@@ -1429,13 +1420,8 @@ function renderHomeCards(){
         var shown=item.tags.slice(0,3);
         tagsHtml=shown.map(function(t){return'<span class="tag tag-outline tag-clickable" onclick="event.stopPropagation();filterByTag(\''+t+'\')">'+t+'</span>';}).join('');
       }
-      // Owner + 更新日期底栏
+      // Owner + 更新日期底栏（v4.2: 已移除 owner 和 last_updated 显示）
       var metaFooter='';
-      if(item.owner||item.last_updated){
-        var ownerHtml=item.owner?'<span class="card-owner" title="维护者"><span class="card-owner-avatar">'+item.owner.charAt(0)+'</span>'+item.owner+'</span>':'';
-        var dateHtml=item.last_updated?'<span class="card-date">'+item.last_updated+'</span>':'';
-        metaFooter='<div class="card-meta-footer">'+ownerHtml+dateHtml+'</div>';
-      }
 
       html+='<div class="home-card" data-stage="'+(item.applicable_stage||'')+'" data-priority="'+(item.priority||'')+'" data-id="'+item.id+'" onclick="navigate(\''+item.id+'\')">'
         +priHtml+copyHtml
@@ -1514,9 +1500,7 @@ function renderHotCards(){
       +'<div class="hot-card-title">'+item.title+'</div>'
       +'<div class="hot-card-meta">'
       +'<span class="hot-stage" style="background:'+sc.bg+';color:'+sc.color+'">'+(item.applicable_stage||'')+'</span>'
-      +(item.owner?'<span class="hot-owner">'+item.owner+'</span>':'')
       +'</div>'
-      +(item.last_updated?'<div class="hot-card-date">'+item.last_updated+'</div>':'')
       +'</div>';
   });
   container.innerHTML=html;
@@ -1686,10 +1670,6 @@ function updateDetailMetaBar(pageId){
   var meta=getItemMeta(pageId);
   if(!meta){bar.style.display='none';return;}
   var html='';
-  // 最后更新
-  if(meta.last_updated) html+='<span class="dm-item"><span class="dm-icon">📅</span> 最后更新：<strong>'+meta.last_updated+'</strong></span>';
-  // 维护人
-  if(meta.owner) html+='<span class="dm-item"><span class="dm-icon">👤</span> 维护人：<strong>'+meta.owner+'</strong></span>';
   // 阶段标签
   if(meta.applicable_stage){
     var sc=STAGE_COLORS[meta.applicable_stage]||STAGE_COLORS['全阶段'];
