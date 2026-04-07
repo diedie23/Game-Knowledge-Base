@@ -1,3 +1,42 @@
+<div style="display: flex; align-items: flex-start; gap: 24px;">
+
+<div style="flex: 0 0 260px; position: sticky; top: 24px; padding: 16px; background-color: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); font-size: 14px;">
+
+<div style="font-weight: bold; margin-bottom: 12px; font-size: 16px;">📑 目录导航</div>
+
+**📏 [文件命名规则](#-1-文件命名规则)**
+&emsp;├ 统一命名公式
+&emsp;├ 资产类型前缀
+&emsp;├ 贴图通道后缀
+&emsp;└ 命名禁止事项
+
+**📂 [引擎目录结构](#-2-引擎目录结构)**
+&emsp;├ UE 标准目录
+&emsp;└ Unity 标准目录
+
+**✅ [引擎导入 Checklist](#-3-引擎导入-checklist)**
+&emsp;├ 模型导入 (FBX)
+&emsp;├ 贴图导入
+&emsp;└ 动画导入
+
+**🔄 [资产交接 SOP](#-4-资产交接-sop)**
+&emsp;├ 交接流程
+&emsp;├ 交接单模板
+&emsp;└ 常见交接问题速查
+
+**🤝 [跨部门交接边界](#-5-跨部门交接边界)**
+&emsp;└ 职责矩阵 (RACI)
+
+**🚨 [典型问题](#典型问题)**
+
+**📌 [Do / Don't 示例](#dodont-示例)**
+
+**📎 [附录：快速参考卡](#-附录快速参考卡)**
+
+</div>
+
+<div style="flex: 1; min-width: 0;">
+
 # 📁 引擎导入与命名规范
 
 > **[规范]** **[量产必读]** 适用阶段：量产期 | 优先级：高 | 负责人：孙七
@@ -226,6 +265,91 @@ graph TD
 
 ---
 
+## 典型问题
+
+### 🚨 问题一：中文/特殊字符文件名导致引擎导入失败
+
+> 🚨 **问题现象**
+> 美术提交的 FBX 文件使用中文命名（如 `新角色_最终版.fbx`），引擎导入时出现**路径解析失败**或**资源引用丢失**。
+
+> 🔍 **产生原因**
+> - UE / Unity 引擎底层依赖 **ASCII 路径解析**，中文字符在不同系统编码下容易产生乱码
+> - 空格和括号会导致命令行工具（如 `fbx2gltf`、`ResourceAuditor`）参数解析出错
+> - 团队成员缺乏统一的命名意识，DCC 默认保存名直接提交
+
+> 🛠️ **解决方案**
+> 1. 推广统一命名公式：`[前缀]_[模块]_[描述]_[后缀].[扩展名]`
+> 2. 在 SVN/P4 的 **Pre-Commit Hook** 中加入命名校验脚本，自动拦截非法命名
+> 3. 已提交的非法文件由 TA 批量重命名并修复引擎引用
+
+> 🛡️ **预防措施**
+> - 新人入职首日必读《引擎导入与命名规范》
+> - 每月抽查一次版本库，输出命名合规率报告
+> - 将命名检查集成到**自动化提交流水线**中
+
+---
+
+### 🚨 问题二：FBX 导入后模型破面/法线翻转
+
+> 🚨 **问题现象**
+> 资产导入引擎后出现**模型表面破裂、法线方向反转**（黑面），在 DCC 中预览正常但引擎中异常。
+
+> 🔍 **产生原因**
+> - DCC 中存在**退化三角面**（面积趋近于 0）未被清理
+> - 模型部分面的法线方向在 DCC 中"双面显示"而被忽视
+> - FBX 导出时未统一法线方向或 **Smoothing Group** 设置不正确
+
+> 🛠️ **解决方案**
+> 1. 在 DCC 中使用 **Mesh Cleanup**（Maya）/ **STL Check**（3ds Max）检查退化面
+> 2. 导出前统一法线方向：Maya `Normals > Conform` / Max `Reset XForm`
+> 3. 引擎导入时选择 `Import Normals`（非 Calculate）
+
+> 🛡️ **预防措施**
+> - 在**自检 Checklist** 中增加"法线方向检查"为必选项
+> - 建立 TA 导入后**引擎端截图对比**环节，确保 DCC 与引擎一致
+> - 定期 TA 培训：FBX 导出最佳实践
+
+---
+
+## Do/Don't 示例
+
+### 📌 场景说明：资产文件命名
+
+> 美术同学在 DCC 中完成制作后导出 FBX，需要按规范命名后提交版本库。
+
+### ✅ 正确示范 Do
+
+```
+SK_Hero_Luna.fbx
+T_Luna_Body_D.tga
+T_Luna_Body_N.tga
+AN_Luna_Idle_01.fbx
+VFX_Skill_FireBall.prefab
+SM_Scene_Rock_A.fbx
+```
+
+- 使用**标准前缀** + **下划线分隔** + **语义化英文描述**
+- 前缀与资产类型严格对应（`SK_` = Skeletal Mesh, `T_` = Texture, `AN_` = Animation）
+- 无版本号、无中文、无空格、无特殊字符
+
+### ❌ 错误示范 Don't
+
+```
+新角色最终版.fbx
+Luna_FINAL_V3_FIXED.fbx
+model (1).fbx
+test.fbx
+my-hero.tga
+```
+
+- ❌ 含中文字符 → 引擎解析失败
+- ❌ 含版本号 `FINAL_V3_FIXED` → 版本管理应交给 SVN/P4
+- ❌ 含括号/空格 → 命令行工具参数解析出错
+- ❌ 无意义命名 `test` → 无法识别资产归属
+- ❌ 使用连字符 `-` → 应使用下划线 `_`
+
+---
+
 ## 📎 附录：快速参考卡
 
 ### 🔖 常用前缀速查
@@ -241,3 +365,6 @@ graph TD
 | 技能特效 | `VFX_Skill_` | `VFX_Skill_FireBall.prefab` |
 
 > ⚡ **APM 金句**："命名规范不是在为难你，而是在为未来 6 个月后、接手你资产的那个人铺路。"
+
+</div>
+</div>

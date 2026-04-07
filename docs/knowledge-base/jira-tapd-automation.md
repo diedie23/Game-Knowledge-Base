@@ -1,3 +1,26 @@
+<div style="display: flex; align-items: flex-start; gap: 24px;">
+<div style="flex: 0 0 260px; position: sticky; top: 24px; padding: 16px; background-color: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); font-size: 14px;">
+<div style="font-weight: bold; margin-bottom: 12px; font-size: 16px;">📑 目录导航</div>
+
+**⚙️ [美术任务状态机](#1-美术任务状态机)**
+&emsp;├ 标准状态流
+&emsp;├ 状态定义
+&emsp;└ TAPD/Jira 配置
+
+**👤 [自动指派规则](#2-自动指派规则)**
+
+**📢 [通知策略](#3-通知策略)**
+
+**📋 [看板配置模板](#4-看板配置模板)**
+&emsp;├ 美术看板视图
+&emsp;└ WIP 限制
+
+**📊 [数据报表模板](#5-数据报表模板)**
+
+**📎 [附录：快速配置清单](#附录tapd--jira-快速配置清单)**
+</div>
+<div style="flex: 1; min-width: 0;">
+
 # 项目管理工具模板
 
 > **适用阶段**：全阶段 | **优先级**：高 | **负责人**：周八
@@ -135,8 +158,6 @@ Jira → 项目设置 → Workflows → 编辑工作流
 
 ### 4.1 美术看板视图
 
-看板列按如下状态流排列：
-
 ```mermaid
 graph LR
     A[待排期<br/>Backlog] --> B[已排期<br/>Planned]
@@ -206,3 +227,6 @@ graph LR
 - [ ] 关联 Slack/企微 Webhook
 - [ ] 创建 Board + Filters
 - [ ] 配置 Dashboard
+
+</div>
+</div>

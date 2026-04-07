@@ -1,3 +1,25 @@
+<div style="display: flex; align-items: flex-start; gap: 24px;">
+<div style="flex: 0 0 260px; position: sticky; top: 24px; padding: 16px; background-color: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); font-size: 14px;">
+<div style="font-weight: bold; margin-bottom: 12px; font-size: 16px;">📑 目录导航</div>
+
+**🛠️ [工具概述](#1-工具概述)**
+
+**📏 [正则规则库](#2-正则规则库)**
+
+**📂 [多级目录扫描](#3-多级目录扫描方案)**
+
+**📊 [违规报告格式](#4-违规报告格式)**
+
+**🔄 [一键重命名功能](#5-一键重命名功能)**
+
+**⚙️ [集成方案](#6-集成方案)**
+&emsp;├ CI/CD 集成
+&emsp;└ 定时巡检
+
+**📎 [附录：常见错误 Top 10](#附录常见命名错误-top-10)**
+</div>
+<div style="flex: 1; min-width: 0;">
+
 # 资产合规性检查工具
 
 > **适用阶段**：量产期 | **优先级**：高 | **负责人**：孙七
@@ -31,49 +53,36 @@
 
 ```python
 NAMING_RULES = {
-    # 静态网格
     "StaticMesh": {
         "pattern": r"^SM_[A-Z][a-zA-Z0-9]+(_[A-Za-z0-9]+)*\.fbx$",
         "example": "SM_Scene_Rock_A.fbx",
         "description": "静态网格: SM_模块_描述_变体.fbx"
     },
-
-    # 骨骼网格
     "SkeletalMesh": {
         "pattern": r"^SK_[A-Z][a-zA-Z0-9]+(_[A-Za-z0-9]+)*\.fbx$",
         "example": "SK_Hero_Luna.fbx",
         "description": "骨骼网格: SK_类型_角色名.fbx"
     },
-
-    # 动画
     "Animation": {
         "pattern": r"^AN_[A-Z][a-zA-Z0-9]+_[A-Za-z0-9]+(_v\d{2})?\.fbx$",
         "example": "AN_Luna_Idle_01.fbx",
         "description": "动画: AN_角色_动作_变体.fbx"
     },
-
-    # 贴图
     "Texture": {
         "pattern": r"^T_[A-Z][a-zA-Z0-9]+(_[A-Za-z0-9]+)*_(D|N|M|R|AO|E|MRA|Mask|Op|H)\.(tga|png|exr)$",
         "example": "T_Luna_Body_D.tga",
         "description": "贴图: T_对象_部位_通道.tga/png"
     },
-
-    # 特效
     "VFX": {
         "pattern": r"^VFX_[A-Z][a-zA-Z0-9]+(_[A-Za-z0-9]+)*(_\d{2})?\.(prefab|mat)$",
         "example": "VFX_Skill_FireBall_01.prefab",
         "description": "特效: VFX_分类_名称_序号.prefab"
     },
-
-    # UI
     "UI_Image": {
         "pattern": r"^UI_[A-Z][a-zA-Z0-9]+(_[A-Za-z0-9]+)*\.png$",
         "example": "UI_Battle_HpBar.png",
         "description": "UI图片: UI_功能_描述.png"
     },
-
-    # 音效
     "Sound": {
         "pattern": r"^SND_[A-Z][a-zA-Z0-9]+(_[A-Za-z0-9]+)*(_\d{2})?\.(wav|ogg|mp3)$",
         "example": "SND_Hit_Sword_01.wav",
@@ -147,8 +156,6 @@ graph LR
 ## 4. 违规报告格式
 
 ### 4.1 HTML 报告示例
-
-> 📋 **报告摘要格式**
 
 | 项目 | 数据 |
 |:---:|:---:|
@@ -238,3 +245,6 @@ graph TD
 | 8 | 过长文件名 | 3% | 超过 50 字符 |
 | 9 | 扩展名大写 | 2% | `Luna.FBX` |
 | 10 | 版本号格式错 | 2% | `Luna_V2.fbx` → `Luna_v02.fbx` |
+
+</div>
+</div>
