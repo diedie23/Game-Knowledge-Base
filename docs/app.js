@@ -222,7 +222,8 @@ var MODULE_STYLES = {
   'mod-production': { color: 'accent', highlight: 'var(--accent)',  bg: 'var(--accent-bg)' },
   'mod-collab':     { color: 'orange', highlight: 'var(--orange)',  bg: 'var(--orange-bg)' },
   'mod-toolkit':    { color: 'green',  highlight: 'var(--green)',   bg: 'var(--green-bg)' },
-  'mod-governance': { color: 'pink',   highlight: 'var(--pink)',    bg: 'var(--pink-bg)' }
+  'mod-governance': { color: 'pink',   highlight: 'var(--pink)',    bg: 'var(--pink-bg)' },
+  'mod-retrospect': { color: 'cyan',   highlight: 'var(--cyan)',    bg: 'var(--cyan-bg)' }
 };
 
 // 工种 badge 样式映射
@@ -237,6 +238,7 @@ var CRAFT_COLORS = {
   '程序': { bg: 'var(--pink-bg)',   color: 'var(--pink)' },
   '策划': { bg: 'var(--orange-bg)', color: 'var(--orange)' },
   '音频': { bg: 'var(--cyan-bg)',   color: 'var(--cyan)' },
+  '动画': { bg: 'var(--purple-bg)', color: 'var(--purple)' },
   'QA':   { bg: 'var(--green-bg)',  color: 'var(--green)' },
   'TA':   { bg: 'var(--pink-bg)',   color: 'var(--pink)' },
   '跨部门': { bg: 'var(--orange-bg)', color: 'var(--orange)' }
@@ -261,7 +263,7 @@ function buildSidebar(data){
     +'<div class="nav-toggle-btns"><button class="nav-toggle-btn" onclick="expandAllSidebar()" title="全部展开">📂 展开</button><button class="nav-toggle-btn" onclick="collapseAllSidebar()" title="全部折叠">📁 折叠</button></div></div>';
 
   // 统计计数器
-  var productionCount=0, collabCount=0, toolkitCount=0, governanceCount=0;
+  var productionCount=0, collabCount=0, toolkitCount=0, governanceCount=0, retrospectCount=0;
 
   data.categories.forEach(function(cat){
     var itemCount=0;
@@ -272,16 +274,18 @@ function buildSidebar(data){
     if(cat.id === 'mod-collab')      collabCount = itemCount;
     if(cat.id === 'mod-toolkit')     toolkitCount = itemCount;
     if(cat.id === 'mod-governance')  governanceCount = itemCount;
+    if(cat.id === 'mod-retrospect')  retrospectCount = itemCount;
 
     var isCollab = cat.id === 'mod-collab';
     var isGovernance = cat.id === 'mod-governance';
+    var isRetrospect = cat.id === 'mod-retrospect';
 
     // 获取纯文本名称（去掉 Emoji 前缀）
     var catName = cat.name.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]+\s*/u, '');
     // 一级模块 Emoji 图标（从 JSON icon 字段读取）
     var catEmoji = cat.icon || '📁';
 
-    var extraCls = isCollab ? ' t1-collab' : isGovernance ? ' t1-governance' : '';
+    var extraCls = isCollab ? ' t1-collab' : isGovernance ? ' t1-governance' : isRetrospect ? ' t1-retrospect' : '';
     html += '<div class="t1' + extraCls + '" id="' + cat.id + '">';
     html += '<div class="t1-h" onclick="handleToggle(event,this)">'
       + SVG_CHEVRON
@@ -337,13 +341,15 @@ function buildSidebar(data){
   if(numEls[1]) numEls[1].textContent = collabCount + ' 篇';
   if(numEls[2]) numEls[2].textContent = toolkitCount + ' 个';
   if(numEls[3]) numEls[3].textContent = governanceCount + ' 篇';
+  if(numEls[4]) numEls[4].textContent = retrospectCount + ' 篇';
 
   // ═══ 统计卡片 → 锚点快捷导航 ═══
   var statTargets = [
     { sel: '.stat-production', anchor: '#section-production' },
     { sel: '.stat-collab',     anchor: '#section-collab' },
     { sel: '.stat-toolkit',    anchor: '#section-toolkit' },
-    { sel: '.stat-governance', anchor: '#section-governance' }
+    { sel: '.stat-governance', anchor: '#section-governance' },
+    { sel: '.stat-retrospect', anchor: '#section-retrospect' }
   ];
   var scrollContainer = document.getElementById('contentScroll');
   statTargets.forEach(function(item){
@@ -443,6 +449,17 @@ function navigate(pageId,btn){
           buildIframeToc(pageId);
           setupIframeScrollSpy(pageId);
           setupIframeBackToTop();
+          // draft_prompt 注入：如果文档有 draft_prompt 字段，在 placeholder 页面中渲染
+          var meta=getItemMeta(pageId);
+          if(meta && meta.draft_prompt){
+            try{
+              var iframeDoc=frame.contentDocument||frame.contentWindow.document;
+              var placeholder=iframeDoc.querySelector('.placeholder');
+              if(placeholder){
+                injectDraftPrompt(iframeDoc, placeholder, meta.draft_prompt, meta.title);
+              }
+            }catch(e){console.log('Cannot inject draft_prompt:',e);}
+          }
         };
         setTimeout(hideLoading,3000);
       }
@@ -696,6 +713,7 @@ function handleSearch(q){
     if(item.module==='collab')  { modLabel='🤝'; modCls='background:rgba(251,146,60,.08);color:#fb923c'; }
     if(item.module==='toolkit') { modLabel='🧰'; modCls='background:rgba(74,222,128,.08);color:#4ade80'; }
     if(item.module==='governance') { modLabel='💰'; modCls='background:rgba(244,114,182,.08);color:#f472b6'; }
+    if(item.module==='retrospect') { modLabel='📒'; modCls='background:rgba(34,211,238,.08);color:#22d3ee'; }
     // 工种 Tag
     var craftHtml = item.craft ? '<span class="sr-craft">['+item.craft+']</span>' : '';
     // 阶段 Tag
@@ -720,6 +738,80 @@ function handleSearch(q){
 // ═══ Utilities ═══
 function copyShareLink(){navigator.clipboard.writeText(location.href).then(function(){showToast('链接已复制');}).catch(function(){showToast('复制失败');});}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2000);}
+
+// ═══ Draft Prompt 注入（AI 辅助补全机制）═══
+function injectDraftPrompt(iframeDoc, placeholder, promptText, docTitle){
+  // 创建 draft_prompt 容器
+  var section=iframeDoc.createElement('div');
+  section.className='draft-prompt-section';
+  section.innerHTML=
+    '<div class="dp-notice">'
+    +'<div class="dp-notice-icon">🤖</div>'
+    +'<div class="dp-notice-text">'
+    +'<strong>本文档尚未编写</strong>'
+    +'<p>您可以复制下方提示词，前往 <strong>ChatGPT / Claude / CodeBuddy</strong> 生成初稿后补充到知识库中。</p>'
+    +'</div>'
+    +'</div>'
+    +'<div class="dp-prompt-box">'
+    +'<div class="dp-prompt-header">'
+    +'<span class="dp-prompt-label">📝 AI 生成提示词 — '+(docTitle||'')+'</span>'
+    +'<button class="dp-copy-btn" id="dpCopyBtn">📋 一键复制 Prompt</button>'
+    +'</div>'
+    +'<pre class="dp-prompt-content" id="dpPromptContent">'+promptText.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</pre>'
+    +'</div>';
+
+  // 注入样式
+  var style=iframeDoc.createElement('style');
+  style.textContent=
+    '.draft-prompt-section{margin-top:32px;max-width:640px;width:100%;text-align:left;}'
+    +'.dp-notice{display:flex;align-items:flex-start;gap:14px;padding:18px 22px;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.18);border-radius:14px;margin-bottom:24px;}'
+    +'.dp-notice-icon{font-size:32px;flex-shrink:0;margin-top:2px;}'
+    +'.dp-notice-text{flex:1;}'
+    +'.dp-notice-text strong{color:#e8eaed;font-size:15px;display:block;margin-bottom:6px;}'
+    +'.dp-notice-text p{color:#8b8fa3;font-size:13px;line-height:1.7;margin:0;}'
+    +'.dp-notice-text p strong{display:inline;color:#22d3ee;font-size:13px;}'
+    +'.dp-prompt-box{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:hidden;}'
+    +'.dp-prompt-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.06);}'
+    +'.dp-prompt-label{color:#c9cdd4;font-size:13px;font-weight:600;}'
+    +'.dp-copy-btn{padding:8px 18px;border:1px solid rgba(34,211,238,.3);background:rgba(34,211,238,.1);color:#22d3ee;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all .2s;}'
+    +'.dp-copy-btn:hover{background:rgba(34,211,238,.2);border-color:rgba(34,211,238,.5);transform:translateY(-1px);}'
+    +'.dp-copy-btn.copied{background:rgba(74,222,128,.15);border-color:rgba(74,222,128,.3);color:#4ade80;}'
+    +'.dp-prompt-content{padding:20px;margin:0;color:#a8b0c0;font-size:13px;line-height:1.9;white-space:pre-wrap;word-break:break-word;font-family:"PingFang SC","Microsoft YaHei",sans-serif;max-height:400px;overflow-y:auto;}'
+    +'.dp-prompt-content::-webkit-scrollbar{width:6px;}'
+    +'.dp-prompt-content::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px;}';
+  iframeDoc.head.appendChild(style);
+
+  // 插入到 placeholder 中
+  placeholder.appendChild(section);
+
+  // 绑定复制按钮事件
+  var copyBtn=iframeDoc.getElementById('dpCopyBtn');
+  var promptEl=iframeDoc.getElementById('dpPromptContent');
+  if(copyBtn&&promptEl){
+    copyBtn.addEventListener('click',function(){
+      var text=promptText;
+      // 尝试使用现代 API
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(function(){
+          copyBtn.textContent='✅ 已复制！';
+          copyBtn.classList.add('copied');
+          setTimeout(function(){copyBtn.textContent='📋 一键复制 Prompt';copyBtn.classList.remove('copied');},2000);
+        }).catch(function(){fallbackCopy(text,copyBtn);});
+      } else {
+        fallbackCopy(text,copyBtn);
+      }
+    });
+  }
+}
+
+function fallbackCopy(text,btn){
+  var ta=document.createElement('textarea');
+  ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');btn.textContent='✅ 已复制！';btn.classList.add('copied');setTimeout(function(){btn.textContent='📋 一键复制 Prompt';btn.classList.remove('copied');},2000);}
+  catch(e){showToast('复制失败，请手动选择复制');}
+  ta.remove();
+}
 
 function showFeedback(){
   var d=document.getElementById('feedbackDialog');
@@ -1351,8 +1443,12 @@ var CARD_GRID_MAP = {
   'grid-production-pipeline':  { module:'production', ids:['game-art-pipeline','art-scheduling'] },
   'grid-production-outsource': { module:'production', ids:['cp-outsource','cp-management'] },
   'grid-production-char':      { module:'production', ids:['d1','d2','ugc-character-spec','color-swap-spec','auto-mask-spec','spine-split-spec'] },
-  'grid-production-ui':        { module:'production', ids:['ui-slice-naming','ui-9slice-color','ui-layout'] },
+  'grid-production-ui':        { module:'production', ids:['ui-slice-naming','ui-9slice-color','ui-layout','ui-umg-tips'] },
   'grid-production-scene':     { module:'production', ids:['scene-lod-spec'] },
+  'grid-production-vfx':       { module:'production', ids:['vfx-perf-spec'] },
+  'grid-production-anim':      { module:'production', ids:['anim-state-handoff'] },
+  'grid-production-version':   { module:'production', ids:['svn-perforce-structure','asset-submit-review'] },
+  'grid-production-cost':      { module:'production', ids:['outsource-workload-model'] },
   // 板块二：跨部门协同
   'grid-collab-planner':       { module:'collab', ids:['art-vs-planner-req','art-vs-planner-template'] },
   'grid-collab-ta':            { module:'collab', ids:['art-vs-ta-naming','art-vs-ta-perfbudget','spine-perf-guide','perf-redline-glossary'] },
@@ -1360,12 +1456,15 @@ var CARD_GRID_MAP = {
   'grid-collab-accident':      { module:'collab', ids:['cross-dept-collab','accident-troubleshoot'] },
   // 板块三：提效工具箱
   'grid-toolkit-mgmt':         { module:'toolkit', ids:['jira-tapd-automation','naming-check-tool','progress-visualization'] },
-  'grid-toolkit-art':          { module:'toolkit', ids:['auto-mask','mask-tool','spine-split','mask-core-algorithms','channel-packer','ui-umg-tips'] },
+  'grid-toolkit-art':          { module:'toolkit', ids:['auto-mask','mask-tool','spine-split','mask-core-algorithms','channel-packer'] },
   'grid-toolkit-desktop':      { module:'toolkit', ids:['image-skew-corrector','game-resource-toolkit','engine-bridge'] },
   // 板块四：成本·风险·团队
   'grid-governance-budget':    { module:'governance', ids:['budget-apply','cost-standard'] },
   'grid-governance-risk':      { module:'governance', ids:['risk-log','postmortem-template'] },
-  'grid-governance-team':      { module:'governance', ids:['onboarding-guide','permission-nav'] }
+  'grid-governance-team':      { module:'governance', ids:['onboarding-guide','permission-nav'] },
+  // 板块五：项目复盘与经验沉淀
+  'grid-retrospect-pitfall':   { module:'retrospect', ids:['project-pitfall-log'] },
+  'grid-retrospect-growth':    { module:'retrospect', ids:['cross-dept-communication-tips','personal-growth-roadmap'] }
 };
 
 // 阶段→背景色配置
@@ -1408,6 +1507,7 @@ function renderHomeCards(){
       if(config.module==='collab') iconBg='var(--orange-bg)';
       if(config.module==='toolkit') iconBg='var(--green-bg)';
       if(config.module==='governance') iconBg='var(--pink-bg)';
+      if(config.module==='retrospect') iconBg='var(--cyan-bg)';
       // 工种 badge
       var craftBadge='';
       if(item.craft){
@@ -1491,6 +1591,7 @@ function renderHotCards(){
     if(item.module==='collab'){modColor='var(--orange)';modBg='var(--orange-bg)';}
     if(item.module==='toolkit'){modColor='var(--green)';modBg='var(--green-bg)';}
     if(item.module==='governance'){modColor='var(--pink)';modBg='var(--pink-bg)';}
+    if(item.module==='retrospect'){modColor='var(--cyan)';modBg='var(--cyan-bg)';}
 
     html+='<div class="hot-card" onclick="navigate(\''+item.id+'\')">'
       +'<div class="hot-card-top">'

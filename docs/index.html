@@ -82,6 +82,7 @@
         <option value="mod-collab">🤝 跨部门协同与交付</option>
         <option value="mod-toolkit">🧰 APM 提效工具箱</option>
         <option value="mod-governance">💰 成本·风险·团队</option>
+        <option value="mod-retrospect">📒 项目复盘与经验沉淀</option>
       </select>
     </div>
     <div id="vditorContainer"></div>
@@ -94,9 +95,10 @@
         <p>美术项目管理核心知识体系 — 生产管控 · 跨部门协同 · 提效工具</p>
         <div class="home-ratio-bar" title="知识库内容分布比例">
           <span class="ratio-seg ratio-production" title="🏭 美术生产与排期：占比 30%">🏭 30%</span>
-          <span class="ratio-seg ratio-collab" title="🤝 跨部门协同与交付：占比 30%">🤝 30%</span>
+          <span class="ratio-seg ratio-collab" title="🤝 跨部门协同与交付：占比 25%">🤝 25%</span>
           <span class="ratio-seg ratio-toolkit" title="🧰 APM 提效工具箱：占比 20%">🧰 20%</span>
-          <span class="ratio-seg ratio-governance" title="💰 成本·风险·团队：占比 20%">💰 20%</span>
+          <span class="ratio-seg ratio-governance" title="💰 成本·风险·团队：占比 15%">💰 15%</span>
+          <span class="ratio-seg ratio-retrospect" title="📒 项目复盘与经验沉淀：占比 10%">📒 10%</span>
         </div>
         <!-- 阶段快速筛选 -->
         <div class="stage-filter-row" id="stageFilterRow">
@@ -110,11 +112,12 @@
       </div>
 
       <!-- 统计栏 -->
-      <div class="stats-bar stats-bar-4">
+      <div class="stats-bar stats-bar-5">
         <div class="stat stat-production"><div class="num">—</div><div class="label">🏭 美术生产与排期</div></div>
         <div class="stat stat-collab"><div class="num">—</div><div class="label">🤝 跨部门协同</div></div>
         <div class="stat stat-toolkit"><div class="num">—</div><div class="label">🧰 提效工具箱</div></div>
         <div class="stat stat-governance"><div class="num">—</div><div class="label">💰 成本·风险·团队</div></div>
+        <div class="stat stat-retrospect"><div class="num">—</div><div class="label">📒 复盘与沉淀</div></div>
       </div>
 
       <!-- ═══ 🔥 高频速查 / 最近更新 横向展示区 ═══ -->
@@ -191,6 +194,18 @@
 
         <div class="hst" style="margin-top:28px">🏔️ 场景资产规范</div>
         <div class="home-grid" id="grid-production-scene"></div>
+
+        <div class="hst" style="margin-top:28px">✨ 特效资产规范</div>
+        <div class="home-grid" id="grid-production-vfx"></div>
+
+        <div class="hst" style="margin-top:28px">🎬 动画资产规范</div>
+        <div class="home-grid" id="grid-production-anim"></div>
+
+        <div class="hst" style="margin-top:28px">📂 资产库与版本管理</div>
+        <div class="home-grid" id="grid-production-version"></div>
+
+        <div class="hst" style="margin-top:28px">📊 成本与预算管理</div>
+        <div class="home-grid" id="grid-production-cost"></div>
       </div>
 
       <!-- ═══ 板块二：🤝 跨部门协同与交付标准 (35%) ═══ -->
@@ -257,6 +272,24 @@
 
         <div class="hst" style="margin-top:28px">🎓 团队与培训</div>
         <div class="home-grid" id="grid-governance-team"></div>
+      </div>
+
+      <!-- ═══ 板块五：📒 项目复盘与经验沉淀 (10%) ═══ -->
+      <div class="module-section module-retrospect" id="section-retrospect">
+        <div class="module-header">
+          <div class="module-icon" style="background:var(--cyan-bg);color:var(--cyan)">📒</div>
+          <div class="module-info">
+            <h2>项目复盘与经验沉淀</h2>
+            <p>踩坑记录、沟通话术、个人成长 — APM 实战经验积累</p>
+          </div>
+          <span class="module-weight">10%</span>
+        </div>
+
+        <div class="hst">💣 踩坑记录</div>
+        <div class="home-grid" id="grid-retrospect-pitfall"></div>
+
+        <div class="hst" style="margin-top:28px">🗣️ 沟通与成长</div>
+        <div class="home-grid" id="grid-retrospect-growth"></div>
       </div>
 
       <!-- ═══ 互动模块占位区域 ═══ -->
