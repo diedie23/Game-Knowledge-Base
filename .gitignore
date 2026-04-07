@@ -11,6 +11,9 @@ node_modules/
 package-lock.json
 package.json
 
+# Environment
+.env
+
 # Tunnel/deploy temp files
 cf_output.txt
 lt_output.txt
