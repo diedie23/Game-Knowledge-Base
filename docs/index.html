@@ -19,18 +19,33 @@
     <div class="search-dropdown" id="searchDropdown"></div>
   </div>
   <nav class="sidebar-nav" id="sidebarNav">
-    <button class="nav-home active" onclick="navigate('home')" id="navHome"><span class="nav-home-emoji">🏠</span> 知识库首页</button>
+    <div class="sidebar-nav-actions">
+      <button class="nav-home active" onclick="navigate('home')" id="navHome"><span class="nav-home-emoji">🏠</span> 知识库首页</button>
+      <div class="nav-toggle-btns">
+        <button class="nav-toggle-btn" onclick="expandAllSidebar()" title="全部展开">📂 展开</button>
+        <button class="nav-toggle-btn" onclick="collapseAllSidebar()" title="全部折叠">📁 折叠</button>
+      </div>
+    </div>
     <div style="padding:20px;text-align:center;color:var(--dim);font-size:12px">⏳ 加载中...</div>
   </nav>
   <div class="sidebar-footer">
     <button class="nav-create" onclick="openEditor()">➕ 新增文档</button>
-    <div class="sf-links"><span>v3.0</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a></div>
+    <div class="sf-links"><span>v3.1</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a></div>
   </div>
 </aside>
 
 <!-- Main Content -->
 <main class="main" id="mainArea">
-  <div class="lbar" id="loadingBar"></div>
+  <div class="lbar" id="loadingBar" title="页面加载进度"></div>
+  <!-- 面包屑导航 -->
+  <div class="breadcrumb-bar" id="breadcrumbBar" style="display:none">
+    <nav class="breadcrumb" id="breadcrumb"></nav>
+  </div>
+  <!-- 标签过滤提示条 -->
+  <div class="tag-filter-bar" id="tagFilterBar" style="display:none">
+    <span class="tag-filter-label">🏷️ 正在过滤标签：<strong id="tagFilterName"></strong></span>
+    <button class="tag-filter-clear" onclick="clearTagFilter()">✕ 清除过滤</button>
+  </div>
   <!-- Editor Page -->
   <div class="editor-page" id="editorPage" style="display:none">
     <div class="editor-header">
@@ -67,10 +82,10 @@
       <div class="home-hero">
         <h1>🎮 游戏项目<span>知识库</span></h1>
         <p>团队共享的美术规范、技术方案与生产工具，持续更新中</p>
-        <div class="home-ratio-bar">
-          <span class="ratio-seg ratio-norm" title="规范与常识 30%">📚 30%</span>
-          <span class="ratio-seg ratio-tool" title="提效工具 30%">🛠️ 30%</span>
-          <span class="ratio-seg ratio-arsenal" title="武器库 40%">⚔️ 40%</span>
+        <div class="home-ratio-bar" title="知识库内容分布比例">
+          <span class="ratio-seg ratio-norm" title="📚 规范与常识：占比 30%，涵盖各工种标准规范与工业化流程">📚 30%</span>
+          <span class="ratio-seg ratio-tool" title="🛠️ 提效工具箱：占比 30%，在线工具、桌面工具与技术方案">🛠️ 30%</span>
+          <span class="ratio-seg ratio-arsenal" title="⚔️ APM 武器库：占比 40%，性能排雷、事故复盘与协作破局">⚔️ 40%</span>
         </div>
       </div>
 
@@ -112,9 +127,33 @@
 
         <div class="hst" style="margin-top:28px">🏔️ 场景 & 📋 管理</div>
         <div class="home-grid">
-          <div class="home-card" onclick="navigate('scene-lod-spec')"><div class="hci" style="background:var(--green-bg)">🏗️</div><h3>场景模块化与 LOD</h3><p>场景资源模块化拆分与 LOD 分级</p><div class="tags"><span class="tag">LOD</span><span class="craft-badge cb-scene">场景</span></div></div>
-          <div class="home-card" onclick="navigate('cp-management')"><div class="hci" style="background:var(--cyan-bg)">📋</div><h3>CP 外包管理手册</h3><p>全流程管理：需求下发、验收、结算</p><div class="tags"><span class="tag">外包</span><span class="craft-badge cb-mgmt">管理</span></div></div>
-          <div class="home-card" onclick="navigate('game-art-pipeline')"><div class="hci" style="background:var(--orange-bg)">📊</div><h3>游戏美术流程总结</h3><p>2D/3D/二次元美术流程对比</p><div class="tags"><span class="tag">流程</span><span class="craft-badge cb-mgmt">管理</span></div></div>
+          <div class="home-card" onclick="navigate('scene-lod-spec')"><div class="hci" style="background:var(--green-bg)">🏗️</div><h3>场景模块化与 LOD</h3><p>场景资源模块化拆分与 LOD 分级</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('LOD')">LOD</span><span class="craft-badge cb-scene">场景</span></div></div>
+          <div class="home-card" onclick="navigate('cp-management')"><div class="hci" style="background:var(--cyan-bg)">📋</div><h3>CP 外包管理手册</h3><p>全流程管理：需求下发、验收、结算</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('外包')">外包</span><span class="craft-badge cb-mgmt">管理</span></div></div>
+          <div class="home-card" onclick="navigate('game-art-pipeline')"><div class="hci" style="background:var(--orange-bg)">📊</div><h3>游戏美术流程总结</h3><p>2D/3D/二次元美术流程对比</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('流程')">流程</span><span class="craft-badge cb-mgmt">管理</span></div></div>
+        </div>
+
+        <div class="hst" style="margin-top:28px">💻 程序与开发规范</div>
+        <div class="home-grid">
+          <div class="home-card card-new" onclick="navigate('code-standard')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--pink-bg)">💻</div><h3>代码规范</h3><p>命名约定、注释风格、模块组织与 Review 标准</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('代码规范')">代码规范</span><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('Code Review')">Code Review</span><span class="craft-badge cb-dev">程序</span></div></div>
+          <div class="home-card card-new" onclick="navigate('version-control')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--pink-bg)">🔀</div><h3>版本控制规范</h3><p>Git 分支策略、Commit 规范与 CI/CD 流程</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('Git')">Git</span><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('CI/CD')">CI/CD</span><span class="craft-badge cb-dev">程序</span></div></div>
+        </div>
+
+        <div class="hst" style="margin-top:28px">📋 策划与设计规范</div>
+        <div class="home-grid">
+          <div class="home-card card-new" onclick="navigate('config-table-spec')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--orange-bg)">📊</div><h3>配置表规范</h3><p>字段命名、数据类型、校验规则与版本管理</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('配置表')">配置表</span><span class="craft-badge cb-planner">策划</span></div></div>
+          <div class="home-card card-new" onclick="navigate('doc-template-spec')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--orange-bg)">📝</div><h3>文档模板规范</h3><p>需求文档、系统设计、数值设计等模板说明</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('文档模板')">文档模板</span><span class="craft-badge cb-planner">策划</span></div></div>
+        </div>
+
+        <div class="hst" style="margin-top:28px">🔊 音频与音效规范</div>
+        <div class="home-grid">
+          <div class="home-card card-new" onclick="navigate('audio-spec')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--cyan-bg)">🔊</div><h3>音频资源规范</h3><p>格式要求、码率标准、命名规则与交付流程</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('音效')">音效</span><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('格式标准')">格式标准</span><span class="craft-badge cb-audio">音频</span></div></div>
+          <div class="home-card card-new" onclick="navigate('audio-integration')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--cyan-bg)">🎵</div><h3>音频集成规范</h3><p>Wwise/FMOD 集成标准、事件命名与内存优化</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('Wwise')">Wwise</span><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('FMOD')">FMOD</span><span class="craft-badge cb-audio">音频</span></div></div>
+        </div>
+
+        <div class="hst" style="margin-top:28px">🧪 QA 与测试规范</div>
+        <div class="home-grid">
+          <div class="home-card card-new" onclick="navigate('qa-test-spec')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--green-bg)">🧪</div><h3>测试用例规范</h3><p>功能/兼容性/性能测试的用例编写与执行流程</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('测试用例')">测试用例</span><span class="craft-badge cb-qa">QA</span></div></div>
+          <div class="home-card card-new" onclick="navigate('qa-bug-flow')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--green-bg)">🐛</div><h3>Bug 提报与跟踪规范</h3><p>Bug 等级划分、提报模板与回归验证标准</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('Bug管理')">Bug管理</span><span class="craft-badge cb-qa">QA</span></div></div>
         </div>
       </div>
 
@@ -129,24 +168,34 @@
           <span class="module-weight">30%</span>
         </div>
 
-        <div class="hst">👤 角色工具</div>
+        <div class="hst">🎨 美术 / TA 工具</div>
         <div class="home-grid">
-          <div class="home-card" onclick="navigate('auto-mask')"><div class="hci" style="background:var(--green-bg)">🤖</div><h3>自动 Mask 生成器</h3><p>一键生成 RGBA 通道换色遮罩图</p><div class="tags"><span class="tag tg-tool">在线工具</span><span class="craft-badge cb-char">角色</span></div></div>
-          <div class="home-card" onclick="navigate('mask-tool')"><div class="hci" style="background:var(--orange-bg)">🖌️</div><h3>Mask 手动编辑器</h3><p>画笔绘制 RGBA 换色遮罩图</p><div class="tags"><span class="tag tg-tool">在线工具</span><span class="craft-badge cb-char">角色</span></div></div>
-          <div class="home-card" onclick="navigate('spine-split')"><div class="hci" style="background:var(--purple-bg)">✂️</div><h3>Spine 拆分工具</h3><p>选区拆分 + 拓扑延展 + Atlas 导出</p><div class="tags"><span class="tag tg-tool">在线工具</span><span class="craft-badge cb-char">角色</span></div></div>
-          <div class="home-card" onclick="navigate('mask-core-algorithms')"><div class="hci" style="background:var(--accent-bg)">🧪</div><h3>Mask 核心算法演示</h3><p>魔棒 + 边缘保护画笔 + Worker 并行</p><div class="tags"><span class="tag tg-tool">在线工具</span><span class="craft-badge cb-char">角色</span></div></div>
+          <div class="home-card" onclick="navigate('auto-mask')"><div class="hci" style="background:var(--green-bg)">🤖</div><h3>自动 Mask 生成器</h3><p>一键生成 RGBA 通道换色遮罩图</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('在线工具')">在线工具</span><span class="craft-badge cb-char">角色</span></div></div>
+          <div class="home-card" onclick="navigate('mask-tool')"><div class="hci" style="background:var(--orange-bg)">🖌️</div><h3>Mask 手动编辑器</h3><p>画笔绘制 RGBA 换色遮罩图</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('在线工具')">在线工具</span><span class="craft-badge cb-char">角色</span></div></div>
+          <div class="home-card" onclick="navigate('spine-split')"><div class="hci" style="background:var(--purple-bg)">✂️</div><h3>Spine 拆分工具</h3><p>选区拆分 + 拓扑延展 + Atlas 导出</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('在线工具')">在线工具</span><span class="craft-badge cb-char">角色</span></div></div>
+          <div class="home-card" onclick="navigate('mask-core-algorithms')"><div class="hci" style="background:var(--accent-bg)">🧪</div><h3>Mask 核心算法演示</h3><p>魔棒 + 边缘保护画笔 + Worker 并行</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('在线工具')">在线工具</span><span class="craft-badge cb-char">角色</span></div></div>
+          <div class="home-card" onclick="navigate('channel-packer')"><div class="hci" style="background:var(--orange-bg)">📦</div><h3>贴图通道打包工具</h3><p>R/G/B/A 四通道自由组合打包</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('在线工具')">在线工具</span><span class="craft-badge cb-fx">特效</span></div></div>
+          <div class="home-card card-new" onclick="navigate('ta-shader-debugger')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--pink-bg)">🎭</div><h3>Shader 调试工具</h3><p>实时 Shader 参数预览与性能热力图</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('Shader')">Shader</span><span class="craft-badge cb-ta">TA</span></div></div>
+          <div class="home-card card-new" onclick="navigate('ta-material-library')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--pink-bg)">🧊</div><h3>材质库管理器</h3><p>通用材质库分类、预览与参数导出</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('材质库')">材质库</span><span class="craft-badge cb-ta">TA</span></div></div>
+        </div>
+
+        <div class="hst" style="margin-top:28px">📋 策划工具</div>
+        <div class="home-grid">
+          <div class="home-card card-new" onclick="navigate('planner-balance-tool')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--orange-bg)">📈</div><h3>数值平衡计算器</h3><p>数值公式验证、经济系统模拟与曲线可视化</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('数值设计')">数值设计</span><span class="craft-badge cb-planner">策划</span></div></div>
+          <div class="home-card card-new" onclick="navigate('planner-config-validator')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--orange-bg)">✅</div><h3>配置表校验工具</h3><p>自动校验字段类型、引用完整性与数值范围</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('配置校验')">配置校验</span><span class="craft-badge cb-planner">策划</span></div></div>
+        </div>
+
+        <div class="hst" style="margin-top:28px">🔧 程序 / QA 工具</div>
+        <div class="home-grid">
+          <div class="home-card" onclick="navigate('engine-bridge')"><div class="hci" style="background:var(--pink-bg)">🔌</div><h3>Engine Bridge 引擎直连</h3><p>浏览器到 UE/Unity 双向桥接</p><div class="tags"><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('Bridge')">Bridge</span><span class="craft-badge cb-tech">技术</span></div></div>
+          <div class="home-card card-new" onclick="navigate('qa-auto-test-framework')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--green-bg)">🤖</div><h3>自动化测试框架</h3><p>UI 自动化测试脚本管理与报告生成</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('自动化测试')">自动化测试</span><span class="craft-badge cb-qa">QA</span></div></div>
+          <div class="home-card card-new" onclick="navigate('qa-perf-monitor')"><span class="card-badge badge-new">New</span><div class="hci" style="background:var(--green-bg)">📊</div><h3>性能监控面板</h3><p>实时 FPS/内存/CPU 监控与设备对比</p><div class="tags"><span class="tag tg-tool tag-clickable" onclick="event.stopPropagation();filterByTag('性能监控')">性能监控</span><span class="craft-badge cb-qa">QA</span></div></div>
         </div>
 
         <div class="hst" style="margin-top:28px">🖥️ UI 桌面工具</div>
         <div class="home-grid">
-          <div class="home-card" onclick="navigate('image-skew-corrector')"><div class="hci" style="background:var(--orange-bg)">📐</div><h3>图片倾斜矫正 (桌面版)</h3><p>四算法融合 + 自动矫正 + 批量处理</p><div class="tags"><span class="tag tg-dl">桌面下载</span><span class="tag">批量处理</span><span class="craft-badge cb-ui">UI</span></div></div>
-          <div class="home-card" onclick="navigate('game-resource-toolkit')"><div class="hci" style="background:var(--cyan-bg)">🛠️</div><h3>游戏资源工具集 (桌面版)</h3><p>资源检测 + 图片续排 + 版本对比 + 问题修复</p><div class="tags"><span class="tag tg-dl">桌面下载</span><span class="tag">All-in-one</span><span class="craft-badge cb-ui">UI</span></div></div>
-        </div>
-
-        <div class="hst" style="margin-top:28px">⚙️ 特效 & 技术</div>
-        <div class="home-grid">
-          <div class="home-card" onclick="navigate('channel-packer')"><div class="hci" style="background:var(--orange-bg)">📦</div><h3>贴图通道打包工具</h3><p>R/G/B/A 四通道自由组合打包</p><div class="tags"><span class="tag tg-tool">在线工具</span><span class="craft-badge cb-fx">特效</span></div></div>
-          <div class="home-card" onclick="navigate('engine-bridge')"><div class="hci" style="background:var(--pink-bg)">🔌</div><h3>Engine Bridge 引擎直连</h3><p>浏览器到 UE/Unity 双向桥接</p><div class="tags"><span class="tag">Bridge</span><span class="craft-badge cb-tech">技术</span></div></div>
+          <div class="home-card" onclick="navigate('image-skew-corrector')"><div class="hci" style="background:var(--orange-bg)">📐</div><h3>图片倾斜矫正 (桌面版)</h3><p>四算法融合 + 自动矫正 + 批量处理</p><div class="tags"><span class="tag tg-dl">桌面下载</span><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('批量处理')">批量处理</span><span class="craft-badge cb-ui">UI</span></div></div>
+          <div class="home-card" onclick="navigate('game-resource-toolkit')"><div class="hci" style="background:var(--cyan-bg)">🛠️</div><h3>游戏资源工具集 (桌面版)</h3><p>资源检测 + 图片续排 + 版本对比 + 问题修复</p><div class="tags"><span class="tag tg-dl">桌面下载</span><span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag('All-in-one')">All-in-one</span><span class="craft-badge cb-ui">UI</span></div></div>
         </div>
       </div>
 
@@ -178,6 +227,28 @@
         <div class="home-grid">
           <div class="home-card card-arsenal" onclick="navigate('cp-management')"><div class="hci" style="background:rgba(248,113,113,.12)">📋</div><h3>CP 外包管理手册</h3><p>从需求下发到结算的完整外包管理流程</p><div class="tags"><span class="tag tg-arsenal">流程管理</span><span class="tag">外包体系</span><span class="craft-badge cb-mgmt">管理</span></div></div>
           <div class="home-card card-arsenal" onclick="navigate('game-art-pipeline')"><div class="hci" style="background:rgba(248,113,113,.12)">📊</div><h3>游戏美术流程总结</h3><p>轻度2D/重度3D/二次元手游的美术流程对比</p><div class="tags"><span class="tag tg-arsenal">流程管理</span><span class="tag">美术流程</span><span class="craft-badge cb-mgmt">管理</span></div></div>
+        </div>
+      </div>
+
+      <!-- ═══ 互动模块占位区域 ═══ -->
+      <div class="interaction-placeholder" id="interactionPlaceholder" style="display:none">
+        <div class="interaction-section">
+          <div class="interaction-header">
+            <span>📜 文档版本历史</span>
+            <button class="interaction-btn" disabled>查看历史 →</button>
+          </div>
+          <div class="interaction-body">
+            <p class="interaction-hint">此处将展示文档的修改记录、版本对比与责任人变更记录。</p>
+          </div>
+        </div>
+        <div class="interaction-section">
+          <div class="interaction-header">
+            <span>💬 评论与反馈</span>
+            <button class="interaction-btn" disabled>展开评论</button>
+          </div>
+          <div class="interaction-body">
+            <p class="interaction-hint">此处将支持团队成员对文档发起讨论、提出修改建议或标记问题。</p>
+          </div>
         </div>
       </div>
 

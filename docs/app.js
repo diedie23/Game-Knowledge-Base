@@ -1,6 +1,7 @@
 // ═══════════════════════════════════════════════════
-// 游戏项目知识库 v3.0 — 矩阵式重构版
+// 游戏项目知识库 v3.1 — 矩阵式重构版
 // 核心架构：30% 规范 · 30% 工具 · 40% 武器库
+// 新增：面包屑导航 · 标签过滤 · 角标系统 · 全部展开/折叠
 // ═══════════════════════════════════════════════════
 
 // ═══ Markdown Parser (智能表格增强) ═══
@@ -50,6 +51,7 @@ var docs={};             // 已加载的 MD 内容缓存
 var curPage='home';
 var fuse=null;
 var pageRegistry={};     // pageId → {type, file, download, badge, craft, catId, module ...}
+var activeTagFilter='';  // 当前标签过滤关键词
 
 // 工具页数据（嵌入式工具的详细信息卡片）
 var toolData={
@@ -230,7 +232,12 @@ var CRAFT_COLORS = {
   '特效': { bg: 'var(--orange-bg)', color: 'var(--orange)' },
   '技术': { bg: 'var(--pink-bg)',   color: 'var(--pink)' },
   '管理': { bg: 'var(--cyan-bg)',   color: 'var(--cyan)' },
-  '通用': { bg: 'rgba(139,143,163,.1)', color: 'var(--dim)' }
+  '通用': { bg: 'rgba(139,143,163,.1)', color: 'var(--dim)' },
+  '程序': { bg: 'var(--pink-bg)',   color: 'var(--pink)' },
+  '策划': { bg: 'var(--orange-bg)', color: 'var(--orange)' },
+  '音频': { bg: 'var(--cyan-bg)',   color: 'var(--cyan)' },
+  'QA':   { bg: 'var(--green-bg)',  color: 'var(--green)' },
+  'TA':   { bg: 'var(--pink-bg)',   color: 'var(--pink)' }
 };
 
 // ═══ SVG 图标常量（极简单色线性风格）═══
@@ -248,7 +255,8 @@ var SVG_GROUP = '<svg class="group-icon" viewBox="0 0 16 16" fill="none"><path d
 function buildSidebar(data){
   sidebarData=data;
   var nav=document.getElementById('sidebarNav');
-  var html='<button class="nav-home active" onclick="navigate(\'home\')" id="navHome"><span class="nav-home-emoji">🏠</span><span>知识库首页</span></button>';
+  var html='<div class="sidebar-nav-actions"><button class="nav-home active" onclick="navigate(\'home\')" id="navHome"><span class="nav-home-emoji">🏠</span><span>知识库首页</span></button>'
+    +'<div class="nav-toggle-btns"><button class="nav-toggle-btn" onclick="expandAllSidebar()" title="全部展开">📂 展开</button><button class="nav-toggle-btn" onclick="collapseAllSidebar()" title="全部折叠">📁 折叠</button></div></div>';
 
   // 统计计数器
   var normCount=0, toolCount=0, arsenalCount=0;
@@ -298,7 +306,9 @@ function buildSidebar(data){
             download: item.download || '',
             badge: item.badge || '',
             craft: item.craft || '',
-            catId: cat.id
+            catId: cat.id,
+            catName: catName,
+            grpName: grp.name
           };
 
           // 三级叶节点 Emoji 图标
@@ -370,6 +380,11 @@ function navigate(pageId,btn){
   clearIframeScrollSpy();
   clearIframeBtt();
   document.getElementById('backToTop').classList.remove('show');
+
+  // 面包屑导航更新
+  updateBreadcrumb(pageId);
+  // 互动模块占位
+  updateInteractionPlaceholder(pageId);
 
   if(pageId==='home'){
     scroll.style.display='block';home.style.display='block';scroll.scrollTop=0;
@@ -443,7 +458,24 @@ function getOrCreateDocPage(pageId){
       +'<button class="dt-btn dt-btn-danger" onclick="confirmDeleteDocument(\''+pageId+'\')">🗑️ 删除</button>'
       +'</div></div>';
   }
-  pg.innerHTML=toolbar+'<div class="dc" id="ct-'+pageId+'"></div>';
+  // 责任人 & 更新日期
+  var meta=getItemMeta(pageId);
+  var metaHtml='';
+  if(meta){
+    metaHtml='<div class="doc-meta-bar">';
+    if(meta.owner) metaHtml+='<span class="doc-meta-item">👤 责任人：<strong>'+meta.owner+'</strong></span>';
+    if(meta.last_updated) metaHtml+='<span class="doc-meta-item">📅 最后更新：<strong>'+meta.last_updated+'</strong></span>';
+    if(meta.tags&&meta.tags.length) metaHtml+='<span class="doc-meta-item">🏷️ '+meta.tags.map(function(t){return'<span class="doc-meta-tag tag-clickable" onclick="filterByTag(\''+t+'\')">'+t+'</span>';}).join(' ')+'</span>';
+    metaHtml+='</div>';
+  }
+  // 互动模块占位
+  var interactionHtml='<div class="doc-interaction-placeholder">'
+    +'<div class="interaction-section"><div class="interaction-header"><span>📜 文档版本历史</span><button class="interaction-btn" disabled>查看历史 →</button></div>'
+    +'<div class="interaction-body"><p class="interaction-hint">此处将展示文档的修改记录与版本对比。</p></div></div>'
+    +'<div class="interaction-section"><div class="interaction-header"><span>💬 评论与反馈</span><button class="interaction-btn" disabled>展开评论</button></div>'
+    +'<div class="interaction-body"><p class="interaction-hint">此处将支持团队成员对文档发起讨论、提出建议或标记问题。</p></div></div>'
+    +'</div>';
+  pg.innerHTML=toolbar+metaHtml+'<div class="dc" id="ct-'+pageId+'"></div>'+interactionHtml;
   document.getElementById('contentScroll').appendChild(pg);
   return pg;
 }
@@ -452,7 +484,11 @@ function getOrCreateDocPage(pageId){
 function renderToolPage(id){
   var d=toolData[id],c=document.getElementById('page-tool');
   if(!d)return;
-  var tags='';d.tags.forEach(function(t){tags+='<span class="tag">'+t+'</span>';});
+  var tags='';d.tags.forEach(function(t){tags+='<span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag(\''+t+'\')">'+t+'</span>';});
+  // 获取元数据
+  var meta=getItemMeta(id);
+  var ownerHtml=meta&&meta.owner?'<span class="mi">👤 '+meta.owner+'</span>':'';
+  var dateHtml=meta&&meta.last_updated?'<span class="mi">📅 '+meta.last_updated+'</span>':'<span class="mi">📅 '+d.date+'</span>';
   c.innerHTML=
     '<div class="tool-embed-header">'
     +'<div class="teh-icon" style="background:'+d.iconBg+'">'+d.icon+'</div>'
@@ -461,7 +497,7 @@ function renderToolPage(id){
     +'<div class="tool-embed-desc">'
     +'<p>'+d.desc+'</p>'
     +'<div class="tool-embed-tags">'+tags+'</div>'
-    +'<div class="tool-embed-meta"><span class="mi">'+d.env+'</span><span class="mi">💻 '+d.platform+'</span><span class="mi">📦 '+d.install+'</span><span class="mi">📅 '+d.date+'</span></div>'
+    +'<div class="tool-embed-meta"><span class="mi">'+d.env+'</span><span class="mi">💻 '+d.platform+'</span><span class="mi">📦 '+d.install+'</span>'+ownerHtml+dateHtml+'</div>'
     +'</div>'
     +'<div class="tool-embed-frame-wrap">'
     +'<div class="tool-embed-toolbar"><span class="tet-label">⚡ 工具已嵌入，可直接使用</span><button class="tet-btn" onclick="window.open(\''+d.url+'\',\'_blank\')">↗ 新窗口打开</button></div>'
@@ -629,6 +665,8 @@ function initSearch(){
       }
 
       fuse=new Fuse(items,{keys:[{name:'title',weight:3},{name:'content',weight:1},{name:'craft',weight:0.5}],threshold:0.35,includeMatches:true,minMatchCharLength:1});
+      // 加载完毕后渲染动态角标
+      setTimeout(renderCardBadges, 500);
     });
   }catch(e){}
 }
@@ -1146,6 +1184,141 @@ async function publishToGitHub(){
   }finally{
     btn.textContent='✅ 确认发布';btn.disabled=false;
   }
+}
+
+// ═══ 面包屑导航 ═══
+function updateBreadcrumb(pageId){
+  var bar=document.getElementById('breadcrumbBar');
+  var bc=document.getElementById('breadcrumb');
+  if(!bar||!bc) return;
+
+  if(pageId==='home'){
+    bar.style.display='none';
+    return;
+  }
+
+  var reg=pageRegistry[pageId];
+  if(!reg){
+    bar.style.display='none';
+    return;
+  }
+
+  var crumbs=['<a class="bc-link" onclick="navigate(\'home\')">🏠 首页</a>'];
+  if(reg.catName) crumbs.push('<span class="bc-sep">›</span><span class="bc-text">'+reg.catName+'</span>');
+  if(reg.grpName) crumbs.push('<span class="bc-sep">›</span><span class="bc-text">'+reg.grpName+'</span>');
+
+  // 找到叶节点 title
+  var leafTitle=pageId;
+  var leafEl=document.querySelector('.leaf[data-page="'+pageId+'"]');
+  if(leafEl) leafTitle=leafEl.getAttribute('title')||leafEl.textContent.trim();
+
+  crumbs.push('<span class="bc-sep">›</span><span class="bc-current">'+leafTitle+'</span>');
+  bc.innerHTML=crumbs.join('');
+  bar.style.display='block';
+}
+
+// ═══ 标签过滤系统 ═══
+function filterByTag(tagName){
+  activeTagFilter=tagName;
+  var filterBar=document.getElementById('tagFilterBar');
+  var filterNameEl=document.getElementById('tagFilterName');
+  if(filterBar&&filterNameEl){
+    filterNameEl.textContent=tagName;
+    filterBar.style.display='flex';
+  }
+
+  // 在首页过滤卡片
+  var cards=document.querySelectorAll('.home-card');
+  var visibleCount=0;
+  cards.forEach(function(card){
+    var tags=card.querySelectorAll('.tag');
+    var hasTag=false;
+    tags.forEach(function(t){
+      if(t.textContent.trim()===tagName) hasTag=true;
+    });
+    if(hasTag){
+      card.style.display='';
+      visibleCount++;
+    } else {
+      card.style.display='none';
+    }
+  });
+
+  showToast('🏷️ 过滤「'+tagName+'」— 找到 '+visibleCount+' 个结果');
+}
+
+function clearTagFilter(){
+  activeTagFilter='';
+  var filterBar=document.getElementById('tagFilterBar');
+  if(filterBar) filterBar.style.display='none';
+  // 恢复所有卡片
+  var cards=document.querySelectorAll('.home-card');
+  cards.forEach(function(card){ card.style.display=''; });
+  showToast('已清除标签过滤');
+}
+
+// ═══ 全部展开 / 全部折叠 ═══
+function expandAllSidebar(){
+  var nodes=document.querySelectorAll('#sidebarNav .t1, #sidebarNav .t2, #sidebarNav .t3');
+  nodes.forEach(function(n){ expandTree(n); });
+  showToast('📂 已全部展开');
+}
+
+function collapseAllSidebar(){
+  var nodes=document.querySelectorAll('#sidebarNav .t1.open, #sidebarNav .t2.open, #sidebarNav .t3.open');
+  // 从最深层开始折叠
+  var arr=Array.prototype.slice.call(nodes);
+  arr.reverse().forEach(function(n){ collapseNodeInstant(n); });
+  showToast('📁 已全部折叠');
+}
+
+// ═══ 互动模块占位 ═══
+function updateInteractionPlaceholder(pageId){
+  var placeholder=document.getElementById('interactionPlaceholder');
+  if(!placeholder) return;
+  // 仅在文档详情页（非首页、非工具嵌入）显示互动模块
+  var reg=pageRegistry[pageId];
+  if(pageId!=='home' && reg && (reg.type==='md'||reg.type==='iframe')){
+    placeholder.style.display='block';
+  } else {
+    placeholder.style.display='none';
+  }
+}
+
+// ═══ 状态角标系统（动态渲染 New/Updated 角标）═══
+function renderCardBadges(){
+  if(!indexData||!indexData.items) return;
+  var now=new Date();
+  var oneWeekAgo=new Date(now.getTime()-7*24*60*60*1000);
+
+  indexData.items.forEach(function(item){
+    if(!item.last_updated) return;
+    var updated=new Date(item.last_updated);
+    if(updated>=oneWeekAgo){
+      // 找到对应的卡片并标记
+      var cards=document.querySelectorAll('.home-card');
+      cards.forEach(function(card){
+        var onclickAttr=card.getAttribute('onclick')||'';
+        if(onclickAttr.indexOf("'"+item.id+"'")!==-1){
+          // 检查是否已有 badge
+          if(!card.querySelector('.card-badge')){
+            card.classList.add('card-new');
+            var badge=document.createElement('span');
+            badge.className='card-badge badge-updated';
+            badge.textContent='Updated';
+            card.style.position='relative';
+            card.insertBefore(badge,card.firstChild);
+          }
+        }
+      });
+    }
+  });
+}
+
+// ═══ 责任人与时效展示增强 ═══
+function getItemMeta(pageId){
+  if(!indexData||!indexData.items) return null;
+  return indexData.items.find(function(i){ return i.id===pageId; });
 }
 
 // ═══ Keyboard ═══

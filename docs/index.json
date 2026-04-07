@@ -1,6 +1,6 @@
 {
-  "version": "2.0",
-  "lastUpdate": "2026-04-02",
+  "version": "3.0",
+  "lastUpdate": "2026-04-07",
   "moduleConfig": {
     "norm":    { "label": "📚 规范与常识", "icon": "📚", "color": "accent",  "weight": 30 },
     "tool":    { "label": "🛠️ 提效工具箱", "icon": "🛠️", "color": "green",   "weight": 30 },
@@ -17,7 +17,9 @@
       "tags": ["分辨率","部件拆分","动画","命名"],
       "icon": "📐",
       "action": "showDoc",
-      "path": "knowledge-base/art/2D-UGC角色出图规范.md"
+      "path": "knowledge-base/art/2D-UGC角色出图规范.md",
+      "owner": "张三",
+      "last_updated": "2026-03-20"
     },
     {
       "id": "d2",
@@ -29,7 +31,9 @@
       "tags": ["Mask遮罩","HSV","通道互斥"],
       "icon": "🎨",
       "action": "showDoc",
-      "path": "knowledge-base/art/2D角色换色-美术资源提供规范.md"
+      "path": "knowledge-base/art/2D角色换色-美术资源提供规范.md",
+      "owner": "李四",
+      "last_updated": "2026-03-25"
     },
     {
       "id": "ugc-character-spec",
@@ -41,7 +45,9 @@
       "tags": ["工业化","规范","出图"],
       "icon": "📐",
       "action": "openTool",
-      "path": "knowledge-base/ugc-character-spec.html"
+      "path": "knowledge-base/ugc-character-spec.html",
+      "owner": "张三",
+      "last_updated": "2026-04-01"
     },
     {
       "id": "color-swap-spec",
@@ -53,7 +59,9 @@
       "tags": ["换色","Mask","工业化"],
       "icon": "🎨",
       "action": "openTool",
-      "path": "knowledge-base/color-swap-spec.html"
+      "path": "knowledge-base/color-swap-spec.html",
+      "owner": "李四",
+      "last_updated": "2026-04-01"
     },
     {
       "id": "auto-mask-spec",
@@ -65,7 +73,9 @@
       "tags": ["Mask","工业化","质检"],
       "icon": "📋",
       "action": "openTool",
-      "path": "knowledge-base/auto-mask-spec.html"
+      "path": "knowledge-base/auto-mask-spec.html",
+      "owner": "王五",
+      "last_updated": "2026-04-02"
     },
     {
       "id": "spine-split-spec",
@@ -77,7 +87,9 @@
       "tags": ["Spine","拆分","工业化"],
       "icon": "📋",
       "action": "openTool",
-      "path": "knowledge-base/spine-split-spec.html"
+      "path": "knowledge-base/spine-split-spec.html",
+      "owner": "王五",
+      "last_updated": "2026-04-02"
     },
     {
       "id": "ui-slice-naming",
@@ -89,7 +101,9 @@
       "tags": ["切图","命名"],
       "icon": "✂️",
       "action": "openTool",
-      "path": "knowledge-base/ui-slice-naming.html"
+      "path": "knowledge-base/ui-slice-naming.html",
+      "owner": "赵六",
+      "last_updated": "2026-03-28"
     },
     {
       "id": "ui-9slice-color",
@@ -101,7 +115,9 @@
       "tags": ["9宫格","颜色空间"],
       "icon": "🎨",
       "action": "openTool",
-      "path": "knowledge-base/ui-9slice-color.html"
+      "path": "knowledge-base/ui-9slice-color.html",
+      "owner": "赵六",
+      "last_updated": "2026-03-28"
     },
     {
       "id": "ui-layout",
@@ -113,7 +129,9 @@
       "tags": ["Layout","适配"],
       "icon": "📐",
       "action": "openTool",
-      "path": "knowledge-base/ui-layout.html"
+      "path": "knowledge-base/ui-layout.html",
+      "owner": "赵六",
+      "last_updated": "2026-03-28"
     },
     {
       "id": "ui-umg-tips",
@@ -125,7 +143,9 @@
       "tags": ["UMG","AI Prompt","Prompt指南","ue-blueprint-tool"],
       "icon": "⚡",
       "action": "openTool",
-      "path": "knowledge-base/ui-umg-tips.html"
+      "path": "knowledge-base/ui-umg-tips.html",
+      "owner": "赵六",
+      "last_updated": "2026-04-01"
     },
     {
       "id": "scene-lod-spec",
@@ -137,7 +157,121 @@
       "tags": ["LOD","模块化","场景"],
       "icon": "🏗️",
       "action": "openTool",
-      "path": "knowledge-base/scene-lod-spec.html"
+      "path": "knowledge-base/scene-lod-spec.html",
+      "owner": "孙七",
+      "last_updated": "2026-03-30"
+    },
+    {
+      "id": "code-standard",
+      "module": "norm",
+      "craft": "程序",
+      "type": "iframe",
+      "title": "代码规范",
+      "desc": "项目代码编写规范：命名约定、注释风格、模块组织与 Review 标准",
+      "tags": ["代码规范","命名约定","Code Review"],
+      "icon": "💻",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "待指定",
+      "last_updated": "2026-04-07"
+    },
+    {
+      "id": "version-control",
+      "module": "norm",
+      "craft": "程序",
+      "type": "iframe",
+      "title": "版本控制规范",
+      "desc": "Git 分支策略、Commit 规范、Tag 管理与 CI/CD 流程说明",
+      "tags": ["Git","分支策略","CI/CD","版本管理"],
+      "icon": "🔀",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "待指定",
+      "last_updated": "2026-04-07"
+    },
+    {
+      "id": "config-table-spec",
+      "module": "norm",
+      "craft": "策划",
+      "type": "iframe",
+      "title": "配置表规范",
+      "desc": "游戏策划配置表的字段命名、数据类型、校验规则与版本管理",
+      "tags": ["配置表","数据校验","策划工具"],
+      "icon": "📊",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "待指定",
+      "last_updated": "2026-04-07"
+    },
+    {
+      "id": "doc-template-spec",
+      "module": "norm",
+      "craft": "策划",
+      "type": "iframe",
+      "title": "文档模板规范",
+      "desc": "策划文档的标准模板：需求文档、系统设计、数值设计等模板说明",
+      "tags": ["文档模板","需求文档","系统设计"],
+      "icon": "📝",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "待指定",
+      "last_updated": "2026-04-07"
+    },
+    {
+      "id": "audio-spec",
+      "module": "norm",
+      "craft": "音频",
+      "type": "iframe",
+      "title": "音频资源规范",
+      "desc": "游戏音效与音乐的格式要求、码率标准、命名规则与交付流程",
+      "tags": ["音效","音乐","格式标准","交付流程"],
+      "icon": "🔊",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "待指定",
+      "last_updated": "2026-04-07"
+    },
+    {
+      "id": "audio-integration",
+      "module": "norm",
+      "craft": "音频",
+      "type": "iframe",
+      "title": "音频集成规范",
+      "desc": "Wwise/FMOD 集成标准、事件命名、Bank 管理与内存优化",
+      "tags": ["Wwise","FMOD","音频集成","内存优化"],
+      "icon": "🎵",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "待指定",
+      "last_updated": "2026-04-07"
+    },
+    {
+      "id": "qa-test-spec",
+      "module": "norm",
+      "craft": "QA",
+      "type": "iframe",
+      "title": "测试用例规范",
+      "desc": "功能测试、兼容性测试、性能测试的用例编写标准与执行流程",
+      "tags": ["测试用例","功能测试","兼容性测试"],
+      "icon": "🧪",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "待指定",
+      "last_updated": "2026-04-07"
+    },
+    {
+      "id": "qa-bug-flow",
+      "module": "norm",
+      "craft": "QA",
+      "type": "iframe",
+      "title": "Bug 提报与跟踪规范",
+      "desc": "Bug 等级划分、提报模板、跟踪流程与回归验证标准",
+      "tags": ["Bug管理","提报模板","回归测试"],
+      "icon": "🐛",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "待指定",
+      "last_updated": "2026-04-07"
     },
     {
       "id": "cp-management",
@@ -149,7 +283,9 @@
       "tags": ["流程管理","外包体系","验收","CP评级"],
       "icon": "📋",
       "action": "openTool",
-      "path": "knowledge-base/cp-management.html"
+      "path": "knowledge-base/cp-management.html",
+      "owner": "周八",
+      "last_updated": "2026-03-30"
     },
     {
       "id": "game-art-pipeline",
@@ -161,7 +297,9 @@
       "tags": ["流程管理","美术流程","2D","3D","二次元"],
       "icon": "📊",
       "action": "openTool",
-      "path": "knowledge-base/game-art-pipeline.html"
+      "path": "knowledge-base/game-art-pipeline.html",
+      "owner": "周八",
+      "last_updated": "2026-03-25"
     },
     {
       "id": "auto-mask",
@@ -173,7 +311,9 @@
       "tags": ["在线工具","自动验算","RGBA"],
       "icon": "🤖",
       "action": "openTool",
-      "path": "knowledge-base/auto-mask.html"
+      "path": "knowledge-base/auto-mask.html",
+      "owner": "王五",
+      "last_updated": "2026-04-02"
     },
     {
       "id": "mask-tool",
@@ -185,7 +325,9 @@
       "tags": ["在线工具","画笔绘制","RGBA"],
       "icon": "🖌️",
       "action": "openTool",
-      "path": "knowledge-base/mask-tool.html"
+      "path": "knowledge-base/mask-tool.html",
+      "owner": "王五",
+      "last_updated": "2026-03-31"
     },
     {
       "id": "spine-split",
@@ -197,7 +339,9 @@
       "tags": ["在线工具","选区拆分","拓扑延展"],
       "icon": "✂️",
       "action": "openTool",
-      "path": "knowledge-base/spine-split.html"
+      "path": "knowledge-base/spine-split.html",
+      "owner": "王五",
+      "last_updated": "2026-04-07"
     },
     {
       "id": "mask-core-algorithms",
@@ -209,7 +353,9 @@
       "tags": ["在线工具","魔棒","边缘检测","Sobel","Web Worker"],
       "icon": "🧪",
       "action": "openTool",
-      "path": "knowledge-base/mask-core-algorithms.html"
+      "path": "knowledge-base/mask-core-algorithms.html",
+      "owner": "王五",
+      "last_updated": "2026-04-02"
     },
     {
       "id": "channel-packer",
@@ -221,7 +367,9 @@
       "tags": ["在线工具","通道打包","批处理"],
       "icon": "📦",
       "action": "openTool",
-      "path": "knowledge-base/channel-packer.html"
+      "path": "knowledge-base/channel-packer.html",
+      "owner": "孙七",
+      "last_updated": "2026-03-28"
     },
     {
       "id": "engine-bridge",
@@ -233,7 +381,9 @@
       "tags": ["引擎直连","UE","Unity","Bridge"],
       "icon": "🔌",
       "action": "openTool",
-      "path": "knowledge-base/engine-bridge.html"
+      "path": "knowledge-base/engine-bridge.html",
+      "owner": "孙七",
+      "last_updated": "2026-03-30"
     },
     {
       "id": "image-skew-corrector",
@@ -246,7 +396,9 @@
       "icon": "📐",
       "action": "openTool",
       "path": "knowledge-base/image-skew-corrector.html",
-      "download": "downloads/ImageSkewCorrector.exe"
+      "download": "downloads/ImageSkewCorrector.exe",
+      "owner": "赵六",
+      "last_updated": "2026-03-25"
     },
     {
       "id": "game-resource-toolkit",
@@ -259,7 +411,93 @@
       "icon": "🛠️",
       "action": "openTool",
       "path": "knowledge-base/game-resource-toolkit.html",
-      "download": "downloads/GameResourceToolkit.exe"
+      "download": "downloads/GameResourceToolkit.exe",
+      "owner": "赵六",
+      "last_updated": "2026-03-25"
+    },
+    {
+      "id": "ta-shader-debugger",
+      "module": "tool",
+      "craft": "TA",
+      "type": "iframe",
+      "title": "Shader 调试工具",
+      "desc": "实时 Shader 参数预览、性能热力图与变体分析（占位）",
+      "tags": ["在线工具","Shader","TA工具","性能分析"],
+      "icon": "🎭",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "待指定",
+      "last_updated": "2026-04-07"
+    },
+    {
+      "id": "ta-material-library",
+      "module": "tool",
+      "craft": "TA",
+      "type": "iframe",
+      "title": "材质库管理器",
+      "desc": "通用材质库的分类、预览、参数导出与版本管理（占位）",
+      "tags": ["在线工具","材质库","TA工具","资产管理"],
+      "icon": "🧊",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "待指定",
+      "last_updated": "2026-04-07"
+    },
+    {
+      "id": "planner-balance-tool",
+      "module": "tool",
+      "craft": "策划",
+      "type": "iframe",
+      "title": "数值平衡计算器",
+      "desc": "游戏数值公式验证、经济系统模拟与曲线可视化（占位）",
+      "tags": ["策划工具","数值设计","公式验证"],
+      "icon": "📈",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "待指定",
+      "last_updated": "2026-04-07"
+    },
+    {
+      "id": "planner-config-validator",
+      "module": "tool",
+      "craft": "策划",
+      "type": "iframe",
+      "title": "配置表校验工具",
+      "desc": "自动校验策划配置表的字段类型、引用完整性与数值范围（占位）",
+      "tags": ["策划工具","配置校验","自动化"],
+      "icon": "✅",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "待指定",
+      "last_updated": "2026-04-07"
+    },
+    {
+      "id": "qa-auto-test-framework",
+      "module": "tool",
+      "craft": "QA",
+      "type": "iframe",
+      "title": "自动化测试框架",
+      "desc": "UI 自动化测试脚本管理、批量执行与报告生成（占位）",
+      "tags": ["QA工具","自动化测试","测试报告"],
+      "icon": "🤖",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "待指定",
+      "last_updated": "2026-04-07"
+    },
+    {
+      "id": "qa-perf-monitor",
+      "module": "tool",
+      "craft": "QA",
+      "type": "iframe",
+      "title": "性能监控面板",
+      "desc": "实时 FPS/内存/CPU 监控、设备对比与性能基线管理（占位）",
+      "tags": ["QA工具","性能监控","设备对比"],
+      "icon": "📊",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "待指定",
+      "last_updated": "2026-04-07"
     },
     {
       "id": "spine-perf-guide",
@@ -271,7 +509,9 @@
       "tags": ["Spine","性能优化","骨骼动画","排雷"],
       "icon": "🦴",
       "action": "openTool",
-      "path": "knowledge-base/spine-perf-guide.html"
+      "path": "knowledge-base/spine-perf-guide.html",
+      "owner": "王五",
+      "last_updated": "2026-04-02"
     },
     {
       "id": "perf-redline-glossary",
@@ -283,7 +523,9 @@
       "tags": ["性能红线","术语速查","Drawcall","Overdraw","排雷"],
       "icon": "🚦",
       "action": "openTool",
-      "path": "knowledge-base/perf-redline-glossary.html"
+      "path": "knowledge-base/perf-redline-glossary.html",
+      "owner": "王五",
+      "last_updated": "2026-03-30"
     },
     {
       "id": "accident-troubleshoot",
@@ -295,7 +537,9 @@
       "tags": ["Troubleshooting","事故复盘","SOP","排雷"],
       "icon": "🚨",
       "action": "openTool",
-      "path": "knowledge-base/accident-troubleshoot.html"
+      "path": "knowledge-base/accident-troubleshoot.html",
+      "owner": "周八",
+      "last_updated": "2026-03-28"
     },
     {
       "id": "cross-dept-collab",
@@ -307,7 +551,9 @@
       "tags": ["沟通技巧","跨部门协作","流程优化","排雷"],
       "icon": "🤝",
       "action": "openTool",
-      "path": "knowledge-base/cross-dept-collab.html"
+      "path": "knowledge-base/cross-dept-collab.html",
+      "owner": "周八",
+      "last_updated": "2026-03-28"
     },
     {
       "id": "cp-outsource",
@@ -319,7 +565,9 @@
       "tags": ["外包","避坑","验收","排雷"],
       "icon": "📋",
       "action": "openTool",
-      "path": "knowledge-base/cp-outsource.html"
+      "path": "knowledge-base/cp-outsource.html",
+      "owner": "周八",
+      "last_updated": "2026-03-25"
     }
   ]
 }

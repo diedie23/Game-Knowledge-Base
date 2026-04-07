@@ -1,6 +1,6 @@
 {
   "version": "3.0",
-  "lastUpdate": "2026-04-02",
+  "lastUpdate": "2026-04-07",
   "categories": [
     {
       "id": "mod-norm",
@@ -36,6 +36,38 @@
           "items": [
             { "id": "scene-lod-spec",    "icon": "🏗️", "title": "场景模块化与 LOD 规范", "type": "iframe", "file": "knowledge-base/scene-lod-spec.html",        "badge": "场景", "craft": "场景" }
           ]
+        },
+        {
+          "name": "程序与开发规范",
+          "icon": "💻",
+          "items": [
+            { "id": "code-standard",     "icon": "💻", "title": "代码规范",         "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "程序", "craft": "程序" },
+            { "id": "version-control",   "icon": "🔀", "title": "版本控制规范",     "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "程序", "craft": "程序" }
+          ]
+        },
+        {
+          "name": "策划与设计规范",
+          "icon": "📋",
+          "items": [
+            { "id": "config-table-spec", "icon": "📊", "title": "配置表规范",       "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "策划", "craft": "策划" },
+            { "id": "doc-template-spec", "icon": "📝", "title": "文档模板规范",     "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "策划", "craft": "策划" }
+          ]
+        },
+        {
+          "name": "音频与音效规范",
+          "icon": "🔊",
+          "items": [
+            { "id": "audio-spec",        "icon": "🔊", "title": "音频资源规范",     "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "音频", "craft": "音频" },
+            { "id": "audio-integration", "icon": "🎵", "title": "音频集成规范",     "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "音频", "craft": "音频" }
+          ]
+        },
+        {
+          "name": "QA 与测试规范",
+          "icon": "🧪",
+          "items": [
+            { "id": "qa-test-spec",      "icon": "🧪", "title": "测试用例规范",     "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "QA",   "craft": "QA" },
+            { "id": "qa-bug-flow",       "icon": "🐛", "title": "Bug 提报与跟踪规范", "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "QA", "craft": "QA" }
+          ]
         }
       ]
     },
@@ -46,13 +78,33 @@
       "color": "green",
       "groups": [
         {
-          "name": "角色工具",
-          "icon": "👤",
+          "name": "美术 / TA 工具",
+          "icon": "🎨",
           "items": [
             { "id": "auto-mask",            "icon": "🤖", "title": "自动 Mask 生成器",    "type": "tool",   "badge": "角色", "craft": "角色" },
             { "id": "mask-tool",            "icon": "🖌️", "title": "Mask 手动编辑器",     "type": "tool",   "badge": "角色", "craft": "角色" },
             { "id": "spine-split",          "icon": "✂️", "title": "Spine 拆分工具",      "type": "tool",   "badge": "角色", "craft": "角色" },
-            { "id": "mask-core-algorithms", "icon": "🧪", "title": "Mask 核心算法演示",   "type": "iframe", "file": "knowledge-base/mask-core-algorithms.html", "badge": "角色", "craft": "角色" }
+            { "id": "mask-core-algorithms", "icon": "🧪", "title": "Mask 核心算法演示",   "type": "iframe", "file": "knowledge-base/mask-core-algorithms.html", "badge": "角色", "craft": "角色" },
+            { "id": "channel-packer",       "icon": "📦", "title": "贴图通道打包工具",   "type": "iframe", "file": "knowledge-base/channel-packer.html",  "badge": "特效", "craft": "特效" },
+            { "id": "ta-shader-debugger",   "icon": "🎭", "title": "Shader 调试工具",    "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "TA", "craft": "TA" },
+            { "id": "ta-material-library",  "icon": "🧊", "title": "材质库管理器",       "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "TA", "craft": "TA" }
+          ]
+        },
+        {
+          "name": "策划工具",
+          "icon": "📋",
+          "items": [
+            { "id": "planner-balance-tool",     "icon": "📈", "title": "数值平衡计算器",   "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "策划", "craft": "策划" },
+            { "id": "planner-config-validator",  "icon": "✅", "title": "配置表校验工具",   "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "策划", "craft": "策划" }
+          ]
+        },
+        {
+          "name": "程序 / QA 工具",
+          "icon": "🔧",
+          "items": [
+            { "id": "engine-bridge",            "icon": "🔌", "title": "Engine Bridge 引擎直连", "type": "iframe", "file": "knowledge-base/engine-bridge.html",   "badge": "技术", "craft": "技术" },
+            { "id": "qa-auto-test-framework",   "icon": "🤖", "title": "自动化测试框架",   "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "QA", "craft": "QA" },
+            { "id": "qa-perf-monitor",          "icon": "📊", "title": "性能监控面板",     "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "QA", "craft": "QA" }
           ]
         },
         {
@@ -61,14 +113,6 @@
           "items": [
             { "id": "image-skew-corrector",         "icon": "📐", "title": "图片倾斜矫正 (桌面版)",  "type": "iframe", "file": "knowledge-base/image-skew-corrector.html",         "badge": "UI", "download": "downloads/ImageSkewCorrector.exe", "craft": "UI" },
             { "id": "game-resource-toolkit",        "icon": "🛠️", "title": "游戏资源工具集 (桌面版)","type": "iframe", "file": "knowledge-base/game-resource-toolkit.html",        "badge": "UI", "download": "downloads/GameResourceToolkit.exe", "craft": "UI" }
-          ]
-        },
-        {
-          "name": "特效 & 技术",
-          "icon": "⚙️",
-          "items": [
-            { "id": "channel-packer",  "icon": "📦", "title": "贴图通道打包工具",       "type": "iframe", "file": "knowledge-base/channel-packer.html",  "badge": "特效", "craft": "特效" },
-            { "id": "engine-bridge",   "icon": "🔌", "title": "Engine Bridge 引擎直连", "type": "iframe", "file": "knowledge-base/engine-bridge.html",   "badge": "技术", "craft": "技术" }
           ]
         }
       ]
