@@ -1,5 +1,5 @@
 {
-  "version": "4.0",
+  "version": "4.1",
   "lastUpdate": "2026-04-07",
   "categories": [
     {
@@ -130,6 +130,38 @@
             { "id": "image-skew-corrector",  "icon": "📐", "title": "图片倾斜矫正 (桌面版)",  "type": "iframe", "file": "knowledge-base/image-skew-corrector.html",  "badge": "UI", "download": "downloads/ImageSkewCorrector.exe", "craft": "UI" },
             { "id": "game-resource-toolkit", "icon": "🛠️", "title": "游戏资源工具集 (桌面版)","type": "iframe", "file": "knowledge-base/game-resource-toolkit.html", "badge": "UI", "download": "downloads/GameResourceToolkit.exe", "craft": "UI" },
             { "id": "engine-bridge",         "icon": "🔌", "title": "Engine Bridge 引擎直连", "type": "iframe", "file": "knowledge-base/engine-bridge.html",         "badge": "技术", "craft": "技术" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mod-governance",
+      "name": "💰 成本·风险·团队",
+      "icon": "💰",
+      "color": "pink",
+      "groups": [
+        {
+          "name": "成本与预算管理",
+          "icon": "💰",
+          "items": [
+            { "id": "budget-apply",    "icon": "💰", "title": "外包预算申请与结算流转", "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "管理", "craft": "管理" },
+            { "id": "cost-standard",   "icon": "📊", "title": "美术人月成本核算标准",   "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "管理", "craft": "管理" }
+          ]
+        },
+        {
+          "name": "风险管控与复盘",
+          "icon": "⚠️",
+          "items": [
+            { "id": "risk-log",             "icon": "⚠️", "title": "项目风险登记册 (Risk Log) 规范",       "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "管理", "craft": "管理" },
+            { "id": "postmortem-template",  "icon": "📝", "title": "版本研发复盘 (Post-mortem) 模板",       "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "管理", "craft": "管理" }
+          ]
+        },
+        {
+          "name": "团队与培训",
+          "icon": "🎓",
+          "items": [
+            { "id": "onboarding-guide",  "icon": "🎓", "title": "美术新人入职管线必读 (Onboarding)", "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "管理", "craft": "管理" },
+            { "id": "permission-nav",    "icon": "🔑", "title": "常用系统权限申请导航",               "type": "iframe", "file": "knowledge-base/placeholder.html", "badge": "管理", "craft": "管理" }
           ]
         }
       ]

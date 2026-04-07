@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════
-// APM 专属知识库 v4.0 — 美术项目管理重构版
-// 核心架构：35% 美术生产与排期 · 35% 跨部门协同 · 30% 提效工具箱
-// 新增：阶段标签筛选 · 优先级徽标 · 面包屑增强 · 动态卡片渲染
+// APM 专属知识库 v4.1 — 美术项目管理增强版
+// 核心架构：30% 美术生产 · 30% 跨部门协同 · 20% 提效工具 · 20% 成本·风险·团队
+// 新增：高频速查/最近更新 · Owner/日期卡片 · 复制链接 · governance 模块
 // ═══════════════════════════════════════════════════
 
 // ═══ Markdown Parser (智能表格增强) ═══
@@ -221,7 +221,8 @@ function expandTree(el){
 var MODULE_STYLES = {
   'mod-production': { color: 'accent', highlight: 'var(--accent)',  bg: 'var(--accent-bg)' },
   'mod-collab':     { color: 'orange', highlight: 'var(--orange)',  bg: 'var(--orange-bg)' },
-  'mod-toolkit':    { color: 'green',  highlight: 'var(--green)',   bg: 'var(--green-bg)' }
+  'mod-toolkit':    { color: 'green',  highlight: 'var(--green)',   bg: 'var(--green-bg)' },
+  'mod-governance': { color: 'pink',   highlight: 'var(--pink)',    bg: 'var(--pink-bg)' }
 };
 
 // 工种 badge 样式映射
@@ -260,7 +261,7 @@ function buildSidebar(data){
     +'<div class="nav-toggle-btns"><button class="nav-toggle-btn" onclick="expandAllSidebar()" title="全部展开">📂 展开</button><button class="nav-toggle-btn" onclick="collapseAllSidebar()" title="全部折叠">📁 折叠</button></div></div>';
 
   // 统计计数器
-  var productionCount=0, collabCount=0, toolkitCount=0;
+  var productionCount=0, collabCount=0, toolkitCount=0, governanceCount=0;
 
   data.categories.forEach(function(cat){
     var itemCount=0;
@@ -270,15 +271,17 @@ function buildSidebar(data){
     if(cat.id === 'mod-production')  productionCount = itemCount;
     if(cat.id === 'mod-collab')      collabCount = itemCount;
     if(cat.id === 'mod-toolkit')     toolkitCount = itemCount;
+    if(cat.id === 'mod-governance')  governanceCount = itemCount;
 
     var isCollab = cat.id === 'mod-collab';
+    var isGovernance = cat.id === 'mod-governance';
 
     // 获取纯文本名称（去掉 Emoji 前缀）
     var catName = cat.name.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]+\s*/u, '');
     // 一级模块 Emoji 图标（从 JSON icon 字段读取）
     var catEmoji = cat.icon || '📁';
 
-    var extraCls = isCollab ? ' t1-collab' : '';
+    var extraCls = isCollab ? ' t1-collab' : isGovernance ? ' t1-governance' : '';
     html += '<div class="t1' + extraCls + '" id="' + cat.id + '">';
     html += '<div class="t1-h" onclick="handleToggle(event,this)">'
       + SVG_CHEVRON
@@ -333,12 +336,14 @@ function buildSidebar(data){
   if(numEls[0]) numEls[0].textContent = productionCount + ' 篇';
   if(numEls[1]) numEls[1].textContent = collabCount + ' 篇';
   if(numEls[2]) numEls[2].textContent = toolkitCount + ' 个';
+  if(numEls[3]) numEls[3].textContent = governanceCount + ' 篇';
 
   // ═══ 统计卡片 → 锚点快捷导航 ═══
   var statTargets = [
     { sel: '.stat-production', anchor: '#section-production' },
     { sel: '.stat-collab',     anchor: '#section-collab' },
-    { sel: '.stat-toolkit',    anchor: '#section-toolkit' }
+    { sel: '.stat-toolkit',    anchor: '#section-toolkit' },
+    { sel: '.stat-governance', anchor: '#section-governance' }
   ];
   var scrollContainer = document.getElementById('contentScroll');
   statTargets.forEach(function(item){
@@ -671,6 +676,7 @@ function initSearch(){
       // 加载完毕后渲染动态首页卡片和角标
       setTimeout(function(){
         renderHomeCards();
+        renderHotCards();
         renderCardBadges();
       }, 300);
     });
@@ -690,6 +696,7 @@ function handleSearch(q){
     var modLabel='🏭', modCls='background:rgba(108,140,255,.08);color:#6c8cff';
     if(item.module==='collab')  { modLabel='🤝'; modCls='background:rgba(251,146,60,.08);color:#fb923c'; }
     if(item.module==='toolkit') { modLabel='🧰'; modCls='background:rgba(74,222,128,.08);color:#4ade80'; }
+    if(item.module==='governance') { modLabel='💰'; modCls='background:rgba(244,114,182,.08);color:#f472b6'; }
     // 工种 Tag
     var craftHtml = item.craft ? '<span class="sr-craft">['+item.craft+']</span>' : '';
     // 阶段 Tag
@@ -1338,7 +1345,7 @@ function renderCardBadges(){
   });
 }
 
-// ═══ v4.0 首页动态卡片渲染（从 index.json 数据驱动）═══
+// ═══ v4.1 首页动态卡片渲染（从 index.json 数据驱动）═══
 var CARD_GRID_MAP = {
   // 板块一：美术生产与排期
   'grid-production-pipeline':  { module:'production', ids:['game-art-pipeline','art-scheduling'] },
@@ -1354,7 +1361,11 @@ var CARD_GRID_MAP = {
   // 板块三：提效工具箱
   'grid-toolkit-mgmt':         { module:'toolkit', ids:['jira-tapd-automation','naming-check-tool','progress-visualization'] },
   'grid-toolkit-art':          { module:'toolkit', ids:['auto-mask','mask-tool','spine-split','mask-core-algorithms','channel-packer','ui-umg-tips'] },
-  'grid-toolkit-desktop':      { module:'toolkit', ids:['image-skew-corrector','game-resource-toolkit','engine-bridge'] }
+  'grid-toolkit-desktop':      { module:'toolkit', ids:['image-skew-corrector','game-resource-toolkit','engine-bridge'] },
+  // 板块四：成本·风险·团队
+  'grid-governance-budget':    { module:'governance', ids:['budget-apply','cost-standard'] },
+  'grid-governance-risk':      { module:'governance', ids:['risk-log','postmortem-template'] },
+  'grid-governance-team':      { module:'governance', ids:['onboarding-guide','permission-nav'] }
 };
 
 // 阶段→背景色配置
@@ -1381,42 +1392,125 @@ function renderHomeCards(){
     config.ids.forEach(function(id){
       var item=itemMap[id];
       if(!item) return;
-      // 阶段标签
+      // 阶段标签（实心背景色）
       var stageBadge='';
       if(item.applicable_stage){
         var sc=STAGE_COLORS[item.applicable_stage]||STAGE_COLORS['全阶段'];
-        stageBadge='<span class="stage-tag" style="background:'+sc.bg+';color:'+sc.color+'">'+item.applicable_stage+'</span>';
+        stageBadge='<span class="stage-tag stage-tag-solid" style="background:'+sc.bg+';color:'+sc.color+';border:1px solid '+sc.color.replace(')',',0.3)')+'">'+item.applicable_stage+'</span>';
       }
       // 优先级
       var priIcon=PRIORITY_ICONS[item.priority]||'';
       var priHtml=priIcon?'<span class="pri-badge" title="优先级: '+item.priority+'">'+priIcon+'</span>':'';
+      // 复制链接按钮
+      var copyHtml='<button class="card-copy-btn" onclick="event.stopPropagation();copyCardLink(\''+item.id+'\')" title="复制链接">🔗</button>';
       // 图标背景色
       var iconBg='var(--accent-bg)';
       if(config.module==='collab') iconBg='var(--orange-bg)';
       if(config.module==='toolkit') iconBg='var(--green-bg)';
+      if(config.module==='governance') iconBg='var(--pink-bg)';
       // 工种 badge
       var craftBadge='';
       if(item.craft){
         var cc=CRAFT_COLORS[item.craft]||{bg:'rgba(139,143,163,.1)',color:'var(--dim)'};
         craftBadge='<span class="craft-badge" style="background:'+cc.bg+';color:'+cc.color+'">'+item.craft+'</span>';
       }
-      // 标签
+      // 普通标签（描边暗色风格，与阶段标签视觉区分）
       var tagsHtml='';
       if(item.tags&&item.tags.length){
         var shown=item.tags.slice(0,3);
-        tagsHtml=shown.map(function(t){return'<span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag(\''+t+'\')">'+t+'</span>';}).join('');
+        tagsHtml=shown.map(function(t){return'<span class="tag tag-outline tag-clickable" onclick="event.stopPropagation();filterByTag(\''+t+'\')">'+t+'</span>';}).join('');
+      }
+      // Owner + 更新日期底栏
+      var metaFooter='';
+      if(item.owner||item.last_updated){
+        var ownerHtml=item.owner?'<span class="card-owner" title="维护者"><span class="card-owner-avatar">'+item.owner.charAt(0)+'</span>'+item.owner+'</span>':'';
+        var dateHtml=item.last_updated?'<span class="card-date">'+item.last_updated+'</span>':'';
+        metaFooter='<div class="card-meta-footer">'+ownerHtml+dateHtml+'</div>';
       }
 
-      html+='<div class="home-card" data-stage="'+(item.applicable_stage||'')+'" data-priority="'+(item.priority||'')+'" onclick="navigate(\''+item.id+'\')">'
-        +priHtml
+      html+='<div class="home-card" data-stage="'+(item.applicable_stage||'')+'" data-priority="'+(item.priority||'')+'" data-id="'+item.id+'" onclick="navigate(\''+item.id+'\')">'
+        +priHtml+copyHtml
         +'<div class="hci" style="background:'+iconBg+'">'+(item.icon||'📄')+'</div>'
         +'<h3>'+item.title+'</h3>'
         +'<p>'+item.desc+'</p>'
         +'<div class="tags">'+stageBadge+tagsHtml+craftBadge+'</div>'
+        +metaFooter
         +'</div>';
     });
     container.innerHTML=html;
   });
+}
+
+// ═══ v4.1 复制卡片链接 ═══
+function copyCardLink(pageId){
+  var url=location.origin+location.pathname+'#'+pageId;
+  navigator.clipboard.writeText(url).then(function(){showToast('🔗 链接已复制');}).catch(function(){
+    // fallback
+    var ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();showToast('🔗 链接已复制');
+  });
+}
+
+// ═══ v4.1 高频速查 / 最近更新 模块 ═══
+var currentHotTab='hot';
+function switchHotTab(tab){
+  currentHotTab=tab;
+  document.querySelectorAll('.hot-tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.hot-tab').forEach(function(t){
+    if((tab==='hot'&&t.textContent.indexOf('高频')!==-1)||(tab==='recent'&&t.textContent.indexOf('最近')!==-1)){
+      t.classList.add('active');
+    }
+  });
+  renderHotCards();
+}
+
+function renderHotCards(){
+  if(!indexData||!indexData.items) return;
+  var container=document.getElementById('hotCards');
+  if(!container) return;
+
+  var items=[];
+  if(currentHotTab==='hot'){
+    // is_hot 标记的文档
+    items=indexData.items.filter(function(i){return i.is_hot;});
+    // 按优先级排序
+    var priOrder={high:0,medium:1,low:2};
+    items.sort(function(a,b){return(priOrder[a.priority]||2)-(priOrder[b.priority]||2);});
+  } else {
+    // 按 last_updated 排序取最近 6 条
+    items=indexData.items.slice().sort(function(a,b){
+      return(b.last_updated||'').localeCompare(a.last_updated||'');
+    }).slice(0,6);
+  }
+
+  if(!items.length){
+    container.innerHTML='<div class="hot-empty">暂无数据</div>';
+    return;
+  }
+
+  var html='';
+  items.forEach(function(item){
+    var sc=STAGE_COLORS[item.applicable_stage]||STAGE_COLORS['全阶段'];
+    var priIcon=PRIORITY_ICONS[item.priority]||'';
+    // 模块颜色
+    var modColor='var(--accent)';var modBg='var(--accent-bg)';
+    if(item.module==='collab'){modColor='var(--orange)';modBg='var(--orange-bg)';}
+    if(item.module==='toolkit'){modColor='var(--green)';modBg='var(--green-bg)';}
+    if(item.module==='governance'){modColor='var(--pink)';modBg='var(--pink-bg)';}
+
+    html+='<div class="hot-card" onclick="navigate(\''+item.id+'\')">'
+      +'<div class="hot-card-top">'
+      +'<div class="hot-card-icon" style="background:'+modBg+';color:'+modColor+'">'+(item.icon||'📄')+'</div>'
+      +(priIcon?'<span class="hot-pri">'+priIcon+'</span>':'')
+      +'</div>'
+      +'<div class="hot-card-title">'+item.title+'</div>'
+      +'<div class="hot-card-meta">'
+      +'<span class="hot-stage" style="background:'+sc.bg+';color:'+sc.color+'">'+(item.applicable_stage||'')+'</span>'
+      +(item.owner?'<span class="hot-owner">'+item.owner+'</span>':'')
+      +'</div>'
+      +(item.last_updated?'<div class="hot-card-date">'+item.last_updated+'</div>':'')
+      +'</div>';
+  });
+  container.innerHTML=html;
 }
 
 // ═══ v4.0 阶段筛选 ═══

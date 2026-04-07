@@ -1,11 +1,12 @@
 {
-  "version": "4.0",
+  "version": "4.1",
   "lastUpdate": "2026-04-07",
   "subtitle": "APM 专属知识库 — 美术项目管理核心知识体系",
   "moduleConfig": {
-    "production":  { "label": "🏭 美术生产与排期", "icon": "🏭", "color": "accent",  "weight": 35 },
-    "collab":      { "label": "🤝 跨部门协同与交付", "icon": "🤝", "color": "orange",  "weight": 35 },
-    "toolkit":     { "label": "🧰 APM 提效工具箱", "icon": "🧰", "color": "green",   "weight": 30 }
+    "production":  { "label": "🏭 美术生产与排期", "icon": "🏭", "color": "accent",  "weight": 30 },
+    "collab":      { "label": "🤝 跨部门协同与交付", "icon": "🤝", "color": "orange",  "weight": 30 },
+    "toolkit":     { "label": "🧰 APM 提效工具箱", "icon": "🧰", "color": "green",   "weight": 20 },
+    "governance":  { "label": "💰 成本·风险·团队", "icon": "💰", "color": "pink",    "weight": 20 }
   },
   "stageConfig": {
     "预研期": { "color": "#60a5fa", "bg": "rgba(96,165,250,.12)" },
@@ -28,7 +29,8 @@
       "owner": "周八",
       "last_updated": "2026-03-25",
       "applicable_stage": "全阶段",
-      "priority": "high"
+      "priority": "high",
+      "is_hot": true
     },
     {
       "id": "cp-outsource",
@@ -44,7 +46,8 @@
       "owner": "周八",
       "last_updated": "2026-03-25",
       "applicable_stage": "量产期",
-      "priority": "high"
+      "priority": "high",
+      "is_hot": true
     },
     {
       "id": "cp-management",
@@ -60,7 +63,8 @@
       "owner": "周八",
       "last_updated": "2026-03-30",
       "applicable_stage": "量产期",
-      "priority": "high"
+      "priority": "high",
+      "is_hot": false
     },
     {
       "id": "art-scheduling",
@@ -76,7 +80,8 @@
       "owner": "周八",
       "last_updated": "2026-04-07",
       "applicable_stage": "全阶段",
-      "priority": "high"
+      "priority": "high",
+      "is_hot": true
     },
     {
       "id": "d1",
@@ -92,7 +97,8 @@
       "owner": "张三",
       "last_updated": "2026-03-20",
       "applicable_stage": "量产期",
-      "priority": "medium"
+      "priority": "medium",
+      "is_hot": false
     },
     {
       "id": "d2",
@@ -108,7 +114,8 @@
       "owner": "李四",
       "last_updated": "2026-03-25",
       "applicable_stage": "量产期",
-      "priority": "medium"
+      "priority": "medium",
+      "is_hot": false
     },
     {
       "id": "ugc-character-spec",
@@ -124,7 +131,8 @@
       "owner": "张三",
       "last_updated": "2026-04-01",
       "applicable_stage": "量产期",
-      "priority": "medium"
+      "priority": "medium",
+      "is_hot": false
     },
     {
       "id": "color-swap-spec",
@@ -140,7 +148,8 @@
       "owner": "李四",
       "last_updated": "2026-04-01",
       "applicable_stage": "量产期",
-      "priority": "medium"
+      "priority": "medium",
+      "is_hot": false
     },
     {
       "id": "auto-mask-spec",
@@ -156,7 +165,8 @@
       "owner": "王五",
       "last_updated": "2026-04-02",
       "applicable_stage": "量产期",
-      "priority": "low"
+      "priority": "low",
+      "is_hot": false
     },
     {
       "id": "spine-split-spec",
@@ -172,7 +182,8 @@
       "owner": "王五",
       "last_updated": "2026-04-02",
       "applicable_stage": "量产期",
-      "priority": "low"
+      "priority": "low",
+      "is_hot": false
     },
     {
       "id": "ui-slice-naming",
@@ -188,7 +199,8 @@
       "owner": "赵六",
       "last_updated": "2026-03-28",
       "applicable_stage": "量产期",
-      "priority": "medium"
+      "priority": "medium",
+      "is_hot": false
     },
     {
       "id": "ui-9slice-color",
@@ -204,7 +216,8 @@
       "owner": "赵六",
       "last_updated": "2026-03-28",
       "applicable_stage": "量产期",
-      "priority": "low"
+      "priority": "low",
+      "is_hot": false
     },
     {
       "id": "ui-layout",
@@ -220,7 +233,8 @@
       "owner": "赵六",
       "last_updated": "2026-03-28",
       "applicable_stage": "量产期",
-      "priority": "low"
+      "priority": "low",
+      "is_hot": false
     },
     {
       "id": "scene-lod-spec",
@@ -236,7 +250,8 @@
       "owner": "孙七",
       "last_updated": "2026-03-30",
       "applicable_stage": "预研期",
-      "priority": "medium"
+      "priority": "medium",
+      "is_hot": false
     },
     {
       "id": "art-vs-planner-req",
@@ -252,7 +267,8 @@
       "owner": "周八",
       "last_updated": "2026-04-07",
       "applicable_stage": "全阶段",
-      "priority": "high"
+      "priority": "high",
+      "is_hot": true
     },
     {
       "id": "art-vs-planner-template",
@@ -268,7 +284,8 @@
       "owner": "周八",
       "last_updated": "2026-04-07",
       "applicable_stage": "全阶段",
-      "priority": "high"
+      "priority": "high",
+      "is_hot": false
     },
     {
       "id": "art-vs-ta-naming",
@@ -284,7 +301,8 @@
       "owner": "孙七",
       "last_updated": "2026-04-07",
       "applicable_stage": "量产期",
-      "priority": "high"
+      "priority": "high",
+      "is_hot": false
     },
     {
       "id": "art-vs-ta-perfbudget",
@@ -300,7 +318,8 @@
       "owner": "孙七",
       "last_updated": "2026-04-07",
       "applicable_stage": "预研期",
-      "priority": "high"
+      "priority": "high",
+      "is_hot": true
     },
     {
       "id": "spine-perf-guide",
@@ -316,7 +335,8 @@
       "owner": "王五",
       "last_updated": "2026-04-02",
       "applicable_stage": "量产期",
-      "priority": "high"
+      "priority": "high",
+      "is_hot": false
     },
     {
       "id": "perf-redline-glossary",
@@ -332,7 +352,8 @@
       "owner": "王五",
       "last_updated": "2026-03-30",
       "applicable_stage": "全阶段",
-      "priority": "medium"
+      "priority": "medium",
+      "is_hot": true
     },
     {
       "id": "art-vs-qa-buggrade",
@@ -348,7 +369,8 @@
       "owner": "周八",
       "last_updated": "2026-04-07",
       "applicable_stage": "测试期",
-      "priority": "high"
+      "priority": "high",
+      "is_hot": false
     },
     {
       "id": "art-vs-qa-checklist",
@@ -364,7 +386,8 @@
       "owner": "周八",
       "last_updated": "2026-04-07",
       "applicable_stage": "测试期",
-      "priority": "high"
+      "priority": "high",
+      "is_hot": false
     },
     {
       "id": "cross-dept-collab",
@@ -380,7 +403,8 @@
       "owner": "周八",
       "last_updated": "2026-03-28",
       "applicable_stage": "全阶段",
-      "priority": "high"
+      "priority": "high",
+      "is_hot": false
     },
     {
       "id": "accident-troubleshoot",
@@ -396,7 +420,8 @@
       "owner": "周八",
       "last_updated": "2026-03-28",
       "applicable_stage": "测试期",
-      "priority": "medium"
+      "priority": "medium",
+      "is_hot": false
     },
     {
       "id": "jira-tapd-automation",
@@ -412,7 +437,8 @@
       "owner": "周八",
       "last_updated": "2026-04-07",
       "applicable_stage": "全阶段",
-      "priority": "high"
+      "priority": "high",
+      "is_hot": false
     },
     {
       "id": "naming-check-tool",
@@ -428,7 +454,8 @@
       "owner": "孙七",
       "last_updated": "2026-04-07",
       "applicable_stage": "量产期",
-      "priority": "high"
+      "priority": "high",
+      "is_hot": false
     },
     {
       "id": "progress-visualization",
@@ -444,7 +471,8 @@
       "owner": "周八",
       "last_updated": "2026-04-07",
       "applicable_stage": "全阶段",
-      "priority": "high"
+      "priority": "high",
+      "is_hot": false
     },
     {
       "id": "auto-mask",
@@ -460,7 +488,8 @@
       "owner": "王五",
       "last_updated": "2026-04-02",
       "applicable_stage": "量产期",
-      "priority": "medium"
+      "priority": "medium",
+      "is_hot": false
     },
     {
       "id": "mask-tool",
@@ -476,7 +505,8 @@
       "owner": "王五",
       "last_updated": "2026-03-31",
       "applicable_stage": "量产期",
-      "priority": "low"
+      "priority": "low",
+      "is_hot": false
     },
     {
       "id": "spine-split",
@@ -492,7 +522,8 @@
       "owner": "王五",
       "last_updated": "2026-04-07",
       "applicable_stage": "量产期",
-      "priority": "medium"
+      "priority": "medium",
+      "is_hot": false
     },
     {
       "id": "mask-core-algorithms",
@@ -508,7 +539,8 @@
       "owner": "王五",
       "last_updated": "2026-04-02",
       "applicable_stage": "量产期",
-      "priority": "low"
+      "priority": "low",
+      "is_hot": false
     },
     {
       "id": "channel-packer",
@@ -524,7 +556,8 @@
       "owner": "孙七",
       "last_updated": "2026-03-28",
       "applicable_stage": "量产期",
-      "priority": "low"
+      "priority": "low",
+      "is_hot": false
     },
     {
       "id": "image-skew-corrector",
@@ -541,7 +574,8 @@
       "owner": "赵六",
       "last_updated": "2026-03-25",
       "applicable_stage": "量产期",
-      "priority": "low"
+      "priority": "low",
+      "is_hot": false
     },
     {
       "id": "game-resource-toolkit",
@@ -558,7 +592,8 @@
       "owner": "赵六",
       "last_updated": "2026-03-25",
       "applicable_stage": "量产期",
-      "priority": "low"
+      "priority": "low",
+      "is_hot": false
     },
     {
       "id": "engine-bridge",
@@ -574,7 +609,8 @@
       "owner": "孙七",
       "last_updated": "2026-03-30",
       "applicable_stage": "预研期",
-      "priority": "medium"
+      "priority": "medium",
+      "is_hot": false
     },
     {
       "id": "ui-umg-tips",
@@ -590,7 +626,110 @@
       "owner": "赵六",
       "last_updated": "2026-04-01",
       "applicable_stage": "量产期",
-      "priority": "low"
+      "priority": "low",
+      "is_hot": false
+    },
+    {
+      "id": "budget-apply",
+      "module": "governance",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "外包预算申请与结算流转",
+      "desc": "外包预算立项审批、阶段性结算对账、成本超支预警与变更签核 SOP",
+      "tags": ["预算","结算","外包","成本管控","审批流"],
+      "icon": "💰",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "周八",
+      "last_updated": "2026-04-07",
+      "applicable_stage": "量产期",
+      "priority": "high",
+      "is_hot": true
+    },
+    {
+      "id": "cost-standard",
+      "module": "governance",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "美术人月成本核算标准",
+      "desc": "内部/外包人月单价基线、工种系数矩阵、ROI 评估模板与季度复盘对账表",
+      "tags": ["人月","成本核算","ROI","工种系数","预算"],
+      "icon": "📊",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "周八",
+      "last_updated": "2026-04-07",
+      "applicable_stage": "全阶段",
+      "priority": "high",
+      "is_hot": false
+    },
+    {
+      "id": "risk-log",
+      "module": "governance",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "项目风险登记册 (Risk Log) 规范",
+      "desc": "风险识别 → 评估 → 分级 → 应对策略 → 跟踪闭环：标准化 Risk Log 模板与填写指南",
+      "tags": ["风险管理","Risk Log","分级","应对策略","闭环"],
+      "icon": "⚠️",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "周八",
+      "last_updated": "2026-04-07",
+      "applicable_stage": "全阶段",
+      "priority": "high",
+      "is_hot": true
+    },
+    {
+      "id": "postmortem-template",
+      "module": "governance",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "版本研发复盘 (Post-mortem) 模板",
+      "desc": "版本结束后的结构化复盘：时间线梳理、根因分析(5-Why)、Action Item 追踪、经验沉淀",
+      "tags": ["复盘","Post-mortem","5-Why","根因分析","经验沉淀"],
+      "icon": "📝",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "周八",
+      "last_updated": "2026-04-07",
+      "applicable_stage": "测试期",
+      "priority": "high",
+      "is_hot": false
+    },
+    {
+      "id": "onboarding-guide",
+      "module": "governance",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "美术新人入职管线必读 (Onboarding)",
+      "desc": "新人首周 Checklist：环境配置、工具账号开通、管线流程熟悉、Mentor 对接、第一个 Task 领取",
+      "tags": ["入职","Onboarding","Checklist","新人","培训"],
+      "icon": "🎓",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "周八",
+      "last_updated": "2026-04-07",
+      "applicable_stage": "全阶段",
+      "priority": "high",
+      "is_hot": true
+    },
+    {
+      "id": "permission-nav",
+      "module": "governance",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "常用系统权限申请导航",
+      "desc": "SVN/Git/Perforce 仓库权限、TAPD/Jira 项目空间、云盘/NAS 美术资源盘、VPN 与内网穿透",
+      "tags": ["权限","SVN","Git","TAPD","VPN","内网"],
+      "icon": "🔑",
+      "action": "openTool",
+      "path": "knowledge-base/placeholder.html",
+      "owner": "周八",
+      "last_updated": "2026-04-07",
+      "applicable_stage": "全阶段",
+      "priority": "medium",
+      "is_hot": false
     }
   ]
 }

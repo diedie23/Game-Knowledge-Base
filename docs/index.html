@@ -30,7 +30,7 @@
   </nav>
   <div class="sidebar-footer">
     <button class="nav-create" onclick="openEditor()">➕ 新增文档</button>
-    <div class="sf-links"><span>v4.0 APM</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a></div>
+    <div class="sf-links"><span>v4.1 APM</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a></div>
   </div>
 </aside>
 
@@ -83,9 +83,10 @@
         <h1>📊 APM 专属<span>知识库</span></h1>
         <p>美术项目管理核心知识体系 — 生产管控 · 跨部门协同 · 提效工具</p>
         <div class="home-ratio-bar" title="知识库内容分布比例">
-          <span class="ratio-seg ratio-production" title="🏭 美术生产与排期：占比 35%">🏭 35%</span>
-          <span class="ratio-seg ratio-collab" title="🤝 跨部门协同与交付：占比 35%">🤝 35%</span>
-          <span class="ratio-seg ratio-toolkit" title="🧰 APM 提效工具箱：占比 30%">🧰 30%</span>
+          <span class="ratio-seg ratio-production" title="🏭 美术生产与排期：占比 30%">🏭 30%</span>
+          <span class="ratio-seg ratio-collab" title="🤝 跨部门协同与交付：占比 30%">🤝 30%</span>
+          <span class="ratio-seg ratio-toolkit" title="🧰 APM 提效工具箱：占比 20%">🧰 20%</span>
+          <span class="ratio-seg ratio-governance" title="💰 成本·风险·团队：占比 20%">💰 20%</span>
         </div>
         <!-- 阶段快速筛选 -->
         <div class="stage-filter-row" id="stageFilterRow">
@@ -99,13 +100,30 @@
       </div>
 
       <!-- 统计栏 -->
-      <div class="stats-bar">
+      <div class="stats-bar stats-bar-4">
         <div class="stat stat-production"><div class="num">—</div><div class="label">🏭 美术生产与排期</div></div>
         <div class="stat stat-collab"><div class="num">—</div><div class="label">🤝 跨部门协同</div></div>
         <div class="stat stat-toolkit"><div class="num">—</div><div class="label">🧰 提效工具箱</div></div>
+        <div class="stat stat-governance"><div class="num">—</div><div class="label">💰 成本·风险·团队</div></div>
       </div>
 
-      <!-- ═══ 板块一：🏭 美术生产与排期 (35%) ═══ -->
+      <!-- ═══ 🔥 高频速查 / 最近更新 横向展示区 ═══ -->
+      <div class="hot-section" id="hotSection">
+        <div class="hot-header">
+          <div class="hot-title"><span class="hot-icon">🔥</span> 高频速查 · 最近更新</div>
+          <div class="hot-tabs">
+            <button class="hot-tab active" onclick="switchHotTab('hot')">🔥 高频</button>
+            <button class="hot-tab" onclick="switchHotTab('recent')">🕐 最近更新</button>
+          </div>
+        </div>
+        <div class="hot-scroll" id="hotScrollContainer">
+          <div class="hot-cards" id="hotCards">
+            <!-- 动态渲染 by app.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ 板块一：🏭 美术生产与排期 (30%) ═══ -->
       <div class="module-section module-production" id="section-production">
         <div class="module-header">
           <div class="module-icon" style="background:var(--accent-bg);color:var(--accent)">🏭</div>
@@ -175,6 +193,27 @@
 
         <div class="hst" style="margin-top:28px">🖥️ 桌面工具 & 技术方案</div>
         <div class="home-grid" id="grid-toolkit-desktop"></div>
+      </div>
+
+      <!-- ═══ 板块四：💰 成本·风险·团队 (20%) ═══ -->
+      <div class="module-section module-governance" id="section-governance">
+        <div class="module-header module-header-governance">
+          <div class="module-icon" style="background:var(--pink-bg);color:var(--pink)">💰</div>
+          <div class="module-info">
+            <h2>成本·风险·团队</h2>
+            <p>预算管控、风险登记与复盘、新人培训与权限导航 — APM 管理内功</p>
+          </div>
+          <span class="module-weight module-weight-pink">20%</span>
+        </div>
+
+        <div class="hst">💰 成本与预算管理</div>
+        <div class="home-grid" id="grid-governance-budget"></div>
+
+        <div class="hst" style="margin-top:28px">⚠️ 风险管控与复盘</div>
+        <div class="home-grid" id="grid-governance-risk"></div>
+
+        <div class="hst" style="margin-top:28px">🎓 团队与培训</div>
+        <div class="home-grid" id="grid-governance-team"></div>
       </div>
 
       <!-- ═══ 互动模块占位区域 ═══ -->
