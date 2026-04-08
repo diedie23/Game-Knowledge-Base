@@ -13,7 +13,7 @@ h1 .icon{width:48px;height:48px;background:var(--orange-bg);border-radius:12px;d
 h1 .ver{font-size:12px;background:var(--accent);color:#fff;padding:2px 10px;border-radius:10px;font-weight:500}
 .subtitle{font-size:14px;color:var(--dim);margin-bottom:24px}
 h2{font-size:20px;color:var(--heading);font-weight:600;margin:32px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
-h3{font-size:16px;color:var(--heading);font-weight:600;margin:20px 0 10px}
+.sub-title{font-size:16px;color:var(--heading);font-weight:600;margin:20px 0 10px}
 p{margin:8px 0;font-size:14px}
 ul,ol{padding-left:24px;margin:8px 0}
 li{margin:4px 0;font-size:14px}
@@ -24,7 +24,7 @@ code{background:var(--code-bg);padding:2px 6px;border-radius:3px;font-size:13px;
 pre{background:var(--code-bg);padding:16px 20px;border-radius:8px;overflow-x:auto;margin:16px 0;border:1px solid var(--border);font-size:13px;line-height:1.6}
 pre code{background:none;padding:0;border:none;color:var(--text)}
 .download-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 32px;margin:24px 0}
-.download-section h3{margin-top:0}
+.download-section .sub-title{margin-top:0}
 .dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
 .dl-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;transition:all .2s}
 .dl-card:hover{border-color:var(--accent);transform:translateY(-2px)}
@@ -63,7 +63,7 @@ hr{border:none;border-top:1px solid var(--border);margin:32px 0}
 
 
 <div class="download-section">
-  <h3>📥 桌面版下载</h3>
+  <div class="sub-title">📥 桌面版下载</div>
   <div class="dl-grid">
     <div class="dl-card">
       <div class="dl-icon">💾</div>
@@ -107,7 +107,7 @@ hr{border:none;border-top:1px solid var(--border);margin:32px 0}
 
 <h2 id="usage">📖 使用说明</h2>
 
-<h3>操作步骤</h3>
+<div class="sub-title">操作步骤</div>
 <ol>
   <li><strong>添加文件</strong> — 点击"添加文件"或"添加文件夹"按钮，或将文件拖拽到窗口中</li>
   <li><strong>设置参数</strong> — 调整角度阈值、输出模式、背景填充色</li>
@@ -115,7 +115,7 @@ hr{border:none;border-top:1px solid var(--border);margin:32px 0}
   <li><strong>查看日志</strong> — 底部日志区域显示处理进度和结果</li>
 </ol>
 
-<h3>检测算法说明</h3>
+<div class="sub-title">检测算法说明</div>
 <table>
   <tr><th>算法</th><th>原理</th><th>适用场景</th></tr>
   <tr><td>霍夫变换</td><td>检测图像中的直线，计算主要方向</td><td>有明显线条的图片</td></tr>
@@ -133,7 +133,7 @@ hr{border:none;border-top:1px solid var(--border);margin:32px 0}
   <tr><td>源码运行</td><td>Python 3.8+，安装依赖：<code>pip install -r requirements.txt</code></td></tr>
 </table>
 
-<h3>依赖清单</h3>
+<div class="sub-title">依赖清单</div>
 <pre><code>opencv-python    # 图像处理与倾斜检测
 numpy            # 数值计算
 Pillow           # 图片读写

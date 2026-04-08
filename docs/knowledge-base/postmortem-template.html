@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>版本研发复盘模板</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:24px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:11px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:13px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:12px;line-height:1.8;padding-left:28px}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>🔄 版本研发复盘模板 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Post-mortem Review Template</div>
+  <div class="meta">
+    <span>📋 适用：测试期</span>
+    <span>👤 维护：周八</span>
+    <span>📅 2026-04-02</span>
+  </div>
+</div>
+
+<div class="alert alert-blue">💡 <strong>复盘原则</strong>：<strong>对事不对人</strong>。复盘目的是发现系统性问题并改进流程，而非追责个人。</div>
+
+<div class="toc">
+  <h3>📑 目录导航</h3>
+  <ol>
+    <li><a href="#s1">复盘基本信息</a></li>
+    <li><a href="#s2">版本目标回顾</a></li>
+    <li><a href="#s3">时间线梳理</a></li>
+    <li><a href="#s4">做得好的 (What Went Well)</a></li>
+    <li><a href="#s5">需要改进的 (What Went Wrong)</a></li>
+    <li><a href="#s6">Action Items</a></li>
+    <li><a href="#s7">数据统计</a></li>
+    <li><a href="#s8">经验沉淀</a></li>
+    <li><a href="#s9">附录：复盘会议 Agenda</a></li>
+  </ol>
+</div>
+
+<!-- 1 -->
+<div class="section" id="s1">
+  <h2>📋 1. 复盘基本信息</h2>
+  <table>
+    <tr><th>字段</th><th>内容</th></tr>
+    <tr><td>🎮 <strong>版本名称</strong></td><td>（填写）</td></tr>
+    <tr><td>📅 <strong>版本周期</strong></td><td>YYYY-MM-DD ~ YYYY-MM-DD</td></tr>
+    <tr><td>📅 <strong>复盘日期</strong></td><td>YYYY-MM-DD</td></tr>
+    <tr><td>🎤 <strong>主持人</strong></td><td>APM - 周八</td></tr>
+    <tr><td>👥 <strong>参与人</strong></td><td>（列出全部参与者）</td></tr>
+    <tr><td>✍️ <strong>记录人</strong></td><td>（填写）</td></tr>
+  </table>
+</div>
+
+<!-- 2 -->
+<div class="section" id="s2">
+  <h2>🎯 2. 版本目标回顾</h2>
+  <div class="sub-title">📊 2.1 目标达成率</div>
+  <table>
+    <tr><th>🎯 目标</th><th>📅 计划</th><th>✅ 实际</th><th>📈 达成率</th><th>📝 说明</th></tr>
+    <tr><td>角色完成数</td><td>10</td><td>8</td><td>80%</td><td>2 个延至下版</td></tr>
+    <tr><td>场景完成数</td><td>5</td><td>5</td><td>100%</td><td>✅</td></tr>
+    <tr><td>UI 界面数</td><td>20</td><td>18</td><td>90%</td><td>2 个低优先级延后</td></tr>
+    <tr><td>特效完成</td><td>30 组</td><td>25 组</td><td>83%</td><td></td></tr>
+    <tr><td>美术 Bug 清零</td><td>S:0 A:0</td><td>S:0 A:1</td><td>95%</td><td>1 个 A 级在修</td></tr>
+  </table>
+
+  <div class="sub-title">⏱️ 2.2 排期准确率</div>
+  <table>
+    <tr><th>🎨 工种</th><th>📅 计划人天</th><th>✅ 实际人天</th><th>📊 偏差</th><th>🎯 准确率</th></tr>
+    <tr><td>角色</td><td>120d</td><td>135d</td><td>+15d</td><td>87.5%</td></tr>
+    <tr><td>场景</td><td>80d</td><td>78d</td><td>-2d</td><td>97.5%</td></tr>
+    <tr><td>UI</td><td>60d</td><td>65d</td><td>+5d</td><td>91.7%</td></tr>
+    <tr><td>特效</td><td>50d</td><td>58d</td><td>+8d</td><td>84%</td></tr>
+    <tr><td>动画</td><td>45d</td><td>48d</td><td>+3d</td><td>93.3%</td></tr>
+  </table>
+</div>
+
+<!-- 3 -->
+<div class="section" id="s3">
+  <h2>📅 3. 时间线梳理</h2>
+  <div class="sub-title">🏁 3.1 里程碑执行对比</div>
+  <table>
+    <tr><th>🏁 里程碑</th><th>📅 计划日期</th><th>✅ 实际日期</th><th>📊 偏差</th><th>🔍 原因</th></tr>
+    <tr><td>Alpha</td><td>03-15</td><td>03-18</td><td>+3d</td><td>核心角色延期</td></tr>
+    <tr><td>CB1 评审</td><td>04-15</td><td>04-15</td><td>准时</td><td>✅</td></tr>
+    <tr><td>Beta</td><td>05-31</td><td>06-05</td><td>+5d</td><td>场景优化返工</td></tr>
+    <tr><td>RC</td><td>06-30</td><td>07-03</td><td>+3d</td><td>受 Beta 延期影响</td></tr>
+  </table>
+</div>
+
+<!-- 4 -->
+<div class="section" id="s4">
+  <h2>✨ 4. 做得好的 (What Went Well)</h2>
+  <table>
+    <tr><th>#</th><th>🌟 亮点</th><th>📝 具体表现</th><th>🔄 可推广</th></tr>
+    <tr><td>1</td><td>UI 团队效率高</td><td>按时交付，一次通过率 85%</td><td>✅ UI 需求模板推广</td></tr>
+    <tr><td>2</td><td>命名检查工具</td><td>自动化检查减少 30% 人工检查</td><td>✅ 全工种推广</td></tr>
+    <tr><td>3</td><td>每周走查制度</td><td>提前发现问题，避免后期爆雷</td><td>✅ 固化流程</td></tr>
+  </table>
+</div>
+
+<!-- 5 -->
+<div class="section" id="s5">
+  <h2>🚨 5. 需要改进的 (What Went Wrong)</h2>
+  <div class="sub-title">📋 5.1 问题清单</div>
+  <table>
+    <tr><th>#</th><th>🐛 问题</th><th>💥 影响</th><th>🚦 严重度</th></tr>
+    <tr><td>1</td><td>策划需求冻结延迟 7 天</td><td>角色排期整体后移</td><td><span class="badge badge-red">高</span></td></tr>
+    <tr><td>2</td><td>外包首批交付质量差</td><td>返工 + 排期紧张</td><td><span class="badge badge-red">高</span></td></tr>
+    <tr><td>3</td><td>角色面数超标未早期发现</td><td>后期重做 3 个角色</td><td><span class="badge badge-yellow">中高</span></td></tr>
+    <tr><td>4</td><td>引擎升级影响评估不足</td><td>材质重调 2 周</td><td><span class="badge badge-yellow">中</span></td></tr>
+  </table>
+
+  <div class="sub-title">🔍 5.2 根因分析 (5-Why 方法)</div>
+  <div class="faq-item">
+    <div class="faq-q">🚨 案例 1：策划需求冻结延迟</div>
+    <div class="faq-a">
+      <p><span class="badge badge-red">高频</span> 预研→量产转换阶段</p>
+      <p><strong>根因</strong>：预研流程缺少竞品分析环节，制作人中途因竞品上线加入新设计方向。</p>
+      <p><strong>破局</strong>：① 预研 Checklist 增加竞品分析必选项 ② 输出《竞品分析报告》作为方案锁定前置 ③ 需求冻结前制作人签字确认</p>
+    </div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">🚨 案例 2：外包首批交付质量差</div>
+    <div class="faq-a">
+      <p><span class="badge badge-red">高频</span> 首次合作 CP 启动阶段</p>
+      <p><strong>根因</strong>：只给参考图和口头说明，缺乏详细风格指南交付物。</p>
+      <p><strong>破局</strong>：① 外包启动前必须提供《风格指南》文档 ② 首件样品机制 ③ 合同增加"首批不通过可解约"条款</p>
+    </div>
+  </div>
+</div>
+
+<!-- 6 -->
+<div class="section" id="s6">
+  <h2>✅ 6. Action Items</h2>
+  <table>
+    <tr><th>#</th><th>📌 改进项</th><th>👤 负责人</th><th>📅 截止日期</th><th>🚦 优先级</th><th>📊 状态</th></tr>
+    <tr><td>1</td><td>预研 Checklist 增加竞品分析</td><td>周八</td><td>下版本预研前</td><td><span class="badge badge-red">高</span></td><td>⬜ 待做</td></tr>
+    <tr><td>2</td><td>制作外包风格指南模板</td><td>主美-李四</td><td>2 周内</td><td><span class="badge badge-red">高</span></td><td>⬜ 待做</td></tr>
+    <tr><td>3</td><td>建立资产面数自动检查 CI</td><td>孙七(TA)</td><td>1 月内</td><td><span class="badge badge-yellow">中</span></td><td>⬜ 待做</td></tr>
+    <tr><td>4</td><td>引擎升级前增加影响评估会</td><td>孙七(TA)</td><td>固化流程</td><td><span class="badge badge-yellow">中</span></td><td>⬜ 待做</td></tr>
+    <tr><td>5</td><td>外包验收增加首件样品机制</td><td>周八</td><td>下次外包</td><td><span class="badge badge-red">高</span></td><td>⬜ 待做</td></tr>
+  </table>
+</div>
+
+<!-- 7 -->
+<div class="section" id="s7">
+  <h2>📊 7. 数据统计</h2>
+  <div class="sub-title">🎨 7.1 资产产出统计</div>
+  <table>
+    <tr><th>🎨 工种</th><th>📅 计划</th><th>✅ 完成</th><th>📈 完成率</th><th>🤝 外包占比</th></tr>
+    <tr><td>角色</td><td>10</td><td>8</td><td>80%</td><td>50%</td></tr>
+    <tr><td>场景</td><td>5</td><td>5</td><td>100%</td><td>20%</td></tr>
+    <tr><td>UI</td><td>20</td><td>18</td><td>90%</td><td>0%</td></tr>
+    <tr><td>特效</td><td>30</td><td>25</td><td>83%</td><td>0%</td></tr>
+    <tr><td>动画</td><td>20</td><td>18</td><td>90%</td><td>30%</td></tr>
+  </table>
+  <div class="sub-title">💰 7.2 成本统计</div>
+  <table>
+    <tr><th>💰 项目</th><th>📅 预算</th><th>✅ 实际</th><th>📊 偏差率</th></tr>
+    <tr><td>内部人力</td><td>¥500k</td><td>¥520k</td><td>+4%</td></tr>
+    <tr><td>外包费用</td><td>¥250k</td><td>¥285k</td><td>+14%</td></tr>
+    <tr><td><strong>合计</strong></td><td><strong>¥750k</strong></td><td><strong>¥805k</strong></td><td><strong>+7.3%</strong></td></tr>
+  </table>
+</div>
+
+<!-- 8 -->
+<div class="section" id="s8">
+  <h2>💎 8. 经验沉淀</h2>
+  <div class="sub-title">📄 8.1 形成的文档/规范</div>
+  <table>
+    <tr><th>📄 输出物</th><th>📊 状态</th></tr>
+    <tr><td>预研阶段 Checklist (含竞品分析)</td><td>⬜ 待编写</td></tr>
+    <tr><td>外包风格指南模板</td><td>⬜ 待编写</td></tr>
+    <tr><td>资产面数自动检查脚本</td><td>⬜ 待开发</td></tr>
+    <tr><td>引擎升级影响评估 SOP</td><td>⬜ 待编写</td></tr>
+  </table>
+  <div class="sub-title">⚡ 8.2 经验金句</div>
+  <div class="alert alert-blue">⚡ "口头沟通不是文档，外包永远需要比你想象的更详细的规范。"</div>
+  <div class="alert alert-blue">⚡ "自动化检查永远比人工 Review 靠谱。"</div>
+  <div class="alert alert-blue">⚡ "预研多花 1 周，量产少踩 1 个月的坑。"</div>
+</div>
+
+<!-- 9 -->
+<div class="section" id="s9">
+  <h2>📅 附录：复盘会议 Agenda</h2>
+  <table>
+    <tr><th>⏰ 时间</th><th>📌 环节</th><th>⏱️ 时长</th><th>📝 说明</th></tr>
+    <tr><td>14:00</td><td>🎤 开场 &amp; 规则说明</td><td>5min</td><td>安全发言、对事不对人</td></tr>
+    <tr><td>14:05</td><td>🎯 目标回顾</td><td>10min</td><td>达成率数据</td></tr>
+    <tr><td>14:15</td><td>📅 时间线梳理</td><td>15min</td><td>关键事件回顾</td></tr>
+    <tr><td>14:30</td><td>✨ What Went Well</td><td>15min</td><td>亮点分享</td></tr>
+    <tr><td>14:45</td><td>🚨 What Went Wrong</td><td>20min</td><td>问题讨论</td></tr>
+    <tr><td>15:05</td><td>🔍 5-Why 根因分析</td><td>15min</td><td>Top 3 问题深挖</td></tr>
+    <tr><td>15:20</td><td>✅ Action Items</td><td>10min</td><td>确认改进项</td></tr>
+    <tr><td>15:30</td><td>👋 结束</td><td>—</td><td>—</td></tr>
+  </table>
+</div>
+
+<div class="doc-footer">
+  游戏美术项目管理知识库 · 版本研发复盘模板 v1.0
+</div>
+
+</div>
+</body>
+</html>

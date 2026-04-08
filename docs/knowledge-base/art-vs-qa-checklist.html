@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>版本走查验收清单</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:24px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:11px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:13px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:12px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:12px;line-height:1.7}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:13px}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+.redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;text-align:center;min-width:90px}
+.flow-node strong{display:block;color:var(--heading);font-size:12px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:10px}
+.flow-arrow{color:var(--cyan);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+.checklist{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
+.checklist h4{color:var(--heading);margin-bottom:8px}
+.check-item{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:12px}
+.check-item .box{width:16px;height:16px;border:1px solid var(--border);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;background:var(--card)}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:12px;line-height:1.8;padding-left:28px}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>✅ 版本走查验收清单 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Version Walkthrough &amp; Acceptance Checklist</div>
+  <div class="meta">
+    <span>🏷️ P0 · 里程碑必做</span>
+    <span>📋 适用：测试期</span>
+    <span>👤 维护：周八</span>
+    <span>📅 2026-04-02</span>
+  </div>
+</div>
+
+<div class="alert alert-blue">💡 <strong>核心原则</strong>：走查以 <strong>中端机为基准</strong> 进行视觉与性能验证，所有检查项以红线标准为合格线。</div>
+
+<div class="toc">
+  <h3>📑 目录导航</h3>
+  <ol>
+    <li><a href="#s1">走查流程概览</a></li>
+    <li><a href="#s2">角色走查清单</a></li>
+    <li><a href="#s3">场景走查清单</a></li>
+    <li><a href="#s4">UI 走查清单</a></li>
+    <li><a href="#s5">设备适配验证</a></li>
+    <li><a href="#s6">截图归档规范</a></li>
+    <li><a href="#s7">附录：走查效率优化建议</a></li>
+  </ol>
+</div>
+
+<!-- ======== 1. 走查流程概览 ======== -->
+<div class="section" id="s1">
+  <h2>🔄 1. 走查流程概览</h2>
+
+  <div class="flow">
+    <div class="flow-node start"><strong>📦 版本构建完成</strong></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>📢 通知走查人员</strong></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>📋 任务分配</strong></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>🔍 逐模块走查</strong></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>🐛 问题记录</strong></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node gate"><strong>📊 汇总报告</strong></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node end"><strong>🏁 版本放行</strong></div>
+  </div>
+  <p style="font-size:11px;color:var(--dim)">* 汇总报告如不通过则 🔧 修复后重新走查</p>
+
+  <div class="sub-title">👥 1.1 走查参与角色</div>
+  <table>
+    <tr><th>👤 角色</th><th>📝 职责</th></tr>
+    <tr><td><strong>APM</strong></td><td>主持走查、分配任务、汇总报告</td></tr>
+    <tr><td><strong>主美</strong></td><td>视觉质量把控、风格一致性审核</td></tr>
+    <tr><td><strong>各工种组长</strong></td><td>检查本工种资产质量</td></tr>
+    <tr><td><strong>QA</strong></td><td>适配测试、性能测试</td></tr>
+    <tr><td><strong>TA</strong></td><td>技术规格验证</td></tr>
+  </table>
+
+  <div class="sub-title">📅 1.2 走查时间安排</div>
+  <table>
+    <tr><th>⏰ 时间节点</th><th>🔍 走查范围</th><th>👥 参与人</th></tr>
+    <tr><td>每 Sprint 末</td><td>本 Sprint 新增/修改资产</td><td>APM + 组长</td></tr>
+    <tr><td>Alpha/Beta 前</td><td>全量走查</td><td>全团队</td></tr>
+    <tr><td>RC 前</td><td>重点模块 + 历史 Bug 回归</td><td>全团队 + QA</td></tr>
+  </table>
+</div>
+
+<!-- ======== 2. 角色走查清单 ======== -->
+<div class="section" id="s2">
+  <h2>🧑‍🎨 2. 角色走查清单</h2>
+
+  <div class="sub-title">🔷 2.1 模型质量</div>
+  <p><span class="badge badge-yellow">3D角色</span> 模型基础质量检查</p>
+  <table>
+    <tr><th>#</th><th>🔍 检查项</th><th>📌 标准</th><th>☐</th></tr>
+    <tr><td>1</td><td>整体比例</td><td>与原画一致，无变形</td><td>☐</td></tr>
+    <tr><td>2</td><td>面数</td><td>≤ 红线值 (中端基准)</td><td>☐</td></tr>
+    <tr><td>3</td><td>模型完整性</td><td>无破面、漏洞、内翻法线</td><td>☐</td></tr>
+    <tr><td>4</td><td>拓扑质量</td><td>布线合理，变形区域加密</td><td>☐</td></tr>
+    <tr><td>5</td><td>材质球数</td><td>≤ 规定数量</td><td>☐</td></tr>
+  </table>
+
+  <div class="sub-title">🎨 2.2 贴图质量</div>
+  <p><span class="badge badge-yellow">贴图</span> 贴图清晰度与规格检查</p>
+  <table>
+    <tr><th>#</th><th>🔍 检查项</th><th>📌 标准</th><th>☐</th></tr>
+    <tr><td>1</td><td>贴图清晰度</td><td>近景查看不模糊</td><td>☐</td></tr>
+    <tr><td>2</td><td>UV 利用率</td><td>≥ 75%</td><td>☐</td></tr>
+    <tr><td>3</td><td>贴图尺寸</td><td>符合红线标准</td><td>☐</td></tr>
+    <tr><td>4</td><td>色差检查</td><td>与原画色彩一致（引擎内对比）</td><td>☐</td></tr>
+    <tr><td>5</td><td>接缝处理</td><td>身体部件接缝不可见</td><td>☐</td></tr>
+    <tr><td>6</td><td>sRGB 设置</td><td>Normal/Mask 未开 sRGB</td><td>☐</td></tr>
+  </table>
+
+  <div class="sub-title">🏃 2.3 动画质量</div>
+  <p><span class="badge badge-yellow">动画</span> 动作流畅性与穿模检查</p>
+  <table>
+    <tr><th>#</th><th>🔍 检查项</th><th>📌 标准</th><th>☐</th></tr>
+    <tr><td>1</td><td>待机动画</td><td>自然循环，无抖动</td><td>☐</td></tr>
+    <tr><td>2</td><td>移动动画</td><td>无滑步，Root Motion 正确</td><td>☐</td></tr>
+    <tr><td>3</td><td>攻击动画</td><td>打击感明确，帧率流畅</td><td>☐</td></tr>
+    <tr><td>4</td><td>技能动画</td><td>特效同步，无穿模</td><td>☐</td></tr>
+    <tr><td>5</td><td>过渡自然度</td><td>状态切换无闪烁/抖动</td><td>☐</td></tr>
+    <tr><td>6</td><td>穿模检查</td><td>全动画检查无部件穿插</td><td>☐</td></tr>
+    <tr><td>7</td><td>死亡/受击</td><td>表现明确，不影响游戏</td><td>☐</td></tr>
+  </table>
+
+  <div class="sub-title">✨ 2.4 特效质量</div>
+  <p><span class="badge badge-yellow">特效</span> 技能特效播放与性能检查</p>
+  <table>
+    <tr><th>#</th><th>🔍 检查项</th><th>📌 标准</th><th>☐</th></tr>
+    <tr><td>1</td><td>技能特效</td><td>播放正常，无残留</td><td>☐</td></tr>
+    <tr><td>2</td><td>命中特效</td><td>位置正确，时机对</td><td>☐</td></tr>
+    <tr><td>3</td><td>Buff 特效</td><td>显示/消失正确</td><td>☐</td></tr>
+    <tr><td>4</td><td>性能</td><td>Drawcall / 粒子数达标</td><td>☐</td></tr>
+  </table>
+</div>
+
+<!-- ======== 3. 场景走查清单 ======== -->
+<div class="section" id="s3">
+  <h2>🏔️ 3. 场景走查清单</h2>
+
+  <div class="sub-title">🌅 3.1 视觉质量</div>
+  <p><span class="badge badge-yellow">场景美术</span> 光影、接缝与整体风格检查</p>
+  <table>
+    <tr><th>#</th><th>🔍 检查项</th><th>📌 标准</th><th>☐</th></tr>
+    <tr><td>1</td><td>整体光影</td><td>光照方向一致，无异常阴影</td><td>☐</td></tr>
+    <tr><td>2</td><td>模型接缝</td><td>模块化拼接无可见缝隙</td><td>☐</td></tr>
+    <tr><td>3</td><td>贴图精度</td><td>主要视角下贴图清晰</td><td>☐</td></tr>
+    <tr><td>4</td><td>天空/远景</td><td>天空盒完整，远景过渡自然</td><td>☐</td></tr>
+    <tr><td>5</td><td>环境特效</td><td>雨雪/落叶/雾气表现正常</td><td>☐</td></tr>
+    <tr><td>6</td><td>色调统一</td><td>场景整体色调风格一致</td><td>☐</td></tr>
+  </table>
+
+  <div class="sub-title">⚙️ 3.2 功能性检查</div>
+  <p><span class="badge badge-yellow">碰撞/交互</span> 碰撞体、导航网格与交互物检查</p>
+  <table>
+    <tr><th>#</th><th>🔍 检查项</th><th>📌 标准</th><th>☐</th></tr>
+    <tr><td>1</td><td>碰撞体</td><td>角色不穿墙，不卡在模型中</td><td>☐</td></tr>
+    <tr><td>2</td><td>可行走区域</td><td>导航网格完整，无空洞</td><td>☐</td></tr>
+    <tr><td>3</td><td>传送点/出入口</td><td>功能正常</td><td>☐</td></tr>
+    <tr><td>4</td><td>交互物件</td><td>可交互物体高亮/反馈正常</td><td>☐</td></tr>
+    <tr><td>5</td><td>LOD 切换</td><td>切换平滑，无闪烁</td><td>☐</td></tr>
+  </table>
+
+  <div class="sub-title">📈 3.3 性能检查</div>
+  <p><span class="badge badge-yellow">性能</span> 帧率、面数与内存达标性检查</p>
+  <table>
+    <tr><th>#</th><th>🔍 检查项</th><th>📌 标准</th><th>☐</th></tr>
+    <tr><td>1</td><td>帧率</td><td>中端机 ≥ 30 FPS</td><td>☐</td></tr>
+    <tr><td>2</td><td>同屏面数</td><td>≤ 红线</td><td>☐</td></tr>
+    <tr><td>3</td><td>Drawcall</td><td>≤ 红线</td><td>☐</td></tr>
+    <tr><td>4</td><td>遮挡剔除</td><td>不可见物体已剔除</td><td>☐</td></tr>
+    <tr><td>5</td><td>内存</td><td>场景加载后内存正常</td><td>☐</td></tr>
+  </table>
+</div>
+
+<!-- ======== 4. UI 走查清单 ======== -->
+<div class="section" id="s4">
+  <h2>🖥️ 4. UI 走查清单</h2>
+
+  <div class="sub-title">🎨 4.1 视觉检查</div>
+  <p><span class="badge badge-yellow">UI设计</span> 还原度与设计规范检查</p>
+  <table>
+    <tr><th>#</th><th>🔍 检查项</th><th>📌 标准</th><th>☐</th></tr>
+    <tr><td>1</td><td>设计还原度</td><td>与设计稿一致</td><td>☐</td></tr>
+    <tr><td>2</td><td>字体/字号</td><td>符合规范，可读</td><td>☐</td></tr>
+    <tr><td>3</td><td>间距/对齐</td><td>元素对齐，间距一致</td><td>☐</td></tr>
+    <tr><td>4</td><td>图标清晰度</td><td>不模糊，无锯齿</td><td>☐</td></tr>
+    <tr><td>5</td><td>动效表现</td><td>过渡自然，不卡顿</td><td>☐</td></tr>
+  </table>
+
+  <div class="sub-title">📱 4.2 适配检查</div>
+  <p><span class="badge badge-yellow">多设备</span> 各比例屏幕适配验证</p>
+  <table>
+    <tr><th>#</th><th>🔍 检查项</th><th>📐 16:9</th><th>📐 18:9</th><th>📐 20:9</th><th>📱 刘海屏</th><th>📱 iPad</th></tr>
+    <tr><td>1</td><td>主界面</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td></tr>
+    <tr><td>2</td><td>战斗 HUD</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td></tr>
+    <tr><td>3</td><td>商城</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td></tr>
+    <tr><td>4</td><td>设置</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td></tr>
+    <tr><td>5</td><td>弹窗</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td></tr>
+  </table>
+</div>
+
+<!-- ======== 5. 设备适配验证 ======== -->
+<div class="section" id="s5">
+  <h2>📱 5. 设备适配验证</h2>
+
+  <div class="sub-title">📋 5.1 必测设备清单</div>
+  <table>
+    <tr><th>📊 档位</th><th>📱 设备</th><th>📐 分辨率</th><th>🖥️ 屏幕比例</th></tr>
+    <tr><td>🔴 高端</td><td>iPhone 15 Pro</td><td>2556×1179</td><td>19.5:9</td></tr>
+    <tr><td>🔴 高端</td><td>Samsung S24 Ultra</td><td>3120×1440</td><td>19.5:9</td></tr>
+    <tr><td>🟡 中端</td><td>iPhone 13</td><td>2532×1170</td><td>19.5:9</td></tr>
+    <tr><td>🟡 中端</td><td>小米 13</td><td>2400×1080</td><td>20:9</td></tr>
+    <tr><td>🟢 低端</td><td>iPhone 11</td><td>1792×828</td><td>19.5:9</td></tr>
+    <tr><td>🟢 低端</td><td>Redmi Note 12</td><td>2400×1080</td><td>20:9</td></tr>
+    <tr><td>🔵 平板</td><td>iPad Air</td><td>2360×1640</td><td>~3:2</td></tr>
+  </table>
+
+  <div class="faq-item">
+    <div class="faq-q">🚨 案例：刘海屏适配遮挡</div>
+    <div class="faq-a">
+      <p><span class="badge badge-red">高频</span> 每个有 UI 适配的版本几乎必遇</p>
+      <p><strong>🎬 典型场景</strong>：iPhone 15 Pro 上主界面左上角的返回按钮被刘海遮住了，点不到。程序硬编码 <code>top: 44px</code> 偏移量来避让刘海区，但不同厂商安全区标准不同。</p>
+      <p><strong>🔍 根因</strong>：硬编码偏移值，未使用系统 SafeArea API；不同厂商安全区域标准不同。</p>
+      <p><strong>💡 破局</strong>：① 统一使用 SafeArea API 适配 ② 适配检查矩阵覆盖全部目标机型 ③ 建立设备适配回归清单</p>
+    </div>
+  </div>
+
+  <div class="sub-title">🎯 5.2 适配重点区域</div>
+  <table>
+    <tr><th>📍 区域</th><th>🔍 检查要点</th></tr>
+    <tr><td><strong>安全区</strong></td><td>刘海/挖孔/药丸区域无遮挡</td></tr>
+    <tr><td><strong>底部</strong></td><td>全面屏手势区域无按钮遮挡</td></tr>
+    <tr><td><strong>顶部状态栏</strong></td><td>不与系统状态栏重叠</td></tr>
+    <tr><td><strong>宽屏适配</strong></td><td>iPad 不拉伸变形</td></tr>
+  </table>
+</div>
+
+<!-- ======== 6. 截图归档规范 ======== -->
+<div class="section" id="s6">
+  <h2>📸 6. 截图归档规范</h2>
+
+  <div class="sub-title">🏷️ 6.1 截图命名规则</div>
+  <div class="dd-grid">
+    <div class="dd-card dd-do">
+      <h4>✅ Do（正确示范）</h4>
+      <p><code>v0.8.2_Character_Luna_iPhone13_20260407_001.png</code></p>
+      <p><code>v0.8.2_Scene_MainCity_iPad_20260407_001.png</code></p>
+      <p><code>v0.8.2_UI_Shop_iPhone15Pro_20260407_001.png</code></p>
+    </div>
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't（错误示范）</h4>
+      <p><code>截图1.png</code> / <code>新建文件夹/screenshot.jpg</code></p>
+      <p>❌ 无版本号 → 无法关联到具体版本</p>
+      <p>❌ 无设备信息 → 无法复现适配问题</p>
+      <p>❌ 无模块标识 → 无法归类到对应走查模块</p>
+    </div>
+  </div>
+
+  <div class="sub-title">📂 6.2 归档目录结构</div>
+  <pre>/QA_Screenshots/
+├── v0.8.2/
+│   ├── Character/
+│   ├── Scene/
+│   ├── UI/
+│   ├── VFX/
+│   └── Report/
+│       └── WalkThrough_Report_v0.8.2.xlsx
+└── v0.9.0/</pre>
+
+  <div class="sub-title">📊 6.3 走查报告模板</div>
+  <table>
+    <tr><th>📦 版本</th><th>📅 走查日期</th><th>👤 走查人</th><th>🐛 总Bug数</th><th>🔴 S</th><th>🟠 A</th><th>🟡 B</th><th>🟢 C</th><th>📈 通过率</th><th>🏁 结论</th></tr>
+    <tr><td>v0.8.2</td><td>2026-04-07</td><td>全组</td><td>23</td><td>0</td><td>3</td><td>15</td><td>5</td><td>87%</td><td>🟡 有条件通过</td></tr>
+  </table>
+</div>
+
+<!-- ======== 7. 附录 ======== -->
+<div class="section" id="s7">
+  <h2>📎 附录：走查效率优化建议</h2>
+  <table>
+    <tr><th>💡 建议</th><th>📝 说明</th></tr>
+    <tr><td><strong>分工走查</strong></td><td>角色组查角色、场景组查场景，不交叉</td></tr>
+    <tr><td><strong>工具辅助</strong></td><td>使用自动化脚本检查面数/命名等</td></tr>
+    <tr><td><strong>录屏+截图</strong></td><td>走查时全程录屏，发现问题截图标注</td></tr>
+    <tr><td><strong>预设路径</strong></td><td>定义标准走查路径（场景逐区域、角色逐部位）</td></tr>
+    <tr><td><strong>限时走查</strong></td><td>单模块限时 30 分钟，避免过度消耗</td></tr>
+  </table>
+
+  <div class="alert alert-blue">⚡ <strong>APM 金句</strong>："走查不是挑毛病，而是在玩家之前替他们把体验打磨到位。"</div>
+</div>
+
+<div class="doc-footer">
+  游戏美术项目管理知识库 · 版本走查验收清单 v1.0
+</div>
+
+</div>
+</body>
+</html>

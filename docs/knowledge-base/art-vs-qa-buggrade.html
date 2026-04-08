@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>美术表现类 Bug 定级标准</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:24px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:11px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:13px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:12px;line-height:1.7}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:13px}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+.redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;text-align:center;min-width:90px}
+.flow-node strong{display:block;color:var(--heading);font-size:12px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:10px}
+.flow-arrow{color:var(--cyan);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:12px;line-height:1.8;padding-left:28px}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>🐛 美术表现类 Bug 定级标准 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Art Visual Bug Severity Grading Standard</div>
+  <div class="meta">
+    <span>🏷️ P0 · 高频使用</span>
+    <span>📋 适用：测试期</span>
+    <span>👤 维护：周八</span>
+    <span>📅 2026-04-02</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>📑 目录导航</h3>
+  <ol>
+    <li><a href="#s1">严重度等级定义</a></li>
+    <li><a href="#s2">优先级矩阵</a></li>
+    <li><a href="#s3">Bug 提交规范</a></li>
+    <li><a href="#s4">美术修复工作流</a></li>
+    <li><a href="#s5">各版本 Bug 标准</a></li>
+    <li><a href="#s6">附录：常见美术 Bug 分类速查</a></li>
+  </ol>
+</div>
+
+<!-- ======== 1. 严重度等级定义 ======== -->
+<div class="section" id="s1">
+  <h2>🚦 1. 严重度等级定义</h2>
+
+  <div class="alert alert-blue">💡 <strong>核心原则</strong>：Bug 严重度由 <strong>视觉缺陷对游戏体验的影响程度</strong> 决定，与修复难度无关。</div>
+
+  <div class="sub-title">🏷️ 1.1 四级严重度</div>
+  <table>
+    <tr><th>🏷️ 等级</th><th>🔖 代号</th><th>📝 定义</th><th>💥 典型案例</th></tr>
+    <tr><td>🔴 <strong>S 级 (致命)</strong></td><td>Blocker</td><td>导致游戏无法正常进行的美术问题</td><td>角色全身黑/纯白；主界面无法显示；闪退</td></tr>
+    <tr><td>🟠 <strong>A 级 (严重)</strong></td><td>Critical</td><td>明显影响游戏体验的视觉问题</td><td>角色穿模；贴图错乱；动画卡死；特效遮挡操作</td></tr>
+    <tr><td>🟡 <strong>B 级 (一般)</strong></td><td>Major</td><td>有瑕疵但不影响功能的视觉问题</td><td>接缝可见；贴图精度不足；颜色偏差；动画不自然</td></tr>
+    <tr><td>🟢 <strong>C 级 (轻微)</strong></td><td>Minor</td><td>轻微瑕疵，需仔细观察才能发现</td><td>远景接缝；微小穿模；轻微锯齿；图标对齐偏差</td></tr>
+  </table>
+
+  <div class="sub-title">🔍 1.2 详细判定标准</div>
+
+  <p><strong>🔴 S 级 — 致命</strong> <span class="badge badge-red">Blocker</span> 出现即阻断游戏正常流程，必须立即响应。</p>
+  <table>
+    <tr><th>💥 表现</th><th>📌 判定依据</th></tr>
+    <tr><td>角色/场景渲染异常</td><td>全黑/全白/全透明/闪烁</td></tr>
+    <tr><td>必经路径无法通过</td><td>碰撞体缺失导致卡死</td></tr>
+    <tr><td>UI 功能缺失</td><td>按钮不可见/不可点击</td></tr>
+    <tr><td>闪退 / Crash</td><td>加载特定美术资产时崩溃</td></tr>
+    <tr><td>严重性能问题</td><td>进入特定场景帧率 &lt; 10 FPS</td></tr>
+  </table>
+
+  <p><strong>🟠 A 级 — 严重</strong> <span class="badge badge-red">Critical</span> 明显可感知的视觉问题，影响游戏体验。</p>
+  <table>
+    <tr><th>💥 表现</th><th>📌 判定依据</th></tr>
+    <tr><td>角色穿模</td><td>身体部件相互穿插</td></tr>
+    <tr><td>贴图错乱</td><td>UV 错位/贴图加载异常</td></tr>
+    <tr><td>动画卡死</td><td>停留在某个动画状态不切换</td></tr>
+    <tr><td>特效异常</td><td>特效未播放/不消失/遮挡UI</td></tr>
+    <tr><td>适配问题</td><td>特定机型 UI 严重变形/遮挡</td></tr>
+    <tr><td>资产错用</td><td>A 角色显示了 B 角色的模型</td></tr>
+  </table>
+
+  <p><strong>🟡 B 级 — 一般</strong> <span class="badge badge-yellow">Major</span> 有瑕疵但不影响核心功能，可在当前 Sprint 内修复。</p>
+  <table>
+    <tr><th>💥 表现</th><th>📌 判定依据</th></tr>
+    <tr><td>接缝可见</td><td>角色/场景模型拼接处有缝隙</td></tr>
+    <tr><td>贴图精度</td><td>近景查看明显模糊/像素化</td></tr>
+    <tr><td>颜色偏差</td><td>与原画/设计稿色差明显</td></tr>
+    <tr><td>动画不自然</td><td>过渡生硬/速度异常</td></tr>
+    <tr><td>特效位置</td><td>特效偏移/不跟随角色</td></tr>
+    <tr><td>阴影异常</td><td>阴影形状异常/缺失</td></tr>
+  </table>
+
+  <p><strong>🟢 C 级 — 轻微</strong> <span class="badge badge-green">Minor</span> 轻微瑕疵，需仔细观察才能发现，优先级最低。</p>
+  <table>
+    <tr><th>💥 表现</th><th>📌 判定依据</th></tr>
+    <tr><td>远景瑕疵</td><td>需拉近镜头才能发现</td></tr>
+    <tr><td>微小穿模</td><td>特定动作下极轻微穿模</td></tr>
+    <tr><td>对齐偏差</td><td>UI 元素 1~2px 偏差</td></tr>
+    <tr><td>锯齿/走样</td><td>轻微边缘锯齿</td></tr>
+    <tr><td>命名不规范</td><td>不影响功能但不符合规范</td></tr>
+  </table>
+</div>
+
+<!-- ======== 2. 优先级矩阵 ======== -->
+<div class="section" id="s2">
+  <h2>📊 2. 优先级矩阵</h2>
+
+  <div class="sub-title">🧮 2.1 优先级 = 严重度 × 影响范围</div>
+  <table>
+    <tr><th></th><th>🌐 全局</th><th>🛤️ 常见路径</th><th>🎲 偶发/边缘</th></tr>
+    <tr><td><strong>🔴 S 级</strong></td><td>⚡ P0 立即修</td><td>⚡ P0 立即修</td><td>🔴 P1 当天修</td></tr>
+    <tr><td><strong>🟠 A 级</strong></td><td>🔴 P1 当天修</td><td>🟡 P2 本Sprint修</td><td>🟡 P2 本Sprint修</td></tr>
+    <tr><td><strong>🟡 B 级</strong></td><td>🟡 P2 本Sprint修</td><td>🟢 P3 下Sprint修</td><td>🟢 P3 下Sprint修</td></tr>
+    <tr><td><strong>🟢 C 级</strong></td><td>🟢 P3 下Sprint修</td><td>⚪ P4 排期候选</td><td>⚪ P4 不修/积压</td></tr>
+  </table>
+
+  <div class="sub-title">⏱️ 2.2 修复时效要求</div>
+  <table>
+    <tr><th>🚨 优先级</th><th>⏰ 响应时间</th><th>🔧 修复时限</th><th>📢 升级节点</th></tr>
+    <tr><td>⚡ <strong>P0</strong></td><td><strong>30 分钟</strong></td><td><strong>4 小时</strong></td><td>超时 → 主美/制作人</td></tr>
+    <tr><td>🔴 <strong>P1</strong></td><td><strong>2 小时</strong></td><td><strong>当天</strong></td><td>超时 → APM</td></tr>
+    <tr><td>🟡 <strong>P2</strong></td><td><strong>当天</strong></td><td><strong>本 Sprint</strong></td><td>超时 → 组长</td></tr>
+    <tr><td>🟢 <strong>P3</strong></td><td>3 天内</td><td>下 Sprint</td><td>—</td></tr>
+    <tr><td>⚪ <strong>P4</strong></td><td>不限</td><td>有空时处理</td><td>—</td></tr>
+  </table>
+
+  <div class="alert alert-yellow">⚡ <strong>APM 金句</strong>："P0 不过夜，P1 不隔天——这是美术品质的底线。"</div>
+</div>
+
+<!-- ======== 3. Bug 提交规范 ======== -->
+<div class="section" id="s3">
+  <h2>📝 3. Bug 提交规范</h2>
+
+  <div class="sub-title">📋 3.1 必填字段</div>
+  <table>
+    <tr><th>🏷️ 字段</th><th>📝 说明</th><th>💡 示例</th></tr>
+    <tr><td><strong>标题</strong></td><td>[工种][场景] 简述</td><td>[角色] 英雄Luna攻击动画穿模</td></tr>
+    <tr><td><strong>严重度</strong></td><td>S/A/B/C</td><td>A</td></tr>
+    <tr><td><strong>优先级</strong></td><td>P0~P4</td><td>P2</td></tr>
+    <tr><td><strong>复现步骤</strong></td><td>1-2-3 步骤描述</td><td>1.选择Luna 2.释放技能Q 3.观察右手</td></tr>
+    <tr><td><strong>复现率</strong></td><td>必现/高概率/偶发/罕见</td><td>必现</td></tr>
+    <tr><td><strong>设备信息</strong></td><td>机型/系统版本/游戏版本</td><td>iPhone 13 / iOS 17.4 / v0.8.2</td></tr>
+    <tr><td><strong>截图/录屏</strong></td><td>至少 1 张标注截图</td><td>(见附件)</td></tr>
+    <tr><td><strong>期望表现</strong></td><td>正确的表现描述</td><td>右手应持剑，无穿过身体</td></tr>
+  </table>
+
+  <div class="sub-title">📸 3.2 截图规范</div>
+  <table>
+    <tr><th>📌 要求</th><th>📏 标准</th></tr>
+    <tr><td><strong>分辨率</strong></td><td>≥ 720p</td></tr>
+    <tr><td><strong>标注</strong></td><td>用红色箭头/圆圈标注问题区域</td></tr>
+    <tr><td><strong>对比图</strong></td><td>提供"实际 vs 期望"对比（如可能）</td></tr>
+    <tr><td><strong>录屏</strong></td><td>动态问题必须附 10~30s 录屏</td></tr>
+    <tr><td><strong>多角度</strong></td><td>穿模类提供 2~3 个角度截图</td></tr>
+    <tr><td><strong>设备截图</strong></td><td>适配类需注明机型和分辨率</td></tr>
+  </table>
+
+  <div class="sub-title">🏷️ 3.3 Bug 标题命名规范</div>
+  <div class="dd-grid">
+    <div class="dd-card dd-do">
+      <h4>✅ Do（正确示范）</h4>
+      <p><code>[角色] Luna普攻第二段右手穿过身体</code></p>
+      <p><code>[场景] 主城桥梁接缝处可见间隙</code></p>
+      <p><code>[UI] 商城界面在iPhone SE下按钮被截断</code></p>
+      <p><code>[特效] Luna大招特效播放结束后残留光点</code></p>
+      <p><code>[动画] 胜利动画最后3帧抖动</code></p>
+    </div>
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't（错误示范）</h4>
+      <p><code>bug</code></p>
+      <p><code>画面不好看</code></p>
+      <p><code>有问题</code></p>
+      <p><code>请修改</code></p>
+    </div>
+  </div>
+</div>
+
+<!-- ======== 4. 美术修复工作流 ======== -->
+<div class="section" id="s4">
+  <h2>🔄 4. 美术修复工作流</h2>
+
+  <div class="sub-title">📐 4.1 标准修复流程</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>🐛 QA 提 Bug</strong></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>📋 APM 分配</strong></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>🎨 美术确认</strong></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>🔧 修复中</strong></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>📦 提交验证</strong></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node gate"><strong>🔍 QA 验证</strong></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node end"><strong>🏁 关闭</strong></div>
+  </div>
+  <div class="alert alert-yellow">⚠️ P0/P1 级 Bug 修复需在修复完成后 <strong>立即通知 QA 验证</strong>，不等集中验证。验证未通过则 🔄 重开回到美术确认。</div>
+
+  <div class="sub-title">🏷️ 4.2 状态定义</div>
+  <table>
+    <tr><th>🔖 状态</th><th>📝 说明</th></tr>
+    <tr><td><strong>New</strong></td><td>QA 新提交</td></tr>
+    <tr><td><strong>Assigned</strong></td><td>APM 已分配给具体美术</td></tr>
+    <tr><td><strong>Confirmed</strong></td><td>美术确认是 Bug</td></tr>
+    <tr><td><strong>In Progress</strong></td><td>修复中</td></tr>
+    <tr><td><strong>Resolved</strong></td><td>美术修复完毕，提交验证</td></tr>
+    <tr><td><strong>Verified</strong></td><td>QA 验证通过</td></tr>
+    <tr><td><strong>Closed</strong></td><td>关闭</td></tr>
+    <tr><td><strong>Reopened</strong></td><td>QA 验证未通过，重新打开</td></tr>
+    <tr><td><strong>Won't Fix</strong></td><td>设计如此 / 性价比过低不修</td></tr>
+    <tr><td><strong>Duplicate</strong></td><td>重复 Bug</td></tr>
+  </table>
+
+  <div class="sub-title">🚫 4.3 拒绝 Bug 的合理理由</div>
+  <table>
+    <tr><th>📌 理由</th><th>📝 说明</th><th>👤 需要谁确认</th></tr>
+    <tr><td><strong>设计如此</strong> (By Design)</td><td>表现符合设计意图</td><td>策划 + 主美 确认</td></tr>
+    <tr><td><strong>性价比过低</strong> (Won't Fix)</td><td>修复成本远大于收益</td><td>APM + 主美 确认</td></tr>
+    <tr><td><strong>重复</strong> (Duplicate)</td><td>与已有 Bug 重复</td><td>提供原 Bug ID</td></tr>
+    <tr><td><strong>无法复现</strong> (Cannot Reproduce)</td><td>按步骤无法复现</td><td>与 QA 确认环境</td></tr>
+  </table>
+</div>
+
+<!-- ======== 5. 各版本 Bug 标准 ======== -->
+<div class="section" id="s5">
+  <h2>🏁 5. 各版本 Bug 标准</h2>
+
+  <div class="redline"><strong>🔴 核心红线</strong>：<strong>RC 版本不允许存在 S 级和 A 级 Bug</strong>，Gold 版本 B 级以上 Bug 必须清零。</div>
+
+  <div class="sub-title">📊 5.1 版本准入/准出标准</div>
+  <table>
+    <tr><th>🎯 阶段</th><th>🔴 S 级</th><th>🟠 A 级</th><th>🟡 B 级</th><th>🟢 C 级</th></tr>
+    <tr><td><strong>Alpha</strong></td><td>≤ 2（已知）</td><td>≤ 10</td><td>不限</td><td>不限</td></tr>
+    <tr><td><strong>Beta</strong></td><td>0</td><td>≤ 5</td><td>≤ 20</td><td>不限</td></tr>
+    <tr><td><strong>RC</strong></td><td>0</td><td>0</td><td>≤ 5</td><td>≤ 10</td></tr>
+    <tr><td><strong>Gold</strong></td><td>0</td><td>0</td><td>0</td><td>≤ 5</td></tr>
+  </table>
+</div>
+
+<!-- ======== 6. 附录 ======== -->
+<div class="section" id="s6">
+  <h2>📎 附录：常见美术 Bug 分类速查</h2>
+  <table>
+    <tr><th>📂 分类</th><th>💥 典型问题</th><th>🚦 常见严重度</th></tr>
+    <tr><td>穿模</td><td>角色部件相互穿插</td><td>A~B</td></tr>
+    <tr><td>贴图</td><td>UV 错位/贴图模糊/色差</td><td>B~C</td></tr>
+    <tr><td>动画</td><td>卡顿/不循环/方向错</td><td>A~B</td></tr>
+    <tr><td>特效</td><td>不播放/残留/位置偏移</td><td>A~B</td></tr>
+    <tr><td>UI</td><td>变形/遮挡/截断/未适配</td><td>A~C</td></tr>
+    <tr><td>场景</td><td>接缝/穿透/碰撞缺失</td><td>B~S</td></tr>
+    <tr><td>阴影</td><td>异形/缺失/闪烁</td><td>B~C</td></tr>
+    <tr><td>性能</td><td>帧率/内存/发热</td><td>A~S</td></tr>
+  </table>
+
+  <div class="alert alert-blue">⚡ <strong>APM 金句</strong>："标准越清晰，扯皮越少。定级不是为了惩罚美术，而是让所有人对'什么该先修'达成共识。"</div>
+</div>
+
+<div class="doc-footer">
+  游戏美术项目管理知识库 · 美术表现类 Bug 定级标准 v1.0
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>特效性能红线与层级规范</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:24px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:11px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:13px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:12px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:12px;line-height:1.7}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:13px}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:12px;line-height:1.8;padding-left:28px}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+.redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;text-align:center;min-width:90px}
+.flow-node strong{display:block;color:var(--heading);font-size:12px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:10px}
+.flow-arrow{color:var(--cyan);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+.checklist{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
+.checklist h4{color:var(--heading);margin-bottom:8px}
+.check-item{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:12px}
+.check-item .box{width:16px;height:16px;border:1px solid var(--border);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;background:var(--card)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>✨ 特效性能红线与层级规范 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">VFX Performance Redline & Layer Specification</div>
+  <div class="meta">
+    <span>📋 适用：预研期</span>
+    <span>👤 负责人：孙七</span>
+    <span>📅 2026-04-02</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ol>
+    <li><a href="#sec1">移动端特效性能预算表</a></li>
+    <li><a href="#sec2">特效层级管理规范</a></li>
+    <li><a href="#sec3">贴图规范</a></li>
+    <li><a href="#sec4">性能自测工具与方法</a></li>
+    <li><a href="#sec5">常见性能雷区</a></li>
+    <li><a href="#sec6">优化 Checklist（发版前必查）</a></li>
+    <li><a href="#sec7">典型问题</a></li>
+    <li><a href="#sec8">Do / Don't 示例</a></li>
+    <li><a href="#sec9">附录：性能优化速查</a></li>
+  </ol>
+</div>
+
+<!-- SEC1 -->
+<div class="section" id="sec1">
+  <h2>📊 1. 移动端特效性能预算表</h2>
+
+  <div class="sub-title">1.1 机型分档标准</div>
+  <table>
+    <tr><th>档位</th><th>代表机型</th><th>GPU 算力参考</th><th>目标帧率</th></tr>
+    <tr><td>🔴 <strong>高端</strong></td><td>iPhone 15 Pro, 骁龙 8 Gen3</td><td>Mali-G720 / A17 Pro</td><td><strong>60 FPS</strong></td></tr>
+    <tr><td>🟡 <strong>中端</strong></td><td>iPhone 13, 骁龙 870</td><td>Mali-G78 / A15</td><td><strong>30~60 FPS</strong></td></tr>
+    <tr><td>🟢 <strong>低端</strong></td><td>iPhone 11, 骁龙 765G</td><td>Mali-G57 / A13</td><td><strong>30 FPS</strong></td></tr>
+  </table>
+
+  <div class="sub-title">1.2 单个特效红线指标</div>
+  <table>
+    <tr><th>指标</th><th>高端</th><th>中端</th><th>低端</th><th>说明</th></tr>
+    <tr><td><strong>Drawcall</strong></td><td>≤ 12</td><td>≤ 8</td><td>≤ 5</td><td>单个特效最大 DC 数</td></tr>
+    <tr><td><strong>粒子数量</strong></td><td>≤ 500</td><td>≤ 200</td><td>≤ 100</td><td>同时存活最大粒子数</td></tr>
+    <tr><td><strong>Overdraw</strong></td><td>≤ 6x</td><td>≤ 4x</td><td>≤ 3x</td><td>屏幕像素平均重绘次数</td></tr>
+    <tr><td><strong>GPU 填充率</strong></td><td>≤ 8M px/帧</td><td>≤ 4M px/帧</td><td>≤ 2M px/帧</td><td>半透明区域填充像素总量</td></tr>
+    <tr><td><strong>贴图内存</strong></td><td>≤ 4MB</td><td>≤ 2MB</td><td>≤ 1MB</td><td>单个特效贴图总内存</td></tr>
+  </table>
+
+  <div class="alert alert-red">🚨 <strong>核心红线</strong>：中端机为基准红线。任何特效在中端机上超过上述指标，<strong>必须优化后才能提交</strong>。</div>
+
+  <div class="sub-title">1.3 全屏特效总预算</div>
+  <table>
+    <tr><th>指标</th><th>高端</th><th>中端</th><th>低端</th></tr>
+    <tr><td><strong>同屏总 Drawcall</strong> (特效部分)</td><td>≤ 80</td><td>≤ 50</td><td>≤ 30</td></tr>
+    <tr><td><strong>同屏总粒子</strong></td><td>≤ 3000</td><td>≤ 1500</td><td>≤ 800</td></tr>
+    <tr><td><strong>特效 GPU 时间</strong></td><td>≤ 4ms</td><td>≤ 6ms</td><td>≤ 8ms</td></tr>
+  </table>
+</div>
+
+<!-- SEC2 -->
+<div class="section" id="sec2">
+  <h2>🎯 2. 特效层级管理规范</h2>
+
+  <div class="sub-title">2.1 渲染层级定义</div>
+  <div class="alert alert-blue"><strong>渲染顺序（从后到前）</strong>：Layer 0 场景底层 → Layer 1 场景环境 → Layer 2 角色底层 → Layer 3 角色身体 → Layer 4 角色技能 → Layer 5 命中 → Layer 6 前景 → Layer 7 UI</div>
+
+  <table>
+    <tr><th>层级</th><th>名称</th><th>示例</th></tr>
+    <tr><td>Layer 0</td><td>场景底层特效</td><td>地面裂缝/水面波纹</td></tr>
+    <tr><td>Layer 1</td><td>场景环境特效</td><td>落叶/雨雪/雾气</td></tr>
+    <tr><td>Layer 2</td><td>角色底层特效</td><td>脚底光环/站立印记</td></tr>
+    <tr><td>Layer 3</td><td>角色身体特效</td><td>Buff/Aura/附魔</td></tr>
+    <tr><td>Layer 4</td><td>角色技能特效</td><td>释放/飞行/爆炸</td></tr>
+    <tr><td>Layer 5</td><td>命中特效</td><td>Hit/受击反馈</td></tr>
+    <tr><td>Layer 6</td><td>前景特效</td><td>全屏闪白/镜头震动</td></tr>
+    <tr><td>Layer 7</td><td>UI 特效</td><td>按钮光效/升级动画</td></tr>
+  </table>
+
+  <div class="sub-title">2.2 层级优先级与裁剪策略</div>
+  <table>
+    <tr><th>层级</th><th>优先级</th><th>低端机裁剪策略</th></tr>
+    <tr><td>Layer 7: UI 特效</td><td>⭐⭐⭐⭐⭐</td><td>不裁剪，但简化粒子数</td></tr>
+    <tr><td>Layer 4: 技能特效</td><td>⭐⭐⭐⭐⭐</td><td>降低粒子数 <strong>50%</strong>，贴图降级</td></tr>
+    <tr><td>Layer 5: 命中特效</td><td>⭐⭐⭐⭐</td><td>缩短生命周期</td></tr>
+    <tr><td>Layer 3: Buff 特效</td><td>⭐⭐⭐</td><td>降级为简化版</td></tr>
+    <tr><td>Layer 1: 环境特效</td><td>⭐⭐</td><td>关闭或大幅简化</td></tr>
+    <tr><td>Layer 0: 底层特效</td><td>⭐</td><td>可完全关闭</td></tr>
+  </table>
+
+  <div class="sub-title">2.3 LOD 分级特效方案</div>
+  <div class="alert alert-blue">💡 每个特效需制作 <strong>3 个 LOD 版本</strong>，确保全机型覆盖。</div>
+  <table>
+    <tr><th>LOD</th><th>适用</th><th>粒子数</th><th>贴图精度</th><th>发射频率</th></tr>
+    <tr><td><strong>LOD0</strong></td><td>高端机 / 近景</td><td>100%</td><td>原始尺寸</td><td>100%</td></tr>
+    <tr><td><strong>LOD1</strong></td><td>中端机 / 中景</td><td>50%</td><td>降一级</td><td>70%</td></tr>
+    <tr><td><strong>LOD2</strong></td><td>低端机 / 远景</td><td>25%</td><td>降两级</td><td>40%</td></tr>
+  </table>
+</div>
+
+<!-- SEC3 -->
+<div class="section" id="sec3">
+  <h2>🖼️ 3. 贴图规范</h2>
+
+  <div class="sub-title">3.1 特效贴图尺寸上限</div>
+  <table>
+    <tr><th>贴图类型</th><th>最大尺寸</th><th>推荐尺寸</th><th>说明</th></tr>
+    <tr><td>技能主贴图</td><td>256×256</td><td><strong>128×128</strong></td><td>大招可放宽至 512</td></tr>
+    <tr><td>噪声图</td><td>256×256</td><td><strong>128×128</strong></td><td>建议通道复用</td></tr>
+    <tr><td>扰动图</td><td>128×128</td><td><strong>64×64</strong></td><td>Distortion Map</td></tr>
+    <tr><td>溶解图</td><td>256×256</td><td><strong>128×128</strong></td><td>Dissolve Mask</td></tr>
+    <tr><td>序列帧</td><td>512×512 (Atlas)</td><td><strong>256×256</strong></td><td>单帧 64×64</td></tr>
+    <tr><td>Ramp/渐变色</td><td>256×1</td><td><strong>128×1</strong></td><td>一维渐变条</td></tr>
+  </table>
+
+  <div class="sub-title">3.2 压缩格式要求</div>
+  <table>
+    <tr><th>平台</th><th>格式</th><th>说明</th></tr>
+    <tr><td>Android</td><td><strong>ASTC 6×6</strong></td><td>质量与体积平衡</td></tr>
+    <tr><td>iOS</td><td><strong>ASTC 4×4</strong></td><td>苹果原生支持，质量好</td></tr>
+    <tr><td>PC</td><td><strong>BC7 / DXT5</strong></td><td>含 Alpha 时用 BC7</td></tr>
+  </table>
+
+  <div class="sub-title">3.3 通道复用策略</div>
+  <table>
+    <tr><th>通道</th><th>用途</th><th>说明</th></tr>
+    <tr><td><strong>R 通道</strong></td><td>主纹理/形状 Mask</td><td>控制特效基本形状</td></tr>
+    <tr><td><strong>G 通道</strong></td><td>噪声/扰动</td><td>用于动态效果</td></tr>
+    <tr><td><strong>B 通道</strong></td><td>溶解/消融 Mask</td><td>控制消散方向</td></tr>
+    <tr><td><strong>A 通道</strong></td><td>整体透明度</td><td>控制可见性</td></tr>
+  </table>
+  <div class="alert alert-green">💡 通过通道复用，<strong>4 张贴图 → 1 张贴图</strong>，贴图内存减少 <strong>75%</strong>，Drawcall 不变。</div>
+</div>
+
+<!-- SEC4 -->
+<div class="section" id="sec4">
+  <h2>🔧 4. 性能自测工具与方法</h2>
+
+  <div class="sub-title">4.1 Unreal Engine</div>
+  <table>
+    <tr><th>工具</th><th>用途</th><th>快捷键/命令</th></tr>
+    <tr><td><strong>GPU Visualizer</strong></td><td>GPU 每帧耗时分析</td><td><code>ProfileGPU</code></td></tr>
+    <tr><td><strong>Stat Particles</strong></td><td>粒子系统统计</td><td><code>stat particles</code></td></tr>
+    <tr><td><strong>Shader Complexity</strong></td><td>Overdraw 可视化</td><td>视口 → Shader Complexity</td></tr>
+    <tr><td><strong>RenderDoc</strong></td><td>GPU 帧捕获分析</td><td>外部工具</td></tr>
+    <tr><td><strong>Stat SceneRendering</strong></td><td>Drawcall 统计</td><td><code>stat scenerendering</code></td></tr>
+  </table>
+
+  <div class="sub-title">4.2 Unity</div>
+  <table>
+    <tr><th>工具</th><th>用途</th></tr>
+    <tr><td><strong>Frame Debugger</strong></td><td>逐 Drawcall 查看渲染顺序</td></tr>
+    <tr><td><strong>Profiler → GPU</strong></td><td>GPU 帧时间分析</td></tr>
+    <tr><td><strong>Overdraw 视图</strong></td><td>Scene → Overdraw 模式</td></tr>
+    <tr><td><strong>Memory Profiler</strong></td><td>贴图内存占用</td></tr>
+  </table>
+
+  <div class="sub-title">4.3 移动端真机测试</div>
+  <table>
+    <tr><th>工具</th><th>平台</th><th>关注指标</th></tr>
+    <tr><td><strong>Xcode Instruments</strong></td><td>iOS</td><td>帧时间、填充率</td></tr>
+    <tr><td><strong>Snapdragon Profiler</strong></td><td>Android (骁龙)</td><td>GPU Utilization</td></tr>
+    <tr><td><strong>Mali Offline Compiler</strong></td><td>Android (Mali)</td><td>Shader 周期数</td></tr>
+    <tr><td><strong>PerfDog</strong></td><td>全平台</td><td>FPS、CPU/GPU 温度、功耗</td></tr>
+  </table>
+</div>
+
+<!-- SEC5 -->
+<div class="section" id="sec5">
+  <h2>🚨 5. 常见性能雷区</h2>
+  <div class="alert alert-red">以下是特效制作中最常见的性能陷阱，每一项都可能导致帧率暴跌。</div>
+
+  <div class="sub-title">5.1 🔴 Alpha 叠加过多</div>
+  <table>
+    <tr><th>项目</th><th>说明</th></tr>
+    <tr><td><strong>现象</strong></td><td>多层半透明粒子叠加导致 Overdraw 飙升</td></tr>
+    <tr><td><strong>案例</strong></td><td>火焰特效用 20 层半透明粒子叠加，Overdraw 达 <strong>15x+</strong></td></tr>
+    <tr><td><strong>解法</strong></td><td>减少粒子层数，用贴图细节代替；使用 <strong>Additive</strong> 混合代替 Alpha Blend；远距离自动降低粒子数</td></tr>
+  </table>
+
+  <div class="sub-title">5.2 🔴 大面积半透明</div>
+  <table>
+    <tr><th>项目</th><th>说明</th></tr>
+    <tr><td><strong>现象</strong></td><td>全屏大面积半透明面片导致 GPU 填充率爆炸</td></tr>
+    <tr><td><strong>解法</strong></td><td>限制半透明面片最大不超过屏幕 <strong>1/4</strong>；用 Mask 裁切；全屏效果优先用 <strong>Post-Process</strong></td></tr>
+  </table>
+
+  <div class="sub-title">5.3 🟡 未合批的粒子系统</div>
+  <table>
+    <tr><th>项目</th><th>说明</th></tr>
+    <tr><td><strong>现象</strong></td><td>相同材质的粒子未合批，Drawcall 翻倍</td></tr>
+    <tr><td><strong>解法</strong></td><td>相同材质粒子使用同一发射器；启用 <strong>GPU Instancing</strong>；合并贴图到 Atlas</td></tr>
+  </table>
+
+  <div class="sub-title">5.4 🟡 不必要的灯光交互</div>
+  <table>
+    <tr><th>项目</th><th>说明</th></tr>
+    <tr><td><strong>现象</strong></td><td>特效粒子接受场景灯光影响，增加 Shader 开销</td></tr>
+    <tr><td><strong>解法</strong></td><td>特效默认设置为 <strong>Unlit</strong>；仅特殊需求下开启灯光影响</td></tr>
+  </table>
+
+  <div class="sub-title">5.5 🟡 序列帧贴图过大</div>
+  <table>
+    <tr><th>项目</th><th>说明</th></tr>
+    <tr><td><strong>现象</strong></td><td>64 帧序列帧打成 4096×4096 的 Atlas</td></tr>
+    <tr><td><strong>解法</strong></td><td>控制序列帧总帧数 ≤ <strong>16 帧</strong>；单帧 ≤ <strong>64×64</strong>；Atlas ≤ <strong>512×512</strong></td></tr>
+  </table>
+</div>
+
+<!-- SEC6 -->
+<div class="section" id="sec6">
+  <h2>✅ 6. 优化 Checklist（发版前必查）</h2>
+
+  <div class="sub-title">6.1 逐项核对清单</div>
+  <div class="checklist">
+    <h4>📋 发版前特效性能核查</h4>
+    <div class="check-item"><span class="box">☐</span><strong>单个特效 Drawcall</strong>：≤ 目标档位上限</div>
+    <div class="check-item"><span class="box">☐</span><strong>单个特效粒子数</strong>：≤ 目标档位上限</div>
+    <div class="check-item"><span class="box">☐</span><strong>Overdraw</strong>：≤ 目标档位上限</div>
+    <div class="check-item"><span class="box">☐</span><strong>贴图尺寸</strong>：无超标贴图</div>
+    <div class="check-item"><span class="box">☐</span><strong>贴图压缩格式</strong>：ASTC/BC7 正确</div>
+    <div class="check-item"><span class="box">☐</span><strong>通道复用</strong>：已实施</div>
+    <div class="check-item"><span class="box">☐</span><strong>LOD 版本</strong>：LOD0/1/2 齐全</div>
+    <div class="check-item"><span class="box">☐</span><strong>真机帧率</strong>：目标机型达标</div>
+    <div class="check-item"><span class="box">☐</span><strong>发热测试</strong>：连续战斗 10 分钟不过热</div>
+    <div class="check-item"><span class="box">☐</span><strong>内存占用</strong>：特效贴图总内存 ≤ 预算</div>
+    <div class="check-item"><span class="box">☐</span><strong>半透明面片面积</strong>：无全屏半透明</div>
+    <div class="check-item"><span class="box">☐</span><strong>Shader 复杂度</strong>：无过于复杂的自定义 Shader</div>
+  </div>
+
+  <div class="sub-title">6.2 检查流程</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>特效完成</strong></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>本地 Profiler 自测</strong></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>填写性能报告卡</strong></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>TA Review</strong><div class="sub">技术审核</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>真机测试</strong><div class="sub">目标低端机</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>提交</strong></div>
+  </div>
+  <p>不通过 → 优化后重新测试 → 循环至通过</p>
+</div>
+
+<!-- SEC7 -->
+<div class="section" id="sec7">
+  <h2>🚨 7. 典型问题</h2>
+
+  <div class="sub-title">7.1 新特效一上线帧率立即暴跌</div>
+  <div class="faq-item">
+    <div class="faq-q">🚨 案例 1：新特效上线帧率暴跌——战斗 FPS 从 45 降至 18 <span class="badge badge-red">高频</span></div>
+    <div class="faq-a">
+      <p><strong>🎬 典型场景还原</strong></p>
+      <p>新版本上线后，战斗场景 FPS 从 45 降至 18，定位到是新增的大招特效导致。</p>
+      <p><strong>🔍 问题根因拆解</strong></p>
+      <p>• 特效未经中端机性能测试即提交，开发机性能掩盖了问题</p>
+      <p>• 特效使用了 30 层半透明粒子叠加，Overdraw 达到 15x</p>
+      <p>• 未制作 LOD 版本，低端机使用了与高端机相同的效果</p>
+      <p><strong>💡 APM 破局思路</strong></p>
+      <p>• 紧急 hotfix：将该特效临时替换为 LOD2 简化版</p>
+      <p>• 重新制作 3 级 LOD 版本，中端机 Overdraw 控制在 4x 以内</p>
+      <p>• 所有特效补充「性能报告卡」，经 TA Review 后才能提交</p>
+      <p>• 严格执行第 6 章优化 Checklist，必须在目标低端机上真机测试通过</p>
+      <p>• 在 CI/CD 中加入 Drawcall / 粒子数自动检测，超标自动阻断提交</p>
+    </div>
+  </div>
+
+  <div class="sub-title">7.2 低端机全白屏闪烁</div>
+  <div class="faq-item">
+    <div class="faq-q">🚨 案例 2：低端机全白屏闪烁——大招释放时 GPU Stall</div>
+    <div class="faq-a">
+      <p><strong>🎬 典型场景还原</strong></p>
+      <p>低端机上释放大招时出现约 0.5 秒的全白屏闪烁，用户体验极差。</p>
+      <p><strong>🔍 问题根因拆解</strong></p>
+      <p>• 大招特效使用了全屏半透明面片做「闪白」效果</p>
+      <p>• 低端机 GPU 填充率瞬间超出预算，产生 GPU Stall</p>
+      <p>• 层级管理缺失，全屏效果（Layer 6）未做低端机适配</p>
+      <p><strong>💡 APM 破局思路</strong></p>
+      <p>• 全屏闪白效果改用 <strong>Post-Process</strong> 实现，避免半透明面片</p>
+      <p>• 低端机上关闭 Layer 6 前景特效或替换为极简版</p>
+      <p>• 全屏效果必须用 Post-Process，禁止使用全屏半透明面片</p>
+      <p>• 每个层级的特效都需要低端机适配版本</p>
+      <p>• 真机测试时重点关注大招/连招场景</p>
+    </div>
+  </div>
+</div>
+
+<!-- SEC8 -->
+<div class="section" id="sec8">
+  <h2>📌 8. Do / Don't 示例</h2>
+  <p><strong>场景说明</strong>：特效师为新英雄制作技能特效，需在中端机上达到性能红线标准。</p>
+
+  <div class="dd-grid">
+    <div class="dd-card dd-do">
+      <h4>✅ Do（正确示范）</h4>
+      <p>• 制作前查阅本文档红线指标，确认中端机预算：DC ≤ 8、粒子 ≤ 200、Overdraw ≤ 4x</p>
+      <p>• 使用通道复用将 4 张贴图合并为 1 张，贴图内存控制在 1.5MB</p>
+      <p>• 制作 LOD0/LOD1/LOD2 三个版本，低端机使用 LOD2（粒子 25%、贴图降两级）</p>
+      <p>• 本地 Profiler 自测通过后填写性能报告卡，提交 TA Review</p>
+      <p>• 在目标低端机（iPhone 11）上实际测试 10 分钟战斗，帧率 ≥ 30 FPS</p>
+    </div>
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't（错误示范）</h4>
+      <p>• 在高端开发机上调好效果直接提交，不做任何性能测试</p>
+      <p>• 用 20 层半透明粒子堆效果，「看起来好看就行」</p>
+      <p>• 只做一个版本，不制作 LOD，低端机也跑满配效果</p>
+      <p>• 全屏大招效果用全屏半透明面片，不用 Post-Process</p>
+      <p>• 不填写性能报告卡，不经过 TA Review 直接入库</p>
+    </div>
+  </div>
+</div>
+
+<!-- SEC9 -->
+<div class="section" id="sec9">
+  <h2>📎 9. 附录：性能优化速查</h2>
+  <table>
+    <tr><th>问题</th><th>优化方向</th></tr>
+    <tr><td><strong>Drawcall 高</strong></td><td>合批、减少发射器数、GPU Instancing</td></tr>
+    <tr><td><strong>Overdraw 高</strong></td><td>减层数、缩面积、用 Mask 裁切、Additive 混合</td></tr>
+    <tr><td><strong>粒子数多</strong></td><td>降频率、缩生命周期、LOD 裁剪</td></tr>
+    <tr><td><strong>贴图内存大</strong></td><td>压缩格式、通道复用、降尺寸</td></tr>
+    <tr><td><strong>Shader 慢</strong></td><td>简化计算、避免分支、预烘焙查找表</td></tr>
+  </table>
+</div>
+
+<div class="doc-footer">✨ 特效性能红线与层级规范 · v1.0 · 美术中心 · 项目内部资料</div>
+</div>
+</body>
+</html>

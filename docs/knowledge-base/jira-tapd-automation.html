@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目管理工具模板</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:24px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:11px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:13px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:12px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;text-align:center;min-width:90px}
+.flow-node strong{display:block;color:var(--heading);font-size:12px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:10px}
+.flow-arrow{color:var(--cyan);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+.checklist{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
+.checklist h4{color:var(--heading);margin-bottom:8px}
+.check-item{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:12px}
+.check-item .box{width:16px;height:16px;border:1px solid var(--border);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;background:var(--card)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>⚙️ 项目管理工具模板 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Jira / TAPD Art Project Automation Templates</div>
+  <div class="meta">
+    <span>📋 适用：全阶段</span>
+    <span>👤 维护：周八</span>
+    <span>📅 2026-04-02</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>📑 目录导航</h3>
+  <ol>
+    <li><a href="#s1">美术任务状态机</a></li>
+    <li><a href="#s2">自动指派规则</a></li>
+    <li><a href="#s3">通知策略</a></li>
+    <li><a href="#s4">看板配置模板</a></li>
+    <li><a href="#s5">数据报表模板</a></li>
+    <li><a href="#s6">附录：TAPD / Jira 快速配置清单</a></li>
+  </ol>
+</div>
+
+<!-- ======== 1. 美术任务状态机 ======== -->
+<div class="section" id="s1">
+  <h2>⚙️ 1. 美术任务状态机</h2>
+
+  <div class="sub-title">1.1 标准状态流</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>待排期</strong><div class="sub">Backlog</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>已排期</strong><div class="sub">Planned</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>进行中</strong><div class="sub">In Progress</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node gate"><strong>待审核</strong><div class="sub">In Review</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node end"><strong>审核通过</strong><div class="sub">Approved</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node end"><strong>已完成</strong><div class="sub">Done</div></div>
+  </div>
+  <p style="font-size:11px;color:var(--dim)">* 审核不通过 → 修改中 → 再次提审；可从进行中挂起或取消</p>
+
+  <div class="alert alert-blue">💡 <strong>核心原则</strong>：状态流转必须<strong>单向推进</strong>，禁止跳过审核环节直接标记完成。</div>
+
+  <div class="sub-title">1.2 状态定义</div>
+  <table>
+    <tr><th>状态</th><th>英文 Key</th><th>说明</th><th>进入条件</th></tr>
+    <tr><td><strong>待排期</strong></td><td>Backlog</td><td>需求已确认，等待排入 Sprint</td><td>评审通过</td></tr>
+    <tr><td><strong>已排期</strong></td><td>Planned</td><td>已分配到 Sprint</td><td>APM 排期</td></tr>
+    <tr><td><strong>进行中</strong></td><td>In Progress</td><td>美术正在制作</td><td>美术领取任务</td></tr>
+    <tr><td><strong>待审核</strong></td><td>In Review</td><td>提交审核</td><td>美术完成后提审</td></tr>
+    <tr><td><strong>审核通过</strong></td><td>Approved</td><td>主美/TA 审核通过</td><td>审核人操作</td></tr>
+    <tr><td><strong>审核不通过</strong></td><td>Rejected</td><td>需要修改</td><td>审核人打回</td></tr>
+    <tr><td><strong>修改中</strong></td><td>Revising</td><td>根据审核意见修改</td><td>自动流转</td></tr>
+    <tr><td><strong>已完成</strong></td><td>Done</td><td>任务关闭</td><td>所有审核通过</td></tr>
+    <tr><td><strong>搁置/挂起</strong></td><td>On Hold</td><td>等待外部依赖</td><td>APM 操作</td></tr>
+    <tr><td><strong>已取消</strong></td><td>Cancelled</td><td>需求取消</td><td>APM/策划操作</td></tr>
+  </table>
+
+  <div class="sub-title">1.3 TAPD 配置方法</div>
+  <pre>TAPD → 项目设置 → 工作流配置 → 自定义状态
+1. 添加上述状态
+2. 配置状态转换权限
+3. 设置必填字段（如审核意见）</pre>
+
+  <div class="sub-title">1.4 Jira 配置方法</div>
+  <pre>Jira → 项目设置 → Workflows → 编辑工作流
+1. 添加 Status
+2. 配置 Transitions
+3. 设置 Conditions/Validators/Post Functions</pre>
+</div>
+
+<!-- ======== 2. 自动指派规则 ======== -->
+<div class="section" id="s2">
+  <h2>👤 2. 自动指派规则</h2>
+
+  <div class="sub-title">2.1 基于工种自动指派</div>
+  <table>
+    <tr><th>任务标签</th><th>自动指派给</th><th>规则</th></tr>
+    <tr><td>角色-原画</td><td>原画组长 → 组内分配</td><td>标签包含"原画"</td></tr>
+    <tr><td>角色-建模</td><td>建模组长</td><td>标签包含"建模"</td></tr>
+    <tr><td>场景</td><td>场景组长</td><td>module=Scene</td></tr>
+    <tr><td>UI</td><td>UI 组长</td><td>module=UI</td></tr>
+    <tr><td>特效</td><td>特效组长</td><td>module=VFX</td></tr>
+    <tr><td>动画</td><td>动画组长</td><td>module=Animation</td></tr>
+  </table>
+
+  <div class="sub-title">2.2 审核人自动指派</div>
+  <table>
+    <tr><th>审核阶段</th><th>审核人</th><th>触发条件</th></tr>
+    <tr><td><strong>视觉审核</strong></td><td>主美</td><td>状态变为"待审核"</td></tr>
+    <tr><td><strong>技术审核</strong></td><td>TA</td><td>任务标签含"性能相关"</td></tr>
+    <tr><td><strong>最终审核</strong></td><td>APM</td><td>所有前置审核通过</td></tr>
+  </table>
+
+  <div class="sub-title">2.3 TAPD 自动化规则配置</div>
+  <pre># 规则1: 新任务自动指派
+触发条件: 任务创建且module=Character
+执行动作: 
+  - 自动指派给: 角色组长-张三
+  - 自动添加关注人: APM-周八
+
+# 规则2: 审核通过自动流转
+触发条件: 状态变为"审核通过"
+执行动作:
+  - 状态流转到: 已完成
+  - 通知: 任务创建者
+
+# 规则3: 超时自动预警
+触发条件: 状态为"进行中"超过5天
+执行动作:
+  - 发送提醒给: 负责人 + APM</pre>
+</div>
+
+<!-- ======== 3. 通知策略 ======== -->
+<div class="section" id="s3">
+  <h2>📢 3. 通知策略</h2>
+
+  <div class="sub-title">3.1 通知触发规则</div>
+  <table>
+    <tr><th>事件</th><th>通知对象</th><th>通知渠道</th><th>内容模板</th></tr>
+    <tr><td>新任务分配</td><td>被指派人</td><td>企微/飞书 + 邮件</td><td>"你有新的美术任务 [标题]"</td></tr>
+    <tr><td>状态变更</td><td>关注人</td><td>企微/飞书</td><td>"[标题] 状态更新为 [新状态]"</td></tr>
+    <tr><td>审核打回</td><td>制作人</td><td>企微/飞书 + 邮件</td><td>"你的任务 [标题] 被打回，原因：[意见]"</td></tr>
+    <tr><td>即将超期</td><td>负责人 + APM</td><td>企微/飞书</td><td>"任务 [标题] 将在 [N] 天后到期"</td></tr>
+    <tr><td>已超期</td><td>负责人 + APM + 组长</td><td>企微/飞书 + 邮件</td><td>"⚠️ 任务 [标题] 已超期 [N] 天"</td></tr>
+    <tr><td>Sprint 完成率</td><td>全组</td><td>邮件</td><td>"本 Sprint 完成率 [X]%，未完成 [N] 项"</td></tr>
+  </table>
+
+  <div class="sub-title">3.2 通知频率控制</div>
+  <table>
+    <tr><th>类型</th><th>频率</th><th>说明</th></tr>
+    <tr><td>实时通知</td><td>即时</td><td>任务分配、审核打回</td></tr>
+    <tr><td>日报</td><td>每天 18:00</td><td>当日进展汇总</td></tr>
+    <tr><td>周报</td><td>每周五 17:00</td><td>Sprint 进度、风险提醒</td></tr>
+    <tr><td>预警</td><td>到期前 2 天</td><td>超期预警</td></tr>
+  </table>
+</div>
+
+<!-- ======== 4. 看板配置模板 ======== -->
+<div class="section" id="s4">
+  <h2>📋 4. 看板配置模板</h2>
+
+  <div class="sub-title">4.1 美术看板视图</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>待排期</strong><div class="sub">Backlog</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>已排期</strong><div class="sub">Planned</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>进行中</strong><div class="sub">In Progress</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node gate"><strong>待审核</strong><div class="sub">In Review</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>修改中</strong><div class="sub">Revising</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node end"><strong>已完成</strong><div class="sub">Done</div></div>
+  </div>
+
+  <p><strong>看板卡片示例</strong>：</p>
+  <table>
+    <tr><th>待排期</th><th>已排期</th><th>进行中</th><th>待审核</th><th>修改中</th><th>已完成</th></tr>
+    <tr>
+      <td>🔴 CH_Luna 原画</td>
+      <td>🔴 SC_Main 美化</td>
+      <td>🔴 UI_Shop 设计</td>
+      <td></td>
+      <td></td>
+      <td>✅ AN_Idle</td>
+    </tr>
+    <tr>
+      <td>🟡 ...</td>
+      <td>🟡 ...</td>
+      <td>🟡 VFX_01 特效</td>
+      <td>🟡 CH_Kaito 建模审核</td>
+      <td>🟡 UI_Icon 修改</td>
+      <td>✅ ...</td>
+    </tr>
+  </table>
+
+  <div class="sub-title">4.2 WIP 限制</div>
+  <table>
+    <tr><th>列</th><th>WIP 上限</th><th>说明</th></tr>
+    <tr><td>进行中</td><td>每人 <strong>≤ 3</strong></td><td>避免同时做太多任务</td></tr>
+    <tr><td>待审核</td><td>全组 <strong>≤ 10</strong></td><td>审核积压预警</td></tr>
+    <tr><td>修改中</td><td>每人 <strong>≤ 2</strong></td><td>优先修复已有问题</td></tr>
+  </table>
+</div>
+
+<!-- ======== 5. 数据报表模板 ======== -->
+<div class="section" id="s5">
+  <h2>📊 5. 数据报表模板</h2>
+
+  <div class="sub-title">5.1 Sprint 报表</div>
+  <table>
+    <tr><th>指标</th><th>公式</th><th>目标</th></tr>
+    <tr><td><strong>完成率</strong></td><td>已完成 / 计划总数 × 100%</td><td><strong>≥ 80%</strong></td></tr>
+    <tr><td><strong>准时率</strong></td><td>按时完成 / 已完成 × 100%</td><td><strong>≥ 70%</strong></td></tr>
+    <tr><td><strong>一次通过率</strong></td><td>首次审核通过 / 提审总数 × 100%</td><td><strong>≥ 60%</strong></td></tr>
+    <tr><td><strong>Bug 密度</strong></td><td>Bug 数 / 完成任务数</td><td><strong>≤ 1.0</strong></td></tr>
+    <tr><td><strong>排期准确率</strong></td><td>1 - |实际-预估| / 预估</td><td><strong>≥ 80%</strong></td></tr>
+  </table>
+
+  <div class="sub-title">5.2 月度趋势看板</div>
+  <table>
+    <tr><th>月份</th><th>需求量</th><th>完成量</th><th>完成率</th><th>一次通过率</th><th>平均工期(d)</th></tr>
+    <tr><td>1月</td><td>45</td><td>38</td><td>84%</td><td>55%</td><td>4.2</td></tr>
+    <tr><td>2月</td><td>52</td><td>46</td><td>88%</td><td>62%</td><td>3.8</td></tr>
+    <tr><td>3月</td><td>60</td><td>54</td><td>90%</td><td>68%</td><td>3.5</td></tr>
+  </table>
+</div>
+
+<!-- ======== 6. 附录 ======== -->
+<div class="section" id="s6">
+  <h2>📎 附录：TAPD / Jira 快速配置清单</h2>
+
+  <div class="sub-title">TAPD 配置步骤</div>
+  <div class="checklist">
+    <div class="check-item"><div class="box">☐</div><span>创建美术项目空间</span></div>
+    <div class="check-item"><div class="box">☐</div><span>自定义需求类型（原画/建模/UI/特效/动画）</span></div>
+    <div class="check-item"><div class="box">☐</div><span>配置工作流（按本文状态机）</span></div>
+    <div class="check-item"><div class="box">☐</div><span>设置自动化规则（3~5 条核心规则）</span></div>
+    <div class="check-item"><div class="box">☐</div><span>配置企微通知机器人</span></div>
+    <div class="check-item"><div class="box">☐</div><span>创建看板视图</span></div>
+    <div class="check-item"><div class="box">☐</div><span>配置仪表盘报表</span></div>
+  </div>
+
+  <div class="sub-title">Jira 配置步骤</div>
+  <div class="checklist">
+    <div class="check-item"><div class="box">☐</div><span>创建 Art 项目</span></div>
+    <div class="check-item"><div class="box">☐</div><span>配置 Issue Types（Art Task / Art Bug）</span></div>
+    <div class="check-item"><div class="box">☐</div><span>设计 Workflow</span></div>
+    <div class="check-item"><div class="box">☐</div><span>配置 Automation Rules</span></div>
+    <div class="check-item"><div class="box">☐</div><span>关联 Slack/企微 Webhook</span></div>
+    <div class="check-item"><div class="box">☐</div><span>创建 Board + Filters</span></div>
+    <div class="check-item"><div class="box">☐</div><span>配置 Dashboard</span></div>
+  </div>
+</div>
+
+<div class="doc-footer">
+  游戏美术项目管理知识库 · 项目管理工具模板 v1.0
+</div>
+
+</div>
+</body>
+</html>

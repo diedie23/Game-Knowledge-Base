@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>资产提交与审核工作流</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:24px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:11px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:13px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:12px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+.redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;text-align:center;min-width:90px}
+.flow-node strong{display:block;color:var(--heading);font-size:12px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:10px}
+.flow-arrow{color:var(--cyan);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:12px;line-height:1.8;padding-left:28px}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>📦 资产提交与审核工作流 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Asset Submission & Review Workflow</div>
+  <div class="meta">
+    <span>📋 适用：量产期</span>
+    <span>👤 维护：孙七</span>
+    <span>📅 2026-04-07</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ol>
+    <li><a href="#sec1">资产提交前自检 Checklist</a></li>
+    <li><a href="#sec2">提交流程标准化</a></li>
+    <li><a href="#sec3">自动化审核流水线设计</a></li>
+    <li><a href="#sec4">Art Review 机制</a></li>
+    <li><a href="#sec5">常见提交事故与预防</a></li>
+    <li><a href="#sec6">与引擎导入的衔接规范</a></li>
+    <li><a href="#sec7">附录：审核流程时效要求</a></li>
+  </ol>
+</div>
+
+<!-- SEC1 -->
+<div class="section" id="sec1">
+  <h2>📋 1. 资产提交前自检 Checklist</h2>
+
+  <div class="sub-title">1.1 通用自检项</div>
+  <div class="alert alert-blue"><strong>量产必读</strong>：每次提交前必须完成以下自检项，CI 将自动验证前 5 项。</div>
+  <table>
+    <tr><th>#</th><th>检查项</th><th>标准</th><th>自检方式</th></tr>
+    <tr><td>1</td><td><strong>文件命名</strong></td><td>符合 <code>[前缀]_[模块]_[描述]</code> 命名规约</td><td>正则匹配</td></tr>
+    <tr><td>2</td><td><strong>目录位置</strong></td><td>文件在正确的 Source/Export 目录下</td><td>目测确认</td></tr>
+    <tr><td>3</td><td><strong>无冗余文件</strong></td><td>不包含 <code>.bak</code>、<code>Thumbs.db</code>、<code>.DS_Store</code></td><td>过滤脚本</td></tr>
+    <tr><td>4</td><td><strong>文件格式</strong></td><td>使用规定的格式（FBX/TGA/PNG/PSD）</td><td>扩展名检查</td></tr>
+    <tr><td>5</td><td><strong>Commit Message</strong></td><td>符合 <code>[类型][工种] 描述</code> 格式</td><td>代码 Hook</td></tr>
+  </table>
+
+  <div class="sub-title">1.2 角色资产专项</div>
+  <table>
+    <tr><th>#</th><th>检查项</th><th>标准</th></tr>
+    <tr><td>1</td><td>面数</td><td>移动端角色 ≤ <strong>15,000 Tris</strong></td></tr>
+    <tr><td>2</td><td>贴图尺寸</td><td>Body: <strong>1024×1024</strong>, Face: <strong>512×512</strong></td></tr>
+    <tr><td>3</td><td>贴图格式</td><td>TGA/PNG (Source), ASTC (引擎)</td></tr>
+    <tr><td>4</td><td>骨骼数量</td><td>≤ <strong>60</strong> 骨骼（不含面部）</td></tr>
+    <tr><td>5</td><td>材质球数</td><td>≤ <strong>3</strong> 个（Body/Face/Weapon）</td></tr>
+    <tr><td>6</td><td>UV 布局</td><td>第 1 套 UV 无重叠，利用率 ≥ <strong>75%</strong></td></tr>
+  </table>
+
+  <div class="sub-title">1.3 UI 资产专项</div>
+  <table>
+    <tr><th>#</th><th>检查项</th><th>标准</th></tr>
+    <tr><td>1</td><td>切图尺寸</td><td>2 的幂次方（或符合图集规范）</td></tr>
+    <tr><td>2</td><td>9-Slice 标记</td><td>可拉伸元素已标注 9-Slice 区域</td></tr>
+    <tr><td>3</td><td>透明通道</td><td>确认 Alpha 通道正确，无杂边</td></tr>
+    <tr><td>4</td><td>命名规范</td><td><code>UI_[功能]_[状态]_[尺寸].png</code></td></tr>
+  </table>
+
+  <div class="sub-title">1.4 特效资产专项</div>
+  <table>
+    <tr><th>#</th><th>检查项</th><th>标准</th></tr>
+    <tr><td>1</td><td>Drawcall</td><td>单个特效 ≤ <strong>8</strong> Drawcall</td></tr>
+    <tr><td>2</td><td>粒子数</td><td>同屏粒子 ≤ <strong>200</strong></td></tr>
+    <tr><td>3</td><td>贴图尺寸</td><td>特效贴图 ≤ <strong>256×256</strong></td></tr>
+    <tr><td>4</td><td>Overdraw</td><td>≤ <strong>4x</strong></td></tr>
+  </table>
+</div>
+
+<!-- SEC2 -->
+<div class="section" id="sec2">
+  <h2>🔄 2. 提交流程标准化</h2>
+
+  <div class="sub-title">2.1 流程全景图</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>📋 本地自检</strong><div class="sub">美术执行</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>📤 提交暂存区</strong><div class="sub">SVN/P4</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>🤖 自动化检查</strong><div class="sub">CI/CD</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>👁️ Art Review</strong><div class="sub">主美/TA</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>✅ 合入主干</strong><div class="sub">APM确认</div></div>
+  </div>
+
+  <div class="sub-title">2.2 详细步骤</div>
+  <table>
+    <tr><th>步骤</th><th>执行人</th><th>操作</th><th>产出</th></tr>
+    <tr><td>① 本地自检</td><td>美术</td><td>运行本地检查脚本，确认无报错</td><td>自检报告截图</td></tr>
+    <tr><td>② 提交到暂存区</td><td>美术</td><td><code>svn commit</code> / <code>p4 submit</code> 到 dev 分支</td><td>变更集 CL</td></tr>
+    <tr><td>③ 自动化检查</td><td>CI 系统</td><td>自动触发命名/尺寸/面数等检查</td><td>检查报告</td></tr>
+    <tr><td>④ Art Review</td><td>主美/TA</td><td>视觉效果审核、技术标准审核</td><td>审核结论</td></tr>
+    <tr><td>⑤ 合入主干</td><td>APM</td><td>确认无阻塞后 merge 到 main</td><td>合并记录</td></tr>
+  </table>
+</div>
+
+<!-- SEC3 -->
+<div class="section" id="sec3">
+  <h2>🤖 3. 自动化审核流水线设计</h2>
+
+  <div class="sub-title">3.1 架构概览</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>SVN/P4</strong><div class="sub">commit hook</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>🔧 Jenkins CI</strong><div class="sub">触发检查</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>📋 报告生成</strong><div class="sub">HTML/JSON</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>📧 通知</strong><div class="sub">邮件/企微</div></div>
+  </div>
+
+  <div class="sub-title">3.2 命名检查脚本示例 (Python)</div>
+  <pre>import re, os, sys
+
+NAMING_RULES = {
+    'Character': r'^CH_[A-Z][a-zA-Z]+_[A-Za-z0-9]+(_v\d{2})?\.(?:fbx|tga|png|psd|max|ma)$',
+    'Scene':     r'^SC_[A-Z][a-zA-Z]+_[A-Za-z0-9]+(_v\d{2})?\.(?:fbx|tga|png|max|ma)$',
+    'UI':        r'^UI_[A-Z][a-zA-Z]+_[A-Za-z0-9]+\.(?:png|psd)$',
+    'VFX':       r'^VFX_[A-Z][a-zA-Z]+_[A-Za-z0-9]+(_\d{2})?\.(?:prefab|mat|tga|png)$',
+    'Animation': r'^AN_[A-Z][a-zA-Z]+_[A-Za-z0-9]+(_v\d{2})?\.(?:fbx|anim)$',
+    'Texture':   r'^TEX_[A-Z][a-zA-Z]+_[A-Za-z0-9]+_[DNMRAE](O)?\.(?:tga|png|exr)$',
+}
+
+def check_naming(file_path):
+    filename = os.path.basename(file_path)
+    for category, pattern in NAMING_RULES.items():
+        if filename.startswith(category[:2].upper() + '_'):
+            if re.match(pattern, filename):
+                return True, f"✅ {filename} — 符合 {category} 命名规范"
+            else:
+                return False, f"❌ {filename} — 不符合 {category} 命名规范"
+    return False, f"⚠️ {filename} — 未识别的命名前缀"</pre>
+
+  <div class="sub-title">3.3 资产规格检查要点</div>
+  <table>
+    <tr><th>检查维度</th><th>工具</th><th>自动化可行性</th></tr>
+    <tr><td>FBX 面数统计</td><td>FBX SDK / Assimp</td><td>✅ 完全自动</td></tr>
+    <tr><td>贴图尺寸/格式</td><td>Pillow / ImageMagick</td><td>✅ 完全自动</td></tr>
+    <tr><td>UV 布局利用率</td><td>自研脚本 / xNormal</td><td>⚠️ 半自动</td></tr>
+    <tr><td>骨骼数量</td><td>FBX SDK</td><td>✅ 完全自动</td></tr>
+    <tr><td>材质球数量</td><td>FBX SDK</td><td>✅ 完全自动</td></tr>
+    <tr><td>视觉效果</td><td>人工审核</td><td>❌ 需人工</td></tr>
+  </table>
+</div>
+
+<!-- SEC4 -->
+<div class="section" id="sec4">
+  <h2>👁️ 4. Art Review 机制</h2>
+
+  <div class="sub-title">4.1 审核角色与职责</div>
+  <table>
+    <tr><th>角色</th><th>职责</th><th>审核维度</th></tr>
+    <tr><td><strong>主美</strong></td><td>视觉质量审核</td><td>风格一致性、表现力、设计还原度</td></tr>
+    <tr><td><strong>TA</strong></td><td>技术标准审核</td><td>面数、贴图规格、性能指标、引擎兼容</td></tr>
+    <tr><td><strong>APM</strong></td><td>流程合规审核</td><td>命名、目录、Commit Message、关联需求</td></tr>
+  </table>
+
+  <div class="sub-title">4.2 审核标准</div>
+  <table>
+    <tr><th>等级</th><th>说明</th><th>处理</th></tr>
+    <tr><td>✅ <strong>Approved</strong></td><td>完全符合标准</td><td>直接合入</td></tr>
+    <tr><td>🟡 <strong>Approved with Comments</strong></td><td>小问题，可后续修复</td><td>合入并创建修复 Task</td></tr>
+    <tr><td>❌ <strong>Request Changes</strong></td><td>不符合标准</td><td>打回修改</td></tr>
+    <tr><td>🔴 <strong>Rejected</strong></td><td>严重问题（方向错误）</td><td>打回重做</td></tr>
+  </table>
+
+  <div class="sub-title">4.3 反馈模板</div>
+  <pre>## Art Review 反馈
+- 提交者: 张三
+- 变更集: CL-2048
+- 资产: CH_Luna_Body_v03.fbx
+
+### 审核结论: ❌ Request Changes
+
+### 问题清单:
+1. 🔴 [面数] 当前 18,200 Tris，超出红线 15,000
+2. 🟡 [贴图] Body 贴图建议使用 MRA 合并通道
+3. 🟡 [命名] 缺少 Export/ 目录下的贴图文件
+
+### 修改建议:
+- 减面集中在裙摆背面和鞋底等不可见区域
+- 参考 CH_Kaito 的通道合并方案</pre>
+</div>
+
+<!-- SEC5 -->
+<div class="section" id="sec5">
+  <h2>🚨 5. 常见提交事故与预防</h2>
+
+  <div class="faq-item">
+    <div class="faq-q">🚨 案例 1：覆盖他人文件 <span class="badge badge-red">高频</span></div>
+    <div class="faq-a">
+      <p><strong>场景</strong>：美术 A 周一 checkout 贴图文件，美术 B 周二修改并提交，美术 A 周三未 update 直接提交，覆盖了 B 的修改。</p>
+      <p><strong>解法</strong>：① PSD/MAX 等二进制文件强制使用 <code>exclusive lock</code>；② 提交前必须先 <code>svn update</code> / <code>p4 sync</code>。</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">🚨 案例 2：遗漏关联资产 <span class="badge badge-yellow">中频</span></div>
+    <div class="faq-a">
+      <p><strong>场景</strong>：提交了模型 FBX 但遗漏了贴图，引擎导入后白模。</p>
+      <p><strong>解法</strong>：CI 脚本检查 FBX 引用的贴图是否同步提交；建立关联资产依赖检查机制。</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">🚨 案例 3：引用路径断裂 <span class="badge badge-yellow">中频</span></div>
+    <div class="faq-a">
+      <p><strong>场景</strong>：引擎中资产引用找不到文件，界面/场景大面积丢失。</p>
+      <p><strong>解法</strong>：使用 <code>svn move</code> / <code>p4 move</code> 保留历史；CI 检查路径引用完整性。</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">🚨 案例 4：误提交大文件 <span class="badge badge-green">低频但影响大</span></div>
+    <div class="faq-a">
+      <p><strong>场景</strong>：提交了 2GB 的视频参考文件，仓库暴涨。</p>
+      <p><strong>解法</strong>：Pre-commit Hook 限制单文件大小（≤ 200MB）；配置 ignore 排除参考文件目录。</p>
+    </div>
+  </div>
+</div>
+
+<!-- SEC6 -->
+<div class="section" id="sec6">
+  <h2>🎮 6. 与引擎导入的衔接规范</h2>
+
+  <div class="sub-title">6.1 UE (Unreal Engine)</div>
+  <table>
+    <tr><th>项目</th><th>标准</th></tr>
+    <tr><td>FBX 版本</td><td><strong>2020</strong> 或以上</td></tr>
+    <tr><td>坐标系</td><td>Z-Up, 厘米</td></tr>
+    <tr><td>Scale Factor</td><td><strong>1.0</strong></td></tr>
+    <tr><td>骨骼命名</td><td>不含中文和特殊字符</td></tr>
+    <tr><td>动画</td><td>勾选 Root Motion（如需）</td></tr>
+    <tr><td>导入路径</td><td><code>/Game/Art/[工种]/[模块]/</code></td></tr>
+  </table>
+
+  <div class="sub-title">6.2 Unity</div>
+  <table>
+    <tr><th>项目</th><th>标准</th></tr>
+    <tr><td>FBX 版本</td><td><strong>2019</strong> 或以上</td></tr>
+    <tr><td>Scale Factor</td><td><strong>0.01</strong>（Maya/Max → Unity）</td></tr>
+    <tr><td>动画类型</td><td>Humanoid / Generic</td></tr>
+    <tr><td>贴图 Max Size</td><td>根据平台设置（Android/iOS: ASTC）</td></tr>
+    <tr><td>导入路径</td><td><code>Assets/Art/[工种]/[模块]/</code></td></tr>
+  </table>
+</div>
+
+<!-- SEC7 -->
+<div class="section" id="sec7">
+  <h2>📎 7. 附录：审核流程时效要求</h2>
+  <table>
+    <tr><th>资产优先级</th><th>审核时效</th><th>说明</th></tr>
+    <tr><td>🔴 P0（紧急）</td><td><strong>4 小时内</strong></td><td>阻塞里程碑</td></tr>
+    <tr><td>🟡 P1（高）</td><td><strong>24 小时内</strong></td><td>当前 Sprint 任务</td></tr>
+    <tr><td>🟢 P2（普通）</td><td><strong>48 小时内</strong></td><td>非紧急任务</td></tr>
+  </table>
+  <div class="alert alert-blue"><strong>⚡ APM 金句</strong>：资产提交不是「扔过墙」，而是一次有质量承诺的交付。</div>
+</div>
+
+<div class="doc-footer">📦 资产提交与审核工作流 · v1.0 · 美术中心 · 项目内部资料</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>需求对接流转规范</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:24px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:11px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:13px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:12px;line-height:1.7}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:13px}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:12px;line-height:1.8;padding-left:28px}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+.redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;text-align:center;min-width:90px}
+.flow-node strong{display:block;color:var(--heading);font-size:12px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:10px}
+.flow-arrow{color:var(--cyan);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>📋 需求对接流转规范 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Art-Planner Requirement Handoff Specification</div>
+  <div class="meta">
+    <span>📋 适用：全阶段</span>
+    <span>⚡ 优先级：高</span>
+    <span>👤 负责人：周八</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>📑 目录导航</h3>
+  <ol>
+    <li><a href="#s1">需求对接全流程</a></li>
+    <li><a href="#s2">标准需求单模板</a></li>
+    <li><a href="#s3">评审机制</a></li>
+    <li><a href="#s4">变更管控</a></li>
+    <li><a href="#s5">常见冲突场景与解法</a></li>
+    <li><a href="#s6">附录：跨部门协作日历</a></li>
+  </ol>
+</div>
+
+<!-- ===== Section 1 ===== -->
+<div class="section" id="s1">
+  <h2>🔄 1. 需求对接全流程</h2>
+
+  <div class="sub-title">🗺️ 1.1 流程全景图</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>策划提需求</strong><span class="sub">需求单模板<br>参考图上传</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>需求评审</strong><span class="sub">评审会决议<br>可行性评估</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>APM排期</strong><span class="sub">排期计划表<br>资源分配</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>美术制作</strong><span class="sub">WIP进度<br>中间产出</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>内部验收</strong><span class="sub">主美审核<br>TA技术审核</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>策划验收</strong><span class="sub">策划确认<br>修改意见</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>归档完成</strong></div>
+  </div>
+
+  <div class="sub-title">⏱️ 1.2 各阶段标准流转时间</div>
+  <table>
+    <tr><th>阶段</th><th>标准时效</th><th>超时预警</th></tr>
+    <tr><td>需求单填写</td><td>策划提交后 <strong>0.5d</strong></td><td>—</td></tr>
+    <tr><td>需求评审</td><td>收到后 <strong>1~2d</strong></td><td>2d 未评审自动催</td></tr>
+    <tr><td>APM 排期</td><td>评审后 <strong>1d</strong></td><td>—</td></tr>
+    <tr><td>美术制作</td><td>按排期</td><td>燃尽图跟踪</td></tr>
+    <tr><td>内部验收</td><td>提交后 <strong>1d</strong></td><td>超时升级</td></tr>
+    <tr><td>策划验收</td><td>提交后 <strong>2d</strong></td><td>超时视为通过</td></tr>
+  </table>
+</div>
+
+<!-- ===== Section 2 ===== -->
+<div class="section" id="s2">
+  <h2>📝 2. 标准需求单模板</h2>
+
+  <div class="sub-title">📄 2.1 需求单字段定义</div>
+  <table>
+    <tr><th>字段</th><th>必填</th><th>说明</th><th>示例</th></tr>
+    <tr><td><strong>需求 ID</strong></td><td>✅</td><td>唯一编号，APM 分配</td><td><code>REQ-2026-0108</code></td></tr>
+    <tr><td><strong>需求标题</strong></td><td>✅</td><td>一句话描述</td><td>新英雄「夜叉」角色设计</td></tr>
+    <tr><td><strong>需求类型</strong></td><td>✅</td><td>原画/建模/UI/特效/动画/场景</td><td>角色原画</td></tr>
+    <tr><td><strong>优先级</strong></td><td>✅</td><td>P0/P1/P2/P3</td><td>P1</td></tr>
+    <tr><td><strong>关联版本</strong></td><td>✅</td><td>目标里程碑</td><td>Alpha</td></tr>
+    <tr><td><strong>策划负责人</strong></td><td>✅</td><td>需求发起人</td><td>王策划</td></tr>
+    <tr><td><strong>美术负责人</strong></td><td>✅</td><td>APM 指定</td><td>张美术</td></tr>
+    <tr><td><strong>参考图</strong></td><td>✅</td><td>至少 3 张参考图</td><td>上传至附件</td></tr>
+    <tr><td><strong>验收标准</strong></td><td>✅</td><td>量化的验收条件</td><td>—</td></tr>
+    <tr><td><strong>截止日期</strong></td><td>✅</td><td>与里程碑对齐</td><td>2026-04-20</td></tr>
+  </table>
+
+  <div class="sub-title">🚦 2.2 优先级定义</div>
+  <table>
+    <tr><th>等级</th><th>定义</th><th>响应时效</th><th>排期位置</th></tr>
+    <tr><td>🔴 <strong>P0 紧急</strong></td><td>阻塞里程碑 / Boss 要求</td><td><strong>当天响应</strong></td><td>插入当前 Sprint</td></tr>
+    <tr><td>🟡 <strong>P1 高</strong></td><td>当前版本必须</td><td><strong>1d 内响应</strong></td><td>当前/下个 Sprint</td></tr>
+    <tr><td>🟢 <strong>P2 中</strong></td><td>重要但不紧急</td><td><strong>3d 内响应</strong></td><td>正常排期</td></tr>
+    <tr><td>⚪ <strong>P3 低</strong></td><td>锦上添花</td><td>下版本处理</td><td>需求池候选</td></tr>
+  </table>
+
+  <div class="sub-title">🖼️ 2.3 参考图规格要求</div>
+  <table>
+    <tr><th>要求</th><th>标准</th></tr>
+    <tr><td><strong>数量</strong></td><td>至少 <strong>3 张</strong>（正面/侧面/细节或风格参考）</td></tr>
+    <tr><td><strong>分辨率</strong></td><td>≥ <strong>720p</strong>，清晰可辨别细节</td></tr>
+    <tr><td><strong>标注</strong></td><td>需标注"参考哪里"（颜色/造型/材质/风格）</td></tr>
+    <tr><td><strong>来源</strong></td><td>注明原画出处，避免版权风险</td></tr>
+    <tr><td><strong>反例</strong></td><td>可提供"不要的风格"反面参考</td></tr>
+  </table>
+  <div class="dd-grid">
+    <div class="dd-card dd-do"><h4>✅ Do</h4><p>提交 3 张参考图，分别标注"图1-造型参考""图2-配色参考""图3-材质参考"，附带反面参考说明"不要暖色系"。</p></div>
+    <div class="dd-card dd-dont"><h4>❌ Don't</h4><p>甩一句"参考某游戏的感觉"，不附任何图片；或贴 10 张风格完全不同的图让美术"自行理解"。</p></div>
+  </div>
+</div>
+
+<!-- ===== Section 3 ===== -->
+<div class="section" id="s3">
+  <h2>🔍 3. 评审机制</h2>
+
+  <div class="sub-title">📅 3.1 评审会设置</div>
+  <table>
+    <tr><th>项目</th><th>标准</th></tr>
+    <tr><td><strong>频率</strong></td><td>每周 1~2 次（周一/周四下午）</td></tr>
+    <tr><td><strong>时长</strong></td><td>30~60 分钟</td></tr>
+    <tr><td><strong>参与人</strong></td><td>APM（主持）、主美、对应工种组长、策划负责人</td></tr>
+    <tr><td><strong>输出</strong></td><td>评审记录表（通过/修改/拒绝/挂起）</td></tr>
+  </table>
+
+  <div class="sub-title">🔀 3.2 评审决策流程</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>策划讲述需求</strong></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>美术评估可行性</strong></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>讨论结果</strong><span class="sub">✅通过 / 🟡修改后通过 / ❌拒绝</span></div>
+  </div>
+
+  <div class="sub-title">✅ 3.3 评审检查要点</div>
+  <table>
+    <tr><th>维度</th><th>核心问题</th></tr>
+    <tr><td><strong>需求完整性</strong></td><td>描述是否清晰？参考图是否充分？</td></tr>
+    <tr><td><strong>技术可行性</strong></td><td>现有管线能否实现？性能预算够吗？</td></tr>
+    <tr><td><strong>工期合理性</strong></td><td>截止日期是否留有 Buffer？</td></tr>
+    <tr><td><strong>优先级合理性</strong></td><td>P0/P1 是否真的紧急？是否有挤占风险？</td></tr>
+    <tr><td><strong>重复性检查</strong></td><td>是否与已有需求重复？可否复用？</td></tr>
+  </table>
+
+  <div class="sub-title">⚖️ 3.4 分歧处理规则</div>
+  <div class="alert alert-blue">💡 <strong>核心原则</strong>：用数据说话，用机制裁决，对事不对人。</div>
+  <p>① 美术与策划分歧 → APM 主持协商，给出数据支撑<br>② 无法达成一致 → 升级到主美 + 制作人层面决策<br>③ 技术不可行 → TA 出具技术评估报告<br>④ 工期分歧 → APM 出具历史数据对比</p>
+</div>
+
+<!-- ===== Section 4 ===== -->
+<div class="section" id="s4">
+  <h2>🔒 4. 变更管控</h2>
+
+  <div class="sub-title">📝 4.1 变更申请流程</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>策划提出变更</strong></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>填写变更申请单</strong></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>APM 影响评估</strong></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>审批</strong><span class="sub">&lt;2d APM<br>2~5d 主美+APM<br>&gt;5d 制作人</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>排期调整执行</strong></div>
+  </div>
+
+  <div class="sub-title">📊 4.2 变更影响评估模板</div>
+  <table>
+    <tr><th>评估项</th><th>内容</th></tr>
+    <tr><td><strong>变更描述</strong></td><td>具体变更了什么？</td></tr>
+    <tr><td><strong>影响范围</strong></td><td>涉及哪些已完成/进行中的资产？</td></tr>
+    <tr><td><strong>工期影响</strong></td><td>额外需要多少人天？</td></tr>
+    <tr><td><strong>成本影响</strong></td><td>额外费用（外包返工/加班）？</td></tr>
+    <tr><td><strong>质量影响</strong></td><td>是否影响其他资产的一致性？</td></tr>
+    <tr><td><strong>里程碑影响</strong></td><td>是否导致里程碑延期？</td></tr>
+    <tr><td><strong>风险等级</strong></td><td>低/中/高</td></tr>
+  </table>
+
+  <div class="sub-title">🚨 4.3 变更冻结期规则</div>
+  <div class="alert alert-red">🚨 <strong>核心红线</strong>：越接近发版，变更门槛越高。RC 阶段原则上禁止美术变更。</div>
+  <table>
+    <tr><th>阶段</th><th>变更权限</th></tr>
+    <tr><td>预研期</td><td>✅ 自由变更</td></tr>
+    <tr><td>Alpha 前 2 周</td><td>🟡 P0 变更需审批</td></tr>
+    <tr><td>Beta 前 1 月</td><td>🔴 仅 P0 变更，必须制作人审批</td></tr>
+    <tr><td>RC 阶段</td><td>🚫 原则上禁止美术变更，仅修 Bug</td></tr>
+  </table>
+</div>
+
+<!-- ===== Section 5 ===== -->
+<div class="section" id="s5">
+  <h2>🤯 5. 常见冲突场景与解法</h2>
+
+  <div class="faq-item">
+    <div class="faq-q">🔴 案例 1：需求描述不清 <span class="badge badge-red">高频</span></div>
+    <div class="faq-a">
+      <p><strong>🎬 场景还原：</strong>策划说"做一个好看的角色"、"参考某游戏的感觉"，美术无从下手。</p>
+      <p><strong>🔍 根因：</strong>需求描述模糊、参考图不足；策划缺乏美术语言；缺少需求单填写指南和培训。</p>
+      <p><strong>💡 APM 破局思路：</strong><br>1. 要求补充参考图<br>2. 组织 15min 面对面沟通，产出美术理解确认书<br>3. 提供需求单填写指南培训<br>4. 新入职策划必须学习后才能提交需求</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">🔴 案例 2：策划频繁变更 <span class="badge badge-red">高频</span></div>
+    <div class="faq-a">
+      <p><strong>🎬 场景还原：</strong>原画做到一半改设定，建模快完成改造型。</p>
+      <p><strong>🔍 根因：</strong>策划设计未收敛就下需求；缺乏变更成本可视化机制。</p>
+      <p><strong>💡 APM 破局思路：</strong><br>1. 所有变更走 TAPD 工单<br>2. 量化变更成本，标注影响人天和费用<br>3. 建立变更成本可视化看板</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">🔴 案例 3：优先级争议 <span class="badge badge-red">高频</span></div>
+    <div class="faq-a">
+      <p><strong>🎬 场景还原：</strong>所有需求都标 P0，排期陷入混乱。</p>
+      <p><strong>🔍 根因：</strong>策划之间没有统一的优先级标准；缺乏统一的仲裁机制。</p>
+      <p><strong>💡 APM 破局思路：</strong><br>1. 建立优先级矩阵（紧急×重要）<br>2. 每周制作人会上统一排序<br>3. P0 全项目不超过 3 个<br>4. P0 超标自动预警</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Section 6 ===== -->
+<div class="section" id="s6">
+  <h2>📅 附录：跨部门协作日历</h2>
+  <table>
+    <tr><th>时间</th><th>事项</th><th>参与人</th></tr>
+    <tr><td>每周一 10:00</td><td>需求评审会</td><td>APM + 策划 + 主美</td></tr>
+    <tr><td>每周三 14:00</td><td>美术内部 Review</td><td>APM + 各组长</td></tr>
+    <tr><td>每周五 16:00</td><td>周报同步</td><td>APM → 策划/制作人</td></tr>
+    <tr><td>Sprint 首日</td><td>Sprint 规划</td><td>全美术团队</td></tr>
+    <tr><td>Sprint 末日</td><td>Sprint 评审+回顾</td><td>全美术团队 + 策划</td></tr>
+  </table>
+  <div class="alert alert-green">⚡ <strong>APM 金句：</strong>「需求对接的核心不是'传话'，而是'翻译+风控'。」</div>
+</div>
+
+<div class="doc-footer">📋 需求对接流转规范 · 游戏美术项目管理知识库</div>
+
+</div>
+</body>
+</html>

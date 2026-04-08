@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>动画状态机交接与导出规范</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:24px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:11px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:13px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:12px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:12px;line-height:1.7}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:13px}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:12px;line-height:1.8;padding-left:28px}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+.redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;text-align:center;min-width:90px}
+.flow-node strong{display:block;color:var(--heading);font-size:12px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:10px}
+.flow-arrow{color:var(--cyan);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+.checklist{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
+.checklist h4{color:var(--heading);margin-bottom:8px}
+.check-item{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:12px}
+.check-item .box{width:16px;height:16px;border:1px solid var(--border);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;background:var(--card)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>🎬 动画状态机交接与导出规范 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Animation State Machine Handoff & Export Specification</div>
+  <div class="meta">
+    <span>📋 适用：量产期</span>
+    <span>👤 负责人：王五</span>
+    <span>📅 2026-04-02</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ol>
+    <li><a href="#sec1">动画状态机文档化模板</a></li>
+    <li><a href="#sec2">命名规范</a></li>
+    <li><a href="#sec3">FBX 导出设置标准</a></li>
+    <li><a href="#sec4">引擎导入 Checklist</a></li>
+    <li><a href="#sec5">美术→程序交接 SOP</a></li>
+    <li><a href="#sec6">常见踩坑案例</a></li>
+    <li><a href="#sec7">版本管理建议</a></li>
+  </ol>
+</div>
+
+<!-- SEC1 -->
+<div class="section" id="sec1">
+  <h2>📊 1. 动画状态机文档化模板</h2>
+
+  <div class="sub-title">📊 1.1 状态机总览表</div>
+  <div class="alert alert-blue"><strong>规范</strong>：每个角色的动画状态机需填写以下文档。</div>
+  <table>
+    <tr><th>状态名称</th><th>状态 ID</th><th>动画片段</th><th>循环</th><th>BlendSpace</th><th>混合时间(入)</th><th>混合时间(出)</th><th>备注</th></tr>
+    <tr><td>Idle</td><td><code>ST_Idle</code></td><td>AN_Luna_Idle_01</td><td>✅</td><td>—</td><td>0.2s</td><td>0.2s</td><td>默认待机</td></tr>
+    <tr><td>Run</td><td><code>ST_Run</code></td><td>AN_Luna_Run_01</td><td>✅</td><td>BS_Locomotion</td><td>0.15s</td><td>0.15s</td><td>8 方向混合</td></tr>
+    <tr><td>Attack_01</td><td><code>ST_Atk01</code></td><td>AN_Luna_Attack01</td><td>❌</td><td>—</td><td>0.1s</td><td>0.2s</td><td>普攻第 1 段</td></tr>
+    <tr><td>Attack_02</td><td><code>ST_Atk02</code></td><td>AN_Luna_Attack02</td><td>❌</td><td>—</td><td>0.05s</td><td>0.2s</td><td>普攻第 2 段</td></tr>
+    <tr><td>Skill_01</td><td><code>ST_Skill01</code></td><td>AN_Luna_Skill01</td><td>❌</td><td>—</td><td>0.1s</td><td>0.25s</td><td>Q 技能</td></tr>
+    <tr><td>Hit</td><td><code>ST_Hit</code></td><td>AN_Luna_Hit_01</td><td>❌</td><td>—</td><td>0.05s</td><td>0.2s</td><td>受击</td></tr>
+    <tr><td>Death</td><td><code>ST_Death</code></td><td>AN_Luna_Death_01</td><td>❌</td><td>—</td><td>0.1s</td><td>—</td><td>死亡不出</td></tr>
+  </table>
+
+  <div class="sub-title">🔀 1.2 状态转换条件表</div>
+  <div class="alert alert-blue"><strong>核心</strong>：状态转换逻辑决定了动画表现的流畅度。</div>
+  <table>
+    <tr><th>当前状态</th><th>目标状态</th><th>转换条件</th><th>优先级</th><th>可打断</th><th>说明</th></tr>
+    <tr><td>Idle</td><td>Run</td><td><code>Speed > 0.1</code></td><td>1</td><td>✅</td><td>摇杆输入</td></tr>
+    <tr><td>Run</td><td>Idle</td><td><code>Speed ≤ 0.1</code></td><td>1</td><td>✅</td><td>松开摇杆</td></tr>
+    <tr><td>Any</td><td>Attack_01</td><td><code>OnAttack && ComboIndex==0</code></td><td>2</td><td>❌</td><td>普攻触发</td></tr>
+    <tr><td>Attack_01</td><td>Attack_02</td><td><code>OnAttack && InComboWindow</code></td><td>3</td><td>❌</td><td>连击窗口</td></tr>
+    <tr><td>Any</td><td>Skill_01</td><td><code>OnSkill_Q && Cooldown==0</code></td><td>4</td><td>✅</td><td>Q 技能</td></tr>
+    <tr><td>Any</td><td>Hit</td><td><code>OnHit && !SuperArmor</code></td><td>5</td><td>✅</td><td>受击</td></tr>
+    <tr><td>Any</td><td>Death</td><td><code>HP ≤ 0</code></td><td>10</td><td>❌</td><td>最高优先级</td></tr>
+  </table>
+
+  <div class="sub-title">🎚️ 1.3 BlendSpace 参数定义</div>
+  <table>
+    <tr><th>BlendSpace</th><th>参数 X</th><th>参数 Y</th><th>维度</th><th>动画样本数</th></tr>
+    <tr><td><code>BS_Locomotion</code></td><td>Direction (-180~180)</td><td>Speed (0~600)</td><td>2D</td><td>9 个采样点</td></tr>
+    <tr><td><code>BS_AimOffset</code></td><td>Yaw (-90~90)</td><td>Pitch (-45~45)</td><td>2D</td><td>9 个采样点</td></tr>
+  </table>
+
+  <div class="sub-title">🗺️ 1.4 状态机流程图</div>
+  <div class="alert alert-blue"><strong>流程概览</strong>：[*] → Idle ↔ Run（Speed 控制）| Idle/Run → Attack_01 → Attack_02（连击窗口）| Idle/Run → Skill_01 → Idle | Any → Hit → Idle | Any → Death → [*]</div>
+</div>
+
+<!-- SEC2 -->
+<div class="section" id="sec2">
+  <h2>📁 2. 命名规范</h2>
+
+  <div class="sub-title">📁 2.1 动画片段命名规则</div>
+  <pre>AN_[角色ID]_[动作类型]_[变体]_v[版本号]</pre>
+  <div class="dd-grid">
+    <div class="dd-card dd-do">
+      <h4>✅ Do（正确示范）</h4>
+      <p><code>AN_Luna_Idle_01_v02.fbx</code></p>
+      <p><code>AN_Luna_Attack_Heavy_v01.fbx</code></p>
+      <p><code>AN_Luna_Skill_Q_v03.fbx</code></p>
+    </div>
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't（错误示范）</h4>
+      <p><code>luna待机动画.fbx</code></p>
+      <p><code>Attack_1_final_final2.fbx</code></p>
+      <p><code>新建文件夹/动画.fbx</code></p>
+    </div>
+  </div>
+
+  <div class="sub-title">🏷️ 2.2 动作类型前缀</div>
+  <table>
+    <tr><th>前缀</th><th>含义</th><th>示例</th></tr>
+    <tr><td><code>Idle</code></td><td>待机</td><td>AN_Luna_Idle_01</td></tr>
+    <tr><td><code>Run</code></td><td>跑步</td><td>AN_Luna_Run_Forward</td></tr>
+    <tr><td><code>Walk</code></td><td>走路</td><td>AN_Luna_Walk_Left</td></tr>
+    <tr><td><code>Attack</code></td><td>攻击</td><td>AN_Luna_Attack_01</td></tr>
+    <tr><td><code>Skill</code></td><td>技能</td><td>AN_Luna_Skill_Q</td></tr>
+    <tr><td><code>Hit</code></td><td>受击</td><td>AN_Luna_Hit_Front</td></tr>
+    <tr><td><code>Death</code></td><td>死亡</td><td>AN_Luna_Death_01</td></tr>
+    <tr><td><code>Born</code></td><td>出生/出场</td><td>AN_Luna_Born_01</td></tr>
+    <tr><td><code>Victory</code></td><td>胜利</td><td>AN_Luna_Victory_01</td></tr>
+    <tr><td><code>Stun</code></td><td>眩晕</td><td>AN_Luna_Stun_01</td></tr>
+    <tr><td><code>Interact</code></td><td>交互</td><td>AN_Luna_Interact_Sit</td></tr>
+  </table>
+
+  <div class="sub-title">🔤 2.3 BlendSpace / Montage 命名</div>
+  <table>
+    <tr><th>类型</th><th>命名规则</th><th>示例</th></tr>
+    <tr><td>BlendSpace</td><td><code>BS_[角色]_[功能]</code></td><td>BS_Luna_Locomotion</td></tr>
+    <tr><td>AnimMontage</td><td><code>AM_[角色]_[动作]</code></td><td>AM_Luna_Skill_Q</td></tr>
+    <tr><td>AnimBlueprint</td><td><code>ABP_[角色]</code></td><td>ABP_Luna</td></tr>
+    <tr><td>Animator Controller</td><td><code>AC_[角色]</code></td><td>AC_Luna (Unity)</td></tr>
+  </table>
+</div>
+
+<!-- SEC3 -->
+<div class="section" id="sec3">
+  <h2>⚙️ 3. FBX 导出设置标准</h2>
+
+  <div class="sub-title">⚙️ 3.1 通用导出设置</div>
+  <div class="alert alert-blue"><strong>量产必读</strong>：所有工种通用的 FBX 导出设置。</div>
+  <table>
+    <tr><th>参数</th><th>标准值</th><th>说明</th></tr>
+    <tr><td><strong>FBX 版本</strong></td><td>2020</td><td>兼容 UE5 / Unity 2022+</td></tr>
+    <tr><td><strong>帧率</strong></td><td><strong>30 FPS</strong></td><td>移动端标准；PC 可用 60 FPS</td></tr>
+    <tr><td><strong>轴向</strong></td><td>Y-Up (Maya) / Z-Up (Max)</td><td>引擎端自动转换</td></tr>
+    <tr><td><strong>Scale Factor</strong></td><td><strong>1.0</strong></td><td>保持原始比例</td></tr>
+    <tr><td><strong>单位</strong></td><td>厘米 (cm)</td><td>UE 默认单位</td></tr>
+  </table>
+
+  <div class="sub-title">🦴 3.2 骨骼导出设置</div>
+  <table>
+    <tr><th>参数</th><th>设置</th></tr>
+    <tr><td><strong>骨骼层级</strong></td><td>完整导出，不剥离</td></tr>
+    <tr><td><strong>Deformation Bones Only</strong></td><td>❌ 关闭（保留辅助骨骼）</td></tr>
+    <tr><td><strong>Smoothing</strong></td><td>Normals and Tangents</td></tr>
+    <tr><td><strong>Blend Shapes</strong></td><td>如有面部表情则勾选</td></tr>
+  </table>
+
+  <div class="sub-title">🏃 3.3 Root Motion 设置</div>
+  <div class="alert alert-red"><strong>核心</strong>：Root Motion 配置不一致是动画偏移的第一大原因。</div>
+  <table>
+    <tr><th>项目</th><th>说明</th></tr>
+    <tr><td><strong>需要 Root Motion 的动画</strong></td><td>Run / Walk / Dash / Roll</td></tr>
+    <tr><td><strong>不需要 Root Motion 的动画</strong></td><td>Idle / Attack / Skill / Hit / Death</td></tr>
+    <tr><td><strong>Root 骨骼要求</strong></td><td>必须有一根名为 <code>Root</code> 或 <code>root</code> 的根骨骼</td></tr>
+    <tr><td><strong>Root 骨骼位移</strong></td><td>Run/Walk 的位移数据写在 Root 骨骼上</td></tr>
+  </table>
+
+  <div class="sub-title">✅ 3.4 导出前检查清单</div>
+  <div class="checklist">
+    <h4>📋 FBX 导出前核查</h4>
+    <div class="check-item"><span class="box">☐</span>删除所有 Helper/Dummy 对象</div>
+    <div class="check-item"><span class="box">☐</span>清除所有无用的关键帧</div>
+    <div class="check-item"><span class="box">☐</span>确认骨骼命名无中文/特殊字符</div>
+    <div class="check-item"><span class="box">☐</span>确认 Root 骨骼在原点</div>
+    <div class="check-item"><span class="box">☐</span>确认起始帧/结束帧正确</div>
+    <div class="check-item"><span class="box">☐</span>确认 Scale = <strong>1.0</strong>（无缩放残留）</div>
+    <div class="check-item"><span class="box">☐</span>确认无翻转的法线</div>
+  </div>
+</div>
+
+<!-- SEC4 -->
+<div class="section" id="sec4">
+  <h2>🎮 4. 引擎导入 Checklist</h2>
+
+  <div class="sub-title">🎮 4.1 Unreal Engine</div>
+  <div class="alert alert-blue"><strong>UE</strong> 导入 UE 时的逐项检查。</div>
+  <table>
+    <tr><th>#</th><th>检查项</th><th>操作</th></tr>
+    <tr><td>1</td><td>导入类型选择</td><td>Skeletal Mesh + Animation</td></tr>
+    <tr><td>2</td><td>Skeleton 选择</td><td>选择已有的共享 Skeleton Asset</td></tr>
+    <tr><td>3</td><td>Root Motion</td><td>勾选 Enable Root Motion（需要的动画）</td></tr>
+    <tr><td>4</td><td>AnimBlueprint 创建</td><td>基于导入的 Skeleton 创建 ABP</td></tr>
+    <tr><td>5</td><td>Retarget</td><td>如需跨骨架复用，设置 IK Retargeter</td></tr>
+    <tr><td>6</td><td>Notify 添加</td><td>在关键帧添加 AnimNotify（打击帧/音效帧/特效帧）</td></tr>
+    <tr><td>7</td><td>压缩设置</td><td>Animation → Compression → 根据平台选择</td></tr>
+  </table>
+
+  <div class="sub-title">🔷 4.2 Unity</div>
+  <div class="alert alert-blue"><strong>Unity</strong> 导入 Unity 时的逐项检查。</div>
+  <table>
+    <tr><th>#</th><th>检查项</th><th>操作</th></tr>
+    <tr><td>1</td><td>Animation Type</td><td>Humanoid / Generic</td></tr>
+    <tr><td>2</td><td>Avatar 配置</td><td>Configure Avatar → 确认骨骼映射</td></tr>
+    <tr><td>3</td><td>Root Motion</td><td>勾选 Bake Into Pose（不需要的动画）</td></tr>
+    <tr><td>4</td><td>Animator Controller</td><td>创建 AC 并配置状态机</td></tr>
+    <tr><td>5</td><td>Animation Events</td><td>在关键帧添加 Event（攻击判定/音效/特效）</td></tr>
+    <tr><td>6</td><td>压缩设置</td><td>Animation Compression → Optimal</td></tr>
+  </table>
+
+  <div class="sub-title">🔄 4.3 UE vs Unity 对照表</div>
+  <div class="alert alert-blue"><strong>速查</strong>：跨引擎概念对照，方便双端团队沟通。</div>
+  <table>
+    <tr><th>概念</th><th>UE 名称</th><th>Unity 名称</th></tr>
+    <tr><td>状态机</td><td>AnimBlueprint (ABP)</td><td>Animator Controller (AC)</td></tr>
+    <tr><td>状态</td><td>State</td><td>State</td></tr>
+    <tr><td>混合空间</td><td>BlendSpace</td><td>Blend Tree</td></tr>
+    <tr><td>动画蒙太奇</td><td>AnimMontage</td><td>手动控制播放</td></tr>
+    <tr><td>动画通知</td><td>AnimNotify</td><td>Animation Event</td></tr>
+    <tr><td>骨架</td><td>Skeleton Asset</td><td>Avatar</td></tr>
+    <tr><td>重定向</td><td>IK Retargeter</td><td>Humanoid Retarget</td></tr>
+  </table>
+</div>
+
+<!-- SEC5 -->
+<div class="section" id="sec5">
+  <h2>🔄 5. 美术→程序交接 SOP</h2>
+
+  <div class="sub-title">🔄 5.1 交接流程</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>🎨 美术完成动画</strong></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>📝 填写交接文档</strong></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>📤 提交到版本库</strong></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>💻 程序/TA 接收</strong></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>🎮 导入引擎</strong></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>🧪 验证状态机</strong></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>🎉 交接完成</strong></div>
+  </div>
+  <p>❌ 有问题 → 📋 反馈修改清单 → 🔧 美术修复 → 📤 重新提交 → 🧪 二次验证 → 完成</p>
+
+  <div class="sub-title">📦 5.2 交接清单</div>
+  <div class="alert alert-blue"><strong>量产必读</strong>：每次交付必须包含以下内容。</div>
+  <table>
+    <tr><th>#</th><th>交付物</th><th>格式</th><th>必须</th><th>说明</th></tr>
+    <tr><td>1</td><td>动画 FBX 文件</td><td><code>.fbx</code></td><td>✅</td><td>按命名规范</td></tr>
+    <tr><td>2</td><td>状态机文档</td><td><code>.md</code> / <code>.xlsx</code></td><td>✅</td><td>本文档模板</td></tr>
+    <tr><td>3</td><td>预览视频</td><td><code>.mp4</code> (720p)</td><td>✅</td><td>每个动画的预览视频</td></tr>
+    <tr><td>4</td><td>关键帧标注</td><td>文档内嵌</td><td>✅</td><td>打击帧/音效帧/特效帧</td></tr>
+    <tr><td>5</td><td>异常动作说明</td><td>文档备注</td><td>⚠️</td><td>已知的穿模/不自然点</td></tr>
+    <tr><td>6</td><td>Root Motion 标注</td><td>文档内嵌</td><td>⚠️</td><td>哪些动画有 Root Motion</td></tr>
+    <tr><td>7</td><td>骨骼映射表</td><td><code>.xlsx</code></td><td>⚠️</td><td>首次交接时必须</td></tr>
+  </table>
+
+  <div class="sub-title">🎯 5.3 关键帧标注模板</div>
+  <div class="alert alert-blue"><strong>示范</strong>：打击帧/音效帧/特效帧的标注格式。</div>
+  <table>
+    <tr><th>动画片段</th><th>总帧数</th><th>打击帧</th><th>音效帧</th><th>特效帧</th><th>无敌帧</th><th>备注</th></tr>
+    <tr><td>AN_Luna_Attack01</td><td>30</td><td><strong>F12</strong></td><td>F10</td><td>F11</td><td>—</td><td>—</td></tr>
+    <tr><td>AN_Luna_Attack02</td><td>25</td><td><strong>F8, F18</strong></td><td>F6</td><td>F7, F17</td><td>—</td><td>二段判定</td></tr>
+    <tr><td>AN_Luna_Skill_Q</td><td>45</td><td><strong>F20</strong></td><td>F15, F20</td><td>F14</td><td>F0~F10</td><td>前摇无敌</td></tr>
+  </table>
+</div>
+
+<!-- SEC6 -->
+<div class="section" id="sec6">
+  <h2>🚨 6. 常见踩坑案例</h2>
+  <div class="alert alert-red"><strong>避坑指南</strong>：以下是动画交接中最高频的问题，严重时可导致整个角色重做。</div>
+
+  <div class="faq-item">
+    <div class="faq-q">🚨 案例 1：骨骼不匹配 <span class="badge badge-red">高频</span></div>
+    <div class="faq-a">
+      <p>导入引擎后动画错乱、变形、T-Pose 残留。</p>
+      <p><strong>典型场景</strong>：美术更新了骨骼结构（加了辅助骨骼），导出新动画。程序用旧骨骼导入新动画，导致全身错乱。</p>
+      <p><strong>解决方案</strong>：① 骨骼变更必须通知所有相关方 ② 使用版本号管理骨骼（如 <code>SK_Humanoid_v03</code>）③ 引擎中统一使用共享 Skeleton Asset ④ 建立骨骼变更审批机制</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">🚨 案例 2：动画偏移 <span class="badge badge-red">高频</span></div>
+    <div class="faq-a">
+      <p>角色播放动画后位置偏移/不回原点。</p>
+      <p><strong>典型场景</strong>：Attack 动画中 Root 骨骼有位移数据残留。引擎中未关闭 Root Motion，角色每次攻击后向前滑。</p>
+      <p><strong>解决方案</strong>：① 明确标注哪些动画需要 Root Motion ② 不需要 Root Motion 的动画，Root 骨骼必须在原点不动 ③ 在交接文档中增加 Root Motion 标注列</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">🚨 案例 3：状态机死循环 <span class="badge badge-yellow">中频</span></div>
+    <div class="faq-a">
+      <p>两个状态互相跳转，动画抖动。</p>
+      <p><strong>典型场景</strong>：Idle→Run 条件为 <code>Speed>0</code>，Run→Idle 条件为 <code>Speed&lt;1</code>。Speed=0.5 时两个状态每帧互跳。</p>
+      <p><strong>解决方案</strong>：① 添加 cooldown / 最小停留时间 ② 转换条件添加互斥逻辑 ③ 使用 ExitTime 而非纯条件触发 ④ 在状态转换条件表中逐条审查</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">🚨 案例 4：过渡闪烁 <span class="badge badge-yellow">中频</span></div>
+    <div class="faq-a">
+      <p>状态切换瞬间出现闪烁/抖动。混合时间设置不当，差异极大的 Pose 直接混合。</p>
+      <p><strong>解决方案</strong>：① 攻击→待机混合时间 <strong>0.2~0.3s</strong> ② 受击混合时间 <strong>0.05s</strong> ③ 避免两个差异极大的 Pose 直接混合 ④ 在状态机总览表中明确标注混合时间</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">🚨 案例 5：动画裁切 <span class="badge badge-yellow">中频</span></div>
+    <div class="faq-a">
+      <p>动画播到一半被打断，看起来不自然。可打断标记设置有误。</p>
+      <p><strong>解决方案</strong>：① 攻击动画在 ComboWindow 内才可打断 ② 技能前摇不可打断，后摇可打断 ③ 标注清楚每个动画的可打断窗口 ④ 在状态转换条件表中增加"可打断"列</p>
+    </div>
+  </div>
+</div>
+
+<!-- SEC7 -->
+<div class="section" id="sec7">
+  <h2>📂 7. 版本管理建议</h2>
+
+  <div class="sub-title">📂 7.1 动画资产目录结构</div>
+  <pre>/Animation/
+├── CH_Luna/
+│   ├── Source/              # Maya/Max 源文件（带版本号）
+│   │   ├── AN_Luna_Idle_01_v01.ma
+│   │   └── AN_Luna_Idle_01_v02.ma
+│   ├── Export/              # FBX（始终最新，无版本号）
+│   │   ├── AN_Luna_Idle_01.fbx
+│   │   └── AN_Luna_Attack01.fbx
+│   └── Preview/             # 预览视频
+│       ├── AN_Luna_Idle_01.mp4
+│       └── AN_Luna_Attack01.mp4
+└── _Doc/
+    └── Luna_AnimStateMachine.md</pre>
+
+  <div class="sub-title">📝 7.2 增量更新规范</div>
+  <p>• 修改动画时，<code>Source/</code> 新建带版本号的文件</p>
+  <p>• <code>Export/</code> 覆盖更新（引擎自动检测变化）</p>
+  <p>• Commit Message 必须说明修改内容</p>
+
+  <div class="dd-grid">
+    <div class="dd-card dd-do">
+      <h4>✅ Do（正确示范）</h4>
+      <p><code>[MOD][动画] AN_Luna_Attack01 调整打击帧从F15→F12，优化受击反馈 TASK-234</code></p>
+    </div>
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't（错误示范）</h4>
+      <p><code>update files</code> / <code>fix</code> / <code>修改了一些东西</code></p>
+    </div>
+  </div>
+
+  <div class="alert alert-green">⚡ <strong>APM 金句</strong>：Source 留版本，Export 留最新，Preview 留证据。</div>
+</div>
+
+<div class="doc-footer">🎬 动画状态机交接与导出规范 · v1.0 · 美术中心 · 项目内部资料</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>常用系统权限申请导航</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:24px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:11px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:13px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:12px;line-height:1.7}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:13px}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+.redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:12px;line-height:1.8;padding-left:28px}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;text-align:center;min-width:90px}
+.flow-node strong{display:block;color:var(--heading);font-size:12px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:10px}
+.flow-arrow{color:var(--cyan);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>🔑 常用系统权限申请导航 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">System Permission Application Guide</div>
+  <div class="meta">
+    <span>📋 适用：全阶段</span>
+    <span>👤 维护：周八</span>
+    <span>📅 2026-04-02</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>📑 目录导航</h3>
+  <ol>
+    <li><a href="#s1">权限申请总览</a></li>
+    <li><a href="#s2">版本控制权限</a></li>
+    <li><a href="#s3">项目管理工具权限</a></li>
+    <li><a href="#s4">存储与网络</a></li>
+    <li><a href="#s5">权限变更与回收</a></li>
+    <li><a href="#s6">典型问题</a></li>
+    <li><a href="#s7">Do / Don't 示例</a></li>
+    <li><a href="#s8">附录：权限申请快速导航卡</a></li>
+  </ol>
+</div>
+
+<!-- 1 -->
+<div class="section" id="s1">
+  <h2>📋 1. 权限申请总览</h2>
+  <table>
+    <tr><th>系统</th><th>用途</th><th>申请方式</th><th>审批人</th><th>预计开通</th></tr>
+    <tr><td>SVN 仓库</td><td>美术资产版本管理</td><td>OA 工单</td><td>TA Lead</td><td>1~2 工作日</td></tr>
+    <tr><td>Perforce (P4)</td><td>美术资产版本管理</td><td>OA 工单</td><td>TA Lead</td><td>1~2 工作日</td></tr>
+    <tr><td>Git (GitLab)</td><td>工具脚本管理</td><td>IT Portal</td><td>项目 Owner</td><td>当天</td></tr>
+    <tr><td>TAPD</td><td>项目管理</td><td>APM 邀请</td><td>项目管理员</td><td>即时</td></tr>
+    <tr><td>Jira</td><td>项目管理</td><td>APM 邀请</td><td>项目管理员</td><td>即时</td></tr>
+    <tr><td>云盘/NAS</td><td>美术资源共享</td><td>OA 工单</td><td>部门主管</td><td>1 工作日</td></tr>
+    <tr><td>VPN</td><td>远程办公</td><td>OA 工单</td><td>IT 管理员</td><td>1~2 工作日</td></tr>
+    <tr><td>引擎 License</td><td>UE/Unity 授权</td><td>TA 分配</td><td>TA Lead</td><td>当天</td></tr>
+    <tr><td>DCC License</td><td>Maya/Max/ZBrush</td><td>IT 分配</td><td>IT</td><td>当天</td></tr>
+    <tr><td>Wiki/Confluence</td><td>知识库</td><td>APM 邀请</td><td>空间管理员</td><td>即时</td></tr>
+  </table>
+</div>
+
+<!-- 2 -->
+<div class="section" id="s2">
+  <h2>🔐 2. 版本控制权限</h2>
+  <div class="sub-title">2.1 SVN 权限申请</div>
+  <table>
+    <tr><th>步骤</th><th>操作</th><th>说明</th></tr>
+    <tr><td>1</td><td>提交 OA 工单</td><td>选择「IT服务-SVN权限申请」</td></tr>
+    <tr><td>2</td><td>填写仓库地址</td><td>如 <code>svn://art-server/ArtAssets</code></td></tr>
+    <tr><td>3</td><td>填写目录范围</td><td>如 <code>/Character/Hero/</code>（按需申请）</td></tr>
+    <tr><td>4</td><td>选择权限级别</td><td>只读 / 读写</td></tr>
+    <tr><td>5</td><td>审批人</td><td>TA Lead → 自动开通</td></tr>
+  </table>
+  <p><strong>常见问题</strong>：需要访问其他工种目录？→ 只读权限单独申请。误操作删除了文件？→ 联系 TA 从版本历史恢复。</p>
+
+  <div class="sub-title">2.2 Perforce 权限申请</div>
+  <table>
+    <tr><th>步骤</th><th>操作</th></tr>
+    <tr><td>1</td><td>联系 TA 创建 P4 账号</td></tr>
+    <tr><td>2</td><td>安装 P4V 客户端</td></tr>
+    <tr><td>3</td><td>配置 Workspace 映射</td></tr>
+    <tr><td>4</td><td>TA 配置目录级权限</td></tr>
+  </table>
+
+  <div class="sub-title">2.3 Git (GitLab) 权限</div>
+  <table>
+    <tr><th>步骤</th><th>操作</th></tr>
+    <tr><td>1</td><td>访问公司 GitLab，使用统一账号登录</td></tr>
+    <tr><td>2</td><td>找到目标项目 → 点击「Request Access」</td></tr>
+    <tr><td>3</td><td>项目 Owner 审批</td></tr>
+  </table>
+</div>
+
+<!-- 3 -->
+<div class="section" id="s3">
+  <h2>📋 3. 项目管理工具权限</h2>
+  <div class="sub-title">3.1 TAPD</div>
+  <table>
+    <tr><th>角色</th><th>权限</th><th>适用人员</th></tr>
+    <tr><td>管理员</td><td>完全控制</td><td>APM</td></tr>
+    <tr><td>成员</td><td>创建/编辑任务</td><td>美术组员</td></tr>
+    <tr><td>只读</td><td>查看</td><td>策划/QA</td></tr>
+  </table>
+  <p><strong>开通方式</strong>：APM 在 TAPD 项目设置 → 成员管理 → 邀请</p>
+
+  <div class="sub-title">3.2 Jira</div>
+  <p><strong>开通方式</strong>：APM 通过 Jira Admin 添加用户到项目</p>
+</div>
+
+<!-- 4 -->
+<div class="section" id="s4">
+  <h2>📁 4. 存储与网络</h2>
+  <div class="sub-title">4.1 云盘/NAS 权限</div>
+  <table>
+    <tr><th>资源</th><th>用途</th><th>权限</th></tr>
+    <tr><td><code>\\nas\ArtShare\</code></td><td>美术资源共享盘</td><td>美术组读写</td></tr>
+    <tr><td><code>\\nas\Reference\</code></td><td>参考资料库</td><td>全项目只读</td></tr>
+    <tr><td><code>\\nas\Delivery\</code></td><td>外包交付目录</td><td>APM + 对应组长 读写</td></tr>
+  </table>
+  <div class="sub-title">4.2 VPN 权限</div>
+  <table>
+    <tr><th>VPN 类型</th><th>用途</th><th>申请条件</th></tr>
+    <tr><td>公司 VPN</td><td>远程访问内网</td><td>正式员工</td></tr>
+    <tr><td>项目 VPN</td><td>访问项目专用网络</td><td>项目成员</td></tr>
+  </table>
+</div>
+
+<!-- 5 -->
+<div class="section" id="s5">
+  <h2>🔄 5. 权限变更与回收</h2>
+  <div class="redline"><strong>🔴 核心红线</strong>：离职人员权限必须在<strong>最后工作日当天</strong>全部回收，不允许延迟处理。</div>
+  <div class="sub-title">5.1 权限变更场景</div>
+  <table>
+    <tr><th>场景</th><th>操作</th><th>负责人</th></tr>
+    <tr><td>转岗到其他项目</td><td>回收旧权限 + 开通新权限</td><td>APM</td></tr>
+    <tr><td>离职</td><td>全部回收</td><td>IT + APM</td></tr>
+    <tr><td>晋升/职责变化</td><td>调整权限级别</td><td>APM</td></tr>
+    <tr><td>外包合作结束</td><td>回收外包人员权限</td><td>APM + IT</td></tr>
+  </table>
+  <div class="sub-title">5.2 定期巡检</div>
+  <table>
+    <tr><th>频率</th><th>检查内容</th></tr>
+    <tr><td>每季度</td><td>清理非活跃账号</td></tr>
+    <tr><td>项目结束</td><td>回收全部项目权限</td></tr>
+    <tr><td>人员变动时</td><td>即时调整</td></tr>
+  </table>
+</div>
+
+<!-- 6 -->
+<div class="section" id="s6">
+  <h2>🚨 6. 典型问题</h2>
+  <div class="faq-item">
+    <div class="faq-q">🚨 案例 1：新人空转三天——SVN/P4 权限未开通</div>
+    <div class="faq-a">
+      <p><span class="badge badge-red">高频</span></p>
+      <p><strong>根因</strong>：APM 未在入职首日统一走完权限申请流程，OA 工单遗漏版本控制类权限。</p>
+      <p><strong>破局</strong>：① 建立新人权限 Checklist ② 提前联系 TA Lead 确认审批时效 ③ 急需权限走即时沟通催办 ④ TAPD 创建固定任务模板</p>
+    </div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">🚨 案例 2：离职权限回收遗漏——外包人员误操作覆盖线上资产</div>
+    <div class="faq-a">
+      <p><span class="badge badge-red">高频</span></p>
+      <p><strong>根因</strong>：APM 未在外包结束当天提交权限回收工单；IT 侧无自动化回收机制。</p>
+      <p><strong>破局</strong>：① 立即执行 <code>svn unlock --force</code> + 回滚 ② 当天完成全部权限回收 ③ 设置合同到期自动禁用规则 ④ 每季度权限巡检</p>
+    </div>
+  </div>
+</div>
+
+<!-- 7 -->
+<div class="section" id="s7">
+  <h2>📌 7. Do / Don't 示例</h2>
+  <div class="dd-grid">
+    <div class="dd-card dd-do">
+      <h4>✅ Do（正确示范）</h4>
+      <p><strong>入职前 1 天</strong>：提前创建「新人权限开通」TAPD 任务</p>
+      <p><strong>入职当天</strong>：按清单逐项提交 OA 工单</p>
+      <p><strong>入职第 1 天下午</strong>：确认即时类权限全部开通</p>
+      <p><strong>入职第 2 天</strong>：跟进 OA 工单审批状态</p>
+      <p><strong>入职第 3 天</strong>：验证新人已能正常提交/检出资产</p>
+    </div>
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't（错误示范）</h4>
+      <p>入职后「等新人自己问」才去开权限</p>
+      <p>只开了 TAPD，忘记版本控制和 NAS 权限</p>
+      <p>权限开通后不验证，新人遇到问题才发现配置有误</p>
+      <p>外包结束后不回收权限，「反正也不会再用了」</p>
+    </div>
+  </div>
+</div>
+
+<!-- 8 -->
+<div class="section" id="s8">
+  <h2>📎 附录：权限申请快速导航卡</h2>
+  <div class="flow">
+    <div class="flow-node start"><strong>新人入职</strong></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>找 APM 获取此文档</strong></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>按清单逐项申请</strong></div>
+  </div>
+  <table>
+    <tr><th>类别</th><th>系统</th><th>申请方式</th></tr>
+    <tr><td>版本控制</td><td>SVN / P4 / Git</td><td>OA 工单 → TA 审批</td></tr>
+    <tr><td>项目管理工具</td><td>TAPD / Jira</td><td>APM 邀请 → 即时开通</td></tr>
+    <tr><td>存储/VPN</td><td>NAS / 云盘 / VPN</td><td>OA 工单 → 主管审批</td></tr>
+  </table>
+</div>
+
+<div class="doc-footer">
+  游戏美术项目管理知识库 · 常用系统权限申请导航 v1.0
+</div>
+
+</div>
+</body>
+</html>

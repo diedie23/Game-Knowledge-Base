@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>美术外包工作量评估标准 (人天模型)</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:24px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:11px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:13px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:12px;line-height:1.7}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:13px}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:12px;line-height:1.8;padding-left:28px}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+.redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;text-align:center;min-width:90px}
+.flow-node strong{display:block;color:var(--heading);font-size:12px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:10px}
+.flow-arrow{color:var(--cyan);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+.checklist{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
+.checklist h4{color:var(--heading);margin-bottom:8px}
+.check-item{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:12px}
+.check-item .box{width:16px;height:16px;border:1px solid var(--border);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;background:var(--card)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:12px 0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:12px}
+.card strong{color:var(--heading);display:block;margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>📐 美术外包工作量评估标准 (人天模型) <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Art Outsource Workload Estimation Model</div>
+  <div class="meta">
+    <span>📋 适用：量产期</span>
+    <span>⚡ 优先级：高</span>
+    <span>👤 负责人：周八</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>📑 目录导航</h3>
+  <ol>
+    <li><a href="#s1">按工种基准人天表</a></li>
+    <li><a href="#s2">复杂度评估标准</a></li>
+    <li><a href="#s3">风险系数加成</a></li>
+    <li><a href="#s4">报价公式模板</a></li>
+    <li><a href="#s5">评审与校准机制</a></li>
+    <li><a href="#s6">实际案例：角色全流程人天拆解</a></li>
+    <li><a href="#s7">典型问题</a></li>
+    <li><a href="#s8">Do / Don't 示例</a></li>
+    <li><a href="#s9">附录：快速估价参考卡片</a></li>
+  </ol>
+</div>
+
+<!-- ===== Section 1 ===== -->
+<div class="section" id="s1">
+  <h2>1️⃣ 按工种分类的基准人天表</h2>
+
+  <div class="sub-title">🎨 1.1 角色原画</div>
+  <div class="alert alert-blue">💡 <strong>[原画]</strong> 复杂度越高，修改风险越大。</div>
+  <table>
+    <tr><th>复杂度</th><th>定义</th><th>基准人天</th><th>参考案例</th></tr>
+    <tr><td><strong>S</strong></td><td>主角级，全身设计含多套武器/配饰，需三视图+表情+皮肤</td><td><strong>8~12d</strong></td><td>MOBA 主角英雄</td></tr>
+    <tr><td><strong>A</strong></td><td>重要 NPC/精英怪，全身设计含武器</td><td><strong>5~7d</strong></td><td>Boss 角色</td></tr>
+    <tr><td><strong>B</strong></td><td>普通角色，半身或全身，较少配件</td><td><strong>3~4d</strong></td><td>普通 NPC</td></tr>
+    <tr><td><strong>C</strong></td><td>头像/半身像/简单变体/换色</td><td><strong>1~2d</strong></td><td>头像图标</td></tr>
+  </table>
+
+  <div class="sub-title">🧊 1.2 角色 3D 建模</div>
+  <div class="alert alert-blue">💡 <strong>[3D角色]</strong> 全流程：高模雕刻→拓扑→UV→贴图→绑定→蒙皮。</div>
+  <table>
+    <tr><th>复杂度</th><th>定义</th><th>基准人天</th><th>包含工作</th></tr>
+    <tr><td><strong>S</strong></td><td>高模+低模+贴图+绑定，复杂装饰，15k+ Tris</td><td><strong>15~20d</strong></td><td>高模雕刻→拓扑→UV→贴图→绑定→蒙皮</td></tr>
+    <tr><td><strong>A</strong></td><td>中等复杂度，10k~15k Tris</td><td><strong>10~14d</strong></td><td>同上，复杂度降低</td></tr>
+    <tr><td><strong>B</strong></td><td>简单角色/NPC，5k~10k Tris</td><td><strong>6~9d</strong></td><td>可复用骨骼</td></tr>
+    <tr><td><strong>C</strong></td><td>换皮/换色/小变体</td><td><strong>2~4d</strong></td><td>基于已有模型修改</td></tr>
+  </table>
+
+  <div class="sub-title">🏞️ 1.3 场景建模</div>
+  <div class="alert alert-blue">💡 <strong>[场景]</strong> 大型场景可拆分为多个模块并行制作。</div>
+  <table>
+    <tr><th>复杂度</th><th>定义</th><th>基准人天</th><th>参考案例</th></tr>
+    <tr><td><strong>S</strong></td><td>大型场景，含室内外，高美术完成度</td><td><strong>20~30d</strong></td><td>RPG 主城</td></tr>
+    <tr><td><strong>A</strong></td><td>中型战斗关卡/副本</td><td><strong>12~18d</strong></td><td>MOBA 地图</td></tr>
+    <tr><td><strong>B</strong></td><td>小型场景/单一房间</td><td><strong>6~10d</strong></td><td>对话场景</td></tr>
+    <tr><td><strong>C</strong></td><td>场景道具/模块化组件</td><td><strong>1~3d</strong></td><td>箱子、路灯</td></tr>
+  </table>
+
+  <div class="sub-title">🖼️ 1.4 UI 设计</div>
+  <div class="alert alert-blue">💡 <strong>[UI]</strong> 含动效设计的界面复杂度显著提升。</div>
+  <table>
+    <tr><th>复杂度</th><th>定义</th><th>基准人天</th><th>参考案例</th></tr>
+    <tr><td><strong>S</strong></td><td>核心界面（主界面/战斗HUD），含动效设计</td><td><strong>5~8d</strong></td><td>主界面全套</td></tr>
+    <tr><td><strong>A</strong></td><td>次级界面（商城/背包/设置）</td><td><strong>3~5d</strong></td><td>商城界面</td></tr>
+    <tr><td><strong>B</strong></td><td>弹窗/对话框/提示框</td><td><strong>1~2d</strong></td><td>确认弹窗</td></tr>
+    <tr><td><strong>C</strong></td><td>图标批量（≤20 个）</td><td><strong>2~4d</strong></td><td>道具图标</td></tr>
+  </table>
+
+  <div class="sub-title">✨ 1.5 特效</div>
+  <div class="alert alert-blue">💡 <strong>[VFX]</strong> 多阶段表演特效的工作量远高于简单粒子。</div>
+  <table>
+    <tr><th>复杂度</th><th>定义</th><th>基准人天</th><th>参考案例</th></tr>
+    <tr><td><strong>S</strong></td><td>大招/全屏特效，含多阶段表演</td><td><strong>5~8d</strong></td><td>英雄大招</td></tr>
+    <tr><td><strong>A</strong></td><td>普通技能特效，含命中反馈</td><td><strong>3~4d</strong></td><td>普通攻击特效</td></tr>
+    <tr><td><strong>B</strong></td><td>简单特效（Buff 光环/脚印/环境粒子）</td><td><strong>1~2d</strong></td><td>治疗光环</td></tr>
+    <tr><td><strong>C</strong></td><td>变体/换色</td><td><strong>0.5~1d</strong></td><td>颜色替换</td></tr>
+  </table>
+
+  <div class="sub-title">🎬 1.6 动画</div>
+  <div class="alert alert-blue">💡 <strong>[动画]</strong> 全套角色动画集的周期较长，需提前排期。</div>
+  <table>
+    <tr><th>复杂度</th><th>定义</th><th>基准人天</th><th>参考案例</th></tr>
+    <tr><td><strong>S</strong></td><td>完整角色动画集（待机+移动+攻击+技能+死亡）</td><td><strong>12~18d</strong></td><td>新英雄全套</td></tr>
+    <tr><td><strong>A</strong></td><td>单套技能动画（含预备+释放+恢复）</td><td><strong>4~6d</strong></td><td>新技能动画</td></tr>
+    <tr><td><strong>B</strong></td><td>单个动画片段</td><td><strong>1~3d</strong></td><td>交互动作</td></tr>
+    <tr><td><strong>C</strong></td><td>动画修改/微调</td><td><strong>0.5~1d</strong></td><td>速度调整</td></tr>
+  </table>
+</div>
+
+<!-- ===== Section 2 ===== -->
+<div class="section" id="s2">
+  <h2>2️⃣ 复杂度评估标准</h2>
+
+  <div class="sub-title">📊 2.1 评估维度打分表</div>
+  <div class="alert alert-blue">💡 <strong>[核心]</strong> 五维度加权打分法，量化评估复杂度。</div>
+  <table>
+    <tr><th>维度</th><th>权重</th><th>S (4分)</th><th>A (3分)</th><th>B (2分)</th><th>C (1分)</th></tr>
+    <tr><td><strong>结构复杂度</strong></td><td>30%</td><td>多部件/可拆卸</td><td>中等部件</td><td>简单结构</td><td>单体/变体</td></tr>
+    <tr><td><strong>细节密度</strong></td><td>25%</td><td>大量装饰/纹理</td><td>中等细节</td><td>少量细节</td><td>极简</td></tr>
+    <tr><td><strong>技术难度</strong></td><td>20%</td><td>特殊 Shader/绑定</td><td>标准流程</td><td>简化流程</td><td>批量复制</td></tr>
+    <tr><td><strong>参考明确度</strong></td><td>15%</td><td>无参考/纯创作</td><td>有概念图</td><td>有详细三视图</td><td>有原型可参照</td></tr>
+    <tr><td><strong>修改概率</strong></td><td>10%</td><td>极高（首次风格探索）</td><td>高</td><td>中</td><td>低</td></tr>
+  </table>
+
+  <div class="sub-title">🎯 2.2 总分对照</div>
+  <table>
+    <tr><th>总分</th><th>复杂度等级</th></tr>
+    <tr><td>3.5~4.0</td><td><strong>S</strong></td></tr>
+    <tr><td>2.5~3.4</td><td><strong>A</strong></td></tr>
+    <tr><td>1.5~2.4</td><td><strong>B</strong></td></tr>
+    <tr><td>1.0~1.4</td><td><strong>C</strong></td></tr>
+  </table>
+</div>
+
+<!-- ===== Section 3 ===== -->
+<div class="section" id="s3">
+  <h2>3️⃣ 风险系数加成</h2>
+  <div class="alert alert-red">🚨 <strong>[P0]</strong> 风险系数可叠加，但有上限 <code>min(连乘, 2.0)</code>。</div>
+  <table>
+    <tr><th>风险因素</th><th>加成系数</th><th>说明</th></tr>
+    <tr><td>🆕 首次合作 CP</td><td>×1.20</td><td>磨合成本，预期返工率高</td></tr>
+    <tr><td>🌏 跨时区沟通</td><td>×1.10</td><td>沟通延迟，反馈周期拉长</td></tr>
+    <tr><td>🔄 风格未锁定</td><td>×1.30</td><td>需求可能反复，预留探索空间</td></tr>
+    <tr><td>⏰ 紧急赶工</td><td>×1.25</td><td>加班费 + 质量风险</td></tr>
+    <tr><td>🆕 新品类/新技术</td><td>×1.15</td><td>学习曲线成本</td></tr>
+    <tr><td>📋 修改轮次多 (&gt;3轮)</td><td>×1.10/轮</td><td>每多一轮加 10%</td></tr>
+  </table>
+  <div class="redline">
+    <strong>核心红线：</strong>风险系数<strong>可叠加</strong>，但有上限：<code>最终风险系数 = min(各风险系数连乘, 2.0)</code><br>
+    <strong>示范：</strong>首次合作 (1.2) × 风格未锁定 (1.3) = <strong>1.56</strong>
+  </div>
+</div>
+
+<!-- ===== Section 4 ===== -->
+<div class="section" id="s4">
+  <h2>4️⃣ 报价公式模板</h2>
+
+  <div class="sub-title">💡 4.1 基础公式</div>
+  <div class="alert alert-green">💡 <strong>总价 = 基准人天 × 日单价 × 复杂度系数 × 风险系数</strong></div>
+
+  <div class="sub-title">📊 4.2 复杂度系数对照</div>
+  <table>
+    <tr><th>等级</th><th>复杂度系数</th></tr>
+    <tr><td>S</td><td><strong>1.5</strong></td></tr>
+    <tr><td>A</td><td><strong>1.2</strong></td></tr>
+    <tr><td>B</td><td><strong>1.0</strong></td></tr>
+    <tr><td>C</td><td><strong>0.8</strong></td></tr>
+  </table>
+
+  <div class="sub-title">💲 4.3 日单价参考 (2026)</div>
+  <div class="alert alert-blue">💡 <strong>[高频]</strong> 以下为 2026 年市场参考基线。</div>
+  <table>
+    <tr><th>工种</th><th>🇨🇳 国内一线 CP</th><th>🇨🇳 国内二线 CP</th><th>🌍 海外 CP</th></tr>
+    <tr><td>角色原画</td><td>¥1,800~2,500/天</td><td>¥1,200~1,800/天</td><td>$250~400/天</td></tr>
+    <tr><td>角色建模</td><td>¥1,500~2,200/天</td><td>¥1,000~1,500/天</td><td>$200~350/天</td></tr>
+    <tr><td>场景建模</td><td>¥1,300~2,000/天</td><td>¥900~1,300/天</td><td>$180~300/天</td></tr>
+    <tr><td>UI 设计</td><td>¥1,200~1,800/天</td><td>¥800~1,200/天</td><td>$150~280/天</td></tr>
+    <tr><td>特效</td><td>¥1,500~2,200/天</td><td>¥1,000~1,500/天</td><td>$200~350/天</td></tr>
+    <tr><td>动画</td><td>¥1,500~2,200/天</td><td>¥1,000~1,500/天</td><td>$200~350/天</td></tr>
+  </table>
+  <div class="alert alert-yellow">⚠️ 以上为参考基线，实际报价需根据市场行情和 CP 资质调整。</div>
+
+  <div class="sub-title">🧮 4.4 计算示例</div>
+  <div class="alert alert-blue">💡 <strong>[示范]</strong> 以下为完整报价计算过程。</div>
+  <table>
+    <tr><th>项目</th><th>数值</th></tr>
+    <tr><td><strong>需求</strong></td><td>1 个 A 级复杂度角色建模（首次合作的 CP）</td></tr>
+    <tr><td>基准人天</td><td>12d (A级角色建模中位数)</td></tr>
+    <tr><td>日单价</td><td>¥1,500/天 (国内二线CP)</td></tr>
+    <tr><td>复杂度系数</td><td>1.2 (A级)</td></tr>
+    <tr><td>风险系数</td><td>1.2 (首次合作)</td></tr>
+    <tr><td><strong>总价</strong></td><td><strong>12 × 1,500 × 1.2 × 1.2 = ¥25,920</strong></td></tr>
+  </table>
+</div>
+
+<!-- ===== Section 5 ===== -->
+<div class="section" id="s5">
+  <h2>5️⃣ 评审与校准机制</h2>
+
+  <div class="sub-title">🔍 5.1 三级评审流程</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>① 初评</strong><span class="sub">APM + 工种组长<br>人天初步评估表</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>② 复审</strong><span class="sub">主美 + TA<br>技术可行性确认</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>③ 终审</strong><span class="sub">制作人/总监<br>预算审批</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>✅ 生效执行</strong></div>
+  </div>
+
+  <div class="sub-title">📊 5.2 历史数据校准</div>
+  <div class="alert alert-blue">💡 <strong>[量产必读]</strong> 每季度末需进行评估准确率复盘。</div>
+  <div class="alert alert-green">准确率 = 1 - |实际人天 - 预估人天| / 预估人天　→　🎯 目标：准确率 ≥ 80%</div>
+  <table>
+    <tr><th>偏差范围</th><th>评级</th><th>行动</th></tr>
+    <tr><td>≤ 10%</td><td>🟢 优秀</td><td>维持当前模型</td></tr>
+    <tr><td>10%~20%</td><td>🟡 良好</td><td>微调基准人天</td></tr>
+    <tr><td>20%~30%</td><td>🟠 需改进</td><td>分析偏差原因，更新系数</td></tr>
+    <tr><td>&gt; 30%</td><td>🔴 严重偏差</td><td>重建该工种评估模型</td></tr>
+  </table>
+</div>
+
+<!-- ===== Section 6 ===== -->
+<div class="section" id="s6">
+  <h2>6️⃣ 实际案例：角色全流程人天拆解</h2>
+
+  <div class="sub-title">📋 6.1 案例背景</div>
+  <div class="alert alert-blue">💡 <strong>[示范]</strong> 以下为一个完整的外包角色全流程评估案例。</div>
+  <table>
+    <tr><th>项目</th><th>信息</th></tr>
+    <tr><td><strong>资产</strong></td><td>MOBA 手游新英雄「夜叉」—— A 级复杂度</td></tr>
+    <tr><td><strong>CP</strong></td><td>合作过 2 次的国内一线 CP</td></tr>
+    <tr><td><strong>要求</strong></td><td>原画→建模→贴图→绑定→基础动画</td></tr>
+  </table>
+
+  <div class="sub-title">⏱️ 6.2 人天拆解</div>
+  <table>
+    <tr><th>阶段</th><th>工作内容</th><th>基准人天</th><th>备注</th></tr>
+    <tr><td>原画设计</td><td>概念草图 × 3 → 定稿 → 三视图 → 表情</td><td>6d</td><td>含 2 轮修改</td></tr>
+    <tr><td>高模雕刻</td><td>ZBrush 高模</td><td>4d</td><td>—</td></tr>
+    <tr><td>低模拓扑</td><td>拓扑 + UV 展开</td><td>3d</td><td>目标 12k Tris</td></tr>
+    <tr><td>贴图绘制</td><td>PBR 贴图全套 (D/N/MRA/E)</td><td>4d</td><td>—</td></tr>
+    <tr><td>绑定蒙皮</td><td>骨骼绑定 + 蒙皮权重</td><td>3d</td><td>使用标准骨架</td></tr>
+    <tr><td>基础动画</td><td>待机 + 跑步 + 3 技能</td><td>8d</td><td>5 条动画</td></tr>
+    <tr><td><strong>合计</strong></td><td></td><td><strong>28d</strong></td><td></td></tr>
+  </table>
+
+  <div class="sub-title">💰 6.3 报价计算</div>
+  <table>
+    <tr><th>项目</th><th>数值</th></tr>
+    <tr><td>基准人天</td><td>28d</td></tr>
+    <tr><td>日单价</td><td>¥2,000/天（一线CP）</td></tr>
+    <tr><td>复杂度系数</td><td>1.2（A级）</td></tr>
+    <tr><td>风险系数</td><td>1.0（合作过）</td></tr>
+    <tr><td><strong>总价</strong></td><td><strong>28 × 2,000 × 1.2 × 1.0 = ¥67,200</strong></td></tr>
+  </table>
+</div>
+
+<!-- ===== Section 7 ===== -->
+<div class="section" id="s7">
+  <h2>🚨 典型问题</h2>
+  <div class="faq-item">
+    <div class="faq-q">🔴 案例：评估偏差导致外包预算严重超支 <span class="badge badge-red">高频</span></div>
+    <div class="faq-a">
+      <p><strong>🎬 典型场景还原</strong></p>
+      <p><strong>APM：</strong>"这批 5 个角色建模，我评的 B 级复杂度，预估 60 人天。"</p>
+      <p><strong>主美</strong>（收到成品后）："这些角色都有可拆卸武器和复杂配饰，明显是 A 级啊。"</p>
+      <p><strong>财务：</strong>"实际耗时 92 天，偏差率 53%，预算超支 ¥48,000。"</p>
+      <p><strong>APM：</strong>"当时凭感觉定的级……没用打分表。"</p>
+      <p style="margin-top:8px"><strong>🔍 问题根因拆解</strong></p>
+      <p>• APM 按 B 级复杂度评估，但实际需求为 A 级<br>• 未使用<strong>五维度打分表</strong>量化评估，凭"感觉"定级<br>• 风险系数未叠加"首次合作 CP"的 ×1.2 加成</p>
+      <p style="margin-top:8px"><strong>💡 APM 破局思路</strong></p>
+      <p>1. 回溯使用<strong>五维度打分表</strong>重新评估<br>2. 与 CP 协商追加预算，按实际 A 级结算<br>3. 将偏差数据录入<strong>历史校准库</strong><br>4. 所有评估必须使用<strong>五维度打分表</strong>，禁止"拍脑袋"<br>5. 每季度进行<strong>评估准确率复盘</strong>，偏差 &gt; 20% 的工种重新校准<br>6. 首次合作 CP 强制叠加 ×1.2 风险系数</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Section 8 ===== -->
+<div class="section" id="s8">
+  <h2>📌 Do / Don't 示例</h2>
+  <p><strong>场景说明：</strong>外包角色建模报价评估 — APM 收到策划提交的 3 个新英雄建模需求，需要评估人天并生成报价单给 CP。</p>
+  <div class="dd-grid">
+    <div class="dd-card dd-do">
+      <h4>✅ Do（正确示范）</h4>
+      <p>• 使用<strong>五维度打分表</strong>逐个评估每个角色复杂度</p>
+      <p>• 综合打分后确定等级：英雄 A 为 <strong>S 级</strong>（3.7 分），英雄 B/C 为 <strong>A 级</strong>（3.0 分）</p>
+      <p>• 查表填入<strong>基准人天</strong>：S 级 = 17d，A 级 = 12d × 2 = 24d</p>
+      <p>• 叠加风险系数：首次合作 ×1.2，风格未锁定 ×1.3，合计 ×1.56</p>
+      <p>• 生成报价单并提交<strong>三级评审</strong></p>
+    </div>
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't（错误示范）</h4>
+      <p>• "这 3 个角色差不多都是 A 级吧" → 未量化评估，一刀切定级</p>
+      <p>• 未考虑风险系数 → 首次合作 CP 的磨合成本被忽略</p>
+      <p>• 报价只跟 1 家 CP → 没有竞价基线</p>
+      <p>• 评估完直接执行，未走三级评审 → 缺乏校验环节</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Section 9 ===== -->
+<div class="section" id="s9">
+  <h2>📎 附录：快速估价参考卡片</h2>
+  <table>
+    <tr><th>资产类型</th><th>🟢 C 级</th><th>🟡 B 级</th><th>🟠 A 级</th><th>🔴 S 级</th></tr>
+    <tr><td>角色（原画→建模→绑定）</td><td>¥15k~25k</td><td>¥30k~50k</td><td>¥55k~80k</td><td>¥90k~150k</td></tr>
+    <tr><td>场景（含美化）</td><td>¥8k~15k</td><td>¥20k~40k</td><td>¥50k~80k</td><td>¥100k~200k</td></tr>
+    <tr><td>UI 界面（设计+切图）</td><td>¥3k~8k</td><td>¥8k~15k</td><td>¥15k~25k</td><td>¥25k~40k</td></tr>
+    <tr><td>特效（单组）</td><td>¥2k~4k</td><td>¥5k~10k</td><td>¥10k~18k</td><td>¥18k~30k</td></tr>
+    <tr><td>动画（全套）</td><td>¥10k~20k</td><td>¥20k~40k</td><td>¥40k~65k</td><td>¥70k~120k</td></tr>
+  </table>
+  <div class="alert alert-yellow">⚠️ 以上为 2026 年国内市场参考，实际报价需以具体需求和 CP 报价为准。</div>
+  <div class="alert alert-green">⚡ <strong>APM 金句：</strong>估价不是「拍脑袋」，而是「有公式、有历史、有校准」的科学决策。</div>
+</div>
+
+<div class="doc-footer">📐 美术外包工作量评估标准 · 游戏美术项目管理知识库 · 量产期专用</div>
+
+</div>
+</body>
+</html>
