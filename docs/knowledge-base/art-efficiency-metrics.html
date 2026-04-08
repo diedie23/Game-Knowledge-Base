@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>美术效能度量与数据指标体系</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:24px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:11px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:13px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc .toc-title{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:13px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:12px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:12px;line-height:1.7}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:13px}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:12px;line-height:1.8;padding-left:28px}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
+.redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;text-align:center;min-width:90px}
+.flow-node strong{display:block;color:var(--heading);font-size:12px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:10px}
+.flow-arrow{color:var(--cyan);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+.checklist{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
+.checklist h4{color:var(--heading);margin-bottom:8px}
+.check-item{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:12px}
+.check-item .box{width:16px;height:16px;border:1px solid var(--border);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;background:var(--card)}
+.metric-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.metric-card .metric-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.metric-card .metric-name{font-size:15px;color:var(--heading);font-weight:700}
+.metric-card .metric-tag{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.metric-card .metric-formula{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin:8px 0;font-size:12px;color:var(--cyan);font-family:'Cascadia Code','Fira Code',monospace}
+.metric-card .metric-detail{font-size:12px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>📊 美术效能度量与数据指标体系 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Art Efficiency Measurement &amp; Data Metrics Framework</div>
+  <div class="meta">
+    <span>📋 适用：量产期 / 全阶段可选</span>
+    <span>👤 维护：美术中心 · 制作管理</span>
+    <span>📅 2026-04-08</span>
+  </div>
+</div>
+
+<div class="toc">
+  <div class="toc-title">📑 目录</div>
+  <ol>
+    <li><a href="#s1">北极星指标体系</a></li>
+    <li><a href="#s2">分层指标矩阵</a></li>
+    <li><a href="#s3">数据采集机制</a></li>
+    <li><a href="#s4">效能看板设计</a></li>
+    <li><a href="#s5">预警 SOP</a></li>
+    <li><a href="#s6">季度效能复盘</a></li>
+    <li><a href="#s7">典型问题</a></li>
+    <li><a href="#s8">Do / Don't 示例</a></li>
+    <li><a href="#s9">附录：指标速查卡</a></li>
+  </ol>
+</div>
+
+<!-- ======== 1 ======== -->
+<div class="section" id="s1">
+  <h2>🌟 1. 北极星指标体系</h2>
+
+  <div class="alert alert-blue"><strong>核心理念</strong>：美术效能不是"谁画得快"，而是<strong>单位投入产出高质量资产的能力</strong>。北极星指标（North Star Metric）是团队效能的<strong>唯一顶层锚点</strong>，所有分层指标围绕它展开。</div>
+
+  <div class="sub-title">⭐ 1.1 北极星指标定义</div>
+  <div class="metric-card">
+    <div class="metric-header">
+      <span class="metric-name">⭐ 美术资产交付效能指数 (Art Delivery Efficiency Index, ADEI)</span>
+    </div>
+    <div class="metric-formula">ADEI = (本周期一次通过资产数 × 质量系数) / (投入人月 × 成本系数)</div>
+    <div class="metric-detail">
+      <p><strong>含义</strong>：每投入 1 个标准人月，能产出多少"一次通过"的高质量资产。ADEI 越高，说明团队效能越强。</p>
+      <p><strong>质量系数</strong>：S 级资产 = 1.5，A 级 = 1.2，B 级 = 1.0，C 级 = 0.8</p>
+      <p><strong>成本系数</strong>：内部 = 1.0，外包 A 级 CP = 0.9，B 级 CP = 0.8（反映管理成本差异）</p>
+    </div>
+  </div>
+
+  <div class="redline">
+    <p><strong>🔴 铁律</strong>：ADEI 是<strong>唯一</strong>全团队对齐的顶层指标。所有工种组、外包管理、工具团队的 KPI 都必须能<strong>向上归因</strong>到 ADEI。如果某个指标无法影响 ADEI，说明它不值得追踪。</p>
+  </div>
+
+  <div class="sub-title">🎯 1.2 ADEI 基准值</div>
+  <table>
+    <tr><th>阶段</th><th>🎯 ADEI 目标</th><th>📊 行业基线</th><th>📝 说明</th></tr>
+    <tr><td>预生产期</td><td>≥ 0.6</td><td>0.4~0.6</td><td>探索阶段，返工率高，ADEI 自然偏低</td></tr>
+    <tr><td>量产期</td><td>≥ 1.2</td><td>0.8~1.0</td><td>流程成熟后效能应显著提升</td></tr>
+    <tr><td>收尾期</td><td>≥ 1.5</td><td>1.0~1.3</td><td>资产复用率高，边际成本下降</td></tr>
+  </table>
+
+  <div class="sub-title">🧭 1.3 北极星指标与子指标关系图</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>ADEI</strong><div class="sub">北极星指标</div></div>
+    <span class="flow-arrow">←</span>
+    <div class="flow-node"><strong>一次通过率</strong><div class="sub">质量维度</div></div>
+    <span class="flow-arrow">+</span>
+    <div class="flow-node"><strong>人均产出</strong><div class="sub">效率维度</div></div>
+    <span class="flow-arrow">+</span>
+    <div class="flow-node"><strong>成本偏差率</strong><div class="sub">成本维度</div></div>
+    <span class="flow-arrow">+</span>
+    <div class="flow-node end"><strong>准时交付率</strong><div class="sub">进度维度</div></div>
+  </div>
+</div>
+
+<!-- ======== 2 ======== -->
+<div class="section" id="s2">
+  <h2>📐 2. 分层指标矩阵</h2>
+
+  <div class="alert alert-blue"><strong>设计原则</strong>：指标体系分为<strong>三层</strong>——L1 战略层（制作人/总监看）、L2 管理层（APM/主美看）、L3 执行层（组长/个人看）。每层关注粒度不同，避免信息过载。</div>
+
+  <div class="sub-title">📊 2.1 L1 战略层指标（月度/季度）</div>
+  <table>
+    <tr><th>指标名称</th><th>公式</th><th>🎯 目标值</th><th>📊 数据源</th><th>📅 频率</th></tr>
+    <tr><td><strong>ADEI</strong></td><td>见 §1.1</td><td>量产期 ≥ 1.2</td><td>JIRA + 财务系统</td><td>月度</td></tr>
+    <tr><td><strong>整体预算偏差率</strong></td><td><code>|实际 - 预算| / 预算 × 100%</code></td><td>≤ 10%</td><td>财务系统</td><td>月度</td></tr>
+    <tr><td><strong>里程碑达成率</strong></td><td><code>按时完成里程碑数 / 总里程碑数</code></td><td>≥ 90%</td><td>项目管理工具</td><td>里程碑节点</td></tr>
+    <tr><td><strong>关键人力风险</strong></td><td>关键岗位空缺率 + 离职预警</td><td>空缺率 ≤ 5%</td><td>HR 系统</td><td>月度</td></tr>
+  </table>
+
+  <div class="sub-title">📊 2.2 L2 管理层指标（周度/双周）</div>
+  <table>
+    <tr><th>维度</th><th>指标名称</th><th>公式</th><th>🎯 目标值</th></tr>
+    <tr><td rowspan="3"><strong>质量</strong></td><td>资产一次通过率</td><td><code>首次提交即通过数 / 总提交数</code></td><td>≥ 70%</td></tr>
+    <tr><td>平均返工轮次</td><td><code>总返工次数 / 资产数</code></td><td>≤ 1.5 次</td></tr>
+    <tr><td>外包验收合格率</td><td><code>外包一次过数 / 外包总提交数</code></td><td>≥ 65%</td></tr>
+    <tr><td rowspan="3"><strong>效率</strong></td><td>人均周产出（资产数）</td><td><code>本周完成资产数 / 在岗人数</code></td><td>按工种基线</td></tr>
+    <tr><td>评估准确率</td><td><code>1 - |实际人天 - 预估| / 预估</code></td><td>≥ 80%</td></tr>
+    <tr><td>工具自动化率</td><td><code>自动校验通过数 / 总提交数</code></td><td>≥ 60%</td></tr>
+    <tr><td rowspan="2"><strong>进度</strong></td><td>Sprint 完成率</td><td><code>完成故事点 / 计划故事点</code></td><td>≥ 85%</td></tr>
+    <tr><td>准时交付率</td><td><code>按时完成任务数 / 总任务数</code></td><td>≥ 90%</td></tr>
+    <tr><td rowspan="2"><strong>成本</strong></td><td>外包 ROI</td><td>见成本核算标准</td><td>≥ 10%</td></tr>
+    <tr><td>月度消耗进度</td><td><code>已消耗预算 / 月预算 × 100%</code></td><td>与时间进度匹配</td></tr>
+  </table>
+
+  <div class="sub-title">📊 2.3 L3 执行层指标（日/周）</div>
+  <table>
+    <tr><th>指标名称</th><th>公式</th><th>🎯 目标值</th><th>📝 说明</th></tr>
+    <tr><td><strong>个人任务完成率</strong></td><td><code>完成任务数 / 分配任务数</code></td><td>≥ 90%</td><td>按周统计</td></tr>
+    <tr><td><strong>个人一次通过率</strong></td><td><code>个人首次过审数 / 提交数</code></td><td>≥ 75%</td><td>区分工种</td></tr>
+    <tr><td><strong>阻塞等待时长</strong></td><td><code>任务被阻塞的总小时数</code></td><td>≤ 4h/周</td><td>等待评审/反馈的时间</td></tr>
+    <tr><td><strong>规范合规率</strong></td><td><code>自动校验通过条数 / 总校验条数</code></td><td>≥ 95%</td><td>命名/尺寸/格式等</td></tr>
+  </table>
+</div>
+
+<!-- ======== 3 ======== -->
+<div class="section" id="s3">
+  <h2>🔄 3. 数据采集机制</h2>
+
+  <div class="alert alert-blue"><strong>核心原则</strong>：数据采集必须<strong>自动化优先、手动补充</strong>。如果一个指标需要人工填表才能统计，那它大概率会失败。优先接入已有系统（JIRA/TAPD/SVN/Git），减少人工录入。</div>
+
+  <div class="sub-title">🔌 3.1 数据源接入矩阵</div>
+  <table>
+    <tr><th>数据源</th><th>采集内容</th><th>采集方式</th><th>频率</th><th>对应指标</th></tr>
+    <tr><td><strong>JIRA / TAPD</strong></td><td>任务状态、故事点、完成时间、分配人</td><td>API 自动拉取</td><td>实时</td><td>完成率、准时交付率、Sprint 完成率</td></tr>
+    <tr><td><strong>SVN / Git</strong></td><td>提交记录、文件变更、提交人、时间戳</td><td>Hook + 脚本</td><td>每次提交</td><td>人均产出、提交频率</td></tr>
+    <tr><td><strong>自动校验工具</strong></td><td>命名合规、尺寸合规、格式合规、通道正确</td><td>CI Pipeline</td><td>每次提交</td><td>规范合规率、一次通过率</td></tr>
+    <tr><td><strong>评审系统</strong></td><td>视觉评审结果、工程评审结果、打回次数</td><td>评审工具 API</td><td>每次评审</td><td>一次通过率、返工轮次</td></tr>
+    <tr><td><strong>财务系统</strong></td><td>人力成本、外包支出、工具采购</td><td>月度导出 + API</td><td>月度</td><td>预算偏差率、外包 ROI</td></tr>
+    <tr><td><strong>HR 系统</strong></td><td>在岗人数、入离职、加班时长</td><td>月度导出</td><td>月度</td><td>人力风险、人均产出分母</td></tr>
+  </table>
+
+  <div class="sub-title">⚙️ 3.2 采集架构</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>数据源</strong><div class="sub">JIRA/Git/CI/财务</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>ETL 管道</strong><div class="sub">定时拉取/Webhook</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>数据仓库</strong><div class="sub">指标计算层</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>效能看板</strong><div class="sub">可视化展示</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>预警系统</strong><div class="sub">阈值触发通知</div></div>
+  </div>
+
+  <div class="sub-title">📋 3.3 数据质量保障</div>
+  <table>
+    <tr><th>问题</th><th>影响</th><th>防治措施</th></tr>
+    <tr><td><strong>任务未关闭</strong></td><td>完成率虚低</td><td>Sprint 结束前自动提醒未关闭任务；超 48h 未关闭自动通知组长</td></tr>
+    <tr><td><strong>Git 提交不规范</strong></td><td>无法关联任务</td><td>Commit Message 强制包含任务 ID（CI 拦截不合规提交）</td></tr>
+    <tr><td><strong>评审未录入</strong></td><td>一次通过率不准</td><td>评审结果必须在系统中填写，否则无法关闭评审流程</td></tr>
+    <tr><td><strong>外包数据缺失</strong></td><td>ROI 无法计算</td><td>每批外包交付必须附《验收单》，验收单数据自动录入</td></tr>
+  </table>
+
+  <div class="sub-title">🛠️ 3.4 手动补充数据（最小化）</div>
+  <div class="checklist">
+    <h4>📝 APM 每周手动录入项（≤ 15 分钟/周）</h4>
+    <div class="check-item"><span class="box">☐</span><strong>外包沟通成本</strong>：本周外包相关会议/邮件/IM 沟通估计时长</div>
+    <div class="check-item"><span class="box">☐</span><strong>阻塞原因标注</strong>：对 JIRA 中"阻塞"状态的任务补充原因分类（等评审/等资源/等需求）</div>
+    <div class="check-item"><span class="box">☐</span><strong>风险事件记录</strong>：本周发生的效能异常事件（如关键人请假、大面积返工等）</div>
+  </div>
+</div>
+
+<!-- ======== 4 ======== -->
+<div class="section" id="s4">
+  <h2>📈 4. 效能看板设计</h2>
+
+  <div class="alert alert-blue"><strong>设计原则</strong>：看板按角色分层，制作人看「战略仪表盘」，APM 看「管理看板」，组长看「团队看板」。<strong>不要把所有指标堆在一张看板上</strong>。</div>
+
+  <div class="sub-title">🖥️ 4.1 看板分层架构</div>
+  <table>
+    <tr><th>看板</th><th>受众</th><th>刷新频率</th><th>核心展示内容</th></tr>
+    <tr><td><strong>🏢 战略仪表盘</strong></td><td>制作人/总监</td><td>月度</td><td>ADEI 趋势、预算偏差、里程碑达成、关键风险</td></tr>
+    <tr><td><strong>📊 管理看板</strong></td><td>APM/主美</td><td>每周</td><td>一次通过率、人均产出、外包看板、Sprint 完成率</td></tr>
+    <tr><td><strong>👥 团队看板</strong></td><td>组长/成员</td><td>每日</td><td>个人任务燃尽、阻塞任务、合规率、本周待办</td></tr>
+  </table>
+
+  <div class="sub-title">📊 4.2 管理看板核心区域</div>
+  <table>
+    <tr><th>区域</th><th>内容</th><th>可视化形式</th></tr>
+    <tr><td><strong>📈 效能趋势</strong></td><td>ADEI + 一次通过率 近 12 周折线</td><td>双轴折线图</td></tr>
+    <tr><td><strong>🏷️ 工种产出</strong></td><td>各工种人均周产出 vs 基线</td><td>分组柱状图</td></tr>
+    <tr><td><strong>🏭 外包健康度</strong></td><td>各 CP 一次通过率 + 准时率 + ROI</td><td>气泡图/散点图</td></tr>
+    <tr><td><strong>🚨 预警面板</strong></td><td>当前触发的预警列表 + 状态</td><td>列表 + 红黄绿灯</td></tr>
+    <tr><td><strong>🔄 Sprint 进度</strong></td><td>当前 Sprint 燃尽图 + 完成率</td><td>燃尽图</td></tr>
+    <tr><td><strong>💰 成本进度</strong></td><td>预算消耗 vs 时间进度</td><td>进度条 + 趋势线</td></tr>
+  </table>
+
+  <div class="alert alert-yellow">⚠️ <strong>反模式警告</strong>：不要在看板上堆超过 12 个指标卡片。信息过多 = 信息为零。每个看板只展示该角色<strong>最关心的 6~8 个指标</strong>。</div>
+</div>
+
+<!-- ======== 5 ======== -->
+<div class="section" id="s5">
+  <h2>🚨 5. 预警 SOP</h2>
+
+  <div class="alert alert-red"><strong>核心原则</strong>：预警不是"看到数据变红了再处理"，而是<strong>提前设定阈值 → 自动触发 → 规定动作 → 限时闭环</strong>。每条预警必须有 Owner、有响应时限、有处理 SOP。</div>
+
+  <div class="sub-title">🚦 5.1 三级预警体系</div>
+  <table>
+    <tr><th>级别</th><th>颜色</th><th>触发条件</th><th>通知对象</th><th>响应时限</th><th>处理方式</th></tr>
+    <tr><td><strong>P0 红色</strong></td><td><span class="badge badge-red">🔴 紧急</span></td><td>ADEI &lt; 0.6 / 预算偏差 &gt; 20% / 关键人离职</td><td>制作人 + APM</td><td><strong>4 小时</strong></td><td>立即召开专项会议，制定应急方案</td></tr>
+    <tr><td><strong>P1 橙色</strong></td><td><span class="badge badge-yellow">🟠 警告</span></td><td>一次通过率 &lt; 50% / Sprint 完成率 &lt; 70% / 预算偏差 &gt; 10%</td><td>APM + 相关组长</td><td><strong>24 小时</strong></td><td>分析根因，制定改进计划，下个 Sprint 跟踪</td></tr>
+    <tr><td><strong>P2 黄色</strong></td><td><span class="badge badge-yellow">🟡 关注</span></td><td>人均产出连续 2 周低于基线 / 合规率 &lt; 90%</td><td>APM</td><td><strong>本周内</strong></td><td>APM 内部分析，周会中同步</td></tr>
+  </table>
+
+  <div class="sub-title">📋 5.2 P0 红色预警处理 SOP</div>
+  <div class="flow">
+    <div class="flow-node gate"><strong>① 触发</strong><div class="sub">系统自动检测<br>阈值突破</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>② 通知</strong><div class="sub">IM+邮件+电话<br>4h 内确认</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>③ 分析</strong><div class="sub">APM 定位根因<br>准备数据报告</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>④ 决策</strong><div class="sub">专项会议<br>制定应急方案</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>⑤ 执行</strong><div class="sub">方案落地<br>每日跟踪</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>⑥ 闭环</strong><div class="sub">指标恢复<br>写复盘报告</div></div>
+  </div>
+
+  <div class="sub-title">🔍 5.3 各指标预警阈值详表</div>
+  <table>
+    <tr><th>指标</th><th>🟢 健康</th><th>🟡 P2 关注</th><th>🟠 P1 警告</th><th>🔴 P0 紧急</th></tr>
+    <tr><td>ADEI</td><td>≥ 1.2</td><td>0.8~1.2</td><td>0.6~0.8</td><td>&lt; 0.6</td></tr>
+    <tr><td>一次通过率</td><td>≥ 70%</td><td>60~70%</td><td>50~60%</td><td>&lt; 50%</td></tr>
+    <tr><td>Sprint 完成率</td><td>≥ 85%</td><td>75~85%</td><td>65~75%</td><td>&lt; 65%</td></tr>
+    <tr><td>准时交付率</td><td>≥ 90%</td><td>80~90%</td><td>70~80%</td><td>&lt; 70%</td></tr>
+    <tr><td>预算偏差率</td><td>≤ 5%</td><td>5~10%</td><td>10~20%</td><td>&gt; 20%</td></tr>
+    <tr><td>返工轮次</td><td>≤ 1.5</td><td>1.5~2.0</td><td>2.0~3.0</td><td>&gt; 3.0</td></tr>
+    <tr><td>合规率</td><td>≥ 95%</td><td>90~95%</td><td>80~90%</td><td>&lt; 80%</td></tr>
+    <tr><td>人均产出 (vs 基线)</td><td>≥ 100%</td><td>80~100%</td><td>60~80%</td><td>&lt; 60%</td></tr>
+  </table>
+
+  <div class="sub-title">📨 5.4 预警通知模板</div>
+  <pre>
+[预警级别]: 🟠 P1 橙色警告
+[指标名称]: 角色组一次通过率
+[当前值]: 48% (目标 ≥ 70%)
+[触发时间]: 2026-04-08 14:30
+[持续时长]: 已连续 2 周低于阈值
+[影响范围]: 角色组 (6人)，影响 Sprint-23 进度
+[初步分析]: 
+  1. 新外包 CP 交付质量不达标 (外包通过率仅 30%)
+  2. 策划 Q2 角色设计调整，参考图不够清晰
+[建议措施]:
+  1. 约谈外包 CP，提供详细反馈 + 示例修改
+  2. 与策划同步，补充角色设计细节文档
+[负责人]: APM 周八
+[响应时限]: 2026-04-09 14:30 前提交改进方案</pre>
+</div>
+
+<!-- ======== 6 ======== -->
+<div class="section" id="s6">
+  <h2>📊 6. 季度效能复盘</h2>
+
+  <div class="sub-title">📋 6.1 复盘会议模板</div>
+  <table>
+    <tr><th>议程</th><th>时长</th><th>内容</th><th>负责人</th></tr>
+    <tr><td><strong>ADEI 趋势回顾</strong></td><td>10 min</td><td>本季度 ADEI 走势、与目标对比、环比变化</td><td>APM</td></tr>
+    <tr><td><strong>分维度分析</strong></td><td>20 min</td><td>质量/效率/进度/成本四个维度的关键指标分析</td><td>APM</td></tr>
+    <tr><td><strong>工种效能对比</strong></td><td>10 min</td><td>各工种人均产出、一次通过率横向对比</td><td>APM</td></tr>
+    <tr><td><strong>外包效能评估</strong></td><td>10 min</td><td>各 CP 综合评分、ROI、续约建议</td><td>APM</td></tr>
+    <tr><td><strong>预警回顾</strong></td><td>10 min</td><td>本季度触发的预警次数、响应及时率、闭环率</td><td>APM</td></tr>
+    <tr><td><strong>改进行动项</strong></td><td>15 min</td><td>制定下季度改进目标、Owner、截止日期</td><td>全员</td></tr>
+  </table>
+
+  <div class="sub-title">📊 6.2 季度效能对比表</div>
+  <table>
+    <tr><th>指标</th><th>📊 Q1</th><th>📊 Q2</th><th>📈 趋势</th><th>📝 分析</th></tr>
+    <tr><td>ADEI</td><td>0.85</td><td>1.10</td><td>📈 +29%</td><td>流程优化 + 自动化率提升</td></tr>
+    <tr><td>一次通过率</td><td>62%</td><td>71%</td><td>📈 +9pp</td><td>外包 Brief 优化效果明显</td></tr>
+    <tr><td>人均周产出</td><td>3.2 个</td><td>3.8 个</td><td>📈 +19%</td><td>模板复用 + 工具提速</td></tr>
+    <tr><td>预算偏差率</td><td>12%</td><td>7%</td><td>📉 改善</td><td>月度预警机制发挥作用</td></tr>
+    <tr><td>准时交付率</td><td>83%</td><td>91%</td><td>📈 +8pp</td><td>排期粒度细化到人天</td></tr>
+    <tr><td>合规率</td><td>88%</td><td>96%</td><td>📈 +8pp</td><td>CI 自动校验覆盖率提升至 85%</td></tr>
+  </table>
+
+  <div class="sub-title">📊 6.3 外包 CP 季度评分卡</div>
+  <table>
+    <tr><th>CP</th><th>一次通过率</th><th>准时率</th><th>ROI</th><th>综合评分</th><th>建议</th></tr>
+    <tr><td><strong>CP-Alpha</strong></td><td>78%</td><td>95%</td><td>15%</td><td><span class="badge badge-green">A</span></td><td>续约，增加份额</td></tr>
+    <tr><td><strong>CP-Beta</strong></td><td>65%</td><td>88%</td><td>8%</td><td><span class="badge badge-yellow">B</span></td><td>续约，加强验收</td></tr>
+    <tr><td><strong>CP-Gamma</strong></td><td>42%</td><td>70%</td><td>-3%</td><td><span class="badge badge-red">D</span></td><td>不续约，逐步替换</td></tr>
+  </table>
+</div>
+
+<!-- ======== 7 ======== -->
+<div class="section" id="s7">
+  <h2>🚨 7. 典型问题</h2>
+
+  <div class="faq-item">
+    <div class="faq-q">🔴 案例：数据采集缺失导致效能看板"假繁荣" <span class="badge badge-red">高频</span></div>
+    <div class="faq-a">
+      <p><strong>🎬 典型场景还原</strong></p>
+      <p><strong>APM：</strong>"看板上一次通过率 85%，数据很漂亮！"</p>
+      <p><strong>主美：</strong>"不对吧，上周角色组返工了 5 个资产，看板怎么没体现？"</p>
+      <p><strong>APM：</strong>"哦…那几个资产是口头打回的，没在系统里记录评审结果。"</p>
+      <p><strong>制作人：</strong>"所以看板数据不能信？那我们基于这个数据做的决策全有问题。"</p>
+      <p style="margin-top:8px"><strong>🔍 问题根因</strong></p>
+      <p>• 评审结果未强制在系统中录入，存在大量"线下评审"<br>• 只统计了走系统的提交，线下退回的资产未计入分母<br>• 数据质量保障规则缺失，无人检查数据完整性</p>
+      <p style="margin-top:8px"><strong>💡 破局思路</strong></p>
+      <p>1. <strong>强制系统化</strong>：所有评审必须在系统中记录，线下口头评审无效<br>2. <strong>数据完整性校验</strong>：每周自动检查"提交数 vs 评审数"，差异 &gt; 5% 自动报警<br>3. <strong>数据治理 Owner</strong>：APM 每周花 15 分钟审查数据质量<br>4. <strong>数据可追溯</strong>：每条指标数值可追溯到源数据，支持 drill-down</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">🔴 案例：预警邮件石沉大海，无人响应 <span class="badge badge-red">高频</span></div>
+    <div class="faq-a">
+      <p><strong>🎬 典型场景还原</strong></p>
+      <p><strong>系统：</strong>连续 3 周发送"Sprint 完成率低于 70%"预警邮件</p>
+      <p><strong>APM：</strong>"我以为有人在跟进…"</p>
+      <p><strong>制作人：</strong>"为什么到 Sprint 结束了我才知道进度这么差？"</p>
+      <p style="margin-top:8px"><strong>💡 破局思路</strong></p>
+      <p>1. 预警必须指定<strong>唯一 Owner</strong>，不能群发了事<br>2. Owner 必须在<strong>限时内</strong>在系统中确认收到并填写初步分析<br>3. 超时未确认自动<strong>升级</strong>到上一级（APM → 制作人）<br>4. 每月统计预警<strong>响应及时率</strong>，纳入 APM 绩效考核</p>
+    </div>
+  </div>
+</div>
+
+<!-- ======== 8 ======== -->
+<div class="section" id="s8">
+  <h2>📌 8. Do / Don't 示例</h2>
+
+  <div class="sub-title">8.1 效能度量的正确姿势</div>
+  <div class="dd-grid">
+    <div class="dd-card dd-do">
+      <h4>✅ Do（正确示范）</h4>
+      <p>• 用 <strong>ADEI</strong> 作为唯一北极星，所有分层指标向上归因</p>
+      <p>• 数据采集 <strong>自动化优先</strong>，接入 JIRA/Git/CI 现有系统</p>
+      <p>• 看板<strong>按角色分层</strong>，每层只展示 6~8 个核心指标</p>
+      <p>• 预警<strong>有阈值、有 Owner、有时限、有 SOP</strong></p>
+      <p>• 每季度用数据复盘，<strong>持续校准</strong>指标基线</p>
+    </div>
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't（错误示范）</h4>
+      <p>❌ 堆 30+ 个指标在一张看板上 → 信息过载，无人关注</p>
+      <p>❌ 指标全靠人工填 Excel → 数据不准、滞后、易造假</p>
+      <p>❌ 只看"产出数量"不看质量 → 团队冲量不管品质</p>
+      <p>❌ 预警邮件群发无 Owner → 人人觉得不是自己的事</p>
+      <p>❌ 设了指标但从不复盘校准 → 基线过时，预警失灵</p>
+    </div>
+  </div>
+
+  <div class="sub-title">8.2 预警处理的正确姿势</div>
+  <div class="dd-grid">
+    <div class="dd-card dd-do">
+      <h4>✅ Do（正确示范）</h4>
+      <p>• P0 预警<strong>4 小时内</strong>确认并启动专项分析</p>
+      <p>• 根因分析用<strong>5-Why</strong>方法深挖，不停在表象</p>
+      <p>• 改进方案<strong>量化目标</strong>：如"2 周内一次通过率从 48% 提升到 65%"</p>
+      <p>• 闭环后写<strong>复盘报告</strong>，沉淀到知识库</p>
+    </div>
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't（错误示范）</h4>
+      <p>❌ 预警来了先观望 → 小问题拖成大问题</p>
+      <p>❌ "已知问题，下次注意" → 无具体措施，必定复发</p>
+      <p>❌ 只处理不复盘 → 同类预警反复出现</p>
+      <p>❌ 用预警数据惩罚个人 → 团队隐瞒问题</p>
+    </div>
+  </div>
+</div>
+
+<!-- ======== 9 ======== -->
+<div class="section" id="s9">
+  <h2>📎 9. 附录：指标速查卡</h2>
+
+  <div class="sub-title">📊 全指标一览表</div>
+  <table>
+    <tr><th>层级</th><th>维度</th><th>指标</th><th>公式</th><th>🎯 目标</th><th>📅 频率</th></tr>
+    <tr><td><strong>L1</strong></td><td>综合</td><td>ADEI</td><td>一次通过资产×质量系数 / 投入人月×成本系数</td><td>≥ 1.2</td><td>月</td></tr>
+    <tr><td>L1</td><td>成本</td><td>预算偏差率</td><td>|实际-预算| / 预算</td><td>≤ 10%</td><td>月</td></tr>
+    <tr><td>L1</td><td>进度</td><td>里程碑达成率</td><td>按时达成数 / 总数</td><td>≥ 90%</td><td>里程碑</td></tr>
+    <tr><td><strong>L2</strong></td><td>质量</td><td>一次通过率</td><td>首次通过数 / 总提交数</td><td>≥ 70%</td><td>周</td></tr>
+    <tr><td>L2</td><td>质量</td><td>返工轮次</td><td>总返工次 / 资产数</td><td>≤ 1.5</td><td>周</td></tr>
+    <tr><td>L2</td><td>效率</td><td>人均周产出</td><td>完成资产数 / 在岗人数</td><td>按工种</td><td>周</td></tr>
+    <tr><td>L2</td><td>效率</td><td>评估准确率</td><td>1-|实际-预估|/预估</td><td>≥ 80%</td><td>季</td></tr>
+    <tr><td>L2</td><td>效率</td><td>自动化率</td><td>自动校验通过数 / 总提交数</td><td>≥ 60%</td><td>周</td></tr>
+    <tr><td>L2</td><td>进度</td><td>Sprint 完成率</td><td>完成故事点 / 计划故事点</td><td>≥ 85%</td><td>Sprint</td></tr>
+    <tr><td>L2</td><td>进度</td><td>准时交付率</td><td>按时完成数 / 总任务数</td><td>≥ 90%</td><td>周</td></tr>
+    <tr><td>L2</td><td>成本</td><td>外包 ROI</td><td>(内部等价-外包实际-管理) / 外包实际</td><td>≥ 10%</td><td>季</td></tr>
+    <tr><td><strong>L3</strong></td><td>效率</td><td>个人任务完成率</td><td>完成数 / 分配数</td><td>≥ 90%</td><td>周</td></tr>
+    <tr><td>L3</td><td>质量</td><td>个人一次通过率</td><td>个人首次过审 / 提交数</td><td>≥ 75%</td><td>周</td></tr>
+    <tr><td>L3</td><td>效率</td><td>阻塞等待时长</td><td>任务阻塞总小时数</td><td>≤ 4h/周</td><td>周</td></tr>
+    <tr><td>L3</td><td>质量</td><td>规范合规率</td><td>校验通过条数 / 总条数</td><td>≥ 95%</td><td>每次提交</td></tr>
+  </table>
+
+  <div class="alert alert-green">⚡ <strong>APM 金句</strong>：度量不是为了"监控人"，而是为了<strong>发现系统性瓶颈</strong>。好的度量体系让团队知道"哪里可以做得更好"，而不是"谁做得不好"。</div>
+</div>
+
+<div class="doc-footer">📊 美术效能度量与数据指标体系 · v1.0 · 游戏美术项目管理知识库 · 内部资料</div>
+
+</div>
+</body>
+</html>

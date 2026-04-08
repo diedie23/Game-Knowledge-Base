@@ -186,6 +186,13 @@
           ]
         },
         {
+          "name": "效能度量",
+          "icon": "📊",
+          "items": [
+            { "id": "art-efficiency-metrics", "icon": "📊", "title": "美术效能度量与数据指标体系", "type": "iframe", "file": "knowledge-base/art-efficiency-metrics.html", "badge": "管理", "craft": "管理" }
+          ]
+        },
+        {
           "name": "团队与培训",
           "icon": "🎓",
           "items": [
