@@ -63,6 +63,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 .checklist h4{color:var(--heading);margin-bottom:8px}
 .check-item{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:12px}
 .check-item .box{width:16px;height:16px;border:1px solid var(--border);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;background:var(--card)}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
 </style>
 </head>
 <body>
@@ -108,7 +109,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <div class="flow-node end"><strong>6. 结算归档</strong><div class="sub">签收+付款+资料存档</div></div>
   </div>
 
-  <h3>1.1 需求下发</h3>
+  <div class="sub-title">1.1 需求下发</div>
   <div class="alert alert-blue"><strong>核心原则：</strong>需求越清晰，返工越少。下发时必须做到"四有"——有规范、有参考、有排期、有验收标准。</div>
 
   <table>
@@ -122,7 +123,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td><strong>交付模板</strong></td><td>文件命名示例、目录结构模板</td><td>ZIP</td><td>🟡 建议</td></tr>
   </table>
 
-  <h3>1.2 需求下发邮件模板</h3>
+  <div class="sub-title">1.2 需求下发邮件模板</div>
   <pre>
 主题：【项目名】美术外包需求 — [资源类型] 第 [N] 批
 
@@ -159,7 +160,7 @@ Hi [CP名称] 团队，
 Best,
 [你的名字] · APM</pre>
 
-  <h3>1.3 制作跟进</h3>
+  <div class="sub-title">1.3 制作跟进</div>
   <div class="redline">
     <p><strong>🔴 首件制度是核心：</strong>80% 的批量返工源于首件审核不严格。首件必须由 Art Lead 亲自审核，审核通过后形成书面确认，作为后续批量制作的质量基准。</p>
   </div>
@@ -173,7 +174,7 @@ Best,
     <tr><td><strong>正式交付</strong></td><td>约定日期</td><td>全量检查，出具验收报告</td><td>Checklist + 验收报告</td></tr>
   </table>
 
-  <h3>1.4 三轮验收制度</h3>
+  <div class="sub-title">1.4 三轮验收制度</div>
   <table>
     <tr><th>轮次</th><th>检查重点</th><th>参与人</th><th>输出物</th></tr>
     <tr><td><strong>第一轮：技术验收</strong></td><td>格式、尺寸、命名、面数、UV、通道等硬性指标</td><td>APM / TA</td><td>技术问题清单</td></tr>
@@ -181,7 +182,7 @@ Best,
     <tr><td><strong>第三轮：引擎验收</strong></td><td>引擎内实际表现、性能、LOD、材质效果</td><td>TA / 程序</td><td>引擎截图 + 性能数据</td></tr>
   </table>
 
-  <h3>1.5 验收反馈模板</h3>
+  <div class="sub-title">1.5 验收反馈模板</div>
   <pre>
 主题：【验收反馈】[资源名称] — 第 [N] 轮
 
@@ -212,7 +213,7 @@ Best,
   P1 = 需要修改，影响质量
   P2 = 建议修改，提升品质</pre>
 
-  <h3>1.6 结算流程</h3>
+  <div class="sub-title">1.6 结算流程</div>
   <table>
     <tr><th>步骤</th><th>内容</th><th>负责人</th><th>输出</th></tr>
     <tr><td>1. 验收签收</td><td>全量资源通过验收，双方签字确认</td><td>APM + CP</td><td>验收签收单</td></tr>
@@ -229,7 +230,7 @@ Best,
 <div class="section" id="sec2">
   <h2>🚨 2. 常见问题处理手册</h2>
 
-  <h3>2.1 资源不达标</h3>
+  <div class="sub-title">2.1 资源不达标</div>
   <table>
     <tr><th>问题</th><th>典型表现</th><th>立即处理</th><th>长期预防</th></tr>
     <tr><td><span class="badge badge-red">模型面数超标</span></td><td>角色交付面数远超预算（如预算 15K，实际 25K）</td><td>发送面数超标通知，标注具体数值和预算上限</td><td>需求下发时附带面数检测脚本</td></tr>
@@ -238,7 +239,7 @@ Best,
     <tr><td><span class="badge badge-yellow">风格不统一</span></td><td>不同批次或不同美术师产出风格差异明显</td><td>提供 5~10 张已审核标杆作品</td><td>指定同批资源由同一美术师完成</td></tr>
   </table>
 
-  <h3>2.2 延期处理</h3>
+  <div class="sub-title">2.2 延期处理</div>
   <div class="redline">
     <p><strong>🔴 预防措施：</strong>① 排期预留 20% Buffer ② 设置中间检查点（50% 强制确认）③ 同类资源准备备选 CP</p>
   </div>
@@ -250,7 +251,7 @@ Best,
     <tr><td>&gt;7 天</td><td>启动备选 CP + 评估合同违约条款 + 重新评估合作关系</td></tr>
   </table>
 
-  <h3>2.3 延期沟通模板</h3>
+  <div class="sub-title">2.3 延期沟通模板</div>
   <pre>
 主题：【紧急】[资源名称] 交付延期跟进
 
@@ -267,7 +268,7 @@ Hi [CP名称] 团队，
 
 [你的名字] · APM</pre>
 
-  <h3>2.4 CP 失联/不回复升级流程</h3>
+  <div class="sub-title">2.4 CP 失联/不回复升级流程</div>
   <table>
     <tr><th>时间</th><th>动作</th></tr>
     <tr><td>失联 1 天</td><td>工作群 + 邮件 + 电话三渠道同时联系</td></tr>
@@ -279,7 +280,7 @@ Hi [CP名称] 团队，
 
   <div class="alert alert-red"><strong>🚨 预防建议：</strong>· 合同中明确约定"响应时效"条款（如 24 小时内必须回复）· 每个 CP 至少 2 个联系人（对接人 + 其上级）· 重要沟通全部通过邮件留档，群聊内容定期截图备份</div>
 
-  <h3>2.5 其他常见问题</h3>
+  <div class="sub-title">2.5 其他常见问题</div>
   <table>
     <tr><th>问题</th><th>处理方案</th></tr>
     <tr><td><strong>版权争议 / 素材来源不明</strong></td><td>合同中要求 CP 签署原创性声明；敏感资源进行相似度查重；禁止 AI 生成素材作为最终交付物</td></tr>
@@ -293,7 +294,7 @@ Hi [CP名称] 团队，
   <h2>✅ 3. 按资源类型分类的验收 Checklist</h2>
   <div class="alert alert-blue"><strong>使用说明：</strong>以下 Checklist 按资源类型分类，每个 Checklist 包含技术验收（硬性指标）和美术验收（主观评估）两部分。P0 项为必须通过项，任一 P0 项不通过即判定为不合格。</div>
 
-  <h3>3.1 角色 3D 模型</h3>
+  <div class="sub-title">3.1 角色 3D 模型</div>
   <div class="checklist">
     <h4>🔧 技术验收（P0 全部必须通过）</h4>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 三角面数符合预算 — 主角 ≤30K / 精英 NPC ≤15K / 杂兵 ≤8K</div>
@@ -306,7 +307,7 @@ Hi [CP名称] 团队，
     <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 骨骼蒙皮权重正确，极端 Pose 无穿模/塌陷</div>
   </div>
 
-  <h3>3.2 角色立绘（2D）</h3>
+  <div class="sub-title">3.2 角色立绘（2D）</div>
   <div class="checklist">
     <h4>🎨 视觉 + 技术验收</h4>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 分辨率 ≥ 2048px（长边），色彩模式 sRGB</div>
@@ -317,7 +318,7 @@ Hi [CP名称] 团队，
     <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 光影方向统一（默认左上方 45°）</div>
   </div>
 
-  <h3>3.3 场景资产</h3>
+  <div class="sub-title">3.3 场景资产</div>
   <div class="checklist">
     <h4>🔧 技术验收</h4>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 面数符合预算 — 大物件 ≤5K / 中物件 ≤2K / 小物件 ≤500</div>
@@ -327,7 +328,7 @@ Hi [CP名称] 团队，
     <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> Pivot Point 正确；碰撞体简化合理</div>
   </div>
 
-  <h3>3.4 UI 资源</h3>
+  <div class="sub-title">3.4 UI 资源</div>
   <div class="checklist">
     <h4>🔧 技术验收</h4>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 切图精确，无多余透明像素；PNG 格式含正确 Alpha</div>
@@ -336,7 +337,7 @@ Hi [CP名称] 团队，
     <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 交互状态齐全 — Normal / Pressed / Disabled / Hover</div>
   </div>
 
-  <h3>3.5 动画资源</h3>
+  <div class="sub-title">3.5 动画资源</div>
   <div class="checklist">
     <h4>🔧 技术验收</h4>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 帧率 30FPS（3D）/ 12~24FPS（2D 帧动画）</div>
@@ -345,7 +346,7 @@ Hi [CP名称] 团队，
     <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 无自穿插；重心符合物理规律</div>
   </div>
 
-  <h3>3.6 特效资源</h3>
+  <div class="sub-title">3.6 特效资源</div>
   <div class="checklist">
     <h4>🔧 技术验收</h4>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 单特效 Draw Call ≤10；Overdraw ≤ 屏幕 30%</div>
@@ -359,7 +360,7 @@ Hi [CP名称] 团队，
 <div class="section" id="sec4">
   <h2>📝 4. 模板与文档</h2>
 
-  <h3>4.1 CP 综合评估模板</h3>
+  <div class="sub-title">4.1 CP 综合评估模板</div>
   <pre>
 ━━━━━━━━━━━━━━━━━━━━━━━━
 CP 综合评估表
@@ -393,7 +394,7 @@ CP 名称：_______________
 续约建议：□ 优先续约  □ 正常续约  □ 观察  □ 不推荐
 ━━━━━━━━━━━━━━━━━━━━━━━━</pre>
 
-  <h3>4.2 外包合同核心条款 Checklist</h3>
+  <div class="sub-title">4.2 外包合同核心条款 Checklist</div>
   <div class="checklist">
     <h4>📝 合同必备条款</h4>
     <div class="check-item"><span class="box">☐</span>明确交付物清单（资源类型 + 数量 + 格式 + 规格）</div>
@@ -415,10 +416,10 @@ CP 名称：_______________
 <div class="section" id="sec5">
   <h2>💡 5. APM 外包管理经验总结</h2>
 
-  <h3>5.1 核心原则</h3>
+  <div class="sub-title">5.1 核心原则</div>
   <div class="alert alert-blue"><strong>外包管理六字诀：清晰、前置、留痕</strong><br>· <strong>清晰</strong> — 需求越清晰，返工越少。模糊需求 = 返工成本 × 3<br>· <strong>前置</strong> — 首件制度、规范前置、风险前置。后期补救的成本是前期预防的 5~10 倍<br>· <strong>留痕</strong> — 所有关键决策通过邮件确认。口头约定 = 没有约定</div>
 
-  <h3>5.2 常见误区</h3>
+  <div class="sub-title">5.2 常见误区</div>
   <div class="dd-grid">
     <div class="dd-card dd-dont">
       <h4>❌ Don't — 常见误区</h4>
@@ -440,7 +441,7 @@ CP 名称：_______________
     </div>
   </div>
 
-  <h3>5.3 推荐流程优化</h3>
+  <div class="sub-title">5.3 推荐流程优化</div>
   <table>
     <tr><th>优化点</th><th>描述</th><th>效果</th></tr>
     <tr><td>🔧 工具化验收</td><td>使用自动化检测工具替代人工逐项检查</td><td>验收效率提升 60%+</td></tr>
