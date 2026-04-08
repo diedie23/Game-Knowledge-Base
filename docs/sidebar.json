@@ -205,7 +205,7 @@
           "name": "踩坑记录",
           "icon": "💣",
           "items": [
-            { "id": "project-pitfall-log", "icon": "💣", "title": "XX项目踩坑记录", "type": "md", "file": "knowledge-base/project-pitfall-log.md", "badge": "复盘", "craft": "管理" }
+            { "id": "project-pitfall-log", "icon": "💣", "title": "XX项目踩坑记录", "type": "iframe", "file": "knowledge-base/project-pitfall-log.html", "badge": "复盘", "craft": "管理" }
           ]
         },
         {
