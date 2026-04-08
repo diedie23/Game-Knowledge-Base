@@ -7,61 +7,76 @@
 <style>
 :root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;font-size:16px}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
 .doc{max-width:960px;margin:0 auto;padding:32px 24px}
 .doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
-.doc-header h1{font-size:24px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
-.doc-header h1 .ver{font-size:11px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
-.doc-header .subtitle{color:var(--dim);font-size:13px}
-.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:var(--dim)}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:12px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:13px;color:var(--dim)}
 .doc-header .meta span{display:flex;align-items:center;gap:4px}
 .toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
-.toc h3{font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600}
-.toc ol{padding-left:20px;font-size:13px;color:var(--accent)}.toc li{margin-bottom:4px}
+.toc .toc-title{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
 .toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
-.section{margin-bottom:40px}
-.section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
-.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
-.section p{font-size:13px;margin-bottom:10px}
-table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
+.section{margin-bottom:44px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:18px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.sub-title{font-size:17px;color:var(--heading);margin:18px 0 10px;font-weight:600}
+.section p{font-size:16px;margin-bottom:12px;line-height:1.7}
+table{width:100%;border-collapse:collapse;margin:14px 0 22px;font-size:14px}
 th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
-td{padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
 tr:nth-child(even){background:rgba(108,140,255,.02)}
-.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:12px;line-height:1.7}
+.alert{padding:14px 18px;border-radius:8px;margin:14px 0;font-size:14px;line-height:1.7}
 .alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
 .alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
 .alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
 .alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
-code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
-pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:12px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:14px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
 .dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
 @media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
-.dd-card{border-radius:10px;padding:16px;font-size:12px;line-height:1.7}
+.dd-card{border-radius:10px;padding:16px;font-size:14px;line-height:1.7}
 .dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
 .dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
-.dd-card h4{margin:0 0 8px;font-size:13px}
-.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.dd-card h4{margin:0 0 8px;font-size:15px}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
 .badge-red{background:rgba(248,113,113,.15);color:var(--red)}
 .badge-green{background:rgba(74,222,128,.15);color:var(--green)}
 .badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
-.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)}
-.redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:13px;color:var(--dim)}
+.redline{border-left:3px solid var(--red);padding-left:12px;margin:14px 0}
 .flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
-.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;text-align:center;min-width:90px}
-.flow-node strong{display:block;color:var(--heading);font-size:12px;margin-bottom:2px}
-.flow-node .sub{color:var(--dim);font-size:10px}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;text-align:center;min-width:90px}
+.flow-node strong{display:block;color:var(--heading);font-size:13px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:11px}
 .flow-arrow{color:var(--cyan);font-size:18px;padding:0 6px;flex-shrink:0}
 .flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
 .flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
 .flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
-.checklist{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
+.checklist{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin:14px 0}
 .checklist h4{color:var(--heading);margin-bottom:8px}
-.check-item{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:12px}
+.check-item{display:flex;align-items:flex-start;gap:8px;padding:5px 0;font-size:14px}
 .check-item .box{width:16px;height:16px;border:1px solid var(--border);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;background:var(--card)}
-.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
-.faq-q{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
-.faq-a{font-size:12px;line-height:1.8;padding-left:28px}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px}
+.faq-q{font-size:16px;color:var(--heading);font-weight:600;margin-bottom:10px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:14px;line-height:1.7;padding-left:28px}
+/* ===== 一键复制任务模板模块 ===== */
+.task-template-box{background:linear-gradient(135deg,rgba(74,222,128,.06),rgba(34,211,238,.06));border:1px solid rgba(74,222,128,.25);border-radius:14px;padding:24px;margin-bottom:32px}
+.task-template-box .tt-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.task-template-box .tt-header h2{font-size:22px;color:var(--heading);margin:0;border:none;padding:0}
+.tt-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tt-tab{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--panel);color:var(--dim);transition:all .2s}
+.tt-tab.active{background:rgba(108,140,255,.15);border-color:rgba(108,140,255,.4);color:var(--accent)}
+.tt-tab:hover{border-color:rgba(108,140,255,.3)}
+.tt-code-wrap{position:relative;margin-bottom:14px}
+.tt-code-wrap pre{margin:0;max-height:420px;overflow-y:auto;font-size:12px;line-height:1.55}
+.tt-copy-btn{position:absolute;top:10px;right:10px;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(74,222,128,.3);background:rgba(74,222,128,.12);color:var(--green);transition:all .2s;z-index:2}
+.tt-copy-btn:hover{background:rgba(74,222,128,.25);border-color:rgba(74,222,128,.5)}
+.tt-copy-btn.copied{background:rgba(74,222,128,.3);color:#fff}
+.tt-panel{display:none}
+.tt-panel.active{display:block}
 </style>
 </head>
 <body>
@@ -81,8 +96,9 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="alert alert-blue">💡 <strong>核心原则</strong>：走查以 <strong>中端机为基准</strong> 进行视觉与性能验证，所有检查项以红线标准为合格线。</div>
 
 <div class="toc">
-  <h3>📑 目录导航</h3>
+  <div class="toc-title">📑 目录导航</div>
   <ol>
+    <li><a href="#s-task-tpl" style="color:var(--green);font-weight:600">🚀 一键复制任务模板（Jira / Tapd）</a></li>
     <li><a href="#s1">走查流程概览</a></li>
     <li><a href="#s2">角色走查清单</a></li>
     <li><a href="#s3">场景走查清单</a></li>
@@ -92,6 +108,212 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#s7">附录：走查效率优化建议</a></li>
   </ol>
 </div>
+
+<!-- ═══════ 一键复制任务模板 ═══════ -->
+<div class="section" id="s-task-tpl">
+<div class="task-template-box">
+  <div class="tt-header">
+    <h2>🚀 一键复制任务模板 — 快速创建走查任务</h2>
+  </div>
+
+  <div class="alert alert-green" style="margin-top:0;margin-bottom:16px">
+    <strong>💡 使用方法：</strong>选择你使用的项目管理工具（Jira / Tapd / 通用 Markdown），点击「📋 一键复制」按钮，粘贴到对应系统中即可自动创建标准化走查任务。<strong>不再手动填表，走查分钟级启动。</strong>
+  </div>
+
+  <!-- Tab 切换 -->
+  <div class="tt-tabs">
+    <div class="tt-tab active" onclick="switchTab('jira')">📘 Jira JSON</div>
+    <div class="tt-tab" onclick="switchTab('tapd')">📗 Tapd CSV</div>
+    <div class="tt-tab" onclick="switchTab('md')">📄 通用 Markdown</div>
+  </div>
+
+  <!-- Jira JSON 面板 -->
+  <div class="tt-panel active" id="panel-jira">
+    <p style="font-size:14px;margin-bottom:10px;color:var(--dim)">📘 <strong>Jira</strong>：复制以下 JSON → Jira 批量创建 Issue（<code>POST /rest/api/2/issue/bulk</code>）或导入插件使用</p>
+    <div class="tt-code-wrap">
+      <button class="tt-copy-btn" onclick="copyTemplate('jira')">📋 一键复制</button>
+      <pre id="code-jira">{
+  "issueUpdates": [
+    {
+      "fields": {
+        "project": { "key": "ART" },
+        "issuetype": { "name": "任务" },
+        "summary": "[走查] 角色模型质量检查 — v${VERSION}",
+        "description": "## 角色走查清单\n\n| # | 检查项 | 标准 | 结果 |\n|---|--------|------|------|\n| 1 | 整体比例 | 与原画一致，无变形 | ☐ |\n| 2 | 面数 | ≤ 红线值 (中端基准) | ☐ |\n| 3 | 模型完整性 | 无破面、漏洞、内翻法线 | ☐ |\n| 4 | 拓扑质量 | 布线合理，变形区域加密 | ☐ |\n| 5 | 材质球数 | ≤ 规定数量 | ☐ |\n\n**走查设备**: 中端基准机\n**截图归档**: /QA_Screenshots/v${VERSION}/Character/",
+        "priority": { "name": "High" },
+        "labels": ["版本走查", "美术QA"],
+        "assignee": { "name": "${ASSIGNEE}" },
+        "customfield_10100": "${SPRINT}"
+      }
+    },
+    {
+      "fields": {
+        "project": { "key": "ART" },
+        "issuetype": { "name": "任务" },
+        "summary": "[走查] 角色贴图质量检查 — v${VERSION}",
+        "description": "## 贴图走查清单\n\n| # | 检查项 | 标准 | 结果 |\n|---|--------|------|------|\n| 1 | 贴图清晰度 | 近景查看不模糊 | ☐ |\n| 2 | UV 利用率 | ≥ 75% | ☐ |\n| 3 | 贴图尺寸 | 符合红线标准 | ☐ |\n| 4 | 色差检查 | 与原画色彩一致 | ☐ |\n| 5 | 接缝处理 | 身体部件接缝不可见 | ☐ |\n| 6 | sRGB 设置 | Normal/Mask 未开 sRGB | ☐ |",
+        "priority": { "name": "High" },
+        "labels": ["版本走查", "美术QA"],
+        "assignee": { "name": "${ASSIGNEE}" }
+      }
+    },
+    {
+      "fields": {
+        "project": { "key": "ART" },
+        "issuetype": { "name": "任务" },
+        "summary": "[走查] 角色动画质量检查 — v${VERSION}",
+        "description": "## 动画走查清单\n\n| # | 检查项 | 标准 | 结果 |\n|---|--------|------|------|\n| 1 | 待机动画 | 自然循环，无抖动 | ☐ |\n| 2 | 移动动画 | 无滑步，Root Motion 正确 | ☐ |\n| 3 | 攻击动画 | 打击感明确，帧率流畅 | ☐ |\n| 4 | 技能动画 | 特效同步，无穿模 | ☐ |\n| 5 | 过渡自然度 | 状态切换无闪烁/抖动 | ☐ |\n| 6 | 穿模检查 | 全动画检查无部件穿插 | ☐ |\n| 7 | 死亡/受击 | 表现明确，不影响游戏 | ☐ |",
+        "priority": { "name": "High" },
+        "labels": ["版本走查", "美术QA"],
+        "assignee": { "name": "${ASSIGNEE}" }
+      }
+    },
+    {
+      "fields": {
+        "project": { "key": "ART" },
+        "issuetype": { "name": "任务" },
+        "summary": "[走查] 场景视觉+功能+性能检查 — v${VERSION}",
+        "description": "## 场景走查清单\n\n### 视觉质量\n| # | 检查项 | 标准 | 结果 |\n|---|--------|------|------|\n| 1 | 整体光影 | 光照方向一致 | ☐ |\n| 2 | 模型接缝 | 拼接无可见缝隙 | ☐ |\n| 3 | 贴图精度 | 主视角下清晰 | ☐ |\n| 4 | 色调统一 | 整体风格一致 | ☐ |\n\n### 功能性检查\n| # | 检查项 | 标准 | 结果 |\n|---|--------|------|------|\n| 1 | 碰撞体 | 不穿墙不卡模 | ☐ |\n| 2 | 导航网格 | 完整无空洞 | ☐ |\n| 3 | LOD 切换 | 平滑无闪烁 | ☐ |\n\n### 性能检查\n| # | 检查项 | 标准 | 结果 |\n|---|--------|------|------|\n| 1 | 帧率 | 中端机 ≥ 30 FPS | ☐ |\n| 2 | 同屏面数 | ≤ 红线 | ☐ |\n| 3 | Drawcall | ≤ 红线 | ☐ |",
+        "priority": { "name": "High" },
+        "labels": ["版本走查", "美术QA"],
+        "assignee": { "name": "${ASSIGNEE}" }
+      }
+    },
+    {
+      "fields": {
+        "project": { "key": "ART" },
+        "issuetype": { "name": "任务" },
+        "summary": "[走查] UI 视觉+适配检查 — v${VERSION}",
+        "description": "## UI 走查清单\n\n### 视觉检查\n| # | 检查项 | 标准 | 结果 |\n|---|--------|------|------|\n| 1 | 设计还原度 | 与设计稿一致 | ☐ |\n| 2 | 字体/字号 | 符合规范 | ☐ |\n| 3 | 间距/对齐 | 元素对齐一致 | ☐ |\n| 4 | 图标清晰度 | 无模糊无锯齿 | ☐ |\n\n### 适配检查 (逐设备)\n| 界面 | 16:9 | 18:9 | 20:9 | 刘海屏 | iPad |\n|------|------|------|------|--------|------|\n| 主界面 | ☐ | ☐ | ☐ | ☐ | ☐ |\n| 战斗HUD | ☐ | ☐ | ☐ | ☐ | ☐ |\n| 商城 | ☐ | ☐ | ☐ | ☐ | ☐ |\n| 弹窗 | ☐ | ☐ | ☐ | ☐ | ☐ |",
+        "priority": { "name": "High" },
+        "labels": ["版本走查", "美术QA"],
+        "assignee": { "name": "${ASSIGNEE}" }
+      }
+    },
+    {
+      "fields": {
+        "project": { "key": "ART" },
+        "issuetype": { "name": "任务" },
+        "summary": "[走查] 设备适配专项验证 — v${VERSION}",
+        "description": "## 设备适配验证\n\n| 档位 | 设备 | 分辨率 | 屏幕比例 | 结果 |\n|------|------|--------|----------|------|\n| 高端 | iPhone 15 Pro | 2556×1179 | 19.5:9 | ☐ |\n| 高端 | Samsung S24 Ultra | 3120×1440 | 19.5:9 | ☐ |\n| 中端 | iPhone 13 | 2532×1170 | 19.5:9 | ☐ |\n| 中端 | 小米 13 | 2400×1080 | 20:9 | ☐ |\n| 低端 | iPhone 11 | 1792×828 | 19.5:9 | ☐ |\n| 低端 | Redmi Note 12 | 2400×1080 | 20:9 | ☐ |\n| 平板 | iPad Air | 2360×1640 | ~3:2 | ☐ |\n\n**重点检查**: 安全区遮挡、底部手势区、状态栏重叠、宽屏拉伸",
+        "priority": { "name": "Medium" },
+        "labels": ["版本走查", "设备适配"],
+        "assignee": { "name": "${ASSIGNEE}" }
+      }
+    },
+    {
+      "fields": {
+        "project": { "key": "ART" },
+        "issuetype": { "name": "任务" },
+        "summary": "[走查] 截图归档 + 走查报告汇总 — v${VERSION}",
+        "description": "## 截图归档 & 报告\n\n1. 走查截图按规范命名并归档到 /QA_Screenshots/v${VERSION}/\n2. 各模块走查结果汇总至 WalkThrough_Report_v${VERSION}.xlsx\n3. 统计 Bug 等级分布 (S/A/B/C)\n4. 给出版本放行建议\n\n**命名规则**: v${VERSION}_[模块]_[对象]_[设备]_[日期]_[序号].png",
+        "priority": { "name": "Medium" },
+        "labels": ["版本走查", "归档"],
+        "assignee": { "name": "${ASSIGNEE}" }
+      }
+    }
+  ]
+}</pre>
+    </div>
+    <div class="alert alert-yellow" style="margin-top:8px">
+      <strong>📝 使用说明：</strong>复制后请将 <code>${VERSION}</code>、<code>${ASSIGNEE}</code>、<code>${SPRINT}</code> 替换为实际值。如 <code>v0.8.2</code>、<code>zhangsan</code>、<code>Sprint 12</code>。
+    </div>
+  </div>
+
+  <!-- Tapd CSV 面板 -->
+  <div class="tt-panel" id="panel-tapd">
+    <p style="font-size:14px;margin-bottom:10px;color:var(--dim)">📗 <strong>Tapd</strong>：复制以下 CSV → Tapd「导入需求/任务」功能批量导入</p>
+    <div class="tt-code-wrap">
+      <button class="tt-copy-btn" onclick="copyTemplate('tapd')">📋 一键复制</button>
+      <pre id="code-tapd">标题,优先级,迭代,处理人,标签,描述
+[走查] 角色模型质量检查 — v${VERSION},高,${SPRINT},${ASSIGNEE},版本走查;美术QA,"检查项：整体比例/面数/完整性/拓扑/材质球数，基准：中端机红线标准"
+[走查] 角色贴图质量检查 — v${VERSION},高,${SPRINT},${ASSIGNEE},版本走查;美术QA,"检查项：清晰度/UV利用率≥75%/尺寸/色差/接缝/sRGB设置"
+[走查] 角色动画质量检查 — v${VERSION},高,${SPRINT},${ASSIGNEE},版本走查;美术QA,"检查项：待机/移动/攻击/技能/过渡/穿模/死亡受击，全动画无穿插"
+[走查] 角色特效质量检查 — v${VERSION},高,${SPRINT},${ASSIGNEE},版本走查;美术QA,"检查项：技能特效/命中特效/Buff特效/Drawcall&粒子数达标"
+[走查] 场景视觉+功能+性能 — v${VERSION},高,${SPRINT},${ASSIGNEE},版本走查;美术QA,"视觉：光影/接缝/贴图/天空远景/色调；功能：碰撞/导航/LOD；性能：帧率≥30FPS/面数/Drawcall"
+[走查] UI 视觉+多设备适配 — v${VERSION},高,${SPRINT},${ASSIGNEE},版本走查;美术QA,"视觉：还原度/字体/间距/图标；适配：16:9/18:9/20:9/刘海屏/iPad 全覆盖"
+[走查] 设备适配专项验证 — v${VERSION},中,${SPRINT},${ASSIGNEE},版本走查;设备适配,"必测：iPhone15Pro/S24U/iPhone13/小米13/iPhone11/RedmiNote12/iPadAir"
+[走查] 截图归档+报告汇总 — v${VERSION},中,${SPRINT},${ASSIGNEE},版本走查;归档,"截图命名规范归档 + Bug等级统计 + 版本放行建议"</pre>
+    </div>
+    <div class="alert alert-yellow" style="margin-top:8px">
+      <strong>📝 使用说明：</strong>复制后在 Tapd 中选择「任务」→「导入」→「粘贴 CSV」。请将 <code>${VERSION}</code>、<code>${SPRINT}</code>、<code>${ASSIGNEE}</code> 替换为实际值。
+    </div>
+  </div>
+
+  <!-- 通用 Markdown 面板 -->
+  <div class="tt-panel" id="panel-md">
+    <p style="font-size:14px;margin-bottom:10px;color:var(--dim)">📄 <strong>通用 Markdown</strong>：适用于飞书/钉钉/Notion/语雀等支持 Markdown 的工具</p>
+    <div class="tt-code-wrap">
+      <button class="tt-copy-btn" onclick="copyTemplate('md')">📋 一键复制</button>
+      <pre id="code-md"># 🔍 版本走查任务清单 — v${VERSION}
+
+## 📋 任务分配
+
+| # | 任务 | 负责人 | 优先级 | 状态 |
+|---|------|--------|--------|------|
+| 1 | 角色模型质量检查 | @角色组长 | 🔴 P0 | ☐ 待开始 |
+| 2 | 角色贴图质量检查 | @角色组长 | 🔴 P0 | ☐ 待开始 |
+| 3 | 角色动画质量检查 | @动画组长 | 🔴 P0 | ☐ 待开始 |
+| 4 | 角色特效质量检查 | @特效组长 | 🔴 P0 | ☐ 待开始 |
+| 5 | 场景视觉+功能+性能 | @场景组长 | 🔴 P0 | ☐ 待开始 |
+| 6 | UI 视觉+多设备适配 | @UI组长 | 🔴 P0 | ☐ 待开始 |
+| 7 | 设备适配专项验证 | @QA | 🟡 P1 | ☐ 待开始 |
+| 8 | 截图归档+报告汇总 | @APM | 🟡 P1 | ☐ 待开始 |
+
+## ⏰ 时间安排
+- **走查启动**: ${DATE} 10:00
+- **问题截止**: ${DATE} 18:00
+- **报告提交**: ${DATE+1} 12:00
+
+## 📌 走查基准
+- 设备基准：中端机（iPhone 13 / 小米 13）
+- 通过标准：S 级 Bug = 0，A 级 Bug ≤ 3
+- 截图规范：v${VERSION}_[模块]_[对象]_[设备]_[日期]_[序号].png
+
+## 🚨 注意事项
+- [ ] 走查前确认版本构建完成
+- [ ] 分工明确，不交叉走查
+- [ ] 全程录屏，问题截图标注
+- [ ] 单模块限时 30 分钟
+- [ ] 走查结束后 2 小时内提交报告</pre>
+    </div>
+    <div class="alert alert-yellow" style="margin-top:8px">
+      <strong>📝 使用说明：</strong>复制后替换 <code>${VERSION}</code>、<code>${DATE}</code>、<code>@负责人</code> 等占位符，直接粘贴到飞书文档/Notion 即可。
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+/* Tab 切换 */
+function switchTab(id) {
+  document.querySelectorAll('.tt-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tt-panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + id).classList.add('active');
+}
+/* 一键复制 */
+function copyTemplate(id) {
+  var pre = document.getElementById('code-' + id);
+  var text = pre.textContent || pre.innerText;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() { showCopied(id); });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showCopied(id);
+  }
+}
+function showCopied(id) {
+  var btn = document.getElementById('panel-' + id).querySelector('.tt-copy-btn');
+  btn.textContent = '✅ 已复制！'; btn.classList.add('copied');
+  setTimeout(function() { btn.textContent = '📋 一键复制'; btn.classList.remove('copied'); }, 2000);
+}
+</script>
 
 <!-- ======== 1. 走查流程概览 ======== -->
 <div class="section" id="s1">
@@ -341,7 +563,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 </div>
 
 <div class="doc-footer">
-  游戏美术项目管理知识库 · 版本走查验收清单 v1.0
+  游戏美术项目管理知识库 · 版本走查验收清单 v1.1 · 新增：一键复制任务模板（Jira / Tapd / Markdown）
 </div>
 
 </div>
