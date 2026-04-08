@@ -28,8 +28,8 @@
           "name": "角色资产规范",
           "icon": "👤",
           "items": [
-            { "id": "d1",                "icon": "📐", "title": "2D UGC 角色出图规范",     "type": "md",     "file": "knowledge-base/art/2D-UGC角色出图规范.md",             "badge": "角色", "craft": "角色" },
-            { "id": "d2",                "icon": "🎨", "title": "2D 角色换色资源规范",     "type": "md",     "file": "knowledge-base/art/2D角色换色-美术资源提供规范.md",     "badge": "角色", "craft": "角色" },
+            { "id": "d1",                "icon": "📐", "title": "2D UGC 角色出图规范",     "type": "iframe",     "file": "knowledge-base/art/2D-UGC角色出图规范.html",             "badge": "角色", "craft": "角色" },
+            { "id": "d2",                "icon": "🎨", "title": "2D 角色换色资源规范",     "type": "iframe",     "file": "knowledge-base/art/2D角色换色-美术资源提供规范.html",     "badge": "角色", "craft": "角色" },
             { "id": "ugc-character-spec","icon": "📐", "title": "UGC 角色出图工业化规范", "type": "iframe", "file": "knowledge-base/ugc-character-spec.html",               "badge": "角色", "craft": "角色" },
             { "id": "color-swap-spec",   "icon": "🎨", "title": "角色换色工业化规范",     "type": "iframe", "file": "knowledge-base/color-swap-spec.html",                  "badge": "角色", "craft": "角色" },
             { "id": "auto-mask-spec",    "icon": "📋", "title": "Mask 生成器工业化规范",  "type": "iframe", "file": "knowledge-base/auto-mask-spec.html",                   "badge": "角色", "craft": "角色" },
