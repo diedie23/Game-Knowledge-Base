@@ -212,8 +212,8 @@
           "name": "沟通与成长",
           "icon": "🗣️",
           "items": [
-            { "id": "cross-dept-communication-tips", "icon": "🗣️", "title": "跨部门沟通话术总结",  "type": "md", "file": "knowledge-base/cross-dept-communication-tips.md", "badge": "沟通", "craft": "管理" },
-            { "id": "personal-growth-roadmap",       "icon": "🌱", "title": "APM 个人成长路线图", "type": "md", "file": "knowledge-base/personal-growth-roadmap.md", "badge": "成长", "craft": "管理" }
+            { "id": "cross-dept-communication-tips", "icon": "🗣️", "title": "跨部门沟通话术总结",  "type": "iframe", "file": "knowledge-base/cross-dept-communication-tips.html", "badge": "沟通", "craft": "管理" },
+            { "id": "personal-growth-roadmap",       "icon": "🌱", "title": "APM 个人成长路线图", "type": "iframe", "file": "knowledge-base/personal-growth-roadmap.html", "badge": "成长", "craft": "管理" }
           ]
         }
       ]
