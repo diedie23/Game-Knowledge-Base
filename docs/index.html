@@ -120,6 +120,314 @@
         <div class="stat stat-retrospect"><div class="num">—</div><div class="label">📒 复盘与沉淀</div></div>
       </div>
 
+      <!-- ═══ 🧭 角色探索 — 快速导航 ═══ -->
+      <div class="role-explore" id="roleExplore">
+        <div class="role-explore-header">
+          <h2>🧭 角色探索 — 我该看什么？</h2>
+          <span class="re-sub">选择你的角色，快速找到最相关的文档</span>
+        </div>
+        <div class="role-cards">
+
+          <!-- 卡片 1：新人美术 -->
+          <div class="role-card rc-artist">
+            <div class="rc-icon">🎨</div>
+            <div class="rc-title">我是新人美术</div>
+            <div class="rc-desc">刚入职/转岗的美术同学，从这里开始了解生产管线、资产规范和提交流程。</div>
+            <div class="rc-links">
+              <a class="rc-link" onclick="navigate('onboarding-guide')">
+                <span class="rc-link-icon">🎓</span>
+                <span class="rc-link-text">入职管线必读 (Onboarding)</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+              <a class="rc-link" onclick="navigate('asset-submit-review')">
+                <span class="rc-link-icon">🔄</span>
+                <span class="rc-link-text">资产提交与审核工作流</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+              <a class="rc-link" onclick="navigate('art-vs-ta-naming')">
+                <span class="rc-link-icon">📦</span>
+                <span class="rc-link-text">引擎导入与命名规范</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+              <a class="rc-link" onclick="navigate('game-art-pipeline')">
+                <span class="rc-link-icon">🔄</span>
+                <span class="rc-link-text">美术生产管线总览</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- 卡片 2：TA / 程序 -->
+          <div class="role-card rc-ta">
+            <div class="rc-icon">🧙‍♂️</div>
+            <div class="rc-title">我是 TA / 程序</div>
+            <div class="rc-desc">技术美术或程序同学，关注性能红线、引擎规范和跨部门协作边界。</div>
+            <div class="rc-links">
+              <a class="rc-link" onclick="navigate('art-vs-ta-perfbudget')">
+                <span class="rc-link-icon">🚦</span>
+                <span class="rc-link-text">性能红线与资产预算</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+              <a class="rc-link" onclick="navigate('art-vs-ta-naming')">
+                <span class="rc-link-icon">📦</span>
+                <span class="rc-link-text">引擎导入与命名规范</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+              <a class="rc-link" onclick="navigate('anim-state-handoff')">
+                <span class="rc-link-icon">🎬</span>
+                <span class="rc-link-text">动画状态机交接规范</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+              <a class="rc-link" onclick="navigate('perf-redline-glossary')">
+                <span class="rc-link-icon">📖</span>
+                <span class="rc-link-text">跨工种黑话速查表</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- 卡片 3：外包 PM -->
+          <div class="role-card rc-pm">
+            <div class="rc-icon">💼</div>
+            <div class="rc-title">我是外包 PM</div>
+            <div class="rc-desc">外包项目管理者，关注外包管理、验收标准、预算结算和供应商生态。</div>
+            <div class="rc-links">
+              <a class="rc-link" onclick="navigate('cp-outsource')">
+                <span class="rc-link-icon">📋</span>
+                <span class="rc-link-text">外包管理与验收规范</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+              <a class="rc-link" onclick="navigate('budget-apply')">
+                <span class="rc-link-icon">💰</span>
+                <span class="rc-link-text">外包预算申请与结算流转</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+              <a class="rc-link" onclick="navigate('cost-standard')">
+                <span class="rc-link-icon">📊</span>
+                <span class="rc-link-text">人月成本核算标准</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+              <a class="rc-link" onclick="navigate('supplier-ecosystem')">
+                <span class="rc-link-icon">🏢</span>
+                <span class="rc-link-text">供应商生态管理规范</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- 卡片 4：QA / 主美 -->
+          <div class="role-card rc-qa">
+            <div class="rc-icon">🔍</div>
+            <div class="rc-title">我是 QA / 主美</div>
+            <div class="rc-desc">质量把关者，关注 Bug 定级、版本走查、效能度量和复盘体系。</div>
+            <div class="rc-links">
+              <a class="rc-link" onclick="navigate('art-vs-qa-buggrade')">
+                <span class="rc-link-icon">🐛</span>
+                <span class="rc-link-text">美术 Bug 定级标准</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+              <a class="rc-link" onclick="navigate('art-vs-qa-checklist')">
+                <span class="rc-link-icon">✅</span>
+                <span class="rc-link-text">版本走查验收清单</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+              <a class="rc-link" onclick="navigate('art-efficiency-metrics')">
+                <span class="rc-link-icon">📊</span>
+                <span class="rc-link-text">效能度量与数据指标体系</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+              <a class="rc-link" onclick="navigate('project-pitfall-log')">
+                <span class="rc-link-icon">💣</span>
+                <span class="rc-link-text">踩坑复盘手册</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ═══ 🔀 跨部门协作流程可视化 (Mermaid 时序图) ═══ -->
+      <div class="mermaid-section" id="mermaidSection">
+        <div class="mermaid-section-header">
+          <h2>🔀 跨部门协作流程可视化</h2>
+          <div class="mermaid-tabs">
+            <div class="mermaid-tab active" onclick="switchMermaidTab('flow1',this)">📋 需求→制作→打回</div>
+            <div class="mermaid-tab" onclick="switchMermaidTab('flow2',this)">🏭 外包全生命周期</div>
+            <div class="mermaid-tab" onclick="switchMermaidTab('flow3',this)">🐛 Bug 修复闭环</div>
+          </div>
+        </div>
+
+        <!-- 流程 1：策划提需求 → 美术制作 → QA打回 → 策划改需求 -->
+        <div class="mermaid-panel active" id="mermaid-flow1">
+          <div class="mermaid-container">
+            <div class="mermaid">
+sequenceDiagram
+    participant 策划 as 📝 策划
+    participant APM as 💼 APM
+    participant 美术 as 🎨 美术
+    participant TA as 🧙‍♂️ TA
+    participant QA as 🔍 QA
+
+    rect rgb(30, 40, 70)
+    Note over 策划,QA: 📋 Phase 1 — 需求发起与评审
+    策划->>APM: 提交美术需求单
+    APM->>APM: 评估排期 & 优先级
+    APM->>美术: 分配任务 + 技术规格说明
+    APM->>TA: 同步性能红线约束
+    end
+
+    rect rgb(30, 50, 40)
+    Note over 策划,QA: 🎨 Phase 2 — 美术制作阶段
+    美术->>美术: 白盒制作
+    美术->>APM: 白盒交付，申请 Gate Review
+    APM->>策划: 白盒三方确认会议
+    策划-->>APM: ✅ 白盒通过
+    美术->>美术: 精修 & 美化
+    美术->>TA: 提交引擎适配
+    TA-->>美术: 性能反馈 (面数/Drawcall)
+    end
+
+    rect rgb(60, 30, 30)
+    Note over 策划,QA: 🐛 Phase 3 — QA 验收与打回
+    美术->>QA: 提交最终资产
+    QA->>QA: 走查验收 (Checklist)
+    QA-->>APM: ❌ 打回！面数超标 + 色差
+    APM->>美术: 派发修复任务
+    美术->>美术: 修复 & 重新提交
+    美术->>QA: 再次提交验收
+    QA-->>APM: ✅ 验收通过
+    end
+
+    rect rgb(40, 30, 55)
+    Note over 策划,QA: 🔄 Phase 4 — 需求变更应急
+    策划->>APM: ⚠️ 紧急需求变更
+    APM->>APM: 评估影响范围 (>2天?)
+    APM-->>策划: 需主管审批 + 排期顺延
+    策划-->>APM: 审批通过
+    APM->>美术: 更新任务 + 新增排期
+    end
+            </div>
+          </div>
+          <div class="mermaid-legend">
+            <div class="mermaid-legend-item"><div class="mermaid-legend-dot" style="background:#6c8cff"></div>需求发起</div>
+            <div class="mermaid-legend-item"><div class="mermaid-legend-dot" style="background:#4ade80"></div>制作阶段</div>
+            <div class="mermaid-legend-item"><div class="mermaid-legend-dot" style="background:#f87171"></div>打回修复</div>
+            <div class="mermaid-legend-item"><div class="mermaid-legend-dot" style="background:#a78bfa"></div>变更应急</div>
+          </div>
+        </div>
+
+        <!-- 流程 2：外包全生命周期 -->
+        <div class="mermaid-panel" id="mermaid-flow2">
+          <div class="mermaid-container">
+            <div class="mermaid">
+sequenceDiagram
+    participant APM as 💼 APM
+    participant CP as 🏢 外包CP
+    participant 主美 as 🎨 主美
+    participant QA as 🔍 QA
+    participant 财务 as 💰 财务
+
+    rect rgb(30, 40, 70)
+    Note over APM,财务: 🔍 Phase 1 — 寻源与准入
+    APM->>CP: 发送试制需求 + 风格指南
+    CP->>APM: 提交试制样品
+    APM->>主美: 试制评审 (5维度打分)
+    主美-->>APM: 评审通过，建议准入
+    APM->>CP: ✅ 正式签约 (NDA + 合同)
+    end
+
+    rect rgb(30, 50, 40)
+    Note over APM,财务: 🏭 Phase 2 — 批量生产
+    APM->>CP: 下发批量任务包
+    CP->>CP: 批量制作
+    CP->>APM: 首件样品交付
+    APM->>主美: 首件审核 (风格一致性)
+    主美-->>APM: ✅ 首件通过，批量放行
+    CP->>APM: 批量资产交付
+    end
+
+    rect rgb(60, 30, 30)
+    Note over APM,财务: ✅ Phase 3 — 验收与结算
+    APM->>QA: 提交验收 (自动化检查)
+    QA-->>APM: 验收报告 (通过率92%)
+    APM->>CP: 修改清单 (8%返工)
+    CP->>APM: 返工提交
+    QA-->>APM: ✅ 全部通过
+    APM->>财务: 提交结算申请
+    财务-->>CP: 💰 打款 (T+15)
+    end
+
+    rect rgb(40, 30, 55)
+    Note over APM,财务: 📊 Phase 4 — 季度评级
+    APM->>APM: 汇总 CP 数据 (质量/交期/成本)
+    APM->>CP: 通报评级结果 (A+/A/B/C/D)
+    Note right of CP: A+ → 扩大份额<br/>C/D → 降级/淘汰
+    end
+            </div>
+          </div>
+          <div class="mermaid-legend">
+            <div class="mermaid-legend-item"><div class="mermaid-legend-dot" style="background:#6c8cff"></div>寻源准入</div>
+            <div class="mermaid-legend-item"><div class="mermaid-legend-dot" style="background:#4ade80"></div>批量生产</div>
+            <div class="mermaid-legend-item"><div class="mermaid-legend-dot" style="background:#f87171"></div>验收结算</div>
+            <div class="mermaid-legend-item"><div class="mermaid-legend-dot" style="background:#a78bfa"></div>季度评级</div>
+          </div>
+        </div>
+
+        <!-- 流程 3：Bug 修复闭环 -->
+        <div class="mermaid-panel" id="mermaid-flow3">
+          <div class="mermaid-container">
+            <div class="mermaid">
+sequenceDiagram
+    participant QA as 🔍 QA
+    participant APM as 💼 APM
+    participant 美术 as 🎨 美术
+    participant TA as 🧙‍♂️ TA
+    participant 主美 as 🎨 主美
+
+    rect rgb(60, 30, 30)
+    Note over QA,主美: 🐛 Phase 1 — Bug 发现与定级
+    QA->>QA: 走查发现美术表现Bug
+    QA->>APM: 提交Bug单 (截图+设备+复现步骤)
+    APM->>APM: Bug 定级 (S/A/B/C)
+    Note right of APM: S级=必修 A级=建议修<br/>B级=低优 C级=可接受
+    end
+
+    rect rgb(30, 40, 70)
+    Note over QA,主美: 🔧 Phase 2 — 分配与修复
+    APM->>美术: 派发修复任务 (含红线标准)
+    美术->>美术: 定位问题 & 修复
+    美术->>TA: 技术问题需TA协助?
+    TA-->>美术: 提供技术方案
+    美术->>APM: 提交修复结果
+    end
+
+    rect rgb(30, 50, 40)
+    Note over QA,主美: ✅ Phase 3 — 验证与关闭
+    APM->>QA: 提交回归验证
+    QA->>QA: 回归测试
+    QA-->>APM: ✅ Bug 已修复
+    APM->>APM: 关闭Bug单
+    end
+
+    rect rgb(40, 30, 55)
+    Note over QA,主美: 📝 Phase 4 — 复盘沉淀
+    APM->>主美: 高频Bug分析报告
+    主美->>主美: 更新制作规范
+    APM->>APM: 录入踩坑知识库
+    Note right of APM: 规范反哺闭环 ✅
+    end
+            </div>
+          </div>
+          <div class="mermaid-legend">
+            <div class="mermaid-legend-item"><div class="mermaid-legend-dot" style="background:#f87171"></div>Bug发现定级</div>
+            <div class="mermaid-legend-item"><div class="mermaid-legend-dot" style="background:#6c8cff"></div>分配修复</div>
+            <div class="mermaid-legend-item"><div class="mermaid-legend-dot" style="background:#4ade80"></div>验证关闭</div>
+            <div class="mermaid-legend-item"><div class="mermaid-legend-dot" style="background:#a78bfa"></div>复盘沉淀</div>
+          </div>
+        </div>
+      </div>
+
       <!-- ═══ 🔥 高频速查 / 最近更新 横向展示区 ═══ -->
       <div class="hot-section" id="hotSection">
         <div class="hot-header">
@@ -387,6 +695,71 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+
+<!-- Mermaid 时序图渲染引擎 -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+/* Mermaid 初始化 — 深色主题适配 */
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    primaryColor: '#2a3a6e',
+    primaryTextColor: '#e8eaed',
+    primaryBorderColor: '#6c8cff',
+    lineColor: '#6c8cff',
+    secondaryColor: '#1c2a44',
+    tertiaryColor: '#1a1d2e',
+    noteBkgColor: '#1c2a44',
+    noteTextColor: '#c9cdd4',
+    noteBorderColor: '#3d4155',
+    actorBkg: '#1c1f2e',
+    actorBorder: '#6c8cff',
+    actorTextColor: '#e8eaed',
+    actorLineColor: '#3d4155',
+    signalColor: '#c9cdd4',
+    signalTextColor: '#e8eaed',
+    labelBoxBkgColor: '#1c1f2e',
+    labelBoxBorderColor: '#3d4155',
+    labelTextColor: '#e8eaed',
+    loopTextColor: '#c9cdd4',
+    activationBorderColor: '#6c8cff',
+    activationBkgColor: '#2a3a6e',
+    sequenceNumberColor: '#fff'
+  },
+  sequence: {
+    diagramMarginX: 20,
+    diagramMarginY: 16,
+    actorMargin: 60,
+    width: 160,
+    height: 50,
+    boxMargin: 8,
+    boxTextMargin: 6,
+    noteMargin: 12,
+    messageMargin: 40,
+    mirrorActors: false,
+    useMaxWidth: true,
+    wrap: true
+  },
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif',
+  fontSize: 14
+});
+
+/* Mermaid Tab 切换 */
+function switchMermaidTab(panelId, btn) {
+  document.querySelectorAll('.mermaid-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.mermaid-panel').forEach(function(p) { p.classList.remove('active'); });
+  btn.classList.add('active');
+  var panel = document.getElementById('mermaid-' + panelId);
+  panel.classList.add('active');
+  /* 重新渲染当前面板的 Mermaid（首次切换到隐藏面板时需要） */
+  var mermaidDiv = panel.querySelector('.mermaid');
+  if (mermaidDiv && !mermaidDiv.getAttribute('data-processed')) {
+    mermaid.run({ nodes: [mermaidDiv] });
+  }
+}
+</script>
+
 <script src="app.js"></script>
 </body>
 </html>
