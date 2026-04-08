@@ -193,6 +193,20 @@
           ]
         },
         {
+          "name": "供应商生态",
+          "icon": "🏢",
+          "items": [
+            { "id": "supplier-ecosystem", "icon": "🏢", "title": "供应商生态管理规范", "type": "iframe", "file": "knowledge-base/supplier-ecosystem.html", "badge": "管理", "craft": "管理" }
+          ]
+        },
+        {
+          "name": "AIGC 规范",
+          "icon": "🤖",
+          "items": [
+            { "id": "aigc-production-spec", "icon": "🤖", "title": "AIGC 辅助生产规范", "type": "iframe", "file": "knowledge-base/aigc-production-spec.html", "badge": "管理", "craft": "管理" }
+          ]
+        },
+        {
           "name": "团队与培训",
           "icon": "🎓",
           "items": [
