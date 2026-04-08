@@ -23,6 +23,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .section{margin-bottom:40px}
 .section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
 .section h3{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
 .section p{font-size:13px;margin-bottom:10px}
 table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
 th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
@@ -104,7 +105,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec1">
   <h2>🎯 1. 美术排期的特殊性</h2>
 
-  <h3>1.1 与程序排期的核心差异</h3>
+  <div class="sub-title">1.1 与程序排期的核心差异</div>
   <table>
     <tr><th>维度</th><th>💻 程序排期</th><th>🎨 美术排期</th></tr>
     <tr><td><strong>任务可量化程度</strong></td><td>功能点明确，可拆解为函数/模块</td><td>视觉效果主观性强，"好看"难量化</td></tr>
@@ -125,7 +126,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     </div>
   </div>
 
-  <h3>1.2 创意迭代不确定性的管控</h3>
+  <div class="sub-title">1.2 创意迭代不确定性的管控</div>
 
   <div class="redline">
     <p><strong>🔴 核心红线</strong>：创意迭代是美术排期中最大的不确定性来源，必须通过以下机制进行管控。</p>
@@ -144,7 +145,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec2">
   <h2>📋 2. Sprint 排期模板</h2>
 
-  <h3>2.1 Sprint 周期设置</h3>
+  <div class="sub-title">2.1 Sprint 周期设置</div>
   <table>
     <tr><th>团队规模</th><th>推荐 Sprint 周期</th><th>说明</th></tr>
     <tr><td>&lt; 10 人</td><td><strong>1 周</strong></td><td>小团队快速迭代</td></tr>
@@ -152,7 +153,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td>&gt; 30 人</td><td><strong>2~3 周</strong></td><td>大团队需更多协调时间</td></tr>
   </table>
 
-  <h3>2.2 美术任务卡片标准字段</h3>
+  <div class="sub-title">2.2 美术任务卡片标准字段</div>
   <table>
     <tr><th>字段</th><th>说明</th><th>示例</th></tr>
     <tr><td><strong>任务 ID</strong></td><td>唯一编号</td><td><code>TASK-058</code></td></tr>
@@ -170,7 +171,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td><strong>当前状态</strong></td><td>流转状态</td><td>待开始 → 进行中 → 待审 → 完成</td></tr>
   </table>
 
-  <h3>2.3 Sprint 仪式</h3>
+  <div class="sub-title">2.3 Sprint 仪式</div>
   <table>
     <tr><th>仪式</th><th>频率</th><th>参与人</th><th>产出物</th></tr>
     <tr><td>📝 <strong>Sprint 规划会</strong></td><td>每 Sprint 首日</td><td>APM + 各组长</td><td>Sprint Backlog</td></tr>
@@ -185,7 +186,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec3">
   <h2>🚩 3. 里程碑分解方法</h2>
 
-  <h3>3.1 标准里程碑阶段</h3>
+  <div class="sub-title">3.1 标准里程碑阶段</div>
   <div class="alert alert-blue"><strong>💡 里程碑全景图</strong>：以下是一个标准游戏项目的里程碑流转路径。</div>
 
   <div class="flow">
@@ -212,7 +213,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td><span class="badge badge-green">🏆 Gold</span></td><td>上线/提审</td><td>全部 Bug 清零，送审材料齐全</td></tr>
   </table>
 
-  <h3>3.2 各阶段美术交付物清单</h3>
+  <div class="sub-title">3.2 各阶段美术交付物清单</div>
   <table>
     <tr><th>阶段</th><th>👤 角色</th><th>🏔️ 场景</th><th>🖥️ UI</th><th>✨ 特效</th><th>🎬 动画</th></tr>
     <tr><td><strong>🟢 预研期</strong></td><td>2~3 个风格稿 + 1 个标杆角色</td><td>1 个白盒关卡</td><td>主界面线框图 + 风格稿</td><td>核心技能特效 Demo</td><td>待机/跑步/攻击 基础状态机</td></tr>
@@ -221,7 +222,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td><strong>🔴 RC</strong></td><td><strong>100%</strong> 角色 + 全部优化</td><td>100% 场景 + LOD + 性能优化</td><td>全 UI 适配 + 优化</td><td>100% + 性能优化</td><td>100% + Bug 修复</td></tr>
   </table>
 
-  <h3>3.3 甘特图示意（2026-Q2 美术排期）</h3>
+  <div class="sub-title">3.3 甘特图示意（2026-Q2 美术排期）</div>
   <div class="alert alert-blue"><strong>📊 说明</strong>：以下为中型项目的典型排期分布，实际项目请根据资产量调整。</div>
 
   <table>
@@ -247,7 +248,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec4">
   <h2>📊 4. 燃尽图跟踪指南</h2>
 
-  <h3>4.1 燃尽图解读方法</h3>
+  <div class="sub-title">4.1 燃尽图解读方法</div>
   <div class="alert alert-blue"><strong>📊 Sprint 燃尽图</strong>（14 天 Sprint 示意）</div>
 
   <table>
@@ -264,7 +265,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <div class="check-item"><span class="box">🔴</span><strong>实际线平坦不动</strong> = 进度停滞（排查阻塞项）</div>
   </div>
 
-  <h3>4.2 异常信号识别</h3>
+  <div class="sub-title">4.2 异常信号识别</div>
   <table>
     <tr><th>形态</th><th>📡 信号</th><th>🔍 诊断</th><th>🎯 行动</th></tr>
     <tr><td>📈 实际线在理想线<strong>上方</strong></td><td>进度落后</td><td>任务预估偏小 / 插入需求 / 阻塞</td><td><strong>立即排查阻塞</strong>，评估是否砍需求</td></tr>
@@ -280,7 +281,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec5">
   <h2>⚠️ 5. 风险预警机制</h2>
 
-  <h3>5.1 预警等级定义</h3>
+  <div class="sub-title">5.1 预警等级定义</div>
   <table>
     <tr><th>等级</th><th>触发条件</th><th>⏰ 响应时效</th><th>📤 升级对象</th></tr>
     <tr><td><span class="badge badge-green">🟢 正常</span></td><td>实际进度偏差 <strong>≤ 10%</strong></td><td>—</td><td>—</td></tr>
@@ -288,7 +289,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td><span class="badge badge-red">🔴 红色预警</span></td><td>实际进度偏差 <strong>&gt; 25%</strong> 或里程碑有 miss 风险</td><td><strong>4h 内</strong>升级汇报</td><td>APM → 制作人/总监</td></tr>
   </table>
 
-  <h3>5.2 黄色预警应对 SOP</h3>
+  <div class="sub-title">5.2 黄色预警应对 SOP</div>
   <div class="flow">
     <div class="flow-node start"><strong>① 发现偏差</strong></div>
     <span class="flow-arrow">→</span>
@@ -312,7 +313,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 
   <div class="alert alert-yellow"><strong>⚠️ 关键要求</strong>：方案确认后必须<strong>当天</strong>通知主美 + 组长，并在<strong>48 小时后</strong>进行复查。</div>
 
-  <h3>5.3 红色预警应对 SOP</h3>
+  <div class="sub-title">5.3 红色预警应对 SOP</div>
   <div class="flow">
     <div class="flow-node gate"><strong>① 确认风险</strong></div>
     <span class="flow-arrow">→</span>
@@ -343,7 +344,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec6">
   <h2>🎮 6. 实战模板：中型手游完整排期示例</h2>
 
-  <h3>6.1 项目概况</h3>
+  <div class="sub-title">6.1 项目概况</div>
   <table>
     <tr><th>维度</th><th>信息</th></tr>
     <tr><td><strong>类型</strong></td><td>二次元卡牌 RPG 手游</td></tr>
@@ -352,7 +353,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td><strong>开发周期</strong></td><td><strong>6 个月</strong>（2026.01 ~ 2026.07）</td></tr>
   </table>
 
-  <h3>6.2 资产量预估</h3>
+  <div class="sub-title">6.2 资产量预估</div>
   <table>
     <tr><th>工种</th><th>资产类型</th><th>数量</th><th>备注</th></tr>
     <tr><td>👤 角色</td><td>可操作角色</td><td><strong>20 个</strong></td><td>含皮肤变体</td></tr>
@@ -364,7 +365,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td>🎬 动画</td><td>角色动作</td><td><strong>200+ 条</strong></td><td>含表情/交互</td></tr>
   </table>
 
-  <h3>6.3 里程碑排期表</h3>
+  <div class="sub-title">6.3 里程碑排期表</div>
   <table>
     <tr><th>🚩 里程碑</th><th>📅 日期</th><th>👤 角色</th><th>🏔️ 场景</th><th>🖥️ UI</th><th>✨ 特效</th><th>🎬 动画</th></tr>
     <tr><td><span class="badge badge-green">🟢 预研验收</span></td><td>2026-01-31</td><td>3 个标杆角色</td><td>白盒主城</td><td>风格稿</td><td>Demo</td><td>基础</td></tr>
@@ -379,7 +380,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec7">
   <h2>💣 7. 常见问题与避坑指南</h2>
 
-  <h3>7.1 排期十大雷区</h3>
+  <div class="sub-title">7.1 排期十大雷区</div>
   <div class="alert alert-red"><strong>🚨 避坑指南</strong>：以下是 APM 排期中最常见的 10 个致命错误，每一条都可能导致里程碑 miss。</div>
 
   <table>
@@ -396,7 +397,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td>10</td><td><strong>不做复盘</strong> — Sprint 结束不回顾排期准确率</td><td>每个 Sprint 回顾 + 校准系数</td></tr>
   </table>
 
-  <h3>7.2 APM 排期黄金法则</h3>
+  <div class="sub-title">7.2 APM 排期黄金法则</div>
   <div class="alert alert-green"><strong>💡 排期公式</strong>：<code>排期 = 预估工时 × 1.2（Buffer 系数）+ 审核时间 + 外部依赖等待时间</code></div>
 
   <div class="faq-item">

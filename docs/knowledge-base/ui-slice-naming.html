@@ -23,6 +23,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .section{margin-bottom:40px}
 .section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--accent2);display:flex;align-items:center;gap:8px}
 .section h3{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
 .section h4{font-size:13px;color:var(--accent2);margin:12px 0 6px;font-weight:600}
 .section p{font-size:13px;margin-bottom:10px}
 table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
@@ -101,7 +102,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <p><strong>🔴 铁律 #3 透明通道审计</strong>：不含透明区域的 UI 元素（如纯色背景板）<strong>禁止导出 Alpha 通道</strong>——用 RGB 24bit 代替 RGBA 32bit，节省 25% 内存。</p>
   </div>
 
-  <h3>1.1 尺寸规格表</h3>
+  <div class="sub-title">1.1 尺寸规格表</div>
   <table>
     <tr><th>UI 元素类型</th><th>最大尺寸</th><th>推荐尺寸</th><th>格式</th><th>Atlas 策略</th></tr>
     <tr><td>按钮（Button）</td><td>512×256</td><td>200×80 (偶数)</td><td>PNG RGBA</td><td>合入公共 Atlas</td></tr>
@@ -112,7 +113,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td>头像框</td><td>256×256</td><td>128×128</td><td>PNG RGBA</td><td>合入 Atlas</td></tr>
   </table>
 
-  <h3>1.2 Atlas 合图限制</h3>
+  <div class="sub-title">1.2 Atlas 合图限制</div>
   <table>
     <tr><th>Atlas 类型</th><th>最大尺寸</th><th>填充率要求</th><th>说明</th></tr>
     <tr><td>公共 UI Atlas</td><td><span class="badge badge-red">2048×2048</span></td><td>≥ 75%</td><td>同系统的 UI 元素合一张</td></tr>
@@ -125,7 +126,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec2">
   <h2>📁 2. 命名公式与状态后缀字典</h2>
 
-  <h3>2.1 命名公式</h3>
+  <div class="sub-title">2.1 命名公式</div>
   <pre>T_UI_[模块]_[元素]_[状态后缀]
 
 示例：
@@ -136,7 +137,7 @@ T_UI_Shop_IconGold_N.png        // 商城-金币图标-Normal
 T_UI_Battle_HpBar_Fill.png      // 战斗-血条填充
 T_UI_Common_PanelBg_9s.png      // 公共-面板背景-9宫格</pre>
 
-  <h3>2.2 交互状态后缀字典（强制标准）</h3>
+  <div class="sub-title">2.2 交互状态后缀字典（强制标准）</div>
   <table>
     <tr><th>后缀</th><th>全称</th><th>含义</th><th>使用场景</th></tr>
     <tr><td><code>_N</code></td><td>Normal</td><td>常态 / 默认状态</td><td>所有可交互元素必须有</td></tr>
@@ -153,7 +154,7 @@ T_UI_Common_PanelBg_9s.png      // 公共-面板背景-9宫格</pre>
     <tr><td><code>_Mask</code></td><td>Mask</td><td>遮罩用途</td><td>圆形头像裁切等</td></tr>
   </table>
 
-  <h3>2.3 模块缩写词典</h3>
+  <div class="sub-title">2.3 模块缩写词典</div>
   <div class="abbr-grid">
     <div class="abbr-item"><code>Login</code> <span class="zh">登录 Login</span></div>
     <div class="abbr-item"><code>Lobby</code> <span class="zh">大厅 Lobby</span></div>
@@ -169,7 +170,7 @@ T_UI_Common_PanelBg_9s.png      // 公共-面板背景-9宫格</pre>
     <div class="abbr-item"><code>Guide</code> <span class="zh">引导 Tutorial</span></div>
   </div>
 
-  <h3>2.4 目录结构</h3>
+  <div class="sub-title">2.4 目录结构</div>
   <pre>Content/UI/
 ├── Atlas/                    // 合图 Atlas
 │   ├── Atlas_Common.png
@@ -189,7 +190,7 @@ T_UI_Common_PanelBg_9s.png      // 公共-面板背景-9宫格</pre>
 <div class="section" id="sec3">
   <h2>✅❌ 3. 图文红黑榜</h2>
 
-  <h3>3.1 奇数尺寸 → 压缩模糊</h3>
+  <div class="sub-title">3.1 奇数尺寸 → 压缩模糊</div>
   <div class="dd-grid">
     <div class="dd-card dd-dont">
       <h4>❌ Don't — 切图尺寸为奇数（如 127×63）</h4>
@@ -203,7 +204,7 @@ T_UI_Common_PanelBg_9s.png      // 公共-面板背景-9宫格</pre>
     </div>
   </div>
 
-  <h3>3.2 命名混乱 → 状态丢失</h3>
+  <div class="sub-title">3.2 命名混乱 → 状态丢失</div>
   <div class="dd-grid">
     <div class="dd-card dd-dont">
       <h4>❌ Don't — 随意命名（中文/空格/无后缀）</h4>

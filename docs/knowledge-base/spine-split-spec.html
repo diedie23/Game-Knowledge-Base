@@ -25,6 +25,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .section{margin-bottom:40px}
 .section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
 .section h3{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
 .section h4{font-size:13px;color:var(--accent2);margin:12px 0 6px;font-weight:600}
 .section p{font-size:13px;margin-bottom:10px}
 table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
@@ -105,7 +106,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <strong>⛔ 红线原则：</strong>Spine Atlas 图集单张尺寸 <strong>不得超过 2048×2048</strong>。超过此限制将触发 QA 自动报错，需拆分为多张 Atlas 或缩减部件尺寸。目标移动端项目建议控制在 <strong>1024×1024</strong> 以内。
 </div>
 
-<h3>1.1 Atlas 图集硬性指标</h3>
+<div class="sub-title">1.1 Atlas 图集硬性指标</div>
 <table>
   <tr><th>指标</th><th>推荐值</th><th>硬性上限</th><th>QA 校验级别</th></tr>
   <tr><td>单张 Atlas 尺寸</td><td><strong>1024×1024</strong></td><td>2048×2048</td><td><span style="color:var(--red)">❌ Error</span>（>2048）<br><span style="color:var(--yellow)">⚠️ Warn</span>（>1024）</td></tr>
@@ -114,7 +115,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <tr><td>单部件最大尺寸</td><td>512×512</td><td>1024×1024</td><td>单个部件不应占满整张 Atlas</td></tr>
 </table>
 
-<h3>1.2 部件数量与模板规格</h3>
+<div class="sub-title">1.2 部件数量与模板规格</div>
 <table>
   <tr><th>角色类型</th><th>推荐部件数</th><th>预设模板</th><th>说明</th></tr>
   <tr><td>标准人形</td><td><strong>7</strong></td><td>头部/头发/躯干/左臂/右臂/左腿/右腿</td><td>含对称关系</td></tr>
@@ -128,7 +129,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <strong>⚠️ 经验法则：</strong>部件总数 × 平均部件面积 ≤ Atlas 面积 × 0.7（考虑 Padding 和排布浪费）。例如 8 个平均 200×300px 的部件，总面积 480K px²，需要至少 1024×1024（POT）= 1048K px² 的 Atlas。
 </div>
 
-<h3>1.3 拓补参数预算</h3>
+<div class="sub-title">1.3 拓补参数预算</div>
 <table>
   <tr><th>参数</th><th>推荐范围</th><th>默认值</th><th>影响</th></tr>
   <tr><td>边缘扩展 (expandPx)</td><td><strong>2 ~ 6px</strong></td><td>4px</td><td>过大：部件重叠/Atlas溢出<br>过小：运动时边缘露底</td></tr>
@@ -138,7 +139,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <tr><td>Alpha 阈值</td><td>5 ~ 20</td><td>10</td><td>低于此值的像素视为"透明/无内容"</td></tr>
 </table>
 
-<h3>1.4 QA 质检阈值速查</h3>
+<div class="sub-title">1.4 QA 质检阈值速查</div>
 <div class="qa-check"><span class="icon">✅</span><span class="desc"><strong>完整性校验：</strong>所有部件必须标记选区，未标记 = Error</span><span class="threshold">100%</span></div>
 <div class="qa-check"><span class="icon">🔴</span><span class="desc"><strong>Atlas 尺寸：</strong>预估 POT 尺寸 > 2048 = Error</span><span class="threshold">> 2048px</span></div>
 <div class="qa-check"><span class="icon">🟡</span><span class="desc"><strong>Atlas 尺寸：</strong>预估 POT 尺寸 > 1024 = Warning</span><span class="threshold">> 1024px</span></div>
@@ -154,7 +155,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec2">
 <h2>2️⃣ 资产命名与目录规范</h2>
 
-<h3>2.1 Spine 部件命名公式</h3>
+<div class="sub-title">2.1 Spine 部件命名公式</div>
 <pre>
 SP_[项目]_[角色ID]_[部件名].[ext]
 
@@ -170,7 +171,7 @@ SP_[项目]_[角色ID]_[部件名].[ext]
   SP_MoonRPG_Hero01_Output.zip         ← 完整导出包
 </pre>
 
-<h3>2.2 工具内命名模板变量</h3>
+<div class="sub-title">2.2 工具内命名模板变量</div>
 <table>
   <tr><th>变量</th><th>含义</th><th>示例值</th></tr>
   <tr><td><code>{Project}</code></td><td>项目代号</td><td>MoonRPG</td></tr>
@@ -183,7 +184,7 @@ SP_[项目]_[角色ID]_[部件名].[ext]
 </table>
 <p><strong>推荐模板：</strong><code>SP_{Project}_{CharID}_{PartName}</code></p>
 
-<h3>2.3 目录结构规范（Spine 项目 / 引擎集成通用）</h3>
+<div class="sub-title">2.3 目录结构规范（Spine 项目 / 引擎集成通用）</div>
 <pre>
 Content/
 └── Characters/
@@ -205,7 +206,7 @@ Content/
   <strong>✅ 规则：</strong><code>Spine/</code> 目录存放引擎运行时需要的资源（部件 PNG + 骨骼 JSON + Atlas）；<code>Source/</code> 目录存放工程恢复文件和原始素材，<strong>不导入引擎</strong>。
 </div>
 
-<h3>2.4 Spine 部件英文缩写词典（中英文对照）</h3>
+<div class="sub-title">2.4 Spine 部件英文缩写词典（中英文对照）</div>
 <div class="abbr-grid">
   <div class="abbr-item"><code>Head</code> 头部 <span class="zh">（含面部）</span></div>
   <div class="abbr-item"><code>Hair</code> 头发 <span class="zh">（含饰品）</span></div>
@@ -221,7 +222,7 @@ Content/
   <div class="abbr-item"><code>Tail</code> 尾巴 <span class="zh">（四足动物用）</span></div>
 </div>
 
-<h3>2.5 Spine 骨骼命名建议</h3>
+<div class="sub-title">2.5 Spine 骨骼命名建议</div>
 <pre>
 骨骼层级：
 root
@@ -246,7 +247,7 @@ root
 <h2>3️⃣ 图文红黑榜 (Do's & Don'ts)</h2>
 
 <!-- Case 1 -->
-<h3>案例一：部件边缘黑边/白边（Fringing）</h3>
+<div class="sub-title">案例一：部件边缘黑边/白边（Fringing）</div>
 <div class="dd-grid">
   <div class="dd-card dd-dont">
     <h4 style="color:var(--red)">❌ Don't — 裁剪时未扩展边缘</h4>
@@ -274,7 +275,7 @@ root
 </div>
 
 <!-- Case 2 -->
-<h3>案例二：Atlas 排布超尺寸导致运行时崩溃</h3>
+<div class="sub-title">案例二：Atlas 排布超尺寸导致运行时崩溃</div>
 <div class="dd-grid">
   <div class="dd-card dd-dont">
     <h4 style="color:var(--red)">❌ Don't — 无节制添加部件 + 高扩展值</h4>
@@ -308,7 +309,7 @@ root
 <div class="section" id="sec4">
 <h2>4️⃣ 标准作业流程 (SOP)</h2>
 
-<h3>4.1 完整流程总览</h3>
+<div class="sub-title">4.1 完整流程总览</div>
 <div class="flow">
   <div class="flow-node start"><strong>A. 原画 PSD</strong><span class="sub">角色设计稿</span></div>
   <span class="flow-arrow">→</span>
@@ -329,7 +330,7 @@ root
   <div class="flow-node end"><strong>I. Spine 导入</strong><span class="sub">骨骼绑定+动画</span></div>
 </div>
 
-<h3>4.2 各节点交付标准</h3>
+<div class="sub-title">4.2 各节点交付标准</div>
 <table>
   <tr><th>节点</th><th>负责人</th><th>交付物</th><th>验收标准</th></tr>
   <tr>
@@ -382,7 +383,7 @@ root
   </tr>
 </table>
 
-<h3>4.3 工程恢复 & PSD 直读双路径</h3>
+<div class="sub-title">4.3 工程恢复 & PSD 直读双路径</div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0">
   <div style="background:var(--panel);border:1px solid var(--green);border-radius:10px;padding:16px">
     <h4 style="color:var(--green);margin-bottom:8px">📥 路径 A：工程恢复（JSON）</h4>

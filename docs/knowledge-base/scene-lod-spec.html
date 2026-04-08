@@ -22,6 +22,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .section{margin-bottom:40px}
 .section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--green);display:flex;align-items:center;gap:8px}
 .section h3{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
 .section h4{font-size:13px;color:var(--accent2);margin:12px 0 6px;font-weight:600}
 .section p{font-size:13px;margin-bottom:10px}
 table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
@@ -75,7 +76,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <!-- §1 -->
 <div class="section" id="s1"><h2>1️⃣ 模块化设计总则</h2>
 <div class="alert alert-green"><strong>💡 核心理念：</strong>"一套模块 + 组合规则 = 无限场景"。标准化尺寸网格、连接点与材质规格，让关卡设计师像搭积木般拼装。</div>
-<h3>1.1 模块分类体系</h3>
+<div class="sub-title">1.1 模块分类体系</div>
 <table>
 <tr><th>分类</th><th>代号</th><th>典型尺寸 (cm)</th><th>举例</th></tr>
 <tr><td><strong>Floor 地板</strong></td><td>F</td><td>400×400 / 800×800</td><td>石板、草地</td></tr>
@@ -87,13 +88,13 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <tr><td><strong>Prop 道具</strong></td><td>PR</td><td>自由</td><td>箱子、桌椅</td></tr>
 </table>
 
-<h3>1.2 模块化"三一律"</h3>
+<div class="sub-title">1.2 模块化"三一律"</div>
 <div class="alert alert-blue"><strong>📐 Three Unities：</strong><br>
 ① <strong>统一 Grid</strong>：结构件对齐 100cm 主格 + 50cm 细格<br>
 ② <strong>统一 Pivot</strong>：结构件 Pivot 在左下角底部；Deco/Prop 在几何中心底面<br>
 ③ <strong>统一 Texel Density</strong>：同场景 TD 差异 ≤ ±15%</div>
 
-<h3>1.3 连接点 Snap Points</h3>
+<div class="sub-title">1.3 连接点 Snap Points</div>
 <table>
 <tr><th>连接类型</th><th>Socket 位置</th><th>容差</th></tr>
 <tr><td>Floor-Floor</td><td>四边中点 + 四角</td><td>0.01cm</td></tr>
@@ -114,12 +115,12 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 </table>
 <div class="alert alert-red"><strong>⛔ 红线：</strong>结构模块(F/W/P/C/S) <strong>禁用 Micro Grid</strong>。对不上 25cm 则返工。仅 Deco/Prop 可用微格。</div>
 
-<h3>Pivot 标准</h3>
+<div class="sub-title">Pivot 标准</div>
 <pre>
 Floor/Wall: Pivot = 左下角底部 (min X, min Y, min Z)
 Deco/Prop:  Pivot = 几何中心底面 (center X, center Y, min Z)
 </pre>
-<h3>旋转步进</h3>
+<div class="sub-title">旋转步进</div>
 <table>
 <tr><th>类型</th><th>旋转步进</th></tr>
 <tr><td>结构件</td><td>90°</td></tr><tr><td>斜面/坡道</td><td>45°</td></tr>
@@ -130,7 +131,7 @@ Deco/Prop:  Pivot = 几何中心底面 (center X, center Y, min Z)
 <!-- §3 -->
 <div class="section" id="s3"><h2>3️⃣ LOD 层级与面数预算</h2>
 <div class="alert alert-red"><strong>⛔ 红线：</strong>单模块 LOD0 ≤ <strong>50,000 三角面</strong>。LOD 级数至少 3 级，建议 4 级。</div>
-<h3>3.1 LOD 标准</h3>
+<div class="sub-title">3.1 LOD 标准</div>
 <table>
 <tr><th>LOD</th><th>屏占比</th><th>面数比</th><th>距离</th><th>用途</th></tr>
 <tr><td><strong>LOD0</strong></td><td>&gt;30%</td><td>100%</td><td>0~15m</td><td>全精度</td></tr>
@@ -140,7 +141,7 @@ Deco/Prop:  Pivot = 几何中心底面 (center X, center Y, min Z)
 <tr><td style="color:var(--yellow)"><strong>HLOD</strong></td><td>—</td><td>≤5%</td><td>150m+</td><td>合并 LOD</td></tr>
 </table>
 
-<h3>3.2 面数预算表</h3>
+<div class="sub-title">3.2 面数预算表</div>
 <table>
 <tr><th>模块</th><th>LOD0</th><th>LOD1</th><th>LOD2</th><th>LOD3</th></tr>
 <tr><td>Floor 4m²</td><td>500</td><td>200</td><td>50</td><td>12</td></tr>
@@ -154,7 +155,7 @@ Deco/Prop:  Pivot = 几何中心底面 (center X, center Y, min Z)
 
 <div class="alert alert-yellow"><strong>⚠️ LOD 过渡：</strong>必须用 <strong>Dithered Transition / Cross-Fade</strong>，禁止硬切 Pop。<br>UE5: <code>LOD Transition → Dithered</code> · Unity: <code>crossFadeAnimationDuration = 0.5f</code></div>
 
-<h3>3.3 Nanite 适用范围 (UE5)</h3>
+<div class="sub-title">3.3 Nanite 适用范围 (UE5)</div>
 <table>
 <tr><th>场景</th><th>Nanite</th><th>原因</th></tr>
 <tr><td>静态道具</td><td>✅ 推荐</td><td>自动 LOD</td></tr>
@@ -167,7 +168,7 @@ Deco/Prop:  Pivot = 几何中心底面 (center X, center Y, min Z)
 
 <!-- §4 -->
 <div class="section" id="s4"><h2>4️⃣ 贴图与材质合批策略</h2>
-<h3>4.1 Texel Density</h3>
+<div class="sub-title">4.1 Texel Density</div>
 <table>
 <tr><th>LOD</th><th>目标 TD</th><th>参考</th></tr>
 <tr><td>LOD0</td><td><strong>10.24 px/cm</strong></td><td>1m → 1024px</td></tr>
@@ -175,7 +176,7 @@ Deco/Prop:  Pivot = 几何中心底面 (center X, center Y, min Z)
 <tr><td>LOD2</td><td>2.56 px/cm</td><td>可用 Trim Sheet</td></tr>
 </table>
 <div class="alert alert-blue"><strong>💡 Trim Sheet：</strong>重复场景部件优先用 Trim Sheet，一张 2048² 覆盖 10~20 个模块 UV，极大减 Draw Call。</div>
-<h3>4.2 贴图规格</h3>
+<div class="sub-title">4.2 贴图规格</div>
 <table>
 <tr><th>类型</th><th>推荐</th><th>上限</th><th>色彩空间</th><th>压缩</th></tr>
 <tr><td>BaseColor</td><td>1024²</td><td>2048²</td><td>sRGB</td><td>BC7/ASTC</td></tr>

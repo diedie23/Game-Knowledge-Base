@@ -23,6 +23,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .section{margin-bottom:40px}
 .section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
 .section h3{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
 .section p{font-size:13px;margin-bottom:10px}
 table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
 th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
@@ -111,14 +112,14 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec2">
   <h2>🎯 2. 方案②详解：遮罩分区换色（重点）</h2>
 
-  <h3>2.1 美术需要提供的资源清单</h3>
+  <div class="sub-title">2.1 美术需要提供的资源清单</div>
   <pre>📁 角色资源包
 ├── character_base.png        ← ① 基础原图（带完整色彩和细节）
 ├── character_mask.png        ← ② 换色遮罩图（RGBA 四通道）
 ├── palette_config.json       ← ③ 配色方案表（可选但推荐）
 └── preview_thumbnail.png     ← ④ 换色效果预览缩略图（可选）</pre>
 
-  <h3>2.2 基础原图（Base Texture）</h3>
+  <div class="sub-title">2.2 基础原图（Base Texture）</div>
   <table>
     <tr><th>要素</th><th>规范</th></tr>
     <tr><td><strong>格式</strong></td><td>PNG（带 Alpha 通道）</td></tr>
@@ -128,7 +129,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td><strong>饱和度</strong></td><td>换色区域建议使用中等饱和度 40%~70%</td></tr>
   </table>
 
-  <h3>2.3 换色遮罩图（Mask Texture）— 最关键</h3>
+  <div class="sub-title">2.3 换色遮罩图（Mask Texture）— 最关键</div>
   <div class="alert alert-red"><strong>⛔ 通道互斥铁律：</strong>同一像素在 R/G/B 三个通道中<strong>只能有一个通道有值</strong>，其余必须为 0。A 通道独立控制染色开关（白=可染 · 黑=禁染）。</div>
 
   <table>
@@ -139,14 +140,14 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td style="color:#ccc;font-weight:700">A（Alpha）</td><td>总开关 — 白=可染色，黑=不染色</td></tr>
   </table>
 
-  <h3>2.4 遮罩图制作要求</h3>
+  <div class="sub-title">2.4 遮罩图制作要求</div>
   <div class="redline">
     <p><strong>🔴 铁律 #1</strong>：尺寸<strong>必须与基础原图完全一致</strong>，像素级对齐，差 1px 也打回。</p>
     <p><strong>🔴 铁律 #2</strong>：格式为 PNG（RGBA 32bit）或 TGA，<strong>绝对禁止 JPEG</strong>（有损压缩导致通道噪点）。</p>
     <p><strong>🔴 铁律 #3</strong>：区域边缘建议留 1~2px 渐变过渡，避免硬边锯齿。非染色区域 A 通道涂黑(0)。</p>
   </div>
 
-  <h3>2.5 配色方案表（可选但推荐）</h3>
+  <div class="sub-title">2.5 配色方案表（可选但推荐）</div>
   <pre>{
   "colorSchemes": [
     { "name": "默认", "region1_hair": "#8B4513", "region2_top": "#4169E1", "region3_bottom": "#2F4F4F" },
@@ -162,7 +163,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <h2>🎮 3. 方案①详解：调色板替换（Palette Swap）</h2>
   <p>适用于<strong>像素风格</strong>游戏，原理是用一张小贴图做颜色映射。</p>
 
-  <h3>3.1 资源清单</h3>
+  <div class="sub-title">3.1 资源清单</div>
   <pre>📁 角色资源包
 ├── character_indexed.png     ← ① 索引色原图
 └── palettes/
@@ -170,7 +171,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     ├── palette_fire.png      ← ③ 火焰配色
     └── palette_ice.png       ← ④ 冰霜配色</pre>
 
-  <h3>3.2 制作规范</h3>
+  <div class="sub-title">3.2 制作规范</div>
   <table>
     <tr><th>要素</th><th>规范</th></tr>
     <tr><td><strong>颜色数量</strong></td><td>控制在 8~32 色以内</td></tr>
@@ -262,7 +263,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec8">
   <h2>🎯 8. 最佳实践总结</h2>
 
-  <h3>美术出图工作流</h3>
+  <div class="sub-title">美术出图工作流</div>
   <div class="flow">
     <div class="flow-node start"><strong>A. 确认方案</strong><div class="sub">HSV/灰度/Palette</div></div>
     <span class="flow-arrow">→</span>

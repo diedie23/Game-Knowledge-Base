@@ -23,6 +23,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .section{margin-bottom:40px}
 .section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--accent2);display:flex;align-items:center;gap:8px}
 .section h3{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
 .section p{font-size:13px;margin-bottom:10px}
 table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
 th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
@@ -110,7 +111,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <strong>核心理念</strong>：将<strong>频繁变化</strong>的 UI 元素（动画、计时器、数值）与<strong>静态</strong>的 UI 元素（背景、边框、固定文字）<strong>分开放置</strong>，使引擎能独立缓存静态部分，减少重绘。
   </div>
 
-  <h3>2.1 动/静分类标准</h3>
+  <div class="sub-title">2.1 动/静分类标准</div>
   <table>
     <tr><th>分类</th><th>变化频率</th><th>典型元素</th><th>处理策略</th></tr>
     <tr><td><span class="badge badge-green">静态</span></td><td>不变 / 仅在打开时设一次</td><td>面板背景、边框、标题文字、固定图标</td><td>放入 <strong>Invalidation Box</strong>（UE5）/ <strong>Static Canvas</strong>（Unity），GPU 缓存</td></tr>
@@ -123,7 +124,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <p><strong>🔴 铁律 #2</strong>：<strong>禁止在 Tick/Update 中修改不会变化的 UI 属性</strong>（如每帧设置文本为同一个值）。即使值不变，引擎仍会标记为脏(dirty)并触发重绘。</p>
   </div>
 
-  <h3>2.2 UE5 Invalidation Box 使用规范</h3>
+  <div class="sub-title">2.2 UE5 Invalidation Box 使用规范</div>
   <pre>
   WBP_BattleHUD (Widget Blueprint)
   ├── InvalidationBox_Static          ← 静态层（GPU 缓存）
@@ -141,7 +142,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
       └── Widget_DamagePopup          // 伤害飘字
   </pre>
 
-  <h3>2.3 DrawCall 合批条件</h3>
+  <div class="sub-title">2.3 DrawCall 合批条件</div>
   <table>
     <tr><th>条件</th><th>合批结果</th><th>说明</th></tr>
     <tr><td>使用同一 Atlas 的相邻元素</td><td><span class="badge badge-green">合批 ✅</span></td><td>最理想情况</td></tr>
@@ -162,7 +163,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <p><strong>🔴 铁律</strong>：UI 树嵌套深度<strong>不得超过 10 层</strong>。每增加一层嵌套，布局计算复杂度近似 O(n)——10 层以上的深树在低端机上 Layout Pass 可能花费 > 2ms。</p>
   </div>
 
-  <h3>3.1 扁平化策略</h3>
+  <div class="sub-title">3.1 扁平化策略</div>
   <table>
     <tr><th>问题</th><th>反模式（嵌套过深）</th><th>正确做法（扁平化）</th></tr>
     <tr><td>多层装饰边框</td><td>Border→Border→Border→Border 4层嵌套</td><td>用 9 宫格单图实现 4 层边框效果，<strong>1 个 Image 节点</strong></td></tr>
@@ -172,7 +173,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td>滚动列表</td><td>ScrollBox 内放 100+ Widget</td><td>使用 <code>ListView</code>（UE5）/ <code>RecyclerView</code>（Unity）虚拟列表</td></tr>
   </table>
 
-  <h3>3.2 节点数预算分配</h3>
+  <div class="sub-title">3.2 节点数预算分配</div>
   <table>
     <tr><th>页面类型</th><th>推荐节点数</th><th>红线</th></tr>
     <tr><td>HUD（战斗界面）</td><td>≤ 60</td><td>100</td></tr>
@@ -185,7 +186,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec4">
   <h2>✅❌ 4. 图文红黑榜</h2>
 
-  <h3>4.1 高频元素和静态元素混合 → 全页面重绘</h3>
+  <div class="sub-title">4.1 高频元素和静态元素混合 → 全页面重绘</div>
   <div class="dd-grid">
     <div class="dd-card dd-dont">
       <h4>❌ Don't — 倒计时器和背景面板在同一个 Canvas/Invalidation Box</h4>
@@ -199,7 +200,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     </div>
   </div>
 
-  <h3>4.2 ScrollBox 内放 100+ Widget → 卡顿爆炸</h3>
+  <div class="sub-title">4.2 ScrollBox 内放 100+ Widget → 卡顿爆炸</div>
   <div class="dd-grid">
     <div class="dd-card dd-dont">
       <h4>❌ Don't — 好友列表 ScrollBox 内直接放 200 个 Widget</h4>
@@ -281,7 +282,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </div>
 
   <!-- 7.1 容器与层级结构 -->
-  <h3>7.1 明确的容器与层级结构（Hierarchy &amp; Layout）</h3>
+  <div class="sub-title">7.1 明确的容器与层级结构（Hierarchy &amp; Layout）</div>
 
   <div class="redline">
     <p><strong>🔴 铁律</strong>：Prompt 中<strong>必须指明根节点类型</strong>。未指定根节点的 Prompt 会让 AI 随机选择 Canvas Panel / Overlay / User Widget，导致布局基础不可预测。</p>
@@ -304,7 +305,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </div>
 
   <!-- 7.2 锚点与对齐 -->
-  <h3>7.2 精准的锚点与对齐规范（Anchors &amp; Alignment）</h3>
+  <div class="sub-title">7.2 精准的锚点与对齐规范（Anchors &amp; Alignment）</div>
 
   <p>UE UMG 的布局系统核心是 <strong>Anchor（锚点）</strong>+ <strong>Alignment（对齐中心点）</strong>+ <strong>Offset（位置偏移）</strong>。三者的含义经常被混淆，导致 AI 生成的 UI 在分辨率变化时跑偏。</p>
 
@@ -333,7 +334,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </table>
 
   <!-- 7.3 命名规范 -->
-  <h3>7.3 工业级命名规范（Naming Conventions）</h3>
+  <div class="sub-title">7.3 工业级命名规范（Naming Conventions）</div>
 
   <div class="alert alert-red">
     <strong>⛔ 核心要求</strong>：Prompt 中<strong>必须</strong>为每个控件显式指定命名，否则 AI 会使用 <code>Image_0</code>、<code>Button_1</code> 等无意义默认名，后续蓝图编程和团队协作成本极高。
@@ -361,7 +362,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </div>
 
   <!-- 7.4 交互与可见性 -->
-  <h3>7.4 交互与可见性设置（Visibility &amp; Hit Test）</h3>
+  <div class="sub-title">7.4 交互与可见性设置（Visibility &amp; Hit Test）</div>
 
   <p>UMG 的 Visibility 设置对 <strong>UI 性能</strong>和<strong>交互正确性</strong>影响巨大。未明确指定时，AI 往往将所有元素默认为 <code>Visible</code>（可见且响应点击），导致"<strong>幽灵点击拦截</strong>"——一个透明的背景图片意外拦截了下方按钮的点击事件。</p>
 
@@ -382,7 +383,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </div>
 
   <!-- 7.5 样式与响应式 -->
-  <h3>7.5 样式与响应式细节（Styling &amp; Responsive）</h3>
+  <div class="sub-title">7.5 样式与响应式细节（Styling &amp; Responsive）</div>
 
   <div class="alert alert-blue">
     <strong>💡 核心原则</strong>：Prompt 中提供<strong>具体数值</strong>比描述抽象效果更准确。"按钮之间有间距"→ AI 可能给 0~50px 的任意值。"按钮之间 Padding = 12px"→ 精准无歧义。
@@ -412,7 +413,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </div>
 
   <!-- 7.6 自然语言 Prompt 示例 -->
-  <h3>7.6 自然语言 Prompt 示例（推荐写法）</h3>
+  <div class="sub-title">7.6 自然语言 Prompt 示例（推荐写法）</div>
 
   <div class="alert alert-blue">
     <strong>📋 核心理念：用"人话"描述界面</strong>。你不需要手写完整的树状结构和锚点参数——只要把"<strong>长什么样</strong>"和"<strong>怎么排布</strong>"说清楚，AI 就能准确生成 UMG 界面。以下 3 个示例覆盖了最常见的游戏界面类型，可直接复制使用。
@@ -515,7 +516,7 @@ Logo 和第一个输入框之间可以稍微大一点间距（如 24px），
 
   <!-- 旧的结构化模板已替换为自然语言示例 -->
 
-  <h3>7.7 Prompt 编写自检 Checklist</h3>
+  <div class="sub-title">7.7 Prompt 编写自检 Checklist</div>
 
   <table>
     <tr><th>#</th><th>检查项</th><th>是否必填</th><th>不填的后果</th></tr>

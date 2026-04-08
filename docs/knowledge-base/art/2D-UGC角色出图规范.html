@@ -23,6 +23,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .section{margin-bottom:40px}
 .section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
 .section h3{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
 .section p{font-size:13px;margin-bottom:10px}
 table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
 th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
@@ -98,7 +99,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec1">
   <h2>📐 1. 基础技术规范</h2>
 
-  <h3>1.1 画布与分辨率</h3>
+  <div class="sub-title">1.1 画布与分辨率</div>
   <table>
     <tr><th>要素</th><th>规范说明</th></tr>
     <tr><td><strong>尺寸必须为 2 的 N 次幂</strong></td><td>常见：32×32、64×64、128×128、256×256、512×512、1024×1024、2048×2048</td></tr>
@@ -110,7 +111,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 
   <div class="alert alert-blue"><strong>典型案例：</strong>Minecraft 基础皮肤贴图为 64×64 像素（旧版 64×32），标准 16x 像素网格结构。Roblox 缩略图推荐 1920×1080。</div>
 
-  <h3>1.2 文件格式</h3>
+  <div class="sub-title">1.2 文件格式</div>
   <table>
     <tr><th>格式</th><th>适用场景</th></tr>
     <tr><td><span class="badge badge-green">PNG（推荐）</span></td><td>支持透明通道（Alpha），无损压缩，2D 角色首选格式</td></tr>
@@ -119,7 +120,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td><span class="badge badge-red">PSD/ASE</span></td><td>源文件格式，不直接用于引擎</td></tr>
   </table>
 
-  <h3>1.3 透明通道（Alpha）</h3>
+  <div class="sub-title">1.3 透明通道（Alpha）</div>
   <div class="redline">
     <p><strong>🔴 铁律：</strong>角色轮廓外必须完全透明（Alpha = 0），导出 PNG 时确认保留 Alpha 通道。避免半透明像素残留在轮廓边缘。如果无透贴/自发光需求，不要包含 A 通道。</p>
   </div>
@@ -129,7 +130,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec2">
   <h2>🧩 2. 角色部件拆分规范</h2>
 
-  <h3>2.1 模块化部件划分</h3>
+  <div class="sub-title">2.1 模块化部件划分</div>
   <table>
     <tr><th>部件层级</th><th>包含内容</th><th>说明</th></tr>
     <tr><td><strong>头发</strong></td><td>前发、后发、发饰</td><td>需区分前后层级，支持独立换色</td></tr>
@@ -141,10 +142,10 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td><strong>配饰</strong></td><td>帽子、眼镜、翅膀、尾巴等</td><td>独立图层，灵活叠加</td></tr>
   </table>
 
-  <h3>2.2 拆分对接核心要求</h3>
+  <div class="sub-title">2.2 拆分对接核心要求</div>
   <div class="alert alert-red"><strong>⛔ 硬性要求：</strong>衔接线必须精确对齐 · 所有部件共用同一原点坐标系 · 未被服装遮盖的皮肤需用基础裸模补全 · 层级（Z-Order）必须有统一编号规范</div>
 
-  <h3>2.3 面数/复杂度控制（参考口袋方舟标准）</h3>
+  <div class="sub-title">2.3 面数/复杂度控制（参考口袋方舟标准）</div>
   <table>
     <tr><th>部件</th><th>高精模型（展示用）</th><th>低精模型（游戏内）</th></tr>
     <tr><td>上衣 + 身体</td><td>≤10,000 面</td><td>≤2,500 面</td></tr>
@@ -160,7 +161,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec3">
   <h2>🎨 3. 美术风格与色彩规范</h2>
 
-  <h3>3.1 头身比与体型</h3>
+  <div class="sub-title">3.1 头身比与体型</div>
   <table>
     <tr><th>风格</th><th>头身比</th><th>代表产品</th></tr>
     <tr><td>Q 版圆润</td><td>1:1 ~ 2:1</td><td>蛋仔派对</td></tr>
@@ -171,7 +172,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 
   <div class="alert alert-yellow"><strong>⚠️ 注意：</strong>确定头身比后全套部件必须统一，否则换装会出现比例失调。Q 版角色的头部通常占整体 40%~50%。</div>
 
-  <h3>3.2 色彩规范</h3>
+  <div class="sub-title">3.2 色彩规范</div>
   <table>
     <tr><th>要素</th><th>规范</th></tr>
     <tr><td><strong>主色数量</strong></td><td>单个角色建议 3~5 个主色 + 1~2 个点缀色</td></tr>
@@ -181,7 +182,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td><strong>描边色</strong></td><td>统一使用比填充色深 20%~30% 的同色系色值</td></tr>
   </table>
 
-  <h3>3.3 光影处理</h3>
+  <div class="sub-title">3.3 光影处理</div>
   <div class="redline">
     <p><strong>🔴 统一光源方向：</strong>建议固定左上方 45° 或正上方光源，所有部件光影一致。像素风格使用 2~3 级明暗，卡通风格可使用赛璐珞式硬边阴影。</p>
   </div>
@@ -191,7 +192,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec4">
   <h2>🎬 4. 动画与精灵图规范</h2>
 
-  <h3>4.1 精灵图（Sprite Sheet）</h3>
+  <div class="sub-title">4.1 精灵图（Sprite Sheet）</div>
   <table>
     <tr><th>要素</th><th>规范</th></tr>
     <tr><td><strong>排列方式</strong></td><td>推荐水平排列或网格排列，帧间距统一</td></tr>
@@ -201,7 +202,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td><strong>每组动画帧数</strong></td><td>Idle 4~8 帧、Walk 6~8 帧、Run 6~10 帧、Jump 3~6 帧</td></tr>
   </table>
 
-  <h3>4.2 动画兼容性</h3>
+  <div class="sub-title">4.2 动画兼容性</div>
   <div class="alert alert-blue"><strong>核心原则：</strong>所有部件必须共用同一套骨骼/关键帧 · 部件锚点在动画帧中位置一致 · 预留动画安全区（角色动作幅度大时确保精灵图画布足够大）</div>
 </div>
 
@@ -209,7 +210,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec5">
   <h2>📁 5. 命名与资源管理规范</h2>
 
-  <h3>5.1 文件命名约定</h3>
+  <div class="sub-title">5.1 文件命名约定</div>
   <pre>推荐格式：类型_性别_部件_编号_变体
 
 示例：
@@ -217,7 +218,7 @@ SK_Female_Body_001_Show    // 女性上装-编号001-展示用
 SK_Male_Hair_012           // 男性头发-编号012-游戏内
 SP_Unisex_Hat_003_Red      // 通用帽子-编号003-红色变体</pre>
 
-  <h3>5.2 材质球命名（参考口袋方舟）</h3>
+  <div class="sub-title">5.2 材质球命名（参考口袋方舟）</div>
   <table>
     <tr><th>部件</th><th>材质名</th><th>透贴</th></tr>
     <tr><td>上装</td><td><code>ClothUpper</code></td><td><code>ClothUpper_Mask</code></td></tr>
@@ -228,7 +229,7 @@ SP_Unisex_Hat_003_Red      // 通用帽子-编号003-红色变体</pre>
     <tr><td>头发</td><td><code>Hair</code></td><td>—</td></tr>
   </table>
 
-  <h3>5.3 目录结构建议</h3>
+  <div class="sub-title">5.3 目录结构建议</div>
   <pre>/Characters
   /Base         // 基础裸模
   /Hair         // 头发
@@ -244,10 +245,10 @@ SP_Unisex_Hat_003_Red      // 通用帽子-编号003-红色变体</pre>
 <div class="section" id="sec6">
   <h2>🔒 6. UGC 审核与合规注意事项</h2>
 
-  <h3>6.1 内容安全</h3>
+  <div class="sub-title">6.1 内容安全</div>
   <div class="alert alert-red"><strong>⛔ 禁止内容：</strong>暴露/色情内容 · 暴力/血腥元素 · 敏感符号（宗教、种族歧视等）· 直接复制他人作品或知名 IP 角色</div>
 
-  <h3>6.2 技术审核</h3>
+  <div class="sub-title">6.2 技术审核</div>
   <table>
     <tr><th>检查项</th><th>标准</th></tr>
     <tr><td>文件大小限制</td><td>单个资源 ≤ 1~5MB</td></tr>
@@ -262,7 +263,7 @@ SP_Unisex_Hat_003_Red      // 通用帽子-编号003-红色变体</pre>
 <div class="section" id="sec7">
   <h2>📱 7. 跨平台与性能优化</h2>
 
-  <h3>7.1 多端适配</h3>
+  <div class="sub-title">7.1 多端适配</div>
   <table>
     <tr><th>平台</th><th>注意事项</th></tr>
     <tr><td><strong>手机</strong></td><td>贴图尽量 ≤512×512，减少 Draw Call；精灵图合并 Atlas</td></tr>
@@ -270,7 +271,7 @@ SP_Unisex_Hat_003_Red      // 通用帽子-编号003-红色变体</pre>
     <tr><td><strong>小程序/Web</strong></td><td>严格控制总包体，单图 ≤200KB；使用 WebP 压缩</td></tr>
   </table>
 
-  <h3>7.2 性能优化建议</h3>
+  <div class="sub-title">7.2 性能优化建议</div>
   <div class="alert alert-green"><strong>💡 优化要点：</strong>图集合并（Atlas）减少渲染批次 · 非像素风格资源开启 Mipmap · 确保纹理为 POT 尺寸 · 针对目标平台选择 ETC2/PVRTC/ASTC 压缩 · 远景使用低精度版本</div>
 </div>
 

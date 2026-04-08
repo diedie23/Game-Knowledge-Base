@@ -23,6 +23,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .section{margin-bottom:40px}
 .section h2{font-size:20px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--accent2);display:flex;align-items:center;gap:8px}
 .section h3{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.sub-title{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
 .section h4{font-size:13px;color:var(--accent2);margin:12px 0 6px;font-weight:600}
 .section p{font-size:13px;margin-bottom:10px}
 table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12px}
@@ -98,7 +99,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   
   <p>9宫格（9-Slice / 9-Patch）将一张小贴图分为 9 个区域，四角不变形、四边单向拉伸、中心双向拉伸，实现<strong>任意尺寸自适应</strong>而不破坏圆角和边框。</p>
 
-  <h3>1.1 9区示意</h3>
+  <div class="sub-title">1.1 9区示意</div>
   <div class="nine-grid">
     <div class="nine-cell corner">左上角<br>不拉伸</div>
     <div class="nine-cell edge-h">上边<br>水平拉伸</div>
@@ -111,7 +112,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <div class="nine-cell corner">右下角<br>不拉伸</div>
   </div>
 
-  <h3>1.2 安全区设定规则</h3>
+  <div class="sub-title">1.2 安全区设定规则</div>
   <div class="alert alert-red">
     <strong>⛔ 铁律</strong>：9宫格的四角区域<strong>必须包含所有不可拉伸的装饰元素</strong>（圆角、阴影、描边渐变）。如果装饰元素超出了角区进入边区，拉伸后会<strong>出现重复条纹/断裂</strong>。
   </div>
@@ -129,7 +130,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <p><strong>🔴 铁律 #2</strong>：四角的圆角半径在所有使用场景中<strong>必须一致</strong>——禁止在同一个 9 宫格图上出现不同半径的圆角（左上 8px、右下 12px 是禁止的）。</p>
   </div>
 
-  <h3>1.3 各引擎 9 宫格设置</h3>
+  <div class="sub-title">1.3 各引擎 9 宫格设置</div>
   <table>
     <tr><th>引擎</th><th>配置位置</th><th>参数名</th><th>注意事项</th></tr>
     <tr><td>UE5 UMG</td><td>Texture Editor → Draw As: Box → Margin</td><td>Top/Bottom/Left/Right</td><td>值为归一化比例（0~1），非像素值</td></tr>
@@ -160,7 +161,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <p>④ 用于数据传输的灰度图 — 灰度值被压缩后阈值全部偏移</p>
   </div>
 
-  <h3>2.1 sRGB 搞错的后果可视化</h3>
+  <div class="sub-title">2.1 sRGB 搞错的后果可视化</div>
   <pre>
   原始 Mask 灰度值:  128 (50% 强度)
   
@@ -175,7 +176,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="sec3">
   <h2>✅❌ 3. 图文红黑榜</h2>
 
-  <h3>3.1 9宫格角区设太小 → 圆角断裂</h3>
+  <div class="sub-title">3.1 9宫格角区设太小 → 圆角断裂</div>
   <div class="dd-grid">
     <div class="dd-card dd-dont">
       <h4>❌ Don't — 角区小于圆角半径+阴影</h4>
@@ -189,7 +190,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     </div>
   </div>
 
-  <h3>3.2 Mask 图开了 sRGB → 换色偏暗</h3>
+  <div class="sub-title">3.2 Mask 图开了 sRGB → 换色偏暗</div>
   <div class="dd-grid">
     <div class="dd-card dd-dont">
       <h4>❌ Don't — Mask/数据图导入时 sRGB=ON</h4>
