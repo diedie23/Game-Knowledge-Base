@@ -56,6 +56,7 @@ var activeTagFilter='';  // 当前标签过滤关键词
 // 工具页数据（嵌入式工具的详细信息卡片）
 var toolData={
   'auto-mask':{icon:'🤖',iconBg:'var(--green-bg)',name:'自动 Mask 通道生成器',ver:'v4.0',status:'online',subtitle:'RGBA 四通道 · HSV 色相识别 · 手动修正笔 · Float32 精度',desc:'在原图上吸色→HSV色相匹配→RGBA四通道分配→手动画笔微调→32位PNG导出。支持A通道三种模式（吸色/原Alpha/描边）、反选、色彩锁定。',tags:['在线工具','RGBA四通道','HSV色相','手动修正笔','Float32精度'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-02',url:'knowledge-base/auto-mask.html'},
+  'auto-mask-v5':{icon:'🚀',iconBg:'var(--cyan-bg)',name:'自动 Mask 通道生成器',ver:'v5.0',status:'online',subtitle:'动态多通道 · 参数微调(反相/亮度/对比度/Gamma) · 图片裁剪预处理 · 智能拆分导出',desc:'v5.0 重大升级：① 动态多通道扩展（超越RGBA，添加自定义通道用于多张 Mask 打包）② 单通道参数微调（反相/亮度/对比度/Gamma）③ 图片裁剪与缩放预处理 ④ 超4通道智能拆分多PNG导出 ⑤ 通道槽位支持独立图片拖拽上传。',tags:['在线工具','动态多通道','参数微调','裁剪缩放','Float32精度','智能拆分'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-09',url:'knowledge-base/auto-mask-v5.html'},
   'mask-tool':{icon:'🖌️',iconBg:'var(--orange-bg)',name:'Mask 手动编辑器',ver:'v1.0',status:'online',subtitle:'画笔 / 油漆桶 / 橡皮擦 · 实时四通道预览',desc:'专为 Mask 精修设计的轻量编辑器。导入原图后直接在浏览器中用画笔逐通道绘制或修改，R/G/B/A 四通道独立显示并可实时预览换色效果。',tags:['在线工具','画笔绘制','RGBA预览','所见即所得'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-03-31',url:'knowledge-base/mask-tool.html'},
   'spine-split':{icon:'✂️',iconBg:'var(--purple-bg)',name:'Spine 角色拆分工具',ver:'v3.0',status:'online',subtitle:'自定义模板 · 三点锚点对齐 · 多选镜像 · Alpha收缩',desc:'上传角色原画，选择/自制模板后通过三点锚点对齐自适应不同头身比。支持多选镜像操作、Alpha边缘收缩、拓扑延展，导出 ZIP 包含 Spine JSON。',tags:['在线工具','自定义模板','三点对齐','镜像操作','Alpha收缩'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-02',url:'knowledge-base/spine-split.html'},
   'mask-core-algorithms':{icon:'🧪',iconBg:'var(--accent-bg)',name:'Mask 核心算法演示',ver:'v2.0',status:'online',subtitle:'智能魔棒 Flood Fill · 边缘保护画笔 Sobel · Web Worker 并行',desc:'工业级 Mask 绘制的两大核心算法实现：基于扫描线的非递归 Flood Fill 魔棒（HSV/RGB 容差+高斯羽化），以及 Sobel 边缘检测驱动的自动"不出界"画笔。全部在 Worker 中并行计算。',tags:['在线工具','魔棒','Flood Fill','Sobel','边缘检测','Web Worker','Float32'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-02',url:'knowledge-base/mask-core-algorithms.html'}
@@ -1678,7 +1679,7 @@ var CARD_GRID_MAP = {
   'grid-collab-pain':        { module:'collab', ids:['cross-dept-collab','accident-troubleshoot','cross-dept-communication-tips'] },
   // 板块五：🛠️ 工具链与自动化
   'grid-toolchain-check':    { module:'toolchain', ids:['naming-check-tool'] },
-  'grid-toolchain-art':      { module:'toolchain', ids:['auto-mask','mask-tool','spine-split','mask-core-algorithms','channel-packer'] },
+  'grid-toolchain-art':      { module:'toolchain', ids:['auto-mask','auto-mask-v5','mask-tool','spine-split','mask-core-algorithms','channel-packer'] },
   'grid-toolchain-desktop':  { module:'toolchain', ids:['image-skew-corrector','game-resource-toolkit','engine-bridge'] },
   // 板块六：🛡️ 质量、风险与团队
   'grid-quality-risk':       { module:'quality', ids:['risk-log'] },

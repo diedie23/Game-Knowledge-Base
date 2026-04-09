@@ -615,6 +615,23 @@
       "is_hot": false
     },
     {
+      "id": "auto-mask-v5",
+      "module": "toolchain",
+      "craft": "角色",
+      "type": "tool",
+      "title": "自动 Mask 生成器 v5.0",
+      "desc": "动态多通道(超越RGBA) · 单通道参数微调(反相/亮度/对比度/Gamma) · 图片裁剪预处理 · 智能拆分导出",
+      "tags": ["在线工具","多通道","参数微调","裁剪","Float32","智能拆分"],
+      "icon": "🚀",
+      "action": "openTool",
+      "path": "knowledge-base/auto-mask-v5.html",
+      "owner": "王五",
+      "last_updated": "2026-04-09",
+      "applicable_stage": "量产期",
+      "priority": "high",
+      "is_hot": true
+    },
+    {
       "id": "mask-tool",
       "module": "toolchain",
       "craft": "角色",
