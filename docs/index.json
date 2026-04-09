@@ -1,6 +1,6 @@
 {
-  "version": "4.2",
-  "lastUpdate": "2026-04-07",
+  "version": "5.0",
+  "lastUpdate": "2026-04-09",
   "subtitle": "APM 专属知识库 — 美术项目管理核心知识体系",
   "milestones": [
     { "label": "Alpha 版本提交", "date": "2026-04-15", "status": "completed" },
@@ -15,11 +15,12 @@
     { "title": "引擎升级兼容问题", "severity": "low", "owner": "技术美术-王工" }
   ],
   "moduleConfig": {
-    "production":  { "label": "🏭 美术生产与排期", "icon": "🏭", "color": "accent",  "weight": 30 },
-    "collab":      { "label": "🤝 跨部门协同与交付", "icon": "🤝", "color": "orange",  "weight": 30 },
-    "toolkit":     { "label": "🧰 APM 提效工具箱", "icon": "🧰", "color": "green",   "weight": 20 },
-    "governance":  { "label": "💰 成本·风险·团队", "icon": "💰", "color": "pink",    "weight": 15 },
-    "retrospect":  { "label": "📒 项目复盘与经验沉淀", "icon": "📒", "color": "cyan",   "weight": 10 }
+    "project":     { "label": "📋 项目管理与排期",    "icon": "📋", "color": "accent",  "weight": 20 },
+    "outsource":   { "label": "📦 外包全链路管理",    "icon": "📦", "color": "orange",  "weight": 15 },
+    "craft":       { "label": "🎨 美术工艺与规范",    "icon": "🎨", "color": "purple",  "weight": 25 },
+    "collab":      { "label": "🤝 跨部门协同与交付",  "icon": "🤝", "color": "green",   "weight": 15 },
+    "toolchain":   { "label": "🛠️ 工具链与自动化",   "icon": "🛠️", "color": "cyan",    "weight": 15 },
+    "quality":     { "label": "🛡️ 质量、风险与团队",  "icon": "🛡️", "color": "pink",    "weight": 10 }
   },
   "stageConfig": {
     "预研期": { "color": "#60a5fa", "bg": "rgba(96,165,250,.12)" },
@@ -30,7 +31,7 @@
   "items": [
     {
       "id": "game-art-pipeline",
-      "module": "production",
+      "module": "project",
       "craft": "管理",
       "type": "iframe",
       "title": "美术生产管线总览 — 2D/3D/二次元全流程",
@@ -47,7 +48,7 @@
     },
     {
       "id": "cp-outsource",
-      "module": "production",
+      "module": "outsource",
       "craft": "管理",
       "type": "iframe",
       "title": "外包管理与验收规范",
@@ -64,7 +65,7 @@
     },
     {
       "id": "cp-management",
-      "module": "production",
+      "module": "outsource",
       "craft": "管理",
       "type": "iframe",
       "title": "外包资产验收 Checklist",
@@ -81,7 +82,7 @@
     },
     {
       "id": "art-scheduling",
-      "module": "production",
+      "module": "project",
       "craft": "管理",
       "type": "md",
       "title": "美术排期与里程碑管理",
@@ -99,7 +100,7 @@
     },
     {
       "id": "d1",
-      "module": "production",
+      "module": "craft",
       "craft": "角色",
       "type": "md",
       "title": "2D UGC 角色出图规范",
@@ -116,7 +117,7 @@
     },
     {
       "id": "d2",
-      "module": "production",
+      "module": "craft",
       "craft": "角色",
       "type": "md",
       "title": "2D 角色换色资源规范",
@@ -133,7 +134,7 @@
     },
     {
       "id": "ugc-character-spec",
-      "module": "production",
+      "module": "craft",
       "craft": "角色",
       "type": "iframe",
       "title": "UGC 角色出图工业化规范",
@@ -150,7 +151,7 @@
     },
     {
       "id": "color-swap-spec",
-      "module": "production",
+      "module": "craft",
       "craft": "角色",
       "type": "iframe",
       "title": "角色换色工业化规范",
@@ -167,7 +168,7 @@
     },
     {
       "id": "auto-mask-spec",
-      "module": "production",
+      "module": "craft",
       "craft": "角色",
       "type": "iframe",
       "title": "Mask 生成器工业化规范",
@@ -184,7 +185,7 @@
     },
     {
       "id": "spine-split-spec",
-      "module": "production",
+      "module": "craft",
       "craft": "角色",
       "type": "iframe",
       "title": "Spine 拆分工业化规范",
@@ -201,7 +202,7 @@
     },
     {
       "id": "ui-slice-naming",
-      "module": "production",
+      "module": "craft",
       "craft": "UI",
       "type": "iframe",
       "title": "切图与命名规范",
@@ -218,7 +219,7 @@
     },
     {
       "id": "ui-9slice-color",
-      "module": "production",
+      "module": "craft",
       "craft": "UI",
       "type": "iframe",
       "title": "9宫格与颜色空间",
@@ -235,7 +236,7 @@
     },
     {
       "id": "ui-layout",
-      "module": "production",
+      "module": "craft",
       "craft": "UI",
       "type": "iframe",
       "title": "Layout 拼接规范",
@@ -252,7 +253,7 @@
     },
     {
       "id": "ui-umg-tips",
-      "module": "production",
+      "module": "craft",
       "craft": "UI",
       "type": "iframe",
       "title": "UMG 生成技巧",
@@ -269,7 +270,7 @@
     },
     {
       "id": "scene-lod-spec",
-      "module": "production",
+      "module": "craft",
       "craft": "场景",
       "type": "iframe",
       "title": "场景模块化与 LOD 规范",
@@ -286,7 +287,7 @@
     },
     {
       "id": "svn-perforce-structure",
-      "module": "production",
+      "module": "project",
       "craft": "管理",
       "type": "md",
       "title": "SVN/Perforce 目录结构标准",
@@ -304,7 +305,7 @@
     },
     {
       "id": "asset-submit-review",
-      "module": "production",
+      "module": "project",
       "craft": "管理",
       "type": "md",
       "title": "资产提交与审核工作流",
@@ -322,7 +323,7 @@
     },
     {
       "id": "outsource-workload-model",
-      "module": "production",
+      "module": "outsource",
       "craft": "管理",
       "type": "md",
       "title": "美术外包工作量评估标准 (人天模型)",
@@ -340,7 +341,7 @@
     },
     {
       "id": "vfx-perf-spec",
-      "module": "production",
+      "module": "craft",
       "craft": "特效",
       "type": "md",
       "title": "特效性能红线与层级规范",
@@ -358,7 +359,7 @@
     },
     {
       "id": "anim-state-handoff",
-      "module": "production",
+      "module": "craft",
       "craft": "动画",
       "type": "md",
       "title": "动画状态机交接与导出规范",
@@ -394,7 +395,7 @@
     },
     {
       "id": "art-vs-planner-template",
-      "module": "collab",
+      "module": "project",
       "craft": "跨部门",
       "type": "md",
       "title": "UI/原画需求模板",
@@ -547,7 +548,7 @@
     },
     {
       "id": "jira-tapd-automation",
-      "module": "toolkit",
+      "module": "project",
       "craft": "管理",
       "type": "md",
       "title": "项目管理工具模板",
@@ -564,7 +565,7 @@
     },
     {
       "id": "naming-check-tool",
-      "module": "toolkit",
+      "module": "toolchain",
       "craft": "管理",
       "type": "md",
       "title": "资产合规性检查工具",
@@ -581,7 +582,7 @@
     },
     {
       "id": "progress-visualization",
-      "module": "toolkit",
+      "module": "project",
       "craft": "管理",
       "type": "md",
       "title": "进度可视化工具",
@@ -598,7 +599,7 @@
     },
     {
       "id": "auto-mask",
-      "module": "toolkit",
+      "module": "toolchain",
       "craft": "角色",
       "type": "tool",
       "title": "自动 Mask 生成器",
@@ -615,7 +616,7 @@
     },
     {
       "id": "mask-tool",
-      "module": "toolkit",
+      "module": "toolchain",
       "craft": "角色",
       "type": "tool",
       "title": "Mask 手动编辑器",
@@ -632,7 +633,7 @@
     },
     {
       "id": "spine-split",
-      "module": "toolkit",
+      "module": "toolchain",
       "craft": "角色",
       "type": "tool",
       "title": "Spine 拆分工具",
@@ -649,7 +650,7 @@
     },
     {
       "id": "mask-core-algorithms",
-      "module": "toolkit",
+      "module": "toolchain",
       "craft": "角色",
       "type": "tool",
       "title": "Mask 核心算法演示",
@@ -666,7 +667,7 @@
     },
     {
       "id": "channel-packer",
-      "module": "toolkit",
+      "module": "toolchain",
       "craft": "特效",
       "type": "iframe",
       "title": "贴图通道打包工具",
@@ -683,7 +684,7 @@
     },
     {
       "id": "image-skew-corrector",
-      "module": "toolkit",
+      "module": "toolchain",
       "craft": "UI",
       "type": "iframe",
       "title": "图片倾斜矫正 (桌面版)",
@@ -701,7 +702,7 @@
     },
     {
       "id": "game-resource-toolkit",
-      "module": "toolkit",
+      "module": "toolchain",
       "craft": "UI",
       "type": "iframe",
       "title": "游戏资源工具集 (桌面版)",
@@ -719,7 +720,7 @@
     },
     {
       "id": "engine-bridge",
-      "module": "toolkit",
+      "module": "toolchain",
       "craft": "技术",
       "type": "iframe",
       "title": "Engine Bridge 引擎直连",
@@ -736,7 +737,7 @@
     },
     {
       "id": "budget-apply",
-      "module": "governance",
+      "module": "outsource",
       "craft": "管理",
       "type": "md",
       "title": "外包预算申请与结算流转",
@@ -753,7 +754,7 @@
     },
     {
       "id": "cost-standard",
-      "module": "governance",
+      "module": "outsource",
       "craft": "管理",
       "type": "md",
       "title": "美术人月成本核算标准",
@@ -770,7 +771,7 @@
     },
     {
       "id": "risk-log",
-      "module": "governance",
+      "module": "quality",
       "craft": "管理",
       "type": "md",
       "title": "项目风险登记册 (Risk Log) 规范",
@@ -787,7 +788,7 @@
     },
     {
       "id": "postmortem-template",
-      "module": "governance",
+      "module": "quality",
       "craft": "管理",
       "type": "md",
       "title": "版本研发复盘 (Post-mortem) 模板",
@@ -804,7 +805,7 @@
     },
     {
       "id": "onboarding-guide",
-      "module": "governance",
+      "module": "quality",
       "craft": "管理",
       "type": "md",
       "title": "美术新人入职管线必读 (Onboarding)",
@@ -821,7 +822,7 @@
     },
     {
       "id": "permission-nav",
-      "module": "governance",
+      "module": "quality",
       "craft": "管理",
       "type": "md",
       "title": "常用系统权限申请导航",
@@ -838,7 +839,7 @@
     },
     {
       "id": "project-pitfall-log",
-      "module": "retrospect",
+      "module": "quality",
       "craft": "管理",
       "type": "md",
       "title": "XX项目踩坑记录",
@@ -856,7 +857,7 @@
     },
     {
       "id": "cross-dept-communication-tips",
-      "module": "retrospect",
+      "module": "collab",
       "craft": "管理",
       "type": "md",
       "title": "跨部门沟通话术总结",
@@ -874,7 +875,7 @@
     },
     {
       "id": "personal-growth-roadmap",
-      "module": "retrospect",
+      "module": "quality",
       "craft": "管理",
       "type": "md",
       "title": "APM 个人成长路线图",

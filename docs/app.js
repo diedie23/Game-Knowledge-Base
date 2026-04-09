@@ -217,11 +217,12 @@ function expandTree(el){
 
 // ═══ 模块颜色与样式映射 ═══
 var MODULE_STYLES = {
-  'mod-production': { color: 'accent', highlight: 'var(--accent)',  bg: 'var(--accent-bg)' },
-  'mod-collab':     { color: 'orange', highlight: 'var(--orange)',  bg: 'var(--orange-bg)' },
-  'mod-toolkit':    { color: 'green',  highlight: 'var(--green)',   bg: 'var(--green-bg)' },
-  'mod-governance': { color: 'pink',   highlight: 'var(--pink)',    bg: 'var(--pink-bg)' },
-  'mod-retrospect': { color: 'cyan',   highlight: 'var(--cyan)',    bg: 'var(--cyan-bg)' }
+  'mod-project':   { color: 'accent',  highlight: 'var(--accent)',  bg: 'var(--accent-bg)' },
+  'mod-outsource': { color: 'orange',  highlight: 'var(--orange)',  bg: 'var(--orange-bg)' },
+  'mod-craft':     { color: 'purple',  highlight: 'var(--purple)',  bg: 'var(--purple-bg)' },
+  'mod-collab':    { color: 'green',   highlight: 'var(--green)',   bg: 'var(--green-bg)' },
+  'mod-toolchain': { color: 'cyan',    highlight: 'var(--cyan)',    bg: 'var(--cyan-bg)' },
+  'mod-quality':   { color: 'pink',    highlight: 'var(--pink)',    bg: 'var(--pink-bg)' }
 };
 
 // 工种 badge 样式映射
@@ -261,29 +262,30 @@ function buildSidebar(data){
     +'<div class="nav-toggle-btns"><button class="nav-toggle-btn" onclick="expandAllSidebar()" title="全部展开">📂 展开</button><button class="nav-toggle-btn" onclick="collapseAllSidebar()" title="全部折叠">📁 折叠</button></div></div>';
 
   // 统计计数器
-  var productionCount=0, collabCount=0, toolkitCount=0, governanceCount=0, retrospectCount=0;
+  var projectCount=0, outsourceCount=0, craftCount=0, collabCount=0, toolchainCount=0, qualityCount=0;
 
   data.categories.forEach(function(cat){
     var itemCount=0;
     cat.groups.forEach(function(g){ itemCount += g.items ? g.items.length : 0; });
 
     // 按模块 ID 计数
-    if(cat.id === 'mod-production')  productionCount = itemCount;
+    if(cat.id === 'mod-project')     projectCount = itemCount;
+    if(cat.id === 'mod-outsource')   outsourceCount = itemCount;
+    if(cat.id === 'mod-craft')       craftCount = itemCount;
     if(cat.id === 'mod-collab')      collabCount = itemCount;
-    if(cat.id === 'mod-toolkit')     toolkitCount = itemCount;
-    if(cat.id === 'mod-governance')  governanceCount = itemCount;
-    if(cat.id === 'mod-retrospect')  retrospectCount = itemCount;
+    if(cat.id === 'mod-toolchain')   toolchainCount = itemCount;
+    if(cat.id === 'mod-quality')     qualityCount = itemCount;
 
+    var isOutsource = cat.id === 'mod-outsource';
     var isCollab = cat.id === 'mod-collab';
-    var isGovernance = cat.id === 'mod-governance';
-    var isRetrospect = cat.id === 'mod-retrospect';
+    var isQuality = cat.id === 'mod-quality';
 
     // 获取纯文本名称（去掉 Emoji 前缀）
     var catName = cat.name.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]+\s*/u, '');
     // 一级模块 Emoji 图标（从 JSON icon 字段读取）
     var catEmoji = cat.icon || '📁';
 
-    var extraCls = isCollab ? ' t1-collab' : isGovernance ? ' t1-governance' : isRetrospect ? ' t1-retrospect' : '';
+    var extraCls = isOutsource ? ' t1-outsource' : isCollab ? ' t1-collab' : isQuality ? ' t1-quality' : '';
     html += '<div class="t1' + extraCls + '" id="' + cat.id + '">';
     html += '<div class="t1-h" onclick="handleToggle(event,this)">'
       + SVG_CHEVRON
@@ -335,19 +337,21 @@ function buildSidebar(data){
 
   // 更新首页统计数字
   var numEls = document.querySelectorAll('.stat .num');
-  if(numEls[0]) numEls[0].textContent = productionCount + ' 篇';
-  if(numEls[1]) numEls[1].textContent = collabCount + ' 篇';
-  if(numEls[2]) numEls[2].textContent = toolkitCount + ' 个';
-  if(numEls[3]) numEls[3].textContent = governanceCount + ' 篇';
-  if(numEls[4]) numEls[4].textContent = retrospectCount + ' 篇';
+  if(numEls[0]) numEls[0].textContent = projectCount + ' 篇';
+  if(numEls[1]) numEls[1].textContent = outsourceCount + ' 篇';
+  if(numEls[2]) numEls[2].textContent = craftCount + ' 篇';
+  if(numEls[3]) numEls[3].textContent = collabCount + ' 篇';
+  if(numEls[4]) numEls[4].textContent = toolchainCount + ' 个';
+  if(numEls[5]) numEls[5].textContent = qualityCount + ' 篇';
 
   // ═══ 统计卡片 → 锚点快捷导航 ═══
   var statTargets = [
-    { sel: '.stat-production', anchor: '#section-production' },
+    { sel: '.stat-project',    anchor: '#section-project' },
+    { sel: '.stat-outsource',  anchor: '#section-outsource' },
+    { sel: '.stat-craft',      anchor: '#section-craft' },
     { sel: '.stat-collab',     anchor: '#section-collab' },
-    { sel: '.stat-toolkit',    anchor: '#section-toolkit' },
-    { sel: '.stat-governance', anchor: '#section-governance' },
-    { sel: '.stat-retrospect', anchor: '#section-retrospect' }
+    { sel: '.stat-toolchain',  anchor: '#section-toolchain' },
+    { sel: '.stat-quality',    anchor: '#section-quality' }
   ];
   var scrollContainer = document.getElementById('contentScroll');
   statTargets.forEach(function(item){
@@ -1429,9 +1433,9 @@ function enterRoleView(roleKey){
 
   // 2. 按 module 分组
   var grouped = {};
-  var moduleOrder = ['production','collab','toolkit','governance','retrospect'];
+  var moduleOrder = ['project','outsource','craft','collab','toolchain','quality'];
   matchedItems.forEach(function(item){
-    var mod = item.module || 'production';
+    var mod = item.module || 'project';
     if(!grouped[mod]) grouped[mod] = [];
     grouped[mod].push(item);
   });
@@ -1445,7 +1449,7 @@ function enterRoleView(roleKey){
     var items = grouped[mod];
     if(!items || !items.length) return;
     var mc = moduleConfig[mod] || { label: mod, icon: '📄', color: 'accent' };
-    var ms = MODULE_STYLES['mod-'+mod] || MODULE_STYLES['mod-production'];
+    var ms = MODULE_STYLES['mod-'+mod] || MODULE_STYLES['mod-project'];
 
     html += '<div class="rv-module">';
     html += '<div class="rv-module-header" style="border-left:3px solid '+ms.highlight+'">';
@@ -1653,32 +1657,33 @@ function renderCardBadges(){
 
 // ═══ v4.1 首页动态卡片渲染（从 index.json 数据驱动）═══
 var CARD_GRID_MAP = {
-  // 板块一：美术生产与排期
-  'grid-production-pipeline':  { module:'production', ids:['game-art-pipeline','art-scheduling'] },
-  'grid-production-outsource': { module:'production', ids:['cp-outsource','cp-management'] },
-  'grid-production-char':      { module:'production', ids:['d1','d2','ugc-character-spec','color-swap-spec','auto-mask-spec','spine-split-spec'] },
-  'grid-production-ui':        { module:'production', ids:['ui-slice-naming','ui-9slice-color','ui-layout','ui-umg-tips'] },
-  'grid-production-scene':     { module:'production', ids:['scene-lod-spec'] },
-  'grid-production-vfx':       { module:'production', ids:['vfx-perf-spec'] },
-  'grid-production-anim':      { module:'production', ids:['anim-state-handoff'] },
-  'grid-production-version':   { module:'production', ids:['svn-perforce-structure','asset-submit-review'] },
-  'grid-production-cost':      { module:'production', ids:['outsource-workload-model'] },
-  // 板块二：跨部门协同
-  'grid-collab-planner':       { module:'collab', ids:['art-vs-planner-req','art-vs-planner-template'] },
-  'grid-collab-ta':            { module:'collab', ids:['art-vs-ta-naming','art-vs-ta-perfbudget','spine-perf-guide','perf-redline-glossary'] },
-  'grid-collab-qa':            { module:'collab', ids:['art-vs-qa-buggrade','art-vs-qa-checklist'] },
-  'grid-collab-accident':      { module:'collab', ids:['cross-dept-collab','accident-troubleshoot'] },
-  // 板块三：提效工具箱
-  'grid-toolkit-mgmt':         { module:'toolkit', ids:['jira-tapd-automation','naming-check-tool','progress-visualization'] },
-  'grid-toolkit-art':          { module:'toolkit', ids:['auto-mask','mask-tool','spine-split','mask-core-algorithms','channel-packer'] },
-  'grid-toolkit-desktop':      { module:'toolkit', ids:['image-skew-corrector','game-resource-toolkit','engine-bridge'] },
-  // 板块四：成本·风险·团队
-  'grid-governance-budget':    { module:'governance', ids:['budget-apply','cost-standard'] },
-  'grid-governance-risk':      { module:'governance', ids:['risk-log','postmortem-template'] },
-  'grid-governance-team':      { module:'governance', ids:['onboarding-guide','permission-nav'] },
-  // 板块五：项目复盘与经验沉淀
-  'grid-retrospect-pitfall':   { module:'retrospect', ids:['project-pitfall-log'] },
-  'grid-retrospect-growth':    { module:'retrospect', ids:['cross-dept-communication-tips','personal-growth-roadmap'] }
+  // 板块一：📋 项目管理与排期
+  'grid-project-pipeline':   { module:'project', ids:['game-art-pipeline'] },
+  'grid-project-schedule':   { module:'project', ids:['art-scheduling','progress-visualization'] },
+  'grid-project-req':        { module:'project', ids:['art-vs-planner-req','art-vs-planner-template','jira-tapd-automation'] },
+  'grid-project-version':    { module:'project', ids:['svn-perforce-structure','asset-submit-review'] },
+  // 板块二：📦 外包全链路管理
+  'grid-outsource-eval':     { module:'outsource', ids:['cp-outsource','cp-management'] },
+  'grid-outsource-workload': { module:'outsource', ids:['outsource-workload-model'] },
+  'grid-outsource-budget':   { module:'outsource', ids:['budget-apply','cost-standard'] },
+  // 板块三：🎨 美术工艺与规范
+  'grid-craft-char':         { module:'craft', ids:['d1','d2','ugc-character-spec','color-swap-spec','auto-mask-spec','spine-split-spec'] },
+  'grid-craft-ui':           { module:'craft', ids:['ui-slice-naming','ui-9slice-color','ui-layout','ui-umg-tips'] },
+  'grid-craft-scene':        { module:'craft', ids:['scene-lod-spec'] },
+  'grid-craft-vfx':          { module:'craft', ids:['vfx-perf-spec'] },
+  'grid-craft-anim':         { module:'craft', ids:['anim-state-handoff'] },
+  // 板块四：🤝 跨部门协同与交付
+  'grid-collab-ta':          { module:'collab', ids:['art-vs-ta-naming','art-vs-ta-perfbudget','spine-perf-guide','perf-redline-glossary'] },
+  'grid-collab-qa':          { module:'collab', ids:['art-vs-qa-buggrade','art-vs-qa-checklist'] },
+  'grid-collab-pain':        { module:'collab', ids:['cross-dept-collab','accident-troubleshoot','cross-dept-communication-tips'] },
+  // 板块五：🛠️ 工具链与自动化
+  'grid-toolchain-check':    { module:'toolchain', ids:['naming-check-tool'] },
+  'grid-toolchain-art':      { module:'toolchain', ids:['auto-mask','mask-tool','spine-split','mask-core-algorithms','channel-packer'] },
+  'grid-toolchain-desktop':  { module:'toolchain', ids:['image-skew-corrector','game-resource-toolkit','engine-bridge'] },
+  // 板块六：🛡️ 质量、风险与团队
+  'grid-quality-risk':       { module:'quality', ids:['risk-log'] },
+  'grid-quality-retro':      { module:'quality', ids:['postmortem-template','project-pitfall-log'] },
+  'grid-quality-team':       { module:'quality', ids:['onboarding-guide','permission-nav','personal-growth-roadmap'] }
 };
 
 // 阶段→背景色配置
@@ -1718,10 +1723,11 @@ function renderHomeCards(){
       var copyHtml='<button class="card-copy-btn" onclick="event.stopPropagation();copyCardLink(\''+item.id+'\')" title="复制链接">🔗</button>';
       // 图标背景色
       var iconBg='var(--accent-bg)';
-      if(config.module==='collab') iconBg='var(--orange-bg)';
-      if(config.module==='toolkit') iconBg='var(--green-bg)';
-      if(config.module==='governance') iconBg='var(--pink-bg)';
-      if(config.module==='retrospect') iconBg='var(--cyan-bg)';
+      if(config.module==='outsource') iconBg='var(--orange-bg)';
+      if(config.module==='craft') iconBg='var(--purple-bg)';
+      if(config.module==='collab') iconBg='var(--green-bg)';
+      if(config.module==='toolchain') iconBg='var(--cyan-bg)';
+      if(config.module==='quality') iconBg='var(--pink-bg)';
       // 工种 badge
       var craftBadge='';
       if(item.craft){

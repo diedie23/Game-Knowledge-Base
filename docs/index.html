@@ -78,11 +78,12 @@
     <div class="editor-meta">
       <input type="text" id="editorFileName" class="em-input" placeholder="文件名（如：角色动画规范）" value="">
       <select id="editorCategory" class="em-select">
-        <option value="mod-production">🏭 美术生产与排期</option>
+        <option value="mod-project">📋 项目管理与排期</option>
+        <option value="mod-outsource">📦 外包全链路管理</option>
+        <option value="mod-craft">🎨 美术工艺与规范</option>
         <option value="mod-collab">🤝 跨部门协同与交付</option>
-        <option value="mod-toolkit">🧰 APM 提效工具箱</option>
-        <option value="mod-governance">💰 成本·风险·团队</option>
-        <option value="mod-retrospect">📒 项目复盘与经验沉淀</option>
+        <option value="mod-toolchain">🛠️ 工具链与自动化</option>
+        <option value="mod-quality">🛡️ 质量、风险与团队</option>
       </select>
     </div>
     <div id="vditorContainer"></div>
@@ -112,12 +113,13 @@
       </div>
 
       <!-- 统计栏（置顶 — 第一视觉焦点）-->
-      <div class="stats-bar stats-bar-5">
-        <div class="stat stat-production"><div class="num">—</div><div class="label">🏭 美术生产与排期</div></div>
+      <div class="stats-bar stats-bar-6">
+        <div class="stat stat-project"><div class="num">—</div><div class="label">📋 项目管理与排期</div></div>
+        <div class="stat stat-outsource"><div class="num">—</div><div class="label">📦 外包全链路</div></div>
+        <div class="stat stat-craft"><div class="num">—</div><div class="label">🎨 美术工艺规范</div></div>
         <div class="stat stat-collab"><div class="num">—</div><div class="label">🤝 跨部门协同</div></div>
-        <div class="stat stat-toolkit"><div class="num">—</div><div class="label">🧰 提效工具箱</div></div>
-        <div class="stat stat-governance"><div class="num">—</div><div class="label">💰 成本·风险·团队</div></div>
-        <div class="stat stat-retrospect"><div class="num">—</div><div class="label">📒 复盘与沉淀</div></div>
+        <div class="stat stat-toolchain"><div class="num">—</div><div class="label">🛠️ 工具链与自动化</div></div>
+        <div class="stat stat-quality"><div class="num">—</div><div class="label">🛡️ 质量·风险·团队</div></div>
       </div>
 
       <!-- ═══ 🧭 角色探索 — 快速导航（置顶 — 第二视觉焦点）═══ -->
@@ -607,145 +609,161 @@ sequenceDiagram
         </div>
       </div>
 
-      <!-- ═══ 板块一：🏭 美术生产与排期 (30%) ═══ -->
-      <div class="module-section module-production" id="section-production">
+      <!-- ═══ 板块一：📋 项目管理与排期 (20%) ═══ -->
+      <div class="module-section module-project" id="section-project">
         <div class="module-header" onclick="toggleModuleSection(this)">
-          <div class="module-icon" style="background:var(--accent-bg);color:var(--accent)">🏭</div>
+          <div class="module-icon" style="background:var(--accent-bg);color:var(--accent)">📋</div>
           <div class="module-info">
-            <h2>美术生产与排期管理</h2>
-            <p>资产管线、外包管理、排期控制、美术资产规范 — APM 日常管控核心</p>
+            <h2>项目管理与排期</h2>
+            <p>管线总览、排期与里程碑、需求流转、版本管理 — APM 项目管控核心</p>
           </div>
-          <span class="module-weight">35%</span>
+          <span class="module-weight">20%</span>
           <div class="module-chevron"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         </div>
         <div class="module-body">
 
-        <div class="hst">🔄 管线与排期</div>
-        <div class="home-grid" id="grid-production-pipeline"></div>
+        <div class="hst">🔄 管线总览</div>
+        <div class="home-grid" id="grid-project-pipeline"></div>
 
-        <div class="hst" style="margin-top:28px">📋 外包管理</div>
-        <div class="home-grid" id="grid-production-outsource"></div>
+        <div class="hst" style="margin-top:28px">📅 排期与里程碑</div>
+        <div class="home-grid" id="grid-project-schedule"></div>
 
-        <div class="hst" style="margin-top:28px">👤 角色资产规范</div>
-        <div class="home-grid" id="grid-production-char"></div>
-
-        <div class="hst" style="margin-top:28px">🖥️ UI 资产规范</div>
-        <div class="home-grid" id="grid-production-ui"></div>
-
-        <div class="hst" style="margin-top:28px">🏔️ 场景资产规范</div>
-        <div class="home-grid" id="grid-production-scene"></div>
-
-        <div class="hst" style="margin-top:28px">✨ 特效资产规范</div>
-        <div class="home-grid" id="grid-production-vfx"></div>
-
-        <div class="hst" style="margin-top:28px">🎬 动画资产规范</div>
-        <div class="home-grid" id="grid-production-anim"></div>
+        <div class="hst" style="margin-top:28px">📝 需求流转</div>
+        <div class="home-grid" id="grid-project-req"></div>
 
         <div class="hst" style="margin-top:28px">📂 资产库与版本管理</div>
-        <div class="home-grid" id="grid-production-version"></div>
-
-        <div class="hst" style="margin-top:28px">📊 成本与预算管理</div>
-        <div class="home-grid" id="grid-production-cost"></div>
+        <div class="home-grid" id="grid-project-version"></div>
 
         </div>
       </div>
 
-      <!-- ═══ 板块二：🤝 跨部门协同与交付标准 (35%) ═══ -->
-      <div class="module-section module-collab" id="section-collab">
-        <div class="module-header module-header-collab" onclick="toggleModuleSection(this)">
-          <div class="module-icon" style="background:var(--orange-bg);color:var(--orange)">🤝</div>
+      <!-- ═══ 板块二：📦 外包全链路管理 (15%) ═══ -->
+      <div class="module-section module-outsource" id="section-outsource">
+        <div class="module-header module-header-outsource" onclick="toggleModuleSection(this)">
+          <div class="module-icon" style="background:var(--orange-bg);color:var(--orange)">📦</div>
           <div class="module-info">
-            <h2>跨部门协同与交付标准</h2>
-            <p>美术与策划/程序/TA/QA 的核心边界定义 — APM 沟通利器</p>
+            <h2>外包全链路管理</h2>
+            <p>外包评级与验收、人天模型、预算与结算、供应商生态 — 外包管理闭环</p>
           </div>
-          <span class="module-weight module-weight-orange">35%</span>
+          <span class="module-weight module-weight-orange">15%</span>
           <div class="module-chevron"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         </div>
         <div class="module-body">
 
-        <div class="hst">📝 美术 vs 策划</div>
-        <div class="home-grid" id="grid-collab-planner"></div>
+        <div class="hst">📋 外包评级与验收</div>
+        <div class="home-grid" id="grid-outsource-eval"></div>
 
-        <div class="hst" style="margin-top:28px">⚙️ 美术 vs 程序/TA</div>
+        <div class="hst" style="margin-top:28px">📊 人天模型与报价</div>
+        <div class="home-grid" id="grid-outsource-workload"></div>
+
+        <div class="hst" style="margin-top:28px">💰 预算与结算</div>
+        <div class="home-grid" id="grid-outsource-budget"></div>
+
+        </div>
+      </div>
+
+      <!-- ═══ 板块三：🎨 美术工艺与规范 (25%) ═══ -->
+      <div class="module-section module-craft" id="section-craft">
+        <div class="module-header" onclick="toggleModuleSection(this)">
+          <div class="module-icon" style="background:var(--purple-bg);color:var(--purple)">🎨</div>
+          <div class="module-info">
+            <h2>美术工艺与规范</h2>
+            <p>角色/UI/场景/特效/动画各工种制作规范 — 美术质量基线</p>
+          </div>
+          <span class="module-weight">25%</span>
+          <div class="module-chevron"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+        <div class="module-body">
+
+        <div class="hst">👤 角色资产规范</div>
+        <div class="home-grid" id="grid-craft-char"></div>
+
+        <div class="hst" style="margin-top:28px">🖥️ UI 资产规范</div>
+        <div class="home-grid" id="grid-craft-ui"></div>
+
+        <div class="hst" style="margin-top:28px">🏔️ 场景资产规范</div>
+        <div class="home-grid" id="grid-craft-scene"></div>
+
+        <div class="hst" style="margin-top:28px">✨ 特效资产规范</div>
+        <div class="home-grid" id="grid-craft-vfx"></div>
+
+        <div class="hst" style="margin-top:28px">🎬 动画资产规范</div>
+        <div class="home-grid" id="grid-craft-anim"></div>
+
+        </div>
+      </div>
+
+      <!-- ═══ 板块四：🤝 跨部门协同与交付 (15%) ═══ -->
+      <div class="module-section module-collab" id="section-collab">
+        <div class="module-header module-header-collab" onclick="toggleModuleSection(this)">
+          <div class="module-icon" style="background:var(--green-bg);color:var(--green)">🤝</div>
+          <div class="module-info">
+            <h2>跨部门协同与交付</h2>
+            <p>美术与程序/TA/QA 的交接规范、性能红线、Bug定级 — 跨部门沟通利器</p>
+          </div>
+          <span class="module-weight module-weight-green">15%</span>
+          <div class="module-chevron"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+        <div class="module-body">
+
+        <div class="hst">⚙️ 美术 vs 程序/TA</div>
         <div class="home-grid" id="grid-collab-ta"></div>
 
         <div class="hst" style="margin-top:28px">🐛 美术 vs QA</div>
         <div class="home-grid" id="grid-collab-qa"></div>
 
-        <div class="hst" style="margin-top:28px">🚨 协作与事故</div>
-        <div class="home-grid" id="grid-collab-accident"></div>
+        <div class="hst" style="margin-top:28px">🚨 协作痛点与事故</div>
+        <div class="home-grid" id="grid-collab-pain"></div>
 
         </div>
       </div>
 
-      <!-- ═══ 板块三：🧰 APM 提效工具箱 (30%) ═══ -->
-      <div class="module-section module-toolkit" id="section-toolkit">
+      <!-- ═══ 板块五：🛠️ 工具链与自动化 (15%) ═══ -->
+      <div class="module-section module-toolchain" id="section-toolchain">
         <div class="module-header" onclick="toggleModuleSection(this)">
-          <div class="module-icon" style="background:var(--green-bg);color:var(--green)">🧰</div>
+          <div class="module-icon" style="background:var(--cyan-bg);color:var(--cyan)">🛠️</div>
           <div class="module-info">
-            <h2>APM 提效工具箱</h2>
-            <p>项目管理模板、合规性检查、进度可视化、美术在线工具</p>
+            <h2>工具链与自动化</h2>
+            <p>合规检查脚本、美术在线工具、桌面工具 & 引擎直连 — 提效利器</p>
           </div>
-          <span class="module-weight">30%</span>
+          <span class="module-weight">15%</span>
           <div class="module-chevron"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         </div>
         <div class="module-body">
 
-        <div class="hst">📋 项目管理工具</div>
-        <div class="home-grid" id="grid-toolkit-mgmt"></div>
+        <div class="hst">🔍 检查与合规脚本</div>
+        <div class="home-grid" id="grid-toolchain-check"></div>
 
         <div class="hst" style="margin-top:28px">🎨 美术在线工具</div>
-        <div class="home-grid" id="grid-toolkit-art"></div>
+        <div class="home-grid" id="grid-toolchain-art"></div>
 
-        <div class="hst" style="margin-top:28px">🖥️ 桌面工具 & 技术方案</div>
-        <div class="home-grid" id="grid-toolkit-desktop"></div>
-
-        </div>
-      </div>
-
-      <!-- ═══ 板块四：💰 成本·风险·团队 (20%) ═══ -->
-      <div class="module-section module-governance" id="section-governance">
-        <div class="module-header module-header-governance" onclick="toggleModuleSection(this)">
-          <div class="module-icon" style="background:var(--pink-bg);color:var(--pink)">💰</div>
-          <div class="module-info">
-            <h2>成本·风险·团队</h2>
-            <p>预算管控、风险登记与复盘、新人培训与权限导航 — APM 管理内功</p>
-          </div>
-          <span class="module-weight module-weight-pink">20%</span>
-          <div class="module-chevron"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        </div>
-        <div class="module-body">
-
-        <div class="hst">💰 成本与预算管理</div>
-        <div class="home-grid" id="grid-governance-budget"></div>
-
-        <div class="hst" style="margin-top:28px">⚠️ 风险管控与复盘</div>
-        <div class="home-grid" id="grid-governance-risk"></div>
-
-        <div class="hst" style="margin-top:28px">🎓 团队与培训</div>
-        <div class="home-grid" id="grid-governance-team"></div>
+        <div class="hst" style="margin-top:28px">🖥️ 桌面工具 & 引擎直连</div>
+        <div class="home-grid" id="grid-toolchain-desktop"></div>
 
         </div>
       </div>
 
-      <!-- ═══ 板块五：📒 项目复盘与经验沉淀 (10%) ═══ -->
-      <div class="module-section module-retrospect" id="section-retrospect">
-        <div class="module-header" onclick="toggleModuleSection(this)">
-          <div class="module-icon" style="background:var(--cyan-bg);color:var(--cyan)">📒</div>
+      <!-- ═══ 板块六：🛡️ 质量、风险与团队 (10%) ═══ -->
+      <div class="module-section module-quality" id="section-quality">
+        <div class="module-header module-header-quality" onclick="toggleModuleSection(this)">
+          <div class="module-icon" style="background:var(--pink-bg);color:var(--pink)">🛡️</div>
           <div class="module-info">
-            <h2>项目复盘与经验沉淀</h2>
-            <p>踩坑记录、沟通话术、个人成长 — APM 实战经验积累</p>
+            <h2>质量、风险与团队</h2>
+            <p>风险登记、复盘手册、效能度量、新人入职与个人成长 — APM 管理内功</p>
           </div>
-          <span class="module-weight">10%</span>
+          <span class="module-weight module-weight-pink">10%</span>
           <div class="module-chevron"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         </div>
         <div class="module-body">
 
-        <div class="hst">💣 踩坑记录</div>
-        <div class="home-grid" id="grid-retrospect-pitfall"></div>
+        <div class="hst">⚠️ 风险管控</div>
+        <div class="home-grid" id="grid-quality-risk"></div>
 
-        <div class="hst" style="margin-top:28px">🗣️ 沟通与成长</div>
-        <div class="home-grid" id="grid-retrospect-growth"></div>
+        <div class="hst" style="margin-top:28px">📒 复盘与经验沉淀</div>
+        <div class="home-grid" id="grid-quality-retro"></div>
+
+        <div class="hst" style="margin-top:28px">🎓 新人入职与成长</div>
+        <div class="home-grid" id="grid-quality-team"></div>
 
         </div>
       </div>
