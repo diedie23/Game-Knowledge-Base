@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>自动 Mask 通道生成器 v6.2</title>
+<title>自动 Mask 通道生成器 v6.3</title>
 <style>
 :root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--gbg:rgba(74,222,128,.12);--abg:rgba(108,140,255,.12);--rbg:rgba(248,113,113,.12);--ybg:rgba(251,191,36,.12);--obg:rgba(251,146,60,.12);--cbg:rgba(34,211,238,.12)}
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
@@ -129,13 +129,65 @@
 .de-badge.de-close{background:rgba(248,113,113,.12);color:var(--red)}
 .de-badge.de-medium{background:rgba(251,191,36,.12);color:var(--yellow)}
 .de-badge.de-far{background:rgba(74,222,128,.12);color:var(--green)}
+
+/* ═══ v6.3 新手/专家模式切换 ═══ */
+.mode-switch-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:linear-gradient(135deg,rgba(74,222,128,.08),rgba(34,211,238,.06));border:1.5px solid rgba(74,222,128,.2);border-radius:10px;margin-bottom:10px}
+.mode-switch-bar .mode-label{font-size:11px;color:var(--dim);flex-shrink:0}
+.mode-switch-bar .mode-toggle{position:relative;width:44px;height:22px;background:var(--card);border:1.5px solid var(--border);border-radius:11px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.mode-switch-bar .mode-toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:var(--green);top:2px;left:2px;transition:all .2s}
+.mode-switch-bar .mode-toggle.expert{background:rgba(108,140,255,.15);border-color:var(--accent)}
+.mode-switch-bar .mode-toggle.expert::after{left:24px;background:var(--accent)}
+.mode-switch-bar .mode-desc{font-size:10px;color:var(--dim);flex:1}
+.mode-switch-bar .mode-name{font-size:12px;font-weight:700;color:var(--green)}
+.mode-switch-bar .mode-name.expert-name{color:var(--accent)}
+
+/* 高级参数区域（新手模式下隐藏） */
+.adv-params{transition:max-height .35s ease,opacity .25s ease;overflow:hidden}
+.adv-params.collapsed{max-height:0!important;opacity:0;margin:0;padding:0}
+.adv-params.expanded{max-height:800px;opacity:1}
+.adv-toggle-btn{width:100%;padding:6px;border:1px dashed var(--border);border-radius:6px;background:transparent;color:var(--dim);cursor:pointer;font-size:10px;font-family:inherit;transition:all .15s;margin:6px 0;text-align:center}
+.adv-toggle-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(108,140,255,.04)}
+
+/* ═══ v6.3 大白话 Tooltip 增强 ═══ */
+.ez-tip{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:rgba(74,222,128,.15);color:var(--green);font-size:9px;cursor:help;margin-left:3px;flex-shrink:0;font-weight:700;position:relative}
+.ez-tip .ez-pop{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--panel);border:1.5px solid var(--green);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--text);width:260px;z-index:90;box-shadow:0 6px 24px rgba(0,0,0,.5);line-height:1.7;font-weight:400}
+.ez-tip .ez-pop::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--green)}
+.ez-tip:hover .ez-pop{display:block}
+.ez-pop b{color:var(--green)}
+.ez-pop .ez-example{font-size:10px;color:var(--dim);margin-top:4px;padding-top:4px;border-top:1px dashed var(--border)}
+
+/* ═══ v6.3 场景化傻瓜预设按钮 ═══ */
+.scene-presets{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.scene-btn{flex:1;min-width:140px;padding:12px;border:2px solid var(--border);border-radius:10px;background:var(--card);cursor:pointer;text-align:center;transition:all .25s;position:relative}
+.scene-btn:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 16px rgba(108,140,255,.15)}
+.scene-btn.act{border-color:var(--cyan);background:rgba(34,211,238,.06)}
+.scene-btn .scene-icon{font-size:28px;display:block;margin-bottom:4px}
+.scene-btn .scene-name{font-size:12px;color:var(--heading);font-weight:700}
+.scene-btn .scene-desc{font-size:9px;color:var(--dim);margin-top:2px;line-height:1.4}
+.scene-btn .scene-tag{position:absolute;top:6px;right:6px;font-size:8px;padding:2px 6px;border-radius:6px;font-weight:600}
+.scene-btn .scene-tag.tag-rec{background:rgba(74,222,128,.12);color:var(--green)}
+.scene-btn .scene-tag.tag-pro{background:rgba(108,140,255,.12);color:var(--accent)}
+
+/* ═══ v6.3 多通道引导提示 ═══ */
+.ch-guide-tip{font-size:10px;color:var(--dim);padding:6px 10px;background:rgba(251,191,36,.06);border:1px dashed rgba(251,191,36,.2);border-radius:6px;margin:6px 0;line-height:1.5}
+.ch-guide-tip b{color:var(--yellow)}
+
+/* ═══ v6.3 简化模式容差描述 ═══ */
+.ez-tol-desc{font-size:10px;color:var(--dim);margin-top:2px;line-height:1.5;padding:4px 0}
+.ez-tol-visual{display:flex;align-items:center;gap:4px;margin:4px 0}
+.ez-tol-visual .bar{flex:1;height:6px;border-radius:3px;position:relative}
+.ez-tol-visual .bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--yellow),var(--red));transition:width .2s}
+.ez-tol-visual .bar-label{font-size:9px;flex-shrink:0;min-width:40px}
 </style>
 </head>
 <body>
 <div class="app">
-<div class="hdr"><h1>🤖 自动 Mask 通道生成器 <span class="ver">v6.2</span></h1><p>CIELAB ΔE 感知色差 · 明度精准区分 · 容差实时预览 · 聚类精度可调 · 悬浮快捷分配 · 智能主色调自动填充 · 精准裁剪 · 自定义通道命名 · 动态多通道 · 放大镜精准吸色 · 边缘净化 · 撤销重做 · TGA导出 · v5工程兼容</p></div>
+<div class="hdr"><h1>🤖 自动 Mask 通道生成器 <span class="ver">v6.3</span></h1><p>新手/专家双模式 · 傻瓜场景预设 · 裁剪修复 · CIELAB ΔE · 明度精准区分 · 容差实时预览 · 悬浮快捷分配 · 智能主色调 · 多通道 · 放大镜吸色 · 边缘净化 · 撤销重做 · TGA导出 · v5兼容</p></div>
 <div style="background:linear-gradient(90deg,rgba(34,211,238,.08),rgba(108,140,255,.08));border:1px solid rgba(34,211,238,.2);border-radius:8px;padding:8px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px"><span style="font-size:12px;color:var(--cyan);display:flex;align-items:center;gap:6px"><span style="font-size:16px">🖥️</span><b>桌面版已上线!</b> <span style="color:var(--dim)">Windows 独立 exe · 离线可用 · 原生保存 · 多图拖拽</span></span><a href="auto-mask-v6-desktop.html" target="_blank" style="background:var(--cyan);color:#000;padding:4px 14px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;transition:all .15s">⬇️ 查看下载</a></div>
-<div class="card" id="presetCard"><div class="card-title">🎯 一键预设模式 <span class="badge badge-g">新手推荐</span></div><div class="pg" id="presetGrid"></div></div>
+<div class="card" id="presetCard"><div class="card-title">🎯 一键场景预设 <span class="badge badge-g">小白推荐</span> <span class="ez-tip">?<span class="ez-pop"><b>什么是预设？</b><br>预设 = 一组调好的参数组合。<br>选了预设之后，所有参数会自动调好，你只需要导入图片就行。<br><span class="ez-example">💡 不知道选哪个？选「二次元角色」准没错！</span></span></span></div>
+<!-- v6.3 场景化傻瓜预设 -->
+<div class="scene-presets" id="scenePresets"></div>
+<div class="pg" id="presetGrid"></div></div>
 <div class="steps" id="stepBar"><div class="stp act" data-s="1"><span class="n">1</span>导入</div><span class="sa">→</span><div class="stp" data-s="2"><span class="n">2</span>预处理</div><span class="sa">→</span><div class="stp" data-s="3"><span class="n">3</span>吸色分配</div><span class="sa">→</span><div class="stp" data-s="4"><span class="n">4</span>预览导出</div></div>
 <div class="card" id="s1"><div class="card-title">📁 导入角色原图 / 恢复工程</div><div class="dz" id="dz" onclick="$('fi').click()"><h3>点击选择或拖放图片 / JSON 工程</h3><p>PNG / JPG / TGA / config.json（兼容 v5）</p></div><input type="file" id="fi" accept="image/*,.json" style="display:none"><div style="margin-top:8px;display:flex;gap:6px;justify-content:center"><button class="btn btn-sm" onclick="$('fiR').click()">📂 导入工程 JSON</button></div><input type="file" id="fiR" accept=".json" style="display:none"></div>
 <div class="card" id="namingCard" style="display:none"><div class="card-title">🏷️ 导出命名</div><div class="pr"><label>模板</label><input type="text" id="namingTpl" value="{Project}_{CharID}_Mask_{Channel}" class="ni" style="flex:1" oninput="M.Nm.pv()"></div><div style="display:flex;gap:6px;margin-top:4px"><div class="pr" style="flex:1"><label>Project</label><input type="text" id="tplP" value="MyGame" class="nsm" style="flex:1" oninput="M.Nm.pv()"></div><div class="pr" style="flex:1"><label>CharID</label><input type="text" id="tplC" value="Hero01" class="nsm" style="flex:1" oninput="M.Nm.pv()"></div></div><div style="font-size:10px;color:var(--dim);margin-top:4px">变量：{Project} {CharID} {Channel} {Date} {W} {H}</div><div style="font-size:10px;color:var(--green);margin-top:3px" id="namePv">预览：MyGame_Hero01_Mask_RGBA.png</div></div>
@@ -148,6 +200,13 @@
 </div>
 </div><div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><div id="pkSw" style="width:28px;height:28px;border-radius:5px;background:#444;border:1px solid var(--border)"></div><div id="pkInfo" style="font-size:10px;color:var(--dim);flex:1">点击图片吸取</div><button class="btn btn-p btn-sm" onclick="M.Pk.addRg()" id="addBtn" disabled>➕ 添加</button></div><div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><label style="font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="showMask" onchange="M.Pk.rSrc()" style="accent-color:var(--accent)"> 显示蒙版</label><label style="font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="lockColor" style="accent-color:var(--yellow)"> 锁定吸色</label></div><div class="bb" id="brushBar" style="display:none"><button class="btn btn-sm" id="brP" onclick="M.Br.set('paint')">🖌️画笔(B)</button><button class="btn btn-sm" id="brE" onclick="M.Br.set('erase')">⬜橡皮(E)</button><button class="btn btn-sm" id="brN" onclick="M.Br.set('refine')">🧹净化(N)</button><button class="btn btn-sm" onclick="M.Br.set(null)">🚫</button><label>大小</label><input type="range" id="brSize" min="2" max="40" value="8" oninput="$('brSzV').textContent=this.value"><span id="brSzV" style="font-size:10px;color:var(--accent)">8</span><label>通道</label><select id="brCh" style="padding:2px 6px;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:10px"></select></div><div class="ub" id="undoBar" style="display:none"><button id="undoBtn" disabled onclick="M.Hist.undo()">↩撤销</button><span id="undoC">(0)</span><button id="redoBtn" disabled onclick="M.Hist.redo()">↪重做</button><span id="redoC">(0)</span><span style="margin-left:auto;font-size:9px;opacity:.7">Ctrl+Z / Ctrl+Y</span></div></div>
 <div class="rs">
+<!-- v6.3 新手/专家模式切换 -->
+<div class="mode-switch-bar" id="modeSwitchBar">
+<span class="mode-label">模式：</span>
+<span class="mode-name" id="modeName">🌱 新手模式</span>
+<div class="mode-toggle" id="modeToggle" onclick="M.Mode.toggle()"></div>
+<span class="mode-desc" id="modeDesc">只显示核心参数，一拖就懂</span>
+</div>
 <!-- v6.1 当前吸取颜色展示区 -->
 <div class="cur-pick-banner" id="curPickBanner">
 <div style="font-size:11px;color:var(--heading);font-weight:600;margin-bottom:6px">🎯 当前吸取颜色</div>
@@ -159,24 +218,34 @@
 <div class="cpb-btns" id="cpbBtns"></div>
 </div>
 <div style="font-size:11px;color:var(--heading);margin-bottom:4px">色相范围</div><div class="hb" id="hueBar"><div class="hsl2" id="hSL" style="width:0"></div><div class="hsr2" id="hSR" style="width:0"></div><div class="hrn" id="hRng" style="display:none"></div><div class="hmk" id="hMk" style="left:0;display:none"></div></div>
+<!-- v6.3 简化版容差（新手模式默认显示） -->
+<div id="ezTolWrap">
+<div class="pr"><label>🎯 颜色抓取范围</label><span class="ez-tip">?<span class="ez-pop"><b>颜色抓取范围 = 容差</b><br>拖到<b>左边</b>：只抓完全一样的颜色，能区分浅灰和深灰。<br>拖到<b>右边</b>：把相近的颜色都抓进来。<br><span class="ez-example">💡 一般保持默认就好。觉得抓多了就往左拖，抓少了往右拖。</span></span></span><input type="range" id="pDE" min="1" max="60" value="12" oninput="M.Tol.update()" style="accent-color:var(--cyan)"><span class="v tol-val" id="vDE">ΔE 12</span></div>
+<div class="ez-tol-visual"><span class="bar-label" style="color:var(--green)">精准</span><div class="bar" style="background:var(--card);border:1px solid var(--border)"><div class="bar-fill" id="ezTolBar" style="width:20%"></div></div><span class="bar-label" style="color:var(--red);text-align:right">宽泛</span></div>
+<div class="ez-tol-desc" id="ezTolDesc">当前：标准匹配，能区分大多数相近颜色</div>
+</div>
+<!-- v6.3 展开高级设置按钮 -->
+<button class="adv-toggle-btn" id="advToggleBtn" onclick="M.Mode.toggleAdv()">⚙️ 展开高级设置</button>
+<!-- v6.3 高级参数区域（默认折叠） -->
+<div class="adv-params collapsed" id="advParams">
 <!-- v6.2 色彩容差控制面板 -->
 <div class="tol-panel" id="tolPanel">
-<div class="tol-panel-title">🎨 色彩容差控制 <span class="tol-algo-badge" id="tolAlgoBadge">CIELAB ΔE</span></div>
+<div class="tol-panel-title">🎨 色彩容差控制 <span class="tol-algo-badge" id="tolAlgoBadge">CIELAB ΔE</span> <span class="ez-tip">?<span class="ez-pop"><b>CIELAB ΔE 是什么？</b><br>一种模拟「人眼看颜色」的算法。<br>普通算法分不清浅灰和深灰（因为它们色相一样），但 CIELAB 可以，因为它单独计算了「亮度差」。<br><span class="ez-example">💡 就像你能看出银色和灰色不同一样</span></span></span></div>
 <div class="tol-mode-bar" id="tolModeBar">
-<button class="tol-mode-btn" data-mode="hsv" onclick="M.Tol.setMode('hsv',this)">HSV 色相距离</button>
-<button class="tol-mode-btn act" data-mode="lab" onclick="M.Tol.setMode('lab',this)">CIELAB ΔE (推荐)</button>
+<button class="tol-mode-btn" data-mode="hsv" onclick="M.Tol.setMode('hsv',this)">HSV 色相距离 <span class="ez-tip" style="background:rgba(251,191,36,.15);color:var(--yellow)">?<span class="ez-pop"><b>HSV 色相距离</b><br>只看颜色的「色调」，不管亮暗。<br>⚠️ 无法区分浅灰和深灰（它们色调一样）。<br><span class="ez-example">💡 只有特殊需求时才用这个</span></span></span></button>
+<button class="tol-mode-btn act" data-mode="lab" onclick="M.Tol.setMode('lab',this)">CIELAB ΔE (推荐) <span class="ez-tip">?<span class="ez-pop"><b>CIELAB ΔE（推荐）</b><br>像人眼一样感知色差，能精确区分：<br>• 浅灰 vs 深灰 ✅<br>• 米色 vs 白色 ✅<br>• 藏蓝 vs 黑色 ✅<br><span class="ez-example">💡 99% 的情况用这个就对了</span></span></span></button>
 </div>
-<div class="tol-slider-wrap"><div class="pr"><label>全局容差 (ΔE)</label><span class="tw"><span class="tt">?</span><span class="tb" id="ttDE">🎯 <b>CIELAB ΔE 色差</b><br>基于人类视觉感知的色彩距离算法。<br>ΔE≤5: 极严格，精确区分浅灰/深灰<br>ΔE 5-15: 标准匹配，区分相近色<br>ΔE 15-30: 宽泛匹配，合并近似色<br>ΔE>30: 超宽泛，大范围色域</span></span><input type="range" id="pDE" min="1" max="60" value="12" oninput="M.Tol.update()"><span class="v tol-val" id="vDE">ΔE 12</span></div></div>
-<div class="tol-lightness-weight"><label>🔆 明度权重</label><span class="tw"><span class="tt">?</span><span class="tb" id="ttLW">🔆 <b>明度权重 (L* weight)</b><br>增大此值可加强算法对明度差异的敏感度。<br>1.0x: 标准 CIE76 公式<br>2.0x: 强化明度区分（推荐灰色系）<br>3.0x: 极端明度敏感</span></span><input type="range" id="pLW" min="10" max="40" value="15" style="flex:1;accent-color:var(--yellow);height:3px" oninput="M.Tol.update()"><span class="v" id="vLW" style="color:var(--yellow)">1.5x</span></div>
+<div class="tol-lightness-weight"><label>🔆 明度权重</label><span class="ez-tip">?<span class="ez-pop"><b>明度权重 = 「对亮度差的敏感度」</b><br>1.0x = 正常感知<br>2.0x = 加倍敏感（推荐灰色系贴图）<br>3.0x = 超敏感（极端情况）<br><span class="ez-example">💡 如果图上有很多灰色要区分，拖到 2.0x 以上</span></span></span><input type="range" id="pLW" min="10" max="40" value="15" style="flex:1;accent-color:var(--yellow);height:3px" oninput="M.Tol.update()"><span class="v" id="vLW" style="color:var(--yellow)">1.5x</span></div>
 <div class="tol-preview-hint"><span class="tol-dot"></span> 拖动滑块实时预览匹配区域</div>
 </div>
-<div class="pr"><label>色相容差</label><span class="tw"><span class="tt">?</span><span class="tb" id="ttHT"></span></span><input type="range" id="pHT" min="5" max="60" value="20" oninput="M.Pk.upP()"><span class="v" id="vHT">±20°</span></div>
-<div class="pr"><label>饱和度下限</label><span class="tw"><span class="tt">?</span><span class="tb" id="ttSM"></span></span><input type="range" id="pSM" min="0" max="100" value="15" oninput="M.Pk.upP()"><span class="v" id="vSM">15%</span></div>
-<div class="pr"><label>边缘平滑</label><span class="tw"><span class="tt">?</span><span class="tb" id="ttES"></span></span><input type="range" id="pES" min="0" max="5" value="2" oninput="M.Pk.upP()"><span class="v" id="vES">2px</span></div>
+<div class="pr"><label>色相容差</label><span class="ez-tip">?<span class="ez-pop"><b>色相容差 = 色调的抓取范围</b><br>±20° 只抓正红色<br>±40° 连橙红、粉红都会被抓<br><span class="ez-example">💡 想精确一点就调小，想多抓一点就调大</span></span></span><input type="range" id="pHT" min="5" max="60" value="20" oninput="M.Pk.upP()"><span class="v" id="vHT">±20°</span></div>
+<div class="pr"><label>饱和度下限</label><span class="ez-tip">?<span class="ez-pop"><b>饱和度下限 = 过滤灰色</b><br>值越高，越只抓鲜艳的颜色。<br>值 = 0 → 灰色也会被抓<br>值 = 50 → 只抓很鲜艳的色<br><span class="ez-example">💡 如果需要抓灰色，记得调到 0</span></span></span><input type="range" id="pSM" min="0" max="100" value="15" oninput="M.Pk.upP()"><span class="v" id="vSM">15%</span></div>
+<div class="pr"><label>边缘平滑</label><span class="ez-tip">?<span class="ez-pop"><b>边缘平滑 = 羽化边界</b><br>让颜色区域的边界更柔和（像 PS 的羽化）。<br>0 = 硬边（锐利切割）<br>2-3 = 柔和过渡（推荐）<br><span class="ez-example">💡 做角色 Mask 建议 2px，UI 图标建议 0</span></span></span><input type="range" id="pES" min="0" max="5" value="2" oninput="M.Pk.upP()"><span class="v" id="vES">2px</span></div>
+</div>
 <div style="margin:10px 0 6px">
 <!-- v6.2 智能分析精度设置 -->
 <div class="ad-precision-bar">
-<label>📊 提取色数</label>
+<label>📊 提取色数</label><span class="ez-tip">?<span class="ez-pop"><b>提取多少种颜色？</b><br>4色 = 只取最明显的4种（够用）<br>8色 = 取更多细节色（精细）<br>16色 = 把细微色差也拆开（超精细）<br><span class="ez-example">💡 一般选 4 就够了，灰色系贴图可以试 8</span></span></span>
 <select id="adColorCount" onchange="M.Cfg.AMAX=+this.value">
 <option value="4" selected>4色（标准）</option>
 <option value="6">6色</option>
@@ -185,7 +254,7 @@
 <option value="16">16色（超精细）</option>
 </select>
 <div class="ad-strict-lightness" id="adStrictL" onclick="M.AD.toggleStrictL()">
-<input type="checkbox" id="adStrictLCB"><label>强制区分明度</label>
+<input type="checkbox" id="adStrictLCB"><label>强制区分明度</label><span class="ez-tip">?<span class="ez-pop"><b>强制区分明度</b><br>开启后，「浅灰」和「深灰」会被强制拆成两个独立的颜色。<br>关闭时，它们可能被合并成一个。<br><span class="ez-example">💡 如果你的图里有多种灰色需要分开做 Mask，就打开这个</span></span></span>
 </div>
 </div>
 <button class="btn btn-p" onclick="M.AD.run()" style="width:100%;justify-content:center">✨ 智能分析主色调</button>
@@ -199,6 +268,8 @@
 <div style="font-size:11px;color:var(--heading);margin:10px 0 3px;display:flex;align-items:center;justify-content:space-between"><span>📌 基础通道分配 (RGBA)</span></div><div class="cb" id="chBar"></div>
 <div id="customChCards"></div>
 <div class="custom-ch-add" id="addCustomChBtn" onclick="M.Ch.addC()"><span class="cca-icon">➕</span><div class="cca-title">添加自定义 Mask 通道</div><div class="cca-desc">每个自定义通道拥有独立吸色器、容差参数和预览图 · 超过4通道时导出自动拆分为多张贴图</div></div>
+<!-- v6.3 多通道引导提示 -->
+<div class="ch-guide-tip">💡 <b>提示</b>：基础 RGBA 四个通道一般够用。如果你的项目需要更多区分（比如「头发高光」「瞳孔」单独做 Mask），才需要添加自定义通道。超过 4 通道时，导出会自动打包成多张贴图。</div>
 <div id="aModeW" style="display:none"><div style="font-size:10px;color:var(--dim);margin-bottom:3px">A 通道来源</div><div class="am"><button class="act" onclick="M.S.aMode='pick';M.UI.amBtn(this)">吸色提取</button><button onclick="M.S.aMode='alpha';M.UI.amBtn(this)">原图Alpha</button><button onclick="M.S.aMode='stroke';M.UI.amBtn(this)">描边生成</button></div></div>
 <div class="rl" id="rgList"><div style="color:var(--dim);padding:4px;font-size:10px">暂无</div></div>
 <button class="btn btn-p" onclick="M.Gen.run()" style="margin-top:8px;width:100%;justify-content:center" id="genBtn" disabled>🔬 生成多通道 Mask</button>
@@ -247,11 +318,27 @@
 var M=window.MaskApp={};function $(id){return document.getElementById(id)}
 M.L={loaded:'{w}x{h} 已加载',addTo:'\u2713 已添加到 {ch}',locked:'已锁定',genDone:'Mask生成完成({n}通道)',noBody:'请先生成',invJson:'JSON错误:{e}',restored:'工程已恢复(v{v})',cropOk:'已裁剪:{w}x{h}',edgeOk:'边缘净化已应用',dlOk:'已下载 {n}',zipOk:'ZIP已下载',tgaOk:'TGA已下载 {n}',autoN:'发现{n}个主色域',preOk:'已应用「{n}」',chAdd:'已添加: {n}',chBase:'基础通道不可删',undoOk:'已撤销',redoOk:'已重做',multiOk:'已导出{n}个PNG包',pickTip:'\uD83D\uDC46 点击图片吸取颜色',adjTip:'\uD83C\uDFA8 调参后点「添加」',contTip:'\uD83D\uDD04 继续吸色或生成',doneTip:'\u2705 已生成！画笔微调后下载',
 tt_ht:'\uD83C\uDFA8 <b>颜色抓取范围</b><br>值越大,抓取的相近颜色越多。<br>±20°只抓正红,±40°连橙红粉红都抓。',tt_sm:'\uD83D\uDCA7 <b>过滤灰色</b><br>值越高只抓鲜艳色彩。',tt_es:'\uD83C\uDF0A <b>边界柔和度</b><br>值越大边界越模糊(类似PS羽化)。',tt_ga:'\uD83D\uDD06 <b>明暗曲线</b><br><1暗部更亮, >1暗部更暗。',tt_inv:'\uD83D\uDD04 <b>黑白反转</b><br>选中⇆未选中(PS的Ctrl+I)。',tt_br:'\u2600\uFE0F <b>亮度</b><br>正=提亮, 负=压暗。',tt_ct:'\u25D0 <b>对比度</b><br>高=边界硬朗, 低=过渡柔和。',tt_di:'\u2B1B\u2192\u2B1C <b>膨胀</b><br>Mask向外扩展1-3px。',tt_er:'\u2B1C\u2192\u2B1B <b>腐蚀</b><br>Mask向内收缩1-3px。',tt_fe:'\uD83C\uDF2B\uFE0F <b>羽化</b><br>边缘高斯模糊。',tt_rs:'\uD83D\uDCAA <b>净化强度</b><br>边缘灰色→纯黑/白。100%=二值化。'};
-M.Cfg={CH:[{id:'R',n:'R',c:'#f66'},{id:'G',n:'G',c:'#6f6'},{id:'B',n:'B',c:'#66f'},{id:'A',n:'A',c:'#ccc'}],PRE:{'standard-3color':{n:'标准三色角色',i:'🎭',d:'皮肤/头发/衣服→R/G/B',t:'适合标准角色立绘。加载后自动分析。',am:'alpha',ht:25,sm:20,es:2,ad:true},'hair-eyes':{n:'仅提取头发/眼睛',i:'👁️',d:'高容差提取头发→R 眼睛→G',t:'先吸头发→R,再吸眼睛→G。',am:'alpha',ht:35,sm:10,es:3,ad:false},'ui-precision':{n:'UI元素高精度',i:'🎯',d:'低容差无模糊 精确色块',t:'适合UI图标/按钮色块。',am:'pick',ht:10,sm:30,es:0,ad:false},'vfx-special':{n:'特效专用',i:'✨',d:'半透明/发光 宽容差+边缘净化',t:'针对特效/发光。配合边缘净化。',am:'alpha',ht:40,sm:8,es:3,ad:false,er:{di:1,ero:0,fe:2,rs:60}},'scene-object':{n:'场景物件',i:'🏠',d:'材质碎色 多通道分区',t:'颜色分布较碎的贴图。',am:'pick',ht:18,sm:25,es:1,ad:true}},HMAX:50,ABINS:36,AMAX:4};
+M.Cfg={CH:[{id:'R',n:'R',c:'#f66'},{id:'G',n:'G',c:'#6f6'},{id:'B',n:'B',c:'#66f'},{id:'A',n:'A',c:'#ccc'}],
+/* ═══ v6.3 场景化傻瓜预设 + 旧版兼容预设 ═══ */
+SCENE:[
+{k:'anime',n:'🎨 二次元角色',d:'宽容差，忽略渐变',tag:'推荐',tagCls:'tag-rec',
+  desc:'适合赛璐璐/扁平上色的角色立绘。色块分明，不需要太精细。',
+  tolMode:'lab',de:20,lw:10,ht:30,sm:10,es:2,am:'alpha',ad:true,strict:false,amax:4},
+{k:'realistic',n:'🏢 写实场景/物件',d:'严苛容差，精准材质',tag:'进阶',tagCls:'tag-pro',
+  desc:'适合写实风格的角色/场景/道具贴图。CIELAB + 高明度权重，精准区分每种材质。',
+  tolMode:'lab',de:8,lw:22,ht:15,sm:25,es:1,am:'pick',ad:true,strict:true,amax:8},
+{k:'vfx',n:'✨ 特效/半透明',d:'宽容差 + 边缘平滑',tag:'',tagCls:'',
+  desc:'适合发光/特效/半透明物体。宽泛匹配 + 强边缘净化，效果通透。',
+  tolMode:'lab',de:25,lw:10,ht:40,sm:5,es:3,am:'alpha',ad:false,strict:false,amax:4,
+  er:{di:1,ero:0,fe:2,rs:60}}
+],
+PRE:{'standard-3color':{n:'标准三色角色',i:'🎭',d:'皮肤/头发/衣服→R/G/B',t:'适合标准角色立绘。加载后自动分析。',am:'alpha',ht:25,sm:20,es:2,ad:true},'hair-eyes':{n:'仅提取头发/眼睛',i:'👁️',d:'高容差提取头发→R 眼睛→G',t:'先吸头发→R,再吸眼睛→G。',am:'alpha',ht:35,sm:10,es:3,ad:false},'ui-precision':{n:'UI元素高精度',i:'🎯',d:'低容差无模糊 精确色块',t:'适合UI图标/按钮色块。',am:'pick',ht:10,sm:30,es:0,ad:false},'vfx-special':{n:'特效专用',i:'✨',d:'半透明/发光 宽容差+边缘净化',t:'针对特效/发光。配合边缘净化。',am:'alpha',ht:40,sm:8,es:3,ad:false,er:{di:1,ero:0,fe:2,rs:60}},'scene-object':{n:'场景物件',i:'🏠',d:'材质碎色 多通道分区',t:'颜色分布较碎的贴图。',am:'pick',ht:18,sm:25,es:1,ad:true}},HMAX:50,ABINS:36,AMAX:4};
 M.S={srcImg:null,prepImg:null,W:0,H:0,oW:0,oH:0,px:null,hsv:null,lab:null,pkH:-1,pkS:0,pkV:0,pkRGB:[0,0,0],pkLab:null,curCh:'R',aMode:'pick',regions:[],chs:[],chCnt:0,brushMode:null,painting:false,maskOK:false,aPre:null,
 /* v6.2 容差模式状态 */
 tolMode:'lab',  /* 'hsv' | 'lab' */
-strictLightness:false /* 智能分析时是否强制区分明度 */
+strictLightness:false, /* 智能分析时是否强制区分明度 */
+/* v6.3 新手/专家模式 */
+expertMode:false /* false=新手模式, true=专家模式 */
 };
 M.tpl=function(s,v){return s.replace(/\{(\w+)\}/g,function(_,k){return v[k]!=null?v[k]:'{'+k+'}'})};
 /* ── Color (v6.2 扩展 CIELAB) ── */
@@ -320,9 +407,33 @@ M.T={_t:null,show:function(m){var t=$('toast');t.textContent=m;t.classList.add('
 M.Nm={res:function(ch,ext){var tpl=$('namingTpl').value||'{Project}_{CharID}_Mask_{Channel}';var v={Project:$('tplP').value||'P',CharID:$('tplC').value||'C',Channel:ch||'RGBA',Date:new Date().toISOString().slice(0,10),W:String(M.S.W),H:String(M.S.H)};/* v6.1: 自定义通道名中的特殊字符替换为下划线，确保文件名安全 */v.Channel=v.Channel.replace(/[\\/:*?"<>|\s]+/g,'_');return tpl.replace(/\{(\w+)\}/g,function(_,k){return v[k]||'{'+k+'}'})+(ext||'.png')},pv:function(){$('namePv').textContent='预览：'+M.Nm.res('RGBA')}};
 /* ── UI ── */
 M.UI={stp:function(n){document.querySelectorAll('.stp').forEach(function(s){var d=+s.dataset.s;s.className='stp'+(d<n?' done':d===n?' act':'')})},tip:function(t){$('tipText').textContent=t},amBtn:function(btn){document.querySelectorAll('.am button').forEach(function(b){b.classList.remove('act')});btn.classList.add('act')}};
-/* ── Tooltip ── */
-M.TT={init:function(){var L=M.L,m={ttHT:L.tt_ht,ttSM:L.tt_sm,ttES:L.tt_es,ttDi:L.tt_di,ttEr:L.tt_er,ttFe:L.tt_fe,ttRs:L.tt_rs};for(var id in m){var e=$(id);if(e)e.innerHTML=m[id]}}};
-/* ── History ── */
+/* ── Tooltip (v6.3 仅保留边缘净化tooltip) ── */
+M.TT={init:function(){var L=M.L,m={ttDi:L.tt_di,ttEr:L.tt_er,ttFe:L.tt_fe,ttRs:L.tt_rs};for(var id in m){var e=$(id);if(e)e.innerHTML=m[id]}}};
+/* ═══ v6.3 新手/专家模式模块 ═══ */
+M.Mode={
+  toggle:function(){M.S.expertMode=!M.S.expertMode;M.Mode.apply()},
+  apply:function(){
+    var exp=M.S.expertMode;
+    var tog=$('modeToggle'),nm=$('modeName'),desc=$('modeDesc');
+    var adv=$('advParams'),btn=$('advToggleBtn');
+    if(!tog)return;
+    tog.classList.toggle('expert',exp);
+    if(exp){
+      nm.textContent='🔧 专家模式';nm.className='mode-name expert-name';
+      desc.textContent='全部参数可见，精细微调每个细节';
+      if(adv){adv.classList.remove('collapsed');adv.classList.add('expanded')}
+      if(btn)btn.style.display='none';
+    }else{
+      nm.textContent='🌱 新手模式';nm.className='mode-name';
+      desc.textContent='只显示核心参数，一拖就懂';
+      if(adv){adv.classList.add('collapsed');adv.classList.remove('expanded')}
+      if(btn){btn.style.display='block';btn.textContent='⚙️ 展开高级设置';}}},
+  toggleAdv:function(){
+    var adv=$('advParams'),btn=$('advToggleBtn');if(!adv)return;
+    var c=adv.classList.contains('collapsed');
+    adv.classList.toggle('collapsed',!c);adv.classList.toggle('expanded',c);
+    if(btn)btn.textContent=c?'⚙️ 收起高级设置':'⚙️ 展开高级设置';}
+};
 M.Hist={stk:[],ptr:-1,push:function(a){this.stk=this.stk.slice(0,this.ptr+1);a.sn={rg:JSON.parse(JSON.stringify(M.S.regions)),ca:M.S.chs.map(function(c){return{id:c.id,adj:JSON.parse(JSON.stringify(c.adjust)),rb:c.raw?new Float32Array(c.raw):null}})};this.stk.push(a);if(this.stk.length>M.Cfg.HMAX)this.stk.shift();this.ptr=this.stk.length-1;this._u()},undo:function(){if(this.ptr<0)return;this.ptr--;var sn=this.ptr>=0?this.stk[this.ptr].sn:null;if(sn)this._r(sn);else this._i();M.T.show(M.L.undoOk);this._u()},redo:function(){if(this.ptr>=this.stk.length-1)return;this.ptr++;this._r(this.stk[this.ptr].sn);M.T.show(M.L.redoOk);this._u()},_r:function(sn){var S=M.S;S.regions=JSON.parse(JSON.stringify(sn.rg));sn.ca.forEach(function(sc){var c=S.chs.find(function(x){return x.id===sc.id});if(c){c.adjust=JSON.parse(JSON.stringify(sc.adj));if(sc.rb)c.raw=new Float32Array(sc.rb)}});M.Ch.rBar();M.Ch.rPan();M.Ch.rRL();if(S.maskOK)M.Ren.all();$('genBtn').disabled=S.regions.length===0},_i:function(){M.S.regions=[];M.S.chs.forEach(function(c){c.raw=null;c.rawOrig=null});M.Ch.rRL();$('genBtn').disabled=true},_u:function(){var u=this.ptr+1,r=this.stk.length-1-this.ptr;$('undoBtn').disabled=u<=0;$('redoBtn').disabled=r<=0;$('undoC').textContent='('+Math.max(0,u)+')';$('redoC').textContent='('+Math.max(0,r)+')'},clear:function(){this.stk=[];this.ptr=-1;this._u()}};
 /* ═══ v6.2 容差控制模块 (Tolerance) ═══
  *
@@ -350,6 +461,14 @@ M.Tol={
     var de=M.Tol.getDE(),lw=M.Tol.getLW();
     $('vDE').textContent='ΔE '+de;
     $('vLW').textContent=lw.toFixed(1)+'x';
+    /* v6.3: 更新新手模式可视化进度条 */
+    var bar=$('ezTolBar'),desc=$('ezTolDesc');
+    if(bar)bar.style.width=Math.round(de/60*100)+'%';
+    if(desc){
+      if(de<=5)desc.textContent='当前：极精准，能完美区分浅灰和深灰';
+      else if(de<=12)desc.textContent='当前：标准匹配，能区分大多数相近颜色';
+      else if(de<=25)desc.textContent='当前：宽泛匹配，相近的颜色会被一起选中';
+      else desc.textContent='当前：超宽泛，大范围色域都会被选中';}
     /* 防抖 80ms 后触发实时预览 */
     clearTimeout(M.Tol._timer);
     M.Tol._timer=setTimeout(function(){
@@ -437,9 +556,47 @@ var modeBadge=r.tolMode==='lab'?'<span style="font-size:8px;color:var(--cyan);ma
 var lInfo=r.lab?'<span style="font-size:8px;color:var(--yellow);margin-left:2px">L*:'+r.lab[0].toFixed(0)+'</span>':'';
 return'<div class="ri"><div class="rsw" style="background:'+hex+'"></div><div class="rin"><b>H:'+r.hue.toFixed(0)+'°±'+r.tol+'°</b>'+lInfo+modeBadge+'</div><span class="rpc">'+r.matchPct+'%</span>'+(r.inverted?'<span class="riv">反选</span>':'')+'<span class="rch" style="background:rgba(255,255,255,.06);color:'+clr+'">'+r.ch+'</span><button class="riv" onclick="M.Pk.tInv('+i+')">⇄</button><button class="rdl" onclick="M.Pk.rmRg('+i+')">✕</button></div>'}).join('')},
 uBr:function(){$('brCh').innerHTML=M.S.chs.map(function(c){return'<option value="'+c.id+'">'+c.name+'</option>'}).join('')}};
-/* ── Presets ── */
-M.Pre={init:function(){var g=$('presetGrid'),h='';for(var k in M.Cfg.PRE){var p=M.Cfg.PRE[k];h+='<div class="pc" data-key="'+k+'" onclick="M.Pre.apply(\''+k+'\')"><div class="pt">'+p.t+'</div><span class="pi">'+p.i+'</span><div class="pn">'+p.n+'</div><div class="pd">'+p.d+'</div></div>'}h+='<div class="pc" data-key="custom" onclick="M.Pre.apply(\'custom\')"><span class="pi">⚙️</span><div class="pn">自定义</div><div class="pd">手动调整参数</div></div>';g.innerHTML=h},
-apply:function(k){M.S.aPre=k;document.querySelectorAll('.pc').forEach(function(c){c.classList.toggle('act',c.dataset.key===k)});if(k==='custom')return;var p=M.Cfg.PRE[k];if(!p)return;$('pHT').value=p.ht;$('vHT').textContent='±'+p.ht+'°';$('pSM').value=p.sm;$('vSM').textContent=p.sm+'%';$('pES').value=p.es;$('vES').textContent=p.es+'px';M.S.aMode=p.am;if(p.er){$('pDi').value=p.er.di;$('vDi').textContent=p.er.di+'px';$('pEr').value=p.er.ero;$('vEr').textContent=p.er.ero+'px';$('pFe').value=p.er.fe;$('vFe').textContent=p.er.fe+'px';$('pRs').value=p.er.rs;$('vRs').textContent=p.er.rs+'%'}M.T.show(M.tpl(M.L.preOk,{n:p.n}));if(p.ad&&M.S.hsv)setTimeout(function(){M.AD.run()},300)}};
+/* ── Presets (v6.3 场景化升级) ── */
+M.Pre={init:function(){
+/* v6.3: 生成场景化傻瓜预设按钮 */
+var sg=$('scenePresets'),sh='';
+M.Cfg.SCENE.forEach(function(s){
+  sh+='<div class="scene-btn" data-key="'+s.k+'" onclick="M.Pre.applyScene(\''+s.k+'\')">';
+  if(s.tag)sh+='<span class="scene-tag '+s.tagCls+'">'+s.tag+'</span>';
+  sh+='<span class="scene-icon">'+s.n.charAt(0)+s.n.charAt(1)+'</span>';
+  sh+='<div class="scene-name">'+s.n+'</div>';
+  sh+='<div class="scene-desc">'+s.desc+'</div></div>'});
+sg.innerHTML=sh;
+/* 旧版预设网格 */
+var g=$('presetGrid'),h='';for(var k in M.Cfg.PRE){var p=M.Cfg.PRE[k];h+='<div class="pc" data-key="'+k+'" onclick="M.Pre.apply(\''+k+'\')"><div class="pt">'+p.t+'</div><span class="pi">'+p.i+'</span><div class="pn">'+p.n+'</div><div class="pd">'+p.d+'</div></div>'}h+='<div class="pc" data-key="custom" onclick="M.Pre.apply(\'custom\')"><span class="pi">⚙️</span><div class="pn">自定义</div><div class="pd">手动调整参数</div></div>';g.innerHTML=h},
+/* v6.3: 应用场景化预设 */
+applyScene:function(k){
+  var s=M.Cfg.SCENE.find(function(x){return x.k===k});if(!s)return;
+  M.S.aPre=k;
+  document.querySelectorAll('.scene-btn').forEach(function(b){b.classList.toggle('act',b.dataset.key===k)});
+  document.querySelectorAll('.pc').forEach(function(c){c.classList.remove('act')});
+  /* 应用容差参数 */
+  M.S.tolMode=s.tolMode;
+  document.querySelectorAll('.tol-mode-btn').forEach(function(b){b.classList.toggle('act',b.dataset.mode===s.tolMode)});
+  $('tolAlgoBadge').textContent=s.tolMode==='lab'?'CIELAB ΔE':'HSV 色相';
+  $('pDE').value=s.de;$('pLW').value=s.lw;
+  M.Tol.update();
+  $('pHT').value=s.ht;$('vHT').textContent='±'+s.ht+'°';
+  $('pSM').value=s.sm;$('vSM').textContent=s.sm+'%';
+  $('pES').value=s.es;$('vES').textContent=s.es+'px';
+  M.S.aMode=s.am;M.Cfg.AMAX=s.amax||4;
+  /* 更新提取色数下拉菜单 */
+  var sel=$('adColorCount');if(sel){for(var i=0;i<sel.options.length;i++){if(+sel.options[i].value===M.Cfg.AMAX){sel.selectedIndex=i;break}}}
+  /* 强制区分明度 */
+  M.S.strictLightness=!!s.strict;
+  $('adStrictL').classList.toggle('active',M.S.strictLightness);
+  $('adStrictLCB').checked=M.S.strictLightness;
+  /* 边缘净化参数 */
+  if(s.er){$('pDi').value=s.er.di;$('vDi').textContent=s.er.di+'px';$('pEr').value=s.er.ero;$('vEr').textContent=s.er.ero+'px';$('pFe').value=s.er.fe;$('vFe').textContent=s.er.fe+'px';$('pRs').value=s.er.rs;$('vRs').textContent=s.er.rs+'%'}
+  M.T.show('✅ 已应用「'+s.n+'」场景预设');
+  if(s.ad&&M.S.hsv)setTimeout(function(){M.AD.run()},300)},
+/* 旧版预设应用（兼容） */
+apply:function(k){M.S.aPre=k;document.querySelectorAll('.pc').forEach(function(c){c.classList.toggle('act',c.dataset.key===k)});document.querySelectorAll('.scene-btn').forEach(function(b){b.classList.remove('act')});if(k==='custom')return;var p=M.Cfg.PRE[k];if(!p)return;$('pHT').value=p.ht;$('vHT').textContent='±'+p.ht+'°';$('pSM').value=p.sm;$('vSM').textContent=p.sm+'%';$('pES').value=p.es;$('vES').textContent=p.es+'px';M.S.aMode=p.am;if(p.er){$('pDi').value=p.er.di;$('vDi').textContent=p.er.di+'px';$('pEr').value=p.er.ero;$('vEr').textContent=p.er.ero+'px';$('pFe').value=p.er.fe;$('vFe').textContent=p.er.fe+'px';$('pRs').value=p.er.rs;$('vRs').textContent=p.er.rs+'%'}M.T.show(M.tpl(M.L.preOk,{n:p.n}));if(p.ad&&M.S.hsv)setTimeout(function(){M.AD.run()},300)}};
 /* ── Prep ── */
 M.Prep={show:function(img){var S=M.S;S.prepImg=img;S.oW=img.width;S.oH=img.height;var c=$('prepC');c.width=img.width;c.height=img.height;c.getContext('2d').drawImage(img,0,0);$('prepLabel').textContent=img.width+'×'+img.height;$('s1').style.display='none';$('s2').style.display='block';$('namingCard').style.display='block';M.UI.stp(2)},
 rsz:function(tw){var S=M.S,img=S.prepImg;if(!img)return;if(tw<=0)tw=S.oW;var sc=tw/img.width,nh=Math.round(img.height*sc);var tc=document.createElement('canvas');tc.width=tw;tc.height=nh;tc.getContext('2d').drawImage(img,0,0,tw,nh);var c=$('prepC');c.width=tw;c.height=nh;c.getContext('2d').drawImage(tc,0,0);var ni=new Image();ni.onload=function(){S.prepImg=ni;$('prepLabel').textContent=tw+'×'+nh};ni.src=tc.toDataURL()},
@@ -741,7 +898,7 @@ dlComp:function(){if(!M.S.maskOK)return M.T.show(M.L.noBody);M.Ex._sv(M.Ex._comp
 dlCh:function(id){var ch=M.S.chs.find(function(c){return c.id===id});if(!ch||!ch.raw)return M.T.show(M.L.noBody);var S=M.S,c=document.createElement('canvas');c.width=S.W;c.height=S.H;var x=c.getContext('2d'),m=x.createImageData(S.W,S.H),d=m.data;for(var i=0,n=S.W*S.H;i<n;i++){var v=(ch.raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}x.putImageData(m,0,0);M.Ex._sv(c,M.Nm.res(ch.name))},
 dlTGA:function(){if(!M.S.maskOK)return M.T.show(M.L.noBody);var S=M.S,c=M.Ex._compCanvas(),ctx=c.getContext('2d'),rgba=ctx.getImageData(0,0,S.W,S.H).data;var blob=M._tga(S.W,S.H,rgba);var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=M.Nm.res('RGBA','.tga');document.body.appendChild(a);a.click();document.body.removeChild(a);M.T.show(M.tpl(M.L.tgaOk,{n:M.Nm.res('RGBA','.tga')}))},
 dlMulti:function(){if(!M.S.maskOK||M.S.chs.length<=4)return;var S=M.S,pi=0;for(var s=0;s<S.chs.length;s+=4){var pk=S.chs.slice(s,s+4);pi++;var c=document.createElement('canvas');c.width=S.W;c.height=S.H;var x=c.getContext('2d'),m=x.createImageData(S.W,S.H),d=m.data;for(var i=0,n=S.W*S.H;i<n;i++){var o=i*4;d[o]=pk[0]&&pk[0].raw?(pk[0].raw[i]*255+.5)|0:0;d[o+1]=pk[1]&&pk[1].raw?(pk[1].raw[i]*255+.5)|0:0;d[o+2]=pk[2]&&pk[2].raw?(pk[2].raw[i]*255+.5)|0:0;d[o+3]=pk[3]&&pk[3].raw?(pk[3].raw[i]*255+.5)|0:255}x.putImageData(m,0,0);M.Ex._sv(c,M.Nm.res('Pack'+pi))}M.T.show(M.tpl(M.L.multiOk,{n:pi}))},
-dlZip:async function(){if(!M.S.maskOK)return M.T.show(M.L.noBody);if(typeof JSZip==='undefined')return M.T.show('JSZip加载中');var S=M.S,z=new JSZip();var c0=document.createElement('canvas');c0.width=S.W;c0.height=S.H;c0.getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);z.file(M.Nm.res('Original'),await M.Ex._cb(c0));z.file(M.Nm.res('RGBA'),await M.Ex._cb(M.Ex._compCanvas()));for(var ci=0;ci<S.chs.length;ci++){var ch=S.chs[ci];if(!ch.raw)continue;var c=document.createElement('canvas');c.width=S.W;c.height=S.H;var x=c.getContext('2d'),m=x.createImageData(S.W,S.H),d=m.data;for(var i=0,n=S.W*S.H;i<n;i++){var v=(ch.raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}x.putImageData(m,0,0);z.file(M.Nm.res(ch.name),await M.Ex._cb(c))}/* TGA in ZIP */var cc=M.Ex._compCanvas(),rgba=cc.getContext('2d').getImageData(0,0,S.W,S.H).data;z.file(M.Nm.res('RGBA','.tga'),M._tga(S.W,S.H,rgba));/* config */var cfg={tool:'Auto Mask v6.2',version:'6.2',size:[S.W,S.H],aMode:S.aMode,tolMode:S.tolMode,strictLightness:S.strictLightness,channels:S.chs.map(function(c){return{id:c.id,name:c.name,color:c.color,adjust:c.adjust,isCustom:!!c.isCustom}}),regions:S.regions.map(function(r){return{ch:r.ch,hue:r.hue,tol:r.tol,satMin:r.satMin,inverted:r.inverted,matchPct:r.matchPct,color:M.C.r2x(r.rgb),tolMode:r.tolMode||'hsv',deltaE:r.deltaE||12,lightW:r.lightW||1.5,lab:r.lab||null}}),edgeSmooth:+$('pES').value,naming:{template:$('namingTpl').value,project:$('tplP').value,charID:$('tplC').value},generated:new Date().toISOString()};try{var sc2=document.createElement('canvas');sc2.width=S.W;sc2.height=S.H;sc2.getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);var b64=sc2.toDataURL('image/png');if(b64.length<5e6)cfg.sourceImageBase64=b64}catch(e){}z.file('config.json',JSON.stringify(cfg,null,2));var blob=await z.generateAsync({type:'blob'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=M.Nm.res('Output','.zip');document.body.appendChild(a);a.click();document.body.removeChild(a);M.T.show(M.L.zipOk)},
+dlZip:async function(){if(!M.S.maskOK)return M.T.show(M.L.noBody);if(typeof JSZip==='undefined')return M.T.show('JSZip加载中');var S=M.S,z=new JSZip();var c0=document.createElement('canvas');c0.width=S.W;c0.height=S.H;c0.getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);z.file(M.Nm.res('Original'),await M.Ex._cb(c0));z.file(M.Nm.res('RGBA'),await M.Ex._cb(M.Ex._compCanvas()));for(var ci=0;ci<S.chs.length;ci++){var ch=S.chs[ci];if(!ch.raw)continue;var c=document.createElement('canvas');c.width=S.W;c.height=S.H;var x=c.getContext('2d'),m=x.createImageData(S.W,S.H),d=m.data;for(var i=0,n=S.W*S.H;i<n;i++){var v=(ch.raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}x.putImageData(m,0,0);z.file(M.Nm.res(ch.name),await M.Ex._cb(c))}/* TGA in ZIP */var cc=M.Ex._compCanvas(),rgba=cc.getContext('2d').getImageData(0,0,S.W,S.H).data;z.file(M.Nm.res('RGBA','.tga'),M._tga(S.W,S.H,rgba));/* config */var cfg={tool:'Auto Mask v6.3',version:'6.3',size:[S.W,S.H],aMode:S.aMode,tolMode:S.tolMode,strictLightness:S.strictLightness,channels:S.chs.map(function(c){return{id:c.id,name:c.name,color:c.color,adjust:c.adjust,isCustom:!!c.isCustom}}),regions:S.regions.map(function(r){return{ch:r.ch,hue:r.hue,tol:r.tol,satMin:r.satMin,inverted:r.inverted,matchPct:r.matchPct,color:M.C.r2x(r.rgb),tolMode:r.tolMode||'hsv',deltaE:r.deltaE||12,lightW:r.lightW||1.5,lab:r.lab||null}}),edgeSmooth:+$('pES').value,naming:{template:$('namingTpl').value,project:$('tplP').value,charID:$('tplC').value},generated:new Date().toISOString()};try{var sc2=document.createElement('canvas');sc2.width=S.W;sc2.height=S.H;sc2.getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);var b64=sc2.toDataURL('image/png');if(b64.length<5e6)cfg.sourceImageBase64=b64}catch(e){}z.file('config.json',JSON.stringify(cfg,null,2));var blob=await z.generateAsync({type:'blob'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=M.Nm.res('Output','.zip');document.body.appendChild(a);a.click();document.body.removeChild(a);M.T.show(M.L.zipOk)},
 _cb:function(c){return new Promise(function(r){c.toBlob(function(b){r(b)},'image/png')})},
 sDrop:function(e,id){e.preventDefault();e.currentTarget.classList.remove('dg');var f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))M.Ex.ldSlot(id,f)},
 ldSlot:function(id,f){var c=M.S.chs.find(function(x){return x.id===id});if(!c)return;var img=new Image();img.onload=function(){c.slotImage=img;var sc=$('sc_'+id);if(sc){sc.width=200;sc.height=Math.round(200*img.height/img.width);sc.getContext('2d').drawImage(img,0,0,sc.width,sc.height)}$('si_'+id).style.display='block';M.T.show(c.name+' 已加载');if(M.S.maskOK)M.Gen.run()};img.src=URL.createObjectURL(f)},
@@ -754,35 +911,76 @@ M.Crop={
     /* 原图裁剪矩形（像素坐标）*/rx:0,ry:0,rw:0,rh:0,
     /* 交互 */drag:null,startMX:0,startMY:0,startRx:0,startRy:0,startRw:0,startRh:0,startPanX:0,startPanY:0,
     ratio:'free',dpr:1,containerW:0,containerH:0},
-  /* 打开裁剪 */
+  /* 打开裁剪 — v6.3 彻底修复黑屏/NaN Bug
+   *
+   * Bug 根因分析（v6.2 问题）：
+   *   旧代码先获取 wrap.clientWidth（此时 cropOv 还是 display:none），
+   *   导致 clientWidth = 0 → fitS = 0/img.width = 0 → vPanX = NaN
+   *
+   * v6.3 修复方案：
+   *   1. 先设 display:flex 让弹窗可见
+   *   2. 用 requestAnimationFrame 确保浏览器完成布局
+   *   3. 然后再获取容器尺寸并计算适应缩放
+   *   4. 所有计算加 isFinite 防御性检查
+   */
   open:function(img,title){
     var st=this._st;st.active=true;st.img=img;st.dpr=window.devicePixelRatio||1;
     $('cropChN').textContent='— '+(title||'');
-    var wrap=$('cropV2Wrap');st.containerW=wrap.clientWidth;st.containerH=wrap.clientHeight||480;
-    /* 计算适应缩放 */
+    /* ★ 关键修复：先显示弹窗 */
+    $('cropOv').style.display='flex';
+    /* ★ 等待一帧让浏览器完成布局 */
+    var self=this;
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      var wrap=$('cropV2Wrap');
+      st.containerW=wrap.clientWidth||700;
+      st.containerH=wrap.clientHeight||480;
+      /* 防御性检查：确保图片尺寸有效 */
+      if(!img.width||!img.height||!img.complete){
+        /* 图片未加载完成时等待 */
+        img.onload=function(){self._initCrop()};
+        if(img.complete)self._initCrop();
+        return}
+      self._initCrop()})})},
+  /* v6.3: 裁剪初始化（从 open 分离，确保尺寸已就绪） */
+  _initCrop:function(){
+    var st=this._st,img=st.img;
+    if(!img||!img.width||!img.height)return;
+    /* 重新获取一次容器尺寸（以防变化） */
+    var wrap=$('cropV2Wrap');
+    st.containerW=wrap.clientWidth||700;
+    st.containerH=wrap.clientHeight||480;
+    /* 计算适应缩放，防止除零 */
     var fitS=Math.min(st.containerW/img.width,st.containerH/img.height,2);
+    if(!isFinite(fitS)||fitS<=0)fitS=1;
     st.vZoom=fitS;
     /* 居中 */
     st.vPanX=(st.containerW-img.width*fitS)/2;
     st.vPanY=(st.containerH-img.height*fitS)/2;
+    if(!isFinite(st.vPanX))st.vPanX=0;
+    if(!isFinite(st.vPanY))st.vPanY=0;
     /* 默认裁剪区：图片80% */
     st.rx=Math.round(img.width*0.1);st.ry=Math.round(img.height*0.1);
     st.rw=Math.round(img.width*0.8);st.rh=Math.round(img.height*0.8);
     st.ratio='free';
     document.querySelectorAll('.crop-ratio-btn').forEach(function(b){b.classList.toggle('act',b.dataset.r==='free')});
     this._renderCanvas();this._updateSel();this._updateInfo();
-    $('cropV2Sel').style.display='block';$('cropOv').style.display='flex';
+    $('cropV2Sel').style.display='block';
     this._bindEvents()},
   openS:function(id){var c=M.S.chs.find(function(x){return x.id===id});if(!c||!c.slotImage){M.T.show('请先上传图片');return}this._st.mode='slot';this._st.chId=id;this.open(c.slotImage,c.name)},
   close:function(){this._st.active=false;$('cropOv').style.display='none';this._unbindEvents()},
-  /* 渲染canvas（带dpr高清） */
+  /* 渲染canvas（带dpr高清）— v6.3 增加 NaN 防御 */
   _renderCanvas:function(){
-    var st=this._st,cv=$('cropV2C'),img=st.img;if(!img)return;
+    var st=this._st,cv=$('cropV2C'),img=st.img;if(!img||!img.width)return;
     var dw=Math.round(img.width*st.vZoom),dh=Math.round(img.height*st.vZoom);
+    if(!isFinite(dw)||dw<=0)dw=img.width;
+    if(!isFinite(dh)||dh<=0)dh=img.height;
     /* canvas逻辑尺寸=视口变换后的图片尺寸，物理像素x dpr */
     cv.style.width=dw+'px';cv.style.height=dh+'px';
-    cv.style.left=Math.round(st.vPanX)+'px';cv.style.top=Math.round(st.vPanY)+'px';
-    cv.width=Math.round(dw*st.dpr);cv.height=Math.round(dh*st.dpr);
+    cv.style.left=Math.round(isFinite(st.vPanX)?st.vPanX:0)+'px';
+    cv.style.top=Math.round(isFinite(st.vPanY)?st.vPanY:0)+'px';
+    var pw=Math.round(dw*st.dpr),ph=Math.round(dh*st.dpr);
+    if(pw<=0)pw=dw;if(ph<=0)ph=dh;
+    cv.width=pw;cv.height=ph;
     var ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=st.vZoom<1;ctx.imageSmoothingQuality='high';
     ctx.scale(st.dpr,st.dpr);ctx.drawImage(img,0,0,dw,dh)},
   /* 更新裁剪选区DOM位置 (原图px → 屏幕px) */
@@ -794,10 +992,13 @@ M.Crop={
     sel.style.width=Math.round(sw)+'px';sel.style.height=Math.round(sh)+'px'},
   _updateInfo:function(){
     var st=this._st,img=st.img;if(!img)return;
-    $('cropOrigSz').textContent=img.width+'×'+img.height;
-    $('cropResSz').textContent=Math.round(st.rw)+'×'+Math.round(st.rh);
-    $('cropOffset').textContent=Math.round(st.rx)+', '+Math.round(st.ry);
-    $('cropScale').textContent=st.vZoom.toFixed(2)+'x';
+    $('cropOrigSz').textContent=(img.width||0)+'×'+(img.height||0);
+    var rw=isFinite(st.rw)?Math.round(st.rw):0,rh=isFinite(st.rh)?Math.round(st.rh):0;
+    $('cropResSz').textContent=rw+'×'+rh;
+    var rx=isFinite(st.rx)?Math.round(st.rx):0,ry=isFinite(st.ry)?Math.round(st.ry):0;
+    $('cropOffset').textContent=rx+', '+ry;
+    var zoom=isFinite(st.vZoom)?st.vZoom:1;
+    $('cropScale').textContent=zoom.toFixed(2)+'x';
     $('cropZoomLbl').textContent=Math.round(st.vZoom*100)+'%'},
   /* 屏幕坐标 → 原图像素坐标 */
   _screen2img:function(mx,my){
@@ -827,10 +1028,13 @@ M.Crop={
     st.vZoom=newZ;
     this._renderCanvas();this._updateSel();this._updateInfo()},
   zoomFit:function(){
-    var st=this._st,img=st.img;if(!img)return;
+    var st=this._st,img=st.img;if(!img||!img.width||!img.height)return;
+    var wrap=$('cropV2Wrap');st.containerW=wrap.clientWidth||700;st.containerH=wrap.clientHeight||480;
     st.vZoom=Math.min(st.containerW/img.width,st.containerH/img.height,2);
+    if(!isFinite(st.vZoom)||st.vZoom<=0)st.vZoom=1;
     st.vPanX=(st.containerW-img.width*st.vZoom)/2;
     st.vPanY=(st.containerH-img.height*st.vZoom)/2;
+    if(!isFinite(st.vPanX))st.vPanX=0;if(!isFinite(st.vPanY))st.vPanY=0;
     this._renderCanvas();this._updateSel();this._updateInfo()},
   _clampRect:function(){
     var st=this._st,img=st.img;if(!img)return;
@@ -1003,7 +1207,7 @@ lab:r.lab||null,deltaE:r.deltaE||12,lightW:r.lightW||1.5,tolMode:r.tolMode||'hsv
 /* ── 快捷键 ── */
 document.addEventListener('keydown',function(e){if(e.ctrlKey&&e.key==='z'){e.preventDefault();M.Hist.undo()}else if(e.ctrlKey&&(e.key==='y'||(e.shiftKey&&e.key==='Z'))){e.preventDefault();M.Hist.redo()}else if(!e.ctrlKey&&!e.altKey){if(e.key==='b'||e.key==='B')M.Br.set('paint');else if(e.key==='e'||e.key==='E')M.Br.set('erase');else if(e.key==='n'||e.key==='N')M.Br.set('refine');else if(e.key==='['&&M.S.brushMode){var v=Math.max(2,+$('brSize').value-2);$('brSize').value=v;$('brSzV').textContent=v}else if(e.key===']'&&M.S.brushMode){var v=Math.min(40,+$('brSize').value+2);$('brSize').value=v;$('brSzV').textContent=v}else if(e.key>='1'&&e.key<='9'){var idx=+e.key-1;if(idx<M.S.chs.length)M.Ch.setCur(M.S.chs[idx].id)}}});
 /* ── Init ── */
-M.init=function(){M.Pre.init();M.TT.init();M._initF();M.Hist.clear()};
+M.init=function(){M.Pre.init();M.TT.init();M._initF();M.Hist.clear();M.Mode.apply();M.Tol.update()};
 M.init();
 </script>
 <script src="editor-kit.js"></script>
