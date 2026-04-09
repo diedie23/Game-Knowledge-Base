@@ -1,0 +1,186 @@
+<script>
+/* ═══ 桌面端增强层 M.Desktop ═══ */
+/* 仅在 Electron 环境（window.desktop 存在）时激活 */
+/* 自动同步自在线版，由 sync-online-to-desktop.js 追加 */
+(function(){
+  if (typeof window.desktop === 'undefined') return;
+
+  var D = window.desktop;
+  M.Desktop = { saveDir: '' };
+
+  /* ── 初始化：获取保存目录 ── */
+  D.getSaveDir().then(function(dir){ M.Desktop.saveDir = dir; M.Desktop._uBar(); });
+  D.onSaveDirChanged(function(dir){ M.Desktop.saveDir = dir; M.Desktop._uBar(); });
+
+  /* ── 保存目录状态栏 ── */
+  M.Desktop._uBar = function(){
+    var bar = document.getElementById('deskBar');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'deskBar';
+      bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#0f1119;border-top:1px solid var(--border);padding:4px 16px;display:flex;align-items:center;gap:8px;font-size:10px;color:var(--dim);z-index:500';
+      bar.innerHTML = '<span style="color:var(--cyan)">\uD83D\uDCBE 桌面版</span>'
+        + '<span id="deskDir" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>'
+        + '<button id="deskChDir" style="background:none;border:1px solid var(--border);color:var(--accent);cursor:pointer;padding:2px 8px;border-radius:4px;font-size:9px">\uD83D\uDCC2 更改</button>'
+        + '<button id="deskOpen" style="background:none;border:1px solid var(--border);color:var(--green);cursor:pointer;padding:2px 8px;border-radius:4px;font-size:9px">\uD83D\uDCC1 打开</button>';
+      document.body.appendChild(bar);
+      document.getElementById('deskChDir').onclick = function(){
+        D.chooseDir().then(function(d){ if(d) M.Desktop._uBar(); });
+      };
+      document.getElementById('deskOpen').onclick = function(){
+        D.showInFolder(M.Desktop.saveDir + '\\.');
+      };
+      document.body.style.paddingBottom = '28px';
+    }
+    document.getElementById('deskDir').textContent = '保存目录: ' + M.Desktop.saveDir;
+  };
+
+  /* ── 覆写导出函数：使用原生文件保存 ── */
+
+  /* 工具：Canvas → ArrayBuffer */
+  M.Desktop._c2b = function(cv) {
+    return new Promise(function(resolve) {
+      cv.toBlob(function(blob) {
+        var reader = new FileReader();
+        reader.onload = function() { resolve(reader.result); };
+        reader.readAsArrayBuffer(blob);
+      }, 'image/png');
+    });
+  };
+
+  /* 覆写单文件 PNG 保存 */
+  var origSv = M.Ex._sv;
+  M.Ex._sv = function(cv, nm) {
+    if (!D.isDesktop) { origSv(cv, nm); return; }
+    M.Desktop._c2b(cv).then(function(buf) {
+      D.saveFile(nm, buf, false).then(function(r) {
+        if (r.success) {
+          M.T.show('\u2705 已保存: ' + r.path);
+        } else if (r.reason !== 'canceled') {
+          M.T.show('\u274C 保存失败: ' + r.reason);
+        }
+      });
+    });
+  };
+
+  /* 覆写 TGA 导出 */
+  var origTGA = M.Ex.dlTGA;
+  M.Ex.dlTGA = function() {
+    if (!M.S.maskOK) return M.T.show(M.L.noBody);
+    if (!D.isDesktop) { origTGA(); return; }
+    var S = M.S, c = M.Ex._compCanvas(), ctx = c.getContext('2d');
+    var rgba = ctx.getImageData(0, 0, S.W, S.H).data;
+    var blob = M._tga(S.W, S.H, rgba);
+    var reader = new FileReader();
+    reader.onload = function() {
+      var nm = M.Nm.res('RGBA', '.tga');
+      D.saveFile(nm, reader.result, false).then(function(r) {
+        if (r.success) M.T.show('\uD83C\uDFAE TGA已保存: ' + r.path);
+      });
+    };
+    reader.readAsArrayBuffer(blob);
+  };
+
+  /* 覆写 ZIP 导出 */
+  var origZip = M.Ex.dlZip;
+  M.Ex.dlZip = async function() {
+    if (!M.S.maskOK) return M.T.show(M.L.noBody);
+    if (!D.isDesktop) { await origZip(); return; }
+    if (typeof JSZip === 'undefined') return M.T.show('JSZip 加载中');
+
+    var S = M.S, z = new JSZip();
+    /* 原图 */
+    var c0 = document.createElement('canvas');
+    c0.width = S.W; c0.height = S.H;
+    c0.getContext('2d').drawImage(S.prepImg || S.srcImg, 0, 0, S.W, S.H);
+    z.file(M.Nm.res('Original'), await M.Ex._cb(c0));
+    /* RGBA */
+    z.file(M.Nm.res('RGBA'), await M.Ex._cb(M.Ex._compCanvas()));
+    /* 各通道 */
+    for (var ci = 0; ci < S.chs.length; ci++) {
+      var ch = S.chs[ci]; if (!ch.raw) continue;
+      var c = document.createElement('canvas'); c.width = S.W; c.height = S.H;
+      var x = c.getContext('2d'), m = x.createImageData(S.W, S.H), d = m.data;
+      for (var i = 0, n = S.W * S.H; i < n; i++) {
+        var v = (ch.raw[i] * 255 + .5) | 0;
+        d[i*4]=v; d[i*4+1]=v; d[i*4+2]=v; d[i*4+3]=255;
+      }
+      x.putImageData(m, 0, 0);
+      z.file(M.Nm.res(ch.name), await M.Ex._cb(c));
+    }
+    /* TGA */
+    var cc = M.Ex._compCanvas(), rgbaData = cc.getContext('2d').getImageData(0, 0, S.W, S.H).data;
+    z.file(M.Nm.res('RGBA', '.tga'), M._tga(S.W, S.H, rgbaData));
+    /* config — 包含 v6.2+ 的容差/LAB 参数 */
+    var cfg = {
+      tool: 'Auto Mask v' + (M._version || '6.3') + ' Desktop',
+      version: M._version || '6.3',
+      size: [S.W, S.H],
+      aMode: S.aMode,
+      tolMode: S.tolMode || 'lab',
+      strictLightness: !!S.strictLightness,
+      expertMode: !!S.expertMode,
+      channels: S.chs.map(function(c) {
+        return { id: c.id, name: c.name, color: c.color, adjust: c.adjust };
+      }),
+      regions: S.regions.map(function(r) {
+        return {
+          ch: r.ch, hue: r.hue, tol: r.tol, satMin: r.satMin,
+          inverted: r.inverted, matchPct: r.matchPct,
+          color: M.C.r2x(r.rgb),
+          lab: r.lab || null, deltaE: r.deltaE || 12,
+          lightW: r.lightW || 1.5, tolMode: r.tolMode || 'lab'
+        };
+      }),
+      edgeSmooth: +document.getElementById('pES').value,
+      naming: {
+        template: document.getElementById('namingTpl').value,
+        project: document.getElementById('tplP').value,
+        charID: document.getElementById('tplC').value
+      },
+      generated: new Date().toISOString()
+    };
+    try {
+      var sc2 = document.createElement('canvas'); sc2.width = S.W; sc2.height = S.H;
+      sc2.getContext('2d').drawImage(S.prepImg || S.srcImg, 0, 0, S.W, S.H);
+      var b64 = sc2.toDataURL('image/png');
+      if (b64.length < 5e6) cfg.sourceImageBase64 = b64;
+    } catch(e) {}
+    z.file('config.json', JSON.stringify(cfg, null, 2));
+
+    var blob = await z.generateAsync({ type: 'blob' });
+    var reader = new FileReader();
+    reader.onload = function() {
+      var nm = M.Nm.res('Output', '.zip');
+      D.saveFile(nm, reader.result, false).then(function(r) {
+        if (r.success) M.T.show('\uD83D\uDCE6 ZIP已保存: ' + r.path);
+      });
+    };
+    reader.readAsArrayBuffer(blob);
+  };
+
+  /* ── 增强拖拽：支持多文件+获取完整路径 ── */
+  document.addEventListener('drop', function(e) {
+    e.preventDefault();
+    var files = e.dataTransfer.files;
+    if (!files.length) return;
+    if (files.length === 1) return; /* 单文件走原有逻辑 */
+    /* 多文件模式：批量加载到不同通道 slot */
+    var chIds = M.S.chs.map(function(c) { return c.id; });
+    var imgFiles = [];
+    for (var i = 0; i < files.length; i++) {
+      if (files[i].type.startsWith('image/')) imgFiles.push(files[i]);
+    }
+    if (imgFiles.length > 1 && M.S.maskOK) {
+      M.T.show('拖入 ' + imgFiles.length + ' 张图片，按顺序加载到通道');
+      imgFiles.forEach(function(f, idx) {
+        if (idx < chIds.length) M.Ex.ldSlot(chIds[idx], f);
+      });
+    }
+  }, true);
+
+  document.addEventListener('dragover', function(e) { e.preventDefault(); }, true);
+
+  console.log('[Desktop] Auto Mask v' + (M._version || '6.3') + ' 桌面增强层已加载');
+})();
+</script>

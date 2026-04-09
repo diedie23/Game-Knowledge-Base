@@ -1,11 +1,19 @@
-# 🤖 Auto Mask Generator v6.0 — 桌面独立版
+# 🤖 Auto Mask Generator v6.3 — 桌面独立版
 
 > 基于 Electron 打包的 Windows 绿色免安装版（Portable .exe）
+> 
+> 📡 **与在线版自动同步** — 运行 `node tools/sync-online-to-desktop.js` 即可一键同步
 
 ## 📋 功能特性
 
-- **5种预设模式** — 标准三色角色/头发眼睛/UI精度/特效专用/场景物件
-- **智能主色调分析** — Hue-bin 算法自动识别主色域
+- **新手/专家双模式** — 新手只需一个滑块，专家可展开全部参数 *(v6.3)*
+- **场景化傻瓜预设** — 🎨 二次元角色 / 🏢 写实场景 / ✨ 特效透明 一键搞定 *(v6.3)*
+- **大白话 Tooltip** — 所有专业参数都有人话解释 *(v6.3)*
+- **CIELAB ΔE 色差算法** — 精准区分浅灰/深灰等相近颜色 *(v6.2)*
+- **色彩容差控制面板** — ΔE 滑块 + 明度权重 + 实时预览 *(v6.2)*
+- **悬浮快捷菜单** — 吸色后立即分配到通道 *(v6.1)*
+- **5种经典预设 + 3种场景预设** — 覆盖所有常见用例
+- **智能主色调分析** — CIELAB 聚类算法自动识别主色域
 - **放大镜精准吸色** — 11×11 采样 10x 放大
 - **动态多通道** — 支持超过 RGBA 4通道
 - **边缘净化** — 膨胀/腐蚀/羽化/净化
@@ -60,7 +68,7 @@ npm run dev      # 启动（自动打开 DevTools）
 npm run build:portable
 ```
 
-输出：`dist/AutoMaskGenerator-v6.0.0-Portable.exe`
+输出：`dist/AutoMaskGenerator-v6.3.0-Portable.exe`
 
 > 单个 .exe 文件，约 80-90MB，双击即跑，不需要安装。
 
@@ -70,7 +78,7 @@ npm run build:portable
 npm run build:nsis
 ```
 
-输出：`dist/AutoMaskGenerator-v6.0.0-Setup.exe`
+输出：`dist/AutoMaskGenerator-v6.3.0-Setup.exe`
 
 > 带安装向导的标准 Windows 安装程序。
 
@@ -131,16 +139,17 @@ png-to-ico icon-256.png > build/icon.ico
 
 ```
 auto-mask-desktop/
-├── package.json            # 项目配置 + electron-builder 打包配置
-├── main.js                 # Electron 主进程
-├── preload.js              # 安全桥接（IPC）
+├── package.json              # 项目配置 + electron-builder 打包配置
+├── main.js                   # Electron 主进程
+├── preload.js                # 安全桥接（IPC）
+├── desktop-enhancement.html  # 桌面端增强层（独立维护）
 ├── app/
-│   ├── index.html          # v6.0 离线化版本
-│   └── jszip.min.js        # JSZip 本地副本
+│   ├── index.html            # 自动同步自在线版 + 桌面增强层
+│   └── jszip.min.js          # JSZip 本地副本
 ├── build/
-│   └── icon.ico            # 软件图标
-├── dist/                   # 打包输出目录（自动生成）
-└── README.md               # 本文件
+│   └── icon.ico              # 软件图标
+├── dist/                     # 打包输出目录（自动生成）
+└── README.md                 # 本文件
 ```
 
 ---
@@ -160,15 +169,30 @@ auto-mask-desktop/
 
 ---
 
-## 🔄 更新 Web 版代码
+## 🔄 同步在线版代码（自动化）
 
-当 Web 版 `auto-mask-v6.html` 有更新时，同步到桌面版：
+桌面版代码与在线版 `docs/knowledge-base/auto-mask-v6.html` 保持同步。
 
-1. 复制 `auto-mask-v6.html` 到 `app/index.html`
-2. 替换 CDN JSZip 为本地 `<script src="jszip.min.js"></script>`
-3. 移除末尾的 `<script src="editor-kit.js"></script>`
-4. 添加桌面增强层脚本（参考现有 index.html 末尾的 M.Desktop 代码块）
+### 一键同步命令
+
+```bash
+cd H:\游戏项目知识库
+node tools/sync-online-to-desktop.js
+```
+
+脚本会自动完成：
+1. ✅ 读取在线版最新代码
+2. ✅ 适配为桌面版（替换 title、移除在线专属内容）
+3. ✅ 追加桌面端增强层 (`desktop-enhancement.html`)
+4. ✅ 更新 `main.js` 和 `package.json` 版本号
+5. ✅ 保留 JSZip 本地引用（离线可用）
+
+### 桌面端增强层
+
+桌面端特有的功能（原生文件保存、多文件拖拽、保存目录状态栏等）独立维护在 `desktop-enhancement.html` 中，不需要手动合并。
+
+如需修改桌面端特有行为，**只需编辑 `desktop-enhancement.html`**，然后重新运行同步脚本即可。
 
 ---
 
-*Auto Mask Generator v6.0 Desktop — Built with ❤️ by Art Pipeline Team*
+*Auto Mask Generator v6.3 Desktop — Built with ❤️ by Art Pipeline Team*

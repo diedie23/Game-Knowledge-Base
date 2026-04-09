@@ -1,7 +1,7 @@
 {
   "name": "auto-mask-generator",
-  "version": "6.0.0",
-  "description": "自动 Mask 通道生成器 v6.0 — 桌面独立版",
+  "version": "6.3.0",
+  "description": "自动 Mask 通道生成器 v6.3 — 桌面独立版",
   "author": {
     "name": "Art Pipeline Team",
     "email": "art-pipeline@studio.com"
