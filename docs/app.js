@@ -1100,11 +1100,11 @@ function enterIframeEditMode(pageId){
   if(!frame||!frame.contentWindow) return;
   try{
     var iframeDoc=frame.contentDocument||frame.contentWindow.document;
-    // 尝试触发 editor-kit.js 中的 enterEdit 函数
-    if(frame.contentWindow.enterEdit){
+    // editor-kit.js 已将 enterEdit 暴露到 window 上
+    if(typeof frame.contentWindow.enterEdit==='function'){
       frame.contentWindow.enterEdit();
     } else {
-      // 如果没有 editor-kit，尝试点击 iframe 内的编辑按钮
+      // fallback：点击 iframe 内的编辑按钮
       var editBtn=iframeDoc.querySelector('.ek-enter-btn');
       if(editBtn) editBtn.click();
       else showToast('该文档未启用可视化编辑器');

@@ -474,7 +474,15 @@
   function init () {
     injectStyles();
     buildUI();
+
+    // 当页面被嵌入在 iframe 中时（父页面已提供编辑按钮），隐藏本页面的悬浮入口按钮
+    if (window !== window.top) {
+      if (enterBtn) enterBtn.style.display = 'none';
+    }
   }
+
+  // 将 enterEdit 暴露到 window，供父页面通过 iframe.contentWindow.enterEdit() 调用
+  window.enterEdit = enterEdit;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
