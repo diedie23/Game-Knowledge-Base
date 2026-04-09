@@ -632,6 +632,24 @@
       "is_hot": true
     },
     {
+      "id": "auto-mask-v6-desktop",
+      "module": "toolchain",
+      "craft": "角色",
+      "type": "iframe",
+      "title": "自动 Mask 生成器 v6.0 (桌面版)",
+      "desc": "Windows 独立 exe · 绿色免安装 · 完全离线 · 原生文件保存 · 多图拖拽 · 与 Web 版功能100%一致",
+      "tags": ["桌面工具","exe下载","离线","原生保存","Electron"],
+      "icon": "🖥️",
+      "action": "openTool",
+      "path": "knowledge-base/auto-mask-v6-desktop.html",
+      "download": "downloads/AutoMaskGenerator-v6.0.0-Portable.exe",
+      "owner": "TA团队",
+      "last_updated": "2026-04-09",
+      "applicable_stage": "量产期",
+      "priority": "high",
+      "is_hot": true
+    },
+    {
       "id": "auto-mask-v5",
       "module": "toolchain",
       "craft": "角色",

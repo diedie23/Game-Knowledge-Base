@@ -206,6 +206,7 @@
           "name": "桌面工具 & 引擎直连",
           "icon": "🖥️",
           "items": [
+            { "id": "auto-mask-v6-desktop", "icon": "🖥️", "title": "自动 Mask v6.0 (桌面版)", "type": "iframe", "file": "knowledge-base/auto-mask-v6-desktop.html", "badge": "角色", "download": "downloads/AutoMaskGenerator-v6.0.0-Portable.exe", "craft": "角色" },
             { "id": "image-skew-corrector", "icon": "📐", "title": "图片倾斜矫正 (桌面版)", "type": "iframe", "file": "knowledge-base/image-skew-corrector.html", "badge": "UI", "download": "downloads/ImageSkewCorrector.exe", "craft": "UI" },
             { "id": "game-resource-toolkit", "icon": "🛠️", "title": "游戏资源工具集 (桌面版)", "type": "iframe", "file": "knowledge-base/game-resource-toolkit.html", "badge": "UI", "download": "downloads/GameResourceToolkit.exe", "craft": "UI" },
             { "id": "engine-bridge", "icon": "🔌", "title": "Engine Bridge 引擎直连", "type": "iframe", "file": "knowledge-base/engine-bridge.html", "badge": "技术", "craft": "技术" }
