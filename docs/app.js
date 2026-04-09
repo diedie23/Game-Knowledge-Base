@@ -480,16 +480,7 @@ function getOrCreateDocPage(pageId){
   pg=document.createElement('div');
   pg.id='page-'+pageId;
   pg.className='doc-page';
-  var reg=pageRegistry[pageId]||{};
-  var isEditable=reg.type==='md';
-  var toolbar='';
-  if(isEditable){
-    toolbar='<div class="doc-toolbar"><span class="doc-toolbar-title">📄 '+((reg.file||'').split('/').pop()||'')+'</span><div class="doc-toolbar-actions">'
-      +'<button class="dt-btn" onclick="editDocument(\''+pageId+'\')">✏️ 编辑</button>'
-      +'<button class="dt-btn dt-btn-danger" onclick="confirmDeleteDocument(\''+pageId+'\')">🗑️ 删除</button>'
-      +'</div></div>';
-  }
-  // 责任人 & 更新日期
+  // 责任人 & 更新日期（编辑/删除按钮已统一移至顶部 detailMetaBar，此处不再重复渲染）
   var meta=getItemMeta(pageId);
   var metaHtml='';
   if(meta){
@@ -504,7 +495,7 @@ function getOrCreateDocPage(pageId){
     +'<div class="interaction-section"><div class="interaction-header"><span>💬 评论与反馈</span><button class="interaction-btn" disabled>展开评论</button></div>'
     +'<div class="interaction-body"><p class="interaction-hint">此处将支持团队成员对文档发起讨论、提出建议或标记问题。</p></div></div>'
     +'</div>';
-  pg.innerHTML=toolbar+metaHtml+'<div class="dc" id="ct-'+pageId+'"></div>'+interactionHtml;
+  pg.innerHTML=metaHtml+'<div class="dc" id="ct-'+pageId+'"></div>'+interactionHtml;
   document.getElementById('contentScroll').appendChild(pg);
   return pg;
 }
@@ -1396,8 +1387,8 @@ function updateBreadcrumb(pageId){
   }
 
   var crumbs=['<a class="bc-link" onclick="navigate(\'home\')">🏠 APM 知识库</a>'];
-  if(reg.catName) crumbs.push('<span class="bc-sep">›</span><span class="bc-text">'+reg.catName+'</span>');
-  if(reg.grpName) crumbs.push('<span class="bc-sep">›</span><span class="bc-text">'+reg.grpName+'</span>');
+  if(reg.catName) crumbs.push('<span class="bc-sep">›</span><a class="bc-link" onclick="breadcrumbNavCat(\''+reg.catName.replace(/'/g,"\\'")+'\')">'+reg.catName+'</a>');
+  if(reg.grpName) crumbs.push('<span class="bc-sep">›</span><a class="bc-link" onclick="breadcrumbNavGrp(\''+reg.grpName.replace(/'/g,"\\'")+'\')">'+reg.grpName+'</a>');
 
   // 找到叶节点 title
   var leafTitle=pageId;
@@ -2064,10 +2055,11 @@ function updateDetailMetaBar(pageId){
   }
   // 快捷操作
   html+='<span class="dm-actions">';
-  // 需求3+4：仅普通文档页面显示编辑模式按钮（MD 或 HTML iframe 文档）
+  // 仅普通文档页面显示编辑模式按钮（MD 或 HTML iframe 文档）
   if(!isToolPage){
     if(reg.type==='md'){
       html+='<button class="dm-btn dm-btn-edit" onclick="editDocument(\''+pageId+'\')" title="编辑模式">✏️ 编辑模式</button>';
+      html+='<button class="dm-btn dm-btn-danger" onclick="confirmDeleteDocument(\''+pageId+'\')" title="删除文档">🗑️ 删除</button>';
     } else if(reg.type==='iframe'&&reg.file){
       html+='<button class="dm-btn dm-btn-edit" onclick="enterIframeEditMode(\''+pageId+'\')" title="编辑模式">✏️ 编辑模式</button>';
     }
@@ -2183,8 +2175,153 @@ function toggleMermaidSection(){
   }
 }
 
+// ═══ 优化A：图片灯箱效果 (Lightbox) — 点击放大 + 滚轮缩放 + 拖拽平移 ═══
+var lightboxScale=1;
+var lightboxDrag={active:false,startX:0,startY:0,tx:0,ty:0};
+function initLightbox(){
+  // 创建灯箱 DOM
+  var overlay=document.createElement('div');
+  overlay.id='lightboxOverlay';
+  overlay.className='lb-overlay';
+  overlay.innerHTML='<img id="lightboxImg" class="lb-img" draggable="false"><div class="lb-close" id="lightboxClose">✕</div><div class="lb-hint">滚轮缩放 · 拖拽平移 · 点击空白关闭</div>';
+  document.body.appendChild(overlay);
+
+  var img=document.getElementById('lightboxImg');
+  var closeBtn=document.getElementById('lightboxClose');
+
+  // 关闭灯箱
+  function closeLightbox(){
+    overlay.classList.remove('show');
+    lightboxScale=1;
+    lightboxDrag={active:false,startX:0,startY:0,tx:0,ty:0};
+    img.style.transform='scale(1) translate(0,0)';
+  }
+  overlay.addEventListener('click',function(e){if(e.target===overlay) closeLightbox();});
+  closeBtn.addEventListener('click',closeLightbox);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&overlay.classList.contains('show')) closeLightbox();});
+
+  // 滚轮缩放
+  overlay.addEventListener('wheel',function(e){
+    e.preventDefault();
+    var delta=e.deltaY>0?-0.15:0.15;
+    lightboxScale=Math.max(0.2,Math.min(8,lightboxScale+delta));
+    img.style.transform='scale('+lightboxScale+') translate('+lightboxDrag.tx+'px,'+lightboxDrag.ty+'px)';
+  },{passive:false});
+
+  // 拖拽平移
+  img.addEventListener('mousedown',function(e){
+    e.preventDefault();
+    lightboxDrag.active=true;
+    lightboxDrag.startX=e.clientX-lightboxDrag.tx;
+    lightboxDrag.startY=e.clientY-lightboxDrag.ty;
+    img.style.cursor='grabbing';
+  });
+  overlay.addEventListener('mousemove',function(e){
+    if(!lightboxDrag.active) return;
+    lightboxDrag.tx=e.clientX-lightboxDrag.startX;
+    lightboxDrag.ty=e.clientY-lightboxDrag.startY;
+    img.style.transform='scale('+lightboxScale+') translate('+lightboxDrag.tx+'px,'+lightboxDrag.ty+'px)';
+  });
+  overlay.addEventListener('mouseup',function(){lightboxDrag.active=false;img.style.cursor='grab';});
+
+  // 事件委托：点击文档区域的图片触发灯箱
+  document.getElementById('contentScroll').addEventListener('click',function(e){
+    if(e.target.tagName==='IMG'&&!e.target.closest('.home-hero')&&!e.target.closest('.role-card')&&e.target.naturalWidth>100){
+      img.src=e.target.src;
+      lightboxScale=1;
+      lightboxDrag={active:false,startX:0,startY:0,tx:0,ty:0};
+      img.style.transform='scale(1) translate(0,0)';
+      overlay.classList.add('show');
+    }
+  });
+
+  // iframe 内图片灯箱支持
+  window.addEventListener('message',function(e){
+    if(e.data&&e.data.type==='lightbox-open'&&e.data.src){
+      img.src=e.data.src;
+      lightboxScale=1;
+      lightboxDrag={active:false,startX:0,startY:0,tx:0,ty:0};
+      img.style.transform='scale(1) translate(0,0)';
+      overlay.classList.add('show');
+    }
+  });
+}
+
+// ═══ 优化C：侧边栏折叠 / 沉浸式阅读模式 ═══
+var sidebarCollapsed=false;
+function toggleSidebarCollapse(){
+  var sidebar=document.querySelector('.sidebar');
+  var main=document.querySelector('.main');
+  var btn=document.getElementById('sidebarCollapseBtn');
+  if(!sidebar||!main) return;
+  sidebarCollapsed=!sidebarCollapsed;
+  if(sidebarCollapsed){
+    sidebar.classList.add('sidebar-collapsed');
+    main.classList.add('main-expanded');
+    if(btn) btn.innerHTML='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    if(btn) btn.title='展开侧边栏';
+  } else {
+    sidebar.classList.remove('sidebar-collapsed');
+    main.classList.remove('main-expanded');
+    if(btn) btn.innerHTML='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    if(btn) btn.title='收起侧边栏';
+  }
+}
+function injectSidebarToggle(){
+  var header=document.querySelector('.sidebar-header');
+  if(!header) return;
+  var btn=document.createElement('button');
+  btn.id='sidebarCollapseBtn';
+  btn.className='sidebar-collapse-btn';
+  btn.title='收起侧边栏';
+  btn.innerHTML='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  btn.onclick=toggleSidebarCollapse;
+  header.style.position='relative';
+  header.appendChild(btn);
+}
+
+// ═══ 优化E：面包屑导航 — 点击分类/分组跳回首页并展开对应目录 ═══
+function breadcrumbNavCat(catName){
+  navigate('home');
+  // 延迟执行，等待首页渲染
+  setTimeout(function(){
+    var cats=document.querySelectorAll('#sidebarNav .t1');
+    cats.forEach(function(el){
+      var label=el.querySelector('.t1-h .cl');
+      if(label&&label.textContent.trim()===catName){
+        if(!el.classList.contains('open')) el.querySelector('.t1-h').click();
+        el.scrollIntoView({behavior:'smooth',block:'center'});
+      }
+    });
+  },150);
+}
+function breadcrumbNavGrp(grpName){
+  navigate('home');
+  setTimeout(function(){
+    // 先展开所有一级，然后找到匹配的二级
+    var groups=document.querySelectorAll('#sidebarNav .t2');
+    groups.forEach(function(el){
+      var label=el.querySelector('.t2-h .sl');
+      if(label&&label.textContent.trim()===grpName){
+        // 确保父级一级已展开
+        var parent=el.closest('.t1');
+        if(parent&&!parent.classList.contains('open')){
+          parent.querySelector('.t1-h').click();
+        }
+        setTimeout(function(){
+          if(!el.classList.contains('open')) el.querySelector('.t2-h').click();
+          el.scrollIntoView({behavior:'smooth',block:'center'});
+        },100);
+      }
+    });
+  },150);
+}
+
 // ═══ Init ═══
 document.addEventListener('DOMContentLoaded', function(){
+  // 0. 初始化交互增强模块
+  initLightbox();
+  injectSidebarToggle();
   // 1. 从 sidebar.json 构建侧边栏
   fetch('sidebar.json').then(function(r){return r.json();}).then(function(data){
     buildSidebar(data);
