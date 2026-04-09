@@ -1,0 +1,57 @@
+{
+  "name": "auto-mask-generator",
+  "version": "6.0.0",
+  "description": "自动 Mask 通道生成器 v6.0 — 桌面独立版",
+  "author": {
+    "name": "Art Pipeline Team",
+    "email": "art-pipeline@studio.com"
+  },
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder --win",
+    "build:portable": "electron-builder --win portable",
+    "build:nsis": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.studio.auto-mask-generator",
+    "productName": "Auto Mask Generator",
+    "copyright": "Copyright © 2026 Art Pipeline Team. All rights reserved.",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "app/**/*"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "AutoMaskGenerator-v${version}-Portable.${ext}"
+    },
+    "portable": {
+      "artifactName": "AutoMaskGenerator-v${version}-Portable.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "AutoMaskGenerator-v${version}-Setup.${ext}",
+      "shortcutName": "Auto Mask Generator",
+      "menuCategory": "Art Tools"
+    },
+    "extraMetadata": {
+      "main": "main.js"
+    }
+  }
+}
