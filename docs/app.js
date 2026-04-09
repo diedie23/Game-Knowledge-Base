@@ -837,13 +837,24 @@ function submitFeedback(){
   showToast('✅ 感谢反馈！');
 }
 
-// ═══ ScrollSpy (h2 + h3 + h4) ═══
+// ═══ ScrollSpy (h2 + h3 + h4) + 返回顶部按钮 ═══
 var iframeScrollHandler=null;
 
 function setupScrollSpy(){
   var scrollEl=document.getElementById('contentScroll');
+  var btt=document.getElementById('backToTop');
+  if(!scrollEl||!btt) return;
+
+  // ★★★ 核心滚动监听 — 绑定到实际滚动容器 #contentScroll ★★★
   scrollEl.addEventListener('scroll',function(){
-    document.getElementById('backToTop').classList.toggle('show',scrollEl.scrollTop>300);
+    // 1. 返回顶部按钮的显示/隐藏
+    var st=scrollEl.scrollTop;
+    if(st>300){
+      btt.classList.add('show');
+    } else {
+      btt.classList.remove('show');
+    }
+    // 2. TOC 高亮（仅在文档详情页）
     var activePage=document.querySelector('.doc-page.active');
     if(!activePage) return;
     var hs=activePage.querySelectorAll('h2, h3, h4');
@@ -853,6 +864,19 @@ function setupScrollSpy(){
     hs.forEach(function(h,i){if(h.getBoundingClientRect().top<120) activeIdx=i;});
     var activeId=hs[activeIdx].getAttribute('id')||'';
     tocBtns.forEach(function(btn){btn.classList.toggle('active',btn.getAttribute('data-anchor')===activeId);});
+  });
+
+  // ★★★ 返回顶部按钮点击事件 — 智能区分 iframe / contentScroll ★★★
+  btt.addEventListener('click',function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    if(btt._iframeMode && btt._iframeScrollTo){
+      // iframe 模式：滚动 iframe 内容
+      try{ btt._iframeScrollTo(); }catch(err){}
+    } else {
+      // 普通模式：滚动 #contentScroll
+      scrollEl.scrollTo({top:0,behavior:'smooth'});
+    }
   });
 }
 
@@ -892,10 +916,16 @@ function setupIframeBackToTop(){
     var win=frame.contentWindow||frame.contentDocument.defaultView;
     iframeBttHandler=function(){
       var st=win.pageYOffset||win.document.documentElement.scrollTop||0;
-      btt.classList.toggle('show',st>300);
+      if(st>300){
+        btt.classList.add('show');
+      } else {
+        btt.classList.remove('show');
+      }
     };
     win.addEventListener('scroll',iframeBttHandler);
-    btt.onclick=function(){win.scrollTo({top:0,behavior:'smooth'});};
+    // ★★★ iframe 模式下：标记按钮为 iframe 模式，并用专属 onclick 覆盖 ★★★
+    btt._iframeMode = true;
+    btt._iframeScrollTo = function(){win.scrollTo({top:0,behavior:'smooth'});};
   }catch(e){}
 }
 function clearIframeBtt(){
@@ -903,8 +933,10 @@ function clearIframeBtt(){
     try{var frame=document.getElementById('contentFrame');(frame.contentWindow||frame.contentDocument.defaultView).removeEventListener('scroll',iframeBttHandler);}catch(e){}
     iframeBttHandler=null;
   }
+  // ★★★ 不再覆盖 btt.onclick — 因为 setupScrollSpy 已通过 addEventListener 绑定 ★★★
+  // 只需要移除 iframe 的特殊 onclick 并让 contentScroll 的 scroll 事件接管即可
   var btt=document.getElementById('backToTop');
-  btt.onclick=function(){document.getElementById('contentScroll').scrollTo({top:0,behavior:'smooth'});};
+  btt._iframeMode = false;
 }
 
 // ═══ 创作模式 — Vditor 编辑器 ═══
@@ -1859,6 +1891,39 @@ function toggleModuleSection(headerEl){
     section.classList.add('collapsed');
     body.style.maxHeight = '0';
     body.style.opacity = '0';
+  }
+}
+
+// ═══ Mermaid 可视化图折叠/展开 ═══
+var mermaidCollapsed = false;
+function toggleMermaidSection(){
+  var body = document.getElementById('mermaidBody');
+  var chevron = document.getElementById('mermaidChevron');
+  if(!body) return;
+
+  mermaidCollapsed = !mermaidCollapsed;
+
+  if(mermaidCollapsed){
+    // 折叠
+    body.style.maxHeight = body.scrollHeight + 'px';
+    body.offsetHeight; // 强制回流
+    body.style.overflow = 'hidden';
+    body.style.maxHeight = '0';
+    body.style.opacity = '0';
+    if(chevron) chevron.style.transform = 'rotate(-90deg)';
+  } else {
+    // 展开
+    body.style.maxHeight = body.scrollHeight + 'px';
+    body.style.opacity = '1';
+    body.style.overflow = 'hidden';
+    if(chevron) chevron.style.transform = 'rotate(0deg)';
+    var onEnd = function(e){
+      if(e.target !== body) return;
+      body.style.maxHeight = 'none';
+      body.style.overflow = '';
+      body.removeEventListener('transitionend', onEnd);
+    };
+    body.addEventListener('transitionend', onEnd);
   }
 }
 
