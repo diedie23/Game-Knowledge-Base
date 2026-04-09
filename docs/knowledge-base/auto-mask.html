@@ -662,5 +662,6 @@ function setStp(n){document.querySelectorAll('.stp').forEach(function(s){var d=+
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
 function rgb2hex(a){return'#'+a.map(function(v){return v.toString(16).padStart(2,'0')}).join('')}
 </script>
+<script src="editor-kit.js"></script>
 </body>
 </html>

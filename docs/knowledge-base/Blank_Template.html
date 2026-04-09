@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新建文档 — APM 知识库模板</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--pink:#f472b6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1400px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.doc-header h1 .ver{font-size:12px;background:var(--accent);color:#fff;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+.badge{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;padding:4px 14px;border-radius:16px;font-size:11px;font-weight:600;margin-top:12px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:8px}
+.section h3{font-size:15px;color:var(--heading);margin:20px 0 8px;font-weight:600}
+.section p,.section li{font-size:15px;margin-bottom:8px;line-height:1.8}
+.section ul,.section ol{padding-left:20px;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.rv{color:var(--red);font-weight:700}.gv{color:var(--green);font-weight:600}.yv{color:var(--yellow);font-weight:600}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:14px;line-height:1.8}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:15px}
+.case{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-bottom:24px;overflow:hidden}
+.case-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.case-body{padding:16px 20px;font-size:13px;line-height:1.8}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;min-width:90px}
+.flow-node strong{display:block;color:var(--heading);font-size:14px;margin-bottom:2px}
+.flow-arrow{color:var(--accent2);font-size:18px;padding:0 6px;flex-shrink:0}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:16px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:14px;line-height:1.8;padding-left:28px}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+/* ─── 模板提示标记 ─── */
+.tpl-placeholder{color:var(--accent);font-style:italic;opacity:.6}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>📄 在此输入文档标题 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">English Subtitle Here — 副标题（可选）</div>
+  <div class="meta">
+    <span>🎮 项目类型（如：中大型手游）</span>
+    <span>👤 维护人姓名</span>
+    <span>📅 2026-04-09</span>
+  </div>
+  <div class="badge">📌 标签文字（如：美术规范 · 量产期）</div>
+</div>
+
+<div class="alert alert-blue" style="margin-bottom:24px">
+  <strong>📖 使用说明：</strong>这是一个空白模板。点击右上角「✏️ 编辑模式」进入编辑，<strong>直接点击文字即可修改内容</strong>。编辑完成后点击「📄 另存为新文档」输入文件名即可下载一篇全新的文档。
+</div>
+
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ol>
+    <li><a href="#s1">第一章标题</a></li>
+    <li><a href="#s2">第二章标题</a></li>
+    <li><a href="#s3">第三章标题</a></li>
+    <li><a href="#s4">第四章标题</a></li>
+    <li><a href="#s5">FAQ / 常见问题</a></li>
+  </ol>
+</div>
+
+<!-- ═══════ 第一章 ═══════ -->
+<div class="section" id="s1">
+  <h2>📘 第一章标题</h2>
+  <p>在此输入正文内容。支持<strong>加粗</strong>、<code>代码标签</code>等 HTML 格式。</p>
+
+  <h3>1.1 子章节标题</h3>
+  <p>子章节的正文内容……</p>
+
+  <div class="alert alert-yellow">
+    <strong>⚠️ 注意：</strong>在此输入需要重点提醒的内容。还支持 <code>.alert-red</code>（红色警告）、<code>.alert-green</code>（绿色通过）、<code>.alert-blue</code>（蓝色信息）。
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>列标题 A</th><th>列标题 B</th><th>列标题 C</th><th>备注</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>数据 1</td><td>数据 2</td><td>数据 3</td><td>说明文字</td></tr>
+      <tr><td>数据 4</td><td>数据 5</td><td>数据 6</td><td>说明文字</td></tr>
+      <tr><td>数据 7</td><td>数据 8</td><td>数据 9</td><td>说明文字</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════ 第二章 ═══════ -->
+<div class="section" id="s2">
+  <h2>📗 第二章标题</h2>
+  <p>正文内容……</p>
+
+  <ul>
+    <li>要点一：描述内容</li>
+    <li>要点二：描述内容</li>
+    <li>要点三：描述内容</li>
+  </ul>
+
+  <div class="dd-grid">
+    <div class="dd-card dd-do">
+      <h4>✅ 正确做法</h4>
+      <p>描述正确做法的内容……</p>
+    </div>
+    <div class="dd-card dd-dont">
+      <h4>❌ 错误做法</h4>
+      <p>描述常见错误的内容……</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ 第三章 ═══════ -->
+<div class="section" id="s3">
+  <h2>📙 第三章标题</h2>
+  <p>正文内容……</p>
+
+  <!-- 流程示例 -->
+  <div class="flow">
+    <div class="flow-node"><strong>步骤 1</strong><span class="sub">描述</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>步骤 2</strong><span class="sub">描述</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>步骤 3</strong><span class="sub">描述</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>完成</strong><span class="sub">🎯</span></div>
+  </div>
+
+  <!-- 卡片示例 -->
+  <div class="case">
+    <div class="case-head">
+      <span class="title">📋 案例 / 卡片标题</span>
+    </div>
+    <div class="case-body">
+      <p>案例描述内容……可以在这里放详细说明、对比分析等。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ 第四章 ═══════ -->
+<div class="section" id="s4">
+  <h2>📕 第四章标题</h2>
+  <p>正文内容……</p>
+
+  <div class="alert alert-green">
+    <strong>✅ 最佳实践：</strong>在此总结推荐做法。
+  </div>
+
+  <ol>
+    <li><strong>规则一：</strong>描述内容</li>
+    <li><strong>规则二：</strong>描述内容</li>
+    <li><strong>规则三：</strong>描述内容</li>
+  </ol>
+</div>
+
+<!-- ═══════ FAQ ═══════ -->
+<div class="section" id="s5">
+  <h2>❓ FAQ / 常见问题</h2>
+
+  <div class="faq-item">
+    <div class="faq-q">💬 问题一：在此输入问题？</div>
+    <div class="faq-a">答：在此输入答案内容……</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">💬 问题二：在此输入问题？</div>
+    <div class="faq-a">答：在此输入答案内容……</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">💬 问题三：在此输入问题？</div>
+    <div class="faq-a">答：在此输入答案内容……</div>
+  </div>
+</div>
+
+<div class="doc-footer">
+  📄 文档标题 v1.0 · 项目名称 · 2026-04-09
+</div>
+
+</div>
+<script src="editor-kit.js"></script>
+</body>
+</html>

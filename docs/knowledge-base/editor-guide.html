@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>可视化编辑器使用指南 — 零代码更新知识库文档</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--pink:#f472b6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1100px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.doc-header h1 .ver{font-size:12px;background:var(--green);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+.badge{display:inline-block;background:linear-gradient(135deg,var(--green),var(--cyan));color:#000;padding:4px 14px;border-radius:16px;font-size:11px;font-weight:600;margin-top:12px}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--green);display:flex;align-items:center;gap:8px}
+.section h3{font-size:17px;color:var(--heading);margin:20px 0 8px;font-weight:600}
+.section p,.section li{font-size:15px;margin-bottom:8px;line-height:1.8}
+.section ul,.section ol{padding-left:20px;margin-bottom:12px}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+.step-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-bottom:20px;overflow:hidden}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--accent);color:#fff;border-radius:50%;font-size:14px;font-weight:700;flex-shrink:0}
+.step-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;font-size:16px;color:var(--heading);font-weight:600}
+.step-body{padding:16px 20px;font-size:14px;line-height:1.8}
+.step-body p{margin-bottom:8px}
+.kbd{display:inline-block;background:var(--card);border:1px solid var(--border);border-radius:5px;padding:2px 8px;font-size:12px;font-family:'Cascadia Code',monospace;color:var(--heading);margin:0 2px}
+.scenario{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px}
+.scenario-title{font-size:16px;color:var(--heading);font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.scenario ol{padding-left:22px}
+.scenario li{margin-bottom:6px;font-size:14px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(74,222,128,.02)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>✏️ 可视化编辑器使用指南 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Visual Editor Guide — 零代码更新知识库文档</div>
+  <div class="meta">
+    <span>🎯 面向：美术 / 策划 / 所有非技术同学</span>
+    <span>⏱️ 学习时间：3 分钟</span>
+    <span>📅 2026-04-09</span>
+  </div>
+  <div class="badge">🎉 不用写代码 · 所见即所得 · 打开浏览器就能编辑</div>
+</div>
+
+<div class="alert alert-green" style="margin-bottom:24px">
+  <strong>🎯 一句话总结：</strong>用浏览器打开任意知识库文档 → 点右上角「✏️ 编辑模式」→ 直接改文字 → 点「保存」下载文件 → 替换原文件。就这么简单！
+</div>
+
+<!-- ═══════ 基础操作 ═══════ -->
+<div class="section" id="s1">
+  <h2>🔰 基础操作：5 步完成文档修改</h2>
+
+  <div class="step-card">
+    <div class="step-head"><span class="step-num">1</span> 打开文档</div>
+    <div class="step-body">
+      <p>在文件管理器中找到要修改的 <code>.html</code> 文件，<strong>双击打开</strong>（默认会在浏览器中打开）。</p>
+      <p>📍 文档位置：<code>H:\游戏项目知识库\docs\knowledge-base\</code></p>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head"><span class="step-num">2</span> 进入编辑模式</div>
+    <div class="step-body">
+      <p>页面右上角会出现一个 <strong>紫色渐变按钮「✏️ 编辑模式」</strong>，点击它。</p>
+      <p>此时页面顶部会出现提示：<em>📝 编辑模式已开启</em>，并且可编辑区域会显示蓝色虚线边框。</p>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head"><span class="step-num">3</span> 修改内容</div>
+    <div class="step-body">
+      <p><strong>改文字：</strong>直接点击任何有蓝色虚线边框的区域，光标会出现，像在 Word 里一样打字修改。</p>
+      <p><strong>换图片：</strong>双击任何图片，会弹出文件选择框，选择新图片即可替换。</p>
+      <p><strong>改表格：</strong>直接点击表格单元格修改数据。</p>
+      <div class="alert alert-yellow">
+        <strong>⚠️ 注意：</strong>不要尝试删除整个卡片、章节等排版区域 — 系统会自动保护它们不被删除，确保文档结构不会被破坏。你只能修改文字和图片内容。
+      </div>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head"><span class="step-num">4</span> 保存文档</div>
+    <div class="step-body">
+      <p>修改完成后，右上角工具栏有两个保存按钮：</p>
+      <table>
+        <tr>
+          <th>按钮</th><th>作用</th><th>使用场景</th>
+        </tr>
+        <tr>
+          <td><strong>💾 保存并覆盖</strong></td>
+          <td>下载一个与当前文件<strong>同名</strong>的 .html 文件</td>
+          <td>修改旧文档时使用</td>
+        </tr>
+        <tr>
+          <td><strong>📄 另存为新文档</strong></td>
+          <td>弹出输入框，<strong>自定义文件名</strong>后下载</td>
+          <td>基于模板创建新文档时使用</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head"><span class="step-num">5</span> 替换原文件</div>
+    <div class="step-body">
+      <p>下载的文件默认在你的「下载」文件夹中。把它<strong>复制到文档目录并替换原文件</strong>即可：</p>
+      <p>📍 目标路径：<code>H:\游戏项目知识库\docs\knowledge-base\</code></p>
+      <div class="alert alert-blue">
+        <strong>💡 提示：</strong>如果你有 Git 操作权限，替换文件后记得 <code>git add → git commit → git push</code>。如果不会操作 Git，把文件发给知识库管理员即可。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ 两大工作流 ═══════ -->
+<div class="section" id="s2">
+  <h2>📋 两大常用工作流</h2>
+
+  <div class="scenario">
+    <div class="scenario-title">🔧 场景 A：修改一篇旧文档（如更新数据、修正错误）</div>
+    <ol>
+      <li>在文件管理器中双击打开那篇 <code>.html</code> 文件</li>
+      <li>点右上角「✏️ 编辑模式」</li>
+      <li>直接在页面上修改文字内容 / 表格数据</li>
+      <li>点「💾 保存并覆盖」— 浏览器会下载一个同名文件</li>
+      <li>把下载的文件复制到原目录，覆盖原文件</li>
+      <li>完成！ ✅</li>
+    </ol>
+  </div>
+
+  <div class="scenario">
+    <div class="scenario-title">📝 场景 B：基于模板创建一篇全新文档</div>
+    <ol>
+      <li>双击打开 <code>Blank_Template.html</code>（空白模板）</li>
+      <li>点右上角「✏️ 编辑模式」</li>
+      <li>修改标题、正文、表格等所有占位内容为你的实际内容</li>
+      <li>点「📄 另存为新文档」</li>
+      <li>输入文件名（如 <code>11月美术复盘</code>），点确认</li>
+      <li>浏览器会下载 <code>11月美术复盘.html</code></li>
+      <li>把文件放到 <code>knowledge-base</code> 目录即可</li>
+      <li>完成！ ✅ 模板文件不会被修改，下次还能继续用</li>
+    </ol>
+  </div>
+
+  <div class="scenario">
+    <div class="scenario-title">📑 场景 C：复制一篇旧文档的排版，修改为新内容</div>
+    <ol>
+      <li>找到一篇排版你喜欢的现有文档，双击打开</li>
+      <li>点右上角「✏️ 编辑模式」</li>
+      <li>把文字内容改成你的新内容</li>
+      <li>点「📄 另存为新文档」，输入新文件名</li>
+      <li>下载后放到 <code>knowledge-base</code> 目录</li>
+      <li>原文档不会受影响，因为你没有覆盖它 ✅</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ═══════ 快捷键 ═══════ -->
+<div class="section" id="s3">
+  <h2>⌨️ 快捷键速查</h2>
+  <table>
+    <tr><th>快捷键</th><th>功能</th></tr>
+    <tr><td><span class="kbd">Ctrl</span> + <span class="kbd">S</span></td><td>保存并覆盖（下载同名文件）</td></tr>
+    <tr><td><span class="kbd">Ctrl</span> + <span class="kbd">Shift</span> + <span class="kbd">S</span></td><td>另存为新文档</td></tr>
+    <tr><td><span class="kbd">Esc</span></td><td>退出编辑模式</td></tr>
+    <tr><td><span class="kbd">Ctrl</span> + <span class="kbd">Z</span></td><td>撤销（浏览器原生撤销）</td></tr>
+    <tr><td><span class="kbd">Ctrl</span> + <span class="kbd">B</span></td><td>加粗选中文字</td></tr>
+    <tr><td><span class="kbd">Ctrl</span> + <span class="kbd">I</span></td><td>斜体选中文字</td></tr>
+  </table>
+</div>
+
+<!-- ═══════ 常见问题 ═══════ -->
+<div class="section" id="s4">
+  <h2>❓ 常见问题</h2>
+
+  <div class="step-card">
+    <div class="step-head">Q：我不小心删掉了一大段内容怎么办？</div>
+    <div class="step-body">
+      <p>别慌！有两个方法：</p>
+      <ul>
+        <li><strong>方法一：</strong>按 <span class="kbd">Ctrl</span> + <span class="kbd">Z</span> 撤销</li>
+        <li><strong>方法二：</strong>点击工具栏的「🗑️ 放弃修改」按钮，会刷新页面恢复到修改前的状态</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head">Q：为什么有些区域我删不掉？</div>
+    <div class="step-body">
+      <p>这是 <strong>防破坏保护机制</strong>。文档的排版骨架（如章节容器、卡片外框、表格行等）被锁定了，防止误操作破坏文档结构。你可以修改里面的文字内容，但不能删除整个结构块。</p>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head">Q：我想增加一个新章节怎么办？</div>
+    <div class="step-body">
+      <p>目前可视化编辑器主要支持 <strong>修改已有内容</strong>。如果需要增加新章节或复杂排版，建议：</p>
+      <ul>
+        <li>找到一篇有类似结构的文档作为参考</li>
+        <li>联系知识库管理员帮忙添加新的章节结构</li>
+        <li>或者让管理员提供一个包含更多章节的模板</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head">Q：下载的文件在哪里？</div>
+    <div class="step-body">
+      <p>和你平时浏览器下载的文件位置一样，通常在 <code>C:\Users\你的用户名\Downloads</code> 文件夹中。</p>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head">Q：我看不到右上角的编辑按钮？</div>
+    <div class="step-body">
+      <p>请确认文档末尾是否包含这行代码：<code>&lt;script src="editor-kit.js"&gt;&lt;/script&gt;</code>。如果没有，说明该文档还未接入编辑器，请联系管理员。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ 管理员指南 ═══════ -->
+<div class="section" id="s5">
+  <h2>🔧 管理员指南（给维护知识库的同学看）</h2>
+
+  <h3>如何为新文档接入编辑器</h3>
+  <p>只需在任意 <code>.html</code> 文档的 <code>&lt;/body&gt;</code> 标签前加一行：</p>
+  <pre><code>&lt;script src="editor-kit.js"&gt;&lt;/script&gt;</code></pre>
+
+  <div class="alert alert-blue">
+    <strong>💡 注意：</strong><code>editor-kit.js</code> 文件需要和文档在<strong>同一目录</strong>下（即 <code>knowledge-base/</code> 目录）。如果文档在子目录中，路径需要相应调整，如 <code>&lt;script src="../editor-kit.js"&gt;&lt;/script&gt;</code>。
+  </div>
+
+  <h3>如何制作自定义模板</h3>
+  <ol>
+    <li>复制一份 <code>Blank_Template.html</code> 或任意现有文档</li>
+    <li>修改标题为模板名（如「月度复盘模板」）</li>
+    <li>把正文内容改为占位提示（如"在此输入复盘总结…"）</li>
+    <li>确保文件末尾有 <code>&lt;script src="editor-kit.js"&gt;&lt;/script&gt;</code></li>
+    <li>保存即可。团队成员打开后「另存为新文档」就能基于此模板创建</li>
+  </ol>
+
+  <h3>编辑器文件清单</h3>
+  <table>
+    <tr><th>文件</th><th>说明</th></tr>
+    <tr><td><code>editor-kit.js</code></td><td>编辑器核心脚本（约 10KB）—— 所有文档共享这一个文件</td></tr>
+    <tr><td><code>Blank_Template.html</code></td><td>通用空白文档模板 —— 已预装编辑器</td></tr>
+    <tr><td><code>editor-guide.html</code></td><td>本使用指南（你正在看的这篇）</td></tr>
+  </table>
+</div>
+
+<div class="doc-footer">
+  ✏️ 可视化编辑器使用指南 v1.0 · APM 知识库 · 2026-04-09
+</div>
+
+</div>
+<script src="editor-kit.js"></script>
+</body>
+</html>
