@@ -597,23 +597,7 @@
       "priority": "high",
       "is_hot": false
     },
-    {
-      "id": "auto-mask",
-      "module": "toolchain",
-      "craft": "角色",
-      "type": "tool",
-      "title": "自动 Mask 生成器",
-      "desc": "LAB 色彩空间聚类，一键生成换色遮罩图",
-      "tags": ["在线工具","自动验算","RGBA"],
-      "icon": "🤖",
-      "action": "openTool",
-      "path": "knowledge-base/auto-mask.html",
-      "owner": "王五",
-      "last_updated": "2026-04-02",
-      "applicable_stage": "量产期",
-      "priority": "medium",
-      "is_hot": false
-    },
+
     {
       "id": "auto-mask-v6",
       "module": "toolchain",
@@ -649,23 +633,7 @@
       "priority": "high",
       "is_hot": true
     },
-    {
-      "id": "auto-mask-v5",
-      "module": "toolchain",
-      "craft": "角色",
-      "type": "tool",
-      "title": "自动 Mask 生成器 v5.0",
-      "desc": "动态多通道(超越RGBA) · 单通道参数微调(反相/亮度/对比度/Gamma) · 图片裁剪预处理 · 智能拆分导出",
-      "tags": ["在线工具","多通道","参数微调","裁剪","Float32","智能拆分"],
-      "icon": "🚀",
-      "action": "openTool",
-      "path": "knowledge-base/auto-mask-v5.html",
-      "owner": "王五",
-      "last_updated": "2026-04-09",
-      "applicable_stage": "量产期",
-      "priority": "high",
-      "is_hot": true
-    },
+
     {
       "id": "editor-guide",
       "module": "toolchain",
@@ -683,23 +651,7 @@
       "priority": "high",
       "is_hot": true
     },
-    {
-      "id": "blank-template",
-      "module": "toolchain",
-      "craft": "通用",
-      "type": "tool",
-      "title": "空白文档模板",
-      "desc": "标准格式空白模板 · 编辑后另存为即可创建新文档 · 暗色主题 · 完整排版骨架",
-      "tags": ["模板","新建文档","快速创建"],
-      "icon": "📄",
-      "action": "openTool",
-      "path": "knowledge-base/Blank_Template.html",
-      "owner": "管理员",
-      "last_updated": "2026-04-09",
-      "applicable_stage": "全阶段",
-      "priority": "medium",
-      "is_hot": false
-    },
+
     {
       "id": "mask-tool",
       "module": "toolchain",

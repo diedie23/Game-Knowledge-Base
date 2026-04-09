@@ -65,10 +65,17 @@
       <div class="eh-actions">
         <select id="editorTemplate" class="eh-select" onchange="applyTemplate(this.value)">
           <option value="">📋 插入模板...</option>
-          <option value="art-req">美术需求单</option>
-          <option value="bug-review">Bug 复盘模板</option>
-          <option value="flow-spec">流程规范模板</option>
-          <option value="tool-doc">工具说明文档</option>
+          <optgroup label="Markdown 模板">
+            <option value="art-req">美术需求单</option>
+            <option value="bug-review">Bug 复盘模板</option>
+            <option value="flow-spec">流程规范模板</option>
+            <option value="tool-doc">工具说明文档</option>
+          </optgroup>
+          <optgroup label="HTML 文档模板">
+            <option value="html-standard">标准规范模板</option>
+            <option value="html-richtext">图文混排模板</option>
+            <option value="html-kanban">项目看板模板</option>
+          </optgroup>
         </select>
         <button class="eh-btn" onclick="downloadMd()">⬇ 下载 MD</button>
         <button class="eh-btn eh-btn-primary" onclick="showPublishDialog()">🚀 发布到仓库</button>

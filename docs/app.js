@@ -55,15 +55,12 @@ var activeTagFilter='';  // 当前标签过滤关键词
 
 // 工具页数据（嵌入式工具的详细信息卡片）
 var toolData={
-  'auto-mask':{icon:'🤖',iconBg:'var(--green-bg)',name:'自动 Mask 通道生成器',ver:'v4.0',status:'online',subtitle:'RGBA 四通道 · HSV 色相识别 · 手动修正笔 · Float32 精度',desc:'在原图上吸色→HSV色相匹配→RGBA四通道分配→手动画笔微调→32位PNG导出。支持A通道三种模式（吸色/原Alpha/描边）、反选、色彩锁定。',tags:['在线工具','RGBA四通道','HSV色相','手动修正笔','Float32精度'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-02',url:'knowledge-base/auto-mask.html'},
   'auto-mask-v6':{icon:'🤖',iconBg:'var(--cyan-bg)',name:'自动 Mask 生成器',ver:'v6.0',status:'online',subtitle:'傻瓜式预设 · 智能分析 · 放大镜 · 边缘净化 · 撤销重做 · TGA',desc:'v6.0 重大升级：① 5种一键预设（标准三色/头发眼睛/UI精度/特效/场景物件）② 智能主色调分析（色相分bin）③ 放大镜精准吸色+浮空反馈 ④ 术语大白话Tooltip ⑤ Ctrl+Z撤销/重做 ⑥ 边缘净化（膨胀/腐蚀/羽化/净化画笔）⑦ TGA导出 ⑧ 100%兼容v5工程 ⑨ i18n预留',tags:['在线工具','预设模式','智能分析','放大镜','边缘净化','TGA','撤销重做'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-09',url:'knowledge-base/auto-mask-v6.html'},
   'auto-mask-v6-desktop':{icon:'🖥️',iconBg:'var(--cyan-bg)',name:'自动 Mask 生成器 (桌面版)',ver:'v6.0',status:'online',subtitle:'Windows 独立 exe · 绿色免安装 · 完全离线 · 原生保存 · 多图拖拽',desc:'v6.0 桌面独立版：基于 Electron 打包的 Windows exe，双击即跑。相比 Web 版新增：① 原生文件保存（静默写入指定目录）② 多图拖拽自动分配通道 ③ 保存目录持久记忆 ④ 100% 离线无网可用 ⑤ 自定义 Icon/品牌。所有核心算法与 Web 版完全一致。',tags:['桌面工具','exe下载','离线','原生保存','Electron'],env:'🖥️ Windows 桌面',platform:'Win 10 / 11',install:'免安装 exe',date:'2026-04-09',url:'knowledge-base/auto-mask-v6-desktop.html'},
-  'auto-mask-v5':{icon:'🚀',iconBg:'var(--cyan-bg)',name:'自动 Mask 通道生成器',ver:'v5.0',status:'online',subtitle:'动态多通道 · 参数微调(反相/亮度/对比度/Gamma) · 图片裁剪预处理 · 智能拆分导出',desc:'v5.0 重大升级：① 动态多通道扩展（超越RGBA，添加自定义通道用于多张 Mask 打包）② 单通道参数微调（反相/亮度/对比度/Gamma）③ 图片裁剪与缩放预处理 ④ 超4通道智能拆分多PNG导出 ⑤ 通道槽位支持独立图片拖拽上传。',tags:['在线工具','动态多通道','参数微调','裁剪缩放','Float32精度','智能拆分'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-09',url:'knowledge-base/auto-mask-v5.html'},
   'mask-tool':{icon:'🖌️',iconBg:'var(--orange-bg)',name:'Mask 手动编辑器',ver:'v1.0',status:'online',subtitle:'画笔 / 油漆桶 / 橡皮擦 · 实时四通道预览',desc:'专为 Mask 精修设计的轻量编辑器。导入原图后直接在浏览器中用画笔逐通道绘制或修改，R/G/B/A 四通道独立显示并可实时预览换色效果。',tags:['在线工具','画笔绘制','RGBA预览','所见即所得'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-03-31',url:'knowledge-base/mask-tool.html'},
   'spine-split':{icon:'✂️',iconBg:'var(--purple-bg)',name:'Spine 角色拆分工具',ver:'v3.0',status:'online',subtitle:'自定义模板 · 三点锚点对齐 · 多选镜像 · Alpha收缩',desc:'上传角色原画，选择/自制模板后通过三点锚点对齐自适应不同头身比。支持多选镜像操作、Alpha边缘收缩、拓扑延展，导出 ZIP 包含 Spine JSON。',tags:['在线工具','自定义模板','三点对齐','镜像操作','Alpha收缩'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-02',url:'knowledge-base/spine-split.html'},
   'mask-core-algorithms':{icon:'🧪',iconBg:'var(--accent-bg)',name:'Mask 核心算法演示',ver:'v2.0',status:'online',subtitle:'智能魔棒 Flood Fill · 边缘保护画笔 Sobel · Web Worker 并行',desc:'工业级 Mask 绘制的两大核心算法实现：基于扫描线的非递归 Flood Fill 魔棒（HSV/RGB 容差+高斯羽化），以及 Sobel 边缘检测驱动的自动"不出界"画笔。全部在 Worker 中并行计算。',tags:['在线工具','魔棒','Flood Fill','Sobel','边缘检测','Web Worker','Float32'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-02',url:'knowledge-base/mask-core-algorithms.html'},
-  'editor-guide':{icon:'✏️',iconBg:'var(--green-bg)',name:'可视化编辑器使用指南',ver:'v1.0',status:'online',subtitle:'零代码更新知识库文档 · 所见即所得编辑 · 保存/另存为 · 防破坏保护',desc:'面向非技术同学的知识库文档可视化编辑指南。点击「编辑模式」即可直接修改文字和图片，支持保存覆盖/另存为新文档，排版结构自动保护不会被破坏。',tags:['使用指南','可视化编辑','零代码','模板'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-09',url:'knowledge-base/editor-guide.html'},
-  'blank-template':{icon:'📄',iconBg:'var(--accent-bg)',name:'空白文档模板',ver:'v1.0',status:'online',subtitle:'标准格式空白模板 · 编辑后另存为即可创建新文档',desc:'预设完整排版骨架（标题/目录/章节/表格/FAQ/流程图/卡片等），打开后进入编辑模式修改内容，另存为新文件名即可创建一篇排版精美的新文档。',tags:['模板','新建文档','快速创建'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-09',url:'knowledge-base/Blank_Template.html'}
+  'editor-guide':{icon:'✏️',iconBg:'var(--green-bg)',name:'可视化编辑器使用指南',ver:'v1.0',status:'online',subtitle:'零代码更新知识库文档 · 所见即所得编辑 · 保存/另存为 · 防破坏保护',desc:'面向非技术同学的知识库文档可视化编辑指南。点击「编辑模式」即可直接修改文字和图片，支持保存覆盖/另存为新文档，排版结构自动保护不会被破坏。',tags:['使用指南','可视化编辑','零代码','模板'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-09',url:'knowledge-base/editor-guide.html'}
 };
 
 // ═══ Loading Bar ═══
@@ -958,6 +955,13 @@ var templates={
   'tool-doc':'# 工具说明文档\n\n> 📅 更新时间：YYYY-MM-DD · 🏷️ 工具\n\n---\n\n## 一、工具概述\n\n| 项目 | 内容 |\n|------|------|\n| **工具名称** |  |\n| **版本** | v1.0 |\n| **环境要求** |  |\n\n## 二、安装 / 使用方式\n\n\n\n## 三、功能说明\n\n### 3.1 功能一\n\n\n\n### 3.2 功能二\n\n\n\n## 四、常见问题\n\n| 问题 | 解决方案 |\n|------|----------|\n|  |  |\n\n## 五、更新日志\n\n| 版本 | 日期 | 内容 |\n|------|------|------|\n| v1.0 |  | 初版 |\n'
 };
 
+// HTML 文档模板数据
+var htmlTemplates={
+  'html-standard':'<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>标准规范文档</title>\n<style>\n  *{margin:0;padding:0;box-sizing:border-box}\n  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#1a1a2e;color:#e0e0e0;padding:40px;line-height:1.8}\n  .container{max-width:960px;margin:0 auto;background:#16213e;border-radius:12px;padding:48px;box-shadow:0 4px 24px rgba(0,0,0,.3)}\n  h1{font-size:28px;color:#64ffda;border-bottom:2px solid #64ffda33;padding-bottom:12px;margin-bottom:24px}\n  h2{font-size:20px;color:#82b1ff;margin:32px 0 16px;padding-left:12px;border-left:3px solid #82b1ff}\n  h3{font-size:16px;color:#c3cfe2;margin:20px 0 10px}\n  p{margin:10px 0;color:#b0bec5}\n  table{width:100%;border-collapse:collapse;margin:16px 0}\n  th,td{border:1px solid #2a3a5c;padding:10px 14px;text-align:left}\n  th{background:#1a2744;color:#82b1ff;font-weight:600}\n  td{color:#b0bec5}\n  .meta-bar{display:flex;gap:16px;margin-bottom:24px;font-size:13px;color:#78909c}\n  .tag{display:inline-block;background:#64ffda22;color:#64ffda;padding:2px 10px;border-radius:4px;font-size:12px;margin-right:6px}\n  .note{background:#263238;border-left:3px solid #ffc107;padding:12px 16px;border-radius:6px;margin:16px 0;font-size:14px;color:#ffecb3}\n</style>\n</head>\n<body>\n<div class="container">\n  <h1>📋 文档标题</h1>\n  <div class="meta-bar">\n    <span>📅 更新时间：YYYY-MM-DD</span>\n    <span>👤 作者：XXX</span>\n    <span class="tag">规范</span>\n  </div>\n  <h2>一、概述</h2>\n  <p>在此输入文档概述内容...</p>\n  <h2>二、详细说明</h2>\n  <h3>2.1 章节一</h3>\n  <p>章节内容...</p>\n  <table>\n    <tr><th>项目</th><th>内容</th><th>备注</th></tr>\n    <tr><td>-</td><td>-</td><td>-</td></tr>\n  </table>\n  <h3>2.2 章节二</h3>\n  <p>章节内容...</p>\n  <div class="note">💡 提示：这是一个提示框，用于标注重要信息。</div>\n  <h2>三、总结</h2>\n  <p>总结内容...</p>\n</div>\n</body>\n</html>',
+  'html-richtext':'<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>图文混排文档</title>\n<style>\n  *{margin:0;padding:0;box-sizing:border-box}\n  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f0f23;color:#e0e0e0;padding:40px;line-height:1.8}\n  .container{max-width:1000px;margin:0 auto}\n  .hero{background:linear-gradient(135deg,#1a1a3e,#2d1b69);border-radius:16px;padding:48px;margin-bottom:32px;text-align:center}\n  .hero h1{font-size:32px;color:#fff;margin-bottom:12px}\n  .hero p{color:#b39ddb;font-size:16px}\n  .content-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px}\n  .card{background:#1a1a2e;border-radius:12px;padding:24px;border:1px solid #2a2a4a}\n  .card h3{color:#82b1ff;margin-bottom:12px;font-size:18px}\n  .card p{color:#b0bec5;font-size:14px}\n  .card .img-placeholder{width:100%;height:180px;background:#2a2a4a;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#546e7a;margin-bottom:12px;font-size:14px}\n  .full-width{grid-column:1/-1}\n  .section{background:#1a1a2e;border-radius:12px;padding:32px;margin-bottom:24px;border:1px solid #2a2a4a}\n  .section h2{color:#64ffda;font-size:22px;margin-bottom:16px}\n  .section p{color:#b0bec5}\n  .steps{display:flex;gap:16px;margin:20px 0}\n  .step{flex:1;background:#16213e;border-radius:8px;padding:16px;text-align:center}\n  .step-num{display:inline-block;width:32px;height:32px;line-height:32px;background:#64ffda;color:#0f0f23;border-radius:50%;font-weight:700;margin-bottom:8px}\n  .step p{font-size:13px;color:#90a4ae}\n</style>\n</head>\n<body>\n<div class="container">\n  <div class="hero">\n    <h1>🎨 图文混排文档标题</h1>\n    <p>在此输入副标题或简介描述</p>\n  </div>\n  <div class="content-grid">\n    <div class="card">\n      <div class="img-placeholder">🖼️ 拖拽或粘贴图片至此</div>\n      <h3>模块一标题</h3>\n      <p>图文说明内容，支持在编辑模式下直接修改文字和替换图片。</p>\n    </div>\n    <div class="card">\n      <div class="img-placeholder">🖼️ 拖拽或粘贴图片至此</div>\n      <h3>模块二标题</h3>\n      <p>图文说明内容，支持在编辑模式下直接修改文字和替换图片。</p>\n    </div>\n    <div class="card full-width">\n      <h3>📊 数据展示区</h3>\n      <div class="steps">\n        <div class="step"><div class="step-num">1</div><p>第一步说明</p></div>\n        <div class="step"><div class="step-num">2</div><p>第二步说明</p></div>\n        <div class="step"><div class="step-num">3</div><p>第三步说明</p></div>\n        <div class="step"><div class="step-num">4</div><p>第四步说明</p></div>\n      </div>\n    </div>\n  </div>\n  <div class="section">\n    <h2>详细说明</h2>\n    <p>在此编写详细的图文内容...</p>\n  </div>\n</div>\n</body>\n</html>',
+  'html-kanban':'<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>项目看板文档</title>\n<style>\n  *{margin:0;padding:0;box-sizing:border-box}\n  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0d1117;color:#e0e0e0;padding:40px;line-height:1.7}\n  .container{max-width:1100px;margin:0 auto}\n  h1{font-size:26px;color:#58a6ff;margin-bottom:8px}\n  .subtitle{color:#8b949e;margin-bottom:32px;font-size:14px}\n  .board{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:32px}\n  .column{background:#161b22;border-radius:12px;padding:16px;border:1px solid #30363d}\n  .column-title{font-size:14px;font-weight:700;padding:8px 12px;border-radius:6px;margin-bottom:12px;text-align:center}\n  .col-todo .column-title{background:#f8514922;color:#f85149}\n  .col-doing .column-title{background:#d29a0022;color:#d29a00}\n  .col-done .column-title{background:#3fb95022;color:#3fb950}\n  .task-card{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;margin-bottom:10px;font-size:13px}\n  .task-card .task-title{font-weight:600;color:#c9d1d9;margin-bottom:6px}\n  .task-card .task-meta{display:flex;justify-content:space-between;font-size:11px;color:#8b949e}\n  .task-card .task-tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;margin-right:4px}\n  .tag-high{background:#f8514933;color:#f85149}\n  .tag-mid{background:#d29a0033;color:#d29a00}\n  .tag-low{background:#3fb95033;color:#3fb950}\n  .summary{background:#161b22;border-radius:12px;padding:24px;border:1px solid #30363d}\n  .summary h2{color:#58a6ff;font-size:18px;margin-bottom:16px}\n  .summary table{width:100%;border-collapse:collapse}\n  .summary th,.summary td{border:1px solid #30363d;padding:8px 12px;text-align:left;font-size:13px}\n  .summary th{background:#0d1117;color:#58a6ff}\n</style>\n</head>\n<body>\n<div class="container">\n  <h1>📋 项目看板</h1>\n  <p class="subtitle">更新时间：YYYY-MM-DD · 负责人：XXX</p>\n  <div class="board">\n    <div class="column col-todo">\n      <div class="column-title">📌 待办 (To Do)</div>\n      <div class="task-card"><div class="task-title">任务名称</div><div class="task-meta"><span><span class="task-tag tag-high">P0</span></span><span>负责人</span></div></div>\n      <div class="task-card"><div class="task-title">任务名称</div><div class="task-meta"><span><span class="task-tag tag-mid">P1</span></span><span>负责人</span></div></div>\n    </div>\n    <div class="column col-doing">\n      <div class="column-title">🔄 进行中 (Doing)</div>\n      <div class="task-card"><div class="task-title">任务名称</div><div class="task-meta"><span><span class="task-tag tag-high">P0</span></span><span>负责人</span></div></div>\n    </div>\n    <div class="column col-done">\n      <div class="column-title">✅ 已完成 (Done)</div>\n      <div class="task-card"><div class="task-title">任务名称</div><div class="task-meta"><span><span class="task-tag tag-low">P2</span></span><span>负责人</span></div></div>\n    </div>\n  </div>\n  <div class="summary">\n    <h2>📊 进度总览</h2>\n    <table>\n      <tr><th>里程碑</th><th>状态</th><th>截止日期</th><th>备注</th></tr>\n      <tr><td>阶段一</td><td>-</td><td>-</td><td>-</td></tr>\n      <tr><td>阶段二</td><td>-</td><td>-</td><td>-</td></tr>\n    </table>\n  </div>\n</div>\n</body>\n</html>'
+};
+
 var editingPageId=null;
 
 function openEditor(existingPageId){
@@ -1020,6 +1024,22 @@ function closeEditor(){
 }
 
 function applyTemplate(key){
+  // HTML 模板处理
+  if(key && htmlTemplates[key]){
+    var htmlContent=htmlTemplates[key];
+    var fileName=getEditorFileName();
+    if(!fileName.endsWith('.html')) fileName+='.html';
+    var blob=new Blob([htmlContent],{type:'text/html;charset=utf-8'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=fileName;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    alert('HTML 模板已下载为「'+fileName+'」，你可以将该文件放入 knowledge-base 目录后在 sidebar.json 中注册。');
+    document.getElementById('editorTemplate').value='';
+    return;
+  }
+  // Markdown 模板处理
   if(!key||!templates[key]) return;
   if(vditorInstance){
     var current=vditorInstance.getValue().trim();
@@ -1081,6 +1101,26 @@ function loadEditorContent(){
 
 function editDocument(pageId){
   openEditor(pageId);
+}
+
+// 从顶部导航栏触发 iframe 内 HTML 文档的编辑模式
+function enterIframeEditMode(pageId){
+  var frame=document.getElementById('contentFrame');
+  if(!frame||!frame.contentWindow) return;
+  try{
+    var iframeDoc=frame.contentDocument||frame.contentWindow.document;
+    // 尝试触发 editor-kit.js 中的 enterEdit 函数
+    if(frame.contentWindow.enterEdit){
+      frame.contentWindow.enterEdit();
+    } else {
+      // 如果没有 editor-kit，尝试点击 iframe 内的编辑按钮
+      var editBtn=iframeDoc.querySelector('.ek-enter-btn');
+      if(editBtn) editBtn.click();
+      else showToast('该文档未启用可视化编辑器');
+    }
+  }catch(e){
+    showToast('无法进入编辑模式（跨域限制）');
+  }
 }
 
 function confirmDeleteDocument(pageId){
@@ -1683,7 +1723,7 @@ var CARD_GRID_MAP = {
   'grid-collab-pain':        { module:'collab', ids:['cross-dept-collab','accident-troubleshoot','cross-dept-communication-tips'] },
   // 板块五：🛠️ 工具链与自动化
   'grid-toolchain-check':    { module:'toolchain', ids:['naming-check-tool'] },
-  'grid-toolchain-art':      { module:'toolchain', ids:['auto-mask','auto-mask-v6','auto-mask-v5','mask-tool','spine-split','mask-core-algorithms','channel-packer','editor-guide','blank-template'] },
+  'grid-toolchain-art':      { module:'toolchain', ids:['auto-mask-v6','mask-tool','spine-split','mask-core-algorithms','channel-packer','editor-guide'] },
   'grid-toolchain-desktop':  { module:'toolchain', ids:['auto-mask-v6-desktop','image-skew-corrector','game-resource-toolkit','engine-bridge'] },
   // 板块六：🛡️ 质量、风险与团队
   'grid-quality-risk':       { module:'quality', ids:['risk-log'] },
@@ -1997,6 +2037,17 @@ function updateDetailMetaBar(pageId){
   if(pageId==='home'){bar.style.display='none';return;}
   var meta=getItemMeta(pageId);
   if(!meta){bar.style.display='none';return;}
+
+  // 判断是否为工具类页面（美术在线工具 / 桌面工具 & 引擎直连）
+  var reg=pageRegistry[pageId]||{};
+  var isToolPage=false;
+  if(reg.grpName){
+    var grp=reg.grpName;
+    if(grp==='美术在线工具'||grp==='桌面工具 & 引擎直连') isToolPage=true;
+  }
+  // toolData 中的页面也视为工具页
+  if(toolData[pageId]) isToolPage=true;
+
   var html='';
   // 阶段标签
   if(meta.applicable_stage){
@@ -2013,6 +2064,14 @@ function updateDetailMetaBar(pageId){
   }
   // 快捷操作
   html+='<span class="dm-actions">';
+  // 需求3+4：仅普通文档页面显示编辑模式按钮（MD 或 HTML iframe 文档）
+  if(!isToolPage){
+    if(reg.type==='md'){
+      html+='<button class="dm-btn dm-btn-edit" onclick="editDocument(\''+pageId+'\')" title="编辑模式">✏️ 编辑模式</button>';
+    } else if(reg.type==='iframe'&&reg.file){
+      html+='<button class="dm-btn dm-btn-edit" onclick="enterIframeEditMode(\''+pageId+'\')" title="编辑模式">✏️ 编辑模式</button>';
+    }
+  }
   html+='<button class="dm-btn" onclick="copyCardLink(\''+pageId+'\')" title="复制链接">📋 复制链接</button>';
   html+='<button class="dm-btn" onclick="navigate(\'home\')" title="返回首页">🏠 返回首页</button>';
   html+='</span>';
