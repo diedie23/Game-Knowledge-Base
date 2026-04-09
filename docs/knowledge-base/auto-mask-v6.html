@@ -36,6 +36,23 @@
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--accent);padding:8px 20px;border-radius:7px;font-size:12px;color:var(--heading);z-index:999;transition:transform .3s;pointer-events:none}.toast.show{transform:translateX(-50%) translateY(0)}
 .ni{padding:4px 8px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:11px;font-family:inherit}.nsm{padding:3px 6px;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:10px}
 .adr{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap}.adc{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:11px;cursor:pointer;transition:all .15s}.adc:hover{border-color:var(--accent)}.adsw{width:24px;height:24px;border-radius:4px;border:1px solid rgba(255,255,255,.15)}
+
+/* ═══ 自定义通道独立卡片 ═══ */
+.custom-ch-add{border:2px dashed var(--accent);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:all .25s;margin:12px 0;background:rgba(108,140,255,.03)}.custom-ch-add:hover{background:rgba(108,140,255,.08);border-color:var(--cyan);transform:translateY(-1px);box-shadow:0 4px 16px rgba(108,140,255,.12)}.custom-ch-add .cca-icon{font-size:28px;display:block;margin-bottom:4px}.custom-ch-add .cca-title{font-size:13px;color:var(--heading);font-weight:700}.custom-ch-add .cca-desc{font-size:10px;color:var(--dim);margin-top:2px}
+.custom-ch-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;position:relative;transition:all .2s}.custom-ch-card:hover{border-color:rgba(108,140,255,.3)}.ccc-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}.ccc-dot{width:16px;height:16px;border-radius:4px;flex-shrink:0;border:1px solid rgba(255,255,255,.15)}.ccc-name{font-size:13px;color:var(--heading);font-weight:700;flex:1}.ccc-badge{font-size:9px;padding:2px 8px;border-radius:8px;background:rgba(167,139,250,.12);color:var(--accent2)}.ccc-del{background:none;border:1px solid var(--border);color:var(--dim);cursor:pointer;padding:4px 10px;border-radius:5px;font-size:10px;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:3px}.ccc-del:hover{border-color:var(--red);color:var(--red);background:rgba(248,113,113,.08)}
+.ccc-preview{border-radius:6px;overflow:hidden;border:1px solid var(--border);background:#111;margin-bottom:8px}.ccc-preview canvas{width:100%;display:block}
+.ccc-picker{display:flex;align-items:center;gap:8px;padding:8px;background:var(--panel);border-radius:6px;margin-bottom:8px}.ccc-swatch{width:32px;height:32px;border-radius:6px;border:1px solid var(--border);background:#444;cursor:crosshair;flex-shrink:0}.ccc-pk-info{flex:1;font-size:10px;color:var(--dim)}.ccc-pk-info b{color:var(--heading)}
+.ccc-controls .pr label{min-width:60px;font-size:10px}.ccc-controls .pr .v{font-size:9px}
+.ccc-regions{margin-top:6px;max-height:120px;overflow-y:auto}.ccc-rg-item{display:flex;align-items:center;gap:4px;padding:4px 6px;background:var(--panel);border:1px solid var(--border);border-radius:4px;font-size:10px;margin-bottom:3px}.ccc-rg-item .rgsw{width:14px;height:14px;border-radius:3px;flex-shrink:0;border:1px solid rgba(255,255,255,.1)}.ccc-rg-item button{background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:1px 3px}.ccc-rg-item button:hover{color:var(--red)}
+
+/* ═══ 精准裁剪弹窗 v2 ═══ */
+.crop-v2-container{position:relative;width:100%;height:480px;overflow:hidden;border-radius:8px;border:1px solid var(--border);background:repeating-conic-gradient(#1a1c28 0% 25%,#15171f 0% 50%) 50%/16px 16px;cursor:grab;margin-bottom:12px;user-select:none}.crop-v2-container:active{cursor:grabbing}
+.crop-v2-canvas{position:absolute;top:0;left:0;image-rendering:pixelated}
+.crop-v2-sel{position:absolute;border:2px solid var(--cyan);background:rgba(34,211,238,.05);cursor:move;box-shadow:0 0 0 9999px rgba(0,0,0,.6);z-index:10}
+.crop-v2-handle{position:absolute;width:12px;height:12px;background:var(--cyan);border-radius:2px;border:1.5px solid #fff;z-index:15}.crop-v2-handle.tl{top:-6px;left:-6px;cursor:nw-resize}.crop-v2-handle.tr{top:-6px;right:-6px;cursor:ne-resize}.crop-v2-handle.bl{bottom:-6px;left:-6px;cursor:sw-resize}.crop-v2-handle.br{bottom:-6px;right:-6px;cursor:se-resize}.crop-v2-handle.tm{top:-6px;left:50%;transform:translateX(-50%);cursor:n-resize}.crop-v2-handle.bm{bottom:-6px;left:50%;transform:translateX(-50%);cursor:s-resize}.crop-v2-handle.ml{top:50%;left:-6px;transform:translateY(-50%);cursor:w-resize}.crop-v2-handle.mr{top:50%;right:-6px;transform:translateY(-50%);cursor:e-resize}
+.crop-v2-info{display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:6px;margin-bottom:10px;flex-wrap:wrap;font-size:11px;color:var(--dim)}.crop-v2-info b{color:var(--heading)}.crop-v2-info .cv2-dim{font-size:12px;color:var(--cyan);font-weight:700}
+.crop-ratio-bar{display:flex;gap:4px;flex-wrap:wrap}.crop-ratio-btn{padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:var(--card);color:var(--dim);cursor:pointer;font-size:10px;font-family:inherit;transition:all .15s}.crop-ratio-btn:hover{border-color:var(--accent);color:var(--text)}.crop-ratio-btn.act{background:var(--accent);color:#fff;border-color:var(--accent)}
+.crop-zoom-bar{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--dim)}.crop-zoom-bar button{background:var(--card);border:1px solid var(--border);color:var(--text);cursor:pointer;padding:3px 8px;border-radius:4px;font-size:11px;font-family:inherit}.crop-zoom-bar button:hover{border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -53,7 +70,9 @@
 <div class="pr"><label>饱和度下限</label><span class="tw"><span class="tt">?</span><span class="tb" id="ttSM"></span></span><input type="range" id="pSM" min="0" max="100" value="15" oninput="M.Pk.upP()"><span class="v" id="vSM">15%</span></div>
 <div class="pr"><label>边缘平滑</label><span class="tw"><span class="tt">?</span><span class="tb" id="ttES"></span></span><input type="range" id="pES" min="0" max="5" value="2" oninput="M.Pk.upP()"><span class="v" id="vES">2px</span></div>
 <div style="margin:10px 0 6px"><button class="btn btn-p" onclick="M.AD.run()" style="width:100%;justify-content:center">✨ 智能分析主色调</button><div class="adr" id="adR"></div></div>
-<div style="font-size:11px;color:var(--heading);margin:10px 0 3px;display:flex;align-items:center;justify-content:space-between"><span>📌 通道分配</span><button class="btn btn-sm" onclick="M.Ch.addC()">➕ 添加自定义通道</button></div><div class="cb" id="chBar"></div>
+<div style="font-size:11px;color:var(--heading);margin:10px 0 3px;display:flex;align-items:center;justify-content:space-between"><span>📌 基础通道分配 (RGBA)</span></div><div class="cb" id="chBar"></div>
+<div id="customChCards"></div>
+<div class="custom-ch-add" id="addCustomChBtn" onclick="M.Ch.addC()"><span class="cca-icon">➕</span><div class="cca-title">添加自定义 Mask 通道</div><div class="cca-desc">每个自定义通道拥有独立吸色器、容差参数和预览图 · 超过4通道时导出自动拆分为多张贴图</div></div>
 <div id="aModeW" style="display:none"><div style="font-size:10px;color:var(--dim);margin-bottom:3px">A 通道来源</div><div class="am"><button class="act" onclick="M.S.aMode='pick';M.UI.amBtn(this)">吸色提取</button><button onclick="M.S.aMode='alpha';M.UI.amBtn(this)">原图Alpha</button><button onclick="M.S.aMode='stroke';M.UI.amBtn(this)">描边生成</button></div></div>
 <div class="rl" id="rgList"><div style="color:var(--dim);padding:4px;font-size:10px">暂无</div></div>
 <button class="btn btn-p" onclick="M.Gen.run()" style="margin-top:8px;width:100%;justify-content:center" id="genBtn" disabled>🔬 生成多通道 Mask</button>
@@ -62,7 +81,39 @@
 <div style="font-size:11px;color:var(--heading);margin:12px 0 6px">🖼️ 通道独立图片</div><div id="chSlots"></div></div></div></div>
 <div class="card" id="s4" style="display:none"><div class="card-title">👁️ 预览 & 智能导出 <span class="badge badge-o">超4通道自动拆分·TGA</span></div><div class="pvt" id="pvTabs"></div><div id="pvArea"></div><div id="exportBtns" style="margin-top:10px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap"></div></div>
 </div>
-<div class="co" id="cropOv"><div class="cdlg"><h2>✂️ 裁剪 <span id="cropChN" style="font-size:12px;color:var(--dim)"></span></h2><div class="pr"><label>比例</label><select id="cropRatio" onchange="M.Crop.onR()" style="padding:3px 6px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:10px"><option value="free">自由</option><option value="1:1">1:1</option><option value="4:3">4:3</option><option value="16:9">16:9</option></select><span style="font-size:10px;color:var(--dim);margin-left:8px">滚轮缩放·拖拽</span></div><div class="cwrap" id="cropWrap"><canvas id="cropC"></canvas><div class="csel" id="cropSel" style="display:none"><div class="cha tl" data-h="tl"></div><div class="cha tr" data-h="tr"></div><div class="cha bl" data-h="bl"></div><div class="cha br" data-h="br"></div></div></div><div class="crop-info" id="cropInfo"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" onclick="M.Crop.close()">取消</button><button class="btn btn-p" onclick="M.Crop.apply()">✅ 确认裁剪</button></div></div></div>
+<div class="co" id="cropOv"><div class="cdlg" style="max-width:880px"><h2>✂️ 精准裁剪 <span id="cropChN" style="font-size:12px;color:var(--dim)"></span></h2>
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap">
+<div class="crop-ratio-bar" id="cropRatioBar">
+<button class="crop-ratio-btn act" data-r="free" onclick="M.Crop.setRatio('free',this)">自由</button>
+<button class="crop-ratio-btn" data-r="1:1" onclick="M.Crop.setRatio('1:1',this)">1:1</button>
+<button class="crop-ratio-btn" data-r="4:3" onclick="M.Crop.setRatio('4:3',this)">4:3</button>
+<button class="crop-ratio-btn" data-r="16:9" onclick="M.Crop.setRatio('16:9',this)">16:9</button>
+<button class="crop-ratio-btn" data-r="2048" onclick="M.Crop.setRatio('2048',this)">2048×2048</button>
+<button class="crop-ratio-btn" data-r="1024" onclick="M.Crop.setRatio('1024',this)">1024×1024</button>
+</div>
+<div class="crop-zoom-bar"><button onclick="M.Crop.zoom(-0.1)">➖</button><span id="cropZoomLbl">100%</span><button onclick="M.Crop.zoom(0.1)">➕</button><button onclick="M.Crop.zoomFit()">适应</button><span style="color:var(--dim);font-size:9px">滚轮缩放 · 右键/中键平移</span></div>
+</div>
+<div class="crop-v2-container" id="cropV2Wrap">
+<canvas class="crop-v2-canvas" id="cropV2C"></canvas>
+<div class="crop-v2-sel" id="cropV2Sel" style="display:none">
+<div class="crop-v2-handle tl" data-h="tl"></div>
+<div class="crop-v2-handle tr" data-h="tr"></div>
+<div class="crop-v2-handle bl" data-h="bl"></div>
+<div class="crop-v2-handle br" data-h="br"></div>
+<div class="crop-v2-handle tm" data-h="tm"></div>
+<div class="crop-v2-handle bm" data-h="bm"></div>
+<div class="crop-v2-handle ml" data-h="ml"></div>
+<div class="crop-v2-handle mr" data-h="mr"></div>
+</div>
+</div>
+<div class="crop-v2-info" id="cropV2Info">
+<span>原图: <b id="cropOrigSz">0×0</b></span>
+<span>裁剪: <span class="cv2-dim" id="cropResSz">0×0</span></span>
+<span>偏移: <b id="cropOffset">0, 0</b></span>
+<span>缩放: <b id="cropScale">1.00x</b></span>
+</div>
+<div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" onclick="M.Crop.close()">✖ 取消</button><button class="btn btn-p" onclick="M.Crop.apply()">✅ 确认裁剪并应用</button></div>
+</div></div>
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
@@ -71,7 +122,7 @@ var M=window.MaskApp={};function $(id){return document.getElementById(id)}
 M.L={loaded:'{w}x{h} 已加载',addTo:'\u2713 已添加到 {ch}',locked:'已锁定',genDone:'Mask生成完成({n}通道)',noBody:'请先生成',invJson:'JSON错误:{e}',restored:'工程已恢复(v{v})',cropOk:'已裁剪:{w}x{h}',edgeOk:'边缘净化已应用',dlOk:'已下载 {n}',zipOk:'ZIP已下载',tgaOk:'TGA已下载 {n}',autoN:'发现{n}个主色域',preOk:'已应用「{n}」',chAdd:'已添加: {n}',chBase:'基础通道不可删',undoOk:'已撤销',redoOk:'已重做',multiOk:'已导出{n}个PNG包',pickTip:'\uD83D\uDC46 点击图片吸取颜色',adjTip:'\uD83C\uDFA8 调参后点「添加」',contTip:'\uD83D\uDD04 继续吸色或生成',doneTip:'\u2705 已生成！画笔微调后下载',
 tt_ht:'\uD83C\uDFA8 <b>颜色抓取范围</b><br>值越大,抓取的相近颜色越多。<br>±20°只抓正红,±40°连橙红粉红都抓。',tt_sm:'\uD83D\uDCA7 <b>过滤灰色</b><br>值越高只抓鲜艳色彩。',tt_es:'\uD83C\uDF0A <b>边界柔和度</b><br>值越大边界越模糊(类似PS羽化)。',tt_ga:'\uD83D\uDD06 <b>明暗曲线</b><br><1暗部更亮, >1暗部更暗。',tt_inv:'\uD83D\uDD04 <b>黑白反转</b><br>选中⇆未选中(PS的Ctrl+I)。',tt_br:'\u2600\uFE0F <b>亮度</b><br>正=提亮, 负=压暗。',tt_ct:'\u25D0 <b>对比度</b><br>高=边界硬朗, 低=过渡柔和。',tt_di:'\u2B1B\u2192\u2B1C <b>膨胀</b><br>Mask向外扩展1-3px。',tt_er:'\u2B1C\u2192\u2B1B <b>腐蚀</b><br>Mask向内收缩1-3px。',tt_fe:'\uD83C\uDF2B\uFE0F <b>羽化</b><br>边缘高斯模糊。',tt_rs:'\uD83D\uDCAA <b>净化强度</b><br>边缘灰色→纯黑/白。100%=二值化。'};
 M.Cfg={CH:[{id:'R',n:'R',c:'#f66'},{id:'G',n:'G',c:'#6f6'},{id:'B',n:'B',c:'#66f'},{id:'A',n:'A',c:'#ccc'}],PRE:{'standard-3color':{n:'标准三色角色',i:'🎭',d:'皮肤/头发/衣服→R/G/B',t:'适合标准角色立绘。加载后自动分析。',am:'alpha',ht:25,sm:20,es:2,ad:true},'hair-eyes':{n:'仅提取头发/眼睛',i:'👁️',d:'高容差提取头发→R 眼睛→G',t:'先吸头发→R,再吸眼睛→G。',am:'alpha',ht:35,sm:10,es:3,ad:false},'ui-precision':{n:'UI元素高精度',i:'🎯',d:'低容差无模糊 精确色块',t:'适合UI图标/按钮色块。',am:'pick',ht:10,sm:30,es:0,ad:false},'vfx-special':{n:'特效专用',i:'✨',d:'半透明/发光 宽容差+边缘净化',t:'针对特效/发光。配合边缘净化。',am:'alpha',ht:40,sm:8,es:3,ad:false,er:{di:1,ero:0,fe:2,rs:60}},'scene-object':{n:'场景物件',i:'🏠',d:'材质碎色 多通道分区',t:'颜色分布较碎的贴图。',am:'pick',ht:18,sm:25,es:1,ad:true}},HMAX:50,ABINS:36,AMAX:4};
-M.S={srcImg:null,prepImg:null,W:0,H:0,oW:0,oH:0,px:null,hsv:null,pkH:-1,pkS:0,pkV:0,pkRGB:[0,0,0],curCh:'R',aMode:'pick',regions:[],chs:[],chCnt:0,brushMode:null,painting:false,maskOK:false,aPre:null,cropSt:{active:false,chId:null,img:null,ds:1,sx:0,sy:0,sw:0,sh:0,drag:null,dx0:0,dy0:0,osx:0,osy:0,osw:0,osh:0,mode:'slot'}};
+M.S={srcImg:null,prepImg:null,W:0,H:0,oW:0,oH:0,px:null,hsv:null,pkH:-1,pkS:0,pkV:0,pkRGB:[0,0,0],curCh:'R',aMode:'pick',regions:[],chs:[],chCnt:0,brushMode:null,painting:false,maskOK:false,aPre:null};
 M.tpl=function(s,v){return s.replace(/\{(\w+)\}/g,function(_,k){return v[k]!=null?v[k]:'{'+k+'}'})};
 /* ── Color ── */
 M.C={r2h:function(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,h=0,s=mx?d/mx:0,v=mx;if(d){if(mx===r)h=60*((g-b)/d%6);else if(mx===g)h=60*((b-r)/d+2);else h=60*((r-g)/d+4);if(h<0)h+=360}return[h,s*100,v*100]},hD:function(a,b){var d=Math.abs(a-b);return d>180?360-d:d},sms:function(e0,e1,x){var t=Math.max(0,Math.min(1,(x-e0)/(e1-e0)));return t*t*(3-2*t)},r2x:function(a){return'#'+a.map(function(v){return v.toString(16).padStart(2,'0')}).join('')},x2r:function(h){h=h.replace('#','');return[parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)]},hsl2x:function(s){var m=s.match(/hsl\((\d+),\s*(\d+)%?,\s*(\d+)%?\)/);if(!m)return s;var h=+m[1]/360,sat=+m[2]/100,l=+m[3]/100,r,g,b;if(!sat){r=g=b=l}else{var q=l<.5?l*(1+sat):l+sat-l*sat,p=2*l-q;function h2(p,q,t){if(t<0)t++;if(t>1)t--;return t<1/6?p+(q-p)*6*t:t<.5?q:t<2/3?p+(q-p)*(2/3-t)*6:p}r=h2(p,q,h+1/3);g=h2(p,q,h);b=h2(p,q,h-1/3)}return'#'+[r,g,b].map(function(x){return Math.round(x*255).toString(16).padStart(2,'0')}).join('')},res:function(c){return c.indexOf('hsl')>=0?M.C.hsl2x(c):c}};
@@ -88,9 +139,25 @@ M.Hist={stk:[],ptr:-1,push:function(a){this.stk=this.stk.slice(0,this.ptr+1);a.s
 </script>
 <script>
 /* ═══ v6.0 核心JS Part2: Channel / Presets / Prep ═══ */
-M.Ch={init:function(){var S=M.S;S.chs=M.Cfg.CH.map(function(c){return{id:c.id,name:c.n,color:c.c,raw:null,rawOrig:null,adjust:{invert:false,brightness:0,contrast:0,gamma:1.0},slotImage:null}});S.chCnt=0;this.rBar();this.rPan();this.rSlots();this.uBr()},
-addC:function(){var S=M.S;S.chCnt++;var id='CH'+S.chCnt,nm=prompt('通道名称:','自定义'+S.chCnt);if(!nm)return;S.chs.push({id:id,name:nm,color:'hsl('+Math.floor(Math.random()*360)+',70%,60%)',raw:null,rawOrig:null,adjust:{invert:false,brightness:0,contrast:0,gamma:1.0},slotImage:null});M.Hist.push({type:'add_ch'});this.rBar();this.rPan();this.rSlots();this.uBr();M.T.show(M.tpl(M.L.chAdd,{n:nm}))},
-rm:function(id){if(['R','G','B','A'].indexOf(id)>=0){M.T.show(M.L.chBase);return}M.S.chs=M.S.chs.filter(function(c){return c.id!==id});M.S.regions=M.S.regions.filter(function(r){return r.ch!==id});if(M.S.curCh===id)M.S.curCh='R';M.Hist.push({type:'del_ch'});this.rBar();this.rPan();this.rSlots();this.rRL();this.uBr()},
+M.Ch={init:function(){var S=M.S;S.chs=M.Cfg.CH.map(function(c){return{id:c.id,name:c.n,color:c.c,raw:null,rawOrig:null,adjust:{invert:false,brightness:0,contrast:0,gamma:1.0},slotImage:null}});S.chCnt=0;this.rBar();this.rPan();this.rSlots();this.uBr();this.rCustomCards()},
+addC:function(){var S=M.S;S.chCnt++;var id='CH'+S.chCnt;var nm='Mask '+S.chCnt;var hue=Math.floor(Math.random()*360);var color='hsl('+hue+',70%,60%)';S.chs.push({id:id,name:nm,color:color,raw:null,rawOrig:null,adjust:{invert:false,brightness:0,contrast:0,gamma:1.0},slotImage:null,isCustom:true,customParams:{hueTol:20,satMin:15,edgeSmooth:2},customRegions:[],customPickRGB:null,customPickH:-1});M.Hist.push({type:'add_ch'});this.rBar();this.rPan();this.rSlots();this.uBr();this.rCustomCards();M.T.show(M.tpl(M.L.chAdd,{n:nm}))},
+rm:function(id){if(['R','G','B','A'].indexOf(id)>=0){M.T.show(M.L.chBase);return}M.S.chs=M.S.chs.filter(function(c){return c.id!==id});M.S.regions=M.S.regions.filter(function(r){return r.ch!==id});if(M.S.curCh===id)M.S.curCh='R';M.Hist.push({type:'del_ch'});this.rBar();this.rPan();this.rSlots();this.rRL();this.uBr();this.rCustomCards()},
+rCustomCards:function(){var S=M.S,el=$('customChCards');if(!el)return;var customs=S.chs.filter(function(c){return c.isCustom});if(!customs.length){el.innerHTML='';return}el.innerHTML=customs.map(function(c){var hex=c.customPickRGB?M.C.r2x(c.customPickRGB):'#444';var cp=c.customParams;var rgHtml=c.customRegions.length?c.customRegions.map(function(r,i){return'<div class="ccc-rg-item"><div class="rgsw" style="background:'+M.C.r2x(r.rgb)+'"></div><span>H:'+r.hue.toFixed(0)+'°±'+r.tol+'°</span><span style="color:var(--green);margin-left:auto;font-size:9px">'+r.matchPct+'%</span><button onclick="M.Ch.rmCustomRg(\''+c.id+'\','+i+')">✕</button></div>'}).join(''):'<div style="color:var(--dim);font-size:9px;padding:4px">点击上方色块从原图吸取颜色</div>';return'<div class="custom-ch-card" id="ccc_'+c.id+'"><div class="ccc-head"><div class="ccc-dot" style="background:'+c.color+'"></div><input class="ccc-name ni" value="'+c.name+'" onchange="M.Ch.renameCustom(\''+c.id+'\',this.value)" style="flex:1;font-size:12px;font-weight:600;color:var(--heading);background:transparent;border-color:transparent;padding:2px 4px" /><span class="ccc-badge">自定义</span><button class="ccc-del" onclick="M.Ch.rm(\''+c.id+'\')">🗑️ 删除</button></div>'
++'<div class="ccc-preview"><canvas id="ccPv_'+c.id+'" width="300" height="80"></canvas></div>'
++'<div class="ccc-picker"><div class="ccc-swatch" id="ccSw_'+c.id+'" style="background:'+hex+'" onclick="M.Ch.startCustomPick(\''+c.id+'\')" title="点击后在原图上吸色"></div><div class="ccc-pk-info" id="ccPkI_'+c.id+'">'+(c.customPickRGB?'<b>'+hex+'</b> H:'+c.customPickH.toFixed(0)+'°':'👆 点击色块，再到原图上吸取颜色')+'</div><button class="btn btn-p btn-sm" onclick="M.Ch.addCustomRg(\''+c.id+'\')" '+(c.customPickRGB?'':'disabled')+'>➕ 添加到此通道</button></div>'
++'<div class="ccc-controls"><div class="pr"><label>色相容差</label><input type="range" min="5" max="60" value="'+cp.hueTol+'" oninput="M.Ch.setCustomParam(\''+c.id+'\',\'hueTol\',+this.value);this.parentNode.querySelector(\'.v\').textContent=\'±\'+this.value+\'°\'"><span class="v">±'+cp.hueTol+'°</span></div>'
++'<div class="pr"><label>饱和度下限</label><input type="range" min="0" max="100" value="'+cp.satMin+'" oninput="M.Ch.setCustomParam(\''+c.id+'\',\'satMin\',+this.value);this.parentNode.querySelector(\'.v\').textContent=this.value+\'%\'"><span class="v">'+cp.satMin+'%</span></div>'
++'<div class="pr"><label>边缘平滑</label><input type="range" min="0" max="5" value="'+cp.edgeSmooth+'" oninput="M.Ch.setCustomParam(\''+c.id+'\',\'edgeSmooth\',+this.value);this.parentNode.querySelector(\'.v\').textContent=this.value+\'px\'"><span class="v">'+cp.edgeSmooth+'px</span></div></div>'
++'<div class="ccc-regions" id="ccRg_'+c.id+'">'+rgHtml+'</div>'
++'</div>'}).join('')},
+_customPickTarget:null,
+startCustomPick:function(id){M.Ch._customPickTarget=id;M.T.show('👆 现在在原图上点击吸取颜色（通道: '+M.S.chs.find(function(c){return c.id===id}).name+'）');$('srcC').style.outline='3px solid var(--orange)';$('srcLabel').textContent='🎯 吸色中→'+id},
+_handleCustomPick:function(sx,sy){var S=M.S,id=M.Ch._customPickTarget;if(!id)return false;var c=S.chs.find(function(x){return x.id===id});if(!c)return false;var i=sy*S.W+sx,o=i*4;c.customPickRGB=[S.px[o],S.px[o+1],S.px[o+2]];var v=M.C.r2h(c.customPickRGB[0],c.customPickRGB[1],c.customPickRGB[2]);c.customPickH=v[0];M.Ch._customPickTarget=null;$('srcC').style.outline='';M.Ch.rCustomCards();M.T.show('✓ 已吸取 '+M.C.r2x(c.customPickRGB)+' → '+c.name);return true},
+renameCustom:function(id,nm){var c=M.S.chs.find(function(x){return x.id===id});if(c)c.name=nm;this.rBar();this.uBr()},
+setCustomParam:function(id,p,v){var c=M.S.chs.find(function(x){return x.id===id});if(c&&c.customParams)c.customParams[p]=v},
+addCustomRg:function(id){var c=M.S.chs.find(function(x){return x.id===id});if(!c||!c.customPickRGB)return;var cp=c.customParams,S=M.S;var pct=M.Ch._customMPct(c);c.customRegions.push({hue:c.customPickH,tol:cp.hueTol,satMin:cp.satMin,rgb:c.customPickRGB.slice(),matchPct:pct});S.regions.push({ch:id,hue:c.customPickH,tol:cp.hueTol,satMin:cp.satMin,rgb:c.customPickRGB.slice(),matchPct:pct,inverted:false});M.Hist.push({type:'add_rg'});M.Ch.rRL();M.Ch.rCustomCards();$('genBtn').disabled=false;M.T.show('✓ 已添加到 '+c.name)},
+rmCustomRg:function(id,idx){var c=M.S.chs.find(function(x){return x.id===id});if(!c)return;var rg=c.customRegions[idx];c.customRegions.splice(idx,1);M.S.regions=M.S.regions.filter(function(r){return!(r.ch===id&&Math.abs(r.hue-rg.hue)<0.1)});M.Hist.push({type:'del_rg'});M.Ch.rRL();M.Ch.rCustomCards()},
+_customMPct:function(c){var S=M.S;if(!S.hsv||!c.customPickRGB)return'0';var tol=c.customParams.hueTol,sat=c.customParams.satMin,m=0,t=0,n=S.W*S.H,h=c.customPickH;for(var i=0;i<n;i++){if(S.px[i*4+3]<10)continue;t++;if(M.C.hD(S.hsv[i*3],h)<=tol&&S.hsv[i*3+1]>=sat)m++}return t?(m/t*100).toFixed(1):'0'},
 setCur:function(ch){M.S.curCh=ch;document.querySelectorAll('.chb').forEach(function(b){b.classList.toggle('act',b.dataset.ch===ch)});$('aModeW').style.display=ch==='A'?'block':'none'},
 setAdj:function(id,p,v){var c=M.S.chs.find(function(x){return x.id===id});if(!c)return;c.adjust[p]=v;if(M.S.maskOK){M.Gen.adj();M.Ren.all()}},
 rBar:function(){var S=M.S;$('chBar').innerHTML=S.chs.map(function(c){var isB=['R','G','B','A'].indexOf(c.id)>=0;return'<button class="chb'+(c.id===S.curCh?' act':'')+'" data-ch="'+c.id+'" onclick="M.Ch.setCur(\''+c.id+'\')" style="'+(c.id===S.curCh?'border-color:'+c.color:'')+'"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:'+c.color+';margin-right:3px"></span>'+c.name+(isB?'':'<span style="font-size:8px;margin-left:2px;color:var(--red);cursor:pointer" onclick="event.stopPropagation();M.Ch.rm(\''+c.id+'\')">✕</span>')+'</button>'}).join('')},
@@ -105,7 +172,7 @@ apply:function(k){M.S.aPre=k;document.querySelectorAll('.pc').forEach(function(c
 M.Prep={show:function(img){var S=M.S;S.prepImg=img;S.oW=img.width;S.oH=img.height;var c=$('prepC');c.width=img.width;c.height=img.height;c.getContext('2d').drawImage(img,0,0);$('prepLabel').textContent=img.width+'×'+img.height;$('s1').style.display='none';$('s2').style.display='block';$('namingCard').style.display='block';M.UI.stp(2)},
 rsz:function(tw){var S=M.S,img=S.prepImg;if(!img)return;if(tw<=0)tw=S.oW;var sc=tw/img.width,nh=Math.round(img.height*sc);var tc=document.createElement('canvas');tc.width=tw;tc.height=nh;tc.getContext('2d').drawImage(img,0,0,tw,nh);var c=$('prepC');c.width=tw;c.height=nh;c.getContext('2d').drawImage(tc,0,0);var ni=new Image();ni.onload=function(){S.prepImg=ni;$('prepLabel').textContent=tw+'×'+nh};ni.src=tc.toDataURL()},
 rot:function(deg){var S=M.S,img=S.prepImg;if(!img)return;var tc=document.createElement('canvas');if(deg===90||deg===270){tc.width=img.height;tc.height=img.width}else{tc.width=img.width;tc.height=img.height}var ctx=tc.getContext('2d');ctx.translate(tc.width/2,tc.height/2);ctx.rotate(deg*Math.PI/180);ctx.drawImage(img,-img.width/2,-img.height/2);var c=$('prepC');c.width=tc.width;c.height=tc.height;c.getContext('2d').drawImage(tc,0,0);var ni=new Image();ni.onload=function(){S.prepImg=ni;$('prepLabel').textContent=tc.width+'×'+tc.height};ni.src=tc.toDataURL()},
-cropOpen:function(){if(!M.S.prepImg)return;M.S.cropSt.mode='prep';M.Crop.open(M.S.prepImg,'预处理裁剪')},
+cropOpen:function(){if(!M.S.prepImg)return;M.Crop._st.mode='prep';M.Crop.open(M.S.prepImg,'预处理裁剪')},
 ok:function(){if(M.S.prepImg)M._enterPick(M.S.prepImg)},
 skip:function(){M._enterPick(M.S.prepImg||M.S.srcImg)}};
 /* ── 进入吸色 ── */
@@ -118,7 +185,7 @@ M._ldImg=function(f){var img=new Image();img.onload=function(){M.S.srcImg=img;M.
 /* ═══ v6.0 核心JS Part3: Picker/AutoDetect/Generator/EdgeRefine/Brush/Renderer/Exporter/Crop/Migration/Init ═══ */
 /* ── Picker ── */
 M.Pk={_b:false,bind:function(){if(this._b)return;this._b=true;var sc=$('srcC');sc.addEventListener('click',M.Pk._pick);sc.addEventListener('mousemove',M.Pk._mag);sc.addEventListener('mouseleave',function(){$('mag').style.display='none'});sc.addEventListener('mousedown',function(e){M.Br._dn(e)});sc.addEventListener('mousemove',function(e){M.Br._mv(e)});sc.addEventListener('mouseup',function(){M.Br._up()})},
-_pick:function(e){var S=M.S;if(S.brushMode)return;if($('lockColor').checked){M.T.show(M.L.locked);return}var c=$('srcC'),r=c.getBoundingClientRect(),sx=Math.floor((e.clientX-r.left)/r.width*S.W),sy=Math.floor((e.clientY-r.top)/r.height*S.H);if(sx<0||sx>=S.W||sy<0||sy>=S.H)return;var i=sy*S.W+sx,o=i*4;S.pkRGB=[S.px[o],S.px[o+1],S.px[o+2]];var v=M.C.r2h(S.pkRGB[0],S.pkRGB[1],S.pkRGB[2]);S.pkH=v[0];S.pkS=v[1];S.pkV=v[2];$('pkSw').style.background=M.C.r2x(S.pkRGB);var pct=M.Pk.mPct();$('pkInfo').innerHTML='<b>'+M.C.r2x(S.pkRGB)+'</b> H:'+S.pkH.toFixed(0)+'° · <span style="color:var(--green)">'+pct+'%</span>';$('addBtn').disabled=false;$('hMk').style.display='block';$('hMk').style.left=(S.pkH/360*100)+'%';M.Pk.uHR();M.Pk.rSrc();M.UI.tip(M.L.adjTip)},
+_pick:function(e){var S=M.S;if(S.brushMode)return;if($('lockColor').checked&&!M.Ch._customPickTarget){M.T.show(M.L.locked);return}var c=$('srcC'),r=c.getBoundingClientRect(),sx=Math.floor((e.clientX-r.left)/r.width*S.W),sy=Math.floor((e.clientY-r.top)/r.height*S.H);if(sx<0||sx>=S.W||sy<0||sy>=S.H)return;/* 自定义通道吸色路由 */if(M.Ch._customPickTarget){M.Ch._handleCustomPick(sx,sy);return}var i=sy*S.W+sx,o=i*4;S.pkRGB=[S.px[o],S.px[o+1],S.px[o+2]];var v=M.C.r2h(S.pkRGB[0],S.pkRGB[1],S.pkRGB[2]);S.pkH=v[0];S.pkS=v[1];S.pkV=v[2];$('pkSw').style.background=M.C.r2x(S.pkRGB);var pct=M.Pk.mPct();$('pkInfo').innerHTML='<b>'+M.C.r2x(S.pkRGB)+'</b> H:'+S.pkH.toFixed(0)+'° · <span style="color:var(--green)">'+pct+'%</span>';$('addBtn').disabled=false;$('hMk').style.display='block';$('hMk').style.left=(S.pkH/360*100)+'%';M.Pk.uHR();M.Pk.rSrc();M.UI.tip(M.L.adjTip)},
 _mag:function(e){var S=M.S;if(!S.px||S.brushMode)return;var sc=$('srcC'),r=sc.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,sx=Math.floor(mx/r.width*S.W),sy=Math.floor(my/r.height*S.H);if(sx<0||sx>=S.W||sy<0||sy>=S.H){$('mag').style.display='none';return}var mag=$('mag'),mc=$('magC'),ctx=mc.getContext('2d');mag.style.display='block';var mw=120;var offX=mx+20,offY=my-mw-10;if(offX+mw>r.width)offX=mx-mw-20;if(offY<0)offY=my+20;mag.style.left=offX+'px';mag.style.top=offY+'px';mc.width=mw;mc.height=mw;ctx.imageSmoothingEnabled=false;ctx.drawImage(sc,sx-5,sy-5,11,11,0,0,mw,mw);var idx=(sy*S.W+sx)*4;$('magHex').textContent=M.C.r2x([S.px[idx],S.px[idx+1],S.px[idx+2]])},
 mPct:function(){var S=M.S;if(S.pkH<0||!S.hsv)return'0';var tol=+$('pHT').value,sat=+$('pSM').value,m=0,t=0,n=S.W*S.H;for(var i=0;i<n;i++){if(S.px[i*4+3]<10)continue;t++;if(M.C.hD(S.hsv[i*3],S.pkH)<=tol&&S.hsv[i*3+1]>=sat)m++}return t?(m/t*100).toFixed(1):'0'},
 upP:function(){$('vHT').textContent='±'+$('pHT').value+'°';$('vSM').textContent=$('pSM').value+'%';$('vES').textContent=$('pES').value+'px';M.Pk.uHR();if(M.S.pkH>=0){M.Pk.rSrc();$('pkInfo').innerHTML='<b>'+M.C.r2x(M.S.pkRGB)+'</b> H:'+M.S.pkH.toFixed(0)+'° · <span style="color:var(--green)">'+M.Pk.mPct()+'%</span>'}},
@@ -144,9 +211,13 @@ _mv:function(e){if(!M.S.painting)return;M.Br._st(e)},
 _up:function(){if(M.S.painting){M.S.painting=false;if(M.S.brushMode&&M.S.maskOK){M.S.chs.forEach(function(c){if(c.raw)c.rawOrig=new Float32Array(c.raw)});M.Hist.push({type:'brush'});M.Ren.all()}}},
 _st:function(e){var S=M.S,c=$('srcC'),r=c.getBoundingClientRect(),cx=Math.floor((e.clientX-r.left)/r.width*S.W),cy=Math.floor((e.clientY-r.top)/r.height*S.H),sz=+$('brSize').value,chId=$('brCh').value,ch=S.chs.find(function(x){return x.id===chId});if(!ch||!ch.raw)return;var rs=+$('pRs').value/100;for(var dy=-sz;dy<=sz;dy++)for(var dx=-sz;dx<=sz;dx++){if(dx*dx+dy*dy>sz*sz)continue;var x=cx+dx,y=cy+dy;if(x<0||x>=S.W||y<0||y>=S.H)continue;var dist=Math.sqrt(dx*dx+dy*dy)/sz,i=y*S.W+x;if(S.brushMode==='paint'){var s=M.C.sms(1,.5,dist);ch.raw[i]=Math.max(ch.raw[i],s)}else if(S.brushMode==='erase'){var s=M.C.sms(.5,1,dist);ch.raw[i]*=(1-s)}else if(S.brushMode==='refine'){var v=ch.raw[i];if(v>.05&&v<.95){ch.raw[i]=v>.5?Math.min(1,v+(1-v)*rs*.3):Math.max(0,v-v*rs*.3)}}}}};
 /* ── Renderer ── */
-M.Ren={buildUI:function(){var S=M.S,tb=$('pvTabs'),ts=['<button class="pvtb act" onclick="M.Ren.tab(0,this)">三视窗</button>'];S.chs.forEach(function(c,i){ts.push('<button class="pvtb" onclick="M.Ren.tab('+(i+1)+',this)">'+c.name+'</button>')});ts.push('<button class="pvtb" onclick="M.Ren.tab('+(S.chs.length+1)+',this)">合成RGBA</button>');tb.innerHTML=ts.join('');var pa=$('pvArea'),h='<div id="pv0" class="g3"><div class="ib"><canvas id="pvO"></canvas><span class="il">原图</span></div><div class="ib"><canvas id="pvG"></canvas><span class="il">灰度</span></div><div class="ib"><canvas id="pvV"></canvas><span class="il">叠加</span></div></div>';S.chs.forEach(function(c,i){h+='<div id="pv'+(i+1)+'" style="display:none"><div class="ib"><canvas id="pvC_'+c.id+'"></canvas><span class="il" style="border-left:3px solid '+c.color+'">'+c.name+'</span></div></div>'});h+='<div id="pv'+(S.chs.length+1)+'" style="display:none"><div class="ib"><canvas id="pvComp"></canvas><span class="il" style="border-left:3px solid var(--accent)">RGBA</span></div></div>';pa.innerHTML=h;var bb=$('exportBtns'),bh='<button class="btn btn-g" onclick="M.Ex.dlComp()">⬇ RGBA</button>';S.chs.forEach(function(c){bh+='<button class="btn" onclick="M.Ex.dlCh(\''+c.id+'\')">⬇ '+c.name+'</button>'});bh+='<button class="btn btn-p" onclick="M.Ex.dlZip()">📦 ZIP</button><button class="btn" onclick="M.Ex.dlTGA()" style="border-color:var(--cyan);color:var(--cyan)">🎮 TGA</button>';if(S.chs.length>4)bh+='<button class="btn" onclick="M.Ex.dlMulti()" style="border-color:var(--orange);color:var(--orange)">📦 多PNG</button>';bb.innerHTML=bh},
+M.Ren={buildUI:function(){var S=M.S,tb=$('pvTabs'),ts=['<button class="pvtb act" onclick="M.Ren.tab(0,this)">三视窗</button>'];S.chs.forEach(function(c,i){ts.push('<button class="pvtb" onclick="M.Ren.tab('+(i+1)+',this)">'+c.name+'</button>')});ts.push('<button class="pvtb" onclick="M.Ren.tab('+(S.chs.length+1)+',this)">合成RGBA</button>');tb.innerHTML=ts.join('');var pa=$('pvArea'),h='<div id="pv0" class="g3"><div class="ib"><canvas id="pvO"></canvas><span class="il">原图</span></div><div class="ib"><canvas id="pvG"></canvas><span class="il">灰度</span></div><div class="ib"><canvas id="pvV"></canvas><span class="il">叠加</span></div></div>';S.chs.forEach(function(c,i){h+='<div id="pv'+(i+1)+'" style="display:none"><div class="ib"><canvas id="pvC_'+c.id+'"></canvas><span class="il" style="border-left:3px solid '+c.color+'">'+c.name+'</span></div></div>'});h+='<div id="pv'+(S.chs.length+1)+'" style="display:none"><div class="ib"><canvas id="pvComp"></canvas><span class="il" style="border-left:3px solid var(--accent)">RGBA</span></div></div>';pa.innerHTML=h;var bb=$('exportBtns'),bh='<button class="btn btn-g" onclick="M.Ex.dlComp()">⬇ RGBA 基础贴图</button>';S.chs.forEach(function(c){bh+='<button class="btn" onclick="M.Ex.dlCh(\''+c.id+'\')">⬇ '+c.name+(c.isCustom?' (灰度)':'')+'</button>'});bh+='<button class="btn btn-p" onclick="M.Ex.dlZip()">📦 ZIP 全量打包</button><button class="btn" onclick="M.Ex.dlTGA()" style="border-color:var(--cyan);color:var(--cyan)">🎮 TGA</button>';if(S.chs.length>4)bh+='<button class="btn" onclick="M.Ex.dlMulti()" style="border-color:var(--orange);color:var(--orange)">📦 多PNG拆分 ('+Math.ceil(S.chs.length/4)+'张)</button><div style="font-size:10px;color:var(--orange);margin-top:6px;width:100%;text-align:center">⚠️ 总通道数 '+S.chs.length+' &gt; 4，点击「多PNG拆分」将自动分为 '+Math.ceil(S.chs.length/4)+' 张贴图（每张4通道RGBA打包）</div>';bb.innerHTML=bh},
 tab:function(idx,btn){document.querySelectorAll('.pvtb').forEach(function(t){t.classList.remove('act')});btn.classList.add('act');for(var i=0;i<M.S.chs.length+2;i++){var e=$('pv'+i);if(e)e.style.display=i===idx?'':'none'}},
 all:function(){var S=M.S;if(!S.srcImg||!S.maskOK)return;S.chs.forEach(function(c){if(!c.raw)return;var tc=$('chT_'+c.id);if(!tc)return;tc.width=200;tc.height=Math.round(200*S.H/S.W)||100;var tx=tc.getContext('2d'),tmp=document.createElement('canvas');tmp.width=S.W;tmp.height=S.H;var ctx=tmp.getContext('2d'),img=ctx.createImageData(S.W,S.H),d=img.data;for(var i=0,n=S.W*S.H;i<n;i++){var v=(c.raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}ctx.putImageData(img,0,0);tx.drawImage(tmp,0,0,tc.width,tc.height)});var po=$('pvO');if(po){po.width=S.W;po.height=S.H;po.getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H)}var pg=$('pvG');if(pg){pg.width=S.W;pg.height=S.H;var gx=pg.getContext('2d'),gi=gx.createImageData(S.W,S.H),gd=gi.data;for(var i=0,n=S.W*S.H;i<n;i++){var mx=0;S.chs.forEach(function(c){if(c.raw&&c.raw[i]>mx)mx=c.raw[i]});var v=(mx*255+.5)|0;gd[i*4]=v;gd[i*4+1]=v;gd[i*4+2]=v;gd[i*4+3]=255}gx.putImageData(gi,0,0)}var pv=$('pvV');if(pv){pv.width=S.W;pv.height=S.H;var vx=pv.getContext('2d');vx.drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);var vi=vx.getImageData(0,0,S.W,S.H),vd=vi.data;for(var i=0,n=S.W*S.H;i<n;i++){var bv=0,bc=[255,255,255];S.chs.forEach(function(c){if(c.raw&&c.raw[i]>bv){bv=c.raw[i];bc=M.C.x2r(M.C.res(c.color))}});if(bv>.01){var bl=bv*.45,o=i*4;vd[o]=vd[o]*(1-bl)+bc[0]*bl|0;vd[o+1]=vd[o+1]*(1-bl)+bc[1]*bl|0;vd[o+2]=vd[o+2]*(1-bl)+bc[2]*bl|0}}vx.putImageData(vi,0,0)}S.chs.forEach(function(c){var pc=$('pvC_'+c.id);if(!pc||!c.raw)return;pc.width=S.W;pc.height=S.H;var px2=pc.getContext('2d'),pi=px2.createImageData(S.W,S.H),pd=pi.data;for(var i=0,n=S.W*S.H;i<n;i++){var v=(c.raw[i]*255+.5)|0;pd[i*4]=v;pd[i*4+1]=v;pd[i*4+2]=v;pd[i*4+3]=255}px2.putImageData(pi,0,0)});var cc=$('pvComp');if(cc){cc.width=S.W;cc.height=S.H;var cx=cc.getContext('2d'),ci=cx.createImageData(S.W,S.H),cd=ci.data;for(var i=0,n=S.W*S.H;i<n;i++){var o=i*4;cd[o]=S.chs[0]&&S.chs[0].raw?(S.chs[0].raw[i]*255+.5)|0:0;cd[o+1]=S.chs[1]&&S.chs[1].raw?(S.chs[1].raw[i]*255+.5)|0:0;cd[o+2]=S.chs[2]&&S.chs[2].raw?(S.chs[2].raw[i]*255+.5)|0:0;cd[o+3]=S.chs[3]&&S.chs[3].raw?(S.chs[3].raw[i]*255+.5)|0:255}cx.putImageData(ci,0,0)}}};
+</script>
+<script>
+/* ── 扩展 M.Ren.all：为自定义通道卡片渲染预览canvas ── */
+(function(){var origAll=M.Ren.all;M.Ren.all=function(){origAll.call(this);var S=M.S;if(!S.srcImg||!S.maskOK)return;S.chs.forEach(function(c){if(!c.isCustom||!c.raw)return;var cpv=$('ccPv_'+c.id);if(!cpv)return;cpv.width=300;cpv.height=Math.round(300*S.H/S.W)||80;var cpx=cpv.getContext('2d'),ctmp=document.createElement('canvas');ctmp.width=S.W;ctmp.height=S.H;var cctx=ctmp.getContext('2d'),cimg=cctx.createImageData(S.W,S.H),cdd=cimg.data;for(var j=0,nn=S.W*S.H;j<nn;j++){var vv=(c.raw[j]*255+.5)|0;cdd[j*4]=vv;cdd[j*4+1]=vv;cdd[j*4+2]=vv;cdd[j*4+3]=255}cctx.putImageData(cimg,0,0);cpx.drawImage(ctmp,0,0,cpv.width,cpv.height)})}})();
 </script>
 <script>
 /* ═══ v6.0 核心JS Part4: Exporter(PNG/TGA/ZIP)/Crop/Migration/Init ═══ */
@@ -164,16 +235,202 @@ _cb:function(c){return new Promise(function(r){c.toBlob(function(b){r(b)},'image
 sDrop:function(e,id){e.preventDefault();e.currentTarget.classList.remove('dg');var f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))M.Ex.ldSlot(id,f)},
 ldSlot:function(id,f){var c=M.S.chs.find(function(x){return x.id===id});if(!c)return;var img=new Image();img.onload=function(){c.slotImage=img;var sc=$('sc_'+id);if(sc){sc.width=200;sc.height=Math.round(200*img.height/img.width);sc.getContext('2d').drawImage(img,0,0,sc.width,sc.height)}$('si_'+id).style.display='block';M.T.show(c.name+' 已加载');if(M.S.maskOK)M.Gen.run()};img.src=URL.createObjectURL(f)},
 clrSlot:function(id){var c=M.S.chs.find(function(x){return x.id===id});if(c)c.slotImage=null;$('si_'+id).style.display='none';if(M.S.maskOK)M.Gen.run()}};
-/* ── Crop ── */
-M.Crop={open:function(img,title){var st=M.S.cropSt;st.active=true;st.img=img;$('cropChN').textContent='— '+(title||'');var cc=$('cropC'),mW=700,mH=480,sX=mW/img.width,sY=mH/img.height;st.ds=Math.min(sX,sY,1);cc.width=Math.round(img.width*st.ds);cc.height=Math.round(img.height*st.ds);cc.getContext('2d').drawImage(img,0,0,cc.width,cc.height);st.sw=Math.round(cc.width*.6);st.sh=Math.round(cc.height*.6);st.sx=Math.round((cc.width-st.sw)/2);st.sy=Math.round((cc.height-st.sh)/2);M.Crop._uSel();$('cropSel').style.display='block';$('cropOv').style.display='flex';M.Crop._uInfo()},
-openS:function(id){var c=M.S.chs.find(function(x){return x.id===id});if(!c||!c.slotImage){M.T.show('请先上传图片');return}M.S.cropSt.mode='slot';M.S.cropSt.chId=id;M.Crop.open(c.slotImage,c.name)},
-close:function(){M.S.cropSt.active=false;$('cropOv').style.display='none'},
-apply:function(){var st=M.S.cropSt,rx=Math.round(st.sx/st.ds),ry=Math.round(st.sy/st.ds),rw=Math.round(st.sw/st.ds),rh=Math.round(st.sh/st.ds);var tc=document.createElement('canvas');tc.width=rw;tc.height=rh;tc.getContext('2d').drawImage(st.img,rx,ry,rw,rh,0,0,rw,rh);var ni=new Image();ni.onload=function(){if(st.mode==='slot'){var c=M.S.chs.find(function(x){return x.id===st.chId});if(c){c.slotImage=ni;var sc=$('sc_'+c.id);if(sc){sc.width=200;sc.height=Math.round(200*ni.height/ni.width);sc.getContext('2d').drawImage(ni,0,0,sc.width,sc.height)}}if(M.S.maskOK)M.Gen.run()}else{M.S.prepImg=ni;var c=$('prepC');c.width=rw;c.height=rh;c.getContext('2d').drawImage(ni,0,0);$('prepLabel').textContent=rw+'x'+rh}M.T.show(M.tpl(M.L.cropOk,{w:rw,h:rh}));M.Crop.close()};ni.src=tc.toDataURL()},
-onR:function(){var r=$('cropRatio').value,st=M.S.cropSt;if(r==='free')return;var p=r.split(':');st.sh=Math.round(st.sw*+p[1]/+p[0]);var cc=$('cropC');if(st.sy+st.sh>cc.height){st.sh=cc.height-st.sy;st.sw=Math.round(st.sh*+p[0]/+p[1])}M.Crop._uSel();M.Crop._uInfo()},
-_uSel:function(){var s=$('cropSel'),st=M.S.cropSt;s.style.left=st.sx+'px';s.style.top=st.sy+'px';s.style.width=st.sw+'px';s.style.height=st.sh+'px'},
-_uInfo:function(){var st=M.S.cropSt;$('cropInfo').textContent='裁剪: '+Math.round(st.sw/st.ds)+'x'+Math.round(st.sh/st.ds)+'px'}};
-/* Crop drag */
-(function(){var sel=$('cropSel');sel.addEventListener('mousedown',function(e){e.stopPropagation();var st=M.S.cropSt;st.drag=e.target.dataset.h||'move';st.dx0=e.clientX;st.dy0=e.clientY;st.osx=st.sx;st.osy=st.sy;st.osw=st.sw;st.osh=st.sh});document.addEventListener('mousemove',function(e){var st=M.S.cropSt;if(!st.drag)return;var dx=e.clientX-st.dx0,dy=e.clientY-st.dy0,cc=$('cropC'),mw=cc.width,mh=cc.height;if(st.drag==='move'){st.sx=Math.max(0,Math.min(mw-st.sw,st.osx+dx));st.sy=Math.max(0,Math.min(mh-st.sh,st.osy+dy))}else if(st.drag==='br'){st.sw=Math.max(20,Math.min(mw-st.sx,st.osw+dx));st.sh=Math.max(20,Math.min(mh-st.sy,st.osh+dy))}else if(st.drag==='tl'){var nx=Math.max(0,st.osx+dx),ny=Math.max(0,st.osy+dy);st.sw=Math.max(20,st.osw-(nx-st.osx));st.sh=Math.max(20,st.osh-(ny-st.osy));st.sx=nx;st.sy=ny}var r=$('cropRatio').value;if(r!=='free'){var p=r.split(':');st.sh=Math.round(st.sw*+p[1]/+p[0])}M.Crop._uSel();M.Crop._uInfo()});document.addEventListener('mouseup',function(){M.S.cropSt.drag=null});$('cropWrap').addEventListener('wheel',function(e){if(!M.S.cropSt.active)return;e.preventDefault();var d=e.deltaY>0?-10:10,st=M.S.cropSt;st.sw=Math.max(20,st.sw+d);var r=$('cropRatio').value;if(r!=='free'){var p=r.split(':');st.sh=Math.round(st.sw*+p[1]/+p[0])}else st.sh=Math.max(20,st.sh+d);M.Crop._uSel();M.Crop._uInfo()},{passive:false})})();
+/* ── Crop v2 (精准裁剪重构) ── */
+M.Crop={
+  /* 状态：所有坐标都是 原图像素坐标 */
+  _st:{active:false,mode:'prep',chId:null,img:null,
+    /* 视口变换 */vZoom:1,vPanX:0,vPanY:0,
+    /* 原图裁剪矩形（像素坐标）*/rx:0,ry:0,rw:0,rh:0,
+    /* 交互 */drag:null,startMX:0,startMY:0,startRx:0,startRy:0,startRw:0,startRh:0,startPanX:0,startPanY:0,
+    ratio:'free',dpr:1,containerW:0,containerH:0},
+  /* 打开裁剪 */
+  open:function(img,title){
+    var st=this._st;st.active=true;st.img=img;st.dpr=window.devicePixelRatio||1;
+    $('cropChN').textContent='— '+(title||'');
+    var wrap=$('cropV2Wrap');st.containerW=wrap.clientWidth;st.containerH=wrap.clientHeight||480;
+    /* 计算适应缩放 */
+    var fitS=Math.min(st.containerW/img.width,st.containerH/img.height,2);
+    st.vZoom=fitS;
+    /* 居中 */
+    st.vPanX=(st.containerW-img.width*fitS)/2;
+    st.vPanY=(st.containerH-img.height*fitS)/2;
+    /* 默认裁剪区：图片80% */
+    st.rx=Math.round(img.width*0.1);st.ry=Math.round(img.height*0.1);
+    st.rw=Math.round(img.width*0.8);st.rh=Math.round(img.height*0.8);
+    st.ratio='free';
+    document.querySelectorAll('.crop-ratio-btn').forEach(function(b){b.classList.toggle('act',b.dataset.r==='free')});
+    this._renderCanvas();this._updateSel();this._updateInfo();
+    $('cropV2Sel').style.display='block';$('cropOv').style.display='flex';
+    this._bindEvents()},
+  openS:function(id){var c=M.S.chs.find(function(x){return x.id===id});if(!c||!c.slotImage){M.T.show('请先上传图片');return}this._st.mode='slot';this._st.chId=id;this.open(c.slotImage,c.name)},
+  close:function(){this._st.active=false;$('cropOv').style.display='none';this._unbindEvents()},
+  /* 渲染canvas（带dpr高清） */
+  _renderCanvas:function(){
+    var st=this._st,cv=$('cropV2C'),img=st.img;if(!img)return;
+    var dw=Math.round(img.width*st.vZoom),dh=Math.round(img.height*st.vZoom);
+    /* canvas逻辑尺寸=视口变换后的图片尺寸，物理像素x dpr */
+    cv.style.width=dw+'px';cv.style.height=dh+'px';
+    cv.style.left=Math.round(st.vPanX)+'px';cv.style.top=Math.round(st.vPanY)+'px';
+    cv.width=Math.round(dw*st.dpr);cv.height=Math.round(dh*st.dpr);
+    var ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=st.vZoom<1;ctx.imageSmoothingQuality='high';
+    ctx.scale(st.dpr,st.dpr);ctx.drawImage(img,0,0,dw,dh)},
+  /* 更新裁剪选区DOM位置 (原图px → 屏幕px) */
+  _updateSel:function(){
+    var st=this._st,sel=$('cropV2Sel');
+    var sx=st.rx*st.vZoom+st.vPanX,sy=st.ry*st.vZoom+st.vPanY;
+    var sw=st.rw*st.vZoom,sh=st.rh*st.vZoom;
+    sel.style.left=Math.round(sx)+'px';sel.style.top=Math.round(sy)+'px';
+    sel.style.width=Math.round(sw)+'px';sel.style.height=Math.round(sh)+'px'},
+  _updateInfo:function(){
+    var st=this._st,img=st.img;if(!img)return;
+    $('cropOrigSz').textContent=img.width+'×'+img.height;
+    $('cropResSz').textContent=Math.round(st.rw)+'×'+Math.round(st.rh);
+    $('cropOffset').textContent=Math.round(st.rx)+', '+Math.round(st.ry);
+    $('cropScale').textContent=st.vZoom.toFixed(2)+'x';
+    $('cropZoomLbl').textContent=Math.round(st.vZoom*100)+'%'},
+  /* 屏幕坐标 → 原图像素坐标 */
+  _screen2img:function(mx,my){
+    var st=this._st,wrap=$('cropV2Wrap'),r=wrap.getBoundingClientRect();
+    return{x:(mx-r.left-st.vPanX)/st.vZoom,y:(my-r.top-st.vPanY)/st.vZoom}},
+  /* 固定比例 */
+  setRatio:function(r,btn){
+    var st=this._st;st.ratio=r;
+    document.querySelectorAll('.crop-ratio-btn').forEach(function(b){b.classList.remove('act')});
+    if(btn)btn.classList.add('act');
+    /* 立即应用比例 */
+    if(r!=='free'){
+      var asp=1,img=st.img;
+      if(r==='2048'||r==='1024'){asp=1;var sz=+r;st.rw=Math.min(sz,img.width);st.rh=Math.min(sz,img.height);st.rw=st.rh=Math.min(st.rw,st.rh)}
+      else{var p=r.split(':');asp=+p[0]/+p[1];st.rh=Math.round(st.rw/asp)}
+      if(st.ry+st.rh>img.height){st.rh=img.height-st.ry;st.rw=Math.round(st.rh*asp)}
+      if(st.rx+st.rw>img.width){st.rw=img.width-st.rx;st.rh=Math.round(st.rw/asp)}
+    }
+    this._clampRect();this._updateSel();this._updateInfo()},
+  /* 缩放 */
+  zoom:function(delta){
+    var st=this._st,cX=st.containerW/2,cY=st.containerH/2;
+    var oldZ=st.vZoom,newZ=Math.max(0.1,Math.min(10,oldZ+delta));
+    /* 以容器中心为锚点缩放 */
+    st.vPanX=cX-(cX-st.vPanX)*newZ/oldZ;
+    st.vPanY=cY-(cY-st.vPanY)*newZ/oldZ;
+    st.vZoom=newZ;
+    this._renderCanvas();this._updateSel();this._updateInfo()},
+  zoomFit:function(){
+    var st=this._st,img=st.img;if(!img)return;
+    st.vZoom=Math.min(st.containerW/img.width,st.containerH/img.height,2);
+    st.vPanX=(st.containerW-img.width*st.vZoom)/2;
+    st.vPanY=(st.containerH-img.height*st.vZoom)/2;
+    this._renderCanvas();this._updateSel();this._updateInfo()},
+  _clampRect:function(){
+    var st=this._st,img=st.img;if(!img)return;
+    st.rw=Math.max(4,Math.min(img.width,st.rw));st.rh=Math.max(4,Math.min(img.height,st.rh));
+    st.rx=Math.max(0,Math.min(img.width-st.rw,st.rx));st.ry=Math.max(0,Math.min(img.height-st.rh,st.ry))},
+  /* 确认裁剪 — 高精度：直接从原图读取像素数据 */
+  apply:function(){
+    var st=this._st,rx=Math.round(st.rx),ry=Math.round(st.ry),rw=Math.round(st.rw),rh=Math.round(st.rh);
+    if(rw<2||rh<2){M.T.show('裁剪区域太小');return}
+    /* 创建高精度裁剪canvas,使用原图像素级精度 */
+    var tc=document.createElement('canvas');tc.width=rw;tc.height=rh;
+    var ctx=tc.getContext('2d');ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(st.img,rx,ry,rw,rh,0,0,rw,rh);
+    var ni=new Image();ni.onload=function(){
+      if(st.mode==='slot'){var c=M.S.chs.find(function(x){return x.id===st.chId});if(c){c.slotImage=ni;var sc=$('sc_'+c.id);if(sc){sc.width=200;sc.height=Math.round(200*ni.height/ni.width);sc.getContext('2d').drawImage(ni,0,0,sc.width,sc.height)}}if(M.S.maskOK)M.Gen.run()}
+      else{M.S.prepImg=ni;var c=$('prepC');c.width=rw;c.height=rh;c.getContext('2d').drawImage(ni,0,0);$('prepLabel').textContent=rw+'×'+rh}
+      M.T.show(M.tpl(M.L.cropOk,{w:rw,h:rh}));M.Crop.close()};
+    ni.src=tc.toDataURL('image/png')},
+  /* ── 事件绑定 ── */
+  _bound:false,_handlers:{},
+  _bindEvents:function(){
+    if(this._bound)return;this._bound=true;
+    var self=this,wrap=$('cropV2Wrap'),sel=$('cropV2Sel');
+    /* 选区拖拽（手柄+移动）*/
+    this._handlers.selDown=function(e){
+      e.stopPropagation();e.preventDefault();
+      var st=self._st,h=e.target.dataset?e.target.dataset.h:null;
+      st.drag=h||'move';st.startMX=e.clientX;st.startMY=e.clientY;
+      st.startRx=st.rx;st.startRy=st.ry;st.startRw=st.rw;st.startRh=st.rh};
+    sel.addEventListener('mousedown',this._handlers.selDown);
+    /* 背景拖拽（平移）*/
+    this._handlers.bgDown=function(e){
+      if(e.target!==wrap&&!e.target.classList.contains('crop-v2-canvas'))return;
+      if(e.button===0||e.button===1||e.button===2){
+        e.preventDefault();var st=self._st;
+        if(e.button===1||e.button===2||(e.button===0&&e.target===wrap)){
+          st.drag='pan';st.startMX=e.clientX;st.startMY=e.clientY;
+          st.startPanX=st.vPanX;st.startPanY=st.vPanY}}};
+    wrap.addEventListener('mousedown',this._handlers.bgDown);
+    /* 全局移动&释放 */
+    this._handlers.globalMove=function(e){
+      var st=self._st;if(!st.drag)return;e.preventDefault();
+      var dx=e.clientX-st.startMX,dy=e.clientY-st.startMY;
+      if(st.drag==='pan'){
+        st.vPanX=st.startPanX+dx;st.vPanY=st.startPanY+dy;
+        self._renderCanvas();self._updateSel();self._updateInfo();return}
+      /* 选区操作：屏幕偏移转原图偏移 */
+      var idx=dx/st.vZoom,idy=dy/st.vZoom,img=st.img;
+      var asp=st.ratio==='free'?0:self._ratioVal();
+      if(st.drag==='move'){
+        st.rx=Math.max(0,Math.min(img.width-st.rw,st.startRx+idx));
+        st.ry=Math.max(0,Math.min(img.height-st.rh,st.startRy+idy))}
+      else if(st.drag==='br'){
+        st.rw=Math.max(4,Math.min(img.width-st.rx,st.startRw+idx));
+        if(asp)st.rh=st.rw/asp;else st.rh=Math.max(4,Math.min(img.height-st.ry,st.startRh+idy))}
+      else if(st.drag==='tl'){
+        var nw=Math.max(4,st.startRw-idx),nh=asp?nw/asp:Math.max(4,st.startRh-idy);
+        st.rx=st.startRx+st.startRw-nw;st.ry=st.startRy+st.startRh-nh;
+        st.rw=nw;st.rh=nh}
+      else if(st.drag==='tr'){
+        st.rw=Math.max(4,Math.min(img.width-st.rx,st.startRw+idx));
+        if(asp)st.rh=st.rw/asp;else{var nh=Math.max(4,st.startRh-idy);st.ry=st.startRy+st.startRh-nh;st.rh=nh}}
+      else if(st.drag==='bl'){
+        var nw=Math.max(4,st.startRw-idx);
+        st.rx=st.startRx+st.startRw-nw;st.rw=nw;
+        if(asp)st.rh=nw/asp;else st.rh=Math.max(4,Math.min(img.height-st.ry,st.startRh+idy))}
+      else if(st.drag==='tm'){
+        var nh=Math.max(4,st.startRh-idy);st.ry=st.startRy+st.startRh-nh;st.rh=nh;
+        if(asp)st.rw=nh*asp}
+      else if(st.drag==='bm'){
+        st.rh=Math.max(4,Math.min(img.height-st.ry,st.startRh+idy));
+        if(asp)st.rw=st.rh*asp}
+      else if(st.drag==='ml'){
+        var nw=Math.max(4,st.startRw-idx);st.rx=st.startRx+st.startRw-nw;st.rw=nw;
+        if(asp)st.rh=nw/asp}
+      else if(st.drag==='mr'){
+        st.rw=Math.max(4,Math.min(img.width-st.rx,st.startRw+idx));
+        if(asp)st.rh=st.rw/asp}
+      self._clampRect();self._updateSel();self._updateInfo()};
+    document.addEventListener('mousemove',this._handlers.globalMove);
+    this._handlers.globalUp=function(){self._st.drag=null};
+    document.addEventListener('mouseup',this._handlers.globalUp);
+    /* 滚轮缩放（以鼠标位置为锚点）*/
+    this._handlers.wheel=function(e){
+      if(!self._st.active)return;e.preventDefault();
+      var st=self._st,r=wrap.getBoundingClientRect();
+      var mx=e.clientX-r.left,my=e.clientY-r.top;
+      var delta=e.deltaY<0?0.1:-0.1;
+      var oldZ=st.vZoom,newZ=Math.max(0.05,Math.min(10,oldZ+delta));
+      st.vPanX=mx-(mx-st.vPanX)*newZ/oldZ;
+      st.vPanY=my-(my-st.vPanY)*newZ/oldZ;
+      st.vZoom=newZ;
+      self._renderCanvas();self._updateSel();self._updateInfo()};
+    wrap.addEventListener('wheel',this._handlers.wheel,{passive:false});
+    /* 右键菜单阻止 */
+    this._handlers.ctx=function(e){e.preventDefault()};
+    wrap.addEventListener('contextmenu',this._handlers.ctx)},
+  _unbindEvents:function(){
+    if(!this._bound)return;this._bound=false;
+    var wrap=$('cropV2Wrap'),sel=$('cropV2Sel');
+    sel.removeEventListener('mousedown',this._handlers.selDown);
+    wrap.removeEventListener('mousedown',this._handlers.bgDown);
+    document.removeEventListener('mousemove',this._handlers.globalMove);
+    document.removeEventListener('mouseup',this._handlers.globalUp);
+    wrap.removeEventListener('wheel',this._handlers.wheel);
+    wrap.removeEventListener('contextmenu',this._handlers.ctx)},
+  _ratioVal:function(){
+    var r=this._st.ratio;if(r==='free')return 0;
+    if(r==='2048'||r==='1024')return 1;
+    var p=r.split(':');return+p[0]/+p[1]}
+};
 /* ── Migration (v5→v6 兼容) ── */
 M.Mig={ldJSON:function(file){var r=new FileReader();r.onload=function(e){try{var c=JSON.parse(e.target.result);if(!c.regions){M.T.show('无效工程');return}var ver=c.version||'5.0';var doRestore=function(){/* 转换通道 */if(c.channels)M.S.chs=c.channels.map(function(ch){return{id:ch.id,name:ch.name,color:ch.color,raw:null,rawOrig:null,adjust:ch.adjust||{invert:false,brightness:0,contrast:0,gamma:1.0},slotImage:null}});else M.Ch.init();if(c.aMode)M.S.aMode=c.aMode;if(c.edgeSmooth!=null){$('pES').value=c.edgeSmooth;M.Pk.upP()}M.S.regions=[];if(c.regions)c.regions.forEach(function(r){M.S.regions.push({ch:r.ch,hue:r.hue,tol:r.tol,satMin:r.satMin,rgb:M.C.x2r(r.color||'#888'),matchPct:r.matchPct||'0',inverted:!!r.inverted})});if(c.naming){if(c.naming.template)$('namingTpl').value=c.naming.template;if(c.naming.project)$('tplP').value=c.naming.project;if(c.naming.charID)$('tplC').value=c.naming.charID;M.Nm.pv()}M.Ch.rBar();M.Ch.rPan();M.Ch.rSlots();M.Ch.uBr();$('s1').style.display='none';$('s3').style.display='block';$('namingCard').style.display='block';$('undoBar').style.display='flex';M.Pk.bind();M.UI.stp(3);M.Ch.rRL();if(M.S.regions.length){$('genBtn').disabled=false;M.Gen.run()}M.T.show(M.tpl(M.L.restored,{v:ver}))};if(c.sourceImageBase64){var img=new Image();img.onload=function(){M.S.srcImg=img;M.S.prepImg=img;M.S.W=img.width;M.S.H=img.height;var cv=$('srcC');cv.width=M.S.W;cv.height=M.S.H;cv.getContext('2d').drawImage(img,0,0);M.S.px=new Uint8ClampedArray(cv.getContext('2d').getImageData(0,0,M.S.W,M.S.H).data);var n=M.S.W*M.S.H;M.S.hsv=new Float32Array(n*3);for(var i=0;i<n;i++){var o=i*4,v=M.C.r2h(M.S.px[o],M.S.px[o+1],M.S.px[o+2]);M.S.hsv[i*3]=v[0];M.S.hsv[i*3+1]=v[1];M.S.hsv[i*3+2]=v[2]}doRestore()};img.src=c.sourceImageBase64}else{M.T.show('请上传原图');var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.onchange=function(){if(!inp.files[0])return;var img2=new Image();img2.onload=function(){M.S.srcImg=img2;M.S.prepImg=img2;M.S.W=img2.width;M.S.H=img2.height;var cv=$('srcC');cv.width=M.S.W;cv.height=M.S.H;cv.getContext('2d').drawImage(img2,0,0);M.S.px=new Uint8ClampedArray(cv.getContext('2d').getImageData(0,0,M.S.W,M.S.H).data);var n=M.S.W*M.S.H;M.S.hsv=new Float32Array(n*3);for(var i=0;i<n;i++){var o=i*4,v=M.C.r2h(M.S.px[o],M.S.px[o+1],M.S.px[o+2]);M.S.hsv[i*3]=v[0];M.S.hsv[i*3+1]=v[1];M.S.hsv[i*3+2]=v[2]}doRestore()};img2.src=URL.createObjectURL(inp.files[0])};inp.click()}}catch(err){M.T.show(M.tpl(M.L.invJson,{e:err.message}))};};r.readAsText(file)}};
 /* ── 快捷键 ── */
