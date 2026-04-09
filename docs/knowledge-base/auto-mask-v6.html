@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>自动 Mask 通道生成器 v6.1</title>
+<title>自动 Mask 通道生成器 v6.2</title>
 <style>
 :root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--gbg:rgba(74,222,128,.12);--abg:rgba(108,140,255,.12);--rbg:rgba(248,113,113,.12);--ybg:rgba(251,191,36,.12);--obg:rgba(251,146,60,.12);--cbg:rgba(34,211,238,.12)}
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
@@ -97,11 +97,43 @@
 /* ═══ v6.1 画布闪烁高亮动画 ═══ */
 @keyframes flash-overlay{0%{opacity:0}20%{opacity:.4}40%{opacity:.1}60%{opacity:.35}80%{opacity:.05}100%{opacity:0}}
 .canvas-flash{position:absolute;inset:0;pointer-events:none;z-index:25;animation:flash-overlay 1.5s ease-out forwards}
+
+/* ═══ v6.2 色彩容差控制面板 ═══ */
+.tol-panel{background:linear-gradient(135deg,rgba(34,211,238,.06),rgba(108,140,255,.06));border:1.5px solid rgba(34,211,238,.2);border-radius:10px;padding:12px;margin:8px 0;position:relative}
+.tol-panel-title{font-size:11px;color:var(--cyan);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.tol-panel-title .tol-algo-badge{font-size:9px;padding:2px 8px;border-radius:8px;background:rgba(34,211,238,.15);color:var(--cyan);font-weight:600}
+.tol-mode-bar{display:flex;gap:4px;margin-bottom:8px}.tol-mode-btn{padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--dim);cursor:pointer;font-size:10px;font-family:inherit;transition:all .15s}.tol-mode-btn:hover{border-color:var(--cyan);color:var(--text)}.tol-mode-btn.act{background:rgba(34,211,238,.12);border-color:var(--cyan);color:var(--cyan);font-weight:600}
+.tol-slider-wrap{margin:4px 0}.tol-slider-wrap label{font-size:10px;color:var(--dim)}.tol-slider-wrap .tol-val{font-size:11px;color:var(--cyan);font-weight:700;font-family:'Cascadia Code','Fira Code',monospace}
+.tol-preview-hint{font-size:9px;color:var(--dim);margin-top:4px;display:flex;align-items:center;gap:4px}.tol-preview-hint .tol-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:tol-pulse 1.5s infinite}
+@keyframes tol-pulse{0%,100%{opacity:.3}50%{opacity:1}}
+.tol-lightness-weight{display:flex;align-items:center;gap:6px;margin-top:6px;padding:6px 8px;background:var(--card);border-radius:6px;border:1px solid var(--border)}.tol-lightness-weight label{font-size:10px;color:var(--dim);flex-shrink:0}.tol-lightness-weight .v{font-size:10px;color:var(--yellow);font-weight:600;min-width:28px;text-align:right}
+
+/* ═══ v6.2 实时容差预览叠加层 ═══ */
+.tol-preview-overlay{position:absolute;inset:0;pointer-events:none;z-index:20;opacity:.65;transition:opacity .15s}
+
+/* ═══ v6.2 智能分析精度设置 ═══ */
+.ad-precision-bar{display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap}
+.ad-precision-bar label{font-size:10px;color:var(--dim);flex-shrink:0}
+.ad-precision-bar select{padding:3px 8px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:10px;font-family:inherit;cursor:pointer}
+.ad-precision-bar select:focus{border-color:var(--cyan);outline:none}
+.ad-strict-lightness{display:flex;align-items:center;gap:5px;padding:4px 8px;background:var(--card);border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all .15s}
+.ad-strict-lightness:hover{border-color:var(--yellow)}
+.ad-strict-lightness.active{border-color:var(--yellow);background:rgba(251,191,36,.08)}
+.ad-strict-lightness label{font-size:10px;color:var(--dim);cursor:pointer}.ad-strict-lightness.active label{color:var(--yellow)}
+.ad-strict-lightness input{accent-color:var(--yellow)}
+
+/* ═══ v6.2 LAB 色彩信息展示 ═══ */
+.lab-info{font-size:9px;color:var(--dim);font-family:'Cascadia Code','Fira Code',monospace;margin-top:2px}
+.lab-info .lab-l{color:var(--yellow)}.lab-info .lab-a{color:var(--green)}.lab-info .lab-b{color:var(--blue)}
+.de-badge{display:inline-block;font-size:9px;padding:1px 6px;border-radius:4px;font-weight:600;margin-left:4px}
+.de-badge.de-close{background:rgba(248,113,113,.12);color:var(--red)}
+.de-badge.de-medium{background:rgba(251,191,36,.12);color:var(--yellow)}
+.de-badge.de-far{background:rgba(74,222,128,.12);color:var(--green)}
 </style>
 </head>
 <body>
 <div class="app">
-<div class="hdr"><h1>🤖 自动 Mask 通道生成器 <span class="ver">v6.1</span></h1><p>悬浮快捷分配 · 智能主色调自动填充 · 精准裁剪修复 · 自定义通道命名 · 动态多通道 · 放大镜精准吸色 · 边缘净化 · 撤销重做 · TGA导出 · v5工程兼容</p></div>
+<div class="hdr"><h1>🤖 自动 Mask 通道生成器 <span class="ver">v6.2</span></h1><p>CIELAB ΔE 感知色差 · 明度精准区分 · 容差实时预览 · 聚类精度可调 · 悬浮快捷分配 · 智能主色调自动填充 · 精准裁剪 · 自定义通道命名 · 动态多通道 · 放大镜精准吸色 · 边缘净化 · 撤销重做 · TGA导出 · v5工程兼容</p></div>
 <div style="background:linear-gradient(90deg,rgba(34,211,238,.08),rgba(108,140,255,.08));border:1px solid rgba(34,211,238,.2);border-radius:8px;padding:8px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px"><span style="font-size:12px;color:var(--cyan);display:flex;align-items:center;gap:6px"><span style="font-size:16px">🖥️</span><b>桌面版已上线!</b> <span style="color:var(--dim)">Windows 独立 exe · 离线可用 · 原生保存 · 多图拖拽</span></span><a href="auto-mask-v6-desktop.html" target="_blank" style="background:var(--cyan);color:#000;padding:4px 14px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;transition:all .15s">⬇️ 查看下载</a></div>
 <div class="card" id="presetCard"><div class="card-title">🎯 一键预设模式 <span class="badge badge-g">新手推荐</span></div><div class="pg" id="presetGrid"></div></div>
 <div class="steps" id="stepBar"><div class="stp act" data-s="1"><span class="n">1</span>导入</div><span class="sa">→</span><div class="stp" data-s="2"><span class="n">2</span>预处理</div><span class="sa">→</span><div class="stp" data-s="3"><span class="n">3</span>吸色分配</div><span class="sa">→</span><div class="stp" data-s="4"><span class="n">4</span>预览导出</div></div>
@@ -127,10 +159,36 @@
 <div class="cpb-btns" id="cpbBtns"></div>
 </div>
 <div style="font-size:11px;color:var(--heading);margin-bottom:4px">色相范围</div><div class="hb" id="hueBar"><div class="hsl2" id="hSL" style="width:0"></div><div class="hsr2" id="hSR" style="width:0"></div><div class="hrn" id="hRng" style="display:none"></div><div class="hmk" id="hMk" style="left:0;display:none"></div></div>
+<!-- v6.2 色彩容差控制面板 -->
+<div class="tol-panel" id="tolPanel">
+<div class="tol-panel-title">🎨 色彩容差控制 <span class="tol-algo-badge" id="tolAlgoBadge">CIELAB ΔE</span></div>
+<div class="tol-mode-bar" id="tolModeBar">
+<button class="tol-mode-btn" data-mode="hsv" onclick="M.Tol.setMode('hsv',this)">HSV 色相距离</button>
+<button class="tol-mode-btn act" data-mode="lab" onclick="M.Tol.setMode('lab',this)">CIELAB ΔE (推荐)</button>
+</div>
+<div class="tol-slider-wrap"><div class="pr"><label>全局容差 (ΔE)</label><span class="tw"><span class="tt">?</span><span class="tb" id="ttDE">🎯 <b>CIELAB ΔE 色差</b><br>基于人类视觉感知的色彩距离算法。<br>ΔE≤5: 极严格，精确区分浅灰/深灰<br>ΔE 5-15: 标准匹配，区分相近色<br>ΔE 15-30: 宽泛匹配，合并近似色<br>ΔE>30: 超宽泛，大范围色域</span></span><input type="range" id="pDE" min="1" max="60" value="12" oninput="M.Tol.update()"><span class="v tol-val" id="vDE">ΔE 12</span></div></div>
+<div class="tol-lightness-weight"><label>🔆 明度权重</label><span class="tw"><span class="tt">?</span><span class="tb" id="ttLW">🔆 <b>明度权重 (L* weight)</b><br>增大此值可加强算法对明度差异的敏感度。<br>1.0x: 标准 CIE76 公式<br>2.0x: 强化明度区分（推荐灰色系）<br>3.0x: 极端明度敏感</span></span><input type="range" id="pLW" min="10" max="40" value="15" style="flex:1;accent-color:var(--yellow);height:3px" oninput="M.Tol.update()"><span class="v" id="vLW" style="color:var(--yellow)">1.5x</span></div>
+<div class="tol-preview-hint"><span class="tol-dot"></span> 拖动滑块实时预览匹配区域</div>
+</div>
 <div class="pr"><label>色相容差</label><span class="tw"><span class="tt">?</span><span class="tb" id="ttHT"></span></span><input type="range" id="pHT" min="5" max="60" value="20" oninput="M.Pk.upP()"><span class="v" id="vHT">±20°</span></div>
 <div class="pr"><label>饱和度下限</label><span class="tw"><span class="tt">?</span><span class="tb" id="ttSM"></span></span><input type="range" id="pSM" min="0" max="100" value="15" oninput="M.Pk.upP()"><span class="v" id="vSM">15%</span></div>
 <div class="pr"><label>边缘平滑</label><span class="tw"><span class="tt">?</span><span class="tb" id="ttES"></span></span><input type="range" id="pES" min="0" max="5" value="2" oninput="M.Pk.upP()"><span class="v" id="vES">2px</span></div>
-<div style="margin:10px 0 6px"><button class="btn btn-p" onclick="M.AD.run()" style="width:100%;justify-content:center">✨ 智能分析主色调</button>
+<div style="margin:10px 0 6px">
+<!-- v6.2 智能分析精度设置 -->
+<div class="ad-precision-bar">
+<label>📊 提取色数</label>
+<select id="adColorCount" onchange="M.Cfg.AMAX=+this.value">
+<option value="4" selected>4色（标准）</option>
+<option value="6">6色</option>
+<option value="8">8色（精细）</option>
+<option value="12">12色</option>
+<option value="16">16色（超精细）</option>
+</select>
+<div class="ad-strict-lightness" id="adStrictL" onclick="M.AD.toggleStrictL()">
+<input type="checkbox" id="adStrictLCB"><label>强制区分明度</label>
+</div>
+</div>
+<button class="btn btn-p" onclick="M.AD.run()" style="width:100%;justify-content:center">✨ 智能分析主色调</button>
 <!-- v6.1 智能分析结果面板 -->
 <div class="ad-results-panel" id="adResultsPanel">
 <div style="font-size:11px;color:var(--heading);font-weight:600;margin-bottom:6px">🔍 分析结果 — 已提取主色域</div>
@@ -190,10 +248,72 @@ var M=window.MaskApp={};function $(id){return document.getElementById(id)}
 M.L={loaded:'{w}x{h} 已加载',addTo:'\u2713 已添加到 {ch}',locked:'已锁定',genDone:'Mask生成完成({n}通道)',noBody:'请先生成',invJson:'JSON错误:{e}',restored:'工程已恢复(v{v})',cropOk:'已裁剪:{w}x{h}',edgeOk:'边缘净化已应用',dlOk:'已下载 {n}',zipOk:'ZIP已下载',tgaOk:'TGA已下载 {n}',autoN:'发现{n}个主色域',preOk:'已应用「{n}」',chAdd:'已添加: {n}',chBase:'基础通道不可删',undoOk:'已撤销',redoOk:'已重做',multiOk:'已导出{n}个PNG包',pickTip:'\uD83D\uDC46 点击图片吸取颜色',adjTip:'\uD83C\uDFA8 调参后点「添加」',contTip:'\uD83D\uDD04 继续吸色或生成',doneTip:'\u2705 已生成！画笔微调后下载',
 tt_ht:'\uD83C\uDFA8 <b>颜色抓取范围</b><br>值越大,抓取的相近颜色越多。<br>±20°只抓正红,±40°连橙红粉红都抓。',tt_sm:'\uD83D\uDCA7 <b>过滤灰色</b><br>值越高只抓鲜艳色彩。',tt_es:'\uD83C\uDF0A <b>边界柔和度</b><br>值越大边界越模糊(类似PS羽化)。',tt_ga:'\uD83D\uDD06 <b>明暗曲线</b><br><1暗部更亮, >1暗部更暗。',tt_inv:'\uD83D\uDD04 <b>黑白反转</b><br>选中⇆未选中(PS的Ctrl+I)。',tt_br:'\u2600\uFE0F <b>亮度</b><br>正=提亮, 负=压暗。',tt_ct:'\u25D0 <b>对比度</b><br>高=边界硬朗, 低=过渡柔和。',tt_di:'\u2B1B\u2192\u2B1C <b>膨胀</b><br>Mask向外扩展1-3px。',tt_er:'\u2B1C\u2192\u2B1B <b>腐蚀</b><br>Mask向内收缩1-3px。',tt_fe:'\uD83C\uDF2B\uFE0F <b>羽化</b><br>边缘高斯模糊。',tt_rs:'\uD83D\uDCAA <b>净化强度</b><br>边缘灰色→纯黑/白。100%=二值化。'};
 M.Cfg={CH:[{id:'R',n:'R',c:'#f66'},{id:'G',n:'G',c:'#6f6'},{id:'B',n:'B',c:'#66f'},{id:'A',n:'A',c:'#ccc'}],PRE:{'standard-3color':{n:'标准三色角色',i:'🎭',d:'皮肤/头发/衣服→R/G/B',t:'适合标准角色立绘。加载后自动分析。',am:'alpha',ht:25,sm:20,es:2,ad:true},'hair-eyes':{n:'仅提取头发/眼睛',i:'👁️',d:'高容差提取头发→R 眼睛→G',t:'先吸头发→R,再吸眼睛→G。',am:'alpha',ht:35,sm:10,es:3,ad:false},'ui-precision':{n:'UI元素高精度',i:'🎯',d:'低容差无模糊 精确色块',t:'适合UI图标/按钮色块。',am:'pick',ht:10,sm:30,es:0,ad:false},'vfx-special':{n:'特效专用',i:'✨',d:'半透明/发光 宽容差+边缘净化',t:'针对特效/发光。配合边缘净化。',am:'alpha',ht:40,sm:8,es:3,ad:false,er:{di:1,ero:0,fe:2,rs:60}},'scene-object':{n:'场景物件',i:'🏠',d:'材质碎色 多通道分区',t:'颜色分布较碎的贴图。',am:'pick',ht:18,sm:25,es:1,ad:true}},HMAX:50,ABINS:36,AMAX:4};
-M.S={srcImg:null,prepImg:null,W:0,H:0,oW:0,oH:0,px:null,hsv:null,pkH:-1,pkS:0,pkV:0,pkRGB:[0,0,0],curCh:'R',aMode:'pick',regions:[],chs:[],chCnt:0,brushMode:null,painting:false,maskOK:false,aPre:null};
+M.S={srcImg:null,prepImg:null,W:0,H:0,oW:0,oH:0,px:null,hsv:null,lab:null,pkH:-1,pkS:0,pkV:0,pkRGB:[0,0,0],pkLab:null,curCh:'R',aMode:'pick',regions:[],chs:[],chCnt:0,brushMode:null,painting:false,maskOK:false,aPre:null,
+/* v6.2 容差模式状态 */
+tolMode:'lab',  /* 'hsv' | 'lab' */
+strictLightness:false /* 智能分析时是否强制区分明度 */
+};
 M.tpl=function(s,v){return s.replace(/\{(\w+)\}/g,function(_,k){return v[k]!=null?v[k]:'{'+k+'}'})};
-/* ── Color ── */
-M.C={r2h:function(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,h=0,s=mx?d/mx:0,v=mx;if(d){if(mx===r)h=60*((g-b)/d%6);else if(mx===g)h=60*((b-r)/d+2);else h=60*((r-g)/d+4);if(h<0)h+=360}return[h,s*100,v*100]},hD:function(a,b){var d=Math.abs(a-b);return d>180?360-d:d},sms:function(e0,e1,x){var t=Math.max(0,Math.min(1,(x-e0)/(e1-e0)));return t*t*(3-2*t)},r2x:function(a){return'#'+a.map(function(v){return v.toString(16).padStart(2,'0')}).join('')},x2r:function(h){h=h.replace('#','');return[parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)]},hsl2x:function(s){var m=s.match(/hsl\((\d+),\s*(\d+)%?,\s*(\d+)%?\)/);if(!m)return s;var h=+m[1]/360,sat=+m[2]/100,l=+m[3]/100,r,g,b;if(!sat){r=g=b=l}else{var q=l<.5?l*(1+sat):l+sat-l*sat,p=2*l-q;function h2(p,q,t){if(t<0)t++;if(t>1)t--;return t<1/6?p+(q-p)*6*t:t<.5?q:t<2/3?p+(q-p)*(2/3-t)*6:p}r=h2(p,q,h+1/3);g=h2(p,q,h);b=h2(p,q,h-1/3)}return'#'+[r,g,b].map(function(x){return Math.round(x*255).toString(16).padStart(2,'0')}).join('')},res:function(c){return c.indexOf('hsl')>=0?M.C.hsl2x(c):c}};
+/* ── Color (v6.2 扩展 CIELAB) ── */
+M.C={r2h:function(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,h=0,s=mx?d/mx:0,v=mx;if(d){if(mx===r)h=60*((g-b)/d%6);else if(mx===g)h=60*((b-r)/d+2);else h=60*((r-g)/d+4);if(h<0)h+=360}return[h,s*100,v*100]},hD:function(a,b){var d=Math.abs(a-b);return d>180?360-d:d},sms:function(e0,e1,x){var t=Math.max(0,Math.min(1,(x-e0)/(e1-e0)));return t*t*(3-2*t)},r2x:function(a){return'#'+a.map(function(v){return v.toString(16).padStart(2,'0')}).join('')},x2r:function(h){h=h.replace('#','');return[parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)]},hsl2x:function(s){var m=s.match(/hsl\((\d+),\s*(\d+)%?,\s*(\d+)%?\)/);if(!m)return s;var h=+m[1]/360,sat=+m[2]/100,l=+m[3]/100,r,g,b;if(!sat){r=g=b=l}else{var q=l<.5?l*(1+sat):l+sat-l*sat,p=2*l-q;function h2(p,q,t){if(t<0)t++;if(t>1)t--;return t<1/6?p+(q-p)*6*t:t<.5?q:t<2/3?p+(q-p)*(2/3-t)*6:p}r=h2(p,q,h+1/3);g=h2(p,q,h);b=h2(p,q,h-1/3)}return'#'+[r,g,b].map(function(x){return Math.round(x*255).toString(16).padStart(2,'0')}).join('')},res:function(c){return c.indexOf('hsl')>=0?M.C.hsl2x(c):c},
+/* ═══ v6.2 CIELAB 色彩空间核心算法 ═══
+ *
+ * 数学原理：
+ * 1. RGB → 线性 RGB（移除 sRGB gamma）
+ * 2. 线性 RGB → CIE XYZ（使用 sRGB→D65 矩阵）
+ * 3. CIE XYZ → CIELAB L*a*b*
+ *    L* = 116 * f(Y/Yn) - 16    (明度，0-100)
+ *    a* = 500 * (f(X/Xn) - f(Y/Yn))  (绿-红轴)
+ *    b* = 200 * (f(Y/Yn) - f(Z/Zn))  (蓝-黄轴)
+ *    其中 f(t) = t^(1/3) 当 t > (6/29)^3，否则 t/(3*(6/29)^2) + 4/29
+ *
+ * ΔE(CIE76) = sqrt( (L1-L2)² + (a1-a2)² + (b1-b2)² )
+ *
+ * 为什么能区分浅灰和深灰：
+ *   浅灰 RGB(200,200,200) → L*=80.6, a*=0, b*=0
+ *   深灰 RGB(80,80,80)    → L*=34.0, a*=0, b*=0
+ *   ΔE = |80.6-34.0| = 46.6  → 巨大差异！
+ *   而 HSV 中两者色相差 = 0°（均为灰色，色相无意义）
+ */
+r2lab:function(R,G,B){
+  /* 步骤1: sRGB [0-255] → 线性 RGB [0-1] */
+  var r=R/255,g=G/255,b=B/255;
+  r=r>.04045?Math.pow((r+.055)/1.055,2.4):r/12.92;
+  g=g>.04045?Math.pow((g+.055)/1.055,2.4):g/12.92;
+  b=b>.04045?Math.pow((b+.055)/1.055,2.4):b/12.92;
+  /* 步骤2: 线性 RGB → XYZ (D65 白点) */
+  var x=r*.4124564+g*.3575761+b*.1804375;
+  var y=r*.2126729+g*.7151522+b*.0721750;
+  var z=r*.0193339+g*.1191920+b*.9503041;
+  /* D65 参考白点 */
+  x/=.95047;y/=1.0;z/=1.08883;
+  /* 步骤3: XYZ → Lab (CIE 1976) */
+  var e=216/24389,k=24389/27;
+  var fx=x>e?Math.pow(x,1/3):(k*x+16)/116;
+  var fy=y>e?Math.pow(y,1/3):(k*y+16)/116;
+  var fz=z>e?Math.pow(z,1/3):(k*z+16)/116;
+  return[116*fy-16, 500*(fx-fy), 200*(fy-fz)]},
+/* ΔE(CIE76) 标准色差公式 */
+deltaE:function(lab1,lab2){
+  var dL=lab1[0]-lab2[0],da=lab1[1]-lab2[1],db=lab1[2]-lab2[2];
+  return Math.sqrt(dL*dL+da*da+db*db)},
+/* v6.2: 带明度权重的 ΔE
+ * Lw = 明度权重系数 (1.0=标准, 2.0=强化明度敏感)
+ * 公式: sqrt( (Lw*ΔL)² + Δa² + Δb² )
+ * 效果: Lw>1 时放大明度差异的贡献，使浅灰/深灰分得更开 */
+deltaEw:function(lab1,lab2,Lw){
+  if(!Lw)Lw=1;
+  var dL=(lab1[0]-lab2[0])*Lw,da=lab1[1]-lab2[1],db=lab1[2]-lab2[2];
+  return Math.sqrt(dL*dL+da*da+db*db)},
+/* v6.2: 批量预计算 CIELAB 数组（与 HSV 并行存储）
+ * 返回 Float32Array[n*3]，布局: [L0,a0,b0, L1,a1,b1, ...] */
+batchLab:function(px,n){
+  var lab=new Float32Array(n*3);
+  for(var i=0;i<n;i++){
+    var o=i*4,v=M.C.r2lab(px[o],px[o+1],px[o+2]);
+    lab[i*3]=v[0];lab[i*3+1]=v[1];lab[i*3+2]=v[2]}
+  return lab}
+};
 /* ── Toast ── */
 M.T={_t:null,show:function(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(this._t);this._t=setTimeout(function(){t.classList.remove('show')},2500)},float:function(txt,x,y){var el=document.createElement('div');el.className='ft';el.textContent=txt;el.style.left=x+'px';el.style.top=y+'px';$('srcWrap').appendChild(el);setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el)},1000)}};
 /* ── Naming ── */
@@ -204,6 +324,80 @@ M.UI={stp:function(n){document.querySelectorAll('.stp').forEach(function(s){var 
 M.TT={init:function(){var L=M.L,m={ttHT:L.tt_ht,ttSM:L.tt_sm,ttES:L.tt_es,ttDi:L.tt_di,ttEr:L.tt_er,ttFe:L.tt_fe,ttRs:L.tt_rs};for(var id in m){var e=$(id);if(e)e.innerHTML=m[id]}}};
 /* ── History ── */
 M.Hist={stk:[],ptr:-1,push:function(a){this.stk=this.stk.slice(0,this.ptr+1);a.sn={rg:JSON.parse(JSON.stringify(M.S.regions)),ca:M.S.chs.map(function(c){return{id:c.id,adj:JSON.parse(JSON.stringify(c.adjust)),rb:c.raw?new Float32Array(c.raw):null}})};this.stk.push(a);if(this.stk.length>M.Cfg.HMAX)this.stk.shift();this.ptr=this.stk.length-1;this._u()},undo:function(){if(this.ptr<0)return;this.ptr--;var sn=this.ptr>=0?this.stk[this.ptr].sn:null;if(sn)this._r(sn);else this._i();M.T.show(M.L.undoOk);this._u()},redo:function(){if(this.ptr>=this.stk.length-1)return;this.ptr++;this._r(this.stk[this.ptr].sn);M.T.show(M.L.redoOk);this._u()},_r:function(sn){var S=M.S;S.regions=JSON.parse(JSON.stringify(sn.rg));sn.ca.forEach(function(sc){var c=S.chs.find(function(x){return x.id===sc.id});if(c){c.adjust=JSON.parse(JSON.stringify(sc.adj));if(sc.rb)c.raw=new Float32Array(sc.rb)}});M.Ch.rBar();M.Ch.rPan();M.Ch.rRL();if(S.maskOK)M.Ren.all();$('genBtn').disabled=S.regions.length===0},_i:function(){M.S.regions=[];M.S.chs.forEach(function(c){c.raw=null;c.rawOrig=null});M.Ch.rRL();$('genBtn').disabled=true},_u:function(){var u=this.ptr+1,r=this.stk.length-1-this.ptr;$('undoBtn').disabled=u<=0;$('redoBtn').disabled=r<=0;$('undoC').textContent='('+Math.max(0,u)+')';$('redoC').textContent='('+Math.max(0,r)+')'},clear:function(){this.stk=[];this.ptr=-1;this._u()}};
+/* ═══ v6.2 容差控制模块 (Tolerance) ═══
+ *
+ * 提供统一的颜色匹配接口，支持两种算法模式：
+ * 1. HSV 色相距离（v6.0 兼容模式）—— 仅比较色相角度差
+ * 2. CIELAB ΔE（v6.2 推荐模式）—— 基于人类视觉感知的色差
+ *
+ * 核心函数 M.Tol.match(pixelIdx, refRGB, refLab) 返回匹配强度 [0-1]
+ * 所有 Picker/Generator/AutoDetect 都通过此接口进行匹配
+ */
+M.Tol={
+  _timer:null,
+  /* 切换算法模式 */
+  setMode:function(mode,btn){
+    M.S.tolMode=mode;
+    document.querySelectorAll('.tol-mode-btn').forEach(function(b){b.classList.remove('act')});
+    if(btn)btn.classList.add('act');
+    $('tolAlgoBadge').textContent=mode==='lab'?'CIELAB ΔE':'HSV 色相';
+    M.Tol.update()},
+  /* 获取当前容差参数 */
+  getDE:function(){return+$('pDE').value},
+  getLW:function(){return+$('pLW').value/10},
+  /* 滑块更新（带防抖实时预览）*/
+  update:function(){
+    var de=M.Tol.getDE(),lw=M.Tol.getLW();
+    $('vDE').textContent='ΔE '+de;
+    $('vLW').textContent=lw.toFixed(1)+'x';
+    /* 防抖 80ms 后触发实时预览 */
+    clearTimeout(M.Tol._timer);
+    M.Tol._timer=setTimeout(function(){
+      if(M.S.pkH>=0){
+        M.Pk.rSrc();
+        var pct=M.Pk.mPct();
+        $('pkInfo').innerHTML='<b>'+M.C.r2x(M.S.pkRGB)+'</b> H:'+M.S.pkH.toFixed(0)+'° · <span style="color:var(--green)">'+pct+'%</span>';
+        /* 更新右侧 banner */
+        var bn=$('curPickBanner');
+        if(bn.classList.contains('show')){$('cpbPct').textContent=pct+'%'}
+      }
+    },80)},
+  /* ═══ 统一匹配接口 ═══
+   * 输入：像素索引 i，参考颜色的 RGB 和 Lab
+   * 输出：匹配强度 [0-1]，0=完全不匹配，1=完全匹配
+   *
+   * HSV 模式：使用旧版色相距离 + 饱和度下限 + smoothstep 渐变
+   * LAB 模式：使用 ΔE 距离 + 明度权重 + sigmoid 渐变
+   */
+  match:function(i,refRGB,refLab,hue){
+    var S=M.S;
+    if(S.tolMode==='lab'&&S.lab){
+      /* CIELAB ΔE 模式 */
+      var de=M.Tol.getDE(),lw=M.Tol.getLW();
+      var pxL=S.lab[i*3],pxA=S.lab[i*3+1],pxB=S.lab[i*3+2];
+      if(!refLab)refLab=M.C.r2lab(refRGB[0],refRGB[1],refRGB[2]);
+      var dist=M.C.deltaEw([pxL,pxA,pxB],refLab,lw);
+      /* sigmoid 渐变：ΔE < de*0.7 → 强匹配, ΔE > de → 不匹配 */
+      if(dist<=de*0.6)return 1;
+      if(dist>=de*1.3)return 0;
+      return M.C.sms(de*1.3,de*0.6,dist);
+    }else{
+      /* HSV 色相距离模式（兼容 v6.0） */
+      var tol=+$('pHT').value,sat=+$('pSM').value;
+      var h=S.hsv[i*3],s=S.hsv[i*3+1],v=S.hsv[i*3+2];
+      if(typeof hue==='undefined')hue=M.C.r2h(refRGB[0],refRGB[1],refRGB[2])[0];
+      if(s<sat*0.5)return 0;
+      var hd=M.C.hD(h,hue);
+      var hm=hd<=tol?1:hd<=tol*1.5?M.C.sms(tol*1.5,tol,hd):0;
+      var sm2=s>=sat?1:s>=sat*0.5?M.C.sms(sat*0.5,sat,s):0;
+      return hm*sm2*(v/100);
+    }
+  },
+  /* 快速判断是否匹配（布尔值，用于统计） */
+  isMatch:function(i,refRGB,refLab,hue){
+    return M.Tol.match(i,refRGB,refLab,hue)>0.15;
+  }
+};
 </script>
 <script>
 /* ═══ v6.0 核心JS Part2: Channel / Presets / Prep ═══ */
@@ -225,13 +419,23 @@ renameCustom:function(id,nm){var c=M.S.chs.find(function(x){return x.id===id});i
 setCustomParam:function(id,p,v){var c=M.S.chs.find(function(x){return x.id===id});if(c&&c.customParams)c.customParams[p]=v},
 addCustomRg:function(id){var c=M.S.chs.find(function(x){return x.id===id});if(!c||!c.customPickRGB)return;var cp=c.customParams,S=M.S;var pct=M.Ch._customMPct(c);c.customRegions.push({hue:c.customPickH,tol:cp.hueTol,satMin:cp.satMin,rgb:c.customPickRGB.slice(),matchPct:pct});S.regions.push({ch:id,hue:c.customPickH,tol:cp.hueTol,satMin:cp.satMin,rgb:c.customPickRGB.slice(),matchPct:pct,inverted:false});M.Hist.push({type:'add_rg'});M.Ch.rRL();M.Ch.rCustomCards();$('genBtn').disabled=false;M.T.show('✓ 已添加到 '+c.name)},
 rmCustomRg:function(id,idx){var c=M.S.chs.find(function(x){return x.id===id});if(!c)return;var rg=c.customRegions[idx];c.customRegions.splice(idx,1);M.S.regions=M.S.regions.filter(function(r){return!(r.ch===id&&Math.abs(r.hue-rg.hue)<0.1)});M.Hist.push({type:'del_rg'});M.Ch.rRL();M.Ch.rCustomCards()},
-_customMPct:function(c){var S=M.S;if(!S.hsv||!c.customPickRGB)return'0';var tol=c.customParams.hueTol,sat=c.customParams.satMin,m=0,t=0,n=S.W*S.H,h=c.customPickH;for(var i=0;i<n;i++){if(S.px[i*4+3]<10)continue;t++;if(M.C.hD(S.hsv[i*3],h)<=tol&&S.hsv[i*3+1]>=sat)m++}return t?(m/t*100).toFixed(1):'0'},
+_customMPct:function(c){var S=M.S;if(!S.hsv||!c.customPickRGB)return'0';
+/* v6.2: 使用统一匹配接口 */
+var refLab=M.C.r2lab(c.customPickRGB[0],c.customPickRGB[1],c.customPickRGB[2]);
+var m=0,t=0,n=S.W*S.H,h=c.customPickH;
+for(var i=0;i<n;i++){if(S.px[i*4+3]<10)continue;t++;
+if(M.Tol.isMatch(i,c.customPickRGB,refLab,h))m++}
+return t?(m/t*100).toFixed(1):'0'},
 setCur:function(ch){M.S.curCh=ch;document.querySelectorAll('.chb').forEach(function(b){b.classList.toggle('act',b.dataset.ch===ch)});$('aModeW').style.display=ch==='A'?'block':'none'},
 setAdj:function(id,p,v){var c=M.S.chs.find(function(x){return x.id===id});if(!c)return;c.adjust[p]=v;if(M.S.maskOK){M.Gen.adj();M.Ren.all()}},
 rBar:function(){var S=M.S;$('chBar').innerHTML=S.chs.map(function(c){var isB=['R','G','B','A'].indexOf(c.id)>=0;return'<button class="chb'+(c.id===S.curCh?' act':'')+'" data-ch="'+c.id+'" onclick="M.Ch.setCur(\''+c.id+'\')" style="'+(c.id===S.curCh?'border-color:'+c.color:'')+'"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:'+c.color+';margin-right:3px"></span>'+c.name+(isB?'':'<span style="font-size:8px;margin-left:2px;color:var(--red);cursor:pointer" onclick="event.stopPropagation();M.Ch.rm(\''+c.id+'\')">✕</span>')+'</button>'}).join('')},
 rPan:function(){var S=M.S,L=M.L;$('chPanels').innerHTML=S.chs.map(function(c){var a=c.adjust;return'<div class="cp"><div class="cph"><span class="cdot" style="background:'+c.color+'"></span><span style="font-size:11px;color:var(--heading);font-weight:600">'+c.name+'</span><span style="font-size:9px;color:var(--dim);flex:1">'+c.id+'</span></div><div class="cth"><canvas id="chT_'+c.id+'" width="200" height="100"></canvas></div><div class="pr"><label>反相</label><span class="tw"><span class="tt">?</span><span class="tb">'+L.tt_inv+'</span></span><input type="checkbox" '+(a.invert?'checked':'')+' onchange="M.Ch.setAdj(\''+c.id+'\',\'invert\',this.checked)" style="accent-color:var(--yellow)"><span class="v">'+(a.invert?'ON':'OFF')+'</span></div><div class="pr"><label>亮度</label><span class="tw"><span class="tt">?</span><span class="tb">'+L.tt_br+'</span></span><input type="range" min="-100" max="100" value="'+a.brightness+'" oninput="M.Ch.setAdj(\''+c.id+'\',\'brightness\',+this.value);this.parentNode.querySelector(\'.v\').textContent=this.value"><span class="v">'+a.brightness+'</span></div><div class="pr"><label>对比度</label><span class="tw"><span class="tt">?</span><span class="tb">'+L.tt_ct+'</span></span><input type="range" min="-100" max="100" value="'+a.contrast+'" oninput="M.Ch.setAdj(\''+c.id+'\',\'contrast\',+this.value);this.parentNode.querySelector(\'.v\').textContent=this.value"><span class="v">'+a.contrast+'</span></div><div class="pr"><label>Gamma</label><span class="tw"><span class="tt">?</span><span class="tb">'+L.tt_ga+'</span></span><input type="range" min="10" max="300" value="'+(a.gamma*100|0)+'" oninput="M.Ch.setAdj(\''+c.id+'\',\'gamma\',this.value/100);this.parentNode.querySelector(\'.v\').textContent=(this.value/100).toFixed(2)"><span class="v">'+a.gamma.toFixed(2)+'</span></div></div>'}).join('')},
 rSlots:function(){var S=M.S;$('chSlots').innerHTML=S.chs.map(function(c){return'<div class="cs" ondragover="event.preventDefault();this.classList.add(\'dg\')" ondragleave="this.classList.remove(\'dg\')" ondrop="M.Ex.sDrop(event,\''+c.id+'\')" onclick="$(\'sf_'+c.id+'\').click()"><h4><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:'+c.color+'"></span> '+c.name+'</h4><p>拖入灰度图覆盖</p><div id="si_'+c.id+'" style="display:none"><canvas id="sc_'+c.id+'" width="200" height="100" style="width:100%;border-radius:4px"></canvas><div style="display:flex;gap:4px;margin-top:4px;justify-content:center"><button class="btn btn-sm" onclick="event.stopPropagation();M.Crop.openS(\''+c.id+'\')">✂️</button><button class="btn btn-sm btn-r" onclick="event.stopPropagation();M.Ex.clrSlot(\''+c.id+'\')">🗑</button></div></div></div>'}).join('');S.chs.forEach(function(c){var old=document.getElementById('sf_'+c.id);if(old)old.remove();var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.id='sf_'+c.id;inp.style.display='none';inp.onchange=function(){if(inp.files[0])M.Ex.ldSlot(c.id,inp.files[0])};document.body.appendChild(inp)})},
-rRL:function(){var S=M.S,el=$('rgList');if(!S.regions.length){el.innerHTML='<div style="color:var(--dim);padding:4px;font-size:10px">暂无</div>';return}el.innerHTML=S.regions.map(function(r,i){var hex=M.C.r2x(r.rgb),ch=S.chs.find(function(c){return c.id===r.ch}),clr=ch?ch.color:'#888';return'<div class="ri"><div class="rsw" style="background:'+hex+'"></div><div class="rin"><b>H:'+r.hue.toFixed(0)+'°±'+r.tol+'°</b></div><span class="rpc">'+r.matchPct+'%</span>'+(r.inverted?'<span class="riv">反选</span>':'')+'<span class="rch" style="background:rgba(255,255,255,.06);color:'+clr+'">'+r.ch+'</span><button class="riv" onclick="M.Pk.tInv('+i+')">⇄</button><button class="rdl" onclick="M.Pk.rmRg('+i+')">✕</button></div>'}).join('')},
+rRL:function(){var S=M.S,el=$('rgList');if(!S.regions.length){el.innerHTML='<div style="color:var(--dim);padding:4px;font-size:10px">暂无</div>';return}el.innerHTML=S.regions.map(function(r,i){var hex=M.C.r2x(r.rgb),ch=S.chs.find(function(c){return c.id===r.ch}),clr=ch?ch.color:'#888';
+/* v6.2: 显示匹配算法标识 */
+var modeBadge=r.tolMode==='lab'?'<span style="font-size:8px;color:var(--cyan);margin-left:2px">ΔE:'+((r.deltaE||12))+'</span>':'';
+var lInfo=r.lab?'<span style="font-size:8px;color:var(--yellow);margin-left:2px">L*:'+r.lab[0].toFixed(0)+'</span>':'';
+return'<div class="ri"><div class="rsw" style="background:'+hex+'"></div><div class="rin"><b>H:'+r.hue.toFixed(0)+'°±'+r.tol+'°</b>'+lInfo+modeBadge+'</div><span class="rpc">'+r.matchPct+'%</span>'+(r.inverted?'<span class="riv">反选</span>':'')+'<span class="rch" style="background:rgba(255,255,255,.06);color:'+clr+'">'+r.ch+'</span><button class="riv" onclick="M.Pk.tInv('+i+')">⇄</button><button class="rdl" onclick="M.Pk.rmRg('+i+')">✕</button></div>'}).join('')},
 uBr:function(){$('brCh').innerHTML=M.S.chs.map(function(c){return'<option value="'+c.id+'">'+c.name+'</option>'}).join('')}};
 /* ── Presets ── */
 M.Pre={init:function(){var g=$('presetGrid'),h='';for(var k in M.Cfg.PRE){var p=M.Cfg.PRE[k];h+='<div class="pc" data-key="'+k+'" onclick="M.Pre.apply(\''+k+'\')"><div class="pt">'+p.t+'</div><span class="pi">'+p.i+'</span><div class="pn">'+p.n+'</div><div class="pd">'+p.d+'</div></div>'}h+='<div class="pc" data-key="custom" onclick="M.Pre.apply(\'custom\')"><span class="pi">⚙️</span><div class="pn">自定义</div><div class="pd">手动调整参数</div></div>';g.innerHTML=h},
@@ -244,7 +448,10 @@ cropOpen:function(){if(!M.S.prepImg)return;M.Crop._st.mode='prep';M.Crop.open(M.
 ok:function(){if(M.S.prepImg)M._enterPick(M.S.prepImg)},
 skip:function(){M._enterPick(M.S.prepImg||M.S.srcImg)}};
 /* ── 进入吸色 ── */
-M._enterPick=function(img){var S=M.S;S.W=img.width;S.H=img.height;var c=$('srcC');c.width=S.W;c.height=S.H;c.getContext('2d').drawImage(img,0,0);S.px=new Uint8ClampedArray(c.getContext('2d').getImageData(0,0,S.W,S.H).data);var n=S.W*S.H;S.hsv=new Float32Array(n*3);for(var i=0;i<n;i++){var o=i*4,v=M.C.r2h(S.px[o],S.px[o+1],S.px[o+2]);S.hsv[i*3]=v[0];S.hsv[i*3+1]=v[1];S.hsv[i*3+2]=v[2]}M.Ch.init();$('s2').style.display='none';$('s3').style.display='block';$('undoBar').style.display='flex';M.UI.stp(3);M.Pk.bind();M.UI.tip(M.L.pickTip);M.T.show(M.tpl(M.L.loaded,{w:S.W,h:S.H}));var pr=M.Cfg.PRE[S.aPre];if(pr&&pr.ad)setTimeout(function(){M.AD.run()},500)};
+M._enterPick=function(img){var S=M.S;S.W=img.width;S.H=img.height;var c=$('srcC');c.width=S.W;c.height=S.H;c.getContext('2d').drawImage(img,0,0);S.px=new Uint8ClampedArray(c.getContext('2d').getImageData(0,0,S.W,S.H).data);var n=S.W*S.H;S.hsv=new Float32Array(n*3);for(var i=0;i<n;i++){var o=i*4,v=M.C.r2h(S.px[o],S.px[o+1],S.px[o+2]);S.hsv[i*3]=v[0];S.hsv[i*3+1]=v[1];S.hsv[i*3+2]=v[2]}
+/* v6.2: 预计算 CIELAB 数据 */
+S.lab=M.C.batchLab(S.px,n);
+M.Ch.init();$('s2').style.display='none';$('s3').style.display='block';$('undoBar').style.display='flex';M.UI.stp(3);M.Pk.bind();M.UI.tip(M.L.pickTip);M.T.show(M.tpl(M.L.loaded,{w:S.W,h:S.H}));var pr=M.Cfg.PRE[S.aPre];if(pr&&pr.ad)setTimeout(function(){M.AD.run()},500)};
 /* ── File ── */
 M._initF=function(){var dz=$('dz'),fi=$('fi');dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('dg')});dz.addEventListener('dragleave',function(){dz.classList.remove('dg')});dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('dg');var f=e.dataTransfer.files[0];if(f){if(f.name.endsWith('.json'))M.Mig.ldJSON(f);else M._ldImg(f)}});fi.addEventListener('change',function(){if(!this.files[0])return;var f=this.files[0];if(f.name.endsWith('.json'))M.Mig.ldJSON(f);else M._ldImg(f)});$('fiR').addEventListener('change',function(){if(this.files[0])M.Mig.ldJSON(this.files[0])})};
 M._ldImg=function(f){var img=new Image();img.onload=function(){M.S.srcImg=img;M.Prep.show(img)};img.src=URL.createObjectURL(f)};
@@ -253,10 +460,13 @@ M._ldImg=function(f){var img=new Image();img.onload=function(){M.S.srcImg=img;M.
 /* ═══ v6.0 核心JS Part3: Picker/AutoDetect/Generator/EdgeRefine/Brush/Renderer/Exporter/Crop/Migration/Init ═══ */
 /* ── Picker ── */
 M.Pk={_b:false,bind:function(){if(this._b)return;this._b=true;var sc=$('srcC');sc.addEventListener('click',M.Pk._pick);sc.addEventListener('mousemove',M.Pk._mag);sc.addEventListener('mouseleave',function(){$('mag').style.display='none'});sc.addEventListener('mousedown',function(e){M.Br._dn(e)});sc.addEventListener('mousemove',function(e){M.Br._mv(e)});sc.addEventListener('mouseup',function(){M.Br._up()})},
-_pick:function(e){var S=M.S;if(S.brushMode)return;if($('lockColor').checked&&!M.Ch._customPickTarget){M.T.show(M.L.locked);return}var c=$('srcC'),r=c.getBoundingClientRect(),sx=Math.floor((e.clientX-r.left)/r.width*S.W),sy=Math.floor((e.clientY-r.top)/r.height*S.H);if(sx<0||sx>=S.W||sy<0||sy>=S.H)return;/* 自定义通道吸色路由 */if(M.Ch._customPickTarget){M.Ch._handleCustomPick(sx,sy);return}var i=sy*S.W+sx,o=i*4;S.pkRGB=[S.px[o],S.px[o+1],S.px[o+2]];var v=M.C.r2h(S.pkRGB[0],S.pkRGB[1],S.pkRGB[2]);S.pkH=v[0];S.pkS=v[1];S.pkV=v[2];var hex=M.C.r2x(S.pkRGB);$('pkSw').style.background=hex;var pct=M.Pk.mPct();$('pkInfo').innerHTML='<b>'+hex+'</b> H:'+S.pkH.toFixed(0)+'° · <span style="color:var(--green)">'+pct+'%</span>';$('addBtn').disabled=false;$('hMk').style.display='block';$('hMk').style.left=(S.pkH/360*100)+'%';M.Pk.uHR();M.Pk.rSrc();M.UI.tip(M.L.adjTip);
+_pick:function(e){var S=M.S;if(S.brushMode)return;if($('lockColor').checked&&!M.Ch._customPickTarget){M.T.show(M.L.locked);return}var c=$('srcC'),r=c.getBoundingClientRect(),sx=Math.floor((e.clientX-r.left)/r.width*S.W),sy=Math.floor((e.clientY-r.top)/r.height*S.H);if(sx<0||sx>=S.W||sy<0||sy>=S.H)return;/* 自定义通道吸色路由 */if(M.Ch._customPickTarget){M.Ch._handleCustomPick(sx,sy);return}var i=sy*S.W+sx,o=i*4;S.pkRGB=[S.px[o],S.px[o+1],S.px[o+2]];var v=M.C.r2h(S.pkRGB[0],S.pkRGB[1],S.pkRGB[2]);S.pkH=v[0];S.pkS=v[1];S.pkV=v[2];
+/* v6.2: 同步计算 LAB 值 */
+S.pkLab=M.C.r2lab(S.pkRGB[0],S.pkRGB[1],S.pkRGB[2]);
+var hex=M.C.r2x(S.pkRGB);$('pkSw').style.background=hex;var pct=M.Pk.mPct();$('pkInfo').innerHTML='<b>'+hex+'</b> H:'+S.pkH.toFixed(0)+'° · <span style="color:var(--green)">'+pct+'%</span>';$('addBtn').disabled=false;$('hMk').style.display='block';$('hMk').style.left=(S.pkH/360*100)+'%';M.Pk.uHR();M.Pk.rSrc();M.UI.tip(M.L.adjTip);
 /* ═══ v6.1 悬浮快捷菜单 ═══ */
 M.Pk._showFloatMenu(e,hex,pct);
-/* ═══ v6.1 右侧面板展示区 ═══ */
+/* ═══ v6.1 右侧面板展示区（v6.2 增强 LAB 信息）═══ */
 M.Pk._updateBanner(hex,pct)},
 /* v6.1 悬浮快捷菜单 */
 _showFloatMenu:function(e,hex,pct){
@@ -275,33 +485,141 @@ setTimeout(function(){document.addEventListener('mousedown',M.Pk._floatOutClick,
 _floatOutClick:function(e){var fm=$('pickFloatMenu');if(fm&&!fm.contains(e.target))fm.classList.remove('show')},
 hideFloat:function(){$('pickFloatMenu').classList.remove('show')},
 floatAssign:function(ch){var S=M.S;if(S.pkH<0)return;S.curCh=ch;M.Ch.setCur(ch);M.Pk.addRg();M.Pk.hideFloat()},
-/* v6.1 右侧面板吸取颜色展示区 */
+/* v6.1 右侧面板吸取颜色展示区 (v6.2 增强 LAB) */
 _updateBanner:function(hex,pct){
 var S=M.S,bn=$('curPickBanner');bn.classList.add('show');
 $('cpbSwatch').style.background=hex;$('cpbHex').textContent=hex;
-$('cpbHsv').textContent='H:'+S.pkH.toFixed(0)+'° S:'+S.pkS.toFixed(0)+'% V:'+S.pkV.toFixed(0)+'%';
+var hsvTxt='H:'+S.pkH.toFixed(0)+'° S:'+S.pkS.toFixed(0)+'% V:'+S.pkV.toFixed(0)+'%';
+/* v6.2: 添加 LAB 信息 */
+if(S.pkLab){hsvTxt+=' · <span class="lab-info"><span class="lab-l">L:'+S.pkLab[0].toFixed(1)+'</span> <span class="lab-a">a:'+S.pkLab[1].toFixed(1)+'</span> <span class="lab-b">b:'+S.pkLab[2].toFixed(1)+'</span></span>'}
+$('cpbHsv').innerHTML=hsvTxt;
 $('cpbPct').textContent=pct+'%';
 var btns='';S.chs.forEach(function(c){var cc=M.C.res(c.color);btns+='<button class="cpb-btn" onclick="M.Pk.bannerAssign(\''+c.id+'\')"><span class="cpb-dot" style="background:'+cc+'"></span>➡ '+c.name+'</button>'});
 $('cpbBtns').innerHTML=btns},
 bannerAssign:function(ch){var S=M.S;if(S.pkH<0)return;S.curCh=ch;M.Ch.setCur(ch);M.Pk.addRg()},
 _mag:function(e){var S=M.S;if(!S.px||S.brushMode)return;var sc=$('srcC'),r=sc.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,sx=Math.floor(mx/r.width*S.W),sy=Math.floor(my/r.height*S.H);if(sx<0||sx>=S.W||sy<0||sy>=S.H){$('mag').style.display='none';return}var mag=$('mag'),mc=$('magC'),ctx=mc.getContext('2d');mag.style.display='block';var mw=120;var offX=mx+20,offY=my-mw-10;if(offX+mw>r.width)offX=mx-mw-20;if(offY<0)offY=my+20;mag.style.left=offX+'px';mag.style.top=offY+'px';mc.width=mw;mc.height=mw;ctx.imageSmoothingEnabled=false;ctx.drawImage(sc,sx-5,sy-5,11,11,0,0,mw,mw);var idx=(sy*S.W+sx)*4;$('magHex').textContent=M.C.r2x([S.px[idx],S.px[idx+1],S.px[idx+2]])},
-mPct:function(){var S=M.S;if(S.pkH<0||!S.hsv)return'0';var tol=+$('pHT').value,sat=+$('pSM').value,m=0,t=0,n=S.W*S.H;for(var i=0;i<n;i++){if(S.px[i*4+3]<10)continue;t++;if(M.C.hD(S.hsv[i*3],S.pkH)<=tol&&S.hsv[i*3+1]>=sat)m++}return t?(m/t*100).toFixed(1):'0'},
+mPct:function(){var S=M.S;if(S.pkH<0||!S.hsv)return'0';
+/* v6.2: 使用统一匹配接口 */
+var m=0,t=0,n=S.W*S.H,refLab=S.pkLab;
+for(var i=0;i<n;i++){if(S.px[i*4+3]<10)continue;t++;
+if(M.Tol.isMatch(i,S.pkRGB,refLab,S.pkH))m++}
+return t?(m/t*100).toFixed(1):'0'},
 upP:function(){$('vHT').textContent='±'+$('pHT').value+'°';$('vSM').textContent=$('pSM').value+'%';$('vES').textContent=$('pES').value+'px';M.Pk.uHR();if(M.S.pkH>=0){M.Pk.rSrc();$('pkInfo').innerHTML='<b>'+M.C.r2x(M.S.pkRGB)+'</b> H:'+M.S.pkH.toFixed(0)+'° · <span style="color:var(--green)">'+M.Pk.mPct()+'%</span>'}},
 uHR:function(){var S=M.S,tol=+$('pHT').value;if(S.pkH<0){$('hRng').style.display='none';$('hSL').style.width='0';$('hSR').style.width='0';return}$('hRng').style.display='block';var l=((S.pkH-tol+360)%360)/360*100,w=tol*2/360*100;$('hRng').style.left=l+'%';$('hRng').style.width=w+'%';$('hSL').style.width=l+'%';$('hSR').style.width=Math.max(0,100-l-w)+'%'},
-rSrc:function(){var S=M.S;if(!S.hsv||!S.srcImg)return;var c=$('srcC'),ctx=c.getContext('2d');ctx.drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);var sm=$('showMask').checked;if(S.pkH>=0){var img=ctx.getImageData(0,0,S.W,S.H),d=img.data,tol=+$('pHT').value,sat=+$('pSM').value;for(var i=0,n=S.W*S.H;i<n;i++){var mt=M.C.hD(S.hsv[i*3],S.pkH)<=tol&&S.hsv[i*3+1]>=sat,o=i*4;if(sm){if(mt){d[o]=Math.min(255,d[o]+80);d[o+1]=d[o+1]*.6|0;d[o+2]=d[o+2]*.6|0}else{d[o]=d[o]*.3|0;d[o+1]=d[o+1]*.3|0;d[o+2]=d[o+2]*.3|0}}else if(!mt){d[o]=d[o]*.25|0;d[o+1]=d[o+1]*.25|0;d[o+2]=d[o+2]*.25|0}}ctx.putImageData(img,0,0);$('srcLabel').textContent=sm?'红=匹配':'明亮=匹配'}},
-addRg:function(){var S=M.S;if(S.pkH<0)return;S.regions.push({ch:S.curCh,hue:S.pkH,tol:+$('pHT').value,satMin:+$('pSM').value,rgb:S.pkRGB.slice(),matchPct:M.Pk.mPct(),inverted:false});M.Hist.push({type:'add_rg'});M.Ch.rRL();$('genBtn').disabled=false;M.T.show(M.tpl(M.L.addTo,{ch:S.curCh}));var r=$('srcC').getBoundingClientRect();M.T.float('\u2713 '+S.curCh,r.width/2,r.height/2);if(!$('lockColor').checked){S.pkH=-1;$('addBtn').disabled=true;$('pkInfo').textContent='继续吸色';$('srcLabel').textContent='点击吸取';$('srcC').getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);$('hMk').style.display='none'}M.UI.tip(M.L.contTip)},
+rSrc:function(){var S=M.S;if(!S.hsv||!S.srcImg)return;var c=$('srcC'),ctx=c.getContext('2d');ctx.drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);var sm=$('showMask').checked;if(S.pkH>=0){var img=ctx.getImageData(0,0,S.W,S.H),d=img.data;
+var refLab=S.pkLab;
+/* v6.2: 使用统一匹配接口进行实时预览渲染 */
+for(var i=0,n=S.W*S.H;i<n;i++){
+  var strength=M.Tol.match(i,S.pkRGB,refLab,S.pkH);
+  var mt=strength>0.15;
+  var o=i*4;
+  if(sm){
+    if(mt){
+      /* 匹配像素：亮度与匹配强度成正比 */
+      var boost=Math.min(1,strength*1.2);
+      d[o]=Math.min(255,d[o]+Math.round(80*boost));
+      d[o+1]=Math.round(d[o+1]*0.6);
+      d[o+2]=Math.round(d[o+2]*0.6);
+    }else{d[o]=d[o]*.3|0;d[o+1]=d[o+1]*.3|0;d[o+2]=d[o+2]*.3|0}
+  }else if(!mt){
+    d[o]=d[o]*.25|0;d[o+1]=d[o+1]*.25|0;d[o+2]=d[o+2]*.25|0}}
+ctx.putImageData(img,0,0);$('srcLabel').textContent=sm?'红=匹配 ('+S.tolMode.toUpperCase()+')':'明亮=匹配 ('+S.tolMode.toUpperCase()+')'}},
+addRg:function(){var S=M.S;if(S.pkH<0)return;S.regions.push({ch:S.curCh,hue:S.pkH,tol:+$('pHT').value,satMin:+$('pSM').value,rgb:S.pkRGB.slice(),
+/* v6.2: 保存 LAB 值和 ΔE 参数 */
+lab:S.pkLab?S.pkLab.slice():M.C.r2lab(S.pkRGB[0],S.pkRGB[1],S.pkRGB[2]),
+deltaE:M.Tol.getDE(),lightW:M.Tol.getLW(),tolMode:S.tolMode,
+matchPct:M.Pk.mPct(),inverted:false});M.Hist.push({type:'add_rg'});M.Ch.rRL();$('genBtn').disabled=false;M.T.show(M.tpl(M.L.addTo,{ch:S.curCh}));var r=$('srcC').getBoundingClientRect();M.T.float('\u2713 '+S.curCh,r.width/2,r.height/2);if(!$('lockColor').checked){S.pkH=-1;$('addBtn').disabled=true;$('pkInfo').textContent='继续吸色';$('srcLabel').textContent='点击吸取';$('srcC').getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);$('hMk').style.display='none'}M.UI.tip(M.L.contTip)},
 tInv:function(i){M.S.regions[i].inverted=!M.S.regions[i].inverted;M.Ch.rRL()},
 rmRg:function(i){M.S.regions.splice(i,1);M.Hist.push({type:'del_rg'});M.Ch.rRL();if(!M.S.regions.length)$('genBtn').disabled=true}};
-/* ── AutoDetect (v6.1 重构) ── */
+/* ── AutoDetect (v6.2 CIELAB 聚类重构) ── */
 M.AD={_lastResults:null,
-run:function(){var S=M.S;if(!S.hsv){M.T.show('请先加载图片');return}var bins=M.Cfg.ABINS,n=S.W*S.H,cnt=new Float64Array(bins),hS=new Float64Array(bins),rS=new Float64Array(bins),gS=new Float64Array(bins),bS=new Float64Array(bins);for(var i=0;i<n;i++){if(S.px[i*4+3]<10||S.hsv[i*3+1]<15)continue;var bi=Math.floor(S.hsv[i*3]/(360/bins))%bins;cnt[bi]++;hS[bi]+=S.hsv[i*3];var o=i*4;rS[bi]+=S.px[o];gS[bi]+=S.px[o+1];bS[bi]+=S.px[o+2]}var grp=[];for(var i=0;i<bins;i++){if(cnt[i]<10)continue;var merged=false;for(var j=0;j<grp.length;j++){if(M.C.hD(hS[i]/cnt[i],grp[j].h)<=20){grp[j].c+=cnt[i];grp[j].r+=rS[i];grp[j].g+=gS[i];grp[j].b+=bS[i];grp[j].h=(grp[j].h*grp[j].oc+hS[i])/(grp[j].oc+cnt[i]);grp[j].oc+=cnt[i];merged=true;break}}if(!merged)grp.push({h:hS[i]/cnt[i],c:cnt[i],oc:cnt[i],r:rS[i],g:gS[i],b:bS[i]})}grp.sort(function(a,b){return b.c-a.c});var top=grp.slice(0,M.Cfg.AMAX);if(!top.length){M.T.show('未发现明显色域');return}
+/* 切换强制明度区分 */
+toggleStrictL:function(){
+  M.S.strictLightness=!M.S.strictLightness;
+  var el=$('adStrictL'),cb=$('adStrictLCB');
+  el.classList.toggle('active',M.S.strictLightness);
+  cb.checked=M.S.strictLightness},
+/* ═══ 核心分析函数 (v6.2 重构) ═══
+ *
+ * 旧版问题：仅按色相做 36 个 Bin 聚类，忽略明度轴
+ *   → 浅灰(H:0,S:0,V:85) 和深灰(H:0,S:0,V:35) 落入同一个 Bin，无法区分
+ *
+ * v6.2 新算法：
+ * 1. 第一层：按色相(H)分 Bin（保留，处理有彩色）
+ * 2. 第二层（strictLightness=true 时）：在每个 Bin 内再按明度(L*)细分
+ *    将 L* 分为 lightBins 个区间（如3档: 0-33暗 / 33-66中 / 66-100亮）
+ *    这样浅灰和深灰必然在不同的 Bin 中
+ * 3. 合并：色相距离<20° 且 L*差<15 的 Bin 合并（降噪）
+ *    strictLightness 模式下 L* 合并阈值提高到 30（更不容易合并）
+ * 4. 排序：按面积降序，取前 AMAX 个
+ */
+run:function(){var S=M.S;if(!S.hsv){M.T.show('请先加载图片');return}
+var bins=M.Cfg.ABINS,n=S.W*S.H;
+var strict=S.strictLightness;
+var lightBins=strict?4:1; /* 明度细分档数 */
+var totalBins=bins*lightBins;
+/* 聚类统计桶 */
+var cnt=new Float64Array(totalBins);
+var hS=new Float64Array(totalBins);
+var lS=new Float64Array(totalBins); /* L* 累加 */
+var rS=new Float64Array(totalBins);
+var gS=new Float64Array(totalBins);
+var bS=new Float64Array(totalBins);
+/* 遍历每个像素 */
+for(var i=0;i<n;i++){
+  if(S.px[i*4+3]<10)continue;
+  var sat=S.hsv[i*3+1];
+  /* v6.2: 降低饱和度过滤阈值，允许灰色系参与分析 */
+  if(!strict&&sat<15)continue;
+  if(strict&&sat<3)continue; /* strict 模式只过滤纯黑/纯白 */
+  var hi=Math.floor(S.hsv[i*3]/(360/bins))%bins;
+  var li=0;
+  if(strict&&S.lab){
+    /* 按 L* 值分档：L*=0-100 分成 lightBins 个区间 */
+    var Lstar=S.lab[i*3];
+    li=Math.min(lightBins-1,Math.floor(Lstar/(100/lightBins)));
+  }
+  var bi=hi*lightBins+li;
+  cnt[bi]++;hS[bi]+=S.hsv[i*3];
+  if(S.lab)lS[bi]+=S.lab[i*3];
+  var o=i*4;rS[bi]+=S.px[o];gS[bi]+=S.px[o+1];bS[bi]+=S.px[o+2]
+}
+/* 合并相近 Bin */
+var grp=[];
+var mergeHueTol=strict?15:20;
+var mergeLTol=strict?30:15; /* strict 模式放宽 L* 合并阈值 → 更不易合并 */
+for(var i=0;i<totalBins;i++){
+  if(cnt[i]<10)continue;
+  var avgH=hS[i]/cnt[i];
+  var avgL=S.lab?(lS[i]/cnt[i]):50;
+  var merged=false;
+  for(var j=0;j<grp.length;j++){
+    var hDist=M.C.hD(avgH,grp[j].h);
+    var lDist=Math.abs(avgL-grp[j].l);
+    if(hDist<=mergeHueTol&&lDist<=mergeLTol){
+      grp[j].c+=cnt[i];grp[j].r+=rS[i];grp[j].g+=gS[i];grp[j].b+=bS[i];
+      grp[j].h=(grp[j].h*grp[j].oc+hS[i])/(grp[j].oc+cnt[i]);
+      grp[j].l=(grp[j].l*grp[j].oc+lS[i])/(grp[j].oc+cnt[i]);
+      grp[j].oc+=cnt[i];merged=true;break}}
+  if(!merged)grp.push({h:avgH,l:avgL,c:cnt[i],oc:cnt[i],r:rS[i],g:gS[i],b:bS[i]})}
+grp.sort(function(a,b){return b.c-a.c});
+var top=grp.slice(0,M.Cfg.AMAX);
+if(!top.length){M.T.show('未发现明显色域');return}
 /* 计算结果 */
-var chI=['R','G','B','A'],total=0;grp.forEach(function(g){total+=g.c});
-var results=top.map(function(g,idx){var ar=Math.round(g.r/g.c),ag=Math.round(g.g/g.c),ab=Math.round(g.b/g.c);return{hex:M.C.r2x([ar,ag,ab]),rgb:[ar,ag,ab],hue:g.h,ch:idx<chI.length?chI[idx]:'R',pct:(g.c/total*100).toFixed(1)}});
+var chNames=['R','G','B','A'];var total=0;grp.forEach(function(g){total+=g.c});
+var results=top.map(function(g,idx){
+  var ar=Math.round(g.r/g.c),ag=Math.round(g.g/g.c),ab=Math.round(g.b/g.c);
+  var lab=M.C.r2lab(ar,ag,ab);
+  return{hex:M.C.r2x([ar,ag,ab]),rgb:[ar,ag,ab],lab:lab,hue:g.h,Lstar:g.l,
+    ch:idx<chNames.length?chNames[idx]:'R',
+    pct:(g.c/total*100).toFixed(1)}});
 M.AD._lastResults=results;
-/* v6.1: 渲染结果面板 */
+/* v6.1: 渲染结果面板 (v6.2 增强 LAB 信息) */
 var panel=$('adResultsPanel'),swHtml='';
-results.forEach(function(r){swHtml+='<div class="ad-swatch"><div class="ad-sw-color" style="background:'+r.hex+'"></div><div class="ad-sw-label">H:'+r.hue.toFixed(0)+'° · '+r.pct+'%</div><div class="ad-sw-ch" style="color:'+({R:'#f66',G:'#6f6',B:'#66f',A:'#ccc'}[r.ch]||'#888')+'">→ '+r.ch+'</div></div>'});
+results.forEach(function(r){
+  /* v6.2: 显示 L* 值和 ΔE badge */
+  var lLabel='L*:'+r.Lstar.toFixed(0);
+  swHtml+='<div class="ad-swatch"><div class="ad-sw-color" style="background:'+r.hex+'"></div><div class="ad-sw-label">H:'+r.hue.toFixed(0)+'° · '+lLabel+' · '+r.pct+'%</div><div class="ad-sw-ch" style="color:'+({R:'#f66',G:'#6f6',B:'#66f',A:'#ccc'}[r.ch]||'#888')+'">→ '+r.ch+'</div></div>'});
 $('adSwatches').innerHTML=swHtml;
 panel.classList.add('show');
 /* v6.1: 自动分配到基础通道 */
@@ -309,22 +627,91 @@ M.AD._autoAssign(results);
 /* v6.1: 画布闪烁高亮 */
 M.AD._flashCanvas(results);
 /* 旧版色块（保留兼容） */
-var html='';results.forEach(function(r){html+='<div class="adc" onclick="M.AD.acc(\''+r.ch+'\','+r.hue.toFixed(1)+','+r.rgb[0]+','+r.rgb[1]+','+r.rgb[2]+')"><div class="adsw" style="background:'+r.hex+'"></div><div><div style="color:var(--heading);font-size:10px">H:'+r.hue.toFixed(0)+'°→'+r.ch+'</div><div style="font-size:9px;color:var(--green)">'+r.pct+'%</div></div></div>'});
+var html='';results.forEach(function(r){html+='<div class="adc" onclick="M.AD.acc(\''+r.ch+'\','+r.hue.toFixed(1)+','+r.rgb[0]+','+r.rgb[1]+','+r.rgb[2]+')"><div class="adsw" style="background:'+r.hex+'"></div><div><div style="color:var(--heading);font-size:10px">H:'+r.hue.toFixed(0)+'° L*:'+r.Lstar.toFixed(0)+'→'+r.ch+'</div><div style="font-size:9px;color:var(--green)">'+r.pct+'%</div></div></div>'});
 $('adR').innerHTML=html;
-M.T.show(M.tpl(M.L.autoN,{n:top.length})+' → 已自动分配到通道')},
-/* v6.1: 自动分配 */
-_autoAssign:function(results){var S=M.S;results.forEach(function(r){/* 避免重复添加 */var exists=S.regions.some(function(rg){return rg.ch===r.ch&&Math.abs(rg.hue-r.hue)<5});if(!exists){S.regions.push({ch:r.ch,hue:r.hue,tol:+$('pHT').value,satMin:+$('pSM').value,rgb:r.rgb.slice(),matchPct:r.pct,inverted:false});M.Hist.push({type:'add_rg'})}});M.Ch.rRL();$('genBtn').disabled=false},
+var modeLabel=S.tolMode==='lab'?'CIELAB':'HSV';
+var strictLabel=strict?' · 明度强制区分':'';
+M.T.show(M.tpl(M.L.autoN,{n:top.length})+' → 已自动分配 ('+modeLabel+strictLabel+')')},
+/* v6.1: 自动分配 (v6.2 增强：保存 lab 和 tolMode) */
+_autoAssign:function(results){var S=M.S;results.forEach(function(r){
+  var exists=S.regions.some(function(rg){return rg.ch===r.ch&&Math.abs(rg.hue-r.hue)<5&&(!rg.lab||!r.lab||Math.abs(rg.lab[0]-r.lab[0])<10)});
+  if(!exists){S.regions.push({ch:r.ch,hue:r.hue,tol:+$('pHT').value,satMin:+$('pSM').value,rgb:r.rgb.slice(),
+    lab:r.lab.slice(),deltaE:M.Tol.getDE(),lightW:M.Tol.getLW(),tolMode:S.tolMode,
+    matchPct:r.pct,inverted:false});M.Hist.push({type:'add_rg'})}});M.Ch.rRL();$('genBtn').disabled=false},
 /* v6.1: 一键应用按钮 */
-applyAll:function(){var results=M.AD._lastResults;if(!results||!results.length){M.T.show('请先执行智能分析');return}M.AD._autoAssign(results);M.T.show('✅ 已将 '+results.length+' 个主色域分配到基础通道');/* 自动触发生成 */if(M.S.regions.length)setTimeout(function(){M.Gen.run()},300)},
-/* v6.1: 画布闪烁高亮 */
-_flashCanvas:function(results){var S=M.S,wrap=$('srcWrap');if(!S.hsv)return;/* 创建闪烁叠加层 */var overlay=document.createElement('canvas');overlay.className='canvas-flash';overlay.width=S.W;overlay.height=S.H;overlay.style.width='100%';overlay.style.height='100%';var ctx=overlay.getContext('2d'),img=ctx.createImageData(S.W,S.H),d=img.data;var tol=+$('pHT').value,sat=+$('pSM').value;
-for(var i=0,n=S.W*S.H;i<n;i++){var h=S.hsv[i*3],s=S.hsv[i*3+1],matched=false;for(var ri=0;ri<results.length;ri++){if(M.C.hD(h,results[ri].hue)<=tol&&s>=sat){var cc=results[ri].rgb;d[i*4]=cc[0];d[i*4+1]=cc[1];d[i*4+2]=cc[2];d[i*4+3]=180;matched=true;break}}if(!matched){d[i*4+3]=0}}
+applyAll:function(){var results=M.AD._lastResults;if(!results||!results.length){M.T.show('请先执行智能分析');return}M.AD._autoAssign(results);M.T.show('✅ 已将 '+results.length+' 个主色域分配到基础通道');if(M.S.regions.length)setTimeout(function(){M.Gen.run()},300)},
+/* v6.1: 画布闪烁高亮 (v6.2 增强 CIELAB 匹配) */
+_flashCanvas:function(results){var S=M.S,wrap=$('srcWrap');if(!S.hsv)return;
+var overlay=document.createElement('canvas');overlay.className='canvas-flash';overlay.width=S.W;overlay.height=S.H;overlay.style.width='100%';overlay.style.height='100%';
+var ctx=overlay.getContext('2d'),img=ctx.createImageData(S.W,S.H),d=img.data;
+var de=M.Tol.getDE(),lw=M.Tol.getLW();
+/* v6.2: 使用 CIELAB 匹配进行高亮 */
+for(var i=0,n=S.W*S.H;i<n;i++){
+  var matched=false;
+  for(var ri=0;ri<results.length;ri++){
+    var r=results[ri];
+    if(S.tolMode==='lab'&&S.lab){
+      var dist=M.C.deltaEw([S.lab[i*3],S.lab[i*3+1],S.lab[i*3+2]],r.lab,lw);
+      if(dist<=de){d[i*4]=r.rgb[0];d[i*4+1]=r.rgb[1];d[i*4+2]=r.rgb[2];d[i*4+3]=180;matched=true;break}
+    }else{
+      var tol=+$('pHT').value,sat=+$('pSM').value;
+      if(M.C.hD(S.hsv[i*3],r.hue)<=tol&&S.hsv[i*3+1]>=sat){
+        d[i*4]=r.rgb[0];d[i*4+1]=r.rgb[1];d[i*4+2]=r.rgb[2];d[i*4+3]=180;matched=true;break}}}
+  if(!matched){d[i*4+3]=0}}
 ctx.putImageData(img,0,0);wrap.appendChild(overlay);setTimeout(function(){if(overlay.parentNode)overlay.parentNode.removeChild(overlay)},1800)},
-acc:function(ch,hue,r,g,b){M.S.regions.push({ch:ch,hue:hue,tol:+$('pHT').value,satMin:+$('pSM').value,rgb:[r,g,b],matchPct:'auto',inverted:false});M.Hist.push({type:'add_rg'});M.Ch.rRL();$('genBtn').disabled=false;M.T.show(M.tpl(M.L.addTo,{ch:ch}))}};
+acc:function(ch,hue,r,g,b){
+  var lab=M.C.r2lab(r,g,b);
+  M.S.regions.push({ch:ch,hue:hue,tol:+$('pHT').value,satMin:+$('pSM').value,rgb:[r,g,b],
+    lab:lab,deltaE:M.Tol.getDE(),lightW:M.Tol.getLW(),tolMode:M.S.tolMode,
+    matchPct:'auto',inverted:false});
+  M.Hist.push({type:'add_rg'});M.Ch.rRL();$('genBtn').disabled=false;M.T.show(M.tpl(M.L.addTo,{ch:ch}))}};
 /* ── Blur ── */
 M._blur=function(d,w,h,r){if(r<=0)return d;var t=new Float32Array(d.length),o=new Float32Array(d.length);for(var y=0;y<h;y++)for(var x=0;x<w;x++){var s=0,c=0;for(var dx=-r;dx<=r;dx++){var nx=x+dx;if(nx>=0&&nx<w){s+=d[y*w+nx];c++}}t[y*w+x]=s/c}for(var y=0;y<h;y++)for(var x=0;x<w;x++){var s=0,c=0;for(var dy=-r;dy<=r;dy++){var ny=y+dy;if(ny>=0&&ny<h){s+=t[ny*w+x];c++}}o[y*w+x]=s/c}return o};
-/* ── Generator ── */
-M.Gen={run:function(){var S=M.S;if(!S.hsv||!S.regions.length)return;var n=S.W*S.H,es=+$('pES').value;S.chs.forEach(function(c){c.raw=new Float32Array(n);c.rawOrig=null});var aC=S.chs.find(function(c){return c.id==='A'});if(aC){if(S.aMode==='alpha'){for(var i=0;i<n;i++)aC.raw[i]=S.px[i*4+3]/255}else if(S.aMode==='stroke'){for(var y=1;y<S.H-1;y++)for(var x=1;x<S.W-1;x++){var i=y*S.W+x,a=S.px[i*4+3]/255,nb=[S.px[((y-1)*S.W+x)*4+3],S.px[((y+1)*S.W+x)*4+3],S.px[(y*S.W+x-1)*4+3],S.px[(y*S.W+x+1)*4+3]];aC.raw[i]=Math.abs(Math.max.apply(null,nb)/255-Math.min.apply(null,nb)/255)*a}if(es>0)aC.raw=M._blur(aC.raw,S.W,S.H,Math.max(1,es));var mx=0;for(var i=0;i<n;i++)if(aC.raw[i]>mx)mx=aC.raw[i];if(mx>0)for(var i=0;i<n;i++)aC.raw[i]/=mx}}for(var i=0;i<n;i++){var h=S.hsv[i*3],s=S.hsv[i*3+1],v=S.hsv[i*3+2];if(S.px[i*4+3]<10)continue;var cv={};S.chs.forEach(function(c){cv[c.id]=0});for(var ri=0;ri<S.regions.length;ri++){var rg=S.regions[ri],hd=M.C.hD(h,rg.hue);if(s<rg.satMin*.5)continue;var hm=hd<=rg.tol?1:hd<=rg.tol*1.5?M.C.sms(rg.tol*1.5,rg.tol,hd):0;var sm2=s>=rg.satMin?1:s>=rg.satMin*.5?M.C.sms(rg.satMin*.5,rg.satMin,s):0;var val=hm*sm2*(v/100);if(rg.inverted)val=val>.01?(1-val)*(v/100):0;if(val>cv[rg.ch])cv[rg.ch]=val}S.chs.forEach(function(c){if(c.id==='A'&&S.aMode==='pick')c.raw[i]=Math.max(c.raw[i],cv[c.id]||0);else if(c.id!=='A')c.raw[i]=Math.max(c.raw[i],cv[c.id]||0)})}if(es>0)S.chs.forEach(function(c){c.raw=M._blur(c.raw,S.W,S.H,es)});var bI=['R','G','B'],bC=S.chs.filter(function(c){return bI.indexOf(c.id)>=0});if(bC.length>1)for(var i=0;i<n;i++){var vs=bC.map(function(c){return c.raw[i]}),mx2=Math.max.apply(null,vs);if(mx2<.01)continue;var mi=vs.indexOf(mx2);bC.forEach(function(c,ci){if(ci!==mi)c.raw[i]=0})}S.chs.forEach(function(c){if(c.slotImage){var tc=document.createElement('canvas');tc.width=S.W;tc.height=S.H;tc.getContext('2d').drawImage(c.slotImage,0,0,S.W,S.H);var id=tc.getContext('2d').getImageData(0,0,S.W,S.H).data;for(var i=0;i<n;i++)c.raw[i]=(id[i*4]*.299+id[i*4+1]*.587+id[i*4+2]*.114)/255}});S.chs.forEach(function(c){c.rawOrig=new Float32Array(c.raw)});this.adj();S.maskOK=true;M.Ren.buildUI();M.Ren.all();$('s4').style.display='block';$('brushBar').style.display='flex';M.UI.stp(4);$('s4').scrollIntoView({behavior:'smooth'});M.UI.tip(M.L.doneTip);M.T.show(M.tpl(M.L.genDone,{n:S.chs.length}))},
+/* ── Generator (v6.2 CIELAB 增强) ── */
+M.Gen={run:function(){var S=M.S;if(!S.hsv||!S.regions.length)return;var n=S.W*S.H,es=+$('pES').value;S.chs.forEach(function(c){c.raw=new Float32Array(n);c.rawOrig=null});var aC=S.chs.find(function(c){return c.id==='A'});if(aC){if(S.aMode==='alpha'){for(var i=0;i<n;i++)aC.raw[i]=S.px[i*4+3]/255}else if(S.aMode==='stroke'){for(var y=1;y<S.H-1;y++)for(var x=1;x<S.W-1;x++){var i=y*S.W+x,a=S.px[i*4+3]/255,nb=[S.px[((y-1)*S.W+x)*4+3],S.px[((y+1)*S.W+x)*4+3],S.px[(y*S.W+x-1)*4+3],S.px[(y*S.W+x+1)*4+3]];aC.raw[i]=Math.abs(Math.max.apply(null,nb)/255-Math.min.apply(null,nb)/255)*a}if(es>0)aC.raw=M._blur(aC.raw,S.W,S.H,Math.max(1,es));var mx=0;for(var i=0;i<n;i++)if(aC.raw[i]>mx)mx=aC.raw[i];if(mx>0)for(var i=0;i<n;i++)aC.raw[i]/=mx}}
+/* ═══ v6.2 核心像素遍历：支持 CIELAB ΔE + HSV 双模式 ═══
+ *
+ * 每个 region 保存了自己被添加时的 tolMode/deltaE/lightW 参数
+ * 匹配逻辑：
+ *   - tolMode==='lab': 使用 ΔE(CIE76) 带明度权重，计算当前像素与 region 参考色的色差
+ *   - tolMode==='hsv': 使用旧版色相距离 + 饱和度下限（v6.0 兼容）
+ * 匹配结果是 [0-1] 的连续值（非二值），用于生成平滑的 mask 渐变
+ */
+/* 预计算每个 region 的 lab 引用值 */
+var rgLabs=S.regions.map(function(rg){
+  return rg.lab||M.C.r2lab(rg.rgb[0],rg.rgb[1],rg.rgb[2])});
+for(var i=0;i<n;i++){
+  var h=S.hsv[i*3],s=S.hsv[i*3+1],v=S.hsv[i*3+2];
+  if(S.px[i*4+3]<10)continue;
+  var cv={};S.chs.forEach(function(c){cv[c.id]=0});
+  for(var ri=0;ri<S.regions.length;ri++){
+    var rg=S.regions[ri],val=0;
+    /* 判断此 region 使用哪种匹配算法 */
+    if(rg.tolMode==='lab'&&S.lab){
+      /* ─── CIELAB ΔE 模式 ─── */
+      var de=rg.deltaE||12,lw=rg.lightW||1.5;
+      var pxL=S.lab[i*3],pxA=S.lab[i*3+1],pxB=S.lab[i*3+2];
+      var refLab=rgLabs[ri];
+      var dist=M.C.deltaEw([pxL,pxA,pxB],refLab,lw);
+      /* sigmoid 渐变：核心区(ΔE<de*0.6)=1, 边缘区线性衰减, 超出(ΔE>de*1.3)=0 */
+      if(dist<=de*0.6)val=1;
+      else if(dist>=de*1.3)val=0;
+      else val=M.C.sms(de*1.3,de*0.6,dist);
+      /* 明度调制（可选，保证暗部不过亮）*/
+      val*=Math.max(0.15,pxL/100);
+    }else{
+      /* ─── HSV 色相距离模式（v6.0 兼容）─── */
+      var hd=M.C.hD(h,rg.hue);
+      if(s<rg.satMin*.5)continue;
+      var hm=hd<=rg.tol?1:hd<=rg.tol*1.5?M.C.sms(rg.tol*1.5,rg.tol,hd):0;
+      var sm2=s>=rg.satMin?1:s>=rg.satMin*.5?M.C.sms(rg.satMin*.5,rg.satMin,s):0;
+      val=hm*sm2*(v/100);
+    }
+    if(rg.inverted)val=val>.01?(1-val):0;
+    if(val>cv[rg.ch])cv[rg.ch]=val;
+  }
+  S.chs.forEach(function(c){if(c.id==='A'&&S.aMode==='pick')c.raw[i]=Math.max(c.raw[i],cv[c.id]||0);else if(c.id!=='A')c.raw[i]=Math.max(c.raw[i],cv[c.id]||0)})}
+if(es>0)S.chs.forEach(function(c){c.raw=M._blur(c.raw,S.W,S.H,es)});var bI=['R','G','B'],bC=S.chs.filter(function(c){return bI.indexOf(c.id)>=0});if(bC.length>1)for(var i=0;i<n;i++){var vs=bC.map(function(c){return c.raw[i]}),mx2=Math.max.apply(null,vs);if(mx2<.01)continue;var mi=vs.indexOf(mx2);bC.forEach(function(c,ci){if(ci!==mi)c.raw[i]=0})}S.chs.forEach(function(c){if(c.slotImage){var tc=document.createElement('canvas');tc.width=S.W;tc.height=S.H;tc.getContext('2d').drawImage(c.slotImage,0,0,S.W,S.H);var id=tc.getContext('2d').getImageData(0,0,S.W,S.H).data;for(var i=0;i<n;i++)c.raw[i]=(id[i*4]*.299+id[i*4+1]*.587+id[i*4+2]*.114)/255}});S.chs.forEach(function(c){c.rawOrig=new Float32Array(c.raw)});this.adj();S.maskOK=true;M.Ren.buildUI();M.Ren.all();$('s4').style.display='block';$('brushBar').style.display='flex';M.UI.stp(4);$('s4').scrollIntoView({behavior:'smooth'});M.UI.tip(M.L.doneTip);M.T.show(M.tpl(M.L.genDone,{n:S.chs.length}))},
 adj:function(){M.S.chs.forEach(function(c){if(!c.rawOrig)return;var n=c.rawOrig.length;c.raw=new Float32Array(c.rawOrig);var a=c.adjust;if(a.invert)for(var i=0;i<n;i++)c.raw[i]=1-c.raw[i];if(a.brightness!==0){var b=a.brightness/200;for(var i=0;i<n;i++)c.raw[i]=Math.max(0,Math.min(1,c.raw[i]+b))}if(a.contrast!==0){var f=Math.pow((a.contrast+100)/100,2);for(var i=0;i<n;i++)c.raw[i]=Math.max(0,Math.min(1,(c.raw[i]-.5)*f+.5))}if(a.gamma!==1){var g=1/a.gamma;for(var i=0;i<n;i++)c.raw[i]=Math.pow(Math.max(0,c.raw[i]),g)}})}};
 /* ── EdgeRefine ── */
 M.ER={apply:function(){var S=M.S;if(!S.maskOK){M.T.show(M.L.noBody);return}var di=+$('pDi').value,er=+$('pEr').value,fe=+$('pFe').value,rs=+$('pRs').value/100,W=S.W,H=S.H,n=W*H;S.chs.forEach(function(c){if(!c.raw)return;var d=c.raw;if(di>0)for(var p=0;p<di;p++){var t=new Float32Array(d);for(var y=1;y<H-1;y++)for(var x=1;x<W-1;x++){var i=y*W+x;t[i]=Math.max(d[i],d[i-1],d[i+1],d[i-W],d[i+W])}d=t}if(er>0)for(var p=0;p<er;p++){var t=new Float32Array(d);for(var y=1;y<H-1;y++)for(var x=1;x<W-1;x++){var i=y*W+x;t[i]=Math.min(d[i],d[i-1],d[i+1],d[i-W],d[i+W])}d=t}if(fe>0)d=M._blur(d,W,H,fe);if(rs>0)for(var i=0;i<n;i++){var v=d[i];if(v>.05&&v<.95){d[i]=v>.5?v+(1-v)*rs:v-v*rs}}c.raw=d;c.rawOrig=new Float32Array(d)});M.Gen.adj();M.Ren.all();M.T.show(M.L.edgeOk)}};
@@ -354,7 +741,7 @@ dlComp:function(){if(!M.S.maskOK)return M.T.show(M.L.noBody);M.Ex._sv(M.Ex._comp
 dlCh:function(id){var ch=M.S.chs.find(function(c){return c.id===id});if(!ch||!ch.raw)return M.T.show(M.L.noBody);var S=M.S,c=document.createElement('canvas');c.width=S.W;c.height=S.H;var x=c.getContext('2d'),m=x.createImageData(S.W,S.H),d=m.data;for(var i=0,n=S.W*S.H;i<n;i++){var v=(ch.raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}x.putImageData(m,0,0);M.Ex._sv(c,M.Nm.res(ch.name))},
 dlTGA:function(){if(!M.S.maskOK)return M.T.show(M.L.noBody);var S=M.S,c=M.Ex._compCanvas(),ctx=c.getContext('2d'),rgba=ctx.getImageData(0,0,S.W,S.H).data;var blob=M._tga(S.W,S.H,rgba);var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=M.Nm.res('RGBA','.tga');document.body.appendChild(a);a.click();document.body.removeChild(a);M.T.show(M.tpl(M.L.tgaOk,{n:M.Nm.res('RGBA','.tga')}))},
 dlMulti:function(){if(!M.S.maskOK||M.S.chs.length<=4)return;var S=M.S,pi=0;for(var s=0;s<S.chs.length;s+=4){var pk=S.chs.slice(s,s+4);pi++;var c=document.createElement('canvas');c.width=S.W;c.height=S.H;var x=c.getContext('2d'),m=x.createImageData(S.W,S.H),d=m.data;for(var i=0,n=S.W*S.H;i<n;i++){var o=i*4;d[o]=pk[0]&&pk[0].raw?(pk[0].raw[i]*255+.5)|0:0;d[o+1]=pk[1]&&pk[1].raw?(pk[1].raw[i]*255+.5)|0:0;d[o+2]=pk[2]&&pk[2].raw?(pk[2].raw[i]*255+.5)|0:0;d[o+3]=pk[3]&&pk[3].raw?(pk[3].raw[i]*255+.5)|0:255}x.putImageData(m,0,0);M.Ex._sv(c,M.Nm.res('Pack'+pi))}M.T.show(M.tpl(M.L.multiOk,{n:pi}))},
-dlZip:async function(){if(!M.S.maskOK)return M.T.show(M.L.noBody);if(typeof JSZip==='undefined')return M.T.show('JSZip加载中');var S=M.S,z=new JSZip();var c0=document.createElement('canvas');c0.width=S.W;c0.height=S.H;c0.getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);z.file(M.Nm.res('Original'),await M.Ex._cb(c0));z.file(M.Nm.res('RGBA'),await M.Ex._cb(M.Ex._compCanvas()));for(var ci=0;ci<S.chs.length;ci++){var ch=S.chs[ci];if(!ch.raw)continue;var c=document.createElement('canvas');c.width=S.W;c.height=S.H;var x=c.getContext('2d'),m=x.createImageData(S.W,S.H),d=m.data;for(var i=0,n=S.W*S.H;i<n;i++){var v=(ch.raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}x.putImageData(m,0,0);z.file(M.Nm.res(ch.name),await M.Ex._cb(c))}/* TGA in ZIP */var cc=M.Ex._compCanvas(),rgba=cc.getContext('2d').getImageData(0,0,S.W,S.H).data;z.file(M.Nm.res('RGBA','.tga'),M._tga(S.W,S.H,rgba));/* config */var cfg={tool:'Auto Mask v6.1',version:'6.1',size:[S.W,S.H],aMode:S.aMode,channels:S.chs.map(function(c){return{id:c.id,name:c.name,color:c.color,adjust:c.adjust,isCustom:!!c.isCustom}}),regions:S.regions.map(function(r){return{ch:r.ch,hue:r.hue,tol:r.tol,satMin:r.satMin,inverted:r.inverted,matchPct:r.matchPct,color:M.C.r2x(r.rgb)}}),edgeSmooth:+$('pES').value,naming:{template:$('namingTpl').value,project:$('tplP').value,charID:$('tplC').value},generated:new Date().toISOString()};try{var sc2=document.createElement('canvas');sc2.width=S.W;sc2.height=S.H;sc2.getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);var b64=sc2.toDataURL('image/png');if(b64.length<5e6)cfg.sourceImageBase64=b64}catch(e){}z.file('config.json',JSON.stringify(cfg,null,2));var blob=await z.generateAsync({type:'blob'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=M.Nm.res('Output','.zip');document.body.appendChild(a);a.click();document.body.removeChild(a);M.T.show(M.L.zipOk)},
+dlZip:async function(){if(!M.S.maskOK)return M.T.show(M.L.noBody);if(typeof JSZip==='undefined')return M.T.show('JSZip加载中');var S=M.S,z=new JSZip();var c0=document.createElement('canvas');c0.width=S.W;c0.height=S.H;c0.getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);z.file(M.Nm.res('Original'),await M.Ex._cb(c0));z.file(M.Nm.res('RGBA'),await M.Ex._cb(M.Ex._compCanvas()));for(var ci=0;ci<S.chs.length;ci++){var ch=S.chs[ci];if(!ch.raw)continue;var c=document.createElement('canvas');c.width=S.W;c.height=S.H;var x=c.getContext('2d'),m=x.createImageData(S.W,S.H),d=m.data;for(var i=0,n=S.W*S.H;i<n;i++){var v=(ch.raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}x.putImageData(m,0,0);z.file(M.Nm.res(ch.name),await M.Ex._cb(c))}/* TGA in ZIP */var cc=M.Ex._compCanvas(),rgba=cc.getContext('2d').getImageData(0,0,S.W,S.H).data;z.file(M.Nm.res('RGBA','.tga'),M._tga(S.W,S.H,rgba));/* config */var cfg={tool:'Auto Mask v6.2',version:'6.2',size:[S.W,S.H],aMode:S.aMode,tolMode:S.tolMode,strictLightness:S.strictLightness,channels:S.chs.map(function(c){return{id:c.id,name:c.name,color:c.color,adjust:c.adjust,isCustom:!!c.isCustom}}),regions:S.regions.map(function(r){return{ch:r.ch,hue:r.hue,tol:r.tol,satMin:r.satMin,inverted:r.inverted,matchPct:r.matchPct,color:M.C.r2x(r.rgb),tolMode:r.tolMode||'hsv',deltaE:r.deltaE||12,lightW:r.lightW||1.5,lab:r.lab||null}}),edgeSmooth:+$('pES').value,naming:{template:$('namingTpl').value,project:$('tplP').value,charID:$('tplC').value},generated:new Date().toISOString()};try{var sc2=document.createElement('canvas');sc2.width=S.W;sc2.height=S.H;sc2.getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);var b64=sc2.toDataURL('image/png');if(b64.length<5e6)cfg.sourceImageBase64=b64}catch(e){}z.file('config.json',JSON.stringify(cfg,null,2));var blob=await z.generateAsync({type:'blob'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=M.Nm.res('Output','.zip');document.body.appendChild(a);a.click();document.body.removeChild(a);M.T.show(M.L.zipOk)},
 _cb:function(c){return new Promise(function(r){c.toBlob(function(b){r(b)},'image/png')})},
 sDrop:function(e,id){e.preventDefault();e.currentTarget.classList.remove('dg');var f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))M.Ex.ldSlot(id,f)},
 ldSlot:function(id,f){var c=M.S.chs.find(function(x){return x.id===id});if(!c)return;var img=new Image();img.onload=function(){c.slotImage=img;var sc=$('sc_'+id);if(sc){sc.width=200;sc.height=Math.round(200*img.height/img.width);sc.getContext('2d').drawImage(img,0,0,sc.width,sc.height)}$('si_'+id).style.display='block';M.T.show(c.name+' 已加载');if(M.S.maskOK)M.Gen.run()};img.src=URL.createObjectURL(f)},
@@ -606,7 +993,13 @@ M.Crop={
     var p=r.split(':');return+p[0]/+p[1]}
 };
 /* ── Migration (v5→v6 兼容) ── */
-M.Mig={ldJSON:function(file){var r=new FileReader();r.onload=function(e){try{var c=JSON.parse(e.target.result);if(!c.regions){M.T.show('无效工程');return}var ver=c.version||'5.0';var doRestore=function(){/* 转换通道 */if(c.channels)M.S.chs=c.channels.map(function(ch){return{id:ch.id,name:ch.name,color:ch.color,raw:null,rawOrig:null,adjust:ch.adjust||{invert:false,brightness:0,contrast:0,gamma:1.0},slotImage:null}});else M.Ch.init();if(c.aMode)M.S.aMode=c.aMode;if(c.edgeSmooth!=null){$('pES').value=c.edgeSmooth;M.Pk.upP()}M.S.regions=[];if(c.regions)c.regions.forEach(function(r){M.S.regions.push({ch:r.ch,hue:r.hue,tol:r.tol,satMin:r.satMin,rgb:M.C.x2r(r.color||'#888'),matchPct:r.matchPct||'0',inverted:!!r.inverted})});if(c.naming){if(c.naming.template)$('namingTpl').value=c.naming.template;if(c.naming.project)$('tplP').value=c.naming.project;if(c.naming.charID)$('tplC').value=c.naming.charID;M.Nm.pv()}M.Ch.rBar();M.Ch.rPan();M.Ch.rSlots();M.Ch.uBr();$('s1').style.display='none';$('s3').style.display='block';$('namingCard').style.display='block';$('undoBar').style.display='flex';M.Pk.bind();M.UI.stp(3);M.Ch.rRL();if(M.S.regions.length){$('genBtn').disabled=false;M.Gen.run()}M.T.show(M.tpl(M.L.restored,{v:ver}))};if(c.sourceImageBase64){var img=new Image();img.onload=function(){M.S.srcImg=img;M.S.prepImg=img;M.S.W=img.width;M.S.H=img.height;var cv=$('srcC');cv.width=M.S.W;cv.height=M.S.H;cv.getContext('2d').drawImage(img,0,0);M.S.px=new Uint8ClampedArray(cv.getContext('2d').getImageData(0,0,M.S.W,M.S.H).data);var n=M.S.W*M.S.H;M.S.hsv=new Float32Array(n*3);for(var i=0;i<n;i++){var o=i*4,v=M.C.r2h(M.S.px[o],M.S.px[o+1],M.S.px[o+2]);M.S.hsv[i*3]=v[0];M.S.hsv[i*3+1]=v[1];M.S.hsv[i*3+2]=v[2]}doRestore()};img.src=c.sourceImageBase64}else{M.T.show('请上传原图');var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.onchange=function(){if(!inp.files[0])return;var img2=new Image();img2.onload=function(){M.S.srcImg=img2;M.S.prepImg=img2;M.S.W=img2.width;M.S.H=img2.height;var cv=$('srcC');cv.width=M.S.W;cv.height=M.S.H;cv.getContext('2d').drawImage(img2,0,0);M.S.px=new Uint8ClampedArray(cv.getContext('2d').getImageData(0,0,M.S.W,M.S.H).data);var n=M.S.W*M.S.H;M.S.hsv=new Float32Array(n*3);for(var i=0;i<n;i++){var o=i*4,v=M.C.r2h(M.S.px[o],M.S.px[o+1],M.S.px[o+2]);M.S.hsv[i*3]=v[0];M.S.hsv[i*3+1]=v[1];M.S.hsv[i*3+2]=v[2]}doRestore()};img2.src=URL.createObjectURL(inp.files[0])};inp.click()}}catch(err){M.T.show(M.tpl(M.L.invJson,{e:err.message}))};};r.readAsText(file)}};
+M.Mig={ldJSON:function(file){var r=new FileReader();r.onload=function(e){try{var c=JSON.parse(e.target.result);if(!c.regions){M.T.show('无效工程');return}var ver=c.version||'5.0';var doRestore=function(){/* 转换通道 */if(c.channels)M.S.chs=c.channels.map(function(ch){return{id:ch.id,name:ch.name,color:ch.color,raw:null,rawOrig:null,adjust:ch.adjust||{invert:false,brightness:0,contrast:0,gamma:1.0},slotImage:null}});else M.Ch.init();if(c.aMode)M.S.aMode=c.aMode;
+/* v6.2: 恢复容差模式和明度设置 */
+if(c.tolMode){M.S.tolMode=c.tolMode;document.querySelectorAll('.tol-mode-btn').forEach(function(b){b.classList.toggle('act',b.dataset.mode===c.tolMode)});$('tolAlgoBadge').textContent=c.tolMode==='lab'?'CIELAB ΔE':'HSV 色相'}
+if(c.strictLightness){M.S.strictLightness=true;$('adStrictL').classList.add('active');$('adStrictLCB').checked=true}
+if(c.edgeSmooth!=null){$('pES').value=c.edgeSmooth;M.Pk.upP()}M.S.regions=[];if(c.regions)c.regions.forEach(function(r){M.S.regions.push({ch:r.ch,hue:r.hue,tol:r.tol,satMin:r.satMin,rgb:M.C.x2r(r.color||'#888'),matchPct:r.matchPct||'0',inverted:!!r.inverted,
+/* v6.2: 恢复 LAB 和容差参数 */
+lab:r.lab||null,deltaE:r.deltaE||12,lightW:r.lightW||1.5,tolMode:r.tolMode||'hsv'})});if(c.naming){if(c.naming.template)$('namingTpl').value=c.naming.template;if(c.naming.project)$('tplP').value=c.naming.project;if(c.naming.charID)$('tplC').value=c.naming.charID;M.Nm.pv()}M.Ch.rBar();M.Ch.rPan();M.Ch.rSlots();M.Ch.uBr();$('s1').style.display='none';$('s3').style.display='block';$('namingCard').style.display='block';$('undoBar').style.display='flex';M.Pk.bind();M.UI.stp(3);M.Ch.rRL();if(M.S.regions.length){$('genBtn').disabled=false;M.Gen.run()}M.T.show(M.tpl(M.L.restored,{v:ver}))};if(c.sourceImageBase64){var img=new Image();img.onload=function(){M.S.srcImg=img;M.S.prepImg=img;M.S.W=img.width;M.S.H=img.height;var cv=$('srcC');cv.width=M.S.W;cv.height=M.S.H;cv.getContext('2d').drawImage(img,0,0);M.S.px=new Uint8ClampedArray(cv.getContext('2d').getImageData(0,0,M.S.W,M.S.H).data);var n=M.S.W*M.S.H;M.S.hsv=new Float32Array(n*3);for(var i=0;i<n;i++){var o=i*4,v=M.C.r2h(M.S.px[o],M.S.px[o+1],M.S.px[o+2]);M.S.hsv[i*3]=v[0];M.S.hsv[i*3+1]=v[1];M.S.hsv[i*3+2]=v[2]}doRestore()};img.src=c.sourceImageBase64}else{M.T.show('请上传原图');var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.onchange=function(){if(!inp.files[0])return;var img2=new Image();img2.onload=function(){M.S.srcImg=img2;M.S.prepImg=img2;M.S.W=img2.width;M.S.H=img2.height;var cv=$('srcC');cv.width=M.S.W;cv.height=M.S.H;cv.getContext('2d').drawImage(img2,0,0);M.S.px=new Uint8ClampedArray(cv.getContext('2d').getImageData(0,0,M.S.W,M.S.H).data);var n=M.S.W*M.S.H;M.S.hsv=new Float32Array(n*3);for(var i=0;i<n;i++){var o=i*4,v=M.C.r2h(M.S.px[o],M.S.px[o+1],M.S.px[o+2]);M.S.hsv[i*3]=v[0];M.S.hsv[i*3+1]=v[1];M.S.hsv[i*3+2]=v[2]}doRestore()};img2.src=URL.createObjectURL(inp.files[0])};inp.click()}}catch(err){M.T.show(M.tpl(M.L.invJson,{e:err.message}))};};r.readAsText(file)}};
 /* ── 快捷键 ── */
 document.addEventListener('keydown',function(e){if(e.ctrlKey&&e.key==='z'){e.preventDefault();M.Hist.undo()}else if(e.ctrlKey&&(e.key==='y'||(e.shiftKey&&e.key==='Z'))){e.preventDefault();M.Hist.redo()}else if(!e.ctrlKey&&!e.altKey){if(e.key==='b'||e.key==='B')M.Br.set('paint');else if(e.key==='e'||e.key==='E')M.Br.set('erase');else if(e.key==='n'||e.key==='N')M.Br.set('refine');else if(e.key==='['&&M.S.brushMode){var v=Math.max(2,+$('brSize').value-2);$('brSize').value=v;$('brSzV').textContent=v}else if(e.key===']'&&M.S.brushMode){var v=Math.min(40,+$('brSize').value+2);$('brSize').value=v;$('brSzV').textContent=v}else if(e.key>='1'&&e.key<='9'){var idx=+e.key-1;if(idx<M.S.chs.length)M.Ch.setCur(M.S.chs[idx].id)}}});
 /* ── Init ── */
