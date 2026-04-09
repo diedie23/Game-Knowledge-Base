@@ -192,6 +192,7 @@
           "icon": "🎨",
           "items": [
             { "id": "auto-mask", "icon": "🤖", "title": "自动 Mask 生成器", "type": "tool", "badge": "角色", "craft": "角色" },
+            { "id": "auto-mask-v6", "icon": "🤖", "title": "自动 Mask 生成器 v6.0", "type": "tool", "badge": "角色", "craft": "角色" },
             { "id": "auto-mask-v5", "icon": "🚀", "title": "自动 Mask 生成器 v5.0", "type": "tool", "badge": "角色", "craft": "角色" },
             { "id": "mask-tool", "icon": "🖌️", "title": "Mask 手动编辑器", "type": "tool", "badge": "角色", "craft": "角色" },
             { "id": "spine-split", "icon": "✂️", "title": "Spine 拆分工具", "type": "tool", "badge": "角色", "craft": "角色" },

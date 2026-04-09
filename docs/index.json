@@ -615,6 +615,23 @@
       "is_hot": false
     },
     {
+      "id": "auto-mask-v6",
+      "module": "toolchain",
+      "craft": "角色",
+      "type": "tool",
+      "title": "自动 Mask 生成器 v6.0",
+      "desc": "傻瓜式预设(5种) · 智能主色调分析 · 放大镜精准吸色 · 边缘净化(膨胀/腐蚀/羽化) · 撤销重做 · TGA导出 · v5工程100%兼容",
+      "tags": ["在线工具","预设模式","智能分析","放大镜","边缘净化","TGA","撤销重做"],
+      "icon": "🤖",
+      "action": "openTool",
+      "path": "knowledge-base/auto-mask-v6.html",
+      "owner": "TA团队",
+      "last_updated": "2026-04-09",
+      "applicable_stage": "量产期",
+      "priority": "high",
+      "is_hot": true
+    },
+    {
       "id": "auto-mask-v5",
       "module": "toolchain",
       "craft": "角色",
