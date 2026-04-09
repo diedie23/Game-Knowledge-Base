@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>自动 Mask 通道生成器 v6.0</title>
+<title>自动 Mask 通道生成器 v6.1</title>
 <style>
 :root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--gbg:rgba(74,222,128,.12);--abg:rgba(108,140,255,.12);--rbg:rgba(248,113,113,.12);--ybg:rgba(251,191,36,.12);--obg:rgba(251,146,60,.12);--cbg:rgba(34,211,238,.12)}
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
@@ -53,23 +53,91 @@
 .crop-v2-info{display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:6px;margin-bottom:10px;flex-wrap:wrap;font-size:11px;color:var(--dim)}.crop-v2-info b{color:var(--heading)}.crop-v2-info .cv2-dim{font-size:12px;color:var(--cyan);font-weight:700}
 .crop-ratio-bar{display:flex;gap:4px;flex-wrap:wrap}.crop-ratio-btn{padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:var(--card);color:var(--dim);cursor:pointer;font-size:10px;font-family:inherit;transition:all .15s}.crop-ratio-btn:hover{border-color:var(--accent);color:var(--text)}.crop-ratio-btn.act{background:var(--accent);color:#fff;border-color:var(--accent)}
 .crop-zoom-bar{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--dim)}.crop-zoom-bar button{background:var(--card);border:1px solid var(--border);color:var(--text);cursor:pointer;padding:3px 8px;border-radius:4px;font-size:11px;font-family:inherit}.crop-zoom-bar button:hover{border-color:var(--accent)}
+
+/* ═══ v6.1 悬浮快捷菜单 ═══ */
+.pick-float-menu{position:absolute;z-index:60;background:var(--panel);border:1px solid var(--accent);border-radius:10px;padding:8px;box-shadow:0 8px 32px rgba(0,0,0,.6),0 0 0 1px rgba(108,140,255,.15);display:none;animation:pfm-in .2s ease-out}.pick-float-menu.show{display:block}
+@keyframes pfm-in{from{opacity:0;transform:scale(.9) translateY(6px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.pfm-color{display:flex;align-items:center;gap:6px;padding:4px 8px;margin-bottom:6px;background:var(--card);border-radius:6px}
+.pfm-swatch{width:24px;height:24px;border-radius:5px;border:1px solid rgba(255,255,255,.2);flex-shrink:0}
+.pfm-hex{font-size:11px;color:var(--heading);font-weight:600;font-family:'Cascadia Code','Fira Code',monospace}
+.pfm-pct{font-size:9px;color:var(--green);margin-left:auto}
+.pfm-btns{display:flex;flex-direction:column;gap:3px}
+.pfm-btn{padding:5px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--text);cursor:pointer;font-size:11px;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.pfm-btn:hover{border-color:var(--accent);background:var(--abg);color:var(--heading);transform:translateX(2px)}
+.pfm-btn .pfm-ch-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* ═══ v6.1 当前吸取颜色展示区 ═══ */
+.cur-pick-banner{background:linear-gradient(135deg,rgba(108,140,255,.1),rgba(167,139,250,.08));border:1.5px solid rgba(108,140,255,.25);border-radius:10px;padding:12px;margin-bottom:10px;display:none;animation:cpb-in .3s ease-out}
+.cur-pick-banner.show{display:block}
+@keyframes cpb-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.cpb-inner{display:flex;align-items:center;gap:10px}
+.cpb-swatch{width:40px;height:40px;border-radius:8px;border:2px solid rgba(255,255,255,.2);flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.cpb-info{flex:1}
+.cpb-hex{font-size:16px;color:var(--heading);font-weight:700;font-family:'Cascadia Code','Fira Code',monospace}
+.cpb-hsv{font-size:10px;color:var(--dim);margin-top:2px}
+.cpb-pct{font-size:12px;color:var(--green);font-weight:600}
+.cpb-btns{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.cpb-btn{padding:6px 14px;border:2px solid var(--border);border-radius:7px;background:var(--card);color:var(--heading);cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:5px}
+.cpb-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.cpb-btn .cpb-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;border:1px solid rgba(255,255,255,.15)}
+
+/* ═══ v6.1 智能分析结果面板 ═══ */
+.ad-results-panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin:8px 0;display:none;animation:arp-in .3s ease-out}
+.ad-results-panel.show{display:block}
+@keyframes arp-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.ad-swatches{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap}
+.ad-swatch{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 12px;background:var(--panel);border:1px solid var(--border);border-radius:8px;min-width:60px;transition:all .2s}
+.ad-swatch:hover{border-color:var(--accent)}
+.ad-sw-color{width:32px;height:32px;border-radius:6px;border:1px solid rgba(255,255,255,.15)}
+.ad-sw-label{font-size:9px;color:var(--dim)}
+.ad-sw-ch{font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;background:rgba(255,255,255,.06)}
+.ad-apply-btn{width:100%;padding:8px;border:2px solid var(--green);border-radius:8px;background:rgba(74,222,128,.08);color:var(--green);cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px}
+.ad-apply-btn:hover{background:rgba(74,222,128,.15);transform:translateY(-1px);box-shadow:0 4px 16px rgba(74,222,128,.2)}
+
+/* ═══ v6.1 画布闪烁高亮动画 ═══ */
+@keyframes flash-overlay{0%{opacity:0}20%{opacity:.4}40%{opacity:.1}60%{opacity:.35}80%{opacity:.05}100%{opacity:0}}
+.canvas-flash{position:absolute;inset:0;pointer-events:none;z-index:25;animation:flash-overlay 1.5s ease-out forwards}
 </style>
 </head>
 <body>
 <div class="app">
-<div class="hdr"><h1>🤖 自动 Mask 通道生成器 <span class="ver">v6.0</span></h1><p>傻瓜式预设 · 智能主色调分析 · 动态多通道 · 放大镜精准吸色 · 边缘净化 · 撤销重做 · TGA导出 · v5工程兼容</p></div>
+<div class="hdr"><h1>🤖 自动 Mask 通道生成器 <span class="ver">v6.1</span></h1><p>悬浮快捷分配 · 智能主色调自动填充 · 精准裁剪修复 · 自定义通道命名 · 动态多通道 · 放大镜精准吸色 · 边缘净化 · 撤销重做 · TGA导出 · v5工程兼容</p></div>
 <div style="background:linear-gradient(90deg,rgba(34,211,238,.08),rgba(108,140,255,.08));border:1px solid rgba(34,211,238,.2);border-radius:8px;padding:8px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px"><span style="font-size:12px;color:var(--cyan);display:flex;align-items:center;gap:6px"><span style="font-size:16px">🖥️</span><b>桌面版已上线!</b> <span style="color:var(--dim)">Windows 独立 exe · 离线可用 · 原生保存 · 多图拖拽</span></span><a href="auto-mask-v6-desktop.html" target="_blank" style="background:var(--cyan);color:#000;padding:4px 14px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;transition:all .15s">⬇️ 查看下载</a></div>
 <div class="card" id="presetCard"><div class="card-title">🎯 一键预设模式 <span class="badge badge-g">新手推荐</span></div><div class="pg" id="presetGrid"></div></div>
 <div class="steps" id="stepBar"><div class="stp act" data-s="1"><span class="n">1</span>导入</div><span class="sa">→</span><div class="stp" data-s="2"><span class="n">2</span>预处理</div><span class="sa">→</span><div class="stp" data-s="3"><span class="n">3</span>吸色分配</div><span class="sa">→</span><div class="stp" data-s="4"><span class="n">4</span>预览导出</div></div>
 <div class="card" id="s1"><div class="card-title">📁 导入角色原图 / 恢复工程</div><div class="dz" id="dz" onclick="$('fi').click()"><h3>点击选择或拖放图片 / JSON 工程</h3><p>PNG / JPG / TGA / config.json（兼容 v5）</p></div><input type="file" id="fi" accept="image/*,.json" style="display:none"><div style="margin-top:8px;display:flex;gap:6px;justify-content:center"><button class="btn btn-sm" onclick="$('fiR').click()">📂 导入工程 JSON</button></div><input type="file" id="fiR" accept=".json" style="display:none"></div>
 <div class="card" id="namingCard" style="display:none"><div class="card-title">🏷️ 导出命名</div><div class="pr"><label>模板</label><input type="text" id="namingTpl" value="{Project}_{CharID}_Mask_{Channel}" class="ni" style="flex:1" oninput="M.Nm.pv()"></div><div style="display:flex;gap:6px;margin-top:4px"><div class="pr" style="flex:1"><label>Project</label><input type="text" id="tplP" value="MyGame" class="nsm" style="flex:1" oninput="M.Nm.pv()"></div><div class="pr" style="flex:1"><label>CharID</label><input type="text" id="tplC" value="Hero01" class="nsm" style="flex:1" oninput="M.Nm.pv()"></div></div><div style="font-size:10px;color:var(--dim);margin-top:4px">变量：{Project} {CharID} {Channel} {Date} {W} {H}</div><div style="font-size:10px;color:var(--green);margin-top:3px" id="namePv">预览：MyGame_Hero01_Mask_RGBA.png</div></div>
 <div class="card" id="s2" style="display:none"><div class="card-title">✂️ 图片预处理 <span class="badge badge-c">裁剪·缩放·旋转</span></div><div class="tip-bar">可裁剪/缩放/旋转后进入吸色，也可跳过</div><div style="display:flex;gap:14px;flex-wrap:wrap"><div style="flex:1;min-width:300px"><div class="ib"><canvas id="prepC"></canvas><span class="il" id="prepLabel">原始</span></div></div><div style="width:220px;display:flex;flex-direction:column;gap:8px"><div style="font-size:11px;color:var(--heading)">缩放到</div><div style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn btn-sm" onclick="M.Prep.rsz(512)">512</button><button class="btn btn-sm" onclick="M.Prep.rsz(1024)">1024</button><button class="btn btn-sm" onclick="M.Prep.rsz(2048)">2048</button><button class="btn btn-sm" onclick="M.Prep.rsz(0)">原始</button></div><div style="font-size:11px;color:var(--heading);margin-top:4px">旋转</div><div style="display:flex;gap:4px"><button class="btn btn-sm" style="flex:1" onclick="M.Prep.rot(90)">↻90°</button><button class="btn btn-sm" style="flex:1" onclick="M.Prep.rot(180)">↻180°</button><button class="btn btn-sm" style="flex:1" onclick="M.Prep.rot(270)">↻270°</button></div><button class="btn btn-sm" onclick="M.Prep.cropOpen()" style="margin-top:4px">✂️裁剪区域</button><div style="margin-top:12px;display:flex;flex-direction:column;gap:6px"><button class="btn btn-p" onclick="M.Prep.ok()">✅ 确认，进入吸色</button><button class="btn" onclick="M.Prep.skip()">⏭️ 跳过预处理</button></div></div></div></div>
-<div class="card" id="s3" style="display:none"><div class="card-title">🎨 吸色 & 多通道分配 <span class="badge badge-c">动态扩展</span></div><div class="tip-bar"><span id="tipText">👆 点击图片吸取颜色</span></div><div class="g2"><div><div class="ib" id="srcWrap" style="cursor:crosshair;position:relative"><canvas id="srcC"></canvas><span class="il" id="srcLabel">点击吸取颜色</span><div class="mag" id="mag"><canvas id="magC" width="120" height="120"></canvas><div class="mc"></div><div class="mh" id="magHex">#000000</div></div></div><div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><div id="pkSw" style="width:28px;height:28px;border-radius:5px;background:#444;border:1px solid var(--border)"></div><div id="pkInfo" style="font-size:10px;color:var(--dim);flex:1">点击图片吸取</div><button class="btn btn-p btn-sm" onclick="M.Pk.addRg()" id="addBtn" disabled>➕ 添加</button></div><div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><label style="font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="showMask" onchange="M.Pk.rSrc()" style="accent-color:var(--accent)"> 显示蒙版</label><label style="font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="lockColor" style="accent-color:var(--yellow)"> 锁定吸色</label></div><div class="bb" id="brushBar" style="display:none"><button class="btn btn-sm" id="brP" onclick="M.Br.set('paint')">🖌️画笔(B)</button><button class="btn btn-sm" id="brE" onclick="M.Br.set('erase')">⬜橡皮(E)</button><button class="btn btn-sm" id="brN" onclick="M.Br.set('refine')">🧹净化(N)</button><button class="btn btn-sm" onclick="M.Br.set(null)">🚫</button><label>大小</label><input type="range" id="brSize" min="2" max="40" value="8" oninput="$('brSzV').textContent=this.value"><span id="brSzV" style="font-size:10px;color:var(--accent)">8</span><label>通道</label><select id="brCh" style="padding:2px 6px;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:10px"></select></div><div class="ub" id="undoBar" style="display:none"><button id="undoBtn" disabled onclick="M.Hist.undo()">↩撤销</button><span id="undoC">(0)</span><button id="redoBtn" disabled onclick="M.Hist.redo()">↪重做</button><span id="redoC">(0)</span><span style="margin-left:auto;font-size:9px;opacity:.7">Ctrl+Z / Ctrl+Y</span></div></div>
-<div class="rs"><div style="font-size:11px;color:var(--heading);margin-bottom:4px">色相范围</div><div class="hb" id="hueBar"><div class="hsl2" id="hSL" style="width:0"></div><div class="hsr2" id="hSR" style="width:0"></div><div class="hrn" id="hRng" style="display:none"></div><div class="hmk" id="hMk" style="left:0;display:none"></div></div>
+<div class="card" id="s3" style="display:none"><div class="card-title">🎨 吸色 & 多通道分配 <span class="badge badge-c">动态扩展</span></div><div class="tip-bar"><span id="tipText">👆 点击图片吸取颜色</span></div><div class="g2"><div><div class="ib" id="srcWrap" style="cursor:crosshair;position:relative"><canvas id="srcC"></canvas><span class="il" id="srcLabel">点击吸取颜色</span><div class="mag" id="mag"><canvas id="magC" width="120" height="120"></canvas><div class="mc"></div><div class="mh" id="magHex">#000000</div></div>
+<!-- v6.1 悬浮快捷菜单 -->
+<div class="pick-float-menu" id="pickFloatMenu">
+<div class="pfm-color"><div class="pfm-swatch" id="pfmSwatch"></div><span class="pfm-hex" id="pfmHex">#000000</span><span class="pfm-pct" id="pfmPct">0%</span></div>
+<div class="pfm-btns" id="pfmBtns"></div>
+</div>
+</div><div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><div id="pkSw" style="width:28px;height:28px;border-radius:5px;background:#444;border:1px solid var(--border)"></div><div id="pkInfo" style="font-size:10px;color:var(--dim);flex:1">点击图片吸取</div><button class="btn btn-p btn-sm" onclick="M.Pk.addRg()" id="addBtn" disabled>➕ 添加</button></div><div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><label style="font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="showMask" onchange="M.Pk.rSrc()" style="accent-color:var(--accent)"> 显示蒙版</label><label style="font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="lockColor" style="accent-color:var(--yellow)"> 锁定吸色</label></div><div class="bb" id="brushBar" style="display:none"><button class="btn btn-sm" id="brP" onclick="M.Br.set('paint')">🖌️画笔(B)</button><button class="btn btn-sm" id="brE" onclick="M.Br.set('erase')">⬜橡皮(E)</button><button class="btn btn-sm" id="brN" onclick="M.Br.set('refine')">🧹净化(N)</button><button class="btn btn-sm" onclick="M.Br.set(null)">🚫</button><label>大小</label><input type="range" id="brSize" min="2" max="40" value="8" oninput="$('brSzV').textContent=this.value"><span id="brSzV" style="font-size:10px;color:var(--accent)">8</span><label>通道</label><select id="brCh" style="padding:2px 6px;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:10px"></select></div><div class="ub" id="undoBar" style="display:none"><button id="undoBtn" disabled onclick="M.Hist.undo()">↩撤销</button><span id="undoC">(0)</span><button id="redoBtn" disabled onclick="M.Hist.redo()">↪重做</button><span id="redoC">(0)</span><span style="margin-left:auto;font-size:9px;opacity:.7">Ctrl+Z / Ctrl+Y</span></div></div>
+<div class="rs">
+<!-- v6.1 当前吸取颜色展示区 -->
+<div class="cur-pick-banner" id="curPickBanner">
+<div style="font-size:11px;color:var(--heading);font-weight:600;margin-bottom:6px">🎯 当前吸取颜色</div>
+<div class="cpb-inner">
+<div class="cpb-swatch" id="cpbSwatch"></div>
+<div class="cpb-info"><div class="cpb-hex" id="cpbHex">#000000</div><div class="cpb-hsv" id="cpbHsv">H:0° S:0% V:0%</div></div>
+<div class="cpb-pct" id="cpbPct">0%</div>
+</div>
+<div class="cpb-btns" id="cpbBtns"></div>
+</div>
+<div style="font-size:11px;color:var(--heading);margin-bottom:4px">色相范围</div><div class="hb" id="hueBar"><div class="hsl2" id="hSL" style="width:0"></div><div class="hsr2" id="hSR" style="width:0"></div><div class="hrn" id="hRng" style="display:none"></div><div class="hmk" id="hMk" style="left:0;display:none"></div></div>
 <div class="pr"><label>色相容差</label><span class="tw"><span class="tt">?</span><span class="tb" id="ttHT"></span></span><input type="range" id="pHT" min="5" max="60" value="20" oninput="M.Pk.upP()"><span class="v" id="vHT">±20°</span></div>
 <div class="pr"><label>饱和度下限</label><span class="tw"><span class="tt">?</span><span class="tb" id="ttSM"></span></span><input type="range" id="pSM" min="0" max="100" value="15" oninput="M.Pk.upP()"><span class="v" id="vSM">15%</span></div>
 <div class="pr"><label>边缘平滑</label><span class="tw"><span class="tt">?</span><span class="tb" id="ttES"></span></span><input type="range" id="pES" min="0" max="5" value="2" oninput="M.Pk.upP()"><span class="v" id="vES">2px</span></div>
-<div style="margin:10px 0 6px"><button class="btn btn-p" onclick="M.AD.run()" style="width:100%;justify-content:center">✨ 智能分析主色调</button><div class="adr" id="adR"></div></div>
+<div style="margin:10px 0 6px"><button class="btn btn-p" onclick="M.AD.run()" style="width:100%;justify-content:center">✨ 智能分析主色调</button>
+<!-- v6.1 智能分析结果面板 -->
+<div class="ad-results-panel" id="adResultsPanel">
+<div style="font-size:11px;color:var(--heading);font-weight:600;margin-bottom:6px">🔍 分析结果 — 已提取主色域</div>
+<div class="ad-swatches" id="adSwatches"></div>
+<button class="ad-apply-btn" id="adApplyBtn" onclick="M.AD.applyAll()">✅ 一键应用到基础通道 (R/G/B/A)</button>
+</div>
+<div class="adr" id="adR"></div></div>
 <div style="font-size:11px;color:var(--heading);margin:10px 0 3px;display:flex;align-items:center;justify-content:space-between"><span>📌 基础通道分配 (RGBA)</span></div><div class="cb" id="chBar"></div>
 <div id="customChCards"></div>
 <div class="custom-ch-add" id="addCustomChBtn" onclick="M.Ch.addC()"><span class="cca-icon">➕</span><div class="cca-title">添加自定义 Mask 通道</div><div class="cca-desc">每个自定义通道拥有独立吸色器、容差参数和预览图 · 超过4通道时导出自动拆分为多张贴图</div></div>
@@ -129,7 +197,7 @@ M.C={r2h:function(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min
 /* ── Toast ── */
 M.T={_t:null,show:function(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(this._t);this._t=setTimeout(function(){t.classList.remove('show')},2500)},float:function(txt,x,y){var el=document.createElement('div');el.className='ft';el.textContent=txt;el.style.left=x+'px';el.style.top=y+'px';$('srcWrap').appendChild(el);setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el)},1000)}};
 /* ── Naming ── */
-M.Nm={res:function(ch,ext){var tpl=$('namingTpl').value||'{Project}_{CharID}_Mask_{Channel}';var v={Project:$('tplP').value||'P',CharID:$('tplC').value||'C',Channel:ch||'RGBA',Date:new Date().toISOString().slice(0,10),W:String(M.S.W),H:String(M.S.H)};return tpl.replace(/\{(\w+)\}/g,function(_,k){return v[k]||'{'+k+'}'})+(ext||'.png')},pv:function(){$('namePv').textContent='预览：'+M.Nm.res('RGBA')}};
+M.Nm={res:function(ch,ext){var tpl=$('namingTpl').value||'{Project}_{CharID}_Mask_{Channel}';var v={Project:$('tplP').value||'P',CharID:$('tplC').value||'C',Channel:ch||'RGBA',Date:new Date().toISOString().slice(0,10),W:String(M.S.W),H:String(M.S.H)};/* v6.1: 自定义通道名中的特殊字符替换为下划线，确保文件名安全 */v.Channel=v.Channel.replace(/[\\/:*?"<>|\s]+/g,'_');return tpl.replace(/\{(\w+)\}/g,function(_,k){return v[k]||'{'+k+'}'})+(ext||'.png')},pv:function(){$('namePv').textContent='预览：'+M.Nm.res('RGBA')}};
 /* ── UI ── */
 M.UI={stp:function(n){document.querySelectorAll('.stp').forEach(function(s){var d=+s.dataset.s;s.className='stp'+(d<n?' done':d===n?' act':'')})},tip:function(t){$('tipText').textContent=t},amBtn:function(btn){document.querySelectorAll('.am button').forEach(function(b){b.classList.remove('act')});btn.classList.add('act')}};
 /* ── Tooltip ── */
@@ -142,7 +210,7 @@ M.Hist={stk:[],ptr:-1,push:function(a){this.stk=this.stk.slice(0,this.ptr+1);a.s
 M.Ch={init:function(){var S=M.S;S.chs=M.Cfg.CH.map(function(c){return{id:c.id,name:c.n,color:c.c,raw:null,rawOrig:null,adjust:{invert:false,brightness:0,contrast:0,gamma:1.0},slotImage:null}});S.chCnt=0;this.rBar();this.rPan();this.rSlots();this.uBr();this.rCustomCards()},
 addC:function(){var S=M.S;S.chCnt++;var id='CH'+S.chCnt;var nm='Mask '+S.chCnt;var hue=Math.floor(Math.random()*360);var color='hsl('+hue+',70%,60%)';S.chs.push({id:id,name:nm,color:color,raw:null,rawOrig:null,adjust:{invert:false,brightness:0,contrast:0,gamma:1.0},slotImage:null,isCustom:true,customParams:{hueTol:20,satMin:15,edgeSmooth:2},customRegions:[],customPickRGB:null,customPickH:-1});M.Hist.push({type:'add_ch'});this.rBar();this.rPan();this.rSlots();this.uBr();this.rCustomCards();M.T.show(M.tpl(M.L.chAdd,{n:nm}))},
 rm:function(id){if(['R','G','B','A'].indexOf(id)>=0){M.T.show(M.L.chBase);return}M.S.chs=M.S.chs.filter(function(c){return c.id!==id});M.S.regions=M.S.regions.filter(function(r){return r.ch!==id});if(M.S.curCh===id)M.S.curCh='R';M.Hist.push({type:'del_ch'});this.rBar();this.rPan();this.rSlots();this.rRL();this.uBr();this.rCustomCards()},
-rCustomCards:function(){var S=M.S,el=$('customChCards');if(!el)return;var customs=S.chs.filter(function(c){return c.isCustom});if(!customs.length){el.innerHTML='';return}el.innerHTML=customs.map(function(c){var hex=c.customPickRGB?M.C.r2x(c.customPickRGB):'#444';var cp=c.customParams;var rgHtml=c.customRegions.length?c.customRegions.map(function(r,i){return'<div class="ccc-rg-item"><div class="rgsw" style="background:'+M.C.r2x(r.rgb)+'"></div><span>H:'+r.hue.toFixed(0)+'°±'+r.tol+'°</span><span style="color:var(--green);margin-left:auto;font-size:9px">'+r.matchPct+'%</span><button onclick="M.Ch.rmCustomRg(\''+c.id+'\','+i+')">✕</button></div>'}).join(''):'<div style="color:var(--dim);font-size:9px;padding:4px">点击上方色块从原图吸取颜色</div>';return'<div class="custom-ch-card" id="ccc_'+c.id+'"><div class="ccc-head"><div class="ccc-dot" style="background:'+c.color+'"></div><input class="ccc-name ni" value="'+c.name+'" onchange="M.Ch.renameCustom(\''+c.id+'\',this.value)" style="flex:1;font-size:12px;font-weight:600;color:var(--heading);background:transparent;border-color:transparent;padding:2px 4px" /><span class="ccc-badge">自定义</span><button class="ccc-del" onclick="M.Ch.rm(\''+c.id+'\')">🗑️ 删除</button></div>'
+rCustomCards:function(){var S=M.S,el=$('customChCards');if(!el)return;var customs=S.chs.filter(function(c){return c.isCustom});if(!customs.length){el.innerHTML='';return}el.innerHTML=customs.map(function(c){var hex=c.customPickRGB?M.C.r2x(c.customPickRGB):'#444';var cp=c.customParams;var rgHtml=c.customRegions.length?c.customRegions.map(function(r,i){return'<div class="ccc-rg-item"><div class="rgsw" style="background:'+M.C.r2x(r.rgb)+'"></div><span>H:'+r.hue.toFixed(0)+'°±'+r.tol+'°</span><span style="color:var(--green);margin-left:auto;font-size:9px">'+r.matchPct+'%</span><button onclick="M.Ch.rmCustomRg(\''+c.id+'\','+i+')">✕</button></div>'}).join(''):'<div style="color:var(--dim);font-size:9px;padding:4px">点击上方色块从原图吸取颜色</div>';return'<div class="custom-ch-card" id="ccc_'+c.id+'"><div class="ccc-head"><div class="ccc-dot" style="background:'+c.color+'"></div><input class="ccc-name ni" value="'+c.name+'" placeholder="输入自定义名称(如Emission)" title="自定义通道名称，导出时将作为文件名后缀" onchange="M.Ch.renameCustom(\''+c.id+'\',this.value)" style="flex:1;font-size:12px;font-weight:600;color:var(--heading);background:transparent;border-color:transparent;padding:2px 4px" /><span class="ccc-badge">自定义</span><button class="ccc-del" onclick="M.Ch.rm(\''+c.id+'\')">🗑️ 删除</button></div>'
 +'<div class="ccc-preview"><canvas id="ccPv_'+c.id+'" width="300" height="80"></canvas></div>'
 +'<div class="ccc-picker"><div class="ccc-swatch" id="ccSw_'+c.id+'" style="background:'+hex+'" onclick="M.Ch.startCustomPick(\''+c.id+'\')" title="点击后在原图上吸色"></div><div class="ccc-pk-info" id="ccPkI_'+c.id+'">'+(c.customPickRGB?'<b>'+hex+'</b> H:'+c.customPickH.toFixed(0)+'°':'👆 点击色块，再到原图上吸取颜色')+'</div><button class="btn btn-p btn-sm" onclick="M.Ch.addCustomRg(\''+c.id+'\')" '+(c.customPickRGB?'':'disabled')+'>➕ 添加到此通道</button></div>'
 +'<div class="ccc-controls"><div class="pr"><label>色相容差</label><input type="range" min="5" max="60" value="'+cp.hueTol+'" oninput="M.Ch.setCustomParam(\''+c.id+'\',\'hueTol\',+this.value);this.parentNode.querySelector(\'.v\').textContent=\'±\'+this.value+\'°\'"><span class="v">±'+cp.hueTol+'°</span></div>'
@@ -153,7 +221,7 @@ rCustomCards:function(){var S=M.S,el=$('customChCards');if(!el)return;var custom
 _customPickTarget:null,
 startCustomPick:function(id){M.Ch._customPickTarget=id;M.T.show('👆 现在在原图上点击吸取颜色（通道: '+M.S.chs.find(function(c){return c.id===id}).name+'）');$('srcC').style.outline='3px solid var(--orange)';$('srcLabel').textContent='🎯 吸色中→'+id},
 _handleCustomPick:function(sx,sy){var S=M.S,id=M.Ch._customPickTarget;if(!id)return false;var c=S.chs.find(function(x){return x.id===id});if(!c)return false;var i=sy*S.W+sx,o=i*4;c.customPickRGB=[S.px[o],S.px[o+1],S.px[o+2]];var v=M.C.r2h(c.customPickRGB[0],c.customPickRGB[1],c.customPickRGB[2]);c.customPickH=v[0];M.Ch._customPickTarget=null;$('srcC').style.outline='';M.Ch.rCustomCards();M.T.show('✓ 已吸取 '+M.C.r2x(c.customPickRGB)+' → '+c.name);return true},
-renameCustom:function(id,nm){var c=M.S.chs.find(function(x){return x.id===id});if(c)c.name=nm;this.rBar();this.uBr()},
+renameCustom:function(id,nm){var c=M.S.chs.find(function(x){return x.id===id});if(c){c.name=nm;/* v6.1: 同步更新所有引用该通道名的 UI */this.rBar();this.rPan();this.rSlots();this.uBr();if(M.S.maskOK)M.Ren.buildUI()}},
 setCustomParam:function(id,p,v){var c=M.S.chs.find(function(x){return x.id===id});if(c&&c.customParams)c.customParams[p]=v},
 addCustomRg:function(id){var c=M.S.chs.find(function(x){return x.id===id});if(!c||!c.customPickRGB)return;var cp=c.customParams,S=M.S;var pct=M.Ch._customMPct(c);c.customRegions.push({hue:c.customPickH,tol:cp.hueTol,satMin:cp.satMin,rgb:c.customPickRGB.slice(),matchPct:pct});S.regions.push({ch:id,hue:c.customPickH,tol:cp.hueTol,satMin:cp.satMin,rgb:c.customPickRGB.slice(),matchPct:pct,inverted:false});M.Hist.push({type:'add_rg'});M.Ch.rRL();M.Ch.rCustomCards();$('genBtn').disabled=false;M.T.show('✓ 已添加到 '+c.name)},
 rmCustomRg:function(id,idx){var c=M.S.chs.find(function(x){return x.id===id});if(!c)return;var rg=c.customRegions[idx];c.customRegions.splice(idx,1);M.S.regions=M.S.regions.filter(function(r){return!(r.ch===id&&Math.abs(r.hue-rg.hue)<0.1)});M.Hist.push({type:'del_rg'});M.Ch.rRL();M.Ch.rCustomCards()},
@@ -185,7 +253,37 @@ M._ldImg=function(f){var img=new Image();img.onload=function(){M.S.srcImg=img;M.
 /* ═══ v6.0 核心JS Part3: Picker/AutoDetect/Generator/EdgeRefine/Brush/Renderer/Exporter/Crop/Migration/Init ═══ */
 /* ── Picker ── */
 M.Pk={_b:false,bind:function(){if(this._b)return;this._b=true;var sc=$('srcC');sc.addEventListener('click',M.Pk._pick);sc.addEventListener('mousemove',M.Pk._mag);sc.addEventListener('mouseleave',function(){$('mag').style.display='none'});sc.addEventListener('mousedown',function(e){M.Br._dn(e)});sc.addEventListener('mousemove',function(e){M.Br._mv(e)});sc.addEventListener('mouseup',function(){M.Br._up()})},
-_pick:function(e){var S=M.S;if(S.brushMode)return;if($('lockColor').checked&&!M.Ch._customPickTarget){M.T.show(M.L.locked);return}var c=$('srcC'),r=c.getBoundingClientRect(),sx=Math.floor((e.clientX-r.left)/r.width*S.W),sy=Math.floor((e.clientY-r.top)/r.height*S.H);if(sx<0||sx>=S.W||sy<0||sy>=S.H)return;/* 自定义通道吸色路由 */if(M.Ch._customPickTarget){M.Ch._handleCustomPick(sx,sy);return}var i=sy*S.W+sx,o=i*4;S.pkRGB=[S.px[o],S.px[o+1],S.px[o+2]];var v=M.C.r2h(S.pkRGB[0],S.pkRGB[1],S.pkRGB[2]);S.pkH=v[0];S.pkS=v[1];S.pkV=v[2];$('pkSw').style.background=M.C.r2x(S.pkRGB);var pct=M.Pk.mPct();$('pkInfo').innerHTML='<b>'+M.C.r2x(S.pkRGB)+'</b> H:'+S.pkH.toFixed(0)+'° · <span style="color:var(--green)">'+pct+'%</span>';$('addBtn').disabled=false;$('hMk').style.display='block';$('hMk').style.left=(S.pkH/360*100)+'%';M.Pk.uHR();M.Pk.rSrc();M.UI.tip(M.L.adjTip)},
+_pick:function(e){var S=M.S;if(S.brushMode)return;if($('lockColor').checked&&!M.Ch._customPickTarget){M.T.show(M.L.locked);return}var c=$('srcC'),r=c.getBoundingClientRect(),sx=Math.floor((e.clientX-r.left)/r.width*S.W),sy=Math.floor((e.clientY-r.top)/r.height*S.H);if(sx<0||sx>=S.W||sy<0||sy>=S.H)return;/* 自定义通道吸色路由 */if(M.Ch._customPickTarget){M.Ch._handleCustomPick(sx,sy);return}var i=sy*S.W+sx,o=i*4;S.pkRGB=[S.px[o],S.px[o+1],S.px[o+2]];var v=M.C.r2h(S.pkRGB[0],S.pkRGB[1],S.pkRGB[2]);S.pkH=v[0];S.pkS=v[1];S.pkV=v[2];var hex=M.C.r2x(S.pkRGB);$('pkSw').style.background=hex;var pct=M.Pk.mPct();$('pkInfo').innerHTML='<b>'+hex+'</b> H:'+S.pkH.toFixed(0)+'° · <span style="color:var(--green)">'+pct+'%</span>';$('addBtn').disabled=false;$('hMk').style.display='block';$('hMk').style.left=(S.pkH/360*100)+'%';M.Pk.uHR();M.Pk.rSrc();M.UI.tip(M.L.adjTip);
+/* ═══ v6.1 悬浮快捷菜单 ═══ */
+M.Pk._showFloatMenu(e,hex,pct);
+/* ═══ v6.1 右侧面板展示区 ═══ */
+M.Pk._updateBanner(hex,pct)},
+/* v6.1 悬浮快捷菜单 */
+_showFloatMenu:function(e,hex,pct){
+var fm=$('pickFloatMenu');$('pfmSwatch').style.background=hex;$('pfmHex').textContent=hex;$('pfmPct').textContent=pct+'%';
+var btns='';M.S.chs.forEach(function(c){var cc=M.C.res(c.color);btns+='<button class="pfm-btn" onclick="M.Pk.floatAssign(\''+c.id+'\')"><span class="pfm-ch-dot" style="background:'+cc+'"></span>分配给 '+c.name+'</button>'});
+btns+='<button class="pfm-btn" onclick="M.Ch.addC();M.Pk.hideFloat()" style="border-color:var(--accent);color:var(--accent)">➕ 新建自定义通道</button>';
+$('pfmBtns').innerHTML=btns;
+/* 定位：鼠标右侧偏移 */
+var wrap=$('srcWrap'),wr=wrap.getBoundingClientRect(),mx=e.clientX-wr.left+12,my=e.clientY-wr.top-20;
+if(mx+180>wr.width)mx=e.clientX-wr.left-192;
+if(my+200>wr.height)my=Math.max(4,wr.height-220);
+if(my<0)my=4;
+fm.style.left=mx+'px';fm.style.top=my+'px';fm.classList.add('show');
+/* 点击外部关闭 */
+setTimeout(function(){document.addEventListener('mousedown',M.Pk._floatOutClick,{once:true})},50)},
+_floatOutClick:function(e){var fm=$('pickFloatMenu');if(fm&&!fm.contains(e.target))fm.classList.remove('show')},
+hideFloat:function(){$('pickFloatMenu').classList.remove('show')},
+floatAssign:function(ch){var S=M.S;if(S.pkH<0)return;S.curCh=ch;M.Ch.setCur(ch);M.Pk.addRg();M.Pk.hideFloat()},
+/* v6.1 右侧面板吸取颜色展示区 */
+_updateBanner:function(hex,pct){
+var S=M.S,bn=$('curPickBanner');bn.classList.add('show');
+$('cpbSwatch').style.background=hex;$('cpbHex').textContent=hex;
+$('cpbHsv').textContent='H:'+S.pkH.toFixed(0)+'° S:'+S.pkS.toFixed(0)+'% V:'+S.pkV.toFixed(0)+'%';
+$('cpbPct').textContent=pct+'%';
+var btns='';S.chs.forEach(function(c){var cc=M.C.res(c.color);btns+='<button class="cpb-btn" onclick="M.Pk.bannerAssign(\''+c.id+'\')"><span class="cpb-dot" style="background:'+cc+'"></span>➡ '+c.name+'</button>'});
+$('cpbBtns').innerHTML=btns},
+bannerAssign:function(ch){var S=M.S;if(S.pkH<0)return;S.curCh=ch;M.Ch.setCur(ch);M.Pk.addRg()},
 _mag:function(e){var S=M.S;if(!S.px||S.brushMode)return;var sc=$('srcC'),r=sc.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,sx=Math.floor(mx/r.width*S.W),sy=Math.floor(my/r.height*S.H);if(sx<0||sx>=S.W||sy<0||sy>=S.H){$('mag').style.display='none';return}var mag=$('mag'),mc=$('magC'),ctx=mc.getContext('2d');mag.style.display='block';var mw=120;var offX=mx+20,offY=my-mw-10;if(offX+mw>r.width)offX=mx-mw-20;if(offY<0)offY=my+20;mag.style.left=offX+'px';mag.style.top=offY+'px';mc.width=mw;mc.height=mw;ctx.imageSmoothingEnabled=false;ctx.drawImage(sc,sx-5,sy-5,11,11,0,0,mw,mw);var idx=(sy*S.W+sx)*4;$('magHex').textContent=M.C.r2x([S.px[idx],S.px[idx+1],S.px[idx+2]])},
 mPct:function(){var S=M.S;if(S.pkH<0||!S.hsv)return'0';var tol=+$('pHT').value,sat=+$('pSM').value,m=0,t=0,n=S.W*S.H;for(var i=0;i<n;i++){if(S.px[i*4+3]<10)continue;t++;if(M.C.hD(S.hsv[i*3],S.pkH)<=tol&&S.hsv[i*3+1]>=sat)m++}return t?(m/t*100).toFixed(1):'0'},
 upP:function(){$('vHT').textContent='±'+$('pHT').value+'°';$('vSM').textContent=$('pSM').value+'%';$('vES').textContent=$('pES').value+'px';M.Pk.uHR();if(M.S.pkH>=0){M.Pk.rSrc();$('pkInfo').innerHTML='<b>'+M.C.r2x(M.S.pkRGB)+'</b> H:'+M.S.pkH.toFixed(0)+'° · <span style="color:var(--green)">'+M.Pk.mPct()+'%</span>'}},
@@ -194,8 +292,34 @@ rSrc:function(){var S=M.S;if(!S.hsv||!S.srcImg)return;var c=$('srcC'),ctx=c.getC
 addRg:function(){var S=M.S;if(S.pkH<0)return;S.regions.push({ch:S.curCh,hue:S.pkH,tol:+$('pHT').value,satMin:+$('pSM').value,rgb:S.pkRGB.slice(),matchPct:M.Pk.mPct(),inverted:false});M.Hist.push({type:'add_rg'});M.Ch.rRL();$('genBtn').disabled=false;M.T.show(M.tpl(M.L.addTo,{ch:S.curCh}));var r=$('srcC').getBoundingClientRect();M.T.float('\u2713 '+S.curCh,r.width/2,r.height/2);if(!$('lockColor').checked){S.pkH=-1;$('addBtn').disabled=true;$('pkInfo').textContent='继续吸色';$('srcLabel').textContent='点击吸取';$('srcC').getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);$('hMk').style.display='none'}M.UI.tip(M.L.contTip)},
 tInv:function(i){M.S.regions[i].inverted=!M.S.regions[i].inverted;M.Ch.rRL()},
 rmRg:function(i){M.S.regions.splice(i,1);M.Hist.push({type:'del_rg'});M.Ch.rRL();if(!M.S.regions.length)$('genBtn').disabled=true}};
-/* ── AutoDetect ── */
-M.AD={run:function(){var S=M.S;if(!S.hsv){M.T.show('请先加载图片');return}var bins=M.Cfg.ABINS,n=S.W*S.H,cnt=new Float64Array(bins),hS=new Float64Array(bins),rS=new Float64Array(bins),gS=new Float64Array(bins),bS=new Float64Array(bins);for(var i=0;i<n;i++){if(S.px[i*4+3]<10||S.hsv[i*3+1]<15)continue;var bi=Math.floor(S.hsv[i*3]/(360/bins))%bins;cnt[bi]++;hS[bi]+=S.hsv[i*3];var o=i*4;rS[bi]+=S.px[o];gS[bi]+=S.px[o+1];bS[bi]+=S.px[o+2]}var grp=[];for(var i=0;i<bins;i++){if(cnt[i]<10)continue;var merged=false;for(var j=0;j<grp.length;j++){if(M.C.hD(hS[i]/cnt[i],grp[j].h)<=20){grp[j].c+=cnt[i];grp[j].r+=rS[i];grp[j].g+=gS[i];grp[j].b+=bS[i];grp[j].h=(grp[j].h*grp[j].oc+hS[i])/(grp[j].oc+cnt[i]);grp[j].oc+=cnt[i];merged=true;break}}if(!merged)grp.push({h:hS[i]/cnt[i],c:cnt[i],oc:cnt[i],r:rS[i],g:gS[i],b:bS[i]})}grp.sort(function(a,b){return b.c-a.c});var top=grp.slice(0,M.Cfg.AMAX);if(!top.length){M.T.show('未发现明显色域');return}var chI=['R','G','B','A'],total=0,html='';grp.forEach(function(g){total+=g.c});top.forEach(function(g,idx){var ar=Math.round(g.r/g.c),ag=Math.round(g.g/g.c),ab=Math.round(g.b/g.c),hex=M.C.r2x([ar,ag,ab]),ch=idx<chI.length?chI[idx]:'R',pct=(g.c/total*100).toFixed(1);html+='<div class="adc" onclick="M.AD.acc(\''+ch+'\','+g.h.toFixed(1)+','+ar+','+ag+','+ab+')"><div class="adsw" style="background:'+hex+'"></div><div><div style="color:var(--heading);font-size:10px">H:'+g.h.toFixed(0)+'°→'+ch+'</div><div style="font-size:9px;color:var(--green)">'+pct+'%</div></div></div>'});$('adR').innerHTML=html;M.T.show(M.tpl(M.L.autoN,{n:top.length}))},
+/* ── AutoDetect (v6.1 重构) ── */
+M.AD={_lastResults:null,
+run:function(){var S=M.S;if(!S.hsv){M.T.show('请先加载图片');return}var bins=M.Cfg.ABINS,n=S.W*S.H,cnt=new Float64Array(bins),hS=new Float64Array(bins),rS=new Float64Array(bins),gS=new Float64Array(bins),bS=new Float64Array(bins);for(var i=0;i<n;i++){if(S.px[i*4+3]<10||S.hsv[i*3+1]<15)continue;var bi=Math.floor(S.hsv[i*3]/(360/bins))%bins;cnt[bi]++;hS[bi]+=S.hsv[i*3];var o=i*4;rS[bi]+=S.px[o];gS[bi]+=S.px[o+1];bS[bi]+=S.px[o+2]}var grp=[];for(var i=0;i<bins;i++){if(cnt[i]<10)continue;var merged=false;for(var j=0;j<grp.length;j++){if(M.C.hD(hS[i]/cnt[i],grp[j].h)<=20){grp[j].c+=cnt[i];grp[j].r+=rS[i];grp[j].g+=gS[i];grp[j].b+=bS[i];grp[j].h=(grp[j].h*grp[j].oc+hS[i])/(grp[j].oc+cnt[i]);grp[j].oc+=cnt[i];merged=true;break}}if(!merged)grp.push({h:hS[i]/cnt[i],c:cnt[i],oc:cnt[i],r:rS[i],g:gS[i],b:bS[i]})}grp.sort(function(a,b){return b.c-a.c});var top=grp.slice(0,M.Cfg.AMAX);if(!top.length){M.T.show('未发现明显色域');return}
+/* 计算结果 */
+var chI=['R','G','B','A'],total=0;grp.forEach(function(g){total+=g.c});
+var results=top.map(function(g,idx){var ar=Math.round(g.r/g.c),ag=Math.round(g.g/g.c),ab=Math.round(g.b/g.c);return{hex:M.C.r2x([ar,ag,ab]),rgb:[ar,ag,ab],hue:g.h,ch:idx<chI.length?chI[idx]:'R',pct:(g.c/total*100).toFixed(1)}});
+M.AD._lastResults=results;
+/* v6.1: 渲染结果面板 */
+var panel=$('adResultsPanel'),swHtml='';
+results.forEach(function(r){swHtml+='<div class="ad-swatch"><div class="ad-sw-color" style="background:'+r.hex+'"></div><div class="ad-sw-label">H:'+r.hue.toFixed(0)+'° · '+r.pct+'%</div><div class="ad-sw-ch" style="color:'+({R:'#f66',G:'#6f6',B:'#66f',A:'#ccc'}[r.ch]||'#888')+'">→ '+r.ch+'</div></div>'});
+$('adSwatches').innerHTML=swHtml;
+panel.classList.add('show');
+/* v6.1: 自动分配到基础通道 */
+M.AD._autoAssign(results);
+/* v6.1: 画布闪烁高亮 */
+M.AD._flashCanvas(results);
+/* 旧版色块（保留兼容） */
+var html='';results.forEach(function(r){html+='<div class="adc" onclick="M.AD.acc(\''+r.ch+'\','+r.hue.toFixed(1)+','+r.rgb[0]+','+r.rgb[1]+','+r.rgb[2]+')"><div class="adsw" style="background:'+r.hex+'"></div><div><div style="color:var(--heading);font-size:10px">H:'+r.hue.toFixed(0)+'°→'+r.ch+'</div><div style="font-size:9px;color:var(--green)">'+r.pct+'%</div></div></div>'});
+$('adR').innerHTML=html;
+M.T.show(M.tpl(M.L.autoN,{n:top.length})+' → 已自动分配到通道')},
+/* v6.1: 自动分配 */
+_autoAssign:function(results){var S=M.S;results.forEach(function(r){/* 避免重复添加 */var exists=S.regions.some(function(rg){return rg.ch===r.ch&&Math.abs(rg.hue-r.hue)<5});if(!exists){S.regions.push({ch:r.ch,hue:r.hue,tol:+$('pHT').value,satMin:+$('pSM').value,rgb:r.rgb.slice(),matchPct:r.pct,inverted:false});M.Hist.push({type:'add_rg'})}});M.Ch.rRL();$('genBtn').disabled=false},
+/* v6.1: 一键应用按钮 */
+applyAll:function(){var results=M.AD._lastResults;if(!results||!results.length){M.T.show('请先执行智能分析');return}M.AD._autoAssign(results);M.T.show('✅ 已将 '+results.length+' 个主色域分配到基础通道');/* 自动触发生成 */if(M.S.regions.length)setTimeout(function(){M.Gen.run()},300)},
+/* v6.1: 画布闪烁高亮 */
+_flashCanvas:function(results){var S=M.S,wrap=$('srcWrap');if(!S.hsv)return;/* 创建闪烁叠加层 */var overlay=document.createElement('canvas');overlay.className='canvas-flash';overlay.width=S.W;overlay.height=S.H;overlay.style.width='100%';overlay.style.height='100%';var ctx=overlay.getContext('2d'),img=ctx.createImageData(S.W,S.H),d=img.data;var tol=+$('pHT').value,sat=+$('pSM').value;
+for(var i=0,n=S.W*S.H;i<n;i++){var h=S.hsv[i*3],s=S.hsv[i*3+1],matched=false;for(var ri=0;ri<results.length;ri++){if(M.C.hD(h,results[ri].hue)<=tol&&s>=sat){var cc=results[ri].rgb;d[i*4]=cc[0];d[i*4+1]=cc[1];d[i*4+2]=cc[2];d[i*4+3]=180;matched=true;break}}if(!matched){d[i*4+3]=0}}
+ctx.putImageData(img,0,0);wrap.appendChild(overlay);setTimeout(function(){if(overlay.parentNode)overlay.parentNode.removeChild(overlay)},1800)},
 acc:function(ch,hue,r,g,b){M.S.regions.push({ch:ch,hue:hue,tol:+$('pHT').value,satMin:+$('pSM').value,rgb:[r,g,b],matchPct:'auto',inverted:false});M.Hist.push({type:'add_rg'});M.Ch.rRL();$('genBtn').disabled=false;M.T.show(M.tpl(M.L.addTo,{ch:ch}))}};
 /* ── Blur ── */
 M._blur=function(d,w,h,r){if(r<=0)return d;var t=new Float32Array(d.length),o=new Float32Array(d.length);for(var y=0;y<h;y++)for(var x=0;x<w;x++){var s=0,c=0;for(var dx=-r;dx<=r;dx++){var nx=x+dx;if(nx>=0&&nx<w){s+=d[y*w+nx];c++}}t[y*w+x]=s/c}for(var y=0;y<h;y++)for(var x=0;x<w;x++){var s=0,c=0;for(var dy=-r;dy<=r;dy++){var ny=y+dy;if(ny>=0&&ny<h){s+=t[ny*w+x];c++}}o[y*w+x]=s/c}return o};
@@ -230,7 +354,7 @@ dlComp:function(){if(!M.S.maskOK)return M.T.show(M.L.noBody);M.Ex._sv(M.Ex._comp
 dlCh:function(id){var ch=M.S.chs.find(function(c){return c.id===id});if(!ch||!ch.raw)return M.T.show(M.L.noBody);var S=M.S,c=document.createElement('canvas');c.width=S.W;c.height=S.H;var x=c.getContext('2d'),m=x.createImageData(S.W,S.H),d=m.data;for(var i=0,n=S.W*S.H;i<n;i++){var v=(ch.raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}x.putImageData(m,0,0);M.Ex._sv(c,M.Nm.res(ch.name))},
 dlTGA:function(){if(!M.S.maskOK)return M.T.show(M.L.noBody);var S=M.S,c=M.Ex._compCanvas(),ctx=c.getContext('2d'),rgba=ctx.getImageData(0,0,S.W,S.H).data;var blob=M._tga(S.W,S.H,rgba);var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=M.Nm.res('RGBA','.tga');document.body.appendChild(a);a.click();document.body.removeChild(a);M.T.show(M.tpl(M.L.tgaOk,{n:M.Nm.res('RGBA','.tga')}))},
 dlMulti:function(){if(!M.S.maskOK||M.S.chs.length<=4)return;var S=M.S,pi=0;for(var s=0;s<S.chs.length;s+=4){var pk=S.chs.slice(s,s+4);pi++;var c=document.createElement('canvas');c.width=S.W;c.height=S.H;var x=c.getContext('2d'),m=x.createImageData(S.W,S.H),d=m.data;for(var i=0,n=S.W*S.H;i<n;i++){var o=i*4;d[o]=pk[0]&&pk[0].raw?(pk[0].raw[i]*255+.5)|0:0;d[o+1]=pk[1]&&pk[1].raw?(pk[1].raw[i]*255+.5)|0:0;d[o+2]=pk[2]&&pk[2].raw?(pk[2].raw[i]*255+.5)|0:0;d[o+3]=pk[3]&&pk[3].raw?(pk[3].raw[i]*255+.5)|0:255}x.putImageData(m,0,0);M.Ex._sv(c,M.Nm.res('Pack'+pi))}M.T.show(M.tpl(M.L.multiOk,{n:pi}))},
-dlZip:async function(){if(!M.S.maskOK)return M.T.show(M.L.noBody);if(typeof JSZip==='undefined')return M.T.show('JSZip加载中');var S=M.S,z=new JSZip();var c0=document.createElement('canvas');c0.width=S.W;c0.height=S.H;c0.getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);z.file(M.Nm.res('Original'),await M.Ex._cb(c0));z.file(M.Nm.res('RGBA'),await M.Ex._cb(M.Ex._compCanvas()));for(var ci=0;ci<S.chs.length;ci++){var ch=S.chs[ci];if(!ch.raw)continue;var c=document.createElement('canvas');c.width=S.W;c.height=S.H;var x=c.getContext('2d'),m=x.createImageData(S.W,S.H),d=m.data;for(var i=0,n=S.W*S.H;i<n;i++){var v=(ch.raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}x.putImageData(m,0,0);z.file(M.Nm.res(ch.name),await M.Ex._cb(c))}/* TGA in ZIP */var cc=M.Ex._compCanvas(),rgba=cc.getContext('2d').getImageData(0,0,S.W,S.H).data;z.file(M.Nm.res('RGBA','.tga'),M._tga(S.W,S.H,rgba));/* config */var cfg={tool:'Auto Mask v6.0',version:'6.0',size:[S.W,S.H],aMode:S.aMode,channels:S.chs.map(function(c){return{id:c.id,name:c.name,color:c.color,adjust:c.adjust}}),regions:S.regions.map(function(r){return{ch:r.ch,hue:r.hue,tol:r.tol,satMin:r.satMin,inverted:r.inverted,matchPct:r.matchPct,color:M.C.r2x(r.rgb)}}),edgeSmooth:+$('pES').value,naming:{template:$('namingTpl').value,project:$('tplP').value,charID:$('tplC').value},generated:new Date().toISOString()};try{var sc2=document.createElement('canvas');sc2.width=S.W;sc2.height=S.H;sc2.getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);var b64=sc2.toDataURL('image/png');if(b64.length<5e6)cfg.sourceImageBase64=b64}catch(e){}z.file('config.json',JSON.stringify(cfg,null,2));var blob=await z.generateAsync({type:'blob'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=M.Nm.res('Output','.zip');document.body.appendChild(a);a.click();document.body.removeChild(a);M.T.show(M.L.zipOk)},
+dlZip:async function(){if(!M.S.maskOK)return M.T.show(M.L.noBody);if(typeof JSZip==='undefined')return M.T.show('JSZip加载中');var S=M.S,z=new JSZip();var c0=document.createElement('canvas');c0.width=S.W;c0.height=S.H;c0.getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);z.file(M.Nm.res('Original'),await M.Ex._cb(c0));z.file(M.Nm.res('RGBA'),await M.Ex._cb(M.Ex._compCanvas()));for(var ci=0;ci<S.chs.length;ci++){var ch=S.chs[ci];if(!ch.raw)continue;var c=document.createElement('canvas');c.width=S.W;c.height=S.H;var x=c.getContext('2d'),m=x.createImageData(S.W,S.H),d=m.data;for(var i=0,n=S.W*S.H;i<n;i++){var v=(ch.raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}x.putImageData(m,0,0);z.file(M.Nm.res(ch.name),await M.Ex._cb(c))}/* TGA in ZIP */var cc=M.Ex._compCanvas(),rgba=cc.getContext('2d').getImageData(0,0,S.W,S.H).data;z.file(M.Nm.res('RGBA','.tga'),M._tga(S.W,S.H,rgba));/* config */var cfg={tool:'Auto Mask v6.1',version:'6.1',size:[S.W,S.H],aMode:S.aMode,channels:S.chs.map(function(c){return{id:c.id,name:c.name,color:c.color,adjust:c.adjust,isCustom:!!c.isCustom}}),regions:S.regions.map(function(r){return{ch:r.ch,hue:r.hue,tol:r.tol,satMin:r.satMin,inverted:r.inverted,matchPct:r.matchPct,color:M.C.r2x(r.rgb)}}),edgeSmooth:+$('pES').value,naming:{template:$('namingTpl').value,project:$('tplP').value,charID:$('tplC').value},generated:new Date().toISOString()};try{var sc2=document.createElement('canvas');sc2.width=S.W;sc2.height=S.H;sc2.getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);var b64=sc2.toDataURL('image/png');if(b64.length<5e6)cfg.sourceImageBase64=b64}catch(e){}z.file('config.json',JSON.stringify(cfg,null,2));var blob=await z.generateAsync({type:'blob'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=M.Nm.res('Output','.zip');document.body.appendChild(a);a.click();document.body.removeChild(a);M.T.show(M.L.zipOk)},
 _cb:function(c){return new Promise(function(r){c.toBlob(function(b){r(b)},'image/png')})},
 sDrop:function(e,id){e.preventDefault();e.currentTarget.classList.remove('dg');var f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))M.Ex.ldSlot(id,f)},
 ldSlot:function(id,f){var c=M.S.chs.find(function(x){return x.id===id});if(!c)return;var img=new Image();img.onload=function(){c.slotImage=img;var sc=$('sc_'+id);if(sc){sc.width=200;sc.height=Math.round(200*img.height/img.width);sc.getContext('2d').drawImage(img,0,0,sc.width,sc.height)}$('si_'+id).style.display='block';M.T.show(c.name+' 已加载');if(M.S.maskOK)M.Gen.run()};img.src=URL.createObjectURL(f)},
@@ -325,19 +449,69 @@ M.Crop={
     var st=this._st,img=st.img;if(!img)return;
     st.rw=Math.max(4,Math.min(img.width,st.rw));st.rh=Math.max(4,Math.min(img.height,st.rh));
     st.rx=Math.max(0,Math.min(img.width-st.rw,st.rx));st.ry=Math.max(0,Math.min(img.height-st.rh,st.ry))},
-  /* 确认裁剪 — 高精度：直接从原图读取像素数据 */
+  /* 确认裁剪 — v6.1 高精度重构
+   * 坐标系说明：
+   *   st.rx/ry/rw/rh 始终是 原图像素坐标（与 img.width/img.height 对应）
+   *   不受 CSS zoom / devicePixelRatio / 容器缩放影响
+   *   裁剪时直接从原图 drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh)
+   *   输出 canvas 尺寸 = 裁剪区域像素尺寸，确保 "所见即所得"
+   */
   apply:function(){
-    var st=this._st,rx=Math.round(st.rx),ry=Math.round(st.ry),rw=Math.round(st.rw),rh=Math.round(st.rh);
+    var st=this._st;
+    /* 向下取整避免亚像素 */
+    var rx=Math.max(0,Math.round(st.rx)),ry=Math.max(0,Math.round(st.ry));
+    var rw=Math.round(st.rw),rh=Math.round(st.rh);
+    /* 边界钳位 */
+    if(rx+rw>st.img.width)rw=st.img.width-rx;
+    if(ry+rh>st.img.height)rh=st.img.height-ry;
     if(rw<2||rh<2){M.T.show('裁剪区域太小');return}
-    /* 创建高精度裁剪canvas,使用原图像素级精度 */
-    var tc=document.createElement('canvas');tc.width=rw;tc.height=rh;
-    var ctx=tc.getContext('2d');ctx.imageSmoothingEnabled=false;
-    ctx.drawImage(st.img,rx,ry,rw,rh,0,0,rw,rh);
-    var ni=new Image();ni.onload=function(){
-      if(st.mode==='slot'){var c=M.S.chs.find(function(x){return x.id===st.chId});if(c){c.slotImage=ni;var sc=$('sc_'+c.id);if(sc){sc.width=200;sc.height=Math.round(200*ni.height/ni.width);sc.getContext('2d').drawImage(ni,0,0,sc.width,sc.height)}}if(M.S.maskOK)M.Gen.run()}
-      else{M.S.prepImg=ni;var c=$('prepC');c.width=rw;c.height=rh;c.getContext('2d').drawImage(ni,0,0);$('prepLabel').textContent=rw+'×'+rh}
-      M.T.show(M.tpl(M.L.cropOk,{w:rw,h:rh}));M.Crop.close()};
-    ni.src=tc.toDataURL('image/png')},
+
+    /* 1) 在离屏 canvas 上以原图真实像素绘制裁剪区域
+     *    注意：canvas.width/height 设为目标像素尺寸（与 DPR 无关！）
+     *    imageSmoothingEnabled=false 防止缩放导致像素模糊 */
+    var tc=document.createElement('canvas');
+    tc.width=rw;tc.height=rh;
+    var ctx=tc.getContext('2d');
+    ctx.imageSmoothingEnabled=false;
+    /* drawImage 9 参数形式：src.x, src.y, src.w, src.h → dst.x, dst.y, dst.w, dst.h
+     * 此处 src 和 dst 尺寸相同 = 1:1 像素级裁剪，无任何缩放 */
+    ctx.drawImage(st.img, rx, ry, rw, rh, 0, 0, rw, rh);
+
+    /* 2) 直接使用 getImageData → putImageData 创建结果图片
+     *    避免 toDataURL('image/png') → new Image() 的二次编码损失 */
+    var cropData=ctx.getImageData(0,0,rw,rh);
+    var resultCanvas=document.createElement('canvas');
+    resultCanvas.width=rw;resultCanvas.height=rh;
+    resultCanvas.getContext('2d').putImageData(cropData,0,0);
+
+    /* 3) 使用 toBlob → createObjectURL 创建无损 Image 对象 */
+    resultCanvas.toBlob(function(blob){
+      if(!blob){/* fallback: 使用 toDataURL */
+        var ni=new Image();ni.onload=function(){M.Crop._applyCropResult(ni,rw,rh)};
+        ni.src=resultCanvas.toDataURL('image/png');return}
+      var url=URL.createObjectURL(blob);
+      var ni=new Image();
+      ni.onload=function(){
+        URL.revokeObjectURL(url);
+        M.Crop._applyCropResult(ni,rw,rh)};
+      ni.src=url},'image/png')},
+
+  /* 裁剪结果回调（从 apply 分离以支持异步） */
+  _applyCropResult:function(ni,rw,rh){
+    var st=this._st;
+    if(st.mode==='slot'){
+      var c=M.S.chs.find(function(x){return x.id===st.chId});
+      if(c){c.slotImage=ni;
+        var sc=$('sc_'+c.id);
+        if(sc){sc.width=200;sc.height=Math.round(200*ni.height/ni.width);
+          sc.getContext('2d').drawImage(ni,0,0,sc.width,sc.height)}}
+      if(M.S.maskOK)M.Gen.run()}
+    else{M.S.prepImg=ni;
+      var c=$('prepC');c.width=rw;c.height=rh;
+      c.getContext('2d').drawImage(ni,0,0);
+      $('prepLabel').textContent=rw+'×'+rh}
+    M.T.show(M.tpl(M.L.cropOk,{w:rw,h:rh}));
+    M.Crop.close()},
   /* ── 事件绑定 ── */
   _bound:false,_handlers:{},
   _bindEvents:function(){
