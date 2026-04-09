@@ -890,6 +890,57 @@
       "priority": "medium",
       "is_hot": false,
       "draft_prompt": "你是一名在游戏行业从业超过 10 年的资深美术项目经理（APM），现在担任 APM 团队的导师。请帮我编写一份《APM 个人成长路线图》文档，需要包含：\n1. APM 能力模型（硬技能 + 软技能矩阵）\n  - 硬技能：项目管理方法论、美术管线理解、成本核算、工具链、引擎基础\n  - 软技能：跨部门沟通、向上管理、团队激励、冲突解决、时间管理\n2. 成长阶段划分（初级/中级/高级/资深 APM，每个阶段的核心能力要求与典型职责）\n3. 每个阶段的推荐学习资源（书籍、课程、实践项目）\n4. 阶段性自我评估清单（每季度自检的 20 个核心问题）\n5. 常见成长瓶颈与突破方法\n6. 业内标杆参考（优秀 APM 的共性特征）\n请使用 Markdown 格式，包含能力雷达图说明和自评表格。"
+    },
+    {
+      "id": "art-report-template",
+      "module": "quality",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "美术效能度量与标准化汇报模板",
+      "desc": "美术周报/月报标准结构、外包健康度核心指标（返修率/吞吐量）、向上汇报数据包与话术模板",
+      "tags": ["周报","月报","汇报模板","外包健康度","返修率","吞吐量","向上管理","数据汇报"],
+      "icon": "📊",
+      "action": "openTool",
+      "path": "knowledge-base/art-report-template.html",
+      "owner": "周八",
+      "last_updated": "2026-04-09",
+      "applicable_stage": "全阶段",
+      "priority": "high",
+      "is_hot": true
+    },
+    {
+      "id": "asset-security-handover",
+      "module": "quality",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "美术资产防泄密与离职交接 SOP",
+      "desc": "资产安全分级体系、外包 NDA 规范、水印工具使用场景、离职人员资产权限回收与交接清单",
+      "tags": ["防泄密","NDA","水印","离职交接","权限回收","资产安全","SOP"],
+      "icon": "🔐",
+      "action": "openTool",
+      "path": "knowledge-base/asset-security-handover.html",
+      "owner": "周八",
+      "last_updated": "2026-04-09",
+      "applicable_stage": "全阶段",
+      "priority": "high",
+      "is_hot": true
+    },
+    {
+      "id": "deprecated-asset-cleanup",
+      "module": "project",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "废弃资产归档与清理规范",
+      "desc": "废案定义与分类、SVN/Perforce 空间清理周期、归档流程、通用资产复用库调用指南",
+      "tags": ["废弃资产","归档","清理","SVN","Perforce","复用库","资产管理","空间优化"],
+      "icon": "🗑️",
+      "action": "openTool",
+      "path": "knowledge-base/deprecated-asset-cleanup.html",
+      "owner": "周八",
+      "last_updated": "2026-04-09",
+      "applicable_stage": "量产期",
+      "priority": "high",
+      "is_hot": false
     }
   ]
 }

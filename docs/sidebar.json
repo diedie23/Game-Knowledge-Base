@@ -37,7 +37,8 @@
           "icon": "📂",
           "items": [
             { "id": "svn-perforce-structure", "icon": "📂", "title": "SVN/Perforce 目录结构标准", "type": "iframe", "file": "knowledge-base/svn-perforce-structure.html", "badge": "管理", "craft": "管理" },
-            { "id": "asset-submit-review", "icon": "🔄", "title": "资产提交与审核工作流", "type": "iframe", "file": "knowledge-base/asset-submit-review.html", "badge": "管理", "craft": "管理" }
+            { "id": "asset-submit-review", "icon": "🔄", "title": "资产提交与审核工作流", "type": "iframe", "file": "knowledge-base/asset-submit-review.html", "badge": "管理", "craft": "管理" },
+            { "id": "deprecated-asset-cleanup", "icon": "🗑️", "title": "废弃资产归档与清理规范", "type": "iframe", "file": "knowledge-base/deprecated-asset-cleanup.html", "badge": "管理", "craft": "管理" }
           ]
         }
       ]
@@ -233,7 +234,15 @@
           "name": "效能度量",
           "icon": "📊",
           "items": [
-            { "id": "art-efficiency-metrics", "icon": "📊", "title": "美术效能度量与数据指标体系", "type": "iframe", "file": "knowledge-base/art-efficiency-metrics.html", "badge": "管理", "craft": "管理" }
+            { "id": "art-efficiency-metrics", "icon": "📊", "title": "美术效能度量与数据指标体系", "type": "iframe", "file": "knowledge-base/art-efficiency-metrics.html", "badge": "管理", "craft": "管理" },
+            { "id": "art-report-template", "icon": "📊", "title": "美术效能度量与标准化汇报模板", "type": "iframe", "file": "knowledge-base/art-report-template.html", "badge": "管理", "craft": "管理" }
+          ]
+        },
+        {
+          "name": "资产安全与交接",
+          "icon": "🔐",
+          "items": [
+            { "id": "asset-security-handover", "icon": "🔐", "title": "美术资产防泄密与离职交接 SOP", "type": "iframe", "file": "knowledge-base/asset-security-handover.html", "badge": "管理", "craft": "管理" }
           ]
         },
         {

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>废弃资产归档与清理规范</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1400px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:12px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.section h3{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:15px;margin-bottom:12px;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:14px;line-height:1.8}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:15px}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:16px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:14px;line-height:1.8;padding-left:28px}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+.redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;min-width:90px}
+.flow-node strong{display:block;color:var(--heading);font-size:14px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:12px}
+.flow-arrow{color:var(--cyan);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+.checklist{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
+.checklist h4{color:var(--heading);margin-bottom:8px}
+.check-item{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:14px}
+.check-item .box{width:16px;height:16px;border:1px solid var(--border);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;background:var(--card)}
+.sub-title{font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>🗑️ 废弃资产归档与清理规范 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Deprecated Asset Archival & Cleanup Standard</div>
+  <div class="meta">
+    <span>📋 适用：量产期 / 测试期 / 收尾期</span>
+    <span>👤 维护：美术中心 · 制作管理</span>
+    <span>📅 2026-04-09</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ol>
+    <li><a href="#s1">废弃资产定义与分类</a></li>
+    <li><a href="#s2">资产生命周期管理模型</a></li>
+    <li><a href="#s3">SVN/Perforce 空间清理周期与策略</a></li>
+    <li><a href="#s4">废弃资产归档流程</a></li>
+    <li><a href="#s5">通用资产复用库建设与调用指南</a></li>
+    <li><a href="#s6">引擎内废弃资产清理 SOP</a></li>
+    <li><a href="#s7">自动化巡检与报表</a></li>
+    <li><a href="#s8">典型案例与 Do/Don't</a></li>
+  </ol>
+</div>
+
+<!-- ======== 1 ======== -->
+<div class="section" id="s1">
+  <h2>📦 1. 废弃资产定义与分类</h2>
+
+  <div class="alert alert-blue"><strong>核心问题</strong>：项目进行到中后期，SVN/Perforce 仓库往往膨胀到数百 GB 甚至 TB 级别，其中 30%~50% 可能是废弃资产。它们占用存储空间、拖慢同步速度、增加误引用风险。但"不敢删"是普遍心态——因为怕删错。本文档解决的就是<strong>"什么能删、怎么删、删完去哪找"</strong>的问题。</div>
+
+  <div class="sub-title">📊 1.1 废弃资产五大类型</div>
+  <table>
+    <tr><th>类型</th><th>代号</th><th>定义</th><th>典型来源</th><th>占比估算</th></tr>
+    <tr><td><strong>废案资产</strong></td><td><code>DEPRECATED</code></td><td>曾投入制作但方案被否决、需求被取消的完整资产</td><td>预研期换方向、策划砍功能、主美否定风格稿</td><td>15~25%</td></tr>
+    <tr><td><strong>过期版本</strong></td><td><code>OUTDATED</code></td><td>已有更新版本替代的旧版文件</td><td>迭代升级后的 v01/v02、被 v05 替代的早期版本</td><td>20~30%</td></tr>
+    <tr><td><strong>测试/临时文件</strong></td><td><code>TEMP</code></td><td>测试用途、临时调试、WIP 快照等非正式文件</td><td>测试场景、压力测试资产、截图、录屏</td><td>10~15%</td></tr>
+    <tr><td><strong>冗余副本</strong></td><td><code>DUPLICATE</code></td><td>同一资产的多处拷贝（不同目录/不同命名）</td><td>跨工种拷贝、外包交付后未清理原始包</td><td>5~10%</td></tr>
+    <tr><td><strong>孤儿资产</strong></td><td><code>ORPHAN</code></td><td>引擎中无任何引用、不被任何关卡/预制件/蓝图使用的资产</td><td>功能删除后残留的贴图/材质/Mesh</td><td>5~15%</td></tr>
+  </table>
+
+  <div class="sub-title">🔍 1.2 如何判断一个资产是否为"废弃"</div>
+  <div class="checklist">
+    <h4>📋 废弃判断 Checklist（满足 2 项即可标记为废弃候选）</h4>
+    <div class="check-item"><span class="box">☐</span>JIRA/TAPD 中对应的任务状态为"已取消"或"需求已撤回"</div>
+    <div class="check-item"><span class="box">☐</span>SVN/P4 中该文件<strong>超过 90 天无任何提交修改</strong></div>
+    <div class="check-item"><span class="box">☐</span>引擎 Reference Viewer 中<strong>无任何有效引用</strong>（孤儿资产）</div>
+    <div class="check-item"><span class="box">☐</span>已存在更新版本（如 v05 存在时 v01~v04 为过期版本）</div>
+    <div class="check-item"><span class="box">☐</span>文件名包含 <code>_test</code> / <code>_temp</code> / <code>_bak</code> / <code>_old</code> 等标记</div>
+    <div class="check-item"><span class="box">☐</span>制作人/主美/APM <strong>口头或书面确认</strong>该资产不再需要</div>
+  </table>
+
+  <div class="alert alert-yellow">⚠️ <strong>安全底线</strong>：即使满足多项判断条件，APM 也<strong>不得直接删除</strong>，必须走归档流程（§4）。"归档 ≠ 删除"——归档后的资产仍可按需恢复。</div>
+</div>
+
+<!-- ======== 2 ======== -->
+<div class="section" id="s2">
+  <h2>🔄 2. 资产生命周期管理模型</h2>
+
+  <div class="sub-title">📊 2.1 五阶段生命周期</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>① 创建</strong><div class="sub">任务下发<br>开始制作</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>② 活跃</strong><div class="sub">持续迭代<br>评审修改</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>③ 冻结</strong><div class="sub">版本锁定<br>只读不改</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>④ 废弃标记</strong><div class="sub">确认不再使用<br>标记待归档</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>⑤ 归档/销毁</strong><div class="sub">移入冷存储<br>or 彻底删除</div></div>
+  </div>
+
+  <div class="sub-title">📋 2.2 各阶段管控规则</div>
+  <table>
+    <tr><th>阶段</th><th>SVN/P4 状态</th><th>引擎状态</th><th>可执行操作</th><th>触发条件</th></tr>
+    <tr><td><strong>创建</strong></td><td>dev 分支可写</td><td>工作中</td><td>创建、修改、删除</td><td>任务创建</td></tr>
+    <tr><td><strong>活跃</strong></td><td>dev 分支可写</td><td>引擎中引用</td><td>修改、评审、迭代</td><td>制作中</td></tr>
+    <tr><td><strong>冻结</strong></td><td>main 分支只读锁定</td><td>打包引用</td><td>仅允许 Hotfix</td><td>版本锁定 / 里程碑冻结</td></tr>
+    <tr><td><strong>废弃标记</strong></td><td>标记 <code>deprecated</code> 属性</td><td>引用移除</td><td>禁止修改，等待归档</td><td>需求取消 / 方案废弃</td></tr>
+    <tr><td><strong>归档/销毁</strong></td><td>移入 Archive 分支</td><td>彻底移除</td><td>仅管理员可恢复</td><td>归档审批通过</td></tr>
+  </table>
+</div>
+
+<!-- ======== 3 ======== -->
+<div class="section" id="s3">
+  <h2>💾 3. SVN/Perforce 空间清理周期与策略</h2>
+
+  <div class="alert alert-red"><strong>血泪教训</strong>：某项目 SVN 仓库 1.2TB，同步一次需要 3 小时。新人入职第一天就在等同步。最终排查发现 40% 是废弃资产 + 过期版本。定期清理不是"有空了再做"，而是<strong>必须纳入日程的运维动作</strong>。</div>
+
+  <div class="sub-title">📅 3.1 清理周期规划</div>
+  <table>
+    <tr><th>清理类型</th><th>频率</th><th>范围</th><th>执行人</th><th>预估耗时</th></tr>
+    <tr><td><strong>日常清理</strong></td><td>每周</td><td>清理 <code>_temp</code>/<code>_test</code>/<code>_bak</code> 文件</td><td>各组组长</td><td>15 分钟/组</td></tr>
+    <tr><td><strong>Sprint 清理</strong></td><td>每 Sprint 结束</td><td>标记已取消任务的资产为废弃候选</td><td>APM</td><td>30 分钟</td></tr>
+    <tr><td><strong>里程碑清理</strong></td><td>Alpha/Beta/RC</td><td>全量扫描：孤儿资产、过期版本、冗余副本</td><td>APM + TA</td><td>2~4 小时</td></tr>
+    <tr><td><strong>年度大扫除</strong></td><td>每年 / 项目收尾</td><td>全仓库审计，归档全部废弃资产，优化存储</td><td>APM + IT + TA</td><td>1~2 天</td></tr>
+  </table>
+
+  <div class="sub-title">🛠️ 3.2 SVN 清理策略</div>
+  <table>
+    <tr><th>操作</th><th>命令/方法</th><th>效果</th><th>风险</th></tr>
+    <tr><td><strong>移入 Archive 目录</strong></td><td><code>svn move src Archive/YYYYMM/</code></td><td>保留历史，移出主路径</td><td>低（可恢复）</td></tr>
+    <tr><td><strong>设置 ignore</strong></td><td><code>svn propset svn:ignore</code></td><td>忽略临时文件提交</td><td>无</td></tr>
+    <tr><td><strong>Dump + Filter</strong></td><td><code>svnadmin dump | svndumpfilter</code></td><td>从历史中彻底移除大文件（慎用）</td><td>高（不可逆）</td></tr>
+    <tr><td><strong>服务器端压缩</strong></td><td><code>svnadmin pack</code></td><td>优化存储空间</td><td>低</td></tr>
+  </table>
+
+  <div class="sub-title">🛠️ 3.3 Perforce 清理策略</div>
+  <table>
+    <tr><th>操作</th><th>命令/方法</th><th>效果</th><th>风险</th></tr>
+    <tr><td><strong>Archive Depot</strong></td><td>创建独立 Archive depot，<code>p4 move</code> 废弃文件</td><td>主 depot 瘦身，保留可访问</td><td>低</td></tr>
+    <tr><td><strong>Obliterate</strong></td><td><code>p4 obliterate -y</code></td><td>彻底删除文件及全部历史版本</td><td>极高（不可逆，需审批）</td></tr>
+    <tr><td><strong>Shelve 清理</strong></td><td><code>p4 shelve -d</code></td><td>清理长期搁置的变更集</td><td>低</td></tr>
+    <tr><td><strong>Archive Trigger</strong></td><td>配置 trigger 自动归档超期文件</td><td>自动化管理</td><td>低</td></tr>
+  </table>
+
+  <div class="redline">
+    <p><strong>🔴 Obliterate / Dump+Filter 铁律</strong>：这两个操作<strong>不可逆</strong>。执行前必须：<br>① 完整备份当前仓库<br>② 制作人/APM/TL 三方签字审批<br>③ 在维护窗口执行（非工作时间）<br>④ 执行后通知全员重新同步</p>
+  </div>
+
+  <div class="sub-title">📊 3.4 存储空间健康度监控</div>
+  <table>
+    <tr><th>指标</th><th>🟢 健康</th><th>🟡 关注</th><th>🔴 告警</th></tr>
+    <tr><td>仓库总大小</td><td>&lt; 500GB</td><td>500GB~1TB</td><td>&gt; 1TB</td></tr>
+    <tr><td>月增长率</td><td>&lt; 5%</td><td>5~15%</td><td>&gt; 15%</td></tr>
+    <tr><td>废弃资产占比</td><td>&lt; 15%</td><td>15~30%</td><td>&gt; 30%</td></tr>
+    <tr><td>新人首次同步时长</td><td>&lt; 30 分钟</td><td>30~90 分钟</td><td>&gt; 90 分钟</td></tr>
+  </table>
+</div>
+
+<!-- ======== 4 ======== -->
+<div class="section" id="s4">
+  <h2>📁 4. 废弃资产归档流程</h2>
+
+  <div class="alert alert-blue"><strong>核心理念</strong>：<strong>归档 ≠ 删除</strong>。归档是将资产从"热存储"（活跃仓库）移到"冷存储"（归档仓库），不影响日常工作，但需要时仍可恢复。只有经过审批的 Obliterate 才是真正的删除。</div>
+
+  <div class="sub-title">🔄 4.1 归档审批流程</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>① 标记</strong><div class="sub">APM/组长标记<br>废弃候选</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>② 公示</strong><div class="sub">全组公示 3 天<br>征求异议</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>③ 审批</strong><div class="sub">APM + 主美<br>双签确认</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>④ 执行归档</strong><div class="sub">move to Archive<br>+ 元数据记录</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>⑤ 更新台账</strong><div class="sub">归档台账入库<br>通知全员</div></div>
+  </div>
+
+  <div class="sub-title">📋 4.2 归档目录结构</div>
+  <pre>
+/Archive/                       ← 归档根目录
+├── 2026-Q1/                    ← 按季度分组
+│   ├── DEPRECATED/             ← 废案资产
+│   │   ├── CH_Luna_v1_concept/ ← 按资产分文件夹
+│   │   │   ├── CH_Luna_v1.ma
+│   │   │   ├── CH_Luna_v1.fbx
+│   │   │   ├── textures/
+│   │   │   └── _ARCHIVE_META.json  ← 归档元数据
+│   │   └── SC_DungeonA_old/
+│   ├── OUTDATED/               ← 过期版本
+│   │   ├── CH_Luna_v01/
+│   │   ├── CH_Luna_v02/
+│   │   └── CH_Luna_v03/
+│   ├── TEMP/                   ← 测试临时文件
+│   └── DUPLICATE/              ← 冗余副本
+├── 2026-Q2/
+└── _ARCHIVE_INDEX.csv          ← 全局归档索引表</pre>
+
+  <div class="sub-title">📋 4.3 归档元数据文件模板 (_ARCHIVE_META.json)</div>
+  <pre>
+{
+  "asset_id": "CH_Luna_v1_concept",
+  "original_path": "/Art/Characters/CH_Luna/v01/",
+  "archive_date": "2026-04-09",
+  "archive_reason": "DEPRECATED",
+  "reason_detail": "预研期 Luna 第一版概念方案被否决，改用 v2 日系风格方向",
+  "related_jira": "ART-0892",
+  "archived_by": "APM 周八",
+  "approved_by": ["APM 周八", "主美 张三"],
+  "file_count": 12,
+  "total_size_mb": 340,
+  "can_restore": true,
+  "restore_contact": "APM 周八",
+  "reuse_potential": "HIGH",
+  "reuse_note": "模型拓扑可复用，贴图风格已过时",
+  "retention_until": "2027-04-09"
+}</pre>
+
+  <div class="sub-title">📊 4.4 归档台账模板 (_ARCHIVE_INDEX.csv)</div>
+  <table>
+    <tr><th>资产ID</th><th>原路径</th><th>类型</th><th>归档日期</th><th>大小(MB)</th><th>原因</th><th>复用潜力</th><th>保留至</th></tr>
+    <tr><td>CH_Luna_v1</td><td>/Art/Char/Luna/v01/</td><td>DEPRECATED</td><td>2026-04-09</td><td>340</td><td>方案废弃</td><td>HIGH</td><td>2027-04-09</td></tr>
+    <tr><td>SC_DungeonA</td><td>/Art/Scene/Dungeon/A/</td><td>DEPRECATED</td><td>2026-04-09</td><td>520</td><td>关卡砍掉</td><td>MEDIUM</td><td>2027-04-09</td></tr>
+    <tr><td>CH_Luna_v02</td><td>/Art/Char/Luna/v02/</td><td>OUTDATED</td><td>2026-04-09</td><td>180</td><td>v05 替代</td><td>LOW</td><td>2026-10-09</td></tr>
+    <tr><td>test_stress_*</td><td>/Art/Test/Stress/</td><td>TEMP</td><td>2026-04-09</td><td>1200</td><td>压测文件</td><td>NONE</td><td>2026-07-09</td></tr>
+  </table>
+</div>
+
+<!-- ======== 5 ======== -->
+<div class="section" id="s5">
+  <h2>♻️ 5. 通用资产复用库建设与调用指南</h2>
+
+  <div class="alert alert-green"><strong>核心价值</strong>：废弃不等于无用。很多废案资产中的<strong>模型拓扑、UV 布局、绑定骨架、材质方案</strong>仍具有复用价值。建立通用复用库（Asset Reuse Library），可以将"沉没成本"转化为"复用收益"，直接提升 ADEI。</div>
+
+  <div class="sub-title">📊 5.1 复用库分类体系</div>
+  <table>
+    <tr><th>分类</th><th>内容</th><th>来源</th><th>复用场景</th></tr>
+    <tr><td><strong>🧱 通用模型库</strong></td><td>标准人体 BaseMesh、通用道具、基础建筑模块</td><td>废案资产中的高质量基础模型</td><td>新角色/场景的制作起点</td></tr>
+    <tr><td><strong>🎨 材质预设库</strong></td><td>PBR 材质球预设、Substance 参数模板</td><td>项目积累的材质方案</td><td>快速搭建新资产材质</td></tr>
+    <tr><td><strong>🦴 骨架模板库</strong></td><td>标准人体骨架、四足骨架、飞行生物骨架</td><td>已验证的骨架方案</td><td>新角色绑定的起点</td></tr>
+    <tr><td><strong>🎬 动画片段库</strong></td><td>通用待机/行走/跑步/攻击/受击动画</td><td>废案角色的动画资产</td><td>新角色的动画预置</td></tr>
+    <tr><td><strong>✨ 特效模板库</strong></td><td>通用爆炸/命中/buff 光圈等特效预制件</td><td>项目积累的特效方案</td><td>新特效的制作基础</td></tr>
+    <tr><td><strong>📐 UV/拓扑模板库</strong></td><td>标准 UV 布局模板、拓扑流向参考</td><td>通过验收的高质量资产</td><td>保证新资产拓扑质量</td></tr>
+  </table>
+
+  <div class="sub-title">📁 5.2 复用库目录结构</div>
+  <pre>
+/ReusableAssets/                  ← 复用库根目录
+├── BaseMesh/                     ← 通用模型
+│   ├── Human_Male_Base.fbx
+│   ├── Human_Female_Base.fbx
+│   ├── Quadruped_Base.fbx
+│   └── _CATALOG.json             ← 目录索引
+├── Materials/                    ← 材质预设
+│   ├── PBR_Skin/
+│   ├── PBR_Metal/
+│   ├── PBR_Fabric/
+│   └── Stylized_Toon/
+├── Skeletons/                    ← 骨架模板
+├── Animations/                   ← 通用动画
+├── VFX/                          ← 特效模板
+├── UVTemplates/                  ← UV 模板
+└── _REUSE_GUIDE.md               ← 使用指南</pre>
+
+  <div class="sub-title">📋 5.3 复用库调用规范</div>
+  <table>
+    <tr><th>步骤</th><th>操作</th><th>注意事项</th></tr>
+    <tr><td><strong>① 检索</strong></td><td>在 <code>_CATALOG.json</code> 中搜索关键词</td><td>支持工种/类型/风格/标签多维搜索</td></tr>
+    <tr><td><strong>② 预览</strong></td><td>查看缩略图 + 技术参数（面数/骨骼数/贴图尺寸）</td><td>确认是否满足当前项目规格要求</td></tr>
+    <tr><td><strong>③ 拷贝</strong></td><td>从复用库 <code>checkout</code> 到工作目录</td><td>严禁直接在复用库中修改源文件</td></tr>
+    <tr><td><strong>④ 改造</strong></td><td>基于复用模板进行定制化修改</td><td>修改后的资产按正常流程提交到项目仓库</td></tr>
+    <tr><td><strong>⑤ 回馈</strong></td><td>如果改造后的资产具有通用价值，提交回复用库</td><td>需主美/TA 审核后方可入库</td></tr>
+  </table>
+
+  <div class="alert alert-yellow">⚠️ <strong>复用库入库标准</strong>：不是所有资产都能进复用库。入库资产必须满足：<br>· 通用性高（不含项目特有风格元素）<br>· 质量达 A 级以上<br>· 拓扑/UV/命名符合规范<br>· 附带使用说明和参数表</div>
+</div>
+
+<!-- ======== 6 ======== -->
+<div class="section" id="s6">
+  <h2>🎮 6. 引擎内废弃资产清理 SOP</h2>
+
+  <div class="sub-title">🔍 6.1 UE（Unreal Engine）孤儿资产查找</div>
+  <table>
+    <tr><th>方法</th><th>操作步骤</th><th>适用场景</th></tr>
+    <tr><td><strong>Reference Viewer</strong></td><td>右键资产 → Reference Viewer → 检查是否有 Referencers</td><td>单个资产排查</td></tr>
+    <tr><td><strong>Size Map</strong></td><td>右键目录 → Size Map → 直观查看大文件</td><td>快速定位大体积资产</td></tr>
+    <tr><td><strong>Asset Audit</strong></td><td>Window → Developer → Asset Audit → 筛选无引用资产</td><td>批量排查</td></tr>
+    <tr><td><strong>命令行工具</strong></td><td><code>UnrealPak -List</code> 对比 Pak 内容与源资产</td><td>确认打包是否包含废弃资产</td></tr>
+  </table>
+
+  <div class="sub-title">🔍 6.2 Unity 孤儿资产查找</div>
+  <table>
+    <tr><th>方法</th><th>操作步骤</th><th>适用场景</th></tr>
+    <tr><td><strong>Find References In Scene</strong></td><td>右键资产 → Find References In Scene</td><td>单个资产</td></tr>
+    <tr><td><strong>Build Report</strong></td><td>Build → Build Report → 查看打包后的资源列表</td><td>确认打包内容</td></tr>
+    <tr><td><strong>Asset Hunter Pro (插件)</strong></td><td>自动扫描项目中未被引用的资产</td><td>批量排查</td></tr>
+    <tr><td><strong>Editor 脚本</strong></td><td>C# 脚本遍历 AssetDatabase，检查依赖关系</td><td>自动化集成</td></tr>
+  </table>
+
+  <div class="sub-title">📋 6.3 引擎清理 Checklist</div>
+  <div class="checklist">
+    <h4>🎮 里程碑前引擎清理（APM + TA 联合执行）</h4>
+    <div class="check-item"><span class="box">☐</span>运行孤儿资产扫描工具，导出无引用资产列表</div>
+    <div class="check-item"><span class="box">☐</span>与各工种组长确认列表中的资产是否确实废弃</div>
+    <div class="check-item"><span class="box">☐</span>将确认废弃的资产从引擎项目中 Delete（引擎内删除）</div>
+    <div class="check-item"><span class="box">☐</span>从 SVN/P4 中将对应源文件移入 Archive</div>
+    <div class="check-item"><span class="box">☐</span>全项目 Build 一次，确认无红色引用错误</div>
+    <div class="check-item"><span class="box">☐</span>对比清理前后包体大小，记录缩减量</div>
+    <div class="check-item"><span class="box">☐</span>更新归档台账</div>
+  </div>
+
+  <div class="alert alert-green"><strong>💡 效果参考</strong>：某中型手游项目在 Beta 前做了一次全量清理，从引擎中移除了 2,400 个孤儿资产（含贴图 1,800 张、Mesh 400 个、材质 200 个），包体从 1.8GB 降至 1.3GB，减少 28%。</div>
+</div>
+
+<!-- ======== 7 ======== -->
+<div class="section" id="s7">
+  <h2>🤖 7. 自动化巡检与报表</h2>
+
+  <div class="sub-title">⚙️ 7.1 自动化巡检脚本（Python 示例）</div>
+  <pre>
+"""
+废弃资产自动巡检脚本
+功能：扫描 SVN 仓库，标记超过 N 天未修改的文件为废弃候选
+"""
+import os, json, subprocess
+from datetime import datetime, timedelta
+
+STALE_DAYS = 90          # 超过 90 天未修改视为候选
+TEMP_PATTERNS = ['_test', '_temp', '_bak', '_old', 'Thumbs.db', '.DS_Store']
+SCAN_ROOT = '/svn/Art/'  # 扫描根路径
+
+def get_svn_last_modified(file_path):
+    """获取文件最后修改时间"""
+    result = subprocess.run(
+        ['svn', 'info', '--show-item', 'last-changed-date', file_path],
+        capture_output=True, text=True
+    )
+    date_str = result.stdout.strip()[:10]
+    return datetime.strptime(date_str, '%Y-%m-%d')
+
+def scan_stale_assets(root_path):
+    """扫描超期未修改的资产"""
+    stale_assets = []
+    cutoff_date = datetime.now() - timedelta(days=STALE_DAYS)
+
+    for root, dirs, files in os.walk(root_path):
+        for f in files:
+            full_path = os.path.join(root, f)
+
+            # 检查临时文件模式
+            is_temp = any(p in f.lower() for p in TEMP_PATTERNS)
+
+            # 检查最后修改时间
+            last_mod = get_svn_last_modified(full_path)
+            is_stale = last_mod < cutoff_date
+
+            if is_temp or is_stale:
+                stale_assets.append({
+                    'path': full_path,
+                    'last_modified': last_mod.isoformat(),
+                    'days_stale': (datetime.now() - last_mod).days,
+                    'reason': 'TEMP' if is_temp else 'STALE',
+                    'size_mb': os.path.getsize(full_path) / 1024 / 1024
+                })
+
+    return stale_assets
+
+# 执行扫描并输出报告
+results = scan_stale_assets(SCAN_ROOT)
+print(f"扫描完成：发现 {len(results)} 个废弃候选资产")
+print(f"预计可释放：{sum(a['size_mb'] for a in results):.1f} MB")
+
+# 导出 JSON 报告
+with open('stale_asset_report.json', 'w') as f:
+    json.dump(results, f, indent=2, ensure_ascii=False)</pre>
+
+  <div class="sub-title">📊 7.2 月度存储健康报表模板</div>
+  <pre>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 美术仓库存储健康月报 — 2026年3月
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+■ 仓库概况
+  · 总大小：680 GB (上月 650 GB，↑4.6%)
+  · 文件总数：42,300 个
+  · 本月新增：3,200 个 (+58 GB)
+  · 本月归档：800 个 (-28 GB)
+
+■ 废弃资产扫描结果
+  · 废弃候选：1,240 个 (占比 2.9%)
+  · 估算可释放空间：85 GB
+  · 详细清单已发送各组长确认
+
+■ 健康度评分
+  · 废弃占比：2.9%  → 🟢 健康 (&lt;15%)
+  · 月增长率：4.6%  → 🟢 健康 (&lt;5%)
+  · 新人同步时长：35 分钟 → 🟡 关注 (&gt;30min)
+  · 孤儿资产（引擎）：230 个 → 🟡 待清理
+
+■ 建议行动
+  · 本月里程碑前执行引擎孤儿资产清理
+  · 组长确认废弃候选后批量归档
+  · 评估是否需要迁移测试文件到单独 depot
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</pre>
+</div>
+
+<!-- ======== 8 ======== -->
+<div class="section" id="s8">
+  <h2>📌 8. 典型案例与 Do / Don't</h2>
+
+  <div class="faq-item">
+    <div class="faq-q">🔴 案例 1：误删在用资产，导致版本打包失败 <span class="badge badge-red">致命</span></div>
+    <div class="faq-a">
+      <p><strong>🎬 场景</strong>：TA 在清理孤儿资产时，将一组"看起来没被引用"的贴图删除。实际上这些贴图被动态加载（代码中用字符串路径引用），Reference Viewer 无法检测到。删除后版本打包时部分角色变成白模。</p>
+      <p><strong>💡 教训</strong>：<br>① 动态加载的资产必须在<strong>资产注册表</strong>中登记，清理前交叉检查<br>② 清理后必须<strong>全量 Build 验证</strong>，确认无红色引用<br>③ 高风险清理（如贴图、材质）必须在<strong>独立分支</strong>上操作，验证无误后再 merge</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">🟡 案例 2：废案资产 6 个月后被要求"复活" <span class="badge badge-yellow">中频</span></div>
+    <div class="faq-a">
+      <p><strong>🎬 场景</strong>：预研期被否决的 A 方案角色设计，在量产期被制作人重新拿出来说"其实这个方向也不错，能不能恢复？"。结果发现资产已被 Obliterate，无法恢复。</p>
+      <p><strong>💡 教训</strong>：<br>① <strong>归档 ≠ 删除</strong>。废弃资产默认走归档流程，保留至少 12 个月<br>② Obliterate 只用于 TEMP/DUPLICATE 类型，且需三方审批<br>③ 归档元数据中标注"复用潜力"，HIGH 潜力资产保留期延长至 24 个月</p>
+    </div>
+  </div>
+
+  <div class="sub-title">8.1 资产清理 Do / Don't</div>
+  <div class="dd-grid">
+    <div class="dd-card dd-do">
+      <h4>✅ Do（正确示范）</h4>
+      <p>• 废弃先<strong>归档</strong>，不直接删除</p>
+      <p>• 归档前<strong>公示 3 天</strong>，征求团队异议</p>
+      <p>• 每个归档资产写 <code>_ARCHIVE_META.json</code></p>
+      <p>• 清理后<strong>全量 Build</strong> 验证引用完整性</p>
+      <p>• 高复用潜力的废案提交到<strong>复用库</strong></p>
+      <p>• 定期出<strong>存储健康报表</strong></p>
+    </div>
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't（错误示范）</h4>
+      <p>❌ "这个文件看着没人用，直接删" → 可能是动态加载</p>
+      <p>❌ Obliterate 不审批 → 删错了无法恢复</p>
+      <p>❌ 从来不清理 → 仓库 2TB，同步 3 小时</p>
+      <p>❌ 只清引擎不清 SVN → 源文件仍占空间</p>
+      <p>❌ 废案直接扔掉 → 浪费可复用的模型/拓扑</p>
+      <p>❌ 清理后不通知团队 → 有人同步完发现文件没了</p>
+    </div>
+  </div>
+</div>
+
+<div class="doc-footer">🗑️ 废弃资产归档与清理规范 · v1.0 · 游戏美术项目管理知识库 · 内部资料</div>
+
+</div>
+</body>
+</html>

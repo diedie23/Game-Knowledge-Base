@@ -1661,7 +1661,7 @@ var CARD_GRID_MAP = {
   'grid-project-pipeline':   { module:'project', ids:['game-art-pipeline'] },
   'grid-project-schedule':   { module:'project', ids:['art-scheduling','progress-visualization'] },
   'grid-project-req':        { module:'project', ids:['art-vs-planner-req','art-vs-planner-template','jira-tapd-automation'] },
-  'grid-project-version':    { module:'project', ids:['svn-perforce-structure','asset-submit-review'] },
+  'grid-project-version':    { module:'project', ids:['svn-perforce-structure','asset-submit-review','deprecated-asset-cleanup'] },
   // 板块二：📦 外包全链路管理
   'grid-outsource-eval':     { module:'outsource', ids:['cp-outsource','cp-management'] },
   'grid-outsource-workload': { module:'outsource', ids:['outsource-workload-model'] },
@@ -1683,6 +1683,8 @@ var CARD_GRID_MAP = {
   // 板块六：🛡️ 质量、风险与团队
   'grid-quality-risk':       { module:'quality', ids:['risk-log'] },
   'grid-quality-retro':      { module:'quality', ids:['postmortem-template','project-pitfall-log'] },
+  'grid-quality-metrics':    { module:'quality', ids:['art-efficiency-metrics','art-report-template'] },
+  'grid-quality-security':   { module:'quality', ids:['asset-security-handover'] },
   'grid-quality-team':       { module:'quality', ids:['onboarding-guide','permission-nav','personal-growth-roadmap'] }
 };
 
