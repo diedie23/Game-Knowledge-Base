@@ -60,7 +60,7 @@ var toolData={
   'mask-tool':{icon:'🖌️',iconBg:'var(--orange-bg)',name:'Mask 手动编辑器',ver:'v1.0',status:'online',subtitle:'画笔 / 油漆桶 / 橡皮擦 · 实时四通道预览',desc:'专为 Mask 精修设计的轻量编辑器。导入原图后直接在浏览器中用画笔逐通道绘制或修改，R/G/B/A 四通道独立显示并可实时预览换色效果。',tags:['在线工具','画笔绘制','RGBA预览','所见即所得'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-03-31',url:'knowledge-base/mask-tool.html'},
   'spine-split':{icon:'✂️',iconBg:'var(--purple-bg)',name:'Spine 角色拆分工具',ver:'v3.0',status:'online',subtitle:'自定义模板 · 三点锚点对齐 · 多选镜像 · Alpha收缩',desc:'上传角色原画，选择/自制模板后通过三点锚点对齐自适应不同头身比。支持多选镜像操作、Alpha边缘收缩、拓扑延展，导出 ZIP 包含 Spine JSON。',tags:['在线工具','自定义模板','三点对齐','镜像操作','Alpha收缩'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-02',url:'knowledge-base/spine-split.html'},
   'mask-core-algorithms':{icon:'🧪',iconBg:'var(--accent-bg)',name:'Mask 核心算法演示',ver:'v2.0',status:'online',subtitle:'智能魔棒 Flood Fill · 边缘保护画笔 Sobel · Web Worker 并行',desc:'工业级 Mask 绘制的两大核心算法实现：基于扫描线的非递归 Flood Fill 魔棒（HSV/RGB 容差+高斯羽化），以及 Sobel 边缘检测驱动的自动"不出界"画笔。全部在 Worker 中并行计算。',tags:['在线工具','魔棒','Flood Fill','Sobel','边缘检测','Web Worker','Float32'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-02',url:'knowledge-base/mask-core-algorithms.html'},
-  'editor-guide':{icon:'✏️',iconBg:'var(--green-bg)',name:'可视化编辑器使用指南',ver:'v1.0',status:'online',subtitle:'零代码更新知识库文档 · 所见即所得编辑 · 保存/另存为 · 防破坏保护',desc:'面向非技术同学的知识库文档可视化编辑指南。点击「编辑模式」即可直接修改文字和图片，支持保存覆盖/另存为新文档，排版结构自动保护不会被破坏。',tags:['使用指南','可视化编辑','零代码','模板'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-09',url:'knowledge-base/editor-guide.html'}
+  'editor-guide':{icon:'✏️',iconBg:'var(--green-bg)',name:'可视化编辑器使用指南',ver:'v1.0',status:'online',subtitle:'零代码更新知识库文档 · 所见即所得编辑 · 保存/另存为 · 防破坏保护',desc:'面向非技术同学的知识库文档可视化编辑指南。点击「编辑模式」即可直接修改文字和图片，支持保存覆盖/另存为新文档，排版结构自动保护不会被破坏。',tags:['使用指南','可视化编辑','零代码','模板'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-09',url:'knowledge-base/editor-guide.html',isDoc:true}
 };
 
 // ═══ Loading Bar ═══
@@ -501,9 +501,22 @@ function getOrCreateDocPage(pageId){
 }
 
 // ═══ Render Tool Page (Embedded Directly) ═══
+// 支持 isDoc 字段：当条目为自带完整排版的文档页面时，隐藏工具详情头部卡片，只保留精简的 iframe 嵌入
 function renderToolPage(id){
   var d=toolData[id],c=document.getElementById('page-tool');
   if(!d)return;
+
+  // ★ 文档类页面（isDoc:true）——跳过工具头部卡片，直接全宽展示文档 iframe
+  if(d.isDoc){
+    c.innerHTML=
+      '<div class="tool-embed-frame-wrap tool-embed-frame-wrap--doc">'
+      +'<div class="tool-embed-toolbar tool-embed-toolbar--doc"><span class="tet-label">📄 文档已嵌入，直接阅读</span><button class="tet-btn" onclick="window.open(\''+d.url+'\',\'_blank\')">↗ 新窗口打开</button></div>'
+      +'<iframe class="tool-embed-frame tool-embed-frame--doc" src="'+d.url+'" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-downloads" loading="lazy"></iframe>'
+      +'</div>';
+    return;
+  }
+
+  // ★ 常规工具页面——完整渲染工具详情卡片 + iframe
   var tags='';d.tags.forEach(function(t){tags+='<span class="tag tag-clickable" onclick="event.stopPropagation();filterByTag(\''+t+'\')">'+t+'</span>';});
   c.innerHTML=
     '<div class="tool-embed-header">'
