@@ -476,8 +476,21 @@
     buildUI();
 
     // 当页面被嵌入在 iframe 中时（父页面已提供编辑按钮），隐藏本页面的悬浮入口按钮
-    if (window !== window.top) {
-      if (enterBtn) enterBtn.style.display = 'none';
+    // 使用 try-catch 防止跨域访问异常；同时也检查 frameElement 作为 fallback
+    var isInIframe = false;
+    try { isInIframe = window.self !== window.top; } catch (e) { isInIframe = true; }
+    if (!isInIframe) { try { isInIframe = !!window.frameElement; } catch (e) {} }
+
+    if (isInIframe) {
+      if (enterBtn) { enterBtn.style.display = 'none'; enterBtn.remove(); }
+      // 同时隐藏编辑工具栏，防止意外显示
+      if (toolbar) { toolbar.style.display = 'none'; }
+    }
+
+    // 支持页面自主标记禁用编辑：<body data-no-edit> 或 <html data-no-edit>
+    if (document.body.hasAttribute('data-no-edit') || document.documentElement.hasAttribute('data-no-edit')) {
+      if (enterBtn) { enterBtn.style.display = 'none'; enterBtn.remove(); }
+      if (toolbar) { toolbar.style.display = 'none'; }
     }
   }
 

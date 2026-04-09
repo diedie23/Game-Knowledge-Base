@@ -571,9 +571,16 @@ sequenceDiagram
       <div class="hot-section" id="hotSection">
         <div class="hot-header">
           <div class="hot-title"><span class="hot-icon">🔥</span> 高频速查 · 最近更新</div>
-          <div class="hot-tabs">
-            <button class="hot-tab active" onclick="switchHotTab('hot')">🔥 高频</button>
-            <button class="hot-tab" onclick="switchHotTab('recent')">🕐 最近更新</button>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <div class="hot-legend">
+              <span class="hot-legend-item" style="background:rgba(248,113,113,.15);color:#f87171">🔴 核心必读</span>
+              <span class="hot-legend-item" style="background:rgba(251,191,36,.15);color:#fbbf24">🟡 推荐阅读</span>
+              <span class="hot-legend-item" style="background:rgba(74,222,128,.15);color:#4ade80">🟢 参考了解</span>
+            </div>
+            <div class="hot-tabs">
+              <button class="hot-tab active" onclick="switchHotTab('hot')">🔥 高频</button>
+              <button class="hot-tab" onclick="switchHotTab('recent')">🕐 最近更新</button>
+            </div>
           </div>
         </div>
         <div class="hot-scroll" id="hotScrollContainer">
@@ -586,7 +593,7 @@ sequenceDiagram
       <!-- ═══ 📊 APM 管理仪表盘 (v4.2 Dashboard) ═══ -->
       <div class="dashboard-section" id="dashboardSection">
         <div class="dashboard-header">
-          <div class="dashboard-title"><span class="dashboard-icon">📊</span> APM 管理仪表盘</div>
+          <div class="dashboard-title"><span class="dashboard-icon">📊</span> APM 管理仪表盘 <span class="dashboard-info-icon" title="此仪表盘为项目核心数据概览，纯展示用途，数据来源于 index.json 配置。">ⓘ</span></div>
           <button class="dashboard-toggle" id="dashboardToggle" onclick="toggleDashboard()">▲ 收起</button>
         </div>
         <div class="dashboard-body" id="dashboardBody">

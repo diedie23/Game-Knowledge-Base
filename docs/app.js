@@ -871,8 +871,12 @@ function setupScrollSpy(){
       // iframe 模式：滚动 iframe 内容
       try{ btt._iframeScrollTo(); }catch(err){}
     } else {
-      // 普通模式：滚动 #contentScroll
-      scrollEl.scrollTo({top:0,behavior:'smooth'});
+      // 普通模式：滚动 #contentScroll；fallback 也尝试 window
+      try{ scrollEl.scrollTo({top:0,behavior:'smooth'}); }catch(err){}
+      // 如果 contentScroll 没有滚动条（意外情况），也尝试 window
+      if(scrollEl.scrollTop <= 0){
+        try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(err){}
+      }
     }
   });
 }
@@ -1732,8 +1736,11 @@ var STAGE_COLORS = {
   '全阶段': { color:'#a78bfa', bg:'rgba(167,139,250,.12)' }
 };
 
-// 优先级→图标
+// 优先级→带文字微型标签（升级版：直观语义标签替代纯色圆点）
 var PRIORITY_ICONS = { 'high':'🔴', 'medium':'🟡', 'low':'🟢' };
+var PRIORITY_LABELS = { 'high':'核心必读', 'medium':'推荐阅读', 'low':'参考了解' };
+var PRIORITY_LABEL_COLORS = { 'high':'rgba(248,113,113,.15)', 'medium':'rgba(251,191,36,.15)', 'low':'rgba(74,222,128,.15)' };
+var PRIORITY_LABEL_TEXT = { 'high':'#f87171', 'medium':'#fbbf24', 'low':'#4ade80' };
 
 function renderHomeCards(){
   if(!indexData||!indexData.items) return;
@@ -1754,9 +1761,12 @@ function renderHomeCards(){
         var sc=STAGE_COLORS[item.applicable_stage]||STAGE_COLORS['全阶段'];
         stageBadge='<span class="stage-tag stage-tag-solid" style="background:'+sc.bg+';color:'+sc.color+';border:1px solid '+sc.color.replace(')',',0.3)')+'">'+item.applicable_stage+'</span>';
       }
-      // 优先级
+      // 优先级（带文字微标签）
       var priIcon=PRIORITY_ICONS[item.priority]||'';
-      var priHtml=priIcon?'<span class="pri-badge" title="优先级: '+item.priority+'">'+priIcon+'</span>':'';
+      var priLabel=PRIORITY_LABELS[item.priority]||'';
+      var priLabelBg=PRIORITY_LABEL_COLORS[item.priority]||'';
+      var priLabelColor=PRIORITY_LABEL_TEXT[item.priority]||'';
+      var priHtml=priIcon?'<span class="pri-badge-label" title="优先级: '+item.priority+'" style="background:'+priLabelBg+';color:'+priLabelColor+'">'+priIcon+' '+priLabel+'</span>':'';
       // 复制链接按钮
       var copyHtml='<button class="card-copy-btn" onclick="event.stopPropagation();copyCardLink(\''+item.id+'\')" title="复制链接">🔗</button>';
       // 图标背景色
@@ -1844,6 +1854,9 @@ function renderHotCards(){
   items.forEach(function(item){
     var sc=STAGE_COLORS[item.applicable_stage]||STAGE_COLORS['全阶段'];
     var priIcon=PRIORITY_ICONS[item.priority]||'';
+    var priLabel=PRIORITY_LABELS[item.priority]||'';
+    var priLabelBg=PRIORITY_LABEL_COLORS[item.priority]||'';
+    var priLabelColor=PRIORITY_LABEL_TEXT[item.priority]||'';
     // 模块颜色
     var modColor='var(--accent)';var modBg='var(--accent-bg)';
     if(item.module==='collab'){modColor='var(--orange)';modBg='var(--orange-bg)';}
@@ -1854,7 +1867,7 @@ function renderHotCards(){
     html+='<div class="hot-card" onclick="navigate(\''+item.id+'\')">'
       +'<div class="hot-card-top">'
       +'<div class="hot-card-icon" style="background:'+modBg+';color:'+modColor+'">'+(item.icon||'📄')+'</div>'
-      +(priIcon?'<span class="hot-pri">'+priIcon+'</span>':'')
+      +(priIcon?'<span class="hot-pri-label" style="background:'+priLabelBg+';color:'+priLabelColor+'">'+priIcon+' '+priLabel+'</span>':'')
       +'</div>'
       +'<div class="hot-card-title">'+item.title+'</div>'
       +'<div class="hot-card-meta">'
@@ -2029,15 +2042,17 @@ function updateDetailMetaBar(pageId){
   var meta=getItemMeta(pageId);
   if(!meta){bar.style.display='none';return;}
 
-  // 判断是否为工具类页面（美术在线工具 / 桌面工具 & 引擎直连）
+  // 判断是否为工具类页面（工具链各分组 + toolData + type==='tool'）
   var reg=pageRegistry[pageId]||{};
   var isToolPage=false;
   if(reg.grpName){
     var grp=reg.grpName;
-    if(grp==='美术在线工具'||grp==='桌面工具 & 引擎直连') isToolPage=true;
+    if(grp==='美术在线工具'||grp==='桌面工具 & 引擎直连'||grp==='检查与合规脚本') isToolPage=true;
   }
   // toolData 中的页面也视为工具页
   if(toolData[pageId]) isToolPage=true;
+  // type 为 tool 的页面一律视为工具页
+  if(reg.type==='tool') isToolPage=true;
 
   var html='';
   // 阶段标签
@@ -2253,6 +2268,7 @@ function toggleSidebarCollapse(){
   var sidebar=document.querySelector('.sidebar');
   var main=document.querySelector('.main');
   var btn=document.getElementById('sidebarCollapseBtn');
+  var expandBtn=document.getElementById('sidebarExpandBtn');
   if(!sidebar||!main) return;
   sidebarCollapsed=!sidebarCollapsed;
   if(sidebarCollapsed){
@@ -2260,16 +2276,21 @@ function toggleSidebarCollapse(){
     main.classList.add('main-expanded');
     if(btn) btn.innerHTML='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     if(btn) btn.title='展开侧边栏';
+    // 显示独立的展开按钮（在 main 区域左上角）
+    if(expandBtn) expandBtn.style.display='flex';
   } else {
     sidebar.classList.remove('sidebar-collapsed');
     main.classList.remove('main-expanded');
     if(btn) btn.innerHTML='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     if(btn) btn.title='收起侧边栏';
+    // 隐藏独立的展开按钮
+    if(expandBtn) expandBtn.style.display='none';
   }
 }
 function injectSidebarToggle(){
   var header=document.querySelector('.sidebar-header');
   if(!header) return;
+  // 侧边栏内部的折叠按钮（在侧边栏右边缘）
   var btn=document.createElement('button');
   btn.id='sidebarCollapseBtn';
   btn.className='sidebar-collapse-btn';
@@ -2278,6 +2299,19 @@ function injectSidebarToggle(){
   btn.onclick=toggleSidebarCollapse;
   header.style.position='relative';
   header.appendChild(btn);
+
+  // main 区域的独立展开按钮（侧边栏折叠后用来恢复展开）
+  var mainArea=document.getElementById('mainArea');
+  if(mainArea){
+    var expandBtn=document.createElement('button');
+    expandBtn.id='sidebarExpandBtn';
+    expandBtn.className='sidebar-expand-btn';
+    expandBtn.title='展开侧边栏';
+    expandBtn.innerHTML='☰';
+    expandBtn.style.display='none'; // 默认隐藏
+    expandBtn.onclick=toggleSidebarCollapse;
+    mainArea.appendChild(expandBtn);
+  }
 }
 
 // ═══ 优化E：面包屑导航 — 点击分类/分组跳回首页并展开对应目录 ═══
