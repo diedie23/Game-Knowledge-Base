@@ -155,6 +155,7 @@
                 <span class="rc-link-arrow">→</span>
               </a>
             </div>
+            <button class="rc-view-all rc-view-all-artist" onclick="event.stopPropagation();enterRoleView('artist')">📋 查看该角色全部文档 →</button>
           </div>
 
           <!-- 卡片 2：TA / 程序 -->
@@ -242,10 +243,22 @@
                 <span class="rc-link-arrow">→</span>
               </a>
             </div>
+            <button class="rc-view-all rc-view-all-qa" onclick="event.stopPropagation();enterRoleView('qa')">📋 查看该角色全部文档 →</button>
           </div>
 
         </div>
       </div>
+
+      <!-- ═══ 🧭 角色专属视图 — 状态提示栏 + 动态文档列表 ═══ -->
+      <div class="role-view-bar" id="roleViewBar" style="display:none">
+        <div class="role-view-bar-left">
+          <span class="role-view-icon" id="roleViewIcon">🧭</span>
+          <span class="role-view-label">当前视图：<strong id="roleViewName">专属模式</strong></span>
+          <span class="role-view-count-badge">共 <strong id="roleViewCount">0</strong> 篇相关文档</span>
+        </div>
+        <button class="role-view-exit" onclick="exitRoleView()">✕ 退出专属视图 / 返回首页</button>
+      </div>
+      <div class="role-view-content" id="roleViewContent" style="display:none"></div>
 
       <!-- ═══ 📑 知识库总览（整合 README 核心内容）═══ -->
       <div class="readme-overview" id="readmeOverview">

@@ -1369,6 +1369,190 @@ function updateBreadcrumb(pageId){
   bar.style.display='block';
 }
 
+// ═══ 角色专属视图系统 ═══
+var ROLE_TAG_MAP = {
+  'artist': {
+    name: '新人美术',
+    icon: '🎨',
+    color: 'var(--accent)',
+    colorBg: 'rgba(108,140,255,.1)',
+    tags: ['入职','Onboarding','Checklist','新人','培训','Pipeline','美术流程','2D','3D','管线',
+           '资产提交','审核工作流','命名规范','引擎导入','资产交接','命名','分辨率','部件拆分',
+           '目录结构','版本管理','资产库','SVN','Perforce']
+  },
+  'ta': {
+    name: 'TA / 程序',
+    icon: '🧙‍♂️',
+    color: 'var(--green)',
+    colorBg: 'rgba(74,222,128,.1)',
+    tags: ['性能红线','面数预算','贴图规范','Drawcall','资产预算','命名规范','引擎导入','资产交接',
+           'TA','状态机','导出规范','交接','Overdraw','性能优化','Spine','骨骼动画',
+           'LOD','模块化','场景','特效','粒子','UMG','引擎直连','UE','Unity','Bridge']
+  },
+  'pm': {
+    name: '外包 PM',
+    icon: '💼',
+    color: 'var(--orange)',
+    colorBg: 'rgba(251,146,60,.1)',
+    tags: ['外包','CP评级','验收','结算','避坑','预算','成本管控','审批流','人月','成本核算',
+           'ROI','工种系数','人天模型','工作量评估','报价','成本','排期','里程碑','敏捷','Sprint',
+           '燃尽图','风险管理','Risk Log','流程管理']
+  },
+  'qa': {
+    name: 'QA / 主美',
+    icon: '🔍',
+    color: 'var(--cyan)',
+    colorBg: 'rgba(34,211,238,.1)',
+    tags: ['Bug定级','QA','视觉缺陷','修复时效','版本走查','验收清单','踩坑记录','复盘',
+           '经验教训','外包翻车','Post-mortem','5-Why','根因分析','经验沉淀',
+           'Troubleshooting','事故复盘','SOP','排雷','质检','效能度量']
+  }
+};
+
+var activeRoleView = '';
+
+function enterRoleView(roleKey){
+  var roleCfg = ROLE_TAG_MAP[roleKey];
+  if(!roleCfg || !indexData || !indexData.items) return;
+
+  activeRoleView = roleKey;
+
+  // 1. 匹配文档：tags 中包含任意一个角色关键词即命中（OR 逻辑）
+  var matchedItems = indexData.items.filter(function(item){
+    if(!item.tags || !item.tags.length) return false;
+    return item.tags.some(function(t){
+      return roleCfg.tags.some(function(rt){
+        return t.indexOf(rt) !== -1 || rt.indexOf(t) !== -1;
+      });
+    });
+  });
+
+  // 2. 按 module 分组
+  var grouped = {};
+  var moduleOrder = ['production','collab','toolkit','governance','retrospect'];
+  matchedItems.forEach(function(item){
+    var mod = item.module || 'production';
+    if(!grouped[mod]) grouped[mod] = [];
+    grouped[mod].push(item);
+  });
+
+  // 3. 渲染文档列表
+  var html = '';
+  var totalCount = matchedItems.length;
+  var moduleConfig = indexData.moduleConfig || {};
+
+  moduleOrder.forEach(function(mod){
+    var items = grouped[mod];
+    if(!items || !items.length) return;
+    var mc = moduleConfig[mod] || { label: mod, icon: '📄', color: 'accent' };
+    var ms = MODULE_STYLES['mod-'+mod] || MODULE_STYLES['mod-production'];
+
+    html += '<div class="rv-module">';
+    html += '<div class="rv-module-header" style="border-left:3px solid '+ms.highlight+'">';
+    html += '<span class="rv-module-icon">'+mc.icon+'</span>';
+    html += '<span class="rv-module-title">'+mc.label+'</span>';
+    html += '<span class="rv-module-count" style="background:'+ms.bg+';color:'+ms.highlight+'">'+items.length+' 篇</span>';
+    html += '</div>';
+    html += '<div class="rv-doc-list">';
+
+    items.forEach(function(item){
+      var sc = STAGE_COLORS && STAGE_COLORS[item.applicable_stage] ? STAGE_COLORS[item.applicable_stage] : {bg:'rgba(167,139,250,.12)',color:'#a78bfa'};
+      var hotBadge = item.is_hot ? '<span class="rv-hot">🔥 热门</span>' : '';
+      var priorityClass = item.priority === 'high' ? 'rv-priority-high' : (item.priority === 'medium' ? 'rv-priority-medium' : 'rv-priority-low');
+
+      html += '<div class="rv-doc-item '+priorityClass+'" onclick="exitRoleView();navigate(\''+item.id+'\')">';
+      html += '<div class="rv-doc-icon">'+item.icon+'</div>';
+      html += '<div class="rv-doc-body">';
+      html += '<div class="rv-doc-title">'+item.title+hotBadge+'</div>';
+      html += '<div class="rv-doc-desc">'+item.desc+'</div>';
+      html += '<div class="rv-doc-meta">';
+      html += '<span class="rv-doc-stage" style="background:'+sc.bg+';color:'+sc.color+'">'+item.applicable_stage+'</span>';
+      if(item.craft){
+        var cc = CRAFT_COLORS[item.craft] || CRAFT_COLORS['通用'];
+        html += '<span class="rv-doc-craft" style="background:'+cc.bg+';color:'+cc.color+'">'+item.craft+'</span>';
+      }
+      html += '<span class="rv-doc-owner">👤 '+item.owner+'</span>';
+      html += '<span class="rv-doc-date">📅 '+item.last_updated+'</span>';
+      html += '</div>';
+      // 显示匹配到的标签
+      html += '<div class="rv-doc-tags">';
+      item.tags.forEach(function(tag){
+        var isMatch = roleCfg.tags.some(function(rt){ return tag.indexOf(rt)!==-1 || rt.indexOf(tag)!==-1; });
+        html += '<span class="rv-tag'+(isMatch?' rv-tag-match':'')+'" onclick="event.stopPropagation();filterByTag(\''+tag+'\')">'+tag+'</span>';
+      });
+      html += '</div>';
+      html += '</div>';
+      html += '<div class="rv-doc-arrow">→</div>';
+      html += '</div>';
+    });
+
+    html += '</div></div>';
+  });
+
+  // 4. 更新 DOM
+  var viewBar = document.getElementById('roleViewBar');
+  var viewContent = document.getElementById('roleViewContent');
+  var viewName = document.getElementById('roleViewName');
+  var viewIcon = document.getElementById('roleViewIcon');
+  var viewCount = document.getElementById('roleViewCount');
+  if(!viewBar || !viewContent) return;
+
+  viewName.textContent = roleCfg.name + ' 专属模式';
+  if(viewIcon) viewIcon.textContent = roleCfg.icon;
+  if(viewCount) viewCount.textContent = totalCount;
+  viewBar.style.display = 'flex';
+  viewBar.style.setProperty('--rv-accent', roleCfg.color);
+  viewContent.innerHTML = html;
+  viewContent.style.display = 'block';
+
+  // 5. 隐藏首页其他模块（保留角色探索区域）
+  var hideIds = ['readmeOverview','mermaidSection','hotSection','dashboardSection'];
+  hideIds.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+  });
+  // 隐藏 5 大模块板块
+  var modSections = document.querySelectorAll('#pageHome .module-section');
+  modSections.forEach(function(s){ s.style.display = 'none'; });
+  // 隐藏统计栏
+  var statsBar = document.querySelector('#pageHome .stats-bar');
+  if(statsBar) statsBar.style.display = 'none';
+
+  // 6. 滚动到视图顶部
+  var scrollEl = document.getElementById('contentScroll');
+  if(scrollEl) scrollEl.scrollTo({top:0,behavior:'smooth'});
+
+  showToast(roleCfg.icon+' 已进入「'+roleCfg.name+'」专属视图 — 共 '+totalCount+' 篇相关文档');
+}
+
+function exitRoleView(){
+  if(!activeRoleView) return;
+  activeRoleView = '';
+
+  // 隐藏角色视图
+  var viewBar = document.getElementById('roleViewBar');
+  var viewContent = document.getElementById('roleViewContent');
+  if(viewBar) viewBar.style.display = 'none';
+  if(viewContent){ viewContent.style.display = 'none'; viewContent.innerHTML = ''; }
+
+  // 恢复首页所有模块
+  var showIds = ['readmeOverview','mermaidSection','hotSection','dashboardSection'];
+  showIds.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.style.display = '';
+  });
+  var modSections = document.querySelectorAll('#pageHome .module-section');
+  modSections.forEach(function(s){ s.style.display = ''; });
+  var statsBar = document.querySelector('#pageHome .stats-bar');
+  if(statsBar) statsBar.style.display = '';
+
+  // 滚动到角色探索区域
+  var roleExplore = document.getElementById('roleExplore');
+  if(roleExplore) roleExplore.scrollIntoView({behavior:'smooth',block:'start'});
+
+  showToast('🏠 已返回首页');
+}
+
 // ═══ 标签过滤系统 ═══
 function filterByTag(tagName){
   activeTagFilter=tagName;
