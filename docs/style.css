@@ -791,3 +791,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 /* ═══ 文档正文内图片可点击提示 ═══ */
 .dc img,.doc-page img{cursor:zoom-in;transition:transform .2s,box-shadow .2s;border-radius:6px}
 .dc img:hover,.doc-page img:hover{transform:scale(1.02);box-shadow:0 4px 20px rgba(108,140,255,.15)}
+
+/* ═══ 首页区块分隔线 ═══ */
+.home-section-divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:36px 0;opacity:.6}
+
+/* ═══ 知识库总览 Tab 切换面板 ═══ */
+.knowledge-tabs-section{margin:0 0 32px;padding:28px;background:var(--card-bg);border:1px solid var(--border);border-radius:18px}
+.kt-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.kt-title{font-size:20px;color:var(--heading);font-weight:700;margin:0;display:flex;align-items:center;gap:8px}
+.kt-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.kt-tab{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--card-bg);color:var(--dim);transition:all .2s;font-family:inherit}
+.kt-tab.active{background:rgba(108,140,255,.15);border-color:rgba(108,140,255,.4);color:var(--accent)}
+.kt-tab:hover{border-color:rgba(108,140,255,.3)}
+.kt-body{position:relative}
+.kt-panel{display:none;animation:ktFadeIn .3s ease}
+.kt-panel.active{display:block}
+@keyframes ktFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══ 侧边栏底部按钮布局 ═══ */
+.sf-btns{display:flex;gap:8px}
+.sf-btns .nav-create{flex:1}
+.nav-guide{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;background:var(--card-bg);border:1px solid var(--border);color:var(--dim);border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.nav-guide:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+
+/* ═══ 编辑器指南按钮 ═══ */
+.eh-guide{border-color:rgba(108,140,255,.3);color:var(--accent);background:rgba(108,140,255,.06)}
+.eh-guide:hover{border-color:var(--accent);background:rgba(108,140,255,.15)}
+
+/* ═══ dashboard 折叠状态 ═══ */
+.dashboard-section.collapsed .dashboard-body{max-height:0!important;overflow:hidden;opacity:0}
+.dashboard-section.collapsed .dashboard-toggle{color:var(--dim)}
+
+/* ═══ 响应式补充 ═══ */
+@media(max-width:768px){
+  .kt-header{flex-direction:column;align-items:flex-start}
+  .kt-tabs{width:100%}
+  .sf-btns{flex-direction:column}
+  .sf-btns .nav-create,.nav-guide{width:100%}
+  .kt-panel div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}
+  .kt-panel div[style*="grid-template-columns:repeat(4"]{grid-template-columns:repeat(2,1fr)!important}
+}

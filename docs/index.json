@@ -636,7 +636,7 @@
 
     {
       "id": "editor-guide",
-      "module": "toolchain",
+      "module": "system",
       "craft": "通用",
       "type": "doc",
       "title": "可视化编辑器使用指南",

@@ -1731,7 +1731,7 @@ var CARD_GRID_MAP = {
   'grid-collab-pain':        { module:'collab', ids:['cross-dept-collab','accident-troubleshoot','cross-dept-communication-tips'] },
   // 板块五：🛠️ 工具链与自动化
   'grid-toolchain-check':    { module:'toolchain', ids:['naming-check-tool'] },
-  'grid-toolchain-art':      { module:'toolchain', ids:['auto-mask-v6','mask-tool','spine-split','mask-core-algorithms','channel-packer','editor-guide'] },
+  'grid-toolchain-art':      { module:'toolchain', ids:['auto-mask-v6','mask-tool','spine-split','mask-core-algorithms','channel-packer'] },
   'grid-toolchain-desktop':  { module:'toolchain', ids:['auto-mask-v6-desktop','image-skew-corrector','game-resource-toolkit','engine-bridge'] },
   // 板块六：🛡️ 质量、风险与团队
   'grid-quality-risk':       { module:'quality', ids:['risk-log'] },
@@ -1939,19 +1939,24 @@ window.addEventListener('hashchange',function(){
 });
 
 // ═══ v4.2 APM 管理仪表盘 ═══
-var dashboardCollapsed=false;
+var dashboardCollapsed=true;
 function toggleDashboard(){
   dashboardCollapsed=!dashboardCollapsed;
   var body=document.getElementById('dashboardBody');
   var btn=document.getElementById('dashboardToggle');
+  var section=document.getElementById('dashboardSection');
   if(dashboardCollapsed){
     body.style.maxHeight=body.scrollHeight+'px';
     body.offsetHeight;
     body.style.maxHeight='0';
+    body.style.opacity='0';
     btn.textContent='▼ 展开';
+    if(section) section.classList.add('collapsed');
   } else {
     body.style.maxHeight=body.scrollHeight+'px';
+    body.style.opacity='1';
     btn.textContent='▲ 收起';
+    if(section) section.classList.remove('collapsed');
     var onEnd=function(e){
       if(e.target!==body) return;
       body.style.maxHeight='none';
