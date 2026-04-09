@@ -57,8 +57,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .toolbar-sep{width:1px;height:20px;background:var(--border)}
 .canvas-info{font-size:11px;color:var(--dim);margin-left:auto}
 
-.canvas-viewport{flex:1;overflow:hidden;position:relative;background:linear-gradient(45deg,#1a1c28 25%,transparent 25%),linear-gradient(-45deg,#1a1c28 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1a1c28 75%),linear-gradient(-45deg,transparent 75%,#1a1c28 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;display:flex;align-items:center;justify-content:center}
-.canvas-container{position:relative;transform-origin:center}
+.canvas-viewport{flex:1;overflow:hidden;position:relative;background:linear-gradient(45deg,#1a1c28 25%,transparent 25%),linear-gradient(-45deg,#1a1c28 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1a1c28 75%),linear-gradient(-45deg,transparent 75%,#1a1c28 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0}
+.canvas-container{position:absolute;transform-origin:0 0}
 .canvas-container canvas{position:absolute;top:0;left:0;image-rendering:pixelated}
 #baseCanvas{z-index:1}
 #regionCanvas{z-index:2}
@@ -116,12 +116,48 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
 .part-item.selected{box-shadow:0 0 0 1px var(--yellow) inset}
 .part-check{width:14px;height:14px;accent-color:var(--yellow);cursor:pointer;flex-shrink:0}
 .mirror-tag{font-size:9px;padding:1px 4px;border-radius:3px;background:rgba(167,139,250,.15);color:var(--accent2);margin-left:2px}
+
+/* ═══ v5.0 新增样式 ═══ */
+
+/* 快捷键提示栏 */
+.shortcut-bar{padding:6px 16px;background:rgba(167,139,250,.04);border-bottom:1px solid rgba(167,139,250,.12);font-size:11px;color:var(--dim);flex-shrink:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.shortcut-bar .sc-item{display:inline-flex;align-items:center;gap:3px}
+.kbd{display:inline-block;font-size:9px;padding:1px 4px;border-radius:3px;background:var(--bg);border:1px solid var(--border);color:var(--dim);font-family:monospace;margin-left:3px;vertical-align:middle;line-height:1.4}
+
+/* 面板拖拽调宽 */
+.panel-resize-handle{position:absolute;right:0;top:0;width:5px;height:100%;cursor:col-resize;z-index:50;background:transparent;transition:background .15s}
+.panel-resize-handle:hover,.panel-resize-handle.active{background:var(--accent)}
+.preview-panel .panel-resize-handle{left:0;right:auto}
+
+/* 手风琴折叠 */
+.panel-section-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;cursor:pointer;user-select:none;transition:background .15s}
+.panel-section-header:hover{background:rgba(108,140,255,.04)}
+.panel-section-toggle{font-size:10px;color:var(--dim);transition:transform .2s;display:inline-flex}
+.panel-section.collapsed .panel-section-toggle{transform:rotate(-90deg)}
+.panel-section.collapsed .panel-section-body{max-height:0!important;opacity:0;padding-top:0;padding-bottom:0;overflow:hidden}
+.panel-section-body{padding:6px 16px 14px;transition:max-height .25s ease,opacity .2s,padding .2s}
+
+/* 部件拖拽排序 */
+.part-item.drag-over{border-color:var(--yellow);border-style:dashed}
+.part-item.dragging{opacity:.4;transform:scale(.95)}
+.part-item.hovered-highlight{box-shadow:0 0 0 2px var(--cyan),0 0 12px rgba(34,211,238,.3);transform:scale(1.01)}
+.part-drag-handle{cursor:grab;color:var(--dim);font-size:10px;padding:0 4px;opacity:.4;transition:opacity .15s}
+.part-drag-handle:hover{opacity:1}
+.part-label-edit{flex:1;background:var(--bg);border:1px solid var(--accent);border-radius:3px;padding:1px 4px;color:var(--heading);font-size:12px;font-family:inherit;outline:none}
+
+/* 画布平移状态 */
+.canvas-viewport.panning{cursor:grab!important}
+.canvas-viewport.panning-active{cursor:grabbing!important}
+
+/* 左右面板可调宽度 */
+.tool-panel{position:relative;min-width:200px;max-width:500px}
+.preview-panel{position:relative;min-width:180px;max-width:450px}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>✂️ Spine 角色拆分工具 <span class="ver">v4.0</span></h1>
+  <h1>✂️ Spine 角色拆分工具 <span class="ver">v5.0</span></h1>
   <div class="header-actions">
     <button class="btn" onclick="importImage()">📂 导入原图</button>
     <button class="btn" onclick="importPSD()" style="border-color:var(--cyan);color:var(--cyan)">🎨 PSD 直读</button>
@@ -136,11 +172,25 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
 </div>
 
 <div class="guide-bar" id="guideBar">
-  <strong>📖 v4.0：</strong>
-  ① 导入原画 → ② 选择/自制模板 → ③ 📍三点锚点对齐（Alpha密度自适应）→ ④ 智能选区（泛洪+轮廓追踪）/ 套索 → ⑤ 🧲 Shrink-Wrap 吸附 → ⑥ 自动拆分导出
+  <strong>📖 v5.0：</strong>
+  ① 导入原画 → ② 选择/自制模板 → ③ 📍三点对齐 → ④ 智能选区/套索(羽化) → ⑤ 🧲 Shrink-Wrap → ⑥ 导出(含 Spine JSON + Alpha Bleeding)
   <span class="close-guide" onclick="document.getElementById('guideBar').style.display='none'">✕</span>
 </div>
 
+
+<!-- ═══ v5.0 快捷键提示栏 ═══ -->
+<div class="shortcut-bar" id="shortcutBar">
+  <span class="sc-item"><kbd class="kbd">V</kbd> 选择</span>
+  <span class="sc-item"><kbd class="kbd">M</kbd> 框选</span>
+  <span class="sc-item"><kbd class="kbd">L</kbd> 套索</span>
+  <span class="sc-item"><kbd class="kbd">W</kbd> 智能</span>
+  <span class="sc-item"><kbd class="kbd">Space+拖拽</kbd> 平移</span>
+  <span class="sc-item"><kbd class="kbd">滚轮</kbd> 缩放</span>
+  <span class="sc-item"><kbd class="kbd">Ctrl+Z</kbd> 撤销</span>
+  <span class="sc-item"><kbd class="kbd">F</kbd> 适应</span>
+  <span class="sc-item"><kbd class="kbd">1-9</kbd> 部件</span>
+  <span class="sc-item" style="margin-left:auto;cursor:pointer" onclick="document.getElementById('shortcutBar').style.display='none'">✕</span>
+</div>
 <!-- 锚点对齐步骤条 -->
 <div id="anchorBar" style="display:none;padding:10px 16px;background:linear-gradient(90deg,rgba(108,140,255,.08),rgba(167,139,250,.08));border-bottom:1px solid var(--border);font-size:12px;color:var(--heading);align-items:center;gap:10px;flex-shrink:0">
   <strong>📍 三点锚点对齐</strong>
@@ -153,7 +203,9 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
 
 <div class="workspace">
   <!-- Left Panel -->
-  <div class="tool-panel">
+  <div class="tool-panel" id="toolPanel">
+    <!-- v5.0 面板拖拽调宽手柄 -->
+    <div class="panel-resize-handle" id="leftResizeHandle"></div>
     <div class="panel-section">
       <div class="panel-title">🔧 绘制工具</div>
       <div style="display:flex;gap:4px;margin-bottom:10px;">
@@ -205,8 +257,16 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
         <span class="setting-value" id="fillModeVal">内容感知</span>
       </div>
       <select id="fillMode" style="width:100%;padding:6px 10px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:inherit" onchange="document.getElementById('fillModeVal').textContent=this.options[this.selectedIndex].text">
-        <option value="aware" selected>内容感知（推荐）</option>
+        <option value="bleeding" selected>Alpha Bleeding（Spine 推荐）</option>
+        <option value="aware">内容感知</option>
         <option value="edge">边缘延伸</option>
+      </select>
+      <div class="setting-row" style="margin-top:8px">
+        <span class="setting-label">边缘羽化 <span style="color:var(--dim);font-weight:400">[W]</span></span>
+        <span class="setting-value" id="featherVal">0px</span>
+      </div>
+      <input type="range" id="featherPx" min="0" max="16" value="0" oninput="document.getElementById('featherVal').textContent=this.value+'px'">
+      <div style="font-size:10px;color:var(--dim);margin-top:2px">消除锯齿，0=不羽化。推荐 1~3px</div>
         <option value="mirror">镜像翻转</option>
         <option value="solid">纯色填充</option>
       </select>
@@ -278,7 +338,8 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
   </div>
 
   <!-- Right Preview Panel -->
-  <div class="preview-panel">
+  <div class="preview-panel" id="previewPanel">
+    <div class="panel-resize-handle" id="rightResizeHandle"></div>
     <div class="preview-box">
       <div class="preview-label">原图总览</div>
       <canvas id="previewFull" width="200" height="200"></canvas>
@@ -311,7 +372,7 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
     </div>
     <div id="exportContent"></div>
     <div style="margin-top:16px;display:flex;gap:8px">
-      <button class="btn btn-green" onclick="doExport()" style="flex:1;justify-content:center">下载 ZIP</button>
+      <button class="btn btn-green" onclick="doExport()" style="flex:1;justify-content:center">下载 ZIP（含 Spine JSON）</button>
       <button class="btn" onclick="closeExportModal()" style="flex:1;justify-content:center">取消</button>
     </div>
   </div>
@@ -393,7 +454,7 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
 <!-- ag-psd for PSD parsing -->
 <script src="https://cdn.jsdelivr.net/npm/ag-psd@19.2.0/dist/browser/index.min.js"></script>
 <script>
-// ═══ Spine 角色拆分工具 v3.1 — 真实套索 + Alpha Shrink v2 ═══
+// ═══ Spine 角色拆分工具 v5.0 — 工业级交互升级版 ═══
 const S={tool:'rect',zoom:1,imgW:0,imgH:0,loaded:false,currentPart:0,drawing:false,
   startX:0,startY:0,lastX:0,lastY:0,lassoPoints:[],
   lassoMode:'replace', // 'replace' | 'add'(Shift) | 'subtract'(Alt)
@@ -413,6 +474,337 @@ let baseImage=null,basePixels=null,history=[];
 let currentTemplate=null;
 let tplMakerImg=null,tplMakerParts=[];
 
+
+
+// ═══════════════════════════════════════════════════════════
+//  §v5.0 模块 A：全局状态扩展
+// ═══════════════════════════════════════════════════════════
+S.isPanning = false;
+S.spaceDown = false;
+S.panX = 0;
+S.panY = 0;
+S.panStartX = 0;
+S.panStartY = 0;
+S.panStartPanX = 0;
+S.panStartPanY = 0;
+S.hoveredPartIdx = -1;
+S.dragPartIdx = -1;
+S.dragOverIdx = -1;
+
+// ═══════════════════════════════════════════════════════════
+//  §v5.0 模块 B：手风琴折叠
+// ═══════════════════════════════════════════════════════════
+function toggleSection(id) {
+  const sec = document.getElementById(id);
+  if (sec) sec.classList.toggle('collapsed');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  §v5.0 模块 C：面板宽度拖拽
+// ═══════════════════════════════════════════════════════════
+function setupPanelResize() {
+  _setupResize('leftResizeHandle', 'toolPanel', 'left');
+  _setupResize('rightResizeHandle', 'previewPanel', 'right');
+}
+function _setupResize(handleId, panelId, side) {
+  const handle = document.getElementById(handleId);
+  const panel = document.getElementById(panelId);
+  if (!handle || !panel) return;
+  let startX, startW;
+  handle.addEventListener('mousedown', e => {
+    e.preventDefault(); startX = e.clientX; startW = panel.offsetWidth;
+    handle.classList.add('active');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    function onMove(e2) {
+      const dx = e2.clientX - startX;
+      const newW = side === 'left' ? startW + dx : startW - dx;
+      panel.style.width = Math.max(200, Math.min(500, newW)) + 'px';
+    }
+    function onUp() {
+      handle.classList.remove('active');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  §v5.0 模块 D：智能镜像命名引擎
+// ═══════════════════════════════════════════════════════════
+function getMirrorName(name) {
+  const rules = [
+    [/_L$/i, s => s.replace(/_L$/i, m => m === '_L' ? '_R' : '_r')],
+    [/_R$/i, s => s.replace(/_R$/i, m => m === '_R' ? '_L' : '_l')],
+    [/_Left$/i, s => s.replace(/_Left$/i, '_Right')],
+    [/_Right$/i, s => s.replace(/_Right$/i, '_Left')],
+    [/Left$/i, s => s.replace(/Left$/i, 'Right')],
+    [/Right$/i, s => s.replace(/Right$/i, 'Left')],
+    [/左/, s => s.replace(/左/g, '右')],
+    [/右/, s => s.replace(/右/g, '左')],
+    [/^L_/i, s => s.replace(/^L_/i, 'R_')],
+    [/^R_/i, s => s.replace(/^R_/i, 'L_')],
+  ];
+  for (const [pattern, replacer] of rules) {
+    if (pattern.test(name)) return replacer(name);
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  §v5.0 模块 E：边缘羽化 (Feathering)
+// ═══════════════════════════════════════════════════════════
+function applyFeathering(canvas, radius) {
+  if (radius <= 0) return canvas;
+  const w = canvas.width, h = canvas.height;
+  const ctx = canvas.getContext('2d');
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const data = imgData.data;
+
+  // 构建 Alpha 距离场：对于 Alpha > 0 的像素，计算到最近透明像素的距离
+  // 如果距离 < radius，进行 Alpha 渐变
+  const alpha = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) alpha[i] = data[i * 4 + 3];
+
+  // 找到边缘像素（有 Alpha 但相邻有透明的）
+  const edgeDist = new Float32Array(w * h).fill(Infinity);
+  const queue = [];
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = y * w + x;
+      if (alpha[idx] <= 0) { edgeDist[idx] = 0; continue; }
+      // 检查 4-邻域
+      let isEdge = false;
+      if (x === 0 || x === w - 1 || y === 0 || y === h - 1) isEdge = true;
+      else {
+        if (alpha[idx - 1] <= 0 || alpha[idx + 1] <= 0 || alpha[idx - w] <= 0 || alpha[idx + w] <= 0) isEdge = true;
+      }
+      if (isEdge) { edgeDist[idx] = 0.5; queue.push(idx); }
+    }
+  }
+
+  // BFS 传播距离
+  let head = 0;
+  while (head < queue.length) {
+    const idx = queue[head++];
+    const x = idx % w, y = (idx / w) | 0;
+    const cd = edgeDist[idx];
+    if (cd >= radius) continue;
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if (dx === 0 && dy === 0) continue;
+        const nx = x + dx, ny = y + dy;
+        if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+        const ni = ny * w + nx;
+        const nd = cd + (dx && dy ? 1.414 : 1);
+        if (nd < edgeDist[ni] && alpha[ni] > 0) {
+          edgeDist[ni] = nd;
+          queue.push(ni);
+        }
+      }
+    }
+  }
+
+  // 应用羽化：按距离衰减 Alpha
+  for (let i = 0; i < w * h; i++) {
+    if (alpha[i] <= 0) continue;
+    const d = edgeDist[i];
+    if (d < radius) {
+      const fade = d / radius; // 0 = 边缘 → 1 = 内部
+      data[i * 4 + 3] = Math.round(alpha[i] * fade);
+    }
+  }
+
+  ctx.putImageData(imgData, 0, 0);
+  return canvas;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  §v5.0 模块 F：专业 Alpha Bleeding（Spine 防黑边规范）
+// ═══════════════════════════════════════════════════════════
+/**
+ * Alpha Bleeding：将边缘像素的 RGB 值向外扩展到透明区域，
+ * 但保持 Alpha=0。这可以防止 Spine 双线性采样时产生黑边。
+ *
+ * 算法：迭代式扩散 —— 每轮将有 Alpha 像素的 RGB 复制到相邻的 Alpha=0 像素，
+ * 新像素的 Alpha 设为 0（保持透明），重复 N 轮（N = expandPx）。
+ */
+function applyAlphaBleeding(data, w, h, iterations) {
+  if (iterations <= 0) return;
+  // 标记有效像素（Alpha > 0）
+  const filled = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) {
+    if (data[i * 4 + 3] > 0) filled[i] = 1;
+  }
+
+  for (let iter = 0; iter < iterations; iter++) {
+    const newFills = [];
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const idx = y * w + x;
+        if (filled[idx]) continue; // 已有颜色
+        // 检查 4-邻域是否有 filled 像素
+        let sumR = 0, sumG = 0, sumB = 0, cnt = 0;
+        const neighbors = [
+          x > 0 ? idx - 1 : -1,
+          x < w - 1 ? idx + 1 : -1,
+          y > 0 ? idx - w : -1,
+          y < h - 1 ? idx + w : -1
+        ];
+        for (const ni of neighbors) {
+          if (ni >= 0 && filled[ni]) {
+            sumR += data[ni * 4];
+            sumG += data[ni * 4 + 1];
+            sumB += data[ni * 4 + 2];
+            cnt++;
+          }
+        }
+        if (cnt > 0) {
+          newFills.push({ idx, r: Math.round(sumR / cnt), g: Math.round(sumG / cnt), b: Math.round(sumB / cnt) });
+        }
+      }
+    }
+    // 应用新填充（RGB 扩展，Alpha 保持 0）
+    for (const f of newFills) {
+      data[f.idx * 4] = f.r;
+      data[f.idx * 4 + 1] = f.g;
+      data[f.idx * 4 + 2] = f.b;
+      // Alpha 保持为 0 —— 这是 Alpha Bleeding 的核心：
+      // RGB 有值但 Alpha=0，双线性采样不会拾取黑色
+      data[f.idx * 4 + 3] = 0;
+      filled[f.idx] = 1;
+    }
+    if (newFills.length === 0) break; // 已无可扩展
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  §v5.0 模块 G：Spine JSON 数据直出
+// ═══════════════════════════════════════════════════════════
+/**
+ * 生成符合 Spine 4.x 标准的 skeleton.json
+ *
+ * 坐标映射原理：
+ * - Spine 坐标系原点在画布左下角，Y 轴朝上
+ * - 每个 attachment 的 (x, y) 是其中心相对于 root bone 的偏移
+ * - root bone 默认在原图底部中心 (imgW/2, 0)
+ * - 因此：spineX = partCenterX - imgW/2
+ *         spineY = imgH - partCenterY（Y轴翻转）
+ */
+function generateSpineJSON(exportParts, trimmedParts) {
+  const imgCX = S.imgW / 2;
+
+  // 构建 skeleton 基础结构
+  const skeleton = {
+    skeleton: {
+      hash: '',
+      spine: '4.1',
+      x: 0, y: 0,
+      width: S.imgW,
+      height: S.imgH,
+      images: './',
+      audio: ''
+    },
+    bones: [
+      { name: 'root' }
+    ],
+    slots: [],
+    skins: [
+      {
+        name: 'default',
+        attachments: {}
+      }
+    ],
+    animations: {
+      idle: {}
+    }
+  };
+
+  const skin = skeleton.skins[0].attachments;
+
+  exportParts.forEach((p, i) => {
+    const t = trimmedParts[i];
+    const slotName = p.name;
+    const attachmentName = p.name;
+
+    // 添加 slot（渲染顺序 = 部件列表顺序）
+    skeleton.slots.push({
+      name: slotName,
+      bone: 'root',
+      attachment: attachmentName
+    });
+
+    // 计算裁剪后部件在原图上的实际中心坐标
+    const partCX = p.split.x + t.trimOffX + t.trimW / 2;
+    const partCY = p.split.y + t.trimOffY + t.trimH / 2;
+
+    // Spine 坐标系转换
+    const spineX = Math.round((partCX - imgCX) * 100) / 100;
+    const spineY = Math.round((S.imgH - partCY) * 100) / 100;
+
+    // 构建 skin attachment
+    skin[slotName] = {};
+    skin[slotName][attachmentName] = {
+      type: 'region',
+      x: spineX,
+      y: spineY,
+      width: t.trimW,
+      height: t.trimH,
+      // 额外元数据（Spine 编辑器会忽略但方便调试）
+      _source: {
+        originalX: p.split.originX,
+        originalY: p.split.originY,
+        originalW: p.split.originW,
+        originalH: p.split.originH,
+        trimX: t.trimOffX,
+        trimY: t.trimOffY
+      }
+    };
+  });
+
+  return skeleton;
+}
+
+
+// ═══ v5.0 全局快捷键系统 ═══
+function setupKeyboardV5(){
+  document.addEventListener('keydown',e=>{
+    if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA')return;
+    // 空格键 → 平移模式
+    if(e.code==='Space'&&!S.spaceDown){
+      S.spaceDown=true;
+      document.getElementById('viewport').classList.add('panning');
+      e.preventDefault();return;
+    }
+    const k=e.key.toLowerCase();
+    switch(k){
+      case'v':setTool('select');break;
+      case'm':setTool('rect');break;
+      case'l':if(!e.ctrlKey)setTool('lasso');break;
+      case'w':if(!e.ctrlKey)setTool('auto');break;
+      case'f':resetZoom();break;
+      case'z':if(e.ctrlKey||e.metaKey){e.preventDefault();undoRegion();}break;
+      case'=':case'+':e.preventDefault();zoomIn();break;
+      case'-':e.preventDefault();zoomOut();break;
+      case'escape':if(S.anchorMode)cancelAnchorAlign();break;
+      case'delete':case'backspace':if(S.multiSelect.size>0)removeSelectedParts();break;
+      default:
+        if(k>='1'&&k<='9'){const idx=parseInt(k)-1;if(idx<parts.length)selectPart(idx);}
+    }
+  });
+  document.addEventListener('keyup',e=>{
+    if(e.code==='Space'){
+      S.spaceDown=false;S.isPanning=false;
+      const vp=document.getElementById('viewport');
+      vp.classList.remove('panning');vp.classList.remove('panning-active');
+    }
+  });
+}
 function init(){
   baseCanvas=document.getElementById('baseCanvas');regionCanvas=document.getElementById('regionCanvas');cursorCanvas=document.getElementById('cursorCanvas');
   baseCtx=baseCanvas.getContext('2d');regionCtx=regionCanvas.getContext('2d');cursorCtx=cursorCanvas.getContext('2d');
@@ -571,12 +963,52 @@ function trimTransparentPixels(srcCanvas){
 function buildPartGrid(){
   const g=document.getElementById('partGrid');
   g.innerHTML=parts.map((p,i)=>{
-    const cls=['part-item'];if(i===S.currentPart)cls.push('active');if(p.region)cls.push('completed');if(S.multiSelect.has(i))cls.push('selected');
+    const cls=['part-item'];
+    if(i===S.currentPart)cls.push('active');if(p.region)cls.push('completed');
+    if(S.multiSelect.has(i))cls.push('selected');
+    if(i===S.hoveredPartIdx)cls.push('hovered-highlight');
+    if(i===S.dragOverIdx)cls.push('drag-over');
+    if(i===S.dragPartIdx)cls.push('dragging');
     const mt=p.mirror?`<span class="mirror-tag">↔${p.mirror}</span>`:'';
-    return `<div class="${cls.join(' ')}" onclick="handlePartClick(event,${i})"><input type="checkbox" class="part-check" ${S.multiSelect.has(i)?'checked':''} onclick="event.stopPropagation();toggleMS(${i})"><span class="part-dot" style="background:${p.color}"></span><span class="part-label">${p.name}${mt}</span><span class="part-status ${p.region?'done':''}">${p.region?'✓':'—'}</span></div>`;
+    return `<div class="${cls.join(' ')}" data-idx="${i}" draggable="true"
+      onclick="handlePartClick(event,${i})"
+      ondragstart="onPartDragStart(event,${i})" ondragover="onPartDragOver(event,${i})"
+      ondragleave="onPartDragLeave(event,${i})" ondrop="onPartDrop(event,${i})"
+      ondragend="onPartDragEnd()" onmouseenter="onPartHover(${i})"
+      onmouseleave="onPartLeave()" ondblclick="onPartDblClick(event,${i})">
+      <span class="part-drag-handle" title="拖拽排序">⠿</span>
+      <input type="checkbox" class="part-check" ${S.multiSelect.has(i)?'checked':''} onclick="event.stopPropagation();toggleMS(${i})">
+      <span class="part-dot" style="background:${p.color}"></span>
+      <span class="part-label" id="partLabel_${i}">${p.name}${mt}</span>
+      <span class="part-status ${p.region?'done':''}">${p.region?'✓':'—'}</span></div>`;
   }).join('');
 }
-function handlePartClick(e,i){if(e.target.classList.contains('part-check'))return;if(e.ctrlKey||e.metaKey)toggleMS(i);else selectPart(i);}
+// v5.0 拖拽排序
+function onPartDragStart(e,idx){S.dragPartIdx=idx;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',idx);setTimeout(()=>buildPartGrid(),0);}
+function onPartDragOver(e,idx){e.preventDefault();e.dataTransfer.dropEffect='move';if(S.dragOverIdx!==idx){S.dragOverIdx=idx;buildPartGrid();}}
+function onPartDragLeave(e,idx){if(S.dragOverIdx===idx){S.dragOverIdx=-1;buildPartGrid();}}
+function onPartDrop(e,targetIdx){e.preventDefault();const srcIdx=S.dragPartIdx;if(srcIdx<0||srcIdx===targetIdx)return;
+  const[moved]=parts.splice(srcIdx,1);parts.splice(targetIdx,0,moved);
+  if(S.currentPart===srcIdx)S.currentPart=targetIdx;
+  else if(srcIdx<S.currentPart&&targetIdx>=S.currentPart)S.currentPart--;
+  else if(srcIdx>S.currentPart&&targetIdx<=S.currentPart)S.currentPart++;
+  S.dragPartIdx=-1;S.dragOverIdx=-1;buildPartGrid();render();showToast('已移动「'+moved.name+'」');}
+function onPartDragEnd(){S.dragPartIdx=-1;S.dragOverIdx=-1;buildPartGrid();}
+// v5.0 双击重命名
+function onPartDblClick(e,idx){e.stopPropagation();
+  const el=document.getElementById('partLabel_'+idx);if(!el)return;
+  const oldName=parts[idx].name;
+  const input=document.createElement('input');input.type='text';input.className='part-label-edit';input.value=oldName;
+  el.replaceWith(input);input.focus();input.select();
+  function commit(){const nn=input.value.trim()||oldName;
+    if(nn!==oldName)parts.forEach(p=>{if(p.mirror===oldName)p.mirror=nn;});
+    parts[idx].name=nn;buildPartGrid();render();}
+  input.addEventListener('blur',commit);
+  input.addEventListener('keydown',e2=>{if(e2.key==='Enter'){e2.preventDefault();input.blur();}if(e2.key==='Escape'){input.value=oldName;input.blur();}});}
+// v5.0 悬停高亮
+function onPartHover(idx){S.hoveredPartIdx=idx;buildPartGrid();render();}
+function onPartLeave(){S.hoveredPartIdx=-1;buildPartGrid();render();}
+function handlePartClick(e,i){if(e.target.classList.contains('part-check')||e.target.classList.contains('part-drag-handle'))return;if(e.ctrlKey||e.metaKey)toggleMS(i);else selectPart(i);}
 function toggleMS(i){if(S.multiSelect.has(i))S.multiSelect.delete(i);else S.multiSelect.add(i);buildPartGrid();}
 function selectAllParts(){if(S.multiSelect.size===parts.length)S.multiSelect.clear();else parts.forEach((_,i)=>S.multiSelect.add(i));buildPartGrid();}
 function selectPart(i){S.currentPart=i;buildPartGrid();render();updatePartPreview();}
@@ -591,15 +1023,31 @@ function removeSelectedParts(){
 function mirrorSelected(){
   if(!S.loaded){showToastImport('请先导入图片');return;}
   const idxs=S.multiSelect.size>0?[...S.multiSelect]:[S.currentPart];let cnt=0;
-  idxs.forEach(idx=>{const p=parts[idx];if(!p.region||!p.mirror)return;
-    const mi=parts.findIndex(q=>q.name===p.mirror);if(mi<0)return;
-    const r=p.region,cx=S.imgW/2,newX=Math.round(2*cx-r.x-r.w);
-    parts[mi].region={x:Math.max(0,newX),y:r.y,w:r.w,h:r.h};parts[mi].split=null;
-    if(document.getElementById('edgeSnap').checked)parts[mi].region=shrinkToAlpha(parts[mi].region);cnt++;});
+  idxs.forEach(idx=>{const p=parts[idx];if(!p.region)return;
+    // v5.0 智能镜像：优先使用声明的 mirror，否则自动推断
+    let mirrorName=p.mirror;
+    if(!mirrorName){mirrorName=getMirrorName(p.name);if(!mirrorName)return;}
+    let mi=parts.findIndex(q=>q.name===mirrorName);
+    if(mi<0){parts.push({name:mirrorName,color:mColors[parts.length%mColors.length],region:null,split:null,mirror:p.name});mi=parts.length-1;p.mirror=mirrorName;}
+    const r=p.region,cx=S.imgW/2;
+    if(r.lasso&&r.lasso.length>2){
+      const ml=r.lasso.map(pt=>({x:Math.round(2*cx-pt.x),y:pt.y})).reverse();
+      const xs=ml.map(p2=>p2.x),ys=ml.map(p2=>p2.y);
+      parts[mi].region={x:Math.max(0,Math.min(...xs)),y:Math.max(0,Math.min(...ys)),w:Math.max(...xs)-Math.max(0,Math.min(...xs)),h:Math.max(...ys)-Math.max(0,Math.min(...ys)),lasso:ml};
+    }else{
+      const newX=Math.round(2*cx-r.x-r.w);
+      parts[mi].region={x:Math.max(0,newX),y:r.y,w:r.w,h:r.h};
+      if(document.getElementById('edgeSnap').checked)parts[mi].region=shrinkToAlpha(parts[mi].region);
+    }
+    parts[mi].split=null;parts[mi].mirror=p.name;cnt++;});
   if(cnt>0){buildPartGrid();render();updatePartPreview();updateStats();showToast(`已镜像 ${cnt} 个部件`);}
-  else showToast('选中部件没有对称关系');
+  else showToast('选中部件无对称关系（尝试命名含 左/右、_L/_R）');
 }
-function setTool(t){S.tool=t;document.querySelectorAll('[id^=tool]').forEach(b=>{b.style.borderColor=b.id==='tool'+t.charAt(0).toUpperCase()+t.slice(1)?'var(--accent)':'';});}
+function setTool(t){S.tool=t;
+  const map={select:'toolSelect',rect:'toolRect',lasso:'toolLasso',auto:'toolAuto'};
+  Object.values(map).forEach(id=>{const el=document.getElementById(id);if(el)el.style.borderColor='';});
+  const act=document.getElementById(map[t]);if(act)act.style.borderColor='var(--accent)';
+}
 function importImage(){const i=document.getElementById('fileInput');i.onchange=e=>{if(e.target.files[0])loadImage(e.target.files[0]);};i.click();}
 function loadImage(file){const reader=new FileReader();reader.onload=e=>{const img=new Image();img.onload=()=>{
   baseImage=img;S.imgW=img.width;S.imgH=img.height;setupCanvases();baseCtx.drawImage(img,0,0);
@@ -636,6 +1084,7 @@ function render(){
     const marchOffset=-(Date.now()/80%20);
     parts.forEach((p,i)=>{if(!p.region)return;const r=p.region;
     const isCurrent=i===S.currentPart;
+    const isHovered=i===S.hoveredPartIdx;
     const hasLasso=r.lasso&&r.lasso.length>2;
 
     if(hasLasso){
@@ -643,7 +1092,7 @@ function render(){
       regionCtx.save();
       function buildLP(){regionCtx.beginPath();regionCtx.moveTo(r.lasso[0].x,r.lasso[0].y);for(let k=1;k<r.lasso.length;k++)regionCtx.lineTo(r.lasso[k].x,r.lasso[k].y);regionCtx.closePath();}
       // 半透明色调填充
-      buildLP();regionCtx.fillStyle=hexToRgba(p.color,isCurrent?0.12:0.06);regionCtx.fill();
+      buildLP();regionCtx.fillStyle=hexToRgba(p.color,isCurrent?0.12:isHovered?0.20:0.06);regionCtx.fill();
       // 内发光效果（clip 到多边形内，沿边缘画粗 shadow）
       regionCtx.save();buildLP();regionCtx.clip();
       regionCtx.shadowColor=hexToRgba(p.color,0.7);
@@ -661,7 +1110,7 @@ function render(){
       regionCtx.restore();
     }else{
       // ── 矩形渲染 ──
-      regionCtx.fillStyle=hexToRgba(p.color,isCurrent?0.12:0.06);regionCtx.fillRect(r.x,r.y,r.w,r.h);
+      regionCtx.fillStyle=hexToRgba(p.color,isCurrent?0.12:isHovered?0.20:0.06);regionCtx.fillRect(r.x,r.y,r.w,r.h);
       // 内发光
       regionCtx.save();regionCtx.beginPath();regionCtx.rect(r.x,r.y,r.w,r.h);regionCtx.clip();
       regionCtx.shadowColor=hexToRgba(p.color,0.7);regionCtx.shadowBlur=Math.max(6,12/S.zoom);
@@ -738,13 +1187,34 @@ function renderAnchors(){
     const ln=document.createElement('div');ln.className='anchor-line';ln.style.left=(a.x*S.zoom)+'px';ln.style.top=(a.y*S.zoom)+'px';ln.style.height=len+'px';ln.style.transform=`rotate(${angle}deg)`;cont.appendChild(ln);}}
 }
 function updateCanvasInfo(){document.getElementById('canvasInfo').textContent=`${S.imgW}×${S.imgH} · ${Math.round(S.zoom*100)}% · ${parts[S.currentPart].name}`;}
-function applyTransform(){document.getElementById('canvasContainer').style.transform=`scale(${S.zoom})`;}
-function zoomIn(){S.zoom=Math.min(10,S.zoom*1.25);applyTransform();updateCanvasInfo();}
-function zoomOut(){S.zoom=Math.max(0.1,S.zoom/1.25);applyTransform();updateCanvasInfo();}
-function resetZoom(){if(!S.loaded)return;const v=document.getElementById('viewport');S.zoom=Math.min((v.clientWidth-40)/S.imgW,(v.clientHeight-40)/S.imgH,4);applyTransform();updateCanvasInfo();}
-function getCanvasPos(e){const r=regionCanvas.getBoundingClientRect();return{x:Math.round((e.clientX-r.left)/S.zoom),y:Math.round((e.clientY-r.top)/S.zoom)};}
+function applyTransform(){document.getElementById('canvasContainer').style.transform=`translate(${S.panX}px,${S.panY}px) scale(${S.zoom})`;}
+function zoomAtPoint(mx,my,factor){
+  const oldZ=S.zoom,newZ=Math.max(0.05,Math.min(20,oldZ*factor));
+  S.panX=mx-(mx-S.panX)*(newZ/oldZ);S.panY=my-(my-S.panY)*(newZ/oldZ);
+  S.zoom=newZ;applyTransform();updateCanvasInfo();
+}
+function zoomIn(){const vp=document.getElementById('viewport'),r=vp.getBoundingClientRect();zoomAtPoint(r.width/2,r.height/2,1.25);}
+function zoomOut(){const vp=document.getElementById('viewport'),r=vp.getBoundingClientRect();zoomAtPoint(r.width/2,r.height/2,1/1.25);}
+function resetZoom(){if(!S.loaded)return;const vp=document.getElementById('viewport');
+  S.zoom=Math.min((vp.clientWidth-40)/S.imgW,(vp.clientHeight-40)/S.imgH,4);
+  S.panX=(vp.clientWidth-S.imgW*S.zoom)/2;S.panY=(vp.clientHeight-S.imgH*S.zoom)/2;
+  applyTransform();updateCanvasInfo();}
+function getCanvasPos(e){
+  const vp=document.getElementById('viewport'),vpR=vp.getBoundingClientRect();
+  const mx=e.clientX-vpR.left,my=e.clientY-vpR.top;
+  return{x:Math.round((mx-S.panX)/S.zoom),y:Math.round((my-S.panY)/S.zoom),mx,my};
+}
 function setupEvents(){const vp=document.getElementById('viewport');
-  vp.addEventListener('mousedown',e=>{if(!S.loaded||e.button!==0)return;const pos=getCanvasPos(e);
+  vp.addEventListener('mousedown',e=>{if(!S.loaded)return;
+    // v5.0 空格+左键/中键 = 平移画布
+    if((S.spaceDown&&e.button===0)||e.button===1){
+      S.isPanning=true;S.panStartX=e.clientX;S.panStartY=e.clientY;
+      S.panStartPanX=S.panX;S.panStartPanY=S.panY;
+      vp.classList.add('panning-active');e.preventDefault();return;
+    }
+    if(e.button!==0)return;
+    if(S.tool==='select')return;
+    const pos=getCanvasPos(e);
     if(S.anchorMode){addAnchorPoint(pos.x,pos.y);return;}
     S.drawing=true;S.startX=pos.x;S.startY=pos.y;
     // 检测 Shift/Alt 修饰键用于套索增减选区
@@ -755,7 +1225,10 @@ function setupEvents(){const vp=document.getElementById('viewport');
     }
     if(S.tool==='auto'){autoSelectRegion(pos.x,pos.y);S.drawing=false;}
     else if(S.tool==='lasso'){S.lassoPoints=[{x:pos.x,y:pos.y}];}});
-  vp.addEventListener('mousemove',e=>{if(!S.loaded)return;const pos=getCanvasPos(e);drawCursor(pos.x,pos.y);
+  vp.addEventListener('mousemove',e=>{if(!S.loaded)return;
+    // v5.0 平移中
+    if(S.isPanning){S.panX=S.panStartPanX+(e.clientX-S.panStartX);S.panY=S.panStartPanY+(e.clientY-S.panStartY);applyTransform();return;}
+    const pos=getCanvasPos(e);drawCursor(pos.x,pos.y);
     if(S.drawing){if(S.tool==='rect'){render();const x=Math.min(S.startX,pos.x),y=Math.min(S.startY,pos.y),w=Math.abs(pos.x-S.startX),h=Math.abs(pos.y-S.startY);
       regionCtx.strokeStyle=parts[S.currentPart].color;regionCtx.lineWidth=2/S.zoom;regionCtx.setLineDash([6,3]);regionCtx.strokeRect(x,y,w,h);regionCtx.setLineDash([]);regionCtx.fillStyle=hexToRgba(parts[S.currentPart].color,0.15);regionCtx.fillRect(x,y,w,h);
     }else if(S.tool==='lasso'){S.lassoPoints.push({x:pos.x,y:pos.y});render();
@@ -788,7 +1261,9 @@ function setupEvents(){const vp=document.getElementById('viewport');
       }
       regionCtx.restore();
     }}});
-  vp.addEventListener('mouseup',e=>{if(!S.drawing)return;const pos=getCanvasPos(e);S.drawing=false;
+  vp.addEventListener('mouseup',e=>{
+    if(S.isPanning){S.isPanning=false;vp.classList.remove('panning-active');return;}
+    if(!S.drawing)return;const pos=getCanvasPos(e);S.drawing=false;
     if(S.tool==='rect'){const x=Math.min(S.startX,pos.x),y=Math.min(S.startY,pos.y),w=Math.abs(pos.x-S.startX),h=Math.abs(pos.y-S.startY);
       if(w>5&&h>5){saveHistory();let r={x,y,w,h};if(document.getElementById('edgeSnap').checked)r=shrinkToAlpha(r);parts[S.currentPart].region=r;parts[S.currentPart].split=null;buildPartGrid();render();updatePartPreview();updateStats();}}
     else if(S.tool==='lasso'&&S.lassoPoints.length>10){
@@ -818,12 +1293,11 @@ function setupEvents(){const vp=document.getElementById('viewport');
       }
       S.lassoMode='replace';
     }});
-  vp.addEventListener('wheel',e=>{e.preventDefault();if(e.deltaY<0)zoomIn();else zoomOut();},{passive:false});
+  vp.addEventListener('wheel',e=>{if(!S.loaded)return;e.preventDefault();
+    const vpR=vp.getBoundingClientRect();const mx=e.clientX-vpR.left,my=e.clientY-vpR.top;
+    zoomAtPoint(mx,my,e.deltaY<0?1.15:1/1.15);},{passive:false});
   vp.addEventListener('dragover',e=>e.preventDefault());vp.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(!f)return;if(f.name.endsWith('.json'))loadProjectConfig(f);else if(f.name.endsWith('.psd'))loadPSDFile(f);else loadImage(f);});
-  document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
-    switch(e.key){case'1':case'2':case'3':case'4':case'5':case'6':case'7':const idx=parseInt(e.key)-1;if(idx<parts.length)selectPart(idx);break;
-    case'r':case'R':setTool('rect');break;case'l':case'L':setTool('lasso');break;case'a':case'A':if(!e.ctrlKey)setTool('auto');break;
-    case'z':case'Z':if(e.ctrlKey||e.metaKey){e.preventDefault();undoRegion();}break;case'=':case'+':e.preventDefault();zoomIn();break;case'-':e.preventDefault();zoomOut();break;case'Escape':if(S.anchorMode)cancelAnchorAlign();break;}});
+  // v5.0 键盘事件已移至 setupKeyboardV5()
 }
 function drawCursor(x,y){cursorCtx.clearRect(0,0,S.imgW,S.imgH);cursorCtx.beginPath();cursorCtx.arc(x,y,3,0,Math.PI*2);cursorCtx.fillStyle='rgba(255,255,255,0.8)';cursorCtx.fill();cursorCtx.strokeStyle='rgba(0,0,0,0.5)';cursorCtx.lineWidth=1/S.zoom;cursorCtx.stroke();}
 function autoSelectRegion(sx,sy){if(!basePixels)return;const w=S.imgW,h=S.imgH,tol=parseInt(document.getElementById('tolerance').value);
@@ -1100,6 +1574,9 @@ function autoSplitAll(){if(!S.loaded)return;const expand=parseInt(document.getEl
       // 5. 在 clip 内绘制原图（只有多边形内的像素可见）
       pCtx.drawImage(baseImage,ex,ey,ew,eh,0,0,ew,eh);
       pCtx.restore();
+      // v5.0 边缘羽化
+      const featherR=parseInt(document.getElementById('featherPx').value)||0;
+      if(featherR>0) applyFeathering(pc, featherR);
       // 6. Alpha Shrink v2：剔除四周全透明像素
       const trimResult=trimTransparentPixels(pc);
       const finalCanvas=trimResult.canvas;
@@ -1115,6 +1592,9 @@ function autoSplitAll(){if(!S.loaded)return;const expand=parseInt(document.getEl
       const pc=document.createElement('canvas');pc.width=ew;pc.height=eh;const pCtx=pc.getContext('2d');
       pCtx.drawImage(baseImage,ex,ey,ew,eh,0,0,ew,eh);
       if(expand>0){const d=pCtx.getImageData(0,0,ew,eh);applyTopologyFill(d.data,ew,eh,r.x-ex,r.y-ey,r.w,r.h,expand,fm);pCtx.putImageData(d,0,0);}
+      // v5.0 边缘羽化（矩形裁剪）
+      const featherR2=parseInt(document.getElementById('featherPx').value)||0;
+      if(featherR2>0) applyFeathering(pc, featherR2);
       // Alpha Shrink v2：矩形裁剪也剔除全透明像素
       const trimRect=trimTransparentPixels(pc);
       const finalRC=trimRect.canvas;
@@ -1124,7 +1604,10 @@ function autoSplitAll(){if(!S.loaded)return;const expand=parseInt(document.getEl
     }
   });
   buildPartGrid();updateAllPartsPreview();document.getElementById('exportBtn').disabled=!cnt;render();showToast(`已拆分 ${cnt} 个部件`);}
-function applyTopologyFill(data,w,h,ox,oy,ow,oh,expand,mode){for(let y=0;y<h;y++)for(let x=0;x<w;x++){if(x>=ox&&x<ox+ow&&y>=oy&&y<oy+oh)continue;const idx=(y*w+x)*4;
+function applyTopologyFill(data,w,h,ox,oy,ow,oh,expand,mode){
+  // v5.0 Alpha Bleeding 模式
+  if(mode==='bleeding'){applyAlphaBleeding(data,w,h,expand);return;}
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){if(x>=ox&&x<ox+ow&&y>=oy&&y<oy+oh)continue;const idx=(y*w+x)*4;
   if(mode==='solid'){data[idx+3]=0;}else if(mode==='edge'){const nx=Math.max(ox,Math.min(ox+ow-1,x)),ny=Math.max(oy,Math.min(oy+oh-1,y)),si=(ny*w+nx)*4;data[idx]=data[si];data[idx+1]=data[si+1];data[idx+2]=data[si+2];data[idx+3]=data[si+3];}
   else if(mode==='mirror'){let mx=x,my=y;if(x<ox)mx=ox+(ox-x);else if(x>=ox+ow)mx=ox+ow-1-(x-(ox+ow));if(y<oy)my=oy+(oy-y);else if(y>=oy+oh)my=oy+oh-1-(y-(oy+oh));mx=Math.max(0,Math.min(w-1,mx));my=Math.max(0,Math.min(h-1,my));const si=(my*w+mx)*4;data[idx]=data[si];data[idx+1]=data[si+1];data[idx+2]=data[si+2];data[idx+3]=data[si+3];}
   else{const nx=Math.max(ox,Math.min(ox+ow-1,x)),ny=Math.max(oy,Math.min(oy+oh-1,y)),dist=Math.sqrt((x-nx)**2+(y-ny)**2),fade=Math.max(0,1-dist/(expand*1.5));
@@ -1436,7 +1919,7 @@ async function doExport(){if(typeof JSZip==='undefined'){showToast('加载中...
   }
   // ═══ v4.0 增强版 parts_config.json ═══
   const configObj={
-    format:'spine_split_v4',version:'4.0',
+    format:'spine_split_v5',version:'5.0',
     sourceSize:{width:S.imgW,height:S.imgH},
     topology:{expandPx:parseInt(document.getElementById('expandPx').value)||0,fillMode:document.getElementById('fillMode').value},
     naming:{template:document.getElementById('spNamingTpl').value,project:document.getElementById('spProject').value,charID:document.getElementById('spCharID').value},
@@ -1568,7 +2051,7 @@ function loadProjectConfig(file){
   reader.onload=e=>{
     try{
       const config=JSON.parse(e.target.result);
-      if(!config.format||config.format!=='spine_split_v3'){showToast('无效的 Spine 工程文件');return;}
+      if(!config.format||!config.format.startsWith('spine_split_v')){showToast('无效的 Spine 工程文件');return;}
       // 检查是否有内嵌 Base64 原图
       if(config.sourceImageBase64){
         restoreSpineFromBase64(config.sourceImageBase64,config);
@@ -1750,7 +2233,7 @@ function runValidation(){
   });
 
   // ─── 渲染报告 ───
-  const panel=document.getElementById('qaPanel');panel.style.display='block';
+  const panel=document.getElementById('sec-qa');if(panel.classList.contains('collapsed'))panel.classList.remove('collapsed');
   const report=document.getElementById('qaReport');
   const errCount=issues.filter(i=>i.level==='error').length;
   const warnCount=issues.filter(i=>i.level==='warn').length;
