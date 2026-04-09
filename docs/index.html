@@ -111,6 +111,117 @@
         </div>
       </div>
 
+      <!-- ═══ 📑 知识库总览（整合 README 核心内容）═══ -->
+      <div class="readme-overview" id="readmeOverview">
+        <!-- 核心知识地图 -->
+        <div class="readme-section" style="margin-bottom:28px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+            <span style="font-size:24px">🗺️</span>
+            <h2 style="font-size:22px;color:var(--heading);font-weight:700;margin:0">APM 核心知识地图</h2>
+            <span style="font-size:14px;color:var(--dim)">新人必看 — 从这里开始</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div style="background:var(--card-bg);border:1px solid rgba(108,140,255,.15);border-radius:14px;padding:22px 24px;cursor:pointer;transition:all .2s" onclick="navigate('game-art-pipeline')" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(108,140,255,.15)';this.style.transform='none'">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+                <span style="font-size:28px">🔄</span>
+                <div>
+                  <div style="font-size:17px;color:var(--heading);font-weight:700">美术生产管线总览</div>
+                  <div style="font-size:13px;color:var(--accent);margin-top:2px">📍 生产地图 — "路怎么走"</div>
+                </div>
+              </div>
+              <p style="font-size:14px;color:var(--dim);line-height:1.7;margin:0">按游戏类型（轻度2D/重度3D/二次元）拆解全工序制作流程 + 外包风险 + 交付标准</p>
+              <div style="font-size:12px;color:var(--green);margin-top:10px">🟢 推荐阅读：项目立项 / 新人入职 / 管线定义</div>
+            </div>
+            <div style="background:var(--card-bg);border:1px solid rgba(251,146,60,.15);border-radius:14px;padding:22px 24px;cursor:pointer;transition:all .2s" onclick="navigate('art-scheduling')" onmouseover="this.style.borderColor='var(--orange)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(251,146,60,.15)';this.style.transform='none'">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+                <span style="font-size:28px">📅</span>
+                <div>
+                  <div style="font-size:17px;color:var(--heading);font-weight:700">美术排期与里程碑管理</div>
+                  <div style="font-size:13px;color:var(--orange);margin-top:2px">⏱️ 调度手册 — "走多快、什么时候到"</div>
+                </div>
+              </div>
+              <p style="font-size:14px;color:var(--dim);line-height:1.7;margin:0">Sprint 排期模板、里程碑分解、燃尽图跟踪、风险预警 SOP</p>
+              <div style="font-size:12px;color:var(--orange);margin-top:10px">🟡 推荐阅读：Sprint 规划 / 里程碑复盘 / 进度偏差</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 问题速查表 -->
+        <div class="readme-section" style="margin-bottom:28px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <span style="font-size:24px">🧭</span>
+            <h2 style="font-size:20px;color:var(--heading);font-weight:700;margin:0">遇到问题查哪篇？速查表</h2>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 18px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px" onclick="navigate('game-art-pipeline')" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+              <span style="font-size:16px;flex-shrink:0">🏭</span>
+              <div><div style="font-size:13px;color:var(--dim)">美术管线全流程有哪些工序？</div><div style="font-size:12px;color:var(--accent);margin-top:2px">→ 美术生产管线总览</div></div>
+            </div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 18px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px" onclick="navigate('art-scheduling')" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+              <span style="font-size:16px;flex-shrink:0">📅</span>
+              <div><div style="font-size:13px;color:var(--dim)">这个 Sprint 排多少任务合适？</div><div style="font-size:12px;color:var(--accent);margin-top:2px">→ 排期与里程碑管理</div></div>
+            </div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 18px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px" onclick="navigate('art-vs-planner-req')" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+              <span style="font-size:16px;flex-shrink:0">📝</span>
+              <div><div style="font-size:13px;color:var(--dim)">策划频繁改需求怎么管控？</div><div style="font-size:12px;color:var(--accent);margin-top:2px">→ 需求对接流转规范</div></div>
+            </div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 18px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px" onclick="navigate('art-vs-ta-perfbudget')" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+              <span style="font-size:16px;flex-shrink:0">🚦</span>
+              <div><div style="font-size:13px;color:var(--dim)">面数/贴图规格红线是多少？</div><div style="font-size:12px;color:var(--accent);margin-top:2px">→ 性能红线与资产预算</div></div>
+            </div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 18px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px" onclick="navigate('outsource-workload-model')" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+              <span style="font-size:16px;flex-shrink:0">📊</span>
+              <div><div style="font-size:13px;color:var(--dim)">外包报价怎么算？人天模型？</div><div style="font-size:12px;color:var(--accent);margin-top:2px">→ 外包工作量评估标准</div></div>
+            </div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 18px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px" onclick="navigate('onboarding-guide')" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+              <span style="font-size:16px;flex-shrink:0">🎓</span>
+              <div><div style="font-size:13px;color:var(--dim)">新人入职第一周该干什么？</div><div style="font-size:12px;color:var(--accent);margin-top:2px">→ 美术新人入职必读</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 按阶段阅读路线 -->
+        <div class="readme-section" style="margin-bottom:36px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <span style="font-size:24px">📋</span>
+            <h2 style="font-size:20px;color:var(--heading);font-weight:700;margin:0">按阶段推荐阅读路线</h2>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+            <div style="background:var(--card-bg);border:1px solid rgba(96,165,250,.2);border-radius:12px;padding:18px 20px;border-top:3px solid #60a5fa">
+              <div style="font-size:15px;font-weight:700;color:#60a5fa;margin-bottom:10px">🟢 项目立项 / 预研期</div>
+              <div style="font-size:13px;color:var(--dim);line-height:2">
+                1. <a style="color:var(--accent);cursor:pointer" onclick="navigate('game-art-pipeline')">美术生产管线总览</a><br>
+                2. <a style="color:var(--accent);cursor:pointer" onclick="navigate('art-vs-ta-perfbudget')">性能红线与资产预算</a><br>
+                3. <a style="color:var(--accent);cursor:pointer" onclick="navigate('art-scheduling')">排期与里程碑管理</a>
+              </div>
+            </div>
+            <div style="background:var(--card-bg);border:1px solid rgba(251,146,60,.2);border-radius:12px;padding:18px 20px;border-top:3px solid #fb923c">
+              <div style="font-size:15px;font-weight:700;color:#fb923c;margin-bottom:10px">🟡 量产期</div>
+              <div style="font-size:13px;color:var(--dim);line-height:2">
+                4. <a style="color:var(--accent);cursor:pointer" onclick="navigate('cp-outsource')">外包管理与验收规范</a><br>
+                5. <a style="color:var(--accent);cursor:pointer" onclick="navigate('outsource-workload-model')">外包工作量评估标准</a><br>
+                6. <a style="color:var(--accent);cursor:pointer" onclick="navigate('art-vs-planner-req')">需求对接流转规范</a>
+              </div>
+            </div>
+            <div style="background:var(--card-bg);border:1px solid rgba(74,222,128,.2);border-radius:12px;padding:18px 20px;border-top:3px solid #4ade80">
+              <div style="font-size:15px;font-weight:700;color:#4ade80;margin-bottom:10px">🔴 测试期</div>
+              <div style="font-size:13px;color:var(--dim);line-height:2">
+                7. <a style="color:var(--accent);cursor:pointer" onclick="navigate('art-vs-qa-buggrade')">Bug 定级标准</a><br>
+                8. <a style="color:var(--accent);cursor:pointer" onclick="navigate('art-vs-qa-checklist')">版本走查验收清单</a><br>
+                9. <a style="color:var(--accent);cursor:pointer" onclick="navigate('risk-log')">项目风险登记册</a>
+              </div>
+            </div>
+            <div style="background:var(--card-bg);border:1px solid rgba(167,139,250,.2);border-radius:12px;padding:18px 20px;border-top:3px solid #a78bfa">
+              <div style="font-size:15px;font-weight:700;color:#a78bfa;margin-bottom:10px">🏆 项目结束</div>
+              <div style="font-size:13px;color:var(--dim);line-height:2">
+                10. <a style="color:var(--accent);cursor:pointer" onclick="navigate('postmortem-template')">版本研发复盘模板</a><br>
+                11. <a style="color:var(--accent);cursor:pointer" onclick="navigate('project-pitfall-log')">踩坑复盘手册</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 统计栏 -->
       <div class="stats-bar stats-bar-5">
         <div class="stat stat-production"><div class="num">—</div><div class="label">🏭 美术生产与排期</div></div>
@@ -479,14 +590,16 @@ sequenceDiagram
 
       <!-- ═══ 板块一：🏭 美术生产与排期 (30%) ═══ -->
       <div class="module-section module-production" id="section-production">
-        <div class="module-header">
+        <div class="module-header" onclick="toggleModuleSection(this)">
           <div class="module-icon" style="background:var(--accent-bg);color:var(--accent)">🏭</div>
           <div class="module-info">
             <h2>美术生产与排期管理</h2>
             <p>资产管线、外包管理、排期控制、美术资产规范 — APM 日常管控核心</p>
           </div>
           <span class="module-weight">35%</span>
+          <div class="module-chevron"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         </div>
+        <div class="module-body">
 
         <div class="hst">🔄 管线与排期</div>
         <div class="home-grid" id="grid-production-pipeline"></div>
@@ -514,18 +627,22 @@ sequenceDiagram
 
         <div class="hst" style="margin-top:28px">📊 成本与预算管理</div>
         <div class="home-grid" id="grid-production-cost"></div>
+
+        </div>
       </div>
 
       <!-- ═══ 板块二：🤝 跨部门协同与交付标准 (35%) ═══ -->
       <div class="module-section module-collab" id="section-collab">
-        <div class="module-header module-header-collab">
+        <div class="module-header module-header-collab" onclick="toggleModuleSection(this)">
           <div class="module-icon" style="background:var(--orange-bg);color:var(--orange)">🤝</div>
           <div class="module-info">
             <h2>跨部门协同与交付标准</h2>
             <p>美术与策划/程序/TA/QA 的核心边界定义 — APM 沟通利器</p>
           </div>
           <span class="module-weight module-weight-orange">35%</span>
+          <div class="module-chevron"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         </div>
+        <div class="module-body">
 
         <div class="hst">📝 美术 vs 策划</div>
         <div class="home-grid" id="grid-collab-planner"></div>
@@ -538,18 +655,22 @@ sequenceDiagram
 
         <div class="hst" style="margin-top:28px">🚨 协作与事故</div>
         <div class="home-grid" id="grid-collab-accident"></div>
+
+        </div>
       </div>
 
       <!-- ═══ 板块三：🧰 APM 提效工具箱 (30%) ═══ -->
       <div class="module-section module-toolkit" id="section-toolkit">
-        <div class="module-header">
+        <div class="module-header" onclick="toggleModuleSection(this)">
           <div class="module-icon" style="background:var(--green-bg);color:var(--green)">🧰</div>
           <div class="module-info">
             <h2>APM 提效工具箱</h2>
             <p>项目管理模板、合规性检查、进度可视化、美术在线工具</p>
           </div>
           <span class="module-weight">30%</span>
+          <div class="module-chevron"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         </div>
+        <div class="module-body">
 
         <div class="hst">📋 项目管理工具</div>
         <div class="home-grid" id="grid-toolkit-mgmt"></div>
@@ -559,18 +680,22 @@ sequenceDiagram
 
         <div class="hst" style="margin-top:28px">🖥️ 桌面工具 & 技术方案</div>
         <div class="home-grid" id="grid-toolkit-desktop"></div>
+
+        </div>
       </div>
 
       <!-- ═══ 板块四：💰 成本·风险·团队 (20%) ═══ -->
       <div class="module-section module-governance" id="section-governance">
-        <div class="module-header module-header-governance">
+        <div class="module-header module-header-governance" onclick="toggleModuleSection(this)">
           <div class="module-icon" style="background:var(--pink-bg);color:var(--pink)">💰</div>
           <div class="module-info">
             <h2>成本·风险·团队</h2>
             <p>预算管控、风险登记与复盘、新人培训与权限导航 — APM 管理内功</p>
           </div>
           <span class="module-weight module-weight-pink">20%</span>
+          <div class="module-chevron"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         </div>
+        <div class="module-body">
 
         <div class="hst">💰 成本与预算管理</div>
         <div class="home-grid" id="grid-governance-budget"></div>
@@ -580,24 +705,30 @@ sequenceDiagram
 
         <div class="hst" style="margin-top:28px">🎓 团队与培训</div>
         <div class="home-grid" id="grid-governance-team"></div>
+
+        </div>
       </div>
 
       <!-- ═══ 板块五：📒 项目复盘与经验沉淀 (10%) ═══ -->
       <div class="module-section module-retrospect" id="section-retrospect">
-        <div class="module-header">
+        <div class="module-header" onclick="toggleModuleSection(this)">
           <div class="module-icon" style="background:var(--cyan-bg);color:var(--cyan)">📒</div>
           <div class="module-info">
             <h2>项目复盘与经验沉淀</h2>
             <p>踩坑记录、沟通话术、个人成长 — APM 实战经验积累</p>
           </div>
           <span class="module-weight">10%</span>
+          <div class="module-chevron"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         </div>
+        <div class="module-body">
 
         <div class="hst">💣 踩坑记录</div>
         <div class="home-grid" id="grid-retrospect-pitfall"></div>
 
         <div class="hst" style="margin-top:28px">🗣️ 沟通与成长</div>
         <div class="home-grid" id="grid-retrospect-growth"></div>
+
+        </div>
       </div>
 
       <!-- ═══ 互动模块占位区域 ═══ -->

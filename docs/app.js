@@ -182,9 +182,8 @@ function handleToggle(e, headerEl){
     // 当前已展开 → 折叠
     collapseNode(treeNode);
   } else {
-    // 先折叠同级的其他节点（手风琴效果）
-    collapseSiblings(treeNode);
-    // 再展开当前节点
+    // 【优化】移除手风琴互斥，允许同时展开多个目录
+    // 直接展开当前节点
     expandNode(treeNode);
   }
 }
@@ -198,7 +197,6 @@ function toggleTree(el){
   if(el.classList.contains('open')){
     collapseNode(el);
   } else {
-    collapseSiblings(el);
     expandNode(el);
   }
 }
@@ -1831,6 +1829,37 @@ function updateRelatedDocs(pageId){
   });
   container.innerHTML=html;
   bar.style.display='block';
+}
+
+// ═══ 首页板块折叠/展开 ═══
+function toggleModuleSection(headerEl){
+  var section = headerEl.closest('.module-section');
+  if(!section) return;
+  var body = section.querySelector('.module-body');
+  if(!body) return;
+
+  if(section.classList.contains('collapsed')){
+    // 展开
+    section.classList.remove('collapsed');
+    body.style.maxHeight = body.scrollHeight + 'px';
+    body.style.opacity = '1';
+    body.style.overflow = 'hidden';
+    var onEnd = function(e){
+      if(e.target !== body) return;
+      body.style.maxHeight = 'none';
+      body.style.overflow = '';
+      body.removeEventListener('transitionend', onEnd);
+    };
+    body.addEventListener('transitionend', onEnd);
+  } else {
+    // 折叠
+    body.style.maxHeight = body.scrollHeight + 'px';
+    body.offsetHeight; // 强制回流
+    body.style.overflow = 'hidden';
+    section.classList.add('collapsed');
+    body.style.maxHeight = '0';
+    body.style.opacity = '0';
+  }
 }
 
 // ═══ Init ═══
