@@ -1238,6 +1238,10 @@ function setupEvents(){const vp=document.getElementById('viewport');
     if(S.anchorMode){addAnchorPoint(pos.x,pos.y);return;}
     // ═══ v5.1 钢笔工具：点击放置锚点 ═══
     if(S.tool==='pen'){
+      // v5.1 fix: 在钢笔工具中也检测 Shift/Alt 修饰键
+      if(e.shiftKey)S.lassoMode='add';
+      else if(e.altKey)S.lassoMode='subtract';
+      else if(S.penPoints.length===0)S.lassoMode='replace'; // 仅在首次点击时重置
       // 检测是否点击了起始点（闭合路径）
       if(S.penPoints.length>=3){
         const sp=S.penPoints[0];
@@ -1267,7 +1271,7 @@ function setupEvents(){const vp=document.getElementById('viewport');
     const pos=getCanvasPos(e);drawCursor(pos.x,pos.y);
     if(S.drawing){if(S.tool==='rect'){render();const x=Math.min(S.startX,pos.x),y=Math.min(S.startY,pos.y),w=Math.abs(pos.x-S.startX),h=Math.abs(pos.y-S.startY);
       regionCtx.strokeStyle=parts[S.currentPart].color;regionCtx.lineWidth=2/S.zoom;regionCtx.setLineDash([6,3]);regionCtx.strokeRect(x,y,w,h);regionCtx.setLineDash([]);regionCtx.fillStyle=hexToRgba(parts[S.currentPart].color,0.15);regionCtx.fillRect(x,y,w,h);
-    }else if(S.tool==='lasso'||S.tool==='pen'){S.lassoPoints.push({x:pos.x,y:pos.y});render();
+    }else if(S.tool==='lasso'){S.lassoPoints.push({x:pos.x,y:pos.y});render();
       // ═══ v5.1 蚂蚁线套索：极低透明度填充 + marching ants 动画 ═══
       regionCtx.save();
       regionCtx.beginPath();regionCtx.moveTo(S.lassoPoints[0].x,S.lassoPoints[0].y);
@@ -1328,10 +1332,10 @@ function setupEvents(){const vp=document.getElementById('viewport');
               const xs2=merged.map(p2=>p2.x),ys2=merged.map(p2=>p2.y);
               parts[S.currentPart].region={x:Math.min(...xs2),y:Math.min(...ys2),w:Math.max(...xs2)-Math.min(...xs2),h:Math.max(...ys2)-Math.min(...ys2),lasso:merged};
             }
-          }else if(S.lassoMode==='add'&&curRegion){
-            // 原来是矩形，转为多边形再合并
+          }else if((S.lassoMode==='add'||S.lassoMode==='subtract')&&curRegion){
+            // 原来是矩形，转为多边形再合并（同时支持 add 和 subtract）
             const oldPoly=[{x:curRegion.x,y:curRegion.y},{x:curRegion.x+curRegion.w,y:curRegion.y},{x:curRegion.x+curRegion.w,y:curRegion.y+curRegion.h},{x:curRegion.x,y:curRegion.y+curRegion.h}];
-            const merged=mergePolygons(oldPoly,rectPoly,'add');
+            const merged=mergePolygons(oldPoly,rectPoly,S.lassoMode);
             if(merged&&merged.length>=3){
               const xs2=merged.map(p2=>p2.x),ys2=merged.map(p2=>p2.y);
               parts[S.currentPart].region={x:Math.min(...xs2),y:Math.min(...ys2),w:Math.max(...xs2)-Math.min(...xs2),h:Math.max(...ys2)-Math.min(...ys2),lasso:merged};
@@ -1350,11 +1354,22 @@ function setupEvents(){const vp=document.getElementById('viewport');
       saveHistory();
       const curRegion=parts[S.currentPart].region;
       let finalLasso;
-      // Shift/Alt 组合选区
-      if(S.lassoMode!=='replace'&&curRegion&&curRegion.lasso&&curRegion.lasso.length>2){
-        finalLasso=mergePolygons(curRegion.lasso,simplified,S.lassoMode);
-        if(!finalLasso||finalLasso.length<3){
-          showToast(S.lassoMode==='subtract'?'减选后无剩余区域':'合并失败');return;
+      // Shift/Alt 组合选区 — v5.1 fix: 同时支持现有 lasso 型和矩形型选区
+      if(S.lassoMode!=='replace'&&curRegion){
+        let existingPoly=null;
+        if(curRegion.lasso&&curRegion.lasso.length>2){
+          existingPoly=curRegion.lasso;
+        }else if(curRegion.w>0&&curRegion.h>0){
+          // 矩形选区转为4点多边形
+          existingPoly=[{x:curRegion.x,y:curRegion.y},{x:curRegion.x+curRegion.w,y:curRegion.y},{x:curRegion.x+curRegion.w,y:curRegion.y+curRegion.h},{x:curRegion.x,y:curRegion.y+curRegion.h}];
+        }
+        if(existingPoly){
+          finalLasso=mergePolygons(existingPoly,simplified,S.lassoMode);
+          if(!finalLasso||finalLasso.length<3){
+            showToast(S.lassoMode==='subtract'?'减选后无剩余区域':'合并失败');return;
+          }
+        }else{
+          finalLasso=simplified;
         }
       }else{
         finalLasso=simplified;
@@ -1428,13 +1443,24 @@ function closePenPath(){
   if(S.penPoints.length<3){showToast('至少需要 3 个锚点');return;}
   saveHistory();
   const pts=S.penPoints;
-  // 检测 Shift/Alt
-  if(S.lassoMode==='replace') S.lassoMode='replace';
   const curRegion=parts[S.currentPart].region;
   let finalLasso;
-  if(S.lassoMode!=='replace'&&curRegion&&curRegion.lasso&&curRegion.lasso.length>2){
-    finalLasso=mergePolygons(curRegion.lasso,pts,S.lassoMode);
-    if(!finalLasso||finalLasso.length<3){showToast(S.lassoMode==='subtract'?'减选后无剩余区域':'合并失败');S.penPoints=[];S.penClosed=false;return;}
+  // v5.1 fix: S.lassoMode 已在 mousedown 中正确设置，此处直接使用
+  if(S.lassoMode!=='replace'&&curRegion){
+    // 获取现有选区的多边形（支持 lasso 型和矩形型）
+    let existingPoly=null;
+    if(curRegion.lasso&&curRegion.lasso.length>2){
+      existingPoly=curRegion.lasso;
+    }else if(curRegion.w>0&&curRegion.h>0){
+      // 矩形选区转为4点多边形
+      existingPoly=[{x:curRegion.x,y:curRegion.y},{x:curRegion.x+curRegion.w,y:curRegion.y},{x:curRegion.x+curRegion.w,y:curRegion.y+curRegion.h},{x:curRegion.x,y:curRegion.y+curRegion.h}];
+    }
+    if(existingPoly){
+      finalLasso=mergePolygons(existingPoly,pts,S.lassoMode);
+      if(!finalLasso||finalLasso.length<3){showToast(S.lassoMode==='subtract'?'减选后无剩余区域':'合并失败');S.penPoints=[];S.penClosed=false;return;}
+    }else{
+      finalLasso=pts;
+    }
   }else{
     finalLasso=pts;
   }

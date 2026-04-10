@@ -135,18 +135,18 @@
     cursor: help; position: relative; line-height: 1;
   }
   .nav-info-icon:hover { background: rgba(108,140,255,0.25); }
-  /* tooltip 气泡 */
+  /* tooltip 气泡 — 使用 fixed 定位避免被 sidebar overflow:hidden 裁切 */
   .nav-info-icon .info-tooltip {
-    display: none; position: absolute; left: 24px; top: 50%; transform: translateY(-50%);
+    display: none; position: fixed; z-index: 9999;
     background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px;
     padding: 10px 14px; font-size: 12px; color: var(--text); font-weight: 400;
-    white-space: normal; width: 240px; z-index: 200; line-height: 1.6;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3); pointer-events: none;
+    white-space: normal; width: 280px; line-height: 1.6;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4); pointer-events: none;
+    /* 默认隐藏，由 JS 控制位置和显示 */
   }
-  .nav-info-icon:hover .info-tooltip { display: block; }
   /* tooltip 小箭头 */
   .nav-info-icon .info-tooltip::before {
-    content: ''; position: absolute; left: -6px; top: 50%; transform: translateY(-50%);
+    content: ''; position: absolute; left: -6px; top: 16px;
     border: 6px solid transparent; border-right-color: var(--border); border-left: none;
   }
 
@@ -1196,6 +1196,31 @@ mainEl.addEventListener('scroll', () => {
     if (h.getBoundingClientRect().top < 100) activeIdx = i;
   });
   tocItems.forEach((t, i) => t.classList.toggle('active', i === activeIdx));
+});
+
+// ─── Tooltip fixed 定位控制（避免被 sidebar overflow:hidden 裁切）───
+document.querySelectorAll('.nav-info-icon').forEach(icon => {
+  const tip = icon.querySelector('.info-tooltip');
+  if (!tip) return;
+  icon.addEventListener('mouseenter', () => {
+    const rect = icon.getBoundingClientRect();
+    tip.style.display = 'block';
+    tip.style.left = (rect.right + 8) + 'px';
+    tip.style.top = Math.max(8, rect.top - 4) + 'px';
+    // 检测是否超出右侧屏幕边界
+    const tipRect = tip.getBoundingClientRect();
+    if (tipRect.right > window.innerWidth - 10) {
+      tip.style.left = (rect.left - tipRect.width - 8) + 'px';
+      tip.querySelector('::before') // 箭头方向不再需要动态切换，CSS 足够
+    }
+    // 检测是否超出底部
+    if (tipRect.bottom > window.innerHeight - 10) {
+      tip.style.top = Math.max(8, window.innerHeight - tipRect.height - 10) + 'px';
+    }
+  });
+  icon.addEventListener('mouseleave', () => {
+    tip.style.display = 'none';
+  });
 });
 
 // ─── Init ───
