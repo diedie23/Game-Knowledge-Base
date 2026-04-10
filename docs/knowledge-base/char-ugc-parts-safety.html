@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>【UGC专项】角色部件拆分与安全区规范</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1400px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.doc-header h1 .ver{font-size:12px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.section h3{font-size:17px;color:var(--heading);margin:20px 0 8px;font-weight:600}
+.section h4{font-size:14px;color:var(--accent2);margin:12px 0 6px;font-weight:600}
+.section p{font-size:15px;margin-bottom:12px;line-height:1.8}
+.section ul,.section ol{padding-left:20px;margin-bottom:12px;font-size:15px}
+.section li{margin-bottom:4px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;min-width:90px}
+.flow-node strong{display:block;color:var(--heading);font-size:14px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:12px}
+.flow-arrow{color:var(--cyan);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:14px;line-height:1.8}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:15px}
+.dd-card .img-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:6px;padding:20px;text-align:center;color:var(--dim);font-size:11px;margin:8px 0}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.layer-stack{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px}
+.layer-stack .layer{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)}
+.layer-stack .layer:last-child{border-bottom:none}
+.layer-stack .z{color:var(--accent);font-weight:700;min-width:50px;text-align:center;font-size:14px}
+.layer-stack .name{color:var(--heading);font-weight:600;min-width:100px}
+.layer-stack .note{color:var(--dim);font-size:12px;margin-left:auto}
+.parts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin:16px 0}
+.part-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.part-card .p-icon{font-size:28px;margin-bottom:6px}
+.part-card .p-name{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:4px}
+.part-card .p-desc{font-size:11px;color:var(--dim)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>📐 【UGC专项】角色部件拆分与安全区规范 <span class="ver">工业化规范 v3.0</span></h1>
+  <div class="subtitle">UGC Character Part Segmentation & Safety Zone Specification</div>
+  <div class="meta">
+    <span>📋 适用：蛋仔派对 / 元梦之星 / 口袋方舟 / Gacha 系列</span>
+    <span>👤 维护：TA 组 · 美术中心</span>
+    <span>📅 2026-04-10</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ol>
+    <li><a href="#sec1">五大部件标准拆分体系</a></li>
+    <li><a href="#sec2">素体安全区与关节 Padding 规范</a></li>
+    <li><a href="#sec3">图层绝对层级顺序（Z-Order 铁律）</a></li>
+    <li><a href="#sec4">性能红线与面数预算</a></li>
+    <li><a href="#sec5">衔接线精确对齐规范</a></li>
+    <li><a href="#sec6">换装兼容性测试矩阵</a></li>
+    <li><a href="#sec7">图文红黑榜 Do's &amp; Don'ts</a></li>
+    <li><a href="#sec8">标准作业流程 SOP</a></li>
+    <li><a href="#sec9">出图检查清单 Checklist</a></li>
+  </ol>
+</div>
+
+<!-- ═══ S1: 五大部件 ═══ -->
+<div class="section" id="sec1">
+  <h2>① 五大部件标准拆分体系</h2>
+  <p>UGC 角色采用<strong>模块化部件设计</strong>，所有部件共用同一原点坐标系和锚点体系。</p>
+  <div class="parts-grid">
+    <div class="part-card"><div class="p-icon">💇</div><div class="p-name">头发 Hair</div><div class="p-desc">前发+后发+发饰<br>区分前后层级</div></div>
+    <div class="part-card"><div class="p-icon">👕</div><div class="p-name">上装 Upper</div><div class="p-desc">躯干+上衣+外套<br>腰线精确对接</div></div>
+    <div class="part-card"><div class="p-icon">👖</div><div class="p-name">下装 Lower</div><div class="p-desc">裤子+裙子<br>衔接线对齐</div></div>
+    <div class="part-card"><div class="p-icon">🧤</div><div class="p-name">手套 Glove</div><div class="p-desc">手臂+手套<br>长款/短款</div></div>
+    <div class="part-card"><div class="p-icon">👟</div><div class="p-name">鞋子 Shoes</div><div class="p-desc">鞋+袜<br>过膝归属规则</div></div>
+    <div class="part-card"><div class="p-icon">✨</div><div class="p-name">配饰 Acc</div><div class="p-desc">帽子/眼镜/翅膀/尾巴<br>独立图层</div></div>
+  </div>
+
+  <h3>材质球命名规范（参考口袋方舟标准）</h3>
+  <table>
+    <thead><tr><th>部件</th><th>材质名</th><th>Mask 透贴</th></tr></thead>
+    <tbody>
+      <tr><td>上装</td><td><code>ClothUpper</code></td><td><code>ClothUpper_Mask</code></td></tr>
+      <tr><td>下装</td><td><code>ClothLower</code></td><td><code>ClothLower_Mask</code></td></tr>
+      <tr><td>手套</td><td><code>Glove</code></td><td><code>Glove_Mask</code></td></tr>
+      <tr><td>鞋子</td><td><code>ClothShoes</code></td><td><code>ClothShoes_Mask</code></td></tr>
+      <tr><td>身体</td><td><code>Body</code></td><td>—</td></tr>
+      <tr><td>头发</td><td><code>Hair</code></td><td>—</td></tr>
+      <tr><td>发饰</td><td><code>HairAcc</code></td><td><code>HairAcc_Mask</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>文件命名约定</h3>
+  <pre>类型_性别_部件_编号_变体
+SK_Female_Body_001_Show    // 女性上装-001-展示用
+SK_Male_Hair_012           // 男性头发-012-游戏内
+SP_Unisex_Hat_003_Red      // 通用帽子-003-红色变体</pre>
+</div>
+
+<!-- ═══ S2: 安全区 Padding ═══ -->
+<div class="section" id="sec2">
+  <h2>② 素体安全区与关节 Padding 规范</h2>
+  <div class="alert alert-red"><strong>🚨 核心要求：</strong>所有部件的衔接区域必须留出<strong>安全区 Padding</strong>，防止换装时露出素体缝隙或穿模。</div>
+
+  <table>
+    <thead><tr><th>衔接部位</th><th>Padding</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><strong>腰线（上/下装衔接）</strong></td><td>上下各 <code>4~8px</code></td><td>最关键！上装底边向下延伸，下装顶边向上延伸</td></tr>
+      <tr><td><strong>袖口（上装/手套衔接）</strong></td><td>内外各 <code>3~6px</code></td><td>短袖→长手套需完全覆盖过渡区</td></tr>
+      <tr><td><strong>裤脚（下装/鞋衔接）</strong></td><td>上下各 <code>3~6px</code></td><td>裤脚需延伸入鞋内</td></tr>
+      <tr><td><strong>领口（上装/头部衔接）</strong></td><td>内外各 <code>2~4px</code></td><td>脖子区域需素体完全覆盖</td></tr>
+    </tbody>
+  </table>
+
+  <div class="redline"><strong>🔴 硬性红线：</strong>未被服装遮盖的皮肤部分需用<strong>基础素体</strong>补全。裸模不允许出现在最终渲染中。</div>
+
+  <pre>
+     ┌──────────────┐
+     │    头发      │  ← Z=100
+     │  ┌────────┐  │
+     │  │  面部  │  │  ← Z=90（不可被衣服遮挡）
+     │  └────────┘  │
+     │              │
+     ├╶╶ 领口 Padding 2~4px ╶╶┤
+     │    上装      │  ← Z=60
+     ├╶╶ 腰线 Padding 4~8px ╶╶┤  ← 核心衔接
+     │    下装      │  ← Z=50
+     ├╶╶ 裤脚 Padding 3~6px ╶╶┤
+     │    鞋子      │  ← Z=30
+     └──────────────┘</pre>
+</div>
+
+<!-- ═══ S3: Z-Order ═══ -->
+<div class="section" id="sec3">
+  <h2>③ 图层绝对层级顺序（Z-Order 铁律）</h2>
+  <div class="alert alert-red"><strong>🚨 铁律：</strong>所有部件必须严格遵守以下 Z-Order 堆叠顺序，不得随意调换！</div>
+
+  <div class="layer-stack">
+    <div class="layer"><span class="z">Z=110</span><span class="name">特效层</span><span class="note">粒子特效、光晕等（最前）</span></div>
+    <div class="layer"><span class="z">Z=100</span><span class="name">头发·前发</span><span class="note">遮挡面部边缘、帽子后方</span></div>
+    <div class="layer"><span class="z">Z=95</span><span class="name">帽子/头饰</span><span class="note">叠在头发上方</span></div>
+    <div class="layer"><span class="z">Z=90</span><span class="name">面部表情</span><span class="note">眼睛/眉毛/嘴巴，不可被遮挡</span></div>
+    <div class="layer"><span class="z">Z=80</span><span class="name">面部底层</span><span class="note">肤色、腮红底色</span></div>
+    <div class="layer"><span class="z">Z=70</span><span class="name">头发·后发</span><span class="note">在面部后方</span></div>
+    <div class="layer"><span class="z">Z=65</span><span class="name">披风/斗篷</span><span class="note">覆盖在上装外</span></div>
+    <div class="layer"><span class="z">Z=60</span><span class="name">上装外层</span><span class="note">外套、马甲</span></div>
+    <div class="layer"><span class="z">Z=55</span><span class="name">上装内层</span><span class="note">T恤、衬衫</span></div>
+    <div class="layer"><span class="z">Z=50</span><span class="name">下装</span><span class="note">裤子、裙子</span></div>
+    <div class="layer"><span class="z">Z=40</span><span class="name">手套/手臂</span><span class="note">短袖时需显示</span></div>
+    <div class="layer"><span class="z">Z=30</span><span class="name">鞋子/袜子</span><span class="note">最底层可见部件</span></div>
+    <div class="layer"><span class="z">Z=10</span><span class="name">素体 Base</span><span class="note">裸露皮肤兜底（最底）</span></div>
+  </div>
+</div>
+
+<!-- ═══ S4: 性能红线 ═══ -->
+<div class="section" id="sec4">
+  <h2>④ 性能红线与面数预算</h2>
+  <table>
+    <thead><tr><th>指标</th><th>红线值</th><th>推荐值</th></tr></thead>
+    <tbody>
+      <tr><td><strong>单部件贴图尺寸</strong></td><td>≤ 1024×1024</td><td>512×512（移动端）</td></tr>
+      <tr><td><strong>角色总贴图面积</strong></td><td>≤ 2048×2048</td><td>Atlas 合并</td></tr>
+      <tr><td><strong>文件格式</strong></td><td>PNG（含 Alpha）</td><td>—</td></tr>
+      <tr><td><strong>单文件大小</strong></td><td>≤ 5MB</td><td>≤ 1MB</td></tr>
+      <tr><td><strong>画布尺寸</strong></td><td>必须为 2<sup>N</sup></td><td>256 / 512 / 1024</td></tr>
+      <tr><td><strong>透明通道</strong></td><td>轮廓外 Alpha 必须=0</td><td>无半透明残留</td></tr>
+    </tbody>
+  </table>
+
+  <h3>面数预算（参考口袋方舟标准）</h3>
+  <table>
+    <thead><tr><th>部件</th><th>高精模型（展示）</th><th>低精模型（游戏内）</th></tr></thead>
+    <tbody>
+      <tr><td>上衣+身体</td><td>≤ 10,000 面</td><td>≤ 2,500 面</td></tr>
+      <tr><td>手套+手</td><td>≤ 3,500 面</td><td>≤ 1,500 面</td></tr>
+      <tr><td>下装+腿</td><td>≤ 4,000 面</td><td>≤ 1,700 面</td></tr>
+      <tr><td>鞋子+脚</td><td>≤ 3,500 面</td><td>≤ 1,500 面</td></tr>
+      <tr><td>头发+发饰</td><td>≤ 10,000 面</td><td>≤ 3,000 面</td></tr>
+      <tr><td><strong>总计</strong></td><td><strong>≤ 30,000 面</strong></td><td><strong>≤ 10,000 面</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ S5: 衔接线对齐 ═══ -->
+<div class="section" id="sec5">
+  <h2>⑤ 衔接线精确对齐规范</h2>
+  <ul>
+    <li><strong>衔接线必须精确对齐</strong>：各部件在拼合处的边缘像素需严格对齐，避免缝隙或错位</li>
+    <li><strong>统一锚点/原点</strong>：所有部件共用同一原点坐标系，确保换装时位置不偏移</li>
+    <li><strong>裸模补齐</strong>：未被服装遮盖的皮肤部分需用基础裸模补全</li>
+    <li><strong>镜像对称</strong>：注意不对称设计的兼容性，单层皮肤自动镜像时需特别处理</li>
+  </ul>
+  <div class="alert alert-blue"><strong>📌 最佳实践：</strong>使用同一 PSD 文件的不同图层组管理所有部件，共用画布坐标，导出时分层导出确保像素对齐。</div>
+</div>
+
+<!-- ═══ S6: 换装兼容性 ═══ -->
+<div class="section" id="sec6">
+  <h2>⑥ 换装兼容性测试矩阵</h2>
+  <p>每个新部件上线前，必须与<strong>所有现有基础部件</strong>进行组合测试。</p>
+  <table>
+    <thead><tr><th>测试维度</th><th>检查内容</th><th>判定标准</th></tr></thead>
+    <tbody>
+      <tr><td><strong>穿插测试</strong></td><td>新部件与所有现有部件组合</td><td>无穿模、无露体</td></tr>
+      <tr><td><strong>缝隙测试</strong></td><td>衔接处放大 400% 检查</td><td>无可见缝隙</td></tr>
+      <tr><td><strong>动画测试</strong></td><td>Idle/Walk/Run/Jump 全套</td><td>动作幅度最大时不穿插</td></tr>
+      <tr><td><strong>极端组合</strong></td><td>最大体型+最膨胀部件</td><td>不超出安全区域</td></tr>
+      <tr><td><strong>多端测试</strong></td><td>手机/PC/小程序</td><td>显示一致无错位</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ S7: 红黑榜 ═══ -->
+<div class="section" id="sec7">
+  <h2>⑦ 图文红黑榜 Do's &amp; Don'ts</h2>
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't — 部件间缝隙露出素体</h4>
+      <div class="img-placeholder">[ 上装和下装之间露出 2px 肤色缝隙 ]</div>
+      <p>Padding 不足导致换装时衔接处露出裸露素体。</p>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ Do — 充足 Padding 完全覆盖</h4>
+      <div class="img-placeholder">[ 上装底边向下延伸 6px，与下装完全重叠 ]</div>
+      <p>上下装各留 4~8px Padding，确保任何组合都无缝衔接。</p>
+    </div>
+  </div>
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't — Z-Order 错乱导致穿模</h4>
+      <div class="img-placeholder">[ 裤子渲染在上衣前面 → 腰部穿模 ]</div>
+      <p>未遵守 Z-Order 铁律，部件遮挡关系混乱。</p>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ Do — 严格遵守层级规范</h4>
+      <div class="img-placeholder">[ 上装 Z=60 > 下装 Z=50 → 正确遮挡 ]</div>
+      <p>所有部件严格按照 Z-Order 表赋值，确保渲染顺序正确。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ S8: SOP ═══ -->
+<div class="section" id="sec8">
+  <h2>⑧ 标准作业流程 SOP</h2>
+  <div class="flow">
+    <div class="flow-node start"><strong>Step 1</strong><span class="sub">确认部件类型与层级</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Step 2</strong><span class="sub">基于素体绘制部件</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Step 3</strong><span class="sub">设置 Padding 安全区</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Step 4</strong><span class="sub">验证 Z-Order 层级</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Step 5</strong><span class="sub">换装兼容性测试</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>Step 6</strong><span class="sub">导出 PNG + 提交审核</span></div>
+  </div>
+</div>
+
+<!-- ═══ S9: Checklist ═══ -->
+<div class="section" id="sec9">
+  <h2>⑨ 出图检查清单 Checklist</h2>
+  <table>
+    <thead><tr><th>#</th><th>检查项</th><th>☐</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>画布尺寸为 2<sup>N</sup>（如 512×512）</td><td>☐</td></tr>
+      <tr><td>2</td><td>文件格式为 PNG（含正确 Alpha 通道）</td><td>☐</td></tr>
+      <tr><td>3</td><td>所有部件统一原点和锚点</td><td>☐</td></tr>
+      <tr><td>4</td><td>各部件衔接处 Padding 充足（4~8px）</td><td>☐</td></tr>
+      <tr><td>5</td><td>Z-Order 层级正确，无异常遮挡</td><td>☐</td></tr>
+      <tr><td>6</td><td>轮廓外 Alpha = 0，无半透明残留</td><td>☐</td></tr>
+      <tr><td>7</td><td>色彩饱和度适中，光源方向统一</td><td>☐</td></tr>
+      <tr><td>8</td><td>动画帧尺寸一致，帧间距正确</td><td>☐</td></tr>
+      <tr><td>9</td><td>换装兼容性测试通过（无穿插/无缝隙）</td><td>☐</td></tr>
+      <tr><td>10</td><td>文件大小 ≤ 5MB，命名符合规范</td><td>☐</td></tr>
+      <tr><td>11</td><td>无版权/合规风险内容</td><td>☐</td></tr>
+      <tr><td>12</td><td>多端显示测试通过（手机/PC/Web）</td><td>☐</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="doc-footer">
+  【UGC专项】角色部件拆分与安全区规范 v3.0 · TA 组 · 美术中心 · 最后更新 2026-04-10<br>
+  如有疑问请联系 TA 组或在知识库 Issue 中反馈
+</div>
+
+</div>
+</body>
+</html>

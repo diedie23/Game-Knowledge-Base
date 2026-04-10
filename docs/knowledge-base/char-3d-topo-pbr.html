@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>【3D】角色拓扑与 PBR 贴图规范</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1400px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.doc-header h1 .ver{font-size:12px;background:var(--orange);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.wip-banner{background:linear-gradient(135deg,rgba(251,146,60,.15),rgba(251,191,36,.1));border:2px dashed var(--orange);border-radius:16px;padding:32px;text-align:center;margin-bottom:40px}
+.wip-banner .wip-icon{font-size:64px;margin-bottom:16px}
+.wip-banner h2{font-size:24px;color:var(--orange);margin-bottom:8px}
+.wip-banner p{font-size:15px;color:var(--text);max-width:600px;margin:0 auto}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.section h3{font-size:17px;color:var(--heading);margin:20px 0 8px;font-weight:600}
+.section h4{font-size:14px;color:var(--accent2);margin:12px 0 6px;font-weight:600}
+.section p{font-size:15px;margin-bottom:12px;line-height:1.8}
+.section ul,.section ol{padding-left:20px;margin-bottom:12px;font-size:15px}
+.section li{margin-bottom:4px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.placeholder-card{background:var(--card);border:1px dashed var(--border);border-radius:10px;padding:24px;margin:12px 0;text-align:center;color:var(--dim)}
+.placeholder-card .ph-icon{font-size:32px;margin-bottom:8px}
+.placeholder-card .ph-title{font-size:15px;color:var(--accent2);font-weight:600;margin-bottom:4px}
+.placeholder-card .ph-desc{font-size:13px}
+.roadmap{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:20px 0}
+.roadmap-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;position:relative}
+.roadmap-item .rm-status{position:absolute;top:12px;right:12px;font-size:10px;padding:2px 8px;border-radius:8px;font-weight:700}
+.rm-planned{background:rgba(108,140,255,.15);color:var(--accent)}
+.rm-draft{background:rgba(251,191,36,.15);color:var(--yellow)}
+.rm-review{background:rgba(167,139,250,.15);color:var(--accent2)}
+.roadmap-item h4{font-size:15px;color:var(--heading);margin-bottom:8px;padding-right:70px}
+.roadmap-item p{font-size:13px;color:var(--dim);line-height:1.6;margin:0}
+.roadmap-item ul{font-size:12px;color:var(--text);padding-left:16px;margin-top:8px}
+.roadmap-item li{margin-bottom:2px}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<!-- ═══ HEADER ═══ -->
+<div class="doc-header">
+  <h1>🧊 【3D】角色拓扑与 PBR 贴图规范 <span class="ver">🚧 建设中</span></h1>
+  <div class="subtitle">3D Character Topology & PBR Texture Specification</div>
+  <div class="meta">
+    <span>📋 适用引擎：UE5 / Unity 2022+ / 自研引擎</span>
+    <span>👤 维护：TA 组 · 角色建模组</span>
+    <span>📅 2026-04-10 · 预计完稿：2026-05</span>
+  </div>
+</div>
+
+<!-- ═══ WIP Banner ═══ -->
+<div class="wip-banner">
+  <div class="wip-icon">🏗️</div>
+  <h2>本文档正在建设中</h2>
+  <p>3D 角色管线的工业化规范正在编写中。下方展示了完整的大纲框架和各章节的预期内容，方便团队提前了解规范方向并提供反馈。</p>
+</div>
+
+<!-- ═══ TOC ═══ -->
+<div class="toc">
+  <h3>📑 规划大纲（完整目录）</h3>
+  <ol>
+    <li><a href="#sec1">拓扑布线标准与面数预算</a></li>
+    <li><a href="#sec2">PBR 贴图通道规范</a></li>
+    <li><a href="#sec3">UV 展开与 Texel Density 规范</a></li>
+    <li><a href="#sec4">LOD 分级策略</a></li>
+    <li><a href="#sec5">骨骼绑定与蒙皮规范</a></li>
+    <li><a href="#sec6">FBX 导出与引擎导入标准</a></li>
+    <li><a href="#sec7">Do's &amp; Don'ts 红黑榜</a></li>
+    <li><a href="#sec8">出图检查清单 Checklist</a></li>
+  </ol>
+</div>
+
+<!-- ═══ Section 1 ═══ -->
+<div class="section" id="sec1">
+  <h2>① 拓扑布线标准与面数预算</h2>
+  <div class="alert alert-yellow">
+    <strong>🚧 待补充：</strong>本节将详细规定 3D 角色的拓扑布线标准，包括面部环线（Eye Loop / Mouth Loop）、关节拓扑（膝盖/肘部需 3 环以上）、四边面率等。
+  </div>
+
+  <h3>面数预算表（框架已定）</h3>
+  <table>
+    <thead><tr><th>部件</th><th>LOD0（近景/展示）</th><th>LOD1（中景/战斗）</th><th>LOD2（远景/大厅）</th></tr></thead>
+    <tbody>
+      <tr><td><strong>头部+面部</strong></td><td>≤ 8,000 tri</td><td>≤ 4,000 tri</td><td>≤ 1,500 tri</td></tr>
+      <tr><td><strong>头发</strong></td><td>≤ 10,000 tri</td><td>≤ 5,000 tri</td><td>≤ 2,000 tri</td></tr>
+      <tr><td><strong>躯干+上装</strong></td><td>≤ 12,000 tri</td><td>≤ 6,000 tri</td><td>≤ 2,500 tri</td></tr>
+      <tr><td><strong>下装+腿部</strong></td><td>≤ 6,000 tri</td><td>≤ 3,000 tri</td><td>≤ 1,200 tri</td></tr>
+      <tr><td><strong>手部+手套</strong></td><td>≤ 4,000 tri</td><td>≤ 2,000 tri</td><td>≤ 800 tri</td></tr>
+      <tr><td><strong>鞋子+脚部</strong></td><td>≤ 3,500 tri</td><td>≤ 1,500 tri</td><td>≤ 600 tri</td></tr>
+      <tr><td><strong>配饰/武器</strong></td><td>≤ 6,000 tri</td><td>≤ 3,000 tri</td><td>≤ 1,000 tri</td></tr>
+      <tr><td><strong>总计</strong></td><td><strong>≤ 50,000 tri</strong></td><td><strong>≤ 25,000 tri</strong></td><td><strong>≤ 10,000 tri</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>拓扑布线要求（待展开）</h3>
+  <ul>
+    <li>面部：眼眶/口部需完整环线，支持 Blend Shape / Morph Target 表情驱动</li>
+    <li>关节：膝盖/肘部/肩部至少 3 环布线，确保弯曲时不塌陷</li>
+    <li>四边面率 ≥ 98%，三角面仅允许出现在极端末端（指尖/脚趾）</li>
+    <li>禁止 N-gon（五边面及以上）</li>
+    <li>顶点法线统一朝外，不允许翻面</li>
+  </ul>
+</div>
+
+<!-- ═══ Section 2 ═══ -->
+<div class="section" id="sec2">
+  <h2>② PBR 贴图通道规范</h2>
+  <div class="alert alert-yellow">
+    <strong>🚧 待补充：</strong>本节将详细规定每张 PBR 贴图的通道分配、格式和压缩策略。
+  </div>
+
+  <h3>PBR 贴图套件（框架已定）</h3>
+  <table>
+    <thead><tr><th>贴图类型</th><th>通道</th><th>色彩空间</th><th>推荐尺寸</th><th>压缩格式</th></tr></thead>
+    <tbody>
+      <tr><td><strong>BaseColor (Albedo)</strong></td><td>RGB = 固有色, A = 透明度</td><td>sRGB</td><td>2048×2048</td><td>BC7 / ASTC 4×4</td></tr>
+      <tr><td><strong>Normal Map</strong></td><td>RG = 切线空间法线 XY</td><td>Linear</td><td>2048×2048</td><td>BC5 / ASTC 5×5</td></tr>
+      <tr><td><strong>ARM (合并贴图)</strong></td><td>R=AO, G=Roughness, B=Metallic</td><td>Linear</td><td>2048×2048</td><td>BC7 / ASTC 4×4</td></tr>
+      <tr><td><strong>Emissive</strong></td><td>RGB = 自发光颜色</td><td>sRGB</td><td>1024×1024</td><td>BC7 / ASTC 6×6</td></tr>
+      <tr><td><strong>SubsurfaceColor</strong></td><td>RGB = 次表面散射颜色</td><td>sRGB</td><td>1024×1024</td><td>BC7（可选）</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-blue">
+    <strong>📌 ARM 通道复用：</strong>将 AO/Roughness/Metallic 合并到一张贴图的 R/G/B 通道中，可减少 2 次纹理采样，是移动端的标准做法。
+  </div>
+
+  <h3>数值规范（待展开）</h3>
+  <ul>
+    <li>BaseColor 亮度范围：<code>30~240</code>（避免纯黑纯白破坏 PBR 能量守恒）</li>
+    <li>Metallic：非金属=0, 金属=1，避免中间值</li>
+    <li>Roughness：推荐 0.3~0.9 范围，全 0 镜面反射过强，全 1 无高光</li>
+    <li>Normal Map 强度：使用 OpenGL 格式（G 通道朝上），UE5 使用 DirectX 格式需翻转 G</li>
+  </ul>
+</div>
+
+<!-- ═══ Section 3 ═══ -->
+<div class="section" id="sec3">
+  <h2>③ UV 展开与 Texel Density 规范</h2>
+  <div class="placeholder-card">
+    <div class="ph-icon">📐</div>
+    <div class="ph-title">内容编写中</div>
+    <div class="ph-desc">将涵盖：UV 岛布局原则、Texel Density 一致性（面部优先 2x）、UV 边界与硬边法线对齐、UV Overlap 利用率等</div>
+  </div>
+</div>
+
+<!-- ═══ Section 4 ═══ -->
+<div class="section" id="sec4">
+  <h2>④ LOD 分级策略</h2>
+  <div class="placeholder-card">
+    <div class="ph-icon">🔭</div>
+    <div class="ph-title">内容编写中</div>
+    <div class="ph-desc">将涵盖：LOD 0~3 切换距离标准、面数递减比（50%逐级）、贴图 Mipmap 策略、骨骼 LOD（远景合并骨骼）、UE5 Nanite 适配建议</div>
+  </div>
+</div>
+
+<!-- ═══ Section 5 ═══ -->
+<div class="section" id="sec5">
+  <h2>⑤ 骨骼绑定与蒙皮规范</h2>
+  <div class="alert alert-yellow">
+    <strong>🚧 待补充：</strong>本节将详细规定骨骼层级结构、蒙皮权重限制、IK 链设置等。
+  </div>
+
+  <h3>骨骼数量预算（框架已定）</h3>
+  <table>
+    <thead><tr><th>目标平台</th><th>主骨骼数</th><th>辅助骨骼（飘带/头发）</th><th>面部骨骼</th><th>合计上限</th></tr></thead>
+    <tbody>
+      <tr><td><strong>高端 PC/主机</strong></td><td>≤ 80</td><td>≤ 40</td><td>≤ 30</td><td><strong>≤ 150</strong></td></tr>
+      <tr><td><strong>中端移动</strong></td><td>≤ 60</td><td>≤ 20</td><td>≤ 15</td><td><strong>≤ 95</strong></td></tr>
+      <tr><td><strong>低端移动</strong></td><td>≤ 45</td><td>≤ 10</td><td>≤ 8</td><td><strong>≤ 63</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>蒙皮权重规范（待展开）</h3>
+  <ul>
+    <li>每顶点最大影响骨骼数：移动端 ≤ 4，PC ≤ 8</li>
+    <li>权重归一化：所有权重之和 = 1.0，误差 ≤ 0.001</li>
+    <li>避免"幽灵权重"：权重 < 0.01 的需清除</li>
+    <li>对称绑定：左右肢体蒙皮需镜像一致</li>
+  </ul>
+</div>
+
+<!-- ═══ Section 6 ═══ -->
+<div class="section" id="sec6">
+  <h2>⑥ FBX 导出与引擎导入标准</h2>
+  <div class="placeholder-card">
+    <div class="ph-icon">📦</div>
+    <div class="ph-title">内容编写中</div>
+    <div class="ph-desc">将涵盖：FBX 版本要求（2020.2+）、坐标系转换（Z-Up→Y-Up）、Scale Factor、骨骼命名映射、引擎材质自动绑定规则</div>
+  </div>
+</div>
+
+<!-- ═══ Section 7 ═══ -->
+<div class="section" id="sec7">
+  <h2>⑦ Do's &amp; Don'ts 红黑榜</h2>
+  <div class="placeholder-card">
+    <div class="ph-icon">✅❌</div>
+    <div class="ph-title">内容编写中</div>
+    <div class="ph-desc">将提供：拓扑布线红黑榜（环线 vs 三角面）、PBR 数值红黑榜（纯黑 Albedo vs 正确暗色）、UV 展开红黑榜（重叠 vs 展开）等对比示意</div>
+  </div>
+</div>
+
+<!-- ═══ Section 8 ═══ -->
+<div class="section" id="sec8">
+  <h2>⑧ 出图检查清单 Checklist</h2>
+  <div class="placeholder-card">
+    <div class="ph-icon">📝</div>
+    <div class="ph-title">内容编写中</div>
+    <div class="ph-desc">将提供：建模→UV→贴图→绑定→导出→引擎导入的全流程 Checklist，约 25 项核心检查项</div>
+  </div>
+</div>
+
+<!-- ═══ 建设路线图 ═══ -->
+<div class="section">
+  <h2>📅 建设路线图</h2>
+  <div class="roadmap">
+    <div class="roadmap-item">
+      <span class="rm-status rm-draft">📝 初稿中</span>
+      <h4>① 面数预算 & 拓扑标准</h4>
+      <p>面数预算表已初步确定，拓扑布线详细规范正在编写。</p>
+      <ul><li>预计完成：2026-04-20</li><li>负责人：陈工 (TA组)</li></ul>
+    </div>
+    <div class="roadmap-item">
+      <span class="rm-status rm-draft">📝 初稿中</span>
+      <h4>② PBR 贴图通道规范</h4>
+      <p>通道分配框架已定，数值范围和压缩策略待补充细节。</p>
+      <ul><li>预计完成：2026-04-25</li><li>负责人：陈工 (TA组)</li></ul>
+    </div>
+    <div class="roadmap-item">
+      <span class="rm-status rm-planned">📋 规划中</span>
+      <h4>③ UV & Texel Density</h4>
+      <p>正在收集项目内部的 TD 标准参考数据。</p>
+      <ul><li>预计完成：2026-05-05</li><li>负责人：建模组长</li></ul>
+    </div>
+    <div class="roadmap-item">
+      <span class="rm-status rm-planned">📋 规划中</span>
+      <h4>④ LOD & 骨骼绑定</h4>
+      <p>需与引擎组确认 Nanite/虚拟骨骼的支持情况后编写。</p>
+      <ul><li>预计完成：2026-05-10</li><li>负责人：陈工 + 动画组</li></ul>
+    </div>
+    <div class="roadmap-item">
+      <span class="rm-status rm-planned">📋 规划中</span>
+      <h4>⑤ FBX 导出 & 红黑榜</h4>
+      <p>将收集常见错误案例后统一编写。</p>
+      <ul><li>预计完成：2026-05-15</li><li>负责人：TA组</li></ul>
+    </div>
+    <div class="roadmap-item">
+      <span class="rm-status rm-review">🔍 评审阶段</span>
+      <h4>⑥ 全文评审 & 发布</h4>
+      <p>所有章节完成后进行全组交叉评审。</p>
+      <ul><li>预计完成：2026-05-25</li><li>负责人：TA组 + 美术总监</li></ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<div class="doc-footer">
+  【3D】角色拓扑与 PBR 贴图规范 · 建设中 · TA 组 · 角色建模组 · 最后更新 2026-04-10<br>
+  💬 欢迎在知识库 Issue 中提交反馈和补充建议，帮助我们加速完善 3D 管线规范！
+</div>
+
+</div>
+</body>
+</html>

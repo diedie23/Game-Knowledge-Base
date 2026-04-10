@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>【2D】角色换色与材质遮罩规范</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1400px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.doc-header h1 .ver{font-size:12px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.section h3{font-size:17px;color:var(--heading);margin:20px 0 8px;font-weight:600}
+.sub-title{font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section h4{font-size:14px;color:var(--accent2);margin:12px 0 6px;font-weight:600}
+.section p{font-size:15px;margin-bottom:12px;line-height:1.8}
+.section ul,.section ol{padding-left:20px;margin-bottom:12px;font-size:15px}
+.section li{margin-bottom:4px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;min-width:90px}
+.flow-node strong{display:block;color:var(--heading);font-size:14px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:12px}
+.flow-arrow{color:var(--cyan);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.tool{border-color:var(--accent2);background:rgba(167,139,250,.05)}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:14px;line-height:1.8}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:15px}
+.dd-card .img-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:6px;padding:20px;text-align:center;color:var(--dim);font-size:11px;margin:8px 0}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:16px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:14px;line-height:1.8;padding-left:28px}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}
+.ch-box{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:12px 0}
+@media(max-width:600px){.ch-box{grid-template-columns:repeat(2,1fr)}}
+.ch-card{border-radius:8px;padding:12px;text-align:center;font-size:12px}
+.ch-r{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--red)}
+.ch-g{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:var(--green)}
+.ch-b{background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);color:var(--blue)}
+.ch-a{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:var(--yellow)}
+.ch-card strong{display:block;font-size:18px;margin-bottom:4px}
+.redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<!-- ═══ HEADER ═══ -->
+<div class="doc-header">
+  <h1>🎨 【2D】角色换色与材质遮罩规范 <span class="ver">工业化规范 v3.0</span></h1>
+  <div class="subtitle">2D Character Color-Swap & Material Mask Specification</div>
+  <div class="meta">
+    <span>📋 适用：Mask+HSV / Palette Swap / 灰度叠色</span>
+    <span>👤 维护：TA 组 · 美术中心</span>
+    <span>📅 2026-04-10</span>
+  </div>
+</div>
+
+<!-- ═══ TOC ═══ -->
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ol>
+    <li><a href="#sec1">三种换色方案全景对比</a></li>
+    <li><a href="#sec2">RGBA 通道分配铁律（核心）</a></li>
+    <li><a href="#sec3">多 Mask 无限扩展算法</a></li>
+    <li><a href="#sec4">性能红线与规格限制</a></li>
+    <li><a href="#sec5">灰度图明暗阈值限制</a></li>
+    <li><a href="#sec6">资产命名与目录规范</a></li>
+    <li><a href="#sec7">图文红黑榜 Do's &amp; Don'ts</a></li>
+    <li><a href="#sec8">标准作业流程 SOP</a></li>
+    <li><a href="#sec9">常见问题排查 FAQ</a></li>
+    <li><a href="#sec10">出图检查清单 Checklist</a></li>
+  </ol>
+</div>
+
+<!-- ═══ Section 1: 三种方案全景对比 ═══ -->
+<div class="section" id="sec1">
+  <h2>① 三种换色方案全景对比</h2>
+  <p>不同的换色技术路线对美术的出图要求差异极大。<strong>先定方案再出图</strong>，是避免返工的第一条铁律。</p>
+
+  <table>
+    <thead>
+      <tr><th>维度</th><th>🅰 Mask+HSV（推荐）</th><th>🅱 调色板替换 Palette Swap</th><th>🅲 灰度底图+叠色</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>原理</strong></td><td>Mask 图标记换色区域，Shader 做 HSV/Tint 偏移</td><td>索引色+LUT 表颜色映射</td><td>灰度图 × 目标色（乘法混合）</td></tr>
+      <tr><td><strong>美术提供</strong></td><td>原图 + Mask 遮罩图 + 配色 JSON</td><td>索引色原图 + N 张 256×1 调色板</td><td>灰度底图 + 可选 Mask + 细节叠加层</td></tr>
+      <tr><td><strong>换色区域数</strong></td><td>3区/Mask（多 Mask 可无限扩展）</td><td>取决于索引色数量（8~32色）</td><td>需配合 Mask 多区域</td></tr>
+      <tr><td><strong>画面品质</strong></td><td>⭐⭐⭐⭐⭐ 保留完整光影</td><td>⭐⭐⭐ 适合像素风</td><td>⭐⭐⭐ 简单纯色效果好</td></tr>
+      <tr><td><strong>性能开销</strong></td><td>中（多 1~2 次纹理采样）</td><td>低（1 次 LUT 采样）</td><td>低（1 次乘法）</td></tr>
+      <tr><td><strong>适用场景</strong></td><td><strong>最主流</strong>，卡通/Q版角色</td><td>像素风格、复古游戏</td><td>纯色服装、简单场景</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-blue">
+    <strong>📌 推荐方案：</strong>绝大多数 2D UGC 游戏采用 <strong>方案🅰（Mask+HSV）</strong>，兼顾效果、性能和扩展性。本文档以此方案为重点展开。
+  </div>
+</div>
+
+<!-- ═══ Section 2: RGBA 通道分配铁律 ═══ -->
+<div class="section" id="sec2">
+  <h2>② RGBA 通道分配铁律（核心）</h2>
+
+  <div class="alert alert-red">
+    <strong>🚨 铁律：</strong>同一像素在 R/G/B 三个通道中<strong>只能有一个通道有值</strong>（通道互斥），否则会导致两个换色区域串色！
+  </div>
+
+  <div class="ch-box">
+    <div class="ch-card ch-r"><strong>R 通道</strong>换色区域 1<br>如：头发</div>
+    <div class="ch-card ch-g"><strong>G 通道</strong>换色区域 2<br>如：上衣</div>
+    <div class="ch-card ch-b"><strong>B 通道</strong>换色区域 3<br>如：裤子/裙子</div>
+    <div class="ch-card ch-a"><strong>A 通道</strong>总开关<br>白=可染色 黑=不染色</div>
+  </div>
+
+  <h3>通道值含义</h3>
+  <table>
+    <thead><tr><th>值</th><th>含义</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td><code>255</code>（白色）</td><td>该像素<strong>完全受</strong>对应换色区域影响</td><td>区域内部</td></tr>
+      <tr><td><code>0</code>（黑色）</td><td>该像素<strong>不受</strong>对应换色区域影响</td><td>区域外部</td></tr>
+      <tr><td><code>1~254</code>（中间值）</td><td>半透明过渡，产生渐变混合效果</td><td>边缘柔化（1~2px 羽化）</td></tr>
+    </tbody>
+  </table>
+
+  <h3>遮罩图绘制示意</h3>
+  <pre>
+          原图                        Mask 图
+
+    ┌──────────────┐          ┌──────────────┐
+    │   ★ 头发     │          │  R=255       │  ← 头发区域：R通道涂白
+    │  ┌────────┐  │          │  ┌────────┐  │
+    │  │  脸部  │  │          │  │ A=0    │  │  ← 脸部：Alpha 涂黑（不染色）
+    │  └────────┘  │          │  └────────┘  │
+    │   上衣       │          │  G=255       │  ← 上衣区域：G通道涂白
+    │   裤子       │          │  B=255       │  ← 裤子区域：B通道涂白
+    │   鞋子       │          │  A=0         │  ← 鞋子：Alpha 涂黑（不染色）
+    └──────────────┘          └──────────────┘</pre>
+
+  <h3>遮罩图制作硬指标</h3>
+  <table>
+    <thead><tr><th>要素</th><th>规范</th></tr></thead>
+    <tbody>
+      <tr><td><strong>尺寸</strong></td><td>必须与基础原图<strong>完全一致</strong>（像素级对齐）</td></tr>
+      <tr><td><strong>格式</strong></td><td>PNG（RGBA 32bit）或 TGA — <strong>绝不允许 JPEG</strong></td></tr>
+      <tr><td><strong>压缩</strong></td><td>无损格式是铁律，有损压缩会导致通道值杂色噪点</td></tr>
+      <tr><td><strong>边缘处理</strong></td><td>区域边缘建议留 1~2px 渐变过渡，避免硬边锯齿</td></tr>
+      <tr><td><strong>通道互斥</strong></td><td>同一像素 R/G/B 仅允许一个通道有值</td></tr>
+      <tr><td><strong>非染色区域</strong></td><td>A 通道涂黑 (0)，无论 RGB 值都不会变色</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ Section 3: 多 Mask 无限扩展 ═══ -->
+<div class="section" id="sec3">
+  <h2>③ 多 Mask 无限扩展算法</h2>
+  <p>当角色的换色区域<strong>超过 3 个</strong>时，单张 Mask 的 RGB 三通道不够用。此时需启用<strong>多 Mask 图方案</strong>。</p>
+
+  <div class="alert alert-yellow">
+    <strong>⚡ 核心公式（程序/TA 必知）：</strong><br>
+    <code>通道索引 channelIndex = 区域编号 % 3</code>（0=R, 1=G, 2=B）<br>
+    <code>Mask图编号 maskIndex = Math.floor(区域编号 / 3)</code>
+  </div>
+
+  <pre>
+区域 0（头发）  → Mask1.png 的 R 通道
+区域 1（上衣）  → Mask1.png 的 G 通道
+区域 2（裤子）  → Mask1.png 的 B 通道
+─────────── 第 1 张 Mask 用满 ───────────
+区域 3（鞋子）  → Mask2.png 的 R 通道
+区域 4（手套）  → Mask2.png 的 G 通道
+区域 5（配饰）  → Mask2.png 的 B 通道
+─────────── 第 2 张 Mask 用满 ───────────
+区域 6（斗篷）  → Mask3.png 的 R 通道
+...以此类推（无上限）</pre>
+
+  <h3>替代方案：灰度分段（单通道多区域）</h3>
+  <p>如果不想增加 Mask 图数量，可以用灰度值范围分段：</p>
+  <pre>
+灰度值范围          对应区域
+─────────────────────────────
+0                   不换色
+1 ~ 50              区域 1（头发）
+51 ~ 100            区域 2（上衣）
+101 ~ 150           区域 3（裤子）
+151 ~ 200           区域 4（鞋子）
+201 ~ 250           区域 5（配饰）
+251 ~ 255           区域 6（特殊）</pre>
+  <div class="alert alert-yellow">
+    <strong>⚠️ 注意：</strong>灰度分段方案无法使用羽化过渡，边缘会有硬切锯齿。高品质项目建议使用多 Mask 方案。
+  </div>
+</div>
+
+<!-- ═══ Section 4: 性能红线 ═══ -->
+<div class="section" id="sec4">
+  <h2>④ 性能红线与规格限制</h2>
+
+  <table>
+    <thead><tr><th>指标</th><th>红线值</th><th>推荐值</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Mask 图尺寸</strong></td><td>与原图一致（2<sup>N</sup>）</td><td>512×512</td><td>必须与 Base 图像素级对齐</td></tr>
+      <tr><td><strong>单角色 Mask 张数</strong></td><td>≤ 3 张</td><td>1 张</td><td>每多一张增加一次纹理采样</td></tr>
+      <tr><td><strong>单 Mask 换色区域</strong></td><td>3 个（RGB三通道）</td><td>—</td><td>通道互斥铁律</td></tr>
+      <tr><td><strong>Base 图纯黑/白像素</strong></td><td>禁止 (0,0,0) 和 (255,255,255)</td><td>HSV 饱和度 40~70%</td><td>纯黑白 HSV 偏移无效</td></tr>
+      <tr><td><strong>Mask 通道溢出</strong></td><td>0%（同像素多通道有值率）</td><td>—</td><td>溢出导致串色</td></tr>
+      <tr><td><strong>调色板贴图尺寸</strong></td><td>256×1 固定</td><td>—</td><td>Palette Swap 方案专用</td></tr>
+      <tr><td><strong>调色板采样模式</strong></td><td>Point（最近邻）</td><td>—</td><td>禁止线性插值</td></tr>
+    </tbody>
+  </table>
+
+  <div class="redline">
+    <strong>🔴 硬性红线：</strong>Base 图换色区域的任何像素，<code>亮度 L &lt; 3</code>（纯黑）或 <code>L &gt; 252</code>（纯白）的，<strong>HSV 色相偏移将完全失效</strong>。必须改用深灰 (10,10,10) / 浅灰 (245,245,245) 替代。
+  </div>
+</div>
+
+<!-- ═══ Section 5: 灰度图明暗阈值 ═══ -->
+<div class="section" id="sec5">
+  <h2>⑤ 灰度图明暗阈值限制</h2>
+  <p>灰度叠色方案（方案🅲）中，灰度图的明暗值直接决定换色效果：</p>
+  <table>
+    <thead><tr><th>灰度范围</th><th>效果</th><th>建议</th></tr></thead>
+    <tbody>
+      <tr><td><code>0 ~ 50</code></td><td>叠色后几乎全黑</td><td>❌ 避免使用</td></tr>
+      <tr><td><code>50 ~ 128</code></td><td>叠色后偏暗，适合阴影区</td><td>⚠️ 仅用于暗部</td></tr>
+      <tr><td><code>128 ~ 200</code></td><td>叠色效果最自然</td><td>✅ <strong>推荐范围</strong></td></tr>
+      <tr><td><code>200 ~ 255</code></td><td>叠色后接近纯色，缺少层次</td><td>⚠️ 仅用于高光</td></tr>
+    </tbody>
+  </table>
+  <div class="alert alert-yellow">
+    <strong>⚠️ 乘法特性：</strong><code>最终颜色 = 灰度值 × 目标颜色</code>。灰度叠色<strong>只能让颜色变暗</strong>，想要提亮需要程序使用 HDR 值（>1.0）。
+  </div>
+</div>
+
+<!-- ═══ Section 6: 命名与目录规范 ═══ -->
+<div class="section" id="sec6">
+  <h2>⑥ 资产命名与目录规范</h2>
+
+  <h3>文件命名约定</h3>
+  <pre>
+角色代号_部件_Mask编号_版本
+───────────────────────────
+hero001_base.png           ← 基础原图
+hero001_mask1.png          ← 第 1 张 Mask（区域 0~2）
+hero001_mask2.png          ← 第 2 张 Mask（区域 3~5）
+hero001_grayscale.png      ← 灰度底图（方案🅲用）
+hero001_palette_default.png ← 默认调色板（方案🅱用）
+hero001_palette_fire.png   ← 火焰调色板变体
+hero001_config.json        ← 配色方案表</pre>
+
+  <h3>配色方案 JSON 结构</h3>
+  <pre>
+{
+  "character": "hero001",
+  "maskCount": 1,
+  "regions": [
+    { "index": 0, "name": "头发", "channel": "R", "mask": "mask1" },
+    { "index": 1, "name": "上衣", "channel": "G", "mask": "mask1" },
+    { "index": 2, "name": "裤子", "channel": "B", "mask": "mask1" }
+  ],
+  "colorSchemes": [
+    { "name": "默认", "colors": ["#8B4513","#4169E1","#2F4F4F"] },
+    { "name": "暖色", "colors": ["#D2691E","#FF6347","#CD853F"] },
+    { "name": "冷色", "colors": ["#4682B4","#5F9EA0","#708090"] }
+  ]
+}</pre>
+</div>
+
+<!-- ═══ Section 7: 红黑榜 ═══ -->
+<div class="section" id="sec7">
+  <h2>⑦ 图文红黑榜 Do's &amp; Don'ts</h2>
+
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't — Mask 图用 JPEG 保存</h4>
+      <div class="img-placeholder">[ JPEG 压缩伪影 → 通道值出现噪点杂色 ]</div>
+      <p>有损压缩会破坏通道精度，导致换色区域出现随机杂色噪点。</p>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ Do — Mask 图用 PNG/TGA 无损保存</h4>
+      <div class="img-placeholder">[ 干净的通道值 → 换色边缘清晰无杂色 ]</div>
+      <p>无损格式确保每个像素的通道值精确，换色效果纯净。</p>
+    </div>
+  </div>
+
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't — Base 图换色区用纯黑/纯白</h4>
+      <div class="img-placeholder">[ HSV=0,0,0 → 色相偏移无效 → 换任何颜色都是黑 ]</div>
+      <p>纯黑 (0,0,0) 和纯白 (255,255,255) 在 HSV 空间中饱和度为 0，偏移无效。</p>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ Do — 换色区用中等饱和度颜色</h4>
+      <div class="img-placeholder">[ 饱和度 40%~70% → 偏移后自然过渡 ]</div>
+      <p>中等饱和度的颜色在 HSV 偏移后效果最自然，光影层次保留完好。</p>
+    </div>
+  </div>
+
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't — 同一像素 R+G 都有值</h4>
+      <div class="img-placeholder">[ R=200, G=180 → 头发和上衣串色 ]</div>
+      <p>违反通道互斥铁律，导致一个像素同时被两个区域染色，产生脏色。</p>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ Do — 每像素严格只属于一个通道</h4>
+      <div class="img-placeholder">[ R=255, G=0, B=0 → 该像素只属于头发区 ]</div>
+      <p>通道互斥：一个像素的 R/G/B 中只有一个允许有非零值。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Section 8: SOP ═══ -->
+<div class="section" id="sec8">
+  <h2>⑧ 标准作业流程 SOP</h2>
+
+  <div class="flow">
+    <div class="flow-node start"><strong>Step 1</strong><span class="sub">确认换色方案</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Step 2</strong><span class="sub">确认区域数量与通道分配</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Step 3</strong><span class="sub">绘制 Base 图（避免纯黑白）</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node tool"><strong>Step 4</strong><span class="sub">绘制 Mask 遮罩图</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Step 5</strong><span class="sub">自检通道互斥</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Step 6</strong><span class="sub">编写配色 JSON</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>Step 7</strong><span class="sub">打包交付 + 效果预览</span></div>
+  </div>
+
+  <h3>交付资源清单</h3>
+  <pre>
+📁 角色换色资源包（ZIP）
+├── hero001_base.png          ← ① 基础原图（带完整色彩和细节）
+├── hero001_mask1.png         ← ② 换色遮罩图 1（RGBA 四通道）
+├── hero001_mask2.png         ← ③ 换色遮罩图 2（若超过3区域）
+├── hero001_config.json       ← ④ 配色方案表 + 通道定义
+├── hero001_preview_default.png ← ⑤ 默认配色效果预览
+├── hero001_preview_warm.png  ← ⑥ 暖色配色效果预览
+└── hero001_preview_cool.png  ← ⑦ 冷色配色效果预览</pre>
+</div>
+
+<!-- ═══ Section 9: FAQ ═══ -->
+<div class="section" id="sec9">
+  <h2>⑨ 常见问题排查 FAQ</h2>
+
+  <div class="faq-item">
+    <div class="faq-q">❓ 换色后出现杂色/噪点？</div>
+    <div class="faq-a"><strong>原因：</strong>Mask 图使用了 JPEG 或有损压缩格式。<br><strong>解法：</strong>必须使用 PNG/TGA 无损格式导出 Mask 图。</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">❓ 换色边缘有明显锯齿？</div>
+    <div class="faq-a"><strong>原因：</strong>Mask 图边缘是硬切的 0/255 二值。<br><strong>解法：</strong>边缘做 1~2px 的灰度渐变过渡（羽化）。</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">❓ 黑色/白色区域换不了色？</div>
+    <div class="faq-a"><strong>原因：</strong>纯黑 (0,0,0) 在 HSV 空间中 S=0，色相偏移无效。<br><strong>解法：</strong>换色区域避免纯黑纯白，改用深灰 (10,10,10) / 浅灰 (245,245,245)。</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">❓ 两个区域换色互相串色？</div>
+    <div class="faq-a"><strong>原因：</strong>Mask 中同一像素多个通道同时有值，违反互斥铁律。<br><strong>解法：</strong>确保 R/G/B 三通道严格互斥，使用工具批量检测。</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">❓ 换色后光影消失变平？</div>
+    <div class="faq-a"><strong>原因：</strong>原图绘制时换色区域缺少明暗层次。<br><strong>解法：</strong>保证换色区域有足够的光影细节（2~3 级明暗过渡）。</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">❓ Mask 图和原图对不上？</div>
+    <div class="faq-a"><strong>原因：</strong>导出尺寸不一致或存在亚像素偏移。<br><strong>解法：</strong>使用同一画布分层导出，确保 1:1 像素对齐。</div>
+  </div>
+</div>
+
+<!-- ═══ Section 10: Checklist ═══ -->
+<div class="section" id="sec10">
+  <h2>⑩ 出图检查清单 Checklist</h2>
+
+  <h3>出图前确认</h3>
+  <table>
+    <thead><tr><th>序号</th><th>检查项</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>已与程序确认采用哪种换色方案（Mask+HSV / Palette / 灰度叠色）</td><td>☐</td></tr>
+      <tr><td>2</td><td>已确认换色区域数量及通道分配定义</td><td>☐</td></tr>
+      <tr><td>3</td><td>已确认贴图尺寸（2<sup>N</sup>）和格式要求</td><td>☐</td></tr>
+    </tbody>
+  </table>
+
+  <h3>出图时检查</h3>
+  <table>
+    <thead><tr><th>序号</th><th>检查项</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>4</td><td>Base 图换色区域无纯黑(0,0,0) / 纯白(255,255,255)</td><td>☐</td></tr>
+      <tr><td>5</td><td>Mask 图与原图尺寸完全一致、像素级对齐</td><td>☐</td></tr>
+      <tr><td>6</td><td>Mask 图使用 PNG/TGA 无损格式导出</td><td>☐</td></tr>
+      <tr><td>7</td><td>同一像素不同时归属多个换色区域（通道互斥）</td><td>☐</td></tr>
+      <tr><td>8</td><td>Alpha 通道正确标记了不参与换色的区域</td><td>☐</td></tr>
+      <tr><td>9</td><td>Mask 图边缘处理干净，无杂色溢出</td><td>☐</td></tr>
+      <tr><td>10</td><td>配色方案 JSON 格式正确，至少包含 3 套配色</td><td>☐</td></tr>
+    </tbody>
+  </table>
+
+  <h3>交付时提供</h3>
+  <table>
+    <thead><tr><th>序号</th><th>资源</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>11</td><td>基础原图 <code>.png</code></td><td>☐</td></tr>
+      <tr><td>12</td><td>遮罩图 <code>.png</code>（附通道定义说明）</td><td>☐</td></tr>
+      <tr><td>13</td><td>配色方案表 <code>.json</code>（推荐配色组合）</td><td>☐</td></tr>
+      <tr><td>14</td><td>换色区域说明文档（标注哪些部位可换色、哪些不可）</td><td>☐</td></tr>
+      <tr><td>15</td><td>效果预览图（至少 3 套配色的预览）</td><td>☐</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<div class="doc-footer">
+  【2D】角色换色与材质遮罩规范 v3.0 · TA 组 · 美术中心 · 最后更新 2026-04-10<br>
+  如有疑问请联系 TA 组或在知识库 Issue 中反馈
+</div>
+
+</div>
+</body>
+</html>
