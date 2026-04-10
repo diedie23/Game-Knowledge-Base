@@ -122,6 +122,61 @@
   .nav-item:hover { background: var(--accent-bg); color: var(--accent-light); }
   .nav-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
 
+  /* ═══ 导航项内部 flex 布局：图标 + 文字 + 标签居中对齐 ═══ */
+  .nav-item { display: flex; align-items: center; gap: 6px; position: relative; }
+  .nav-item .nav-text { flex: 1; }
+
+  /* ⓘ 信息提示图标 */
+  .nav-info-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;
+    font-size: 10px; font-style: normal; font-weight: 700;
+    background: rgba(108,140,255,0.12); color: var(--accent);
+    cursor: help; position: relative; line-height: 1;
+  }
+  .nav-info-icon:hover { background: rgba(108,140,255,0.25); }
+  /* tooltip 气泡 */
+  .nav-info-icon .info-tooltip {
+    display: none; position: absolute; left: 24px; top: 50%; transform: translateY(-50%);
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; font-size: 12px; color: var(--text); font-weight: 400;
+    white-space: normal; width: 240px; z-index: 200; line-height: 1.6;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3); pointer-events: none;
+  }
+  .nav-info-icon:hover .info-tooltip { display: block; }
+  /* tooltip 小箭头 */
+  .nav-info-icon .info-tooltip::before {
+    content: ''; position: absolute; left: -6px; top: 50%; transform: translateY(-50%);
+    border: 6px solid transparent; border-right-color: var(--border); border-left: none;
+  }
+
+  /* Updated 内联 Badge — 小绿点 + "New" 文字 */
+  .nav-badge-new {
+    display: inline-flex; align-items: center; gap: 3px; flex-shrink: 0;
+    font-size: 9px; font-weight: 600; color: var(--green);
+    padding: 1px 6px 1px 4px; border-radius: 8px;
+    background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.2);
+    line-height: 1.4; text-transform: uppercase; letter-spacing: 0.3px;
+  }
+  .nav-badge-new .badge-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--green); flex-shrink: 0;
+    animation: badge-pulse 2s ease-in-out infinite;
+  }
+  @keyframes badge-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  /* 核心必读 — 右侧小红标 */
+  .nav-badge-core {
+    display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0;
+    font-size: 9px; font-weight: 600; color: var(--red);
+    padding: 1px 5px; border-radius: 4px;
+    background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2);
+    line-height: 1.4;
+  }
+
   .nav-toc {
     padding-left: 12px;
     max-height: 0;
@@ -422,9 +477,17 @@
   <nav class="sidebar-nav" id="sidebarNav">
     <div class="nav-group">
       <div class="nav-group-title">美术规范</div>
-      <button class="nav-item active" onclick="showDoc('doc1', this)">2D UGC 角色出图规范</button>
+      <button class="nav-item active" onclick="showDoc('doc1', this)">
+        <span class="nav-info-icon">ⓘ<span class="info-tooltip">涵盖画布尺寸、文件格式、透明通道、部件拆分、命名规范等完整出图流程指南</span></span>
+        <span class="nav-text">2D UGC 角色出图规范</span>
+        <span class="nav-badge-core">核心必读</span>
+      </button>
       <div class="nav-toc" id="toc-doc1"></div>
-      <button class="nav-item" onclick="showDoc('doc2', this)">2D 角色换色资源规范</button>
+      <button class="nav-item" onclick="showDoc('doc2', this)">
+        <span class="nav-info-icon">ⓘ<span class="info-tooltip">换色技术方案对比、遮罩图制作规范、调色板映射规则与常见踩坑解决方案</span></span>
+        <span class="nav-text">2D 角色换色资源规范</span>
+        <span class="nav-badge-new"><span class="badge-dot"></span>New</span>
+      </button>
       <div class="nav-toc" id="toc-doc2"></div>
     </div>
   </nav>
