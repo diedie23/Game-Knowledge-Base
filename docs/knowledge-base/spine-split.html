@@ -148,6 +148,9 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
 /* 画布平移状态 */
 .canvas-viewport.panning{cursor:grab!important}
 .canvas-viewport.panning-active{cursor:grabbing!important}
+/* v6.0 钢笔编辑模式光标 */
+.canvas-viewport.pen-editing{cursor:default}
+.canvas-viewport.pen-editing-add{cursor:cell}
 
 /* 左右面板可调宽度 */
 .tool-panel{position:relative;min-width:200px;max-width:500px}
@@ -157,7 +160,7 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
 <body>
 
 <div class="header">
-  <h1>✂️ Spine 角色拆分工具 <span class="ver">v5.0</span></h1>
+  <h1>✂️ Spine 角色拆分工具 <span class="ver">v6.0</span></h1>
   <div class="header-actions">
     <button class="btn" onclick="importImage()">📂 导入原图</button>
     <button class="btn" onclick="importPSD()" style="border-color:var(--cyan);color:var(--cyan)">🎨 PSD 直读</button>
@@ -172,8 +175,8 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
 </div>
 
 <div class="guide-bar" id="guideBar">
-  <strong>📖 v5.0：</strong>
-  ① 导入原画 → ② 选择/自制模板 → ③ 📍三点对齐 → ④ 智能选区/套索/✒钢笔(Shift加选|Alt减选) → ⑤ 🧲 Shrink-Wrap → ⑥ 导出(含 Spine JSON + Alpha Bleeding)
+  <strong>📖 v6.0：</strong>
+  ① 导入原画 → ② 选择/自制模板 → ③ 📍三点对齐 → ④ 智能选区/套索/✒钢笔<em style="color:var(--accent2)">(单击=角点|拖拽=曲线|闭合后可编辑)</em>(Shift加选|Alt减选) → ⑤ 🧲 Shrink-Wrap → ⑥ 导出(含 Spine JSON + Alpha Bleeding)
   <span class="close-guide" onclick="document.getElementById('guideBar').style.display='none'">✕</span>
 </div>
 
@@ -324,6 +327,9 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
       <label style="font-size:11px;color:var(--dim);display:flex;align-items:center;gap:4px">
         <input type="checkbox" id="showOverlay" checked onchange="render()"> 显示区域覆盖
       </label>
+      <label style="font-size:11px;color:var(--dim);display:flex;align-items:center;gap:4px" title="遮罩透明度">
+        🌓 <input type="range" id="overlayAlpha" min="0.05" max="0.60" step="0.05" value="0.25" style="width:60px;margin:0" oninput="document.getElementById('overlayAlphaVal').textContent=this.value;render()"> <span id="overlayAlphaVal" style="min-width:28px;text-align:right">0.25</span>
+      </label>
       <label style="font-size:11px;color:var(--dim);display:flex;align-items:center;gap:4px">
         <input type="checkbox" id="showLabels" checked onchange="render()"> 显示标签
       </label>
@@ -460,13 +466,25 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
 <!-- ag-psd for PSD parsing -->
 <script src="https://cdn.jsdelivr.net/npm/ag-psd@19.2.0/dist/browser/index.min.js"></script>
 <script>
-// ═══ Spine 角色拆分工具 v5.0 — 工业级交互升级版 ═══
+// ═══ Spine 角色拆分工具 v6.0 — 贝塞尔曲线钢笔 + 闭合后编辑升级版 ═══
 const S={tool:'rect',zoom:1,imgW:0,imgH:0,loaded:false,currentPart:0,drawing:false,
   startX:0,startY:0,lastX:0,lastY:0,lassoPoints:[],
   lassoMode:'replace', // 'replace' | 'add'(Shift) | 'subtract'(Alt)
   anchorMode:false,anchors:[],anchorStep:0,multiSelect:new Set(),
-  // v5.1 钢笔工具状态
-  penPoints:[],penClosed:false};
+  // v5.1 → v6.0 钢笔工具状态（贝塞尔曲线 + 闭合后编辑）
+  penPoints:[],penClosed:false,
+  // v6.0 钢笔新增：贝塞尔曲线数据结构
+  // penPoints 升级为 [{x,y,handleIn:{x,y},handleOut:{x,y},type:'corner'|'smooth'}]
+  penDragging:false,         // 是否正在拖拽出控制柄
+  penDragStartPos:null,      // 拖拽起始位置
+  // v6.0 钢笔状态机：'DRAWING'(绘制中) | 'EDITING'(编辑中) | 'IDLE'(空闲)
+  penState:'IDLE',
+  // v6.0 编辑状态追踪
+  penEditTarget:null,        // {type:'anchor'|'handleIn'|'handleOut', index:number}
+  penEditDragging:false,
+  penHoverTarget:null,       // 悬浮高亮目标
+  penHoverOnSegment:null     // 悬浮在线段上时的索引 {segIndex, t}
+};
 const defaultParts=[
   {name:'头部',color:'#f66',region:null,split:null,mirror:null},
   {name:'头发',color:'#fa0',region:null,split:null,mirror:null},
@@ -804,12 +822,18 @@ function setupKeyboardV5(){
       case'-':e.preventDefault();zoomOut();break;
       case'escape':
         if(S.anchorMode)cancelAnchorAlign();
-        if(S.tool==='pen'&&S.penPoints.length>0){S.penPoints=[];S.penClosed=false;render();showToast('钢笔路径已取消');}
+        if(S.tool==='pen'){
+          if(S.penState==='EDITING'){S.penState='DRAWING';S.penClosed=false;renderPenOverlay();showToast('已退出编辑模式（可继续绘制或 Escape 取消）');}
+          else if(S.penState==='DRAWING'&&S.penPoints.length>0){resetPenState();render();showToast('钢笔路径已取消');}
+        }
         break;
       case'delete':case'backspace':if(S.multiSelect.size>0)removeSelectedParts();break;
       case'enter':
-        // Enter 键闭合钢笔路径
-        if(S.tool==='pen'&&S.penPoints.length>=3){closePenPath();}break;
+        // v6.0: Enter 键 — DRAWING 时闭合进入编辑，EDITING 时确认提交
+        if(S.tool==='pen'){
+          if(S.penState==='DRAWING'&&S.penPoints.length>=3){S.penClosed=true;S.penState='EDITING';renderPenOverlay();showToast('路径已闭合 · 拖拽编辑 · Enter 再次确认');}
+          else if(S.penState==='EDITING'){penCommitPath();}
+        }break;
       default:
         if(k>='1'&&k<='9'){const idx=parseInt(k)-1;if(idx<parts.length)selectPart(idx);}
     }
@@ -1062,7 +1086,10 @@ function mirrorSelected(){
 }
 function setTool(t){
   // 切换工具时清理钢笔状态
-  if(S.tool==='pen'&&t!=='pen'&&S.penPoints.length>0){S.penPoints=[];S.penClosed=false;render();}
+  if(S.tool==='pen'&&t!=='pen'){
+    if(S.penState==='DRAWING'&&S.penPoints.length>0){S.penPoints=[];S.penClosed=false;S.penState='IDLE';render();}
+    if(S.penState==='EDITING'){S.penState='IDLE';S.penEditTarget=null;S.penEditDragging=false;render();}
+  }
   S.tool=t;
   const map={select:'toolSelect',rect:'toolRect',lasso:'toolLasso',pen:'toolPen',auto:'toolAuto'};
   Object.values(map).forEach(id=>{const el=document.getElementById(id);if(el)el.style.borderColor='';});
@@ -1081,9 +1108,10 @@ function render(){
   if(!S.loaded)return;baseCtx.clearRect(0,0,S.imgW,S.imgH);baseCtx.drawImage(baseImage,0,0);
   regionCtx.clearRect(0,0,S.imgW,S.imgH);
   if(document.getElementById('showOverlay').checked){
-    // ═══ v4.0 全局半透明暗幕：突出选区，减少视觉干扰 ═══
+    // ═══ v6.0 全局半透明暗幕：降低遮罩不透明度，保证底图可见 ═══
+    const overlayAlpha=parseFloat(document.getElementById('overlayAlpha')?.value||0.25);
     regionCtx.save();
-    regionCtx.fillStyle='rgba(0,0,0,0.35)';
+    regionCtx.fillStyle=`rgba(0,0,0,${overlayAlpha})`;
     regionCtx.fillRect(0,0,S.imgW,S.imgH);
     // 扣除所有选区（让选区内部保持原图亮度）
     regionCtx.globalCompositeOperation='destination-out';
@@ -1108,11 +1136,11 @@ function render(){
     const hasLasso=r.lasso&&r.lasso.length>2;
 
     if(hasLasso){
-      // ── 不规则多边形渲染 ──
+      // ── v6.0 不规则多边形渲染（半透明优化）──
       regionCtx.save();
       function buildLP(){regionCtx.beginPath();regionCtx.moveTo(r.lasso[0].x,r.lasso[0].y);for(let k=1;k<r.lasso.length;k++)regionCtx.lineTo(r.lasso[k].x,r.lasso[k].y);regionCtx.closePath();}
-      // 半透明色调填充
-      buildLP();regionCtx.fillStyle=hexToRgba(p.color,isCurrent?0.12:isHovered?0.20:0.06);regionCtx.fill();
+      // 半透明色调填充（使用部件颜色的半透明版本，alpha 0.15~0.30）
+      buildLP();regionCtx.fillStyle=hexToRgba(p.color,isCurrent?0.20:isHovered?0.30:0.10);regionCtx.fill();
       // 内发光效果（clip 到多边形内，沿边缘画粗 shadow）
       regionCtx.save();buildLP();regionCtx.clip();
       regionCtx.shadowColor=hexToRgba(p.color,0.7);
@@ -1129,8 +1157,8 @@ function render(){
       regionCtx.lineDashOffset=marchOffset;regionCtx.stroke();regionCtx.setLineDash([]);
       regionCtx.restore();
     }else{
-      // ── 矩形渲染 ──
-      regionCtx.fillStyle=hexToRgba(p.color,isCurrent?0.12:isHovered?0.20:0.06);regionCtx.fillRect(r.x,r.y,r.w,r.h);
+      // ── v6.0 矩形渲染（半透明优化）──
+      regionCtx.fillStyle=hexToRgba(p.color,isCurrent?0.20:isHovered?0.30:0.10);regionCtx.fillRect(r.x,r.y,r.w,r.h);
       // 内发光
       regionCtx.save();regionCtx.beginPath();regionCtx.rect(r.x,r.y,r.w,r.h);regionCtx.clip();
       regionCtx.shadowColor=hexToRgba(p.color,0.7);regionCtx.shadowBlur=Math.max(6,12/S.zoom);
@@ -1236,19 +1264,92 @@ function setupEvents(){const vp=document.getElementById('viewport');
     if(S.tool==='select')return;
     const pos=getCanvasPos(e);
     if(S.anchorMode){addAnchorPoint(pos.x,pos.y);return;}
-    // ═══ v5.1 钢笔工具：点击放置锚点 ═══
+    // ═══ v6.0 钢笔工具：贝塞尔曲线 + 状态机（DRAWING/EDITING/IDLE）═══
     if(S.tool==='pen'){
-      // v5.1 fix: 在钢笔工具中也检测 Shift/Alt 修饰键
+      // v6.0: Shift/Alt 修饰键
       if(e.shiftKey)S.lassoMode='add';
       else if(e.altKey)S.lassoMode='subtract';
-      else if(S.penPoints.length===0)S.lassoMode='replace'; // 仅在首次点击时重置
+      else if(S.penPoints.length===0&&S.penState!=='EDITING')S.lassoMode='replace';
+
+      // ── EDITING 状态：闭合后二次编辑 ──
+      if(S.penState==='EDITING'){
+        const hitR=7/S.zoom; // 碰撞检测容差
+        // Alt+点击锚点 → 切换角点/平滑点
+        if(e.altKey){
+          for(let i=0;i<S.penPoints.length;i++){
+            const pt=S.penPoints[i];
+            if(Math.sqrt((pos.x-pt.x)**2+(pos.y-pt.y)**2)<hitR){
+              if(pt.type==='smooth'){
+                pt.type='corner';pt.handleIn={x:pt.x,y:pt.y};pt.handleOut={x:pt.x,y:pt.y};
+              }else{
+                pt.type='smooth';
+                // 根据相邻点自动生成控制柄
+                const prev=S.penPoints[(i-1+S.penPoints.length)%S.penPoints.length];
+                const next=S.penPoints[(i+1)%S.penPoints.length];
+                const dx=(next.x-prev.x)*0.25,dy=(next.y-prev.y)*0.25;
+                pt.handleIn={x:pt.x-dx,y:pt.y-dy};pt.handleOut={x:pt.x+dx,y:pt.y+dy};
+              }
+              renderPenOverlay();return;
+            }
+          }
+          // Alt+点击锚点删除
+          for(let i=0;i<S.penPoints.length;i++){
+            const pt=S.penPoints[i];
+            if(Math.sqrt((pos.x-pt.x)**2+(pos.y-pt.y)**2)<hitR){
+              if(S.penPoints.length<=3){showToast('最少保留 3 个锚点');return;}
+              S.penPoints.splice(i,1);renderPenOverlay();return;
+            }
+          }
+        }
+        // 检测拖拽目标：先检查控制柄（优先级高于锚点）
+        for(let i=0;i<S.penPoints.length;i++){
+          const pt=S.penPoints[i];
+          if(pt.type==='smooth'||pt.handleOut.x!==pt.x||pt.handleOut.y!==pt.y){
+            if(Math.sqrt((pos.x-pt.handleOut.x)**2+(pos.y-pt.handleOut.y)**2)<hitR){
+              S.penEditTarget={type:'handleOut',index:i};S.penEditDragging=true;renderPenOverlay();return;
+            }
+            if(Math.sqrt((pos.x-pt.handleIn.x)**2+(pos.y-pt.handleIn.y)**2)<hitR){
+              S.penEditTarget={type:'handleIn',index:i};S.penEditDragging=true;renderPenOverlay();return;
+            }
+          }
+        }
+        // 检测拖拽锚点
+        for(let i=0;i<S.penPoints.length;i++){
+          const pt=S.penPoints[i];
+          if(Math.sqrt((pos.x-pt.x)**2+(pos.y-pt.y)**2)<hitR){
+            S.penEditTarget={type:'anchor',index:i};S.penEditDragging=true;renderPenOverlay();return;
+          }
+        }
+        // 点击线段上 → 插入新锚点
+        if(S.penHoverOnSegment!==null){
+          const seg=S.penHoverOnSegment;
+          const newPt={x:pos.x,y:pos.y,handleIn:{x:pos.x,y:pos.y},handleOut:{x:pos.x,y:pos.y},type:'corner'};
+          S.penPoints.splice(seg.segIndex+1,0,newPt);
+          S.penEditTarget={type:'anchor',index:seg.segIndex+1};S.penEditDragging=true;
+          renderPenOverlay();return;
+        }
+        // 点击空白处 → 退出编辑模式并提交选区
+        penCommitPath();return;
+      }
+
+      // ── DRAWING 状态 / IDLE → 开始绘制 ──
+      if(S.penState==='IDLE')S.penState='DRAWING';
+
       // 检测是否点击了起始点（闭合路径）
       if(S.penPoints.length>=3){
         const sp=S.penPoints[0];
         const dist=Math.sqrt((pos.x-sp.x)**2+(pos.y-sp.y)**2);
-        if(dist<8/S.zoom){closePenPath();return;}
+        if(dist<8/S.zoom){
+          // 闭合后进入编辑状态
+          S.penClosed=true;S.penState='EDITING';renderPenOverlay();
+          showToast('路径已闭合 · 拖拽锚点/控制柄编辑 · 点击线段插入锚点 · Alt+点击删除/转换 · Enter 确认');
+          return;
+        }
       }
-      S.penPoints.push({x:pos.x,y:pos.y});
+      // 新建锚点（默认角点，mouseup 时根据是否拖拽决定类型）
+      const newPt={x:pos.x,y:pos.y,handleIn:{x:pos.x,y:pos.y},handleOut:{x:pos.x,y:pos.y},type:'corner'};
+      S.penPoints.push(newPt);
+      S.penDragging=true;S.penDragStartPos={x:pos.x,y:pos.y};
       renderPenOverlay();return;
     }
     S.drawing=true;S.startX=pos.x;S.startY=pos.y;
@@ -1304,19 +1405,100 @@ function setupEvents(){const vp=document.getElementById('viewport');
       }
       regionCtx.restore();
     }
-    // ═══ v5.1 钢笔工具：鼠标移动时绘制预览线到最后锚点 ═══
-    if(S.tool==='pen'&&S.penPoints.length>0&&!S.drawing){
-      renderPenOverlay();
-      // 叠加：最后锚点→鼠标位置的虚线
-      const last=S.penPoints[S.penPoints.length-1];
-      regionCtx.save();
-      regionCtx.beginPath();regionCtx.moveTo(last.x,last.y);regionCtx.lineTo(pos.x,pos.y);
-      regionCtx.strokeStyle='rgba(255,255,255,0.4)';regionCtx.lineWidth=1/S.zoom;
-      regionCtx.setLineDash([3/S.zoom,3/S.zoom]);regionCtx.stroke();regionCtx.setLineDash([]);
-      regionCtx.restore();
+    // ═══ v6.0 钢笔工具：mousemove 处理贝塞尔拖拽 + 编辑 + 预览 ═══
+    if(S.tool==='pen'&&S.penPoints.length>0){
+      // DRAWING 模式：拖拽创建控制柄
+      if(S.penState==='DRAWING'&&S.penDragging){
+        const lastPt=S.penPoints[S.penPoints.length-1];
+        const dx=pos.x-S.penDragStartPos.x,dy=pos.y-S.penDragStartPos.y;
+        lastPt.handleOut={x:lastPt.x+dx,y:lastPt.y+dy};
+        lastPt.handleIn={x:lastPt.x-dx,y:lastPt.y-dy};
+        if(Math.sqrt(dx*dx+dy*dy)>3/S.zoom)lastPt.type='smooth';
+        renderPenOverlay();
+        // 叠加预览线到鼠标位置
+        return;
+      }
+      // EDITING 模式：拖拽锚点/控制柄
+      if(S.penState==='EDITING'&&S.penEditDragging&&S.penEditTarget){
+        const t=S.penEditTarget;
+        const pt=S.penPoints[t.index];
+        if(t.type==='anchor'){
+          const dx=pos.x-pt.x,dy=pos.y-pt.y;
+          pt.x=pos.x;pt.y=pos.y;
+          pt.handleIn.x+=dx;pt.handleIn.y+=dy;
+          pt.handleOut.x+=dx;pt.handleOut.y+=dy;
+        }else if(t.type==='handleOut'){
+          pt.handleOut={x:pos.x,y:pos.y};
+          if(pt.type==='smooth'){
+            // 对称模式：handleIn 镜像
+            pt.handleIn={x:2*pt.x-pos.x,y:2*pt.y-pos.y};
+          }
+        }else if(t.type==='handleIn'){
+          pt.handleIn={x:pos.x,y:pos.y};
+          if(pt.type==='smooth'){
+            pt.handleOut={x:2*pt.x-pos.x,y:2*pt.y-pos.y};
+          }
+        }
+        renderPenOverlay();return;
+      }
+      // EDITING 模式：悬浮检测（高亮锚点、控制柄、线段）
+      if(S.penState==='EDITING'){
+        const hitR=7/S.zoom;
+        S.penHoverTarget=null;S.penHoverOnSegment=null;
+        // 检测控制柄
+        for(let i=0;i<S.penPoints.length;i++){
+          const pt=S.penPoints[i];
+          if(pt.handleOut.x!==pt.x||pt.handleOut.y!==pt.y){
+            if(Math.sqrt((pos.x-pt.handleOut.x)**2+(pos.y-pt.handleOut.y)**2)<hitR){S.penHoverTarget={type:'handleOut',index:i};break;}
+            if(Math.sqrt((pos.x-pt.handleIn.x)**2+(pos.y-pt.handleIn.y)**2)<hitR){S.penHoverTarget={type:'handleIn',index:i};break;}
+          }
+        }
+        if(!S.penHoverTarget){
+          for(let i=0;i<S.penPoints.length;i++){
+            if(Math.sqrt((pos.x-S.penPoints[i].x)**2+(pos.y-S.penPoints[i].y)**2)<hitR){S.penHoverTarget={type:'anchor',index:i};break;}
+          }
+        }
+        // 检测线段悬浮（用于插入锚点提示）
+        if(!S.penHoverTarget&&S.penClosed){
+          for(let i=0;i<S.penPoints.length;i++){
+            const j=(i+1)%S.penPoints.length;
+            const dToSeg=distToSegment(pos,S.penPoints[i],S.penPoints[j]);
+            if(dToSeg<6/S.zoom){S.penHoverOnSegment={segIndex:i,t:0.5};break;}
+          }
+        }
+        // v6.0 动态光标切换
+        const vpEl=document.getElementById('viewport');
+        vpEl.classList.remove('pen-editing','pen-editing-add');
+        if(S.penHoverTarget)vpEl.style.cursor='move';
+        else if(S.penHoverOnSegment){vpEl.classList.add('pen-editing-add');vpEl.style.cursor='';}
+        else{vpEl.classList.add('pen-editing');vpEl.style.cursor='';}
+        renderPenOverlay();return;
+      }
+      // DRAWING 模式：非拖拽时，绘制预览线到鼠标位置
+      if(S.penState==='DRAWING'&&!S.penDragging){
+        renderPenOverlay();
+        const last=S.penPoints[S.penPoints.length-1];
+        regionCtx.save();
+        regionCtx.beginPath();
+        // 从最后锚点的 handleOut 画贝塞尔预览线
+        if(last.handleOut.x!==last.x||last.handleOut.y!==last.y){
+          regionCtx.moveTo(last.x,last.y);
+          regionCtx.bezierCurveTo(last.handleOut.x,last.handleOut.y,pos.x,pos.y,pos.x,pos.y);
+        }else{
+          regionCtx.moveTo(last.x,last.y);regionCtx.lineTo(pos.x,pos.y);
+        }
+        regionCtx.strokeStyle='rgba(255,255,255,0.4)';regionCtx.lineWidth=1/S.zoom;
+        regionCtx.setLineDash([3/S.zoom,3/S.zoom]);regionCtx.stroke();regionCtx.setLineDash([]);
+        regionCtx.restore();
+      }
     }
     }});
   vp.addEventListener('mouseup',e=>{
+    // ═══ v6.0 钢笔工具 mouseup：结束拖拽 ═══
+    if(S.tool==='pen'){
+      if(S.penState==='DRAWING'&&S.penDragging){S.penDragging=false;renderPenOverlay();return;}
+      if(S.penState==='EDITING'&&S.penEditDragging){S.penEditDragging=false;S.penEditTarget=null;renderPenOverlay();return;}
+    }
     if(S.isPanning){S.isPanning=false;vp.classList.remove('panning-active');return;}
     if(!S.drawing)return;const pos=getCanvasPos(e);S.drawing=false;
     if(S.tool==='rect'){const x=Math.min(S.startX,pos.x),y=Math.min(S.startY,pos.y),w=Math.abs(pos.x-S.startX),h=Math.abs(pos.y-S.startY);
@@ -1385,8 +1567,20 @@ function setupEvents(){const vp=document.getElementById('viewport');
       }
       S.lassoMode='replace';
     }});
-  // v5.1 双击闭合钢笔路径
-  vp.addEventListener('dblclick',e=>{if(S.tool==='pen'&&S.penPoints.length>=3){e.preventDefault();closePenPath();}});
+  // v6.0 双击处理：绘制时闭合进入编辑，编辑时确认提交
+  vp.addEventListener('dblclick',e=>{
+    if(S.tool==='pen'){
+      e.preventDefault();
+      if(S.penState==='DRAWING'&&S.penPoints.length>=3){
+        // 移除双击产生的最后一个多余点
+        S.penPoints.pop();
+        S.penClosed=true;S.penState='EDITING';renderPenOverlay();
+        showToast('路径已闭合 · 拖拽编辑 · Alt+点击转换/删除锚点 · Enter 确认');
+      }else if(S.penState==='EDITING'){
+        penCommitPath();
+      }
+    }
+  });
   vp.addEventListener('wheel',e=>{if(!S.loaded)return;e.preventDefault();
     const vpR=vp.getBoundingClientRect();const mx=e.clientX-vpR.left,my=e.clientY-vpR.top;
     zoomAtPoint(mx,my,e.deltaY<0?1.15:1/1.15);},{passive:false});
@@ -1394,75 +1588,205 @@ function setupEvents(){const vp=document.getElementById('viewport');
   // v5.0 键盘事件已移至 setupKeyboardV5()
 }
 
-// ═══ v5.1 钢笔工具：锚点放置 + 路径渲染 + 闭合转选区 ═══
+// ═══ v6.0 钢笔工具：贝塞尔曲线渲染 + 锚点/控制柄可视化 + 编辑反馈 ═══
+
+// 辅助函数：点到线段距离
+function distToSegment(p,a,b){
+  const dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy;
+  if(len2===0)return Math.sqrt((p.x-a.x)**2+(p.y-a.y)**2);
+  let t=((p.x-a.x)*dx+(p.y-a.y)*dy)/len2;t=Math.max(0,Math.min(1,t));
+  const px=a.x+t*dx,py=a.y+t*dy;
+  return Math.sqrt((p.x-px)**2+(p.y-py)**2);
+}
+
+// 辅助函数：沿贝塞尔路径采样点（用于最终转为 lasso 多边形）
+function sampleBezierPath(points,closed,samplesPerSeg){
+  samplesPerSeg=samplesPerSeg||20;
+  const result=[];
+  const len=closed?points.length:points.length-1;
+  for(let i=0;i<len;i++){
+    const p0=points[i],p1=points[(i+1)%points.length];
+    const cp1=p0.handleOut,cp2=p1.handleIn;
+    const isCurve=(cp1.x!==p0.x||cp1.y!==p0.y||cp2.x!==p1.x||cp2.y!==p1.y);
+    for(let s=0;s<samplesPerSeg;s++){
+      const t=s/samplesPerSeg;
+      if(isCurve){
+        // 三次贝塞尔
+        const u=1-t;
+        result.push({
+          x:u*u*u*p0.x+3*u*u*t*cp1.x+3*u*t*t*cp2.x+t*t*t*p1.x,
+          y:u*u*u*p0.y+3*u*u*t*cp1.y+3*u*t*t*cp2.y+t*t*t*p1.y
+        });
+      }else{
+        result.push({x:p0.x+(p1.x-p0.x)*t,y:p0.y+(p1.y-p0.y)*t});
+      }
+    }
+  }
+  if(!closed&&points.length>0)result.push({x:points[points.length-1].x,y:points[points.length-1].y});
+  return result;
+}
+
+// 辅助函数：构建贝塞尔路径（用于 Canvas 绘制）
+function buildBezierPath(ctx,points,closed){
+  if(points.length<2)return;
+  ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);
+  const len=closed?points.length:points.length-1;
+  for(let i=0;i<len;i++){
+    const p0=points[i],p1=points[(i+1)%points.length];
+    const cp1=p0.handleOut,cp2=p1.handleIn;
+    if((cp1.x!==p0.x||cp1.y!==p0.y)||(cp2.x!==p1.x||cp2.y!==p1.y)){
+      ctx.bezierCurveTo(cp1.x,cp1.y,cp2.x,cp2.y,p1.x,p1.y);
+    }else{
+      ctx.lineTo(p1.x,p1.y);
+    }
+  }
+  if(closed)ctx.closePath();
+}
+
 function renderPenOverlay(){
   if(S.tool!=='pen'||S.penPoints.length===0)return;
   render();// 先刷底
   regionCtx.save();
   const pts=S.penPoints;
   const marchOff=-(Date.now()/60%16);
-  // 绘制已有线段
-  regionCtx.beginPath();
-  regionCtx.moveTo(pts[0].x,pts[0].y);
-  for(let k=1;k<pts.length;k++) regionCtx.lineTo(pts[k].x,pts[k].y);
+  const isEditing=S.penState==='EDITING';
+  const isClosed=S.penClosed;
+
+  // ── 绘制贝塞尔曲线路径 ──
+  buildBezierPath(regionCtx,pts,isClosed);
   // 白色底线
   regionCtx.strokeStyle='rgba(255,255,255,0.5)';regionCtx.lineWidth=2/S.zoom;
   regionCtx.setLineDash([]);regionCtx.stroke();
-  // 蚂蚁线
+  // 彩色蚂蚁线
+  buildBezierPath(regionCtx,pts,isClosed);
   regionCtx.strokeStyle=parts[S.currentPart].color;regionCtx.lineWidth=1.5/S.zoom;
   regionCtx.setLineDash([5/S.zoom,4/S.zoom]);regionCtx.lineDashOffset=marchOff;regionCtx.stroke();
   regionCtx.setLineDash([]);
-  // 闭合虚线（最后点→起点）
-  if(pts.length>=2){
+
+  // ── 闭合路径：半透明填充（需求1：使用部件颜色的 0.15 透明度）──
+  if(isClosed){
+    buildBezierPath(regionCtx,pts,true);
+    regionCtx.fillStyle=hexToRgba(parts[S.currentPart].color,0.15);
+    regionCtx.fill();
+  }
+
+  // ── 未闭合时：绘制首尾虚线 ──
+  if(!isClosed&&pts.length>=2){
     regionCtx.beginPath();regionCtx.moveTo(pts[pts.length-1].x,pts[pts.length-1].y);
     regionCtx.lineTo(pts[0].x,pts[0].y);
     regionCtx.strokeStyle='rgba(255,255,255,0.25)';regionCtx.lineWidth=1/S.zoom;
     regionCtx.setLineDash([3/S.zoom,3/S.zoom]);regionCtx.stroke();regionCtx.setLineDash([]);
   }
-  // 绘制锚点
+
+  // ── 绘制控制柄连线和控制点（编辑模式或绘制模式都显示）──
   pts.forEach((p,i)=>{
-    regionCtx.beginPath();regionCtx.arc(p.x,p.y,4/S.zoom,0,Math.PI*2);
-    regionCtx.fillStyle=i===0?'#fff':parts[S.currentPart].color;
-    regionCtx.fill();
-    regionCtx.strokeStyle=i===0?parts[S.currentPart].color:'#fff';
-    regionCtx.lineWidth=1.5/S.zoom;regionCtx.stroke();
+    const hasHandle=(p.handleOut.x!==p.x||p.handleOut.y!==p.y||p.handleIn.x!==p.x||p.handleIn.y!==p.y);
+    if(hasHandle){
+      // handleOut 连线
+      if(p.handleOut.x!==p.x||p.handleOut.y!==p.y){
+        regionCtx.beginPath();regionCtx.moveTo(p.x,p.y);regionCtx.lineTo(p.handleOut.x,p.handleOut.y);
+        regionCtx.strokeStyle='rgba(167,139,250,0.7)';regionCtx.lineWidth=1/S.zoom;regionCtx.setLineDash([]);regionCtx.stroke();
+        // handleOut 圆点
+        const isHovered=S.penHoverTarget&&S.penHoverTarget.type==='handleOut'&&S.penHoverTarget.index===i;
+        regionCtx.beginPath();regionCtx.arc(p.handleOut.x,p.handleOut.y,isHovered?4/S.zoom:3/S.zoom,0,Math.PI*2);
+        regionCtx.fillStyle=isHovered?'#a78bfa':'rgba(167,139,250,0.8)';regionCtx.fill();
+        regionCtx.strokeStyle='#fff';regionCtx.lineWidth=1/S.zoom;regionCtx.stroke();
+      }
+      // handleIn 连线
+      if(p.handleIn.x!==p.x||p.handleIn.y!==p.y){
+        regionCtx.beginPath();regionCtx.moveTo(p.x,p.y);regionCtx.lineTo(p.handleIn.x,p.handleIn.y);
+        regionCtx.strokeStyle='rgba(167,139,250,0.7)';regionCtx.lineWidth=1/S.zoom;regionCtx.setLineDash([]);regionCtx.stroke();
+        // handleIn 圆点
+        const isHovered=S.penHoverTarget&&S.penHoverTarget.type==='handleIn'&&S.penHoverTarget.index===i;
+        regionCtx.beginPath();regionCtx.arc(p.handleIn.x,p.handleIn.y,isHovered?4/S.zoom:3/S.zoom,0,Math.PI*2);
+        regionCtx.fillStyle=isHovered?'#a78bfa':'rgba(167,139,250,0.8)';regionCtx.fill();
+        regionCtx.strokeStyle='#fff';regionCtx.lineWidth=1/S.zoom;regionCtx.stroke();
+      }
+    }
   });
-  // 起点高亮圈（提示可闭合）
-  if(pts.length>=3){
+
+  // ── 绘制锚点（方块表示角点，圆形表示平滑点）──
+  pts.forEach((p,i)=>{
+    const isHovered=S.penHoverTarget&&S.penHoverTarget.type==='anchor'&&S.penHoverTarget.index===i;
+    const sz=isHovered?5/S.zoom:4/S.zoom;
+    if(p.type==='smooth'){
+      // 平滑点 → 圆形
+      regionCtx.beginPath();regionCtx.arc(p.x,p.y,sz,0,Math.PI*2);
+      regionCtx.fillStyle=i===0?'#fff':parts[S.currentPart].color;
+      regionCtx.fill();
+      regionCtx.strokeStyle=i===0?parts[S.currentPart].color:'#fff';
+      regionCtx.lineWidth=1.5/S.zoom;regionCtx.stroke();
+    }else{
+      // 角点 → 方块
+      regionCtx.fillStyle=i===0?'#fff':parts[S.currentPart].color;
+      regionCtx.fillRect(p.x-sz,p.y-sz,sz*2,sz*2);
+      regionCtx.strokeStyle=i===0?parts[S.currentPart].color:'#fff';
+      regionCtx.lineWidth=1.5/S.zoom;
+      regionCtx.strokeRect(p.x-sz,p.y-sz,sz*2,sz*2);
+    }
+  });
+
+  // ── 起点高亮圈（未闭合时提示可闭合）──
+  if(!isClosed&&pts.length>=3){
     regionCtx.beginPath();regionCtx.arc(pts[0].x,pts[0].y,8/S.zoom,0,Math.PI*2);
     regionCtx.strokeStyle='rgba(255,255,255,0.6)';regionCtx.lineWidth=1/S.zoom;
     regionCtx.setLineDash([2/S.zoom,2/S.zoom]);regionCtx.stroke();regionCtx.setLineDash([]);
   }
-  // 锚点计数提示
+
+  // ── 线段悬浮高亮（编辑模式，提示可插入锚点）──
+  if(isEditing&&S.penHoverOnSegment!==null){
+    const segIdx=S.penHoverOnSegment.segIndex;
+    const p0=pts[segIdx],p1=pts[(segIdx+1)%pts.length];
+    regionCtx.beginPath();
+    if((p0.handleOut.x!==p0.x||p0.handleOut.y!==p0.y)||(p1.handleIn.x!==p1.x||p1.handleIn.y!==p1.y)){
+      regionCtx.moveTo(p0.x,p0.y);
+      regionCtx.bezierCurveTo(p0.handleOut.x,p0.handleOut.y,p1.handleIn.x,p1.handleIn.y,p1.x,p1.y);
+    }else{
+      regionCtx.moveTo(p0.x,p0.y);regionCtx.lineTo(p1.x,p1.y);
+    }
+    regionCtx.strokeStyle='rgba(255,255,255,0.9)';regionCtx.lineWidth=3/S.zoom;regionCtx.setLineDash([]);regionCtx.stroke();
+    // "+" 光标提示
+    regionCtx.font=`bold ${14/S.zoom}px sans-serif`;
+    regionCtx.fillStyle='#4ade80';
+    const mx=(p0.x+p1.x)/2,my=(p0.y+p1.y)/2;
+    regionCtx.fillText('＋',mx+5/S.zoom,my-5/S.zoom);
+  }
+
+  // ── 状态提示文字 ──
+  const lastPt=pts[pts.length-1];
   regionCtx.font=`${11/S.zoom}px sans-serif`;
   regionCtx.fillStyle='rgba(255,255,255,0.7)';
-  regionCtx.fillText(`✒ ${pts.length} 点 · 点击起点或按 Enter 闭合`,pts[pts.length-1].x+10/S.zoom,pts[pts.length-1].y-8/S.zoom);
+  if(isEditing){
+    regionCtx.fillText('✒ 编辑中 · 拖拽锚点/控制柄 · Alt+点击转换 · Enter 确认',lastPt.x+10/S.zoom,lastPt.y-8/S.zoom);
+  }else{
+    regionCtx.fillText(`✒ ${pts.length} 点 · 单击=角点 拖拽=曲线 · 点击起点/Enter 闭合`,lastPt.x+10/S.zoom,lastPt.y-8/S.zoom);
+  }
   regionCtx.restore();
 }
-function closePenPath(){
+
+// ═══ v6.0 钢笔路径确认提交（将贝塞尔路径采样为多边形写入选区）═══
+function penCommitPath(){
   if(S.penPoints.length<3){showToast('至少需要 3 个锚点');return;}
   saveHistory();
-  const pts=S.penPoints;
+  // 将贝塞尔路径采样为高精度多边形
+  const sampledPoly=sampleBezierPath(S.penPoints,true,30);
   const curRegion=parts[S.currentPart].region;
   let finalLasso;
-  // v5.1 fix: S.lassoMode 已在 mousedown 中正确设置，此处直接使用
   if(S.lassoMode!=='replace'&&curRegion){
-    // 获取现有选区的多边形（支持 lasso 型和矩形型）
     let existingPoly=null;
     if(curRegion.lasso&&curRegion.lasso.length>2){
       existingPoly=curRegion.lasso;
     }else if(curRegion.w>0&&curRegion.h>0){
-      // 矩形选区转为4点多边形
       existingPoly=[{x:curRegion.x,y:curRegion.y},{x:curRegion.x+curRegion.w,y:curRegion.y},{x:curRegion.x+curRegion.w,y:curRegion.y+curRegion.h},{x:curRegion.x,y:curRegion.y+curRegion.h}];
     }
     if(existingPoly){
-      finalLasso=mergePolygons(existingPoly,pts,S.lassoMode);
-      if(!finalLasso||finalLasso.length<3){showToast(S.lassoMode==='subtract'?'减选后无剩余区域':'合并失败');S.penPoints=[];S.penClosed=false;return;}
+      finalLasso=mergePolygons(existingPoly,sampledPoly,S.lassoMode);
+      if(!finalLasso||finalLasso.length<3){showToast(S.lassoMode==='subtract'?'减选后无剩余区域':'合并失败');resetPenState();return;}
     }else{
-      finalLasso=pts;
+      finalLasso=sampledPoly;
     }
   }else{
-    finalLasso=pts;
+    finalLasso=sampledPoly;
   }
   const xs=finalLasso.map(p=>p.x),ys=finalLasso.map(p=>p.y);
   const x=Math.min(...xs),y=Math.min(...ys),w=Math.max(...xs)-x,h=Math.max(...ys)-y;
@@ -1471,9 +1795,23 @@ function closePenPath(){
     parts[S.currentPart].split=null;
     buildPartGrid();render();updatePartPreview();updateStats();
     const modeLabel=S.lassoMode==='add'?'（增选）':S.lassoMode==='subtract'?'（减选）':'';
-    showToast(`钢笔选区${modeLabel}: ${finalLasso.length}点 · ${w}×${h}px`);
+    showToast(`贝塞尔选区${modeLabel}: ${finalLasso.length}点 · ${w.toFixed(0)}×${h.toFixed(0)}px`);
   }
-  S.penPoints=[];S.penClosed=false;S.lassoMode='replace';
+  resetPenState();
+}
+
+function resetPenState(){
+  S.penPoints=[];S.penClosed=false;S.penState='IDLE';S.penDragging=false;
+  S.penEditTarget=null;S.penEditDragging=false;S.penHoverTarget=null;S.penHoverOnSegment=null;
+  S.lassoMode='replace';
+}
+
+// 兼容旧版调用
+function closePenPath(){
+  if(S.penPoints.length<3){showToast('至少需要 3 个锚点');return;}
+  // v6.0: 闭合后进入编辑模式而非直接提交
+  S.penClosed=true;S.penState='EDITING';renderPenOverlay();
+  showToast('路径已闭合 · 可拖拽调整锚点/控制柄 · Enter 确认');
 }
 
 function drawCursor(x,y){cursorCtx.clearRect(0,0,S.imgW,S.imgH);cursorCtx.beginPath();cursorCtx.arc(x,y,3,0,Math.PI*2);cursorCtx.fillStyle='rgba(255,255,255,0.8)';cursorCtx.fill();cursorCtx.strokeStyle='rgba(0,0,0,0.5)';cursorCtx.lineWidth=1/S.zoom;cursorCtx.stroke();}
