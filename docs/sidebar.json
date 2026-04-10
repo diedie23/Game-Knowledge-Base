@@ -1,5 +1,5 @@
 {
-  "version": "6.0",
+  "version": "7.0",
   "lastUpdate": "2026-04-10",
   "categories": [
     {
@@ -88,31 +88,30 @@
       "color": "purple",
       "groups": [
         {
-          "name": "2D 角色工艺",
+          "name": "📐 通用基础 (工艺与规范)",
+          "icon": "📐",
+          "items": [
+            { "id": "char-naming-redline", "icon": "📏", "title": "[通用] 资产命名与性能红线", "type": "iframe", "file": "knowledge-base/ugc-character-spec.html", "badge": "通用", "craft": "通用" }
+          ]
+        },
+        {
+          "name": "👤 2D 角色 (工艺与规范)",
           "icon": "👤",
           "items": [
-            { "id": "char-naming-redline", "icon": "📏", "title": "[通用·角色] 资产命名与性能红线", "type": "iframe", "file": "knowledge-base/ugc-character-spec.html", "badge": "通用", "craft": "角色" },
             { "id": "char-color-swap-mask", "icon": "🎨", "title": "[2D·角色] 换色工艺与资产交付规范", "type": "iframe", "file": "knowledge-base/char-color-swap-mask.html", "badge": "2D", "craft": "角色" },
             { "id": "char-spine-anim-spec", "icon": "🦴", "title": "[2D·角色] Spine 骨骼动画导出与性能规范", "type": "iframe", "file": "knowledge-base/spine-perf-guide.html", "badge": "2D", "craft": "角色" }
           ]
         },
         {
-          "name": "3D 角色工艺",
+          "name": "🧊 3D 角色 (工艺与规范)",
           "icon": "🧊",
           "items": [
-            { "id": "char-3d-topo-pbr", "icon": "🧊", "title": "[3D·角色] 拓扑与 PBR 贴图规范", "type": "iframe", "file": "knowledge-base/char-3d-topo-pbr.html", "badge": "3D", "craft": "角色" }
+            { "id": "char-3d-topo-pbr", "icon": "🧊", "title": "[3D·角色] 拓扑与 PBR 贴图规范", "type": "iframe", "file": "knowledge-base/char-3d-topo-pbr.html", "badge": "3D", "craft": "角色" },
+            { "id": "anim-state-handoff", "icon": "🎬", "title": "[3D·角色] 动画状态机交接与导出规范", "type": "iframe", "file": "knowledge-base/anim-state-handoff.html", "badge": "3D", "craft": "角色" }
           ]
         },
         {
-          "name": "UGC 专项",
-          "icon": "🧩",
-          "items": [
-            { "id": "char-ugc-parts-safety", "icon": "📐", "title": "[UGC·角色] 部件拆分与安全区规范", "type": "iframe", "file": "knowledge-base/char-ugc-parts-safety.html", "badge": "UGC", "craft": "角色" },
-            { "id": "d1", "icon": "📐", "title": "[UGC·角色] 2D 出图与图层规范", "type": "iframe", "file": "knowledge-base/art/2D-UGC角色出图规范.html", "badge": "UGC", "craft": "角色" }
-          ]
-        },
-        {
-          "name": "UI 资产规范",
+          "name": "🖥️ UI (工艺与规范)",
           "icon": "🖥️",
           "items": [
             { "id": "ui-slice-naming", "icon": "✂️", "title": "[UI] 切图与命名规范", "type": "iframe", "file": "knowledge-base/ui-slice-naming.html", "badge": "UI", "craft": "UI" },
@@ -122,28 +121,29 @@
           ]
         },
         {
-          "name": "场景资产规范",
+          "name": "🏔️ 场景 (工艺与规范)",
           "icon": "🏔️",
           "items": [
             { "id": "scene-lod-spec", "icon": "🏗️", "title": "[场景] 模块化与 LOD 规范", "type": "iframe", "file": "knowledge-base/scene-lod-spec.html", "badge": "场景", "craft": "场景" }
           ]
         },
         {
-          "name": "特效资产规范",
+          "name": "✨ 特效 (工艺与规范)",
           "icon": "✨",
           "items": [
             { "id": "vfx-perf-spec", "icon": "✨", "title": "[特效] 性能红线与层级规范", "type": "iframe", "file": "knowledge-base/vfx-perf-spec.html", "badge": "特效", "craft": "特效" }
           ]
         },
         {
-          "name": "动画资产规范",
-          "icon": "🎬",
+          "name": "🧩 UGC 专项管线 (工艺与规范)",
+          "icon": "🧩",
           "items": [
-            { "id": "anim-state-handoff", "icon": "🎬", "title": "[动画] 状态机交接与导出规范", "type": "iframe", "file": "knowledge-base/anim-state-handoff.html", "badge": "动画", "craft": "动画" }
+            { "id": "char-ugc-parts-safety", "icon": "📐", "title": "[UGC] 部件拆分与安全区规范", "type": "iframe", "file": "knowledge-base/char-ugc-parts-safety.html", "badge": "UGC", "craft": "UGC" },
+            { "id": "d1", "icon": "📐", "title": "[UGC] 2D 出图与图层规范", "type": "iframe", "file": "knowledge-base/art/2D-UGC角色出图规范.html", "badge": "UGC", "craft": "UGC" }
           ]
         },
         {
-          "name": "AIGC 规范",
+          "name": "🤖 AIGC 专项管线 (工艺与规范)",
           "icon": "🤖",
           "items": [
             { "id": "aigc-production-spec", "icon": "🤖", "title": "[AIGC] 辅助生产规范", "type": "iframe", "file": "knowledge-base/aigc-production-spec.html", "badge": "AIGC", "craft": "AIGC" }

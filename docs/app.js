@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════
-// APM 专属知识库 v6.0 — 美术项目管理增强版
+// APM 专属知识库 v7.0 — 美术项目管理增强版
 // 核心架构：30% 美术生产 · 30% 跨部门协同 · 20% 提效工具 · 20% 成本·风险·团队
-// v6.0新增：知识库架构重构(MECE) · 角色模块拆分(2D/3D/UGC) · 工具规范迁移 · 标题统一命名
+// v7.0新增：美术工艺MECE重构 · 通用基础层 · 动画归入3D · UGC/AIGC专项管线 · 统一命名范式
 // ═══════════════════════════════════════════════════
 
 // ═══ Markdown Parser (智能表格增强) ═══
@@ -1720,14 +1720,16 @@ var CARD_GRID_MAP = {
   'grid-outsource-eval':     { module:'outsource', ids:['cp-outsource','cp-management'] },
   'grid-outsource-workload': { module:'outsource', ids:['outsource-workload-model'] },
   'grid-outsource-budget':   { module:'outsource', ids:['budget-apply','cost-standard'] },
+  'grid-outsource-supplier': { module:'outsource', ids:['supplier-ecosystem'] },
   // 板块三：🎨 美术工艺与规范
-  'grid-craft-char-2d':      { module:'craft', ids:['char-naming-redline','char-color-swap-mask','char-spine-anim-spec'] },
-  'grid-craft-char-3d':      { module:'craft', ids:['char-3d-topo-pbr'] },
-  'grid-craft-ugc':          { module:'craft', ids:['char-ugc-parts-safety','d1'] },
+  'grid-craft-base':         { module:'craft', ids:['char-naming-redline'] },
+  'grid-craft-char-2d':      { module:'craft', ids:['char-color-swap-mask','char-spine-anim-spec'] },
+  'grid-craft-char-3d':      { module:'craft', ids:['char-3d-topo-pbr','anim-state-handoff'] },
   'grid-craft-ui':           { module:'craft', ids:['ui-slice-naming','ui-9slice-color','ui-layout','ui-umg-tips'] },
   'grid-craft-scene':        { module:'craft', ids:['scene-lod-spec'] },
   'grid-craft-vfx':          { module:'craft', ids:['vfx-perf-spec'] },
-  'grid-craft-anim':         { module:'craft', ids:['anim-state-handoff'] },
+  'grid-craft-ugc':          { module:'craft', ids:['char-ugc-parts-safety','d1'] },
+  'grid-craft-aigc':         { module:'craft', ids:['aigc-production-spec'] },
   // 板块四：🤝 跨部门协同与交付
   'grid-collab-ta':          { module:'collab', ids:['art-vs-ta-naming','art-vs-ta-perfbudget','spine-perf-guide','perf-redline-glossary'] },
   'grid-collab-qa':          { module:'collab', ids:['art-vs-qa-buggrade','art-vs-qa-checklist'] },
