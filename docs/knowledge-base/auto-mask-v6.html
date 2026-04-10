@@ -1270,8 +1270,8 @@ M.Tol.match=function(i,refRGB,refLab,hue){
     var pxL=S.lab[i*3],pxA=S.lab[i*3+1],pxB=S.lab[i*3+2];
     if(!refLab)refLab=M.C.r2lab(refRGB[0],refRGB[1],refRGB[2]);
     var dL=Math.abs(pxL-refLab[0]);
-    if(dL>lt*1.5)return 0;
-    var lGate=dL<=lt?1:M.C.sms(lt*1.5,lt,dL);
+    if(dL>lt*3)return 0;  /* v6.5.1修复: lt*1.5→lt*3 放宽明度门控 */
+    var lGate=dL<=lt?1:M.C.sms(lt*3,lt,dL);
     var dist=M.C.deltaEw([pxL,pxA,pxB],refLab,lw);
     var val;
     if(dist<=de*0.6)val=1;else if(dist>=de*1.3)val=0;
@@ -1708,8 +1708,207 @@ M.Ch.addCustomRg = function(id) {
   }
 };
 
+/* ===========================================================================
+ *  v6.5.1 紧急修复: RGB 通道数据丢失回归
+ *
+ *  根因分析:
+ *    v6.4 补丁的 M.Gen.run() (line 1294) 在 CIELAB 匹配路径中引入了：
+ *    1) 明度硬门控 if(dL>lt*1.5)continue — 门槛过窄(默认 22.5)，导致
+ *       参考色与像素明度差较大时大面积像素被直接跳过
+ *    2) 双重明度衰减 val*=lGate; val*=Math.max(0.15,pxL/100) —
+ *       暗部像素遭受 lGate 和 pxL/100 的叠乘惩罚，值被压到接近 0
+ *    而 A 通道(aMode='alpha'/'stroke')在匹配循环前独立填充，不经过
+ *    明度门控，因此 A 保留完整、RGB 全黑。
+ *
+ *  修复要点:
+ *    ① 放宽明度硬门控: lt*1.5 → lt*3 (默认 45)，避免过度剔除
+ *    ② 取消双重衰减: 移除 val*=Math.max(0.15,pxL/100)，只保留 lGate
+ *       作为明度软过渡（lGate 已经足以处理明度差异）
+ *    ③ 保持 HSV 模式的 val=hm*sm2*(v/100) 不变（此路径无此 bug）
+ *    ④ 导出函数(_compCanvas 等)确认无问题，保持不变
+ *    ⑤ WTA 互斥逻辑保持不变（设计意图正确）
+ * =========================================================================== */
+
+/* ---- 修复补丁: 重写 M.Gen.run() 核心像素遍历 ---- */
+(function(){
+  var _v64GenRun = M.Gen.run;  /* 保留 v6.4 版本引用以备回退 */
+
+  M.Gen.run = function(){
+    var S = M.S;
+    if (!S.hsv || !S.regions.length) return;
+    var n = S.W * S.H, es = +$('pES').value;
+
+    /* ① 初始化所有通道 raw 数组 */
+    S.chs.forEach(function(c){ c.raw = new Float32Array(n); c.rawOrig = null; });
+
+    /* ② A 通道特殊处理（独立于匹配循环，不受明度门控影响） */
+    var aC = S.chs.find(function(c){ return c.id === 'A'; });
+    if (aC) {
+      if (S.aMode === 'alpha') {
+        /* 直接使用原图 alpha */
+        for (var i = 0; i < n; i++) aC.raw[i] = S.px[i * 4 + 3] / 255;
+      } else if (S.aMode === 'stroke') {
+        /* 边缘检测模式 */
+        for (var y = 1; y < S.H - 1; y++) {
+          for (var x = 1; x < S.W - 1; x++) {
+            var i = y * S.W + x, a = S.px[i * 4 + 3] / 255;
+            var nb = [
+              S.px[((y-1)*S.W+x)*4+3], S.px[((y+1)*S.W+x)*4+3],
+              S.px[(y*S.W+x-1)*4+3],   S.px[(y*S.W+x+1)*4+3]
+            ];
+            aC.raw[i] = Math.abs(Math.max.apply(null,nb)/255 - Math.min.apply(null,nb)/255) * a;
+          }
+        }
+        if (es > 0) aC.raw = M._blur(aC.raw, S.W, S.H, Math.max(1, es));
+        var mx = 0;
+        for (var i = 0; i < n; i++) { if (aC.raw[i] > mx) mx = aC.raw[i]; }
+        if (mx > 0) { for (var i = 0; i < n; i++) aC.raw[i] /= mx; }
+      }
+    }
+
+    /* ③ 预计算 region 的 Lab 参考值 */
+    var rgLabs = S.regions.map(function(rg){
+      return rg.lab || M.C.r2lab(rg.rgb[0], rg.rgb[1], rg.rgb[2]);
+    });
+    var globalLT = M.Tol.getLT();
+
+    /* ④ 核心像素遍历 — 为每个像素匹配所有 region */
+    for (var i = 0; i < n; i++) {
+      var h = S.hsv[i*3], s = S.hsv[i*3+1], v = S.hsv[i*3+2];
+      if (S.px[i*4+3] < 10) continue;  /* 跳过全透明像素 */
+
+      /* 每通道最大匹配值 */
+      var cv = {};
+      S.chs.forEach(function(c){ cv[c.id] = 0; });
+
+      for (var ri = 0; ri < S.regions.length; ri++) {
+        var rg = S.regions[ri], val = 0;
+
+        if (rg.tolMode === 'lab' && S.lab) {
+          /* ─── CIELAB ΔE 匹配模式 ─── */
+          var de  = rg.deltaE  || 12;
+          var lw  = rg.lightW  || 1.5;
+          var lt  = rg.lightTol || globalLT;
+          var pxL = S.lab[i*3], pxA2 = S.lab[i*3+1], pxB2 = S.lab[i*3+2];
+          var refLab = rgLabs[ri];
+
+          var dL = Math.abs(pxL - refLab[0]);
+
+          /* [修复①] 放宽明度硬门控: lt*1.5 → lt*3
+           * 原来 lt=15 时门槛仅 22.5，很多正常明度差的像素被误杀
+           * 现在 lt=15 时门槛为 45，覆盖绝大多数合理色差范围 */
+          if (dL > lt * 3) continue;
+
+          /* 明度软过渡门控（保留，作为唯一的明度衰减因子） */
+          var lGate = dL <= lt ? 1 : M.C.sms(lt * 3, lt, dL);
+
+          /* ΔE 色差计算 */
+          var dist = M.C.deltaEw([pxL, pxA2, pxB2], refLab, lw);
+
+          /* sigmoid 渐变匹配值 */
+          if (dist <= de * 0.6) val = 1;
+          else if (dist >= de * 1.3) val = 0;
+          else val = M.C.sms(de * 1.3, de * 0.6, dist);
+
+          /* [修复②] 只用 lGate 做明度衰减，不再叠乘 pxL/100
+           * 之前: val *= lGate; val *= Math.max(0.15, pxL/100);
+           * 暗部像素(L*=10): lGate 可能 ~0.5, pxL/100=0.1, 叠乘=0.05 → 近零
+           * 现在: val *= lGate; 只做一次衰减，暗部仍可保留合理值 */
+          val *= lGate;
+
+        } else {
+          /* ─── HSV 色相距离模式（与 v6.0/v6.2 兼容，无改动）─── */
+          var hd = M.C.hD(h, rg.hue);
+          if (s < rg.satMin * 0.5) continue;
+          var hm = hd <= rg.tol ? 1 : hd <= rg.tol*1.5 ? M.C.sms(rg.tol*1.5, rg.tol, hd) : 0;
+          var sm2 = s >= rg.satMin ? 1 : s >= rg.satMin*0.5 ? M.C.sms(rg.satMin*0.5, rg.satMin, s) : 0;
+          val = hm * sm2 * (v / 100);
+        }
+
+        /* 反选处理 */
+        if (rg.inverted) val = val > 0.01 ? (1 - val) : 0;
+
+        /* 取该通道的最大匹配值 */
+        if (val > cv[rg.ch]) cv[rg.ch] = val;
+      }
+
+      /* ⑤ 将匹配结果写入各通道 raw 数组
+       * A 通道: 仅在 aMode='pick' 时参与匹配写入
+       * RGB 通道: 始终从匹配结果写入（独立于 A 通道模式）*/
+      S.chs.forEach(function(c){
+        if (c.id === 'A' && S.aMode === 'pick') {
+          c.raw[i] = Math.max(c.raw[i], cv[c.id] || 0);
+        } else if (c.id !== 'A') {
+          c.raw[i] = Math.max(c.raw[i], cv[c.id] || 0);
+        }
+      });
+    }
+
+    /* ⑥ 边缘平滑 */
+    if (es > 0) S.chs.forEach(function(c){ c.raw = M._blur(c.raw, S.W, S.H, es); });
+
+    /* ⑦ RGB Winner-Take-All 互斥（保留，设计意图正确）
+     * 对每个像素，R/G/B 中只保留值最大的通道，其余清零
+     * A 通道和自定义通道不参与 WTA */
+    var bI = ['R','G','B'];
+    var bC = S.chs.filter(function(c){ return bI.indexOf(c.id) >= 0; });
+    if (bC.length > 1) {
+      for (var i = 0; i < n; i++) {
+        var vs = bC.map(function(c){ return c.raw[i]; });
+        var mx2 = Math.max.apply(null, vs);
+        if (mx2 < 0.01) continue;
+        var mi = vs.indexOf(mx2);
+        bC.forEach(function(c, ci){ if (ci !== mi) c.raw[i] = 0; });
+      }
+    }
+
+    /* ⑧ Slot 自定义图片覆盖 */
+    S.chs.forEach(function(c){
+      if (c.slotImage) {
+        var tc = document.createElement('canvas');
+        tc.width = S.W; tc.height = S.H;
+        tc.getContext('2d').drawImage(c.slotImage, 0, 0, S.W, S.H);
+        var id2 = tc.getContext('2d').getImageData(0, 0, S.W, S.H).data;
+        for (var i = 0; i < n; i++) {
+          c.raw[i] = (id2[i*4]*0.299 + id2[i*4+1]*0.587 + id2[i*4+2]*0.114) / 255;
+        }
+      }
+    });
+
+    /* ⑨ 保存原始 raw 副本（用于 adj() 后处理恢复） */
+    S.chs.forEach(function(c){ c.rawOrig = new Float32Array(c.raw); });
+
+    /* ⑩ 执行 adj() 后处理 + 渲染 + UI 更新 */
+    this.adj();
+    S.maskOK = true;
+    M.Ren.buildUI();
+    M.Ren.all();
+    $('s4').style.display = 'block';
+    $('brushBar').style.display = 'flex';
+    M.UI.stp(4);
+    $('s4').scrollIntoView({ behavior: 'smooth' });
+    M.UI.tip(M.L.doneTip);
+
+    /* ⑪ 空通道警告 */
+    var emptyNames = [];
+    S.chs.forEach(function(c){
+      if (!c.raw) return;
+      var sm = 0;
+      for (var j = 0; j < n; j++) sm += c.raw[j];
+      if (sm < 0.5) emptyNames.push(c.name);
+    });
+    if (emptyNames.length > 0) {
+      M.T.show('⚠️ 通道提取到 0 像素: ' + emptyNames.join(', ') + '。请检查颜色区域或容差。');
+    } else {
+      M.T.show(M.tpl(M.L.genDone, { n: S.chs.length }));
+    }
+  };
+
+  console.log('[v6.5.1] HOTFIX: M.Gen.run() rewritten — removed double luminance attenuation, widened lightness gate');
+})();
+
 /* ---- 版本标识 ---- */
-(function(){var vb=document.querySelector('.hdr h1 .ver');if(vb)vb.textContent='v6.5'})();
+(function(){var vb=document.querySelector('.hdr h1 .ver');if(vb)vb.textContent='v6.5.1'})();
 console.log('[v6.5] patch loaded: low-pct visual warning, sparse pixel highlight toggle, tolerance overlap detection');
 })();
 </script>
