@@ -3,1152 +3,611 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2D 角色换色 Mask 通道生成工具</title>
+<title>2D 角色换色 Mask 通道生成工具 v2.0</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
-:root {
-  --bg: #0d0f15;
-  --panel: #141620;
-  --card: #1a1d2b;
-  --border: #262a3a;
-  --text: #c5c9d6;
-  --text-dim: #6b7085;
-  --heading: #e4e6ed;
-  --accent: #6c8cff;
-  --accent2: #a78bfa;
-  --red: #f87171;
-  --green: #4ade80;
-  --blue: #60a5fa;
-  --yellow: #fbbf24;
-  --orange: #fb923c;
-  --pink: #f472b6;
-  --cyan: #22d3ee;
-  --r: 240;
-  --g: 120;
-  --b: 80;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Header */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 20px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.header h1 { font-size: 15px; color: var(--heading); font-weight: 600; }
-.header-actions { display: flex; gap: 8px; }
-
-/* Buttons */
-.btn {
-  padding: 6px 14px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--card);
-  color: var(--text);
-  cursor: pointer;
-  font-size: 12px;
-  font-family: inherit;
-  transition: all .15s;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-.btn:hover { border-color: var(--accent); color: var(--heading); }
-.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-.btn-primary:hover { background: #5a7aee; }
-.btn-danger { border-color: var(--red); color: var(--red); }
-.btn-danger:hover { background: rgba(248,113,113,.1); }
-.btn-sm { padding: 4px 10px; font-size: 11px; }
-
-/* Layout */
-.workspace {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-/* Left Panel - Tools */
-.tool-panel {
-  width: 260px;
-  min-width: 260px;
-  background: var(--panel);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-}
-.panel-section {
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
-}
-.panel-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  margin-bottom: 10px;
-}
-
-/* Channel buttons */
-.channel-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.channel-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  border: 2px solid transparent;
-  background: var(--card);
-  transition: all .15s;
-  font-family: inherit;
-  color: var(--text);
-  font-size: 12px;
-  width: 100%;
-  text-align: left;
-}
-.channel-btn:hover { border-color: var(--border); }
-.channel-btn.active { border-color: var(--accent); background: rgba(108,140,255,.08); }
-.channel-dot {
-  width: 14px; height: 14px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.channel-label { flex:1; }
-.channel-key {
-  font-size: 10px;
-  color: var(--text-dim);
-  background: var(--bg);
-  padding: 1px 5px;
-  border-radius: 3px;
-}
-
-/* Brush settings */
-.setting-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-.setting-label { font-size: 12px; color: var(--text-dim); }
-.setting-value { font-size: 12px; color: var(--heading); min-width: 36px; text-align: right; }
-input[type="range"] {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 4px;
-  background: var(--border);
-  border-radius: 2px;
-  outline: none;
-  margin: 4px 0 8px;
-}
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 14px; height: 14px;
-  border-radius: 50%;
-  background: var(--accent);
-  cursor: pointer;
-}
-
-/* Region list */
-.region-list { display: flex; flex-direction: column; gap: 4px; }
-.region-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  background: var(--card);
-  border-radius: 6px;
-  font-size: 12px;
-}
-.region-item input[type="text"] {
-  flex: 1;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--text);
-  padding: 3px 6px;
-  font-size: 12px;
-  font-family: inherit;
-  outline: none;
-}
-.region-item input[type="text"]:focus { border-color: var(--accent); }
-.region-color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-
-/* Canvas Area */
-.canvas-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-}
-.canvas-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.toolbar-sep { width: 1px; height: 20px; background: var(--border); }
-.canvas-info { font-size: 11px; color: var(--text-dim); margin-left: auto; }
-
-.canvas-viewport {
-  flex: 1;
-  overflow: hidden;
-  position: relative;
-  background:
-    linear-gradient(45deg, #1a1c28 25%, transparent 25%),
-    linear-gradient(-45deg, #1a1c28 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #1a1c28 75%),
-    linear-gradient(-45deg, transparent 75%, #1a1c28 75%);
-  background-size: 20px 20px;
-  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-  cursor: crosshair;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.canvas-container {
-  position: relative;
-  transform-origin: center;
-}
-.canvas-container canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  image-rendering: pixelated;
-}
-#baseCanvas { z-index: 1; }
-#maskCanvas { z-index: 2; }
-#cursorCanvas { z-index: 3; pointer-events: none; }
-
-/* Right Panel - Preview */
-.preview-panel {
-  width: 240px;
-  min-width: 240px;
-  background: var(--panel);
-  border-left: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-}
-.preview-box {
-  padding: 12px;
-  border-bottom: 1px solid var(--border);
-}
-.preview-box canvas {
-  width: 100%;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  image-rendering: pixelated;
-  background:
-    linear-gradient(45deg, #1a1c28 25%, transparent 25%),
-    linear-gradient(-45deg, #1a1c28 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #1a1c28 75%),
-    linear-gradient(-45deg, transparent 75%, #1a1c28 75%);
-  background-size: 12px 12px;
-  background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
-}
-.preview-label {
-  font-size: 11px;
-  color: var(--text-dim);
-  margin-bottom: 6px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.preview-label .dot { width: 8px; height: 8px; border-radius: 50%; }
-
-/* Drop zone */
-.drop-zone {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 40px;
-  color: var(--text-dim);
-  text-align: center;
-}
-.drop-zone-icon { font-size: 48px; opacity: .3; }
-.drop-zone-text { font-size: 14px; }
-.drop-zone-hint { font-size: 12px; opacity: .6; }
-
-/* Toast */
-.toast {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%) translateY(60px);
-  background: var(--card);
-  border: 1px solid var(--border);
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 13px;
-  color: var(--heading);
-  z-index: 999;
-  transition: transform .3s;
-  pointer-events: none;
-}
-.toast.show { transform: translateX(-50%) translateY(0); }
-
-/* Opacity slider overlay */
-.opacity-control {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.opacity-control label { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
-.opacity-control input[type="range"] { width: 80px; margin: 0; }
-
-/* Color scheme preview */
-.scheme-row {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 6px;
-  align-items: center;
-}
-.scheme-row label { font-size: 11px; color: var(--text-dim); width: 50px; flex-shrink: 0; }
-.scheme-row input[type="color"] {
-  width: 28px; height: 22px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--card);
-  cursor: pointer;
-  padding: 0;
-}
-
-/* History indicator */
-.history-info { font-size: 11px; color: var(--text-dim); }
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column;user-select:none}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+button{cursor:pointer;font-family:inherit}
+.hdr{display:flex;align-items:center;padding:0 16px;height:50px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;gap:10px}
+.hdr-t{font-size:15px;font-weight:700;color:var(--heading);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.hdr-t .v{font-size:10px;background:var(--cyan);color:#000;padding:1px 7px;border-radius:10px;font-weight:600}
+.stabs{display:flex;gap:2px;background:var(--bg);border-radius:8px;padding:3px;margin-left:10px}
+.stab{padding:6px 14px;border-radius:6px;border:none;background:transparent;color:var(--dim);font-size:12px;font-weight:600;transition:all .2s;white-space:nowrap}
+.stab:hover{color:var(--text)}
+.stab.act{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(108,140,255,.3)}
+.sp{flex:1}
+.btn{padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--text);font-size:12px;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{border-color:var(--accent);color:var(--heading)}
+.btn-p{background:linear-gradient(135deg,var(--green),#22c55e);border-color:transparent;color:#000;font-weight:600}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(74,222,128,.3)}
+.btn-s{padding:4px 10px;font-size:11px;border:1px solid var(--border);border-radius:5px;background:var(--card);color:var(--text);transition:all .15s}
+.btn-s:hover{border-color:var(--accent);color:var(--accent)}
+.btn-s.act{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-s.dng{border-color:rgba(248,113,113,.3);color:var(--red)}
+.ws{display:flex;flex:1;overflow:hidden}
+.lp{width:280px;min-width:280px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.ps{padding:12px 14px;border-bottom:1px solid var(--border)}
+.pt{font-size:11px;font-weight:700;color:var(--heading);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.pt .bdg{margin-left:auto;font-size:9px;color:var(--dim);font-weight:400;text-transform:none}
+.sr{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.sl{font-size:11px;color:var(--dim);min-width:55px}
+.sv{font-size:11px;color:var(--cyan);min-width:30px;text-align:right;font-family:monospace}
+input[type="range"]{-webkit-appearance:none;flex:1;height:4px;background:var(--border);border-radius:2px;outline:none}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer}
+input[type="color"]{width:28px;height:22px;border:1px solid var(--border);border-radius:3px;background:transparent;cursor:pointer;padding:0}
+.chl{display:flex;flex-direction:column;gap:5px}
+.chi{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px;cursor:pointer;transition:border-color .15s}
+.chi.act{border-color:var(--accent)}
+.chh{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600}
+.chd{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.chn{flex:1;color:var(--heading)}
+.chp{width:18px;height:18px;border-radius:3px;border:1px solid var(--border)}
+.chinf{font-size:10px;color:var(--dim);margin-top:3px}
+.pll{display:flex;flex-wrap:wrap;gap:3px}
+.plsw{width:26px;height:26px;border-radius:4px;border:2px solid transparent;cursor:pointer;transition:all .15s}
+.plsw:hover{border-color:var(--cyan)}
+.qaw{padding:8px 12px;border-radius:6px;font-size:11px;line-height:1.5;margin:6px 14px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);color:var(--yellow);animation:fi .3s}
+@keyframes fi{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.bg{display:flex;gap:3px;flex-wrap:wrap}
+.ca{flex:1;position:relative;overflow:hidden;background:#0a0c12}
+.ca canvas{image-rendering:pixelated;position:absolute;top:0;left:0}
+.ctb{position:absolute;top:10px;left:10px;display:flex;gap:2px;background:rgba(20,22,32,.92);border:1px solid var(--border);border-radius:8px;padding:3px;z-index:10}
+.ctb button{width:32px;height:32px;border:none;border-radius:5px;background:transparent;color:var(--dim);font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.ctb button:hover{background:var(--card);color:var(--text)}
+.ctb button.act{background:var(--accent);color:#fff}
+.tbsp{width:1px;background:var(--border);margin:3px 1px}
+.zi{position:absolute;bottom:10px;right:10px;background:rgba(20,22,32,.85);border:1px solid var(--border);border-radius:5px;padding:3px 10px;font-size:10px;color:var(--dim);font-family:monospace;z-index:10}
+.bst{position:fixed;pointer-events:none;z-index:9999;background:rgba(20,22,32,.9);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--heading);font-family:monospace;display:none;white-space:nowrap}
+.es{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:100%;color:var(--dim)}
+.es .ic{font-size:48px;opacity:.3}
+.es .ub{padding:10px 24px;border:2px dashed var(--border);border-radius:8px;background:transparent;color:var(--accent);font-size:13px;transition:all .15s}
+.es .ub:hover{border-color:var(--accent);background:rgba(108,140,255,.08)}
+.dov{position:fixed;inset:0;background:rgba(108,140,255,.08);border:3px dashed var(--accent);z-index:9999;display:none;align-items:center;justify-content:center;font-size:22px;color:var(--accent);font-weight:600}
+.dov.sh{display:flex}
+.rp{width:220px;min-width:220px;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.pb{padding:10px;border-bottom:1px solid var(--border)}
+.plbl{font-size:10px;color:var(--dim);margin-bottom:5px;display:flex;align-items:center;gap:5px;text-transform:uppercase;letter-spacing:.3px}
+.plbl .dt{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pb canvas{width:100%;border-radius:5px;border:1px solid var(--border);image-rendering:pixelated;background:linear-gradient(45deg,#1a1c28 25%,transparent 25%),linear-gradient(-45deg,#1a1c28 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1a1c28 75%),linear-gradient(-45deg,transparent 75%,#1a1c28 75%);background-size:10px 10px;background-position:0 0,0 5px,5px -5px,-5px 0}
+.psel{width:100%;padding:4px 6px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;font-family:inherit;margin-bottom:6px;outline:none}
+.psel:focus{border-color:var(--accent)}
+.chov{position:fixed;pointer-events:none;z-index:999;background:rgba(20,22,32,.95);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-size:10px;display:none;gap:6px;align-items:center;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.chov .cpv{width:20px;height:20px;border-radius:3px;border:1px solid var(--border)}
+.tc{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:10000;display:flex;flex-direction:column;gap:6px;align-items:center}
+.tst{padding:8px 18px;border-radius:7px;font-size:12px;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.4);animation:tin .3s ease}
+.tst.s{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3);color:var(--green)}
+.tst.e{background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:var(--red)}
+.tst.w{background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);color:var(--yellow)}
+.tst.i{background:rgba(108,140,255,.15);border:1px solid rgba(108,140,255,.3);color:var(--accent)}
+@keyframes tin{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.gd{background:var(--bg);border:1px dashed var(--border);border-radius:7px;padding:10px;font-size:11px;color:var(--dim);line-height:1.8}
+.gd .stp{display:flex;align-items:flex-start;gap:6px;margin-bottom:3px}
+.gd .sn{background:var(--accent);color:#fff;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:2px}
+.gd .stp span:last-child{color:var(--text)}
+.scr .sr{margin-bottom:3px}
+#fI,#mfI{display:none}
 </style>
 </head>
 <body>
+<div class="dov" id="dov">📁 松开鼠标导入图片</div>
+<div class="tc" id="tc"></div>
+<div class="bst" id="bst"></div>
+<div class="chov" id="chov"><div class="cpv" id="cpv"></div><div><div id="chx" style="font-family:monospace;color:var(--heading)">#000000</div><div id="crg" style="color:var(--dim)">R:0 G:0 B:0</div></div></div>
+<input type="file" id="fI" accept="image/*"><input type="file" id="mfI" accept="image/*">
 
-<div class="header">
-  <h1>2D 角色换色 Mask 通道生成工具</h1>
-  <div class="header-actions">
-    <button class="btn" onclick="importImage()">导入原图</button>
-    <button class="btn" onclick="importMask()">导入 Mask</button>
-    <button class="btn btn-primary" onclick="exportMask()">导出 Mask PNG</button>
-    <button class="btn" onclick="exportScheme()">导出配色 JSON</button>
+<div class="hdr">
+  <div class="hdr-t">🎨 Mask 通道生成工具 <span class="v">v2.0</span></div>
+  <div class="stabs" id="stabs">
+    <button class="stab act" data-s="mask">🅰 Mask + HSV</button>
+    <button class="stab" data-s="palette">🅱 调色板替换</button>
+    <button class="stab" data-s="gray">🅲 灰度叠色</button>
+  </div>
+  <div class="sp"></div>
+  <button class="btn" id="bIm">📂 导入原图</button>
+  <button class="btn" id="bImM">📥 导入 Mask</button>
+  <button class="btn btn-p" id="bEx">📦 一键导出 ZIP</button>
+</div>
+
+<div class="ws">
+<div class="lp" id="lp">
+  <div class="ps" id="sTool">
+    <div class="pt">🖌 绘制工具</div>
+    <div class="bg" id="tBtns">
+      <button class="btn-s act" data-t="smartPick">💉 智能选色</button>
+      <button class="btn-s" data-t="brush">🖌 画笔</button>
+      <button class="btn-s" data-t="eraser">🧹 橡皮</button>
+      <button class="btn-s" data-t="rect">⬜ 框选</button>
+    </div>
+  </div>
+  <div class="ps" id="sBrush">
+    <div class="pt">⚙ 画笔设置</div>
+    <div class="sr"><span class="sl">大小</span><input type="range" id="rBS" min="1" max="100" value="10"><span class="sv" id="vBS">10</span></div>
+    <div class="sr"><span class="sl">硬度</span><input type="range" id="rHd" min="0" max="100" value="100"><span class="sv" id="vHd">100%</span></div>
+  </div>
+
+  <!-- 方案A -->
+  <div class="spnl" data-for="mask">
+    <div class="ps"><div class="pt">📖 操作引导</div><div class="gd">
+      <div class="stp"><span class="sn">1</span><span>导入角色原图（PNG/Alpha）</span></div>
+      <div class="stp"><span class="sn">2</span><span>添加换色区域 → R/G/B 通道自动分配</span></div>
+      <div class="stp"><span class="sn">3</span><span>选中区域 → 用【💉智能选色】在画布取色</span></div>
+      <div class="stp"><span class="sn">4</span><span>调节容差微调选区 → 满意后导出 ZIP</span></div>
+    </div></div>
+    <div class="ps"><div class="pt">🔬 高级容差</div>
+      <div class="sr"><span class="sl">色彩空间</span><div class="bg"><button class="btn-s act" id="csL">CIE-LAB</button><button class="btn-s" id="csH">HSL</button></div></div>
+      <div class="sr"><span class="sl">色差容差</span><input type="range" id="rTol" min="1" max="80" value="25"><span class="sv" id="vTol">25</span></div>
+      <div class="sr"><span class="sl">边缘羽化</span><input type="range" id="rFea" min="0" max="20" value="3"><span class="sv" id="vFea">3</span></div>
+    </div>
+    <div class="ps"><div class="pt">🎛 通道管理 <span class="bdg">RGB互斥 · 自动扩展Mask图</span></div>
+      <div class="chl" id="chL"><div style="color:var(--dim);font-size:11px">（尚未添加换色区域）</div></div>
+      <button class="btn-s" id="bAddCh" style="margin-top:8px;width:100%;text-align:center">＋ 新增换色区域</button>
+    </div>
+    <div id="qaW"></div>
+    <div class="ps"><div class="pt">🎨 换色预览配色</div><div id="scC" class="scr"></div>
+      <button class="btn-s" id="bRfP" style="width:100%;text-align:center;margin-top:6px">刷新预览</button>
+    </div>
+  </div>
+
+  <!-- 方案B -->
+  <div class="spnl" data-for="palette" style="display:none">
+    <div class="ps"><div class="pt">📖 操作引导</div><div class="gd">
+      <div class="stp"><span class="sn">1</span><span>导入像素风原图</span></div>
+      <div class="stp"><span class="sn">2</span><span>用【💉智能选色】拾取需要替换的颜色</span></div>
+      <div class="stp"><span class="sn">3</span><span>在下方修改替换色</span></div>
+      <div class="stp"><span class="sn">4</span><span>导出 → 256×1 调色板 + config.json</span></div>
+    </div></div>
+    <div class="ps"><div class="pt">🔬 取色设置</div>
+      <div class="sr"><span class="sl">取色容差</span><input type="range" id="rPTol" min="0" max="50" value="5"><span class="sv" id="vPTol">5</span></div>
+    </div>
+    <div class="ps"><div class="pt">🎨 调色板</div>
+      <div class="pll" id="palL"><div style="color:var(--dim);font-size:11px">（用智能选色在画布取色添加）</div></div>
+      <div style="display:flex;gap:4px;margin-top:8px"><button class="btn-s" id="bClrP">🗑 清空</button><button class="btn-s" id="bSrtP">↕ 排序</button></div>
+    </div>
+    <div class="ps"><div class="pt">🔄 替换目标色</div><div id="palR" style="font-size:11px;color:var(--dim)">（先提取原色）</div></div>
+  </div>
+
+  <!-- 方案C -->
+  <div class="spnl" data-for="gray" style="display:none">
+    <div class="ps"><div class="pt">📖 操作引导</div><div class="gd">
+      <div class="stp"><span class="sn">1</span><span>导入原图</span></div>
+      <div class="stp"><span class="sn">2</span><span>添加灰度区域 → 用智能选色/框选选取</span></div>
+      <div class="stp"><span class="sn">3</span><span>调节亮度偏移至灰度 128~200 范围</span></div>
+      <div class="stp"><span class="sn">4</span><span>导出灰度底图 + 叠色配置</span></div>
+    </div></div>
+    <div class="ps"><div class="pt">🔬 灰度设置</div>
+      <div class="sr"><span class="sl">取色容差</span><input type="range" id="rGTol" min="1" max="80" value="25"><span class="sv" id="vGTol">25</span></div>
+      <div class="sr"><span class="sl">亮度偏移</span><input type="range" id="rBrO" min="-80" max="80" value="20"><span class="sv" id="vBrO">20</span></div>
+      <div class="sr"><span class="sl">平均灰度</span><span class="sv" id="avgG" style="min-width:50px">—</span></div>
+    </div>
+    <div class="ps"><div class="pt">🎛 灰度区域</div>
+      <div class="chl" id="grL"><div style="color:var(--dim);font-size:11px">（尚未添加灰度区域）</div></div>
+      <button class="btn-s" id="bAddGr" style="margin-top:8px;width:100%;text-align:center">＋ 添加灰度区域</button>
+    </div>
+    <div class="ps"><div class="pt">🎨 叠色 Tint</div>
+      <div class="sr"><span class="sl">叠色颜色</span><input type="color" id="tintC" value="#ff6b6b"><span class="sv" id="tintH" style="min-width:55px">#FF6B6B</span></div>
+      <div class="sr"><span class="sl">混合强度</span><input type="range" id="rTStr" min="0" max="100" value="80"><span class="sv" id="vTStr">80%</span></div>
+    </div>
+  </div>
+
+  <div class="ps">
+    <div style="display:flex;gap:4px">
+      <button class="btn-s" id="bUndo" style="flex:1;text-align:center">↩ 撤销</button>
+      <button class="btn-s" id="bRedo" style="flex:1;text-align:center">↪ 重做</button>
+      <button class="btn-s dng" id="bClr" style="flex:1;text-align:center">🗑 清空</button>
+    </div>
+    <div style="font-size:10px;color:var(--dim);text-align:center;margin-top:5px" id="hInfo">历史 0/0</div>
   </div>
 </div>
 
-<div class="workspace">
-  <!-- Left Tool Panel -->
-  <div class="tool-panel">
-    <div class="panel-section">
-      <div class="panel-title">绘制工具</div>
-      <div style="display:flex;gap:4px;margin-bottom:10px;">
-        <button class="btn btn-sm" id="toolBrush" onclick="setTool('brush')" style="flex:1;justify-content:center;">画笔</button>
-        <button class="btn btn-sm" id="toolEraser" onclick="setTool('eraser')" style="flex:1;justify-content:center;">橡皮擦</button>
-        <button class="btn btn-sm" id="toolFill" onclick="setTool('fill')" style="flex:1;justify-content:center;">油漆桶</button>
-      </div>
-    </div>
-
-    <div class="panel-section">
-      <div class="panel-title">通道选择（快捷键 1-5）</div>
-      <div class="channel-grid" id="channelGrid"></div>
-    </div>
-
-    <div class="panel-section">
-      <div class="panel-title">画笔设置</div>
-      <div class="setting-row">
-        <span class="setting-label">大小</span>
-        <span class="setting-value" id="brushSizeVal">10</span>
-      </div>
-      <input type="range" id="brushSize" min="1" max="100" value="10" oninput="updateBrushSize(this.value)">
-      <div class="setting-row">
-        <span class="setting-label">硬度</span>
-        <span class="setting-value" id="hardnessVal">100%</span>
-      </div>
-      <input type="range" id="hardness" min="0" max="100" value="100" oninput="updateHardness(this.value)">
-      <div class="setting-row">
-        <span class="setting-label">强度</span>
-        <span class="setting-value" id="strengthVal">255</span>
-      </div>
-      <input type="range" id="strength" min="1" max="255" value="255" oninput="updateStrength(this.value)">
-    </div>
-
-    <div class="panel-section">
-      <div class="panel-title">区域命名</div>
-      <div class="region-list" id="regionList"></div>
-    </div>
-
-    <div class="panel-section">
-      <div class="panel-title">换色预览配色</div>
-      <div id="schemeColors"></div>
-      <button class="btn btn-sm" onclick="applyColorPreview()" style="width:100%;justify-content:center;margin-top:8px;">刷新预览</button>
-    </div>
-
-    <div class="panel-section">
-      <div style="display:flex;gap:4px;">
-        <button class="btn btn-sm btn-danger" onclick="clearMask()" style="flex:1;justify-content:center;">清空 Mask</button>
-        <button class="btn btn-sm" onclick="undo()" style="flex:1;justify-content:center;">撤销 (Z)</button>
-        <button class="btn btn-sm" onclick="redo()" style="flex:1;justify-content:center;">重做 (Y)</button>
-      </div>
-      <div class="history-info" id="historyInfo" style="margin-top:6px;text-align:center;"></div>
-    </div>
+<div class="ca" id="cA">
+  <div class="es" id="emS"><div class="ic">🖼️</div><p>拖拽角色原图到此处开始</p><p style="font-size:11px;color:var(--dim)">支持 PNG / JPG · 拖拽或点击导入</p><button class="ub" id="bEU">📂 选择图片</button></div>
+  <canvas id="bC" style="display:none"></canvas>
+  <canvas id="oC" style="display:none"></canvas>
+  <canvas id="cC" style="display:none;pointer-events:none;z-index:5"></canvas>
+  <div class="ctb" id="cTb" style="display:none">
+    <button id="tbPan" class="act" title="平移(Space/V)">✋</button>
+    <button id="tbPick" title="智能选色(I)">💉</button>
+    <button id="tbBrush" title="画笔(B)">🖌</button>
+    <button id="tbEraser" title="橡皮(E)">🧹</button>
+    <button id="tbRect" title="框选(M)">⬜</button>
+    <div class="tbsp"></div>
+    <button id="tbZi" title="放大(+)">🔍</button>
+    <button id="tbZo" title="缩小(-)">🔎</button>
+    <button id="tbFit" title="适应(0)">⊞</button>
   </div>
-
-  <!-- Canvas Area -->
-  <div class="canvas-area">
-    <div class="canvas-toolbar">
-      <button class="btn btn-sm" onclick="zoomIn()">放大 (+)</button>
-      <button class="btn btn-sm" onclick="zoomOut()">缩小 (-)</button>
-      <button class="btn btn-sm" onclick="resetZoom()">适应</button>
-      <div class="toolbar-sep"></div>
-      <div class="opacity-control">
-        <label>Mask 透明度</label>
-        <input type="range" id="maskOpacity" min="0" max="100" value="60" oninput="updateMaskOpacity(this.value)">
-        <span style="font-size:11px;color:var(--text-dim);min-width:28px;" id="maskOpacityVal">60%</span>
-      </div>
-      <div class="toolbar-sep"></div>
-      <label style="font-size:11px;color:var(--text-dim);display:flex;align-items:center;gap:4px;">
-        <input type="checkbox" id="showBase" checked onchange="render()"> 显示底图
-      </label>
-      <div class="canvas-info" id="canvasInfo">请导入图片开始</div>
-    </div>
-    <div class="canvas-viewport" id="viewport">
-      <div id="dropZone" class="drop-zone">
-        <div class="drop-zone-icon">+</div>
-        <div class="drop-zone-text">拖放角色原图到此处</div>
-        <div class="drop-zone-hint">支持 PNG / JPG / TGA · 或点击上方「导入原图」按钮</div>
-      </div>
-      <div class="canvas-container" id="canvasContainer" style="display:none;">
-        <canvas id="baseCanvas"></canvas>
-        <canvas id="maskCanvas"></canvas>
-        <canvas id="cursorCanvas"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Right Preview Panel -->
-  <div class="preview-panel">
-    <div class="preview-box">
-      <div class="preview-label">合成 Mask（RGBA）</div>
-      <canvas id="previewComposite" width="200" height="200"></canvas>
-    </div>
-    <div class="preview-box">
-      <div class="preview-label"><span class="dot" style="background:#f66;"></span>R 通道 — <span id="rLabel">区域1</span></div>
-      <canvas id="previewR" width="200" height="200"></canvas>
-    </div>
-    <div class="preview-box">
-      <div class="preview-label"><span class="dot" style="background:#6f6;"></span>G 通道 — <span id="gLabel">区域2</span></div>
-      <canvas id="previewG" width="200" height="200"></canvas>
-    </div>
-    <div class="preview-box">
-      <div class="preview-label"><span class="dot" style="background:#66f;"></span>B 通道 — <span id="bLabel">区域3</span></div>
-      <canvas id="previewB" width="200" height="200"></canvas>
-    </div>
-    <div class="preview-box">
-      <div class="preview-label"><span class="dot" style="background:#fff;"></span>A 通道 — 染色开关</div>
-      <canvas id="previewA" width="200" height="200"></canvas>
-    </div>
-    <div class="preview-box">
-      <div class="preview-label">换色效果预览</div>
-      <canvas id="previewColor" width="200" height="200"></canvas>
-    </div>
-  </div>
+  <div class="zi" id="zI" style="display:none">100%</div>
 </div>
 
-<div class="toast" id="toast"></div>
-<input type="file" id="fileInput" accept="image/*" style="display:none">
-<input type="file" id="maskFileInput" accept="image/*" style="display:none">
+<div class="rp" id="rP">
+  <div class="pb"><div class="plbl">合成 Mask 预览</div><canvas id="pvComp" width="200" height="200"></canvas></div>
+  <div class="pb"><div class="plbl">通道详情</div>
+    <select class="psel" id="chSel"><option value="comp">RGBA 合成</option><option value="r">R 通道</option><option value="g">G 通道</option><option value="b">B 通道</option><option value="a">A 通道（染色开关）</option></select>
+    <canvas id="pvCh" width="200" height="200"></canvas>
+  </div>
+  <div class="pb"><div class="plbl">换色效果预览</div><canvas id="pvClr" width="200" height="200"></canvas></div>
+</div>
+</div>
 
 <script>
-// ─── State ───
-const state = {
-  tool: 'brush',
-  channel: 0,           // 0=R,1=G,2=B,3=A(paint),4=Eraser-all
-  brushSize: 10,
-  hardness: 100,
-  strength: 255,
-  zoom: 1,
-  panX: 0, panY: 0,
-  maskOpacity: 0.6,
-  imgW: 0, imgH: 0,
-  loaded: false,
-  drawing: false,
-  lastX: -1, lastY: -1,
-  regions: ['头发', '上衣', '裤子'],
-  schemeColors: ['#8B4513', '#4169E1', '#2F4F4F'],
+'use strict';
+/* ═══════════════════════════════════════════
+   全局状态
+   ═══════════════════════════════════════════ */
+const S={
+  scheme:'mask',          // 当前方案: mask / palette / gray
+  tool:'smartPick',       // 当前工具: smartPick / brush / eraser / rect / pan
+  brushSize:10,hardness:100,colorSpace:'lab',
+  loaded:false,imgW:0,imgH:0,zoom:1,panX:0,panY:0,
+  dragging:false,lastM:null,rStart:null,rEnd:null,spHeld:false,
+  /* 方案A */channels:[],activeCh:-1,schemeColors:[],
+  /* 方案B */palette:[],
+  /* 方案C */grayRegs:[],activeGr:-1,tintColor:'#ff6b6b',tintStr:.8,brOff:20
 };
 
-const channels = [
-  { name: 'R 通道', color: '#f66', key: '1', desc: '区域1' },
-  { name: 'G 通道', color: '#6f6', key: '2', desc: '区域2' },
-  { name: 'B 通道', color: '#66f', key: '3', desc: '区域3' },
-  { name: 'A 通道（开关）', color: '#eee', key: '4', desc: '染色开关' },
-  { name: '擦除所有通道', color: '#666', key: '5', desc: '清除' },
-];
+const CN=['R','G','B'],CC=['#ff6b6b','#4ade80','#60a5fa'];
+let undoStack=[],redoStack=[];const MAX_H=30;
+let bC,oC,cC,bx,ox,cx,bImg=null,bData=null;
+const $=id=>document.getElementById(id);
 
-// History
-let history = [];
-let historyIdx = -1;
-const MAX_HISTORY = 30;
+/* ═══════ 色彩算法 ═══════ */
+function rgbToLab(r,g,b){let rl=r/255,gl=g/255,bl=b/255;rl=rl>.04045?((rl+.055)/1.055)**2.4:rl/12.92;gl=gl>.04045?((gl+.055)/1.055)**2.4:gl/12.92;bl=bl>.04045?((bl+.055)/1.055)**2.4:bl/12.92;let x=(rl*.4124564+gl*.3575761+bl*.1804375)/.95047,y=rl*.2126729+gl*.7151522+bl*.072175,z=(rl*.0193339+gl*.119192+bl*.9503041)/1.08883;const f=v=>v>.008856?Math.cbrt(v):7.787*v+16/116;x=f(x);y=f(y);z=f(z);return[116*y-16,500*(x-y),200*(y-z)]}
+function labDist(L1,a1,b1,L2,a2,b2){return Math.sqrt((L1-L2)**2+(a1-a2)**2+(b1-b2)**2)}
+function rgbToHsl(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h=0,s=0,l=(mx+mn)/2;if(mx!==mn){const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);switch(mx){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;case b:h=(r-g)/d+4;break}h*=60}return[h,s,l]}
+function hslDist(h1,s1,l1,h2,s2,l2){let dh=Math.abs(h1-h2);if(dh>180)dh=360-dh;return Math.sqrt(dh*dh*.5+(Math.abs(s1-s2)*100)**2+(Math.abs(l1-l2)*100)**2)}
+function cDist(r1,g1,b1,r2,g2,b2,sp){if(sp==='lab'){const[L1,a1,B1]=rgbToLab(r1,g1,b1),[L2,a2,B2]=rgbToLab(r2,g2,b2);return labDist(L1,a1,B1,L2,a2,B2)}const[h1,s1,l1]=rgbToHsl(r1,g1,b1),[h2,s2,l2]=rgbToHsl(r2,g2,b2);return hslDist(h1,s1,l1,h2,s2,l2)}
+function h2r(h){h=h.replace('#','');return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]}
+function r2h(r,g,b){return'#'+[r,g,b].map(v=>Math.max(0,Math.min(255,v)).toString(16).padStart(2,'0')).join('')}
 
-// Canvases
-let baseCanvas, maskCanvas, cursorCanvas;
-let baseCtx, maskCtx, cursorCtx;
-let maskData = null;    // ImageData of mask
-let baseImage = null;   // original Image
+/* ═══════ Toast ═══════ */
+function toast(m,t='i',d=2500){const e=document.createElement('div');e.className='tst '+t;e.textContent=m;$('tc').appendChild(e);setTimeout(()=>{e.style.opacity='0';e.style.transition='opacity .3s';setTimeout(()=>e.remove(),300)},d)}
 
-// ─── Init ───
-function init() {
-  baseCanvas = document.getElementById('baseCanvas');
-  maskCanvas = document.getElementById('maskCanvas');
-  cursorCanvas = document.getElementById('cursorCanvas');
-  baseCtx = baseCanvas.getContext('2d');
-  maskCtx = maskCanvas.getContext('2d');
-  cursorCtx = cursorCanvas.getContext('2d');
+/* ═══════ 方案切换 ═══════ */
+document.querySelectorAll('.stab').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.stab').forEach(x=>x.classList.remove('act'));t.classList.add('act');S.scheme=t.dataset.s;document.querySelectorAll('.spnl').forEach(p=>p.style.display='none');const tgt=document.querySelector(`.spnl[data-for="${S.scheme}"]`);if(tgt)tgt.style.display='';if(S.loaded)renderAll();toast('已切换到 '+t.textContent.trim(),'i',1200)})});
 
-  buildChannelGrid();
-  buildRegionList();
-  buildSchemeColors();
-  setTool('brush');
-  setChannel(0);
-  setupEvents();
-  updateHistoryInfo();
-}
+/* ═══════ 图片加载 ═══════ */
+function handleFile(file){if(!file||!file.type.startsWith('image/')){toast('请选择图片','e');return}
+const url=URL.createObjectURL(file);const img=new Image();img.onload=()=>{bImg=img;S.imgW=img.naturalWidth;S.imgH=img.naturalHeight;
+[bC,oC,cC].forEach(c=>{c.width=S.imgW;c.height=S.imgH});
+const tc=document.createElement('canvas');tc.width=S.imgW;tc.height=S.imgH;const tx=tc.getContext('2d');tx.drawImage(img,0,0);bData=tx.getImageData(0,0,S.imgW,S.imgH);
+resetData();S.loaded=true;
+$('emS').style.display='none';[bC,oC,cC].forEach(c=>c.style.display='block');$('cTb').style.display='flex';$('zI').style.display='block';
+fitWin();renderAll();saveH();toast(`已加载 ${img.width}×${img.height}`,'s')};img.src=url}
+function resetData(){S.channels=[];S.activeCh=-1;S.schemeColors=[];S.palette=[];S.grayRegs=[];S.activeGr=-1;undoStack=[];redoStack=[];rebuildChUI();rebuildPalUI();rebuildGrUI();updHInfo()}
+$('bIm').onclick=$('bEU').onclick=()=>$('fI').click();
+$('fI').onchange=e=>{if(e.target.files[0])handleFile(e.target.files[0]);e.target.value=''};
+$('bImM').onclick=()=>{if(!S.loaded){toast('请先导入原图','w');return}$('mfI').click()};
+$('mfI').onchange=e=>{if(e.target.files[0])loadMask(e.target.files[0]);e.target.value=''};
+function loadMask(file){const rd=new FileReader();rd.onload=e=>{const img=new Image();img.onload=()=>{const tc=document.createElement('canvas');tc.width=S.imgW;tc.height=S.imgH;const tx=tc.getContext('2d');tx.drawImage(img,0,0,S.imgW,S.imgH);const id=tx.getImageData(0,0,S.imgW,S.imgH);importMask(id);saveH();renderAll();toast('Mask 已导入','s')};img.src=e.target.result};rd.readAsDataURL(file)}
+function importMask(id){const d=id.data,n=S.imgW*S.imgH;let hR=false,hG=false,hB=false;for(let i=0;i<n;i++){const x=i*4;if(d[x]>10)hR=true;if(d[x+1]>10)hG=true;if(d[x+2]>10)hB=true}
+S.channels=[];const add=[];if(hR)add.push(0);if(hG)add.push(1);if(hB)add.push(2);
+for(const ci of add){const md=new Uint8Array(n);for(let i=0;i<n;i++)md[i]=d[i*4+ci];S.channels.push({nm:`Mask1-${CN[ci]}`,color:null,dc:CC[ci],md,ci,mi:0})}
+S.schemeColors=S.channels.map(c=>c.dc);if(S.channels.length>0)S.activeCh=0;rebuildChUI();rebuildSchCol()}
+const dov=$('dov');
+document.addEventListener('dragenter',e=>{e.preventDefault();dov.classList.add('sh')});
+dov.addEventListener('dragleave',e=>{e.preventDefault();dov.classList.remove('sh')});
+dov.addEventListener('dragover',e=>e.preventDefault());
+dov.addEventListener('drop',e=>{e.preventDefault();dov.classList.remove('sh');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0])});
 
-function buildChannelGrid() {
-  const grid = document.getElementById('channelGrid');
-  grid.innerHTML = channels.map((c, i) =>
-    `<button class="channel-btn" id="ch${i}" onclick="setChannel(${i})">
-      <span class="channel-dot" style="background:${c.color}"></span>
-      <span class="channel-label">${c.name}</span>
-      <span class="channel-key">${c.key}</span>
-    </button>`
-  ).join('');
-}
+/* ═══════ 画布渲染 ═══════ */
+function renderAll(){if(!S.loaded)return;
+const tf=`translate(${S.panX}px,${S.panY}px) scale(${S.zoom})`;
+[bC,oC,cC].forEach(c=>{c.style.transform=tf;c.style.transformOrigin='0 0'});
+bx.clearRect(0,0,S.imgW,S.imgH);drawCB(bx,S.imgW,S.imgH);bx.drawImage(bImg,0,0);
+ox.clearRect(0,0,S.imgW,S.imgH);
+if(S.scheme==='mask')ovA();else if(S.scheme==='palette')ovB();else ovC();
+if(S.rStart&&S.rEnd){ox.save();ox.strokeStyle='rgba(108,140,255,.8)';ox.lineWidth=1/S.zoom;ox.setLineDash([4/S.zoom,4/S.zoom]);const x=Math.min(S.rStart.x,S.rEnd.x),y=Math.min(S.rStart.y,S.rEnd.y);ox.strokeRect(x,y,Math.abs(S.rEnd.x-S.rStart.x),Math.abs(S.rEnd.y-S.rStart.y));ox.restore()}
+$('zI').textContent=Math.round(S.zoom*100)+'%';updPrev()}
 
-function buildRegionList() {
-  const list = document.getElementById('regionList');
-  const cols = ['#f66', '#6f6', '#66f'];
-  list.innerHTML = state.regions.map((r, i) =>
-    `<div class="region-item">
-      <span class="region-color-dot" style="background:${cols[i]}"></span>
-      <input type="text" value="${r}" onchange="updateRegionName(${i}, this.value)">
-    </div>`
-  ).join('');
-}
+function drawCB(c,w,h){const sz=8;c.save();for(let y=0;y<h;y+=sz)for(let x=0;x<w;x+=sz){c.fillStyle=((x/sz+y/sz)%2===0)?'#1a1a2e':'#12121e';c.fillRect(x,y,sz,sz)}c.restore()}
 
-function buildSchemeColors() {
-  const el = document.getElementById('schemeColors');
-  const labels = ['区域1', '区域2', '区域3'];
-  el.innerHTML = state.schemeColors.map((c, i) =>
-    `<div class="scheme-row">
-      <label>${state.regions[i] || labels[i]}</label>
-      <input type="color" value="${c}" onchange="state.schemeColors[${i}]=this.value">
-    </div>`
-  ).join('');
-}
+function ovA(){if(!S.channels.length)return;const ov=ox.createImageData(S.imgW,S.imgH);const od=ov.data;
+for(const ch of S.channels){if(!ch.md)continue;const[cr,cg,cb]=h2r(ch.dc);for(let i=0;i<ch.md.length;i++){const a=ch.md[i];if(!a)continue;const x=i*4,al=a/255*.45;od[x]=Math.min(255,od[x]+cr*al);od[x+1]=Math.min(255,od[x+1]+cg*al);od[x+2]=Math.min(255,od[x+2]+cb*al);od[x+3]=Math.min(255,od[x+3]+255*al)}}
+ox.putImageData(ov,0,0)}
 
-function updateRegionName(idx, name) {
-  state.regions[idx] = name;
-  const labels = ['rLabel', 'gLabel', 'bLabel'];
-  if (labels[idx]) document.getElementById(labels[idx]).textContent = name;
-  buildSchemeColors();
-}
+function ovB(){if(!S.palette.length||!bData)return;const d=bData.data,tol=parseInt($('rPTol').value);const ov=ox.createImageData(S.imgW,S.imgH);const od=ov.data;
+for(const p of S.palette){const[pr,pg,pb]=h2r(p.original);const[rr,rg,rb]=h2r(p.replace);for(let i=0,n=d.length/4;i<n;i++){const x=i*4;if(d[x+3]<10)continue;if(Math.sqrt((d[x]-pr)**2+(d[x+1]-pg)**2+(d[x+2]-pb)**2)<=tol){od[x]=rr;od[x+1]=rg;od[x+2]=rb;od[x+3]=140}}}
+ox.putImageData(ov,0,0)}
 
-// ─── Tools ───
-function setTool(tool) {
-  state.tool = tool;
-  document.getElementById('toolBrush').style.borderColor = tool === 'brush' ? 'var(--accent)' : '';
-  document.getElementById('toolEraser').style.borderColor = tool === 'eraser' ? 'var(--accent)' : '';
-  document.getElementById('toolFill').style.borderColor = tool === 'fill' ? 'var(--accent)' : '';
-  if (tool === 'eraser') setChannel(4);
-  else if (state.channel === 4) setChannel(0);
-}
+function ovC(){if(!S.grayRegs.length||!bData)return;const d=bData.data;const[tr,tg,tb]=h2r(S.tintColor);const str=S.tintStr,off=S.brOff;
+const ov=ox.createImageData(S.imgW,S.imgH);const od=ov.data;
+for(const reg of S.grayRegs){if(!reg.md)continue;for(let i=0;i<reg.md.length;i++){const a=reg.md[i];if(!a)continue;const x=i*4;let g=Math.round(.2126*d[x]+.7152*d[x+1]+.0722*d[x+2]);g=Math.max(0,Math.min(255,g+off));od[x]=Math.round(g*(1-str)+(g/255*tr)*str);od[x+1]=Math.round(g*(1-str)+(g/255*tg)*str);od[x+2]=Math.round(g*(1-str)+(g/255*tb)*str);od[x+3]=Math.round(a*.6)}}
+ox.putImageData(ov,0,0)}
 
-function setChannel(idx) {
-  state.channel = idx;
-  channels.forEach((_, i) => {
-    document.getElementById(`ch${i}`).classList.toggle('active', i === idx);
-  });
-  if (idx === 4) {
-    state.tool = 'eraser';
-    document.getElementById('toolEraser').style.borderColor = 'var(--accent)';
-    document.getElementById('toolBrush').style.borderColor = '';
+/* ═══════ 右侧预览 ═══════ */
+function updPrev(){if(!S.loaded)return;if(S.scheme==='mask'){updPrvComp();updPrvCh();updPrvClr()}else if(S.scheme==='palette'){updPrvPal()}else{updPrvGray()}}
+function updPrvComp(){const c=$('pvComp');c.width=S.imgW;c.height=S.imgH;const x=c.getContext('2d');const img=x.createImageData(S.imgW,S.imgH);const d=img.data;
+for(const ch of S.channels){if(!ch.md)continue;for(let i=0;i<ch.md.length;i++){if(!ch.md[i])continue;const idx=i*4;d[idx+ch.ci]=ch.md[i];d[idx+3]=255}}
+x.putImageData(img,0,0)}
+function updPrvCh(){const sel=$('chSel').value,c=$('pvCh');c.width=S.imgW;c.height=S.imgH;const x=c.getContext('2d');const img=x.createImageData(S.imgW,S.imgH);const d=img.data;
+if(sel==='comp'){for(const ch of S.channels){if(!ch.md)continue;const[cr,cg,cb]=h2r(ch.dc);for(let i=0;i<ch.md.length;i++){if(!ch.md[i])continue;const idx=i*4;d[idx]=Math.min(255,d[idx]+Math.round(cr*ch.md[i]/255));d[idx+1]=Math.min(255,d[idx+1]+Math.round(cg*ch.md[i]/255));d[idx+2]=Math.min(255,d[idx+2]+Math.round(cb*ch.md[i]/255));d[idx+3]=255}}}
+else if(sel==='a'){for(let i=0;i<S.imgW*S.imgH;i++){let has=false;for(const ch of S.channels)if(ch.md&&ch.md[i]>0){has=true;break}const v=has?255:0,idx=i*4;d[idx]=v;d[idx+1]=v;d[idx+2]=v;d[idx+3]=255}}
+else{const ci=sel==='r'?0:sel==='g'?1:2;for(const ch of S.channels){if(!ch.md||ch.ci!==ci)continue;for(let i=0;i<ch.md.length;i++){const v=ch.md[i];const idx=i*4;d[idx]=v;d[idx+1]=v;d[idx+2]=v;d[idx+3]=255}}}
+x.putImageData(img,0,0)}
+function updPrvClr(){if(!bData||!S.channels.length)return;const c=$('pvClr');c.width=S.imgW;c.height=S.imgH;const x=c.getContext('2d');const out=x.createImageData(S.imgW,S.imgH);const od=out.data;const bd=bData.data;
+for(let i=0;i<bd.length;i+=4){let or=bd[i],og=bd[i+1],ob=bd[i+2],oa=bd[i+3];const pi=i/4;let mV=0,mI=-1;for(let j=0;j<S.channels.length;j++){const ch=S.channels[j];if(ch.md&&ch.md[pi]>mV){mV=ch.md[pi];mI=j}}
+if(mI>=0&&mV>0&&S.schemeColors[mI]){const tc=h2r(S.schemeColors[mI]);const lum=(or*.299+og*.587+ob*.114)/255;const bl=mV/255;or=Math.round(or*(1-bl)+tc[0]*lum*bl);og=Math.round(og*(1-bl)+tc[1]*lum*bl);ob=Math.round(ob*(1-bl)+tc[2]*lum*bl)}
+od[i]=Math.min(255,or);od[i+1]=Math.min(255,og);od[i+2]=Math.min(255,ob);od[i+3]=oa}
+x.putImageData(out,0,0)}
+function updPrvPal(){const c=$('pvComp');c.width=S.imgW;c.height=S.imgH;const x=c.getContext('2d');x.drawImage(bImg,0,0);if(!S.palette.length)return;const id=x.getImageData(0,0,S.imgW,S.imgH);const d=id.data;const tol=parseInt($('rPTol').value);
+for(const p of S.palette){const[pr,pg,pb]=h2r(p.original);const[rr,rg,rb]=h2r(p.replace);for(let i=0,n=d.length/4;i<n;i++){const idx=i*4;if(d[idx+3]<10)continue;if(Math.sqrt((d[idx]-pr)**2+(d[idx+1]-pg)**2+(d[idx+2]-pb)**2)<=tol){d[idx]=rr;d[idx+1]=rg;d[idx+2]=rb}}}
+x.putImageData(id,0,0)}
+function updPrvGray(){const c=$('pvComp');c.width=S.imgW;c.height=S.imgH;const x=c.getContext('2d');x.drawImage(bImg,0,0);const id=x.getImageData(0,0,S.imgW,S.imgH);const d=id.data;const off=S.brOff;const[tr,tg,tb]=h2r(S.tintColor);const str=S.tintStr;
+for(const reg of S.grayRegs){if(!reg.md)continue;for(let i=0;i<reg.md.length;i++){if(!reg.md[i])continue;const idx=i*4;let g=Math.round(.2126*d[idx]+.7152*d[idx+1]+.0722*d[idx+2]);g=Math.max(0,Math.min(255,g+off));const a=reg.md[i]/255;d[idx]=Math.round(d[idx]*(1-a)+(g*(1-str)+g/255*tr*str)*a);d[idx+1]=Math.round(d[idx+1]*(1-a)+(g*(1-str)+g/255*tg*str)*a);d[idx+2]=Math.round(d[idx+2]*(1-a)+(g*(1-str)+g/255*tb*str)*a)}}
+x.putImageData(id,0,0)}
+$('chSel').onchange=()=>updPrvCh();
+
+/* ═══════════════════════════════════════════════════════════
+   方案 A: 通道管理（无限扩展，自动分配多 Mask 图）
+   
+   每张 Mask 图有 R/G/B 三个通道:
+     区域 0~2  → Mask1 的 R/G/B
+     区域 3~5  → Mask2 的 R/G/B
+     区域 6~8  → Mask3 的 R/G/B
+     ...以此类推
+   
+   分配算法:
+     channelIndex = i % 3     → 0=R, 1=G, 2=B
+     maskIndex    = floor(i/3) → 第几张 Mask 图
+   
+   通道互斥铁律:
+     同一张 Mask 图内(相同 maskIndex),
+     一个像素只能属于 R/G/B 中的一个通道.
+   ═══════════════════════════════════════════════════════════ */
+$('bAddCh').onclick=()=>{if(!S.loaded){toast('请先导入图片','w');return}
+const i=S.channels.length,ci=i%3,mi=Math.floor(i/3);
+S.channels.push({nm:`Mask${mi+1}-${CN[ci]}`,color:null,dc:CC[ci],md:new Uint8Array(S.imgW*S.imgH),ci,mi});
+S.activeCh=i;S.schemeColors.push(CC[ci]);rebuildChUI();rebuildSchCol();
+if(ci===0&&mi>0)toast(`已自动创建第${mi+1}张 Mask 图`,'i',3000);
+toast(`已添加 Mask${mi+1}-${CN[ci]}`,'s')};
+
+/* 智能选色(LAB/HSL)：点击取色后遍历全图，按色差容差自动生成区域 mask */
+function genMaskCh(idx){const ch=S.channels[idx];if(!ch.color)return;
+const[tr,tg,tb]=h2r(ch.color),tol=parseInt($('rTol').value),fea=parseInt($('rFea').value),sp=S.colorSpace;
+const d=bData.data,mask=new Uint8Array(S.imgW*S.imgH);
+for(let i=0,n=d.length/4;i<n;i++){const id=i*4;if(d[id+3]<10)continue;
+const dist=cDist(d[id],d[id+1],d[id+2],tr,tg,tb,sp);
+if(dist<=tol)mask[i]=255;else if(fea>0&&dist<=tol+fea)mask[i]=Math.round((1-(dist-tol)/fea)*255)}
+/* ═══ 通道互斥铁律 ═══ 同 Mask 图内其他通道的重叠像素被清除 */
+const same=S.channels.filter((c,j)=>j!==idx&&c.mi===ch.mi);
+for(let i=0;i<mask.length;i++){if(!mask[i])continue;for(const o of same)if(o.md[i]>0)o.md[i]=0}
+ch.md=mask;qaCheck(idx)}
+
+/* QA 纯黑/纯白检测 — 实时检测当前通道选区内的亮度极端像素 */
+function qaCheck(idx){const ch=S.channels[idx];let bk=false,wt=false;const d=bData.data;
+for(let i=0;i<ch.md.length;i++){if(!ch.md[i])continue;const id=i*4;
+const lum=d[id]*.299+d[id+1]*.587+d[id+2]*.114;
+if(lum<3)bk=true;if(lum>252)wt=true;if(bk&&wt)break}
+const ws=[];
+if(bk)ws.push('⚠️ 警告：当前选中区域包含纯黑像素，引擎中 HSV 偏移将失效，请修改原图！');
+if(wt)ws.push('⚠️ 警告：当前选中区域包含纯白像素，引擎中 HSV 偏移将失效，请修改原图！');
+$('qaW').innerHTML=ws.length?ws.map(w=>`<div class="qaw">${w}</div>`).join(''):''}
+
+function rebuildChUI(){const l=$('chL');if(!S.channels.length){l.innerHTML='<div style="color:var(--dim);font-size:11px">（尚未添加换色区域）</div>';return}
+l.innerHTML=S.channels.map((ch,i)=>{const ac=i===S.activeCh,px=ch.md?ch.md.reduce((s,v)=>s+(v>0?1:0),0):0;
+return`<div class="chi${ac?' act':''}" onclick="selCh(${i})"><div class="chh"><div class="chd" style="background:${ch.dc}"></div><span class="chn">${ch.nm}</span>${ch.color?`<div class="chp" style="background:${ch.color}"></div>`:''}<button class="btn-s dng" onclick="event.stopPropagation();rmCh(${i})" style="padding:2px 6px">✕</button></div><div class="chinf">${ch.color?`取样: ${ch.color.toUpperCase()} · ${px.toLocaleString()}px`:'← 用智能选色工具取色'}${ch.mi>0?` · Mask#${ch.mi+1}`:''}</div></div>`}).join('')}
+window.selCh=i=>{S.activeCh=i;rebuildChUI()};
+window.rmCh=i=>{S.channels.splice(i,1);S.schemeColors.splice(i,1);if(S.activeCh>=S.channels.length)S.activeCh=S.channels.length-1;S.channels.forEach((c,j)=>{const mi=Math.floor(j/3),ci=j%3;c.nm=`Mask${mi+1}-${CN[ci]}`;c.dc=CC[ci];c.ci=ci;c.mi=mi});rebuildChUI();rebuildSchCol();renderAll()};
+
+function rebuildSchCol(){const el=$('scC');el.innerHTML=S.channels.map((ch,i)=>`<div class="sr"><span class="sl">${ch.nm}</span><input type="color" value="${S.schemeColors[i]||ch.dc}" onchange="S.schemeColors[${i}]=this.value"><span class="sv">${(S.schemeColors[i]||ch.dc).toUpperCase()}</span></div>`).join('')}
+$('bRfP').onclick=()=>{updPrvClr();toast('预览已刷新','s',1000)};
+
+/* ═══════ 方案B: 调色板 ═══════ */
+function rebuildPalUI(){const l=$('palL'),r=$('palR');
+if(!S.palette.length){l.innerHTML='<div style="color:var(--dim);font-size:11px">（用智能选色在画布取色添加）</div>';r.innerHTML='<div style="color:var(--dim);font-size:11px">（先提取原色）</div>';return}
+l.innerHTML=S.palette.map((p,i)=>`<div class="plsw" style="background:${p.original}" title="${p.original.toUpperCase()}" onclick="rmPal(${i})"></div>`).join('');
+r.innerHTML=S.palette.map((p,i)=>`<div class="sr" style="margin-bottom:3px"><div style="width:22px;height:16px;border-radius:3px;background:${p.original};border:1px solid var(--border);flex-shrink:0"></div><span style="color:var(--dim);font-size:10px">→</span><input type="color" value="${p.replace}" onchange="updPal(${i},this.value)" style="width:24px;height:16px;border:1px solid var(--border);border-radius:3px"><span style="font-size:10px;color:var(--heading);font-family:monospace">${p.replace.toUpperCase()}</span></div>`).join('')}
+window.rmPal=i=>{S.palette.splice(i,1);rebuildPalUI();renderAll()};
+window.updPal=(i,h)=>{S.palette[i].replace=h;rebuildPalUI();renderAll()};
+$('bClrP').onclick=()=>{S.palette=[];rebuildPalUI();renderAll()};
+$('bSrtP').onclick=()=>{S.palette.sort((a,b)=>{const[,,la]=rgbToHsl(...h2r(a.original)),[,,lb]=rgbToHsl(...h2r(b.original));return la-lb});rebuildPalUI();toast('已按亮度排序','s')};
+
+/* ═══════ 方案C: 灰度区域 ═══════ */
+$('bAddGr').onclick=()=>{if(!S.loaded){toast('请先导入图片','w');return}const i=S.grayRegs.length;S.grayRegs.push({nm:`区域${i+1}`,color:null,md:new Uint8Array(S.imgW*S.imgH)});S.activeGr=i;rebuildGrUI();toast(`已添加灰度区域${i+1}`,'s')};
+function genMaskGr(idx){const reg=S.grayRegs[idx];if(!reg.color)return;const[tr,tg,tb]=h2r(reg.color);const tol=parseInt($('rGTol').value);const d=bData.data;const mask=new Uint8Array(S.imgW*S.imgH);
+for(let i=0,n=d.length/4;i<n;i++){const id=i*4;if(d[id+3]<10)continue;const dist=cDist(d[id],d[id+1],d[id+2],tr,tg,tb,'lab');if(dist<=tol)mask[i]=255;else if(dist<=tol+5)mask[i]=Math.round((1-(dist-tol)/5)*255)}
+reg.md=mask;updAvgG()}
+function updAvgG(){let t=0,c=0;const d=bData.data,off=S.brOff;for(const r of S.grayRegs){if(!r.md)continue;for(let i=0;i<r.md.length;i++){if(!r.md[i])continue;const id=i*4;let g=Math.round(.2126*d[id]+.7152*d[id+1]+.0722*d[id+2]);g=Math.max(0,Math.min(255,g+off));t+=g;c++}}
+$('avgG').textContent=c?Math.round(t/c):'—';const avg=c?Math.round(t/c):0;$('avgG').style.color=c&&(avg<128||avg>200)?'var(--yellow)':'var(--green)'}
+function rebuildGrUI(){const l=$('grL');if(!S.grayRegs.length){l.innerHTML='<div style="color:var(--dim);font-size:11px">（尚未添加灰度区域）</div>';return}
+l.innerHTML=S.grayRegs.map((r,i)=>{const ac=i===S.activeGr,px=r.md?r.md.reduce((s,v)=>s+(v>0?1:0),0):0;
+return`<div class="chi${ac?' act':''}" onclick="selGr(${i})"><div class="chh"><div class="chd" style="background:#888"></div><span class="chn">${r.nm}</span>${r.color?`<div class="chp" style="background:${r.color}"></div>`:''}<button class="btn-s dng" onclick="event.stopPropagation();rmGr(${i})" style="padding:2px 6px">✕</button></div><div class="chinf">${r.color?`取样: ${r.color.toUpperCase()} · ${px.toLocaleString()}px`:'← 用智能选色取色'}</div></div>`}).join('')}
+window.selGr=i=>{S.activeGr=i;rebuildGrUI()};
+window.rmGr=i=>{S.grayRegs.splice(i,1);if(S.activeGr>=S.grayRegs.length)S.activeGr=S.grayRegs.length-1;S.grayRegs.forEach((r,j)=>r.nm=`区域${j+1}`);rebuildGrUI();renderAll()};
+
+/* ═══════ 画布交互 ═══════ */
+function fitWin(){const a=$('cA'),aw=a.clientWidth,ah=a.clientHeight;S.zoom=Math.min((aw-30)/S.imgW,(ah-30)/S.imgH,4);S.panX=(aw-S.imgW*S.zoom)/2;S.panY=(ah-S.imgH*S.zoom)/2}
+function cCoord(e){const r=$('cA').getBoundingClientRect();return{x:Math.floor((e.clientX-r.left-S.panX)/S.zoom),y:Math.floor((e.clientY-r.top-S.panY)/S.zoom)}}
+function inB(p){return p.x>=0&&p.x<S.imgW&&p.y>=0&&p.y<S.imgH}
+
+/* 工具切换 */
+const tbMap={pan:$('tbPan'),smartPick:$('tbPick'),brush:$('tbBrush'),eraser:$('tbEraser'),rect:$('tbRect')};
+const lpMap={smartPick:'smartPick',brush:'brush',eraser:'eraser',rect:'rect'};
+function setTool(t){S.tool=t;
+Object.values(tbMap).forEach(b=>b.classList.remove('act'));if(tbMap[t])tbMap[t].classList.add('act');
+document.querySelectorAll('#tBtns .btn-s').forEach(b=>b.classList.toggle('act',b.dataset.t===t));
+bC.style.cursor=t==='pan'?'grab':'crosshair'}
+Object.entries(tbMap).forEach(([t,b])=>b.addEventListener('click',()=>setTool(t)));
+document.querySelectorAll('#tBtns .btn-s').forEach(b=>b.addEventListener('click',()=>setTool(b.dataset.t)));
+$('tbZi').onclick=()=>{S.zoom=Math.min(S.zoom*1.3,20);renderAll()};
+$('tbZo').onclick=()=>{S.zoom=Math.max(S.zoom/1.3,.05);renderAll()};
+$('tbFit').onclick=()=>{fitWin();renderAll()};
+
+/* 滚轮缩放 */
+$('cA').addEventListener('wheel',e=>{if(!S.img&&!S.loaded)return;e.preventDefault();const r=$('cA').getBoundingClientRect();const mx=e.clientX-r.left,my=e.clientY-r.top,oz=S.zoom;S.zoom=e.deltaY<0?Math.min(oz*1.15,20):Math.max(oz/1.15,.05);S.panX=mx-(mx-S.panX)*(S.zoom/oz);S.panY=my-(my-S.panY)*(S.zoom/oz);renderAll()},{passive:false});
+
+/* Space 拖拽 & 快捷键 */
+let lastMousePos=null;
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
+  if(e.code==='Space'){e.preventDefault();S.spHeld=true;if(S.loaded)bC.style.cursor='grab'}
+  if(!S.loaded)return;
+  switch(e.key){
+    case'i':case'I':setTool('smartPick');break;
+    case'b':case'B':setTool('brush');break;
+    case'e':case'E':setTool('eraser');break;
+    case'm':case'M':setTool('rect');break;
+    case'v':case'V':setTool('pan');break;
+    case'0':fitWin();renderAll();break;
+    case'+':case'=':e.preventDefault();S.zoom=Math.min(S.zoom*1.3,20);renderAll();break;
+    case'-':e.preventDefault();S.zoom=Math.max(S.zoom/1.3,.05);renderAll();break;
+    /* ═══ [ ] 调节画笔大小 + 视觉反馈 ═══ */
+    case'[':S.brushSize=Math.max(1,S.brushSize-2);$('rBS').value=S.brushSize;$('vBS').textContent=S.brushSize;showBrushSizeToast();break;
+    case']':S.brushSize=Math.min(100,S.brushSize+2);$('rBS').value=S.brushSize;$('vBS').textContent=S.brushSize;showBrushSizeToast();break;
+    case'z':case'Z':if(e.ctrlKey||e.metaKey){e.preventDefault();undo()}break;
+    case'y':case'Y':if(e.ctrlKey||e.metaKey){e.preventDefault();redo()}break;
   }
+});
+document.addEventListener('keyup',e=>{if(e.code==='Space'){S.spHeld=false;setTool(S.tool)}});
+
+/* 画笔大小视觉反馈：屏幕中央临时显示大小 */
+let bstTimer=null;
+function showBrushSizeToast(){const t=$('bst');t.textContent=`画笔: ${S.brushSize}px`;t.style.display='block';
+if(lastMousePos){t.style.left=(lastMousePos.x+20)+'px';t.style.top=(lastMousePos.y-15)+'px'}else{const r=$('cA').getBoundingClientRect();t.style.left=(r.left+r.width/2)+'px';t.style.top=(r.top+r.height/2)+'px'}
+if(bstTimer)clearTimeout(bstTimer);bstTimer=setTimeout(()=>{t.style.display='none'},800)}
+
+/* 鼠标事件 */
+$('cA').addEventListener('mousedown',e=>{if(!S.loaded)return;const p=cCoord(e);
+if(S.spHeld||S.tool==='pan'){S.dragging=true;S.lastM={x:e.clientX,y:e.clientY};bC.style.cursor='grabbing';return}
+if(S.tool==='smartPick'){if(inB(p))pickColor(p);return}
+if(S.tool==='rect'){S.rStart=p;S.rEnd=p;S.dragging=true;return}
+if(S.tool==='brush'||S.tool==='eraser'){S.dragging=true;S.lastM=p;applyBrush(p);return}});
+
+$('cA').addEventListener('mousemove',e=>{if(!S.loaded)return;const p=cCoord(e);lastMousePos={x:e.clientX,y:e.clientY};
+/* 颜色浮窗 */
+if(inB(p)){const idx=(p.y*S.imgW+p.x)*4,d=bData.data;const r=d[idx],g=d[idx+1],b=d[idx+2],a=d[idx+3];const hv=$('chov');hv.style.display='flex';hv.style.left=(e.clientX+14)+'px';hv.style.top=(e.clientY+14)+'px';$('cpv').style.background=`rgba(${r},${g},${b},${a/255})`;$('chx').textContent=r2h(r,g,b).toUpperCase();$('crg').textContent=`R:${r} G:${g} B:${b} A:${a}`}else{$('chov').style.display='none'}
+/* 画笔光标 */
+if(S.tool==='brush'||S.tool==='eraser'){cx.clearRect(0,0,S.imgW,S.imgH);if(inB(p)){cx.beginPath();cx.arc(p.x,p.y,S.brushSize,0,Math.PI*2);cx.strokeStyle='rgba(255,255,255,.6)';cx.lineWidth=1/S.zoom;cx.stroke()}}
+if(!S.dragging)return;
+if(S.spHeld||S.tool==='pan'){S.panX+=e.clientX-S.lastM.x;S.panY+=e.clientY-S.lastM.y;S.lastM={x:e.clientX,y:e.clientY};renderAll();return}
+if(S.tool==='rect'){S.rEnd=p;renderAll();return}
+if(S.tool==='brush'||S.tool==='eraser'){interpolate(S.lastM,p);S.lastM=p;renderAll();return}});
+
+document.addEventListener('mouseup',e=>{if(!S.loaded)return;
+if(S.tool==='rect'&&S.rStart&&S.rEnd&&S.dragging){
+const x1=Math.max(0,Math.min(S.rStart.x,S.rEnd.x)),y1=Math.max(0,Math.min(S.rStart.y,S.rEnd.y)),x2=Math.min(S.imgW-1,Math.max(S.rStart.x,S.rEnd.x)),y2=Math.min(S.imgH-1,Math.max(S.rStart.y,S.rEnd.y));
+if(x2-x1>2&&y2-y1>2)applyRect(x1,y1,x2,y2);S.rStart=null;S.rEnd=null}
+if(S.dragging&&(S.tool==='brush'||S.tool==='eraser'))saveH();
+S.dragging=false;if(S.spHeld||S.tool==='pan')bC.style.cursor='grab';renderAll()});
+$('cA').addEventListener('mouseleave',()=>{$('chov').style.display='none';cx.clearRect(0,0,S.imgW,S.imgH)});
+
+/* ═══════ 吸色 ═══════ */
+function pickColor(p){const idx=(p.y*S.imgW+p.x)*4,d=bData.data;const r=d[idx],g=d[idx+1],b=d[idx+2],a=d[idx+3];if(a<10){toast('透明像素无法取色','w');return}const hex=r2h(r,g,b);
+if(S.scheme==='mask'){if(S.activeCh<0||S.activeCh>=S.channels.length){toast('请先添加并选择换色区域','w');return}S.channels[S.activeCh].color=hex;genMaskCh(S.activeCh);rebuildChUI();saveH();renderAll();toast(`${S.channels[S.activeCh].nm} 取色: ${hex.toUpperCase()}`,'s')}
+else if(S.scheme==='palette'){if(S.palette.find(x=>x.original===hex)){toast('颜色已存在','w');return}S.palette.push({original:hex,replace:hex});rebuildPalUI();renderAll();toast(`已添加: ${hex.toUpperCase()}`,'s')}
+else if(S.scheme==='gray'){if(S.activeGr<0){toast('请先添加灰度区域','w');return}S.grayRegs[S.activeGr].color=hex;genMaskGr(S.activeGr);rebuildGrUI();saveH();renderAll();toast(`${S.grayRegs[S.activeGr].nm} 取色: ${hex.toUpperCase()}`,'s')}}
+
+/* ═══════ 笔刷/橡皮 ═══════ */
+function applyBrush(p){if(!inB(p))return;const isE=S.tool==='eraser',sz=S.brushSize,hard=S.hardness/100;
+if(S.scheme==='mask'){if(S.activeCh<0)return;const ch=S.channels[S.activeCh];
+for(let dy=-sz;dy<=sz;dy++)for(let dx=-sz;dx<=sz;dx++){const dist=Math.sqrt(dx*dx+dy*dy);if(dist>sz)continue;
+const px=p.x+dx,py=p.y+dy;if(px<0||px>=S.imgW||py<0||py>=S.imgH)continue;
+let intensity=255;if(hard<1){const edge=1-dist/sz;intensity=Math.round(255*(hard+(1-hard)*edge))}
+const i=py*S.imgW+px;
+if(isE){ch.md[i]=0}else{ch.md[i]=Math.max(ch.md[i],intensity);
+/* 通道互斥 */for(const o of S.channels)if(o!==ch&&o.mi===ch.mi)o.md[i]=0}}
+qaCheck(S.activeCh)}
+else if(S.scheme==='gray'){if(S.activeGr<0)return;const reg=S.grayRegs[S.activeGr];
+for(let dy=-sz;dy<=sz;dy++)for(let dx=-sz;dx<=sz;dx++){if(dx*dx+dy*dy>sz*sz)continue;const px=p.x+dx,py=p.y+dy;if(px<0||px>=S.imgW||py<0||py>=S.imgH)continue;reg.md[py*S.imgW+px]=isE?0:255}updAvgG()}
+renderAll()}
+
+function interpolate(a,b){const dx=Math.abs(b.x-a.x),dy=Math.abs(b.y-a.y),steps=Math.max(dx,dy,1);for(let i=0;i<=steps;i++){const t=i/steps;applyBrush({x:Math.round(a.x+(b.x-a.x)*t),y:Math.round(a.y+(b.y-a.y)*t)})}}
+
+function applyRect(x1,y1,x2,y2){
+if(S.scheme==='mask'){if(S.activeCh<0){toast('请先选择换色区域','w');return}const ch=S.channels[S.activeCh];
+for(let y=y1;y<=y2;y++)for(let x=x1;x<=x2;x++){const i=y*S.imgW+x;if(bData.data[i*4+3]<10)continue;ch.md[i]=255;for(const o of S.channels)if(o!==ch&&o.mi===ch.mi)o.md[i]=0}
+qaCheck(S.activeCh);rebuildChUI();saveH();toast(`框选已添加到 ${ch.nm}`,'s')}
+else if(S.scheme==='gray'){if(S.activeGr<0){toast('请先添加灰度区域','w');return}const reg=S.grayRegs[S.activeGr];
+for(let y=y1;y<=y2;y++)for(let x=x1;x<=x2;x++){if(bData.data[(y*S.imgW+x)*4+3]<10)continue;reg.md[y*S.imgW+x]=255}
+updAvgG();rebuildGrUI();saveH();toast(`框选已添加到 ${reg.nm}`,'s')}
+renderAll()}
+
+/* ═══════ 滑块绑定 ═══════ */
+function bSl(sid,vid,suf,cb){const s=$(sid),v=$(vid);if(!s)return;s.oninput=()=>{v.textContent=s.value+(suf||'');if(cb)cb(parseFloat(s.value))}}
+bSl('rBS','vBS','',v=>{S.brushSize=v});
+bSl('rHd','vHd','%',v=>{S.hardness=v});
+bSl('rTol','vTol','',()=>{if(S.activeCh>=0&&S.channels[S.activeCh].color){genMaskCh(S.activeCh);rebuildChUI();renderAll()}});
+bSl('rFea','vFea','',()=>{if(S.activeCh>=0&&S.channels[S.activeCh].color){genMaskCh(S.activeCh);rebuildChUI();renderAll()}});
+bSl('rPTol','vPTol','',()=>renderAll());
+bSl('rGTol','vGTol','',()=>{S.grayRegs.forEach((r,i)=>{if(r.color)genMaskGr(i)});rebuildGrUI();renderAll()});
+bSl('rBrO','vBrO','',v=>{S.brOff=v;updAvgG();renderAll()});
+bSl('rTStr','vTStr','%',v=>{S.tintStr=v/100;renderAll()});
+$('tintC').oninput=e=>{S.tintColor=e.target.value;$('tintH').textContent=e.target.value.toUpperCase();renderAll()};
+$('csL').onclick=()=>{S.colorSpace='lab';$('csL').classList.add('act');$('csH').classList.remove('act');if(S.activeCh>=0&&S.channels[S.activeCh].color){genMaskCh(S.activeCh);rebuildChUI();renderAll()}};
+$('csH').onclick=()=>{S.colorSpace='hsl';$('csH').classList.add('act');$('csL').classList.remove('act');if(S.activeCh>=0&&S.channels[S.activeCh].color){genMaskCh(S.activeCh);rebuildChUI();renderAll()}};
+
+/* ═══════ 撤销/重做 ═══════ */
+function saveH(){const snap=JSON.stringify({ch:S.channels.map(c=>({...c,md:Array.from(c.md||[])})),gr:S.grayRegs.map(r=>({...r,md:Array.from(r.md||[])})),pal:S.palette.slice()});
+undoStack.push(snap);if(undoStack.length>MAX_H)undoStack.shift();redoStack=[];updHInfo()}
+function restoreSnap(s){const d=JSON.parse(s);S.channels=d.ch.map(c=>({...c,md:new Uint8Array(c.md)}));S.grayRegs=d.gr.map(r=>({...r,md:new Uint8Array(r.md)}));S.palette=d.pal;
+if(S.activeCh>=S.channels.length)S.activeCh=Math.max(-1,S.channels.length-1);if(S.activeGr>=S.grayRegs.length)S.activeGr=Math.max(-1,S.grayRegs.length-1);
+S.schemeColors=S.channels.map((c,i)=>S.schemeColors[i]||c.dc);
+rebuildChUI();rebuildSchCol();rebuildPalUI();rebuildGrUI();renderAll()}
+function undo(){if(undoStack.length<=1)return;redoStack.push(undoStack.pop());restoreSnap(undoStack[undoStack.length-1]);updHInfo();toast('已撤销','i',800)}
+function redo(){if(!redoStack.length)return;const s=redoStack.pop();undoStack.push(s);restoreSnap(s);updHInfo();toast('已重做','i',800)}
+function updHInfo(){$('hInfo').textContent=`历史 ${undoStack.length}/${undoStack.length+redoStack.length}`}
+$('bUndo').onclick=undo;$('bRedo').onclick=redo;
+$('bClr').onclick=()=>{if(!S.loaded)return;if(!confirm('确定清空所有数据？'))return;resetData();saveH();renderAll();toast('已清空','s')};
+
+/* ═══════════════════════════════════════════
+   统一导出系统（JSZip → ZIP）
+   ═══════════════════════════════════════════ */
+$('bEx').onclick=async()=>{if(!S.loaded){toast('请先导入图片','e');return}
+toast('正在生成资源包…','i');
+try{const zip=new JSZip();
+const config={scheme:S.scheme,version:'2.0',exportTime:new Date().toISOString(),imageSize:{w:S.imgW,h:S.imgH}};
+
+if(S.scheme==='mask'){
+  /* 原图 */
+  zip.file('character_base.png',await c2b(drawBaseA()));
+  /* 按 maskIndex 分组生成多张 Mask PNG */
+  const maxMi=S.channels.reduce((m,c)=>Math.max(m,c.mi),0);
+  config.masks=[];config.channels=[];
+  for(let mi=0;mi<=maxMi;mi++){
+    const mc=document.createElement('canvas');mc.width=S.imgW;mc.height=S.imgH;
+    const mx=mc.getContext('2d');const mD=mx.createImageData(S.imgW,S.imgH);const md=mD.data;
+    const chs=S.channels.filter(c=>c.mi===mi);
+    for(let i=0,n=S.imgW*S.imgH;i<n;i++){const idx=i*4;
+      for(const ch of chs){if(!ch.md||!ch.md[i])continue;md[idx+ch.ci]=ch.md[i]}
+      md[idx+3]=(md[idx]||md[idx+1]||md[idx+2])?255:0}
+    mx.putImageData(mD,0,0);
+    const fn=mi===0?'character_mask.png':`character_mask${mi+1}.png`;
+    zip.file(fn,await c2b(mc));config.masks.push(fn);
+    for(const ch of chs)config.channels.push({name:ch.nm,maskFile:fn,channel:CN[ch.ci],sampledColor:ch.color||null})}
+}else if(S.scheme==='palette'){
+  zip.file('character_base.png',await c2b(drawBaseB()));
+  const pc=document.createElement('canvas');pc.width=256;pc.height=1;
+  const px=pc.getContext('2d');const pd=px.createImageData(256,1);const pdd=pd.data;
+  S.palette.forEach((p,i)=>{if(i>=256)return;const[r,g,b]=h2r(p.replace);pdd[i*4]=r;pdd[i*4+1]=g;pdd[i*4+2]=b;pdd[i*4+3]=255});
+  px.putImageData(pd,0,0);zip.file('palette.png',await c2b(pc));
+  config.palette=S.palette.map(p=>({original:p.original,replace:p.replace}));
+}else if(S.scheme==='gray'){
+  zip.file('character_base.png',await c2b(drawBaseC()));
+  config.tint={color:S.tintColor,strength:S.tintStr,brightnessOffset:S.brOff};
+  config.regions=S.grayRegs.map(r=>({name:r.nm,sampledColor:r.color||null}));
 }
 
-function updateBrushSize(v) {
-  state.brushSize = parseInt(v);
-  document.getElementById('brushSizeVal').textContent = v;
-}
+zip.file('palette_config.json',JSON.stringify(config,null,2));
+const blob=await zip.generateAsync({type:'blob'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`color-swap-${S.scheme}-${Date.now()}.zip`;a.click();
+toast('资源包已导出！','s',3000)}catch(e){toast('导出失败: '+e.message,'e')}};
 
-function updateHardness(v) {
-  state.hardness = parseInt(v);
-  document.getElementById('hardnessVal').textContent = v + '%';
-}
+function c2b(c){return new Promise(r=>{c.toBlob(b=>{b.arrayBuffer().then(ab=>r(new Uint8Array(ab)))},'image/png')})}
+function drawBaseA(){const c=document.createElement('canvas');c.width=S.imgW;c.height=S.imgH;c.getContext('2d').drawImage(bImg,0,0);return c}
+function drawBaseB(){const c=document.createElement('canvas');c.width=S.imgW;c.height=S.imgH;const cx=c.getContext('2d');cx.drawImage(bImg,0,0);const id=cx.getImageData(0,0,S.imgW,S.imgH);const d=id.data;const tol=parseInt($('rPTol').value);
+for(let i=0,n=d.length/4;i<n;i++){const idx=i*4;if(d[idx+3]<10)continue;for(let pi=0;pi<S.palette.length;pi++){const[pr,pg,pb]=h2r(S.palette[pi].original);if(Math.sqrt((d[idx]-pr)**2+(d[idx+1]-pg)**2+(d[idx+2]-pb)**2)<=tol){const gray=Math.round(pi/Math.max(1,S.palette.length-1)*255);d[idx]=gray;d[idx+1]=gray;d[idx+2]=gray;break}}}
+cx.putImageData(id,0,0);return c}
+function drawBaseC(){const c=document.createElement('canvas');c.width=S.imgW;c.height=S.imgH;const cx=c.getContext('2d');cx.drawImage(bImg,0,0);const id=cx.getImageData(0,0,S.imgW,S.imgH);const d=id.data;const off=S.brOff;
+for(const reg of S.grayRegs){if(!reg.md)continue;for(let i=0;i<reg.md.length;i++){if(!reg.md[i])continue;const idx=i*4;let g=Math.round(.2126*d[idx]+.7152*d[idx+1]+.0722*d[idx+2]);g=Math.max(0,Math.min(255,g+off));const a=reg.md[i]/255;d[idx]=Math.round(d[idx]*(1-a)+g*a);d[idx+1]=Math.round(d[idx+1]*(1-a)+g*a);d[idx+2]=Math.round(d[idx+2]*(1-a)+g*a)}}
+cx.putImageData(id,0,0);return c}
 
-function updateStrength(v) {
-  state.strength = parseInt(v);
-  document.getElementById('strengthVal').textContent = v;
-}
-
-function updateMaskOpacity(v) {
-  state.maskOpacity = parseInt(v) / 100;
-  document.getElementById('maskOpacityVal').textContent = v + '%';
-  render();
-}
-
-// ─── Image Import ───
-function importImage() {
-  const input = document.getElementById('fileInput');
-  input.onchange = e => { if (e.target.files[0]) loadImage(e.target.files[0]); };
-  input.click();
-}
-
-function importMask() {
-  if (!state.loaded) { showToast('请先导入原图'); return; }
-  const input = document.getElementById('maskFileInput');
-  input.onchange = e => { if (e.target.files[0]) loadMaskFile(e.target.files[0]); };
-  input.click();
-}
-
-function loadImage(file) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = new Image();
-    img.onload = () => {
-      baseImage = img;
-      state.imgW = img.width;
-      state.imgH = img.height;
-      setupCanvases();
-      baseCtx.drawImage(img, 0, 0);
-      maskData = maskCtx.createImageData(img.width, img.height);
-      // Default: A channel = 0 (all not dyeable)
-      state.loaded = true;
-      document.getElementById('dropZone').style.display = 'none';
-      document.getElementById('canvasContainer').style.display = 'block';
-      resetZoom();
-      saveHistory();
-      render();
-      updatePreviews();
-      showToast(`已加载 ${img.width}×${img.height} 图片`);
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-function loadMaskFile(file) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = new Image();
-    img.onload = () => {
-      const tmpCanvas = document.createElement('canvas');
-      tmpCanvas.width = state.imgW;
-      tmpCanvas.height = state.imgH;
-      const tmpCtx = tmpCanvas.getContext('2d');
-      tmpCtx.drawImage(img, 0, 0, state.imgW, state.imgH);
-      maskData = tmpCtx.getImageData(0, 0, state.imgW, state.imgH);
-      saveHistory();
-      render();
-      updatePreviews();
-      showToast('Mask 已导入');
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-function setupCanvases() {
-  [baseCanvas, maskCanvas, cursorCanvas].forEach(c => {
-    c.width = state.imgW;
-    c.height = state.imgH;
-  });
-  const cont = document.getElementById('canvasContainer');
-  cont.style.width = state.imgW + 'px';
-  cont.style.height = state.imgH + 'px';
-}
-
-// ─── Render ───
-function render() {
-  if (!state.loaded) return;
-  // Base
-  baseCtx.clearRect(0, 0, state.imgW, state.imgH);
-  if (document.getElementById('showBase').checked) {
-    baseCtx.drawImage(baseImage, 0, 0);
-  }
-  // Mask overlay
-  maskCtx.clearRect(0, 0, state.imgW, state.imgH);
-  const tmpCanvas = document.createElement('canvas');
-  tmpCanvas.width = state.imgW;
-  tmpCanvas.height = state.imgH;
-  const tmpCtx = tmpCanvas.getContext('2d');
-  const display = tmpCtx.createImageData(state.imgW, state.imgH);
-  const d = display.data;
-  const m = maskData.data;
-  for (let i = 0; i < m.length; i += 4) {
-    const r = m[i], g = m[i+1], b = m[i+2], a = m[i+3];
-    // Show channels as colored overlay
-    if (a > 0) {
-      if (r > 0) { d[i] = 255; d[i+1] = 60; d[i+2] = 60; d[i+3] = Math.min(255, r * state.maskOpacity); }
-      else if (g > 0) { d[i] = 60; d[i+1] = 255; d[i+2] = 60; d[i+3] = Math.min(255, g * state.maskOpacity); }
-      else if (b > 0) { d[i] = 60; d[i+1] = 100; d[i+2] = 255; d[i+3] = Math.min(255, b * state.maskOpacity); }
-      else { d[i] = 255; d[i+1] = 255; d[i+2] = 255; d[i+3] = Math.min(255, a * state.maskOpacity * 0.3); }
-    }
-  }
-  tmpCtx.putImageData(display, 0, 0);
-  maskCtx.drawImage(tmpCanvas, 0, 0);
-  updateCanvasInfo();
-}
-
-function updateCanvasInfo() {
-  document.getElementById('canvasInfo').textContent =
-    `${state.imgW}×${state.imgH}px · 缩放 ${Math.round(state.zoom * 100)}%`;
-}
-
-// ─── Zoom & Pan ───
-function applyTransform() {
-  const cont = document.getElementById('canvasContainer');
-  cont.style.transform = `scale(${state.zoom})`;
-}
-
-function zoomIn() { state.zoom = Math.min(10, state.zoom * 1.25); applyTransform(); updateCanvasInfo(); }
-function zoomOut() { state.zoom = Math.max(0.1, state.zoom / 1.25); applyTransform(); updateCanvasInfo(); }
-
-function resetZoom() {
-  if (!state.loaded) return;
-  const vp = document.getElementById('viewport');
-  const scaleX = (vp.clientWidth - 40) / state.imgW;
-  const scaleY = (vp.clientHeight - 40) / state.imgH;
-  state.zoom = Math.min(scaleX, scaleY, 4);
-  applyTransform();
-  updateCanvasInfo();
-}
-
-// ─── Drawing ───
-function getCanvasPos(e) {
-  const rect = maskCanvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) / state.zoom;
-  const y = (e.clientY - rect.top) / state.zoom;
-  return { x: Math.round(x), y: Math.round(y) };
-}
-
-function drawBrushStroke(x, y) {
-  if (!maskData) return;
-  const r = state.brushSize;
-  const d = maskData.data;
-  const w = state.imgW;
-  const h = state.imgH;
-  const ch = state.channel;
-  const str = state.strength;
-  const hard = state.hardness / 100;
-
-  for (let dy = -r; dy <= r; dy++) {
-    for (let dx = -r; dx <= r; dx++) {
-      const px = x + dx;
-      const py = y + dy;
-      if (px < 0 || px >= w || py < 0 || py >= h) continue;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist > r) continue;
-
-      let intensity = str;
-      if (hard < 1) {
-        const edge = 1 - (dist / r);
-        const softFactor = hard + (1 - hard) * edge;
-        intensity = Math.round(str * softFactor);
-      }
-
-      const idx = (py * w + px) * 4;
-
-      if (state.tool === 'eraser' || ch === 4) {
-        // Erase all channels
-        d[idx] = 0; d[idx+1] = 0; d[idx+2] = 0; d[idx+3] = 0;
-      } else if (ch === 3) {
-        // A channel only (toggle dyeable)
-        d[idx+3] = Math.max(d[idx+3], intensity);
-      } else {
-        // R/G/B channel - enforce mutual exclusion
-        d[idx] = ch === 0 ? Math.max(d[idx], intensity) : 0;
-        d[idx+1] = ch === 1 ? Math.max(d[idx+1], intensity) : 0;
-        d[idx+2] = ch === 2 ? Math.max(d[idx+2], intensity) : 0;
-        // Auto-set A channel when painting R/G/B
-        d[idx+3] = Math.max(d[idx+3], intensity);
-      }
-    }
-  }
-}
-
-function floodFill(startX, startY) {
-  if (!maskData) return;
-  if (startX < 0 || startX >= state.imgW || startY < 0 || startY >= state.imgH) return;
-
-  // Use base image to determine fill region
-  const baseData = baseCtx.getImageData(0, 0, state.imgW, state.imgH).data;
-  const w = state.imgW;
-  const h = state.imgH;
-  const d = maskData.data;
-  const ch = state.channel;
-  const str = state.strength;
-  const tolerance = 32;
-
-  const startIdx = (startY * w + startX) * 4;
-  const sr = baseData[startIdx], sg = baseData[startIdx+1], sb = baseData[startIdx+2], sa = baseData[startIdx+3];
-
-  const visited = new Uint8Array(w * h);
-  const stack = [[startX, startY]];
-
-  function colorMatch(idx) {
-    return Math.abs(baseData[idx] - sr) + Math.abs(baseData[idx+1] - sg) +
-           Math.abs(baseData[idx+2] - sb) + Math.abs(baseData[idx+3] - sa) <= tolerance * 4;
-  }
-
-  while (stack.length > 0) {
-    const [px, py] = stack.pop();
-    const pi = py * w + px;
-    if (visited[pi]) continue;
-    visited[pi] = 1;
-
-    const idx = pi * 4;
-    if (!colorMatch(idx)) continue;
-
-    if (state.tool === 'eraser' || ch === 4) {
-      d[idx] = 0; d[idx+1] = 0; d[idx+2] = 0; d[idx+3] = 0;
-    } else if (ch === 3) {
-      d[idx+3] = str;
-    } else {
-      d[idx] = ch === 0 ? str : 0;
-      d[idx+1] = ch === 1 ? str : 0;
-      d[idx+2] = ch === 2 ? str : 0;
-      d[idx+3] = str;
-    }
-
-    if (px > 0) stack.push([px-1, py]);
-    if (px < w-1) stack.push([px+1, py]);
-    if (py > 0) stack.push([px, py-1]);
-    if (py < h-1) stack.push([px, py+1]);
-  }
-}
-
-function interpolateStroke(x0, y0, x1, y1) {
-  const dx = Math.abs(x1 - x0);
-  const dy = Math.abs(y1 - y0);
-  const steps = Math.max(dx, dy, 1);
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    const x = Math.round(x0 + (x1 - x0) * t);
-    const y = Math.round(y0 + (y1 - y0) * t);
-    drawBrushStroke(x, y);
-  }
-}
-
-// ─── Cursor ───
-function drawCursor(x, y) {
-  cursorCtx.clearRect(0, 0, state.imgW, state.imgH);
-  cursorCtx.beginPath();
-  cursorCtx.arc(x, y, state.brushSize, 0, Math.PI * 2);
-  cursorCtx.strokeStyle = 'rgba(255,255,255,0.6)';
-  cursorCtx.lineWidth = 1 / state.zoom;
-  cursorCtx.stroke();
-}
-
-// ─── Events ───
-function setupEvents() {
-  const vp = document.getElementById('viewport');
-
-  vp.addEventListener('mousedown', e => {
-    if (!state.loaded || e.button !== 0) return;
-    const pos = getCanvasPos(e);
-    state.drawing = true;
-    state.lastX = pos.x;
-    state.lastY = pos.y;
-    if (state.tool === 'fill') {
-      floodFill(pos.x, pos.y);
-      saveHistory();
-      render();
-      updatePreviews();
-      state.drawing = false;
-    } else {
-      drawBrushStroke(pos.x, pos.y);
-      render();
-    }
-  });
-
-  vp.addEventListener('mousemove', e => {
-    if (!state.loaded) return;
-    const pos = getCanvasPos(e);
-    drawCursor(pos.x, pos.y);
-    if (state.drawing && state.tool !== 'fill') {
-      interpolateStroke(state.lastX, state.lastY, pos.x, pos.y);
-      state.lastX = pos.x;
-      state.lastY = pos.y;
-      render();
-    }
-  });
-
-  vp.addEventListener('mouseup', () => {
-    if (state.drawing) {
-      state.drawing = false;
-      saveHistory();
-      updatePreviews();
-    }
-  });
-
-  vp.addEventListener('mouseleave', () => {
-    if (state.drawing) {
-      state.drawing = false;
-      saveHistory();
-      updatePreviews();
-    }
-    cursorCtx.clearRect(0, 0, state.imgW, state.imgH);
-  });
-
-  vp.addEventListener('wheel', e => {
-    e.preventDefault();
-    if (e.deltaY < 0) zoomIn();
-    else zoomOut();
-  }, { passive: false });
-
-  // Keyboard shortcuts
-  document.addEventListener('keydown', e => {
-    if (e.target.tagName === 'INPUT') return;
-    switch(e.key) {
-      case '1': setChannel(0); setTool('brush'); break;
-      case '2': setChannel(1); setTool('brush'); break;
-      case '3': setChannel(2); setTool('brush'); break;
-      case '4': setChannel(3); setTool('brush'); break;
-      case '5': setChannel(4); setTool('eraser'); break;
-      case 'b': case 'B': setTool('brush'); break;
-      case 'e': case 'E': setTool('eraser'); break;
-      case 'g': case 'G': setTool('fill'); break;
-      case 'z': case 'Z': if (e.ctrlKey || e.metaKey) { e.preventDefault(); undo(); } break;
-      case 'y': case 'Y': if (e.ctrlKey || e.metaKey) { e.preventDefault(); redo(); } break;
-      case '[': updateBrushSize(Math.max(1, state.brushSize - 2)); document.getElementById('brushSize').value = state.brushSize; break;
-      case ']': updateBrushSize(Math.min(100, state.brushSize + 2)); document.getElementById('brushSize').value = state.brushSize; break;
-      case '=': case '+': e.preventDefault(); zoomIn(); break;
-      case '-': e.preventDefault(); zoomOut(); break;
-    }
-  });
-
-  // Drag & drop
-  const dropZone = document.getElementById('viewport');
-  dropZone.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); });
-  dropZone.addEventListener('drop', e => {
-    e.preventDefault();
-    e.stopPropagation();
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) loadImage(file);
-  });
-}
-
-// ─── History ───
-function saveHistory() {
-  if (!maskData) return;
-  // Truncate future
-  history = history.slice(0, historyIdx + 1);
-  // Save copy
-  const copy = new ImageData(new Uint8ClampedArray(maskData.data), state.imgW, state.imgH);
-  history.push(copy);
-  if (history.length > MAX_HISTORY) history.shift();
-  historyIdx = history.length - 1;
-  updateHistoryInfo();
-}
-
-function undo() {
-  if (historyIdx <= 0) return;
-  historyIdx--;
-  maskData = new ImageData(new Uint8ClampedArray(history[historyIdx].data), state.imgW, state.imgH);
-  render();
-  updatePreviews();
-  updateHistoryInfo();
-}
-
-function redo() {
-  if (historyIdx >= history.length - 1) return;
-  historyIdx++;
-  maskData = new ImageData(new Uint8ClampedArray(history[historyIdx].data), state.imgW, state.imgH);
-  render();
-  updatePreviews();
-  updateHistoryInfo();
-}
-
-function updateHistoryInfo() {
-  document.getElementById('historyInfo').textContent =
-    `历史 ${historyIdx + 1}/${history.length}`;
-}
-
-function clearMask() {
-  if (!state.loaded) return;
-  if (!confirm('确定清空所有 Mask 数据？')) return;
-  maskData = maskCtx.createImageData(state.imgW, state.imgH);
-  saveHistory();
-  render();
-  updatePreviews();
-  showToast('Mask 已清空');
-}
-
-// ─── Previews ───
-function updatePreviews() {
-  if (!maskData) return;
-  const w = state.imgW, h = state.imgH;
-  const m = maskData.data;
-
-  const drawChannel = (canvasId, chIdx) => {
-    const c = document.getElementById(canvasId);
-    c.width = w; c.height = h;
-    const ctx = c.getContext('2d');
-    const img = ctx.createImageData(w, h);
-    const d = img.data;
-    for (let i = 0; i < m.length; i += 4) {
-      const v = m[i + chIdx];
-      d[i] = v; d[i+1] = v; d[i+2] = v; d[i+3] = 255;
-    }
-    ctx.putImageData(img, 0, 0);
-  };
-
-  drawChannel('previewR', 0);
-  drawChannel('previewG', 1);
-  drawChannel('previewB', 2);
-  drawChannel('previewA', 3);
-
-  // Composite preview (show colored channels)
-  const cc = document.getElementById('previewComposite');
-  cc.width = w; cc.height = h;
-  const cctx = cc.getContext('2d');
-  const cimg = cctx.createImageData(w, h);
-  const cd = cimg.data;
-  for (let i = 0; i < m.length; i += 4) {
-    cd[i] = m[i]; cd[i+1] = m[i+1]; cd[i+2] = m[i+2]; cd[i+3] = m[i+3];
-  }
-  cctx.putImageData(cimg, 0, 0);
-
-  applyColorPreview();
-}
-
-function applyColorPreview() {
-  if (!maskData || !baseImage) return;
-  const w = state.imgW, h = state.imgH;
-
-  const tmpC = document.createElement('canvas');
-  tmpC.width = w; tmpC.height = h;
-  const tmpCtx = tmpC.getContext('2d');
-  tmpCtx.drawImage(baseImage, 0, 0);
-  const baseData = tmpCtx.getImageData(0, 0, w, h);
-  const bd = baseData.data;
-  const m = maskData.data;
-
-  const cc = document.getElementById('previewColor');
-  cc.width = w; cc.height = h;
-  const ctx = cc.getContext('2d');
-  const out = ctx.createImageData(w, h);
-  const od = out.data;
-
-  // Parse scheme colors
-  const colors = state.schemeColors.map(hex => {
-    const r = parseInt(hex.slice(1,3), 16);
-    const g = parseInt(hex.slice(3,5), 16);
-    const b = parseInt(hex.slice(5,7), 16);
-    return [r, g, b];
-  });
-
-  for (let i = 0; i < bd.length; i += 4) {
-    let or = bd[i], og = bd[i+1], ob = bd[i+2], oa = bd[i+3];
-    const mr = m[i], mg = m[i+1], mb = m[i+2], ma = m[i+3];
-
-    if (ma > 0) {
-      // Determine which channel dominates
-      const maxCh = Math.max(mr, mg, mb);
-      if (maxCh > 0) {
-        let tc;
-        if (mr >= mg && mr >= mb) tc = colors[0];
-        else if (mg >= mr && mg >= mb) tc = colors[1];
-        else tc = colors[2];
-
-        // HSV-like tint: multiply base luminance with target color
-        const lum = (or * 0.299 + og * 0.587 + ob * 0.114) / 255;
-        const blendAmount = maxCh / 255 * (ma / 255);
-        or = Math.round(or * (1 - blendAmount) + tc[0] * lum * blendAmount);
-        og = Math.round(og * (1 - blendAmount) + tc[1] * lum * blendAmount);
-        ob = Math.round(ob * (1 - blendAmount) + tc[2] * lum * blendAmount);
-      }
-    }
-
-    od[i] = Math.min(255, or);
-    od[i+1] = Math.min(255, og);
-    od[i+2] = Math.min(255, ob);
-    od[i+3] = oa;
-  }
-
-  ctx.putImageData(out, 0, 0);
-}
-
-// ─── Export ───
-function exportMask() {
-  if (!maskData) { showToast('请先绘制 Mask'); return; }
-  const c = document.createElement('canvas');
-  c.width = state.imgW; c.height = state.imgH;
-  const ctx = c.getContext('2d');
-  ctx.putImageData(maskData, 0, 0);
-  const link = document.createElement('a');
-  link.download = 'character_mask.png';
-  link.href = c.toDataURL('image/png');
-  link.click();
-  showToast('Mask PNG 已导出');
-}
-
-function exportScheme() {
-  const scheme = {
-    format: 'mask_channel_definition',
-    version: '1.0',
-    channels: {
-      R: { region: state.regions[0], color: state.schemeColors[0] },
-      G: { region: state.regions[1], color: state.schemeColors[1] },
-      B: { region: state.regions[2], color: state.schemeColors[2] },
-      A: { region: '染色开关', desc: '255=可染色, 0=不染色' }
-    },
-    colorSchemes: [
-      {
-        name: '默认',
-        region1: state.schemeColors[0],
-        region2: state.schemeColors[1],
-        region3: state.schemeColors[2]
-      }
-    ],
-    imageSize: { width: state.imgW, height: state.imgH }
-  };
-  const blob = new Blob([JSON.stringify(scheme, null, 2)], { type: 'application/json' });
-  const link = document.createElement('a');
-  link.download = 'mask_config.json';
-  link.href = URL.createObjectURL(blob);
-  link.click();
-  showToast('配色 JSON 已导出');
-}
-
-// ─── Toast ───
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
-}
-
-// ─── Start ───
-init();
+/* ═══════ 初始化 ═══════ */
+bC=$('bC');oC=$('oC');cC=$('cC');
+bx=bC.getContext('2d',{willReadFrequently:true});
+ox=oC.getContext('2d',{willReadFrequently:true});
+cx=cC.getContext('2d');
 </script>
 <script src="editor-kit.js"></script>
 </body>
