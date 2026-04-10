@@ -1721,7 +1721,7 @@ var CARD_GRID_MAP = {
   'grid-outsource-workload': { module:'outsource', ids:['outsource-workload-model'] },
   'grid-outsource-budget':   { module:'outsource', ids:['budget-apply','cost-standard'] },
   // 板块三：🎨 美术工艺与规范
-  'grid-craft-char':         { module:'craft', ids:['d1','d2','ugc-character-spec','color-swap-spec','auto-mask-spec','spine-split-spec'] },
+  'grid-craft-char':         { module:'craft', ids:['d1','d2','char-naming-redline','char-color-swap-mask','char-spine-anim-spec','char-3d-topo-pbr','char-ugc-parts-safety','color-swap-spec','auto-mask-spec','spine-split-spec'] },
   'grid-craft-ui':           { module:'craft', ids:['ui-slice-naming','ui-9slice-color','ui-layout','ui-umg-tips'] },
   'grid-craft-scene':        { module:'craft', ids:['scene-lod-spec'] },
   'grid-craft-vfx':          { module:'craft', ids:['vfx-perf-spec'] },
@@ -1806,9 +1806,9 @@ function renderHomeCards(){
       var metaFooter='';
 
       html+='<div class="home-card" data-stage="'+(item.applicable_stage||'')+'" data-priority="'+(item.priority||'')+'" data-id="'+item.id+'" onclick="navigate(\''+item.id+'\')">'
-        +priHtml+copyHtml
+        +copyHtml
         +'<div class="hci" style="background:'+iconBg+'">'+(item.icon||'📄')+'</div>'
-        +'<h3>'+item.title+'</h3>'
+        +'<h3>'+item.title+priHtml+'</h3>'
         +'<p>'+item.desc+'</p>'
         +'<div class="tags">'+stageBadge+tagsHtml+craftBadge+'</div>'
         +metaFooter

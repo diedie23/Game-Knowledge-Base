@@ -92,11 +92,15 @@
           "icon": "👤",
           "items": [
             { "id": "d1", "icon": "📐", "title": "2D UGC 角色出图规范", "type": "iframe", "file": "knowledge-base/art/2D-UGC角色出图规范.html", "badge": "角色", "craft": "角色" },
-            { "id": "d2", "icon": "🎨", "title": "2D 角色换色资源规范", "type": "iframe", "file": "knowledge-base/art/2D角色换色-美术资源提供规范.html", "badge": "角色", "craft": "角色" },
-            { "id": "ugc-character-spec", "icon": "📐", "title": "UGC 角色出图工业化规范", "type": "iframe", "file": "knowledge-base/ugc-character-spec.html", "badge": "角色", "craft": "角色" },
-            { "id": "color-swap-spec", "icon": "🎨", "title": "角色换色工业化规范", "type": "iframe", "file": "knowledge-base/color-swap-spec.html", "badge": "角色", "craft": "角色" },
-            { "id": "auto-mask-spec", "icon": "📋", "title": "Mask 生成器工业化规范", "type": "iframe", "file": "knowledge-base/auto-mask-spec.html", "badge": "角色", "craft": "角色" },
-            { "id": "spine-split-spec", "icon": "📋", "title": "Spine 拆分工业化规范", "type": "iframe", "file": "knowledge-base/spine-split-spec.html", "badge": "角色", "craft": "角色" }
+            { "id": "d2", "icon": "🎨", "title": "2D 角色换色 — 美术出图资源提供规范", "type": "iframe", "file": "knowledge-base/art/2D角色换色-美术资源提供规范.html", "badge": "角色", "craft": "角色" },
+            { "id": "char-naming-redline", "icon": "📏", "title": "【通用】角色资产命名与性能红线", "type": "iframe", "file": "knowledge-base/ugc-character-spec.html", "badge": "角色", "craft": "角色" },
+            { "id": "char-color-swap-mask", "icon": "🎨", "title": "【2D】角色换色与材质遮罩规范", "type": "iframe", "file": "knowledge-base/char-color-swap-mask.html", "badge": "角色", "craft": "角色" },
+            { "id": "char-spine-anim-spec", "icon": "🦴", "title": "【2D】Spine 骨骼动画导出与性能规范", "type": "iframe", "file": "knowledge-base/spine-perf-guide.html", "badge": "角色", "craft": "角色" },
+            { "id": "char-3d-topo-pbr", "icon": "🧊", "title": "【3D】角色拓扑与 PBR 贴图规范", "type": "iframe", "file": "knowledge-base/char-3d-topo-pbr.html", "badge": "角色", "craft": "角色" },
+            { "id": "char-ugc-parts-safety", "icon": "📐", "title": "【UGC专项】角色部件拆分与安全区规范", "type": "iframe", "file": "knowledge-base/char-ugc-parts-safety.html", "badge": "角色", "craft": "角色" },
+            { "id": "color-swap-spec", "icon": "🎨", "title": "2D 角色换色资源规范", "type": "iframe", "file": "knowledge-base/color-swap-spec.html", "badge": "角色", "craft": "角色" },
+            { "id": "auto-mask-spec", "icon": "🤖", "title": "自动 Mask 通道生成器规范", "type": "iframe", "file": "knowledge-base/auto-mask-spec.html", "badge": "角色", "craft": "角色" },
+            { "id": "spine-split-spec", "icon": "✂️", "title": "Spine 角色拆分工具规范", "type": "iframe", "file": "knowledge-base/spine-split-spec.html", "badge": "角色", "craft": "角色" }
           ]
         },
         {

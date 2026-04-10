@@ -302,7 +302,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .home-card{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:20px 22px;cursor:pointer;transition:all .2s}
 .home-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.3)}
 .home-card .hci{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
-.home-card h3{font-size:16px;color:var(--heading);font-weight:600;margin-bottom:6px}
+.home-card h3{font-size:16px;color:var(--heading);font-weight:600;margin-bottom:6px;display:flex;align-items:center;flex-wrap:wrap;gap:4px}
 .home-card p{font-size:14px;color:var(--dim);line-height:1.8}
 .home-card .tags{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
 .home-card .tag{font-size:11px;padding:3px 10px;border-radius:12px;background:var(--accent-bg);color:var(--accent)}
@@ -456,13 +456,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .tag-outline{background:transparent!important;color:var(--dim)!important;border:1px solid var(--border)!important;font-size:11px;transition:all .15s}
 .tag-outline:hover{border-color:rgba(255,255,255,.25)!important;color:var(--text)!important;background:rgba(255,255,255,.04)!important}
 
-/* ═══ APM v4.1 优先级徽标 ═══ */
-.pri-badge{position:absolute;top:8px;right:8px;font-size:12px;z-index:2;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
-.pri-badge-label{position:absolute;top:8px;right:8px;font-size:11px;font-weight:600;z-index:2;pointer-events:none;padding:3px 10px;border-radius:10px;white-space:nowrap;letter-spacing:.3px;display:inline-flex;align-items:center;gap:2px}
+/* ═══ APM v4.1 优先级徽标（已改为行内标签，不再绝对定位）═══ */
+.pri-badge{font-size:12px;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+.pri-badge-label{font-size:11px;font-weight:600;pointer-events:none;padding:2px 8px;border-radius:10px;white-space:nowrap;letter-spacing:.3px;display:inline-flex;align-items:center;gap:2px;flex-shrink:0;vertical-align:middle;margin-left:6px}
 .home-card{position:relative}
 
 /* ═══ APM v4.1 复制链接按钮 ═══ */
-.card-copy-btn{position:absolute;top:8px;right:28px;font-size:12px;z-index:3;background:none;border:none;cursor:pointer;opacity:0;transition:opacity .15s,transform .15s;padding:2px;border-radius:4px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+.card-copy-btn{position:absolute;top:8px;right:8px;font-size:12px;z-index:3;background:none;border:none;cursor:pointer;opacity:0;transition:opacity .15s,transform .15s;padding:2px;border-radius:4px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+.home-card.card-new .card-copy-btn{right:70px}
 .home-card:hover .card-copy-btn{opacity:.6}
 .card-copy-btn:hover{opacity:1!important;transform:scale(1.2)}
 
