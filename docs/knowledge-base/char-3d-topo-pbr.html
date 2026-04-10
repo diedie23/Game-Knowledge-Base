@@ -12,14 +12,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .doc{max-width:1400px;margin:0 auto;padding:32px 24px}
 .doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
 .doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
-.doc-header h1 .ver{font-size:12px;background:var(--orange);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header h1 .ver{font-size:12px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
 .doc-header .subtitle{color:var(--dim);font-size:15px}
 .doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim);flex-wrap:wrap}
 .doc-header .meta span{display:flex;align-items:center;gap:4px}
-.wip-banner{background:linear-gradient(135deg,rgba(251,146,60,.15),rgba(251,191,36,.1));border:2px dashed var(--orange);border-radius:16px;padding:32px;text-align:center;margin-bottom:40px}
-.wip-banner .wip-icon{font-size:64px;margin-bottom:16px}
-.wip-banner h2{font-size:24px;color:var(--orange);margin-bottom:8px}
-.wip-banner p{font-size:15px;color:var(--text);max-width:600px;margin:0 auto}
 .toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
 .toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
 .toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
@@ -42,25 +38,33 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
 .alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
 code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
 pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
-.placeholder-card{background:var(--card);border:1px dashed var(--border);border-radius:10px;padding:24px;margin:12px 0;text-align:center;color:var(--dim)}
-.placeholder-card .ph-icon{font-size:32px;margin-bottom:8px}
-.placeholder-card .ph-title{font-size:15px;color:var(--accent2);font-weight:600;margin-bottom:4px}
-.placeholder-card .ph-desc{font-size:13px}
-.roadmap{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:20px 0}
-.roadmap-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;position:relative}
-.roadmap-item .rm-status{position:absolute;top:12px;right:12px;font-size:10px;padding:2px 8px;border-radius:8px;font-weight:700}
-.rm-planned{background:rgba(108,140,255,.15);color:var(--accent)}
-.rm-draft{background:rgba(251,191,36,.15);color:var(--yellow)}
-.rm-review{background:rgba(167,139,250,.15);color:var(--accent2)}
-.roadmap-item h4{font-size:15px;color:var(--heading);margin-bottom:8px;padding-right:70px}
-.roadmap-item p{font-size:13px;color:var(--dim);line-height:1.6;margin:0}
-.roadmap-item ul{font-size:12px;color:var(--text);padding-left:16px;margin-top:8px}
-.roadmap-item li{margin-bottom:2px}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;min-width:100px}
+.flow-node strong{display:block;color:var(--heading);font-size:14px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:12px}
+.flow-arrow{color:var(--cyan);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.tool{border-color:var(--accent2);background:rgba(167,139,250,.05)}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.dd-card{background:var(--card);border-radius:10px;padding:16px;border:1px solid var(--border)}
+.dd-card h4{font-size:15px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.dd-card.do h4{color:var(--green)}.dd-card.dont h4{color:var(--red)}
+.dd-card ul{font-size:13px;padding-left:16px;margin:0}.dd-card li{margin-bottom:4px}
 .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
 .badge-red{background:rgba(248,113,113,.15);color:var(--red)}
 .badge-green{background:rgba(74,222,128,.15);color:var(--green)}
 .badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
 .badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}
+.redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.checklist{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:16px 0}
+.checklist .ck-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:14px;border-bottom:1px solid var(--border)}
+.checklist .ck-item:last-child{border-bottom:none}
+.checklist .ck-num{color:var(--accent);font-weight:700;min-width:22px}
+.faq-item{background:var(--card);border:1px solid var(--border);border-radius:8px;margin:10px 0;overflow:hidden}
+.faq-item summary{padding:12px 16px;cursor:pointer;font-weight:600;font-size:14px;color:var(--heading);list-style:none;display:flex;align-items:center;gap:8px}
+.faq-item summary::before{content:'❓';font-size:14px}
+.faq-item .faq-body{padding:0 16px 12px;font-size:13px;line-height:1.8}
 .doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
 </style>
 </head>
@@ -69,25 +73,18 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 
 <!-- ═══ HEADER ═══ -->
 <div class="doc-header">
-  <h1>🧊 【3D】角色拓扑与 PBR 贴图规范 <span class="ver">🚧 建设中</span></h1>
+  <h1>🧊 【3D】角色拓扑与 PBR 贴图规范 <span class="ver">v1.0</span></h1>
   <div class="subtitle">3D Character Topology & PBR Texture Specification</div>
   <div class="meta">
     <span>📋 适用引擎：UE5 / Unity 2022+ / 自研引擎</span>
     <span>👤 维护：TA 组 · 角色建模组</span>
-    <span>📅 2026-04-10 · 预计完稿：2026-05</span>
+    <span>📅 2026-04-10</span>
   </div>
-</div>
-
-<!-- ═══ WIP Banner ═══ -->
-<div class="wip-banner">
-  <div class="wip-icon">🏗️</div>
-  <h2>本文档正在建设中</h2>
-  <p>3D 角色管线的工业化规范正在编写中。下方展示了完整的大纲框架和各章节的预期内容，方便团队提前了解规范方向并提供反馈。</p>
 </div>
 
 <!-- ═══ TOC ═══ -->
 <div class="toc">
-  <h3>📑 规划大纲（完整目录）</h3>
+  <h3>📑 目录</h3>
   <ol>
     <li><a href="#sec1">拓扑布线标准与面数预算</a></li>
     <li><a href="#sec2">PBR 贴图通道规范</a></li>
@@ -100,14 +97,11 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </ol>
 </div>
 
-<!-- ═══ Section 1 ═══ -->
+<!-- ═══ Section 1: 拓扑布线标准与面数预算 ═══ -->
 <div class="section" id="sec1">
   <h2>① 拓扑布线标准与面数预算</h2>
-  <div class="alert alert-yellow">
-    <strong>🚧 待补充：</strong>本节将详细规定 3D 角色的拓扑布线标准，包括面部环线（Eye Loop / Mouth Loop）、关节拓扑（膝盖/肘部需 3 环以上）、四边面率等。
-  </div>
 
-  <h3>面数预算表（框架已定）</h3>
+  <h3>面数预算表</h3>
   <table>
     <thead><tr><th>部件</th><th>LOD0（近景/展示）</th><th>LOD1（中景/战斗）</th><th>LOD2（远景/大厅）</th></tr></thead>
     <tbody>
@@ -118,80 +112,187 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
       <tr><td><strong>手部+手套</strong></td><td>≤ 4,000 tri</td><td>≤ 2,000 tri</td><td>≤ 800 tri</td></tr>
       <tr><td><strong>鞋子+脚部</strong></td><td>≤ 3,500 tri</td><td>≤ 1,500 tri</td><td>≤ 600 tri</td></tr>
       <tr><td><strong>配饰/武器</strong></td><td>≤ 6,000 tri</td><td>≤ 3,000 tri</td><td>≤ 1,000 tri</td></tr>
-      <tr><td><strong>总计</strong></td><td><strong>≤ 50,000 tri</strong></td><td><strong>≤ 25,000 tri</strong></td><td><strong>≤ 10,000 tri</strong></td></tr>
+      <tr><td class="badge-red" style="background:rgba(248,113,113,.08)"><strong>总计</strong></td><td><strong>≤ 50,000 tri</strong></td><td><strong>≤ 25,000 tri</strong></td><td><strong>≤ 10,000 tri</strong></td></tr>
     </tbody>
   </table>
 
-  <h3>拓扑布线要求（待展开）</h3>
-  <ul>
-    <li>面部：眼眶/口部需完整环线，支持 Blend Shape / Morph Target 表情驱动</li>
-    <li>关节：膝盖/肘部/肩部至少 3 环布线，确保弯曲时不塌陷</li>
-    <li>四边面率 ≥ 98%，三角面仅允许出现在极端末端（指尖/脚趾）</li>
-    <li>禁止 N-gon（五边面及以上）</li>
-    <li>顶点法线统一朝外，不允许翻面</li>
-  </ul>
-</div>
-
-<!-- ═══ Section 2 ═══ -->
-<div class="section" id="sec2">
-  <h2>② PBR 贴图通道规范</h2>
-  <div class="alert alert-yellow">
-    <strong>🚧 待补充：</strong>本节将详细规定每张 PBR 贴图的通道分配、格式和压缩策略。
+  <div class="alert alert-red">
+    <strong>🚨 硬红线：</strong>LOD0 角色整体三角面数不得超过 50,000 tri（含所有配饰），否则同屏 30 角色场景下 GPU 渲染时间将突破 16ms 帧预算。
   </div>
 
-  <h3>PBR 贴图套件（框架已定）</h3>
+  <h3>拓扑布线核心要求</h3>
+  <h4>面部拓扑（最优先）</h4>
+  <ul>
+    <li>眼眶必须形成完整 <strong>Eye Loop</strong>（6~8 边环），保证眨眼 Blend Shape 平滑过渡</li>
+    <li>口部必须形成完整 <strong>Mouth Loop</strong>（8~10 边环），保证口型 Morph Target 正确变形</li>
+    <li>鼻翼沿线需平滑过渡，避免锐角三角面导致法线突变</li>
+    <li>面部整体布线需遵循 <strong>肌肉走向原则</strong>：额肌→眼轮匝肌→颧肌→口轮匝肌→颏肌</li>
+  </ul>
+
+  <h4>关节拓扑</h4>
+  <ul>
+    <li>膝盖/肘部弯曲区域：至少 <strong>3 环布线</strong>，确保 120° 弯曲不塌陷</li>
+    <li>肩部：需 <strong>4~5 环</strong>过渡布线，覆盖抬臂/前伸/后展全方位变形</li>
+    <li>指关节：每个关节至少 2 环，手掌掌心侧加密布线</li>
+    <li>腰腹部：扭转区域需增加横向环线密度，支持躯干旋转</li>
+  </ul>
+
+  <h4>全局规则</h4>
   <table>
-    <thead><tr><th>贴图类型</th><th>通道</th><th>色彩空间</th><th>推荐尺寸</th><th>压缩格式</th></tr></thead>
+    <thead><tr><th>规则</th><th>标准</th><th>说明</th></tr></thead>
     <tbody>
-      <tr><td><strong>BaseColor (Albedo)</strong></td><td>RGB = 固有色, A = 透明度</td><td>sRGB</td><td>2048×2048</td><td>BC7 / ASTC 4×4</td></tr>
-      <tr><td><strong>Normal Map</strong></td><td>RG = 切线空间法线 XY</td><td>Linear</td><td>2048×2048</td><td>BC5 / ASTC 5×5</td></tr>
-      <tr><td><strong>ARM (合并贴图)</strong></td><td>R=AO, G=Roughness, B=Metallic</td><td>Linear</td><td>2048×2048</td><td>BC7 / ASTC 4×4</td></tr>
-      <tr><td><strong>Emissive</strong></td><td>RGB = 自发光颜色</td><td>sRGB</td><td>1024×1024</td><td>BC7 / ASTC 6×6</td></tr>
-      <tr><td><strong>SubsurfaceColor</strong></td><td>RGB = 次表面散射颜色</td><td>sRGB</td><td>1024×1024</td><td>BC7（可选）</td></tr>
+      <tr><td><strong>四边面率</strong></td><td>≥ 98%</td><td>三角面仅允许出现在指尖、脚趾等极端末端</td></tr>
+      <tr><td><strong>N-gon</strong></td><td>0 容忍</td><td>五边面及以上完全禁止</td></tr>
+      <tr><td><strong>法线方向</strong></td><td>统一朝外</td><td>不允许翻面，背面剔除需保证可见面法线正确</td></tr>
+      <tr><td><strong>重叠顶点</strong></td><td>0 容忍</td><td>合并阈值 0.001 单位内的重叠点</td></tr>
+      <tr><td><strong>孤立顶点/边</strong></td><td>0 容忍</td><td>所有几何元素必须属于有效面</td></tr>
+      <tr><td><strong>对称性</strong></td><td>建议</td><td>角色躯干/四肢推荐镜像建模后调节细节</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ Section 2: PBR 贴图通道规范 ═══ -->
+<div class="section" id="sec2">
+  <h2>② PBR 贴图通道规范</h2>
+
+  <h3>PBR 贴图套件</h3>
+  <table>
+    <thead><tr><th>贴图类型</th><th>通道分配</th><th>色彩空间</th><th>推荐尺寸</th><th>压缩格式</th></tr></thead>
+    <tbody>
+      <tr><td><strong>BaseColor (Albedo)</strong></td><td>RGB = 固有色, A = 透明度（不透明物体留白）</td><td>sRGB</td><td>2048×2048</td><td>BC7 / ASTC 4×4</td></tr>
+      <tr><td><strong>Normal Map</strong></td><td>RG = 切线空间法线 XY（B 通道由引擎重建）</td><td>Linear</td><td>2048×2048</td><td>BC5 / ASTC 5×5</td></tr>
+      <tr><td><strong>ARM (合并贴图)</strong></td><td>R = AO, G = Roughness, B = Metallic</td><td>Linear</td><td>2048×2048</td><td>BC7 / ASTC 4×4</td></tr>
+      <tr><td><strong>Emissive</strong></td><td>RGB = 自发光颜色（黑色 = 无发光）</td><td>sRGB</td><td>1024×1024</td><td>BC7 / ASTC 6×6</td></tr>
+      <tr><td><strong>SubsurfaceColor</strong></td><td>RGB = 次表面散射颜色（皮肤/蜡质材质专用）</td><td>sRGB</td><td>1024×1024</td><td>BC7（可选）</td></tr>
     </tbody>
   </table>
 
   <div class="alert alert-blue">
-    <strong>📌 ARM 通道复用：</strong>将 AO/Roughness/Metallic 合并到一张贴图的 R/G/B 通道中，可减少 2 次纹理采样，是移动端的标准做法。
+    <strong>📌 ARM 通道复用原则：</strong>将 AO/Roughness/Metallic 合并到一张贴图的 R/G/B 通道，可减少 2 次纹理采样。移动端强制使用 ARM 合并，PC 端推荐使用。
   </div>
 
-  <h3>数值规范（待展开）</h3>
+  <h3>数值红线</h3>
+  <table>
+    <thead><tr><th>属性</th><th>合法范围</th><th>常见错误</th><th>后果</th></tr></thead>
+    <tbody>
+      <tr><td><strong>BaseColor 亮度</strong></td><td><code>30~240</code> (sRGB)</td><td>纯黑 (0) 或纯白 (255)</td><td>破坏 PBR 能量守恒，渲染失真</td></tr>
+      <tr><td><strong>Metallic</strong></td><td>0 或 1（非 0 即 1）</td><td>0.5 等中间值</td><td>现实中不存在"半金属"，物理不正确</td></tr>
+      <tr><td><strong>Roughness</strong></td><td>0.05~0.95</td><td>全 0（纯镜面）或全 1（无高光）</td><td>0 导致反射过强，1 导致材质"死板"</td></tr>
+      <tr><td><strong>Normal 强度</strong></td><td>默认 1.0，微调 0.5~1.5</td><td>超过 2.0</td><td>法线过强导致棱角突出、闪烁伪影</td></tr>
+      <tr><td><strong>AO 范围</strong></td><td>0.2~1.0</td><td>AO 全黑 (0)</td><td>缝隙处过黑，与全局 AO 叠加产生"死黑"</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-red">
+    <strong>🚨 铁律：</strong>禁止使用 Photoshop 「亮度/对比度」直接调整 ARM 贴图 — 这会破坏三通道独立的物理含义。每个通道必须单独调节。
+  </div>
+
+  <h3>Normal Map 格式约定</h3>
+  <table>
+    <thead><tr><th>引擎</th><th>法线格式</th><th>G 通道方向</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><strong>UE5</strong></td><td>DirectX</td><td>G 朝下（-Y）</td><td>UE 内置 Flip Green Channel 选项可辅助修正</td></tr>
+      <tr><td><strong>Unity</strong></td><td>OpenGL</td><td>G 朝上（+Y）</td><td>默认 OpenGL，导入时确保不勾选翻转</td></tr>
+      <tr><td><strong>自研引擎</strong></td><td>OpenGL</td><td>G 朝上（+Y）</td><td>如使用 DirectX 需在 Shader 内翻转</td></tr>
+    </tbody>
+  </table>
+
+  <h3>贴图命名规则</h3>
+  <pre>T_{角色代号}_{部件}_{贴图类型}.{ext}
+
+示例：
+T_Hero01_Body_BaseColor.tga      # 躯干固有色
+T_Hero01_Body_Normal.tga         # 躯干法线
+T_Hero01_Body_ARM.tga            # 躯干 AO+Roughness+Metallic
+T_Hero01_Head_Emissive.tga       # 头部自发光
+T_Hero01_Hair_BaseColor.tga      # 头发固有色</pre>
+</div>
+
+<!-- ═══ Section 3: UV 展开与 Texel Density 规范 ═══ -->
+<div class="section" id="sec3">
+  <h2>③ UV 展开与 Texel Density 规范</h2>
+
+  <h3>Texel Density (TD) 标准</h3>
+  <p>Texel Density 表示每游戏单位（1m）上有多少像素覆盖，是保证不同部件纹理清晰度一致的核心指标。</p>
+
+  <table>
+    <thead><tr><th>区域</th><th>TD 系数（相对基准）</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><strong>面部</strong></td><td><span class="badge badge-red">2.0×</span></td><td>最高优先级，玩家视线焦点区域</td></tr>
+      <tr><td><strong>手部</strong></td><td><span class="badge badge-yellow">1.5×</span></td><td>近景动画/武器持握经常特写</td></tr>
+      <tr><td><strong>躯干/腿部</strong></td><td><span class="badge badge-green">1.0×（基准）</span></td><td>TD 基准线</td></tr>
+      <tr><td><strong>鞋底/内部</strong></td><td><span class="badge badge-blue">0.5×</span></td><td>不可见或极少可见区域可降低</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-yellow">
+    <strong>⚠️ TD 一致性检查：</strong>同一角色身上不同部件的 TD 差异不得超过 <strong>3×</strong>（如面部 2.0× 与鞋底 0.5× 的差距 4× 已接近上限），否则视觉上会出现明显的清晰度断层。建议使用 Checker Map 全身检查。
+  </div>
+
+  <h3>UV 布局原则</h3>
+  <table>
+    <thead><tr><th>原则</th><th>说明</th><th>检查方式</th></tr></thead>
+    <tbody>
+      <tr><td><strong>无翻转</strong></td><td>所有 UV 岛 winding 方向一致（逆时针），禁止翻转导致法线异常</td><td>UV 编辑器中翻转岛显示为红色</td></tr>
+      <tr><td><strong>接缝 = 硬边</strong></td><td>UV 接缝位置必须设置对应的硬边法线（Split Normals），否则法线贴图无法正确衔接</td><td>渲染检查接缝处是否有明暗条纹</td></tr>
+      <tr><td><strong>2px 间距</strong></td><td>UV 岛之间至少留 2px 边距（基于 2048 贴图），防止 Mipmap 采样时颜色溢出</td><td>导出 UV 快照叠加 2px 网格检查</td></tr>
+      <tr><td><strong>拉直四肢</strong></td><td>手臂/腿部 UV 沿肢体长轴方向拉直，保证条纹/织物纹理方向正确</td><td>贴 Checker Map 查看条纹走向</td></tr>
+      <tr><td><strong>对称利用</strong></td><td>对称部件（左右手套/鞋子）可 UV 重叠以节省空间，但需确认材质无不对称细节需求</td><td>UV 编辑器中查看重叠率</td></tr>
+    </tbody>
+  </table>
+
+  <h3>UV Set 规范</h3>
   <ul>
-    <li>BaseColor 亮度范围：<code>30~240</code>（避免纯黑纯白破坏 PBR 能量守恒）</li>
-    <li>Metallic：非金属=0, 金属=1，避免中间值</li>
-    <li>Roughness：推荐 0.3~0.9 范围，全 0 镜面反射过强，全 1 无高光</li>
-    <li>Normal Map 强度：使用 OpenGL 格式（G 通道朝上），UE5 使用 DirectX 格式需翻转 G</li>
+    <li><strong>UV0</strong>（必须）：主纹理映射，承载所有 PBR 贴图采样</li>
+    <li><strong>UV1</strong>（推荐）：Lightmap UV，用于烘焙光照贴图（引擎自动生成或手动展开），不允许重叠</li>
+    <li><strong>UV2</strong>（可选）：特殊效果层（溶解 Mask、流动 UV 等），按需创建</li>
   </ul>
 </div>
 
-<!-- ═══ Section 3 ═══ -->
-<div class="section" id="sec3">
-  <h2>③ UV 展开与 Texel Density 规范</h2>
-  <div class="placeholder-card">
-    <div class="ph-icon">📐</div>
-    <div class="ph-title">内容编写中</div>
-    <div class="ph-desc">将涵盖：UV 岛布局原则、Texel Density 一致性（面部优先 2x）、UV 边界与硬边法线对齐、UV Overlap 利用率等</div>
-  </div>
-</div>
-
-<!-- ═══ Section 4 ═══ -->
+<!-- ═══ Section 4: LOD 分级策略 ═══ -->
 <div class="section" id="sec4">
   <h2>④ LOD 分级策略</h2>
-  <div class="placeholder-card">
-    <div class="ph-icon">🔭</div>
-    <div class="ph-title">内容编写中</div>
-    <div class="ph-desc">将涵盖：LOD 0~3 切换距离标准、面数递减比（50%逐级）、贴图 Mipmap 策略、骨骼 LOD（远景合并骨骼）、UE5 Nanite 适配建议</div>
+
+  <h3>LOD 切换距离与面数递减</h3>
+  <table>
+    <thead><tr><th>LOD 级别</th><th>屏幕占比</th><th>切换距离（参考）</th><th>面数比例</th><th>贴图尺寸</th><th>骨骼处理</th></tr></thead>
+    <tbody>
+      <tr><td><strong>LOD0</strong></td><td>&gt; 30%</td><td>0~5m</td><td>100%（≤50K tri）</td><td>2048²</td><td>完整骨架</td></tr>
+      <tr><td><strong>LOD1</strong></td><td>15~30%</td><td>5~15m</td><td>50%（≤25K tri）</td><td>1024²</td><td>合并手指为拳头</td></tr>
+      <tr><td><strong>LOD2</strong></td><td>5~15%</td><td>15~40m</td><td>20%（≤10K tri）</td><td>512²</td><td>合并手臂/腿为单骨</td></tr>
+      <tr><td><strong>LOD3（可选）</strong></td><td>&lt; 5%</td><td>&gt; 40m</td><td>8%（≤4K tri）</td><td>256²</td><td>仅保留脊柱+四肢根骨</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-blue">
+    <strong>📌 UE5 Nanite 适配：</strong>如项目使用 UE5 Nanite，静态物件（武器/配饰）可免除 LOD 制作。但 <strong>Skeletal Mesh 目前不支持 Nanite</strong>（至 UE 5.4），角色主体仍需手动 LOD。
   </div>
+
+  <h3>LOD 生成规则</h3>
+  <ul>
+    <li><strong>优先减面区域</strong>：背部、腿部内侧、被服装遮挡的身体部位</li>
+    <li><strong>保护区域</strong>：面部轮廓线（Silhouette）、手指（LOD0~1 需保留）、关节弯曲区域</li>
+    <li><strong>递减方式</strong>：推荐 DCC 工具半手动减面（Maya Reduce / ZBrush Decimation Master），LOD2+ 可使用引擎自动 LOD</li>
+    <li><strong>切换过渡</strong>：启用 Dithered LOD Transition（屏幕空间抖动过渡），避免跳变</li>
+  </ul>
+
+  <h3>Mipmap 策略</h3>
+  <table>
+    <thead><tr><th>贴图类型</th><th>Mipmap 生成</th><th>滤波方式</th><th>注意事项</th></tr></thead>
+    <tbody>
+      <tr><td>BaseColor</td><td>自动生成</td><td>Anisotropic 8×</td><td>Alpha 通道需用 Premultiplied 避免边缘黑线</td></tr>
+      <tr><td>Normal Map</td><td>自动生成</td><td>Trilinear</td><td>远距离 Mip 会导致法线减弱是正常现象</td></tr>
+      <tr><td>ARM</td><td>自动生成</td><td>Bilinear</td><td>各通道物理含义不同，不可对 ARM 做模糊后处理</td></tr>
+      <tr><td>Emissive</td><td>自动生成</td><td>Bilinear</td><td>小面积发光需确认远距离 Mip 不会丢失亮点</td></tr>
+    </tbody>
+  </table>
 </div>
 
-<!-- ═══ Section 5 ═══ -->
+<!-- ═══ Section 5: 骨骼绑定与蒙皮规范 ═══ -->
 <div class="section" id="sec5">
   <h2>⑤ 骨骼绑定与蒙皮规范</h2>
-  <div class="alert alert-yellow">
-    <strong>🚧 待补充：</strong>本节将详细规定骨骼层级结构、蒙皮权重限制、IK 链设置等。
-  </div>
 
-  <h3>骨骼数量预算（框架已定）</h3>
+  <h3>骨骼数量预算</h3>
   <table>
     <thead><tr><th>目标平台</th><th>主骨骼数</th><th>辅助骨骼（飘带/头发）</th><th>面部骨骼</th><th>合计上限</th></tr></thead>
     <tbody>
@@ -201,92 +302,306 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     </tbody>
   </table>
 
-  <h3>蒙皮权重规范（待展开）</h3>
+  <h3>骨骼层级命名规范</h3>
+  <pre>Root
+├── Hips
+│   ├── Spine → Spine1 → Spine2 → Neck → Head
+│   │                                    ├── L_Eye / R_Eye
+│   │                                    └── Jaw
+│   ├── L_UpperLeg → L_LowerLeg → L_Foot → L_Toe
+│   ├── R_UpperLeg → R_LowerLeg → R_Foot → R_Toe
+│   ├── L_Shoulder → L_UpperArm → L_LowerArm → L_Hand
+│   │                                          ├── L_Thumb1~3
+│   │                                          ├── L_Index1~3
+│   │                                          ├── L_Middle1~3
+│   │                                          ├── L_Ring1~3
+│   │                                          └── L_Pinky1~3
+│   └── R_Shoulder → R_UpperArm → R_LowerArm → R_Hand → ...</pre>
+
+  <div class="alert alert-green">
+    <strong>✅ 命名原则：</strong>前缀 <code>L_</code> / <code>R_</code> 区分左右，全部使用 PascalCase，与 UE Mannequin / Mixamo 兼容。自定义骨骼以 <code>C_</code>（Custom）前缀标识。
+  </div>
+
+  <h3>蒙皮权重规范</h3>
+  <table>
+    <thead><tr><th>规则</th><th>标准</th><th>检查方法</th></tr></thead>
+    <tbody>
+      <tr><td><strong>最大影响骨骼数</strong></td><td>移动端 ≤ 4，PC ≤ 8</td><td>DCC 工具中查看 Max Influences</td></tr>
+      <tr><td><strong>权重归一化</strong></td><td>所有权重之和 = 1.0，误差 ≤ 0.001</td><td>导出前执行 Normalize Weights</td></tr>
+      <tr><td><strong>幽灵权重清除</strong></td><td>权重 &lt; 0.01 必须清零</td><td>DCC 工具 Prune Small Weights</td></tr>
+      <tr><td><strong>对称蒙皮</strong></td><td>左右肢体蒙皮需镜像一致</td><td>使用 Mirror Weights 后 Diff 检查</td></tr>
+      <tr><td><strong>穿模检查</strong></td><td>全 ROM 动作下无穿模</td><td>播放 T-Pose / A-Pose / 极端 Pose 测试集</td></tr>
+    </tbody>
+  </table>
+
+  <div class="redline">
+    <strong style="color:var(--red)">🚫 蒙皮红线：</strong>禁止出现某顶点未绑定任何骨骼（"Free Vertex"）的情况 — 这会导致该顶点在原点产生尖刺。
+  </div>
+
+  <h3>IK 链设置标准</h3>
   <ul>
-    <li>每顶点最大影响骨骼数：移动端 ≤ 4，PC ≤ 8</li>
-    <li>权重归一化：所有权重之和 = 1.0，误差 ≤ 0.001</li>
-    <li>避免"幽灵权重"：权重 < 0.01 的需清除</li>
-    <li>对称绑定：左右肢体蒙皮需镜像一致</li>
+    <li><strong>Foot IK</strong>：L_Foot / R_Foot 为末端，L_LowerLeg / R_LowerLeg 为中间节点，Pole Vector 朝前</li>
+    <li><strong>Hand IK</strong>：L_Hand / R_Hand 为末端，L_LowerArm / R_LowerArm 为中间节点，Pole Vector 朝后</li>
+    <li><strong>Spine IK</strong>：Hips → Spine → Spine1 → Spine2 → Neck 组成 5 节点 Spline IK</li>
+    <li>所有 IK 链需在 DCC 中设置默认 Preferred Angle，避免引擎中翻转抖动</li>
   </ul>
 </div>
 
-<!-- ═══ Section 6 ═══ -->
+<!-- ═══ Section 6: FBX 导出与引擎导入标准 ═══ -->
 <div class="section" id="sec6">
   <h2>⑥ FBX 导出与引擎导入标准</h2>
-  <div class="placeholder-card">
-    <div class="ph-icon">📦</div>
-    <div class="ph-title">内容编写中</div>
-    <div class="ph-desc">将涵盖：FBX 版本要求（2020.2+）、坐标系转换（Z-Up→Y-Up）、Scale Factor、骨骼命名映射、引擎材质自动绑定规则</div>
-  </div>
+
+  <h3>FBX 导出设置</h3>
+  <table>
+    <thead><tr><th>参数</th><th>推荐值</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><strong>FBX 版本</strong></td><td>FBX 2020.2</td><td>UE5 / Unity 2022 最佳兼容版本</td></tr>
+      <tr><td><strong>坐标系</strong></td><td>根据引擎选择</td><td>UE5: Z-Up / Unity: Y-Up，导出时由 DCC 自动转换</td></tr>
+      <tr><td><strong>Scale Factor</strong></td><td>1.0（cm）</td><td>Maya 默认 cm，Blender 默认 m 需 ×100</td></tr>
+      <tr><td><strong>Smoothing</strong></td><td>Face + Edge</td><td>勾选 "Export Smoothing Groups"</td></tr>
+      <tr><td><strong>Tangent/Binormal</strong></td><td>导出</td><td>勾选以确保法线贴图正确显示</td></tr>
+      <tr><td><strong>Animation</strong></td><td>分离导出</td><td>骨骼 Mesh 与动画 FBX 分离，便于复用</td></tr>
+      <tr><td><strong>Blend Shapes</strong></td><td>勾选</td><td>面部表情 Morph Target 需导出</td></tr>
+    </tbody>
+  </table>
+
+  <h3>导出前清理清单</h3>
+  <ul>
+    <li>删除所有 <strong>历史记录</strong>（Maya: Delete All by Type → History）</li>
+    <li>冻结所有 <strong>Transform</strong>（确保 Position=0, Rotation=0, Scale=1）</li>
+    <li>删除所有 <strong>非变形节点</strong>（辅助定位器 Locator、约束节点等）</li>
+    <li>确认 <strong>Mesh 名称</strong> 与 <strong>材质名称</strong> 遵循命名规范</li>
+    <li>检查 <strong>场景单位</strong> 为 cm（避免缩放问题）</li>
+  </ul>
+
+  <h3>引擎导入设置</h3>
+  <table>
+    <thead><tr><th>引擎</th><th>关键设置</th><th>推荐值</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="4"><strong>UE5</strong></td><td>Import Mesh</td><td>✅ 勾选</td></tr>
+      <tr><td>Skeletal Mesh → Skeleton</td><td>指定项目公共骨架</td></tr>
+      <tr><td>Normal Import Method</td><td>Import Normals and Tangents</td></tr>
+      <tr><td>Material Import</td><td>Do Not Create Materials（手动绑定）</td></tr>
+      <tr><td rowspan="3"><strong>Unity</strong></td><td>Scale Factor</td><td>1.0（如 FBX 已为 cm）</td></tr>
+      <tr><td>Normals</td><td>Import</td></tr>
+      <tr><td>Animation Type</td><td>Humanoid（自动映射 Avatar）</td></tr>
+    </tbody>
+  </table>
+
+  <h3>文件命名与目录结构</h3>
+  <pre>Characters/
+├── Hero01/
+│   ├── Mesh/
+│   │   ├── SK_Hero01_Body.fbx        # 躯干骨骼Mesh
+│   │   ├── SK_Hero01_Head.fbx        # 头部
+│   │   └── SK_Hero01_Hair.fbx        # 头发
+│   ├── Textures/
+│   │   ├── T_Hero01_Body_BaseColor.tga
+│   │   ├── T_Hero01_Body_Normal.tga
+│   │   ├── T_Hero01_Body_ARM.tga
+│   │   └── ...
+│   ├── Animations/
+│   │   ├── A_Hero01_Idle.fbx
+│   │   ├── A_Hero01_Run.fbx
+│   │   └── ...
+│   └── BlendShapes/
+│       └── BS_Hero01_FacialSet.fbx</pre>
 </div>
 
-<!-- ═══ Section 7 ═══ -->
+<!-- ═══ Section 7: Do's & Don'ts ═══ -->
 <div class="section" id="sec7">
   <h2>⑦ Do's &amp; Don'ts 红黑榜</h2>
-  <div class="placeholder-card">
-    <div class="ph-icon">✅❌</div>
-    <div class="ph-title">内容编写中</div>
-    <div class="ph-desc">将提供：拓扑布线红黑榜（环线 vs 三角面）、PBR 数值红黑榜（纯黑 Albedo vs 正确暗色）、UV 展开红黑榜（重叠 vs 展开）等对比示意</div>
+
+  <h3>拓扑 & 建模</h3>
+  <div class="dd-grid">
+    <div class="dd-card do">
+      <h4>✅ Do's</h4>
+      <ul>
+        <li>面部使用完整环线布线（Eye Loop / Mouth Loop）</li>
+        <li>关节处保持足够环线密度（膝≥3环，肩≥4环）</li>
+        <li>四边面率保持 ≥ 98%</li>
+        <li>使用 Checker Map 验证布线密度均匀性</li>
+        <li>对称建模后再做非对称细节调整</li>
+      </ul>
+    </div>
+    <div class="dd-card dont">
+      <h4>❌ Don'ts</h4>
+      <ul>
+        <li>出现 N-gon（五边面及以上）</li>
+        <li>关节弯曲处仅用 1~2 环（弯曲时必定塌陷）</li>
+        <li>法线翻面（导致引擎中出现黑面）</li>
+        <li>遗留重叠顶点和孤立边</li>
+        <li>不检查就提交模型（至少跑一遍 MeshLint）</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>PBR 贴图</h3>
+  <div class="dd-grid">
+    <div class="dd-card do">
+      <h4>✅ Do's</h4>
+      <ul>
+        <li>BaseColor 亮度控制在 30~240 sRGB 范围</li>
+        <li>Metallic 只用 0 或 1，金属/非金属二值化</li>
+        <li>ARM 三通道独立调节，不做整体亮度调整</li>
+        <li>Normal Map 格式与目标引擎匹配（UE=DirectX / Unity=OpenGL）</li>
+        <li>使用 Substance Painter 标准 PBR 验证球检查材质物理正确性</li>
+      </ul>
+    </div>
+    <div class="dd-card dont">
+      <h4>❌ Don'ts</h4>
+      <ul>
+        <li>BaseColor 中烘入光影信息（PBR 下由引擎计算光照）</li>
+        <li>Metallic 用中间值（如 0.5）— 物理不正确</li>
+        <li>Normal Map 存为 sRGB（必须是 Linear）</li>
+        <li>对 ARM 贴图做模糊/锐化后处理</li>
+        <li>Emissive 贴图亮度值超过 10.0（Bloom 会严重过曝）</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>UV & 蒙皮 & 导出</h3>
+  <div class="dd-grid">
+    <div class="dd-card do">
+      <h4>✅ Do's</h4>
+      <ul>
+        <li>UV 接缝处设置硬边法线</li>
+        <li>UV 岛间距 ≥ 2px（基于 2048 贴图）</li>
+        <li>导出前清除历史/冻结变换/删除辅助节点</li>
+        <li>蒙皮后跑全 ROM 动画测试集检查穿模</li>
+        <li>FBX 版本统一为 2020.2</li>
+      </ul>
+    </div>
+    <div class="dd-card dont">
+      <h4>❌ Don'ts</h4>
+      <ul>
+        <li>UV 岛有翻转（winding 不一致）</li>
+        <li>Lightmap UV (UV1) 存在重叠</li>
+        <li>蒙皮超过平台限制的骨骼影响数</li>
+        <li>存在未绑定骨骼的 Free Vertex</li>
+        <li>Mesh 和动画打包在同一个 FBX 中导出</li>
+      </ul>
+    </div>
   </div>
 </div>
 
-<!-- ═══ Section 8 ═══ -->
+<!-- ═══ Section 8: 出图检查清单 ═══ -->
 <div class="section" id="sec8">
   <h2>⑧ 出图检查清单 Checklist</h2>
-  <div class="placeholder-card">
-    <div class="ph-icon">📝</div>
-    <div class="ph-title">内容编写中</div>
-    <div class="ph-desc">将提供：建模→UV→贴图→绑定→导出→引擎导入的全流程 Checklist，约 25 项核心检查项</div>
+  <p>提交前逐项勾选，全部通过后方可提交至引擎端。</p>
+
+  <h3>建模阶段</h3>
+  <div class="checklist">
+    <div class="ck-item"><span class="ck-num">01</span>面数在 LOD0 预算内（≤50K tri），无 N-gon</div>
+    <div class="ck-item"><span class="ck-num">02</span>四边面率 ≥ 98%，三角面仅在末端</div>
+    <div class="ck-item"><span class="ck-num">03</span>面部环线完整（Eye Loop 6~8 边，Mouth Loop 8~10 边）</div>
+    <div class="ck-item"><span class="ck-num">04</span>关节环线密度达标（膝≥3，肩≥4~5）</div>
+    <div class="ck-item"><span class="ck-num">05</span>无重叠顶点、孤立边、翻面</div>
+    <div class="ck-item"><span class="ck-num">06</span>模型 Transform 已冻结（Pos=0, Rot=0, Scale=1）</div>
+  </div>
+
+  <h3>UV 阶段</h3>
+  <div class="checklist">
+    <div class="ck-item"><span class="ck-num">07</span>UV0 无翻转岛，winding 方向一致</div>
+    <div class="ck-item"><span class="ck-num">08</span>UV 接缝处已设置硬边法线</div>
+    <div class="ck-item"><span class="ck-num">09</span>UV 岛间距 ≥ 2px（2048 贴图基准）</div>
+    <div class="ck-item"><span class="ck-num">10</span>Texel Density 符合区域标准（面部 2×，躯干 1×，鞋底 0.5×）</div>
+    <div class="ck-item"><span class="ck-num">11</span>UV1 (Lightmap) 无重叠（如需烘焙光照）</div>
+  </div>
+
+  <h3>贴图阶段</h3>
+  <div class="checklist">
+    <div class="ck-item"><span class="ck-num">12</span>BaseColor 亮度在 30~240 sRGB 范围，未烘入光影</div>
+    <div class="ck-item"><span class="ck-num">13</span>Normal Map 格式正确（UE=DirectX / Unity=OpenGL）且为 Linear</div>
+    <div class="ck-item"><span class="ck-num">14</span>ARM 通道分配正确：R=AO, G=Roughness, B=Metallic</div>
+    <div class="ck-item"><span class="ck-num">15</span>Metallic 为二值化（0 或 1），无中间值</div>
+    <div class="ck-item"><span class="ck-num">16</span>贴图尺寸为 2 的幂次（512/1024/2048），命名遵循规范</div>
+  </div>
+
+  <h3>绑定阶段</h3>
+  <div class="checklist">
+    <div class="ck-item"><span class="ck-num">17</span>骨骼数量在平台预算内（PC≤150 / 移动端≤95）</div>
+    <div class="ck-item"><span class="ck-num">18</span>骨骼命名遵循 <code>L_/R_</code> PascalCase 规范</div>
+    <div class="ck-item"><span class="ck-num">19</span>每顶点骨骼影响数在限制内（移动≤4 / PC≤8）</div>
+    <div class="ck-item"><span class="ck-num">20</span>权重已归一化，幽灵权重（&lt;0.01）已清除</div>
+    <div class="ck-item"><span class="ck-num">21</span>全 ROM 动画测试无穿模</div>
+  </div>
+
+  <h3>导出阶段</h3>
+  <div class="checklist">
+    <div class="ck-item"><span class="ck-num">22</span>已删除历史记录、辅助节点、约束</div>
+    <div class="ck-item"><span class="ck-num">23</span>FBX 版本 = 2020.2，勾选 Smoothing Groups + Tangents</div>
+    <div class="ck-item"><span class="ck-num">24</span>Scale Factor = 1.0 cm，坐标系与目标引擎一致</div>
+    <div class="ck-item"><span class="ck-num">25</span>Mesh 与 Animation 分离导出</div>
+    <div class="ck-item"><span class="ck-num">26</span>导入引擎后检查：材质球正确、法线无异常、骨骼映射通过</div>
   </div>
 </div>
 
-<!-- ═══ 建设路线图 ═══ -->
+<!-- ═══ SOP 流程 ═══ -->
 <div class="section">
-  <h2>📅 建设路线图</h2>
-  <div class="roadmap">
-    <div class="roadmap-item">
-      <span class="rm-status rm-draft">📝 初稿中</span>
-      <h4>① 面数预算 & 拓扑标准</h4>
-      <p>面数预算表已初步确定，拓扑布线详细规范正在编写。</p>
-      <ul><li>预计完成：2026-04-20</li><li>负责人：陈工 (TA组)</li></ul>
-    </div>
-    <div class="roadmap-item">
-      <span class="rm-status rm-draft">📝 初稿中</span>
-      <h4>② PBR 贴图通道规范</h4>
-      <p>通道分配框架已定，数值范围和压缩策略待补充细节。</p>
-      <ul><li>预计完成：2026-04-25</li><li>负责人：陈工 (TA组)</li></ul>
-    </div>
-    <div class="roadmap-item">
-      <span class="rm-status rm-planned">📋 规划中</span>
-      <h4>③ UV & Texel Density</h4>
-      <p>正在收集项目内部的 TD 标准参考数据。</p>
-      <ul><li>预计完成：2026-05-05</li><li>负责人：建模组长</li></ul>
-    </div>
-    <div class="roadmap-item">
-      <span class="rm-status rm-planned">📋 规划中</span>
-      <h4>④ LOD & 骨骼绑定</h4>
-      <p>需与引擎组确认 Nanite/虚拟骨骼的支持情况后编写。</p>
-      <ul><li>预计完成：2026-05-10</li><li>负责人：陈工 + 动画组</li></ul>
-    </div>
-    <div class="roadmap-item">
-      <span class="rm-status rm-planned">📋 规划中</span>
-      <h4>⑤ FBX 导出 & 红黑榜</h4>
-      <p>将收集常见错误案例后统一编写。</p>
-      <ul><li>预计完成：2026-05-15</li><li>负责人：TA组</li></ul>
-    </div>
-    <div class="roadmap-item">
-      <span class="rm-status rm-review">🔍 评审阶段</span>
-      <h4>⑥ 全文评审 & 发布</h4>
-      <p>所有章节完成后进行全组交叉评审。</p>
-      <ul><li>预计完成：2026-05-25</li><li>负责人：TA组 + 美术总监</li></ul>
-    </div>
+  <h2>📋 3D 角色出图 SOP 全流程</h2>
+  <div class="flow">
+    <div class="flow-node start"><strong>概念设计</strong><div class="sub">三视图 + 色彩方案</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>高模雕刻</strong><div class="sub">ZBrush / Blender</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>拓扑重建</strong><div class="sub">TopoGun / 手动重拓扑</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node tool"><strong>UV 展开</strong><div class="sub">RizomUV / UVLayout</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>PBR 贴图</strong><div class="sub">Substance Painter</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node tool"><strong>骨骼绑定</strong><div class="sub">Maya / Blender Rigify</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>蒙皮权重</strong><div class="sub">刷权重 + 穿模测试</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>LOD 制作</strong><div class="sub">逐级减面</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>FBX 导出</strong><div class="sub">清理 + 检查清单</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>引擎导入</strong><div class="sub">材质绑定 + 验证</div></div>
   </div>
+</div>
+
+<!-- ═══ FAQ ═══ -->
+<div class="section">
+  <h2>❓ 常见问题 FAQ</h2>
+
+  <details class="faq-item">
+    <summary>LOD0 面数已经到 48K，配饰再加就超标了怎么办？</summary>
+    <div class="faq-body">方案一：将配饰做成独立 Actor/Component，使用自己的 LOD 策略，不计入角色主体面数。方案二：在 LOD0 中将配饰面数控制在 2K 以内，把"精细配饰"只在角色展示界面（非战斗）使用。</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>ARM 贴图中 Metallic 的边缘如何处理？</summary>
+    <div class="faq-body">金属和非金属交界处应保持 <strong>硬边过渡</strong>（1~2 像素宽度），不要做渐变混合。在现实物理中，一个表面要么是金属要么不是，没有"渐变金属"的概念。边缘 1px 的过渡是为了避免锯齿。</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>Blender 导出的 FBX 在 UE5 中缩放不对？</summary>
+    <div class="faq-body">Blender 默认单位是米，UE5 默认单位是厘米。导出时在 FBX Export 设置中将 <code>Scale</code> 设为 <strong>100</strong>，或在 Blender Scene Properties 中将单位改为 Centimeters 再导出。</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>Normal Map 导入后出现接缝黑线？</summary>
+    <div class="faq-body">99% 的原因是 UV 接缝处没有设置硬边法线（Split Normals）。解决方案：在 DCC 中选择所有 UV 接缝边 → 设置为 Hard Edge → 重新导出。剩下 1% 可能是 Tangent Space 计算方式不匹配（MikkTSpace vs 其他）。</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>移动端真的只能 4 骨骼影响吗？</summary>
+    <div class="faq-body">取决于 GPU。中低端 Android 设备的 Vertex Shader 寄存器有限，4 bone influences 是安全上限。UE5 移动端默认就是 4，Unity 也推荐 4。高端移动设备（如 A17 Pro / Snapdragon 8 Gen3）支持 8，但为了覆盖率建议统一 4。</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>什么情况下可以不做 LOD？</summary>
+    <div class="faq-body">仅当：① 角色只在固定距离出现（如 UI 展示界面）；② 同屏最多 1~2 个角色且有充足性能余量；③ 使用 UE5 Nanite 且为 Static Mesh（注意 Skeletal Mesh 不支持）。其他所有情况都必须制作至少 LOD0 + LOD1。</div>
+  </details>
 </div>
 
 <!-- ═══ FOOTER ═══ -->
 <div class="doc-footer">
-  【3D】角色拓扑与 PBR 贴图规范 · 建设中 · TA 组 · 角色建模组 · 最后更新 2026-04-10<br>
-  💬 欢迎在知识库 Issue 中提交反馈和补充建议，帮助我们加速完善 3D 管线规范！
+  🧊 【3D】角色拓扑与 PBR 贴图规范 · v1.0 · TA 组 · 角色建模组 · 最后更新 2026-04-10<br>
+  💬 如有疑问请在知识库 Issue 中提交，帮助我们持续完善 3D 管线规范！
 </div>
 
 </div>
