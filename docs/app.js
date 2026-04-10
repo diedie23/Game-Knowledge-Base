@@ -1735,9 +1735,10 @@ var CARD_GRID_MAP = {
   'grid-collab-qa':          { module:'collab', ids:['art-vs-qa-buggrade','art-vs-qa-checklist'] },
   'grid-collab-pain':        { module:'collab', ids:['cross-dept-collab','accident-troubleshoot','cross-dept-communication-tips'] },
   // 板块五：🛠️ 工具链与自动化
-  'grid-toolchain-spec':     { module:'toolchain', ids:['auto-mask-spec','spine-split-spec','color-swap-spec','d2'] },
+  'grid-toolchain-overview': { module:'toolchain', ids:['art-tools-guide'] },
+  'grid-toolchain-spec':     { module:'toolchain', ids:['auto-mask-spec','spine-split-spec','color-swap-spec'] },
   'grid-toolchain-check':    { module:'toolchain', ids:['naming-check-tool'] },
-  'grid-toolchain-art':      { module:'toolchain', ids:['art-tools-guide','auto-mask-v6','mask-tool','spine-split','mask-core-algorithms','color-swap-tool','channel-packer'] },
+  'grid-toolchain-art':      { module:'toolchain', ids:['auto-mask-v6','mask-tool','spine-split','mask-core-algorithms','color-swap-tool','channel-packer'] },
   'grid-toolchain-desktop':  { module:'toolchain', ids:['auto-mask-v6-desktop','image-skew-corrector','game-resource-toolkit','engine-bridge'] },
   // 板块六：🛡️ 质量、风险与团队
   'grid-quality-risk':       { module:'quality', ids:['risk-log'] },

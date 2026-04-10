@@ -1,5 +1,5 @@
 {
-  "version": "7.0",
+  "version": "7.1",
   "lastUpdate": "2026-04-10",
   "categories": [
     {
@@ -88,65 +88,65 @@
       "color": "purple",
       "groups": [
         {
-          "name": "📐 通用基础 (工艺与规范)",
+          "name": "通用基础",
           "icon": "📐",
           "items": [
-            { "id": "char-naming-redline", "icon": "📏", "title": "[通用] 资产命名与性能红线", "type": "iframe", "file": "knowledge-base/ugc-character-spec.html", "badge": "通用", "craft": "通用" }
+            { "id": "char-naming-redline", "icon": "📏", "title": "资产命名与性能红线", "type": "iframe", "file": "knowledge-base/ugc-character-spec.html", "badge": "通用", "craft": "通用" }
           ]
         },
         {
-          "name": "👤 2D 角色 (工艺与规范)",
+          "name": "2D 角色",
           "icon": "👤",
           "items": [
-            { "id": "char-color-swap-mask", "icon": "🎨", "title": "[2D·角色] 换色工艺与资产交付规范", "type": "iframe", "file": "knowledge-base/char-color-swap-mask.html", "badge": "2D", "craft": "角色" },
-            { "id": "char-spine-anim-spec", "icon": "🦴", "title": "[2D·角色] Spine 骨骼动画导出与性能规范", "type": "iframe", "file": "knowledge-base/spine-perf-guide.html", "badge": "2D", "craft": "角色" }
+            { "id": "char-color-swap-mask", "icon": "🎨", "title": "2D 角色换色管线规范", "type": "iframe", "file": "knowledge-base/char-color-swap-mask.html", "badge": "2D", "craft": "角色" },
+            { "id": "char-spine-anim-spec", "icon": "🦴", "title": "Spine 骨骼动画导出与性能规范", "type": "iframe", "file": "knowledge-base/spine-perf-guide.html", "badge": "2D", "craft": "角色" }
           ]
         },
         {
-          "name": "🧊 3D 角色 (工艺与规范)",
+          "name": "3D 角色",
           "icon": "🧊",
           "items": [
-            { "id": "char-3d-topo-pbr", "icon": "🧊", "title": "[3D·角色] 拓扑与 PBR 贴图规范", "type": "iframe", "file": "knowledge-base/char-3d-topo-pbr.html", "badge": "3D", "craft": "角色" },
-            { "id": "anim-state-handoff", "icon": "🎬", "title": "[3D·角色] 动画状态机交接与导出规范", "type": "iframe", "file": "knowledge-base/anim-state-handoff.html", "badge": "3D", "craft": "角色" }
+            { "id": "char-3d-topo-pbr", "icon": "🧊", "title": "拓扑与 PBR 贴图规范", "type": "iframe", "file": "knowledge-base/char-3d-topo-pbr.html", "badge": "3D", "craft": "角色" },
+            { "id": "anim-state-handoff", "icon": "🎬", "title": "动画状态机交接与导出规范", "type": "iframe", "file": "knowledge-base/anim-state-handoff.html", "badge": "3D", "craft": "角色" }
           ]
         },
         {
-          "name": "🖥️ UI (工艺与规范)",
+          "name": "UI",
           "icon": "🖥️",
           "items": [
-            { "id": "ui-slice-naming", "icon": "✂️", "title": "[UI] 切图与命名规范", "type": "iframe", "file": "knowledge-base/ui-slice-naming.html", "badge": "UI", "craft": "UI" },
-            { "id": "ui-9slice-color", "icon": "🎨", "title": "[UI] 9宫格与颜色空间", "type": "iframe", "file": "knowledge-base/ui-9slice-color.html", "badge": "UI", "craft": "UI" },
-            { "id": "ui-layout", "icon": "📐", "title": "[UI] Layout 拼接规范", "type": "iframe", "file": "knowledge-base/ui-layout.html", "badge": "UI", "craft": "UI" },
-            { "id": "ui-umg-tips", "icon": "⚡", "title": "[UI] UMG 生成技巧", "type": "iframe", "file": "knowledge-base/ui-umg-tips.html", "badge": "UI", "craft": "UI" }
+            { "id": "ui-slice-naming", "icon": "✂️", "title": "切图与命名规范", "type": "iframe", "file": "knowledge-base/ui-slice-naming.html", "badge": "UI", "craft": "UI" },
+            { "id": "ui-9slice-color", "icon": "🎨", "title": "9宫格与颜色空间", "type": "iframe", "file": "knowledge-base/ui-9slice-color.html", "badge": "UI", "craft": "UI" },
+            { "id": "ui-layout", "icon": "📐", "title": "Layout 拼接规范", "type": "iframe", "file": "knowledge-base/ui-layout.html", "badge": "UI", "craft": "UI" },
+            { "id": "ui-umg-tips", "icon": "⚡", "title": "UMG 生成技巧", "type": "iframe", "file": "knowledge-base/ui-umg-tips.html", "badge": "UI", "craft": "UI" }
           ]
         },
         {
-          "name": "🏔️ 场景 (工艺与规范)",
+          "name": "场景",
           "icon": "🏔️",
           "items": [
-            { "id": "scene-lod-spec", "icon": "🏗️", "title": "[场景] 模块化与 LOD 规范", "type": "iframe", "file": "knowledge-base/scene-lod-spec.html", "badge": "场景", "craft": "场景" }
+            { "id": "scene-lod-spec", "icon": "🏗️", "title": "模块化与 LOD 规范", "type": "iframe", "file": "knowledge-base/scene-lod-spec.html", "badge": "场景", "craft": "场景" }
           ]
         },
         {
-          "name": "✨ 特效 (工艺与规范)",
+          "name": "特效",
           "icon": "✨",
           "items": [
-            { "id": "vfx-perf-spec", "icon": "✨", "title": "[特效] 性能红线与层级规范", "type": "iframe", "file": "knowledge-base/vfx-perf-spec.html", "badge": "特效", "craft": "特效" }
+            { "id": "vfx-perf-spec", "icon": "✨", "title": "性能红线与层级规范", "type": "iframe", "file": "knowledge-base/vfx-perf-spec.html", "badge": "特效", "craft": "特效" }
           ]
         },
         {
-          "name": "🧩 UGC 专项管线 (工艺与规范)",
+          "name": "UGC 专项管线",
           "icon": "🧩",
           "items": [
-            { "id": "char-ugc-parts-safety", "icon": "📐", "title": "[UGC] 部件拆分与安全区规范", "type": "iframe", "file": "knowledge-base/char-ugc-parts-safety.html", "badge": "UGC", "craft": "UGC" },
-            { "id": "d1", "icon": "📐", "title": "[UGC] 2D 出图与图层规范", "type": "iframe", "file": "knowledge-base/art/2D-UGC角色出图规范.html", "badge": "UGC", "craft": "UGC" }
+            { "id": "char-ugc-parts-safety", "icon": "📐", "title": "部件拆分与安全区规范", "type": "iframe", "file": "knowledge-base/char-ugc-parts-safety.html", "badge": "UGC", "craft": "UGC" },
+            { "id": "d1", "icon": "📐", "title": "2D 出图与图层规范", "type": "iframe", "file": "knowledge-base/art/2D-UGC角色出图规范.html", "badge": "UGC", "craft": "UGC" }
           ]
         },
         {
-          "name": "🤖 AIGC 专项管线 (工艺与规范)",
+          "name": "AIGC 专项管线",
           "icon": "🤖",
           "items": [
-            { "id": "aigc-production-spec", "icon": "🤖", "title": "[AIGC] 辅助生产规范", "type": "iframe", "file": "knowledge-base/aigc-production-spec.html", "badge": "AIGC", "craft": "AIGC" }
+            { "id": "aigc-production-spec", "icon": "🤖", "title": "辅助生产规范", "type": "iframe", "file": "knowledge-base/aigc-production-spec.html", "badge": "AIGC", "craft": "AIGC" }
           ]
         }
       ]
@@ -193,13 +193,19 @@
       "color": "cyan",
       "groups": [
         {
+          "name": "工具链总览",
+          "icon": "📖",
+          "items": [
+            { "id": "art-tools-guide", "icon": "📖", "title": "工具链总览与使用指南", "type": "iframe", "file": "knowledge-base/art-tools-guide.html", "badge": "指南", "craft": "通用" }
+          ]
+        },
+        {
           "name": "工具规范文档",
           "icon": "📄",
           "items": [
-            { "id": "auto-mask-spec", "icon": "🤖", "title": "[工具规范] 自动 Mask 通道生成器", "type": "iframe", "file": "knowledge-base/auto-mask-spec.html", "badge": "规范", "craft": "角色" },
-            { "id": "spine-split-spec", "icon": "✂️", "title": "[工具规范] Spine 角色拆分工具", "type": "iframe", "file": "knowledge-base/spine-split-spec.html", "badge": "规范", "craft": "角色" },
-            { "id": "color-swap-spec", "icon": "🎨", "title": "[工具规范] 2D 角色换色资源生成", "type": "iframe", "file": "knowledge-base/color-swap-spec.html", "badge": "规范", "craft": "角色" },
-            { "id": "d2", "icon": "🎨", "title": "[工具规范] 换色美术出图资源 SOP", "type": "iframe", "file": "knowledge-base/art/2D角色换色-美术资源提供规范.html", "badge": "规范", "craft": "角色" }
+            { "id": "auto-mask-spec", "icon": "🤖", "title": "自动 Mask 通道生成器", "type": "iframe", "file": "knowledge-base/auto-mask-spec.html", "badge": "规范", "craft": "角色" },
+            { "id": "spine-split-spec", "icon": "✂️", "title": "Spine 角色拆分工具", "type": "iframe", "file": "knowledge-base/spine-split-spec.html", "badge": "规范", "craft": "角色" },
+            { "id": "color-swap-spec", "icon": "🎨", "title": "2D 角色换色管线规范", "type": "iframe", "file": "knowledge-base/color-swap-spec.html", "badge": "规范", "craft": "角色" }
           ]
         },
         {
@@ -213,7 +219,6 @@
           "name": "美术在线工具",
           "icon": "🎨",
           "items": [
-            { "id": "art-tools-guide", "icon": "📖", "title": "🛠️ 工具使用指南", "type": "iframe", "file": "knowledge-base/art-tools-guide.html", "badge": "指南", "craft": "通用" },
             { "id": "auto-mask-v6", "icon": "🤖", "title": "自动 Mask 生成器 v6.0", "type": "tool", "badge": "角色", "craft": "角色" },
             { "id": "mask-tool", "icon": "🖌️", "title": "Mask 手动编辑器", "type": "tool", "badge": "角色", "craft": "角色" },
             { "id": "spine-split", "icon": "✂️", "title": "Spine 拆分工具", "type": "tool", "badge": "角色", "craft": "角色" },
