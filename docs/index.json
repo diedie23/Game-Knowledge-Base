@@ -704,6 +704,23 @@
       "is_hot": false
     },
     {
+      "id": "color-swap-tool",
+      "module": "toolchain",
+      "craft": "角色",
+      "type": "tool",
+      "title": "2D 角色换色资源生成器",
+      "desc": "三种换色方案（遮罩分区Mask+HSV / 调色板替换 / 灰度叠色），CIE-LAB高精度色差，通道互斥铁律，无限Mask扩展，纯黑白QA检测，一键ZIP导出",
+      "tags": ["在线工具","换色","Mask","调色板","灰度","HSV","ZIP导出","CIE-LAB"],
+      "icon": "🎨",
+      "action": "openTool",
+      "path": "knowledge-base/color-swap-tool.html",
+      "owner": "TA团队",
+      "last_updated": "2026-04-10",
+      "applicable_stage": "量产期",
+      "priority": "high",
+      "is_hot": true
+    },
+    {
       "id": "channel-packer",
       "module": "toolchain",
       "craft": "特效",

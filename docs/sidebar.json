@@ -195,6 +195,7 @@
             { "id": "mask-tool", "icon": "🖌️", "title": "Mask 手动编辑器", "type": "tool", "badge": "角色", "craft": "角色" },
             { "id": "spine-split", "icon": "✂️", "title": "Spine 拆分工具", "type": "tool", "badge": "角色", "craft": "角色" },
             { "id": "mask-core-algorithms", "icon": "🧪", "title": "Mask 核心算法演示", "type": "tool", "badge": "角色", "craft": "角色" },
+            { "id": "color-swap-tool", "icon": "🎨", "title": "换色资源生成器", "type": "tool", "badge": "角色", "craft": "角色" },
             { "id": "channel-packer", "icon": "📦", "title": "贴图通道打包工具", "type": "iframe", "file": "knowledge-base/channel-packer.html", "badge": "特效", "craft": "特效" }
           ]
         },
