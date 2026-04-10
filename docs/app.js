@@ -268,7 +268,7 @@ function buildSidebar(data){
   var projectCount=0, outsourceCount=0, craftCount=0, collabCount=0, toolchainCount=0, qualityCount=0;
 
   data.categories.forEach(function(cat){
-    var itemCount=0;
+    var itemCount = cat.items ? cat.items.length : 0;
     cat.groups.forEach(function(g){ itemCount += g.items ? g.items.length : 0; });
 
     // 按模块 ID 计数
@@ -298,8 +298,28 @@ function buildSidebar(data){
       + '</div>';
     html += '<div class="t1-c">';
 
-    if(!cat.groups.length){
-      html += '<div class="leaf leaf--empty">待补充...</div>';
+    // 渲染模块直属文档（不嵌套二级分组）
+    if(cat.items) cat.items.forEach(function(item){
+      pageRegistry[item.id] = {
+        type: item.type,
+        file: item.file || '',
+        download: item.download || '',
+        badge: item.badge || '',
+        craft: item.craft || '',
+        catId: cat.id,
+        catName: catName,
+        grpName: ''
+      };
+      var itemEmoji = item.icon || '📄';
+      html += '<button class="leaf leaf--pinned" data-page="' + item.id + '" title="' + item.title + '" onclick="event.stopPropagation();navigate(\'' + item.id + '\',this)">'
+        + '<span class="emoji-icon emoji-icon-leaf">' + itemEmoji + '</span>'
+        + '<span class="leaf-text">' + item.title + '</span>'
+        + '</button>';
+      html += '<div class="toc-box" id="toc-' + item.id + '"></div>';
+    });
+
+    if(!cat.groups || !cat.groups.length){
+      if(!cat.items || !cat.items.length) html += '<div class="leaf leaf--empty">待补充...</div>';
     } else {
       cat.groups.forEach(function(grp){
         // 二级分组 Emoji 图标
@@ -685,6 +705,12 @@ function initSearch(){
       // 也加 sidebar 数据（补充搜索索引）
       if(sidebarData){
         sidebarData.categories.forEach(function(cat){
+          // 模块直属文档
+          if(cat.items) cat.items.forEach(function(item){
+            if(!items.find(function(i){ return i.id === item.id; })){
+              items.push({id:item.id, title:item.title, type:item.type, content:item.title, action:'navigate', craft: item.craft||'', applicable_stage:'', priority:''});
+            }
+          });
           cat.groups.forEach(function(g){
             if(g.items) g.items.forEach(function(item){
               // 避免重复添加（index.json 已有的）
@@ -1186,6 +1212,7 @@ async function deleteDocument(pageId){
         var sbData=await sbRes.json();
         var sbContent=JSON.parse(decodeURIComponent(escape(atob(sbData.content.replace(/\n/g,'')))));
         sbContent.categories.forEach(function(cat){
+          if(cat.items) cat.items=cat.items.filter(function(i){return i.id!==pageId;});
           cat.groups.forEach(function(g){
             if(g.items) g.items=g.items.filter(function(i){return i.id!==pageId;});
           });
@@ -1204,6 +1231,7 @@ async function deleteDocument(pageId){
 
     if(sidebarData){
       sidebarData.categories.forEach(function(cat){
+        if(cat.items) cat.items=cat.items.filter(function(i){return i.id!==pageId;});
         cat.groups.forEach(function(g){
           if(g.items) g.items=g.items.filter(function(i){return i.id!==pageId;});
         });

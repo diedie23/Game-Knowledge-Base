@@ -191,14 +191,10 @@
       "name": "🛠️ 工具链与自动化",
       "icon": "🛠️",
       "color": "cyan",
+      "items": [
+        { "id": "art-tools-guide", "icon": "📖", "title": "工具链总览与使用指南", "type": "iframe", "file": "knowledge-base/art-tools-guide.html", "badge": "指南", "craft": "通用" }
+      ],
       "groups": [
-        {
-          "name": "工具链总览",
-          "icon": "📖",
-          "items": [
-            { "id": "art-tools-guide", "icon": "📖", "title": "工具链总览与使用指南", "type": "iframe", "file": "knowledge-base/art-tools-guide.html", "badge": "指南", "craft": "通用" }
-          ]
-        },
         {
           "name": "工具规范文档",
           "icon": "📄",
