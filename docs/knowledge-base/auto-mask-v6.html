@@ -126,6 +126,26 @@
 .ch-low-warn::before{content:'⚠️';font-size:10px}
 .ad-low-pct-badge{font-size:8px;color:var(--orange);background:rgba(251,146,60,.15);padding:1px 5px;border-radius:3px;margin-left:3px}
 
+/* ═══ v6.5 低占比视觉警告 ═══ */
+.rpc-warn{color:var(--orange)!important;font-weight:700}
+.rpc-crit{color:var(--red)!important;font-weight:700}
+.rpc-tip{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:rgba(251,146,60,.2);color:var(--orange);font-size:9px;font-weight:800;margin-left:3px;cursor:help;position:relative;flex-shrink:0;line-height:1}
+.rpc-crit+.rpc-tip{background:rgba(248,113,113,.2);color:var(--red)}
+.rpc-tip .rpc-tiptext{visibility:hidden;position:absolute;bottom:120%;left:50%;transform:translateX(-50%);background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:10px;font-weight:400;white-space:nowrap;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.5);pointer-events:none}
+.rpc-tip:hover .rpc-tiptext{visibility:visible}
+
+/* ═══ v6.5 高亮微小像素开关 ═══ */
+.hl-toggle{display:flex;align-items:center;gap:5px;padding:4px 8px;background:var(--card);border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all .15s;font-size:10px;color:var(--dim);margin:4px 0;user-select:none}
+.hl-toggle:hover{border-color:var(--orange)}
+.hl-toggle.active{border-color:var(--red);color:var(--red);background:rgba(248,113,113,.08)}
+.hl-toggle .hl-cb{accent-color:var(--red);margin:0}
+
+/* ═══ v6.5 容差重叠警告 ═══ */
+.ri-overlap{border:1px solid var(--yellow)!important;background:rgba(251,191,36,.06)!important;border-radius:4px}
+.ri-overlap-tip{font-size:8px;color:var(--yellow);margin-left:2px;cursor:help;position:relative}
+.ri-overlap-tip .ov-tiptext{visibility:hidden;position:absolute;bottom:120%;left:50%;transform:translateX(-50%);background:var(--card);color:var(--text);border:1px solid var(--yellow);border-radius:6px;padding:6px 10px;font-size:10px;font-weight:400;white-space:nowrap;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.5);pointer-events:none}
+.ri-overlap-tip:hover .ov-tiptext{visibility:visible}
+
 /* ═══ v6.4 亮度容差独立滑块 ═══ */
 .tol-lightness-tol{display:flex;align-items:center;gap:6px;margin-top:6px;padding:6px 8px;background:var(--card);border-radius:6px;border:1px solid var(--border)}.tol-lightness-tol label{font-size:10px;color:var(--dim);flex-shrink:0}.tol-lightness-tol .v{font-size:10px;color:var(--cyan);font-weight:600;min-width:28px;text-align:right;font-family:'Cascadia Code','Fira Code',monospace}
 
@@ -1411,6 +1431,286 @@ M.Ch.rCustomCards=function(){
 (function(){var vb=document.querySelector('.hdr h1 .ver');if(vb)vb.textContent='v6.4'})();
 M.Tol.update();
 console.log('[v6.4] patch loaded: empty-state feedback, lightness tolerance gate, custom channel color picker');
+})();
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  v6.5 交互优化补丁
+ *  1. 低占比视觉警告（< 1% 橙色 / < 0.1% 红色 + ! 提示图标）
+ *  2. 高亮微小像素开关（mask 预览红色发光描边）
+ *  3. 容差重叠检测（新增区域时 HSL 范围重叠检测 + 黄色警告）
+ * ═══════════════════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ===========================================================================
+ *  需求 1：低占比视觉警告
+ *  - rRL() 中 matchPct < 1.0% → 橙色，< 0.1% → 红色，附带 ! tooltip
+ *  - banner / float menu 同步渲染警告
+ *  - 自定义通道区域列表同步渲染警告
+ * =========================================================================== */
+var LOW_PCT_WARN = 1.0, CRIT_PCT_WARN = 0.1;
+var LOW_TIP = '该颜色在原图中占比极低，Mask 可能不可见。建议重新吸色或调大容差(ΔE)。';
+
+/* ---- 补丁: M.Ch.rRL() — 区域列表添加低占比警告 ---- */
+var _origRRL = M.Ch.rRL;
+M.Ch.rRL = function(){
+  var S = M.S, el = $('rgList');
+  if (!S.regions.length) { el.innerHTML = '<div style="color:var(--dim);padding:4px;font-size:10px">暂无</div>'; return; }
+
+  /* 预计算重叠关系 */
+  var overlapMap = M._v65_overlapMap ? M._v65_overlapMap(S.regions) : {};
+
+  el.innerHTML = S.regions.map(function(r, i) {
+    var hex = M.C.r2x(r.rgb), ch = S.chs.find(function(c){return c.id===r.ch}), clr = ch ? ch.color : '#888';
+    var modeBadge = r.tolMode === 'lab' ? '<span style="font-size:8px;color:var(--cyan);margin-left:2px">ΔE:' + ((r.deltaE||12)) + '</span>' : '';
+    var lInfo = r.lab ? '<span style="font-size:8px;color:var(--yellow);margin-left:2px">L*:' + r.lab[0].toFixed(0) + '</span>' : '';
+
+    /* v6.5: 低占比警告 */
+    var pv = parseFloat(r.matchPct) || 0;
+    var pctCls = pv < CRIT_PCT_WARN ? 'rpc rpc-crit' : pv < LOW_PCT_WARN ? 'rpc rpc-warn' : 'rpc';
+    var pctTip = pv < LOW_PCT_WARN ? '<span class="rpc-tip' + (pv < CRIT_PCT_WARN ? '' : '') + '">!<span class="rpc-tiptext">' + LOW_TIP + '</span></span>' : '';
+
+    /* v6.5: 容差重叠警告 */
+    var ovCls = overlapMap[i] ? ' ri-overlap' : '';
+    var ovTip = overlapMap[i] ? '<span class="ri-overlap-tip">⚠<span class="ov-tiptext">与区域 ' + overlapMap[i].join(', ') + ' 的色相/容差范围重叠，可能导致 Mask 冗余</span></span>' : '';
+
+    return '<div class="ri' + ovCls + '"><div class="rsw" style="background:' + hex + '"></div><div class="rin"><b>H:' + r.hue.toFixed(0) + '°±' + r.tol + '°</b>' + lInfo + modeBadge + ovTip + '</div><span class="' + pctCls + '">' + r.matchPct + '%</span>' + pctTip + (r.inverted ? '<span class="riv">反选</span>' : '') + '<span class="rch" style="background:rgba(255,255,255,.06);color:' + clr + '">' + r.ch + '</span><button class="riv" onclick="M.Pk.tInv(' + i + ')">⇄</button><button class="rdl" onclick="M.Pk.rmRg(' + i + ')">✕</button></div>';
+  }).join('');
+};
+
+/* ---- 补丁: banner 百分比也加警告色 ---- */
+var _origUpdateBanner = M.Pk._updateBanner;
+M.Pk._updateBanner = function(hex, pct) {
+  _origUpdateBanner.call(this, hex, pct);
+  var pv = parseFloat(pct) || 0, el = $('cpbPct');
+  if (!el) return;
+  if (pv < CRIT_PCT_WARN) { el.style.color = 'var(--red)'; el.style.fontWeight = '700'; }
+  else if (pv < LOW_PCT_WARN) { el.style.color = 'var(--orange)'; el.style.fontWeight = '700'; }
+  else { el.style.color = ''; el.style.fontWeight = ''; }
+};
+
+/* ---- 补丁: 自定义通道区域列表百分比也加警告 ---- */
+var _origRCustomCards = M.Ch.rCustomCards;
+M.Ch.rCustomCards = function() {
+  _origRCustomCards.call(this);
+  /* 后处理: 为 < 1% 的自定义区域百分比添加警告色 */
+  var customs = M.S.chs.filter(function(c){return c.isCustom});
+  customs.forEach(function(c) {
+    var el = $('ccRg_' + c.id); if (!el) return;
+    var spans = el.querySelectorAll('.ccc-rg-item span');
+    spans.forEach(function(sp) {
+      if (sp.textContent.indexOf('%') < 0) return;
+      var pv = parseFloat(sp.textContent);
+      if (isNaN(pv)) return;
+      if (pv < CRIT_PCT_WARN) { sp.style.color = 'var(--red)'; sp.style.fontWeight = '700'; }
+      else if (pv < LOW_PCT_WARN) { sp.style.color = 'var(--orange)'; sp.style.fontWeight = '700'; }
+    });
+  });
+};
+
+/* ===========================================================================
+ *  需求 2：高亮微小像素开关
+ *  - 在预览 tab 栏旁边添加 toggle
+ *  - 启用后，per-channel mask 预览中白色像素 < 阈值时用红色描边高亮
+ * =========================================================================== */
+M.S._hlSparse = false;  /* 高亮开关状态 */
+
+/* ---- 补丁: M.Ren.buildUI() — 添加高亮开关 ---- */
+var _origBuildUI = M.Ren.buildUI;
+M.Ren.buildUI = function() {
+  _origBuildUI.call(this);
+  /* 在 pvTabs 后插入高亮开关 */
+  var tb = $('pvTabs');
+  if (!tb) return;
+  var hl = document.createElement('label');
+  hl.className = 'hl-toggle' + (M.S._hlSparse ? ' active' : '');
+  hl.id = 'hlToggle';
+  hl.innerHTML = '<input type="checkbox" class="hl-cb" ' + (M.S._hlSparse ? 'checked' : '') + ' onchange="M.Ren._toggleHL(this.checked)"><span>🔴 高亮微小像素</span>';
+  hl.title = '启用后，Mask 中占比极低的白色像素将以红色发光标记，便于识别稀疏区域';
+  tb.parentNode.insertBefore(hl, tb.nextSibling);
+};
+
+/* ---- 切换高亮 ---- */
+M.Ren._toggleHL = function(on) {
+  M.S._hlSparse = on;
+  var el = $('hlToggle');
+  if (el) el.classList.toggle('active', on);
+  if (M.S.maskOK) M.Ren.all();
+};
+
+/* ---- 补丁: M.Ren.all() — 在 per-channel 预览中叠加高亮 ---- */
+var _origRenAll_v65 = M.Ren.all;
+M.Ren.all = function() {
+  _origRenAll_v65.call(this);
+  if (!M.S._hlSparse || !M.S.maskOK || !M.S.srcImg) return;
+  var S = M.S, W = S.W, H = S.H, n = W * H;
+
+  S.chs.forEach(function(c) {
+    if (!c.raw) return;
+    /* 检测该通道是否为低占比（< 1%） */
+    var cnt = 0;
+    for (var j = 0; j < n; j++) { if (c.raw[j] > 0.1) cnt++; }
+    var pct = cnt / n * 100;
+    if (pct >= LOW_PCT_WARN) return;  /* 非低占比通道不处理 */
+
+    /* per-channel 预览 canvas */
+    var pc = $('pvC_' + c.id);
+    if (!pc) return;
+    var ctx = pc.getContext('2d');
+    var imgData = ctx.getImageData(0, 0, pc.width, pc.height);
+    var d = imgData.data;
+    var scaleX = W / pc.width, scaleY = H / pc.height;
+
+    for (var py = 0; py < pc.height; py++) {
+      for (var px = 0; px < pc.width; px++) {
+        var sx = Math.floor(px * scaleX), sy = Math.floor(py * scaleY);
+        var si = sy * W + sx;
+        if (c.raw[si] > 0.1) {
+          /* 白色像素 → 红色高亮 */
+          var di = (py * pc.width + px) * 4;
+          d[di] = 255; d[di + 1] = 40; d[di + 2] = 40; d[di + 3] = 255;
+          /* 发光效果: 给周围 1px 添加半透明红色 */
+          for (var gy = -1; gy <= 1; gy++) {
+            for (var gx = -1; gx <= 1; gx++) {
+              if (gx === 0 && gy === 0) continue;
+              var nx = px + gx, ny = py + gy;
+              if (nx < 0 || nx >= pc.width || ny < 0 || ny >= pc.height) continue;
+              var ni = (ny * pc.width + nx) * 4;
+              /* 不覆盖已标红的核心像素 */
+              var nsx = Math.floor(nx * scaleX), nsy = Math.floor(ny * scaleY);
+              var nsi = nsy * W + nsx;
+              if (c.raw[nsi] > 0.1) continue;
+              /* 半透明红色发光 */
+              d[ni] = Math.min(255, d[ni] + 120);
+              d[ni + 1] = Math.max(0, d[ni + 1] - 30);
+              d[ni + 2] = Math.max(0, d[ni + 2] - 30);
+            }
+          }
+        }
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    /* 缩略图也高亮 */
+    var tc = $('chT_' + c.id);
+    if (!tc) return;
+    var tctx = tc.getContext('2d');
+    var timg = tctx.getImageData(0, 0, tc.width, tc.height);
+    var td = timg.data;
+    var tscX = W / tc.width, tscY = H / tc.height;
+    for (var ty = 0; ty < tc.height; ty++) {
+      for (var tx = 0; tx < tc.width; tx++) {
+        var tsx = Math.floor(tx * tscX), tsy2 = Math.floor(ty * tscY);
+        var tsi = tsy2 * W + tsx;
+        if (c.raw[tsi] > 0.1) {
+          var tdi = (ty * tc.width + tx) * 4;
+          td[tdi] = 255; td[tdi + 1] = 40; td[tdi + 2] = 40; td[tdi + 3] = 255;
+        }
+      }
+    }
+    tctx.putImageData(timg, 0, 0);
+  });
+};
+
+/* ===========================================================================
+ *  需求 3：容差重叠检测
+ *  - 计算区域间色相距离 < 5° 且 ΔE 范围交叉
+ *  - 渲染时标记重叠区域
+ *  - addRg / addCustomRg 时弹出提示
+ * =========================================================================== */
+var OVERLAP_HUE_THRESH = 5;  /* 色相差阈值（度） */
+
+/* ---- 工具函数: 计算两个区域的色相距离 ---- */
+function hueDist(h1, h2) {
+  var d = Math.abs(h1 - h2) % 360;
+  return d > 180 ? 360 - d : d;
+}
+
+/* ---- 工具函数: 检查两个区域是否重叠 ---- */
+function regionsOverlap(a, b) {
+  /* 色相距离 < 阈值 */
+  if (hueDist(a.hue, b.hue) >= OVERLAP_HUE_THRESH + a.tol + b.tol) return false;
+  /* 色相范围交叉检查 */
+  var aMin = (a.hue - a.tol + 360) % 360, aMax = (a.hue + a.tol) % 360;
+  var bMin = (b.hue - b.tol + 360) % 360, bMax = (b.hue + b.tol) % 360;
+  /* 归一化到 [0,360) 环形比较 */
+  function rangeOverlap(aLo, aHi, bLo, bHi) {
+    if (aLo <= aHi && bLo <= bHi) return aLo <= bHi && bLo <= aHi;
+    /* 有跨 0° 的情况 */
+    if (aLo > aHi) return rangeOverlap(aLo, 360, bLo, bHi) || rangeOverlap(0, aHi, bLo, bHi);
+    return rangeOverlap(aLo, aHi, bLo, 360) || rangeOverlap(aLo, aHi, 0, bHi);
+  }
+  if (!rangeOverlap(aMin, aMax, bMin, bMax)) return false;
+  /* ΔE 范围交叉 (如果两个都有 lab 值) */
+  if (a.lab && b.lab) {
+    var de = 0, dl = a.lab[0] - b.lab[0], da = a.lab[1] - b.lab[1], db = a.lab[2] - b.lab[2];
+    de = Math.sqrt(dl * dl + da * da + db * db);
+    var aDe = a.deltaE || 12, bDe = b.deltaE || 12;
+    if (de > aDe + bDe) return false;
+  }
+  return true;
+}
+
+/* ---- 构建重叠映射 ---- */
+M._v65_overlapMap = function(regions) {
+  var map = {};
+  for (var i = 0; i < regions.length; i++) {
+    for (var j = i + 1; j < regions.length; j++) {
+      /* 同通道的区域不算重叠 */
+      if (regions[i].ch === regions[j].ch) continue;
+      if (regionsOverlap(regions[i], regions[j])) {
+        if (!map[i]) map[i] = [];
+        if (!map[j]) map[j] = [];
+        map[i].push(j + 1);  /* 显示用 1-based 索引 */
+        map[j].push(i + 1);
+      }
+    }
+  }
+  return map;
+};
+
+/* ---- 补丁: addRg() — 添加后检测重叠并提示 ---- */
+var _origAddRg = M.Pk.addRg;
+M.Pk.addRg = function() {
+  var prevLen = M.S.regions.length;
+  _origAddRg.call(this);
+  if (M.S.regions.length > prevLen) {
+    var newIdx = M.S.regions.length - 1;
+    var newR = M.S.regions[newIdx];
+    var overlaps = [];
+    for (var k = 0; k < newIdx; k++) {
+      if (M.S.regions[k].ch === newR.ch) continue;
+      if (regionsOverlap(newR, M.S.regions[k])) overlaps.push(k + 1);
+    }
+    if (overlaps.length > 0) {
+      M.T.show('⚠️ 新区域与已有区域 #' + overlaps.join(', #') + ' 的色相/容差范围重叠，可能导致 Mask 冗余。建议调整色相或容差。');
+    }
+  }
+};
+
+/* ---- 补丁: addCustomRg() — 添加后检测重叠并提示 ---- */
+var _origAddCustomRg = M.Ch.addCustomRg;
+M.Ch.addCustomRg = function(id) {
+  var prevLen = M.S.regions.length;
+  _origAddCustomRg.call(this, id);
+  if (M.S.regions.length > prevLen) {
+    var newIdx = M.S.regions.length - 1;
+    var newR = M.S.regions[newIdx];
+    var overlaps = [];
+    for (var k = 0; k < newIdx; k++) {
+      if (M.S.regions[k].ch === newR.ch) continue;
+      if (regionsOverlap(newR, M.S.regions[k])) overlaps.push(k + 1);
+    }
+    if (overlaps.length > 0) {
+      M.T.show('⚠️ 新区域与已有区域 #' + overlaps.join(', #') + ' 的色相/容差范围重叠，可能导致 Mask 冗余。建议调整色相或容差。');
+    }
+  }
+};
+
+/* ---- 版本标识 ---- */
+(function(){var vb=document.querySelector('.hdr h1 .ver');if(vb)vb.textContent='v6.5'})();
+console.log('[v6.5] patch loaded: low-pct visual warning, sparse pixel highlight toggle, tolerance overlap detection');
 })();
 </script>
 <script src="editor-kit.js"></script>
