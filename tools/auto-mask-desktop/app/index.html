@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Auto Mask Generator v6.3 — Desktop</title>
+<title>Auto Mask Generator v6.4 — Desktop</title>
 <style>
 :root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--gbg:rgba(74,222,128,.12);--abg:rgba(108,140,255,.12);--rbg:rgba(248,113,113,.12);--ybg:rgba(251,191,36,.12);--obg:rgba(251,146,60,.12);--cbg:rgba(34,211,238,.12)}
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
@@ -118,6 +118,41 @@
 .ad-precision-bar select:focus{border-color:var(--cyan);outline:none}
 .ad-strict-lightness{display:flex;align-items:center;gap:5px;padding:4px 8px;background:var(--card);border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all .15s}
 .ad-strict-lightness:hover{border-color:var(--yellow)}
+
+/* ═══ v6.4 空状态 & 低占比警告 ═══ */
+.ch-empty-warn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(248,113,113,.08);border-radius:4px;pointer-events:none;z-index:5}
+.ch-empty-warn span{font-size:10px;color:var(--red);font-weight:600;text-align:center;line-height:1.5;padding:4px 8px;background:rgba(0,0,0,.6);border-radius:4px}
+.ch-low-warn{font-size:9px;color:var(--yellow);background:rgba(251,191,36,.1);padding:2px 8px;border-radius:4px;margin-top:4px;display:flex;align-items:center;gap:4px}
+.ch-low-warn::before{content:'⚠️';font-size:10px}
+.ad-low-pct-badge{font-size:8px;color:var(--orange);background:rgba(251,146,60,.15);padding:1px 5px;border-radius:3px;margin-left:3px}
+
+/* ═══ v6.5 低占比视觉警告 ═══ */
+.rpc-warn{color:var(--orange)!important;font-weight:700}
+.rpc-crit{color:var(--red)!important;font-weight:700}
+.rpc-tip{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:rgba(251,146,60,.2);color:var(--orange);font-size:9px;font-weight:800;margin-left:3px;cursor:help;position:relative;flex-shrink:0;line-height:1}
+.rpc-crit+.rpc-tip{background:rgba(248,113,113,.2);color:var(--red)}
+.rpc-tip .rpc-tiptext{visibility:hidden;position:absolute;bottom:120%;left:50%;transform:translateX(-50%);background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:10px;font-weight:400;white-space:nowrap;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.5);pointer-events:none}
+.rpc-tip:hover .rpc-tiptext{visibility:visible}
+
+/* ═══ v6.5 高亮微小像素开关 ═══ */
+.hl-toggle{display:flex;align-items:center;gap:5px;padding:4px 8px;background:var(--card);border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all .15s;font-size:10px;color:var(--dim);margin:4px 0;user-select:none}
+.hl-toggle:hover{border-color:var(--orange)}
+.hl-toggle.active{border-color:var(--red);color:var(--red);background:rgba(248,113,113,.08)}
+.hl-toggle .hl-cb{accent-color:var(--red);margin:0}
+
+/* ═══ v6.5 容差重叠警告 ═══ */
+.ri-overlap{border:1px solid var(--yellow)!important;background:rgba(251,191,36,.06)!important;border-radius:4px}
+.ri-overlap-tip{font-size:8px;color:var(--yellow);margin-left:2px;cursor:help;position:relative}
+.ri-overlap-tip .ov-tiptext{visibility:hidden;position:absolute;bottom:120%;left:50%;transform:translateX(-50%);background:var(--card);color:var(--text);border:1px solid var(--yellow);border-radius:6px;padding:6px 10px;font-size:10px;font-weight:400;white-space:nowrap;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.5);pointer-events:none}
+.ri-overlap-tip:hover .ov-tiptext{visibility:visible}
+
+/* ═══ v6.4 亮度容差独立滑块 ═══ */
+.tol-lightness-tol{display:flex;align-items:center;gap:6px;margin-top:6px;padding:6px 8px;background:var(--card);border-radius:6px;border:1px solid var(--border)}.tol-lightness-tol label{font-size:10px;color:var(--dim);flex-shrink:0}.tol-lightness-tol .v{font-size:10px;color:var(--cyan);font-weight:600;min-width:28px;text-align:right;font-family:'Cascadia Code','Fira Code',monospace}
+
+/* ═══ v6.4 自定义通道颜色选择器 ═══ */
+.ccc-color-picker{width:16px;height:16px;border-radius:4px;border:1px solid rgba(255,255,255,.15);padding:0;cursor:pointer;background:none;flex-shrink:0;vertical-align:middle;-webkit-appearance:none;-moz-appearance:none;appearance:none}
+.ccc-color-picker::-webkit-color-swatch-wrapper{padding:0}.ccc-color-picker::-webkit-color-swatch{border:none;border-radius:3px}
+.ccc-color-picker::-moz-color-swatch{border:none;border-radius:3px}
 .ad-strict-lightness.active{border-color:var(--yellow);background:rgba(251,191,36,.08)}
 .ad-strict-lightness label{font-size:10px;color:var(--dim);cursor:pointer}.ad-strict-lightness.active label{color:var(--yellow)}
 .ad-strict-lightness input{accent-color:var(--yellow)}
@@ -235,6 +270,8 @@
 <button class="tol-mode-btn act" data-mode="lab" onclick="M.Tol.setMode('lab',this)">CIELAB ΔE (推荐) <span class="ez-tip">?<span class="ez-pop"><b>CIELAB ΔE（推荐）</b><br>像人眼一样感知色差，能精确区分：<br>• 浅灰 vs 深灰 ✅<br>• 米色 vs 白色 ✅<br>• 藏蓝 vs 黑色 ✅<br><span class="ez-example">💡 99% 的情况用这个就对了</span></span></span></button>
 </div>
 <div class="tol-lightness-weight"><label>🔆 明度权重</label><span class="ez-tip">?<span class="ez-pop"><b>明度权重 = 「对亮度差的敏感度」</b><br>1.0x = 正常感知<br>2.0x = 加倍敏感（推荐灰色系贴图）<br>3.0x = 超敏感（极端情况）<br><span class="ez-example">💡 如果图上有很多灰色要区分，拖到 2.0x 以上</span></span></span><input type="range" id="pLW" min="10" max="40" value="15" style="flex:1;accent-color:var(--yellow);height:3px" oninput="M.Tol.update()"><span class="v" id="vLW" style="color:var(--yellow)">1.5x</span></div>
+<!-- v6.4 亮度容差独立滑块 -->
+<div class="tol-lightness-tol"><label>🌓 亮度容差</label><span class="ez-tip">?<span class="ez-pop"><b>亮度容差 = 对亮度差异的容忍范围</b><br>值越小，越能区分「轮廓线」和「填充色」。<br>5 = 极严格（暗线 vs 浅底完全分离）<br>15 = 标准（推荐大多数贴图）<br>30 = 宽松（暗色系贴图）<br><span class="ez-example">💡 描边变成剪影？把这里调到 5~8 就解决了</span></span></span><input type="range" id="pLT" min="2" max="40" value="15" style="flex:1;accent-color:var(--cyan);height:3px" oninput="M.Tol.update()"><span class="v" id="vLT" style="color:var(--cyan)">L±15</span></div>
 <div class="tol-preview-hint"><span class="tol-dot"></span> 拖动滑块实时预览匹配区域</div>
 </div>
 <div class="pr"><label>色相容差</label><span class="ez-tip">?<span class="ez-pop"><b>色相容差 = 色调的抓取范围</b><br>±20° 只抓正红色<br>±40° 连橙红、粉红都会被抓<br><span class="ez-example">💡 想精确一点就调小，想多抓一点就调大</span></span></span><input type="range" id="pHT" min="5" max="60" value="20" oninput="M.Pk.upP()"><span class="v" id="vHT">±20°</span></div>
@@ -883,10 +920,6 @@ tab:function(idx,btn){document.querySelectorAll('.pvtb').forEach(function(t){t.c
 all:function(){var S=M.S;if(!S.srcImg||!S.maskOK)return;S.chs.forEach(function(c){if(!c.raw)return;var tc=$('chT_'+c.id);if(!tc)return;tc.width=200;tc.height=Math.round(200*S.H/S.W)||100;var tx=tc.getContext('2d'),tmp=document.createElement('canvas');tmp.width=S.W;tmp.height=S.H;var ctx=tmp.getContext('2d'),img=ctx.createImageData(S.W,S.H),d=img.data;for(var i=0,n=S.W*S.H;i<n;i++){var v=(c.raw[i]*255+.5)|0;d[i*4]=v;d[i*4+1]=v;d[i*4+2]=v;d[i*4+3]=255}ctx.putImageData(img,0,0);tx.drawImage(tmp,0,0,tc.width,tc.height)});var po=$('pvO');if(po){po.width=S.W;po.height=S.H;po.getContext('2d').drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H)}var pg=$('pvG');if(pg){pg.width=S.W;pg.height=S.H;var gx=pg.getContext('2d'),gi=gx.createImageData(S.W,S.H),gd=gi.data;for(var i=0,n=S.W*S.H;i<n;i++){var mx=0;S.chs.forEach(function(c){if(c.raw&&c.raw[i]>mx)mx=c.raw[i]});var v=(mx*255+.5)|0;gd[i*4]=v;gd[i*4+1]=v;gd[i*4+2]=v;gd[i*4+3]=255}gx.putImageData(gi,0,0)}var pv=$('pvV');if(pv){pv.width=S.W;pv.height=S.H;var vx=pv.getContext('2d');vx.drawImage(S.prepImg||S.srcImg,0,0,S.W,S.H);var vi=vx.getImageData(0,0,S.W,S.H),vd=vi.data;for(var i=0,n=S.W*S.H;i<n;i++){var bv=0,bc=[255,255,255];S.chs.forEach(function(c){if(c.raw&&c.raw[i]>bv){bv=c.raw[i];bc=M.C.x2r(M.C.res(c.color))}});if(bv>.01){var bl=bv*.45,o=i*4;vd[o]=vd[o]*(1-bl)+bc[0]*bl|0;vd[o+1]=vd[o+1]*(1-bl)+bc[1]*bl|0;vd[o+2]=vd[o+2]*(1-bl)+bc[2]*bl|0}}vx.putImageData(vi,0,0)}S.chs.forEach(function(c){var pc=$('pvC_'+c.id);if(!pc||!c.raw)return;pc.width=S.W;pc.height=S.H;var px2=pc.getContext('2d'),pi=px2.createImageData(S.W,S.H),pd=pi.data;for(var i=0,n=S.W*S.H;i<n;i++){var v=(c.raw[i]*255+.5)|0;pd[i*4]=v;pd[i*4+1]=v;pd[i*4+2]=v;pd[i*4+3]=255}px2.putImageData(pi,0,0)});var cc=$('pvComp');if(cc){cc.width=S.W;cc.height=S.H;var cx=cc.getContext('2d'),ci=cx.createImageData(S.W,S.H),cd=ci.data;for(var i=0,n=S.W*S.H;i<n;i++){var o=i*4;cd[o]=S.chs[0]&&S.chs[0].raw?(S.chs[0].raw[i]*255+.5)|0:0;cd[o+1]=S.chs[1]&&S.chs[1].raw?(S.chs[1].raw[i]*255+.5)|0:0;cd[o+2]=S.chs[2]&&S.chs[2].raw?(S.chs[2].raw[i]*255+.5)|0:0;cd[o+3]=S.chs[3]&&S.chs[3].raw?(S.chs[3].raw[i]*255+.5)|0:255}cx.putImageData(ci,0,0)}}};
 </script>
 <script>
-/* ── 扩展 M.Ren.all：为自定义通道卡片渲染预览canvas ── */
-(function(){var origAll=M.Ren.all;M.Ren.all=function(){origAll.call(this);var S=M.S;if(!S.srcImg||!S.maskOK)return;S.chs.forEach(function(c){if(!c.isCustom||!c.raw)return;var cpv=$('ccPv_'+c.id);if(!cpv)return;cpv.width=300;cpv.height=Math.round(300*S.H/S.W)||80;var cpx=cpv.getContext('2d'),ctmp=document.createElement('canvas');ctmp.width=S.W;ctmp.height=S.H;var cctx=ctmp.getContext('2d'),cimg=cctx.createImageData(S.W,S.H),cdd=cimg.data;for(var j=0,nn=S.W*S.H;j<nn;j++){var vv=(c.raw[j]*255+.5)|0;cdd[j*4]=vv;cdd[j*4+1]=vv;cdd[j*4+2]=vv;cdd[j*4+3]=255}cctx.putImageData(cimg,0,0);cpx.drawImage(ctmp,0,0,cpv.width,cpv.height)})}})();
-</script>
-<script>
 /* ═══ v6.0 核心JS Part4: Exporter(PNG/TGA/ZIP)/Crop/Migration/Init ═══ */
 /* ── TGA编码器 ── */
 M._tga=function(w,h,rgba){var sz=18+w*h*4,buf=new Uint8Array(sz);buf[2]=2;buf[12]=w&0xFF;buf[13]=(w>>8)&0xFF;buf[14]=h&0xFF;buf[15]=(h>>8)&0xFF;buf[16]=32;buf[17]=0x28;for(var y=0;y<h;y++){var sy=h-1-y;for(var x=0;x<w;x++){var si=(sy*w+x)*4,di=18+(y*w+x)*4;buf[di]=rgba[si+2];buf[di+1]=rgba[si+1];buf[di+2]=rgba[si];buf[di+3]=rgba[si+3]}}return new Blob([buf],{type:'application/octet-stream'})};
@@ -1208,6 +1241,675 @@ document.addEventListener('keydown',function(e){if(e.ctrlKey&&e.key==='z'){e.pre
 /* ── Init ── */
 M.init=function(){M.Pre.init();M.TT.init();M._initF();M.Hist.clear();M.Mode.apply();M.Tol.update()};
 M.init();
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  v6.4 升级补丁
+ *  1. 空状态反馈 & 低占比警告
+ *  2. 独立亮度容差滑块 + 多维匹配门控
+ *  3. 自定义通道颜色选择器
+ * ═══════════════════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* --- 诉求2: 亮度容差参数 --- */
+M.Tol.getLT=function(){return+($('pLT')?$('pLT').value:15)};
+var _origTolUpdate=M.Tol.update;
+M.Tol.update=function(){
+  _origTolUpdate.call(this);
+  var lt=M.Tol.getLT();
+  var vLT=$('vLT');if(vLT)vLT.textContent='L\u00b1'+lt;
+};
+
+/* --- 诉求2: 扩展统一匹配接口 --- */
+M.Tol.match=function(i,refRGB,refLab,hue){
+  var S=M.S;
+  if(S.tolMode==='lab'&&S.lab){
+    var de=M.Tol.getDE(),lw=M.Tol.getLW(),lt=M.Tol.getLT();
+    var pxL=S.lab[i*3],pxA=S.lab[i*3+1],pxB=S.lab[i*3+2];
+    if(!refLab)refLab=M.C.r2lab(refRGB[0],refRGB[1],refRGB[2]);
+    var dL=Math.abs(pxL-refLab[0]);
+    if(dL>lt*3)return 0;  /* v6.5.1修复: lt*1.5→lt*3 放宽明度门控 */
+    var lGate=dL<=lt?1:M.C.sms(lt*3,lt,dL);
+    var dist=M.C.deltaEw([pxL,pxA,pxB],refLab,lw);
+    var val;
+    if(dist<=de*0.6)val=1;else if(dist>=de*1.3)val=0;
+    else val=M.C.sms(de*1.3,de*0.6,dist);
+    return val*lGate;
+  }else{
+    var tol=+$('pHT').value,sat=+$('pSM').value;
+    var h=S.hsv[i*3],s=S.hsv[i*3+1],v=S.hsv[i*3+2];
+    if(typeof hue==='undefined')hue=M.C.r2h(refRGB[0],refRGB[1],refRGB[2])[0];
+    if(s<sat*0.5)return 0;
+    var hd=M.C.hD(h,hue);
+    var hm=hd<=tol?1:hd<=tol*1.5?M.C.sms(tol*1.5,tol,hd):0;
+    var sm2=s>=sat?1:s>=sat*0.5?M.C.sms(sat*0.5,sat,s):0;
+    return hm*sm2*(v/100);
+  }
+};
+M.Tol.isMatch=function(i,refRGB,refLab,hue){return M.Tol.match(i,refRGB,refLab,hue)>0.15};
+
+/* --- 诉求2: 核心像素遍历升级 --- */
+M.Gen.run=function(){
+  var S=M.S;if(!S.hsv||!S.regions.length)return;
+  var n=S.W*S.H,es=+$('pES').value;
+  S.chs.forEach(function(c){c.raw=new Float32Array(n);c.rawOrig=null});
+  var aC=S.chs.find(function(c){return c.id==='A'});
+  if(aC){
+    if(S.aMode==='alpha'){for(var i=0;i<n;i++)aC.raw[i]=S.px[i*4+3]/255}
+    else if(S.aMode==='stroke'){
+      for(var y=1;y<S.H-1;y++)for(var x=1;x<S.W-1;x++){
+        var i=y*S.W+x,a=S.px[i*4+3]/255;
+        var nb=[S.px[((y-1)*S.W+x)*4+3],S.px[((y+1)*S.W+x)*4+3],S.px[(y*S.W+x-1)*4+3],S.px[(y*S.W+x+1)*4+3]];
+        aC.raw[i]=Math.abs(Math.max.apply(null,nb)/255-Math.min.apply(null,nb)/255)*a}
+      if(es>0)aC.raw=M._blur(aC.raw,S.W,S.H,Math.max(1,es));
+      var mx=0;for(var i=0;i<n;i++)if(aC.raw[i]>mx)mx=aC.raw[i];
+      if(mx>0)for(var i=0;i<n;i++)aC.raw[i]/=mx}}
+  var rgLabs=S.regions.map(function(rg){return rg.lab||M.C.r2lab(rg.rgb[0],rg.rgb[1],rg.rgb[2])});
+  var globalLT=M.Tol.getLT();
+  for(var i=0;i<n;i++){
+    var h=S.hsv[i*3],s=S.hsv[i*3+1],v=S.hsv[i*3+2];
+    if(S.px[i*4+3]<10)continue;
+    var cv={};S.chs.forEach(function(c){cv[c.id]=0});
+    for(var ri=0;ri<S.regions.length;ri++){
+      var rg=S.regions[ri],val=0;
+      if(rg.tolMode==='lab'&&S.lab){
+        var de=rg.deltaE||12,lw=rg.lightW||1.5,lt=rg.lightTol||globalLT;
+        var pxL=S.lab[i*3],pxA=S.lab[i*3+1],pxB=S.lab[i*3+2];
+        var refLab=rgLabs[ri];
+        var dL=Math.abs(pxL-refLab[0]);
+        if(dL>lt*1.5)continue;
+        var lGate=dL<=lt?1:M.C.sms(lt*1.5,lt,dL);
+        var dist=M.C.deltaEw([pxL,pxA,pxB],refLab,lw);
+        if(dist<=de*0.6)val=1;else if(dist>=de*1.3)val=0;
+        else val=M.C.sms(de*1.3,de*0.6,dist);
+        val*=lGate;val*=Math.max(0.15,pxL/100);
+      }else{
+        var hd=M.C.hD(h,rg.hue);if(s<rg.satMin*.5)continue;
+        var hm=hd<=rg.tol?1:hd<=rg.tol*1.5?M.C.sms(rg.tol*1.5,rg.tol,hd):0;
+        var sm2=s>=rg.satMin?1:s>=rg.satMin*.5?M.C.sms(rg.satMin*.5,rg.satMin,s):0;
+        val=hm*sm2*(v/100);
+      }
+      if(rg.inverted)val=val>.01?(1-val):0;
+      if(val>cv[rg.ch])cv[rg.ch]=val;
+    }
+    S.chs.forEach(function(c){
+      if(c.id==='A'&&S.aMode==='pick')c.raw[i]=Math.max(c.raw[i],cv[c.id]||0);
+      else if(c.id!=='A')c.raw[i]=Math.max(c.raw[i],cv[c.id]||0)});
+  }
+  if(es>0)S.chs.forEach(function(c){c.raw=M._blur(c.raw,S.W,S.H,es)});
+  var bI=['R','G','B'],bC=S.chs.filter(function(c){return bI.indexOf(c.id)>=0});
+  if(bC.length>1)for(var i=0;i<n;i++){var vs=bC.map(function(c){return c.raw[i]}),mx2=Math.max.apply(null,vs);if(mx2<.01)continue;var mi=vs.indexOf(mx2);bC.forEach(function(c,ci){if(ci!==mi)c.raw[i]=0})}
+  S.chs.forEach(function(c){if(c.slotImage){var tc=document.createElement('canvas');tc.width=S.W;tc.height=S.H;tc.getContext('2d').drawImage(c.slotImage,0,0,S.W,S.H);var id2=tc.getContext('2d').getImageData(0,0,S.W,S.H).data;for(var i=0;i<n;i++)c.raw[i]=(id2[i*4]*.299+id2[i*4+1]*.587+id2[i*4+2]*.114)/255}});
+  S.chs.forEach(function(c){c.rawOrig=new Float32Array(c.raw)});
+  this.adj();S.maskOK=true;M.Ren.buildUI();M.Ren.all();
+  $('s4').style.display='block';$('brushBar').style.display='flex';M.UI.stp(4);
+  $('s4').scrollIntoView({behavior:'smooth'});M.UI.tip(M.L.doneTip);
+  var emptyNames=[];
+  S.chs.forEach(function(c){if(!c.raw)return;var sm=0;for(var j=0;j<n;j++)sm+=c.raw[j];if(sm<0.5)emptyNames.push(c.name)});
+  if(emptyNames.length>0)M.T.show('\u26a0\ufe0f \u901a\u9053\u63d0\u53d6\u5230 0 \u50cf\u7d20: '+emptyNames.join(', ')+'\u3002\u8bf7\u68c0\u67e5\u989c\u8272\u533a\u57df\u6216\u5bb9\u5dee\u3002');
+  else M.T.show(M.tpl(M.L.genDone,{n:S.chs.length}));
+};
+
+/* --- 诉求1: 渲染后空状态叠加层 + 自定义预览 --- */
+var _origRenAll2=M.Ren.all;
+M.Ren.all=function(){
+  _origRenAll2.call(this);
+  var S=M.S;if(!S.srcImg||!S.maskOK)return;var n=S.W*S.H;
+  S.chs.forEach(function(c){
+    if(!c.raw)return;var sm=0;for(var j=0;j<n;j++)sm+=c.raw[j];
+    var tc=$('chT_'+c.id);if(!tc)return;var par=tc.parentNode;
+    var oldW=par.querySelector('.ch-empty-warn');if(oldW)oldW.remove();
+    if(sm<0.5){par.style.position='relative';
+      var w=document.createElement('div');w.className='ch-empty-warn';
+      w.innerHTML='<span>\u26a0\ufe0f 0 \u50cf\u7d20<br>\u8bf7\u8c03\u6574\u989c\u8272/\u5bb9\u5dee</span>';par.appendChild(w)}
+  });
+  S.chs.forEach(function(c){
+    if(!c.isCustom||!c.raw)return;
+    var cpv=$('ccPv_'+c.id);if(!cpv)return;
+    cpv.width=300;cpv.height=Math.round(300*S.H/S.W)||80;
+    var cpx=cpv.getContext('2d'),ctmp=document.createElement('canvas');
+    ctmp.width=S.W;ctmp.height=S.H;
+    var cctx=ctmp.getContext('2d'),cimg=cctx.createImageData(S.W,S.H),cdd=cimg.data;
+    for(var j=0,nn=S.W*S.H;j<nn;j++){var vv=(c.raw[j]*255+.5)|0;cdd[j*4]=vv;cdd[j*4+1]=vv;cdd[j*4+2]=vv;cdd[j*4+3]=255}
+    cctx.putImageData(cimg,0,0);cpx.drawImage(ctmp,0,0,cpv.width,cpv.height)});
+};
+
+/* --- 诉求1: 自动分配后低占比警告 --- */
+M.AD.applyAll=function(){
+  var results=M.AD._lastResults;
+  if(!results||!results.length){M.T.show('\u8bf7\u5148\u6267\u884c\u667a\u80fd\u5206\u6790');return}
+  M.AD._autoAssign(results);
+  var lowPct=[];
+  results.forEach(function(r){var p=parseFloat(r.pct)||0;if(p<1)lowPct.push({hex:M.C.r2x(r.rgb),ch:r.ch,pct:r.pct})});
+  if(lowPct.length>0)M.T.show('\u26a0\ufe0f '+lowPct.length+'\u4e2a\u989c\u8272\u5360\u6bd4<1%: '+lowPct.map(function(c){return c.hex+'('+c.pct+'%\u2192'+c.ch+')'}).join(', '));
+  else M.T.show('\u2705 \u5df2\u5c06 '+results.length+' \u4e2a\u4e3b\u8272\u57df\u5206\u914d\u5230\u57fa\u7840\u901a\u9053');
+  if(M.S.regions.length)setTimeout(function(){M.Gen.run()},300);
+};
+M.AD._autoAssign=function(results){
+  var S=M.S;results.forEach(function(r){
+    var exists=S.regions.some(function(rg){return rg.ch===r.ch&&Math.abs(rg.hue-r.hue)<5&&(!rg.lab||!r.lab||Math.abs(rg.lab[0]-r.lab[0])<10)});
+    if(!exists){S.regions.push({ch:r.ch,hue:r.hue,tol:+$('pHT').value,satMin:+$('pSM').value,rgb:r.rgb.slice(),
+      lab:r.lab.slice(),deltaE:M.Tol.getDE(),lightW:M.Tol.getLW(),lightTol:M.Tol.getLT(),
+      tolMode:S.tolMode,matchPct:r.pct,inverted:false});M.Hist.push({type:'add_rg'})}});
+  M.Ch.rRL();$('genBtn').disabled=false;
+};
+
+/* --- 诉求3: 自定义通道颜色选择器 --- */
+M.Ch.setCustomColor=function(id,hex){
+  var c=M.S.chs.find(function(x){return x.id===id});if(!c)return;
+  c.color=hex;M.Ch.rBar();M.Ch.rPan();M.Ch.rSlots();
+  if(M.S.maskOK)M.Ren.all();
+};
+M.Ch.rCustomCards=function(){
+  var S=M.S,el=$('customChCards');if(!el)return;
+  var customs=S.chs.filter(function(c){return c.isCustom});
+  if(!customs.length){el.innerHTML='';return}
+  el.innerHTML=customs.map(function(c){
+    var hex=c.customPickRGB?M.C.r2x(c.customPickRGB):'#444';
+    var cp=c.customParams;
+    var cHex;try{cHex=M.C.r2x(M.C.x2r(M.C.res(c.color)))}catch(e){cHex='#888888'}
+    var rgHtml=c.customRegions.length?c.customRegions.map(function(r,i){
+      return'<div class="ccc-rg-item"><div class="rgsw" style="background:'+M.C.r2x(r.rgb)+'"></div><span>H:'+r.hue.toFixed(0)+'\u00b0\u00b1'+r.tol+'\u00b0</span><span style="color:var(--green);margin-left:auto;font-size:9px">'+r.matchPct+'%</span><button onclick="M.Ch.rmCustomRg(\''+c.id+'\','+i+')">\u2715</button></div>'
+    }).join(''):'<div style="color:var(--dim);font-size:9px;padding:4px">\u70b9\u51fb\u4e0a\u65b9\u8272\u5757\u4ece\u539f\u56fe\u5438\u53d6\u989c\u8272</div>';
+    return'<div class="custom-ch-card" id="ccc_'+c.id+'"><div class="ccc-head">'
+    +'<input type="color" class="ccc-color-picker" value="'+cHex+'" title="\u70b9\u51fb\u4fee\u6539\u901a\u9053\u6807\u8bc6\u8272" onchange="M.Ch.setCustomColor(\''+c.id+'\',this.value)" oninput="M.Ch.setCustomColor(\''+c.id+'\',this.value)">'
+    +'<input class="ccc-name ni" value="'+c.name+'" placeholder="\u8f93\u5165\u540d\u79f0(Emission)" title="\u81ea\u5b9a\u4e49\u901a\u9053\u540d\u79f0" onchange="M.Ch.renameCustom(\''+c.id+'\',this.value)" style="flex:1;font-size:12px;font-weight:600;color:var(--heading);background:transparent;border-color:transparent;padding:2px 4px" />'
+    +'<span class="ccc-badge">\u81ea\u5b9a\u4e49</span>'
+    +'<button class="ccc-del" onclick="M.Ch.rm(\''+c.id+'\')">\ud83d\uddd1\ufe0f \u5220\u9664</button></div>'
+    +'<div class="ccc-preview"><canvas id="ccPv_'+c.id+'" width="300" height="80"></canvas></div>'
+    +'<div class="ccc-picker"><div class="ccc-swatch" id="ccSw_'+c.id+'" style="background:'+hex+'" onclick="M.Ch.startCustomPick(\''+c.id+'\')" title="\u70b9\u51fb\u540e\u5728\u539f\u56fe\u4e0a\u5438\u8272"></div><div class="ccc-pk-info" id="ccPkI_'+c.id+'">'+(c.customPickRGB?'<b>'+hex+'</b> H:'+c.customPickH.toFixed(0)+'\u00b0':'\ud83d\udc46 \u70b9\u51fb\u8272\u5757\u5438\u53d6\u989c\u8272')+'</div><button class="btn btn-p btn-sm" onclick="M.Ch.addCustomRg(\''+c.id+'\')" '+(c.customPickRGB?'':'disabled')+'>\u2795 \u6dfb\u52a0\u5230\u6b64\u901a\u9053</button></div>'
+    +'<div class="ccc-controls"><div class="pr"><label>\u8272\u76f8\u5bb9\u5dee</label><input type="range" min="5" max="60" value="'+cp.hueTol+'" oninput="M.Ch.setCustomParam(\''+c.id+'\',\'hueTol\',+this.value);this.parentNode.querySelector(\'.v\').textContent=\'\u00b1\'+this.value+\'\u00b0\'"><span class="v">\u00b1'+cp.hueTol+'\u00b0</span></div>'
+    +'<div class="pr"><label>\u9971\u548c\u5ea6\u4e0b\u9650</label><input type="range" min="0" max="100" value="'+cp.satMin+'" oninput="M.Ch.setCustomParam(\''+c.id+'\',\'satMin\',+this.value);this.parentNode.querySelector(\'.v\').textContent=this.value+\'%\'"><span class="v">'+cp.satMin+'%</span></div>'
+    +'<div class="pr"><label>\u8fb9\u7f18\u5e73\u6ed1</label><input type="range" min="0" max="5" value="'+cp.edgeSmooth+'" oninput="M.Ch.setCustomParam(\''+c.id+'\',\'edgeSmooth\',+this.value);this.parentNode.querySelector(\'.v\').textContent=this.value+\'px\'"><span class="v">'+cp.edgeSmooth+'px</span></div></div>'
+    +'<div class="ccc-regions" id="ccRg_'+c.id+'">'+rgHtml+'</div></div>'
+  }).join('');
+};
+
+/* 版本标识 */
+(function(){var vb=document.querySelector('.hdr h1 .ver');if(vb)vb.textContent='v6.4'})();
+M.Tol.update();
+console.log('[v6.4] patch loaded: empty-state feedback, lightness tolerance gate, custom channel color picker');
+})();
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  v6.5 交互优化补丁
+ *  1. 低占比视觉警告（< 1% 橙色 / < 0.1% 红色 + ! 提示图标）
+ *  2. 高亮微小像素开关（mask 预览红色发光描边）
+ *  3. 容差重叠检测（新增区域时 HSL 范围重叠检测 + 黄色警告）
+ * ═══════════════════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ===========================================================================
+ *  需求 1：低占比视觉警告
+ *  - rRL() 中 matchPct < 1.0% → 橙色，< 0.1% → 红色，附带 ! tooltip
+ *  - banner / float menu 同步渲染警告
+ *  - 自定义通道区域列表同步渲染警告
+ * =========================================================================== */
+var LOW_PCT_WARN = 1.0, CRIT_PCT_WARN = 0.1;
+var LOW_TIP = '该颜色在原图中占比极低，Mask 可能不可见。建议重新吸色或调大容差(ΔE)。';
+
+/* ---- 补丁: M.Ch.rRL() — 区域列表添加低占比警告 ---- */
+var _origRRL = M.Ch.rRL;
+M.Ch.rRL = function(){
+  var S = M.S, el = $('rgList');
+  if (!S.regions.length) { el.innerHTML = '<div style="color:var(--dim);padding:4px;font-size:10px">暂无</div>'; return; }
+
+  /* 预计算重叠关系 */
+  var overlapMap = M._v65_overlapMap ? M._v65_overlapMap(S.regions) : {};
+
+  el.innerHTML = S.regions.map(function(r, i) {
+    var hex = M.C.r2x(r.rgb), ch = S.chs.find(function(c){return c.id===r.ch}), clr = ch ? ch.color : '#888';
+    var modeBadge = r.tolMode === 'lab' ? '<span style="font-size:8px;color:var(--cyan);margin-left:2px">ΔE:' + ((r.deltaE||12)) + '</span>' : '';
+    var lInfo = r.lab ? '<span style="font-size:8px;color:var(--yellow);margin-left:2px">L*:' + r.lab[0].toFixed(0) + '</span>' : '';
+
+    /* v6.5: 低占比警告 */
+    var pv = parseFloat(r.matchPct) || 0;
+    var pctCls = pv < CRIT_PCT_WARN ? 'rpc rpc-crit' : pv < LOW_PCT_WARN ? 'rpc rpc-warn' : 'rpc';
+    var pctTip = pv < LOW_PCT_WARN ? '<span class="rpc-tip' + (pv < CRIT_PCT_WARN ? '' : '') + '">!<span class="rpc-tiptext">' + LOW_TIP + '</span></span>' : '';
+
+    /* v6.5: 容差重叠警告 */
+    var ovCls = overlapMap[i] ? ' ri-overlap' : '';
+    var ovTip = overlapMap[i] ? '<span class="ri-overlap-tip">⚠<span class="ov-tiptext">与区域 ' + overlapMap[i].join(', ') + ' 的色相/容差范围重叠，可能导致 Mask 冗余</span></span>' : '';
+
+    return '<div class="ri' + ovCls + '"><div class="rsw" style="background:' + hex + '"></div><div class="rin"><b>H:' + r.hue.toFixed(0) + '°±' + r.tol + '°</b>' + lInfo + modeBadge + ovTip + '</div><span class="' + pctCls + '">' + r.matchPct + '%</span>' + pctTip + (r.inverted ? '<span class="riv">反选</span>' : '') + '<span class="rch" style="background:rgba(255,255,255,.06);color:' + clr + '">' + r.ch + '</span><button class="riv" onclick="M.Pk.tInv(' + i + ')">⇄</button><button class="rdl" onclick="M.Pk.rmRg(' + i + ')">✕</button></div>';
+  }).join('');
+};
+
+/* ---- 补丁: banner 百分比也加警告色 ---- */
+var _origUpdateBanner = M.Pk._updateBanner;
+M.Pk._updateBanner = function(hex, pct) {
+  _origUpdateBanner.call(this, hex, pct);
+  var pv = parseFloat(pct) || 0, el = $('cpbPct');
+  if (!el) return;
+  if (pv < CRIT_PCT_WARN) { el.style.color = 'var(--red)'; el.style.fontWeight = '700'; }
+  else if (pv < LOW_PCT_WARN) { el.style.color = 'var(--orange)'; el.style.fontWeight = '700'; }
+  else { el.style.color = ''; el.style.fontWeight = ''; }
+};
+
+/* ---- 补丁: 自定义通道区域列表百分比也加警告 ---- */
+var _origRCustomCards = M.Ch.rCustomCards;
+M.Ch.rCustomCards = function() {
+  _origRCustomCards.call(this);
+  /* 后处理: 为 < 1% 的自定义区域百分比添加警告色 */
+  var customs = M.S.chs.filter(function(c){return c.isCustom});
+  customs.forEach(function(c) {
+    var el = $('ccRg_' + c.id); if (!el) return;
+    var spans = el.querySelectorAll('.ccc-rg-item span');
+    spans.forEach(function(sp) {
+      if (sp.textContent.indexOf('%') < 0) return;
+      var pv = parseFloat(sp.textContent);
+      if (isNaN(pv)) return;
+      if (pv < CRIT_PCT_WARN) { sp.style.color = 'var(--red)'; sp.style.fontWeight = '700'; }
+      else if (pv < LOW_PCT_WARN) { sp.style.color = 'var(--orange)'; sp.style.fontWeight = '700'; }
+    });
+  });
+};
+
+/* ===========================================================================
+ *  需求 2：高亮微小像素开关
+ *  - 在预览 tab 栏旁边添加 toggle
+ *  - 启用后，per-channel mask 预览中白色像素 < 阈值时用红色描边高亮
+ * =========================================================================== */
+M.S._hlSparse = false;  /* 高亮开关状态 */
+
+/* ---- 补丁: M.Ren.buildUI() — 添加高亮开关 ---- */
+var _origBuildUI = M.Ren.buildUI;
+M.Ren.buildUI = function() {
+  _origBuildUI.call(this);
+  /* 在 pvTabs 后插入高亮开关 */
+  var tb = $('pvTabs');
+  if (!tb) return;
+  var hl = document.createElement('label');
+  hl.className = 'hl-toggle' + (M.S._hlSparse ? ' active' : '');
+  hl.id = 'hlToggle';
+  hl.innerHTML = '<input type="checkbox" class="hl-cb" ' + (M.S._hlSparse ? 'checked' : '') + ' onchange="M.Ren._toggleHL(this.checked)"><span>🔴 高亮微小像素</span>';
+  hl.title = '启用后，Mask 中占比极低的白色像素将以红色发光标记，便于识别稀疏区域';
+  tb.parentNode.insertBefore(hl, tb.nextSibling);
+};
+
+/* ---- 切换高亮 ---- */
+M.Ren._toggleHL = function(on) {
+  M.S._hlSparse = on;
+  var el = $('hlToggle');
+  if (el) el.classList.toggle('active', on);
+  if (M.S.maskOK) M.Ren.all();
+};
+
+/* ---- 补丁: M.Ren.all() — 在 per-channel 预览中叠加高亮 ---- */
+var _origRenAll_v65 = M.Ren.all;
+M.Ren.all = function() {
+  _origRenAll_v65.call(this);
+  if (!M.S._hlSparse || !M.S.maskOK || !M.S.srcImg) return;
+  var S = M.S, W = S.W, H = S.H, n = W * H;
+
+  S.chs.forEach(function(c) {
+    if (!c.raw) return;
+    /* 检测该通道是否为低占比（< 1%） */
+    var cnt = 0;
+    for (var j = 0; j < n; j++) { if (c.raw[j] > 0.1) cnt++; }
+    var pct = cnt / n * 100;
+    if (pct >= LOW_PCT_WARN) return;  /* 非低占比通道不处理 */
+
+    /* per-channel 预览 canvas */
+    var pc = $('pvC_' + c.id);
+    if (!pc) return;
+    var ctx = pc.getContext('2d');
+    var imgData = ctx.getImageData(0, 0, pc.width, pc.height);
+    var d = imgData.data;
+    var scaleX = W / pc.width, scaleY = H / pc.height;
+
+    for (var py = 0; py < pc.height; py++) {
+      for (var px = 0; px < pc.width; px++) {
+        var sx = Math.floor(px * scaleX), sy = Math.floor(py * scaleY);
+        var si = sy * W + sx;
+        if (c.raw[si] > 0.1) {
+          /* 白色像素 → 红色高亮 */
+          var di = (py * pc.width + px) * 4;
+          d[di] = 255; d[di + 1] = 40; d[di + 2] = 40; d[di + 3] = 255;
+          /* 发光效果: 给周围 1px 添加半透明红色 */
+          for (var gy = -1; gy <= 1; gy++) {
+            for (var gx = -1; gx <= 1; gx++) {
+              if (gx === 0 && gy === 0) continue;
+              var nx = px + gx, ny = py + gy;
+              if (nx < 0 || nx >= pc.width || ny < 0 || ny >= pc.height) continue;
+              var ni = (ny * pc.width + nx) * 4;
+              /* 不覆盖已标红的核心像素 */
+              var nsx = Math.floor(nx * scaleX), nsy = Math.floor(ny * scaleY);
+              var nsi = nsy * W + nsx;
+              if (c.raw[nsi] > 0.1) continue;
+              /* 半透明红色发光 */
+              d[ni] = Math.min(255, d[ni] + 120);
+              d[ni + 1] = Math.max(0, d[ni + 1] - 30);
+              d[ni + 2] = Math.max(0, d[ni + 2] - 30);
+            }
+          }
+        }
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    /* 缩略图也高亮 */
+    var tc = $('chT_' + c.id);
+    if (!tc) return;
+    var tctx = tc.getContext('2d');
+    var timg = tctx.getImageData(0, 0, tc.width, tc.height);
+    var td = timg.data;
+    var tscX = W / tc.width, tscY = H / tc.height;
+    for (var ty = 0; ty < tc.height; ty++) {
+      for (var tx = 0; tx < tc.width; tx++) {
+        var tsx = Math.floor(tx * tscX), tsy2 = Math.floor(ty * tscY);
+        var tsi = tsy2 * W + tsx;
+        if (c.raw[tsi] > 0.1) {
+          var tdi = (ty * tc.width + tx) * 4;
+          td[tdi] = 255; td[tdi + 1] = 40; td[tdi + 2] = 40; td[tdi + 3] = 255;
+        }
+      }
+    }
+    tctx.putImageData(timg, 0, 0);
+  });
+};
+
+/* ===========================================================================
+ *  需求 3：容差重叠检测
+ *  - 计算区域间色相距离 < 5° 且 ΔE 范围交叉
+ *  - 渲染时标记重叠区域
+ *  - addRg / addCustomRg 时弹出提示
+ * =========================================================================== */
+var OVERLAP_HUE_THRESH = 5;  /* 色相差阈值（度） */
+
+/* ---- 工具函数: 计算两个区域的色相距离 ---- */
+function hueDist(h1, h2) {
+  var d = Math.abs(h1 - h2) % 360;
+  return d > 180 ? 360 - d : d;
+}
+
+/* ---- 工具函数: 检查两个区域是否重叠 ---- */
+function regionsOverlap(a, b) {
+  /* 色相距离 < 阈值 */
+  if (hueDist(a.hue, b.hue) >= OVERLAP_HUE_THRESH + a.tol + b.tol) return false;
+  /* 色相范围交叉检查 */
+  var aMin = (a.hue - a.tol + 360) % 360, aMax = (a.hue + a.tol) % 360;
+  var bMin = (b.hue - b.tol + 360) % 360, bMax = (b.hue + b.tol) % 360;
+  /* 归一化到 [0,360) 环形比较 */
+  function rangeOverlap(aLo, aHi, bLo, bHi) {
+    if (aLo <= aHi && bLo <= bHi) return aLo <= bHi && bLo <= aHi;
+    /* 有跨 0° 的情况 */
+    if (aLo > aHi) return rangeOverlap(aLo, 360, bLo, bHi) || rangeOverlap(0, aHi, bLo, bHi);
+    return rangeOverlap(aLo, aHi, bLo, 360) || rangeOverlap(aLo, aHi, 0, bHi);
+  }
+  if (!rangeOverlap(aMin, aMax, bMin, bMax)) return false;
+  /* ΔE 范围交叉 (如果两个都有 lab 值) */
+  if (a.lab && b.lab) {
+    var de = 0, dl = a.lab[0] - b.lab[0], da = a.lab[1] - b.lab[1], db = a.lab[2] - b.lab[2];
+    de = Math.sqrt(dl * dl + da * da + db * db);
+    var aDe = a.deltaE || 12, bDe = b.deltaE || 12;
+    if (de > aDe + bDe) return false;
+  }
+  return true;
+}
+
+/* ---- 构建重叠映射 ---- */
+M._v65_overlapMap = function(regions) {
+  var map = {};
+  for (var i = 0; i < regions.length; i++) {
+    for (var j = i + 1; j < regions.length; j++) {
+      /* 同通道的区域不算重叠 */
+      if (regions[i].ch === regions[j].ch) continue;
+      if (regionsOverlap(regions[i], regions[j])) {
+        if (!map[i]) map[i] = [];
+        if (!map[j]) map[j] = [];
+        map[i].push(j + 1);  /* 显示用 1-based 索引 */
+        map[j].push(i + 1);
+      }
+    }
+  }
+  return map;
+};
+
+/* ---- 补丁: addRg() — 添加后检测重叠并提示 ---- */
+var _origAddRg = M.Pk.addRg;
+M.Pk.addRg = function() {
+  var prevLen = M.S.regions.length;
+  _origAddRg.call(this);
+  if (M.S.regions.length > prevLen) {
+    var newIdx = M.S.regions.length - 1;
+    var newR = M.S.regions[newIdx];
+    var overlaps = [];
+    for (var k = 0; k < newIdx; k++) {
+      if (M.S.regions[k].ch === newR.ch) continue;
+      if (regionsOverlap(newR, M.S.regions[k])) overlaps.push(k + 1);
+    }
+    if (overlaps.length > 0) {
+      M.T.show('⚠️ 新区域与已有区域 #' + overlaps.join(', #') + ' 的色相/容差范围重叠，可能导致 Mask 冗余。建议调整色相或容差。');
+    }
+  }
+};
+
+/* ---- 补丁: addCustomRg() — 添加后检测重叠并提示 ---- */
+var _origAddCustomRg = M.Ch.addCustomRg;
+M.Ch.addCustomRg = function(id) {
+  var prevLen = M.S.regions.length;
+  _origAddCustomRg.call(this, id);
+  if (M.S.regions.length > prevLen) {
+    var newIdx = M.S.regions.length - 1;
+    var newR = M.S.regions[newIdx];
+    var overlaps = [];
+    for (var k = 0; k < newIdx; k++) {
+      if (M.S.regions[k].ch === newR.ch) continue;
+      if (regionsOverlap(newR, M.S.regions[k])) overlaps.push(k + 1);
+    }
+    if (overlaps.length > 0) {
+      M.T.show('⚠️ 新区域与已有区域 #' + overlaps.join(', #') + ' 的色相/容差范围重叠，可能导致 Mask 冗余。建议调整色相或容差。');
+    }
+  }
+};
+
+/* ===========================================================================
+ *  v6.5.1 紧急修复: RGB 通道数据丢失回归
+ *
+ *  根因分析:
+ *    v6.4 补丁的 M.Gen.run() (line 1294) 在 CIELAB 匹配路径中引入了：
+ *    1) 明度硬门控 if(dL>lt*1.5)continue — 门槛过窄(默认 22.5)，导致
+ *       参考色与像素明度差较大时大面积像素被直接跳过
+ *    2) 双重明度衰减 val*=lGate; val*=Math.max(0.15,pxL/100) —
+ *       暗部像素遭受 lGate 和 pxL/100 的叠乘惩罚，值被压到接近 0
+ *    而 A 通道(aMode='alpha'/'stroke')在匹配循环前独立填充，不经过
+ *    明度门控，因此 A 保留完整、RGB 全黑。
+ *
+ *  修复要点:
+ *    ① 放宽明度硬门控: lt*1.5 → lt*3 (默认 45)，避免过度剔除
+ *    ② 取消双重衰减: 移除 val*=Math.max(0.15,pxL/100)，只保留 lGate
+ *       作为明度软过渡（lGate 已经足以处理明度差异）
+ *    ③ 保持 HSV 模式的 val=hm*sm2*(v/100) 不变（此路径无此 bug）
+ *    ④ 导出函数(_compCanvas 等)确认无问题，保持不变
+ *    ⑤ WTA 互斥逻辑保持不变（设计意图正确）
+ * =========================================================================== */
+
+/* ---- 修复补丁: 重写 M.Gen.run() 核心像素遍历 ---- */
+(function(){
+  var _v64GenRun = M.Gen.run;  /* 保留 v6.4 版本引用以备回退 */
+
+  M.Gen.run = function(){
+    var S = M.S;
+    if (!S.hsv || !S.regions.length) return;
+    var n = S.W * S.H, es = +$('pES').value;
+
+    /* ① 初始化所有通道 raw 数组 */
+    S.chs.forEach(function(c){ c.raw = new Float32Array(n); c.rawOrig = null; });
+
+    /* ② A 通道特殊处理（独立于匹配循环，不受明度门控影响） */
+    var aC = S.chs.find(function(c){ return c.id === 'A'; });
+    if (aC) {
+      if (S.aMode === 'alpha') {
+        /* 直接使用原图 alpha */
+        for (var i = 0; i < n; i++) aC.raw[i] = S.px[i * 4 + 3] / 255;
+      } else if (S.aMode === 'stroke') {
+        /* 边缘检测模式 */
+        for (var y = 1; y < S.H - 1; y++) {
+          for (var x = 1; x < S.W - 1; x++) {
+            var i = y * S.W + x, a = S.px[i * 4 + 3] / 255;
+            var nb = [
+              S.px[((y-1)*S.W+x)*4+3], S.px[((y+1)*S.W+x)*4+3],
+              S.px[(y*S.W+x-1)*4+3],   S.px[(y*S.W+x+1)*4+3]
+            ];
+            aC.raw[i] = Math.abs(Math.max.apply(null,nb)/255 - Math.min.apply(null,nb)/255) * a;
+          }
+        }
+        if (es > 0) aC.raw = M._blur(aC.raw, S.W, S.H, Math.max(1, es));
+        var mx = 0;
+        for (var i = 0; i < n; i++) { if (aC.raw[i] > mx) mx = aC.raw[i]; }
+        if (mx > 0) { for (var i = 0; i < n; i++) aC.raw[i] /= mx; }
+      }
+    }
+
+    /* ③ 预计算 region 的 Lab 参考值 */
+    var rgLabs = S.regions.map(function(rg){
+      return rg.lab || M.C.r2lab(rg.rgb[0], rg.rgb[1], rg.rgb[2]);
+    });
+    var globalLT = M.Tol.getLT();
+
+    /* ④ 核心像素遍历 — 为每个像素匹配所有 region */
+    for (var i = 0; i < n; i++) {
+      var h = S.hsv[i*3], s = S.hsv[i*3+1], v = S.hsv[i*3+2];
+      if (S.px[i*4+3] < 10) continue;  /* 跳过全透明像素 */
+
+      /* 每通道最大匹配值 */
+      var cv = {};
+      S.chs.forEach(function(c){ cv[c.id] = 0; });
+
+      for (var ri = 0; ri < S.regions.length; ri++) {
+        var rg = S.regions[ri], val = 0;
+
+        if (rg.tolMode === 'lab' && S.lab) {
+          /* ─── CIELAB ΔE 匹配模式 ─── */
+          var de  = rg.deltaE  || 12;
+          var lw  = rg.lightW  || 1.5;
+          var lt  = rg.lightTol || globalLT;
+          var pxL = S.lab[i*3], pxA2 = S.lab[i*3+1], pxB2 = S.lab[i*3+2];
+          var refLab = rgLabs[ri];
+
+          var dL = Math.abs(pxL - refLab[0]);
+
+          /* [修复①] 放宽明度硬门控: lt*1.5 → lt*3
+           * 原来 lt=15 时门槛仅 22.5，很多正常明度差的像素被误杀
+           * 现在 lt=15 时门槛为 45，覆盖绝大多数合理色差范围 */
+          if (dL > lt * 3) continue;
+
+          /* 明度软过渡门控（保留，作为唯一的明度衰减因子） */
+          var lGate = dL <= lt ? 1 : M.C.sms(lt * 3, lt, dL);
+
+          /* ΔE 色差计算 */
+          var dist = M.C.deltaEw([pxL, pxA2, pxB2], refLab, lw);
+
+          /* sigmoid 渐变匹配值 */
+          if (dist <= de * 0.6) val = 1;
+          else if (dist >= de * 1.3) val = 0;
+          else val = M.C.sms(de * 1.3, de * 0.6, dist);
+
+          /* [修复②] 只用 lGate 做明度衰减，不再叠乘 pxL/100
+           * 之前: val *= lGate; val *= Math.max(0.15, pxL/100);
+           * 暗部像素(L*=10): lGate 可能 ~0.5, pxL/100=0.1, 叠乘=0.05 → 近零
+           * 现在: val *= lGate; 只做一次衰减，暗部仍可保留合理值 */
+          val *= lGate;
+
+        } else {
+          /* ─── HSV 色相距离模式（与 v6.0/v6.2 兼容，无改动）─── */
+          var hd = M.C.hD(h, rg.hue);
+          if (s < rg.satMin * 0.5) continue;
+          var hm = hd <= rg.tol ? 1 : hd <= rg.tol*1.5 ? M.C.sms(rg.tol*1.5, rg.tol, hd) : 0;
+          var sm2 = s >= rg.satMin ? 1 : s >= rg.satMin*0.5 ? M.C.sms(rg.satMin*0.5, rg.satMin, s) : 0;
+          val = hm * sm2 * (v / 100);
+        }
+
+        /* 反选处理 */
+        if (rg.inverted) val = val > 0.01 ? (1 - val) : 0;
+
+        /* 取该通道的最大匹配值 */
+        if (val > cv[rg.ch]) cv[rg.ch] = val;
+      }
+
+      /* ⑤ 将匹配结果写入各通道 raw 数组
+       * A 通道: 仅在 aMode='pick' 时参与匹配写入
+       * RGB 通道: 始终从匹配结果写入（独立于 A 通道模式）*/
+      S.chs.forEach(function(c){
+        if (c.id === 'A' && S.aMode === 'pick') {
+          c.raw[i] = Math.max(c.raw[i], cv[c.id] || 0);
+        } else if (c.id !== 'A') {
+          c.raw[i] = Math.max(c.raw[i], cv[c.id] || 0);
+        }
+      });
+    }
+
+    /* ⑥ 边缘平滑 */
+    if (es > 0) S.chs.forEach(function(c){ c.raw = M._blur(c.raw, S.W, S.H, es); });
+
+    /* ⑦ RGB Winner-Take-All 互斥（保留，设计意图正确）
+     * 对每个像素，R/G/B 中只保留值最大的通道，其余清零
+     * A 通道和自定义通道不参与 WTA */
+    var bI = ['R','G','B'];
+    var bC = S.chs.filter(function(c){ return bI.indexOf(c.id) >= 0; });
+    if (bC.length > 1) {
+      for (var i = 0; i < n; i++) {
+        var vs = bC.map(function(c){ return c.raw[i]; });
+        var mx2 = Math.max.apply(null, vs);
+        if (mx2 < 0.01) continue;
+        var mi = vs.indexOf(mx2);
+        bC.forEach(function(c, ci){ if (ci !== mi) c.raw[i] = 0; });
+      }
+    }
+
+    /* ⑧ Slot 自定义图片覆盖 */
+    S.chs.forEach(function(c){
+      if (c.slotImage) {
+        var tc = document.createElement('canvas');
+        tc.width = S.W; tc.height = S.H;
+        tc.getContext('2d').drawImage(c.slotImage, 0, 0, S.W, S.H);
+        var id2 = tc.getContext('2d').getImageData(0, 0, S.W, S.H).data;
+        for (var i = 0; i < n; i++) {
+          c.raw[i] = (id2[i*4]*0.299 + id2[i*4+1]*0.587 + id2[i*4+2]*0.114) / 255;
+        }
+      }
+    });
+
+    /* ⑨ 保存原始 raw 副本（用于 adj() 后处理恢复） */
+    S.chs.forEach(function(c){ c.rawOrig = new Float32Array(c.raw); });
+
+    /* ⑩ 执行 adj() 后处理 + 渲染 + UI 更新 */
+    this.adj();
+    S.maskOK = true;
+    M.Ren.buildUI();
+    M.Ren.all();
+    $('s4').style.display = 'block';
+    $('brushBar').style.display = 'flex';
+    M.UI.stp(4);
+    $('s4').scrollIntoView({ behavior: 'smooth' });
+    M.UI.tip(M.L.doneTip);
+
+    /* ⑪ 空通道警告 */
+    var emptyNames = [];
+    S.chs.forEach(function(c){
+      if (!c.raw) return;
+      var sm = 0;
+      for (var j = 0; j < n; j++) sm += c.raw[j];
+      if (sm < 0.5) emptyNames.push(c.name);
+    });
+    if (emptyNames.length > 0) {
+      M.T.show('⚠️ 通道提取到 0 像素: ' + emptyNames.join(', ') + '。请检查颜色区域或容差。');
+    } else {
+      M.T.show(M.tpl(M.L.genDone, { n: S.chs.length }));
+    }
+  };
+
+  console.log('[v6.5.1] HOTFIX: M.Gen.run() rewritten — removed double luminance attenuation, widened lightness gate');
+})();
+
+/* ---- 版本标识 ---- */
+(function(){var vb=document.querySelector('.hdr h1 .ver');if(vb)vb.textContent='v6.5.1'})();
+console.log('[v6.5] patch loaded: low-pct visual warning, sparse pixel highlight toggle, tolerance overlap detection');
+})();
 </script>
 <script src="jszip.min.js"></script>
 <script>

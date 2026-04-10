@@ -1,5 +1,5 @@
 /**
- * Auto Mask Generator v6.3 — Electron 主进程
+ * Auto Mask Generator v6.4 — Electron 主进程
  * 
  * 职责：
  * 1. 创建无边框暗色主题窗口
@@ -40,7 +40,7 @@ function createWindow() {
     height: 920,
     minWidth: 960,
     minHeight: 600,
-    title: 'Auto Mask Generator v6.3',
+    title: 'Auto Mask Generator v6.4',
     icon: path.join(__dirname, 'build', 'icon.ico'),
     backgroundColor: '#0d0f15',
     webPreferences: {
@@ -115,7 +115,7 @@ function buildMenu() {
             dialog.showMessageBox(mainWindow, {
               type: 'info',
               title: '关于',
-              message: 'Auto Mask Generator v6.3',
+              message: 'Auto Mask Generator v6.4',
               detail: [
                 '自动 Mask 通道生成器 — 桌面独立版',
                 '',
