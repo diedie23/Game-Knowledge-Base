@@ -582,6 +582,24 @@
     },
 
     {
+      "id": "art-tools-guide",
+      "module": "toolchain",
+      "craft": "通用",
+      "type": "iframe",
+      "title": "🛠️ 美术在线工具使用指南",
+      "desc": "Auto Mask · Spine Split · Color Swap 三大核心工具操作全解，含 v6.4 新功能说明、参数速查、快捷键一览和 FAQ",
+      "tags": ["工具指南","使用手册","Auto Mask","Spine Split","换色","快捷键"],
+      "icon": "📖",
+      "action": "openTool",
+      "path": "knowledge-base/art-tools-guide.html",
+      "owner": "TA团队",
+      "last_updated": "2026-04-10",
+      "applicable_stage": "全阶段",
+      "priority": "high",
+      "is_hot": true
+    },
+
+    {
       "id": "auto-mask-v6",
       "module": "toolchain",
       "craft": "角色",

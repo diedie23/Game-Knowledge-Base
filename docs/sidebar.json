@@ -191,6 +191,7 @@
           "name": "美术在线工具",
           "icon": "🎨",
           "items": [
+            { "id": "art-tools-guide", "icon": "📖", "title": "🛠️ 工具使用指南", "type": "iframe", "file": "knowledge-base/art-tools-guide.html", "badge": "指南", "craft": "通用" },
             { "id": "auto-mask-v6", "icon": "🤖", "title": "自动 Mask 生成器 v6.0", "type": "tool", "badge": "角色", "craft": "角色" },
             { "id": "mask-tool", "icon": "🖌️", "title": "Mask 手动编辑器", "type": "tool", "badge": "角色", "craft": "角色" },
             { "id": "spine-split", "icon": "✂️", "title": "Spine 拆分工具", "type": "tool", "badge": "角色", "craft": "角色" },
