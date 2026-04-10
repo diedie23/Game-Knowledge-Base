@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════
-// APM 专属知识库 v4.2 — 美术项目管理增强版
+// APM 专属知识库 v6.0 — 美术项目管理增强版
 // 核心架构：30% 美术生产 · 30% 跨部门协同 · 20% 提效工具 · 20% 成本·风险·团队
-// v4.2新增：APM管理仪表盘(Dashboard) · 文档详情增强(meta-bar/相关推荐) · 面包屑owner
+// v6.0新增：知识库架构重构(MECE) · 角色模块拆分(2D/3D/UGC) · 工具规范迁移 · 标题统一命名
 // ═══════════════════════════════════════════════════
 
 // ═══ Markdown Parser (智能表格增强) ═══
@@ -1721,7 +1721,9 @@ var CARD_GRID_MAP = {
   'grid-outsource-workload': { module:'outsource', ids:['outsource-workload-model'] },
   'grid-outsource-budget':   { module:'outsource', ids:['budget-apply','cost-standard'] },
   // 板块三：🎨 美术工艺与规范
-  'grid-craft-char':         { module:'craft', ids:['d1','d2','char-naming-redline','char-color-swap-mask','char-spine-anim-spec','char-3d-topo-pbr','char-ugc-parts-safety','color-swap-spec','auto-mask-spec','spine-split-spec'] },
+  'grid-craft-char-2d':      { module:'craft', ids:['char-naming-redline','char-color-swap-mask','char-spine-anim-spec'] },
+  'grid-craft-char-3d':      { module:'craft', ids:['char-3d-topo-pbr'] },
+  'grid-craft-ugc':          { module:'craft', ids:['char-ugc-parts-safety','d1'] },
   'grid-craft-ui':           { module:'craft', ids:['ui-slice-naming','ui-9slice-color','ui-layout','ui-umg-tips'] },
   'grid-craft-scene':        { module:'craft', ids:['scene-lod-spec'] },
   'grid-craft-vfx':          { module:'craft', ids:['vfx-perf-spec'] },
@@ -1731,8 +1733,9 @@ var CARD_GRID_MAP = {
   'grid-collab-qa':          { module:'collab', ids:['art-vs-qa-buggrade','art-vs-qa-checklist'] },
   'grid-collab-pain':        { module:'collab', ids:['cross-dept-collab','accident-troubleshoot','cross-dept-communication-tips'] },
   // 板块五：🛠️ 工具链与自动化
+  'grid-toolchain-spec':     { module:'toolchain', ids:['auto-mask-spec','spine-split-spec','color-swap-spec','d2'] },
   'grid-toolchain-check':    { module:'toolchain', ids:['naming-check-tool'] },
-  'grid-toolchain-art':      { module:'toolchain', ids:['auto-mask-v6','mask-tool','spine-split','mask-core-algorithms','channel-packer'] },
+  'grid-toolchain-art':      { module:'toolchain', ids:['art-tools-guide','auto-mask-v6','mask-tool','spine-split','mask-core-algorithms','color-swap-tool','channel-packer'] },
   'grid-toolchain-desktop':  { module:'toolchain', ids:['auto-mask-v6-desktop','image-skew-corrector','game-resource-toolkit','engine-bridge'] },
   // 板块六：🛡️ 质量、风险与团队
   'grid-quality-risk':       { module:'quality', ids:['risk-log'] },

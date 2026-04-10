@@ -33,7 +33,7 @@
       <button class="nav-create" onclick="openEditor()">➕ 新增文档</button>
       <button class="nav-guide" onclick="navigate('editor-guide')" title="编辑器使用指南">❓ 编辑器指南</button>
     </div>
-    <div class="sf-links"><span>v4.2 APM</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a></div>
+    <div class="sf-links"><span>v6.0 APM</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a></div>
   </div>
 </aside>
 
@@ -695,8 +695,14 @@ sequenceDiagram
         </div>
         <div class="module-body">
 
-        <div class="hst">👤 角色资产规范</div>
-        <div class="home-grid" id="grid-craft-char"></div>
+        <div class="hst">👤 2D 角色工艺</div>
+        <div class="home-grid" id="grid-craft-char-2d"></div>
+
+        <div class="hst" style="margin-top:28px">🧊 3D 角色工艺</div>
+        <div class="home-grid" id="grid-craft-char-3d"></div>
+
+        <div class="hst" style="margin-top:28px">🧩 UGC 专项</div>
+        <div class="home-grid" id="grid-craft-ugc"></div>
 
         <div class="hst" style="margin-top:28px">🖥️ UI 资产规范</div>
         <div class="home-grid" id="grid-craft-ui"></div>
@@ -751,7 +757,10 @@ sequenceDiagram
         </div>
         <div class="module-body">
 
-        <div class="hst">🔍 检查与合规脚本</div>
+        <div class="hst">📄 工具规范文档</div>
+        <div class="home-grid" id="grid-toolchain-spec"></div>
+
+        <div class="hst" style="margin-top:28px">🔍 检查与合规脚本</div>
         <div class="home-grid" id="grid-toolchain-check"></div>
 
         <div class="hst" style="margin-top:28px">🎨 美术在线工具</div>
