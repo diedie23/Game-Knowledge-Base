@@ -15,7 +15,7 @@
 
   // ═══ 配置 ═══
   // 部署 Worker 后替换为你的实际地址，如：https://apm-analytics.your-name.workers.dev
-  var API_BASE = 'https://apm-analytics.YOUR_SUBDOMAIN.workers.dev';
+  var API_BASE = 'https://apm-analytics.yzing054.workers.dev';
 
   // ═══ 状态管理 ═══
   var currentVisitId = null;   // 当前访问记录ID
