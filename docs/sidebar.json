@@ -297,7 +297,7 @@
           "name": "踩坑记录",
           "icon": "💣",
           "items": [
-            { "id": "project-pitfall-log", "icon": "💣", "title": "外包翻车·排期爆雷·资产返工", "type": "iframe", "file": "knowledge-base/project-pitfall-log.html", "badge": "案例", "craft": "管理" }
+            { "id": "project-pitfall-log", "icon": "💣", "title": "项目管理踩坑复盘（7大案例）", "type": "iframe", "file": "knowledge-base/project-pitfall-log.html", "badge": "案例", "craft": "管理" }
           ]
         },
         {
@@ -312,34 +312,6 @@
           "icon": "📝",
           "items": [
             { "id": "postmortem-template", "icon": "📝", "title": "版本研发复盘模板", "type": "iframe", "file": "knowledge-base/postmortem-template.html", "badge": "案例", "craft": "管理" }
-          ]
-        },
-        {
-          "name": "项目延期案例",
-          "icon": "⏰",
-          "items": [
-            { "id": "case-delay", "icon": "⏰", "title": "量产排期连环爆雷复盘", "type": "iframe", "file": "knowledge-base/case-delay.html", "badge": "案例", "craft": "管理" }
-          ]
-        },
-        {
-          "name": "跨部门冲突案例",
-          "icon": "💥",
-          "items": [
-            { "id": "case-cross-dept", "icon": "💥", "title": "策划改需求引发美术返工风暴", "type": "iframe", "file": "knowledge-base/case-cross-dept.html", "badge": "案例", "craft": "跨部门" }
-          ]
-        },
-        {
-          "name": "外包事故案例",
-          "icon": "🚨",
-          "items": [
-            { "id": "case-outsource-accident", "icon": "🚨", "title": "CP 交付质量崩盘全记录", "type": "iframe", "file": "knowledge-base/case-outsource-accident.html", "badge": "案例", "craft": "管理" }
-          ]
-        },
-        {
-          "name": "需求变更案例",
-          "icon": "🔄",
-          "items": [
-            { "id": "case-requirement-change", "icon": "🔄", "title": "版本末期大改引发连锁崩塌", "type": "iframe", "file": "knowledge-base/case-requirement-change.html", "badge": "案例", "craft": "管理" }
           ]
         }
       ]

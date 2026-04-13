@@ -16,6 +16,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .doc-header .subtitle{color:var(--dim);font-size:15px}
 .doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim);flex-wrap:wrap}
 .badge{display:inline-block;background:linear-gradient(135deg,var(--red),var(--orange));color:#fff;padding:4px 14px;border-radius:16px;font-size:11px;font-weight:600;margin-top:12px}
+/* ─── Tag 标签系统 ─── */
+.tag-bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:.3px;transition:all .2s}
+.tag-danger{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.25)}
+.tag-warning{background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.25)}
+.tag-info{background:rgba(108,140,255,.12);color:var(--accent);border:1px solid rgba(108,140,255,.25)}
+.tag-success{background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.25)}
+.tag-purple{background:rgba(167,139,250,.12);color:var(--accent2);border:1px solid rgba(167,139,250,.25)}
+.tag-orange{background:rgba(251,146,60,.12);color:var(--orange);border:1px solid rgba(251,146,60,.25)}
+.tag-cyan{background:rgba(34,211,238,.12);color:var(--cyan);border:1px solid rgba(34,211,238,.25)}
+.tag:hover{transform:translateY(-1px);filter:brightness(1.2)}
 .toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
 .toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
 .toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
@@ -23,7 +34,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .section{margin-bottom:40px}
 .section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--red);display:flex;align-items:center;gap:8px}
 .section h3{font-size:15px;color:var(--heading);margin:20px 0 8px;font-weight:600}
-.section p,.section li{font-size:13px;margin-bottom:6px}
+.section p,.section li{font-size:14px;margin-bottom:6px;line-height:1.8}
 .section ul,.section ol{padding-left:20px;margin-bottom:12px}
 table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
 th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600}
@@ -65,10 +76,18 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 <div class="doc">
 
 <div class="doc-header">
-  <h1>🚨 典型事故排雷手册 <span class="ver">v1.0</span></h1>
+  <h1>🚨 典型事故排雷手册 <span class="ver">v1.1</span></h1>
   <div class="subtitle">Game Production Incident Playbook — "别人踩过的坑，你不必再踩"</div>
-  <div class="meta"><span>🎮 中大型手游项目</span><span>👤 APM / 制作人</span><span>📅 2026-04-02</span></div>
+  <div class="meta"><span>🎮 中大型手游项目</span><span>👤 APM / 制作人</span><span>📅 2026-04-13</span></div>
   <div class="badge">🔥 血泪经验 · 实战复盘</div>
+  <div class="tag-bar">
+    <span class="tag tag-danger">包体暴增</span>
+    <span class="tag tag-warning">UI掉帧</span>
+    <span class="tag tag-orange">效果不符</span>
+    <span class="tag tag-info">低端机闪退</span>
+    <span class="tag tag-purple">热更动画鬼畜</span>
+    <span class="tag tag-success">排查SOP</span>
+  </div>
 </div>
 
 <div class="alert alert-red" style="margin-bottom:24px"><strong>⚠️ 使用说明：</strong>本手册收录的每个事故都来自<strong>真实项目的复盘简化版</strong>。每个 Case 包含：现场还原 → 根因分析 → 排查 SOP → 责任矩阵 → 事后防线。建议打印贴工位。</div>
@@ -334,11 +353,42 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 </div>
 
 <div class="doc-footer">
-  🚨 典型事故排雷手册 v1.0 · APM 实战指南 · 2026-04-02<br>
+  🚨 典型事故排雷手册 v1.1 · APM 实战指南 · 2026-04-13<br>
   "别人踩过的坑，你不必再踩" · 每次复盘，都是团队升级
 </div>
 
 </div>
+<script>
+/* ═══ 关联推荐 ═══ */
+(function(){
+  var cards = [
+    { icon:'💣', name:'项目管理踩坑复盘（7大案例）', desc:'外包翻车/排期爆雷/资产返工/项目延期/跨部门冲突/外包质量崩盘/需求变更', tag:'踩坑复盘', file:'project-pitfall-log.html' },
+    { icon:'📝', name:'版本研发复盘模板', desc:'Post-mortem 9大章节 · 5-Why根因分析 · Action Items', tag:'复盘模板', file:'postmortem-template.html' }
+  ];
+  /* 在 footer 前动态插入推荐区 */
+  var footer = document.querySelector('.doc-footer');
+  if(!footer) return;
+  var sec = document.createElement('div');
+  sec.style.cssText = 'margin-top:40px;padding-top:32px;border-top:1px solid var(--border)';
+  sec.innerHTML = '<div style="font-size:20px;color:var(--heading);margin-bottom:20px;display:flex;align-items:center;gap:8px">🔥 相关文档推荐</div>';
+  var grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px';
+  cards.forEach(function(c){
+    var div = document.createElement('div');
+    div.style.cssText = 'background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all .25s';
+    div.onmouseenter = function(){ div.style.borderColor='rgba(248,113,113,.4)'; div.style.transform='translateY(-2px)'; };
+    div.onmouseleave = function(){ div.style.borderColor='var(--border)'; div.style.transform='none'; };
+    div.innerHTML = '<div style="font-size:28px;margin-bottom:10px">'+c.icon+'</div><div style="font-size:15px;color:var(--heading);font-weight:600;margin-bottom:6px">'+c.name+'</div><div style="font-size:13px;color:var(--dim);line-height:1.6">'+c.desc+'</div><div style="display:inline-block;font-size:11px;padding:2px 8px;border-radius:8px;margin-top:10px;font-weight:600;background:rgba(34,211,238,.12);color:#22d3ee">'+c.tag+'</div>';
+    div.onclick = function(){
+      try{ window.parent.postMessage({type:'navigate',file:'knowledge-base/'+c.file},'*'); }catch(e){}
+      setTimeout(function(){ window.location.href = c.file; }, 200);
+    };
+    grid.appendChild(div);
+  });
+  sec.appendChild(grid);
+  footer.parentNode.insertBefore(sec, footer);
+})();
+</script>
 <script src="editor-kit.js"></script>
 </body>
 </html>

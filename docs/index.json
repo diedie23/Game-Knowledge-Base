@@ -1,5 +1,5 @@
 {
-  "version": "7.4",
+  "version": "7.5",
   "lastUpdate": "2026-04-13",
   "subtitle": "APM 专属知识库 — 美术项目管理核心知识体系",
   "milestones": [
@@ -984,9 +984,9 @@
       "module": "casestudy",
       "craft": "管理",
       "type": "iframe",
-      "title": "踩坑案例 — 外包翻车·排期爆雷·资产返工",
-      "desc": "真实项目踩坑复盘：外包首批全打回、排期连续爆雷、面数超标批量返工 — 5Whys根因分析与破局方案",
-      "tags": ["踩坑记录","复盘","5Whys","外包翻车","排期爆雷","资产返工","案例"],
+      "title": "项目管理踩坑复盘 — 7 大真实案例全收录",
+      "desc": "外包翻车·排期爆雷·资产返工·跨部门冲突·外包质量崩盘·需求变更连锁崩塌 — Tab切换7大案例，5Whys根因分析+破局方案+防线体系",
+      "tags": ["踩坑记录","复盘","5Whys","外包翻车","排期爆雷","跨部门冲突","外包事故","需求变更","案例"],
       "icon": "💣",
       "action": "openTool",
       "path": "knowledge-base/project-pitfall-log.html",
@@ -1135,73 +1135,6 @@
       "is_hot": false
     },
 
-    {
-      "id": "case-delay",
-      "module": "casestudy",
-      "craft": "管理",
-      "type": "iframe",
-      "title": "项目延期案例 — 量产排期连环爆雷复盘",
-      "desc": "真实项目延期复盘：排期乐观估计、需求变更未冻结、关键人力被借调，5Whys 根因分析与破局方案",
-      "tags": ["项目延期","排期","复盘","5Whys","案例"],
-      "icon": "⏰",
-      "action": "openTool",
-      "path": "knowledge-base/case-delay.html",
-      "owner": "周八",
-      "last_updated": "2026-04-13",
-      "applicable_stage": "量产期",
-      "priority": "high",
-      "is_hot": true
-    },
-    {
-      "id": "case-cross-dept",
-      "module": "casestudy",
-      "craft": "跨部门",
-      "type": "iframe",
-      "title": "跨部门冲突案例 — 策划改需求引发美术返工风暴",
-      "desc": "策划在量产中期大改核心角色设定，美术团队2周返工，5Whys 分析沟通链路断裂与变更管控缺失",
-      "tags": ["跨部门冲突","需求变更","返工","复盘","案例"],
-      "icon": "💥",
-      "action": "openTool",
-      "path": "knowledge-base/case-cross-dept.html",
-      "owner": "周八",
-      "last_updated": "2026-04-13",
-      "applicable_stage": "量产期",
-      "priority": "high",
-      "is_hot": true
-    },
-    {
-      "id": "case-outsource-accident",
-      "module": "casestudy",
-      "craft": "管理",
-      "type": "iframe",
-      "title": "外包事故案例 — CP 交付质量崩盘全记录",
-      "desc": "外包CP交付角色资产面数超标200%、命名全乱、无Mask通道，紧急救火与供应商淘汰决策全过程",
-      "tags": ["外包事故","CP管理","质量","复盘","案例"],
-      "icon": "🚨",
-      "action": "openTool",
-      "path": "knowledge-base/case-outsource-accident.html",
-      "owner": "周八",
-      "last_updated": "2026-04-13",
-      "applicable_stage": "量产期",
-      "priority": "high",
-      "is_hot": true
-    },
-    {
-      "id": "case-requirement-change",
-      "module": "casestudy",
-      "craft": "管理",
-      "type": "iframe",
-      "title": "需求变更案例 — 版本末期大改引发连锁崩塌",
-      "desc": "Beta封版前一周策划强推新系统，美术/程序/QA全线加班，最终延期两周，复盘变更管控体系建设",
-      "tags": ["需求变更","封版","加班","复盘","案例"],
-      "icon": "🔄",
-      "action": "openTool",
-      "path": "knowledge-base/case-requirement-change.html",
-      "owner": "周八",
-      "last_updated": "2026-04-13",
-      "applicable_stage": "测试期",
-      "priority": "high",
-      "is_hot": true
-    }
+
   ]
 }
