@@ -40,6 +40,14 @@
             { "id": "asset-submit-review", "icon": "🔄", "title": "资产提交与审核工作流", "type": "iframe", "file": "knowledge-base/asset-submit-review.html", "badge": "管理", "craft": "管理" },
             { "id": "deprecated-asset-cleanup", "icon": "🗑️", "title": "废弃资产归档与清理规范", "type": "iframe", "file": "knowledge-base/deprecated-asset-cleanup.html", "badge": "管理", "craft": "管理" }
           ]
+        },
+        {
+          "name": "决策指南",
+          "icon": "🧭",
+          "items": [
+            { "id": "outsource-vs-inhouse-decision", "icon": "🧭", "title": "外包 vs 内发决策矩阵", "type": "iframe", "file": "knowledge-base/outsource-vs-inhouse-decision.html", "badge": "决策", "craft": "管理" },
+            { "id": "delay-response-decision", "icon": "⏳", "title": "项目延期应对决策", "type": "iframe", "file": "knowledge-base/delay-response-decision.html", "badge": "决策", "craft": "管理" }
+          ]
         }
       ]
     },

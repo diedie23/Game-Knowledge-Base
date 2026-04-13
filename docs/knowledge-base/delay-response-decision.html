@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>决策指南 — 项目延期应对决策</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--pink:#f472b6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1400px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.doc-header h1 .ver{font-size:12px;background:var(--accent);color:#fff;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+.badge{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;padding:4px 14px;border-radius:16px;font-size:11px;font-weight:600;margin-top:12px}
+.tag-bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:.3px;transition:all .2s}
+.tag-danger{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.25)}
+.tag-warning{background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.25)}
+.tag-info{background:rgba(108,140,255,.12);color:var(--accent);border:1px solid rgba(108,140,255,.25)}
+.tag-success{background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.25)}
+.tag-purple{background:rgba(167,139,250,.12);color:var(--accent2);border:1px solid rgba(167,139,250,.25)}
+.tag-orange{background:rgba(251,146,60,.12);color:var(--orange);border:1px solid rgba(251,146,60,.25)}
+.tag-cyan{background:rgba(34,211,238,.12);color:var(--cyan);border:1px solid rgba(34,211,238,.25)}
+.tag:hover{transform:translateY(-1px);filter:brightness(1.2)}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:8px}
+.section h3{font-size:17px;color:var(--heading);margin:20px 0 10px;font-weight:600}
+.section p,.section li{font-size:15px;margin-bottom:8px;line-height:1.8}
+.section ul,.section ol{padding-left:20px;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+.case-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:20px 0}
+.case-info-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.case-info-item .label{font-size:12px;color:var(--dim);margin-bottom:6px}
+.case-info-item .value{font-size:18px;font-weight:700;color:var(--heading)}
+.case-info-item .value.val-red{color:var(--red)}.case-info-item .value.val-yellow{color:var(--yellow)}.case-info-item .value.val-green{color:var(--green)}.case-info-item .value.val-accent{color:var(--accent)}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:14px;line-height:1.8}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:15px}
+.badge-sm{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}.badge-green{background:rgba(74,222,128,.15);color:var(--green)}.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}.badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}.badge-orange{background:rgba(251,146,60,.15);color:var(--orange)}
+/* ─── 5Whys ─── */
+.why-chain{display:flex;flex-direction:column;gap:0;margin:20px 0}
+.why-item{display:flex;gap:14px;position:relative;padding-bottom:0}
+.why-dot-wrap{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:40px}
+.why-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;z-index:1}
+.why-1 .why-num{background:var(--accent)}.why-2 .why-num{background:var(--accent2)}.why-3 .why-num{background:var(--orange)}.why-4 .why-num{background:var(--red)}.why-5 .why-num{background:linear-gradient(135deg,var(--red),var(--pink));box-shadow:0 0 12px rgba(248,113,113,.4)}
+.why-line{width:2px;flex:1;min-height:16px;background:var(--border);margin:4px auto 0}
+.why-item:last-child .why-line{display:none}
+.why-content{flex:1;padding-bottom:16px}
+.why-q{font-size:14px;font-weight:600;color:var(--heading);margin-bottom:4px}
+.why-a{font-size:14px;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;line-height:1.7}
+.why-root{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);border-radius:10px;padding:14px 18px;margin-top:12px;font-size:14px;line-height:1.8}
+.why-root strong{color:var(--red)}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;min-width:80px}
+.flow-node strong{display:block;color:var(--heading);font-size:14px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:12px}
+.flow-arrow{color:var(--accent2);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+.flow-node.warn{border-color:var(--yellow);background:rgba(251,191,36,.05)}
+.golden-quote{background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,146,60,.06));border:1px solid rgba(251,191,36,.25);border-radius:12px;padding:20px 24px;margin:20px 0;position:relative;overflow:hidden}
+.golden-quote::before{content:'"';position:absolute;top:-8px;left:12px;font-size:80px;color:rgba(251,191,36,.15);font-family:Georgia,serif;line-height:1}
+.golden-quote p{font-size:18px;font-weight:600;color:var(--yellow);position:relative;z-index:1;padding-left:40px;font-style:italic}
+/* ─── Mermaid 决策树容器 ─── */
+.mermaid-container{background:linear-gradient(135deg,rgba(108,140,255,.06),rgba(167,139,250,.04));border:1px solid rgba(108,140,255,.25);border-radius:14px;padding:28px;margin:24px 0;position:relative;overflow-x:auto}
+.mermaid-container::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--cyan));border-radius:14px 14px 0 0}
+.mc-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.mc-header h3{font-size:16px;color:var(--heading);font-weight:700;margin:0}
+.mc-badge{font-size:11px;background:rgba(108,140,255,.15);color:var(--accent);padding:3px 10px;border-radius:12px;font-weight:600}
+.mermaid{display:flex;justify-content:center;padding:12px 0}
+.mermaid svg{max-width:100%}
+/* ─── CheckList 自测 ─── */
+.checklist-module{background:linear-gradient(135deg,rgba(74,222,128,.06),rgba(34,211,238,.04));border:1px solid rgba(74,222,128,.25);border-radius:14px;padding:28px 24px;margin:32px 0;position:relative;overflow:hidden}
+.checklist-module::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--cyan));border-radius:14px 14px 0 0}
+.checklist-module>h3{font-size:18px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.cl-subtitle{font-size:13px;color:var(--dim);margin-bottom:20px}
+.cl-group{margin-bottom:24px}
+.cl-group-title{font-size:15px;color:var(--heading);font-weight:700;margin-bottom:12px;padding:8px 14px;background:var(--panel);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:8px}
+.cl-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:8px;margin-bottom:6px;transition:all .15s;cursor:pointer;background:var(--card);border:1px solid transparent}
+.cl-item:hover{border-color:var(--border);background:var(--panel)}
+.cl-item input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:20px;height:20px;border:2px solid var(--border);border-radius:5px;flex-shrink:0;margin-top:2px;cursor:pointer;position:relative;transition:all .2s;background:var(--card)}
+.cl-item input[type="checkbox"]:checked{background:var(--green);border-color:var(--green)}
+.cl-item input[type="checkbox"]:checked::after{content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:13px;font-weight:800}
+.cl-item.cl-danger input[type="checkbox"]:checked{background:var(--red);border-color:var(--red)}
+.cl-item.cl-warning input[type="checkbox"]:checked{background:var(--yellow);border-color:var(--yellow)}
+.cl-item label{font-size:14px;cursor:pointer;line-height:1.6;flex:1}
+.cl-item label .cl-severity{font-size:11px;font-weight:700;padding:1px 8px;border-radius:8px;margin-right:6px}
+.sev-high{background:rgba(248,113,113,.15);color:var(--red)}.sev-mid{background:rgba(251,191,36,.15);color:var(--yellow)}.sev-low{background:rgba(108,140,255,.15);color:var(--accent)}
+.cl-result{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-top:20px;text-align:center}
+.cl-result .cl-score{font-size:48px;font-weight:800;margin-bottom:8px;transition:color .3s}
+.cl-result .cl-level{font-size:16px;font-weight:600;margin-bottom:12px}
+.cl-result .cl-advice{font-size:14px;color:var(--text);line-height:1.7}
+/* ─── 关联推荐 ─── */
+.related-cases{margin-top:40px;padding:24px;background:var(--panel);border:1px solid var(--border);border-radius:14px}
+.related-cases h3{font-size:18px;color:var(--heading);font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.rc-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden}
+.rc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.rc-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.3);border-color:rgba(108,140,255,.3)}
+.rc-card-danger::before{background:linear-gradient(90deg,var(--red),var(--orange))}
+.rc-card-warning::before{background:linear-gradient(90deg,var(--yellow),var(--orange))}
+.rc-card-info::before{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.rc-card-accent::before{background:linear-gradient(90deg,var(--cyan),var(--green))}
+.rc-card-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.rc-card-icon{font-size:24px;flex-shrink:0}
+.rc-card-title{font-size:14px;color:var(--heading);font-weight:600;line-height:1.4;flex:1}
+.rc-card-desc{font-size:12px;color:var(--dim);line-height:1.6;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rc-card-tags{display:flex;flex-wrap:wrap;gap:4px}
+.rc-card-tags .tag{font-size:10px;padding:2px 8px;border-radius:8px}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>⏳ 决策指南 — 项目延期应对决策 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Decision Guide: Delay Response — 从延期预警到最终决策的完整框架</div>
+  <div class="meta"><span>📋 项目管理与排期</span><span>👤 维护人：周八</span><span>📅 2026-04-13</span></div>
+  <div class="badge">📋 决策指南系列 · 项目管理</div>
+  <div class="tag-bar">
+    <span class="tag tag-danger">🚨 延期应对</span>
+    <span class="tag tag-warning">⏱️ 赶工评估</span>
+    <span class="tag tag-info">📊 决策树</span>
+    <span class="tag tag-purple">✂️ 砍需求</span>
+    <span class="tag tag-success">✅ CheckList</span>
+    <span class="tag tag-cyan">🧭 决策指南</span>
+  </div>
+</div>
+
+<div class="alert alert-red" style="margin-bottom:24px">
+  <strong>🚨 紧急使用说明：</strong>当排期偏差 &gt;20% 或收到延期风险信号时立即使用。延期不可怕，<strong>没有科学应对决策才可怕</strong>。
+</div>
+
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ol>
+    <li><a href="#s1">延期预警信号识别</a></li>
+    <li><a href="#s2">影响评估矩阵</a></li>
+    <li><a href="#s3">决策树 — Mermaid 可视化</a></li>
+    <li><a href="#s4">三大应对方案详解</a></li>
+    <li><a href="#s5">方案对比与选择</a></li>
+    <li><a href="#s6">5Whys 根因分析模板</a></li>
+    <li><a href="#s7">向上汇报话术</a></li>
+    <li><a href="#s8">决策自测 CheckList</a></li>
+  </ol>
+</div>
+
+<!-- ═══ 1. 预警信号 ═══ -->
+<div class="section" id="s1">
+  <h2>🔔 一、延期预警信号识别</h2>
+  <div class="case-info">
+    <div class="case-info-item"><div class="label">黄色预警线</div><div class="value val-yellow">偏差 &gt;20%</div></div>
+    <div class="case-info-item"><div class="label">红色预警线</div><div class="value val-red">偏差 &gt;40%</div></div>
+    <div class="case-info-item"><div class="label">最佳决策窗口</div><div class="value val-green">48h 内</div></div>
+    <div class="case-info-item"><div class="label">决策输出</div><div class="value val-accent">方案 + 报告</div></div>
+  </div>
+  <table>
+    <tr><th>预警级别</th><th>信号特征</th><th>响应时效</th><th>决策权限</th></tr>
+    <tr><td><span class="badge-sm badge-yellow">🟡 黄色</span></td><td>燃尽图偏差 20-40%、Sprint 2+ 任务延期、外包返修率 &gt;30%</td><td>48h</td><td>APM 自行</td></tr>
+    <tr><td><span class="badge-sm badge-orange">🟠 橙色</span></td><td>偏差 40-60%、里程碑有风险、关键人力被借调</td><td>24h</td><td>APM + 制作人</td></tr>
+    <tr><td><span class="badge-sm badge-red">🔴 红色</span></td><td>偏差 &gt;60%、里程碑确定延期、连锁影响</td><td>立即</td><td>制作人 + 总监</td></tr>
+  </table>
+  <div class="alert alert-yellow"><strong>⚠️ 黄金法则：</strong>永远不要选择"再等等看"。延期就像滚雪球——<strong>越早干预成本越低，越晚代价呈指数增长</strong>。</div>
+</div>
+
+<!-- ═══ 2. 影响评估 ═══ -->
+<div class="section" id="s2">
+  <h2>📊 二、影响评估矩阵</h2>
+  <table>
+    <tr><th>维度</th><th>评估内容</th><th>量化指标</th><th>评分(1-5)</th></tr>
+    <tr><td><strong>⏱️ 工期</strong></td><td>延期天数、里程碑影响</td><td>延期 X 天</td><td>&gt;2周=5分</td></tr>
+    <tr><td><strong>💰 成本</strong></td><td>额外人力、外包加急费</td><td>追加 ¥X 万</td><td>&gt;15%=5分</td></tr>
+    <tr><td><strong>🎨 质量</strong></td><td>赶工导致的质量下降</td><td>返修率提升 X%</td><td>&gt;30%=5分</td></tr>
+    <tr><td><strong>👥 团队</strong></td><td>加班强度、士气、流失</td><td>连续 X 周</td><td>&gt;3周=5分</td></tr>
+    <tr><td><strong>🔗 连锁</strong></td><td>下游依赖方影响</td><td>影响 N 个团队</td><td>&gt;3=5分</td></tr>
+  </table>
+  <div class="alert alert-blue"><strong>💡 评分规则：</strong>总分 5-10 轻度（APM 调整），11-18 中度（与制作人商议），19-25 重度（上报总监 + Plan B）。</div>
+</div>
+
+<!-- ═══ 3. 决策树 ═══ -->
+<div class="section" id="s3">
+  <h2>🌳 三、延期应对决策树</h2>
+  <div class="mermaid-container">
+    <div class="mc-header">
+      <span style="font-size:24px">🌳</span>
+      <h3>项目延期应对 — 决策流程图</h3>
+      <span class="mc-badge">Mermaid.js 交互式</span>
+    </div>
+    <div class="mermaid">
+graph TD
+    A["🔔 发现延期风险<br/>排期偏差 &gt; 20%"] --> B{"📊 评估延期影响<br/>五维度打分"}
+    B -->|"轻度 5-10分"| C["✅ 内部微调<br/>重排优先级"]
+    B -->|"中度 11-18分"| D{"💰 测算赶工成本<br/>加班+外包+加急"}
+    B -->|"重度 19-25分"| E{"✂️ 评估砍需求可行性<br/>MVP最小交付范围"}
+    D -->|"成本可接受 ≤20%"| F["⚡ 方案A 赶工<br/>加人+加班+外包"]
+    D -->|"成本不可接受 &gt;20%"| E
+    E -->|"可砍非核心需求"| G["✂️ 方案B 砍需求<br/>缩减MVP范围"]
+    E -->|"全是核心需求"| H{"⏰ 协商延期<br/>重新规划时间线"}
+    H -->|"获批"| I["📅 方案C 正式延期<br/>新时间线+补救"]
+    H -->|"未获批"| J["🔄 混合方案<br/>部分赶工+部分砍"]
+    C --> K["📝 输出决策报告"]
+    F --> K
+    G --> K
+    I --> K
+    J --> K
+    K --> L["📢 制作人签字确认"]
+    style A fill:#1a1d2b,stroke:#f87171,color:#e4e6ed,stroke-width:2px
+    style B fill:#1a1d2b,stroke:#fbbf24,color:#e4e6ed,stroke-width:2px
+    style C fill:#1a1d2b,stroke:#4ade80,color:#e4e6ed
+    style D fill:#1a1d2b,stroke:#fb923c,color:#e4e6ed,stroke-width:2px
+    style E fill:#1a1d2b,stroke:#f87171,color:#e4e6ed,stroke-width:2px
+    style F fill:#1a1d2b,stroke:#fb923c,color:#e4e6ed
+    style G fill:#1a1d2b,stroke:#a78bfa,color:#e4e6ed
+    style H fill:#1a1d2b,stroke:#6c8cff,color:#e4e6ed,stroke-width:2px
+    style I fill:#1a1d2b,stroke:#6c8cff,color:#e4e6ed
+    style J fill:#1a1d2b,stroke:#22d3ee,color:#e4e6ed
+    style K fill:#1a1d2b,stroke:#4ade80,color:#e4e6ed,stroke-width:2px
+    style L fill:#1a1d2b,stroke:#6c8cff,color:#e4e6ed
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 4. 三大方案 ═══ -->
+<div class="section" id="s4">
+  <h2>🛠️ 四、三大应对方案详解</h2>
+  <h3>方案 A：赶工 Crashing — 用资源换时间</h3>
+  <table>
+    <tr><th>手段</th><th>效果</th><th>副作用</th><th>适用条件</th></tr>
+    <tr><td>内部加班</td><td>产能 +20~30%</td><td>&gt;2周质量下降、离职风险</td><td>短期冲刺（≤2周）</td></tr>
+    <tr><td>追加外包</td><td>产能 +40~80%</td><td>管理成本↑、质量波动</td><td>标准化资产、成熟CP</td></tr>
+    <tr><td>借调人力</td><td>产能 +25~50%</td><td>影响其他项目</td><td>公司级最高优先级</td></tr>
+    <tr><td>并行流水线</td><td>缩短 30% 串行时间</td><td>协调复杂度↑</td><td>任务可拆分并行</td></tr>
+  </table>
+  <h3>方案 B：砍需求 Scope Reduction — 缩小交付范围</h3>
+  <table>
+    <tr><th>砍法</th><th>典型操作</th><th>风险</th></tr>
+    <tr><td><strong>降级</strong></td><td>S 级→A 级品质（减少换装套数、简化特效）</td><td>策划不满</td></tr>
+    <tr><td><strong>延后</strong></td><td>非核心 NPC 移至下版本</td><td>下版本膨胀</td></tr>
+    <tr><td><strong>替代</strong></td><td>用复用/换色资产替代全新制作</td><td>同质化</td></tr>
+    <tr><td><strong>砍掉</strong></td><td>完全去掉低优先级功能</td><td>功能不完整</td></tr>
+  </table>
+  <h3>方案 C：正式延期 Timeline Extension</h3>
+  <div class="dd-card dd-do">
+    <h4>📅 核心要求</h4>
+    <ul>
+      <li><strong>新时间线必须包含 20% 缓冲</strong>——二次延期不可接受</li>
+      <li><strong>明确延期原因和改进措施</strong>——不能只调时间不改流程</li>
+      <li><strong>与所有下游方同步</strong>——程序、QA、运营需重新对齐</li>
+      <li><strong>制作人/总监签字确认</strong>——延期方案必须有决策者背书</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══ 5. 方案对比 ═══ -->
+<div class="section" id="s5">
+  <h2>⚖️ 五、方案对比与选择</h2>
+  <table>
+    <tr><th>维度</th><th>⚡ 赶工</th><th>✂️ 砍需求</th><th>📅 延期</th></tr>
+    <tr><td><strong>见效速度</strong></td><td><span class="badge-sm badge-green">快</span></td><td><span class="badge-sm badge-green">快</span></td><td><span class="badge-sm badge-red">慢</span></td></tr>
+    <tr><td><strong>成本</strong></td><td><span class="badge-sm badge-red">高</span></td><td><span class="badge-sm badge-green">低</span></td><td><span class="badge-sm badge-yellow">中</span></td></tr>
+    <tr><td><strong>质量</strong></td><td><span class="badge-sm badge-red">负面</span></td><td><span class="badge-sm badge-yellow">部分降级</span></td><td><span class="badge-sm badge-green">正面</span></td></tr>
+    <tr><td><strong>团队</strong></td><td><span class="badge-sm badge-red">负面</span></td><td><span class="badge-sm badge-green">正面</span></td><td><span class="badge-sm badge-yellow">中性</span></td></tr>
+    <tr><td><strong>适用延期</strong></td><td>≤1 周</td><td>1-2 周</td><td>≥2 周</td></tr>
+  </table>
+  <div class="golden-quote"><p>"项目延期不是 APM 的失败，但延期后没有科学决策和透明沟通，才是真正的失败。"</p></div>
+</div>
+
+<!-- ═══ 6. 5Whys ═══ -->
+<div class="section" id="s6">
+  <h2>🔬 六、5Whys 根因分析模板</h2>
+  <div class="alert alert-blue"><strong>💡 使用说明：</strong>在制定应对方案前先用 5Whys 找到根因，防止同类问题复发。</div>
+  <div class="why-chain">
+    <div class="why-item why-1"><div class="why-dot-wrap"><div class="why-num">W1</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 1：项目为什么延期了？</div><div class="why-a">【填写直接原因】例如：实际工作量超出排期 60%</div></div></div>
+    <div class="why-item why-2"><div class="why-dot-wrap"><div class="why-num">W2</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 2：为什么工作量超出排期？</div><div class="why-a">【填写中间原因】例如：排期未使用复杂度分级模型</div></div></div>
+    <div class="why-item why-3"><div class="why-dot-wrap"><div class="why-num">W3</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 3：为什么没有使用分级模型？</div><div class="why-a">【填写深层原因】例如：团队没有标准化人天评估工具</div></div></div>
+    <div class="why-item why-4"><div class="why-dot-wrap"><div class="why-num">W4</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 4：为什么没有建立评估工具？</div><div class="why-a">【填写制度原因】例如：APM 培训体系缺少排期方法论</div></div></div>
+    <div class="why-item why-5"><div class="why-dot-wrap"><div class="why-num">W5</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 5：为什么培训体系缺失？</div><div class="why-a">【填写根本原因】例如：组织层面未将项目管理方法论纳入 APM 必修课</div></div></div>
+  </div>
+  <div class="why-root"><strong>🎯 根本原因（Root Cause）：</strong><br>在此总结 1-3 个根因，并输出对应的改进 Action Item。</div>
+</div>
+
+<!-- ═══ 7. 向上汇报 ═══ -->
+<div class="section" id="s7">
+  <h2>📢 七、向上汇报话术</h2>
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>❌ 错误汇报方式</h4>
+      <ul>
+        <li>"项目可能要延期了…"（模糊、没有方案）</li>
+        <li>"都是策划加需求导致的…"（甩锅、没有建设性）</li>
+        <li>"我们尽力了但实在赶不上…"（被动、没有 Plan B）</li>
+      </ul>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ 正确汇报结构</h4>
+      <ul>
+        <li><strong>现状：</strong>"当前进度 62%，预计延期 X 天"（量化数据）</li>
+        <li><strong>原因：</strong>"主要因 S 级角色复杂度被低估 + 2个新增需求"（根因明确）</li>
+        <li><strong>方案：</strong>"准备了 A/B/C 三个方案，推荐方案 B"（有选项有推荐）</li>
+        <li><strong>请求：</strong>"需要您批准追加 ¥X 万外包预算"（明确需要什么）</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 8. 决策自测 CheckList ═══ -->
+<div class="section" id="s8">
+  <h2>✅ 八、决策自测 CheckList</h2>
+
+  <div class="checklist-module">
+    <h3>📋 延期风险自测 — 勾选你当前面临的风险项</h3>
+    <div class="cl-subtitle">每个勾选项都代表一个真实的延期风险因子。勾选越多，风险越高，越需要提前启动应对方案。</div>
+
+    <div class="cl-group">
+      <div class="cl-group-title">🔴 排期与工作量风险</div>
+      <div class="cl-item cl-danger"><input type="checkbox" id="c1" onchange="updateScore()"><label for="c1"><span class="cl-severity sev-high">高危</span>燃尽图偏差已超过 20%，且连续 2+ 个 Sprint 未改善</label></div>
+      <div class="cl-item cl-danger"><input type="checkbox" id="c2" onchange="updateScore()"><label for="c2"><span class="cl-severity sev-high">高危</span>排期时未按资产复杂度分级（S/A/B/C）差异化评估人天</label></div>
+      <div class="cl-item cl-warning"><input type="checkbox" id="c3" onchange="updateScore()"><label for="c3"><span class="cl-severity sev-mid">中危</span>排期未预留 20% 缓冲时间（风险准备金）</label></div>
+      <div class="cl-item cl-warning"><input type="checkbox" id="c4" onchange="updateScore()"><label for="c4"><span class="cl-severity sev-mid">中危</span>存在串行瓶颈任务，无法并行拆分</label></div>
+    </div>
+
+    <div class="cl-group">
+      <div class="cl-group-title">🟡 需求与变更风险</div>
+      <div class="cl-item cl-danger"><input type="checkbox" id="c5" onchange="updateScore()"><label for="c5"><span class="cl-severity sev-high">高危</span>量产期仍在接受口头需求变更（无 CR 审批流程）</label></div>
+      <div class="cl-item cl-warning"><input type="checkbox" id="c6" onchange="updateScore()"><label for="c6"><span class="cl-severity sev-mid">中危</span>过去 2 周内收到 2+ 个计划外需求插入</label></div>
+      <div class="cl-item"><input type="checkbox" id="c7" onchange="updateScore()"><label for="c7"><span class="cl-severity sev-low">低危</span>需求描述不完整，美术理解需 2+ 次确认</label></div>
+    </div>
+
+    <div class="cl-group">
+      <div class="cl-group-title">🔴 人力与资源风险</div>
+      <div class="cl-item cl-danger"><input type="checkbox" id="c8" onchange="updateScore()"><label for="c8"><span class="cl-severity sev-high">高危</span>关键美术骨干被借调或即将离职</label></div>
+      <div class="cl-item cl-warning"><input type="checkbox" id="c9" onchange="updateScore()"><label for="c9"><span class="cl-severity sev-mid">中危</span>团队连续加班 &gt;2 周，士气明显下降</label></div>
+      <div class="cl-item cl-warning"><input type="checkbox" id="c10" onchange="updateScore()"><label for="c10"><span class="cl-severity sev-mid">中危</span>外包 CP 当前同时服务 3+ 个甲方</label></div>
+    </div>
+
+    <div class="cl-group">
+      <div class="cl-group-title">🟡 质量与返修风险</div>
+      <div class="cl-item cl-danger"><input type="checkbox" id="c11" onchange="updateScore()"><label for="c11"><span class="cl-severity sev-high">高危</span>外包首版通过率 &lt;50%，返修已拖慢整体进度</label></div>
+      <div class="cl-item cl-warning"><input type="checkbox" id="c12" onchange="updateScore()"><label for="c12"><span class="cl-severity sev-mid">中危</span>美术规范文档不完整，验收标准模糊</label></div>
+      <div class="cl-item"><input type="checkbox" id="c13" onchange="updateScore()"><label for="c13"><span class="cl-severity sev-low">低危</span>内部 Art Review 未按时进行</label></div>
+    </div>
+
+    <div class="cl-group">
+      <div class="cl-group-title">🔵 流程与沟通风险</div>
+      <div class="cl-item cl-warning"><input type="checkbox" id="c14" onchange="updateScore()"><label for="c14"><span class="cl-severity sev-mid">中危</span>与策划/程序的需求对齐会 &gt;1 周未开</label></div>
+      <div class="cl-item"><input type="checkbox" id="c15" onchange="updateScore()"><label for="c15"><span class="cl-severity sev-low">低危</span>进度数据未按时更新（燃尽图/看板）</label></div>
+      <div class="cl-item"><input type="checkbox" id="c16" onchange="updateScore()"><label for="c16"><span class="cl-severity sev-low">低危</span>风险登记册 (Risk Log) 超过 2 周未更新</label></div>
+    </div>
+
+    <div class="cl-result">
+      <div class="cl-score" id="clScore" style="color:var(--green)">0</div>
+      <div class="cl-level" id="clLevel" style="color:var(--green)">✅ 风险可控 — 继续正常推进</div>
+      <div class="cl-advice" id="clAdvice">当前未勾选任何风险项。如有疑虑，请逐项检查。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 关联推荐 ═══ -->
+<div class="related-cases">
+  <h3>🔗 相关文档推荐</h3>
+  <div class="rc-grid" id="relatedGrid"></div>
+</div>
+
+<div class="doc-footer">⏳ 决策指南 — 项目延期应对决策 v1.0 · 项目管理与排期 · 2026-04-13</div>
+
+</div>
+
+<script>
+/* ═══ CheckList 评分引擎 ═══ */
+function updateScore(){
+  var weights={c1:3,c2:3,c5:3,c8:3,c11:3,c3:2,c4:2,c6:2,c9:2,c10:2,c12:2,c14:2,c7:1,c13:1,c15:1,c16:1};
+  var total=0;
+  for(var id in weights){if(document.getElementById(id).checked)total+=weights[id];}
+  var el=document.getElementById('clScore'),lv=document.getElementById('clLevel'),ad=document.getElementById('clAdvice');
+  el.textContent=total;
+  if(total<=5){el.style.color='var(--green)';lv.style.color='var(--green)';lv.textContent='✅ 风险可控 — 继续正常推进';ad.textContent='当前风险在可控范围内。保持周燃尽图跟踪，关注变化即可。';}
+  else if(total<=12){el.style.color='var(--yellow)';lv.style.color='var(--yellow)';lv.textContent='⚠️ 黄色预警 — 需要关注并准备 Plan B';ad.textContent='建议：① 本周内完成影响评估矩阵打分；② 准备赶工或砍需求预案；③ 向制作人口头预警。';}
+  else if(total<=20){el.style.color='var(--orange)';lv.style.color='var(--orange)';lv.textContent='🟠 橙色预警 — 必须立即启动应对方案';ad.textContent='建议：① 24h 内完成决策树走查；② 输出正式决策报告；③ 与制作人召开紧急会议确定方案。';}
+  else{el.style.color='var(--red)';lv.style.color='var(--red)';lv.textContent='🔴 红色预警 — 项目面临严重延期风险！';ad.textContent='建议：① 立即上报总监；② 启动混合方案（赶工+砍需求+延期协商）；③ 冻结一切新需求；④ 全面复盘启动改进。';}
+}
+/* ═══ 关联推荐 ═══ */
+(function(){
+  var recs=[
+    {icon:'⏰',title:'项目延期案例 — 量产排期连环爆雷复盘',desc:'真实项目延期复盘：排期乐观估计引发连锁延期',tags:['延期','复盘'],variant:'danger',path:'case-delay.html'},
+    {icon:'🧭',title:'外包 vs 内发决策矩阵',desc:'外包与内发的七维度评估体系、成本对比、场景速查',tags:['外包','决策'],variant:'info',path:'outsource-vs-inhouse-decision.html'},
+    {icon:'📅',title:'美术排期与里程碑管理',desc:'Sprint排期、里程碑分解、燃尽图跟踪与风险预警',tags:['排期','里程碑'],variant:'accent',path:'art-scheduling.html'},
+    {icon:'⚠️',title:'项目风险登记册规范',desc:'风险识别→评估→分级→应对→闭环',tags:['Risk Log','管理'],variant:'warning',path:'risk-log.html'},
+    {icon:'📊',title:'美术外包工作量评估标准',desc:'按工种和资产复杂度的标准人天评估模型',tags:['人天模型','外包'],variant:'info',path:'outsource-workload-model.html'},
+    {icon:'💣',title:'踩坑案例 — 外包翻车·排期爆雷',desc:'外包首批全打回、排期连续爆雷的复盘',tags:['踩坑','案例'],variant:'danger',path:'project-pitfall-log.html'}
+  ];
+  var g=document.getElementById('relatedGrid');if(!g)return;
+  recs.forEach(function(r){
+    var c=document.createElement('div');c.className='rc-card rc-card-'+r.variant;
+    c.onclick=function(){if(window.parent&&window.parent!==window){window.parent.postMessage({type:'navigate',path:'knowledge-base/'+r.path},'*');}else{window.location.href=r.path;}};
+    var t=r.tags.map(function(x){return'<span class="tag tag-info" style="font-size:10px;padding:2px 8px">'+x+'</span>';}).join('');
+    c.innerHTML='<div class="rc-card-top"><span class="rc-card-icon">'+r.icon+'</span><span class="rc-card-title">'+r.title+'</span></div><div class="rc-card-desc">'+r.desc+'</div><div class="rc-card-tags">'+t+'</div>';
+    g.appendChild(c);
+  });
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:true,theme:'dark',themeVariables:{primaryColor:'#1a1d2b',primaryTextColor:'#e4e6ed',primaryBorderColor:'#6c8cff',lineColor:'#6b7085',secondaryColor:'#141620',tertiaryColor:'#262a3a',fontFamily:'-apple-system,BlinkMacSystemFont,PingFang SC,Microsoft YaHei,sans-serif',fontSize:'13px'}});</script>
+<script src="editor-kit.js"></script>
+</body>
+</html>
