@@ -15,7 +15,8 @@
 <aside class="sidebar">
   <div class="sidebar-header"><h1><span class="logo">📊</span> APM 专属知识库</h1><p>Art Project Management Knowledge Base</p></div>
   <div class="search-box">
-    <input type="text" id="searchInput" placeholder="搜索文档、阶段、跨部门... Ctrl+K" oninput="handleSearch(this.value)" onfocus="handleSearch(this.value)" onblur="setTimeout(()=>document.getElementById('searchDropdown').classList.remove('show'),250)">
+    <input type="text" id="searchInput" placeholder="搜索文档、阶段、跨部门... Ctrl+K" oninput="handleSearch(this.value);toggleSearchClear()" onfocus="handleSearch(this.value)" onblur="setTimeout(()=>document.getElementById('searchDropdown').classList.remove('show'),250)">
+    <button class="search-clear-btn" id="searchClearBtn" onclick="clearSearchInput()" style="display:none;position:absolute;right:28px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);font-size:16px;cursor:pointer;padding:4px 6px;border-radius:4px;transition:all .15s;z-index:2" title="清除搜索">✕</button>
     <div class="search-dropdown" id="searchDropdown"></div>
   </div>
   <nav class="sidebar-nav" id="sidebarNav">
@@ -33,7 +34,7 @@
       <button class="nav-create" onclick="openEditor()">➕ 新增文档</button>
       <button class="nav-guide" onclick="navigate('editor-guide')" title="编辑器使用指南">❓ 编辑器指南</button>
     </div>
-    <div class="sf-links"><span>v7.1 APM</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a></div>
+    <div class="sf-links"><span style="cursor:pointer;transition:color .15s" onclick="showChangelog()" title="查看更新日志">v7.1 APM</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a></div>
   </div>
 </aside>
 
@@ -103,7 +104,8 @@
     <div class="home" id="pageHome">
       <div class="home-hero">
         <h1>📊 APM 专属<span>知识库</span></h1>
-        <p>美术项目管理核心知识体系 — 生产管控 · 跨部门协同 · 提效工具</p>
+        <p class="hero-tagline" id="heroTagline">美术项目管理核心知识体系 — 生产管控 · 跨部门协同 · 提效工具</p>
+        <span class="hero-tagline-toggle" id="heroToggle" onclick="toggleHeroTagline()">▲ 收起简介</span>
         <div class="home-ratio-bar" title="知识库内容分布比例（7大模块）">
           <span class="ratio-seg ratio-production" title="📋 项目管理与排期：占比 20%">📋 20%</span>
           <span class="ratio-seg ratio-outsource" title="📦 外包全链路管理：占比 10%">📦 10%</span>
@@ -993,7 +995,7 @@ sequenceDiagram
 </div>
 
 <button class="share-btn" onclick="copyShareLink()">🔗 分享此页</button>
-<button class="btt" id="backToTop">↑</button>
+<button class="btt" id="backToTop" title="返回顶部 (快捷键: Home)">↑</button>
 
 <!-- Vditor Markdown Editor -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vditor@3.10.8/dist/index.css"/>

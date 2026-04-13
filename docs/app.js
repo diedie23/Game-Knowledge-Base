@@ -938,7 +938,7 @@ function extractSnippet(content, query, maxLen){
 
 // ═══ Utilities ═══
 function copyShareLink(){navigator.clipboard.writeText(location.href).then(function(){showToast('链接已复制');}).catch(function(){showToast('复制失败','error');});}
-function showToast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast';if(type==='warning') t.classList.add('toast-warning');else if(type==='error') t.classList.add('toast-error');else t.classList.add('toast-success');t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(function(){t.classList.remove('show');},type==='error'?4000:2000);}
+function showToast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast';if(type==='warning') t.classList.add('toast-warning');else if(type==='error') t.classList.add('toast-error');else if(type==='info') t.classList.add('toast-info');else t.classList.add('toast-success');t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(function(){t.classList.remove('show');},type==='error'?4000:2000);}
 
 // ═══ 编辑按钮过渡动画辅助 ═══
 function showBtn(el){if(!el) return;el.style.display='';el.style.opacity='0';el.style.transform='scale(.85)';requestAnimationFrame(function(){requestAnimationFrame(function(){el.style.opacity='1';el.style.transform='scale(1)';});});}
@@ -1043,6 +1043,86 @@ function submitFeedback(){
   document.getElementById('feedbackDialog').classList.remove('show');
   showToast('✅ 感谢反馈！');
 }
+
+// ═══ L3: Changelog 弹窗 — 版本更新日志 ═══
+function showChangelog(){
+  var d=document.getElementById('changelogDialog');
+  if(!d){
+    d=document.createElement('div');d.id='changelogDialog';d.className='fb-overlay';
+    d.innerHTML='<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:28px 32px;max-width:560px;width:92%;box-shadow:0 16px 48px rgba(0,0,0,.5);max-height:80vh;overflow-y:auto">'
+      +'<h3 style="color:var(--heading);font-size:18px;margin-bottom:18px;display:flex;align-items:center;gap:8px">📋 更新日志 <span style="font-size:12px;background:var(--accent);color:#fff;padding:3px 10px;border-radius:12px;font-weight:500">v7.1</span></h3>'
+      +'<div style="font-size:14px;color:var(--text);line-height:1.9">'
+      +'<div style="margin-bottom:16px"><div style="font-size:13px;color:var(--accent);font-weight:600;margin-bottom:6px">🔥 v7.1 (2026-04-13)</div>'
+      +'<ul style="padding-left:20px;color:var(--dim);font-size:13px;margin:0">'
+      +'<li>搜索 blur 延迟优化 (200→250ms)</li>'
+      +'<li>「系统与维护」模块侧边栏灰色降级</li>'
+      +'<li>「我的项目笔记」空状态引导</li>'
+      +'<li>侧边栏叶节点 active 指示条 + hover 上浮</li>'
+      +'<li>搜索无结果空状态友好提示</li>'
+      +'<li>box-shadow 统一 CSS 变量管理</li>'
+      +'<li>Changelog 弹窗入口</li>'
+      +'<li>文档 h2 视觉分隔线</li>'
+      +'<li>搜索框清除按钮</li>'
+      +'<li>Toast info 蓝色类型</li>'
+      +'<li>返回顶部 tooltip</li>'
+      +'</ul></div>'
+      +'<div style="margin-bottom:16px"><div style="font-size:13px;color:var(--orange);font-weight:600;margin-bottom:6px">🚀 v7.0 (2026-04-09)</div>'
+      +'<ul style="padding-left:20px;color:var(--dim);font-size:13px;margin:0">'
+      +'<li>AI 智能问答助手 (Coze Web SDK)</li>'
+      +'<li>可视化 CMS 管理面板</li>'
+      +'<li>HTML 模板内嵌编辑器</li>'
+      +'<li>全文内容搜索</li>'
+      +'</ul></div>'
+      +'<div><div style="font-size:13px;color:var(--green);font-weight:600;margin-bottom:6px">📦 v6.4 (2026-04-07)</div>'
+      +'<ul style="padding-left:20px;color:var(--dim);font-size:13px;margin:0">'
+      +'<li>角色探索 + 知识库总览 Tab 合并</li>'
+      +'<li>管理仪表盘默认折叠</li>'
+      +'<li>Mermaid 跨部门协作流程图</li>'
+      +'</ul></div>'
+      +'</div>'
+      +'<div style="display:flex;justify-content:flex-end;margin-top:18px">'
+      +'<button onclick="document.getElementById(\'changelogDialog\').classList.remove(\'show\')" style="padding:8px 20px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--dim);cursor:pointer;font-family:inherit;font-size:13px;transition:all .15s">关闭</button>'
+      +'</div></div>';
+    document.body.appendChild(d);
+    d.addEventListener('click',function(e){if(e.target===d)d.classList.remove('show');});
+  }
+  d.classList.add('show');
+}
+
+// ═══ L5: 搜索清除按钮辅助函数 ═══
+function toggleSearchClear(){
+  var inp=document.getElementById('searchInput');
+  var btn=document.getElementById('searchClearBtn');
+  if(btn) btn.style.display=inp&&inp.value.trim()?'block':'none';
+}
+function clearSearchInput(){
+  var inp=document.getElementById('searchInput');
+  if(inp){inp.value='';inp.focus();}
+  var dd=document.getElementById('searchDropdown');
+  if(dd){dd.classList.remove('show');dd.innerHTML='';}
+  var btn=document.getElementById('searchClearBtn');
+  if(btn) btn.style.display='none';
+}
+
+// ═══ L8: Hero 副标题折叠/展开 ═══
+function toggleHeroTagline(){
+  var el=document.getElementById('heroTagline');
+  var btn=document.getElementById('heroToggle');
+  if(!el||!btn)return;
+  var collapsed=el.classList.toggle('collapsed');
+  btn.textContent=collapsed?'▼ 展开简介':'▲ 收起简介';
+  try{localStorage.setItem('hero_collapsed',collapsed?'1':'0');}catch(e){}
+}
+(function(){
+  try{
+    if(localStorage.getItem('hero_collapsed')==='1'){
+      var el=document.getElementById('heroTagline');
+      var btn=document.getElementById('heroToggle');
+      if(el){el.classList.add('collapsed');}
+      if(btn){btn.textContent='▼ 展开简介';}
+    }
+  }catch(e){}
+})();
 
 // ═══ ScrollSpy (h2 + h3 + h4) + 返回顶部按钮 ═══
 var iframeScrollHandler=null;

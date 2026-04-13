@@ -257,6 +257,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .home-hero h1{font-size:40px;color:var(--heading);font-weight:800;margin-bottom:10px;letter-spacing:-.5px}
 .home-hero h1 span{background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .home-hero p{font-size:18px;color:var(--dim);max-width:780px;margin:0 auto;line-height:1.8}
+.hero-tagline{max-height:60px;overflow:hidden;transition:max-height .35s ease,opacity .35s ease;cursor:pointer;position:relative}
+.hero-tagline.collapsed{max-height:0;opacity:0;margin-top:0!important;margin-bottom:0!important;padding:0}
+.hero-tagline-toggle{display:inline-block;margin-top:6px;font-size:12px;color:var(--accent);cursor:pointer;opacity:.7;transition:opacity .2s;user-select:none}
+.hero-tagline-toggle:hover{opacity:1}
 
 /* ═══ 内容比例条 ═══ */
 .home-ratio-bar{display:flex;margin:24px auto 0;max-width:760px;border-radius:var(--radius-md);overflow:hidden;height:36px;font-size:12px;font-weight:600;letter-spacing:.3px;box-shadow:0 2px 12px rgba(0,0,0,.2)}
@@ -284,14 +288,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .stat-toolchain::before{background:linear-gradient(90deg,var(--cyan),#67e8f9)}
 .stat-quality::before{background:linear-gradient(90deg,var(--pink),#f9a8d4)}
 .stat-casestudy::before{background:linear-gradient(90deg,var(--red),var(--orange))}
-.stat:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.3);border-color:rgba(255,255,255,.12)}
-.stat-project:hover{box-shadow:0 8px 28px rgba(108,140,255,.18);border-color:rgba(108,140,255,.35)}
-.stat-outsource:hover{box-shadow:0 8px 28px rgba(251,146,60,.18);border-color:rgba(251,146,60,.35)}
-.stat-craft:hover{box-shadow:0 8px 28px rgba(167,139,250,.18);border-color:rgba(167,139,250,.35)}
-.stat-collab:hover{box-shadow:0 8px 28px rgba(74,222,128,.18);border-color:rgba(74,222,128,.35)}
-.stat-toolchain:hover{box-shadow:0 8px 28px rgba(34,211,238,.18);border-color:rgba(34,211,238,.35)}
-.stat-quality:hover{box-shadow:0 8px 28px rgba(244,114,182,.18);border-color:rgba(244,114,182,.35)}
-.stat-casestudy:hover{box-shadow:0 8px 28px rgba(248,113,113,.18);border-color:rgba(248,113,113,.35)}
+.stat:hover{transform:translateY(-3px);box-shadow:var(--shadow-card);border-color:rgba(255,255,255,.12)}
+.stat-project:hover{box-shadow:var(--shadow-card-accent);border-color:rgba(108,140,255,.35)}
+.stat-outsource:hover{box-shadow:var(--shadow-card-orange);border-color:rgba(251,146,60,.35)}
+.stat-craft:hover{box-shadow:var(--shadow-card-purple);border-color:rgba(167,139,250,.35)}
+.stat-collab:hover{box-shadow:var(--shadow-card-green);border-color:rgba(74,222,128,.35)}
+.stat-toolchain:hover{box-shadow:var(--shadow-card-cyan);border-color:rgba(34,211,238,.35)}
+.stat-quality:hover{box-shadow:var(--shadow-card-pink);border-color:rgba(244,114,182,.35)}
+.stat-casestudy:hover{box-shadow:var(--shadow-card-red);border-color:rgba(248,113,113,.35)}
 .stat:active{transform:translateY(0) scale(.97);box-shadow:0 2px 8px rgba(0,0,0,.2);transition-duration:.08s}
 .stat .num{font-size:28px;font-weight:800;color:var(--heading);text-align:center;letter-spacing:-.5px;transition:transform .2s}
 .stat:hover .num{transform:scale(1.05)}
@@ -382,7 +386,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .doc-bc{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim);margin-bottom:22px}
 .doc-bc a{color:var(--accent);text-decoration:none;cursor:pointer}
 .dc h1{font-size:34px;color:var(--heading);font-weight:700;margin-bottom:12px;padding-bottom:14px;border-bottom:2px solid var(--accent)}
-.dc h2{font-size:26px;color:var(--heading);font-weight:600;margin:48px 0 20px;padding-bottom:10px;border-bottom:1px solid var(--border);scroll-margin-top:80px}
+.dc h2{font-size:26px;color:var(--heading);font-weight:600;margin:48px 0 20px;padding-bottom:10px;border-bottom:1px solid var(--border);scroll-margin-top:80px;position:relative}
+.dc h2::before{content:'';position:absolute;top:-24px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);opacity:.5}
 .dc h3{font-size:21px;color:var(--heading);font-weight:600;margin:36px 0 16px;scroll-margin-top:80px}
 .dc h4{font-size:18px;color:var(--accent-light);font-weight:600;margin:28px 0 12px;scroll-margin-top:80px}
 .dc p{margin:14px 0;font-size:18px;line-height:1.8}
@@ -489,6 +494,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .toast-success{background:var(--green);color:#000}
 .toast-warning{background:var(--orange);color:#000}
 .toast-error{background:var(--red);color:#fff}
+.toast-info{background:var(--accent);color:#fff}
 .menu-toggle{display:none;position:fixed;top:12px;left:12px;z-index:100;background:var(--card-bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;cursor:pointer;font-size:18px}
 .feedback-btn{position:fixed;top:12px;right:12px;z-index:100;padding:8px 16px;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .2s}.feedback-btn:hover{border-color:var(--accent);color:var(--accent)}
 
