@@ -281,6 +281,43 @@
           ]
         }
       ]
+    },
+    {
+      "id": "mod-casestudy",
+      "name": "🔥 真实案例库",
+      "icon": "🔥",
+      "color": "red",
+      "items": [],
+      "groups": [
+        {
+          "name": "项目延期案例",
+          "icon": "⏰",
+          "items": [
+            { "id": "case-delay", "icon": "⏰", "title": "量产排期连环爆雷复盘", "type": "iframe", "file": "knowledge-base/case-delay.html", "badge": "案例", "craft": "管理" }
+          ]
+        },
+        {
+          "name": "跨部门冲突案例",
+          "icon": "💥",
+          "items": [
+            { "id": "case-cross-dept", "icon": "💥", "title": "策划改需求引发美术返工风暴", "type": "iframe", "file": "knowledge-base/case-cross-dept.html", "badge": "案例", "craft": "跨部门" }
+          ]
+        },
+        {
+          "name": "外包事故案例",
+          "icon": "🚨",
+          "items": [
+            { "id": "case-outsource-accident", "icon": "🚨", "title": "CP 交付质量崩盘全记录", "type": "iframe", "file": "knowledge-base/case-outsource-accident.html", "badge": "案例", "craft": "管理" }
+          ]
+        },
+        {
+          "name": "需求变更案例",
+          "icon": "🔄",
+          "items": [
+            { "id": "case-requirement-change", "icon": "🔄", "title": "版本末期大改引发连锁崩塌", "type": "iframe", "file": "knowledge-base/case-requirement-change.html", "badge": "案例", "craft": "管理" }
+          ]
+        }
+      ]
     }
   ]
 }

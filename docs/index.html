@@ -592,13 +592,14 @@ sequenceDiagram
         </div>
         <div class="dashboard-body" id="dashboardBody" style="max-height:0;overflow:hidden;opacity:0">
           <!-- 统计概览（原 stats-bar 嵌入此处）-->
-          <div class="stats-bar stats-bar-6" style="padding:20px 24px;margin:0">
+          <div class="stats-bar" style="grid-template-columns:repeat(7,1fr);padding:20px 24px;margin:0">
             <div class="stat stat-project"><div class="num">—</div><div class="label">📋 项目管理与排期</div></div>
             <div class="stat stat-outsource"><div class="num">—</div><div class="label">📦 外包全链路</div></div>
             <div class="stat stat-craft"><div class="num">—</div><div class="label">🎨 美术工艺规范</div></div>
             <div class="stat stat-collab"><div class="num">—</div><div class="label">🤝 跨部门协同</div></div>
             <div class="stat stat-toolchain"><div class="num">—</div><div class="label">🛠️ 工具链与自动化</div></div>
             <div class="stat stat-quality"><div class="num">—</div><div class="label">🛡️ 质量·风险·团队</div></div>
+            <div class="stat stat-casestudy"><div class="num">—</div><div class="label">🔥 真实案例库</div></div>
           </div>
           <div class="dashboard-grid">
             <!-- 列1：里程碑进度 -->
@@ -807,6 +808,25 @@ sequenceDiagram
 
         <div class="hst" style="margin-top:28px">🎓 新人入职与成长</div>
         <div class="home-grid" id="grid-quality-team"></div>
+
+        </div>
+      </div>
+
+      <!-- ═══ 板块七：🔥 真实案例库 (10%) ═══ -->
+      <div class="module-section module-casestudy" id="section-casestudy">
+        <div class="module-header module-header-casestudy" onclick="toggleModuleSection(this)">
+          <div class="module-icon" style="background:rgba(248,113,113,.1);color:var(--red)">🔥</div>
+          <div class="module-info">
+            <h2>真实案例库</h2>
+            <p>项目延期、跨部门冲突、外包事故、需求变更 — 真实翻车复盘，5Whys 根因分析</p>
+          </div>
+          <span class="module-weight" style="color:#f87171;opacity:.5">10%</span>
+          <div class="module-chevron"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+        <div class="module-body">
+
+        <div class="hst">🔥 全部案例</div>
+        <div class="home-grid" id="grid-casestudy-cases"></div>
 
         </div>
       </div>

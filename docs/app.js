@@ -225,7 +225,8 @@ var MODULE_STYLES = {
   'mod-craft':     { color: 'purple',  highlight: 'var(--purple)',  bg: 'var(--purple-bg)' },
   'mod-collab':    { color: 'green',   highlight: 'var(--green)',   bg: 'var(--green-bg)' },
   'mod-toolchain': { color: 'cyan',    highlight: 'var(--cyan)',    bg: 'var(--cyan-bg)' },
-  'mod-quality':   { color: 'pink',    highlight: 'var(--pink)',    bg: 'var(--pink-bg)' }
+  'mod-quality':   { color: 'pink',    highlight: 'var(--pink)',    bg: 'var(--pink-bg)' },
+  'mod-casestudy': { color: 'red',     highlight: 'var(--red)',     bg: 'rgba(248,113,113,.08)' }
 };
 
 // 工种 badge 样式映射
@@ -265,7 +266,7 @@ function buildSidebar(data){
     +'<div class="nav-toggle-btns"><button class="nav-toggle-btn" onclick="expandAllSidebar()" title="全部展开">📂 展开</button><button class="nav-toggle-btn" onclick="collapseAllSidebar()" title="全部折叠">📁 折叠</button></div></div>';
 
   // 统计计数器
-  var projectCount=0, outsourceCount=0, craftCount=0, collabCount=0, toolchainCount=0, qualityCount=0;
+  var projectCount=0, outsourceCount=0, craftCount=0, collabCount=0, toolchainCount=0, qualityCount=0, casestudyCount=0;
 
   data.categories.forEach(function(cat){
     var itemCount = cat.items ? cat.items.length : 0;
@@ -278,17 +279,19 @@ function buildSidebar(data){
     if(cat.id === 'mod-collab')      collabCount = itemCount;
     if(cat.id === 'mod-toolchain')   toolchainCount = itemCount;
     if(cat.id === 'mod-quality')     qualityCount = itemCount;
+    if(cat.id === 'mod-casestudy')   casestudyCount = itemCount;
 
     var isOutsource = cat.id === 'mod-outsource';
     var isCollab = cat.id === 'mod-collab';
     var isQuality = cat.id === 'mod-quality';
+    var isCasestudy = cat.id === 'mod-casestudy';
 
     // 获取纯文本名称（去掉 Emoji 前缀）
     var catName = cat.name.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]+\s*/u, '');
     // 一级模块 Emoji 图标（从 JSON icon 字段读取）
     var catEmoji = cat.icon || '📁';
 
-    var extraCls = isOutsource ? ' t1-outsource' : isCollab ? ' t1-collab' : isQuality ? ' t1-quality' : '';
+    var extraCls = isOutsource ? ' t1-outsource' : isCollab ? ' t1-collab' : isQuality ? ' t1-quality' : isCasestudy ? ' t1-casestudy' : '';
     html += '<div class="t1' + extraCls + '" id="' + cat.id + '">';
     html += '<div class="t1-h" onclick="handleToggle(event,this)">'
       + SVG_CHEVRON
@@ -366,6 +369,7 @@ function buildSidebar(data){
   if(numEls[3]) numEls[3].textContent = collabCount + ' 篇';
   if(numEls[4]) numEls[4].textContent = toolchainCount + ' 个';
   if(numEls[5]) numEls[5].textContent = qualityCount + ' 篇';
+  if(numEls[6]) numEls[6].textContent = casestudyCount + ' 篇';
 
   // ═══ 统计卡片 → 锚点快捷导航 ═══
   var statTargets = [
@@ -749,6 +753,7 @@ function handleSearch(q){
     if(item.module==='toolkit') { modLabel='🧰'; modCls='background:rgba(74,222,128,.08);color:#4ade80'; }
     if(item.module==='governance') { modLabel='💰'; modCls='background:rgba(244,114,182,.08);color:#f472b6'; }
     if(item.module==='retrospect') { modLabel='📒'; modCls='background:rgba(34,211,238,.08);color:#22d3ee'; }
+    if(item.module==='casestudy') { modLabel='🔥'; modCls='background:rgba(248,113,113,.08);color:#f87171'; }
     // 工种 Tag
     var craftHtml = item.craft ? '<span class="sr-craft">['+item.craft+']</span>' : '';
     // 阶段 Tag
@@ -1515,7 +1520,7 @@ function enterRoleView(roleKey){
 
   // 2. 按 module 分组
   var grouped = {};
-  var moduleOrder = ['project','outsource','craft','collab','toolchain','quality'];
+  var moduleOrder = ['project','outsource','craft','collab','toolchain','quality','casestudy'];
   matchedItems.forEach(function(item){
     var mod = item.module || 'project';
     if(!grouped[mod]) grouped[mod] = [];
@@ -1773,7 +1778,9 @@ var CARD_GRID_MAP = {
   'grid-quality-retro':      { module:'quality', ids:['postmortem-template','project-pitfall-log'] },
   'grid-quality-metrics':    { module:'quality', ids:['art-efficiency-metrics','art-report-template'] },
   'grid-quality-security':   { module:'quality', ids:['asset-security-handover'] },
-  'grid-quality-team':       { module:'quality', ids:['onboarding-guide','permission-nav','personal-growth-roadmap'] }
+  'grid-quality-team':       { module:'quality', ids:['onboarding-guide','permission-nav','personal-growth-roadmap'] },
+  // 板块七：🔥 真实案例库
+  'grid-casestudy-cases':    { module:'casestudy', ids:['case-delay','case-cross-dept','case-outsource-accident','case-requirement-change'] }
 };
 
 // 阶段→背景色配置
@@ -1911,6 +1918,7 @@ function renderHotCards(){
     if(item.module==='toolkit'){modColor='var(--green)';modBg='var(--green-bg)';}
     if(item.module==='governance'){modColor='var(--pink)';modBg='var(--pink-bg)';}
     if(item.module==='retrospect'){modColor='var(--cyan)';modBg='var(--cyan-bg)';}
+    if(item.module==='casestudy'){modColor='var(--red)';modBg='rgba(248,113,113,.08)';}
 
     html+='<div class="hot-card" onclick="navigate(\''+item.id+'\')">'
       +'<div class="hot-card-top">'

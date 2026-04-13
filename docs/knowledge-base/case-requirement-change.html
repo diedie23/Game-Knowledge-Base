@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>需求变更案例 — 版本末期大改引发连锁崩塌</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--pink:#f472b6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1400px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.doc-header h1 .ver{font-size:12px;background:var(--accent);color:#fff;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+.tag-bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:.3px;transition:all .2s}
+.tag-danger{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.25)}
+.tag-warning{background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.25)}
+.tag-info{background:rgba(108,140,255,.12);color:var(--accent);border:1px solid rgba(108,140,255,.25)}
+.tag-purple{background:rgba(167,139,250,.12);color:var(--accent2);border:1px solid rgba(167,139,250,.25)}
+.tag-orange{background:rgba(251,146,60,.12);color:var(--orange);border:1px solid rgba(251,146,60,.25)}
+.tag-cyan{background:rgba(34,211,238,.12);color:var(--cyan);border:1px solid rgba(34,211,238,.25)}
+.tag:hover{transform:translateY(-1px);filter:brightness(1.2)}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:8px}
+.section h3{font-size:15px;color:var(--heading);margin:20px 0 8px;font-weight:600}
+.section p,.section li{font-size:15px;margin-bottom:8px;line-height:1.8}
+.section ul,.section ol{padding-left:20px;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:14px;line-height:1.8}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:15px}
+.badge-sm{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+.case-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:20px 0}
+.case-info-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.case-info-item .label{font-size:12px;color:var(--dim);margin-bottom:6px}
+.case-info-item .value{font-size:18px;font-weight:700;color:var(--heading)}
+.case-info-item .value.val-red{color:var(--red)}
+.case-info-item .value.val-yellow{color:var(--yellow)}
+.why-chain{display:flex;flex-direction:column;gap:0;margin:20px 0}
+.why-item{display:flex;gap:14px;position:relative}
+.why-dot-wrap{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:40px}
+.why-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;position:relative;z-index:1}
+.why-1 .why-num{background:var(--accent)}.why-2 .why-num{background:var(--accent2)}.why-3 .why-num{background:var(--orange)}.why-4 .why-num{background:var(--red)}.why-5 .why-num{background:linear-gradient(135deg,var(--red),var(--pink));box-shadow:0 0 12px rgba(248,113,113,.4)}
+.why-line{width:2px;flex:1;min-height:16px;background:var(--border);margin:4px auto 0}
+.why-item:last-child .why-line{display:none}
+.why-content{flex:1;padding-bottom:16px}
+.why-q{font-size:14px;font-weight:600;color:var(--heading);margin-bottom:4px}
+.why-a{font-size:14px;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;line-height:1.7}
+.why-root{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);border-radius:10px;padding:14px 18px;margin-top:12px;font-size:14px;line-height:1.8}
+.why-root strong{color:var(--red)}
+.timeline{display:flex;flex-direction:column;gap:0;margin:20px 0}
+.tl-item{display:flex;gap:14px;position:relative}
+.tl-dot-wrap{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:20px;padding-top:4px}
+.tl-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;position:relative;z-index:1;background:var(--accent)}
+.tl-line{width:2px;flex:1;min-height:16px;background:var(--border);margin:4px auto 0}
+.tl-item:last-child .tl-line{display:none}
+.tl-item.tl-danger .tl-dot{background:var(--red);box-shadow:0 0 8px rgba(248,113,113,.4)}
+.tl-item.tl-warn .tl-dot{background:var(--yellow)}
+.tl-item.tl-ok .tl-dot{background:var(--green)}
+.tl-content{flex:1;padding-bottom:18px}
+.tl-date{font-size:12px;color:var(--dim);font-family:monospace;margin-bottom:2px}
+.tl-text{font-size:14px;color:var(--heading);font-weight:500}
+.tl-detail{font-size:13px;color:var(--text);margin-top:4px;line-height:1.7}
+.golden-quote{background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,146,60,.06));border:1px solid rgba(251,191,36,.25);border-radius:12px;padding:20px 24px;margin:20px 0;position:relative;overflow:hidden}
+.golden-quote::before{content:'"';position:absolute;top:-8px;left:12px;font-size:80px;color:rgba(251,191,36,.15);font-family:Georgia,serif;line-height:1}
+.golden-quote p{font-size:18px;font-weight:600;color:var(--yellow);position:relative;z-index:1;padding-left:40px;font-style:italic}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;min-width:80px}
+.flow-node strong{display:block;color:var(--heading);font-size:14px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:12px}
+.flow-arrow{color:var(--accent2);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.related-cases{margin-top:40px;padding:24px;background:var(--panel);border:1px solid var(--border);border-radius:14px}
+.related-cases h3{font-size:18px;color:var(--heading);font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.rc-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden}
+.rc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.rc-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.3);border-color:rgba(108,140,255,.3)}
+.rc-card-danger::before{background:linear-gradient(90deg,var(--red),var(--orange))}
+.rc-card-warning::before{background:linear-gradient(90deg,var(--yellow),var(--orange))}
+.rc-card-info::before{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.rc-card-accent::before{background:linear-gradient(90deg,var(--cyan),var(--green))}
+.rc-card-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.rc-card-icon{font-size:24px;flex-shrink:0}
+.rc-card-title{font-size:14px;color:var(--heading);font-weight:600;line-height:1.4;flex:1}
+.rc-card-desc{font-size:12px;color:var(--dim);line-height:1.6;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rc-card-tags{display:flex;flex-wrap:wrap;gap:4px}
+.rc-card-tags .tag{font-size:10px;padding:2px 8px;border-radius:8px}
+/* ─── 影响辐射图 ─── */
+.impact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
+@media(max-width:700px){.impact-grid{grid-template-columns:1fr}}
+.impact-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;position:relative;overflow:hidden}
+.impact-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.impact-card.impact-high::before{background:var(--red)}
+.impact-card.impact-med::before{background:var(--yellow)}
+.impact-card.impact-low::before{background:var(--green)}
+.impact-dept{font-size:24px;margin-bottom:8px}
+.impact-name{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:4px}
+.impact-desc{font-size:12px;color:var(--dim);line-height:1.6}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>🔄 需求变更案例 — 版本末期大改引发连锁崩塌 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Case Study: Late-Stage Requirement Change — 封版前夕的连锁灾难</div>
+  <div class="meta">
+    <span>🔥 真实案例库</span>
+    <span>👤 维护人：周八</span>
+    <span>📅 2026-04-13</span>
+  </div>
+  <div class="tag-bar">
+    <span class="tag tag-danger">🔄 需求变更</span>
+    <span class="tag tag-warning">⏰ 封版危机</span>
+    <span class="tag tag-cyan">🧪 测试期</span>
+    <span class="tag tag-purple">🔍 5Whys分析</span>
+  </div>
+</div>
+
+<div class="alert alert-red" style="margin-bottom:24px"><strong>⚠️ 保密声明：</strong>本案例基于真实项目经验提炼，已脱敏处理。仅供内部学习复盘使用，请勿外传。</div>
+
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ol>
+    <li><a href="#s1">事件背景</a></li>
+    <li><a href="#s2">问题表现</a></li>
+    <li><a href="#s3">原因分析（5Whys分析法）</a></li>
+    <li><a href="#s4">项目处理方式</a></li>
+    <li><a href="#s5">我的思考</a></li>
+  </ol>
+</div>
+
+<div class="section" id="s1">
+  <h2>📋 一、事件背景</h2>
+  <div class="case-info">
+    <div class="case-info-item"><div class="label">项目阶段</div><div class="value val-red">Beta 封版前</div></div>
+    <div class="case-info-item"><div class="label">严重等级</div><div class="value val-red">S 级</div></div>
+    <div class="case-info-item"><div class="label">延期时间</div><div class="value val-red">+2 周</div></div>
+    <div class="case-info-item"><div class="label">加班总计</div><div class="value val-red">200+ 人时</div></div>
+  </div>
+  <p>XX 项目进入 <strong>Beta 封版倒计时 7 天</strong>，所有模块已完成功能集成，QA 团队正在执行最后一轮回归测试。美术资产全部就位，只剩少量 Bug 修复。</p>
+  <p>封版前 <strong>第 7 天</strong>，制作人召开紧急会议，宣布："<strong>根据市场反馈，我们需要在 Beta 版本中新增一套'公会系统' UI 界面（15 个页面 + 对应美术资产）。</strong>"</p>
+  <div class="alert alert-red"><strong>🚨 核弹级变更：</strong>15 个全新 UI 页面意味着：美术需设计+切图 → 程序需开发+联调 → QA 需重新全量测试。这不是"小改"，这是在封版前植入一个全新系统。</div>
+</div>
+
+<div class="section" id="s2">
+  <h2>🔍 二、问题表现</h2>
+
+  <h3>2.1 连锁影响辐射</h3>
+  <div class="impact-grid">
+    <div class="impact-card impact-high">
+      <div class="impact-dept">🎨</div>
+      <div class="impact-name">美术团队</div>
+      <div class="impact-desc">15 个 UI 页面设计 + 切图 + 适配，预计 40 人天的工作量被压缩到 5 天</div>
+    </div>
+    <div class="impact-card impact-high">
+      <div class="impact-dept">💻</div>
+      <div class="impact-name">程序团队</div>
+      <div class="impact-desc">15 个页面前端开发 + 后端接口 + 联调，预计 30 人天压缩到 5 天</div>
+    </div>
+    <div class="impact-card impact-high">
+      <div class="impact-dept">🧪</div>
+      <div class="impact-name">QA 团队</div>
+      <div class="impact-desc">原有回归测试被打断，新增系统需全量测试，测试用例需从零编写</div>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item tl-ok"><div class="tl-dot-wrap"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-date">D-7（变更当天）</div><div class="tl-text">制作人宣布新增公会系统，全线震动</div><div class="tl-detail">美术主管当场表示"不可能"，APM 要求正式评估影响后再做决定。制作人回复："这是老板的意见，必须做。"</div></div></div>
+    <div class="tl-item tl-danger"><div class="tl-dot-wrap"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-date">D-6 ~ D-4</div><div class="tl-text">美术+程序全员 996 紧急赶工</div><div class="tl-detail">美术团队连续 3 天凌晨 2 点下班，质量只能"做到能看就行"。程序团队同步加班联调，Bug 越修越多。</div></div></div>
+    <div class="tl-item tl-danger"><div class="tl-dot-wrap"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-date">D-3</div><div class="tl-text">赶工导致已完成模块出现 12 个新 Bug</div><div class="tl-detail">团队精力严重透支，修新系统时引入了 12 个原有模块的回归 Bug——越忙越乱。</div></div></div>
+    <div class="tl-item tl-warn"><div class="tl-dot-wrap"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-date">D-1</div><div class="tl-text">Beta 版本无法按时封版，被迫延期 2 周</div><div class="tl-detail">新系统仅完成 60%，旧模块又有新 Bug 未修复。制作人最终同意延期 2 周。</div></div></div>
+    <div class="tl-item tl-ok"><div class="tl-dot-wrap"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-date">延期 +2 周后</div><div class="tl-text">公会系统精简为 8 个核心页面，Beta 版本最终封版</div></div></div>
+  </div>
+</div>
+
+<div class="section" id="s3">
+  <h2>🔬 三、原因分析（5Whys 分析法）</h2>
+  <div class="why-chain">
+    <div class="why-item why-1"><div class="why-dot-wrap"><div class="why-num">W1</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 1：为什么 Beta 版本延期 2 周？</div><div class="why-a">因为封版前 7 天被植入了一个全新的公会系统（15 个 UI 页面），工作量远超剩余时间。</div></div></div>
+    <div class="why-item why-2"><div class="why-dot-wrap"><div class="why-num">W2</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 2：为什么允许在封版前新增整个系统？</div><div class="why-a">因为项目没有<strong>严格的需求冻结（Feature Freeze）机制</strong>——没有明确规定"距离封版 X 天后不接受新需求"。</div></div></div>
+    <div class="why-item why-3"><div class="why-dot-wrap"><div class="why-num">W3</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 3：为什么制作人直接拍板而不评估影响？</div><div class="why-a">因为"老板的意见"被当成<strong>免评估通行证</strong>——项目缺乏"任何变更都必须经过影响评估"的文化。</div></div></div>
+    <div class="why-item why-4"><div class="why-dot-wrap"><div class="why-num">W4</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 4：为什么公会系统没有在早期规划中？</div><div class="why-a">因为<strong>产品规划与技术排期脱节</strong>——市场反馈的收集和产品决策周期太长，等到封版前才"拍脑袋"加功能。</div></div></div>
+    <div class="why-item why-5"><div class="why-dot-wrap"><div class="why-num">W5</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 5：为什么赶工导致了更多 Bug？</div><div class="why-a">因为团队在极限压力下<strong>跳过了代码 Review 和美术自检</strong>——"赶进度"牺牲了"保质量"，结果两头都没保住。</div></div></div>
+  </div>
+  <div class="why-root">
+    <strong>🎯 根本原因：</strong><br>
+    ① <strong>Feature Freeze 缺失</strong>：没有需求冻结节点，封版前仍可"注入"新系统；<br>
+    ② <strong>变更免疫文化</strong>："老板说了"= 不需要评估，权力大于流程；<br>
+    ③ <strong>赶工恶性循环</strong>：极限加班 → 质量下降 → 更多 Bug → 更多加班。
+  </div>
+</div>
+
+<div class="section" id="s4">
+  <h2>🛠️ 四、项目处理方式</h2>
+  <h3>4.1 紧急决策</h3>
+  <div class="flow">
+    <div class="flow-node gate"><strong>📊 评估</strong><div class="sub">量化影响（40+30人天）</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>✂️ 砍需求</strong><div class="sub">15页面→8核心页</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>📅 延期</strong><div class="sub">接受+2周延期</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>🛡️ 保质量</strong><div class="sub">恢复Code Review</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>✅ 封版</strong><div class="sub">精简版上线</div></div>
+  </div>
+  <h3>4.2 制度建设</h3>
+  <table>
+    <tr><th>改进项</th><th>具体措施</th><th>状态</th></tr>
+    <tr><td><strong>Feature Freeze</strong></td><td>封版前 2 周进入 Feature Freeze，只接受 Bug Fix 和优化，不接受新功能</td><td><span class="badge-sm badge-green">✅ 已落地</span></td></tr>
+    <tr><td><strong>变更成本公示</strong></td><td>任何新增需求必须附带《影响评估报告》（美术/程序/QA 三方签字），让决策者看到成本</td><td><span class="badge-sm badge-green">✅ 已落地</span></td></tr>
+    <tr><td><strong>版本分流</strong></td><td>来不及做的需求自动进入"下一版本待办"，而非硬塞当前版本</td><td><span class="badge-sm badge-green">✅ 已落地</span></td></tr>
+    <tr><td><strong>加班红线</strong></td><td>连续加班 &gt; 3 天需 APM 审批，超过 5 天由制作人审批，防止恶性加班</td><td><span class="badge-sm badge-yellow">🔄 推进中</span></td></tr>
+  </table>
+</div>
+
+<div class="section" id="s5">
+  <h2>💭 五、我的思考</h2>
+  <div class="golden-quote"><p>"封版前一周加功能，就像飞机降落时给机翼换发动机——不是勇敢，是自杀。"</p></div>
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>❌ 版本末期大忌</h4>
+      <ul>
+        <li>"老板说了"≠ 不用评估——任何变更都有成本</li>
+        <li>"加加班就行"——极限加班 = 质量崩塌 = 更多加班</li>
+        <li>"这个版本不做就来不及了"——来不及就放下个版本</li>
+      </ul>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ 正确姿势</h4>
+      <ul>
+        <li>Feature Freeze 是铁律——封版前 2 周只修 Bug</li>
+        <li>变更必须附带影响评估——让决策者看到真实成本</li>
+        <li>学会"推版本"——做不完的放下个版本，比烂交付好 100 倍</li>
+      </ul>
+    </div>
+  </div>
+  <div class="alert alert-green"><strong>✅ 后续成效：</strong>Feature Freeze 机制落地后，后续 3 个版本<strong>全部准时封版</strong>，团队加班率下降 <strong>60%</strong>，版本质量评分从 <strong>6.5/10</strong> 提升到 <strong>8.7/10</strong>。</div>
+</div>
+
+<div class="related-cases">
+  <h3>🔗 相关案例 & 规范推荐</h3>
+  <div class="rc-grid" id="relatedGrid"></div>
+</div>
+
+<div class="doc-footer">🔄 需求变更案例 v1.0 · 真实案例库 · 2026-04-13</div>
+</div>
+<script>
+(function(){
+  var recommendations = [
+    {icon:'⏰',title:'项目延期案例 — 量产排期连环爆雷复盘',desc:'排期乐观估计引发连锁延期',tags:['项目延期','排期'],variant:'danger',path:'case-delay.html'},
+    {icon:'💥',title:'跨部门冲突案例 — 策划改需求引发美术返工风暴',desc:'策划在量产中期大改核心角色设定',tags:['跨部门','返工'],variant:'danger',path:'case-cross-dept.html'},
+    {icon:'🚨',title:'外包事故案例 — CP 交付质量崩盘全记录',desc:'外包CP交付角色资产质量全面崩盘',tags:['外包事故','质量'],variant:'warning',path:'case-outsource-accident.html'},
+    {icon:'📝',title:'需求对接流转规范',desc:'美术 vs 策划需求对接全流程：变更管控与回溯追踪',tags:['需求对接','规范'],variant:'accent',path:'art-vs-planner-req.html'},
+    {icon:'⚠️',title:'项目风险登记册规范',desc:'风险识别→评估→分级→应对策略→闭环',tags:['风险管理','Risk Log'],variant:'accent',path:'risk-log.html'}
+  ];
+  var grid=document.getElementById('relatedGrid');if(!grid)return;
+  recommendations.forEach(function(item){var card=document.createElement('div');card.className='rc-card rc-card-'+item.variant;card.onclick=function(){if(window.parent&&window.parent!==window){window.parent.postMessage({type:'navigate',path:'knowledge-base/'+item.path},'*')}else{window.location.href=item.path}};var tagsHtml=item.tags.map(function(t){return'<span class="tag tag-info" style="font-size:10px;padding:2px 8px">'+t+'</span>'}).join('');card.innerHTML='<div class="rc-card-top"><span class="rc-card-icon">'+item.icon+'</span><span class="rc-card-title">'+item.title+'</span></div><div class="rc-card-desc">'+item.desc+'</div><div class="rc-card-tags">'+tagsHtml+'</div>';grid.appendChild(card)});
+})();
+</script>
+<script src="editor-kit.js"></script>
+</body>
+</html>
