@@ -1749,6 +1749,7 @@ var CARD_GRID_MAP = {
   'grid-project-schedule':   { module:'project', ids:['art-scheduling','progress-visualization'] },
   'grid-project-req':        { module:'project', ids:['art-vs-planner-req','jira-tapd-automation'] },
   'grid-project-version':    { module:'project', ids:['svn-perforce-structure','asset-submit-review','deprecated-asset-cleanup'] },
+  'grid-project-decision':   { module:'project', ids:['outsource-vs-inhouse-decision','delay-response-decision'] },
   // 板块二：📦 外包全链路管理
   'grid-outsource-eval':     { module:'outsource', ids:['cp-outsource','cp-management'] },
   'grid-outsource-workload': { module:'outsource', ids:['outsource-workload-model'] },
@@ -2220,7 +2221,7 @@ function toggleModuleSection(headerEl){
 }
 
 // ═══ Mermaid 可视化图折叠/展开 ═══
-var mermaidCollapsed = false;
+var mermaidCollapsed = true;
 function toggleMermaidSection(){
   var body = document.getElementById('mermaidBody');
   var chevron = document.getElementById('mermaidChevron');
@@ -2418,6 +2419,17 @@ document.addEventListener('DOMContentLoaded', function(){
   // 0. 初始化交互增强模块
   initLightbox();
   injectSidebarToggle();
+
+  // 0.1 Mermaid 区域默认折叠
+  var mermaidBody = document.getElementById('mermaidBody');
+  var mermaidChevron = document.getElementById('mermaidChevron');
+  if(mermaidBody){
+    mermaidBody.style.overflow = 'hidden';
+    mermaidBody.style.maxHeight = '0';
+    mermaidBody.style.opacity = '0';
+  }
+  if(mermaidChevron) mermaidChevron.style.transform = 'rotate(90deg)';
+
   // 1. 从 sidebar.json 构建侧边栏
   fetch('sidebar.json').then(function(r){return r.json();}).then(function(data){
     buildSidebar(data);

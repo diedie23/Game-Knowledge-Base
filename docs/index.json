@@ -16,13 +16,13 @@
   ],
   "moduleConfig": {
     "project":     { "label": "📋 项目管理与排期",    "icon": "📋", "color": "accent",  "weight": 20 },
-    "outsource":   { "label": "📦 外包全链路管理",    "icon": "📦", "color": "orange",  "weight": 15 },
+    "outsource":   { "label": "📦 外包全链路管理",    "icon": "📦", "color": "orange",  "weight": 10 },
     "craft":       { "label": "🎨 美术工艺与规范",    "icon": "🎨", "color": "purple",  "weight": 25 },
-    "collab":      { "label": "🤝 跨部门协同与交付",  "icon": "🤝", "color": "green",   "weight": 15 },
+    "collab":      { "label": "🤝 跨部门协同与交付",  "icon": "🤝", "color": "green",   "weight": 10 },
     "toolchain":   { "label": "🛠️ 工具链与自动化",   "icon": "🛠️", "color": "cyan",    "weight": 15 },
     "quality":     { "label": "🛡️ 质量、风险与团队",  "icon": "🛡️", "color": "pink",    "weight": 10 },
     "casestudy":   { "label": "🔥 真实案例库",        "icon": "🔥", "color": "red",     "weight": 10 },
-    "system":      { "label": "⚙️ 系统与维护",        "icon": "⚙️", "color": "gray",    "weight": 5  }
+    "system":      { "label": "⚙️ 系统与维护",        "icon": "⚙️", "color": "gray",    "weight": 0  }
   },
   "stageConfig": {
     "预研期": { "color": "#60a5fa", "bg": "rgba(96,165,250,.12)" },
@@ -1030,6 +1030,40 @@
       "owner": "周八",
       "last_updated": "2026-04-09",
       "applicable_stage": "量产期",
+      "priority": "high",
+      "is_hot": false
+    },
+    {
+      "id": "outsource-vs-inhouse-decision",
+      "module": "project",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "外包 vs 内发决策矩阵",
+      "desc": "基于成本/质量/时效/保密四维度的外包vs内部制作决策模型，含评分卡、决策树与实战案例",
+      "tags": ["外包","决策","内发","成本分析","决策矩阵","项目管理"],
+      "icon": "🧭",
+      "action": "openTool",
+      "path": "knowledge-base/outsource-vs-inhouse-decision.html",
+      "owner": "周八",
+      "last_updated": "2026-04-13",
+      "applicable_stage": "预研期",
+      "priority": "high",
+      "is_hot": false
+    },
+    {
+      "id": "delay-response-decision",
+      "module": "project",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "项目延期应对决策",
+      "desc": "延期风险评估框架、五级响应机制、资源调配方案、向上沟通话术与延期复盘模板",
+      "tags": ["延期","风险应对","决策","排期","资源调配","项目管理"],
+      "icon": "⏳",
+      "action": "openTool",
+      "path": "knowledge-base/delay-response-decision.html",
+      "owner": "周八",
+      "last_updated": "2026-04-13",
+      "applicable_stage": "全阶段",
       "priority": "high",
       "is_hot": false
     },
