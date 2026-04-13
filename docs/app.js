@@ -4096,7 +4096,8 @@ function aiLocalAnswer(query){
         answer='根据知识库内容，以下是与你的问题最相关的信息：\n\n';
         results.forEach(function(r,i){
           var entry=r.item;
-          var snippet=entry.excerpt||entry.content.substring(0,150)+'…';
+          // 优先用 excerpt，否则清洗 content 后取摘要
+          var snippet=entry.excerpt||aiCleanBotResponse(entry.content).substring(0,150)+'…';
           answer+='**'+(i+1)+'. '+entry.title+'**\n'+snippet+'\n\n';
           relatedDocs.push({id:entry.id, title:entry.title, icon:entry.icon||'📄'});
         });
@@ -4172,10 +4173,13 @@ function aiAppendMessage(role, text, relatedDocs){
   var div=document.createElement('div');
   div.className='ai-msg ai-msg-'+role;
 
+  // Bot 回答统一清洗 → 去除文档元数据冗余信息
+  var cleanText = (role==='bot') ? aiCleanBotResponse(text) : text;
+
   var avatarHtml=role==='user'
     ?'<div class="ai-msg-avatar">👤</div>'
     :'<div class="ai-msg-avatar"><img class="ai-avatar-img" src="'+AI_BOT_CONFIG.avatarUrl+'" alt="Bot" draggable="false"></div>';
-  var htmlContent=aiFormatMessage(text);
+  var htmlContent=aiFormatMessage(cleanText);
 
   // 添加相关文档链接
   var docsHtml='';
@@ -4198,6 +4202,43 @@ function aiAppendMessage(role, text, relatedDocs){
   // 滚动到底部
   var body=document.getElementById('aiChatBody');
   body.scrollTop=body.scrollHeight;
+}
+
+// ═══ AI 回答文本清洗（去除文档元数据冗余信息） ═══
+function aiCleanBotResponse(text){
+  if(!text) return text;
+  var s=text;
+
+  // 1. 移除 frontmatter 块 (---...---)
+  s=s.replace(/^---[\s\S]*?---\s*/,'');
+
+  // 2. 移除常见文档元数据行（emoji 标签行）
+  //    匹配 👤/📅/🎮/🔥/⚠️/📑/🏷️/📂/🔒 等 emoji 开头 + 一行内容
+  s=s.replace(/^[ \t]*[👤📅🎮🔥⚠️📑🏷📂🔒🚀🏠📌🔐💼📋][^\n]{0,120}\n?/gm,'');
+
+  // 3. 移除独立的 "维护人"、"更新日期"、"保密等级"、"适用范围" 等标签行
+  s=s.replace(/^[ \t]*(维护人|更新日期|创建日期|保密等级|适用范围|使用说明|文档版本|版本号|分类标签|标签|所属模块|优先级|负责人|文档状态|审核人|项目类型)[\s:：].*\n?/gm,'');
+
+  // 4. 移除英文副标题行（如 "Game Production Incident Playbook — ..."）
+  s=s.replace(/^[ \t]*[A-Z][A-Za-z\s\-—:]{10,80}\n/gm, function(match){
+    // 仅移除看起来像副标题的行（全英文 + 标点），保留正文英文句子
+    if(/^[ \t]*[A-Z][a-zA-Z\s\-—:'"]+$/.test(match.trim())) return '';
+    return match;
+  });
+
+  // 5. 移除纯目录行（如 "📑 目录"、"## 目录" 后跟连续的标题列表）
+  s=s.replace(/(?:📑\s*目录|^#{1,3}\s*目录)[：:\s]*\n(?:[ \t]*(?:[-•·]|(?:Case|Step)\s*\d|[一二三四五六七八九十]+、|\d+[.、）)])\s*[^\n]+\n)*/gm,'');
+
+  // 6. 移除 "⚠️ 使用说明：" 段落（到下一个空行或标题为止）
+  s=s.replace(/⚠️?\s*使用说明[：:]\s*\n(?:[^\n]+\n)*?\n/g,'');
+
+  // 7. 移除连续 3 个以上空行 → 合并为 2 个
+  s=s.replace(/\n{4,}/g,'\n\n\n');
+
+  // 8. 移除开头的空行
+  s=s.replace(/^\s*\n+/,'');
+
+  return s;
 }
 
 function aiFormatMessage(text){
