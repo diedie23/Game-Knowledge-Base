@@ -321,6 +321,25 @@
       ]
     },
     {
+      "id": "mod-mynotes",
+      "name": "📌 我的项目笔记",
+      "icon": "📌",
+      "color": "yellow",
+      "items": [],
+      "groups": [
+        {
+          "name": "实战模板",
+          "icon": "📝",
+          "items": [
+            { "id": "tmpl-project-postmortem", "icon": "🔄", "title": "项目复盘报告模板", "type": "iframe", "file": "knowledge-base/project-postmortem-template.html", "badge": "模板", "craft": "管理" },
+            { "id": "tmpl-weekly-report", "icon": "📊", "title": "项目周报模板", "type": "iframe", "file": "knowledge-base/weekly-report-template.html", "badge": "模板", "craft": "管理" },
+            { "id": "tmpl-decision-record", "icon": "⚖️", "title": "决策记录模板", "type": "iframe", "file": "knowledge-base/decision-record-template.html", "badge": "模板", "craft": "管理" },
+            { "id": "tmpl-meeting-notes", "icon": "📝", "title": "会议纪要模板", "type": "iframe", "file": "knowledge-base/meeting-notes-template.html", "badge": "模板", "craft": "管理" }
+          ]
+        }
+      ]
+    },
+    {
       "id": "mod-system",
       "name": "⚙️ 系统与维护",
       "icon": "⚙️",

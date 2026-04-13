@@ -3,32 +3,122 @@
   "lastUpdate": "2026-04-13",
   "subtitle": "APM 专属知识库 — 美术项目管理核心知识体系",
   "milestones": [
-    { "label": "Alpha 版本提交", "date": "2026-04-15", "status": "completed" },
-    { "label": "CB1 内部评审", "date": "2026-05-01", "status": "in_progress" },
-    { "label": "Beta 封版", "date": "2026-06-10", "status": "upcoming" },
-    { "label": "RC 提交 & 上线", "date": "2026-07-01", "status": "upcoming" }
+    {
+      "label": "Alpha 版本提交",
+      "date": "2026-04-15",
+      "status": "completed"
+    },
+    {
+      "label": "CB1 内部评审",
+      "date": "2026-05-01",
+      "status": "in_progress"
+    },
+    {
+      "label": "Beta 封版",
+      "date": "2026-06-10",
+      "status": "upcoming"
+    },
+    {
+      "label": "RC 提交 & 上线",
+      "date": "2026-07-01",
+      "status": "upcoming"
+    }
   ],
-  "budget": { "total": 850000, "used": 476000, "currency": "¥" },
+  "budget": {
+    "total": 850000,
+    "used": 476000,
+    "currency": "¥"
+  },
   "risks": [
-    { "title": "角色模型面数超标", "severity": "high", "owner": "TA组-陈工" },
-    { "title": "外包交付延期风险", "severity": "medium", "owner": "外包PM-李经理" },
-    { "title": "引擎升级兼容问题", "severity": "low", "owner": "技术美术-王工" }
+    {
+      "title": "角色模型面数超标",
+      "severity": "high",
+      "owner": "TA组-陈工"
+    },
+    {
+      "title": "外包交付延期风险",
+      "severity": "medium",
+      "owner": "外包PM-李经理"
+    },
+    {
+      "title": "引擎升级兼容问题",
+      "severity": "low",
+      "owner": "技术美术-王工"
+    }
   ],
   "moduleConfig": {
-    "project":     { "label": "📋 项目管理与排期",    "icon": "📋", "color": "accent",  "weight": 20 },
-    "outsource":   { "label": "📦 外包全链路管理",    "icon": "📦", "color": "orange",  "weight": 10 },
-    "craft":       { "label": "🎨 美术工艺与规范",    "icon": "🎨", "color": "purple",  "weight": 25 },
-    "collab":      { "label": "🤝 跨部门协同与交付",  "icon": "🤝", "color": "green",   "weight": 10 },
-    "toolchain":   { "label": "🛠️ 工具链与自动化",   "icon": "🛠️", "color": "cyan",    "weight": 15 },
-    "quality":     { "label": "🛡️ 质量、风险与团队",  "icon": "🛡️", "color": "pink",    "weight": 10 },
-    "casestudy":   { "label": "🔥 真实案例库",        "icon": "🔥", "color": "red",     "weight": 10 },
-    "system":      { "label": "⚙️ 系统与维护",        "icon": "⚙️", "color": "gray",    "weight": 0  }
+    "project": {
+      "label": "📋 项目管理与排期",
+      "icon": "📋",
+      "color": "accent",
+      "weight": 20
+    },
+    "outsource": {
+      "label": "📦 外包全链路管理",
+      "icon": "📦",
+      "color": "orange",
+      "weight": 10
+    },
+    "craft": {
+      "label": "🎨 美术工艺与规范",
+      "icon": "🎨",
+      "color": "purple",
+      "weight": 25
+    },
+    "collab": {
+      "label": "🤝 跨部门协同与交付",
+      "icon": "🤝",
+      "color": "green",
+      "weight": 10
+    },
+    "toolchain": {
+      "label": "🛠️ 工具链与自动化",
+      "icon": "🛠️",
+      "color": "cyan",
+      "weight": 15
+    },
+    "quality": {
+      "label": "🛡️ 质量、风险与团队",
+      "icon": "🛡️",
+      "color": "pink",
+      "weight": 10
+    },
+    "casestudy": {
+      "label": "🔥 真实案例库",
+      "icon": "🔥",
+      "color": "red",
+      "weight": 10
+    },
+    "system": {
+      "label": "⚙️ 系统与维护",
+      "icon": "⚙️",
+      "color": "gray",
+      "weight": 0
+    },
+    "mynotes": {
+      "label": "📌 我的项目笔记",
+      "icon": "📌",
+      "color": "yellow",
+      "weight": 0
+    }
   },
   "stageConfig": {
-    "预研期": { "color": "#60a5fa", "bg": "rgba(96,165,250,.12)" },
-    "量产期": { "color": "#fb923c", "bg": "rgba(251,146,60,.12)" },
-    "测试期": { "color": "#4ade80", "bg": "rgba(74,222,128,.12)" },
-    "全阶段": { "color": "#a78bfa", "bg": "rgba(167,139,250,.12)" }
+    "预研期": {
+      "color": "#60a5fa",
+      "bg": "rgba(96,165,250,.12)"
+    },
+    "量产期": {
+      "color": "#fb923c",
+      "bg": "rgba(251,146,60,.12)"
+    },
+    "测试期": {
+      "color": "#4ade80",
+      "bg": "rgba(74,222,128,.12)"
+    },
+    "全阶段": {
+      "color": "#a78bfa",
+      "bg": "rgba(167,139,250,.12)"
+    }
   },
   "items": [
     {
@@ -38,7 +128,13 @@
       "type": "iframe",
       "title": "美术生产管线总览 — 2D/3D/二次元全流程",
       "desc": "轻度2D/重度3D/二次元手游的美术生产管线对比，含各阶段产出物与交接节点",
-      "tags": ["Pipeline","美术流程","2D","3D","管线"],
+      "tags": [
+        "Pipeline",
+        "美术流程",
+        "2D",
+        "3D",
+        "管线"
+      ],
       "icon": "🔄",
       "action": "openTool",
       "path": "knowledge-base/game-art-pipeline.html",
@@ -46,7 +142,21 @@
       "last_updated": "2026-03-25",
       "applicable_stage": "全阶段",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "美术管线",
+        "生产流程",
+        "工作流",
+        "2D手游",
+        "3D手游",
+        "二次元",
+        "管线设计",
+        "流程图",
+        "交接节点",
+        "产出物"
+      ],
+      "content_type": "方法论",
+      "quality_level": "premium"
     },
     {
       "id": "cp-outsource",
@@ -55,7 +165,14 @@
       "type": "iframe",
       "title": "外包管理与验收规范",
       "desc": "面向 APM 的外包全流程管理指南：需求下发、CP 评级、制作跟进、双重验收、结算（含验收 Checklist）",
-      "tags": ["外包","CP评级","验收","结算","避坑","Checklist"],
+      "tags": [
+        "外包",
+        "CP评级",
+        "验收",
+        "结算",
+        "避坑",
+        "Checklist"
+      ],
       "icon": "📋",
       "action": "openTool",
       "path": "knowledge-base/cp-outsource.html",
@@ -63,7 +180,20 @@
       "last_updated": "2026-03-25",
       "applicable_stage": "量产期",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "外包管理",
+        "外包验收",
+        "CP评级",
+        "外包流程",
+        "验收标准",
+        "结算",
+        "外包合同",
+        "供应商管理",
+        "外包质量"
+      ],
+      "content_type": "规范",
+      "quality_level": "premium"
     },
     {
       "id": "cp-management",
@@ -72,7 +202,12 @@
       "type": "iframe",
       "title": "外包资产验收 Checklist（附录）",
       "desc": "外包管理与验收规范的配套附录 — 双重验收体系、逐项 Checklist、CP 评级打分表",
-      "tags": ["验收","Checklist","CP评级","附录"],
+      "tags": [
+        "验收",
+        "Checklist",
+        "CP评级",
+        "附录"
+      ],
       "icon": "✅",
       "action": "openTool",
       "path": "knowledge-base/cp-management.html",
@@ -80,7 +215,17 @@
       "last_updated": "2026-03-30",
       "applicable_stage": "量产期",
       "priority": "medium",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "验收清单",
+        "外包检查",
+        "CP打分",
+        "双重验收",
+        "外包评级",
+        "质量把控"
+      ],
+      "content_type": "规范",
+      "quality_level": "mature"
     },
     {
       "id": "art-scheduling",
@@ -89,7 +234,13 @@
       "type": "md",
       "title": "美术排期与里程碑管理",
       "desc": "敏捷开发在美术团队的应用：Sprint 排期、里程碑分解、燃尽图跟踪与风险预警",
-      "tags": ["排期","里程碑","敏捷","Sprint","燃尽图"],
+      "tags": [
+        "排期",
+        "里程碑",
+        "敏捷",
+        "Sprint",
+        "燃尽图"
+      ],
       "icon": "📅",
       "action": "showDoc",
       "path": "knowledge-base/art-scheduling.md",
@@ -98,7 +249,20 @@
       "applicable_stage": "全阶段",
       "priority": "high",
       "is_hot": true,
-      "draft_prompt": "你是一名资深游戏美术项目经理（APM），精通敏捷与传统项目管理方法。请帮我编写一份《美术排期与里程碑管理》文档，需要包含：\n1. 美术排期的特殊性（与程序排期的差异、创意迭代导致的不确定性）\n2. Sprint 排期模板（2周一个 Sprint，美术任务卡片的标准字段）\n3. 里程碑分解方法（Alpha/Beta/RC 各阶段美术交付物清单）\n4. 燃尽图跟踪指南（如何解读、异常信号识别）\n5. 风险预警机制（黄色/红色预警的触发条件与应对 SOP）\n6. 实战模板：一个中型手游项目的完整排期示例\n请使用 Markdown 格式，包含甘特图示意和表格。"
+      "draft_prompt": "你是一名资深游戏美术项目经理（APM），精通敏捷与传统项目管理方法。请帮我编写一份《美术排期与里程碑管理》文档，需要包含：\n1. 美术排期的特殊性（与程序排期的差异、创意迭代导致的不确定性）\n2. Sprint 排期模板（2周一个 Sprint，美术任务卡片的标准字段）\n3. 里程碑分解方法（Alpha/Beta/RC 各阶段美术交付物清单）\n4. 燃尽图跟踪指南（如何解读、异常信号识别）\n5. 风险预警机制（黄色/红色预警的触发条件与应对 SOP）\n6. 实战模板：一个中型手游项目的完整排期示例\n请使用 Markdown 格式，包含甘特图示意和表格。",
+      "keywords": [
+        "排期",
+        "里程碑",
+        "Sprint",
+        "甘特图",
+        "燃尽图",
+        "风险预警",
+        "敏捷开发",
+        "迭代管理",
+        "进度跟踪"
+      ],
+      "content_type": "方法论",
+      "quality_level": "initial"
     },
     {
       "id": "char-naming-redline",
@@ -107,7 +271,14 @@
       "type": "iframe",
       "title": "资产命名与性能红线",
       "desc": "角色资产文件命名规约、2^N 贴图尺寸、面数/骨骼/Drawcall 分级预算表、多端适配红线",
-      "tags": ["命名规范","性能红线","面数","贴图","多端适配","通用"],
+      "tags": [
+        "命名规范",
+        "性能红线",
+        "面数",
+        "贴图",
+        "多端适配",
+        "通用"
+      ],
       "icon": "📏",
       "action": "openTool",
       "path": "knowledge-base/ugc-character-spec.html",
@@ -115,7 +286,19 @@
       "last_updated": "2026-04-10",
       "applicable_stage": "全阶段",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "命名规范",
+        "资产命名",
+        "文件命名",
+        "面数限制",
+        "贴图尺寸",
+        "性能红线",
+        "Drawcall",
+        "多端适配"
+      ],
+      "content_type": "规范",
+      "quality_level": "premium"
     },
     {
       "id": "char-color-swap-pipeline",
@@ -124,7 +307,19 @@
       "type": "iframe",
       "title": "2D 角色换色工业化全管线",
       "desc": "三种换色方案对比（Mask+HSV / Palette Swap / 灰度叠色）、RGBA 通道互斥铁律、多 Mask 扩展、美术出图 SOP、通道分配与调色板约定、工具规范与资源生成标准",
-      "tags": ["换色","Mask","HSV","通道互斥","调色板","灰度叠色","2D","资产交付","工业化规范","出图SOP","工具规范"],
+      "tags": [
+        "换色",
+        "Mask",
+        "HSV",
+        "通道互斥",
+        "调色板",
+        "灰度叠色",
+        "2D",
+        "资产交付",
+        "工业化规范",
+        "出图SOP",
+        "工具规范"
+      ],
       "icon": "🎨",
       "action": "openTool",
       "path": "knowledge-base/char-color-swap-mask.html",
@@ -132,7 +327,20 @@
       "last_updated": "2026-04-13",
       "applicable_stage": "量产期",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "换色",
+        "Mask",
+        "HSV",
+        "调色板",
+        "通道互斥",
+        "灰度叠色",
+        "换装系统",
+        "颜色方案",
+        "资产交付"
+      ],
+      "content_type": "规范",
+      "quality_level": "premium"
     },
     {
       "id": "spine-animation-pipeline",
@@ -141,7 +349,17 @@
       "type": "iframe",
       "title": "Spine 动画导出与性能排雷全指南",
       "desc": "Spine 动画 10 项红线指标、骨骼/Mesh/Atlas 导出标准、7 大性能雷区深度解析、拆分工具 SOP、跨部门排查流程",
-      "tags": ["Spine","骨骼动画","性能红线","导出规范","Atlas","拆分","2D","排雷","跨部门"],
+      "tags": [
+        "Spine",
+        "骨骼动画",
+        "性能红线",
+        "导出规范",
+        "Atlas",
+        "拆分",
+        "2D",
+        "排雷",
+        "跨部门"
+      ],
       "icon": "🦴",
       "action": "openTool",
       "path": "knowledge-base/spine-perf-guide.html",
@@ -149,7 +367,20 @@
       "last_updated": "2026-04-13",
       "applicable_stage": "量产期",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "Spine",
+        "骨骼动画",
+        "性能优化",
+        "导出规范",
+        "Atlas",
+        "拆分",
+        "动画性能",
+        "帧率",
+        "内存"
+      ],
+      "content_type": "规范",
+      "quality_level": "premium"
     },
     {
       "id": "char-3d-topo-pbr",
@@ -158,7 +389,15 @@
       "type": "iframe",
       "title": "拓扑与 PBR 贴图规范",
       "desc": "3D 角色拓扑布线标准、PBR 贴图通道规范（BaseColor/Normal/ARM/Emissive）、LOD 分级、骨骼绑定要求",
-      "tags": ["3D","拓扑","PBR","贴图","LOD","骨骼绑定","法线"],
+      "tags": [
+        "3D",
+        "拓扑",
+        "PBR",
+        "贴图",
+        "LOD",
+        "骨骼绑定",
+        "法线"
+      ],
       "icon": "🧊",
       "action": "openTool",
       "path": "knowledge-base/char-3d-topo-pbr.html",
@@ -166,7 +405,20 @@
       "last_updated": "2026-04-10",
       "applicable_stage": "预研期",
       "priority": "medium",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "3D角色",
+        "拓扑",
+        "PBR",
+        "贴图通道",
+        "LOD",
+        "骨骼绑定",
+        "法线贴图",
+        "布线标准",
+        "BaseColor"
+      ],
+      "content_type": "规范",
+      "quality_level": "mature"
     },
     {
       "id": "char-ugc-parts-safety",
@@ -175,7 +427,15 @@
       "type": "iframe",
       "title": "[UGC] 部件拆分与安全区规范",
       "desc": "UGC 角色五大部件拆分标准、素体安全区与关节 Padding、Z-Order 铁律、换装兼容性测试 Checklist",
-      "tags": ["UGC","部件拆分","安全区","Z-Order","换装","Padding","检查清单"],
+      "tags": [
+        "UGC",
+        "部件拆分",
+        "安全区",
+        "Z-Order",
+        "换装",
+        "Padding",
+        "检查清单"
+      ],
       "icon": "📐",
       "action": "openTool",
       "path": "knowledge-base/char-ugc-parts-safety.html",
@@ -183,7 +443,19 @@
       "last_updated": "2026-04-10",
       "applicable_stage": "量产期",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "UGC",
+        "部件拆分",
+        "安全区",
+        "Z-Order",
+        "换装",
+        "素体",
+        "关节Padding",
+        "兼容性测试"
+      ],
+      "content_type": "规范",
+      "quality_level": "premium"
     },
     {
       "id": "ugc-2d-export-spec",
@@ -192,7 +464,12 @@
       "type": "iframe",
       "title": "2D 出图与图层规范",
       "desc": "2D UGC 角色出图制作流程、分辨率标准、图层规范与导出要求",
-      "tags": ["2D","UGC","角色出图","图层规范"],
+      "tags": [
+        "2D",
+        "UGC",
+        "角色出图",
+        "图层规范"
+      ],
       "icon": "📐",
       "action": "openTool",
       "path": "knowledge-base/art/2D-UGC角色出图规范.html",
@@ -200,7 +477,17 @@
       "last_updated": "2026-04-10",
       "applicable_stage": "量产期",
       "priority": "high",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "2D出图",
+        "UGC角色",
+        "图层规范",
+        "分辨率",
+        "导出标准",
+        "出图流程"
+      ],
+      "content_type": "规范",
+      "quality_level": "initial"
     },
     {
       "id": "auto-mask-spec",
@@ -209,7 +496,13 @@
       "type": "iframe",
       "title": "[工具规范] 自动 Mask 通道生成器",
       "desc": "自动 Mask 通道生成器工业化规范，含算法原理、参数配置、QA 检测标准与批量处理流程",
-      "tags": ["Mask","自动生成","工业化规范","通道","QA检测"],
+      "tags": [
+        "Mask",
+        "自动生成",
+        "工业化规范",
+        "通道",
+        "QA检测"
+      ],
       "icon": "🤖",
       "action": "openTool",
       "path": "knowledge-base/auto-mask-spec.html",
@@ -217,7 +510,18 @@
       "last_updated": "2026-04-10",
       "applicable_stage": "量产期",
       "priority": "medium",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "自动Mask",
+        "通道生成",
+        "工业化",
+        "算法",
+        "QA检测",
+        "批量处理",
+        "工具规范"
+      ],
+      "content_type": "规范",
+      "quality_level": "mature"
     },
     {
       "id": "spine-split-spec",
@@ -226,7 +530,13 @@
       "type": "iframe",
       "title": "[工具规范] Spine 角色拆分工具",
       "desc": "Spine 角色拆分工具工业化规范，含拆分标准、拓扑延展规则、Atlas 导出与兼容性要求",
-      "tags": ["Spine","拆分","工业化规范","拓扑","Atlas"],
+      "tags": [
+        "Spine",
+        "拆分",
+        "工业化规范",
+        "拓扑",
+        "Atlas"
+      ],
       "icon": "✂️",
       "action": "openTool",
       "path": "knowledge-base/spine-split-spec.html",
@@ -234,7 +544,16 @@
       "last_updated": "2026-04-10",
       "applicable_stage": "量产期",
       "priority": "medium",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "Spine拆分",
+        "拓扑延展",
+        "Atlas导出",
+        "工具规范",
+        "拆分标准"
+      ],
+      "content_type": "规范",
+      "quality_level": "mature"
     },
     {
       "id": "ui-slice-naming",
@@ -243,7 +562,11 @@
       "type": "iframe",
       "title": "切图与命名规范",
       "desc": "UI 切图标准与文件命名规则",
-      "tags": ["切图","命名","UI"],
+      "tags": [
+        "切图",
+        "命名",
+        "UI"
+      ],
       "icon": "✂️",
       "action": "openTool",
       "path": "knowledge-base/ui-slice-naming.html",
@@ -251,7 +574,16 @@
       "last_updated": "2026-03-28",
       "applicable_stage": "量产期",
       "priority": "medium",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "UI切图",
+        "命名规则",
+        "切图标准",
+        "UI资产",
+        "文件命名"
+      ],
+      "content_type": "规范",
+      "quality_level": "mature"
     },
     {
       "id": "ui-9slice-color",
@@ -260,7 +592,10 @@
       "type": "iframe",
       "title": "[UI] 9宫格与颜色空间",
       "desc": "9-Slice 拉伸与色彩空间规范",
-      "tags": ["9宫格","颜色空间"],
+      "tags": [
+        "9宫格",
+        "颜色空间"
+      ],
       "icon": "🎨",
       "action": "openTool",
       "path": "knowledge-base/ui-9slice-color.html",
@@ -268,7 +603,17 @@
       "last_updated": "2026-03-28",
       "applicable_stage": "量产期",
       "priority": "low",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "9宫格",
+        "九宫格",
+        "拉伸",
+        "颜色空间",
+        "sRGB",
+        "UI规范"
+      ],
+      "content_type": "规范",
+      "quality_level": "initial"
     },
     {
       "id": "ui-layout",
@@ -277,7 +622,10 @@
       "type": "iframe",
       "title": "[UI] Layout 拼接规范",
       "desc": "界面布局与自适应拼接方案",
-      "tags": ["Layout","适配"],
+      "tags": [
+        "Layout",
+        "适配"
+      ],
       "icon": "📐",
       "action": "openTool",
       "path": "knowledge-base/ui-layout.html",
@@ -285,7 +633,16 @@
       "last_updated": "2026-03-28",
       "applicable_stage": "量产期",
       "priority": "low",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "UI布局",
+        "自适应",
+        "响应式",
+        "拼接方案",
+        "适配规范"
+      ],
+      "content_type": "规范",
+      "quality_level": "initial"
     },
     {
       "id": "ui-umg-tips",
@@ -294,7 +651,13 @@
       "type": "iframe",
       "title": "UMG 生成技巧",
       "desc": "AI 辅助生成 UE UMG Widget 的性能优化、动静分离与 Prompt 编写指南",
-      "tags": ["UMG","AI Prompt","性能优化","动静分离","UI规范"],
+      "tags": [
+        "UMG",
+        "AI Prompt",
+        "性能优化",
+        "动静分离",
+        "UI规范"
+      ],
       "icon": "⚡",
       "action": "openTool",
       "path": "knowledge-base/ui-umg-tips.html",
@@ -302,7 +665,17 @@
       "last_updated": "2026-04-01",
       "applicable_stage": "量产期",
       "priority": "medium",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "UMG",
+        "UE Widget",
+        "AI Prompt",
+        "性能优化",
+        "动静分离",
+        "Slate"
+      ],
+      "content_type": "指南",
+      "quality_level": "mature"
     },
     {
       "id": "scene-lod-spec",
@@ -311,7 +684,11 @@
       "type": "iframe",
       "title": "模块化与 LOD 规范",
       "desc": "场景资源的模块化拆分与 LOD 分级标准",
-      "tags": ["LOD","模块化","场景"],
+      "tags": [
+        "LOD",
+        "模块化",
+        "场景"
+      ],
       "icon": "🏗️",
       "action": "openTool",
       "path": "knowledge-base/scene-lod-spec.html",
@@ -319,7 +696,17 @@
       "last_updated": "2026-03-30",
       "applicable_stage": "预研期",
       "priority": "medium",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "场景LOD",
+        "模块化",
+        "拆分标准",
+        "场景资源",
+        "LOD分级",
+        "距离切换"
+      ],
+      "content_type": "规范",
+      "quality_level": "initial"
     },
     {
       "id": "svn-perforce-structure",
@@ -328,7 +715,13 @@
       "type": "md",
       "title": "SVN/Perforce 目录结构标准",
       "desc": "美术资产在 SVN/Perforce 中的标准目录结构、分支策略、权限模型与命名规约",
-      "tags": ["SVN","Perforce","目录结构","版本管理","资产库"],
+      "tags": [
+        "SVN",
+        "Perforce",
+        "目录结构",
+        "版本管理",
+        "资产库"
+      ],
       "icon": "📂",
       "action": "showDoc",
       "path": "knowledge-base/svn-perforce-structure.md",
@@ -337,7 +730,18 @@
       "applicable_stage": "全阶段",
       "priority": "high",
       "is_hot": false,
-      "draft_prompt": "你是一名资深游戏项目技术美术（TA）兼版本管理专家。请帮我编写一份《SVN/Perforce 目录结构标准》文档，内容需要包含：\n1. 美术资产根目录结构设计（按工种划分：角色/场景/UI/特效/动画）\n2. 每个工种目录下的子目录规范（Source / Export / Temp / Archive）\n3. 文件命名规约（前缀_模块_描述_版本号）\n4. SVN 与 Perforce 的分支策略差异及最佳实践\n5. 权限模型建议（只读/读写/管理员三级）\n6. 常见踩坑案例（如大文件锁定冲突、二进制合并失败）\n7. 团队协作中的 Commit Message 规范模板\n请使用 Markdown 格式，包含表格和检查清单。"
+      "draft_prompt": "你是一名资深游戏项目技术美术（TA）兼版本管理专家。请帮我编写一份《SVN/Perforce 目录结构标准》文档，内容需要包含：\n1. 美术资产根目录结构设计（按工种划分：角色/场景/UI/特效/动画）\n2. 每个工种目录下的子目录规范（Source / Export / Temp / Archive）\n3. 文件命名规约（前缀_模块_描述_版本号）\n4. SVN 与 Perforce 的分支策略差异及最佳实践\n5. 权限模型建议（只读/读写/管理员三级）\n6. 常见踩坑案例（如大文件锁定冲突、二进制合并失败）\n7. 团队协作中的 Commit Message 规范模板\n请使用 Markdown 格式，包含表格和检查清单。",
+      "keywords": [
+        "SVN",
+        "Perforce",
+        "版本管理",
+        "目录结构",
+        "分支策略",
+        "权限模型",
+        "资产库"
+      ],
+      "content_type": "规范",
+      "quality_level": "initial"
     },
     {
       "id": "asset-submit-review",
@@ -346,7 +750,13 @@
       "type": "md",
       "title": "资产提交与审核工作流",
       "desc": "美术资产提交规范、自动化审核流水线、Code Review 对应的 Art Review 机制",
-      "tags": ["资产提交","审核工作流","自动化","Art Review","CI/CD"],
+      "tags": [
+        "资产提交",
+        "审核工作流",
+        "自动化",
+        "Art Review",
+        "CI/CD"
+      ],
       "icon": "🔄",
       "action": "showDoc",
       "path": "knowledge-base/asset-submit-review.md",
@@ -355,7 +765,18 @@
       "applicable_stage": "量产期",
       "priority": "high",
       "is_hot": false,
-      "draft_prompt": "你是一名资深游戏美术项目经理（APM），精通资产管理与 CI/CD 流程。请帮我编写一份《资产提交与审核工作流》文档，需要包含：\n1. 资产提交前的自检 Checklist（命名、尺寸、面数、贴图格式）\n2. 提交流程的标准化步骤（本地自检 → 提交到暂存区 → 自动化检查 → 人工 Art Review → 合入主干）\n3. 自动化审核流水线设计（Jenkins/GitLab CI 触发的资产检查脚本示例）\n4. Art Review 机制（谁来审核、审核标准、反馈模板、打回与修改流程）\n5. 常见提交事故与预防措施（覆盖他人文件、遗漏关联资产、引用路径断裂）\n6. 与 UE/Unity 引擎导入的衔接规范\n请使用 Markdown 格式，包含流程图说明和表格。"
+      "draft_prompt": "你是一名资深游戏美术项目经理（APM），精通资产管理与 CI/CD 流程。请帮我编写一份《资产提交与审核工作流》文档，需要包含：\n1. 资产提交前的自检 Checklist（命名、尺寸、面数、贴图格式）\n2. 提交流程的标准化步骤（本地自检 → 提交到暂存区 → 自动化检查 → 人工 Art Review → 合入主干）\n3. 自动化审核流水线设计（Jenkins/GitLab CI 触发的资产检查脚本示例）\n4. Art Review 机制（谁来审核、审核标准、反馈模板、打回与修改流程）\n5. 常见提交事故与预防措施（覆盖他人文件、遗漏关联资产、引用路径断裂）\n6. 与 UE/Unity 引擎导入的衔接规范\n请使用 Markdown 格式，包含流程图说明和表格。",
+      "keywords": [
+        "资产提交",
+        "审核",
+        "Art Review",
+        "CI/CD",
+        "自动化检查",
+        "提交流程",
+        "代码审查"
+      ],
+      "content_type": "方法论",
+      "quality_level": "initial"
     },
     {
       "id": "outsource-workload-model",
@@ -364,7 +785,13 @@
       "type": "md",
       "title": "美术外包工作量评估标准 (人天模型)",
       "desc": "按工种和资产复杂度的标准人天评估模型、报价基准与风险系数",
-      "tags": ["外包","人天模型","工作量评估","报价","成本"],
+      "tags": [
+        "外包",
+        "人天模型",
+        "工作量评估",
+        "报价",
+        "成本"
+      ],
       "icon": "📊",
       "action": "showDoc",
       "path": "knowledge-base/outsource-workload-model.md",
@@ -373,7 +800,17 @@
       "applicable_stage": "量产期",
       "priority": "high",
       "is_hot": false,
-      "draft_prompt": "你是一名有 8 年以上经验的游戏美术项目经理（APM），精通外包管理和成本控制。请帮我编写一份《美术外包工作量评估标准（人天模型）》文档，需要包含：\n1. 按工种分类的基准人天表（角色原画/角色建模/场景建模/UI设计/特效/动画，每个工种按复杂度 S/A/B/C 分级）\n2. 复杂度评估标准（每个等级的具体定义、参考案例）\n3. 风险系数加成（首次合作 CP 加成 20%、跨时区沟通加成 10% 等）\n4. 报价公式模板：总价 = 基准人天 × 单价 × 复杂度系数 × 风险系数\n5. 评审与校准机制（如何避免评估偏差、历史数据复盘校准方法）\n6. 实际案例：一个中等复杂度角色从原画到建模到绑定的完整人天拆解\n请使用 Markdown 格式，包含详细表格和公式。"
+      "draft_prompt": "你是一名有 8 年以上经验的游戏美术项目经理（APM），精通外包管理和成本控制。请帮我编写一份《美术外包工作量评估标准（人天模型）》文档，需要包含：\n1. 按工种分类的基准人天表（角色原画/角色建模/场景建模/UI设计/特效/动画，每个工种按复杂度 S/A/B/C 分级）\n2. 复杂度评估标准（每个等级的具体定义、参考案例）\n3. 风险系数加成（首次合作 CP 加成 20%、跨时区沟通加成 10% 等）\n4. 报价公式模板：总价 = 基准人天 × 单价 × 复杂度系数 × 风险系数\n5. 评审与校准机制（如何避免评估偏差、历史数据复盘校准方法）\n6. 实际案例：一个中等复杂度角色从原画到建模到绑定的完整人天拆解\n请使用 Markdown 格式，包含详细表格和公式。",
+      "keywords": [
+        "人天评估",
+        "工作量",
+        "报价",
+        "成本核算",
+        "复杂度评估",
+        "外包定价"
+      ],
+      "content_type": "方法论",
+      "quality_level": "initial"
     },
     {
       "id": "vfx-perf-spec",
@@ -382,7 +819,14 @@
       "type": "md",
       "title": "[特效] 性能红线与层级规范",
       "desc": "粒子特效的 Drawcall / 粒子数量 / Overdraw / 层级管理规范与移动端性能预算",
-      "tags": ["特效","性能红线","Drawcall","粒子","Overdraw","层级"],
+      "tags": [
+        "特效",
+        "性能红线",
+        "Drawcall",
+        "粒子",
+        "Overdraw",
+        "层级"
+      ],
       "icon": "✨",
       "action": "showDoc",
       "path": "knowledge-base/vfx-perf-spec.md",
@@ -391,7 +835,19 @@
       "applicable_stage": "预研期",
       "priority": "high",
       "is_hot": false,
-      "draft_prompt": "你是一名资深技术美术（TA），专精游戏特效性能优化。请帮我编写一份《特效性能红线与层级规范》文档，需要包含：\n1. 移动端特效性能预算表（按机型分档：高/中/低端）\n  - 单个特效最大 Drawcall 数\n  - 单个特效最大粒子数量\n  - 屏幕 Overdraw 上限\n  - GPU 填充率预算\n2. 特效层级管理规范（前景/角色/场景/UI 特效的渲染顺序与优先级）\n3. 贴图规范（特效专用贴图尺寸上限、压缩格式要求、通道复用策略）\n4. 性能自测工具与方法（GPU Profiler 使用指南、Overdraw 可视化）\n5. 常见性能雷区（Alpha 叠加过多、大面积半透明、未合批的粒子系统）\n6. 优化 Checklist（发版前必须逐项核对的清单）\n请使用 Markdown 格式，包含红线数值表格和截图说明占位。"
+      "draft_prompt": "你是一名资深技术美术（TA），专精游戏特效性能优化。请帮我编写一份《特效性能红线与层级规范》文档，需要包含：\n1. 移动端特效性能预算表（按机型分档：高/中/低端）\n  - 单个特效最大 Drawcall 数\n  - 单个特效最大粒子数量\n  - 屏幕 Overdraw 上限\n  - GPU 填充率预算\n2. 特效层级管理规范（前景/角色/场景/UI 特效的渲染顺序与优先级）\n3. 贴图规范（特效专用贴图尺寸上限、压缩格式要求、通道复用策略）\n4. 性能自测工具与方法（GPU Profiler 使用指南、Overdraw 可视化）\n5. 常见性能雷区（Alpha 叠加过多、大面积半透明、未合批的粒子系统）\n6. 优化 Checklist（发版前必须逐项核对的清单）\n请使用 Markdown 格式，包含红线数值表格和截图说明占位。",
+      "keywords": [
+        "特效",
+        "粒子",
+        "Drawcall",
+        "Overdraw",
+        "填充率",
+        "性能预算",
+        "移动端",
+        "层级管理"
+      ],
+      "content_type": "规范",
+      "quality_level": "initial"
     },
     {
       "id": "anim-state-handoff",
@@ -400,7 +856,13 @@
       "type": "md",
       "title": "动画状态机交接与导出规范",
       "desc": "动画状态机文档化标准、引擎导入规范、美术与程序的动画资产交接 SOP",
-      "tags": ["动画","状态机","导出规范","交接","引擎导入"],
+      "tags": [
+        "动画",
+        "状态机",
+        "导出规范",
+        "交接",
+        "引擎导入"
+      ],
       "icon": "🎬",
       "action": "showDoc",
       "path": "knowledge-base/anim-state-handoff.md",
@@ -409,7 +871,19 @@
       "applicable_stage": "量产期",
       "priority": "high",
       "is_hot": false,
-      "draft_prompt": "你是一名资深游戏动画师兼技术美术，精通 UE/Unity 动画系统。请帮我编写一份《动画状态机交接与导出规范》文档，需要包含：\n1. 动画状态机文档化模板（状态名称、转换条件、BlendSpace 参数、混合时间）\n2. 命名规范（动画片段命名规则：前缀_角色_动作_变体_版本）\n3. FBX 导出设置标准（帧率、骨骼层级、Root Motion 设置、Scale Factor）\n4. 引擎导入 Checklist（UE: AnimBlueprint / Unity: Animator Controller 对应关系）\n5. 美术→程序交接 SOP（交接清单、状态机文档、预览视频、异常动作标注）\n6. 常见踩坑案例（骨骼不匹配、动画偏移、状态机死循环、过渡闪烁）\n7. 版本管理建议（动画资产如何在 SVN/Perforce 中管理增量更新）\n请使用 Markdown 格式，包含状态机流程图示意和表格。"
+      "draft_prompt": "你是一名资深游戏动画师兼技术美术，精通 UE/Unity 动画系统。请帮我编写一份《动画状态机交接与导出规范》文档，需要包含：\n1. 动画状态机文档化模板（状态名称、转换条件、BlendSpace 参数、混合时间）\n2. 命名规范（动画片段命名规则：前缀_角色_动作_变体_版本）\n3. FBX 导出设置标准（帧率、骨骼层级、Root Motion 设置、Scale Factor）\n4. 引擎导入 Checklist（UE: AnimBlueprint / Unity: Animator Controller 对应关系）\n5. 美术→程序交接 SOP（交接清单、状态机文档、预览视频、异常动作标注）\n6. 常见踩坑案例（骨骼不匹配、动画偏移、状态机死循环、过渡闪烁）\n7. 版本管理建议（动画资产如何在 SVN/Perforce 中管理增量更新）\n请使用 Markdown 格式，包含状态机流程图示意和表格。",
+      "keywords": [
+        "动画",
+        "状态机",
+        "FBX",
+        "导出",
+        "交接",
+        "AnimBlueprint",
+        "Root Motion",
+        "骨骼"
+      ],
+      "content_type": "规范",
+      "quality_level": "initial"
     },
     {
       "id": "art-vs-planner-req",
@@ -418,7 +892,13 @@
       "type": "md",
       "title": "需求对接流转规范",
       "desc": "美术 vs 策划需求对接全流程：需求单模板、评审机制、变更管控与回溯追踪",
-      "tags": ["需求对接","策划","流转","变更管控","跨部门"],
+      "tags": [
+        "需求对接",
+        "策划",
+        "流转",
+        "变更管控",
+        "跨部门"
+      ],
       "icon": "📝",
       "action": "showDoc",
       "path": "knowledge-base/art-vs-planner-req.md",
@@ -427,7 +907,18 @@
       "applicable_stage": "全阶段",
       "priority": "high",
       "is_hot": true,
-      "draft_prompt": "你是一名资深游戏美术项目经理（APM），请帮我编写一份《美术 vs 策划需求对接流转规范》文档，需要包含：\n1. 需求对接全流程图（策划提需求 → 评审 → 排期 → 制作 → 验收 → 归档）\n2. 标准需求单模板（字段定义、优先级规则、参考图规格要求）\n3. 评审机制（评审会频率、参与角色、决策流程、分歧处理）\n4. 变更管控（变更申请流程、影响评估模板、变更冻结期规则）\n5. 常见冲突场景与解法（需求描述不清、频繁变更、优先级争议）\n请使用 Markdown 格式，包含流程图和模板表格。"
+      "draft_prompt": "你是一名资深游戏美术项目经理（APM），请帮我编写一份《美术 vs 策划需求对接流转规范》文档，需要包含：\n1. 需求对接全流程图（策划提需求 → 评审 → 排期 → 制作 → 验收 → 归档）\n2. 标准需求单模板（字段定义、优先级规则、参考图规格要求）\n3. 评审机制（评审会频率、参与角色、决策流程、分歧处理）\n4. 变更管控（变更申请流程、影响评估模板、变更冻结期规则）\n5. 常见冲突场景与解法（需求描述不清、频繁变更、优先级争议）\n请使用 Markdown 格式，包含流程图和模板表格。",
+      "keywords": [
+        "需求对接",
+        "策划",
+        "需求单",
+        "变更管控",
+        "需求评审",
+        "优先级",
+        "流转"
+      ],
+      "content_type": "方法论",
+      "quality_level": "mature"
     },
     {
       "id": "art-vs-planner-template",
@@ -436,7 +927,13 @@
       "type": "md",
       "title": "UI/原画需求模板",
       "desc": "标准化的 UI 需求单与原画需求单模板，含参考图规格、优先级定义、验收标准",
-      "tags": ["需求模板","UI需求","原画需求","模板","跨部门"],
+      "tags": [
+        "需求模板",
+        "UI需求",
+        "原画需求",
+        "模板",
+        "跨部门"
+      ],
       "icon": "📄",
       "action": "showDoc",
       "path": "knowledge-base/art-vs-planner-template.md",
@@ -444,7 +941,17 @@
       "last_updated": "2026-04-07",
       "applicable_stage": "全阶段",
       "priority": "high",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "需求模板",
+        "UI需求",
+        "原画需求",
+        "需求单模板",
+        "参考图",
+        "验收标准"
+      ],
+      "content_type": "模板",
+      "quality_level": "initial"
     },
     {
       "id": "art-vs-ta-naming",
@@ -453,7 +960,13 @@
       "type": "md",
       "title": "引擎导入与命名规范",
       "desc": "美术 vs 程序/TA 资产交接标准：文件命名规则、目录结构、引擎导入 Checklist",
-      "tags": ["命名规范","引擎导入","资产交接","TA","跨部门"],
+      "tags": [
+        "命名规范",
+        "引擎导入",
+        "资产交接",
+        "TA",
+        "跨部门"
+      ],
       "icon": "📦",
       "action": "showDoc",
       "path": "knowledge-base/art-vs-ta-naming.md",
@@ -461,7 +974,17 @@
       "last_updated": "2026-04-07",
       "applicable_stage": "量产期",
       "priority": "high",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "引擎导入",
+        "命名规范",
+        "资产交接",
+        "TA",
+        "目录结构",
+        "文件命名"
+      ],
+      "content_type": "规范",
+      "quality_level": "initial"
     },
     {
       "id": "art-vs-ta-perfbudget",
@@ -470,7 +993,14 @@
       "type": "md",
       "title": "性能红线与资产预算",
       "desc": "模型面数/贴图尺寸/骨骼数/Drawcall 预算表，按品类与目标机型分级的资产红线",
-      "tags": ["性能红线","面数预算","贴图规范","Drawcall","资产预算","跨部门"],
+      "tags": [
+        "性能红线",
+        "面数预算",
+        "贴图规范",
+        "Drawcall",
+        "资产预算",
+        "跨部门"
+      ],
       "icon": "🚦",
       "action": "showDoc",
       "path": "knowledge-base/art-vs-ta-perfbudget.md",
@@ -478,7 +1008,18 @@
       "last_updated": "2026-04-07",
       "applicable_stage": "预研期",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "性能预算",
+        "面数",
+        "贴图",
+        "骨骼数",
+        "Drawcall",
+        "资产红线",
+        "目标机型"
+      ],
+      "content_type": "规范",
+      "quality_level": "mature"
     },
     {
       "id": "perf-redline-glossary",
@@ -487,7 +1028,13 @@
       "type": "iframe",
       "title": "跨工种黑话速查表",
       "desc": "Drawcall / Overdraw / 贴图压缩 / 骨骼蒙皮 / 纹理内存 — 5 大高频术语 + 移动端性能红线数值",
-      "tags": ["性能红线","术语速查","Drawcall","Overdraw","跨部门"],
+      "tags": [
+        "性能红线",
+        "术语速查",
+        "Drawcall",
+        "Overdraw",
+        "跨部门"
+      ],
       "icon": "📖",
       "action": "openTool",
       "path": "knowledge-base/perf-redline-glossary.html",
@@ -495,7 +1042,18 @@
       "last_updated": "2026-03-30",
       "applicable_stage": "全阶段",
       "priority": "medium",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "术语",
+        "黑话",
+        "性能红线",
+        "Drawcall",
+        "Overdraw",
+        "速查表",
+        "跨工种"
+      ],
+      "content_type": "指南",
+      "quality_level": "mature"
     },
     {
       "id": "art-vs-qa-buggrade",
@@ -504,7 +1062,13 @@
       "type": "md",
       "title": "美术表现类 Bug 定级标准",
       "desc": "美术 vs QA Bug 分级标准：视觉缺陷严重度定义、优先级矩阵、截图规范与修复时效",
-      "tags": ["Bug定级","QA","视觉缺陷","修复时效","跨部门"],
+      "tags": [
+        "Bug定级",
+        "QA",
+        "视觉缺陷",
+        "修复时效",
+        "跨部门"
+      ],
       "icon": "🐛",
       "action": "showDoc",
       "path": "knowledge-base/art-vs-qa-buggrade.md",
@@ -512,7 +1076,17 @@
       "last_updated": "2026-04-07",
       "applicable_stage": "测试期",
       "priority": "high",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "Bug分级",
+        "QA",
+        "视觉缺陷",
+        "严重度",
+        "修复时效",
+        "优先级"
+      ],
+      "content_type": "规范",
+      "quality_level": "initial"
     },
     {
       "id": "art-vs-qa-checklist",
@@ -521,7 +1095,12 @@
       "type": "md",
       "title": "版本走查验收清单",
       "desc": "美术版本走查标准流程：逐场景/逐角色检查项、设备适配验证、截图归档",
-      "tags": ["版本走查","验收清单","QA","跨部门"],
+      "tags": [
+        "版本走查",
+        "验收清单",
+        "QA",
+        "跨部门"
+      ],
       "icon": "📝",
       "action": "showDoc",
       "path": "knowledge-base/art-vs-qa-checklist.md",
@@ -529,7 +1108,16 @@
       "last_updated": "2026-04-07",
       "applicable_stage": "测试期",
       "priority": "high",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "版本走查",
+        "验收",
+        "检查清单",
+        "设备适配",
+        "截图归档"
+      ],
+      "content_type": "模板",
+      "quality_level": "initial"
     },
     {
       "id": "cross-dept-collab",
@@ -538,7 +1126,13 @@
       "type": "iframe",
       "title": "跨部门协作三大经典痛点 — 策略破局指南",
       "desc": "策划频繁改需求 / 美术程序还原度扯皮 / 进度死锁 — 3 大经典痛点 + APM 策略框架与破局思路",
-      "tags": ["跨部门协作","策略框架","流程优化","排雷","痛点"],
+      "tags": [
+        "跨部门协作",
+        "策略框架",
+        "流程优化",
+        "排雷",
+        "痛点"
+      ],
       "icon": "🤝",
       "action": "openTool",
       "path": "knowledge-base/cross-dept-collab.html",
@@ -546,7 +1140,18 @@
       "last_updated": "2026-03-28",
       "applicable_stage": "全阶段",
       "priority": "high",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "跨部门",
+        "协作",
+        "痛点",
+        "策略",
+        "流程优化",
+        "需求变更",
+        "还原度"
+      ],
+      "content_type": "方法论",
+      "quality_level": "premium"
     },
     {
       "id": "accident-troubleshoot",
@@ -555,7 +1160,14 @@
       "type": "iframe",
       "title": "事故案例 — 典型事故排雷手册",
       "desc": "包体暴增 / UI 发热掉帧 / 效果不符 / 低端机闪退 / 骨骼鬼畜 — 5 大 Case + 排查 SOP + 责任矩阵",
-      "tags": ["Troubleshooting","事故复盘","SOP","排雷","案例","5Whys"],
+      "tags": [
+        "Troubleshooting",
+        "事故复盘",
+        "SOP",
+        "排雷",
+        "案例",
+        "5Whys"
+      ],
       "icon": "🚨",
       "action": "openTool",
       "path": "knowledge-base/accident-troubleshoot.html",
@@ -563,7 +1175,20 @@
       "last_updated": "2026-04-13",
       "applicable_stage": "测试期",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "事故",
+        "排查",
+        "闪退",
+        "Bug",
+        "包体暴增",
+        "掉帧",
+        "发热",
+        "5Whys",
+        "SOP"
+      ],
+      "content_type": "实战经验",
+      "quality_level": "premium"
     },
     {
       "id": "jira-tapd-automation",
@@ -572,7 +1197,13 @@
       "type": "md",
       "title": "项目管理工具模板",
       "desc": "Jira/Tapd 美术项目自动化流转配置：状态机模板、自动指派规则、通知策略",
-      "tags": ["Jira","Tapd","自动化","状态机","流转配置"],
+      "tags": [
+        "Jira",
+        "Tapd",
+        "自动化",
+        "状态机",
+        "流转配置"
+      ],
       "icon": "⚙️",
       "action": "showDoc",
       "path": "knowledge-base/jira-tapd-automation.md",
@@ -580,7 +1211,18 @@
       "last_updated": "2026-04-07",
       "applicable_stage": "全阶段",
       "priority": "high",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "Jira",
+        "Tapd",
+        "自动化",
+        "状态机",
+        "流转",
+        "项目工具",
+        "看板"
+      ],
+      "content_type": "方法论",
+      "quality_level": "initial"
     },
     {
       "id": "naming-check-tool",
@@ -589,7 +1231,12 @@
       "type": "md",
       "title": "资产合规性检查工具",
       "desc": "命名批量检查脚本：正则规则库、多级目录扫描、违规报告与一键重命名",
-      "tags": ["命名检查","合规性","批量处理","自动化脚本"],
+      "tags": [
+        "命名检查",
+        "合规性",
+        "批量处理",
+        "自动化脚本"
+      ],
       "icon": "🔍",
       "action": "showDoc",
       "path": "knowledge-base/naming-check-tool.md",
@@ -597,7 +1244,17 @@
       "last_updated": "2026-04-07",
       "applicable_stage": "量产期",
       "priority": "high",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "命名检查",
+        "正则",
+        "批量扫描",
+        "合规性",
+        "自动化脚本",
+        "重命名"
+      ],
+      "content_type": "工具",
+      "quality_level": "initial"
     },
     {
       "id": "progress-visualization",
@@ -606,7 +1263,13 @@
       "type": "md",
       "title": "进度可视化工具",
       "desc": "甘特图/燃尽图插件：美术资产产出进度追踪、风险预警热力图、里程碑达成率看板",
-      "tags": ["甘特图","燃尽图","进度追踪","可视化","看板"],
+      "tags": [
+        "甘特图",
+        "燃尽图",
+        "进度追踪",
+        "可视化",
+        "看板"
+      ],
       "icon": "📊",
       "action": "showDoc",
       "path": "knowledge-base/progress-visualization.md",
@@ -614,9 +1277,19 @@
       "last_updated": "2026-04-07",
       "applicable_stage": "全阶段",
       "priority": "high",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "甘特图",
+        "燃尽图",
+        "进度",
+        "可视化",
+        "看板",
+        "热力图",
+        "达成率"
+      ],
+      "content_type": "工具",
+      "quality_level": "initial"
     },
-
     {
       "id": "art-tools-guide",
       "module": "toolchain",
@@ -624,7 +1297,14 @@
       "type": "iframe",
       "title": "🛠️ 美术在线工具使用指南",
       "desc": "Auto Mask · Spine Split · Color Swap 三大核心工具操作全解，含 v6.4 新功能说明、参数速查、快捷键一览和 FAQ",
-      "tags": ["工具指南","使用手册","Auto Mask","Spine Split","换色","快捷键"],
+      "tags": [
+        "工具指南",
+        "使用手册",
+        "Auto Mask",
+        "Spine Split",
+        "换色",
+        "快捷键"
+      ],
       "icon": "📖",
       "action": "openTool",
       "path": "knowledge-base/art-tools-guide.html",
@@ -632,9 +1312,18 @@
       "last_updated": "2026-04-10",
       "applicable_stage": "全阶段",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "工具指南",
+        "使用手册",
+        "Auto Mask",
+        "Spine Split",
+        "换色工具",
+        "快捷键"
+      ],
+      "content_type": "指南",
+      "quality_level": "premium"
     },
-
     {
       "id": "auto-mask-v6",
       "module": "toolchain",
@@ -642,7 +1331,15 @@
       "type": "tool",
       "title": "自动 Mask 生成器 v6.0",
       "desc": "傻瓜式预设(5种) · 智能主色调分析 · 放大镜精准吸色 · 边缘净化(膨胀/腐蚀/羽化) · 撤销重做 · TGA导出 · v5工程100%兼容",
-      "tags": ["在线工具","预设模式","智能分析","放大镜","边缘净化","TGA","撤销重做"],
+      "tags": [
+        "在线工具",
+        "预设模式",
+        "智能分析",
+        "放大镜",
+        "边缘净化",
+        "TGA",
+        "撤销重做"
+      ],
       "icon": "🤖",
       "action": "openTool",
       "path": "knowledge-base/auto-mask-v6.html",
@@ -650,7 +1347,18 @@
       "last_updated": "2026-04-09",
       "applicable_stage": "量产期",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "自动Mask",
+        "预设",
+        "智能分析",
+        "放大镜",
+        "边缘净化",
+        "TGA导出",
+        "在线工具"
+      ],
+      "content_type": "工具",
+      "quality_level": "premium"
     },
     {
       "id": "auto-mask-v6-desktop",
@@ -659,7 +1367,13 @@
       "type": "iframe",
       "title": "自动 Mask 生成器 v6.0 (桌面版)",
       "desc": "Windows 独立 exe · 绿色免安装 · 完全离线 · 原生文件保存 · 多图拖拽 · 与 Web 版功能100%一致",
-      "tags": ["桌面工具","exe下载","离线","原生保存","Electron"],
+      "tags": [
+        "桌面工具",
+        "exe下载",
+        "离线",
+        "原生保存",
+        "Electron"
+      ],
       "icon": "🖥️",
       "action": "openTool",
       "path": "knowledge-base/auto-mask-v6-desktop.html",
@@ -668,9 +1382,18 @@
       "last_updated": "2026-04-09",
       "applicable_stage": "量产期",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "桌面版",
+        "exe",
+        "离线工具",
+        "免安装",
+        "Electron",
+        "Mask生成器"
+      ],
+      "content_type": "工具",
+      "quality_level": "mature"
     },
-
     {
       "id": "editor-guide",
       "module": "system",
@@ -678,7 +1401,12 @@
       "type": "doc",
       "title": "可视化编辑器使用指南",
       "desc": "零代码更新知识库文档 · 所见即所得编辑 · 保存覆盖/另存为新文档 · 防破坏保护 · 图片替换",
-      "tags": ["使用指南","可视化编辑","零代码","模板"],
+      "tags": [
+        "使用指南",
+        "可视化编辑",
+        "零代码",
+        "模板"
+      ],
       "icon": "✏️",
       "action": "openDoc",
       "path": "knowledge-base/editor-guide.html",
@@ -686,9 +1414,18 @@
       "last_updated": "2026-04-09",
       "applicable_stage": "全阶段",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "编辑器",
+        "可视化",
+        "使用指南",
+        "所见即所得",
+        "模板",
+        "零代码"
+      ],
+      "content_type": "指南",
+      "quality_level": "mature"
     },
-
     {
       "id": "mask-tool",
       "module": "toolchain",
@@ -696,7 +1433,11 @@
       "type": "tool",
       "title": "Mask 手动编辑器",
       "desc": "画笔绘制 RGBA 换色遮罩图，所见即所得",
-      "tags": ["在线工具","画笔绘制","RGBA"],
+      "tags": [
+        "在线工具",
+        "画笔绘制",
+        "RGBA"
+      ],
       "icon": "🖌️",
       "action": "openTool",
       "path": "knowledge-base/mask-tool.html",
@@ -704,7 +1445,16 @@
       "last_updated": "2026-03-31",
       "applicable_stage": "量产期",
       "priority": "low",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "画笔",
+        "RGBA",
+        "Mask编辑",
+        "在线绘制",
+        "换色遮罩"
+      ],
+      "content_type": "工具",
+      "quality_level": "mature"
     },
     {
       "id": "spine-split",
@@ -713,7 +1463,11 @@
       "type": "tool",
       "title": "Spine 拆分工具",
       "desc": "选区拆分各部件，自动拓扑延展 + Atlas 导出",
-      "tags": ["在线工具","选区拆分","拓扑延展"],
+      "tags": [
+        "在线工具",
+        "选区拆分",
+        "拓扑延展"
+      ],
       "icon": "✂️",
       "action": "openTool",
       "path": "knowledge-base/spine-split.html",
@@ -721,7 +1475,17 @@
       "last_updated": "2026-04-07",
       "applicable_stage": "量产期",
       "priority": "medium",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "Spine",
+        "拆分",
+        "选区",
+        "拓扑",
+        "Atlas",
+        "在线工具"
+      ],
+      "content_type": "工具",
+      "quality_level": "mature"
     },
     {
       "id": "mask-core-algorithms",
@@ -730,7 +1494,13 @@
       "type": "tool",
       "title": "Mask 核心算法演示",
       "desc": "智能魔棒 Flood Fill + 边缘保护画笔 Sobel 检测，Worker 并行计算",
-      "tags": ["在线工具","魔棒","边缘检测","Sobel","Web Worker"],
+      "tags": [
+        "在线工具",
+        "魔棒",
+        "边缘检测",
+        "Sobel",
+        "Web Worker"
+      ],
       "icon": "🧪",
       "action": "openTool",
       "path": "knowledge-base/mask-core-algorithms.html",
@@ -738,7 +1508,17 @@
       "last_updated": "2026-04-02",
       "applicable_stage": "量产期",
       "priority": "low",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "魔棒",
+        "边缘检测",
+        "Sobel",
+        "Flood Fill",
+        "Web Worker",
+        "算法演示"
+      ],
+      "content_type": "工具",
+      "quality_level": "mature"
     },
     {
       "id": "color-swap-tool",
@@ -747,7 +1527,16 @@
       "type": "tool",
       "title": "2D 角色换色资源生成器",
       "desc": "三种换色方案（遮罩分区Mask+HSV / 调色板替换 / 灰度叠色），CIE-LAB高精度色差，通道互斥铁律，无限Mask扩展，纯黑白QA检测，一键ZIP导出",
-      "tags": ["在线工具","换色","Mask","调色板","灰度","HSV","ZIP导出","CIE-LAB"],
+      "tags": [
+        "在线工具",
+        "换色",
+        "Mask",
+        "调色板",
+        "灰度",
+        "HSV",
+        "ZIP导出",
+        "CIE-LAB"
+      ],
       "icon": "🎨",
       "action": "openTool",
       "path": "knowledge-base/color-swap-tool.html",
@@ -755,7 +1544,18 @@
       "last_updated": "2026-04-10",
       "applicable_stage": "量产期",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "换色",
+        "Mask",
+        "调色板",
+        "HSV",
+        "CIE-LAB",
+        "ZIP导出",
+        "资源生成"
+      ],
+      "content_type": "工具",
+      "quality_level": "premium"
     },
     {
       "id": "channel-packer",
@@ -764,7 +1564,11 @@
       "type": "iframe",
       "title": "贴图通道打包工具",
       "desc": "R/G/B/A 四通道自由组合打包，批量处理",
-      "tags": ["在线工具","通道打包","批处理"],
+      "tags": [
+        "在线工具",
+        "通道打包",
+        "批处理"
+      ],
       "icon": "📦",
       "action": "openTool",
       "path": "knowledge-base/channel-packer.html",
@@ -772,7 +1576,16 @@
       "last_updated": "2026-03-28",
       "applicable_stage": "量产期",
       "priority": "low",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "通道打包",
+        "RGBA",
+        "批处理",
+        "贴图合并",
+        "通道组合"
+      ],
+      "content_type": "工具",
+      "quality_level": "mature"
     },
     {
       "id": "image-skew-corrector",
@@ -781,7 +1594,11 @@
       "type": "iframe",
       "title": "图片倾斜矫正 (桌面版)",
       "desc": "Windows 桌面版，四算法融合检测 + 自动矫正 + 批量处理",
-      "tags": ["桌面工具","exe下载","倾斜矫正"],
+      "tags": [
+        "桌面工具",
+        "exe下载",
+        "倾斜矫正"
+      ],
       "icon": "📐",
       "action": "openTool",
       "path": "knowledge-base/image-skew-corrector.html",
@@ -790,7 +1607,16 @@
       "last_updated": "2026-03-25",
       "applicable_stage": "量产期",
       "priority": "low",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "倾斜矫正",
+        "自动矫正",
+        "图片处理",
+        "桌面工具",
+        "批量处理"
+      ],
+      "content_type": "工具",
+      "quality_level": "mature"
     },
     {
       "id": "game-resource-toolkit",
@@ -799,7 +1625,11 @@
       "type": "iframe",
       "title": "游戏资源工具集 (桌面版)",
       "desc": "Windows 桌面版，All-in-one 资源管理工具",
-      "tags": ["桌面工具","exe下载","资源检测"],
+      "tags": [
+        "桌面工具",
+        "exe下载",
+        "资源检测"
+      ],
       "icon": "🛠️",
       "action": "openTool",
       "path": "knowledge-base/game-resource-toolkit.html",
@@ -808,7 +1638,16 @@
       "last_updated": "2026-03-25",
       "applicable_stage": "量产期",
       "priority": "low",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "资源管理",
+        "桌面工具",
+        "All-in-one",
+        "资源检测",
+        "资源工具"
+      ],
+      "content_type": "工具",
+      "quality_level": "mature"
     },
     {
       "id": "engine-bridge",
@@ -817,7 +1656,12 @@
       "type": "iframe",
       "title": "Engine Bridge 引擎直连",
       "desc": "浏览器到 UE/Unity 的双向桥接方案",
-      "tags": ["引擎直连","UE","Unity","Bridge"],
+      "tags": [
+        "引擎直连",
+        "UE",
+        "Unity",
+        "Bridge"
+      ],
       "icon": "🔌",
       "action": "openTool",
       "path": "knowledge-base/engine-bridge.html",
@@ -825,7 +1669,17 @@
       "last_updated": "2026-03-30",
       "applicable_stage": "预研期",
       "priority": "medium",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "引擎直连",
+        "UE",
+        "Unity",
+        "双向桥接",
+        "WebSocket",
+        "引擎对接"
+      ],
+      "content_type": "工具",
+      "quality_level": "initial"
     },
     {
       "id": "budget-apply",
@@ -834,7 +1688,13 @@
       "type": "md",
       "title": "外包预算申请与结算流转",
       "desc": "外包预算立项审批、阶段性结算对账、成本超支预警与变更签核 SOP",
-      "tags": ["预算","结算","外包","成本管控","审批流"],
+      "tags": [
+        "预算",
+        "结算",
+        "外包",
+        "成本管控",
+        "审批流"
+      ],
       "icon": "💰",
       "action": "showDoc",
       "path": "knowledge-base/budget-apply.md",
@@ -842,7 +1702,18 @@
       "last_updated": "2026-04-07",
       "applicable_stage": "量产期",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "预算",
+        "结算",
+        "外包费用",
+        "成本管控",
+        "审批",
+        "对账",
+        "超支预警"
+      ],
+      "content_type": "方法论",
+      "quality_level": "mature"
     },
     {
       "id": "cost-standard",
@@ -851,7 +1722,13 @@
       "type": "md",
       "title": "美术人月成本核算标准",
       "desc": "内部/外包人月单价基线、工种系数矩阵、ROI 评估模板与季度复盘对账表",
-      "tags": ["人月","成本核算","ROI","工种系数","预算"],
+      "tags": [
+        "人月",
+        "成本核算",
+        "ROI",
+        "工种系数",
+        "预算"
+      ],
       "icon": "📊",
       "action": "showDoc",
       "path": "knowledge-base/cost-standard.md",
@@ -859,7 +1736,17 @@
       "last_updated": "2026-04-07",
       "applicable_stage": "全阶段",
       "priority": "high",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "人月成本",
+        "单价",
+        "ROI",
+        "工种系数",
+        "成本核算",
+        "复盘对账"
+      ],
+      "content_type": "方法论",
+      "quality_level": "mature"
     },
     {
       "id": "risk-log",
@@ -868,7 +1755,13 @@
       "type": "md",
       "title": "项目风险登记册 (Risk Log) 规范",
       "desc": "风险识别 → 评估 → 分级 → 应对策略 → 跟踪闭环：标准化 Risk Log 模板与填写指南",
-      "tags": ["风险管理","Risk Log","分级","应对策略","闭环"],
+      "tags": [
+        "风险管理",
+        "Risk Log",
+        "分级",
+        "应对策略",
+        "闭环"
+      ],
       "icon": "⚠️",
       "action": "showDoc",
       "path": "knowledge-base/risk-log.md",
@@ -876,7 +1769,17 @@
       "last_updated": "2026-04-07",
       "applicable_stage": "全阶段",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "风险管理",
+        "风险登记",
+        "风险分级",
+        "应对策略",
+        "闭环跟踪",
+        "Risk Log"
+      ],
+      "content_type": "模板",
+      "quality_level": "mature"
     },
     {
       "id": "postmortem-template",
@@ -885,7 +1788,14 @@
       "type": "iframe",
       "title": "复盘模板 — 版本研发 Post-mortem",
       "desc": "版本结束后的结构化复盘：时间线梳理、根因分析(5-Why)、Action Item 追踪、经验沉淀",
-      "tags": ["复盘","Post-mortem","5-Why","根因分析","经验沉淀","案例"],
+      "tags": [
+        "复盘",
+        "Post-mortem",
+        "5-Why",
+        "根因分析",
+        "经验沉淀",
+        "案例"
+      ],
       "icon": "📝",
       "action": "openTool",
       "path": "knowledge-base/postmortem-template.html",
@@ -893,7 +1803,17 @@
       "last_updated": "2026-04-13",
       "applicable_stage": "测试期",
       "priority": "high",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "复盘",
+        "Post-mortem",
+        "5Why",
+        "根因分析",
+        "经验沉淀",
+        "版本复盘"
+      ],
+      "content_type": "模板",
+      "quality_level": "mature"
     },
     {
       "id": "onboarding-guide",
@@ -902,7 +1822,13 @@
       "type": "md",
       "title": "美术新人入职管线必读 (Onboarding)",
       "desc": "新人首周 Checklist：环境配置、工具账号开通、管线流程熟悉、Mentor 对接、第一个 Task 领取",
-      "tags": ["入职","Onboarding","Checklist","新人","培训"],
+      "tags": [
+        "入职",
+        "Onboarding",
+        "Checklist",
+        "新人",
+        "培训"
+      ],
       "icon": "🎓",
       "action": "showDoc",
       "path": "knowledge-base/onboarding-guide.md",
@@ -910,7 +1836,18 @@
       "last_updated": "2026-04-07",
       "applicable_stage": "全阶段",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "入职",
+        "新人",
+        "Onboarding",
+        "环境配置",
+        "Mentor",
+        "培训",
+        "首周"
+      ],
+      "content_type": "指南",
+      "quality_level": "mature"
     },
     {
       "id": "permission-nav",
@@ -919,7 +1856,14 @@
       "type": "md",
       "title": "常用系统权限申请导航",
       "desc": "SVN/Git/Perforce 仓库权限、TAPD/Jira 项目空间、云盘/NAS 美术资源盘、VPN 与内网穿透",
-      "tags": ["权限","SVN","Git","TAPD","VPN","内网"],
+      "tags": [
+        "权限",
+        "SVN",
+        "Git",
+        "TAPD",
+        "VPN",
+        "内网"
+      ],
       "icon": "🔑",
       "action": "showDoc",
       "path": "knowledge-base/permission-nav.md",
@@ -927,7 +1871,19 @@
       "last_updated": "2026-04-07",
       "applicable_stage": "全阶段",
       "priority": "medium",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "权限",
+        "SVN",
+        "Git",
+        "Perforce",
+        "TAPD",
+        "VPN",
+        "内网",
+        "账号开通"
+      ],
+      "content_type": "指南",
+      "quality_level": "initial"
     },
     {
       "id": "project-pitfall-log",
@@ -936,7 +1892,17 @@
       "type": "iframe",
       "title": "项目管理踩坑复盘 — 7 大真实案例全收录",
       "desc": "外包翻车·排期爆雷·资产返工·跨部门冲突·外包质量崩盘·需求变更连锁崩塌 — Tab切换7大案例，5Whys根因分析+破局方案+防线体系",
-      "tags": ["踩坑记录","复盘","5Whys","外包翻车","排期爆雷","跨部门冲突","外包事故","需求变更","案例"],
+      "tags": [
+        "踩坑记录",
+        "复盘",
+        "5Whys",
+        "外包翻车",
+        "排期爆雷",
+        "跨部门冲突",
+        "外包事故",
+        "需求变更",
+        "案例"
+      ],
       "icon": "💣",
       "action": "openTool",
       "path": "knowledge-base/project-pitfall-log.html",
@@ -944,7 +1910,19 @@
       "last_updated": "2026-04-13",
       "applicable_stage": "全阶段",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "踩坑",
+        "复盘",
+        "5Whys",
+        "外包翻车",
+        "排期爆雷",
+        "跨部门冲突",
+        "需求变更",
+        "案例"
+      ],
+      "content_type": "实战经验",
+      "quality_level": "premium"
     },
     {
       "id": "cross-dept-communication-tips",
@@ -953,7 +1931,13 @@
       "type": "md",
       "title": "跨部门沟通话术模板 — 7 大场景实战话术",
       "desc": "APM 在与策划/程序/QA/老板沟通时的 7 大高频场景话术模板：拒绝不合理需求、催促进度、汇报坏消息、推动配合等",
-      "tags": ["沟通话术","跨部门","策划","程序","向上管理"],
+      "tags": [
+        "沟通话术",
+        "跨部门",
+        "策划",
+        "程序",
+        "向上管理"
+      ],
       "icon": "🗣️",
       "action": "showDoc",
       "path": "knowledge-base/cross-dept-communication-tips.md",
@@ -962,7 +1946,17 @@
       "applicable_stage": "全阶段",
       "priority": "high",
       "is_hot": false,
-      "draft_prompt": "你是一名沟通能力极强的资深游戏美术项目经理（APM），在跨部门协作中积累了丰富的话术经验。请帮我编写一份《跨部门沟通话术总结》文档，需要包含以下高频场景的话术模板：\n\n1. 【拒绝不合理需求】策划提出超出预算/工期的需求时如何委婉拒绝并给出替代方案\n2. 【催促进度】外包/美术同事进度滞后时如何催促而不伤关系\n3. 【向上汇报坏消息】如何向制作人/老板汇报延期/超支等负面信息\n4. 【推动程序配合】需要程序/TA 配合但对方排期满时如何沟通优先级\n5. 【处理QA打回】美术资产被 QA 打回时如何与双方沟通协调\n6. 【需求变更沟通】策划频繁改需求时如何建立变更管控机制\n7. 【跨团队利益协调】多个项目组争抢美术资源时如何平衡\n\n每个场景需要包含：场景描述、错误示范、正确话术模板、沟通策略要点。请使用 Markdown 格式。"
+      "draft_prompt": "你是一名沟通能力极强的资深游戏美术项目经理（APM），在跨部门协作中积累了丰富的话术经验。请帮我编写一份《跨部门沟通话术总结》文档，需要包含以下高频场景的话术模板：\n\n1. 【拒绝不合理需求】策划提出超出预算/工期的需求时如何委婉拒绝并给出替代方案\n2. 【催促进度】外包/美术同事进度滞后时如何催促而不伤关系\n3. 【向上汇报坏消息】如何向制作人/老板汇报延期/超支等负面信息\n4. 【推动程序配合】需要程序/TA 配合但对方排期满时如何沟通优先级\n5. 【处理QA打回】美术资产被 QA 打回时如何与双方沟通协调\n6. 【需求变更沟通】策划频繁改需求时如何建立变更管控机制\n7. 【跨团队利益协调】多个项目组争抢美术资源时如何平衡\n\n每个场景需要包含：场景描述、错误示范、正确话术模板、沟通策略要点。请使用 Markdown 格式。",
+      "keywords": [
+        "沟通话术",
+        "拒绝需求",
+        "催进度",
+        "向上汇报",
+        "跨部门沟通",
+        "话术模板"
+      ],
+      "content_type": "实战经验",
+      "quality_level": "initial"
     },
     {
       "id": "personal-growth-roadmap",
@@ -971,7 +1965,13 @@
       "type": "md",
       "title": "APM 个人成长路线图",
       "desc": "从初级 APM 到资深 APM 的能力模型、学习路径与阶段性自我评估清单",
-      "tags": ["个人成长","能力模型","职业规划","APM","自我评估"],
+      "tags": [
+        "个人成长",
+        "能力模型",
+        "职业规划",
+        "APM",
+        "自我评估"
+      ],
       "icon": "🌱",
       "action": "showDoc",
       "path": "knowledge-base/personal-growth-roadmap.md",
@@ -980,7 +1980,17 @@
       "applicable_stage": "全阶段",
       "priority": "medium",
       "is_hot": false,
-      "draft_prompt": "你是一名在游戏行业从业超过 10 年的资深美术项目经理（APM），现在担任 APM 团队的导师。请帮我编写一份《APM 个人成长路线图》文档，需要包含：\n1. APM 能力模型（硬技能 + 软技能矩阵）\n  - 硬技能：项目管理方法论、美术管线理解、成本核算、工具链、引擎基础\n  - 软技能：跨部门沟通、向上管理、团队激励、冲突解决、时间管理\n2. 成长阶段划分（初级/中级/高级/资深 APM，每个阶段的核心能力要求与典型职责）\n3. 每个阶段的推荐学习资源（书籍、课程、实践项目）\n4. 阶段性自我评估清单（每季度自检的 20 个核心问题）\n5. 常见成长瓶颈与突破方法\n6. 业内标杆参考（优秀 APM 的共性特征）\n请使用 Markdown 格式，包含能力雷达图说明和自评表格。"
+      "draft_prompt": "你是一名在游戏行业从业超过 10 年的资深美术项目经理（APM），现在担任 APM 团队的导师。请帮我编写一份《APM 个人成长路线图》文档，需要包含：\n1. APM 能力模型（硬技能 + 软技能矩阵）\n  - 硬技能：项目管理方法论、美术管线理解、成本核算、工具链、引擎基础\n  - 软技能：跨部门沟通、向上管理、团队激励、冲突解决、时间管理\n2. 成长阶段划分（初级/中级/高级/资深 APM，每个阶段的核心能力要求与典型职责）\n3. 每个阶段的推荐学习资源（书籍、课程、实践项目）\n4. 阶段性自我评估清单（每季度自检的 20 个核心问题）\n5. 常见成长瓶颈与突破方法\n6. 业内标杆参考（优秀 APM 的共性特征）\n请使用 Markdown 格式，包含能力雷达图说明和自评表格。",
+      "keywords": [
+        "个人成长",
+        "能力模型",
+        "职业规划",
+        "APM",
+        "自我评估",
+        "学习路径"
+      ],
+      "content_type": "指南",
+      "quality_level": "initial"
     },
     {
       "id": "art-efficiency-system",
@@ -989,7 +1999,20 @@
       "type": "iframe",
       "title": "美术效能度量与标准化汇报体系",
       "desc": "美术团队效能量化评估体系：产能/质量/协作效率指标、数据看板设计、周报/月报标准结构、外包健康度核心指标（返修率/吞吐量）、向上汇报数据包与话术模板",
-      "tags": ["效能度量","数据指标","产能","质量","看板","KPI","周报","月报","汇报模板","外包健康度","返修率","向上管理"],
+      "tags": [
+        "效能度量",
+        "数据指标",
+        "产能",
+        "质量",
+        "看板",
+        "KPI",
+        "周报",
+        "月报",
+        "汇报模板",
+        "外包健康度",
+        "返修率",
+        "向上管理"
+      ],
       "icon": "📊",
       "action": "openTool",
       "path": "knowledge-base/art-report-template.html",
@@ -997,7 +2020,19 @@
       "last_updated": "2026-04-13",
       "applicable_stage": "全阶段",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "效能度量",
+        "产能",
+        "KPI",
+        "数据看板",
+        "周报",
+        "月报",
+        "汇报",
+        "外包健康度"
+      ],
+      "content_type": "方法论",
+      "quality_level": "premium"
     },
     {
       "id": "asset-security-handover",
@@ -1006,7 +2041,15 @@
       "type": "iframe",
       "title": "美术资产防泄密与离职交接 SOP",
       "desc": "资产安全分级体系、外包 NDA 规范、水印工具使用场景、离职人员资产权限回收与交接清单",
-      "tags": ["防泄密","NDA","水印","离职交接","权限回收","资产安全","SOP"],
+      "tags": [
+        "防泄密",
+        "NDA",
+        "水印",
+        "离职交接",
+        "权限回收",
+        "资产安全",
+        "SOP"
+      ],
       "icon": "🔐",
       "action": "openTool",
       "path": "knowledge-base/asset-security-handover.html",
@@ -1014,7 +2057,17 @@
       "last_updated": "2026-04-09",
       "applicable_stage": "全阶段",
       "priority": "high",
-      "is_hot": true
+      "is_hot": true,
+      "keywords": [
+        "防泄密",
+        "NDA",
+        "水印",
+        "离职交接",
+        "权限回收",
+        "资产安全"
+      ],
+      "content_type": "规范",
+      "quality_level": "premium"
     },
     {
       "id": "deprecated-asset-cleanup",
@@ -1023,7 +2076,16 @@
       "type": "iframe",
       "title": "废弃资产归档与清理规范",
       "desc": "废案定义与分类、SVN/Perforce 空间清理周期、归档流程、通用资产复用库调用指南",
-      "tags": ["废弃资产","归档","清理","SVN","Perforce","复用库","资产管理","空间优化"],
+      "tags": [
+        "废弃资产",
+        "归档",
+        "清理",
+        "SVN",
+        "Perforce",
+        "复用库",
+        "资产管理",
+        "空间优化"
+      ],
       "icon": "🗑️",
       "action": "openTool",
       "path": "knowledge-base/deprecated-asset-cleanup.html",
@@ -1031,7 +2093,17 @@
       "last_updated": "2026-04-09",
       "applicable_stage": "量产期",
       "priority": "high",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "废弃资产",
+        "归档",
+        "清理",
+        "空间优化",
+        "复用库",
+        "存储管理"
+      ],
+      "content_type": "规范",
+      "quality_level": "mature"
     },
     {
       "id": "outsource-vs-inhouse-decision",
@@ -1040,7 +2112,14 @@
       "type": "iframe",
       "title": "外包 vs 内发决策矩阵",
       "desc": "基于成本/质量/时效/保密四维度的外包vs内部制作决策模型，含评分卡、决策树与实战案例",
-      "tags": ["外包","决策","内发","成本分析","决策矩阵","项目管理"],
+      "tags": [
+        "外包",
+        "决策",
+        "内发",
+        "成本分析",
+        "决策矩阵",
+        "项目管理"
+      ],
       "icon": "🧭",
       "action": "openTool",
       "path": "knowledge-base/outsource-vs-inhouse-decision.html",
@@ -1048,7 +2127,17 @@
       "last_updated": "2026-04-13",
       "applicable_stage": "预研期",
       "priority": "high",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "外包决策",
+        "内发",
+        "成本分析",
+        "决策矩阵",
+        "评分卡",
+        "决策树"
+      ],
+      "content_type": "方法论",
+      "quality_level": "mature"
     },
     {
       "id": "delay-response-decision",
@@ -1057,7 +2146,14 @@
       "type": "iframe",
       "title": "项目延期应对决策",
       "desc": "延期风险评估框架、五级响应机制、资源调配方案、向上沟通话术与延期复盘模板",
-      "tags": ["延期","风险应对","决策","排期","资源调配","项目管理"],
+      "tags": [
+        "延期",
+        "风险应对",
+        "决策",
+        "排期",
+        "资源调配",
+        "项目管理"
+      ],
       "icon": "⏳",
       "action": "openTool",
       "path": "knowledge-base/delay-response-decision.html",
@@ -1065,7 +2161,17 @@
       "last_updated": "2026-04-13",
       "applicable_stage": "全阶段",
       "priority": "high",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "延期",
+        "风险应对",
+        "资源调配",
+        "响应机制",
+        "向上沟通",
+        "延期复盘"
+      ],
+      "content_type": "方法论",
+      "quality_level": "mature"
     },
     {
       "id": "aigc-production-spec",
@@ -1074,7 +2180,13 @@
       "type": "iframe",
       "title": "[AIGC] 辅助生产规范",
       "desc": "AIGC 辅助美术生产的标准化流程：AI 生图/修图的工艺管线、质量验收标准与版权合规要求",
-      "tags": ["AIGC","AI生图","辅助生产","质量验收","版权合规"],
+      "tags": [
+        "AIGC",
+        "AI生图",
+        "辅助生产",
+        "质量验收",
+        "版权合规"
+      ],
       "icon": "🤖",
       "action": "openTool",
       "path": "knowledge-base/aigc-production-spec.html",
@@ -1082,7 +2194,18 @@
       "last_updated": "2026-04-10",
       "applicable_stage": "量产期",
       "priority": "medium",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "AIGC",
+        "AI生图",
+        "辅助生产",
+        "质量验收",
+        "版权合规",
+        "AI修图",
+        "Prompt"
+      ],
+      "content_type": "规范",
+      "quality_level": "mature"
     },
     {
       "id": "supplier-ecosystem",
@@ -1091,7 +2214,14 @@
       "type": "iframe",
       "title": "供应商生态管理规范",
       "desc": "外包供应商准入/评级/淘汰全生命周期管理、供应商池维护、季度评级与份额调配",
-      "tags": ["供应商","外包","准入","评级","淘汰","生态管理"],
+      "tags": [
+        "供应商",
+        "外包",
+        "准入",
+        "评级",
+        "淘汰",
+        "生态管理"
+      ],
       "icon": "🏢",
       "action": "openTool",
       "path": "knowledge-base/supplier-ecosystem.html",
@@ -1099,9 +2229,204 @@
       "last_updated": "2026-04-09",
       "applicable_stage": "全阶段",
       "priority": "high",
-      "is_hot": false
+      "is_hot": false,
+      "keywords": [
+        "供应商",
+        "准入",
+        "评级",
+        "淘汰",
+        "生态管理",
+        "份额调配",
+        "季度评级"
+      ],
+      "content_type": "方法论",
+      "quality_level": "mature"
     },
-
-
-  ]
+    {
+      "id": "tmpl-project-postmortem",
+      "module": "mynotes",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "📝 项目复盘报告模板",
+      "desc": "结构化复盘：基本信息、目标回顾、数据看板、5-Why 根因分析、Action Items、经验沉淀 — 下载 HTML 直接填写",
+      "tags": [
+        "复盘",
+        "5Why",
+        "根因分析",
+        "Action Items",
+        "HTML模板"
+      ],
+      "keywords": [
+        "项目复盘",
+        "复盘报告",
+        "Post-mortem",
+        "版本复盘",
+        "经验沉淀",
+        "改进追踪"
+      ],
+      "icon": "🔄",
+      "action": "openTool",
+      "path": "knowledge-base/project-postmortem-template.html",
+      "owner": "我",
+      "last_updated": "2026-04-13",
+      "applicable_stage": "测试期",
+      "priority": "high",
+      "is_hot": true,
+      "content_type": "模板",
+      "quality_level": "mature"
+    },
+    {
+      "id": "tmpl-weekly-report",
+      "module": "mynotes",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "📊 项目周报模板",
+      "desc": "一句话总结、数据看板（任务/燃尽/Bug/外包）、完成清单、下周计划、风险预警、协调事项 — 下载 HTML 直接填写",
+      "tags": [
+        "周报",
+        "进度",
+        "数据看板",
+        "风险预警",
+        "HTML模板"
+      ],
+      "keywords": [
+        "项目周报",
+        "Weekly Report",
+        "进度汇报",
+        "风险预警",
+        "Sprint",
+        "任务跟踪"
+      ],
+      "icon": "📊",
+      "action": "openTool",
+      "path": "knowledge-base/weekly-report-template.html",
+      "owner": "我",
+      "last_updated": "2026-04-13",
+      "applicable_stage": "全阶段",
+      "priority": "high",
+      "is_hot": true,
+      "content_type": "模板",
+      "quality_level": "mature"
+    },
+    {
+      "id": "tmpl-decision-record",
+      "module": "mynotes",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "⚖️ 决策记录模板",
+      "desc": "决策概要、背景分析、备选方案对比（三栏卡片）、评估矩阵（星级打分）、执行计划 — 下载 HTML 直接填写",
+      "tags": [
+        "决策记录",
+        "方案对比",
+        "评估矩阵",
+        "执行计划",
+        "HTML模板"
+      ],
+      "keywords": [
+        "决策记录",
+        "Decision Record",
+        "方案选型",
+        "技术选型",
+        "供应商选择",
+        "外包选择"
+      ],
+      "icon": "⚖️",
+      "action": "openTool",
+      "path": "knowledge-base/decision-record-template.html",
+      "owner": "我",
+      "last_updated": "2026-04-13",
+      "applicable_stage": "全阶段",
+      "priority": "high",
+      "is_hot": true,
+      "content_type": "模板",
+      "quality_level": "mature"
+    },
+    {
+      "id": "tmpl-meeting-notes",
+      "module": "mynotes",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "📝 会议纪要模板",
+      "desc": "会议信息表、议程卡片（时间/汇报人/讨论/决议/待办）、决议汇总、待办追踪 — 下载 HTML 直接填写",
+      "tags": [
+        "会议纪要",
+        "决议",
+        "待办追踪",
+        "议程",
+        "HTML模板"
+      ],
+      "keywords": [
+        "会议纪要",
+        "Meeting Notes",
+        "议程",
+        "决议",
+        "待办事项",
+        "会议记录"
+      ],
+      "icon": "📝",
+      "action": "openTool",
+      "path": "knowledge-base/meeting-notes-template.html",
+      "owner": "我",
+      "last_updated": "2026-04-13",
+      "applicable_stage": "全阶段",
+      "priority": "high",
+      "is_hot": true,
+      "content_type": "模板",
+      "quality_level": "mature"
+    }
+  ],
+  "contentTypeConfig": {
+    "规范": {
+      "label": "📏 规范",
+      "color": "#60a5fa",
+      "bg": "rgba(96,165,250,.12)"
+    },
+    "方法论": {
+      "label": "🧠 方法论",
+      "color": "#a78bfa",
+      "bg": "rgba(167,139,250,.12)"
+    },
+    "实战经验": {
+      "label": "⚡ 实战经验",
+      "color": "#fb923c",
+      "bg": "rgba(251,146,60,.12)"
+    },
+    "工具": {
+      "label": "🔧 工具",
+      "color": "#22d3ee",
+      "bg": "rgba(34,211,238,.12)"
+    },
+    "模板": {
+      "label": "📋 模板",
+      "color": "#4ade80",
+      "bg": "rgba(74,222,128,.12)"
+    },
+    "指南": {
+      "label": "📖 指南",
+      "color": "#f472b6",
+      "bg": "rgba(244,114,182,.12)"
+    }
+  },
+  "qualityLevelConfig": {
+    "draft": {
+      "label": "📝 草稿",
+      "color": "#8b949e",
+      "bg": "rgba(139,148,158,.1)"
+    },
+    "initial": {
+      "label": "📄 初版",
+      "color": "#60a5fa",
+      "bg": "rgba(96,165,250,.1)"
+    },
+    "mature": {
+      "label": "✅ 成熟",
+      "color": "#4ade80",
+      "bg": "rgba(74,222,128,.1)"
+    },
+    "premium": {
+      "label": "⭐ 精华",
+      "color": "#fbbf24",
+      "bg": "rgba(251,191,36,.1)"
+    }
+  }
 }

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目周报</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--pink:#f472b6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1400px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:36px 0 24px;border-bottom:1px solid var(--border);margin-bottom:28px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:12px}
+.doc-header h1 .ver{font-size:12px;background:var(--accent);color:#fff;padding:2px 12px;border-radius:12px;font-weight:700}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+.badge{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;padding:4px 16px;border-radius:16px;font-size:11px;font-weight:600;margin-top:12px}
+.section{margin-bottom:32px}
+.section h2{font-size:20px;color:var(--heading);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:8px}
+.section h3{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:14px 18px;border-radius:10px;margin:14px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:16px 0}
+@media(max-width:700px){.stat-row{grid-template-columns:1fr 1fr}}
+.stat-chip{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.stat-chip .num{font-size:24px;font-weight:700;color:var(--heading);margin-bottom:2px}
+.stat-chip .label{font-size:11px;color:var(--dim)}
+.progress-bar{width:100%;height:8px;background:var(--card);border-radius:4px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:4px;transition:width .3s}
+.risk-card{background:var(--panel);border-left:4px solid var(--yellow);border-radius:0 10px 10px 0;padding:14px 18px;margin:10px 0;font-size:14px}
+.risk-card.risk-high{border-left-color:var(--red)}
+.risk-card.risk-low{border-left-color:var(--green)}
+.risk-card .risk-title{color:var(--heading);font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:32px;font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>📊 美术项目周报 <span class="ver">W__</span></h1>
+  <div class="subtitle">Weekly Report — YYYY-MM-DD ~ YYYY-MM-DD</div>
+  <div class="meta">
+    <span>🎮 项目名称（填写）</span>
+    <span>👤 报告人（填写）</span>
+    <span>📅 第 __ 周 / Sprint __</span>
+  </div>
+  <div class="badge">📊 周报 · 可直接编辑</div>
+</div>
+
+<div class="alert alert-blue" style="margin-bottom:24px">
+  <strong>📖 使用说明：</strong>点击右上角「✏️ 编辑模式」进入编辑。每周五下班前更新，保存后发送给相关人员。
+</div>
+
+<!-- ═══ 一句话总结 ═══ -->
+<div class="section">
+  <h2>📌 一句话总结</h2>
+  <div class="alert alert-green">
+    <strong>本周一句话：</strong>（例：角色产线进度正常，场景 LOD 优化提前完成，外包 CP-A 首件通过率 100%。风险项：UI 需求插入导致 Sprint 超载 15%。）
+  </div>
+</div>
+
+<!-- ═══ 数据看板 ═══ -->
+<div class="section">
+  <h2>📈 本周数据看板</h2>
+  <div class="stat-row">
+    <div class="stat-chip">
+      <div class="num" style="color:var(--green)">12/15</div>
+      <div class="label">任务完成/计划</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:80%;background:var(--green)"></div></div>
+    </div>
+    <div class="stat-chip">
+      <div class="num" style="color:var(--accent)">85%</div>
+      <div class="label">Sprint 燃尽率</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:85%;background:var(--accent)"></div></div>
+    </div>
+    <div class="stat-chip">
+      <div class="num" style="color:var(--orange)">3</div>
+      <div class="label">本周新增 Bug</div>
+    </div>
+    <div class="stat-chip">
+      <div class="num" style="color:var(--cyan)">92%</div>
+      <div class="label">外包一次通过率</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:92%;background:var(--cyan)"></div></div>
+    </div>
+    <div class="stat-chip">
+      <div class="num" style="color:var(--pink)">2</div>
+      <div class="label">风险预警项</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 本周完成 ═══ -->
+<div class="section">
+  <h2>✅ 本周完成</h2>
+  <table>
+    <tr><th style="width:60px">#</th><th>任务</th><th style="width:80px">工种</th><th style="width:80px">负责人</th><th style="width:80px">状态</th><th>备注</th></tr>
+    <tr><td>1</td><td>角色 A 高模完成</td><td>角色</td><td>张三</td><td><span style="color:var(--green)">✅ 完成</span></td><td>已提交主美审核</td></tr>
+    <tr><td>2</td><td>场景 B LOD 优化</td><td>场景</td><td>李四</td><td><span style="color:var(--green)">✅ 完成</span></td><td>面数降低 40%</td></tr>
+    <tr><td>3</td><td>UI 主界面切图</td><td>UI</td><td>王五</td><td><span style="color:var(--green)">✅ 完成</span></td><td>已交前端</td></tr>
+    <tr><td>4</td><td>（继续添加）</td><td></td><td></td><td></td><td></td></tr>
+  </table>
+</div>
+
+<!-- ═══ 下周计划 ═══ -->
+<div class="section">
+  <h2>📅 下周计划</h2>
+  <table>
+    <tr><th style="width:60px">#</th><th>任务</th><th style="width:80px">工种</th><th style="width:80px">负责人</th><th style="width:80px">优先级</th><th>预估工期</th></tr>
+    <tr><td>1</td><td>角色 A 低模 + UV 拆分</td><td>角色</td><td>张三</td><td><span style="color:var(--red)">🔴 P0</span></td><td>3d</td></tr>
+    <tr><td>2</td><td>场景 C 白盒搭建</td><td>场景</td><td>李四</td><td><span style="color:var(--orange)">🟠 P1</span></td><td>5d</td></tr>
+    <tr><td>3</td><td>外包 CP-B 首件评审</td><td>外包</td><td>赵六</td><td><span style="color:var(--red)">🔴 P0</span></td><td>1d</td></tr>
+    <tr><td>4</td><td>（继续添加）</td><td></td><td></td><td></td><td></td></tr>
+  </table>
+</div>
+
+<!-- ═══ 风险预警 ═══ -->
+<div class="section">
+  <h2>⚠️ 风险预警</h2>
+
+  <div class="risk-card risk-high">
+    <div class="risk-title">🔴 高风险：UI 需求插入导致 Sprint 超载</div>
+    <p>策划临时插入 3 个 UI 需求（非计划内），当前 Sprint 容量超载 15%。</p>
+    <p><strong>应对方案：</strong>与策划协商将 2 个低优需求移至下个 Sprint。</p>
+  </div>
+
+  <div class="risk-card">
+    <div class="risk-title">🟡 中风险：外包 CP-C 进度滞后</div>
+    <p>CP-C 本周应交付 5 个角色，实际仅交付 3 个，滞后 2 个。</p>
+    <p><strong>应对方案：</strong>周一远程 check-in，评估是否需要调配内部资源补位。</p>
+  </div>
+
+  <div class="risk-card risk-low">
+    <div class="risk-title">🟢 低风险：引擎版本升级通知</div>
+    <p>TA 通知下月将升级引擎版本，需提前评估材质兼容性。</p>
+    <p><strong>应对方案：</strong>安排 TA 下周做影响评估。</p>
+  </div>
+</div>
+
+<!-- ═══ 需要协调的事项 ═══ -->
+<div class="section">
+  <h2>🤝 需要协调的事项</h2>
+  <table>
+    <tr><th>#</th><th>事项</th><th>需要谁配合</th><th>期望完成时间</th><th>当前状态</th></tr>
+    <tr><td>1</td><td>策划确认角色 B 技能动作需求</td><td>策划-孙七</td><td>周二</td><td>⏳ 待确认</td></tr>
+    <tr><td>2</td><td>TA 提供 PBR 材质转换脚本</td><td>TA-孙七</td><td>周三</td><td>⏳ 开发中</td></tr>
+    <tr><td>3</td><td>（继续添加）</td><td></td><td></td><td></td></tr>
+  </table>
+</div>
+
+<div class="doc-footer">
+  📊 美术项目周报 · W__ · APM 知识库 · YYYY-MM-DD
+</div>
+
+</div>
+<script src="editor-kit.js"></script>
+</body>
+</html>

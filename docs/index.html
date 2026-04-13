@@ -78,6 +78,10 @@
             <option value="html-standard">标准规范模板</option>
             <option value="html-richtext">图文混排模板</option>
             <option value="html-kanban">项目看板模板</option>
+            <option value="html-postmortem">项目复盘报告</option>
+            <option value="html-weekly">项目周报</option>
+            <option value="html-decision">决策记录</option>
+            <option value="html-meeting">会议纪要</option>
           </optgroup>
         </select>
         <button class="eh-btn eh-guide" onclick="navigate('editor-guide');closeEditor();" title="查看编辑器指南">📖 编辑器指南</button>
@@ -835,6 +839,40 @@ sequenceDiagram
 
         <div class="hst">🔥 全部案例</div>
         <div class="home-grid" id="grid-casestudy-cases"></div>
+
+        <div class="case-guide" style="margin-top:16px;padding:16px 20px;background:rgba(248,113,113,.04);border:1px dashed rgba(248,113,113,.2);border-radius:12px">
+          <p style="font-size:14px;color:var(--dim);margin:0 0 8px;line-height:1.8">
+            <strong style="color:var(--red)">💡 案例库扩充指南：</strong>每次项目遇到问题并解决后，请花 15 分钟记录一篇案例。推荐使用以下结构：
+          </p>
+          <p style="font-size:13px;color:var(--dim);margin:0;line-height:1.8">
+            ① <strong>问题现象</strong>（一句话描述）→ ② <strong>影响范围</strong>（时间/成本）→ ③ <strong>根因分析</strong>（5-Why）→ ④ <strong>解决方案</strong> → ⑤ <strong>防线建设</strong>（流程/工具）<br>
+            使用「✍️ 创作模式」中的 <strong>Bug 复盘模板</strong> 或下载 <strong>项目复盘报告</strong> HTML 模板来快速撰写。
+          </p>
+        </div>
+
+        </div>
+      </div>
+
+      <!-- ═══ 板块八：📌 我的项目笔记 ═══ -->
+      <div class="module-section module-mynotes" id="section-mynotes">
+        <div class="module-header module-header-mynotes" onclick="toggleModuleSection(this)">
+          <div class="module-icon" style="background:rgba(251,191,36,.1);color:var(--yellow)">📌</div>
+          <div class="module-info">
+            <h2>我的项目笔记</h2>
+            <p>项目复盘、周报、决策记录、会议纪要 — 基于实战的个人经验沉淀空间</p>
+          </div>
+          <span class="module-weight" style="color:#fbbf24;opacity:.5">实战</span>
+          <div class="module-chevron"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+        <div class="module-body">
+
+        <div class="hst">📝 实战模板</div>
+        <p class="hst-desc" style="font-size:13px;color:var(--dim);margin:-8px 0 12px;padding:0 4px">下载 HTML 模板 → 填写项目信息 → 保存到 knowledge-base 目录 → 在 sidebar.json 注册即可上线</p>
+        <div class="home-grid" id="grid-mynotes-templates"></div>
+
+        <div class="hst">📂 快速记录</div>
+        <p class="hst-desc" style="font-size:13px;color:var(--dim);margin:-8px 0 12px;padding:0 4px">使用编辑器的 Markdown 模板快速创建笔记，发布到仓库即可永久保存</p>
+        <div class="home-grid" id="grid-mynotes-quick"></div>
 
         </div>
       </div>
