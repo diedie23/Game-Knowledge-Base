@@ -911,6 +911,82 @@ sequenceDiagram
   <iframe class="content-frame" id="contentFrame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-downloads"></iframe>
 </main>
 
+<!-- ═══ AI 智能问答助手（Coze Web SDK）═══ -->
+<div class="ai-chat-wrapper" id="aiChatWrapper">
+  <!-- 悬浮按钮 -->
+  <button class="ai-chat-fab" id="aiChatFab" onclick="toggleAiChat()" title="AI 智能问答助手">
+    <span class="ai-fab-icon" id="aiFabIcon">🤖</span>
+    <span class="ai-fab-pulse"></span>
+  </button>
+  <!-- 对话框容器 -->
+  <div class="ai-chat-dialog" id="aiChatDialog">
+    <div class="ai-chat-header">
+      <div class="ai-chat-header-left">
+        <span class="ai-chat-logo">🤖</span>
+        <div>
+          <div class="ai-chat-title">APM 智能助手</div>
+          <div class="ai-chat-subtitle">基于知识库内容回答你的问题</div>
+        </div>
+      </div>
+      <button class="ai-chat-close" onclick="toggleAiChat()">✕</button>
+    </div>
+    <div class="ai-chat-body" id="aiChatBody">
+      <!-- 欢迎消息 -->
+      <div class="ai-msg ai-msg-bot">
+        <div class="ai-msg-avatar">🤖</div>
+        <div class="ai-msg-content">
+          <p>你好！我是 APM 知识库智能助手 👋</p>
+          <p>你可以问我任何关于美术项目管理的问题，例如：</p>
+          <div class="ai-suggest-chips">
+            <button class="ai-chip" onclick="aiSendSuggestion(this)">需求频繁变更怎么办？</button>
+            <button class="ai-chip" onclick="aiSendSuggestion(this)">外包验收标准是什么？</button>
+            <button class="ai-chip" onclick="aiSendSuggestion(this)">新人入职第一周该做什么？</button>
+          </div>
+        </div>
+      </div>
+      <div id="aiChatMessages"></div>
+    </div>
+    <div class="ai-chat-footer">
+      <div class="ai-chat-input-wrap">
+        <textarea class="ai-chat-input" id="aiChatInput" placeholder="输入你的问题…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();aiSendMessage()}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+        <button class="ai-chat-send" id="aiChatSend" onclick="aiSendMessage()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+        </button>
+      </div>
+      <div class="ai-chat-powered">
+        💡 提示：回答基于知识库内容，<a onclick="aiOpenConfig()" style="color:var(--accent);cursor:pointer">配置 Coze Bot</a>
+      </div>
+    </div>
+    <!-- Coze 配置面板 -->
+    <div class="ai-config-panel" id="aiConfigPanel" style="display:none">
+      <h4>⚙️ Coze Bot 配置</h4>
+      <p class="ai-config-desc">请在 <a href="https://www.coze.cn" target="_blank" style="color:var(--accent)">coze.cn</a> 创建 Bot 并获取以下信息：</p>
+      <div class="ai-config-field">
+        <label>Bot ID</label>
+        <input type="text" id="cozeBotId" class="ai-config-input" placeholder="粘贴你的 Bot ID">
+      </div>
+      <div class="ai-config-field">
+        <label>API Token（Personal Access Token）</label>
+        <input type="password" id="cozeToken" class="ai-config-input" placeholder="粘贴你的 API Token">
+      </div>
+      <div class="ai-config-actions">
+        <button class="ai-config-btn" onclick="aiCloseConfig()">取消</button>
+        <button class="ai-config-btn ai-config-btn-primary" onclick="aiSaveConfig()">保存配置</button>
+      </div>
+      <div class="ai-config-guide">
+        <strong>配置步骤：</strong>
+        <ol>
+          <li>访问 <a href="https://www.coze.cn" target="_blank" style="color:var(--accent)">coze.cn</a> 注册并登录</li>
+          <li>创建一个新的 Bot，上传知识库文档</li>
+          <li>在 Bot 设置中获取 Bot ID</li>
+          <li>在「个人设置 → API」中生成 Personal Access Token</li>
+          <li>将 Bot ID 和 Token 粘贴到上方保存即可</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
 <button class="share-btn" onclick="copyShareLink()">🔗 分享此页</button>
 <button class="btt" id="backToTop">↑</button>
 

@@ -13,7 +13,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .search-box::before{content:'🔍';position:absolute;left:28px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;z-index:1}
 .search-box input{width:100%;padding:10px 14px 10px 36px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;outline:none;transition:border-color .15s;font-family:inherit}
 .search-box input:focus{border-color:var(--accent)}.search-box input::placeholder{color:var(--dim)}
-.search-dropdown{position:absolute;top:100%;left:18px;right:18px;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;max-height:360px;overflow-y:auto;z-index:10;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.search-dropdown{position:absolute;top:100%;left:18px;right:18px;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;max-height:480px;overflow-y:auto;z-index:10;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
 .search-dropdown.show{display:block}
 .sr-item{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--border);font-size:14px}
 .sr-item:last-child{border-bottom:none}.sr-item:hover{background:var(--accent-bg)}
@@ -883,4 +883,124 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   .sf-btns .nav-create,.nav-guide{width:100%}
   .kt-panel div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}
   .kt-panel div[style*="grid-template-columns:repeat(4"]{grid-template-columns:repeat(2,1fr)!important}
+}
+
+/* ═══ AI 智能问答助手 (Coze Web SDK) ═══ */
+
+/* ═══ 可视化管理面板 (Visual CMS) ═══ */
+.sidebar.admin-mode{border-right-color:rgba(108,140,255,.4);box-shadow:2px 0 16px rgba(108,140,255,.1)}
+.sidebar.admin-mode .t1-h:hover,.sidebar.admin-mode .t2-h:hover,.sidebar.admin-mode .t3-h:hover,.sidebar.admin-mode .leaf:hover{background:rgba(108,140,255,.06)}
+
+/* 管理工具栏 */
+.admin-toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:linear-gradient(135deg,rgba(108,140,255,.08),rgba(167,139,250,.06));border-bottom:1px solid rgba(108,140,255,.2);gap:8px;flex-wrap:wrap;animation:adminToolbarSlide .3s ease}
+@keyframes adminToolbarSlide{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+.at-left{display:flex;align-items:center;gap:8px}
+.at-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:8px;background:rgba(108,140,255,.15);color:var(--accent);font-size:13px;font-weight:700;letter-spacing:.3px}
+.at-hint{font-size:11px;color:var(--dim)}
+.at-actions{display:flex;gap:6px}
+.at-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--dim);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s;font-weight:500}
+.at-btn:hover{border-color:var(--accent);color:var(--accent)}
+.at-btn-add{border-color:rgba(74,222,128,.3);color:#4ade80;background:rgba(74,222,128,.06)}
+.at-btn-add:hover{background:rgba(74,222,128,.15);border-color:rgba(74,222,128,.5)}
+.at-btn-save{border-color:rgba(108,140,255,.3);color:var(--accent);background:rgba(108,140,255,.06);font-weight:600}
+.at-btn-save:hover{background:rgba(108,140,255,.15);border-color:rgba(108,140,255,.5)}
+
+/* 节点操作按钮 */
+.admin-action-btn{display:inline-flex;gap:2px;margin-left:auto;flex-shrink:0;opacity:0;transition:opacity .15s}
+.t1-h:hover .admin-action-btn,.t2-h:hover .admin-action-btn,.t3-h:hover .admin-action-btn,.leaf:hover .admin-action-btn{opacity:1}
+.aa-btn{width:22px;height:22px;border-radius:6px;border:1px solid transparent;background:none;color:var(--dim);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;padding:0;font-family:inherit}
+.aa-add{color:#4ade80}.aa-add:hover{background:rgba(74,222,128,.12);border-color:rgba(74,222,128,.3)}
+.aa-del{color:var(--dim)}.aa-del:hover{color:#f87171;background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.2)}
+.aa-edit{color:var(--accent)}.aa-edit:hover{background:rgba(108,140,255,.1);border-color:rgba(108,140,255,.2)}
+
+/* 拖拽状态 */
+.sidebar.admin-mode [draggable="true"]{cursor:grab}
+.sidebar.admin-mode [draggable="true"]:active{cursor:grabbing}
+.sidebar.admin-mode .leaf[draggable="true"]:hover{background:rgba(108,140,255,.06);border-left:2px solid rgba(108,140,255,.3)}
+
+.ai-chat-wrapper{position:fixed;bottom:24px;right:80px;z-index:200}
+.ai-chat-fab{width:56px;height:56px;border-radius:50%;border:2px solid rgba(108,140,255,.4);background:linear-gradient(135deg,#1c2a44,#2a3a6e);color:#fff;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(108,140,255,.3),0 2px 8px rgba(0,0,0,.4);transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:visible}
+.ai-chat-fab:hover{transform:scale(1.1);box-shadow:0 8px 32px rgba(108,140,255,.45),0 4px 12px rgba(0,0,0,.5);border-color:var(--accent)}
+.ai-fab-icon{display:flex;align-items:center;justify-content:center;transition:transform .3s}
+.ai-chat-fab.active .ai-fab-icon{transform:rotate(180deg)}
+.ai-fab-pulse{position:absolute;top:-3px;right:-3px;width:14px;height:14px;background:#4ade80;border-radius:50%;border:2px solid #0f1117;animation:aiFabPulse 2s ease-in-out infinite}
+@keyframes aiFabPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.2)}}
+
+/* 对话框 */
+.ai-chat-dialog{position:absolute;bottom:68px;right:0;width:400px;max-height:600px;background:var(--sidebar-bg);border:1px solid var(--border);border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,.6),0 4px 16px rgba(108,140,255,.1);display:none;flex-direction:column;overflow:hidden;animation:aiDialogSlideIn .3s cubic-bezier(.4,0,.2,1)}
+.ai-chat-dialog.show{display:flex}
+@keyframes aiDialogSlideIn{from{opacity:0;transform:translateY(16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* 对话框头部 */
+.ai-chat-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:linear-gradient(135deg,rgba(108,140,255,.08),rgba(167,139,250,.06));border-bottom:1px solid var(--border)}
+.ai-chat-header-left{display:flex;align-items:center;gap:12px}
+.ai-chat-logo{font-size:28px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;background:rgba(108,140,255,.1);border-radius:12px}
+.ai-chat-title{font-size:16px;color:var(--heading);font-weight:700}
+.ai-chat-subtitle{font-size:12px;color:var(--dim);margin-top:2px}
+.ai-chat-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--dim);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.ai-chat-close:hover{border-color:#f87171;color:#f87171;background:rgba(248,113,113,.08)}
+
+/* 消息区域 */
+.ai-chat-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;max-height:380px;min-height:200px}
+.ai-msg{display:flex;gap:10px;animation:aiMsgFadeIn .3s ease}
+@keyframes aiMsgFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.ai-msg-bot{align-items:flex-start}
+.ai-msg-user{align-items:flex-start;flex-direction:row-reverse}
+.ai-msg-avatar{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ai-msg-bot .ai-msg-avatar{background:rgba(108,140,255,.1)}
+.ai-msg-user .ai-msg-avatar{background:rgba(167,139,250,.1)}
+.ai-msg-content{max-width:85%;padding:12px 16px;border-radius:14px;font-size:14px;line-height:1.7;color:var(--text)}
+.ai-msg-bot .ai-msg-content{background:var(--card-bg);border:1px solid var(--border);border-top-left-radius:4px}
+.ai-msg-user .ai-msg-content{background:linear-gradient(135deg,rgba(108,140,255,.15),rgba(167,139,250,.12));border:1px solid rgba(108,140,255,.2);border-top-right-radius:4px;color:var(--heading)}
+.ai-msg-content p{margin:0 0 6px}.ai-msg-content p:last-child{margin:0}
+.ai-msg-content strong{color:var(--heading)}
+.ai-msg-content code{background:var(--code-bg);padding:2px 6px;border-radius:4px;font-size:13px;color:var(--accent-light)}
+
+/* 建议标签 */
+.ai-suggest-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.ai-chip{padding:6px 12px;border-radius:20px;border:1px solid rgba(108,140,255,.2);background:rgba(108,140,255,.06);color:var(--accent);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.ai-chip:hover{background:rgba(108,140,255,.15);border-color:rgba(108,140,255,.4);transform:translateY(-1px)}
+
+/* 输入区域 */
+.ai-chat-footer{padding:12px 16px;border-top:1px solid var(--border);background:var(--card-bg)}
+.ai-chat-input-wrap{display:flex;align-items:flex-end;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:4px 4px 4px 14px;transition:border-color .15s}
+.ai-chat-input-wrap:focus-within{border-color:var(--accent)}
+.ai-chat-input{flex:1;border:none;background:transparent;color:var(--text);font-size:14px;font-family:inherit;resize:none;outline:none;max-height:120px;min-height:20px;line-height:1.6;padding:8px 0}
+.ai-chat-input::placeholder{color:var(--dim)}
+.ai-chat-send{width:36px;height:36px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.ai-chat-send:hover{opacity:.85;transform:scale(1.05)}
+.ai-chat-send:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.ai-chat-powered{font-size:11px;color:var(--st);text-align:center;margin-top:8px}
+
+/* 加载动画 */
+.ai-typing{display:flex;gap:4px;padding:4px 0}
+.ai-typing-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:aiTyping 1.4s ease-in-out infinite}
+.ai-typing-dot:nth-child(2){animation-delay:.2s}
+.ai-typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes aiTyping{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+
+/* 配置面板 */
+.ai-config-panel{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--sidebar-bg);padding:20px;overflow-y:auto;z-index:10;animation:aiConfigSlide .25s ease}
+@keyframes aiConfigSlide{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+.ai-config-panel h4{font-size:18px;color:var(--heading);margin-bottom:12px}
+.ai-config-desc{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:16px}
+.ai-config-field{margin-bottom:14px}
+.ai-config-field label{display:block;font-size:13px;color:var(--dim);margin-bottom:6px;font-weight:500}
+.ai-config-input{width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.ai-config-input:focus{border-color:var(--accent)}
+.ai-config-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.ai-config-btn{padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--dim);font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s}
+.ai-config-btn:hover{border-color:var(--accent);color:var(--accent)}
+.ai-config-btn-primary{background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;border:none;font-weight:500}
+.ai-config-btn-primary:hover{opacity:.85}
+.ai-config-guide{margin-top:18px;padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--dim);line-height:1.8}
+.ai-config-guide strong{color:var(--heading);display:block;margin-bottom:6px}
+.ai-config-guide ol{padding-left:20px;margin:0}
+.ai-config-guide li{margin:4px 0}
+
+/* 响应式 */
+@media(max-width:768px){
+  .ai-chat-wrapper{bottom:12px;right:12px}
+  .ai-chat-fab{width:48px;height:48px;font-size:20px}
+  .ai-chat-dialog{width:calc(100vw - 24px);max-height:70vh;right:-12px;bottom:56px}
 }

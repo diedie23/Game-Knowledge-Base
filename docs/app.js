@@ -50,6 +50,8 @@ var indexData=null;      // index.json 数据（含 module 字段）
 var docs={};             // 已加载的 MD 内容缓存
 var curPage='home';
 var fuse=null;
+var fuseFulltext=null;   // 全文搜索 Fuse 实例（基于 search-index.json）
+var searchIndexData=null; // 全文搜索索引原始数据
 var pageRegistry={};     // pageId → {type, file, download, badge, craft, catId, module ...}
 var activeTagFilter='';  // 当前标签过滤关键词
 
@@ -755,6 +757,28 @@ function initSearch(){
       }
 
       fuse=new Fuse(items,{keys:[{name:'title',weight:3},{name:'keywords',weight:2.5},{name:'content',weight:1.5},{name:'craft',weight:0.5},{name:'applicable_stage',weight:1},{name:'priority',weight:0.5}],threshold:0.35,includeMatches:true,minMatchCharLength:1});
+
+      // 加载全文搜索索引（search-index.json）
+      fetch('search-index.json').then(function(res){if(!res.ok) return null;return res.json();}).then(function(sdata){
+        if(sdata && sdata.entries){
+          searchIndexData = sdata;
+          fuseFulltext = new Fuse(sdata.entries, {
+            keys:[
+              {name:'title', weight:5},
+              {name:'content', weight:2},
+              {name:'excerpt', weight:1.5},
+              {name:'tags', weight:1}
+            ],
+            threshold: 0.3,
+            includeMatches: true,
+            minMatchCharLength: 2,
+            ignoreLocation: true,
+            findAllMatches: true
+          });
+          console.log('✅ 全文搜索索引已加载，共 '+sdata.entries.length+' 篇文档');
+        }
+      }).catch(function(e){ console.warn('全文索引加载失败:', e); });
+
       // 加载完毕后渲染动态首页卡片和角标
       setTimeout(function(){
         renderHomeCards();
@@ -770,21 +794,40 @@ function handleSearch(q){
   var dd=document.getElementById('searchDropdown');q=q.trim();
   if(!q){dd.classList.remove('show');dd.innerHTML='';return;}
   if(!fuse){dd.classList.remove('show');return;}
-  var results=fuse.search(q).slice(0,10);
-  if(!results.length){dd.innerHTML='<div style="padding:14px;text-align:center;color:var(--dim);font-size:13px">未找到相关内容</div>';dd.classList.add('show');return;}
+
+  // ═══ 标题/关键词搜索（原有 Fuse） ═══
+  var titleResults=fuse.search(q).slice(0,6);
+
+  // ═══ 全文内容搜索（新增 search-index.json） ═══
+  var fulltextResults=[];
+  if(fuseFulltext){
+    var rawFt=fuseFulltext.search(q).slice(0,8);
+    // 合并并去重（排除已在标题结果中出现的）
+    var titleIds={};
+    titleResults.forEach(function(r){titleIds[r.item.id]=true;});
+    rawFt.forEach(function(r){
+      if(!titleIds[r.item.id]) fulltextResults.push(r);
+    });
+    fulltextResults=fulltextResults.slice(0,4);
+  }
+
+  if(!titleResults.length && !fulltextResults.length){
+    dd.innerHTML='<div style="padding:14px;text-align:center;color:var(--dim);font-size:13px">未找到相关内容</div>';
+    dd.classList.add('show');return;
+  }
+
   var html='';
-  results.forEach(function(r){
+
+  // ═══ 渲染标题匹配结果 ═══
+  titleResults.forEach(function(r){
     var item=r.item;
-    // 模块标签颜色
     var modLabel='🏭', modCls='background:rgba(108,140,255,.08);color:#6c8cff';
     if(item.module==='collab')  { modLabel='🤝'; modCls='background:rgba(251,146,60,.08);color:#fb923c'; }
     if(item.module==='toolkit') { modLabel='🧰'; modCls='background:rgba(74,222,128,.08);color:#4ade80'; }
     if(item.module==='governance') { modLabel='💰'; modCls='background:rgba(244,114,182,.08);color:#f472b6'; }
     if(item.module==='retrospect') { modLabel='📒'; modCls='background:rgba(34,211,238,.08);color:#22d3ee'; }
     if(item.module==='casestudy') { modLabel='🔥'; modCls='background:rgba(248,113,113,.08);color:#f87171'; }
-    // 工种 Tag
     var craftHtml = item.craft ? '<span class="sr-craft">['+item.craft+']</span>' : '';
-    // 阶段 Tag
     var stageHtml = '';
     if(item.applicable_stage){
       var sc = indexData && indexData.stageConfig && indexData.stageConfig[item.applicable_stage];
@@ -795,12 +838,71 @@ function handleSearch(q){
 
     html+='<div class="sr-item" onmousedown="navigate(\''+item.id+'\');document.getElementById(\'searchDropdown\').classList.remove(\'show\');document.getElementById(\'searchInput\').value=\'\'">'
       +'<span class="sr-type" style="'+modCls+'">'+modLabel+'</span>'
-      +'<span class="sr-title">'+item.title+'</span>'
+      +'<span class="sr-title">'+highlightText(item.title,q)+'</span>'
       +stageHtml
       +craftHtml
       +'</div>';
   });
+
+  // ═══ 渲染全文匹配结果（带上下文片段）═══
+  if(fulltextResults.length){
+    html+='<div style="padding:6px 16px 4px;font-size:11px;color:var(--dim);border-top:1px solid var(--border);font-weight:600;letter-spacing:.5px">📄 正文匹配</div>';
+    fulltextResults.forEach(function(r){
+      var entry=r.item;
+      var snippet=extractSnippet(entry.content, q, 120);
+      var iconHtml=entry.icon? '<span style="font-size:14px;flex-shrink:0">'+entry.icon+'</span>' : '';
+
+      html+='<div class="sr-item sr-item-fulltext" onmousedown="navigate(\''+entry.id+'\');document.getElementById(\'searchDropdown\').classList.remove(\'show\');document.getElementById(\'searchInput\').value=\'\'" style="flex-direction:column;align-items:flex-start;gap:4px;padding:10px 16px">'
+        +'<div style="display:flex;align-items:center;gap:8px;width:100%">'
+        +iconHtml
+        +'<span class="sr-title" style="font-size:13px">'+highlightText(entry.title,q)+'</span>'
+        +(entry.stage?'<span class="sr-stage" style="background:rgba(167,139,250,.12);color:#a78bfa;font-size:10px">'+entry.stage+'</span>':'')
+        +'</div>'
+        +'<div style="font-size:12px;color:var(--dim);line-height:1.6;padding-left:22px">'+snippet+'</div>'
+        +'</div>';
+    });
+  }
+
   dd.innerHTML=html;dd.classList.add('show');
+}
+
+// ═══ 搜索辅助函数：高亮文本中的关键词 ═══
+function highlightText(text, query){
+  if(!query||!text) return text||'';
+  try{
+    var escaped=query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    var re=new RegExp('('+escaped+')','gi');
+    return text.replace(re,'<mark style="background:rgba(108,140,255,.25);color:var(--accent-light);padding:0 2px;border-radius:3px">$1</mark>');
+  }catch(e){return text;}
+}
+
+// ═══ 搜索辅助函数：提取包含关键词的上下文片段并高亮 ═══
+function extractSnippet(content, query, maxLen){
+  if(!content||!query) return '';
+  maxLen=maxLen||120;
+  var lower=content.toLowerCase();
+  var qLower=query.toLowerCase();
+  var idx=lower.indexOf(qLower);
+  var snippet='';
+  if(idx>=0){
+    var start=Math.max(0,idx-40);
+    var end=Math.min(content.length,idx+qLower.length+maxLen-40);
+    snippet=(start>0?'…':'')+content.substring(start,end)+(end<content.length?'…':'');
+  }else{
+    // 模糊：尝试匹配单个词
+    var words=query.split(/\s+/).filter(function(w){return w.length>=2;});
+    for(var i=0;i<words.length;i++){
+      var wIdx=lower.indexOf(words[i].toLowerCase());
+      if(wIdx>=0){
+        var s=Math.max(0,wIdx-40);
+        var e=Math.min(content.length,wIdx+words[i].length+maxLen-40);
+        snippet=(s>0?'…':'')+content.substring(s,e)+(e<content.length?'…':'');
+        break;
+      }
+    }
+    if(!snippet) snippet=content.substring(0,maxLen)+(content.length>maxLen?'…':'');
+  }
+  return highlightText(snippet,query);
 }
 
 // ═══ Utilities ═══
@@ -3335,6 +3437,591 @@ function breadcrumbNavGrp(grpName){
       }
     });
   },150);
+}
+
+// ═══ 可视化管理面板 (Visual CMS) ═══
+var adminMode = false;
+var adminDirty = false; // 是否有未保存的目录变更
+
+// 快捷键：Ctrl+Shift+A 触发管理模式
+document.addEventListener('keydown', function(e){
+  if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==='a'){
+    e.preventDefault();
+    toggleAdminMode();
+  }
+});
+
+function toggleAdminMode(){
+  adminMode = !adminMode;
+  var sidebar = document.querySelector('.sidebar');
+  if(adminMode){
+    sidebar.classList.add('admin-mode');
+    renderAdminToolbar();
+    enableDragDrop();
+    showToast('🔧 管理模式已开启 — 可拖拽排序、增删文档');
+  }else{
+    sidebar.classList.remove('admin-mode');
+    removeAdminToolbar();
+    disableDragDrop();
+    showToast('管理模式已关闭');
+  }
+}
+
+function renderAdminToolbar(){
+  // 在侧边栏顶部注入管理工具栏
+  var existing=document.getElementById('adminToolbar');
+  if(existing) existing.remove();
+  var bar=document.createElement('div');
+  bar.id='adminToolbar';
+  bar.className='admin-toolbar';
+  bar.innerHTML=
+    '<div class="at-left">'
+    +'<span class="at-badge">🔧 管理模式</span>'
+    +'<span class="at-hint">Ctrl+Shift+A 退出</span>'
+    +'</div>'
+    +'<div class="at-actions">'
+    +'<button class="at-btn at-btn-add" onclick="adminAddCategory()" title="新增一级模块">＋ 模块</button>'
+    +'<button class="at-btn at-btn-save" onclick="adminPublishAll()" title="发布全部变更">🚀 发布</button>'
+    +'</div>';
+  var sidebarNav=document.querySelector('.sidebar-nav');
+  sidebarNav.parentNode.insertBefore(bar, sidebarNav);
+
+  // 为每个目录项注入管理按钮
+  injectAdminActions();
+}
+
+function removeAdminToolbar(){
+  var tb=document.getElementById('adminToolbar');
+  if(tb) tb.remove();
+  // 移除所有管理按钮
+  document.querySelectorAll('.admin-action-btn').forEach(function(b){b.remove();});
+}
+
+function injectAdminActions(){
+  // 清除旧的
+  document.querySelectorAll('.admin-action-btn').forEach(function(b){b.remove();});
+
+  // 一级模块：添加「新增分组」和「删除模块」按钮
+  document.querySelectorAll('.t1-h').forEach(function(h){
+    var wrap=document.createElement('div');
+    wrap.className='admin-action-btn';
+    wrap.innerHTML=
+      '<button class="aa-btn aa-add" onclick="event.stopPropagation();adminAddGroup(this)" title="新增二级分组">＋</button>'
+      +'<button class="aa-btn aa-del" onclick="event.stopPropagation();adminDeleteNode(this,\'t1\')" title="删除此模块">✕</button>';
+    h.appendChild(wrap);
+  });
+
+  // 二级分组：添加「新增文档」和「删除分组」按钮
+  document.querySelectorAll('.t2-h').forEach(function(h){
+    var wrap=document.createElement('div');
+    wrap.className='admin-action-btn';
+    wrap.innerHTML=
+      '<button class="aa-btn aa-add" onclick="event.stopPropagation();adminAddDoc(this)" title="新增文档">＋</button>'
+      +'<button class="aa-btn aa-del" onclick="event.stopPropagation();adminDeleteNode(this,\'t2\')" title="删除此分组">✕</button>';
+    h.appendChild(wrap);
+  });
+
+  // 三级分组
+  document.querySelectorAll('.t3-h').forEach(function(h){
+    var wrap=document.createElement('div');
+    wrap.className='admin-action-btn';
+    wrap.innerHTML=
+      '<button class="aa-btn aa-add" onclick="event.stopPropagation();adminAddDoc(this)" title="新增文档">＋</button>'
+      +'<button class="aa-btn aa-del" onclick="event.stopPropagation();adminDeleteNode(this,\'t3\')" title="删除此分组">✕</button>';
+    h.appendChild(wrap);
+  });
+
+  // 叶节点：添加「编辑」和「删除」按钮
+  document.querySelectorAll('.leaf').forEach(function(leaf){
+    if(leaf.classList.contains('leaf--empty')) return;
+    var wrap=document.createElement('div');
+    wrap.className='admin-action-btn';
+    wrap.innerHTML=
+      '<button class="aa-btn aa-edit" onclick="event.stopPropagation();adminEditDoc(this)" title="编辑此文档">✏️</button>'
+      +'<button class="aa-btn aa-del" onclick="event.stopPropagation();adminDeleteLeaf(this)" title="删除此文档">✕</button>';
+    leaf.appendChild(wrap);
+  });
+}
+
+// ═══ 管理模式：拖拽排序 ═══
+var dragSrcEl=null;
+function enableDragDrop(){
+  // 为叶节点和分组启用拖拽
+  document.querySelectorAll('.leaf:not(.leaf--empty), .t2-h, .t1-h').forEach(function(el){
+    el.setAttribute('draggable','true');
+    el.addEventListener('dragstart', adminDragStart);
+    el.addEventListener('dragover', adminDragOver);
+    el.addEventListener('drop', adminDrop);
+    el.addEventListener('dragend', adminDragEnd);
+  });
+}
+function disableDragDrop(){
+  document.querySelectorAll('[draggable="true"]').forEach(function(el){
+    el.removeAttribute('draggable');
+    el.removeEventListener('dragstart', adminDragStart);
+    el.removeEventListener('dragover', adminDragOver);
+    el.removeEventListener('drop', adminDrop);
+    el.removeEventListener('dragend', adminDragEnd);
+  });
+}
+function adminDragStart(e){
+  dragSrcEl=this;
+  this.style.opacity='0.4';
+  e.dataTransfer.effectAllowed='move';
+}
+function adminDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  this.style.borderTop='2px solid var(--accent)';
+}
+function adminDrop(e){
+  e.preventDefault();
+  this.style.borderTop='';
+  if(dragSrcEl===this) return;
+  // 只允许同级拖拽
+  if(dragSrcEl && dragSrcEl.parentNode===this.parentNode){
+    var parent=this.parentNode;
+    var allChildren=Array.from(parent.children);
+    var srcIdx=allChildren.indexOf(dragSrcEl.closest('.leaf')||dragSrcEl.closest('.t2')||dragSrcEl.closest('.t1'));
+    var dstIdx=allChildren.indexOf(this.closest('.leaf')||this.closest('.t2')||this.closest('.t1'));
+    var srcNode=dragSrcEl.closest('.leaf')||dragSrcEl.closest('.t2')||dragSrcEl.closest('.t1');
+    var dstNode=this.closest('.leaf')||this.closest('.t2')||this.closest('.t1');
+    if(srcNode&&dstNode&&srcNode!==dstNode){
+      if(srcIdx<dstIdx) parent.insertBefore(srcNode, dstNode.nextSibling);
+      else parent.insertBefore(srcNode, dstNode);
+      adminDirty=true;
+      syncSidebarToData();
+      showToast('📦 顺序已更新（需发布生效）');
+    }
+  }
+}
+function adminDragEnd(e){
+  this.style.opacity='';
+  document.querySelectorAll('.t1-h,.t2-h,.t3-h,.leaf').forEach(function(el){el.style.borderTop='';});
+}
+
+// ═══ 管理模式：增删操作 ═══
+function adminAddCategory(){
+  var name=prompt('请输入新模块名称（如：📋 新模块）');
+  if(!name) return;
+  var id='mod-'+name.replace(/[^a-zA-Z0-9]/g,'-').toLowerCase()+'-'+Date.now().toString(36);
+  sidebarData.categories.push({
+    id: id,
+    name: name,
+    icon: '📋',
+    color: 'accent',
+    groups: [{name:'默认分组', icon:'📄', items:[]}]
+  });
+  adminDirty=true;
+  buildSidebar(sidebarData);
+  if(adminMode) injectAdminActions();
+  showToast('✅ 新模块已添加：'+name);
+}
+
+function adminAddGroup(btn){
+  var t1=btn.closest('.t1');
+  if(!t1) return;
+  var catIdx=Array.from(document.querySelectorAll('.t1')).indexOf(t1);
+  var name=prompt('请输入新分组名称（如：新规范）');
+  if(!name) return;
+  if(sidebarData.categories[catIdx]){
+    sidebarData.categories[catIdx].groups.push({
+      name: name, icon: '📄', items: []
+    });
+    adminDirty=true;
+    buildSidebar(sidebarData);
+    if(adminMode) injectAdminActions();
+    showToast('✅ 新分组已添加：'+name);
+  }
+}
+
+function adminAddDoc(btn){
+  var name=prompt('请输入文档标题');
+  if(!name) return;
+  var docId=name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'-').toLowerCase();
+  // 找到所属分组
+  var t2=btn.closest('.t2')||btn.closest('.t3');
+  var t1=btn.closest('.t1');
+  if(!t1) return;
+  var catIdx=Array.from(document.querySelectorAll('.t1')).indexOf(t1);
+  if(t2){
+    var grpIdx=Array.from(t1.querySelectorAll('.t2,.t3')).indexOf(t2);
+    if(sidebarData.categories[catIdx] && sidebarData.categories[catIdx].groups[grpIdx]){
+      sidebarData.categories[catIdx].groups[grpIdx].items.push({
+        id: docId, icon: '📝', title: name, type: 'md',
+        file: 'knowledge-base/'+docId+'.md', badge: '文档', craft: ''
+      });
+    }
+  }
+  adminDirty=true;
+  buildSidebar(sidebarData);
+  if(adminMode) injectAdminActions();
+  showToast('✅ 文档已添加：'+name);
+}
+
+function adminDeleteNode(btn, level){
+  if(!confirm('确定要删除此'+({'t1':'模块','t2':'分组','t3':'分组'}[level])+'？（子项将一并删除）')) return;
+  var node=btn.closest('.'+level);
+  var t1=btn.closest('.t1');
+  if(!t1) return;
+  var catIdx=Array.from(document.querySelectorAll('.t1')).indexOf(t1);
+  if(level==='t1'){
+    sidebarData.categories.splice(catIdx,1);
+  }else{
+    var grpNode=btn.closest('.t2')||btn.closest('.t3');
+    var grpIdx=Array.from(t1.querySelectorAll('.t2,.t3')).indexOf(grpNode);
+    if(sidebarData.categories[catIdx]&&sidebarData.categories[catIdx].groups[grpIdx]){
+      sidebarData.categories[catIdx].groups.splice(grpIdx,1);
+    }
+  }
+  adminDirty=true;
+  buildSidebar(sidebarData);
+  if(adminMode) injectAdminActions();
+  showToast('🗑️ 已删除');
+}
+
+function adminDeleteLeaf(btn){
+  if(!confirm('确定要从目录中移除此文档？')) return;
+  var leaf=btn.closest('.leaf');
+  if(!leaf) return;
+  var pageId=leaf.getAttribute('data-page');
+  // 从 sidebarData 中移除
+  sidebarData.categories.forEach(function(cat){
+    if(cat.items){
+      cat.items=cat.items.filter(function(i){return i.id!==pageId;});
+    }
+    cat.groups.forEach(function(g){
+      if(g.items){
+        g.items=g.items.filter(function(i){return i.id!==pageId;});
+      }
+    });
+  });
+  adminDirty=true;
+  buildSidebar(sidebarData);
+  if(adminMode) injectAdminActions();
+  showToast('🗑️ 文档已从目录移除');
+}
+
+function adminEditDoc(btn){
+  var leaf=btn.closest('.leaf');
+  if(!leaf) return;
+  var pageId=leaf.getAttribute('data-page');
+  if(pageId) navigate(pageId);
+}
+
+// ═══ 管理模式：同步 DOM 顺序到 sidebarData ═══
+function syncSidebarToData(){
+  try{
+    var cats=document.querySelectorAll('.t1');
+    var newCategories=[];
+    cats.forEach(function(t1,ci){
+      var oldCat=sidebarData.categories[ci];
+      if(!oldCat) return;
+      var newGroups=[];
+      var groups=t1.querySelectorAll('.t2,.t3');
+      groups.forEach(function(g,gi){
+        var oldGrp=oldCat.groups[gi];
+        if(!oldGrp) return;
+        var newItems=[];
+        var leaves=g.querySelectorAll('.leaf[data-page]');
+        leaves.forEach(function(leaf){
+          var pid=leaf.getAttribute('data-page');
+          // 在旧数据中找到此 item
+          var found=null;
+          oldGrp.items.forEach(function(item){if(item.id===pid) found=item;});
+          if(!found){
+            oldCat.groups.forEach(function(og){
+              og.items.forEach(function(item){if(item.id===pid) found=item;});
+            });
+          }
+          if(found) newItems.push(found);
+        });
+        newGroups.push(Object.assign({}, oldGrp, {items:newItems}));
+      });
+      newCategories.push(Object.assign({}, oldCat, {groups:newGroups}));
+    });
+    if(newCategories.length) sidebarData.categories=newCategories;
+  }catch(e){console.warn('syncSidebarToData error:',e);}
+}
+
+// ═══ 管理模式：一键发布全部变更（多文件 commit via GitHub API）═══
+async function adminPublishAll(){
+  if(!adminDirty){showToast('没有需要发布的变更');return;}
+
+  var s=getGHSettings();
+  if(!s.token){
+    showToast('⚠️ 请先配置 GitHub 访问密钥（点击侧边栏底部「⚙️」设置）');
+    return;
+  }
+
+  if(!confirm('确定要将目录变更发布到远程仓库？')) return;
+
+  var repo=s.repo||'diedie23/Game-Knowledge-Base';
+  var branch=s.branch||'main';
+  var base='https://api.github.com/repos/'+repo;
+  var headers={'Authorization':'token '+s.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};
+
+  showToast('⏳ 正在发布目录变更…');
+
+  try{
+    // ═══ Step 1: 获取最新 commit SHA ═══
+    var refRes=await fetch(base+'/git/refs/heads/'+branch,{headers:headers});
+    if(!refRes.ok) throw new Error('无法获取分支信息: '+(await refRes.text()));
+    var refData=await refRes.json();
+    var latestCommitSha=refData.object.sha;
+
+    // ═══ Step 2: 获取最新 commit 的 tree SHA ═══
+    var commitRes=await fetch(base+'/git/commits/'+latestCommitSha,{headers:headers});
+    var commitData=await commitRes.json();
+    var baseTreeSha=commitData.tree.sha;
+
+    // ═══ Step 3: 创建新的 blob 和 tree ═══
+    var treeItems=[];
+
+    // sidebar.json
+    var sidebarContent=JSON.stringify(sidebarData,null,2);
+    var sbBlobRes=await fetch(base+'/git/blobs',{method:'POST',headers:headers,body:JSON.stringify({content:sidebarContent,encoding:'utf-8'})});
+    var sbBlob=await sbBlobRes.json();
+    treeItems.push({path:'docs/sidebar.json',mode:'100644',type:'blob',sha:sbBlob.sha});
+
+    // 如果 index.json 也需要更新（同步模块权重等）
+    if(indexData){
+      var indexContent=JSON.stringify(indexData,null,2);
+      var idxBlobRes=await fetch(base+'/git/blobs',{method:'POST',headers:headers,body:JSON.stringify({content:indexContent,encoding:'utf-8'})});
+      var idxBlob=await idxBlobRes.json();
+      treeItems.push({path:'docs/index.json',mode:'100644',type:'blob',sha:idxBlob.sha});
+    }
+
+    // ═══ Step 4: 创建新 tree ═══
+    var treeRes=await fetch(base+'/git/trees',{method:'POST',headers:headers,body:JSON.stringify({base_tree:baseTreeSha,tree:treeItems})});
+    var treeData=await treeRes.json();
+
+    // ═══ Step 5: 创建新 commit ═══
+    var newCommitRes=await fetch(base+'/git/commits',{method:'POST',headers:headers,body:JSON.stringify({message:'cms: 更新知识库目录结构 (CMS 管理模式)',tree:treeData.sha,parents:[latestCommitSha]})});
+    var newCommitData=await newCommitRes.json();
+
+    // ═══ Step 6: 更新 ref 到新 commit ═══
+    var updateRefRes=await fetch(base+'/git/refs/heads/'+branch,{method:'PATCH',headers:headers,body:JSON.stringify({sha:newCommitData.sha})});
+    if(!updateRefRes.ok) throw new Error('更新分支失败');
+
+    adminDirty=false;
+    showToast('🎉 目录变更已发布到远程仓库！');
+  }catch(e){
+    showToast('❌ 发布失败: '+e.message);
+    console.error('CMS publish error:', e);
+  }
+}
+
+// ═══ AI 智能问答助手 (Coze API) ═══
+function toggleAiChat(){
+  var dialog=document.getElementById('aiChatDialog');
+  var fab=document.getElementById('aiChatFab');
+  var icon=document.getElementById('aiFabIcon');
+  if(dialog.classList.contains('show')){
+    dialog.classList.remove('show');
+    fab.classList.remove('active');
+    icon.textContent='🤖';
+  }else{
+    dialog.classList.add('show');
+    fab.classList.add('active');
+    icon.textContent='✕';
+    // 加载已保存的配置
+    var savedBotId=localStorage.getItem('coze_bot_id');
+    var savedToken=localStorage.getItem('coze_token');
+    if(savedBotId) document.getElementById('cozeBotId').value=savedBotId;
+    if(savedToken) document.getElementById('cozeToken').value=savedToken;
+    // 自动聚焦输入框
+    setTimeout(function(){document.getElementById('aiChatInput').focus();},300);
+  }
+}
+
+function aiSendSuggestion(btn){
+  document.getElementById('aiChatInput').value=btn.textContent;
+  aiSendMessage();
+}
+
+function aiSendMessage(){
+  var input=document.getElementById('aiChatInput');
+  var msg=input.value.trim();
+  if(!msg) return;
+
+  // 添加用户消息
+  aiAppendMessage('user',msg);
+  input.value='';
+  input.style.height='auto';
+
+  // 检查是否配置了 Coze
+  var botId=localStorage.getItem('coze_bot_id');
+  var token=localStorage.getItem('coze_token');
+
+  if(!botId||!token){
+    // 未配置 → 使用本地知识库搜索模式
+    aiLocalAnswer(msg);
+  }else{
+    // 已配置 → 调用 Coze API
+    aiCozeAnswer(msg, botId, token);
+  }
+}
+
+// ═══ 本地知识库搜索回答（免费兜底方案） ═══
+function aiLocalAnswer(query){
+  aiShowTyping();
+  setTimeout(function(){
+    aiRemoveTyping();
+    var answer='';
+    var relatedDocs=[];
+
+    // 使用全文搜索索引查找
+    if(fuseFulltext){
+      var results=fuseFulltext.search(query).slice(0,5);
+      if(results.length){
+        answer='根据知识库内容，以下是与你的问题最相关的信息：\n\n';
+        results.forEach(function(r,i){
+          var entry=r.item;
+          var snippet=entry.excerpt||entry.content.substring(0,150)+'…';
+          answer+='**'+(i+1)+'. '+entry.title+'**\n'+snippet+'\n\n';
+          relatedDocs.push({id:entry.id, title:entry.title, icon:entry.icon||'📄'});
+        });
+        answer+='💡 *点击下方文档链接查看完整内容*';
+      }else{
+        answer='抱歉，在知识库中没有找到与「'+query+'」直接相关的内容。\n\n你可以尝试：\n- 换用不同的关键词搜索\n- 在左侧导航栏浏览相关模块\n- 使用顶部搜索框进行模糊搜索';
+      }
+    }else if(fuse){
+      var results2=fuse.search(query).slice(0,5);
+      if(results2.length){
+        answer='找到以下相关文档：\n\n';
+        results2.forEach(function(r,i){
+          answer+='**'+(i+1)+'. '+r.item.title+'**\n';
+          relatedDocs.push({id:r.item.id, title:r.item.title, icon:'📄'});
+        });
+        answer+='\n💡 *点击文档链接查看详情*';
+      }else{
+        answer='暂未在知识库中找到相关内容。建议浏览左侧导航目录。';
+      }
+    }else{
+      answer='搜索索引尚在加载中，请稍后再试。';
+    }
+
+    aiAppendMessage('bot', answer, relatedDocs);
+  }, 800+Math.random()*600);
+}
+
+// ═══ Coze API 调用 ═══
+function aiCozeAnswer(query, botId, token){
+  aiShowTyping();
+  var sendBtn=document.getElementById('aiChatSend');
+  sendBtn.disabled=true;
+
+  fetch('https://api.coze.cn/open_api/v2/chat', {
+    method:'POST',
+    headers:{
+      'Authorization': 'Bearer '+token,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      bot_id: botId,
+      user: 'apm_user_' + (localStorage.getItem('coze_user_id') || Date.now()),
+      query: query,
+      stream: false
+    })
+  }).then(function(res){return res.json();}).then(function(data){
+    aiRemoveTyping();
+    sendBtn.disabled=false;
+    if(data && data.messages){
+      var answerMsg = data.messages.find(function(m){return m.role==='assistant' && m.type==='answer';});
+      if(answerMsg){
+        aiAppendMessage('bot', answerMsg.content);
+      }else{
+        aiAppendMessage('bot', '收到回复，但未找到有效答案。请检查 Bot 配置。');
+      }
+    }else if(data && data.msg){
+      aiAppendMessage('bot', '⚠️ API 错误: '+data.msg+'\n\n请检查 Bot ID 和 Token 是否正确。');
+    }else{
+      aiAppendMessage('bot', '⚠️ 未收到有效响应，请稍后重试。');
+    }
+  }).catch(function(err){
+    aiRemoveTyping();
+    sendBtn.disabled=false;
+    // 降级到本地搜索
+    aiAppendMessage('bot', '⚠️ Coze API 连接失败，已切换到本地知识库搜索模式。\n\n*错误: '+err.message+'*');
+    aiLocalAnswer(query);
+  });
+}
+
+// ═══ 消息渲染 ═══
+function aiAppendMessage(role, text, relatedDocs){
+  var container=document.getElementById('aiChatMessages');
+  var div=document.createElement('div');
+  div.className='ai-msg ai-msg-'+role;
+
+  var avatar=role==='user'?'👤':'🤖';
+  var htmlContent=aiFormatMessage(text);
+
+  // 添加相关文档链接
+  var docsHtml='';
+  if(relatedDocs && relatedDocs.length){
+    docsHtml='<div style="display:flex;flex-direction:column;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">';
+    relatedDocs.forEach(function(doc){
+      docsHtml+='<a class="ai-doc-link" onclick="navigate(\''+doc.id+'\');toggleAiChat()" style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;font-size:13px;color:var(--accent);cursor:pointer;transition:all .15s;text-decoration:none;background:rgba(108,140,255,.04);border:1px solid rgba(108,140,255,.1)">'
+        +'<span>'+doc.icon+'</span>'
+        +'<span style="flex:1;font-weight:500">'+doc.title+'</span>'
+        +'<span style="color:var(--dim);font-size:11px">→</span>'
+        +'</a>';
+    });
+    docsHtml+='</div>';
+  }
+
+  div.innerHTML='<div class="ai-msg-avatar">'+avatar+'</div>'
+    +'<div class="ai-msg-content">'+htmlContent+docsHtml+'</div>';
+  container.appendChild(div);
+
+  // 滚动到底部
+  var body=document.getElementById('aiChatBody');
+  body.scrollTop=body.scrollHeight;
+}
+
+function aiFormatMessage(text){
+  if(!text) return '';
+  // 简单 Markdown 渲染
+  var h=text;
+  h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  h=h.replace(/\*(.+?)\*/g,'<em style="color:var(--dim)">$1</em>');
+  h=h.replace(/`([^`]+)`/g,'<code>$1</code>');
+  h=h.replace(/\n\n/g,'</p><p>');
+  h=h.replace(/\n/g,'<br>');
+  return '<p>'+h+'</p>';
+}
+
+function aiShowTyping(){
+  var container=document.getElementById('aiChatMessages');
+  var div=document.createElement('div');
+  div.className='ai-msg ai-msg-bot';
+  div.id='aiTypingIndicator';
+  div.innerHTML='<div class="ai-msg-avatar">🤖</div><div class="ai-msg-content"><div class="ai-typing"><div class="ai-typing-dot"></div><div class="ai-typing-dot"></div><div class="ai-typing-dot"></div></div></div>';
+  container.appendChild(div);
+  var body=document.getElementById('aiChatBody');
+  body.scrollTop=body.scrollHeight;
+}
+
+function aiRemoveTyping(){
+  var el=document.getElementById('aiTypingIndicator');
+  if(el) el.remove();
+}
+
+function aiOpenConfig(){
+  document.getElementById('aiConfigPanel').style.display='block';
+}
+function aiCloseConfig(){
+  document.getElementById('aiConfigPanel').style.display='none';
+}
+function aiSaveConfig(){
+  var botId=document.getElementById('cozeBotId').value.trim();
+  var token=document.getElementById('cozeToken').value.trim();
+  if(botId) localStorage.setItem('coze_bot_id', botId);
+  if(token) localStorage.setItem('coze_token', token);
+  if(!localStorage.getItem('coze_user_id')) localStorage.setItem('coze_user_id', 'u_'+Date.now());
+  aiCloseConfig();
+  aiAppendMessage('bot', '✅ Coze Bot 配置已保存！现在你可以享受 AI 智能问答了。\n\n试试问我一个问题吧 😊');
 }
 
 // ═══ Init ═══
