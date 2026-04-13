@@ -1,0 +1,489 @@
+# 废弃资产归档与清理规范
+
+废弃资产归档与清理规范
+
+🗑️ 废弃资产归档与清理规范 v1.0
+
+Deprecated Asset Archival & Cleanup Standard
+
+
+📑 目录
+
+废弃资产定义与分类
+
+资产生命周期管理模型
+
+SVN/Perforce 空间清理周期与策略
+
+废弃资产归档流程
+
+通用资产复用库建设与调用指南
+
+引擎内废弃资产清理 SOP
+
+自动化巡检与报表
+
+典型案例与 Do/Don't
+
+📦 1. 废弃资产定义与分类
+
+核心问题：项目进行到中后期，SVN/Perforce 仓库往往膨胀到数百 GB 甚至 TB 级别，其中 30%~50% 可能是废弃资产。它们占用存储空间、拖慢同步速度、增加误引用风险。但"不敢删"是普遍心态——因为怕删错。本文档解决的就是"什么能删、怎么删、删完去哪找"的问题。
+
+📊 1.1 废弃资产五大类型
+
+类型 | 代号 | 定义 | 典型来源 | 占比估算 |
+
+废案资产 | DEPRECATED | 曾投入制作但方案被否决、需求被取消的完整资产 | 预研期换方向、策划砍功能、主美否定风格稿 | 15~25% |
+
+过期版本 | OUTDATED | 已有更新版本替代的旧版文件 | 迭代升级后的 v01/v02、被 v05 替代的早期版本 | 20~30% |
+
+测试/临时文件 | TEMP | 测试用途、临时调试、WIP 快照等非正式文件 | 测试场景、压力测试资产、截图、录屏 | 10~15% |
+
+冗余副本 | DUPLICATE | 同一资产的多处拷贝（不同目录/不同命名） | 跨工种拷贝、外包交付后未清理原始包 | 5~10% |
+
+孤儿资产 | ORPHAN | 引擎中无任何引用、不被任何关卡/预制件/蓝图使用的资产 | 功能删除后残留的贴图/材质/Mesh | 5~15% |
+
+🔍 1.2 如何判断一个资产是否为"废弃"
+
+
+☐JIRA/TAPD 中对应的任务状态为"已取消"或"需求已撤回"
+
+☐SVN/P4 中该文件超过 90 天无任何提交修改
+
+☐引擎 Reference Viewer 中无任何有效引用（孤儿资产）
+
+☐已存在更新版本（如 v05 存在时 v01~v04 为过期版本）
+
+☐文件名包含 _test / _temp / _bak / _old 等标记
+
+☐制作人/主美/APM 口头或书面确认该资产不再需要
+
+⚠️ 安全底线：即使满足多项判断条件，APM 也不得直接删除，必须走归档流程（§4）。"归档 ≠ 删除"——归档后的资产仍可按需恢复。
+
+🔄 2. 资产生命周期管理模型
+
+📊 2.1 五阶段生命周期
+
+① 创建
+任务下发
+开始制作
+
+→
+
+② 活跃
+持续迭代
+评审修改
+
+→
+
+③ 冻结
+版本锁定
+只读不改
+
+→
+
+④ 废弃标记
+确认不再使用
+标记待归档
+
+→
+
+⑤ 归档/销毁
+移入冷存储
+or 彻底删除
+
+
+阶段 | SVN/P4 状态 | 引擎状态 | 可执行操作 | 触发条件 |
+
+创建 | dev 分支可写 | 工作中 | 创建、修改、删除 | 任务创建 |
+
+活跃 | dev 分支可写 | 引擎中引用 | 修改、评审、迭代 | 制作中 |
+
+冻结 | main 分支只读锁定 | 打包引用 | 仅允许 Hotfix | 版本锁定 / 里程碑冻结 |
+
+废弃标记 | 标记 deprecated 属性 | 引用移除 | 禁止修改，等待归档 | 需求取消 / 方案废弃 |
+
+归档/销毁 | 移入 Archive 分支 | 彻底移除 | 仅管理员可恢复 | 归档审批通过 |
+
+💾 3. SVN/Perforce 空间清理周期与策略
+
+血泪教训：某项目 SVN 仓库 1.2TB，同步一次需要 3 小时。新人入职第一天就在等同步。最终排查发现 40% 是废弃资产 + 过期版本。定期清理不是"有空了再做"，而是必须纳入日程的运维动作。
+
+
+清理类型 | 频率 | 范围 | 执行人 | 预估耗时 |
+
+日常清理 | 每周 | 清理 _temp/_test/_bak 文件 | 各组组长 | 15 分钟/组 |
+
+Sprint 清理 | 每 Sprint 结束 | 标记已取消任务的资产为废弃候选 | APM | 30 分钟 |
+
+里程碑清理 | Alpha/Beta/RC | 全量扫描：孤儿资产、过期版本、冗余副本 | APM + TA | 2~4 小时 |
+
+年度大扫除 | 每年 / 项目收尾 | 全仓库审计，归档全部废弃资产，优化存储 | APM + IT + TA | 1~2 天 |
+
+🛠️ 3.2 SVN 清理策略
+
+操作 | 命令/方法 | 效果 | 风险 |
+
+移入 Archive 目录 | svn move src Archive/YYYYMM/ | 保留历史，移出主路径 | 低（可恢复） |
+
+设置 ignore | svn propset svn:ignore | 忽略临时文件提交 | 无 |
+
+Dump + Filter | svnadmin dump | svndumpfilter | 从历史中彻底移除大文件（慎用） | 高（不可逆） |
+
+服务器端压缩 | svnadmin pack | 优化存储空间 | 低 |
+
+🛠️ 3.3 Perforce 清理策略
+
+操作 | 命令/方法 | 效果 | 风险 |
+
+Archive Depot | 创建独立 Archive depot，p4 move 废弃文件 | 主 depot 瘦身，保留可访问 | 低 |
+
+Obliterate | p4 obliterate -y | 彻底删除文件及全部历史版本 | 极高（不可逆，需审批） |
+
+Shelve 清理 | p4 shelve -d | 清理长期搁置的变更集 | 低 |
+
+Archive Trigger | 配置 trigger 自动归档超期文件 | 自动化管理 | 低 |
+
+🔴 Obliterate / Dump+Filter 铁律：这两个操作不可逆。执行前必须：
+① 完整备份当前仓库
+② 制作人/APM/TL 三方签字审批
+③ 在维护窗口执行（非工作时间）
+④ 执行后通知全员重新同步
+
+📊 3.4 存储空间健康度监控
+
+指标 | 🟢 健康 | 🟡 关注 | 🔴 告警 |
+
+仓库总大小 | < 500GB | 500GB~1TB | > 1TB |
+
+月增长率 | < 5% | 5~15% | > 15% |
+
+废弃资产占比 | < 15% | 15~30% | > 30% |
+
+新人首次同步时长 | < 30 分钟 | 30~90 分钟 | > 90 分钟 |
+
+📁 4. 废弃资产归档流程
+
+核心理念：归档 ≠ 删除。归档是将资产从"热存储"（活跃仓库）移到"冷存储"（归档仓库），不影响日常工作，但需要时仍可恢复。只有经过审批的 Obliterate 才是真正的删除。
+
+🔄 4.1 归档审批流程
+
+① 标记
+APM/组长标记
+废弃候选
+
+→
+
+② 公示
+全组公示 3 天
+征求异议
+
+→
+
+③ 审批
+APM + 主美
+双签确认
+
+→
+
+④ 执行归档
+move to Archive
++ 元数据记录
+
+→
+
+⑤ 更新台账
+归档台账入库
+通知全员
+
+
+/Archive/ ← 归档根目录
+├── 2026-Q1/ ← 按季度分组
+│ ├── DEPRECATED/ ← 废案资产
+│ │ ├── CH_Luna_v1_concept/ ← 按资产分文件夹
+│ │ │ ├── CH_Luna_v1.ma
+│ │ │ ├── CH_Luna_v1.fbx
+│ │ │ ├── textures/
+│ │ │ └── _ARCHIVE_META.json ← 归档元数据
+│ │ └── SC_DungeonA_old/
+│ ├── OUTDATED/ ← 过期版本
+│ │ ├── CH_Luna_v01/
+│ │ ├── CH_Luna_v02/
+│ │ └── CH_Luna_v03/
+│ ├── TEMP/ ← 测试临时文件
+│ └── DUPLICATE/ ← 冗余副本
+├── 2026-Q2/
+└── _ARCHIVE_INDEX.csv ← 全局归档索引表
+
+
+{
+"asset_id": "CH_Luna_v1_concept",
+"original_path": "/Art/Characters/CH_Luna/v01/",
+"archive_date": "2026-04-09",
+"archive_reason": "DEPRECATED",
+"reason_detail": "预研期 Luna 第一版概念方案被否决，改用 v2 日系风格方向",
+"related_jira": "ART-0892",
+"archived_by": "APM 周八",
+"approved_by": ["APM 周八", "主美 张三"],
+"file_count": 12,
+"total_size_mb": 340,
+"can_restore": true,
+"restore_contact": "APM 周八",
+"reuse_potential": "HIGH",
+"reuse_note": "模型拓扑可复用，贴图风格已过时",
+"retention_until": "2027-04-09"
+}
+
+📊 4.4 归档台账模板 (_ARCHIVE_INDEX.csv)
+
+资产ID | 原路径 | 类型 | 归档日期 | 大小(MB) | 原因 | 复用潜力 | 保留至 |
+
+CH_Luna_v1 | /Art/Char/Luna/v01/ | DEPRECATED | 2026-04-09 | 340 | 方案废弃 | HIGH | 2027-04-09 |
+
+SC_DungeonA | /Art/Scene/Dungeon/A/ | DEPRECATED | 2026-04-09 | 520 | 关卡砍掉 | MEDIUM | 2027-04-09 |
+
+CH_Luna_v02 | /Art/Char/Luna/v02/ | OUTDATED | 2026-04-09 | 180 | v05 替代 | LOW | 2026-10-09 |
+
+test_stress_* | /Art/Test/Stress/ | TEMP | 2026-04-09 | 1200 | 压测文件 | NONE | 2026-07-09 |
+
+♻️ 5. 通用资产复用库建设与调用指南
+
+核心价值：废弃不等于无用。很多废案资产中的模型拓扑、UV 布局、绑定骨架、材质方案仍具有复用价值。建立通用复用库（Asset Reuse Library），可以将"沉没成本"转化为"复用收益"，直接提升 ADEI。
+
+📊 5.1 复用库分类体系
+
+分类 | 内容 | 来源 | 复用场景 |
+
+🧱 通用模型库 | 标准人体 BaseMesh、通用道具、基础建筑模块 | 废案资产中的高质量基础模型 | 新角色/场景的制作起点 |
+
+🎨 材质预设库 | PBR 材质球预设、Substance 参数模板 | 项目积累的材质方案 | 快速搭建新资产材质 |
+
+🦴 骨架模板库 | 标准人体骨架、四足骨架、飞行生物骨架 | 已验证的骨架方案 | 新角色绑定的起点 |
+
+🎬 动画片段库 | 通用待机/行走/跑步/攻击/受击动画 | 废案角色的动画资产 | 新角色的动画预置 |
+
+✨ 特效模板库 | 通用爆炸/命中/buff 光圈等特效预制件 | 项目积累的特效方案 | 新特效的制作基础 |
+
+📐 UV/拓扑模板库 | 标准 UV 布局模板、拓扑流向参考 | 通过验收的高质量资产 | 保证新资产拓扑质量 |
+
+📁 5.2 复用库目录结构
+
+/ReusableAssets/ ← 复用库根目录
+├── BaseMesh/ ← 通用模型
+│ ├── Human_Male_Base.fbx
+│ ├── Human_Female_Base.fbx
+│ ├── Quadruped_Base.fbx
+│ └── _CATALOG.json ← 目录索引
+├── Materials/ ← 材质预设
+│ ├── PBR_Skin/
+│ ├── PBR_Metal/
+│ ├── PBR_Fabric/
+│ └── Stylized_Toon/
+├── Skeletons/ ← 骨架模板
+├── Animations/ ← 通用动画
+├── VFX/ ← 特效模板
+├── UVTemplates/ ← UV 模板
+└── _REUSE_GUIDE.md ← 使用指南
+
+
+步骤 | 操作 | 注意事项 |
+
+① 检索 | 在 _CATALOG.json 中搜索关键词 | 支持工种/类型/风格/标签多维搜索 |
+
+② 预览 | 查看缩略图 + 技术参数（面数/骨骼数/贴图尺寸） | 确认是否满足当前项目规格要求 |
+
+③ 拷贝 | 从复用库 checkout 到工作目录 | 严禁直接在复用库中修改源文件 |
+
+④ 改造 | 基于复用模板进行定制化修改 | 修改后的资产按正常流程提交到项目仓库 |
+
+⑤ 回馈 | 如果改造后的资产具有通用价值，提交回复用库 | 需主美/TA 审核后方可入库 |
+
+⚠️ 复用库入库标准：不是所有资产都能进复用库。入库资产必须满足：
+· 通用性高（不含项目特有风格元素）
+· 质量达 A 级以上
+· 拓扑/UV/命名符合规范
+· 附带使用说明和参数表
+
+
+🔍 6.1 UE（Unreal Engine）孤儿资产查找
+
+方法 | 操作步骤 | 适用场景 |
+
+Reference Viewer | 右键资产 → Reference Viewer → 检查是否有 Referencers | 单个资产排查 |
+
+Size Map | 右键目录 → Size Map → 直观查看大文件 | 快速定位大体积资产 |
+
+Asset Audit | Window → Developer → Asset Audit → 筛选无引用资产 | 批量排查 |
+
+命令行工具 | UnrealPak -List 对比 Pak 内容与源资产 | 确认打包是否包含废弃资产 |
+
+🔍 6.2 Unity 孤儿资产查找
+
+方法 | 操作步骤 | 适用场景 |
+
+Find References In Scene | 右键资产 → Find References In Scene | 单个资产 |
+
+Build Report | Build → Build Report → 查看打包后的资源列表 | 确认打包内容 |
+
+Asset Hunter Pro (插件) | 自动扫描项目中未被引用的资产 | 批量排查 |
+
+Editor 脚本 | C# 脚本遍历 AssetDatabase，检查依赖关系 | 自动化集成 |
+
+
+
+☐运行孤儿资产扫描工具，导出无引用资产列表
+
+☐与各工种组长确认列表中的资产是否确实废弃
+
+☐将确认废弃的资产从引擎项目中 Delete（引擎内删除）
+
+☐从 SVN/P4 中将对应源文件移入 Archive
+
+☐全项目 Build 一次，确认无红色引用错误
+
+☐对比清理前后包体大小，记录缩减量
+
+☐更新归档台账
+
+💡 效果参考：某中型手游项目在 Beta 前做了一次全量清理，从引擎中移除了 2,400 个孤儿资产（含贴图 1,800 张、Mesh 400 个、材质 200 个），包体从 1.8GB 降至 1.3GB，减少 28%。
+
+🤖 7. 自动化巡检与报表
+
+⚙️ 7.1 自动化巡检脚本（Python 示例）
+
+"""
+废弃资产自动巡检脚本
+功能：扫描 SVN 仓库，标记超过 N 天未修改的文件为废弃候选
+"""
+import os, json, subprocess
+from datetime import datetime, timedelta
+
+STALE_DAYS = 90 # 超过 90 天未修改视为候选
+TEMP_PATTERNS = ['_test', '_temp', '_bak', '_old', 'Thumbs.db', '.DS_Store']
+SCAN_ROOT = '/svn/Art/' # 扫描根路径
+
+def get_svn_last_modified(file_path):
+"""获取文件最后修改时间"""
+result = subprocess.run(
+['svn', 'info', '--show-item', 'last-changed-date', file_path],
+capture_output=True, text=True
+)
+date_str = result.stdout.strip()[:10]
+return datetime.strptime(date_str, '%Y-%m-%d')
+
+def scan_stale_assets(root_path):
+"""扫描超期未修改的资产"""
+stale_assets = []
+cutoff_date = datetime.now() - timedelta(days=STALE_DAYS)
+
+for root, dirs, files in os.walk(root_path):
+for f in files:
+full_path = os.path.join(root, f)
+
+# 检查临时文件模式
+is_temp = any(p in f.lower() for p in TEMP_PATTERNS)
+
+# 检查最后修改时间
+last_mod = get_svn_last_modified(full_path)
+is_stale = last_mod < cutoff_date
+
+if is_temp or is_stale:
+stale_assets.append({
+'path': full_path,
+'last_modified': last_mod.isoformat(),
+'days_stale': (datetime.now() - last_mod).days,
+'reason': 'TEMP' if is_temp else 'STALE',
+'size_mb': os.path.getsize(full_path) / 1024 / 1024
+})
+
+return stale_assets
+
+# 执行扫描并输出报告
+results = scan_stale_assets(SCAN_ROOT)
+print(f"扫描完成：发现 {len(results)} 个废弃候选资产")
+print(f"预计可释放：{sum(a['size_mb'] for a in results):.1f} MB")
+
+# 导出 JSON 报告
+with open('stale_asset_report.json', 'w') as f:
+json.dump(results, f, indent=2, ensure_ascii=False)
+
+📊 7.2 月度存储健康报表模板
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 美术仓库存储健康月报 — 2026年3月
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+■ 仓库概况
+· 总大小：680 GB (上月 650 GB，↑4.6%)
+· 文件总数：42,300 个
+· 本月新增：3,200 个 (+58 GB)
+· 本月归档：800 个 (-28 GB)
+
+■ 废弃资产扫描结果
+· 废弃候选：1,240 个 (占比 2.9%)
+· 估算可释放空间：85 GB
+· 详细清单已发送各组长确认
+
+■ 健康度评分
+· 废弃占比：2.9% → 🟢 健康 (<15%)
+· 月增长率：4.6% → 🟢 健康 (<5%)
+· 新人同步时长：35 分钟 → 🟡 关注 (>30min)
+· 孤儿资产（引擎）：230 个 → 🟡 待清理
+
+■ 建议行动
+· 本月里程碑前执行引擎孤儿资产清理
+· 组长确认废弃候选后批量归档
+· 评估是否需要迁移测试文件到单独 depot
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+🔴 案例 1：误删在用资产，导致版本打包失败 致命
+
+🎬 场景：TA 在清理孤儿资产时，将一组"看起来没被引用"的贴图删除。实际上这些贴图被动态加载（代码中用字符串路径引用），Reference Viewer 无法检测到。删除后版本打包时部分角色变成白模。
+
+💡 教训：
+① 动态加载的资产必须在资产注册表中登记，清理前交叉检查
+② 清理后必须全量 Build 验证，确认无红色引用
+③ 高风险清理（如贴图、材质）必须在独立分支上操作，验证无误后再 merge
+
+🟡 案例 2：废案资产 6 个月后被要求"复活" 中频
+
+🎬 场景：预研期被否决的 A 方案角色设计，在量产期被制作人重新拿出来说"其实这个方向也不错，能不能恢复？"。结果发现资产已被 Obliterate，无法恢复。
+
+💡 教训：
+① 归档 ≠ 删除。废弃资产默认走归档流程，保留至少 12 个月
+② Obliterate 只用于 TEMP/DUPLICATE 类型，且需三方审批
+③ 归档元数据中标注"复用潜力"，HIGH 潜力资产保留期延长至 24 个月
+
+8.1 资产清理 Do / Don't
+
+✅ Do（正确示范）
+
+• 废弃先归档，不直接删除
+
+• 归档前公示 3 天，征求团队异议
+
+• 每个归档资产写 _ARCHIVE_META.json
+
+• 清理后全量 Build 验证引用完整性
+
+• 高复用潜力的废案提交到复用库
+
+• 定期出存储健康报表
+
+❌ Don't（错误示范）
+
+❌ "这个文件看着没人用，直接删" → 可能是动态加载
+
+❌ Obliterate 不审批 → 删错了无法恢复
+
+❌ 从来不清理 → 仓库 2TB，同步 3 小时
+
+❌ 只清引擎不清 SVN → 源文件仍占空间
+
+❌ 废案直接扔掉 → 浪费可复用的模型/拓扑
+
+❌ 清理后不通知团队 → 有人同步完发现文件没了
+
+🗑️ 废弃资产归档与清理规范 · v1.0 · 游戏美术项目管理知识库 · 内部资料

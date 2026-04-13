@@ -1,0 +1,244 @@
+# 切图与命名规范 — UI 工业化规范
+
+切图与命名规范 — UI 工业化规范
+
+✂️ 切图与命名规范 UI 规范 v1.0
+
+UI Slice Export & Naming Convention — Industrial Pipeline Standard
+
+
+📑 目录
+
+性能红线与切图规格
+
+命名公式与状态后缀字典
+
+图文红黑榜
+
+标准作业流程 SOP
+
+常见问题排查 FAQ
+
+🚨 1. 性能红线与切图规格
+
+⛔ 红线 = 强制标准。不满足以下条件的切图资产将被 CI/CD 脚本自动拦截。
+
+🔴 铁律 #1 偶数尺寸原则：所有 UI 切图的宽度和高度必须为偶数（能被 2 整除）。奇数尺寸在纹理压缩（ETC2/ASTC/BC7）时会被 pad 到偶数，导致边缘出现 1px 模糊条纹。推荐 4 的整数倍（ASTC 4×4 最小块）。
+
+🔴 铁律 #2 最大尺寸限制：单张切图 ≤ 2048×2048。超大 UI 元素必须拆分为多个切片或使用 9 宫格拉伸。
+
+🔴 铁律 #3 透明通道审计：不含透明区域的 UI 元素（如纯色背景板）禁止导出 Alpha 通道——用 RGB 24bit 代替 RGBA 32bit，节省 25% 内存。
+
+1.1 尺寸规格表
+
+UI 元素类型 | 最大尺寸 | 推荐尺寸 | 格式 | Atlas 策略 |
+
+按钮（Button） | 512×256 | 200×80 (偶数) | PNG RGBA | 合入公共 Atlas |
+
+图标（Icon） | 256×256 | 96×96 / 128×128 | PNG RGBA | 独立 Icon Atlas |
+
+面板背景（Panel BG） | 2048×2048 | 9宫格 64×64 | PNG RGBA | 9宫格拉伸 |
+
+全屏背景 | 2048×1024 | 1920×1080 → 2048×1024 | JPG (无Alpha) | 单独加载 |
+
+进度条/滑块 | 512×64 | 偶数×偶数 | PNG RGBA | 9宫格拉伸 |
+
+头像框 | 256×256 | 128×128 | PNG RGBA | 合入 Atlas |
+
+1.2 Atlas 合图限制
+
+Atlas 类型 | 最大尺寸 | 填充率要求 | 说明 |
+
+公共 UI Atlas | 2048×2048 | ≥ 75% | 同系统的 UI 元素合一张 |
+
+Icon Atlas | 2048×2048 | ≥ 80% | 同尺寸图标打一张 |
+
+全屏背景 | — | — | 禁止合入 Atlas，单独管理 |
+
+📁 2. 命名公式与状态后缀字典
+
+2.1 命名公式
+
+T_UI_[模块]_[元素]_[状态后缀]
+
+示例：
+T_UI_Login_BtnStart_N.png // 登录页-开始按钮-Normal
+T_UI_Login_BtnStart_P.png // 登录页-开始按钮-Pressed
+T_UI_Login_BtnStart_D.png // 登录页-开始按钮-Disabled
+T_UI_Shop_IconGold_N.png // 商城-金币图标-Normal
+T_UI_Battle_HpBar_Fill.png // 战斗-血条填充
+T_UI_Common_PanelBg_9s.png // 公共-面板背景-9宫格
+
+2.2 交互状态后缀字典（强制标准）
+
+后缀 | 全称 | 含义 | 使用场景 |
+
+_N | Normal | 常态 / 默认状态 | 所有可交互元素必须有 |
+
+_P | Pressed | 按下状态 | 按钮、开关 |
+
+_H | Hover | 鼠标悬停状态 | PC 端按钮（移动端可省略） |
+
+_D | Disabled | 不可用/置灰状态 | 条件未满足时的按钮 |
+
+_S | Selected | 选中/激活状态 | Tab 页签、列表项 |
+
+_F | Focused | 获得焦点状态 | 输入框、手柄导航 |
+
+_On | On/Active | 开关打开状态 | Toggle、Checkbox |
+
+_Off | Off/Inactive | 开关关闭状态 | Toggle、Checkbox |
+
+_Fill | Fill | 填充/进度条填充层 | 进度条、血条 |
+
+_Bg | Background | 背景层 | 面板、进度条底 |
+
+_9s | 9-Slice | 9宫格拉伸图 | 自适应面板、气泡框 |
+
+_Mask | Mask | 遮罩用途 | 圆形头像裁切等 |
+
+2.3 模块缩写词典
+
+Login 登录 Login
+
+Lobby 大厅 Lobby
+
+Shop 商城 Shop
+
+Battle 战斗 Battle
+
+Chat 聊天 Chat
+
+Setting 设置 Settings
+
+Bag 背包 Inventory
+
+Social 社交 Social
+
+Common 公共/通用 Common
+
+HUD 战斗HUD
+
+Popup 弹窗 Popup
+
+Guide 引导 Tutorial
+
+2.4 目录结构
+
+Content/UI/
+├── Atlas/ // 合图 Atlas
+│ ├── Atlas_Common.png
+│ ├── Atlas_Login.png
+│ └── Atlas_Shop.png
+├── Textures/ // 散图（不合图的大背景等）
+│ ├── T_UI_Login_FullBg.jpg
+│ └── T_UI_Battle_FullBg.jpg
+├── Icons/ // 图标
+│ ├── Atlas_Icons_Item.png
+│ └── Atlas_Icons_Skill.png
+└── Fonts/ // 字体资源
+└── SourceHanSans.otf
+
+✅❌ 3. 图文红黑榜
+
+3.1 奇数尺寸 → 压缩模糊
+
+❌ Don't — 切图尺寸为奇数（如 127×63）
+
+[此处插入图片：按钮切图 127×63px，导入引擎后 ETC2 压缩将其 pad 到 128×64，右侧和底部各出现 1px 的半透明模糊条纹]
+
+后果：ETC2/ASTC 等块压缩算法以 4×4 为最小块。奇数尺寸被引擎自动 pad，右边缘和底边缘出现 1px 模糊条，在纯色/渐变按钮上尤为明显。移动端必现。
+
+✅ Do — 所有切图宽高为 4 的整数倍
+
+[此处插入图片：同一按钮调整为 128×64px，压缩后边缘清晰无模糊，与设计稿完全一致]
+
+方法：Photoshop 切图后，图像 → 画布大小，将宽高调为最近的 4 的整数倍。多出的 1~3px 用透明像素填充。批量处理可用 TexturePacker 的 Force Squared + Size Constraints 配置。
+
+3.2 命名混乱 → 状态丢失
+
+❌ Don't — 随意命名（中文/空格/无后缀）
+
+[此处插入图片：资源管理器中一堆文件如"开始按钮.png"、"按钮-按下(1).png"、"btn copy 2.png"——无法识别状态]
+
+后果：① 程序无法自动匹配按钮的 N/P/D 状态，需手动逐个配置。② 中文/空格在部分构建管线中会导致路径解析失败。③ 团队协作时无人知道哪个文件对应哪个状态。
+
+✅ Do — 严格遵循命名公式 + 状态后缀
+
+[此处插入图片：规范命名的文件列表 T_UI_Login_BtnStart_N/P/D.png，整齐排列，一目了然]
+
+方法：T_UI_{Module}_{Element}_{State}.png。程序可通过正则自动绑定同名不同后缀的状态图。全英文、无空格、下划线分隔。
+
+
+A. UI 设计稿
+Figma/Sketch定稿
+
+→
+
+B. 标注交互态
+N/P/D/H/S标注
+
+→
+
+C. 切图导出
+偶数尺寸·PNG
+
+→
+
+D. 命名检查
+脚本自动校验
+
+→
+
+E. Atlas 合图
+TexturePacker
+
+→
+
+F. 引擎导入
+UI Texture Group
+
+→
+
+G. 走查验收
+真机截图对比
+
+节点 | 负责人 | 交付物 | 验收标准 |
+
+A | UI 设计 | 设计稿 + 标注文档 | 所有交互态标注完整 |
+
+B | UI 设计 | 状态标注表 | 每个可交互元素 ≥ N+D 两态 |
+
+C | UI 设计 | PNG 切图集 | 宽高为偶数（推荐4的倍数）；命名合规 |
+
+D | TA/自动化 | 校验报告 | 命名正则匹配率 100%；无中文/空格 |
+
+E | TA | Atlas PNG + 数据文件 | 填充率 ≥ 75%；单张 ≤ 2048 |
+
+F | 前端/TA | 引擎内 UI 截图 | 无模糊；Alpha 正确 |
+
+G | UI + QA | 真机走查报告 | 各状态响应正确；各分辨率无变形 |
+
+❓ 5. 常见问题排查 FAQ
+
+💬 Q1：按钮在手机上右侧/底部有 1px 杂线？
+
+原因：切图尺寸为奇数，ETC2/ASTC 压缩时 pad 了透明像素。
+
+修复：将切图宽高调整为 4 的整数倍。可用批处理脚本：convert input.png -extent WxH output.png（ImageMagick）。
+
+💬 Q2：按钮点击时没有切换到按下态图片？
+
+原因①：文件命名后缀不一致。程序代码查找 _P 后缀，而美术命名为 _pressed 或 _按下。
+
+原因②：按下态图片没有交付——美术只出了 _N 一张。
+
+修复：严格使用本规范的后缀字典。每个可交互元素至少提供 _N 和 _D 两态，按钮类加 _P。
+
+💬 Q3：UI Atlas 单张超过 2048 导致低端机卡顿？
+
+原因：将所有 UI 元素合入一张巨型 Atlas（如 4096×4096），低端 GPU 显存不够导致频繁换入换出。
+
+修复：按功能模块拆分 Atlas（Login、Shop、Battle 各一张），每张 ≤ 2048×2048。不同页面的 UI 不共用 Atlas，避免跨页面纹理常驻。
+
+✂️ 切图与命名规范 · UI 规范 v1.0 · UI组 + TA组 · 项目内部资料

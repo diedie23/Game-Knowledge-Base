@@ -1,0 +1,189 @@
+# 贴图通道打包工具 — Channel Packer v1.0
+
+贴图通道打包工具 — Channel Packer v1.0
+
+📦 贴图通道打包工具 Channel Packer v1.0
+
+RGBA 通道自由拼合 · Swizzle 重映射 · 预设管线配置 · 一键导出 PNG/TGA/EXR
+
+1载入通道
+→
+
+2配置映射
+→
+
+3预览导出
+
+📁 载入通道源图 Step 1
+
+💡 每个通道槽位可独立载入灰度图或 RGBA 贴图的指定通道。支持拖放和批量导入。
+
+⚠️ 尺寸一致性：所有输入贴图建议保持 相同分辨率。若尺寸不一致，工具将自动按最大尺寸做双线性插值缩放（可能引入模糊），请在源头保证一致。
+
+R 通道
+未载入
+
+R
+
+拖入灰度图 / 点击选择
+
+源通道:
+
+R (红)
+G (绿)
+B (蓝)
+A (透明度)
+Luminance (亮度)
+
+反转:
+
+G 通道
+未载入
+
+G
+
+拖入灰度图 / 点击选择
+
+源通道:
+
+R (红)
+G (绿)
+B (蓝)
+A (透明度)
+Luminance (亮度)
+
+反转:
+
+B 通道
+未载入
+
+B
+
+拖入灰度图 / 点击选择
+
+源通道:
+
+R (红)
+G (绿)
+B (蓝)
+A (透明度)
+Luminance (亮度)
+
+反转:
+
+A 通道
+未载入 (默认纯白)
+
+A
+
+拖入灰度图 / 点击选择
+
+源通道:
+
+R (红)
+G (绿)
+B (蓝)
+A (透明度)
+Luminance (亮度)
+
+反转:
+
+默认值:
+
+纯白 (255)
+纯黑 (0)
+中灰 (128)
+
+🗑 全部清除
+
+⚙️ 管线预设 & Swizzle 配置 Step 2
+
+
+UE5 ORM (AO+Rough+Metal)
+Unity MAS (Metal+AO+Smooth)
+换色 Mask RGBA
+法线+高度打包
+自定义
+
+
+R = Ambient Occlusion · G = Roughness · B = Metallic · A = 纯白（未使用）
+
+适用于 UE5 的 Packed Texture 工作流，Shader 中通过 texture.r / .g / .b 分别采样三个属性。
+
+🔧 全局处理参数
+
+输出尺寸
+
+跟随源图 (Auto)
+256 × 256
+512 × 512
+1024 × 1024
+2048 × 2048
+4096 × 4096
+
+位深度
+
+8-bit (256 级灰度)
+16-bit (HDR, 需 EXR 导出)
+
+色彩空间
+
+Linear (数据贴图 — 推荐)
+sRGB (表现贴图)
+
+👁️ 实时预览 & 导出 Step 3
+
+R 通道
+
+G 通道
+
+B 通道
+
+A 通道
+
+RGBA 合成
+
+📊 输出信息
+
+尺寸：— × — · 格式：RGBA 8bit · 预估文件大小：—
+
+💾 导出命名
+
+命名模板
+
+资产名
+
+预览：T_ORM_Hero01_Packed.png
+
+📥 导出 PNG (8bit)
+📥 导出 TGA (无压缩)
+📥 分通道导出 (4张灰度图)
+💾 保存配置 JSON
+
+📖 Channel Packer 使用指南
+
+🎯 什么是通道打包？
+
+在现代游戏管线中，将多张灰度贴图（AO、Roughness、Metallic 等）打包到一张 RGBA 贴图的 4 个通道中，
+可以将 GPU 采样次数从 4 次降低到 1 次，同时减少 VRAM 占用和 Draw Call 数量。这是引擎管线的标准做法。
+
+
+预设 | R | G | B | A | 引擎/Shader |
+
+UE5 ORM | AO | Roughness | Metallic | — | UE5 默认 PBR |
+
+Unity MAS | Metallic | AO | Smoothness | — | Unity HDRP/URP |
+
+换色 Mask | 区域1 | 区域2 | 区域3 | 区域4/Alpha | 自定义换色 Shader |
+
+法线+高度 | Normal.X | Normal.Y | Height | AO | 地形混合 Shader |
+
+⚠️ 注意事项
+
+色彩空间：数据贴图（AO、Roughness、Mask）必须设为 Linear，切勿勾选 sRGB；仅 BaseColor / Emissive 等表现贴图使用 sRGB
+
+压缩格式：UE5 推荐使用 BC7（Masks 纹理类型）；Unity 推荐 ASTC 6×6（移动端）或 BC7（PC端）
+
+反转通道：Unity 的 Smoothness = 1.0 - Roughness，若从 UE5 迁移，需在 G 通道勾选反转
+
+空通道处理：未载入的通道默认填充纯白 (255)。如果 Shader 预期 0 值，请手动调整默认值

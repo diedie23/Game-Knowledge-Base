@@ -1,0 +1,387 @@
+# 自动 Mask 通道生成器 — 工业化规范文档
+
+自动 Mask 通道生成器 — 工业化规范文档
+
+🤖 自动 Mask 通道生成器 工业化规范 v1.0
+
+Auto Mask Channel Generator — Industrial Pipeline Specification
+
+
+📑 目录
+
+性能红线与规格限制 (Performance Budgets)
+
+资产命名与目录规范 (Naming Conventions)
+
+图文红黑榜 (Do's & Don'ts)
+
+标准作业流程 SOP (Workflow)
+
+常见问题排查 (FAQ)
+
+1️⃣ 性能红线与规格限制
+
+⛔ 红线原则：Mask 贴图的任何一条边 不得超过 4096px，推荐控制在 2048×2048 以内。超过此限制将导致部分移动端 GPU 无法采样，引擎加载时间指数增长。
+
+1.1 贴图尺寸硬性指标
+
+指标 | 推荐值 | 硬性上限 | 说明 |
+
+单张 Mask 贴图 | 1024×1024 | 2048×2048 | 角色 Mask 通常 512~1024 即可满足精度 |
+
+Atlas 合图尺寸 | 2048×2048 | 4096×4096 | 多角色合图不得超 4096，建议分页 |
+
+尺寸对齐 | POT 或 4 的倍数 | — | 非 POT 纹理在 OpenGL ES 2.0 设备不支持 mip；建议所有输出为 Power-of-Two 或至少 4 的整数倍 |
+
+工程文件 Base64 缓存 | <2MB | <5MB | 超过 5MB 的原图不会内嵌到 config.json，需手动配合上传 |
+
+1.2 通道使用原则与内存预算
+
+💡 关键认知：在引擎中，一张 RGBA 32bit 贴图占用的 VRAM = 宽 × 高 × 4 字节。一张 灰度 8bit（单通道） 仅占 1/4。但 GPU 实际以 4 通道对齐采样，所以 将 4 个 Mask 合并到 RGBA 4 个通道 = 1 张贴图采样 = 最优方案。
+
+格式 | 内存占用 (1024²) | 采样次数 | 适用场景 |
+
+RGBA 32bit（4 通道合一） | 4 MB | 1 次 | ✅ 推荐：最多编码 4 组独立 Mask |
+
+RGB 24bit（3 通道） | 3 MB* | 1 次 | 引擎通常仍按 RGBA 存储，α=1；不省内存 |
+
+Grayscale 8bit × 4 张 | 4 × 1 MB = 4 MB | 4 次 | ❌ 采样数翻 4 倍，仅调试时使用 |
+
+BC7 / ASTC 压缩 | ~1 MB | 1 次 | ✅ 引擎推荐的最终格式 |
+
+* 实际 GPU 将 RGB 自动填充为 RGBA，因此 24bit 不省 VRAM。
+
+1.3 通道分配规范
+
+通道 | 建议用途 | 工具模式 | 注意事项 |
+
+R 通道 | 换色区域 1（如头发 / 主色） | 吸色提取（HSV 色相匹配） | 与 G/B 互斥：winner-take-all |
+
+G 通道 | 换色区域 2（如衣服 / 次色） | 吸色提取（HSV 色相匹配） | 与 R/B 互斥 |
+
+B 通道 | 换色区域 3（如配饰 / 辅色） | 吸色提取（HSV 色相匹配） | 与 R/G 互斥 |
+
+A 通道 | 特殊用途（Alpha / 描边 / 第4区域） | 3 种来源可选 | 不参与 RGB 互斥逻辑 |
+
+⚠️ 互斥规则：工具在生成时对 R/G/B 三通道实施逐像素互斥（Float32 精度比较后取最大值通道，其余归零）。这意味着任意像素在最终输出中 最多只有一个 RGB 通道有值。请勿依赖同一像素的多通道混合。
+
+1.4 算法参数推荐值
+
+参数 | 推荐范围 | 默认值 | 说明 |
+
+色相容差 (Hue Tolerance) | 15° ~ 30° | ±20° | 值太大导致跨色区侵入，值太小遗漏渐变区 |
+
+饱和度下限 (Sat Min) | 10% ~ 25% | 15% | 低饱和度像素（灰/白/黑）不应参与颜色匹配 |
+
+边缘平滑 (Edge Smooth) | 1 ~ 3px | 2px | Box blur 半径；0 = 锯齿边缘，>3 = 通道间出血 |
+
+A 通道模式 | 按需选择 | 吸色提取 | pick / alpha / stroke，引擎如需原图 alpha 用 alpha |
+
+2️⃣ 资产命名与目录规范
+
+2.1 Mask 贴图命名公式
+
+T_[类型]_[角色名]_[部位]_[后缀].[ext]
+
+类型 = Mask | Color | Normal | ...
+角色名 = CharID (与原画/模型命名一致)
+部位 = Body | Head | Hair | Weapon | ...
+后缀 = RGBA | R | G | B | A | Preview
+ext = png | tga
+
+示例：
+T_Mask_Hero01_Body_RGBA.png ← RGBA 四通道合成
+T_Mask_Hero01_Body_R.png ← 仅 R 通道灰度图（调试用）
+T_Mask_Hero01_Body_Preview.png ← 叠加预览图（不入引擎）
+
+2.2 工具内命名模板变量
+
+工具内置命名模板引擎，支持以下变量实时替换：
+
+变量 | 含义 | 示例值 |
+
+{Project} | 项目代号 | MoonRPG |
+
+{CharID} | 角色 ID | Hero01 |
+
+{Channel} | 通道名 | RGBA / R / G / B / A |
+
+{Date} | 日期 | 2026-04-02 |
+
+{W} | 图片宽度 | 1024 |
+
+{H} | 图片高度 | 1024 |
+
+推荐模板：T_Mask_{CharID}_{Channel}
+
+2.3 目录结构规范（UE5 / Unity 通用）
+
+Content/
+└── Characters/
+└── Hero01/
+├── Textures/
+│ ├── T_Mask_Hero01_Body_RGBA.png ← 入引擎的合成 Mask
+│ ├── T_Color_Hero01_Body_D.png ← Diffuse
+│ └── T_Normal_Hero01_Body_N.png ← Normal
+├── Materials/
+│ └── M_Hero01_Body.uasset ← 引用 Mask 的材质
+└── Source/
+├── config.json ← 工程恢复文件（不入引擎）
+└── T_Mask_Hero01_Body_Preview.png ← 叠加预览（不入引擎）
+
+✅ 规则：仅 *_RGBA.png 导入引擎；config.json、*_Preview.png、单通道灰度图均归档到 Source/ 目录，作为工程恢复资产保留。
+
+2.4 常用缩写词典
+
+T_ Texture 贴图 （纹理前缀）
+
+M_ Material 材质 （材质前缀）
+
+MI_ Material Instance （材质实例）
+
+_D Diffuse / Base Color （漫反射）
+
+_N Normal Map （法线贴图）
+
+_Mask Mask 蒙版 （通道蒙版）
+
+_RGBA 四通道合成 （Red+Green+Blue+Alpha）
+
+_ORM Occlusion/Roughness/Metallic （通道合一）
+
+POT Power of Two （2的幂次方尺寸）
+
+BC7 Block Compression 7 （DX11+ 压缩格式）
+
+ASTC Adaptive Scalable TC （移动端压缩）
+
+HSV Hue/Saturation/Value （色相/饱和度/明度）
+
+3️⃣ 图文红黑榜 (Do's & Don'ts)
+
+案例一：边缘半透明导致 Mask 混合错误
+
+❌ Don't — 抗锯齿边缘未处理
+
+原画导出时保留了角色轮廓的 半透明抗锯齿像素（Alpha 10~200），这些像素的色相不稳定，被工具识别为两个区域的交叉匹配。
+
+引擎后果：
+
+Mask 边缘出现 RGB 通道相互渗透（如红色头发区域边缘泛绿）
+
+材质换色时角色轮廓出现 "鬼影色带"，在浅色背景上尤为明显
+
+压缩后（BC7/ASTC）半透明区域 色彩偏移加剧
+
+📷 配图建议：截取一张 Mask R 通道灰度图，放大边缘 400%，标注半透明像素呈现灰色渐变而非清晰二值化的区域
+
+✅ Do — 正确做法
+
+原画导出前确保角色内部像素 Alpha = 255（全不透明），仅保留最外层 1px 抗锯齿。
+
+在工具中：
+
+设置 饱和度下限 ≥ 15%，过滤掉低饱和度的半透明像素
+
+透明度阈值自动跳过 Alpha < 10 的像素
+
+生成后使用 边缘平滑 = 2px，Box blur 柔化过渡
+
+导出后在引擎中将 Mask 纹理设为 sRGB = OFF，Filter = Nearest（或 Bilinear 但需配合 step/smoothstep）
+
+📷 配图建议：同一区域 Mask 放大图，边缘呈清晰的黑→白二值过渡，无灰色渗透
+
+案例二：RGB 通道互斥逻辑被忽视
+
+❌ Don't — 手绘 Mask 通道重叠
+
+美术在 Photoshop 中手绘 Mask，R 通道画了头发区域 0.8，G 通道在相同像素也画了 0.6。两个通道 在同一像素同时有值。
+
+引擎后果：
+
+材质 Shader 中 lerp(ColorA, ColorB, mask.r) 和 lerp(ColorB, ColorC, mask.g) 同时生效，导致 颜色被双重叠加
+
+换色后该区域颜色 既不是方案 A 也不是方案 B，呈现脏混色
+
+QA 难以定位问题根源，反复返工
+
+📷 配图建议：在 Photoshop 中分别显示 R/G 通道，圈出两者重叠的区域，并截取引擎中换色后的脏色结果对比
+
+✅ Do — 使用工具自动互斥
+
+使用 Auto Mask 工具的 逐像素互斥逻辑，自动确保：
+
+每个像素的 R/G/B 中 最多只有一个通道有值（winner-take-all）
+
+Float32 精度计算避免量化误差
+
+手动微调时使用笔刷的 画笔/橡皮模式，先擦再画，不会产生重叠
+
+最终导出前可切换到 R/G/B 单通道灰度预览逐一检查
+
+📷 配图建议：工具预览界面截图，分别展示 R（红通道灰度）、G（绿通道灰度）、B（蓝通道灰度）三张图，标注"同一像素只有一个通道有值"
+
+4️⃣ 标准作业流程 (SOP)
+
+4.1 完整流程总览
+
+A. 原画 PSD角色设计稿
+
+→
+
+B. PSD 整理图层合并/Alpha清理
+
+→
+
+C. 导出 PNG无压缩/Alpha=255
+
+→
+
+D. Auto Mask 工具吸色→分配→微调→生成
+
+→
+
+E. QA 自检通道检查/边缘检查
+
+→
+
+F. 导出 ZIPRGBA + config.json
+
+→
+
+G. 引擎导入sRGB=OFF / 压缩设置
+
+→
+
+H. 材质应用Shader 采样 Mask
+
+4.2 各节点交付标准
+
+节点 | 负责人 | 交付物 | 验收标准 |
+
+A → B
+PSD 整理 |
+角色原画 |
+合并后的 PSD |
+① 换色区域对应的图层颜色饱和度 ≥ 30%
+② 角色内部像素 Alpha=255
+③ 无隐藏图层残留 |
+
+B → C
+导出 PNG |
+角色原画 |
+PNG 文件 |
+① 无 JPEG 压缩痕迹
+② 尺寸为 POT 或 4 的倍数
+③ 文件名符合 T_Color_{CharID}_Body_D.png |
+
+C → D
+Mask 生成 |
+TA / 美术 |
+RGBA Mask PNG |
+① R/G/B 互斥（同像素仅一个通道有值）
+② 色区边缘平滑无锯齿
+③ A 通道模式正确 |
+
+D → E
+自检 |
+TA / 美术 |
+— |
+① 切换到 R/G/B/A 单通道灰度逐一检查
+② 打开"显示蒙版"模式确认区域覆盖正确
+③ 检查叠加预览图颜色过渡 |
+
+E → F
+导出 |
+TA / 美术 |
+ZIP 包 |
+① 包含 config.json（支持工程恢复）
+② 命名符合项目规范
+③ 预览图包含在内 |
+
+F → G
+引擎导入 |
+TA |
+引擎内纹理资产 |
+① sRGB = OFF（Mask 为线性数据）
+② 压缩格式 = BC7（PC）/ ASTC 4×4（Mobile）
+③ Mip = 不生成 或仅 1~2 级
+④ Filter = Bilinear |
+
+G → H
+材质应用 |
+TA |
+材质/材质实例 |
+① Mask.R/.G/.B 对应正确的换色区域
+② step() 或 smoothstep() 做阈值化
+③ 最少支持 3 套配色方案验证 |
+
+4.3 工程恢复流程（非破坏性工作流）
+
+导入 config.json拖入工具或点击"导入工程"
+
+→
+
+自动识别格式校验 tool / format / version
+
+→
+
+加载原图Base64 内嵌 或 手动选择
+
+→
+
+恢复完整状态通道分配/HSV参数/命名
+
+→
+
+自动重新生成一键还原到上次导出状态
+
+5️⃣ 常见问题排查 (FAQ)
+
+Q1 导入引擎后 Mask 颜色偏暗，换色效果不对？
+
+根因：引擎将 Mask 纹理标记为 sRGB = ON（默认），导致 Gamma 校正被重复应用。Mask 中 R=200 的像素在 Shader 中读取到的值 ≈ 0.577 而非预期的 0.784。
+
+解决：
+
+UE5：纹理属性 → sRGB 取消勾选 → Compression = Masks (no sRGB)
+
+Unity：Texture Import Settings → sRGB (Color Texture) 取消勾选
+
+验证：在材质中采样后输出到 Emissive 查看，数值 128 应显示为中灰（~0.5）而非深灰
+
+Q2 Mask 通道之间出现"出血"——R 区域边缘有微弱的 G 通道值？
+
+根因分析（按概率排序）：
+
+边缘平滑值过大（>3px）：Box blur 在通道互斥之后执行时可能溢出。工具 v4.1 已将 blur 在互斥前执行，互斥后不再二次 blur
+
+原图抗锯齿区域色相漂移：半透明像素的 RGB 值不稳定，HSV 色相计算偏差。降低饱和度下限会加剧此问题
+
+引擎纹理压缩伪影：BC1/DXT1 压缩对低值通道量化误差大。改用 BC7（PC）或 ASTC 4×4（Mobile）
+
+排查步骤：
+
+1. 在工具中切换到 G 通道灰度预览，检查 R 区域边缘是否有灰色
+→ 有：调低 Edge Smooth 到 1px，或使用笔刷橡皮擦除
+→ 无：问题在引擎端
+2. 引擎中将压缩改为 Uncompressed，重新检查
+→ 消失：换用 BC7 / ASTC
+→ 仍在：检查 Shader 中是否有跨通道操作（如 mask.r + mask.g）
+
+Q3 同事的 config.json 导入后颜色区域全丢了？
+
+根因：config.json 中存储的是 HSV 色相匹配参数（色相角度、容差、饱和度下限），而非像素坐标蒙版。如果原图不匹配（分辨率不同、颜色被修改过），恢复后自动生成的 Mask 会与预期不同。
+
+解决：
+
+确保用 同一张原图 恢复。config.json 中的 size 字段记录了原始尺寸，可作比对
+
+如果原图 <5MB，工具会自动将 Base64 内嵌到 config.json，恢复时无需再提供原图
+
+如果原图 >5MB（如 4K 素材），需要将原图和 config.json 放在同一个 ZIP 包 / 同一目录 一起归档
+
+恢复后如有微调需求，直接在工具中修改并重新导出即可，不需要从头开始
+
+
+本文档适配工具版本 v4.0 ~ v4.1 · 由 TA 组维护 · 最后更新 2026-04-02

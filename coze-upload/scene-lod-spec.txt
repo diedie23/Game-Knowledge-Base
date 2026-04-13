@@ -1,0 +1,315 @@
+# 场景模块化与 LOD 规范 — 工业化规范文档
+
+场景模块化与 LOD 规范 — 工业化规范文档
+
+🏔️ 场景模块化与 LOD 规范 v1.0
+
+Scene Modular Kit & Level of Detail — Industrial Pipeline Specification
+
+
+📑 目录
+
+模块化设计总则
+
+网格 Grid 与吸附规范
+
+LOD 层级与面数预算
+
+贴图与材质合批策略
+
+命名与目录结构
+
+碰撞体与 NavMesh
+
+Do/Don't 红黑榜
+
+SOP 流程
+
+FAQ
+
+1️⃣ 模块化设计总则
+
+💡 核心理念："一套模块 + 组合规则 = 无限场景"。标准化尺寸网格、连接点与材质规格，让关卡设计师像搭积木般拼装。
+
+1.1 模块分类体系
+
+分类 | 代号 | 典型尺寸 (cm) | 举例 |
+
+Floor 地板 | F | 400×400 / 800×800 | 石板、草地 |
+
+Wall 墙体 | W | 400×300 / 400×600 | 砖墙、门洞墙 |
+
+Pillar 柱体 | P | 50×50×300 | 罗马柱、木柱 |
+
+Ceiling 天花 | C | 跟随 Floor | 穹顶、梁 |
+
+Stair 楼梯 | S | 400×300×300 | 直梯、旋转梯 |
+
+Deco 装饰 | D | 自由 | 花瓶、路灯 |
+
+Prop 道具 | PR | 自由 | 箱子、桌椅 |
+
+1.2 模块化"三一律"
+
+📐 Three Unities：
+
+① 统一 Grid：结构件对齐 100cm 主格 + 50cm 细格
+
+② 统一 Pivot：结构件 Pivot 在左下角底部；Deco/Prop 在几何中心底面
+
+③ 统一 Texel Density：同场景 TD 差异 ≤ ±15%
+
+1.3 连接点 Snap Points
+
+连接类型 | Socket 位置 | 容差 |
+
+Floor-Floor | 四边中点 + 四角 | 0.01cm |
+
+Wall-Floor | 墙底边 ↔ 地板边缘 | 0.01cm |
+
+Wall-Wall | 墙左右两侧 | 0.01cm |
+
+Wall-Ceiling | 墙顶边 | 0.01cm |
+
+2️⃣ 网格 Grid 与吸附规范
+
+Grid 级别 | 尺寸 | 适用 | 引擎设置 |
+
+Primary 主格 | 100cm | 房间、走廊 | Grid = 100 |
+
+Half 半格 | 50cm | 门洞偏移 | Grid = 50 |
+
+Fine 细格 | 25cm | 台阶高度 | Grid = 25 |
+
+Micro 微格 | 10cm | 装饰微调 | Grid = 10 |
+
+⛔ 红线：结构模块(F/W/P/C/S) 禁用 Micro Grid。对不上 25cm 则返工。仅 Deco/Prop 可用微格。
+
+Pivot 标准
+
+Floor/Wall: Pivot = 左下角底部 (min X, min Y, min Z)
+Deco/Prop: Pivot = 几何中心底面 (center X, center Y, min Z)
+
+旋转步进
+
+类型 | 旋转步进 |
+
+结构件 | 90° |
+
+斜面/坡道 | 45° |
+
+装饰 | 15° |
+
+道具 | 5° |
+
+3️⃣ LOD 层级与面数预算
+
+⛔ 红线：单模块 LOD0 ≤ 50,000 三角面。LOD 级数至少 3 级，建议 4 级。
+
+3.1 LOD 标准
+
+LOD | 屏占比 | 面数比 | 距离 | 用途 |
+
+LOD0 | >30% | 100% | 0~15m | 全精度 |
+
+LOD1 | 10~30% | ≤50% | 15~40m | 移除小细节 |
+
+LOD2 | 3~10% | ≤25% | 40~80m | 轮廓模型 |
+
+LOD3 | <3% | ≤10% | 80m+ | Impostor |
+
+HLOD | — | ≤5% | 150m+ | 合并 LOD |
+
+3.2 面数预算表
+
+模块 | LOD0 | LOD1 | LOD2 | LOD3 |
+
+Floor 4m² | 500 | 200 | 50 | 12 |
+
+Wall 标准 | 2,000 | 800 | 200 | 50 |
+
+Pillar | 3,000 | 1,200 | 300 | 80 |
+
+Stair | 5,000 | 2,000 | 500 | 100 |
+
+Deco 中型 | 8,000 | 3,000 | 800 | 200 |
+
+Prop 大型 | 15,000 | 5,000 | 1,500 | 400 |
+
+Hero Asset | 50,000 | 15,000 | 5,000 | 1,000 |
+
+⚠️ LOD 过渡：必须用 Dithered Transition / Cross-Fade，禁止硬切 Pop。
+UE5: LOD Transition → Dithered · Unity: crossFadeAnimationDuration = 0.5f
+
+3.3 Nanite 适用范围 (UE5)
+
+场景 | Nanite | 原因 |
+
+静态道具 | ✅ 推荐 | 自动 LOD |
+
+可破坏物 | ❌ 禁止 | 不支持动态拓扑 |
+
+半透明 | ❌ 禁止 | 不支持透明材质 |
+
+骨骼动画 | ❌ 禁止 | 仅支持静态网格 |
+
+植被 | ⚠️ 谨慎 | 5.1+ 支持但 WPO 有限 |
+
+4️⃣ 贴图与材质合批策略
+
+4.1 Texel Density
+
+LOD | 目标 TD | 参考 |
+
+LOD0 | 10.24 px/cm | 1m → 1024px |
+
+LOD1 | 5.12 px/cm | 1m → 512px |
+
+LOD2 | 2.56 px/cm | 可用 Trim Sheet |
+
+💡 Trim Sheet：重复场景部件优先用 Trim Sheet，一张 2048² 覆盖 10~20 个模块 UV，极大减 Draw Call。
+
+4.2 贴图规格
+
+类型 | 推荐 | 上限 | 色彩空间 | 压缩 |
+
+BaseColor | 1024² | 2048² | sRGB | BC7/ASTC |
+
+Normal | 1024² | 2048² | Linear | BC5/ASTC |
+
+ORM Packed | 1024² | 2048² | Linear | BC7/ASTC |
+
+Trim Sheet | 2048² | 4096² | Mixed | BC7 |
+
+
+5️⃣ 命名与目录结构
+
+SM_[分类]_[集合名]_[变体] ← 网格
+T_[集合名]_[物件]_[类型] ← 贴图 (BC/N/ORM/E/M)
+
+示例:
+SM_Wall_Medieval_Door_01
+SM_Floor_SciFi_4x4_02
+T_Medieval_Wall_BC.png
+T_Medieval_TrimSheet_ORM.png
+
+Content/Environment/
+├── Medieval/
+│ ├── Meshes/ (Floor/ Wall/ Pillar/ Deco/ Prop/)
+│ ├── Textures/ (TrimSheet/ Atlas/)
+│ ├── Materials/ (MI_Master + Instances/)
+│ └── Blueprints/
+└── Shared/ (MasterMaterials/ SharedTextures/)
+
+6️⃣ 碰撞体与 NavMesh
+
+碰撞类型 | 面数 | 性能 | 适用 |
+
+Box | 12 | ⭐⭐⭐⭐⭐ | 方形墙壁/地板 |
+
+Convex Hull | ≤256 | ⭐⭐⭐⭐ | 不规则凸形 |
+
+Multi-Convex | ≤256×N | ⭐⭐⭐ | 凹形(楼梯/L墙) |
+
+Complex | = 渲染面数 | ⭐ | ❌ 禁止运行时 |
+
+⛔ 红线：运行时碰撞 禁用 Complex Collision。碰撞面数 ≤ 渲染面数 1%。
+
+碰撞体命名 (FBX):
+UCX_Wall_Medieval_01_00 ← Convex #0
+UBX_Wall_Medieval_01_01 ← Box #1
+USP_Wall_Medieval_01_02 ← Sphere #2
+
+⚠️ NavMesh 规则：地板斜面坡度 ≤ 45°，台阶高度 ≤ 40cm，相邻地板高差 ≤ Agent Step Height。
+
+7️⃣ Do/Don't 红黑榜
+
+✅ Do — 正确做法
+
+[此处插入图片：模块对齐、UV 连续、LOD 完整的正确示例]
+
+• 所有结构件对齐 100cm Grid
+• Pivot 统一在左下角底部
+• LOD0~LOD3 完整四级链
+• 使用 Trim Sheet 减少材质数
+• 碰撞体简化为 Box / Convex
+• 接缝处顶点焊接 + UV 连续
+
+❌ Don't — 错误做法
+
+[此处插入图片：模块错位、Z-fighting、LOD 缺失的反面示例]
+
+• Pivot 位置随意 → 对齐困难
+• 不同 Grid 混用 → 缝隙/穿模
+• 仅 LOD0 无低模 → GPU 过载
+• 每个模块独立材质 → Draw Call 爆炸
+• Complex Collision → 物理卡顿
+• 硬切 LOD → 视觉 Pop 闪烁
+
+✅ Do — Texel Density 一致
+
+[此处插入图片：TD Checker 全场景绿色=一致]
+
+• 所有模块 TD 在 10.24 px/cm ±15% 以内
+• Checker 工具验证：全场景无红色区域
+
+❌ Don't — TD 差异过大
+
+[此处插入图片：TD Checker 花花绿绿=不一致]
+
+• 地板 20 px/cm，墙壁 5 px/cm → 观感撕裂
+• 玩家能直观感受到清晰度落差
+
+8️⃣ SOP 标准作业流程
+
+1. 白盒
+BSP / ProBuilder
+验证尺寸与玩法
+
+→
+
+2. Kit 制作
+DCC 建模
+遵循 Grid + Pivot
+
+→
+
+3. LOD 生成
+手动减面 / Simplygon
+4 级 LOD 链
+
+→
+
+4. 碰撞制作
+UCX/UBX 命名
+面数 ≤1%
+
+→
+
+5. UV & 材质
+Trim Sheet UV
+TD 校验
+
+→
+
+6. 引擎验收
+Grid 对齐 · LOD
+Profile 性能
+
+9️⃣ 常见问题 FAQ
+
+❓ 启用 Nanite 后还需要手动 LOD 吗？
+
+Nanite 自动处理静态网格 LOD，但 仅限静态、不透明物体。半透明/骨骼/可破坏物体仍需手动 LOD。建议混合策略：静态用 Nanite，动态保留手动 LOD 链。
+
+❓ Trim Sheet 和 Texture Atlas 有什么区别？
+
+Trim Sheet：长条形 UV 区域，适合线性重复元素（墙边、管线），UV 可沿 U 轴 Tiling。
+Atlas：矩形格子分区，每个模块占一格，UV 不可 Tiling。Trim Sheet 灵活度更高，但 UV 拆分要求更精细。
+
+❓ 碰撞体面数的 1% 规则如何验证？
+
+UE5：Show → Collision 可视化碰撞体；Statistics 面板查看碰撞面数。
+Unity：Physics Debugger 显示碰撞网格。自动化脚本可在 CI 中检查 collision tri / render tri 比值。
+
+📄 场景模块化与 LOD 规范 v1.0 · TA 组 · 场景组 · 2026-04-02 · 机密文档

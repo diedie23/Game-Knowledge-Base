@@ -1,0 +1,487 @@
+# UMG 生成技巧 — UI 工业化规范
+
+UMG 生成技巧 — UI 工业化规范
+
+⚡ UMG 生成技巧 UI 规范 v1.0
+
+UMG/UGUI Performance Optimization — DrawCall & Hierarchy Best Practices
+
+
+📑 目录
+
+性能红线
+
+动静分离原则
+
+UI 树层级扁平化
+
+图文红黑榜
+
+标准作业流程 SOP
+
+常见问题排查 FAQ
+
+如何提升 AI 生成 UE UMG 界面的准确率（Prompt 编写指南）
+
+🚨 1. 性能红线
+
+⛔ 以下为 UI 性能强制标准。Profiling 不达标的 UI 页面禁止合入主分支。
+
+指标 | 红线 | 推荐 | 检测工具 |
+
+单页面 UI Draw Call | ≤ 50 | ≤ 30 | UE5: stat slate; Unity: Frame Debugger |
+
+UI 树总节点数 | ≤ 300 | ≤ 150 | UE5: Widget Reflector; Unity: Hierarchy Count |
+
+UI 树最大嵌套深度 | ≤ 10 层 | ≤ 6 层 | 手动检查 / 自动化脚本 |
+
+单帧 UI 重绘区域 | 屏幕面积 30% | ≤ 15% | UE5: Slate.InvalidationDebugging |
+
+UI 纹理总内存 | ≤ 32 MB | ≤ 16 MB | UE5: stat textures |
+
+长列表可见项 | ≤ 20 个 Widget | 虚拟列表 | ListView / RecyclerView |
+
+🔀 2. 动静分离原则
+
+核心理念：将频繁变化的 UI 元素（动画、计时器、数值）与静态的 UI 元素（背景、边框、固定文字）分开放置，使引擎能独立缓存静态部分，减少重绘。
+
+2.1 动/静分类标准
+
+分类 | 变化频率 | 典型元素 | 处理策略 |
+
+静态 | 不变 / 仅在打开时设一次 | 面板背景、边框、标题文字、固定图标 | 放入 Invalidation Box（UE5）/ Static Canvas（Unity），GPU 缓存 |
+
+低频动态 | 每秒 ≤ 1 次 | 血量数字、金币数、等级 | 可放入 Invalidation Box，仅在数据变化时 Invalidate |
+
+高频动态 | 每帧 / 每秒多次 | 计时器、动画、粒子、进度条动画 | 必须隔离到独立层/Canvas，禁止与静态元素同层 |
+
+🔴 铁律 #1：一个 Invalidation Box（或 Unity Canvas）内任何子元素变化，该 Box 内所有元素都重新绘制。因此高频动态元素绝对不能和静态元素放在同一个 Box 内。
+
+🔴 铁律 #2：禁止在 Tick/Update 中修改不会变化的 UI 属性（如每帧设置文本为同一个值）。即使值不变，引擎仍会标记为脏(dirty)并触发重绘。
+
+2.2 UE5 Invalidation Box 使用规范
+
+WBP_BattleHUD (Widget Blueprint)
+├── InvalidationBox_Static ← 静态层（GPU 缓存）
+│ ├── Image_PanelBg // 背景面板
+│ ├── Image_HpBarBg // 血条底框
+│ └── Text_PlayerName // 玩家名（仅打开时设一次）
+│
+├── InvalidationBox_LowFreq ← 低频层（数据变化时 Invalidate）
+│ ├── Text_HpValue // 血量数值
+│ └── Text_MpValue // 蓝量数值
+│
+└── Overlay_HighFreq ← 高频层（不缓存，每帧重绘）
+├── ProgressBar_HpFill // 血条动画（Lerp 过渡）
+├── ProgressBar_MpFill // 蓝条动画
+└── Widget_DamagePopup // 伤害飘字
+
+2.3 DrawCall 合批条件
+
+条件 | 合批结果 | 说明 |
+
+使用同一 Atlas 的相邻元素 | 合批 ✅ | 最理想情况 |
+
+中间插入了不同 Atlas 的元素 | 打断 ❌ | A-B-A 三个元素 = 3 次 DC |
+
+中间插入 Text 元素 | 打断 ❌ | 文字使用字体 Atlas，与 UI Atlas 不同 |
+
+Material / Blend Mode 不同 | 打断 ❌ | 不同材质/混合模式无法合批 |
+
+Clip / Mask 裁剪区域 | 打断 ❌ | Clipping 产生额外 DC |
+
+⚠️ 合批优化技巧：① 同 Atlas 的图片在 UI 树中连续排列，不要被文字打断。② 文字元素集中放置，让引擎用一次 DC 渲染所有文字。③ 用 Retainer Box（UE5）将复杂子树渲染到离屏 RT，减少主 Pass DC。
+
+🌳 3. UI 树层级扁平化
+
+🔴 铁律：UI 树嵌套深度不得超过 10 层。每增加一层嵌套，布局计算复杂度近似 O(n)——10 层以上的深树在低端机上 Layout Pass 可能花费 > 2ms。
+
+3.1 扁平化策略
+
+问题 | 反模式（嵌套过深） | 正确做法（扁平化） |
+
+多层装饰边框 | Border→Border→Border→Border 4层嵌套 | 用 9 宫格单图实现 4 层边框效果，1 个 Image 节点 |
+
+对齐布局 | HBox→VBox→HBox→VBox 交替嵌套 | 用 Grid Panel（UE5）或 CSS Grid 一层搞定 |
+
+间距 | Spacer→Spacer→Spacer 多个空节点 | 使用父容器的 Padding/Slot.Padding |
+
+条件隐藏 | 每个元素包一个 Visibility 容器 | 直接控制元素自身的 Visibility，无需包装层 |
+
+滚动列表 | ScrollBox 内放 100+ Widget | 使用 ListView（UE5）/ RecyclerView（Unity）虚拟列表 |
+
+3.2 节点数预算分配
+
+页面类型 | 推荐节点数 | 红线 |
+
+HUD（战斗界面） | ≤ 60 | 100 |
+
+普通页面（商城/背包） | ≤ 120 | 200 |
+
+复杂页面（社交/聊天） | ≤ 150 | 300 |
+
+✅❌ 4. 图文红黑榜
+
+4.1 高频元素和静态元素混合 → 全页面重绘
+
+❌ Don't — 倒计时器和背景面板在同一个 Canvas/Invalidation Box
+
+[此处插入图片：Profiler 截图显示一个包含 40 个子元素的 Invalidation Box，因为一个 Timer Text 每帧变化，导致 40 个元素全部每帧重绘。Draw Call 40+]
+
+后果：倒计时每帧变化 → 整个 Box 被标记为 dirty → 40 个子元素全部每帧重绘 → Draw Call 从 1（缓存态）膨胀到 40+。在低端机上直接掉帧。
+
+✅ Do — 将倒计时器隔离到独立的高频层
+
+[此处插入图片：Profiler 截图显示静态层 39 个元素 Draw Call = 1（缓存），高频层只有 1 个 Timer Text 每帧重绘。总 DC = 2]
+
+方法：将 Timer 移出 Invalidation Box，放入独立的 Overlay 层。静态层GPU 缓存始终有效，仅 Timer 每帧重绘 1 次。
+
+4.2 ScrollBox 内放 100+ Widget → 卡顿爆炸
+
+❌ Don't — 好友列表 ScrollBox 内直接放 200 个 Widget
+
+[此处插入图片：Widget Reflector 显示 ScrollBox 下 200 个子节点，内存占用 45MB，首次打开耗时 800ms]
+
+后果：200 个 Widget 全部实例化（即使只有 10 个可见），内存爆炸，首次打开 > 500ms。滑动时 Layout Pass 计算 200 个节点位置，卡顿明显。
+
+✅ Do — 使用 ListView 虚拟列表
+
+[此处插入图片：同一好友列表使用 ListView，只有 12 个可见 Widget 实例被复用，内存 3MB，打开瞬间]
+
+方法：UE5 ListView / Unity RecyclerView。只创建可见 + 缓冲区的 Widget 实例（约 12~15 个），滑动时复用而非创建。200 项数据只需 12 个 Widget。
+
+
+A. UI 原型
+功能+交互定义
+
+→
+
+B. 动静分析
+标注动态/静态元素
+
+→
+
+C. 树结构设计
+层级≤6·节点预算
+
+→
+
+D. 实现搭建
+Invalidation分层
+
+→
+
+E. Profiling
+DC/节点/重绘面积
+
+→
+
+F. 达标合入
+红线全部通过
+
+节点 | 交付物 | 验收标准 |
+
+A | 交互原型 | 每个页面列出所有 UI 元素 |
+
+B | 动静标注表 | 每个元素标注为 静态/低频/高频 |
+
+C | 树结构草图 | 深度≤6；节点数≤预算；虚拟列表标注 |
+
+D | 引擎实现 | Invalidation Box 分层正确；ListView 用于长列表 |
+
+E | Profiling 报告 | DC≤30；节点≤150；重绘≤15% |
+
+F | PR + 报告截图 | 所有红线达标，TA Lead 签字 |
+
+❓ 6. 常见问题排查 FAQ
+
+💬 Q1：UI 打开后帧率骤降 10+fps？
+
+排查：① 运行 stat slate（UE5）检查 Draw Call 数。② 如果 DC > 50，用 Widget Reflector 找出打断合批的元素。③ 检查是否有高频元素在 Invalidation Box 内导致全量重绘。
+
+修复：动静分离 + 合批优化 + Retainer Box 降频子树。
+
+💬 Q2：长列表滑动时掉帧/白屏？
+
+原因：ScrollBox 内直接放了所有 Widget，滑动时 Layout 计算量巨大。
+
+修复：替换为 ListView（UE5）或 RecyclerView（Unity）。设置合适的缓冲区（OverscrollAmount / Extra Visible Count），确保快速滑动不白屏。
+
+💬 Q3：Invalidation Box 设了但 DC 没减少？
+
+原因①：Box 内有高频动态元素（如动画/Timer），导致缓存每帧失效。
+
+原因②：在 Tick 中给不变的 UI 元素赋了相同的值（如 SetText(SameValue)），引擎仍标记为 dirty。
+
+修复：① 高频元素移出 Box。② 赋值前加 if(NewValue != OldValue) 判断。③ 使用 Slate.InvalidationDebugging 1 可视化哪些元素导致了 Invalidation。
+
+🤖 7. 如何提升 AI 生成 UE UMG 界面的准确率（Prompt 编写指南）
+
+
+7.1 明确的容器与层级结构（Hierarchy & Layout）
+
+🔴 铁律：Prompt 中必须指明根节点类型。未指定根节点的 Prompt 会让 AI 随机选择 Canvas Panel / Overlay / User Widget，导致布局基础不可预测。
+
+容器类型 | 适用场景 | Prompt 关键词示例 |
+
+Canvas Panel | 全屏 HUD、需要绝对坐标定位的界面 | "根节点为 Canvas Panel，支持绝对坐标布局" |
+
+Overlay | 元素需要层叠但不需精确坐标（弹窗遮罩层） | "使用 Overlay 作为根节点，子元素堆叠排列" |
+
+Vertical Box | 线性垂直排列（设置列表、聊天消息流） | "内容区使用 Vertical Box 依次排列各行" |
+
+Horizontal Box | 线性水平排列（底部按钮栏、Tab 导航） | "底部按钮栏用 Horizontal Box，等间距排列 3 个按钮" |
+
+Grid Panel | 网格/背包/道具栏 | "物品列表使用 Grid Panel，4 列自动换行" |
+
+Size Box | 强制限制子元素尺寸（固定大小的图标/按钮） | "每个道具格子用 Size Box 包裹，强制 80×80" |
+
+Scale Box | 等比缩放适配不同分辨率 | "最外层用 Scale Box 包裹，缩放策略 Scale to Fit" |
+
+Scroll Box | 可滚动内容（但长列表建议 ListView） | "描述区域使用 Scroll Box，垂直滚动" |
+
+⚠️ 最佳实践：在 Prompt 开头先声明层级树，再描述每个节点的细节。例如先写"WBP_Popup 根节点为 Overlay，下辖：Image_BgMask → Vertical Box_Content → [标题/列表/按钮栏]"，再逐一描述各元素。这种"树形先行"写法比"自然语言平铺"的准确率高 40%+。
+
+7.2 精准的锚点与对齐规范（Anchors & Alignment）
+
+UE UMG 的布局系统核心是 Anchor（锚点）+ Alignment（对齐中心点）+ Offset（位置偏移）。三者的含义经常被混淆，导致 AI 生成的 UI 在分辨率变化时跑偏。
+
+概念 | 含义 | 取值范围 | Prompt 中如何描述 |
+
+Anchor | 元素挂靠在父容器的哪个位置（锚定参考点） | Min(0,0)~Max(1,1) | "锚点：居中(0.5,0.5)"、"锚点：左上角(0,0)"、"锚点：全屏填充(0,0)~(1,1)" |
+
+Alignment | 元素自身的对齐中心点偏移比例 | 0~1 | "Alignment (0.5, 0.5) 以元素中心对齐锚点" |
+
+Position / Offset | 从锚点到元素实际位置的像素偏移 | px 值 | "Offset X=0, Y=-40（在锚点上方 40px 处）" |
+
+🔴 铁律 #1：描述居中元素时，必须同时写明 Anchor (0.5, 0.5) + Alignment (0.5, 0.5)。缺少 Alignment 会导致元素以左上角对齐锚点中心，视觉上偏右偏下。
+
+🔴 铁律 #2：需要全屏自适应的元素（如背景遮罩、底图），使用 Anchor Min(0,0) Max(1,1) Offset 全 0，禁止使用绝对尺寸。
+
+常用锚点 Preset 速查
+
+Preset 名称 | Anchor Min/Max | 典型场景 |
+
+Top-Left | (0,0)~(0,0) | HUD 左上角信息栏（等级/血量） |
+
+Top-Center | (0.5,0)~(0.5,0) | 系统公告 Banner |
+
+Top-Right | (1,0)~(1,0) | Mini Map / 货币显示 |
+
+Center | (0.5,0.5)~(0.5,0.5) | 弹窗 / 对话框 |
+
+Bottom-Center | (0.5,1)~(0.5,1) | 操作按钮栏 / 技能槽 |
+
+Fill | (0,0)~(1,1) | 全屏遮罩 / 背景图 |
+
+Horizontal-Fill + Top | (0,0)~(1,0) | 顶部导航栏（水平铺满，垂直固定高度） |
+
+7.3 工业级命名规范（Naming Conventions）
+
+⛔ 核心要求：Prompt 中必须为每个控件显式指定命名，否则 AI 会使用 Image_0、Button_1 等无意义默认名，后续蓝图编程和团队协作成本极高。
+
+控件类型 | 前缀 | 命名示例 | 说明 |
+
+Button | Btn_ | Btn_Close / Btn_Confirm | 按钮 |
+
+Text Block | Txt_ | Txt_Title / Txt_Desc | 文本 |
+
+Image | Img_ | Img_Icon / Img_BgMask | 图片/图标 |
+
+Horizontal Box | HB_ | HB_ButtonBar | 水平盒 |
+
+Vertical Box | VB_ | VB_ContentList | 垂直盒 |
+
+Overlay | OL_ | OL_Root | 叠加层 |
+
+Canvas Panel | CVS_ | CVS_HUD | 画布面板 |
+
+Scroll Box | SB_ | SB_ItemList | 滚动盒 |
+
+Grid Panel | GP_ | GP_Inventory | 网格面板 |
+
+Size Box | SizeBox_ | SizeBox_Slot | 尺寸盒 |
+
+Progress Bar | PB_ | PB_HpBar | 进度条 |
+
+Border | Bdr_ | Bdr_Panel | 边框容器 |
+
+Widget Blueprint | WBP_ | WBP_CommonPopUp | Widget 蓝图资产 |
+
+🔴 铁律：需要在蓝图中写逻辑的控件（如按钮回调、动态文本更新），必须在 Prompt 中标注 Is Variable: True（暴露为变量）。格式："Btn_Close (Is Variable: True) — 关闭按钮，蓝图中绑定 OnClicked 事件"。
+
+7.4 交互与可见性设置（Visibility & Hit Test）
+
+UMG 的 Visibility 设置对 UI 性能和交互正确性影响巨大。未明确指定时，AI 往往将所有元素默认为 Visible（可见且响应点击），导致"幽灵点击拦截"——一个透明的背景图片意外拦截了下方按钮的点击事件。
+
+Visibility 设置 | 渲染 | 响应点击 | 适用元素 | Prompt 写法 |
+
+Visible | ✅ | ✅ | 按钮、可交互列表项、输入框 | "Btn_Close: Visible" |
+
+Self Hit Test Invisible | ✅ | ❌ 自身不响应
+✅ 子元素响应 | 装饰性容器（内含可交互子元素） | "VB_Content: Visibility = Self Hit Test Invisible" |
+
+Hit Test Invisible | ✅ | ❌ 自身和所有子元素都不响应 | 纯装饰层（背景图、边框、分割线） | "Img_BgPanel: Visibility = Hit Test Invisible（纯装饰）" |
+
+Hidden | ❌（但占位） | ❌ | 条件隐藏但保留布局空间 | "Txt_Error: Hidden（默认隐藏，逻辑控制显示）" |
+
+Collapsed | ❌（不占位） | ❌ | 条件隐藏且不影响布局 | "VB_OptionalSection: Collapsed（按条件展开）" |
+
+⚠️ 防坑要点：
+
+① 全屏半透明遮罩（如弹窗背景黑幕）如果需要点击关闭，设为 Visible；如果不需要点击关闭，必须设为 Hit Test Invisible，否则会拦截遮罩下方的所有点击。
+
+② 布局容器（Vertical Box / Horizontal Box / Overlay）如果自身无交互，统一设为 Self Hit Test Invisible，仅让子元素中的按钮响应。
+
+③ 纯装饰性 Image（图标、分割线、背景）统一 Hit Test Invisible，减少不必要的 Hit Test 遍历，提升 UI 交互性能。
+
+7.5 样式与响应式细节（Styling & Responsive）
+
+💡 核心原则：Prompt 中提供具体数值比描述抽象效果更准确。"按钮之间有间距"→ AI 可能给 0~50px 的任意值。"按钮之间 Padding = 12px"→ 精准无歧义。
+
+Padding / Margin 速查
+
+场景 | 推荐值 | Prompt 写法示例 |
+
+弹窗内容距面板边缘 | 24~32 px | "VB_Content Padding: Top=24, Bottom=24, Left=32, Right=32" |
+
+列表项之间间距 | 4~8 px | "VB_ItemList 各子元素 Slot Padding Bottom = 8" |
+
+按钮内部文字距边缘 | 12~16 px | "Btn_Confirm 内部 Padding: 12px 24px" |
+
+标题与正文间距 | 12~16 px | "Txt_Title Slot Padding Bottom = 16" |
+
+图标与文字间距（同行） | 8~12 px | "HB 中 Img_Icon 和 Txt_Name 间距 8px" |
+
+多分辨率适配指南
+
+适配意图 | Prompt 关键描述 | UMG 实现策略 |
+
+居中弹窗，分辨率变化只影响周边留白 | "弹窗始终屏幕居中，固定宽 600 高 400" | Anchor Center + 固定 Size |
+
+底部 HUD 栏，宽度铺满，高度固定 | "底部技能栏水平铺满，高度固定 80px" | Anchor H-Fill + Bottom, Size Y=80 |
+
+16:9 和 21:9 均保持底部居中不拉伸 | "底部按钮栏 Anchor Bottom-Center, 宽度固定 800px, 不随屏幕宽度拉伸" | Anchor Bottom-Center + 固定宽度 |
+
+全屏背景不变形 | "背景图使用 Scale Box 包裹，DPI Scale Rule = Shortest Side, Stretch = Scale to Fit" | Scale Box + 合适的缩放策略 |
+
+✅ 小技巧：在 Prompt 末尾附加一句"请确保在 1920×1080 和 2560×1080 两种分辨率下均布局正确"，可以有效提醒 AI 关注超宽屏适配，避免元素跑到屏幕外。
+
+7.6 自然语言 Prompt 示例（推荐写法）
+
+
+示例 ① 通用确认弹窗
+
+🎯 适用场景：系统提示、退出确认、购买确认、操作二次确认等。
+
+请帮我生成一个居中的确认弹窗。
+
+底层需要一个全屏的半透明黑色遮罩，用来盖住后面的游戏画面。
+
+弹窗主体是一个固定大小的面板（大约 500×300），在屏幕正中间显示，
+带圆角和深色背景。
+
+面板内部从上到下垂直排列三部分：
+1. 顶部：标题文本，居中，字号稍大，加粗，白色
+2. 中间：一段提示内容文本，居中，字号正常，浅灰色
+3. 底部：一个水平排列的按钮区域，里面放"取消"和"确认"两个按钮
+- 取消按钮：透明底 + 白色描边 + 灰色文字
+- 确认按钮：蓝色底 + 白色文字
+- 两个按钮之间留一点间距，整体在面板底部居中
+
+各部分之间保持适当的上下间距，看起来不要太挤。
+
+示例 ② 主界面顶部 HUD 状态栏
+
+🎯 适用场景：战斗界面顶部信息栏、玩家状态显示、资源总览条等。
+
+请创建一个贴在屏幕顶部的 HUD 状态栏。
+
+整体是一个横向铺满屏幕顶部的长条区域，高度大约 60~80px，
+带半透明深色背景，让底部游戏画面隐约可见。
+
+状态栏内部分为左、中、右三个区域，均匀分布：
+
+【左侧】玩家信息区 —— 水平排列：
+- 一个圆形玩家头像（大约 48×48）
+- 头像右边是玩家等级文本，如"Lv.36"，白色加粗
+
+【中间】状态条区 —— 垂直排列：
+- 一个血条（红色填充的进度条），上面叠加当前血量数字
+- 血条下面是一个蓝条（蓝色填充的进度条），上面叠加当前蓝量数字
+- 两个条的宽度大约 200~300px
+
+【右侧】资源显示区 —— 水平排列：
+- 金币图标 + 金币数量文本
+- 钻石图标 + 钻石数量文本
+- 图标大约 24×24，和数量文字之间留 4~6px 间距
+
+请确保左中右三部分在顶部栏里均匀分布，不会挤在一起。
+
+示例 ③ 简单登录面板
+
+🎯 适用场景：游戏启动登录界面、账号切换面板等。
+
+生成一个登录界面。
+
+背景是一张全屏图片，铺满整个屏幕，不要变形拉伸。
+
+屏幕正中间放一个垂直排列的登录面板（大约 400 宽），
+半透明深色背景 + 圆角，让背景图隐约透出来。
+
+面板里从上到下依次是：
+1. 游戏 Logo 图片，居中显示，大约 180×80 的尺寸
+2. 一个账号输入框，宽度撑满面板（左右留 padding），
+有一个浅色描边，内部左侧带一个小人图标
+3. 一个密码输入框，样式和账号输入框一致，
+左侧图标换成锁的样子
+4. 一个宽大的"登录"按钮，醒目的蓝色背景 + 白色文字，
+宽度撑满面板
+
+元素之间保持 16~20px 的间距，面板内部四周留 32px 的 padding。
+Logo 和第一个输入框之间可以稍微大一点间距（如 24px），
+显得不那么紧凑。
+
+⚠️ 自然语言 Prompt 写作技巧：
+
+① 先说整体，再说局部：先描述界面的总体布局和背景，再逐一描述每个区块的内容和排列方式。
+
+② 用方位词代替坐标："屏幕正中间"、"贴在顶部"、"水平铺满"比手写 Anchor(0.5,0.5) 更直观，AI 同样能理解。
+
+③ 给参考数值：尺寸写"大约 500×300"、间距写"16~20px"，给 AI 一个合理范围即可，不必精确到像素。
+
+④ 描述视觉效果："半透明深色背景"、"蓝色底 + 白色文字"、"圆形头像"——这些视觉描述比写 RGBA 数值更容易理解，也更不容易出错。
+
+⑤ 用序号和层级：用"从上到下依次是：1、2、3"来描述排列顺序，比一段混在一起的长文清晰得多。
+
+💡 进阶提示：如果你需要更精确的产出（如严格的命名规范、精确的锚点参数、Visibility 设置等），可以在自然语言描述的基础上，追加补充要求。例如在上述 Prompt 末尾附加：
+
+补充要求：所有按钮命名使用 Btn_ 前缀，文本使用 Txt_ 前缀；确认按钮和取消按钮标记为 Is Variable: True；遮罩层设为 Hit Test Invisible。
+
+这样既保持了 Prompt 的可读性，又能满足工业级规范要求。关于完整的命名规范和 Visibility 设置细节，请参考本文 7.3~7.4 节。
+
+7.7 Prompt 编写自检 Checklist
+
+# | 检查项 | 是否必填 | 不填的后果 |
+
+1 | 是否指明了根节点类型（Canvas Panel / Overlay / ...）？ | 必填 | AI 随机选根节点，布局不可控 |
+
+2 | 是否用树形结构描述了层级关系？ | 必填 | 嵌套关系混乱，需大量手动调整 |
+
+3 | 关键元素是否指定了 Anchor + Alignment？ | 必填 | 分辨率变化后 UI 跑偏 |
+
+4 | 每个控件是否使用了项目标准命名前缀？ | 必填 | 命名混乱，蓝图中难以查找 |
+
+5 | 需蓝图编程的控件是否标注了 Is Variable: True？ | 必填 | 蓝图中无法引用该控件 |
+
+6 | 是否区分了 Visible / Hit Test Invisible / Self Hit Test Invisible？ | 强烈建议 | 幽灵点击拦截，UI 交互异常 |
+
+7 | 是否提供了具体的 Padding / Margin / Font Size 数值？ | 强烈建议 | 间距不可预测，需手动微调 |
+
+8 | 是否描述了颜色值（Hex / RGBA）？ | 强烈建议 | AI 使用默认白/黑色 |
+
+9 | 是否说明了多分辨率适配意图？ | 建议 | 可能在超宽屏下布局异常 |
+
+10 | 是否使用了 Size Box 限制关键尺寸？ | 建议 | 元素尺寸可能被父容器意外拉伸 |
+
+⚡ UMG 生成技巧 · UI 规范 v1.0 · UI程序 + TA组 · 项目内部资料

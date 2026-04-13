@@ -4030,6 +4030,22 @@ var AI_BOT_CONFIG = {
   themeAccent: '#6c8cff'                                         // 主题强调色（与网站 --accent 一致）
 };
 
+/* ── Coze API 默认配置（自动写入 localStorage，用户无需手动配置） ── */
+var COZE_DEFAULT_CONFIG = {
+  botId: '7628276521161610403',
+  token: 'pat_Vc4OB0Yu7rMZLZR9bXlbZmqQ4QE9YBISMGemPzP23DHExjHOmdtKmUpv5PpwpZeY'
+};
+// 如果 localStorage 中没有配置，自动写入默认值
+if(!localStorage.getItem('coze_bot_id') && COZE_DEFAULT_CONFIG.botId){
+  localStorage.setItem('coze_bot_id', COZE_DEFAULT_CONFIG.botId);
+}
+if(!localStorage.getItem('coze_token') && COZE_DEFAULT_CONFIG.token){
+  localStorage.setItem('coze_token', COZE_DEFAULT_CONFIG.token);
+}
+if(!localStorage.getItem('coze_user_id')){
+  localStorage.setItem('coze_user_id', 'u_'+Date.now());
+}
+
 function toggleAiChat(){
   var dialog=document.getElementById('aiChatDialog');
   var fab=document.getElementById('aiChatFab');

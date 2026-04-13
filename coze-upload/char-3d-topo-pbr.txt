@@ -1,0 +1,571 @@
+# 【3D】角色拓扑与 PBR 贴图规范
+
+【3D】角色拓扑与 PBR 贴图规范
+
+🧊 【3D】角色拓扑与 PBR 贴图规范 v1.0
+
+3D Character Topology & PBR Texture Specification
+
+
+📑 目录
+
+拓扑布线标准与面数预算
+
+PBR 贴图通道规范
+
+UV 展开与 Texel Density 规范
+
+LOD 分级策略
+
+骨骼绑定与蒙皮规范
+
+FBX 导出与引擎导入标准
+
+Do's & Don'ts 红黑榜
+
+出图检查清单 Checklist
+
+① 拓扑布线标准与面数预算
+
+面数预算表
+
+部件 | LOD0（近景/展示） | LOD1（中景/战斗） | LOD2（远景/大厅） |
+
+头部+面部 | ≤ 8,000 tri | ≤ 4,000 tri | ≤ 1,500 tri |
+
+头发 | ≤ 10,000 tri | ≤ 5,000 tri | ≤ 2,000 tri |
+
+躯干+上装 | ≤ 12,000 tri | ≤ 6,000 tri | ≤ 2,500 tri |
+
+下装+腿部 | ≤ 6,000 tri | ≤ 3,000 tri | ≤ 1,200 tri |
+
+手部+手套 | ≤ 4,000 tri | ≤ 2,000 tri | ≤ 800 tri |
+
+鞋子+脚部 | ≤ 3,500 tri | ≤ 1,500 tri | ≤ 600 tri |
+
+配饰/武器 | ≤ 6,000 tri | ≤ 3,000 tri | ≤ 1,000 tri |
+
+总计 | ≤ 50,000 tri | ≤ 25,000 tri | ≤ 10,000 tri |
+
+🚨 硬红线：LOD0 角色整体三角面数不得超过 50,000 tri（含所有配饰），否则同屏 30 角色场景下 GPU 渲染时间将突破 16ms 帧预算。
+
+拓扑布线核心要求
+
+面部拓扑（最优先）
+
+眼眶必须形成完整 Eye Loop（6~8 边环），保证眨眼 Blend Shape 平滑过渡
+
+口部必须形成完整 Mouth Loop（8~10 边环），保证口型 Morph Target 正确变形
+
+鼻翼沿线需平滑过渡，避免锐角三角面导致法线突变
+
+面部整体布线需遵循 肌肉走向原则：额肌→眼轮匝肌→颧肌→口轮匝肌→颏肌
+
+关节拓扑
+
+膝盖/肘部弯曲区域：至少 3 环布线，确保 120° 弯曲不塌陷
+
+肩部：需 4~5 环过渡布线，覆盖抬臂/前伸/后展全方位变形
+
+指关节：每个关节至少 2 环，手掌掌心侧加密布线
+
+腰腹部：扭转区域需增加横向环线密度，支持躯干旋转
+
+全局规则
+
+规则 | 标准 | 说明 |
+
+四边面率 | ≥ 98% | 三角面仅允许出现在指尖、脚趾等极端末端 |
+
+N-gon | 0 容忍 | 五边面及以上完全禁止 |
+
+法线方向 | 统一朝外 | 不允许翻面，背面剔除需保证可见面法线正确 |
+
+重叠顶点 | 0 容忍 | 合并阈值 0.001 单位内的重叠点 |
+
+孤立顶点/边 | 0 容忍 | 所有几何元素必须属于有效面 |
+
+对称性 | 建议 | 角色躯干/四肢推荐镜像建模后调节细节 |
+
+② PBR 贴图通道规范
+
+PBR 贴图套件
+
+贴图类型 | 通道分配 | 色彩空间 | 推荐尺寸 | 压缩格式 |
+
+BaseColor (Albedo) | RGB = 固有色, A = 透明度（不透明物体留白） | sRGB | 2048×2048 | BC7 / ASTC 4×4 |
+
+Normal Map | RG = 切线空间法线 XY（B 通道由引擎重建） | Linear | 2048×2048 | BC5 / ASTC 5×5 |
+
+ARM (合并贴图) | R = AO, G = Roughness, B = Metallic | Linear | 2048×2048 | BC7 / ASTC 4×4 |
+
+Emissive | RGB = 自发光颜色（黑色 = 无发光） | sRGB | 1024×1024 | BC7 / ASTC 6×6 |
+
+SubsurfaceColor | RGB = 次表面散射颜色（皮肤/蜡质材质专用） | sRGB | 1024×1024 | BC7（可选） |
+
+
+数值红线
+
+属性 | 合法范围 | 常见错误 | 后果 |
+
+BaseColor 亮度 | 30~240 (sRGB) | 纯黑 (0) 或纯白 (255) | 破坏 PBR 能量守恒，渲染失真 |
+
+Metallic | 0 或 1（非 0 即 1） | 0.5 等中间值 | 现实中不存在"半金属"，物理不正确 |
+
+Roughness | 0.05~0.95 | 全 0（纯镜面）或全 1（无高光） | 0 导致反射过强，1 导致材质"死板" |
+
+Normal 强度 | 默认 1.0，微调 0.5~1.5 | 超过 2.0 | 法线过强导致棱角突出、闪烁伪影 |
+
+AO 范围 | 0.2~1.0 | AO 全黑 (0) | 缝隙处过黑，与全局 AO 叠加产生"死黑" |
+
+🚨 铁律：禁止使用 Photoshop 「亮度/对比度」直接调整 ARM 贴图 — 这会破坏三通道独立的物理含义。每个通道必须单独调节。
+
+Normal Map 格式约定
+
+引擎 | 法线格式 | G 通道方向 | 说明 |
+
+UE5 | DirectX | G 朝下（-Y） | UE 内置 Flip Green Channel 选项可辅助修正 |
+
+Unity | OpenGL | G 朝上（+Y） | 默认 OpenGL，导入时确保不勾选翻转 |
+
+自研引擎 | OpenGL | G 朝上（+Y） | 如使用 DirectX 需在 Shader 内翻转 |
+
+贴图命名规则
+
+T_{角色代号}_{部件}_{贴图类型}.{ext}
+
+示例：
+T_Hero01_Body_BaseColor.tga # 躯干固有色
+T_Hero01_Body_Normal.tga # 躯干法线
+T_Hero01_Body_ARM.tga # 躯干 AO+Roughness+Metallic
+T_Hero01_Head_Emissive.tga # 头部自发光
+T_Hero01_Hair_BaseColor.tga # 头发固有色
+
+③ UV 展开与 Texel Density 规范
+
+Texel Density (TD) 标准
+
+Texel Density 表示每游戏单位（1m）上有多少像素覆盖，是保证不同部件纹理清晰度一致的核心指标。
+
+区域 | TD 系数（相对基准） | 说明 |
+
+面部 | 2.0× | 最高优先级，玩家视线焦点区域 |
+
+手部 | 1.5× | 近景动画/武器持握经常特写 |
+
+躯干/腿部 | 1.0×（基准） | TD 基准线 |
+
+鞋底/内部 | 0.5× | 不可见或极少可见区域可降低 |
+
+⚠️ TD 一致性检查：同一角色身上不同部件的 TD 差异不得超过 3×（如面部 2.0× 与鞋底 0.5× 的差距 4× 已接近上限），否则视觉上会出现明显的清晰度断层。建议使用 Checker Map 全身检查。
+
+UV 布局原则
+
+原则 | 说明 | 检查方式 |
+
+无翻转 | 所有 UV 岛 winding 方向一致（逆时针），禁止翻转导致法线异常 | UV 编辑器中翻转岛显示为红色 |
+
+接缝 = 硬边 | UV 接缝位置必须设置对应的硬边法线（Split Normals），否则法线贴图无法正确衔接 | 渲染检查接缝处是否有明暗条纹 |
+
+2px 间距 | UV 岛之间至少留 2px 边距（基于 2048 贴图），防止 Mipmap 采样时颜色溢出 | 导出 UV 快照叠加 2px 网格检查 |
+
+拉直四肢 | 手臂/腿部 UV 沿肢体长轴方向拉直，保证条纹/织物纹理方向正确 | 贴 Checker Map 查看条纹走向 |
+
+对称利用 | 对称部件（左右手套/鞋子）可 UV 重叠以节省空间，但需确认材质无不对称细节需求 | UV 编辑器中查看重叠率 |
+
+UV Set 规范
+
+UV0（必须）：主纹理映射，承载所有 PBR 贴图采样
+
+UV1（推荐）：Lightmap UV，用于烘焙光照贴图（引擎自动生成或手动展开），不允许重叠
+
+UV2（可选）：特殊效果层（溶解 Mask、流动 UV 等），按需创建
+
+④ LOD 分级策略
+
+LOD 切换距离与面数递减
+
+LOD 级别 | 屏幕占比 | 切换距离（参考） | 面数比例 | 贴图尺寸 | 骨骼处理 |
+
+LOD0 | > 30% | 0~5m | 100%（≤50K tri） | 2048² | 完整骨架 |
+
+LOD1 | 15~30% | 5~15m | 50%（≤25K tri） | 1024² | 合并手指为拳头 |
+
+LOD2 | 5~15% | 15~40m | 20%（≤10K tri） | 512² | 合并手臂/腿为单骨 |
+
+LOD3（可选） | < 5% | > 40m | 8%（≤4K tri） | 256² | 仅保留脊柱+四肢根骨 |
+
+
+LOD 生成规则
+
+优先减面区域：背部、腿部内侧、被服装遮挡的身体部位
+
+保护区域：面部轮廓线（Silhouette）、手指（LOD0~1 需保留）、关节弯曲区域
+
+递减方式：推荐 DCC 工具半手动减面（Maya Reduce / ZBrush Decimation Master），LOD2+ 可使用引擎自动 LOD
+
+切换过渡：启用 Dithered LOD Transition（屏幕空间抖动过渡），避免跳变
+
+Mipmap 策略
+
+贴图类型 | Mipmap 生成 | 滤波方式 | 注意事项 |
+
+BaseColor | 自动生成 | Anisotropic 8× | Alpha 通道需用 Premultiplied 避免边缘黑线 |
+
+Normal Map | 自动生成 | Trilinear | 远距离 Mip 会导致法线减弱是正常现象 |
+
+ARM | 自动生成 | Bilinear | 各通道物理含义不同，不可对 ARM 做模糊后处理 |
+
+Emissive | 自动生成 | Bilinear | 小面积发光需确认远距离 Mip 不会丢失亮点 |
+
+⑤ 骨骼绑定与蒙皮规范
+
+骨骼数量预算
+
+目标平台 | 主骨骼数 | 辅助骨骼（飘带/头发） | 面部骨骼 | 合计上限 |
+
+高端 PC/主机 | ≤ 80 | ≤ 40 | ≤ 30 | ≤ 150 |
+
+中端移动 | ≤ 60 | ≤ 20 | ≤ 15 | ≤ 95 |
+
+低端移动 | ≤ 45 | ≤ 10 | ≤ 8 | ≤ 63 |
+
+骨骼层级命名规范
+
+Root
+├── Hips
+│ ├── Spine → Spine1 → Spine2 → Neck → Head
+│ │ ├── L_Eye / R_Eye
+│ │ └── Jaw
+│ ├── L_UpperLeg → L_LowerLeg → L_Foot → L_Toe
+│ ├── R_UpperLeg → R_LowerLeg → R_Foot → R_Toe
+│ ├── L_Shoulder → L_UpperArm → L_LowerArm → L_Hand
+│ │ ├── L_Thumb1~3
+│ │ ├── L_Index1~3
+│ │ ├── L_Middle1~3
+│ │ ├── L_Ring1~3
+│ │ └── L_Pinky1~3
+│ └── R_Shoulder → R_UpperArm → R_LowerArm → R_Hand → ...
+
+✅ 命名原则：前缀 L_ / R_ 区分左右，全部使用 PascalCase，与 UE Mannequin / Mixamo 兼容。自定义骨骼以 C_（Custom）前缀标识。
+
+蒙皮权重规范
+
+规则 | 标准 | 检查方法 |
+
+最大影响骨骼数 | 移动端 ≤ 4，PC ≤ 8 | DCC 工具中查看 Max Influences |
+
+权重归一化 | 所有权重之和 = 1.0，误差 ≤ 0.001 | 导出前执行 Normalize Weights |
+
+幽灵权重清除 | 权重 < 0.01 必须清零 | DCC 工具 Prune Small Weights |
+
+对称蒙皮 | 左右肢体蒙皮需镜像一致 | 使用 Mirror Weights 后 Diff 检查 |
+
+穿模检查 | 全 ROM 动作下无穿模 | 播放 T-Pose / A-Pose / 极端 Pose 测试集 |
+
+🚫 蒙皮红线：禁止出现某顶点未绑定任何骨骼（"Free Vertex"）的情况 — 这会导致该顶点在原点产生尖刺。
+
+IK 链设置标准
+
+Foot IK：L_Foot / R_Foot 为末端，L_LowerLeg / R_LowerLeg 为中间节点，Pole Vector 朝前
+
+Hand IK：L_Hand / R_Hand 为末端，L_LowerArm / R_LowerArm 为中间节点，Pole Vector 朝后
+
+Spine IK：Hips → Spine → Spine1 → Spine2 → Neck 组成 5 节点 Spline IK
+
+所有 IK 链需在 DCC 中设置默认 Preferred Angle，避免引擎中翻转抖动
+
+⑥ FBX 导出与引擎导入标准
+
+FBX 导出设置
+
+参数 | 推荐值 | 说明 |
+
+FBX 版本 | FBX 2020.2 | UE5 / Unity 2022 最佳兼容版本 |
+
+坐标系 | 根据引擎选择 | UE5: Z-Up / Unity: Y-Up，导出时由 DCC 自动转换 |
+
+Scale Factor | 1.0（cm） | Maya 默认 cm，Blender 默认 m 需 ×100 |
+
+Smoothing | Face + Edge | 勾选 "Export Smoothing Groups" |
+
+Tangent/Binormal | 导出 | 勾选以确保法线贴图正确显示 |
+
+Animation | 分离导出 | 骨骼 Mesh 与动画 FBX 分离，便于复用 |
+
+Blend Shapes | 勾选 | 面部表情 Morph Target 需导出 |
+
+导出前清理清单
+
+删除所有 历史记录（Maya: Delete All by Type → History）
+
+冻结所有 Transform（确保 Position=0, Rotation=0, Scale=1）
+
+删除所有 非变形节点（辅助定位器 Locator、约束节点等）
+
+确认 Mesh 名称 与 材质名称 遵循命名规范
+
+检查 场景单位 为 cm（避免缩放问题）
+
+引擎导入设置
+
+引擎 | 关键设置 | 推荐值 |
+
+UE5 | Import Mesh | ✅ 勾选 |
+
+Skeletal Mesh → Skeleton | 指定项目公共骨架 |
+
+Normal Import Method | Import Normals and Tangents |
+
+Material Import | Do Not Create Materials（手动绑定） |
+
+Unity | Scale Factor | 1.0（如 FBX 已为 cm） |
+
+Normals | Import |
+
+Animation Type | Humanoid（自动映射 Avatar） |
+
+文件命名与目录结构
+
+Characters/
+├── Hero01/
+│ ├── Mesh/
+│ │ ├── SK_Hero01_Body.fbx # 躯干骨骼Mesh
+│ │ ├── SK_Hero01_Head.fbx # 头部
+│ │ └── SK_Hero01_Hair.fbx # 头发
+│ ├── Textures/
+│ │ ├── T_Hero01_Body_BaseColor.tga
+│ │ ├── T_Hero01_Body_Normal.tga
+│ │ ├── T_Hero01_Body_ARM.tga
+│ │ └── ...
+│ ├── Animations/
+│ │ ├── A_Hero01_Idle.fbx
+│ │ ├── A_Hero01_Run.fbx
+│ │ └── ...
+│ └── BlendShapes/
+│ └── BS_Hero01_FacialSet.fbx
+
+⑦ Do's & Don'ts 红黑榜
+
+拓扑 & 建模
+
+✅ Do's
+
+面部使用完整环线布线（Eye Loop / Mouth Loop）
+
+关节处保持足够环线密度（膝≥3环，肩≥4环）
+
+四边面率保持 ≥ 98%
+
+使用 Checker Map 验证布线密度均匀性
+
+对称建模后再做非对称细节调整
+
+❌ Don'ts
+
+出现 N-gon（五边面及以上）
+
+关节弯曲处仅用 1~2 环（弯曲时必定塌陷）
+
+法线翻面（导致引擎中出现黑面）
+
+遗留重叠顶点和孤立边
+
+不检查就提交模型（至少跑一遍 MeshLint）
+
+PBR 贴图
+
+✅ Do's
+
+BaseColor 亮度控制在 30~240 sRGB 范围
+
+Metallic 只用 0 或 1，金属/非金属二值化
+
+ARM 三通道独立调节，不做整体亮度调整
+
+Normal Map 格式与目标引擎匹配（UE=DirectX / Unity=OpenGL）
+
+使用 Substance Painter 标准 PBR 验证球检查材质物理正确性
+
+❌ Don'ts
+
+BaseColor 中烘入光影信息（PBR 下由引擎计算光照）
+
+Metallic 用中间值（如 0.5）— 物理不正确
+
+Normal Map 存为 sRGB（必须是 Linear）
+
+对 ARM 贴图做模糊/锐化后处理
+
+Emissive 贴图亮度值超过 10.0（Bloom 会严重过曝）
+
+UV & 蒙皮 & 导出
+
+✅ Do's
+
+UV 接缝处设置硬边法线
+
+UV 岛间距 ≥ 2px（基于 2048 贴图）
+
+导出前清除历史/冻结变换/删除辅助节点
+
+蒙皮后跑全 ROM 动画测试集检查穿模
+
+FBX 版本统一为 2020.2
+
+❌ Don'ts
+
+UV 岛有翻转（winding 不一致）
+
+Lightmap UV (UV1) 存在重叠
+
+蒙皮超过平台限制的骨骼影响数
+
+存在未绑定骨骼的 Free Vertex
+
+Mesh 和动画打包在同一个 FBX 中导出
+
+⑧ 出图检查清单 Checklist
+
+提交前逐项勾选，全部通过后方可提交至引擎端。
+
+建模阶段
+
+01面数在 LOD0 预算内（≤50K tri），无 N-gon
+
+02四边面率 ≥ 98%，三角面仅在末端
+
+03面部环线完整（Eye Loop 6~8 边，Mouth Loop 8~10 边）
+
+04关节环线密度达标（膝≥3，肩≥4~5）
+
+05无重叠顶点、孤立边、翻面
+
+06模型 Transform 已冻结（Pos=0, Rot=0, Scale=1）
+
+UV 阶段
+
+07UV0 无翻转岛，winding 方向一致
+
+08UV 接缝处已设置硬边法线
+
+09UV 岛间距 ≥ 2px（2048 贴图基准）
+
+10Texel Density 符合区域标准（面部 2×，躯干 1×，鞋底 0.5×）
+
+11UV1 (Lightmap) 无重叠（如需烘焙光照）
+
+贴图阶段
+
+12BaseColor 亮度在 30~240 sRGB 范围，未烘入光影
+
+13Normal Map 格式正确（UE=DirectX / Unity=OpenGL）且为 Linear
+
+14ARM 通道分配正确：R=AO, G=Roughness, B=Metallic
+
+15Metallic 为二值化（0 或 1），无中间值
+
+16贴图尺寸为 2 的幂次（512/1024/2048），命名遵循规范
+
+绑定阶段
+
+17骨骼数量在平台预算内（PC≤150 / 移动端≤95）
+
+18骨骼命名遵循 L_/R_ PascalCase 规范
+
+19每顶点骨骼影响数在限制内（移动≤4 / PC≤8）
+
+20权重已归一化，幽灵权重（<0.01）已清除
+
+21全 ROM 动画测试无穿模
+
+导出阶段
+
+22已删除历史记录、辅助节点、约束
+
+23FBX 版本 = 2020.2，勾选 Smoothing Groups + Tangents
+
+24Scale Factor = 1.0 cm，坐标系与目标引擎一致
+
+25Mesh 与 Animation 分离导出
+
+26导入引擎后检查：材质球正确、法线无异常、骨骼映射通过
+
+
+概念设计
+三视图 + 色彩方案
+
+→
+
+高模雕刻
+ZBrush / Blender
+
+→
+
+拓扑重建
+TopoGun / 手动重拓扑
+
+→
+
+UV 展开
+RizomUV / UVLayout
+
+→
+
+PBR 贴图
+Substance Painter
+
+→
+
+骨骼绑定
+Maya / Blender Rigify
+
+→
+
+蒙皮权重
+刷权重 + 穿模测试
+
+→
+
+LOD 制作
+逐级减面
+
+→
+
+FBX 导出
+清理 + 检查清单
+
+→
+
+引擎导入
+材质绑定 + 验证
+
+❓ 常见问题 FAQ
+
+LOD0 面数已经到 48K，配饰再加就超标了怎么办？
+
+方案一：将配饰做成独立 Actor/Component，使用自己的 LOD 策略，不计入角色主体面数。方案二：在 LOD0 中将配饰面数控制在 2K 以内，把"精细配饰"只在角色展示界面（非战斗）使用。
+
+ARM 贴图中 Metallic 的边缘如何处理？
+
+金属和非金属交界处应保持 硬边过渡（1~2 像素宽度），不要做渐变混合。在现实物理中，一个表面要么是金属要么不是，没有"渐变金属"的概念。边缘 1px 的过渡是为了避免锯齿。
+
+Blender 导出的 FBX 在 UE5 中缩放不对？
+
+Blender 默认单位是米，UE5 默认单位是厘米。导出时在 FBX Export 设置中将 Scale 设为 100，或在 Blender Scene Properties 中将单位改为 Centimeters 再导出。
+
+Normal Map 导入后出现接缝黑线？
+
+99% 的原因是 UV 接缝处没有设置硬边法线（Split Normals）。解决方案：在 DCC 中选择所有 UV 接缝边 → 设置为 Hard Edge → 重新导出。剩下 1% 可能是 Tangent Space 计算方式不匹配（MikkTSpace vs 其他）。
+
+移动端真的只能 4 骨骼影响吗？
+
+取决于 GPU。中低端 Android 设备的 Vertex Shader 寄存器有限，4 bone influences 是安全上限。UE5 移动端默认就是 4，Unity 也推荐 4。高端移动设备（如 A17 Pro / Snapdragon 8 Gen3）支持 8，但为了覆盖率建议统一 4。
+
+什么情况下可以不做 LOD？
+
+仅当：① 角色只在固定距离出现（如 UI 展示界面）；② 同屏最多 1~2 个角色且有充足性能余量；③ 使用 UE5 Nanite 且为 Static Mesh（注意 Skeletal Mesh 不支持）。其他所有情况都必须制作至少 LOD0 + LOD1。
+
+🧊 【3D】角色拓扑与 PBR 贴图规范 · v1.0 · TA 组 · 角色建模组 · 最后更新 2026-04-10
+
+💬 如有疑问请在知识库 Issue 中提交，帮助我们持续完善 3D 管线规范！

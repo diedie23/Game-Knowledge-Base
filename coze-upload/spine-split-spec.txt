@@ -1,0 +1,450 @@
+# Spine 角色拆分工具 — 工业化规范文档
+
+Spine 角色拆分工具 — 工业化规范文档
+
+✂️ Spine 角色拆分工具 工业化规范 v1.0
+
+Spine Character Split Tool — Industrial Pipeline Specification
+
+
+📑 目录
+
+性能红线与规格限制 (Performance Budgets)
+
+资产命名与目录规范 (Naming Conventions)
+
+图文红黑榜 (Do's & Don'ts)
+
+标准作业流程 SOP (Workflow)
+
+常见问题排查 (FAQ)
+
+1️⃣ 性能红线与规格限制
+
+⛔ 红线原则：Spine Atlas 图集单张尺寸 不得超过 2048×2048。超过此限制将触发 QA 自动报错，需拆分为多张 Atlas 或缩减部件尺寸。目标移动端项目建议控制在 1024×1024 以内。
+
+1.1 Atlas 图集硬性指标
+
+指标 | 推荐值 | 硬性上限 | QA 校验级别 |
+
+单张 Atlas 尺寸 | 1024×1024 | 2048×2048 | ❌ Error（>2048）
+⚠️ Warn（>1024） |
+
+Atlas 尺寸对齐 | Power-of-Two | — | 工具自动 POT 对齐 |
+
+部件间 Padding | 2px | 4px | 防止线性采样时边缘渗透 |
+
+单部件最大尺寸 | 512×512 | 1024×1024 | 单个部件不应占满整张 Atlas |
+
+1.2 部件数量与模板规格
+
+角色类型 | 推荐部件数 | 预设模板 | 说明 |
+
+标准人形 | 7 | 头部/头发/躯干/左臂/右臂/左腿/右腿 | 含对称关系 |
+
+Q 版角色 | 5 | 头部/身体/左手/右手/腿脚 | 头身比大，头部占图 45%+ |
+
+四足动物 | 6 | 头部/身体/前腿左/前腿右/后腿/尾巴 | 横向构图 |
+
+机甲 | 8 | 头部/胸甲/左臂/右臂/腰部/左腿/右腿/背包 | 零件多，注意 Atlas 容量 |
+
+自定义 | ≤ 15 | 用户自建 | 超过 15 个部件需要考虑分页 Atlas |
+
+⚠️ 经验法则：部件总数 × 平均部件面积 ≤ Atlas 面积 × 0.7（考虑 Padding 和排布浪费）。例如 8 个平均 200×300px 的部件，总面积 480K px²，需要至少 1024×1024（POT）= 1048K px² 的 Atlas。
+
+1.3 拓补参数预算
+
+参数 | 推荐范围 | 默认值 | 影响 |
+
+边缘扩展 (expandPx) | 2 ~ 6px | 4px | 过大：部件重叠/Atlas溢出
+过小：运动时边缘露底 |
+
+拓补填充模式 | 内容感知（推荐） | aware | 4 种模式可选，内容感知效果最自然 |
+
+选区容差 (tolerance) | 16 ~ 48 | 32 | 智能选区 Flood-fill 的颜色差异门限 |
+
+最小面积阈值 | 50 ~ 200 px² | 100 px² | 自动识别时过滤噪点小碎片 |
+
+Alpha 阈值 | 5 ~ 20 | 10 | 低于此值的像素视为"透明/无内容" |
+
+1.4 QA 质检阈值速查
+
+✅完整性校验：所有部件必须标记选区，未标记 = Error100%
+
+🔴Atlas 尺寸：预估 POT 尺寸 > 2048 = Error> 2048px
+
+🟡Atlas 尺寸：预估 POT 尺寸 > 1024 = Warning> 1024px
+
+⚠️越界检测：部件 + expandPx 超出原图边界 = Warning边界溢出
+
+ℹ️重叠检测：部件 AABB 有交集 = Info（仅提示）AABB 碰撞
+
+⚠️对称一致性：左右对称部件面积差异 > 30% = Warning> 30%
+
+2️⃣ 资产命名与目录规范
+
+2.1 Spine 部件命名公式
+
+SP_[项目]_[角色ID]_[部件名].[ext]
+
+项目 = 项目代号（如 MoonRPG）
+角色ID = 唯一标识符（如 Hero01, NPC_Guard）
+部件名 = 中文或英文均可（工具模板生成时按中文，入引擎时按英文缩写）
+ext = png
+
+示例：
+SP_MoonRPG_Hero01_Head.png ← 头部部件 PNG
+SP_MoonRPG_Hero01_LeftArm.png ← 左臂部件 PNG
+SP_MoonRPG_Hero01_Atlas.png ← 合并图集
+SP_MoonRPG_Hero01_Output.zip ← 完整导出包
+
+2.2 工具内命名模板变量
+
+变量 | 含义 | 示例值 |
+
+{Project} | 项目代号 | MoonRPG |
+
+{CharID} | 角色 ID | Hero01 |
+
+{PartName} | 部件名称 | 头部 / Head |
+
+{Index} | 部件索引号 | 0, 1, 2... |
+
+{Date} | 日期 | 2026-04-02 |
+
+{W} | 原图宽度 | 2048 |
+
+{H} | 原图高度 | 3072 |
+
+推荐模板：SP_{Project}_{CharID}_{PartName}
+
+2.3 目录结构规范（Spine 项目 / 引擎集成通用）
+
+Content/
+└── Characters/
+└── Hero01/
+├── Spine/
+│ ├── SP_MoonRPG_Hero01_Head.png
+│ ├── SP_MoonRPG_Hero01_LeftArm.png
+│ ├── SP_MoonRPG_Hero01_RightArm.png
+│ ├── ...
+│ ├── SP_MoonRPG_Hero01_Atlas.png ← 合图（如需）
+│ ├── atlas_mapping.json ← Atlas UV 映射表
+│ └── spine_data.json ← Spine 骨骼数据
+└── Source/
+├── parts_config.json ← 工程恢复文件
+└── SP_MoonRPG_Hero01_Original.png ← 原始合体图（归档）
+
+✅ 规则：Spine/ 目录存放引擎运行时需要的资源（部件 PNG + 骨骼 JSON + Atlas）；Source/ 目录存放工程恢复文件和原始素材，不导入引擎。
+
+2.4 Spine 部件英文缩写词典（中英文对照）
+
+Head 头部 （含面部）
+
+Hair 头发 （含饰品）
+
+Body 躯干 （Torso）
+
+ArmL 左臂 （Left Arm）
+
+ArmR 右臂 （Right Arm）
+
+LegL 左腿 （Left Leg）
+
+LegR 右腿 （Right Leg）
+
+Acc 配饰 （Accessory）
+
+Chest 胸甲 （机甲用）
+
+Waist 腰部 （Belt/Waist）
+
+Pack 背包 （Backpack）
+
+Tail 尾巴 （四足动物用）
+
+2.5 Spine 骨骼命名建议
+
+骨骼层级：
+root
+├── hip ← 盆骨/重心骨骼
+│ ├── spine ← 脊椎
+│ │ ├── chest ← 胸腔
+│ │ │ ├── neck → head
+│ │ │ ├── arm_L → forearm_L → hand_L
+│ │ │ └── arm_R → forearm_R → hand_R
+│ │ └── hair ← 头发（IK 或物理）
+│ ├── leg_L → shin_L → foot_L
+│ └── leg_R → shin_R → foot_R
+
+命名规则：全小写 + 下划线 + L/R 后缀标识左右
+
+3️⃣ 图文红黑榜 (Do's & Don'ts)
+
+案例一：部件边缘黑边/白边（Fringing）
+
+❌ Don't — 裁剪时未扩展边缘
+
+直接按角色轮廓精确裁剪部件，expandPx = 0。部件 PNG 的边缘像素就是角色的抗锯齿半透明像素。
+
+引擎后果：
+
+Spine 运行时 线性采样 时，边缘像素与透明区域（RGBA=0,0,0,0）插值，产生 黑边（Dark Fringing）
+
+如果透明区域为白色（RGBA=255,255,255,0），则产生 白边（Light Halo）
+
+角色运动时边缘 闪烁，在浅色/深色背景上交替出现黑/白线
+
+缩放动画时问题 更加明显（缩小时半透明像素占比增大）
+
+📷 配图建议：截取一个部件 PNG 放大到 800%，标注边缘 1px 处出现的黑色/深色缝隙；另截取引擎运行时浅色背景下的角色关节处黑线
+
+✅ Do — 使用拓补扩展 + 内容感知填充
+
+在工具中设置 expandPx = 4px，选择 "内容感知" 填充模式：
+
+裁剪区域向外扩展 4px，扩展区域由 5 采样点平均 + 距离衰减 自动填充颜色
+
+扩展区域的 Alpha 从边缘向外 渐变衰减至 0，形成自然过渡
+
+线性采样时插值到的是 相近颜色 而非黑色/白色，消除 Fringing
+
+套索选区使用 Polygon Offset 算法沿法线方向均匀扩展，避免尖角异常
+
+📷 配图建议：同一部件的拓补预览截图（工具右侧面板），绿色框 = 原始区域、蓝色区域 = 拓补扩展，可见扩展区颜色与原始区域平滑过渡
+
+案例二：Atlas 排布超尺寸导致运行时崩溃
+
+❌ Don't — 无节制添加部件 + 高扩展值
+
+给一个机甲角色添加了 12 个部件，每个都用了 expandPx = 15px，原画尺寸 3000×4000px。
+
+引擎后果：
+
+Atlas 排布后 POT 尺寸被撑到 4096×4096（= 64MB RGBA VRAM）
+
+中低端移动设备 纹理上传超时，甚至 GPU OOM 崩溃
+
+Spine 运行时首帧 卡顿 200ms+（纹理解码）
+
+即使 PC 端不崩溃，也会占用过多显存，影响同屏其他角色
+
+📷 配图建议：工具 QA 面板截图，显示 "🔴 图集尺寸预警：预估 Atlas 尺寸 4096×4096 超过 2048×2048"，并标注 expandPx=15 的设置
+
+✅ Do — 控制预算 + 导出前 QA
+
+遵守部件数量建议（人形 ≤ 7，机甲 ≤ 8，自定义 ≤ 15）
+
+expandPx 控制在 2~6px，推荐默认值 4px
+
+原画尺寸如超过 2048px 的任一边，先 等比缩放 到 2048 以内再导入工具
+
+导出前点击"🔍 质检 QA"，确认 Atlas 预估尺寸在预算内
+
+QA 通过后再执行导出，工具会在导出前自动执行一次 QA，如有 Error 会弹出确认
+
+📷 配图建议：QA 面板截图显示 "✅ 全部通过 · 图集尺寸正常：预估 Atlas 1024×1024"
+
+4️⃣ 标准作业流程 (SOP)
+
+4.1 完整流程总览
+
+A. 原画 PSD角色设计稿
+
+→
+
+B. PSD 整理图层分组/Alpha清理
+
+→
+
+C. PSD 直读ag-psd 自动提取图层
+
+→
+
+D. 选择模板预设/自定义/三点对齐
+
+→
+
+E. 标记 & 微调框选/套索/智能选区
+
+→
+
+F. 自动拆分拓补扩展+内容感知
+
+→
+
+G. QA 质检5 项自动校验
+
+→
+
+H. 导出 ZIPPNG+Atlas+JSON
+
+→
+
+I. Spine 导入骨骼绑定+动画
+
+4.2 各节点交付标准
+
+节点 | 负责人 | 交付物 | 验收标准 |
+
+A → B
+PSD 整理 |
+角色原画 |
+分层 PSD |
+① 每个需拆分的部件在 独立图层或图层组
+② 图层命名清晰（"头部"/"左臂"等，勿用"图层1"）
+③ 无隐藏图层残留
+④ 合体效果与最终期望一致 |
+
+B → C
+PSD 直读 |
+TA / 美术 |
+工具自动加载 |
+① ag-psd 正确解析所有可见图层
+② 图层 → 部件映射正确（一图层 = 一部件）
+③ BBox 提取经过 Alpha 感知收缩 |
+
+C → D
+模板选择 |
+TA |
+模板 + 锚点数据 |
+① 选用与角色类型匹配的预设模板
+② 三点锚点对齐后部件框 基本覆盖 对应身体区域
+③ 特殊角色需自建模板并保存 JSON |
+
+D → E
+标记微调 |
+美术 / TA |
+所有部件已标记 |
+① 每个部件都有选区（QA 完整性 100%）
+② 对称部件已执行镜像操作
+③ Alpha 感知收缩已启用（推荐）
+④ 选区紧贴角色轮廓，无大量空白 |
+
+E → F
+自动拆分 |
+TA |
+拆分后的部件画布 |
+① expandPx ∈ [2, 6]
+② 填充模式 = 内容感知
+③ 右侧拓补预览显示扩展区颜色过渡正常 |
+
+F → G
+QA 质检 |
+TA |
+QA 报告 |
+① 0 个 Error
+② Warning 已逐一评估并确认可接受
+③ Atlas 预估尺寸 ≤ 2048 |
+
+G → H
+导出 |
+TA / 美术 |
+ZIP 包 |
+① 包含所有部件 PNG + Atlas + spine_data.json + parts_config.json
+② 命名符合 SP_{Project}_{CharID}_{PartName}.png
+③ config.json 中含完整工程恢复数据 |
+
+H → I
+Spine 导入 |
+动画师 |
+Spine 项目文件 |
+① spine_data.json 中骨骼/插槽/Skin 映射正确
+② Atlas UV 映射无错位
+③ 运行时无黑边/白边/缝隙
+④ 关键帧动画中部件衔接自然 |
+
+4.3 工程恢复 & PSD 直读双路径
+
+📥 路径 A：工程恢复（JSON）
+
+1. 导入 parts_config.json
+
+2. 自动加载 Base64 原图（<5MB 内嵌）或提示上传
+
+3. 恢复部件列表 + 选区坐标 + 套索数据
+
+4. 恢复拓补参数 + 命名模板
+
+5. 若所有部件已标记 → 自动执行拆分
+
+🎨 路径 B：PSD 直读
+
+1. ag-psd 解析 PSD 文件
+
+2. 提取合成图（Composite）作为底图
+
+3. 遍历可见顶层图层 → 自动映射为部件
+
+4. 每图层的 BBox + Alpha 感知收缩 = 选区
+
+5. 所有图层映射完毕 → 可直接拆分导出
+
+5️⃣ 常见问题排查 (FAQ)
+
+Q1 拆分后部件边缘出现黑边/白边，引擎里更明显？
+
+根因：这是 Spine 运行时 线性纹理采样（Bilinear Filtering）+ 预乘 Alpha（Premultiplied Alpha）共同作用的结果。当边缘像素的 Alpha=0 但 RGB 不是 0 时（直通 Alpha 模式），或 Alpha=0 且 RGB=0 时，插值结果分别产生白边或黑边。
+
+完整解决方案：
+
+工具端：确保 expandPx ≥ 4 + 填充模式 = 内容感知。扩展区域的 RGB 与角色边缘颜色相近，Alpha 渐变归零
+
+导出时：检查 PNG 透明区域的 RGB 值。推荐做法是将透明区域的 RGB 设为 最近不透明像素的颜色（内容感知模式自动完成）
+
+Spine 端：确认图集打包时 premultiplyAlpha = true（Spine 默认）。如果手动制作 Atlas，需确保 Blend 模式与 PMA 一致
+
+引擎端：
+
+UE5：Spine Widget 的 BlendMode 设为 Translucent + PMA
+
+Unity：SpineAtlasAsset → PMA 勾选；Shader 使用 One, OneMinusSrcAlpha
+
+Q2 导入引擎后 Atlas 上某些部件位置偏移/错位？
+
+根因：工具导出的 spine_data.json 中附件坐标使用的是 原图坐标系（左上角为原点，Y 轴向下），而 Spine 编辑器使用 骨骼坐标系（Y 轴向上）。工具已自动做了 Y 轴翻转：y = imgHeight - (originY + originH/2)。
+
+排查步骤：
+
+1. 打开 spine_data.json，检查每个 attachment 的 x/y/width/height
+2. 确认 skeleton.height 与原图高度一致
+3. 在 Spine 编辑器中创建新项目：
+a. 导入 Atlas（如使用合图）或逐个导入部件 PNG
+b. 使用 JSON 导入模式加载骨骼数据
+c. 如有偏移，手动调整 root bone 位置
+4. 如使用独立 PNG 模式（非 Atlas），需在 Spine 中
+手动设置每个区域附件的位置和尺寸
+
+提示：atlas_mapping.json 包含每个部件在 Atlas 中的精确 UV 坐标，可用于自定义加载器。
+
+Q3 引擎中 Alpha 预乘（PMA）和直通（Straight）怎么选？会影响部件渲染吗？
+
+核心概念：
+
+直通 Alpha（Straight）：RGB 和 Alpha 独立存储。RGBA(255, 0, 0, 128) 表示"50% 透明的纯红"
+
+预乘 Alpha（PMA）：RGB 已经乘以 Alpha。同样效果变为 RGBA(128, 0, 0, 128)
+
+Spine 推荐：使用 预乘 Alpha（PMA），原因：
+
+PMA 在 线性采样 时不会产生错误的颜色插值（直通模式在半透明区域插值会引入黑色/白色）
+
+Spine 运行时默认使用 PMA 混合模式：src=GL_ONE, dst=GL_ONE_MINUS_SRC_ALPHA
+
+如果部件 PNG 是直通 Alpha（工具默认导出格式），需要在 Atlas 打包时 勾选 premultiplyAlpha
+
+引擎配置：
+
+引擎 | 设置位置 | 推荐值 |
+
+UE5 (spine-ue5) | SpineWidget → BlendMode | Translucent + PMA |
+
+Unity (spine-unity) | SkeletonRenderer → Advanced → PMA | ☑ Premultiply Alpha |
+
+Cocos Creator | sp.Skeleton → premultipliedAlpha | true |
+
+⚠️ 常见坑：如果引擎端开了 PMA 但 Atlas 没有预乘，角色会整体偏暗。反之如果 Atlas 已预乘但引擎用 Straight 混合，角色会变亮且边缘异常。两端必须一致。
+
+✂️ Spine 角色拆分工具 — 工业化规范文档 v1.0
+
+本文档适配工具版本 v3.0 ~ v3.1 · 由 TA 组维护 · 最后更新 2026-04-02
