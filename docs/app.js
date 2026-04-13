@@ -4030,21 +4030,50 @@ var AI_BOT_CONFIG = {
   themeAccent: '#6c8cff'                                         // 主题强调色（与网站 --accent 一致）
 };
 
-/* ── Coze API 默认配置（自动写入 localStorage，用户无需手动配置） ── */
+/* ── Coze API 默认配置 ── */
 var COZE_DEFAULT_CONFIG = {
   botId: '7628276521161610403',
   token: 'pat_Vc4OB0Yu7rMZLZR9bXlbZmqQ4QE9YBISMGemPzP23DHExjHOmdtKmUpv5PpwpZeY'
 };
-// 如果 localStorage 中没有配置，自动写入默认值
-if(!localStorage.getItem('coze_bot_id') && COZE_DEFAULT_CONFIG.botId){
-  localStorage.setItem('coze_bot_id', COZE_DEFAULT_CONFIG.botId);
-}
-if(!localStorage.getItem('coze_token') && COZE_DEFAULT_CONFIG.token){
-  localStorage.setItem('coze_token', COZE_DEFAULT_CONFIG.token);
-}
-if(!localStorage.getItem('coze_user_id')){
-  localStorage.setItem('coze_user_id', 'u_'+Date.now());
-}
+
+// ── 初始化 Coze Chat SDK（官方方案，无 CORS 问题） ──
+(function initCozeChatSDK(){
+  var botId = COZE_DEFAULT_CONFIG.botId;
+  var token = COZE_DEFAULT_CONFIG.token;
+  if(!botId || !token){
+    console.log('[Coze] 未配置 Bot ID / Token，使用本地搜索模式');
+    return;
+  }
+  // 检查 SDK 是否加载
+  if(typeof CozeWebSDK === 'undefined'){
+    console.warn('[Coze] Chat SDK 未加载，降级到本地搜索模式');
+    return;
+  }
+  try{
+    // 隐藏自定义聊天窗口的悬浮按钮（用 SDK 自带的悬浮球代替）
+    var customWrapper = document.getElementById('aiChatWrapper');
+    if(customWrapper) customWrapper.style.display = 'none';
+
+    // 初始化 Coze Chat SDK 悬浮窗
+    var cozeClient = new CozeWebSDK.WebChatClient({
+      config: {
+        botId: botId
+      },
+      auth: {
+        type: 'token',
+        token: token,
+        onRefreshToken: function(){ return token; }
+      }
+    });
+    console.log('[Coze] Chat SDK 初始化成功！');
+    window._cozeClient = cozeClient;
+  }catch(e){
+    console.error('[Coze] Chat SDK 初始化失败：', e);
+    // 恢复自定义窗口
+    var wrapper = document.getElementById('aiChatWrapper');
+    if(wrapper) wrapper.style.display = '';
+  }
+})();
 
 function toggleAiChat(){
   var dialog=document.getElementById('aiChatDialog');
@@ -4175,17 +4204,20 @@ function aiCozeAnswer(query, botId, token){
     }else if(data && data.code && data.code!==0){
       aiRemoveTyping();
       sendBtn.disabled=false;
-      aiAppendMessage('bot', '⚠️ API 错误 ('+data.code+'): '+(data.msg||'未知错误')+'\n\n请检查 Bot ID 和 Token 是否正确。');
+      console.error('[Coze API Error]', JSON.stringify(data));
+      aiAppendMessage('bot', '⚠️ API 错误 ('+data.code+'): '+(data.msg||'未知错误')+'\n\n**调试信息：**\n- Bot ID: `'+botId+'`\n- Token: `'+token.substring(0,10)+'...`\n- 错误详情: `'+JSON.stringify(data)+'`\n\n请检查 Bot ID 和 Token 是否正确。');
     }else{
       aiRemoveTyping();
       sendBtn.disabled=false;
-      aiAppendMessage('bot', '⚠️ 未收到有效响应，请稍后重试。');
+      console.error('[Coze API Unknown Response]', JSON.stringify(data));
+      aiAppendMessage('bot', '⚠️ 未收到有效响应。\n\n**调试信息：** `'+JSON.stringify(data)+'`');
     }
   }).catch(function(err){
     aiRemoveTyping();
     sendBtn.disabled=false;
+    console.error('[Coze API Catch Error]', err);
     // 降级到本地搜索
-    aiAppendMessage('bot', '⚠️ Coze API 连接失败，已切换到本地知识库搜索模式。\n\n*错误: '+err.message+'*');
+    aiAppendMessage('bot', '⚠️ Coze API 连接失败，已切换到本地知识库搜索模式。\n\n*错误类型: '+err.name+'*\n*错误信息: '+err.message+'*');
     aiLocalAnswer(query);
   });
 }
