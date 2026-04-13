@@ -1778,7 +1778,7 @@ var CARD_GRID_MAP = {
   'grid-quality-retro':      { module:'quality', ids:['postmortem-template','project-pitfall-log'] },
   'grid-quality-metrics':    { module:'quality', ids:['art-efficiency-system'] },
   'grid-quality-security':   { module:'quality', ids:['asset-security-handover'] },
-  'grid-quality-team':       { module:'quality', ids:['onboarding-guide','permission-nav','personal-growth-roadmap'] },
+  'grid-quality-team':       { module:'quality', ids:['onboarding-guide','permission-nav'] },
   // 板块七：🔥 真实案例库
   'grid-casestudy-cases':    { module:'casestudy', ids:['case-delay','case-cross-dept','case-outsource-accident','case-requirement-change'] }
 };

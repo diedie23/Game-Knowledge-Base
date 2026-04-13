@@ -966,7 +966,7 @@
     },
     {
       "id": "personal-growth-roadmap",
-      "module": "quality",
+      "module": "project",
       "craft": "管理",
       "type": "md",
       "title": "APM 个人成长路线图",
