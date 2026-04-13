@@ -905,8 +905,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   .kt-panel div[style*="grid-template-columns:repeat(4"]{grid-template-columns:repeat(2,1fr)!important}
 }
 
-/* ═══ AI 智能问答助手 (Coze Web SDK) ═══ */
-
 /* ═══ 可视化管理面板 (Visual CMS) ═══ */
 .sidebar.admin-mode{border-right-color:rgba(108,140,255,.4);box-shadow:2px 0 16px rgba(108,140,255,.1)}
 .sidebar.admin-mode .t1-h:hover,.sidebar.admin-mode .t2-h:hover,.sidebar.admin-mode .t3-h:hover,.sidebar.admin-mode .leaf:hover{background:rgba(108,140,255,.06)}
@@ -938,26 +936,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .sidebar.admin-mode [draggable="true"]:active{cursor:grabbing}
 .sidebar.admin-mode .leaf[draggable="true"]:hover{background:rgba(108,140,255,.06);border-left:2px solid rgba(108,140,255,.3)}
 
-.ai-chat-wrapper{position:fixed;bottom:24px;right:80px;z-index:200}
-.ai-chat-fab{width:56px;height:56px;border-radius:50%;border:2px solid rgba(108,140,255,.4);background:linear-gradient(135deg,#1c2a44,#2a3a6e);color:#fff;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(108,140,255,.3),0 2px 8px rgba(0,0,0,.4);transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:visible}
-.ai-chat-fab:hover{transform:scale(1.1);box-shadow:0 8px 32px rgba(108,140,255,.45),0 4px 12px rgba(0,0,0,.5);border-color:var(--accent)}
-.ai-fab-icon{display:flex;align-items:center;justify-content:center;transition:transform .3s}
-.ai-chat-fab.active .ai-fab-icon{transform:rotate(180deg)}
-.ai-fab-pulse{position:absolute;top:-3px;right:-3px;width:14px;height:14px;background:#4ade80;border-radius:50%;border:2px solid #0f1117;animation:aiFabPulse 2s ease-in-out infinite}
+/* 悬浮窗容器 — 支持拖拽 */
+.ai-chat-wrapper{position:fixed;bottom:24px;right:80px;z-index:200;touch-action:none}
+.ai-chat-wrapper.ai-dragging{transition:none!important}
+.ai-chat-wrapper.ai-dragging .ai-chat-fab{box-shadow:0 12px 40px rgba(108,140,255,.5),0 4px 16px rgba(0,0,0,.6);transform:scale(1.08)}
+
+/* 悬浮按钮 — 自定义头像 */
+.ai-chat-fab{width:56px;height:56px;border-radius:50%;border:2px solid rgba(108,140,255,.4);background:linear-gradient(135deg,#141824,#1e2640);color:#fff;font-size:24px;cursor:grab;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(108,140,255,.3),0 2px 8px rgba(0,0,0,.4);transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:visible;padding:0}
+.ai-chat-fab:active{cursor:grabbing}
+.ai-chat-fab:hover{box-shadow:0 8px 32px rgba(108,140,255,.45),0 4px 12px rgba(0,0,0,.5);border-color:var(--accent)}
+.ai-fab-avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;pointer-events:none;transition:opacity .3s}
+.ai-fab-close{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;background:linear-gradient(135deg,#141824,#1e2640);border-radius:50%;transition:opacity .3s}
+.ai-fab-pulse{position:absolute;top:-3px;right:-3px;width:14px;height:14px;background:#4ade80;border-radius:50%;border:2px solid #0f1117;animation:aiFabPulse 2s ease-in-out infinite;pointer-events:none}
 @keyframes aiFabPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.2)}}
 
-/* 对话框 */
-.ai-chat-dialog{position:absolute;bottom:68px;right:0;width:400px;max-height:600px;background:var(--sidebar-bg);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 16px 48px rgba(0,0,0,.6),0 4px 16px rgba(108,140,255,.1);display:flex;flex-direction:column;overflow:hidden;visibility:hidden;opacity:0;transform:translateY(16px) scale(.95);transition:opacity .25s cubic-bezier(.4,0,.2,1),transform .25s cubic-bezier(.4,0,.2,1),visibility .25s;pointer-events:none}
+/* 对话框 — 暗黑工业风强化 */
+.ai-chat-dialog{position:absolute;bottom:68px;right:0;width:400px;max-height:600px;background:#13161f;border:1px solid rgba(108,140,255,.15);border-radius:var(--radius-lg);box-shadow:0 16px 48px rgba(0,0,0,.65),0 4px 16px rgba(108,140,255,.12),inset 0 1px 0 rgba(255,255,255,.03);display:flex;flex-direction:column;overflow:hidden;visibility:hidden;opacity:0;transform:translateY(16px) scale(.95);transition:opacity .25s cubic-bezier(.4,0,.2,1),transform .25s cubic-bezier(.4,0,.2,1),visibility .25s;pointer-events:none}
 .ai-chat-dialog.show{visibility:visible;opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
 
-/* 对话框头部 */
-.ai-chat-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:linear-gradient(135deg,rgba(108,140,255,.08),rgba(167,139,250,.06));border-bottom:1px solid var(--border)}
-.ai-chat-header-left{display:flex;align-items:center;gap:12px}
-.ai-chat-logo{font-size:28px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;background:rgba(108,140,255,.1);border-radius:12px}
+/* 对话框头部 — 拖拽区域 */
+.ai-chat-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:linear-gradient(135deg,rgba(108,140,255,.1),rgba(167,139,250,.06));border-bottom:1px solid rgba(108,140,255,.12);cursor:grab;user-select:none}
+.ai-chat-header:active{cursor:grabbing}
+.ai-chat-header-left{display:flex;align-items:center;gap:12px;pointer-events:none}
+.ai-chat-header-right{display:flex;align-items:center;gap:6px}
+.ai-chat-logo-img{width:42px;height:42px;border-radius:12px;object-fit:cover;background:rgba(108,140,255,.1);border:1px solid rgba(108,140,255,.15)}
 .ai-chat-title{font-size:16px;color:var(--heading);font-weight:700}
 .ai-chat-subtitle{font-size:12px;color:var(--dim);margin-top:2px}
-.ai-chat-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--dim);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.ai-drag-hint{font-size:14px;color:var(--dim-light);cursor:grab;padding:4px 2px;opacity:.5;transition:opacity .2s;letter-spacing:2px;user-select:none}
+.ai-drag-hint:hover{opacity:.9;color:var(--accent)}
+.ai-chat-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--dim);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;pointer-events:auto}
 .ai-chat-close:hover{border-color:#f87171;color:#f87171;background:rgba(248,113,113,.08)}
+
+/* Bot 头像 (消息内) */
+.ai-avatar-img{width:32px;height:32px;border-radius:10px;object-fit:cover}
 
 /* 消息区域 */
 .ai-chat-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;max-height:380px;min-height:200px}
@@ -1022,4 +1033,5 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   .ai-chat-wrapper{bottom:12px;right:12px}
   .ai-chat-fab{width:48px;height:48px;font-size:20px}
   .ai-chat-dialog{width:calc(100vw - 24px);max-height:70vh;right:-12px;bottom:56px}
+  .ai-drag-hint{display:none}
 }

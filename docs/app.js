@@ -4022,18 +4022,27 @@ async function adminPublishAll(){
 }
 
 // ═══ AI 智能问答助手 (Coze API) ═══
+
+/* ── 可自定义配置区（修改此处即可换头像/名称/主题色） ── */
+var AI_BOT_CONFIG = {
+  name: 'APM 智能助理',                                         // Bot 名称
+  avatarUrl: 'https://via.placeholder.com/56x56/1c2a44/6c8cff?text=AI', // ← 替换为你的头像 URL
+  themeAccent: '#6c8cff'                                         // 主题强调色（与网站 --accent 一致）
+};
+
 function toggleAiChat(){
   var dialog=document.getElementById('aiChatDialog');
   var fab=document.getElementById('aiChatFab');
-  var icon=document.getElementById('aiFabIcon');
+  var avatarEl=document.getElementById('aiFabAvatar');
+  var closeEl=document.getElementById('aiFabClose');
   if(dialog.classList.contains('show')){
     dialog.classList.remove('show');
-    fab.classList.remove('active');
-    icon.textContent='🤖';
+    if(avatarEl) avatarEl.style.display='';
+    if(closeEl) closeEl.style.display='none';
   }else{
     dialog.classList.add('show');
-    fab.classList.add('active');
-    icon.textContent='✕';
+    if(avatarEl) avatarEl.style.display='none';
+    if(closeEl) closeEl.style.display='flex';
     // 加载已保存的配置
     var savedBotId=localStorage.getItem('coze_bot_id');
     var savedToken=localStorage.getItem('coze_token');
@@ -4163,7 +4172,9 @@ function aiAppendMessage(role, text, relatedDocs){
   var div=document.createElement('div');
   div.className='ai-msg ai-msg-'+role;
 
-  var avatar=role==='user'?'👤':'🤖';
+  var avatarHtml=role==='user'
+    ?'<div class="ai-msg-avatar">👤</div>'
+    :'<div class="ai-msg-avatar"><img class="ai-avatar-img" src="'+AI_BOT_CONFIG.avatarUrl+'" alt="Bot" draggable="false"></div>';
   var htmlContent=aiFormatMessage(text);
 
   // 添加相关文档链接
@@ -4180,7 +4191,7 @@ function aiAppendMessage(role, text, relatedDocs){
     docsHtml+='</div>';
   }
 
-  div.innerHTML='<div class="ai-msg-avatar">'+avatar+'</div>'
+  div.innerHTML=avatarHtml
     +'<div class="ai-msg-content">'+htmlContent+docsHtml+'</div>';
   container.appendChild(div);
 
@@ -4206,7 +4217,7 @@ function aiShowTyping(){
   var div=document.createElement('div');
   div.className='ai-msg ai-msg-bot';
   div.id='aiTypingIndicator';
-  div.innerHTML='<div class="ai-msg-avatar">🤖</div><div class="ai-msg-content"><div class="ai-typing"><div class="ai-typing-dot"></div><div class="ai-typing-dot"></div><div class="ai-typing-dot"></div></div></div>';
+  div.innerHTML='<div class="ai-msg-avatar"><img class="ai-avatar-img" src="'+AI_BOT_CONFIG.avatarUrl+'" alt="Bot" draggable="false"></div><div class="ai-msg-content"><div class="ai-typing"><div class="ai-typing-dot"></div><div class="ai-typing-dot"></div><div class="ai-typing-dot"></div></div></div>';
   container.appendChild(div);
   var body=document.getElementById('aiChatBody');
   body.scrollTop=body.scrollHeight;
@@ -4230,8 +4241,149 @@ function aiSaveConfig(){
   if(token) localStorage.setItem('coze_token', token);
   if(!localStorage.getItem('coze_user_id')) localStorage.setItem('coze_user_id', 'u_'+Date.now());
   aiCloseConfig();
-  aiAppendMessage('bot', '✅ Coze Bot 配置已保存！现在你可以享受 AI 智能问答了。\n\n试试问我一个问题吧 😊');
+  aiAppendMessage('bot', '✅ Coze Bot 配置已保存！现在 **'+AI_BOT_CONFIG.name+'** 可以为你智能解答了。\n\n试试问我一个问题吧 😊');
 }
+
+// ═══ AI 助手拖拽系统（Drag & Drop）═══
+(function(){
+  var DRAG_THRESHOLD = 5; // 像素，超过此距离才视为拖拽（区分点击和拖拽）
+  var EDGE_MARGIN = 8;    // 距屏幕边缘最小距离
+  var STORAGE_KEY = 'ai_fab_position';
+
+  function initAiDrag(){
+    var wrapper = document.getElementById('aiChatWrapper');
+    var fab = document.getElementById('aiChatFab');
+    var header = document.getElementById('aiChatHeader');
+    if(!wrapper || !fab) return;
+
+    var isDragging = false;
+    var startX, startY, startLeft, startTop;
+    var hasMoved = false; // 是否真的发生了拖动
+
+    // ── 恢复保存的位置 ──
+    try {
+      var saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if(saved && typeof saved.left === 'number' && typeof saved.top === 'number'){
+        // 确保位置在可视区域内
+        var vw = window.innerWidth, vh = window.innerHeight;
+        var safeLeft = Math.max(EDGE_MARGIN, Math.min(saved.left, vw - 60));
+        var safeTop = Math.max(EDGE_MARGIN, Math.min(saved.top, vh - 60));
+        wrapper.style.left = safeLeft + 'px';
+        wrapper.style.top = safeTop + 'px';
+        wrapper.style.right = 'auto';
+        wrapper.style.bottom = 'auto';
+      }
+    } catch(e){}
+
+    // ── 拖拽开始（鼠标）──
+    function onPointerDown(e){
+      // 忽略关闭按钮/输入框等的点击
+      if(e.target.closest('.ai-chat-close') || e.target.closest('.ai-chat-send') || e.target.closest('input') || e.target.closest('textarea') || e.target.closest('button:not(.ai-chat-fab)')) return;
+      e.preventDefault();
+      isDragging = true;
+      hasMoved = false;
+
+      var rect = wrapper.getBoundingClientRect();
+      startX = e.clientX || (e.touches && e.touches[0].clientX);
+      startY = e.clientY || (e.touches && e.touches[0].clientY);
+      startLeft = rect.left;
+      startTop = rect.top;
+
+      wrapper.classList.add('ai-dragging');
+      document.addEventListener('mousemove', onPointerMove);
+      document.addEventListener('mouseup', onPointerUp);
+      document.addEventListener('touchmove', onPointerMove, {passive:false});
+      document.addEventListener('touchend', onPointerUp);
+    }
+
+    // ── 拖拽中 ──
+    function onPointerMove(e){
+      if(!isDragging) return;
+      e.preventDefault();
+
+      var cx = e.clientX || (e.touches && e.touches[0].clientX);
+      var cy = e.clientY || (e.touches && e.touches[0].clientY);
+      var dx = cx - startX;
+      var dy = cy - startY;
+
+      // 超过阈值才视为拖拽
+      if(!hasMoved && Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+      hasMoved = true;
+
+      var vw = window.innerWidth, vh = window.innerHeight;
+      var wrapW = wrapper.offsetWidth || 56;
+      var wrapH = wrapper.offsetHeight || 56;
+
+      // 计算新位置 + 边界限制
+      var newLeft = Math.max(EDGE_MARGIN, Math.min(startLeft + dx, vw - wrapW - EDGE_MARGIN));
+      var newTop = Math.max(EDGE_MARGIN, Math.min(startTop + dy, vh - wrapH - EDGE_MARGIN));
+
+      wrapper.style.left = newLeft + 'px';
+      wrapper.style.top = newTop + 'px';
+      wrapper.style.right = 'auto';
+      wrapper.style.bottom = 'auto';
+    }
+
+    // ── 拖拽结束 ──
+    function onPointerUp(e){
+      if(!isDragging) return;
+      isDragging = false;
+      wrapper.classList.remove('ai-dragging');
+      document.removeEventListener('mousemove', onPointerMove);
+      document.removeEventListener('mouseup', onPointerUp);
+      document.removeEventListener('touchmove', onPointerMove);
+      document.removeEventListener('touchend', onPointerUp);
+
+      // 保存位置
+      if(hasMoved){
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            left: parseInt(wrapper.style.left),
+            top: parseInt(wrapper.style.top)
+          }));
+        } catch(e){}
+      }
+
+      // 如果没有真正移动，则视为点击 → 切换聊天窗口
+      if(!hasMoved){
+        toggleAiChat();
+      }
+    }
+
+    // ── 绑定事件：悬浮按钮 ──
+    fab.addEventListener('mousedown', onPointerDown);
+    fab.addEventListener('touchstart', onPointerDown, {passive:false});
+
+    // ── 绑定事件：对话框头部也可拖拽 ──
+    if(header){
+      header.addEventListener('mousedown', onPointerDown);
+      header.addEventListener('touchstart', onPointerDown, {passive:false});
+    }
+
+    // ── 窗口 resize 边界修正 ──
+    window.addEventListener('resize', function(){
+      if(wrapper.style.left === 'auto') return;
+      var vw = window.innerWidth, vh = window.innerHeight;
+      var curLeft = parseInt(wrapper.style.left) || 0;
+      var curTop = parseInt(wrapper.style.top) || 0;
+      var wrapW = wrapper.offsetWidth || 56;
+      var wrapH = wrapper.offsetHeight || 56;
+      var clampedLeft = Math.max(EDGE_MARGIN, Math.min(curLeft, vw - wrapW - EDGE_MARGIN));
+      var clampedTop = Math.max(EDGE_MARGIN, Math.min(curTop, vh - wrapH - EDGE_MARGIN));
+      if(clampedLeft !== curLeft || clampedTop !== curTop){
+        wrapper.style.left = clampedLeft + 'px';
+        wrapper.style.top = clampedTop + 'px';
+      }
+    });
+  }
+
+  // DOM Ready 后初始化
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', initAiDrag);
+  } else {
+    initAiDrag();
+  }
+})();
 
 // ═══ Init ═══
 document.addEventListener('DOMContentLoaded', function(){

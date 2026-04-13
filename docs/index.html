@@ -920,29 +920,33 @@ sequenceDiagram
 
 <!-- ═══ AI 智能问答助手（Coze Web SDK）═══ -->
 <div class="ai-chat-wrapper" id="aiChatWrapper">
-  <!-- 悬浮按钮 -->
-  <button class="ai-chat-fab" id="aiChatFab" onclick="toggleAiChat()" title="AI 智能问答助手">
-    <span class="ai-fab-icon" id="aiFabIcon">🤖</span>
+  <!-- 悬浮按钮（可拖拽） -->
+  <button class="ai-chat-fab" id="aiChatFab" title="AI 智能问答助手">
+    <img class="ai-fab-avatar" id="aiFabAvatar" src="https://via.placeholder.com/56x56/1c2a44/6c8cff?text=AI" alt="AI" draggable="false">
+    <span class="ai-fab-close" id="aiFabClose" style="display:none">✕</span>
     <span class="ai-fab-pulse"></span>
   </button>
   <!-- 对话框容器 -->
   <div class="ai-chat-dialog" id="aiChatDialog">
-    <div class="ai-chat-header">
+    <div class="ai-chat-header" id="aiChatHeader">
       <div class="ai-chat-header-left">
-        <span class="ai-chat-logo">🤖</span>
+        <img class="ai-chat-logo-img" src="https://via.placeholder.com/42x42/1c2a44/6c8cff?text=AI" alt="Bot Avatar" draggable="false">
         <div>
-          <div class="ai-chat-title">APM 智能助手</div>
+          <div class="ai-chat-title">APM 智能助理</div>
           <div class="ai-chat-subtitle">基于知识库内容回答你的问题</div>
         </div>
       </div>
-      <button class="ai-chat-close" onclick="toggleAiChat()">✕</button>
+      <div class="ai-chat-header-right">
+        <span class="ai-drag-hint" title="拖拽移动">⋮⋮</span>
+        <button class="ai-chat-close" onclick="toggleAiChat()">✕</button>
+      </div>
     </div>
     <div class="ai-chat-body" id="aiChatBody">
       <!-- 欢迎消息 -->
       <div class="ai-msg ai-msg-bot">
-        <div class="ai-msg-avatar">🤖</div>
+        <div class="ai-msg-avatar"><img class="ai-avatar-img" src="https://via.placeholder.com/32x32/1c2a44/6c8cff?text=AI" alt="Bot" draggable="false"></div>
         <div class="ai-msg-content">
-          <p>你好！我是 APM 知识库智能助手 👋</p>
+          <p>你好！我是 <strong>APM 智能助理</strong> 👋</p>
           <p>你可以问我任何关于美术项目管理的问题，例如：</p>
           <div class="ai-suggest-chips">
             <button class="ai-chip" onclick="aiSendSuggestion(this)">需求频繁变更怎么办？</button>
