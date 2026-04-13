@@ -1,6 +1,6 @@
 {
-  "version": "7.1",
-  "lastUpdate": "2026-04-10",
+  "version": "8.0",
+  "lastUpdate": "2026-04-13",
   "categories": [
     {
       "id": "mod-project",
@@ -28,7 +28,6 @@
           "icon": "📝",
           "items": [
             { "id": "art-vs-planner-req", "icon": "📝", "title": "需求对接流转规范", "type": "iframe", "file": "knowledge-base/art-vs-planner-req.html", "badge": "跨部门", "craft": "跨部门" },
-            { "id": "art-vs-planner-template", "icon": "📄", "title": "UI/原画需求模板", "type": "iframe", "file": "knowledge-base/art-vs-planner-template.html", "badge": "跨部门", "craft": "跨部门" },
             { "id": "jira-tapd-automation", "icon": "⚙️", "title": "项目管理工具模板", "type": "iframe", "file": "knowledge-base/jira-tapd-automation.html", "badge": "管理", "craft": "管理" }
           ]
         },
@@ -106,8 +105,8 @@
           "name": "2D 角色",
           "icon": "👤",
           "items": [
-            { "id": "char-color-swap-mask", "icon": "🎨", "title": "2D 角色换色管线规范", "type": "iframe", "file": "knowledge-base/char-color-swap-mask.html", "badge": "2D", "craft": "角色" },
-            { "id": "char-spine-anim-spec", "icon": "🦴", "title": "Spine 骨骼动画导出与性能规范", "type": "iframe", "file": "knowledge-base/spine-perf-guide.html", "badge": "2D", "craft": "角色" }
+            { "id": "char-color-swap-pipeline", "icon": "🎨", "title": "2D 角色换色工业化全管线", "type": "iframe", "file": "knowledge-base/char-color-swap-mask.html", "badge": "2D", "craft": "角色" },
+            { "id": "spine-animation-pipeline", "icon": "🦴", "title": "Spine 动画导出与性能排雷全指南", "type": "iframe", "file": "knowledge-base/spine-perf-guide.html", "badge": "2D", "craft": "角色" }
           ]
         },
         {
@@ -147,7 +146,7 @@
           "icon": "🧩",
           "items": [
             { "id": "char-ugc-parts-safety", "icon": "📐", "title": "部件拆分与安全区规范", "type": "iframe", "file": "knowledge-base/char-ugc-parts-safety.html", "badge": "UGC", "craft": "UGC" },
-            { "id": "d1", "icon": "📐", "title": "2D 出图与图层规范", "type": "iframe", "file": "knowledge-base/art/2D-UGC角色出图规范.html", "badge": "UGC", "craft": "UGC" }
+            { "id": "ugc-2d-export-spec", "icon": "📐", "title": "2D 出图与图层规范", "type": "iframe", "file": "knowledge-base/art/2D-UGC角色出图规范.html", "badge": "UGC", "craft": "UGC" }
           ]
         },
         {
@@ -171,7 +170,6 @@
           "items": [
             { "id": "art-vs-ta-naming", "icon": "📦", "title": "引擎导入与命名规范", "type": "iframe", "file": "knowledge-base/art-vs-ta-naming.html", "badge": "跨部门", "craft": "跨部门" },
             { "id": "art-vs-ta-perfbudget", "icon": "🚦", "title": "性能红线与资产预算", "type": "iframe", "file": "knowledge-base/art-vs-ta-perfbudget.html", "badge": "跨部门", "craft": "跨部门" },
-            { "id": "spine-perf-guide", "icon": "🦴", "title": "Spine 性能红线与排查", "type": "iframe", "file": "knowledge-base/spine-perf-guide.html", "badge": "性能", "craft": "角色" },
             { "id": "perf-redline-glossary", "icon": "📖", "title": "跨工种黑话速查表", "type": "iframe", "file": "knowledge-base/perf-redline-glossary.html", "badge": "术语", "craft": "通用" }
           ]
         },
@@ -181,6 +179,13 @@
           "items": [
             { "id": "art-vs-qa-buggrade", "icon": "🐛", "title": "美术表现类 Bug 定级标准", "type": "iframe", "file": "knowledge-base/art-vs-qa-buggrade.html", "badge": "跨部门", "craft": "跨部门" },
             { "id": "art-vs-qa-checklist", "icon": "📝", "title": "版本走查验收清单", "type": "iframe", "file": "knowledge-base/art-vs-qa-checklist.html", "badge": "跨部门", "craft": "跨部门" }
+          ]
+        },
+        {
+          "name": "需求模板",
+          "icon": "📄",
+          "items": [
+            { "id": "art-vs-planner-template", "icon": "📄", "title": "UI/原画需求模板", "type": "iframe", "file": "knowledge-base/art-vs-planner-template.html", "badge": "跨部门", "craft": "跨部门" }
           ]
         },
         {
@@ -207,8 +212,7 @@
           "icon": "📄",
           "items": [
             { "id": "auto-mask-spec", "icon": "🤖", "title": "自动 Mask 通道生成器", "type": "iframe", "file": "knowledge-base/auto-mask-spec.html", "badge": "规范", "craft": "角色" },
-            { "id": "spine-split-spec", "icon": "✂️", "title": "Spine 角色拆分工具", "type": "iframe", "file": "knowledge-base/spine-split-spec.html", "badge": "规范", "craft": "角色" },
-            { "id": "color-swap-spec", "icon": "🎨", "title": "2D 角色换色管线规范", "type": "iframe", "file": "knowledge-base/color-swap-spec.html", "badge": "规范", "craft": "角色" }
+            { "id": "spine-split-spec", "icon": "✂️", "title": "Spine 角色拆分工具", "type": "iframe", "file": "knowledge-base/spine-split-spec.html", "badge": "规范", "craft": "角色" }
           ]
         },
         {
@@ -264,8 +268,7 @@
           "name": "效能度量",
           "icon": "📊",
           "items": [
-            { "id": "art-efficiency-metrics", "icon": "📊", "title": "美术效能度量与数据指标体系", "type": "iframe", "file": "knowledge-base/art-efficiency-metrics.html", "badge": "管理", "craft": "管理" },
-            { "id": "art-report-template", "icon": "📊", "title": "美术效能度量与标准化汇报模板", "type": "iframe", "file": "knowledge-base/art-report-template.html", "badge": "管理", "craft": "管理" }
+            { "id": "art-efficiency-system", "icon": "📊", "title": "美术效能度量与标准化汇报体系", "type": "iframe", "file": "knowledge-base/art-report-template.html", "badge": "管理", "craft": "管理" }
           ]
         },
         {
@@ -312,6 +315,21 @@
           "icon": "📝",
           "items": [
             { "id": "postmortem-template", "icon": "📝", "title": "版本研发复盘模板", "type": "iframe", "file": "knowledge-base/postmortem-template.html", "badge": "案例", "craft": "管理" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mod-system",
+      "name": "⚙️ 系统与维护",
+      "icon": "⚙️",
+      "color": "gray",
+      "groups": [
+        {
+          "name": "使用指南",
+          "icon": "✏️",
+          "items": [
+            { "id": "editor-guide", "icon": "✏️", "title": "可视化编辑器使用指南", "type": "doc", "file": "knowledge-base/editor-guide.html", "badge": "系统", "craft": "通用" }
           ]
         }
       ]
