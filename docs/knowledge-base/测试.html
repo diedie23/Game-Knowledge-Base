@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目复盘报告</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--pink:#f472b6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1400px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:40px 0 28px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:30px;color:var(--heading);margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.doc-header h1 .ver{font-size:12px;background:var(--orange);color:#000;padding:2px 12px;border-radius:12px;font-weight:700}
+.doc-header .subtitle{color:var(--dim);font-size:15px;margin-bottom:12px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+.badge{display:inline-block;background:linear-gradient(135deg,var(--orange),var(--red));color:#fff;padding:4px 16px;border-radius:16px;font-size:11px;font-weight:600;margin-top:12px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--orange);display:flex;align-items:center;gap:8px}
+.section h3{font-size:15px;color:var(--heading);margin:20px 0 8px;font-weight:600}
+.section p,.section li{font-size:15px;margin-bottom:8px;line-height:1.8}
+.section ul,.section ol{padding-left:20px;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:14px 18px;border-radius:10px;margin:14px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-orange{background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.2);color:var(--orange)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+.rv{color:var(--red);font-weight:700}.gv{color:var(--green);font-weight:600}.yv{color:var(--yellow);font-weight:600}.ov{color:var(--orange);font-weight:600}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:14px;line-height:1.8}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-card h4{margin:0 0 8px;font-size:15px}
+.why-chain{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin:16px 0}
+.why-chain .why-step{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.why-chain .why-num{flex-shrink:0;width:28px;height:28px;line-height:28px;text-align:center;background:var(--orange);color:#000;border-radius:50%;font-size:13px;font-weight:700}
+.why-chain .why-text{flex:1;font-size:14px;padding-top:3px}
+.why-chain .why-arrow{text-align:center;color:var(--dim);font-size:18px;margin:0 0 8px 40px}
+.why-chain .why-root{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);border-radius:8px;padding:12px 16px;margin-top:8px;font-size:14px;color:var(--red);font-weight:600}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:16px 0}
+@media(max-width:800px){.stat-grid{grid-template-columns:1fr 1fr}}
+.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.stat-card .stat-num{font-size:28px;font-weight:700;color:var(--heading);margin-bottom:4px}
+.stat-card .stat-label{font-size:12px;color:var(--dim)}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;min-width:100px}
+.flow-node strong{display:block;color:var(--heading);font-size:14px;margin-bottom:2px}
+.flow-arrow{color:var(--accent2);font-size:18px;padding:0 6px;flex-shrink:0}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body class="">
+<div class="doc">
+
+<div class="doc-header">
+  <h1>🔄 项目复盘报告 <span class="ver">模板</span></h1>
+  <div class="subtitle">Project Post-mortem Report — 版本研发全周期结构化复盘</div>
+  <div class="meta">
+    <span>🎮 项目名称（填写）</span>
+    <span>👤 复盘主持人（填写）</span>
+    <span>📅 YYYY-MM-DD</span>
+  </div>
+  <div class="badge">🔄 复盘模板 · 可直接编辑使用</div>
+</div>
+
+<div class="alert alert-blue" style="margin-bottom:24px">
+  <strong>📖 使用说明：</strong>点击右上角「✏️ 编辑模式」进入编辑，<strong>直接点击文字即可修改</strong>。完成后点击「💾 保存并覆盖」或「📄 另存为新文档」下载。
+</div>
+
+<div class="toc">
+  <h3 id="ifr-h-0">📑 目录</h3>
+  <ol>
+    <li><a href="#s1">复盘基本信息</a></li>
+    <li><a href="#s2">版本目标回顾</a></li>
+    <li><a href="#s3">数据看板</a></li>
+    <li><a href="#s4">做得好的（What Went Well）</a></li>
+    <li><a href="#s5">需要改进的（What Went Wrong）+ 5-Why 分析</a></li>
+    <li><a href="#s6">Action Items 追踪</a></li>
+    <li><a href="#s7">经验沉淀 &amp; 方法论提炼</a></li>
+  </ol>
+</div>
+
+<!-- ═══════ 第一章：基本信息 ═══════ -->
+<div class="section" id="s1">
+  <h2 id="ifr-h-1">📋 一、复盘基本信息</h2>
+  <table>
+    <tbody><tr><th style="width:180px">字段</th><th>内容</th></tr>
+    <tr><td>🎮 <strong>版本/项目名称</strong></td><td>（填写）</td></tr>
+    <tr><td>📅 <strong>版本周期</strong></td><td>YYYY-MM-DD ~ YYYY-MM-DD</td></tr>
+    <tr><td>📅 <strong>复盘日期</strong></td><td>YYYY-MM-DD</td></tr>
+    <tr><td>🎤 <strong>主持人</strong></td><td>（填写）</td></tr>
+    <tr><td>👥 <strong>参与人</strong></td><td>（列出全部参与者）</td></tr>
+    <tr><td>✍️ <strong>记录人</strong></td><td>（填写）</td></tr>
+    <tr><td>🏷️ <strong>复盘类型</strong></td><td>☐ 版本复盘 ☐ 里程碑复盘 ☐ 专项复盘 ☐ 外包复盘</td></tr>
+  </tbody></table>
+  <div class="alert alert-yellow">
+    <strong>⚠️ 复盘原则：</strong>「对事不对人」— 复盘目的是发现系统性问题并改进流程，不是追责个人。营造安全发言环境。
+  </div>
+</div>
+
+<!-- ═══════ 第二章：目标回顾 ═══════ -->
+<div class="section" id="s2">
+  <h2 id="ifr-h-2">🎯 二、版本目标回顾</h2>
+
+  <h3 id="ifr-h-3">2.1 目标达成率</h3>
+  <table>
+    <tbody><tr><th>🎯 目标</th><th>📅 计划</th><th>✅ 实际</th><th>📈 达成率</th><th>📝 说明</th></tr>
+    <tr><td>角色完成数</td><td>10</td><td>8</td><td><span class="yv">80%</span></td><td>2 个延至下版</td></tr>
+    <tr><td>场景完成数</td><td>5</td><td>5</td><td><span class="gv">100%</span></td><td>✅ 按时完成</td></tr>
+    <tr><td>UI 界面数</td><td>20</td><td>18</td><td><span class="yv">90%</span></td><td>2 个低优延后</td></tr>
+    <tr><td>特效完成</td><td>30 组</td><td>25 组</td><td><span class="yv">83%</span></td><td>（填写原因）</td></tr>
+    <tr><td>美术 Bug 清零</td><td>S:0 A:0</td><td>S:0 A:1</td><td><span class="yv">95%</span></td><td>1 个 A 级在修</td></tr>
+  </tbody></table>
+
+  <h3 id="ifr-h-4">2.2 排期准确率</h3>
+  <table>
+    <tbody><tr><th>🎨 工种</th><th>📅 计划人天</th><th>✅ 实际人天</th><th>📊 偏差</th><th>🎯 准确率</th></tr>
+    <tr><td>角色</td><td>120d</td><td>135d</td><td><span class="rv">+15d</span></td><td>87.5%</td></tr>
+    <tr><td>场景</td><td>80d</td><td>78d</td><td><span class="gv">-2d</span></td><td>97.5%</td></tr>
+    <tr><td>UI</td><td>60d</td><td>65d</td><td><span class="ov">+5d</span></td><td>91.7%</td></tr>
+    <tr><td>特效</td><td>50d</td><td>58d</td><td><span class="rv">+8d</span></td><td>84%</td></tr>
+    <tr><td>动画</td><td>45d</td><td>48d</td><td><span class="ov">+3d</span></td><td>93.3%</td></tr>
+  </tbody></table>
+</div>
+
+<!-- ═══════ 第三章：数据看板 ═══════ -->
+<div class="section" id="s3">
+  <h2 id="ifr-h-5">📊 三、数据看板</h2>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--accent)">85%</div>
+      <div class="stat-label">综合目标达成率</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--orange)">90.8%</div>
+      <div class="stat-label">排期准确率</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--green)">¥805k</div>
+      <div class="stat-label">实际总成本</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--red)">+7.3%</div>
+      <div class="stat-label">预算偏差率</div>
+    </div>
+  </div>
+
+  <h3 id="ifr-h-6">3.1 资产产出 &amp; 成本统计</h3>
+  <table>
+    <tbody><tr><th>项目</th><th>📅 预算</th><th>✅ 实际</th><th>📊 偏差率</th></tr>
+    <tr><td>内部人力</td><td>¥500k</td><td>¥520k</td><td>+4%</td></tr>
+    <tr><td>外包费用</td><td>¥250k</td><td>¥285k</td><td><span class="rv">+14%</span></td></tr>
+    <tr><td><strong>合计</strong></td><td><strong>¥750k</strong></td><td><strong>¥805k</strong></td><td><strong>+7.3%</strong></td></tr>
+  </tbody></table>
+</div>
+
+<!-- ═══════ 第四章：做得好的 ═══════ -->
+<div class="section" id="s4">
+  <h2 id="ifr-h-7">✨ 四、做得好的（What Went Well）</h2>
+
+  <table>
+    <tbody><tr><th>#</th><th>🌟 亮点</th><th>📝 具体表现</th><th>🔄 是否可推广</th></tr>
+    <tr><td>1</td><td>UI 团队效率高</td><td>按时交付，一次通过率 85%</td><td>✅ 需求模板推广到全工种</td></tr>
+    <tr><td>2</td><td>命名检查工具</td><td>自动化检查减少 30% 人工 Review 时间</td><td>✅ 全工种推广</td></tr>
+    <tr><td>3</td><td>每周走查制度</td><td>提前发现 12 个问题，避免后期爆雷</td><td>✅ 固化为 SOP</td></tr>
+    <tr><td>4</td><td>（继续添加）</td><td></td><td></td></tr>
+  </tbody></table>
+
+  <div class="alert alert-green">
+    <strong>💡 复盘锦囊：</strong>亮点总结也很重要！把有效的做法沉淀成规范，比修复问题更有长期价值。
+  </div>
+</div>
+
+<!-- ═══════ 第五章：需要改进的 ═══════ -->
+<div class="section" id="s5">
+  <h2 id="ifr-h-8">🚨 五、需要改进的（What Went Wrong）</h2>
+
+  <h3 id="ifr-h-9">5.1 问题清单</h3>
+  <table>
+    <tbody><tr><th>#</th><th>🐛 问题</th><th>💥 影响</th><th>🚦 严重度</th></tr>
+    <tr><td>1</td><td>策划需求冻结延迟 7 天</td><td>角色排期整体后移</td><td><span class="rv">🔴 高</span></td></tr>
+    <tr><td>2</td><td>外包首批交付质量差</td><td>返工 + 排期紧张</td><td><span class="rv">🔴 高</span></td></tr>
+    <tr><td>3</td><td>角色面数超标未早期发现</td><td>后期重做 3 个角色</td><td><span class="ov">🟠 中高</span></td></tr>
+    <tr><td>4</td><td>（继续添加）</td><td></td><td></td></tr>
+  </tbody></table>
+
+  <h3 id="ifr-h-10">5.2 5-Why 根因分析（Top 1 问题深挖）</h3>
+  <div class="why-chain">
+    <p style="color:var(--heading);font-weight:600;margin-bottom:12px">🚨 问题：策划需求冻结延迟 7 天</p>
+    <div class="why-step"><div class="why-num">1</div><div class="why-text"><strong>Why:</strong> 为什么需求冻结延迟？→ 策划内部对角色设定方案有分歧</div></div>
+    <div class="why-arrow">↓</div>
+    <div class="why-step"><div class="why-num">2</div><div class="why-text"><strong>Why:</strong> 为什么有分歧？→ 制作人中途因竞品上线加入新设计方向</div></div>
+    <div class="why-arrow">↓</div>
+    <div class="why-step"><div class="why-num">3</div><div class="why-text"><strong>Why:</strong> 为什么中途改方向？→ 预研阶段未做竞品分析</div></div>
+    <div class="why-arrow">↓</div>
+    <div class="why-step"><div class="why-num">4</div><div class="why-text"><strong>Why:</strong> 为什么没做竞品分析？→ 预研 Checklist 中没有竞品分析项</div></div>
+    <div class="why-arrow">↓</div>
+    <div class="why-step"><div class="why-num">5</div><div class="why-text"><strong>Why:</strong> 为什么 Checklist 缺失？→ Checklist 从未被系统性审查和迭代</div></div>
+    <div class="why-root">🎯 <strong>根因：</strong>预研流程缺少竞品分析环节 + Checklist 未建立定期审查机制</div>
+  </div>
+
+  <div class="alert alert-orange">
+    <strong>💡 提示：</strong>复制上方「5-Why」区块，为每个 Top 问题做独立的根因分析。通常分析 Top 3 即可。
+  </div>
+</div>
+
+<!-- ═══════ 第六章：Action Items ═══════ -->
+<div class="section" id="s6">
+  <h2 id="ifr-h-11">✅ 六、Action Items 追踪</h2>
+
+  <table>
+    <tbody><tr><th>#</th><th>📌 改进项</th><th>👤 负责人</th><th>📅 截止日期</th><th>🚦 优先级</th><th>📊 状态</th></tr>
+    <tr><td>1</td><td>预研 Checklist 增加竞品分析</td><td>（填写）</td><td>下版本预研前</td><td><span class="rv">🔴 高</span></td><td>⬜ 待做</td></tr>
+    <tr><td>2</td><td>制作外包风格指南模板</td><td>（填写）</td><td>2 周内</td><td><span class="rv">🔴 高</span></td><td>⬜ 待做</td></tr>
+    <tr><td>3</td><td>建立资产面数自动检查 CI</td><td>（填写）</td><td>1 月内</td><td><span class="yv">🟡 中</span></td><td>⬜ 待做</td></tr>
+    <tr><td>4</td><td>引擎升级前增加影响评估会</td><td>（填写）</td><td>固化流程</td><td><span class="yv">🟡 中</span></td><td>⬜ 待做</td></tr>
+    <tr><td>5</td><td>外包验收增加首件样品机制</td><td>（填写）</td><td>下次外包</td><td><span class="rv">🔴 高</span></td><td>⬜ 待做</td></tr>
+  </tbody></table>
+
+  <div class="alert alert-blue">
+    <strong>📌 跟踪规则：</strong>每个 Action Item 必须有<strong>唯一负责人</strong>和<strong>明确截止日期</strong>。下次复盘时首先回顾上次 Action Items 完成情况。
+  </div>
+</div>
+
+<!-- ═══════ 第七章：经验沉淀 ═══════ -->
+<div class="section" id="s7">
+  <h2 id="ifr-h-12">💎 七、经验沉淀 &amp; 方法论提炼</h2>
+
+  <h3 id="ifr-h-13">7.1 形成的文档/规范</h3>
+  <table>
+    <tbody><tr><th>📄 输出物</th><th>📊 状态</th><th>📁 存放位置</th></tr>
+    <tr><td>预研阶段 Checklist（含竞品分析）</td><td>⬜ 待编写</td><td>知识库 → 项目管理</td></tr>
+    <tr><td>外包风格指南模板</td><td>⬜ 待编写</td><td>知识库 → 外包管理</td></tr>
+    <tr><td>资产面数自动检查脚本</td><td>⬜ 待开发</td><td>工具链 → 自动化</td></tr>
+    <tr><td>（继续添加）</td><td></td><td></td></tr>
+  </tbody></table>
+
+  <h3 id="ifr-h-14">7.2 经验金句（团队共识）</h3>
+  <div class="dd-grid">
+    <div class="dd-card dd-do">
+      <h4 id="ifr-h-15">💡 我们学到的</h4>
+      <ul>
+        <li>「口头沟通不是文档，外包永远需要比你想象的更详细的规范。」</li>
+        <li>「自动化检查永远比人工 Review 靠谱。」</li>
+        <li>「预研多花 1 周，量产少踩 1 个月的坑。」</li>
+        <li>（继续添加团队总结的金句）</li>
+      </ul>
+    </div>
+    <div class="dd-card dd-dont">
+      <h4 id="ifr-h-16">🚫 我们踩过的坑</h4>
+      <ul>
+        <li>「没有 Alpha 验收标准就开始量产 → 后期全返工」</li>
+        <li>「只看参考图就给外包下单 → 风格偏差大」</li>
+        <li>「引擎升级前没评估影响 → 材质重调 2 周」</li>
+        <li>（继续添加）</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 id="ifr-h-17">7.3 可复用的方法论</h3>
+  <div class="alert alert-green">
+    <strong>✅ 沉淀为方法论：</strong>本次复盘中发现的有效做法，如果适用于其他项目/版本，请总结成<strong>1~3 条可复用规则</strong>写在这里，并链接到对应的知识库文档。<br><br>
+    <strong>规则 1：</strong>（例：外包启动前必须完成「风格指南 + 首件样品」两步验证）<br>
+    <strong>规则 2：</strong>（继续添加）<br>
+    <strong>规则 3：</strong>（继续添加）
+  </div>
+</div>
+
+<div class="doc-footer">
+  🔄 项目复盘报告 · 模板 v1.0 · APM 知识库 · YYYY-MM-DD
+</div>
+
+</div>
+<button class="ek-ui ek-enter-btn" style="display: none;">✏️ 编辑模式</button><button class="ek-btn ek-btn-danger" id="ekDiscard">🗑️ 放弃修改</button><button class="ek-btn ek-btn-secondary" id="ekExitEdit">✖ 退出编辑</button></div></body></html>
