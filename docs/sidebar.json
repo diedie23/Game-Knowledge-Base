@@ -12,47 +12,135 @@
           "name": "管线总览",
           "icon": "🔄",
           "items": [
-            { "id": "game-art-pipeline", "icon": "🔄", "title": "美术生产管线总览 — 2D/3D/二次元全流程", "type": "iframe", "file": "knowledge-base/game-art-pipeline.html", "badge": "管理", "craft": "管理" }
+            {
+              "id": "game-art-pipeline",
+              "icon": "🔄",
+              "title": "美术生产管线总览 — 2D/3D/二次元全流程",
+              "type": "iframe",
+              "file": "knowledge-base/game-art-pipeline.html",
+              "badge": "管理",
+              "craft": "管理"
+            }
           ]
         },
         {
           "name": "排期与里程碑",
           "icon": "📅",
           "items": [
-            { "id": "art-scheduling", "icon": "📅", "title": "美术排期与里程碑管理", "type": "iframe", "file": "knowledge-base/art-scheduling.html", "badge": "管理", "craft": "管理" },
-            { "id": "progress-visualization", "icon": "📊", "title": "进度可视化工具", "type": "iframe", "file": "knowledge-base/progress-visualization.html", "badge": "管理", "craft": "管理" }
+            {
+              "id": "art-scheduling",
+              "icon": "📅",
+              "title": "美术排期与里程碑管理",
+              "type": "iframe",
+              "file": "knowledge-base/art-scheduling.html",
+              "badge": "管理",
+              "craft": "管理"
+            },
+            {
+              "id": "progress-visualization",
+              "icon": "📊",
+              "title": "进度可视化工具",
+              "type": "iframe",
+              "file": "knowledge-base/progress-visualization.html",
+              "badge": "管理",
+              "craft": "管理"
+            }
           ]
         },
         {
           "name": "需求流转",
           "icon": "📝",
           "items": [
-            { "id": "art-vs-planner-req", "icon": "📝", "title": "需求对接流转规范", "type": "iframe", "file": "knowledge-base/art-vs-planner-req.html", "badge": "跨部门", "craft": "跨部门" },
-            { "id": "jira-tapd-automation", "icon": "⚙️", "title": "项目管理工具模板", "type": "iframe", "file": "knowledge-base/jira-tapd-automation.html", "badge": "管理", "craft": "管理" }
+            {
+              "id": "art-vs-planner-req",
+              "icon": "📝",
+              "title": "需求对接流转规范",
+              "type": "iframe",
+              "file": "knowledge-base/art-vs-planner-req.html",
+              "badge": "跨部门",
+              "craft": "跨部门"
+            },
+            {
+              "id": "jira-tapd-automation",
+              "icon": "⚙️",
+              "title": "项目管理工具模板",
+              "type": "iframe",
+              "file": "knowledge-base/jira-tapd-automation.html",
+              "badge": "管理",
+              "craft": "管理"
+            }
           ]
         },
         {
           "name": "资产库与版本管理",
           "icon": "📂",
           "items": [
-            { "id": "svn-perforce-structure", "icon": "📂", "title": "SVN/Perforce 目录结构标准", "type": "iframe", "file": "knowledge-base/svn-perforce-structure.html", "badge": "管理", "craft": "管理" },
-            { "id": "asset-submit-review", "icon": "🔄", "title": "资产提交与审核工作流", "type": "iframe", "file": "knowledge-base/asset-submit-review.html", "badge": "管理", "craft": "管理" },
-            { "id": "deprecated-asset-cleanup", "icon": "🗑️", "title": "废弃资产归档与清理规范", "type": "iframe", "file": "knowledge-base/deprecated-asset-cleanup.html", "badge": "管理", "craft": "管理" }
+            {
+              "id": "svn-perforce-structure",
+              "icon": "📂",
+              "title": "SVN/Perforce 目录结构标准",
+              "type": "iframe",
+              "file": "knowledge-base/svn-perforce-structure.html",
+              "badge": "管理",
+              "craft": "管理"
+            },
+            {
+              "id": "asset-submit-review",
+              "icon": "🔄",
+              "title": "资产提交与审核工作流",
+              "type": "iframe",
+              "file": "knowledge-base/asset-submit-review.html",
+              "badge": "管理",
+              "craft": "管理"
+            },
+            {
+              "id": "deprecated-asset-cleanup",
+              "icon": "🗑️",
+              "title": "废弃资产归档与清理规范",
+              "type": "iframe",
+              "file": "knowledge-base/deprecated-asset-cleanup.html",
+              "badge": "管理",
+              "craft": "管理"
+            }
           ]
         },
         {
           "name": "决策指南",
           "icon": "🧭",
           "items": [
-            { "id": "outsource-vs-inhouse-decision", "icon": "🧭", "title": "外包 vs 内发决策矩阵", "type": "iframe", "file": "knowledge-base/outsource-vs-inhouse-decision.html", "badge": "决策", "craft": "管理" },
-            { "id": "delay-response-decision", "icon": "⏳", "title": "项目延期应对决策", "type": "iframe", "file": "knowledge-base/delay-response-decision.html", "badge": "决策", "craft": "管理" }
+            {
+              "id": "outsource-vs-inhouse-decision",
+              "icon": "🧭",
+              "title": "外包 vs 内发决策矩阵",
+              "type": "iframe",
+              "file": "knowledge-base/outsource-vs-inhouse-decision.html",
+              "badge": "决策",
+              "craft": "管理"
+            },
+            {
+              "id": "delay-response-decision",
+              "icon": "⏳",
+              "title": "项目延期应对决策",
+              "type": "iframe",
+              "file": "knowledge-base/delay-response-decision.html",
+              "badge": "决策",
+              "craft": "管理"
+            }
           ]
         },
         {
           "name": "个人成长",
           "icon": "🌱",
           "items": [
-            { "id": "personal-growth-roadmap", "icon": "🌱", "title": "APM 个人成长路线图", "type": "iframe", "file": "knowledge-base/personal-growth-roadmap.html", "badge": "成长", "craft": "管理" }
+            {
+              "id": "personal-growth-roadmap",
+              "icon": "🌱",
+              "title": "APM 个人成长路线图",
+              "type": "iframe",
+              "file": "knowledge-base/personal-growth-roadmap.html",
+              "badge": "成长",
+              "craft": "管理"
+            }
           ]
         }
       ]
@@ -67,30 +155,78 @@
           "name": "外包评级与验收",
           "icon": "📋",
           "items": [
-            { "id": "cp-outsource", "icon": "📋", "title": "外包管理与验收规范", "type": "iframe", "file": "knowledge-base/cp-outsource.html", "badge": "管理", "craft": "管理" },
-            { "id": "cp-management", "icon": "✅", "title": "外包资产验收 Checklist（附录）", "type": "iframe", "file": "knowledge-base/cp-management.html", "badge": "附录", "craft": "管理" }
+            {
+              "id": "cp-outsource",
+              "icon": "📋",
+              "title": "外包管理与验收规范",
+              "type": "iframe",
+              "file": "knowledge-base/cp-outsource.html",
+              "badge": "管理",
+              "craft": "管理"
+            },
+            {
+              "id": "cp-management",
+              "icon": "✅",
+              "title": "外包资产验收 Checklist（附录）",
+              "type": "iframe",
+              "file": "knowledge-base/cp-management.html",
+              "badge": "附录",
+              "craft": "管理"
+            }
           ]
         },
         {
           "name": "人天模型与报价",
           "icon": "📊",
           "items": [
-            { "id": "outsource-workload-model", "icon": "📊", "title": "美术外包工作量评估标准 (人天模型)", "type": "iframe", "file": "knowledge-base/outsource-workload-model.html", "badge": "管理", "craft": "管理" }
+            {
+              "id": "outsource-workload-model",
+              "icon": "📊",
+              "title": "美术外包工作量评估标准 (人天模型)",
+              "type": "iframe",
+              "file": "knowledge-base/outsource-workload-model.html",
+              "badge": "管理",
+              "craft": "管理"
+            }
           ]
         },
         {
           "name": "预算与结算",
           "icon": "💰",
           "items": [
-            { "id": "budget-apply", "icon": "💰", "title": "外包预算申请与结算流转", "type": "iframe", "file": "knowledge-base/budget-apply.html", "badge": "管理", "craft": "管理" },
-            { "id": "cost-standard", "icon": "📊", "title": "美术人月成本核算标准", "type": "iframe", "file": "knowledge-base/cost-standard.html", "badge": "管理", "craft": "管理" }
+            {
+              "id": "budget-apply",
+              "icon": "💰",
+              "title": "外包预算申请与结算流转",
+              "type": "iframe",
+              "file": "knowledge-base/budget-apply.html",
+              "badge": "管理",
+              "craft": "管理"
+            },
+            {
+              "id": "cost-standard",
+              "icon": "📊",
+              "title": "美术人月成本核算标准",
+              "type": "iframe",
+              "file": "knowledge-base/cost-standard.html",
+              "badge": "管理",
+              "craft": "管理"
+            }
           ]
         },
         {
           "name": "供应商生态",
           "icon": "🏢",
           "items": [
-            { "id": "supplier-ecosystem", "icon": "🏢", "title": "供应商生态管理规范", "type": "iframe", "file": "knowledge-base/supplier-ecosystem.html", "badge": "管理", "craft": "管理" }
+            {
+              "id": "supplier-ecosystem",
+              "icon": "🏢",
+              "title": "供应商生态管理规范",
+              "type": "iframe",
+              "file": "knowledge-base/supplier-ecosystem.html",
+              "badge": "管理",
+              "craft": "管理"
+            }
           ]
         }
       ]
@@ -105,62 +241,174 @@
           "name": "通用基础",
           "icon": "📐",
           "items": [
-            { "id": "char-naming-redline", "icon": "📏", "title": "资产命名与性能红线", "type": "iframe", "file": "knowledge-base/ugc-character-spec.html", "badge": "通用", "craft": "通用" }
+            {
+              "id": "char-naming-redline",
+              "icon": "📏",
+              "title": "资产命名与性能红线",
+              "type": "iframe",
+              "file": "knowledge-base/ugc-character-spec.html",
+              "badge": "通用",
+              "craft": "通用"
+            }
           ]
         },
         {
           "name": "2D 角色",
           "icon": "👤",
           "items": [
-            { "id": "char-color-swap-pipeline", "icon": "🎨", "title": "2D 角色换色工业化全管线", "type": "iframe", "file": "knowledge-base/char-color-swap-mask.html", "badge": "2D", "craft": "角色" },
-            { "id": "spine-animation-pipeline", "icon": "🦴", "title": "Spine 动画导出与性能排雷全指南", "type": "iframe", "file": "knowledge-base/spine-perf-guide.html", "badge": "2D", "craft": "角色" }
+            {
+              "id": "char-color-swap-pipeline",
+              "icon": "🎨",
+              "title": "2D 角色换色工业化全管线",
+              "type": "iframe",
+              "file": "knowledge-base/char-color-swap-mask.html",
+              "badge": "2D",
+              "craft": "角色"
+            },
+            {
+              "id": "spine-animation-pipeline",
+              "icon": "🦴",
+              "title": "Spine 动画导出与性能排雷全指南",
+              "type": "iframe",
+              "file": "knowledge-base/spine-perf-guide.html",
+              "badge": "2D",
+              "craft": "角色"
+            }
           ]
         },
         {
           "name": "3D 角色",
           "icon": "🧊",
           "items": [
-            { "id": "char-3d-topo-pbr", "icon": "🧊", "title": "拓扑与 PBR 贴图规范", "type": "iframe", "file": "knowledge-base/char-3d-topo-pbr.html", "badge": "3D", "craft": "角色" },
-            { "id": "anim-state-handoff", "icon": "🎬", "title": "动画状态机交接与导出规范", "type": "iframe", "file": "knowledge-base/anim-state-handoff.html", "badge": "3D", "craft": "角色" }
+            {
+              "id": "char-3d-topo-pbr",
+              "icon": "🧊",
+              "title": "拓扑与 PBR 贴图规范",
+              "type": "iframe",
+              "file": "knowledge-base/char-3d-topo-pbr.html",
+              "badge": "3D",
+              "craft": "角色"
+            },
+            {
+              "id": "anim-state-handoff",
+              "icon": "🎬",
+              "title": "动画状态机交接与导出规范",
+              "type": "iframe",
+              "file": "knowledge-base/anim-state-handoff.html",
+              "badge": "3D",
+              "craft": "角色"
+            }
           ]
         },
         {
           "name": "UI",
           "icon": "🖥️",
           "items": [
-            { "id": "ui-slice-naming", "icon": "✂️", "title": "切图与命名规范", "type": "iframe", "file": "knowledge-base/ui-slice-naming.html", "badge": "UI", "craft": "UI" },
-            { "id": "ui-9slice-color", "icon": "🎨", "title": "9宫格与颜色空间", "type": "iframe", "file": "knowledge-base/ui-9slice-color.html", "badge": "UI", "craft": "UI" },
-            { "id": "ui-layout", "icon": "📐", "title": "Layout 拼接规范", "type": "iframe", "file": "knowledge-base/ui-layout.html", "badge": "UI", "craft": "UI" },
-            { "id": "ui-umg-tips", "icon": "⚡", "title": "UMG 生成技巧", "type": "iframe", "file": "knowledge-base/ui-umg-tips.html", "badge": "UI", "craft": "UI" }
+            {
+              "id": "ui-slice-naming",
+              "icon": "✂️",
+              "title": "切图与命名规范",
+              "type": "iframe",
+              "file": "knowledge-base/ui-slice-naming.html",
+              "badge": "UI",
+              "craft": "UI"
+            },
+            {
+              "id": "ui-9slice-color",
+              "icon": "🎨",
+              "title": "9宫格与颜色空间",
+              "type": "iframe",
+              "file": "knowledge-base/ui-9slice-color.html",
+              "badge": "UI",
+              "craft": "UI"
+            },
+            {
+              "id": "ui-layout",
+              "icon": "📐",
+              "title": "Layout 拼接规范",
+              "type": "iframe",
+              "file": "knowledge-base/ui-layout.html",
+              "badge": "UI",
+              "craft": "UI"
+            },
+            {
+              "id": "ui-umg-tips",
+              "icon": "⚡",
+              "title": "UMG 生成技巧",
+              "type": "iframe",
+              "file": "knowledge-base/ui-umg-tips.html",
+              "badge": "UI",
+              "craft": "UI"
+            }
           ]
         },
         {
           "name": "场景",
           "icon": "🏔️",
           "items": [
-            { "id": "scene-lod-spec", "icon": "🏗️", "title": "模块化与 LOD 规范", "type": "iframe", "file": "knowledge-base/scene-lod-spec.html", "badge": "场景", "craft": "场景" }
+            {
+              "id": "scene-lod-spec",
+              "icon": "🏗️",
+              "title": "模块化与 LOD 规范",
+              "type": "iframe",
+              "file": "knowledge-base/scene-lod-spec.html",
+              "badge": "场景",
+              "craft": "场景"
+            }
           ]
         },
         {
           "name": "特效",
           "icon": "✨",
           "items": [
-            { "id": "vfx-perf-spec", "icon": "✨", "title": "性能红线与层级规范", "type": "iframe", "file": "knowledge-base/vfx-perf-spec.html", "badge": "特效", "craft": "特效" }
+            {
+              "id": "vfx-perf-spec",
+              "icon": "✨",
+              "title": "性能红线与层级规范",
+              "type": "iframe",
+              "file": "knowledge-base/vfx-perf-spec.html",
+              "badge": "特效",
+              "craft": "特效"
+            }
           ]
         },
         {
           "name": "UGC 专项管线",
           "icon": "🧩",
           "items": [
-            { "id": "char-ugc-parts-safety", "icon": "📐", "title": "部件拆分与安全区规范", "type": "iframe", "file": "knowledge-base/char-ugc-parts-safety.html", "badge": "UGC", "craft": "UGC" },
-            { "id": "ugc-2d-export-spec", "icon": "📐", "title": "2D 出图与图层规范", "type": "iframe", "file": "knowledge-base/art/2D-UGC角色出图规范.html", "badge": "UGC", "craft": "UGC" }
+            {
+              "id": "char-ugc-parts-safety",
+              "icon": "📐",
+              "title": "部件拆分与安全区规范",
+              "type": "iframe",
+              "file": "knowledge-base/char-ugc-parts-safety.html",
+              "badge": "UGC",
+              "craft": "UGC"
+            },
+            {
+              "id": "ugc-2d-export-spec",
+              "icon": "📐",
+              "title": "2D 出图与图层规范",
+              "type": "iframe",
+              "file": "knowledge-base/art/2D-UGC角色出图规范.html",
+              "badge": "UGC",
+              "craft": "UGC"
+            }
           ]
         },
         {
           "name": "AIGC 专项管线",
           "icon": "🤖",
           "items": [
-            { "id": "aigc-production-spec", "icon": "🤖", "title": "辅助生产规范", "type": "iframe", "file": "knowledge-base/aigc-production-spec.html", "badge": "AIGC", "craft": "AIGC" }
+            {
+              "id": "aigc-production-spec",
+              "icon": "🤖",
+              "title": "辅助生产规范",
+              "type": "iframe",
+              "file": "knowledge-base/aigc-production-spec.html",
+              "badge": "AIGC",
+              "craft": "AIGC"
+            }
           ]
         }
       ]
@@ -175,32 +423,96 @@
           "name": "美术 vs 程序/TA",
           "icon": "⚙️",
           "items": [
-            { "id": "art-vs-ta-naming", "icon": "📦", "title": "引擎导入与命名规范", "type": "iframe", "file": "knowledge-base/art-vs-ta-naming.html", "badge": "跨部门", "craft": "跨部门" },
-            { "id": "art-vs-ta-perfbudget", "icon": "🚦", "title": "性能红线与资产预算", "type": "iframe", "file": "knowledge-base/art-vs-ta-perfbudget.html", "badge": "跨部门", "craft": "跨部门" },
-            { "id": "perf-redline-glossary", "icon": "📖", "title": "跨工种黑话速查表", "type": "iframe", "file": "knowledge-base/perf-redline-glossary.html", "badge": "术语", "craft": "通用" }
+            {
+              "id": "art-vs-ta-naming",
+              "icon": "📦",
+              "title": "引擎导入与命名规范",
+              "type": "iframe",
+              "file": "knowledge-base/art-vs-ta-naming.html",
+              "badge": "跨部门",
+              "craft": "跨部门"
+            },
+            {
+              "id": "art-vs-ta-perfbudget",
+              "icon": "🚦",
+              "title": "性能红线与资产预算",
+              "type": "iframe",
+              "file": "knowledge-base/art-vs-ta-perfbudget.html",
+              "badge": "跨部门",
+              "craft": "跨部门"
+            },
+            {
+              "id": "perf-redline-glossary",
+              "icon": "📖",
+              "title": "跨工种黑话速查表",
+              "type": "iframe",
+              "file": "knowledge-base/perf-redline-glossary.html",
+              "badge": "术语",
+              "craft": "通用"
+            }
           ]
         },
         {
           "name": "美术 vs QA",
           "icon": "🐛",
           "items": [
-            { "id": "art-vs-qa-buggrade", "icon": "🐛", "title": "美术表现类 Bug 定级标准", "type": "iframe", "file": "knowledge-base/art-vs-qa-buggrade.html", "badge": "跨部门", "craft": "跨部门" },
-            { "id": "art-vs-qa-checklist", "icon": "📝", "title": "版本走查验收清单", "type": "iframe", "file": "knowledge-base/art-vs-qa-checklist.html", "badge": "跨部门", "craft": "跨部门" }
+            {
+              "id": "art-vs-qa-buggrade",
+              "icon": "🐛",
+              "title": "美术表现类 Bug 定级标准",
+              "type": "iframe",
+              "file": "knowledge-base/art-vs-qa-buggrade.html",
+              "badge": "跨部门",
+              "craft": "跨部门"
+            },
+            {
+              "id": "art-vs-qa-checklist",
+              "icon": "📝",
+              "title": "版本走查验收清单",
+              "type": "iframe",
+              "file": "knowledge-base/art-vs-qa-checklist.html",
+              "badge": "跨部门",
+              "craft": "跨部门"
+            }
           ]
         },
         {
           "name": "需求模板",
           "icon": "📄",
           "items": [
-            { "id": "art-vs-planner-template", "icon": "📄", "title": "UI/原画需求模板", "type": "iframe", "file": "knowledge-base/art-vs-planner-template.html", "badge": "跨部门", "craft": "跨部门" }
+            {
+              "id": "art-vs-planner-template",
+              "icon": "📄",
+              "title": "UI/原画需求模板",
+              "type": "iframe",
+              "file": "knowledge-base/art-vs-planner-template.html",
+              "badge": "跨部门",
+              "craft": "跨部门"
+            }
           ]
         },
         {
           "name": "协作痛点与事故",
           "icon": "🚨",
           "items": [
-            { "id": "cross-dept-collab", "icon": "🤝", "title": "跨部门协作三大经典痛点 — 策略破局指南", "type": "iframe", "file": "knowledge-base/cross-dept-collab.html", "badge": "策略", "craft": "通用" },
-            { "id": "cross-dept-communication-tips", "icon": "🗣️", "title": "跨部门沟通话术模板 — 7 大场景", "type": "iframe", "file": "knowledge-base/cross-dept-communication-tips.html", "badge": "话术", "craft": "管理" }
+            {
+              "id": "cross-dept-collab",
+              "icon": "🤝",
+              "title": "跨部门协作三大经典痛点 — 策略破局指南",
+              "type": "iframe",
+              "file": "knowledge-base/cross-dept-collab.html",
+              "badge": "策略",
+              "craft": "通用"
+            },
+            {
+              "id": "cross-dept-communication-tips",
+              "icon": "🗣️",
+              "title": "跨部门沟通话术模板 — 7 大场景",
+              "type": "iframe",
+              "file": "knowledge-base/cross-dept-communication-tips.html",
+              "badge": "话术",
+              "craft": "管理"
+            }
           ]
         }
       ]
@@ -211,44 +523,154 @@
       "icon": "🛠️",
       "color": "cyan",
       "items": [
-        { "id": "art-tools-guide", "icon": "📖", "title": "工具链总览与使用指南", "type": "iframe", "file": "knowledge-base/art-tools-guide.html", "badge": "指南", "craft": "通用" }
+        {
+          "id": "art-tools-guide",
+          "icon": "📖",
+          "title": "工具链总览与使用指南",
+          "type": "iframe",
+          "file": "knowledge-base/art-tools-guide.html",
+          "badge": "指南",
+          "craft": "通用"
+        }
       ],
       "groups": [
         {
           "name": "工具规范文档",
           "icon": "📄",
           "items": [
-            { "id": "auto-mask-spec", "icon": "🤖", "title": "自动 Mask 通道生成器", "type": "iframe", "file": "knowledge-base/auto-mask-spec.html", "badge": "规范", "craft": "角色" },
-            { "id": "spine-split-spec", "icon": "✂️", "title": "Spine 角色拆分工具", "type": "iframe", "file": "knowledge-base/spine-split-spec.html", "badge": "规范", "craft": "角色" }
+            {
+              "id": "auto-mask-spec",
+              "icon": "🤖",
+              "title": "自动 Mask 通道生成器",
+              "type": "iframe",
+              "file": "knowledge-base/auto-mask-spec.html",
+              "badge": "规范",
+              "craft": "角色"
+            },
+            {
+              "id": "spine-split-spec",
+              "icon": "✂️",
+              "title": "Spine 角色拆分工具",
+              "type": "iframe",
+              "file": "knowledge-base/spine-split-spec.html",
+              "badge": "规范",
+              "craft": "角色"
+            }
           ]
         },
         {
           "name": "检查与合规脚本",
           "icon": "🔍",
           "items": [
-            { "id": "naming-check-tool", "icon": "🔍", "title": "资产合规性检查工具", "type": "iframe", "file": "knowledge-base/naming-check-tool.html", "badge": "管理", "craft": "管理" }
+            {
+              "id": "naming-check-tool",
+              "icon": "🔍",
+              "title": "资产合规性检查工具",
+              "type": "iframe",
+              "file": "knowledge-base/naming-check-tool.html",
+              "badge": "管理",
+              "craft": "管理"
+            }
           ]
         },
         {
           "name": "美术在线工具",
           "icon": "🎨",
           "items": [
-            { "id": "auto-mask-v6", "icon": "🤖", "title": "自动 Mask 生成器 v6.0", "type": "tool", "badge": "角色", "craft": "角色" },
-            { "id": "mask-tool", "icon": "🖌️", "title": "Mask 手动编辑器", "type": "tool", "badge": "角色", "craft": "角色" },
-            { "id": "spine-split", "icon": "✂️", "title": "Spine 拆分工具", "type": "tool", "badge": "角色", "craft": "角色" },
-            { "id": "mask-core-algorithms", "icon": "🧪", "title": "Mask 核心算法演示", "type": "tool", "badge": "角色", "craft": "角色" },
-            { "id": "color-swap-tool", "icon": "🎨", "title": "换色资源生成器", "type": "tool", "badge": "角色", "craft": "角色" },
-            { "id": "channel-packer", "icon": "📦", "title": "贴图通道打包工具", "type": "iframe", "file": "knowledge-base/channel-packer.html", "badge": "特效", "craft": "特效" }
+            {
+              "id": "auto-mask-v6",
+              "icon": "🤖",
+              "title": "自动 Mask 生成器 v6.0",
+              "type": "tool",
+              "badge": "角色",
+              "craft": "角色"
+            },
+            {
+              "id": "mask-tool",
+              "icon": "🖌️",
+              "title": "Mask 手动编辑器",
+              "type": "tool",
+              "badge": "角色",
+              "craft": "角色"
+            },
+            {
+              "id": "spine-split",
+              "icon": "✂️",
+              "title": "Spine 拆分工具",
+              "type": "tool",
+              "badge": "角色",
+              "craft": "角色"
+            },
+            {
+              "id": "mask-core-algorithms",
+              "icon": "🧪",
+              "title": "Mask 核心算法演示",
+              "type": "tool",
+              "badge": "角色",
+              "craft": "角色"
+            },
+            {
+              "id": "color-swap-tool",
+              "icon": "🎨",
+              "title": "换色资源生成器",
+              "type": "tool",
+              "badge": "角色",
+              "craft": "角色"
+            },
+            {
+              "id": "channel-packer",
+              "icon": "📦",
+              "title": "贴图通道打包工具",
+              "type": "iframe",
+              "file": "knowledge-base/channel-packer.html",
+              "badge": "特效",
+              "craft": "特效"
+            }
           ]
         },
         {
           "name": "桌面工具 & 引擎直连",
           "icon": "🖥️",
           "items": [
-            { "id": "auto-mask-v6-desktop", "icon": "🖥️", "title": "自动 Mask v6.0 (桌面版)", "type": "iframe", "file": "knowledge-base/auto-mask-v6-desktop.html", "badge": "角色", "download": "downloads/AutoMaskGenerator-v6.0.0-Portable.exe", "craft": "角色" },
-            { "id": "image-skew-corrector", "icon": "📐", "title": "图片倾斜矫正 (桌面版)", "type": "iframe", "file": "knowledge-base/image-skew-corrector.html", "badge": "UI", "download": "downloads/ImageSkewCorrector.exe", "craft": "UI" },
-            { "id": "game-resource-toolkit", "icon": "🛠️", "title": "游戏资源工具集 (桌面版)", "type": "iframe", "file": "knowledge-base/game-resource-toolkit.html", "badge": "UI", "download": "downloads/GameResourceToolkit.exe", "craft": "UI" },
-            { "id": "engine-bridge", "icon": "🔌", "title": "Engine Bridge 引擎直连", "type": "iframe", "file": "knowledge-base/engine-bridge.html", "badge": "技术", "craft": "技术" }
+            {
+              "id": "auto-mask-v6-desktop",
+              "icon": "🖥️",
+              "title": "自动 Mask v6.0 (桌面版)",
+              "type": "iframe",
+              "file": "knowledge-base/auto-mask-v6-desktop.html",
+              "badge": "角色",
+              "download": "downloads/AutoMaskGenerator-v6.0.0-Portable.exe",
+              "craft": "角色"
+            },
+            {
+              "id": "image-skew-corrector",
+              "icon": "📐",
+              "title": "图片倾斜矫正 (桌面版)",
+              "type": "iframe",
+              "file": "knowledge-base/image-skew-corrector.html",
+              "badge": "UI",
+              "download": "downloads/ImageSkewCorrector.exe",
+              "craft": "UI"
+            },
+            {
+              "id": "game-resource-toolkit",
+              "icon": "🛠️",
+              "title": "游戏资源工具集 (桌面版)",
+              "type": "iframe",
+              "file": "knowledge-base/game-resource-toolkit.html",
+              "badge": "UI",
+              "download": "downloads/GameResourceToolkit.exe",
+              "craft": "UI"
+            },
+            {
+              "id": "engine-bridge",
+              "icon": "🔌",
+              "title": "Engine Bridge 引擎直连",
+              "type": "iframe",
+              "file": "knowledge-base/engine-bridge.html",
+              "badge": "技术",
+              "craft": "技术"
+            }
           ]
         }
       ]
@@ -263,29 +685,69 @@
           "name": "风险管控",
           "icon": "⚠️",
           "items": [
-            { "id": "risk-log", "icon": "⚠️", "title": "项目风险登记册 (Risk Log) 规范", "type": "iframe", "file": "knowledge-base/risk-log.html", "badge": "管理", "craft": "管理" }
+            {
+              "id": "risk-log",
+              "icon": "⚠️",
+              "title": "项目风险登记册 (Risk Log) 规范",
+              "type": "iframe",
+              "file": "knowledge-base/risk-log.html",
+              "badge": "管理",
+              "craft": "管理"
+            }
           ]
         },
         {
           "name": "效能度量",
           "icon": "📊",
           "items": [
-            { "id": "art-efficiency-system", "icon": "📊", "title": "美术效能度量与标准化汇报体系", "type": "iframe", "file": "knowledge-base/art-report-template.html", "badge": "管理", "craft": "管理" }
+            {
+              "id": "art-efficiency-system",
+              "icon": "📊",
+              "title": "美术效能度量与标准化汇报体系",
+              "type": "iframe",
+              "file": "knowledge-base/art-report-template.html",
+              "badge": "管理",
+              "craft": "管理"
+            }
           ]
         },
         {
           "name": "资产安全与交接",
           "icon": "🔐",
           "items": [
-            { "id": "asset-security-handover", "icon": "🔐", "title": "美术资产防泄密与离职交接 SOP", "type": "iframe", "file": "knowledge-base/asset-security-handover.html", "badge": "管理", "craft": "管理" }
+            {
+              "id": "asset-security-handover",
+              "icon": "🔐",
+              "title": "美术资产防泄密与离职交接 SOP",
+              "type": "iframe",
+              "file": "knowledge-base/asset-security-handover.html",
+              "badge": "管理",
+              "craft": "管理"
+            }
           ]
         },
         {
           "name": "新人入职与成长",
           "icon": "🎓",
           "items": [
-            { "id": "onboarding-guide", "icon": "🎓", "title": "美术新人入职管线必读 (Onboarding)", "type": "iframe", "file": "knowledge-base/onboarding-guide.html", "badge": "管理", "craft": "管理" },
-            { "id": "permission-nav", "icon": "🔑", "title": "常用系统权限申请导航", "type": "iframe", "file": "knowledge-base/permission-nav.html", "badge": "管理", "craft": "管理" }
+            {
+              "id": "onboarding-guide",
+              "icon": "🎓",
+              "title": "美术新人入职管线必读 (Onboarding)",
+              "type": "iframe",
+              "file": "knowledge-base/onboarding-guide.html",
+              "badge": "管理",
+              "craft": "管理"
+            },
+            {
+              "id": "permission-nav",
+              "icon": "🔑",
+              "title": "常用系统权限申请导航",
+              "type": "iframe",
+              "file": "knowledge-base/permission-nav.html",
+              "badge": "管理",
+              "craft": "管理"
+            }
           ]
         }
       ]
@@ -301,21 +763,45 @@
           "name": "踩坑记录",
           "icon": "💣",
           "items": [
-            { "id": "project-pitfall-log", "icon": "💣", "title": "项目管理踩坑复盘（7大案例）", "type": "iframe", "file": "knowledge-base/project-pitfall-log.html", "badge": "案例", "craft": "管理" }
+            {
+              "id": "project-pitfall-log",
+              "icon": "💣",
+              "title": "项目管理踩坑复盘（7大案例）",
+              "type": "iframe",
+              "file": "knowledge-base/project-pitfall-log.html",
+              "badge": "案例",
+              "craft": "管理"
+            }
           ]
         },
         {
           "name": "事故排雷",
           "icon": "🚨",
           "items": [
-            { "id": "accident-troubleshoot", "icon": "🚨", "title": "典型事故排雷手册", "type": "iframe", "file": "knowledge-base/accident-troubleshoot.html", "badge": "案例", "craft": "通用" }
+            {
+              "id": "accident-troubleshoot",
+              "icon": "🚨",
+              "title": "典型事故排雷手册",
+              "type": "iframe",
+              "file": "knowledge-base/accident-troubleshoot.html",
+              "badge": "案例",
+              "craft": "通用"
+            }
           ]
         },
         {
           "name": "复盘模板",
           "icon": "📝",
           "items": [
-            { "id": "postmortem-template", "icon": "📝", "title": "版本研发复盘模板", "type": "iframe", "file": "knowledge-base/postmortem-template.html", "badge": "案例", "craft": "管理" }
+            {
+              "id": "postmortem-template",
+              "icon": "📝",
+              "title": "版本研发复盘模板",
+              "type": "iframe",
+              "file": "knowledge-base/postmortem-template.html",
+              "badge": "案例",
+              "craft": "管理"
+            }
           ]
         }
       ]
@@ -328,13 +814,60 @@
       "items": [],
       "groups": [
         {
+          "name": "文档",
+          "icon": "📄",
+          "items": [
+            {
+              "id": "测试",
+              "icon": "📝",
+              "title": "测试",
+              "type": "iframe",
+              "file": "knowledge-base/测试.html",
+              "badge": "笔记",
+              "craft": "管理"
+            }
+          ]
+        },
+        {
           "name": "实战模板",
           "icon": "📝",
           "items": [
-            { "id": "tmpl-project-postmortem", "icon": "🔄", "title": "项目复盘报告模板", "type": "iframe", "file": "knowledge-base/project-postmortem-template.html", "badge": "模板", "craft": "管理" },
-            { "id": "tmpl-weekly-report", "icon": "📊", "title": "项目周报模板", "type": "iframe", "file": "knowledge-base/weekly-report-template.html", "badge": "模板", "craft": "管理" },
-            { "id": "tmpl-decision-record", "icon": "⚖️", "title": "决策记录模板", "type": "iframe", "file": "knowledge-base/decision-record-template.html", "badge": "模板", "craft": "管理" },
-            { "id": "tmpl-meeting-notes", "icon": "📝", "title": "会议纪要模板", "type": "iframe", "file": "knowledge-base/meeting-notes-template.html", "badge": "模板", "craft": "管理" }
+            {
+              "id": "tmpl-project-postmortem",
+              "icon": "🔄",
+              "title": "项目复盘报告模板",
+              "type": "iframe",
+              "file": "knowledge-base/project-postmortem-template.html",
+              "badge": "模板",
+              "craft": "管理"
+            },
+            {
+              "id": "tmpl-weekly-report",
+              "icon": "📊",
+              "title": "项目周报模板",
+              "type": "iframe",
+              "file": "knowledge-base/weekly-report-template.html",
+              "badge": "模板",
+              "craft": "管理"
+            },
+            {
+              "id": "tmpl-decision-record",
+              "icon": "⚖️",
+              "title": "决策记录模板",
+              "type": "iframe",
+              "file": "knowledge-base/decision-record-template.html",
+              "badge": "模板",
+              "craft": "管理"
+            },
+            {
+              "id": "tmpl-meeting-notes",
+              "icon": "📝",
+              "title": "会议纪要模板",
+              "type": "iframe",
+              "file": "knowledge-base/meeting-notes-template.html",
+              "badge": "模板",
+              "craft": "管理"
+            }
           ]
         }
       ]
@@ -349,7 +882,15 @@
           "name": "使用指南",
           "icon": "✏️",
           "items": [
-            { "id": "editor-guide", "icon": "✏️", "title": "可视化编辑器使用指南", "type": "doc", "file": "knowledge-base/editor-guide.html", "badge": "系统", "craft": "通用" }
+            {
+              "id": "editor-guide",
+              "icon": "✏️",
+              "title": "可视化编辑器使用指南",
+              "type": "doc",
+              "file": "knowledge-base/editor-guide.html",
+              "badge": "系统",
+              "craft": "通用"
+            }
           ]
         }
       ]
