@@ -401,6 +401,31 @@ function buildSidebar(data){
   // 默认展开第一个分类（规范与常识）
   var firstCat = nav.querySelector('.t1');
   if(firstCat) expandTree(firstCat);
+
+  // 【Bug 3 修复】动态填充"文档存放目录"下拉列表，确保与侧边栏 100% 同步
+  populateCategorySelects(data);
+}
+
+// ═══ 【Bug 3 修复】动态填充分类下拉列表 ═══
+// 从 sidebar.json 数据遍历所有顶级分类，生成 <option>，确保与侧边栏 100% 同步
+function populateCategorySelects(data){
+  if(!data||!data.categories) return;
+  var optionsHtml='';
+  data.categories.forEach(function(cat){
+    var catEmoji=cat.icon||'📁';
+    var catName=cat.name.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]+\s*/u,'');
+    optionsHtml+='<option value="'+cat.id+'">'+catEmoji+' '+catName+'</option>';
+  });
+  // 填充创作模式中的分类选择下拉框
+  var editorCat=document.getElementById('editorCategory');
+  if(editorCat) editorCat.innerHTML=optionsHtml;
+  // 缓存选项 HTML 供发布弹窗动态使用
+  window._categoryOptionsHtml=optionsHtml;
+}
+
+// 获取动态分类选项 HTML（供发布弹窗使用）
+function getCategoryOptionsHtml(){
+  return window._categoryOptionsHtml||'<option value="mod-project">📋 项目管理与排期</option>';
 }
 
 // ═══ Core Navigation ═══
@@ -785,6 +810,11 @@ function initSearch(){
         renderHotCards();
         renderCardBadges();
         renderDashboard();
+        // 【Bug 2 修复】indexData 已就绪，补刷当前页面的 detailMetaBar
+        // 解决刷新页面时 indexData 尚未加载导致编辑按钮不显示的问题
+        if(curPage && curPage!=='home'){
+          updateDetailMetaBar(curPage);
+        }
       }, 300);
     });
   }catch(e){}
@@ -1284,8 +1314,61 @@ function htmlEmbedEnterEdit(){
   if(!frame) return;
   try{
     var win=frame.contentWindow;
-    if(win.enterEdit) win.enterEdit();
     var iDoc=frame.contentDocument||win.document;
+    if(typeof win.enterEdit==='function'){
+      // editor-kit.js 已正常加载，走原生 enterEdit
+      win.enterEdit();
+    } else {
+      // 【Bug 1 修复】blob URL 下 editor-kit.js 可能未加载成功
+      // 手动为 iframe 内容设置 contenteditable，使其可编辑
+      iDoc.body.classList.add('ek-editing');
+      // 对常见内容元素设置 contenteditable
+      var editableSelectors=[
+        '.doc-header h1','.doc-header .subtitle','.doc-header .meta',
+        '.doc-header .badge','.toc','.section','.doc-footer',
+        '.alert','.case-body','.case-head .title',
+        '.mine-body','.mine-head .title','.faq-q','.faq-a',
+        '.dd-do','.dd-dont','.step .st','.step .sd',
+        '.stat-chip','.qs-item','.flow-node',
+        '.header-info h1','.header-info p','.section-title',
+        'th','td',
+        // 通用：对常规页面中主要的文字容器也生效
+        'h1','h2','h3','h4','p','li','blockquote',
+        '.container','div.card','div.section','div.summary',
+        '.hero h1','.hero p','.card h3','.card p',
+        '.column-title','.task-title','.task-meta',
+        '.risk-card','.agenda-item','.quote',
+        '.decision-box','.action-box'
+      ];
+      editableSelectors.forEach(function(sel){
+        iDoc.querySelectorAll(sel).forEach(function(el){
+          if(el.closest('[contenteditable="true"]')&&el.closest('[contenteditable="true"]')!==el) return;
+          el.setAttribute('contenteditable','true');
+        });
+      });
+      // 如果上述选择器都未命中（模板结构不同），则对 body 直接设置 contenteditable
+      var editableCount=iDoc.querySelectorAll('[contenteditable="true"]').length;
+      if(editableCount===0){
+        iDoc.body.setAttribute('contenteditable','true');
+      }
+      // 图片双击替换支持
+      iDoc.querySelectorAll('img').forEach(function(img){
+        img.style.cursor='pointer';
+        img.style.outline='2px dashed rgba(108,140,255,.4)';
+        img.addEventListener('dblclick',function(e){
+          e.preventDefault();e.stopPropagation();
+          var inp=iDoc.createElement('input');inp.type='file';inp.accept='image/*';
+          inp.onchange=function(){
+            var file=inp.files[0];if(!file) return;
+            var reader=new FileReader();
+            reader.onload=function(ev){img.src=ev.target.result;};
+            reader.readAsDataURL(file);
+          };
+          inp.click();
+        });
+      });
+    }
+    // 隐藏 iframe 内部的 editor-kit UI（如果存在）
     var ekToolbar=iDoc.querySelector('.ek-toolbar');
     if(ekToolbar) ekToolbar.style.display='none';
     var ekBadge=iDoc.querySelector('.ek-editing-badge');
@@ -1391,12 +1474,7 @@ function htmlEmbedPublish(){
         +'<input type="text" id="htmplPubName" value="'+defaultName+'" placeholder="文件名（无需 .html 后缀）" style="width:100%;padding:10px 14px;background:#141620;border:1px solid #333657;border-radius:10px;color:#e8eaed;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box"></div>'
         +'<div><label style="color:#8b8fa3;font-size:12px;display:block;margin-bottom:4px">所属分类</label>'
         +'<select id="htmplPubCat" style="width:100%;padding:10px 14px;background:#141620;border:1px solid #333657;border-radius:10px;color:#e8eaed;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;cursor:pointer">'
-          +'<option value="mod-project">📋 项目管理与排期</option>'
-          +'<option value="mod-outsource">📦 外包全链路管理</option>'
-          +'<option value="mod-craft">🎨 美术工艺与规范</option>'
-          +'<option value="mod-collab">🤝 跨部门协同与交付</option>'
-          +'<option value="mod-toolchain">🛠️ 工具链与自动化</option>'
-          +'<option value="mod-quality">🛡️ 质量、风险与团队</option>'
+          +getCategoryOptionsHtml()
         +'</select></div>'
         +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:4px"><input type="checkbox" id="htmplPubSidebar" checked style="accent-color:#6c8cff"><span style="color:#8b8fa3;font-size:13px">同时在侧边栏注册文档条目</span></label>'
       +'</div>'
@@ -1708,12 +1786,7 @@ function htmlTmplPublish(){
         +'<input type="text" id="htmplPubName" value="'+defaultName+'" placeholder="文件名" style="width:100%;padding:10px 14px;background:#141620;border:1px solid #333657;border-radius:10px;color:#e8eaed;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box"></div>'
         +'<div><label style="color:#8b8fa3;font-size:12px;display:block;margin-bottom:4px">所属分类</label>'
         +'<select id="htmplPubCat" style="width:100%;padding:10px 14px;background:#141620;border:1px solid #333657;border-radius:10px;color:#e8eaed;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;cursor:pointer">'
-          +'<option value="mod-project">📋 项目管理与排期</option>'
-          +'<option value="mod-outsource">📦 外包全链路管理</option>'
-          +'<option value="mod-craft">🎨 美术工艺与规范</option>'
-          +'<option value="mod-collab">🤝 跨部门协同与交付</option>'
-          +'<option value="mod-toolchain">🛠️ 工具链与自动化</option>'
-          +'<option value="mod-quality">🛡️ 质量、风险与团队</option>'
+          +getCategoryOptionsHtml()
         +'</select></div>'
         +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:4px"><input type="checkbox" id="htmplPubSidebar" checked style="accent-color:#6c8cff"><span style="color:#8b8fa3;font-size:13px">同时在侧边栏注册文档条目</span></label>'
       +'</div>'
@@ -4047,8 +4120,12 @@ document.addEventListener('DOMContentLoaded', function(){
     initSearch();
     // 3. 处理 hash 路由
     setupScrollSpy();
+    // 【Bug 2 修复】先尝试导航到 hash 页面（侧边栏按钮/文档内容依赖 pageRegistry 已就绪）
+    // 但由于 indexData 尚在异步加载，detailMetaBar 可能缺失，需在 indexData 就绪后补刷
     var hash=location.hash.slice(1);
     if(hash) navigate(hash);
+    // 保存 hash 供 initSearch 回调后补刷 detailMetaBar
+    window._pendingHash=hash||'';
   }).catch(function(e){
     console.error('Failed to load sidebar.json:',e);
   });
