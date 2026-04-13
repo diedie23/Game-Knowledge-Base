@@ -495,6 +495,7 @@ function navigate(pageId,btn){
               +'<button class="ift-btn htmpl-btn-edit" onclick="htmlTmplEnterEdit()" title="进入编辑模式">✏️ 开始编辑</button>'
               +'<button class="ift-btn htmpl-btn-save" onclick="htmlTmplSave()" style="display:none" title="保存下载">💾 保存下载</button>'
               +'<button class="ift-btn htmpl-btn-saveas" onclick="htmlTmplSaveAs()" style="display:none" title="另存为">📄 另存为</button>'
+              +'<button class="ift-btn htmpl-btn-publish" onclick="htmlTmplPublish()" style="display:none" title="直接发布到 GitHub 仓库">🚀 发布到仓库</button>'
               +'<button class="ift-btn htmpl-btn-exit" onclick="htmlTmplExitEdit()" style="display:none" title="退出编辑">✖ 退出编辑</button>'
               +'<span class="htmpl-divider" style="display:none"></span>'
               +'<button class="ift-btn htmpl-btn-guide" onclick="htmlTmplShowGuide()" title="保存引导">❓ 如何上线</button>'
@@ -1106,14 +1107,19 @@ function openEditor(existingPageId){
 function closeEditor(){
   document.getElementById('editorPage').style.display='none';
   document.getElementById('contentScroll').style.display='block';
+  // 清理内嵌 HTML 编辑器（如果有）
+  var embedWrap=document.getElementById('htmlEditorEmbed');
+  if(embedWrap) embedWrap.style.display='none';
+  var vditorEl=document.getElementById('vditorContainer');
+  if(vditorEl) vditorEl.style.display='';
   navigate(curPage||'home');
 }
 
 function applyTemplate(key){
-  // HTML 模板处理 — 直接在页面内 iframe 中打开编辑
+  // HTML 模板处理 — 直接在创作模式的内容区内嵌编辑
   if(key && htmlTemplates[key]){
     var htmlContent=htmlTemplates[key];
-    openHtmlTemplateEditor(key, htmlContent);
+    openHtmlTemplateInEditor(key, htmlContent);
     document.getElementById('editorTemplate').value='';
     return;
   }
@@ -1133,6 +1139,330 @@ var htmlTemplateNames={
   'html-postmortem':'项目复盘报告','html-weekly':'项目周报','html-decision':'决策记录','html-meeting':'会议纪要'
 };
 
+// 从创作模式选择 HTML 模板时：在创作模式内嵌 iframe 编辑（不离开创作模式）
+function openHtmlTemplateInEditor(key, htmlContent){
+  var tmplName=htmlTemplateNames[key]||key;
+  var ep=document.getElementById('editorPage');
+  var vditorEl=document.getElementById('vditorContainer');
+
+  // 隐藏 Markdown 编辑器
+  vditorEl.style.display='none';
+
+  // 创建或复用内嵌的 HTML 编辑容器
+  var embedWrap=document.getElementById('htmlEditorEmbed');
+  if(!embedWrap){
+    embedWrap=document.createElement('div');
+    embedWrap.id='htmlEditorEmbed';
+    embedWrap.style.cssText='flex:1;display:flex;flex-direction:column;overflow:hidden;border-radius:8px;border:1px solid var(--border);margin:0 0 0;background:var(--bg);position:relative';
+    ep.appendChild(embedWrap);
+  }
+  embedWrap.style.display='flex';
+
+  // 构建内嵌工具栏 + iframe
+  embedWrap.innerHTML=
+    '<div class="htmpl-embed-toolbar" id="htmlEmbedToolbar">'
+      +'<div class="htmpl-embed-title"><span>📝</span> '+tmplName+'</div>'
+      +'<div class="htmpl-toolbar-actions">'
+        +'<button class="ift-btn htmpl-btn-edit" onclick="htmlEmbedEnterEdit()" title="进入编辑模式">✏️ 开始编辑</button>'
+        +'<button class="ift-btn htmpl-btn-save" onclick="htmlEmbedSave()" style="display:none" title="保存下载">💾 保存下载</button>'
+        +'<button class="ift-btn htmpl-btn-saveas" onclick="htmlEmbedSaveAs()" style="display:none" title="另存为">📄 另存为</button>'
+        +'<button class="ift-btn htmpl-btn-publish" onclick="htmlEmbedPublish()" style="display:none" title="直接发布到 GitHub 仓库">🚀 发布到仓库</button>'
+        +'<button class="ift-btn htmpl-btn-exit" onclick="htmlEmbedExitEdit()" style="display:none" title="退出编辑">✖ 退出编辑</button>'
+        +'<span class="htmpl-divider" style="display:none"></span>'
+        +'<button class="ift-btn htmpl-btn-back" onclick="htmlEmbedBackToMd()" title="返回 Markdown 编辑器">↩ 返回编辑器</button>'
+        +'<button class="ift-btn htmpl-btn-guide" onclick="htmlTmplShowGuide()" title="保存引导">❓ 如何上线</button>'
+      +'</div>'
+    +'</div>'
+    +'<iframe id="htmlEmbedFrame" style="flex:1;border:none;width:100%;background:#0d1117"></iframe>';
+
+  var frame=document.getElementById('htmlEmbedFrame');
+  var blob=new Blob([htmlContent],{type:'text/html;charset=utf-8'});
+  var blobUrl=URL.createObjectURL(blob);
+  frame.src=blobUrl;
+  embedWrap.dataset.tmplKey=key;
+
+  frame.onload=function(){
+    URL.revokeObjectURL(blobUrl);
+    try{
+      var iDoc=frame.contentDocument||frame.contentWindow.document;
+      var ekBtn=iDoc.querySelector('.ek-enter-btn');
+      if(ekBtn) ekBtn.style.display='none';
+    }catch(e){}
+    showToast('✅ 模板已加载，点击「✏️ 开始编辑」进行修改');
+  };
+}
+
+// 内嵌编辑：进入编辑模式
+function htmlEmbedEnterEdit(){
+  var frame=document.getElementById('htmlEmbedFrame');
+  if(!frame) return;
+  try{
+    var win=frame.contentWindow;
+    if(win.enterEdit) win.enterEdit();
+    var iDoc=frame.contentDocument||win.document;
+    var ekToolbar=iDoc.querySelector('.ek-toolbar');
+    if(ekToolbar) ekToolbar.style.display='none';
+    var ekBadge=iDoc.querySelector('.ek-editing-badge');
+    if(ekBadge) ekBadge.style.display='none';
+  }catch(e){
+    console.log('Cannot enter edit:',e);
+    showToast('⚠️ 无法进入编辑模式');
+    return;
+  }
+  var tb=document.getElementById('htmlEmbedToolbar');
+  tb.querySelector('.htmpl-btn-edit').style.display='none';
+  tb.querySelector('.htmpl-btn-save').style.display='';
+  tb.querySelector('.htmpl-btn-saveas').style.display='';
+  tb.querySelector('.htmpl-btn-publish').style.display='';
+  tb.querySelector('.htmpl-btn-exit').style.display='';
+  tb.querySelector('.htmpl-divider').style.display='';
+  showToast('✅ 已进入编辑模式，直接点击内容修改');
+}
+
+// 内嵌编辑：退出编辑模式
+function htmlEmbedExitEdit(){
+  var frame=document.getElementById('htmlEmbedFrame');
+  if(!frame) return;
+  try{
+    var iDoc=frame.contentDocument||frame.contentWindow.document;
+    iDoc.body.classList.remove('ek-editing');
+    iDoc.querySelectorAll('[contenteditable]').forEach(function(el){el.removeAttribute('contenteditable');});
+    iDoc.querySelectorAll('.ek-img-editable').forEach(function(el){el.classList.remove('ek-img-editable');});
+  }catch(e){}
+  var tb=document.getElementById('htmlEmbedToolbar');
+  tb.querySelector('.htmpl-btn-edit').style.display='';
+  tb.querySelector('.htmpl-btn-save').style.display='none';
+  tb.querySelector('.htmpl-btn-saveas').style.display='none';
+  tb.querySelector('.htmpl-btn-publish').style.display='none';
+  tb.querySelector('.htmpl-btn-exit').style.display='none';
+  tb.querySelector('.htmpl-divider').style.display='none';
+  showToast('已退出编辑模式');
+}
+
+// 内嵌编辑：保存下载
+function htmlEmbedSave(){
+  var frame=document.getElementById('htmlEmbedFrame');
+  var wrap=document.getElementById('htmlEditorEmbed');
+  var key=wrap?wrap.dataset.tmplKey:'document';
+  var tmplName=htmlTemplateNames[key]||key;
+  var fileName=tmplName.replace(/\s+/g,'-')+'.html';
+  try{
+    var iDoc=frame.contentDocument||frame.contentWindow.document;
+    var html=getCleanHtmlFromIframe(iDoc);
+    downloadHtmlStr(html, fileName);
+    showToast('✅ 已下载: '+fileName);
+  }catch(e){
+    showToast('⚠️ 保存失败: '+e.message);
+  }
+}
+
+// 内嵌编辑：另存为
+function htmlEmbedSaveAs(){
+  var wrap=document.getElementById('htmlEditorEmbed');
+  var key=wrap?wrap.dataset.tmplKey:'document';
+  var tmplName=htmlTemplateNames[key]||key;
+  var defaultName=tmplName.replace(/\s+/g,'-');
+  // 复用已有的 saveAs 弹窗逻辑
+  _showSaveAsDialog(defaultName, function(name){
+    var frame=document.getElementById('htmlEmbedFrame');
+    try{
+      var iDoc=frame.contentDocument||frame.contentWindow.document;
+      var html=getCleanHtmlFromIframe(iDoc);
+      downloadHtmlStr(html, name);
+      showToast('✅ 已下载: '+name);
+    }catch(e){
+      showToast('⚠️ 保存失败: '+e.message);
+    }
+  });
+}
+
+// 内嵌编辑：返回 Markdown 编辑器
+function htmlEmbedBackToMd(){
+  var embedWrap=document.getElementById('htmlEditorEmbed');
+  if(embedWrap) embedWrap.style.display='none';
+  var vditorEl=document.getElementById('vditorContainer');
+  vditorEl.style.display='';
+  showToast('已切换回 Markdown 编辑器');
+}
+
+// 内嵌编辑：发布到 GitHub 仓库
+function htmlEmbedPublish(){
+  var wrap=document.getElementById('htmlEditorEmbed');
+  var key=wrap?wrap.dataset.tmplKey:'document';
+  var tmplName=htmlTemplateNames[key]||key;
+  var defaultName=tmplName.replace(/\s+/g,'-');
+
+  // 创建发布弹窗
+  var overlay=document.createElement('div');
+  overlay.id='htmplPublishOverlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center';
+
+  var s=getGHSettings();
+  var hasToken=!!(s&&s.token);
+
+  overlay.innerHTML=
+    '<div style="background:#1a1d2b;border:1px solid #333657;border-radius:16px;padding:28px 32px;min-width:480px;max-width:90vw;box-shadow:0 12px 48px rgba(0,0,0,.6)">'
+      +'<h3 style="font-size:18px;color:#e8eaed;margin:0 0 16px">🚀 发布 HTML 文档到仓库</h3>'
+      +(hasToken?'':'<div style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);border-radius:10px;padding:12px 16px;margin-bottom:16px"><p style="color:#f87171;font-size:13px;margin:0">⚠️ 尚未配置 GitHub 密钥，请先在「⚙️ 设置」中配置后再发布</p></div>')
+      +'<div style="display:flex;flex-direction:column;gap:12px">'
+        +'<div><label style="color:#8b8fa3;font-size:12px;display:block;margin-bottom:4px">文件名</label>'
+        +'<input type="text" id="htmplPubName" value="'+defaultName+'" placeholder="文件名（无需 .html 后缀）" style="width:100%;padding:10px 14px;background:#141620;border:1px solid #333657;border-radius:10px;color:#e8eaed;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box"></div>'
+        +'<div><label style="color:#8b8fa3;font-size:12px;display:block;margin-bottom:4px">所属分类</label>'
+        +'<select id="htmplPubCat" style="width:100%;padding:10px 14px;background:#141620;border:1px solid #333657;border-radius:10px;color:#e8eaed;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;cursor:pointer">'
+          +'<option value="mod-project">📋 项目管理与排期</option>'
+          +'<option value="mod-outsource">📦 外包全链路管理</option>'
+          +'<option value="mod-craft">🎨 美术工艺与规范</option>'
+          +'<option value="mod-collab">🤝 跨部门协同与交付</option>'
+          +'<option value="mod-toolchain">🛠️ 工具链与自动化</option>'
+          +'<option value="mod-quality">🛡️ 质量、风险与团队</option>'
+        +'</select></div>'
+        +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:4px"><input type="checkbox" id="htmplPubSidebar" checked style="accent-color:#6c8cff"><span style="color:#8b8fa3;font-size:13px">同时在侧边栏注册文档条目</span></label>'
+      +'</div>'
+      +'<div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">'
+        +'<button id="htmplPubCancelBtn" style="padding:8px 16px;border-radius:10px;font-size:13px;cursor:pointer;border:1px solid #333657;background:transparent;color:#8b8fa3;font-family:inherit">取消</button>'
+        +'<button id="htmplPubConfirmBtn" style="padding:8px 20px;border-radius:10px;font-size:13px;cursor:pointer;border:none;background:linear-gradient(135deg,#6c8cff,#a78bfa);color:#fff;font-family:inherit;font-weight:600"'+(hasToken?'':' disabled style="padding:8px 20px;border-radius:10px;font-size:13px;cursor:not-allowed;border:none;background:#333;color:#666;font-family:inherit;font-weight:600"')+'>🚀 确认发布</button>'
+      +'</div>'
+    +'</div>';
+  document.body.appendChild(overlay);
+
+  setTimeout(function(){var inp=document.getElementById('htmplPubName');if(inp){inp.focus();inp.select();}},100);
+
+  document.getElementById('htmplPubCancelBtn').onclick=function(){ overlay.remove(); };
+  document.getElementById('htmplPubConfirmBtn').onclick=function(){ doHtmlEmbedPublish(overlay); };
+  overlay.addEventListener('keydown',function(e){
+    if(e.key==='Escape') overlay.remove();
+    if(e.key==='Enter'&&hasToken) doHtmlEmbedPublish(overlay);
+  });
+  overlay.addEventListener('click',function(e){if(e.target===overlay) overlay.remove();});
+}
+
+async function doHtmlEmbedPublish(overlay){
+  var nameEl=document.getElementById('htmplPubName');
+  var name=nameEl?nameEl.value.trim():'';
+  if(!name){showToast('⚠️ 请输入文件名');return;}
+  if(!name.endsWith('.html')) name+='.html';
+
+  var catEl=document.getElementById('htmplPubCat');
+  var catId=catEl?catEl.value:'mod-project';
+  var catName=catEl?catEl.options[catEl.selectedIndex].text:'项目管理与排期';
+  var updateSidebar=document.getElementById('htmplPubSidebar').checked;
+
+  var confirmBtn=document.getElementById('htmplPubConfirmBtn');
+  confirmBtn.textContent='⏳ 发布中...';confirmBtn.disabled=true;
+
+  var frame=document.getElementById('htmlEmbedFrame');
+  try{
+    var iDoc=frame.contentDocument||frame.contentWindow.document;
+    var html=getCleanHtmlFromIframe(iDoc);
+
+    var s=getGHSettings();
+    var repo=s.repo||'diedie23/Game-Knowledge-Base';
+    var branch=s.branch||'main';
+    var filePath='docs/knowledge-base/'+name;
+    var base='https://api.github.com/repos/'+repo+'/contents/';
+    var headers={'Authorization':'token '+s.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};
+
+    var body={message:'docs: 新增 HTML 文档 '+name,content:btoa(unescape(encodeURIComponent(html))),branch:branch};
+    try{
+      var exist=await fetch(base+filePath+'?ref='+branch,{headers:headers});
+      if(exist.ok){var ed=await exist.json();body.sha=ed.sha;body.message='docs: 更新 HTML 文档 '+name;}
+    }catch(e){}
+
+    var res=await fetch(base+filePath,{method:'PUT',headers:headers,body:JSON.stringify(body)});
+    if(!res.ok){
+      var err=await res.json();
+      throw new Error(err.message||'发布失败');
+    }
+
+    // 更新 sidebar.json
+    if(updateSidebar){
+      try{
+        var sbRes=await fetch(base+'docs/sidebar.json?ref='+branch,{headers:headers});
+        if(sbRes.ok){
+          var sbData=await sbRes.json();
+          var sbContent=JSON.parse(decodeURIComponent(escape(atob(sbData.content.replace(/\n/g,'')))));
+          var cat=sbContent.categories.find(function(c){return c.id===catId;});
+          if(cat){
+            var docGroup=cat.groups.find(function(g){return g.name==='文档';});
+            if(!docGroup){docGroup={name:'文档',icon:'📄',items:[]};cat.groups.unshift(docGroup);}
+            var docId=name.replace(/\.html$/,'').replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'-').toLowerCase();
+            var titleName=name.replace(/\.html$/,'');
+            if(!docGroup.items.find(function(i){return i.id===docId;})){
+              docGroup.items.push({id:docId,icon:'📝',title:titleName,type:'iframe',file:'knowledge-base/'+name,badge:'笔记',craft:'管理'});
+              var sbBody={message:'docs: 更新菜单 - 添加 '+titleName,content:btoa(unescape(encodeURIComponent(JSON.stringify(sbContent,null,2)))),sha:sbData.sha,branch:branch};
+              await fetch(base+'docs/sidebar.json',{method:'PUT',headers:headers,body:JSON.stringify(sbBody)});
+            }
+          }
+        }
+      }catch(e){console.log('sidebar update skipped:',e);}
+    }
+
+    overlay.remove();
+    showToast('🎉 发布成功！文件已上传到 knowledge-base/'+name);
+
+    // 刷新侧边栏
+    if(updateSidebar&&sidebarData){
+      var cat=sidebarData.categories.find(function(c){return c.id===catId;});
+      if(cat){
+        var docGroup=cat.groups.find(function(g){return g.name==='文档';});
+        if(!docGroup){docGroup={name:'文档',icon:'📄',items:[]};cat.groups.unshift(docGroup);}
+        var docId=name.replace(/\.html$/,'').replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'-').toLowerCase();
+        var titleName=name.replace(/\.html$/,'');
+        if(!docGroup.items.find(function(i){return i.id===docId;})){
+          docGroup.items.push({id:docId,icon:'📝',title:titleName,type:'iframe',file:'knowledge-base/'+name,badge:'笔记',craft:'管理'});
+        }
+        buildSidebar(sidebarData);
+      }
+    }
+  }catch(e){
+    showToast('❌ 发布失败: '+e.message);
+  }finally{
+    confirmBtn.textContent='🚀 确认发布';confirmBtn.disabled=false;
+  }
+}
+
+// 通用：另存为弹窗
+function _showSaveAsDialog(defaultName, onConfirm){
+  var overlay=document.createElement('div');
+  overlay.id='htmplSaveAsOverlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML=
+    '<div style="background:#1a1d2b;border:1px solid #333657;border-radius:16px;padding:28px 32px;min-width:420px;max-width:90vw;box-shadow:0 12px 48px rgba(0,0,0,.6)">'
+      +'<h3 style="font-size:18px;color:#e8eaed;margin:0 0 4px">📄 另存为新文档</h3>'
+      +'<p style="font-size:13px;color:#8b8fa3;margin:8px 0 16px">输入文件名（无需 .html 后缀），保存后文件将下载到本地</p>'
+      +'<input type="text" id="htmplNewName" value="'+defaultName+'" placeholder="例如：11月项目复盘" style="width:100%;padding:10px 14px;background:#141620;border:1px solid #333657;border-radius:10px;color:#e8eaed;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box">'
+      +'<p style="font-size:12px;color:#6c8cff;margin:12px 0 0;line-height:1.6">💡 建议保存后将文件放入 <code style="background:rgba(108,140,255,.12);padding:2px 6px;border-radius:4px">knowledge-base</code> 目录</p>'
+      +'<div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">'
+        +'<button id="htmplSaveAsCancelBtn" style="padding:8px 16px;border-radius:10px;font-size:13px;cursor:pointer;border:1px solid #333657;background:transparent;color:#8b8fa3;font-family:inherit">取消</button>'
+        +'<button id="htmplSaveAsConfirmBtn" style="padding:8px 16px;border-radius:10px;font-size:13px;cursor:pointer;border:none;background:#6c8cff;color:#fff;font-family:inherit;font-weight:500">💾 确认保存</button>'
+      +'</div>'
+    +'</div>';
+  document.body.appendChild(overlay);
+
+  var cancelBtn=document.getElementById('htmplSaveAsCancelBtn');
+  var confirmBtn=document.getElementById('htmplSaveAsConfirmBtn');
+  cancelBtn.onclick=function(){ overlay.remove(); };
+  confirmBtn.onclick=function(){
+    var nameEl=document.getElementById('htmplNewName');
+    var name=nameEl?nameEl.value.trim():'';
+    if(!name){showToast('⚠️ 请输入文件名');return;}
+    if(!name.endsWith('.html')) name+='.html';
+    overlay.remove();
+    onConfirm(name);
+  };
+
+  setTimeout(function(){
+    var inp=document.getElementById('htmplNewName');
+    if(inp){inp.focus();inp.select();}
+  },100);
+  overlay.addEventListener('keydown',function(e){
+    if(e.key==='Escape') overlay.remove();
+    if(e.key==='Enter') confirmBtn.click();
+  });
+  overlay.addEventListener('click',function(e){if(e.target===overlay) overlay.remove();});
+}
+
+// 从首页/侧边栏打开 HTML 模板时：用全页 iframe 编辑
 function openHtmlTemplateEditor(key, htmlContent){
   // 关闭创作模式（如果在创作模式下）
   closeEditor();
@@ -1160,6 +1490,7 @@ function openHtmlTemplateEditor(key, htmlContent){
       +'<button class="ift-btn htmpl-btn-edit" onclick="htmlTmplEnterEdit()" title="进入编辑模式">✏️ 开始编辑</button>'
       +'<button class="ift-btn htmpl-btn-save" onclick="htmlTmplSave()" style="display:none" title="保存下载">💾 保存下载</button>'
       +'<button class="ift-btn htmpl-btn-saveas" onclick="htmlTmplSaveAs()" style="display:none" title="另存为">📄 另存为</button>'
+      +'<button class="ift-btn htmpl-btn-publish" onclick="htmlTmplPublish()" style="display:none" title="直接发布到 GitHub 仓库">🚀 发布到仓库</button>'
       +'<button class="ift-btn htmpl-btn-exit" onclick="htmlTmplExitEdit()" style="display:none" title="退出编辑">✖ 退出编辑</button>'
       +'<span class="htmpl-divider" style="display:none"></span>'
       +'<button class="ift-btn htmpl-btn-guide" onclick="htmlTmplShowGuide()" title="保存引导">❓ 如何上线</button>'
@@ -1203,6 +1534,8 @@ function htmlTmplEnterEdit(){
   tb.querySelector('.htmpl-btn-edit').style.display='none';
   tb.querySelector('.htmpl-btn-save').style.display='';
   tb.querySelector('.htmpl-btn-saveas').style.display='';
+  var pubBtn=tb.querySelector('.htmpl-btn-publish');
+  if(pubBtn) pubBtn.style.display='';
   tb.querySelector('.htmpl-btn-exit').style.display='';
   tb.querySelector('.htmpl-divider').style.display='';
   showToast('✅ 已进入编辑模式，直接点击内容修改');
@@ -1222,6 +1555,8 @@ function htmlTmplExitEdit(){
   tb.querySelector('.htmpl-btn-edit').style.display='';
   tb.querySelector('.htmpl-btn-save').style.display='none';
   tb.querySelector('.htmpl-btn-saveas').style.display='none';
+  var pubBtn=tb.querySelector('.htmpl-btn-publish');
+  if(pubBtn) pubBtn.style.display='none';
   tb.querySelector('.htmpl-btn-exit').style.display='none';
   tb.querySelector('.htmpl-divider').style.display='none';
   showToast('已退出编辑模式');
@@ -1244,56 +1579,148 @@ function htmlTmplSave(){
   }
 }
 
-// 另存为
+// 另存为（全页 iframe 版）
 function htmlTmplSaveAs(){
-  var frame=document.getElementById('contentFrame');
+  var key=document.getElementById('iframeToolbar').dataset.tmplKey||'document';
+  var tmplName=htmlTemplateNames[key]||key;
+  var defaultName=tmplName.replace(/\s+/g,'-');
+  _showSaveAsDialog(defaultName, function(name){
+    var frame=document.getElementById('contentFrame');
+    try{
+      var iDoc=frame.contentDocument||frame.contentWindow.document;
+      var html=getCleanHtmlFromIframe(iDoc);
+      downloadHtmlStr(html, name);
+      showToast('✅ 已下载: '+name);
+    }catch(e){
+      showToast('⚠️ 保存失败: '+e.message);
+    }
+  });
+}
+
+// 发布到仓库（全页 iframe 版）— 复用 htmlEmbedPublish 的弹窗逻辑
+function htmlTmplPublish(){
+  // 临时把 iframe 来源指向 contentFrame
   var key=document.getElementById('iframeToolbar').dataset.tmplKey||'document';
   var tmplName=htmlTemplateNames[key]||key;
   var defaultName=tmplName.replace(/\s+/g,'-');
 
-  // 创建模态弹窗
   var overlay=document.createElement('div');
-  overlay.id='htmplSaveAsOverlay';
+  overlay.id='htmplPublishOverlay';
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center';
+
+  var s=getGHSettings();
+  var hasToken=!!(s&&s.token);
+
   overlay.innerHTML=
-    '<div style="background:#1a1d2b;border:1px solid #333657;border-radius:16px;padding:28px 32px;min-width:420px;max-width:90vw;box-shadow:0 12px 48px rgba(0,0,0,.6)">'
-      +'<h3 style="font-size:18px;color:#e8eaed;margin:0 0 4px">📄 另存为新文档</h3>'
-      +'<p style="font-size:13px;color:#8b8fa3;margin:8px 0 16px">输入文件名（无需 .html 后缀），保存后文件将下载到本地</p>'
-      +'<input type="text" id="htmplNewName" value="'+defaultName+'" placeholder="例如：11月项目复盘" style="width:100%;padding:10px 14px;background:#141620;border:1px solid #333657;border-radius:10px;color:#e8eaed;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box">'
-      +'<p style="font-size:12px;color:#6c8cff;margin:12px 0 0;line-height:1.6">💡 建议保存后将文件放入 <code style="background:rgba(108,140,255,.12);padding:2px 6px;border-radius:4px">knowledge-base</code> 目录</p>'
+    '<div style="background:#1a1d2b;border:1px solid #333657;border-radius:16px;padding:28px 32px;min-width:480px;max-width:90vw;box-shadow:0 12px 48px rgba(0,0,0,.6)">'
+      +'<h3 style="font-size:18px;color:#e8eaed;margin:0 0 16px">🚀 发布 HTML 文档到仓库</h3>'
+      +(hasToken?'':'<div style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);border-radius:10px;padding:12px 16px;margin-bottom:16px"><p style="color:#f87171;font-size:13px;margin:0">⚠️ 尚未配置 GitHub 密钥，请先在「⚙️ 设置」中配置后再发布</p></div>')
+      +'<div style="display:flex;flex-direction:column;gap:12px">'
+        +'<div><label style="color:#8b8fa3;font-size:12px;display:block;margin-bottom:4px">文件名</label>'
+        +'<input type="text" id="htmplPubName" value="'+defaultName+'" placeholder="文件名" style="width:100%;padding:10px 14px;background:#141620;border:1px solid #333657;border-radius:10px;color:#e8eaed;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box"></div>'
+        +'<div><label style="color:#8b8fa3;font-size:12px;display:block;margin-bottom:4px">所属分类</label>'
+        +'<select id="htmplPubCat" style="width:100%;padding:10px 14px;background:#141620;border:1px solid #333657;border-radius:10px;color:#e8eaed;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;cursor:pointer">'
+          +'<option value="mod-project">📋 项目管理与排期</option>'
+          +'<option value="mod-outsource">📦 外包全链路管理</option>'
+          +'<option value="mod-craft">🎨 美术工艺与规范</option>'
+          +'<option value="mod-collab">🤝 跨部门协同与交付</option>'
+          +'<option value="mod-toolchain">🛠️ 工具链与自动化</option>'
+          +'<option value="mod-quality">🛡️ 质量、风险与团队</option>'
+        +'</select></div>'
+        +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:4px"><input type="checkbox" id="htmplPubSidebar" checked style="accent-color:#6c8cff"><span style="color:#8b8fa3;font-size:13px">同时在侧边栏注册文档条目</span></label>'
+      +'</div>'
       +'<div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">'
-        +'<button onclick="document.getElementById(\'htmplSaveAsOverlay\').remove()" style="padding:8px 16px;border-radius:10px;font-size:13px;cursor:pointer;border:1px solid #333657;background:transparent;color:#8b8fa3;font-family:inherit">取消</button>'
-        +'<button onclick="htmlTmplDoSaveAs()" style="padding:8px 16px;border-radius:10px;font-size:13px;cursor:pointer;border:none;background:#6c8cff;color:#fff;font-family:inherit;font-weight:500">💾 确认保存</button>'
+        +'<button id="htmplPubCancelBtn" style="padding:8px 16px;border-radius:10px;font-size:13px;cursor:pointer;border:1px solid #333657;background:transparent;color:#8b8fa3;font-family:inherit">取消</button>'
+        +'<button id="htmplPubConfirmBtn" style="padding:8px 20px;border-radius:10px;font-size:13px;cursor:pointer;border:none;background:linear-gradient(135deg,#6c8cff,#a78bfa);color:#fff;font-family:inherit;font-weight:600"'+(hasToken?'':' disabled')+'>🚀 确认发布</button>'
       +'</div>'
     +'</div>';
   document.body.appendChild(overlay);
-  setTimeout(function(){document.getElementById('htmplNewName').focus();document.getElementById('htmplNewName').select();},100);
+  setTimeout(function(){var inp=document.getElementById('htmplPubName');if(inp){inp.focus();inp.select();}},100);
 
-  // ESC 关闭
+  document.getElementById('htmplPubCancelBtn').onclick=function(){ overlay.remove(); };
+  document.getElementById('htmplPubConfirmBtn').onclick=function(){ doHtmlTmplPublish(overlay); };
   overlay.addEventListener('keydown',function(e){
     if(e.key==='Escape') overlay.remove();
-    if(e.key==='Enter') htmlTmplDoSaveAs();
+    if(e.key==='Enter'&&hasToken) doHtmlTmplPublish(overlay);
   });
+  overlay.addEventListener('click',function(e){if(e.target===overlay) overlay.remove();});
 }
 
-function htmlTmplDoSaveAs(){
-  var nameEl=document.getElementById('htmplNewName');
-  if(!nameEl) return;
-  var name=nameEl.value.trim();
+async function doHtmlTmplPublish(overlay){
+  var nameEl=document.getElementById('htmplPubName');
+  var name=nameEl?nameEl.value.trim():'';
   if(!name){showToast('⚠️ 请输入文件名');return;}
   if(!name.endsWith('.html')) name+='.html';
 
-  var overlay=document.getElementById('htmplSaveAsOverlay');
-  if(overlay) overlay.remove();
+  var catEl=document.getElementById('htmplPubCat');
+  var catId=catEl?catEl.value:'mod-project';
+  var updateSidebar=document.getElementById('htmplPubSidebar').checked;
+
+  var confirmBtn=document.getElementById('htmplPubConfirmBtn');
+  confirmBtn.textContent='⏳ 发布中...';confirmBtn.disabled=true;
 
   var frame=document.getElementById('contentFrame');
   try{
     var iDoc=frame.contentDocument||frame.contentWindow.document;
     var html=getCleanHtmlFromIframe(iDoc);
-    downloadHtmlStr(html, name);
-    showToast('✅ 已下载: '+name);
+
+    var s=getGHSettings();
+    var repo=s.repo||'diedie23/Game-Knowledge-Base';
+    var branch=s.branch||'main';
+    var filePath='docs/knowledge-base/'+name;
+    var base='https://api.github.com/repos/'+repo+'/contents/';
+    var headers={'Authorization':'token '+s.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};
+
+    var body={message:'docs: 新增 HTML 文档 '+name,content:btoa(unescape(encodeURIComponent(html))),branch:branch};
+    try{
+      var exist=await fetch(base+filePath+'?ref='+branch,{headers:headers});
+      if(exist.ok){var ed=await exist.json();body.sha=ed.sha;body.message='docs: 更新 HTML 文档 '+name;}
+    }catch(e){}
+
+    var res=await fetch(base+filePath,{method:'PUT',headers:headers,body:JSON.stringify(body)});
+    if(!res.ok){var err=await res.json();throw new Error(err.message||'发布失败');}
+
+    if(updateSidebar){
+      try{
+        var sbRes=await fetch(base+'docs/sidebar.json?ref='+branch,{headers:headers});
+        if(sbRes.ok){
+          var sbData=await sbRes.json();
+          var sbContent=JSON.parse(decodeURIComponent(escape(atob(sbData.content.replace(/\n/g,'')))));
+          var cat=sbContent.categories.find(function(c){return c.id===catId;});
+          if(cat){
+            var docGroup=cat.groups.find(function(g){return g.name==='文档';});
+            if(!docGroup){docGroup={name:'文档',icon:'📄',items:[]};cat.groups.unshift(docGroup);}
+            var docId=name.replace(/\.html$/,'').replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'-').toLowerCase();
+            var titleName=name.replace(/\.html$/,'');
+            if(!docGroup.items.find(function(i){return i.id===docId;})){
+              docGroup.items.push({id:docId,icon:'📝',title:titleName,type:'iframe',file:'knowledge-base/'+name,badge:'笔记',craft:'管理'});
+              var sbBody={message:'docs: 更新菜单 - 添加 '+titleName,content:btoa(unescape(encodeURIComponent(JSON.stringify(sbContent,null,2)))),sha:sbData.sha,branch:branch};
+              await fetch(base+'docs/sidebar.json',{method:'PUT',headers:headers,body:JSON.stringify(sbBody)});
+            }
+          }
+        }
+      }catch(e){console.log('sidebar update skipped:',e);}
+    }
+
+    overlay.remove();
+    showToast('🎉 发布成功！');
+    if(updateSidebar&&sidebarData){
+      var cat=sidebarData.categories.find(function(c){return c.id===catId;});
+      if(cat){
+        var docGroup=cat.groups.find(function(g){return g.name==='文档';});
+        if(!docGroup){docGroup={name:'文档',icon:'📄',items:[]};cat.groups.unshift(docGroup);}
+        var docId=name.replace(/\.html$/,'').replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'-').toLowerCase();
+        var titleName=name.replace(/\.html$/,'');
+        if(!docGroup.items.find(function(i){return i.id===docId;})){
+          docGroup.items.push({id:docId,icon:'📝',title:titleName,type:'iframe',file:'knowledge-base/'+name,badge:'笔记',craft:'管理'});
+        }
+        buildSidebar(sidebarData);
+      }
+    }
   }catch(e){
-    showToast('⚠️ 保存失败: '+e.message);
+    showToast('❌ 发布失败: '+e.message);
+  }finally{
+    confirmBtn.textContent='🚀 确认发布';confirmBtn.disabled=false;
   }
 }
 
@@ -2783,50 +3210,39 @@ function toggleSidebarCollapse(){
   var sidebar=document.querySelector('.sidebar');
   var main=document.querySelector('.main');
   var btn=document.getElementById('sidebarCollapseBtn');
-  var expandBtn=document.getElementById('sidebarExpandBtn');
   if(!sidebar||!main) return;
   sidebarCollapsed=!sidebarCollapsed;
   if(sidebarCollapsed){
     sidebar.classList.add('sidebar-collapsed');
     main.classList.add('main-expanded');
-    if(btn) btn.innerHTML='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    if(btn) btn.title='展开侧边栏';
-    // 显示独立的展开按钮（在 main 区域左上角）
-    if(expandBtn) expandBtn.style.display='flex';
+    if(btn){
+      btn.innerHTML='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      btn.title='展开侧边栏';
+      btn.classList.add('sidebar-toggle-collapsed');
+    }
   } else {
     sidebar.classList.remove('sidebar-collapsed');
     main.classList.remove('main-expanded');
-    if(btn) btn.innerHTML='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    if(btn) btn.title='收起侧边栏';
-    // 隐藏独立的展开按钮
-    if(expandBtn) expandBtn.style.display='none';
+    if(btn){
+      btn.innerHTML='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      btn.title='收起侧边栏';
+      btn.classList.remove('sidebar-toggle-collapsed');
+    }
   }
 }
 function injectSidebarToggle(){
-  var header=document.querySelector('.sidebar-header');
-  if(!header) return;
-  // 侧边栏内部的折叠按钮（在侧边栏右边缘）
+  // 创建一个始终固定在侧边栏右边缘、垂直居中的收起/展开按钮
+  var sidebar=document.querySelector('.sidebar');
+  if(!sidebar) return;
+
   var btn=document.createElement('button');
   btn.id='sidebarCollapseBtn';
-  btn.className='sidebar-collapse-btn';
+  btn.className='sidebar-toggle-fixed';
   btn.title='收起侧边栏';
   btn.innerHTML='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   btn.onclick=toggleSidebarCollapse;
-  header.style.position='relative';
-  header.appendChild(btn);
-
-  // main 区域的独立展开按钮（侧边栏折叠后用来恢复展开）
-  var mainArea=document.getElementById('mainArea');
-  if(mainArea){
-    var expandBtn=document.createElement('button');
-    expandBtn.id='sidebarExpandBtn';
-    expandBtn.className='sidebar-expand-btn';
-    expandBtn.title='展开侧边栏';
-    expandBtn.innerHTML='☰';
-    expandBtn.style.display='none'; // 默认隐藏
-    expandBtn.onclick=toggleSidebarCollapse;
-    mainArea.appendChild(expandBtn);
-  }
+  // 按钮挂在 body 上，用 fixed 定位，不受 sidebar 滚动影响
+  document.body.appendChild(btn);
 }
 
 // ═══ 优化E：面包屑导航 — 点击分类/分组跳回首页并展开对应目录 ═══

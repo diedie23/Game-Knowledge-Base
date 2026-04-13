@@ -240,6 +240,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .htmpl-btn-exit:hover{background:rgba(248,113,113,.18)!important}
 .htmpl-btn-guide{background:rgba(251,191,36,.08)!important;color:#fbbf24!important;border-color:rgba(251,191,36,.2)!important}
 .htmpl-btn-guide:hover{background:rgba(251,191,36,.18)!important}
+.htmpl-btn-publish{background:linear-gradient(135deg,rgba(108,140,255,.12),rgba(167,139,250,.12))!important;color:#a78bfa!important;border-color:rgba(167,139,250,.25)!important;font-weight:600!important}
+.htmpl-btn-publish:hover{background:linear-gradient(135deg,rgba(108,140,255,.22),rgba(167,139,250,.22))!important}
+
+/* ═══ 创作模式内嵌 HTML 编辑器 ═══ */
+.htmpl-embed-toolbar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:var(--card-bg);border-bottom:1px solid var(--border);gap:12px;flex-shrink:0}
+.htmpl-embed-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--heading);white-space:nowrap}
+.htmpl-btn-back{background:rgba(139,143,163,.08)!important;color:var(--dim)!important;border-color:var(--border)!important}
+.htmpl-btn-back:hover{background:rgba(139,143,163,.18)!important;color:var(--text)!important}
 
 .content-scroll{flex:1;overflow-y:auto;scroll-behavior:smooth}
 
@@ -781,7 +789,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   .dash-milestone{grid-column:1/-1;border-right:none;border-bottom:1px solid var(--border)}
   .dash-budget{border-right:1px solid var(--border)}
 }
-@media(max-width:768px){.sidebar{position:fixed;left:-320px;z-index:99;transition:left .3s}.sidebar.open{left:0}.menu-toggle{display:block}.doc-page{padding:24px 20px 60px}.tool-page,.home{padding:24px 20px;padding-top:56px}.home-hero h1{font-size:28px}.stats-bar{grid-template-columns:1fr;gap:10px}.stats-bar-4{grid-template-columns:repeat(2,1fr)}.stats-bar-5{grid-template-columns:repeat(2,1fr)}.stats-bar-6{grid-template-columns:repeat(3,1fr)}.home-grid{grid-template-columns:1fr}.tool-embed-frame{height:60vh;min-height:350px}.module-section{padding:18px 16px}.module-header{flex-wrap:wrap;gap:12px}.module-weight{display:none}.home-ratio-bar{max-width:100%}.breadcrumb-bar{padding:10px 16px 0}.breadcrumb{font-size:12px;padding:6px 10px}.tag-filter-bar{padding:6px 16px;flex-wrap:wrap;gap:6px}.doc-meta-bar{gap:10px;padding:10px 0}.interaction-placeholder,.doc-interaction-placeholder{margin-top:24px}.hot-section{padding:16px}.hot-card{min-width:180px;max-width:220px}.card-copy-btn{opacity:.5}.role-cards{grid-template-columns:1fr}.role-explore-header{flex-wrap:wrap}.role-view-bar{padding:10px 14px;gap:10px}.role-view-bar-left{gap:8px}.role-view-exit{padding:7px 14px;font-size:13px}.rv-doc-item{padding:12px 14px;gap:10px}.rv-doc-icon{width:36px;height:36px;font-size:18px}.rv-doc-title{font-size:14px}.rv-doc-desc{font-size:12px}.mermaid-section-header{flex-direction:column;align-items:flex-start}.mermaid-tabs{width:100%}.readme-overview .readme-section div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}.readme-overview .readme-section div[style*="grid-template-columns:repeat(4"]{grid-template-columns:repeat(2,1fr)!important}}
+@media(max-width:768px){.sidebar{position:fixed;left:-320px;z-index:99;transition:left .3s}.sidebar.open{left:0}.menu-toggle{display:block}.sidebar-toggle-fixed{display:none!important}.doc-page{padding:24px 20px 60px}.tool-page,.home{padding:24px 20px;padding-top:56px}.home-hero h1{font-size:28px}.stats-bar{grid-template-columns:1fr;gap:10px}.stats-bar-4{grid-template-columns:repeat(2,1fr)}.stats-bar-5{grid-template-columns:repeat(2,1fr)}.stats-bar-6{grid-template-columns:repeat(3,1fr)}.home-grid{grid-template-columns:1fr}.tool-embed-frame{height:60vh;min-height:350px}.module-section{padding:18px 16px}.module-header{flex-wrap:wrap;gap:12px}.module-weight{display:none}.home-ratio-bar{max-width:100%}.breadcrumb-bar{padding:10px 16px 0}.breadcrumb{font-size:12px;padding:6px 10px}.tag-filter-bar{padding:6px 16px;flex-wrap:wrap;gap:6px}.doc-meta-bar{gap:10px;padding:10px 0}.interaction-placeholder,.doc-interaction-placeholder{margin-top:24px}.hot-section{padding:16px}.hot-card{min-width:180px;max-width:220px}.card-copy-btn{opacity:.5}.role-cards{grid-template-columns:1fr}.role-explore-header{flex-wrap:wrap}.role-view-bar{padding:10px 14px;gap:10px}.role-view-bar-left{gap:8px}.role-view-exit{padding:7px 14px;font-size:13px}.rv-doc-item{padding:12px 14px;gap:10px}.rv-doc-icon{width:36px;height:36px;font-size:18px}.rv-doc-title{font-size:14px}.rv-doc-desc{font-size:12px}.mermaid-section-header{flex-direction:column;align-items:flex-start}.mermaid-tabs{width:100%}.readme-overview .readme-section div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}.readme-overview .readme-section div[style*="grid-template-columns:repeat(4"]{grid-template-columns:repeat(2,1fr)!important}}
 @media(max-width:600px){
   .dashboard-grid{grid-template-columns:1fr}
   .dash-col{border-right:none;border-bottom:1px solid var(--border)}
@@ -804,15 +812,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .lb-hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.45);font-size:12px;pointer-events:none;letter-spacing:.5px}
 
 /* ═══ 优化C：侧边栏折叠 / 沉浸式阅读模式 ═══ */
-.sidebar-collapse-btn{position:absolute;top:50%;right:-12px;transform:translateY(-50%);width:24px;height:48px;background:var(--card-bg);border:1px solid var(--border);border-radius:0 8px 8px 0;color:var(--dim);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:11;transition:all .2s;padding:0}
-.sidebar-collapse-btn:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-bg)}
+/* 统一的收起/展开按钮 — fixed 定位，始终在侧边栏右边缘垂直居中 */
+.sidebar-toggle-fixed{position:fixed;top:50%;left:308px;transform:translateY(-50%);width:24px;height:48px;background:var(--card-bg);border:1px solid var(--border);border-radius:0 8px 8px 0;color:var(--dim);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:100;transition:left .35s cubic-bezier(.4,0,.2,1),background .2s,color .2s,border-color .2s,box-shadow .2s;padding:0;box-shadow:2px 0 8px rgba(0,0,0,.15)}
+.sidebar-toggle-fixed:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-bg);box-shadow:2px 0 16px rgba(108,140,255,.2)}
+/* 折叠后：按钮紧贴左边 */
+.sidebar-toggle-fixed.sidebar-toggle-collapsed{left:0;border-radius:0 8px 8px 0;box-shadow:2px 0 12px rgba(0,0,0,.3)}
+.sidebar-toggle-fixed.sidebar-toggle-collapsed:hover{box-shadow:2px 0 20px rgba(108,140,255,.3)}
 .sidebar.sidebar-collapsed{width:0;min-width:0;overflow:hidden;border-right:none;transition:width .35s cubic-bezier(.4,0,.2,1),min-width .35s cubic-bezier(.4,0,.2,1)}
 .sidebar:not(.sidebar-collapsed){transition:width .35s cubic-bezier(.4,0,.2,1),min-width .35s cubic-bezier(.4,0,.2,1)}
 .main.main-expanded{transition:flex .35s cubic-bezier(.4,0,.2,1)}
-
-/* 侧边栏折叠后的独立展开按钮（悬浮在 main 区域左上角）*/
-.sidebar-expand-btn{position:absolute;top:14px;left:14px;z-index:100;width:40px;height:40px;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;color:var(--dim);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;transition:all .25s;box-shadow:0 4px 16px rgba(0,0,0,.3);padding:0}
-.sidebar-expand-btn:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-bg);transform:scale(1.08);box-shadow:0 6px 24px rgba(108,140,255,.25)}
 
 /* ═══ 优化D：锚点跳转防遮挡 + 平滑滚动 ═══ */
 .content-scroll{scroll-behavior:smooth}
