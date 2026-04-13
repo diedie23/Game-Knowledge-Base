@@ -479,11 +479,45 @@ function navigate(pageId,btn){
       } else {
         frame.style.display='block';
         frame.src=reg.file;
+
+        // 判断是否为可编辑的 HTML 模板（文件在 knowledge-base 目录下的 .html）
+        var isEditableTemplate=reg.file && reg.file.indexOf('knowledge-base/')!==-1 && reg.file.endsWith('.html');
+
+        if(isEditableTemplate && !reg.download){
+          // 为 HTML 模板文档显示编辑工具栏
+          var tmplTitle=btn?btn.textContent.trim():(pageId);
+          var meta0=getItemMeta(pageId);
+          if(meta0&&meta0.title) tmplTitle=meta0.title;
+          var iftb=document.getElementById('iframeToolbar');
+          iftb.innerHTML=
+            '<div class="ift-title"><span class="ift-icon">📝</span>'+tmplTitle+'</div>'
+            +'<div class="htmpl-toolbar-actions">'
+              +'<button class="ift-btn htmpl-btn-edit" onclick="htmlTmplEnterEdit()" title="进入编辑模式">✏️ 开始编辑</button>'
+              +'<button class="ift-btn htmpl-btn-save" onclick="htmlTmplSave()" style="display:none" title="保存下载">💾 保存下载</button>'
+              +'<button class="ift-btn htmpl-btn-saveas" onclick="htmlTmplSaveAs()" style="display:none" title="另存为">📄 另存为</button>'
+              +'<button class="ift-btn htmpl-btn-exit" onclick="htmlTmplExitEdit()" style="display:none" title="退出编辑">✖ 退出编辑</button>'
+              +'<span class="htmpl-divider" style="display:none"></span>'
+              +'<button class="ift-btn htmpl-btn-guide" onclick="htmlTmplShowGuide()" title="保存引导">❓ 如何上线</button>'
+            +'</div>';
+          iftb.style.display='flex';
+          iftb.dataset.tmplKey=pageId;
+        }
+
         frame.onload=function(){
           hideLoading();
           buildIframeToc(pageId);
           setupIframeScrollSpy(pageId);
           setupIframeBackToTop();
+
+          // 对可编辑 HTML 模板：隐藏 iframe 内部的 editor-kit 悬浮按钮
+          if(isEditableTemplate){
+            try{
+              var iDoc2=frame.contentDocument||frame.contentWindow.document;
+              var ekBtn=iDoc2.querySelector('.ek-enter-btn');
+              if(ekBtn) ekBtn.style.display='none';
+            }catch(e){}
+          }
+
           // draft_prompt 注入：如果文档有 draft_prompt 字段，在 placeholder 页面中渲染
           var meta=getItemMeta(pageId);
           if(meta && meta.draft_prompt){
@@ -1076,18 +1110,10 @@ function closeEditor(){
 }
 
 function applyTemplate(key){
-  // HTML 模板处理
+  // HTML 模板处理 — 直接在页面内 iframe 中打开编辑
   if(key && htmlTemplates[key]){
     var htmlContent=htmlTemplates[key];
-    var fileName=getEditorFileName();
-    if(!fileName.endsWith('.html')) fileName+='.html';
-    var blob=new Blob([htmlContent],{type:'text/html;charset=utf-8'});
-    var a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download=fileName;
-    a.click();
-    URL.revokeObjectURL(a.href);
-    alert('HTML 模板已下载为「'+fileName+'」，你可以将该文件放入 knowledge-base 目录后在 sidebar.json 中注册。');
+    openHtmlTemplateEditor(key, htmlContent);
     document.getElementById('editorTemplate').value='';
     return;
   }
@@ -1099,6 +1125,240 @@ function applyTemplate(key){
     vditorInstance.setValue(templates[key]);
   }
   document.getElementById('editorTemplate').value='';
+}
+
+// ═══ HTML 模板页内编辑器 ═══
+var htmlTemplateNames={
+  'html-standard':'标准规范模板','html-richtext':'图文混排模板','html-kanban':'项目看板模板',
+  'html-postmortem':'项目复盘报告','html-weekly':'项目周报','html-decision':'决策记录','html-meeting':'会议纪要'
+};
+
+function openHtmlTemplateEditor(key, htmlContent){
+  // 关闭创作模式（如果在创作模式下）
+  closeEditor();
+
+  // 创建 blob URL 用于 iframe 加载
+  var blob=new Blob([htmlContent],{type:'text/html;charset=utf-8'});
+  var blobUrl=URL.createObjectURL(blob);
+
+  var frame=document.getElementById('contentFrame');
+  var scroll=document.getElementById('contentScroll');
+  var home=document.getElementById('pageHome');
+
+  // 隐藏其他内容
+  home.style.display='none';
+  scroll.style.display='none';
+  document.querySelectorAll('.doc-page').forEach(function(p){p.style.display='none';});
+  document.getElementById('page-tool').style.display='none';
+
+  // 构建模板编辑器工具栏
+  var tmplName=htmlTemplateNames[key]||key;
+  var toolbar=document.getElementById('iframeToolbar');
+  toolbar.innerHTML=
+    '<div class="ift-title"><span class="ift-icon">📝</span>编辑模板：'+tmplName+'</div>'
+    +'<div class="htmpl-toolbar-actions">'
+      +'<button class="ift-btn htmpl-btn-edit" onclick="htmlTmplEnterEdit()" title="进入编辑模式">✏️ 开始编辑</button>'
+      +'<button class="ift-btn htmpl-btn-save" onclick="htmlTmplSave()" style="display:none" title="保存下载">💾 保存下载</button>'
+      +'<button class="ift-btn htmpl-btn-saveas" onclick="htmlTmplSaveAs()" style="display:none" title="另存为">📄 另存为</button>'
+      +'<button class="ift-btn htmpl-btn-exit" onclick="htmlTmplExitEdit()" style="display:none" title="退出编辑">✖ 退出编辑</button>'
+      +'<span class="htmpl-divider" style="display:none"></span>'
+      +'<button class="ift-btn htmpl-btn-guide" onclick="htmlTmplShowGuide()" title="保存引导">❓ 如何上线</button>'
+    +'</div>';
+  toolbar.style.display='flex';
+  toolbar.dataset.tmplKey=key;
+
+  // 显示 iframe
+  frame.style.display='block';
+  frame.src=blobUrl;
+  frame.onload=function(){
+    URL.revokeObjectURL(blobUrl);
+    // 在 iframe 中禁用 editor-kit 的自带按钮（父页面统一管理）
+    try{
+      var iDoc=frame.contentDocument||frame.contentWindow.document;
+      var ekBtn=iDoc.querySelector('.ek-enter-btn');
+      if(ekBtn) ekBtn.style.display='none';
+    }catch(e){}
+  };
+}
+
+// 进入编辑模式
+function htmlTmplEnterEdit(){
+  var frame=document.getElementById('contentFrame');
+  try{
+    var win=frame.contentWindow;
+    if(win.enterEdit) win.enterEdit();
+    // 隐藏 iframe 内部的 editor-kit 工具栏（由父页面工具栏统一控制）
+    var iDoc=frame.contentDocument||win.document;
+    var ekToolbar=iDoc.querySelector('.ek-toolbar');
+    if(ekToolbar) ekToolbar.style.display='none';
+    var ekBadge=iDoc.querySelector('.ek-editing-badge');
+    if(ekBadge) ekBadge.style.display='none';
+  }catch(e){
+    console.log('Cannot enter edit:',e);
+    showToast('⚠️ 无法进入编辑模式');
+    return;
+  }
+  // 切换工具栏按钮
+  var tb=document.getElementById('iframeToolbar');
+  tb.querySelector('.htmpl-btn-edit').style.display='none';
+  tb.querySelector('.htmpl-btn-save').style.display='';
+  tb.querySelector('.htmpl-btn-saveas').style.display='';
+  tb.querySelector('.htmpl-btn-exit').style.display='';
+  tb.querySelector('.htmpl-divider').style.display='';
+  showToast('✅ 已进入编辑模式，直接点击内容修改');
+}
+
+// 退出编辑模式
+function htmlTmplExitEdit(){
+  var frame=document.getElementById('contentFrame');
+  try{
+    var iDoc=frame.contentDocument||frame.contentWindow.document;
+    iDoc.body.classList.remove('ek-editing');
+    iDoc.querySelectorAll('[contenteditable]').forEach(function(el){el.removeAttribute('contenteditable');});
+    iDoc.querySelectorAll('.ek-img-editable').forEach(function(el){el.classList.remove('ek-img-editable');});
+  }catch(e){}
+  // 切换工具栏按钮
+  var tb=document.getElementById('iframeToolbar');
+  tb.querySelector('.htmpl-btn-edit').style.display='';
+  tb.querySelector('.htmpl-btn-save').style.display='none';
+  tb.querySelector('.htmpl-btn-saveas').style.display='none';
+  tb.querySelector('.htmpl-btn-exit').style.display='none';
+  tb.querySelector('.htmpl-divider').style.display='none';
+  showToast('已退出编辑模式');
+}
+
+// 保存（覆盖下载）
+function htmlTmplSave(){
+  var frame=document.getElementById('contentFrame');
+  var key=document.getElementById('iframeToolbar').dataset.tmplKey||'document';
+  var tmplName=htmlTemplateNames[key]||key;
+  var fileName=tmplName.replace(/\s+/g,'-')+'.html';
+  try{
+    var iDoc=frame.contentDocument||frame.contentWindow.document;
+    // 获取干净的 HTML
+    var html=getCleanHtmlFromIframe(iDoc);
+    downloadHtmlStr(html, fileName);
+    showToast('✅ 已下载: '+fileName);
+  }catch(e){
+    showToast('⚠️ 保存失败: '+e.message);
+  }
+}
+
+// 另存为
+function htmlTmplSaveAs(){
+  var frame=document.getElementById('contentFrame');
+  var key=document.getElementById('iframeToolbar').dataset.tmplKey||'document';
+  var tmplName=htmlTemplateNames[key]||key;
+  var defaultName=tmplName.replace(/\s+/g,'-');
+
+  // 创建模态弹窗
+  var overlay=document.createElement('div');
+  overlay.id='htmplSaveAsOverlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML=
+    '<div style="background:#1a1d2b;border:1px solid #333657;border-radius:16px;padding:28px 32px;min-width:420px;max-width:90vw;box-shadow:0 12px 48px rgba(0,0,0,.6)">'
+      +'<h3 style="font-size:18px;color:#e8eaed;margin:0 0 4px">📄 另存为新文档</h3>'
+      +'<p style="font-size:13px;color:#8b8fa3;margin:8px 0 16px">输入文件名（无需 .html 后缀），保存后文件将下载到本地</p>'
+      +'<input type="text" id="htmplNewName" value="'+defaultName+'" placeholder="例如：11月项目复盘" style="width:100%;padding:10px 14px;background:#141620;border:1px solid #333657;border-radius:10px;color:#e8eaed;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box">'
+      +'<p style="font-size:12px;color:#6c8cff;margin:12px 0 0;line-height:1.6">💡 建议保存后将文件放入 <code style="background:rgba(108,140,255,.12);padding:2px 6px;border-radius:4px">knowledge-base</code> 目录</p>'
+      +'<div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">'
+        +'<button onclick="document.getElementById(\'htmplSaveAsOverlay\').remove()" style="padding:8px 16px;border-radius:10px;font-size:13px;cursor:pointer;border:1px solid #333657;background:transparent;color:#8b8fa3;font-family:inherit">取消</button>'
+        +'<button onclick="htmlTmplDoSaveAs()" style="padding:8px 16px;border-radius:10px;font-size:13px;cursor:pointer;border:none;background:#6c8cff;color:#fff;font-family:inherit;font-weight:500">💾 确认保存</button>'
+      +'</div>'
+    +'</div>';
+  document.body.appendChild(overlay);
+  setTimeout(function(){document.getElementById('htmplNewName').focus();document.getElementById('htmplNewName').select();},100);
+
+  // ESC 关闭
+  overlay.addEventListener('keydown',function(e){
+    if(e.key==='Escape') overlay.remove();
+    if(e.key==='Enter') htmlTmplDoSaveAs();
+  });
+}
+
+function htmlTmplDoSaveAs(){
+  var nameEl=document.getElementById('htmplNewName');
+  if(!nameEl) return;
+  var name=nameEl.value.trim();
+  if(!name){showToast('⚠️ 请输入文件名');return;}
+  if(!name.endsWith('.html')) name+='.html';
+
+  var overlay=document.getElementById('htmplSaveAsOverlay');
+  if(overlay) overlay.remove();
+
+  var frame=document.getElementById('contentFrame');
+  try{
+    var iDoc=frame.contentDocument||frame.contentWindow.document;
+    var html=getCleanHtmlFromIframe(iDoc);
+    downloadHtmlStr(html, name);
+    showToast('✅ 已下载: '+name);
+  }catch(e){
+    showToast('⚠️ 保存失败: '+e.message);
+  }
+}
+
+// 从 iframe 获取干净的 HTML（移除编辑器 UI 元素）
+function getCleanHtmlFromIframe(iDoc){
+  // 临时移除 contenteditable 属性
+  iDoc.querySelectorAll('[contenteditable]').forEach(function(el){el.removeAttribute('contenteditable');});
+  iDoc.body.classList.remove('ek-editing');
+  iDoc.querySelectorAll('.ek-img-editable').forEach(function(el){el.classList.remove('ek-img-editable');});
+
+  var html='<!DOCTYPE html>\n'+iDoc.documentElement.outerHTML;
+  // 清理 editor-kit 相关节点
+  html=html.replace(/<script[^>]*editor-kit\.js[^>]*><\/script>\s*/gi,'');
+  html=html.replace(/<div[^>]*class="[^"]*ek-ui[^"]*"[^>]*>[\s\S]*?<\/div>\s*(?:<\/div>\s*)*/gi,'');
+  html=html.replace(/<div[^>]*id="ek-toast"[^>]*>[\s\S]*?<\/div>\s*/gi,'');
+  html=html.replace(/<style[^>]*id="ek-styles"[^>]*>[\s\S]*?<\/style>\s*/gi,'');
+  html=html.replace(/\s*data-ek-[a-z]+="[^"]*"/gi,'');
+
+  // 恢复编辑状态
+  iDoc.body.classList.add('ek-editing');
+  return html;
+}
+
+// 下载 HTML 字符串为文件
+function downloadHtmlStr(html, fileName){
+  var blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=fileName;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(a.href);},100);
+}
+
+// 显示上线引导
+function htmlTmplShowGuide(){
+  var overlay=document.createElement('div');
+  overlay.id='htmplGuideOverlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML=
+    '<div style="background:#1a1d2b;border:1px solid #333657;border-radius:16px;padding:28px 32px;min-width:480px;max-width:90vw;box-shadow:0 12px 48px rgba(0,0,0,.6);max-height:80vh;overflow-y:auto">'
+      +'<h3 style="font-size:18px;color:#e8eaed;margin:0 0 16px">📖 模板编辑到上线 — 3步完成</h3>'
+      +'<div style="display:flex;flex-direction:column;gap:16px">'
+        +'<div style="display:flex;gap:12px;align-items:flex-start">'
+          +'<span style="background:rgba(108,140,255,.15);color:#6c8cff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0">1</span>'
+          +'<div><p style="margin:0;color:#e8eaed;font-size:14px;font-weight:600">编辑内容</p><p style="margin:4px 0 0;color:#8b8fa3;font-size:13px;line-height:1.6">点击「✏️ 开始编辑」→ 直接点击文字修改 → 双击图片可替换</p></div>'
+        +'</div>'
+        +'<div style="display:flex;gap:12px;align-items:flex-start">'
+          +'<span style="background:rgba(74,222,128,.15);color:#4ade80;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0">2</span>'
+          +'<div><p style="margin:0;color:#e8eaed;font-size:14px;font-weight:600">保存文件</p><p style="margin:4px 0 0;color:#8b8fa3;font-size:13px;line-height:1.6">点击「💾 保存下载」或「📄 另存为」→ 将 .html 文件放入仓库的 <code style="background:rgba(108,140,255,.12);padding:2px 6px;border-radius:4px;color:#6c8cff">docs/knowledge-base/</code> 目录</p></div>'
+        +'</div>'
+        +'<div style="display:flex;gap:12px;align-items:flex-start">'
+          +'<span style="background:rgba(251,191,36,.15);color:#fbbf24;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0">3</span>'
+          +'<div><p style="margin:0;color:#e8eaed;font-size:14px;font-weight:600">注册上线</p><p style="margin:4px 0 0;color:#8b8fa3;font-size:13px;line-height:1.6">在 <code style="background:rgba(108,140,255,.12);padding:2px 6px;border-radius:4px;color:#6c8cff">sidebar.json</code> 中添加条目 → git push 即可上线。示例：</p>'
+            +'<pre style="background:#141620;border:1px solid #333657;border-radius:8px;padding:12px 16px;margin:8px 0 0;font-size:12px;color:#a8b0c0;line-height:1.7;overflow-x:auto;font-family:Consolas,monospace">{\n  "id": "my-postmortem-1",\n  "icon": "🔄",\n  "title": "XX项目复盘报告",\n  "type": "iframe",\n  "file": "knowledge-base/my-postmortem-1.html",\n  "badge": "笔记",\n  "craft": "管理"\n}</pre>'
+          +'</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="display:flex;justify-content:flex-end;margin-top:20px">'
+        +'<button onclick="document.getElementById(\'htmplGuideOverlay\').remove()" style="padding:8px 20px;border-radius:10px;font-size:13px;cursor:pointer;border:none;background:#6c8cff;color:#fff;font-family:inherit;font-weight:500">知道了</button>'
+      +'</div>'
+    +'</div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('keydown',function(e){if(e.key==='Escape') overlay.remove();});
+  overlay.addEventListener('click',function(e){if(e.target===overlay) overlay.remove();});
 }
 
 function getEditorFileName(){

@@ -482,8 +482,9 @@
     if (!isInIframe) { try { isInIframe = !!window.frameElement; } catch (e) {} }
 
     if (isInIframe) {
-      if (enterBtn) { enterBtn.style.display = 'none'; enterBtn.remove(); }
-      // 同时隐藏编辑工具栏，防止意外显示
+      // iframe 环境：隐藏入口按钮和工具栏 UI（由父页面统一管理）
+      // 但保留 enterEdit/exitEdit 功能函数，供父页面调用
+      if (enterBtn) { enterBtn.style.display = 'none'; }
       if (toolbar) { toolbar.style.display = 'none'; }
     }
 

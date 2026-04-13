@@ -74,7 +74,7 @@
             <option value="flow-spec">流程规范模板</option>
             <option value="tool-doc">工具说明文档</option>
           </optgroup>
-          <optgroup label="HTML 文档模板">
+          <optgroup label="HTML 文档模板（选择后页内编辑）">
             <option value="html-standard">标准规范模板</option>
             <option value="html-richtext">图文混排模板</option>
             <option value="html-kanban">项目看板模板</option>
@@ -861,13 +861,14 @@ sequenceDiagram
             <h2>我的项目笔记</h2>
             <p>项目复盘、周报、决策记录、会议纪要 — 基于实战的个人经验沉淀空间</p>
           </div>
+          <button class="module-quick-btn" onclick="event.stopPropagation();openEditor()" title="快速创建 Markdown 笔记" style="padding:6px 14px;border-radius:8px;font-size:12px;background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.2);cursor:pointer;font-family:inherit;white-space:nowrap;margin-right:8px;transition:all .15s">＋ 快速创建</button>
           <span class="module-weight" style="color:#fbbf24;opacity:.5">实战</span>
           <div class="module-chevron"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         </div>
         <div class="module-body">
 
         <div class="hst">📝 实战模板</div>
-        <p class="hst-desc" style="font-size:13px;color:var(--dim);margin:-8px 0 12px;padding:0 4px">下载 HTML 模板 → 填写项目信息 → 保存到 knowledge-base 目录 → 在 sidebar.json 注册即可上线</p>
+        <p class="hst-desc" style="font-size:13px;color:var(--dim);margin:-8px 0 12px;padding:0 4px">点击模板卡片 → 点击「✏️ 开始编辑」直接在页面内修改 → 保存下载到本地 → 放入仓库即可上线</p>
         <div class="home-grid" id="grid-mynotes-templates"></div>
 
         <div class="hst">📂 快速记录</div>
