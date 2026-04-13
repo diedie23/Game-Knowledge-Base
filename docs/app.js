@@ -1936,12 +1936,22 @@ function _renderSectionCards(section){
       // Owner + 更新日期底栏（v4.2: 已移除 owner 和 last_updated 显示）
       var metaFooter='';
 
+      // === 统一卡片标签布局：分两行 ===
+      // 第一行：核心属性（阶段 + 类型 + 质量分级）
+      var row1=stageBadge+ctBadge+qlBadge;
+      // 第二行：关键词 tags + 工种
+      var row2=tagsHtml+craftBadge;
+
+      var tagsBlock='';
+      if(row1) tagsBlock+='<div class="tag-row tag-row-primary">'+row1+'</div>';
+      if(row2) tagsBlock+='<div class="tag-row tag-row-secondary">'+row2+'</div>';
+
       html+='<div class="home-card" data-stage="'+(item.applicable_stage||'')+'" data-priority="'+(item.priority||'')+'" data-id="'+item.id+'" onclick="navigate(\''+item.id+'\')">'
         +copyHtml
         +'<div class="hci" style="background:'+iconBg+'">'+(item.icon||'📄')+'</div>'
         +'<h3>'+item.title+priHtml+'</h3>'
         +'<p>'+item.desc+'</p>'
-        +'<div class="tags">'+stageBadge+ctBadge+qlBadge+tagsHtml+craftBadge+'</div>'
+        +'<div class="tags">'+tagsBlock+'</div>'
         +metaFooter
         +'</div>';
     });
