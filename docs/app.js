@@ -1747,7 +1747,7 @@ var CARD_GRID_MAP = {
   // 板块一：📋 项目管理与排期
   'grid-project-pipeline':   { module:'project', ids:['game-art-pipeline'] },
   'grid-project-schedule':   { module:'project', ids:['art-scheduling','progress-visualization'] },
-  'grid-project-req':        { module:'project', ids:['art-vs-planner-req','art-vs-planner-template','jira-tapd-automation'] },
+  'grid-project-req':        { module:'project', ids:['art-vs-planner-req','jira-tapd-automation'] },
   'grid-project-version':    { module:'project', ids:['svn-perforce-structure','asset-submit-review','deprecated-asset-cleanup'] },
   // 板块二：📦 外包全链路管理
   'grid-outsource-eval':     { module:'outsource', ids:['cp-outsource','cp-management'] },
@@ -1756,27 +1756,27 @@ var CARD_GRID_MAP = {
   'grid-outsource-supplier': { module:'outsource', ids:['supplier-ecosystem'] },
   // 板块三：🎨 美术工艺与规范
   'grid-craft-base':         { module:'craft', ids:['char-naming-redline'] },
-  'grid-craft-char-2d':      { module:'craft', ids:['char-color-swap-mask','char-spine-anim-spec'] },
+  'grid-craft-char-2d':      { module:'craft', ids:['char-color-swap-pipeline','spine-animation-pipeline'] },
   'grid-craft-char-3d':      { module:'craft', ids:['char-3d-topo-pbr','anim-state-handoff'] },
   'grid-craft-ui':           { module:'craft', ids:['ui-slice-naming','ui-9slice-color','ui-layout','ui-umg-tips'] },
   'grid-craft-scene':        { module:'craft', ids:['scene-lod-spec'] },
   'grid-craft-vfx':          { module:'craft', ids:['vfx-perf-spec'] },
-  'grid-craft-ugc':          { module:'craft', ids:['char-ugc-parts-safety','d1'] },
+  'grid-craft-ugc':          { module:'craft', ids:['char-ugc-parts-safety','ugc-2d-export-spec'] },
   'grid-craft-aigc':         { module:'craft', ids:['aigc-production-spec'] },
   // 板块四：🤝 跨部门协同与交付
-  'grid-collab-ta':          { module:'collab', ids:['art-vs-ta-naming','art-vs-ta-perfbudget','spine-perf-guide','perf-redline-glossary'] },
+  'grid-collab-ta':          { module:'collab', ids:['art-vs-ta-naming','art-vs-ta-perfbudget','perf-redline-glossary'] },
   'grid-collab-qa':          { module:'collab', ids:['art-vs-qa-buggrade','art-vs-qa-checklist'] },
-  'grid-collab-pain':        { module:'collab', ids:['cross-dept-collab','accident-troubleshoot','cross-dept-communication-tips'] },
+  'grid-collab-pain':        { module:'collab', ids:['cross-dept-collab','cross-dept-communication-tips','art-vs-planner-template'] },
   // 板块五：🛠️ 工具链与自动化
   'grid-toolchain-overview': { module:'toolchain', ids:['art-tools-guide'] },
-  'grid-toolchain-spec':     { module:'toolchain', ids:['auto-mask-spec','spine-split-spec','color-swap-spec'] },
+  'grid-toolchain-spec':     { module:'toolchain', ids:['auto-mask-spec','spine-split-spec'] },
   'grid-toolchain-check':    { module:'toolchain', ids:['naming-check-tool'] },
   'grid-toolchain-art':      { module:'toolchain', ids:['auto-mask-v6','mask-tool','spine-split','mask-core-algorithms','color-swap-tool','channel-packer'] },
   'grid-toolchain-desktop':  { module:'toolchain', ids:['auto-mask-v6-desktop','image-skew-corrector','game-resource-toolkit','engine-bridge'] },
   // 板块六：🛡️ 质量、风险与团队
   'grid-quality-risk':       { module:'quality', ids:['risk-log'] },
   'grid-quality-retro':      { module:'quality', ids:['postmortem-template','project-pitfall-log'] },
-  'grid-quality-metrics':    { module:'quality', ids:['art-efficiency-metrics','art-report-template'] },
+  'grid-quality-metrics':    { module:'quality', ids:['art-efficiency-system'] },
   'grid-quality-security':   { module:'quality', ids:['asset-security-handover'] },
   'grid-quality-team':       { module:'quality', ids:['onboarding-guide','permission-nav','personal-growth-roadmap'] },
   // 板块七：🔥 真实案例库
