@@ -278,33 +278,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .stat .label{font-size:13px;color:var(--dim);margin-top:6px;text-align:center;font-weight:500;transition:color .2s}
 .stat:hover .label{color:var(--text)}
 
-/* ═══ 模块快捷导航面板 ═══ */
-.module-nav-section{margin-bottom:32px}
-.module-nav-header{display:flex;align-items:baseline;gap:16px;margin-bottom:18px;flex-wrap:wrap}
-.module-nav-header h2{font-size:22px;color:var(--heading);font-weight:700;margin:0}
-.module-nav-sub{font-size:14px;color:var(--dim);flex:1}
-.module-nav-actions{display:flex;gap:8px}
-.module-nav-action-btn{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:13px;color:var(--dim);cursor:pointer;transition:all .2s}
-.module-nav-action-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
-.module-nav-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
-.module-nav-card{display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--card-bg);border:1px solid var(--border);border-radius:14px;cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}
-.module-nav-card::before{content:'';position:absolute;inset:0;border-radius:14px;opacity:0;transition:opacity .25s;pointer-events:none}
-.module-nav-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
-.module-nav-card.mnc-project:hover{border-color:var(--accent)}.module-nav-card.mnc-project:hover::before{background:linear-gradient(135deg,rgba(108,140,255,.06),transparent);opacity:1}
-.module-nav-card.mnc-outsource:hover{border-color:var(--orange)}.module-nav-card.mnc-outsource:hover::before{background:linear-gradient(135deg,rgba(251,146,60,.06),transparent);opacity:1}
-.module-nav-card.mnc-craft:hover{border-color:var(--purple)}.module-nav-card.mnc-craft:hover::before{background:linear-gradient(135deg,rgba(167,139,250,.06),transparent);opacity:1}
-.module-nav-card.mnc-collab:hover{border-color:var(--green)}.module-nav-card.mnc-collab:hover::before{background:linear-gradient(135deg,rgba(74,222,128,.06),transparent);opacity:1}
-.module-nav-card.mnc-toolchain:hover{border-color:var(--cyan)}.module-nav-card.mnc-toolchain:hover::before{background:linear-gradient(135deg,rgba(34,211,238,.06),transparent);opacity:1}
-.module-nav-card.mnc-quality:hover{border-color:var(--pink)}.module-nav-card.mnc-quality:hover::before{background:linear-gradient(135deg,rgba(244,114,182,.06),transparent);opacity:1}
-.module-nav-card.mnc-casestudy:hover{border-color:#f87171}.module-nav-card.mnc-casestudy:hover::before{background:linear-gradient(135deg,rgba(248,113,113,.06),transparent);opacity:1}
-.mnc-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.mnc-body{flex:1;min-width:0}
-.mnc-title{font-size:15px;font-weight:700;color:var(--heading);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mnc-desc{font-size:12px;color:var(--dim);line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mnc-weight{font-size:18px;font-weight:800;opacity:.25;flex-shrink:0;margin-left:auto}
-.mnc-count{position:absolute;top:8px;right:12px;font-size:11px;color:var(--dim);background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1px 8px;opacity:.7}
-.module-nav-card:hover .mnc-count{opacity:1;border-color:var(--accent)}
-
 /* ═══ 模块板块容器 ═══ */
 .module-section{margin-bottom:48px;padding:28px;background:var(--card-bg);border:1px solid var(--border);border-radius:18px;position:relative;scroll-margin-top:80px}
 .module-section.module-production{border-color:rgba(108,140,255,.15)}

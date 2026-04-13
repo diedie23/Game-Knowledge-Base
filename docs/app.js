@@ -733,9 +733,6 @@ function initSearch(){
         renderHotCards();
         renderCardBadges();
         renderDashboard();
-        // 初始化模块导航：默认折叠所有模块 + 更新文档数量
-        initModulesCollapsed();
-        updateModuleNavCounts();
       }, 300);
     });
   }catch(e){}
@@ -2219,77 +2216,6 @@ function toggleModuleSection(headerEl){
     body.style.maxHeight = '0';
     body.style.opacity = '0';
   }
-}
-
-// ═══ 模块导航面板：点击卡片跳转+展开目标模块 ═══
-function focusModule(sectionId){
-  var section = document.getElementById(sectionId);
-  if(!section) return;
-  // 如果目标模块是折叠的，先展开它
-  if(section.classList.contains('collapsed')){
-    var header = section.querySelector('.module-header');
-    if(header) toggleModuleSection(header);
-  }
-  // 平滑滚动到目标模块
-  setTimeout(function(){
-    section.scrollIntoView({behavior:'smooth',block:'start'});
-  }, 80);
-}
-
-// 展开所有模块
-function expandAllModules(){
-  document.querySelectorAll('.module-section.collapsed').forEach(function(sec){
-    var header = sec.querySelector('.module-header');
-    if(header) toggleModuleSection(header);
-  });
-}
-
-// 折叠所有模块
-function collapseAllModules(){
-  document.querySelectorAll('.module-section').forEach(function(sec){
-    if(!sec.classList.contains('collapsed')){
-      var header = sec.querySelector('.module-header');
-      if(header) toggleModuleSection(header);
-    }
-  });
-}
-
-// 初始化时默认折叠所有模块板块（让首页更紧凑）
-function initModulesCollapsed(){
-  document.querySelectorAll('.module-section').forEach(function(sec){
-    if(!sec.classList.contains('collapsed')){
-      sec.classList.add('collapsed');
-      var body = sec.querySelector('.module-body');
-      if(body){
-        body.style.maxHeight = '0';
-        body.style.overflow = 'hidden';
-        body.style.opacity = '0';
-      }
-    }
-  });
-}
-
-// 更新模块导航卡片上的文档数量角标
-function updateModuleNavCounts(){
-  if(!indexData||!indexData.items) return;
-  var counts = {};
-  indexData.items.forEach(function(item){
-    var m = item.module;
-    if(m){ counts[m] = (counts[m]||0) + 1; }
-  });
-  var mapping = {
-    'project':'mnc-count-project',
-    'outsource':'mnc-count-outsource',
-    'craft':'mnc-count-craft',
-    'collab':'mnc-count-collab',
-    'toolchain':'mnc-count-toolchain',
-    'quality':'mnc-count-quality',
-    'casestudy':'mnc-count-casestudy'
-  };
-  Object.keys(mapping).forEach(function(mod){
-    var el = document.getElementById(mapping[mod]);
-    if(el) el.textContent = (counts[mod]||0) + ' 篇';
-  });
 }
 
 // ═══ Mermaid 可视化图折叠/展开 ═══
