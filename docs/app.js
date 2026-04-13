@@ -4054,9 +4054,14 @@ var COZE_DEFAULT_CONFIG = {
     var customWrapper = document.getElementById('aiChatWrapper');
     if(customWrapper) customWrapper.style.display = 'none';
 
-    // 初始化 Coze Chat SDK 悬浮窗（botId 必须在顶层）
+    // 初始化 Coze Chat SDK 悬浮窗
     var cozeClient = new CozeWebSDK.WebChatClient({
-      botId: botId,
+      config: {
+        bot_id: botId
+      },
+      componentProps: {
+        title: 'APM 智能助理'
+      },
       auth: {
         type: 'token',
         token: token,
