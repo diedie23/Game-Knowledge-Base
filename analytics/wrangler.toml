@@ -1,0 +1,19 @@
+# =====================================================
+#  APM 知识库访客统计 — Cloudflare Workers 配置
+# =====================================================
+
+name = "apm-analytics"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# ── D1 数据库绑定 ──
+# 创建数据库后，将下方 database_id 替换为实际值
+# 创建命令: wrangler d1 create apm-analytics
+[[d1_databases]]
+binding = "DB"
+database_name = "apm-analytics"
+database_id = "YOUR_DATABASE_ID_HERE"  # ← 替换为实际ID
+
+# ── 环境变量（可选，推荐使用 wrangler secret 管理敏感信息）──
+# 设置管理员密码: wrangler secret put ADMIN_PASSWORD
+# 设置JWT密钥:    wrangler secret put JWT_SECRET
