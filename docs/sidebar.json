@@ -68,7 +68,7 @@
           "icon": "📋",
           "items": [
             { "id": "cp-outsource", "icon": "📋", "title": "外包管理与验收规范", "type": "iframe", "file": "knowledge-base/cp-outsource.html", "badge": "管理", "craft": "管理" },
-            { "id": "cp-management", "icon": "✅", "title": "外包资产验收 Checklist", "type": "iframe", "file": "knowledge-base/cp-management.html", "badge": "管理", "craft": "管理" }
+            { "id": "cp-management", "icon": "✅", "title": "外包资产验收 Checklist（附录）", "type": "iframe", "file": "knowledge-base/cp-management.html", "badge": "附录", "craft": "管理" }
           ]
         },
         {
@@ -199,8 +199,8 @@
           "name": "协作痛点与事故",
           "icon": "🚨",
           "items": [
-            { "id": "cross-dept-collab", "icon": "🤝", "title": "跨部门协作痛点解法", "type": "iframe", "file": "knowledge-base/cross-dept-collab.html", "badge": "协作", "craft": "通用" },
-            { "id": "cross-dept-communication-tips", "icon": "🗣️", "title": "跨部门沟通话术总结", "type": "iframe", "file": "knowledge-base/cross-dept-communication-tips.html", "badge": "沟通", "craft": "管理" }
+            { "id": "cross-dept-collab", "icon": "🤝", "title": "跨部门协作三大经典痛点 — 策略破局指南", "type": "iframe", "file": "knowledge-base/cross-dept-collab.html", "badge": "策略", "craft": "通用" },
+            { "id": "cross-dept-communication-tips", "icon": "🗣️", "title": "跨部门沟通话术模板 — 7 大场景", "type": "iframe", "file": "knowledge-base/cross-dept-communication-tips.html", "badge": "话术", "craft": "管理" }
           ]
         }
       ]

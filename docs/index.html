@@ -290,18 +290,21 @@
         </div>
       </div>
 
-      <!-- ═══ 📑 知识库总览（Tab 切换面板）═══ -->
+      <!-- ═══ 📑 知识库总览（可折叠 — 默认折叠，减少首页信息过载）═══ -->
       <div class="home-section-divider"></div>
-      <div class="knowledge-tabs-section" id="knowledgeTabsSection">
-        <div class="kt-header">
+      <div class="knowledge-tabs-section kt-collapsed" id="knowledgeTabsSection">
+        <div class="kt-header" onclick="toggleKnowledgeTabs()" style="cursor:pointer;user-select:none">
           <h2 class="kt-title">📑 知识库总览</h2>
-          <div class="kt-tabs">
-            <button class="kt-tab active" onclick="switchKnowledgeTab('map',this)">🗺️ 核心知识地图</button>
-            <button class="kt-tab" onclick="switchKnowledgeTab('faq',this)">🧭 问题速查表</button>
-            <button class="kt-tab" onclick="switchKnowledgeTab('stages',this)">📋 阶段阅读路线</button>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="kt-tabs" onclick="event.stopPropagation()">
+              <button class="kt-tab active" onclick="switchKnowledgeTab('map',this)">🗺️ 核心知识地图</button>
+              <button class="kt-tab" onclick="switchKnowledgeTab('faq',this)">🧭 问题速查表</button>
+              <button class="kt-tab" onclick="switchKnowledgeTab('stages',this)">📋 阶段阅读路线</button>
+            </div>
+            <button class="kt-toggle-btn" id="ktToggle">▼ 展开</button>
           </div>
         </div>
-        <div class="kt-body">
+        <div class="kt-body" id="ktBody" style="max-height:0;overflow:hidden;opacity:0;transition:max-height .4s cubic-bezier(.4,0,.2,1),opacity .3s">
           <!-- Tab 1: 核心知识地图 -->
           <div class="kt-panel active" id="kt-map">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
