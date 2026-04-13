@@ -1775,12 +1775,13 @@ var CARD_GRID_MAP = {
   'grid-toolchain-desktop':  { module:'toolchain', ids:['auto-mask-v6-desktop','image-skew-corrector','game-resource-toolkit','engine-bridge'] },
   // 板块六：🛡️ 质量、风险与团队
   'grid-quality-risk':       { module:'quality', ids:['risk-log'] },
-  'grid-quality-retro':      { module:'quality', ids:['postmortem-template','project-pitfall-log'] },
   'grid-quality-metrics':    { module:'quality', ids:['art-efficiency-system'] },
   'grid-quality-security':   { module:'quality', ids:['asset-security-handover'] },
   'grid-quality-team':       { module:'quality', ids:['onboarding-guide','permission-nav'] },
+  // 板块一（补充）：个人成长
+  'grid-project-growth':     { module:'quality', ids:['personal-growth-roadmap'] },
   // 板块七：🔥 真实案例库
-  'grid-casestudy-cases':    { module:'casestudy', ids:['case-delay','case-cross-dept','case-outsource-accident','case-requirement-change'] }
+  'grid-casestudy-cases':    { module:'casestudy', ids:['project-pitfall-log','accident-troubleshoot','postmortem-template'] }
 };
 
 // 阶段→背景色配置
