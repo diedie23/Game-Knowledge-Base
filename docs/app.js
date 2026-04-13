@@ -4026,7 +4026,7 @@ async function adminPublishAll(){
 /* ── 可自定义配置区（修改此处即可换头像/名称/主题色） ── */
 var AI_BOT_CONFIG = {
   name: 'APM 智能助理',                                         // Bot 名称
-  avatarUrl: 'https://via.placeholder.com/56x56/1c2a44/6c8cff?text=AI', // ← 替换为你的头像 URL
+  avatarUrl: 'assets/ai-avatar.png',                             // AI 助手专属头像
   themeAccent: '#6c8cff'                                         // 主题强调色（与网站 --accent 一致）
 };
 
@@ -4125,13 +4125,14 @@ function aiLocalAnswer(query){
   }, 800+Math.random()*600);
 }
 
-// ═══ Coze API 调用 ═══
+// ═══ Coze API 调用（v3 版本 — 非流式） ═══
 function aiCozeAnswer(query, botId, token){
   aiShowTyping();
   var sendBtn=document.getElementById('aiChatSend');
   sendBtn.disabled=true;
 
-  fetch('https://api.coze.cn/open_api/v2/chat', {
+  // v3 API: https://api.coze.cn/v3/chat （非流式模式）
+  fetch('https://api.coze.cn/v3/chat', {
     method:'POST',
     headers:{
       'Authorization': 'Bearer '+token,
@@ -4139,23 +4140,29 @@ function aiCozeAnswer(query, botId, token){
     },
     body: JSON.stringify({
       bot_id: botId,
-      user: 'apm_user_' + (localStorage.getItem('coze_user_id') || Date.now()),
-      query: query,
-      stream: false
+      user_id: localStorage.getItem('coze_user_id') || 'u_'+Date.now(),
+      additional_messages: [{
+        role: 'user',
+        content: query,
+        content_type: 'text'
+      }],
+      stream: false,
+      auto_save_history: true
     })
   }).then(function(res){return res.json();}).then(function(data){
-    aiRemoveTyping();
-    sendBtn.disabled=false;
-    if(data && data.messages){
-      var answerMsg = data.messages.find(function(m){return m.role==='assistant' && m.type==='answer';});
-      if(answerMsg){
-        aiAppendMessage('bot', answerMsg.content);
-      }else{
-        aiAppendMessage('bot', '收到回复，但未找到有效答案。请检查 Bot 配置。');
-      }
-    }else if(data && data.msg){
-      aiAppendMessage('bot', '⚠️ API 错误: '+data.msg+'\n\n请检查 Bot ID 和 Token 是否正确。');
+    // v3 非流式返回的是 chat 对象，需要再轮询获取结果
+    if(data && data.data && data.data.id){
+      var chatId=data.data.id;
+      var conversationId=data.data.conversation_id;
+      // 轮询等待 chat 完成
+      aiPollChatResult(chatId, conversationId, botId, token, sendBtn, query);
+    }else if(data && data.code && data.code!==0){
+      aiRemoveTyping();
+      sendBtn.disabled=false;
+      aiAppendMessage('bot', '⚠️ API 错误 ('+data.code+'): '+(data.msg||'未知错误')+'\n\n请检查 Bot ID 和 Token 是否正确。');
     }else{
+      aiRemoveTyping();
+      sendBtn.disabled=false;
       aiAppendMessage('bot', '⚠️ 未收到有效响应，请稍后重试。');
     }
   }).catch(function(err){
@@ -4165,6 +4172,67 @@ function aiCozeAnswer(query, botId, token){
     aiAppendMessage('bot', '⚠️ Coze API 连接失败，已切换到本地知识库搜索模式。\n\n*错误: '+err.message+'*');
     aiLocalAnswer(query);
   });
+}
+
+// ═══ 轮询 Chat 结果（v3 非流式需要轮询） ═══
+function aiPollChatResult(chatId, conversationId, botId, token, sendBtn, query){
+  var maxRetries=30; // 最多轮询 30 次（约 30 秒）
+  var retryCount=0;
+
+  function poll(){
+    retryCount++;
+    if(retryCount>maxRetries){
+      aiRemoveTyping();
+      sendBtn.disabled=false;
+      aiAppendMessage('bot', '⚠️ 等待回复超时，已切换到本地搜索模式。');
+      aiLocalAnswer(query);
+      return;
+    }
+
+    fetch('https://api.coze.cn/v3/chat/retrieve?chat_id='+chatId+'&conversation_id='+conversationId, {
+      method:'GET',
+      headers:{'Authorization': 'Bearer '+token}
+    }).then(function(res){return res.json();}).then(function(data){
+      if(data && data.data && data.data.status==='completed'){
+        // Chat 完成，获取消息列表
+        fetch('https://api.coze.cn/v3/chat/message/list?chat_id='+chatId+'&conversation_id='+conversationId, {
+          method:'GET',
+          headers:{'Authorization': 'Bearer '+token}
+        }).then(function(res){return res.json();}).then(function(msgData){
+          aiRemoveTyping();
+          sendBtn.disabled=false;
+          if(msgData && msgData.data){
+            var answerMsg=msgData.data.find(function(m){return m.role==='assistant' && m.type==='answer';});
+            if(answerMsg){
+              aiAppendMessage('bot', answerMsg.content);
+            }else{
+              aiAppendMessage('bot', '收到回复，但未找到有效答案。请检查 Bot 配置。');
+            }
+          }else{
+            aiAppendMessage('bot', '⚠️ 获取消息失败，请稍后重试。');
+          }
+        }).catch(function(){
+          aiRemoveTyping();
+          sendBtn.disabled=false;
+          aiAppendMessage('bot', '⚠️ 获取消息列表失败。');
+        });
+      }else if(data && data.data && (data.data.status==='in_progress' || data.data.status==='created')){
+        // 还在处理中，1 秒后重试
+        setTimeout(poll, 1000);
+      }else{
+        // 失败
+        aiRemoveTyping();
+        sendBtn.disabled=false;
+        var errMsg=(data && data.data && data.data.last_error) ? data.data.last_error.msg : '未知错误';
+        aiAppendMessage('bot', '⚠️ AI 回答失败: '+errMsg+'\n\n已切换到本地搜索模式。');
+        aiLocalAnswer(query);
+      }
+    }).catch(function(){
+      setTimeout(poll, 1500); // 网络错误重试
+    });
+  }
+
+  setTimeout(poll, 1000); // 首次等 1 秒后开始轮询
 }
 
 // ═══ 消息渲染 ═══
