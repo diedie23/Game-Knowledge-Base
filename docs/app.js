@@ -936,8 +936,8 @@ function extractSnippet(content, query, maxLen){
 }
 
 // ═══ Utilities ═══
-function copyShareLink(){navigator.clipboard.writeText(location.href).then(function(){showToast('链接已复制');}).catch(function(){showToast('复制失败');});}
-function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2000);}
+function copyShareLink(){navigator.clipboard.writeText(location.href).then(function(){showToast('链接已复制');}).catch(function(){showToast('复制失败','error');});}
+function showToast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast';if(type==='warning') t.classList.add('toast-warning');else if(type==='error') t.classList.add('toast-error');else t.classList.add('toast-success');t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(function(){t.classList.remove('show');},type==='error'?4000:2000);}
 
 // ═══ Draft Prompt 注入（AI 辅助补全机制）═══
 function injectDraftPrompt(iframeDoc, placeholder, promptText, docTitle){
@@ -1009,7 +1009,7 @@ function fallbackCopy(text,btn){
   ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';
   document.body.appendChild(ta);ta.select();
   try{document.execCommand('copy');btn.textContent='✅ 已复制！';btn.classList.add('copied');setTimeout(function(){btn.textContent='📋 一键复制 Prompt';btn.classList.remove('copied');},2000);}
-  catch(e){showToast('复制失败，请手动选择复制');}
+  catch(e){showToast('复制失败，请手动选择复制','error');}
   ta.remove();
 }
 
@@ -1031,7 +1031,7 @@ function showFeedback(){
 }
 function submitFeedback(){
   var text=document.getElementById('feedbackText').value.trim();
-  if(!text){showToast('请输入内容');return;}
+  if(!text){showToast('请输入内容','warning');return;}
   var fb=JSON.parse(localStorage.getItem('kb_feedback')||'[]');
   fb.push({text:text,time:new Date().toISOString(),page:curPage});
   localStorage.setItem('kb_feedback',JSON.stringify(fb));
@@ -1375,7 +1375,7 @@ function htmlEmbedEnterEdit(){
     if(ekBadge) ekBadge.style.display='none';
   }catch(e){
     console.log('Cannot enter edit:',e);
-    showToast('⚠️ 无法进入编辑模式');
+    showToast('⚠️ 无法进入编辑模式','warning');
     return;
   }
   var tb=document.getElementById('htmlEmbedToolbar');
@@ -1393,8 +1393,15 @@ function htmlEmbedExitEdit(){
   try{
     var iDoc=frame.contentDocument||frame.contentWindow.document;
     iDoc.body.classList.remove('ek-editing');
+    // 移除所有 contenteditable 属性（包括 body 上可能设置的）
+    iDoc.body.removeAttribute('contenteditable');
     iDoc.querySelectorAll('[contenteditable]').forEach(function(el){el.removeAttribute('contenteditable');});
     iDoc.querySelectorAll('.ek-img-editable').forEach(function(el){el.classList.remove('ek-img-editable');});
+    // 还原图片编辑态样式
+    iDoc.querySelectorAll('img').forEach(function(img){
+      img.style.cursor='';
+      img.style.outline='';
+    });
   }catch(e){}
   var tb=document.getElementById('htmlEmbedToolbar');
   tb.querySelector('.htmpl-btn-edit').style.display='';
@@ -1686,7 +1693,7 @@ function htmlTmplEnterEdit(){
     if(ekBadge) ekBadge.style.display='none';
   }catch(e){
     console.log('Cannot enter edit:',e);
-    showToast('⚠️ 无法进入编辑模式');
+    showToast('⚠️ 无法进入编辑模式','warning');
     return;
   }
   // 切换工具栏按钮
@@ -1707,8 +1714,13 @@ function htmlTmplExitEdit(){
   try{
     var iDoc=frame.contentDocument||frame.contentWindow.document;
     iDoc.body.classList.remove('ek-editing');
+    iDoc.body.removeAttribute('contenteditable');
     iDoc.querySelectorAll('[contenteditable]').forEach(function(el){el.removeAttribute('contenteditable');});
     iDoc.querySelectorAll('.ek-img-editable').forEach(function(el){el.classList.remove('ek-img-editable');});
+    iDoc.querySelectorAll('img').forEach(function(img){
+      img.style.cursor='';
+      img.style.outline='';
+    });
   }catch(e){}
   // 切换工具栏按钮
   var tb=document.getElementById('iframeToolbar');
@@ -1737,7 +1749,7 @@ function htmlTmplSave(){
     downloadHtmlStr(html, fileName);
     showToast('✅ 已下载: '+fileName);
   }catch(e){
-    showToast('⚠️ 保存失败: '+e.message);
+    showToast('⚠️ 保存失败: '+e.message,'error');
   }
 }
 
@@ -1884,7 +1896,7 @@ async function doHtmlTmplPublish(overlay){
       }
     }
   }catch(e){
-    showToast('❌ 发布失败: '+e.message);
+    showToast('❌ 发布失败: '+e.message,'error');
   }finally{
     confirmBtn.textContent='🚀 确认发布';confirmBtn.disabled=false;
   }
@@ -2148,7 +2160,7 @@ function openEditorSettings(){
 
 function saveTokenAndNext(){
   var token=document.getElementById('ghToken').value.trim();
-  if(!token){showToast('请粘贴访问密钥');return;}
+  if(!token){showToast('请粘贴访问密钥','warning');return;}
   var s=getGHSettings();
   s.token=token;
   if(!s.repo) s.repo='diedie23/Game-Knowledge-Base';
@@ -3199,8 +3211,15 @@ function unifiedExitEdit(pageId){
   try{
     var iDoc=frame.contentDocument||frame.contentWindow.document;
     iDoc.body.classList.remove('ek-editing');
+    // 移除所有 contenteditable 属性（包括 body 上可能设置的）
+    iDoc.body.removeAttribute('contenteditable');
     iDoc.querySelectorAll('[contenteditable]').forEach(function(el){el.removeAttribute('contenteditable');});
     iDoc.querySelectorAll('.ek-img-editable').forEach(function(el){el.classList.remove('ek-img-editable');});
+    // 还原图片编辑态样式
+    iDoc.querySelectorAll('img').forEach(function(img){
+      img.style.cursor='';
+      img.style.outline='';
+    });
   }catch(e){}
   // 切换顶部工具栏按钮状态：编辑 → 阅读
   var btnEdit=document.getElementById('dmBtnEdit');
@@ -3327,6 +3346,38 @@ function toggleModuleSection(headerEl){
       });
     });
   }
+  // 持久化折叠状态到 localStorage
+  saveModuleCollapseState();
+}
+
+// ═══ 模块折叠状态持久化 ═══
+function saveModuleCollapseState(){
+  try{
+    var state={};
+    document.querySelectorAll('.module-section[id]').forEach(function(s){
+      state[s.id]=s.classList.contains('collapsed');
+    });
+    localStorage.setItem('module_collapse_state',JSON.stringify(state));
+  }catch(e){}
+}
+function restoreModuleCollapseState(){
+  try{
+    var raw=localStorage.getItem('module_collapse_state');
+    if(!raw) return;
+    var state=JSON.parse(raw);
+    Object.keys(state).forEach(function(id){
+      var section=document.getElementById(id);
+      if(!section) return;
+      var body=section.querySelector('.module-body');
+      if(!body) return;
+      if(state[id]){
+        section.classList.add('collapsed');
+        body.style.maxHeight='0';
+        body.style.opacity='0';
+        body.style.overflow='hidden';
+      }
+    });
+  }catch(e){}
 }
 
 // ═══ Mermaid 可视化图折叠/展开 ═══
@@ -3819,11 +3870,11 @@ function syncSidebarToData(){
 
 // ═══ 管理模式：一键发布全部变更（多文件 commit via GitHub API）═══
 async function adminPublishAll(){
-  if(!adminDirty){showToast('没有需要发布的变更');return;}
+  if(!adminDirty){showToast('没有需要发布的变更','warning');return;}
 
   var s=getGHSettings();
   if(!s.token){
-    showToast('⚠️ 请先配置 GitHub 访问密钥（点击侧边栏底部「⚙️」设置）');
+    showToast('⚠️ 请先配置 GitHub 访问密钥（点击侧边栏底部「⚙️」设置）','warning');
     return;
   }
 
@@ -4102,6 +4153,7 @@ document.addEventListener('DOMContentLoaded', function(){
   // 0. 初始化交互增强模块
   initLightbox();
   injectSidebarToggle();
+  restoreModuleCollapseState();
 
   // 0.1 Mermaid 区域默认折叠
   var mermaidBody = document.getElementById('mermaidBody');

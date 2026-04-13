@@ -1,4 +1,4 @@
-:root{--bg:#0f1117;--sidebar-bg:#161822;--card-bg:#1c1f2e;--border:#2a2d3e;--text:#c9cdd4;--dim:#8b8fa3;--heading:#e8eaed;--accent:#6c8cff;--accent-light:#8ba3ff;--accent-bg:rgba(108,140,255,.08);--green:#4ade80;--green-bg:rgba(74,222,128,.08);--orange:#fb923c;--orange-bg:rgba(251,191,36,.08);--red:#f87171;--purple:#a78bfa;--purple-bg:rgba(167,139,250,.08);--pink:#f472b6;--pink-bg:rgba(244,114,182,.08);--cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.08);--code-bg:#1a1d2d;--st:#3d4155;--guide:#2a2d3e;--active-bg:rgba(108,140,255,.12)}
+:root{--bg:#0f1117;--sidebar-bg:#161822;--card-bg:#1c1f2e;--border:#2a2d3e;--text:#c9cdd4;--dim:#8b8fa3;--dim-light:#70748a;--heading:#e8eaed;--accent:#6c8cff;--accent-light:#8ba3ff;--accent-bg:rgba(108,140,255,.08);--green:#4ade80;--green-bg:rgba(74,222,128,.08);--orange:#fb923c;--orange-bg:rgba(251,191,36,.08);--red:#f87171;--purple:#a78bfa;--purple-bg:rgba(167,139,250,.08);--pink:#f472b6;--pink-bg:rgba(244,114,182,.08);--cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.08);--code-bg:#1a1d2d;--st:#5a5e73;--guide:#2a2d3e;--active-bg:rgba(108,140,255,.12)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;display:flex;height:100vh;overflow:hidden;font-size:16px}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--st);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:#555}
@@ -485,7 +485,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 /* ═══ Utilities ═══ */
 .share-btn{position:fixed;bottom:76px;right:24px;padding:9px 14px;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;color:var(--dim);cursor:pointer;font-size:14px;font-family:inherit;display:none;align-items:center;gap:6px;transition:all .2s;z-index:50}.share-btn.show{display:flex}.share-btn:hover{border-color:var(--accent);color:var(--accent)}
 .btt{position:fixed;bottom:24px;right:24px;width:44px;height:44px;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;color:var(--dim);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}.btt.show{opacity:1;pointer-events:auto}.btt:hover{border-color:var(--accent);color:var(--accent)}
-.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-120px);background:var(--green);color:#000;padding:12px 28px;border-radius:10px;font-size:15px;font-weight:500;z-index:9999;opacity:0;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .35s;pointer-events:none}.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-120px);background:var(--green);color:#000;padding:12px 28px;border-radius:10px;font-size:15px;font-weight:500;z-index:9999;opacity:0;transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .35s;pointer-events:none;display:flex;align-items:center;gap:8px}.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast-success{background:var(--green);color:#000}
+.toast-warning{background:var(--orange);color:#000}
+.toast-error{background:var(--red);color:#fff}
 .menu-toggle{display:none;position:fixed;top:12px;left:12px;z-index:100;background:var(--card-bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;cursor:pointer;font-size:18px}
 .feedback-btn{position:fixed;top:12px;right:12px;z-index:100;padding:8px 16px;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .2s}.feedback-btn:hover{border-color:var(--accent);color:var(--accent)}
 
@@ -512,7 +515,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .card-meta-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);gap:8px}
 .card-owner{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);font-weight:500}
 .card-owner-avatar{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;letter-spacing:0}
-.card-date{font-size:11px;color:var(--st);font-family:monospace;letter-spacing:.3px}
+.card-date{font-size:11px;color:var(--dim-light);font-family:monospace;letter-spacing:.3px}
 
 /* ═══ APM v4.1 阶段筛选行 ═══ */
 .stage-filter-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;flex-wrap:wrap}
@@ -565,7 +568,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .hot-card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .hot-stage{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
 .hot-owner{font-size:11px;color:var(--dim)}
-.hot-card-date{font-size:11px;color:var(--st);margin-top:6px;font-family:monospace}
+.hot-card-date{font-size:11px;color:var(--dim-light);margin-top:6px;font-family:monospace}
 .hot-empty{padding:24px;text-align:center;color:var(--dim);font-size:13px}
 
 /* 高频速查 — 优先级图例 */
@@ -614,7 +617,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .ms-label-active{font-weight:700;color:#6c8cff}
 .ms-label-upcoming{color:var(--dim)}
 .ms-date-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.ms-date-text{font-size:12px;color:var(--st);font-family:monospace}
+.ms-date-text{font-size:12px;color:var(--dim-light);font-family:monospace}
 .ms-diff{font-size:11px;padding:2px 8px;border-radius:8px;font-weight:600}
 .ms-diff-past{background:rgba(74,222,128,.1);color:#4ade80}
 .ms-diff-today{background:rgba(108,140,255,.15);color:#6c8cff}
@@ -927,9 +930,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 @keyframes aiFabPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.2)}}
 
 /* 对话框 */
-.ai-chat-dialog{position:absolute;bottom:68px;right:0;width:400px;max-height:600px;background:var(--sidebar-bg);border:1px solid var(--border);border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,.6),0 4px 16px rgba(108,140,255,.1);display:none;flex-direction:column;overflow:hidden;animation:aiDialogSlideIn .3s cubic-bezier(.4,0,.2,1)}
-.ai-chat-dialog.show{display:flex}
-@keyframes aiDialogSlideIn{from{opacity:0;transform:translateY(16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.ai-chat-dialog{position:absolute;bottom:68px;right:0;width:400px;max-height:600px;background:var(--sidebar-bg);border:1px solid var(--border);border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,.6),0 4px 16px rgba(108,140,255,.1);display:flex;flex-direction:column;overflow:hidden;visibility:hidden;opacity:0;transform:translateY(16px) scale(.95);transition:opacity .25s cubic-bezier(.4,0,.2,1),transform .25s cubic-bezier(.4,0,.2,1),visibility .25s;pointer-events:none}
+.ai-chat-dialog.show{visibility:visible;opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
 
 /* 对话框头部 */
 .ai-chat-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:linear-gradient(135deg,rgba(108,140,255,.08),rgba(167,139,250,.06));border-bottom:1px solid var(--border)}
@@ -970,7 +972,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .ai-chat-send{width:36px;height:36px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
 .ai-chat-send:hover{opacity:.85;transform:scale(1.05)}
 .ai-chat-send:disabled{opacity:.4;cursor:not-allowed;transform:none}
-.ai-chat-powered{font-size:11px;color:var(--st);text-align:center;margin-top:8px}
+.ai-chat-powered{font-size:11px;color:var(--dim-light);text-align:center;margin-top:8px}
 
 /* 加载动画 */
 .ai-typing{display:flex;gap:4px;padding:4px 0}
