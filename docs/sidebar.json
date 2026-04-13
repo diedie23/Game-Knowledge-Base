@@ -267,13 +267,6 @@
           ]
         },
         {
-          "name": "复盘与经验沉淀",
-          "icon": "📒",
-          "items": [
-            { "id": "postmortem-template", "icon": "📝", "title": "版本研发复盘模板", "type": "iframe", "file": "knowledge-base/postmortem-template.html", "badge": "案例", "craft": "管理" }
-          ]
-        },
-        {
           "name": "效能度量",
           "icon": "📊",
           "items": [
