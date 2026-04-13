@@ -15,7 +15,7 @@
 <aside class="sidebar">
   <div class="sidebar-header"><h1><span class="logo">📊</span> APM 专属知识库</h1><p>Art Project Management Knowledge Base</p></div>
   <div class="search-box">
-    <input type="text" id="searchInput" placeholder="搜索文档、阶段、跨部门... Ctrl+K" oninput="handleSearch(this.value)" onfocus="handleSearch(this.value)" onblur="setTimeout(()=>document.getElementById('searchDropdown').classList.remove('show'),200)">
+    <input type="text" id="searchInput" placeholder="搜索文档、阶段、跨部门... Ctrl+K" oninput="handleSearch(this.value)" onfocus="handleSearch(this.value)" onblur="setTimeout(()=>document.getElementById('searchDropdown').classList.remove('show'),250)">
     <div class="search-dropdown" id="searchDropdown"></div>
   </div>
   <nav class="sidebar-nav" id="sidebarNav">
@@ -869,6 +869,16 @@ sequenceDiagram
         <div class="hst">📂 快速记录</div>
         <p class="hst-desc" style="font-size:13px;color:var(--dim);margin:-8px 0 12px;padding:0 4px">使用编辑器的 Markdown 模板快速创建笔记，发布到仓库即可永久保存</p>
         <div class="home-grid" id="grid-mynotes-quick"></div>
+        <!-- M7: 空状态引导 -->
+        <div class="mynotes-empty-guide" id="mynotesEmptyGuide" style="margin-top:16px;padding:24px 28px;background:linear-gradient(135deg,rgba(251,191,36,.04),rgba(251,191,36,.02));border:1px dashed rgba(251,191,36,.25);border-radius:14px;text-align:center;display:block">
+          <div style="font-size:36px;margin-bottom:12px;opacity:.8">📝</div>
+          <div style="font-size:16px;color:var(--heading);font-weight:600;margin-bottom:8px">还没有个人笔记，现在开始记录吧！</div>
+          <div style="font-size:14px;color:var(--dim);line-height:1.8;margin-bottom:16px">
+            项目复盘、每周总结、决策记录、会议纪要⋯<br>
+            使用上方的 <strong style="color:var(--accent)">实战模板</strong> 快速上手，或直接点击下方按钮开始写作。
+          </div>
+          <button onclick="openEditor()" style="display:inline-flex;align-items:center;gap:8px;padding:10px 24px;background:linear-gradient(135deg,rgba(251,191,36,.15),rgba(251,191,36,.1));border:1px solid rgba(251,191,36,.3);border-radius:10px;color:#fbbf24;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s">✍️ 创建第一篇笔记</button>
+        </div>
 
         </div>
       </div>

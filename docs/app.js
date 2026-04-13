@@ -287,13 +287,14 @@ function buildSidebar(data){
     var isCollab = cat.id === 'mod-collab';
     var isQuality = cat.id === 'mod-quality';
     var isCasestudy = cat.id === 'mod-casestudy';
+    var isSystem = cat.id === 'mod-system';
 
     // 获取纯文本名称（去掉 Emoji 前缀）
     var catName = cat.name.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]+\s*/u, '');
     // 一级模块 Emoji 图标（从 JSON icon 字段读取）
     var catEmoji = cat.icon || '📁';
 
-    var extraCls = isOutsource ? ' t1-outsource' : isCollab ? ' t1-collab' : isQuality ? ' t1-quality' : isCasestudy ? ' t1-casestudy' : '';
+    var extraCls = isOutsource ? ' t1-outsource' : isCollab ? ' t1-collab' : isQuality ? ' t1-quality' : isCasestudy ? ' t1-casestudy' : isSystem ? ' t1-system' : '';
     html += '<div class="t1' + extraCls + '" id="' + cat.id + '">';
     html += '<div class="t1-h" onclick="handleToggle(event,this)">'
       + SVG_CHEVRON
@@ -939,6 +940,10 @@ function extractSnippet(content, query, maxLen){
 function copyShareLink(){navigator.clipboard.writeText(location.href).then(function(){showToast('链接已复制');}).catch(function(){showToast('复制失败','error');});}
 function showToast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast';if(type==='warning') t.classList.add('toast-warning');else if(type==='error') t.classList.add('toast-error');else t.classList.add('toast-success');t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(function(){t.classList.remove('show');},type==='error'?4000:2000);}
 
+// ═══ 编辑按钮过渡动画辅助 ═══
+function showBtn(el){if(!el) return;el.style.display='';el.style.opacity='0';el.style.transform='scale(.85)';requestAnimationFrame(function(){requestAnimationFrame(function(){el.style.opacity='1';el.style.transform='scale(1)';});});}
+function hideBtn(el){if(!el) return;el.style.opacity='0';el.style.transform='scale(.85)';setTimeout(function(){el.style.display='none';el.style.opacity='';el.style.transform='';},150);}
+
 // ═══ Draft Prompt 注入（AI 辅助补全机制）═══
 function injectDraftPrompt(iframeDoc, placeholder, promptText, docTitle){
   // 创建 draft_prompt 容器
@@ -1379,10 +1384,10 @@ function htmlEmbedEnterEdit(){
     return;
   }
   var tb=document.getElementById('htmlEmbedToolbar');
-  tb.querySelector('.htmpl-btn-edit').style.display='none';
-  tb.querySelector('.htmpl-btn-save').style.display='';
-  tb.querySelector('.htmpl-btn-publish').style.display='';
-  tb.querySelector('.htmpl-btn-exit').style.display='';
+  hideBtn(tb.querySelector('.htmpl-btn-edit'));
+  showBtn(tb.querySelector('.htmpl-btn-save'));
+  showBtn(tb.querySelector('.htmpl-btn-publish'));
+  showBtn(tb.querySelector('.htmpl-btn-exit'));
   showToast('✅ 已进入编辑模式，直接点击内容修改');
 }
 
@@ -1404,10 +1409,10 @@ function htmlEmbedExitEdit(){
     });
   }catch(e){}
   var tb=document.getElementById('htmlEmbedToolbar');
-  tb.querySelector('.htmpl-btn-edit').style.display='';
-  tb.querySelector('.htmpl-btn-save').style.display='none';
-  tb.querySelector('.htmpl-btn-publish').style.display='none';
-  tb.querySelector('.htmpl-btn-exit').style.display='none';
+  showBtn(tb.querySelector('.htmpl-btn-edit'));
+  hideBtn(tb.querySelector('.htmpl-btn-save'));
+  hideBtn(tb.querySelector('.htmpl-btn-publish'));
+  hideBtn(tb.querySelector('.htmpl-btn-exit'));
   showToast('已退出编辑模式');
 }
 
@@ -1698,13 +1703,13 @@ function htmlTmplEnterEdit(){
   }
   // 切换工具栏按钮
   var tb=document.getElementById('iframeToolbar');
-  tb.querySelector('.htmpl-btn-edit').style.display='none';
-  tb.querySelector('.htmpl-btn-save').style.display='';
-  tb.querySelector('.htmpl-btn-saveas').style.display='';
+  hideBtn(tb.querySelector('.htmpl-btn-edit'));
+  showBtn(tb.querySelector('.htmpl-btn-save'));
+  showBtn(tb.querySelector('.htmpl-btn-saveas'));
   var pubBtn=tb.querySelector('.htmpl-btn-publish');
-  if(pubBtn) pubBtn.style.display='';
-  tb.querySelector('.htmpl-btn-exit').style.display='';
-  tb.querySelector('.htmpl-divider').style.display='';
+  if(pubBtn) showBtn(pubBtn);
+  showBtn(tb.querySelector('.htmpl-btn-exit'));
+  showBtn(tb.querySelector('.htmpl-divider'));
   showToast('✅ 已进入编辑模式，直接点击内容修改');
 }
 
@@ -1724,13 +1729,13 @@ function htmlTmplExitEdit(){
   }catch(e){}
   // 切换工具栏按钮
   var tb=document.getElementById('iframeToolbar');
-  tb.querySelector('.htmpl-btn-edit').style.display='';
-  tb.querySelector('.htmpl-btn-save').style.display='none';
-  tb.querySelector('.htmpl-btn-saveas').style.display='none';
+  showBtn(tb.querySelector('.htmpl-btn-edit'));
+  hideBtn(tb.querySelector('.htmpl-btn-save'));
+  hideBtn(tb.querySelector('.htmpl-btn-saveas'));
   var pubBtn=tb.querySelector('.htmpl-btn-publish');
-  if(pubBtn) pubBtn.style.display='none';
-  tb.querySelector('.htmpl-btn-exit').style.display='none';
-  tb.querySelector('.htmpl-divider').style.display='none';
+  if(pubBtn) hideBtn(pubBtn);
+  hideBtn(tb.querySelector('.htmpl-btn-exit'));
+  hideBtn(tb.querySelector('.htmpl-divider'));
   showToast('已退出编辑模式');
 }
 
