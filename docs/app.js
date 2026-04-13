@@ -483,24 +483,10 @@ function navigate(pageId,btn){
         // 判断是否为可编辑的 HTML 模板（文件在 knowledge-base 目录下的 .html）
         var isEditableTemplate=reg.file && reg.file.indexOf('knowledge-base/')!==-1 && reg.file.endsWith('.html');
 
+        // ═══ 编辑功能已统一至顶部 detailMetaBar，iframeToolbar 不再渲染编辑按钮 ═══
+        // 仅保留 iframeToolbar 的 dataset 以供 htmlTmplSave/htmlTmplPublish 读取当前 pageId
         if(isEditableTemplate && !reg.download){
-          // 为 HTML 模板文档显示编辑工具栏
-          var tmplTitle=btn?btn.textContent.trim():(pageId);
-          var meta0=getItemMeta(pageId);
-          if(meta0&&meta0.title) tmplTitle=meta0.title;
           var iftb=document.getElementById('iframeToolbar');
-          iftb.innerHTML=
-            '<div class="ift-title"><span class="ift-icon">📝</span>'+tmplTitle+'</div>'
-            +'<div class="htmpl-toolbar-actions">'
-              +'<button class="ift-btn htmpl-btn-edit" onclick="htmlTmplEnterEdit()" title="进入编辑模式">✏️ 开始编辑</button>'
-              +'<button class="ift-btn htmpl-btn-save" onclick="htmlTmplSave()" style="display:none" title="保存下载">💾 保存下载</button>'
-              +'<button class="ift-btn htmpl-btn-saveas" onclick="htmlTmplSaveAs()" style="display:none" title="另存为">📄 另存为</button>'
-              +'<button class="ift-btn htmpl-btn-publish" onclick="htmlTmplPublish()" style="display:none" title="直接发布到 GitHub 仓库">🚀 发布到仓库</button>'
-              +'<button class="ift-btn htmpl-btn-exit" onclick="htmlTmplExitEdit()" style="display:none" title="退出编辑">✖ 退出编辑</button>'
-              +'<span class="htmpl-divider" style="display:none"></span>'
-              +'<button class="ift-btn htmpl-btn-guide" onclick="htmlTmplShowGuide()" title="保存引导">❓ 如何上线</button>'
-            +'</div>';
-          iftb.style.display='flex';
           iftb.dataset.tmplKey=pageId;
         }
 
@@ -510,7 +496,7 @@ function navigate(pageId,btn){
           setupIframeScrollSpy(pageId);
           setupIframeBackToTop();
 
-          // 对可编辑 HTML 模板：隐藏 iframe 内部的 editor-kit 悬浮按钮
+          // 对可编辑 HTML 模板：隐藏 iframe 内部的 editor-kit 悬浮按钮（由顶部统一工具栏控制）
           if(isEditableTemplate){
             try{
               var iDoc2=frame.contentDocument||frame.contentWindow.document;
@@ -1165,12 +1151,10 @@ function openHtmlTemplateInEditor(key, htmlContent){
       +'<div class="htmpl-toolbar-actions">'
         +'<button class="ift-btn htmpl-btn-edit" onclick="htmlEmbedEnterEdit()" title="进入编辑模式">✏️ 开始编辑</button>'
         +'<button class="ift-btn htmpl-btn-save" onclick="htmlEmbedSave()" style="display:none" title="保存下载">💾 保存下载</button>'
-        +'<button class="ift-btn htmpl-btn-saveas" onclick="htmlEmbedSaveAs()" style="display:none" title="另存为">📄 另存为</button>'
-        +'<button class="ift-btn htmpl-btn-publish" onclick="htmlEmbedPublish()" style="display:none" title="直接发布到 GitHub 仓库">🚀 发布到仓库</button>'
+        +'<button class="ift-btn htmpl-btn-publish" onclick="htmlEmbedPublish()" style="display:none" title="一键发布到 GitHub 仓库">🚀 一键发布</button>'
         +'<button class="ift-btn htmpl-btn-exit" onclick="htmlEmbedExitEdit()" style="display:none" title="退出编辑">✖ 退出编辑</button>'
-        +'<span class="htmpl-divider" style="display:none"></span>'
+        +'<span class="htmpl-divider"></span>'
         +'<button class="ift-btn htmpl-btn-back" onclick="htmlEmbedBackToMd()" title="返回 Markdown 编辑器">↩ 返回编辑器</button>'
-        +'<button class="ift-btn htmpl-btn-guide" onclick="htmlTmplShowGuide()" title="保存引导">❓ 如何上线</button>'
       +'</div>'
     +'</div>'
     +'<iframe id="htmlEmbedFrame" style="flex:1;border:none;width:100%;background:#0d1117"></iframe>';
@@ -1212,10 +1196,8 @@ function htmlEmbedEnterEdit(){
   var tb=document.getElementById('htmlEmbedToolbar');
   tb.querySelector('.htmpl-btn-edit').style.display='none';
   tb.querySelector('.htmpl-btn-save').style.display='';
-  tb.querySelector('.htmpl-btn-saveas').style.display='';
   tb.querySelector('.htmpl-btn-publish').style.display='';
   tb.querySelector('.htmpl-btn-exit').style.display='';
-  tb.querySelector('.htmpl-divider').style.display='';
   showToast('✅ 已进入编辑模式，直接点击内容修改');
 }
 
@@ -1232,10 +1214,8 @@ function htmlEmbedExitEdit(){
   var tb=document.getElementById('htmlEmbedToolbar');
   tb.querySelector('.htmpl-btn-edit').style.display='';
   tb.querySelector('.htmpl-btn-save').style.display='none';
-  tb.querySelector('.htmpl-btn-saveas').style.display='none';
   tb.querySelector('.htmpl-btn-publish').style.display='none';
   tb.querySelector('.htmpl-btn-exit').style.display='none';
-  tb.querySelector('.htmpl-divider').style.display='none';
   showToast('已退出编辑模式');
 }
 
@@ -1566,7 +1546,9 @@ function htmlTmplExitEdit(){
 function htmlTmplSave(){
   var frame=document.getElementById('contentFrame');
   var key=document.getElementById('iframeToolbar').dataset.tmplKey||'document';
-  var tmplName=htmlTemplateNames[key]||key;
+  // 优先使用 sidebar.json 中的元数据获取文件名
+  var meta=getItemMeta(key);
+  var tmplName=(meta&&meta.title)?meta.title:(htmlTemplateNames[key]||key);
   var fileName=tmplName.replace(/\s+/g,'-')+'.html';
   try{
     var iDoc=frame.contentDocument||frame.contentWindow.document;
@@ -1597,12 +1579,16 @@ function htmlTmplSaveAs(){
   });
 }
 
-// 发布到仓库（全页 iframe 版）— 复用 htmlEmbedPublish 的弹窗逻辑
+// 发布到仓库（全页 iframe 版）— 增强：自动识别当前文档信息
 function htmlTmplPublish(){
-  // 临时把 iframe 来源指向 contentFrame
   var key=document.getElementById('iframeToolbar').dataset.tmplKey||'document';
-  var tmplName=htmlTemplateNames[key]||key;
+  var meta=getItemMeta(key);
+  var reg=pageRegistry[key]||{};
+  var tmplName=(meta&&meta.title)?meta.title:(htmlTemplateNames[key]||key);
   var defaultName=tmplName.replace(/\s+/g,'-');
+  // 自动识别当前文档所属分类
+  var autoCatId='mod-project';
+  if(reg.catId) autoCatId=reg.catId;
 
   var overlay=document.createElement('div');
   overlay.id='htmplPublishOverlay';
@@ -1635,7 +1621,12 @@ function htmlTmplPublish(){
       +'</div>'
     +'</div>';
   document.body.appendChild(overlay);
-  setTimeout(function(){var inp=document.getElementById('htmplPubName');if(inp){inp.focus();inp.select();}},100);
+  setTimeout(function(){
+    var inp=document.getElementById('htmplPubName');if(inp){inp.focus();inp.select();}
+    // 自动选中当前文档所属分类
+    var catSel=document.getElementById('htmplPubCat');
+    if(catSel&&autoCatId) catSel.value=autoCatId;
+  },100);
 
   document.getElementById('htmplPubCancelBtn').onclick=function(){ overlay.remove(); };
   document.getElementById('htmplPubConfirmBtn').onclick=function(){ doHtmlTmplPublish(overlay); };
@@ -2966,15 +2957,19 @@ function updateDetailMetaBar(pageId){
     var priColor=priColors[meta.priority]||'#4ade80';
     html+='<span class="dm-item"><span class="dm-icon">⭐</span> <span class="dm-pri" style="background:'+priColor+'">'+priLabel+'</span></span>';
   }
-  // 快捷操作
-  html+='<span class="dm-actions">';
-  // 仅普通文档页面显示编辑模式按钮（MD 或 HTML iframe 文档）
+  // ═══ 统一文档工具栏（合并原 detailMetaBar 操作 + iframeToolbar 编辑功能）═══
+  html+='<span class="dm-actions" id="dmActionsBar">';
   if(!isToolPage){
     if(reg.type==='md'){
       html+='<button class="dm-btn dm-btn-edit" onclick="editDocument(\''+pageId+'\')" title="编辑模式">✏️ 编辑模式</button>';
       html+='<button class="dm-btn dm-btn-danger" onclick="confirmDeleteDocument(\''+pageId+'\')" title="删除文档">🗑️ 删除</button>';
     } else if(reg.type==='iframe'&&reg.file){
-      html+='<button class="dm-btn dm-btn-edit" onclick="enterIframeEditMode(\''+pageId+'\')" title="编辑模式">✏️ 编辑模式</button>';
+      // 阅读态按钮
+      html+='<button class="dm-btn dm-btn-edit" id="dmBtnEdit" onclick="unifiedEnterEdit(\''+pageId+'\')" title="进入编辑模式">✏️ 编辑模式</button>';
+      // 编辑态按钮（默认隐藏）
+      html+='<button class="dm-btn htmpl-btn-save" id="dmBtnSave" onclick="htmlTmplSave()" style="display:none" title="保存下载 HTML 文件">💾 保存下载</button>';
+      html+='<button class="dm-btn htmpl-btn-publish" id="dmBtnPublish" onclick="htmlTmplPublish()" style="display:none" title="一键发布到 GitHub 仓库">🚀 一键发布</button>';
+      html+='<button class="dm-btn htmpl-btn-exit" id="dmBtnExitEdit" onclick="unifiedExitEdit(\''+pageId+'\')" style="display:none" title="退出编辑模式">✖ 退出编辑</button>';
     }
   }
   html+='<button class="dm-btn" onclick="copyCardLink(\''+pageId+'\')" title="复制链接">📋 复制链接</button>';
@@ -2982,6 +2977,66 @@ function updateDetailMetaBar(pageId){
   html+='</span>';
   bar.innerHTML=html;
   bar.style.display='flex';
+}
+
+// ═══ 统一编辑入口：从顶部工具栏直接进入编辑模式（替代原来的双重按钮）═══
+function unifiedEnterEdit(pageId){
+  var frame=document.getElementById('contentFrame');
+  if(!frame||!frame.contentWindow) return;
+  try{
+    var win=frame.contentWindow;
+    if(typeof win.enterEdit==='function'){
+      win.enterEdit();
+    } else {
+      var iDoc=frame.contentDocument||win.document;
+      var ekBtn=iDoc.querySelector('.ek-enter-btn');
+      if(ekBtn) ekBtn.click();
+      else { showToast('⚠️ 该文档未启用可视化编辑器'); return; }
+    }
+    // 隐藏 iframe 内置编辑器 UI（由父页面统一控制）
+    var iDoc2=frame.contentDocument||win.document;
+    var ekToolbar=iDoc2.querySelector('.ek-toolbar');
+    if(ekToolbar) ekToolbar.style.display='none';
+    var ekBadge=iDoc2.querySelector('.ek-editing-badge');
+    if(ekBadge) ekBadge.style.display='none';
+  }catch(e){
+    showToast('⚠️ 无法进入编辑模式（跨域限制）');
+    return;
+  }
+  // 切换顶部工具栏按钮状态：阅读 → 编辑
+  var btnEdit=document.getElementById('dmBtnEdit');
+  var btnSave=document.getElementById('dmBtnSave');
+  var btnPublish=document.getElementById('dmBtnPublish');
+  var btnExit=document.getElementById('dmBtnExitEdit');
+  if(btnEdit) btnEdit.style.display='none';
+  if(btnSave) btnSave.style.display='';
+  if(btnPublish) btnPublish.style.display='';
+  if(btnExit) btnExit.style.display='';
+  // 隐藏 iframeToolbar（避免重复）
+  var iftb=document.getElementById('iframeToolbar');
+  if(iftb) iftb.style.display='none';
+  showToast('✅ 已进入编辑模式 — 直接点击内容修改，双击图片可替换');
+}
+
+// ═══ 统一退出编辑模式 ═══
+function unifiedExitEdit(pageId){
+  var frame=document.getElementById('contentFrame');
+  try{
+    var iDoc=frame.contentDocument||frame.contentWindow.document;
+    iDoc.body.classList.remove('ek-editing');
+    iDoc.querySelectorAll('[contenteditable]').forEach(function(el){el.removeAttribute('contenteditable');});
+    iDoc.querySelectorAll('.ek-img-editable').forEach(function(el){el.classList.remove('ek-img-editable');});
+  }catch(e){}
+  // 切换顶部工具栏按钮状态：编辑 → 阅读
+  var btnEdit=document.getElementById('dmBtnEdit');
+  var btnSave=document.getElementById('dmBtnSave');
+  var btnPublish=document.getElementById('dmBtnPublish');
+  var btnExit=document.getElementById('dmBtnExitEdit');
+  if(btnEdit) btnEdit.style.display='';
+  if(btnSave) btnSave.style.display='none';
+  if(btnPublish) btnPublish.style.display='none';
+  if(btnExit) btnExit.style.display='none';
+  showToast('已退出编辑模式');
 }
 
 // ═══ v4.2 相关文档推荐 ═══
