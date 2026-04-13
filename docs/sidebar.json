@@ -180,7 +180,6 @@
           "icon": "🚨",
           "items": [
             { "id": "cross-dept-collab", "icon": "🤝", "title": "跨部门协作痛点解法", "type": "iframe", "file": "knowledge-base/cross-dept-collab.html", "badge": "协作", "craft": "通用" },
-            { "id": "accident-troubleshoot", "icon": "🚨", "title": "典型事故排雷手册", "type": "iframe", "file": "knowledge-base/accident-troubleshoot.html", "badge": "排雷", "craft": "通用" },
             { "id": "cross-dept-communication-tips", "icon": "🗣️", "title": "跨部门沟通话术总结", "type": "iframe", "file": "knowledge-base/cross-dept-communication-tips.html", "badge": "沟通", "craft": "管理" }
           ]
         }
@@ -251,10 +250,7 @@
         {
           "name": "复盘与经验沉淀",
           "icon": "📒",
-          "items": [
-            { "id": "postmortem-template", "icon": "📝", "title": "版本研发复盘 (Post-mortem) 模板", "type": "iframe", "file": "knowledge-base/postmortem-template.html", "badge": "管理", "craft": "管理" },
-            { "id": "project-pitfall-log", "icon": "💣", "title": "XX项目踩坑记录", "type": "iframe", "file": "knowledge-base/project-pitfall-log.html", "badge": "复盘", "craft": "管理" }
-          ]
+          "items": []
         },
         {
           "name": "效能度量",
@@ -289,6 +285,27 @@
       "color": "red",
       "items": [],
       "groups": [
+        {
+          "name": "踩坑记录",
+          "icon": "💣",
+          "items": [
+            { "id": "project-pitfall-log", "icon": "💣", "title": "外包翻车·排期爆雷·资产返工", "type": "iframe", "file": "knowledge-base/project-pitfall-log.html", "badge": "案例", "craft": "管理" }
+          ]
+        },
+        {
+          "name": "事故排雷",
+          "icon": "🚨",
+          "items": [
+            { "id": "accident-troubleshoot", "icon": "🚨", "title": "典型事故排雷手册", "type": "iframe", "file": "knowledge-base/accident-troubleshoot.html", "badge": "案例", "craft": "通用" }
+          ]
+        },
+        {
+          "name": "复盘模板",
+          "icon": "📝",
+          "items": [
+            { "id": "postmortem-template", "icon": "📝", "title": "版本研发复盘模板", "type": "iframe", "file": "knowledge-base/postmortem-template.html", "badge": "案例", "craft": "管理" }
+          ]
+        },
         {
           "name": "项目延期案例",
           "icon": "⏰",
