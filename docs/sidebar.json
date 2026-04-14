@@ -816,17 +816,7 @@
         {
           "name": "文档",
           "icon": "📄",
-          "items": [
-            {
-              "id": "测试",
-              "icon": "📝",
-              "title": "测试",
-              "type": "iframe",
-              "file": "knowledge-base/测试.html",
-              "badge": "笔记",
-              "craft": "管理"
-            }
-          ]
+          "items": []
         },
         {
           "name": "实战模板",
