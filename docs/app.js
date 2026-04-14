@@ -4157,32 +4157,32 @@ function aiLocalAnswer(query){
     if(fuseFulltext){
       var results=fuseFulltext.search(query).slice(0,5);
       if(results.length){
-        answer='根据知识库内容，以下是与你的问题最相关的信息：\n\n';
+        answer='我在知识库里找到了一些相关内容，来看看 👇\n\n';
         results.forEach(function(r,i){
           var entry=r.item;
           // 优先用 excerpt，否则清洗 content 后取摘要
           var snippet=entry.excerpt||aiCleanBotResponse(entry.content).substring(0,150)+'…';
-          answer+='**'+(i+1)+'. '+entry.title+'**\n'+snippet+'\n\n';
+          answer+='### '+(i+1)+'. '+entry.title+'\n'+snippet+'\n\n';
           relatedDocs.push({id:entry.id, title:entry.title, icon:entry.icon||'📄'});
         });
-        answer+='💡 *点击下方文档链接查看完整内容*';
+        answer+='---\n💡 *点击下方文档链接查看完整内容~*';
       }else{
-        answer='抱歉，在知识库中没有找到与「'+query+'」直接相关的内容。\n\n你可以尝试：\n- 换用不同的关键词搜索\n- 在左侧导航栏浏览相关模块\n- 使用顶部搜索框进行模糊搜索';
+        answer='emmm 🤔 在知识库中暂时没找到和「'+query+'」直接相关的内容。\n\n不过你可以试试：\n- 换几个关键词再搜搜\n- 在左侧导航栏翻翻相关模块\n- 用顶部搜索框模糊搜索\n\n实在找不到的话，可能是知识库还没收录这块内容，可以反馈给管理员哦 📮';
       }
     }else if(fuse){
       var results2=fuse.search(query).slice(0,5);
       if(results2.length){
-        answer='找到以下相关文档：\n\n';
+        answer='找到了一些相关文档，看看有没有你想要的 ✨\n\n';
         results2.forEach(function(r,i){
-          answer+='**'+(i+1)+'. '+r.item.title+'**\n';
+          answer+='### '+(i+1)+'. '+r.item.title+'\n';
           relatedDocs.push({id:r.item.id, title:r.item.title, icon:'📄'});
         });
-        answer+='\n💡 *点击文档链接查看详情*';
+        answer+='\n---\n💡 *点击文档链接查看详情~*';
       }else{
-        answer='暂未在知识库中找到相关内容。建议浏览左侧导航目录。';
+        answer='暂时没找到相关内容 😅 建议浏览左侧导航目录看看有没有你想要的~';
       }
     }else{
-      answer='搜索索引尚在加载中，请稍后再试。';
+      answer='搜索索引还在加载中，稍等一下再问我哈~ ⏳';
     }
 
     aiAppendMessage('bot', answer, relatedDocs);
@@ -4224,19 +4224,19 @@ function aiCozeAnswer(query, botId, token){
       aiRemoveTyping();
       sendBtn.disabled=false;
       console.error('[Coze API Error]', JSON.stringify(data));
-      aiAppendMessage('bot', '⚠️ API 错误 ('+data.code+'): '+(data.msg||'未知错误')+'\n\n**调试信息：**\n- Bot ID: `'+botId+'`\n- Token: `'+token.substring(0,10)+'...`\n- 错误详情: `'+JSON.stringify(data)+'`\n\n请检查 Bot ID 和 Token 是否正确。');
+      aiAppendMessage('bot', '哎呀，API 出了点小问题 😅\n\n**错误码：** `'+data.code+'`\n**提示：** '+(data.msg||'未知错误')+'\n\n可以检查一下 Bot ID 和 Token 是否正确，或者稍后再试试~');
     }else{
       aiRemoveTyping();
       sendBtn.disabled=false;
       console.error('[Coze API Unknown Response]', JSON.stringify(data));
-      aiAppendMessage('bot', '⚠️ 未收到有效响应。\n\n**调试信息：** `'+JSON.stringify(data)+'`');
+      aiAppendMessage('bot', '没收到有效响应，可能是网络波动 🌊 稍后再试试看~');
     }
   }).catch(function(err){
     aiRemoveTyping();
     sendBtn.disabled=false;
     console.error('[Coze API Catch Error]', err);
     // 降级到本地搜索
-    aiAppendMessage('bot', '⚠️ Coze API 连接失败，已切换到本地知识库搜索模式。\n\n*错误类型: '+err.name+'*\n*错误信息: '+err.message+'*');
+    aiAppendMessage('bot', 'Coze API 连接失败了 😣 已切换到本地知识库搜索，让我用另一种方式帮你找答案~');
     aiLocalAnswer(query);
   });
 }
@@ -4251,7 +4251,7 @@ function aiPollChatResult(chatId, conversationId, botId, token, sendBtn, query){
     if(retryCount>maxRetries){
       aiRemoveTyping();
       sendBtn.disabled=false;
-      aiAppendMessage('bot', '⚠️ 等待回复超时，已切换到本地搜索模式。');
+      aiAppendMessage('bot', '等了好久还没收到回复 ⏰ 先用本地知识库帮你搜搜~');
       aiLocalAnswer(query);
       return;
     }
@@ -4302,7 +4302,15 @@ function aiPollChatResult(chatId, conversationId, botId, token, sendBtn, query){
   setTimeout(poll, 1000); // 首次等 1 秒后开始轮询
 }
 
-// ═══ 消息渲染 ═══
+// ── 回复结尾随机彩蛋 ──
+var _botSignoffs = [
+  '', '', '', '✨', '🎯', '💪',
+  '\n\n---\n💡 *还有其他问题随时问我~*',
+  '\n\n---\n🎯 *希望对你有帮助！*',
+  ''
+];
+
+// ═══ 消息渲染（Bot 回复自带打字机效果）═══
 function aiAppendMessage(role, text, relatedDocs){
   var container=document.getElementById('aiChatMessages');
   var div=document.createElement('div');
@@ -4312,31 +4320,99 @@ function aiAppendMessage(role, text, relatedDocs){
   var cleanText = (role==='bot') ? aiCleanBotResponse(text) : text;
 
   var avatarHtml=role==='user'
-    ?'<div class="ai-msg-avatar">👤</div>'
+    ?'<div class="ai-msg-avatar"><span class="ai-user-avatar">👤</span></div>'
     :'<div class="ai-msg-avatar"><img class="ai-avatar-img" src="'+AI_BOT_CONFIG.avatarUrl+'" alt="Bot" draggable="false"></div>';
-  var htmlContent=aiFormatMessage(cleanText);
 
-  // 添加相关文档链接
-  var docsHtml='';
-  if(relatedDocs && relatedDocs.length){
-    docsHtml='<div style="display:flex;flex-direction:column;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">';
-    relatedDocs.forEach(function(doc){
-      docsHtml+='<a class="ai-doc-link" onclick="navigate(\''+doc.id+'\');toggleAiChat()" style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;font-size:13px;color:var(--accent);cursor:pointer;transition:all .15s;text-decoration:none;background:rgba(108,140,255,.04);border:1px solid rgba(108,140,255,.1)">'
-        +'<span>'+doc.icon+'</span>'
-        +'<span style="flex:1;font-weight:500">'+doc.title+'</span>'
-        +'<span style="color:var(--dim);font-size:11px">→</span>'
-        +'</a>';
-    });
-    docsHtml+='</div>';
+  if(role==='user'){
+    // 用户消息：直接显示
+    var htmlContent=aiFormatMessage(cleanText);
+    div.innerHTML=avatarHtml+'<div class="ai-msg-content">'+htmlContent+'</div>';
+    container.appendChild(div);
+  } else {
+    // Bot 消息：打字机效果
+    var contentDiv=document.createElement('div');
+    contentDiv.className='ai-msg-content ai-msg-typing-active';
+    contentDiv.innerHTML='<span class="ai-cursor"></span>';
+    div.innerHTML=avatarHtml;
+    div.appendChild(contentDiv);
+    container.appendChild(div);
+
+    // 打字机效果
+    _typewriterEffect(contentDiv, cleanText, relatedDocs);
   }
-
-  div.innerHTML=avatarHtml
-    +'<div class="ai-msg-content">'+htmlContent+docsHtml+'</div>';
-  container.appendChild(div);
 
   // 滚动到底部
   var body=document.getElementById('aiChatBody');
   body.scrollTop=body.scrollHeight;
+}
+
+// ── 打字机效果（逐字渲染 Markdown）──
+function _typewriterEffect(contentDiv, fullText, relatedDocs){
+  var body=document.getElementById('aiChatBody');
+  // 一次性渲染完整 Markdown（为了正确解析）
+  // 但使用 CSS 动画模拟逐行显示效果
+  var htmlContent = aiFormatMessage(fullText);
+
+  // 分割成段落/行来实现逐段出现的效果
+  var tempDiv = document.createElement('div');
+  tempDiv.innerHTML = htmlContent;
+  var nodes = [];
+  for(var i=0; i<tempDiv.childNodes.length; i++){
+    nodes.push(tempDiv.childNodes[i]);
+  }
+
+  contentDiv.innerHTML = '';
+  var idx = 0;
+  var delay = 0;
+  var baseDelay = 40; // 每个节点间隔(ms)
+
+  function showNext(){
+    if(idx >= nodes.length){
+      // 打字完成
+      contentDiv.classList.remove('ai-msg-typing-active');
+
+      // 添加相关文档链接
+      if(relatedDocs && relatedDocs.length){
+        var docsHtml='<div class="ai-related-docs">';
+        docsHtml+='<div class="ai-related-label">📎 相关文档</div>';
+        relatedDocs.forEach(function(doc){
+          docsHtml+='<a class="ai-doc-link" onclick="navigate(\''+doc.id+'\');toggleAiChat()">'
+            +'<span class="ai-doc-icon">'+doc.icon+'</span>'
+            +'<span class="ai-doc-title">'+doc.title+'</span>'
+            +'<span class="ai-doc-arrow">→</span>'
+            +'</a>';
+        });
+        docsHtml+='</div>';
+        var docsDiv = document.createElement('div');
+        docsDiv.innerHTML = docsHtml;
+        contentDiv.appendChild(docsDiv.firstChild);
+      }
+
+      body.scrollTop=body.scrollHeight;
+      return;
+    }
+
+    var node = nodes[idx].cloneNode(true);
+    contentDiv.appendChild(node);
+    node.style && (node.style.animation='aiFadeInUp .25s ease both');
+    idx++;
+    body.scrollTop=body.scrollHeight;
+
+    // 不同元素类型用不同延迟
+    var tag = node.tagName ? node.tagName.toLowerCase() : '';
+    var d = baseDelay;
+    if(tag==='p') d=80;
+    else if(tag==='pre') d=120;
+    else if(tag==='ol'||tag==='ul') d=100;
+    else if(tag==='h2'||tag==='h3'||tag==='h4') d=60;
+    else if(tag==='blockquote') d=100;
+    else if(tag==='hr') d=40;
+
+    setTimeout(showNext, d);
+  }
+
+  // 首段稍快出现
+  setTimeout(showNext, 100);
 }
 
 // ═══ AI 回答文本清洗（去除文档元数据冗余信息） ═══
@@ -4378,28 +4454,85 @@ function aiCleanBotResponse(text){
 
 function aiFormatMessage(text){
   if(!text) return '';
-  // 简单 Markdown 渲染
   var h=text;
+
+  // ── 代码块（```...```）──
+  h=h.replace(/```(\w*)\n([\s\S]*?)```/g, function(m,lang,code){
+    return '<pre class="ai-code-block"><code>'+code.replace(/</g,'&lt;').replace(/>/g,'&gt;').trim()+'</code></pre>';
+  });
+
+  // ── 行内代码 ──
+  h=h.replace(/`([^`]+)`/g,'<code class="ai-inline-code">$1</code>');
+
+  // ── 标题（## / ### / ####）──
+  h=h.replace(/^####\s+(.+)$/gm,'<h4 class="ai-h4">$1</h4>');
+  h=h.replace(/^###\s+(.+)$/gm,'<h3 class="ai-h3">$1</h3>');
+  h=h.replace(/^##\s+(.+)$/gm,'<h2 class="ai-h2">$1</h2>');
+
+  // ── 分隔线 ──
+  h=h.replace(/^---+$/gm,'<hr class="ai-hr">');
+
+  // ── 有序列表 ──
+  h=h.replace(/^(\d+)\.\s+(.+)$/gm,'<li class="ai-ol-item" value="$1">$2</li>');
+
+  // ── 无序列表（- 或 •） ──
+  h=h.replace(/^[-•]\s+(.+)$/gm,'<li class="ai-ul-item">$1</li>');
+
+  // 包裹连续 li 为 ul/ol
+  h=h.replace(/((?:<li class="ai-ol-item"[^>]*>[^<]*<\/li>\s*)+)/g,'<ol class="ai-list">$1</ol>');
+  h=h.replace(/((?:<li class="ai-ul-item">[^<]*<\/li>\s*)+)/g,'<ul class="ai-list">$1</ul>');
+
+  // ── 引用块 ──
+  h=h.replace(/^>\s+(.+)$/gm,'<blockquote class="ai-quote">$1</blockquote>');
+
+  // ── 粗体 / 斜体 ──
   h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-  h=h.replace(/\*(.+?)\*/g,'<em style="color:var(--dim)">$1</em>');
-  h=h.replace(/`([^`]+)`/g,'<code>$1</code>');
+  h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');
+
+  // ── 链接 ──
+  h=h.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" class="ai-link">$1</a>');
+
+  // ── 段落 ──
   h=h.replace(/\n\n/g,'</p><p>');
   h=h.replace(/\n/g,'<br>');
+
   return '<p>'+h+'</p>';
 }
+
+// ── 思考提示文案池（随机选取，更有趣） ──
+var _thinkingPhrases = [
+  '🤔 正在思考中…',
+  '📚 翻阅知识库中…',
+  '💡 组织答案中…',
+  '🔍 搜索相关文档…',
+  '⚡ 分析问题中…',
+  '🧠 大脑高速运转中…',
+  '📖 查阅资料中…'
+];
 
 function aiShowTyping(){
   var container=document.getElementById('aiChatMessages');
   var div=document.createElement('div');
   div.className='ai-msg ai-msg-bot';
   div.id='aiTypingIndicator';
-  div.innerHTML='<div class="ai-msg-avatar"><img class="ai-avatar-img" src="'+AI_BOT_CONFIG.avatarUrl+'" alt="Bot" draggable="false"></div><div class="ai-msg-content"><div class="ai-typing"><div class="ai-typing-dot"></div><div class="ai-typing-dot"></div><div class="ai-typing-dot"></div></div></div>';
+  var phrase=_thinkingPhrases[Math.floor(Math.random()*_thinkingPhrases.length)];
+  div.innerHTML='<div class="ai-msg-avatar"><img class="ai-avatar-img" src="'+AI_BOT_CONFIG.avatarUrl+'" alt="Bot" draggable="false"></div>'
+    +'<div class="ai-msg-content ai-thinking-bubble">'
+    +'  <div class="ai-thinking-text">'+phrase+'</div>'
+    +'  <div class="ai-typing"><div class="ai-typing-dot"></div><div class="ai-typing-dot"></div><div class="ai-typing-dot"></div></div>'
+    +'</div>';
   container.appendChild(div);
   var body=document.getElementById('aiChatBody');
   body.scrollTop=body.scrollHeight;
+  // 动态切换思考文案
+  window._thinkingTimer=setInterval(function(){
+    var el=div.querySelector('.ai-thinking-text');
+    if(el) el.textContent=_thinkingPhrases[Math.floor(Math.random()*_thinkingPhrases.length)];
+  },2500);
 }
 
 function aiRemoveTyping(){
+  if(window._thinkingTimer){clearInterval(window._thinkingTimer);window._thinkingTimer=null;}
   var el=document.getElementById('aiTypingIndicator');
   if(el) el.remove();
 }
@@ -4417,7 +4550,7 @@ function aiSaveConfig(){
   if(token) localStorage.setItem('coze_token', token);
   if(!localStorage.getItem('coze_user_id')) localStorage.setItem('coze_user_id', 'u_'+Date.now());
   aiCloseConfig();
-  aiAppendMessage('bot', '✅ Coze Bot 配置已保存！现在 **'+AI_BOT_CONFIG.name+'** 可以为你智能解答了。\n\n试试问我一个问题吧 😊');
+  aiAppendMessage('bot', '配置保存成功 ✅ \n\n现在 **'+AI_BOT_CONFIG.name+'** 已经上线了！试试问我一个问题吧 🚀');
 }
 
 // ═══ AI 助手拖拽系统（Drag & Drop）═══

@@ -1009,6 +1009,48 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .ai-typing-dot:nth-child(3){animation-delay:.4s}
 @keyframes aiTyping{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
 
+/* ── 思考气泡（类GPT"正在思考"效果） ── */
+.ai-thinking-bubble{background:linear-gradient(135deg,rgba(108,140,255,.06),rgba(167,139,250,.04))!important;border-color:rgba(108,140,255,.12)!important}
+.ai-thinking-text{font-size:13px;color:var(--accent);font-weight:500;margin-bottom:4px;animation:aiThinkPulse 2s ease-in-out infinite}
+@keyframes aiThinkPulse{0%,100%{opacity:.7}50%{opacity:1}}
+
+/* ── 打字机光标 ── */
+.ai-cursor{display:inline-block;width:2px;height:16px;background:var(--accent);margin-left:2px;animation:aiCursorBlink .6s ease-in-out infinite;vertical-align:text-bottom;border-radius:1px}
+@keyframes aiCursorBlink{0%,100%{opacity:1}50%{opacity:0}}
+.ai-msg-typing-active .ai-cursor{display:inline-block}
+
+/* ── 打字机逐段出现动画 ── */
+@keyframes aiFadeInUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── 增强 Markdown 渲染样式 ── */
+.ai-msg-content .ai-h2{font-size:16px;color:var(--heading);font-weight:700;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid rgba(108,140,255,.12)}
+.ai-msg-content .ai-h3{font-size:15px;color:var(--heading);font-weight:600;margin:10px 0 4px}
+.ai-msg-content .ai-h4{font-size:14px;color:var(--accent-light);font-weight:600;margin:8px 0 4px}
+.ai-msg-content .ai-list{padding-left:18px;margin:6px 0;font-size:14px}
+.ai-msg-content .ai-list li{margin:3px 0;line-height:1.7}
+.ai-msg-content .ai-ol-item{list-style-type:decimal}
+.ai-msg-content .ai-ul-item{list-style-type:disc}
+.ai-msg-content .ai-quote{border-left:3px solid var(--accent);padding:6px 12px;margin:8px 0;background:rgba(108,140,255,.04);border-radius:0 8px 8px 0;font-size:13px;color:var(--dim)}
+.ai-msg-content .ai-hr{border:none;border-top:1px solid var(--border);margin:10px 0}
+.ai-msg-content .ai-link{color:var(--accent);text-decoration:none;border-bottom:1px dashed rgba(108,140,255,.3);transition:all .15s}
+.ai-msg-content .ai-link:hover{color:var(--accent-light);border-bottom-color:var(--accent)}
+.ai-msg-content .ai-inline-code{background:var(--code-bg);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--accent-light);font-family:'Menlo','Consolas',monospace;border:1px solid rgba(108,140,255,.08)}
+.ai-msg-content .ai-code-block{background:var(--code-bg);padding:12px 14px;border-radius:8px;overflow-x:auto;margin:8px 0;border:1px solid var(--border);font-size:12px;line-height:1.6}
+.ai-msg-content .ai-code-block code{background:none;padding:0;border:none;color:var(--text);font-family:'Menlo','Consolas',monospace;font-size:12px}
+
+/* ── 相关文档链接（升级版） ── */
+.ai-related-docs{display:flex;flex-direction:column;gap:4px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);animation:aiFadeInUp .3s ease both}
+.ai-related-label{font-size:12px;color:var(--dim);font-weight:600;margin-bottom:4px;letter-spacing:.3px}
+.ai-doc-link{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;font-size:13px;color:var(--accent);cursor:pointer;transition:all .2s;text-decoration:none;background:rgba(108,140,255,.04);border:1px solid rgba(108,140,255,.1)}
+.ai-doc-link:hover{background:rgba(108,140,255,.12);border-color:rgba(108,140,255,.3);transform:translateX(4px)}
+.ai-doc-icon{font-size:14px;flex-shrink:0}
+.ai-doc-title{flex:1;font-weight:500}
+.ai-doc-arrow{color:var(--dim);font-size:12px;transition:transform .2s}
+.ai-doc-link:hover .ai-doc-arrow{transform:translateX(3px);color:var(--accent)}
+
+/* ── 用户头像样式升级 ── */
+.ai-user-avatar{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(167,139,250,.15),rgba(108,140,255,.15));font-size:16px}
+
 /* 配置面板 */
 .ai-config-panel{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--sidebar-bg);padding:20px;overflow-y:auto;z-index:10;animation:aiConfigSlide .25s ease}
 @keyframes aiConfigSlide{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
