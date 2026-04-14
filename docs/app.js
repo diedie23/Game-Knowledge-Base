@@ -1397,7 +1397,9 @@ function openHtmlTemplateInEditor(key, htmlContent){
       var ekBtn=iDoc.querySelector('.ek-enter-btn');
       if(ekBtn) ekBtn.style.display='none';
     }catch(e){}
-    showToast('✅ 模板已加载，点击「✏️ 开始编辑」进行修改');
+    // 自动进入编辑模式，减少用户操作步骤
+    setTimeout(function(){ htmlEmbedEnterEdit(); }, 300);
+    showToast('✅ 模板已加载并自动进入编辑模式，直接修改内容即可');
   };
 }
 
@@ -3080,8 +3082,13 @@ function getItemMeta(pageId){
 
 // ═══ Keyboard ═══
 document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){var fb=document.getElementById('feedbackDialog');if(fb)fb.classList.remove('show');}
-  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();document.getElementById('searchInput').focus();}
+  if(e.key==='Escape'){
+    var fb=document.getElementById('feedbackDialog');if(fb)fb.classList.remove('show');
+    closeCommandPalette();
+    closeCtxMenu();
+    var dm=document.getElementById('docManagerDialog');if(dm)dm.classList.remove('show');
+  }
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openCommandPalette();}
 });
 
 window.addEventListener('hashchange',function(){
@@ -4884,12 +4891,369 @@ function aiSaveConfig(){
   }
 })();
 
+// ═══ 侧边栏右键上下文菜单 ═══
+var _ctxTarget = null; // 当前右键的 pageId
+
+function initCtxMenu(){
+  var nav = document.getElementById('sidebarNav');
+  if(!nav) return;
+  nav.addEventListener('contextmenu', function(e){
+    var leaf = e.target.closest('.leaf[data-page]');
+    if(!leaf) return;
+    e.preventDefault();
+    var pageId = leaf.getAttribute('data-page');
+    if(!pageId) return;
+    _ctxTarget = pageId;
+    var menu = document.getElementById('ctxMenu');
+    if(!menu) return;
+    // 根据文档类型调整菜单项可见性
+    var reg = pageRegistry[pageId] || {};
+    var editItem = menu.querySelector('[data-action="edit"]');
+    var archiveItem = menu.querySelector('[data-action="archive"]');
+    var deleteItem = menu.querySelector('[data-action="delete"]');
+    // 工具类页面不显示编辑/删除
+    var isToolPage = toolData[pageId] || reg.type === 'tool';
+    if(editItem) editItem.style.display = isToolPage ? 'none' : '';
+    if(archiveItem) archiveItem.style.display = isToolPage ? 'none' : '';
+    if(deleteItem) deleteItem.style.display = isToolPage ? 'none' : '';
+    // 定位菜单
+    menu.style.display = 'block';
+    var mx = e.clientX, my = e.clientY;
+    var mw = menu.offsetWidth, mh = menu.offsetHeight;
+    if(mx + mw > window.innerWidth) mx = window.innerWidth - mw - 8;
+    if(my + mh > window.innerHeight) my = window.innerHeight - mh - 8;
+    menu.style.left = mx + 'px';
+    menu.style.top = my + 'px';
+  });
+  // 菜单项点击
+  var menu = document.getElementById('ctxMenu');
+  if(menu){
+    menu.addEventListener('click', function(e){
+      var item = e.target.closest('.ctx-menu-item');
+      if(!item || !_ctxTarget) return;
+      var action = item.getAttribute('data-action');
+      var pageId = _ctxTarget;
+      closeCtxMenu();
+      switch(action){
+        case 'open': navigate(pageId); break;
+        case 'open-new': 
+          var url = location.origin + location.pathname + '#' + pageId;
+          window.open(url, '_blank');
+          break;
+        case 'edit': editDocument(pageId); break;
+        case 'copy-link':
+          var link = location.origin + location.pathname + '#' + pageId;
+          navigator.clipboard.writeText(link).then(function(){showToast('链接已复制');}).catch(function(){showToast('复制失败','error');});
+          break;
+        case 'archive': confirmArchiveDocument(pageId); break;
+        case 'delete': confirmDeleteDocument(pageId); break;
+      }
+    });
+  }
+  // 点击其他区域关闭菜单
+  document.addEventListener('click', closeCtxMenu);
+  document.addEventListener('contextmenu', function(e){
+    if(!e.target.closest('.leaf[data-page]') && !e.target.closest('#ctxMenu')){
+      closeCtxMenu();
+    }
+  });
+}
+
+function closeCtxMenu(){
+  var menu = document.getElementById('ctxMenu');
+  if(menu) menu.style.display = 'none';
+  _ctxTarget = null;
+}
+
+// ═══ 文档归档功能（软删除：从侧边栏隐藏但保留文件）═══
+function confirmArchiveDocument(pageId){
+  var reg = pageRegistry[pageId];
+  if(!reg) return;
+  var name = (reg.file||'').split('/').pop();
+  if(!confirm('确定要归档「'+name+'」吗？\n\n归档后文档将从侧边栏隐藏，但文件仍保留在仓库中。\n可通过「文档管理中心」查看已归档文档。')) return;
+  // 存入 localStorage 归档列表
+  var archived = JSON.parse(localStorage.getItem('kb_archived_docs')||'[]');
+  if(archived.indexOf(pageId) === -1){
+    archived.push(pageId);
+    localStorage.setItem('kb_archived_docs', JSON.stringify(archived));
+  }
+  // 从侧边栏隐藏对应叶子节点
+  var leaf = document.querySelector('.leaf[data-page="'+pageId+'"]');
+  if(leaf) leaf.style.display = 'none';
+  showToast('📦 已归档「'+name+'」');
+}
+
+// ═══ Ctrl+K 命令面板 ═══
+var _cmdPaletteActive = -1; // 当前高亮的命令项索引
+var _cmdFilteredItems = []; // 过滤后的命令列表
+
+function openCommandPalette(){
+  var overlay = document.getElementById('cmdPalette');
+  if(!overlay) return;
+  overlay.style.display = 'flex';
+  var input = document.getElementById('cmdPaletteInput');
+  if(input){
+    input.value = '';
+    input.focus();
+  }
+  _cmdPaletteActive = -1;
+  renderCommandPaletteResults('');
+}
+
+function closeCommandPalette(){
+  var overlay = document.getElementById('cmdPalette');
+  if(overlay) overlay.style.display = 'none';
+  _cmdPaletteActive = -1;
+}
+
+function initCommandPalette(){
+  var overlay = document.getElementById('cmdPalette');
+  if(!overlay) return;
+  // 点击遮罩关闭
+  overlay.addEventListener('click', function(e){
+    if(e.target === overlay) closeCommandPalette();
+  });
+  var input = document.getElementById('cmdPaletteInput');
+  if(input){
+    input.addEventListener('input', function(){
+      renderCommandPaletteResults(this.value);
+    });
+    input.addEventListener('keydown', function(e){
+      var items = document.querySelectorAll('#cmdPaletteBody .cmd-palette-item');
+      if(e.key === 'ArrowDown'){
+        e.preventDefault();
+        _cmdPaletteActive = Math.min(_cmdPaletteActive + 1, items.length - 1);
+        highlightCmdItem(items);
+      } else if(e.key === 'ArrowUp'){
+        e.preventDefault();
+        _cmdPaletteActive = Math.max(_cmdPaletteActive - 1, 0);
+        highlightCmdItem(items);
+      } else if(e.key === 'Enter'){
+        e.preventDefault();
+        if(_cmdPaletteActive >= 0 && items[_cmdPaletteActive]){
+          items[_cmdPaletteActive].click();
+        }
+      }
+    });
+  }
+  // 命令项点击委托
+  var body = document.getElementById('cmdPaletteBody');
+  if(body){
+    body.addEventListener('click', function(e){
+      var item = e.target.closest('.cmd-palette-item');
+      if(!item) return;
+      var cmd = item.getAttribute('data-cmd');
+      var pageId = item.getAttribute('data-page');
+      closeCommandPalette();
+      if(pageId){
+        navigate(pageId);
+      } else {
+        executeCmdPaletteAction(cmd);
+      }
+    });
+  }
+}
+
+function highlightCmdItem(items){
+  items.forEach(function(el, i){
+    el.classList.toggle('active', i === _cmdPaletteActive);
+  });
+  if(items[_cmdPaletteActive]){
+    items[_cmdPaletteActive].scrollIntoView({block:'nearest'});
+  }
+}
+
+function executeCmdPaletteAction(cmd){
+  switch(cmd){
+    case 'new-doc': openEditor(); break;
+    case 'doc-manager': openDocManager(); break;
+    case 'home': navigate('home'); break;
+    case 'toggle-sidebar': toggleSidebarCollapse(); break;
+    case 'settings': openEditorSettings(); break;
+    case 'admin': toggleAdminMode(); break;
+    case 'changelog': showChangelog(); break;
+    case 'feedback': showFeedback(); break;
+    case 'guide': navigate('editor-guide'); break;
+  }
+}
+
+function renderCommandPaletteResults(query){
+  var body = document.getElementById('cmdPaletteBody');
+  if(!body) return;
+  _cmdPaletteActive = -1;
+  var q = (query||'').trim().toLowerCase();
+  if(!q){
+    // 显示默认命令
+    body.innerHTML = '<div class="cmd-palette-group">'
+      +'<div class="cmd-palette-group-title">快捷操作</div>'
+      +'<div class="cmd-palette-item" data-cmd="new-doc"><span class="cmd-item-icon">✍️</span><span class="cmd-item-label">新建文档</span><kbd>Ctrl+N</kbd></div>'
+      +'<div class="cmd-palette-item" data-cmd="doc-manager"><span class="cmd-item-icon">📂</span><span class="cmd-item-label">文档管理中心</span></div>'
+      +'<div class="cmd-palette-item" data-cmd="home"><span class="cmd-item-icon">🏠</span><span class="cmd-item-label">返回首页</span></div>'
+      +'<div class="cmd-palette-item" data-cmd="toggle-sidebar"><span class="cmd-item-icon">📐</span><span class="cmd-item-label">收起/展开侧边栏</span></div>'
+      +'<div class="cmd-palette-item" data-cmd="settings"><span class="cmd-item-icon">⚙️</span><span class="cmd-item-label">发布设置</span></div>'
+      +'<div class="cmd-palette-item" data-cmd="admin"><span class="cmd-item-icon">🔧</span><span class="cmd-item-label">管理模式</span><kbd>Ctrl+Shift+A</kbd></div>'
+      +'<div class="cmd-palette-item" data-cmd="changelog"><span class="cmd-item-icon">📋</span><span class="cmd-item-label">更新日志</span></div>'
+      +'<div class="cmd-palette-item" data-cmd="feedback"><span class="cmd-item-icon">📮</span><span class="cmd-item-label">反馈建议</span></div>'
+      +'<div class="cmd-palette-item" data-cmd="guide"><span class="cmd-item-icon">❓</span><span class="cmd-item-label">编辑器使用指南</span></div>'
+      +'</div>';
+    return;
+  }
+  // 搜索文档 + 命令
+  var results = [];
+  // 搜索所有注册文档
+  var keys = Object.keys(pageRegistry);
+  keys.forEach(function(pid){
+    var reg = pageRegistry[pid];
+    var leaf = document.querySelector('.leaf[data-page="'+pid+'"]');
+    var title = leaf ? leaf.getAttribute('title') || '' : pid;
+    if(title.toLowerCase().indexOf(q) !== -1 || pid.toLowerCase().indexOf(q) !== -1){
+      results.push({type:'doc', pageId:pid, title:title, icon:reg.type==='md'?'📄':'🌐', cat:reg.catName||''});
+    }
+  });
+  // 搜索命令
+  var cmds = [
+    {cmd:'new-doc',label:'新建文档',icon:'✍️'},
+    {cmd:'doc-manager',label:'文档管理中心',icon:'📂'},
+    {cmd:'home',label:'返回首页',icon:'🏠'},
+    {cmd:'toggle-sidebar',label:'收起/展开侧边栏',icon:'📐'},
+    {cmd:'settings',label:'发布设置',icon:'⚙️'},
+    {cmd:'admin',label:'管理模式',icon:'🔧'},
+    {cmd:'changelog',label:'更新日志',icon:'📋'},
+    {cmd:'feedback',label:'反馈建议',icon:'📮'},
+    {cmd:'guide',label:'编辑器使用指南',icon:'❓'}
+  ];
+  cmds.forEach(function(c){
+    if(c.label.toLowerCase().indexOf(q) !== -1 || c.cmd.toLowerCase().indexOf(q) !== -1){
+      results.push({type:'cmd', cmd:c.cmd, label:c.label, icon:c.icon});
+    }
+  });
+  if(!results.length){
+    body.innerHTML = '<div class="cmd-palette-empty">没有找到匹配的命令或文档</div>';
+    return;
+  }
+  var html = '';
+  var docResults = results.filter(function(r){return r.type==='doc';});
+  var cmdResults = results.filter(function(r){return r.type==='cmd';});
+  if(cmdResults.length){
+    html += '<div class="cmd-palette-group"><div class="cmd-palette-group-title">命令</div>';
+    cmdResults.slice(0,5).forEach(function(r){
+      html += '<div class="cmd-palette-item" data-cmd="'+r.cmd+'"><span class="cmd-item-icon">'+r.icon+'</span><span class="cmd-item-label">'+r.label+'</span></div>';
+    });
+    html += '</div>';
+  }
+  if(docResults.length){
+    html += '<div class="cmd-palette-group"><div class="cmd-palette-group-title">文档 ('+docResults.length+')</div>';
+    docResults.slice(0,15).forEach(function(r){
+      html += '<div class="cmd-palette-item" data-page="'+r.pageId+'"><span class="cmd-item-icon">'+r.icon+'</span><span class="cmd-item-label">'+r.title+'</span>'
+        +(r.cat?'<span style="font-size:11px;color:var(--dim);margin-left:auto">'+r.cat+'</span>':'')
+        +'</div>';
+    });
+    if(docResults.length > 15) html += '<div class="cmd-palette-empty">还有 '+(docResults.length-15)+' 个结果未显示，请缩小搜索范围</div>';
+    html += '</div>';
+  }
+  body.innerHTML = html;
+}
+
+// ═══ 文档管理中心 ═══
+function openDocManager(){
+  var dlg = document.getElementById('docManagerDialog');
+  if(!dlg) return;
+  // 填充分类过滤器
+  var filterEl = document.getElementById('docMgrFilter');
+  if(filterEl && sidebarData){
+    var opts = '<option value="all">全部分类</option>';
+    opts += '<option value="archived">📦 已归档</option>';
+    sidebarData.categories.forEach(function(cat){
+      var catEmoji = cat.icon || '📁';
+      var catName = cat.name.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]+\s*/u, '');
+      opts += '<option value="'+cat.id+'">'+catEmoji+' '+catName+'</option>';
+    });
+    filterEl.innerHTML = opts;
+  }
+  renderDocManagerList('');
+  dlg.classList.add('show');
+  var searchEl = document.getElementById('docMgrSearch');
+  if(searchEl){ searchEl.value = ''; searchEl.focus(); }
+}
+
+function filterDocManager(query){
+  renderDocManagerList(query);
+}
+
+function renderDocManagerList(query){
+  var body = document.getElementById('docMgrBody');
+  var countEl = document.getElementById('docMgrCount');
+  if(!body) return;
+  var q = (query||'').trim().toLowerCase();
+  var filterCat = (document.getElementById('docMgrFilter')||{}).value || 'all';
+  var archived = JSON.parse(localStorage.getItem('kb_archived_docs')||'[]');
+  var items = [];
+  var keys = Object.keys(pageRegistry);
+  keys.forEach(function(pid){
+    var reg = pageRegistry[pid];
+    var leaf = document.querySelector('.leaf[data-page="'+pid+'"]');
+    var title = leaf ? leaf.getAttribute('title') || pid : pid;
+    var isArchived = archived.indexOf(pid) !== -1;
+    // 过滤
+    if(filterCat === 'archived' && !isArchived) return;
+    if(filterCat !== 'all' && filterCat !== 'archived' && reg.catId !== filterCat) return;
+    if(q && title.toLowerCase().indexOf(q) === -1 && pid.toLowerCase().indexOf(q) === -1) return;
+    items.push({
+      pageId: pid,
+      title: title,
+      type: reg.type,
+      catName: reg.catName || '',
+      catId: reg.catId || '',
+      isArchived: isArchived,
+      icon: reg.type === 'md' ? '📄' : reg.type === 'tool' ? '🛠️' : '🌐'
+    });
+  });
+  if(countEl) countEl.textContent = '共 '+items.length+' 篇文档';
+  if(!items.length){
+    body.innerHTML = '<div style="padding:40px;text-align:center;color:var(--dim)">'+
+      (filterCat === 'archived' ? '📦 暂无归档文档' : '没有匹配的文档')+'</div>';
+    return;
+  }
+  var html = '';
+  items.forEach(function(item){
+    html += '<div class="doc-mgr-row" onclick="navigate(\''+item.pageId+'\');document.getElementById(\'docManagerDialog\').classList.remove(\'show\')">'
+      +'<span class="doc-mgr-emoji">'+(item.isArchived ? '📦' : item.icon)+'</span>'
+      +'<span class="doc-mgr-title">'+(item.isArchived?'<span style="opacity:.5">[已归档] </span>':'')+item.title+'</span>'
+      +'<span class="doc-mgr-cat">'+item.catName+'</span>'
+      +'<span class="doc-mgr-actions-btns">';
+    if(item.type === 'md'){
+      html += '<button class="doc-mgr-action" onclick="event.stopPropagation();document.getElementById(\'docManagerDialog\').classList.remove(\'show\');editDocument(\''+item.pageId+'\')" title="编辑">✏️</button>';
+    }
+    if(item.isArchived){
+      html += '<button class="doc-mgr-action" onclick="event.stopPropagation();restoreArchivedDoc(\''+item.pageId+'\')" title="恢复">♻️</button>';
+    } else {
+      html += '<button class="doc-mgr-action" onclick="event.stopPropagation();confirmArchiveDocument(\''+item.pageId+'\')" title="归档">📦</button>';
+    }
+    html += '<button class="doc-mgr-action danger" onclick="event.stopPropagation();document.getElementById(\'docManagerDialog\').classList.remove(\'show\');confirmDeleteDocument(\''+item.pageId+'\')" title="删除">🗑️</button>';
+    html += '</span></div>';
+  });
+  body.innerHTML = html;
+}
+
+function restoreArchivedDoc(pageId){
+  var archived = JSON.parse(localStorage.getItem('kb_archived_docs')||'[]');
+  archived = archived.filter(function(id){return id !== pageId;});
+  localStorage.setItem('kb_archived_docs', JSON.stringify(archived));
+  // 恢复侧边栏显示
+  var leaf = document.querySelector('.leaf[data-page="'+pageId+'"]');
+  if(leaf) leaf.style.display = '';
+  showToast('♻️ 已恢复文档');
+  renderDocManagerList(document.getElementById('docMgrSearch') ? document.getElementById('docMgrSearch').value : '');
+}
+
 // ═══ Init ═══
 document.addEventListener('DOMContentLoaded', function(){
   // 0. 初始化交互增强模块
   initLightbox();
   injectSidebarToggle();
   restoreModuleCollapseState();
+  initCtxMenu();
+  initCommandPalette();
 
   // 0.1 Mermaid 区域默认折叠
   var mermaidBody = document.getElementById('mermaidBody');
@@ -4904,6 +5268,14 @@ document.addEventListener('DOMContentLoaded', function(){
   // 1. 从 sidebar.json 构建侧边栏
   fetch('sidebar.json').then(function(r){return r.json();}).then(function(data){
     buildSidebar(data);
+    // 恢复已归档文档的隐藏状态
+    try{
+      var archived=JSON.parse(localStorage.getItem('kb_archived_docs')||'[]');
+      archived.forEach(function(pid){
+        var leaf=document.querySelector('.leaf[data-page="'+pid+'"]');
+        if(leaf) leaf.style.display='none';
+      });
+    }catch(e){}
     // 2. 初始化搜索（会同时加载 index.json）
     initSearch();
     // 3. 处理 hash 路由

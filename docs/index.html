@@ -30,11 +30,21 @@
     <div style="padding:20px;text-align:center;color:var(--dim);font-size:12px">⏳ 加载中...</div>
   </nav>
   <div class="sidebar-footer">
-    <div class="sf-btns">
-      <button class="nav-create" onclick="openEditor()">➕ 新增文档</button>
-      <button class="nav-guide" onclick="navigate('editor-guide')" title="编辑器使用指南">❓ 编辑器指南</button>
+    <div class="sf-command-bar">
+      <button class="sf-cmd-btn sf-cmd-primary" onclick="openEditor()" title="新建 Markdown 文档">
+        <span class="sf-cmd-icon">✍️</span><span>新建文档</span>
+      </button>
+      <button class="sf-cmd-btn" onclick="openDocManager()" title="文档管理中心">
+        <span class="sf-cmd-icon">📂</span><span>管理</span>
+      </button>
+      <button class="sf-cmd-btn" onclick="openCommandPalette()" title="命令面板 (Ctrl+K)">
+        <span class="sf-cmd-icon">⌘</span><span>命令</span>
+      </button>
+      <button class="sf-cmd-btn" onclick="openEditorSettings()" title="发布设置">
+        <span class="sf-cmd-icon">⚙️</span>
+      </button>
     </div>
-    <div class="sf-links"><span style="cursor:pointer;transition:color .15s" onclick="showChangelog()" title="查看更新日志">v7.1 APM</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a></div>
+    <div class="sf-links"><span style="cursor:pointer;transition:color .15s" onclick="showChangelog()" title="查看更新日志">v7.1 APM</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a><a onclick="navigate('editor-guide')" title="编辑器使用指南">❓</a></div>
   </div>
 </aside>
 
@@ -999,6 +1009,66 @@ sequenceDiagram
           <li>将 Bot ID 和 Token 粘贴到上方保存即可</li>
         </ol>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- 侧边栏右键上下文菜单 -->
+<div class="ctx-menu" id="ctxMenu" style="display:none">
+  <div class="ctx-menu-item" data-action="open"><span class="ctx-icon">📄</span> 打开文档</div>
+  <div class="ctx-menu-item" data-action="open-new"><span class="ctx-icon">↗</span> 新标签页打开</div>
+  <div class="ctx-menu-divider"></div>
+  <div class="ctx-menu-item" data-action="edit"><span class="ctx-icon">✏️</span> 编辑文档</div>
+  <div class="ctx-menu-item" data-action="copy-link"><span class="ctx-icon">🔗</span> 复制链接</div>
+  <div class="ctx-menu-divider"></div>
+  <div class="ctx-menu-item ctx-menu-item-danger" data-action="archive"><span class="ctx-icon">📦</span> 归档文档</div>
+  <div class="ctx-menu-item ctx-menu-item-danger" data-action="delete"><span class="ctx-icon">🗑️</span> 删除文档</div>
+</div>
+
+<!-- Ctrl+K 命令面板 -->
+<div class="cmd-palette-overlay" id="cmdPalette" style="display:none">
+  <div class="cmd-palette">
+    <div class="cmd-palette-header">
+      <span class="cmd-palette-icon">⌘</span>
+      <input type="text" class="cmd-palette-input" id="cmdPaletteInput" placeholder="输入命令或搜索文档..." autocomplete="off">
+      <kbd class="cmd-palette-kbd">ESC</kbd>
+    </div>
+    <div class="cmd-palette-body" id="cmdPaletteBody">
+      <div class="cmd-palette-group">
+        <div class="cmd-palette-group-title">快捷操作</div>
+        <div class="cmd-palette-item" data-cmd="new-doc"><span class="cmd-item-icon">✍️</span><span class="cmd-item-label">新建文档</span><kbd>Ctrl+N</kbd></div>
+        <div class="cmd-palette-item" data-cmd="doc-manager"><span class="cmd-item-icon">📂</span><span class="cmd-item-label">文档管理中心</span></div>
+        <div class="cmd-palette-item" data-cmd="home"><span class="cmd-item-icon">🏠</span><span class="cmd-item-label">返回首页</span></div>
+        <div class="cmd-palette-item" data-cmd="toggle-sidebar"><span class="cmd-item-icon">📐</span><span class="cmd-item-label">收起/展开侧边栏</span></div>
+        <div class="cmd-palette-item" data-cmd="settings"><span class="cmd-item-icon">⚙️</span><span class="cmd-item-label">发布设置</span></div>
+        <div class="cmd-palette-item" data-cmd="admin"><span class="cmd-item-icon">🔧</span><span class="cmd-item-label">管理模式</span><kbd>Ctrl+Shift+A</kbd></div>
+        <div class="cmd-palette-item" data-cmd="changelog"><span class="cmd-item-icon">📋</span><span class="cmd-item-label">更新日志</span></div>
+        <div class="cmd-palette-item" data-cmd="feedback"><span class="cmd-item-icon">📮</span><span class="cmd-item-label">反馈建议</span></div>
+        <div class="cmd-palette-item" data-cmd="guide"><span class="cmd-item-icon">❓</span><span class="cmd-item-label">编辑器使用指南</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 文档管理中心弹窗 -->
+<div class="fb-overlay" id="docManagerDialog">
+  <div class="dialog-card doc-manager-card">
+    <div class="doc-mgr-header">
+      <h3>📂 文档管理中心</h3>
+      <div class="doc-mgr-actions">
+        <input type="text" class="doc-mgr-search" id="docMgrSearch" placeholder="搜索文档..." oninput="filterDocManager(this.value)">
+        <select class="doc-mgr-filter" id="docMgrFilter" onchange="filterDocManager(document.getElementById('docMgrSearch').value)">
+          <option value="all">全部分类</option>
+        </select>
+        <button class="eh-btn" onclick="document.getElementById('docManagerDialog').classList.remove('show')">✕ 关闭</button>
+      </div>
+    </div>
+    <div class="doc-mgr-body" id="docMgrBody">
+      <div style="padding:40px;text-align:center;color:var(--dim)">加载中...</div>
+    </div>
+    <div class="doc-mgr-footer">
+      <span class="doc-mgr-count" id="docMgrCount">共 0 篇文档</span>
+      <button class="eh-btn eh-btn-primary" onclick="openEditor();document.getElementById('docManagerDialog').classList.remove('show')">✍️ 新建文档</button>
     </div>
   </div>
 </div>

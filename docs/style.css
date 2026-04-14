@@ -142,8 +142,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
 /* ═══ Footer ═══ */
 .sidebar-footer{padding:12px 18px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
-.nav-create{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;width:100%}
-.nav-create:hover{opacity:.85}
+.sf-command-bar{display:flex;gap:6px;align-items:stretch}
+.sf-cmd-btn{display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 10px;background:var(--card-bg);border:1px solid var(--border);color:var(--dim);border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;flex:1;min-width:0}
+.sf-cmd-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+.sf-cmd-btn.sf-cmd-primary{background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;border:none;font-weight:600;flex:1.5}
+.sf-cmd-btn.sf-cmd-primary:hover{opacity:.85}
+.sf-cmd-icon{font-size:13px;flex-shrink:0;line-height:1}
 .sf-links{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--dim)}
 .sf-links a{color:var(--accent);cursor:pointer;font-size:12px;text-decoration:none}
 
@@ -882,10 +886,60 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 @keyframes ktFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* ═══ 侧边栏底部按钮布局 ═══ */
+/* sf-btns (deprecated, kept for compat) */
 .sf-btns{display:flex;gap:8px}
-.sf-btns .nav-create{flex:1}
-.nav-guide{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;background:var(--card-bg);border:1px solid var(--border);color:var(--dim);border-radius:var(--radius-md);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
-.nav-guide:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+
+/* ═══ 右键上下文菜单 ═══ */
+.ctx-menu{position:fixed;z-index:9999;min-width:180px;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:6px 0;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:ctxMenuIn .12s ease}
+@keyframes ctxMenuIn{from{opacity:0;transform:scale(.95) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.ctx-menu-item{display:flex;align-items:center;gap:10px;padding:8px 16px;font-size:13px;color:var(--text);cursor:pointer;transition:background .1s}
+.ctx-menu-item:hover{background:var(--accent-bg);color:var(--heading)}
+.ctx-menu-item-danger{color:var(--red)}
+.ctx-menu-item-danger:hover{background:rgba(248,113,113,.1)}
+.ctx-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.ctx-menu-divider{height:1px;margin:4px 12px;background:var(--border)}
+
+/* ═══ Ctrl+K 命令面板 ═══ */
+.cmd-palette-overlay{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:flex;justify-content:center;padding-top:min(20vh,180px);animation:cmdOverlayIn .15s ease}
+@keyframes cmdOverlayIn{from{opacity:0}to{opacity:1}}
+.cmd-palette{width:min(560px,90vw);background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 16px 64px rgba(0,0,0,.6);overflow:hidden;animation:cmdPaletteSlide .2s cubic-bezier(.4,0,.2,1)}
+@keyframes cmdPaletteSlide{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+.cmd-palette-header{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}
+.cmd-palette-icon{font-size:18px;color:var(--accent);flex-shrink:0}
+.cmd-palette-input{flex:1;background:none;border:none;color:var(--heading);font-size:15px;font-family:inherit;outline:none}
+.cmd-palette-input::placeholder{color:var(--dim)}
+.cmd-palette-kbd{padding:2px 8px;border-radius:4px;background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:11px;font-family:inherit;flex-shrink:0}
+.cmd-palette-body{max-height:360px;overflow-y:auto;padding:8px 0}
+.cmd-palette-group{padding:4px 0}
+.cmd-palette-group-title{padding:6px 18px;font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.cmd-palette-item{display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer;transition:background .1s;font-size:14px;color:var(--text)}
+.cmd-palette-item:hover,.cmd-palette-item.active{background:var(--accent-bg);color:var(--heading)}
+.cmd-palette-item kbd{margin-left:auto;padding:2px 7px;border-radius:4px;background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:11px;font-family:inherit}
+.cmd-item-icon{font-size:15px;width:22px;text-align:center;flex-shrink:0}
+.cmd-item-label{flex:1}
+.cmd-palette-empty{padding:32px 18px;text-align:center;color:var(--dim);font-size:13px}
+
+/* ═══ 文档管理中心 ═══ */
+.doc-manager-card{max-width:720px;width:90vw;max-height:80vh;display:flex;flex-direction:column}
+.doc-mgr-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.doc-mgr-header h3{margin:0;font-size:18px;color:var(--heading);white-space:nowrap}
+.doc-mgr-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.doc-mgr-search{padding:7px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;outline:none;width:180px;transition:border-color .15s}
+.doc-mgr-search:focus{border-color:var(--accent)}
+.doc-mgr-filter{padding:7px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;outline:none}
+.doc-mgr-body{flex:1;overflow-y:auto;padding:12px 0;min-height:200px}
+.doc-mgr-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:var(--radius-sm);cursor:pointer;transition:background .1s;font-size:13px}
+.doc-mgr-row:hover{background:var(--accent-bg)}
+.doc-mgr-row .doc-mgr-emoji{font-size:16px;flex-shrink:0;width:22px;text-align:center}
+.doc-mgr-row .doc-mgr-title{flex:1;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-mgr-row .doc-mgr-cat{font-size:11px;color:var(--dim);background:rgba(255,255,255,.06);padding:2px 8px;border-radius:6px;flex-shrink:0}
+.doc-mgr-row .doc-mgr-actions-btns{display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.doc-mgr-row:hover .doc-mgr-actions-btns{opacity:1}
+.doc-mgr-action{padding:4px 8px;border-radius:4px;border:none;background:none;color:var(--dim);cursor:pointer;font-size:12px;transition:all .1s}
+.doc-mgr-action:hover{background:var(--accent-bg);color:var(--accent)}
+.doc-mgr-action.danger:hover{background:rgba(248,113,113,.1);color:var(--red)}
+.doc-mgr-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border)}
+.doc-mgr-count{font-size:12px;color:var(--dim)}
 
 /* ═══ 编辑器指南按钮 ═══ */
 .eh-guide{border-color:rgba(108,140,255,.3);color:var(--accent);background:rgba(108,140,255,.06)}
@@ -899,8 +953,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 @media(max-width:768px){
   .kt-header{flex-direction:column;align-items:flex-start}
   .kt-tabs{width:100%}
-  .sf-btns{flex-direction:column}
-  .sf-btns .nav-create,.nav-guide{width:100%}
+  .sf-command-bar{flex-wrap:wrap}
+  .sf-cmd-btn{flex:1;min-width:0}
+  .sf-cmd-btn span:not(.sf-cmd-icon){display:none}
+  .sf-cmd-btn.sf-cmd-primary span:not(.sf-cmd-icon){display:inline}
   .kt-panel div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}
   .kt-panel div[style*="grid-template-columns:repeat(4"]{grid-template-columns:repeat(2,1fr)!important}
 }
