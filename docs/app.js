@@ -4032,7 +4032,7 @@ var AI_BOT_CONFIG = {
 
 /* ── Coze API 默认配置 ── */
 var COZE_DEFAULT_CONFIG = {
-  botId: '7628276521161610403',
+  botId: '7628276523161616403',
   token: 'pat_Vc4OB0Yu7rMZLZR9bXlbZmqQ4QE9YBISMGemPzP23DHExjHOmdtKmUpv5PpwpZeY'
 };
 
