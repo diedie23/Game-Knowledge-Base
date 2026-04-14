@@ -34,13 +34,13 @@
       <button class="sf-cmd-btn sf-cmd-primary" onclick="openEditor()" title="新建 Markdown 文档">
         <span class="sf-cmd-icon">✍️</span><span>新建文档</span>
       </button>
-      <button class="sf-cmd-btn" onclick="openDocManager()" title="文档管理中心">
+      <button class="sf-cmd-btn sf-admin-only" onclick="openDocManager()" title="文档管理中心" style="display:none">
         <span class="sf-cmd-icon">📂</span><span>管理</span>
       </button>
-      <button class="sf-cmd-btn" onclick="openCommandPalette()" title="命令面板 (Ctrl+K)">
+      <button class="sf-cmd-btn sf-admin-only" onclick="openCommandPalette()" title="命令面板 (Ctrl+K)" style="display:none">
         <span class="sf-cmd-icon">⌘</span><span>命令</span>
       </button>
-      <button class="sf-cmd-btn" onclick="openEditorSettings()" title="发布设置">
+      <button class="sf-cmd-btn sf-admin-only" onclick="openEditorSettings()" title="发布设置" style="display:none">
         <span class="sf-cmd-icon">⚙️</span>
       </button>
     </div>
@@ -917,8 +917,11 @@ sequenceDiagram
         </div>
       </div>
 
-      <!-- 底部声明 -->
-      <div style="margin-top:48px;padding:24px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px"><div style="flex:1;min-width:240px"><h4 style="font-size:13px;color:var(--heading);margin-bottom:8px">⚠️ 使用声明</h4><p style="font-size:12px;color:var(--dim);line-height:1.8;margin:0">本知识库仅供项目内部 APM 使用，不得对外传播。</p></div><div style="min-width:180px;text-align:right"><h4 style="font-size:13px;color:var(--heading);margin-bottom:8px">📮 反馈</h4><p style="font-size:12px;color:var(--dim);margin:0"><a style="color:var(--accent);cursor:pointer" onclick="showFeedback()">💬 提交反馈</a></p></div></div></div>
+      <!-- 底部声明（精简版：移除冗余的反馈入口，侧边栏已有📮反馈按钮）-->
+      <div style="margin-top:48px;padding:18px 24px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:16px;flex-shrink:0">⚠️</span>
+        <p style="font-size:12px;color:var(--dim);line-height:1.8;margin:0">本知识库仅供项目内部 APM 使用，不得对外传播。如需反馈建议，请点击侧边栏底部 📮 按钮。</p>
+      </div>
     </div>
     <!-- Doc pages (dynamically created by app.js) -->
     <!-- Tool card page -->

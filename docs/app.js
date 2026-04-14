@@ -4182,29 +4182,39 @@ function _hideCozeDefaultUI(){
 // 优先使用 Coze SDK 聊天窗口，降级到自建 UI（本地搜索）
 var _sdkChatOpen = false;
 
+function _setAiFabIcon(showClose){
+  var avatarEl = document.getElementById('aiFabAvatar');
+  var closeEl = document.getElementById('aiFabClose');
+  var pulseEl = document.querySelector('.ai-fab-pulse');
+  if(showClose){
+    if(avatarEl) avatarEl.style.display='none';
+    if(closeEl) closeEl.style.display='flex';
+    if(pulseEl) pulseEl.style.display='none';
+  }else{
+    if(avatarEl) avatarEl.style.display='';
+    if(closeEl) closeEl.style.display='none';
+    if(pulseEl) pulseEl.style.display='';
+  }
+}
+
 function toggleAiChat(){
   // 首次点击时初始化 SDK
   if(!_cozeSdkLoaded && !_cozeSdkLoading) loadCozeChatSDK();
 
   var dialog = document.getElementById('aiChatDialog');
-  var avatarEl = document.getElementById('aiFabAvatar');
-  var closeEl = document.getElementById('aiFabClose');
 
   // 如果 SDK 就绪，使用 SDK 的聊天窗口
   if(_cozeSdkReady && _cozeSdkInstance){
     console.log('[Coze SDK] toggleAiChat → SDK 模式, _sdkChatOpen='+_sdkChatOpen);
-    // SDK 模式：不显示自建对话框，让 SDK 自己管理窗口
     if(_sdkChatOpen){
-      // 关闭
+      // 关闭 — 立即切换图标，不等 SDK 动画
       _sdkChatOpen = false;
-      if(avatarEl) avatarEl.style.display='';
-      if(closeEl) closeEl.style.display='none';
+      _setAiFabIcon(false);
       _hideCozeChat();
     }else{
       // 打开
       _sdkChatOpen = true;
-      if(avatarEl) avatarEl.style.display='none';
-      if(closeEl) closeEl.style.display='flex';
+      _setAiFabIcon(true);
       _showCozeChat();
     }
     return;
@@ -4215,12 +4225,10 @@ function toggleAiChat(){
   // SDK 未就绪 — 使用自建对话框 + 本地搜索模式
   if(dialog.classList.contains('show')){
     dialog.classList.remove('show');
-    if(avatarEl) avatarEl.style.display='';
-    if(closeEl) closeEl.style.display='none';
+    _setAiFabIcon(false);
   }else{
     dialog.classList.add('show');
-    if(avatarEl) avatarEl.style.display='none';
-    if(closeEl) closeEl.style.display='flex';
+    _setAiFabIcon(true);
     // 加载已保存的配置
     var savedBotId=localStorage.getItem('coze_bot_id') || COZE_DEFAULT_CONFIG.botId || '';
     var savedToken=localStorage.getItem('coze_token') || COZE_DEFAULT_CONFIG.token || '';
@@ -4267,6 +4275,8 @@ function _hideCozeChat(){
   }else{
     _toggleCozeIframes(false);
   }
+  // 确保图标状态正确（SDK隐藏可能是异步的）
+  setTimeout(function(){ _setAiFabIcon(false); }, 350);
 }
 
 // 备用：手动控制 SDK 渲染的 iframe 显示/隐藏
