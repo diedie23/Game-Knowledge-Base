@@ -4100,9 +4100,9 @@ function aiSendMessage(){
   input.value='';
   input.style.height='auto';
 
-  // 检查是否配置了 Coze
-  var botId=localStorage.getItem('coze_bot_id');
-  var token=localStorage.getItem('coze_token');
+  // 检查是否配置了 Coze（优先 localStorage，其次 COZE_DEFAULT_CONFIG 默认值）
+  var botId=localStorage.getItem('coze_bot_id') || COZE_DEFAULT_CONFIG.botId || '';
+  var token=localStorage.getItem('coze_token') || COZE_DEFAULT_CONFIG.token || '';
 
   if(!botId||!token){
     // 未配置 → 使用本地知识库搜索模式
