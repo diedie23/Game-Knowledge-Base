@@ -3689,6 +3689,15 @@ function toggleAdminMode(){
     disableDragDrop();
     showToast('管理模式已关闭');
   }
+  // 控制侧边栏底部管理按钮的可见性
+  document.querySelectorAll('.sf-admin-only').forEach(function(btn){
+    btn.style.display = adminMode ? '' : 'none';
+  });
+  // 控制手机端管理模式入口的文字
+  var mobileAdminBtn = document.getElementById('mobileAdminToggle');
+  if(mobileAdminBtn){
+    mobileAdminBtn.textContent = adminMode ? '🔧 退出管理' : '🔧 管理模式';
+  }
 }
 
 function renderAdminToolbar(){
@@ -3701,7 +3710,7 @@ function renderAdminToolbar(){
   bar.innerHTML=
     '<div class="at-left">'
     +'<span class="at-badge">🔧 管理模式</span>'
-    +'<span class="at-hint">Ctrl+Shift+A 退出</span>'
+    +'<button class="at-btn at-btn-exit" onclick="toggleAdminMode()" title="退出管理模式">✕ 退出</button>'
     +'</div>'
     +'<div class="at-actions">'
     +'<button class="at-btn at-btn-add" onclick="adminAddCategory()" title="新增一级模块">＋ 模块</button>'
@@ -4142,6 +4151,10 @@ function loadCozeChatSDK(){
     }
     console.log('[Coze SDK] 可用方法:', methods.join(', '));
 
+    // 监听 SDK 聊天窗口关闭事件 — 同步浮动按钮图标状态
+    // SDK 窗口可能被用户通过 SDK 自带的关闭按钮关闭，此时需要同步状态
+    _monitorSdkChatClose();
+
     // 隐藏 SDK 自带的悬浮球（多重保障）
     setTimeout(function(){
       _hideCozeDefaultUI();
@@ -4275,8 +4288,56 @@ function _hideCozeChat(){
   }else{
     _toggleCozeIframes(false);
   }
-  // 确保图标状态正确（SDK隐藏可能是异步的）
+  // 同步状态和图标
+  _sdkChatOpen = false;
+  _setAiFabIcon(false);
+  // 延时二次确认图标状态（SDK隐藏可能是异步的）
   setTimeout(function(){ _setAiFabIcon(false); }, 350);
+}
+
+// ── 监听 SDK 聊天窗口被内部关闭按钮关闭 ──
+// SDK 窗口有自带的关闭按钮（isNeedClose:true），用户点击后 SDK 自行关闭窗口
+// 但我们的 _sdkChatOpen 状态不会更新，导致浮动按钮图标卡在 ✕
+// 通过 MutationObserver 监听 SDK iframe 容器的 display 变化来同步
+function _monitorSdkChatClose(){
+  var checkInterval = null;
+  var lastVisible = false;
+
+  function checkSdkVisibility(){
+    if(!_cozeSdkReady || !_cozeSdkInstance) return;
+    // 查找 SDK 渲染的 iframe 容器
+    var iframes = document.querySelectorAll('iframe');
+    var sdkVisible = false;
+    for(var i=0; i<iframes.length; i++){
+      var f = iframes[i];
+      if(f.src && (f.src.indexOf('coze.cn')>=0 || f.src.indexOf('coze.com')>=0)){
+        var container = f.parentElement;
+        // 检查 iframe 及其容器是否可见
+        var fVisible = f.offsetWidth > 0 && f.offsetHeight > 0 &&
+          window.getComputedStyle(f).display !== 'none' &&
+          window.getComputedStyle(f).visibility !== 'hidden';
+        if(container){
+          var cVisible = container.offsetWidth > 0 && container.offsetHeight > 0 &&
+            window.getComputedStyle(container).display !== 'none' &&
+            window.getComputedStyle(container).visibility !== 'hidden';
+          fVisible = fVisible && cVisible;
+        }
+        if(fVisible) sdkVisible = true;
+      }
+    }
+    // 检测从可见变为不可见 → SDK 被关闭了
+    if(lastVisible && !sdkVisible && _sdkChatOpen){
+      console.log('[Coze SDK] 检测到聊天窗口被外部关闭，同步图标状态');
+      _sdkChatOpen = false;
+      _setAiFabIcon(false);
+    }
+    lastVisible = sdkVisible;
+  }
+
+  // 延时启动监听（等 SDK UI 完全渲染）
+  setTimeout(function(){
+    checkInterval = setInterval(checkSdkVisibility, 500);
+  }, 2000);
 }
 
 // 备用：手动控制 SDK 渲染的 iframe 显示/隐藏
