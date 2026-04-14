@@ -4055,29 +4055,143 @@ function getCozeApiBase(){
   return proxy ? proxy.replace(/\/+$/, '') : 'https://api.coze.cn';
 }
 
-// ── Coze REST API 模式 — 不再加载 SDK，直接使用自建 UI + v3 API ──
-// SDK 加载已移除：之前 loadCozeChatSDK 会创建 Coze 自带聊天框并隐藏自建 UI
-// 现在统一走 aiCozeAnswer → REST API 调用，所有对话在自建 UI 内完成
+// ── Coze Chat SDK 模式 — 使用官方 SDK 解决 CORS 跨域问题 ──
+// SDK 通过内部通信机制绕过浏览器 CORS 限制，无需后端代理
 var _cozeSdkLoaded = false;
 var _cozeSdkLoading = false;
+var _cozeSdkInstance = null;
+var _cozeSdkReady = false; // SDK 聊天窗口是否已就绪
+
 function loadCozeChatSDK(){
-  // 不再加载 SDK — 统一使用 REST API 模式
-  var botId = COZE_DEFAULT_CONFIG.botId;
-  var token = COZE_DEFAULT_CONFIG.token;
-  if(botId && token){
-    console.log('[Coze] 已配置默认 Bot (ID: '+botId.substring(0,6)+'...)，使用 REST API 模式');
-  }else{
-    console.log('[Coze] 未配置 Bot ID / Token，使用本地搜索模式');
+  if(_cozeSdkLoaded || _cozeSdkLoading) return;
+  _cozeSdkLoading = true;
+
+  var botId = localStorage.getItem('coze_bot_id') || COZE_DEFAULT_CONFIG.botId || '';
+  var token = localStorage.getItem('coze_token') || COZE_DEFAULT_CONFIG.token || '';
+
+  if(!botId || !token){
+    console.log('[Coze SDK] 未配置 Bot ID / Token，使用本地搜索模式');
+    _cozeSdkLoading = false;
+    return;
+  }
+
+  // 检查 CozeWebSDK 是否已加载
+  if(typeof CozeWebSDK === 'undefined' || !CozeWebSDK.WebChatClient){
+    console.warn('[Coze SDK] CDN 脚本未加载，降级到本地搜索模式');
+    _cozeSdkLoading = false;
+    return;
+  }
+
+  try{
+    _cozeSdkInstance = new CozeWebSDK.WebChatClient({
+      config: {
+        botId: botId
+      },
+      auth: {
+        type: 'token',
+        token: token,
+        onRefreshToken: function(){ return token; }
+      },
+      userInfo: {
+        id: localStorage.getItem('coze_user_id') || 'u_'+Date.now(),
+        nickname: '知识库用户',
+        url: ''
+      },
+      ui: {
+        base: {
+          icon: '',
+          layout: 'pc',
+          lang: 'zh-CN',
+          zIndex: 9999
+        },
+        // 隐藏 SDK 自带的悬浮球 — 用自建的头像按钮替代
+        asstBtn: {
+          isNeed: false
+        },
+        footer: {
+          isShow: false
+        },
+        chatBot: {
+          title: AI_BOT_CONFIG.name || 'APM 智能助理',
+          uploadable: false,
+          width: 420,
+          el: document.getElementById('aiChatDialog') ? undefined : undefined
+        }
+      }
+    });
+
+    _cozeSdkLoaded = true;
+    _cozeSdkReady = true;
+    _cozeSdkLoading = false;
+    console.log('[Coze SDK] ✅ Chat SDK 初始化成功 (Bot: '+botId.substring(0,6)+'...)');
+
+    // 隐藏 SDK 自带的悬浮球（多重保障）
+    setTimeout(function(){
+      _hideCozeDefaultUI();
+    }, 500);
+    setTimeout(function(){
+      _hideCozeDefaultUI();
+    }, 1500);
+    setTimeout(function(){
+      _hideCozeDefaultUI();
+    }, 3000);
+
+  }catch(e){
+    console.error('[Coze SDK] 初始化失败:', e);
+    _cozeSdkLoading = false;
+    _cozeSdkReady = false;
   }
 }
 
+// 隐藏 Coze SDK 默认的悬浮按钮和 powered-by 标识
+function _hideCozeDefaultUI(){
+  // SDK 可能在 body 末尾插入 iframe 和悬浮按钮
+  var allBtns = document.querySelectorAll('[class*="coze"],[id*="coze"],[class*="Coze"],[id*="Coze"]');
+  allBtns.forEach(function(el){
+    // 不隐藏我们自己的元素
+    if(el.id === 'aiChatWrapper' || el.closest('#aiChatWrapper')) return;
+    // 隐藏 SDK 自带的悬浮按钮
+    if(el.tagName === 'BUTTON' || (el.style && el.style.position === 'fixed')){
+      el.style.display = 'none';
+    }
+  });
+}
+
+// ── 切换聊天窗口 ──
+// 优先使用 Coze SDK 聊天窗口，降级到自建 UI（本地搜索）
+var _sdkChatOpen = false;
+
 function toggleAiChat(){
-  // 首次打开时触发 Coze SDK 延迟加载
+  // 首次点击时初始化 SDK
   if(!_cozeSdkLoaded && !_cozeSdkLoading) loadCozeChatSDK();
-  var dialog=document.getElementById('aiChatDialog');
-  var fab=document.getElementById('aiChatFab');
-  var avatarEl=document.getElementById('aiFabAvatar');
-  var closeEl=document.getElementById('aiFabClose');
+
+  var dialog = document.getElementById('aiChatDialog');
+  var avatarEl = document.getElementById('aiFabAvatar');
+  var closeEl = document.getElementById('aiFabClose');
+
+  // 如果 SDK 就绪，使用 SDK 的聊天窗口
+  if(_cozeSdkReady && _cozeSdkInstance){
+    // SDK 模式：不显示自建对话框，让 SDK 自己管理窗口
+    // 通过 SDK 的 show/hide 控制
+    if(_sdkChatOpen){
+      // 关闭
+      _sdkChatOpen = false;
+      if(avatarEl) avatarEl.style.display='';
+      if(closeEl) closeEl.style.display='none';
+      // SDK 关闭窗口（隐藏 iframe）
+      _hideCozeChat();
+    }else{
+      // 打开
+      _sdkChatOpen = true;
+      if(avatarEl) avatarEl.style.display='none';
+      if(closeEl) closeEl.style.display='flex';
+      // SDK 打开窗口
+      _showCozeChat();
+    }
+    return;
+  }
+
+  // SDK 未就绪 — 使用自建对话框 + 本地搜索模式
   if(dialog.classList.contains('show')){
     dialog.classList.remove('show');
     if(avatarEl) avatarEl.style.display='';
@@ -4086,16 +4200,58 @@ function toggleAiChat(){
     dialog.classList.add('show');
     if(avatarEl) avatarEl.style.display='none';
     if(closeEl) closeEl.style.display='flex';
-    // 加载已保存的配置（优先 localStorage，其次默认值）
+    // 加载已保存的配置
     var savedBotId=localStorage.getItem('coze_bot_id') || COZE_DEFAULT_CONFIG.botId || '';
     var savedToken=localStorage.getItem('coze_token') || COZE_DEFAULT_CONFIG.token || '';
-    var savedProxy=localStorage.getItem('coze_proxy_url') || COZE_DEFAULT_CONFIG.proxyUrl || '';
     if(savedBotId) document.getElementById('cozeBotId').value=savedBotId;
     if(savedToken) document.getElementById('cozeToken').value=savedToken;
     var proxyInput=document.getElementById('cozeProxyUrl');
+    var savedProxy=localStorage.getItem('coze_proxy_url') || COZE_DEFAULT_CONFIG.proxyUrl || '';
     if(proxyInput && savedProxy) proxyInput.value=savedProxy;
-    // 自动聚焦输入框
     setTimeout(function(){document.getElementById('aiChatInput').focus();},300);
+  }
+}
+
+// 显示 Coze SDK 聊天窗口
+function _showCozeChat(){
+  // SDK 的 iframe 聊天窗口通常已渲染，找到并显示
+  var iframes = document.querySelectorAll('iframe');
+  iframes.forEach(function(f){
+    if(f.src && (f.src.indexOf('coze.cn')>=0 || f.src.indexOf('coze.com')>=0)){
+      f.style.display = '';
+      f.style.visibility = 'visible';
+      // 确保聊天窗口可见
+      if(f.parentElement){
+        f.parentElement.style.display = '';
+        f.parentElement.style.visibility = 'visible';
+      }
+    }
+  });
+  // 也尝试通过 SDK 实例方法
+  if(_cozeSdkInstance && typeof _cozeSdkInstance.show === 'function'){
+    _cozeSdkInstance.show();
+  }
+  if(_cozeSdkInstance && typeof _cozeSdkInstance.open === 'function'){
+    _cozeSdkInstance.open();
+  }
+}
+
+// 隐藏 Coze SDK 聊天窗口
+function _hideCozeChat(){
+  var iframes = document.querySelectorAll('iframe');
+  iframes.forEach(function(f){
+    if(f.src && (f.src.indexOf('coze.cn')>=0 || f.src.indexOf('coze.com')>=0)){
+      // 只隐藏聊天窗口 iframe，不隐藏悬浮按钮
+      if(f.parentElement && f.parentElement.style.position === 'fixed'){
+        f.parentElement.style.display = 'none';
+      }
+    }
+  });
+  if(_cozeSdkInstance && typeof _cozeSdkInstance.hide === 'function'){
+    _cozeSdkInstance.hide();
+  }
+  if(_cozeSdkInstance && typeof _cozeSdkInstance.close === 'function'){
+    _cozeSdkInstance.close();
   }
 }
 
@@ -4121,12 +4277,15 @@ function aiSendMessage(){
   var botId=_storedBotId || COZE_DEFAULT_CONFIG.botId || '';
   var token=localStorage.getItem('coze_token') || COZE_DEFAULT_CONFIG.token || '';
 
-  if(!botId||!token){
-    // 未配置 → 使用本地知识库搜索模式
+  // 自建对话框模式 — 统一使用本地搜索
+  // Coze AI 对话已交由 Chat SDK 处理（不受 CORS 限制）
+  // 如果 SDK 可用但用户仍在自建窗口输入，提示切换
+  if(_cozeSdkReady && botId && token){
+    aiAppendMessage('bot', '💡 检测到 Coze AI 已就绪！请关闭此窗口，重新点击助手图标即可使用 **AI 智能对话**。\n\n现在先用本地知识库帮你搜索~');
     aiLocalAnswer(msg);
   }else{
-    // 已配置 → 调用 Coze API
-    aiCozeAnswer(msg, botId, token);
+    // 未配置或 SDK 未就绪 → 使用本地知识库搜索
+    aiLocalAnswer(msg);
   }
 }
 
@@ -4546,9 +4705,14 @@ function aiSaveConfig(){
   else localStorage.removeItem('coze_proxy_url');
   if(!localStorage.getItem('coze_user_id')) localStorage.setItem('coze_user_id', 'u_'+Date.now());
   aiCloseConfig();
-  var _base = getCozeApiBase();
-  var modeText = _base.indexOf('api.coze.cn')>=0 ? '直连模式（可能有跨域限制）' : '代理模式 ✅';
-  aiAppendMessage('bot', '配置保存成功 ✅ \n\n**API 模式：** '+modeText+'\n**Bot：** '+AI_BOT_CONFIG.name+'\n\n试试问我一个问题吧 🚀');
+  // 尝试重新初始化 SDK
+  if(botId && token && !_cozeSdkReady){
+    _cozeSdkLoaded = false;
+    _cozeSdkLoading = false;
+    loadCozeChatSDK();
+  }
+  var sdkStatus = _cozeSdkReady ? 'Chat SDK 模式 ✅ （无跨域限制）' : '本地搜索模式（如需 AI 对话，请刷新页面）';
+  aiAppendMessage('bot', '配置保存成功 ✅ \n\n**当前模式：** '+sdkStatus+'\n**Bot：** '+AI_BOT_CONFIG.name+'\n\n💡 如果 AI 对话未生效，请 **刷新页面** 后重新点击助手图标即可 🚀');
 }
 
 // ═══ AI 助手拖拽系统（Drag & Drop）═══
