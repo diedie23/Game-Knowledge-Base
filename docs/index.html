@@ -922,7 +922,7 @@ sequenceDiagram
 <div class="ai-chat-wrapper" id="aiChatWrapper">
   <!-- 悬浮按钮（可拖拽） -->
   <button class="ai-chat-fab" id="aiChatFab" title="AI 智能问答助手">
-    <img class="ai-fab-avatar" id="aiFabAvatar" src="assets/ai-avatar.png" alt="AI" draggable="false">
+    <img class="ai-fab-avatar" id="aiFabAvatar" src="assets/ai-avatar.webp" alt="AI" draggable="false" loading="lazy">
     <span class="ai-fab-close" id="aiFabClose" style="display:none">✕</span>
     <span class="ai-fab-pulse"></span>
   </button>
@@ -930,7 +930,7 @@ sequenceDiagram
   <div class="ai-chat-dialog" id="aiChatDialog">
     <div class="ai-chat-header" id="aiChatHeader">
       <div class="ai-chat-header-left">
-        <img class="ai-chat-logo-img" src="assets/ai-avatar.png" alt="Bot Avatar" draggable="false">
+        <img class="ai-chat-logo-img" src="assets/ai-avatar.webp" alt="Bot Avatar" draggable="false" loading="lazy">
         <div>
           <div class="ai-chat-title">APM 智能助理</div>
           <div class="ai-chat-subtitle">基于知识库内容回答你的问题</div>
@@ -944,7 +944,7 @@ sequenceDiagram
     <div class="ai-chat-body" id="aiChatBody">
       <!-- 欢迎消息 -->
       <div class="ai-msg ai-msg-bot">
-        <div class="ai-msg-avatar"><img class="ai-avatar-img" src="assets/ai-avatar.png" alt="Bot" draggable="false"></div>
+        <div class="ai-msg-avatar"><img class="ai-avatar-img" src="assets/ai-avatar.webp" alt="Bot" draggable="false" loading="lazy"></div>
         <div class="ai-msg-content">
           <p>你好！我是 <strong>APM 智能助理</strong> 👋</p>
           <p>你可以问我任何关于美术项目管理的问题，例如：</p>
@@ -1003,7 +1003,7 @@ sequenceDiagram
 
 <!-- Vditor Markdown Editor -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vditor@3.10.8/dist/index.css"/>
-<script src="https://cdn.jsdelivr.net/npm/vditor@3.10.8/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vditor@3.10.8/dist/index.min.js" defer></script>
 
 <!-- 发布弹窗 — 引导式步骤 -->
 <div class="fb-overlay" id="publishDialog">
@@ -1059,56 +1059,60 @@ sequenceDiagram
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js" defer></script>
 
 <!-- Mermaid 时序图渲染引擎 -->
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js" defer></script>
 <script>
-/* Mermaid 初始化 — 深色主题适配 */
-mermaid.initialize({
-  startOnLoad: true,
-  theme: 'dark',
-  themeVariables: {
-    primaryColor: '#2a3a6e',
-    primaryTextColor: '#e8eaed',
-    primaryBorderColor: '#6c8cff',
-    lineColor: '#6c8cff',
-    secondaryColor: '#1c2a44',
-    tertiaryColor: '#1a1d2e',
-    noteBkgColor: '#1c2a44',
-    noteTextColor: '#c9cdd4',
-    noteBorderColor: '#3d4155',
-    actorBkg: '#1c1f2e',
-    actorBorder: '#6c8cff',
-    actorTextColor: '#e8eaed',
-    actorLineColor: '#3d4155',
-    signalColor: '#c9cdd4',
-    signalTextColor: '#e8eaed',
-    labelBoxBkgColor: '#1c1f2e',
-    labelBoxBorderColor: '#3d4155',
-    labelTextColor: '#e8eaed',
-    loopTextColor: '#c9cdd4',
-    activationBorderColor: '#6c8cff',
-    activationBkgColor: '#2a3a6e',
-    sequenceNumberColor: '#fff'
-  },
-  sequence: {
-    diagramMarginX: 20,
-    diagramMarginY: 16,
-    actorMargin: 60,
-    width: 160,
-    height: 50,
-    boxMargin: 8,
-    boxTextMargin: 6,
-    noteMargin: 12,
-    messageMargin: 40,
-    mirrorActors: false,
-    useMaxWidth: true,
-    wrap: true
-  },
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif',
-  fontSize: 14
-});
+/* Mermaid 初始化 — 深色主题适配（兼容 defer 加载） */
+function _initMermaid(){
+  if(typeof mermaid === 'undefined') return;
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#2a3a6e',
+      primaryTextColor: '#e8eaed',
+      primaryBorderColor: '#6c8cff',
+      lineColor: '#6c8cff',
+      secondaryColor: '#1c2a44',
+      tertiaryColor: '#1a1d2e',
+      noteBkgColor: '#1c2a44',
+      noteTextColor: '#c9cdd4',
+      noteBorderColor: '#3d4155',
+      actorBkg: '#1c1f2e',
+      actorBorder: '#6c8cff',
+      actorTextColor: '#e8eaed',
+      actorLineColor: '#3d4155',
+      signalColor: '#c9cdd4',
+      signalTextColor: '#e8eaed',
+      labelBoxBkgColor: '#1c1f2e',
+      labelBoxBorderColor: '#3d4155',
+      labelTextColor: '#e8eaed',
+      loopTextColor: '#c9cdd4',
+      activationBorderColor: '#6c8cff',
+      activationBkgColor: '#2a3a6e',
+      sequenceNumberColor: '#fff'
+    },
+    sequence: {
+      diagramMarginX: 20,
+      diagramMarginY: 16,
+      actorMargin: 60,
+      width: 160,
+      height: 50,
+      boxMargin: 8,
+      boxTextMargin: 6,
+      noteMargin: 12,
+      messageMargin: 40,
+      mirrorActors: false,
+      useMaxWidth: true,
+      wrap: true
+    },
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif',
+    fontSize: 14
+  });
+}
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(_initMermaid, 0); });
 
 /* Mermaid Tab 切换 */
 function switchKnowledgeTab(panelId, btn) {
@@ -1126,16 +1130,17 @@ function switchMermaidTab(panelId, btn) {
   var panel = document.getElementById('mermaid-' + panelId);
   panel.classList.add('active');
   /* 重新渲染当前面板的 Mermaid（首次切换到隐藏面板时需要） */
-  var mermaidDiv = panel.querySelector('.mermaid');
-  if (mermaidDiv && !mermaidDiv.getAttribute('data-processed')) {
-    mermaid.run({ nodes: [mermaidDiv] });
+  if(typeof mermaid !== 'undefined'){
+    var mermaidDiv = panel.querySelector('.mermaid');
+    if (mermaidDiv && !mermaidDiv.getAttribute('data-processed')) {
+      mermaid.run({ nodes: [mermaidDiv] });
+    }
   }
 }
 </script>
 
-<!-- Coze Chat SDK（官方 Web SDK，解决 CORS 跨域问题） -->
-<script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.10/libs/cn/index.js"></script>
-<script src="app.js"></script>
+<!-- Coze Chat SDK（延迟加载，用户交互时按需下载） -->
+<script src="app.js" defer></script>
 <!-- 访客统计采集（静默，不影响页面性能） -->
 <script src="analytics.js" defer></script>
 </body>

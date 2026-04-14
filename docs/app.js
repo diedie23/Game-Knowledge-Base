@@ -784,26 +784,32 @@ function initSearch(){
 
       fuse=new Fuse(items,{keys:[{name:'title',weight:3},{name:'keywords',weight:2.5},{name:'content',weight:1.5},{name:'craft',weight:0.5},{name:'applicable_stage',weight:1},{name:'priority',weight:0.5}],threshold:0.35,includeMatches:true,minMatchCharLength:1});
 
-      // 加载全文搜索索引（search-index.json）
-      fetch('search-index.json').then(function(res){if(!res.ok) return null;return res.json();}).then(function(sdata){
-        if(sdata && sdata.entries){
-          searchIndexData = sdata;
-          fuseFulltext = new Fuse(sdata.entries, {
-            keys:[
-              {name:'title', weight:5},
-              {name:'content', weight:2},
-              {name:'excerpt', weight:1.5},
-              {name:'tags', weight:1}
-            ],
-            threshold: 0.3,
-            includeMatches: true,
-            minMatchCharLength: 2,
-            ignoreLocation: true,
-            findAllMatches: true
-          });
-          console.log('✅ 全文搜索索引已加载，共 '+sdata.entries.length+' 篇文档');
-        }
-      }).catch(function(e){ console.warn('全文索引加载失败:', e); });
+      // 全文搜索索引（search-index.json）延迟加载：用户首次搜索时触发
+      var _searchIndexLoading = false;
+      window._loadSearchIndex = function(){
+        if(fuseFulltext || _searchIndexLoading) return;
+        _searchIndexLoading = true;
+        fetch('search-index.json').then(function(res){if(!res.ok) return null;return res.json();}).then(function(sdata){
+          if(sdata && sdata.entries){
+            searchIndexData = sdata;
+            fuseFulltext = new Fuse(sdata.entries, {
+              keys:[
+                {name:'title', weight:5},
+                {name:'content', weight:2},
+                {name:'excerpt', weight:1.5},
+                {name:'tags', weight:1}
+              ],
+              threshold: 0.3,
+              includeMatches: true,
+              minMatchCharLength: 2,
+              ignoreLocation: true,
+              findAllMatches: true
+            });
+            console.log('✅ 全文搜索索引已加载，共 '+sdata.entries.length+' 篇文档');
+          }
+          _searchIndexLoading = false;
+        }).catch(function(e){ console.warn('全文索引加载失败:', e); _searchIndexLoading = false; });
+      };
 
       // 加载完毕后渲染动态首页卡片和角标
       setTimeout(function(){
@@ -825,6 +831,8 @@ function handleSearch(q){
   var dd=document.getElementById('searchDropdown');q=q.trim();
   if(!q){dd.classList.remove('show');dd.innerHTML='';return;}
   if(!fuse){dd.classList.remove('show');return;}
+  // 触发全文索引延迟加载
+  if(!fuseFulltext && window._loadSearchIndex) window._loadSearchIndex();
 
   // ═══ 标题/关键词搜索（原有 Fuse） ═══
   var titleResults=fuse.search(q).slice(0,6);
@@ -4026,7 +4034,7 @@ async function adminPublishAll(){
 /* ── 可自定义配置区（修改此处即可换头像/名称/主题色） ── */
 var AI_BOT_CONFIG = {
   name: 'APM 智能助理',                                         // Bot 名称
-  avatarUrl: 'assets/ai-avatar.png',                             // AI 助手专属头像
+  avatarUrl: 'assets/ai-avatar.webp',                            // AI 助手专属头像
   themeAccent: '#6c8cff'                                         // 主题强调色（与网站 --accent 一致）
 };
 
@@ -4036,49 +4044,57 @@ var COZE_DEFAULT_CONFIG = {
   token: 'pat_Vc4OB0Yu7rMZLZR9bXlbZmqQ4QE9YBISMGemPzP23DHExjHOmdtKmUpv5PpwpZeY'
 };
 
-// ── 初始化 Coze Chat SDK（官方方案，无 CORS 问题） ──
-(function initCozeChatSDK(){
+// ── Coze Chat SDK 延迟加载（首次点击 AI 助手时按需下载） ──
+var _cozeSdkLoaded = false;
+var _cozeSdkLoading = false;
+function loadCozeChatSDK(){
   var botId = COZE_DEFAULT_CONFIG.botId;
   var token = COZE_DEFAULT_CONFIG.token;
   if(!botId || !token){
     console.log('[Coze] 未配置 Bot ID / Token，使用本地搜索模式');
     return;
   }
-  // 检查 SDK 是否加载
-  if(typeof CozeWebSDK === 'undefined'){
-    console.warn('[Coze] Chat SDK 未加载，降级到本地搜索模式');
-    return;
-  }
-  try{
-    // 隐藏自定义聊天窗口的悬浮按钮（用 SDK 自带的悬浮球代替）
-    var customWrapper = document.getElementById('aiChatWrapper');
-    if(customWrapper) customWrapper.style.display = 'none';
-
-    // 初始化 Coze Chat SDK 悬浮窗
-    var cozeClient = new CozeWebSDK.WebChatClient({
-      config: {
-        bot_id: botId
-      },
-      componentProps: {
-        title: 'APM 智能助理'
-      },
-      auth: {
-        type: 'token',
-        token: token,
-        onRefreshToken: function(){ return token; }
-      }
-    });
-    console.log('[Coze] Chat SDK 初始化成功！');
-    window._cozeClient = cozeClient;
-  }catch(e){
-    console.error('[Coze] Chat SDK 初始化失败：', e);
-    // 恢复自定义窗口
-    var wrapper = document.getElementById('aiChatWrapper');
-    if(wrapper) wrapper.style.display = '';
-  }
-})();
+  if(_cozeSdkLoaded || _cozeSdkLoading) return;
+  _cozeSdkLoading = true;
+  var script = document.createElement('script');
+  script.src = 'https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.10/libs/cn/index.js';
+  script.onload = function(){
+    _cozeSdkLoaded = true;
+    _cozeSdkLoading = false;
+    try{
+      var customWrapper = document.getElementById('aiChatWrapper');
+      if(customWrapper) customWrapper.style.display = 'none';
+      var cozeClient = new CozeWebSDK.WebChatClient({
+        config: {
+          bot_id: botId
+        },
+        componentProps: {
+          title: 'APM 智能助理'
+        },
+        auth: {
+          type: 'token',
+          token: token,
+          onRefreshToken: function(){ return token; }
+        }
+      });
+      console.log('[Coze] Chat SDK 初始化成功！');
+      window._cozeClient = cozeClient;
+    }catch(e){
+      console.error('[Coze] Chat SDK 初始化失败：', e);
+      var wrapper = document.getElementById('aiChatWrapper');
+      if(wrapper) wrapper.style.display = '';
+    }
+  };
+  script.onerror = function(){
+    _cozeSdkLoading = false;
+    console.warn('[Coze] Chat SDK CDN 加载失败，降级到本地搜索模式');
+  };
+  document.head.appendChild(script);
+}
 
 function toggleAiChat(){
+  // 首次打开时触发 Coze SDK 延迟加载
+  if(!_cozeSdkLoaded && !_cozeSdkLoading) loadCozeChatSDK();
   var dialog=document.getElementById('aiChatDialog');
   var fab=document.getElementById('aiChatFab');
   var avatarEl=document.getElementById('aiFabAvatar');
