@@ -4044,52 +4044,20 @@ var COZE_DEFAULT_CONFIG = {
   token: 'pat_Vc4OB0Yu7rMZLZR9bXlbZmqQ4QE9YBISMGemPzP23DHExjHOmdtKmUpv5PpwpZeY'
 };
 
-// ── Coze Chat SDK 延迟加载（首次点击 AI 助手时按需下载） ──
+// ── Coze REST API 模式 — 不再加载 SDK，直接使用自建 UI + v3 API ──
+// SDK 加载已移除：之前 loadCozeChatSDK 会创建 Coze 自带聊天框并隐藏自建 UI
+// 现在统一走 aiCozeAnswer → REST API 调用，所有对话在自建 UI 内完成
 var _cozeSdkLoaded = false;
 var _cozeSdkLoading = false;
 function loadCozeChatSDK(){
+  // 不再加载 SDK — 统一使用 REST API 模式
   var botId = COZE_DEFAULT_CONFIG.botId;
   var token = COZE_DEFAULT_CONFIG.token;
-  if(!botId || !token){
+  if(botId && token){
+    console.log('[Coze] 已配置默认 Bot (ID: '+botId.substring(0,6)+'...)，使用 REST API 模式');
+  }else{
     console.log('[Coze] 未配置 Bot ID / Token，使用本地搜索模式');
-    return;
   }
-  if(_cozeSdkLoaded || _cozeSdkLoading) return;
-  _cozeSdkLoading = true;
-  var script = document.createElement('script');
-  script.src = 'https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.10/libs/cn/index.js';
-  script.onload = function(){
-    _cozeSdkLoaded = true;
-    _cozeSdkLoading = false;
-    try{
-      var customWrapper = document.getElementById('aiChatWrapper');
-      if(customWrapper) customWrapper.style.display = 'none';
-      var cozeClient = new CozeWebSDK.WebChatClient({
-        config: {
-          bot_id: botId
-        },
-        componentProps: {
-          title: 'APM 智能助理'
-        },
-        auth: {
-          type: 'token',
-          token: token,
-          onRefreshToken: function(){ return token; }
-        }
-      });
-      console.log('[Coze] Chat SDK 初始化成功！');
-      window._cozeClient = cozeClient;
-    }catch(e){
-      console.error('[Coze] Chat SDK 初始化失败：', e);
-      var wrapper = document.getElementById('aiChatWrapper');
-      if(wrapper) wrapper.style.display = '';
-    }
-  };
-  script.onerror = function(){
-    _cozeSdkLoading = false;
-    console.warn('[Coze] Chat SDK CDN 加载失败，降级到本地搜索模式');
-  };
-  document.head.appendChild(script);
 }
 
 function toggleAiChat(){
@@ -4107,9 +4075,9 @@ function toggleAiChat(){
     dialog.classList.add('show');
     if(avatarEl) avatarEl.style.display='none';
     if(closeEl) closeEl.style.display='flex';
-    // 加载已保存的配置
-    var savedBotId=localStorage.getItem('coze_bot_id');
-    var savedToken=localStorage.getItem('coze_token');
+    // 加载已保存的配置（优先 localStorage，其次默认值）
+    var savedBotId=localStorage.getItem('coze_bot_id') || COZE_DEFAULT_CONFIG.botId || '';
+    var savedToken=localStorage.getItem('coze_token') || COZE_DEFAULT_CONFIG.token || '';
     if(savedBotId) document.getElementById('cozeBotId').value=savedBotId;
     if(savedToken) document.getElementById('cozeToken').value=savedToken;
     // 自动聚焦输入框
