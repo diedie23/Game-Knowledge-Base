@@ -55,6 +55,266 @@ var searchIndexData=null; // 全文搜索索引原始数据
 var pageRegistry={};     // pageId → {type, file, download, badge, craft, catId, module ...}
 var activeTagFilter='';  // 当前标签过滤关键词
 
+// ═══ 访客浏览记录系统 ═══
+var VISIT_LOG_KEY = 'kb_visit_log';
+var VISITOR_ID_KEY = 'kb_visitor_id';
+
+// 生成/获取访客唯一标识
+function getVisitorId(){
+  var id = localStorage.getItem(VISITOR_ID_KEY);
+  if(!id){
+    id = 'v_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2,8);
+    localStorage.setItem(VISITOR_ID_KEY, id);
+  }
+  return id;
+}
+
+// 记录一次页面访问（仅非管理员模式下记录）
+function logVisit(pageId){
+  if(adminMode) return; // 管理员不记录
+  if(pageId === 'home') return; // 首页不记录
+  try{
+    var logs = JSON.parse(localStorage.getItem(VISIT_LOG_KEY) || '[]');
+    var visitorId = getVisitorId();
+    // 获取页面标题
+    var title = pageId;
+    var reg = pageRegistry[pageId];
+    if(reg && reg.title) title = reg.title;
+    else if(toolData && toolData[pageId] && toolData[pageId].name) title = toolData[pageId].name;
+    else {
+      // 从侧边栏取叶节点文字
+      var leaf = document.querySelector('.leaf[data-page="'+pageId+'"]');
+      if(leaf){
+        var textEl = leaf.querySelector('.leaf-text');
+        title = textEl ? textEl.textContent.trim() : leaf.textContent.trim();
+      }
+    }
+    logs.push({
+      visitor: visitorId,
+      page: pageId,
+      title: title,
+      time: new Date().toISOString(),
+      ua: navigator.userAgent.substring(0, 120)
+    });
+    // 保留最近 500 条记录（避免 localStorage 爆满）
+    if(logs.length > 500) logs = logs.slice(-500);
+    localStorage.setItem(VISIT_LOG_KEY, JSON.stringify(logs));
+  }catch(e){
+    console.log('[VisitLog] 记录失败:', e);
+  }
+}
+
+// 获取浏览记录统计
+function getVisitStats(){
+  try{
+    var logs = JSON.parse(localStorage.getItem(VISIT_LOG_KEY) || '[]');
+    // 统计独立访客数
+    var visitors = {};
+    var pages = {};
+    logs.forEach(function(l){
+      visitors[l.visitor] = true;
+      if(!pages[l.page]) pages[l.page] = {title: l.title, count: 0, visitors: {}, lastTime: l.time};
+      pages[l.page].count++;
+      pages[l.page].visitors[l.visitor] = true;
+      if(l.time > pages[l.page].lastTime) pages[l.page].lastTime = l.time;
+    });
+    return {
+      totalVisits: logs.length,
+      uniqueVisitors: Object.keys(visitors).length,
+      pages: pages,
+      logs: logs
+    };
+  }catch(e){
+    return {totalVisits:0, uniqueVisitors:0, pages:{}, logs:[]};
+  }
+}
+
+// 显示浏览记录面板
+function showVisitLog(){
+  var d = document.getElementById('visitLogDialog');
+  if(!d){
+    d = document.createElement('div');
+    d.id = 'visitLogDialog';
+    d.className = 'fb-overlay';
+    document.body.appendChild(d);
+    d.addEventListener('click', function(e){ if(e.target === d) d.classList.remove('show'); });
+  }
+  var stats = getVisitStats();
+  // 页面热度排行
+  var pageArr = [];
+  for(var k in stats.pages){
+    var p = stats.pages[k];
+    pageArr.push({id:k, title:p.title, count:p.count, uv:Object.keys(p.visitors).length, lastTime:p.lastTime});
+  }
+  pageArr.sort(function(a,b){ return b.count - a.count; });
+
+  // 最近访问记录（倒序取最近30条）
+  var recentLogs = stats.logs.slice(-30).reverse();
+
+  var html = '<div class="visit-log-card">'
+    +'<div class="vl-header">'
+    +'<h3>📋 访客浏览记录</h3>'
+    +'<div class="vl-stats">'
+    +'<span class="vl-stat-item"><span class="vl-stat-num">'+stats.totalVisits+'</span>总浏览</span>'
+    +'<span class="vl-stat-item"><span class="vl-stat-num">'+stats.uniqueVisitors+'</span>独立访客</span>'
+    +'<span class="vl-stat-item"><span class="vl-stat-num">'+pageArr.length+'</span>页面数</span>'
+    +'</div>'
+    +'</div>';
+
+  // Tab 切换
+  html += '<div class="vl-tabs">'
+    +'<button class="vl-tab active" onclick="switchVisitLogTab(\'hot\',this)">🔥 热度排行</button>'
+    +'<button class="vl-tab" onclick="switchVisitLogTab(\'recent\',this)">🕐 最近访问</button>'
+    +'<button class="vl-tab" onclick="switchVisitLogTab(\'visitors\',this)">👥 访客列表</button>'
+    +'</div>';
+
+  // Tab 1: 热度排行
+  html += '<div class="vl-panel vl-panel-hot" style="display:block">';
+  if(pageArr.length === 0){
+    html += '<div class="vl-empty">暂无浏览记录</div>';
+  } else {
+    html += '<div class="vl-table-wrap"><table class="vl-table"><thead><tr>'
+      +'<th style="width:36px">#</th><th>页面</th><th style="width:70px">浏览次数</th><th style="width:70px">独立访客</th><th style="width:130px">最后访问</th>'
+      +'</tr></thead><tbody>';
+    pageArr.forEach(function(p, i){
+      var timeStr = formatVisitTime(p.lastTime);
+      html += '<tr class="vl-row" onclick="document.getElementById(\'visitLogDialog\').classList.remove(\'show\');navigate(\''+p.id+'\')">'
+        +'<td class="vl-rank">'+(i+1)+'</td>'
+        +'<td class="vl-page-title" title="'+p.id+'">'+escHtml(p.title)+'</td>'
+        +'<td class="vl-count"><span class="vl-count-bar" style="width:'+Math.min(100,p.count*2)+'%"></span><span class="vl-count-num">'+p.count+'</span></td>'
+        +'<td class="vl-uv">'+p.uv+'</td>'
+        +'<td class="vl-time">'+timeStr+'</td>'
+        +'</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  html += '</div>';
+
+  // Tab 2: 最近访问
+  html += '<div class="vl-panel vl-panel-recent" style="display:none">';
+  if(recentLogs.length === 0){
+    html += '<div class="vl-empty">暂无浏览记录</div>';
+  } else {
+    html += '<div class="vl-recent-list">';
+    recentLogs.forEach(function(log){
+      var timeStr = formatVisitTime(log.time);
+      var shortVid = log.visitor.substring(0, 12);
+      html += '<div class="vl-recent-item" onclick="document.getElementById(\'visitLogDialog\').classList.remove(\'show\');navigate(\''+log.page+'\')">'
+        +'<div class="vl-recent-left">'
+        +'<span class="vl-recent-avatar">'+shortVid.charAt(2).toUpperCase()+'</span>'
+        +'<div class="vl-recent-info">'
+        +'<div class="vl-recent-title">'+escHtml(log.title)+'</div>'
+        +'<div class="vl-recent-meta">访客 '+shortVid+' · '+timeStr+'</div>'
+        +'</div></div>'
+        +'<span class="vl-recent-arrow">→</span>'
+        +'</div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // Tab 3: 访客列表
+  html += '<div class="vl-panel vl-panel-visitors" style="display:none">';
+  var visitorMap = {};
+  stats.logs.forEach(function(log){
+    if(!visitorMap[log.visitor]) visitorMap[log.visitor] = {count:0, pages:{}, firstTime:log.time, lastTime:log.time, ua:log.ua||''};
+    visitorMap[log.visitor].count++;
+    visitorMap[log.visitor].pages[log.page] = true;
+    if(log.time < visitorMap[log.visitor].firstTime) visitorMap[log.visitor].firstTime = log.time;
+    if(log.time > visitorMap[log.visitor].lastTime) visitorMap[log.visitor].lastTime = log.time;
+    if(log.ua) visitorMap[log.visitor].ua = log.ua;
+  });
+  var visitorArr = [];
+  for(var vid in visitorMap){
+    var v = visitorMap[vid];
+    visitorArr.push({id:vid, count:v.count, pageCount:Object.keys(v.pages).length, firstTime:v.firstTime, lastTime:v.lastTime, ua:v.ua});
+  }
+  visitorArr.sort(function(a,b){ return b.count - a.count; });
+  if(visitorArr.length === 0){
+    html += '<div class="vl-empty">暂无访客数据</div>';
+  } else {
+    html += '<div class="vl-visitor-list">';
+    visitorArr.forEach(function(v){
+      var isMobile = /Mobile|Android|iPhone/i.test(v.ua);
+      var browser = '未知';
+      if(/Chrome/i.test(v.ua) && !/Edg/i.test(v.ua)) browser = 'Chrome';
+      else if(/Edg/i.test(v.ua)) browser = 'Edge';
+      else if(/Firefox/i.test(v.ua)) browser = 'Firefox';
+      else if(/Safari/i.test(v.ua) && !/Chrome/i.test(v.ua)) browser = 'Safari';
+      var deviceIcon = isMobile ? '📱' : '💻';
+      html += '<div class="vl-visitor-item">'
+        +'<div class="vl-visitor-avatar">'+v.id.charAt(2).toUpperCase()+'</div>'
+        +'<div class="vl-visitor-info">'
+        +'<div class="vl-visitor-name">'+v.id.substring(0,14)+' <span class="vl-visitor-device">'+deviceIcon+' '+browser+'</span></div>'
+        +'<div class="vl-visitor-meta">浏览 '+v.count+' 次 · '+v.pageCount+' 个页面 · 首访 '+formatVisitTime(v.firstTime)+' · 最近 '+formatVisitTime(v.lastTime)+'</div>'
+        +'</div></div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // 底部操作
+  html += '<div class="vl-footer">'
+    +'<span class="vl-footer-hint">数据存储在本地 localStorage 中</span>'
+    +'<div class="vl-footer-actions">'
+    +'<button class="vl-btn vl-btn-export" onclick="exportVisitLog()">📥 导出 CSV</button>'
+    +'<button class="vl-btn vl-btn-clear" onclick="clearVisitLog()">🗑️ 清空记录</button>'
+    +'<button class="vl-btn" onclick="document.getElementById(\'visitLogDialog\').classList.remove(\'show\')">关闭</button>'
+    +'</div></div></div>';
+
+  d.innerHTML = html;
+  d.classList.add('show');
+}
+
+// 浏览记录 Tab 切换
+function switchVisitLogTab(tab, btn){
+  document.querySelectorAll('.vl-tab').forEach(function(t){ t.classList.remove('active'); });
+  btn.classList.add('active');
+  document.querySelectorAll('.vl-panel').forEach(function(p){ p.style.display = 'none'; });
+  var panel = document.querySelector('.vl-panel-'+tab);
+  if(panel) panel.style.display = 'block';
+}
+
+// 时间格式化
+function formatVisitTime(isoStr){
+  try{
+    var d = new Date(isoStr);
+    var now = new Date();
+    var diff = now - d;
+    if(diff < 60000) return '刚刚';
+    if(diff < 3600000) return Math.floor(diff/60000) + '分钟前';
+    if(diff < 86400000) return Math.floor(diff/3600000) + '小时前';
+    if(diff < 172800000) return '昨天 ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+    return (d.getMonth()+1) + '/' + d.getDate() + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }catch(e){ return isoStr; }
+}
+function pad2(n){ return n < 10 ? '0'+n : ''+n; }
+function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// 导出浏览记录为 CSV
+function exportVisitLog(){
+  var stats = getVisitStats();
+  var csv = 'visitor_id,page_id,page_title,visit_time,user_agent\n';
+  stats.logs.forEach(function(l){
+    csv += '"'+l.visitor+'","'+l.page+'","'+(l.title||'').replace(/"/g,'""')+'","'+l.time+'","'+(l.ua||'').replace(/"/g,'""')+'"\n';
+  });
+  var blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'visit_log_'+new Date().toISOString().split('T')[0]+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('✅ 已导出 CSV 文件');
+}
+
+// 清空浏览记录
+function clearVisitLog(){
+  if(!confirm('确定清空所有浏览记录？此操作不可撤销。')) return;
+  localStorage.removeItem(VISIT_LOG_KEY);
+  document.getElementById('visitLogDialog').classList.remove('show');
+  showToast('浏览记录已清空');
+}
+
 // 工具页数据（嵌入式工具的详细信息卡片）
 var toolData={
   'auto-mask-v6':{icon:'🤖',iconBg:'var(--cyan-bg)',name:'自动 Mask 生成器',ver:'v6.0',status:'online',subtitle:'傻瓜式预设 · 智能分析 · 放大镜 · 边缘净化 · 撤销重做 · TGA',desc:'v6.0 重大升级：① 5种一键预设（标准三色/头发眼睛/UI精度/特效/场景物件）② 智能主色调分析（色相分bin）③ 放大镜精准吸色+浮空反馈 ④ 术语大白话Tooltip ⑤ Ctrl+Z撤销/重做 ⑥ 边缘净化（膨胀/腐蚀/羽化/净化画笔）⑦ TGA导出 ⑧ 100%兼容v5工程 ⑨ i18n预留',tags:['在线工具','预设模式','智能分析','放大镜','边缘净化','TGA','撤销重做'],env:'🌐 浏览器在线',platform:'Win / Mac / Linux',install:'无需安装',date:'2026-04-09',url:'knowledge-base/auto-mask-v6.html'},
@@ -432,6 +692,8 @@ function getCategoryOptionsHtml(){
 // ═══ Core Navigation ═══
 function navigate(pageId,btn){
   curPage=pageId;
+  // 记录访客浏览（非管理员模式）
+  logVisit(pageId);
   location.hash=pageId==='home'?'':pageId;
   var scroll=document.getElementById('contentScroll');
   var frame=document.getElementById('contentFrame');
@@ -3713,6 +3975,7 @@ function renderAdminToolbar(){
     +'<button class="at-btn at-btn-exit" onclick="toggleAdminMode()" title="退出管理模式">✕ 退出</button>'
     +'</div>'
     +'<div class="at-actions">'
+    +'<button class="at-btn at-btn-log" onclick="showVisitLog()" title="查看访客浏览记录">📋 浏览记录</button>'
     +'<button class="at-btn at-btn-add" onclick="adminAddCategory()" title="新增一级模块">＋ 模块</button>'
     +'<button class="at-btn at-btn-save" onclick="adminPublishAll()" title="发布全部变更">🚀 发布</button>'
     +'</div>';
