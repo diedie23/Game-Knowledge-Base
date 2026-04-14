@@ -136,7 +136,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .task-card.task-soft::before{background:var(--neon-pink)}
 .task-card:hover{border-color:rgba(0,212,255,.2);transform:translateX(4px)}
 .task-card.task-done{opacity:.6}
-.task-card.task-done:hover{transform:none}
+.task-card.task-done:hover{opacity:.8;transform:translateX(4px)}
+.task-card.task-done .task-check:hover{border-color:var(--neon-red);box-shadow:0 0 20px rgba(255,71,87,.3)}
 .task-check{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;margin-top:2px;position:relative}
 .task-check:hover{border-color:var(--neon-green);box-shadow:var(--glow-green)}
 .task-check.done{background:linear-gradient(135deg,var(--neon-green),var(--neon-cyan));border-color:transparent;color:#000;font-size:14px;font-weight:700;animation:checkPop .4s ease}
@@ -755,11 +756,20 @@ var GC = (function(){
   function toggleTask(tid,xp){
     var data=load();
     if(!data.doneTasks)data.doneTasks=[];
-    if(data.doneTasks.indexOf(tid)>=0) return;
-    data.doneTasks.push(tid);
-    data.xp=(data.xp||0)+xp;save(data);
-    playSound('complete');
-    toast('✅ 任务完成！+'+xp+' XP','toast-green');
+    var idx=data.doneTasks.indexOf(tid);
+    if(idx>=0){
+      // 取消完成
+      data.doneTasks.splice(idx,1);
+      data.xp=Math.max(0,(data.xp||0)-xp);save(data);
+      playSound('down');
+      toast('↩ 任务已取消完成 -'+xp+' XP');
+    } else {
+      // 完成任务
+      data.doneTasks.push(tid);
+      data.xp=(data.xp||0)+xp;save(data);
+      playSound('complete');
+      toast('✅ 任务完成！+'+xp+' XP','toast-green');
+    }
     renderTasks();updateStats();checkAchievements();
   }
 
