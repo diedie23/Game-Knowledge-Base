@@ -4101,7 +4101,10 @@ function aiSendMessage(){
   input.style.height='auto';
 
   // 检查是否配置了 Coze（优先 localStorage，其次 COZE_DEFAULT_CONFIG 默认值）
-  var botId=localStorage.getItem('coze_bot_id') || COZE_DEFAULT_CONFIG.botId || '';
+  // 自动清理已知的错误 Bot ID（历史遗留问题）
+  var _storedBotId=localStorage.getItem('coze_bot_id');
+  if(_storedBotId==='7628276521161610403') { localStorage.removeItem('coze_bot_id'); _storedBotId=null; }
+  var botId=_storedBotId || COZE_DEFAULT_CONFIG.botId || '';
   var token=localStorage.getItem('coze_token') || COZE_DEFAULT_CONFIG.token || '';
 
   if(!botId||!token){
