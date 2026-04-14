@@ -140,7 +140,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .sk-edge.edge-mastered{stroke:var(--neon-gold);stroke-dasharray:none;opacity:.9;filter:drop-shadow(0 0 6px rgba(255,215,0,.3))}
 
 /* ── 技能详情弹窗 ── */
-.sk-tooltip{position:absolute;z-index:100;background:var(--card);border:1px solid var(--neon-blue);border-radius:14px;padding:18px;width:300px;box-shadow:0 8px 32px rgba(0,0,0,.5),var(--glow-blue);pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;transform:translateY(8px)}
+.sk-tooltip{position:absolute;z-index:100;background:var(--card);border:1px solid var(--neon-blue);border-radius:14px;padding:18px;width:340px;box-shadow:0 8px 32px rgba(0,0,0,.5),var(--glow-blue);pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;transform:translateY(8px)}
 .sk-tooltip.show{opacity:1;pointer-events:auto;transform:none}
 .sk-tooltip h4{font-size:15px;color:#fff;margin-bottom:6px;display:flex;align-items:center;gap:6px}
 .sk-tooltip .skt-state{font-size:10px;padding:2px 8px;border-radius:6px;font-weight:700;margin-left:auto}
@@ -303,6 +303,65 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 /* ── 涟漪效果 ── */
 .ripple{position:absolute;border-radius:50%;background:rgba(0,212,255,.3);transform:scale(0);animation:rippleAnim .6s ease-out;pointer-events:none}
 @keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+
+/* ══════════════════════════════════
+   新手引导遮罩系统
+   ══════════════════════════════════ */
+.guide-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.75);z-index:9990;opacity:0;pointer-events:none;transition:opacity .4s}
+.guide-overlay.show{opacity:1;pointer-events:auto}
+.guide-card{position:fixed;z-index:9991;background:var(--card);border:2px solid var(--neon-blue);border-radius:18px;padding:24px 28px;max-width:420px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.6),var(--glow-blue);opacity:0;pointer-events:none;transition:all .4s cubic-bezier(.34,1.56,.64,1);transform:translateY(16px)}
+.guide-card.show{opacity:1;pointer-events:auto;transform:none}
+.guide-card .guide-step{font-size:10px;color:var(--neon-blue);font-weight:700;letter-spacing:1px;margin-bottom:8px}
+.guide-card .guide-title{font-size:18px;color:#fff;font-weight:800;margin-bottom:8px}
+.guide-card .guide-desc{font-size:13px;color:var(--text);line-height:1.8;margin-bottom:16px}
+.guide-card .guide-highlight{color:var(--neon-green);font-weight:700}
+.guide-actions{display:flex;gap:8px;justify-content:flex-end}
+.guide-btn{padding:8px 20px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--dim);font-size:13px;cursor:pointer;font-family:inherit;transition:all .2s}
+.guide-btn:hover{border-color:var(--neon-blue);color:var(--neon-blue)}
+.guide-btn.guide-btn-primary{border-color:var(--neon-blue);color:#fff;background:linear-gradient(135deg,rgba(0,212,255,.15),rgba(0,255,136,.1))}
+.guide-btn.guide-btn-primary:hover{background:linear-gradient(135deg,rgba(0,212,255,.25),rgba(0,255,136,.2));box-shadow:var(--glow-blue)}
+.guide-dots{display:flex;gap:6px;margin-right:auto}
+.guide-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .3s}
+.guide-dot.active{background:var(--neon-blue);box-shadow:0 0 8px rgba(0,212,255,.4)}
+.guide-dot.done{background:var(--neon-green)}
+/* 引导高亮框 */
+.guide-spotlight{position:fixed;z-index:9989;border:2px solid var(--neon-blue);border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.7),0 0 30px rgba(0,212,255,.3);pointer-events:none;transition:all .5s cubic-bezier(.4,0,.2,1);opacity:0}
+.guide-spotlight.show{opacity:1}
+
+/* ══════════════════════════════════
+   任务详情展开面板
+   ══════════════════════════════════ */
+.task-detail{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1);opacity:0}
+.task-detail.open{max-height:400px;opacity:1;transition:max-height .4s cubic-bezier(.4,0,.2,1),opacity .3s .1s}
+.task-detail-inner{padding:12px 0 4px;border-top:1px solid var(--border);margin-top:10px}
+.task-steps{list-style:none;padding:0;margin:0 0 8px}
+.task-steps li{font-size:12px;color:var(--text);padding:4px 0;padding-left:4px;line-height:1.6;position:relative}
+.task-steps li::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--neon-blue);margin-right:8px;vertical-align:middle;opacity:.6}
+.task-related{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.task-related-tag{font-size:10px;padding:2px 8px;border-radius:6px;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.12);color:var(--neon-blue);cursor:default}
+.task-difficulty{font-size:11px;color:var(--neon-gold);margin-left:auto}
+.task-expand-btn{font-size:11px;color:var(--dim);cursor:pointer;background:none;border:none;font-family:inherit;padding:2px 6px;transition:color .2s}
+.task-expand-btn:hover{color:var(--neon-blue)}
+
+/* ══════════════════════════════════
+   技能弹窗增强 — 升级预览/学习目标
+   ══════════════════════════════════ */
+.skt-goal{font-size:11px;color:var(--neon-green);margin-bottom:10px;padding:6px 10px;background:rgba(0,255,136,.04);border-radius:8px;border-left:3px solid var(--neon-green);line-height:1.6}
+.skt-goal::before{content:'🎯 学习目标：';font-weight:700}
+.skt-next-lv{font-size:11px;color:var(--text);margin-top:8px;padding:8px 10px;background:rgba(0,212,255,.04);border-radius:8px;border-left:3px solid var(--neon-blue);line-height:1.6}
+.skt-next-lv .skt-next-label{color:var(--neon-blue);font-weight:700}
+.skt-next-lv .skt-next-desc{color:var(--dim)}
+.skt-dep-path{margin-top:8px;padding:8px 10px;background:rgba(255,71,87,.04);border-radius:8px;border-left:3px solid var(--neon-red);font-size:11px;line-height:1.6}
+.skt-dep-path .skt-dep-label{color:var(--neon-red);font-weight:700}
+
+/* ══════════════════════════════════
+   庆祝动画 — 升级/完成时的特效
+   ══════════════════════════════════ */
+@keyframes levelUpFlash{0%{opacity:0;transform:scale(.5)}30%{opacity:1;transform:scale(1.1)}60%{transform:scale(.95)}100%{opacity:0;transform:scale(1);pointer-events:none}}
+.level-up-fx{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9997;pointer-events:none;text-align:center;animation:levelUpFlash 2s ease forwards}
+.level-up-fx .lu-icon{font-size:80px;display:block;animation:ukBounce .8s ease infinite}
+.level-up-fx .lu-text{font-size:28px;font-weight:900;background:linear-gradient(135deg,var(--neon-blue),var(--neon-green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-top:8px}
+.level-up-fx .lu-sub{font-size:14px;color:var(--dim);margin-top:4px}
 </style>
 </head>
 <body>
@@ -313,7 +372,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
 <!-- ═══ 英雄区 ═══ -->
 <div class="gc-hero">
-  <h1>🎮 APM 成长中心 <span class="ver">v2.1 游戏化</span></h1>
+  <h1>🎮 APM 成长中心 <span class="ver">v2.2 游戏化</span></h1>
   <div class="subtitle">Skill Tree · Quests · Achievements · Growth Tracker</div>
 </div>
 
@@ -430,16 +489,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <p>清除所有成长进度数据。此操作不可恢复，请先导出备份！</p>
       <button class="dp-btn dp-btn-danger" onclick="GC.resetData()">⚠ 重置全部</button>
     </div>
+    <div class="dp-card">
+      <h3>📖 新手引导</h3>
+      <p>重新播放使用引导，了解各功能模块的使用方法和操作技巧。</p>
+      <button class="dp-btn" onclick="GC.startGuide()">🎮 重播引导</button>
+    </div>
   </div>
 </div>
 
 <div style="text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)">
-  🎮 APM 成长中心 · 游戏化版 v2.1 · APM 知识库
+  🎮 APM 成长中心 · 游戏化版 v2.2 · APM 知识库
 </div>
 </div><!-- /gc -->
 
 <!-- Toast 容器 -->
 <div class="gc-toast" id="gcToast"></div>
+
+<!-- 新手引导遮罩 -->
+<div class="guide-overlay" id="guideOverlay"></div>
+<div class="guide-spotlight" id="guideSpotlight"></div>
+<div class="guide-card" id="guideCard">
+  <div class="guide-step" id="guideStepLabel">STEP 1/5</div>
+  <div class="guide-title" id="guideTitle"></div>
+  <div class="guide-desc" id="guideDesc"></div>
+  <div class="guide-actions">
+    <div class="guide-dots" id="guideDots"></div>
+    <button class="guide-btn" onclick="GC.skipGuide()">跳过引导</button>
+    <button class="guide-btn guide-btn-primary" id="guideNextBtn" onclick="GC.nextGuide()">下一步 →</button>
+  </div>
+</div>
 
 <!-- 成就解锁弹窗 -->
 <div class="unlock-overlay" id="unlockOverlay">
@@ -458,56 +536,199 @@ var GC = (function(){
   // ══════════════════════════════
   // 数据定义
   // ══════════════════════════════
+  // 等级名称映射（全局复用）
+  var LV_NAMES = ['未学习','入门','熟悉','掌握','精通','大师'];
+
   var SKILLS = {
     tech: [
-      {id:'sk-pipeline',name:'美术管线理解',icon:'🎨',desc:'2D/3D/特效/UI完整管线流程认知',max:5,deps:[]},
-      {id:'sk-engine',name:'引擎基础',icon:'🎮',desc:'Unity/UE基础操作、资产导入导出',max:5,deps:['sk-pipeline']},
-      {id:'sk-tool',name:'工具链熟练度',icon:'🛠️',desc:'PS/Spine/Maya等美术工具基本操作',max:5,deps:['sk-pipeline']},
-      {id:'sk-naming',name:'命名与规范',icon:'📝',desc:'资产命名、目录结构、提交规范',max:5,deps:['sk-pipeline']},
-      {id:'sk-perf',name:'性能优化意识',icon:'⚡',desc:'面数/Drawcall/材质球/LOD等性能概念',max:5,deps:['sk-engine']},
-      {id:'sk-qa',name:'质量检查标准',icon:'🔍',desc:'美术资产检查规范与自动化验收',max:5,deps:['sk-naming']},
-      {id:'sk-version',name:'版本管理',icon:'📂',desc:'SVN/Perforce/Git版本管理操作',max:5,deps:['sk-naming']},
-      {id:'sk-script',name:'自动化脚本',icon:'💻',desc:'Python/JS脚本辅助批量处理',max:5,deps:['sk-tool','sk-qa']},
-      {id:'sk-data',name:'数据分析',icon:'📊',desc:'Excel/SQL数据统计与可视化',max:5,deps:['sk-perf']},
-      {id:'sk-ai',name:'AI辅助工具',icon:'🤖',desc:'AIGC工具在美术管线中的应用',max:5,deps:['sk-script','sk-data']}
+      {id:'sk-pipeline',name:'美术管线理解',icon:'🎨',
+       desc:'理解 2D/3D/特效/UI 完整美术制作管线的流转流程和各环节输出标准。',
+       goal:'能独立绘制项目美术管线流程图，并识别各环节的瓶颈点。',
+       levels:['了解管线概念','熟悉各环节角色分工','能画出完整管线流程图','能识别管线瓶颈并提改进建议','主导管线流程优化方案'],
+       max:5,deps:[]},
+      {id:'sk-engine',name:'引擎基础',icon:'🎮',
+       desc:'掌握 Unity/UE 引擎的基础操作，包括场景搭建、资产导入导出、材质预览。',
+       goal:'能在引擎中独立完成资产导入验收和基础场景搭建。',
+       levels:['认识引擎界面','能导入导出资产','能搭建基础场景','掌握材质/光照调试','能定位引擎侧美术问题'],
+       max:5,deps:['sk-pipeline']},
+      {id:'sk-tool',name:'工具链熟练度',icon:'🛠️',
+       desc:'掌握 PS/Spine/Maya/Blender 等常用美术工具的基本操作和工作流。',
+       goal:'能用工具完成基础资产检查和简单调整，不依赖美术同事。',
+       levels:['知道各工具用途','能打开查看文件','能做简单编辑调整','熟练使用批量功能','能编写工具插件/脚本'],
+       max:5,deps:['sk-pipeline']},
+      {id:'sk-naming',name:'命名与规范',icon:'📝',
+       desc:'掌握资产命名规则、目录结构标准和版本提交规范。',
+       goal:'能制定并推行团队资产规范，确保命名统一和目录整洁。',
+       levels:['了解命名基本规则','能遵守现有规范','能发现规范问题','能制定优化规范','主导全组规范体系建设'],
+       max:5,deps:['sk-pipeline']},
+      {id:'sk-perf',name:'性能优化意识',icon:'⚡',
+       desc:'理解面数/Drawcall/内存/LOD/材质合批等性能优化核心概念。',
+       goal:'能参与性能评审，识别美术资产的性能风险点。',
+       levels:['了解基础性能概念','能看懂性能报告','能识别高风险资产','参与制定性能标准','主导性能优化方案'],
+       max:5,deps:['sk-engine']},
+      {id:'sk-qa',name:'质量检查标准',icon:'🔍',
+       desc:'掌握美术资产的质量检查规范，熟悉自动化验收流程。',
+       goal:'能建立质量检查清单和自动化验收工具链。',
+       levels:['了解检查要点','能执行检查清单','能发现常见质量问题','制定检查标准SOP','搭建自动化质检流水线'],
+       max:5,deps:['sk-naming']},
+      {id:'sk-version',name:'版本管理',icon:'📂',
+       desc:'掌握 SVN/Perforce/Git 等版本管理工具的操作和团队协作流程。',
+       goal:'能管理团队的版本提交流程，处理常见的合并冲突。',
+       levels:['了解版本管理概念','能执行基本操作','能处理冲突和回滚','制定提交规范','管理分支策略和权限'],
+       max:5,deps:['sk-naming']},
+      {id:'sk-script',name:'自动化脚本',icon:'💻',
+       desc:'使用 Python/JS 脚本辅助批量处理重复性美术管理任务。',
+       goal:'能编写脚本自动化处理命名检查、批量导出、报表生成等。',
+       levels:['了解脚本概念','能读懂简单脚本','能修改现有脚本','独立编写工具脚本','搭建自动化工具平台'],
+       max:5,deps:['sk-tool','sk-qa']},
+      {id:'sk-data',name:'数据分析',icon:'📊',
+       desc:'使用 Excel/SQL/可视化工具进行项目数据统计和分析。',
+       goal:'能用数据驱动决策，输出项目进度/质量/成本分析报告。',
+       levels:['了解数据分析概念','能用Excel做基础统计','能做数据可视化图表','能用SQL查询分析','输出数据驱动的洞察报告'],
+       max:5,deps:['sk-perf']},
+      {id:'sk-ai',name:'AI辅助工具',icon:'🤖',
+       desc:'掌握 AIGC 工具（MidJourney/SD/ChatGPT）在美术管线中的落地应用。',
+       goal:'能利用 AI 工具提升团队效率 20% 以上，并制定 AI 应用规范。',
+       levels:['了解AI工具概况','能使用基础AI功能','能将AI融入日常工作','制定AI工作流规范','主导AI赋能方案落地'],
+       max:5,deps:['sk-script','sk-data']}
     ],
     mgmt: [
-      {id:'sk-schedule',name:'排期管理',icon:'📅',desc:'WBS分解、甘特图、关键路径法',max:5,deps:[]},
-      {id:'sk-agile',name:'敏捷管理',icon:'🔄',desc:'Scrum/Kanban、Sprint计划、燃尽图',max:5,deps:['sk-schedule']},
-      {id:'sk-cost',name:'成本核算',icon:'💰',desc:'预算编制、成本控制、ROI分析',max:5,deps:['sk-schedule']},
-      {id:'sk-outsource',name:'外包管理',icon:'📦',desc:'供应商评估、合同管理、验收流程',max:5,deps:['sk-cost']},
-      {id:'sk-risk',name:'风险管理',icon:'🛡️',desc:'风险识别、评估、应对策略制定',max:5,deps:['sk-agile']},
-      {id:'sk-cr',name:'变更管控',icon:'🔒',desc:'CR流程、影响评估、变更委员会',max:5,deps:['sk-risk']},
-      {id:'sk-process',name:'流程设计',icon:'📋',desc:'SOP制定、流程优化、自动化改进',max:5,deps:['sk-agile','sk-outsource']},
-      {id:'sk-decision',name:'决策方法论',icon:'⚖️',desc:'决策矩阵、RACI、成本效益分析',max:5,deps:['sk-risk']},
-      {id:'sk-postmortem',name:'复盘方法论',icon:'🔬',desc:'5Whys、鱼骨图、Action Item追踪',max:5,deps:['sk-cr','sk-decision']},
-      {id:'sk-metrics',name:'效能度量',icon:'📈',desc:'KPI设计、效率指标、质量指标体系',max:5,deps:['sk-process','sk-postmortem']}
+      {id:'sk-schedule',name:'排期管理',icon:'📅',
+       desc:'掌握 WBS 分解、甘特图、关键路径法等排期管理方法。',
+       goal:'能独立完成版本排期并准确预估交付时间，偏差率 <10%。',
+       levels:['了解排期基本概念','能做简单任务分解','能编制甘特图','掌握关键路径分析','应对复杂多线程排期'],
+       max:5,deps:[]},
+      {id:'sk-agile',name:'敏捷管理',icon:'🔄',
+       desc:'掌握 Scrum/Kanban 框架，能组织 Sprint 计划和燃尽图追踪。',
+       goal:'能作为 Scrum Master 推动团队敏捷转型。',
+       levels:['了解敏捷基本概念','能参与Sprint活动','能维护看板和燃尽图','独立组织Sprint会议','推动团队敏捷转型'],
+       max:5,deps:['sk-schedule']},
+      {id:'sk-cost',name:'成本核算',icon:'💰',
+       desc:'掌握预算编制、成本控制和 ROI 分析的方法。',
+       goal:'能独立完成项目/外包成本核算，控制预算偏差 <5%。',
+       levels:['了解成本概念','能记录开支明细','能编制预算方案','精准控制成本偏差','输出ROI优化策略'],
+       max:5,deps:['sk-schedule']},
+      {id:'sk-outsource',name:'外包管理',icon:'📦',
+       desc:'掌握供应商评估、合同管理、质量验收的完整外包管理流程。',
+       goal:'能独立管理 3+ 外包供应商，确保交付质量达标率 >95%。',
+       levels:['了解外包流程','能执行验收清单','能管理单一供应商','能管理多供应商','建立外包管理体系'],
+       max:5,deps:['sk-cost']},
+      {id:'sk-risk',name:'风险管理',icon:'🛡️',
+       desc:'掌握风险识别、评估和应对策略制定的系统方法。',
+       goal:'能建立项目风险登记册并前置化解 80% 的潜在风险。',
+       levels:['了解风险概念','能识别常见风险','能评估风险等级','制定应对预案','建立风险管理体系'],
+       max:5,deps:['sk-agile']},
+      {id:'sk-cr',name:'变更管控',icon:'🔒',
+       desc:'掌握 CR 流程、影响评估和变更委员会的运作机制。',
+       goal:'能控制变更频率降低 30%，确保每次变更有完整追溯记录。',
+       levels:['了解变更流程','能记录变更请求','能评估变更影响','管理CR审批流程','建立变更管控体系'],
+       max:5,deps:['sk-risk']},
+      {id:'sk-process',name:'流程设计',icon:'📋',
+       desc:'掌握 SOP 制定、流程优化和自动化改进的方法论。',
+       goal:'能设计高效的团队协作流程，将重复性工作自动化率提升至 60%。',
+       levels:['了解流程概念','能执行现有SOP','能发现流程瓶颈','设计优化SOP','推动流程自动化'],
+       max:5,deps:['sk-agile','sk-outsource']},
+      {id:'sk-decision',name:'决策方法论',icon:'⚖️',
+       desc:'掌握决策矩阵、RACI、成本效益分析等决策工具。',
+       goal:'能用数据和框架支撑决策，减少拍脑袋决定的比例。',
+       levels:['了解决策工具','能用决策矩阵','掌握RACI矩阵','综合多工具决策','输出决策方法论'],
+       max:5,deps:['sk-risk']},
+      {id:'sk-postmortem',name:'复盘方法论',icon:'🔬',
+       desc:'掌握 5Whys、鱼骨图、Action Item 追踪等复盘方法。',
+       goal:'能主持高质量复盘会，确保 Action Item 闭环率 >90%。',
+       levels:['了解复盘概念','能参与复盘讨论','能使用5Whys分析','主持复盘会议','建立复盘改进体系'],
+       max:5,deps:['sk-cr','sk-decision']},
+      {id:'sk-metrics',name:'效能度量',icon:'📈',
+       desc:'掌握 KPI 设计、效率指标和质量指标体系的搭建方法。',
+       goal:'能建立团队效能看板，用数据驱动持续改进。',
+       levels:['了解指标概念','能跟踪基础指标','能设计KPI方案','搭建效能看板','数据驱动持续改进'],
+       max:5,deps:['sk-process','sk-postmortem']}
     ],
     soft: [
-      {id:'sk-comm',name:'跨部门沟通',icon:'🗣️',desc:'与策划/程序/QA/老板的高效沟通',max:5,deps:[]},
-      {id:'sk-upward',name:'向上管理',icon:'📤',desc:'汇报技巧、预期管理、信任建立',max:5,deps:['sk-comm']},
-      {id:'sk-negotiate',name:'谈判与拒绝',icon:'🤝',desc:'合理拒绝不合理需求、利益协调',max:5,deps:['sk-comm']},
-      {id:'sk-conflict',name:'冲突解决',icon:'⚔️',desc:'跨部门冲突调解、利益平衡',max:5,deps:['sk-negotiate']},
-      {id:'sk-team',name:'团队激励',icon:'🔥',desc:'士气管理、认可激励、氛围营造',max:5,deps:['sk-upward']},
-      {id:'sk-time',name:'时间管理',icon:'⏰',desc:'优先级矩阵、时间分块、精力管理',max:5,deps:['sk-comm']},
-      {id:'sk-present',name:'演讲表达',icon:'🎤',desc:'评审会主持、进度汇报、需求宣讲',max:5,deps:['sk-upward','sk-conflict']},
-      {id:'sk-write',name:'文档写作',icon:'✍️',desc:'规范文档、复盘报告、邮件撰写',max:5,deps:['sk-time']},
-      {id:'sk-emotion',name:'情绪管理',icon:'💆',desc:'压力调节、负面情绪处理、同理心',max:5,deps:['sk-conflict','sk-team']},
-      {id:'sk-mentor',name:'辅导带教',icon:'🎓',desc:'新人带教、知识分享、团队培训',max:5,deps:['sk-present','sk-emotion']}
+      {id:'sk-comm',name:'跨部门沟通',icon:'🗣️',
+       desc:'掌握与策划/程序/QA/老板等不同角色的高效沟通技巧。',
+       goal:'能在跨部门会议中清晰表达观点，推动共识达成。',
+       levels:['了解各部门职能','能进行基本工作沟通','能处理跨部门协作','主持跨部门会议','成为部门间桥梁人物'],
+       max:5,deps:[]},
+      {id:'sk-upward',name:'向上管理',icon:'📤',
+       desc:'掌握汇报技巧、预期管理和向上信任建立的方法。',
+       goal:'能让上级及时了解项目状态，获得资源支持和决策授权。',
+       levels:['了解汇报基本要素','能做结构化汇报','能主动同步风险','管理上级预期','获得充分信任和授权'],
+       max:5,deps:['sk-comm']},
+      {id:'sk-negotiate',name:'谈判与拒绝',icon:'🤝',
+       desc:'掌握合理拒绝不合理需求和利益协调的沟通技巧。',
+       goal:'能用数据和方案说服对方，而非简单说"不"。',
+       levels:['了解谈判基本原则','能表达不同意见','能用数据支撑论点','掌握双赢谈判技巧','成为团队谈判代表'],
+       max:5,deps:['sk-comm']},
+      {id:'sk-conflict',name:'冲突解决',icon:'⚔️',
+       desc:'掌握跨部门冲突调解和利益平衡的方法。',
+       goal:'能在资源/排期/质量冲突中找到各方都能接受的方案。',
+       levels:['了解冲突类型','能保持冷静应对','能分析冲突根因','能调解部门间冲突','建立冲突预防机制'],
+       max:5,deps:['sk-negotiate']},
+      {id:'sk-team',name:'团队激励',icon:'🔥',
+       desc:'掌握士气管理、认可激励和团队氛围营造的方法。',
+       goal:'能持续保持团队高昂士气，离职率控制在行业平均以下。',
+       levels:['了解激励基本理论','能给予正向反馈','能组织团队活动','设计激励机制','打造高凝聚力团队'],
+       max:5,deps:['sk-upward']},
+      {id:'sk-time',name:'时间管理',icon:'⏰',
+       desc:'掌握优先级矩阵、时间分块和精力管理的方法。',
+       goal:'能高效管理个人时间，确保关键任务零延期。',
+       levels:['了解时间管理概念','能做待办清单','掌握优先级矩阵','系统化时间管理','帮助团队提升效率'],
+       max:5,deps:['sk-comm']},
+      {id:'sk-present',name:'演讲表达',icon:'🎤',
+       desc:'掌握评审会主持、进度汇报和需求宣讲的表达技巧。',
+       goal:'能流畅主持各类会议，观点表达清晰有说服力。',
+       levels:['了解表达基本技巧','能做简短工作汇报','能主持小型会议','能做公开演讲分享','成为团队演讲标杆'],
+       max:5,deps:['sk-upward','sk-conflict']},
+      {id:'sk-write',name:'文档写作',icon:'✍️',
+       desc:'掌握规范文档、复盘报告和商务邮件的撰写技巧。',
+       goal:'能输出高质量的项目文档，成为团队文档标杆。',
+       levels:['了解文档基本要素','能写工作邮件','能写完整项目文档','能写方法论文章','输出行业级文档模板'],
+       max:5,deps:['sk-time']},
+      {id:'sk-emotion',name:'情绪管理',icon:'💆',
+       desc:'掌握压力调节、负面情绪处理和同理心沟通的方法。',
+       goal:'能在高压环境下保持稳定状态，帮助团队化解情绪问题。',
+       levels:['了解情绪管理概念','能觉察自身情绪','能有效调节压力','能帮助他人调节情绪','营造健康团队氛围'],
+       max:5,deps:['sk-conflict','sk-team']},
+      {id:'sk-mentor',name:'辅导带教',icon:'🎓',
+       desc:'掌握新人带教、知识分享和团队培训的方法论。',
+       goal:'能建立团队知识传承体系，新人上手时间缩短 50%。',
+       levels:['了解带教基本方法','能做一对一辅导','能组织知识分享','设计培训课程体系','建立知识传承机制'],
+       max:5,deps:['sk-present','sk-emotion']}
     ]
   };
 
   var TASKS = [
-    {id:'t1',title:'完成第一次外包验收',desc:'独立完成一次外包CP资产验收流程',xp:50,tags:['mgmt']},
-    {id:'t2',title:'写一篇项目复盘报告',desc:'使用复盘模板撰写完整版本复盘报告',xp:80,tags:['mgmt']},
-    {id:'t3',title:'主持一次跨部门评审会',desc:'独立主持美术评审会并输出结论',xp:60,tags:['soft']},
-    {id:'t4',title:'搭建一个自动化检查流程',desc:'为团队搭建自动化资产检查工具',xp:100,tags:['tech']},
-    {id:'t5',title:'成功拒绝一次不合理需求',desc:'用数据说服策划撤回不合理变更',xp:70,tags:['soft']},
-    {id:'t6',title:'制作团队排期看板',desc:'搭建可视化Sprint排期看板',xp:40,tags:['mgmt']},
-    {id:'t7',title:'完成一次成本核算',desc:'为外包任务做完整成本核算',xp:60,tags:['mgmt']},
-    {id:'t8',title:'记录3个真实案例',desc:'使用案例模板记录3个项目案例',xp:90,tags:['mgmt','soft']},
-    {id:'t9',title:'建立风险登记册',desc:'建立并维护项目风险登记册',xp:70,tags:['mgmt']},
-    {id:'t10',title:'给新人做一次知识分享',desc:'面向新人做15分钟以上知识分享',xp:80,tags:['soft']}
+    {id:'t1',title:'完成第一次外包验收',desc:'独立完成一次外包CP资产验收流程，包含验收标准制定、问题反馈和结果归档。',
+     xp:50,tags:['mgmt'],difficulty:'⭐',relatedSkills:['sk-outsource','sk-qa'],
+     steps:['① 获取外包交付物和验收标准文档','② 按检查清单逐项核验','③ 记录问题并反馈修改意见','④ 确认修改完成，归档验收报告']},
+    {id:'t2',title:'写一篇项目复盘报告',desc:'使用5Whys+鱼骨图模板，撰写一份完整的版本复盘报告并跟踪Action Item。',
+     xp:80,tags:['mgmt'],difficulty:'⭐⭐',relatedSkills:['sk-postmortem','sk-write'],
+     steps:['① 收集版本数据（工期/质量/成本）','② 组织复盘会议记录关键问题','③ 用5Whys分析根因','④ 输出Action Item并分配责任人']},
+    {id:'t3',title:'主持一次跨部门评审会',desc:'独立主持一次美术评审会，确保各方达成共识并输出可执行结论。',
+     xp:60,tags:['soft'],difficulty:'⭐⭐',relatedSkills:['sk-present','sk-comm'],
+     steps:['① 提前准备议程和评审材料','② 发出会议邀请并确认参会人','③ 主持评审讨论控制节奏','④ 输出会议纪要和待办事项']},
+    {id:'t4',title:'搭建一个自动化检查流程',desc:'为团队搭建一个美术资产自动化检查工具，至少覆盖命名/面数/贴图3项检查。',
+     xp:100,tags:['tech'],difficulty:'⭐⭐⭐',relatedSkills:['sk-script','sk-qa'],
+     steps:['① 调研团队最高频的检查项','② 选择技术方案（Python/引擎插件）','③ 编写核心检查逻辑','④ 测试并部署到团队工作流']},
+    {id:'t5',title:'成功拒绝一次不合理需求',desc:'用数据和方案说服策划撤回或调整一次不合理的美术变更需求。',
+     xp:70,tags:['soft'],difficulty:'⭐⭐',relatedSkills:['sk-negotiate','sk-cr'],
+     steps:['① 分析需求的影响（工期/成本/质量）','② 准备数据和替代方案','③ 一对一沟通表达关切','④ 推动达成双方都能接受的方案']},
+    {id:'t6',title:'制作团队排期看板',desc:'搭建一个可视化的Sprint排期看板，团队成员能实时查看进度。',
+     xp:40,tags:['mgmt'],difficulty:'⭐',relatedSkills:['sk-schedule','sk-agile'],
+     steps:['① 选择看板工具（TAPD/飞书/物理白板）','② 定义泳道和状态列','③ 录入当前Sprint任务','④ 培训团队使用并养成习惯']},
+    {id:'t7',title:'完成一次成本核算',desc:'为一个外包任务做完整的成本核算，包含人天估算、报价对比和ROI分析。',
+     xp:60,tags:['mgmt'],difficulty:'⭐⭐',relatedSkills:['sk-cost','sk-outsource'],
+     steps:['① 收集任务需求和工作量估算','② 获取多家供应商报价','③ 编制成本对比表','④ 输出成本核算报告和建议']},
+    {id:'t8',title:'记录3个真实案例',desc:'使用案例模板（背景-挑战-方案-结果）记录3个真实的项目管理案例。',
+     xp:90,tags:['mgmt','soft'],difficulty:'⭐⭐',relatedSkills:['sk-write','sk-postmortem'],
+     steps:['① 选择3个有代表性的案例','② 按模板梳理背景和挑战','③ 详细记录解决方案和过程','④ 总结结果和可复用经验']},
+    {id:'t9',title:'建立风险登记册',desc:'建立项目风险登记册，至少识别5个风险并制定应对策略。',
+     xp:70,tags:['mgmt'],difficulty:'⭐⭐',relatedSkills:['sk-risk','sk-decision'],
+     steps:['① 召集团队做风险头脑风暴','② 用"影响×概率"矩阵评估等级','③ 为每个风险制定应对预案','④ 建立定期回顾更新机制']},
+    {id:'t10',title:'给新人做一次知识分享',desc:'面向新人做15分钟以上的知识分享，主题自选，需有PPT和互动环节。',
+     xp:80,tags:['soft'],difficulty:'⭐⭐',relatedSkills:['sk-mentor','sk-present'],
+     steps:['① 确定分享主题和目标受众','② 制作PPT（10-20页）','③ 排练一次并控制时间','④ 正式分享并收集反馈']}
   ];
 
   var ACHIEVEMENTS = [
@@ -671,7 +892,7 @@ var GC = (function(){
       if(layer.length>0) layers.push(layer);
     }
 
-    var nodeW = 140, nodeH = 70, gapX = 40, gapY = 60, padX = 30, padY = 30;
+    var nodeW = 170, nodeH = 78, gapX = 36, gapY = 60, padX = 30, padY = 30;
     var maxPerRow = Math.max.apply(null,layers.map(function(l){return l.length;}));
     var totalW = maxPerRow*(nodeW+gapX)-gapX+padX*2;
     var totalH = layers.length*(nodeH+gapY)-gapY+padY*2;
@@ -718,7 +939,7 @@ var GC = (function(){
       });
     });
 
-    // 节点（五级状态）
+    // 节点（五级状态 — 信息清晰化）
     var dimColors = {tech:'#00d4ff',mgmt:'#ffd700',soft:'#ff6eb4'};
     var dimColor = dimColors[dim];
     var stateColors = {locked:'#3d4160',available:'#4a7cbb','in-progress':'#00d4ff',learned:'#00ff88',mastered:'#ffd700'};
@@ -728,23 +949,42 @@ var GC = (function(){
       var state = getSkillState(data, sk);
       var pct = lv/sk.max*100;
       var sColor = stateColors[state];
-      var stateLabel = {locked:'锁定',available:'可学习','in-progress':'学习中',learned:'已掌握',mastered:'★ 大师'}[state];
+      // 人性化状态文案
+      var statusText = {
+        locked:'🔒 需解锁前置',
+        available:'✨ 点击开始学习',
+        'in-progress':'📖 学习中 Lv.'+lv+'/'+sk.max,
+        learned:'✅ 已掌握 Lv.'+lv+'/'+sk.max,
+        mastered:'⭐ 大师级 MAX'
+      }[state];
+      // 当前等级能力简述
+      var lvBrief = (lv>0 && sk.levels) ? sk.levels[lv-1] : '';
+      if(lvBrief.length>10) lvBrief=lvBrief.substring(0,10)+'…';
 
       html+='<g class="sk-node '+state+'" data-id="'+sk.id+'" transform="translate('+p.x+','+p.y+')" onclick="GC.onSkillClick(\''+sk.id+'\',\''+dim+'\',event)">';
       html+='<rect class="sk-node-bg" width="'+nodeW+'" height="'+nodeH+'" />';
       // 进度条背景
-      html+='<rect x="8" y="'+(nodeH-14)+'" width="'+(nodeW-16)+'" height="6" rx="3" fill="rgba(255,255,255,.04)"/>';
-      // 进度条填充
-      if(pct>0) html+='<rect x="8" y="'+(nodeH-14)+'" width="'+((nodeW-16)*pct/100)+'" height="6" rx="3" fill="'+sColor+'" opacity=".8"/>';
+      html+='<rect x="8" y="'+(nodeH-12)+'" width="'+(nodeW-16)+'" height="5" rx="2.5" fill="rgba(255,255,255,.04)"/>';
+      // 进度条填充（带等级刻度）
+      if(pct>0) html+='<rect x="8" y="'+(nodeH-12)+'" width="'+((nodeW-16)*pct/100)+'" height="5" rx="2.5" fill="'+sColor+'" opacity=".8"/>';
+      // 等级刻度线（每20%一个）
+      for(var tick=1;tick<sk.max;tick++){
+        var tickX=8+(nodeW-16)*(tick/sk.max);
+        html+='<line x1="'+tickX+'" y1="'+(nodeH-12)+'" x2="'+tickX+'" y2="'+(nodeH-7)+'" stroke="rgba(0,0,0,.5)" stroke-width="1"/>';
+      }
       // 状态指示点
       html+='<circle cx="'+(nodeW-14)+'" cy="14" r="4" fill="'+sColor+'"'+(state==='in-progress'||state==='available'?' opacity=".7"':'')+'/>';
       // 图标
-      html+='<text x="14" y="28" font-size="18">'+(state==='locked'?'🔒':sk.icon)+'</text>';
+      html+='<text x="12" y="26" font-size="18">'+(state==='locked'?'🔒':sk.icon)+'</text>';
       // 名称
       var nameColor = state==='locked'?'#3d4160':(state==='mastered'?'#ffd700':(state==='learned'?'#b8f0d0':'#ddd'));
-      html+='<text x="36" y="26" fill="'+nameColor+'" font-size="12" font-weight="600">'+sk.name+'</text>';
-      // 等级+状态
-      html+='<text x="36" y="42" fill="'+sColor+'" font-size="10" font-weight="700">Lv.'+lv+'/'+sk.max+' · '+stateLabel+'</text>';
+      html+='<text x="34" y="22" fill="'+nameColor+'" font-size="12" font-weight="700">'+sk.name+'</text>';
+      // 状态文案（替代原来模糊的"Lv.0/5 · 锁定"）
+      html+='<text x="34" y="38" fill="'+sColor+'" font-size="9.5" font-weight="600">'+statusText+'</text>';
+      // 当前等级能力简述（仅进行中和已掌握显示）
+      if(lvBrief && (state==='in-progress'||state==='learned')){
+        html+='<text x="34" y="52" fill="var(--dim)" font-size="8.5" opacity=".7">'+lvBrief+'</text>';
+      }
       html+='</g>';
     });
 
@@ -771,22 +1011,45 @@ var GC = (function(){
     var stateLabels = {locked:'🔒 锁定',available:'🔓 可学习','in-progress':'🔵 学习中',learned:'🟢 已掌握',mastered:'⭐ 大师'};
     var color = stateColors[state];
     var pct = Math.min(lv/sk.max*100,100);
-    var lvLabels = ['未学习','入门','熟悉','掌握','精通','大师'];
     var hasFlow = state==='in-progress';
 
     var h = '<h4>'+sk.icon+' '+sk.name+'<span class="skt-state '+(stateBgCls[state]||'')+'">'+stateLabels[state]+'</span></h4>';
     h+='<div class="skt-desc">'+sk.desc+'</div>';
+    // 学习目标
+    if(sk.goal) h+='<div class="skt-goal">'+sk.goal+'</div>';
+    // 进度条
     h+='<div class="skt-bar"><div class="skt-fill'+(hasFlow?' has-flow':'')+'" style="width:'+pct+'%;background:'+color+'"></div></div>';
-    h+='<div class="skt-info"><span>Lv.'+lv+' '+lvLabels[lv]+'</span><span>'+lv+'/'+sk.max+'</span></div>';
+    h+='<div class="skt-info"><span>Lv.'+lv+' '+(lv>0&&sk.levels?sk.levels[lv-1]:LV_NAMES[lv])+'</span><span>'+lv+'/'+sk.max+'</span></div>';
+    // 当前等级能力 + 下一级预览
+    if(sk.levels){
+      if(lv>0 && lv<=sk.max){
+        h+='<div style="font-size:11px;color:var(--dim);margin-top:4px">📌 当前能力：'+sk.levels[lv-1]+'</div>';
+      }
+      if(lv<sk.max){
+        h+='<div class="skt-next-lv"><span class="skt-next-label">⬆ 升到 Lv.'+(lv+1)+'：</span><span class="skt-next-desc">'+sk.levels[lv]+'</span></div>';
+      }
+    }
     if(unlocked){
       h+='<div class="skt-actions">';
       if(lv>0) h+='<button class="skt-btn skt-btn-down" onclick="GC.skillDown(\''+skillId+'\',\''+dim+'\');event.stopPropagation()">- 降级</button>';
-      if(lv<sk.max) h+='<button class="skt-btn skt-btn-up" onclick="GC.skillUp(\''+skillId+'\',\''+dim+'\');event.stopPropagation()">+ 升级</button>';
-      if(lv>=sk.max) h+='<span style="font-size:12px;color:#ffd700">⭐ 已满级</span>';
+      if(lv<sk.max) h+='<button class="skt-btn skt-btn-up" onclick="GC.skillUp(\''+skillId+'\',\''+dim+'\');event.stopPropagation()">⬆ 升级到 Lv.'+(lv+1)+'</button>';
+      if(lv>=sk.max) h+='<span style="font-size:12px;color:#ffd700">⭐ 已满级 — 大师</span>';
       h+='</div>';
     } else {
-      var depNames = sk.deps.map(function(depId){var ds=null;SKILLS[dim].forEach(function(s){if(s.id===depId)ds=s;});return ds?ds.name:'?';}).join('、');
-      h+='<div style="margin-top:10px;font-size:11px;color:var(--neon-red)">🔒 需先学习：'+depNames+'</div>';
+      // 显示前置技能路径
+      var depInfos = sk.deps.map(function(depId){
+        var ds=null;SKILLS[dim].forEach(function(s){if(s.id===depId)ds=s;});
+        if(!ds) return null;
+        var dlv=getLv(data,depId);
+        var met=dlv>=1;
+        return {name:ds.name,icon:ds.icon,met:met,lv:dlv};
+      }).filter(Boolean);
+      h+='<div class="skt-dep-path"><span class="skt-dep-label">🔒 解锁条件：</span><br>';
+      depInfos.forEach(function(dep){
+        h+='<span style="color:'+(dep.met?'var(--neon-green)':'var(--neon-red)')+';font-size:11px">'
+          +(dep.met?'✅':'❌')+' '+dep.icon+' '+dep.name+' (Lv.'+dep.lv+', 需≥1)</span><br>';
+      });
+      h+='</div>';
     }
 
     tooltip.innerHTML = h;
@@ -795,7 +1058,7 @@ var GC = (function(){
     // 定位
     var clientX = evt.clientX - wrapRect.left + wrap.scrollLeft;
     var clientY = evt.clientY - wrapRect.top + wrap.scrollTop;
-    tooltip.style.left = Math.min(clientX+10, wrap.scrollWidth-300)+'px';
+    tooltip.style.left = Math.min(clientX+10, wrap.scrollWidth-340)+'px';
     tooltip.style.top = (clientY+10)+'px';
 
     // 点外面关闭
@@ -809,13 +1072,40 @@ var GC = (function(){
     if(!sk||!isSkillUnlocked(data,sk)) return;
     var lv=getLv(data,sid);
     if(lv>=sk.max) return;
-    setLv(data,sid,lv+1);
-    data.xp=(data.xp||0)+10;save(data);
+    var newLv=lv+1;
+    var prevXP=data.xp||0;
+    setLv(data,sid,newLv);
+    data.xp=prevXP+10;save(data);
     playSound('up');
-    toast('⬆ <strong>'+sk.name+'</strong> 升级到 Lv.'+(lv+1)+' +10 XP','toast-green');
+    // 等级名称
+    var lvName=sk.levels?sk.levels[newLv-1]:LV_NAMES[newLv];
+    toast('⬆ <strong>'+sk.name+'</strong> → Lv.'+newLv+' '+lvName+' +10 XP','toast-green');
+    // 满级庆祝
+    if(newLv>=sk.max){
+      showCelebration('⭐','大师解锁！',sk.icon+' '+sk.name+' 已满级');
+      burstParticles(window.innerWidth/2, window.innerHeight/2, 'rgba(255,215,0,', 25);
+    }
+    // 检测等级晋升
+    var oldLvObj=LEVELS[0];var newLvObj=LEVELS[0];
+    for(var i=LEVELS.length-1;i>=0;i--){if(prevXP>=LEVELS[i].xp){oldLvObj=LEVELS[i];break;}}
+    for(var j=LEVELS.length-1;j>=0;j--){if(data.xp>=LEVELS[j].xp){newLvObj=LEVELS[j];break;}}
+    if(newLvObj.lv>oldLvObj.lv){
+      setTimeout(function(){
+        showCelebration('🎉','等级提升！','恭喜晋升为 Lv.'+newLvObj.lv+' '+newLvObj.title);
+        burstParticles(window.innerWidth/2, window.innerHeight/2, 'rgba(0,212,255,', 40);
+      },800);
+    }
     renderSkillTree(dim);
     updateStats();
     checkAchievements();
+  }
+  // 庆祝动画
+  function showCelebration(icon,title,sub){
+    var el=document.createElement('div');
+    el.className='level-up-fx';
+    el.innerHTML='<span class="lu-icon">'+icon+'</span><div class="lu-text">'+title+'</div><div class="lu-sub">'+sub+'</div>';
+    document.body.appendChild(el);
+    setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},2200);
   }
   function skillDown(sid,dim){
     var data=load();
@@ -854,13 +1144,50 @@ var GC = (function(){
         var l={tech:'技术',mgmt:'管理',soft:'软技能'}[tag]||tag;
         return '<span class="task-tag '+c2+'">'+l+'</span>';
       }).join('');
-      h+='<div class="task-card '+tagCls+' '+stateCls+'">';
+      // 关联技能标签
+      var relHtml='';
+      if(t.relatedSkills){
+        relHtml='<div class="task-related">';
+        t.relatedSkills.forEach(function(sid){
+          var sk=null;
+          ['tech','mgmt','soft'].forEach(function(dim){SKILLS[dim].forEach(function(s){if(s.id===sid)sk=s;});});
+          if(sk) relHtml+='<span class="task-related-tag">'+sk.icon+' '+sk.name+'</span>';
+        });
+        relHtml+='</div>';
+      }
+      // 步骤指引
+      var stepsHtml='';
+      if(t.steps){
+        stepsHtml='<ul class="task-steps">';
+        t.steps.forEach(function(st){stepsHtml+='<li>'+st+'</li>';});
+        stepsHtml+='</ul>';
+      }
+      h+='<div class="task-card '+tagCls+' '+stateCls+'" data-tid="'+t.id+'">';
       h+='<div class="task-check'+(done?' done':'')+'" onclick="GC.toggleTask(\''+t.id+'\','+t.xp+')">'+(done?'✓':'')+'</div>';
-      h+='<div class="task-body"><div class="task-title">'+t.title+'</div><div class="task-desc">'+t.desc+'</div>';
-      h+='<div class="task-meta">'+tagsHtml+'<span class="task-xp">+'+t.xp+' XP</span></div></div></div>';
+      h+='<div class="task-body">';
+      h+='<div style="display:flex;align-items:center;gap:8px"><div class="task-title">'+t.title+'</div>';
+      if(t.difficulty) h+='<span class="task-difficulty">'+t.difficulty+'</span>';
+      h+='<button class="task-expand-btn" onclick="GC.toggleTaskDetail(\''+t.id+'\',this)">▼ 详情</button>';
+      h+='</div>';
+      h+='<div class="task-desc">'+t.desc+'</div>';
+      h+='<div class="task-meta">'+tagsHtml+'<span class="task-xp">+'+t.xp+' XP</span></div>';
+      // 可展开的详情面板
+      h+='<div class="task-detail" id="detail-'+t.id+'">';
+      h+='<div class="task-detail-inner">';
+      if(stepsHtml) h+='<div style="font-size:11px;color:var(--neon-blue);font-weight:700;margin-bottom:6px">📋 完成步骤</div>'+stepsHtml;
+      if(relHtml) h+='<div style="font-size:11px;color:var(--dim);margin-bottom:4px">🔗 关联技能</div>'+relHtml;
+      h+='</div></div>';
+      h+='</div></div>';
     });
     if(!h) h='<div style="text-align:center;padding:40px;color:var(--dim);font-size:14px">'+(_currentFilter==='done'?'还没有完成任何任务，加油！🎯':'🎉 所有任务已完成！')+'</div>';
     c.innerHTML=h;
+  }
+  function toggleTaskDetail(tid,btn){
+    var detail=document.getElementById('detail-'+tid);
+    if(!detail) return;
+    var isOpen=detail.classList.contains('open');
+    detail.classList.toggle('open');
+    btn.textContent=isOpen?'▼ 详情':'▲ 收起';
   }
   function filterTasks(filter,btn){
     _currentFilter=filter;
@@ -884,6 +1211,12 @@ var GC = (function(){
       data.xp=(data.xp||0)+xp;save(data);
       playSound('complete');
       toast('✅ 任务完成！+'+xp+' XP','toast-green');
+      // 粒子庆祝
+      var taskEl=document.querySelector('[data-tid="'+tid+'"]');
+      if(taskEl){
+        var rect=taskEl.getBoundingClientRect();
+        burstParticles(rect.left+rect.width/2, rect.top+rect.height/2, 'rgba(0,255,136,', 15);
+      }
     }
     renderTasks();updateStats();checkAchievements();
   }
@@ -1080,14 +1413,13 @@ var GC = (function(){
     md+='| 已掌握技能 | '+(ed.ts+ed.ms+ed.ss)+'/30 |\n';
     md+='| 已完成任务 | '+ed.tc+'/10 |\n\n';
     md+='## 🌳 技能详情\n\n';
-    var lvLabels=['未学习','入门','熟悉','掌握','精通','大师'];
     ['tech','mgmt','soft'].forEach(function(dim){
       var dimNames={tech:'🔧 技术硬技能',mgmt:'📋 管理方法论',soft:'💬 软技能'};
       md+='### '+dimNames[dim]+'\n\n';
       md+='| 技能 | 等级 | 进度 |\n|---|---|---|\n';
       SKILLS[dim].forEach(function(sk){
         var lv=getLv(data,sk.id);
-        md+='| '+sk.icon+' '+sk.name+' | Lv.'+lv+' '+lvLabels[lv]+' | '+lv+'/'+sk.max+' |\n';
+        md+='| '+sk.icon+' '+sk.name+' | Lv.'+lv+' '+LV_NAMES[lv]+' | '+lv+'/'+sk.max+' |\n';
       });
       md+='\n';
     });
@@ -1117,6 +1449,109 @@ var GC = (function(){
   }
 
   // ══════════════════════════════
+  // 新手引导系统
+  // ══════════════════════════════
+  var GUIDE_KEY = 'kb_growth_guide_done';
+  var _guideStep = 0;
+  var GUIDE_STEPS = [
+    {
+      title:'👋 欢迎来到 APM 成长中心！',
+      desc:'这是你的个人技能成长地图。通过<span class="guide-highlight">技能升级</span>、<span class="guide-highlight">实战任务</span>和<span class="guide-highlight">成就解锁</span>来追踪你的 APM 进阶之路。<br><br>让我带你快速了解如何使用！',
+      target:'.gc-hero',
+      position:'below'
+    },
+    {
+      title:'🌳 这里是技能树',
+      desc:'技能树展示了你的<span class="guide-highlight">技能成长路径</span>。每个节点代表一个核心能力。<br><br>• 灰色锁图标 = 需解锁前置技能<br>• 蓝色闪烁 = 可以开始学习<br>• 绿色 = 已掌握<br>• 金色 = 满级大师<br><br><strong>点击任意节点</strong>查看详情和升级！',
+      target:'#panel-tree .st-svg-wrap',
+      position:'below'
+    },
+    {
+      title:'🎯 实战任务',
+      desc:'每个任务都有<span class="guide-highlight">详细步骤指引</span>和<span class="guide-highlight">关联技能</span>。<br><br>• 点击 ▼ 详情 查看完成步骤<br>• 点击圆圈 ✓ 标记完成<br>• 完成任务获得 XP 经验值<br>• 再次点击可以取消完成',
+      target:'.gc-tabs',
+      position:'below'
+    },
+    {
+      title:'📊 你的成长数据',
+      desc:'统计面板实时追踪你的进度：<br><br>• ⚡ <span class="guide-highlight">经验值</span> — 总XP决定你的等级<br>• 🎯 <span class="guide-highlight">技能数</span> — 已开始学习的技能<br>• 📜 <span class="guide-highlight">任务数</span> — 已完成的实战任务<br>• 🏆 <span class="guide-highlight">成就数</span> — 已解锁的里程碑<br><br>每个数据卡下方都有迷你进度条！',
+      target:'.stats-grid',
+      position:'below'
+    },
+    {
+      title:'🚀 开始你的成长之旅！',
+      desc:'一切准备就绪！建议你从以下操作开始：<br><br>1️⃣ 在技能树中<span class="guide-highlight">点击第一排技能</span>开始升级<br>2️⃣ 切换到"实战任务"选一个<span class="guide-highlight">简单任务</span>挑战<br>3️⃣ 随时回来查看你的<span class="guide-highlight">成长进度</span><br><br>加油，未来的资深 APM！💪',
+      target:'.gc-hero',
+      position:'below'
+    }
+  ];
+
+  function startGuide(){
+    _guideStep=0;
+    showGuideStep();
+  }
+  function showGuideStep(){
+    var step=GUIDE_STEPS[_guideStep];
+    if(!step) return endGuide();
+    var overlay=document.getElementById('guideOverlay');
+    var card=document.getElementById('guideCard');
+    var spotlight=document.getElementById('guideSpotlight');
+    var stepLabel=document.getElementById('guideStepLabel');
+    var title=document.getElementById('guideTitle');
+    var desc=document.getElementById('guideDesc');
+    var dots=document.getElementById('guideDots');
+    var nextBtn=document.getElementById('guideNextBtn');
+
+    overlay.classList.add('show');
+    card.classList.add('show');
+
+    stepLabel.textContent='STEP '+(_guideStep+1)+'/'+GUIDE_STEPS.length;
+    title.textContent=step.title;
+    desc.innerHTML=step.desc;
+    nextBtn.textContent=_guideStep===GUIDE_STEPS.length-1?'开始探索 🎮':'下一步 →';
+
+    // 进度圆点
+    var dotsHtml='';
+    for(var i=0;i<GUIDE_STEPS.length;i++){
+      dotsHtml+='<div class="guide-dot'+(i<_guideStep?' done':(i===_guideStep?' active':''))+'"></div>';
+    }
+    dots.innerHTML=dotsHtml;
+
+    // 高亮目标元素
+    var targetEl=document.querySelector(step.target);
+    if(targetEl){
+      var rect=targetEl.getBoundingClientRect();
+      spotlight.style.left=(rect.left-8)+'px';
+      spotlight.style.top=(rect.top-8)+'px';
+      spotlight.style.width=(rect.width+16)+'px';
+      spotlight.style.height=(rect.height+16)+'px';
+      spotlight.classList.add('show');
+      // 引导卡片定位
+      if(step.position==='below'){
+        card.style.left=Math.max(20,Math.min(rect.left,window.innerWidth-440))+'px';
+        card.style.top=Math.min(rect.bottom+20,window.innerHeight-280)+'px';
+      }
+    } else {
+      spotlight.classList.remove('show');
+      card.style.left='50%';card.style.top='50%';
+      card.style.transform='translate(-50%,-50%)';
+    }
+  }
+  function nextGuide(){
+    _guideStep++;
+    if(_guideStep>=GUIDE_STEPS.length) return endGuide();
+    showGuideStep();
+  }
+  function skipGuide(){endGuide();}
+  function endGuide(){
+    document.getElementById('guideOverlay').classList.remove('show');
+    document.getElementById('guideCard').classList.remove('show');
+    document.getElementById('guideSpotlight').classList.remove('show');
+    try{localStorage.setItem(GUIDE_KEY,'1');}catch(e){}
+    toast('🎉 引导完成！点击技能节点开始你的成长之旅','toast-green');
+  }
+
+  // ══════════════════════════════
   // 初始化
   // ══════════════════════════════
   function init(){
@@ -1128,6 +1563,13 @@ var GC = (function(){
     renderSkillTree('tech');
     renderTasks();
     updateStats();
+
+    // 首次访问触发新手引导
+    try{
+      if(!localStorage.getItem(GUIDE_KEY)){
+        setTimeout(startGuide, 1200);
+      }
+    }catch(e){}
   }
 
   // DOM Ready
@@ -1138,7 +1580,9 @@ var GC = (function(){
   return {
     switchTab:switchTab,switchDim:switchDim,
     onSkillClick:onSkillClick,skillUp:skillUp,skillDown:skillDown,
-    toggleTask:toggleTask,filterTasks:filterTasks,closeUnlock:closeUnlock,
+    toggleTask:toggleTask,filterTasks:filterTasks,toggleTaskDetail:toggleTaskDetail,
+    closeUnlock:closeUnlock,
+    startGuide:startGuide,nextGuide:nextGuide,skipGuide:skipGuide,
     exportData:exportData,importData:importData,exportReport:exportReport,resetData:resetData
   };
 })();
