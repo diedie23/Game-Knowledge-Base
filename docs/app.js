@@ -1596,6 +1596,21 @@ function applyTemplate(key){
     document.getElementById('editorTemplate').value='';
     return;
   }
+  // 外部 HTML 模板（案例写作模板等）— 异步 fetch 加载
+  var _externalHtmlMap={
+    'html-case-observer':'knowledge-base/case-template-observer.html',
+    'html-case-support':'knowledge-base/case-template-support.html'
+  };
+  if(key && _externalHtmlMap[key]){
+    fetch(_externalHtmlMap[key]).then(function(r){return r.text();}).then(function(html){
+      openHtmlTemplateInEditor(key, html);
+    }).catch(function(e){
+      console.error('加载案例模板失败:', e);
+      alert('模板加载失败，请刷新页面重试');
+    });
+    document.getElementById('editorTemplate').value='';
+    return;
+  }
   // Markdown 模板处理
   if(!key||!templates[key]) return;
   if(vditorInstance){
@@ -1609,7 +1624,8 @@ function applyTemplate(key){
 // ═══ HTML 模板页内编辑器 ═══
 var htmlTemplateNames={
   'html-standard':'标准规范模板','html-richtext':'图文混排模板','html-kanban':'项目看板模板',
-  'html-postmortem':'项目复盘报告','html-weekly':'项目周报','html-decision':'决策记录','html-meeting':'会议纪要'
+  'html-postmortem':'项目复盘报告','html-weekly':'项目周报','html-decision':'决策记录','html-meeting':'会议纪要',
+  'html-case-observer':'案例模板A（观察者视角）','html-case-support':'案例模板B（支援角色视角）'
 };
 
 // 从创作模式选择 HTML 模板时：在创作模式内嵌 iframe 编辑（不离开创作模式）
@@ -3032,9 +3048,10 @@ var CARD_GRID_MAP = {
   'grid-quality-security':   { module:'quality', ids:['asset-security-handover'] },
   'grid-quality-team':       { module:'quality', ids:['onboarding-guide','permission-nav'] },
   // 板块一（补充）：个人成长
-  'grid-project-growth':     { module:'quality', ids:['personal-growth-roadmap'] },
+  'grid-project-growth':     { module:'quality', ids:['personal-growth-roadmap','personal-growth-interactive'] },
   // 板块七：🔥 真实案例库
   'grid-casestudy-cases':    { module:'casestudy', ids:['project-pitfall-log','accident-troubleshoot','postmortem-template'] },
+  'grid-casestudy-templates':{ module:'casestudy', ids:['case-template-observer','case-template-support'] },
   // 板块八：📌 我的项目笔记
   'grid-mynotes-templates':  { module:'mynotes', ids:['tmpl-project-postmortem','tmpl-weekly-report','tmpl-decision-record','tmpl-meeting-notes'] },
   'grid-mynotes-quick':      { module:'mynotes', ids:['editor-guide'] }
@@ -4837,6 +4854,9 @@ function aiAppendMessage(role, text, relatedDocs){
   var div=document.createElement('div');
   div.className='ai-msg ai-msg-'+role;
 
+  // 保存聊天记录到 localStorage
+  _aiSaveChatRecord(role, text);
+
   // Bot 回答统一清洗 → 去除文档元数据冗余信息
   var cleanText = (role==='bot') ? aiCleanBotResponse(text) : text;
 
@@ -5578,6 +5598,163 @@ function restoreArchivedDoc(pageId){
   if(leaf) leaf.style.display = '';
   showToast('♻️ 已恢复文档');
   renderDocManagerList(document.getElementById('docMgrSearch') ? document.getElementById('docMgrSearch').value : '');
+}
+
+// ═══ AI 聊天记录管理（localStorage 持久化）═══
+function _aiSaveChatRecord(role, text){
+  try{
+    var records=JSON.parse(localStorage.getItem('kb_ai_chat_history')||'[]');
+    records.push({role:role, text:text, time:Date.now()});
+    // 最多保留500条记录
+    if(records.length>500) records=records.slice(-500);
+    localStorage.setItem('kb_ai_chat_history',JSON.stringify(records));
+  }catch(e){console.warn('保存聊天记录失败:',e);}
+}
+
+function aiToggleHistSearch(){
+  var panel=document.getElementById('aiHistSearch');
+  if(!panel)return;
+  if(panel.style.display==='none'){
+    panel.style.display='flex';
+    document.getElementById('aiHistSearchInput').focus();
+  }else{
+    panel.style.display='none';
+    document.getElementById('aiHistSearchInput').value='';
+    // 清除所有高亮
+    var msgs=document.querySelectorAll('#aiChatMessages .ai-msg-content');
+    msgs.forEach(function(m){m.classList.remove('ai-msg-highlight');});
+  }
+}
+
+function aiSearchHistory(keyword){
+  var msgs=document.querySelectorAll('#aiChatMessages .ai-msg');
+  keyword=keyword.trim().toLowerCase();
+  msgs.forEach(function(msg){
+    var content=msg.querySelector('.ai-msg-content');
+    if(!content)return;
+    if(!keyword){
+      content.classList.remove('ai-msg-highlight');
+      msg.style.display='';
+      return;
+    }
+    var text=content.textContent.toLowerCase();
+    if(text.indexOf(keyword)>=0){
+      content.classList.add('ai-msg-highlight');
+      msg.style.display='';
+    }else{
+      content.classList.remove('ai-msg-highlight');
+      msg.style.display='none';
+    }
+  });
+}
+
+function aiClearChat(){
+  if(!confirm('确定要清屏吗？聊天记录将被清除。'))return;
+  var container=document.getElementById('aiChatMessages');
+  if(container) container.innerHTML='';
+  localStorage.removeItem('kb_ai_chat_history');
+}
+
+function aiExportChat(){
+  try{
+    var records=JSON.parse(localStorage.getItem('kb_ai_chat_history')||'[]');
+    if(!records.length){alert('暂无聊天记录可导出');return;}
+    var md='# APM 智能助理 - 对话导出\n\n';
+    md+='> 导出时间：'+new Date().toLocaleString()+'\n\n---\n\n';
+    records.forEach(function(r){
+      var time=new Date(r.time).toLocaleString();
+      var prefix=r.role==='user'?'👤 **我** ('+time+')':'🤖 **APM 助理** ('+time+')';
+      md+=prefix+'\n\n'+r.text+'\n\n---\n\n';
+    });
+    var blob=new Blob([md],{type:'text/markdown;charset=utf-8'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='apm-chat-export-'+new Date().toISOString().slice(0,10)+'.md';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }catch(e){alert('导出失败：'+e.message);}
+}
+
+// ═══ 快速记录浮动按钮 ═══
+var _quickNoteOpen=false;
+
+function toggleQuickNote(){
+  var panel=document.getElementById('quickNotePanel');
+  if(!panel)return;
+  _quickNoteOpen=!_quickNoteOpen;
+  if(_quickNoteOpen){
+    panel.classList.add('show');
+    _loadQuickNoteCount();
+    document.getElementById('qnTitle').focus();
+  }else{
+    panel.classList.remove('show');
+  }
+}
+
+function saveQuickNote(){
+  var title=document.getElementById('qnTitle').value.trim();
+  var content=document.getElementById('qnContent').value.trim();
+  if(!title&&!content){alert('请输入标题或内容');return;}
+  // 收集选中的标签
+  var tags=[];
+  document.querySelectorAll('.quick-note-tag.active').forEach(function(t){tags.push(t.textContent);});
+  // 保存到 localStorage
+  try{
+    var notes=JSON.parse(localStorage.getItem('kb_quick_notes')||'[]');
+    notes.push({
+      id:'qn_'+Date.now(),
+      title:title||'快速记录',
+      content:content,
+      tags:tags,
+      time:Date.now(),
+      date:new Date().toISOString().slice(0,10)
+    });
+    localStorage.setItem('kb_quick_notes',JSON.stringify(notes));
+    // 清空表单
+    document.getElementById('qnTitle').value='';
+    document.getElementById('qnContent').value='';
+    document.querySelectorAll('.quick-note-tag.active').forEach(function(t){t.classList.remove('active');});
+    _loadQuickNoteCount();
+    // 显示成功提示
+    var btn=document.querySelector('.quick-note-save');
+    var origText=btn.textContent;
+    btn.textContent='✅ 已保存！';
+    btn.style.color='#4ade80';
+    setTimeout(function(){btn.textContent=origText;btn.style.color='';},1500);
+  }catch(e){alert('保存失败：'+e.message);}
+}
+
+function _loadQuickNoteCount(){
+  var countEl=document.getElementById('qnCount');
+  if(!countEl)return;
+  try{
+    var notes=JSON.parse(localStorage.getItem('kb_quick_notes')||'[]');
+    countEl.textContent='已保存 '+notes.length+' 条记录';
+  }catch(e){countEl.textContent='';}
+}
+
+function toggleQnTag(el){
+  el.classList.toggle('active');
+}
+
+function openQuickNotesInEditor(){
+  // 将所有快速记录转为 Markdown 并打开编辑器
+  try{
+    var notes=JSON.parse(localStorage.getItem('kb_quick_notes')||'[]');
+    if(!notes.length){alert('暂无快速记录');return;}
+    var md='# 📌 我的快速记录\n\n> 导出时间：'+new Date().toLocaleString()+'\n\n---\n\n';
+    notes.forEach(function(n,i){
+      md+='## '+(i+1)+'. '+n.title+'\n\n';
+      md+='> 📅 '+n.date;
+      if(n.tags.length) md+=' · 🏷️ '+n.tags.join(', ');
+      md+='\n\n'+n.content+'\n\n---\n\n';
+    });
+    openEditor();
+    setTimeout(function(){
+      if(vditorInstance) vditorInstance.setValue(md);
+    },500);
+    toggleQuickNote();
+  }catch(e){alert('转换失败：'+e.message);}
 }
 
 // ═══ Init ═══

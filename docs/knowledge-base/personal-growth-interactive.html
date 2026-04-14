@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APM 个人成长中心</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--pink:#f472b6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1400px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.doc-header h1 .ver{font-size:12px;background:linear-gradient(135deg,var(--green),var(--cyan));color:#000;padding:2px 10px;border-radius:12px;font-weight:700}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--green);display:flex;align-items:center;gap:8px}
+/* ── 统计概览 ── */
+.growth-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0}
+.gs-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;transition:all .2s}
+.gs-card:hover{border-color:rgba(74,222,128,.3);transform:translateY(-2px)}
+.gs-num{font-size:28px;font-weight:700;margin-bottom:2px}
+.gs-label{font-size:12px;color:var(--dim)}
+/* ── APM 成长路线图 ── */
+.roadmap{display:flex;gap:0;margin:24px 0;overflow-x:auto;padding-bottom:12px}
+.roadmap-stage{flex:1;min-width:220px;position:relative}
+.roadmap-stage::after{content:'→';position:absolute;right:-8px;top:50%;transform:translateY(-50%);font-size:20px;color:var(--dim);z-index:1}
+.roadmap-stage:last-child::after{display:none}
+.rs-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-right:16px;height:100%;transition:all .2s;cursor:pointer}
+.rs-card:hover{border-color:rgba(74,222,128,.3);transform:translateY(-2px)}
+.rs-card.rs-current{border-color:var(--green);box-shadow:0 0 20px rgba(74,222,128,.15)}
+.rs-badge{display:inline-block;padding:2px 10px;border-radius:8px;font-size:11px;font-weight:600;margin-bottom:10px}
+.rs-badge-junior{background:rgba(96,165,250,.15);color:var(--blue)}
+.rs-badge-mid{background:rgba(251,191,36,.15);color:var(--yellow)}
+.rs-badge-senior{background:rgba(251,146,60,.15);color:var(--orange)}
+.rs-badge-expert{background:rgba(248,113,113,.15);color:var(--red)}
+.rs-title{font-size:16px;color:var(--heading);font-weight:700;margin-bottom:6px}
+.rs-exp{font-size:12px;color:var(--dim);margin-bottom:10px}
+.rs-skills{font-size:13px;color:var(--text);line-height:1.8}
+.rs-skills li{margin-bottom:4px}
+/* ── 3维度技能树 ── */
+.skill-tabs{display:flex;gap:8px;margin-bottom:20px}
+.skill-tab{padding:8px 18px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--dim);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.skill-tab.active{border-color:var(--green);color:var(--green);background:rgba(74,222,128,.08)}
+.skill-tab:hover{border-color:var(--accent);color:var(--accent)}
+.skill-tree{display:none}
+.skill-tree.active{display:block}
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.skill-item{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;transition:all .2s}
+.skill-item:hover{border-color:rgba(108,140,255,.3)}
+.si-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.si-name{font-size:15px;color:var(--heading);font-weight:600;display:flex;align-items:center;gap:8px}
+.si-level{font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600}
+.si-desc{font-size:13px;color:var(--dim);margin-bottom:10px;line-height:1.6}
+.si-bar{width:100%;height:8px;background:var(--card);border-radius:4px;overflow:hidden;margin-bottom:6px}
+.si-fill{height:100%;border-radius:4px;transition:width .5s}
+.si-actions{display:flex;gap:6px;margin-top:8px}
+.si-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--dim);font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s}
+.si-btn:hover{border-color:var(--accent);color:var(--accent)}
+.si-btn.si-btn-done{border-color:var(--green);color:var(--green);background:rgba(74,222,128,.08)}
+/* ── 实战任务系统 ── */
+.task-list{display:flex;flex-direction:column;gap:12px}
+.task-item{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;display:flex;align-items:flex-start;gap:14px;transition:all .2s}
+.task-item:hover{border-color:rgba(108,140,255,.3)}
+.task-check{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:2px}
+.task-check:hover{border-color:var(--green)}
+.task-check.done{background:var(--green);border-color:var(--green);color:#000;font-size:12px;font-weight:700}
+.task-body{flex:1}
+.task-title{font-size:15px;color:var(--heading);font-weight:600;margin-bottom:4px}
+.task-item.task-done .task-title{text-decoration:line-through;color:var(--dim)}
+.task-desc{font-size:13px;color:var(--dim);line-height:1.6}
+.task-meta{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.task-tag{font-size:11px;padding:2px 8px;border-radius:6px}
+.task-tag-tech{background:rgba(108,140,255,.12);color:var(--accent)}
+.task-tag-mgmt{background:rgba(251,191,36,.12);color:var(--yellow)}
+.task-tag-soft{background:rgba(244,114,182,.12);color:var(--pink)}
+.task-xp{font-size:11px;color:var(--green);font-weight:600}
+/* ── 成就系统 ── */
+.achv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.achv-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;transition:all .2s;position:relative;overflow:hidden}
+.achv-card.achv-locked{opacity:.5;filter:grayscale(.6)}
+.achv-card.achv-unlocked{border-color:rgba(251,191,36,.3);box-shadow:0 0 16px rgba(251,191,36,.1)}
+.achv-icon{font-size:36px;margin-bottom:8px}
+.achv-name{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:4px}
+.achv-desc{font-size:12px;color:var(--dim);line-height:1.6}
+.achv-badge{position:absolute;top:8px;right:8px;font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600}
+.achv-badge-gold{background:rgba(251,191,36,.15);color:var(--yellow)}
+.achv-badge-silver{background:rgba(192,192,192,.15);color:#c0c0c0}
+.achv-badge-bronze{background:rgba(205,127,50,.15);color:#cd7f32}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+@media(max-width:768px){.growth-stats{grid-template-columns:1fr 1fr}.roadmap{flex-direction:column}.roadmap-stage::after{display:none}.roadmap-stage .rs-card{margin:0 0 12px}.skill-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>🌱 APM 个人成长中心 <span class="ver">互动版</span></h1>
+  <div class="subtitle">APM Growth Center — 技能树 · 实战任务 · 成就系统 · 个性化成长追踪</div>
+</div>
+
+<!-- ═══ 成长概览 ═══ -->
+<div class="section">
+  <h2>📊 成长概览</h2>
+  <div class="growth-stats">
+    <div class="gs-card"><div class="gs-num" style="color:var(--green)" id="gsLevel">Lv.1</div><div class="gs-label">当前等级</div></div>
+    <div class="gs-card"><div class="gs-num" style="color:var(--accent)" id="gsXP">0</div><div class="gs-label">经验值 (XP)</div></div>
+    <div class="gs-card"><div class="gs-num" style="color:var(--yellow)" id="gsSkills">0/30</div><div class="gs-label">已掌握技能</div></div>
+    <div class="gs-card"><div class="gs-num" style="color:var(--orange)" id="gsAchv">0/12</div><div class="gs-label">已解锁成就</div></div>
+  </div>
+  <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 18px;margin-top:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <span style="font-size:13px;color:var(--dim)">距离下一级还需</span>
+      <span style="font-size:13px;color:var(--green);font-weight:600" id="gsNextXP">100 XP</span>
+    </div>
+    <div style="width:100%;height:10px;background:var(--card);border-radius:5px;overflow:hidden">
+      <div style="height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));border-radius:5px;width:0%;transition:width .5s" id="gsXPBar"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APM 成长路线图 ═══ -->
+<div class="section">
+  <h2>🗺️ APM 成长路线图</h2>
+  <div class="roadmap">
+    <div class="roadmap-stage">
+      <div class="rs-card rs-current" id="rsJunior">
+        <span class="rs-badge rs-badge-junior">🟢 初级 APM</span>
+        <div class="rs-title">执行者</div>
+        <div class="rs-exp">0-2 年经验</div>
+        <ul class="rs-skills">
+          <li>✅ 基础排期与任务跟进</li>
+          <li>✅ 美术管线基本理解</li>
+          <li>✅ Bug 跟踪与验收</li>
+          <li>✅ 日常沟通与汇报</li>
+        </ul>
+      </div>
+    </div>
+    <div class="roadmap-stage">
+      <div class="rs-card" id="rsMid">
+        <span class="rs-badge rs-badge-mid">🟡 中级 APM</span>
+        <div class="rs-title">协调者</div>
+        <div class="rs-exp">2-4 年经验</div>
+        <ul class="rs-skills">
+          <li>📋 独立管理项目模块</li>
+          <li>📊 成本核算与预算管控</li>
+          <li>🤝 跨部门需求协调</li>
+          <li>📦 外包全流程管理</li>
+        </ul>
+      </div>
+    </div>
+    <div class="roadmap-stage">
+      <div class="rs-card" id="rsSenior">
+        <span class="rs-badge rs-badge-senior">🟠 高级 APM</span>
+        <div class="rs-title">规划者</div>
+        <div class="rs-exp">4-7 年经验</div>
+        <ul class="rs-skills">
+          <li>🎯 项目全局规划能力</li>
+          <li>🛡️ 风险预判与应急决策</li>
+          <li>📈 流程优化与工具建设</li>
+          <li>👥 团队培养与梯队建设</li>
+        </ul>
+      </div>
+    </div>
+    <div class="roadmap-stage">
+      <div class="rs-card" id="rsExpert">
+        <span class="rs-badge rs-badge-expert">🔴 资深 APM</span>
+        <div class="rs-title">领航者</div>
+        <div class="rs-exp">7+ 年经验</div>
+        <ul class="rs-skills">
+          <li>🏗️ 多项目组群管理</li>
+          <li>💡 方法论输出与布道</li>
+          <li>⚖️ 战略级资源决策</li>
+          <li>🌟 行业影响力建设</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 3维度技能树 ═══ -->
+<div class="section">
+  <h2>🌳 3维度技能树</h2>
+  <p style="font-size:13px;color:var(--dim);margin-bottom:16px">点击技能卡片的「+1」按钮提升技能等级，你的进度会自动保存</p>
+  <div class="skill-tabs">
+    <button class="skill-tab active" onclick="switchSkillTab('tech',this)">🔧 技术硬技能</button>
+    <button class="skill-tab" onclick="switchSkillTab('mgmt',this)">📋 管理方法论</button>
+    <button class="skill-tab" onclick="switchSkillTab('soft',this)">💬 软技能</button>
+  </div>
+  <div class="skill-tree active" id="st-tech"></div>
+  <div class="skill-tree" id="st-mgmt"></div>
+  <div class="skill-tree" id="st-soft"></div>
+</div>
+
+<!-- ═══ 实战任务系统 ═══ -->
+<div class="section">
+  <h2>🎯 实战任务</h2>
+  <p style="font-size:13px;color:var(--dim);margin-bottom:16px">完成实战任务获取 XP 经验值，提升你的 APM 等级</p>
+  <div class="task-list" id="taskList"></div>
+</div>
+
+<!-- ═══ 成就系统 ═══ -->
+<div class="section">
+  <h2>🏆 成就墙</h2>
+  <div class="achv-grid" id="achvGrid"></div>
+</div>
+
+<div class="doc-footer">🌱 APM 个人成长中心 · 互动版 v1.0 · APM 知识库</div>
+</div>
+
+<script>
+(function(){
+  // ═══ 数据定义 ═══
+  var SKILLS = {
+    tech: [
+      {id:'sk-pipeline',name:'美术管线理解',icon:'🎨',desc:'2D/3D/特效/UI完整管线流程认知',max:5},
+      {id:'sk-engine',name:'引擎基础',icon:'🎮',desc:'Unity/UE基础操作、资产导入导出',max:5},
+      {id:'sk-tool',name:'工具链熟练度',icon:'🛠️',desc:'PS/Spine/Maya等美术工具基本操作',max:5},
+      {id:'sk-script',name:'自动化脚本',icon:'💻',desc:'Python/JS脚本辅助批量处理',max:5},
+      {id:'sk-perf',name:'性能优化意识',icon:'⚡',desc:'面数/Drawcall/材质球/LOD等性能概念',max:5},
+      {id:'sk-version',name:'版本管理',icon:'📂',desc:'SVN/Perforce/Git版本管理操作',max:5},
+      {id:'sk-data',name:'数据分析',icon:'📊',desc:'Excel/SQL数据统计与可视化',max:5},
+      {id:'sk-ai',name:'AI辅助工具',icon:'🤖',desc:'AIGC工具在美术管线中的应用',max:5},
+      {id:'sk-qa',name:'质量检查标准',icon:'🔍',desc:'美术资产检查规范与自动化验收',max:5},
+      {id:'sk-naming',name:'命名与规范',icon:'📝',desc:'资产命名、目录结构、提交规范',max:5}
+    ],
+    mgmt: [
+      {id:'sk-schedule',name:'排期管理',icon:'📅',desc:'WBS分解、甘特图、关键路径法',max:5},
+      {id:'sk-cost',name:'成本核算',icon:'💰',desc:'预算编制、成本控制、ROI分析',max:5},
+      {id:'sk-risk',name:'风险管理',icon:'🛡️',desc:'风险识别、评估、应对策略制定',max:5},
+      {id:'sk-outsource',name:'外包管理',icon:'📦',desc:'供应商评估、合同管理、验收流程',max:5},
+      {id:'sk-agile',name:'敏捷管理',icon:'🔄',desc:'Scrum/Kanban、Sprint计划、燃尽图',max:5},
+      {id:'sk-process',name:'流程设计',icon:'📋',desc:'SOP制定、流程优化、自动化改进',max:5},
+      {id:'sk-decision',name:'决策方法论',icon:'⚖️',desc:'决策矩阵、RACI、成本效益分析',max:5},
+      {id:'sk-cr',name:'变更管控',icon:'🔒',desc:'CR流程、影响评估、变更委员会',max:5},
+      {id:'sk-postmortem',name:'复盘方法论',icon:'🔬',desc:'5Whys、鱼骨图、Action Item追踪',max:5},
+      {id:'sk-metrics',name:'效能度量',icon:'📈',desc:'KPI设计、效率指标、质量指标体系',max:5}
+    ],
+    soft: [
+      {id:'sk-comm',name:'跨部门沟通',icon:'🗣️',desc:'与策划/程序/QA/老板的高效沟通',max:5},
+      {id:'sk-negotiate',name:'谈判与拒绝',icon:'🤝',desc:'合理拒绝不合理需求、利益协调',max:5},
+      {id:'sk-upward',name:'向上管理',icon:'📤',desc:'汇报技巧、预期管理、信任建立',max:5},
+      {id:'sk-team',name:'团队激励',icon:'🔥',desc:'士气管理、认可激励、氛围营造',max:5},
+      {id:'sk-conflict',name:'冲突解决',icon:'⚔️',desc:'跨部门冲突调解、利益平衡',max:5},
+      {id:'sk-time',name:'时间管理',icon:'⏰',desc:'优先级矩阵、时间分块、精力管理',max:5},
+      {id:'sk-present',name:'演讲表达',icon:'🎤',desc:'评审会主持、进度汇报、需求宣讲',max:5},
+      {id:'sk-write',name:'文档写作',icon:'✍️',desc:'规范文档、复盘报告、邮件撰写',max:5},
+      {id:'sk-emotion',name:'情绪管理',icon:'💆',desc:'压力调节、负面情绪处理、同理心',max:5},
+      {id:'sk-mentor',name:'辅导带教',icon:'🎓',desc:'新人带教、知识分享、团队培训',max:5}
+    ]
+  };
+
+  var TASKS = [
+    {id:'t1',title:'完成第一次外包验收',desc:'独立完成一次外包CP资产验收流程（含质量检查、反馈修改、最终确认）',xp:50,tags:['mgmt'],done:false},
+    {id:'t2',title:'写一篇项目复盘报告',desc:'使用复盘模板撰写一篇完整的版本复盘报告，包含5Whys分析和Action Items',xp:80,tags:['mgmt'],done:false},
+    {id:'t3',title:'主持一次跨部门评审会',desc:'独立主持一次美术评审会（策划+美术+TA参与），控场、记录、输出结论',xp:60,tags:['soft'],done:false},
+    {id:'t4',title:'搭建一个自动化检查流程',desc:'为团队搭建一个自动化资产检查工具或流程（如命名检查、面数检查）',xp:100,tags:['tech'],done:false},
+    {id:'t5',title:'成功拒绝一次不合理需求',desc:'用数据和流程说服策划撤回或延后一个不合理的紧急需求变更',xp:70,tags:['soft'],done:false},
+    {id:'t6',title:'制作团队的排期看板',desc:'使用TAPD/Notion/Excel为团队搭建一个可视化的Sprint排期看板',xp:40,tags:['mgmt'],done:false},
+    {id:'t7',title:'完成一次成本核算',desc:'为一批外包任务做完整的成本核算（报价→拆分→单价核对→总成本）',xp:60,tags:['mgmt'],done:false},
+    {id:'t8',title:'记录3个真实案例',desc:'使用案例模板（观察者/支援角色视角）记录3个项目中的真实案例',xp:90,tags:['mgmt','soft'],done:false},
+    {id:'t9',title:'建立风险登记册',desc:'为当前项目建立并维护风险登记册，至少记录5个风险项及应对方案',xp:70,tags:['mgmt'],done:false},
+    {id:'t10',title:'给新人做一次知识分享',desc:'面向团队新人做一次15分钟以上的知识分享（管线/工具/流程/经验）',xp:80,tags:['soft'],done:false}
+  ];
+
+  var ACHIEVEMENTS = [
+    {id:'a1',name:'初出茅庐',icon:'🌱',desc:'完成第一个实战任务',condition:function(d){return d.tasksCompleted>=1},tier:'bronze'},
+    {id:'a2',name:'三连击',icon:'⚡',desc:'连续完成3个实战任务',condition:function(d){return d.tasksCompleted>=3},tier:'bronze'},
+    {id:'a3',name:'全能新手',icon:'🎯',desc:'在3个技能维度各提升1个技能',condition:function(d){return d.techSkills>=1&&d.mgmtSkills>=1&&d.softSkills>=1},tier:'silver'},
+    {id:'a4',name:'知识猎人',icon:'📚',desc:'累计获得 300 XP',condition:function(d){return d.xp>=300},tier:'silver'},
+    {id:'a5',name:'T型人才',icon:'🏗️',desc:'任意一个维度有5个技能达到Lv.3+',condition:function(d){return d.maxDimSkillsL3>=5},tier:'gold'},
+    {id:'a6',name:'复盘大师',icon:'🔬',desc:'完成"写一篇项目复盘报告"任务',condition:function(d){return d.specificTasks.indexOf('t2')>=0},tier:'silver'},
+    {id:'a7',name:'流程守护者',icon:'🛡️',desc:'完成"成功拒绝一次不合理需求"任务',condition:function(d){return d.specificTasks.indexOf('t5')>=0},tier:'gold'},
+    {id:'a8',name:'工具大师',icon:'🛠️',desc:'完成"搭建一个自动化检查流程"任务',condition:function(d){return d.specificTasks.indexOf('t4')>=0},tier:'gold'},
+    {id:'a9',name:'案例收集者',icon:'📝',desc:'完成"记录3个真实案例"任务',condition:function(d){return d.specificTasks.indexOf('t8')>=0},tier:'silver'},
+    {id:'a10',name:'团队导师',icon:'🎓',desc:'完成"给新人做一次知识分享"任务',condition:function(d){return d.specificTasks.indexOf('t10')>=0},tier:'gold'},
+    {id:'a11',name:'半满杯',icon:'🥂',desc:'完成一半以上的实战任务',condition:function(d){return d.tasksCompleted>=5},tier:'gold'},
+    {id:'a12',name:'满级大佬',icon:'👑',desc:'累计获得 500 XP 并完成所有任务',condition:function(d){return d.xp>=500&&d.tasksCompleted>=10},tier:'gold'}
+  ];
+
+  // ═══ 数据持久化 ═══
+  var STORAGE_KEY = 'kb_growth_data';
+  function loadData(){
+    try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{};}
+    catch(e){return {};}
+  }
+  function saveData(data){
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}
+    catch(e){console.warn('保存成长数据失败:',e);}
+  }
+
+  function getSkillLevel(data, skillId){
+    return (data.skills&&data.skills[skillId])||0;
+  }
+  function setSkillLevel(data, skillId, level){
+    if(!data.skills) data.skills={};
+    data.skills[skillId]=level;
+    saveData(data);
+  }
+  function isTaskDone(data, taskId){
+    return data.doneTasks&&data.doneTasks.indexOf(taskId)>=0;
+  }
+  function completeTask(data, taskId, xp){
+    if(!data.doneTasks) data.doneTasks=[];
+    if(data.doneTasks.indexOf(taskId)<0){
+      data.doneTasks.push(taskId);
+      data.xp=(data.xp||0)+xp;
+      saveData(data);
+    }
+  }
+
+  // ═══ 渲染函数 ═══
+  function renderSkillTree(dim){
+    var container=document.getElementById('st-'+dim);
+    var skills=SKILLS[dim];
+    var data=loadData();
+    var html='<div class="skill-grid">';
+    skills.forEach(function(sk){
+      var level=getSkillLevel(data,sk.id);
+      var pct=Math.min(level/sk.max*100,100);
+      var colors={tech:'var(--accent)',mgmt:'var(--yellow)',soft:'var(--pink)'};
+      var color=colors[dim];
+      var levelLabels=['未学习','入门','熟悉','掌握','精通','大师'];
+      html+='<div class="skill-item">'
+        +'<div class="si-header">'
+        +'<span class="si-name">'+sk.icon+' '+sk.name+'</span>'
+        +'<span class="si-level" style="background:rgba(108,140,255,.12);color:'+color+'">Lv.'+level+' '+levelLabels[level]+'</span>'
+        +'</div>'
+        +'<div class="si-desc">'+sk.desc+'</div>'
+        +'<div class="si-bar"><div class="si-fill" style="width:'+pct+'%;background:'+color+'"></div></div>'
+        +'<div style="display:flex;justify-content:space-between;align-items:center">'
+        +'<span style="font-size:11px;color:var(--dim)">'+level+'/'+sk.max+'</span>'
+        +'<div class="si-actions">';
+      if(level>0) html+='<button class="si-btn" onclick="growthSkillDown(\''+sk.id+'\',\''+dim+'\')">-1</button>';
+      if(level<sk.max) html+='<button class="si-btn" onclick="growthSkillUp(\''+sk.id+'\',\''+dim+'\')">+1</button>';
+      if(level>=sk.max) html+='<span class="si-btn si-btn-done">✅ 已满级</span>';
+      html+='</div></div></div>';
+    });
+    html+='</div>';
+    container.innerHTML=html;
+  }
+
+  function renderTasks(){
+    var container=document.getElementById('taskList');
+    var data=loadData();
+    var html='';
+    TASKS.forEach(function(t){
+      var done=isTaskDone(data,t.id);
+      var tagsHtml=t.tags.map(function(tag){
+        var cls={tech:'task-tag-tech',mgmt:'task-tag-mgmt',soft:'task-tag-soft'}[tag]||'';
+        var labels={tech:'技术',mgmt:'管理',soft:'软技能'}[tag]||tag;
+        return '<span class="task-tag '+cls+'">'+labels+'</span>';
+      }).join('');
+      html+='<div class="task-item'+(done?' task-done':'')+'">'
+        +'<div class="task-check'+(done?' done':'')+'" onclick="growthToggleTask(\''+t.id+'\','+t.xp+')">'+(done?'✓':'')+'</div>'
+        +'<div class="task-body">'
+        +'<div class="task-title">'+t.title+'</div>'
+        +'<div class="task-desc">'+t.desc+'</div>'
+        +'<div class="task-meta">'+tagsHtml+'<span class="task-xp">+'+t.xp+' XP</span></div>'
+        +'</div></div>';
+    });
+    container.innerHTML=html;
+  }
+
+  function renderAchievements(){
+    var container=document.getElementById('achvGrid');
+    var data=loadData();
+    var evalData=getEvalData(data);
+    var html='';
+    var unlocked=0;
+    ACHIEVEMENTS.forEach(function(a){
+      var isUnlocked=a.condition(evalData);
+      if(isUnlocked) unlocked++;
+      var tierCls={gold:'achv-badge-gold',silver:'achv-badge-silver',bronze:'achv-badge-bronze'}[a.tier]||'';
+      var tierLabel={gold:'🥇 金',silver:'🥈 银',bronze:'🥉 铜'}[a.tier]||'';
+      html+='<div class="achv-card'+(isUnlocked?' achv-unlocked':' achv-locked')+'">'
+        +'<span class="achv-badge '+tierCls+'">'+tierLabel+'</span>'
+        +'<div class="achv-icon">'+(isUnlocked?a.icon:'🔒')+'</div>'
+        +'<div class="achv-name">'+a.name+'</div>'
+        +'<div class="achv-desc">'+a.desc+'</div>'
+        +'</div>';
+    });
+    container.innerHTML=html;
+    return unlocked;
+  }
+
+  function getEvalData(data){
+    var doneTasks=data.doneTasks||[];
+    var skills=data.skills||{};
+    var techCount=0,mgmtCount=0,softCount=0;
+    var maxDimL3={tech:0,mgmt:0,soft:0};
+    Object.keys(SKILLS).forEach(function(dim){
+      SKILLS[dim].forEach(function(sk){
+        var lv=skills[sk.id]||0;
+        if(lv>0){
+          if(dim==='tech') techCount++;
+          if(dim==='mgmt') mgmtCount++;
+          if(dim==='soft') softCount++;
+        }
+        if(lv>=3){
+          maxDimL3[dim]++;
+        }
+      });
+    });
+    return {
+      xp:data.xp||0,
+      tasksCompleted:doneTasks.length,
+      specificTasks:doneTasks,
+      techSkills:techCount,
+      mgmtSkills:mgmtCount,
+      softSkills:softCount,
+      maxDimSkillsL3:Math.max(maxDimL3.tech,maxDimL3.mgmt,maxDimL3.soft)
+    };
+  }
+
+  function updateStats(){
+    var data=loadData();
+    var xp=data.xp||0;
+    var totalSkills=0;
+    Object.keys(SKILLS).forEach(function(dim){
+      SKILLS[dim].forEach(function(sk){if((data.skills&&data.skills[sk.id])>0) totalSkills++;});
+    });
+    var doneTasks=(data.doneTasks||[]).length;
+    // 等级计算
+    var levels=[{lv:1,xp:0},{lv:2,xp:100},{lv:3,xp:250},{lv:4,xp:450},{lv:5,xp:700},{lv:6,xp:1000}];
+    var currentLv=1,nextXP=100,currentLvXP=0;
+    for(var i=levels.length-1;i>=0;i--){
+      if(xp>=levels[i].xp){currentLv=levels[i].lv;currentLvXP=levels[i].xp;nextXP=(levels[i+1]?levels[i+1].xp:levels[i].xp+300);break;}
+    }
+    document.getElementById('gsLevel').textContent='Lv.'+currentLv;
+    document.getElementById('gsXP').textContent=xp;
+    document.getElementById('gsSkills').textContent=totalSkills+'/30';
+    var achvCount=renderAchievements();
+    document.getElementById('gsAchv').textContent=achvCount+'/12';
+    document.getElementById('gsNextXP').textContent=(nextXP-xp)+' XP';
+    var pct=Math.min((xp-currentLvXP)/(nextXP-currentLvXP)*100,100);
+    document.getElementById('gsXPBar').style.width=pct+'%';
+    // 更新路线图高亮
+    ['rsJunior','rsMid','rsSenior','rsExpert'].forEach(function(id){document.getElementById(id).classList.remove('rs-current');});
+    if(currentLv<=2) document.getElementById('rsJunior').classList.add('rs-current');
+    else if(currentLv<=3) document.getElementById('rsMid').classList.add('rs-current');
+    else if(currentLv<=4) document.getElementById('rsSenior').classList.add('rs-current');
+    else document.getElementById('rsExpert').classList.add('rs-current');
+  }
+
+  // ═══ 全局交互函数 ═══
+  window.switchSkillTab=function(tab,btn){
+    document.querySelectorAll('.skill-tab').forEach(function(t){t.classList.remove('active');});
+    document.querySelectorAll('.skill-tree').forEach(function(t){t.classList.remove('active');});
+    btn.classList.add('active');
+    document.getElementById('st-'+tab).classList.add('active');
+  };
+
+  window.growthSkillUp=function(skillId,dim){
+    var data=loadData();
+    var current=getSkillLevel(data,skillId);
+    var sk=null;
+    SKILLS[dim].forEach(function(s){if(s.id===skillId) sk=s;});
+    if(sk&&current<sk.max){
+      setSkillLevel(data,skillId,current+1);
+      // 提升技能给 10 XP
+      data.xp=(data.xp||0)+10;
+      saveData(data);
+      renderSkillTree(dim);
+      updateStats();
+    }
+  };
+
+  window.growthSkillDown=function(skillId,dim){
+    var data=loadData();
+    var current=getSkillLevel(data,skillId);
+    if(current>0){
+      setSkillLevel(data,skillId,current-1);
+      data.xp=Math.max(0,(data.xp||0)-10);
+      saveData(data);
+      renderSkillTree(dim);
+      updateStats();
+    }
+  };
+
+  window.growthToggleTask=function(taskId,xp){
+    var data=loadData();
+    if(isTaskDone(data,taskId)) return;
+    completeTask(data,taskId,xp);
+    renderTasks();
+    updateStats();
+  };
+
+  // ═══ 初始化 ═══
+  renderSkillTree('tech');
+  renderSkillTree('mgmt');
+  renderSkillTree('soft');
+  renderTasks();
+  updateStats();
+})();
+</script>
+<script src="editor-kit.js"></script>
+</body>
+</html>

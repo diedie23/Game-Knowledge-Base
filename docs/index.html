@@ -93,6 +93,8 @@
             <option value="html-weekly">项目周报</option>
             <option value="html-decision">决策记录</option>
             <option value="html-meeting">会议纪要</option>
+            <option value="html-case-observer">案例模板A（观察者视角）</option>
+            <option value="html-case-support">案例模板B（支援角色视角）</option>
           </optgroup>
         </select>
         <button class="eh-btn eh-guide" onclick="navigate('editor-guide');closeEditor();" title="查看编辑器指南">📖 编辑器指南</button>
@@ -297,6 +299,97 @@
         <div class="hot-scroll" id="hotScrollContainer">
           <div class="hot-cards" id="hotCards">
             <!-- 动态渲染 by app.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ 🆘 高频痛点快捷入口 ═══ -->
+      <div class="home-section-divider"></div>
+      <div class="faq-painpoints" id="faqPainpoints">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+          <div>
+            <h2 style="font-size:20px;color:var(--heading);margin:0 0 4px;display:flex;align-items:center;gap:8px">🆘 高频痛点急救包</h2>
+            <p style="font-size:13px;color:var(--dim);margin:0">需求变更、资源冲突、进度延期 — 游戏项目管理最常遇到的3大问题，一键直达解决方案</p>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px" id="painpointGrid">
+          <!-- 痛点1: 需求频繁变更 -->
+          <div class="pp-card" style="background:var(--card-bg);border:1px solid rgba(248,113,113,.2);border-radius:14px;padding:0;overflow:hidden;cursor:pointer;transition:all .22s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(248,113,113,.15)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+            <div style="background:linear-gradient(135deg,rgba(248,113,113,.1),rgba(251,146,60,.06));padding:18px 20px 14px;border-bottom:1px solid rgba(248,113,113,.1)">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <span style="font-size:28px">🔄</span>
+                <div>
+                  <div style="font-size:16px;font-weight:700;color:var(--heading)">需求频繁变更</div>
+                  <div style="font-size:11px;color:var(--red);font-weight:600">🔴 TOP 1 痛点 · 出现率 87%</div>
+                </div>
+              </div>
+              <p style="font-size:13px;color:var(--dim);line-height:1.7;margin:0">策划临时加需求、改需求，美术已完成的工作被推翻，团队情绪崩溃</p>
+            </div>
+            <div style="padding:14px 20px">
+              <div style="font-size:12px;color:var(--dim);font-weight:600;margin-bottom:8px">💊 急救方案：</div>
+              <div style="font-size:13px;color:var(--text);line-height:1.8;margin-bottom:12px">
+                ① 建立<strong style="color:var(--accent)">变更评审机制</strong>（CR流程）<br>
+                ② 制作<strong style="color:var(--accent)">变更成本速查表</strong>给策划<br>
+                ③ 设定<strong style="color:var(--accent)">风格冻结节点</strong>写入项目章程
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <a style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.15);border-radius:8px;font-size:11px;color:var(--accent);cursor:pointer;text-decoration:none;transition:all .15s" onclick="navigate('art-vs-planner-req')" onmouseover="this.style.background='rgba(108,140,255,.15)'" onmouseout="this.style.background='rgba(108,140,255,.08)'">📝 需求对接规范 →</a>
+                <a style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.15);border-radius:8px;font-size:11px;color:var(--accent);cursor:pointer;text-decoration:none;transition:all .15s" onclick="navigate('case-cross-dept')" onmouseover="this.style.background='rgba(108,140,255,.15)'" onmouseout="this.style.background='rgba(108,140,255,.08)'">💥 跨部门冲突案例 →</a>
+                <a style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.15);border-radius:8px;font-size:11px;color:var(--accent);cursor:pointer;text-decoration:none;transition:all .15s" onclick="navigate('case-requirement-change')" onmouseover="this.style.background='rgba(108,140,255,.15)'" onmouseout="this.style.background='rgba(108,140,255,.08)'">🔄 需求变更案例 →</a>
+              </div>
+            </div>
+          </div>
+          <!-- 痛点2: 资源冲突与抢人 -->
+          <div class="pp-card" style="background:var(--card-bg);border:1px solid rgba(251,191,36,.2);border-radius:14px;padding:0;overflow:hidden;cursor:pointer;transition:all .22s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(251,191,36,.15)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+            <div style="background:linear-gradient(135deg,rgba(251,191,36,.1),rgba(251,146,60,.06));padding:18px 20px 14px;border-bottom:1px solid rgba(251,191,36,.1)">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <span style="font-size:28px">⚔️</span>
+                <div>
+                  <div style="font-size:16px;font-weight:700;color:var(--heading)">资源冲突与抢人</div>
+                  <div style="font-size:11px;color:var(--yellow);font-weight:600">🟡 TOP 2 痛点 · 出现率 72%</div>
+                </div>
+              </div>
+              <p style="font-size:13px;color:var(--dim);line-height:1.7;margin:0">多项目并行抢美术资源，产能不足时外包与自研如何平衡分配</p>
+            </div>
+            <div style="padding:14px 20px">
+              <div style="font-size:12px;color:var(--dim);font-weight:600;margin-bottom:8px">💊 急救方案：</div>
+              <div style="font-size:13px;color:var(--text);line-height:1.8;margin-bottom:12px">
+                ① 建立<strong style="color:var(--accent)">产能负载可视化看板</strong><br>
+                ② 使用<strong style="color:var(--accent)">外包 vs 自研决策矩阵</strong>辅助判断<br>
+                ③ 提前做<strong style="color:var(--accent)">资源预分配</strong>（Sprint 规划时锁定）
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <a style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.15);border-radius:8px;font-size:11px;color:var(--accent);cursor:pointer;text-decoration:none;transition:all .15s" onclick="navigate('outsource-vs-inhouse-decision')" onmouseover="this.style.background='rgba(108,140,255,.15)'" onmouseout="this.style.background='rgba(108,140,255,.08)'">⚖️ 外包vs自研决策 →</a>
+                <a style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.15);border-radius:8px;font-size:11px;color:var(--accent);cursor:pointer;text-decoration:none;transition:all .15s" onclick="navigate('art-scheduling')" onmouseover="this.style.background='rgba(108,140,255,.15)'" onmouseout="this.style.background='rgba(108,140,255,.08)'">📅 排期管理 →</a>
+                <a style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.15);border-radius:8px;font-size:11px;color:var(--accent);cursor:pointer;text-decoration:none;transition:all .15s" onclick="navigate('outsource-workload-model')" onmouseover="this.style.background='rgba(108,140,255,.15)'" onmouseout="this.style.background='rgba(108,140,255,.08)'">📊 外包工作量模型 →</a>
+              </div>
+            </div>
+          </div>
+          <!-- 痛点3: 项目延期与排期爆炸 -->
+          <div class="pp-card" style="background:var(--card-bg);border:1px solid rgba(251,146,60,.2);border-radius:14px;padding:0;overflow:hidden;cursor:pointer;transition:all .22s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(251,146,60,.15)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+            <div style="background:linear-gradient(135deg,rgba(251,146,60,.1),rgba(248,113,113,.06));padding:18px 20px 14px;border-bottom:1px solid rgba(251,146,60,.1)">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <span style="font-size:28px">⏰</span>
+                <div>
+                  <div style="font-size:16px;font-weight:700;color:var(--heading)">进度延期与排期爆炸</div>
+                  <div style="font-size:11px;color:var(--orange);font-weight:600">🟠 TOP 3 痛点 · 出现率 68%</div>
+                </div>
+              </div>
+              <p style="font-size:13px;color:var(--dim);line-height:1.7;margin:0">排期过于乐观、依赖链断裂、加班恶性循环，项目进度失控</p>
+            </div>
+            <div style="padding:14px 20px">
+              <div style="font-size:12px;color:var(--dim);font-weight:600;margin-bottom:8px">💊 急救方案：</div>
+              <div style="font-size:13px;color:var(--text);line-height:1.8;margin-bottom:12px">
+                ① 排期必须加<strong style="color:var(--accent)">20% 缓冲</strong>（Murphy定律）<br>
+                ② 建立<strong style="color:var(--accent)">延期应急决策树</strong>快速响应<br>
+                ③ 使用<strong style="color:var(--accent)">燃尽图</strong>每日监控进度偏差
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <a style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.15);border-radius:8px;font-size:11px;color:var(--accent);cursor:pointer;text-decoration:none;transition:all .15s" onclick="navigate('delay-response-decision')" onmouseover="this.style.background='rgba(108,140,255,.15)'" onmouseout="this.style.background='rgba(108,140,255,.08)'">🚨 延期应急方案 →</a>
+                <a style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.15);border-radius:8px;font-size:11px;color:var(--accent);cursor:pointer;text-decoration:none;transition:all .15s" onclick="navigate('case-delay')" onmouseover="this.style.background='rgba(108,140,255,.15)'" onmouseout="this.style.background='rgba(108,140,255,.08)'">⏰ 延期案例复盘 →</a>
+                <a style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.15);border-radius:8px;font-size:11px;color:var(--accent);cursor:pointer;text-decoration:none;transition:all .15s" onclick="navigate('progress-visualization')" onmouseover="this.style.background='rgba(108,140,255,.15)'" onmouseout="this.style.background='rgba(108,140,255,.08)'">📈 进度可视化 →</a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -847,6 +940,10 @@ sequenceDiagram
         <div class="hst">🔥 全部案例</div>
         <div class="home-grid" id="grid-casestudy-cases"></div>
 
+        <div class="hst" style="margin-top:28px">✍️ 案例写作模板</div>
+        <p class="hst-desc" style="font-size:13px;color:var(--dim);margin:-8px 0 12px;padding:0 4px">两种视角模板，点击后在页面内直接编辑填写，15分钟快速沉淀项目经验</p>
+        <div class="home-grid" id="grid-casestudy-templates"></div>
+
         <div class="case-guide" style="margin-top:16px;padding:16px 20px;background:rgba(248,113,113,.04);border:1px dashed rgba(248,113,113,.2);border-radius:12px">
           <p style="font-size:14px;color:var(--dim);margin:0 0 8px;line-height:1.8">
             <strong style="color:var(--red)">💡 案例库扩充指南：</strong>每次项目遇到问题并解决后，请花 15 分钟记录一篇案例。推荐使用以下结构：
@@ -950,9 +1047,16 @@ sequenceDiagram
         </div>
       </div>
       <div class="ai-chat-header-right">
+        <button class="ai-chat-hist-btn" onclick="aiToggleHistSearch()" title="搜索聊天记录"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button>
+        <button class="ai-chat-hist-btn" onclick="aiExportChat()" title="导出对话记录">⬇</button>
+        <button class="ai-chat-hist-btn" onclick="aiClearChat()" title="清屏">🗑</button>
         <span class="ai-drag-hint" title="拖拽移动">⋮⋮</span>
         <button class="ai-chat-close" onclick="toggleAiChat()">✕</button>
       </div>
+    </div>
+    <div class="ai-hist-search" id="aiHistSearch" style="display:none">
+      <input type="text" class="ai-hist-search-input" id="aiHistSearchInput" placeholder="搜索聊天记录…" oninput="aiSearchHistory(this.value)">
+      <span class="ai-hist-search-close" onclick="aiToggleHistSearch()">✕</span>
     </div>
     <div class="ai-chat-body" id="aiChatBody">
       <!-- 欢迎消息 -->
@@ -1012,6 +1116,45 @@ sequenceDiagram
           <li>将 Bot ID 和 Token 粘贴到上方保存即可</li>
         </ol>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 快速记录浮动按钮 ═══ -->
+<button class="quick-note-fab" onclick="toggleQuickNote()" title="📌 快速记录">📌</button>
+<div class="quick-note-panel" id="quickNotePanel">
+  <div class="quick-note-header">
+    <h4>📌 快速记录</h4>
+    <button class="quick-note-close" onclick="toggleQuickNote()">✕</button>
+  </div>
+  <div class="quick-note-body">
+    <div class="quick-note-field">
+      <label>✏️ 标题</label>
+      <input type="text" id="qnTitle" placeholder="一句话概括（可选）" maxlength="100">
+    </div>
+    <div class="quick-note-field">
+      <label>📝 内容</label>
+      <textarea id="qnContent" rows="5" placeholder="记录你的想法、观察、待办⋯" style="min-height:120px"></textarea>
+    </div>
+    <div class="quick-note-field">
+      <label>🏷️ 标签（点击选择）</label>
+      <div class="quick-note-tags">
+        <span class="quick-note-tag" onclick="toggleQnTag(this)">💡 灵感</span>
+        <span class="quick-note-tag" onclick="toggleQnTag(this)">🐛 问题</span>
+        <span class="quick-note-tag" onclick="toggleQnTag(this)">✅ 待办</span>
+        <span class="quick-note-tag" onclick="toggleQnTag(this)">🔄 复盘</span>
+        <span class="quick-note-tag" onclick="toggleQnTag(this)">🤝 沟通</span>
+        <span class="quick-note-tag" onclick="toggleQnTag(this)">⚠️ 风险</span>
+        <span class="quick-note-tag" onclick="toggleQnTag(this)">📦 外包</span>
+        <span class="quick-note-tag" onclick="toggleQnTag(this)">📅 排期</span>
+      </div>
+    </div>
+  </div>
+  <div class="quick-note-footer">
+    <span class="quick-note-count" id="qnCount">已保存 0 条记录</span>
+    <div style="display:flex;gap:8px">
+      <button class="quick-note-save" style="background:rgba(108,140,255,.1);color:var(--accent)" onclick="openQuickNotesInEditor()">📋 查看全部</button>
+      <button class="quick-note-save" onclick="saveQuickNote()">💾 保存记录</button>
     </div>
   </div>
 </div>
