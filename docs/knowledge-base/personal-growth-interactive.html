@@ -98,10 +98,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .st-svg-wrap{position:relative;overflow:auto;border:1px solid var(--border);border-radius:16px;background:var(--panel);padding:20px;min-height:480px}
 
 /* SVG 技能节点 */
-.sk-node{cursor:pointer;transition:transform .2s}
-.sk-node:hover{transform:scale(1.06)}
+.sk-node{cursor:pointer}
 .sk-node-bg{fill:var(--card);stroke:var(--border);stroke-width:1.5;rx:12;transition:all .3s}
-.sk-node:hover .sk-node-bg{stroke:var(--neon-blue);filter:drop-shadow(0 0 8px rgba(0,212,255,.3))}
+.sk-node:hover .sk-node-bg{stroke:var(--neon-blue);stroke-width:2;filter:drop-shadow(0 0 12px rgba(0,212,255,.4))}
 .sk-node.unlocked .sk-node-bg{stroke:var(--neon-green);filter:drop-shadow(0 0 12px rgba(0,255,136,.2))}
 .sk-node.mastered .sk-node-bg{stroke:var(--neon-gold);filter:drop-shadow(0 0 16px rgba(255,215,0,.3))}
 .sk-node.locked .sk-node-bg{stroke:var(--border);opacity:.45}
