@@ -980,6 +980,11 @@ sequenceDiagram
         <label>API Token（Personal Access Token）</label>
         <input type="password" id="cozeToken" class="ai-config-input" placeholder="粘贴你的 API Token">
       </div>
+      <div class="ai-config-field">
+        <label>CORS 代理地址（解决跨域，必填）</label>
+        <input type="text" id="cozeProxyUrl" class="ai-config-input" placeholder="如 https://coze-proxy.xxx.workers.dev">
+        <p class="ai-config-desc" style="margin-top:4px;font-size:11px">部署方式见项目中的 cloudflare-worker-coze-proxy.js</p>
+      </div>
       <div class="ai-config-actions">
         <button class="ai-config-btn" onclick="aiCloseConfig()">取消</button>
         <button class="ai-config-btn ai-config-btn-primary" onclick="aiSaveConfig()">保存配置</button>

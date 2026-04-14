@@ -4041,8 +4041,19 @@ var AI_BOT_CONFIG = {
 /* ── Coze API 默认配置 ── */
 var COZE_DEFAULT_CONFIG = {
   botId: '7628276523161616403',
-  token: 'pat_Vc4OB0Yu7rMZLZR9bXlbZmqQ4QE9YBISMGemPzP23DHExjHOmdtKmUpv5PpwpZeY'
+  token: 'pat_Vc4OB0Yu7rMZLZR9bXlbZmqQ4QE9YBISMGemPzP23DHExjHOmdtKmUpv5PpwpZeY',
+  // CORS 代理地址（Cloudflare Worker）— 解决浏览器跨域限制
+  // 部署方式见 cloudflare-worker-coze-proxy.js
+  // 格式：https://your-worker-name.your-subdomain.workers.dev
+  // 设为空字符串 '' 则直连 api.coze.cn（仅限本地开发/有后端代理时）
+  proxyUrl: ''
 };
+
+// Coze API 基础地址（自动判断使用代理还是直连）
+function getCozeApiBase(){
+  var proxy = localStorage.getItem('coze_proxy_url') || COZE_DEFAULT_CONFIG.proxyUrl || '';
+  return proxy ? proxy.replace(/\/+$/, '') : 'https://api.coze.cn';
+}
 
 // ── Coze REST API 模式 — 不再加载 SDK，直接使用自建 UI + v3 API ──
 // SDK 加载已移除：之前 loadCozeChatSDK 会创建 Coze 自带聊天框并隐藏自建 UI
@@ -4078,8 +4089,11 @@ function toggleAiChat(){
     // 加载已保存的配置（优先 localStorage，其次默认值）
     var savedBotId=localStorage.getItem('coze_bot_id') || COZE_DEFAULT_CONFIG.botId || '';
     var savedToken=localStorage.getItem('coze_token') || COZE_DEFAULT_CONFIG.token || '';
+    var savedProxy=localStorage.getItem('coze_proxy_url') || COZE_DEFAULT_CONFIG.proxyUrl || '';
     if(savedBotId) document.getElementById('cozeBotId').value=savedBotId;
     if(savedToken) document.getElementById('cozeToken').value=savedToken;
+    var proxyInput=document.getElementById('cozeProxyUrl');
+    if(proxyInput && savedProxy) proxyInput.value=savedProxy;
     // 自动聚焦输入框
     setTimeout(function(){document.getElementById('aiChatInput').focus();},300);
   }
@@ -4166,8 +4180,9 @@ function aiCozeAnswer(query, botId, token){
   var sendBtn=document.getElementById('aiChatSend');
   sendBtn.disabled=true;
 
-  // v3 API: https://api.coze.cn/v3/chat （非流式模式）
-  fetch('https://api.coze.cn/v3/chat', {
+  // v3 API: Coze Chat （非流式模式，通过代理解决 CORS）
+  var _apiBase = getCozeApiBase();
+  fetch(_apiBase + '/v3/chat', {
     method:'POST',
     headers:{
       'Authorization': 'Bearer '+token,
@@ -4206,8 +4221,14 @@ function aiCozeAnswer(query, botId, token){
     aiRemoveTyping();
     sendBtn.disabled=false;
     console.error('[Coze API Catch Error]', err);
-    // 降级到本地搜索
-    aiAppendMessage('bot', 'Coze API 连接失败了 😣 已切换到本地知识库搜索，让我用另一种方式帮你找答案~');
+    // 判断是否为 CORS 跨域问题
+    var _base = getCozeApiBase();
+    var isCorsIssue = _base.indexOf('api.coze.cn')>=0;
+    if(isCorsIssue){
+      aiAppendMessage('bot', '⚠️ **Coze API 跨域受限（CORS）**\n\n浏览器安全策略阻止了直接调用 Coze API。\n\n**解决方法：**\n1. 点击下方「配置 Coze Bot」\n2. 填入 CORS 代理地址（Cloudflare Worker）\n3. 部署指南见项目中的 `cloudflare-worker-coze-proxy.js`\n\n已临时切换到本地搜索模式 📚');
+    }else{
+      aiAppendMessage('bot', 'Coze API 连接失败了 😣 已切换到本地知识库搜索，让我用另一种方式帮你找答案~');
+    }
     aiLocalAnswer(query);
   });
 }
@@ -4227,13 +4248,14 @@ function aiPollChatResult(chatId, conversationId, botId, token, sendBtn, query){
       return;
     }
 
-    fetch('https://api.coze.cn/v3/chat/retrieve?chat_id='+chatId+'&conversation_id='+conversationId, {
+    var _apiBase = getCozeApiBase();
+    fetch(_apiBase + '/v3/chat/retrieve?chat_id='+chatId+'&conversation_id='+conversationId, {
       method:'GET',
       headers:{'Authorization': 'Bearer '+token}
     }).then(function(res){return res.json();}).then(function(data){
       if(data && data.data && data.data.status==='completed'){
         // Chat 完成，获取消息列表
-        fetch('https://api.coze.cn/v3/chat/message/list?chat_id='+chatId+'&conversation_id='+conversationId, {
+        fetch(_apiBase + '/v3/chat/message/list?chat_id='+chatId+'&conversation_id='+conversationId, {
           method:'GET',
           headers:{'Authorization': 'Bearer '+token}
         }).then(function(res){return res.json();}).then(function(msgData){
@@ -4517,11 +4539,16 @@ function aiCloseConfig(){
 function aiSaveConfig(){
   var botId=document.getElementById('cozeBotId').value.trim();
   var token=document.getElementById('cozeToken').value.trim();
+  var proxyUrl=document.getElementById('cozeProxyUrl') ? document.getElementById('cozeProxyUrl').value.trim() : '';
   if(botId) localStorage.setItem('coze_bot_id', botId);
   if(token) localStorage.setItem('coze_token', token);
+  if(proxyUrl) localStorage.setItem('coze_proxy_url', proxyUrl);
+  else localStorage.removeItem('coze_proxy_url');
   if(!localStorage.getItem('coze_user_id')) localStorage.setItem('coze_user_id', 'u_'+Date.now());
   aiCloseConfig();
-  aiAppendMessage('bot', '配置保存成功 ✅ \n\n现在 **'+AI_BOT_CONFIG.name+'** 已经上线了！试试问我一个问题吧 🚀');
+  var _base = getCozeApiBase();
+  var modeText = _base.indexOf('api.coze.cn')>=0 ? '直连模式（可能有跨域限制）' : '代理模式 ✅';
+  aiAppendMessage('bot', '配置保存成功 ✅ \n\n**API 模式：** '+modeText+'\n**Bot：** '+AI_BOT_CONFIG.name+'\n\n试试问我一个问题吧 🚀');
 }
 
 // ═══ AI 助手拖拽系统（Drag & Drop）═══
