@@ -12,6 +12,12 @@
   --neon-gold:#ffd700;--neon-orange:#ff8c00;--neon-red:#ff4757;
   --neon-cyan:#22d3ee;--neon-pink:#ff6eb4;
   --accent:#6c8cff;--accent2:#a78bfa;
+  /* ── 状态色阶系统 ── */
+  --state-locked:#2a2d3e;--state-locked-text:#3d4160;--state-locked-border:#252840;
+  --state-available:#1a2540;--state-available-text:#4a7cbb;--state-available-border:#1e3a5c;
+  --state-progress:#0c2a3a;--state-progress-text:#00d4ff;--state-progress-border:#0a4a6e;
+  --state-learned:#0a2a1e;--state-learned-text:#00ff88;--state-learned-border:#0e4a2e;
+  --state-mastered:#2a2008;--state-mastered-text:#ffd700;--state-mastered-border:#4a3a10;
   --glow-blue:0 0 20px rgba(0,212,255,.3);
   --glow-green:0 0 20px rgba(0,255,136,.3);
   --glow-gold:0 0 20px rgba(255,215,0,.3);
@@ -60,9 +66,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .stat-card:nth-child(3)::before{background:linear-gradient(90deg,transparent,var(--neon-gold),transparent)}
 .stat-card:nth-child(4)::before{background:linear-gradient(90deg,transparent,var(--neon-purple),transparent)}
 .stat-card:hover{transform:translateY(-3px);border-color:rgba(0,212,255,.2)}
+.stat-card.has-progress{border-color:rgba(0,212,255,.15)}
+.stat-card.has-progress .sc-num{color:var(--neon-blue)}
+.stat-card.all-done{border-color:rgba(0,255,136,.2);box-shadow:0 0 15px rgba(0,255,136,.08)}
+.stat-card.all-done .sc-num{color:var(--neon-green)}
 .sc-icon{font-size:24px;margin-bottom:6px;filter:drop-shadow(0 0 8px rgba(0,212,255,.4))}
-.sc-num{font-size:26px;font-weight:800;color:#fff;margin-bottom:2px}
+.sc-num{font-size:26px;font-weight:800;color:#fff;margin-bottom:2px;transition:color .4s}
 .sc-label{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+.sc-bar{width:60%;height:3px;background:var(--border);border-radius:2px;margin:6px auto 0;overflow:hidden}
+.sc-bar-fill{height:100%;border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.sc-bar-fill.blue{background:linear-gradient(90deg,var(--neon-blue),var(--neon-cyan))}
+.sc-bar-fill.green{background:linear-gradient(90deg,var(--neon-green),var(--neon-cyan))}
+.sc-bar-fill.gold{background:linear-gradient(90deg,var(--neon-gold),var(--neon-orange))}
+.sc-bar-fill.purple{background:linear-gradient(90deg,var(--neon-purple),var(--neon-pink))}
 
 /* ── XP进度条 ── */
 .xp-bar-wrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:28px}
@@ -97,24 +113,47 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .st-dim-tab:hover{border-color:rgba(0,212,255,.2);color:var(--neon-blue)}
 .st-svg-wrap{position:relative;overflow:auto;border:1px solid var(--border);border-radius:16px;background:var(--panel);padding:20px;min-height:480px}
 
-/* SVG 技能节点 */
+/* SVG 技能节点 — 五级状态 */
 .sk-node{cursor:pointer}
 .sk-node-bg{fill:var(--card);stroke:var(--border);stroke-width:1.5;rx:12;transition:all .3s}
-.sk-node:hover .sk-node-bg{stroke:var(--neon-blue);stroke-width:2;filter:drop-shadow(0 0 12px rgba(0,212,255,.4))}
-.sk-node.unlocked .sk-node-bg{stroke:var(--neon-green);filter:drop-shadow(0 0 12px rgba(0,255,136,.2))}
-.sk-node.mastered .sk-node-bg{stroke:var(--neon-gold);filter:drop-shadow(0 0 16px rgba(255,215,0,.3))}
-.sk-node.locked .sk-node-bg{stroke:var(--border);opacity:.45}
-.sk-node.locked{cursor:not-allowed;pointer-events:none}
-.sk-edge{stroke:var(--border);stroke-width:2;fill:none;stroke-dasharray:6 4}
-.sk-edge.active{stroke:var(--neon-green);stroke-dasharray:none;filter:drop-shadow(0 0 4px rgba(0,255,136,.3))}
+/* 🔒 锁定态 */
+.sk-node.locked{cursor:not-allowed;pointer-events:none;opacity:.35}
+.sk-node.locked .sk-node-bg{fill:#0d0f18;stroke:var(--state-locked-border);stroke-dasharray:4 3}
+/* 🔓 可用态 — 蓝色微光脉动 */
+.sk-node.available .sk-node-bg{fill:var(--state-available);stroke:var(--state-available-border);animation:availPulse 3s ease-in-out infinite}
+@keyframes availPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(74,124,187,.15))}50%{filter:drop-shadow(0 0 10px rgba(0,212,255,.25))}}
+.sk-node.available:hover .sk-node-bg{stroke:var(--neon-blue);stroke-width:2;filter:drop-shadow(0 0 14px rgba(0,212,255,.4))}
+/* 🔵 进行中态 — 强脉动 */
+.sk-node.in-progress .sk-node-bg{fill:var(--state-progress);stroke:var(--neon-blue);stroke-width:2;animation:progressGlow 2.5s ease-in-out infinite}
+@keyframes progressGlow{0%,100%{filter:drop-shadow(0 0 8px rgba(0,212,255,.2))}50%{filter:drop-shadow(0 0 18px rgba(0,212,255,.45))}}
+.sk-node.in-progress:hover .sk-node-bg{filter:drop-shadow(0 0 20px rgba(0,212,255,.5))}
+/* 🟢 已掌握态 */
+.sk-node.learned .sk-node-bg{fill:var(--state-learned);stroke:var(--neon-green);stroke-width:1.5;filter:drop-shadow(0 0 10px rgba(0,255,136,.2))}
+.sk-node.learned:hover .sk-node-bg{filter:drop-shadow(0 0 16px rgba(0,255,136,.35))}
+/* 🌟 满级态 */
+.sk-node.mastered .sk-node-bg{fill:var(--state-mastered);stroke:var(--neon-gold);stroke-width:2;filter:drop-shadow(0 0 14px rgba(255,215,0,.3))}
+.sk-node.mastered:hover .sk-node-bg{filter:drop-shadow(0 0 20px rgba(255,215,0,.45))}
+/* 连接线状态 */
+.sk-edge{stroke:var(--state-locked-border);stroke-width:2;fill:none;stroke-dasharray:6 4;opacity:.4;transition:all .5s}
+.sk-edge.edge-available{stroke:var(--state-available-text);stroke-dasharray:8 4;opacity:.5}
+.sk-edge.edge-active{stroke:var(--neon-green);stroke-dasharray:none;opacity:.8;filter:drop-shadow(0 0 4px rgba(0,255,136,.3))}
+.sk-edge.edge-mastered{stroke:var(--neon-gold);stroke-dasharray:none;opacity:.9;filter:drop-shadow(0 0 6px rgba(255,215,0,.3))}
 
 /* ── 技能详情弹窗 ── */
-.sk-tooltip{position:absolute;z-index:100;background:var(--card);border:1px solid var(--neon-blue);border-radius:14px;padding:18px;width:280px;box-shadow:0 8px 32px rgba(0,0,0,.5),var(--glow-blue);pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;transform:translateY(8px)}
+.sk-tooltip{position:absolute;z-index:100;background:var(--card);border:1px solid var(--neon-blue);border-radius:14px;padding:18px;width:300px;box-shadow:0 8px 32px rgba(0,0,0,.5),var(--glow-blue);pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;transform:translateY(8px)}
 .sk-tooltip.show{opacity:1;pointer-events:auto;transform:none}
 .sk-tooltip h4{font-size:15px;color:#fff;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.sk-tooltip .skt-state{font-size:10px;padding:2px 8px;border-radius:6px;font-weight:700;margin-left:auto}
+.skt-state-locked{background:rgba(61,65,96,.3);color:var(--state-locked-text)}
+.skt-state-available{background:rgba(74,124,187,.15);color:var(--state-available-text)}
+.skt-state-progress{background:rgba(0,212,255,.12);color:var(--neon-blue)}
+.skt-state-learned{background:rgba(0,255,136,.12);color:var(--neon-green)}
+.skt-state-mastered{background:rgba(255,215,0,.12);color:var(--neon-gold)}
 .sk-tooltip .skt-desc{font-size:12px;color:var(--dim);margin-bottom:10px;line-height:1.6}
-.sk-tooltip .skt-bar{width:100%;height:6px;background:var(--panel);border-radius:3px;overflow:hidden;margin-bottom:8px}
-.sk-tooltip .skt-fill{height:100%;border-radius:3px;transition:width .5s}
+.sk-tooltip .skt-bar{width:100%;height:8px;background:var(--panel);border-radius:4px;overflow:hidden;margin-bottom:8px;position:relative}
+.sk-tooltip .skt-fill{height:100%;border-radius:4px;transition:width .5s;position:relative}
+.sk-tooltip .skt-fill.has-flow::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);animation:barFlow 1.5s infinite}
+@keyframes barFlow{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 .sk-tooltip .skt-info{font-size:11px;color:var(--dim);display:flex;justify-content:space-between}
 .sk-tooltip .skt-actions{display:flex;gap:6px;margin-top:10px}
 .skt-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--dim);font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s}
@@ -133,10 +172,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .task-card.task-tech::before{background:var(--neon-blue)}
 .task-card.task-mgmt::before{background:var(--neon-gold)}
 .task-card.task-soft::before{background:var(--neon-pink)}
-.task-card:hover{border-color:rgba(0,212,255,.2);transform:translateX(4px)}
-.task-card.task-done{opacity:.6}
-.task-card.task-done:hover{opacity:.8;transform:translateX(4px)}
-.task-card.task-done .task-check:hover{border-color:var(--neon-red);box-shadow:0 0 20px rgba(255,71,87,.3)}
+.task-card:hover{border-color:rgba(0,212,255,.2)}
+/* 未完成 — 微脉动提示可交互 */
+.task-card.task-pending{border-color:var(--state-available-border)}
+.task-card.task-pending:hover{border-color:rgba(0,212,255,.3);transform:translateX(4px);box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.task-card.task-pending .task-check{animation:checkBreathe 3s ease-in-out infinite}
+@keyframes checkBreathe{0%,100%{border-color:var(--border);box-shadow:none}50%{border-color:rgba(0,212,255,.3);box-shadow:0 0 8px rgba(0,212,255,.15)}}
+/* 已完成 — 绿色确认态 */
+.task-card.task-done{background:rgba(0,255,136,.02);border-color:rgba(0,255,136,.12)}
+.task-card.task-done::before{background:var(--neon-green)!important;opacity:.6}
+.task-card.task-done::after{content:'DONE';position:absolute;top:10px;right:12px;font-size:9px;font-weight:800;letter-spacing:1px;color:var(--neon-green);background:rgba(0,255,136,.08);padding:2px 8px;border-radius:4px;border:1px solid rgba(0,255,136,.15)}
+.task-card.task-done:hover{border-color:rgba(0,255,136,.25);transform:translateX(2px)}
+.task-card.task-done .task-check:hover{border-color:var(--neon-red);box-shadow:0 0 15px rgba(255,71,87,.25)}
 .task-check{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;margin-top:2px;position:relative}
 .task-check:hover{border-color:var(--neon-green);box-shadow:var(--glow-green)}
 .task-check.done{background:linear-gradient(135deg,var(--neon-green),var(--neon-cyan));border-color:transparent;color:#000;font-size:14px;font-weight:700;animation:checkPop .4s ease}
@@ -157,8 +204,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
    ══════════════════════════════════ */
 .achv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
 .achv-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px 14px;text-align:center;transition:all .4s;position:relative;overflow:hidden;cursor:default}
-.achv-card.locked{opacity:.4;filter:grayscale(.7)}
-.achv-card.unlocked{border-color:rgba(255,215,0,.3)}
+/* 锁定态 — 极低对比度 */
+.achv-card.locked{opacity:.35;filter:grayscale(.8)}
+.achv-card.locked:hover{opacity:.5;filter:grayscale(.5);transform:translateY(-2px)}
+/* 解锁态 — 金色光环 */
+.achv-card.unlocked{border-color:rgba(255,215,0,.25);background:linear-gradient(135deg,rgba(255,215,0,.03),rgba(255,140,0,.02))}
+.achv-card.unlocked:hover{transform:translateY(-3px);border-color:rgba(255,215,0,.4);box-shadow:0 8px 24px rgba(0,0,0,.3),var(--glow-gold)}
 .achv-card.unlocked::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(transparent,rgba(255,215,0,.06),transparent,rgba(255,215,0,.04),transparent);animation:achvRotate 6s linear infinite}
 @keyframes achvRotate{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 .achv-card.just-unlocked{animation:achvUnlock .8s ease}
@@ -180,9 +231,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .roadmap-stage:last-child::after{display:none}
 .rs-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px;margin-right:14px;height:100%;transition:all .3s;cursor:default;position:relative;overflow:hidden}
 .rs-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px}
-.rs-card:hover{border-color:rgba(0,212,255,.2);transform:translateY(-2px)}
-.rs-card.current{border-color:var(--neon-green);box-shadow:var(--glow-green)}
-.rs-card.current::before{background:linear-gradient(90deg,var(--neon-green),var(--neon-cyan))}
+.rs-card:hover{transform:translateY(-2px)}
+/* 已完成阶段 */
+.rs-card.done-stage{border-color:rgba(0,255,136,.15);background:rgba(0,255,136,.02)}
+.rs-card.done-stage::before{background:linear-gradient(90deg,var(--neon-green),var(--neon-cyan))}
+.rs-card.done-stage::after{content:'✓';position:absolute;top:12px;right:12px;font-size:16px;color:var(--neon-green);font-weight:700}
+/* 当前阶段 — 强调脉动 */
+.rs-card.current{border-color:var(--neon-blue);box-shadow:0 0 20px rgba(0,212,255,.12);animation:currentStage 3s ease-in-out infinite}
+@keyframes currentStage{0%,100%{box-shadow:0 0 15px rgba(0,212,255,.1)}50%{box-shadow:0 0 25px rgba(0,212,255,.2)}}
+.rs-card.current::before{background:linear-gradient(90deg,var(--neon-blue),var(--neon-cyan))}
+.rs-card.current::after{content:'◆ 当前';position:absolute;top:12px;right:12px;font-size:10px;color:var(--neon-blue);font-weight:700;background:rgba(0,212,255,.08);padding:2px 8px;border-radius:4px;border:1px solid rgba(0,212,255,.2)}
+/* 未来阶段 */
+.rs-card.future-stage{opacity:.5;border-color:var(--state-locked-border)}
 .rs-badge{display:inline-block;padding:3px 10px;border-radius:8px;font-size:10px;font-weight:700;margin-bottom:10px;letter-spacing:.3px}
 .rs-badge-1{background:rgba(0,212,255,.12);color:var(--neon-blue)}
 .rs-badge-2{background:rgba(255,215,0,.12);color:var(--neon-gold)}
@@ -253,7 +313,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
 <!-- ═══ 英雄区 ═══ -->
 <div class="gc-hero">
-  <h1>🎮 APM 成长中心 <span class="ver">v2.0 游戏化</span></h1>
+  <h1>🎮 APM 成长中心 <span class="ver">v2.1 游戏化</span></h1>
   <div class="subtitle">Skill Tree · Quests · Achievements · Growth Tracker</div>
 </div>
 
@@ -280,10 +340,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
 <!-- ═══ 统计面板 ═══ -->
 <div class="stats-grid">
-  <div class="stat-card"><div class="sc-icon">⚡</div><div class="sc-num" id="scXP">0</div><div class="sc-label">经验值 XP</div></div>
-  <div class="stat-card"><div class="sc-icon">🎯</div><div class="sc-num" id="scSkills">0/30</div><div class="sc-label">已掌握技能</div></div>
-  <div class="stat-card"><div class="sc-icon">📜</div><div class="sc-num" id="scQuests">0/10</div><div class="sc-label">已完成任务</div></div>
-  <div class="stat-card"><div class="sc-icon">🏆</div><div class="sc-num" id="scAchv">0/12</div><div class="sc-label">已解锁成就</div></div>
+  <div class="stat-card" id="statXP"><div class="sc-icon">⚡</div><div class="sc-num" id="scXP">0</div><div class="sc-label">经验值 XP</div><div class="sc-bar"><div class="sc-bar-fill blue" id="scXPbar" style="width:0%"></div></div></div>
+  <div class="stat-card" id="statSkills"><div class="sc-icon">🎯</div><div class="sc-num" id="scSkills">0/30</div><div class="sc-label">已掌握技能</div><div class="sc-bar"><div class="sc-bar-fill green" id="scSkillsBar" style="width:0%"></div></div></div>
+  <div class="stat-card" id="statQuests"><div class="sc-icon">📜</div><div class="sc-num" id="scQuests">0/10</div><div class="sc-label">已完成任务</div><div class="sc-bar"><div class="sc-bar-fill gold" id="scQuestsBar" style="width:0%"></div></div></div>
+  <div class="stat-card" id="statAchv"><div class="sc-icon">🏆</div><div class="sc-num" id="scAchv">0/12</div><div class="sc-label">已解锁成就</div><div class="sc-bar"><div class="sc-bar-fill purple" id="scAchvBar" style="width:0%"></div></div></div>
 </div>
 
 <!-- ═══ XP 进度条 ═══ -->
@@ -311,6 +371,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <button class="st-dim-tab active" onclick="GC.switchDim('tech',this)">🔧 技术硬技能</button>
       <button class="st-dim-tab" onclick="GC.switchDim('mgmt',this)">📋 管理方法论</button>
       <button class="st-dim-tab" onclick="GC.switchDim('soft',this)">💬 软技能</button>
+      <div class="st-legend" style="display:flex;gap:12px;margin-left:auto;font-size:11px;color:var(--dim)">
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#3d4160;display:inline-block"></span>锁定</span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#4a7cbb;display:inline-block;box-shadow:0 0 4px rgba(74,124,187,.4)"></span>可学习</span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#00d4ff;display:inline-block;box-shadow:0 0 4px rgba(0,212,255,.4)"></span>学习中</span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#00ff88;display:inline-block;box-shadow:0 0 4px rgba(0,255,136,.4)"></span>已掌握</span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#ffd700;display:inline-block;box-shadow:0 0 4px rgba(255,215,0,.4)"></span>满级</span>
+      </div>
     </div>
     <div class="st-svg-wrap" id="stSvgWrap">
       <svg id="skillTreeSvg" width="100%" height="480"></svg>
@@ -321,6 +388,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
 <!-- ═══ 面板：实战任务 ═══ -->
 <div class="gc-panel" id="panel-quests">
+  <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap" id="taskFilters">
+    <button class="gc-tab active" style="padding:6px 14px;font-size:12px" onclick="GC.filterTasks('all',this)">📋 全部<span id="fcAll" style="font-size:10px;opacity:.7;margin-left:4px"></span></button>
+    <button class="gc-tab" style="padding:6px 14px;font-size:12px" onclick="GC.filterTasks('pending',this)">⏳ 未完成<span id="fcPending" style="font-size:10px;opacity:.7;margin-left:4px"></span></button>
+    <button class="gc-tab" style="padding:6px 14px;font-size:12px" onclick="GC.filterTasks('done',this)">✅ 已完成<span id="fcDone" style="font-size:10px;opacity:.7;margin-left:4px"></span></button>
+  </div>
   <div class="task-list" id="taskList"></div>
 </div>
 
@@ -362,7 +434,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 </div>
 
 <div style="text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:11px;color:var(--dim)">
-  🎮 APM 成长中心 · 游戏化版 v2.0 · APM 知识库
+  🎮 APM 成长中心 · 游戏化版 v2.1 · APM 知识库
 </div>
 </div><!-- /gc -->
 
@@ -461,6 +533,7 @@ var GC = (function(){
 
   var STORAGE_KEY = 'kb_growth_data';
   var _currentDim = 'tech';
+  var _currentFilter = 'all';
   var _prevUnlocked = {};
   var _audioCtx = null;
 
@@ -566,6 +639,17 @@ var GC = (function(){
     return sk.deps.every(function(depId){return getLv(data,depId)>=1;});
   }
 
+  // 五级状态判定
+  function getSkillState(data, sk){
+    var lv = getLv(data, sk.id);
+    var unlocked = isSkillUnlocked(data, sk);
+    if(lv >= sk.max) return 'mastered';
+    if(lv >= 3) return 'learned';
+    if(lv > 0) return 'in-progress';
+    if(unlocked) return 'available';
+    return 'locked';
+  }
+
   function renderSkillTree(dim){
     var svg = document.getElementById('skillTreeSvg');
     var wrap = document.getElementById('stSvgWrap');
@@ -613,7 +697,7 @@ var GC = (function(){
     var html = '<defs><linearGradient id="edgeGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:rgba(0,212,255,.4)"/><stop offset="100%" style="stop-color:rgba(0,255,136,.4)"/></linearGradient>';
     html += '<filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
 
-    // 连接线
+    // 连接线（状态化）
     skills.forEach(function(sk){
       if(!sk.deps) return;
       sk.deps.forEach(function(depId){
@@ -624,34 +708,43 @@ var GC = (function(){
         var tx=to.x+nodeW/2, ty=to.y;
         var my=(fy+ty)/2;
         var fromLv = getLv(data,depId);
-        var isActive = fromLv>=1;
-        html+='<path class="sk-edge'+(isActive?' active':'')+'" d="M'+fx+','+fy+' C'+fx+','+my+' '+tx+','+my+' '+tx+','+ty+'"'+(isActive?' filter="url(#glow)"':'')+'/>';
+        var toLv = getLv(data,sk.id);
+        var edgeCls = 'sk-edge';
+        var filterAttr = '';
+        if(fromLv>=1 && toLv>=sk.max){ edgeCls+=' edge-mastered'; filterAttr=' filter="url(#glow)"'; }
+        else if(fromLv>=1 && toLv>0){ edgeCls+=' edge-active'; filterAttr=' filter="url(#glow)"'; }
+        else if(fromLv>=1){ edgeCls+=' edge-available'; }
+        html+='<path class="'+edgeCls+'" d="M'+fx+','+fy+' C'+fx+','+my+' '+tx+','+my+' '+tx+','+ty+'"'+filterAttr+'/>';
       });
     });
 
-    // 节点
+    // 节点（五级状态）
     var dimColors = {tech:'#00d4ff',mgmt:'#ffd700',soft:'#ff6eb4'};
     var dimColor = dimColors[dim];
+    var stateColors = {locked:'#3d4160',available:'#4a7cbb','in-progress':'#00d4ff',learned:'#00ff88',mastered:'#ffd700'};
     skills.forEach(function(sk){
       var p = positions[sk.id];
       var lv = getLv(data,sk.id);
-      var unlocked = isSkillUnlocked(data,sk);
-      var mastered = lv>=sk.max;
-      var cls = mastered?'mastered':(lv>0?'unlocked':(unlocked?'':'locked'));
+      var state = getSkillState(data, sk);
       var pct = lv/sk.max*100;
+      var sColor = stateColors[state];
+      var stateLabel = {locked:'锁定',available:'可学习','in-progress':'学习中',learned:'已掌握',mastered:'★ 大师'}[state];
 
-      html+='<g class="sk-node '+cls+'" data-id="'+sk.id+'" transform="translate('+p.x+','+p.y+')" onclick="GC.onSkillClick(\''+sk.id+'\',\''+dim+'\',event)">';
+      html+='<g class="sk-node '+state+'" data-id="'+sk.id+'" transform="translate('+p.x+','+p.y+')" onclick="GC.onSkillClick(\''+sk.id+'\',\''+dim+'\',event)">';
       html+='<rect class="sk-node-bg" width="'+nodeW+'" height="'+nodeH+'" />';
       // 进度条背景
-      html+='<rect x="8" y="'+(nodeH-14)+'" width="'+(nodeW-16)+'" height="6" rx="3" fill="rgba(255,255,255,.06)"/>';
+      html+='<rect x="8" y="'+(nodeH-14)+'" width="'+(nodeW-16)+'" height="6" rx="3" fill="rgba(255,255,255,.04)"/>';
       // 进度条填充
-      html+='<rect x="8" y="'+(nodeH-14)+'" width="'+((nodeW-16)*pct/100)+'" height="6" rx="3" fill="'+dimColor+'" opacity=".7"/>';
+      if(pct>0) html+='<rect x="8" y="'+(nodeH-14)+'" width="'+((nodeW-16)*pct/100)+'" height="6" rx="3" fill="'+sColor+'" opacity=".8"/>';
+      // 状态指示点
+      html+='<circle cx="'+(nodeW-14)+'" cy="14" r="4" fill="'+sColor+'"'+(state==='in-progress'||state==='available'?' opacity=".7"':'')+'/>';
       // 图标
-      html+='<text x="14" y="28" font-size="18">'+sk.icon+'</text>';
+      html+='<text x="14" y="28" font-size="18">'+(state==='locked'?'🔒':sk.icon)+'</text>';
       // 名称
-      html+='<text x="36" y="26" fill="'+(cls==='locked'?'#444':'#ddd')+'" font-size="12" font-weight="600">'+sk.name+'</text>';
-      // 等级
-      html+='<text x="36" y="42" fill="'+dimColor+'" font-size="10" font-weight="700">Lv.'+lv+'/'+sk.max+(mastered?' ★':'')+'</text>';
+      var nameColor = state==='locked'?'#3d4160':(state==='mastered'?'#ffd700':(state==='learned'?'#b8f0d0':'#ddd'));
+      html+='<text x="36" y="26" fill="'+nameColor+'" font-size="12" font-weight="600">'+sk.name+'</text>';
+      // 等级+状态
+      html+='<text x="36" y="42" fill="'+sColor+'" font-size="10" font-weight="700">Lv.'+lv+'/'+sk.max+' · '+stateLabel+'</text>';
       html+='</g>';
     });
 
@@ -672,22 +765,28 @@ var GC = (function(){
     var wrapRect = wrap.getBoundingClientRect();
 
     var dimColors = {tech:'#00d4ff',mgmt:'#ffd700',soft:'#ff6eb4'};
-    var color = dimColors[dim];
+    var state = getSkillState(data, sk);
+    var stateColors = {locked:'#3d4160',available:'#4a7cbb','in-progress':'#00d4ff',learned:'#00ff88',mastered:'#ffd700'};
+    var stateBgCls = {locked:'skt-state-locked',available:'skt-state-available','in-progress':'skt-state-progress',learned:'skt-state-learned',mastered:'skt-state-mastered'};
+    var stateLabels = {locked:'🔒 锁定',available:'🔓 可学习','in-progress':'🔵 学习中',learned:'🟢 已掌握',mastered:'⭐ 大师'};
+    var color = stateColors[state];
     var pct = Math.min(lv/sk.max*100,100);
     var lvLabels = ['未学习','入门','熟悉','掌握','精通','大师'];
+    var hasFlow = state==='in-progress';
 
-    var h = '<h4>'+sk.icon+' '+sk.name+'</h4>';
+    var h = '<h4>'+sk.icon+' '+sk.name+'<span class="skt-state '+(stateBgCls[state]||'')+'">'+stateLabels[state]+'</span></h4>';
     h+='<div class="skt-desc">'+sk.desc+'</div>';
-    h+='<div class="skt-bar"><div class="skt-fill" style="width:'+pct+'%;background:'+color+'"></div></div>';
+    h+='<div class="skt-bar"><div class="skt-fill'+(hasFlow?' has-flow':'')+'" style="width:'+pct+'%;background:'+color+'"></div></div>';
     h+='<div class="skt-info"><span>Lv.'+lv+' '+lvLabels[lv]+'</span><span>'+lv+'/'+sk.max+'</span></div>';
     if(unlocked){
       h+='<div class="skt-actions">';
       if(lv>0) h+='<button class="skt-btn skt-btn-down" onclick="GC.skillDown(\''+skillId+'\',\''+dim+'\');event.stopPropagation()">- 降级</button>';
       if(lv<sk.max) h+='<button class="skt-btn skt-btn-up" onclick="GC.skillUp(\''+skillId+'\',\''+dim+'\');event.stopPropagation()">+ 升级</button>';
-      if(lv>=sk.max) h+='<span style="font-size:12px;color:#ffd700">★ 已满级</span>';
+      if(lv>=sk.max) h+='<span style="font-size:12px;color:#ffd700">⭐ 已满级</span>';
       h+='</div>';
     } else {
-      h+='<div style="margin-top:10px;font-size:11px;color:var(--neon-red)">🔒 需先解锁前置技能</div>';
+      var depNames = sk.deps.map(function(depId){var ds=null;SKILLS[dim].forEach(function(s){if(s.id===depId)ds=s;});return ds?ds.name:'?';}).join('、');
+      h+='<div style="margin-top:10px;font-size:11px;color:var(--neon-red)">🔒 需先学习：'+depNames+'</div>';
     }
 
     tooltip.innerHTML = h;
@@ -736,21 +835,38 @@ var GC = (function(){
   function renderTasks(){
     var c=document.getElementById('taskList');
     var data=load();
+    var doneTasks=data.doneTasks||[];
+    var doneCount=doneTasks.length;
+    var pendingCount=TASKS.length-doneCount;
+    // 更新筛选计数
+    var fcAll=document.getElementById('fcAll');if(fcAll)fcAll.textContent=' ('+TASKS.length+')';
+    var fcPending=document.getElementById('fcPending');if(fcPending)fcPending.textContent=' ('+pendingCount+')';
+    var fcDone=document.getElementById('fcDone');if(fcDone)fcDone.textContent=' ('+doneCount+')';
     var h='';
     TASKS.forEach(function(t){
-      var done=(data.doneTasks||[]).indexOf(t.id)>=0;
+      var done=doneTasks.indexOf(t.id)>=0;
+      if(_currentFilter==='pending'&&done) return;
+      if(_currentFilter==='done'&&!done) return;
       var tagCls=t.tags[0]==='tech'?'task-tech':(t.tags[0]==='mgmt'?'task-mgmt':'task-soft');
+      var stateCls=done?'task-done':'task-pending';
       var tagsHtml=t.tags.map(function(tag){
         var c2={tech:'task-tag-tech',mgmt:'task-tag-mgmt',soft:'task-tag-soft'}[tag]||'';
         var l={tech:'技术',mgmt:'管理',soft:'软技能'}[tag]||tag;
         return '<span class="task-tag '+c2+'">'+l+'</span>';
       }).join('');
-      h+='<div class="task-card '+tagCls+(done?' task-done':'')+'">';
+      h+='<div class="task-card '+tagCls+' '+stateCls+'">';
       h+='<div class="task-check'+(done?' done':'')+'" onclick="GC.toggleTask(\''+t.id+'\','+t.xp+')">'+(done?'✓':'')+'</div>';
       h+='<div class="task-body"><div class="task-title">'+t.title+'</div><div class="task-desc">'+t.desc+'</div>';
       h+='<div class="task-meta">'+tagsHtml+'<span class="task-xp">+'+t.xp+' XP</span></div></div></div>';
     });
+    if(!h) h='<div style="text-align:center;padding:40px;color:var(--dim);font-size:14px">'+(_currentFilter==='done'?'还没有完成任何任务，加油！🎯':'🎉 所有任务已完成！')+'</div>';
     c.innerHTML=h;
+  }
+  function filterTasks(filter,btn){
+    _currentFilter=filter;
+    document.querySelectorAll('#taskFilters .gc-tab').forEach(function(t){t.classList.remove('active');});
+    btn.classList.add('active');
+    renderTasks();
   }
   function toggleTask(tid,xp){
     var data=load();
@@ -841,7 +957,9 @@ var GC = (function(){
     for(var i=stages.length-1;i>=0;i--){if(xp>=stages[i].minXP){currentIdx=i;break;}}
     var h='';
     stages.forEach(function(s,idx){
-      h+='<div class="roadmap-stage"><div class="rs-card'+(idx===currentIdx?' current':'')+'">';
+      var stageCls = idx<currentIdx?'done-stage':(idx===currentIdx?'current':'future-stage');
+      var stageWrapCls = idx<currentIdx?'stage-done':'';
+      h+='<div class="roadmap-stage '+stageWrapCls+'"><div class="rs-card '+stageCls+'">';
       h+='<span class="rs-badge '+s.badge+'">'+s.label+'</span>';
       h+='<div class="rs-title">'+s.title+'</div>';
       h+='<div class="rs-exp">'+s.exp+'</div>';
@@ -877,6 +995,19 @@ var GC = (function(){
     document.getElementById('xpInfo').textContent=xp+' / '+nl.xp+' XP';
     document.getElementById('xpFill').style.width=pct+'%';
 
+    // 迷你进度条
+    var xpBar=document.getElementById('scXPbar');if(xpBar) xpBar.style.width=pct+'%';
+    var skBar=document.getElementById('scSkillsBar');if(skBar) skBar.style.width=(totalSkills/30*100)+'%';
+    var qBar=document.getElementById('scQuestsBar');if(qBar) qBar.style.width=(doneCount/10*100)+'%';
+
+    // 统计卡片状态
+    var statXP=document.getElementById('statXP');
+    var statSkills=document.getElementById('statSkills');
+    var statQuests=document.getElementById('statQuests');
+    if(statXP){statXP.className='stat-card'+(xp>0?' has-progress':'');}
+    if(statSkills){statSkills.className='stat-card'+(totalSkills>=30?' all-done':(totalSkills>0?' has-progress':''));}
+    if(statQuests){statQuests.className='stat-card'+(doneCount>=10?' all-done':(doneCount>0?' has-progress':''));}
+
     // 等级环
     var ring=document.getElementById('lvProgressRing');
     var circumference=2*Math.PI*52;
@@ -886,6 +1017,9 @@ var GC = (function(){
     // 成就数
     var achvCount = renderAchievements();
     document.getElementById('scAchv').textContent=achvCount+'/12';
+    var aBar=document.getElementById('scAchvBar');if(aBar) aBar.style.width=(achvCount/12*100)+'%';
+    var statAchv=document.getElementById('statAchv');
+    if(statAchv){statAchv.className='stat-card'+(achvCount>=12?' all-done':(achvCount>0?' has-progress':''));}
 
     renderRoadmap();
   }
@@ -1004,7 +1138,7 @@ var GC = (function(){
   return {
     switchTab:switchTab,switchDim:switchDim,
     onSkillClick:onSkillClick,skillUp:skillUp,skillDown:skillDown,
-    toggleTask:toggleTask,closeUnlock:closeUnlock,
+    toggleTask:toggleTask,filterTasks:filterTasks,closeUnlock:closeUnlock,
     exportData:exportData,importData:importData,exportReport:exportReport,resetData:resetData
   };
 })();
