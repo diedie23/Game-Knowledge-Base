@@ -4085,6 +4085,7 @@ function loadCozeChatSDK(){
   try{
     _cozeSdkInstance = new CozeWebSDK.WebChatClient({
       config: {
+        type: 'bot',
         botId: botId
       },
       auth: {
@@ -4108,14 +4109,17 @@ function loadCozeChatSDK(){
         asstBtn: {
           isNeed: false
         },
+        header: {
+          isShow: true,
+          isNeedClose: true
+        },
         footer: {
           isShow: false
         },
         chatBot: {
           title: AI_BOT_CONFIG.name || 'APM 智能助理',
           uploadable: false,
-          width: 420,
-          el: document.getElementById('aiChatDialog') ? undefined : undefined
+          width: 420
         }
       }
     });
@@ -4124,6 +4128,12 @@ function loadCozeChatSDK(){
     _cozeSdkReady = true;
     _cozeSdkLoading = false;
     console.log('[Coze SDK] ✅ Chat SDK 初始化成功 (Bot: '+botId.substring(0,6)+'...)');
+    // 打印实例方法，方便调试
+    var methods = [];
+    for(var k in _cozeSdkInstance){
+      if(typeof _cozeSdkInstance[k] === 'function') methods.push(k);
+    }
+    console.log('[Coze SDK] 可用方法:', methods.join(', '));
 
     // 隐藏 SDK 自带的悬浮球（多重保障）
     setTimeout(function(){
@@ -4143,15 +4153,19 @@ function loadCozeChatSDK(){
   }
 }
 
-// 隐藏 Coze SDK 默认的悬浮按钮和 powered-by 标识
+// 隐藏 Coze SDK 默认的悬浮触发按钮（不隐藏聊天窗口本身！）
 function _hideCozeDefaultUI(){
-  // SDK 可能在 body 末尾插入 iframe 和悬浮按钮
-  var allBtns = document.querySelectorAll('[class*="coze"],[id*="coze"],[class*="Coze"],[id*="Coze"]');
-  allBtns.forEach(function(el){
-    // 不隐藏我们自己的元素
+  // 只精确隐藏 SDK 自带的圆形悬浮触发按钮
+  // 注意：不能隐藏 SDK 的聊天窗口 iframe 容器！
+  var allEls = document.querySelectorAll('[class*="coze"],[id*="coze"],[class*="Coze"],[id*="Coze"]');
+  allEls.forEach(function(el){
+    // 跳过我们自己的元素
     if(el.id === 'aiChatWrapper' || el.closest('#aiChatWrapper')) return;
-    // 隐藏 SDK 自带的悬浮按钮
-    if(el.tagName === 'BUTTON' || (el.style && el.style.position === 'fixed')){
+    // 跳过 iframe（聊天窗口）和 iframe 的父容器
+    if(el.tagName === 'IFRAME') return;
+    if(el.querySelector && el.querySelector('iframe')) return;
+    // 只隐藏 button 类型的悬浮触发按钮
+    if(el.tagName === 'BUTTON'){
       el.style.display = 'none';
     }
   });
@@ -4171,25 +4185,25 @@ function toggleAiChat(){
 
   // 如果 SDK 就绪，使用 SDK 的聊天窗口
   if(_cozeSdkReady && _cozeSdkInstance){
+    console.log('[Coze SDK] toggleAiChat → SDK 模式, _sdkChatOpen='+_sdkChatOpen);
     // SDK 模式：不显示自建对话框，让 SDK 自己管理窗口
-    // 通过 SDK 的 show/hide 控制
     if(_sdkChatOpen){
       // 关闭
       _sdkChatOpen = false;
       if(avatarEl) avatarEl.style.display='';
       if(closeEl) closeEl.style.display='none';
-      // SDK 关闭窗口（隐藏 iframe）
       _hideCozeChat();
     }else{
       // 打开
       _sdkChatOpen = true;
       if(avatarEl) avatarEl.style.display='none';
       if(closeEl) closeEl.style.display='flex';
-      // SDK 打开窗口
       _showCozeChat();
     }
     return;
   }
+
+  console.log('[Coze SDK] toggleAiChat → 降级模式（SDK 未就绪: _cozeSdkReady='+_cozeSdkReady+', instance='+!!_cozeSdkInstance+'）');
 
   // SDK 未就绪 — 使用自建对话框 + 本地搜索模式
   if(dialog.classList.contains('show')){
@@ -4212,47 +4226,61 @@ function toggleAiChat(){
   }
 }
 
-// 显示 Coze SDK 聊天窗口
+// 显示 Coze SDK 聊天窗口 — 使用官方 showChatBot() 方法
 function _showCozeChat(){
-  // SDK 的 iframe 聊天窗口通常已渲染，找到并显示
-  var iframes = document.querySelectorAll('iframe');
-  iframes.forEach(function(f){
-    if(f.src && (f.src.indexOf('coze.cn')>=0 || f.src.indexOf('coze.com')>=0)){
-      f.style.display = '';
-      f.style.visibility = 'visible';
-      // 确保聊天窗口可见
-      if(f.parentElement){
-        f.parentElement.style.display = '';
-        f.parentElement.style.visibility = 'visible';
-      }
-    }
-  });
-  // 也尝试通过 SDK 实例方法
-  if(_cozeSdkInstance && typeof _cozeSdkInstance.show === 'function'){
-    _cozeSdkInstance.show();
+  if(!_cozeSdkInstance){
+    console.warn('[Coze SDK] 实例不存在，无法打开聊天窗口');
+    return;
   }
-  if(_cozeSdkInstance && typeof _cozeSdkInstance.open === 'function'){
+  // 官方 API：showChatBot() 打开聊天窗口
+  if(typeof _cozeSdkInstance.showChatBot === 'function'){
+    _cozeSdkInstance.showChatBot();
+    console.log('[Coze SDK] showChatBot() 已调用');
+  }else if(typeof _cozeSdkInstance.open === 'function'){
     _cozeSdkInstance.open();
+    console.log('[Coze SDK] open() 已调用（降级）');
+  }else{
+    console.warn('[Coze SDK] 未找到 showChatBot/open 方法，尝试手动显示 iframe');
+    // 手动查找并显示 SDK 渲染的聊天窗口容器
+    _toggleCozeIframes(true);
   }
 }
 
-// 隐藏 Coze SDK 聊天窗口
+// 隐藏 Coze SDK 聊天窗口 — 使用官方 hideChatBot() 方法
 function _hideCozeChat(){
+  if(!_cozeSdkInstance){
+    return;
+  }
+  if(typeof _cozeSdkInstance.hideChatBot === 'function'){
+    _cozeSdkInstance.hideChatBot();
+    console.log('[Coze SDK] hideChatBot() 已调用');
+  }else if(typeof _cozeSdkInstance.close === 'function'){
+    _cozeSdkInstance.close();
+    console.log('[Coze SDK] close() 已调用（降级）');
+  }else{
+    _toggleCozeIframes(false);
+  }
+}
+
+// 备用：手动控制 SDK 渲染的 iframe 显示/隐藏
+function _toggleCozeIframes(show){
   var iframes = document.querySelectorAll('iframe');
   iframes.forEach(function(f){
     if(f.src && (f.src.indexOf('coze.cn')>=0 || f.src.indexOf('coze.com')>=0)){
-      // 只隐藏聊天窗口 iframe，不隐藏悬浮按钮
-      if(f.parentElement && f.parentElement.style.position === 'fixed'){
-        f.parentElement.style.display = 'none';
+      if(show){
+        f.style.display = '';
+        f.style.visibility = 'visible';
+        if(f.parentElement){
+          f.parentElement.style.display = '';
+          f.parentElement.style.visibility = 'visible';
+        }
+      }else{
+        if(f.parentElement){
+          f.parentElement.style.display = 'none';
+        }
       }
     }
   });
-  if(_cozeSdkInstance && typeof _cozeSdkInstance.hide === 'function'){
-    _cozeSdkInstance.hide();
-  }
-  if(_cozeSdkInstance && typeof _cozeSdkInstance.close === 'function'){
-    _cozeSdkInstance.close();
-  }
 }
 
 function aiSendSuggestion(btn){

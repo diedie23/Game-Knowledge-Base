@@ -1078,11 +1078,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   .ai-drag-hint{display:none}
 }
 
-/* ── 隐藏 Coze Chat SDK 自带的悬浮按钮（使用自建按钮替代）── */
+/* ── 隐藏 Coze Chat SDK 自带的悬浮触发按钮（使用自建按钮替代）── */
+/* 注意：只隐藏按钮，不隐藏聊天窗口容器和 iframe */
 #coze-chat-sdk-btn,
 [class*="coze-chatbot-btn"],
-[class*="CozeChat"][class*="Btn"],
-[class*="coze"][class*="float"],
-[class*="coze-web-sdk"] > button{
+[class*="CozeChat"][class*="Btn"]{
   display:none!important;
 }
