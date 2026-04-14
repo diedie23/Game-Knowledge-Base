@@ -5675,17 +5675,200 @@ function aiExportChat(){
   }catch(e){alert('导出失败：'+e.message);}
 }
 
-// ═══ 快速记录浮动按钮 ═══
+// ═══ 快速记录浮动按钮（可拖拽 + 右键菜单 + 快速上传）═══
 var _quickNoteOpen=false;
 
-function toggleQuickNote(){
+/* ── 拖拽系统 ── */
+(function initFabDrag(){
+  document.addEventListener('DOMContentLoaded',function(){
+    var fab=document.getElementById('quickNoteFab');
+    if(!fab)return;
+    var isDragging=false, hasMoved=false, startX=0, startY=0, fabX=0, fabY=0;
+    var DRAG_THRESHOLD=5; // 拖拽阈值（像素），避免误判点击
+
+    // 恢复保存的位置
+    _restoreFabPosition(fab);
+
+    // 左键点击 = 打开面板
+    fab.addEventListener('click',function(e){
+      if(hasMoved) return; // 拖拽结束后不触发点击
+      toggleQuickNote();
+    });
+
+    // 右键 = 打开上下文菜单
+    fab.addEventListener('contextmenu',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      _showQnCtxMenu(e.clientX, e.clientY);
+    });
+
+    // ── 拖拽：mousedown ──
+    fab.addEventListener('mousedown',function(e){
+      if(e.button!==0)return; // 只处理左键
+      isDragging=true; hasMoved=false;
+      startX=e.clientX; startY=e.clientY;
+      var rect=fab.getBoundingClientRect();
+      fabX=rect.left; fabY=rect.top;
+      fab.classList.add('dragging');
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove',function(e){
+      if(!isDragging)return;
+      var dx=e.clientX-startX, dy=e.clientY-startY;
+      if(!hasMoved && Math.abs(dx)<DRAG_THRESHOLD && Math.abs(dy)<DRAG_THRESHOLD) return;
+      hasMoved=true;
+      var newX=fabX+dx, newY=fabY+dy;
+      // 边界检测
+      var maxX=window.innerWidth-fab.offsetWidth-4;
+      var maxY=window.innerHeight-fab.offsetHeight-4;
+      newX=Math.max(4, Math.min(newX, maxX));
+      newY=Math.max(4, Math.min(newY, maxY));
+      fab.style.left=newX+'px';
+      fab.style.top=newY+'px';
+      fab.style.right='auto';
+      fab.style.bottom='auto';
+    });
+
+    document.addEventListener('mouseup',function(){
+      if(!isDragging)return;
+      isDragging=false;
+      fab.classList.remove('dragging');
+      if(hasMoved){
+        _saveFabPosition(fab);
+        _repositionPanel(fab);
+        // 延迟清除 hasMoved，避免 mouseup 后立即触发 click
+        setTimeout(function(){ hasMoved=false; },50);
+      }
+    });
+
+    // ── 触摸拖拽支持 ──
+    fab.addEventListener('touchstart',function(e){
+      var t=e.touches[0];
+      isDragging=true; hasMoved=false;
+      startX=t.clientX; startY=t.clientY;
+      var rect=fab.getBoundingClientRect();
+      fabX=rect.left; fabY=rect.top;
+      fab.classList.add('dragging');
+    },{passive:true});
+
+    document.addEventListener('touchmove',function(e){
+      if(!isDragging)return;
+      var t=e.touches[0];
+      var dx=t.clientX-startX, dy=t.clientY-startY;
+      if(!hasMoved && Math.abs(dx)<DRAG_THRESHOLD && Math.abs(dy)<DRAG_THRESHOLD) return;
+      hasMoved=true;
+      var newX=fabX+dx, newY=fabY+dy;
+      var maxX=window.innerWidth-fab.offsetWidth-4;
+      var maxY=window.innerHeight-fab.offsetHeight-4;
+      newX=Math.max(4, Math.min(newX, maxX));
+      newY=Math.max(4, Math.min(newY, maxY));
+      fab.style.left=newX+'px';
+      fab.style.top=newY+'px';
+      fab.style.right='auto';
+      fab.style.bottom='auto';
+      e.preventDefault();
+    },{passive:false});
+
+    document.addEventListener('touchend',function(){
+      if(!isDragging)return;
+      isDragging=false;
+      fab.classList.remove('dragging');
+      if(hasMoved){
+        _saveFabPosition(fab);
+        _repositionPanel(fab);
+        setTimeout(function(){ hasMoved=false; },50);
+      }
+    });
+
+    // 关闭右键菜单
+    document.addEventListener('click',function(e){
+      var menu=document.getElementById('qnCtxMenu');
+      if(menu && menu.style.display!=='none' && !menu.contains(e.target)){
+        menu.style.display='none';
+      }
+    });
+
+    // 窗口 resize 时边界修正
+    window.addEventListener('resize',function(){
+      var r=fab.getBoundingClientRect();
+      var maxX=window.innerWidth-fab.offsetWidth-4;
+      var maxY=window.innerHeight-fab.offsetHeight-4;
+      if(r.left>maxX) fab.style.left=maxX+'px';
+      if(r.top>maxY) fab.style.top=maxY+'px';
+    });
+  });
+})();
+
+function _saveFabPosition(fab){
+  var rect=fab.getBoundingClientRect();
+  localStorage.setItem('kb_fab_pos',JSON.stringify({left:rect.left,top:rect.top}));
+}
+
+function _restoreFabPosition(fab){
+  try{
+    var pos=JSON.parse(localStorage.getItem('kb_fab_pos'));
+    if(pos && typeof pos.left==='number'){
+      var maxX=window.innerWidth-fab.offsetWidth-4;
+      var maxY=window.innerHeight-fab.offsetHeight-4;
+      var x=Math.max(4,Math.min(pos.left,maxX));
+      var y=Math.max(4,Math.min(pos.top,maxY));
+      fab.style.left=x+'px';
+      fab.style.top=y+'px';
+      fab.style.right='auto';
+      fab.style.bottom='auto';
+    }
+  }catch(e){}
+}
+
+function resetFabPosition(){
+  localStorage.removeItem('kb_fab_pos');
+  var fab=document.getElementById('quickNoteFab');
+  if(fab){
+    fab.style.left='';fab.style.top='';fab.style.right='24px';fab.style.bottom='24px';
+  }
+  _hideQnCtxMenu();
+  showToast&&showToast('📍 按钮位置已重置');
+}
+
+/* ── 面板位置跟随FAB ── */
+function _repositionPanel(fab){
   var panel=document.getElementById('quickNotePanel');
   if(!panel)return;
+  var rect=fab.getBoundingClientRect();
+  var panelW=380, panelH=panel.offsetHeight||450;
+  // 优先在FAB上方显示
+  var top=rect.top-panelH-12;
+  var left=rect.left+rect.width/2-panelW/2;
+  // 如果上方空间不够，放到下方
+  if(top<8) top=rect.bottom+12;
+  // 水平边界
+  if(left<8) left=8;
+  if(left+panelW>window.innerWidth-8) left=window.innerWidth-panelW-8;
+  // 垂直边界
+  if(top+panelH>window.innerHeight-8) top=window.innerHeight-panelH-8;
+  if(top<8) top=8;
+  panel.style.left=left+'px';
+  panel.style.top=top+'px';
+  panel.style.right='auto';
+  panel.style.bottom='auto';
+}
+
+/* ── 打开/关闭记录面板 ── */
+function toggleQuickNote(){
+  var panel=document.getElementById('quickNotePanel');
+  var fab=document.getElementById('quickNoteFab');
+  if(!panel)return;
   _quickNoteOpen=!_quickNoteOpen;
+  _hideQnCtxMenu();
   if(_quickNoteOpen){
+    _repositionPanel(fab);
     panel.classList.add('show');
     _loadQuickNoteCount();
-    document.getElementById('qnTitle').focus();
+    setTimeout(function(){
+      var el=document.getElementById('qnTitle');
+      if(el) el.focus();
+    },100);
   }else{
     panel.classList.remove('show');
   }
@@ -5695,10 +5878,8 @@ function saveQuickNote(){
   var title=document.getElementById('qnTitle').value.trim();
   var content=document.getElementById('qnContent').value.trim();
   if(!title&&!content){alert('请输入标题或内容');return;}
-  // 收集选中的标签
   var tags=[];
-  document.querySelectorAll('.quick-note-tag.active').forEach(function(t){tags.push(t.textContent);});
-  // 保存到 localStorage
+  document.querySelectorAll('.quick-note-tag.active').forEach(function(t){tags.push(t.textContent.trim());});
   try{
     var notes=JSON.parse(localStorage.getItem('kb_quick_notes')||'[]');
     notes.push({
@@ -5710,17 +5891,13 @@ function saveQuickNote(){
       date:new Date().toISOString().slice(0,10)
     });
     localStorage.setItem('kb_quick_notes',JSON.stringify(notes));
-    // 清空表单
     document.getElementById('qnTitle').value='';
     document.getElementById('qnContent').value='';
     document.querySelectorAll('.quick-note-tag.active').forEach(function(t){t.classList.remove('active');});
     _loadQuickNoteCount();
-    // 显示成功提示
     var btn=document.querySelector('.quick-note-save');
-    var origText=btn.textContent;
-    btn.textContent='✅ 已保存！';
-    btn.style.color='#4ade80';
-    setTimeout(function(){btn.textContent=origText;btn.style.color='';},1500);
+    if(btn){var orig=btn.textContent;btn.textContent='✅ 已保存！';btn.style.color='#4ade80';setTimeout(function(){btn.textContent=orig;btn.style.color='';},1500);}
+    showToast&&showToast('📌 记录已保存');
   }catch(e){alert('保存失败：'+e.message);}
 }
 
@@ -5737,24 +5914,244 @@ function toggleQnTag(el){
   el.classList.toggle('active');
 }
 
-function openQuickNotesInEditor(){
-  // 将所有快速记录转为 Markdown 并打开编辑器
+/* ── 右键上下文菜单 ── */
+function _showQnCtxMenu(x,y){
+  var menu=document.getElementById('qnCtxMenu');
+  if(!menu)return;
+  menu.style.display='block';
+  menu.style.left=x+'px';
+  menu.style.top=y+'px';
+  // 边界修正
+  var rect=menu.getBoundingClientRect();
+  if(rect.right>window.innerWidth) menu.style.left=(x-rect.width)+'px';
+  if(rect.bottom>window.innerHeight) menu.style.top=(y-rect.height)+'px';
+}
+
+function _hideQnCtxMenu(){
+  var menu=document.getElementById('qnCtxMenu');
+  if(menu) menu.style.display='none';
+}
+
+/* ── 查看全部（独立模态框）── */
+function openQuickNoteViewer(){
+  _hideQnCtxMenu();
+  // 关闭记录面板
+  if(_quickNoteOpen){ _quickNoteOpen=false; var p=document.getElementById('quickNotePanel'); if(p) p.classList.remove('show'); }
+  var overlay=document.getElementById('qnViewerOverlay');
+  if(!overlay)return;
+  overlay.classList.add('show');
+  _renderQuickNoteViewer();
+  // 点击遮罩关闭
+  overlay.onclick=function(e){ if(e.target===overlay) closeQuickNoteViewer(); };
+}
+
+function closeQuickNoteViewer(){
+  var overlay=document.getElementById('qnViewerOverlay');
+  if(overlay) overlay.classList.remove('show');
+  // 重置搜索
+  var s=document.getElementById('qnViewerSearch'); if(s) s.value='';
+  var f=document.getElementById('qnViewerTagFilter'); if(f) f.value='';
+}
+
+function _renderQuickNoteViewer(keyword,tagFilter){
+  var body=document.getElementById('qnViewerBody');
+  var statsEl=document.getElementById('qnViewerStats');
+  if(!body)return;
+  var notes=[];
+  try{notes=JSON.parse(localStorage.getItem('kb_quick_notes')||'[]');}catch(e){}
+  var kw=(keyword||'').trim().toLowerCase();
+  var tf=(tagFilter||'').trim();
+  // 过滤
+  var filtered=notes.filter(function(n){
+    var matchKw=!kw||(n.title||'').toLowerCase().indexOf(kw)>=0||(n.content||'').toLowerCase().indexOf(kw)>=0;
+    var matchTag=!tf||n.tags.indexOf(tf)>=0;
+    return matchKw&&matchTag;
+  });
+  // 按时间倒序
+  filtered.sort(function(a,b){return(b.time||0)-(a.time||0);});
+  // 统计
+  if(statsEl){
+    var tagCounts={};
+    notes.forEach(function(n){(n.tags||[]).forEach(function(t){tagCounts[t]=(tagCounts[t]||0)+1;});});
+    var statsHtml='<span class="stat-badge">📌 共 '+notes.length+' 条</span>';
+    statsHtml+='<span class="stat-badge">🔍 显示 '+filtered.length+' 条</span>';
+    var topTags=Object.keys(tagCounts).sort(function(a,b){return tagCounts[b]-tagCounts[a];}).slice(0,4);
+    topTags.forEach(function(t){statsHtml+='<span class="stat-badge">'+t+' ×'+tagCounts[t]+'</span>';});
+    statsEl.innerHTML=statsHtml;
+  }
+  // 渲染
+  if(!filtered.length){
+    body.innerHTML='<div class="qn-viewer-empty"><span>📭</span><div style="font-size:15px;font-weight:500">'+(kw||tf?'没有匹配的记录':'暂无快速记录')+'</div><div style="font-size:13px">点击右下角 📌 按钮开始记录</div></div>';
+    return;
+  }
+  var html='';
+  filtered.forEach(function(n){
+    var timeStr=new Date(n.time).toLocaleString();
+    var tagsHtml='';
+    (n.tags||[]).forEach(function(t){tagsHtml+='<span class="qn-card-tag">'+_escHtml(t)+'</span>';});
+    var contentPreview=_escHtml(n.content||'').substring(0,500);
+    html+='<div class="qn-card" data-id="'+n.id+'">'
+      +'<div class="qn-card-header">'
+        +'<h4 class="qn-card-title">'+_escHtml(n.title)+'</h4>'
+        +'<span class="qn-card-time">'+timeStr+'</span>'
+      +'</div>'
+      +(n.content?'<div class="qn-card-content">'+contentPreview+'</div>':'')
+      +'<div class="qn-card-footer">'
+        +'<div class="qn-card-tags">'+tagsHtml+'</div>'
+        +'<div class="qn-card-actions">'
+          +'<button class="qn-card-act act-upload" onclick="quickUploadSingleNote(\''+n.id+'\')" title="上传到仓库">🚀</button>'
+          +'<button class="qn-card-act" onclick="editQuickNote(\''+n.id+'\')" title="编辑">✏️</button>'
+          +'<button class="qn-card-act act-delete" onclick="deleteQuickNote(\''+n.id+'\')" title="删除">🗑</button>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  });
+  body.innerHTML=html;
+}
+
+function _escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function filterQuickNotes(keyword){
+  var tf=(document.getElementById('qnViewerTagFilter')||{}).value||'';
+  _renderQuickNoteViewer(keyword,tf);
+}
+
+function deleteQuickNote(id){
+  if(!confirm('确定删除此条记录？'))return;
   try{
     var notes=JSON.parse(localStorage.getItem('kb_quick_notes')||'[]');
-    if(!notes.length){alert('暂无快速记录');return;}
-    var md='# 📌 我的快速记录\n\n> 导出时间：'+new Date().toLocaleString()+'\n\n---\n\n';
+    notes=notes.filter(function(n){return n.id!==id;});
+    localStorage.setItem('kb_quick_notes',JSON.stringify(notes));
+    _renderQuickNoteViewer(
+      (document.getElementById('qnViewerSearch')||{}).value||'',
+      (document.getElementById('qnViewerTagFilter')||{}).value||''
+    );
+    _loadQuickNoteCount();
+    showToast&&showToast('已删除');
+  }catch(e){alert('删除失败：'+e.message);}
+}
+
+function editQuickNote(id){
+  try{
+    var notes=JSON.parse(localStorage.getItem('kb_quick_notes')||'[]');
+    var note=notes.find(function(n){return n.id===id;});
+    if(!note)return;
+    var newTitle=prompt('编辑标题：',note.title);
+    if(newTitle===null)return;
+    var newContent=prompt('编辑内容：',note.content);
+    if(newContent===null)return;
+    note.title=newTitle||note.title;
+    note.content=newContent!==null?newContent:note.content;
+    note.time=Date.now();
+    note.date=new Date().toISOString().slice(0,10);
+    localStorage.setItem('kb_quick_notes',JSON.stringify(notes));
+    _renderQuickNoteViewer(
+      (document.getElementById('qnViewerSearch')||{}).value||'',
+      (document.getElementById('qnViewerTagFilter')||{}).value||''
+    );
+    showToast&&showToast('✏️ 已更新');
+  }catch(e){alert('编辑失败：'+e.message);}
+}
+
+function clearAllQuickNotes(){
+  if(!confirm('确定要清空全部快速记录？此操作不可撤销！'))return;
+  localStorage.removeItem('kb_quick_notes');
+  _renderQuickNoteViewer();
+  _loadQuickNoteCount();
+  showToast&&showToast('🗑 已清空全部记录');
+}
+
+function exportQuickNotesMarkdown(){
+  _hideQnCtxMenu();
+  try{
+    var notes=JSON.parse(localStorage.getItem('kb_quick_notes')||'[]');
+    if(!notes.length){alert('暂无快速记录可导出');return;}
+    notes.sort(function(a,b){return(b.time||0)-(a.time||0);});
+    var md='# 📌 我的快速记录\n\n> 导出时间：'+new Date().toLocaleString()+'\n> 共 '+notes.length+' 条记录\n\n---\n\n';
     notes.forEach(function(n,i){
       md+='## '+(i+1)+'. '+n.title+'\n\n';
       md+='> 📅 '+n.date;
       if(n.tags.length) md+=' · 🏷️ '+n.tags.join(', ');
-      md+='\n\n'+n.content+'\n\n---\n\n';
+      md+='\n\n'+(n.content||'（无内容）')+'\n\n---\n\n';
     });
-    openEditor();
-    setTimeout(function(){
-      if(vditorInstance) vditorInstance.setValue(md);
-    },500);
-    toggleQuickNote();
-  }catch(e){alert('转换失败：'+e.message);}
+    var blob=new Blob([md],{type:'text/markdown;charset=utf-8'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='quick-notes-'+new Date().toISOString().slice(0,10)+'.md';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast&&showToast('⬇ 已导出 Markdown 文件');
+  }catch(e){alert('导出失败：'+e.message);}
+}
+
+/* ── 快速上传到 GitHub（集成现有发布逻辑）── */
+async function quickUploadNotes(){
+  _hideQnCtxMenu();
+  var notes=[];
+  try{notes=JSON.parse(localStorage.getItem('kb_quick_notes')||'[]');}catch(e){}
+  if(!notes.length){showToast&&showToast('暂无记录可上传','warning');return;}
+  if(!confirm('将全部 '+notes.length+' 条快速记录上传到仓库的「我的项目笔记」模块？'))return;
+  await _doUploadNotes(notes,'全部快速记录');
+}
+
+async function quickUploadSingleNote(id){
+  var notes=[];
+  try{notes=JSON.parse(localStorage.getItem('kb_quick_notes')||'[]');}catch(e){}
+  var note=notes.find(function(n){return n.id===id;});
+  if(!note){showToast&&showToast('未找到记录','warning');return;}
+  if(!confirm('将「'+note.title+'」上传到仓库？'))return;
+  await _doUploadNotes([note],note.title);
+}
+
+async function _doUploadNotes(notesArr,label){
+  var s=getGHSettings();
+  if(!s.token){
+    showToast&&showToast('⚠️ 请先在「⚙️ 设置」中配置 GitHub 访问密钥','warning');
+    return;
+  }
+  showToast&&showToast('⏳ 正在上传「'+label+'」…');
+
+  try{
+    var repo=s.repo||'diedie23/Game-Knowledge-Base';
+    var branch=s.branch||'main';
+    var base='https://api.github.com/repos/'+repo;
+    var headers={'Authorization':'token '+s.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};
+
+    // 生成 Markdown 内容
+    var md='# 📌 '+label+'\n\n';
+    md+='> 上传时间：'+new Date().toLocaleString()+'\n';
+    md+='> 共 '+notesArr.length+' 条记录\n\n---\n\n';
+    notesArr.forEach(function(n,i){
+      md+='## '+(i+1)+'. '+n.title+'\n\n';
+      md+='> 📅 '+(n.date||'未知');
+      if(n.tags&&n.tags.length) md+=' · 🏷️ '+n.tags.join(', ');
+      md+='\n\n'+(n.content||'')+'\n\n---\n\n';
+    });
+
+    // 文件名：quick-notes-YYYY-MM-DD.md
+    var fileName='quick-notes-'+new Date().toISOString().slice(0,10)+'.md';
+    var filePath='docs/knowledge-base/'+fileName;
+    var fileBase=base+'/contents/'+filePath;
+
+    // 检查文件是否已存在
+    var bodyObj={message:'docs: 上传快速记录 '+fileName,content:btoa(unescape(encodeURIComponent(md))),branch:branch};
+    try{
+      var existRes=await fetch(fileBase+'?ref='+branch,{headers:headers});
+      if(existRes.ok){
+        var existData=await existRes.json();
+        bodyObj.sha=existData.sha;
+        bodyObj.message='docs: 更新快速记录 '+fileName;
+      }
+    }catch(e){}
+
+    var putRes=await fetch(fileBase,{method:'PUT',headers:headers,body:JSON.stringify(bodyObj)});
+    if(!putRes.ok){var errText=await putRes.text();throw new Error('上传失败: '+errText);}
+
+    showToast&&showToast('🎉 「'+label+'」已上传到仓库！');
+  }catch(e){
+    showToast&&showToast('❌ 上传失败：'+e.message,'warning');
+    console.error('Quick note upload error:',e);
+  }
 }
 
 // ═══ Init ═══

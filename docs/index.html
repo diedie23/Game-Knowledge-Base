@@ -1120,12 +1120,15 @@ sequenceDiagram
   </div>
 </div>
 
-<!-- ═══ 快速记录浮动按钮 ═══ -->
-<button class="quick-note-fab" onclick="toggleQuickNote()" title="📌 快速记录">📌</button>
+<!-- ═══ 快速记录浮动按钮（可拖拽）═══ -->
+<button class="quick-note-fab" id="quickNoteFab" title="📌 快速记录 | 右键更多操作">📌</button>
 <div class="quick-note-panel" id="quickNotePanel">
   <div class="quick-note-header">
     <h4>📌 快速记录</h4>
-    <button class="quick-note-close" onclick="toggleQuickNote()">✕</button>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="quick-note-close" onclick="openQuickNoteViewer()" title="查看全部记录" style="color:var(--accent);border-color:rgba(108,140,255,.3)">📋</button>
+      <button class="quick-note-close" onclick="toggleQuickNote()" title="关闭">✕</button>
+    </div>
   </div>
   <div class="quick-note-body">
     <div class="quick-note-field">
@@ -1152,11 +1155,47 @@ sequenceDiagram
   </div>
   <div class="quick-note-footer">
     <span class="quick-note-count" id="qnCount">已保存 0 条记录</span>
-    <div style="display:flex;gap:8px">
-      <button class="quick-note-save" style="background:rgba(108,140,255,.1);color:var(--accent)" onclick="openQuickNotesInEditor()">📋 查看全部</button>
-      <button class="quick-note-save" onclick="saveQuickNote()">💾 保存记录</button>
-    </div>
+    <button class="quick-note-save" onclick="saveQuickNote()">💾 保存记录</button>
   </div>
+</div>
+
+<!-- ═══ 快速记录 — 查看全部（独立模态框）═══ -->
+<div class="fb-overlay" id="qnViewerOverlay">
+  <div class="qn-viewer">
+    <div class="qn-viewer-header">
+      <h3>📋 全部快速记录</h3>
+      <div class="qn-viewer-actions">
+        <input type="text" class="qn-viewer-search" id="qnViewerSearch" placeholder="🔍 搜索记录…" oninput="filterQuickNotes(this.value)">
+        <select class="qn-viewer-filter" id="qnViewerTagFilter" onchange="filterQuickNotes(document.getElementById('qnViewerSearch').value)">
+          <option value="">全部标签</option>
+          <option value="💡 灵感">💡 灵感</option>
+          <option value="🐛 问题">🐛 问题</option>
+          <option value="✅ 待办">✅ 待办</option>
+          <option value="🔄 复盘">🔄 复盘</option>
+          <option value="🤝 沟通">🤝 沟通</option>
+          <option value="⚠️ 风险">⚠️ 风险</option>
+          <option value="📦 外包">📦 外包</option>
+          <option value="📅 排期">📅 排期</option>
+        </select>
+        <button class="qn-viewer-btn" onclick="exportQuickNotesMarkdown()" title="导出 Markdown">⬇ 导出</button>
+        <button class="qn-viewer-btn qn-viewer-btn-danger" onclick="clearAllQuickNotes()" title="清空全部记录">🗑 清空</button>
+        <button class="qn-viewer-close" onclick="closeQuickNoteViewer()">✕</button>
+      </div>
+    </div>
+    <div class="qn-viewer-stats" id="qnViewerStats"></div>
+    <div class="qn-viewer-body" id="qnViewerBody"></div>
+  </div>
+</div>
+
+<!-- ═══ 快速记录 — 右键上下文菜单 ═══ -->
+<div class="qn-ctx-menu" id="qnCtxMenu" style="display:none">
+  <div class="qn-ctx-item" onclick="toggleQuickNote()"><span>📌</span> 新建记录</div>
+  <div class="qn-ctx-item" onclick="openQuickNoteViewer()"><span>📋</span> 查看全部</div>
+  <div class="qn-ctx-divider"></div>
+  <div class="qn-ctx-item" onclick="quickUploadNotes()"><span>🚀</span> 快速上传到仓库</div>
+  <div class="qn-ctx-item" onclick="exportQuickNotesMarkdown()"><span>⬇</span> 导出 Markdown</div>
+  <div class="qn-ctx-divider"></div>
+  <div class="qn-ctx-item" onclick="resetFabPosition()"><span>📍</span> 重置按钮位置</div>
 </div>
 
 <!-- 侧边栏右键上下文菜单 -->
