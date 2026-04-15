@@ -162,6 +162,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .skt-btn.skt-btn-up:hover{background:rgba(0,255,136,.1)}
 .skt-btn.skt-btn-down{border-color:var(--neon-red);color:var(--neon-red)}
 .skt-btn.skt-btn-down:hover{background:rgba(255,71,87,.1)}
+.skt-doc-link{margin-top:8px;text-align:right}
+.skt-doc-link a{font-size:11px;color:var(--neon-blue);text-decoration:none;opacity:.8;transition:opacity .2s}
+.skt-doc-link a:hover{opacity:1;text-decoration:underline}
+
+/* ── 悬浮引导按钮 ── */
+.guide-fab{position:fixed;bottom:28px;right:28px;z-index:200;width:48px;height:48px;border-radius:50%;border:1.5px solid var(--neon-blue);background:var(--card);color:var(--neon-blue);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.35),var(--glow-blue);transition:all .25s ease;opacity:.85}
+.guide-fab:hover{opacity:1;transform:scale(1.12);box-shadow:0 6px 28px rgba(0,0,0,.45),0 0 20px rgba(0,212,255,.3)}
+.guide-fab:active{transform:scale(.95)}
 
 /* ══════════════════════════════════
    实战任务
@@ -1032,20 +1040,22 @@ var GC = (function(){
     if(sk.goal) h+='<div class="skt-goal">'+sk.goal+'</div>';
     // 进度条
     h+='<div class="skt-bar"><div class="skt-fill'+(hasFlow?' has-flow':'')+'" style="width:'+pct+'%;background:'+color+'"></div></div>';
-    h+='<div class="skt-info"><span>Lv.'+lv+' '+(lv>0&&sk.levels?sk.levels[lv-1]:LV_NAMES[lv])+'</span><span>'+lv+'/'+sk.max+'</span></div>';
+    h+='<div class="skt-info"><span>Lv.'+lv+' '+(lv>0&&sk.levels?sk.levels[lv-1]:LV_NAMES[lv])+'</span><span>当前等级：Lv.'+lv+' (满级Lv.'+sk.max+')</span></div>';
     // 当前等级能力 + 下一级预览
     if(sk.levels){
       if(lv>0 && lv<=sk.max){
         h+='<div style="font-size:11px;color:var(--dim);margin-top:4px">📌 当前能力：'+sk.levels[lv-1]+'</div>';
       }
       if(lv<sk.max){
-        h+='<div class="skt-next-lv"><span class="skt-next-label">⬆ 升到 Lv.'+(lv+1)+'：</span><span class="skt-next-desc">'+sk.levels[lv]+'</span></div>';
+        h+='<div class="skt-next-lv"><span class="skt-next-label">🎯 当前修炼任务：</span><span class="skt-next-desc">'+sk.levels[lv]+'</span></div>';
       }
     }
+    // 📖 查阅相关文档链接
+    h+='<div class="skt-doc-link"><a href="#" onclick="event.stopPropagation()" target="_blank">📖 查阅相关文档 ↗</a></div>';
     if(unlocked){
       h+='<div class="skt-actions">';
       if(lv>0) h+='<button class="skt-btn skt-btn-down" onclick="GC.skillDown(\''+skillId+'\',\''+dim+'\');event.stopPropagation()">- 降级</button>';
-      if(lv<sk.max) h+='<button class="skt-btn skt-btn-up" onclick="GC.skillUp(\''+skillId+'\',\''+dim+'\');event.stopPropagation()">⬆ 升级到 Lv.'+(lv+1)+'</button>';
+      if(lv<sk.max) h+='<button class="skt-btn skt-btn-up" onclick="GC.skillUp(\''+skillId+'\',\''+dim+'\');event.stopPropagation()">✅ 完成修炼 (升至Lv.'+(lv+1)+')</button>';
       if(lv>=sk.max) h+='<span style="font-size:12px;color:#ffd700">⭐ 已满级 — 大师</span>';
       h+='</div>';
     } else {
@@ -1706,6 +1716,8 @@ var GC = (function(){
   };
 })();
 </script>
+<!-- 悬浮引导按钮 -->
+<button class="guide-fab" onclick="GC.startGuide()" title="新手引导">💡</button>
 <script src="editor-kit.js"></script>
 </body>
 </html>
