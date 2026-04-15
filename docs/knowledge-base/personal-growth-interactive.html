@@ -309,8 +309,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
    ══════════════════════════════════ */
 .guide-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.75);z-index:9990;opacity:0;pointer-events:none;transition:opacity .4s}
 .guide-overlay.show{opacity:1;pointer-events:auto}
-.guide-card{position:fixed;z-index:9991;background:var(--card);border:2px solid var(--neon-blue);border-radius:18px;padding:24px 28px;max-width:420px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.6),var(--glow-blue);opacity:0;pointer-events:none;transition:all .4s cubic-bezier(.34,1.56,.64,1);transform:translateY(16px)}
+.guide-card{position:fixed;z-index:9991;background:var(--card);border:2px solid var(--neon-blue);border-radius:18px;padding:24px 28px;max-width:420px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.6),var(--glow-blue);opacity:0;pointer-events:none;transition:all .4s cubic-bezier(.34,1.56,.64,1);transform:translateY(16px);cursor:grab}
 .guide-card.show{opacity:1;pointer-events:auto;transform:none}
+.guide-card:active{cursor:grabbing}
+.guide-card.show:hover{box-shadow:0 12px 40px rgba(0,0,0,.6),0 0 50px rgba(0,212,255,.4)}
 .guide-card .guide-step{font-size:10px;color:var(--neon-blue);font-weight:700;letter-spacing:1px;margin-bottom:8px}
 .guide-card .guide-title{font-size:18px;color:#fff;font-weight:800;margin-bottom:8px}
 .guide-card .guide-desc{font-size:13px;color:var(--text);line-height:1.8;margin-bottom:16px}
@@ -321,12 +323,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .guide-btn.guide-btn-primary{border-color:var(--neon-blue);color:#fff;background:linear-gradient(135deg,rgba(0,212,255,.15),rgba(0,255,136,.1))}
 .guide-btn.guide-btn-primary:hover{background:linear-gradient(135deg,rgba(0,212,255,.25),rgba(0,255,136,.2));box-shadow:var(--glow-blue)}
 .guide-dots{display:flex;gap:6px;margin-right:auto}
-.guide-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .3s}
-.guide-dot.active{background:var(--neon-blue);box-shadow:0 0 8px rgba(0,212,255,.4)}
-.guide-dot.done{background:var(--neon-green)}
+.guide-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .3s;cursor:pointer}
+.guide-dot:hover{transform:scale(1.3);background:var(--neon-cyan)}
+.guide-dot.active{background:var(--neon-blue);box-shadow:0 0 8px rgba(0,212,255,.4);transform:scale(1.2)}
+.guide-dot.done{background:var(--neon-green);cursor:pointer}
+.guide-dot.done:hover{background:var(--neon-green);box-shadow:0 0 8px rgba(0,255,136,.4)}
 /* 引导高亮框 */
-.guide-spotlight{position:fixed;z-index:9989;border:2px solid var(--neon-blue);border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.7),0 0 30px rgba(0,212,255,.3);pointer-events:none;transition:all .5s cubic-bezier(.4,0,.2,1);opacity:0}
+.guide-spotlight{position:fixed;z-index:9989;border:2px solid var(--neon-blue);border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.7),0 0 30px rgba(0,212,255,.3);pointer-events:none;transition:all .5s cubic-bezier(.4,0,.2,1);opacity:0;animation:spotlightPulse 2s ease-in-out infinite}
 .guide-spotlight.show{opacity:1}
+@keyframes spotlightPulse{0%,100%{border-color:var(--neon-blue);box-shadow:0 0 0 9999px rgba(0,0,0,.7),0 0 30px rgba(0,212,255,.3)}50%{border-color:var(--neon-green);box-shadow:0 0 0 9999px rgba(0,0,0,.7),0 0 40px rgba(0,255,136,.4)}}
 
 /* ══════════════════════════════════
    任务详情展开面板
@@ -1463,7 +1468,7 @@ var GC = (function(){
     {
       title:'🌳 这里是技能树',
       desc:'技能树展示了你的<span class="guide-highlight">技能成长路径</span>。每个节点代表一个核心能力。<br><br>• 灰色锁图标 = 需解锁前置技能<br>• 蓝色闪烁 = 可以开始学习<br>• 绿色 = 已掌握<br>• 金色 = 满级大师<br><br><strong>点击任意节点</strong>查看详情和升级！',
-      target:'#panel-tree .st-svg-wrap',
+      target:'#stSvgWrap',
       position:'below'
     },
     {
@@ -1488,8 +1493,6 @@ var GC = (function(){
 
   function startGuide(){
     _guideStep=0;
-    showGuideStep();
-  }
   function showGuideStep(){
     var step=GUIDE_STEPS[_guideStep];
     if(!step) return endGuide();
@@ -1502,6 +1505,11 @@ var GC = (function(){
     var dots=document.getElementById('guideDots');
     var nextBtn=document.getElementById('guideNextBtn');
 
+    // 添加滑动动画
+    card.style.transition='all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    card.style.transform='translateY(20px)';
+    card.style.opacity='0';
+
     overlay.classList.add('show');
     card.classList.add('show');
 
@@ -1510,10 +1518,10 @@ var GC = (function(){
     desc.innerHTML=step.desc;
     nextBtn.textContent=_guideStep===GUIDE_STEPS.length-1?'开始探索 🎮':'下一步 →';
 
-    // 进度圆点
+    // 进度圆点 - 可点击跳转
     var dotsHtml='';
     for(var i=0;i<GUIDE_STEPS.length;i++){
-      dotsHtml+='<div class="guide-dot'+(i<_guideStep?' done':(i===_guideStep?' active':''))+'"></div>';
+      dotsHtml+='<div class="guide-dot'+(i<_guideStep?' done':(i===_guideStep?' active':''))+'" onclick="GC.gotoGuideStep('+i+')"></div>';
     }
     dots.innerHTML=dotsHtml;
 
@@ -1536,8 +1544,58 @@ var GC = (function(){
       card.style.left='50%';card.style.top='50%';
       card.style.transform='translate(-50%,-50%)';
     }
+
+    // 动画效果
+    setTimeout(function(){
+      card.style.transform='none';
+      card.style.opacity='1';
+    }, 50);
   }
-  function nextGuide(){
+
+  // 跳转到指定步骤
+  function gotoGuideStep(stepIndex){
+    if(stepIndex>=0 && stepIndex<GUIDE_STEPS.length){
+      _guideStep=stepIndex;
+      showGuideStep();
+    }
+  }
+
+  // 添加滑动事件监听
+  function initGuideSwipe(){
+    var card=document.getElementById('guideCard');
+    var startX=0;
+    var startY=0;
+    var isSwiping=false;
+
+    card.addEventListener('touchstart',function(e){
+      startX=e.touches[0].clientX;
+      startY=e.touches[0].clientY;
+      isSwiping=true;
+    });
+
+    card.addEventListener('touchmove',function(e){
+      if(!isSwiping) return;
+      var deltaX=e.touches[0].clientX-startX;
+      var deltaY=e.touches[0].clientY-startY;
+      
+      // 水平滑动优先
+      if(Math.abs(deltaX)>Math.abs(deltaY) && Math.abs(deltaX)>30){
+        e.preventDefault();
+        if(deltaX>0 && _guideStep>0){
+          // 向右滑动 - 上一步
+          gotoGuideStep(_guideStep-1);
+        } else if(deltaX<0 && _guideStep<GUIDE_STEPS.length-1){
+          // 向左滑动 - 下一步
+          nextGuide();
+        }
+        isSwiping=false;
+      }
+    });
+
+    card.addEventListener('touchend',function(){
+      isSwiping=false;
+    });
+  }  function nextGuide(){
     _guideStep++;
     if(_guideStep>=GUIDE_STEPS.length) return endGuide();
     showGuideStep();
@@ -1563,6 +1621,7 @@ var GC = (function(){
     renderSkillTree('tech');
     renderTasks();
     updateStats();
+    initGuideSwipe(); // 初始化引导滑动功能
 
     // 首次访问触发新手引导
     try{
@@ -1582,7 +1641,7 @@ var GC = (function(){
     onSkillClick:onSkillClick,skillUp:skillUp,skillDown:skillDown,
     toggleTask:toggleTask,filterTasks:filterTasks,toggleTaskDetail:toggleTaskDetail,
     closeUnlock:closeUnlock,
-    startGuide:startGuide,nextGuide:nextGuide,skipGuide:skipGuide,
+    startGuide:startGuide,nextGuide:nextGuide,skipGuide:skipGuide,gotoGuideStep:gotoGuideStep,
     exportData:exportData,importData:importData,exportReport:exportReport,resetData:resetData
   };
 })();
