@@ -328,7 +328,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 }
 /* 引导时被高亮的目标元素 — 提升z-index使其在遮罩之上可见 */
 .guide-target-highlight{position:relative;z-index:9989!important}
-.guide-card{position:fixed;z-index:9992;background:var(--card);border:2px solid var(--neon-blue);border-radius:18px;padding:24px 28px;max-width:420px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.6),var(--glow-blue);opacity:0;pointer-events:none;transform:translateY(20px) scale(.92)}
+.guide-card{position:fixed;z-index:9992;background:var(--card);border:2px solid var(--neon-blue);border-radius:18px;padding:24px 28px;max-width:420px;width:90%;max-height:calc(100vh - 24px);overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.6),var(--glow-blue);opacity:0;pointer-events:none;transform:translateY(20px) scale(.92)}
 .guide-card.show{opacity:1;pointer-events:auto;transform:none}
 .guide-card .guide-step{font-size:10px;color:var(--neon-blue);font-weight:700;letter-spacing:1px;margin-bottom:8px}
 .guide-card .guide-title{font-size:18px;color:#fff;font-weight:800;margin-bottom:8px}
@@ -1086,8 +1086,7 @@ var GC = (function(){
     }
     // 📖 查阅相关文档链接（绑定到技能对应的知识库文档）
     if(sk.doc){
-      var docUrl='../index.html#'+sk.doc;
-      h+='<div class="skt-doc-link"><a href="'+docUrl+'" onclick="event.stopPropagation()" target="_top">📖 查阅相关文档 ↗</a></div>';
+      h+='<div class="skt-doc-link"><a href="javascript:void(0)" onclick="event.stopPropagation();GC.openSkillDoc(\''+sk.doc+'\')">📖 查阅相关文档 ↗</a></div>';
     }
     if(unlocked){
       h+='<div class="skt-actions">';
@@ -1634,12 +1633,31 @@ var GC = (function(){
         spotlight.classList.add('show');
         // 引导卡片定位 — 始终重置transform
         card.style.transform='';
+        // 智能定位：确保卡片不超出视口
+        var cardH=card.offsetHeight||280;
+        var cardW=Math.min(420,window.innerWidth*0.9);
+        var leftPos=Math.max(12,Math.min(rect.left,window.innerWidth-cardW-12));
+        card.style.left=leftPos+'px';
         if(step.position==='below'){
-          card.style.left=Math.max(20,Math.min(rect.left,window.innerWidth-440))+'px';
-          card.style.top=Math.min(rect.bottom+20,window.innerHeight-280)+'px';
+          var belowTop=rect.bottom+16;
+          var aboveTop=rect.top-cardH-16;
+          // 下方空间不足则放上方
+          if(belowTop+cardH>window.innerHeight-12 && aboveTop>=12){
+            card.style.top=aboveTop+'px';
+          } else if(belowTop+cardH>window.innerHeight-12){
+            // 上下都不够，居中显示并限制高度
+            card.style.top=Math.max(12,window.innerHeight-cardH-12)+'px';
+          } else {
+            card.style.top=belowTop+'px';
+          }
         } else {
-          card.style.left=Math.max(20,Math.min(rect.left,window.innerWidth-440))+'px';
-          card.style.top=Math.max(20,rect.top-300)+'px';
+          var abovePos=rect.top-cardH-16;
+          if(abovePos<12){
+            // 上方空间不足，放下方
+            card.style.top=Math.min(rect.bottom+16,window.innerHeight-cardH-12)+'px';
+          } else {
+            card.style.top=abovePos+'px';
+          }
         }
       },300);
     } else {
@@ -1763,6 +1781,19 @@ var GC = (function(){
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}
   else{init();}
 
+  // 查阅相关文档 — 通知父页面导航到对应文档
+  function openSkillDoc(docId){
+    try{
+      // 在 iframe 中：通过 postMessage 通知父页面导航
+      if(window.parent && window.parent!==window){
+        window.parent.postMessage({type:'gc-navigate',pageId:docId},'*');
+        return;
+      }
+    }catch(e){}
+    // 非 iframe 环境或通信失败：在新标签页打开
+    window.open('../index.html#'+docId,'_blank');
+  }
+
   // 公开API
   return {
     switchTab:switchTab,switchDim:switchDim,
@@ -1770,7 +1801,8 @@ var GC = (function(){
     toggleTask:toggleTask,filterTasks:filterTasks,toggleTaskDetail:toggleTaskDetail,
     closeUnlock:closeUnlock,
     startGuide:startGuide,nextGuide:nextGuide,prevGuide:prevGuide,goGuideStep:goGuideStep,skipGuide:skipGuide,
-    exportData:exportData,importData:importData,exportReport:exportReport,resetData:resetData
+    exportData:exportData,importData:importData,exportReport:exportReport,resetData:resetData,
+    openSkillDoc:openSkillDoc
   };
 })();
 </script>

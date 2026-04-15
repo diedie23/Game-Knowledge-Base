@@ -6204,5 +6204,9 @@ document.addEventListener('DOMContentLoaded', function(){
       buildIframeToc(curPage);
       setupIframeScrollSpy(curPage);
     }
+    // 成长中心 iframe 请求跳转到知识库文档
+    if(e.data&&e.data.type==='gc-navigate'&&e.data.pageId){
+      navigate(e.data.pageId);
+    }
   });
 });
