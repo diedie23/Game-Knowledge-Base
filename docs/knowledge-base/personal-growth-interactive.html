@@ -267,7 +267,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
    ══════════════════════════════════ */
 .data-panel{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .dp-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px}
-.dp-card h3{font-size:15px;color:#fff;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.dp-card .dp-title{font-size:15px;color:#fff;margin-bottom:12px;display:flex;align-items:center;gap:8px;font-weight:700}
 .dp-card p{font-size:12px;color:var(--dim);margin-bottom:14px;line-height:1.6}
 .dp-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;transition:all .2s}
 .dp-btn:hover{border-color:var(--neon-blue);color:var(--neon-blue);box-shadow:var(--glow-blue)}
@@ -315,9 +315,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 /* ══════════════════════════════════
    新手引导遮罩系统
    ══════════════════════════════════ */
-.guide-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.75);z-index:9990;opacity:0;pointer-events:none;transition:opacity .4s}
+.guide-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9988;opacity:0;pointer-events:none;transition:opacity .4s}
 .guide-overlay.show{opacity:1;pointer-events:auto}
-.guide-card{position:fixed;z-index:9991;background:var(--card);border:2px solid var(--neon-blue);border-radius:18px;padding:24px 28px;max-width:420px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.6),var(--glow-blue);opacity:0;pointer-events:none;transform:translateY(20px) scale(.92)}
+/* 当spotlight激活时，overlay仅作为底层兜底（spotlight的box-shadow才是主遮罩） */
+.guide-spotlight.show~.guide-overlay.show,.guide-overlay.show.guide-overlay-behind{background:transparent}
+/* 引导高亮框 — 脉动动画 + 作为主遮罩层 */
+.guide-spotlight{position:fixed;z-index:9990;border:2px solid var(--neon-blue);border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.75),0 0 30px rgba(0,212,255,.3);pointer-events:none;transition:all .5s cubic-bezier(.4,0,.2,1);opacity:0}
+.guide-spotlight.show{opacity:1;animation:spotlightPulse 2s ease-in-out infinite}
+@keyframes spotlightPulse{
+  0%,100%{border-color:var(--neon-blue);box-shadow:0 0 0 9999px rgba(0,0,0,.75),0 0 20px rgba(0,212,255,.25)}
+  50%{border-color:var(--neon-cyan);box-shadow:0 0 0 9999px rgba(0,0,0,.75),0 0 40px rgba(0,212,255,.5),inset 0 0 20px rgba(0,212,255,.08)}
+}
+/* 引导时被高亮的目标元素 — 提升z-index使其在遮罩之上可见 */
+.guide-target-highlight{position:relative;z-index:9989!important}
+.guide-card{position:fixed;z-index:9992;background:var(--card);border:2px solid var(--neon-blue);border-radius:18px;padding:24px 28px;max-width:420px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.6),var(--glow-blue);opacity:0;pointer-events:none;transform:translateY(20px) scale(.92)}
 .guide-card.show{opacity:1;pointer-events:auto;transform:none}
 .guide-card .guide-step{font-size:10px;color:var(--neon-blue);font-weight:700;letter-spacing:1px;margin-bottom:8px}
 .guide-card .guide-title{font-size:18px;color:#fff;font-weight:800;margin-bottom:8px}
@@ -332,13 +343,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .guide-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .3s}
 .guide-dot.active{background:var(--neon-blue);box-shadow:0 0 8px rgba(0,212,255,.4)}
 .guide-dot.done{background:var(--neon-green)}
-/* 引导高亮框 — 脉动动画 */
-.guide-spotlight{position:fixed;z-index:9989;border:2px solid var(--neon-blue);border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.7),0 0 30px rgba(0,212,255,.3);pointer-events:none;transition:all .5s cubic-bezier(.4,0,.2,1);opacity:0}
-.guide-spotlight.show{opacity:1;animation:spotlightPulse 2s ease-in-out infinite}
-@keyframes spotlightPulse{
-  0%,100%{border-color:var(--neon-blue);box-shadow:0 0 0 9999px rgba(0,0,0,.7),0 0 20px rgba(0,212,255,.25)}
-  50%{border-color:var(--neon-cyan);box-shadow:0 0 0 9999px rgba(0,0,0,.7),0 0 40px rgba(0,212,255,.5),inset 0 0 20px rgba(0,212,255,.08)}
-}
 /* 引导卡片入场动画 */
 .guide-card{transition:all .45s cubic-bezier(.34,1.56,.64,1);transform:translateY(20px) scale(.92)}
 .guide-card.show{transform:none;opacity:1}
@@ -489,28 +493,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 <div class="gc-panel" id="panel-data">
   <div class="data-panel">
     <div class="dp-card">
-      <h3>📤 导出数据</h3>
+      <div class="dp-title">📤 导出数据</div>
       <p>将你的成长进度导出为 JSON 文件，方便备份或在其他设备上恢复。</p>
       <button class="dp-btn" onclick="GC.exportData()">⬇ 导出进度</button>
     </div>
     <div class="dp-card">
-      <h3>📥 导入数据</h3>
+      <div class="dp-title">📥 导入数据</div>
       <p>从之前导出的 JSON 文件中恢复你的成长进度。</p>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="GC.importData(event)">
       <button class="dp-btn" onclick="document.getElementById('importFile').click()">⬆ 导入进度</button>
     </div>
     <div class="dp-card">
-      <h3>📋 导出报告</h3>
+      <div class="dp-title">📋 导出报告</div>
       <p>生成 Markdown 格式的成长报告，记录你的技能掌握情况和成就。</p>
       <button class="dp-btn" onclick="GC.exportReport()">📄 生成报告</button>
     </div>
     <div class="dp-card">
-      <h3>🗑️ 重置数据</h3>
+      <div class="dp-title">🗑️ 重置数据</div>
       <p>清除所有成长进度数据。此操作不可恢复，请先导出备份！</p>
       <button class="dp-btn dp-btn-danger" onclick="GC.resetData()">⚠ 重置全部</button>
     </div>
     <div class="dp-card">
-      <h3>📖 新手引导</h3>
+      <div class="dp-title">📖 新手引导</div>
       <p>重新播放使用引导，了解各功能模块的使用方法和操作技巧。</p>
       <button class="dp-btn" onclick="GC.startGuide()">🎮 重播引导</button>
     </div>
@@ -566,51 +570,61 @@ var GC = (function(){
        desc:'理解 2D/3D/特效/UI 完整美术制作管线的流转流程和各环节输出标准。',
        goal:'能独立绘制项目美术管线流程图，并识别各环节的瓶颈点。',
        levels:['了解管线概念','熟悉各环节角色分工','能画出完整管线流程图','能识别管线瓶颈并提改进建议','主导管线流程优化方案'],
+       doc:'game-art-pipeline',
        max:5,deps:[]},
       {id:'sk-engine',name:'引擎基础',icon:'🎮',
        desc:'掌握 Unity/UE 引擎的基础操作，包括场景搭建、资产导入导出、材质预览。',
        goal:'能在引擎中独立完成资产导入验收和基础场景搭建。',
        levels:['认识引擎界面','能导入导出资产','能搭建基础场景','掌握材质/光照调试','能定位引擎侧美术问题'],
+       doc:'art-vs-ta-naming',
        max:5,deps:['sk-pipeline']},
       {id:'sk-tool',name:'工具链熟练度',icon:'🛠️',
        desc:'掌握 PS/Spine/Maya/Blender 等常用美术工具的基本操作和工作流。',
        goal:'能用工具完成基础资产检查和简单调整，不依赖美术同事。',
        levels:['知道各工具用途','能打开查看文件','能做简单编辑调整','熟练使用批量功能','能编写工具插件/脚本'],
+       doc:'art-tools-guide',
        max:5,deps:['sk-pipeline']},
       {id:'sk-naming',name:'命名与规范',icon:'📝',
        desc:'掌握资产命名规则、目录结构标准和版本提交规范。',
        goal:'能制定并推行团队资产规范，确保命名统一和目录整洁。',
        levels:['了解命名基本规则','能遵守现有规范','能发现规范问题','能制定优化规范','主导全组规范体系建设'],
+       doc:'char-naming-redline',
        max:5,deps:['sk-pipeline']},
       {id:'sk-perf',name:'性能优化意识',icon:'⚡',
        desc:'理解面数/Drawcall/内存/LOD/材质合批等性能优化核心概念。',
        goal:'能参与性能评审，识别美术资产的性能风险点。',
        levels:['了解基础性能概念','能看懂性能报告','能识别高风险资产','参与制定性能标准','主导性能优化方案'],
+       doc:'art-vs-ta-perfbudget',
        max:5,deps:['sk-engine']},
       {id:'sk-qa',name:'质量检查标准',icon:'🔍',
        desc:'掌握美术资产的质量检查规范，熟悉自动化验收流程。',
        goal:'能建立质量检查清单和自动化验收工具链。',
        levels:['了解检查要点','能执行检查清单','能发现常见质量问题','制定检查标准SOP','搭建自动化质检流水线'],
+       doc:'art-vs-qa-checklist',
        max:5,deps:['sk-naming']},
       {id:'sk-version',name:'版本管理',icon:'📂',
        desc:'掌握 SVN/Perforce/Git 等版本管理工具的操作和团队协作流程。',
        goal:'能管理团队的版本提交流程，处理常见的合并冲突。',
        levels:['了解版本管理概念','能执行基本操作','能处理冲突和回滚','制定提交规范','管理分支策略和权限'],
+       doc:'svn-perforce-structure',
        max:5,deps:['sk-naming']},
       {id:'sk-script',name:'自动化脚本',icon:'💻',
        desc:'使用 Python/JS 脚本辅助批量处理重复性美术管理任务。',
        goal:'能编写脚本自动化处理命名检查、批量导出、报表生成等。',
        levels:['了解脚本概念','能读懂简单脚本','能修改现有脚本','独立编写工具脚本','搭建自动化工具平台'],
+       doc:'naming-check-tool',
        max:5,deps:['sk-tool','sk-qa']},
       {id:'sk-data',name:'数据分析',icon:'📊',
        desc:'使用 Excel/SQL/可视化工具进行项目数据统计和分析。',
        goal:'能用数据驱动决策，输出项目进度/质量/成本分析报告。',
        levels:['了解数据分析概念','能用Excel做基础统计','能做数据可视化图表','能用SQL查询分析','输出数据驱动的洞察报告'],
+       doc:'progress-visualization',
        max:5,deps:['sk-perf']},
       {id:'sk-ai',name:'AI辅助工具',icon:'🤖',
        desc:'掌握 AIGC 工具（MidJourney/SD/ChatGPT）在美术管线中的落地应用。',
        goal:'能利用 AI 工具提升团队效率 20% 以上，并制定 AI 应用规范。',
        levels:['了解AI工具概况','能使用基础AI功能','能将AI融入日常工作','制定AI工作流规范','主导AI赋能方案落地'],
+       doc:'aigc-production-spec',
        max:5,deps:['sk-script','sk-data']}
     ],
     mgmt: [
@@ -618,51 +632,61 @@ var GC = (function(){
        desc:'掌握 WBS 分解、甘特图、关键路径法等排期管理方法。',
        goal:'能独立完成版本排期并准确预估交付时间，偏差率 <10%。',
        levels:['了解排期基本概念','能做简单任务分解','能编制甘特图','掌握关键路径分析','应对复杂多线程排期'],
+       doc:'art-scheduling',
        max:5,deps:[]},
       {id:'sk-agile',name:'敏捷管理',icon:'🔄',
        desc:'掌握 Scrum/Kanban 框架，能组织 Sprint 计划和燃尽图追踪。',
        goal:'能作为 Scrum Master 推动团队敏捷转型。',
        levels:['了解敏捷基本概念','能参与Sprint活动','能维护看板和燃尽图','独立组织Sprint会议','推动团队敏捷转型'],
+       doc:'jira-tapd-automation',
        max:5,deps:['sk-schedule']},
       {id:'sk-cost',name:'成本核算',icon:'💰',
        desc:'掌握预算编制、成本控制和 ROI 分析的方法。',
        goal:'能独立完成项目/外包成本核算，控制预算偏差 <5%。',
        levels:['了解成本概念','能记录开支明细','能编制预算方案','精准控制成本偏差','输出ROI优化策略'],
+       doc:'cost-standard',
        max:5,deps:['sk-schedule']},
       {id:'sk-outsource',name:'外包管理',icon:'📦',
        desc:'掌握供应商评估、合同管理、质量验收的完整外包管理流程。',
        goal:'能独立管理 3+ 外包供应商，确保交付质量达标率 >95%。',
        levels:['了解外包流程','能执行验收清单','能管理单一供应商','能管理多供应商','建立外包管理体系'],
+       doc:'cp-outsource',
        max:5,deps:['sk-cost']},
       {id:'sk-risk',name:'风险管理',icon:'🛡️',
        desc:'掌握风险识别、评估和应对策略制定的系统方法。',
        goal:'能建立项目风险登记册并前置化解 80% 的潜在风险。',
        levels:['了解风险概念','能识别常见风险','能评估风险等级','制定应对预案','建立风险管理体系'],
+       doc:'risk-log',
        max:5,deps:['sk-agile']},
       {id:'sk-cr',name:'变更管控',icon:'🔒',
        desc:'掌握 CR 流程、影响评估和变更委员会的运作机制。',
        goal:'能控制变更频率降低 30%，确保每次变更有完整追溯记录。',
        levels:['了解变更流程','能记录变更请求','能评估变更影响','管理CR审批流程','建立变更管控体系'],
+       doc:'art-vs-planner-req',
        max:5,deps:['sk-risk']},
       {id:'sk-process',name:'流程设计',icon:'📋',
        desc:'掌握 SOP 制定、流程优化和自动化改进的方法论。',
        goal:'能设计高效的团队协作流程，将重复性工作自动化率提升至 60%。',
        levels:['了解流程概念','能执行现有SOP','能发现流程瓶颈','设计优化SOP','推动流程自动化'],
+       doc:'asset-submit-review',
        max:5,deps:['sk-agile','sk-outsource']},
       {id:'sk-decision',name:'决策方法论',icon:'⚖️',
        desc:'掌握决策矩阵、RACI、成本效益分析等决策工具。',
        goal:'能用数据和框架支撑决策，减少拍脑袋决定的比例。',
        levels:['了解决策工具','能用决策矩阵','掌握RACI矩阵','综合多工具决策','输出决策方法论'],
+       doc:'outsource-vs-inhouse-decision',
        max:5,deps:['sk-risk']},
       {id:'sk-postmortem',name:'复盘方法论',icon:'🔬',
        desc:'掌握 5Whys、鱼骨图、Action Item 追踪等复盘方法。',
        goal:'能主持高质量复盘会，确保 Action Item 闭环率 >90%。',
        levels:['了解复盘概念','能参与复盘讨论','能使用5Whys分析','主持复盘会议','建立复盘改进体系'],
+       doc:'postmortem-template',
        max:5,deps:['sk-cr','sk-decision']},
       {id:'sk-metrics',name:'效能度量',icon:'📈',
        desc:'掌握 KPI 设计、效率指标和质量指标体系的搭建方法。',
        goal:'能建立团队效能看板，用数据驱动持续改进。',
        levels:['了解指标概念','能跟踪基础指标','能设计KPI方案','搭建效能看板','数据驱动持续改进'],
+       doc:'art-efficiency-system',
        max:5,deps:['sk-process','sk-postmortem']}
     ],
     soft: [
@@ -670,51 +694,61 @@ var GC = (function(){
        desc:'掌握与策划/程序/QA/老板等不同角色的高效沟通技巧。',
        goal:'能在跨部门会议中清晰表达观点，推动共识达成。',
        levels:['了解各部门职能','能进行基本工作沟通','能处理跨部门协作','主持跨部门会议','成为部门间桥梁人物'],
+       doc:'cross-dept-communication-tips',
        max:5,deps:[]},
       {id:'sk-upward',name:'向上管理',icon:'📤',
        desc:'掌握汇报技巧、预期管理和向上信任建立的方法。',
        goal:'能让上级及时了解项目状态，获得资源支持和决策授权。',
        levels:['了解汇报基本要素','能做结构化汇报','能主动同步风险','管理上级预期','获得充分信任和授权'],
+       doc:'personal-growth-roadmap',
        max:5,deps:['sk-comm']},
       {id:'sk-negotiate',name:'谈判与拒绝',icon:'🤝',
        desc:'掌握合理拒绝不合理需求和利益协调的沟通技巧。',
        goal:'能用数据和方案说服对方，而非简单说"不"。',
        levels:['了解谈判基本原则','能表达不同意见','能用数据支撑论点','掌握双赢谈判技巧','成为团队谈判代表'],
+       doc:'cross-dept-collab',
        max:5,deps:['sk-comm']},
       {id:'sk-conflict',name:'冲突解决',icon:'⚔️',
        desc:'掌握跨部门冲突调解和利益平衡的方法。',
        goal:'能在资源/排期/质量冲突中找到各方都能接受的方案。',
        levels:['了解冲突类型','能保持冷静应对','能分析冲突根因','能调解部门间冲突','建立冲突预防机制'],
+       doc:'cross-dept-collab',
        max:5,deps:['sk-negotiate']},
       {id:'sk-team',name:'团队激励',icon:'🔥',
        desc:'掌握士气管理、认可激励和团队氛围营造的方法。',
        goal:'能持续保持团队高昂士气，离职率控制在行业平均以下。',
        levels:['了解激励基本理论','能给予正向反馈','能组织团队活动','设计激励机制','打造高凝聚力团队'],
+       doc:'onboarding-guide',
        max:5,deps:['sk-upward']},
       {id:'sk-time',name:'时间管理',icon:'⏰',
        desc:'掌握优先级矩阵、时间分块和精力管理的方法。',
        goal:'能高效管理个人时间，确保关键任务零延期。',
        levels:['了解时间管理概念','能做待办清单','掌握优先级矩阵','系统化时间管理','帮助团队提升效率'],
+       doc:'art-scheduling',
        max:5,deps:['sk-comm']},
       {id:'sk-present',name:'演讲表达',icon:'🎤',
        desc:'掌握评审会主持、进度汇报和需求宣讲的表达技巧。',
        goal:'能流畅主持各类会议，观点表达清晰有说服力。',
        levels:['了解表达基本技巧','能做简短工作汇报','能主持小型会议','能做公开演讲分享','成为团队演讲标杆'],
+       doc:'cross-dept-communication-tips',
        max:5,deps:['sk-upward','sk-conflict']},
       {id:'sk-write',name:'文档写作',icon:'✍️',
        desc:'掌握规范文档、复盘报告和商务邮件的撰写技巧。',
        goal:'能输出高质量的项目文档，成为团队文档标杆。',
        levels:['了解文档基本要素','能写工作邮件','能写完整项目文档','能写方法论文章','输出行业级文档模板'],
+       doc:'postmortem-template',
        max:5,deps:['sk-time']},
       {id:'sk-emotion',name:'情绪管理',icon:'💆',
        desc:'掌握压力调节、负面情绪处理和同理心沟通的方法。',
        goal:'能在高压环境下保持稳定状态，帮助团队化解情绪问题。',
        levels:['了解情绪管理概念','能觉察自身情绪','能有效调节压力','能帮助他人调节情绪','营造健康团队氛围'],
+       doc:'cross-dept-collab',
        max:5,deps:['sk-conflict','sk-team']},
       {id:'sk-mentor',name:'辅导带教',icon:'🎓',
        desc:'掌握新人带教、知识分享和团队培训的方法论。',
        goal:'能建立团队知识传承体系，新人上手时间缩短 50%。',
        levels:['了解带教基本方法','能做一对一辅导','能组织知识分享','设计培训课程体系','建立知识传承机制'],
+       doc:'onboarding-guide',
        max:5,deps:['sk-present','sk-emotion']}
     ]
   };
@@ -1050,8 +1084,11 @@ var GC = (function(){
         h+='<div class="skt-next-lv"><span class="skt-next-label">🎯 当前修炼任务：</span><span class="skt-next-desc">'+sk.levels[lv]+'</span></div>';
       }
     }
-    // 📖 查阅相关文档链接
-    h+='<div class="skt-doc-link"><a href="#" onclick="event.stopPropagation()" target="_blank">📖 查阅相关文档 ↗</a></div>';
+    // 📖 查阅相关文档链接（绑定到技能对应的知识库文档）
+    if(sk.doc){
+      var docUrl='../index.html#'+sk.doc;
+      h+='<div class="skt-doc-link"><a href="'+docUrl+'" onclick="event.stopPropagation()" target="_top">📖 查阅相关文档 ↗</a></div>';
+    }
     if(unlocked){
       h+='<div class="skt-actions">';
       if(lv>0) h+='<button class="skt-btn skt-btn-down" onclick="GC.skillDown(\''+skillId+'\',\''+dim+'\');event.stopPropagation()">- 降级</button>';
@@ -1529,6 +1566,11 @@ var GC = (function(){
     var nextBtn=document.getElementById('guideNextBtn');
     var prevBtn=document.getElementById('guidePrevBtn');
 
+    // 清除上一步的目标高亮
+    document.querySelectorAll('.guide-target-highlight').forEach(function(el){
+      el.classList.remove('guide-target-highlight');
+    });
+
     // 确保目标面板可见（修复第二步卡死）
     if(step.ensureTab){
       var tabPanel=document.getElementById('panel-'+step.ensureTab);
@@ -1569,6 +1611,17 @@ var GC = (function(){
     // 高亮目标元素
     var targetEl=document.querySelector(step.target);
     if(targetEl){
+      // 给目标元素及其父链提升z-index，使其在遮罩之上可见
+      targetEl.classList.add('guide-target-highlight');
+      // 对于技能树，同时提升外层容器
+      var parent=targetEl.closest('.skill-tree-view');
+      if(parent) parent.classList.add('guide-target-highlight');
+      var panel=targetEl.closest('.gc-panel');
+      if(panel) panel.classList.add('guide-target-highlight');
+
+      // 让overlay变透明（用spotlight的box-shadow作为主遮罩）
+      overlay.classList.add('guide-overlay-behind');
+
       // 滚动到可视区域
       targetEl.scrollIntoView({behavior:'smooth',block:'center'});
       // 延迟获取位置以等待scroll完成
@@ -1591,6 +1644,7 @@ var GC = (function(){
       },300);
     } else {
       spotlight.classList.remove('show');
+      overlay.classList.remove('guide-overlay-behind');
       card.style.left='50%';
       card.style.top='50%';
       card.style.transform='translate(-50%,-50%)';
@@ -1616,9 +1670,13 @@ var GC = (function(){
   }
   function skipGuide(){endGuide();}
   function endGuide(){
-    document.getElementById('guideOverlay').classList.remove('show');
+    document.getElementById('guideOverlay').classList.remove('show','guide-overlay-behind');
     document.getElementById('guideCard').classList.remove('show','guide-entering');
     document.getElementById('guideSpotlight').classList.remove('show');
+    // 清除所有目标高亮
+    document.querySelectorAll('.guide-target-highlight').forEach(function(el){
+      el.classList.remove('guide-target-highlight');
+    });
     try{localStorage.setItem(GUIDE_KEY,'1');}catch(e){}
     // 恢复到技能树面板
     var treePanel=document.getElementById('panel-tree');
