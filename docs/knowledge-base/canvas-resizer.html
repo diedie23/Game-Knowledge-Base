@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片尺寸统一调整工具 - Canvas Resizer</title>
+<style>
+:root{--bg:#0f1117;--card:#1c1f2e;--border:#2a2d3e;--text:#c9cdd4;--dim:#8b8fa3;--heading:#e8eaed;--accent:#6c8cff;--green:#4ade80;--green-bg:rgba(74,222,128,.08);--orange:#fb923c;--orange-bg:rgba(251,191,36,.08);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.08);--red:#f87171;--cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.08);--code-bg:#1a1d2d}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:40px 60px 80px;max-width:1200px;margin:0 auto;font-size:16px}
+h1{font-size:28px;color:var(--heading);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+h1 .icon{width:48px;height:48px;background:var(--green-bg);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px}
+h1 .ver{font-size:12px;background:var(--green);color:#0f1117;padding:2px 10px;border-radius:10px;font-weight:600}
+.subtitle{font-size:14px;color:var(--dim);margin-bottom:24px}
+h2{font-size:20px;color:var(--heading);font-weight:600;margin:32px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border);scroll-margin-top:20px}
+.sub-title{font-size:16px;color:var(--heading);font-weight:600;margin:20px 0 10px;scroll-margin-top:20px}
+p{margin:8px 0;font-size:14px}
+ul,ol{padding-left:24px;margin:8px 0}
+li{margin:4px 0;font-size:14px}
+strong{color:var(--heading)}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+th{background:var(--card);padding:10px 14px;text-align:left;font-weight:600;color:var(--heading);border:1px solid var(--border);white-space:nowrap}
+td{padding:8px 14px;border:1px solid var(--border);vertical-align:top}
+code{background:var(--code-bg);padding:2px 6px;border-radius:3px;font-size:13px;font-family:'Consolas',monospace;color:#8ba3ff;border:1px solid var(--border)}
+pre{background:var(--code-bg);padding:16px 20px;border-radius:8px;overflow-x:auto;margin:16px 0;border:1px solid var(--border);font-size:13px;line-height:1.6}
+pre code{background:none;padding:0;border:none;color:var(--text)}
+.download-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 32px;margin:24px 0}
+.download-section .sub-title{margin-top:0}
+.dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.dl-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;transition:all .2s}
+.dl-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.dl-card .dl-icon{font-size:36px;margin-bottom:10px}
+.dl-card .dl-name{font-size:15px;font-weight:600;color:var(--heading);margin-bottom:4px}
+.dl-card .dl-desc{font-size:12px;color:var(--dim);margin-bottom:12px}
+.dl-btn{display:inline-block;padding:10px 24px;background:var(--green);color:#0f1117;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;transition:all .15s}
+.dl-btn:hover{background:#22c55e;transform:scale(1.02)}
+.dl-btn.secondary{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.dl-btn.secondary:hover{border-color:var(--accent);color:var(--accent)}
+.feature-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:16px 0}
+.feature-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;transition:all .2s}
+.feature-card:hover{border-color:var(--green)}
+.feature-card .fc-icon{font-size:24px;margin-bottom:8px}
+.feature-card .fc-title{font-size:14px;font-weight:600;color:var(--heading);margin-bottom:4px}
+.feature-card .fc-desc{font-size:12px;color:var(--dim);line-height:1.5}
+.tag{display:inline-block;font-size:10px;padding:3px 8px;border-radius:6px;margin:2px;background:rgba(108,140,255,.08);color:#8ba3ff;border:1px solid rgba(108,140,255,.08)}
+.tag.green{background:var(--green-bg);color:var(--green)}
+.tag.orange{background:var(--orange-bg);color:var(--orange)}
+.tag.purple{background:var(--purple-bg);color:var(--purple)}
+.tag.cyan{background:var(--cyan-bg);color:var(--cyan)}
+.info-row{display:flex;flex-wrap:wrap;gap:16px;margin:16px 0;font-size:13px;color:var(--dim)}
+.info-row span{display:flex;align-items:center;gap:5px}
+blockquote{border-left:3px solid var(--green);padding:12px 16px;margin:16px 0;background:rgba(74,222,128,.04);border-radius:0 6px 6px 0;font-size:13px;color:var(--dim)}
+blockquote strong{color:var(--green)}
+.flow-box{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:12px 0;font-size:13px;line-height:1.8}
+.align-demo{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0;max-width:300px}
+.align-cell{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:8px 4px;text-align:center;font-size:11px;color:var(--dim)}
+.align-cell.active{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+@media(max-width:768px){body{padding:20px}.dl-grid,.feature-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<h1><span class="icon">📐</span> 图片尺寸统一调整工具 <span class="ver">v1.0.2</span></h1>
+<p class="subtitle">批量统一图片画布尺寸 · 9 种对齐方式 · 透明边缘裁切 · 多核并行处理 · 预设管理 · CLI 支持</p>
+
+<div class="info-row">
+  <span>🖥️ Windows 桌面应用</span>
+  <span>💻 Win 10/11</span>
+  <span>📦 独立 exe，双击即用</span>
+  <span>📐 约 63 MB</span>
+  <span>📅 2026-04-15</span>
+</div>
+
+<div class="download-section">
+  <div class="sub-title">📥 桌面版下载</div>
+  <div class="dl-grid">
+    <div class="dl-card">
+      <div class="dl-icon">💾</div>
+      <div class="dl-name">CanvasResizer.exe</div>
+      <div class="dl-desc">独立 exe · 约 63 MB · 双击即用</div>
+      <a href="../downloads/CanvasResizer.exe" download class="dl-btn">⬇️ 下载 exe</a>
+    </div>
+    <div class="dl-card">
+      <div class="dl-icon">🐍</div>
+      <div class="dl-name">Python 源码运行</div>
+      <div class="dl-desc">需要 Python 3.10+ / PySide6 / Pillow</div>
+      <a href="https://github.com/diedie23/Game-Knowledge-Base" target="_blank" class="dl-btn secondary">📂 GitHub 仓库</a>
+    </div>
+  </div>
+</div>
+
+<h2 id="overview">🎯 工具定位</h2>
+
+<p>游戏美术项目中，大量散图（技能图标、UI 元素、角色部件）<strong>尺寸参差不齐</strong>。在引擎导入、图集打包、Spine 装配等场景下，需要将所有图片统一到同一画布尺寸并保持对齐。</p>
+
+<p><strong>图片尺寸统一调整工具</strong> 专为此场景设计：一键批量扩展/统一画布尺寸，不缩放原图内容，仅在周围填充透明像素，保证原始像素完整不变。</p>
+
+<h2 id="features">✨ 核心功能</h2>
+
+<div class="feature-grid">
+  <div class="feature-card">
+    <div class="fc-icon">📐</div>
+    <div class="fc-title">9 种对齐方式</div>
+    <div class="fc-desc">左上 / 中上 / 右上 / 左中 / 正中 / 右中 / 左下 / 中下 / 右下，图标化直观选择</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">✂️</div>
+    <div class="fc-title">自动裁切透明边缘</div>
+    <div class="fc-desc">处理前可选自动 Trim 透明像素，获取真实内容尺寸后再统一画布</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">📏</div>
+    <div class="fc-title">智能尺寸算法</div>
+    <div class="fc-desc">保持原最大尺寸 / 强制4的倍数 / 强制2的幂次方 / 自定义尺寸</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">⚡</div>
+    <div class="fc-title">多核并行处理</div>
+    <div class="fc-desc">ProcessPoolExecutor 多核并行，充分利用 CPU，批量处理秒级完成</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">💾</div>
+    <div class="fc-title">预设管理</div>
+    <div class="fc-desc">保存/加载/删除自定义预设（如"技能图标_128"），切换项目一键恢复配置</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">🖥️</div>
+    <div class="fc-title">CLI 命令行模式</div>
+    <div class="fc-desc">支持 --cli 命令行参数运行，适合 CI/CD 流水线和脚本批处理</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">🔄</div>
+    <div class="fc-title">格式转换</div>
+    <div class="fc-desc">支持 PNG / JPG / TGA / WEBP 格式互转，处理时一并完成</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">🎨</div>
+    <div class="fc-title">预乘 Alpha 导出</div>
+    <div class="fc-desc">可选导出为 Premultiplied Alpha，满足引擎/Spine 的特殊需求</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">📋</div>
+    <div class="fc-title">图集描述文件</div>
+    <div class="fc-desc">可选生成 atlas_data.json，记录每张图片的原始/目标尺寸、偏移量等信息</div>
+  </div>
+</div>
+
+<h2 id="flow">📖 使用流程</h2>
+
+<div class="flow-box">
+1️⃣ <strong>导入图片</strong> — 拖拽散图或文件夹到窗口 / 点击选择文件夹<br>
+　　→ 自动扫描所有图片，计算最大宽高<br><br>
+2️⃣ <strong>选择预设</strong>（可选） — 从已保存的预设中恢复配置<br><br>
+3️⃣ <strong>设置目标尺寸</strong> — 选择尺寸算法：<br>
+　　· 保持原最大尺寸 → 自动取批量图片中的最大宽高<br>
+　　· 强制为 4 的倍数 → 向上取整（兼容压缩格式）<br>
+　　· 强制为 2 的幂次方 → 128/256/512/1024…（贴图优化）<br>
+　　· 自定义尺寸 → 手动输入目标宽×高<br><br>
+4️⃣ <strong>选择对齐方式</strong> — 9 宫格选择图片在画布中的位置<br><br>
+5️⃣ <strong>配置输出</strong> — 覆盖原文件 / 另存为新目录 + 可选后缀 / 格式转换 / 预乘Alpha / 导出JSON<br><br>
+6️⃣ <strong>开始处理</strong> — 多核并行批量处理，进度条实时显示<br>
+　　→ 预览区实时显示前 20 张处理效果
+</div>
+
+<h2 id="align">📐 对齐方式示意</h2>
+
+<p>图片在目标画布中的放置位置：</p>
+
+<div class="align-demo">
+  <div class="align-cell">左上</div>
+  <div class="align-cell">中上</div>
+  <div class="align-cell">右上</div>
+  <div class="align-cell">左中</div>
+  <div class="align-cell active">✅ 正中</div>
+  <div class="align-cell">右中</div>
+  <div class="align-cell">左下</div>
+  <div class="align-cell">中下</div>
+  <div class="align-cell">右下</div>
+</div>
+
+<blockquote>
+  <strong>💡 默认使用「正中」对齐</strong>，适用于大多数游戏资源场景（技能图标、UI元素等）。Spine 部件通常使用「左上」对齐以保持锚点一致。
+</blockquote>
+
+<h2 id="size-algo">📏 尺寸算法</h2>
+
+<table>
+  <tr><th>算法</th><th>说明</th><th>适用场景</th></tr>
+  <tr><td><strong>保持原最大尺寸</strong></td><td>自动取批量图片中的最大宽和最大高</td><td>同类资源统一尺寸</td></tr>
+  <tr><td><strong>强制4的倍数</strong></td><td>向上取整到 4 的倍数（如 125→128）</td><td>兼容纹理压缩格式（ASTC/ETC2）</td></tr>
+  <tr><td><strong>强制2的幂次方</strong></td><td>向上取整到 2^N（如 300→512）</td><td>贴图优化、Mipmap 生成</td></tr>
+  <tr><td><strong>自定义尺寸</strong></td><td>手动输入目标宽×高</td><td>项目有明确规格要求</td></tr>
+</table>
+
+<h2 id="output">📤 输出选项</h2>
+
+<table>
+  <tr><th>选项</th><th>说明</th></tr>
+  <tr><td><strong>覆盖原文件</strong></td><td>⚠️ 危险操作，需二次确认。建议配合备份使用</td></tr>
+  <tr><td><strong>另存为新目录</strong></td><td>默认在原目录旁创建 <code>_Output</code> 目录</td></tr>
+  <tr><td><strong>添加后缀</strong></td><td>输出文件名自动附加自定义后缀（如 <code>_resized</code>）</td></tr>
+  <tr><td><strong>格式转换</strong></td><td>保持原格式 / PNG / JPG / TGA / WEBP</td></tr>
+  <tr><td><strong>预乘 Alpha</strong></td><td>Premultiplied Alpha 导出，适用于引擎特殊需求</td></tr>
+  <tr><td><strong>图集描述文件</strong></td><td>生成 <code>atlas_data.json</code>，含原始尺寸、目标尺寸、偏移量、裁切信息</td></tr>
+</table>
+
+<h2 id="cli">🖥️ CLI 命令行模式</h2>
+
+<p>支持无 GUI 的命令行批处理，适合集成到 CI/CD 流水线：</p>
+
+<pre><code>CanvasResizer.exe --cli --input "D:\art\icons" --width 256 --height 256 --align 正中
+
+# 完整参数示例
+CanvasResizer.exe --cli ^
+  --input "D:\art\icons" ^
+  --output "D:\art\icons_out" ^
+  --width 512 --height 512 ^
+  --align 左上 ^
+  --auto_trim ^
+  --premultiply ^
+  --export_json ^
+  --format PNG ^
+  --suffix _atlas</code></pre>
+
+<table>
+  <tr><th>参数</th><th>说明</th><th>默认值</th></tr>
+  <tr><td><code>--cli</code></td><td>启用命令行模式（必须）</td><td>—</td></tr>
+  <tr><td><code>--input</code></td><td>输入文件夹路径（必须）</td><td>—</td></tr>
+  <tr><td><code>--output</code></td><td>输出文件夹路径</td><td>{input}_Output</td></tr>
+  <tr><td><code>--width</code></td><td>目标宽度（必须）</td><td>—</td></tr>
+  <tr><td><code>--height</code></td><td>目标高度（必须）</td><td>—</td></tr>
+  <tr><td><code>--align</code></td><td>对齐方式</td><td>正中</td></tr>
+  <tr><td><code>--auto_trim</code></td><td>处理前裁切透明边缘</td><td>否</td></tr>
+  <tr><td><code>--premultiply</code></td><td>预乘 Alpha 导出</td><td>否</td></tr>
+  <tr><td><code>--export_json</code></td><td>输出图集描述文件</td><td>否</td></tr>
+  <tr><td><code>--format</code></td><td>转换格式（PNG/JPG/TGA/WEBP）</td><td>保持原格式</td></tr>
+  <tr><td><code>--suffix</code></td><td>输出文件名后缀</td><td>空</td></tr>
+</table>
+
+<h2 id="tech">⚙️ 技术栈</h2>
+
+<table>
+  <tr><th>项目</th><th>技术</th></tr>
+  <tr><td>语言</td><td>Python 3.10+</td></tr>
+  <tr><td>GUI 框架</td><td>PySide6 (Qt6)</td></tr>
+  <tr><td>图片处理</td><td>Pillow (PIL)</td></tr>
+  <tr><td>并行处理</td><td>multiprocessing / ProcessPoolExecutor</td></tr>
+  <tr><td>打包</td><td>PyInstaller</td></tr>
+</table>
+
+<h2 id="formats">📁 支持格式</h2>
+
+<table>
+  <tr><th>输入格式</th><th>输出格式</th></tr>
+  <tr><td>PNG / JPG / JPEG / TGA / BMP</td><td>PNG / JPG / TGA / WEBP / 保持原格式</td></tr>
+</table>
+
+<hr>
+
+<blockquote>
+  <strong>💡 提示：</strong>如果 exe 文件被杀毒软件拦截，请添加到白名单。这是 PyInstaller 打包的正常现象。
+</blockquote>
+
+<script src="editor-kit.js"></script>
+</body>
+</html>

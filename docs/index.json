@@ -1650,6 +1650,39 @@
       "quality_level": "mature"
     },
     {
+      "id": "canvas-resizer",
+      "module": "toolchain",
+      "craft": "通用",
+      "type": "iframe",
+      "title": "图片尺寸统一调整 (桌面版)",
+      "desc": "Windows 桌面版，9 种对齐模式 + 智能尺寸算法 + 多核并行批量处理",
+      "tags": [
+        "桌面工具",
+        "exe下载",
+        "图片处理",
+        "尺寸调整"
+      ],
+      "icon": "📐",
+      "action": "openTool",
+      "path": "knowledge-base/canvas-resizer.html",
+      "download": "downloads/CanvasResizer.exe",
+      "owner": "赵六",
+      "last_updated": "2026-04-15",
+      "applicable_stage": "量产期",
+      "priority": "low",
+      "is_hot": false,
+      "keywords": [
+        "图片尺寸",
+        "批量调整",
+        "对齐模式",
+        "桌面工具",
+        "Canvas",
+        "画布大小"
+      ],
+      "content_type": "工具",
+      "quality_level": "mature"
+    },
+    {
       "id": "engine-bridge",
       "module": "toolchain",
       "craft": "技术",

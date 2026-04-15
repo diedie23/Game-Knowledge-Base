@@ -672,6 +672,16 @@
               "craft": "UI"
             },
             {
+              "id": "canvas-resizer",
+              "icon": "📐",
+              "title": "图片尺寸统一调整 (桌面版)",
+              "type": "iframe",
+              "file": "knowledge-base/canvas-resizer.html",
+              "badge": "通用",
+              "download": "downloads/CanvasResizer.exe",
+              "craft": "通用"
+            },
+            {
               "id": "engine-bridge",
               "icon": "🔌",
               "title": "Engine Bridge 引擎直连",
