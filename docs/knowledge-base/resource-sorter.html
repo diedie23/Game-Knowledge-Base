@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>资源分拣与增量同步工具 - Resource Sorter</title>
+<style>
+:root{--bg:#0f1117;--card:#1c1f2e;--border:#2a2d3e;--text:#c9cdd4;--dim:#8b8fa3;--heading:#e8eaed;--accent:#6c8cff;--green:#4ade80;--green-bg:rgba(74,222,128,.08);--orange:#fb923c;--orange-bg:rgba(251,191,36,.08);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.08);--red:#f87171;--cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.08);--code-bg:#1a1d2d}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:40px 60px 80px;max-width:1200px;margin:0 auto;font-size:16px}
+h1{font-size:28px;color:var(--heading);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+h1 .icon{width:48px;height:48px;background:var(--orange-bg);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px}
+h1 .ver{font-size:12px;background:var(--orange);color:#0f1117;padding:2px 10px;border-radius:10px;font-weight:600}
+.subtitle{font-size:14px;color:var(--dim);margin-bottom:24px}
+h2{font-size:20px;color:var(--heading);font-weight:600;margin:32px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border);scroll-margin-top:20px}
+.sub-title{font-size:16px;color:var(--heading);font-weight:600;margin:20px 0 10px;scroll-margin-top:20px}
+p{margin:8px 0;font-size:14px}
+ul,ol{padding-left:24px;margin:8px 0}
+li{margin:4px 0;font-size:14px}
+strong{color:var(--heading)}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+th{background:var(--card);padding:10px 14px;text-align:left;font-weight:600;color:var(--heading);border:1px solid var(--border);white-space:nowrap}
+td{padding:8px 14px;border:1px solid var(--border);vertical-align:top}
+code{background:var(--code-bg);padding:2px 6px;border-radius:3px;font-size:13px;font-family:'Consolas',monospace;color:#8ba3ff;border:1px solid var(--border)}
+pre{background:var(--code-bg);padding:16px 20px;border-radius:8px;overflow-x:auto;margin:16px 0;border:1px solid var(--border);font-size:13px;line-height:1.6}
+pre code{background:none;padding:0;border:none;color:var(--text)}
+.download-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 32px;margin:24px 0}
+.download-section .sub-title{margin-top:0}
+.dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.dl-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;transition:all .2s}
+.dl-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.dl-card .name{font-weight:600;color:var(--heading);margin-bottom:8px;font-size:15px}
+.dl-card .meta{color:var(--dim);font-size:12px;margin-bottom:12px}
+.dl-btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;padding:8px 24px;border-radius:8px;font-weight:600;font-size:14px;transition:all .2s}
+.dl-btn:hover{opacity:.85;transform:translateY(-1px)}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:16px 0}
+.feature-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.feature-card .emoji{font-size:24px;margin-bottom:8px}
+.feature-card h3{font-size:15px;color:var(--heading);font-weight:600;margin-bottom:6px}
+.feature-card p{font-size:13px;color:var(--dim);margin:0}
+.tag{display:inline-block;background:var(--card);border:1px solid var(--border);padding:2px 10px;border-radius:10px;font-size:12px;margin:2px 4px 2px 0;color:var(--dim)}
+.tag.green{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.tag.orange{border-color:var(--orange);color:var(--orange);background:var(--orange-bg)}
+.tag.red{border-color:var(--red);color:var(--red);background:rgba(248,113,113,.08)}
+.tag.purple{border-color:var(--purple);color:var(--purple);background:var(--purple-bg)}
+.tag.cyan{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-bg)}
+.flow-steps{display:flex;gap:12px;margin:16px 0;flex-wrap:wrap}
+.flow-step{flex:1;min-width:140px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;position:relative}
+.flow-step .num{font-size:20px;font-weight:700;color:var(--accent);margin-bottom:4px}
+.flow-step .label{font-size:13px;color:var(--heading);font-weight:500}
+.flow-step .desc{font-size:11px;color:var(--dim);margin-top:4px}
+.flow-step + .flow-step::before{content:'→';position:absolute;left:-14px;top:50%;transform:translateY(-50%);color:var(--dim);font-size:16px}
+.state-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:16px 0}
+.state-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center}
+.state-card .state-dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:6px}
+.state-card .state-name{font-size:14px;font-weight:600;color:var(--heading)}
+.state-card .state-desc{font-size:12px;color:var(--dim);margin-top:4px}
+</style>
+</head>
+<body>
+
+<h1>
+  <span class="icon">📂</span>
+  资源分拣与增量同步工具
+  <span class="ver">v1.1.2</span>
+</h1>
+<p class="subtitle">Windows 桌面工具 &nbsp;|&nbsp; 基于图像哈希的智能资源分类 + 增量去重 + 一键分发入库</p>
+
+<!-- ============ 下载区 ============ -->
+<div class="download-section">
+  <p class="sub-title">⬇️ 下载安装</p>
+  <div class="dl-grid">
+    <div class="dl-card">
+      <div class="name">Resource Sorter (Windows x64)</div>
+      <div class="meta">≈ 63 MB · 免安装 · 双击即用</div>
+      <a href="../downloads/ResourceSorter.exe" download class="dl-btn">⬇️ 下载 exe</a>
+    </div>
+    <div class="dl-card">
+      <div class="name">环境要求</div>
+      <div class="meta">Windows 10/11 · 无需 Python 环境</div>
+      <p style="font-size:13px;color:var(--dim)">单文件独立运行，开箱即用</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 工具概览 ============ -->
+<h2>📋 工具概览</h2>
+<p>资源分拣与增量同步工具是专为 <strong>UGC 美术资源入库流程</strong> 设计的桌面端自动化工具。它能从暂存的切图目录中，自动将图片按 <strong>图标</strong> 和 <strong>实际用图</strong> 两种类型精准分拣到对应的引擎/美术目录，同时实现增量同步、内容去重和自动命名规范化。</p>
+<p>核心解决的问题：<strong>美术同学切完图后，不需要再手动区分图标/用图、手动检查重复、手动重命名后缀，一键分析 + 一键分发全搞定。</strong></p>
+
+<!-- ============ 核心功能 ============ -->
+<h2>🚀 核心功能</h2>
+<div class="feature-grid">
+  <div class="feature-card">
+    <div class="emoji">🔍</div>
+    <h3>智能尺寸分拣</h3>
+    <p>根据可配置的图标尺寸阈值（默认 180×180），自动将图片分类为"图标"或"实际用图"，分发到不同目标目录</p>
+  </div>
+  <div class="feature-card">
+    <div class="emoji">🔐</div>
+    <h3>图像哈希去重</h3>
+    <p>基于 SHA-256 像素级哈希计算（忽略元数据差异），精准识别内容完全相同的图片，自动跳过重复资源</p>
+  </div>
+  <div class="feature-card">
+    <div class="emoji">📊</div>
+    <h3>增量状态分析</h3>
+    <p>三级状态判定：New（新增）、Modified（已修改）、Unchanged（重复），一目了然哪些资源需要入库</p>
+  </div>
+  <div class="feature-card">
+    <div class="emoji">✏️</div>
+    <h3>自动后缀管理</h3>
+    <p>图标自动追加 <code>_S</code> 后缀，实际用图自动移除 <code>_S</code> 后缀，确保引擎目录命名规范</p>
+  </div>
+  <div class="feature-card">
+    <div class="emoji">⚠️</div>
+    <h3>尺寸合规检测</h3>
+    <p>自动检测实际用图尺寸是否为 4 的倍数，不合规资源标记为 Error 状态并阻止入库</p>
+  </div>
+  <div class="feature-card">
+    <div class="emoji">🖼️</div>
+    <h3>图片预览对比</h3>
+    <p>左右对比面板：左侧显示暂存区新图，右侧显示目标目录旧图/重复资源，一眼看清差异</p>
+  </div>
+  <div class="feature-card">
+    <div class="emoji">🤖</div>
+    <h3>智能配对重命名</h3>
+    <p>多维度匹配算法（文件名相似度 50% + 修改时间 30% + 图像内容 20%），自动寻找图标与用图的最佳配对</p>
+  </div>
+  <div class="feature-card">
+    <div class="emoji">🔄</div>
+    <h3>批量字符替换</h3>
+    <p>查找/替换暂存区文件名中的指定字符，快速清理前缀、后缀或特殊标记，替换后自动刷新分析</p>
+  </div>
+  <div class="feature-card">
+    <div class="emoji">💾</div>
+    <h3>哈希缓存加速</h3>
+    <p>自动缓存已计算过的图像哈希（基于文件修改时间判断），后续分析速度显著提升</p>
+  </div>
+</div>
+
+<!-- ============ 操作流程 ============ -->
+<h2>🔄 操作流程</h2>
+<div class="flow-steps">
+  <div class="flow-step">
+    <div class="num">1</div>
+    <div class="label">配置目录</div>
+    <div class="desc">设置暂存切图、美术资源、引擎图标三个目录</div>
+  </div>
+  <div class="flow-step">
+    <div class="num">2</div>
+    <div class="label">开始分析</div>
+    <div class="desc">自动扫描暂存区，建立指纹库，逐文件比对</div>
+  </div>
+  <div class="flow-step">
+    <div class="num">3</div>
+    <div class="label">审查结果</div>
+    <div class="desc">查看分拣结果、预览对比、处理命名问题</div>
+  </div>
+  <div class="flow-step">
+    <div class="num">4</div>
+    <div class="label">一键分发</div>
+    <div class="desc">确认后自动分发入库，清理暂存区</div>
+  </div>
+</div>
+
+<!-- ============ 状态说明 ============ -->
+<h2>🏷️ 资源状态说明</h2>
+<div class="state-grid">
+  <div class="state-card">
+    <div><span class="state-dot" style="background:#4ade80"></span><span class="state-name">New</span></div>
+    <div class="state-desc">目标目录中不存在同名文件，将作为新资源入库</div>
+  </div>
+  <div class="state-card">
+    <div><span class="state-dot" style="background:#fb923c"></span><span class="state-name">Modified</span></div>
+    <div class="state-desc">目标目录中存在同名但内容不同的文件，将覆盖更新</div>
+  </div>
+  <div class="state-card">
+    <div><span class="state-dot" style="background:#9e9e9e"></span><span class="state-name">Unchanged</span></div>
+    <div class="state-desc">内容哈希完全一致（或与其他资源重复），自动跳过</div>
+  </div>
+  <div class="state-card">
+    <div><span class="state-dot" style="background:#f87171"></span><span class="state-name">Error</span></div>
+    <div class="state-desc">存在合规问题（如尺寸非4倍数），阻止入库并保留在暂存区</div>
+  </div>
+</div>
+
+<!-- ============ 目录配置 ============ -->
+<h2>📁 目录配置说明</h2>
+<table>
+  <tr><th>配置项</th><th>说明</th><th>示例</th></tr>
+  <tr>
+    <td><strong>暂存切图目录</strong></td>
+    <td>存放需要被分拣和处理的原始切图文件</td>
+    <td><code>F:\A-项目文件\YM\UGC</code></td>
+  </tr>
+  <tr>
+    <td><strong>实际用图输出目录</strong></td>
+    <td>尺寸不符合图标标准的图片分发到此目录</td>
+    <td><code>J:\...\UGCUIEditorImg</code></td>
+  </tr>
+  <tr>
+    <td><strong>图标资源输出目录</strong></td>
+    <td>尺寸符合图标标准的图片分发到此目录，自动追加 <code>_S</code> 后缀</td>
+    <td><code>J:\...\UGCUIEditorIcon</code></td>
+  </tr>
+  <tr>
+    <td><strong>图标判定尺寸</strong></td>
+    <td>宽高均等于此值的图片判定为图标（单位 px）</td>
+    <td><code>180</code>（默认值）</td>
+  </tr>
+</table>
+
+<!-- ============ 智能重命名 ============ -->
+<h2>🤖 智能配对重命名</h2>
+<p>当暂存区同时存在某个资源的图标版和实际用图版时，工具支持三种重命名方式：</p>
+
+<table>
+  <tr><th>操作方式</th><th>触发方法</th><th>说明</th></tr>
+  <tr>
+    <td><strong>单文件重命名</strong></td>
+    <td>右键单个文件 → "✏️ 重命名该文件"</td>
+    <td>手动输入新文件名（含扩展名）</td>
+  </tr>
+  <tr>
+    <td><strong>自动配对重命名</strong></td>
+    <td>右键单个文件 → "🤖 自动寻找配对并重命名"</td>
+    <td>基于多维度算法自动匹配最佳配对，弹出确认对话框</td>
+  </tr>
+  <tr>
+    <td><strong>手动配对重命名</strong></td>
+    <td>选中 1 个图标 + 1 个实际用图 → 右键 "🔗 智能配对重命名"</td>
+    <td>提取最长公共子串作为建议名称，图标自动加 <code>_S</code></td>
+  </tr>
+</table>
+
+<p class="sub-title">自动配对匹配算法权重</p>
+<table>
+  <tr><th>维度</th><th>权重</th><th>计算方式</th></tr>
+  <tr><td>文件名相似度</td><td>50%</td><td>SequenceMatcher 字符匹配率</td></tr>
+  <tr><td>修改时间接近度</td><td>30%</td><td>120 秒内线性衰减</td></tr>
+  <tr><td>图像内容相似度</td><td>20%</td><td>缩至 32×32 灰度图后逐像素对比</td></tr>
+</table>
+<p>匹配阈值：综合得分 ≥ <code>0.35</code> 才视为有效配对。</p>
+
+<!-- ============ 分发规则 ============ -->
+<h2>📤 分发入库规则</h2>
+<ul>
+  <li><span class="tag green">New</span> 和 <span class="tag orange">Modified</span> 状态的资源将被分发到目标目录</li>
+  <li><span class="tag">Unchanged</span> 状态的资源自动跳过（重复资源）</li>
+  <li><span class="tag red">Error</span> 状态的资源阻止入库，保留在暂存区待修复</li>
+  <li>分发后默认删除暂存区原文件；勾选"<strong>分发后保留原文件</strong>"可保留副本</li>
+  <li>分发完成后自动刷新分析结果</li>
+</ul>
+
+<!-- ============ 支持的格式 ============ -->
+<h2>🎨 支持的图片格式</h2>
+<p>
+  <span class="tag cyan">PNG</span>
+  <span class="tag cyan">JPG / JPEG</span>
+  <span class="tag cyan">TGA</span>
+  <span class="tag cyan">BMP</span>
+</p>
+
+<!-- ============ 技术栈 ============ -->
+<h2>🛠 技术栈</h2>
+<p>
+  <span class="tag purple">Python 3</span>
+  <span class="tag purple">PySide6 (Qt)</span>
+  <span class="tag purple">Pillow</span>
+  <span class="tag">SHA-256 哈希</span>
+  <span class="tag">SequenceMatcher</span>
+  <span class="tag">PyInstaller</span>
+</p>
+
+</body>
+</html>

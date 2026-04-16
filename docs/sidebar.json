@@ -692,6 +692,16 @@
               "craft": "通用"
             },
             {
+              "id": "resource-sorter",
+              "icon": "📂",
+              "title": "资源分拣与增量同步 (桌面版)",
+              "type": "iframe",
+              "file": "knowledge-base/resource-sorter.html",
+              "badge": "通用",
+              "download": "downloads/ResourceSorter.exe",
+              "craft": "通用"
+            },
+            {
               "id": "engine-bridge",
               "icon": "🔌",
               "title": "Engine Bridge 引擎直连",
