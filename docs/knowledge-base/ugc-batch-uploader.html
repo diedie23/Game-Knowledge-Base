@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UGC 批量上传助手 - UGC Toolbox</title>
+<style>
+:root{--bg:#0f1117;--card:#1c1f2e;--border:#2a2d3e;--text:#c9cdd4;--dim:#8b8fa3;--heading:#e8eaed;--accent:#6c8cff;--green:#4ade80;--green-bg:rgba(74,222,128,.08);--orange:#fb923c;--orange-bg:rgba(251,191,36,.08);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.08);--red:#f87171;--cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.08);--code-bg:#1a1d2d}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:40px 60px 80px;max-width:1200px;margin:0 auto;font-size:16px}
+h1{font-size:28px;color:var(--heading);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+h1 .icon{width:48px;height:48px;background:var(--cyan-bg);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px}
+h1 .ver{font-size:12px;background:var(--cyan);color:#0f1117;padding:2px 10px;border-radius:10px;font-weight:600}
+.subtitle{font-size:14px;color:var(--dim);margin-bottom:24px}
+h2{font-size:20px;color:var(--heading);font-weight:600;margin:32px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border);scroll-margin-top:20px}
+.sub-title{font-size:16px;color:var(--heading);font-weight:600;margin:20px 0 10px;scroll-margin-top:20px}
+p{margin:8px 0;font-size:14px}
+ul,ol{padding-left:24px;margin:8px 0}
+li{margin:4px 0;font-size:14px}
+strong{color:var(--heading)}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+th{background:var(--card);padding:10px 14px;text-align:left;font-weight:600;color:var(--heading);border:1px solid var(--border);white-space:nowrap}
+td{padding:8px 14px;border:1px solid var(--border);vertical-align:top}
+code{background:var(--code-bg);padding:2px 6px;border-radius:3px;font-size:13px;font-family:'Consolas',monospace;color:#8ba3ff;border:1px solid var(--border)}
+pre{background:var(--code-bg);padding:16px 20px;border-radius:8px;overflow-x:auto;margin:16px 0;border:1px solid var(--border);font-size:13px;line-height:1.6}
+pre code{background:none;padding:0;border:none;color:var(--text)}
+.download-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 32px;margin:24px 0}
+.download-section .sub-title{margin-top:0}
+.dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.dl-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;transition:all .2s}
+.dl-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.dl-card .dl-icon{font-size:36px;margin-bottom:10px}
+.dl-card .dl-name{font-size:15px;font-weight:600;color:var(--heading);margin-bottom:4px}
+.dl-card .dl-desc{font-size:12px;color:var(--dim);margin-bottom:12px}
+.dl-btn{display:inline-block;padding:10px 24px;background:var(--cyan);color:#0f1117;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;transition:all .15s}
+.dl-btn:hover{background:#06b6d4;transform:scale(1.02)}
+.dl-btn.secondary{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.dl-btn.secondary:hover{border-color:var(--accent);color:var(--accent)}
+.feature-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:16px 0}
+.feature-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;transition:all .2s}
+.feature-card:hover{border-color:var(--cyan)}
+.feature-card .fc-icon{font-size:24px;margin-bottom:8px}
+.feature-card .fc-title{font-size:14px;font-weight:600;color:var(--heading);margin-bottom:4px}
+.feature-card .fc-desc{font-size:12px;color:var(--dim);line-height:1.5}
+.tag{display:inline-block;font-size:10px;padding:3px 8px;border-radius:6px;margin:2px;background:rgba(108,140,255,.08);color:#8ba3ff;border:1px solid rgba(108,140,255,.08)}
+.tag.green{background:var(--green-bg);color:var(--green)}
+.tag.orange{background:var(--orange-bg);color:var(--orange)}
+.tag.purple{background:var(--purple-bg);color:var(--purple)}
+.tag.cyan{background:var(--cyan-bg);color:var(--cyan)}
+.info-row{display:flex;flex-wrap:wrap;gap:16px;margin:16px 0;font-size:13px;color:var(--dim)}
+.info-row span{display:flex;align-items:center;gap:5px}
+blockquote{border-left:3px solid var(--cyan);padding:12px 16px;margin:16px 0;background:rgba(34,211,238,.04);border-radius:0 6px 6px 0;font-size:13px;color:var(--dim)}
+blockquote strong{color:var(--cyan)}
+.flow-box{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:12px 0;font-size:13px;line-height:1.8}
+.tab-overview{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:16px 0}
+.tab-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;transition:all .2s}
+.tab-card:hover{border-color:var(--cyan)}
+.tab-card .tab-num{font-size:11px;font-weight:600;color:var(--cyan);background:var(--cyan-bg);padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:8px}
+.tab-card .tab-title{font-size:15px;font-weight:600;color:var(--heading);margin-bottom:6px}
+.tab-card .tab-desc{font-size:12px;color:var(--dim);line-height:1.5}
+.hotkey-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.hotkey-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.hotkey-item kbd{background:var(--code-bg);padding:4px 10px;border-radius:4px;font-size:13px;font-weight:600;color:var(--cyan);border:1px solid var(--border);font-family:'Consolas',monospace}
+.hotkey-item .hk-desc{font-size:13px;color:var(--dim)}
+hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+@media(max-width:768px){body{padding:20px}.dl-grid,.feature-grid,.tab-overview{grid-template-columns:1fr}.hotkey-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<h1><span class="icon">🚀</span> UGC 批量上传助手 <span class="ver">v4.0.0</span></h1>
+<p class="subtitle">UGC 编辑器自动化工具箱 · 批量上传 · 资源替换管理 · 预加载批量开关 · 操作录制回放 · 多项目管理</p>
+
+<div class="info-row">
+  <span>🖥️ Windows 桌面应用</span>
+  <span>💻 Win 10/11</span>
+  <span>📦 独立 exe，双击即用</span>
+  <span>📐 约 68 MB</span>
+  <span>📅 2026-04-16</span>
+</div>
+
+<div class="download-section">
+  <div class="sub-title">📥 桌面版下载</div>
+  <div class="dl-grid">
+    <div class="dl-card">
+      <div class="dl-icon">💾</div>
+      <div class="dl-name">UGCBatchUploader.exe</div>
+      <div class="dl-desc">独立 exe · 约 68 MB · 双击即用</div>
+      <a href="../downloads/UGCBatchUploader.exe" download class="dl-btn">⬇️ 下载 exe</a>
+    </div>
+    <div class="dl-card">
+      <div class="dl-icon">🐍</div>
+      <div class="dl-name">Python 源码运行</div>
+      <div class="dl-desc">需要 Python 3.8+ / PyQt5 / pyautogui / OpenCV</div>
+      <a href="https://github.com/diedie23/Game-Knowledge-Base" target="_blank" class="dl-btn secondary">📂 GitHub 仓库</a>
+    </div>
+  </div>
+</div>
+
+<h2 id="overview">🎯 工具定位</h2>
+
+<p>游戏 UGC 项目的资源上传、替换、管理等操作往往需要在<strong>网页端编辑器</strong>中逐个手动完成，数量一多，工作量巨大且容易出错。</p>
+
+<p><strong>UGC 批量上传助手</strong>是一款全自动化工具箱，通过<strong>操作录制 + 智能回放</strong>技术，将上传、替换、预加载切换等重复操作变为一键批量执行。v4.0.0 升级为三 Tab 多模块架构，覆盖 UGC 编辑器日常操作全流程。</p>
+
+<h2 id="modules">📑 三大功能模块</h2>
+
+<div class="tab-overview">
+  <div class="tab-card">
+    <span class="tab-num">Tab 1</span>
+    <div class="tab-title">📤 批量上传</div>
+    <div class="tab-desc">向导式四步上传：选择窗口 → 录制流程 → 预览验证 → 批量执行。支持自动翻页、失败重试、完成检测。</div>
+  </div>
+  <div class="tab-card">
+    <span class="tab-num">Tab 2</span>
+    <div class="tab-title">🔄 资源替换管理</div>
+    <div class="tab-desc">图片搜索定位 + 一键替换/删除。拖入源图 → 感知哈希匹配 → 自动滚动定位 → 执行替换。</div>
+  </div>
+  <div class="tab-card">
+    <span class="tab-num">Tab 3</span>
+    <div class="tab-title">⚡ 预加载批量管理</div>
+    <div class="tab-desc">批量选择资源 → 自动排序优化导航路径 → 逐个切换预加载开关，支持关键词筛选和页码范围过滤。</div>
+  </div>
+</div>
+
+<h2 id="features">✨ 核心功能</h2>
+
+<div class="feature-grid">
+  <div class="feature-card">
+    <div class="fc-icon">🎯</div>
+    <div class="fc-title">窗口锁定录制</div>
+    <div class="fc-desc">Win32 API 精准锁定目标窗口，所有坐标转换为窗口内相对坐标，窗口移动不影响回放</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">📹</div>
+    <div class="fc-title">操作录制与回放</div>
+    <div class="fc-desc">支持鼠标点击/双击/右键/滚轮、键盘按键/组合键、文件选择对话框等所有操作类型</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">📸</div>
+    <div class="fc-title">截图标注验证</div>
+    <div class="fc-desc">每步操作自动截图 + 点击位置红圈标注，回放前可预览全部步骤确保准确</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">🔍</div>
+    <div class="fc-title">感知哈希搜索</div>
+    <div class="fc-desc">pHash + OpenCV 模板匹配双引擎，拖入图片即可在编辑器资源列表中精准定位</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">📊</div>
+    <div class="fc-title">资源索引系统</div>
+    <div class="fc-desc">全量/增量扫描建立资源索引，记录位置、缩略图、哈希，支持翻页感知和重复检测</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">🗂️</div>
+    <div class="fc-title">多项目管理</div>
+    <div class="fc-desc">每个游戏项目独立数据隔离：索引、工作流、日志、缓存互不干扰，一键切换</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">🔄</div>
+    <div class="fc-title">失败自动重试</div>
+    <div class="fc-desc">上传完成智能检测，失败自动重试（默认 3 次），确保批量上传零遗漏</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">📑</div>
+    <div class="fc-title">工作流保存</div>
+    <div class="fc-desc">录制的操作流程可保存为 JSON 工作流文件，下次直接加载复用，无需重新录制</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">🧭</div>
+    <div class="fc-title">智能导航路径</div>
+    <div class="fc-desc">预加载批量操作时，自动按页码排序选中资源，最优路径减少滚动次数</div>
+  </div>
+</div>
+
+<h2 id="flow-upload">📖 批量上传流程（Tab 1）</h2>
+
+<div class="flow-box">
+1️⃣ <strong>选择目标窗口</strong> — 从已打开的窗口列表中选择 UGC 编辑器窗口<br>
+　　→ Win32 API 获取窗口句柄，锁定坐标系<br><br>
+2️⃣ <strong>录制上传流程</strong> — 手动演示"上传一张图"的完整操作（按 F10 停止录制）<br>
+　　→ 自动记录每次点击的相对坐标、键盘操作、等待时间<br>
+　　→ 每步自动截图，红圈标注点击位置<br><br>
+3️⃣ <strong>预览验证步骤</strong> — 查看录制的每一步操作及截图，确认无误<br>
+　　→ 支持删除/编辑/调整步骤<br><br>
+4️⃣ <strong>选择图片 & 批量执行</strong> — 选择待上传的图片文件夹<br>
+　　→ 每张图片自动回放录制的操作流程<br>
+　　→ 自动翻页、失败重试、进度实时显示<br>
+　　→ F6 随时停止 / F7 暂停恢复
+</div>
+
+<h2 id="flow-replace">🔄 资源替换流程（Tab 2）</h2>
+
+<div class="flow-box">
+1️⃣ <strong>建立资源索引</strong> — 首次使用时扫描编辑器资源列表（支持增量更新）<br>
+　　→ 自动截图每一屏，识别资源缩略图，计算感知哈希<br><br>
+2️⃣ <strong>搜索目标资源</strong> — 拖入要替换的图片，或从索引缩略图中浏览选择<br>
+　　→ pHash 汉明距离 + OpenCV 模板匹配双重验证<br><br>
+3️⃣ <strong>自动定位</strong> — 工具自动滚动到资源所在页面，高亮显示目标位置<br><br>
+4️⃣ <strong>一键替换/删除</strong> — 自动执行：删除旧资源 → 上传新版本
+</div>
+
+<h2 id="flow-preload">⚡ 预加载管理流程（Tab 3）</h2>
+
+<div class="flow-box">
+1️⃣ <strong>加载资源索引</strong> — 显示所有资源的缩略图列表<br><br>
+2️⃣ <strong>选择目标资源</strong> — 支持关键词筛选、页码范围过滤、多选<br><br>
+3️⃣ <strong>配置操作位置</strong> — 首次使用时录制预加载开关和返回按钮的坐标<br><br>
+4️⃣ <strong>批量执行</strong> — 自动按最优页码顺序逐个切换预加载开关<br>
+　　→ 滚动到目标页 → 点击资源 → 切换开关 → 返回列表 → 下一个
+</div>
+
+<h2 id="hotkeys">⌨️ 快捷键</h2>
+
+<div class="hotkey-grid">
+  <div class="hotkey-item">
+    <kbd>F6</kbd>
+    <span class="hk-desc">停止当前操作（上传/替换/预加载）</span>
+  </div>
+  <div class="hotkey-item">
+    <kbd>F7</kbd>
+    <span class="hk-desc">暂停 / 恢复执行</span>
+  </div>
+  <div class="hotkey-item">
+    <kbd>F10</kbd>
+    <span class="hk-desc">停止录制</span>
+  </div>
+  <div class="hotkey-item">
+    <kbd>F5</kbd>
+    <span class="hk-desc">开始回放（可配置）</span>
+  </div>
+</div>
+
+<h2 id="config">⚙️ 可配置参数</h2>
+
+<table>
+  <tr><th>参数</th><th>说明</th><th>默认值</th></tr>
+  <tr><td><code>batch_size</code></td><td>每批上传图片数量</td><td>10</td></tr>
+  <tr><td><code>upload_interval_sec</code></td><td>每张图片上传间隔（秒）</td><td>1.5</td></tr>
+  <tr><td><code>page_turn_delay_sec</code></td><td>翻页后等待时间（秒）</td><td>2.0</td></tr>
+  <tr><td><code>retry_count</code></td><td>上传失败重试次数</td><td>3</td></tr>
+  <tr><td><code>auto_page_turn</code></td><td>是否自动翻页</td><td>开启</td></tr>
+  <tr><td><code>similarity_threshold</code></td><td>图片匹配相似度阈值</td><td>0.95</td></tr>
+  <tr><td><code>scroll_wait</code></td><td>滚动后等待截屏时间（秒）</td><td>1.5</td></tr>
+</table>
+
+<h2 id="tech">⚙️ 技术栈</h2>
+
+<table>
+  <tr><th>项目</th><th>技术</th></tr>
+  <tr><td>语言</td><td>Python 3.8+</td></tr>
+  <tr><td>GUI 框架</td><td>PyQt5</td></tr>
+  <tr><td>自动化引擎</td><td>pyautogui + Win32 API (ctypes)</td></tr>
+  <tr><td>图像识别</td><td>OpenCV (模板匹配) + PIL (感知哈希)</td></tr>
+  <tr><td>键盘监听</td><td>pynput + keyboard</td></tr>
+  <tr><td>打包</td><td>PyInstaller</td></tr>
+</table>
+
+<h2 id="project-mgmt">🗂️ 多项目管理</h2>
+
+<p>每个游戏项目拥有独立的数据目录，互不干扰：</p>
+
+<table>
+  <tr><th>数据类型</th><th>说明</th></tr>
+  <tr><td><strong>资源索引</strong></td><td>该项目的所有资源缩略图、哈希、位置信息</td></tr>
+  <tr><td><strong>工作流文件</strong></td><td>录制保存的操作流程 JSON</td></tr>
+  <tr><td><strong>操作日志</strong></td><td>每次上传/替换/预加载的详细日志</td></tr>
+  <tr><td><strong>项目配置</strong></td><td>窗口标题关键词、滚动速度、网格参数等</td></tr>
+</table>
+
+<blockquote>
+  <strong>💡 提示：</strong>首次使用请先创建项目并设置窗口标题关键词（用于自动匹配 UGC 编辑器窗口）。
+</blockquote>
+
+<hr>
+
+<blockquote>
+  <strong>💡 提示：</strong>如果 exe 文件被杀毒软件拦截，请添加到白名单。这是 PyInstaller 打包的正常现象。工具使用了 Win32 API 和 pyautogui 进行窗口操作，部分杀毒软件可能误报。
+</blockquote>
+
+<script src="editor-kit.js"></script>
+</body>
+</html>

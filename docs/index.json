@@ -1683,6 +1683,40 @@
       "quality_level": "mature"
     },
     {
+      "id": "ugc-batch-uploader",
+      "module": "toolchain",
+      "craft": "通用",
+      "type": "iframe",
+      "title": "UGC 批量上传助手 (桌面版)",
+      "desc": "Windows 桌面版，UGC 编辑器自动化工具箱：批量上传 + 资源替换 + 预加载管理",
+      "tags": [
+        "桌面工具",
+        "exe下载",
+        "UGC",
+        "批量上传",
+        "自动化"
+      ],
+      "icon": "🚀",
+      "action": "openTool",
+      "path": "knowledge-base/ugc-batch-uploader.html",
+      "download": "downloads/UGCBatchUploader.exe",
+      "owner": "赵六",
+      "last_updated": "2026-04-16",
+      "applicable_stage": "量产期",
+      "priority": "low",
+      "is_hot": false,
+      "keywords": [
+        "UGC",
+        "批量上传",
+        "资源替换",
+        "预加载",
+        "自动化",
+        "桌面工具"
+      ],
+      "content_type": "工具",
+      "quality_level": "mature"
+    },
+    {
       "id": "engine-bridge",
       "module": "toolchain",
       "craft": "技术",

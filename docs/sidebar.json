@@ -682,6 +682,16 @@
               "craft": "通用"
             },
             {
+              "id": "ugc-batch-uploader",
+              "icon": "🚀",
+              "title": "UGC 批量上传助手 (桌面版)",
+              "type": "iframe",
+              "file": "knowledge-base/ugc-batch-uploader.html",
+              "badge": "通用",
+              "download": "downloads/UGCBatchUploader.exe",
+              "craft": "通用"
+            },
+            {
               "id": "engine-bridge",
               "icon": "🔌",
               "title": "Engine Bridge 引擎直连",
