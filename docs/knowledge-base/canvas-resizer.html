@@ -61,15 +61,15 @@ hr{border:none;border-top:1px solid var(--border);margin:32px 0}
 </head>
 <body>
 
-<h1><span class="icon">📐</span> 图片尺寸统一调整工具 <span class="ver">v1.0.2</span></h1>
-<p class="subtitle">批量统一图片画布尺寸 · 9 种对齐方式 · 透明边缘裁切 · 多核并行处理 · 预设管理 · CLI 支持</p>
+<h1><span class="icon">📐</span> 图片尺寸统一调整工具 <span class="ver">v1.0.14</span></h1>
+<p class="subtitle">批量统一图片画布尺寸 · 9 种对齐方式 · 安全区检测与自动修复 · 旋转角度 · 透明边缘裁切 · 批量预览管理 · 多核并行处理 · 预设管理 · CLI 支持</p>
 
 <div class="info-row">
   <span>🖥️ Windows 桌面应用</span>
   <span>💻 Win 10/11</span>
   <span>📦 独立 exe，双击即用</span>
   <span>📐 约 63 MB</span>
-  <span>📅 2026-04-15</span>
+  <span>📅 2026-04-17</span>
 </div>
 
 <div class="download-section">
@@ -144,23 +144,40 @@ hr{border:none;border-top:1px solid var(--border);margin:32px 0}
     <div class="fc-title">图集描述文件</div>
     <div class="fc-desc">可选生成 atlas_data.json，记录每张图片的原始/目标尺寸、偏移量等信息</div>
   </div>
+  <div class="feature-card">
+    <div class="fc-icon">🛡️</div>
+    <div class="fc-title">安全区检测与修复</div>
+    <div class="fc-desc">导入模板图定义安全区域，自动检测图片是否超出安全区，支持「仅警告」「自动居中并缩小」「仅缩小」三种修复模式</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">🔄</div>
+    <div class="fc-title">旋转角度支持</div>
+    <div class="fc-desc">支持设置任意顺时针旋转角度，处理前自动旋转图片并扩展画布，适配斜切资源需求</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon">🖱️</div>
+    <div class="fc-title">批量预览管理</div>
+    <div class="fc-desc">预览区支持全选/取消全选/移除选中，右键单图可打开资源管理器或移除，最多预览前 50 张</div>
+  </div>
 </div>
 
 <h2 id="flow">📖 使用流程</h2>
 
 <div class="flow-box">
-1️⃣ <strong>导入图片</strong> — 拖拽散图或文件夹到窗口 / 点击选择文件夹<br>
+1️⃣ <strong>导入图片</strong> — 拖拽散图或文件夹到窗口 / 点击选择文件夹 / 添加多张图片<br>
 　　→ 自动扫描所有图片，计算最大宽高<br><br>
 2️⃣ <strong>选择预设</strong>（可选） — 从已保存的预设中恢复配置<br><br>
-3️⃣ <strong>设置目标尺寸</strong> — 选择尺寸算法：<br>
+3️⃣ <strong>设置目标尺寸 &amp; 旋转</strong> — 选择尺寸算法 + 设置旋转角度（顺时针）：<br>
 　　· 保持原最大尺寸 → 自动取批量图片中的最大宽高<br>
 　　· 强制为 4 的倍数 → 向上取整（兼容压缩格式）<br>
 　　· 强制为 2 的幂次方 → 128/256/512/1024…（贴图优化）<br>
 　　· 自定义尺寸 → 手动输入目标宽×高<br><br>
 4️⃣ <strong>选择对齐方式</strong> — 9 宫格选择图片在画布中的位置<br><br>
-5️⃣ <strong>配置输出</strong> — 覆盖原文件 / 另存为新目录 + 可选后缀 / 格式转换 / 预乘Alpha / 导出JSON<br><br>
-6️⃣ <strong>开始处理</strong> — 多核并行批量处理，进度条实时显示<br>
-　　→ 预览区实时显示前 20 张处理效果
+5️⃣ <strong>配置安全区</strong>（可选） — 导入模板图，选择修复方式（仅警告/自动居中并缩小/仅缩小）<br><br>
+6️⃣ <strong>配置输出</strong> — 覆盖原文件 / 另存为新目录 + 可选后缀 / 格式转换 / 预乘Alpha / 导出JSON<br><br>
+7️⃣ <strong>预览管理</strong> — 在预览区查看效果（前50张），可全选/移除不需要的图片<br><br>
+8️⃣ <strong>开始处理</strong> — 多核并行批量处理，进度条实时显示<br>
+　　→ 预览区实时显示处理效果
 </div>
 
 <h2 id="align">📐 对齐方式示意</h2>
@@ -193,6 +210,29 @@ hr{border:none;border-top:1px solid var(--border);margin:32px 0}
   <tr><td><strong>自定义尺寸</strong></td><td>手动输入目标宽×高</td><td>项目有明确规格要求</td></tr>
 </table>
 
+<h2 id="safe-area">🛡️ 安全区检测</h2>
+
+<p>在游戏 UI 中，图标资源经常需要放入固定形状的框内（如圆形、圆角矩形）。工具支持<strong>导入模板图</strong>来定义安全区域，自动检测图片内容是否超出安全区范围。</p>
+
+<table>
+  <tr><th>配置项</th><th>说明</th></tr>
+  <tr><td><strong>启用安全区判定</strong></td><td>勾选后开启安全区检测功能</td></tr>
+  <tr><td><strong>模板图</strong></td><td>选择模板图片（支持透明通道或灰度亮度识别安全区域）。<code>templates/</code> 目录下的模板会自动加载到下拉列表</td></tr>
+  <tr><td><strong>超出时修复方式</strong></td><td>检测到超出安全区时的处理策略</td></tr>
+</table>
+
+<p class="sub-title">修复模式说明</p>
+<table>
+  <tr><th>模式</th><th>行为</th><th>适用场景</th></tr>
+  <tr><td><strong>仅警告</strong></td><td>预览中标记红色 "超出安全区" 文字，不做修改</td><td>人工审查后手动调整</td></tr>
+  <tr><td><strong>自动居中并缩小</strong></td><td>迭代缩小图片（每次 ×0.9），同时居中到安全区中心，直到不超出</td><td>图标需要完全在安全圆内</td></tr>
+  <tr><td><strong>仅缩小</strong></td><td>迭代缩小图片（每次 ×0.9），保持当前对齐方式不变，直到不超出</td><td>保持对齐方向但需缩小适配</td></tr>
+</table>
+
+<blockquote>
+  <strong>💡 模板图规则：</strong>模板图中<strong>不透明区域</strong>（或深色区域）= 安全区；<strong>透明区域</strong>（或浅色区域）= 不安全区。工具会自动判断模板图是使用 Alpha 通道还是灰度亮度来区分。
+</blockquote>
+
 <h2 id="output">📤 输出选项</h2>
 
 <table>
@@ -217,6 +257,7 @@ CanvasResizer.exe --cli ^
   --output "D:\art\icons_out" ^
   --width 512 --height 512 ^
   --align 左上 ^
+  --rotation 15 ^
   --auto_trim ^
   --premultiply ^
   --export_json ^
@@ -231,6 +272,7 @@ CanvasResizer.exe --cli ^
   <tr><td><code>--width</code></td><td>目标宽度（必须）</td><td>—</td></tr>
   <tr><td><code>--height</code></td><td>目标高度（必须）</td><td>—</td></tr>
   <tr><td><code>--align</code></td><td>对齐方式</td><td>正中</td></tr>
+  <tr><td><code>--rotation</code></td><td>旋转角度（顺时针，单位度）</td><td>0</td></tr>
   <tr><td><code>--auto_trim</code></td><td>处理前裁切透明边缘</td><td>否</td></tr>
   <tr><td><code>--premultiply</code></td><td>预乘 Alpha 导出</td><td>否</td></tr>
   <tr><td><code>--export_json</code></td><td>输出图集描述文件</td><td>否</td></tr>
@@ -244,7 +286,7 @@ CanvasResizer.exe --cli ^
   <tr><th>项目</th><th>技术</th></tr>
   <tr><td>语言</td><td>Python 3.10+</td></tr>
   <tr><td>GUI 框架</td><td>PySide6 (Qt6)</td></tr>
-  <tr><td>图片处理</td><td>Pillow (PIL)</td></tr>
+  <tr><td>图片处理</td><td>Pillow (PIL) + NumPy</td></tr>
   <tr><td>并行处理</td><td>multiprocessing / ProcessPoolExecutor</td></tr>
   <tr><td>打包</td><td>PyInstaller</td></tr>
 </table>
