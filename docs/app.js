@@ -3946,7 +3946,7 @@ function breadcrumbNavGrp(grpName){
 var adminMode = false;
 var adminDirty = false; // 是否有未保存的目录变更
 var _adminUnlocked = false; // 管理模式是否已解锁（当前会话有效）
-var ADMIN_PASS_HASH = 'f21ed365e49265638a977f8dc87c790eec256df940988bb7e23bc83fac08316a'; // SHA-256 — 修改密码后需同步更新此哈希
+var ADMIN_PASS_HASH = '7b722b255ee96a4eff7eda7856ff15bddc4a2cbe213594679061e4729dc76ffe'; // SHA-256 — 修改密码后需同步更新此哈希
 
 // SHA-256 哈希（纯浏览器实现）
 function _sha256(str){
