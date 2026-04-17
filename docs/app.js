@@ -4447,10 +4447,35 @@ function _getUniqueUserId(){
 
 // ── Coze Chat SDK 模式 — 使用官方 SDK 解决 CORS 跨域问题 ──
 // SDK 通过内部通信机制绕过浏览器 CORS 限制，无需后端代理
+// 隐私隔离策略：每个浏览器/访客拥有唯一 user_id，SDK 使用独立对话
 var _cozeSdkLoaded = false;
 var _cozeSdkLoading = false;
 var _cozeSdkInstance = null;
 var _cozeSdkReady = false; // SDK 聊天窗口是否已就绪
+var _sdkChatOpen = false;  // SDK 聊天窗口是否打开
+
+// 销毁现有 SDK 实例（用于隐私重置/重建）
+function _destroyCozeSdk(){
+  if(_cozeSdkInstance){
+    // 尝试调用 SDK 的销毁方法
+    try{
+      if(typeof _cozeSdkInstance.destroy === 'function') _cozeSdkInstance.destroy();
+      else if(typeof _cozeSdkInstance.unmount === 'function') _cozeSdkInstance.unmount();
+    }catch(e){ console.warn('[Coze SDK] 销毁异常:', e); }
+    _cozeSdkInstance = null;
+  }
+  // 清理 SDK 残留的 DOM 元素
+  var sdkEls = document.querySelectorAll('[class*="coze"],[id*="coze"],[class*="Coze"],[id*="Coze"]');
+  sdkEls.forEach(function(el){
+    if(el.id === 'aiChatWrapper' || (el.closest && el.closest('#aiChatWrapper'))) return;
+    try{ el.remove(); }catch(e){}
+  });
+  _cozeSdkLoaded = false;
+  _cozeSdkLoading = false;
+  _cozeSdkReady = false;
+  _sdkChatOpen = false;
+  console.log('[Coze SDK] 实例已销毁');
+}
 
 function loadCozeChatSDK(){
   if(_cozeSdkLoaded || _cozeSdkLoading) return;
@@ -4472,6 +4497,9 @@ function loadCozeChatSDK(){
     return;
   }
 
+  // 获取当前访客的唯一 user_id（隐私隔离核心）
+  var userId = _getUniqueUserId();
+
   try{
     _cozeSdkInstance = new CozeWebSDK.WebChatClient({
       config: {
@@ -4484,7 +4512,7 @@ function loadCozeChatSDK(){
         onRefreshToken: function(){ return token; }
       },
       userInfo: {
-        id: _getUniqueUserId(),
+        id: userId,
         nickname: '知识库用户',
         url: ''
       },
@@ -4567,7 +4595,6 @@ function _hideCozeDefaultUI(){
 
 // ── 切换聊天窗口 ──
 // 优先使用 Coze SDK 聊天窗口，降级到自建 UI（本地搜索）
-var _sdkChatOpen = false;
 
 function _setAiFabIcon(showClose){
   var avatarEl = document.getElementById('aiFabAvatar');
@@ -5747,6 +5774,32 @@ function aiClearChat(){
   var container=document.getElementById('aiChatMessages');
   if(container) container.innerHTML='';
   localStorage.removeItem('kb_ai_chat_history');
+}
+
+// ═══ 隐私重置：清除所有对话数据 + 重新生成身份 + 重建 SDK ═══
+// 彻底切断与 Coze 服务端旧对话的关联
+function aiPrivacyReset(){
+  if(!confirm('🔐 隐私重置\n\n此操作将：\n• 清除所有本地聊天记录\n• 重新生成访客身份 ID\n• 断开与旧对话的关联\n• 重新初始化 AI 助手\n\n确定继续？'))return;
+
+  // 1. 清除本地聊天记录
+  localStorage.removeItem('kb_ai_chat_history');
+  var container=document.getElementById('aiChatMessages');
+  if(container) container.innerHTML='';
+
+  // 2. 重新生成 user_id（切断与旧对话的关联）
+  localStorage.removeItem('coze_user_id');
+  var newUid = _getUniqueUserId(); // 立即生成新 ID
+
+  // 3. 销毁现有 SDK 实例
+  _destroyCozeSdk();
+
+  // 4. 重新初始化 SDK（使用新的 user_id）
+  setTimeout(function(){
+    loadCozeChatSDK();
+    showToast('🔐 隐私重置完成 — 已生成新身份，旧对话已断开关联');
+  }, 500);
+
+  console.log('[隐私重置] 新 user_id:', newUid);
 }
 
 function aiExportChat(){
