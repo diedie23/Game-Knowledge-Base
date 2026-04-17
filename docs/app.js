@@ -3945,8 +3945,51 @@ function breadcrumbNavGrp(grpName){
 // ═══ 可视化管理面板 (Visual CMS) ═══
 var adminMode = false;
 var adminDirty = false; // 是否有未保存的目录变更
+var _adminUnlocked = false; // 管理模式是否已解锁（当前会话有效）
+var ADMIN_PASS_HASH = 'f21ed365e49265638a977f8dc87c790eec256df940988bb7e23bc83fac08316a'; // SHA-256 — 修改密码后需同步更新此哈希
 
-// 快捷键：Ctrl+Shift+A 触发管理模式
+// SHA-256 哈希（纯浏览器实现）
+function _sha256(str){
+  var encoder = new TextEncoder();
+  var data = encoder.encode(str);
+  return crypto.subtle.digest('SHA-256', data).then(function(buf){
+    return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+  });
+}
+
+// 管理模式密码验证
+function _adminAuth(){
+  return new Promise(function(resolve){
+    if(_adminUnlocked){resolve(true);return;}
+    var pwd = prompt('🔐 请输入管理员密码：');
+    if(!pwd){resolve(false);return;}
+    _sha256(pwd).then(function(hash){
+      if(hash === ADMIN_PASS_HASH){
+        _adminUnlocked = true;
+        sessionStorage.setItem('admin_unlocked','1');
+        resolve(true);
+      }else{
+        showToast('❌ 密码错误');
+        resolve(false);
+      }
+    }).catch(function(){
+      // fallback: 不支持 crypto.subtle（如非 HTTPS）时用明文比对
+      if(pwd === 'apm2026admin'){
+        _adminUnlocked = true;
+        sessionStorage.setItem('admin_unlocked','1');
+        resolve(true);
+      }else{
+        showToast('❌ 密码错误');
+        resolve(false);
+      }
+    });
+  });
+}
+
+// 恢复会话中的解锁状态
+if(sessionStorage.getItem('admin_unlocked')==='1') _adminUnlocked=true;
+
+// 快捷键：Ctrl+Shift+A 触发管理模式（需要密码验证）
 document.addEventListener('keydown', function(e){
   if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==='a'){
     e.preventDefault();
@@ -3954,7 +3997,39 @@ document.addEventListener('keydown', function(e){
   }
 });
 
+// 移动端：连续点击版本号 5 次解锁管理模式入口
+var _versionTapCount = 0;
+var _versionTapTimer = null;
+function _onVersionTap(){
+  _versionTapCount++;
+  clearTimeout(_versionTapTimer);
+  if(_versionTapCount >= 5){
+    _versionTapCount = 0;
+    _adminAuth().then(function(ok){
+      if(ok){
+        var btn = document.getElementById('mobileAdminToggle');
+        if(btn){ btn.classList.add('unlocked'); btn.style.display=''; }
+        showToast('🔓 管理入口已解锁');
+      }
+    });
+  }else{
+    _versionTapTimer = setTimeout(function(){ _versionTapCount=0; }, 2000);
+    if(_versionTapCount >= 3){
+      showToast('再点 '+(5-_versionTapCount)+' 次解锁管理模式 🔐');
+    }
+  }
+}
+
 function toggleAdminMode(){
+  // 未解锁时需要先验证
+  if(!_adminUnlocked && !adminMode){
+    _adminAuth().then(function(ok){ if(ok) _doToggleAdmin(); });
+    return;
+  }
+  _doToggleAdmin();
+}
+
+function _doToggleAdmin(){
   adminMode = !adminMode;
   var sidebar = document.querySelector('.sidebar');
   if(adminMode){
@@ -3976,6 +4051,8 @@ function toggleAdminMode(){
   var mobileAdminBtn = document.getElementById('mobileAdminToggle');
   if(mobileAdminBtn){
     mobileAdminBtn.textContent = adminMode ? '🔧 退出管理' : '🔧 管理模式';
+    // 退出管理模式后重新隐藏移动端按钮
+    if(!adminMode){ mobileAdminBtn.classList.remove('unlocked'); mobileAdminBtn.style.display=''; }
   }
 }
 
@@ -4351,6 +4428,23 @@ function getCozeApiBase(){
   return proxy ? proxy.replace(/\/+$/, '') : 'https://api.coze.cn';
 }
 
+// 为每个访客生成唯一的 user_id（隐私隔离：不同用户的对话互不可见）
+function _getUniqueUserId(){
+  var uid = localStorage.getItem('coze_user_id');
+  if(!uid){
+    // 使用 crypto API 生成随机 ID，比 Date.now() 更不容易碰撞
+    try{
+      var arr = new Uint8Array(16);
+      crypto.getRandomValues(arr);
+      uid = 'u_' + Array.from(arr).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+    }catch(e){
+      uid = 'u_' + Date.now() + '_' + Math.random().toString(36).substring(2,10);
+    }
+    localStorage.setItem('coze_user_id', uid);
+  }
+  return uid;
+}
+
 // ── Coze Chat SDK 模式 — 使用官方 SDK 解决 CORS 跨域问题 ──
 // SDK 通过内部通信机制绕过浏览器 CORS 限制，无需后端代理
 var _cozeSdkLoaded = false;
@@ -4390,7 +4484,7 @@ function loadCozeChatSDK(){
         onRefreshToken: function(){ return token; }
       },
       userInfo: {
-        id: localStorage.getItem('coze_user_id') || 'u_'+Date.now(),
+        id: _getUniqueUserId(),
         nickname: '知识库用户',
         url: ''
       },
@@ -4735,14 +4829,14 @@ function aiCozeAnswer(query, botId, token){
     },
     body: JSON.stringify({
       bot_id: botId,
-      user_id: localStorage.getItem('coze_user_id') || 'u_'+Date.now(),
+      user_id: _getUniqueUserId(),
       additional_messages: [{
         role: 'user',
         content: query,
         content_type: 'text'
       }],
       stream: false,
-      auto_save_history: true
+      auto_save_history: false
     })
   }).then(function(res){return res.json();}).then(function(data){
     // v3 非流式返回的是 chat 对象，需要再轮询获取结果
@@ -5092,7 +5186,7 @@ function aiSaveConfig(){
   if(token) localStorage.setItem('coze_token', token);
   if(proxyUrl) localStorage.setItem('coze_proxy_url', proxyUrl);
   else localStorage.removeItem('coze_proxy_url');
-  if(!localStorage.getItem('coze_user_id')) localStorage.setItem('coze_user_id', 'u_'+Date.now());
+  if(!localStorage.getItem('coze_user_id')) _getUniqueUserId();
   aiCloseConfig();
   // 尝试重新初始化 SDK
   if(botId && token && !_cozeSdkReady){
