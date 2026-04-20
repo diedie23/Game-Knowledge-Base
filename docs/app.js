@@ -734,7 +734,29 @@ function navigate(pageId,btn){
     tp.style.display='block';tp.classList.add('active');scroll.scrollTop=0;setTimeout(hideLoading,400);
   } else {
     var reg=pageRegistry[pageId];
-    if(!reg) return;
+    if(!reg){
+      // 兜底：pageId 不在 pageRegistry 中时，显示友好提示而非空白页
+      scroll.style.display='block';
+      home.style.display='none';
+      var fallbackHtml='<div style="text-align:center;padding:80px 20px;color:var(--dim)">'
+        +'<div style="font-size:48px;margin-bottom:16px">🔍</div>'
+        +'<h3 style="color:var(--fg);margin-bottom:8px">页面未找到</h3>'
+        +'<p>文档「<strong>'+pageId+'</strong>」暂未注册到导航中</p>'
+        +'<p style="margin-top:12px"><a href="#" onclick="navigate(\'home\');return false" style="color:var(--accent);text-decoration:underline">← 返回首页</a></p>'
+        +'</div>';
+      var fallbackPage=document.getElementById('page-fallback');
+      if(!fallbackPage){
+        fallbackPage=document.createElement('div');
+        fallbackPage.id='page-fallback';
+        fallbackPage.className='doc-page';
+        scroll.appendChild(fallbackPage);
+      }
+      fallbackPage.innerHTML=fallbackHtml;
+      fallbackPage.style.display='block';
+      fallbackPage.classList.add('active');
+      scroll.scrollTop=0;
+      return;
+    }
 
     if(reg.type==='md'){
       showLoading();scroll.style.display='block';
@@ -4583,47 +4605,94 @@ function aiLocalAnswer(query){
 
     // ── 组装回答 ──
     if(allResults.length > 0){
-      var top = allResults.slice(0, 6);
-
-      if(top.length === 1){
-        answer = '找到了一篇高度相关的文档 🎯\n\n';
-      } else {
-        answer = '我在知识库里找到了 **' + top.length + '** 篇相关内容 👇\n\n';
-      }
-
-      top.forEach(function(r, i){
-        var entry = r.item;
-        var title = entry.title || '';
-        var icon = entry.icon || '📄';
-
-        // 尝试获取摘要：desc > excerpt > content 截取
-        var snippet = '';
-        if(entry.desc && entry.desc.length > 10){
-          snippet = entry.desc;
-        } else if(entry.excerpt){
-          snippet = entry.excerpt;
-        } else if(entry.content){
-          snippet = aiCleanBotResponse(entry.content).substring(0, 150) + '…';
+      // 将结果分为"可导航"和"仅展示"两组
+      var navigable = [];  // 在 pageRegistry 或 toolData 中，可点击跳转
+      var infoOnly = [];   // 仅来自全文索引，无法跳转（search-index 与 sidebar 不同步的条目）
+      allResults.forEach(function(r){
+        var eid = r.item.id;
+        if(eid && (pageRegistry[eid] || (typeof toolData!=='undefined' && toolData[eid]))){
+          navigable.push(r);
+        } else {
+          infoOnly.push(r);
         }
-
-        answer += '### ' + icon + ' ' + (i+1) + '. ' + title + '\n';
-        if(snippet) answer += snippet + '\n';
-
-        // 显示标签（如果有）
-        var tags = entry.tags || [];
-        if(tags.length > 0){
-          answer += '`' + tags.slice(0, 4).join('` `') + '`\n';
-        }
-        answer += '\n';
-
-        relatedDocs.push({id: entry.id, title: title, icon: icon});
       });
 
-      answer += '---\n💡 *点击下方文档链接查看完整内容~*';
+      // 优先展示可导航结果，不足时用 infoOnly 补充信息
+      var topNav = navigable.slice(0, 6);
+      var topInfo = infoOnly.slice(0, Math.max(0, 4 - topNav.length));
+      var totalShown = topNav.length + topInfo.length;
 
-      // 如果还有更多结果，提示一下
-      if(allResults.length > 6){
-        answer += '\n\n> 还有 ' + (allResults.length - 6) + ' 篇相关文档，可以换关键词进一步搜索~';
+      if(totalShown === 0){
+        // 全部结果都无法导航——给出信息摘要即可
+        answer = '我在知识库索引中找到了一些相关内容，但暂无对应文档页面可跳转 📝\n\n';
+        infoOnly.slice(0, 3).forEach(function(r, i){
+          var entry = r.item;
+          var snippet = '';
+          if(entry.desc && entry.desc.length > 10) snippet = entry.desc;
+          else if(entry.content) snippet = aiCleanBotResponse(entry.content).substring(0, 200) + '…';
+          answer += '**' + (i+1) + '. ' + (entry.title||'') + '**\n';
+          if(snippet) answer += snippet + '\n\n';
+        });
+        answer += '> 💡 你也可以在左侧导航栏或顶部搜索框中查找相关模块~';
+      } else {
+        if(totalShown === 1){
+          answer = '找到了一篇高度相关的文档 🎯\n\n';
+        } else {
+          answer = '我在知识库里找到了 **' + totalShown + '** 篇相关内容 👇\n\n';
+        }
+
+        var idx = 0;
+        // 可导航的结果（带跳转链接）
+        topNav.forEach(function(r){
+          idx++;
+          var entry = r.item;
+          var title = entry.title || '';
+          var icon = entry.icon || '📄';
+
+          var snippet = '';
+          if(entry.desc && entry.desc.length > 10){
+            snippet = entry.desc;
+          } else if(entry.excerpt){
+            snippet = entry.excerpt;
+          } else if(entry.content){
+            snippet = aiCleanBotResponse(entry.content).substring(0, 150) + '…';
+          }
+
+          answer += '### ' + icon + ' ' + idx + '. ' + title + '\n';
+          if(snippet) answer += snippet + '\n';
+
+          var tags = entry.tags || [];
+          if(tags.length > 0){
+            answer += '`' + tags.slice(0, 4).join('` `') + '`\n';
+          }
+          answer += '\n';
+
+          relatedDocs.push({id: entry.id, title: title, icon: icon});
+        });
+
+        // 仅展示的结果（无跳转链接，但展示内容摘要）
+        topInfo.forEach(function(r){
+          idx++;
+          var entry = r.item;
+          var title = entry.title || '';
+          var icon = entry.icon || '📄';
+
+          var snippet = '';
+          if(entry.desc && entry.desc.length > 10) snippet = entry.desc;
+          else if(entry.content) snippet = aiCleanBotResponse(entry.content).substring(0, 200) + '…';
+
+          answer += '### ' + icon + ' ' + idx + '. ' + title + ' *(仅供参考)*\n';
+          if(snippet) answer += snippet + '\n\n';
+        });
+
+        if(relatedDocs.length > 0){
+          answer += '---\n💡 *点击下方文档链接查看完整内容~*';
+        }
+
+        // 如果还有更多可导航结果，提示一下
+        if(navigable.length > 6){
+          answer += '\n\n> 还有 ' + (navigable.length - 6) + ' 篇相关文档，可以换关键词进一步搜索~';
+        }
       }
     } else {
       answer = 'emmm 🤔 在知识库中暂时没找到和「' + query + '」直接相关的内容。\n\n不过你可以试试：\n- **拆分关键词**：比如把问题拆成「需求」「变更」分别搜\n- 在左侧导航栏翻翻相关模块\n- 用顶部搜索框 🔍 模糊搜索\n\n实在找不到的话，可能是知识库还没收录这块内容，可以反馈给管理员哦 📮';
