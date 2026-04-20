@@ -1083,39 +1083,22 @@ sequenceDiagram
         </button>
       </div>
       <div class="ai-chat-powered">
-        💡 提示：回答基于知识库内容，<a onclick="aiOpenConfig()" style="color:var(--accent);cursor:pointer">配置 Coze Bot</a>
+        💡 提示：回答基于知识库内容 | 🔒 <a onclick="aiOpenConfig()" style="color:var(--accent);cursor:pointer">数据完全在本地</a>
       </div>
     </div>
-    <!-- Coze 配置面板 -->
+    <!-- 关于 AI 助手面板 -->
     <div class="ai-config-panel" id="aiConfigPanel" style="display:none">
-      <h4>⚙️ Coze Bot 配置</h4>
-      <p class="ai-config-desc">请在 <a href="https://www.coze.cn" target="_blank" style="color:var(--accent)">coze.cn</a> 创建 Bot 并获取以下信息：</p>
-      <div class="ai-config-field">
-        <label>Bot ID</label>
-        <input type="text" id="cozeBotId" class="ai-config-input" placeholder="粘贴你的 Bot ID">
-      </div>
-      <div class="ai-config-field">
-        <label>API Token（Personal Access Token）</label>
-        <input type="password" id="cozeToken" class="ai-config-input" placeholder="粘贴你的 API Token">
-      </div>
-      <div class="ai-config-field">
-        <label>CORS 代理地址（解决跨域，必填）</label>
-        <input type="text" id="cozeProxyUrl" class="ai-config-input" placeholder="如 https://coze-proxy.xxx.workers.dev">
-        <p class="ai-config-desc" style="margin-top:4px;font-size:11px">部署方式见项目中的 cloudflare-worker-coze-proxy.js</p>
-      </div>
+      <h4>ℹ️ 关于 AI 助手</h4>
+      <p class="ai-config-desc" style="line-height:1.8">
+        当前为 <strong>纯本地知识库搜索模式</strong>，回答基于已收录的知识库条目进行全文检索匹配。<br><br>
+        🔒 <strong>隐私保障：</strong>所有对话数据仅保存在您的浏览器本地（localStorage），不会发送到任何外部服务器。<br><br>
+        💡 <strong>使用技巧：</strong><br>
+        • 输入关键词即可搜索相关知识条目<br>
+        • 点击搜索结果中的文档链接可跳转查看完整内容<br>
+        • 支持导出对话记录、搜索历史消息
+      </p>
       <div class="ai-config-actions">
-        <button class="ai-config-btn" onclick="aiCloseConfig()">取消</button>
-        <button class="ai-config-btn ai-config-btn-primary" onclick="aiSaveConfig()">保存配置</button>
-      </div>
-      <div class="ai-config-guide">
-        <strong>配置步骤：</strong>
-        <ol>
-          <li>访问 <a href="https://www.coze.cn" target="_blank" style="color:var(--accent)">coze.cn</a> 注册并登录</li>
-          <li>创建一个新的 Bot，上传知识库文档</li>
-          <li>在 Bot 设置中获取 Bot ID</li>
-          <li>在「个人设置 → API」中生成 Personal Access Token</li>
-          <li>将 Bot ID 和 Token 粘贴到上方保存即可</li>
-        </ol>
+        <button class="ai-config-btn ai-config-btn-primary" onclick="aiCloseConfig()">知道了</button>
       </div>
     </div>
   </div>
@@ -1400,8 +1383,6 @@ function switchMermaidTab(panelId, btn) {
 }
 </script>
 
-<!-- Coze Chat SDK — 官方 JS 库（解决 CORS 跨域问题，走 SDK 内部通信） -->
-<script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.1.0-beta.0/libs/cn/index.js"></script>
 <!-- 主逻辑 -->
 <script src="app.js" defer></script>
 <!-- 访客统计采集（静默，不影响页面性能） -->

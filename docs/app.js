@@ -1320,8 +1320,15 @@ function showChangelog(){
   if(!d){
     d=document.createElement('div');d.id='changelogDialog';d.className='fb-overlay';
     d.innerHTML='<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:28px 32px;max-width:560px;width:92%;box-shadow:0 16px 48px rgba(0,0,0,.5);max-height:80vh;overflow-y:auto">'
-      +'<h3 style="color:var(--heading);font-size:18px;margin-bottom:18px;display:flex;align-items:center;gap:8px">📋 更新日志 <span style="font-size:12px;background:var(--accent);color:#fff;padding:3px 10px;border-radius:12px;font-weight:500">v7.1</span></h3>'
+      +'<h3 style="color:var(--heading);font-size:18px;margin-bottom:18px;display:flex;align-items:center;gap:8px">📋 更新日志 <span style="font-size:12px;background:var(--accent);color:#fff;padding:3px 10px;border-radius:12px;font-weight:500">v8.1</span></h3>'
       +'<div style="font-size:14px;color:var(--text);line-height:1.9">'
+      +'<div style="margin-bottom:16px"><div style="font-size:13px;color:var(--accent);font-weight:600;margin-bottom:6px">🔒 v8.1 (2026-04-20)</div>'
+      +'<ul style="padding-left:20px;color:var(--dim);font-size:13px;margin:0">'
+      +'<li>AI 助手改为纯本地知识库搜索引擎（零外部依赖）</li>'
+      +'<li>移除 Coze Web SDK 外部服务依赖</li>'
+      +'<li>所有对话数据完全保留在浏览器本地</li>'
+      +'<li>隐私重置功能同步清理遗留外部配置</li>'
+      +'</ul></div>'
       +'<div style="margin-bottom:16px"><div style="font-size:13px;color:var(--accent);font-weight:600;margin-bottom:6px">🔥 v7.1 (2026-04-13)</div>'
       +'<ul style="padding-left:20px;color:var(--dim);font-size:13px;margin:0">'
       +'<li>搜索 blur 延迟优化 (200→250ms)</li>'
@@ -1338,7 +1345,7 @@ function showChangelog(){
       +'</ul></div>'
       +'<div style="margin-bottom:16px"><div style="font-size:13px;color:var(--orange);font-weight:600;margin-bottom:6px">🚀 v7.0 (2026-04-09)</div>'
       +'<ul style="padding-left:20px;color:var(--dim);font-size:13px;margin:0">'
-      +'<li>AI 智能问答助手 (Coze Web SDK)</li>'
+      +'<li>AI 智能问答助手（纯本地知识库搜索引擎）</li>'
       +'<li>可视化 CMS 管理面板</li>'
       +'<li>HTML 模板内嵌编辑器</li>'
       +'<li>全文内容搜索</li>'
@@ -4402,7 +4409,7 @@ async function adminPublishAll(){
   }
 }
 
-// ═══ AI 智能问答助手 (Coze API) ═══
+// ═══ AI 智能问答助手（纯本地知识库搜索引擎 — 零外部依赖 · 数据完全在浏览器本地） ═══
 
 /* ── 可自定义配置区（修改此处即可换头像/名称/主题色） ── */
 var AI_BOT_CONFIG = {
@@ -4411,190 +4418,7 @@ var AI_BOT_CONFIG = {
   themeAccent: '#6c8cff'                                         // 主题强调色（与网站 --accent 一致）
 };
 
-/* ── Coze API 默认配置 ── */
-var COZE_DEFAULT_CONFIG = {
-  botId: '7628276523161616403',
-  token: 'pat_Vc4OB0Yu7rMZLZR9bXlbZmqQ4QE9YBISMGemPzP23DHExjHOmdtKmUpv5PpwpZeY',
-  // CORS 代理地址（Cloudflare Worker）— 解决浏览器跨域限制
-  // 部署方式见 cloudflare-worker-coze-proxy.js
-  // 格式：https://your-worker-name.your-subdomain.workers.dev
-  // 设为空字符串 '' 则直连 api.coze.cn（仅限本地开发/有后端代理时）
-  proxyUrl: ''
-};
-
-// Coze API 基础地址（自动判断使用代理还是直连）
-function getCozeApiBase(){
-  var proxy = localStorage.getItem('coze_proxy_url') || COZE_DEFAULT_CONFIG.proxyUrl || '';
-  return proxy ? proxy.replace(/\/+$/, '') : 'https://api.coze.cn';
-}
-
-// 为每个访客生成唯一的 user_id（隐私隔离：不同用户的对话互不可见）
-function _getUniqueUserId(){
-  var uid = localStorage.getItem('coze_user_id');
-  if(!uid){
-    // 使用 crypto API 生成随机 ID，比 Date.now() 更不容易碰撞
-    try{
-      var arr = new Uint8Array(16);
-      crypto.getRandomValues(arr);
-      uid = 'u_' + Array.from(arr).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
-    }catch(e){
-      uid = 'u_' + Date.now() + '_' + Math.random().toString(36).substring(2,10);
-    }
-    localStorage.setItem('coze_user_id', uid);
-  }
-  return uid;
-}
-
-// ── Coze Chat SDK 模式 — 使用官方 SDK 解决 CORS 跨域问题 ──
-// SDK 通过内部通信机制绕过浏览器 CORS 限制，无需后端代理
-// 隐私隔离策略：每个浏览器/访客拥有唯一 user_id，SDK 使用独立对话
-var _cozeSdkLoaded = false;
-var _cozeSdkLoading = false;
-var _cozeSdkInstance = null;
-var _cozeSdkReady = false; // SDK 聊天窗口是否已就绪
-var _sdkChatOpen = false;  // SDK 聊天窗口是否打开
-
-// 销毁现有 SDK 实例（用于隐私重置/重建）
-function _destroyCozeSdk(){
-  if(_cozeSdkInstance){
-    // 尝试调用 SDK 的销毁方法
-    try{
-      if(typeof _cozeSdkInstance.destroy === 'function') _cozeSdkInstance.destroy();
-      else if(typeof _cozeSdkInstance.unmount === 'function') _cozeSdkInstance.unmount();
-    }catch(e){ console.warn('[Coze SDK] 销毁异常:', e); }
-    _cozeSdkInstance = null;
-  }
-  // 清理 SDK 残留的 DOM 元素
-  var sdkEls = document.querySelectorAll('[class*="coze"],[id*="coze"],[class*="Coze"],[id*="Coze"]');
-  sdkEls.forEach(function(el){
-    if(el.id === 'aiChatWrapper' || (el.closest && el.closest('#aiChatWrapper'))) return;
-    try{ el.remove(); }catch(e){}
-  });
-  _cozeSdkLoaded = false;
-  _cozeSdkLoading = false;
-  _cozeSdkReady = false;
-  _sdkChatOpen = false;
-  console.log('[Coze SDK] 实例已销毁');
-}
-
-function loadCozeChatSDK(){
-  if(_cozeSdkLoaded || _cozeSdkLoading) return;
-  _cozeSdkLoading = true;
-
-  var botId = localStorage.getItem('coze_bot_id') || COZE_DEFAULT_CONFIG.botId || '';
-  var token = localStorage.getItem('coze_token') || COZE_DEFAULT_CONFIG.token || '';
-
-  if(!botId || !token){
-    console.log('[Coze SDK] 未配置 Bot ID / Token，使用本地搜索模式');
-    _cozeSdkLoading = false;
-    return;
-  }
-
-  // 检查 CozeWebSDK 是否已加载
-  if(typeof CozeWebSDK === 'undefined' || !CozeWebSDK.WebChatClient){
-    console.warn('[Coze SDK] CDN 脚本未加载，降级到本地搜索模式');
-    _cozeSdkLoading = false;
-    return;
-  }
-
-  // 获取当前访客的唯一 user_id（隐私隔离核心）
-  var userId = _getUniqueUserId();
-
-  try{
-    _cozeSdkInstance = new CozeWebSDK.WebChatClient({
-      config: {
-        type: 'bot',
-        botId: botId
-      },
-      auth: {
-        type: 'token',
-        token: token,
-        onRefreshToken: function(){ return token; }
-      },
-      userInfo: {
-        id: userId,
-        nickname: '知识库用户',
-        url: ''
-      },
-      ui: {
-        base: {
-          icon: '',
-          layout: 'pc',
-          lang: 'zh-CN',
-          zIndex: 9999
-        },
-        // 隐藏 SDK 自带的悬浮球 — 用自建的头像按钮替代
-        asstBtn: {
-          isNeed: false
-        },
-        header: {
-          isShow: true,
-          isNeedClose: true
-        },
-        footer: {
-          isShow: false
-        },
-        chatBot: {
-          title: AI_BOT_CONFIG.name || 'APM 智能助理',
-          uploadable: false,
-          width: 420
-        }
-      }
-    });
-
-    _cozeSdkLoaded = true;
-    _cozeSdkReady = true;
-    _cozeSdkLoading = false;
-    console.log('[Coze SDK] ✅ Chat SDK 初始化成功 (Bot: '+botId.substring(0,6)+'...)');
-    // 打印实例方法，方便调试
-    var methods = [];
-    for(var k in _cozeSdkInstance){
-      if(typeof _cozeSdkInstance[k] === 'function') methods.push(k);
-    }
-    console.log('[Coze SDK] 可用方法:', methods.join(', '));
-
-    // 监听 SDK 聊天窗口关闭事件 — 同步浮动按钮图标状态
-    // SDK 窗口可能被用户通过 SDK 自带的关闭按钮关闭，此时需要同步状态
-    _monitorSdkChatClose();
-
-    // 隐藏 SDK 自带的悬浮球（多重保障）
-    setTimeout(function(){
-      _hideCozeDefaultUI();
-    }, 500);
-    setTimeout(function(){
-      _hideCozeDefaultUI();
-    }, 1500);
-    setTimeout(function(){
-      _hideCozeDefaultUI();
-    }, 3000);
-
-  }catch(e){
-    console.error('[Coze SDK] 初始化失败:', e);
-    _cozeSdkLoading = false;
-    _cozeSdkReady = false;
-  }
-}
-
-// 隐藏 Coze SDK 默认的悬浮触发按钮（不隐藏聊天窗口本身！）
-function _hideCozeDefaultUI(){
-  // 只精确隐藏 SDK 自带的圆形悬浮触发按钮
-  // 注意：不能隐藏 SDK 的聊天窗口 iframe 容器！
-  var allEls = document.querySelectorAll('[class*="coze"],[id*="coze"],[class*="Coze"],[id*="Coze"]');
-  allEls.forEach(function(el){
-    // 跳过我们自己的元素
-    if(el.id === 'aiChatWrapper' || el.closest('#aiChatWrapper')) return;
-    // 跳过 iframe（聊天窗口）和 iframe 的父容器
-    if(el.tagName === 'IFRAME') return;
-    if(el.querySelector && el.querySelector('iframe')) return;
-    // 只隐藏 button 类型的悬浮触发按钮
-    if(el.tagName === 'BUTTON'){
-      el.style.display = 'none';
-    }
-  });
-}
-
-// ── 切换聊天窗口 ──
-// 优先使用 Coze SDK 聊天窗口，降级到自建 UI（本地搜索）
+// ── 切换聊天窗口（纯本地搜索模式）──
 
 function _setAiFabIcon(showClose){
   var avatarEl = document.getElementById('aiFabAvatar');
@@ -4612,154 +4436,17 @@ function _setAiFabIcon(showClose){
 }
 
 function toggleAiChat(){
-  // 首次点击时初始化 SDK
-  if(!_cozeSdkLoaded && !_cozeSdkLoading) loadCozeChatSDK();
-
   var dialog = document.getElementById('aiChatDialog');
 
-  // 如果 SDK 就绪，使用 SDK 的聊天窗口
-  if(_cozeSdkReady && _cozeSdkInstance){
-    console.log('[Coze SDK] toggleAiChat → SDK 模式, _sdkChatOpen='+_sdkChatOpen);
-    if(_sdkChatOpen){
-      // 关闭 — 立即切换图标，不等 SDK 动画
-      _sdkChatOpen = false;
-      _setAiFabIcon(false);
-      _hideCozeChat();
-    }else{
-      // 打开
-      _sdkChatOpen = true;
-      _setAiFabIcon(true);
-      _showCozeChat();
-    }
-    return;
-  }
-
-  console.log('[Coze SDK] toggleAiChat → 降级模式（SDK 未就绪: _cozeSdkReady='+_cozeSdkReady+', instance='+!!_cozeSdkInstance+'）');
-
-  // SDK 未就绪 — 使用自建对话框 + 本地搜索模式
+  // 纯本地模式 — 使用自建对话框 + 本地搜索
   if(dialog.classList.contains('show')){
     dialog.classList.remove('show');
     _setAiFabIcon(false);
   }else{
     dialog.classList.add('show');
     _setAiFabIcon(true);
-    // 加载已保存的配置
-    var savedBotId=localStorage.getItem('coze_bot_id') || COZE_DEFAULT_CONFIG.botId || '';
-    var savedToken=localStorage.getItem('coze_token') || COZE_DEFAULT_CONFIG.token || '';
-    if(savedBotId) document.getElementById('cozeBotId').value=savedBotId;
-    if(savedToken) document.getElementById('cozeToken').value=savedToken;
-    var proxyInput=document.getElementById('cozeProxyUrl');
-    var savedProxy=localStorage.getItem('coze_proxy_url') || COZE_DEFAULT_CONFIG.proxyUrl || '';
-    if(proxyInput && savedProxy) proxyInput.value=savedProxy;
     setTimeout(function(){document.getElementById('aiChatInput').focus();},300);
   }
-}
-
-// 显示 Coze SDK 聊天窗口 — 使用官方 showChatBot() 方法
-function _showCozeChat(){
-  if(!_cozeSdkInstance){
-    console.warn('[Coze SDK] 实例不存在，无法打开聊天窗口');
-    return;
-  }
-  // 官方 API：showChatBot() 打开聊天窗口
-  if(typeof _cozeSdkInstance.showChatBot === 'function'){
-    _cozeSdkInstance.showChatBot();
-    console.log('[Coze SDK] showChatBot() 已调用');
-  }else if(typeof _cozeSdkInstance.open === 'function'){
-    _cozeSdkInstance.open();
-    console.log('[Coze SDK] open() 已调用（降级）');
-  }else{
-    console.warn('[Coze SDK] 未找到 showChatBot/open 方法，尝试手动显示 iframe');
-    // 手动查找并显示 SDK 渲染的聊天窗口容器
-    _toggleCozeIframes(true);
-  }
-}
-
-// 隐藏 Coze SDK 聊天窗口 — 使用官方 hideChatBot() 方法
-function _hideCozeChat(){
-  if(!_cozeSdkInstance){
-    return;
-  }
-  if(typeof _cozeSdkInstance.hideChatBot === 'function'){
-    _cozeSdkInstance.hideChatBot();
-    console.log('[Coze SDK] hideChatBot() 已调用');
-  }else if(typeof _cozeSdkInstance.close === 'function'){
-    _cozeSdkInstance.close();
-    console.log('[Coze SDK] close() 已调用（降级）');
-  }else{
-    _toggleCozeIframes(false);
-  }
-  // 同步状态和图标
-  _sdkChatOpen = false;
-  _setAiFabIcon(false);
-  // 延时二次确认图标状态（SDK隐藏可能是异步的）
-  setTimeout(function(){ _setAiFabIcon(false); }, 350);
-}
-
-// ── 监听 SDK 聊天窗口被内部关闭按钮关闭 ──
-// SDK 窗口有自带的关闭按钮（isNeedClose:true），用户点击后 SDK 自行关闭窗口
-// 但我们的 _sdkChatOpen 状态不会更新，导致浮动按钮图标卡在 ✕
-// 通过 MutationObserver 监听 SDK iframe 容器的 display 变化来同步
-function _monitorSdkChatClose(){
-  var checkInterval = null;
-  var lastVisible = false;
-
-  function checkSdkVisibility(){
-    if(!_cozeSdkReady || !_cozeSdkInstance) return;
-    // 查找 SDK 渲染的 iframe 容器
-    var iframes = document.querySelectorAll('iframe');
-    var sdkVisible = false;
-    for(var i=0; i<iframes.length; i++){
-      var f = iframes[i];
-      if(f.src && (f.src.indexOf('coze.cn')>=0 || f.src.indexOf('coze.com')>=0)){
-        var container = f.parentElement;
-        // 检查 iframe 及其容器是否可见
-        var fVisible = f.offsetWidth > 0 && f.offsetHeight > 0 &&
-          window.getComputedStyle(f).display !== 'none' &&
-          window.getComputedStyle(f).visibility !== 'hidden';
-        if(container){
-          var cVisible = container.offsetWidth > 0 && container.offsetHeight > 0 &&
-            window.getComputedStyle(container).display !== 'none' &&
-            window.getComputedStyle(container).visibility !== 'hidden';
-          fVisible = fVisible && cVisible;
-        }
-        if(fVisible) sdkVisible = true;
-      }
-    }
-    // 检测从可见变为不可见 → SDK 被关闭了
-    if(lastVisible && !sdkVisible && _sdkChatOpen){
-      console.log('[Coze SDK] 检测到聊天窗口被外部关闭，同步图标状态');
-      _sdkChatOpen = false;
-      _setAiFabIcon(false);
-    }
-    lastVisible = sdkVisible;
-  }
-
-  // 延时启动监听（等 SDK UI 完全渲染）
-  setTimeout(function(){
-    checkInterval = setInterval(checkSdkVisibility, 500);
-  }, 2000);
-}
-
-// 备用：手动控制 SDK 渲染的 iframe 显示/隐藏
-function _toggleCozeIframes(show){
-  var iframes = document.querySelectorAll('iframe');
-  iframes.forEach(function(f){
-    if(f.src && (f.src.indexOf('coze.cn')>=0 || f.src.indexOf('coze.com')>=0)){
-      if(show){
-        f.style.display = '';
-        f.style.visibility = 'visible';
-        if(f.parentElement){
-          f.parentElement.style.display = '';
-          f.parentElement.style.visibility = 'visible';
-        }
-      }else{
-        if(f.parentElement){
-          f.parentElement.style.display = 'none';
-        }
-      }
-    }
-  });
 }
 
 function aiSendSuggestion(btn){
@@ -4777,23 +4464,8 @@ function aiSendMessage(){
   input.value='';
   input.style.height='auto';
 
-  // 检查是否配置了 Coze（优先 localStorage，其次 COZE_DEFAULT_CONFIG 默认值）
-  // 自动清理已知的错误 Bot ID（历史遗留问题）
-  var _storedBotId=localStorage.getItem('coze_bot_id');
-  if(_storedBotId==='7628276521161610403') { localStorage.removeItem('coze_bot_id'); _storedBotId=null; }
-  var botId=_storedBotId || COZE_DEFAULT_CONFIG.botId || '';
-  var token=localStorage.getItem('coze_token') || COZE_DEFAULT_CONFIG.token || '';
-
-  // 自建对话框模式 — 统一使用本地搜索
-  // Coze AI 对话已交由 Chat SDK 处理（不受 CORS 限制）
-  // 如果 SDK 可用但用户仍在自建窗口输入，提示切换
-  if(_cozeSdkReady && botId && token){
-    aiAppendMessage('bot', '💡 检测到 Coze AI 已就绪！请关闭此窗口，重新点击助手图标即可使用 **AI 智能对话**。\n\n现在先用本地知识库帮你搜索~');
-    aiLocalAnswer(msg);
-  }else{
-    // 未配置或 SDK 未就绪 → 使用本地知识库搜索
-    aiLocalAnswer(msg);
-  }
+  // 纯本地知识库搜索 — 零外部依赖
+  aiLocalAnswer(msg);
 }
 
 // ═══ 本地知识库搜索回答（免费兜底方案） ═══
@@ -4840,126 +4512,7 @@ function aiLocalAnswer(query){
   }, 800+Math.random()*600);
 }
 
-// ═══ Coze API 调用（v3 版本 — 非流式） ═══
-function aiCozeAnswer(query, botId, token){
-  aiShowTyping();
-  var sendBtn=document.getElementById('aiChatSend');
-  sendBtn.disabled=true;
 
-  // v3 API: Coze Chat （非流式模式，通过代理解决 CORS）
-  var _apiBase = getCozeApiBase();
-  fetch(_apiBase + '/v3/chat', {
-    method:'POST',
-    headers:{
-      'Authorization': 'Bearer '+token,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      bot_id: botId,
-      user_id: _getUniqueUserId(),
-      additional_messages: [{
-        role: 'user',
-        content: query,
-        content_type: 'text'
-      }],
-      stream: false,
-      auto_save_history: false
-    })
-  }).then(function(res){return res.json();}).then(function(data){
-    // v3 非流式返回的是 chat 对象，需要再轮询获取结果
-    if(data && data.data && data.data.id){
-      var chatId=data.data.id;
-      var conversationId=data.data.conversation_id;
-      // 轮询等待 chat 完成
-      aiPollChatResult(chatId, conversationId, botId, token, sendBtn, query);
-    }else if(data && data.code && data.code!==0){
-      aiRemoveTyping();
-      sendBtn.disabled=false;
-      console.error('[Coze API Error]', JSON.stringify(data));
-      aiAppendMessage('bot', '哎呀，API 出了点小问题 😅\n\n**错误码：** `'+data.code+'`\n**提示：** '+(data.msg||'未知错误')+'\n\n可以检查一下 Bot ID 和 Token 是否正确，或者稍后再试试~');
-    }else{
-      aiRemoveTyping();
-      sendBtn.disabled=false;
-      console.error('[Coze API Unknown Response]', JSON.stringify(data));
-      aiAppendMessage('bot', '没收到有效响应，可能是网络波动 🌊 稍后再试试看~');
-    }
-  }).catch(function(err){
-    aiRemoveTyping();
-    sendBtn.disabled=false;
-    console.error('[Coze API Catch Error]', err);
-    // 判断是否为 CORS 跨域问题
-    var _base = getCozeApiBase();
-    var isCorsIssue = _base.indexOf('api.coze.cn')>=0;
-    if(isCorsIssue){
-      aiAppendMessage('bot', '⚠️ **Coze API 跨域受限（CORS）**\n\n浏览器安全策略阻止了直接调用 Coze API。\n\n**解决方法：**\n1. 点击下方「配置 Coze Bot」\n2. 填入 CORS 代理地址（Cloudflare Worker）\n3. 部署指南见项目中的 `cloudflare-worker-coze-proxy.js`\n\n已临时切换到本地搜索模式 📚');
-    }else{
-      aiAppendMessage('bot', 'Coze API 连接失败了 😣 已切换到本地知识库搜索，让我用另一种方式帮你找答案~');
-    }
-    aiLocalAnswer(query);
-  });
-}
-
-// ═══ 轮询 Chat 结果（v3 非流式需要轮询） ═══
-function aiPollChatResult(chatId, conversationId, botId, token, sendBtn, query){
-  var maxRetries=30; // 最多轮询 30 次（约 30 秒）
-  var retryCount=0;
-
-  function poll(){
-    retryCount++;
-    if(retryCount>maxRetries){
-      aiRemoveTyping();
-      sendBtn.disabled=false;
-      aiAppendMessage('bot', '等了好久还没收到回复 ⏰ 先用本地知识库帮你搜搜~');
-      aiLocalAnswer(query);
-      return;
-    }
-
-    var _apiBase = getCozeApiBase();
-    fetch(_apiBase + '/v3/chat/retrieve?chat_id='+chatId+'&conversation_id='+conversationId, {
-      method:'GET',
-      headers:{'Authorization': 'Bearer '+token}
-    }).then(function(res){return res.json();}).then(function(data){
-      if(data && data.data && data.data.status==='completed'){
-        // Chat 完成，获取消息列表
-        fetch(_apiBase + '/v3/chat/message/list?chat_id='+chatId+'&conversation_id='+conversationId, {
-          method:'GET',
-          headers:{'Authorization': 'Bearer '+token}
-        }).then(function(res){return res.json();}).then(function(msgData){
-          aiRemoveTyping();
-          sendBtn.disabled=false;
-          if(msgData && msgData.data){
-            var answerMsg=msgData.data.find(function(m){return m.role==='assistant' && m.type==='answer';});
-            if(answerMsg){
-              aiAppendMessage('bot', answerMsg.content);
-            }else{
-              aiAppendMessage('bot', '收到回复，但未找到有效答案。请检查 Bot 配置。');
-            }
-          }else{
-            aiAppendMessage('bot', '⚠️ 获取消息失败，请稍后重试。');
-          }
-        }).catch(function(){
-          aiRemoveTyping();
-          sendBtn.disabled=false;
-          aiAppendMessage('bot', '⚠️ 获取消息列表失败。');
-        });
-      }else if(data && data.data && (data.data.status==='in_progress' || data.data.status==='created')){
-        // 还在处理中，1 秒后重试
-        setTimeout(poll, 1000);
-      }else{
-        // 失败
-        aiRemoveTyping();
-        sendBtn.disabled=false;
-        var errMsg=(data && data.data && data.data.last_error) ? data.data.last_error.msg : '未知错误';
-        aiAppendMessage('bot', '⚠️ AI 回答失败: '+errMsg+'\n\n已切换到本地搜索模式。');
-        aiLocalAnswer(query);
-      }
-    }).catch(function(){
-      setTimeout(poll, 1500); // 网络错误重试
-    });
-  }
-
-  setTimeout(poll, 1000); // 首次等 1 秒后开始轮询
-}
 
 // ── 回复结尾随机彩蛋 ──
 var _botSignoffs = [
@@ -5206,23 +4759,9 @@ function aiCloseConfig(){
   document.getElementById('aiConfigPanel').style.display='none';
 }
 function aiSaveConfig(){
-  var botId=document.getElementById('cozeBotId').value.trim();
-  var token=document.getElementById('cozeToken').value.trim();
-  var proxyUrl=document.getElementById('cozeProxyUrl') ? document.getElementById('cozeProxyUrl').value.trim() : '';
-  if(botId) localStorage.setItem('coze_bot_id', botId);
-  if(token) localStorage.setItem('coze_token', token);
-  if(proxyUrl) localStorage.setItem('coze_proxy_url', proxyUrl);
-  else localStorage.removeItem('coze_proxy_url');
-  if(!localStorage.getItem('coze_user_id')) _getUniqueUserId();
+  // 纯本地模式 — 无需外部配置
   aiCloseConfig();
-  // 尝试重新初始化 SDK
-  if(botId && token && !_cozeSdkReady){
-    _cozeSdkLoaded = false;
-    _cozeSdkLoading = false;
-    loadCozeChatSDK();
-  }
-  var sdkStatus = _cozeSdkReady ? 'Chat SDK 模式 ✅ （无跨域限制）' : '本地搜索模式（如需 AI 对话，请刷新页面）';
-  aiAppendMessage('bot', '配置保存成功 ✅ \n\n**当前模式：** '+sdkStatus+'\n**Bot：** '+AI_BOT_CONFIG.name+'\n\n💡 如果 AI 对话未生效，请 **刷新页面** 后重新点击助手图标即可 🚀');
+  aiAppendMessage('bot', '✅ 当前为 **纯本地知识库搜索模式**\n\n所有对话数据均保存在浏览器本地，不会发送到任何外部服务器。\n\n**Bot：** '+AI_BOT_CONFIG.name+'\n\n💡 直接输入问题即可搜索知识库内容~ 🚀');
 }
 
 // ═══ AI 助手拖拽系统（Drag & Drop）═══
@@ -5776,30 +5315,22 @@ function aiClearChat(){
   localStorage.removeItem('kb_ai_chat_history');
 }
 
-// ═══ 隐私重置：清除所有对话数据 + 重新生成身份 + 重建 SDK ═══
-// 彻底切断与 Coze 服务端旧对话的关联
+// ═══ 隐私重置：清除所有本地对话数据 ═══
 function aiPrivacyReset(){
-  if(!confirm('🔐 隐私重置\n\n此操作将：\n• 清除所有本地聊天记录\n• 重新生成访客身份 ID\n• 断开与旧对话的关联\n• 重新初始化 AI 助手\n\n确定继续？'))return;
+  if(!confirm('🔐 隐私重置\n\n此操作将清除所有本地聊天记录。\n\n（当前为纯本地模式，所有数据仅保存在您的浏览器中）\n\n确定继续？'))return;
 
-  // 1. 清除本地聊天记录
+  // 清除本地聊天记录
   localStorage.removeItem('kb_ai_chat_history');
   var container=document.getElementById('aiChatMessages');
   if(container) container.innerHTML='';
 
-  // 2. 重新生成 user_id（切断与旧对话的关联）
+  // 清除遗留的 Coze 相关数据（历史兼容清理）
   localStorage.removeItem('coze_user_id');
-  var newUid = _getUniqueUserId(); // 立即生成新 ID
+  localStorage.removeItem('coze_bot_id');
+  localStorage.removeItem('coze_token');
+  localStorage.removeItem('coze_proxy_url');
 
-  // 3. 销毁现有 SDK 实例
-  _destroyCozeSdk();
-
-  // 4. 重新初始化 SDK（使用新的 user_id）
-  setTimeout(function(){
-    loadCozeChatSDK();
-    showToast('🔐 隐私重置完成 — 已生成新身份，旧对话已断开关联');
-  }, 500);
-
-  console.log('[隐私重置] 新 user_id:', newUid);
+  showToast('🔐 隐私重置完成 — 所有聊天记录已清除');
 }
 
 function aiExportChat(){
