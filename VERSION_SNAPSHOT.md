@@ -27,7 +27,7 @@
 
 | # | ID | 标题 | 类型 | 质量 | 最后更新 |
 |---|-----|------|------|------|----------|
-| 1 | `game-art-pipeline` | 美术生产管线总览 — 2D/3D/二次元全流程 | iframe/html | ⭐ 精华 | 2026-03-25 |
+| 1 | `game-art-pipeline` | 角色美术资产管线 — 2D/Spine/二次元制作全流程 | iframe/html | ⭐ 精华 | 2026-03-25 |
 | 2 | `art-scheduling` | 美术排期与里程碑管理 | md | 📄 初版 | 2026-04-07 |
 | 3 | `svn-perforce-structure` | SVN/Perforce 目录结构标准 | md | 📄 初版 | 2026-04-07 |
 | 4 | `asset-submit-review` | 资产提交与审核工作流 | md | 📄 初版 | 2026-04-07 |

@@ -56,7 +56,7 @@
 ### 📋 项目管理与排期
 | 文档ID | 标题 |
 |--------|------|
-| game-art-pipeline | 美术生产管线总览 — 2D/3D/二次元全流程 |
+| game-art-pipeline | 角色美术资产管线 — 2D/Spine/二次元制作全流程 |
 | art-scheduling | 美术排期与里程碑管理 |
 | progress-visualization | 进度可视化工具 |
 | art-vs-planner-req | 需求对接流转规范 |
