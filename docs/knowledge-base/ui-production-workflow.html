@@ -134,28 +134,95 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 
 <!-- SEC2 -->
 <div class="section" id="sec2">
-  <h2>📊 2. 全流程节点概览（含补充环节）</h2>
-  <p>基于原始流程图，补充了 <span class="badge badge-new">NEW</span> 标记的 3 个缺失环节，形成完整管线：</p>
+  <h2>📊 2. 全流程节点概览（含补充环节 & 并行关系）</h2>
+  <p>基于原始流程图，补充了 <span class="badge badge-new">NEW</span> 标记的 3 个缺失环节。<strong style="color:var(--cyan)">蓝色虚线框</strong> 标注了可以并行的环节组合：</p>
+
+  <!-- ===== 阶段一：串行 — 策划+评审+交互 ===== -->
+  <div style="margin:20px 0 8px;font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:2px;font-weight:600">▸ 阶段一 · 需求与交互（串行）</div>
   <div class="flow">
     <div class="flow-node purple"><strong>①策划需求</strong><div class="sub">需求文档</div></div><span class="flow-arrow">→</span>
     <div class="flow-node purple new"><strong>②需求评审</strong><div class="sub">冻结门禁</div></div><span class="flow-arrow">→</span>
     <div class="flow-node blue"><strong>③交互设计</strong><div class="sub">交互稿</div></div><span class="flow-arrow">→</span>
     <div class="flow-node gate"><strong>④交互评审</strong><div class="sub">通过/打回</div></div><span class="flow-arrow">→</span>
-    <div class="flow-node blue"><strong>⑤交互交付</strong><div class="sub">标注文档</div></div><span class="flow-arrow">→</span>
-    <div class="flow-node pink"><strong>⑥UI设计</strong><div class="sub">高保真稿</div></div><span class="flow-arrow">→</span>
-    <div class="flow-node gate"><strong>⑦UI评审</strong><div class="sub">通过/打回</div></div>
+    <div class="flow-node blue"><strong>⑤交互交付</strong><div class="sub">标注文档</div></div>
   </div>
-  <div class="flow" style="margin-top:8px">
-    <div class="flow-node pink"><strong>⑧UI交付</strong><div class="sub">切图+标注</div></div><span class="flow-arrow">→</span>
-    <div class="flow-node pink new"><strong>⑨资产合规</strong><div class="sub">命名/格式</div></div><span class="flow-arrow">→</span>
-    <div class="flow-node teal"><strong>⑩Layout</strong><div class="sub">蓝图制作</div></div><span class="flow-arrow">→</span>
-    <div class="flow-node orange"><strong>⑪VX动效</strong><div class="sub">预演+制作</div></div><span class="flow-arrow">→</span>
-    <div class="flow-node orange new"><strong>⑫动效评审</strong><div class="sub">表现+性能</div></div><span class="flow-arrow">→</span>
+
+  <!-- ===== 阶段二：并行组 A ===== -->
+  <div style="margin:24px 0 8px;font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:2px;font-weight:600">▸ 阶段二 · 设计与蓝图（<span style="color:var(--cyan)">⚡ 可并行</span>）</div>
+  <div style="border:2px dashed var(--cyan);border-radius:14px;padding:16px 16px 12px;position:relative;margin-bottom:12px">
+    <div style="position:absolute;top:-11px;left:20px;background:var(--bg);padding:0 8px;font-size:11px;color:var(--cyan);font-weight:700">⚡ 并行组 A — 交互交付后双线启动，可节省 3-5 天</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <!-- 上路：UI 设计 -->
+      <div style="background:rgba(244,114,182,.04);border:1px solid rgba(244,114,182,.15);border-radius:10px;padding:12px">
+        <div style="font-size:11px;color:#f472b6;font-weight:700;margin-bottom:8px">🔴 上路 · UI 设计线</div>
+        <div class="flow" style="margin:0;justify-content:flex-start">
+          <div class="flow-node pink" style="min-width:70px"><strong>⑥UI设计</strong><div class="sub">高保真稿</div></div><span class="flow-arrow">→</span>
+          <div class="flow-node gate" style="min-width:60px"><strong>⑦UI评审</strong><div class="sub">通过/打回</div></div><span class="flow-arrow">→</span>
+          <div class="flow-node pink" style="min-width:70px"><strong>⑧UI交付</strong><div class="sub">切图+标注</div></div><span class="flow-arrow">→</span>
+          <div class="flow-node pink new" style="min-width:70px"><strong>⑨资产合规</strong><div class="sub">命名/格式</div></div>
+        </div>
+      </div>
+      <!-- 下路：Layout 白模 + 客户端 -->
+      <div style="background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.15);border-radius:10px;padding:12px">
+        <div style="font-size:11px;color:#2dd4bf;font-weight:700;margin-bottom:8px">🟢 下路 · Layout 白模 + 客户端功能</div>
+        <div class="flow" style="margin:0;justify-content:flex-start">
+          <div class="flow-node teal" style="min-width:90px"><strong>⑩-a Layout白模</strong><div class="sub">功能蓝图</div></div><span class="flow-arrow">→</span>
+          <div class="flow-node yellow" style="min-width:90px"><strong>⑬-a 客户端功能</strong><div class="sub">基于白模开发</div></div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--dim)">↑ 两条线同时启动，互不阻塞 ↑</div>
+  </div>
+
+  <!-- ===== 汇合点 ===== -->
+  <div style="text-align:center;margin:4px 0">
+    <span style="display:inline-block;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:6px 18px;font-size:13px;color:var(--heading);font-weight:600">🔗 汇合 — UI 资产合规通过 + Layout 白模就绪</span>
+  </div>
+
+  <!-- ===== 阶段三：并行组 B ===== -->
+  <div style="margin:20px 0 8px;font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:2px;font-weight:600">▸ 阶段三 · 正式蓝图与动效（<span style="color:var(--cyan)">⚡ 可并行</span>）</div>
+  <div style="border:2px dashed var(--cyan);border-radius:14px;padding:16px 16px 12px;position:relative;margin-bottom:12px">
+    <div style="position:absolute;top:-11px;left:20px;background:var(--bg);padding:0 8px;font-size:11px;color:var(--cyan);font-weight:700">⚡ 并行组 B — Layout 切正式资产后双线启动，可节省 1-2 天</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <!-- 左路：Layout 正式 -->
+      <div style="background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.15);border-radius:10px;padding:12px">
+        <div style="font-size:11px;color:#2dd4bf;font-weight:700;margin-bottom:8px">📐 Layout 正式蓝图线</div>
+        <div class="flow" style="margin:0;justify-content:flex-start">
+          <div class="flow-node teal" style="min-width:100px"><strong>⑩-b 切正式资产</strong><div class="sub">替换白模</div></div><span class="flow-arrow">→</span>
+          <div class="flow-node teal" style="min-width:100px"><strong>⑩-c 正式蓝图</strong><div class="sub">绑定/自适应</div></div>
+        </div>
+      </div>
+      <!-- 右路：VX 动效 -->
+      <div style="background:rgba(251,146,60,.04);border:1px solid rgba(251,146,60,.15);border-radius:10px;padding:12px">
+        <div style="font-size:11px;color:var(--orange);font-weight:700;margin-bottom:8px">✨ VX 动效线</div>
+        <div class="flow" style="margin:0;justify-content:flex-start">
+          <div class="flow-node orange" style="min-width:90px"><strong>⑪VX动效</strong><div class="sub">预演+制作</div></div><span class="flow-arrow">→</span>
+          <div class="flow-node orange new" style="min-width:80px"><strong>⑫动效评审</strong><div class="sub">表现+性能</div></div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--dim)">↑ 两条线同时启动，互不阻塞 ↑</div>
+  </div>
+
+  <!-- ===== 阶段四：串行 — 集成+走查+交付 ===== -->
+  <div style="margin:20px 0 8px;font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:2px;font-weight:600">▸ 阶段四 · 集成与交付（串行）</div>
+  <div class="flow">
     <div class="flow-node yellow"><strong>⑬集成</strong><div class="sub">功能+动效</div></div><span class="flow-arrow">→</span>
     <div class="flow-node gate"><strong>⑭走查</strong><div class="sub">问题分流</div></div><span class="flow-arrow">→</span>
     <div class="flow-node green"><strong>⑮交付</strong><div class="sub">上线</div></div>
   </div>
-  <div class="alert alert-yellow" style="margin-top:16px"><strong>⚠️ 新增 3 个关键环节</strong>：<br><span class="badge badge-new">②需求评审</span> — 原流程缺少需求冻结门禁，易致中途变更返工。<br><span class="badge badge-new">⑨资产合规检查</span> — UI 图交付后、Layout 切正式资产前，自动化校验命名/格式/尺寸。<br><span class="badge badge-new">⑫动效评审</span> — 动效完成后需评审表现效果和性能开销。</div>
+
+  <!-- ===== 总结信息卡片 ===== -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px">
+    <div class="alert alert-yellow" style="margin:0"><strong>⚠️ 新增 3 个关键环节</strong>：<br>
+      <span class="badge badge-new">②需求评审</span> — 需求冻结门禁，阻断中途变更返工。<br>
+      <span class="badge badge-new">⑨资产合规</span> — 自动化校验命名/格式/尺寸（30秒）。<br>
+      <span class="badge badge-new">⑫动效评审</span> — 评审表现效果 & 性能开销。</div>
+    <div class="alert alert-blue" style="margin:0"><strong>⚡ 并行节省的工期</strong>：<br>
+      串行总计 <strong>20-33 天</strong> →  并行优化后 <strong>15-22 天</strong><br>
+      <strong>并行组A</strong>（UI∥Layout白模）：节省 <strong>3-5 天</strong><br>
+      <strong>并行组B</strong>（正式蓝图∥动效）：节省 <strong>1-2 天</strong></div>
+  </div>
 </div>
 
 <!-- SEC3 -->
