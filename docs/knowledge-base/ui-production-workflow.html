@@ -112,9 +112,9 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="alert alert-blue"><strong>💡 导读</strong><br>📍 本文梳理游戏 UI 界面从<strong>需求 → 交互 → UI → Layout → VX 动效 → 走查 → 交付</strong>的完整管线，明确每个阶段的<strong>责任人、交付物、评审标准、工期参考</strong>。<br>🔗 关联：<em>角色美术资产管线</em>（2D/Spine/二次元制作全流程）。</div>
 
 <div class="toc"><h3>📑 目录</h3><ol>
-<li><a href="#sec1">流程可视化总览（draw.io 交互图）</a></li>
-<li><a href="#sec2">全流程节点概览（含补充环节）</a></li>
-<li><a href="#sec3">各阶段详细说明 · Input/Output · 角色</a></li>
+<li><a href="#sec1">流程可视化总览（自绘流程图）</a></li>
+<li><a href="#sec2">全流程节点概览（含补充环节 & 并行关系）</a></li>
+<li><a href="#sec3">各阶段详细说明 · Input/Output · 角色 · TAPD 发单机制</a></li>
 <li><a href="#sec4">关键评审节点与通过标准</a></li>
 <li><a href="#sec5">走查问题分流与闭环机制</a></li>
 <li><a href="#sec6">参考工期与并行策略</a></li>
@@ -124,12 +124,201 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <!-- SEC1 -->
 <div class="section" id="sec1">
   <h2>🔗 1. 流程可视化总览</h2>
-  <p>下方为原始 draw.io 交互式流程图，支持缩放、图层切换和全屏查看：</p>
-  <div class="drawio-box">
-    <div class="mxgraph" style="max-width:100%;border:1px solid transparent;" data-mxgraph="{&quot;highlight&quot;:&quot;#0000ff&quot;,&quot;nav&quot;:true,&quot;resize&quot;:true,&quot;dark-mode&quot;:&quot;auto&quot;,&quot;toolbar&quot;:&quot;zoom layers tags lightbox&quot;,&quot;edit&quot;:&quot;_blank&quot;,&quot;xml&quot;:&quot;&lt;mxfile host=\&quot;tdag.woa.com\&quot; agent=\&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0\&quot; version=\&quot;26.2.15\&quot;&gt;\n  &lt;diagram id=\&quot;4InXH70x44KS0aCuvysU\&quot; name=\&quot;第 1 页\&quot;&gt;\n    &lt;mxGraphModel dx=\&quot;1155\&quot; dy=\&quot;1155\&quot; grid=\&quot;1\&quot; gridSize=\&quot;10\&quot; guides=\&quot;1\&quot; tooltips=\&quot;1\&quot; connect=\&quot;1\&quot; arrows=\&quot;1\&quot; fold=\&quot;1\&quot; page=\&quot;1\&quot; pageScale=\&quot;1\&quot; pageWidth=\&quot;827\&quot; pageHeight=\&quot;1169\&quot; math=\&quot;0\&quot; shadow=\&quot;0\&quot;&gt;\n      &lt;root&gt;\n        &lt;mxCell id=\&quot;0\&quot; /&gt;\n        &lt;mxCell id=\&quot;1\&quot; parent=\&quot;0\&quot; /&gt;\n        &lt;mxCell id=\&quot;2\&quot; value=\&quot;📋 策划输出需求文档\&quot; style=\&quot;rounded=1;fillColor=#7c53c3;strokeColor=#b4a9ff;fontColor=#ffffff;strokeWidth=2;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;300\&quot; y=\&quot;20\&quot; width=\&quot;200\&quot; height=\&quot;50\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;3\&quot; value=\&quot;需求文档\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#666666;labelBackgroundColor=#ffffff;\&quot; parent=\&quot;1\&quot; source=\&quot;2\&quot; target=\&quot;4\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;4\&quot; value=\&quot;🎨 交互设计\&quot; style=\&quot;rounded=1;fillColor=#3d7cc9;strokeColor=#7fb3e8;fontColor=#ffffff;strokeWidth=2;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;300\&quot; y=\&quot;100\&quot; width=\&quot;200\&quot; height=\&quot;50\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;5\&quot; value=\&quot;交互稿\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#666666;labelBackgroundColor=#ffffff;\&quot; parent=\&quot;1\&quot; source=\&quot;4\&quot; target=\&quot;6\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;6\&quot; value=\&quot;✅ 交互评审\&quot; style=\&quot;rhombus;rounded=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontColor=#333333;strokeWidth=2;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;340\&quot; y=\&quot;186\&quot; width=\&quot;120\&quot; height=\&quot;60\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;7\&quot; value=\&quot;通过\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#4caf50;labelBackgroundColor=#ffffff;fontColor=#4caf50;\&quot; parent=\&quot;1\&quot; source=\&quot;6\&quot; target=\&quot;8\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;-0.1489\&quot; relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n            &lt;mxPoint as=\&quot;offset\&quot; /&gt;\n          &lt;/mxGeometry&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;39\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;curved=0;strokeColor=#666666;\&quot; parent=\&quot;1\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n            &lt;Array as=\&quot;points\&quot;&gt;\n              &lt;mxPoint x=\&quot;400\&quot; y=\&quot;372\&quot; /&gt;\n              &lt;mxPoint x=\&quot;797\&quot; y=\&quot;372\&quot; /&gt;\n            &lt;/Array&gt;\n            &lt;mxPoint x=\&quot;400\&quot; y=\&quot;345\&quot; as=\&quot;sourcePoint\&quot; /&gt;\n            &lt;mxPoint x=\&quot;797\&quot; y=\&quot;753\&quot; as=\&quot;targetPoint\&quot; /&gt;\n          &lt;/mxGeometry&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;8\&quot; value=\&quot;交互图交付\&quot; style=\&quot;rounded=1;fillColor=#3d7cc9;strokeColor=#7fb3e8;fontColor=#ffffff;strokeWidth=2;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=12;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;300\&quot; y=\&quot;293\&quot; width=\&quot;200\&quot; height=\&quot;50\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;9\&quot; value=\&quot;打回\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#e57373;labelBackgroundColor=#ffffff;fontColor=#e57373;rounded=1;\&quot; parent=\&quot;1\&quot; target=\&quot;4\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;0.1775\&quot; relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n            &lt;Array as=\&quot;points\&quot;&gt;\n              &lt;mxPoint x=\&quot;550\&quot; y=\&quot;216\&quot; /&gt;\n              &lt;mxPoint x=\&quot;550\&quot; y=\&quot;125\&quot; /&gt;\n            &lt;/Array&gt;\n            &lt;mxPoint x=\&quot;460\&quot; y=\&quot;216\&quot; as=\&quot;sourcePoint\&quot; /&gt;\n            &lt;mxPoint as=\&quot;offset\&quot; /&gt;\n          &lt;/mxGeometry&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;10\&quot; value=\&quot;\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#666666;labelBackgroundColor=#ffffff;\&quot; parent=\&quot;1\&quot; source=\&quot;8\&quot; target=\&quot;11\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;11\&quot; value=\&quot;📐 Layout 功能蓝图交付\&quot; style=\&quot;rounded=1;fillColor=#00897b;strokeColor=#4dd0c8;fontColor=#ffffff;strokeWidth=2;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;59\&quot; y=\&quot;402\&quot; width=\&quot;200\&quot; height=\&quot;50\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;12\&quot; value=\&quot;\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#666666;labelBackgroundColor=#ffffff;\&quot; parent=\&quot;1\&quot; source=\&quot;8\&quot; target=\&quot;13\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n            &lt;Array as=\&quot;points\&quot;&gt;\n              &lt;mxPoint x=\&quot;400\&quot; y=\&quot;372\&quot; /&gt;\n              &lt;mxPoint x=\&quot;525\&quot; y=\&quot;372\&quot; /&gt;\n            &lt;/Array&gt;\n          &lt;/mxGeometry&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;13\&quot; value=\&quot;🖌️ UI设计\&quot; style=\&quot;rounded=1;fillColor=#c2185b;strokeColor=#f48fb1;fontColor=#ffffff;strokeWidth=2;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;425\&quot; y=\&quot;402\&quot; width=\&quot;200\&quot; height=\&quot;50\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;14\&quot; value=\&quot;Layout白模\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#666666;labelBackgroundColor=#ffffff;\&quot; parent=\&quot;1\&quot; source=\&quot;11\&quot; target=\&quot;15\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;15\&quot; value=\&quot;💻 客户端 功能制作\&quot; style=\&quot;rounded=1;fillColor=#f9a825;strokeColor=#ffd54f;fontColor=#333333;strokeWidth=2;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;59\&quot; y=\&quot;538\&quot; width=\&quot;200\&quot; height=\&quot;50\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;16\&quot; value=\&quot;UI设计稿\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#666666;labelBackgroundColor=#ffffff;\&quot; parent=\&quot;1\&quot; source=\&quot;13\&quot; target=\&quot;17\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;17\&quot; value=\&quot;✅ UI评审\&quot; style=\&quot;rhombus;rounded=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontColor=#333333;strokeWidth=2;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;465\&quot; y=\&quot;482\&quot; width=\&quot;120\&quot; height=\&quot;60\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;18\&quot; value=\&quot;通过\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#4caf50;labelBackgroundColor=#ffffff;fontColor=#4caf50;\&quot; parent=\&quot;1\&quot; source=\&quot;17\&quot; target=\&quot;19\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;19\&quot; value=\&quot;UI图交付\&quot; style=\&quot;rounded=1;fillColor=#c2185b;strokeColor=#f48fb1;fontColor=#ffffff;strokeWidth=2;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=12;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;425\&quot; y=\&quot;582\&quot; width=\&quot;200\&quot; height=\&quot;50\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;20\&quot; value=\&quot;打回\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#e57373;labelBackgroundColor=#ffffff;fontColor=#e57373;rounded=1;\&quot; parent=\&quot;1\&quot; source=\&quot;17\&quot; target=\&quot;13\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;0.1676\&quot; relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n            &lt;Array as=\&quot;points\&quot;&gt;\n              &lt;mxPoint x=\&quot;655\&quot; y=\&quot;512\&quot; /&gt;\n              &lt;mxPoint x=\&quot;655\&quot; y=\&quot;427\&quot; /&gt;\n            &lt;/Array&gt;\n            &lt;mxPoint as=\&quot;offset\&quot; /&gt;\n          &lt;/mxGeometry&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;21\&quot; value=\&quot;\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#666666;labelBackgroundColor=#ffffff;\&quot; parent=\&quot;1\&quot; source=\&quot;19\&quot; target=\&quot;22\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;0.0244\&quot; relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n            &lt;mxPoint as=\&quot;offset\&quot; /&gt;\n          &lt;/mxGeometry&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;22\&quot; value=\&quot;📐 Layout 切正式资产\&quot; style=\&quot;rounded=1;fillColor=#00897b;strokeColor=#4dd0c8;fontColor=#ffffff;strokeWidth=2;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;425\&quot; y=\&quot;668\&quot; width=\&quot;200\&quot; height=\&quot;50\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;23\&quot; value=\&quot;\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#666666;\&quot; parent=\&quot;1\&quot; source=\&quot;22\&quot; target=\&quot;24\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;24\&quot; value=\&quot;📐 Layout 正式蓝图制作\&quot; style=\&quot;rounded=1;fillColor=#00897b;strokeColor=#4dd0c8;fontColor=#ffffff;strokeWidth=2;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;425\&quot; y=\&quot;753\&quot; width=\&quot;200\&quot; height=\&quot;50\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;25\&quot; value=\&quot;\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#666666;\&quot; parent=\&quot;1\&quot; source=\&quot;24\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n            &lt;mxPoint x=\&quot;525\&quot; y=\&quot;843\&quot; as=\&quot;targetPoint\&quot; /&gt;\n          &lt;/mxGeometry&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;26\&quot; value=\&quot;✅ 界面走查\&quot; style=\&quot;rhombus;rounded=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontColor=#333333;strokeWidth=2;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;465\&quot; y=\&quot;832\&quot; width=\&quot;120\&quot; height=\&quot;60\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;27\&quot; value=\&quot;通过\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#4caf50;labelBackgroundColor=#ffffff;fontColor=#4caf50;\&quot; parent=\&quot;1\&quot; source=\&quot;26\&quot; target=\&quot;28\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;28\&quot; value=\&quot;✨ VX 界面动效制作\&quot; style=\&quot;rounded=1;fillColor=#d84315;strokeColor=#ff8a65;fontColor=#ffffff;strokeWidth=2;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;425\&quot; y=\&quot;942\&quot; width=\&quot;200\&quot; height=\&quot;50\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;29\&quot; value=\&quot;动效资产\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#666666;labelBackgroundColor=#ffffff;\&quot; parent=\&quot;1\&quot; source=\&quot;28\&quot; target=\&quot;30\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;30\&quot; value=\&quot;💻 客户端 集成动效\&quot; style=\&quot;rounded=1;fillColor=#f9a825;strokeColor=#ffd54f;fontColor=#333333;strokeWidth=2;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;425\&quot; y=\&quot;1036\&quot; width=\&quot;200\&quot; height=\&quot;50\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;31\&quot; value=\&quot;\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#666666;\&quot; parent=\&quot;1\&quot; source=\&quot;30\&quot; target=\&quot;32\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;32\&quot; value=\&quot;🎉 界面交付完成\&quot; style=\&quot;rounded=1;fillColor=#2e7d32;strokeColor=#66de93;fontColor=#ffffff;strokeWidth=2;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;425\&quot; y=\&quot;1118\&quot; width=\&quot;200\&quot; height=\&quot;50\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;33\&quot; value=\&quot;问题\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#9e9e9e;dashed=1;dashPattern=1 1;labelBackgroundColor=#ffffff;fontColor=#9e9e9e;startArrow=none;startFill=0;endFill=1;\&quot; parent=\&quot;1\&quot; source=\&quot;26\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n            &lt;mxPoint x=\&quot;379\&quot; y=\&quot;862\&quot; as=\&quot;targetPoint\&quot; /&gt;\n          &lt;/mxGeometry&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;34\&quot; value=\&quot;📝 修改清单\&quot; style=\&quot;rounded=1;fillColor=#7c53c3;strokeColor=#b4a9ff;fontColor=#ffffff;strokeWidth=2;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=12;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;179\&quot; y=\&quot;837\&quot; width=\&quot;200\&quot; height=\&quot;50\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;35\&quot; value=\&quot;UI问题\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#D6B656;dashed=1;dashPattern=1 1;labelBackgroundColor=#ffffff;fontColor=#FF9933;exitX=0.5;exitY=0;exitDx=0;exitDy=0;fillColor=#fff2cc;\&quot; parent=\&quot;1\&quot; target=\&quot;13\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;-0.5072\&quot; relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n            &lt;Array as=\&quot;points\&quot;&gt;\n              &lt;mxPoint x=\&quot;279\&quot; y=\&quot;427\&quot; /&gt;\n            &lt;/Array&gt;\n            &lt;mxPoint x=\&quot;279\&quot; y=\&quot;837\&quot; as=\&quot;sourcePoint\&quot; /&gt;\n            &lt;mxPoint as=\&quot;offset\&quot; /&gt;\n          &lt;/mxGeometry&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;36\&quot; value=\&quot;Layout问题\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;endArrow=classic;strokeColor=#D6B656;dashed=1;dashPattern=1 1;labelBackgroundColor=#ffffff;fontColor=#FF9933;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;fillColor=#fff2cc;\&quot; parent=\&quot;1\&quot; target=\&quot;24\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;0.4634\&quot; y=\&quot;-2\&quot; relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n            &lt;Array as=\&quot;points\&quot;&gt;\n              &lt;mxPoint x=\&quot;279\&quot; y=\&quot;778\&quot; /&gt;\n            &lt;/Array&gt;\n            &lt;mxPoint x=\&quot;279\&quot; y=\&quot;837\&quot; as=\&quot;sourcePoint\&quot; /&gt;\n            &lt;mxPoint x=\&quot;439\&quot; y=\&quot;769\&quot; as=\&quot;targetPoint\&quot; /&gt;\n            &lt;mxPoint as=\&quot;offset\&quot; /&gt;\n          &lt;/mxGeometry&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;37\&quot; value=\&quot;开发问题\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#D6B656;dashed=1;dashPattern=1 1;labelBackgroundColor=#ffffff;fontColor=#FF9933;fillColor=#fff2cc;\&quot; parent=\&quot;1\&quot; source=\&quot;34\&quot; target=\&quot;15\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;40\&quot; value=\&quot;✨ VX 动效预演\&quot; style=\&quot;rounded=1;fillColor=#d84315;strokeColor=#ff8a65;fontColor=#ffffff;strokeWidth=2;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;697\&quot; y=\&quot;751\&quot; width=\&quot;200\&quot; height=\&quot;50\&quot; as=\&quot;geometry\&quot; /&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;41\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;curved=0;strokeColor=#666666;entryX=1;entryY=0.5;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;40\&quot; target=\&quot;28\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n            &lt;mxPoint x=\&quot;410\&quot; y=\&quot;353\&quot; as=\&quot;sourcePoint\&quot; /&gt;\n            &lt;mxPoint x=\&quot;850\&quot; y=\&quot;755\&quot; as=\&quot;targetPoint\&quot; /&gt;\n          &lt;/mxGeometry&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;42\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;curved=0;strokeColor=#666666;exitX=1;exitY=0.5;exitDx=0;exitDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;22\&quot; target=\&quot;40\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n            &lt;mxPoint x=\&quot;738\&quot; y=\&quot;652\&quot; as=\&quot;sourcePoint\&quot; /&gt;\n            &lt;mxPoint x=\&quot;850\&quot; y=\&quot;755\&quot; as=\&quot;targetPoint\&quot; /&gt;\n          &lt;/mxGeometry&gt;\n        &lt;/mxCell&gt;\n        &lt;mxCell id=\&quot;43\&quot; value=\&quot;交互问题\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#D6B656;dashed=1;dashPattern=1 1;labelBackgroundColor=#ffffff;fontColor=#FF9933;exitX=0;exitY=0.5;exitDx=0;exitDy=0;fillColor=#fff2cc;\&quot; parent=\&quot;1\&quot; source=\&quot;34\&quot; edge=\&quot;1\&quot;&gt;\n          &lt;mxGeometry x=\&quot;-0.4645\&quot; relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n            &lt;mxPoint x=\&quot;179\&quot; y=\&quot;867\&quot; as=\&quot;sourcePoint\&quot; /&gt;\n            &lt;mxPoint x=\&quot;300\&quot; y=\&quot;130\&quot; as=\&quot;targetPoint\&quot; /&gt;\n            &lt;mxPoint as=\&quot;offset\&quot; /&gt;\n            &lt;Array as=\&quot;points\&quot;&gt;\n              &lt;mxPoint x=\&quot;30\&quot; y=\&quot;862\&quot; /&gt;\n              &lt;mxPoint x=\&quot;30\&quot; y=\&quot;130\&quot; /&gt;\n            &lt;/Array&gt;\n          &lt;/mxGeometry&gt;\n        &lt;/mxCell&gt;\n      &lt;/root&gt;\n    &lt;/mxGraphModel&gt;\n  &lt;/diagram&gt;\n&lt;/mxfile&gt;\n&quot;}"></div>
+  <p>完整的 UI 界面制作管线，从策划需求到最终交付。<strong style="color:var(--cyan)">蓝色虚线框</strong>标注并行区域，<strong style="color:var(--red)">红色虚线</strong>标注打回/问题回流路径：</p>
+
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 20px;margin:16px 0;overflow-x:auto">
+
+    <!-- ===== 第一行：策划需求 ===== -->
+    <div style="display:flex;justify-content:center;margin-bottom:4px">
+      <div style="background:rgba(167,139,250,.15);border:2px solid var(--accent2);border-radius:10px;padding:10px 28px;text-align:center;min-width:200px">
+        <div style="font-size:15px;font-weight:700;color:var(--heading)">📋 策划输出需求文档</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:2px">需求文档 · 页面清单 · 数据结构</div>
+      </div>
+    </div>
+    <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br><span style="font-size:11px;color:var(--dim)">需求文档</span><br>▼</div>
+
+    <!-- ===== 第二行：交互设计 ===== -->
+    <div style="display:flex;justify-content:center;margin-bottom:4px">
+      <div style="background:rgba(96,165,250,.15);border:2px solid var(--blue);border-radius:10px;padding:10px 28px;text-align:center;min-width:200px;position:relative">
+        <div style="font-size:15px;font-weight:700;color:var(--heading)">🎨 交互设计</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:2px">交互稿 · 线框图 · 操作逻辑</div>
+      </div>
+    </div>
+    <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br><span style="font-size:11px;color:var(--dim)">交互稿</span><br>▼</div>
+
+    <!-- ===== 第三行：交互评审（菱形） ===== -->
+    <div style="display:flex;justify-content:center;align-items:center;gap:30px;margin-bottom:4px">
+      <div style="background:rgba(255,255,255,.06);border:2px solid #9e9e9e;border-radius:4px;padding:10px 20px;text-align:center;transform:rotate(0deg);min-width:140px">
+        <div style="font-size:14px;font-weight:700;color:var(--heading)">✅ 交互评审</div>
+        <div style="font-size:11px;color:var(--dim)">通过 / 打回</div>
+      </div>
+      <div style="font-size:12px;color:var(--red);white-space:nowrap">── <span style="border:1px dashed var(--red);border-radius:4px;padding:2px 8px">打回</span> ──→ 返回交互设计</div>
+    </div>
+    <div style="text-align:center;color:var(--green);font-size:14px;line-height:1.2">│<br><span style="font-size:11px">通过 ✓</span><br>▼</div>
+
+    <!-- ===== 第四行：交互图交付 ===== -->
+    <div style="display:flex;justify-content:center;margin-bottom:4px">
+      <div style="background:rgba(96,165,250,.15);border:2px solid var(--blue);border-radius:10px;padding:10px 28px;text-align:center;min-width:200px">
+        <div style="font-size:15px;font-weight:700;color:var(--heading)">📄 交互图交付</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:2px">标注文档 · 蓝湖/Figma</div>
+      </div>
+    </div>
+    <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br>▼</div>
+
+    <!-- ===== 并行组 A：UI设计 ∥ Layout+客户端 ===== -->
+    <div style="border:2px dashed var(--cyan);border-radius:14px;padding:16px;position:relative;margin:8px 0 12px">
+      <div style="position:absolute;top:-11px;left:20px;background:var(--card);padding:0 10px;font-size:12px;color:var(--cyan);font-weight:700">⚡ 并行组 A — 交互交付后双线启动</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px">
+
+        <!-- 左路：Layout + 客户端 -->
+        <div style="background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.15);border-radius:10px;padding:14px">
+          <div style="font-size:12px;color:#2dd4bf;font-weight:700;margin-bottom:10px">🟢 左路 · Layout白模 + 客户端功能</div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+            <div style="background:rgba(45,212,191,.12);border:1px solid rgba(45,212,191,.3);border-radius:8px;padding:8px 16px;text-align:center;width:90%">
+              <div style="font-size:13px;font-weight:700;color:var(--heading)">📐 Layout 功能蓝图交付</div>
+              <div style="font-size:11px;color:var(--dim)">白模蓝图 · 功能验证</div>
+            </div>
+            <div style="color:var(--dim);font-size:12px">│ Layout白模 │<br>▼</div>
+            <div style="background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);border-radius:8px;padding:8px 16px;text-align:center;width:90%">
+              <div style="font-size:13px;font-weight:700;color:var(--heading)">💻 客户端功能制作</div>
+              <div style="font-size:11px;color:var(--dim)">基于白模并行开发</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右路：UI设计线 -->
+        <div style="background:rgba(244,114,182,.04);border:1px solid rgba(244,114,182,.15);border-radius:10px;padding:14px">
+          <div style="font-size:12px;color:#f472b6;font-weight:700;margin-bottom:10px">🔴 右路 · UI 设计线</div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+            <div style="background:rgba(244,114,182,.12);border:1px solid rgba(244,114,182,.3);border-radius:8px;padding:8px 16px;text-align:center;width:90%">
+              <div style="font-size:13px;font-weight:700;color:var(--heading)">🖌️ UI 设计</div>
+              <div style="font-size:11px;color:var(--dim)">高保真稿 · 视觉风格</div>
+            </div>
+            <div style="color:var(--dim);font-size:12px">│ UI设计稿 │<br>▼</div>
+            <div style="display:flex;align-items:center;gap:12px;width:90%">
+              <div style="background:rgba(255,255,255,.06);border:1px solid #9e9e9e;border-radius:6px;padding:6px 12px;text-align:center;flex:1">
+                <div style="font-size:13px;font-weight:700;color:var(--heading)">✅ UI评审</div>
+                <div style="font-size:10px;color:var(--dim)">通过/打回</div>
+              </div>
+              <div style="font-size:11px;color:var(--red);white-space:nowrap">←打回→</div>
+            </div>
+            <div style="color:var(--green);font-size:12px">│ 通过 ✓ │<br>▼</div>
+            <div style="background:rgba(244,114,182,.12);border:1px solid rgba(244,114,182,.3);border-radius:8px;padding:8px 16px;text-align:center;width:90%">
+              <div style="font-size:13px;font-weight:700;color:var(--heading)">📦 UI图交付</div>
+              <div style="font-size:11px;color:var(--dim)">切图 · 标注 · 资产包</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== 汇合节点 ===== -->
+    <div style="text-align:center;margin:8px 0">
+      <div style="display:inline-block;background:rgba(34,211,238,.08);border:2px solid var(--cyan);border-radius:10px;padding:8px 24px;font-size:14px;color:var(--heading);font-weight:600">🔗 汇合 — UI 资产 + Layout 白模就绪</div>
+    </div>
+    <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br>▼</div>
+
+    <!-- ===== Layout 切正式资产 ===== -->
+    <div style="display:flex;justify-content:center;margin-bottom:4px">
+      <div style="background:rgba(45,212,191,.15);border:2px solid #2dd4bf;border-radius:10px;padding:10px 28px;text-align:center;min-width:200px">
+        <div style="font-size:15px;font-weight:700;color:var(--heading)">📐 Layout 切正式资产</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:2px">替换白模 · 接入正式 UI 素材</div>
+      </div>
+    </div>
+    <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br>▼</div>
+
+    <!-- ===== 并行组 B：正式蓝图 ∥ VX 动效 ===== -->
+    <div style="border:2px dashed var(--cyan);border-radius:14px;padding:16px;position:relative;margin:8px 0 12px">
+      <div style="position:absolute;top:-11px;left:20px;background:var(--card);padding:0 10px;font-size:12px;color:var(--cyan);font-weight:700">⚡ 并行组 B — 切正式资产后双线启动</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px">
+
+        <!-- 左路：正式蓝图 -->
+        <div style="background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.15);border-radius:10px;padding:14px">
+          <div style="font-size:12px;color:#2dd4bf;font-weight:700;margin-bottom:10px">📐 Layout 正式蓝图线</div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+            <div style="background:rgba(45,212,191,.12);border:1px solid rgba(45,212,191,.3);border-radius:8px;padding:8px 16px;text-align:center;width:90%">
+              <div style="font-size:13px;font-weight:700;color:var(--heading)">📐 Layout 正式蓝图制作</div>
+              <div style="font-size:11px;color:var(--dim)">绑定 · 自适应 · 动画</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右路：VX 动效 -->
+        <div style="background:rgba(251,146,60,.04);border:1px solid rgba(251,146,60,.15);border-radius:10px;padding:14px">
+          <div style="font-size:12px;color:var(--orange);font-weight:700;margin-bottom:10px">✨ VX 动效线</div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+            <div style="background:rgba(251,146,60,.12);border:1px solid rgba(251,146,60,.3);border-radius:8px;padding:8px 16px;text-align:center;width:90%">
+              <div style="font-size:13px;font-weight:700;color:var(--heading)">✨ VX 动效预演 + 制作</div>
+              <div style="font-size:11px;color:var(--dim)">预演视频 · 正式动效资产</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== 汇合后走查 ===== -->
+    <div style="text-align:center;margin:8px 0">
+      <div style="display:inline-block;background:rgba(34,211,238,.08);border:2px solid var(--cyan);border-radius:10px;padding:8px 24px;font-size:14px;color:var(--heading);font-weight:600">🔗 汇合 — 正式蓝图 + 动效资产就绪</div>
+    </div>
+    <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br>▼</div>
+
+    <!-- ===== 界面走查 ===== -->
+    <div style="display:flex;justify-content:center;align-items:center;gap:30px;margin-bottom:4px">
+      <div style="background:rgba(255,255,255,.06);border:2px solid #9e9e9e;border-radius:4px;padding:10px 20px;text-align:center;min-width:140px">
+        <div style="font-size:14px;font-weight:700;color:var(--heading)">✅ 界面走查</div>
+        <div style="font-size:11px;color:var(--dim)">全角色参与 · 逐像素校对</div>
+      </div>
+      <div style="font-size:11px;color:var(--orange);max-width:200px;text-align:left;line-height:1.6">
+        <span style="border:1px dashed var(--orange);border-radius:4px;padding:1px 6px;font-size:10px">问题分流</span><br>
+        → UI问题 → UI设计<br>
+        → Layout问题 → Layout<br>
+        → 开发问题 → 客户端<br>
+        → 交互问题 → 交互
+      </div>
+    </div>
+    <div style="text-align:center;color:var(--green);font-size:14px;line-height:1.2">│<br><span style="font-size:11px">通过 ✓</span><br>▼</div>
+
+    <!-- ===== VX 动效制作 ===== -->
+    <div style="display:flex;justify-content:center;margin-bottom:4px">
+      <div style="background:rgba(251,146,60,.15);border:2px solid var(--orange);border-radius:10px;padding:10px 28px;text-align:center;min-width:200px">
+        <div style="font-size:15px;font-weight:700;color:var(--heading)">✨ VX 界面动效制作</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:2px">正式动效集成 · 参数调优</div>
+      </div>
+    </div>
+    <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br><span style="font-size:11px;color:var(--dim)">动效资产</span><br>▼</div>
+
+    <!-- ===== 客户端集成动效 ===== -->
+    <div style="display:flex;justify-content:center;margin-bottom:4px">
+      <div style="background:rgba(251,191,36,.15);border:2px solid var(--yellow);border-radius:10px;padding:10px 28px;text-align:center;min-width:200px">
+        <div style="font-size:15px;font-weight:700;color:var(--heading)">💻 客户端集成动效</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:2px">功能+动效合并 · 联调</div>
+      </div>
+    </div>
+    <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br>▼</div>
+
+    <!-- ===== 交付完成 ===== -->
+    <div style="display:flex;justify-content:center">
+      <div style="background:rgba(74,222,128,.15);border:2px solid var(--green);border-radius:10px;padding:10px 28px;text-align:center;min-width:200px">
+        <div style="font-size:15px;font-weight:700;color:var(--heading)">🎉 界面交付完成</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:2px">资产归档 · 上线</div>
+      </div>
+    </div>
+
   </div>
-  <div class="drawio-label">💡 使用工具栏按钮可缩放、切换图层、全屏查看</div>
-  <script type="text/javascript" src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
+
+  <!-- 图例 -->
+  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--dim)">
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(167,139,250,.3);border:1px solid var(--accent2);border-radius:3px;vertical-align:middle;margin-right:4px"></span>策划</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(96,165,250,.3);border:1px solid var(--blue);border-radius:3px;vertical-align:middle;margin-right:4px"></span>交互</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(244,114,182,.3);border:1px solid #f472b6;border-radius:3px;vertical-align:middle;margin-right:4px"></span>UI设计</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(45,212,191,.3);border:1px solid #2dd4bf;border-radius:3px;vertical-align:middle;margin-right:4px"></span>Layout</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(251,146,60,.3);border:1px solid var(--orange);border-radius:3px;vertical-align:middle;margin-right:4px"></span>VX动效</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(251,191,36,.3);border:1px solid var(--yellow);border-radius:3px;vertical-align:middle;margin-right:4px"></span>客户端</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(255,255,255,.1);border:1px solid #9e9e9e;border-radius:3px;vertical-align:middle;margin-right:4px"></span>评审节点</span>
+    <span><span style="display:inline-block;width:20px;height:0;border-top:2px dashed var(--cyan);vertical-align:middle;margin-right:4px"></span>并行区域</span>
+  </div>
 </div>
 
 <!-- SEC2 -->
@@ -276,6 +465,64 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <div class="pipeline-stage"><h4>⑬ 客户端集成 → ⑭ 界面走查 → ⑮ 交付完成 <span class="badge badge-orig">原有</span></h4>
   <div class="io"><div class="input"><strong>📥 集成输入</strong><br>• 正式 Layout 蓝图 • 合规动效资产<br>• 功能逻辑+接口文档</div><div class="output"><strong>📤 走查/交付输出</strong><br>• 走查通过 → 资产归档 + 上线<br>• 问题清单 → 分流至对应责任人</div></div>
   <div class="role"><strong>集成：</strong><span class="rc">客户端</span> <strong>走查：</strong><span class="rp">策划</span><span class="ri">交互</span><span class="ru">UI</span><span class="rl">Layout</span><span class="rv">VX</span><span class="rq">QA</span> <strong>预计：</strong>3-5 天集成 + 2-3 天走查</div></div>
+
+  <!-- ===== TAPD 发单机制 ===== -->
+  <div style="margin-top:32px;border:2px solid var(--cyan);border-radius:14px;padding:20px;position:relative">
+    <div style="position:absolute;top:-12px;left:20px;background:var(--bg);padding:0 10px;font-size:14px;color:var(--cyan);font-weight:700">📋 TAPD 发单机制与职责分工</div>
+    <p style="margin:8px 0 16px;font-size:14px;color:var(--dim)">UI 管线涉及多角色协作，TAPD 单据的创建和流转直接影响进度跟踪和复盘效率。推荐采用<strong style="color:var(--heading)">「策划创建父单 + APM 拆解子单」</strong>的协作模式：</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <!-- 策划职责 -->
+      <div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);border-radius:10px;padding:14px">
+        <div style="font-size:14px;color:var(--accent2);font-weight:700;margin-bottom:10px">📝 策划 — 创建父需求单</div>
+        <div style="font-size:13px;line-height:1.9">
+          <strong style="color:var(--heading)">时机：</strong>需求评审通过后<br>
+          <strong style="color:var(--heading)">单据类型：</strong>TAPD 需求（父级）<br>
+          <strong style="color:var(--heading)">必填字段：</strong><br>
+          <span style="padding-left:12px">• 标题：<code>[UI] 界面名称 — 功能简述</code></span><br>
+          <span style="padding-left:12px">• 详细描述：需求文档链接、页面清单</span><br>
+          <span style="padding-left:12px">• 优先级 / 迭代版本 / 截止日期</span><br>
+          <span style="padding-left:12px">• 关联文档：Figma/蓝湖链接</span><br>
+          <strong style="color:var(--heading)">处理人：</strong>设为对应交互设计师（启动交互阶段）
+        </div>
+      </div>
+      <!-- APM 职责 -->
+      <div style="background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.2);border-radius:10px;padding:14px">
+        <div style="font-size:14px;color:var(--cyan);font-weight:700;margin-bottom:10px">📊 APM — 拆解子单 & 进度跟踪</div>
+        <div style="font-size:13px;line-height:1.9">
+          <strong style="color:var(--heading)">时机：</strong>收到父需求单后（1个工作日内）<br>
+          <strong style="color:var(--heading)">拆解子单清单：</strong><br>
+          <span style="padding-left:12px">• <span class="ri">交互设计</span> → 处理人：交互设计师</span><br>
+          <span style="padding-left:12px">• <span class="ru">UI设计</span> → 处理人：UI设计师</span><br>
+          <span style="padding-left:12px">• <span class="rl">Layout蓝图</span> → 处理人：Layout工程师</span><br>
+          <span style="padding-left:12px">• <span class="rv">VX动效</span> → 处理人：VX动效设计师</span><br>
+          <span style="padding-left:12px">• <span class="rc">客户端集成</span> → 处理人：客户端程序</span><br>
+          <span style="padding-left:12px">• <span class="rq">界面走查</span> → 处理人：QA</span><br>
+          <strong style="color:var(--heading)">关键动作：</strong>设置子单依赖关系、里程碑、预警
+        </div>
+      </div>
+    </div>
+
+    <!-- 发单流转时序 -->
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px">
+      <div style="font-size:13px;color:var(--heading);font-weight:600;margin-bottom:10px">⏱️ 发单时序与流转规则</div>
+      <table style="margin:0;font-size:13px">
+        <tr><th style="width:60px">阶段</th><th>触发动作</th><th>TAPD 操作</th><th>操作人</th></tr>
+        <tr><td>②</td><td>需求评审通过</td><td>策划创建父需求单，状态→<strong>已受理</strong></td><td><span class="rp">策划</span></td></tr>
+        <tr><td>②→③</td><td>APM 收到父单</td><td>拆解全部子单，设置依赖和排期</td><td><span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;background:rgba(34,211,238,.12);color:var(--cyan)">APM</span></td></tr>
+        <tr><td>③→⑤</td><td>交互交付完成</td><td>交互子单→<strong>已完成</strong>，UI子单+Layout子单→<strong>进行中</strong></td><td><span class="ri">交互</span></td></tr>
+        <tr><td>⑥→⑨</td><td>UI交付+合规通过</td><td>UI子单→<strong>已完成</strong>，Layout切资产子单→<strong>进行中</strong></td><td><span class="ru">UI</span></td></tr>
+        <tr><td>⑩→⑪</td><td>Layout正式资产就绪</td><td>Layout子单→<strong>已完成</strong>，VX子单→<strong>进行中</strong></td><td><span class="rl">Layout</span></td></tr>
+        <tr><td>⑬→⑮</td><td>集成完成 → 走查通过</td><td>集成子单→<strong>已完成</strong>，走查子单→<strong>已完成</strong>，父单→<strong>已完成</strong></td><td><span class="rc">客户端</span>/<span class="rq">QA</span></td></tr>
+      </table>
+    </div>
+
+    <div class="alert alert-yellow" style="margin:0"><strong>⚠️ 发单注意事项</strong>：<br>
+      • 父单由<strong>策划</strong>创建（确保需求来源可追溯），子单由<strong>APM</strong>拆解（确保排期合理、依赖正确）<br>
+      • 每个子单必须关联父需求单，便于看板追踪整体进度<br>
+      • 评审类节点（②④⑦⑫⑭）通过 TAPD <strong>评论/备注</strong>记录结论，不单独建单<br>
+      • 走查问题通过 TAPD <strong>缺陷单</strong>记录，关联到父需求单下，按问题类型分配处理人</div>
+  </div>
 </div>
 
 <!-- SEC4 -->
