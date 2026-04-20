@@ -202,7 +202,17 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
               </div>
               <div style="font-size:11px;color:var(--red);white-space:nowrap">←打回→</div>
             </div>
+            <!-- 设计稿偏离检查 -->
             <div style="color:var(--green);font-size:12px">│ 通过 ✓ │<br>▼</div>
+            <div style="background:rgba(248,113,113,.10);border:2px dashed var(--red);border-radius:8px;padding:8px 12px;text-align:center;width:90%">
+              <div style="font-size:12px;font-weight:700;color:var(--red)">⚠️ 偏离度检查</div>
+              <div style="font-size:10px;color:var(--dim);margin-top:2px">UI终稿 vs 交互稿 — 布局/结构是否有重大变更？</div>
+              <div style="display:flex;justify-content:center;gap:16px;margin-top:6px;font-size:11px">
+                <span style="color:var(--green)">✅ 无重大偏离 → 正常交付</span>
+                <span style="color:var(--red)">🔴 重大偏离 → 触发白模重做</span>
+              </div>
+            </div>
+            <div style="color:var(--green);font-size:12px">│<br>▼</div>
             <div style="background:rgba(244,114,182,.12);border:1px solid rgba(244,114,182,.3);border-radius:8px;padding:8px 16px;text-align:center;width:90%">
               <div style="font-size:13px;font-weight:700;color:var(--heading)">📦 UI图交付</div>
               <div style="font-size:11px;color:var(--dim)">切图 · 标注 · 资产包</div>
@@ -218,6 +228,31 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
       <div style="display:inline-block;background:rgba(34,211,238,.08);border:2px solid var(--cyan);border-radius:10px;padding:8px 24px;font-size:14px;color:var(--heading);font-weight:600">🔗 汇合 — UI 资产 + Layout 白模就绪</div>
     </div>
     <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br>▼</div>
+
+    <!-- ===== ⚠️ 设计稿偏离度检查（关键异常分支） ===== -->
+    <div style="border:2px dashed var(--red);border-radius:14px;padding:16px;position:relative;margin:8px auto 12px;max-width:700px">
+      <div style="position:absolute;top:-11px;left:20px;background:var(--card);padding:0 10px;font-size:12px;color:var(--red);font-weight:700">⚠️ 异常分支 — UI终稿 vs 交互白模偏离度检查</div>
+      <div style="font-size:13px;line-height:1.9;padding-top:4px">
+        <div style="text-align:center;margin-bottom:8px;font-size:13px;color:var(--heading);font-weight:600">Layout 对比 UI 终稿与白模版本：布局/结构是否有重大变更？</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);border-radius:8px;padding:10px;text-align:center">
+            <div style="font-size:13px;font-weight:700;color:var(--green)">✅ 无重大偏离</div>
+            <div style="font-size:11px;color:var(--dim);margin-top:4px">布局结构一致，仅视觉层差异<br>→ 正常流转：直接切正式资产</div>
+          </div>
+          <div style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px;text-align:center">
+            <div style="font-size:13px;font-weight:700;color:var(--red)">🔴 重大偏离</div>
+            <div style="font-size:11px;color:var(--dim);margin-top:4px">UI终稿布局/控件/层级与白模出入大<br>→ 触发<strong style="color:var(--red)">白模返工流程</strong></div>
+          </div>
+        </div>
+        <div style="margin-top:10px;background:rgba(248,113,113,.05);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text);line-height:1.8">
+          <strong style="color:var(--red)">🔴 重大偏离处理流程：</strong><br>
+          ① Layout 发起<strong>偏离评估会</strong>（交互+UI+Layout+客户端，≤0.5天）<br>
+          ② 结论二选一：<strong>a)</strong> UI 回退修正，减少偏离 → UI返修后重新交付；<strong>b)</strong> 确认设计变更合理 → Layout 基于新稿重做白模（+2~3天），客户端同步评估影响<br>
+          ③ 变更记录进 TAPD（父单评论 + 工期调整）→ APM 更新里程碑
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;color:var(--green);font-size:14px;line-height:1.2">│<br><span style="font-size:11px">偏离检查通过 ✓</span><br>▼</div>
 
     <!-- ===== Layout 切正式资产 ===== -->
     <div style="display:flex;justify-content:center;margin-bottom:4px">
@@ -360,7 +395,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
         </div>
       </div>
     </div>
-    <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--dim)">↑ 两条线同时启动，互不阻塞 ↑</div>
+    <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--dim)">↑ 两条线同时启动，互不阻塞 ↑ <span style="color:var(--red);font-weight:600">⚠️ 注意：UI设计50%时须与Layout中期对齐，防止布局偏离导致白模返工</span></div>
   </div>
 
   <!-- ===== 汇合点 ===== -->
@@ -451,7 +486,40 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <div class="pipeline-stage"><h4>⑩ Layout 制作（功能蓝图 + 切正式资产 + 正式蓝图）<span class="badge badge-orig">原有</span></h4>
   <div class="io"><div class="input"><strong>📥 Input</strong><br>• 交互标注文档 • 合规通过的切图<br>• 引擎 UI 框架规范</div><div class="output"><strong>📤 Output</strong><br>• 功能蓝图（白模版）• 正式资产替换<br>• 正式蓝图（含动画/绑定/自适应）</div></div>
   <div class="role"><strong>责任人：</strong><span class="rl">Layout 工程师</span> <strong>预计：</strong>3-5 天</div>
-  <div class="alert alert-blue" style="margin-top:8px"><strong>💡 并行</strong>：Layout 功能蓝图（白模）可与 UI 设计并行（交互交付后即启动），客户端可基于白模并行开发。</div></div>
+  <div class="alert alert-blue" style="margin-top:8px"><strong>💡 并行</strong>：Layout 功能蓝图（白模）可与 UI 设计并行（交互交付后即启动），客户端可基于白模并行开发。</div>
+  <div style="margin-top:12px;background:rgba(248,113,113,.05);border:2px solid rgba(248,113,113,.25);border-radius:10px;padding:14px;position:relative">
+    <div style="font-size:14px;color:var(--red);font-weight:700;margin-bottom:8px">🔴 异常场景：UI 终稿与交互白模重大偏离</div>
+    <div style="font-size:13px;line-height:1.9;color:var(--text)">
+      <strong style="color:var(--heading)">场景描述：</strong>交互稿通过后，Layout 基于交互稿制作了功能蓝图（白模），客户端也基于白模并行开发。然而 UI 设计师在制作高保真视觉稿时，对布局、控件结构、页面层级进行了较大调整。当 UI 终稿交付后，Layout / 客户端发现<strong style="color:var(--red)">功能蓝图（白模）已无法适配最新设计稿</strong>，需要返工。
+    </div>
+    <div style="margin-top:10px;font-size:13px;line-height:1.9">
+      <strong style="color:var(--heading)">根因分析：</strong><br>
+      <span style="padding-left:12px">• UI 设计师在视觉化过程中发现交互方案存在体验/美观问题，自行调整了布局结构</span><br>
+      <span style="padding-left:12px">• 交互稿粒度不够细（缺少关键状态、控件层级等），UI 设计时需要补充导致偏离</span><br>
+      <span style="padding-left:12px">• UI 设计周期内未与 Layout / 交互同步变更，信息断裂</span>
+    </div>
+    <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);border-radius:8px;padding:12px">
+        <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:6px">✅ 预防措施（推荐）</div>
+        <div style="font-size:12px;line-height:1.8">
+          <strong>① 设计中期同步机制</strong>：UI 设计进行至 50% 时必须与交互/Layout 做一次中期对齐（≤30分钟），提前暴露布局变更<br>
+          <strong>② 变更标记规范</strong>：UI 设计稿中凡与交互稿存在布局差异的区域，必须用红色标注 <code>⚠️ 偏离交互</code> 并附变更说明<br>
+          <strong>③ TAPD 变更卡片</strong>：布局层面的变更必须在 TAPD 父单中添加评论记录（谁改了什么、为什么改）
+        </div>
+      </div>
+      <div style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:12px">
+        <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px">🔴 已发生时的处理流程</div>
+        <div style="font-size:12px;line-height:1.8">
+          <strong>① 偏离评估会</strong>（≤0.5天）：交互+UI+Layout+客户端，明确偏离范围和影响面<br>
+          <strong>② 结论二选一：</strong><br>
+          　<strong>a) UI 回退修正</strong>：偏离不合理 → UI 回退到与交互一致的布局，白模可继续使用<br>
+          　<strong>b) 确认变更</strong>：偏离合理 → 交互补签变更确认 → Layout 基于新稿重做白模（+2~3天），客户端评估功能蓝图影响<br>
+          <strong>③ 工期更新</strong>：APM 在 TAPD 更新里程碑、调整子单排期
+        </div>
+      </div>
+    </div>
+    <div class="alert alert-yellow" style="margin-top:10px;margin-bottom:0"><strong>⚠️ 铁律</strong>：UI 设计阶段发生布局/结构性变更时，<strong>必须在 UI 评审前主动通知交互和 Layout</strong>。事后发现的偏离，返工工期计入 UI 设计阶段而非 Layout 阶段。</div>
+  </div></div>
 
   <div class="pipeline-stage"><h4>⑪ VX 动效（预演 + 正式制作）<span class="badge badge-orig">原有</span></h4>
   <div class="io"><div class="input"><strong>📥 Input</strong><br>• 交互动效说明 • UI 设计稿<br>• 引擎动效能力清单</div><div class="output"><strong>📤 Output</strong><br>• 动效预演视频/GIF<br>• 正式动效资产 • 动效参数文档</div></div>
@@ -550,6 +618,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td><strong>💻 开发问题</strong></td><td>功能逻辑错误、数据异常、接口未对接</td><td><span class="rc">客户端</span></td><td>策划/QA</td><td>1-2天</td></tr>
     <tr><td><strong>🎨 交互问题</strong></td><td>流程不通、缺返回路径、反馈缺失</td><td><span class="ri">交互</span></td><td>策划</td><td>1天</td></tr>
     <tr><td><strong>✨ 动效问题</strong></td><td>动效卡顿、方向不对、时长不合理</td><td><span class="rv">VX</span></td><td>交互/客户端</td><td>1天</td></tr>
+    <tr style="background:rgba(248,113,113,.04)"><td><strong>⚠️ 设计稿偏离</strong> <span class="badge badge-new">NEW</span></td><td>UI终稿布局/结构与交互白模出入大，功能蓝图无法适配</td><td><span class="ru">UI</span>/<span class="ri">交互</span></td><td>Layout/客户端/APM</td><td>偏离评估会0.5天 + 返工2-3天</td></tr>
   </table>
   <div class="alert alert-green"><strong>✅ 闭环流程</strong>：发现问题 → 填写修改清单（截图+描述+预期效果）→ 分流 → 修复 → 自测 → 复查 → 验收关闭 → 全部关闭后进入下一轮或交付。</div>
 </div>
@@ -576,6 +645,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td>VX 动效预演 ∥ Layout 正式蓝图</td><td>Layout 切正式资产后双线启动</td><td>1-2 天</td></tr>
     <tr><td>多个界面 Pipeline 并行</td><td>不同界面各阶段独立推进</td><td>视数量</td></tr>
   </table>
+  <div class="alert alert-red" style="margin-top:0;margin-bottom:12px"><strong>🔴 并行风险警示</strong>：Layout白模 ∥ UI设计 的并行策略存在<strong>设计稿偏离风险</strong>——UI 终稿可能与交互稿在布局/结构上出现重大差异，导致白模蓝图无法使用。<strong>必须执行 UI 设计 50% 中期对齐</strong>以防控此风险。详见第⑩节「异常场景」。</div>
   <div class="alert alert-blue"><strong>💡 APM 提示</strong>：识别<strong>关键路径</strong>（通常是 UI 设计 → Layout 正式资产 → 走查），确保关键路径不被阻塞。</div>
 </div>
 
@@ -584,8 +654,16 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <h2>❓ 7. 常见问题 FAQ</h2>
   <div class="faq-item"><div class="faq-q">💬 Q1：策划中途改需求怎么办？</div><div class="faq-a"><strong>答</strong>：需求冻结后变更必须走正式流程：① 提交变更申请单 ② 各方评估影响 ③ 项目经理审批 ④ 更新需求文档标注变更。<strong>未审批的变更 = 不执行。</strong></div></div>
   <div class="faq-item"><div class="faq-q">💬 Q2：小团队也要走这么多评审吗？</div><div class="faq-a"><strong>答</strong>：评审可以简化但<strong>不能跳过</strong>。小团队可以：合并④⑤为一个快速评审、合并⑦⑧为一个快速评审。但<strong>⑨资产合规（自动化30秒）</strong>和<strong>⑭界面走查</strong>绝不能省。</div></div>
-  <div class="faq-item"><div class="faq-q">💬 Q3：Layout 白模和 UI 设计并行，如果 UI 改了怎么办？</div><div class="faq-a"><strong>答</strong>：白模只验证功能逻辑，不依赖最终视觉效果。UI 评审通过后 Layout 切正式资产时才替换。如果 UI 改动涉及布局结构变化，则需同步通知 Layout 调整白模。</div></div>
+  <div class="faq-item"><div class="faq-q">💬 Q3：Layout 白模和 UI 设计并行，如果 UI 改了怎么办？</div><div class="faq-a"><strong>答</strong>：分两种情况——<br><strong>① 仅视觉层变更（配色/字体/图标样式）：</strong>白模不受影响，Layout 切正式资产时直接替换即可。<br><strong>② 布局/结构性变更（控件增减、层级调整、页面布局大改）：</strong>这是并行模式下的<strong style="color:var(--red)">高风险场景</strong>。此时白模功能蓝图可能无法使用，需要触发「偏离评估会」。详见第⑩节<strong>「异常场景：UI 终稿与交互白模重大偏离」</strong>。<br><strong>预防关键：</strong>UI 设计进行至 50% 时必须与交互/Layout 做一次中期对齐，提前暴露布局变更意图。</div></div>
   <div class="faq-item"><div class="faq-q">💬 Q4：走查发现大量问题，是否需要重新走全流程？</div><div class="faq-a"><strong>答</strong>：不需要。走查问题按类型分流修复后进行<strong>复查</strong>，而非重走全流程。但如果问题是系统性的（如需求理解偏差），则需评估是否回退到对应阶段重做。</div></div>
+  <div class="faq-item" style="border-color:rgba(248,113,113,.3)"><div class="faq-q">💬 Q5：拿到 UI 视觉稿后，发现跟交互稿出入很大，程序说功能蓝图没法用，怎么办？ <span class="badge badge-new">NEW</span></div><div class="faq-a"><strong>答</strong>：这是并行管线中最典型的返工风险。处理步骤：<br>
+    <strong>第一步 · 紧急评估（≤半天）：</strong>交互+UI+Layout+客户端四方快速对齐，量化偏离范围——是局部控件调整还是整页布局重做？<br>
+    <strong>第二步 · 责任判定：</strong><br>
+    　• 如果 UI 未经沟通擅自改变布局 → UI 承担返工责任，可选择：a) 回退设计稿与交互对齐；b) UI 出工期补偿方案<br>
+    　• 如果交互稿本身粒度不足，UI 是在合理补充 → 交互确认变更签字，返工工期由项目整体承担<br>
+    <strong>第三步 · Layout 返工（+2~3天）：</strong>Layout 基于 UI 终稿重新搭建白模蓝图。客户端同步评估已开发功能受影响范围<br>
+    <strong>第四步 · 工期调整：</strong>APM 更新 TAPD 里程碑和子单排期<br><br>
+    <strong style="color:var(--red)">预防机制（强烈推荐）：</strong>UI 设计 50% 时做一次<strong>中期设计对齐</strong>，30 分钟快速同步布局意图。这一步可以避免 80% 以上的此类返工。</div></div>
 </div>
 
 <div class="doc-footer">🖥️ 游戏 UI 界面制作全流程 · v1.0 · 2026-04-20 · 项目内部资料</div>
