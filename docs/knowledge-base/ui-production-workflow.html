@@ -9,6 +9,10 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+/* ===== 流程图 SVG 样式 ===== */
+.flowchart-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px 20px;margin:16px 0;overflow-x:auto;display:flex;justify-content:center}
+.flowchart-wrap svg{display:block;max-width:100%}
+.flowchart-wrap svg text{font-family:'PingFang SC','Microsoft YaHei',sans-serif}
 .doc{max-width:1400px;margin:0 auto;padding:32px 24px}
 .doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
 .doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
@@ -126,233 +130,243 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <h2>🔗 1. 流程可视化总览</h2>
   <p>完整的 UI 界面制作管线，从策划需求到最终交付。<strong style="color:var(--cyan)">蓝色虚线框</strong>标注并行区域，<strong style="color:var(--red)">红色虚线</strong>标注打回/问题回流路径：</p>
 
-  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 20px;margin:16px 0;overflow-x:auto">
+  <div class="flowchart-wrap">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 1720" width="880" height="1720">
+      <defs>
+        <!-- 箭头标记 -->
+        <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#6b7085"/></marker>
+        <marker id="arr-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#4ade80"/></marker>
+        <marker id="arr-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#f87171"/></marker>
+        <marker id="arr-cyan" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#22d3ee"/></marker>
+        <marker id="arr-orange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#fb923c"/></marker>
+        <!-- 圆角矩形节点渐变 -->
+        <linearGradient id="gPurple" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a78bfa" stop-opacity=".25"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".08"/></linearGradient>
+        <linearGradient id="gBlue" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#60a5fa" stop-opacity=".25"/><stop offset="100%" stop-color="#60a5fa" stop-opacity=".08"/></linearGradient>
+        <linearGradient id="gPink" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f472b6" stop-opacity=".25"/><stop offset="100%" stop-color="#f472b6" stop-opacity=".08"/></linearGradient>
+        <linearGradient id="gTeal" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2dd4bf" stop-opacity=".25"/><stop offset="100%" stop-color="#2dd4bf" stop-opacity=".08"/></linearGradient>
+        <linearGradient id="gOrange" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fb923c" stop-opacity=".25"/><stop offset="100%" stop-color="#fb923c" stop-opacity=".08"/></linearGradient>
+        <linearGradient id="gYellow" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbbf24" stop-opacity=".25"/><stop offset="100%" stop-color="#fbbf24" stop-opacity=".08"/></linearGradient>
+        <linearGradient id="gGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4ade80" stop-opacity=".25"/><stop offset="100%" stop-color="#4ade80" stop-opacity=".08"/></linearGradient>
+        <linearGradient id="gGray" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9e9e9e" stop-opacity=".18"/><stop offset="100%" stop-color="#9e9e9e" stop-opacity=".06"/></linearGradient>
+        <linearGradient id="gRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f87171" stop-opacity=".18"/><stop offset="100%" stop-color="#f87171" stop-opacity=".06"/></linearGradient>
+        <!-- 发光滤镜 -->
+        <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
 
-    <!-- ===== 第一行：策划需求 ===== -->
-    <div style="display:flex;justify-content:center;margin-bottom:4px">
-      <div style="background:rgba(167,139,250,.15);border:2px solid var(--accent2);border-radius:10px;padding:10px 28px;text-align:center;min-width:200px">
-        <div style="font-size:15px;font-weight:700;color:var(--heading)">📋 策划输出需求文档</div>
-        <div style="font-size:11px;color:var(--dim);margin-top:2px">需求文档 · 页面清单 · 数据结构</div>
-      </div>
-    </div>
-    <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br><span style="font-size:11px;color:var(--dim)">需求文档</span><br>▼</div>
+      <!-- =============== 1. 策划输出需求文档 =============== -->
+      <rect x="290" y="20" width="300" height="60" rx="12" fill="url(#gPurple)" stroke="#a78bfa" stroke-width="2"/>
+      <text x="440" y="45" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">📋 策划输出需求文档</text>
+      <text x="440" y="65" text-anchor="middle" fill="#6b7085" font-size="11">需求文档 · 页面清单 · 数据结构</text>
 
-    <!-- ===== 第二行：交互设计 ===== -->
-    <div style="display:flex;justify-content:center;margin-bottom:4px">
-      <div style="background:rgba(96,165,250,.15);border:2px solid var(--blue);border-radius:10px;padding:10px 28px;text-align:center;min-width:200px;position:relative">
-        <div style="font-size:15px;font-weight:700;color:var(--heading)">🎨 交互设计</div>
-        <div style="font-size:11px;color:var(--dim);margin-top:2px">交互稿 · 线框图 · 操作逻辑</div>
-      </div>
-    </div>
-    <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br><span style="font-size:11px;color:var(--dim)">交互稿</span><br>▼</div>
+      <!-- 箭头：策划→交互 -->
+      <line x1="440" y1="80" x2="440" y2="120" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="462" y="105" fill="#6b7085" font-size="10">需求文档</text>
 
-    <!-- ===== 第三行：交互评审（菱形） ===== -->
-    <div style="display:flex;justify-content:center;align-items:center;gap:30px;margin-bottom:4px">
-      <div style="background:rgba(255,255,255,.06);border:2px solid #9e9e9e;border-radius:4px;padding:10px 20px;text-align:center;transform:rotate(0deg);min-width:140px">
-        <div style="font-size:14px;font-weight:700;color:var(--heading)">✅ 交互评审</div>
-        <div style="font-size:11px;color:var(--dim)">通过 / 打回</div>
-      </div>
-      <div style="font-size:12px;color:var(--red);white-space:nowrap">── <span style="border:1px dashed var(--red);border-radius:4px;padding:2px 8px">打回</span> ──→ 返回交互设计</div>
-    </div>
-    <div style="text-align:center;color:var(--green);font-size:14px;line-height:1.2">│<br><span style="font-size:11px">通过 ✓</span><br>▼</div>
+      <!-- =============== 2. 交互设计 =============== -->
+      <rect x="290" y="120" width="300" height="60" rx="12" fill="url(#gBlue)" stroke="#60a5fa" stroke-width="2"/>
+      <text x="440" y="145" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">🎨 交互设计</text>
+      <text x="440" y="165" text-anchor="middle" fill="#6b7085" font-size="11">交互稿 · 线框图 · 操作逻辑</text>
 
-    <!-- ===== 第四行：交互图交付 ===== -->
-    <div style="display:flex;justify-content:center;margin-bottom:4px">
-      <div style="background:rgba(96,165,250,.15);border:2px solid var(--blue);border-radius:10px;padding:10px 28px;text-align:center;min-width:200px">
-        <div style="font-size:15px;font-weight:700;color:var(--heading)">📄 交互图交付</div>
-        <div style="font-size:11px;color:var(--dim);margin-top:2px">标注文档 · 蓝湖/Figma</div>
-      </div>
-    </div>
-    <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br>▼</div>
+      <!-- 箭头：交互设计→交互评审 -->
+      <line x1="440" y1="180" x2="440" y2="222" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="462" y="207" fill="#6b7085" font-size="10">交互稿</text>
 
-    <!-- ===== 并行组 A：UI设计 ∥ Layout+客户端 ===== -->
-    <div style="border:2px dashed var(--cyan);border-radius:14px;padding:16px;position:relative;margin:8px 0 12px">
-      <div style="position:absolute;top:-11px;left:20px;background:var(--card);padding:0 10px;font-size:12px;color:var(--cyan);font-weight:700">⚡ 并行组 A — 交互交付后双线启动</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px">
+      <!-- =============== 3. 交互评审（菱形，居中） =============== -->
+      <polygon points="440,222 510,257 440,292 370,257" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="2"/>
+      <text x="440" y="253" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="700">✅ 交互评审</text>
+      <text x="440" y="268" text-anchor="middle" fill="#6b7085" font-size="10">通过/打回</text>
 
-        <!-- 左路：Layout + 客户端 -->
-        <div style="background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.15);border-radius:10px;padding:14px">
-          <div style="font-size:12px;color:#2dd4bf;font-weight:700;margin-bottom:10px">🟢 左路 · Layout白模 + 客户端功能</div>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
-            <div style="background:rgba(45,212,191,.12);border:1px solid rgba(45,212,191,.3);border-radius:8px;padding:8px 16px;text-align:center;width:90%">
-              <div style="font-size:13px;font-weight:700;color:var(--heading)">📐 Layout 功能蓝图交付</div>
-              <div style="font-size:11px;color:var(--dim)">白模蓝图 · 功能验证</div>
-            </div>
-            <div style="color:var(--dim);font-size:12px">│ Layout白模 │<br>▼</div>
-            <div style="background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);border-radius:8px;padding:8px 16px;text-align:center;width:90%">
-              <div style="font-size:13px;font-weight:700;color:var(--heading)">💻 客户端功能制作</div>
-              <div style="font-size:11px;color:var(--dim)">基于白模并行开发</div>
-            </div>
-          </div>
-        </div>
+      <!-- 🔴 折回箭头：打回 → 返回交互设计（右侧弯折） -->
+      <path d="M510,257 L580,257 L580,150" stroke="#f87171" stroke-width="1.8" stroke-dasharray="6,3" fill="none"/>
+      <polygon points="580,150 575,158 585,158" fill="#f87171"/>
+      <text x="592" y="210" fill="#f87171" font-size="11" font-weight="600">打回</text>
 
-        <!-- 右路：UI设计线 -->
-        <div style="background:rgba(244,114,182,.04);border:1px solid rgba(244,114,182,.15);border-radius:10px;padding:14px">
-          <div style="font-size:12px;color:#f472b6;font-weight:700;margin-bottom:10px">🔴 右路 · UI 设计线</div>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
-            <div style="background:rgba(244,114,182,.12);border:1px solid rgba(244,114,182,.3);border-radius:8px;padding:8px 16px;text-align:center;width:90%">
-              <div style="font-size:13px;font-weight:700;color:var(--heading)">🖌️ UI 设计</div>
-              <div style="font-size:11px;color:var(--dim)">高保真稿 · 视觉风格</div>
-            </div>
-            <div style="color:var(--dim);font-size:12px">│ UI设计稿 │<br>▼</div>
-            <div style="display:flex;align-items:center;gap:12px;width:90%">
-              <div style="background:rgba(255,255,255,.06);border:1px solid #9e9e9e;border-radius:6px;padding:6px 12px;text-align:center;flex:1">
-                <div style="font-size:13px;font-weight:700;color:var(--heading)">✅ UI评审</div>
-                <div style="font-size:10px;color:var(--dim)">通过/打回</div>
-              </div>
-              <div style="font-size:11px;color:var(--red);white-space:nowrap">←打回→</div>
-            </div>
-            <!-- 设计稿偏离检查 -->
-            <div style="color:var(--green);font-size:12px">│ 通过 ✓ │<br>▼</div>
-            <div style="background:rgba(248,113,113,.10);border:2px dashed var(--red);border-radius:8px;padding:8px 12px;text-align:center;width:90%">
-              <div style="font-size:12px;font-weight:700;color:var(--red)">⚠️ 偏离度检查</div>
-              <div style="font-size:10px;color:var(--dim);margin-top:2px">UI终稿 vs 交互稿 — 布局/结构是否有重大变更？</div>
-              <div style="display:flex;justify-content:center;gap:16px;margin-top:6px;font-size:11px">
-                <span style="color:var(--green)">✅ 无重大偏离 → 正常交付</span>
-                <span style="color:var(--red)">🔴 重大偏离 → 触发白模重做</span>
-              </div>
-            </div>
-            <div style="color:var(--green);font-size:12px">│<br>▼</div>
-            <div style="background:rgba(244,114,182,.12);border:1px solid rgba(244,114,182,.3);border-radius:8px;padding:8px 16px;text-align:center;width:90%">
-              <div style="font-size:13px;font-weight:700;color:var(--heading)">📦 UI图交付</div>
-              <div style="font-size:11px;color:var(--dim)">切图 · 标注 · 资产包</div>
-            </div>
-          </div>
-        </div>
+      <!-- 通过箭头 -->
+      <line x1="440" y1="292" x2="440" y2="330" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <text x="460" y="317" fill="#4ade80" font-size="10" font-weight="600">通过 ✓</text>
 
-      </div>
-    </div>
+      <!-- =============== 4. 交互图交付 =============== -->
+      <rect x="290" y="330" width="300" height="58" rx="12" fill="url(#gBlue)" stroke="#60a5fa" stroke-width="2"/>
+      <text x="440" y="354" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">📄 交互图交付</text>
+      <text x="440" y="373" text-anchor="middle" fill="#6b7085" font-size="11">标注文档 · 蓝湖/Figma</text>
 
-    <!-- ===== 汇合节点 ===== -->
-    <div style="text-align:center;margin:8px 0">
-      <div style="display:inline-block;background:rgba(34,211,238,.08);border:2px solid var(--cyan);border-radius:10px;padding:8px 24px;font-size:14px;color:var(--heading);font-weight:600">🔗 汇合 — UI 资产 + Layout 白模就绪</div>
-    </div>
-    <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br>▼</div>
+      <!-- 箭头→并行组A -->
+      <line x1="440" y1="388" x2="440" y2="420" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
 
-    <!-- ===== ⚠️ 设计稿偏离度检查（关键异常分支） ===== -->
-    <div style="border:2px dashed var(--red);border-radius:14px;padding:16px;position:relative;margin:8px auto 12px;max-width:700px">
-      <div style="position:absolute;top:-11px;left:20px;background:var(--card);padding:0 10px;font-size:12px;color:var(--red);font-weight:700">⚠️ 异常分支 — UI终稿 vs 交互白模偏离度检查</div>
-      <div style="font-size:13px;line-height:1.9;padding-top:4px">
-        <div style="text-align:center;margin-bottom:8px;font-size:13px;color:var(--heading);font-weight:600">Layout 对比 UI 终稿与白模版本：布局/结构是否有重大变更？</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);border-radius:8px;padding:10px;text-align:center">
-            <div style="font-size:13px;font-weight:700;color:var(--green)">✅ 无重大偏离</div>
-            <div style="font-size:11px;color:var(--dim);margin-top:4px">布局结构一致，仅视觉层差异<br>→ 正常流转：直接切正式资产</div>
-          </div>
-          <div style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px;text-align:center">
-            <div style="font-size:13px;font-weight:700;color:var(--red)">🔴 重大偏离</div>
-            <div style="font-size:11px;color:var(--dim);margin-top:4px">UI终稿布局/控件/层级与白模出入大<br>→ 触发<strong style="color:var(--red)">白模返工流程</strong></div>
-          </div>
-        </div>
-        <div style="margin-top:10px;background:rgba(248,113,113,.05);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text);line-height:1.8">
-          <strong style="color:var(--red)">🔴 重大偏离处理流程：</strong><br>
-          ① Layout 发起<strong>偏离评估会</strong>（交互+UI+Layout+客户端，≤0.5天）<br>
-          ② 结论二选一：<strong>a)</strong> UI 回退修正，减少偏离 → UI返修后重新交付；<strong>b)</strong> 确认设计变更合理 → Layout 基于新稿重做白模（+2~3天），客户端同步评估影响<br>
-          ③ 变更记录进 TAPD（父单评论 + 工期调整）→ APM 更新里程碑
-        </div>
-      </div>
-    </div>
-    <div style="text-align:center;color:var(--green);font-size:14px;line-height:1.2">│<br><span style="font-size:11px">偏离检查通过 ✓</span><br>▼</div>
+      <!-- =============== 并行组 A 虚线框 =============== -->
+      <rect x="40" y="420" width="800" height="350" rx="14" fill="none" stroke="#22d3ee" stroke-width="2" stroke-dasharray="8,4"/>
+      <rect x="52" y="408" width="290" height="20" rx="4" fill="#1a1d2b"/>
+      <text x="60" y="422" fill="#22d3ee" font-size="12" font-weight="700">⚡ 并行组 A — 交互交付后双线启动</text>
 
-    <!-- ===== Layout 切正式资产 ===== -->
-    <div style="display:flex;justify-content:center;margin-bottom:4px">
-      <div style="background:rgba(45,212,191,.15);border:2px solid #2dd4bf;border-radius:10px;padding:10px 28px;text-align:center;min-width:200px">
-        <div style="font-size:15px;font-weight:700;color:var(--heading)">📐 Layout 切正式资产</div>
-        <div style="font-size:11px;color:var(--dim);margin-top:2px">替换白模 · 接入正式 UI 素材</div>
-      </div>
-    </div>
-    <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br>▼</div>
+      <!-- 分支线 -->
+      <line x1="440" y1="420" x2="230" y2="455" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="440" y1="420" x2="650" y2="455" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
 
-    <!-- ===== 并行组 B：正式蓝图 ∥ VX 动效 ===== -->
-    <div style="border:2px dashed var(--cyan);border-radius:14px;padding:16px;position:relative;margin:8px 0 12px">
-      <div style="position:absolute;top:-11px;left:20px;background:var(--card);padding:0 10px;font-size:12px;color:var(--cyan);font-weight:700">⚡ 并行组 B — 切正式资产后双线启动</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px">
+      <!-- === 左路：Layout白模+客户端 === -->
+      <rect x="68" y="440" width="14" height="310" rx="4" fill="rgba(45,212,191,.08)"/>
+      <text x="100" y="462" fill="#2dd4bf" font-size="11" font-weight="700">🟢 左路 · Layout白模 + 客户端功能</text>
 
-        <!-- 左路：正式蓝图 -->
-        <div style="background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.15);border-radius:10px;padding:14px">
-          <div style="font-size:12px;color:#2dd4bf;font-weight:700;margin-bottom:10px">📐 Layout 正式蓝图线</div>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
-            <div style="background:rgba(45,212,191,.12);border:1px solid rgba(45,212,191,.3);border-radius:8px;padding:8px 16px;text-align:center;width:90%">
-              <div style="font-size:13px;font-weight:700;color:var(--heading)">📐 Layout 正式蓝图制作</div>
-              <div style="font-size:11px;color:var(--dim)">绑定 · 自适应 · 动画</div>
-            </div>
-          </div>
-        </div>
+      <!-- Layout功能蓝图 -->
+      <rect x="100" y="475" width="260" height="55" rx="10" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="2"/>
+      <text x="230" y="498" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📐 Layout 功能蓝图交付</text>
+      <text x="230" y="517" text-anchor="middle" fill="#6b7085" font-size="11">白模蓝图 · 功能验证</text>
 
-        <!-- 右路：VX 动效 -->
-        <div style="background:rgba(251,146,60,.04);border:1px solid rgba(251,146,60,.15);border-radius:10px;padding:14px">
-          <div style="font-size:12px;color:var(--orange);font-weight:700;margin-bottom:10px">✨ VX 动效线</div>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
-            <div style="background:rgba(251,146,60,.12);border:1px solid rgba(251,146,60,.3);border-radius:8px;padding:8px 16px;text-align:center;width:90%">
-              <div style="font-size:13px;font-weight:700;color:var(--heading)">✨ VX 动效预演 + 制作</div>
-              <div style="font-size:11px;color:var(--dim)">预演视频 · 正式动效资产</div>
-            </div>
-          </div>
-        </div>
+      <line x1="230" y1="530" x2="230" y2="570" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="245" y="556" fill="#6b7085" font-size="10">Layout白模</text>
 
-      </div>
-    </div>
+      <!-- 客户端功能制作 -->
+      <rect x="100" y="570" width="260" height="55" rx="10" fill="url(#gYellow)" stroke="#fbbf24" stroke-width="2"/>
+      <text x="230" y="593" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">💻 客户端功能制作</text>
+      <text x="230" y="612" text-anchor="middle" fill="#6b7085" font-size="11">基于白模并行开发</text>
 
-    <!-- ===== 汇合后走查 ===== -->
-    <div style="text-align:center;margin:8px 0">
-      <div style="display:inline-block;background:rgba(34,211,238,.08);border:2px solid var(--cyan);border-radius:10px;padding:8px 24px;font-size:14px;color:var(--heading);font-weight:600">🔗 汇合 — 正式蓝图 + 动效资产就绪</div>
-    </div>
-    <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br>▼</div>
+      <!-- === 右路：UI设计线 === -->
+      <rect x="798" y="440" width="14" height="310" rx="4" fill="rgba(244,114,182,.08)"/>
+      <text x="530" y="462" fill="#f472b6" font-size="11" font-weight="700">🔴 右路 · UI 设计线</text>
 
-    <!-- ===== 界面走查 ===== -->
-    <div style="display:flex;justify-content:center;align-items:center;gap:30px;margin-bottom:4px">
-      <div style="background:rgba(255,255,255,.06);border:2px solid #9e9e9e;border-radius:4px;padding:10px 20px;text-align:center;min-width:140px">
-        <div style="font-size:14px;font-weight:700;color:var(--heading)">✅ 界面走查</div>
-        <div style="font-size:11px;color:var(--dim)">全角色参与 · 逐像素校对</div>
-      </div>
-      <div style="font-size:11px;color:var(--orange);max-width:200px;text-align:left;line-height:1.6">
-        <span style="border:1px dashed var(--orange);border-radius:4px;padding:1px 6px;font-size:10px">问题分流</span><br>
-        → UI问题 → UI设计<br>
-        → Layout问题 → Layout<br>
-        → 开发问题 → 客户端<br>
-        → 交互问题 → 交互
-      </div>
-    </div>
-    <div style="text-align:center;color:var(--green);font-size:14px;line-height:1.2">│<br><span style="font-size:11px">通过 ✓</span><br>▼</div>
+      <!-- UI设计 -->
+      <rect x="520" y="475" width="260" height="55" rx="10" fill="url(#gPink)" stroke="#f472b6" stroke-width="2"/>
+      <text x="650" y="498" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">🖌️ UI 设计</text>
+      <text x="650" y="517" text-anchor="middle" fill="#6b7085" font-size="11">高保真稿 · 视觉风格</text>
 
-    <!-- ===== VX 动效制作 ===== -->
-    <div style="display:flex;justify-content:center;margin-bottom:4px">
-      <div style="background:rgba(251,146,60,.15);border:2px solid var(--orange);border-radius:10px;padding:10px 28px;text-align:center;min-width:200px">
-        <div style="font-size:15px;font-weight:700;color:var(--heading)">✨ VX 界面动效制作</div>
-        <div style="font-size:11px;color:var(--dim);margin-top:2px">正式动效集成 · 参数调优</div>
-      </div>
-    </div>
-    <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br><span style="font-size:11px;color:var(--dim)">动效资产</span><br>▼</div>
+      <line x1="650" y1="530" x2="650" y2="562" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="664" y="552" fill="#6b7085" font-size="10">UI设计稿</text>
 
-    <!-- ===== 客户端集成动效 ===== -->
-    <div style="display:flex;justify-content:center;margin-bottom:4px">
-      <div style="background:rgba(251,191,36,.15);border:2px solid var(--yellow);border-radius:10px;padding:10px 28px;text-align:center;min-width:200px">
-        <div style="font-size:15px;font-weight:700;color:var(--heading)">💻 客户端集成动效</div>
-        <div style="font-size:11px;color:var(--dim);margin-top:2px">功能+动效合并 · 联调</div>
-      </div>
-    </div>
-    <div style="text-align:center;color:var(--dim);font-size:14px;line-height:1.2">│<br>▼</div>
+      <!-- UI评审（菱形，居中在右路） -->
+      <polygon points="650,562 715,592 650,622 585,592" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="2"/>
+      <text x="650" y="589" text-anchor="middle" fill="#e4e6ed" font-size="12" font-weight="700">✅ UI评审</text>
+      <text x="650" y="604" text-anchor="middle" fill="#6b7085" font-size="10">通过/打回</text>
 
-    <!-- ===== 交付完成 ===== -->
-    <div style="display:flex;justify-content:center">
-      <div style="background:rgba(74,222,128,.15);border:2px solid var(--green);border-radius:10px;padding:10px 28px;text-align:center;min-width:200px">
-        <div style="font-size:15px;font-weight:700;color:var(--heading)">🎉 界面交付完成</div>
-        <div style="font-size:11px;color:var(--dim);margin-top:2px">资产归档 · 上线</div>
-      </div>
-    </div>
+      <!-- UI评审打回折回箭头 → 返回UI设计 -->
+      <path d="M715,592 L762,592 L762,500" stroke="#f87171" stroke-width="1.8" stroke-dasharray="6,3" fill="none"/>
+      <polygon points="762,500 757,508 767,508" fill="#f87171"/>
+      <text x="772" y="552" fill="#f87171" font-size="10" font-weight="600">打回</text>
 
+      <!-- 通过 -->
+      <line x1="650" y1="622" x2="650" y2="651" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <text x="664" y="642" fill="#4ade80" font-size="10" font-weight="600">通过✓</text>
+
+      <!-- ⚠️ 偏离度检查 -->
+      <rect x="530" y="651" width="240" height="50" rx="8" fill="url(#gRed)" stroke="#f87171" stroke-width="2" stroke-dasharray="5,3"/>
+      <text x="650" y="672" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700">⚠️ 偏离度检查</text>
+      <text x="650" y="690" text-anchor="middle" fill="#6b7085" font-size="10">UI终稿 vs 交互稿 布局是否重大变更？</text>
+
+      <line x1="650" y1="701" x2="650" y2="725" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+      <!-- UI图交付 -->
+      <rect x="520" y="725" width="260" height="55" rx="10" fill="url(#gPink)" stroke="#f472b6" stroke-width="2"/>
+      <text x="650" y="748" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📦 UI图交付</text>
+      <text x="650" y="767" text-anchor="middle" fill="#6b7085" font-size="11">切图 · 标注 · 资产包</text>
+
+      <!-- 中期对齐提醒（并行组底部） -->
+      <text x="440" y="755" text-anchor="middle" fill="#f87171" font-size="10" font-weight="600">⚠️ UI设计50%时须与Layout中期对齐</text>
+
+      <!-- =============== 汇合节点 =============== -->
+      <line x1="230" y1="625" x2="230" y2="800" stroke="#6b7085" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <line x1="650" y1="780" x2="650" y2="800" stroke="#6b7085" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <line x1="230" y1="800" x2="650" y2="800" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <line x1="440" y1="800" x2="440" y2="820" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arr-cyan)"/>
+
+      <rect x="280" y="820" width="320" height="44" rx="10" fill="rgba(34,211,238,.08)" stroke="#22d3ee" stroke-width="2"/>
+      <text x="440" y="847" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — UI 资产 + Layout 白模就绪</text>
+
+      <line x1="440" y1="864" x2="440" y2="894" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- =============== ⚠️ 设计稿偏离度检查 =============== -->
+      <rect x="180" y="894" width="520" height="90" rx="12" fill="rgba(248,113,113,.04)" stroke="#f87171" stroke-width="2" stroke-dasharray="6,3"/>
+      <text x="200" y="914" fill="#f87171" font-size="12" font-weight="700">⚠️ 偏离度检查</text>
+      <text x="440" y="934" text-anchor="middle" fill="#e4e6ed" font-size="12" font-weight="600">Layout 对比 UI 终稿与白模：布局/结构是否有重大变更？</text>
+      <text x="300" y="960" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="600">✅ 无重大偏离→正常流转</text>
+      <text x="580" y="960" text-anchor="middle" fill="#f87171" font-size="11" font-weight="600">🔴 重大偏离→白模返工流程</text>
+
+      <line x1="440" y1="984" x2="440" y2="1016" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <text x="462" y="1005" fill="#4ade80" font-size="10" font-weight="600">通过✓</text>
+
+      <!-- =============== Layout 切正式资产 =============== -->
+      <rect x="290" y="1016" width="300" height="58" rx="12" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="2"/>
+      <text x="440" y="1040" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">📐 Layout 切正式资产</text>
+      <text x="440" y="1059" text-anchor="middle" fill="#6b7085" font-size="11">替换白模 · 接入正式 UI 素材</text>
+
+      <line x1="440" y1="1074" x2="440" y2="1106" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- =============== 并行组 B =============== -->
+      <rect x="100" y="1106" width="680" height="140" rx="14" fill="none" stroke="#22d3ee" stroke-width="2" stroke-dasharray="8,4"/>
+      <rect x="112" y="1094" width="320" height="20" rx="4" fill="#1a1d2b"/>
+      <text x="120" y="1108" fill="#22d3ee" font-size="12" font-weight="700">⚡ 并行组 B — 切正式资产后双线启动</text>
+
+      <!-- 分支 -->
+      <line x1="440" y1="1106" x2="270" y2="1130" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="440" y1="1106" x2="610" y2="1130" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- Layout正式蓝图 -->
+      <rect x="130" y="1130" width="280" height="55" rx="10" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="2"/>
+      <text x="270" y="1153" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📐 Layout 正式蓝图制作</text>
+      <text x="270" y="1172" text-anchor="middle" fill="#6b7085" font-size="11">绑定 · 自适应 · 动画</text>
+
+      <!-- VX动效 -->
+      <rect x="470" y="1130" width="280" height="55" rx="10" fill="url(#gOrange)" stroke="#fb923c" stroke-width="2"/>
+      <text x="610" y="1153" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">✨ VX 动效预演 + 制作</text>
+      <text x="610" y="1172" text-anchor="middle" fill="#6b7085" font-size="11">预演视频 · 正式动效资产</text>
+
+      <text x="440" y="1234" text-anchor="middle" fill="#6b7085" font-size="10">↑ 两条线同时启动，互不阻塞 ↑</text>
+
+      <!-- 汇合B -->
+      <line x1="270" y1="1185" x2="270" y2="1260" stroke="#6b7085" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <line x1="610" y1="1185" x2="610" y2="1260" stroke="#6b7085" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <line x1="270" y1="1260" x2="610" y2="1260" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <line x1="440" y1="1260" x2="440" y2="1280" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arr-cyan)"/>
+
+      <rect x="270" y="1280" width="340" height="42" rx="10" fill="rgba(34,211,238,.08)" stroke="#22d3ee" stroke-width="2"/>
+      <text x="440" y="1306" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — 正式蓝图 + 动效资产就绪</text>
+
+      <line x1="440" y1="1322" x2="440" y2="1352" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- =============== 界面走查（菱形） =============== -->
+      <polygon points="440,1352 520,1392 440,1432 360,1392" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="2"/>
+      <text x="440" y="1388" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="700">✅ 界面走查</text>
+      <text x="440" y="1404" text-anchor="middle" fill="#6b7085" font-size="10">逐像素校对</text>
+
+      <!-- 走查问题分流（右侧） -->
+      <line x1="520" y1="1392" x2="600" y2="1392" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-orange)"/>
+      <text x="620" y="1378" fill="#fb923c" font-size="10" font-weight="600">问题分流</text>
+      <text x="620" y="1393" fill="#6b7085" font-size="10">→ UI / Layout / 客户端 / 交互</text>
+
+      <!-- 通过 -->
+      <line x1="440" y1="1432" x2="440" y2="1466" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <text x="460" y="1455" fill="#4ade80" font-size="10" font-weight="600">通过✓</text>
+
+      <!-- =============== VX 动效制作 =============== -->
+      <rect x="290" y="1466" width="300" height="55" rx="12" fill="url(#gOrange)" stroke="#fb923c" stroke-width="2"/>
+      <text x="440" y="1489" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">✨ VX 界面动效制作</text>
+      <text x="440" y="1508" text-anchor="middle" fill="#6b7085" font-size="11">正式动效集成 · 参数调优</text>
+
+      <line x1="440" y1="1521" x2="440" y2="1551" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="462" y="1542" fill="#6b7085" font-size="10">动效资产</text>
+
+      <!-- =============== 客户端集成动效 =============== -->
+      <rect x="290" y="1551" width="300" height="55" rx="12" fill="url(#gYellow)" stroke="#fbbf24" stroke-width="2"/>
+      <text x="440" y="1574" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">💻 客户端集成动效</text>
+      <text x="440" y="1593" text-anchor="middle" fill="#6b7085" font-size="11">功能+动效合并 · 联调</text>
+
+      <line x1="440" y1="1606" x2="440" y2="1640" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- =============== 交付完成 =============== -->
+      <rect x="290" y="1640" width="300" height="55" rx="12" fill="url(#gGreen)" stroke="#4ade80" stroke-width="2" filter="url(#glow)"/>
+      <text x="440" y="1663" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">🎉 界面交付完成</text>
+      <text x="440" y="1682" text-anchor="middle" fill="#6b7085" font-size="11">资产归档 · 上线</text>
+    </svg>
   </div>
 
   <!-- 图例 -->
-  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--dim)">
-    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(167,139,250,.3);border:1px solid var(--accent2);border-radius:3px;vertical-align:middle;margin-right:4px"></span>策划</span>
-    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(96,165,250,.3);border:1px solid var(--blue);border-radius:3px;vertical-align:middle;margin-right:4px"></span>交互</span>
-    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(244,114,182,.3);border:1px solid #f472b6;border-radius:3px;vertical-align:middle;margin-right:4px"></span>UI设计</span>
-    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(45,212,191,.3);border:1px solid #2dd4bf;border-radius:3px;vertical-align:middle;margin-right:4px"></span>Layout</span>
-    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(251,146,60,.3);border:1px solid var(--orange);border-radius:3px;vertical-align:middle;margin-right:4px"></span>VX动效</span>
-    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(251,191,36,.3);border:1px solid var(--yellow);border-radius:3px;vertical-align:middle;margin-right:4px"></span>客户端</span>
-    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(255,255,255,.1);border:1px solid #9e9e9e;border-radius:3px;vertical-align:middle;margin-right:4px"></span>评审节点</span>
-    <span><span style="display:inline-block;width:20px;height:0;border-top:2px dashed var(--cyan);vertical-align:middle;margin-right:4px"></span>并行区域</span>
+  <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:16px;font-size:12px;color:var(--dim);justify-content:center;padding:12px;background:var(--panel);border-radius:10px;border:1px solid var(--border)">
+    <span><span style="display:inline-block;width:14px;height:14px;background:rgba(167,139,250,.3);border:2px solid var(--accent2);border-radius:4px;vertical-align:middle;margin-right:5px"></span>策划</span>
+    <span><span style="display:inline-block;width:14px;height:14px;background:rgba(96,165,250,.3);border:2px solid var(--blue);border-radius:4px;vertical-align:middle;margin-right:5px"></span>交互</span>
+    <span><span style="display:inline-block;width:14px;height:14px;background:rgba(244,114,182,.3);border:2px solid #f472b6;border-radius:4px;vertical-align:middle;margin-right:5px"></span>UI设计</span>
+    <span><span style="display:inline-block;width:14px;height:14px;background:rgba(45,212,191,.3);border:2px solid #2dd4bf;border-radius:4px;vertical-align:middle;margin-right:5px"></span>Layout</span>
+    <span><span style="display:inline-block;width:14px;height:14px;background:rgba(251,146,60,.3);border:2px solid var(--orange);border-radius:4px;vertical-align:middle;margin-right:5px"></span>VX动效</span>
+    <span><span style="display:inline-block;width:14px;height:14px;background:rgba(251,191,36,.3);border:2px solid var(--yellow);border-radius:4px;vertical-align:middle;margin-right:5px"></span>客户端</span>
+    <span><svg width="22" height="14" style="vertical-align:middle;margin-right:5px"><polygon points="11,0 22,7 11,14 0,7" fill="rgba(255,255,255,.08)" stroke="#9e9e9e" stroke-width="1.5"/></svg>评审/决策</span>
+    <span><svg width="22" height="12" style="vertical-align:middle;margin-right:5px"><line x1="0" y1="6" x2="22" y2="6" stroke="#22d3ee" stroke-width="2" stroke-dasharray="4,2"/></svg>并行区域</span>
+    <span><svg width="22" height="12" style="vertical-align:middle;margin-right:5px"><line x1="0" y1="6" x2="16" y2="6" stroke="#f87171" stroke-width="1.5" stroke-dasharray="4,2"/><polygon points="16,3 22,6 16,9" fill="#f87171"/></svg>打回折回</span>
   </div>
 </div>
 
