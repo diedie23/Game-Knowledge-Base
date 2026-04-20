@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>自动 Mask 通道生成器 v6.4</title>
+<title>自动 Mask 通道生成器 v7.0</title>
 <style>
 :root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--gbg:rgba(74,222,128,.12);--abg:rgba(108,140,255,.12);--rbg:rgba(248,113,113,.12);--ybg:rgba(251,191,36,.12);--obg:rgba(251,146,60,.12);--cbg:rgba(34,211,238,.12)}
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
@@ -213,6 +213,35 @@
 .ez-tol-visual .bar{flex:1;height:6px;border-radius:3px;position:relative}
 .ez-tol-visual .bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--yellow),var(--red));transition:width .2s}
 .ez-tol-visual .bar-label{font-size:9px;flex-shrink:0;min-width:40px}
+
+/* ═══ v7.0 二值化 Mask 模式 ═══ */
+.binarize-panel{background:linear-gradient(135deg,rgba(248,113,113,.08),rgba(251,191,36,.06));border:1.5px solid rgba(248,113,113,.25);border-radius:10px;padding:12px;margin:8px 0;display:none;animation:cpb-in .3s ease-out}
+.binarize-panel.show{display:block}
+.binarize-panel-title{font-size:12px;color:var(--red);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.binarize-swatch-row{display:flex;align-items:center;gap:10px;margin:8px 0;padding:8px;background:var(--card);border-radius:8px;border:1px solid var(--border)}
+.binarize-swatch{width:36px;height:36px;border-radius:6px;border:2px solid rgba(255,255,255,.2);cursor:crosshair;flex-shrink:0;background:#444}
+.binarize-info{flex:1;font-size:11px;color:var(--dim)}.binarize-info b{color:var(--heading)}
+.binarize-preview{display:flex;gap:8px;margin:8px 0;align-items:center}
+.binarize-preview canvas{border-radius:4px;border:1px solid var(--border)}
+.binarize-arrow{font-size:18px;color:var(--dim)}
+.binarize-actions{display:flex;gap:6px;margin-top:8px}
+
+/* ═══ v7.0 画布调整功能 ═══ */
+.canvas-resize-dlg{max-width:680px}
+.canvas-resize-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.canvas-resize-form .cr-group{display:flex;flex-direction:column;gap:4px}
+.canvas-resize-form .cr-group label{font-size:11px;color:var(--dim);font-weight:600}
+.canvas-resize-form .cr-group input,.canvas-resize-form .cr-group select{padding:6px 8px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:inherit}
+.canvas-resize-form .cr-group input:focus,.canvas-resize-form .cr-group select:focus{border-color:var(--cyan);outline:none}
+.anchor-grid{display:grid;grid-template-columns:repeat(3,28px);gap:3px;margin-top:2px}
+.anchor-dot{width:28px;height:28px;border-radius:5px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;font-size:10px}
+.anchor-dot:hover{border-color:var(--cyan)}
+.anchor-dot.act{background:var(--cyan);border-color:var(--cyan);color:#000;font-weight:700}
+.cr-preview-wrap{display:flex;align-items:center;justify-content:center;gap:14px;margin:12px 0;padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--border)}
+.cr-preview-box{position:relative;border:1px dashed var(--cyan);background:repeating-conic-gradient(#1a1c28 0% 25%,#15171f 0% 50%) 50%/8px 8px}
+.cr-preview-img{position:absolute;border:1px solid var(--accent);opacity:.85}
+.cr-quick-btns{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}
+.cr-quick-btns .btn{font-size:10px;padding:4px 10px}
 </style>
 </head>
 <body>
@@ -226,7 +255,7 @@
 <div class="steps" id="stepBar"><div class="stp act" data-s="1"><span class="n">1</span>导入</div><span class="sa">→</span><div class="stp" data-s="2"><span class="n">2</span>预处理</div><span class="sa">→</span><div class="stp" data-s="3"><span class="n">3</span>吸色分配</div><span class="sa">→</span><div class="stp" data-s="4"><span class="n">4</span>预览导出</div></div>
 <div class="card" id="s1"><div class="card-title">📁 导入角色原图 / 恢复工程</div><div class="dz" id="dz" onclick="$('fi').click()"><h3>点击选择或拖放图片 / JSON 工程</h3><p>PNG / JPG / TGA / config.json（兼容 v5）</p></div><input type="file" id="fi" accept="image/*,.json" style="display:none"><div style="margin-top:8px;display:flex;gap:6px;justify-content:center"><button class="btn btn-sm" onclick="$('fiR').click()">📂 导入工程 JSON</button></div><input type="file" id="fiR" accept=".json" style="display:none"></div>
 <div class="card" id="namingCard" style="display:none"><div class="card-title">🏷️ 导出命名</div><div class="pr"><label>模板</label><input type="text" id="namingTpl" value="{Project}_{CharID}_Mask_{Channel}" class="ni" style="flex:1" oninput="M.Nm.pv()"></div><div style="display:flex;gap:6px;margin-top:4px"><div class="pr" style="flex:1"><label>Project</label><input type="text" id="tplP" value="MyGame" class="nsm" style="flex:1" oninput="M.Nm.pv()"></div><div class="pr" style="flex:1"><label>CharID</label><input type="text" id="tplC" value="Hero01" class="nsm" style="flex:1" oninput="M.Nm.pv()"></div></div><div style="font-size:10px;color:var(--dim);margin-top:4px">变量：{Project} {CharID} {Channel} {Date} {W} {H}</div><div style="font-size:10px;color:var(--green);margin-top:3px" id="namePv">预览：MyGame_Hero01_Mask_RGBA.png</div></div>
-<div class="card" id="s2" style="display:none"><div class="card-title">✂️ 图片预处理 <span class="badge badge-c">裁剪·缩放·旋转</span></div><div class="tip-bar">可裁剪/缩放/旋转后进入吸色，也可跳过</div><div style="display:flex;gap:14px;flex-wrap:wrap"><div style="flex:1;min-width:300px"><div class="ib"><canvas id="prepC"></canvas><span class="il" id="prepLabel">原始</span></div></div><div style="width:220px;display:flex;flex-direction:column;gap:8px"><div style="font-size:11px;color:var(--heading)">缩放到</div><div style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn btn-sm" onclick="M.Prep.rsz(512)">512</button><button class="btn btn-sm" onclick="M.Prep.rsz(1024)">1024</button><button class="btn btn-sm" onclick="M.Prep.rsz(2048)">2048</button><button class="btn btn-sm" onclick="M.Prep.rsz(0)">原始</button></div><div style="font-size:11px;color:var(--heading);margin-top:4px">旋转</div><div style="display:flex;gap:4px"><button class="btn btn-sm" style="flex:1" onclick="M.Prep.rot(90)">↻90°</button><button class="btn btn-sm" style="flex:1" onclick="M.Prep.rot(180)">↻180°</button><button class="btn btn-sm" style="flex:1" onclick="M.Prep.rot(270)">↻270°</button></div><button class="btn btn-sm" onclick="M.Prep.cropOpen()" style="margin-top:4px">✂️裁剪区域</button><div style="margin-top:12px;display:flex;flex-direction:column;gap:6px"><button class="btn btn-p" onclick="M.Prep.ok()">✅ 确认，进入吸色</button><button class="btn" onclick="M.Prep.skip()">⏭️ 跳过预处理</button></div></div></div></div>
+<div class="card" id="s2" style="display:none"><div class="card-title">✂️ 图片预处理 <span class="badge badge-c">裁剪·缩放·旋转</span></div><div class="tip-bar">可裁剪/缩放/旋转后进入吸色，也可跳过</div><div style="display:flex;gap:14px;flex-wrap:wrap"><div style="flex:1;min-width:300px"><div class="ib"><canvas id="prepC"></canvas><span class="il" id="prepLabel">原始</span></div></div><div style="width:220px;display:flex;flex-direction:column;gap:8px"><div style="font-size:11px;color:var(--heading)">缩放到</div><div style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn btn-sm" onclick="M.Prep.rsz(512)">512</button><button class="btn btn-sm" onclick="M.Prep.rsz(1024)">1024</button><button class="btn btn-sm" onclick="M.Prep.rsz(2048)">2048</button><button class="btn btn-sm" onclick="M.Prep.rsz(0)">原始</button></div><div style="font-size:11px;color:var(--heading);margin-top:4px">旋转</div><div style="display:flex;gap:4px"><button class="btn btn-sm" style="flex:1" onclick="M.Prep.rot(90)">↻90°</button><button class="btn btn-sm" style="flex:1" onclick="M.Prep.rot(180)">↻180°</button><button class="btn btn-sm" style="flex:1" onclick="M.Prep.rot(270)">↻270°</button></div><button class="btn btn-sm" onclick="M.Prep.cropOpen()" style="margin-top:4px">✂️裁剪区域</button><button class="btn btn-sm" onclick="M.CRsz.open()" style="margin-top:4px">📐 调整画布大小</button><div style="margin-top:12px;display:flex;flex-direction:column;gap:6px"><button class="btn btn-p" onclick="M.Prep.ok()">✅ 确认，进入吸色</button><button class="btn" onclick="M.Prep.skip()">⏭️ 跳过预处理</button></div></div></div></div>
 <div class="card" id="s3" style="display:none"><div class="card-title">🎨 吸色 & 多通道分配 <span class="badge badge-c">动态扩展</span></div><div class="tip-bar"><span id="tipText">👆 点击图片吸取颜色</span></div><div class="g2"><div><div class="ib" id="srcWrap" style="cursor:crosshair;position:relative"><canvas id="srcC"></canvas><span class="il" id="srcLabel">点击吸取颜色</span><div class="mag" id="mag"><canvas id="magC" width="120" height="120"></canvas><div class="mc"></div><div class="mh" id="magHex">#000000</div></div>
 <!-- v6.1 悬浮快捷菜单 -->
 <div class="pick-float-menu" id="pickFloatMenu">
@@ -280,10 +309,22 @@
 <div class="pr"><label>边缘平滑</label><span class="ez-tip">?<span class="ez-pop"><b>边缘平滑 = 羽化边界</b><br>让颜色区域的边界更柔和（像 PS 的羽化）。<br>0 = 硬边（锐利切割）<br>2-3 = 柔和过渡（推荐）<br><span class="ez-example">💡 做角色 Mask 建议 2px，UI 图标建议 0</span></span></span><input type="range" id="pES" min="0" max="5" value="2" oninput="M.Pk.upP()"><span class="v" id="vES">2px</span></div>
 </div>
 <div style="margin:10px 0 6px">
+<!-- v7.0 二值化 Mask 面板 -->
+<div class="binarize-panel" id="binarizePanel">
+<div class="binarize-panel-title">⬛ 二值化 Mask 模式 <span style="font-size:9px;padding:2px 8px;border-radius:8px;background:rgba(248,113,113,.15);color:var(--red)">2色模式激活</span></div>
+<div style="font-size:10px;color:var(--dim);margin-bottom:6px;line-height:1.6">👆 在原图上点击吸取目标颜色 → 匹配像素为<b style="color:#fff">黑色(0,0,0,255)</b>，不匹配为<b style="color:#fff">白色(255,255,255,255)</b>。<br>四个通道(RGBA)同时写满纯二值，专用于扣Mask。</div>
+<div class="binarize-swatch-row">
+<div class="binarize-swatch" id="binSwatch" style="background:#444" title="当前吸取的目标颜色"></div>
+<div class="binarize-info" id="binInfo">👆 在左侧图片上吸取目标颜色</div>
+<button class="btn btn-sm btn-p" id="binGenBtn" onclick="M.Bin.gen()" disabled>⬛ 生成二值Mask</button>
+</div>
+<div style="font-size:9px;color:var(--dim);margin-top:4px">💡 生成后四通道(RGBA)全部写入相同的纯黑白二值数据，边缘平滑=0（硬边），无渐变。</div>
+</div>
 <!-- v6.2 智能分析精度设置 -->
 <div class="ad-precision-bar">
-<label>📊 提取色数</label><span class="ez-tip">?<span class="ez-pop"><b>提取多少种颜色？</b><br>4色 = 只取最明显的4种（够用）<br>8色 = 取更多细节色（精细）<br>16色 = 把细微色差也拆开（超精细）<br><span class="ez-example">💡 一般选 4 就够了，灰色系贴图可以试 8</span></span></span>
+<label>📊 提取色数</label><span class="ez-tip">?<span class="ez-pop"><b>提取多少种颜色？</b><br>2色 = 纯二值黑白，吸一个色做Mask<br>4色 = 只取最明显的4种（够用）<br>8色 = 取更多细节色（精细）<br>16色 = 把细微色差也拆开（超精细）<br><span class="ez-example">💡 扣Mask选2色，一般选4，灰色系试8</span></span></span>
 <select id="adColorCount" onchange="M.Cfg.AMAX=+this.value">
+<option value="2">2色（纯二值·Mask专用）</option>
 <option value="4" selected>4色（标准）</option>
 <option value="6">6色</option>
 <option value="8">8色（精细）</option>
@@ -347,6 +388,38 @@
 <span>缩放: <b id="cropScale">1.00x</b></span>
 </div>
 <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" onclick="M.Crop.close()">✖ 取消</button><button class="btn btn-p" onclick="M.Crop.apply()">✅ 确认裁剪并应用</button></div>
+</div></div>
+<!-- v7.0 画布调整弹窗 -->
+<div class="co" id="canvasResizeOv"><div class="cdlg canvas-resize-dlg"><h2>📐 调整画布大小 <span style="font-size:12px;color:var(--dim)">类似PS画布大小调整</span></h2>
+<div class="canvas-resize-form">
+<div class="cr-group"><label>📏 当前尺寸</label><div style="font-size:14px;color:var(--cyan);font-weight:700" id="crCurSize">0 × 0</div></div>
+<div class="cr-group"><label>🎯 目标宽度</label><input type="number" id="crW" min="1" max="8192" value="1024" oninput="M.CRsz.update()"></div>
+<div class="cr-group"><label>🎯 目标高度</label><input type="number" id="crH" min="1" max="8192" value="1024" oninput="M.CRsz.update()"></div>
+<div class="cr-group"><label>🔗 锁定比例</label><label style="font-size:11px;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:4px"><input type="checkbox" id="crLock" onchange="M.CRsz.update()" style="accent-color:var(--cyan)"> 宽高联动</label></div>
+<div class="cr-group"><label>📍 锚点位置</label>
+<div class="anchor-grid" id="crAnchorGrid">
+<div class="anchor-dot" data-a="tl" onclick="M.CRsz.setAnchor('tl',this)">↖</div>
+<div class="anchor-dot" data-a="tc" onclick="M.CRsz.setAnchor('tc',this)">↑</div>
+<div class="anchor-dot" data-a="tr" onclick="M.CRsz.setAnchor('tr',this)">↗</div>
+<div class="anchor-dot" data-a="ml" onclick="M.CRsz.setAnchor('ml',this)">←</div>
+<div class="anchor-dot act" data-a="mc" onclick="M.CRsz.setAnchor('mc',this)">●</div>
+<div class="anchor-dot" data-a="mr" onclick="M.CRsz.setAnchor('mr',this)">→</div>
+<div class="anchor-dot" data-a="bl" onclick="M.CRsz.setAnchor('bl',this)">↙</div>
+<div class="anchor-dot" data-a="bc" onclick="M.CRsz.setAnchor('bc',this)">↓</div>
+<div class="anchor-dot" data-a="br" onclick="M.CRsz.setAnchor('br',this)">↘</div>
+</div></div>
+<div class="cr-group"><label>🎨 填充颜色</label><div style="display:flex;align-items:center;gap:6px"><input type="color" id="crFill" value="#000000" style="width:28px;height:28px;border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:0"><label style="font-size:10px;color:var(--text);display:flex;align-items:center;gap:3px;cursor:pointer"><input type="checkbox" id="crTransparent" checked onchange="M.CRsz.update()" style="accent-color:var(--cyan)"> 透明填充</label></div></div>
+</div>
+<div class="cr-quick-btns"><span style="font-size:10px;color:var(--dim);margin-right:4px">快捷：</span>
+<button class="btn" onclick="M.CRsz.quick('1:1')">⬛ 1:1 正方</button>
+<button class="btn" onclick="M.CRsz.quick('pow2')">📐 最近2次幂</button>
+<button class="btn" onclick="M.CRsz.quick('512')">512²</button>
+<button class="btn" onclick="M.CRsz.quick('1024')">1024²</button>
+<button class="btn" onclick="M.CRsz.quick('2048')">2048²</button>
+<button class="btn" onclick="M.CRsz.quick('4096')">4096²</button>
+</div>
+<div class="cr-preview-wrap"><div style="text-align:center"><div style="font-size:10px;color:var(--dim);margin-bottom:4px">预览</div><div class="cr-preview-box" id="crPreview" style="width:160px;height:160px"><div class="cr-preview-img" id="crPreviewImg"></div></div></div><div style="font-size:11px;color:var(--dim);max-width:200px"><div id="crInfo" style="line-height:1.8">目标: <b style="color:var(--cyan)">1024×1024</b><br>填充: <b>透明</b><br>锚点: <b>居中</b></div></div></div>
+<div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" onclick="M.CRsz.close()">✖ 取消</button><button class="btn btn-p" onclick="M.CRsz.apply()">✅ 调整画布并应用</button></div>
 </div></div>
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
@@ -1910,6 +1983,216 @@ M.Ch.addCustomRg = function(id) {
 /* ---- 版本标识 ---- */
 (function(){var vb=document.querySelector('.hdr h1 .ver');if(vb)vb.textContent='v6.5.1'})();
 console.log('[v6.5] patch loaded: low-pct visual warning, sparse pixel highlight toggle, tolerance overlap detection');
+})();
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  v7.0 功能升级补丁
+ *  1. 二值化 Mask 模式（2色纯黑白 · 吸一色做 Mask · RGBA 四通道满写）
+ *  2. 调整画布大小功能（类似 PS 画布大小 · 锚点 · 填充 · 1:1）
+ * ═══════════════════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ===========================================================================
+ *  功能 1：二值化 Mask 模式
+ *  - 在「提取色数」选择 2 色时激活专用面板
+ *  - 吸取一个颜色作为「黑色」(目标色)
+ *  - 匹配的像素 → 黑(0)，不匹配 → 白(255)
+ *  - RGBA 四通道全部写入相同的纯二值数据
+ *  - 无边缘平滑，无渐变，硬切割
+ * =========================================================================== */
+M.Bin={
+  _active:false,
+  /* 激活/关闭二值化面板 */
+  toggle:function(on){
+    M.Bin._active=on;
+    var p=$('binarizePanel');
+    if(p)p.classList.toggle('show',on);
+  },
+  /* 生成二值化 Mask */
+  gen:function(){
+    var S=M.S;
+    if(S.pkH<0||!S.hsv){M.T.show('请先在原图上吸取目标颜色');return}
+    var n=S.W*S.H;
+    var refRGB=S.pkRGB,refLab=S.pkLab||M.C.r2lab(refRGB[0],refRGB[1],refRGB[2]);
+    var de=M.Tol.getDE(),lw=M.Tol.getLW();
+
+    /* 二值化：匹配→黑(0)，不匹配→白(1) */
+    var binData=new Float32Array(n);
+    for(var i=0;i<n;i++){
+      if(S.px[i*4+3]<10){binData[i]=1;continue}  /* 透明像素→白 */
+      var isMatch=false;
+      if(S.tolMode==='lab'&&S.lab){
+        var dist=M.C.deltaEw([S.lab[i*3],S.lab[i*3+1],S.lab[i*3+2]],refLab,lw);
+        isMatch=dist<=de;
+      }else{
+        var tol=+$('pHT').value,sat=+$('pSM').value;
+        var h=S.hsv[i*3],s=S.hsv[i*3+1];
+        if(s>=sat*0.5&&M.C.hD(h,S.pkH)<=tol)isMatch=true;
+      }
+      binData[i]=isMatch?0:1;  /* 匹配=黑(0)，不匹配=白(1) */
+    }
+
+    /* 四通道同时写满相同的二值数据 */
+    S.chs.forEach(function(c){
+      c.raw=new Float32Array(binData);
+      c.rawOrig=new Float32Array(binData);
+      c.adjust={invert:false,brightness:0,contrast:0,gamma:1.0};
+    });
+
+    S.maskOK=true;
+    M.Ren.buildUI();M.Ren.all();
+    $('s4').style.display='block';$('brushBar').style.display='flex';
+    M.UI.stp(4);$('s4').scrollIntoView({behavior:'smooth'});
+    M.UI.tip('✅ 二值化 Mask 已生成！四通道全部填入纯黑白数据。');
+    M.T.show('⬛ 二值Mask已生成 · 黑=目标色 · 白=其他 · RGBA四通道同步');
+  }
+};
+
+/* ---- 拦截提取色数下拉变更，2色时显示二值化面板 ---- */
+var _origAdColorChange=$('adColorCount').onchange;
+$('adColorCount').onchange=function(){
+  var v=+this.value;M.Cfg.AMAX=v;
+  M.Bin.toggle(v===2);
+};
+
+/* ---- 拦截吸色，2色模式下同步更新二值化面板 ---- */
+var _origPick_v70=M.Pk._pick;
+M.Pk._pick=function(e){
+  _origPick_v70.call(this,e);
+  if(M.Bin._active&&M.S.pkH>=0){
+    var hex=M.C.r2x(M.S.pkRGB);
+    $('binSwatch').style.background=hex;
+    var pct=M.Pk.mPct();
+    $('binInfo').innerHTML='目标色: <b>'+hex+'</b> · 匹配占比: <span style="color:var(--green)">'+pct+'%</span> · 将变为 <b style="color:#000;background:#fff;padding:1px 4px;border-radius:2px">■黑色</b>';
+    $('binGenBtn').disabled=false;
+  }
+};
+
+/* ===========================================================================
+ *  功能 2：调整画布大小
+ *  - 类似 PS 的「画布大小」功能
+ *  - 支持锚点(9宫格)、填充色、透明填充
+ *  - 快捷按钮：1:1 正方、最近2次幂、固定尺寸
+ *  - 在预处理步骤中可用
+ * =========================================================================== */
+M.CRsz={
+  _anchor:'mc',  /* 锚点: tl/tc/tr/ml/mc/mr/bl/bc/br */
+  open:function(){
+    var S=M.S,img=S.prepImg||S.srcImg;
+    if(!img){M.T.show('请先导入图片');return}
+    $('crCurSize').textContent=img.width+' × '+img.height;
+    $('crW').value=img.width;$('crH').value=img.height;
+    M.CRsz._anchor='mc';
+    document.querySelectorAll('.anchor-dot').forEach(function(d){d.classList.toggle('act',d.dataset.a==='mc')});
+    $('canvasResizeOv').style.display='flex';
+    M.CRsz.update();
+  },
+  close:function(){$('canvasResizeOv').style.display='none'},
+  setAnchor:function(a,btn){
+    M.CRsz._anchor=a;
+    document.querySelectorAll('.anchor-dot').forEach(function(d){d.classList.remove('act')});
+    if(btn)btn.classList.add('act');
+    M.CRsz.update();
+  },
+  /* 快捷按钮 */
+  quick:function(mode){
+    var S=M.S,img=S.prepImg||S.srcImg;if(!img)return;
+    var w=img.width,h=img.height;
+    if(mode==='1:1'){var mx=Math.max(w,h);$('crW').value=mx;$('crH').value=mx}
+    else if(mode==='pow2'){var p2=function(v){var p=1;while(p<v)p*=2;return p};$('crW').value=p2(w);$('crH').value=p2(h)}
+    else{var sz=+mode;$('crW').value=sz;$('crH').value=sz}
+    M.CRsz.update();
+  },
+  /* 更新预览 */
+  update:function(){
+    var S=M.S,img=S.prepImg||S.srcImg;if(!img)return;
+    var tw=+$('crW').value||img.width,th=+$('crH').value||img.height;
+    var lock=$('crLock').checked,trans=$('crTransparent').checked;
+    var fill=$('crFill').value;
+    var anchor=M.CRsz._anchor;
+
+    /* 联动 */
+    if(lock){
+      var asp=img.width/img.height;
+      if(document.activeElement===$('crW')){th=Math.round(tw/asp);$('crH').value=th}
+      else{tw=Math.round(th*asp);$('crW').value=tw}
+    }
+
+    /* 预览框 */
+    var previewSz=140;
+    var scale=Math.min(previewSz/tw,previewSz/th);
+    var pw=Math.round(tw*scale),ph=Math.round(th*scale);
+    var iw=Math.round(img.width*scale),ih=Math.round(img.height*scale);
+    var box=$('crPreview');box.style.width=pw+'px';box.style.height=ph+'px';
+    var pimg=$('crPreviewImg');pimg.style.width=iw+'px';pimg.style.height=ih+'px';
+    if(!trans)pimg.style.background=fill;else pimg.style.background='repeating-conic-gradient(#3a3c4a 0% 25%,#25273a 0% 50%) 50%/6px 6px';
+
+    /* 根据锚点计算图片在画布中的位置 */
+    var ox=0,oy=0;
+    var dx=tw-img.width,dy=th-img.height;
+    if(anchor.indexOf('l')>=0)ox=0;
+    else if(anchor.indexOf('r')>=0)ox=dx;
+    else ox=Math.round(dx/2);
+    if(anchor.indexOf('t')>=0)oy=0;
+    else if(anchor.indexOf('b')>=0)oy=dy;
+    else oy=Math.round(dy/2);
+
+    pimg.style.left=Math.round(ox*scale)+'px';pimg.style.top=Math.round(oy*scale)+'px';
+
+    /* 信息 */
+    var anchorNames={tl:'左上',tc:'上中',tr:'右上',ml:'左中',mc:'居中',mr:'右中',bl:'左下',bc:'下中',br:'右下'};
+    var fillName=trans?'透明':fill;
+    $('crInfo').innerHTML='目标: <b style="color:var(--cyan)">'+tw+'×'+th+'</b><br>原图: <b>'+img.width+'×'+img.height+'</b><br>填充: <b>'+fillName+'</b><br>锚点: <b>'+anchorNames[anchor]+'</b>';
+  },
+  /* 应用画布调整 */
+  apply:function(){
+    var S=M.S,img=S.prepImg||S.srcImg;
+    if(!img){M.T.show('请先导入图片');return}
+    var tw=+$('crW').value,th=+$('crH').value;
+    if(tw<1||th<1||tw>8192||th>8192){M.T.show('尺寸无效(1-8192)');return}
+    var trans=$('crTransparent').checked,fill=$('crFill').value;
+    var anchor=M.CRsz._anchor;
+
+    /* 计算偏移 */
+    var dx=tw-img.width,dy=th-img.height;
+    var ox=0,oy=0;
+    if(anchor.indexOf('l')>=0)ox=0;
+    else if(anchor.indexOf('r')>=0)ox=dx;
+    else ox=Math.round(dx/2);
+    if(anchor.indexOf('t')>=0)oy=0;
+    else if(anchor.indexOf('b')>=0)oy=dy;
+    else oy=Math.round(dy/2);
+
+    /* 创建新画布 */
+    var tc=document.createElement('canvas');tc.width=tw;tc.height=th;
+    var ctx=tc.getContext('2d');
+    if(trans){ctx.clearRect(0,0,tw,th)}
+    else{ctx.fillStyle=fill;ctx.fillRect(0,0,tw,th)}
+    ctx.drawImage(img,ox,oy);
+
+    /* 输出结果 */
+    var ni=new Image();
+    ni.onload=function(){
+      S.prepImg=ni;
+      var c=$('prepC');c.width=tw;c.height=th;
+      c.getContext('2d').drawImage(ni,0,0);
+      $('prepLabel').textContent=tw+'×'+th;
+      M.T.show('📐 画布已调整: '+tw+'×'+th);
+      M.CRsz.close();
+    };
+    ni.src=tc.toDataURL('image/png');
+  }
+};
+
+/* ---- 版本标识 ---- */
+(function(){var vb=document.querySelector('.hdr h1 .ver');if(vb)vb.textContent='v7.0'})();
+
+/* ---- 更新标题栏描述 ---- */
+(function(){var p=document.querySelector('.hdr p');if(p)p.textContent='二值化Mask · 画布调整 · 新手/专家双模式 · 傻瓜场景预设 · 裁剪修复 · CIELAB ΔE · 明度精准区分 · 容差实时预览 · 悬浮快捷分配 · 智能主色调 · 多通道 · 放大镜吸色 · 边缘净化 · 撤销重做 · TGA导出 · v5兼容'})();
+
+console.log('[v7.0] patch loaded: binarize mask mode (2-color), canvas resize (PS-like)');
 })();
 </script>
 <script src="editor-kit.js"></script>
