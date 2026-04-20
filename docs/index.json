@@ -159,6 +159,48 @@
       "quality_level": "premium"
     },
     {
+      "id": "ui-production-workflow",
+      "module": "project",
+      "craft": "UI",
+      "type": "iframe",
+      "title": "UI 界面制作全流程",
+      "desc": "游戏 UI 界面从策划需求到交付上线的完整管线，含需求评审、交互设计、UI设计、Layout、VX动效、走查验收全流程，附参考工期与并行策略",
+      "tags": [
+        "UI",
+        "界面",
+        "流程",
+        "管线",
+        "交互",
+        "Layout",
+        "动效"
+      ],
+      "icon": "🖥️",
+      "action": "openTool",
+      "path": "knowledge-base/ui-production-workflow.html",
+      "owner": "周八",
+      "last_updated": "2026-04-20",
+      "applicable_stage": "全阶段",
+      "priority": "high",
+      "is_hot": false,
+      "keywords": [
+        "UI界面",
+        "界面制作",
+        "UI管线",
+        "交互设计",
+        "UI设计",
+        "Layout",
+        "VX动效",
+        "界面走查",
+        "需求评审",
+        "资产合规",
+        "动效评审",
+        "UI流程图",
+        "界面交付"
+      ],
+      "content_type": "方法论",
+      "quality_level": "premium"
+    },
+    {
       "id": "cp-outsource",
       "module": "outsource",
       "craft": "管理",

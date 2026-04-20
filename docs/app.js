@@ -3042,7 +3042,7 @@ function renderCardBadges(){
 // ═══ v4.1 首页动态卡片渲染（从 index.json 数据驱动）═══
 var CARD_GRID_MAP = {
   // 板块一：📋 项目管理与排期
-  'grid-project-pipeline':   { module:'project', ids:['game-art-pipeline'] },
+  'grid-project-pipeline':   { module:'project', ids:['game-art-pipeline','ui-production-workflow'] },
   'grid-project-schedule':   { module:'project', ids:['art-scheduling','progress-visualization'] },
   'grid-project-req':        { module:'project', ids:['art-vs-planner-req','jira-tapd-automation'] },
   'grid-project-version':    { module:'project', ids:['svn-perforce-structure','asset-submit-review','deprecated-asset-cleanup'] },
