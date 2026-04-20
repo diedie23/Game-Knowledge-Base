@@ -4468,48 +4468,169 @@ function aiSendMessage(){
   aiLocalAnswer(msg);
 }
 
-// ═══ 本地知识库搜索回答（免费兜底方案） ═══
+// ═══ 本地知识库智能搜索引擎（多策略 · 中文分词 · 降级兜底） ═══
+
+// 中文自然语言 → 关键词提取（去除停用词 + 拆分）
+function _aiExtractKeywords(query){
+  // 停用词表（常见疑问词、语气词、连接词）
+  var stopWords = '的了吗呢吧啊呀哦嘛哈是在有不会到和与及或者但是如果怎么怎样如何什么为什么哪些哪个可以能否应该需要请问一下关于对于这个那个就是还是比较可能已经正在通过进行使用做好想要帮我告诉介绍说明';
+  var q = query.replace(/[？?！!，。、；：""''（）\[\]{}·…—\-\s]+/g, ' ').trim();
+  var words = [];
+  // 先按空格分
+  var parts = q.split(/\s+/);
+  parts.forEach(function(p){
+    if(p.length <= 1 || stopWords.indexOf(p) >= 0) return;
+    words.push(p);
+    // 如果是长词（>=4字），再拆成2字组合
+    if(p.length >= 4){
+      for(var i = 0; i < p.length - 1; i++){
+        var bi = p.substring(i, i+2);
+        if(stopWords.indexOf(bi) < 0 && words.indexOf(bi) < 0) words.push(bi);
+      }
+    }
+  });
+  // 也对原始 query 做滑动窗口2字/3字分词
+  var raw = query.replace(/[？?！!，。、；：""''（）\[\]{}·…—\-\s]+/g, '');
+  for(var i = 0; i < raw.length - 1; i++){
+    var w2 = raw.substring(i, i+2);
+    if(w2.length === 2 && stopWords.indexOf(w2) < 0 && words.indexOf(w2) < 0) words.push(w2);
+  }
+  for(var i = 0; i < raw.length - 2; i++){
+    var w3 = raw.substring(i, i+3);
+    if(w3.length === 3 && stopWords.indexOf(w3) < 0 && words.indexOf(w3) < 0) words.push(w3);
+  }
+  return words;
+}
+
+// 对 indexData 进行暴力关键词扫描（Fuse 兜底方案）
+function _aiBruteSearch(query, keywords, maxResults){
+  if(!indexData || !indexData.items) return [];
+  var scored = [];
+  var queryLower = query.toLowerCase();
+  indexData.items.forEach(function(item){
+    var score = 0;
+    var haystack = (item.title + ' ' + item.desc + ' ' + (item.tags||[]).join(' ') + ' ' + (item.keywords||[]).join(' ') + ' ' + (item.craft||'')).toLowerCase();
+    // 完整 query 命中
+    if(haystack.indexOf(queryLower) >= 0) score += 10;
+    // 每个关键词命中加分
+    keywords.forEach(function(kw){
+      var kwL = kw.toLowerCase();
+      if(haystack.indexOf(kwL) >= 0) score += 3;
+      // 标题命中额外加分
+      if(item.title.toLowerCase().indexOf(kwL) >= 0) score += 5;
+      // keywords 字段命中额外加分
+      if(item.keywords){
+        item.keywords.forEach(function(k){
+          if(k.toLowerCase().indexOf(kwL) >= 0 || kwL.indexOf(k.toLowerCase()) >= 0) score += 4;
+        });
+      }
+    });
+    if(score > 0) scored.push({item: item, score: score});
+  });
+  scored.sort(function(a,b){ return b.score - a.score; });
+  return scored.slice(0, maxResults);
+}
+
 function aiLocalAnswer(query){
   aiShowTyping();
+
+  // 自动触发全文索引加载（不等待完成，下次搜索可用）
+  if(!fuseFulltext && window._loadSearchIndex) window._loadSearchIndex();
+
   setTimeout(function(){
     aiRemoveTyping();
-    var answer='';
-    var relatedDocs=[];
+    var answer = '';
+    var relatedDocs = [];
+    var seen = {}; // 去重
 
-    // 使用全文搜索索引查找
+    // 提取关键词
+    var keywords = _aiExtractKeywords(query);
+    console.log('[AI搜索] 原始查询:', query, '提取关键词:', keywords);
+
+    var allResults = [];
+
+    // ── 策略1: 全文搜索索引（如果已加载）──
     if(fuseFulltext){
-      var results=fuseFulltext.search(query).slice(0,5);
-      if(results.length){
-        answer='我在知识库里找到了一些相关内容，来看看 👇\n\n';
-        results.forEach(function(r,i){
-          var entry=r.item;
-          // 优先用 excerpt，否则清洗 content 后取摘要
-          var snippet=entry.excerpt||aiCleanBotResponse(entry.content).substring(0,150)+'…';
-          answer+='### '+(i+1)+'. '+entry.title+'\n'+snippet+'\n\n';
-          relatedDocs.push({id:entry.id, title:entry.title, icon:entry.icon||'📄'});
+      var r1 = fuseFulltext.search(query).slice(0, 8);
+      r1.forEach(function(r){ if(!seen[r.item.id||r.item.title]){ seen[r.item.id||r.item.title]=1; allResults.push({item:r.item, source:'fulltext'}); }});
+      // 用关键词再搜一轮
+      keywords.slice(0, 5).forEach(function(kw){
+        fuseFulltext.search(kw).slice(0, 3).forEach(function(r){
+          if(!seen[r.item.id||r.item.title]){ seen[r.item.id||r.item.title]=1; allResults.push({item:r.item, source:'fulltext-kw'}); }
         });
-        answer+='---\n💡 *点击下方文档链接查看完整内容~*';
-      }else{
-        answer='emmm 🤔 在知识库中暂时没找到和「'+query+'」直接相关的内容。\n\n不过你可以试试：\n- 换几个关键词再搜搜\n- 在左侧导航栏翻翻相关模块\n- 用顶部搜索框模糊搜索\n\n实在找不到的话，可能是知识库还没收录这块内容，可以反馈给管理员哦 📮';
-      }
-    }else if(fuse){
-      var results2=fuse.search(query).slice(0,5);
-      if(results2.length){
-        answer='找到了一些相关文档，看看有没有你想要的 ✨\n\n';
-        results2.forEach(function(r,i){
-          answer+='### '+(i+1)+'. '+r.item.title+'\n';
-          relatedDocs.push({id:r.item.id, title:r.item.title, icon:'📄'});
+      });
+    }
+
+    // ── 策略2: 基础 Fuse 索引（index.json 的 title/keywords/desc）──
+    if(fuse){
+      var r2 = fuse.search(query).slice(0, 8);
+      r2.forEach(function(r){ if(!seen[r.item.id]){ seen[r.item.id]=1; allResults.push({item:r.item, source:'basic'}); }});
+      // 用关键词逐个搜
+      keywords.slice(0, 5).forEach(function(kw){
+        fuse.search(kw).slice(0, 3).forEach(function(r){
+          if(!seen[r.item.id]){ seen[r.item.id]=1; allResults.push({item:r.item, source:'basic-kw'}); }
         });
-        answer+='\n---\n💡 *点击文档链接查看详情~*';
-      }else{
-        answer='暂时没找到相关内容 😅 建议浏览左侧导航目录看看有没有你想要的~';
+      });
+    }
+
+    // ── 策略3: 暴力扫描 indexData（终极兜底）──
+    var r3 = _aiBruteSearch(query, keywords, 8);
+    r3.forEach(function(r){
+      if(!seen[r.item.id]){ seen[r.item.id]=1; allResults.push({item:r.item, source:'brute'}); }
+    });
+
+    console.log('[AI搜索] 合并结果:', allResults.length, '条');
+
+    // ── 组装回答 ──
+    if(allResults.length > 0){
+      var top = allResults.slice(0, 6);
+
+      if(top.length === 1){
+        answer = '找到了一篇高度相关的文档 🎯\n\n';
+      } else {
+        answer = '我在知识库里找到了 **' + top.length + '** 篇相关内容 👇\n\n';
       }
-    }else{
-      answer='搜索索引还在加载中，稍等一下再问我哈~ ⏳';
+
+      top.forEach(function(r, i){
+        var entry = r.item;
+        var title = entry.title || '';
+        var icon = entry.icon || '📄';
+
+        // 尝试获取摘要：desc > excerpt > content 截取
+        var snippet = '';
+        if(entry.desc && entry.desc.length > 10){
+          snippet = entry.desc;
+        } else if(entry.excerpt){
+          snippet = entry.excerpt;
+        } else if(entry.content){
+          snippet = aiCleanBotResponse(entry.content).substring(0, 150) + '…';
+        }
+
+        answer += '### ' + icon + ' ' + (i+1) + '. ' + title + '\n';
+        if(snippet) answer += snippet + '\n';
+
+        // 显示标签（如果有）
+        var tags = entry.tags || [];
+        if(tags.length > 0){
+          answer += '`' + tags.slice(0, 4).join('` `') + '`\n';
+        }
+        answer += '\n';
+
+        relatedDocs.push({id: entry.id, title: title, icon: icon});
+      });
+
+      answer += '---\n💡 *点击下方文档链接查看完整内容~*';
+
+      // 如果还有更多结果，提示一下
+      if(allResults.length > 6){
+        answer += '\n\n> 还有 ' + (allResults.length - 6) + ' 篇相关文档，可以换关键词进一步搜索~';
+      }
+    } else {
+      answer = 'emmm 🤔 在知识库中暂时没找到和「' + query + '」直接相关的内容。\n\n不过你可以试试：\n- **拆分关键词**：比如把问题拆成「需求」「变更」分别搜\n- 在左侧导航栏翻翻相关模块\n- 用顶部搜索框 🔍 模糊搜索\n\n实在找不到的话，可能是知识库还没收录这块内容，可以反馈给管理员哦 📮';
     }
 
     aiAppendMessage('bot', answer, relatedDocs);
-  }, 800+Math.random()*600);
+  }, 600 + Math.random() * 400);
 }
 
 
