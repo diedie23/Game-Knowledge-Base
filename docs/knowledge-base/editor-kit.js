@@ -141,7 +141,12 @@
     disableEditing();
     document.body.classList.remove('ek-editing');
     toolbar.style.display = 'none';
-    enterBtn.style.display = '';
+    // 仅在管理模式下恢复编辑按钮显示
+    if (sessionStorage.getItem('admin_unlocked') === '1') {
+      enterBtn.style.display = '';
+    } else {
+      enterBtn.style.display = 'none';
+    }
     toast('已退出编辑模式');
   }
 
@@ -470,6 +475,14 @@
     }
   });
 
+  /* ─── 显示/隐藏编辑按钮（供外部调用） ─── */
+  function showEditButton () {
+    if (enterBtn && !isEditing) { enterBtn.style.display = ''; }
+  }
+  function hideEditButton () {
+    if (enterBtn) { enterBtn.style.display = 'none'; }
+  }
+
   /* ─── 初始化 ─── */
   function init () {
     injectStyles();
@@ -488,6 +501,32 @@
       if (toolbar) { toolbar.style.display = 'none'; }
     }
 
+    // ═══ 权限控制：编辑按钮默认隐藏，仅管理模式下可见 ═══
+    // 非 iframe 环境（直接打开 HTML 文件）时，编辑按钮也默认隐藏
+    // 需要通过管理模式解锁或 sessionStorage 标记才能显示
+    if (!isInIframe) {
+      if (sessionStorage.getItem('admin_unlocked') === '1') {
+        // 管理模式已解锁，显示编辑按钮
+        if (enterBtn) { enterBtn.style.display = ''; }
+      } else {
+        // 未解锁管理模式，隐藏编辑按钮
+        if (enterBtn) { enterBtn.style.display = 'none'; }
+      }
+    }
+
+    // 监听管理模式消息（父页面或其他窗口通知）
+    window.addEventListener('message', function (e) {
+      if (e.data && e.data.type === 'admin-mode-changed') {
+        if (e.data.adminMode) {
+          showEditButton();
+        } else {
+          hideEditButton();
+          // 如果正在编辑中，退出编辑模式
+          if (isEditing) { exitEdit(false); }
+        }
+      }
+    });
+
     // 支持页面自主标记禁用编辑：<body data-no-edit> 或 <html data-no-edit>
     if (document.body.hasAttribute('data-no-edit') || document.documentElement.hasAttribute('data-no-edit')) {
       if (enterBtn) { enterBtn.style.display = 'none'; enterBtn.remove(); }
@@ -495,8 +534,10 @@
     }
   }
 
-  // 将 enterEdit 暴露到 window，供父页面通过 iframe.contentWindow.enterEdit() 调用
+  // 将 enterEdit / showEditButton / hideEditButton 暴露到 window
   window.enterEdit = enterEdit;
+  window.showEditButton = showEditButton;
+  window.hideEditButton = hideEditButton;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

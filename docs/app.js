@@ -3553,18 +3553,19 @@ function updateDetailMetaBar(pageId){
     html+='<span class="dm-item"><span class="dm-icon">⭐</span> <span class="dm-pri" style="background:'+priColor+'">'+priLabel+'</span></span>';
   }
   // ═══ 统一文档工具栏（合并原 detailMetaBar 操作 + iframeToolbar 编辑功能）═══
+  // ═══ 编辑/删除按钮仅在管理模式下可见 ═══
   html+='<span class="dm-actions" id="dmActionsBar">';
   if(!isToolPage){
     if(reg.type==='md'){
-      html+='<button class="dm-btn dm-btn-edit" onclick="editDocument(\''+pageId+'\')" title="编辑模式">✏️ 编辑模式</button>';
-      html+='<button class="dm-btn dm-btn-danger" onclick="confirmDeleteDocument(\''+pageId+'\')" title="删除文档">🗑️ 删除</button>';
+      html+='<button class="dm-btn dm-btn-edit dm-admin-edit" onclick="editDocument(\''+pageId+'\')" title="编辑模式" style="'+(adminMode?'':'display:none')+'">✏️ 编辑模式</button>';
+      html+='<button class="dm-btn dm-btn-danger dm-admin-edit" onclick="confirmDeleteDocument(\''+pageId+'\')" title="删除文档" style="'+(adminMode?'':'display:none')+'">🗑️ 删除</button>';
     } else if(reg.type==='iframe'&&reg.file){
-      // 阅读态按钮
-      html+='<button class="dm-btn dm-btn-edit" id="dmBtnEdit" onclick="unifiedEnterEdit(\''+pageId+'\')" title="进入编辑模式">✏️ 编辑模式</button>';
-      // 编辑态按钮（默认隐藏）
-      html+='<button class="dm-btn htmpl-btn-save" id="dmBtnSave" onclick="htmlTmplSave()" style="display:none" title="保存下载 HTML 文件">💾 保存下载</button>';
-      html+='<button class="dm-btn htmpl-btn-publish" id="dmBtnPublish" onclick="htmlTmplPublish()" style="display:none" title="一键发布到 GitHub 仓库">🚀 一键发布</button>';
-      html+='<button class="dm-btn htmpl-btn-exit" id="dmBtnExitEdit" onclick="unifiedExitEdit(\''+pageId+'\')" style="display:none" title="退出编辑模式">✖ 退出编辑</button>';
+      // 阅读态按钮（仅管理模式可见）
+      html+='<button class="dm-btn dm-btn-edit dm-admin-edit" id="dmBtnEdit" onclick="unifiedEnterEdit(\''+pageId+'\')" title="进入编辑模式" style="'+(adminMode?'':'display:none')+'">✏️ 编辑模式</button>';
+      // 编辑态按钮（默认隐藏，进入编辑后才显示）
+      html+='<button class="dm-btn htmpl-btn-save dm-admin-edit" id="dmBtnSave" onclick="htmlTmplSave()" style="display:none" title="保存下载 HTML 文件">💾 保存下载</button>';
+      html+='<button class="dm-btn htmpl-btn-publish dm-admin-edit" id="dmBtnPublish" onclick="htmlTmplPublish()" style="display:none" title="一键发布到 GitHub 仓库">🚀 一键发布</button>';
+      html+='<button class="dm-btn htmpl-btn-exit dm-admin-edit" id="dmBtnExitEdit" onclick="unifiedExitEdit(\''+pageId+'\')" style="display:none" title="退出编辑模式">✖ 退出编辑</button>';
     }
   }
   html+='<button class="dm-btn" onclick="copyCardLink(\''+pageId+'\')" title="复制链接">📋 复制链接</button>';
@@ -3634,7 +3635,7 @@ function unifiedExitEdit(pageId){
   var btnSave=document.getElementById('dmBtnSave');
   var btnPublish=document.getElementById('dmBtnPublish');
   var btnExit=document.getElementById('dmBtnExitEdit');
-  if(btnEdit) btnEdit.style.display='';
+  if(btnEdit) btnEdit.style.display=adminMode?'':'none';
   if(btnSave) btnSave.style.display='none';
   if(btnPublish) btnPublish.style.display='none';
   if(btnExit) btnExit.style.display='none';
@@ -4082,6 +4083,27 @@ function _doToggleAdmin(){
     mobileAdminBtn.textContent = adminMode ? '🔧 退出管理' : '🔧 管理模式';
     // 退出管理模式后重新隐藏移动端按钮
     if(!adminMode){ mobileAdminBtn.classList.remove('unlocked'); mobileAdminBtn.style.display=''; }
+  }
+  // ═══ 控制 detailMetaBar 中编辑/删除按钮的可见性 ═══
+  document.querySelectorAll('.dm-admin-edit').forEach(function(btn){
+    // 仅控制 dmBtnEdit 和类似阅读态按钮；编辑态按钮（save/publish/exit）的显隐由编辑模式管理
+    if(btn.id==='dmBtnSave'||btn.id==='dmBtnPublish'||btn.id==='dmBtnExitEdit') return;
+    btn.style.display = adminMode ? '' : 'none';
+  });
+  // ═══ 向 iframe 发送管理模式状态变更消息 ═══
+  var frame=document.getElementById('contentFrame');
+  if(frame&&frame.contentWindow){
+    try{
+      frame.contentWindow.postMessage({type:'admin-mode-changed',adminMode:adminMode},'*');
+    }catch(e){}
+  }
+  // 管理模式关闭时，如果 iframe 正在编辑，退出编辑
+  if(!adminMode){
+    var btnSave=document.getElementById('dmBtnSave');
+    if(btnSave&&btnSave.style.display!=='none'){
+      // 编辑态 → 退出编辑
+      if(curPage) unifiedExitEdit(curPage);
+    }
   }
 }
 
