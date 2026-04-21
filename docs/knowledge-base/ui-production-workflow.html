@@ -222,9 +222,16 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
       <rect x="74" y="447" width="300" height="24" rx="8" fill="var(--bg,#0d0f15)"/>
       <text x="82" y="464" fill="#22d3ee" font-size="12" font-weight="700">⚡ 并行组 A — 交互交付后双线启动</text>
 
-      <!-- 分支线 -->
-      <line x1="450" y1="460" x2="240" y2="500" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
-      <line x1="450" y1="460" x2="660" y2="500" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- 分支线：T 形分叉（专业流程图风格） -->
+      <!-- 分叉点标记（含外圈光晕） -->
+      <circle cx="450" cy="460" r="7" fill="none" stroke="#8b90a5" stroke-width="1" opacity=".3"/>
+      <circle cx="450" cy="460" r="3.5" fill="#8b90a5"/>
+      <!-- 左分支：水平 + 垂直 L 形 -->
+      <line x1="450" y1="460" x2="240" y2="460" stroke="#8b90a5" stroke-width="1.5"/>
+      <line x1="240" y1="460" x2="240" y2="500" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- 右分支：水平 + 垂直 L 形 -->
+      <line x1="450" y1="460" x2="660" y2="460" stroke="#8b90a5" stroke-width="1.5"/>
+      <line x1="660" y1="460" x2="660" y2="500" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
 
       <!-- === 左路标签 === -->
       <rect x="82" y="485" width="340" height="22" rx="6" fill="rgba(45,212,191,.06)"/>
@@ -263,10 +270,10 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
       <text x="660" y="650" text-anchor="middle" fill="#9499b0" font-size="10">通过 / 打回</text>
 
       <!-- UI评审打回：紧凑折回（与交互评审打回风格统一） -->
-      <path d="M724,638 L762,638 L762,548" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3" fill="none" stroke-linecap="round"/>
-      <polygon points="762,548 758,556 766,556" fill="#f87171"/>
-      <rect x="768" y="582" width="36" height="18" rx="5" fill="rgba(248,113,113,.1)" stroke="#f87171" stroke-width="1"/>
-      <text x="786" y="595" text-anchor="middle" fill="#f87171" font-size="10" font-weight="600">打回</text>
+      <path d="M724,638 L762,638 L762,518" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3" fill="none" stroke-linecap="round"/>
+      <polygon points="762,518 758,526 766,526" fill="#f87171"/>
+      <rect x="768" y="569" width="36" height="18" rx="5" fill="rgba(248,113,113,.1)" stroke="#f87171" stroke-width="1"/>
+      <text x="786" y="582" text-anchor="middle" fill="#f87171" font-size="10" font-weight="600">打回</text>
 
       <!-- 通过 -->
       <line x1="660" y1="668" x2="660" y2="698" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
@@ -329,9 +336,15 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
       <rect x="122" y="1187" width="320" height="24" rx="8" fill="var(--bg,#0d0f15)"/>
       <text x="130" y="1204" fill="#22d3ee" font-size="12" font-weight="700">⚡ 并行组 B — 切正式资产后双线启动</text>
 
-      <!-- 分支线 -->
-      <line x1="450" y1="1200" x2="280" y2="1228" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
-      <line x1="450" y1="1200" x2="620" y2="1228" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- 分支线：T 形分叉（专业流程图风格） -->
+      <circle cx="450" cy="1200" r="7" fill="none" stroke="#8b90a5" stroke-width="1" opacity=".3"/>
+      <circle cx="450" cy="1200" r="3.5" fill="#8b90a5"/>
+      <!-- 左分支：水平 + 垂直 L 形 -->
+      <line x1="450" y1="1200" x2="280" y2="1200" stroke="#8b90a5" stroke-width="1.5"/>
+      <line x1="280" y1="1200" x2="280" y2="1228" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- 右分支：水平 + 垂直 L 形 -->
+      <line x1="450" y1="1200" x2="620" y2="1200" stroke="#8b90a5" stroke-width="1.5"/>
+      <line x1="620" y1="1200" x2="620" y2="1228" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
 
       <!-- Layout正式蓝图 -->
       <rect x="130" y="1228" width="300" height="58" rx="12" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="1.5" filter="url(#nodeShadow)"/>
