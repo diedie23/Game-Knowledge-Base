@@ -122,17 +122,17 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
 <div class="doc">
 
 <div class="doc-header">
-  <h1>🖥️ 游戏 UI 界面制作全流程 <span class="ver">v1.0</span></h1>
-  <div class="subtitle">UI Production Workflow — 从策划需求到界面交付的完整管线</div>
-  <div class="meta"><span>📋 适用：所有 UI 界面项目</span><span>👤 涉及：策划·交互·UI·Layout·VX·客户端·QA</span><span>📅 2026-04-20</span></div>
+  <h1>🖥️ 游戏 UI 界面制作全流程 <span class="ver">v1.1</span></h1>
+  <div class="subtitle">UI Production Workflow — 需求到交付的全链路制作管线与协作规范</div>
+  <div class="meta"><span>📋 适用范围：全项目 UI 界面制作</span><span>👤 协作角色：策划 · 交互 · UI · Layout · VX · 客户端 · QA</span><span>📅 2026-04-20</span></div>
 </div>
 
-<div class="alert alert-blue"><strong>💡 导读</strong><br>📍 本文根据实际项目流程梳理游戏 UI 界面从<strong>需求 → 交互 → UI → Layout → VX 动效 → 走查 → 交付</strong>的完整管线，明确每个阶段的<strong>责任人、交付物、评审标准、工期参考</strong>。<br>🔗 关联：<a href="game-art-pipeline.html" style="color:var(--accent);text-decoration:none;border-bottom:1px dashed var(--accent)">角色美术资产管线</a>（2D/Spine/二次元制作全流程）。</div>
+<div class="alert alert-blue"><strong>💡 导读</strong><br>📍 本文基于团队实践沉淀，系统化梳理游戏 UI 界面从<strong>需求 → 交互 → UI → Layout → VX 动效 → 走查 → 交付</strong>的完整制作管线，覆盖每个阶段的<strong>角色职责、交付标准、评审机制与工期参考</strong>，为跨职能协作提供统一的流程规范。<br>🔗 关联：<a href="game-art-pipeline.html" style="color:var(--accent);text-decoration:none;border-bottom:1px dashed var(--accent)">角色美术资产管线</a>（2D / Spine / 二次元制作全流程）。</div>
 
 <div class="toc"><h3>📑 目录</h3><ol>
-<li><a href="#sec1">流程可视化总览（自绘流程图）</a></li>
-<li><a href="#sec2">全流程节点概览（含补充环节 & 并行关系）</a></li>
-<li><a href="#sec3">各阶段详细说明 · Input/Output · 角色 · TAPD 发单机制</a></li>
+<li><a href="#sec1">流程可视化总览</a></li>
+<li><a href="#sec2">全流程节点概览</a></li>
+<li><a href="#sec3">各阶段详细说明 · Input / Output · 角色 · TAPD 发单</a></li>
 <li><a href="#sec4">关键评审节点与通过标准</a></li>
 <li><a href="#sec5">走查问题分流与闭环机制</a></li>
 <li><a href="#sec6">参考工期与并行策略</a></li>
@@ -142,281 +142,271 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
 <!-- SEC1 -->
 <div class="section" id="sec1">
   <h2>🔗 1. 流程可视化总览</h2>
-  <p>完整的 UI 界面制作管线，从策划需求到最终交付。<strong style="color:var(--cyan)">蓝色虚线框</strong>标注并行区域，<strong style="color:var(--red)">红色虚线</strong>标注打回/问题回流路径：</p>
+  <p>下图为完整的 UI 界面制作管线总览，涵盖从策划需求到最终交付的全部环节。<strong style="color:var(--cyan)">蓝色虚线框</strong> 标注可并行执行的区域，<strong style="color:var(--red)">红色虚线箭头</strong> 标注评审打回的回流路径。</p>
 
   <div class="flowchart-wrap">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1780" width="900" height="1780">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1820" width="900" height="1820">
       <defs>
         <!-- 箭头标记 -->
-        <marker id="arr" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0,0 10,3.5 0,7" fill="#6b7085"/></marker>
-        <marker id="arr-green" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0,0 10,3.5 0,7" fill="#4ade80"/></marker>
-        <marker id="arr-red" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0,0 10,3.5 0,7" fill="#f87171"/></marker>
-        <marker id="arr-cyan" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0,0 10,3.5 0,7" fill="#22d3ee"/></marker>
-        <marker id="arr-orange" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0,0 10,3.5 0,7" fill="#fb923c"/></marker>
+        <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#8b90a5"/></marker>
+        <marker id="arr-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#4ade80"/></marker>
+        <marker id="arr-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#f87171"/></marker>
+        <marker id="arr-cyan" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#22d3ee"/></marker>
+        <marker id="arr-orange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#fb923c"/></marker>
         <!-- 渐变 -->
-        <linearGradient id="gPurple" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a78bfa" stop-opacity=".22"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".06"/></linearGradient>
-        <linearGradient id="gBlue" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#60a5fa" stop-opacity=".22"/><stop offset="100%" stop-color="#60a5fa" stop-opacity=".06"/></linearGradient>
-        <linearGradient id="gPink" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f472b6" stop-opacity=".22"/><stop offset="100%" stop-color="#f472b6" stop-opacity=".06"/></linearGradient>
-        <linearGradient id="gTeal" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2dd4bf" stop-opacity=".22"/><stop offset="100%" stop-color="#2dd4bf" stop-opacity=".06"/></linearGradient>
-        <linearGradient id="gOrange" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fb923c" stop-opacity=".22"/><stop offset="100%" stop-color="#fb923c" stop-opacity=".06"/></linearGradient>
-        <linearGradient id="gYellow" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbbf24" stop-opacity=".22"/><stop offset="100%" stop-color="#fbbf24" stop-opacity=".06"/></linearGradient>
-        <linearGradient id="gGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4ade80" stop-opacity=".22"/><stop offset="100%" stop-color="#4ade80" stop-opacity=".06"/></linearGradient>
-        <linearGradient id="gGray" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#b0b0b0" stop-opacity=".15"/><stop offset="100%" stop-color="#808080" stop-opacity=".05"/></linearGradient>
-        <linearGradient id="gRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f87171" stop-opacity=".18"/><stop offset="100%" stop-color="#f87171" stop-opacity=".05"/></linearGradient>
-        <linearGradient id="gCyan" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".15"/><stop offset="100%" stop-color="#22d3ee" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="gPurple" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a78bfa" stop-opacity=".18"/><stop offset="100%" stop-color="#a78bfa" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="gBlue" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#60a5fa" stop-opacity=".18"/><stop offset="100%" stop-color="#60a5fa" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="gPink" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f472b6" stop-opacity=".18"/><stop offset="100%" stop-color="#f472b6" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="gTeal" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2dd4bf" stop-opacity=".18"/><stop offset="100%" stop-color="#2dd4bf" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="gOrange" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fb923c" stop-opacity=".18"/><stop offset="100%" stop-color="#fb923c" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="gYellow" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbbf24" stop-opacity=".18"/><stop offset="100%" stop-color="#fbbf24" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="gGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4ade80" stop-opacity=".18"/><stop offset="100%" stop-color="#4ade80" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="gGray" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#b0b0b0" stop-opacity=".12"/><stop offset="100%" stop-color="#808080" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="gRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f87171" stop-opacity=".14"/><stop offset="100%" stop-color="#f87171" stop-opacity=".03"/></linearGradient>
+        <linearGradient id="gCyan" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#22d3ee" stop-opacity=".12"/><stop offset="100%" stop-color="#22d3ee" stop-opacity=".03"/></linearGradient>
         <!-- 节点阴影 -->
-        <filter id="nodeShadow"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity=".25"/></filter>
-        <filter id="glowGreen"><feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#4ade80" flood-opacity=".35"/></filter>
-        <filter id="diamondShadow"><feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#000" flood-opacity=".2"/></filter>
+        <filter id="nodeShadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity=".2"/></filter>
+        <filter id="glowGreen"><feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#4ade80" flood-opacity=".3"/></filter>
+        <filter id="diamondShadow"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000" flood-opacity=".15"/></filter>
       </defs>
 
-      <!-- ========== 中轴线（装饰用淡线） ========== -->
-      <line x1="450" y1="28" x2="450" y2="1760" stroke="#1e2030" stroke-width="1" opacity=".5"/>
+      <!-- ========== 中轴装饰线 ========== -->
+      <line x1="450" y1="28" x2="450" y2="1800" stroke="#1e2030" stroke-width="1" opacity=".4"/>
 
       <!-- =============== 1. 策划输出需求文档 =============== -->
-      <rect x="300" y="24" width="300" height="64" rx="14" fill="url(#gPurple)" stroke="#a78bfa" stroke-width="2" filter="url(#nodeShadow)"/>
+      <rect x="300" y="24" width="300" height="64" rx="14" fill="url(#gPurple)" stroke="#a78bfa" stroke-width="1.5" filter="url(#nodeShadow)"/>
       <text x="450" y="50" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">📋 策划输出需求文档</text>
-      <text x="450" y="72" text-anchor="middle" fill="#6b7085" font-size="11">需求文档 · 页面清单 · 数据结构</text>
+      <text x="450" y="72" text-anchor="middle" fill="#9499b0" font-size="11">需求文档 · 页面清单 · 数据结构</text>
 
       <!-- 箭头：策划→交互 -->
-      <line x1="450" y1="88" x2="450" y2="128" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
-      <text x="466" y="113" fill="#6b7085" font-size="10">需求文档</text>
+      <line x1="450" y1="88" x2="450" y2="128" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="468" y="113" fill="#9499b0" font-size="11">需求文档</text>
 
       <!-- =============== 2. 交互设计 =============== -->
-      <rect x="300" y="128" width="300" height="64" rx="14" fill="url(#gBlue)" stroke="#60a5fa" stroke-width="2" filter="url(#nodeShadow)"/>
+      <rect x="300" y="128" width="300" height="64" rx="14" fill="url(#gBlue)" stroke="#60a5fa" stroke-width="1.5" filter="url(#nodeShadow)"/>
       <text x="450" y="154" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">🎨 交互设计</text>
-      <text x="450" y="176" text-anchor="middle" fill="#6b7085" font-size="11">交互稿 · 线框图 · 操作逻辑</text>
+      <text x="450" y="176" text-anchor="middle" fill="#9499b0" font-size="11">交互稿 · 线框图 · 操作逻辑</text>
 
       <!-- 箭头：交互设计→交互评审 -->
-      <line x1="450" y1="192" x2="450" y2="234" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
-      <text x="466" y="219" fill="#6b7085" font-size="10">交互稿</text>
+      <line x1="450" y1="192" x2="450" y2="238" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="468" y="221" fill="#9499b0" font-size="11">交互稿</text>
 
       <!-- =============== 3. 交互评审（菱形） =============== -->
-      <polygon points="450,234 525,272 450,310 375,272" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="2" filter="url(#diamondShadow)"/>
-      <text x="450" y="267" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="700">✅ 交互评审</text>
-      <text x="450" y="282" text-anchor="middle" fill="#6b7085" font-size="10">通过 / 打回</text>
+      <polygon points="450,238 520,272 450,306 380,272" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="1.5" filter="url(#diamondShadow)"/>
+      <text x="450" y="268" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="700">✅ 交互评审</text>
+      <text x="450" y="284" text-anchor="middle" fill="#9499b0" font-size="10">通过 / 打回</text>
 
-      <!-- 🔴 折回箭头：打回 → 返回交互设计 -->
-      <path d="M525,272 L600,272 L600,160" stroke="#f87171" stroke-width="2" stroke-dasharray="6,4" fill="none" stroke-linecap="round"/>
-      <!-- 折回箭头头部 -->
-      <polygon points="600,160 594,170 606,170" fill="#f87171"/>
-      <!-- 打回标签（小圆角矩形背景） -->
-      <rect x="607" y="206" width="40" height="20" rx="6" fill="rgba(248,113,113,.12)" stroke="#f87171" stroke-width="1"/>
-      <text x="627" y="220" text-anchor="middle" fill="#f87171" font-size="11" font-weight="600">打回</text>
+      <!-- 打回箭头：紧凑型，贴近菱形右侧 -->
+      <path d="M520,272 L558,272 L558,192" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3" fill="none" stroke-linecap="round"/>
+      <polygon points="558,192 554,200 562,200" fill="#f87171"/>
+      <rect x="564" y="226" width="36" height="18" rx="5" fill="rgba(248,113,113,.1)" stroke="#f87171" stroke-width="1"/>
+      <text x="582" y="239" text-anchor="middle" fill="#f87171" font-size="10" font-weight="600">打回</text>
 
       <!-- 通过箭头 -->
-      <line x1="450" y1="310" x2="450" y2="350" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
-      <text x="468" y="336" fill="#4ade80" font-size="10" font-weight="600">通过 ✓</text>
+      <line x1="450" y1="306" x2="450" y2="350" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <text x="468" y="334" fill="#4ade80" font-size="11" font-weight="600">通过 ✓</text>
 
       <!-- =============== 4. 交互图交付 =============== -->
-      <rect x="300" y="350" width="300" height="60" rx="14" fill="url(#gBlue)" stroke="#60a5fa" stroke-width="2" filter="url(#nodeShadow)"/>
+      <rect x="300" y="350" width="300" height="60" rx="14" fill="url(#gBlue)" stroke="#60a5fa" stroke-width="1.5" filter="url(#nodeShadow)"/>
       <text x="450" y="375" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">📄 交互图交付</text>
-      <text x="450" y="396" text-anchor="middle" fill="#6b7085" font-size="11">标注文档 · 蓝湖/Figma</text>
+      <text x="450" y="396" text-anchor="middle" fill="#9499b0" font-size="11">标注文档 · 蓝湖 / Figma</text>
 
       <!-- 箭头→并行组A -->
-      <line x1="450" y1="410" x2="450" y2="448" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="450" y1="410" x2="450" y2="460" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
 
-      <!-- =============== 并行组 A 虚线框 =============== -->
-      <rect x="42" y="448" width="816" height="370" rx="16" fill="rgba(34,211,238,.02)" stroke="#22d3ee" stroke-width="2" stroke-dasharray="10,5"/>
-      <!-- 标题背景 -->
-      <rect x="54" y="436" width="300" height="22" rx="6" fill="#1a1d2b"/>
-      <text x="62" y="452" fill="#22d3ee" font-size="12" font-weight="700">⚡ 并行组 A — 交互交付后双线启动</text>
+      <!-- =============== 并行组 A 虚线框（精确包裹内容） =============== -->
+      <rect x="60" y="460" width="800" height="390" rx="16" fill="rgba(34,211,238,.025)" stroke="#22d3ee" stroke-width="2" stroke-dasharray="10,5"/>
+      <rect x="74" y="447" width="300" height="24" rx="8" fill="var(--bg,#0d0f15)"/>
+      <text x="82" y="464" fill="#22d3ee" font-size="12" font-weight="700">⚡ 并行组 A — 交互交付后双线启动</text>
 
-      <!-- 分支线（圆滑曲线） -->
-      <path d="M450,448 Q450,465 240,480" stroke="#6b7085" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
-      <path d="M450,448 Q450,465 660,480" stroke="#6b7085" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+      <!-- 分支线 -->
+      <line x1="450" y1="460" x2="240" y2="500" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="450" y1="460" x2="660" y2="500" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
 
-      <!-- === 左路色带 === -->
-      <rect x="65" y="470" width="6" height="330" rx="3" fill="rgba(45,212,191,.2)"/>
-      <text x="88" y="491" fill="#2dd4bf" font-size="11" font-weight="700">🟢 左路 · Layout白模 + 客户端功能</text>
+      <!-- === 左路标签 === -->
+      <rect x="82" y="485" width="340" height="22" rx="6" fill="rgba(45,212,191,.06)"/>
+      <text x="96" y="501" fill="#2dd4bf" font-size="12" font-weight="700">🟢 左路 · Layout 白模 + 客户端功能</text>
 
       <!-- Layout功能蓝图 -->
-      <rect x="88" y="505" width="290" height="60" rx="12" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="2" filter="url(#nodeShadow)"/>
-      <text x="233" y="530" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📐 Layout 功能蓝图交付</text>
-      <text x="233" y="550" text-anchor="middle" fill="#6b7085" font-size="11">白模蓝图 · 功能验证</text>
+      <rect x="90" y="518" width="300" height="60" rx="12" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="1.5" filter="url(#nodeShadow)"/>
+      <text x="240" y="543" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📐 Layout 功能蓝图交付</text>
+      <text x="240" y="563" text-anchor="middle" fill="#9499b0" font-size="11">白模蓝图 · 功能验证</text>
 
-      <line x1="233" y1="565" x2="233" y2="605" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
-      <text x="250" y="591" fill="#6b7085" font-size="10">Layout白模</text>
+      <line x1="240" y1="578" x2="240" y2="618" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="258" y="604" fill="#9499b0" font-size="11">Layout 白模</text>
 
       <!-- 客户端功能制作 -->
-      <rect x="88" y="605" width="290" height="60" rx="12" fill="url(#gYellow)" stroke="#fbbf24" stroke-width="2" filter="url(#nodeShadow)"/>
-      <text x="233" y="630" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">💻 客户端功能制作</text>
-      <text x="233" y="650" text-anchor="middle" fill="#6b7085" font-size="11">基于白模并行开发</text>
+      <rect x="90" y="618" width="300" height="60" rx="12" fill="url(#gYellow)" stroke="#fbbf24" stroke-width="1.5" filter="url(#nodeShadow)"/>
+      <text x="240" y="643" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">💻 客户端功能制作</text>
+      <text x="240" y="663" text-anchor="middle" fill="#9499b0" font-size="11">基于白模并行开发</text>
 
-      <!-- === 右路色带 === -->
-      <rect x="829" y="470" width="6" height="330" rx="3" fill="rgba(244,114,182,.2)"/>
-      <text x="530" y="491" fill="#f472b6" font-size="11" font-weight="700">🔴 右路 · UI 设计线</text>
+      <!-- === 右路标签 === -->
+      <rect x="510" y="485" width="218" height="22" rx="6" fill="rgba(244,114,182,.06)"/>
+      <text x="524" y="501" fill="#f472b6" font-size="12" font-weight="700">🔴 右路 · UI 设计线</text>
 
       <!-- UI设计 -->
-      <rect x="520" y="505" width="290" height="60" rx="12" fill="url(#gPink)" stroke="#f472b6" stroke-width="2" filter="url(#nodeShadow)"/>
-      <text x="665" y="530" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">🖌️ UI 设计</text>
-      <text x="665" y="550" text-anchor="middle" fill="#6b7085" font-size="11">高保真稿 · 视觉风格</text>
+      <rect x="510" y="518" width="300" height="60" rx="12" fill="url(#gPink)" stroke="#f472b6" stroke-width="1.5" filter="url(#nodeShadow)"/>
+      <text x="660" y="543" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">🖌️ UI 设计</text>
+      <text x="660" y="563" text-anchor="middle" fill="#9499b0" font-size="11">高保真稿 · 视觉风格</text>
 
-      <line x1="665" y1="565" x2="665" y2="597" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
-      <text x="681" y="586" fill="#6b7085" font-size="10">UI设计稿</text>
+      <line x1="660" y1="578" x2="660" y2="608" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="678" y="598" fill="#9499b0" font-size="11">UI 设计稿</text>
 
       <!-- UI评审（菱形） -->
-      <polygon points="665,597 733,630 665,663 597,630" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="2" filter="url(#diamondShadow)"/>
-      <text x="665" y="626" text-anchor="middle" fill="#e4e6ed" font-size="12" font-weight="700">✅ UI评审</text>
-      <text x="665" y="641" text-anchor="middle" fill="#6b7085" font-size="10">通过/打回</text>
+      <polygon points="660,608 724,638 660,668 596,638" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="1.5" filter="url(#diamondShadow)"/>
+      <text x="660" y="634" text-anchor="middle" fill="#e4e6ed" font-size="12" font-weight="700">✅ UI 评审</text>
+      <text x="660" y="650" text-anchor="middle" fill="#9499b0" font-size="10">通过 / 打回</text>
 
-      <!-- UI评审打回折回箭头 -->
-      <path d="M733,630 L785,630 L785,535" stroke="#f87171" stroke-width="2" stroke-dasharray="6,4" fill="none" stroke-linecap="round"/>
-      <polygon points="785,535 779,545 791,545" fill="#f87171"/>
-      <rect x="792" y="572" width="40" height="20" rx="6" fill="rgba(248,113,113,.12)" stroke="#f87171" stroke-width="1"/>
-      <text x="812" y="586" text-anchor="middle" fill="#f87171" font-size="10" font-weight="600">打回</text>
+      <!-- UI评审打回：紧凑折回 -->
+      <path d="M724,638 L760,638 L760,548" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3" fill="none" stroke-linecap="round"/>
+      <polygon points="760,548 756,556 764,556" fill="#f87171"/>
+      <rect x="766" y="586" width="36" height="18" rx="5" fill="rgba(248,113,113,.1)" stroke="#f87171" stroke-width="1"/>
+      <text x="784" y="599" text-anchor="middle" fill="#f87171" font-size="10" font-weight="600">打回</text>
 
       <!-- 通过 -->
-      <line x1="665" y1="663" x2="665" y2="693" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
-      <text x="681" y="684" fill="#4ade80" font-size="10" font-weight="600">通过✓</text>
+      <line x1="660" y1="668" x2="660" y2="698" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <text x="678" y="690" fill="#4ade80" font-size="11" font-weight="600">通过 ✓</text>
 
-      <!-- ⚠️ 偏离度检查 -->
-      <rect x="540" y="693" width="250" height="48" rx="10" fill="url(#gRed)" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3"/>
-      <text x="665" y="713" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700">⚠️ 偏离度检查</text>
-      <text x="665" y="730" text-anchor="middle" fill="#6b7085" font-size="10">UI终稿 vs 交互稿 · 布局是否重大变更？</text>
+      <!-- ⚠️ 偏离度检查（右路内） -->
+      <rect x="530" y="698" width="260" height="48" rx="10" fill="url(#gRed)" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="660" y="718" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700">⚠️ 偏离度检查</text>
+      <text x="660" y="735" text-anchor="middle" fill="#9499b0" font-size="11">UI 终稿 vs 交互稿 · 布局是否重大变更</text>
 
-      <line x1="665" y1="741" x2="665" y2="766" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <line x1="660" y1="746" x2="660" y2="776" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
 
       <!-- UI图交付 -->
-      <rect x="520" y="766" width="290" height="55" rx="12" fill="url(#gPink)" stroke="#f472b6" stroke-width="2" filter="url(#nodeShadow)"/>
-      <text x="665" y="789" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📦 UI图交付</text>
-      <text x="665" y="808" text-anchor="middle" fill="#6b7085" font-size="11">切图 · 标注 · 资产包</text>
+      <rect x="510" y="776" width="300" height="55" rx="12" fill="url(#gPink)" stroke="#f472b6" stroke-width="1.5" filter="url(#nodeShadow)"/>
+      <text x="660" y="799" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📦 UI 图交付</text>
+      <text x="660" y="818" text-anchor="middle" fill="#9499b0" font-size="11">切图 · 标注 · 资产包</text>
 
-      <!-- 中期对齐提醒（两路中间） -->
-      <rect x="370" y="690" width="160" height="18" rx="6" fill="rgba(248,113,113,.08)" stroke="#f87171" stroke-width="1" stroke-dasharray="3,2"/>
-      <text x="450" y="703" text-anchor="middle" fill="#f87171" font-size="9" font-weight="600">⚠️ UI 50%时中期对齐</text>
+      <!-- 中期对齐提醒（两路之间，垂直居中于偏离度检查） -->
+      <rect x="394" y="706" width="128" height="30" rx="8" fill="rgba(248,113,113,.08)" stroke="#f87171" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="458" y="725" text-anchor="middle" fill="#f87171" font-size="12" font-weight="600">⚠️ UI 50% 中期对齐</text>
 
       <!-- =============== 汇合节点 A =============== -->
-      <!-- 左路向下延伸 -->
-      <line x1="233" y1="665" x2="233" y2="850" stroke="#6b7085" stroke-width="1.5" stroke-dasharray="5,3"/>
-      <!-- 右路向下延伸 -->
-      <line x1="665" y1="821" x2="665" y2="850" stroke="#6b7085" stroke-width="1.5" stroke-dasharray="5,3"/>
-      <!-- 水平汇合线 -->
-      <line x1="233" y1="850" x2="665" y2="850" stroke="#22d3ee" stroke-width="2" stroke-dasharray="6,3" opacity=".6"/>
-      <!-- 汇合下箭头 -->
-      <line x1="450" y1="850" x2="450" y2="876" stroke="#22d3ee" stroke-width="2" marker-end="url(#arr-cyan)"/>
-      <!-- 汇合圆点装饰 -->
-      <circle cx="233" cy="850" r="4" fill="#22d3ee" opacity=".6"/>
-      <circle cx="665" cy="850" r="4" fill="#22d3ee" opacity=".6"/>
-      <circle cx="450" cy="850" r="4" fill="#22d3ee"/>
+      <line x1="240" y1="678" x2="240" y2="870" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <line x1="660" y1="831" x2="660" y2="870" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <line x1="240" y1="870" x2="660" y2="870" stroke="#22d3ee" stroke-width="2" stroke-dasharray="6,3" opacity=".5"/>
+      <line x1="450" y1="870" x2="450" y2="896" stroke="#22d3ee" stroke-width="2" marker-end="url(#arr-cyan)"/>
+      <circle cx="240" cy="870" r="4" fill="#22d3ee" opacity=".5"/>
+      <circle cx="660" cy="870" r="4" fill="#22d3ee" opacity=".5"/>
+      <circle cx="450" cy="870" r="4" fill="#22d3ee"/>
 
       <!-- 汇合节点 -->
-      <rect x="275" y="876" width="350" height="46" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="2" filter="url(#nodeShadow)"/>
-      <text x="450" y="904" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — UI 资产 + Layout 白模就绪</text>
+      <rect x="275" y="896" width="350" height="46" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="1.5" filter="url(#nodeShadow)"/>
+      <text x="450" y="924" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — UI 资产 + Layout 白模就绪</text>
 
-      <line x1="450" y1="922" x2="450" y2="952" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="450" y1="942" x2="450" y2="972" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
 
       <!-- =============== ⚠️ 偏离度检查（大） =============== -->
-      <rect x="180" y="952" width="540" height="96" rx="14" fill="rgba(248,113,113,.03)" stroke="#f87171" stroke-width="2" stroke-dasharray="8,4"/>
-      <text x="200" y="975" fill="#f87171" font-size="12" font-weight="700">⚠️ 偏离度检查</text>
-      <text x="450" y="996" text-anchor="middle" fill="#e4e6ed" font-size="12" font-weight="600">Layout 对比 UI 终稿与白模：布局/结构是否有重大变更？</text>
-      <!-- 左选项 -->
-      <rect x="200" y="1010" width="200" height="24" rx="6" fill="rgba(74,222,128,.06)" stroke="rgba(74,222,128,.2)" stroke-width="1"/>
-      <text x="300" y="1026" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="600">✅ 无重大偏离→正常流转</text>
-      <!-- 右选项 -->
-      <rect x="500" y="1010" width="200" height="24" rx="6" fill="rgba(248,113,113,.06)" stroke="rgba(248,113,113,.2)" stroke-width="1"/>
-      <text x="600" y="1026" text-anchor="middle" fill="#f87171" font-size="11" font-weight="600">🔴 重大偏离→白模返工</text>
+      <rect x="180" y="972" width="540" height="96" rx="14" fill="rgba(248,113,113,.03)" stroke="#f87171" stroke-width="1.5" stroke-dasharray="8,4"/>
+      <text x="200" y="995" fill="#f87171" font-size="13" font-weight="700">⚠️ 偏离度检查</text>
+      <text x="450" y="1016" text-anchor="middle" fill="#e4e6ed" font-size="12" font-weight="600">Layout 对比 UI 终稿与白模：布局 / 结构是否有重大变更？</text>
+      <rect x="200" y="1030" width="210" height="24" rx="6" fill="rgba(74,222,128,.06)" stroke="rgba(74,222,128,.2)" stroke-width="1"/>
+      <text x="305" y="1046" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="600">✅ 无重大偏离 → 正常流转</text>
+      <rect x="490" y="1030" width="210" height="24" rx="6" fill="rgba(248,113,113,.06)" stroke="rgba(248,113,113,.2)" stroke-width="1"/>
+      <text x="595" y="1046" text-anchor="middle" fill="#f87171" font-size="11" font-weight="600">🔴 重大偏离 → 白模返工</text>
 
-      <line x1="450" y1="1048" x2="450" y2="1084" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
-      <text x="468" y="1072" fill="#4ade80" font-size="10" font-weight="600">通过✓</text>
+      <line x1="450" y1="1068" x2="450" y2="1104" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <text x="468" y="1092" fill="#4ade80" font-size="11" font-weight="600">通过 ✓</text>
 
       <!-- =============== Layout 切正式资产 =============== -->
-      <rect x="300" y="1084" width="300" height="62" rx="14" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="2" filter="url(#nodeShadow)"/>
-      <text x="450" y="1110" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">📐 Layout 切正式资产</text>
-      <text x="450" y="1130" text-anchor="middle" fill="#6b7085" font-size="11">替换白模 · 接入正式 UI 素材</text>
+      <rect x="300" y="1104" width="300" height="62" rx="14" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="1.5" filter="url(#nodeShadow)"/>
+      <text x="450" y="1130" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">📐 Layout 切正式资产</text>
+      <text x="450" y="1150" text-anchor="middle" fill="#9499b0" font-size="11">替换白模 · 接入正式 UI 素材</text>
 
-      <line x1="450" y1="1146" x2="450" y2="1180" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="450" y1="1166" x2="450" y2="1200" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
 
-      <!-- =============== 并行组 B =============== -->
-      <rect x="100" y="1180" width="700" height="145" rx="16" fill="rgba(34,211,238,.02)" stroke="#22d3ee" stroke-width="2" stroke-dasharray="10,5"/>
-      <rect x="112" y="1168" width="320" height="22" rx="6" fill="#1a1d2b"/>
-      <text x="120" y="1184" fill="#22d3ee" font-size="12" font-weight="700">⚡ 并行组 B — 切正式资产后双线启动</text>
+      <!-- =============== 并行组 B（精确包裹） =============== -->
+      <rect x="108" y="1200" width="684" height="140" rx="16" fill="rgba(34,211,238,.025)" stroke="#22d3ee" stroke-width="2" stroke-dasharray="10,5"/>
+      <rect x="122" y="1187" width="320" height="24" rx="8" fill="var(--bg,#0d0f15)"/>
+      <text x="130" y="1204" fill="#22d3ee" font-size="12" font-weight="700">⚡ 并行组 B — 切正式资产后双线启动</text>
 
-      <!-- 分支曲线 -->
-      <path d="M450,1180 Q450,1198 275,1210" stroke="#6b7085" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
-      <path d="M450,1180 Q450,1198 625,1210" stroke="#6b7085" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+      <!-- 分支线 -->
+      <line x1="450" y1="1200" x2="280" y2="1228" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="450" y1="1200" x2="620" y2="1228" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
 
       <!-- Layout正式蓝图 -->
-      <rect x="125" y="1210" width="300" height="58" rx="12" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="2" filter="url(#nodeShadow)"/>
-      <text x="275" y="1234" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📐 Layout 正式蓝图制作</text>
-      <text x="275" y="1253" text-anchor="middle" fill="#6b7085" font-size="11">绑定 · 自适应 · 动画</text>
+      <rect x="130" y="1228" width="300" height="58" rx="12" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="1.5" filter="url(#nodeShadow)"/>
+      <text x="280" y="1252" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📐 Layout 正式蓝图制作</text>
+      <text x="280" y="1271" text-anchor="middle" fill="#9499b0" font-size="11">绑定 · 自适应 · 动画</text>
 
       <!-- VX动效 -->
-      <rect x="475" y="1210" width="300" height="58" rx="12" fill="url(#gOrange)" stroke="#fb923c" stroke-width="2" filter="url(#nodeShadow)"/>
-      <text x="625" y="1234" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">✨ VX 动效预演 + 制作</text>
-      <text x="625" y="1253" text-anchor="middle" fill="#6b7085" font-size="11">预演视频 · 正式动效资产</text>
+      <rect x="470" y="1228" width="300" height="58" rx="12" fill="url(#gOrange)" stroke="#fb923c" stroke-width="1.5" filter="url(#nodeShadow)"/>
+      <text x="620" y="1252" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">✨ VX 动效预演 + 制作</text>
+      <text x="620" y="1271" text-anchor="middle" fill="#9499b0" font-size="11">预演视频 · 正式动效资产</text>
 
-      <text x="450" y="1310" text-anchor="middle" fill="#6b7085" font-size="10" opacity=".7">两条线同时启动，互不阻塞</text>
+      <text x="450" y="1326" text-anchor="middle" fill="#9499b0" font-size="11">两条线同时启动，互不阻塞</text>
 
       <!-- 汇合B -->
-      <line x1="275" y1="1268" x2="275" y2="1336" stroke="#6b7085" stroke-width="1.5" stroke-dasharray="5,3"/>
-      <line x1="625" y1="1268" x2="625" y2="1336" stroke="#6b7085" stroke-width="1.5" stroke-dasharray="5,3"/>
-      <line x1="275" y1="1336" x2="625" y2="1336" stroke="#22d3ee" stroke-width="2" stroke-dasharray="6,3" opacity=".6"/>
-      <circle cx="275" cy="1336" r="4" fill="#22d3ee" opacity=".6"/>
-      <circle cx="625" cy="1336" r="4" fill="#22d3ee" opacity=".6"/>
-      <circle cx="450" cy="1336" r="4" fill="#22d3ee"/>
-      <line x1="450" y1="1336" x2="450" y2="1360" stroke="#22d3ee" stroke-width="2" marker-end="url(#arr-cyan)"/>
+      <line x1="280" y1="1286" x2="280" y2="1350" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <line x1="620" y1="1286" x2="620" y2="1350" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <line x1="280" y1="1350" x2="620" y2="1350" stroke="#22d3ee" stroke-width="2" stroke-dasharray="6,3" opacity=".5"/>
+      <circle cx="280" cy="1350" r="4" fill="#22d3ee" opacity=".5"/>
+      <circle cx="620" cy="1350" r="4" fill="#22d3ee" opacity=".5"/>
+      <circle cx="450" cy="1350" r="4" fill="#22d3ee"/>
+      <line x1="450" y1="1350" x2="450" y2="1376" stroke="#22d3ee" stroke-width="2" marker-end="url(#arr-cyan)"/>
 
-      <rect x="275" y="1360" width="350" height="46" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="2" filter="url(#nodeShadow)"/>
-      <text x="450" y="1388" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — 正式蓝图 + 动效资产就绪</text>
+      <rect x="275" y="1376" width="350" height="46" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="1.5" filter="url(#nodeShadow)"/>
+      <text x="450" y="1404" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — 正式蓝图 + 动效资产就绪</text>
 
-      <line x1="450" y1="1406" x2="450" y2="1436" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="450" y1="1422" x2="450" y2="1454" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
 
       <!-- =============== 界面走查（菱形） =============== -->
-      <polygon points="450,1436 530,1476 450,1516 370,1476" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="2" filter="url(#diamondShadow)"/>
-      <text x="450" y="1472" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="700">✅ 界面走查</text>
-      <text x="450" y="1488" text-anchor="middle" fill="#6b7085" font-size="10">逐像素校对</text>
+      <polygon points="450,1454 525,1490 450,1526 375,1490" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="1.5" filter="url(#diamondShadow)"/>
+      <text x="450" y="1486" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="700">✅ 界面走查</text>
+      <text x="450" y="1502" text-anchor="middle" fill="#9499b0" font-size="10">逐像素校对</text>
 
       <!-- 走查问题分流 -->
-      <line x1="530" y1="1476" x2="590" y2="1476" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-orange)"/>
-      <rect x="598" y="1460" width="90" height="32" rx="8" fill="rgba(251,146,60,.08)" stroke="#fb923c" stroke-width="1"/>
-      <text x="643" y="1475" text-anchor="middle" fill="#fb923c" font-size="10" font-weight="600">问题分流</text>
-      <text x="643" y="1487" text-anchor="middle" fill="#6b7085" font-size="9">UI/Layout/客户端/交互</text>
+      <line x1="525" y1="1490" x2="580" y2="1490" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-orange)"/>
+      <rect x="588" y="1474" width="100" height="32" rx="8" fill="rgba(251,146,60,.06)" stroke="#fb923c" stroke-width="1"/>
+      <text x="638" y="1489" text-anchor="middle" fill="#fb923c" font-size="11" font-weight="600">问题分流</text>
+      <text x="638" y="1502" text-anchor="middle" fill="#9499b0" font-size="10">UI / Layout / 客户端 / 交互</text>
 
       <!-- 通过 -->
-      <line x1="450" y1="1516" x2="450" y2="1552" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
-      <text x="468" y="1540" fill="#4ade80" font-size="10" font-weight="600">通过✓</text>
+      <line x1="450" y1="1526" x2="450" y2="1566" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <text x="468" y="1552" fill="#4ade80" font-size="11" font-weight="600">通过 ✓</text>
 
       <!-- =============== VX 动效制作 =============== -->
-      <rect x="300" y="1552" width="300" height="58" rx="14" fill="url(#gOrange)" stroke="#fb923c" stroke-width="2" filter="url(#nodeShadow)"/>
-      <text x="450" y="1576" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">✨ VX 界面动效制作</text>
-      <text x="450" y="1596" text-anchor="middle" fill="#6b7085" font-size="11">正式动效集成 · 参数调优</text>
+      <rect x="300" y="1566" width="300" height="58" rx="14" fill="url(#gOrange)" stroke="#fb923c" stroke-width="1.5" filter="url(#nodeShadow)"/>
+      <text x="450" y="1590" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">✨ VX 界面动效制作</text>
+      <text x="450" y="1610" text-anchor="middle" fill="#9499b0" font-size="11">正式动效集成 · 参数调优</text>
 
-      <line x1="450" y1="1610" x2="450" y2="1642" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
-      <text x="468" y="1632" fill="#6b7085" font-size="10">动效资产</text>
+      <line x1="450" y1="1624" x2="450" y2="1656" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="468" y="1646" fill="#9499b0" font-size="11">动效资产</text>
 
       <!-- =============== 客户端集成动效 =============== -->
-      <rect x="300" y="1642" width="300" height="58" rx="14" fill="url(#gYellow)" stroke="#fbbf24" stroke-width="2" filter="url(#nodeShadow)"/>
-      <text x="450" y="1666" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">💻 客户端集成动效</text>
-      <text x="450" y="1686" text-anchor="middle" fill="#6b7085" font-size="11">功能+动效合并 · 联调</text>
+      <rect x="300" y="1656" width="300" height="58" rx="14" fill="url(#gYellow)" stroke="#fbbf24" stroke-width="1.5" filter="url(#nodeShadow)"/>
+      <text x="450" y="1680" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">💻 客户端集成动效</text>
+      <text x="450" y="1700" text-anchor="middle" fill="#9499b0" font-size="11">功能 + 动效合并 · 联调</text>
 
-      <line x1="450" y1="1700" x2="450" y2="1730" stroke="#6b7085" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="450" y1="1714" x2="450" y2="1746" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
 
       <!-- =============== 交付完成 =============== -->
-      <rect x="300" y="1730" width="300" height="48" rx="14" fill="url(#gGreen)" stroke="#4ade80" stroke-width="2.5" filter="url(#glowGreen)"/>
-      <text x="450" y="1752" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">🎉 界面交付完成</text>
-      <text x="450" y="1768" text-anchor="middle" fill="#6b7085" font-size="11">资产归档 · 上线</text>
+      <rect x="300" y="1746" width="300" height="48" rx="14" fill="url(#gGreen)" stroke="#4ade80" stroke-width="2" filter="url(#glowGreen)"/>
+      <text x="450" y="1768" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">🎉 界面交付完成</text>
+      <text x="450" y="1784" text-anchor="middle" fill="#9499b0" font-size="11">资产归档 · 上线</text>
     </svg>
   </div>
 
   <!-- 图例 -->
-  <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:16px;font-size:12px;color:var(--dim);justify-content:center;padding:14px 16px;background:var(--panel);border-radius:12px;border:1px solid var(--border)">
-    <span><span style="display:inline-block;width:14px;height:14px;background:rgba(167,139,250,.25);border:2px solid #a78bfa;border-radius:4px;vertical-align:middle;margin-right:5px"></span>策划</span>
-    <span><span style="display:inline-block;width:14px;height:14px;background:rgba(96,165,250,.25);border:2px solid #60a5fa;border-radius:4px;vertical-align:middle;margin-right:5px"></span>交互</span>
-    <span><span style="display:inline-block;width:14px;height:14px;background:rgba(244,114,182,.25);border:2px solid #f472b6;border-radius:4px;vertical-align:middle;margin-right:5px"></span>UI设计</span>
-    <span><span style="display:inline-block;width:14px;height:14px;background:rgba(45,212,191,.25);border:2px solid #2dd4bf;border-radius:4px;vertical-align:middle;margin-right:5px"></span>Layout</span>
-    <span><span style="display:inline-block;width:14px;height:14px;background:rgba(251,146,60,.25);border:2px solid #fb923c;border-radius:4px;vertical-align:middle;margin-right:5px"></span>VX动效</span>
-    <span><span style="display:inline-block;width:14px;height:14px;background:rgba(251,191,36,.25);border:2px solid #fbbf24;border-radius:4px;vertical-align:middle;margin-right:5px"></span>客户端</span>
-    <span style="display:flex;align-items:center;gap:5px"><svg width="20" height="14"><polygon points="10,0 20,7 10,14 0,7" fill="rgba(255,255,255,.06)" stroke="#9e9e9e" stroke-width="1.5"/></svg>评审/决策</span>
-    <span style="display:flex;align-items:center;gap:5px"><svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#22d3ee" stroke-width="2" stroke-dasharray="5,3"/></svg>并行区域</span>
-    <span style="display:flex;align-items:center;gap:5px"><svg width="24" height="14"><path d="M0,7 L12,7 L12,2" stroke="#f87171" stroke-width="1.5" stroke-dasharray="4,2" fill="none"/><polygon points="12,2 9,6 15,6" fill="#f87171"/></svg>打回折回</span>
+  <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:16px;font-size:13px;color:var(--text);justify-content:center;padding:16px 20px;background:var(--panel);border-radius:12px;border:1px solid var(--border)">
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:14px;background:rgba(167,139,250,.25);border:2px solid #a78bfa;border-radius:4px"></span>策划</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:14px;background:rgba(96,165,250,.25);border:2px solid #60a5fa;border-radius:4px"></span>交互</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:14px;background:rgba(244,114,182,.25);border:2px solid #f472b6;border-radius:4px"></span>UI 设计</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:14px;background:rgba(45,212,191,.25);border:2px solid #2dd4bf;border-radius:4px"></span>Layout</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:14px;background:rgba(251,146,60,.25);border:2px solid #fb923c;border-radius:4px"></span>VX 动效</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:14px;background:rgba(251,191,36,.25);border:2px solid #fbbf24;border-radius:4px"></span>客户端</span>
+    <span style="display:flex;align-items:center;gap:6px"><svg width="20" height="14"><polygon points="10,0 20,7 10,14 0,7" fill="rgba(255,255,255,.06)" stroke="#9e9e9e" stroke-width="1.5"/></svg>评审节点</span>
+    <span style="display:flex;align-items:center;gap:6px"><svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#22d3ee" stroke-width="2" stroke-dasharray="5,3"/></svg>并行区域</span>
+    <span style="display:flex;align-items:center;gap:6px"><svg width="20" height="14"><path d="M0,7 L10,7 L10,2" stroke="#f87171" stroke-width="1.5" stroke-dasharray="4,2" fill="none"/><polygon points="10,2 8,5 12,5" fill="#f87171"/></svg>打回</span>
   </div>
 </div>
 
 <!-- SEC2 -->
 <div class="section" id="sec2">
-  <h2>📊 2. 全流程节点概览（含补充环节 & 并行关系）</h2>
-  <p>基于原始流程图，补充了 <span class="badge badge-new">NEW</span> 标记的 3 个缺失环节。<strong style="color:var(--cyan)">蓝色虚线框</strong> 标注了可以并行的环节组合：</p>
+  <h2>📊 2. 全流程节点概览</h2>
+  <p>在原有流程基础上补充了 <span class="badge badge-new">NEW</span> 标记的 3 个关键环节，并标注了可并行推进的环节组合（<strong style="color:var(--cyan)">蓝色虚线框</strong>），以缩短整体交付周期。</p>
 
   <!-- ===== 阶段一：串行 — 策划+评审+交互 ===== -->
   <div style="margin:20px 0 8px;font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:2px;font-weight:600">▸ 阶段一 · 需求与交互（串行）</div>
@@ -508,7 +498,7 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
 
 <!-- SEC3 -->
 <div class="section" id="sec3">
-  <h2>📑 3. 各阶段详细说明</h2>
+  <h2>📑 3. 各阶段详细说明 · Input / Output · 角色 · TAPD 发单</h2>
 
   <div class="pipeline-stage"><h4>① 策划输出需求文档 <span class="badge badge-orig">原有</span></h4>
   <div class="io"><div class="input"><strong>📥 Input</strong><br>• 玩法设计文档 • 功能原型/草图<br>• 参考竞品截图 • 系统数据结构</div><div class="output"><strong>📤 Output</strong><br>• 完整 UI 需求文档（含页面清单）<br>• 功能逻辑说明 • 数据字段定义<br>• 优先级与排期预期</div></div>
@@ -724,7 +714,7 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
     <strong style="color:var(--red)">预防机制（强烈推荐）：</strong>UI 设计 50% 时做一次<strong>中期设计对齐</strong>，30 分钟快速同步布局意图。这一步可以避免 80% 以上的此类返工。</div></div>
 </div>
 
-<div class="doc-footer">🖥️ 游戏 UI 界面制作全流程 · v1.0 · 2026-04-20 · 项目内部资料</div>
+<div class="doc-footer">🖥️ 游戏 UI 界面制作全流程 · v1.1 · 最后更新 2026-04-21 · 项目内部资料 · 未经授权不得外传</div>
 </div>
 <script src="editor-kit.js"></script>
 </body>
