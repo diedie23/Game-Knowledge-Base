@@ -434,7 +434,7 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
   <div style="margin:20px 0 8px;font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:2px;font-weight:600">▸ 阶段一 · 需求与交互（串行）</div>
   <div class="flow">
     <div class="flow-node purple"><strong>①策划需求</strong><div class="sub">需求文档</div></div><span class="flow-arrow">→</span>
-    <div class="flow-node purple new"><strong>②需求评审</strong><div class="sub">冻结门禁</div></div><span class="flow-arrow">→</span>
+    <div class="flow-node purple new"><strong>②需求评审</strong><div class="sub">策划主导·冻结门禁</div></div><span class="flow-arrow">→</span>
     <div class="flow-node blue"><strong>③交互设计</strong><div class="sub">交互稿</div></div><span class="flow-arrow">→</span>
     <div class="flow-node gate"><strong>④交互评审</strong><div class="sub">通过/打回</div></div><span class="flow-arrow">→</span>
     <div class="flow-node blue"><strong>⑤交互交付</strong><div class="sub">标注文档</div></div>
@@ -490,7 +490,7 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
         <div style="font-size:11px;color:var(--orange);font-weight:700;margin-bottom:8px">✨ VX 动效线</div>
         <div class="flow" style="margin:0;justify-content:flex-start">
           <div class="flow-node orange" style="min-width:90px"><strong>⑪VX动效</strong><div class="sub">预演+制作</div></div><span class="flow-arrow">→</span>
-          <div class="flow-node orange new" style="min-width:80px"><strong>⑫动效评审</strong><div class="sub">表现+性能</div></div>
+          <div class="flow-node orange new" style="min-width:80px"><strong>⑫动效评审</strong><div class="sub">VX主导·按需</div></div>
         </div>
       </div>
     </div>
@@ -508,9 +508,9 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
   <!-- ===== 总结信息卡片 ===== -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px">
     <div class="alert alert-yellow" style="margin:0"><strong>⚠️ 新增 3 个关键环节</strong>：<br>
-      <span class="badge badge-new">②需求评审</span> — 需求冻结门禁，阻断中途变更返工。<br>
+      <span class="badge badge-new">②需求评审</span> — 策划主导，需求冻结门禁，阻断中途变更返工。<br>
       <span class="badge badge-new">⑨资产合规</span> — 自动化校验命名/格式/尺寸（30秒）。<br>
-      <span class="badge badge-new">⑫动效评审</span> — 评审表现效果 & 性能开销。</div>
+      <span class="badge badge-new">⑫动效评审</span> — VX主导，仅含动效需求时触发；评审表现效果 & 性能开销，支持砍除。</div>
     <div class="alert alert-blue" style="margin:0"><strong>⚡ 并行节省的工期</strong>：<br>
       串行总计 <strong>20-33 天</strong> →  并行优化后 <strong>15-22 天</strong><br>
       <strong>并行组A</strong>（UI∥Layout白模）：节省 <strong>3-5 天</strong><br>
@@ -527,8 +527,13 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
   <div class="role-tags"><span class="label">责任人</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">1-2 天</span></div></div>
 
   <div class="pipeline-stage" style="border-color:var(--cyan)"><h4>② 需求评审 <span class="badge badge-new">NEW 补充</span></h4>
-  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 策划需求文档 • 竞品分析材料<br>• 技术可行性预评估</div><div class="output"><strong>📤 Output</strong><br>• 评审纪要（通过/打回）<br>• <strong>需求冻结确认签字</strong><br>• 各方排期承诺</div></div>
-  <div class="role-tags"><span class="label">参与人</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rl"><span class="dot"></span>Layout</span><span class="role-tag rc"><span class="dot"></span>客户端</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">0.5 天</span></div>
+  <div style="background:rgba(167,139,250,.05);border:1px solid rgba(167,139,250,.15);border-radius:8px;padding:12px;margin-bottom:12px;font-size:13px;line-height:1.9">
+    <strong style="color:var(--accent2)">📌 触发场景</strong>：策划完成需求文档后、正式进入交互设计<strong>之前</strong>，必须召开需求评审会。适用于所有新增界面需求和涉及布局/交互逻辑变更的改版需求（纯文案/数值调整等轻量修改可豁免）。<br>
+    <strong style="color:var(--accent2)">👤 主导人</strong>：<strong style="color:var(--heading)">策划</strong>（负责组织会议、讲解需求、推动结论落地）<br>
+    <strong style="color:var(--accent2)">✅ 决策人</strong>：<strong style="color:var(--heading)">项目经理/制作人</strong>（最终拍板通过或打回）
+  </div>
+  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 策划需求文档（含页面清单）<br>• 竞品分析材料 • 技术可行性预评估</div><div class="output"><strong>📤 Output</strong><br>• 评审纪要（通过/打回/附条件通过）<br>• <strong>需求冻结确认签字</strong><br>• 各方排期承诺</div></div>
+  <div class="role-tags"><span class="label">主导</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="label" style="margin-left:12px">参与</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rl"><span class="dot"></span>Layout</span><span class="role-tag rc"><span class="dot"></span>客户端</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">0.5 天</span></div>
   <div class="alert alert-red" style="margin-top:8px"><strong>🔴 铁律</strong>：需求评审通过后进入<strong>冻结状态</strong>，后续变更需走正式变更流程。未经评审的需求<strong>禁止进入交互设计</strong>。</div></div>
 
   <div class="pipeline-stage"><h4>③ 交互设计 <span class="badge badge-orig">原有</span></h4>
@@ -595,9 +600,15 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
   <div class="role-tags"><span class="label">责任人</span><span class="role-tag rv"><span class="dot"></span>VX 动效设计师</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">2-4 天</span></div></div>
 
   <div class="pipeline-stage" style="border-color:var(--cyan)"><h4>⑫ 动效评审 <span class="badge badge-new">NEW 补充</span></h4>
-  <div class="io"><div class="input"><strong>📥 Input</strong><br>• VX 动效预演视频 • 动效参数文档<br>• 性能预算表</div><div class="output"><strong>📤 Output</strong><br>• 评审纪要（通过/打回）<br>• 性能评估（DrawCall/帧率）</div></div>
-  <div class="role-tags"><span class="label">参与人</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rv"><span class="dot"></span>VX</span><span class="role-tag rc"><span class="dot"></span>客户端</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">0.5 天</span></div>
-  <div class="alert alert-yellow" style="margin-top:8px"><strong>⚠️</strong> 动效是 UI 的"灵魂"也是性能杀手。评审必须同时关注<strong>表现效果</strong>和<strong>性能开销</strong>。</div></div>
+  <div style="background:rgba(251,146,60,.05);border:1px solid rgba(251,146,60,.15);border-radius:8px;padding:12px;margin-bottom:12px;font-size:13px;line-height:1.9">
+    <strong style="color:var(--orange)">📌 触发条件</strong>：VX 完成动效预演视频后、正式集成<strong>之前</strong>触发。<strong>仅适用于包含界面动效的需求</strong>——无动效需求可直接跳过本节点。<br>
+    <strong style="color:var(--orange)">👤 主导人</strong>：<strong style="color:var(--heading)">VX 动效设计师</strong>（负责演示动效方案、回应修改意见）<br>
+    <strong style="color:var(--orange)">✅ 决策人</strong>：<strong style="color:var(--heading)">交互设计师 + 客户端主程</strong>（交互把控表现效果是否达标，客户端把控性能开销是否可接受）<br>
+    <strong style="color:var(--orange)">⚡ 精简原则</strong>：评审聚焦两件事——<strong>①动效表现是否符合设计意图</strong>、<strong>②性能开销是否在预算内</strong>。单次评审≤30分钟，当场出结论。
+  </div>
+  <div class="io"><div class="input"><strong>📥 Input</strong><br>• VX 动效预演视频/GIF<br>• 动效参数文档 • 性能预算表</div><div class="output"><strong>📤 Output</strong><br>• 评审结论（通过/调整/砍除）<br>• 性能评估（DrawCall/帧率影响）</div></div>
+  <div class="role-tags"><span class="label">主导</span><span class="role-tag rv"><span class="dot"></span>VX</span><span class="label" style="margin-left:12px">决策</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag rc"><span class="dot"></span>客户端</span><span class="label" style="margin-left:12px">可选</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">≤0.5 天</span></div>
+  <div class="alert alert-yellow" style="margin-top:8px"><strong>⚠️ 注意</strong>：动效是锦上添花而非必选项。若性能预算紧张，<strong>优先保功能流畅度</strong>，动效可降级或砍除。评审结论支持三种：✅通过、🔧调整参数后免复审、❌砍除该动效。</div></div>
 
   <div class="pipeline-stage"><h4>⑬ 客户端集成 → ⑭ 界面走查 → ⑮ 交付完成 <span class="badge badge-orig">原有</span></h4>
   <div class="io"><div class="input"><strong>📥 集成输入</strong><br>• 正式 Layout 蓝图 • 合规动效资产<br>• 功能逻辑+接口文档</div><div class="output"><strong>📤 走查/交付输出</strong><br>• 走查通过 → 资产归档 + 上线<br>• 问题清单 → 分流至对应责任人</div></div>
@@ -668,11 +679,11 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
   <h2>✅ 4. 关键评审节点与通过标准</h2>
   <table>
     <tr><th>评审节点</th><th>参与人</th><th>通过标准</th><th>打回条件</th><th>上限</th></tr>
-    <tr><td><strong>②需求评审</strong> <span class="badge badge-new">NEW</span></td><td>全员</td><td>需求完整无歧义、技术可行、排期合理</td><td>需求模糊、技术不可行</td><td>2次</td></tr>
+    <tr><td><strong>②需求评审</strong> <span class="badge badge-new">NEW</span></td><td>策划主导，全员参与</td><td>需求完整无歧义、技术可行、排期合理</td><td>需求模糊、技术不可行</td><td>2次</td></tr>
     <tr><td><strong>④交互评审</strong></td><td>策划+交互+UI+客户端</td><td>逻辑完整、交互流畅、异常已处理</td><td>遗漏分支、路径过深</td><td>2次</td></tr>
     <tr><td><strong>⑦UI评审</strong></td><td>策划+交互+UI+Layout</td><td>风格统一、标注准确、适配完整</td><td>风格偏差、标注缺失</td><td>2次</td></tr>
     <tr><td><strong>⑨资产合规</strong> <span class="badge badge-new">NEW</span></td><td>UI+Layout</td><td>命名100%合规、尺寸/格式通过、sRGB</td><td>自动化检查FAIL</td><td>不限</td></tr>
-    <tr><td><strong>⑫动效评审</strong> <span class="badge badge-new">NEW</span></td><td>交互+UI+VX+客户端</td><td>动效与设计一致、性能在预算内</td><td>DrawCall超预算</td><td>2次</td></tr>
+    <tr><td><strong>⑫动效评审</strong> <span class="badge badge-new">NEW</span></td><td>VX主导，交互+客户端决策</td><td>动效与设计意图一致、性能在预算内</td><td>DrawCall超预算 / 表现不达标</td><td>2次（可砍除）</td></tr>
     <tr><td><strong>⑭界面走查</strong></td><td>全员</td><td>像素级一致、功能正确、动效流畅</td><td>P0/P1问题存在</td><td>3次</td></tr>
   </table>
   <div class="redline"><p><strong>🔴 铁律</strong>：超过最大迭代次数仍未通过 → <strong>上升至项目经理</strong>介入。连续2次打回需<strong>根因分析</strong>。</p></div>
