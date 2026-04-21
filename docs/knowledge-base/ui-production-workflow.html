@@ -180,7 +180,8 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
 
       <!-- 箭头：策划→交互 -->
       <line x1="450" y1="88" x2="450" y2="128" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
-      <text x="468" y="113" fill="#9499b0" font-size="11">需求文档</text>
+      <rect x="460" y="100" width="58" height="16" rx="5" fill="rgba(148,153,176,.06)" stroke="rgba(148,153,176,.15)" stroke-width="1"/>
+      <text x="489" y="112" text-anchor="middle" fill="#9499b0" font-size="11">需求文档</text>
 
       <!-- =============== 2. 交互设计 =============== -->
       <rect x="300" y="128" width="300" height="64" rx="14" fill="url(#gBlue)" stroke="#60a5fa" stroke-width="1.5" filter="url(#nodeShadow)"/>
@@ -189,7 +190,8 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
 
       <!-- 箭头：交互设计→交互评审 -->
       <line x1="450" y1="192" x2="450" y2="238" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
-      <text x="468" y="221" fill="#9499b0" font-size="11">交互稿</text>
+      <rect x="460" y="207" width="46" height="16" rx="5" fill="rgba(148,153,176,.06)" stroke="rgba(148,153,176,.15)" stroke-width="1"/>
+      <text x="483" y="219" text-anchor="middle" fill="#9499b0" font-size="11">交互稿</text>
 
       <!-- =============== 3. 交互评审（菱形） =============== -->
       <polygon points="450,238 520,272 450,306 380,272" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="1.5" filter="url(#diamondShadow)"/>
@@ -204,7 +206,8 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
 
       <!-- 通过箭头 -->
       <line x1="450" y1="306" x2="450" y2="350" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
-      <text x="468" y="334" fill="#4ade80" font-size="11" font-weight="600">通过 ✓</text>
+      <rect x="460" y="320" width="52" height="18" rx="5" fill="rgba(74,222,128,.08)" stroke="rgba(74,222,128,.2)" stroke-width="1"/>
+      <text x="486" y="333" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="600">通过 ✓</text>
 
       <!-- =============== 4. 交互图交付 =============== -->
       <rect x="300" y="350" width="300" height="60" rx="14" fill="url(#gBlue)" stroke="#60a5fa" stroke-width="1.5" filter="url(#nodeShadow)"/>
@@ -233,7 +236,8 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
       <text x="240" y="563" text-anchor="middle" fill="#9499b0" font-size="11">白模蓝图 · 功能验证</text>
 
       <line x1="240" y1="578" x2="240" y2="618" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
-      <text x="258" y="604" fill="#9499b0" font-size="11">Layout 白模</text>
+      <rect x="250" y="590" width="72" height="16" rx="5" fill="rgba(148,153,176,.06)" stroke="rgba(148,153,176,.15)" stroke-width="1"/>
+      <text x="286" y="602" text-anchor="middle" fill="#9499b0" font-size="11">Layout 白模</text>
 
       <!-- 客户端功能制作 -->
       <rect x="90" y="618" width="300" height="60" rx="12" fill="url(#gYellow)" stroke="#fbbf24" stroke-width="1.5" filter="url(#nodeShadow)"/>
@@ -250,22 +254,24 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
       <text x="660" y="563" text-anchor="middle" fill="#9499b0" font-size="11">高保真稿 · 视觉风格</text>
 
       <line x1="660" y1="578" x2="660" y2="608" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
-      <text x="678" y="598" fill="#9499b0" font-size="11">UI 设计稿</text>
+      <rect x="670" y="585" width="62" height="16" rx="5" fill="rgba(148,153,176,.06)" stroke="rgba(148,153,176,.15)" stroke-width="1"/>
+      <text x="701" y="597" text-anchor="middle" fill="#9499b0" font-size="11">UI 设计稿</text>
 
       <!-- UI评审（菱形） -->
       <polygon points="660,608 724,638 660,668 596,638" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="1.5" filter="url(#diamondShadow)"/>
       <text x="660" y="634" text-anchor="middle" fill="#e4e6ed" font-size="12" font-weight="700">✅ UI 评审</text>
       <text x="660" y="650" text-anchor="middle" fill="#9499b0" font-size="10">通过 / 打回</text>
 
-      <!-- UI评审打回：紧凑折回 -->
-      <path d="M724,638 L760,638 L760,548" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3" fill="none" stroke-linecap="round"/>
-      <polygon points="760,548 756,556 764,556" fill="#f87171"/>
-      <rect x="766" y="586" width="36" height="18" rx="5" fill="rgba(248,113,113,.1)" stroke="#f87171" stroke-width="1"/>
-      <text x="784" y="599" text-anchor="middle" fill="#f87171" font-size="10" font-weight="600">打回</text>
+      <!-- UI评审打回：紧凑折回（与交互评审打回风格统一） -->
+      <path d="M724,638 L762,638 L762,548" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3" fill="none" stroke-linecap="round"/>
+      <polygon points="762,548 758,556 766,556" fill="#f87171"/>
+      <rect x="768" y="582" width="36" height="18" rx="5" fill="rgba(248,113,113,.1)" stroke="#f87171" stroke-width="1"/>
+      <text x="786" y="595" text-anchor="middle" fill="#f87171" font-size="10" font-weight="600">打回</text>
 
       <!-- 通过 -->
       <line x1="660" y1="668" x2="660" y2="698" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
-      <text x="678" y="690" fill="#4ade80" font-size="11" font-weight="600">通过 ✓</text>
+      <rect x="670" y="675" width="52" height="18" rx="5" fill="rgba(74,222,128,.08)" stroke="rgba(74,222,128,.2)" stroke-width="1"/>
+      <text x="696" y="688" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="600">通过 ✓</text>
 
       <!-- ⚠️ 偏离度检查（右路内） -->
       <rect x="530" y="698" width="260" height="48" rx="10" fill="url(#gRed)" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3"/>
@@ -280,8 +286,8 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
       <text x="660" y="818" text-anchor="middle" fill="#9499b0" font-size="11">切图 · 标注 · 资产包</text>
 
       <!-- 中期对齐提醒（两路之间，垂直居中于偏离度检查） -->
-      <rect x="394" y="706" width="128" height="30" rx="8" fill="rgba(248,113,113,.08)" stroke="#f87171" stroke-width="1" stroke-dasharray="4,3"/>
-      <text x="458" y="725" text-anchor="middle" fill="#f87171" font-size="12" font-weight="600">⚠️ UI 50% 中期对齐</text>
+      <rect x="380" y="704" width="148" height="28" rx="8" fill="rgba(248,113,113,.08)" stroke="#f87171" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="454" y="722" text-anchor="middle" fill="#f87171" font-size="12" font-weight="600">⚠️ UI 50% 中期对齐</text>
 
       <!-- =============== 汇合节点 A =============== -->
       <line x1="240" y1="678" x2="240" y2="870" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
@@ -294,7 +300,7 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
 
       <!-- 汇合节点 -->
       <rect x="275" y="896" width="350" height="46" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="1.5" filter="url(#nodeShadow)"/>
-      <text x="450" y="924" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — UI 资产 + Layout 白模就绪</text>
+      <text x="450" y="923" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — UI 资产 + Layout 白模就绪</text>
 
       <line x1="450" y1="942" x2="450" y2="972" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
 
@@ -308,7 +314,8 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
       <text x="595" y="1046" text-anchor="middle" fill="#f87171" font-size="11" font-weight="600">🔴 重大偏离 → 白模返工</text>
 
       <line x1="450" y1="1068" x2="450" y2="1104" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
-      <text x="468" y="1092" fill="#4ade80" font-size="11" font-weight="600">通过 ✓</text>
+      <rect x="460" y="1078" width="52" height="18" rx="5" fill="rgba(74,222,128,.08)" stroke="rgba(74,222,128,.2)" stroke-width="1"/>
+      <text x="486" y="1091" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="600">通过 ✓</text>
 
       <!-- =============== Layout 切正式资产 =============== -->
       <rect x="300" y="1104" width="300" height="62" rx="14" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="1.5" filter="url(#nodeShadow)"/>
@@ -336,7 +343,8 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
       <text x="620" y="1252" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">✨ VX 动效预演 + 制作</text>
       <text x="620" y="1271" text-anchor="middle" fill="#9499b0" font-size="11">预演视频 · 正式动效资产</text>
 
-      <text x="450" y="1326" text-anchor="middle" fill="#9499b0" font-size="11">两条线同时启动，互不阻塞</text>
+      <rect x="360" y="1313" width="180" height="20" rx="6" fill="rgba(148,153,176,.05)" stroke="rgba(148,153,176,.12)" stroke-width="1"/>
+      <text x="450" y="1327" text-anchor="middle" fill="#9499b0" font-size="11">两条线同时启动，互不阻塞</text>
 
       <!-- 汇合B -->
       <line x1="280" y1="1286" x2="280" y2="1350" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
@@ -348,7 +356,7 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
       <line x1="450" y1="1350" x2="450" y2="1376" stroke="#22d3ee" stroke-width="2" marker-end="url(#arr-cyan)"/>
 
       <rect x="275" y="1376" width="350" height="46" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="1.5" filter="url(#nodeShadow)"/>
-      <text x="450" y="1404" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — 正式蓝图 + 动效资产就绪</text>
+      <text x="450" y="1403" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — 正式蓝图 + 动效资产就绪</text>
 
       <line x1="450" y1="1422" x2="450" y2="1454" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
 
@@ -358,14 +366,15 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
       <text x="450" y="1502" text-anchor="middle" fill="#9499b0" font-size="10">逐像素校对</text>
 
       <!-- 走查问题分流 -->
-      <line x1="525" y1="1490" x2="580" y2="1490" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-orange)"/>
-      <rect x="588" y="1474" width="100" height="32" rx="8" fill="rgba(251,146,60,.06)" stroke="#fb923c" stroke-width="1"/>
-      <text x="638" y="1489" text-anchor="middle" fill="#fb923c" font-size="11" font-weight="600">问题分流</text>
-      <text x="638" y="1502" text-anchor="middle" fill="#9499b0" font-size="10">UI / Layout / 客户端 / 交互</text>
+      <line x1="525" y1="1490" x2="570" y2="1490" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-orange)"/>
+      <rect x="578" y="1470" width="180" height="40" rx="8" fill="rgba(251,146,60,.06)" stroke="#fb923c" stroke-width="1"/>
+      <text x="668" y="1486" text-anchor="middle" fill="#fb923c" font-size="11" font-weight="600">问题分流</text>
+      <text x="668" y="1500" text-anchor="middle" fill="#9499b0" font-size="10">UI / Layout / 客户端 / 交互</text>
 
       <!-- 通过 -->
       <line x1="450" y1="1526" x2="450" y2="1566" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
-      <text x="468" y="1552" fill="#4ade80" font-size="11" font-weight="600">通过 ✓</text>
+      <rect x="460" y="1538" width="52" height="18" rx="5" fill="rgba(74,222,128,.08)" stroke="rgba(74,222,128,.2)" stroke-width="1"/>
+      <text x="486" y="1551" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="600">通过 ✓</text>
 
       <!-- =============== VX 动效制作 =============== -->
       <rect x="300" y="1566" width="300" height="58" rx="14" fill="url(#gOrange)" stroke="#fb923c" stroke-width="1.5" filter="url(#nodeShadow)"/>
@@ -373,7 +382,8 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
       <text x="450" y="1610" text-anchor="middle" fill="#9499b0" font-size="11">正式动效集成 · 参数调优</text>
 
       <line x1="450" y1="1624" x2="450" y2="1656" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
-      <text x="468" y="1646" fill="#9499b0" font-size="11">动效资产</text>
+      <rect x="460" y="1632" width="58" height="16" rx="5" fill="rgba(148,153,176,.06)" stroke="rgba(148,153,176,.15)" stroke-width="1"/>
+      <text x="489" y="1644" text-anchor="middle" fill="#9499b0" font-size="11">动效资产</text>
 
       <!-- =============== 客户端集成动效 =============== -->
       <rect x="300" y="1656" width="300" height="58" rx="14" fill="url(#gYellow)" stroke="#fbbf24" stroke-width="1.5" filter="url(#nodeShadow)"/>
