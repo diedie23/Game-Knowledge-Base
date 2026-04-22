@@ -178,9 +178,18 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
       <rect x="380" y="706" width="148" height="28" rx="8" fill="rgba(248,113,113,.08)" stroke="#f87171" stroke-width="1" stroke-dasharray="4,3"/>
       <text x="454" y="724" text-anchor="middle" fill="#f87171" font-size="12" font-weight="600">⚠️ UI 50% 中期对齐</text>
       <!-- 汇合A -->
-      <line x1="240" y1="680" x2="240" y2="960" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
-      <line x1="660" y1="920" x2="660" y2="960" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
-      <circle cx="450" cy="960" r="4" fill="#22d3ee"/>
+      <!-- 左线：Layout/客户端等待 -->
+      <line x1="240" y1="680" x2="240" y2="936" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <rect x="170" y="900" width="140" height="28" rx="7" fill="rgba(45,212,191,.06)" stroke="rgba(45,212,191,.2)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="240" y="918" text-anchor="middle" fill="#2dd4bf" font-size="10" font-weight="600">等待 UI 资产就绪</text>
+      <line x1="240" y1="936" x2="240" y2="960" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- 右线：资产合规到汇合 -->
+      <line x1="660" y1="920" x2="660" y2="960" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- 汇合点 -->
+      <line x1="240" y1="960" x2="660" y2="960" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <circle cx="240" cy="960" r="4" fill="#22d3ee"/>
+      <circle cx="660" cy="960" r="4" fill="#22d3ee"/>
+      <circle cx="450" cy="960" r="5" fill="#22d3ee"/>
       <line x1="450" y1="960" x2="450" y2="990" stroke="#22d3ee" stroke-width="2" marker-end="url(#arr-cyan)"/>
       <rect x="275" y="990" width="350" height="46" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="1.5" filter="url(#ns)"/>
       <text x="450" y="1017" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — UI资产 + Layout白模就绪</text>
@@ -221,9 +230,18 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
       <text x="620" y="1478" text-anchor="middle" fill="#9499b0" font-size="9">通过/调整/砍除</text>
       <rect x="670" y="1436" width="38" height="16" rx="5" fill="#22d3ee"/><text x="689" y="1448" text-anchor="middle" fill="#000" font-size="9" font-weight="700">NEW</text>
       <!-- 汇合B -->
-      <line x1="280" y1="1412" x2="280" y2="1520" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
-      <line x1="620" y1="1492" x2="620" y2="1520" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
-      <circle cx="450" cy="1520" r="4" fill="#22d3ee"/>
+      <!-- 左线：Layout正式蓝图等待 -->
+      <line x1="280" y1="1412" x2="280" y2="1496" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <rect x="210" y="1460" width="140" height="28" rx="7" fill="rgba(45,212,191,.06)" stroke="rgba(45,212,191,.2)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="280" y="1478" text-anchor="middle" fill="#2dd4bf" font-size="10" font-weight="600">等待动效资产就绪</text>
+      <line x1="280" y1="1496" x2="280" y2="1520" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- 右线：动效评审到汇合 -->
+      <line x1="620" y1="1492" x2="620" y2="1520" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- 汇合点 -->
+      <line x1="280" y1="1520" x2="620" y2="1520" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <circle cx="280" cy="1520" r="4" fill="#22d3ee"/>
+      <circle cx="620" cy="1520" r="4" fill="#22d3ee"/>
+      <circle cx="450" cy="1520" r="5" fill="#22d3ee"/>
       <line x1="450" y1="1520" x2="450" y2="1546" stroke="#22d3ee" stroke-width="2" marker-end="url(#arr-cyan)"/>
       <rect x="275" y="1546" width="350" height="46" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="1.5" filter="url(#ns)"/>
       <text x="450" y="1573" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — 正式蓝图 + 动效资产就绪</text>
@@ -325,41 +343,33 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 
 <!-- SEC3 各阶段角色 Input/Output -->
 <div class="section" id="sec3">
-  <h2>📑 3. 各阶段 · 角色 · Input / Output</h2>
+  <h2>📑 3. 各阶段 Input / Output</h2>
 
   <div class="ps"><h4>① 策划输出需求文档</h4>
-  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 玩法设计文档 • 功能原型/草图<br>• 参考竞品 • 系统数据结构</div><div class="output"><strong>📤 Output</strong><br>• UI需求文档（含页面清单）<br>• 功能逻辑说明 • 数据字段定义</div></div>
-  <div class="role-tags"><span class="label">责任人</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">1-2天</span></div></div>
+  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 玩法设计文档 • 功能原型/草图<br>• 参考竞品 • 系统数据结构</div><div class="output"><strong>📤 Output</strong><br>• UI需求文档（含页面清单）<br>• 功能逻辑说明 • 数据字段定义</div></div></div>
 
   <div class="ps"><h4>② 交互设计</h4>
-  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 需求文档 • 平台设计规范</div><div class="output"><strong>📤 Output</strong><br>• 交互线框图 • 页面跳转逻辑图 • 异常状态说明</div></div>
-  <div class="role-tags"><span class="label">责任人</span><span class="role-tag ri"><span class="dot"></span>交互设计师</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">3-5天</span></div></div>
+  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 需求文档 • 平台设计规范</div><div class="output"><strong>📤 Output</strong><br>• 交互线框图 • 页面跳转逻辑图 • 异常状态说明</div></div></div>
 
   <div class="ps"><h4>③ 交互评审 → ④ 交互图交付</h4>
-  <div class="io"><div class="input"><strong>📥 评审输入</strong><br>• 交互稿 • 需求文档（对照）</div><div class="output"><strong>📤 交付输出</strong><br>• 正式交互标注文档 • 同步至蓝湖/Figma</div></div>
-  <div class="role-tags"><span class="label">参与</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rc"><span class="dot"></span>客户端</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">0.5+0.5天</span></div></div>
+  <div class="io"><div class="input"><strong>📥 评审输入</strong><br>• 交互稿 • 需求文档（对照）</div><div class="output"><strong>📤 交付输出</strong><br>• 正式交互标注文档 • 同步至蓝湖/Figma</div></div></div>
 
   <div class="ps"><h4>⑥ UI 设计</h4>
-  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 交互标注文档 • 视觉风格指南 • UI组件库</div><div class="output"><strong>📤 Output</strong><br>• 高保真UI设计稿 • 标注 • 图标素材</div></div>
-  <div class="role-tags"><span class="label">责任人</span><span class="role-tag ru"><span class="dot"></span>UI设计师</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">5-7天</span></div></div>
+  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 交互标注文档 • 视觉风格指南 • UI组件库</div><div class="output"><strong>📤 Output</strong><br>• 高保真UI设计稿 • 标注 • 图标素材</div></div></div>
 
   <div class="ps"><h4>⑦ UI 评审 → ⑧ UI 图交付</h4>
-  <div class="io"><div class="input"><strong>📥 评审输入</strong><br>• UI设计稿 • 交互稿（对照）</div><div class="output"><strong>📤 交付输出</strong><br>• 切图（PNG/SVG偶数尺寸）• 标注 • 9宫格</div></div>
-  <div class="role-tags"><span class="label">参与</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rl"><span class="dot"></span>Layout</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">0.5天评审+1天切图</span></div></div>
+  <div class="io"><div class="input"><strong>📥 评审输入</strong><br>• UI设计稿 • 交互稿（对照）</div><div class="output"><strong>📤 交付输出</strong><br>• 切图（PNG/SVG偶数尺寸）• 标注 • 9宫格</div></div></div>
 
   <div class="ps" style="border-color:var(--cyan)"><h4>⑨ 资产合规检查 <span class="badge badge-new">NEW</span></h4>
   <div class="io"><div class="input"><strong>📥 Input</strong><br>• UI切图资产包 • 命名规范文档</div><div class="output"><strong>📤 Output</strong><br>• 合规报告（PASS/FAIL）• 不合规项清单</div></div>
-  <div class="role-tags"><span class="label">责任人</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rl"><span class="dot"></span>Layout</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">自动化30秒</span></div>
   <div class="alert alert-red" style="margin-top:8px"><strong>🔴 门禁</strong>：<code>模块_功能_状态_尺寸</code>、偶数尺寸、PNG-24/WebP、sRGB、9宫格完整。</div></div>
 
   <div class="ps"><h4>⑩ Layout制作（白模+切正式+正式蓝图）</h4>
   <div class="io"><div class="input"><strong>📥 Input</strong><br>• 交互标注文档 • 合规切图 • 引擎UI规范</div><div class="output"><strong>📤 Output</strong><br>• 功能蓝图（白模）• 正式资产替换 • 正式蓝图</div></div>
-  <div class="role-tags"><span class="label">责任人</span><span class="role-tag rl"><span class="dot"></span>Layout工程师</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">3-5天</span></div>
   <div class="alert alert-blue" style="margin-top:8px"><strong>💡</strong> Layout白模可与UI设计并行（交互交付后即启动），客户端可基于白模并行开发。</div></div>
 
   <div class="ps"><h4>⑫ VX动效（预演+正式制作）</h4>
-  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 交互动效说明 • UI设计稿 • 引擎动效能力</div><div class="output"><strong>📤 Output</strong><br>• 预演视频/GIF • 正式动效资产 • 参数文档</div></div>
-  <div class="role-tags"><span class="label">责任人</span><span class="role-tag rv"><span class="dot"></span>VX动效设计师</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">2-4天</span></div></div>
+  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 交互动效说明 • UI设计稿 • 引擎动效能力</div><div class="output"><strong>📤 Output</strong><br>• 预演视频/GIF • 正式动效资产 • 参数文档</div></div></div>
 
   <div class="ps" style="border-color:var(--cyan)"><h4>⑬ 动效评审 <span class="badge badge-new">NEW</span></h4>
   <div style="background:rgba(251,146,60,.05);border:1px solid rgba(251,146,60,.15);border-radius:8px;padding:10px;margin-bottom:10px;font-size:13px;line-height:1.9">
@@ -368,13 +378,10 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     <strong style="color:var(--orange)">✅ 决策</strong>：交互+客户端
   </div>
   <div class="io"><div class="input"><strong>📥 Input</strong><br>• 动效预演视频 • 参数文档 • 性能预算</div><div class="output"><strong>📤 Output</strong><br>• 结论（✅通过/🔧调整/❌砍除）<br>• 性能评估</div></div>
-  <div class="role-tags"><span class="label">主导</span><span class="role-tag rv"><span class="dot"></span>VX</span><span class="label" style="margin-left:12px">决策</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag rc"><span class="dot"></span>客户端</span><span class="label" style="margin-left:12px">可选</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">≤0.5天</span></div>
   <div class="alert alert-yellow" style="margin-top:8px"><strong>⚠️</strong> 性能优先于动效。≤30分钟当场出结论。</div></div>
 
   <div class="ps"><h4>⑭ 界面走查 → ⑮ VX动效制作 → ⑯ 客户端集成 → ⑰ 交付</h4>
-  <div class="io"><div class="input"><strong>📥 集成输入</strong><br>• 正式蓝图 • 动效资产 • 功能逻辑+接口文档</div><div class="output"><strong>📤 走查/交付输出</strong><br>• 走查通过 → 资产归档+上线<br>• 问题清单 → 分流至责任人</div></div>
-  <div class="role-tags" style="margin-bottom:4px"><span class="label">集成</span><span class="role-tag rc"><span class="dot"></span>客户端</span></div>
-  <div class="role-tags"><span class="label">走查主导</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rl"><span class="dot"></span>Layout</span><span class="label" style="margin-left:12px">功能测试</span><span class="role-tag rq"><span class="dot"></span>QA</span><span class="label" style="margin-left:12px">协助</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag rv"><span class="dot"></span>VX</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">3-5天集成+2-3天走查</span></div></div>
+  <div class="io"><div class="input"><strong>📥 集成输入</strong><br>• 正式蓝图 • 动效资产 • 功能逻辑+接口文档</div><div class="output"><strong>📤 走查/交付输出</strong><br>• 走查通过 → 资产归档+上线<br>• 问题清单 → 分流至责任人</div></div></div>
 
   <!-- TAPD 发单机制 -->
   <div style="margin-top:32px;border:2px solid var(--cyan);border-radius:14px;padding:20px;position:relative">
