@@ -68,6 +68,9 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 .ps .io div{padding:8px;border-radius:6px}
 .ps .input{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2)}
 .ps .output{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:16px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:14px;line-height:1.8;padding-left:28px}
 @media print{body{background:#fff;color:#333;font-size:12px}.doc{padding:16px}.section{margin-bottom:20px;page-break-inside:avoid}.flowchart-wrap{border:1px solid #ddd;background:#f9f9f9}.flow-node{background:#f5f5f5;border-color:#ddd;color:#333}.flow-node strong{color:#222}table{font-size:11px}th{background:#eee;color:#333}td{border-color:#ddd}.ps{background:#f9f9f9;border-color:#ddd}}
 </style>
 </head>
@@ -80,14 +83,14 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <div class="meta"><span>📋 全项目 UI 界面制作</span><span>👤 策划 · 交互 · UI · Layout · VX · 客户端 · QA</span><span>📅 2026-04-22</span></div>
 </div>
 
-<div class="alert alert-blue"><strong>📌 说明</strong>：本文档为<strong>环节流程同步专用精简版</strong>，聚焦流程节点、角色分工、Input/Output 与评审标准。完整版（含 FAQ、异常场景、TAPD 发单机制）请查阅《游戏 UI 界面制作全流程 v1.1》。</div>
+<div class="alert alert-blue"><strong>📌 说明</strong>：本文档为<strong>环节流程同步专用精简版</strong>，聚焦流程节点、角色分工、Input/Output、TAPD 发单机制与常见问题。<span class="badge badge-new">NEW</span> 标记为新增环节。</div>
 
-<!-- SEC1 流程可视化 -->
+<!-- SEC1 流程管线可视化 -->
 <div class="section" id="sec1">
-  <h2>🔗 1. 流程可视化总览</h2>
-  <p><strong style="color:var(--cyan)">蓝色虚线框</strong> = 可并行区域　<strong style="color:var(--red)">红色虚线</strong> = 评审打回路径</p>
+  <h2>🔗 1. 流程管线可视化总览</h2>
+  <p><strong style="color:var(--cyan)">蓝色虚线框</strong> = 可并行区域　<strong style="color:var(--red)">红色虚线</strong> = 评审打回路径　<span class="badge badge-new">NEW</span> = 新增环节</p>
   <div class="flowchart-wrap">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1850" width="900" height="1850">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1950" width="900" height="1950">
       <defs>
         <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#8b90a5"/></marker>
         <marker id="arr-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#4ade80"/></marker>
@@ -107,27 +110,31 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
         <filter id="gG"><feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#4ade80" flood-opacity=".3"/></filter>
         <filter id="ds"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000" flood-opacity=".15"/></filter>
       </defs>
-      <line x1="450" y1="28" x2="450" y2="1830" stroke="#1e2030" stroke-width="1" opacity=".4"/>
+      <line x1="450" y1="28" x2="450" y2="1930" stroke="#1e2030" stroke-width="1" opacity=".4"/>
+      <!-- ① 策划需求 -->
       <rect x="300" y="24" width="300" height="64" rx="14" fill="url(#gPurple)" stroke="#a78bfa" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="450" y="50" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">📋 策划输出需求文档</text>
+      <text x="450" y="50" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">📋 ① 策划输出需求文档</text>
       <text x="450" y="72" text-anchor="middle" fill="#9499b0" font-size="11">需求文档 · 页面清单 · 数据结构</text>
       <line x1="450" y1="88" x2="450" y2="128" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- ② 交互设计 -->
       <rect x="300" y="128" width="300" height="64" rx="14" fill="url(#gBlue)" stroke="#60a5fa" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="450" y="154" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">🎨 交互设计</text>
+      <text x="450" y="154" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">🎨 ② 交互设计</text>
       <text x="450" y="176" text-anchor="middle" fill="#9499b0" font-size="11">交互稿 · 线框图 · 操作逻辑</text>
       <line x1="450" y1="192" x2="450" y2="238" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- ③ 交互评审 -->
       <polygon points="450,238 520,272 450,306 380,272" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="1.5" filter="url(#ds)"/>
-      <text x="450" y="268" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="700">✅ 交互评审</text>
+      <text x="450" y="268" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="700">✅ ③ 交互评审</text>
       <text x="450" y="284" text-anchor="middle" fill="#9499b0" font-size="10">通过 / 打回</text>
       <path d="M520,272 L558,272 L558,192" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
       <polygon points="558,192 554,200 562,200" fill="#f87171"/>
       <line x1="450" y1="306" x2="450" y2="350" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <!-- ④ 交互交付 -->
       <rect x="300" y="350" width="300" height="60" rx="14" fill="url(#gBlue)" stroke="#60a5fa" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="450" y="375" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">📄 交互图交付</text>
+      <text x="450" y="375" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">📄 ④ 交互图交付</text>
       <text x="450" y="396" text-anchor="middle" fill="#9499b0" font-size="11">标注文档 · 蓝湖 / Figma</text>
       <line x1="450" y1="410" x2="450" y2="492" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
       <!-- 并行组A -->
-      <rect x="60" y="456" width="800" height="416" rx="16" fill="rgba(34,211,238,.025)" stroke="#22d3ee" stroke-width="2" stroke-dasharray="10,5"/>
+      <rect x="60" y="456" width="800" height="490" rx="16" fill="rgba(34,211,238,.025)" stroke="#22d3ee" stroke-width="2" stroke-dasharray="10,5"/>
       <rect x="72" y="464" width="290" height="22" rx="6" fill="rgba(34,211,238,.08)"/>
       <text x="80" y="479" fill="#22d3ee" font-size="11" font-weight="700">⚡ 并行组 A — 交互交付后双线启动</text>
       <circle cx="450" cy="492" r="3" fill="#8b90a5"/>
@@ -135,19 +142,21 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
       <line x1="240" y1="492" x2="240" y2="518" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
       <line x1="450" y1="492" x2="660" y2="492" stroke="#8b90a5" stroke-width="1.5"/>
       <line x1="660" y1="492" x2="660" y2="518" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- 左线 -->
       <rect x="90" y="520" width="300" height="60" rx="12" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="240" y="545" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📐 Layout 功能蓝图交付</text>
+      <text x="240" y="545" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📐 ⑤-a Layout白模蓝图</text>
       <text x="240" y="565" text-anchor="middle" fill="#9499b0" font-size="11">白模蓝图 · 功能验证</text>
       <line x1="240" y1="580" x2="240" y2="620" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
       <rect x="90" y="620" width="300" height="60" rx="12" fill="url(#gYellow)" stroke="#fbbf24" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="240" y="645" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">💻 客户端功能制作</text>
+      <text x="240" y="645" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">💻 ⑤-b 客户端功能制作</text>
       <text x="240" y="665" text-anchor="middle" fill="#9499b0" font-size="11">基于白模并行开发</text>
+      <!-- 右线 -->
       <rect x="510" y="520" width="300" height="60" rx="12" fill="url(#gPink)" stroke="#f472b6" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="660" y="545" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">🖌️ UI 设计</text>
+      <text x="660" y="545" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">🖌️ ⑥ UI 设计</text>
       <text x="660" y="565" text-anchor="middle" fill="#9499b0" font-size="11">高保真稿 · 视觉风格</text>
       <line x1="660" y1="580" x2="660" y2="610" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
       <polygon points="660,610 724,640 660,670 596,640" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="1.5" filter="url(#ds)"/>
-      <text x="660" y="636" text-anchor="middle" fill="#e4e6ed" font-size="12" font-weight="700">✅ UI 评审</text>
+      <text x="660" y="636" text-anchor="middle" fill="#e4e6ed" font-size="12" font-weight="700">✅ ⑦ UI 评审</text>
       <text x="660" y="652" text-anchor="middle" fill="#9499b0" font-size="10">通过 / 打回</text>
       <path d="M724,640 L762,640 L762,580" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
       <polygon points="762,580 758,588 766,588" fill="#f87171"/>
@@ -157,77 +166,94 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
       <text x="660" y="737" text-anchor="middle" fill="#9499b0" font-size="11">UI 终稿 vs 交互稿</text>
       <line x1="660" y1="748" x2="660" y2="778" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
       <rect x="510" y="778" width="300" height="55" rx="12" fill="url(#gPink)" stroke="#f472b6" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="660" y="801" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📦 UI 图交付</text>
+      <text x="660" y="801" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📦 ⑧ UI 图交付</text>
       <text x="660" y="820" text-anchor="middle" fill="#9499b0" font-size="11">切图 · 标注 · 资产包</text>
+      <line x1="660" y1="833" x2="660" y2="865" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- ⑨ 资产合规 NEW -->
+      <rect x="510" y="865" width="300" height="55" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="2" filter="url(#ns)"/>
+      <text x="660" y="888" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">🔍 ⑨ 资产合规检查</text>
+      <text x="660" y="907" text-anchor="middle" fill="#9499b0" font-size="11">命名·尺寸·格式自动校验</text>
+      <rect x="795" y="862" width="38" height="16" rx="5" fill="#22d3ee"/><text x="814" y="874" text-anchor="middle" fill="#000" font-size="9" font-weight="700">NEW</text>
+      <!-- 中期对齐 -->
       <rect x="380" y="706" width="148" height="28" rx="8" fill="rgba(248,113,113,.08)" stroke="#f87171" stroke-width="1" stroke-dasharray="4,3"/>
       <text x="454" y="724" text-anchor="middle" fill="#f87171" font-size="12" font-weight="600">⚠️ UI 50% 中期对齐</text>
       <!-- 汇合A -->
-      <line x1="240" y1="680" x2="240" y2="872" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
-      <line x1="660" y1="833" x2="660" y2="872" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
-      <circle cx="450" cy="872" r="4" fill="#22d3ee"/>
-      <line x1="450" y1="872" x2="450" y2="898" stroke="#22d3ee" stroke-width="2" marker-end="url(#arr-cyan)"/>
-      <rect x="275" y="898" width="350" height="46" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="450" y="925" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — UI 资产 + Layout 白模就绪</text>
-      <line x1="450" y1="944" x2="450" y2="974" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
-      <!-- 偏离度检查 -->
-      <rect x="180" y="974" width="540" height="96" rx="14" fill="rgba(248,113,113,.03)" stroke="#f87171" stroke-width="1.5" stroke-dasharray="8,4"/>
-      <text x="200" y="997" fill="#f87171" font-size="13" font-weight="700">⚠️ 偏离度检查</text>
-      <text x="450" y="1018" text-anchor="middle" fill="#e4e6ed" font-size="12" font-weight="600">Layout 对比 UI 终稿与白模：是否有重大变更？</text>
-      <rect x="200" y="1032" width="210" height="24" rx="6" fill="rgba(74,222,128,.06)" stroke="rgba(74,222,128,.2)" stroke-width="1"/>
-      <text x="305" y="1048" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="600">✅ 无偏离 → 正常流转</text>
-      <rect x="490" y="1032" width="210" height="24" rx="6" fill="rgba(248,113,113,.06)" stroke="rgba(248,113,113,.2)" stroke-width="1"/>
-      <text x="595" y="1048" text-anchor="middle" fill="#f87171" font-size="11" font-weight="600">🔴 偏离 → 白模返工</text>
-      <line x1="450" y1="1070" x2="450" y2="1106" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
-      <!-- Layout 切正式资产 -->
-      <rect x="300" y="1106" width="300" height="62" rx="14" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="450" y="1132" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">📐 Layout 切正式资产</text>
-      <text x="450" y="1152" text-anchor="middle" fill="#9499b0" font-size="11">替换白模 · 接入正式 UI 素材</text>
-      <line x1="450" y1="1168" x2="450" y2="1232" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="240" y1="680" x2="240" y2="960" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <line x1="660" y1="920" x2="660" y2="960" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <circle cx="450" cy="960" r="4" fill="#22d3ee"/>
+      <line x1="450" y1="960" x2="450" y2="990" stroke="#22d3ee" stroke-width="2" marker-end="url(#arr-cyan)"/>
+      <rect x="275" y="990" width="350" height="46" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="1.5" filter="url(#ns)"/>
+      <text x="450" y="1017" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — UI资产 + Layout白模就绪</text>
+      <line x1="450" y1="1036" x2="450" y2="1066" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- 偏离度检查块 -->
+      <rect x="180" y="1066" width="540" height="96" rx="14" fill="rgba(248,113,113,.03)" stroke="#f87171" stroke-width="1.5" stroke-dasharray="8,4"/>
+      <text x="200" y="1089" fill="#f87171" font-size="13" font-weight="700">⚠️ 偏离度检查</text>
+      <text x="450" y="1110" text-anchor="middle" fill="#e4e6ed" font-size="12" font-weight="600">Layout对比UI终稿与白模：是否有重大变更？</text>
+      <rect x="200" y="1124" width="210" height="24" rx="6" fill="rgba(74,222,128,.06)" stroke="rgba(74,222,128,.2)" stroke-width="1"/>
+      <text x="305" y="1140" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="600">✅ 无偏离 → 正常流转</text>
+      <rect x="490" y="1124" width="210" height="24" rx="6" fill="rgba(248,113,113,.06)" stroke="rgba(248,113,113,.2)" stroke-width="1"/>
+      <text x="595" y="1140" text-anchor="middle" fill="#f87171" font-size="11" font-weight="600">🔴 偏离 → 白模返工</text>
+      <line x1="450" y1="1162" x2="450" y2="1198" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <!-- ⑩ Layout切正式 -->
+      <rect x="300" y="1198" width="300" height="62" rx="14" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="1.5" filter="url(#ns)"/>
+      <text x="450" y="1224" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">📐 ⑩ Layout切正式资产</text>
+      <text x="450" y="1244" text-anchor="middle" fill="#9499b0" font-size="11">替换白模 · 接入正式UI素材</text>
+      <line x1="450" y1="1260" x2="450" y2="1328" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
       <!-- 并行组B -->
-      <rect x="108" y="1196" width="684" height="184" rx="16" fill="rgba(34,211,238,.025)" stroke="#22d3ee" stroke-width="2" stroke-dasharray="10,5"/>
-      <rect x="120" y="1204" width="310" height="22" rx="6" fill="rgba(34,211,238,.08)"/>
-      <text x="128" y="1219" fill="#22d3ee" font-size="11" font-weight="700">⚡ 并行组 B — 切正式资产后双线启动</text>
-      <circle cx="450" cy="1232" r="3" fill="#8b90a5"/>
-      <line x1="450" y1="1232" x2="280" y2="1232" stroke="#8b90a5" stroke-width="1.5"/>
-      <line x1="280" y1="1232" x2="280" y2="1258" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
-      <line x1="450" y1="1232" x2="620" y2="1232" stroke="#8b90a5" stroke-width="1.5"/>
-      <line x1="620" y1="1232" x2="620" y2="1258" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
-      <rect x="130" y="1258" width="300" height="58" rx="12" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="280" y="1282" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📐 Layout 正式蓝图制作</text>
-      <text x="280" y="1301" text-anchor="middle" fill="#9499b0" font-size="11">绑定 · 自适应 · 动画</text>
-      <rect x="470" y="1258" width="300" height="58" rx="12" fill="url(#gOrange)" stroke="#fb923c" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="620" y="1282" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">✨ VX 动效预演 + 制作</text>
-      <text x="620" y="1301" text-anchor="middle" fill="#9499b0" font-size="11">预演视频 · 正式动效资产</text>
+      <rect x="108" y="1292" width="684" height="200" rx="16" fill="rgba(34,211,238,.025)" stroke="#22d3ee" stroke-width="2" stroke-dasharray="10,5"/>
+      <rect x="120" y="1300" width="310" height="22" rx="6" fill="rgba(34,211,238,.08)"/>
+      <text x="128" y="1315" fill="#22d3ee" font-size="11" font-weight="700">⚡ 并行组 B — 切正式资产后双线启动</text>
+      <circle cx="450" cy="1328" r="3" fill="#8b90a5"/>
+      <line x1="450" y1="1328" x2="280" y2="1328" stroke="#8b90a5" stroke-width="1.5"/>
+      <line x1="280" y1="1328" x2="280" y2="1354" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="450" y1="1328" x2="620" y2="1328" stroke="#8b90a5" stroke-width="1.5"/>
+      <line x1="620" y1="1328" x2="620" y2="1354" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <rect x="130" y="1354" width="300" height="58" rx="12" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="1.5" filter="url(#ns)"/>
+      <text x="280" y="1378" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📐 ⑪ Layout正式蓝图</text>
+      <text x="280" y="1397" text-anchor="middle" fill="#9499b0" font-size="11">绑定 · 自适应 · 动画</text>
+      <rect x="470" y="1354" width="300" height="58" rx="12" fill="url(#gOrange)" stroke="#fb923c" stroke-width="1.5" filter="url(#ns)"/>
+      <text x="620" y="1378" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">✨ ⑫ VX动效预演+制作</text>
+      <text x="620" y="1397" text-anchor="middle" fill="#9499b0" font-size="11">预演视频 · 正式动效资产</text>
+      <!-- ⑬ 动效评审 NEW -->
+      <line x1="620" y1="1412" x2="620" y2="1440" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <polygon points="620,1440 684,1466 620,1492 556,1466" fill="url(#gGray)" stroke="#22d3ee" stroke-width="2" filter="url(#ds)"/>
+      <text x="620" y="1462" text-anchor="middle" fill="#e4e6ed" font-size="11" font-weight="700">✅ ⑬ 动效评审</text>
+      <text x="620" y="1478" text-anchor="middle" fill="#9499b0" font-size="9">通过/调整/砍除</text>
+      <rect x="670" y="1436" width="38" height="16" rx="5" fill="#22d3ee"/><text x="689" y="1448" text-anchor="middle" fill="#000" font-size="9" font-weight="700">NEW</text>
       <!-- 汇合B -->
-      <line x1="280" y1="1316" x2="280" y2="1380" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
-      <line x1="620" y1="1316" x2="620" y2="1380" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
-      <circle cx="450" cy="1380" r="4" fill="#22d3ee"/>
-      <line x1="450" y1="1380" x2="450" y2="1406" stroke="#22d3ee" stroke-width="2" marker-end="url(#arr-cyan)"/>
-      <rect x="275" y="1406" width="350" height="46" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="450" y="1433" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — 正式蓝图 + 动效资产就绪</text>
-      <line x1="450" y1="1452" x2="450" y2="1484" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
-      <!-- 界面走查 -->
-      <polygon points="450,1484 525,1520 450,1556 375,1520" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="1.5" filter="url(#ds)"/>
-      <text x="450" y="1516" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="700">✅ 界面走查</text>
-      <text x="450" y="1532" text-anchor="middle" fill="#9499b0" font-size="10">逐像素校对</text>
-      <line x1="525" y1="1520" x2="570" y2="1520" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-orange)"/>
-      <rect x="578" y="1500" width="180" height="40" rx="8" fill="rgba(251,146,60,.06)" stroke="#fb923c" stroke-width="1"/>
-      <text x="668" y="1516" text-anchor="middle" fill="#fb923c" font-size="11" font-weight="600">问题分流</text>
-      <text x="668" y="1530" text-anchor="middle" fill="#9499b0" font-size="10">UI / Layout / 客户端 / 交互</text>
-      <line x1="450" y1="1556" x2="450" y2="1596" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
-      <rect x="300" y="1596" width="300" height="58" rx="14" fill="url(#gOrange)" stroke="#fb923c" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="450" y="1620" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">✨ VX 界面动效制作</text>
-      <text x="450" y="1640" text-anchor="middle" fill="#9499b0" font-size="11">正式动效集成 · 参数调优</text>
-      <line x1="450" y1="1654" x2="450" y2="1686" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
-      <rect x="300" y="1686" width="300" height="58" rx="14" fill="url(#gYellow)" stroke="#fbbf24" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="450" y="1710" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">💻 客户端集成动效</text>
-      <text x="450" y="1730" text-anchor="middle" fill="#9499b0" font-size="11">功能 + 动效合并 · 联调</text>
-      <line x1="450" y1="1744" x2="450" y2="1776" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
-      <rect x="300" y="1776" width="300" height="48" rx="14" fill="url(#gGreen)" stroke="#4ade80" stroke-width="2" filter="url(#gG)"/>
-      <text x="450" y="1798" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">🎉 界面交付完成</text>
-      <text x="450" y="1814" text-anchor="middle" fill="#9499b0" font-size="11">资产归档 · 上线</text>
+      <line x1="280" y1="1412" x2="280" y2="1520" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <line x1="620" y1="1492" x2="620" y2="1520" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <circle cx="450" cy="1520" r="4" fill="#22d3ee"/>
+      <line x1="450" y1="1520" x2="450" y2="1546" stroke="#22d3ee" stroke-width="2" marker-end="url(#arr-cyan)"/>
+      <rect x="275" y="1546" width="350" height="46" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="1.5" filter="url(#ns)"/>
+      <text x="450" y="1573" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — 正式蓝图 + 动效资产就绪</text>
+      <line x1="450" y1="1592" x2="450" y2="1624" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- ⑭ 界面走查 -->
+      <polygon points="450,1624 525,1660 450,1696 375,1660" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="1.5" filter="url(#ds)"/>
+      <text x="450" y="1656" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="700">✅ ⑭ 界面走查</text>
+      <text x="450" y="1672" text-anchor="middle" fill="#9499b0" font-size="10">逐像素校对</text>
+      <line x1="525" y1="1660" x2="570" y2="1660" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-orange)"/>
+      <rect x="578" y="1640" width="180" height="40" rx="8" fill="rgba(251,146,60,.06)" stroke="#fb923c" stroke-width="1"/>
+      <text x="668" y="1656" text-anchor="middle" fill="#fb923c" font-size="11" font-weight="600">问题分流</text>
+      <text x="668" y="1670" text-anchor="middle" fill="#9499b0" font-size="10">UI/Layout/客户端/交互</text>
+      <line x1="450" y1="1696" x2="450" y2="1736" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <!-- ⑮ VX动效 -->
+      <rect x="300" y="1736" width="300" height="52" rx="14" fill="url(#gOrange)" stroke="#fb923c" stroke-width="1.5" filter="url(#ns)"/>
+      <text x="450" y="1758" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">✨ ⑮ VX界面动效制作</text>
+      <text x="450" y="1776" text-anchor="middle" fill="#9499b0" font-size="11">正式动效集成 · 参数调优</text>
+      <line x1="450" y1="1788" x2="450" y2="1818" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- ⑯ 客户端集成 -->
+      <rect x="300" y="1818" width="300" height="52" rx="14" fill="url(#gYellow)" stroke="#fbbf24" stroke-width="1.5" filter="url(#ns)"/>
+      <text x="450" y="1840" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">💻 ⑯ 客户端集成动效</text>
+      <text x="450" y="1858" text-anchor="middle" fill="#9499b0" font-size="11">功能+动效合并 · 联调</text>
+      <line x1="450" y1="1870" x2="450" y2="1900" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- ⑰ 交付完成 -->
+      <rect x="300" y="1900" width="300" height="48" rx="14" fill="url(#gGreen)" stroke="#4ade80" stroke-width="2" filter="url(#gG)"/>
+      <text x="450" y="1922" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">🎉 ⑰ 界面交付完成</text>
+      <text x="450" y="1938" text-anchor="middle" fill="#9499b0" font-size="11">资产归档 · 上线</text>
     </svg>
   </div>
+  <!-- 图例 -->
   <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:16px;font-size:13px;color:var(--text);justify-content:center;padding:16px 20px;background:var(--panel);border-radius:12px;border:1px solid var(--border)">
     <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:14px;background:rgba(167,139,250,.25);border:2px solid #a78bfa;border-radius:4px"></span>策划</span>
     <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:14px;background:rgba(96,165,250,.25);border:2px solid #60a5fa;border-radius:4px"></span>交互</span>
@@ -237,6 +263,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:14px;background:rgba(251,191,36,.25);border:2px solid #fbbf24;border-radius:4px"></span>客户端</span>
     <span style="display:flex;align-items:center;gap:6px"><svg width="20" height="14"><polygon points="10,0 20,7 10,14 0,7" fill="rgba(255,255,255,.06)" stroke="#9e9e9e" stroke-width="1.5"/></svg>评审</span>
     <span style="display:flex;align-items:center;gap:6px"><svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#22d3ee" stroke-width="2" stroke-dasharray="5,3"/></svg>并行区</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:28px;height:12px;background:var(--cyan);border-radius:4px;font-size:8px;color:#000;text-align:center;line-height:12px;font-weight:700">NEW</span>新增节点</span>
   </div>
 </div>
 
@@ -246,10 +273,9 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <div style="margin:20px 0 8px;font-size:13px;color:var(--dim);letter-spacing:2px;font-weight:600">▸ 阶段一 · 需求与交互（串行）</div>
   <div class="flow">
     <div class="flow-node purple"><strong>①策划需求</strong><div class="sub">需求文档</div></div><span class="flow-arrow">→</span>
-    <div class="flow-node purple new"><strong>②需求评审</strong><div class="sub">策划主导·冻结</div></div><span class="flow-arrow">→</span>
-    <div class="flow-node blue"><strong>③交互设计</strong><div class="sub">交互稿</div></div><span class="flow-arrow">→</span>
-    <div class="flow-node gate"><strong>④交互评审</strong><div class="sub">通过/打回</div></div><span class="flow-arrow">→</span>
-    <div class="flow-node blue"><strong>⑤交互交付</strong><div class="sub">标注文档</div></div>
+    <div class="flow-node blue"><strong>②交互设计</strong><div class="sub">交互稿</div></div><span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>③交互评审</strong><div class="sub">通过/打回</div></div><span class="flow-arrow">→</span>
+    <div class="flow-node blue"><strong>④交互交付</strong><div class="sub">标注文档</div></div>
   </div>
   <div style="margin:24px 0 8px;font-size:13px;color:var(--dim);letter-spacing:2px;font-weight:600">▸ 阶段二 · 设计与蓝图（<span style="color:var(--cyan)">⚡ 可并行</span>）</div>
   <div style="border:2px dashed var(--cyan);border-radius:14px;padding:16px 16px 12px;position:relative;margin-bottom:12px">
@@ -261,7 +287,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
       </div>
       <div style="background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.15);border-radius:10px;padding:12px">
         <div style="font-size:11px;color:#2dd4bf;font-weight:700;margin-bottom:8px">Layout + 客户端线</div>
-        <div class="flow" style="margin:0"><div class="flow-node teal" style="min-width:90px"><strong>⑩-a 白模</strong></div><span class="flow-arrow">→</span><div class="flow-node yellow" style="min-width:90px"><strong>⑬-a 客户端</strong></div></div>
+        <div class="flow" style="margin:0"><div class="flow-node teal" style="min-width:90px"><strong>⑤-a 白模</strong></div><span class="flow-arrow">→</span><div class="flow-node yellow" style="min-width:90px"><strong>⑤-b 客户端</strong></div></div>
       </div>
     </div>
     <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--dim)"><span style="color:var(--red);font-weight:600">⚠️ UI设计50%时须与Layout中期对齐</span></div>
@@ -272,18 +298,28 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     <div style="position:absolute;top:-11px;left:20px;background:var(--bg);padding:0 8px;font-size:11px;color:var(--cyan);font-weight:700">⚡ 并行组 B</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div style="background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.15);border-radius:10px;padding:12px">
-        <div class="flow" style="margin:0"><div class="flow-node teal" style="min-width:100px"><strong>⑩-b 切正式</strong></div><span class="flow-arrow">→</span><div class="flow-node teal" style="min-width:100px"><strong>⑩-c 正式蓝图</strong></div></div>
+        <div class="flow" style="margin:0"><div class="flow-node teal" style="min-width:100px"><strong>⑩切正式</strong></div><span class="flow-arrow">→</span><div class="flow-node teal" style="min-width:100px"><strong>⑪正式蓝图</strong></div></div>
       </div>
       <div style="background:rgba(251,146,60,.04);border:1px solid rgba(251,146,60,.15);border-radius:10px;padding:12px">
-        <div class="flow" style="margin:0"><div class="flow-node orange" style="min-width:90px"><strong>⑪VX动效</strong></div><span class="flow-arrow">→</span><div class="flow-node orange new" style="min-width:80px"><strong>⑫动效评审</strong></div></div>
+        <div class="flow" style="margin:0"><div class="flow-node orange" style="min-width:90px"><strong>⑫VX动效</strong></div><span class="flow-arrow">→</span><div class="flow-node orange new" style="min-width:80px"><strong>⑬动效评审</strong></div></div>
       </div>
     </div>
   </div>
   <div style="margin:20px 0 8px;font-size:13px;color:var(--dim);letter-spacing:2px;font-weight:600">▸ 阶段四 · 集成与交付（串行）</div>
   <div class="flow">
-    <div class="flow-node yellow"><strong>⑬集成</strong><div class="sub">功能+动效</div></div><span class="flow-arrow">→</span>
     <div class="flow-node gate"><strong>⑭走查</strong><div class="sub">问题分流</div></div><span class="flow-arrow">→</span>
-    <div class="flow-node green"><strong>⑮交付</strong><div class="sub">上线</div></div>
+    <div class="flow-node orange"><strong>⑮动效制作</strong><div class="sub">参数调优</div></div><span class="flow-arrow">→</span>
+    <div class="flow-node yellow"><strong>⑯集成</strong><div class="sub">功能+动效</div></div><span class="flow-arrow">→</span>
+    <div class="flow-node green"><strong>⑰交付</strong><div class="sub">上线</div></div>
+  </div>
+  <!-- 新增节点说明 -->
+  <div style="margin-top:24px;background:rgba(34,211,238,.04);border:1.5px solid rgba(34,211,238,.2);border-radius:12px;padding:16px 20px">
+    <div style="font-size:14px;color:var(--cyan);font-weight:700;margin-bottom:12px">📌 新增节点说明</div>
+    <table style="margin:0;font-size:13px">
+      <tr><th>节点</th><th>说明</th><th>触发条件</th></tr>
+      <tr><td><strong>⑨ 资产合规检查</strong> <span class="badge badge-new">NEW</span></td><td>UI切图交付后自动化校验命名规范、尺寸偶数、PNG-24/WebP、sRGB色域、9宫格完整性</td><td>UI切图交付后立即执行（自动化~30秒）</td></tr>
+      <tr><td><strong>⑬ 动效评审</strong> <span class="badge badge-new">NEW</span></td><td>VX主导评审动效预演视频，交互+客户端决策；结论为通过/调整/砍除（性能优先于动效）</td><td>仅含动效需求时触发，无动效可跳过，≤30分钟出结论</td></tr>
+    </table>
   </div>
 </div>
 
@@ -292,108 +328,121 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <h2>📑 3. 各阶段 · 角色 · Input / Output</h2>
 
   <div class="ps"><h4>① 策划输出需求文档</h4>
-  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 玩法设计文档 • 功能原型/草图<br>• 参考竞品 • 系统数据结构</div><div class="output"><strong>📤 Output</strong><br>• UI 需求文档（含页面清单）<br>• 功能逻辑说明 • 数据字段定义</div></div>
-  <div class="role-tags"><span class="label">责任人</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">1-2 天</span></div></div>
+  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 玩法设计文档 • 功能原型/草图<br>• 参考竞品 • 系统数据结构</div><div class="output"><strong>📤 Output</strong><br>• UI需求文档（含页面清单）<br>• 功能逻辑说明 • 数据字段定义</div></div>
+  <div class="role-tags"><span class="label">责任人</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">1-2天</span></div></div>
 
-  <div class="ps" style="border-color:var(--cyan)"><h4>② 需求评审 <span class="badge badge-new">NEW</span></h4>
-  <div style="background:rgba(167,139,250,.05);border:1px solid rgba(167,139,250,.15);border-radius:8px;padding:10px;margin-bottom:10px;font-size:13px;line-height:1.9">
-    <strong style="color:var(--accent2)">📌 触发</strong>：策划完成需求文档后、进入交互设计之前。
-    <strong style="color:var(--accent2)">👤 主导</strong>：策划　
-    <strong style="color:var(--accent2)">✅ 决策</strong>：项目经理/制作人
-  </div>
-  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 策划需求文档 • 技术可行性预评估</div><div class="output"><strong>📤 Output</strong><br>• 评审纪要 • <strong>需求冻结确认</strong> • 排期承诺</div></div>
-  <div class="role-tags"><span class="label">主导</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="label" style="margin-left:12px">参与</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rl"><span class="dot"></span>Layout</span><span class="role-tag rc"><span class="dot"></span>客户端</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">0.5 天</span></div>
-  <div class="alert alert-red" style="margin-top:8px"><strong>🔴</strong> 评审通过后需求<strong>冻结</strong>，变更需走正式变更流程。</div></div>
+  <div class="ps"><h4>② 交互设计</h4>
+  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 需求文档 • 平台设计规范</div><div class="output"><strong>📤 Output</strong><br>• 交互线框图 • 页面跳转逻辑图 • 异常状态说明</div></div>
+  <div class="role-tags"><span class="label">责任人</span><span class="role-tag ri"><span class="dot"></span>交互设计师</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">3-5天</span></div></div>
 
-  <div class="ps"><h4>③ 交互设计</h4>
-  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 已冻结的需求文档 • 平台设计规范</div><div class="output"><strong>📤 Output</strong><br>• 交互线框图 • 页面跳转逻辑图 • 异常状态说明</div></div>
-  <div class="role-tags"><span class="label">责任人</span><span class="role-tag ri"><span class="dot"></span>交互设计师</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">3-5 天</span></div></div>
-
-  <div class="ps"><h4>④ 交互评审 → ⑤ 交互图交付</h4>
+  <div class="ps"><h4>③ 交互评审 → ④ 交互图交付</h4>
   <div class="io"><div class="input"><strong>📥 评审输入</strong><br>• 交互稿 • 需求文档（对照）</div><div class="output"><strong>📤 交付输出</strong><br>• 正式交互标注文档 • 同步至蓝湖/Figma</div></div>
-  <div class="role-tags"><span class="label">参与</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rc"><span class="dot"></span>客户端</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">0.5+0.5 天</span></div></div>
+  <div class="role-tags"><span class="label">参与</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rc"><span class="dot"></span>客户端</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">0.5+0.5天</span></div></div>
 
   <div class="ps"><h4>⑥ UI 设计</h4>
-  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 交互标注文档 • 视觉风格指南 • UI 组件库</div><div class="output"><strong>📤 Output</strong><br>• 高保真 UI 设计稿 • 标注 • 图标素材</div></div>
-  <div class="role-tags"><span class="label">责任人</span><span class="role-tag ru"><span class="dot"></span>UI 设计师</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">5-7 天</span></div></div>
+  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 交互标注文档 • 视觉风格指南 • UI组件库</div><div class="output"><strong>📤 Output</strong><br>• 高保真UI设计稿 • 标注 • 图标素材</div></div>
+  <div class="role-tags"><span class="label">责任人</span><span class="role-tag ru"><span class="dot"></span>UI设计师</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">5-7天</span></div></div>
 
   <div class="ps"><h4>⑦ UI 评审 → ⑧ UI 图交付</h4>
-  <div class="io"><div class="input"><strong>📥 评审输入</strong><br>• UI 设计稿 • 交互稿（对照）</div><div class="output"><strong>📤 交付输出</strong><br>• 切图（PNG/SVG，偶数尺寸）• 标注 • 9宫格</div></div>
-  <div class="role-tags"><span class="label">参与</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rl"><span class="dot"></span>Layout</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">0.5 天评审 + 1 天切图</span></div></div>
+  <div class="io"><div class="input"><strong>📥 评审输入</strong><br>• UI设计稿 • 交互稿（对照）</div><div class="output"><strong>📤 交付输出</strong><br>• 切图（PNG/SVG偶数尺寸）• 标注 • 9宫格</div></div>
+  <div class="role-tags"><span class="label">参与</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rl"><span class="dot"></span>Layout</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">0.5天评审+1天切图</span></div></div>
 
   <div class="ps" style="border-color:var(--cyan)"><h4>⑨ 资产合规检查 <span class="badge badge-new">NEW</span></h4>
-  <div class="io"><div class="input"><strong>📥 Input</strong><br>• UI 切图资产包 • 命名规范文档</div><div class="output"><strong>📤 Output</strong><br>• 合规报告（PASS/FAIL）• 不合规项清单</div></div>
-  <div class="role-tags"><span class="label">责任人</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rl"><span class="dot"></span>Layout</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">自动化 30 秒</span></div>
+  <div class="io"><div class="input"><strong>📥 Input</strong><br>• UI切图资产包 • 命名规范文档</div><div class="output"><strong>📤 Output</strong><br>• 合规报告（PASS/FAIL）• 不合规项清单</div></div>
+  <div class="role-tags"><span class="label">责任人</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rl"><span class="dot"></span>Layout</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">自动化30秒</span></div>
   <div class="alert alert-red" style="margin-top:8px"><strong>🔴 门禁</strong>：<code>模块_功能_状态_尺寸</code>、偶数尺寸、PNG-24/WebP、sRGB、9宫格完整。</div></div>
 
-  <div class="ps"><h4>⑩ Layout 制作（白模 + 切正式 + 正式蓝图）</h4>
-  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 交互标注文档 • 合规切图 • 引擎 UI 规范</div><div class="output"><strong>📤 Output</strong><br>• 功能蓝图（白模）• 正式资产替换 • 正式蓝图</div></div>
-  <div class="role-tags"><span class="label">责任人</span><span class="role-tag rl"><span class="dot"></span>Layout 工程师</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">3-5 天</span></div>
-  <div class="alert alert-blue" style="margin-top:8px"><strong>💡</strong> Layout 白模可与 UI 设计并行（交互交付后即启动），客户端可基于白模并行开发。</div></div>
+  <div class="ps"><h4>⑩ Layout制作（白模+切正式+正式蓝图）</h4>
+  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 交互标注文档 • 合规切图 • 引擎UI规范</div><div class="output"><strong>📤 Output</strong><br>• 功能蓝图（白模）• 正式资产替换 • 正式蓝图</div></div>
+  <div class="role-tags"><span class="label">责任人</span><span class="role-tag rl"><span class="dot"></span>Layout工程师</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">3-5天</span></div>
+  <div class="alert alert-blue" style="margin-top:8px"><strong>💡</strong> Layout白模可与UI设计并行（交互交付后即启动），客户端可基于白模并行开发。</div></div>
 
-  <div class="ps"><h4>⑪ VX 动效（预演 + 正式制作）</h4>
-  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 交互动效说明 • UI 设计稿 • 引擎动效能力</div><div class="output"><strong>📤 Output</strong><br>• 预演视频/GIF • 正式动效资产 • 参数文档</div></div>
-  <div class="role-tags"><span class="label">责任人</span><span class="role-tag rv"><span class="dot"></span>VX 动效设计师</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">2-4 天</span></div></div>
+  <div class="ps"><h4>⑫ VX动效（预演+正式制作）</h4>
+  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 交互动效说明 • UI设计稿 • 引擎动效能力</div><div class="output"><strong>📤 Output</strong><br>• 预演视频/GIF • 正式动效资产 • 参数文档</div></div>
+  <div class="role-tags"><span class="label">责任人</span><span class="role-tag rv"><span class="dot"></span>VX动效设计师</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">2-4天</span></div></div>
 
-  <div class="ps" style="border-color:var(--cyan)"><h4>⑫ 动效评审 <span class="badge badge-new">NEW</span></h4>
+  <div class="ps" style="border-color:var(--cyan)"><h4>⑬ 动效评审 <span class="badge badge-new">NEW</span></h4>
   <div style="background:rgba(251,146,60,.05);border:1px solid rgba(251,146,60,.15);border-radius:8px;padding:10px;margin-bottom:10px;font-size:13px;line-height:1.9">
     <strong style="color:var(--orange)">📌 触发</strong>：仅含动效需求时触发，无动效可跳过。
     <strong style="color:var(--orange)">👤 主导</strong>：VX　
-    <strong style="color:var(--orange)">✅ 决策</strong>：交互 + 客户端
+    <strong style="color:var(--orange)">✅ 决策</strong>：交互+客户端
   </div>
-  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 动效预演视频 • 参数文档 • 性能预算</div><div class="output"><strong>📤 Output</strong><br>• 结论（✅通过 / 🔧调整 / ❌砍除）<br>• 性能评估</div></div>
-  <div class="role-tags"><span class="label">主导</span><span class="role-tag rv"><span class="dot"></span>VX</span><span class="label" style="margin-left:12px">决策</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag rc"><span class="dot"></span>客户端</span><span class="label" style="margin-left:12px">可选</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">≤0.5 天</span></div>
+  <div class="io"><div class="input"><strong>📥 Input</strong><br>• 动效预演视频 • 参数文档 • 性能预算</div><div class="output"><strong>📤 Output</strong><br>• 结论（✅通过/🔧调整/❌砍除）<br>• 性能评估</div></div>
+  <div class="role-tags"><span class="label">主导</span><span class="role-tag rv"><span class="dot"></span>VX</span><span class="label" style="margin-left:12px">决策</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag rc"><span class="dot"></span>客户端</span><span class="label" style="margin-left:12px">可选</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">≤0.5天</span></div>
   <div class="alert alert-yellow" style="margin-top:8px"><strong>⚠️</strong> 性能优先于动效。≤30分钟当场出结论。</div></div>
 
-  <div class="ps"><h4>⑬ 客户端集成 → ⑭ 界面走查 → ⑮ 交付</h4>
-  <div class="io"><div class="input"><strong>📥 集成输入</strong><br>• 正式蓝图 • 动效资产 • 功能逻辑+接口文档</div><div class="output"><strong>📤 走查/交付输出</strong><br>• 走查通过 → 资产归档 + 上线<br>• 问题清单 → 分流至责任人</div></div>
+  <div class="ps"><h4>⑭ 界面走查 → ⑮ VX动效制作 → ⑯ 客户端集成 → ⑰ 交付</h4>
+  <div class="io"><div class="input"><strong>📥 集成输入</strong><br>• 正式蓝图 • 动效资产 • 功能逻辑+接口文档</div><div class="output"><strong>📤 走查/交付输出</strong><br>• 走查通过 → 资产归档+上线<br>• 问题清单 → 分流至责任人</div></div>
   <div class="role-tags" style="margin-bottom:4px"><span class="label">集成</span><span class="role-tag rc"><span class="dot"></span>客户端</span></div>
-  <div class="role-tags"><span class="label">走查主导</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rl"><span class="dot"></span>Layout</span><span class="label" style="margin-left:12px">功能测试</span><span class="role-tag rq"><span class="dot"></span>QA</span><span class="label" style="margin-left:12px">协助</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag rv"><span class="dot"></span>VX</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">3-5 天集成 + 2-3 天走查</span></div></div>
+  <div class="role-tags"><span class="label">走查主导</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rl"><span class="dot"></span>Layout</span><span class="label" style="margin-left:12px">功能测试</span><span class="role-tag rq"><span class="dot"></span>QA</span><span class="label" style="margin-left:12px">协助</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag rv"><span class="dot"></span>VX</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">3-5天集成+2-3天走查</span></div></div>
+
+  <!-- TAPD 发单机制 -->
+  <div style="margin-top:32px;border:2px solid var(--cyan);border-radius:14px;padding:20px;position:relative">
+    <div style="position:absolute;top:-12px;left:20px;background:var(--bg);padding:0 10px;font-size:14px;color:var(--cyan);font-weight:700">📋 TAPD 发单机制与职责分工</div>
+    <p style="margin:8px 0 16px;font-size:14px;color:var(--dim)">UI管线涉及多角色协作，TAPD单据的创建和流转直接影响进度跟踪和复盘效率。推荐采用<strong style="color:var(--heading)">「策划创建父单 + APM拆解子单」</strong>的协作模式：</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);border-radius:10px;padding:14px">
+        <div style="font-size:14px;color:var(--accent2);font-weight:700;margin-bottom:10px">📝 策划 — 创建父需求单</div>
+        <div style="font-size:13px;line-height:1.9">
+          <strong style="color:var(--heading)">时机：</strong>需求评审通过后<br>
+          <strong style="color:var(--heading)">单据类型：</strong>TAPD需求（父级）<br>
+          <strong style="color:var(--heading)">必填字段：</strong><br>
+          <span style="padding-left:12px">• 标题：<code>[UI] 界面名称 — 功能简述</code></span><br>
+          <span style="padding-left:12px">• 详细描述：需求文档链接、页面清单</span><br>
+          <span style="padding-left:12px">• 优先级/迭代版本/截止日期</span><br>
+          <span style="padding-left:12px">• 关联文档：Figma/蓝湖链接</span><br>
+          <strong style="color:var(--heading)">处理人：</strong>设为对应交互设计师（启动交互阶段）
+        </div>
+      </div>
+      <div style="background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.2);border-radius:10px;padding:14px">
+        <div style="font-size:14px;color:var(--cyan);font-weight:700;margin-bottom:10px">📊 APM — 拆解子单 & 进度跟踪</div>
+        <div style="font-size:13px;line-height:1.9">
+          <strong style="color:var(--heading)">时机：</strong>收到父需求单后（1个工作日内）<br>
+          <strong style="color:var(--heading)">拆解子单清单：</strong><br>
+          <span style="padding-left:12px">• 交互设计 → 处理人：交互设计师</span><br>
+          <span style="padding-left:12px">• UI设计 → 处理人：UI设计师</span><br>
+          <span style="padding-left:12px">• Layout蓝图 → 处理人：Layout工程师</span><br>
+          <span style="padding-left:12px">• VX动效 → 处理人：VX动效设计师</span><br>
+          <span style="padding-left:12px">• 客户端集成 → 处理人：客户端程序</span><br>
+          <span style="padding-left:12px">• 界面走查 → 处理人：策划/UI设计/Layout负责人</span><br>
+          <strong style="color:var(--heading)">关键动作：</strong>设置子单依赖关系、里程碑、预警
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px">
+      <div style="font-size:13px;color:var(--heading);font-weight:600;margin-bottom:10px">⏱️ 发单时序与流转规则</div>
+      <table style="margin:0;font-size:13px">
+        <tr><th style="width:60px">阶段</th><th>触发动作</th><th>TAPD操作</th><th>操作人</th></tr>
+        <tr><td>①→②</td><td>需求文档完成</td><td>策划创建父需求单，状态→<strong>已受理</strong></td><td>策划</td></tr>
+        <tr><td>②</td><td>APM收到父单</td><td>拆解全部子单，设置依赖和排期</td><td>APM</td></tr>
+        <tr><td>③→④</td><td>交互交付完成</td><td>交互子单→<strong>已完成</strong>，UI子单+Layout子单→<strong>进行中</strong></td><td>交互</td></tr>
+        <tr><td>⑥→⑨</td><td>UI交付+合规通过</td><td>UI子单→<strong>已完成</strong>，Layout切资产子单→<strong>进行中</strong></td><td>UI</td></tr>
+        <tr><td>⑩→⑫</td><td>Layout正式资产就绪</td><td>Layout子单→<strong>已完成</strong>，VX子单→<strong>进行中</strong></td><td>Layout</td></tr>
+        <tr><td>⑯→⑰</td><td>集成完成→走查通过</td><td>集成子单→<strong>已完成</strong>，走查子单→<strong>已完成</strong>，父单→<strong>已完成</strong></td><td>客户端/QA</td></tr>
+      </table>
+    </div>
+    <div class="alert alert-yellow" style="margin:0"><strong>⚠️ 发单注意事项</strong>：<br>
+      • 父单由<strong>策划</strong>创建（确保需求来源可追溯），子单由<strong>APM</strong>拆解（确保排期合理、依赖正确）<br>
+      • 每个子单必须关联父需求单，便于看板追踪整体进度<br>
+      • 评审类节点（③⑦⑬⑭）通过TAPD<strong>评论/备注</strong>记录结论，不单独建单<br>
+      • 走查问题通过TAPD<strong>缺陷单</strong>记录，关联到父需求单下，按问题类型分配处理人</div>
+  </div>
 </div>
 
-<!-- SEC4 评审标准 -->
+<!-- SEC4 常见问题 FAQ -->
 <div class="section" id="sec4">
-  <h2>✅ 4. 关键评审节点与通过标准</h2>
-  <table>
-    <tr><th>评审节点</th><th>参与人</th><th>通过标准</th><th>打回条件</th><th>上限</th></tr>
-    <tr><td><strong>②需求评审</strong> <span class="badge badge-new">NEW</span></td><td>策划主导，全员参与</td><td>需求完整无歧义、技术可行、排期合理</td><td>需求模糊、技术不可行</td><td>2次</td></tr>
-    <tr><td><strong>④交互评审</strong></td><td>策划+交互+UI+客户端</td><td>逻辑完整、交互流畅、异常已处理</td><td>遗漏分支、路径过深</td><td>2次</td></tr>
-    <tr><td><strong>⑦UI评审</strong></td><td>策划+交互+UI+Layout</td><td>风格统一、标注准确、适配完整</td><td>风格偏差、标注缺失</td><td>2次</td></tr>
-    <tr><td><strong>⑨资产合规</strong> <span class="badge badge-new">NEW</span></td><td>UI+Layout</td><td>命名100%合规、尺寸/格式通过、sRGB</td><td>自动化检查FAIL</td><td>不限</td></tr>
-    <tr><td><strong>⑫动效评审</strong> <span class="badge badge-new">NEW</span></td><td>VX主导，交互+客户端决策</td><td>动效与设计意图一致、性能在预算内</td><td>DrawCall超预算/表现不达标</td><td>2次（可砍除）</td></tr>
-    <tr><td><strong>⑭界面走查</strong></td><td>策划/UI/Layout主导，QA功能</td><td>像素级一致、功能正确、动效流畅</td><td>P0/P1问题存在</td><td>3次</td></tr>
-  </table>
-  <div class="redline"><p><strong>🔴 铁律</strong>：超过最大迭代次数仍未通过 → <strong>上升至项目经理</strong>介入。</p></div>
-</div>
-
-<!-- SEC5 走查问题分流 -->
-<div class="section" id="sec5">
-  <h2>🔀 5. 走查问题分流</h2>
-  <table>
-    <tr><th>问题类型</th><th>典型表现</th><th>分流至</th><th>SLA</th></tr>
-    <tr><td><strong>🖌️ UI问题</strong></td><td>颜色偏差、图标错误、字体不一致</td><td>UI设计师</td><td>1天</td></tr>
-    <tr><td><strong>📐 Layout问题</strong></td><td>蓝图错位、适配异常、层级错乱</td><td>Layout</td><td>0.5天</td></tr>
-    <tr><td><strong>💻 开发问题</strong></td><td>功能逻辑错误、数据异常</td><td>客户端</td><td>1-2天</td></tr>
-    <tr><td><strong>🎨 交互问题</strong></td><td>流程不通、反馈缺失</td><td>交互</td><td>1天</td></tr>
-    <tr><td><strong>✨ 动效问题</strong></td><td>动效卡顿、方向/时长不合理</td><td>VX</td><td>1天</td></tr>
-  </table>
-  <div class="alert alert-green"><strong>✅ 闭环</strong>：发现 → 填写修改清单 → 分流 → 修复 → 自测 → 复查 → 验收关闭。</div>
-</div>
-
-<!-- SEC6 参考工期速查 -->
-<div class="section" id="sec6">
-  <h2>⏱️ 6. 参考工期速查</h2>
-  <table>
-    <tr><th>阶段</th><th>环节</th><th>参考天数</th><th>责任角色</th></tr>
-    <tr><td>阶段一</td><td>①②策划+评审</td><td>2-3 天</td><td>策划</td></tr>
-    <tr><td>阶段一</td><td>③④⑤交互</td><td>3-5 天</td><td>交互</td></tr>
-    <tr><td>阶段二</td><td>⑥⑦⑧⑨UI</td><td>5-8 天</td><td>UI</td></tr>
-    <tr><td>阶段二</td><td>⑩Layout</td><td>3-5 天</td><td>Layout</td></tr>
-    <tr><td>阶段三</td><td>⑪⑫动效</td><td>2-4 天</td><td>VX</td></tr>
-    <tr><td>阶段四</td><td>⑬集成</td><td>3-5 天</td><td>客户端</td></tr>
-    <tr><td>阶段四</td><td>⑭⑮走查+交付</td><td>2-3 天</td><td>全员</td></tr>
-  </table>
-  <p><strong>总工期</strong>：串行 20-33 天 → 合理并行 <strong>15-22 天</strong></p>
+  <h2>❓ 4. 常见问题 FAQ</h2>
+  <div class="faq-item"><div class="faq-q">💬 Q1：策划中途改需求怎么办？</div><div class="faq-a"><strong>答</strong>：需求冻结后变更必须走正式流程：① 提交变更申请单 ② 各方评估影响 ③ 项目经理审批 ④ 更新需求文档标注变更。<strong>未审批的变更 = 不执行。</strong></div></div>
+  <div class="faq-item"><div class="faq-q">💬 Q2：小团队也要走这么多评审吗？</div><div class="faq-a"><strong>答</strong>：评审可以简化但<strong>不能跳过</strong>。小团队可以：合并③④为一个快速评审、合并⑦⑧为一个快速评审。但<strong>⑨资产合规（自动化30秒）</strong>和<strong>⑭界面走查</strong>绝不能省。</div></div>
+  <div class="faq-item"><div class="faq-q">💬 Q3：Layout白模和UI设计并行，如果UI改了怎么办？</div><div class="faq-a"><strong>答</strong>：分两种情况——<br><strong>① 仅视觉层变更（配色/字体/图标样式）：</strong>白模不受影响，Layout切正式资产时直接替换即可。<br><strong>② 布局/结构性变更（控件增减、层级调整、页面布局大改）：</strong>这是并行模式下的<strong style="color:var(--red)">高风险场景</strong>。此时白模功能蓝图可能无法使用，需要触发「偏离评估会」。<br><strong>预防关键：</strong>UI设计进行至50%时必须与交互/Layout做一次中期对齐，提前暴露布局变更意图。</div></div>
+  <div class="faq-item"><div class="faq-q">💬 Q4：走查发现大量问题，是否需要重新走全流程？</div><div class="faq-a"><strong>答</strong>：不需要。走查问题按类型分流修复后进行<strong>复查</strong>，而非重走全流程。但如果问题是系统性的（如需求理解偏差），则需评估是否回退到对应阶段重做。</div></div>
+  <div class="faq-item" style="border-color:rgba(248,113,113,.3)"><div class="faq-q">💬 Q5：拿到UI视觉稿后，发现跟交互稿出入很大，程序说功能蓝图没法用，怎么办？ <span class="badge badge-new">NEW</span></div><div class="faq-a"><strong>答</strong>：这是并行管线中最典型的返工风险。处理步骤：<br>
+    <strong>第一步 · 紧急评估（≤半天）：</strong>交互+UI+Layout+客户端四方快速对齐，量化偏离范围。<br>
+    <strong>第二步 · 责任判定：</strong><br>
+    　• 如果UI未经沟通擅自改变布局 → UI承担返工责任<br>
+    　• 如果交互稿粒度不足，UI合理补充 → 交互确认变更，返工工期由项目承担<br>
+    <strong>第三步 · Layout返工（+2~3天）：</strong>Layout基于UI终稿重新搭建白模蓝图。<br>
+    <strong style="color:var(--red)">预防机制：</strong>UI设计50%时做一次<strong>中期设计对齐</strong>，30分钟快速同步布局意图，可避免80%以上的此类返工。</div></div>
 </div>
 
 <div class="doc-footer">🖥️ 游戏 UI 界面制作流程 · 环节同步版 · 2026-04-22 · 基于全流程 v1.1 精简</div>
