@@ -237,7 +237,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
       <!-- ⑭ 界面走查 -->
       <polygon points="450,1548 525,1584 450,1620 375,1584" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="1.5" filter="url(#ds)"/>
       <text x="450" y="1580" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="700">✅ ⑭ 界面走查</text>
-      <text x="450" y="1596" text-anchor="middle" fill="#9499b0" font-size="10">逐像素校对</text>
+      <text x="450" y="1596" text-anchor="middle" fill="#9499b0" font-size="10">还原度校对 · 规范与性能初检</text>
       <line x1="525" y1="1584" x2="570" y2="1584" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-orange)"/>
       <rect x="578" y="1564" width="180" height="40" rx="8" fill="rgba(251,146,60,.06)" stroke="#fb923c" stroke-width="1"/>
       <text x="668" y="1580" text-anchor="middle" fill="#fb923c" font-size="11" font-weight="600">问题分流</text>
@@ -325,6 +325,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
       <tr><th style="width:150px">节点</th><th>说明</th><th>触发条件</th></tr>
       <tr><td><strong>⑨ 资产合规检查</strong> <span class="badge badge-new">NEW</span></td><td>UI切图交付后自动化校验命名规范、尺寸偶数、PNG-24/WebP、sRGB色域、9宫格完整性。</td><td>UI切图交付后立即执行（自动化~30秒）</td></tr>
       <tr><td><strong>⑫ VX动效需求流转</strong></td><td>动效需求由交互/策划在设计阶段明确。APM拆单时若包含动效则创建子单，启动预演与制作；无动效需求则跳过此环节。</td><td>仅界面涉及动效表现时触发</td></tr>
+      <tr><td><strong>⚠️ 性能与规范红线</strong></td><td>游戏 UI 必须兼顾视觉表现与运行性能。全管线中需严控图集尺寸碎片化、动效粒子数量及渲染层级；Layout 拼接阶段需持续关注 Drawcall 及 Overdraw（过度绘制）优化。</td><td>贯穿 ⑥ UI设计、⑪ Layout蓝图 及 ⑫ VX动效 阶段</td></tr>
     </table>
   </div>
 </div>
@@ -365,20 +366,20 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px">
     <div style="font-size:13px;color:var(--heading);font-weight:600;margin-bottom:10px">⏱️ 发单时序与流转规则</div>
     <table style="margin:0;font-size:13px">
-      <tr><th style="width:60px">阶段</th><th>触发动作</th><th>TAPD操作</th><th>操作人</th></tr>
-      <tr><td>①→②</td><td>需求文档完成</td><td>策划创建父需求单，状态→<strong>已受理</strong></td><td>策划</td></tr>
-      <tr><td>②</td><td>APM收到父单</td><td>拆解全部子单，设置依赖和排期</td><td>APM</td></tr>
-      <tr><td>③→④</td><td>交互交付完成</td><td>交互子单→<strong>已完成</strong>，UI子单+Layout子单→<strong>进行中</strong></td><td>交互</td></tr>
-      <tr><td>⑥→⑨</td><td>UI交付+合规通过</td><td>UI子单→<strong>已完成</strong>，Layout切资产子单→<strong>进行中</strong></td><td>UI</td></tr>
-      <tr><td>⑩→⑫</td><td>Layout正式资产就绪</td><td>Layout子单→<strong>已完成</strong>，VX子单→<strong>进行中</strong></td><td>Layout</td></tr>
-      <tr><td>⑯→⑰</td><td>集成完成→走查通过</td><td>集成子单→<strong>已完成</strong>，走查子单→<strong>已完成</strong>，父单→<strong>已完成</strong></td><td>客户端/QA</td></tr>
+      <tr><th style="width:70px">环节阶段</th><th>触发动作 / 里程碑</th><th>TAPD 单据状态流转</th><th>操作人</th></tr>
+      <tr><td>①→②</td><td>需求文档定稿</td><td>策划建父需求单，状态设为 <strong>已受理</strong></td><td>策划</td></tr>
+      <tr><td>②</td><td>启动界面设计</td><td>拆解子单（交互/UI/Layout/动效等），明确前置依赖与排期</td><td>APM</td></tr>
+      <tr><td>③→④</td><td>交互评审通过 & 交付</td><td>交互子单 → <strong>已完成</strong>，UI / Layout白模子单 → <strong>进行中</strong></td><td>交互 / APM</td></tr>
+      <tr><td>⑥→⑨</td><td>UI评审通过 & 资产合规</td><td>UI子单 → <strong>已完成</strong>，Layout切正式单 → <strong>进行中</strong></td><td>UI / QA</td></tr>
+      <tr><td>⑩→⑫</td><td>正式蓝图与VX资产就绪</td><td>Layout蓝图子单 → <strong>已完成</strong>，VX制作子单 → <strong>已完成</strong></td><td>Layout / VX</td></tr>
+      <tr><td>⑭→⑰</td><td>走查验收与客户端集成</td><td>客户端集成单 → <strong>已完成</strong>，父需求单验收 → <strong>已完成</strong></td><td>客户端 / 策划</td></tr>
     </table>
   </div>
-  <div class="alert alert-yellow" style="margin:0"><strong>⚠️ 发单注意事项</strong>：<br>
-    • 父单由<strong>策划</strong>创建（确保需求来源可追溯），子单由<strong>APM</strong>拆解（确保排期合理、依赖正确）<br>
-    • 每个子单必须关联父需求单，便于看板追踪整体进度<br>
-    • 评审类节点（③⑦⑭）通过TAPD<strong>评论/备注</strong>记录结论，不单独建单<br>
-    • 走查问题通过TAPD<strong>缺陷单</strong>记录，关联到父需求单下，按问题类型分配处理人</div>
+  <div class="alert alert-yellow" style="margin:0"><strong>⚠️ 发单与流转注意事项</strong>：<br>
+    • 父单由<strong>策划</strong>创建（确保需求来源可追溯），子单由<strong>APM</strong>拆解（确保排期合理、前置依赖正确）。<br>
+    • 每个子单必须强关联父需求单，便于项目看板追踪系统整体研发进度。<br>
+    • 评审类节点（③⑦⑭）通过 TAPD <strong>评论/备注</strong>记录结论与调整点，不单独建单。<br>
+    • 走查发现的问题统一通过 TAPD <strong>缺陷单</strong>记录并关联父需求单。<strong style="color:var(--orange)">提报规范：必须包含【问题截图/录屏】、【期望表现】及【当前表现】</strong>，避免沟通拉扯造成返工。</div>
 </div>
 
 <!-- SEC4 常见问题 FAQ -->
