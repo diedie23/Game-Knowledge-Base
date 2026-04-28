@@ -401,6 +401,20 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     　• <strong>业务逻辑/数据异常问题</strong>：挂单给对应的<strong>客户端开发</strong>。<br>
     　• <strong>界面表现相关但不确定归属的问题</strong>：优先挂单给 <strong>v_zhyszhang（张荧）</strong>协助定位排查。<br>
     其他明确不属于界面的常规问题，按已有逻辑挂给对应接口人即可。</div></div>
+  <div class="faq-item" style="border-color:rgba(45,212,191,.3)"><div class="faq-q">💬 Q7：Layout 新手问题反复出现，如何保障蓝图还原质量？ <span class="badge badge-new">NEW</span></div><div class="faq-a"><strong>答</strong>：Layout 新手容易出现同类问题反复、走查修改率高、制作周期拉长等情况。建议从<strong>制作前规范约束、制作中过程管控、制作后走查复盘</strong>三个阶段建立质量保障机制：<br><br>
+    <strong style="color:var(--cyan)">一、制作前 — 规范先行 & 任务拆解</strong><br>
+    　• <strong>建立 Layout 制作 Checklist</strong>：将高频问题整理成标准检查清单（如：锚点设置、适配规则、命名规范、图集引用、Drawcall 控制等），新手在提交前必须逐项自查。<br>
+    　• <strong>任务分级指派</strong>：按界面复杂度分为 S/A/B/C 级，新手优先分配 B/C 级（简单弹窗、通用列表等），积累经验后再逐步承接 A/S 级（复杂主界面、多状态页签）。<br>
+    　• <strong>制作前对齐会（5~10分钟）</strong>：新手接单后，由 Layout 接口人快速过一遍 UI 稿要点，提前指出易踩坑的地方（特殊适配、动态列表、多语言文本溢出等），避免闷头做完才发现方向错。<br><br>
+    <strong style="color:var(--green)">二、制作中 — 过程管控 & 阶段性审查</strong><br>
+    　• <strong>关键节点中期检查</strong>：对于 A 级及以上的界面，新手完成 50% 时必须提交一次中期截图/录屏给 Layout 接口人审查，及时纠偏，避免最终走查时大面积返工。<br>
+    　• <strong>"同类问题不过三"机制</strong>：Layout 接口人对走查中发现的问题进行分类统计，<strong style="color:var(--red)">若同一类型问题在同一人身上出现 ≥3 次</strong>，需要启动一次专项 1v1 辅导，找到根因（是规范不清楚？工具不熟练？还是理解偏差？）并针对性解决。<br>
+    　• <strong>结对制作（Pair Work）</strong>：对高复杂度界面，安排新手与资深 Layout 结对制作，新手主做、老手旁审，现场答疑，加速经验传递。<br><br>
+    <strong style="color:var(--orange)">三、制作后 — 走查标准化 & 问题沉淀</strong><br>
+    　• <strong>分层走查机制</strong>：新手产出的蓝图必须先经过<strong>Layout 接口人内审</strong>（内部走查），通过后再进入正式界面走查环节（⑭），减少无效的外部走查轮次。<br>
+    　• <strong>走查问题归档 & 典型案例库</strong>：每次走查结束后，将典型问题（截图+原因+修复方案）沉淀到团队共享文档中，形成可复用的<strong>「避坑案例库」</strong>，新人入职时必读。<br>
+    　• <strong>阶段性复盘</strong>：每 2~4 周对走查修改率做一次数据统计（走查通过率 / 单次修改量 / 返工次数），跟踪每位新手的成长曲线，<strong style="color:var(--green)">用数据驱动培养计划调整</strong>。<br><br>
+    <div class="alert alert-green" style="margin:8px 0 0"><strong>💡 核心理念</strong>：不要等走查阶段才发现问题——<strong>把质量关口前移</strong>。通过 Checklist 自查 + 中期检查 + 内审三道防线，可以大幅降低新手的返工率，同时加速其成长速度。</div></div></div>
 </div>
 
 <div class="doc-footer">🖥️ 游戏 UI 界面制作流程 · 环节同步版 · 2026-04-22 · 基于全流程 v1.1 精简</div>
