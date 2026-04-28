@@ -3068,7 +3068,7 @@ var CARD_GRID_MAP = {
   // 板块五：🛠️ 工具链与自动化
   'grid-toolchain-overview': { module:'toolchain', ids:['art-tools-guide'] },
   'grid-toolchain-spec':     { module:'toolchain', ids:['auto-mask-spec','spine-split-spec'] },
-  'grid-toolchain-check':    { module:'toolchain', ids:['naming-check-tool'] },
+  'grid-toolchain-check':    { module:'toolchain', ids:['naming-check-tool','umg-checker'] },
   'grid-toolchain-art':      { module:'toolchain', ids:['auto-mask-v6','mask-tool','spine-split','mask-core-algorithms','color-swap-tool','channel-packer'] },
   'grid-toolchain-desktop':  { module:'toolchain', ids:['auto-mask-v6-desktop','image-skew-corrector','game-resource-toolkit','canvas-resizer','ugc-batch-uploader','resource-sorter','engine-bridge'] },
   // 板块六：🛡️ 质量、风险与团队

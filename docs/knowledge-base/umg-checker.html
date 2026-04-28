@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UMG 蓝图结构检查工具</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;font-size:15px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.app{max-width:1400px;margin:0 auto;padding:24px 20px 60px}
+
+/* ====== Header ====== */
+.header{text-align:center;padding:28px 0 20px;border-bottom:1px solid var(--border);margin-bottom:28px}
+.header h1{font-size:26px;color:var(--heading);display:flex;align-items:center;justify-content:center;gap:10px}
+.header h1 .ver{font-size:11px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px;font-weight:700}
+.header .subtitle{color:var(--dim);font-size:14px;margin-top:6px}
+.header .meta{display:flex;justify-content:center;gap:20px;margin-top:10px;font-size:12px;color:var(--dim)}
+.header .meta span{display:flex;align-items:center;gap:4px}
+
+/* ====== Tabs ====== */
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0}
+.tab{padding:10px 20px;cursor:pointer;color:var(--dim);font-size:14px;font-weight:600;border-bottom:2px solid transparent;transition:all .2s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* ====== Input Section ====== */
+.input-section{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+@media(max-width:900px){.input-section{grid-template-columns:1fr}}
+.input-box{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column}
+.input-box h3{font-size:15px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.input-box .hint{font-size:12px;color:var(--dim);margin-bottom:10px;line-height:1.6}
+textarea{width:100%;flex:1;min-height:320px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;color:var(--text);font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus{border-color:var(--cyan)}
+textarea::placeholder{color:var(--dim)}
+
+/* ====== Buttons ====== */
+.btn-row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn{padding:10px 24px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.btn-primary{background:var(--cyan);color:#0d0f15}.btn-primary:hover{filter:brightness(1.15)}
+.btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{border-color:var(--cyan)}
+.btn-danger{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.2)}.btn-danger:hover{background:rgba(248,113,113,.2)}
+.btn-green{background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.2)}.btn-green:hover{background:rgba(74,222,128,.2)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ====== Report ====== */
+.report{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px;display:none}
+.report.show{display:block}
+.report h2{font-size:18px;color:var(--heading);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.score-bar{display:flex;align-items:center;gap:16px;margin-bottom:20px;padding:16px;background:var(--card);border-radius:10px}
+.score-ring{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;flex-shrink:0}
+.score-ring.pass{background:rgba(74,222,128,.12);color:var(--green);border:3px solid var(--green)}
+.score-ring.warn{background:rgba(251,191,36,.12);color:var(--yellow);border:3px solid var(--yellow)}
+.score-ring.fail{background:rgba(248,113,113,.12);color:var(--red);border:3px solid var(--red)}
+.score-info{flex:1}
+.score-info .label{font-size:18px;color:var(--heading);font-weight:700;margin-bottom:4px}
+.score-info .detail{font-size:13px;color:var(--dim)}
+.stat-row{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap}
+.stat-chip{padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600}
+.stat-pass{background:rgba(74,222,128,.1);color:var(--green)}
+.stat-warn{background:rgba(251,191,36,.1);color:var(--yellow)}
+.stat-fail{background:rgba(248,113,113,.1);color:var(--red)}
+.stat-info{background:rgba(108,140,255,.1);color:var(--accent)}
+
+/* ====== Issue List ====== */
+.issue-group{margin-bottom:16px}
+.issue-group h4{font-size:14px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.issue{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:8px;margin-bottom:6px;font-size:13px;line-height:1.6}
+.issue.error{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.15)}
+.issue.warning{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15)}
+.issue.pass{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.15)}
+.issue.info{background:rgba(108,140,255,.06);border:1px solid rgba(108,140,255,.15)}
+.issue-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.issue-content{flex:1}
+.issue-content strong{color:var(--heading)}
+.issue-content code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 5px;border-radius:3px;font-size:12px;color:var(--cyan)}
+.issue-content .fix{margin-top:4px;font-size:12px;color:var(--dim)}
+
+/* ====== Tree Visualizer ====== */
+.tree-viz{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin:16px 0;font-family:'Cascadia Code','Fira Code',monospace;font-size:13px;line-height:1.8;overflow-x:auto;max-height:500px;overflow-y:auto}
+.tree-node{white-space:nowrap}
+.tree-node .n-name{color:var(--cyan)}.tree-node .n-type{color:var(--accent2)}
+.tree-node .n-ok{color:var(--green)}.tree-node .n-warn{color:var(--yellow)}.tree-node .n-err{color:var(--red)}
+.tree-node .n-dim{color:var(--dim)}
+
+/* ====== Checklist ====== */
+.checklist{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px}
+.checklist h2{font-size:18px;color:var(--heading);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.checklist .subtitle{font-size:13px;color:var(--dim);margin-bottom:16px}
+.check-category{margin-bottom:20px}
+.check-category h3{font-size:15px;color:var(--heading);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.check-category .progress{margin-left:auto;font-size:12px;color:var(--dim)}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:8px 12px;border-radius:8px;margin-bottom:4px;cursor:pointer;transition:background .15s}
+.check-item:hover{background:rgba(108,140,255,.04)}
+.check-item input[type="checkbox"]{margin-top:3px;width:16px;height:16px;accent-color:var(--cyan);cursor:pointer;flex-shrink:0}
+.check-item .check-text{font-size:14px;flex:1}
+.check-item .check-text .severity{font-size:11px;padding:1px 6px;border-radius:4px;margin-left:6px;font-weight:600}
+.sev-critical{background:rgba(248,113,113,.15);color:var(--red)}
+.sev-important{background:rgba(251,191,36,.15);color:var(--yellow)}
+.sev-recommend{background:rgba(74,222,128,.15);color:var(--green)}
+.check-item.checked .check-text{text-decoration:line-through;color:var(--dim)}
+.checklist-footer{margin-top:16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.checklist-progress-bar{flex:1;min-width:200px;height:8px;background:var(--card);border-radius:4px;overflow:hidden}
+.checklist-progress-fill{height:100%;background:var(--cyan);border-radius:4px;transition:width .3s}
+.checklist-progress-text{font-size:13px;color:var(--dim);white-space:nowrap}
+
+/* ====== Example Drawer ====== */
+.examples{margin-top:12px}
+.example-btn{font-size:12px;color:var(--accent);cursor:pointer;text-decoration:underline;margin-right:12px}
+.example-btn:hover{color:var(--cyan)}
+
+/* ====== Footer ====== */
+.doc-footer{text-align:center;padding:20px 0;border-top:1px solid var(--border);margin-top:32px;font-size:12px;color:var(--dim)}
+
+/* ====== Redline badge ====== */
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.badge-cyan{background:rgba(34,211,238,.15);color:var(--cyan)}
+.badge-new{background:rgba(167,139,250,.15);color:var(--accent2)}
+
+/* ====== Alert ====== */
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:13px;line-height:1.7}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+
+/* ====== Export ====== */
+.export-area{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:16px;font-size:13px;white-space:pre-wrap;font-family:'Cascadia Code','Fira Code',monospace;max-height:300px;overflow-y:auto;display:none}
+.export-area.show{display:block}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ====== HEADER ====== -->
+<div class="header">
+  <h1>🔍 UMG 蓝图结构检查工具 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">UMG Widget Blueprint Structure Checker — 一键扫描蓝图结构，输出合规检查报告</div>
+  <div class="meta">
+    <span>📋 适用：UE5 UMG Layout 制作检查</span>
+    <span>👤 维护：UI 组 · Layout 接口人</span>
+    <span>📅 2026-04-28</span>
+  </div>
+</div>
+
+<!-- ====== TABS ====== -->
+<div class="tabs">
+  <div class="tab active" data-tab="checker" onclick="switchTab('checker')">🔍 结构检查</div>
+  <div class="tab" data-tab="checklist" onclick="switchTab('checklist')">✅ 制作自查清单</div>
+  <div class="tab" data-tab="rules" onclick="switchTab('rules')">📏 检查规则说明</div>
+</div>
+
+<!-- =============================== -->
+<!-- TAB 1: Structure Checker        -->
+<!-- =============================== -->
+<div class="tab-panel active" id="panel-checker">
+
+<div class="alert alert-blue">
+  <strong>📌 使用方法</strong>：将 UE5 Widget Blueprint 的层级树结构粘贴到左侧输入框（支持缩进/├/│ 等符号），系统会自动解析并检查 <strong>18 项</strong>合规规则（命名规范、层级深度、节点数、锚点设置、动静分离、Visibility 等）。右侧可查看解析后的树状预览。
+</div>
+
+<div class="input-section">
+  <!-- Left: Input -->
+  <div class="input-box">
+    <h3>📝 输入 UMG 层级结构</h3>
+    <div class="hint">
+      每行一个节点，用缩进（空格/Tab/├─│）表示层级关系。<br>
+      格式：<code>节点名 (类型)</code> 或 <code>节点名 [类型]</code>，例如：<code>Btn_Close (Button)</code><br>
+      <span class="examples">
+        <span class="example-btn" onclick="loadExample('popup')">📋 示例：通用弹窗</span>
+        <span class="example-btn" onclick="loadExample('hud')">📋 示例：战斗HUD</span>
+        <span class="example-btn" onclick="loadExample('bad')">📋 示例：问题蓝图</span>
+      </span>
+    </div>
+    <textarea id="umgInput" placeholder="WBP_CommonPopup (User Widget)
+├── CVS_Root (Canvas Panel)
+│   ├── Img_BgMask (Image)
+│   ├── OL_Content (Overlay)
+│   │   ├── Img_PanelBg (Image)
+│   │   ├── VB_Main (Vertical Box)
+│   │   │   ├── Txt_Title (Text Block)
+│   │   │   ├── Txt_Desc (Text Block)
+│   │   │   └── HB_Buttons (Horizontal Box)
+│   │   │       ├── Btn_Cancel (Button)
+│   │   │       └── Btn_Confirm (Button)"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="runCheck()">🔍 开始检查</button>
+      <button class="btn btn-secondary" onclick="clearInput()">🗑️ 清空</button>
+      <button class="btn btn-green" onclick="exportReport()">📋 导出报告</button>
+    </div>
+  </div>
+
+  <!-- Right: Tree Preview -->
+  <div class="input-box">
+    <h3>🌳 树结构预览</h3>
+    <div class="hint">解析后的 UMG 树结构将在此显示，标注检查结果。</div>
+    <div class="tree-viz" id="treePreview">
+      <span style="color:var(--dim)">// 粘贴结构后点击"开始检查"，将在此显示解析结果</span>
+    </div>
+  </div>
+</div>
+
+<!-- Report -->
+<div class="report" id="reportPanel">
+  <h2>📊 检查报告</h2>
+  <div class="score-bar" id="scoreBar">
+    <div class="score-ring" id="scoreRing">--</div>
+    <div class="score-info">
+      <div class="label" id="scoreLabel">等待检查...</div>
+      <div class="detail" id="scoreDetail"></div>
+      <div class="stat-row" id="statRow"></div>
+    </div>
+  </div>
+  <div id="issueList"></div>
+</div>
+
+<!-- Export area -->
+<div class="export-area" id="exportArea"></div>
+
+</div>
+
+<!-- =============================== -->
+<!-- TAB 2: Checklist                -->
+<!-- =============================== -->
+<div class="tab-panel" id="panel-checklist">
+
+<div class="checklist">
+  <h2>✅ Layout 制作自查清单</h2>
+  <div class="subtitle">新手在提交蓝图前必须逐项勾选。完成 100% 后方可提交走查。</div>
+
+  <!-- Category 1 -->
+  <div class="check-category">
+    <h3>🏗️ 层级结构 <span class="progress" id="prog-hierarchy">0/5</span></h3>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">根节点类型正确（Canvas Panel / Overlay / 按设计稿要求选择）<span class="severity sev-critical">必须</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">Widget 树最大嵌套深度 ≤ 10 层（推荐 ≤ 6 层）<span class="severity sev-critical">必须</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">单页面节点总数在预算范围内（HUD ≤ 100 / 普通 ≤ 200 / 复杂 ≤ 300）<span class="severity sev-critical">必须</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">不存在多余的空 Spacer / Border 嵌套，已做扁平化优化<span class="severity sev-important">重要</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">长列表使用 ListView / Tile View 而非 ScrollBox + 多 Widget<span class="severity sev-important">重要</span></span></label>
+  </div>
+
+  <!-- Category 2 -->
+  <div class="check-category">
+    <h3>📛 命名规范 <span class="progress" id="prog-naming">0/6</span></h3>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">Widget Blueprint 资产使用 <code>WBP_</code> 前缀<span class="severity sev-critical">必须</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">所有 Button 使用 <code>Btn_</code> 前缀<span class="severity sev-critical">必须</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">所有 Text Block 使用 <code>Txt_</code> 前缀<span class="severity sev-critical">必须</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">所有 Image 使用 <code>Img_</code> 前缀<span class="severity sev-critical">必须</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">容器使用对应前缀（HB_/VB_/OL_/CVS_/SB_/GP_/SizeBox_/Bdr_/PB_）<span class="severity sev-important">重要</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">无 <code>Image_0</code>/<code>Button_1</code> 等引擎默认命名残留<span class="severity sev-critical">必须</span></span></label>
+  </div>
+
+  <!-- Category 3 -->
+  <div class="check-category">
+    <h3>⚓ 锚点与适配 <span class="progress" id="prog-anchor">0/5</span></h3>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">全屏背景/遮罩使用 Stretch 锚点 Anchor(0,0)~(1,1)<span class="severity sev-critical">必须</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">弹窗/对话框使用居中锚点 Anchor(0.5,0.5)<span class="severity sev-critical">必须</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">角落按钮（返回/设置）锚定到对应角而非中心<span class="severity sev-critical">必须</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">居中元素同时设置了 Anchor 和 Alignment (0.5, 0.5)<span class="severity sev-important">重要</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">已在 1920×1080 和超宽屏（2560×1080）下测试布局正确<span class="severity sev-important">重要</span></span></label>
+  </div>
+
+  <!-- Category 4 -->
+  <div class="check-category">
+    <h3>⚡ 性能与动静分离 <span class="progress" id="prog-perf">0/6</span></h3>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">高频动态元素（计时器/动画/进度条动画）已从 Invalidation Box 中隔离<span class="severity sev-critical">必须</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">单页面 UI Draw Call ≤ 50（推荐 ≤ 30）<span class="severity sev-critical">必须</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">纯装饰性 Image 设为 Hit Test Invisible<span class="severity sev-important">重要</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">布局容器（VB/HB/Overlay）设为 Self Hit Test Invisible<span class="severity sev-important">重要</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">未在 Tick/Update 中对不变的 UI 属性重复赋值<span class="severity sev-important">重要</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">UI 纹理总内存 ≤ 32 MB（推荐 ≤ 16 MB）<span class="severity sev-recommend">建议</span></span></label>
+  </div>
+
+  <!-- Category 5 -->
+  <div class="check-category">
+    <h3>🎨 视觉还原 <span class="progress" id="prog-visual">0/4</span></h3>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">与 UI 设计稿在基准分辨率下像素级对齐<span class="severity sev-critical">必须</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">字体/字号/颜色与设计稿一致<span class="severity sev-critical">必须</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">间距（Padding/Margin）与设计稿标注一致<span class="severity sev-important">重要</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">图片资源引用正确，无占位图残留<span class="severity sev-critical">必须</span></span></label>
+  </div>
+
+  <!-- Category 6 -->
+  <div class="check-category">
+    <h3>📦 资源引用 <span class="progress" id="prog-resource">0/4</span></h3>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">切图资源已打入正确的图集（Atlas），无散图<span class="severity sev-important">重要</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">同 Atlas 的 Image 在树中连续排列，避免被 Text 打断合批<span class="severity sev-recommend">建议</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">需蓝图编程的控件已勾选 Is Variable: True<span class="severity sev-critical">必须</span></span></label>
+    <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">未引用其他模块/界面的私有子蓝图资产<span class="severity sev-important">重要</span></span></label>
+  </div>
+
+  <div class="checklist-footer">
+    <div class="checklist-progress-bar"><div class="checklist-progress-fill" id="checklistFill" style="width:0%"></div></div>
+    <span class="checklist-progress-text" id="checklistText">0 / 30 已完成 (0%)</span>
+    <button class="btn btn-secondary" onclick="resetChecklist()" style="padding:6px 16px;font-size:12px">🔄 重置</button>
+    <button class="btn btn-green" onclick="exportChecklist()" style="padding:6px 16px;font-size:12px">📋 导出</button>
+  </div>
+</div>
+
+</div>
+
+<!-- =============================== -->
+<!-- TAB 3: Rules Documentation      -->
+<!-- =============================== -->
+<div class="tab-panel" id="panel-rules">
+
+<div class="alert alert-blue" style="margin-top:0">
+  <strong>📏 检查规则说明</strong>：以下是自动化检查工具覆盖的全部 <strong>18 项</strong>检查规则。每条规则标注了严重级别和检查逻辑，便于理解检查结果。
+</div>
+
+<div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;margin-top:16px">
+
+<h3 style="color:var(--heading);font-size:16px;margin-bottom:16px;display:flex;align-items:center;gap:8px">🏗️ 层级结构规则（4 条）</h3>
+<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px">
+<tr><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border);white-space:nowrap">编号</th><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border)">规则名称</th><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border)">级别</th><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border)">检查逻辑</th><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border)">红线值</th></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">H-01</td><td style="padding:8px 12px;border:1px solid var(--border)">最大嵌套深度</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-red">错误</span></td><td style="padding:8px 12px;border:1px solid var(--border)">遍历树统计最大深度</td><td style="padding:8px 12px;border:1px solid var(--border)">深度 &gt; 10 层报错；&gt; 6 层报警告</td></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">H-02</td><td style="padding:8px 12px;border:1px solid var(--border)">节点总数</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-red">错误</span></td><td style="padding:8px 12px;border:1px solid var(--border)">统计所有节点</td><td style="padding:8px 12px;border:1px solid var(--border)">总数 &gt; 300 报错；&gt; 150 报警告</td></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">H-03</td><td style="padding:8px 12px;border:1px solid var(--border)">空容器检测</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-yellow">警告</span></td><td style="padding:8px 12px;border:1px solid var(--border)">容器类节点无子节点</td><td style="padding:8px 12px;border:1px solid var(--border)">检测到空容器报警告</td></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">H-04</td><td style="padding:8px 12px;border:1px solid var(--border)">冗余嵌套</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-yellow">警告</span></td><td style="padding:8px 12px;border:1px solid var(--border)">容器仅包含一个同类型容器子节点</td><td style="padding:8px 12px;border:1px solid var(--border)">检测到冗余嵌套报警告</td></tr>
+</table>
+
+<h3 style="color:var(--heading);font-size:16px;margin-bottom:16px;display:flex;align-items:center;gap:8px">📛 命名规范规则（6 条）</h3>
+<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px">
+<tr><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border);white-space:nowrap">编号</th><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border)">规则名称</th><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border)">级别</th><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border)">检查逻辑</th><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border)">期望前缀</th></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">N-01</td><td style="padding:8px 12px;border:1px solid var(--border)">Button 命名</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-red">错误</span></td><td style="padding:8px 12px;border:1px solid var(--border)">类型为 Button 的节点名称以 Btn_ 开头</td><td style="padding:8px 12px;border:1px solid var(--border)"><code>Btn_</code></td></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">N-02</td><td style="padding:8px 12px;border:1px solid var(--border)">Text 命名</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-red">错误</span></td><td style="padding:8px 12px;border:1px solid var(--border)">类型为 Text Block 的节点以 Txt_ 开头</td><td style="padding:8px 12px;border:1px solid var(--border)"><code>Txt_</code></td></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">N-03</td><td style="padding:8px 12px;border:1px solid var(--border)">Image 命名</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-red">错误</span></td><td style="padding:8px 12px;border:1px solid var(--border)">类型为 Image 的节点以 Img_ 开头</td><td style="padding:8px 12px;border:1px solid var(--border)"><code>Img_</code></td></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">N-04</td><td style="padding:8px 12px;border:1px solid var(--border)">容器命名</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-yellow">警告</span></td><td style="padding:8px 12px;border:1px solid var(--border)">HBox→HB_ / VBox→VB_ / Overlay→OL_ / Canvas→CVS_ 等</td><td style="padding:8px 12px;border:1px solid var(--border)">见命名规范表</td></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">N-05</td><td style="padding:8px 12px;border:1px solid var(--border)">默认名残留</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-red">错误</span></td><td style="padding:8px 12px;border:1px solid var(--border)">匹配 Image_数字 / Button_数字 / TextBlock_数字 等模式</td><td style="padding:8px 12px;border:1px solid var(--border)">—</td></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">N-06</td><td style="padding:8px 12px;border:1px solid var(--border)">WBP 前缀</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-yellow">警告</span></td><td style="padding:8px 12px;border:1px solid var(--border)">根节点（User Widget）名称以 WBP_ 开头</td><td style="padding:8px 12px;border:1px solid var(--border)"><code>WBP_</code></td></tr>
+</table>
+
+<h3 style="color:var(--heading);font-size:16px;margin-bottom:16px;display:flex;align-items:center;gap:8px">⚡ 性能与结构规则（5 条）</h3>
+<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px">
+<tr><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border);white-space:nowrap">编号</th><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border)">规则名称</th><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border)">级别</th><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border)">检查逻辑</th></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">P-01</td><td style="padding:8px 12px;border:1px solid var(--border)">ScrollBox 子节点过多</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-red">错误</span></td><td style="padding:8px 12px;border:1px solid var(--border)">ScrollBox / Scroll Box 的直接子节点 &gt; 20 个</td></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">P-02</td><td style="padding:8px 12px;border:1px solid var(--border)">合批打断风险</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-yellow">警告</span></td><td style="padding:8px 12px;border:1px solid var(--border)">Image-Text-Image 交替排列（同层级内）</td></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">P-03</td><td style="padding:8px 12px;border:1px solid var(--border)">单容器子节点过多</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-yellow">警告</span></td><td style="padding:8px 12px;border:1px solid var(--border)">单个容器下直接子节点 &gt; 30 个</td></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">P-04</td><td style="padding:8px 12px;border:1px solid var(--border)">多层 Spacer 嵌套</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-yellow">警告</span></td><td style="padding:8px 12px;border:1px solid var(--border)">同一容器下连续出现 ≥ 3 个 Spacer</td></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">P-05</td><td style="padding:8px 12px;border:1px solid var(--border)">Invalidation Box 内含高频元素</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-red">错误</span></td><td style="padding:8px 12px;border:1px solid var(--border)">Invalidation Box 下包含 ProgressBar / Timer 相关节点</td></tr>
+</table>
+
+<h3 style="color:var(--heading);font-size:16px;margin-bottom:16px;display:flex;align-items:center;gap:8px">🎯 最佳实践规则（3 条）</h3>
+<table style="width:100%;border-collapse:collapse;font-size:13px">
+<tr><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border);white-space:nowrap">编号</th><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border)">规则名称</th><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border)">级别</th><th style="background:var(--card);padding:8px 12px;border:1px solid var(--border)">检查逻辑</th></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">B-01</td><td style="padding:8px 12px;border:1px solid var(--border)">缺少背景遮罩</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-cyan">建议</span></td><td style="padding:8px 12px;border:1px solid var(--border)">弹窗类蓝图（名称含 Popup/Dialog/Modal）没有 BgMask/Mask 相关 Image</td></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">B-02</td><td style="padding:8px 12px;border:1px solid var(--border)">缺少关闭按钮</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-cyan">建议</span></td><td style="padding:8px 12px;border:1px solid var(--border)">弹窗类蓝图没有 Btn_Close / Btn_Back 相关按钮</td></tr>
+<tr><td style="padding:8px 12px;border:1px solid var(--border)">B-03</td><td style="padding:8px 12px;border:1px solid var(--border)">SafeZone 缺失</td><td style="padding:8px 12px;border:1px solid var(--border)"><span class="badge badge-cyan">建议</span></td><td style="padding:8px 12px;border:1px solid var(--border)">全屏界面（名称含 HUD/Screen/Main）未包含 SafeZone 节点</td></tr>
+</table>
+
+</div>
+</div>
+
+<!-- ====== FOOTER ====== -->
+<div class="doc-footer">🔍 UMG 蓝图结构检查工具 v1.0 · UI 组 · Layout 接口人 · 项目内部资料</div>
+</div>
+
+<!-- ====================================================================== -->
+<!-- JAVASCRIPT                                                             -->
+<!-- ====================================================================== -->
+<script>
+/* ===== Tab Switching ===== */
+function switchTab(tabId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+  document.getElementById('panel-' + tabId).classList.add('active');
+}
+
+/* ===== Examples ===== */
+const EXAMPLES = {
+popup: `WBP_CommonPopup (User Widget)
+├── CVS_Root (Canvas Panel)
+│   ├── Img_BgMask (Image)
+│   ├── OL_Content (Overlay)
+│   │   ├── Img_PanelBg (Image)
+│   │   ├── VB_Main (Vertical Box)
+│   │   │   ├── Txt_Title (Text Block)
+│   │   │   ├── Txt_Desc (Text Block)
+│   │   │   └── HB_Buttons (Horizontal Box)
+│   │   │       ├── Btn_Cancel (Button)
+│   │   │       └── Btn_Confirm (Button)`,
+
+hud: `WBP_BattleHUD (User Widget)
+├── CVS_Root (Canvas Panel)
+│   ├── SafeZone_Main (Safe Zone)
+│   │   ├── InvalidationBox_Static (Invalidation Box)
+│   │   │   ├── Img_TopBarBg (Image)
+│   │   │   ├── Img_HpBarBg (Image)
+│   │   │   └── Txt_PlayerName (Text Block)
+│   │   ├── InvalidationBox_LowFreq (Invalidation Box)
+│   │   │   ├── Txt_HpValue (Text Block)
+│   │   │   └── Txt_MpValue (Text Block)
+│   │   └── OL_HighFreq (Overlay)
+│   │       ├── PB_HpFill (Progress Bar)
+│   │       ├── PB_MpFill (Progress Bar)
+│   │       └── VB_DamagePopup (Vertical Box)
+│   ├── HB_BottomBar (Horizontal Box)
+│   │   ├── Btn_Skill1 (Button)
+│   │   ├── Btn_Skill2 (Button)
+│   │   ├── Btn_Skill3 (Button)
+│   │   └── Btn_Ultimate (Button)
+│   └── Img_MiniMap (Image)`,
+
+bad: `MyPopup (User Widget)
+├── CanvasPanel_0 (Canvas Panel)
+│   ├── Image_0 (Image)
+│   ├── Border_1 (Border)
+│   │   ├── Border_2 (Border)
+│   │   │   ├── Border_3 (Border)
+│   │   │   │   ├── VerticalBox_0 (Vertical Box)
+│   │   │   │   │   ├── TextBlock_0 (Text Block)
+│   │   │   │   │   ├── Image_1 (Image)
+│   │   │   │   │   ├── TextBlock_1 (Text Block)
+│   │   │   │   │   ├── Image_2 (Image)
+│   │   │   │   │   ├── TextBlock_2 (Text Block)
+│   │   │   │   │   ├── Spacer_0 (Spacer)
+│   │   │   │   │   ├── Spacer_1 (Spacer)
+│   │   │   │   │   ├── Spacer_2 (Spacer)
+│   │   │   │   │   ├── ScrollBox_0 (Scroll Box)
+│   │   │   │   │   │   ├── Item_01 (User Widget)
+│   │   │   │   │   │   ├── Item_02 (User Widget)
+│   │   │   │   │   │   ├── Item_03 (User Widget)
+│   │   │   │   │   │   ├── Item_04 (User Widget)
+│   │   │   │   │   │   ├── Item_05 (User Widget)
+│   │   │   │   │   │   ├── Item_06 (User Widget)
+│   │   │   │   │   │   ├── Item_07 (User Widget)
+│   │   │   │   │   │   ├── Item_08 (User Widget)
+│   │   │   │   │   │   ├── Item_09 (User Widget)
+│   │   │   │   │   │   ├── Item_10 (User Widget)
+│   │   │   │   │   │   ├── Item_11 (User Widget)
+│   │   │   │   │   │   ├── Item_12 (User Widget)
+│   │   │   │   │   │   ├── Item_13 (User Widget)
+│   │   │   │   │   │   ├── Item_14 (User Widget)
+│   │   │   │   │   │   ├── Item_15 (User Widget)
+│   │   │   │   │   │   ├── Item_16 (User Widget)
+│   │   │   │   │   │   ├── Item_17 (User Widget)
+│   │   │   │   │   │   ├── Item_18 (User Widget)
+│   │   │   │   │   │   ├── Item_19 (User Widget)
+│   │   │   │   │   │   ├── Item_20 (User Widget)
+│   │   │   │   │   │   └── Item_21 (User Widget)
+│   │   │   │   │   └── InvalidationBox_0 (Invalidation Box)
+│   │   │   │   │       ├── PB_Loading (Progress Bar)
+│   │   │   │   │       └── Txt_Timer (Text Block)
+│   │   │   │   └── Button_0 (Button)`
+};
+
+function loadExample(name) {
+  document.getElementById('umgInput').value = EXAMPLES[name] || '';
+}
+
+function clearInput() {
+  document.getElementById('umgInput').value = '';
+  document.getElementById('treePreview').innerHTML = '<span style="color:var(--dim)">// 粘贴结构后点击"开始检查"，将在此显示解析结果</span>';
+  document.getElementById('reportPanel').classList.remove('show');
+  document.getElementById('exportArea').classList.remove('show');
+}
+
+/* ===== Parser ===== */
+function parseUMGTree(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  const root = { name: 'ROOT', type: 'ROOT', children: [], depth: -1 };
+  const stack = [root];
+
+  for (const line of lines) {
+    // Calculate depth by stripping tree drawing chars
+    const cleaned = line.replace(/[│├└─┌┐┘┬┤┴┼\|]/g, ' ');
+    const indent = cleaned.search(/\S/);
+    const depth = Math.floor(indent / 2) || (indent > 0 ? Math.ceil(indent / 4) : 0);
+
+    // Parse name and type
+    const content = line.replace(/^[\s│├└─┌┐┘┬┤┴┼\|\-\s]+/, '').trim();
+    let name = content, type = '';
+    
+    // Match (Type) or [Type]
+    const typeMatch = content.match(/^(.+?)\s*[\(\[]\s*(.+?)\s*[\)\]]\s*$/);
+    if (typeMatch) {
+      name = typeMatch[1].trim();
+      type = typeMatch[2].trim();
+    }
+
+    const node = { name, type, children: [], depth, line: line.trim() };
+
+    // Find parent
+    while (stack.length > 1 && stack[stack.length - 1].depth >= depth) {
+      stack.pop();
+    }
+    stack[stack.length - 1].children.push(node);
+    stack.push(node);
+  }
+
+  return root.children;
+}
+
+/* ===== Type Helpers ===== */
+const CONTAINER_TYPES = ['canvas panel','overlay','horizontal box','vertical box','grid panel','scroll box','size box','scale box','border','widget switcher','invalidation box','retainer box','safe zone','wrap box','uniform grid panel'];
+const NAMING_MAP = {
+  'button':         'Btn_',
+  'text block':     'Txt_',
+  'text':           'Txt_',
+  'rich text block':'Txt_',
+  'image':          'Img_',
+  'horizontal box': 'HB_',
+  'vertical box':   'VB_',
+  'overlay':        'OL_',
+  'canvas panel':   'CVS_',
+  'scroll box':     'SB_',
+  'grid panel':     'GP_',
+  'size box':       'SizeBox_',
+  'border':         'Bdr_',
+  'progress bar':   'PB_',
+  'user widget':    'WBP_'
+};
+const DEFAULT_NAME_RE = /^(Image|Button|TextBlock|Text|CanvasPanel|HorizontalBox|VerticalBox|Overlay|Border|ScrollBox|GridPanel|SizeBox|ScaleBox|Spacer|CheckBox|ProgressBar|Slider|ComboBox|EditableText|RichTextBlock|RetainerBox|InvalidationBox|SafeZone|WidgetSwitcher|WrapBox|UniformGridPanel|ListView|TileView)[\s_]?\d+$/i;
+const HIGH_FREQ_NAMES = /timer|countdown|anim|tween|tick|pulse|blink|flash/i;
+const POPUP_NAMES = /popup|dialog|modal|confirm|alert|prompt/i;
+const HUD_NAMES = /hud|screen|main|fullscreen|full_screen/i;
+
+function isContainer(type) {
+  return CONTAINER_TYPES.includes(type.toLowerCase());
+}
+
+/* ===== Checker ===== */
+function runCheck() {
+  const text = document.getElementById('umgInput').value.trim();
+  if (!text) { alert('请先粘贴 UMG 层级结构'); return; }
+
+  const tree = parseUMGTree(text);
+  if (!tree.length) { alert('无法解析出有效节点，请检查输入格式'); return; }
+
+  const issues = [];
+  let totalNodes = 0;
+  let maxDepth = 0;
+  const allNodes = [];
+
+  // Flatten & gather stats
+  function walk(nodes, depth, parent) {
+    for (const node of nodes) {
+      node._depth = depth;
+      node._parent = parent;
+      totalNodes++;
+      allNodes.push(node);
+      if (depth > maxDepth) maxDepth = depth;
+      walk(node.children, depth + 1, node);
+    }
+  }
+  walk(tree, 0, null);
+
+  const rootNode = tree[0];
+  const rootName = rootNode ? rootNode.name : '';
+  const isPopup = POPUP_NAMES.test(rootName);
+  const isHUD = HUD_NAMES.test(rootName);
+
+  // ===== H-01: Max Depth =====
+  if (maxDepth > 10) {
+    issues.push({ id:'H-01', severity:'error', title:'嵌套深度超红线', msg:`当前最大深度 <strong>${maxDepth} 层</strong>，红线为 ≤ 10 层。`, fix:'使用 Grid Panel 替代多层 HBox/VBox 嵌套，合并装饰性 Border 为 9 宫格单图。' });
+  } else if (maxDepth > 6) {
+    issues.push({ id:'H-01', severity:'warning', title:'嵌套深度偏高', msg:`当前最大深度 <strong>${maxDepth} 层</strong>，推荐 ≤ 6 层。`, fix:'尝试减少不必要的容器包裹，使用 Slot Padding 替代 Spacer 嵌套。' });
+  } else {
+    issues.push({ id:'H-01', severity:'pass', title:'嵌套深度合规', msg:`最大深度 ${maxDepth} 层 ✓` });
+  }
+
+  // ===== H-02: Total Nodes =====
+  if (totalNodes > 300) {
+    issues.push({ id:'H-02', severity:'error', title:'节点总数超红线', msg:`总节点 <strong>${totalNodes}</strong> 个，红线为 ≤ 300。`, fix:'拆分子蓝图、使用 ListView 替代大量重复 Widget。' });
+  } else if (totalNodes > 150) {
+    issues.push({ id:'H-02', severity:'warning', title:'节点总数偏多', msg:`总节点 <strong>${totalNodes}</strong> 个，推荐 ≤ 150。`, fix:'检查是否有可合并/移除的冗余节点。' });
+  } else {
+    issues.push({ id:'H-02', severity:'pass', title:'节点总数合规', msg:`总节点 ${totalNodes} 个 ✓` });
+  }
+
+  // ===== H-03: Empty Containers =====
+  const emptyContainers = allNodes.filter(n => isContainer(n.type.toLowerCase()) && n.children.length === 0);
+  if (emptyContainers.length > 0) {
+    issues.push({ id:'H-03', severity:'warning', title:'检测到空容器', msg:`${emptyContainers.map(n=>'<code>'+n.name+'</code>').join('、')} 是空的容器节点（无子元素）。`, fix:'删除无用的空容器，或确认是否为预留的动态加载容器。' });
+  }
+
+  // ===== H-04: Redundant Nesting =====
+  const redundant = allNodes.filter(n => {
+    if (!isContainer(n.type.toLowerCase())) return false;
+    if (n.children.length !== 1) return false;
+    const child = n.children[0];
+    return isContainer(child.type.toLowerCase()) && n.type.toLowerCase() === child.type.toLowerCase();
+  });
+  if (redundant.length > 0) {
+    issues.push({ id:'H-04', severity:'warning', title:'冗余嵌套', msg:`${redundant.map(n=>'<code>'+n.name+' → '+n.children[0].name+'</code>').join('、')} 存在同类型容器单层嵌套，可合并。`, fix:'合并为一个容器，减少不必要的层级。' });
+  }
+
+  // ===== N-01~N-03: Naming for Button/Text/Image =====
+  const namingChecks = [
+    { id:'N-01', types:['button'], prefix:'Btn_', label:'Button' },
+    { id:'N-02', types:['text block','text','rich text block'], prefix:'Txt_', label:'Text' },
+    { id:'N-03', types:['image'], prefix:'Img_', label:'Image' }
+  ];
+  for (const chk of namingChecks) {
+    const bad = allNodes.filter(n => chk.types.includes(n.type.toLowerCase()) && !n.name.startsWith(chk.prefix));
+    if (bad.length > 0) {
+      issues.push({ id:chk.id, severity:'error', title:`${chk.label} 命名不规范`, msg:`${bad.map(n=>'<code>'+n.name+'</code>').join('、')} 未使用 <code>${chk.prefix}</code> 前缀。`, fix:`重命名为 ${chk.prefix}XxxYyy 格式，如 ${chk.prefix}Close、${chk.prefix}Title。` });
+    } else {
+      const matching = allNodes.filter(n => chk.types.includes(n.type.toLowerCase()));
+      if (matching.length > 0) {
+        issues.push({ id:chk.id, severity:'pass', title:`${chk.label} 命名规范 ✓`, msg:`所有 ${chk.label} 节点均使用 ${chk.prefix} 前缀` });
+      }
+    }
+  }
+
+  // ===== N-04: Container Naming =====
+  const containerNaming = [
+    { types:['horizontal box'], prefix:'HB_' },
+    { types:['vertical box'], prefix:'VB_' },
+    { types:['overlay'], prefix:'OL_' },
+    { types:['canvas panel'], prefix:'CVS_' },
+    { types:['scroll box'], prefix:'SB_' },
+    { types:['grid panel'], prefix:'GP_' },
+    { types:['size box'], prefix:'SizeBox_' },
+    { types:['border'], prefix:'Bdr_' },
+    { types:['progress bar'], prefix:'PB_' }
+  ];
+  const badContainers = [];
+  for (const chk of containerNaming) {
+    const bad = allNodes.filter(n => chk.types.includes(n.type.toLowerCase()) && !n.name.startsWith(chk.prefix) && !DEFAULT_NAME_RE.test(n.name));
+    badContainers.push(...bad.map(n => ({ name: n.name, type: n.type, expected: chk.prefix })));
+  }
+  if (badContainers.length > 0) {
+    issues.push({ id:'N-04', severity:'warning', title:'容器命名不规范', msg:`${badContainers.slice(0,5).map(b=>'<code>'+b.name+'</code>(应为 '+b.expected+')').join('、')}${badContainers.length>5?' 等 '+(badContainers.length-5)+' 个':''}`, fix:'按命名规范表修改容器前缀。' });
+  }
+
+  // ===== N-05: Default Names =====
+  const defaultNames = allNodes.filter(n => DEFAULT_NAME_RE.test(n.name));
+  if (defaultNames.length > 0) {
+    issues.push({ id:'N-05', severity:'error', title:'引擎默认命名残留', msg:`${defaultNames.map(n=>'<code>'+n.name+'</code>').join('、')} 使用了引擎自动生成的默认名称。`, fix:'全部重命名为有意义的名称（前缀+功能描述）。' });
+  }
+
+  // ===== N-06: WBP Prefix =====
+  if (rootNode && rootNode.type.toLowerCase() === 'user widget' && !rootNode.name.startsWith('WBP_')) {
+    issues.push({ id:'N-06', severity:'warning', title:'Widget Blueprint 缺少 WBP_ 前缀', msg:`根节点 <code>${rootNode.name}</code> 建议以 <code>WBP_</code> 开头。`, fix:`重命名为 WBP_${rootNode.name.replace(/^WBP_/,'')}。` });
+  }
+
+  // ===== P-01: ScrollBox Children =====
+  const scrollBoxes = allNodes.filter(n => n.type.toLowerCase().includes('scroll box') || n.type.toLowerCase() === 'scrollbox');
+  for (const sb of scrollBoxes) {
+    if (sb.children.length > 20) {
+      issues.push({ id:'P-01', severity:'error', title:'ScrollBox 子节点过多', msg:`<code>${sb.name}</code> 包含 <strong>${sb.children.length}</strong> 个子节点，应使用 ListView 替代。`, fix:'替换 ScrollBox 为 ListView（UE5）或 RecyclerView（Unity），实现虚拟列表复用。' });
+    }
+  }
+
+  // ===== P-02: Batch Breaking =====
+  for (const node of allNodes) {
+    if (node.children.length < 3) continue;
+    for (let i = 1; i < node.children.length - 1; i++) {
+      const prev = node.children[i-1].type.toLowerCase();
+      const curr = node.children[i].type.toLowerCase();
+      const next = node.children[i+1].type.toLowerCase();
+      if ((prev === 'image' && (curr === 'text block' || curr === 'text') && next === 'image')) {
+        issues.push({ id:'P-02', severity:'warning', title:'合批打断风险', msg:`<code>${node.name}</code> 下 Image-Text-Image 交替排列（${node.children[i-1].name} → ${node.children[i].name} → ${node.children[i+1].name}），可能导致 Draw Call +2。`, fix:'将同类型元素集中排列：所有 Image 放一起，所有 Text 放一起。' });
+        break; // One warning per container
+      }
+    }
+  }
+
+  // ===== P-03: Too Many Direct Children =====
+  const fatContainers = allNodes.filter(n => isContainer(n.type.toLowerCase()) && n.children.length > 30);
+  for (const fc of fatContainers) {
+    issues.push({ id:'P-03', severity:'warning', title:'单容器子节点过多', msg:`<code>${fc.name}</code> 包含 ${fc.children.length} 个直接子节点。`, fix:'拆分为多个子容器或子蓝图，改善可维护性。' });
+  }
+
+  // ===== P-04: Multiple Spacers =====
+  for (const node of allNodes) {
+    if (node.children.length < 3) continue;
+    let spacerStreak = 0;
+    for (const child of node.children) {
+      if (child.type.toLowerCase() === 'spacer') { spacerStreak++; }
+      else { spacerStreak = 0; }
+      if (spacerStreak >= 3) {
+        issues.push({ id:'P-04', severity:'warning', title:'多层 Spacer 堆叠', msg:`<code>${node.name}</code> 下存在 ≥ 3 个连续 Spacer。`, fix:'使用父容器的 Slot Padding 替代多个 Spacer。' });
+        break;
+      }
+    }
+  }
+
+  // ===== P-05: ProgressBar in Invalidation Box =====
+  const invalBoxes = allNodes.filter(n => n.type.toLowerCase().includes('invalidation'));
+  for (const ib of invalBoxes) {
+    const highFreq = [];
+    function findHighFreq(nodes) {
+      for (const n of nodes) {
+        if (n.type.toLowerCase().includes('progress bar') || HIGH_FREQ_NAMES.test(n.name)) {
+          highFreq.push(n);
+        }
+        findHighFreq(n.children);
+      }
+    }
+    findHighFreq(ib.children);
+    if (highFreq.length > 0) {
+      issues.push({ id:'P-05', severity:'error', title:'Invalidation Box 内含高频元素', msg:`<code>${ib.name}</code> 内包含 ${highFreq.map(n=>'<code>'+n.name+' ('+n.type+')</code>').join('、')}，会导致 Box 缓存每帧失效。`, fix:'将高频动态元素移出 Invalidation Box，放入独立的 Overlay 高频层。' });
+    }
+  }
+
+  // ===== B-01: Popup Missing Mask =====
+  if (isPopup) {
+    const hasMask = allNodes.some(n => /mask|bgmask|bg_mask/i.test(n.name) && n.type.toLowerCase() === 'image');
+    if (!hasMask) {
+      issues.push({ id:'B-01', severity:'info', title:'弹窗缺少背景遮罩', msg:`蓝图 <code>${rootName}</code> 是弹窗类界面，但未检测到背景遮罩 Image。`, fix:'添加一个全屏 Image（如 Img_BgMask）作为半透明黑色遮罩。' });
+    }
+  }
+
+  // ===== B-02: Popup Missing Close Button =====
+  if (isPopup) {
+    const hasClose = allNodes.some(n => /close|back|dismiss|cancel/i.test(n.name) && n.type.toLowerCase() === 'button');
+    if (!hasClose) {
+      issues.push({ id:'B-02', severity:'info', title:'弹窗缺少关闭按钮', msg:`蓝图 <code>${rootName}</code> 是弹窗类界面，但未检测到关闭/取消按钮。`, fix:'添加 Btn_Close 或 Btn_Cancel 按钮。' });
+    }
+  }
+
+  // ===== B-03: HUD Missing SafeZone =====
+  if (isHUD) {
+    const hasSafeZone = allNodes.some(n => n.type.toLowerCase().includes('safe zone'));
+    if (!hasSafeZone) {
+      issues.push({ id:'B-03', severity:'info', title:'全屏界面缺少 SafeZone', msg:`蓝图 <code>${rootName}</code> 可能是全屏界面，未包含 Safe Zone 组件。`, fix:'在根 Canvas Panel 内添加 SafeZone 组件，确保异形屏不遮挡 UI 元素。' });
+    }
+  }
+
+  // ===== Render Report =====
+  renderReport(issues, totalNodes, maxDepth, allNodes);
+  renderTreePreview(tree, allNodes, issues);
+  document.getElementById('reportPanel').classList.add('show');
+  document.getElementById('reportPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ===== Render Report ===== */
+function renderReport(issues, totalNodes, maxDepth, allNodes) {
+  const errors = issues.filter(i => i.severity === 'error');
+  const warnings = issues.filter(i => i.severity === 'warning');
+  const passes = issues.filter(i => i.severity === 'pass');
+  const infos = issues.filter(i => i.severity === 'info');
+
+  // Score
+  const totalRules = issues.length;
+  const passCount = passes.length;
+  const score = totalRules > 0 ? Math.round((passCount / (passCount + errors.length + warnings.length)) * 100) : 0;
+  
+  const ring = document.getElementById('scoreRing');
+  ring.textContent = score;
+  ring.className = 'score-ring ' + (score >= 80 ? 'pass' : score >= 50 ? 'warn' : 'fail');
+
+  const label = document.getElementById('scoreLabel');
+  label.textContent = score >= 80 ? '✅ 结构良好' : score >= 50 ? '⚠️ 需要优化' : '❌ 存在严重问题';
+  
+  document.getElementById('scoreDetail').textContent = `共检查 ${totalRules} 项规则 · 节点总数 ${totalNodes} · 最大深度 ${maxDepth} 层`;
+  
+  document.getElementById('statRow').innerHTML = `
+    <span class="stat-chip stat-fail">❌ ${errors.length} 个错误</span>
+    <span class="stat-chip stat-warn">⚠️ ${warnings.length} 个警告</span>
+    <span class="stat-chip stat-pass">✅ ${passes.length} 个通过</span>
+    ${infos.length ? '<span class="stat-chip stat-info">💡 '+infos.length+' 个建议</span>' : ''}
+  `;
+
+  // Issue List
+  let html = '';
+  
+  if (errors.length) {
+    html += '<div class="issue-group"><h4>❌ 错误（必须修复）</h4>';
+    for (const issue of errors) {
+      html += `<div class="issue error"><span class="issue-icon">❌</span><div class="issue-content"><strong>[${issue.id}] ${issue.title}</strong><br>${issue.msg}<div class="fix">💡 修复建议：${issue.fix}</div></div></div>`;
+    }
+    html += '</div>';
+  }
+
+  if (warnings.length) {
+    html += '<div class="issue-group"><h4>⚠️ 警告（建议修复）</h4>';
+    for (const issue of warnings) {
+      html += `<div class="issue warning"><span class="issue-icon">⚠️</span><div class="issue-content"><strong>[${issue.id}] ${issue.title}</strong><br>${issue.msg}<div class="fix">💡 修复建议：${issue.fix}</div></div></div>`;
+    }
+    html += '</div>';
+  }
+
+  if (infos.length) {
+    html += '<div class="issue-group"><h4>💡 最佳实践建议</h4>';
+    for (const issue of infos) {
+      html += `<div class="issue info"><span class="issue-icon">💡</span><div class="issue-content"><strong>[${issue.id}] ${issue.title}</strong><br>${issue.msg}<div class="fix">💡 建议：${issue.fix}</div></div></div>`;
+    }
+    html += '</div>';
+  }
+
+  if (passes.length) {
+    html += '<div class="issue-group"><h4>✅ 通过项</h4>';
+    for (const issue of passes) {
+      html += `<div class="issue pass"><span class="issue-icon">✅</span><div class="issue-content"><strong>[${issue.id}] ${issue.title}</strong> — ${issue.msg}</div></div>`;
+    }
+    html += '</div>';
+  }
+
+  document.getElementById('issueList').innerHTML = html;
+
+  // Save for export
+  window._lastReport = { issues, totalNodes, maxDepth, score, errors: errors.length, warnings: warnings.length, passes: passes.length };
+}
+
+/* ===== Tree Preview ===== */
+function renderTreePreview(tree, allNodes, issues) {
+  const errorNodes = new Set();
+  const warnNodes = new Set();
+  // Extract node names from issues
+  for (const issue of issues) {
+    if (issue.severity === 'error' && issue.msg) {
+      const m = issue.msg.match(/<code>(.*?)<\/code>/g);
+      if (m) m.forEach(x => errorNodes.add(x.replace(/<\/?code>/g,'')));
+    }
+    if (issue.severity === 'warning' && issue.msg) {
+      const m = issue.msg.match(/<code>(.*?)<\/code>/g);
+      if (m) m.forEach(x => warnNodes.add(x.replace(/<\/?code>/g,'')));
+    }
+  }
+
+  let html = '';
+  function renderNode(node, prefix, isLast) {
+    const connector = prefix ? (isLast ? '└── ' : '├── ') : '';
+    const status = errorNodes.has(node.name) ? 'n-err' :
+                   warnNodes.has(node.name) ? 'n-warn' : 'n-ok';
+    const statusIcon = errorNodes.has(node.name) ? ' ❌' :
+                       warnNodes.has(node.name) ? ' ⚠️' : ' ✓';
+    
+    html += `<div class="tree-node">${prefix}${connector}<span class="n-name">${node.name}</span> <span class="n-type">(${node.type})</span> <span class="${status}">${statusIcon}</span></div>`;
+    
+    const childPrefix = prefix + (prefix && !isLast ? '│   ' : '    ');
+    for (let i = 0; i < node.children.length; i++) {
+      renderNode(node.children[i], prefix ? childPrefix : '    ', i === node.children.length - 1);
+    }
+  }
+
+  for (let i = 0; i < tree.length; i++) {
+    renderNode(tree[i], '', i === tree.length - 1);
+  }
+
+  document.getElementById('treePreview').innerHTML = html;
+}
+
+/* ===== Export ===== */
+function exportReport() {
+  if (!window._lastReport) { alert('请先运行检查'); return; }
+  const r = window._lastReport;
+  const lines = [
+    '═══════════════════════════════════════════',
+    '  UMG 蓝图结构检查报告',
+    '  生成时间: ' + new Date().toLocaleString('zh-CN'),
+    '═══════════════════════════════════════════',
+    '',
+    `综合评分: ${r.score}/100  ${r.score >= 80 ? '✅ 结构良好' : r.score >= 50 ? '⚠️ 需要优化' : '❌ 存在严重问题'}`,
+    `节点总数: ${r.totalNodes}  |  最大深度: ${r.maxDepth} 层`,
+    `❌ 错误: ${r.errors}  |  ⚠️ 警告: ${r.warnings}  |  ✅ 通过: ${r.passes}`,
+    '',
+    '───────────────────────────────────────────'
+  ];
+
+  for (const issue of r.issues) {
+    const icon = issue.severity === 'error' ? '❌' : issue.severity === 'warning' ? '⚠️' : issue.severity === 'pass' ? '✅' : '💡';
+    const cleanMsg = issue.msg.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    lines.push(`${icon} [${issue.id}] ${issue.title}`);
+    lines.push(`   ${cleanMsg}`);
+    if (issue.fix) lines.push(`   💡 ${issue.fix}`);
+    lines.push('');
+  }
+  
+  lines.push('═══════════════════════════════════════════');
+
+  const el = document.getElementById('exportArea');
+  el.textContent = lines.join('\n');
+  el.classList.add('show');
+
+  // Copy to clipboard
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    alert('✅ 报告已复制到剪贴板！');
+  }).catch(() => {
+    alert('报告已生成在页面下方，请手动复制。');
+  });
+}
+
+/* ===== Checklist ===== */
+function toggleCheck(item) {
+  const cb = item.querySelector('input[type="checkbox"]');
+  if (event.target !== cb) cb.checked = !cb.checked;
+  item.classList.toggle('checked', cb.checked);
+  updateChecklistProgress();
+}
+
+function updateChecklistProgress() {
+  const all = document.querySelectorAll('.check-item input[type="checkbox"]');
+  const checked = document.querySelectorAll('.check-item input[type="checkbox"]:checked');
+  const total = all.length;
+  const done = checked.length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  
+  document.getElementById('checklistFill').style.width = pct + '%';
+  document.getElementById('checklistText').textContent = `${done} / ${total} 已完成 (${pct}%)`;
+
+  // Update category progress
+  const cats = {
+    'hierarchy': document.querySelectorAll('.check-category:nth-child(1) .check-item'),
+    'naming':    document.querySelectorAll('.check-category:nth-child(2) .check-item'),
+    'anchor':    document.querySelectorAll('.check-category:nth-child(3) .check-item'),
+    'perf':      document.querySelectorAll('.check-category:nth-child(4) .check-item'),
+    'visual':    document.querySelectorAll('.check-category:nth-child(5) .check-item'),
+    'resource':  document.querySelectorAll('.check-category:nth-child(6) .check-item')
+  };
+  for (const [key, items] of Object.entries(cats)) {
+    const el = document.getElementById('prog-' + key);
+    if (!el) continue;
+    const c = [...items].filter(i => i.querySelector('input:checked')).length;
+    el.textContent = `${c}/${items.length}`;
+  }
+}
+
+function resetChecklist() {
+  document.querySelectorAll('.check-item input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+  document.querySelectorAll('.check-item').forEach(i => i.classList.remove('checked'));
+  updateChecklistProgress();
+}
+
+function exportChecklist() {
+  const items = document.querySelectorAll('.check-item');
+  const lines = [
+    '═══════════════════════════════════════════',
+    '  Layout 制作自查清单 — 导出',
+    '  导出时间: ' + new Date().toLocaleString('zh-CN'),
+    '═══════════════════════════════════════════',
+    ''
+  ];
+  let currentCat = '';
+  items.forEach((item, idx) => {
+    const catEl = item.closest('.check-category');
+    const catName = catEl ? catEl.querySelector('h3').textContent.replace(/\d+\/\d+$/, '').trim() : '';
+    if (catName !== currentCat) {
+      currentCat = catName;
+      lines.push('');
+      lines.push(`【${catName}】`);
+    }
+    const checked = item.querySelector('input').checked;
+    const text = item.querySelector('.check-text').textContent.replace(/必须|重要|建议/g, '').trim();
+    lines.push(`  ${checked ? '☑' : '☐'} ${text}`);
+  });
+
+  const all = document.querySelectorAll('.check-item input');
+  const done = document.querySelectorAll('.check-item input:checked').length;
+  lines.push('');
+  lines.push(`完成进度: ${done}/${all.length} (${Math.round(done/all.length*100)}%)`);
+  lines.push('═══════════════════════════════════════════');
+  
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    alert('✅ 自查清单已复制到剪贴板！');
+  }).catch(() => {
+    const el = document.getElementById('exportArea');
+    el.textContent = lines.join('\n');
+    el.classList.add('show');
+  });
+}
+
+// Persist checklist state in localStorage
+function saveChecklistState() {
+  const states = {};
+  document.querySelectorAll('.check-item input[type="checkbox"]').forEach((cb, i) => {
+    states[i] = cb.checked;
+  });
+  try { localStorage.setItem('umg-checklist', JSON.stringify(states)); } catch(e) {}
+}
+function loadChecklistState() {
+  try {
+    const saved = localStorage.getItem('umg-checklist');
+    if (!saved) return;
+    const states = JSON.parse(saved);
+    document.querySelectorAll('.check-item input[type="checkbox"]').forEach((cb, i) => {
+      if (states[i]) {
+        cb.checked = true;
+        cb.closest('.check-item').classList.add('checked');
+      }
+    });
+    updateChecklistProgress();
+  } catch(e) {}
+}
+
+// Auto-save on change
+document.addEventListener('change', function(e) {
+  if (e.target.type === 'checkbox') {
+    setTimeout(saveChecklistState, 100);
+  }
+});
+
+// Load on page ready
+document.addEventListener('DOMContentLoaded', loadChecklistState);
+</script>
+<script src="editor-kit.js"></script>
+</body>
+</html>

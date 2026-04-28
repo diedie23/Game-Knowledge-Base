@@ -725,6 +725,42 @@
       "quality_level": "mature"
     },
     {
+      "id": "umg-checker",
+      "module": "toolchain",
+      "craft": "UI",
+      "type": "iframe",
+      "title": "UMG 蓝图结构检查工具",
+      "desc": "在线交互式 UMG Widget 结构检查工具 — 一键扫描层级深度、命名规范、性能红线、动静分离等 18 项合规规则，生成检查报告。内置 Layout 制作自查清单。",
+      "tags": [
+        "UMG",
+        "蓝图检查",
+        "Layout",
+        "质量保障",
+        "命名规范",
+        "性能检查"
+      ],
+      "icon": "🔍",
+      "action": "openTool",
+      "path": "knowledge-base/umg-checker.html",
+      "owner": "张荧",
+      "last_updated": "2026-04-28",
+      "applicable_stage": "量产期",
+      "priority": "high",
+      "is_hot": true,
+      "keywords": [
+        "UMG检查",
+        "蓝图结构",
+        "Layout自查",
+        "命名规范",
+        "性能红线",
+        "动静分离",
+        "Checklist",
+        "Widget"
+      ],
+      "content_type": "工具",
+      "quality_level": "mature"
+    },
+    {
       "id": "scene-lod-spec",
       "module": "craft",
       "craft": "场景",

@@ -588,6 +588,15 @@
               "file": "knowledge-base/naming-check-tool.html",
               "badge": "管理",
               "craft": "管理"
+            },
+            {
+              "id": "umg-checker",
+              "icon": "🔍",
+              "title": "UMG 蓝图结构检查工具",
+              "type": "iframe",
+              "file": "knowledge-base/umg-checker.html",
+              "badge": "UI",
+              "craft": "UI"
             }
           ]
         },
