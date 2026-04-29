@@ -88,6 +88,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#sec3">图文红黑榜</a></li>
     <li><a href="#sec4">标准作业流程 SOP</a></li>
     <li><a href="#sec5">常见问题排查 FAQ</a></li>
+    <li><a href="#sec6">UGC 图标分类与状态字典</a></li>
   </ol>
 </div>
 
@@ -278,6 +279,80 @@ T_UI_Common_PanelBg_9s.png      // 公共-面板背景-9宫格</pre>
       <p><strong>修复</strong>：按功能模块拆分 Atlas（Login、Shop、Battle 各一张），每张 ≤ 2048×2048。不同页面的 UI 不共用 Atlas，避免跨页面纹理常驻。</p>
     </div>
   </div>
+</div>
+
+<!-- SEC6 -->
+<div class="section" id="sec6">
+  <h2>🎒 6. UGC 图标分类与状态字典 (大驼峰 + 下划线)</h2>
+  <div class="alert alert-blue"><strong>💡 核心思想：</strong>采用“语义化 + 状态后缀”的结构化命名，彻底摒弃 <code>icon_A1</code> 等无语义方式。统一采用<strong>大驼峰并带下划线分隔</strong>。</div>
+  
+  <p><strong>基础命名公式：</strong></p>
+  <pre>IconTab_[部位首字母大写名称]_[状态后缀首字母大写]
+  
+示例：
+IconTab_Bag_Nml       // 背包页签-正常态
+IconTab_Eye_Sel       // 眼睛页签-选中态
+IconTab_Top_Dis       // 上衣页签-禁用/锁定态</pre>
+
+  <div class="sub-title">6.1 身体与五官类 (Body & Face)</div>
+  <table>
+    <tr><th>中文分类</th><th>英文标准词 (配置表)</th><th>图标命名示例</th><th>备注/细分项</th></tr>
+    <tr><td>脸型/肤色</td><td><code>face</code></td><td><code>IconTab_Face...</code></td><td></td></tr>
+    <tr><td>头发(整体)</td><td><code>hair</code></td><td><code>IconTab_Hair...</code></td><td>前发:<code>HairFront</code> / 后发:<code>HairBack</code></td></tr>
+    <tr><td>眉毛</td><td><code>brow</code></td><td><code>IconTab_Brow...</code></td><td></td></tr>
+    <tr><td>眼睛</td><td><code>eye</code></td><td><code>IconTab_Eye...</code></td><td>瞳孔:<code>Pupil</code></td></tr>
+    <tr><td>鼻子</td><td><code>nose</code></td><td><code>IconTab_Nose...</code></td><td></td></tr>
+    <tr><td>嘴巴</td><td><code>mouth</code></td><td><code>IconTab_Mouth...</code></td><td></td></tr>
+    <tr><td>耳朵</td><td><code>ear</code></td><td><code>IconTab_Ear...</code></td><td></td></tr>
+    <tr><td>妆容</td><td><code>makeup</code></td><td><code>IconTab_Makeup...</code></td><td>腮红:<code>Blush</code> / 纹身:<code>Tattoo</code></td></tr>
+  </table>
+
+  <div class="sub-title">6.2 服装类 (Clothes)</div>
+  <table>
+    <tr><th>中文分类</th><th>英文标准词 (配置表)</th><th>图标命名示例</th><th>备注/细分项</th></tr>
+    <tr><td>套装/连衣裙</td><td><code>dress</code></td><td><code>IconTab_Dress...</code></td><td>上下连体的一般用这个</td></tr>
+    <tr><td>上衣</td><td><code>top</code></td><td><code>IconTab_Top...</code></td><td>内搭也可以叫 <code>Inner</code></td></tr>
+    <tr><td>下装</td><td><code>bottom</code></td><td><code>IconTab_Bottom...</code></td><td>裤子:<code>Pant</code> / 裙子:<code>Skirt</code></td></tr>
+    <tr><td>外套</td><td><code>coat</code></td><td><code>IconTab_Coat...</code></td><td>或者用 <code>Jacket</code></td></tr>
+    <tr><td>袜子</td><td><code>sock</code></td><td><code>IconTab_Sock...</code></td><td></td></tr>
+    <tr><td>鞋子</td><td><code>shoe</code></td><td><code>IconTab_Shoe...</code></td><td></td></tr>
+  </table>
+
+  <div class="sub-title">6.3 饰品与配饰类 (Accessories)</div>
+  <table>
+    <tr><th>中文分类</th><th>英文标准词 (配置表)</th><th>图标命名示例</th><th>备注/细分项</th></tr>
+    <tr><td>帽子/头饰</td><td><code>hat</code></td><td><code>IconTab_Hat...</code></td><td>发饰:<code>HairAcc</code> / 头饰:<code>Headwear</code></td></tr>
+    <tr><td>眼镜</td><td><code>glass</code></td><td><code>IconTab_Glass...</code></td><td></td></tr>
+    <tr><td>耳环/耳饰</td><td><code>earring</code></td><td><code>IconTab_Earring...</code></td><td></td></tr>
+    <tr><td>项链/颈饰</td><td><code>necklace</code></td><td><code>IconTab_Necklace...</code></td><td>或者用 <code>NeckAcc</code></td></tr>
+    <tr><td>面饰</td><td><code>mask</code></td><td><code>IconTab_Mask...</code></td><td>口罩、面纱等</td></tr>
+    <tr><td>包包</td><td><code>bag</code></td><td><code>IconTab_Bag...</code></td><td></td></tr>
+    <tr><td>手套/腕饰</td><td><code>glove</code></td><td><code>IconTab_Glove...</code></td><td>也可以用 <code>Wrist</code> (手腕)</td></tr>
+    <tr><td>手持物/道具</td><td><code>prop</code></td><td><code>IconTab_Prop...</code></td><td>或者用 <code>Handheld</code> / <code>Weapon</code></td></tr>
+    <tr><td>背饰/翅膀</td><td><code>wing</code></td><td><code>IconTab_Wing...</code></td><td>披风:<code>Cape</code></td></tr>
+  </table>
+
+  <div class="sub-title">6.4 UGC UI 状态后缀 (States)</div>
+  <table>
+    <tr><th>状态中文</th><th>状态后缀 (配置代码中拼装)</th><th>示例</th><th>含义说明</th></tr>
+    <tr><td>正常态</td><td><code>Nml</code></td><td><code>IconTab_Bag_Nml</code></td><td>Normal，默认未选中状态</td></tr>
+    <tr><td>选中态</td><td><code>Sel</code></td><td><code>IconTab_Bag_Sel</code></td><td>Selected，玩家正在浏览该分类</td></tr>
+    <tr><td>锁定/禁用</td><td><code>Dis</code></td><td><code>IconTab_Bag_Dis</code></td><td>Disabled，未解锁或不可点击状态</td></tr>
+    <tr><td>点击按下</td><td><code>Prs</code></td><td><code>IconTab_Bag_Prs</code></td><td>Pressed，手指按住时的交互状态(可选)</td></tr>
+  </table>
+
+  <div class="sub-title">6.5 开发对接逻辑 (伪代码)</div>
+  <pre>
+// 1. 从策划表读取关键字
+let keyword = config.categoryKey; // 例如 "top"
+
+// 2. 首字母大写处理
+let capitalizeKey = keyword.charAt(0).toUpperCase() + keyword.slice(1); // 变成 "Top"
+
+// 3. 动态拼接获取当前需要的状态图
+let normalImg = "IconTab_" + capitalizeKey + "_Nml";     // 结果: IconTab_Top_Nml
+let selectedImg = "IconTab_" + capitalizeKey + "_Sel";   // 结果: IconTab_Top_Sel
+let disabledImg = "IconTab_" + capitalizeKey + "_Dis";   // 结果: IconTab_Top_Dis</pre>
 </div>
 
 <div class="doc-footer">✂️ 切图与命名规范 · UI 规范 v1.0 · UI组 + TA组 · 项目内部资料</div>
