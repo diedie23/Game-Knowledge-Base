@@ -41,7 +41,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 
 <div class="doc-header">
   <h1>🎒 UGC 图标分类与状态字典 <span class="ver">v1.0</span></h1>
-  <div class="subtitle">UGC Icon Classification & Naming Dictionary (CamelCase)</div>
+  <div class="subtitle">UGC Icon Classification & Naming Dictionary (PascalCase)</div>
   <div class="meta">
     <span>📋 适用：捏脸 / 换装 UGC 系统</span>
     <span>👤 维护：UI 组 · 策划组</span>
@@ -63,15 +63,15 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <h2>📝 1. 命名规范说明</h2>
   <div class="alert alert-blue"><strong>💡 核心思想：</strong>采用“语义化 + 状态后缀”的结构化命名，彻底摒弃 `icon_A1` 等无语义的命名方式。</div>
   
-  <p>为满足团队规范，统一采用<strong>小驼峰式命名 (CamelCase)</strong>。手机端（iOS/Android）严格区分大小写，因此必须严格遵循以下字典中的大小写规范。</p>
+  <p>为满足团队规范，统一采用<strong>大驼峰式命名 (PascalCase)</strong>。手机端（iOS/Android）严格区分大小写，因此必须严格遵循以下字典中的大小写规范。</p>
   
   <p><strong>基础命名公式：</strong></p>
-  <pre>iconTab[部位首字母大写名称][状态后缀首字母大写]
+  <pre>IconTab[部位首字母大写名称][状态后缀首字母大写]
   
 示例：
-iconTabBagNml       // 背包页签-正常态
-iconTabEyeSel       // 眼睛页签-选中态
-iconTabTopDis       // 上衣页签-禁用/锁定态</pre>
+IconTabBagNml       // 背包页签-正常态
+IconTabEyeSel       // 眼睛页签-选中态
+IconTabTopDis       // 上衣页签-禁用/锁定态</pre>
 </div>
 
 <div class="section" id="sec2">
@@ -79,40 +79,40 @@ iconTabTopDis       // 上衣页签-禁用/锁定态</pre>
   
   <div class="sub-title">身体与五官类 (Body & Face)</div>
   <table>
-    <tr><th>中文分类</th><th>英文标准词 (配置表)</th><th>图标命名示例 (小驼峰)</th><th>备注/细分项</th></tr>
-    <tr><td>脸型/肤色</td><td><code>face</code></td><td><code>iconTabFace...</code></td><td></td></tr>
-    <tr><td>头发(整体)</td><td><code>hair</code></td><td><code>iconTabHair...</code></td><td>前发:<code>hairFront</code> / 后发:<code>hairBack</code></td></tr>
-    <tr><td>眉毛</td><td><code>brow</code></td><td><code>iconTabBrow...</code></td><td></td></tr>
-    <tr><td>眼睛</td><td><code>eye</code></td><td><code>iconTabEye...</code></td><td>瞳孔:<code>pupil</code></td></tr>
-    <tr><td>鼻子</td><td><code>nose</code></td><td><code>iconTabNose...</code></td><td></td></tr>
-    <tr><td>嘴巴</td><td><code>mouth</code></td><td><code>iconTabMouth...</code></td><td></td></tr>
-    <tr><td>耳朵</td><td><code>ear</code></td><td><code>iconTabEar...</code></td><td></td></tr>
-    <tr><td>妆容</td><td><code>makeup</code></td><td><code>iconTabMakeup...</code></td><td>腮红:<code>blush</code> / 纹身:<code>tattoo</code></td></tr>
+    <tr><th>中文分类</th><th>英文标准词 (配置表)</th><th>图标命名示例 (大驼峰)</th><th>备注/细分项</th></tr>
+    <tr><td>脸型/肤色</td><td><code>face</code></td><td><code>IconTabFace...</code></td><td></td></tr>
+    <tr><td>头发(整体)</td><td><code>hair</code></td><td><code>IconTabHair...</code></td><td>前发:<code>HairFront</code> / 后发:<code>HairBack</code></td></tr>
+    <tr><td>眉毛</td><td><code>brow</code></td><td><code>IconTabBrow...</code></td><td></td></tr>
+    <tr><td>眼睛</td><td><code>eye</code></td><td><code>IconTabEye...</code></td><td>瞳孔:<code>Pupil</code></td></tr>
+    <tr><td>鼻子</td><td><code>nose</code></td><td><code>IconTabNose...</code></td><td></td></tr>
+    <tr><td>嘴巴</td><td><code>mouth</code></td><td><code>IconTabMouth...</code></td><td></td></tr>
+    <tr><td>耳朵</td><td><code>ear</code></td><td><code>IconTabEar...</code></td><td></td></tr>
+    <tr><td>妆容</td><td><code>makeup</code></td><td><code>IconTabMakeup...</code></td><td>腮红:<code>Blush</code> / 纹身:<code>Tattoo</code></td></tr>
   </table>
 
   <div class="sub-title">服装类 (Clothes)</div>
   <table>
-    <tr><th>中文分类</th><th>英文标准词 (配置表)</th><th>图标命名示例 (小驼峰)</th><th>备注/细分项</th></tr>
-    <tr><td>套装/连衣裙</td><td><code>dress</code></td><td><code>iconTabDress...</code></td><td>上下连体的一般用这个</td></tr>
-    <tr><td>上衣</td><td><code>top</code></td><td><code>iconTabTop...</code></td><td>内搭也可以叫 <code>inner</code></td></tr>
-    <tr><td>下装</td><td><code>bottom</code></td><td><code>iconTabBottom...</code></td><td>裤子:<code>pant</code> / 裙子:<code>skirt</code></td></tr>
-    <tr><td>外套</td><td><code>coat</code></td><td><code>iconTabCoat...</code></td><td>或者用 <code>jacket</code></td></tr>
-    <tr><td>袜子</td><td><code>sock</code></td><td><code>iconTabSock...</code></td><td></td></tr>
-    <tr><td>鞋子</td><td><code>shoe</code></td><td><code>iconTabShoe...</code></td><td></td></tr>
+    <tr><th>中文分类</th><th>英文标准词 (配置表)</th><th>图标命名示例 (大驼峰)</th><th>备注/细分项</th></tr>
+    <tr><td>套装/连衣裙</td><td><code>dress</code></td><td><code>IconTabDress...</code></td><td>上下连体的一般用这个</td></tr>
+    <tr><td>上衣</td><td><code>top</code></td><td><code>IconTabTop...</code></td><td>内搭也可以叫 <code>Inner</code></td></tr>
+    <tr><td>下装</td><td><code>bottom</code></td><td><code>IconTabBottom...</code></td><td>裤子:<code>Pant</code> / 裙子:<code>Skirt</code></td></tr>
+    <tr><td>外套</td><td><code>coat</code></td><td><code>IconTabCoat...</code></td><td>或者用 <code>Jacket</code></td></tr>
+    <tr><td>袜子</td><td><code>sock</code></td><td><code>IconTabSock...</code></td><td></td></tr>
+    <tr><td>鞋子</td><td><code>shoe</code></td><td><code>IconTabShoe...</code></td><td></td></tr>
   </table>
 
   <div class="sub-title">饰品与配饰类 (Accessories)</div>
   <table>
-    <tr><th>中文分类</th><th>英文标准词 (配置表)</th><th>图标命名示例 (小驼峰)</th><th>备注/细分项</th></tr>
-    <tr><td>帽子/头饰</td><td><code>hat</code></td><td><code>iconTabHat...</code></td><td>发饰:<code>hairAcc</code> / 头饰:<code>headwear</code></td></tr>
-    <tr><td>眼镜</td><td><code>glass</code></td><td><code>iconTabGlass...</code></td><td></td></tr>
-    <tr><td>耳环/耳饰</td><td><code>earring</code></td><td><code>iconTabEarring...</code></td><td></td></tr>
-    <tr><td>项链/颈饰</td><td><code>necklace</code></td><td><code>iconTabNecklace...</code></td><td>或者用 <code>neckAcc</code></td></tr>
-    <tr><td>面饰</td><td><code>mask</code></td><td><code>iconTabMask...</code></td><td>口罩、面纱等</td></tr>
-    <tr><td>包包</td><td><code>bag</code></td><td><code>iconTabBag...</code></td><td></td></tr>
-    <tr><td>手套/腕饰</td><td><code>glove</code></td><td><code>iconTabGlove...</code></td><td>也可以用 <code>wrist</code> (手腕)</td></tr>
-    <tr><td>手持物/道具</td><td><code>prop</code></td><td><code>iconTabProp...</code></td><td>或者用 <code>handheld</code> / <code>weapon</code></td></tr>
-    <tr><td>背饰/翅膀</td><td><code>wing</code></td><td><code>iconTabWing...</code></td><td>披风:<code>cape</code></td></tr>
+    <tr><th>中文分类</th><th>英文标准词 (配置表)</th><th>图标命名示例 (大驼峰)</th><th>备注/细分项</th></tr>
+    <tr><td>帽子/头饰</td><td><code>hat</code></td><td><code>IconTabHat...</code></td><td>发饰:<code>HairAcc</code> / 头饰:<code>Headwear</code></td></tr>
+    <tr><td>眼镜</td><td><code>glass</code></td><td><code>IconTabGlass...</code></td><td></td></tr>
+    <tr><td>耳环/耳饰</td><td><code>earring</code></td><td><code>IconTabEarring...</code></td><td></td></tr>
+    <tr><td>项链/颈饰</td><td><code>necklace</code></td><td><code>IconTabNecklace...</code></td><td>或者用 <code>NeckAcc</code></td></tr>
+    <tr><td>面饰</td><td><code>mask</code></td><td><code>IconTabMask...</code></td><td>口罩、面纱等</td></tr>
+    <tr><td>包包</td><td><code>bag</code></td><td><code>IconTabBag...</code></td><td></td></tr>
+    <tr><td>手套/腕饰</td><td><code>glove</code></td><td><code>IconTabGlove...</code></td><td>也可以用 <code>Wrist</code> (手腕)</td></tr>
+    <tr><td>手持物/道具</td><td><code>prop</code></td><td><code>IconTabProp...</code></td><td>或者用 <code>Handheld</code> / <code>Weapon</code></td></tr>
+    <tr><td>背饰/翅膀</td><td><code>wing</code></td><td><code>IconTabWing...</code></td><td>披风:<code>Cape</code></td></tr>
   </table>
 </div>
 
@@ -120,10 +120,10 @@ iconTabTopDis       // 上衣页签-禁用/锁定态</pre>
   <h2>🔄 3. UI 状态后缀 (States)</h2>
   <table>
     <tr><th>状态中文</th><th>状态后缀 (配置代码中拼装)</th><th>示例</th><th>含义说明</th></tr>
-    <tr><td>正常态</td><td><code>Nml</code></td><td><code>iconTabBagNml</code></td><td>Normal，默认未选中状态</td></tr>
-    <tr><td>选中态</td><td><code>Sel</code></td><td><code>iconTabBagSel</code></td><td>Selected，玩家正在浏览该分类</td></tr>
-    <tr><td>锁定/禁用</td><td><code>Dis</code></td><td><code>iconTabBagDis</code></td><td>Disabled，未解锁或不可点击状态</td></tr>
-    <tr><td>点击按下</td><td><code>Prs</code></td><td><code>iconTabBagPrs</code></td><td>Pressed，手指按住时的交互状态(可选)</td></tr>
+    <tr><td>正常态</td><td><code>Nml</code></td><td><code>IconTabBagNml</code></td><td>Normal，默认未选中状态</td></tr>
+    <tr><td>选中态</td><td><code>Sel</code></td><td><code>IconTabBagSel</code></td><td>Selected，玩家正在浏览该分类</td></tr>
+    <tr><td>锁定/禁用</td><td><code>Dis</code></td><td><code>IconTabBagDis</code></td><td>Disabled，未解锁或不可点击状态</td></tr>
+    <tr><td>点击按下</td><td><code>Prs</code></td><td><code>IconTabBagPrs</code></td><td>Pressed，手指按住时的交互状态(可选)</td></tr>
   </table>
   <div class="alert alert-yellow"><strong>⚠️ 警告：</strong>严禁大小写混用出错（如 <code>nml</code>、<code>NML</code>），一律使用首字母大写的后缀词缀 <code>Nml</code>、<code>Sel</code>、<code>Dis</code>。</div>
 </div>
@@ -141,9 +141,9 @@ let keyword = config.categoryKey; // 例如 "top"
 let capitalizeKey = keyword.charAt(0).toUpperCase() + keyword.slice(1); // 变成 "Top"
 
 // 3. 动态拼接获取当前需要的状态图
-let normalImg = "iconTab" + capitalizeKey + "Nml";     // 结果: iconTabTopNml
-let selectedImg = "iconTab" + capitalizeKey + "Sel";   // 结果: iconTabTopSel
-let disabledImg = "iconTab" + capitalizeKey + "Dis";   // 结果: iconTabTopDis</pre>
+let normalImg = "IconTab" + capitalizeKey + "Nml";     // 结果: IconTabTopNml
+let selectedImg = "IconTab" + capitalizeKey + "Sel";   // 结果: IconTabTopSel
+let disabledImg = "IconTab" + capitalizeKey + "Dis";   // 结果: IconTabTopDis</pre>
 </div>
 
 <div class="doc-footer">🎒 UGC 图标分类与状态字典 · UI规范 · 项目内部资料</div>
