@@ -142,7 +142,7 @@
 ### 桌面工具 & 引擎直连（7 个）
 | # | ID | 标题 | exe 文件 | 最后更新 |
 |---|-----|------|----------|----------|
-| 1 | `auto-mask-v6-desktop` | 自动 Mask v6.0 (桌面版) | AutoMaskGenerator-v6.0.0-Portable.exe | 2026-04-09 |
+| 1 | `auto-mask-v6-desktop` | 自动 Mask v7.0 (桌面版) | AutoMaskGenerator-v7.0.0-Portable.exe | 2026-04-29 |
 | 2 | `image-skew-corrector` | 图片倾斜矫正 (桌面版) | ImageSkewCorrector.exe | 2026-04-01 |
 | 3 | `game-resource-toolkit` | 游戏资源工具集 (桌面版) | GameResourceToolkit.exe | 2026-04-15 |
 | 4 | `canvas-resizer` | 图片尺寸统一调整 (桌面版) | CanvasResizer.exe | 2026-04-17 |
@@ -357,7 +357,7 @@
 
 | 文件名 | 大小 (bytes) | 最后修改时间 |
 |--------|-------------|-------------|
-| AutoMaskGenerator-v6.0.0-Portable.exe | — (Git LFS) | 2026-04-09 |
+| AutoMaskGenerator-v7.0.0-Portable.exe | 74,216,960 | 2026-04-29 |
 | CanvasResizer.exe | 65,824,394 | 2026-04-17 |
 | GameResourceToolkit.exe | 31,745,875 | 2026-04-15 |
 | ImageSkewCorrector.exe | 62,898,477 | 2026-04-01 |

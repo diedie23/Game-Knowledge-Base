@@ -1460,7 +1460,7 @@
       "icon": "🖥️",
       "action": "openTool",
       "path": "knowledge-base/auto-mask-v6-desktop.html",
-      "download": "downloads/AutoMaskGenerator-v6.0.0-Portable.exe",
+      "download": "downloads/AutoMaskGenerator-v7.0.0-Portable.exe",
       "owner": "TA团队",
       "last_updated": "2026-04-09",
       "applicable_stage": "量产期",
