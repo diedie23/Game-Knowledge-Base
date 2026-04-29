@@ -323,6 +323,15 @@
           "icon": "🖥️",
           "items": [
             {
+              "id": "ugc-icon-naming-dict",
+              "icon": "🎒",
+              "title": "UGC 图标分类与状态字典",
+              "type": "iframe",
+              "file": "knowledge-base/ugc-icon-naming-dict.html",
+              "badge": "UI",
+              "craft": "UI"
+            },
+            {
               "id": "ui-slice-naming",
               "icon": "✂️",
               "title": "切图与命名规范",
