@@ -162,6 +162,22 @@ textarea::placeholder{color:var(--dim)}
 .ai-prompt-box.show{display:block}
 .ai-prompt-box textarea{min-height:120px;font-size:12px}
 .ai-prompt-box .prompt-actions{display:flex;gap:8px;margin-top:8px}
+
+/* ====== Mockup Analysis ====== */
+.ui-type-grid{display:flex;flex-wrap:wrap;gap:8px}
+.ui-type-chip{display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:13px;cursor:pointer;transition:all .2s}
+.ui-type-chip:hover{border-color:var(--cyan);background:rgba(34,211,238,.04)}
+.ui-type-chip:has(input:checked){border-color:var(--cyan);background:rgba(34,211,238,.08);color:var(--cyan)}
+.ui-type-chip input[type="radio"]{accent-color:var(--cyan);width:14px;height:14px}
+.mockup-options{margin-top:16px}
+.pattern-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:12px}
+.pattern-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s;text-align:center}
+.pattern-card:hover{border-color:var(--cyan);transform:translateY(-2px);box-shadow:0 4px 12px rgba(34,211,238,.1)}
+.pattern-card .pattern-icon{font-size:28px;margin-bottom:6px}
+.pattern-card .pattern-name{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:4px}
+.pattern-card .pattern-desc{font-size:11px;color:var(--dim);line-height:1.4}
+.pattern-detail{margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.pattern-detail-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:15px;color:var(--heading);font-weight:600}
 </style>
 </head>
 <body>
@@ -169,8 +185,8 @@ textarea::placeholder{color:var(--dim)}
 
 <!-- ====== HEADER ====== -->
 <div class="header">
-  <h1>🔍 UMG 蓝图结构检查工具 <span class="ver">v1.1</span></h1>
-  <div class="subtitle">UMG Widget Blueprint Structure Checker — 一键扫描蓝图结构，输出合规检查报告 · 支持截图识别</div>
+  <h1>🔍 UMG 蓝图结构检查工具 <span class="ver">v1.2</span></h1>
+  <div class="subtitle">UMG Widget Blueprint Structure Checker — 一键扫描蓝图结构，输出合规检查报告 · 支持截图识别 · 效果图结构分析</div>
   <div class="meta">
     <span>📋 适用：UE4/UE5 UMG Layout 制作检查</span>
     <span>👤 维护：UI 组 · Layout 接口人</span>
@@ -181,6 +197,7 @@ textarea::placeholder{color:var(--dim)}
 <!-- ====== TABS ====== -->
 <div class="tabs">
   <div class="tab active" data-tab="checker" onclick="switchTab('checker')">🔍 结构检查</div>
+  <div class="tab" data-tab="mockup" onclick="switchTab('mockup')">🎨 效果图分析</div>
   <div class="tab" data-tab="checklist" onclick="switchTab('checklist')">✅ 制作自查清单</div>
   <div class="tab" data-tab="rules" onclick="switchTab('rules')">📏 检查规则说明</div>
 </div>
@@ -360,7 +377,127 @@ textarea::placeholder{color:var(--dim)}
 </div>
 
 <!-- =============================== -->
-<!-- TAB 2: Checklist                -->
+<!-- TAB 2: Mockup Analysis          -->
+<!-- =============================== -->
+<div class="tab-panel" id="panel-mockup">
+
+<div class="alert alert-green">
+  <strong>🎨 效果图结构分析</strong>：上传 UI 设计稿/效果图，AI 将根据视觉元素自动分析并推荐最优的 UMG 蓝图层级结构。支持界面截图、设计稿导出图、手绘原型图等。
+</div>
+
+<div class="img-upload-section">
+  <h3>📤 上传效果图 <span class="badge badge-new">NEW</span></h3>
+  <div class="hint">
+    上传 UI 效果图（设计稿截图、最终效果图、线框图均可），工具将生成专用 AI Prompt 帮你反推最优的 UMG 蓝图结构。<br>
+    <strong>支持场景</strong>：背包界面、弹窗、HUD、设置面板、商城页、聊天界面、排行榜等各类游戏 UI。
+  </div>
+
+  <!-- Upload Zone -->
+  <div class="drop-zone" id="mockupDropZone">
+    <div class="dz-icon">🎨</div>
+    <div class="dz-text"><strong>点击上传效果图</strong> 或拖拽图片到此处</div>
+    <input type="file" id="mockupFileInput" accept="image/*">
+  </div>
+
+  <!-- Image Preview -->
+  <div class="preview-area" id="mockupPreviewArea">
+    <img id="mockupPreviewImg" src="" alt="效果图预览">
+    <button class="remove-img" onclick="removeMockupImage()" title="移除图片">×</button>
+  </div>
+
+  <!-- UI Type Selection -->
+  <div class="mockup-options" id="mockupOptions" style="display:none">
+    <div style="font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600">📋 选择界面类型（可选，帮助 AI 更精确推荐结构）</div>
+    <div class="ui-type-grid">
+      <label class="ui-type-chip"><input type="radio" name="uiType" value="popup" checked> 🪟 弹窗/对话框</label>
+      <label class="ui-type-chip"><input type="radio" name="uiType" value="hud"> 🎮 战斗 HUD</label>
+      <label class="ui-type-chip"><input type="radio" name="uiType" value="bag"> 🎒 背包/物品</label>
+      <label class="ui-type-chip"><input type="radio" name="uiType" value="shop"> 🛒 商城/商店</label>
+      <label class="ui-type-chip"><input type="radio" name="uiType" value="settings"> ⚙️ 设置/选项</label>
+      <label class="ui-type-chip"><input type="radio" name="uiType" value="chat"> 💬 聊天/社交</label>
+      <label class="ui-type-chip"><input type="radio" name="uiType" value="rank"> 🏆 排行榜/列表</label>
+      <label class="ui-type-chip"><input type="radio" name="uiType" value="login"> 🔑 登录/注册</label>
+      <label class="ui-type-chip"><input type="radio" name="uiType" value="loading"> ⏳ 加载/过渡</label>
+      <label class="ui-type-chip"><input type="radio" name="uiType" value="other"> 📄 其他</label>
+    </div>
+
+    <div style="margin-top:14px">
+      <div style="font-size:13px;color:var(--heading);margin-bottom:6px;font-weight:600">📝 补充说明（可选）</div>
+      <textarea id="mockupDesc" style="min-height:60px;font-size:13px" placeholder="例如：这是一个装备强化弹窗，中间有装备图标、强化等级星星、属性列表，底部有强化按钮和消耗显示..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- Generated Prompt Section -->
+<div class="img-upload-section" id="mockupPromptSection" style="display:none">
+  <h3>🤖 AI 结构分析 Prompt</h3>
+  <div class="hint">
+    复制以下 Prompt 连同效果图一起发给 AI 助手（CodeBuddy / ChatGPT / Claude），即可获取推荐的 UMG 层级结构。
+  </div>
+  <textarea id="mockupAiPrompt" readonly style="min-height:280px;cursor:text;font-size:12px"></textarea>
+  <div class="prompt-actions" style="margin-top:10px">
+    <button class="btn btn-primary" onclick="copyMockupPrompt()" style="padding:8px 16px;font-size:13px">📋 复制 Prompt</button>
+    <button class="btn btn-secondary" onclick="pasteMockupResult()" style="padding:8px 16px;font-size:13px">📥 粘贴 AI 结果到结构检查</button>
+    <button class="btn btn-green" onclick="generateMockupPrompt()" style="padding:8px 16px;font-size:13px">🔄 重新生成 Prompt</button>
+  </div>
+  <div class="ocr-status" id="mockupStatus"></div>
+</div>
+
+<!-- Common UI Pattern Reference -->
+<div class="img-upload-section">
+  <h3>📚 常见 UI 模式参考结构</h3>
+  <div class="hint">点击查看常见游戏 UI 类型的推荐蓝图层级结构模板，可直接复制使用或作为参考。</div>
+  <div class="pattern-grid">
+    <div class="pattern-card" onclick="showPattern('popup-pattern')">
+      <div class="pattern-icon">🪟</div>
+      <div class="pattern-name">通用弹窗</div>
+      <div class="pattern-desc">遮罩 + 面板 + 标题 + 内容 + 按钮组</div>
+    </div>
+    <div class="pattern-card" onclick="showPattern('bag-pattern')">
+      <div class="pattern-icon">🎒</div>
+      <div class="pattern-name">背包界面</div>
+      <div class="pattern-desc">Tab页签 + 网格物品栏 + 详情面板</div>
+    </div>
+    <div class="pattern-card" onclick="showPattern('hud-pattern')">
+      <div class="pattern-icon">🎮</div>
+      <div class="pattern-name">战斗 HUD</div>
+      <div class="pattern-desc">血条 + 技能栏 + 小地图 + 消息</div>
+    </div>
+    <div class="pattern-card" onclick="showPattern('shop-pattern')">
+      <div class="pattern-icon">🛒</div>
+      <div class="pattern-name">商城界面</div>
+      <div class="pattern-desc">分类导航 + 商品列表 + 购买确认</div>
+    </div>
+    <div class="pattern-card" onclick="showPattern('list-pattern')">
+      <div class="pattern-icon">🏆</div>
+      <div class="pattern-name">排行榜/列表</div>
+      <div class="pattern-desc">标题 + 虚拟列表 + 自己排名</div>
+    </div>
+    <div class="pattern-card" onclick="showPattern('settings-pattern')">
+      <div class="pattern-icon">⚙️</div>
+      <div class="pattern-name">设置面板</div>
+      <div class="pattern-desc">分类Tab + 选项列表 + 应用/重置</div>
+    </div>
+  </div>
+
+  <!-- Pattern Detail Display -->
+  <div class="pattern-detail" id="patternDetail" style="display:none">
+    <div class="pattern-detail-header">
+      <span id="patternTitle"></span>
+      <button class="btn btn-secondary" onclick="closePattern()" style="padding:4px 12px;font-size:12px">✕ 关闭</button>
+    </div>
+    <textarea id="patternContent" style="min-height:200px;font-size:12px" readonly></textarea>
+    <div class="prompt-actions" style="margin-top:8px">
+      <button class="btn btn-primary" onclick="applyPatternToChecker()" style="padding:8px 16px;font-size:13px">✅ 应用到结构检查</button>
+      <button class="btn btn-secondary" onclick="copyPattern()" style="padding:8px 16px;font-size:13px">📋 复制结构</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- =============================== -->
+<!-- TAB 3: Checklist                -->
 <!-- =============================== -->
 <div class="tab-panel" id="panel-checklist">
 
@@ -439,7 +576,7 @@ textarea::placeholder{color:var(--dim)}
 </div>
 
 <!-- =============================== -->
-<!-- TAB 3: Rules Documentation      -->
+<!-- TAB 4: Rules Documentation      -->
 <!-- =============================== -->
 <div class="tab-panel" id="panel-rules">
 
@@ -491,7 +628,7 @@ textarea::placeholder{color:var(--dim)}
 </div>
 
 <!-- ====== FOOTER ====== -->
-<div class="doc-footer">🔍 UMG 蓝图结构检查工具 v1.1 · UI 组 · Layout 接口人 · 项目内部资料 · 支持截图识别</div>
+<div class="doc-footer">🔍 UMG 蓝图结构检查工具 v1.2 · UI 组 · Layout 接口人 · 项目内部资料 · 支持截图识别 · 效果图结构分析</div>
 </div>
 
 <!-- ====================================================================== -->
@@ -1374,6 +1511,416 @@ function loadScript(src) {
     script.onload = resolve;
     script.onerror = () => reject(new Error('加载脚本失败: ' + src));
     document.head.appendChild(script);
+  });
+}
+
+/* ===== Mockup Analysis Module ===== */
+let mockupImageFile = null;
+
+// Mockup File input & Drag-Drop
+const mockupDropZone = document.getElementById('mockupDropZone');
+const mockupFileInput = document.getElementById('mockupFileInput');
+
+mockupFileInput.addEventListener('change', function(e) {
+  if (e.target.files && e.target.files[0]) handleMockupUpload(e.target.files[0]);
+});
+
+mockupDropZone.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  mockupDropZone.classList.add('dragover');
+});
+mockupDropZone.addEventListener('dragleave', function(e) {
+  e.preventDefault();
+  mockupDropZone.classList.remove('dragover');
+});
+mockupDropZone.addEventListener('drop', function(e) {
+  e.preventDefault();
+  mockupDropZone.classList.remove('dragover');
+  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    handleMockupUpload(e.dataTransfer.files[0]);
+  }
+});
+
+function handleMockupUpload(file) {
+  if (!file.type.startsWith('image/')) {
+    alert('请上传图片文件（PNG/JPG/BMP/WebP）');
+    return;
+  }
+  mockupImageFile = file;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('mockupPreviewImg').src = e.target.result;
+    document.getElementById('mockupPreviewArea').classList.add('show');
+    document.getElementById('mockupOptions').style.display = 'block';
+    mockupDropZone.style.display = 'none';
+
+    // Auto-generate prompt
+    generateMockupPrompt();
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeMockupImage() {
+  mockupImageFile = null;
+  document.getElementById('mockupPreviewImg').src = '';
+  document.getElementById('mockupPreviewArea').classList.remove('show');
+  document.getElementById('mockupOptions').style.display = 'none';
+  document.getElementById('mockupPromptSection').style.display = 'none';
+  mockupDropZone.style.display = '';
+  mockupFileInput.value = '';
+}
+
+function generateMockupPrompt() {
+  const uiType = document.querySelector('input[name="uiType"]:checked');
+  const typeValue = uiType ? uiType.value : 'other';
+  const desc = document.getElementById('mockupDesc').value.trim();
+
+  const typeLabels = {
+    'popup': '弹窗/对话框',
+    'hud': '战斗 HUD',
+    'bag': '背包/物品界面',
+    'shop': '商城/商店界面',
+    'settings': '设置/选项面板',
+    'chat': '聊天/社交界面',
+    'rank': '排行榜/列表界面',
+    'login': '登录/注册界面',
+    'loading': '加载/过渡界面',
+    'other': '通用界面'
+  };
+
+  const typeSpecificHints = {
+    'popup': `
+- 弹窗必须包含：全屏半透明遮罩(Img_BgMask)、面板背景(Img_PanelBg)、标题、关闭按钮
+- 弹窗面板使用居中锚点 Anchor(0.5, 0.5) + Alignment(0.5, 0.5)
+- 遮罩层使用 Stretch 锚点 Anchor(0,0)~(1,1)
+- 底部按钮组用 Horizontal Box 横向排列`,
+    'hud': `
+- HUD 必须包含 Safe Zone 组件（适配异形屏）
+- 使用 Invalidation Box 包裹静态元素（血条背景、图标等）
+- 高频动态元素（血条填充、计时器、动画）放在 Invalidation Box 外
+- 角落元素锚定到对应角而非中心
+- 技能栏使用 Horizontal Box 排列`,
+    'bag': `
+- 物品网格使用 Uniform Grid Panel 或 Wrap Box
+- 如果物品 > 20 个，必须使用 ListView / Tile View（虚拟列表）
+- Tab 页签用 Horizontal Box + Button 实现
+- 物品详情面板单独放一个区域，避免嵌套过深`,
+    'shop': `
+- 商品列表如果超过一屏，使用 ListView 而非 ScrollBox + 大量子 Widget
+- 分类导航用 Horizontal Box / Vertical Box + Button
+- 商品卡片封装为独立 User Widget
+- 货币显示固定在顶部，使用独立锚点`,
+    'settings': `
+- 左侧分类列表 + 右侧设置内容，整体用 Horizontal Box 布局
+- 选项条目封装为可复用的 User Widget
+- Scroll Box 包裹选项列表
+- 底部固定"应用"/"重置"按钮`,
+    'chat': `
+- 消息列表使用 ListView（虚拟列表，支持大量消息）
+- 输入框区域固定在底部
+- 消息气泡封装为 User Widget（区分自己/他人）
+- 表情面板使用 Wrap Box 或 Uniform Grid Panel`,
+    'rank': `
+- 排行榜列表使用 ListView（可能上百条数据）
+- 自己的排名固定在底部显示
+- 列表项封装为 User Widget
+- 表头和自身排名不随列表滚动`,
+    'login': `
+- 输入框使用 Editable Text / Text Input
+- 按钮组垂直排列（登录/注册/忘记密码）
+- 整体居中布局
+- 背景使用 Stretch 锚点全屏铺满`,
+    'loading': `
+- 全屏背景 Image 使用 Stretch 锚点
+- 进度条 (Progress Bar) 放在底部
+- Loading 动画/旋转图标独立于 Invalidation Box
+- Tip 文字居中或底部`,
+    'other': `
+- 根据界面复杂度选择合适的根容器
+- 静态装饰元素设为 Hit Test Invisible
+- 控件嵌套不超过 6 层
+- 所有控件使用规范命名前缀`
+  };
+
+  const prompt = `请分析这张游戏 UI 效果图/设计稿，为我生成最优的 UE4/UE5 UMG Widget Blueprint 层级结构。
+
+【界面类型】：${typeLabels[typeValue] || '通用界面'}
+${desc ? '【补充说明】：' + desc : ''}
+
+【输出要求】：
+1. 输出标准 UMG 层级树文本格式，使用 ├── 和 │ 符号表示层级缩进
+2. 根节点格式：WBP_XxxYyy (User Widget)
+3. 每个节点格式：节点名 (控件类型)
+4. 控件类型必须使用 UE 标准英文名：Canvas Panel / Vertical Box / Horizontal Box / Overlay / Image / Text Block / Button / Scroll Box / Size Box / Border / Progress Bar / User Widget / ListView / Uniform Grid Panel / Safe Zone / Invalidation Box / Wrap Box 等
+
+【命名规范】（必须严格遵守）：
+- Button → Btn_功能名（如 Btn_Close, Btn_Confirm）
+- Text Block → Txt_功能名（如 Txt_Title, Txt_Desc）
+- Image → Img_功能名（如 Img_BgMask, Img_Icon）
+- Horizontal Box → HB_功能名
+- Vertical Box → VB_功能名
+- Canvas Panel → CVS_功能名
+- Overlay → OL_功能名
+- Scroll Box → SB_功能名
+- Progress Bar → PB_功能名
+- Size Box → SizeBox_功能名
+- Border → Bdr_功能名
+- 自定义子蓝图 → WBP_功能名 或 UI_功能名
+
+【结构设计规范】：
+- 最大嵌套深度 ≤ 6 层（硬红线 ≤ 10 层）
+- 单页面节点总数 ≤ 150（复杂界面 ≤ 300）
+- 列表项 > 20 个时必须使用 ListView/TileView 替代 ScrollBox
+- Image 和 Text 不要交替排列（影响合批）
+- 纯装饰 Image 无需交互（注释标注 HitTestInvisible）
+- 可复用的模块封装为 User Widget
+${typeSpecificHints[typeValue] || typeSpecificHints['other']}
+
+【额外输出】：
+在层级树之后，请补充以下信息：
+1. 📐 锚点建议：关键控件的 Anchor 和 Alignment 设置建议
+2. ⚡ 性能提示：哪些元素应设为 HitTestInvisible、哪些需要 Invalidation Box
+3. 🔄 动态元素标注：哪些节点是需要蓝图/代码动态控制的（勾选 Is Variable）
+
+请输出完整的 UMG 层级树：`;
+
+  document.getElementById('mockupAiPrompt').value = prompt;
+  document.getElementById('mockupPromptSection').style.display = 'block';
+}
+
+function copyMockupPrompt() {
+  const prompt = document.getElementById('mockupAiPrompt').value;
+  navigator.clipboard.writeText(prompt).then(() => {
+    showMockupStatus('success', '✅ Prompt 已复制！请连同效果图一起发给 AI 助手（CodeBuddy / ChatGPT / Claude）获取推荐结构。');
+  }).catch(() => {
+    document.getElementById('mockupAiPrompt').select();
+    document.execCommand('copy');
+    showMockupStatus('success', '✅ Prompt 已复制！');
+  });
+}
+
+async function pasteMockupResult() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (text && text.trim()) {
+      document.getElementById('umgInput').value = text.trim();
+      // Switch to checker tab
+      switchTab('checker');
+      showGlobalStatus('success', '✅ AI 结构分析结果已粘贴到输入框！可以点击"开始检查"验证结构合规性。');
+      document.getElementById('umgInput').scrollIntoView({ behavior:'smooth', block:'center' });
+    } else {
+      showMockupStatus('error', '❌ 剪贴板为空，请先从 AI 助手复制结构分析结果。');
+    }
+  } catch(e) {
+    showMockupStatus('error', '❌ 无法读取剪贴板，请手动复制到"结构检查"标签页的输入框。');
+  }
+}
+
+function showMockupStatus(type, msg) {
+  const el = document.getElementById('mockupStatus');
+  el.className = 'ocr-status show ' + type;
+  el.textContent = msg;
+  setTimeout(() => { el.classList.remove('show'); }, 6000);
+}
+
+/* ===== UI Pattern Templates ===== */
+const UI_PATTERNS = {
+  'popup-pattern': {
+    title: '🪟 通用弹窗结构模板',
+    content: `WBP_CommonPopup (User Widget)
+├── CVS_Root (Canvas Panel)
+│   ├── Img_BgMask (Image)  // Stretch锚点，半透明黑色遮罩，HitTestInvisible
+│   ├── OL_Panel (Overlay)  // 居中锚点 Anchor(0.5,0.5), Alignment(0.5,0.5)
+│   │   ├── Img_PanelBg (Image)  // 面板背景九宫格
+│   │   ├── VB_Content (Vertical Box)
+│   │   │   ├── HB_TitleBar (Horizontal Box)
+│   │   │   │   ├── Img_TitleIcon (Image)
+│   │   │   │   ├── Txt_Title (Text Block)
+│   │   │   │   └── Btn_Close (Button)  // 右上角关闭
+│   │   │   ├── Bdr_Divider (Border)  // 分割线
+│   │   │   ├── SB_ScrollContent (Scroll Box)
+│   │   │   │   └── VB_DetailList (Vertical Box)
+│   │   │   │       ├── Txt_Desc (Text Block)
+│   │   │   │       └── ... // 更多内容
+│   │   │   └── HB_Buttons (Horizontal Box)
+│   │   │       ├── Btn_Cancel (Button)
+│   │   │       └── Btn_Confirm (Button)`
+  },
+  'bag-pattern': {
+    title: '🎒 背包界面结构模板',
+    content: `WBP_Inventory (User Widget)
+├── CVS_Root (Canvas Panel)
+│   ├── Img_BgFull (Image)  // Stretch锚点，全屏背景
+│   ├── SafeZone_Main (Safe Zone)
+│   │   ├── VB_Main (Vertical Box)
+│   │   │   ├── HB_TopBar (Horizontal Box)
+│   │   │   │   ├── Btn_Back (Button)  // 左上角返回
+│   │   │   │   ├── Txt_Title (Text Block)
+│   │   │   │   └── HB_Currency (Horizontal Box)
+│   │   │   │       ├── Img_CoinIcon (Image)
+│   │   │   │       └── Txt_CoinCount (Text Block)
+│   │   │   ├── HB_Tabs (Horizontal Box)
+│   │   │   │   ├── Btn_TabWeapon (Button)
+│   │   │   │   ├── Btn_TabArmor (Button)
+│   │   │   │   ├── Btn_TabConsumable (Button)
+│   │   │   │   └── Btn_TabMaterial (Button)
+│   │   │   ├── HB_Body (Horizontal Box)
+│   │   │   │   ├── TileView_Items (Tile View)  // 虚拟网格，复用ItemSlot
+│   │   │   │   └── VB_Detail (Vertical Box)  // 物品详情
+│   │   │   │       ├── Img_ItemIcon (Image)
+│   │   │   │       ├── Txt_ItemName (Text Block)
+│   │   │   │       ├── Txt_ItemDesc (Text Block)
+│   │   │   │       ├── VB_Stats (Vertical Box)
+│   │   │   │       │   └── WBP_StatRow (User Widget)  // 属性行×N
+│   │   │   │       └── HB_Actions (Horizontal Box)
+│   │   │   │           ├── Btn_Equip (Button)
+│   │   │   │           └── Btn_Discard (Button)
+│   │   │   └── Txt_EmptyHint (Text Block)  // 空背包提示`
+  },
+  'hud-pattern': {
+    title: '🎮 战斗 HUD 结构模板',
+    content: `WBP_BattleHUD (User Widget)
+├── CVS_Root (Canvas Panel)
+│   ├── SafeZone_Main (Safe Zone)
+│   │   ├── InvalidationBox_Static (Invalidation Box)  // 静态元素缓存
+│   │   │   ├── Img_HpBarBg (Image)  // 左上角，HitTestInvisible
+│   │   │   ├── Img_MpBarBg (Image)  // HitTestInvisible
+│   │   │   ├── Img_Portrait (Image)  // 头像框
+│   │   │   └── Txt_PlayerName (Text Block)
+│   │   ├── OL_Dynamic (Overlay)  // 高频动态层（不放入InvalidationBox）
+│   │   │   ├── PB_HpFill (Progress Bar)  // 血条填充
+│   │   │   ├── PB_MpFill (Progress Bar)  // 蓝条填充
+│   │   │   └── Txt_HpValue (Text Block)  // 血量数字
+│   │   ├── HB_SkillBar (Horizontal Box)  // 底部技能栏
+│   │   │   ├── WBP_SkillSlot_1 (User Widget)
+│   │   │   ├── WBP_SkillSlot_2 (User Widget)
+│   │   │   ├── WBP_SkillSlot_3 (User Widget)
+│   │   │   ├── WBP_SkillSlot_4 (User Widget)
+│   │   │   └── WBP_SkillSlot_Ult (User Widget)
+│   │   ├── Img_MiniMap (Image)  // 右上角小地图
+│   │   └── VB_KillFeed (Vertical Box)  // 右上角击杀信息
+│   │       └── WBP_KillFeedItem (User Widget)  // 动态添加
+│   ├── OL_DamagePopup (Overlay)  // 伤害数字弹出层
+│   │   └── WBP_DamageNumber (User Widget)  // 动态生成`
+  },
+  'shop-pattern': {
+    title: '🛒 商城界面结构模板',
+    content: `WBP_Shop (User Widget)
+├── CVS_Root (Canvas Panel)
+│   ├── Img_BgFull (Image)  // Stretch锚点全屏背景
+│   ├── SafeZone_Main (Safe Zone)
+│   │   ├── VB_Main (Vertical Box)
+│   │   │   ├── HB_TopBar (Horizontal Box)
+│   │   │   │   ├── Btn_Back (Button)
+│   │   │   │   ├── Txt_ShopTitle (Text Block)
+│   │   │   │   └── HB_Wallet (Horizontal Box)
+│   │   │   │       ├── Img_GemIcon (Image)
+│   │   │   │       ├── Txt_GemCount (Text Block)
+│   │   │   │       ├── Img_CoinIcon (Image)
+│   │   │   │       └── Txt_CoinCount (Text Block)
+│   │   │   ├── HB_Categories (Horizontal Box)
+│   │   │   │   ├── Btn_CatFeatured (Button)
+│   │   │   │   ├── Btn_CatSkin (Button)
+│   │   │   │   ├── Btn_CatWeapon (Button)
+│   │   │   │   └── Btn_CatBundle (Button)
+│   │   │   └── ListView_Products (List View)  // 虚拟列表复用商品卡片
+│   │   │       └── WBP_ShopItemCard (User Widget)  // 商品卡片模板
+│   │   │           ├── Img_ItemThumb (Image)
+│   │   │           ├── Txt_ItemName (Text Block)
+│   │   │           ├── HB_Price (Horizontal Box)
+│   │   │           │   ├── Img_PriceIcon (Image)
+│   │   │           │   └── Txt_Price (Text Block)
+│   │   │           └── Btn_Buy (Button)`
+  },
+  'list-pattern': {
+    title: '🏆 排行榜/列表结构模板',
+    content: `WBP_Leaderboard (User Widget)
+├── CVS_Root (Canvas Panel)
+│   ├── Img_BgPanel (Image)  // 居中锚点面板背景
+│   ├── VB_Main (Vertical Box)
+│   │   ├── HB_Header (Horizontal Box)
+│   │   │   ├── Txt_Title (Text Block)  // "排行榜"
+│   │   │   ├── HB_Tabs (Horizontal Box)
+│   │   │   │   ├── Btn_TabDaily (Button)
+│   │   │   │   ├── Btn_TabWeekly (Button)
+│   │   │   │   └── Btn_TabAll (Button)
+│   │   │   └── Btn_Close (Button)
+│   │   ├── HB_ColumnHeader (Horizontal Box)  // 表头
+│   │   │   ├── Txt_ColRank (Text Block)
+│   │   │   ├── Txt_ColName (Text Block)
+│   │   │   └── Txt_ColScore (Text Block)
+│   │   ├── ListView_Ranks (List View)  // 虚拟列表
+│   │   │   └── WBP_RankItem (User Widget)  // 排名行模板
+│   │   │       ├── Txt_Rank (Text Block)
+│   │   │       ├── Img_Avatar (Image)
+│   │   │       ├── Txt_PlayerName (Text Block)
+│   │   │       └── Txt_Score (Text Block)
+│   │   ├── Bdr_Divider (Border)  // 分割线
+│   │   └── HB_MyRank (Horizontal Box)  // 自己的排名（固定底部）
+│   │       ├── Txt_MyRank (Text Block)
+│   │       ├── Img_MyAvatar (Image)
+│   │       ├── Txt_MyName (Text Block)
+│   │       └── Txt_MyScore (Text Block)`
+  },
+  'settings-pattern': {
+    title: '⚙️ 设置面板结构模板',
+    content: `WBP_Settings (User Widget)
+├── CVS_Root (Canvas Panel)
+│   ├── Img_BgMask (Image)  // 半透明遮罩
+│   ├── OL_Panel (Overlay)  // 居中面板
+│   │   ├── Img_PanelBg (Image)
+│   │   ├── VB_Layout (Vertical Box)
+│   │   │   ├── HB_TitleBar (Horizontal Box)
+│   │   │   │   ├── Txt_Title (Text Block)
+│   │   │   │   └── Btn_Close (Button)
+│   │   │   ├── HB_Body (Horizontal Box)
+│   │   │   │   ├── VB_Categories (Vertical Box)  // 左侧分类
+│   │   │   │   │   ├── Btn_CatGraphics (Button)
+│   │   │   │   │   ├── Btn_CatAudio (Button)
+│   │   │   │   │   ├── Btn_CatControls (Button)
+│   │   │   │   │   └── Btn_CatAccount (Button)
+│   │   │   │   └── SB_Options (Scroll Box)  // 右侧选项列表
+│   │   │   │       └── VB_OptionList (Vertical Box)
+│   │   │   │           ├── WBP_OptionSlider (User Widget)  // 滑块选项
+│   │   │   │           ├── WBP_OptionToggle (User Widget)  // 开关选项
+│   │   │   │           └── WBP_OptionDropdown (User Widget) // 下拉选项
+│   │   │   └── HB_Footer (Horizontal Box)
+│   │   │       ├── Btn_Reset (Button)
+│   │   │       └── Btn_Apply (Button)`
+  }
+};
+
+function showPattern(patternId) {
+  const pattern = UI_PATTERNS[patternId];
+  if (!pattern) return;
+  document.getElementById('patternTitle').textContent = pattern.title;
+  document.getElementById('patternContent').value = pattern.content;
+  document.getElementById('patternDetail').style.display = 'block';
+}
+
+function closePattern() {
+  document.getElementById('patternDetail').style.display = 'none';
+}
+
+function applyPatternToChecker() {
+  const text = document.getElementById('patternContent').value.trim();
+  if (text) {
+    document.getElementById('umgInput').value = text;
+    switchTab('checker');
+    setTimeout(() => {
+      document.getElementById('umgInput').scrollIntoView({ behavior:'smooth', block:'center' });
+    }, 100);
+  }
+}
+
+function copyPattern() {
+  const text = document.getElementById('patternContent').value;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('✅ 结构模板已复制到剪贴板！');
+  }).catch(() => {
+    document.getElementById('patternContent').select();
+    document.execCommand('copy');
   });
 }
 </script>
