@@ -164,7 +164,16 @@ textarea::placeholder{color:var(--dim)}
 .ai-prompt-box .prompt-actions{display:flex;gap:8px;margin-top:8px}
 
 /* ====== Mockup Analysis ====== */
+.mockup-mode-switch{display:flex;gap:8px;margin-bottom:18px}
+.mode-btn{flex:1;padding:14px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;text-align:center;font-size:15px;font-weight:600;color:var(--text);transition:all .2s;position:relative}
+.mode-btn .mode-hint{display:block;font-size:11px;font-weight:400;color:var(--dim);margin-top:4px}
+.mode-btn:hover{border-color:var(--cyan);background:rgba(34,211,238,.03)}
+.mode-btn.active{border-color:var(--cyan);background:rgba(34,211,238,.08);color:var(--cyan)}
+.mode-btn.active .mode-hint{color:var(--cyan)}
+.mockup-mode-panel{animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .ui-type-grid{display:flex;flex-wrap:wrap;gap:8px}
+.ui-type-grid-large{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
 .ui-type-chip{display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:13px;cursor:pointer;transition:all .2s}
 .ui-type-chip:hover{border-color:var(--cyan);background:rgba(34,211,238,.04)}
 .ui-type-chip:has(input:checked){border-color:var(--cyan);background:rgba(34,211,238,.08);color:var(--cyan)}
@@ -178,6 +187,26 @@ textarea::placeholder{color:var(--dim)}
 .pattern-card .pattern-desc{font-size:11px;color:var(--dim);line-height:1.4}
 .pattern-detail{margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
 .pattern-detail-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:15px;color:var(--heading);font-weight:600}
+/* Step Indicator */
+.step-indicator{display:flex;align-items:center;justify-content:center;gap:6px;margin:16px 0 20px;padding:14px;background:var(--card);border-radius:10px;border:1px solid var(--border)}
+.step{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--dim);padding:6px 12px;border-radius:6px;transition:all .2s}
+.step.active{background:rgba(34,211,238,.1);color:var(--cyan);font-weight:600}
+.step.done{background:rgba(52,211,153,.1);color:#34d399;font-weight:600}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--dim);font-size:11px;font-weight:700}
+.step.active .step-num{background:var(--cyan);color:#1e293b}
+.step.done .step-num{background:#34d399;color:#1e293b}
+.step-arrow{color:var(--dim);font-size:14px}
+/* Action Card */
+.action-card{border-left:3px solid var(--cyan) !important}
+.action-card-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.action-step-badge{display:inline-block;padding:3px 10px;background:var(--cyan);color:#1e293b;border-radius:12px;font-size:11px;font-weight:700}
+.action-card-body p{font-size:13px;color:var(--text);margin:0 0 12px;line-height:1.6}
+.action-tip{font-size:12px;color:var(--dim);margin-top:10px;padding:8px 12px;background:rgba(34,211,238,.04);border-radius:6px;border-left:2px solid var(--cyan)}
+.btn-large{padding:12px 24px !important;font-size:15px !important;font-weight:600}
+/* Quick Result */
+.quick-result-info{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.qr-tag{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:var(--card);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text)}
+.badge-green{background:#34d399;color:#1e293b}
 </style>
 </head>
 <body>
@@ -185,7 +214,7 @@ textarea::placeholder{color:var(--dim)}
 
 <!-- ====== HEADER ====== -->
 <div class="header">
-  <h1>🔍 UMG 蓝图结构检查工具 <span class="ver">v1.2</span></h1>
+  <h1>🔍 UMG 蓝图结构检查工具 <span class="ver">v1.3</span></h1>
   <div class="subtitle">UMG Widget Blueprint Structure Checker — 一键扫描蓝图结构，输出合规检查报告 · 支持截图识别 · 效果图结构分析</div>
   <div class="meta">
     <span>📋 适用：UE4/UE5 UMG Layout 制作检查</span>
@@ -381,115 +410,182 @@ textarea::placeholder{color:var(--dim)}
 <!-- =============================== -->
 <div class="tab-panel" id="panel-mockup">
 
-<div class="alert alert-green">
-  <strong>🎨 效果图结构分析</strong>：上传 UI 设计稿/效果图，AI 将根据视觉元素自动分析并推荐最优的 UMG 蓝图层级结构。支持界面截图、设计稿导出图、手绘原型图等。
+<!-- ====== Mode Switch ====== -->
+<div class="mockup-mode-switch">
+  <button class="mode-btn active" id="modeQuick" onclick="switchMockupMode('quick')">⚡ 快速模式<span class="mode-hint">选类型直接出结构，无需AI</span></button>
+  <button class="mode-btn" id="modeAI" onclick="switchMockupMode('ai')">🤖 AI 分析模式<span class="mode-hint">上传效果图 → AI 反推结构</span></button>
 </div>
 
-<div class="img-upload-section">
-  <h3>📤 上传效果图 <span class="badge badge-new">NEW</span></h3>
-  <div class="hint">
-    上传 UI 效果图（设计稿截图、最终效果图、线框图均可），工具将生成专用 AI Prompt 帮你反推最优的 UMG 蓝图结构。<br>
-    <strong>支持场景</strong>：背包界面、弹窗、HUD、设置面板、商城页、聊天界面、排行榜等各类游戏 UI。
+<!-- ====== Quick Mode: Direct Pattern Generation ====== -->
+<div class="mockup-mode-panel" id="panelQuickMode">
+  <div class="alert alert-green">
+    <strong>⚡ 快速模式</strong>：选择界面类型，直接生成推荐的 UMG 蓝图结构。无需 AI，即选即用。
   </div>
 
-  <!-- Upload Zone -->
-  <div class="drop-zone" id="mockupDropZone">
-    <div class="dz-icon">🎨</div>
-    <div class="dz-text"><strong>点击上传效果图</strong> 或拖拽图片到此处</div>
-    <input type="file" id="mockupFileInput" accept="image/*">
-  </div>
-
-  <!-- Image Preview -->
-  <div class="preview-area" id="mockupPreviewArea">
-    <img id="mockupPreviewImg" src="" alt="效果图预览">
-    <button class="remove-img" onclick="removeMockupImage()" title="移除图片">×</button>
-  </div>
-
-  <!-- UI Type Selection -->
-  <div class="mockup-options" id="mockupOptions" style="display:none">
-    <div style="font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600">📋 选择界面类型（可选，帮助 AI 更精确推荐结构）</div>
-    <div class="ui-type-grid">
-      <label class="ui-type-chip"><input type="radio" name="uiType" value="popup" checked> 🪟 弹窗/对话框</label>
-      <label class="ui-type-chip"><input type="radio" name="uiType" value="hud"> 🎮 战斗 HUD</label>
-      <label class="ui-type-chip"><input type="radio" name="uiType" value="bag"> 🎒 背包/物品</label>
-      <label class="ui-type-chip"><input type="radio" name="uiType" value="shop"> 🛒 商城/商店</label>
-      <label class="ui-type-chip"><input type="radio" name="uiType" value="settings"> ⚙️ 设置/选项</label>
-      <label class="ui-type-chip"><input type="radio" name="uiType" value="chat"> 💬 聊天/社交</label>
-      <label class="ui-type-chip"><input type="radio" name="uiType" value="rank"> 🏆 排行榜/列表</label>
-      <label class="ui-type-chip"><input type="radio" name="uiType" value="login"> 🔑 登录/注册</label>
-      <label class="ui-type-chip"><input type="radio" name="uiType" value="loading"> ⏳ 加载/过渡</label>
-      <label class="ui-type-chip"><input type="radio" name="uiType" value="other"> 📄 其他</label>
+  <div class="img-upload-section">
+    <h3>🎯 选择界面类型</h3>
+    <div class="ui-type-grid ui-type-grid-large">
+      <div class="pattern-card" onclick="quickGenerate('popup')">
+        <div class="pattern-icon">🪟</div>
+        <div class="pattern-name">通用弹窗</div>
+        <div class="pattern-desc">遮罩 + 面板 + 标题 + 内容 + 按钮组</div>
+      </div>
+      <div class="pattern-card" onclick="quickGenerate('bag')">
+        <div class="pattern-icon">🎒</div>
+        <div class="pattern-name">背包界面</div>
+        <div class="pattern-desc">Tab页签 + 网格物品栏 + 详情面板</div>
+      </div>
+      <div class="pattern-card" onclick="quickGenerate('hud')">
+        <div class="pattern-icon">🎮</div>
+        <div class="pattern-name">战斗 HUD</div>
+        <div class="pattern-desc">血条 + 技能栏 + 小地图 + 消息</div>
+      </div>
+      <div class="pattern-card" onclick="quickGenerate('shop')">
+        <div class="pattern-icon">🛒</div>
+        <div class="pattern-name">商城界面</div>
+        <div class="pattern-desc">分类导航 + 商品列表 + 购买确认</div>
+      </div>
+      <div class="pattern-card" onclick="quickGenerate('rank')">
+        <div class="pattern-icon">🏆</div>
+        <div class="pattern-name">排行榜/列表</div>
+        <div class="pattern-desc">标题 + 虚拟列表 + 自己排名</div>
+      </div>
+      <div class="pattern-card" onclick="quickGenerate('settings')">
+        <div class="pattern-icon">⚙️</div>
+        <div class="pattern-name">设置面板</div>
+        <div class="pattern-desc">分类Tab + 选项列表 + 应用/重置</div>
+      </div>
+      <div class="pattern-card" onclick="quickGenerate('chat')">
+        <div class="pattern-icon">💬</div>
+        <div class="pattern-name">聊天界面</div>
+        <div class="pattern-desc">消息列表 + 输入框 + 表情面板</div>
+      </div>
+      <div class="pattern-card" onclick="quickGenerate('login')">
+        <div class="pattern-icon">🔑</div>
+        <div class="pattern-name">登录/注册</div>
+        <div class="pattern-desc">输入框 + 按钮 + 全屏背景</div>
+      </div>
+      <div class="pattern-card" onclick="quickGenerate('loading')">
+        <div class="pattern-icon">⏳</div>
+        <div class="pattern-name">加载/过渡</div>
+        <div class="pattern-desc">进度条 + 提示文字 + 背景</div>
+      </div>
+      <div class="pattern-card" onclick="quickGenerate('team')">
+        <div class="pattern-icon">👥</div>
+        <div class="pattern-name">组队/房间</div>
+        <div class="pattern-desc">玩家列表 + 准备按钮 + 聊天</div>
+      </div>
+      <div class="pattern-card" onclick="quickGenerate('achievement')">
+        <div class="pattern-icon">🏅</div>
+        <div class="pattern-name">成就/任务</div>
+        <div class="pattern-desc">任务列表 + 进度 + 领取奖励</div>
+      </div>
+      <div class="pattern-card" onclick="quickGenerate('map')">
+        <div class="pattern-icon">🗺️</div>
+        <div class="pattern-name">地图/选关</div>
+        <div class="pattern-desc">关卡节点 + 路线 + 信息面板</div>
+      </div>
     </div>
+  </div>
 
-    <div style="margin-top:14px">
-      <div style="font-size:13px;color:var(--heading);margin-bottom:6px;font-weight:600">📝 补充说明（可选）</div>
-      <textarea id="mockupDesc" style="min-height:60px;font-size:13px" placeholder="例如：这是一个装备强化弹窗，中间有装备图标、强化等级星星、属性列表，底部有强化按钮和消耗显示..."></textarea>
+  <!-- Quick Result -->
+  <div class="img-upload-section" id="quickResultSection" style="display:none">
+    <h3>📐 推荐蓝图结构 <span class="badge badge-green" id="quickResultBadge"></span></h3>
+    <div class="quick-result-info">
+      <span class="qr-tag" id="qrDepth">📏 层级深度: --</span>
+      <span class="qr-tag" id="qrNodes">🔢 节点数: --</span>
+      <span class="qr-tag" id="qrWidgets">🧩 子蓝图: --</span>
+    </div>
+    <textarea id="quickResultText" style="min-height:240px;font-size:12px;font-family:'Cascadia Code','Fira Code',Consolas,monospace" readonly></textarea>
+    <div class="prompt-actions" style="margin-top:10px">
+      <button class="btn btn-primary" onclick="applyQuickResult()" style="padding:10px 20px;font-size:14px">✅ 一键应用到结构检查</button>
+      <button class="btn btn-secondary" onclick="copyQuickResult()" style="padding:10px 20px;font-size:14px">📋 复制结构</button>
+      <button class="btn btn-secondary" onclick="editQuickResult()" style="padding:10px 20px;font-size:14px">✏️ 编辑调整</button>
     </div>
   </div>
 </div>
 
-<!-- Generated Prompt Section -->
-<div class="img-upload-section" id="mockupPromptSection" style="display:none">
-  <h3>🤖 AI 结构分析 Prompt</h3>
-  <div class="hint">
-    复制以下 Prompt 连同效果图一起发给 AI 助手（CodeBuddy / ChatGPT / Claude），即可获取推荐的 UMG 层级结构。
-  </div>
-  <textarea id="mockupAiPrompt" readonly style="min-height:280px;cursor:text;font-size:12px"></textarea>
-  <div class="prompt-actions" style="margin-top:10px">
-    <button class="btn btn-primary" onclick="copyMockupPrompt()" style="padding:8px 16px;font-size:13px">📋 复制 Prompt</button>
-    <button class="btn btn-secondary" onclick="pasteMockupResult()" style="padding:8px 16px;font-size:13px">📥 粘贴 AI 结果到结构检查</button>
-    <button class="btn btn-green" onclick="generateMockupPrompt()" style="padding:8px 16px;font-size:13px">🔄 重新生成 Prompt</button>
-  </div>
-  <div class="ocr-status" id="mockupStatus"></div>
-</div>
-
-<!-- Common UI Pattern Reference -->
-<div class="img-upload-section">
-  <h3>📚 常见 UI 模式参考结构</h3>
-  <div class="hint">点击查看常见游戏 UI 类型的推荐蓝图层级结构模板，可直接复制使用或作为参考。</div>
-  <div class="pattern-grid">
-    <div class="pattern-card" onclick="showPattern('popup-pattern')">
-      <div class="pattern-icon">🪟</div>
-      <div class="pattern-name">通用弹窗</div>
-      <div class="pattern-desc">遮罩 + 面板 + 标题 + 内容 + 按钮组</div>
-    </div>
-    <div class="pattern-card" onclick="showPattern('bag-pattern')">
-      <div class="pattern-icon">🎒</div>
-      <div class="pattern-name">背包界面</div>
-      <div class="pattern-desc">Tab页签 + 网格物品栏 + 详情面板</div>
-    </div>
-    <div class="pattern-card" onclick="showPattern('hud-pattern')">
-      <div class="pattern-icon">🎮</div>
-      <div class="pattern-name">战斗 HUD</div>
-      <div class="pattern-desc">血条 + 技能栏 + 小地图 + 消息</div>
-    </div>
-    <div class="pattern-card" onclick="showPattern('shop-pattern')">
-      <div class="pattern-icon">🛒</div>
-      <div class="pattern-name">商城界面</div>
-      <div class="pattern-desc">分类导航 + 商品列表 + 购买确认</div>
-    </div>
-    <div class="pattern-card" onclick="showPattern('list-pattern')">
-      <div class="pattern-icon">🏆</div>
-      <div class="pattern-name">排行榜/列表</div>
-      <div class="pattern-desc">标题 + 虚拟列表 + 自己排名</div>
-    </div>
-    <div class="pattern-card" onclick="showPattern('settings-pattern')">
-      <div class="pattern-icon">⚙️</div>
-      <div class="pattern-name">设置面板</div>
-      <div class="pattern-desc">分类Tab + 选项列表 + 应用/重置</div>
-    </div>
+<!-- ====== AI Mode: Upload & Analyze ====== -->
+<div class="mockup-mode-panel" id="panelAIMode" style="display:none">
+  <div class="alert alert-green">
+    <strong>🤖 AI 分析模式</strong>：上传效果图 → 一键复制 Prompt → 发给 AI → 粘贴结果自动检查。适合复杂/非标准界面。
   </div>
 
-  <!-- Pattern Detail Display -->
-  <div class="pattern-detail" id="patternDetail" style="display:none">
-    <div class="pattern-detail-header">
-      <span id="patternTitle"></span>
-      <button class="btn btn-secondary" onclick="closePattern()" style="padding:4px 12px;font-size:12px">✕ 关闭</button>
+  <div class="img-upload-section">
+    <h3>📤 上传效果图</h3>
+
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+      <div class="step active" id="step1"><span class="step-num">1</span> 上传图片</div>
+      <div class="step-arrow">→</div>
+      <div class="step" id="step2"><span class="step-num">2</span> 复制 Prompt</div>
+      <div class="step-arrow">→</div>
+      <div class="step" id="step3"><span class="step-num">3</span> 粘贴结果</div>
+      <div class="step-arrow">→</div>
+      <div class="step" id="step4"><span class="step-num">4</span> 自动检查</div>
     </div>
-    <textarea id="patternContent" style="min-height:200px;font-size:12px" readonly></textarea>
-    <div class="prompt-actions" style="margin-top:8px">
-      <button class="btn btn-primary" onclick="applyPatternToChecker()" style="padding:8px 16px;font-size:13px">✅ 应用到结构检查</button>
-      <button class="btn btn-secondary" onclick="copyPattern()" style="padding:8px 16px;font-size:13px">📋 复制结构</button>
+
+    <!-- Upload Zone -->
+    <div class="drop-zone" id="mockupDropZone">
+      <div class="dz-icon">🎨</div>
+      <div class="dz-text"><strong>点击上传效果图</strong> 或拖拽图片到此处</div>
+      <input type="file" id="mockupFileInput" accept="image/*">
+    </div>
+
+    <!-- Image Preview -->
+    <div class="preview-area" id="mockupPreviewArea">
+      <img id="mockupPreviewImg" src="" alt="效果图预览">
+      <button class="remove-img" onclick="removeMockupImage()" title="移除图片">×</button>
+    </div>
+
+    <!-- UI Type Selection (shown after upload) -->
+    <div class="mockup-options" id="mockupOptions" style="display:none">
+      <div style="font-size:13px;color:var(--heading);margin-bottom:10px;font-weight:600">📋 选择界面类型（可选）</div>
+      <div class="ui-type-grid">
+        <label class="ui-type-chip"><input type="radio" name="uiType" value="popup" checked> 🪟 弹窗</label>
+        <label class="ui-type-chip"><input type="radio" name="uiType" value="hud"> 🎮 HUD</label>
+        <label class="ui-type-chip"><input type="radio" name="uiType" value="bag"> 🎒 背包</label>
+        <label class="ui-type-chip"><input type="radio" name="uiType" value="shop"> 🛒 商城</label>
+        <label class="ui-type-chip"><input type="radio" name="uiType" value="settings"> ⚙️ 设置</label>
+        <label class="ui-type-chip"><input type="radio" name="uiType" value="chat"> 💬 聊天</label>
+        <label class="ui-type-chip"><input type="radio" name="uiType" value="rank"> 🏆 排行榜</label>
+        <label class="ui-type-chip"><input type="radio" name="uiType" value="login"> 🔑 登录</label>
+        <label class="ui-type-chip"><input type="radio" name="uiType" value="loading"> ⏳ 加载</label>
+        <label class="ui-type-chip"><input type="radio" name="uiType" value="other"> 📄 其他</label>
+      </div>
+      <div style="margin-top:10px">
+        <textarea id="mockupDesc" style="min-height:50px;font-size:12px" placeholder="补充说明（可选）：如 这是一个装备强化弹窗..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Card (shown after upload) -->
+  <div class="img-upload-section action-card" id="mockupActionCard" style="display:none">
+    <div class="action-card-header">
+      <span class="action-step-badge">Step 2</span>
+      <h3 style="margin:0;display:inline">一键复制，发给 AI</h3>
+    </div>
+    <div class="action-card-body">
+      <p>Prompt 已自动生成。点击下方按钮复制，然后<strong>连同效果图</strong>一起粘贴到 AI 对话（CodeBuddy / ChatGPT / Claude）。</p>
+      <button class="btn btn-primary btn-large" onclick="copyMockupPrompt()">📋 一键复制 Prompt（已自动生成）</button>
+      <div class="action-tip">💡 复制后打开 AI 对话 → 粘贴图片 + Prompt → 等 AI 返回结构</div>
+    </div>
+    <textarea id="mockupAiPrompt" style="display:none"></textarea>
+    <div class="ocr-status" id="mockupStatus"></div>
+  </div>
+
+  <!-- Paste Result Card -->
+  <div class="img-upload-section action-card" id="mockupPasteCard" style="display:none">
+    <div class="action-card-header">
+      <span class="action-step-badge">Step 3</span>
+      <h3 style="margin:0;display:inline">粘贴 AI 返回的结构</h3>
+    </div>
+    <div class="action-card-body">
+      <textarea id="mockupResultInput" style="min-height:150px;font-size:12px" placeholder="把 AI 返回的 UMG 层级结构粘贴到这里...&#10;&#10;例如：&#10;WBP_Popup (User Widget)&#10;├── CVS_Root (Canvas Panel)&#10;│   ├── Img_BgMask (Image)&#10;│   └── ..."></textarea>
+      <div class="prompt-actions" style="margin-top:10px">
+        <button class="btn btn-primary btn-large" onclick="applyMockupResultAndCheck()">✅ 应用并自动检查</button>
+        <button class="btn btn-secondary" onclick="pasteMockupResult()" style="padding:10px 16px;font-size:13px">📥 从剪贴板粘贴</button>
+      </div>
     </div>
   </div>
 </div>
@@ -628,7 +724,7 @@ textarea::placeholder{color:var(--dim)}
 </div>
 
 <!-- ====== FOOTER ====== -->
-<div class="doc-footer">🔍 UMG 蓝图结构检查工具 v1.2 · UI 组 · Layout 接口人 · 项目内部资料 · 支持截图识别 · 效果图结构分析</div>
+<div class="doc-footer">🔍 UMG 蓝图结构检查工具 v1.3 · UI 组 · Layout 接口人 · 项目内部资料 · 快速模式直出结构 · AI 效果图分析</div>
 </div>
 
 <!-- ====================================================================== -->
@@ -1514,48 +1610,43 @@ function loadScript(src) {
   });
 }
 
-/* ===== Mockup Analysis Module ===== */
+/* ===== Mockup Analysis Module v2 ===== */
 let mockupImageFile = null;
 
-// Mockup File input & Drag-Drop
+// Mode Switch
+function switchMockupMode(mode) {
+  document.getElementById('modeQuick').classList.toggle('active', mode === 'quick');
+  document.getElementById('modeAI').classList.toggle('active', mode === 'ai');
+  document.getElementById('panelQuickMode').style.display = mode === 'quick' ? '' : 'none';
+  document.getElementById('panelAIMode').style.display = mode === 'ai' ? '' : 'none';
+}
+
+// ===== AI Mode: File upload & drag-drop =====
 const mockupDropZone = document.getElementById('mockupDropZone');
 const mockupFileInput = document.getElementById('mockupFileInput');
 
 mockupFileInput.addEventListener('change', function(e) {
   if (e.target.files && e.target.files[0]) handleMockupUpload(e.target.files[0]);
 });
-
-mockupDropZone.addEventListener('dragover', function(e) {
-  e.preventDefault();
-  mockupDropZone.classList.add('dragover');
-});
-mockupDropZone.addEventListener('dragleave', function(e) {
-  e.preventDefault();
-  mockupDropZone.classList.remove('dragover');
-});
+mockupDropZone.addEventListener('dragover', function(e) { e.preventDefault(); mockupDropZone.classList.add('dragover'); });
+mockupDropZone.addEventListener('dragleave', function(e) { e.preventDefault(); mockupDropZone.classList.remove('dragover'); });
 mockupDropZone.addEventListener('drop', function(e) {
-  e.preventDefault();
-  mockupDropZone.classList.remove('dragover');
-  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-    handleMockupUpload(e.dataTransfer.files[0]);
-  }
+  e.preventDefault(); mockupDropZone.classList.remove('dragover');
+  if (e.dataTransfer.files && e.dataTransfer.files[0]) handleMockupUpload(e.dataTransfer.files[0]);
 });
 
 function handleMockupUpload(file) {
-  if (!file.type.startsWith('image/')) {
-    alert('请上传图片文件（PNG/JPG/BMP/WebP）');
-    return;
-  }
+  if (!file.type.startsWith('image/')) { alert('请上传图片文件'); return; }
   mockupImageFile = file;
-
   const reader = new FileReader();
   reader.onload = function(e) {
     document.getElementById('mockupPreviewImg').src = e.target.result;
     document.getElementById('mockupPreviewArea').classList.add('show');
     document.getElementById('mockupOptions').style.display = 'block';
     mockupDropZone.style.display = 'none';
-
-    // Auto-generate prompt
+    document.getElementById('mockupActionCard').style.display = '';
+    document.getElementById('mockupPasteCard').style.display = '';
+    setStep(2);
     generateMockupPrompt();
   };
   reader.readAsDataURL(file);
@@ -1566,82 +1657,28 @@ function removeMockupImage() {
   document.getElementById('mockupPreviewImg').src = '';
   document.getElementById('mockupPreviewArea').classList.remove('show');
   document.getElementById('mockupOptions').style.display = 'none';
-  document.getElementById('mockupPromptSection').style.display = 'none';
+  document.getElementById('mockupActionCard').style.display = 'none';
+  document.getElementById('mockupPasteCard').style.display = 'none';
   mockupDropZone.style.display = '';
   mockupFileInput.value = '';
+  setStep(1);
+}
+
+function setStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('step' + i);
+    if (!el) continue;
+    el.classList.remove('active', 'done');
+    if (i < n) el.classList.add('done');
+    if (i === n) el.classList.add('active');
+  }
 }
 
 function generateMockupPrompt() {
   const uiType = document.querySelector('input[name="uiType"]:checked');
   const typeValue = uiType ? uiType.value : 'other';
   const desc = document.getElementById('mockupDesc').value.trim();
-
-  const typeLabels = {
-    'popup': '弹窗/对话框',
-    'hud': '战斗 HUD',
-    'bag': '背包/物品界面',
-    'shop': '商城/商店界面',
-    'settings': '设置/选项面板',
-    'chat': '聊天/社交界面',
-    'rank': '排行榜/列表界面',
-    'login': '登录/注册界面',
-    'loading': '加载/过渡界面',
-    'other': '通用界面'
-  };
-
-  const typeSpecificHints = {
-    'popup': `
-- 弹窗必须包含：全屏半透明遮罩(Img_BgMask)、面板背景(Img_PanelBg)、标题、关闭按钮
-- 弹窗面板使用居中锚点 Anchor(0.5, 0.5) + Alignment(0.5, 0.5)
-- 遮罩层使用 Stretch 锚点 Anchor(0,0)~(1,1)
-- 底部按钮组用 Horizontal Box 横向排列`,
-    'hud': `
-- HUD 必须包含 Safe Zone 组件（适配异形屏）
-- 使用 Invalidation Box 包裹静态元素（血条背景、图标等）
-- 高频动态元素（血条填充、计时器、动画）放在 Invalidation Box 外
-- 角落元素锚定到对应角而非中心
-- 技能栏使用 Horizontal Box 排列`,
-    'bag': `
-- 物品网格使用 Uniform Grid Panel 或 Wrap Box
-- 如果物品 > 20 个，必须使用 ListView / Tile View（虚拟列表）
-- Tab 页签用 Horizontal Box + Button 实现
-- 物品详情面板单独放一个区域，避免嵌套过深`,
-    'shop': `
-- 商品列表如果超过一屏，使用 ListView 而非 ScrollBox + 大量子 Widget
-- 分类导航用 Horizontal Box / Vertical Box + Button
-- 商品卡片封装为独立 User Widget
-- 货币显示固定在顶部，使用独立锚点`,
-    'settings': `
-- 左侧分类列表 + 右侧设置内容，整体用 Horizontal Box 布局
-- 选项条目封装为可复用的 User Widget
-- Scroll Box 包裹选项列表
-- 底部固定"应用"/"重置"按钮`,
-    'chat': `
-- 消息列表使用 ListView（虚拟列表，支持大量消息）
-- 输入框区域固定在底部
-- 消息气泡封装为 User Widget（区分自己/他人）
-- 表情面板使用 Wrap Box 或 Uniform Grid Panel`,
-    'rank': `
-- 排行榜列表使用 ListView（可能上百条数据）
-- 自己的排名固定在底部显示
-- 列表项封装为 User Widget
-- 表头和自身排名不随列表滚动`,
-    'login': `
-- 输入框使用 Editable Text / Text Input
-- 按钮组垂直排列（登录/注册/忘记密码）
-- 整体居中布局
-- 背景使用 Stretch 锚点全屏铺满`,
-    'loading': `
-- 全屏背景 Image 使用 Stretch 锚点
-- 进度条 (Progress Bar) 放在底部
-- Loading 动画/旋转图标独立于 Invalidation Box
-- Tip 文字居中或底部`,
-    'other': `
-- 根据界面复杂度选择合适的根容器
-- 静态装饰元素设为 Hit Test Invisible
-- 控件嵌套不超过 6 层
-- 所有控件使用规范命名前缀`
-  };
+  const typeLabels = { 'popup':'弹窗/对话框','hud':'战斗HUD','bag':'背包/物品','shop':'商城/商店','settings':'设置面板','chat':'聊天/社交','rank':'排行榜/列表','login':'登录/注册','loading':'加载界面','other':'通用界面' };
 
   const prompt = `请分析这张游戏 UI 效果图/设计稿，为我生成最优的 UE4/UE5 UMG Widget Blueprint 层级结构。
 
@@ -1649,54 +1686,36 @@ function generateMockupPrompt() {
 ${desc ? '【补充说明】：' + desc : ''}
 
 【输出要求】：
-1. 输出标准 UMG 层级树文本格式，使用 ├── 和 │ 符号表示层级缩进
-2. 根节点格式：WBP_XxxYyy (User Widget)
-3. 每个节点格式：节点名 (控件类型)
-4. 控件类型必须使用 UE 标准英文名：Canvas Panel / Vertical Box / Horizontal Box / Overlay / Image / Text Block / Button / Scroll Box / Size Box / Border / Progress Bar / User Widget / ListView / Uniform Grid Panel / Safe Zone / Invalidation Box / Wrap Box 等
+1. 输出标准 UMG 层级树文本，使用 ├── └── │ 表示缩进
+2. 根节点：WBP_XxxYyy (User Widget)
+3. 每个节点：节点名 (控件类型)
+4. 控件类型用 UE 标准英文名
 
-【命名规范】（必须严格遵守）：
-- Button → Btn_功能名（如 Btn_Close, Btn_Confirm）
-- Text Block → Txt_功能名（如 Txt_Title, Txt_Desc）
-- Image → Img_功能名（如 Img_BgMask, Img_Icon）
-- Horizontal Box → HB_功能名
-- Vertical Box → VB_功能名
-- Canvas Panel → CVS_功能名
-- Overlay → OL_功能名
-- Scroll Box → SB_功能名
-- Progress Bar → PB_功能名
-- Size Box → SizeBox_功能名
-- Border → Bdr_功能名
-- 自定义子蓝图 → WBP_功能名 或 UI_功能名
+【命名规范】：Btn_/Txt_/Img_/HB_/VB_/CVS_/OL_/SB_/PB_/SizeBox_/Bdr_/WBP_ 前缀
 
-【结构设计规范】：
-- 最大嵌套深度 ≤ 6 层（硬红线 ≤ 10 层）
-- 单页面节点总数 ≤ 150（复杂界面 ≤ 300）
-- 列表项 > 20 个时必须使用 ListView/TileView 替代 ScrollBox
-- Image 和 Text 不要交替排列（影响合批）
-- 纯装饰 Image 无需交互（注释标注 HitTestInvisible）
-- 可复用的模块封装为 User Widget
-${typeSpecificHints[typeValue] || typeSpecificHints['other']}
+【结构红线】：嵌套≤6层 · 节点≤150 · 列表>20用ListView · 装饰Image标HitTestInvisible · 复用模块封User Widget
 
-【额外输出】：
-在层级树之后，请补充以下信息：
-1. 📐 锚点建议：关键控件的 Anchor 和 Alignment 设置建议
-2. ⚡ 性能提示：哪些元素应设为 HitTestInvisible、哪些需要 Invalidation Box
-3. 🔄 动态元素标注：哪些节点是需要蓝图/代码动态控制的（勾选 Is Variable）
+【额外输出】：锚点建议 + 性能提示 + 动态元素(IsVariable)标注
 
-请输出完整的 UMG 层级树：`;
+请输出完整 UMG 层级树：`;
 
   document.getElementById('mockupAiPrompt').value = prompt;
-  document.getElementById('mockupPromptSection').style.display = 'block';
 }
 
 function copyMockupPrompt() {
   const prompt = document.getElementById('mockupAiPrompt').value;
-  navigator.clipboard.writeText(prompt).then(() => {
-    showMockupStatus('success', '✅ Prompt 已复制！请连同效果图一起发给 AI 助手（CodeBuddy / ChatGPT / Claude）获取推荐结构。');
+  if (!prompt) generateMockupPrompt();
+  navigator.clipboard.writeText(document.getElementById('mockupAiPrompt').value).then(() => {
+    showMockupStatus('success', '✅ 已复制！现在打开 AI 对话，粘贴图片 + 这段 Prompt 即可。');
+    setStep(3);
   }).catch(() => {
-    document.getElementById('mockupAiPrompt').select();
+    const ta = document.getElementById('mockupAiPrompt');
+    ta.style.display = '';
+    ta.select();
     document.execCommand('copy');
-    showMockupStatus('success', '✅ Prompt 已复制！');
+    ta.style.display = 'none';
+    showMockupStatus('success', '✅ 已复制！');
+    setStep(3);
   });
 }
 
@@ -1704,224 +1723,87 @@ async function pasteMockupResult() {
   try {
     const text = await navigator.clipboard.readText();
     if (text && text.trim()) {
-      document.getElementById('umgInput').value = text.trim();
-      // Switch to checker tab
-      switchTab('checker');
-      showGlobalStatus('success', '✅ AI 结构分析结果已粘贴到输入框！可以点击"开始检查"验证结构合规性。');
-      document.getElementById('umgInput').scrollIntoView({ behavior:'smooth', block:'center' });
+      document.getElementById('mockupResultInput').value = text.trim();
+      showMockupStatus('success', '✅ 已从剪贴板粘贴。');
     } else {
-      showMockupStatus('error', '❌ 剪贴板为空，请先从 AI 助手复制结构分析结果。');
+      showMockupStatus('error', '❌ 剪贴板为空。');
     }
   } catch(e) {
-    showMockupStatus('error', '❌ 无法读取剪贴板，请手动复制到"结构检查"标签页的输入框。');
+    showMockupStatus('error', '❌ 无法读取剪贴板，请手动粘贴到输入框。');
   }
+}
+
+function applyMockupResultAndCheck() {
+  const text = document.getElementById('mockupResultInput').value.trim();
+  if (!text) { showMockupStatus('error', '❌ 请先粘贴 AI 返回的结构。'); return; }
+  document.getElementById('umgInput').value = text;
+  switchTab('checker');
+  setStep(4);
+  setTimeout(() => {
+    if (typeof runCheck === 'function') runCheck();
+  }, 200);
 }
 
 function showMockupStatus(type, msg) {
   const el = document.getElementById('mockupStatus');
+  if (!el) return;
   el.className = 'ocr-status show ' + type;
   el.textContent = msg;
-  setTimeout(() => { el.classList.remove('show'); }, 6000);
+  setTimeout(() => { el.classList.remove('show'); }, 5000);
 }
 
-/* ===== UI Pattern Templates ===== */
-const UI_PATTERNS = {
-  'popup-pattern': {
-    title: '🪟 通用弹窗结构模板',
-    content: `WBP_CommonPopup (User Widget)
-├── CVS_Root (Canvas Panel)
-│   ├── Img_BgMask (Image)  // Stretch锚点，半透明黑色遮罩，HitTestInvisible
-│   ├── OL_Panel (Overlay)  // 居中锚点 Anchor(0.5,0.5), Alignment(0.5,0.5)
-│   │   ├── Img_PanelBg (Image)  // 面板背景九宫格
-│   │   ├── VB_Content (Vertical Box)
-│   │   │   ├── HB_TitleBar (Horizontal Box)
-│   │   │   │   ├── Img_TitleIcon (Image)
-│   │   │   │   ├── Txt_Title (Text Block)
-│   │   │   │   └── Btn_Close (Button)  // 右上角关闭
-│   │   │   ├── Bdr_Divider (Border)  // 分割线
-│   │   │   ├── SB_ScrollContent (Scroll Box)
-│   │   │   │   └── VB_DetailList (Vertical Box)
-│   │   │   │       ├── Txt_Desc (Text Block)
-│   │   │   │       └── ... // 更多内容
-│   │   │   └── HB_Buttons (Horizontal Box)
-│   │   │       ├── Btn_Cancel (Button)
-│   │   │       └── Btn_Confirm (Button)`
-  },
-  'bag-pattern': {
-    title: '🎒 背包界面结构模板',
-    content: `WBP_Inventory (User Widget)
-├── CVS_Root (Canvas Panel)
-│   ├── Img_BgFull (Image)  // Stretch锚点，全屏背景
-│   ├── SafeZone_Main (Safe Zone)
-│   │   ├── VB_Main (Vertical Box)
-│   │   │   ├── HB_TopBar (Horizontal Box)
-│   │   │   │   ├── Btn_Back (Button)  // 左上角返回
-│   │   │   │   ├── Txt_Title (Text Block)
-│   │   │   │   └── HB_Currency (Horizontal Box)
-│   │   │   │       ├── Img_CoinIcon (Image)
-│   │   │   │       └── Txt_CoinCount (Text Block)
-│   │   │   ├── HB_Tabs (Horizontal Box)
-│   │   │   │   ├── Btn_TabWeapon (Button)
-│   │   │   │   ├── Btn_TabArmor (Button)
-│   │   │   │   ├── Btn_TabConsumable (Button)
-│   │   │   │   └── Btn_TabMaterial (Button)
-│   │   │   ├── HB_Body (Horizontal Box)
-│   │   │   │   ├── TileView_Items (Tile View)  // 虚拟网格，复用ItemSlot
-│   │   │   │   └── VB_Detail (Vertical Box)  // 物品详情
-│   │   │   │       ├── Img_ItemIcon (Image)
-│   │   │   │       ├── Txt_ItemName (Text Block)
-│   │   │   │       ├── Txt_ItemDesc (Text Block)
-│   │   │   │       ├── VB_Stats (Vertical Box)
-│   │   │   │       │   └── WBP_StatRow (User Widget)  // 属性行×N
-│   │   │   │       └── HB_Actions (Horizontal Box)
-│   │   │   │           ├── Btn_Equip (Button)
-│   │   │   │           └── Btn_Discard (Button)
-│   │   │   └── Txt_EmptyHint (Text Block)  // 空背包提示`
-  },
-  'hud-pattern': {
-    title: '🎮 战斗 HUD 结构模板',
-    content: `WBP_BattleHUD (User Widget)
-├── CVS_Root (Canvas Panel)
-│   ├── SafeZone_Main (Safe Zone)
-│   │   ├── InvalidationBox_Static (Invalidation Box)  // 静态元素缓存
-│   │   │   ├── Img_HpBarBg (Image)  // 左上角，HitTestInvisible
-│   │   │   ├── Img_MpBarBg (Image)  // HitTestInvisible
-│   │   │   ├── Img_Portrait (Image)  // 头像框
-│   │   │   └── Txt_PlayerName (Text Block)
-│   │   ├── OL_Dynamic (Overlay)  // 高频动态层（不放入InvalidationBox）
-│   │   │   ├── PB_HpFill (Progress Bar)  // 血条填充
-│   │   │   ├── PB_MpFill (Progress Bar)  // 蓝条填充
-│   │   │   └── Txt_HpValue (Text Block)  // 血量数字
-│   │   ├── HB_SkillBar (Horizontal Box)  // 底部技能栏
-│   │   │   ├── WBP_SkillSlot_1 (User Widget)
-│   │   │   ├── WBP_SkillSlot_2 (User Widget)
-│   │   │   ├── WBP_SkillSlot_3 (User Widget)
-│   │   │   ├── WBP_SkillSlot_4 (User Widget)
-│   │   │   └── WBP_SkillSlot_Ult (User Widget)
-│   │   ├── Img_MiniMap (Image)  // 右上角小地图
-│   │   └── VB_KillFeed (Vertical Box)  // 右上角击杀信息
-│   │       └── WBP_KillFeedItem (User Widget)  // 动态添加
-│   ├── OL_DamagePopup (Overlay)  // 伤害数字弹出层
-│   │   └── WBP_DamageNumber (User Widget)  // 动态生成`
-  },
-  'shop-pattern': {
-    title: '🛒 商城界面结构模板',
-    content: `WBP_Shop (User Widget)
-├── CVS_Root (Canvas Panel)
-│   ├── Img_BgFull (Image)  // Stretch锚点全屏背景
-│   ├── SafeZone_Main (Safe Zone)
-│   │   ├── VB_Main (Vertical Box)
-│   │   │   ├── HB_TopBar (Horizontal Box)
-│   │   │   │   ├── Btn_Back (Button)
-│   │   │   │   ├── Txt_ShopTitle (Text Block)
-│   │   │   │   └── HB_Wallet (Horizontal Box)
-│   │   │   │       ├── Img_GemIcon (Image)
-│   │   │   │       ├── Txt_GemCount (Text Block)
-│   │   │   │       ├── Img_CoinIcon (Image)
-│   │   │   │       └── Txt_CoinCount (Text Block)
-│   │   │   ├── HB_Categories (Horizontal Box)
-│   │   │   │   ├── Btn_CatFeatured (Button)
-│   │   │   │   ├── Btn_CatSkin (Button)
-│   │   │   │   ├── Btn_CatWeapon (Button)
-│   │   │   │   └── Btn_CatBundle (Button)
-│   │   │   └── ListView_Products (List View)  // 虚拟列表复用商品卡片
-│   │   │       └── WBP_ShopItemCard (User Widget)  // 商品卡片模板
-│   │   │           ├── Img_ItemThumb (Image)
-│   │   │           ├── Txt_ItemName (Text Block)
-│   │   │           ├── HB_Price (Horizontal Box)
-│   │   │           │   ├── Img_PriceIcon (Image)
-│   │   │           │   └── Txt_Price (Text Block)
-│   │   │           └── Btn_Buy (Button)`
-  },
-  'list-pattern': {
-    title: '🏆 排行榜/列表结构模板',
-    content: `WBP_Leaderboard (User Widget)
-├── CVS_Root (Canvas Panel)
-│   ├── Img_BgPanel (Image)  // 居中锚点面板背景
-│   ├── VB_Main (Vertical Box)
-│   │   ├── HB_Header (Horizontal Box)
-│   │   │   ├── Txt_Title (Text Block)  // "排行榜"
-│   │   │   ├── HB_Tabs (Horizontal Box)
-│   │   │   │   ├── Btn_TabDaily (Button)
-│   │   │   │   ├── Btn_TabWeekly (Button)
-│   │   │   │   └── Btn_TabAll (Button)
-│   │   │   └── Btn_Close (Button)
-│   │   ├── HB_ColumnHeader (Horizontal Box)  // 表头
-│   │   │   ├── Txt_ColRank (Text Block)
-│   │   │   ├── Txt_ColName (Text Block)
-│   │   │   └── Txt_ColScore (Text Block)
-│   │   ├── ListView_Ranks (List View)  // 虚拟列表
-│   │   │   └── WBP_RankItem (User Widget)  // 排名行模板
-│   │   │       ├── Txt_Rank (Text Block)
-│   │   │       ├── Img_Avatar (Image)
-│   │   │       ├── Txt_PlayerName (Text Block)
-│   │   │       └── Txt_Score (Text Block)
-│   │   ├── Bdr_Divider (Border)  // 分割线
-│   │   └── HB_MyRank (Horizontal Box)  // 自己的排名（固定底部）
-│   │       ├── Txt_MyRank (Text Block)
-│   │       ├── Img_MyAvatar (Image)
-│   │       ├── Txt_MyName (Text Block)
-│   │       └── Txt_MyScore (Text Block)`
-  },
-  'settings-pattern': {
-    title: '⚙️ 设置面板结构模板',
-    content: `WBP_Settings (User Widget)
-├── CVS_Root (Canvas Panel)
-│   ├── Img_BgMask (Image)  // 半透明遮罩
-│   ├── OL_Panel (Overlay)  // 居中面板
-│   │   ├── Img_PanelBg (Image)
-│   │   ├── VB_Layout (Vertical Box)
-│   │   │   ├── HB_TitleBar (Horizontal Box)
-│   │   │   │   ├── Txt_Title (Text Block)
-│   │   │   │   └── Btn_Close (Button)
-│   │   │   ├── HB_Body (Horizontal Box)
-│   │   │   │   ├── VB_Categories (Vertical Box)  // 左侧分类
-│   │   │   │   │   ├── Btn_CatGraphics (Button)
-│   │   │   │   │   ├── Btn_CatAudio (Button)
-│   │   │   │   │   ├── Btn_CatControls (Button)
-│   │   │   │   │   └── Btn_CatAccount (Button)
-│   │   │   │   └── SB_Options (Scroll Box)  // 右侧选项列表
-│   │   │   │       └── VB_OptionList (Vertical Box)
-│   │   │   │           ├── WBP_OptionSlider (User Widget)  // 滑块选项
-│   │   │   │           ├── WBP_OptionToggle (User Widget)  // 开关选项
-│   │   │   │           └── WBP_OptionDropdown (User Widget) // 下拉选项
-│   │   │   └── HB_Footer (Horizontal Box)
-│   │   │       ├── Btn_Reset (Button)
-│   │   │       └── Btn_Apply (Button)`
-  }
+/* ===== Quick Mode: Direct Pattern Generation ===== */
+const QUICK_PATTERNS = {
+  'popup': { label:'🪟 通用弹窗', depth:5, nodes:14, widgets:0, content:`WBP_CommonPopup (User Widget)\n├── CVS_Root (Canvas Panel)\n│   ├── Img_BgMask (Image)  // Stretch锚点，HitTestInvisible\n│   ├── OL_Panel (Overlay)  // Anchor(0.5,0.5)\n│   │   ├── Img_PanelBg (Image)\n│   │   ├── VB_Content (Vertical Box)\n│   │   │   ├── HB_TitleBar (Horizontal Box)\n│   │   │   │   ├── Img_TitleIcon (Image)\n│   │   │   │   ├── Txt_Title (Text Block)\n│   │   │   │   └── Btn_Close (Button)\n│   │   │   ├── Bdr_Divider (Border)\n│   │   │   ├── SB_ScrollContent (Scroll Box)\n│   │   │   │   └── VB_DetailList (Vertical Box)\n│   │   │   │       ├── Txt_Desc (Text Block)\n│   │   │   │       └── ... // 按需扩展\n│   │   │   └── HB_Buttons (Horizontal Box)\n│   │   │       ├── Btn_Cancel (Button)\n│   │   │       └── Btn_Confirm (Button)` },
+  'bag': { label:'🎒 背包界面', depth:6, nodes:22, widgets:1, content:`WBP_Inventory (User Widget)\n├── CVS_Root (Canvas Panel)\n│   ├── Img_BgFull (Image)  // Stretch全屏\n│   ├── SafeZone_Main (Safe Zone)\n│   │   ├── VB_Main (Vertical Box)\n│   │   │   ├── HB_TopBar (Horizontal Box)\n│   │   │   │   ├── Btn_Back (Button)\n│   │   │   │   ├── Txt_Title (Text Block)\n│   │   │   │   └── HB_Currency (Horizontal Box)\n│   │   │   │       ├── Img_CoinIcon (Image)\n│   │   │   │       └── Txt_CoinCount (Text Block)\n│   │   │   ├── HB_Tabs (Horizontal Box)\n│   │   │   │   ├── Btn_TabWeapon (Button)\n│   │   │   │   ├── Btn_TabArmor (Button)\n│   │   │   │   ├── Btn_TabConsumable (Button)\n│   │   │   │   └── Btn_TabMaterial (Button)\n│   │   │   ├── HB_Body (Horizontal Box)\n│   │   │   │   ├── TileView_Items (Tile View)\n│   │   │   │   └── VB_Detail (Vertical Box)\n│   │   │   │       ├── Img_ItemIcon (Image)\n│   │   │   │       ├── Txt_ItemName (Text Block)\n│   │   │   │       ├── Txt_ItemDesc (Text Block)\n│   │   │   │       ├── VB_Stats (Vertical Box)\n│   │   │   │       │   └── WBP_StatRow (User Widget)\n│   │   │   │       └── HB_Actions (Horizontal Box)\n│   │   │   │           ├── Btn_Equip (Button)\n│   │   │   │           └── Btn_Discard (Button)\n│   │   │   └── Txt_EmptyHint (Text Block)` },
+  'hud': { label:'🎮 战斗 HUD', depth:4, nodes:18, widgets:7, content:`WBP_BattleHUD (User Widget)\n├── CVS_Root (Canvas Panel)\n│   ├── SafeZone_Main (Safe Zone)\n│   │   ├── InvalidationBox_Static (Invalidation Box)\n│   │   │   ├── Img_HpBarBg (Image)  // HitTestInvisible\n│   │   │   ├── Img_MpBarBg (Image)  // HitTestInvisible\n│   │   │   ├── Img_Portrait (Image)\n│   │   │   └── Txt_PlayerName (Text Block)\n│   │   ├── OL_Dynamic (Overlay)  // 高频动态层\n│   │   │   ├── PB_HpFill (Progress Bar)\n│   │   │   ├── PB_MpFill (Progress Bar)\n│   │   │   └── Txt_HpValue (Text Block)\n│   │   ├── HB_SkillBar (Horizontal Box)\n│   │   │   ├── WBP_SkillSlot_1 (User Widget)\n│   │   │   ├── WBP_SkillSlot_2 (User Widget)\n│   │   │   ├── WBP_SkillSlot_3 (User Widget)\n│   │   │   ├── WBP_SkillSlot_4 (User Widget)\n│   │   │   └── WBP_SkillSlot_Ult (User Widget)\n│   │   ├── Img_MiniMap (Image)\n│   │   └── VB_KillFeed (Vertical Box)\n│   │       └── WBP_KillFeedItem (User Widget)\n│   ├── OL_DamagePopup (Overlay)\n│   │   └── WBP_DamageNumber (User Widget)` },
+  'shop': { label:'🛒 商城界面', depth:6, nodes:18, widgets:1, content:`WBP_Shop (User Widget)\n├── CVS_Root (Canvas Panel)\n│   ├── Img_BgFull (Image)  // Stretch全屏\n│   ├── SafeZone_Main (Safe Zone)\n│   │   ├── VB_Main (Vertical Box)\n│   │   │   ├── HB_TopBar (Horizontal Box)\n│   │   │   │   ├── Btn_Back (Button)\n│   │   │   │   ├── Txt_ShopTitle (Text Block)\n│   │   │   │   └── HB_Wallet (Horizontal Box)\n│   │   │   │       ├── Img_GemIcon (Image)\n│   │   │   │       ├── Txt_GemCount (Text Block)\n│   │   │   │       ├── Img_CoinIcon (Image)\n│   │   │   │       └── Txt_CoinCount (Text Block)\n│   │   │   ├── HB_Categories (Horizontal Box)\n│   │   │   │   ├── Btn_CatFeatured (Button)\n│   │   │   │   ├── Btn_CatSkin (Button)\n│   │   │   │   ├── Btn_CatWeapon (Button)\n│   │   │   │   └── Btn_CatBundle (Button)\n│   │   │   └── ListView_Products (List View)\n│   │   │       └── WBP_ShopItemCard (User Widget)\n│   │   │           ├── Img_ItemThumb (Image)\n│   │   │           ├── Txt_ItemName (Text Block)\n│   │   │           ├── HB_Price (Horizontal Box)\n│   │   │           │   ├── Img_PriceIcon (Image)\n│   │   │           │   └── Txt_Price (Text Block)\n│   │   │           └── Btn_Buy (Button)` },
+  'rank': { label:'🏆 排行榜', depth:4, nodes:16, widgets:1, content:`WBP_Leaderboard (User Widget)\n├── CVS_Root (Canvas Panel)\n│   ├── Img_BgPanel (Image)\n│   ├── VB_Main (Vertical Box)\n│   │   ├── HB_Header (Horizontal Box)\n│   │   │   ├── Txt_Title (Text Block)\n│   │   │   ├── HB_Tabs (Horizontal Box)\n│   │   │   │   ├── Btn_TabDaily (Button)\n│   │   │   │   ├── Btn_TabWeekly (Button)\n│   │   │   │   └── Btn_TabAll (Button)\n│   │   │   └── Btn_Close (Button)\n│   │   ├── HB_ColumnHeader (Horizontal Box)\n│   │   │   ├── Txt_ColRank (Text Block)\n│   │   │   ├── Txt_ColName (Text Block)\n│   │   │   └── Txt_ColScore (Text Block)\n│   │   ├── ListView_Ranks (List View)\n│   │   │   └── WBP_RankItem (User Widget)\n│   │   │       ├── Txt_Rank (Text Block)\n│   │   │       ├── Img_Avatar (Image)\n│   │   │       ├── Txt_PlayerName (Text Block)\n│   │   │       └── Txt_Score (Text Block)\n│   │   ├── Bdr_Divider (Border)\n│   │   └── HB_MyRank (Horizontal Box)\n│   │       ├── Txt_MyRank (Text Block)\n│   │       ├── Img_MyAvatar (Image)\n│   │       ├── Txt_MyName (Text Block)\n│   │       └── Txt_MyScore (Text Block)` },
+  'settings': { label:'⚙️ 设置面板', depth:6, nodes:16, widgets:3, content:`WBP_Settings (User Widget)\n├── CVS_Root (Canvas Panel)\n│   ├── Img_BgMask (Image)  // 半透明遮罩\n│   ├── OL_Panel (Overlay)\n│   │   ├── Img_PanelBg (Image)\n│   │   ├── VB_Layout (Vertical Box)\n│   │   │   ├── HB_TitleBar (Horizontal Box)\n│   │   │   │   ├── Txt_Title (Text Block)\n│   │   │   │   └── Btn_Close (Button)\n│   │   │   ├── HB_Body (Horizontal Box)\n│   │   │   │   ├── VB_Categories (Vertical Box)\n│   │   │   │   │   ├── Btn_CatGraphics (Button)\n│   │   │   │   │   ├── Btn_CatAudio (Button)\n│   │   │   │   │   ├── Btn_CatControls (Button)\n│   │   │   │   │   └── Btn_CatAccount (Button)\n│   │   │   │   └── SB_Options (Scroll Box)\n│   │   │   │       └── VB_OptionList (Vertical Box)\n│   │   │   │           ├── WBP_OptionSlider (User Widget)\n│   │   │   │           ├── WBP_OptionToggle (User Widget)\n│   │   │   │           └── WBP_OptionDropdown (User Widget)\n│   │   │   └── HB_Footer (Horizontal Box)\n│   │   │       ├── Btn_Reset (Button)\n│   │   │       └── Btn_Apply (Button)` },
+  'chat': { label:'💬 聊天界面', depth:4, nodes:12, widgets:2, content:`WBP_Chat (User Widget)\n├── CVS_Root (Canvas Panel)\n│   ├── Img_BgPanel (Image)\n│   ├── VB_Main (Vertical Box)\n│   │   ├── HB_Header (Horizontal Box)\n│   │   │   ├── Txt_Title (Text Block)\n│   │   │   ├── Btn_Channel (Button)\n│   │   │   └── Btn_Close (Button)\n│   │   ├── ListView_Messages (List View)\n│   │   │   └── WBP_ChatBubble (User Widget)\n│   │   │       ├── Img_Avatar (Image)\n│   │   │       ├── Txt_Name (Text Block)\n│   │   │       └── Txt_Content (Text Block)\n│   │   ├── HB_Input (Horizontal Box)\n│   │   │   ├── Btn_Emoji (Button)\n│   │   │   ├── EditTxt_Input (Editable Text)\n│   │   │   └── Btn_Send (Button)\n│   │   └── WBP_EmojiPanel (User Widget)` },
+  'login': { label:'🔑 登录界面', depth:4, nodes:12, widgets:0, content:`WBP_Login (User Widget)\n├── CVS_Root (Canvas Panel)\n│   ├── Img_BgFull (Image)  // Stretch全屏\n│   ├── OL_Center (Overlay)  // Anchor(0.5,0.5)\n│   │   ├── Img_LogoPanel (Image)\n│   │   ├── VB_Form (Vertical Box)\n│   │   │   ├── Img_Logo (Image)\n│   │   │   ├── SizeBox_Account (Size Box)\n│   │   │   │   └── EditTxt_Account (Editable Text)\n│   │   │   ├── SizeBox_Password (Size Box)\n│   │   │   │   └── EditTxt_Password (Editable Text)\n│   │   │   ├── Btn_Login (Button)\n│   │   │   ├── HB_Links (Horizontal Box)\n│   │   │   │   ├── Btn_Register (Button)\n│   │   │   │   └── Btn_ForgotPwd (Button)\n│   │   │   └── HB_ThirdParty (Horizontal Box)\n│   │   │       ├── Btn_LoginWeChat (Button)\n│   │   │       ├── Btn_LoginQQ (Button)\n│   │   │       └── Btn_LoginApple (Button)` },
+  'loading': { label:'⏳ 加载界面', depth:3, nodes:8, widgets:0, content:`WBP_Loading (User Widget)\n├── CVS_Root (Canvas Panel)\n│   ├── Img_BgFull (Image)  // Stretch全屏\n│   ├── VB_Bottom (Vertical Box)  // 锚定底部\n│   │   ├── Txt_Tip (Text Block)\n│   │   ├── HB_Progress (Horizontal Box)\n│   │   │   ├── PB_Loading (Progress Bar)\n│   │   │   └── Txt_Percent (Text Block)\n│   │   └── Txt_Status (Text Block)\n│   └── Img_Spinner (Image)  // 居中旋转` },
+  'team': { label:'👥 组队房间', depth:5, nodes:16, widgets:2, content:`WBP_TeamRoom (User Widget)\n├── CVS_Root (Canvas Panel)\n│   ├── Img_BgFull (Image)\n│   ├── SafeZone_Main (Safe Zone)\n│   │   ├── VB_Main (Vertical Box)\n│   │   │   ├── HB_TopBar (Horizontal Box)\n│   │   │   │   ├── Btn_Back (Button)\n│   │   │   │   ├── Txt_RoomName (Text Block)\n│   │   │   │   └── Btn_Settings (Button)\n│   │   │   ├── HB_Players (Horizontal Box)\n│   │   │   │   ├── WBP_PlayerSlot_1 (User Widget)\n│   │   │   │   ├── WBP_PlayerSlot_2 (User Widget)\n│   │   │   │   ├── WBP_PlayerSlot_3 (User Widget)\n│   │   │   │   └── WBP_PlayerSlot_4 (User Widget)\n│   │   │   ├── SB_Chat (Scroll Box)\n│   │   │   │   └── VB_ChatList (Vertical Box)\n│   │   │   │       └── WBP_ChatMsg (User Widget)\n│   │   │   └── HB_Actions (Horizontal Box)\n│   │   │       ├── Btn_Invite (Button)\n│   │   │       ├── Btn_Ready (Button)\n│   │   │       └── Btn_Start (Button)` },
+  'achievement': { label:'🏅 成就/任务', depth:5, nodes:14, widgets:1, content:`WBP_Achievement (User Widget)\n├── CVS_Root (Canvas Panel)\n│   ├── Img_BgPanel (Image)\n│   ├── VB_Main (Vertical Box)\n│   │   ├── HB_Header (Horizontal Box)\n│   │   │   ├── Txt_Title (Text Block)\n│   │   │   ├── HB_Tabs (Horizontal Box)\n│   │   │   │   ├── Btn_TabDaily (Button)\n│   │   │   │   ├── Btn_TabWeekly (Button)\n│   │   │   │   └── Btn_TabAchieve (Button)\n│   │   │   └── Btn_Close (Button)\n│   │   ├── ListView_Tasks (List View)\n│   │   │   └── WBP_TaskItem (User Widget)\n│   │   │       ├── Img_TaskIcon (Image)\n│   │   │       ├── VB_Info (Vertical Box)\n│   │   │       │   ├── Txt_TaskName (Text Block)\n│   │   │       │   ├── Txt_TaskDesc (Text Block)\n│   │   │       │   └── PB_Progress (Progress Bar)\n│   │   │       └── Btn_Claim (Button)\n│   │   └── HB_TotalProgress (Horizontal Box)\n│   │       ├── Txt_ProgressLabel (Text Block)\n│   │       └── PB_TotalProgress (Progress Bar)` },
+  'map': { label:'🗺️ 地图选关', depth:4, nodes:14, widgets:1, content:`WBP_MapSelect (User Widget)\n├── CVS_Root (Canvas Panel)\n│   ├── Img_MapBg (Image)  // 全屏地图\n│   ├── SafeZone_Main (Safe Zone)\n│   │   ├── HB_TopBar (Horizontal Box)\n│   │   │   ├── Btn_Back (Button)\n│   │   │   ├── Txt_ChapterName (Text Block)\n│   │   │   └── HB_Stars (Horizontal Box)\n│   │   │       ├── Img_Star1 (Image)\n│   │   │       ├── Img_Star2 (Image)\n│   │   │       └── Img_Star3 (Image)\n│   │   ├── CVS_Nodes (Canvas Panel)  // 关卡节点\n│   │   │   ├── WBP_LevelNode_1 (User Widget)\n│   │   │   ├── WBP_LevelNode_2 (User Widget)\n│   │   │   └── WBP_LevelNode_3 (User Widget)\n│   │   └── OL_InfoPanel (Overlay)\n│   │       ├── Img_InfoBg (Image)\n│   │       ├── Txt_LevelName (Text Block)\n│   │       ├── Txt_LevelDesc (Text Block)\n│   │       └── Btn_Enter (Button)` }
 };
 
-function showPattern(patternId) {
-  const pattern = UI_PATTERNS[patternId];
+function quickGenerate(type) {
+  const pattern = QUICK_PATTERNS[type];
   if (!pattern) return;
-  document.getElementById('patternTitle').textContent = pattern.title;
-  document.getElementById('patternContent').value = pattern.content;
-  document.getElementById('patternDetail').style.display = 'block';
+  document.getElementById('quickResultBadge').textContent = pattern.label;
+  document.getElementById('qrDepth').textContent = '📏 层级深度: ' + pattern.depth;
+  document.getElementById('qrNodes').textContent = '🔢 节点数: ~' + pattern.nodes;
+  document.getElementById('qrWidgets').textContent = '🧩 子蓝图: ' + pattern.widgets;
+  document.getElementById('quickResultText').value = pattern.content;
+  document.getElementById('quickResultSection').style.display = '';
+  setTimeout(() => { document.getElementById('quickResultSection').scrollIntoView({ behavior:'smooth', block:'center' }); }, 50);
 }
 
-function closePattern() {
-  document.getElementById('patternDetail').style.display = 'none';
+function applyQuickResult() {
+  const text = document.getElementById('quickResultText').value.trim();
+  if (!text) return;
+  document.getElementById('umgInput').value = text;
+  switchTab('checker');
+  setTimeout(() => {
+    document.getElementById('umgInput').scrollIntoView({ behavior:'smooth', block:'center' });
+    if (typeof runCheck === 'function') runCheck();
+  }, 200);
 }
 
-function applyPatternToChecker() {
-  const text = document.getElementById('patternContent').value.trim();
-  if (text) {
-    document.getElementById('umgInput').value = text;
-    switchTab('checker');
-    setTimeout(() => {
-      document.getElementById('umgInput').scrollIntoView({ behavior:'smooth', block:'center' });
-    }, 100);
-  }
-}
-
-function copyPattern() {
-  const text = document.getElementById('patternContent').value;
-  navigator.clipboard.writeText(text).then(() => {
-    alert('✅ 结构模板已复制到剪贴板！');
-  }).catch(() => {
-    document.getElementById('patternContent').select();
-    document.execCommand('copy');
+function copyQuickResult() {
+  const text = document.getElementById('quickResultText').value;
+  navigator.clipboard.writeText(text).then(() => { alert('✅ 已复制！'); }).catch(() => {
+    document.getElementById('quickResultText').select(); document.execCommand('copy');
   });
+}
+
+function editQuickResult() {
+  const ta = document.getElementById('quickResultText');
+  ta.readOnly = !ta.readOnly;
+  ta.style.background = ta.readOnly ? '' : 'rgba(34,211,238,.03)';
+  ta.style.borderColor = ta.readOnly ? '' : 'var(--cyan)';
+  if (!ta.readOnly) ta.focus();
 }
 </script>
 <script src="editor-kit.js"></script>
