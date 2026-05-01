@@ -132,6 +132,36 @@ textarea::placeholder{color:var(--dim)}
 /* ====== Export ====== */
 .export-area{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:16px;font-size:13px;white-space:pre-wrap;font-family:'Cascadia Code','Fira Code',monospace;max-height:300px;overflow-y:auto;display:none}
 .export-area.show{display:block}
+
+/* ====== Image Upload / OCR ====== */
+.img-upload-section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+.img-upload-section h3{font-size:15px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.img-upload-section .hint{font-size:12px;color:var(--dim);margin-bottom:12px;line-height:1.6}
+.drop-zone{border:2px dashed var(--border);border-radius:10px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--card)}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--cyan);background:rgba(34,211,238,.04)}
+.drop-zone .dz-icon{font-size:36px;margin-bottom:8px}
+.drop-zone .dz-text{font-size:14px;color:var(--dim)}
+.drop-zone .dz-text strong{color:var(--text)}
+.drop-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.preview-area{margin-top:14px;display:none;position:relative}
+.preview-area.show{display:block}
+.preview-area img{max-width:100%;max-height:320px;border-radius:8px;border:1px solid var(--border)}
+.preview-area .remove-img{position:absolute;top:8px;right:8px;background:rgba(248,113,113,.9);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ocr-status{margin-top:12px;padding:10px 14px;border-radius:8px;font-size:13px;display:none}
+.ocr-status.show{display:block}
+.ocr-status.processing{background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);color:var(--cyan)}
+.ocr-status.success{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.ocr-status.error{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.ocr-methods{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.ocr-method-card{flex:1;min-width:200px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:all .2s}
+.ocr-method-card:hover{border-color:var(--cyan);background:rgba(34,211,238,.03)}
+.ocr-method-card.active{border-color:var(--cyan);background:rgba(34,211,238,.06)}
+.ocr-method-card h4{font-size:13px;color:var(--heading);margin-bottom:4px}
+.ocr-method-card p{font-size:11px;color:var(--dim);line-height:1.5}
+.ai-prompt-box{margin-top:14px;display:none}
+.ai-prompt-box.show{display:block}
+.ai-prompt-box textarea{min-height:120px;font-size:12px}
+.ai-prompt-box .prompt-actions{display:flex;gap:8px;margin-top:8px}
 </style>
 </head>
 <body>
@@ -139,12 +169,12 @@ textarea::placeholder{color:var(--dim)}
 
 <!-- ====== HEADER ====== -->
 <div class="header">
-  <h1>🔍 UMG 蓝图结构检查工具 <span class="ver">v1.0</span></h1>
-  <div class="subtitle">UMG Widget Blueprint Structure Checker — 一键扫描蓝图结构，输出合规检查报告</div>
+  <h1>🔍 UMG 蓝图结构检查工具 <span class="ver">v1.1</span></h1>
+  <div class="subtitle">UMG Widget Blueprint Structure Checker — 一键扫描蓝图结构，输出合规检查报告 · 支持截图识别</div>
   <div class="meta">
-    <span>📋 适用：UE5 UMG Layout 制作检查</span>
+    <span>📋 适用：UE4/UE5 UMG Layout 制作检查</span>
     <span>👤 维护：UI 组 · Layout 接口人</span>
-    <span>📅 2026-04-28</span>
+    <span>📅 2026-05-01</span>
   </div>
 </div>
 
@@ -161,7 +191,7 @@ textarea::placeholder{color:var(--dim)}
 <div class="tab-panel active" id="panel-checker">
 
 <div class="alert alert-blue">
-  <strong>📌 使用方法</strong>：将 UE5 Widget Blueprint 的层级树结构粘贴到左侧输入框（支持缩进/├/│ 等符号），系统会自动解析并检查 <strong>18 项</strong>合规规则（命名规范、层级深度、节点数、锚点设置、动静分离、Visibility 等）。右侧可查看解析后的树状预览。
+  <strong>📌 使用方法</strong>：① 将 UE4/UE5 Widget Blueprint 的层级树结构粘贴到左侧输入框（支持缩进/├/│ 等符号）；② <strong>🆕 新功能</strong>：也可上传层级面板的截图，工具将自动识别并转换为文本格式。系统会自动解析并检查 <strong>18 项</strong>合规规则（命名规范、层级深度、节点数、锚点设置、动静分离、Visibility 等）。右侧可查看解析后的树状预览。
 </div>
 
 <div class="input-section">
@@ -203,6 +233,111 @@ textarea::placeholder{color:var(--dim)}
       <span style="color:var(--dim)">// 粘贴结构后点击"开始检查"，将在此显示解析结果</span>
     </div>
   </div>
+</div>
+
+<!-- ====== Image Upload Section ====== -->
+<div class="img-upload-section">
+  <h3>📷 截图识别 <span class="badge badge-new">NEW</span></h3>
+  <div class="hint">
+    上传 UE 编辑器中 Hierarchy（层级）面板的截图，工具将辅助你转换为可检查的文本格式。<br>
+    支持格式：PNG / JPG / BMP / WebP，建议截图清晰完整、包含完整的层级树。
+  </div>
+
+  <!-- Upload Zone -->
+  <div class="drop-zone" id="dropZone">
+    <div class="dz-icon">📁</div>
+    <div class="dz-text"><strong>点击上传</strong> 或拖拽图片到此处</div>
+    <input type="file" id="fileInput" accept="image/*">
+  </div>
+
+  <!-- Image Preview -->
+  <div class="preview-area" id="previewArea">
+    <img id="previewImg" src="" alt="预览">
+    <button class="remove-img" onclick="removeImage()" title="移除图片">×</button>
+  </div>
+
+  <!-- OCR Method Selection -->
+  <div class="ocr-methods" id="ocrMethods" style="display:none">
+    <div class="ocr-method-card active" onclick="selectOcrMethod('ai-assist')" id="method-ai-assist">
+      <h4>🤖 AI 辅助识别（推荐）</h4>
+      <p>生成专用 Prompt，复制到 AI 助手（如 CodeBuddy / ChatGPT / Coze）中连同截图一起发送，获取精确的层级文本。</p>
+    </div>
+    <div class="ocr-method-card" onclick="selectOcrMethod('manual-guide')" id="method-manual-guide">
+      <h4>📖 人工对照指南</h4>
+      <p>显示截图并提供层级结构快速编写模板，对照截图手动输入。适合截图较复杂或 OCR 不准确的情况。</p>
+    </div>
+    <div class="ocr-method-card" onclick="selectOcrMethod('browser-ocr')" id="method-browser-ocr">
+      <h4>🔬 浏览器本地 OCR</h4>
+      <p>使用 Tesseract.js 在浏览器中本地识别文字（需联网加载模型，首次约 10s）。适合英文命名为主的层级树。</p>
+    </div>
+  </div>
+
+  <!-- AI Assist Panel -->
+  <div class="ai-prompt-box" id="aiAssistPanel">
+    <div style="font-size:13px;color:var(--heading);margin-bottom:8px;font-weight:600">🤖 AI 识别 Prompt — 复制以下内容连同截图一起发给 AI</div>
+    <textarea id="aiPrompt" readonly style="min-height:180px;cursor:text">请识别这张 UE4/UE5 编辑器层级面板（Hierarchy）的截图，将其转换为标准的 UMG 层级树文本格式。
+
+要求：
+1. 每行一个节点，使用 ├── 和 │ 符号表示层级缩进关系
+2. 节点格式为：节点名 (类型)，例如：Btn_Close (Button)
+3. 根据截图中的图标和缩进判断节点类型：
+   - 📦/文件夹图标 → 容器类（Canvas Panel / Vertical Box / Horizontal Box / Overlay / Size Box / Border 等）
+   - 🖼️/图片图标 → Image
+   - 📝/T图标 → Text Block
+   - 🔘/按钮图标 → Button
+   - 📋/列表图标 → Scroll Box / List View
+   - ⚙️/齿轮图标 → User Widget（自定义控件）
+4. 中文类型名请转为英文：
+   - 画布面板 → Canvas Panel
+   - 水平框 → Horizontal Box
+   - 垂直框 → Vertical Box
+   - 图像 → Image
+   - 包裹框 → Size Box 或 Border
+   - 文本 → Text Block
+5. 保持原始的中文节点名不变（如 w_txt_Error、UI_CommonBtn_Cancel 等）
+6. 输出纯文本，不要代码块包裹
+
+请输出完整的层级树文本：</textarea>
+    <div class="prompt-actions">
+      <button class="btn btn-primary" onclick="copyAiPrompt()" style="padding:8px 16px;font-size:13px">📋 复制 Prompt</button>
+      <button class="btn btn-secondary" onclick="pasteAiResult()" style="padding:8px 16px;font-size:13px">📥 粘贴 AI 结果到输入框</button>
+      <span style="font-size:11px;color:var(--dim);margin-left:8px;align-self:center">复制后连同截图发给 AI → 获得文本 → 点击"粘贴 AI 结果"</span>
+    </div>
+  </div>
+
+  <!-- Manual Guide Panel -->
+  <div class="ai-prompt-box" id="manualGuidePanel">
+    <div style="font-size:13px;color:var(--heading);margin-bottom:8px;font-weight:600">📖 快速编写模板 — 对照截图填写以下结构</div>
+    <textarea id="manualTemplate" style="min-height:150px">根节点名 (User Widget)
+├── [画布面板/容器名] (Canvas Panel)
+│   ├── 子节点名 (类型)
+│   ├── 子节点名 (类型)
+│   │   ├── 孙节点名 (类型)
+│   │   └── 孙节点名 (类型)
+│   └── 子节点名 (类型)
+└── [底部容器名] (Horizontal Box)
+    ├── 按钮名 (Button)
+    └── 按钮名 (Button)</textarea>
+    <div class="prompt-actions">
+      <button class="btn btn-primary" onclick="applyManualTemplate()" style="padding:8px 16px;font-size:13px">✅ 应用到输入框</button>
+      <span style="font-size:11px;color:var(--dim);margin-left:8px;align-self:center">编辑上方模板后点击应用，即可进行结构检查</span>
+    </div>
+  </div>
+
+  <!-- Browser OCR Panel -->
+  <div class="ai-prompt-box" id="browserOcrPanel">
+    <div style="font-size:13px;color:var(--heading);margin-bottom:8px;font-weight:600">🔬 浏览器本地 OCR 识别</div>
+    <div class="ocr-status" id="ocrStatus"></div>
+    <div class="prompt-actions">
+      <button class="btn btn-primary" id="btnStartOcr" onclick="startBrowserOcr()" style="padding:8px 16px;font-size:13px" disabled>🔍 开始识别</button>
+      <button class="btn btn-secondary" onclick="applyOcrResult()" style="padding:8px 16px;font-size:13px">✅ 应用结果到输入框</button>
+      <span style="font-size:11px;color:var(--dim);margin-left:8px;align-self:center">需联网加载 Tesseract.js（~2MB），识别英文效果较好</span>
+    </div>
+    <textarea id="ocrResult" style="min-height:120px;margin-top:10px" placeholder="OCR 识别结果将显示在此..."></textarea>
+  </div>
+
+  <!-- OCR Status -->
+  <div class="ocr-status" id="globalOcrStatus"></div>
 </div>
 
 <!-- Report -->
@@ -356,7 +491,7 @@ textarea::placeholder{color:var(--dim)}
 </div>
 
 <!-- ====== FOOTER ====== -->
-<div class="doc-footer">🔍 UMG 蓝图结构检查工具 v1.0 · UI 组 · Layout 接口人 · 项目内部资料</div>
+<div class="doc-footer">🔍 UMG 蓝图结构检查工具 v1.1 · UI 组 · Layout 接口人 · 项目内部资料 · 支持截图识别</div>
 </div>
 
 <!-- ====================================================================== -->
@@ -990,6 +1125,257 @@ document.addEventListener('change', function(e) {
 
 // Load on page ready
 document.addEventListener('DOMContentLoaded', loadChecklistState);
+
+/* ===== Image Upload & OCR Module ===== */
+let uploadedImageFile = null;
+let currentOcrMethod = 'ai-assist';
+let tesseractLoaded = false;
+
+// File input & Drag-Drop
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+fileInput.addEventListener('change', function(e) {
+  if (e.target.files && e.target.files[0]) handleImageUpload(e.target.files[0]);
+});
+
+dropZone.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  dropZone.classList.add('dragover');
+});
+dropZone.addEventListener('dragleave', function(e) {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+});
+dropZone.addEventListener('drop', function(e) {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    handleImageUpload(e.dataTransfer.files[0]);
+  }
+});
+
+// Also support paste image from clipboard
+document.addEventListener('paste', function(e) {
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf('image') !== -1) {
+      const file = items[i].getAsFile();
+      if (file) {
+        handleImageUpload(file);
+        e.preventDefault();
+        break;
+      }
+    }
+  }
+});
+
+function handleImageUpload(file) {
+  if (!file.type.startsWith('image/')) {
+    alert('请上传图片文件（PNG/JPG/BMP/WebP）');
+    return;
+  }
+  uploadedImageFile = file;
+
+  // Show preview
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('previewImg').src = e.target.result;
+    document.getElementById('previewArea').classList.add('show');
+    document.getElementById('ocrMethods').style.display = 'flex';
+    dropZone.style.display = 'none';
+
+    // Show default method panel
+    selectOcrMethod(currentOcrMethod);
+
+    // Enable OCR button
+    document.getElementById('btnStartOcr').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeImage() {
+  uploadedImageFile = null;
+  document.getElementById('previewImg').src = '';
+  document.getElementById('previewArea').classList.remove('show');
+  document.getElementById('ocrMethods').style.display = 'none';
+  document.getElementById('aiAssistPanel').classList.remove('show');
+  document.getElementById('manualGuidePanel').classList.remove('show');
+  document.getElementById('browserOcrPanel').classList.remove('show');
+  dropZone.style.display = '';
+  fileInput.value = '';
+  document.getElementById('btnStartOcr').disabled = true;
+}
+
+function selectOcrMethod(method) {
+  currentOcrMethod = method;
+  // Update card active state
+  document.querySelectorAll('.ocr-method-card').forEach(c => c.classList.remove('active'));
+  const card = document.getElementById('method-' + method);
+  if (card) card.classList.add('active');
+
+  // Show/hide panels
+  document.getElementById('aiAssistPanel').classList.toggle('show', method === 'ai-assist');
+  document.getElementById('manualGuidePanel').classList.toggle('show', method === 'manual-guide');
+  document.getElementById('browserOcrPanel').classList.toggle('show', method === 'browser-ocr');
+}
+
+// AI Assist: Copy prompt
+function copyAiPrompt() {
+  const prompt = document.getElementById('aiPrompt').value;
+  navigator.clipboard.writeText(prompt).then(() => {
+    showGlobalStatus('success', '✅ Prompt 已复制！请连同截图一起发给 AI 助手获取识别结果。');
+  }).catch(() => {
+    // Fallback: select text
+    document.getElementById('aiPrompt').select();
+    document.execCommand('copy');
+    showGlobalStatus('success', '✅ Prompt 已复制！');
+  });
+}
+
+// AI Assist: Paste result to input
+async function pasteAiResult() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (text && text.trim()) {
+      document.getElementById('umgInput').value = text.trim();
+      showGlobalStatus('success', '✅ AI 识别结果已粘贴到输入框！可以点击"开始检查"进行分析。');
+      // Scroll to input
+      document.getElementById('umgInput').scrollIntoView({ behavior:'smooth', block:'center' });
+    } else {
+      showGlobalStatus('error', '❌ 剪贴板为空，请先从 AI 助手复制识别结果。');
+    }
+  } catch(e) {
+    showGlobalStatus('error', '❌ 无法读取剪贴板，请手动粘贴到上方输入框。');
+  }
+}
+
+// Manual Guide: Apply template to input
+function applyManualTemplate() {
+  const text = document.getElementById('manualTemplate').value.trim();
+  if (text) {
+    document.getElementById('umgInput').value = text;
+    showGlobalStatus('success', '✅ 模板已应用到输入框！请修改为实际的层级结构后点击"开始检查"。');
+    document.getElementById('umgInput').scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+}
+
+// Browser OCR with Tesseract.js
+async function startBrowserOcr() {
+  if (!uploadedImageFile) {
+    showOcrStatus('error', '❌ 请先上传图片');
+    return;
+  }
+
+  const statusEl = document.getElementById('ocrStatus');
+  const btnOcr = document.getElementById('btnStartOcr');
+  btnOcr.disabled = true;
+
+  showOcrStatus('processing', '⏳ 正在加载 OCR 引擎（Tesseract.js）...');
+
+  try {
+    // Dynamically load Tesseract.js if not loaded
+    if (!window.Tesseract) {
+      await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+    }
+
+    showOcrStatus('processing', '⏳ 正在识别文字，请稍候...');
+
+    const result = await Tesseract.recognize(
+      uploadedImageFile,
+      'eng+chi_sim', // English + Simplified Chinese
+      {
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            const pct = Math.round(m.progress * 100);
+            showOcrStatus('processing', `⏳ 识别中... ${pct}%`);
+          }
+        }
+      }
+    );
+
+    const rawText = result.data.text;
+    // Post-process: try to reconstruct tree structure from OCR text
+    const processedText = postProcessOcrText(rawText);
+    document.getElementById('ocrResult').value = processedText;
+
+    showOcrStatus('success', '✅ 识别完成！请检查结果并手动调整层级缩进后，点击"应用结果到输入框"。');
+    btnOcr.disabled = false;
+
+  } catch(err) {
+    showOcrStatus('error', `❌ 识别失败：${err.message}。建议使用"AI 辅助识别"方式。`);
+    btnOcr.disabled = false;
+  }
+}
+
+// Post-process OCR text to approximate tree structure
+function postProcessOcrText(rawText) {
+  const lines = rawText.split('\n').filter(l => l.trim());
+  const processed = [];
+
+  for (let line of lines) {
+    // Remove common OCR artifacts
+    line = line.replace(/[|]/g, '│').replace(/\+--/g, '├──').replace(/`--/g, '└──');
+
+    // Try to detect indentation level from leading spaces/symbols
+    const leadSpaces = line.match(/^[\s│├└─┌┐┘┬┤┴┼\|\-]*/)[0].length;
+    const content = line.replace(/^[\s│├└─┌┐┘┬┤┴┼\|\-]+/, '').trim();
+
+    if (!content) continue;
+
+    // Re-construct with proper tree chars
+    const depth = Math.floor(leadSpaces / 3) || 0;
+    let prefix = '';
+    for (let i = 0; i < depth; i++) {
+      prefix += '│   ';
+    }
+    if (depth > 0) {
+      prefix = prefix.slice(0, -4) + '├── ';
+    }
+
+    processed.push(prefix + content);
+  }
+
+  return processed.join('\n');
+}
+
+function applyOcrResult() {
+  const text = document.getElementById('ocrResult').value.trim();
+  if (text) {
+    document.getElementById('umgInput').value = text;
+    showGlobalStatus('success', '✅ OCR 结果已应用到输入框！建议检查层级缩进是否正确后再运行检查。');
+    document.getElementById('umgInput').scrollIntoView({ behavior:'smooth', block:'center' });
+  } else {
+    showGlobalStatus('error', '❌ OCR 结果为空，请先执行识别。');
+  }
+}
+
+// Utility: Show OCR status
+function showOcrStatus(type, msg) {
+  const el = document.getElementById('ocrStatus');
+  el.className = 'ocr-status show ' + type;
+  el.textContent = msg;
+}
+
+function showGlobalStatus(type, msg) {
+  const el = document.getElementById('globalOcrStatus');
+  el.className = 'ocr-status show ' + type;
+  el.textContent = msg;
+  // Auto-hide after 5 seconds
+  setTimeout(() => { el.classList.remove('show'); }, 5000);
+}
+
+// Utility: Load external script
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error('加载脚本失败: ' + src));
+    document.head.appendChild(script);
+  });
+}
 </script>
 <script src="editor-kit.js"></script>
 </body>
