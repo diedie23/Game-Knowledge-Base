@@ -641,13 +641,14 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
         <div style="font-size:13px;line-height:1.9">
           <strong style="color:var(--heading)">时机：</strong>收到父需求单后（1个工作日内）<br>
           <strong style="color:var(--heading)">拆解子单清单：</strong><br>
-          <span style="padding-left:12px">• <span class="ri">交互设计</span> → 处理人：交互设计师</span><br>
+          <span style="padding-left:12px">• <span class="ri">UX设计</span> → 处理人：交互设计师</span><br>
           <span style="padding-left:12px">• <span class="ru">UI设计</span> → 处理人：UI设计师</span><br>
-          <span style="padding-left:12px">• <span class="rl">Layout蓝图</span> → 处理人：Layout工程师</span><br>
-          <span style="padding-left:12px">• <span class="rv">VX动效</span> → 处理人：VX动效设计师</span><br>
-          <span style="padding-left:12px">• <span class="rc">客户端集成</span> → 处理人：客户端程序</span><br>
-          <span style="padding-left:12px">• <span class="rq">界面走查</span> → 处理人：策划/UI设计/Layout负责人</span><br>
-          <strong style="color:var(--heading)">关键动作：</strong>设置子单依赖关系、里程碑、预警
+          <span style="padding-left:12px">• <span class="rl">功能蓝图/正式蓝图</span> → 处理人：Layout工程师</span><br>
+          <span style="padding-left:12px">• <span class="rv">UI动效</span> → 处理人：VX动效设计师</span><br>
+          <span style="padding-left:12px">• <span class="rc">客户端制作</span> → 处理人：客户端程序</span><br>
+          <span style="padding-left:12px">• <span class="rc">客户端动效接入</span> → 处理人：客户端程序</span><br>
+          <strong style="color:var(--heading)">关键动作：</strong>设置子单依赖关系、里程碑、预警<br>
+          <strong style="color:var(--heading)">走查说明：</strong>界面走查不单独占一个子任务单，由策划/UI设计/Layout负责人在流转环节进行统一走查与验收。
         </div>
       </div>
     </div>
@@ -659,10 +660,10 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
         <tr><th style="width:60px">阶段</th><th>触发动作</th><th>TAPD 操作</th><th>操作人</th></tr>
         <tr><td>②</td><td>需求评审通过</td><td>策划创建父需求单，状态→<strong>已受理</strong></td><td><span class="rp">策划</span></td></tr>
         <tr><td>②→③</td><td>APM 收到父单</td><td>拆解全部子单，设置依赖和排期</td><td><span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;background:rgba(34,211,238,.12);color:var(--cyan)">APM</span></td></tr>
-        <tr><td>③→⑤</td><td>交互交付完成</td><td>交互子单→<strong>已完成</strong>，UI子单+Layout子单→<strong>进行中</strong></td><td><span class="ri">交互</span></td></tr>
-        <tr><td>⑥→⑨</td><td>UI交付+合规通过</td><td>UI子单→<strong>已完成</strong>，Layout切资产子单→<strong>进行中</strong></td><td><span class="ru">UI</span></td></tr>
-        <tr><td>⑩→⑪</td><td>Layout正式资产就绪</td><td>Layout子单→<strong>已完成</strong>，VX子单→<strong>进行中</strong></td><td><span class="rl">Layout</span></td></tr>
-        <tr><td>⑬→⑮</td><td>集成完成 → 走查通过</td><td>集成子单→<strong>已完成</strong>，走查子单→<strong>已完成</strong>，父单→<strong>已完成</strong></td><td><span class="rc">客户端</span>/<span class="rq">QA</span></td></tr>
+        <tr><td>③→⑤</td><td>UX交付完成</td><td>UX子单→<strong>已完成</strong>，UI子单+功能蓝图子单→<strong>进行中</strong></td><td><span class="ri">UX</span></td></tr>
+        <tr><td>⑥→⑨</td><td>UI交付+合规通过</td><td>UI子单→<strong>已完成</strong>，正式蓝图子单→<strong>进行中</strong></td><td><span class="ru">UI</span></td></tr>
+        <tr><td>⑩→⑪</td><td>正式蓝图资产就绪</td><td>正式蓝图子单→<strong>已完成</strong>，UI动效子单→<strong>进行中</strong></td><td><span class="rl">Layout</span></td></tr>
+        <tr><td>⑬→⑮</td><td>制作/接入完成 → 走查通过</td><td>客户端制作/接入单→<strong>已完成</strong>，走查通过后父单→<strong>已完成</strong></td><td><span class="rc">客户端</span>/<span class="rq">QA</span></td></tr>
       </table>
     </div>
 
