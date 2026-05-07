@@ -33,6 +33,7 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
 .alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
 .alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
 .alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
 code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
 pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
 .dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
@@ -49,6 +50,9 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 .badge-red{background:rgba(248,113,113,.15);color:var(--red)}
 .badge-green{background:rgba(74,222,128,.15);color:var(--green)}
 .badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.badge-ue{background:rgba(108,140,255,.15);color:var(--accent)}
+.badge-unity{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-cocos{background:rgba(251,191,36,.15);color:var(--yellow)}
 .doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
 .redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
 .flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
@@ -58,6 +62,12 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 .flow-arrow{color:var(--accent2);font-size:18px;padding:0 6px;flex-shrink:0}
 .flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
 .flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:800px){.compare-grid{grid-template-columns:1fr}}
+.compare-card{border-radius:10px;padding:16px;font-size:14px;line-height:1.8}
+.compare-ue{background:rgba(108,140,255,.05);border:1px solid rgba(108,140,255,.2)}
+.compare-unity{background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.2)}
+.compare-card h4{margin:0 0 10px;font-size:15px}
 </style>
 </head>
 <body>
@@ -69,9 +79,11 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <div class="meta">
     <span>📋 适用：UE5 UMG / Unity UGUI / Cocos</span>
     <span>👤 维护：UI 组 · TA 组</span>
-    <span>📅 2026-04-02</span>
+    <span>📅 2026-05-07</span>
   </div>
 </div>
+
+<div class="alert alert-blue">📌 配套文档：<strong>UI Layout 拼接实操教程</strong> — 面向新手的 UE5/Unity 手把手操作指南</div>
 
 <div class="toc">
   <h3>📑 目录</h3>
@@ -81,6 +93,9 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#sec3">图文红黑榜</a></li>
     <li><a href="#sec4">标准作业流程 SOP</a></li>
     <li><a href="#sec5">常见问题排查 FAQ</a></li>
+    <li><a href="#sec6">引擎差异对照表</a></li>
+    <li><a href="#sec7">布局容器使用规范</a></li>
+    <li><a href="#sec8">性能与优化准则</a></li>
   </ol>
 </div>
 
@@ -234,6 +249,200 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
       <p><strong>修复</strong>：内容区域设<strong>最大宽度限制</strong>（Max Width = 1200px），超出部分用居中 + 两侧留白。或改用 "Auto Size" + 固定间距。</p>
     </div>
   </div>
+</div>
+
+<!-- SEC6 -->
+<div class="section" id="sec6">
+  <h2>🔄 6. 引擎差异对照表</h2>
+
+  <div class="sub-title">6.1 核心概念映射</div>
+  <table>
+    <tr><th>规范要求</th><th><span class="badge badge-ue">UE5 UMG</span> 实现方式</th><th><span class="badge badge-unity">Unity UGUI</span> 实现方式</th><th><span class="badge badge-cocos">Cocos</span> 实现方式</th></tr>
+    <tr><td>设计基准 1920×1080</td><td>DPI Curve: 1080 = 1.0</td><td>Canvas Scaler: Reference = 1920×1080</td><td>Design Resolution: 1920×1080</td></tr>
+    <tr><td>缩放策略</td><td>DPI Scaling Rule = <code>Shortest Side</code></td><td>Screen Match Mode = <code>Match Width Or Height</code>, Match=0.5~1</td><td>Fit Width / Fit Height / Show All</td></tr>
+    <tr><td>锚点定位</td><td>Canvas Panel Slot → Anchors + Alignment + Offsets</td><td>Rect Transform → Anchor Presets + Pivot + Position</td><td>Widget → Anchor + Position</td></tr>
+    <tr><td>全屏拉伸</td><td>Anchor Min(0,0) Max(1,1), Offset=0</td><td>Anchor stretch-stretch, L/R/T/B=0</td><td>Anchor: 四边对齐，Margin=0</td></tr>
+    <tr><td>居中固定</td><td>Anchor (0.5,0.5), Alignment=(0.5,0.5)</td><td>Anchor middle-center, Pivot=(0.5,0.5)</td><td>Anchor: center, Widget size固定</td></tr>
+    <tr><td>贴边吸附</td><td>Anchor 锚定到对应角/边</td><td>Anchor Preset 选对应位置</td><td>Anchor 对齐到对应边</td></tr>
+    <tr><td>安全区处理</td><td><code>SafeZone</code> 组件</td><td><code>Screen.safeArea</code> + 脚本</td><td><code>cc.sys.getSafeAreaRect()</code></td></tr>
+    <tr><td>水平排列</td><td><code>Horizontal Box</code></td><td><code>Horizontal Layout Group</code></td><td><code>Layout</code> 组件 (Horizontal)</td></tr>
+    <tr><td>垂直排列</td><td><code>Vertical Box</code></td><td><code>Vertical Layout Group</code></td><td><code>Layout</code> 组件 (Vertical)</td></tr>
+    <tr><td>九宫格图片</td><td>Image → Draw As = <code>Box</code>, 设 Margin</td><td>Image → Type = <code>Sliced</code>, Sprite Editor 切割</td><td>Sprite → Type = <code>Sliced</code></td></tr>
+    <tr><td>滚动列表</td><td><code>Scroll Box</code></td><td><code>Scroll Rect</code> + Content Size Fitter</td><td><code>ScrollView</code> 组件</td></tr>
+    <tr><td>页签切换</td><td><code>Widget Switcher</code></td><td>自定义脚本控制 Active</td><td><code>PageView</code> 组件</td></tr>
+  </table>
+
+  <div class="sub-title">6.2 坐标系差异（⚠️ 必须注意）</div>
+  <table>
+    <tr><th>差异项</th><th><span class="badge badge-ue">UE5</span></th><th><span class="badge badge-unity">Unity</span></th></tr>
+    <tr><td>Y 轴方向</td><td>↓ 向下为正（与屏幕坐标一致）</td><td>↑ 向上为正（数学坐标系）</td></tr>
+    <tr><td>原点位置</td><td>父容器左上角</td><td>取决于 Anchor 位置</td></tr>
+    <tr><td>"距顶部 20px"</td><td>Position Y = <code>20</code></td><td>（top-anchor时）Pos Y = <code>-20</code></td></tr>
+    <tr><td>"距底部 20px"</td><td>（底部anchor）Position Y = <code>-20</code></td><td>（bottom-anchor时）Pos Y = <code>20</code></td></tr>
+    <tr><td>对齐中心</td><td>Alignment 属性 (0~1)</td><td>Pivot 属性 (0~1)</td></tr>
+  </table>
+  <div class="alert alert-yellow"><strong>⚠️ 设计稿标注转换提示</strong>：设计稿标注通常用"距顶部 Xpx"的形式。在 UE5 中直接填正值即可；在 Unity 中使用 top-anchor 时需要填<strong>负值</strong>。建议锚点标注文档统一标注"距 Anchor 方向的距离"并注明引擎填法。</div>
+
+  <div class="sub-title">6.3 DPI 缩放策略对比</div>
+  <div class="compare-grid">
+    <div class="compare-card compare-ue">
+      <h4><span class="badge badge-ue">UE5</span> DPI Scaling Rule 选项</h4>
+      <table>
+        <tr><th>规则</th><th>行为</th><th>适用</th></tr>
+        <tr><td><code>Shortest Side</code></td><td>以短边为基准缩放</td><td>✅ 横屏游戏首选</td></tr>
+        <tr><td><code>Longest Side</code></td><td>以长边为基准</td><td>竖屏游戏</td></tr>
+        <tr><td><code>Horizontal</code></td><td>以水平方向为基准</td><td>特殊需求</td></tr>
+        <tr><td><code>Vertical</code></td><td>以垂直方向为基准</td><td>特殊需求</td></tr>
+      </table>
+    </div>
+    <div class="compare-card compare-unity">
+      <h4><span class="badge badge-unity">Unity</span> Canvas Scaler Match 值</h4>
+      <table>
+        <tr><th>Match</th><th>行为</th><th>适用</th></tr>
+        <tr><td><code>0</code></td><td>完全匹配宽度</td><td>竖屏游戏</td></tr>
+        <tr><td><code>0.5</code></td><td>取宽高中间值</td><td>✅ 通用推荐</td></tr>
+        <tr><td><code>1</code></td><td>完全匹配高度</td><td>✅ 横屏游戏推荐</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="sub-title">6.4 安全区实现差异</div>
+  <div class="compare-grid">
+    <div class="compare-card compare-ue">
+      <h4><span class="badge badge-ue">UE5</span> SafeZone</h4>
+      <p>引擎<strong>内置</strong> SafeZone 组件，直接从 Palette 拖入即可。</p>
+      <pre>Canvas Panel
+  └── SafeZone (勾选 Pad 四边)
+        └── 所有 UI 内容</pre>
+      <p>✅ 开箱即用，无需写代码。</p>
+    </div>
+    <div class="compare-card compare-unity">
+      <h4><span class="badge badge-unity">Unity</span> SafeArea</h4>
+      <p>需要<strong>自行挂载脚本</strong>实现：</p>
+      <pre>Canvas
+  └── SafeArea (RectTransform + 脚本)
+        └── 所有 UI 内容
+
+// 脚本核心逻辑：
+Rect safe = Screen.safeArea;
+panel.anchorMin = safe.min / screenSize;
+panel.anchorMax = safe.max / screenSize;</pre>
+      <p>⚠️ 需要在运行时动态计算，Editor 中无法预览效果。</p>
+    </div>
+  </div>
+</div>
+
+<!-- SEC7 -->
+<div class="section" id="sec7">
+  <h2>📦 7. 布局容器使用规范</h2>
+
+  <div class="sub-title">7.1 容器选择决策树</div>
+  <div class="alert alert-blue">面对一个 UI 需求，按以下顺序判断该用哪种容器：</div>
+  <table>
+    <tr><th>问题</th><th>答案 → 选择</th></tr>
+    <tr><td>需要自由放置各元素到任意位置？</td><td>是 → <code>Canvas Panel</code> / 自由定位</td></tr>
+    <tr><td>元素从左到右排成一行？</td><td>是 → <code>Horizontal Box</code> / <code>Horizontal Layout Group</code></td></tr>
+    <tr><td>元素从上到下排成一列？</td><td>是 → <code>Vertical Box</code> / <code>Vertical Layout Group</code></td></tr>
+    <tr><td>多个元素排成网格（如道具背包）？</td><td>是 → <code>Grid Panel</code> / <code>Grid Layout Group</code></td></tr>
+    <tr><td>内容超出一屏需要滚动？</td><td>是 → <code>Scroll Box</code> / <code>Scroll Rect</code></td></tr>
+    <tr><td>多个子元素叠放在同一位置（如弹窗层级）？</td><td>是 → <code>Overlay</code> / 自由定位叠放</td></tr>
+    <tr><td>只显示多个子视图中的一个（页签切换）？</td><td>是 → <code>Widget Switcher</code> / 脚本切换 Active</td></tr>
+  </table>
+
+  <div class="sub-title">7.2 嵌套层级规范</div>
+  <div class="redline">
+    <p><strong>🔴 规范</strong>：UI 控件嵌套层级不得超过 <strong>8 层</strong>。超过 8 层需重构，拆分为独立子 Widget/Prefab。</p>
+  </div>
+  <table>
+    <tr><th>层级深度</th><th>状态</th><th>处理</th></tr>
+    <tr><td>1~5 层</td><td>✅ 健康</td><td>正常</td></tr>
+    <tr><td>6~8 层</td><td>⚠️ 关注</td><td>评估是否可精简</td></tr>
+    <tr><td>&gt;8 层</td><td>❌ 超标</td><td>必须拆分子组件</td></tr>
+  </table>
+
+  <div class="sub-title">7.3 自适应 vs 固定尺寸决策</div>
+  <table>
+    <tr><th>场景</th><th>策略</th><th>实现方式</th></tr>
+    <tr><td>导航栏、顶/底部条</td><td>宽度自适应，高度固定</td><td>Anchor 水平拉伸，固定 Height</td></tr>
+    <tr><td>弹窗面板</td><td>固定宽高，居中显示</td><td>Anchor 居中，固定 Width/Height</td></tr>
+    <tr><td>按钮文字</td><td>文字自适应宽度</td><td>UE5: Size To Content; Unity: Content Size Fitter</td></tr>
+    <tr><td>背景图</td><td>全屏拉伸</td><td>Anchor 四边拉伸，Offset=0</td></tr>
+    <tr><td>列表项</td><td>宽度跟随容器，高度固定或自适应</td><td>Layout Group + Layout Element</td></tr>
+    <tr><td>等分按钮组</td><td>均匀分配宽度</td><td>UE5: Fill 权重相同; Unity: Force Expand Width</td></tr>
+  </table>
+
+  <div class="sub-title">7.4 间距与边距标准</div>
+  <table>
+    <tr><th>间距类型</th><th>推荐值（基于 1080p）</th><th>适用场景</th></tr>
+    <tr><td>全局安全边距</td><td>24~32 px</td><td>内容距屏幕边缘最小距离</td></tr>
+    <tr><td>组件间大间距</td><td>24~32 px</td><td>不同功能区块之间</td></tr>
+    <tr><td>组件间中间距</td><td>12~16 px</td><td>同类元素之间（如按钮列表）</td></tr>
+    <tr><td>组件间小间距</td><td>6~8 px</td><td>紧密相关元素（图标+文字）</td></tr>
+    <tr><td>最小触控间距</td><td>≥ 8 px</td><td>两个可点击元素之间</td></tr>
+    <tr><td>最小触控区域</td><td>≥ 44×44 px</td><td>任何可交互元素的点击区域</td></tr>
+  </table>
+</div>
+
+<!-- SEC8 -->
+<div class="section" id="sec8">
+  <h2>⚡ 8. 性能与优化准则</h2>
+
+  <div class="sub-title">8.1 UI 性能红线</div>
+  <table>
+    <tr><th>指标</th><th>红线值</th><th>说明</th></tr>
+    <tr><td>单界面 Draw Call</td><td>≤ 30</td><td>超过需合批优化</td></tr>
+    <tr><td>全屏 Overlay 数量</td><td>≤ 3 层</td><td>过多全屏透明层严重影响填充率</td></tr>
+    <tr><td>单界面节点总数</td><td>≤ 200</td><td>超过需拆分子界面/虚拟列表</td></tr>
+    <tr><td>嵌套层级深度</td><td>≤ 8</td><td>超过需重构</td></tr>
+    <tr><td>动态文字节点</td><td>尽量少于 20</td><td>频繁变化的文字节点增加重绘开销</td></tr>
+  </table>
+
+  <div class="sub-title">8.2 引擎优化要点</div>
+  <div class="compare-grid">
+    <div class="compare-card compare-ue">
+      <h4><span class="badge badge-ue">UE5</span> UMG 优化</h4>
+      <ul>
+        <li>✅ 静态元素使用 <code>Is Volatile = false</code>（默认）减少重绘</li>
+        <li>✅ 不需要 Hit Test 的元素设 <code>Visibility = Hit Test Invisible</code></li>
+        <li>✅ 大量相同项使用 <code>List View</code> 替代 Scroll Box 手动堆叠</li>
+        <li>✅ 隐藏界面使用 <code>Collapsed</code> 而非 <code>Hidden</code>（Collapsed 不占布局也不计算）</li>
+        <li>❌ 避免每帧在 Tick 中更新 UI 属性，改用绑定或事件驱动</li>
+        <li>❌ 避免 Canvas Panel 中放大量子控件（超过 50 个考虑分层）</li>
+      </ul>
+    </div>
+    <div class="compare-card compare-unity">
+      <h4><span class="badge badge-unity">Unity</span> UGUI 优化</h4>
+      <ul>
+        <li>✅ 不可交互的 Image 关闭 <code>Raycast Target</code></li>
+        <li>✅ 将频繁变动的 UI 和静态 UI 放在<strong>不同 Canvas</strong> 下（减少 Canvas Rebuild）</li>
+        <li>✅ 大列表使用对象池/虚拟化（如 LoopScrollRect）</li>
+        <li>✅ 图集打包（Sprite Atlas）减少 Draw Call</li>
+        <li>✅ 隐藏面板使用 <code>CanvasGroup.alpha=0</code> + <code>blocksRaycasts=false</code></li>
+        <li>❌ 避免使用 Layout Group 嵌套超过 3 层</li>
+        <li>❌ 避免大量 Outline/Shadow 组件（增加顶点数）</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sub-title">8.3 图集与合批规范</div>
+  <table>
+    <tr><th>规范项</th><th>要求</th><th>原因</th></tr>
+    <tr><td>同一界面图片归入同一图集</td><td>✅ 必须</td><td>同图集的 Image 可合并 Draw Call</td></tr>
+    <tr><td>图集最大尺寸</td><td>2048×2048</td><td>兼容低端设备</td></tr>
+    <tr><td>全屏大背景图</td><td>不放入图集，独立加载</td><td>避免图集过大</td></tr>
+    <tr><td>通用元素（关闭按钮等）</td><td>放入公共图集</td><td>跨界面复用</td></tr>
+    <tr><td>九宫格图片</td><td>越小越好（建议 ≤ 64×64）</td><td>节省内存</td></tr>
+  </table>
+
+  <div class="sub-title">8.4 多语言适配注意事项</div>
+  <table>
+    <tr><th>问题</th><th>规范要求</th></tr>
+    <tr><td>文字容器大小</td><td>预留 <strong>30%~50%</strong> 的空间余量（德/法/俄语普遍比中/英长）</td></tr>
+    <tr><td>按钮宽度</td><td>建议使用<strong>自适应宽度</strong>而非固定宽度</td></tr>
+    <tr><td>文字截断</td><td>必须设置 Overflow 处理（Ellipsis 省略号）</td></tr>
+    <tr><td>从右到左（RTL）</td><td>如需支持阿拉伯语，布局容器需支持镜像翻转</td></tr>
+    <tr><td>竖排文字</td><td>日/韩特殊场景，需专门处理</td></tr>
+  </table>
 </div>
 
 <div class="doc-footer">📐 Layout 拼接规范 · UI 规范 v1.0 · UI组 + TA组 · 项目内部资料</div>

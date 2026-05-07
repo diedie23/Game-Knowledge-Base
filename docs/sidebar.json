@@ -350,6 +350,15 @@
               "craft": "UI"
             },
             {
+              "id": "ui-layout-tutorial",
+              "icon": "🎓",
+              "title": "Layout 拼接实操教程",
+              "type": "iframe",
+              "file": "knowledge-base/ui-layout-tutorial.html",
+              "badge": "UI",
+              "craft": "UI"
+            },
+            {
               "id": "ui-umg-tips",
               "icon": "⚡",
               "title": "UMG 生成技巧",
