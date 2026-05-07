@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unity UGUI 拼接实操详细指南 — UI 工业化规范</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#4ade80;--accent2:#22c55e;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1200px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:12px;background:var(--accent);color:#0d0f15;padding:2px 10px;border-radius:12px;font-weight:bold}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:8px}
+.section h3{font-size:18px;color:var(--heading);margin:24px 0 12px;font-weight:600;border-left:4px solid var(--accent2);padding-left:12px}
+.section h4{font-size:16px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:15px;margin-bottom:12px;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:16px 0 24px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:12px;border:1px solid var(--border);font-weight:600}
+td{padding:10px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(74,222,128,.02)}
+.alert{padding:16px 20px;border-radius:8px;margin:16px 0;font-size:15px;line-height:1.6}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--text)}
+.alert-green strong{color:var(--accent)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--text)}
+.alert-yellow strong{color:var(--yellow)}
+code{font-family:'Cascadia Code',monospace;background:var(--card);padding:2px 6px;border-radius:4px;font-size:14px;color:var(--cyan)}
+.vs-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:20px 0}
+.vs-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px}
+.vs-card h4{color:var(--accent);margin-top:0;border-bottom:1px dashed var(--border);padding-bottom:10px}
+.vs-card ul{padding-left:20px;margin-top:10px}
+.vs-card li{margin-bottom:8px;font-size:14px}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:bold;margin-right:8px;background:var(--card);border:1px solid var(--border)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>🎮 Unity UGUI 拼接实操详细指南 <span class="ver">新手向完全解析</span></h1>
+  <div class="subtitle">手把手教你认识组件、配置参数与完美适配</div>
+</div>
+
+<div class="alert alert-green">
+  <strong>📝 导读：</strong>本文专为不熟悉 Unity 引擎的新手和 UI 设计师准备。从最基础的组件区别，到输入框、列表布局的详细参数设置，帮助你零基础看懂并独立完成 UGUI 界面拼接。
+</div>
+
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ol>
+    <li><a href="#sec1">核心基石：Canvas 与 Rect Transform</a></li>
+    <li><a href="#sec2">布局组（Layout Group）详解与对比</a></li>
+    <li><a href="#sec3">滚动与列表容器（Scroll Rect）全解析</a></li>
+    <li><a href="#sec4">基础与交互组件（图片、文本、输入框）</a></li>
+    <li><a href="#sec5">核心实操：锚点、中心点与层级搭建</a></li>
+  </ol>
+</div>
+
+<!-- 章节 1 -->
+<div class="section" id="sec1">
+  <h2>📐 1. 核心基石：Canvas 与 Rect Transform</h2>
+  <p>在 UGUI 中，所有 UI 元素都必须挂载 <code>Rect Transform</code> 组件，并且必须放在 <code>Canvas</code>（画布）的子节点下才能显示。</p>
+
+  <h3>1.1 画布 (Canvas) 与 缩放器 (Canvas Scaler)</h3>
+  <p>Canvas 就像一块画板，Canvas Scaler 决定了这块画板在不同手机屏幕上是放大还是缩小。</p>
+  <ul>
+    <li><strong>UI Scale Mode：</strong> 绝大多数游戏必须选择 <code>Scale With Screen Size</code>（跟随屏幕尺寸缩放）。</li>
+    <li><strong>Reference Resolution：</strong> 基准分辨率（设计稿尺寸）。通常填 <code>X: 1920, Y: 1080</code>。</li>
+    <li><strong>Screen Match Mode：</strong> 
+      <br> - 横屏游戏推荐：<code>Match Width Or Height</code>，且 <strong>Match 值设为 1</strong>（以高度为基准缩放）。
+      <br> - 竖屏游戏推荐：Match 设为 0（以宽度为基准缩放）。
+      <br> - 通用折中方案：Match 设为 0.5（取宽高中间值）。
+    </li>
+  </ul>
+
+  <h3>1.2 矩形变换 (Rect Transform)</h3>
+  <p>它是 3D Transform 的 2D 升级版，多出了宽高、锚点和中心点控制。</p>
+  <ul>
+    <li><strong>Pos X/Y/Z：</strong> 控件相对于锚点的位置。<strong>注意：Unity 的 Y 轴是向上为正的！</strong></li>
+    <li><strong>Width / Height：</strong> 控件的具体宽高像素。当锚点设置为“拉伸 (Stretch)”时，这两个属性会变成 <code>Left, Right, Top, Bottom</code> 的边距 (Margin)。</li>
+  </ul>
+</div>
+
+<!-- 章节 2 -->
+<div class="section" id="sec2">
+  <h2>📦 2. 布局组（Layout Group）详解与对比</h2>
+  <p>UGUI 本身不像 UE 那样提供直接拖拽的面板控件（如 Horizontal Box）。你需要先创建一个空的 GameObject，再挂载各种 <strong>Layout Group</strong> 脚本组件。</p>
+
+  <h3>2.1 水平与垂直布局组</h3>
+  <div class="vs-grid">
+    <div class="vs-card">
+      <h4>➡️ 水平布局组 (Horizontal Layout Group)</h4>
+      <p>子元素从左到右自动排队。适用于导航栏菜单、资源货币栏。</p>
+      <ul>
+        <li><strong>Padding（内边距）：</strong> 容器四周留出的空白空间。</li>
+        <li><strong>Spacing（间距）：</strong> 两个子控件之间的间隔距离。</li>
+        <li><strong>Child Alignment：</strong> 当子节点总宽度填不满容器时，它们是靠左对齐还是居中对齐？</li>
+        <li><strong>Child Force Expand：</strong> 勾选后，所有子节点会被强制拉伸瓜分剩余空间。通常<strong>不建议勾选</strong> Width 和 Height，而是用 Layout Element 单独控制。</li>
+      </ul>
+    </div>
+    <div class="vs-card">
+      <h4>⬇️ 垂直布局组 (Vertical Layout Group)</h4>
+      <p>子元素从上到下自动排队。适用于纵向菜单、滚动列表内容。</p>
+      <ul>
+        <li>参数与水平布局组完全相同。</li>
+        <li><strong>注意控制权问题：</strong> 如果勾选了 <code>Control Child Size</code> 的 Width 或 Height，子节点的宽或高就会被布局组强行接管，你无法在子节点上修改宽度或高度了！</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>2.2 网格布局组 (Grid Layout Group)</h3>
+  <p>用于排列像背包一样的九宫格/多宫格内容。它不是自动换行的流式布局，而是固定大小的格子。</p>
+  <ul>
+    <li><strong>Cell Size：</strong> 极其重要！强制规定每个格子（子节点）的固定宽高，无视子节点原本的尺寸。</li>
+    <li><strong>Constraint (约束)：</strong>
+      <br> - <code>Flexible</code>：自动计算行列数（比如空间够放几个就是几个）。
+      <br> - <code>Fixed Column Count</code>：强制固定列数（比如每行只能放 5 个道具）。
+    </li>
+  </ul>
+  
+  <div class="alert alert-yellow">
+    <strong>💡 布局元素 (Layout Element) 组件：</strong><br>
+    如果一个排队容器里，你希望有的按钮大一点，有的按钮小一点，怎么办？<br>
+    给那个特殊的子节点挂载一个 <strong>Layout Element</strong> 组件。开启 <code>Min Width</code> 或 <code>Preferred Width</code>，告诉父容器“我的最小宽度必须是这么多”。
+  </div>
+</div>
+
+<!-- 章节 3 -->
+<div class="section" id="sec3">
+  <h2>📜 3. 滚动与列表容器全解析</h2>
+
+  <h3>3.1 Scroll Rect (滚动视图) 的三大核心</h3>
+  <p>Unity 的滚动视图通常由三个层级组成。这是最容易拼错的地方：</p>
+  <pre>
+ScrollView (挂载 Scroll Rect 组件)
+ ├── Viewport (带 Mask 组件，作为遮罩遮住超出的内容)
+ │    └── Content (所有条目的父节点，必须能自动伸缩！)
+ └── Scrollbar (可选的滚动条)
+  </pre>
+
+  <h3>3.2 让列表无限延伸：Content Size Fitter</h3>
+  <p>Scroll Rect 的原理是：当 <strong>Content</strong> 节点比 <strong>Viewport</strong> 大时，就可以滑动。但你怎么保证 Content 的大小刚好包住里面所有的条目？</p>
+  <ul>
+    <li>必须给 Content 节点挂载 <strong>Content Size Fitter</strong>（内容大小自适应器）组件。</li>
+    <li>如果是垂直滑动列表，将 <code>Vertical Fit</code> 设为 <strong>Preferred Size</strong>。</li>
+    <li>同时给 Content 挂载一个 <strong>Vertical Layout Group</strong> 让子节点排队。</li>
+    <li>这样，每当你塞进去一个新条目，Content 就会自动拉长高度，Scroll Rect 就会自动识别并允许滚动。</li>
+  </ul>
+
+  <div class="alert alert-green">
+    <strong>🚀 性能警告：无限循环列表 (Loop Scroll Rect)</strong><br>
+    Unity 自带的 Scroll Rect 也会把所有条目一次性实例化（比如 1000 个道具）。对于大型游戏，必须使用程序员提供的<strong>对象池复用列表组件</strong>（如常见的 LoopScrollRect、SuperScrollView 等第三方插件），其配置方式因项目而异。
+  </div>
+</div>
+
+<!-- 章节 4 -->
+<div class="section" id="sec4">
+  <h2>🔤 4. 基础与交互组件（图片、文本、输入框）</h2>
+  
+  <h3>4.1 图片 (Image) 与 九宫格 (Sliced)</h3>
+  <p>确保图片在拉伸时不模糊、圆角不变形，必须使用九宫格切图：</p>
+  <ol>
+    <li>在 Project 面板选中源图片，在 Inspector 找到 <code>Sprite Editor</code>（需安装 2D Sprite 包）。</li>
+    <li>拖拽图片四周的绿色边框（Border），设定不需要拉伸的四个角区域。点击 Apply 保存。</li>
+    <li>回到 UI，选中挂有 Image 的节点。将 <strong>Image Type</strong> 从 <code>Simple</code> 改为 <strong><code>Sliced</code> (切片)</strong>。</li>
+    <li>若没有 <code>Fill Center</code> 需求可以取消勾选，能省一点性能。</li>
+  </ol>
+
+  <h3>4.2 高清文本 (TextMeshPro)</h3>
+  <p>永远不要用 Unity 原生的 <code>Legacy Text</code> 组件（字非常模糊），<strong>必须使用 <code>TextMeshPro - Text (UI)</code></strong>。</p>
+  <ul>
+    <li><strong>Font Asset：</strong> 选择生成好的 TMP 字体资产（SDF格式，无限放大不模糊）。</li>
+    <li><strong>Vertex Color：</strong> 字体颜色。甚至能开渐变色 (Color Gradient)。</li>
+    <li><strong>Alignment：</strong> 对齐方式（上中下左中右）。</li>
+    <li><strong>Auto Size：</strong> 开启后，如果文本太长挤不下框框，字体会自动缩小。</li>
+  </ul>
+
+  <h3>4.3 玩家文本输入：TMP_InputField 组件</h3>
+  <p>当需要玩家在界面上打字（聊天、改名、输密码）时，必须使用输入框组件。</p>
+  
+  <div class="vs-card">
+    <h4>🔡 TMP_InputField (可编辑输入框)</h4>
+    <p>它是一个复合组件，一般包含一个输入框背景图，以及内部的 Text 和 Placeholder。</p>
+    <ul>
+      <li><strong>Text Component：</strong> 指向实际显示输入内容的子节点（TMP 文本）。</li>
+      <li><strong>Placeholder：</strong> 指向显示提示文案的子节点（如“请输入兑换码”）。玩家一输入内容，这个节点就会自动隐藏。</li>
+      <li><strong>Character Limit：</strong> 字符长度限制。填 0 表示不限制，填 10 表示最多输入 10 个字。</li>
+      <li><strong>Content Type（内容类型）：</strong> 
+        <br> - <code>Standard</code>：普通内容。
+        <br> - <code>Password</code>：密码模式，输入的内容变成星号（可配置星号字符）。
+        <br> - <code>Integer Number</code>：只能输入数字。
+        <br> - <code>Email Address</code>：唤起手机系统键盘的邮箱专用布局。
+      </li>
+      <li><strong>Line Type：</strong>
+        <br> - <code>Single Line</code>：单行输入。按回车键表示结束输入。
+        <br> - <code>Multi Line Submit / Newline</code>：多行输入。按回车键换行。通常聊天框或者留言板使用。
+      </li>
+      <li><strong>Read Only：</strong> 勾选后，框无法被激活输入文字，但里面的文本允许被鼠标/手指长按并复制（取决于脚本支持）。</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- 章节 5 -->
+<div class="section" id="sec5">
+  <h2>🎯 5. 核心实操：锚点、中心点与层级搭建</h2>
+
+  <h3>5.1 锚点预设 (Anchor Presets) 与 轴心 (Pivot)</h3>
+  <p>点开 Rect Transform 左上角的那个带方块的小图标，就是 <strong>Anchor Presets (锚点预设面板)</strong>。</p>
+  <ul>
+    <li><strong>按住 Shift 点击：</strong> 同时改变 <strong>Pivot (中心点)</strong>。比如你想让弹窗不仅挂在中间，它的中心点也是正中间，按住 Shift 点正中间的方块。</li>
+    <li><strong>按住 Alt 点击：</strong> 同时改变 <strong>Position (位置)</strong>。按住 Alt 点左上角方块，UI 会瞬间飞到屏幕绝对的左上角贴边。</li>
+    <li><strong>右下角四个带箭头的方块：</strong> 它们是 <strong>Stretch (拉伸模式)</strong>。点击水平和垂直双向拉伸的那个（按住 Alt点击），这个 UI 就会瞬间铺满它的父节点。适合做全屏背景图。</li>
+  </ul>
+
+  <h3>5.2 异形屏安全区 (Safe Area) 的处理</h3>
+  <p>与 UE 不同，Unity 没有自带的无脑拖拽组件，需要通过脚本处理：</p>
+  <p>在所有 UI 的最顶层（Canvas 之下第一层），建一个名叫 <code>SafeAreaPanel</code> 的空物体，锚点设为全屏拉伸，并给它挂载程序员提供的 <code>SafeArea</code> 脚本（核心原理是根据 <code>Screen.safeArea</code> 动态修改锚点）。</p>
+
+  <h3>5.3 标准面板搭建结构推荐</h3>
+  <p>一个标准的系统界面层级树应该是这样的：</p>
+  <pre>
+Canvas (根画布)
+ └── SafeAreaPanel (挂载脚本的安全区面板，全屏拉伸)
+      ├── Background_Img (全屏底图，全屏拉伸拉满)
+      ├── TopBar_Panel (顶部导航栏面板)
+      │    ├── Anchor: 顶部横向拉伸 (Top-Stretch)
+      │    ├── Title_Text (居中对齐文字)
+      │    └── Back_Btn (左上角锚点，左上角贴边)
+      └── MainContent_Panel (中间主内容区)
+           ├── Anchor: 居中拉伸，留出顶部边距
+           └── ScrollView (滚动的装备列表)
+                └── Content (带 ContentSizeFitter 和 Grid Layout Group)
+                     ├── Item_Prefab (预制体，各种格子)
+                     ├── Item_Prefab
+                     └── Item_Prefab
+  </pre>
+
+</div>
+
+<div class="doc-footer">📐 游戏项目知识库 · Unity UGUI 拼接实操详细指南 · 新手专用</div>
+</div>
+</body>
+</html>

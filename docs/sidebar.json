@@ -350,12 +350,21 @@
               "craft": "UI"
             },
             {
-              "id": "ui-layout-tutorial",
+              "id": "ue-layout-tutorial",
               "icon": "🎓",
-              "title": "Layout 拼接实操教程",
+              "title": "UE5 UMG 拼接实操详细指南",
               "type": "iframe",
-              "file": "knowledge-base/ui-layout-tutorial.html",
-              "badge": "UI",
+              "file": "knowledge-base/ue-layout-tutorial.html",
+              "badge": "UE5",
+              "craft": "UI"
+            },
+            {
+              "id": "unity-layout-tutorial",
+              "icon": "🎓",
+              "title": "Unity UGUI 拼接实操详细指南",
+              "type": "iframe",
+              "file": "knowledge-base/unity-layout-tutorial.html",
+              "badge": "Unity",
               "craft": "UI"
             },
             {
