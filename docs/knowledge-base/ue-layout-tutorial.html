@@ -38,10 +38,25 @@ code{font-family:'Cascadia Code',monospace;background:var(--card);padding:2px 6p
 .vs-card h4{color:var(--accent);margin-top:0;border-bottom:1px dashed var(--border);padding-bottom:10px}
 .vs-card ul{padding-left:20px;margin-top:10px}
 .vs-card li{margin-bottom:8px;font-size:14px}
-.img-placeholder{background:rgba(255,255,255,0.03);border:1px dashed var(--dim);padding:40px 20px;text-align:center;margin:20px 0;color:var(--dim);border-radius:8px;font-size:14px;}
-.img-placeholder i{font-size:24px;display:block;margin-bottom:8px;}
 .doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
-.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:bold;margin-right:8px;background:var(--card);border:1px solid var(--border)}
+
+/* UI Mockup Styles - 替代原有的占位图 */
+.ue-ui { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1c1e; color: #c0c0c0; border: 1px solid #333; border-radius: 6px; overflow: hidden; font-size: 13px; max-width: 420px; margin: 20px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+.ue-ui-header { background: #252526; padding: 8px 12px; font-weight: bold; border-bottom: 1px solid #111; color: #ddd; display: flex; justify-content: space-between; align-items: center; }
+.ue-ui-search { background: #0d0e10; border: 1px solid #333; padding: 6px 8px; margin: 8px; border-radius: 3px; color: #666; font-size: 12px; display:flex; align-items:center; gap:6px; }
+.ue-ui-section { border-top: 1px solid #2a2a2a; }
+.ue-ui-sec-title { background: #2d2d30; padding: 6px 8px; font-weight: 600; color: #eee; cursor: default; display: flex; align-items: center; gap: 6px; }
+.ue-ui-row { display: flex; padding: 6px 8px 6px 20px; align-items: center; border-bottom: 1px solid #1e1e1e; }
+.ue-ui-row:last-child { border-bottom: none; }
+.ue-ui-label { width: 140px; color: #aaa; font-size: 12px; }
+.ue-ui-val { flex: 1; background: #0d0e10; border: 1px solid #333; padding: 4px 8px; border-radius: 2px; color: #fff; font-size: 12px; display:flex; align-items:center; justify-content:space-between; }
+.ue-ui-val.blue-edge { border-left: 2px solid #0078d7; }
+.ue-ui-icon-btn { background: #333; border-radius: 2px; padding: 2px 8px; display: inline-flex; align-items: center; justify-content: center; margin-right: 4px; font-size: 12px; color: #aaa; cursor:default; }
+.ue-ui-icon-btn.active { background: #0078d7; color: white; }
+.ue-highlight { border: 2px dashed var(--red); position: relative; margin: 8px; padding-bottom: 4px; border-radius: 4px; background: rgba(248,113,113,0.03); }
+.ue-highlight::after { content: '本区域需重点配置'; position: absolute; top: -11px; right: 8px; background: var(--panel); color: var(--red); font-size: 11px; padding: 0 6px; font-weight: bold; border-radius: 2px; border:1px solid var(--red); }
+.grid-box { width: 36px; height: 36px; background: #2d2d30; border: 1px solid #555; position: relative; border-radius: 2px; }
+.grid-box-inner { background: #fff; position: absolute; border-radius: 1px; }
 </style>
 </head>
 <body>
@@ -72,9 +87,41 @@ code{font-family:'Cascadia Code',monospace;background:var(--card);padding:2px 6p
   <h2>🎛️ 1. 右侧细节面板（Details）全属性图解</h2>
   <p>在 UMG 中选中任意一个控件，右侧就会弹出<strong>细节 (Details) 面板</strong>。这是我们操作最频繁的区域。下面以一个放在覆层 (Overlay) 里的尺寸框 (Size Box) 为例，拆解每一个设置项的含义：</p>
 
-  <div class="img-placeholder">
-    <i>🖼️</i>
-    [配图说明：此处插入 UMG 编辑器右侧 Details 细节面板全景截图，并用红框圈出“插槽”、“子布局”、“可见性”、“行为”、“渲染变换”这五大区域]
+  <!-- HTML CSS 完美还原 UE5 UI面板图示 -->
+  <div class="ue-ui">
+    <div class="ue-ui-header"><span>细节 (Details)</span><span style="color:#888;font-weight:normal;font-size:12px;">SizeBox_1 (选中的节点)</span></div>
+    <div class="ue-ui-search"><span>🔍</span> 搜索详情</div>
+    <div class="ue-highlight">
+      <div class="ue-ui-section">
+        <div class="ue-ui-sec-title">▼ 插槽 (覆层插槽)</div>
+        <div class="ue-ui-row"><div class="ue-ui-label">填充 (Padding)</div><div class="ue-ui-val blue-edge">左:0.0 上:0.0 右:0.0 下:0.0</div></div>
+        <div class="ue-ui-row">
+          <div class="ue-ui-label">水平对齐</div>
+          <div><span class="ue-ui-icon-btn active">居左</span><span class="ue-ui-icon-btn">居中</span><span class="ue-ui-icon-btn">居右</span><span class="ue-ui-icon-btn">拉伸</span></div>
+        </div>
+        <div class="ue-ui-row">
+          <div class="ue-ui-label">垂直对齐</div>
+          <div><span class="ue-ui-icon-btn active">居顶</span><span class="ue-ui-icon-btn">居中</span><span class="ue-ui-icon-btn">居底</span><span class="ue-ui-icon-btn">拉伸</span></div>
+        </div>
+      </div>
+      <div class="ue-ui-section">
+        <div class="ue-ui-sec-title">▼ 子布局</div>
+        <div class="ue-ui-row"><div class="ue-ui-label" style="color:var(--text);">☑ 宽度覆写</div><div class="ue-ui-val blue-edge">200.0</div></div>
+        <div class="ue-ui-row"><div class="ue-ui-label">☐ 高度覆写</div><div class="ue-ui-val">0.0</div></div>
+      </div>
+      <div class="ue-ui-section">
+        <div class="ue-ui-sec-title">▼ 可见性</div>
+        <div class="ue-ui-row"><div class="ue-ui-label">可见性</div><div class="ue-ui-val blue-edge">Visible <span>▼</span></div></div>
+      </div>
+      <div class="ue-ui-section">
+        <div class="ue-ui-sec-title">▼ 行为</div>
+        <div class="ue-ui-row"><div class="ue-ui-label">已启用 (Is Enabled)</div><div class="ue-ui-val" style="width:24px;flex:none;justify-content:center;">☑</div></div>
+      </div>
+      <div class="ue-ui-section">
+        <div class="ue-ui-sec-title">▼ 渲染变换</div>
+        <div class="ue-ui-row"><div class="ue-ui-label">平移 (Translation)</div><div class="ue-ui-val">X: 0.0 &nbsp;&nbsp; Y: 0.0</div></div>
+      </div>
+    </div>
   </div>
 
   <h3>1.1 插槽 (Slot) 区域 —— 决定控件“怎么放”</h3>
@@ -122,10 +169,24 @@ code{font-family:'Cascadia Code',monospace;background:var(--card);padding:2px 6p
   </ul>
 
   <h3>1.3 可见性 (Visibility) —— 决定控件“能不能看见、能不能点”【极其重要❗】</h3>
-  <div class="img-placeholder">
-    <i>👁️</i>
-    [配图说明：此处插入 Visibility (可见性) 下拉菜单截图，高亮显示 5 个选项]
+  
+  <div class="ue-ui" style="max-width: 320px; overflow: visible;">
+    <div class="ue-ui-row" style="padding: 12px; border: none;">
+      <div class="ue-ui-label" style="width:80px;">可见性</div>
+      <div class="ue-ui-val blue-edge" style="position:relative; background:#111; border-color:#555; padding: 6px 10px; cursor:pointer;">
+        Visible (可见)
+        <span style="font-size:10px; color:#888;">▼</span>
+        <div style="position:absolute; top:32px; left:-2px; width:calc(100% + 4px); background:#252526; border:1px solid #444; border-radius:2px; z-index:10; box-shadow:0 4px 12px rgba(0,0,0,0.5);">
+          <div style="padding:8px 10px; background:#0078d7; color:#fff;">Visible (可见)</div>
+          <div style="padding:8px 10px; color:#ccc;">Collapsed (折叠 - 最省性能)</div>
+          <div style="padding:8px 10px; color:#ccc;">Hidden (隐藏)</div>
+          <div style="padding:8px 10px; color:#ccc;">Hit Test Invisible (不可点)</div>
+          <div style="padding:8px 10px; color:#ccc;">Self Hit Test Invisible (自身不可点)</div>
+        </div>
+      </div>
+    </div>
   </div>
+
   <table>
     <tr><th>选项名称（中/英）</th><th>视觉状态</th><th>点击状态</th><th>性能消耗</th><th>最适用场景</th></tr>
     <tr><td><strong>可见 (Visible)</strong></td><td>👀 看得见</td><td>👆 挡击/可点</td><td>高</td><td>普通按钮、需要交互的面板</td></tr>
@@ -185,53 +246,67 @@ code{font-family:'Cascadia Code',monospace;background:var(--card);padding:2px 6p
   <h2>🔤 3. 常用交互控件图鉴与核心参数</h2>
 
   <h3>3.1 图片 (Image) —— 必须掌握的九宫格</h3>
-  <div class="img-placeholder">
-    <i>🖼️</i>
-    [配图说明：展示 Image 组件的 Details 面板，高亮 Brush 选项卡卡中的 Draw As 和 Margin 属性，并在旁边放一个九宫格切图拉伸对比图]
+  <p>为了保证弹窗底图或按钮在长宽变化时，圆角不被拉伸变形，必须使用图片组件里的 <strong>Box (九宫格)</strong> 绘制模式。</p>
+  
+  <div style="display:flex; gap:20px; align-items:flex-start; justify-content:center; flex-wrap:wrap; margin:20px 0;">
+    <div class="ue-ui" style="margin:0; width:340px;">
+      <div class="ue-ui-section">
+        <div class="ue-ui-sec-title">▼ 外观</div>
+        <div class="ue-ui-row"><div class="ue-ui-label">Brush -> Image</div><div class="ue-ui-val">Btn_Bg_01 (图片资产)</div></div>
+        <div class="ue-highlight">
+          <div class="ue-ui-row"><div class="ue-ui-label">Brush -> Draw As</div><div class="ue-ui-val blue-edge" style="color:var(--green)">Box ▼</div></div>
+          <div class="ue-ui-row"><div class="ue-ui-label">Margin</div><div class="ue-ui-val blue-edge">0.25</div></div>
+        </div>
+      </div>
+    </div>
+    <div style="border:1px dashed var(--dim); background:var(--panel); padding:16px; border-radius:8px; text-align:center;">
+      <div style="width:120px; height:120px; background:#1a1c1e; position:relative; border:2px solid #555; display:inline-block; border-radius:12px;">
+         <div style="position:absolute; top:30px; left:0; right:0; border-top:1px dashed var(--accent);"></div>
+         <div style="position:absolute; bottom:30px; left:0; right:0; border-top:1px dashed var(--accent);"></div>
+         <div style="position:absolute; left:30px; top:0; bottom:0; border-left:1px dashed var(--accent);"></div>
+         <div style="position:absolute; right:30px; top:0; bottom:0; border-left:1px dashed var(--accent);"></div>
+         <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:var(--accent); font-size:12px; white-space:nowrap;">仅此区域拉伸</div>
+      </div>
+      <div style="font-size:12px; color:var(--text); margin-top:12px;">九宫格 (Box) 切分保护四个圆角示意图</div>
+    </div>
   </div>
+
   <ul>
-    <li><strong>Brush -> Image (图片资产)：</strong> 选择你的切图。</li>
     <li><strong>Brush -> Draw As (绘制为)：</strong> 
       <ul>
         <li><code>Image</code>：默认模式，改变尺寸时图片会被强行拉伸变形。</li>
-        <li><code>Box</code>：<strong>九宫格模式</strong>。用于各种圆角底板、按钮背景。选择 Box 后，必须在下方调整 <strong>Margin (边距)</strong>。Margin 通常是一个小数（如 0.25），代表保护四个圆角不被拉伸的比例。</li>
+        <li><code>Box</code>：<strong>九宫格模式</strong>。选择后，必须在下方调整 <strong>Margin (边距)</strong>。Margin 通常是一个小数（如 0.25），代表保护四个圆角不被拉伸的百分比。</li>
       </ul>
     </li>
   </ul>
 
   <h3>3.2 玩家文本输入：Editable Text / Multi-Line</h3>
   <p>当需要玩家在界面上打字（如输入名字、聊天、密码）时，必须使用输入框组件。</p>
-  <div class="img-placeholder">
-    <i>⌨️</i>
-    [配图说明：展示单行输入框 Editable Text 和多行输入框 Multi-Line 的属性面板对比截图]
+  
+  <div class="ue-ui" style="max-width: 500px;">
+    <div class="ue-ui-header">Editable Text (单行) vs Multi-Line (多行) 核心区别</div>
+    <div class="ue-ui-section">
+      <div class="ue-ui-row"><div class="ue-ui-label">Hint Text</div><div class="ue-ui-val">请输入内容...</div></div>
+      <div class="ue-ui-row"><div class="ue-ui-label">Is Read Only</div><div class="ue-ui-val" style="justify-content:flex-start;">☐ <span style="color:#888;margin-left:8px;">勾选后变纯文本展示</span></div></div>
+      <div class="ue-highlight">
+        <div class="ue-ui-row" style="background:rgba(255,255,255,0.02)"><div class="ue-ui-label" style="color:var(--accent);font-weight:bold;">Is Password</div><div class="ue-ui-val" style="justify-content:flex-start;">☑ <span style="color:#aaa;margin-left:8px;">仅单行输入框专属：变为星号密码遮罩</span></div></div>
+        <div class="ue-ui-row" style="background:rgba(255,255,255,0.02)"><div class="ue-ui-label" style="color:var(--green);font-weight:bold;">Auto Wrap Text</div><div class="ue-ui-val" style="justify-content:flex-start;">☑ <span style="color:#aaa;margin-left:8px;">仅多行输入框专属：到边缘自动换行</span></div></div>
+      </div>
+    </div>
   </div>
   
   <div class="vs-grid">
     <div class="vs-card">
       <h4>🔡 可编辑文本 (Editable Text)</h4>
-      <p>用于<strong>单行输入</strong>（如注册账号、兑换码）。</p>
-      <ul>
-        <li><strong>Hint Text：</strong> 提示文案（如“请输入玩家姓名…”）。输入后自动消失。</li>
-        <li><strong>Is Password：</strong> 勾选后，输入的内容会变成星号 <code>***</code>。</li>
-        <li><strong>Is Read Only：</strong> 勾选后，框存在但禁止输入文字，可用于纯文本复制展示。</li>
-      </ul>
+      <p>用于<strong>单行输入</strong>（如注册账号、兑换码）。支持设置 Is Password（星号遮罩）。</p>
     </div>
     <div class="vs-card">
       <h4>🔠 多行可编辑文本 (Multi-Line)</h4>
-      <p>用于<strong>大段输入</strong>（如意见反馈、公会宣言）。</p>
-      <ul>
-        <li><strong>Auto Wrap Text：</strong> 强烈建议勾选。当玩家输入到边界时自动换行。</li>
-        <li><strong>注意：</strong> 这两个输入框默认背景都是透明的。你通常需要在它下面垫一张 Image 作为底图，再用 Overlay 把它们包起来。</li>
-      </ul>
+      <p>用于<strong>大段输入</strong>（如意见反馈、公会宣言）。不支持密码，但支持内容自动换行。</p>
     </div>
   </div>
+  <p><strong>注意：</strong> 这两个输入框默认背景都是透明的。你通常需要在它下面垫一张 Image 作为底图，再用 Overlay 把它们包起来。</p>
 
-  <h3>3.3 按钮 (Button)</h3>
-  <p>最基础的点击交互组件。Button 内部只能包含<strong>一个子节点</strong>（通常放一个 Text 或 Overlay）。</p>
-  <ul>
-    <li><strong>Style (样式)：</strong> 包含 Normal（正常）、Hovered（悬停）、Pressed（按下）、Disabled（禁用）四种状态。你需要分别为这四个状态配置对应的 Image 和颜色。</li>
-    <li><strong>Click Method (点击方法)：</strong> 决定是鼠标按下时触发（Down and Up），还是鼠标抬起时才触发（Mouse Release）。</li>
-  </ul>
 </div>
 
 <!-- 章节 4 -->
@@ -261,10 +336,35 @@ code{font-family:'Cascadia Code',monospace;background:var(--card);padding:2px 6p
 
   <h3>4.2 性能救星：List View 与 Tile View（数据驱动列表）</h3>
   <p>针对拥有成百上千条数据的界面（如排行榜、大背包），<strong>必须</strong>使用这两种视图。</p>
-  <div class="img-placeholder">
-    <i>📜</i>
-    [配图说明：左侧展示一个单列的 List View，右侧展示一个九宫格网格状的 Tile View。下方截图展示 Entry Widget Class 参数设置]
+  
+  <div style="display:flex; gap:20px; align-items:center; justify-content:center; flex-wrap:wrap; margin:20px 0;">
+    <div style="background:#1a1c1e; padding:12px; border:1px solid #333; border-radius:6px; width: 140px;">
+      <div style="font-size:13px; color:#eee; font-weight:bold; margin-bottom:8px; text-align:center;">List View<br><span style="font-size:11px; color:#888; font-weight:normal;">单列向下排队滚动</span></div>
+      <div style="height:140px; background:#0d0e10; border:1px solid #444; overflow:hidden; border-radius:4px;">
+        <div style="height:28px; background:#2d2d30; margin:6px; border-radius:2px; border-left:3px solid var(--blue);"></div>
+        <div style="height:28px; background:#2d2d30; margin:6px; border-radius:2px; border-left:3px solid var(--blue);"></div>
+        <div style="height:28px; background:#2d2d30; margin:6px; border-radius:2px; border-left:3px solid var(--blue);"></div>
+        <div style="height:28px; background:#2d2d30; margin:6px; border-radius:2px; opacity:0.4;"></div>
+      </div>
+    </div>
+    <div style="background:#1a1c1e; padding:12px; border:1px solid #333; border-radius:6px; width: 180px;">
+      <div style="font-size:13px; color:#eee; font-weight:bold; margin-bottom:8px; text-align:center;">Tile View<br><span style="font-size:11px; color:#888; font-weight:normal;">九宫格网格排队滚动</span></div>
+      <div style="height:140px; background:#0d0e10; border:1px solid #444; padding:4px; display:flex; flex-wrap:wrap; align-content:flex-start; gap:4px; border-radius:4px;">
+        <div style="width:46px; height:46px; background:#2d2d30; border-radius:4px; border-bottom:2px solid var(--accent);"></div>
+        <div style="width:46px; height:46px; background:#2d2d30; border-radius:4px; border-bottom:2px solid var(--accent);"></div>
+        <div style="width:46px; height:46px; background:#2d2d30; border-radius:4px; border-bottom:2px solid var(--accent);"></div>
+        <div style="width:46px; height:46px; background:#2d2d30; border-radius:4px; border-bottom:2px solid var(--accent);"></div>
+        <div style="width:46px; height:46px; background:#2d2d30; border-radius:4px; border-bottom:2px solid var(--accent); opacity:0.4;"></div>
+      </div>
+    </div>
+    <div class="ue-ui" style="margin:0; width:340px;">
+      <div class="ue-highlight">
+        <div class="ue-ui-row" style="padding:12px;"><div class="ue-ui-label" style="width:auto; margin-right:12px; font-weight:bold;">Entry Widget Class</div><div class="ue-ui-val blue-edge" style="color:var(--accent); font-weight:bold; padding:4px 8px;">WBP_ItemNode ▼</div></div>
+      </div>
+      <div style="padding:0 12px 12px; font-size:12px; color:var(--dim); line-height:1.5;">* 关键属性：千万别手动往列表里拖子节点！必须在这里指定一个独立的组件蓝图作为子条目模板。</div>
+    </div>
   </div>
+
   <table>
     <tr><th>控件</th><th>视觉表现</th><th>核心原理与配置方法</th></tr>
     <tr>
@@ -275,7 +375,7 @@ code{font-family:'Cascadia Code',monospace;background:var(--card);padding:2px 6p
         <strong>配置方法：</strong><br>
         1. 必须单独创建一个继承了 <code>User Object List Entry</code> 接口的 UMG 蓝图作为“单条子项”。<br>
         2. 在右侧面板的 <strong>Entry Widget Class</strong> 参数中，选择刚才创建的子项蓝图。<br>
-        3. 不能手动拖拖拽拽 UI 进去，必须通过蓝图代码动态传入数据对象。
+        3. 必须通过蓝图代码动态传入数据对象才能显示内容。
       </td>
     </tr>
     <tr>
@@ -285,8 +385,8 @@ code{font-family:'Cascadia Code',monospace;background:var(--card);padding:2px 6p
   </table>
   <div class="alert alert-yellow">
     <strong>💡 Tile View 专属重要参数：</strong><br>
-    • <code>Entry Height</code> / <code>Entry Width</code>：定义每个“格子”的固定尺寸。它决定了一行能排下多少个。<br>
-    • <code>Tile Alignment</code>：当最后一行不满时，是居左、居中还是分散对齐。
+    • <code>Entry Height</code> / <code>Entry Width</code>：定义每个“格子”的固定物理尺寸。它决定了一行能排下多少个。<br>
+    • <code>Tile Alignment</code>：当最后一行不满时，控制是居左、居中还是分散对齐。
   </div>
 </div>
 
@@ -296,35 +396,71 @@ code{font-family:'Cascadia Code',monospace;background:var(--card);padding:2px 6p
   <p>了解完节点后，如何组合成一个不随屏幕分辨率变形的界面？最核心的就是<strong>锚点 (Anchor)</strong>。</p>
 
   <h3>5.1 第一法则：打死定在原地的“锚点”对照表</h3>
-  <p>在 Canvas Panel 下的子控件，它的位置是相对于锚点（那朵像小菊花一样的四叶草图标）来计算的。</p>
+  <p>在 Canvas Panel 下的子控件，它的位置是相对于锚点（那朵像小菊花一样的四叶草图标）来计算的。当遇到不同比例的屏幕（如带鱼屏、iPad 平板）时，界面就是依据锚点来进行拉伸和固定的。</p>
   
-  <div class="img-placeholder" style="padding: 20px;">
-    <i>🧲</i>
-    [配图说明：极其重要的锚点九宫格图解。插入 UMG 锚点面板预设的 16 个小方块截图，并详细用箭头标出：左上吸附、居中吸附、横向拉伸、四边全屏拉伸 对应的方块]
+  <div style="display:flex; justify-content:center; margin:40px 0; overflow-x:auto;">
+    <div style="background:#1a1c1e; padding:24px; border:1px solid #333; border-radius:8px; display:inline-block; position:relative; min-width: 240px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+      <div style="display:grid; grid-template-columns:repeat(4, 40px); gap:12px;">
+        <!-- row 1 -->
+        <div class="grid-box"><div class="grid-box-inner" style="top:4px; left:4px; width:8px; height:8px;"></div></div>
+        <div class="grid-box"><div class="grid-box-inner" style="top:4px; left:15px; width:8px; height:8px;"></div></div>
+        <div class="grid-box"><div class="grid-box-inner" style="top:4px; right:4px; width:8px; height:8px;"></div></div>
+        <div class="grid-box"><div class="grid-box-inner" style="top:4px; left:4px; right:4px; height:8px;"></div></div>
+        <!-- row 2 -->
+        <div class="grid-box"><div class="grid-box-inner" style="top:15px; left:4px; width:8px; height:8px;"></div></div>
+        <div class="grid-box" style="border-color:var(--accent); box-shadow:0 0 12px rgba(108,140,255,0.4);"><div class="grid-box-inner" style="top:15px; left:15px; width:8px; height:8px;"></div></div>
+        <div class="grid-box"><div class="grid-box-inner" style="top:15px; right:4px; width:8px; height:8px;"></div></div>
+        <div class="grid-box"><div class="grid-box-inner" style="top:15px; left:4px; right:4px; height:8px;"></div></div>
+        <!-- row 3 -->
+        <div class="grid-box"><div class="grid-box-inner" style="bottom:4px; left:4px; width:8px; height:8px;"></div></div>
+        <div class="grid-box"><div class="grid-box-inner" style="bottom:4px; left:15px; width:8px; height:8px;"></div></div>
+        <div class="grid-box"><div class="grid-box-inner" style="bottom:4px; right:4px; width:8px; height:8px;"></div></div>
+        <div class="grid-box"><div class="grid-box-inner" style="bottom:4px; left:4px; right:4px; height:8px;"></div></div>
+        <!-- row 4 -->
+        <div class="grid-box"><div class="grid-box-inner" style="top:4px; bottom:4px; left:4px; width:8px;"></div></div>
+        <div class="grid-box"><div class="grid-box-inner" style="top:4px; bottom:4px; left:15px; width:8px;"></div></div>
+        <div class="grid-box"><div class="grid-box-inner" style="top:4px; bottom:4px; right:4px; width:8px;"></div></div>
+        <div class="grid-box" style="border:2px solid var(--red);"><div class="grid-box-inner" style="top:4px; bottom:4px; left:4px; right:4px;"></div></div>
+      </div>
+      
+      <!-- Annotations -->
+      <div style="position:absolute; left:-140px; top:32px; color:var(--text); font-size:14px; display:flex; align-items:center;">
+         ↖️ 左上角吸附 <div style="width:30px; height:1px; background:#555; margin-left:12px;"></div>
+      </div>
+      <div style="position:absolute; left:-150px; top:84px; color:var(--accent); font-size:14px; font-weight:bold; display:flex; align-items:center;">
+         🎯 居中点吸附 <div style="width:70px; height:2px; background:var(--accent); margin-left:12px;"></div>
+      </div>
+      <div style="position:absolute; right:-140px; top:32px; color:var(--text); font-size:14px; display:flex; align-items:center;">
+         <div style="width:30px; height:1px; background:#555; margin-right:12px;"></div> 顶部横向拉伸 ↔️
+      </div>
+      <div style="position:absolute; right:-170px; bottom:32px; color:var(--red); font-size:14px; font-weight:bold; display:flex; align-items:center;">
+         <div style="width:30px; height:2px; background:var(--red); margin-right:12px;"></div> 四边全屏拉伸 🔲
+      </div>
+    </div>
   </div>
 
   <table>
-    <tr><th>UI 元素场景</th><th>该选哪个锚点预设？</th><th>面板对应的调整</th></tr>
+    <tr><th>UI 元素制作场景</th><th>该选哪个锚点预设？</th><th>面板属性对应的关键调整</th></tr>
     <tr><td><strong>界面左上角的返回按钮</strong></td><td>↖️ <strong>左上角对齐</strong></td><td>Position X/Y 控制据左上角的距离</td></tr>
     <tr><td><strong>界面右下角的开战按钮</strong></td><td>↘️ <strong>右下角对齐</strong></td><td>如果你选错了锚点，在带鱼屏手机上，按钮就会飘到屏幕中间去！</td></tr>
     <tr><td><strong>全屏纯色背景底图</strong></td><td>🔲 <strong>四边拉伸 (右下角的大方块)</strong></td><td>原有的 Size 面板会变成 <code>Offsets (Left, Right, Top, Bottom)</code>，把这四个值<strong>全部归 0</strong>，背景就会死死贴满屏幕。</td></tr>
-    <tr><td><strong>顶部导航底栏 (只变宽不变高)</strong></td><td>↔️ <strong>顶部横向拉伸 (中上方的长条)</strong></td><td>Offset Left/Right 设为 0，高度保持固定。</td></tr>
+    <tr><td><strong>顶部导航底栏 (宽自适应, 高不变)</strong></td><td>↔️ <strong>顶部横向拉伸 (中上方的长条)</strong></td><td>Offset Left/Right 设为 0，高度保持固定。</td></tr>
     <tr><td><strong>屏幕正中央的弹窗</strong></td><td>🎯 <strong>中心点</strong></td><td>设为中心点后，必须把 <code>Alignment (对齐)</code> 设为 <strong>X:0.5, Y:0.5</strong>，这样弹窗的真正物理中心才会和屏幕中心对齐。</td></tr>
   </table>
 
   <h3>5.2 标准面板搭建结构推荐</h3>
-  <p>一个标准的、性能好的系统界面，它的层级树（Hierarchy）应该是这样的：</p>
+  <p>一个标准的、性能高的系统界面，它的蓝图层级树（Hierarchy）应该是这样的：</p>
   <pre>
 [根目录] WBP_MainUI
  └── Canvas Panel (界面最底层画板)
-      ├── Image (全屏背景图，锚点: 四边拉伸, Offsets 全为 0, 可见性: Hit Test Invisible)
-      └── Safe Zone (安全区，勾选Pad四边，完美适配所有刘海屏/打孔屏)
+      ├── Image (全屏遮罩背景图，锚点:四边拉伸, Offsets:全0, 可见性:Hit Test Invisible)
+      └── Safe Zone (安全区，勾选Pad四周，完美避开所有刘海屏/打孔屏)
            └── Overlay (覆层，铺满整个安全区)
-                ├── Image (通用弹窗大底板图，水平/垂直居中对齐)
-                ├── Vertical Box (左中右布局中的某个列)
+                ├── Image (通用弹窗底板，水平/垂直居中对齐)
+                ├── Vertical Box (左中右布局中的主列)
                 │    ├── Text (主标题)
-                │    └── List View (核心道具列表，Size 设为 Fill 填满剩余空间)
-                └── Button (右上角关闭按钮，在Overlay里设为 右上角对齐)
+                │    └── List View (核心道具列表，Size设为Fill填满剩余空间)
+                └── Button (右上角关闭按钮，在Overlay里直接设为 右上角对齐)
   </pre>
 
 </div>
