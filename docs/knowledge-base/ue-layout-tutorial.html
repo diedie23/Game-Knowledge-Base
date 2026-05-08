@@ -381,20 +381,10 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
   <strong>🎯 适用场景 (Use Cases)：</strong> 确认/取消按键、关闭叉叉、底部的页签切换按钮、技能释放图标。</p>
 
   <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
-    <strong>📍 操作路径：</strong>在 Palette 面板搜索 <code>Button</code> → 拖入画布 → 选中它 → 右侧 Details 面板即可看到以下所有参数。<br>
-    <strong>📍 如何给按钮换图：</strong>Details → 外观 (Appearance) → 样式 (Style) → 普通 (Normal) → <strong>图像 (Image)</strong> 栏位 → 点击下拉选择贴图资源。<br>
-    <strong>📍 如何做多态按钮：</strong>分别展开 <strong>普通 (Normal) / 已悬停 (Hovered) / 已按压 (Pressed) / 已禁用 (Disabled)</strong>，各自填入不同状态的图片。<br>
-    <strong>📍 插槽参数说明（画布面板槽/Canvas Panel Slot）：</strong><br>
-    &nbsp;&nbsp;• <strong>锚点 (Anchors)</strong>：控件相对于父容器的锚定点位（参考第8章）<br>
-    &nbsp;&nbsp;• <strong>位置 X/Y (Position X/Y)</strong>：改变控件的位置<br>
-    &nbsp;&nbsp;• <strong>尺寸 X/Y (Size X/Y)</strong>：固定控件尺寸至理想大小（如果是图片，点选「大小到内容 (Size to Content)」，切图多大视图里就是多大）<br>
-    &nbsp;&nbsp;• <strong>ZOrder</strong>：该层的视觉顺序，数值越大越在顶层显示<br>
-    <strong>📍 填充参数：</strong><br>
-    &nbsp;&nbsp;• <strong>普通填充 (Normal Padding)</strong>：按钮正常状态内部边距，如 <code>2.0</code><br>
-    &nbsp;&nbsp;• <strong>按压填充 (Press Padding)</strong>：按钮按压时的内部边距（可不同于普通填充制造按压下沉感），如 <code>2.0, 3.0, 2.0, 1.0</code><br>
-    <strong>📍 颜色和不透明度 (Color and Opacity)：</strong>给按钮整体叠一层颜色滤镜。<br>
-    <strong>📍 背景颜色 (Background Color)：</strong>按钮没有图片时的纯色背景底色。<br>
-    <div style="color:var(--red); font-weight:bold; margin-top:8px;">⚠️ 注：按钮如果没有可视化点击反馈，务必这些状态图全用一张图拖入，不可以空着！否则点击时会闪白块。</div>
+    <strong>📍 操作路径：</strong>Palette 搜索 <code>Button</code> → 拖入画布 → 选中 → Details 面板。<br>
+    <strong>📍 换图：</strong>Appearance → Style → Normal → <strong>Image</strong> 栏位 → 下拉选择贴图资源。<br>
+    <strong>📍 多态按钮：</strong>分别展开 Normal / Hovered / Pressed / Disabled，各填不同状态图片。<br>
+    <div style="color:var(--red); font-weight:bold; margin-top:8px;">⚠️ 避坑：所有状态图不可空着！已按压 (Pressed) 不填图片，点击时会闪白块。务必至少把 Normal 的图拷过来。</div>
   </div>
 
   <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
@@ -428,6 +418,11 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td><strong>Vertical Alignment (垂直对齐)</strong></td>
         <td>控制按钮靠上、居中、靠下，或是<strong>拉伸填满 (Fill)</strong>。</td>
         <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td colspan="4" style="background: rgba(108,140,255,.03); padding: 8px 16px; font-size: 12px; color:#aaa;">
+          <strong>💡 若父容器是 Canvas Panel</strong>，则 Slot 变为：<strong>Anchors</strong>（锚点，参考第8章）、<strong>Position X/Y</strong>（位置）、<strong>Size X/Y</strong>（尺寸，勾选 Size to Content 可自动适配切图大小）、<strong>ZOrder</strong>（数值越大越在上层）。
+        </td>
       </tr>
       <tr>
         <td colspan="4" style="background: rgba(108,140,255,.05); border-left: 3px solid var(--accent); padding: 8px 16px; font-size: 13px;">
@@ -479,6 +474,28 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
           <div style="color:var(--red); font-weight:bold; margin-top:4px;">【致命避坑】：如果 已按压 (Pressed) 里面不填图片，当玩家点击按钮时，它会瞬间变成一个全白的正方形方块！务必把 Normal 的图拷过来！</div>
         </td>
         <td class="preview-cell"><span class="badge-no">❌ 播放运行</span></td>
+      </tr>
+      <tr>
+        <td rowspan="2"><strong>Appearance<br>(外观)</strong></td>
+        <td><strong>Normal Padding (普通填充)</strong></td>
+        <td>按钮正常状态下内容与边缘的内边距，如 <code>2.0</code>。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td><strong>Press Padding (按压填充)</strong></td>
+        <td>按压时的内边距（可不同于普通填充制造下沉感），如 <code>2.0, 3.0, 2.0, 1.0</code>。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td rowspan="2"><strong>Color<br>(颜色)</strong></td>
+        <td><strong>Color and Opacity (颜色和不透明度)</strong></td>
+        <td>给按钮整体叠一层颜色滤镜。RGBA 中 A=0 全透明，A=1 全不透明。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td><strong>Background Color (背景颜色)</strong></td>
+        <td>按钮没有贴图时的纯色背景底色（有图时通常不需要改）。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td rowspan="2"><strong>Interaction<br>(交互)</strong></td>
