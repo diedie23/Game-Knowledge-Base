@@ -395,22 +395,10 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
 
   
     📍 操作路径：Palette 搜索 Image → 拖入容器 → 选中 → Details 面板。
-    📍 选图片（方法一）：在 Content Browser 中找到图片资源 → 点击红框复制资源名称 → 粘贴到 Details → Appearance → Brush → Image (图像) 栏位的搜索框中搜索并选择。
+    📍 选图片（方法一）：在 Content Browser 中找到图片资源 → 点击红框复制资源名称 → 粘贴到 Appearance → Brush → Image (图像) 栏位搜索框中选择。
     📍 选图片（方法二）：进入图片资源文件夹 → 将资源悬停在相应工程页签上等待界面切换 → 然后拖入。
-    📍 颜色调板：点击 Color and Opacity (颜色和不透明度) 的色块进入调色板，可调节 RGBA 色号（跟 PS 互通）。A 为不透明度：0 为 0%（全透明），1 为 100%（全不透明）。
-    📍 Draw As (绘制为) 四种模式：
-      • 无 (None)：就是空集，不渲染任何图像
-      • 盒体 (Box)：可以做九宫格，四角不拉伸
-      • 边界 (Border)：不怎么使用，可跳过
-      • 图像 (Image)：不做九宫格就默认这个选项
-    📍 做九宫格：Draw As 改为 盒体 (Box) → 展开 Margin (边距) → 左边/顶部/右边/底部 各填 0.25 (根据圆角比例调整)。
-    📍 可见性 (Visibility)：
-      • 可视 (Visible)：需要被点击
-      • 已折叠 (Collapsed)：隐藏并且不占用布局空间
-      • 隐藏 (Hidden)：隐藏但是会占用布局空间
-      • 非可命中测试 (Hit Test Invisible)：不需要被点击（自身和所有子项）
-      • 自身非可命中测试 (Self Hit Test Invisible)：自身不需要被点击（自身穿透但子项可点击）
-    📍 倾斜/旋转：Details → Render Transform → Shear (倾斜角度) / Angle (旋转角度) 可调整控件的倾斜和旋转效果。
+    📍 做九宫格：Draw As 改为 盒体 (Box) → 展开 Margin (边距) → 左边/顶部/右边/底部 各填 0.25（根据圆角比例调整）。
+    📍 倾斜/旋转：Render Transform → Shear (倾斜角度) / Angle (旋转角度)。
   
 
   右侧面板详细参数清单 (Details Panel Parameters)
@@ -427,7 +415,7 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
       
       
         Draw As (绘制为)
-        盒体 (Box)：必须配合 Margin 使用（做九宫格不拉伸四角）。图像 (Image)：默认平铺满容器，不做九宫格时选这个。无 (None)：空白不渲染（就是空集）。边界 (Border)：不怎么使用，可跳过。
+        图像 (Image)：默认选项，平铺满容器。盒体 (Box)：九宫格模式，需配合 Margin 使用（四角不拉伸）。无 (None)：不渲染。边界 (Border)：少用，可跳过。
         ✅ 立刻刷新
       
       

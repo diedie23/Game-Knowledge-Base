@@ -500,22 +500,10 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 
   <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
     <strong>📍 操作路径：</strong>Palette 搜索 <code>Image</code> → 拖入容器 → 选中 → Details 面板。<br>
-    <strong>📍 选图片（方法一）：</strong>在 Content Browser 中找到图片资源 → 点击红框复制资源名称 → 粘贴到 Details → Appearance → Brush → <strong>Image (图像)</strong> 栏位的搜索框中搜索并选择。<br>
+    <strong>📍 选图片（方法一）：</strong>在 Content Browser 中找到图片资源 → 点击红框复制资源名称 → 粘贴到 Appearance → Brush → <strong>Image (图像)</strong> 栏位搜索框中选择。<br>
     <strong>📍 选图片（方法二）：</strong>进入图片资源文件夹 → 将资源悬停在相应工程页签上等待界面切换 → 然后拖入。<br>
-    <strong>📍 颜色调板：</strong>点击 <strong>Color and Opacity (颜色和不透明度)</strong> 的色块进入调色板，可调节 RGBA 色号（跟 PS 互通）。<strong>A 为不透明度：0 为 0%（全透明），1 为 100%（全不透明）</strong>。<br>
-    <strong>📍 Draw As (绘制为) 四种模式：</strong><br>
-    &nbsp;&nbsp;• <strong>无 (None)</strong>：就是空集，不渲染任何图像<br>
-    &nbsp;&nbsp;• <strong>盒体 (Box)</strong>：可以做九宫格，四角不拉伸<br>
-    &nbsp;&nbsp;• <strong>边界 (Border)</strong>：不怎么使用，可跳过<br>
-    &nbsp;&nbsp;• <strong>图像 (Image)</strong>：不做九宫格就默认这个选项<br>
-    <strong>📍 做九宫格：</strong>Draw As 改为 <code>盒体 (Box)</code> → 展开 Margin (边距) → 左边/顶部/右边/底部 各填 <code>0.25</code> (根据圆角比例调整)。<br>
-    <strong>📍 可见性 (Visibility)：</strong><br>
-    &nbsp;&nbsp;• <strong>可视 (Visible)</strong>：需要被点击<br>
-    &nbsp;&nbsp;• <strong>已折叠 (Collapsed)</strong>：隐藏并且不占用布局空间<br>
-    &nbsp;&nbsp;• <strong>隐藏 (Hidden)</strong>：隐藏但是会占用布局空间<br>
-    &nbsp;&nbsp;• <strong>非可命中测试 (Hit Test Invisible)</strong>：不需要被点击（自身和所有子项）<br>
-    &nbsp;&nbsp;• <strong>自身非可命中测试 (Self Hit Test Invisible)</strong>：自身不需要被点击（自身穿透但子项可点击）<br>
-    <strong>📍 倾斜/旋转：</strong>Details → Render Transform → <strong>Shear (倾斜角度)</strong> / <strong>Angle (旋转角度)</strong> 可调整控件的倾斜和旋转效果。
+    <strong>📍 做九宫格：</strong>Draw As 改为 <code>盒体 (Box)</code> → 展开 Margin (边距) → 左边/顶部/右边/底部 各填 <code>0.25</code>（根据圆角比例调整）。<br>
+    <strong>📍 倾斜/旋转：</strong>Render Transform → Shear (倾斜角度) / Angle (旋转角度)。
   </div>
 
   <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
@@ -532,7 +520,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
       </tr>
       <tr>
         <td><strong>Draw As (绘制为)</strong></td>
-        <td><strong>盒体 (Box)</strong>：必须配合 Margin 使用（做九宫格不拉伸四角）。<br><strong>图像 (Image)</strong>：默认平铺满容器，不做九宫格时选这个。<br><strong>无 (None)</strong>：空白不渲染（就是空集）。<br><strong>边界 (Border)</strong>：不怎么使用，可跳过。</td>
+        <td><strong>图像 (Image)</strong>：默认选项，平铺满容器。<br><strong>盒体 (Box)</strong>：九宫格模式，需配合 Margin 使用（四角不拉伸）。<br><strong>无 (None)</strong>：不渲染。<br><strong>边界 (Border)</strong>：少用，可跳过。</td>
         <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
