@@ -469,21 +469,9 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   🎯 适用场景 (Use Cases)： 各种界面标题、按钮上的单色文字、纯数据展示展示。
 
   
-    📍 操作路径：Palette 搜索 LGText（如果搜不到就搜 Text，找我们项目自定义的那个）→ 拖入容器 → 选中 → Details。
-    📍 改文字内容：Details → Content (内容) → Text (文本) 栏位 → 直接输入文字。
-    📍 选字体：Details → Appearance (外观) → Font (字体) → Font Family (字体族系) → 下拉选择（目前项目中红框标注的两种可用）。
-    📍 改字体大小：Details → Appearance → Font → Size (尺寸) → 输入数值（常用 18~36）。
-    📍 改字间距：Details → Appearance → Font → Letter Spacing (字间距) → 可调节字体横向间距。
-    📍 外描边：Details → Appearance → Font → Outline Settings (轮廓设置) → 展开后设置：
-      • Outline Size (外描边像素大小)：描边粗细
-      • Outline Color (外描边颜色、不透明度)：描边颜色和透明度
-    📍 阴影：Details → Appearance → Shadow (阴影) →
-      • Shadow Offset (阴影偏移像素)：X/Y 方向的偏移
-      • Shadow Color (阴影颜色、不透明度)
-    📍 改字体颜色：Details → Appearance → Font → Color (颜色) → 点击色块打开取色器。
-    📍 对齐方式：Details → Justification (对齐方式) → 居左/居中/居右。
-    📍 行间距：Details → Appearance → Margin (边距) → Line Height Percent (行高百分比) → 默认 1.0，设为 1.2 则增加 20% 行距。
-    ⚠️ 重要规则：文本间距不可为负数，字号需要为偶数，且落地需要 ×0.75 的换算比例（如设计稿标注 28px → 实际填 28×0.75=21）。
+    📍 操作路径：Palette 搜索 LGText（搜不到就搜 Text，找项目自定义的那个）→ 拖入容器 → 选中 → Details。
+    📍 常用参数位置：Appearance → Font 下集中了字体/字号/字间距/描边/颜色（详见下方参数表）。
+    ⚠️ 落地规则：字号需为偶数，且需 ×0.75 换算（设计稿 28px → 填 21）。文本间距不可为负数。
   
 
   右侧面板详细参数清单 (Details Panel Parameters)
@@ -560,24 +548,16 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   🎯 适用场景 (Use Cases)： 聊天频道、掉落提示（获得 <Red>倚天剑</>）、带特殊高亮的技能描述、字图联排。
 
   
-    📍 文本格式写法：除默认样式外，其他的使用 <行名>XXX</> 的格式。例如：这是一个<Red>多格式文本</>
-    📍 如何创建数据表格（Text Style Set）：
+    📍 文本格式写法：使用 <行名>XXX</> 格式。例如：这是一个<Red>多格式文本</>
+    📍 创建 Text Style Set（数据表格）：
       ① Content Browser → 右键 → Miscellaneous → Data Table
-      ② 弹出窗口选择行结构 → 搜索 RichTextStyleRow → 选中创建
-      ③ 在数据表格中点击添加行，必须要有一行名为 Default 的数据
-      ④ 继续添加相应格式名称的行（如 Red、Blue、Yellow 等），设置字体大小与颜色
-    📍 样式修改：在数据表格细节面板中可修改：
-      • 字体族系 (Font Family)：选择项目字体
-      • 字形 (Typeface)：Default
-      • 尺寸 (Size)：字号大小（如 21）
-      • 字间距 (Letter Spacing)
-      • 字体材质 (Font Material)
-      • 颜色 (Color)：文字颜色
-    📍 项目富文本资源路径：
-      • 普通富文本：通常用 DT_RichTextFontStyle
-      • 带下划线：DT_RichHyperlinkStyleTable（可以参考 UI_Rule_FirstView）
-      • icon 富文本（字图联排）：W_CommonRichImageRow
-    📍 实际用法：找到之前做好的富文本控件，直接复制粘贴过来修改文本内容。如需修改字色或者字图联排，请找到对应程序咨询。
+      ② 行结构搜索 RichTextStyleRow → 创建
+      ③ 必须有一行名为 Default 的数据，再添加 Red/Blue 等格式行
+    📍 项目富文本资源：
+      • 普通富文本：DT_RichTextFontStyle
+      • 带下划线：DT_RichHyperlinkStyleTable（参考 UI_Rule_FirstView）
+      • 字图联排：W_CommonRichImageRow
+    📍 实际用法：找到已有富文本控件，复制粘贴后修改文本。如需改字色或字图联排，咨询对应程序。
   
 
   右侧面板详细参数清单 (Details Panel Parameters)
@@ -625,19 +605,7 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   4.1 Slider (滑条)
   
     📍 操作路径：Palette 搜索 Slider → 拖入容器 → 选中 → Details。
-    📍 滑条值设置：Details → Appearance (外观) →
-      • 值 (Value)：当前默认停在哪个数值（0.0~1.0）
-      • 最小值 (Min Value)：滑轨最左端代表的值
-      • 最大值 (Max Value)：滑轨最右端代表的值
-    📍 朝向：水平 (Horizontal) 或垂直。
-    📍 滑条颜色/滑柄颜色：Appearance → 滑条颜色 (Slider Bar Color) / 滑柄颜色 (Slider Handle Color)。
-    📍 步大小 (Step Size)：拖动时每次跳跃多少值。
-    📍 样式（换皮）：Details → Style (样式) →
-      • 普通的条图像 (Normal Bar Image)：滑轨底图
-      • 悬浮的条图像 (Hovered Bar Image)：悬停时滑轨
-      • 禁用的条图像 (Disabled Bar Image)：禁用时滑轨
-      • 普通的缩略图 / 悬浮的缩略图 / 禁用的缩略图：滑动钮的三态图片及大小
-      • 条厚度 (Bar Thickness)：滑轨的粗细
+    📍 换皮：Style 分组中可替换滑轨底图（Normal/Hovered/Disabled Bar Image）和滑动钮三态图（Thumb Image）+ 条厚度 (Bar Thickness)。
   
   右侧面板详细参数清单 (Details Panel Parameters)
   
@@ -657,6 +625,16 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
         ❌ 逻辑代码用
       
       
+        Slider Bar Color / Handle Color(滑条颜色/滑柄颜色)
+        分别给滑轨和可拖动滑块叠加颜色滤镜。默认白色=原图不变。
+        ✅ 立刻刷新
+      
+      
+        Orientation (朝向)
+        水平 (Horizontal) 或垂直 (Vertical)。
+        ✅ 立刻刷新
+      
+      
         Widget Style (样式)
         核心换皮区。在这里替换 普通的条图像 (Normal Bar Image)（滑轨底图）和 普通的缩略图 (Normal Thumb Image)（可拖动的小滑块抓手图），以及悬浮/禁用态的对应图片和 条厚度 (Bar Thickness)。
         ✅ 立刻刷新
@@ -673,11 +651,7 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   4.2 Progress Bar (进度条)
   
     📍 操作路径：Palette 搜索 Progress Bar → 拖入容器 → 选中 → Details。
-    📍 样式设置：Details → Style (样式) →
-      • 背景图 (Background Image)：空掉时候的底层沟槽图（背景样式）。设置图像、图像大小、着色、绘制为（盒体）、边距。
-      • 填充图 (Fill Image)：实心血槽/进度条图（进度样式）。设置图像、图像大小、着色、绘制为（盒体）、边距。
-    📍 进度显示：Details → Progress (进度) → 百分比 (Percent) → 0.0~1.0 之间（如 0.95 = 显示 95% 进度）。代码中传血量必须除以最大血量再传。
-    📍 填充方向：Details → Progress → 条填充类型 (Bar Fill Type) → 左到右、右到左、中心向外、底部向上等。
+    📍 核心：Percent 取值 0.0~1.0，代码传血量需除以最大血量再传。
   
   右侧面板详细参数清单 (Details Panel Parameters)
   
@@ -717,9 +691,7 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
 
   
     📍 操作路径：Palette 搜索 ComboBox → 选择 Combo Box (String) → 拖入容器 → 选中 → Details。
-    📍 添加选项：Details → Content (内容) → Default Options (默认选项) → 点击 + 号添加选项文字。
-    📍 默认的选项：可以设置初始选中的选项。
-    📍 选项间填充：调节下拉列表中各选项的间距。
+    📍 添加选项：Content → Default Options → 点击 + 号逐条添加。
   
 
   右侧面板详细参数清单 (Details Panel Parameters)
@@ -845,10 +817,9 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   ⚠️ 注意：如果列表条目超过 30 条且格式一致（如排行榜），绝对不能用 Scroll Box，必须用 List View 性能复用池！
 
   
-    📍 操作路径：Palette 搜索 Scroll Box → 拖入容器 → 然后把需要滚动的内容控件全部拖到 Scroll Box 下方作为子节点。
-    📍 隐藏滚动条：选中 Scroll Box → Details → Scroll → Scrollbar Visibility → 选 Collapsed。
-    📍 改滚动方向：Details → Scroll → Orientation → 改为 Horizontal（横滑）或 Vertical（竖滑）。
-    📍 自定义滑块外观：Details → Style → 展开 Scrollbar Style → 替换各 Thumb Image。
+    📍 操作路径：Palette 搜索 Scroll Box → 拖入容器 → 把需要滚动的内容全部拖为子节点。
+    📍 隐藏滚动条：Scrollbar Visibility → Collapsed（不是 Hidden！详见下方参数表说明）。
+    📍 自定义滑块外观：Style → Scrollbar Style → 替换 Thumb Image 三态图。
   
 
   
@@ -1033,10 +1004,8 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
 
   5.3 Size Box (尺寸框)
   
-    📍 功能：强制指定子项的固定大小。
-    📍 重要限制：尺寸框下只能有一个子项！如果需要放多个图层，可以用覆层 (Overlay) 控件把尺寸框下面的图层包裹起来，这样一个尺寸框下就可以有多个图层。
-    📍 注意：子控件的大小只要有勾选 Size To Content (大小到内容) 才有效。
-    📍 设置固定尺寸：如设置 128×128，尺寸框内的子项最大尺寸不会超过 128×128。
+    📍 限制：尺寸框下只能有一个子项！多图层时用 Overlay 包裹后再放入。
+    📍 注意：子控件需勾选 Size To Content 才能被 Size Box 正确约束。
   
   右侧面板详细参数清单 (Details Panel Parameters)
   
@@ -1069,9 +1038,8 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   ⚡ 核心操作：通过索引显示子控件，索引从 0 开始。
 
   
-    📍 操作路径：Palette → 面板 (Panel) 分类 → 控件切换器 (Widget Switcher) → 拖入容器。
-    📍 切换显示：Details → Switcher → Active Widget Index (活跃控件索引) → 填入数字 0/1/2... 对应第几个子项。
-    📍 必须操作：勾选 Is Variable (公开为变量)，否则蓝图中无法通过代码控制切换！
+    📍 操作路径：Palette → 面板 (Panel) → 控件切换器 (Widget Switcher) → 拖入容器。
+    📍 必须操作：勾选 Is Variable，否则蓝图无法控制切换！
   
 
   右侧面板详细参数清单 (Details Panel Parameters)
@@ -1113,9 +1081,9 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
 
   
     📍 操作路径：Palette → 面板 (Panel) 分类 → 水平框 (Horizontal Box) 或 垂直框 (Vertical Box) → 拖入容器。
-    📍 排布顺序：水平框内子项图层从上往下 = 视窗中子项从左往右排布。垂直框同理，图层从上往下 = 视窗中从上往下排布。
-    📍 自动重排：对齐方式选择水平居中时，隐藏中间子项，水平框会自动居中重新排布。对齐方式选择水平居左，隐藏最左边子项，水平框会自动居左重新排布（居右同理）。
-    📍 关键：HV Box 本身没什么参数，核心全在每个子节点的 Slot 属性上（选中子控件才能看到）。
+    📍 排布规则：层级面板中子项图层从上往下 = 视窗中从左往右（水平框）/ 从上往下（垂直框）排布。
+    📍 自动重排：隐藏某个子项后，剩余子项会根据对齐方式自动重新排布（居中/居左/居右）。
+    📍 关键：核心参数全在每个子节点的 Slot 属性上（选中子控件才能看到）。
   
 
   右侧面板详细参数清单 (Details Panel Parameters)
@@ -1147,7 +1115,8 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
       
     
   
-  🔑 核心理解：Horizontal/Vertical Box 本身没有什么参数，它的核心全在每个子节点的 Slot 属性上。拖入子控件后，选中子控件才能看到 Slot 相关设置。
+
+
 
   5.6 Overlay (覆层)
   💡 核心作用 (Core Function)： 覆层内的控件可以相互重叠在彼此之上，多数被当作 UI 拼接中的父级使用。
@@ -1156,10 +1125,7 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
 
   
     📍 操作路径：Palette → 面板 (Panel) 分类 → 覆层 (Overlay) → 拖入容器。
-    📍 子项对齐：选中子控件 → Details → Slot (覆层槽) → Padding (边距) 调节位置，Horizontal/Vertical Alignment (对齐方式) 调节对齐。
-    📍 与 Canvas Panel 对比：
-      • Canvas Panel：可直接调坐标位置（方便），但耗性能
-      • Overlay：只能调边距和对齐（不方便），但节约性能
+    📍 子项定位：选中子控件 → Slot → 通过 Padding（边距）调节位置 + Alignment（对齐方式）控制排列。
   
 
   右侧面板详细参数清单 (Details Panel Parameters)
@@ -1195,17 +1161,8 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
 
   
     📍 操作路径：Palette 搜索 List View 或 Tile View → 拖入容器 → 选中 → Details。
-    📍 列表视图 (List View) 核心设置：
-      • 朝向 (Orientation)：选择水平列表或垂直列表
-      • 选择模式 (Selection Mode)：单个/多个/无
-      • 消耗鼠标滚轮 (Consume Mouse Wheel)：可以滚动时
-      • 条目间距 (Entry Spacing)：可调节列表中每个子项的间距
-    📍 列表记录 (List Entries)：
-      • 条目控件类 (Entry Widget Class)：【最核心！】选择你事先做好的子项 Widget Blueprint
-      • Scroll Bar Visibility (滚动条可视性)：可视/已折叠/隐藏等
-      • 设计师预览条目数 (Num Designer Preview Entries)：编辑器中预览显示几个子项（如 5）
-    📍 拖入子项：在 Entry Widget Class 选择你做好的子项蓝图后，列表会自动计算并复制子项，无需重复制作多个相同的子项！
-    📍 设置滚动条：列表记录 → Scroll Bar Visibility → 选择「可视」/「已折叠」/「自身命中测试不可见（自身和所有子项）」/「多可命中测试（仅自身）」。
+    📍 最核心步骤：在 Entry Widget Class 中选择你事先做好的子项蓝图 → 列表会自动计算并复用子项，无需重复制作！
+    📍 隐藏滚动条：Scroll Bar Visibility → Collapsed。
   
 
   

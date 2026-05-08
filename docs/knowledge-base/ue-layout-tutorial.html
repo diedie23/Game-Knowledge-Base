@@ -574,21 +574,9 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
   <strong>🎯 适用场景 (Use Cases)：</strong> 各种界面标题、按钮上的单色文字、纯数据展示展示。</p>
 
   <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
-    <strong>📍 操作路径：</strong>Palette 搜索 <code>LGText</code>（如果搜不到就搜 <code>Text</code>，找我们项目自定义的那个）→ 拖入容器 → 选中 → Details。<br>
-    <strong>📍 改文字内容：</strong>Details → Content (内容) → <strong>Text (文本)</strong> 栏位 → 直接输入文字。<br>
-    <strong>📍 选字体：</strong>Details → Appearance (外观) → Font (字体) → <strong>Font Family (字体族系)</strong> → 下拉选择（目前项目中红框标注的两种可用）。<br>
-    <strong>📍 改字体大小：</strong>Details → Appearance → Font → <strong>Size (尺寸)</strong> → 输入数值（常用 18~36）。<br>
-    <strong>📍 改字间距：</strong>Details → Appearance → Font → <strong>Letter Spacing (字间距)</strong> → 可调节字体横向间距。<br>
-    <strong>📍 外描边：</strong>Details → Appearance → Font → <strong>Outline Settings (轮廓设置)</strong> → 展开后设置：<br>
-    &nbsp;&nbsp;• <strong>Outline Size (外描边像素大小)</strong>：描边粗细<br>
-    &nbsp;&nbsp;• <strong>Outline Color (外描边颜色、不透明度)</strong>：描边颜色和透明度<br>
-    <strong>📍 阴影：</strong>Details → Appearance → Shadow (阴影) →<br>
-    &nbsp;&nbsp;• <strong>Shadow Offset (阴影偏移像素)</strong>：X/Y 方向的偏移<br>
-    &nbsp;&nbsp;• <strong>Shadow Color (阴影颜色、不透明度)</strong><br>
-    <strong>📍 改字体颜色：</strong>Details → Appearance → Font → <strong>Color (颜色)</strong> → 点击色块打开取色器。<br>
-    <strong>📍 对齐方式：</strong>Details → <strong>Justification (对齐方式)</strong> → 居左/居中/居右。<br>
-    <strong>📍 行间距：</strong>Details → Appearance → <strong>Margin (边距) → Line Height Percent (行高百分比)</strong> → 默认 1.0，设为 1.2 则增加 20% 行距。<br>
-    <div style="color:var(--yellow); font-weight:bold; margin-top:8px;">⚠️ 重要规则：文本间距不可为负数，字号需要为偶数，且落地需要 ×0.75 的换算比例（如设计稿标注 28px → 实际填 28×0.75=21）。</div>
+    <strong>📍 操作路径：</strong>Palette 搜索 <code>LGText</code>（搜不到就搜 <code>Text</code>，找项目自定义的那个）→ 拖入容器 → 选中 → Details。<br>
+    <strong>📍 常用参数位置：</strong>Appearance → Font 下集中了字体/字号/字间距/描边/颜色（详见下方参数表）。<br>
+    <div style="color:var(--yellow); font-weight:bold; margin-top:8px;">⚠️ 落地规则：字号需为偶数，且需 ×0.75 换算（设计稿 28px → 填 21）。文本间距不可为负数。</div>
   </div>
 
   <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
@@ -665,24 +653,16 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
   <strong>🎯 适用场景 (Use Cases)：</strong> 聊天频道、掉落提示（<code>获得 &lt;Red&gt;倚天剑&lt;/&gt;</code>）、带特殊高亮的技能描述、字图联排。</p>
 
   <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
-    <strong>📍 文本格式写法：</strong>除默认样式外，其他的使用 <code>&lt;行名&gt;XXX&lt;/&gt;</code> 的格式。例如：<code>这是一个&lt;Red&gt;多格式文本&lt;/&gt;</code><br>
-    <strong>📍 如何创建数据表格（Text Style Set）：</strong><br>
+    <strong>📍 文本格式写法：</strong>使用 <code>&lt;行名&gt;XXX&lt;/&gt;</code> 格式。例如：<code>这是一个&lt;Red&gt;多格式文本&lt;/&gt;</code><br>
+    <strong>📍 创建 Text Style Set（数据表格）：</strong><br>
     &nbsp;&nbsp;① Content Browser → 右键 → Miscellaneous → Data Table<br>
-    &nbsp;&nbsp;② 弹出窗口选择行结构 → 搜索 <code>RichTextStyleRow</code> → 选中创建<br>
-    &nbsp;&nbsp;③ 在数据表格中点击添加行，<strong>必须要有一行名为 Default 的数据</strong><br>
-    &nbsp;&nbsp;④ 继续添加相应格式名称的行（如 Red、Blue、Yellow 等），设置字体大小与颜色<br>
-    <strong>📍 样式修改：</strong>在数据表格细节面板中可修改：<br>
-    &nbsp;&nbsp;• <strong>字体族系 (Font Family)</strong>：选择项目字体<br>
-    &nbsp;&nbsp;• <strong>字形 (Typeface)</strong>：Default<br>
-    &nbsp;&nbsp;• <strong>尺寸 (Size)</strong>：字号大小（如 21）<br>
-    &nbsp;&nbsp;• <strong>字间距 (Letter Spacing)</strong><br>
-    &nbsp;&nbsp;• <strong>字体材质 (Font Material)</strong><br>
-    &nbsp;&nbsp;• <strong>颜色 (Color)</strong>：文字颜色<br>
-    <strong>📍 项目富文本资源路径：</strong><br>
-    &nbsp;&nbsp;• 普通富文本：通常用 <code>DT_RichTextFontStyle</code><br>
-    &nbsp;&nbsp;• 带下划线：<code>DT_RichHyperlinkStyleTable</code>（可以参考 <code>UI_Rule_FirstView</code>）<br>
-    &nbsp;&nbsp;• icon 富文本（字图联排）：<code>W_CommonRichImageRow</code><br>
-    <strong>📍 实际用法：</strong>找到之前做好的富文本控件，直接复制粘贴过来修改文本内容。如需修改字色或者字图联排，请找到对应程序咨询。
+    &nbsp;&nbsp;② 行结构搜索 <code>RichTextStyleRow</code> → 创建<br>
+    &nbsp;&nbsp;③ <strong>必须有一行名为 Default 的数据</strong>，再添加 Red/Blue 等格式行<br>
+    <strong>📍 项目富文本资源：</strong><br>
+    &nbsp;&nbsp;• 普通富文本：<code>DT_RichTextFontStyle</code><br>
+    &nbsp;&nbsp;• 带下划线：<code>DT_RichHyperlinkStyleTable</code>（参考 <code>UI_Rule_FirstView</code>）<br>
+    &nbsp;&nbsp;• 字图联排：<code>W_CommonRichImageRow</code><br>
+    <strong>📍 实际用法：</strong>找到已有富文本控件，复制粘贴后修改文本。如需改字色或字图联排，咨询对应程序。
   </div>
 
   <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
@@ -730,19 +710,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
   <h3 id="w-slider">4.1 Slider (滑条)</h3>
   <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
     <strong>📍 操作路径：</strong>Palette 搜索 <code>Slider</code> → 拖入容器 → 选中 → Details。<br>
-    <strong>📍 滑条值设置：</strong>Details → Appearance (外观) →<br>
-    &nbsp;&nbsp;• <strong>值 (Value)</strong>：当前默认停在哪个数值（0.0~1.0）<br>
-    &nbsp;&nbsp;• <strong>最小值 (Min Value)</strong>：滑轨最左端代表的值<br>
-    &nbsp;&nbsp;• <strong>最大值 (Max Value)</strong>：滑轨最右端代表的值<br>
-    <strong>📍 朝向：</strong><strong>水平 (Horizontal)</strong> 或垂直。<br>
-    <strong>📍 滑条颜色/滑柄颜色：</strong>Appearance → <strong>滑条颜色 (Slider Bar Color)</strong> / <strong>滑柄颜色 (Slider Handle Color)</strong>。<br>
-    <strong>📍 步大小 (Step Size)：</strong>拖动时每次跳跃多少值。<br>
-    <strong>📍 样式（换皮）：</strong>Details → Style (样式) →<br>
-    &nbsp;&nbsp;• <strong>普通的条图像 (Normal Bar Image)</strong>：滑轨底图<br>
-    &nbsp;&nbsp;• <strong>悬浮的条图像 (Hovered Bar Image)</strong>：悬停时滑轨<br>
-    &nbsp;&nbsp;• <strong>禁用的条图像 (Disabled Bar Image)</strong>：禁用时滑轨<br>
-    &nbsp;&nbsp;• <strong>普通的缩略图 / 悬浮的缩略图 / 禁用的缩略图</strong>：滑动钮的三态图片及大小<br>
-    &nbsp;&nbsp;• <strong>条厚度 (Bar Thickness)</strong>：滑轨的粗细
+    <strong>📍 换皮：</strong>Style 分组中可替换滑轨底图（Normal/Hovered/Disabled Bar Image）和滑动钮三态图（Thumb Image）+ 条厚度 (Bar Thickness)。
   </div>
   <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
   <table class="param-table">
@@ -751,7 +719,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
     </thead>
     <tbody>
       <tr>
-        <td rowspan="3"><strong>Appearance<br>(外观)</strong></td>
+        <td rowspan="4"><strong>Appearance<br>(外观)</strong></td>
         <td><strong>Value (值/当前值)</strong></td>
         <td>默认滑块停在什么数值（0.0~1.0之间）。</td>
         <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
@@ -760,6 +728,16 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td><strong>Min Value / Max Value<br>(最小值/最大值)</strong></td>
         <td>滑轨最左和最右代表的逻辑数值界限。</td>
         <td class="preview-cell"><span class="badge-no">❌ 逻辑代码用</span></td>
+      </tr>
+      <tr>
+        <td><strong>Slider Bar Color / Handle Color<br>(滑条颜色/滑柄颜色)</strong></td>
+        <td>分别给滑轨和可拖动滑块叠加颜色滤镜。默认白色=原图不变。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td><strong>Orientation (朝向)</strong></td>
+        <td>水平 (Horizontal) 或垂直 (Vertical)。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Widget Style (样式)</strong></td>
@@ -778,11 +756,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
   <h3 id="w-progress">4.2 Progress Bar (进度条)</h3>
   <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
     <strong>📍 操作路径：</strong>Palette 搜索 <code>Progress Bar</code> → 拖入容器 → 选中 → Details。<br>
-    <strong>📍 样式设置：</strong>Details → Style (样式) →<br>
-    &nbsp;&nbsp;• <strong>背景图 (Background Image)</strong>：空掉时候的底层沟槽图（背景样式）。设置图像、图像大小、着色、绘制为（盒体）、边距。<br>
-    &nbsp;&nbsp;• <strong>填充图 (Fill Image)</strong>：实心血槽/进度条图（进度样式）。设置图像、图像大小、着色、绘制为（盒体）、边距。<br>
-    <strong>📍 进度显示：</strong>Details → Progress (进度) → <strong>百分比 (Percent)</strong> → 0.0~1.0 之间（如 0.95 = 显示 95% 进度）。代码中传血量必须除以最大血量再传。<br>
-    <strong>📍 填充方向：</strong>Details → Progress → <strong>条填充类型 (Bar Fill Type)</strong> → 左到右、右到左、中心向外、底部向上等。
+    <strong>📍 核心：</strong>Percent 取值 0.0~1.0，代码传血量需<strong>除以最大血量</strong>再传。
   </div>
   <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
   <table class="param-table">
@@ -822,9 +796,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 
   <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
     <strong>📍 操作路径：</strong>Palette 搜索 <code>ComboBox</code> → 选择 <strong>Combo Box (String)</strong> → 拖入容器 → 选中 → Details。<br>
-    <strong>📍 添加选项：</strong>Details → Content (内容) → <strong>Default Options (默认选项)</strong> → 点击 <strong>+</strong> 号添加选项文字。<br>
-    <strong>📍 默认的选项：</strong>可以设置初始选中的选项。<br>
-    <strong>📍 选项间填充：</strong>调节下拉列表中各选项的间距。
+    <strong>📍 添加选项：</strong>Content → <strong>Default Options</strong> → 点击 <strong>+</strong> 号逐条添加。
   </div>
 
   <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
@@ -950,10 +922,9 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
   <strong style="color:var(--red);">⚠️ 注意：如果列表条目超过 30 条且格式一致（如排行榜），绝对不能用 Scroll Box，必须用 List View 性能复用池！</strong></p>
 
   <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
-    <strong>📍 操作路径：</strong>Palette 搜索 <code>Scroll Box</code> → 拖入容器 → 然后把需要滚动的内容控件全部拖到 Scroll Box 下方作为子节点。<br>
-    <strong>📍 隐藏滚动条：</strong>选中 Scroll Box → Details → Scroll → <strong>Scrollbar Visibility</strong> → 选 <code>Collapsed</code>。<br>
-    <strong>📍 改滚动方向：</strong>Details → Scroll → <strong>Orientation</strong> → 改为 Horizontal（横滑）或 Vertical（竖滑）。<br>
-    <strong>📍 自定义滑块外观：</strong>Details → Style → 展开 Scrollbar Style → 替换各 Thumb Image。
+    <strong>📍 操作路径：</strong>Palette 搜索 <code>Scroll Box</code> → 拖入容器 → 把需要滚动的内容全部拖为子节点。<br>
+    <strong>📍 隐藏滚动条：</strong>Scrollbar Visibility → <code>Collapsed</code>（不是 Hidden！详见下方参数表说明）。<br>
+    <strong>📍 自定义滑块外观：</strong>Style → Scrollbar Style → 替换 Thumb Image 三态图。
   </div>
 
   <div class="explain-grid">
@@ -1138,10 +1109,8 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 
   <h3 id="w-sizebox">5.3 Size Box (尺寸框)</h3>
   <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
-    <strong>📍 功能：</strong>强制指定子项的固定大小。<br>
-    <strong>📍 重要限制：</strong>尺寸框下<strong>只能有一个子项！</strong>如果需要放多个图层，可以用<strong>覆层 (Overlay) 控件</strong>把尺寸框下面的图层包裹起来，这样一个尺寸框下就可以有多个图层。<br>
-    <strong>📍 注意：</strong>子控件的大小只要有勾选 <strong>Size To Content (大小到内容)</strong> 才有效。<br>
-    <strong>📍 设置固定尺寸：</strong>如设置 128×128，尺寸框内的子项最大尺寸不会超过 128×128。
+    <strong>📍 限制：</strong>尺寸框下<strong>只能有一个子项！</strong>多图层时用 Overlay 包裹后再放入。<br>
+    <strong>📍 注意：</strong>子控件需勾选 <strong>Size To Content</strong> 才能被 Size Box 正确约束。
   </div>
   <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
   <table class="param-table">
@@ -1174,9 +1143,8 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
   <strong>⚡ 核心操作：</strong>通过索引显示子控件，<strong style="color:var(--red);">索引从 0 开始。</strong></p>
 
   <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
-    <strong>📍 操作路径：</strong>Palette → 面板 (Panel) 分类 → <strong>控件切换器 (Widget Switcher)</strong> → 拖入容器。<br>
-    <strong>📍 切换显示：</strong>Details → Switcher → <strong>Active Widget Index (活跃控件索引)</strong> → 填入数字 0/1/2... 对应第几个子项。<br>
-    <strong>📍 必须操作：</strong>勾选 <strong>Is Variable (公开为变量)</strong>，否则蓝图中无法通过代码控制切换！
+    <strong>📍 操作路径：</strong>Palette → 面板 (Panel) → <strong>控件切换器 (Widget Switcher)</strong> → 拖入容器。<br>
+    <strong>📍 必须操作：</strong>勾选 <strong>Is Variable</strong>，否则蓝图无法控制切换！
   </div>
 
   <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
@@ -1218,9 +1186,9 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 
   <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
     <strong>📍 操作路径：</strong>Palette → 面板 (Panel) 分类 → <strong>水平框 (Horizontal Box)</strong> 或 <strong>垂直框 (Vertical Box)</strong> → 拖入容器。<br>
-    <strong>📍 排布顺序：</strong>水平框内子项图层从上往下 = 视窗中子项从左往右排布。垂直框同理，图层从上往下 = 视窗中从上往下排布。<br>
-    <strong>📍 自动重排：</strong>对齐方式选择水平居中时，隐藏中间子项，水平框会自动居中重新排布。对齐方式选择水平居左，隐藏最左边子项，水平框会自动居左重新排布（居右同理）。<br>
-    <strong>📍 关键：</strong>HV Box 本身没什么参数，核心全在<strong>每个子节点的 Slot 属性</strong>上（选中子控件才能看到）。
+    <strong>📍 排布规则：</strong>层级面板中子项图层从上往下 = 视窗中从左往右（水平框）/ 从上往下（垂直框）排布。<br>
+    <strong>📍 自动重排：</strong>隐藏某个子项后，剩余子项会根据对齐方式自动重新排布（居中/居左/居右）。<br>
+    <strong>📍 关键：</strong>核心参数全在<strong>每个子节点的 Slot 属性</strong>上（选中子控件才能看到）。
   </div>
 
   <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
@@ -1252,7 +1220,8 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
       </tr>
     </tbody>
   </table>
-  <div class="alert alert-blue"><strong>🔑 核心理解：</strong>Horizontal/Vertical Box 本身没有什么参数，它的核心全在<strong>每个子节点的 Slot 属性</strong>上。拖入子控件后，选中子控件才能看到 Slot 相关设置。</div>
+
+
 
   <h3 id="w-overlay">5.6 Overlay (覆层)</h3>
   <p><strong>💡 核心作用 (Core Function)：</strong> 覆层内的控件可以相互重叠在彼此之上，多数被当作 UI 拼接中的父级使用。<br>
@@ -1261,10 +1230,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 
   <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
     <strong>📍 操作路径：</strong>Palette → 面板 (Panel) 分类 → <strong>覆层 (Overlay)</strong> → 拖入容器。<br>
-    <strong>📍 子项对齐：</strong>选中子控件 → Details → Slot (覆层槽) → <strong>Padding (边距)</strong> 调节位置，<strong>Horizontal/Vertical Alignment (对齐方式)</strong> 调节对齐。<br>
-    <strong>📍 与 Canvas Panel 对比：</strong><br>
-    &nbsp;&nbsp;• Canvas Panel：可直接调坐标位置（方便），但耗性能<br>
-    &nbsp;&nbsp;• Overlay：只能调边距和对齐（不方便），但节约性能
+    <strong>📍 子项定位：</strong>选中子控件 → Slot → 通过 <strong>Padding</strong>（边距）调节位置 + <strong>Alignment</strong>（对齐方式）控制排列。
   </div>
 
   <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
@@ -1300,17 +1266,8 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 
   <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
     <strong>📍 操作路径：</strong>Palette 搜索 <code>List View</code> 或 <code>Tile View</code> → 拖入容器 → 选中 → Details。<br>
-    <strong>📍 列表视图 (List View) 核心设置：</strong><br>
-    &nbsp;&nbsp;• <strong>朝向 (Orientation)</strong>：选择<strong>水平列表</strong>或<strong>垂直列表</strong><br>
-    &nbsp;&nbsp;• <strong>选择模式 (Selection Mode)</strong>：单个/多个/无<br>
-    &nbsp;&nbsp;• <strong>消耗鼠标滚轮 (Consume Mouse Wheel)</strong>：可以滚动时<br>
-    &nbsp;&nbsp;• <strong>条目间距 (Entry Spacing)</strong>：可调节列表中每个子项的间距<br>
-    <strong>📍 列表记录 (List Entries)：</strong><br>
-    &nbsp;&nbsp;• <strong>条目控件类 (Entry Widget Class)</strong>：【最核心！】选择你事先做好的子项 Widget Blueprint<br>
-    &nbsp;&nbsp;• <strong>Scroll Bar Visibility (滚动条可视性)</strong>：可视/已折叠/隐藏等<br>
-    &nbsp;&nbsp;• <strong>设计师预览条目数 (Num Designer Preview Entries)</strong>：编辑器中预览显示几个子项（如 5）<br>
-    <strong>📍 拖入子项：</strong>在 Entry Widget Class 选择你做好的子项蓝图后，列表会<strong style="color:var(--green);">自动计算并复制子项，无需重复制作多个相同的子项！</strong><br>
-    <strong>📍 设置滚动条：</strong>列表记录 → Scroll Bar Visibility → 选择「可视」/「已折叠」/「自身命中测试不可见（自身和所有子项）」/「多可命中测试（仅自身）」。
+    <strong>📍 最核心步骤：</strong>在 <strong>Entry Widget Class</strong> 中选择你事先做好的子项蓝图 → 列表会<strong style="color:var(--green);">自动计算并复用子项，无需重复制作！</strong><br>
+    <strong>📍 隐藏滚动条：</strong>Scroll Bar Visibility → <code>Collapsed</code>。
   </div>
 
   <div class="alert alert-green" style="font-size:13px; padding:12px 16px;">
