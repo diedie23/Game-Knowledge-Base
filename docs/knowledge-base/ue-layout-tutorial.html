@@ -35,7 +35,8 @@ table.param-table th:nth-child(1) { width: 15%; }
 table.param-table th:nth-child(2) { width: 25%; }
 table.param-table th:nth-child(3) { width: 45%; }
 table.param-table th:nth-child(4) { width: 15%; text-align: center; }
-table.param-table td:nth-child(4) { text-align: center; vertical-align: middle; }
+/* 使用专用 class 而非 nth-child 来控制预览列，避免 rowspan 导致列号偏移 */
+table.param-table td.preview-cell { text-align: center; vertical-align: middle; }
 
 /* 针对5列通用属性表格的特殊列宽控制，防止最右侧被挤烂 */
 table.five-cols th:nth-child(1) { width: 22%; }
@@ -186,7 +187,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td rowspan="4"><strong>Slot (插槽)</strong><br><em>以 Horizontal Box Slot 为例</em></td>
         <td><strong>Padding (填充)</strong><br>▶ Left, Top, Right, Bottom</td>
         <td>控制该按钮距离父容器边缘或其他兄弟节点的<strong>四周空隙像素值</strong>。比如 Left 填 10，它就会和左边的元素拉开 10 像素距离。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Size (尺寸)</strong></td>
@@ -196,17 +197,17 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
             <li><strong>Fill (填充)</strong>: 按钮强制放大，吃掉父容器所有剩余空间。如果有多个填充，按比例平分。</li>
           </ul>
         </td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Horizontal Alignment (水平对齐)</strong></td>
         <td>当分配的空间比按钮大时，控制按钮是靠左、居中、靠右，还是<strong>拉伸填满 (Fill)</strong> 整个宽度。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Vertical Alignment (垂直对齐)</strong></td>
         <td>控制按钮靠上、居中、靠下，或是<strong>拉伸填满 (Fill)</strong>。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td colspan="4" style="background: rgba(108,140,255,.05); border-left: 3px solid var(--accent); padding: 8px 16px; font-size: 13px;">
@@ -217,23 +218,23 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td rowspan="2"><strong>Style (样式)</strong><br>▶ Normal (普通)<br><em>其余状态参数一致</em></td>
         <td><strong>Image (图像)</strong></td>
         <td>按键静止状态下的图片切图贴图。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Image Size (图像大小)</strong><br>X / Y</td>
         <td>强行定义这张图片的逻辑基准渲染宽高（不是父框体的大小，而是图片本身的缩放基准）。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td rowspan="4"><strong>Style (样式)</strong><br>▶ Normal (普通)<br>▶ <em>(继续展开)</em></td>
         <td><strong>Image Design / Actual Size</strong></td>
         <td>只读属性，展示美术最初画原图时候的像素分辨率，供你参考用。</td>
-        <td><span class="badge-yes">-</span></td>
+        <td class="preview-cell"><span class="badge-yes">-</span></td>
       </tr>
       <tr>
         <td><strong>Tint (着色)</strong></td>
         <td>给按钮图叠一层有色滤镜。默认白色=原图。改成半透明黑色，图片就会变暗。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Draw As (绘制为)</strong></td>
@@ -243,12 +244,12 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
             <li><strong>Image (图像)</strong>: 默认拉伸变形。</li>
           </ul>
         </td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Margin (边缘)</strong></td>
         <td><strong>仅在 Draw As = Box 时生效。</strong>填入 0.1~0.4，保护图片四角的圆角不被拉伸破坏。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Style (样式)</strong></td>
@@ -256,18 +257,18 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td>
           <div style="color:var(--red); font-weight:bold; margin-top:4px;">【致命避坑】：如果 Pressed (已按压) 里面不填图片，当玩家点击按钮时，它会瞬间变成一个全白的正方形方块！务必把 Normal 的图拷过来！</div>
         </td>
-        <td><span class="badge-no">❌ 播放运行</span></td>
+        <td class="preview-cell"><span class="badge-no">❌ 播放运行</span></td>
       </tr>
       <tr>
         <td rowspan="2"><strong>Interaction (交互)</strong></td>
         <td><strong>Is Focusable (可聚焦)</strong></td>
         <td>【避坑】PC纯鼠标或手机游戏<strong>必须取消勾选</strong>，否则点击后周围会有一圈诡异的虚线！主机手柄才需勾选。</td>
-        <td><span class="badge-no">❌ 播放运行</span></td>
+        <td class="preview-cell"><span class="badge-no">❌ 播放运行</span></td>
       </tr>
       <tr>
         <td><strong>Click Method (点击方法)</strong></td>
         <td>通常设为 <strong>Down And Up</strong>（按下并抬起后才算触发），防止玩家反悔滑动取消。</td>
-        <td><span class="badge-no">❌ 播放运行</span></td>
+        <td class="preview-cell"><span class="badge-no">❌ 播放运行</span></td>
       </tr>
     </tbody>
   </table>
@@ -286,33 +287,33 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td rowspan="4"><strong>Appearance (外观)</strong></td>
         <td><strong>Brush -> Image (图像)</strong></td>
         <td>选择美术导入的纹理切图资源。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Draw As (绘制为)</strong></td>
         <td><strong>Box (盒体)</strong>: 必须配合 Margin 使用（做九宫格不拉伸四角）。<br><strong>Image (图像)</strong>: 默认平铺满容器。<br><strong>None (无)</strong>: 空白不渲染。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Margin (边界)</strong></td>
         <td>只有在 <code>Draw As = Box</code> 时有效。通常取值 0.1~0.4，代表保护图片四边多大比例不被拉伸。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Image Size (图像大小)</strong></td>
         <td>原图的物理宽高参考值，通常靠外层插槽改尺寸，这里不动。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td rowspan="2"><strong>Color and Opacity (颜色和不透明度)</strong></td>
         <td><strong>Tint (色相)</strong></td>
         <td>纯白 (1.0, 1.0, 1.0) 代表原图颜色。通过修改 Tint 可以给贴图染色。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>A (Alpha) 不透明度</strong></td>
         <td>0 表示全透明看不见，1 表示全实色。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
     </tbody>
   </table>
@@ -336,55 +337,55 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td rowspan="2"><strong>Content (内容)</strong></td>
         <td><strong>Text (文本)</strong></td>
         <td>直接填入你要显示的默认字。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Text ID</strong></td>
         <td>项目组专属配置，填入多语言表的 Key，运行时会自动覆盖为对应国家的语言。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td rowspan="5"><strong>Appearance (外观) <br>-> Font (字体)</strong></td>
         <td><strong>Font Family (字库)</strong></td>
         <td>选择游戏规定的字体资产。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Size (字号)</strong></td>
         <td>文字的高低像素。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Letter Spacing (字间距)</strong></td>
         <td>字间距，正数拉宽，负数挤压。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Outline Settings (描边)</strong></td>
         <td>描边设置。展开后可设置 Outline Size (厚度) 和 Outline Color (描边颜色)。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Color (颜色)</strong></td>
         <td>修改文字主体填充色。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td rowspan="2"><strong>Appearance (外观) <br>-> Shadow (阴影)</strong></td>
         <td><strong>Shadow Offset (阴影偏移)</strong></td>
         <td>字体的阴影偏移。X:1 Y:1 会在文字右下方垫一层投影，让浅色文字在花哨背景上看得清。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Shadow Color (阴影色)</strong></td>
         <td>阴影色，通常用黑，Alpha 开到 0.6 左右。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Justification (对齐)</strong></td>
         <td><strong>Justification (对齐方式)</strong></td>
         <td>居左、居中、居右或是两端对齐。必须保证文字框自身尺寸够大才看得出效果。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
     </tbody>
   </table>
@@ -403,24 +404,24 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td><strong>Content (内容)</strong></td>
         <td><strong>Text (文本)</strong></td>
         <td>支持写 XML 标签，引擎会自动解析成对应的颜色或图片。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td rowspan="2"><strong>Appearance (外观)</strong></td>
         <td><strong>Text Style Set (文本样式集)</strong></td>
         <td><strong>【必填项】</strong>在此挂载定义了标签对应颜色的 Data Table。不挂的话源码原样输出。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Decorator Classes (装饰器类)</strong></td>
         <td>插入表情包或图片的解码器蓝图类数组。填入后即可识别 <code>&lt;img id="icon"/&gt;</code>。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Behavior (行为)</strong></td>
         <td><strong>Auto Wrap Text (自动换行)</strong></td>
         <td>自动换行开关。遇到框的右边界自动切下一行排版。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
     </tbody>
   </table>
@@ -441,23 +442,23 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td rowspan="3"><strong>Appearance (外观)</strong></td>
         <td><strong>Value (当前值)</strong></td>
         <td>默认滑块停在什么数值。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Min/Max Value (最小值/最大值)</strong></td>
         <td>滑轨最左和最右代表的逻辑数值界限。</td>
-        <td><span class="badge-no">❌ 逻辑代码用</span></td>
+        <td class="preview-cell"><span class="badge-no">❌ 逻辑代码用</span></td>
       </tr>
       <tr>
         <td><strong>Widget Style (样式)</strong></td>
         <td>核心换皮区。在这里替换 <code>Normal Bar Image (滑轨底图)</code> 和 <code>Normal Thumb Image (可拖动的小滑块抓手图)</code>。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Behavior (行为)</strong></td>
         <td><strong>Step Size (步长)</strong></td>
         <td>拖动时每次跳跃多少值（如填 1 则只能产生整数刻度感跳动）。</td>
-        <td><span class="badge-no">❌ 播放运行</span></td>
+        <td class="preview-cell"><span class="badge-no">❌ 播放运行</span></td>
       </tr>
     </tbody>
   </table>
@@ -473,23 +474,23 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td><strong>Progress (进度)</strong></td>
         <td><strong>Percent (百分比)</strong></td>
         <td><strong>核心！</strong>取值永远在 0.0 ~ 1.0 之间。代码中传血量必须除以最大血量再传。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td rowspan="3"><strong>Appearance (外观)</strong></td>
         <td><strong>Fill Color and Opacity (填充色与不透明度)</strong></td>
         <td>进度条“涨起来”部分（Fill 图）叠加的颜色滤镜。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Style (样式)</strong></td>
         <td>展开后可替换 <code>Background Image (空掉时候的底层沟槽图)</code> 和 <code>Fill Image (实心血槽图)</code>。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Bar Fill Type (填充类型)</strong></td>
         <td>填充方式：左到右、右到左、中心向外、底部向上等。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
     </tbody>
   </table>
@@ -535,29 +536,29 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td rowspan="2"><strong>Slot (插槽)</strong><br><em>以 Canvas Panel Slot 为例</em></td>
         <td><strong>Anchors (锚点)</strong><br>Min / Max</td>
         <td>决定这个滚动框四条边的受力点。全屏滚动面板通常设为四角拉伸。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Offsets (偏移)</strong><br>Left, Position Y, Size 等</td>
         <td>决定滚动框的绝对坐标和宽高。注意：开启“大小到内容(Size to Content)”后，宽高设置无效，会被内部撑开。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td rowspan="2"><strong>Style (样式)</strong></td>
         <td><strong>Shadow Brushes (顶部/底/左/右阴影笔刷)</strong></td>
         <td>高级打磨必备：列表没滚动到底时，边缘显示的黑灰色渐变遮罩。这里可以替换遮罩渐变图，让文字有一种“进入暗区”的质感。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Scrollbar Style (条样式)</strong></td>
         <td>展开后非常长。里面可以依次替换 <code>垂直/水平背景图</code> (滚动槽的底色) 以及各种 <code>Thumb Image (缩略图)</code> (就是中间那个拖动条)。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td rowspan="4"><strong>Scroll (滚动)</strong></td>
         <td><strong>Orientation (朝向)</strong></td>
         <td>横向滑动 (Horizontal) 还是竖向滑动 (Vertical)。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Scrollbar Visibility (滚动条可视性)</strong></td>
@@ -567,17 +568,17 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
             <li><strong>Collapsed (折叠)</strong>: 彻底隐藏滑块并把右侧空间让出来，但依然可以通过手指滑动。</li>
           </ul>
         </td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Consume Mouse Wheel (消耗鼠标滚轮)</strong></td>
         <td>当鼠标在这个框里滚轮时，是否拦截事件。如果你外层还有一个大滚动条，设为“从不”可以让内层不吃掉滚轮指令。</td>
-        <td><span class="badge-no">❌ 播放运行</span></td>
+        <td class="preview-cell"><span class="badge-no">❌ 播放运行</span></td>
       </tr>
       <tr>
         <td><strong>Scrollbar Thickness (滚动条厚度)</strong></td>
         <td>如果需要极其纤细的滑动条，调小这个数值 (X和Y)。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
     </tbody>
   </table>
@@ -593,12 +594,12 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td rowspan="2"><strong>Safe Zone (安全区)</strong></td>
         <td><strong>Pad Left / Right (左右保护)</strong></td>
         <td>勾选后系统识别底层OS，自动挤开手机左侧刘海和右侧<strong>微信小游戏胶囊按键</strong>。强烈建议全打勾。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Pad Top / Bottom (上下保护)</strong></td>
         <td>保护顶部状态栏 / 底部系统返回手势横条区域。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
     </tbody>
   </table>
@@ -614,17 +615,17 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td rowspan="3"><strong>Child Layout (子布局)</strong></td>
         <td><strong>Width / Height Override (宽高覆写)</strong></td>
         <td>无视一切环境，强行把里面的元素撑到绝对的数值大小（如 150x50）。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Min Desired Width/Height (最小期望宽高)</strong></td>
         <td>保底尺寸。比如设置 100宽，即使里面文字只有一个字，框的宽度也绝不会小于 100。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Max Desired Width/Height (最大期望宽高)</strong></td>
         <td>做自适应聊天气泡的核心参数。设为 400 宽，当文字继续变多时，不会无限变宽，而是在 400 处强制往下换行。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
     </tbody>
   </table>
@@ -648,23 +649,23 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td rowspan="2"><strong>List (列表)</strong></td>
         <td><strong>Entry Widget Class (条目蓝图类)</strong></td>
         <td><strong>【唯一生死核心】！</strong>必须选定一个事先做好的、实现了 <code>User Object List Entry</code> 接口的蓝图类，作为生成的“一截小火车”。</td>
-        <td><span class="badge-yes">✅ 假数据刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 假数据刷新</span></td>
       </tr>
       <tr>
         <td><strong>Orientation (方向)</strong></td>
         <td>单行/单列滚动的横竖方向切换。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td rowspan="2"><strong>Tile View (瓦片专属)</strong></td>
         <td><strong>Entry Height / Width (条目宽高)</strong></td>
         <td>由于要往一行塞多个格子，这里强行规定每个格子多大，系统才能算出一行能塞下几个。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Tile Alignment (瓦片对齐)</strong></td>
         <td>如果最后一行只剩孤零零 2 个格子，控制它们是挤在左边还是两边摊开。</td>
-        <td><span class="badge-yes">✅ 立刻刷新</span></td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
     </tbody>
   </table>
