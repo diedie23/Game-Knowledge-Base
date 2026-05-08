@@ -24,19 +24,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .section h4{font-size:16px;color:var(--heading);margin:16px 0 8px;font-weight:600}
 .section p{font-size:15px;margin-bottom:12px;line-height:1.8}
 
-/* Table layout fixes to prevent squishing */
-table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 13px; table-layout: fixed; }
-th, td { padding: 10px 12px; border: 1px solid var(--border); vertical-align: middle; word-wrap: break-word; }
+/* Table layout fixes */
+table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 14px; table-layout: fixed; }
+th, td { padding: 12px 16px; border: 1px solid var(--border); vertical-align: top; word-wrap: break-word; line-height: 1.6; }
 tr:nth-child(even) { background: rgba(108,140,255,.02); }
-th:nth-child(1) { width: 15%; background: var(--panel); color: var(--heading); text-align: left; font-weight: 600; }
-th:nth-child(2) { width: 30%; background: var(--panel); color: var(--heading); text-align: left; font-weight: 600; }
-th:nth-child(3) { width: 40%; background: var(--panel); color: var(--heading); text-align: left; font-weight: 600; }
-th:nth-child(4) { width: 15%; background: var(--panel); color: var(--heading); text-align: center; font-weight: 600; white-space: nowrap; }
-td:nth-child(4) { text-align: center; white-space: nowrap; }
+th { background: var(--panel); color: var(--heading); font-weight: 600; text-align: left; }
+
+/* 针对4列参数表格的特殊列宽控制 (区分5列的基础表格) */
+table.param-table th:nth-child(1) { width: 15%; }
+table.param-table th:nth-child(2) { width: 25%; }
+table.param-table th:nth-child(3) { width: 45%; }
+table.param-table th:nth-child(4) { width: 15%; text-align: center; }
+table.param-table td:nth-child(4) { text-align: center; vertical-align: middle; }
+
+/* 针对5列通用属性表格的特殊列宽控制，防止最右侧被挤烂 */
+table.five-cols th:nth-child(1) { width: 22%; }
+table.five-cols th:nth-child(2) { width: 15%; }
+table.five-cols th:nth-child(3) { width: 15%; }
+table.five-cols th:nth-child(4) { width: 15%; }
+table.five-cols th:nth-child(5) { width: 33%; }
 
 /* Nested lists in tables */
-td ul { padding-left: 16px; margin: 6px 0; color: #a2a8bd; }
-td ul li { margin-bottom: 4px; }
+td ul { padding-left: 20px; margin: 6px 0; color: #a2a8bd; }
+td ul li { margin-bottom: 6px; }
 td strong { color: var(--accent); }
 
 .alert{padding:16px 20px;border-radius:8px;margin:16px 0;font-size:15px;line-height:1.6}
@@ -64,7 +74,6 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 .explain-text-part p { margin-bottom: 12px; line-height: 1.6; }
 .explain-text-part p:last-child { margin-bottom: 0; }
 .explain-text-part strong { color: var(--accent); font-weight: 600; }
-.explain-text-part .highlight-text { color: var(--red); font-weight: bold; font-size: 14px; margin-top: 8px; display: block; border-left: 3px solid var(--red); padding-left: 10px; }
 
 /* Parameter List Title */
 .param-title { margin: 24px 0 12px; font-size: 16px; color: var(--heading); display: flex; align-items: center; gap: 8px; font-weight: bold; }
@@ -81,9 +90,6 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 .ue-ui-val { flex: 1; background: #0d0e10; border: 1px solid #333; padding: 4px 8px; border-radius: 2px; color: #fff; font-size: 12px; display:flex; align-items:center; justify-content:space-between; }
 .ue-ui-val.blue-edge { border-left: 2px solid #0078d7; }
 .ue-ui-val.check { width: 24px; flex: none; justify-content: center; }
-.ue-highlight-box { border: 2px dashed var(--red); margin: 4px; border-radius: 4px; background: rgba(248,113,113,0.05); }
-.ue-highlight-box .ue-ui-row { border-bottom: 1px dashed rgba(248,113,113,0.2); }
-.ue-highlight-box .ue-ui-row:last-child { border-bottom: none; }
 
 @media (max-width: 768px) { .explain-row { flex-direction: column; } .explain-ui-part { flex: auto; border-right: none; border-bottom: 1px dashed #333; } .explain-arrow { display: none; } table, thead, tbody, th, td, tr { display: block; width: 100%; } th { display: none; } td { padding-left: 40%; position: relative; border-top: none; } td:first-child { border-top: 1px solid var(--border); padding-left: 12px; background: var(--panel); font-weight: bold; } td:before { content: attr(data-label); position: absolute; left: 12px; font-weight: bold; color: var(--dim); } }
 .doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
@@ -93,40 +99,40 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 .grid-box-inner { background: #fff; position: absolute; border-radius: 1px; }
 
 /* Status Badges */
-.badge-yes { background: rgba(74,222,128,0.2); color: var(--green); padding: 4px 10px; border-radius: 12px; font-size: 12px; border: 1px solid var(--green); display: inline-block; }
-.badge-no { background: rgba(248,113,113,0.2); color: var(--red); padding: 4px 10px; border-radius: 12px; font-size: 12px; border: 1px solid var(--red); display: inline-block; }
+.badge-yes { background: rgba(74,222,128,0.2); color: var(--green); padding: 4px 10px; border-radius: 12px; font-size: 12px; border: 1px solid var(--green); display: inline-block; white-space: nowrap; }
+.badge-no { background: rgba(248,113,113,0.2); color: var(--red); padding: 4px 10px; border-radius: 12px; font-size: 12px; border: 1px solid var(--red); display: inline-block; white-space: nowrap; }
 </style>
 </head>
 <body>
 <div class="doc">
 
 <div class="doc-header">
-  <h1>🎮 UE5 UMG 拼接实操详细指南 <span class="ver">全控件极深解析版 v9.0</span></h1>
+  <h1>🎮 UE5 UMG 拼接实操详细指南 <span class="ver">全控件极深解析版 v9.1</span></h1>
   <div class="subtitle">涵盖每一个UI控件的右侧面板细节拆解、滚动框/按钮参数精讲与多端自适应规范</div>
 </div>
 
 <div class="alert alert-blue">
-  <strong>📝 导读：</strong>本文档是极深度的 UI 拼接“标准操作字典”。修复并扩充了所有组件（特别是 Button、ScrollBox、Image 等）右侧面板中<strong>每一个层级属性</strong>的作用解析，并优化了表格排版避免文字被挤压换行。<br>
+  <strong>📝 导读：</strong>本文档是极深度的 UI 拼接“标准操作字典”。修复并扩充了所有组件（特别是 Button、ScrollBox、Image 等）右侧面板中<strong>每一个层级属性</strong>的作用解析，并优化了表格排版避免文字被挤压换行。英文与中文描述已严格统一。<br>
   👉 <span style="color:var(--accent)">提示：在“分类总览”中点击任意卡片，可直接跳转至该控件的详细参数说明表格！</span>
 </div>
 
 <div class="toc">
-  <h3>📑 目录</h3>
+  <h3>📑 目录 (Table of Contents)</h3>
   <ol>
-    <li><a href="#sec1">UMG 常用控件分类总览（图鉴）</a></li>
-    <li><a href="#sec2">基础图形与交互（Image & Button）</a></li>
-    <li><a href="#sec3">文本双雄（LGText 与 Rich Text）</a></li>
-    <li><a href="#sec4">数据展示（滑条、进度条、组合框、输入框）</a></li>
-    <li><a href="#sec5">布局容器（ScrollBox、安全区、切换器等）</a></li>
-    <li><a href="#sec6">高级列表视图（List View / Tile View）</a></li>
-    <li><a href="#sec7">通用核心属性（可见性与变换）</a></li>
-    <li><a href="#sec8">核心实操：锚点、对齐与微信小游戏适配规范</a></li>
+    <li><a href="#sec1">UMG 常用控件分类总览 (Widget Gallery Overview)</a></li>
+    <li><a href="#sec2">基础图形与交互 (Image & Button)</a></li>
+    <li><a href="#sec3">文本双雄 (LGText & Rich Text)</a></li>
+    <li><a href="#sec4">数据展示 (Slider, Progress Bar, ComboBox, Editable Text)</a></li>
+    <li><a href="#sec5">布局面板与容器 (Panels & Containers)</a></li>
+    <li><a href="#sec6">高级列表视图 (List View & Tile View)</a></li>
+    <li><a href="#sec7">通用核心属性 (Visibility & Render Transform)</a></li>
+    <li><a href="#sec8">核心实操：锚点、对齐与微信小游戏适配规范 (Anchors & Alignment)</a></li>
   </ol>
 </div>
 
 <!-- 章节 1 -->
 <div class="section" id="sec1">
-  <h2>🗂️ 1. UMG 常用控件分类总览 (点击卡片直达参数讲解)</h2>
+  <h2>🗂️ 1. UMG 常用控件分类总览 (Widget Gallery Overview)</h2>
   
   <h3>🔹 基础与交互控件 (Common)</h3>
   <div class="widget-gallery">
@@ -139,168 +145,168 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
   <h3>🔹 数据流与表单控件 (Data & Forms)</h3>
   <div class="widget-gallery">
     <a href="#w-slider" class="widget-card"><div class="widget-icon">🎚️</div><div class="widget-info"><h5>Slider (滑条)</h5><p>数值拖动调整（如音量控制）</p></div></a>
-    <a href="#w-progress" class="widget-card"><div class="widget-icon">🔋</div><div class="widget-info"><h5>Progress Bar</h5><p>进度条（如血条、经验槽）</p></div></a>
+    <a href="#w-progress" class="widget-card"><div class="widget-icon">🔋</div><div class="widget-info"><h5>Progress Bar (进度条)</h5><p>展示百分比进度（如血条、经验槽）</p></div></a>
     <a href="#w-combo" class="widget-card"><div class="widget-icon">🔽</div><div class="widget-info"><h5>ComboBox (组合框)</h5><p>下拉菜单列表选择</p></div></a>
-    <a href="#w-editable" class="widget-card"><div class="widget-icon">⌨️</div><div class="widget-info"><h5>Editable Text</h5><p>允许玩家输入文字或密码</p></div></a>
+    <a href="#w-editable" class="widget-card"><div class="widget-icon">⌨️</div><div class="widget-info"><h5>Editable Text (可编辑文本)</h5><p>允许玩家输入文字或密码</p></div></a>
   </div>
 
-  <h3>🔹 布局面板与容器 (Panels)</h3>
+  <h3>🔹 布局面板与容器 (Panels & Containers)</h3>
   <div class="widget-gallery">
     <a href="#w-scrollbox" class="widget-card"><div class="widget-icon">📜</div><div class="widget-info"><h5>Scroll Box (滚动框)</h5><p>长篇内容或协议的滚动容器</p></div></a>
     <a href="#w-safezone" class="widget-card"><div class="widget-icon">🛡️</div><div class="widget-info"><h5>Safe Zone (安全区)</h5><p>防止刘海屏与微信胶囊遮挡</p></div></a>
-    <a href="#w-switcher" class="widget-card"><div class="widget-icon">🗂️</div><div class="widget-info"><h5>Widget Switcher</h5><p>控件切换器，用于页签切换</p></div></a>
+    <a href="#w-switcher" class="widget-card"><div class="widget-icon">🗂️</div><div class="widget-info"><h5>Widget Switcher (控件切换器)</h5><p>用于抽屉式页签切换</p></div></a>
     <a href="#w-sizebox" class="widget-card"><div class="widget-icon">📏</div><div class="widget-info"><h5>Size Box (尺寸框)</h5><p>强制覆写控件的宽高尺寸</p></div></a>
-    <a href="#w-hvbox" class="widget-card"><div class="widget-icon">⏸️</div><div class="widget-info"><h5>Horizontal Box</h5><p>水平框，子节点向右自动排队</p></div></a>
-    <a href="#w-hvbox" class="widget-card"><div class="widget-icon">⏬</div><div class="widget-info"><h5>Vertical Box</h5><p>垂直框，子节点向下自动排队</p></div></a>
+    <a href="#w-hvbox" class="widget-card"><div class="widget-icon">⏸️</div><div class="widget-info"><h5>Horizontal Box (水平框)</h5><p>子节点向右自动排队</p></div></a>
+    <a href="#w-hvbox" class="widget-card"><div class="widget-icon">⏬</div><div class="widget-info"><h5>Vertical Box (垂直框)</h5><p>子节点向下自动排队</p></div></a>
     <a href="#w-overlay" class="widget-card"><div class="widget-icon">🥞</div><div class="widget-info"><h5>Overlay (覆层)</h5><p>将子节点层叠摆放，性能极佳</p></div></a>
   </div>
 
   <h3>🔹 高级列表与滚动 (Lists)</h3>
   <div class="widget-gallery">
-    <a href="#w-listview" class="widget-card"><div class="widget-icon">♾️</div><div class="widget-info"><h5>List View (列表)</h5><p>高性能单列向下复用滚动</p></div></a>
-    <a href="#w-tileview" class="widget-card"><div class="widget-icon">🔲</div><div class="widget-info"><h5>Tile View (瓦片)</h5><p>高性能多列网格(背包)滚动</p></div></a>
+    <a href="#w-listview" class="widget-card"><div class="widget-icon">♾️</div><div class="widget-info"><h5>List View (列表视图)</h5><p>高性能单列向下复用滚动</p></div></a>
+    <a href="#w-tileview" class="widget-card"><div class="widget-icon">🔲</div><div class="widget-info"><h5>Tile View (瓦片视图)</h5><p>高性能多列网格(背包)滚动</p></div></a>
   </div>
 </div>
 
 <!-- 章节 2 -->
 <div class="section" id="sec2">
-  <h2>🛠️ 2. 基础图形与交互（Image & Button）</h2>
+  <h2>🛠️ 2. 基础图形与交互 (Image & Button)</h2>
 
-  <h3 id="w-button">2.1 Button (按钮控件) — 极深解析</h3>
-  <p><strong>💡 核心作用：</strong> 提供给玩家点击交互的载体。具备正常、悬停、按压、禁用四种视觉状态反馈。<br>
-  <strong>🎯 适用场景：</strong> 确认/取消按键、关闭叉叉、底部的页签切换按钮、技能释放图标。</p>
+  <h3 id="w-button">2.1 Button (按钮) — 极深解析</h3>
+  <p><strong>💡 核心作用 (Core Function)：</strong> 提供给玩家点击交互的载体。具备普通 (Normal)、悬停 (Hovered)、按压 (Pressed)、禁用 (Disabled) 四种视觉状态反馈。<br>
+  <strong>🎯 适用场景 (Use Cases)：</strong> 确认/取消按键、关闭叉叉、底部的页签切换按钮、技能释放图标。</p>
 
-  <div class="param-title">右侧面板详细参数清单 (完全拆解)</div>
-  <table>
+  <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
+  <table class="param-table">
     <thead>
-      <tr><th data-label="面板分组">面板分组</th><th data-label="具体参数名">层级与具体参数名</th><th data-label="效果与如何调节">效果与如何调节</th><th data-label="即时预览">即时预览</th></tr>
+      <tr><th data-label="面板分组">面板分组 (Group)</th><th data-label="具体参数名">层级与具体参数名 (Parameter)</th><th data-label="效果与如何调节">效果与如何调节 (Description)</th><th data-label="即时预览">即时预览 (Preview)</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td rowspan="6"><strong>插槽 (Slot)</strong><br><em>(以水平框插槽为例)</em></td>
-        <td><strong>填充 (Padding)</strong><br>▶ 左边, 顶部, 右边, 底部</td>
-        <td>控制该按钮距离父容器边缘或其他兄弟节点的<strong>四周空隙像素值</strong>。比如左边填 10，它就会和左边的元素拉开 10 像素距离。</td>
+        <td rowspan="4"><strong>Slot (插槽)</strong><br><em>以 Horizontal Box Slot 为例</em></td>
+        <td><strong>Padding (填充)</strong><br>▶ Left, Top, Right, Bottom</td>
+        <td>控制该按钮距离父容器边缘或其他兄弟节点的<strong>四周空隙像素值</strong>。比如 Left 填 10，它就会和左边的元素拉开 10 像素距离。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>尺寸 (Size)</strong></td>
+        <td><strong>Size (尺寸)</strong></td>
         <td>
           <ul>
-            <li><strong>自动 (Auto)</strong>: 按钮多大，它就占多大物理空间。</li>
-            <li><strong>填充 (Fill)</strong>: 按钮强制放大，吃掉父容器所有剩余空间。如果有多个填充，按比例平分。</li>
+            <li><strong>Auto (自动)</strong>: 按钮多大，它就占多大物理空间。</li>
+            <li><strong>Fill (填充)</strong>: 按钮强制放大，吃掉父容器所有剩余空间。如果有多个填充，按比例平分。</li>
           </ul>
         </td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>水平对齐 (Horizontal)</strong></td>
-        <td>当分配的空间比按钮大时，控制按钮是靠左、居中、靠右，还是<strong>拉伸填满</strong>整个宽度。</td>
+        <td><strong>Horizontal Alignment (水平对齐)</strong></td>
+        <td>当分配的空间比按钮大时，控制按钮是靠左、居中、靠右，还是<strong>拉伸填满 (Fill)</strong> 整个宽度。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>垂直对齐 (Vertical)</strong></td>
-        <td>控制按钮靠上、居中、靠下，或是垂直拉伸填满。</td>
+        <td><strong>Vertical Alignment (垂直对齐)</strong></td>
+        <td>控制按钮靠上、居中、靠下，或是<strong>拉伸填满 (Fill)</strong>。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td colspan="3" style="background: rgba(108,140,255,.05); border-left: 3px solid var(--accent);">
-          <strong>⬇ 以下为 外观 (Appearance) -> 样式 (Style) 层层展开解析 ⬇</strong>
+        <td colspan="4" style="background: rgba(108,140,255,.05); border-left: 3px solid var(--accent); padding: 8px 16px; font-size: 13px;">
+          <strong>⬇ 以下为 Appearance (外观) -> Style (样式) 层层展开解析 ⬇</strong>
         </td>
       </tr>
       <tr>
-        <td rowspan="2"><strong>样式 (Style)</strong><br>▶ 普通 (Normal)<br><em>(其余状态Hover/Pressed/Disabled参数完全一致)</em></td>
-        <td><strong>图像 (Image)</strong></td>
+        <td rowspan="2"><strong>Style (样式)</strong><br>▶ Normal (普通)<br><em>其余状态参数一致</em></td>
+        <td><strong>Image (图像)</strong></td>
         <td>按键静止状态下的图片切图贴图。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>图像大小 (Image Size)</strong><br>X / Y</td>
+        <td><strong>Image Size (图像大小)</strong><br>X / Y</td>
         <td>强行定义这张图片的逻辑基准渲染宽高（不是父框体的大小，而是图片本身的缩放基准）。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td rowspan="4"><strong>样式 (Style)</strong><br>▶ 普通 (Normal)<br>▶ <em>(继续展开)</em></td>
-        <td><strong>Image Design/Actual Size</strong></td>
+        <td rowspan="4"><strong>Style (样式)</strong><br>▶ Normal (普通)<br>▶ <em>(继续展开)</em></td>
+        <td><strong>Image Design / Actual Size</strong></td>
         <td>只读属性，展示美术最初画原图时候的像素分辨率，供你参考用。</td>
         <td><span class="badge-yes">-</span></td>
       </tr>
       <tr>
-        <td><strong>着色 (Tint)</strong></td>
+        <td><strong>Tint (着色)</strong></td>
         <td>给按钮图叠一层有色滤镜。默认白色=原图。改成半透明黑色，图片就会变暗。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>绘制为 (Draw As)</strong></td>
+        <td><strong>Draw As (绘制为)</strong></td>
         <td>
           <ul>
-            <li><strong>盒体 (Box)</strong>: 最核心！做九宫格弹窗或圆角按钮不拉伸变形的必选！</li>
-            <li><strong>图像 (Image)</strong>: 默认拉伸变形。</li>
+            <li><strong>Box (盒体)</strong>: 最核心！做九宫格弹窗或圆角按钮不拉伸变形的必选！</li>
+            <li><strong>Image (图像)</strong>: 默认拉伸变形。</li>
           </ul>
         </td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>边缘 (Margin)</strong></td>
-        <td><strong>仅在 Draw As=Box 时生效。</strong>填入 0.1~0.4，保护图片四角的圆角不被拉伸破坏。</td>
+        <td><strong>Margin (边缘)</strong></td>
+        <td><strong>仅在 Draw As = Box 时生效。</strong>填入 0.1~0.4，保护图片四角的圆角不被拉伸破坏。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>样式 (Style)</strong></td>
-        <td><strong>已悬停 / 已按压 / 已禁用</strong></td>
+        <td><strong>Style (样式)</strong></td>
+        <td><strong>Hovered / Pressed / Disabled</strong></td>
         <td>
-          <div class="alert-red" style="color:var(--red); font-weight:bold;">【致命避坑】：如果已按压 (Pressed) 里面不填图片，当玩家点击按钮时，它会瞬间变成一个全白的正方形方块，极其难看！务必把 Normal 的图拷过来！</div>
+          <div style="color:var(--red); font-weight:bold; margin-top:4px;">【致命避坑】：如果 Pressed (已按压) 里面不填图片，当玩家点击按钮时，它会瞬间变成一个全白的正方形方块！务必把 Normal 的图拷过来！</div>
         </td>
         <td><span class="badge-no">❌ 播放运行</span></td>
       </tr>
       <tr>
-        <td rowspan="2"><strong>交互 (Interaction)</strong></td>
-        <td><strong>可聚焦 (Is Focusable)</strong></td>
+        <td rowspan="2"><strong>Interaction (交互)</strong></td>
+        <td><strong>Is Focusable (可聚焦)</strong></td>
         <td>【避坑】PC纯鼠标或手机游戏<strong>必须取消勾选</strong>，否则点击后周围会有一圈诡异的虚线！主机手柄才需勾选。</td>
         <td><span class="badge-no">❌ 播放运行</span></td>
       </tr>
       <tr>
-        <td><strong>点击方法 (Click Method)</strong></td>
+        <td><strong>Click Method (点击方法)</strong></td>
         <td>通常设为 <strong>Down And Up</strong>（按下并抬起后才算触发），防止玩家反悔滑动取消。</td>
         <td><span class="badge-no">❌ 播放运行</span></td>
       </tr>
     </tbody>
   </table>
 
-  <h3 id="w-image">2.2 Image (图像控件)</h3>
-  <p><strong>💡 核心作用：</strong> 界面中最基础的视觉元素，用于渲染一切位图贴图。<br>
-  <strong>🎯 适用场景：</strong> 纯色背景底板、技能图标、带圆角的九宫格弹窗框、装饰性花纹。</p>
+  <h3 id="w-image">2.2 Image (图像)</h3>
+  <p><strong>💡 核心作用 (Core Function)：</strong> 界面中最基础的视觉元素，用于渲染一切位图贴图。<br>
+  <strong>🎯 适用场景 (Use Cases)：</strong> 纯色背景底板、技能图标、带圆角的九宫格弹窗框、装饰性花纹。</p>
 
-  <div class="param-title">右侧面板详细参数清单</div>
-  <table>
+  <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
+  <table class="param-table">
     <thead>
-      <tr><th data-label="面板分组">面板分组</th><th data-label="具体参数名">具体参数名</th><th data-label="效果与如何调节">效果与如何调节</th><th data-label="即时预览">即时预览</th></tr>
+      <tr><th data-label="面板分组">面板分组 (Group)</th><th data-label="具体参数名">具体参数名 (Parameter)</th><th data-label="效果与如何调节">效果与如何调节 (Description)</th><th data-label="即时预览">即时预览 (Preview)</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td rowspan="4"><strong>外观 (Appearance)</strong></td>
-        <td><strong>Brush -> 图像 (Image)</strong></td>
+        <td rowspan="4"><strong>Appearance (外观)</strong></td>
+        <td><strong>Brush -> Image (图像)</strong></td>
         <td>选择美术导入的纹理切图资源。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>绘制为 (Draw As)</strong></td>
-        <td><strong>盒体 (Box)</strong>: 必须配合 Margin 使用（做九宫格不拉伸四角）。<br><strong>图像 (Image)</strong>: 默认平铺满容器。<br><strong>无 (None)</strong>: 空白不渲染。</td>
+        <td><strong>Draw As (绘制为)</strong></td>
+        <td><strong>Box (盒体)</strong>: 必须配合 Margin 使用（做九宫格不拉伸四角）。<br><strong>Image (图像)</strong>: 默认平铺满容器。<br><strong>None (无)</strong>: 空白不渲染。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>边界 (Margin)</strong></td>
+        <td><strong>Margin (边界)</strong></td>
         <td>只有在 <code>Draw As = Box</code> 时有效。通常取值 0.1~0.4，代表保护图片四边多大比例不被拉伸。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>图像大小 (Image Size)</strong></td>
+        <td><strong>Image Size (图像大小)</strong></td>
         <td>原图的物理宽高参考值，通常靠外层插槽改尺寸，这里不动。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td rowspan="2"><strong>颜色和不透明度</strong></td>
+        <td rowspan="2"><strong>Color and Opacity (颜色和不透明度)</strong></td>
         <td><strong>Tint (色相)</strong></td>
-        <td>纯白(1.0, 1.0, 1.0)代表原图颜色。通过修改 Tint 可以给贴图染色。</td>
+        <td>纯白 (1.0, 1.0, 1.0) 代表原图颜色。通过修改 Tint 可以给贴图染色。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
@@ -314,20 +320,20 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 
 <!-- 章节 3 -->
 <div class="section" id="sec3">
-  <h2>🔤 3. 文本双雄（LGText 与 Rich Text）</h2>
+  <h2>🔤 3. 文本双雄 (LGText & Rich Text)</h2>
 
   <h3 id="w-lgtext">3.1 LGText (项目定制文本)</h3>
-  <p><strong>💡 核心作用：</strong> 替代 UE 默认 Text 的首选，底层已集成我们项目的多语言(Localization)规范。<br>
-  <strong>🎯 适用场景：</strong> 各种界面标题、按钮上的单色文字、纯数据展示展示。</p>
+  <p><strong>💡 核心作用 (Core Function)：</strong> 替代 UE 默认 Text 的首选，底层已集成我们项目的多语言 (Localization) 规范。<br>
+  <strong>🎯 适用场景 (Use Cases)：</strong> 各种界面标题、按钮上的单色文字、纯数据展示展示。</p>
 
-  <div class="param-title">右侧面板详细参数清单</div>
-  <table>
+  <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
+  <table class="param-table">
     <thead>
-      <tr><th data-label="面板分组">面板分组</th><th data-label="具体参数名">具体参数名</th><th data-label="效果与如何调节">效果与如何调节</th><th data-label="即时预览">即时预览</th></tr>
+      <tr><th data-label="面板分组">面板分组 (Group)</th><th data-label="具体参数名">具体参数名 (Parameter)</th><th data-label="效果与如何调节">效果与如何调节 (Description)</th><th data-label="即时预览">即时预览 (Preview)</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td rowspan="2"><strong>内容 (Content)</strong></td>
+        <td rowspan="2"><strong>Content (内容)</strong></td>
         <td><strong>Text (文本)</strong></td>
         <td>直接填入你要显示的默认字。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
@@ -338,7 +344,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td rowspan="5"><strong>外观 -> Font</strong></td>
+        <td rowspan="5"><strong>Appearance (外观) <br>-> Font (字体)</strong></td>
         <td><strong>Font Family (字库)</strong></td>
         <td>选择游戏规定的字体资产。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
@@ -349,12 +355,12 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>Letter Spacing</strong></td>
+        <td><strong>Letter Spacing (字间距)</strong></td>
         <td>字间距，正数拉宽，负数挤压。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>Outline Settings</strong></td>
+        <td><strong>Outline Settings (描边)</strong></td>
         <td>描边设置。展开后可设置 Outline Size (厚度) 和 Outline Color (描边颜色)。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
@@ -364,55 +370,55 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td rowspan="2"><strong>外观 -> Shadow</strong></td>
-        <td><strong>Shadow Offset</strong></td>
+        <td rowspan="2"><strong>Appearance (外观) <br>-> Shadow (阴影)</strong></td>
+        <td><strong>Shadow Offset (阴影偏移)</strong></td>
         <td>字体的阴影偏移。X:1 Y:1 会在文字右下方垫一层投影，让浅色文字在花哨背景上看得清。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>Shadow Color</strong></td>
+        <td><strong>Shadow Color (阴影色)</strong></td>
         <td>阴影色，通常用黑，Alpha 开到 0.6 左右。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>对齐 (Justification)</strong></td>
-        <td><strong>Justification</strong></td>
-        <td>居左、居中、居右 或是 两端对齐。必须保证文字框自身尺寸够大才看得出效果。</td>
+        <td><strong>Justification (对齐)</strong></td>
+        <td><strong>Justification (对齐方式)</strong></td>
+        <td>居左、居中、居右或是两端对齐。必须保证文字框自身尺寸够大才看得出效果。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
     </tbody>
   </table>
 
   <h3 id="w-richtext">3.2 Rich Text Block (富文本)</h3>
-  <p><strong>💡 核心作用：</strong> 让一句话里包含多种颜色、加粗，甚至夹杂图片表情。<br>
-  <strong>🎯 适用场景：</strong> 聊天频道、掉落提示（<code>获得 &lt;Red&gt;倚天剑&lt;/&gt;</code>）、带特殊高亮的技能描述。</p>
+  <p><strong>💡 核心作用 (Core Function)：</strong> 让一句话里包含多种颜色、加粗，甚至夹杂图片表情。<br>
+  <strong>🎯 适用场景 (Use Cases)：</strong> 聊天频道、掉落提示（<code>获得 &lt;Red&gt;倚天剑&lt;/&gt;</code>）、带特殊高亮的技能描述。</p>
 
-  <div class="param-title">右侧面板详细参数清单</div>
-  <table>
+  <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
+  <table class="param-table">
     <thead>
-      <tr><th data-label="面板分组">面板分组</th><th data-label="具体参数名">具体参数名</th><th data-label="效果与如何调节">效果与如何调节</th><th data-label="即时预览">即时预览</th></tr>
+      <tr><th data-label="面板分组">面板分组 (Group)</th><th data-label="具体参数名">具体参数名 (Parameter)</th><th data-label="效果与如何调节">效果与如何调节 (Description)</th><th data-label="即时预览">即时预览 (Preview)</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td><strong>内容 (Content)</strong></td>
+        <td><strong>Content (内容)</strong></td>
         <td><strong>Text (文本)</strong></td>
         <td>支持写 XML 标签，引擎会自动解析成对应的颜色或图片。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td rowspan="2"><strong>外观 (Appearance)</strong></td>
-        <td><strong>Text Style Set</strong></td>
+        <td rowspan="2"><strong>Appearance (外观)</strong></td>
+        <td><strong>Text Style Set (文本样式集)</strong></td>
         <td><strong>【必填项】</strong>在此挂载定义了标签对应颜色的 Data Table。不挂的话源码原样输出。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>Decorator Classes</strong></td>
+        <td><strong>Decorator Classes (装饰器类)</strong></td>
         <td>插入表情包或图片的解码器蓝图类数组。填入后即可识别 <code>&lt;img id="icon"/&gt;</code>。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>行为 (Behavior)</strong></td>
-        <td><strong>Auto Wrap Text</strong></td>
+        <td><strong>Behavior (行为)</strong></td>
+        <td><strong>Auto Wrap Text (自动换行)</strong></td>
         <td>自动换行开关。遇到框的右边界自动切下一行排版。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
@@ -422,23 +428,23 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 
 <!-- 章节 4 -->
 <div class="section" id="sec4">
-  <h2>🎛️ 4. 数据展示控件（滑条、进度条、组合框等）</h2>
+  <h2>🎛️ 4. 数据展示控件 (Slider, Progress Bar, ComboBox, Editable Text)</h2>
 
   <h3 id="w-slider">4.1 Slider (滑条)</h3>
-  <div class="param-title">右侧面板详细参数清单</div>
-  <table>
+  <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
+  <table class="param-table">
     <thead>
-      <tr><th data-label="面板分组">面板分组</th><th data-label="具体参数名">具体参数名</th><th data-label="效果与如何调节">效果与如何调节</th><th data-label="即时预览">即时预览</th></tr>
+      <tr><th data-label="面板分组">面板分组 (Group)</th><th data-label="具体参数名">具体参数名 (Parameter)</th><th data-label="效果与如何调节">效果与如何调节 (Description)</th><th data-label="即时预览">即时预览 (Preview)</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td rowspan="3"><strong>外观 (Appearance)</strong></td>
+        <td rowspan="3"><strong>Appearance (外观)</strong></td>
         <td><strong>Value (当前值)</strong></td>
         <td>默认滑块停在什么数值。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>Min/Max Value</strong></td>
+        <td><strong>Min/Max Value (最小值/最大值)</strong></td>
         <td>滑轨最左和最右代表的逻辑数值界限。</td>
         <td><span class="badge-no">❌ 逻辑代码用</span></td>
       </tr>
@@ -448,7 +454,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>行为 (Behavior)</strong></td>
+        <td><strong>Behavior (行为)</strong></td>
         <td><strong>Step Size (步长)</strong></td>
         <td>拖动时每次跳跃多少值（如填 1 则只能产生整数刻度感跳动）。</td>
         <td><span class="badge-no">❌ 播放运行</span></td>
@@ -457,22 +463,22 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
   </table>
 
   <h3 id="w-progress">4.2 Progress Bar (进度条)</h3>
-  <div class="param-title">右侧面板详细参数清单</div>
-  <table>
+  <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
+  <table class="param-table">
     <thead>
-      <tr><th data-label="面板分组">面板分组</th><th data-label="具体参数名">具体参数名</th><th data-label="效果与如何调节">效果与如何调节</th><th data-label="即时预览">即时预览</th></tr>
+      <tr><th data-label="面板分组">面板分组 (Group)</th><th data-label="具体参数名">具体参数名 (Parameter)</th><th data-label="效果与如何调节">效果与如何调节 (Description)</th><th data-label="即时预览">即时预览 (Preview)</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td><strong>进度 (Progress)</strong></td>
+        <td><strong>Progress (进度)</strong></td>
         <td><strong>Percent (百分比)</strong></td>
         <td><strong>核心！</strong>取值永远在 0.0 ~ 1.0 之间。代码中传血量必须除以最大血量再传。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td rowspan="3"><strong>外观 (Appearance)</strong></td>
-        <td><strong>Fill Color and Opacity</strong></td>
-        <td>进度条“涨起来”部分（Fill图）叠加的颜色滤镜。</td>
+        <td rowspan="3"><strong>Appearance (外观)</strong></td>
+        <td><strong>Fill Color and Opacity (填充色与不透明度)</strong></td>
+        <td>进度条“涨起来”部分（Fill 图）叠加的颜色滤镜。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
@@ -481,7 +487,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>Bar Fill Type</strong></td>
+        <td><strong>Bar Fill Type (填充类型)</strong></td>
         <td>填充方式：左到右、右到左、中心向外、底部向上等。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
@@ -491,11 +497,11 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 
 <!-- 章节 5 -->
 <div class="section" id="sec5">
-  <h2>📦 5. 布局容器面板（ScrollBox、安全区、切换器等）</h2>
+  <h2>📦 5. 布局容器面板 (Panels & Containers)</h2>
 
   <h3 id="w-scrollbox">5.1 Scroll Box (滚动框) — 极深解析</h3>
-  <p><strong>💡 核心作用：</strong> 给那些内部内容远远超过屏幕物理尺寸的元素提供一个滚动视口。玩家可以用鼠标滚轮或手指上下划动。<br>
-  <strong>🎯 适用场景：</strong> 长篇大论的用户协议、带大量文字的装备详细描述说明、不经常变化长短的设置项列表。<br>
+  <p><strong>💡 核心作用 (Core Function)：</strong> 给那些内部内容远远超过屏幕物理尺寸的元素提供一个滚动视口。玩家可以用鼠标滚轮或手指上下划动。<br>
+  <strong>🎯 适用场景 (Use Cases)：</strong> 长篇大论的用户协议、带大量文字的装备详细描述说明、不经常变化长短的设置项列表。<br>
   <strong style="color:var(--red);">⚠️ 注意：如果列表条目超过 30 条且格式一致（如排行榜），绝对不能用 Scroll Box，必须用 List View 性能复用池！</strong></p>
 
   <div class="explain-grid">
@@ -503,73 +509,73 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
       <div class="explain-ui-part">
         <div class="ue-ui-box">
           <div class="ue-ui-section">
-            <div class="ue-ui-sec-title">▼ 滚动 (Scroll)</div>
-            <div class="ue-ui-row"><div class="ue-ui-label">朝向</div><div class="ue-ui-val blue-edge">垂直 ▼</div></div>
-            <div class="ue-ui-row"><div class="ue-ui-label">滚动条可视性</div><div class="ue-ui-val blue-edge">已折叠 (Collapsed) ▼</div></div>
-            <div class="ue-ui-row"><div class="ue-ui-label">消耗鼠标滚轮</div><div class="ue-ui-val blue-edge">总是 (Always) ▼</div></div>
+            <div class="ue-ui-sec-title">▼ Scroll (滚动)</div>
+            <div class="ue-ui-row"><div class="ue-ui-label">朝向 (Orientation)</div><div class="ue-ui-val blue-edge">垂直 (Vertical) ▼</div></div>
+            <div class="ue-ui-row"><div class="ue-ui-label">滚动条可视性 (Scrollbar Visibility)</div><div class="ue-ui-val blue-edge">已折叠 (Collapsed) ▼</div></div>
+            <div class="ue-ui-row"><div class="ue-ui-label">消耗鼠标滚轮 (Consume Mouse Wheel)</div><div class="ue-ui-val blue-edge">总是 (Always) ▼</div></div>
           </div>
         </div>
       </div>
       <div class="explain-arrow">➔</div>
       <div class="explain-text-part">
-        <p><strong>滚动条可视性 (Scrollbar Visibility) 秘籍：</strong><br>
+        <p><strong>Scrollbar Visibility (滚动条可视性) 秘籍：</strong><br>
         很多设计图是不画丑陋滚动条的，但是内容又要能划动。千万别选 Hidden（隐藏），因为隐藏后其实它还在右侧暗中占据空间！<br>
         <strong style="color:var(--accent);">正确做法：选择「已折叠 (Collapsed)」，这样滚动条完全消失，内部空间自动向右填满，且用鼠标滚轮和手指依然能丝滑滚动！</strong></p>
       </div>
     </div>
   </div>
 
-  <div class="param-title">右侧面板详细参数清单</div>
-  <table>
+  <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
+  <table class="param-table">
     <thead>
-      <tr><th data-label="面板分组">面板分组</th><th data-label="具体参数名">具体参数名</th><th data-label="效果与如何调节">效果与如何调节</th><th data-label="即时预览">即时预览</th></tr>
+      <tr><th data-label="面板分组">面板分组 (Group)</th><th data-label="具体参数名">具体参数名 (Parameter)</th><th data-label="效果与如何调节">效果与如何调节 (Description)</th><th data-label="即时预览">即时预览 (Preview)</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td rowspan="2"><strong>插槽 (Slot)</strong><br><em>(以画布面板插槽为例)</em></td>
-        <td><strong>锚点 (Anchors)</strong><br>最小/最大</td>
+        <td rowspan="2"><strong>Slot (插槽)</strong><br><em>以 Canvas Panel Slot 为例</em></td>
+        <td><strong>Anchors (锚点)</strong><br>Min / Max</td>
         <td>决定这个滚动框四条边的受力点。全屏滚动面板通常设为四角拉伸。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>偏移 (Offsets)</strong><br>左侧, 位置Y, 尺寸等</td>
+        <td><strong>Offsets (偏移)</strong><br>Left, Position Y, Size 等</td>
         <td>决定滚动框的绝对坐标和宽高。注意：开启“大小到内容(Size to Content)”后，宽高设置无效，会被内部撑开。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td rowspan="2"><strong>样式 (Style)</strong></td>
-        <td><strong>顶部/底/左/右阴影笔刷 (Shadow Brushes)</strong></td>
-        <td>高级打磨必备：列表没滚动到底时，边缘显示的黑灰色渐变遮罩。这里可以替换遮罩渐变图或调整颜色，让文字有一种“被切断进入暗区”的质感。</td>
+        <td rowspan="2"><strong>Style (样式)</strong></td>
+        <td><strong>Shadow Brushes (顶部/底/左/右阴影笔刷)</strong></td>
+        <td>高级打磨必备：列表没滚动到底时，边缘显示的黑灰色渐变遮罩。这里可以替换遮罩渐变图，让文字有一种“进入暗区”的质感。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>条样式 (Scrollbar Style)</strong></td>
-        <td>展开后非常长。里面可以依次替换 <code>垂直/水平背景图</code> (滚动槽的底色) 以及各种 <code>缩略图 (Thumb Image)</code> (就是中间那个拖动条)。</td>
+        <td><strong>Scrollbar Style (条样式)</strong></td>
+        <td>展开后非常长。里面可以依次替换 <code>垂直/水平背景图</code> (滚动槽的底色) 以及各种 <code>Thumb Image (缩略图)</code> (就是中间那个拖动条)。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td rowspan="4"><strong>滚动 (Scroll)</strong></td>
-        <td><strong>朝向 (Orientation)</strong></td>
-        <td>横向滑动 (Horizontal) 还是 竖向滑动 (Vertical)。</td>
+        <td rowspan="4"><strong>Scroll (滚动)</strong></td>
+        <td><strong>Orientation (朝向)</strong></td>
+        <td>横向滑动 (Horizontal) 还是竖向滑动 (Vertical)。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>滚动条可视性 (Visibility)</strong></td>
+        <td><strong>Scrollbar Visibility (滚动条可视性)</strong></td>
         <td>
           <ul>
-            <li><strong>可见 (Visible)</strong>: 长期显示滑块。</li>
-            <li><strong>折叠 (Collapsed)</strong>: 彻底隐藏滑块并把右侧空间让出来，但依然可以通过手指滑动。</li>
+            <li><strong>Visible (可见)</strong>: 长期显示滑块。</li>
+            <li><strong>Collapsed (折叠)</strong>: 彻底隐藏滑块并把右侧空间让出来，但依然可以通过手指滑动。</li>
           </ul>
         </td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>消耗鼠标滚轮</strong></td>
+        <td><strong>Consume Mouse Wheel (消耗鼠标滚轮)</strong></td>
         <td>当鼠标在这个框里滚轮时，是否拦截事件。如果你外层还有一个大滚动条，设为“从不”可以让内层不吃掉滚轮指令。</td>
         <td><span class="badge-no">❌ 播放运行</span></td>
       </tr>
       <tr>
-        <td><strong>滚动条厚度 (Thickness)</strong></td>
+        <td><strong>Scrollbar Thickness (滚动条厚度)</strong></td>
         <td>如果需要极其纤细的滑动条，调小这个数值 (X和Y)。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
@@ -577,95 +583,48 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
   </table>
 
   <h3 id="w-safezone">5.2 Safe Zone (安全区)</h3>
-  <div class="param-title">右侧面板详细参数清单</div>
-  <table>
+  <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
+  <table class="param-table">
     <thead>
-      <tr><th data-label="面板分组">面板分组</th><th data-label="具体参数名">具体参数名</th><th data-label="效果与如何调节">效果与如何调节</th></tr>
+      <tr><th data-label="面板分组">面板分组 (Group)</th><th data-label="具体参数名">具体参数名 (Parameter)</th><th data-label="效果与如何调节">效果与如何调节 (Description)</th><th data-label="即时预览">即时预览 (Preview)</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td rowspan="2"><strong>安全区 (Safe Zone)</strong></td>
+        <td rowspan="2"><strong>Safe Zone (安全区)</strong></td>
         <td><strong>Pad Left / Right (左右保护)</strong></td>
         <td>勾选后系统识别底层OS，自动挤开手机左侧刘海和右侧<strong>微信小游戏胶囊按键</strong>。强烈建议全打勾。</td>
+        <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
         <td><strong>Pad Top / Bottom (上下保护)</strong></td>
         <td>保护顶部状态栏 / 底部系统返回手势横条区域。</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <h3 id="w-switcher">5.3 Widget Switcher (控件切换器)</h3>
-  <p><strong>💡 核心作用：</strong> 抽屉式翻页。内部有 N 个面板但同时只渲染 1 个，通常和顶部的页签组合使用。</p>
-  <div class="param-title">右侧面板详细参数清单</div>
-  <table>
-    <thead>
-      <tr><th data-label="面板分组">面板分组</th><th data-label="具体参数名">具体参数名</th><th data-label="效果与如何调节">效果与如何调节</th><th data-label="即时预览">即时预览</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><strong>切换器 (Switcher)</strong></td>
-        <td><strong>Active Widget Index</strong></td>
-        <td>激活的子面板索引号（从 0 开始算第一页）。修改此值在编辑器中会<strong>立刻翻页</strong>预览效果！</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
     </tbody>
   </table>
 
-  <h3 id="w-sizebox">5.4 Size Box (尺寸框)</h3>
-  <p><strong>💡 核心作用：</strong> 在无法自由控制宽高的自动排队容器里，给子节点套上一件强制锁死物理大小的紧身衣。</p>
-  <div class="param-title">右侧面板详细参数清单</div>
-  <table>
+  <h3 id="w-sizebox">5.3 Size Box (尺寸框)</h3>
+  <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
+  <table class="param-table">
     <thead>
-      <tr><th data-label="面板分组">面板分组</th><th data-label="具体参数名">具体参数名</th><th data-label="效果与如何调节">效果与如何调节</th><th data-label="即时预览">即时预览</th></tr>
+      <tr><th data-label="面板分组">面板分组 (Group)</th><th data-label="具体参数名">具体参数名 (Parameter)</th><th data-label="效果与如何调节">效果与如何调节 (Description)</th><th data-label="即时预览">即时预览 (Preview)</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td rowspan="3"><strong>子布局 (Child Layout)</strong></td>
-        <td><strong>Width/Height Override</strong></td>
+        <td rowspan="3"><strong>Child Layout (子布局)</strong></td>
+        <td><strong>Width / Height Override (宽高覆写)</strong></td>
         <td>无视一切环境，强行把里面的元素撑到绝对的数值大小（如 150x50）。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>Min Desired Width/Height</strong></td>
+        <td><strong>Min Desired Width/Height (最小期望宽高)</strong></td>
         <td>保底尺寸。比如设置 100宽，即使里面文字只有一个字，框的宽度也绝不会小于 100。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>Max Desired Width/Height</strong></td>
+        <td><strong>Max Desired Width/Height (最大期望宽高)</strong></td>
         <td>做自适应聊天气泡的核心参数。设为 400 宽，当文字继续变多时，不会无限变宽，而是在 400 处强制往下换行。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
-      </tr>
-    </tbody>
-  </table>
-
-  <h3 id="w-hvbox">5.5 Horizontal/Vertical Box (排队框) 与 Overlay (覆层)</h3>
-  <p><strong>💡 Box 的核心：</strong> 子节点顺向排队，拒绝手工对坐标。<br>
-  <strong>💡 Overlay 的核心：</strong> 子节点以 Z 轴重叠，专门用于汉堡包式叠加（底图层+图标层+数字层）。</p>
-  <div class="param-title">被放进去后的子节点专属插槽(Slot)参数清单</div>
-  <table>
-    <thead>
-      <tr><th data-label="插槽环境">插槽环境</th><th data-label="具体参数名">具体参数名</th><th data-label="效果与如何调节">效果与如何调节</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td rowspan="2"><strong>身处 H/V Box 中</strong></td>
-        <td><strong>大小 (Size)</strong></td>
-        <td>
-          <ul>
-            <li><strong>Auto (自动)</strong>: 自己有多大就占多少排队位。</li>
-            <li><strong>Fill (填充)</strong>: 动态数值比例分赃！如果 A填1，B填2，那剩余空间按 1:2 分割强行拉伸组件填充框体。</li>
-          </ul>
-        </td>
-      </tr>
-      <tr>
-        <td><strong>Padding (边距)</strong></td>
-        <td>控制这个排队的家伙与其他兄弟节点之间的间隔缝隙像素。</td>
-      </tr>
-      <tr>
-        <td><strong>身处 Overlay 中</strong></td>
-        <td><strong>水平/垂直 对齐</strong></td>
-        <td>四向对齐，或选择拉伸(Fill)。选满铺(Fill)会直接盖住整个底层。</td>
       </tr>
     </tbody>
   </table>
@@ -673,21 +632,21 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 
 <!-- 章节 6 -->
 <div class="section" id="sec6">
-  <h2>♾️ 6. 高级列表视图（List View / Tile View）</h2>
+  <h2>♾️ 6. 高级列表视图 (List View & Tile View)</h2>
   <div class="alert alert-yellow">
-    <strong>⚠️ 核心理念：</strong>对于超长列表（排行榜、大背包），决不能用 Scroll Box 无脑塞子节点！必须使用对象池复用的 <strong>ListView (单列)</strong> 或 <strong>TileView (九宫格)</strong>，它通过复用划出屏幕外的那几个节点来实现极低的性能开销。
+    <strong>⚠️ 核心理念 (Core Concept)：</strong>对于超长列表（排行榜、大背包），决不能用 Scroll Box 无脑塞子节点！必须使用对象池复用的 <strong>ListView (单列)</strong> 或 <strong>TileView (九宫格)</strong>，它通过复用划出屏幕外的那几个节点来实现极低的性能开销。
   </div>
 
-  <h3 id="w-listview">6.1 List/Tile View</h3>
-  <div class="param-title">右侧面板详细参数清单</div>
-  <table>
+  <h3 id="w-listview">6.1 List View / Tile View (列表与瓦片视图)</h3>
+  <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
+  <table class="param-table">
     <thead>
-      <tr><th data-label="面板分组">面板分组</th><th data-label="具体参数名">具体参数名</th><th data-label="效果与如何调节">效果与如何调节</th><th data-label="即时预览">即时预览</th></tr>
+      <tr><th data-label="面板分组">面板分组 (Group)</th><th data-label="具体参数名">具体参数名 (Parameter)</th><th data-label="效果与如何调节">效果与如何调节 (Description)</th><th data-label="即时预览">即时预览 (Preview)</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td rowspan="2"><strong>列表 (List)</strong></td>
-        <td><strong>Entry Widget Class (条目类)</strong></td>
+        <td rowspan="2"><strong>List (列表)</strong></td>
+        <td><strong>Entry Widget Class (条目蓝图类)</strong></td>
         <td><strong>【唯一生死核心】！</strong>必须选定一个事先做好的、实现了 <code>User Object List Entry</code> 接口的蓝图类，作为生成的“一截小火车”。</td>
         <td><span class="badge-yes">✅ 假数据刷新</span></td>
       </tr>
@@ -697,13 +656,13 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td rowspan="2"><strong>Tile View 专属</strong></td>
-        <td><strong>Entry Height / Width</strong></td>
+        <td rowspan="2"><strong>Tile View (瓦片专属)</strong></td>
+        <td><strong>Entry Height / Width (条目宽高)</strong></td>
         <td>由于要往一行塞多个格子，这里强行规定每个格子多大，系统才能算出一行能塞下几个。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>Tile Alignment</strong></td>
+        <td><strong>Tile Alignment (瓦片对齐)</strong></td>
         <td>如果最后一行只剩孤零零 2 个格子，控制它们是挤在左边还是两边摊开。</td>
         <td><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
@@ -713,28 +672,28 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 
 <!-- 章节 7 -->
 <div class="section" id="sec7">
-  <h2>👁️ 7. 通用核心属性：可见性 (Visibility) 与 变换</h2>
+  <h2>👁️ 7. 通用核心属性：可见性与变换 (Visibility & Transform)</h2>
   <p>所有控件都有可见性和渲染变换属性，这是 UI 交互的基础：</p>
-  <table>
+  <table class="five-cols">
     <thead>
-      <tr><th>可见性选项</th><th>视觉状态</th><th>点击状态</th><th>性能消耗</th><th>最适用场景</th></tr>
+      <tr><th>可见性选项 (Visibility Options)</th><th>视觉状态 (Visual State)</th><th>点击状态 (Hit State)</th><th>性能消耗 (Cost)</th><th>最适用场景 (Best Use Case)</th></tr>
     </thead>
     <tbody>
-      <tr><td><strong>可见 (Visible)</strong></td><td>👀 看得见</td><td>👆 挡击/可点</td><td>高</td><td>普通可交互按钮、弹窗面板。</td></tr>
-      <tr><td><strong>折叠 (Collapsed)</strong></td><td>❌ 看不见</td><td>❌ 完全消失</td><td><strong>极低</strong></td><td><strong>隐藏UI首选！</strong>完全不计算也不占排队空间。</td></tr>
-      <tr><td><strong>隐藏 (Hidden)</strong></td><td>❌ 看不见</td><td>❌ 无法点击</td><td>中</td><td>看不见，但仍然会占据排队槽位空间（占坑）。</td></tr>
-      <tr><td><strong>不可见命中测试<br>(Hit Test Invisible)</strong></td><td>👀 看得见</td><td>👻 鼠标穿透</td><td>低</td><td><strong>纯装饰用的背景图或文字！</strong>不抢焦点，不挡底下的按钮。</td></tr>
-      <tr><td><strong>自身不可见命中测试<br>(Self Hit Test Invisible)</strong></td><td>👀 看得见</td><td>👻 自身穿透<br>👆 子可点</td><td>低</td><td><strong>作为父容器（Canvas/Overlay/SizeBox等）的最佳选择！</strong></td></tr>
+      <tr><td><strong>Visible (可见)</strong></td><td>👀 看得见</td><td>👆 挡击/可点</td><td>高 (High)</td><td>普通可交互按钮、弹窗面板。</td></tr>
+      <tr><td><strong>Collapsed (折叠)</strong></td><td>❌ 看不见</td><td>❌ 完全消失</td><td><strong>极低 (Very Low)</strong></td><td><strong>隐藏 UI 首选！</strong>完全不计算也不占据排队槽位空间。</td></tr>
+      <tr><td><strong>Hidden (隐藏)</strong></td><td>❌ 看不见</td><td>❌ 无法点击</td><td>中 (Medium)</td><td>看不见，但仍然会占据排队槽位空间（占坑）。</td></tr>
+      <tr><td><strong>Hit Test Invisible<br>(不可见命中测试)</strong></td><td>👀 看得见</td><td>👻 鼠标穿透</td><td>低 (Low)</td><td><strong>纯装饰用的背景图或文字！</strong>不抢焦点，不挡底下的按钮。</td></tr>
+      <tr><td><strong>Self Hit Test Invisible<br>(自身不可见命中测试)</strong></td><td>👀 看得见</td><td>👻 自身穿透<br>👆 子可点</td><td>低 (Low)</td><td><strong>作为父容器（Canvas/Overlay/SizeBox 等）的最佳选择！</strong></td></tr>
     </tbody>
   </table>
-  <div class="alert alert-yellow"><strong>避坑指南：</strong>点不动按钮？99%是因为上面盖了张 Visible 的全屏透明图，把它改成 <code>Hit Test Invisible</code>！</div>
+  <div class="alert alert-yellow"><strong>避坑指南：</strong>点不动按钮？99%是因为上面盖了张 Visible 的全屏透明图，把它改成 <code>Self Hit Test Invisible</code>！</div>
 </div>
 
 <!-- 章节 8 -->
 <div class="section" id="sec8">
-  <h2>🎯 8. 核心实操：锚点、对齐与多端/小游戏适配规范</h2>
+  <h2>🎯 8. 核心实操：锚点、对齐与微信小游戏适配规范 (Anchors & Alignment)</h2>
   
-  <h3>8.1 锚点 (Anchor) 九宫格对照表</h3>
+  <h3>8.1 锚点九宫格对照表 (Anchors Reference)</h3>
   <div style="display:flex; justify-content:center; margin:30px 0; overflow-x:auto;">
     <div style="background:#1a1c1e; padding:24px; border:1px solid #333; border-radius:8px; display:inline-block; position:relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
       <div style="display:grid; grid-template-columns:repeat(4, 40px); gap:12px;">
@@ -766,7 +725,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
          🎯 正中央全局弹窗 <div style="width:40px; height:2px; background:var(--accent); margin-left:8px;"></div>
       </div>
       <div style="position:absolute; right:-160px; bottom:32px; color:var(--red); font-size:14px; font-weight:bold; display:flex; align-items:center;">
-         <div style="width:30px; height:2px; background:var(--red); margin-right:8px;"></div> 全屏拉伸(底板遮罩) 🔲
+         <div style="width:30px; height:2px; background:var(--red); margin-right:8px;"></div> 全屏拉伸(底板/遮罩) 🔲
       </div>
     </div>
   </div>
@@ -775,7 +734,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
   <p>当你要把弹窗绝对居中时，光把锚点设为“居中”是不够的！因为那只是以控件左上角对准屏幕中心。<br>
   <strong>【核心铁律】必须同时将 <code>Alignment (对齐)</code> 设为 X: 0.5, Y: 0.5</strong>，这代表用控件自己的正中心去贴合锚点，实现完美居中。</p>
 
-  <h3>8.3 多端与微信小游戏适配专属规范</h3>
+  <h3>8.3 多端与微信小游戏适配专属规范 (WeChat Mini-Game Guidelines)</h3>
   <div class="alert alert-green">
     <strong>📱 微信小游戏/手游端必须遵循的层级树：</strong>
     <p>由于微信小游戏必定有一个不可隐去的<strong>“右上角胶囊按钮（更多/关闭）”</strong>，如果乱摆放会导致界面按钮被胶囊完全挡死。</p>
@@ -793,7 +752,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 
 </div>
 
-<div class="doc-footer">📐 游戏项目知识库 · UE5 UMG 拼接实操详细指南 · 全控件参数终极版 v9.0</div>
+<div class="doc-footer">📐 游戏项目知识库 · UE5 UMG 拼接实操详细指南 · 顶端对齐与中英双语规范版 v9.1</div>
 </div>
 <script>
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
