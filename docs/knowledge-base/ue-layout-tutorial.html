@@ -20,7 +20,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
 .section{margin-bottom:40px}
 .section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:8px}
-.section h3{font-size:18px;color:var(--heading);margin:24px 0 12px;font-weight:600;border-left:4px solid var(--accent2);padding-left:12px}
+.section h3{font-size:18px;color:var(--heading);margin:24px 0 12px;font-weight:600;border-left:4px solid var(--accent2);padding-left:12px; scroll-margin-top: 30px;}
 .section h4{font-size:16px;color:var(--heading);margin:16px 0 8px;font-weight:600}
 .section p{font-size:15px;margin-bottom:12px;line-height:1.8}
 table{width:100%;border-collapse:collapse;margin:16px 0 24px;font-size:14px}
@@ -36,8 +36,8 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
 
 /* Widget Gallery Overview */
 .widget-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
-.widget-card { background: var(--panel); border: 1px solid var(--border); padding: 16px; border-radius: 8px; display: flex; align-items: center; gap: 16px; transition: transform 0.2s, border-color 0.2s; }
-.widget-card:hover { transform: translateY(-2px); border-color: var(--accent); background: rgba(108,140,255,0.05); }
+a.widget-card { background: var(--panel); border: 1px solid var(--border); padding: 16px; border-radius: 8px; display: flex; align-items: center; gap: 16px; transition: transform 0.2s, border-color 0.2s; text-decoration: none; color: inherit; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); background: rgba(108,140,255,0.05); box-shadow: 0 8px 16px rgba(108,140,255,0.1); }
 .widget-icon { font-size: 24px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; flex: 0 0 50px; text-align: center; }
 .widget-info h5 { margin: 0 0 4px 0; color: var(--heading); font-size: 15px; }
 .widget-info p { margin: 0; font-size: 12px; color: var(--dim); line-height: 1.4; }
@@ -52,6 +52,10 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
 .explain-text-part p:last-child { margin-bottom: 0; }
 .explain-text-part strong { color: var(--accent); font-weight: 600; }
 .explain-text-part .highlight-text { color: var(--red); font-weight: bold; font-size: 14px; margin-top: 8px; display: block; border-left: 3px solid var(--red); padding-left: 10px; }
+
+/* Parameter List Title */
+.param-title { margin: 24px 0 12px; font-size: 16px; color: var(--heading); display: flex; align-items: center; gap: 8px; font-weight: bold; }
+.param-title::before { content: "⚙️"; }
 
 /* UI Mockup Styles */
 .ue-ui-box { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1c1e; border: 1px solid #333; border-radius: 6px; overflow: hidden; font-size: 13px; color: #c0c0c0; }
@@ -79,6 +83,10 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
 /* Grid anchor boxes */
 .grid-box { width: 36px; height: 36px; background: #2d2d30; border: 1px solid #555; position: relative; border-radius: 2px; }
 .grid-box-inner { background: #fff; position: absolute; border-radius: 1px; }
+
+/* Status Badges */
+.badge-yes { background: rgba(74,222,128,0.2); color: var(--green); padding: 2px 8px; border-radius: 12px; font-size: 12px; border: 1px solid var(--green); }
+.badge-no { background: rgba(248,113,113,0.2); color: var(--red); padding: 2px 8px; border-radius: 12px; font-size: 12px; border: 1px solid var(--red); }
 </style>
 </head>
 <body>
@@ -90,7 +98,8 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
 </div>
 
 <div class="alert alert-blue">
-  <strong>📝 导读：</strong>本文档是 UI 拼接的“标准操作字典”。第一部分带你俯瞰所有高频组件；第二部分拆解具体每个组件右侧细节面板（Details）的必调参数及避坑指南；第三部分深入讲解锚点、安全区与多平台（特别是微信小游戏）的屏幕适配规范。
+  <strong>📝 导读：</strong>本文档是 UI 拼接的“标准操作字典”。第一部分带你俯瞰所有高频组件；第二部分拆解具体每个组件右侧细节面板（Details）的必调参数及避坑指南；第三部分深入讲解锚点、安全区与多平台（特别是微信小游戏）的屏幕适配规范。<br>
+  👉 <span style="color:var(--accent)">提示：在“分类总览”中点击任意卡片，可直接跳转至该控件的详细参数说明表格！</span>
 </div>
 
 <div class="toc">
@@ -99,8 +108,8 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
     <li><a href="#sec1">UMG 常用控件分类总览（图鉴）</a></li>
     <li><a href="#sec2">基础图形与交互（Image & Button）</a></li>
     <li><a href="#sec3">文本双雄（LGText 与 Rich Text）</a></li>
-    <li><a href="#sec4">数据展示（滑条、进度条、组合框）</a></li>
-    <li><a href="#sec5">布局容器（水平框/垂直框/尺寸框/切换器）</a></li>
+    <li><a href="#sec4">数据展示（滑条、进度条、组合框、输入框）</a></li>
+    <li><a href="#sec5">布局容器（安全区/尺寸框/切换器/排队框）</a></li>
     <li><a href="#sec6">高级列表视图（List View / Tile View）</a></li>
     <li><a href="#sec7">通用核心属性（可见性与变换）</a></li>
     <li><a href="#sec8">核心实操：锚点、对齐与微信小游戏适配规范</a></li>
@@ -109,33 +118,38 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
 
 <!-- 章节 1 -->
 <div class="section" id="sec1">
-  <h2>🗂️ 1. UMG 常用控件分类总览</h2>
-  <p>拼接界面前，先熟悉我们工具箱里的各种“积木”。以下是我们项目最常使用到的核心控件类型：</p>
+  <h2>🗂️ 1. UMG 常用控件分类总览 (点击卡片直达参数讲解)</h2>
   
   <h3>🔹 基础与交互控件 (Common)</h3>
   <div class="widget-gallery">
-    <div class="widget-card"><div class="widget-icon">🖼️</div><div class="widget-info"><h5>Image (图像)</h5><p>显示背景、图标及九宫格</p></div></div>
-    <div class="widget-card"><div class="widget-icon">👆</div><div class="widget-info"><h5>Button (按钮)</h5><p>提供点击与悬停状态切换</p></div></div>
-    <div class="widget-card"><div class="widget-icon">🔤</div><div class="widget-info"><h5>LGText (项目文本)</h5><p>项目定制标准文本，支持多语言</p></div></div>
-    <div class="widget-card"><div class="widget-icon">📝</div><div class="widget-info"><h5>Rich Text (富文本)</h5><p>图文混排，多彩色标签文本</p></div></div>
+    <a href="#w-image" class="widget-card"><div class="widget-icon">🖼️</div><div class="widget-info"><h5>Image (图像)</h5><p>显示背景、图标及九宫格</p></div></a>
+    <a href="#w-button" class="widget-card"><div class="widget-icon">👆</div><div class="widget-info"><h5>Button (按钮)</h5><p>提供点击与悬停状态切换</p></div></a>
+    <a href="#w-lgtext" class="widget-card"><div class="widget-icon">🔤</div><div class="widget-info"><h5>LGText (项目文本)</h5><p>项目定制文本，支持多语言</p></div></a>
+    <a href="#w-richtext" class="widget-card"><div class="widget-icon">📝</div><div class="widget-info"><h5>Rich Text (富文本)</h5><p>图文混排，多彩色标签文本</p></div></a>
   </div>
 
   <h3>🔹 数据流与表单控件 (Data & Forms)</h3>
   <div class="widget-gallery">
-    <div class="widget-card"><div class="widget-icon">🎚️</div><div class="widget-info"><h5>Slider (滑条)</h5><p>数值拖动调整（如音量控制）</p></div></div>
-    <div class="widget-card"><div class="widget-icon">🔋</div><div class="widget-info"><h5>Progress Bar</h5><p>进度条（如血条、经验槽）</p></div></div>
-    <div class="widget-card"><div class="widget-icon">🔽</div><div class="widget-info"><h5>ComboBox (组合框)</h5><p>下拉菜单列表选择</p></div></div>
-    <div class="widget-card"><div class="widget-icon">⌨️</div><div class="widget-info"><h5>Editable Text</h5><p>允许玩家输入文字或密码</p></div></div>
+    <a href="#w-slider" class="widget-card"><div class="widget-icon">🎚️</div><div class="widget-info"><h5>Slider (滑条)</h5><p>数值拖动调整（如音量控制）</p></div></a>
+    <a href="#w-progress" class="widget-card"><div class="widget-icon">🔋</div><div class="widget-info"><h5>Progress Bar</h5><p>进度条（如血条、经验槽）</p></div></a>
+    <a href="#w-combo" class="widget-card"><div class="widget-icon">🔽</div><div class="widget-info"><h5>ComboBox (组合框)</h5><p>下拉菜单列表选择</p></div></a>
+    <a href="#w-editable" class="widget-card"><div class="widget-icon">⌨️</div><div class="widget-info"><h5>Editable Text</h5><p>允许玩家输入文字或密码</p></div></a>
   </div>
 
   <h3>🔹 布局与容器面板 (Panels)</h3>
   <div class="widget-gallery">
-    <div class="widget-card"><div class="widget-icon">🥞</div><div class="widget-info"><h5>Overlay (覆层)</h5><p>将子节点层叠摆放，性能极佳</p></div></div>
-    <div class="widget-card"><div class="widget-icon">🛡️</div><div class="widget-info"><h5>Safe Zone (安全区)</h5><p>防止刘海屏与微信胶囊遮挡UI</p></div></div>
-    <div class="widget-card"><div class="widget-icon">🗂️</div><div class="widget-info"><h5>Widget Switcher</h5><p>控件切换器，用于页签切换</p></div></div>
-    <div class="widget-card"><div class="widget-icon">📏</div><div class="widget-info"><h5>Size Box (尺寸框)</h5><p>强制覆写控件的宽高尺寸</p></div></div>
-    <div class="widget-card"><div class="widget-icon">⏸️</div><div class="widget-info"><h5>Horizontal Box</h5><p>水平框，子节点从左到右排队</p></div></div>
-    <div class="widget-card"><div class="widget-icon">⏬</div><div class="widget-info"><h5>Vertical Box</h5><p>垂直框，子节点从上到下排队</p></div></div>
+    <a href="#w-overlay" class="widget-card"><div class="widget-icon">🥞</div><div class="widget-info"><h5>Overlay (覆层)</h5><p>将子节点层叠摆放，性能极佳</p></div></a>
+    <a href="#w-safezone" class="widget-card"><div class="widget-icon">🛡️</div><div class="widget-info"><h5>Safe Zone (安全区)</h5><p>防止刘海屏与微信胶囊遮挡</p></div></a>
+    <a href="#w-switcher" class="widget-card"><div class="widget-icon">🗂️</div><div class="widget-info"><h5>Widget Switcher</h5><p>控件切换器，用于页签切换</p></div></a>
+    <a href="#w-sizebox" class="widget-card"><div class="widget-icon">📏</div><div class="widget-info"><h5>Size Box (尺寸框)</h5><p>强制覆写控件的宽高尺寸</p></div></a>
+    <a href="#w-hvbox" class="widget-card"><div class="widget-icon">⏸️</div><div class="widget-info"><h5>Horizontal Box</h5><p>水平框，子节点向右自动排队</p></div></a>
+    <a href="#w-hvbox" class="widget-card"><div class="widget-icon">⏬</div><div class="widget-info"><h5>Vertical Box</h5><p>垂直框，子节点向下自动排队</p></div></a>
+  </div>
+
+  <h3>🔹 高级列表与滚动 (Lists)</h3>
+  <div class="widget-gallery">
+    <a href="#w-listview" class="widget-card"><div class="widget-icon">♾️</div><div class="widget-info"><h5>List View (列表)</h5><p>高性能单列向下复用滚动</p></div></a>
+    <a href="#w-tileview" class="widget-card"><div class="widget-icon">🔲</div><div class="widget-info"><h5>Tile View (瓦片)</h5><p>高性能多列网格(背包)滚动</p></div></a>
   </div>
 </div>
 
@@ -143,7 +157,10 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
 <div class="section" id="sec2">
   <h2>🛠️ 2. 基础图形与交互（Image & Button）</h2>
 
-  <h3>2.1 图像控件 (Image)</h3>
+  <h3 id="w-image">2.1 图像控件 (Image)</h3>
+  <p><strong>💡 核心作用：</strong> 界面中最基础的视觉元素，用于渲染一切位图贴图。<br>
+  <strong>🎯 适用场景：</strong> 纯色背景底板、技能图标、带圆角的九宫格弹窗框、装饰性花纹。</p>
+
   <div class="explain-grid">
     <div class="explain-row">
       <div class="explain-ui-part">
@@ -156,263 +173,250 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
               <div class="ue-ui-row"><div class="ue-ui-label">Margin (边界)</div><div class="ue-ui-val blue-edge">0.25</div></div>
             </div>
           </div>
-          <div class="ue-ui-section">
-            <div class="ue-ui-sec-title">▼ 颜色和不透明度</div>
-            <div class="ue-ui-row"><div class="ue-ui-label">Tint (色相)</div><div class="ue-ui-val" style="background:#fff;border-radius:2px;border:1px solid #777;"></div></div>
-            <div class="ue-highlight-box">
-              <div class="ue-ui-row"><div class="ue-ui-label">A (Alpha) 不透明度</div><div class="ue-ui-val blue-edge">0.5</div></div>
-            </div>
-          </div>
         </div>
       </div>
       <div class="explain-arrow">➔</div>
       <div class="explain-text-part">
         <p><strong>绘制为 (Draw As) —— 九宫格核心！</strong><br>
-        如果是带圆角的弹窗底板，拉伸会变形。必须将 <code>Draw As</code> 设为 <strong>盒体 (Box)</strong>，并将 <code>Margin</code> 设为图片圆角的安全百分比（如 0.25，代表保护四周 25% 不被拉伸）。</p>
-        <p><strong>A (Alpha) 不透明度</strong>：0 表示 0%（全透明），1 表示 100%（全实色）。</p>
-        <p><strong>【即时预览】</strong>：调节颜色、尺寸和九宫格参数时，视口中心会立刻实时刷新变化。</p>
+        做带圆角的弹窗底板时，拉伸会变形。必须将 <code>Draw As</code> 设为 <strong>盒体 (Box)</strong>，并将 <code>Margin</code> 设为图片圆角的安全百分比（如 0.25，代表保护四周 25% 不被拉伸）。</p>
       </div>
     </div>
   </div>
 
-  <h3>2.2 按钮控件 (Button)</h3>
-  <div class="explain-grid">
-    <div class="explain-row">
-      <div class="explain-ui-part">
-        <div class="ue-ui-box">
-          <div class="ue-ui-section">
-            <div class="ue-ui-sec-title">▼ 样式 (Style)</div>
-            <div class="ue-ui-row"><div class="ue-ui-label">▶ 普通 (Normal)</div><div class="ue-ui-val">Btn_Base</div></div>
-            <div class="ue-ui-row"><div class="ue-ui-label">▶ 已悬停 (Hovered)</div><div class="ue-ui-val">Btn_Hover</div></div>
-            <div class="ue-highlight-box">
-              <div class="ue-ui-row"><div class="ue-ui-label" style="font-weight:bold;color:var(--accent)">▶ 已按压 (Pressed)</div><div class="ue-ui-val">Btn_Press</div></div>
-              <div class="ue-ui-row"><div class="ue-ui-label">▶ 已禁用 (Disabled)</div><div class="ue-ui-val">Btn_Base</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="explain-arrow">➔</div>
-      <div class="explain-text-part">
-        <p>分别对应按钮静止、鼠标放上、点击瞬间和不可用时的四张切图。</p>
-        <span class="highlight-text">【避坑注意】：如果美术没有给专门的按压状态图，务必在这四个状态里填入同一张图！绝对不可以留空（None），否则点击瞬间会变成默认的丑陋白色方块！</span>
-        <p><strong>【即时预览】</strong>：按钮的状态图在编辑器中无法直接预览点击效果，需要点击引擎上方“播放”运行后才能看到点击反馈。</p>
-      </div>
-    </div>
-  </div>
+  <div class="param-title">右侧面板详细参数清单</div>
+  <table>
+    <tr><th>面板分组</th><th>具体参数名</th><th>效果与如何调节</th><th>即时预览</th></tr>
+    <tr><td rowspan="4">外观 (Appearance)</td><td><strong>Brush -> 图像 (Image)</strong></td><td>选择美术导入的纹理切图资源。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>绘制为 (Draw As)</strong></td><td><strong>盒体 (Box)</strong>: 必须配合 Margin 使用（做九宫格不拉伸四角）。<br><strong>图像 (Image)</strong>: 默认拉伸。<br><strong>无 (None)</strong>: 空白不渲染。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>边界 (Margin)</strong></td><td>只有在 <code>Draw As = Box</code> 时有效。通常取值 0.1~0.4，代表保护图片四边多大比例不被拉伸。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>图像大小 (Image Size)</strong></td><td>原图的物理宽高参考值，通常不需要在这里修改，而是靠布局插槽改尺寸。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td rowspan="2">颜色和不透明度</td><td><strong>Tint (色相)</strong></td><td>纯白(1.0, 1.0, 1.0)代表原图颜色。通过修改 Tint 可以给白色贴图染色。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>A (Alpha) 不透明度</strong></td><td>0 表示全透明看不见，1 表示全实色。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+  </table>
+
+
+  <h3 id="w-button">2.2 按钮控件 (Button)</h3>
+  <p><strong>💡 核心作用：</strong> 提供给玩家点击交互的载体。<br>
+  <strong>🎯 适用场景：</strong> 确认/取消按键、关闭叉叉、技能释放图标。</p>
+
+  <div class="param-title">右侧面板详细参数清单</div>
+  <table>
+    <tr><th>面板分组</th><th>具体参数名</th><th>效果与如何调节</th><th>即时预览</th></tr>
+    <tr><td rowspan="4">样式 (Style)</td><td><strong>普通 (Normal)</strong></td><td>按钮静止状态下的图片或颜色。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>已悬停 (Hovered)</strong></td><td>鼠标移动到上方时的图片（常用于PC端）。移动端可不管。</td><td><span class="badge-no">❌ 需播放运行</span></td></tr>
+    <tr><td><strong>已按压 (Pressed)</strong></td><td>点击瞬间的图片。<strong>【必填项】若无点击图，务必将 Normal 图贴进来，绝不可留空，否则点击时闪瞎眼白块！</strong></td><td><span class="badge-no">❌ 需播放运行</span></td></tr>
+    <tr><td><strong>已禁用 (Disabled)</strong></td><td>按钮设为不可用时的灰化图片。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td rowspan="2">交互 (Interaction)</td><td><strong>可聚焦 (Is Focusable)</strong></td><td>【避坑】PC/主机游戏用手柄才需勾选。纯鼠标或手机游戏<strong>强烈建议取消勾选</strong>，否则点击后按钮周围会有一圈虚线框！</td><td><span class="badge-no">❌ 需播放运行</span></td></tr>
+    <tr><td><strong>点击方法 (Click Method)</strong></td><td>默认是 Down And Up（按下并抬起才算点击成功），符合大部分人类直觉。</td><td><span class="badge-no">❌ 需播放运行</span></td></tr>
+  </table>
 </div>
 
 <!-- 章节 3 -->
 <div class="section" id="sec3">
-  <h2>🔤 3. 文本双雄（LGText 与 Rich Text）对比详解</h2>
+  <h2>🔤 3. 文本双雄（LGText 与 Rich Text）</h2>
 
-  <div class="vs-grid">
-    <div class="vs-card">
-      <h4>🔤 LGText (项目定制文本)</h4>
-      <p>替代 UE 默认 Text 的首选。做了本地化多语言包装和性能优化。</p>
-      <ul>
-        <li><strong>面板核心参数：</strong>
-          <ul>
-            <li><code>Text (文本)</code>：填入你要显示的默认字。</li>
-            <li><code>Font (字体)</code>：选择字库及 <strong>Size (字号大小)</strong>。</li>
-            <li><code>Color (颜色)</code>：改变字体颜色。</li>
-            <li><code>Shadow Offset</code>：字体的阴影偏移量（X/Y 设为 1 则有右下角阴影）。</li>
-            <li><code>Justification (对齐)</code>：居左、居中、居右对齐。</li>
-          </ul>
-        </li>
-        <li><strong>适用场景：</strong> 标题、按钮文案、单色属性数值。</li>
-      </ul>
-    </div>
-    <div class="vs-card">
-      <h4>📝 Rich Text Block (富文本)</h4>
-      <p>通过 HTML 标签驱动的图文混排神器。</p>
-      <ul>
-        <li><strong>面板核心参数：</strong>
-          <ul>
-            <li><strong style="color:var(--accent)">Text Style Set</strong>：必须！要在这里挂载一个数据表，定义好红色标签、黄色标签。</li>
-            <li><code>Text (文本)</code>：支持写标签，例如：<br>
-            <code>你获得了 &lt;Red&gt;100&lt;/&gt; 点伤害！</code><br>
-            <code>花费 &lt;img id="coin"/&gt; 500 购买</code>。</li>
-          </ul>
-        </li>
-        <li><strong>适用场景：</strong> 聊天频道（带表情）、多色彩的物品掉落提示、技能描述（重点字加粗标红）。</li>
-      </ul>
-    </div>
-  </div>
-  <p><strong>【即时预览】</strong>：无论哪种文本，修改字号、颜色、打出富文本标签后，编辑器均会<strong>100%立刻渲染刷新</strong>。</p>
+  <h3 id="w-lgtext">3.1 LGText (项目定制文本)</h3>
+  <p><strong>💡 核心作用：</strong> 替代 UE 默认 Text 的首选，底层已集成我们项目的多语言(Localization)规范。<br>
+  <strong>🎯 适用场景：</strong> 各种界面标题、按钮上的文案、数值、玩家名字、单色提示语。</p>
+
+  <div class="param-title">右侧面板详细参数清单</div>
+  <table>
+    <tr><th>面板分组</th><th>具体参数名</th><th>效果与如何调节</th><th>即时预览</th></tr>
+    <tr><td rowspan="2">内容 (Content)</td><td><strong>Text (文本)</strong></td><td>直接填入你要显示的默认字。多语言版本可能需要填 ID 键值。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Text ID</strong></td><td>（如有）项目组专属配置，用于调用配表里的多语言化文本。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td rowspan="5">外观 (Appearance)<br>-> Font</td><td><strong>Font Family (字库)</strong></td><td>选择游戏规定的字体资产。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Size (字号大小)</strong></td><td>文字的高低像素。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Letter Spacing (字间距)</strong></td><td>拉宽或缩小字符间的距离。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Outline Settings (描边)</strong></td><td>给文字加一圈外轮廓。可以设置描边的粗细(Size)和颜色(Color)。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Color (颜色)</strong></td><td>修改文字的填充颜色。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td rowspan="2">外观 (Appearance)<br>-> Shadow</td><td><strong>Shadow Offset (阴影偏移)</strong></td><td>字体的阴影位置。比如 X:1 Y:1 会在文字右下方垫一层阴影，提升层次感。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Shadow Color (阴影色)</strong></td><td>通常用纯黑，透明度(A)开到 0.8 左右。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td>对齐 (Justification)</td><td><strong>Justification</strong></td><td>控制文字在当前包围盒内是 居左、居中、居右 还是 两端对齐。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+  </table>
+
+  <h3 id="w-richtext">3.2 Rich Text Block (富文本)</h3>
+  <p><strong>💡 核心作用：</strong> 通过 HTML 样式的标签，让一句话里包含多种颜色、加粗，甚至夹杂图片表情。<br>
+  <strong>🎯 适用场景：</strong> 聊天频道文字（带表情包）、掉落提示（<code>获得 <Red>倚天剑</> x 1</code>）、包含特殊词眼高亮的技能描述。</p>
+
+  <div class="param-title">右侧面板详细参数清单</div>
+  <table>
+    <tr><th>面板分组</th><th>具体参数名</th><th>效果与如何调节</th><th>即时预览</th></tr>
+    <tr><td rowspan="1">内容 (Content)</td><td><strong>Text (文本)</strong></td><td>支持写标签，例如：<code>受到 &lt;Red&gt;100&lt;/&gt; 点伤害！</code>，它会自动解析对应的标签。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td rowspan="2">外观 (Appearance)</td><td><strong>Text Style Set (文本样式集)</strong></td><td><strong>【必须填项】</strong>！要在这里挂载美术/策划配好的数据表(Data Table)，里面定义了 <code>&lt;Red&gt;</code> 对应红色，<code>&lt;Gold&gt;</code> 对应金色，否则标签会直接显示为纯文本源码。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Decorator Classes (装饰器类)</strong></td><td>如果你要在文字里插入表情包图标（如 <code>&lt;img id="coin"/&gt;</code>），必须在这里添加项目里做好的 Image Decorator 蓝图类。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td>行为 (Behavior)</td><td><strong>Auto Wrap Text (自动换行)</strong></td><td>强烈建议勾选！富文本通常很长，勾选后遇到边界会自动换行往下排。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+  </table>
 </div>
 
 <!-- 章节 4 -->
 <div class="section" id="sec4">
-  <h2>🎛️ 4. 数据展示控件（滑条、进度条、组合框）</h2>
+  <h2>🎛️ 4. 数据展示控件（滑条、进度条、组合框、输入框）</h2>
 
-  <div class="explain-grid">
-    <!-- Progress Bar & Slider -->
-    <div class="explain-row">
-      <div class="explain-ui-part">
-        <div class="ue-ui-box">
-          <div class="ue-ui-section">
-            <div class="ue-ui-sec-title">▼ 进度条 (Progress Bar) / 滑条 (Slider)</div>
-            <div class="ue-highlight-box">
-              <div class="ue-ui-row"><div class="ue-ui-label">Percent / Value</div><div class="ue-ui-val blue-edge">0.65</div></div>
-            </div>
-            <div class="ue-ui-row"><div class="ue-ui-label">Fill Color (填充色)</div><div class="ue-ui-val" style="background:#e11d48"></div></div>
-            <div class="ue-ui-row"><div class="ue-ui-label">Bar Image (底图)</div><div class="ue-ui-val">T_HealthBar</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="explain-arrow">➔</div>
-      <div class="explain-text-part">
-        <p><strong>Percent / Value (当前数值)</strong>：核心参数！取值范围固定在 <strong>0.0 ~ 1.0</strong> 之间（代表 0% 到 100%）。比如填入 0.65，进度条就会只满 65%。修改此值，画面立刻刷新。</p>
-        <p><strong>滑条专属特性</strong>：滑条比进度条多一个 <code>Thumb Image</code> (滑块图标)，就是玩家按住拖动的那个按钮。</p>
-        <p><strong>【避坑注意】</strong>：如果在程序中血量是 500 / 1000，必须在代码里除一下变成 0.5 传给 UI，不能直接把 500 传给进度条！</p>
-      </div>
-    </div>
+  <h3 id="w-slider">4.1 Slider (滑条)</h3>
+  <p><strong>💡 核心作用：</strong> 提供一段有明确最小、最大值的轨道，让玩家用手指/鼠标拖拽定值。<br>
+  <strong>🎯 适用场景：</strong> 系统设置里的音量调节、亮度调节，或者商城里的购买数量拖动。</p>
 
-    <!-- ComboBox -->
-    <div class="explain-row">
-      <div class="explain-ui-part">
-        <div class="ue-ui-box">
-          <div class="ue-ui-section">
-            <div class="ue-ui-sec-title">▼ 组合框 (ComboBox String)</div>
-            <div class="ue-highlight-box">
-              <div class="ue-ui-row"><div class="ue-ui-label">Default Options</div><div class="ue-ui-val blue-edge">3 个数组元素</div></div>
-              <div class="ue-ui-row"><div class="ue-ui-label">Selected Option</div><div class="ue-ui-val blue-edge">"高画质"</div></div>
-            </div>
-            <div class="ue-ui-row"><div class="ue-ui-label">Max List Height</div><div class="ue-ui-val">200.0</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="explain-arrow">➔</div>
-      <div class="explain-text-part">
-        <p><strong>下拉菜单核心逻辑：</strong></p>
-        <p><strong>Default Options</strong>：列表选项的初始内容（例如：低、中、高画质）。</p>
-        <p><strong>Selected Option</strong>：当前框内正在显示的选中项文字。</p>
-        <p><strong>【适用场景与坑点】</strong>：主要用于游戏设置界面的下拉框。<strong>难点在于：</strong>ComboBox 弹出的下拉菜单（List）的样式极难修改，如果对美术要求极高，通常不建议用自带的组合框，而是用按钮+弹出另一个面板来自定义制作。</p>
-      </div>
-    </div>
-  </div>
+  <div class="param-title">右侧面板详细参数清单</div>
+  <table>
+    <tr><th>面板分组</th><th>具体参数名</th><th>效果与如何调节</th><th>即时预览</th></tr>
+    <tr><td rowspan="4">外观 (Appearance)</td><td><strong>Value (当前值)</strong></td><td>默认滑块停在什么位置。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Min Value / Max Value</strong></td><td>控制滑轨的最左侧代表什么数值（比如 0），最右侧代表什么数值（比如 100）。</td><td><span class="badge-no">❌ 仅逻辑有效</span></td></tr>
+    <tr><td><strong>Widget Style (样式)</strong></td><td>核心换皮区。在这里替换 <code>Normal Bar Image (滑轨底图)</code> 和 <code>Normal Thumb Image (滑块抓手图)</code>。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Orientation (方向)</strong></td><td>可设为 Horizontal(水平拖动) 或 Vertical(上下垂直拖动)。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td>行为 (Behavior)</td><td><strong>Step Size (步长)</strong></td><td>拖动时每次跳跃多少值（比如设为 1，那就只能拖出整数；设为 0.1 则是小数点顺滑）。</td><td><span class="badge-no">❌ 需播放运行</span></td></tr>
+  </table>
+
+  <h3 id="w-progress">4.2 Progress Bar (进度条)</h3>
+  <p><strong>💡 核心作用：</strong> 将数值转化为图形化长度展示给玩家看。<br>
+  <strong>🎯 适用场景：</strong> 角色血条、经验槽、下载加载进度、体力值。</p>
+
+  <div class="param-title">右侧面板详细参数清单</div>
+  <table>
+    <tr><th>面板分组</th><th>具体参数名</th><th>效果与如何调节</th><th>即时预览</th></tr>
+    <tr><td rowspan="1">进度 (Progress)</td><td><strong>Percent (百分比)</strong></td><td><strong>核心参数！</strong>取值范围<strong>永远被锁死在 0.0 ~ 1.0 之间</strong>。如果血量是 500/1000，必须在代码里除一下变成 0.5 传给 UI。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td rowspan="3">外观 (Appearance)</td><td><strong>Fill Color and Opacity</strong></td><td>进度条“涨起来”的那部分的颜色（比如红色代表血，蓝色代表蓝量）。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Style (样式)</strong></td><td>在这里替换 <code>Background Image (空掉时候的底槽图)</code> 和 <code>Fill Image (实心血条图)</code>。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Bar Fill Type (填充方式)</strong></td><td>可以选择 Left to Right (从左涨到右)、Right to Left (右到左，常用于右侧敌人的血条)、Fill from Center (从中间向两边张开)。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+  </table>
+
+  <h3 id="w-combo">4.3 ComboBox (组合框)</h3>
+  <p><strong>💡 核心作用：</strong> 提供一个折叠的选项菜单，点击后弹出列表供玩家点选。<br>
+  <strong>🎯 适用场景：</strong> 设置界面的画质选项（低、中、高）、分辨率选择。<br>
+  <span class="highlight-text">【避坑注意】：ComboBox 自带的弹出列表样式修改极其困难（甚至需要改引擎C++层），因此对 UI 还原度要求高的高级游戏通常不用它，而是自己用按钮做假的弹出层！</span></p>
+
+  <div class="param-title">右侧面板详细参数清单</div>
+  <table>
+    <tr><th>面板分组</th><th>具体参数名</th><th>效果与如何调节</th><th>即时预览</th></tr>
+    <tr><td rowspan="2">内容 (Content)</td><td><strong>Default Options</strong></td><td>点击加号，往里面填入基础数据（如 "低画质", "中画质", "高画质"）。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Selected Option</strong></td><td>输入其中一个选项名字，代表默认显示选中的是哪一项。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td rowspan="2">外观 (Appearance)</td><td><strong>Max List Height</strong></td><td>点开下拉列表后，最大允许向下弹多高（超过就出滚动条）。</td><td><span class="badge-no">❌ 需播放运行</span></td></tr>
+    <tr><td><strong>Has Down Arrow</strong></td><td>是否显示那个难看的倒三角箭头，可以去掉。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+  </table>
+
+  <h3 id="w-editable">4.4 Editable Text (可编辑文本 / 输入框)</h3>
+  <p><strong>💡 核心作用：</strong> 呼出虚拟键盘/捕获物理键盘，让玩家在界面上打字。<br>
+  <strong>🎯 适用场景：</strong> 创建角色取名字、聊天框、兑换码输入栏、输入密码。</p>
+
+  <div class="param-title">右侧面板详细参数清单</div>
+  <table>
+    <tr><th>面板分组</th><th>具体参数名</th><th>效果与如何调节</th><th>即时预览</th></tr>
+    <tr><td rowspan="3">内容 (Content)</td><td><strong>Text (文本)</strong></td><td>输入框里已经存在的实体字。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Hint Text (提示字)</strong></td><td>输入框为空时，显示的灰色指引字（如“请输入兑换码...”），一旦玩家打字就会消失。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Is Password (是密码)</strong></td><td>勾选后，玩家打进去的任何字都会被变成星号 <code>***</code>。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td rowspan="1">行为 (Behavior)</td><td><strong>Is Read Only (只读)</strong></td><td>勾选后，长得像输入框，但点击无法呼出键盘，只能看不能改。</td><td><span class="badge-no">❌ 需播放运行</span></td></tr>
+  </table>
 </div>
 
 <!-- 章节 5 -->
 <div class="section" id="sec5">
-  <h2>📦 5. 布局容器面板（尺寸框、安全区、切换器等）</h2>
+  <h2>📦 5. 布局容器面板（安全区/尺寸框/切换器/排队框）</h2>
 
-  <h3>5.1 尺寸框 (Size Box) —— 强制覆写尺寸的神器</h3>
-  <div class="explain-grid">
-    <div class="explain-row">
-      <div class="explain-ui-part">
-        <div class="ue-ui-box">
-          <div class="ue-ui-section">
-            <div class="ue-ui-sec-title">▼ 子布局 (Child Layout)</div>
-            <div class="ue-highlight-box">
-              <div class="ue-ui-row"><div class="ue-ui-label" style="color:var(--text);">☑ Width Override</div><div class="ue-ui-val blue-edge">120.0</div></div>
-              <div class="ue-ui-row"><div class="ue-ui-label" style="color:var(--text);">☑ Height Override</div><div class="ue-ui-val blue-edge">50.0</div></div>
-            </div>
-            <div class="ue-ui-row"><div class="ue-ui-label">☐ Min Desired Width</div><div class="ue-ui-val">0.0</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="explain-arrow">➔</div>
-      <div class="explain-text-part">
-        <p><strong>使用场景：</strong>当一个控件（比如 Button）放在 Horizontal Box 里时，它失去了调节大小的权利，只能被动拉伸。如果我想强行让这个按钮就是 120x50 像素怎么办？</p>
-        <p><strong>解法：</strong>在 Button 外面包裹一层 <strong>Size Box (尺寸框)</strong>，并勾选 <code>Width/Height Override</code>。尺寸框就像一个钢铁牢笼，强行把里面的控件框死在设定好的尺寸里。修改后立刻生效。</p>
-      </div>
-    </div>
-  </div>
+  <h3 id="w-overlay">5.1 Overlay (覆层)</h3>
+  <p><strong>💡 核心作用：</strong> 将多个节点像汉堡包一样重叠压在一起，性能极高。<br>
+  <strong>🎯 适用场景：</strong> 所有“底图+内容”的组合（例如：头像底板+英雄头像图+发光边框+右下角等级数字）。</p>
+  
+  <div class="param-title">子节点放入 Overlay 后的专属插槽(Slot)参数清单</div>
+  <table>
+    <tr><th>插槽参数</th><th>作用与调整方式</th></tr>
+    <tr><td><strong>Padding (边界)</strong></td><td>展开有左右上下。控制该节点距离父容器边缘的缝隙。</td></tr>
+    <tr><td><strong>水平对齐 (H-Align)</strong></td><td>选居左、居中、居右，或最右边的“拉伸 (Fill)”。选拉伸会让控件填满整个宽。</td></tr>
+    <tr><td><strong>垂直对齐 (V-Align)</strong></td><td>选居上、居中、居下，或最右边的“拉伸 (Fill)”。</td></tr>
+  </table>
 
-  <h3>5.2 Widget Switcher (控件切换器) —— 抽屉式翻页</h3>
-  <div class="explain-grid">
-    <div class="explain-row">
-      <div class="explain-ui-part">
-        <div class="ue-ui-box">
-          <div class="ue-ui-section">
-            <div class="ue-ui-sec-title">▼ 切换器 (Switcher)</div>
-            <div class="ue-highlight-box">
-              <div class="ue-ui-row"><div class="ue-ui-label">Active Widget Index</div><div class="ue-ui-val blue-edge">1</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="explain-arrow">➔</div>
-      <div class="explain-text-part">
-        <p><strong>核心特性：</strong>你可以把十个界面板子塞进切换器里，但<strong>它同一时间永远只显示一个！</strong></p>
-        <p><strong>Active Widget Index (激活索引)</strong>：0 代表显示第一个子节点，1 代表显示第二个节点。在编辑器中修改数字，<strong>能立刻看到翻页效果</strong>。</p>
-        <p><strong>使用场景：</strong>商城顶部的“武器/防具/消耗品”页签切换。点页签时让代码改变这个 Index 即可瞬间切面板，无需创建和销毁，性能优秀。</p>
-      </div>
-    </div>
-  </div>
+  <h3 id="w-safezone">5.2 Safe Zone (安全区)</h3>
+  <p><strong>💡 核心作用：</strong> 获取设备底层 OS 的硬件信息，自动挤压内部控件，防止 UI 被物理屏幕遮挡。<br>
+  <strong>🎯 适用场景：</strong> 作为整个 UMG 面板“背景层之上，内容层之下”的总包裹容器。</p>
+  
+  <div class="param-title">右侧面板详细参数清单</div>
+  <table>
+    <tr><th>面板分组</th><th>具体参数名</th><th>效果与如何调节</th></tr>
+    <tr><td rowspan="4">安全区 (Safe Zone)</td><td><strong>Pad Left (保护左边)</strong></td><td>勾选后，如果手机左侧有刘海，左边会自动留出缝隙。</td></tr>
+    <tr><td><strong>Pad Right (保护右边)</strong></td><td>【微信小游戏极度重要】右侧必定有微信系统的胶囊按键，必须勾选此项，以防右上角的关闭按钮被胶囊按键盖住点不到！</td></tr>
+    <tr><td><strong>Pad Top / Bottom</strong></td><td>保护顶部状态栏 / 底部圆角手势区域。</td></tr>
+  </table>
 
-  <h3>5.3 水平框 (H-Box) / 垂直框 (V-Box) / 安全区 (Safe Zone) 对比</h3>
-  <div class="vs-grid">
-    <div class="vs-card">
-      <h4>⏸️ 水平/垂直框</h4>
-      <p><strong>排队神器</strong>。把控件丢进去，它们就会自动向右或向下排列。<br>
-      <strong>核心参数：</strong>在子节点的插槽中选择 <strong>Auto(按内容尺寸)</strong> 还是 <strong>Fill(填满剩余全部空间)</strong>。通过 Padding 控制兄弟间的间隙。</p>
-    </div>
-    <div class="vs-card">
-      <h4>🛡️ Safe Zone (安全区)</h4>
-      <p><strong>全面屏守护者</strong>。勾选 Pad Left/Right/Top/Bottom。<br>
-      <strong>核心场景：</strong>移动端设备有“刘海”、挖孔、圆角。把整个界面放在 Safe Zone 里，系统会自动把 UI 往里挤，防止按钮被屏幕黑边遮挡。</p>
-    </div>
-  </div>
+  <h3 id="w-switcher">5.3 Widget Switcher (控件切换器)</h3>
+  <p><strong>💡 核心作用：</strong> 抽屉式翻页。可以往里面塞 N 个子面板，但同一时间永远只渲染并显示 1 个。<br>
+  <strong>🎯 适用场景：</strong> 游戏主界面底部导航（英雄面板 / 抽卡面板 / 商城面板 的无缝切换）。</p>
+  
+  <div class="param-title">右侧面板详细参数清单</div>
+  <table>
+    <tr><th>面板分组</th><th>具体参数名</th><th>效果与如何调节</th><th>即时预览</th></tr>
+    <tr><td rowspan="1">切换器 (Switcher)</td><td><strong>Active Widget Index (激活索引)</strong></td><td>填入数字。<code>0</code> 代表显示放在它下面的第1个面板，<code>1</code> 代表显示第2个。在编辑器里更改此数字可立即看切页效果！</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+  </table>
 
+  <h3 id="w-sizebox">5.4 Size Box (尺寸框)</h3>
+  <p><strong>💡 核心作用：</strong> 当控件身处“强制拉伸”或“自动压缩”的父容器中时，给它套上一层无形的钢铁外壳，强制锁死物理大小。<br>
+  <strong>🎯 适用场景：</strong> 放在 Horizontal Box 里自动排队的按钮，想强制规定每个按钮尺寸为 120x50 像素。</p>
+
+  <div class="param-title">右侧面板详细参数清单</div>
+  <table>
+    <tr><th>面板分组</th><th>具体参数名</th><th>效果与如何调节</th><th>即时预览</th></tr>
+    <tr><td rowspan="4">子布局 (Child Layout)</td><td><strong>Width / Height Override</strong></td><td>勾选并填入数值，强制把里面的子节点框死在这个长宽之下（比如 120和50）。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Min Desired Width / Height</strong></td><td>设定最小值（比如最小必须保证 50 宽，如果文字很少也不允许压得更小）。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Max Desired Width / Height</strong></td><td>设定最大值（用于做聊天气泡：文字一直变长气泡跟着拉宽，但最宽不超过 400，超过就换行）。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+  </table>
+
+  <h3 id="w-hvbox">5.5 Horizontal / Vertical Box (水平/垂直排队框)</h3>
+  <p><strong>💡 核心作用：</strong> 扔进里面的所有子节点，自动排队（HBox向右排，VBox向下排），完全不用手动算坐标。<br>
+  <strong>🎯 适用场景：</strong> 左上角从左到右的头像+金币图标+数值列；从上到下罗列的任务目标条目。</p>
+  
+  <div class="param-title">子节点放入 H/V Box 后的专属插槽(Slot)参数清单</div>
+  <table>
+    <tr><th>插槽参数</th><th>作用与调整方式</th></tr>
+    <tr><td><strong>大小 (Size)</strong></td><td><strong>Auto (自动)</strong>：它有多大就占多少排队空间。<br><strong>Fill (填充)</strong>：霸道占座！自动吃掉框里所有剩下的多余空间。</td></tr>
+    <tr><td><strong>Padding (边界)</strong></td><td>用来控制排队的元素之间的空隙。比如在第二个元素设置 Left Padding 10，就能和前一个隔开 10 像素。</td></tr>
+  </table>
 </div>
 
 <!-- 章节 6 -->
 <div class="section" id="sec6">
   <h2>♾️ 6. 高级列表视图（List View / Tile View）</h2>
   <div class="alert alert-yellow">
-    <strong>⚠️ 核心理念：</strong>对于超长列表（如排行榜、背包），决不能用 Scroll Box 无脑塞，会卡死引擎。必须使用对象池复用的 <strong>ListView (单列)</strong> 或 <strong>TileView (九宫格)</strong>。
+    <strong>⚠️ 核心理念：</strong>对于超长列表（如排行榜、背包），决不能用 Scroll Box 无脑塞，会卡死引擎。必须使用对象池复用的 <strong>ListView (单列)</strong> 或 <strong>TileView (九宫格瓦片)</strong>。
   </div>
-  
-  <div class="explain-grid">
-    <div class="explain-row">
-      <div class="explain-ui-part">
-        <div class="ue-ui-box">
-          <div class="ue-ui-section">
-            <div class="ue-ui-sec-title">▼ 列表 / 瓦片列表</div>
-            <div class="ue-highlight-box">
-              <div class="ue-ui-row"><div class="ue-ui-label" style="font-weight:bold;color:var(--accent)">Entry Widget Class</div><div class="ue-ui-val blue-edge">WBP_BagItem ▼</div></div>
-            </div>
-          </div>
-          <div class="ue-ui-section">
-            <div class="ue-ui-sec-title">▼ Tile View 专属参数</div>
-            <div class="ue-ui-row"><div class="ue-ui-label">Entry Height / Width</div><div class="ue-ui-val">100.0 / 100.0</div></div>
-            <div class="ue-ui-row"><div class="ue-ui-label">Tile Alignment</div><div class="ue-ui-val">Left (居左对齐)</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="explain-arrow">➔</div>
-      <div class="explain-text-part">
-        <p><strong>Entry Widget Class (条目类)</strong>：绝不允许手动在列表下拖入子控件！必须在这里指定一个独立的组件蓝图（比如单独画的一个背包格子）。</p>
-        <p><strong>TileView 高/宽</strong>：限制每个方块的大小，系统会根据屏幕宽度自动计算一行能塞几个格子。</p>
-        <p><strong>【即时预览】</strong>：配置好类后，编辑器会自动生成 5 个假占位符填充列表，方便你预览排版（但实际运行是空的，需要代码给数据）。</p>
-      </div>
-    </div>
-  </div>
+
+  <h3 id="w-listview">6.1 List View (列表视图) & <span id="w-tileview">Tile View (瓦片视图)</span></h3>
+  <p><strong>💡 核心作用：</strong> 数据驱动的高性能滚动展示容器。即使有 10000 条数据，引擎也只会渲染屏幕可见的那十几个格子，滑动时不断复用更新。<br>
+  <strong>🎯 适用场景：</strong> 邮件列表、公会成员名单（ListView）；大型物品背包、英雄图鉴九宫格（TileView）。</p>
+
+  <div class="param-title">右侧面板详细参数清单</div>
+  <table>
+    <tr><th>面板分组</th><th>具体参数名</th><th>效果与如何调节</th><th>即时预览</th></tr>
+    <tr><td rowspan="2">列表 (List)</td><td><strong>Entry Widget Class (条目类)</strong></td><td><strong>【唯一生死核心】！</strong>绝不允许手动在列表下挂子节点！必须在这里选定一个事先做好的、实现了 <code>User Object List Entry</code> 接口的蓝图类（比如 WBP_BagItem）。</td><td><span class="badge-yes">✅ 假数据刷新</span></td></tr>
+    <tr><td><strong>Orientation (滚动方向)</strong></td><td>控制列表是上下滑动(Vertical)还是左右滑动(Horizontal)。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td rowspan="3">Tile View 专属</td><td><strong>Entry Height / Width</strong></td><td>由于 TileView 是一行排几个，必须在这里锁死每一个“格子”的绝对物理尺寸（例如 100x100），引擎才能知道一行能塞下几个。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Tile Alignment</strong></td><td>如果最后一行只有 2 个格子不满，控制它们是挤在左边(Left)，居中(Center) 还是分散对齐(Fill)。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+    <tr><td><strong>Tile Wrap / Scroll Dir</strong></td><td>通常瓦片视图都是上下滚动，遇到右边缘换行。</td><td><span class="badge-yes">✅ 立刻刷新</span></td></tr>
+  </table>
 </div>
 
 <!-- 章节 7 -->
 <div class="section" id="sec7">
-  <h2>👁️ 7. 通用核心属性：可见性 (Visibility)</h2>
-  <p>所有控件都有可见性属性，这是 UI 交互的基础：</p>
+  <h2>👁️ 7. 通用核心属性：可见性 (Visibility) 与 变换</h2>
+  <p>所有控件都有可见性和渲染变换属性，这是 UI 交互的基础：</p>
   <table>
     <tr><th>可见性选项</th><th>视觉状态</th><th>点击状态</th><th>性能消耗</th><th>最适用场景</th></tr>
     <tr><td><strong>可见 (Visible)</strong></td><td>👀 看得见</td><td>👆 挡击/可点</td><td>高</td><td>普通可交互按钮、弹窗面板。</td></tr>
     <tr><td><strong>折叠 (Collapsed)</strong></td><td>❌ 看不见</td><td>❌ 彻底消失</td><td><strong>极低</strong></td><td><strong>隐藏UI首选！</strong>完全不计算也不占排队空间。</td></tr>
     <tr><td><strong>隐藏 (Hidden)</strong></td><td>❌ 看不见</td><td>❌ 无法点击</td><td>中</td><td>看不见但仍然占据排队占位空间（占坑）。</td></tr>
     <tr><td><strong>不可见命中测试<br>(Hit Test Invisible)</strong></td><td>👀 看得见</td><td>👻 鼠标穿透</td><td>低</td><td><strong>纯装饰用的背景图！</strong>不挡住下方的按钮。</td></tr>
-    <tr><td><strong>自身不可见命中测试<br>(Self Hit Test Invisible)</strong></td><td>👀 看得见</td><td>👻 自身穿透<br>👆 子可点</td><td>低</td><td><strong>作为父容器（Canvas/Overlay）的最佳选择！</strong></td></tr>
+    <tr><td><strong>自身不可见命中测试<br>(Self Hit Test Invisible)</strong></td><td>👀 看得见</td><td>👻 自身穿透<br>👆 子可点</td><td>低</td><td><strong>作为父容器（Canvas/Overlay/SizeBox等）的最佳选择！</strong></td></tr>
   </table>
   <div class="alert alert-yellow"><strong>避坑指南：</strong>点不动按钮？99%是因为上面盖了张 Visible 的全屏透明图，把它改成 <code>Hit Test Invisible</code>！</div>
+
+  <h3 style="margin-top: 24px;">渲染变换 (Render Transform) 的妙用</h3>
+  <p>当你想让一个按钮往右偏移 10 个像素，是改插槽位置，还是改渲染变换(Translation X)？<br>
+  <strong>规范：</strong> 排版布局请永远用插槽和 Padding。<strong>渲染变换只留给“播放动效（UI Animation）”时使用！</strong> 因为渲染变换不影响底层排版的占位，如果用来拼界面，一旦屏幕拉伸，控件就会出现意想不到的脱节偏移。</p>
 </div>
 
 <!-- 章节 8 -->
 <div class="section" id="sec8">
   <h2>🎯 8. 核心实操：锚点、对齐与多端/小游戏适配规范</h2>
-  <p>在不同分辨率屏幕下保持界面不拉伸，核心就是锚点对齐。尤其是多端游戏和<strong>微信小游戏</strong>（手机屏幕存在大量异形屏），必须遵循严格的拼规范。</p>
+  <p>在不同分辨率屏幕下保持界面不拉伸，核心就是锚点对齐。尤其是多端游戏和<strong>微信小游戏</strong>（手机屏幕存在大量异形屏），必须遵循严格的拼图规范。</p>
   
   <h3>8.1 锚点 (Anchor) 九宫格对照表</h3>
+  <p>锚点决定了控件的“根”扎在屏幕的哪个部位。屏幕拉宽/变高时，控件会死死保持与锚点的距离。</p>
   <div style="display:flex; justify-content:center; margin:30px 0; overflow-x:auto;">
     <div style="background:#1a1c1e; padding:24px; border:1px solid #333; border-radius:8px; display:inline-block; position:relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
       <div style="display:grid; grid-template-columns:repeat(4, 40px); gap:12px;">
@@ -451,31 +455,43 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
   </div>
 
   <h3>8.2 对齐 (Alignment) —— 绝对居中的密码</h3>
-  <p>当你要把弹窗绝对居中时，光把锚点设为“居中”是不够的（那只是以控件的左上角点对齐屏幕中心）。<br>
-  <strong>必须将 <code>Alignment</code> 设为 X: 0.5, Y: 0.5</strong>。这代表用控件自己的正中心点，去贴合锚点。这是所有弹窗类 UI 必须遵守的铁律！</p>
+  <p>当你要把弹窗绝对居中时，光把锚点设为“居中”（九宫格最中间那个）是不够的！因为那只是以控件的左上角点对齐屏幕中心，弹窗还是偏右下。<br>
+  <strong>【核心铁律】必须同时将 <code>Alignment (对齐)</code> 设为 X: 0.5, Y: 0.5</strong>。这代表用控件自己的正中心去贴合锚点。这是所有居中弹窗 UI 必须遵守的铁律！</p>
 
   <h3>8.3 多端与微信小游戏适配专属规范</h3>
   <div class="alert alert-green">
-    <strong>📱 微信小游戏/手游端必须遵循的布局层级树：</strong>
-    <p>由于微信小游戏在各种带鱼屏手机（如 21:9）、异形屏上有严重差异，且<strong>右上角必定有一个不可去掉的“胶囊按钮（更多/关闭）”</strong>，如果乱摆放会导致按键完全点不到。</p>
+    <strong>📱 微信小游戏/手游端必须遵循的层级树：</strong>
+    <p>由于微信小游戏在带鱼屏手机上有严重差异，且<strong>右上角必定有一个不可隐去的“胶囊按钮（更多/关闭）”</strong>，如果乱摆放会导致界面右上角按键完全被微信系统挡死。</p>
   </div>
   
   <p><strong>标准根节点搭建规范范例：</strong></p>
   <pre style="background:var(--panel); padding:16px; border-radius:8px; color:var(--accent); line-height:1.6; font-size:14px; overflow-x:auto;">
 [根容器] Canvas Panel (画板)
- ├── 🖼️ Image [背景大图] 
- │    └─ 规范：锚点选「四边全屏拉伸(大方块)」，Offsets全部归0。无视刘海直接铺满全屏，做视觉延伸。
+ ├── 🖼️ Image [背景大底图] 
+ │    └─ 规范：锚点选「四边全屏拉伸(右下大方块)」，Offsets全部归0。它无视刘海，直接铺满全屏幕作为视觉底盘。
  ├── 🛡️ Safe Zone [安全区] 
- │    ├─ 规范：紧接背景之上，勾选四边Pad，系统会自动挤开微信胶囊和刘海屏幕的黑边。
- │    └─ 🥞 Overlay [全屏覆层] (放在SafeZone里铺满)
- │         ├── 📦 VBox/HBox (各种功能面板内容，绝对安全)
- │         └── 👆 Button [退出/返回按钮] 
- │              └─ 规范：锚点设为右上角。因为有SafeZone保护，绝对不会和微信的胶囊按钮重叠！
+ │    ├─ 规范：紧接背景之上，必须勾选四边Pad，系统会自动挤开微信胶囊和刘海屏幕的黑边。
+ │    └─ 🥞 Overlay [全屏覆层] (放在SafeZone里面，对齐设为四边拉伸满)
+ │         ├── 📦 VBox/HBox (主界面的核心战斗面板、技能，在此内部绝对安全)
+ │         └── 👆 Button [退出/设置/返回按钮] 
+ │              └─ 规范：即使锚点设为右上角，因为有SafeZone保护，绝对会和微信的胶囊按钮错开！
   </pre>
 
 </div>
 
-<div class="doc-footer">📐 游戏项目知识库 · UE5 UMG 拼接实操详细指南 · 全控件深化解析规范版</div>
+<div class="doc-footer">📐 游戏项目知识库 · UE5 UMG 拼接实操详细指南 · 极限参数全解析版</div>
 </div>
+<script>
+// Smooth scroll offset for anchor links to prevent hiding behind top margin
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if(target) {
+            target.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+});
+</script>
 </body>
 </html>
