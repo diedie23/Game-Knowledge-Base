@@ -37,8 +37,8 @@ table.param-table th:nth-child(3) { width: 45%; }
 table.param-table th:nth-child(4) { width: 15%; text-align: center; }
 /* 使用专用 class 而非 nth-child 来控制预览列，避免 rowspan 导致列号偏移 */
 table.param-table td.preview-cell { text-align: center; vertical-align: top; padding-top: 14px; }
-/* 第一列面板分组名在 rowspan 合并时垂直居中 */
-table.param-table td:first-child[rowspan] { vertical-align: middle; }
+/* 第一列面板分组名垂直居中对齐 */
+table.param-table td:first-child { vertical-align: middle !important; }
 
 /* 针对5列通用属性表格的特殊列宽控制，防止最右侧被挤烂 */
 table.five-cols th:nth-child(1) { width: 22%; }
@@ -115,8 +115,8 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 </div>
 
 <div class="alert alert-blue">
-  <strong>📝 导读：</strong>本文档是极深度的 UI 拼接“标准操作字典”。修复并扩充了所有组件（特别是 Button、ScrollBox、Image 等）右侧面板中<strong>每一个层级属性</strong>的作用解析，并优化了表格排版避免文字被挤压换行。英文与中文描述已严格统一。<br>
-  👉 <span style="color:var(--accent)">提示：在“分类总览”中点击任意卡片，可直接跳转至该控件的详细参数说明表格！</span>
+  <strong>📝 导读：</strong>本文档是极深度的 UI 拼接"标准操作字典"。修复并扩充了所有组件（特别是 Button、ScrollBox、Image 等）右侧面板中<strong>每一个层级属性</strong>的作用解析，并优化了表格排版避免文字被挤压换行。英文与中文描述已严格统一。<br>
+  👉 <span style="color:var(--accent)">提示：在"分类总览"中点击任意卡片，可直接跳转至该控件的详细参数说明表格！</span>
 </div>
 
 <div class="toc">
@@ -229,7 +229,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
       </tr>
       <tr>
         <td rowspan="4"><strong>Style (样式)</strong><br>▶ Normal (普通)<br>▶ <em>(继续展开)</em></td>
-        <td><strong>Image Design / Actual Size</strong></td>
+        <td><strong>Image Design / Actual Size (设计尺寸/实际大小)</strong></td>
         <td>只读属性，展示美术最初画原图时候的像素分辨率，供你参考用。</td>
         <td class="preview-cell"><span class="badge-yes">-</span></td>
       </tr>
@@ -255,7 +255,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
       </tr>
       <tr>
         <td><strong>Style (样式)</strong></td>
-        <td><strong>Hovered / Pressed / Disabled</strong></td>
+        <td><strong>Hovered / Pressed / Disabled (悬停/已按压/禁用)</strong></td>
         <td>
           <div style="color:var(--red); font-weight:bold; margin-top:4px;">【致命避坑】：如果 Pressed (已按压) 里面不填图片，当玩家点击按钮时，它会瞬间变成一个全白的正方形方块！务必把 Normal 的图拷过来！</div>
         </td>
@@ -342,7 +342,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
         <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>Text ID</strong></td>
+        <td><strong>Text ID (文本标识)</strong></td>
         <td>项目组专属配置，填入多语言表的 Key，运行时会自动覆盖为对应国家的语言。</td>
         <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
@@ -481,7 +481,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
       <tr>
         <td rowspan="3"><strong>Appearance (外观)</strong></td>
         <td><strong>Fill Color and Opacity (填充色与不透明度)</strong></td>
-        <td>进度条“涨起来”部分（Fill 图）叠加的颜色滤镜。</td>
+        <td>进度条"涨起来"部分（Fill 图）叠加的颜色滤镜。</td>
         <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
@@ -525,7 +525,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
       </tr>
       <tr>
         <td rowspan="3"><strong>Style (样式)</strong></td>
-        <td><strong>Widget Style → Normal/Hovered/Pressed</strong></td>
+        <td><strong>Widget Style → Normal/Hovered/Pressed (控件样式→普通/悬停/按压)</strong></td>
         <td>与 Button 类似的三态皮肤。控制收起状态下那个"小框"的视觉（背景底图 + 右侧小箭头图）。</td>
         <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
@@ -649,18 +649,90 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
       </tr>
       <tr>
         <td><strong>Offsets (偏移)</strong><br>Left, Position Y, Size 等</td>
-        <td>决定滚动框的绝对坐标和宽高。注意：开启“大小到内容(Size to Content)”后，宽高设置无效，会被内部撑开。</td>
+        <td>决定滚动框的绝对坐标和宽高。注意：开启"大小到内容(Size to Content)"后，宽高设置无效，会被内部撑开。</td>
         <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td rowspan="2"><strong>Style (样式)</strong></td>
-        <td><strong>Shadow Brushes (顶部/底/左/右阴影笔刷)</strong></td>
-        <td>高级打磨必备：列表没滚动到底时，边缘显示的黑灰色渐变遮罩。这里可以替换遮罩渐变图，让文字有一种“进入暗区”的质感。</td>
+        <td colspan="4" style="background: rgba(108,140,255,.05); border-left: 3px solid var(--accent); padding: 8px 16px; font-size: 13px;">
+          <strong>⬇ 以下为 Style (样式) 面板层层展开解析 ⬇</strong>
+        </td>
+      </tr>
+      <tr>
+        <td rowspan="4"><strong>Style (样式)</strong><br>▶ 顶部阴影笔刷<br><em>底/左/右同理</em></td>
+        <td><strong>Image (图像)</strong></td>
+        <td>阴影渐变遮罩使用的贴图资源。可替换为自定义渐变材质，让边缘淡出效果匹配游戏美术风格。默认为引擎自带的白色→透明线性渐变。</td>
         <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
-        <td><strong>Scrollbar Style (条样式)</strong></td>
-        <td>展开后非常长。里面可以依次替换 <code>垂直/水平背景图</code> (滚动槽的底色) 以及各种 <code>Thumb Image (缩略图)</code> (就是中间那个拖动条)。</td>
+        <td><strong>Image Size (图像大小)</strong><br>X / Y</td>
+        <td>阴影笔刷的逻辑渲染宽高。X 控制横向厚度，Y 控制纵向厚度。常用值 16×8 表示很薄的边缘遮罩。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td><strong>Tint (着色)</strong></td>
+        <td>给阴影笔刷叠色。默认白色=使用原图颜色。改为黑色半透明 (0,0,0,0.5) 可以制造更强的暗角效果。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td><strong>Draw As (绘制为)</strong></td>
+        <td><strong>Image(图像)</strong>：拉伸渲染。<strong>Box(盒体)</strong>：九宫格保护圆角。<strong>None(无)</strong>：不绘制。阴影笔刷一般用 Image 即可。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td rowspan="7"><strong>Style (样式)</strong><br>▶ 条样式<br><em>(Scrollbar Style)</em></td>
+        <td><strong>水平背景图 (Horizontal Background Image)</strong></td>
+        <td>横向滚动模式时，滑动槽(轨道)的底色背景图。通常是一个细长深灰色条形图。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td><strong>垂直背景图 (Vertical Background Image)</strong></td>
+        <td>纵向滚动模式时，滑动槽(轨道)的底色背景图。把这里清空或设为透明，即可得到没有轨道底色的"悬浮滑块"效果。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td><strong>垂直顶部插槽图像 (Vertical Top Slot Image)</strong></td>
+        <td>滚动条轨道最顶部的装饰图片（如箭头或圆角帽）。大多数游戏留空即可。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td><strong>水平顶部插槽图像 (Horizontal Top Slot Image)</strong></td>
+        <td>横向滚动条左端的装饰图片。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td><strong>垂直底部插槽图像 (Vertical Bottom Slot Image)</strong></td>
+        <td>滚动条轨道最底部的装饰图片。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td><strong>水平底部插槽图像 (Horizontal Bottom Slot Image)</strong></td>
+        <td>横向滚动条右端的装饰图片。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td><strong>法线缩略图 / 悬浮缩略图 / 拖动缩略图<br>(Normal/Hovered/Dragged Thumb Image)</strong></td>
+        <td>中间那个可拖动的小滑块的三态图片。<strong>Normal</strong>=日常状态；<strong>Hovered</strong>=鼠标悬停变亮；<strong>Dragged</strong>=正在拖动时。替换这三张图即可自定义滑块外观。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td rowspan="4"><strong>Style (样式)</strong><br>▶ 条样式<br>▶ 每个图像的子属性</td>
+        <td><strong>Image (图像)</strong></td>
+        <td>每个笔刷/背景/缩略图的贴图资源引用。点击右侧放大镜搜索项目素材。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td><strong>Image Size (图像大小)</strong><br>X / Y</td>
+        <td>该图片的逻辑像素渲染宽高。注意这不是父容器的尺寸，而是图片自身的缩放基准。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td><strong>Tint (着色)</strong></td>
+        <td>叠色滤镜。白色=原图不变。可以用来做同一张素材出不同配色变体（如灰色滑块→高亮白色滑块）。</td>
+        <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
+      </tr>
+      <tr>
+        <td><strong>Draw As (绘制为) + Margin (边距)</strong></td>
+        <td><strong>Box+Margin</strong>：九宫格拉伸，边距值保护圆角不变形（常用于圆角滑块）。<strong>Image</strong>：直接拉伸。<strong>None</strong>：不绘制。Margin 仅 Box 模式下生效，值域 0~0.5。</td>
         <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
@@ -681,7 +753,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
       </tr>
       <tr>
         <td><strong>Consume Mouse Wheel (消耗鼠标滚轮)</strong></td>
-        <td>当鼠标在这个框里滚轮时，是否拦截事件。如果你外层还有一个大滚动条，设为“从不”可以让内层不吃掉滚轮指令。</td>
+        <td>当鼠标在这个框里滚轮时，是否拦截事件。如果你外层还有一个大滚动条，设为"从不"可以让内层不吃掉滚轮指令。</td>
         <td class="preview-cell"><span class="badge-no">❌ 播放运行</span></td>
       </tr>
       <tr>
@@ -855,7 +927,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
       <tr>
         <td rowspan="2"><strong>List (列表)</strong></td>
         <td><strong>Entry Widget Class (条目蓝图类)</strong></td>
-        <td><strong>【唯一生死核心】！</strong>必须选定一个事先做好的、实现了 <code>User Object List Entry</code> 接口的蓝图类，作为生成的“一截小火车”。</td>
+        <td><strong>【唯一生死核心】！</strong>必须选定一个事先做好的、实现了 <code>User Object List Entry</code> 接口的蓝图类，作为生成的"一截小火车"。</td>
         <td class="preview-cell"><span class="badge-yes">✅ 假数据刷新</span></td>
       </tr>
       <tr>
@@ -939,13 +1011,13 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
   </div>
 
   <h3>8.2 对齐 (Alignment) —— 绝对居中的密码</h3>
-  <p>当你要把弹窗绝对居中时，光把锚点设为“居中”是不够的！因为那只是以控件左上角对准屏幕中心。<br>
+  <p>当你要把弹窗绝对居中时，光把锚点设为"居中"是不够的！因为那只是以控件左上角对准屏幕中心。<br>
   <strong>【核心铁律】必须同时将 <code>Alignment (对齐)</code> 设为 X: 0.5, Y: 0.5</strong>，这代表用控件自己的正中心去贴合锚点，实现完美居中。</p>
 
   <h3>8.3 多端与微信小游戏适配专属规范 (WeChat Mini-Game Guidelines)</h3>
   <div class="alert alert-green">
     <strong>📱 微信小游戏/手游端必须遵循的层级树：</strong>
-    <p>由于微信小游戏必定有一个不可隐去的<strong>“右上角胶囊按钮（更多/关闭）”</strong>，如果乱摆放会导致界面按钮被胶囊完全挡死。</p>
+    <p>由于微信小游戏必定有一个不可隐去的<strong>"右上角胶囊按钮（更多/关闭）"</strong>，如果乱摆放会导致界面按钮被胶囊完全挡死。</p>
   </div>
   <pre style="background:var(--panel); padding:16px; border-radius:8px; color:var(--accent); line-height:1.6; font-size:14px; overflow-x:auto;">
 [根容器] Canvas Panel
