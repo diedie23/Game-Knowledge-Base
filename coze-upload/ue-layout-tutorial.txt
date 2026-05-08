@@ -5,14 +5,14 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
 
 
 
-  🎮 UE5 UMG 拼接实操详细指南 全控件极深解析版 v9.2
-  涵盖零基础入门教程、每一个UI控件的右侧面板细节拆解、实战案例手把手教程与多端自适应规范
+  🎮 UE5 UMG 拼接实操详细指南 全控件极深解析版 v9.3
+  涵盖零基础入门教程、每一个UI控件的右侧面板细节拆解（中英双语垂直居中对齐）、实战案例手把手教程与多端自适应规范
 
 
 
   📝 导读：本文档是极深度的 UI 拼接"标准操作字典"。修复并扩充了所有组件（特别是 Button、ScrollBox、Image 等）右侧面板中每一个层级属性的作用解析，并优化了表格排版避免文字被挤压换行。英文与中文描述已严格统一。
   👉 提示：在"分类总览"中点击任意卡片，可直接跳转至该控件的详细参数说明表格！
-  🆕 v9.2 新增：零基础分步操作教程 + 3个实战案例 + 常见翻车排查表，新手也能看着跟做！
+  🆕 v9.3 新增：所有参数表垂直居中对齐 + 英文参数全部补充中文翻译 + 根据引擎面板截图补充详细操作说明！
 
 
 
@@ -277,8 +277,19 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
 
   
     📍 操作路径：在 Palette 面板搜索 Button → 拖入画布 → 选中它 → 右侧 Details 面板即可看到以下所有参数。
-    📍 如何给按钮换图：Details → Appearance → Style → Normal → Image 栏位 → 点击下拉选择贴图资源。
-    📍 如何做多态按钮：分别展开 Normal / Hovered / Pressed / Disabled，各自填入不同状态的图片。
+    📍 如何给按钮换图：Details → 外观 (Appearance) → 样式 (Style) → 普通 (Normal) → 图像 (Image) 栏位 → 点击下拉选择贴图资源。
+    📍 如何做多态按钮：分别展开 普通 (Normal) / 已悬停 (Hovered) / 已按压 (Pressed) / 已禁用 (Disabled)，各自填入不同状态的图片。
+    📍 插槽参数说明（画布面板槽/Canvas Panel Slot）：
+      • 锚点 (Anchors)：控件相对于父容器的锚定点位（参考第8章）
+      • 位置 X/Y (Position X/Y)：改变控件的位置
+      • 尺寸 X/Y (Size X/Y)：固定控件尺寸至理想大小（如果是图片，点选「大小到内容 (Size to Content)」，切图多大视图里就是多大）
+      • ZOrder：该层的视觉顺序，数值越大越在顶层显示
+    📍 填充参数：
+      • 普通填充 (Normal Padding)：按钮正常状态内部边距，如 2.0
+      • 按压填充 (Press Padding)：按钮按压时的内部边距（可不同于普通填充制造按压下沉感），如 2.0, 3.0, 2.0, 1.0
+    📍 颜色和不透明度 (Color and Opacity)：给按钮整体叠一层颜色滤镜。
+    📍 背景颜色 (Background Color)：按钮没有图片时的纯色背景底色。
+    ⚠️ 注：按钮如果没有可视化点击反馈，务必这些状态图全用一张图拖入，不可以空着！否则点击时会闪白块。
   
 
   右侧面板详细参数清单 (Details Panel Parameters)
@@ -344,34 +355,35 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
         Draw As (绘制为)
         
           
-            Box (盒体): 最核心！做九宫格弹窗或圆角按钮不拉伸变形的必选！
-            Image (图像): 默认拉伸变形。
+            盒体 (Box)：最核心！做九宫格弹窗或圆角按钮不拉伸变形的必选！
+            图像 (Image)：默认拉伸，不做九宫格时选这个。
           
         
         ✅ 立刻刷新
       
       
-        Margin (边缘)
-        仅在 Draw As = Box 时生效。填入 0.1~0.4，保护图片四角的圆角不被拉伸破坏。
+        Margin (边距)
+        仅在 Draw As = 盒体 (Box) 时生效。展开后可分别设置左边/顶部/右边/底部四个方向保护比例，填入 0.1~0.4，保护图片四角的圆角不被拉伸破坏。
         ✅ 立刻刷新
       
       
         Style (样式)
-        Hovered / Pressed / Disabled (悬停/已按压/禁用)
+        已悬停 (Hovered) / 已按压 (Pressed) / 已禁用 (Disabled)
         
-          【致命避坑】：如果 Pressed (已按压) 里面不填图片，当玩家点击按钮时，它会瞬间变成一个全白的正方形方块！务必把 Normal 的图拷过来！
+          按钮的悬停状态图、按下状态图、禁用状态图。结构与 Normal 完全相同，各自填入对应状态的图片。
+          【致命避坑】：如果 已按压 (Pressed) 里面不填图片，当玩家点击按钮时，它会瞬间变成一个全白的正方形方块！务必把 Normal 的图拷过来！
         
         ❌ 播放运行
       
       
-        Interaction (交互)
-        Is Focusable (可聚焦)
-        【避坑】PC纯鼠标或手机游戏必须取消勾选，否则点击后周围会有一圈诡异的虚线！主机手柄才需勾选。
+        Interaction(交互)
+        Is Focusable (为可聚焦)
+        【避坑】PC纯鼠标或手机游戏必须取消勾选，否则点击后周围会有一圈诡异的虚线框！只有主机手柄操作才需勾选。
         ❌ 播放运行
       
       
         Click Method (点击方法)
-        通常设为 Down And Up（按下并抬起后才算触发），防止玩家反悔滑动取消。
+        通常设为 Down And Up (按下并抬起)（按下并抬起后才算触发），防止玩家反悔滑动取消。
         ❌ 播放运行
       
     
@@ -383,8 +395,22 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
 
   
     📍 操作路径：Palette 搜索 Image → 拖入容器 → 选中 → Details 面板。
-    📍 选图片：Appearance → Brush → Image 行 → 下拉选择已导入的纹理资源。
-    📍 做九宫格：Draw As 改为 Box → Margin 填 0.25 (根据图片圆角比例调整)。
+    📍 选图片（方法一）：在 Content Browser 中找到图片资源 → 点击红框复制资源名称 → 粘贴到 Details → Appearance → Brush → Image (图像) 栏位的搜索框中搜索并选择。
+    📍 选图片（方法二）：进入图片资源文件夹 → 将资源悬停在相应工程页签上等待界面切换 → 然后拖入。
+    📍 颜色调板：点击 Color and Opacity (颜色和不透明度) 的色块进入调色板，可调节 RGBA 色号（跟 PS 互通）。A 为不透明度：0 为 0%（全透明），1 为 100%（全不透明）。
+    📍 Draw As (绘制为) 四种模式：
+      • 无 (None)：就是空集，不渲染任何图像
+      • 盒体 (Box)：可以做九宫格，四角不拉伸
+      • 边界 (Border)：不怎么使用，可跳过
+      • 图像 (Image)：不做九宫格就默认这个选项
+    📍 做九宫格：Draw As 改为 盒体 (Box) → 展开 Margin (边距) → 左边/顶部/右边/底部 各填 0.25 (根据圆角比例调整)。
+    📍 可见性 (Visibility)：
+      • 可视 (Visible)：需要被点击
+      • 已折叠 (Collapsed)：隐藏并且不占用布局空间
+      • 隐藏 (Hidden)：隐藏但是会占用布局空间
+      • 非可命中测试 (Hit Test Invisible)：不需要被点击（自身和所有子项）
+      • 自身非可命中测试 (Self Hit Test Invisible)：自身不需要被点击（自身穿透但子项可点击）
+    📍 倾斜/旋转：Details → Render Transform → Shear (倾斜角度) / Angle (旋转角度) 可调整控件的倾斜和旋转效果。
   
 
   右侧面板详细参数清单 (Details Panel Parameters)
@@ -401,12 +427,12 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
       
       
         Draw As (绘制为)
-        Box (盒体): 必须配合 Margin 使用（做九宫格不拉伸四角）。Image (图像): 默认平铺满容器。None (无): 空白不渲染。
+        盒体 (Box)：必须配合 Margin 使用（做九宫格不拉伸四角）。图像 (Image)：默认平铺满容器，不做九宫格时选这个。无 (None)：空白不渲染（就是空集）。边界 (Border)：不怎么使用，可跳过。
         ✅ 立刻刷新
       
       
-        Margin (边界)
-        只有在 Draw As = Box 时有效。通常取值 0.1~0.4，代表保护图片四边多大比例不被拉伸。
+        Margin (边距)
+        只有在 Draw As = 盒体 (Box) 时有效。展开后可分别设置左边/顶部/右边/底部四个方向的保护比例（通常取值 0.1~0.4），代表保护图片四边多大比例不被拉伸。四个值各填 0.25 = 保护 25%。
         ✅ 立刻刷新
       
       
@@ -415,14 +441,14 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
         ✅ 立刻刷新
       
       
-        Color and Opacity (颜色和不透明度)
-        Tint (色相)
-        纯白 (1.0, 1.0, 1.0) 代表原图颜色。通过修改 Tint 可以给贴图染色。
+        Color and Opacity(颜色和不透明度)
+        Tint (着色)
+        点击色块进入调色板。可调节 RGBA 色号（跟 PS 互通）。纯白 (R:1.0, G:1.0, B:1.0) 代表原图颜色不变。修改 RGB 可给贴图染色/叠色滤镜。
         ✅ 立刻刷新
       
       
-        A (Alpha) 不透明度
-        0 表示全透明看不见，1 表示全实色。
+        A (Alpha 不透明度)
+        A 为不透明度：0 为 0%（全透明看不见），1 为 100%（全不透明）。常用于做半透明遮罩背景。
         ✅ 立刻刷新
       
     
@@ -439,9 +465,20 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
 
   
     📍 操作路径：Palette 搜索 LGText（如果搜不到就搜 Text，找我们项目自定义的那个）→ 拖入容器 → 选中 → Details。
-    📍 改文字内容：Details → Content → Text 栏位 → 直接输入文字。
-    📍 改字体大小：Details → Appearance → Font → Size → 输入数值（常用 18~36）。
-    📍 改字体颜色：Details → Appearance → Font → Color → 点击色块打开取色器。
+    📍 改文字内容：Details → Content (内容) → Text (文本) 栏位 → 直接输入文字。
+    📍 选字体：Details → Appearance (外观) → Font (字体) → Font Family (字体族系) → 下拉选择（目前项目中红框标注的两种可用）。
+    📍 改字体大小：Details → Appearance → Font → Size (尺寸) → 输入数值（常用 18~36）。
+    📍 改字间距：Details → Appearance → Font → Letter Spacing (字间距) → 可调节字体横向间距。
+    📍 外描边：Details → Appearance → Font → Outline Settings (轮廓设置) → 展开后设置：
+      • Outline Size (外描边像素大小)：描边粗细
+      • Outline Color (外描边颜色、不透明度)：描边颜色和透明度
+    📍 阴影：Details → Appearance → Shadow (阴影) →
+      • Shadow Offset (阴影偏移像素)：X/Y 方向的偏移
+      • Shadow Color (阴影颜色、不透明度)
+    📍 改字体颜色：Details → Appearance → Font → Color (颜色) → 点击色块打开取色器。
+    📍 对齐方式：Details → Justification (对齐方式) → 居左/居中/居右。
+    📍 行间距：Details → Appearance → Margin (边距) → Line Height Percent (行高百分比) → 默认 1.0，设为 1.2 则增加 20% 行距。
+    ⚠️ 重要规则：文本间距不可为负数，字号需要为偶数，且落地需要 ×0.75 的换算比例（如设计稿标注 28px → 实际填 28×0.75=21）。
   
 
   右侧面板详细参数清单 (Details Panel Parameters)
@@ -462,24 +499,24 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
         ✅ 立刻刷新
       
       
-        Appearance (外观) -> Font (字体)
-        Font Family (字库)
-        选择游戏规定的字体资产。
+        Appearance (外观)→ Font (字体)
+        Font Family (字体族系/字库)
+        选择游戏规定的字体资产。项目中目前有两种可用字体（红框标注的那两个），选错字体可能导致部分字符不显示。
         ✅ 立刻刷新
       
       
-        Size (字号)
-        文字的高低像素。
+        Size (尺寸/字号)
+        文字的字号大小。⚠️ 字号需要为偶数，且落地需要 ×0.75 的换算比例（如设计稿 28px → 填 21）。
         ✅ 立刻刷新
       
       
         Letter Spacing (字间距)
-        字间距，正数拉宽，负数挤压。
+        可调节字体横向间距。正数拉宽字间距。⚠️ 文本间距不可为负数！
         ✅ 立刻刷新
       
       
-        Outline Settings (描边)
-        描边设置。展开后可设置 Outline Size (厚度) 和 Outline Color (描边颜色)。
+        Outline Settings (轮廓设置/描边)
+        展开后可设置 Outline Size (外描边像素大小) 控制描边粗细，以及 Outline Color (外描边颜色、不透明度)。
         ✅ 立刻刷新
       
       
@@ -488,28 +525,55 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
         ✅ 立刻刷新
       
       
-        Appearance (外观) -> Shadow (阴影)
-        Shadow Offset (阴影偏移)
-        字体的阴影偏移。X:1 Y:1 会在文字右下方垫一层投影，让浅色文字在花哨背景上看得清。
+        Appearance (外观)→ Shadow (阴影)
+        Shadow Offset (阴影偏移像素)
+        字体的阴影偏移。X:1 Y:1 会在文字右下方垫一层投影，让浅色文字在花哨背景上看得清。可设置阴影颜色和不透明度。
         ✅ 立刻刷新
       
       
-        Shadow Color (阴影色)
-        阴影色，通常用黑，Alpha 开到 0.6 左右。
+        Shadow Color (阴影颜色)
+        阴影颜色和不透明度，通常用黑色，Alpha 开到 0.6 左右。
         ✅ 立刻刷新
       
       
-        Justification (对齐)
-        Justification (对齐方式)
+        Justification(对齐方式)
+        Justification (字体的对齐方式)
         居左、居中、居右或是两端对齐。必须保证文字框自身尺寸够大才看得出效果。
+        ✅ 立刻刷新
+      
+      
+        Margin (边距)
+        Line Height Percent (行高百分比)
+        行间距倍率。默认 1.0，设为 1.2 则每行间距增加 20%。⚠️ 行间距不可为负数。
         ✅ 立刻刷新
       
     
   
 
-  3.2 Rich Text Block (富文本)
-  💡 核心作用 (Core Function)： 让一句话里包含多种颜色、加粗，甚至夹杂图片表情。
-  🎯 适用场景 (Use Cases)： 聊天频道、掉落提示（获得 <Red>倚天剑</>）、带特殊高亮的技能描述。
+  3.2 Rich Text Block (格式文本块/富文本)
+  💡 核心作用 (Core Function)： 在单一文本段中出现多种文本样式（字体、大小、颜色、格式），还可加入图像。
+  🎯 适用场景 (Use Cases)： 聊天频道、掉落提示（获得 <Red>倚天剑</>）、带特殊高亮的技能描述、字图联排。
+
+  
+    📍 文本格式写法：除默认样式外，其他的使用 <行名>XXX</> 的格式。例如：这是一个<Red>多格式文本</>
+    📍 如何创建数据表格（Text Style Set）：
+      ① Content Browser → 右键 → Miscellaneous → Data Table
+      ② 弹出窗口选择行结构 → 搜索 RichTextStyleRow → 选中创建
+      ③ 在数据表格中点击添加行，必须要有一行名为 Default 的数据
+      ④ 继续添加相应格式名称的行（如 Red、Blue、Yellow 等），设置字体大小与颜色
+    📍 样式修改：在数据表格细节面板中可修改：
+      • 字体族系 (Font Family)：选择项目字体
+      • 字形 (Typeface)：Default
+      • 尺寸 (Size)：字号大小（如 21）
+      • 字间距 (Letter Spacing)
+      • 字体材质 (Font Material)
+      • 颜色 (Color)：文字颜色
+    📍 项目富文本资源路径：
+      • 普通富文本：通常用 DT_RichTextFontStyle
+      • 带下划线：DT_RichHyperlinkStyleTable（可以参考 UI_Rule_FirstView）
+      • icon 富文本（字图联排）：W_CommonRichImageRow
+    📍 实际用法：找到之前做好的富文本控件，直接复制粘贴过来修改文本内容。如需修改字色或者字图联排，请找到对应程序咨询。
+  
 
   右侧面板详细参数清单 (Details Panel Parameters)
   
@@ -520,18 +584,23 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
       
         Content (内容)
         Text (文本)
-        支持写 XML 标签，引擎会自动解析成对应的颜色或图片。
+        支持写 XML 标签格式，例如 <Red>红色文字</>。引擎会自动解析成对应数据表格中定义的颜色和样式。
         ✅ 立刻刷新
       
       
         Appearance (外观)
         Text Style Set (文本样式集)
-        【必填项】在此挂载定义了标签对应颜色的 Data Table。不挂的话源码原样输出。
+        【必填项】在此挂载定义了标签对应颜色的 Data Table（如 DT_RichTextFontStyle）。不挂的话源码原样输出。表格中必须有一行名为 Default 的数据！
         ✅ 立刻刷新
       
       
         Decorator Classes (装饰器类)
-        插入表情包或图片的解码器蓝图类数组。填入后即可识别 <img id="icon"/>。
+        插入表情包或图片的解码器蓝图类数组。填入后即可识别 <img id="icon"/>。如需字图联排，使用 W_CommonRichImageRow。
+        ✅ 立刻刷新
+      
+      
+        Min Desired Width (最小期望宽度)
+        富文本框的最小宽度。设为 0 则由内容自动决定。
         ✅ 立刻刷新
       
       
@@ -549,6 +618,22 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   🎛️ 4. 数据展示控件 (Slider, Progress Bar, ComboBox, Editable Text)
 
   4.1 Slider (滑条)
+  
+    📍 操作路径：Palette 搜索 Slider → 拖入容器 → 选中 → Details。
+    📍 滑条值设置：Details → Appearance (外观) →
+      • 值 (Value)：当前默认停在哪个数值（0.0~1.0）
+      • 最小值 (Min Value)：滑轨最左端代表的值
+      • 最大值 (Max Value)：滑轨最右端代表的值
+    📍 朝向：水平 (Horizontal) 或垂直。
+    📍 滑条颜色/滑柄颜色：Appearance → 滑条颜色 (Slider Bar Color) / 滑柄颜色 (Slider Handle Color)。
+    📍 步大小 (Step Size)：拖动时每次跳跃多少值。
+    📍 样式（换皮）：Details → Style (样式) →
+      • 普通的条图像 (Normal Bar Image)：滑轨底图
+      • 悬浮的条图像 (Hovered Bar Image)：悬停时滑轨
+      • 禁用的条图像 (Disabled Bar Image)：禁用时滑轨
+      • 普通的缩略图 / 悬浮的缩略图 / 禁用的缩略图：滑动钮的三态图片及大小
+      • 条厚度 (Bar Thickness)：滑轨的粗细
+  
   右侧面板详细参数清单 (Details Panel Parameters)
   
     
@@ -556,19 +641,19 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
     
     
       
-        Appearance (外观)
-        Value (当前值)
-        默认滑块停在什么数值。
+        Appearance(外观)
+        Value (值/当前值)
+        默认滑块停在什么数值（0.0~1.0之间）。
         ✅ 立刻刷新
       
       
-        Min/Max Value (最小值/最大值)
+        Min Value / Max Value(最小值/最大值)
         滑轨最左和最右代表的逻辑数值界限。
         ❌ 逻辑代码用
       
       
         Widget Style (样式)
-        核心换皮区。在这里替换 Normal Bar Image (滑轨底图) 和 Normal Thumb Image (可拖动的小滑块抓手图)。
+        核心换皮区。在这里替换 普通的条图像 (Normal Bar Image)（滑轨底图）和 普通的缩略图 (Normal Thumb Image)（可拖动的小滑块抓手图），以及悬浮/禁用态的对应图片和 条厚度 (Bar Thickness)。
         ✅ 立刻刷新
       
       
@@ -581,6 +666,14 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   
 
   4.2 Progress Bar (进度条)
+  
+    📍 操作路径：Palette 搜索 Progress Bar → 拖入容器 → 选中 → Details。
+    📍 样式设置：Details → Style (样式) →
+      • 背景图 (Background Image)：空掉时候的底层沟槽图（背景样式）。设置图像、图像大小、着色、绘制为（盒体）、边距。
+      • 填充图 (Fill Image)：实心血槽/进度条图（进度样式）。设置图像、图像大小、着色、绘制为（盒体）、边距。
+    📍 进度显示：Details → Progress (进度) → 百分比 (Percent) → 0.0~1.0 之间（如 0.95 = 显示 95% 进度）。代码中传血量必须除以最大血量再传。
+    📍 填充方向：Details → Progress → 条填充类型 (Bar Fill Type) → 左到右、右到左、中心向外、底部向上等。
+  
   右侧面板详细参数清单 (Details Panel Parameters)
   
     
@@ -613,8 +706,16 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   
 
   4.3 ComboBox (组合框/下拉菜单)
-  💡 核心作用 (Core Function)： 点击后展开一个下拉列表，玩家从中选择一项。节省界面空间的同时提供多选项交互。
+  💡 核心作用 (Core Function)： 组合框用于实现下拉选项。点击后展开一个下拉列表，玩家从中选择一项。
   🎯 适用场景 (Use Cases)： 语言选择、分辨率选择、服务器选择、筛选排序条件。
+  📝 备注：（较少使用，下拉框可参考 UI_CommonComp_ComboBoxUp）
+
+  
+    📍 操作路径：Palette 搜索 ComboBox → 选择 Combo Box (String) → 拖入容器 → 选中 → Details。
+    📍 添加选项：Details → Content (内容) → Default Options (默认选项) → 点击 + 号添加选项文字。
+    📍 默认的选项：可以设置初始选中的选项。
+    📍 选项间填充：调节下拉列表中各选项的间距。
+  
 
   右侧面板详细参数清单 (Details Panel Parameters)
   
@@ -723,6 +824,15 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
 
 
   📦 5. 布局容器面板 (Panels & Containers)
+
+  
+    🎯 容器选择指南（性能从低到高）：
+    • Overlay (覆层)：性能最优，推荐作为 UI 拼接中的父级使用。只能调节边距和对齐方式。
+    • Horizontal Box / Vertical Box (水平框/垂直框)：自动排布子控件，无需手动设坐标。
+    • Canvas Panel (画布面板)：类似于 PS 的画布，超出画布之外的空间不渲染。可以直接调坐标位置，但尽量少用，耗性能，多用覆层！
+    • Size Box (尺寸框)：强制指定子项的固定大小，只能有一个子项。
+    • Widget Switcher (控件切换器)：选择子项进行单独显示，类似于选项卡。
+  
 
   5.1 Scroll Box (滚动框) — 极深解析
   💡 核心作用 (Core Function)： 给那些内部内容远远超过屏幕物理尺寸的元素提供一个滚动视口。玩家可以用鼠标滚轮或手指上下划动。
@@ -887,6 +997,15 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   
 
   5.2 Safe Zone (安全区)
+  
+    📍 核心要点：安全区需要是最大的父级，自适应设置成全屏适配（锚点全屏拉伸 + Offset 全0）。
+    📍 作用：适配各机型手机、pad 的分辨率，让 UI 不会出现在手机不显示图像的地方（如苹果手机的刘海屏区域、微信小游戏胶囊按钮区域）。
+    📍 操作步骤：
+      ① 在最外层 Canvas Panel 下先放一个 Safe Zone
+      ② 设置锚点为全屏拉伸 + Offsets 全0
+      ③ 勾选 Pad Left/Right/Top/Bottom 全部保护
+      ④ 把所有 UI 内容放在 Safe Zone 内部
+  
   右侧面板详细参数清单 (Details Panel Parameters)
   
     
@@ -908,6 +1027,12 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   
 
   5.3 Size Box (尺寸框)
+  
+    📍 功能：强制指定子项的固定大小。
+    📍 重要限制：尺寸框下只能有一个子项！如果需要放多个图层，可以用覆层 (Overlay) 控件把尺寸框下面的图层包裹起来，这样一个尺寸框下就可以有多个图层。
+    📍 注意：子控件的大小只要有勾选 Size To Content (大小到内容) 才有效。
+    📍 设置固定尺寸：如设置 128×128，尺寸框内的子项最大尺寸不会超过 128×128。
+  
   右侧面板详细参数清单 (Details Panel Parameters)
   
     
@@ -934,8 +1059,15 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   
 
   5.4 Widget Switcher (控件切换器)
-  💡 核心作用 (Core Function)： 同一个位置放多个子控件，但同时只显示其中一个。通过切换"活跃索引"来实现页签/抽屉式切换，无需反复创建删除控件。
+  💡 核心作用 (Core Function)： 选择子项进行单独显示，类似于选项卡。同一控件有多个状态时，可以用控件切换器制作，每个状态为一组，用控件切换器进行切换显示不同状态。
   🎯 适用场景 (Use Cases)： 底部页签栏（商城/背包/社交切页）、状态面板切换（详情/属性/技能子页面）、加载中↔内容区域切换。
+  ⚡ 核心操作：通过索引显示子控件，索引从 0 开始。
+
+  
+    📍 操作路径：Palette → 面板 (Panel) 分类 → 控件切换器 (Widget Switcher) → 拖入容器。
+    📍 切换显示：Details → Switcher → Active Widget Index (活跃控件索引) → 填入数字 0/1/2... 对应第几个子项。
+    📍 必须操作：勾选 Is Variable (公开为变量)，否则蓝图中无法通过代码控制切换！
+  
 
   右侧面板详细参数清单 (Details Panel Parameters)
   
@@ -971,8 +1103,15 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   💡 避坑：Widget Switcher 的所有子控件在创建时就已经全部实例化了（即使没显示的也在内存里）。如果你有 20 个重量级页面都塞进同一个 Switcher，可能吃爆内存。超过5个子页面时建议结合代码动态加载。
 
   5.5 Horizontal Box / Vertical Box (水平框/垂直框)
-  💡 核心作用 (Core Function)： UMG 中最常用的线性排布容器。Horizontal Box 让子节点从左到右自动排队，Vertical Box 让子节点从上到下自动排队。
+  💡 核心作用 (Core Function)： 允许控件在水平/垂直方向依次排布。Horizontal Box 让子节点从左到右自动排队，Vertical Box 让子节点从上到下自动排队。
   🎯 适用场景 (Use Cases)： 按钮行排列、表单标签+输入框横排、设置项纵向列表、底部导航栏图标横排。
+
+  
+    📍 操作路径：Palette → 面板 (Panel) 分类 → 水平框 (Horizontal Box) 或 垂直框 (Vertical Box) → 拖入容器。
+    📍 排布顺序：水平框内子项图层从上往下 = 视窗中子项从左往右排布。垂直框同理，图层从上往下 = 视窗中从上往下排布。
+    📍 自动重排：对齐方式选择水平居中时，隐藏中间子项，水平框会自动居中重新排布。对齐方式选择水平居左，隐藏最左边子项，水平框会自动居左重新排布（居右同理）。
+    📍 关键：HV Box 本身没什么参数，核心全在每个子节点的 Slot 属性上（选中子控件才能看到）。
+  
 
   右侧面板详细参数清单 (Details Panel Parameters)
   
@@ -1006,9 +1145,17 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   🔑 核心理解：Horizontal/Vertical Box 本身没有什么参数，它的核心全在每个子节点的 Slot 属性上。拖入子控件后，选中子控件才能看到 Slot 相关设置。
 
   5.6 Overlay (覆层)
-  💡 核心作用 (Core Function)： 将所有子控件层叠在同一个区域（像 PS 图层那样堆叠）。列表越靠后的子控件越在上面。
+  💡 核心作用 (Core Function)： 覆层内的控件可以相互重叠在彼此之上，多数被当作 UI 拼接中的父级使用。
   🎯 适用场景 (Use Cases)： 头像+等级徽章叠放、背景图+前景内容的分层、角色模型上叠加血条和名字。
-  ⚡ 性能优势：Overlay 不做任何排列计算，只是简单堆叠，性能开销比 Canvas Panel 低得多，能用 Overlay 就不用 Canvas Panel。
+  ⚡ 性能优势：覆层跟画布面板的区别在于，画布面板可以直接调坐标位置，覆层只能调节边距和对齐方式，操作不方便，但是比画布面板节约性能。能用 Overlay 就不用 Canvas Panel！
+
+  
+    📍 操作路径：Palette → 面板 (Panel) 分类 → 覆层 (Overlay) → 拖入容器。
+    📍 子项对齐：选中子控件 → Details → Slot (覆层槽) → Padding (边距) 调节位置，Horizontal/Vertical Alignment (对齐方式) 调节对齐。
+    📍 与 Canvas Panel 对比：
+      • Canvas Panel：可直接调坐标位置（方便），但耗性能
+      • Overlay：只能调边距和对齐（不方便），但节约性能
+  
 
   右侧面板详细参数清单 (Details Panel Parameters)
   
@@ -1039,7 +1186,31 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
     ⚠️ 核心理念 (Core Concept)：对于超长列表（排行榜、大背包），决不能用 Scroll Box 无脑塞子节点！必须使用对象池复用的 ListView (单列) 或 TileView (九宫格)，它通过复用划出屏幕外的那几个节点来实现极低的性能开销。
   
 
-  6.1 List View / Tile View (列表与瓦片视图)
+  6.1 List View / Tile View (列表视图与瓦片视图)
+
+  
+    📍 操作路径：Palette 搜索 List View 或 Tile View → 拖入容器 → 选中 → Details。
+    📍 列表视图 (List View) 核心设置：
+      • 朝向 (Orientation)：选择水平列表或垂直列表
+      • 选择模式 (Selection Mode)：单个/多个/无
+      • 消耗鼠标滚轮 (Consume Mouse Wheel)：可以滚动时
+      • 条目间距 (Entry Spacing)：可调节列表中每个子项的间距
+    📍 列表记录 (List Entries)：
+      • 条目控件类 (Entry Widget Class)：【最核心！】选择你事先做好的子项 Widget Blueprint
+      • Scroll Bar Visibility (滚动条可视性)：可视/已折叠/隐藏等
+      • 设计师预览条目数 (Num Designer Preview Entries)：编辑器中预览显示几个子项（如 5）
+    📍 拖入子项：在 Entry Widget Class 选择你做好的子项蓝图后，列表会自动计算并复制子项，无需重复制作多个相同的子项！
+    📍 设置滚动条：列表记录 → Scroll Bar Visibility → 选择「可视」/「已折叠」/「自身命中测试不可见（自身和所有子项）」/「多可命中测试（仅自身）」。
+  
+
+  
+    📍 瓦片视图 (Tile View) 额外设置：
+      • 条目高度 (Entry Height)：每个格子的高度（如 128.0）
+      • 条目宽度 (Entry Width)：每个格子的宽度（如 128.0）→ 调节相互子项之间的间距
+      • 瓦片对齐 (Tile Alignment)：均匀（填充）/ 居左 / 居右等
+      • Spacing X / Spacing Y：瓦片之间的水平/垂直间距
+      • CMSpacing Mode：是否启用自定义间距模式
+  
   右侧面板详细参数清单 (Details Panel Parameters)
   
     
@@ -1047,25 +1218,25 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
     
     
       
-        List (列表)
-        Entry Widget Class (条目蓝图类)
-        【唯一生死核心】！必须选定一个事先做好的、实现了 User Object List Entry 接口的蓝图类，作为生成的"一截小火车"。
+        List(列表视图)
+        Entry Widget Class(条目控件类/条目蓝图类)
+        【唯一生死核心】！必须选定一个事先做好的、实现了 User Object List Entry 接口的蓝图类，作为列表中每一行的模板。列表会自动计算并复制子项，无需重复制作！
         ✅ 假数据刷新
       
       
-        Orientation (方向)
-        单行/单列滚动的横竖方向切换。
+        Orientation (朝向)
+        选择水平列表 (Horizontal) 还是垂直列表 (Vertical) 方向滚动。
         ✅ 立刻刷新
       
       
-        Tile View (瓦片专属)
-        Entry Height / Width (条目宽高)
-        由于要往一行塞多个格子，这里强行规定每个格子多大，系统才能算出一行能塞下几个。
+        Tile View(瓦片视图专属)
+        Entry Height / Entry Width(条目高度/条目宽度)
+        由于要往一行塞多个格子，这里强行规定每个格子多大（如 128×128），系统才能算出一行能塞下几个。同时也作为调节相互子项之间间距的方式。
         ✅ 立刻刷新
       
       
         Tile Alignment (瓦片对齐)
-        如果最后一行只剩孤零零 2 个格子，控制它们是挤在左边还是两边摊开。
+        如果最后一行只剩孤零零 2 个格子，控制它们是均匀填充、挤在左边还是两边摊开。
         ✅ 立刻刷新
       
     
@@ -1078,14 +1249,14 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   所有控件都有可见性和渲染变换属性，这是 UI 交互的基础：
   
     
-      可见性选项 (Visibility Options)视觉状态 (Visual State)点击状态 (Hit State)性能消耗 (Cost)最适用场景 (Best Use Case)
+      可见性选项 (Visibility)视觉状态点击状态布局空间最适用场景
     
     
-      Visible (可见)👀 看得见👆 挡击/可点高 (High)普通可交互按钮、弹窗面板。
-      Collapsed (折叠)❌ 看不见❌ 完全消失极低 (Very Low)隐藏 UI 首选！完全不计算也不占据排队槽位空间。
-      Hidden (隐藏)❌ 看不见❌ 无法点击中 (Medium)看不见，但仍然会占据排队槽位空间（占坑）。
-      Hit Test Invisible(不可见命中测试)👀 看得见👻 鼠标穿透低 (Low)纯装饰用的背景图或文字！不抢焦点，不挡底下的按钮。
-      Self Hit Test Invisible(自身不可见命中测试)👀 看得见👻 自身穿透👆 子可点低 (Low)作为父容器（Canvas/Overlay/SizeBox 等）的最佳选择！
+      可视 (Visible)👀 看得见👆 需要被点击占用普通可交互按钮、弹窗面板。
+      已折叠 (Collapsed)❌ 看不见❌ 完全消失不占用隐藏 UI 首选！隐藏并且不占用布局空间。
+      隐藏 (Hidden)❌ 看不见❌ 无法点击占用隐藏但是会占用布局空间（占坑）。
+      非可命中测试(Hit Test Invisible)👀 看得见👻 不需要被点击(自身和所有子项)占用纯装饰用的背景图或文字！不抢焦点，不挡底下的按钮。
+      自身非可命中测试(Self Hit Test Invisible)👀 看得见👻 自身穿透👆 子项可点占用作为父容器（Canvas/Overlay/SizeBox 等）的最佳选择！
     
   
   避坑指南：点不动按钮？99%是因为上面盖了张 Visible 的全屏透明图，把它改成 Self Hit Test Invisible！
@@ -1096,6 +1267,38 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   🎯 8. 核心实操：锚点、对齐与微信小游戏适配规范 (Anchors & Alignment)
   
   8.1 锚点九宫格对照表 (Anchors Reference)
+  以下为 UE 编辑器中锚点选择面板的 16 种预设，每种对应不同的适配方式：
+  
+    
+      第1列第2列第3列第4列
+    
+    
+      
+        居左上适配
+        居顶居中适配
+        居右上适配
+        居顶适配(横向拉伸)
+      
+      
+        居左中适配
+        居中心点适配 🎯
+        居右中适配
+        居中可横向拉伸
+      
+      
+        居左下适配
+        居底居中适配
+        居右下适配
+        居底可横向拉伸
+      
+      
+        居左可纵向拉伸
+        居中可纵向拉伸
+        居右可纵向拉伸
+        全屏适配 🔲
+      
+    
+  
   
     
       
@@ -1498,4 +1701,4 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   
 
 
-📐 游戏项目知识库 · UE5 UMG 拼接实操详细指南 · 新手友好全解析版 v9.2
+📐 游戏项目知识库 · UE5 UMG 拼接实操详细指南 · 新手友好全解析版 v9.3（中英双语·垂直居中对齐）
