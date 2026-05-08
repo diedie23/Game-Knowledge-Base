@@ -110,18 +110,20 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 <div class="doc">
 
 <div class="doc-header">
-  <h1>🎮 UE5 UMG 拼接实操详细指南 <span class="ver">全控件极深解析版 v9.1</span></h1>
-  <div class="subtitle">涵盖每一个UI控件的右侧面板细节拆解、滚动框/按钮参数精讲与多端自适应规范</div>
+  <h1>🎮 UE5 UMG 拼接实操详细指南 <span class="ver">全控件极深解析版 v9.2</span></h1>
+  <div class="subtitle">涵盖零基础入门教程、每一个UI控件的右侧面板细节拆解、实战案例手把手教程与多端自适应规范</div>
 </div>
 
 <div class="alert alert-blue">
   <strong>📝 导读：</strong>本文档是极深度的 UI 拼接"标准操作字典"。修复并扩充了所有组件（特别是 Button、ScrollBox、Image 等）右侧面板中<strong>每一个层级属性</strong>的作用解析，并优化了表格排版避免文字被挤压换行。英文与中文描述已严格统一。<br>
-  👉 <span style="color:var(--accent)">提示：在"分类总览"中点击任意卡片，可直接跳转至该控件的详细参数说明表格！</span>
+  👉 <span style="color:var(--accent)">提示：在"分类总览"中点击任意卡片，可直接跳转至该控件的详细参数说明表格！</span><br>
+  🆕 <span style="color:var(--green)">v9.2 新增：零基础分步操作教程 + 3个实战案例 + 常见翻车排查表，新手也能看着跟做！</span>
 </div>
 
 <div class="toc">
   <h3>📑 目录 (Table of Contents)</h3>
   <ol>
+    <li><a href="#sec0">🆕 零基础入门：从零创建第一个 UI (Step-by-Step Beginner Guide)</a></li>
     <li><a href="#sec1">UMG 常用控件分类总览 (Widget Gallery Overview)</a></li>
     <li><a href="#sec2">基础图形与交互 (Image & Button)</a></li>
     <li><a href="#sec3">文本双雄 (LGText & Rich Text)</a></li>
@@ -130,7 +132,206 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
     <li><a href="#sec6">高级列表视图 (List View & Tile View)</a></li>
     <li><a href="#sec7">通用核心属性 (Visibility & Render Transform)</a></li>
     <li><a href="#sec8">核心实操：锚点、对齐与微信小游戏适配规范 (Anchors & Alignment)</a></li>
+    <li><a href="#sec9">🆕 实战案例教程 (Hands-On Tutorials)</a></li>
+    <li><a href="#sec10">🆕 常见翻车排查表 (Troubleshooting Checklist)</a></li>
   </ol>
+</div>
+
+<!-- 章节 0 - 零基础入门 -->
+<div class="section" id="sec0">
+  <h2>🆕 0. 零基础入门：从零创建第一个 UI (Step-by-Step Beginner Guide)</h2>
+  <div class="alert alert-green">
+    <strong>🎯 本章目标：</strong>哪怕你从来没碰过 UE5 的 UI 系统，跟着下面的步骤一步一步做，10分钟就能创建出你的第一个 UI 界面并在游戏中显示出来。
+  </div>
+
+  <h3>Step 1：创建 Widget Blueprint (控件蓝图)</h3>
+  <div class="explain-grid">
+    <div class="explain-row">
+      <div class="explain-ui-part">
+        <div class="ue-ui-box" style="min-width:300px;">
+          <div class="ue-ui-sec-title">📁 内容浏览器 (Content Browser)</div>
+          <div class="ue-ui-row" style="background:#222;">
+            <div style="color:#aaa; font-size:12px;">右键空白区域 → User Interface → Widget Blueprint</div>
+          </div>
+          <div class="ue-ui-row">
+            <div class="ue-ui-label" style="width:auto; color:var(--green);">✅ 新建成功</div>
+            <div class="ue-ui-val" style="border-color:var(--green);">WBP_MyFirstUI</div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-arrow">➔</div>
+      <div class="explain-text-part">
+        <p><strong>具体操作步骤：</strong></p>
+        <p>① 打开 UE5 编辑器，确保左下角「内容浏览器 (Content Browser)」面板可见</p>
+        <p>② 先导航到你想存放 UI 文件的文件夹（建议放在 <code>Content/UI/</code> 下）</p>
+        <p>③ 在空白区域 <strong>右键</strong> → 选择 <strong>User Interface</strong> → 选择 <strong>Widget Blueprint</strong></p>
+        <p>④ 给它起一个名字，项目规范命名为 <code>WBP_功能名</code>（如 <code>WBP_MainMenu</code>）</p>
+        <p>⑤ <strong>双击</strong>打开它，就进入了 UMG 编辑器界面！</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>Step 2：认识 UMG 编辑器的四大区域</h3>
+  <div class="explain-grid">
+    <div class="explain-row">
+      <div class="explain-ui-part" style="flex:0 0 100%; border-right:none;">
+        <div class="ue-ui-box" style="min-height:200px;">
+          <div class="ue-ui-sec-title" style="background:var(--accent); color:#fff;">UMG 编辑器布局一览</div>
+          <div style="display:grid; grid-template-columns:1fr 2fr 1fr; grid-template-rows:1fr 1fr; gap:2px; padding:8px; height:160px;">
+            <div style="background:#1e2433; border:1px dashed var(--accent); padding:8px; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--accent); grid-row:span 2; border-radius:4px;">
+              <div style="text-align:center;"><strong>① 控件面板</strong><br>(Palette)<br><br>📦 所有可拖入<br>的控件列表</div>
+            </div>
+            <div style="background:#0d0f15; border:1px solid #333; padding:8px; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text); border-radius:4px;">
+              <div style="text-align:center;"><strong>② 设计视口</strong> (Designer Viewport)<br><br>🖥️ 所见即所得的画布，你在这里拖拽摆放控件</div>
+            </div>
+            <div style="background:#1a1d2b; border:1px dashed var(--orange); padding:8px; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--orange); grid-row:span 2; border-radius:4px;">
+              <div style="text-align:center;"><strong>④ 细节面板</strong><br>(Details)<br><br>⚙️ 选中控件后<br>右侧出现的<br>所有参数</div>
+            </div>
+            <div style="background:#16181d; border:1px dashed var(--green); padding:8px; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--green); border-radius:4px;">
+              <div style="text-align:center;"><strong>③ 层级树</strong> (Hierarchy)<br><br>🌳 显示控件的父子嵌套关系</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <table class="param-table">
+    <thead>
+      <tr><th style="width:20%;">区域名称</th><th style="width:25%;">位置</th><th style="width:55%;">作用说明（大白话版）</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>① 控件面板 (Palette)</strong></td>
+        <td>默认在左上角</td>
+        <td>相当于"工具箱"。所有能用的 UI 控件（按钮、图片、文字、容器等）都列在这里。<strong>操作方式：从这里拖一个控件扔到画布或层级树里。</strong></td>
+      </tr>
+      <tr>
+        <td><strong>② 设计视口 (Designer)</strong></td>
+        <td>正中间最大区域</td>
+        <td>这就是你的"画布"。你可以直观看到 UI 长什么样，拖动控件改位置，边角缩放改大小。<strong>绿色虚线框 = 屏幕边界。</strong></td>
+      </tr>
+      <tr>
+        <td><strong>③ 层级树 (Hierarchy)</strong></td>
+        <td>默认在左下角</td>
+        <td>显示所有控件的父子关系（像文件夹树一样）。把控件拖到另一个控件下面 = 变成它的子节点。<strong>控件的上下顺序 = 渲染层级：越下面的越在画面前面。</strong></td>
+      </tr>
+      <tr>
+        <td><strong>④ 细节面板 (Details)</strong></td>
+        <td>右侧</td>
+        <td><strong>本文档后面所有参数说明都在这里调节！</strong>选中任何控件后，右侧就会出现它的全部可调属性。本文的「面板分组」就是这里的折叠分组。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Step 3：拖入第一个控件并设置属性</h3>
+  <div class="explain-grid">
+    <div class="explain-row">
+      <div class="explain-ui-part">
+        <div class="ue-ui-box">
+          <div class="ue-ui-sec-title">操作演示</div>
+          <div class="ue-ui-row"><div class="ue-ui-label" style="width:auto; color:var(--yellow);">Step 3a</div><div class="ue-ui-val">从左侧 Palette 搜索 "Canvas Panel"，拖入画布</div></div>
+          <div class="ue-ui-row"><div class="ue-ui-label" style="width:auto; color:var(--yellow);">Step 3b</div><div class="ue-ui-val">再搜索 "Image"，拖入 Canvas Panel 下方</div></div>
+          <div class="ue-ui-row"><div class="ue-ui-label" style="width:auto; color:var(--yellow);">Step 3c</div><div class="ue-ui-val">选中 Image → 右侧 Details → Appearance → Brush → 选图片</div></div>
+        </div>
+      </div>
+      <div class="explain-arrow">➔</div>
+      <div class="explain-text-part">
+        <p><strong>详细分步：</strong></p>
+        <p>① 在左上角 Palette 面板的搜索框输入 <code>Canvas</code>，找到 <strong>Canvas Panel</strong>，用鼠标左键按住它拖到中间画布的 <code>[Root]</code> 上</p>
+        <p>② 现在层级树变成了 <code>[Root] → Canvas Panel</code></p>
+        <p>③ 再在 Palette 搜索 <code>Image</code>，拖到层级树的 Canvas Panel 下面（注意要拖到 Canvas Panel 的子层级！）</p>
+        <p>④ <strong>点击选中</strong>刚拖入的 Image 控件 → 看右侧 Details 面板</p>
+        <p>⑤ 找到 <strong>Appearance → Brush → Image</strong> 栏位，点击下拉箭头选择一张项目中已导入的图片</p>
+        <p>⑥ 画布上应该立刻显示出你选的图片了！🎉</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>Step 4：调整位置和大小（两种方式）</h3>
+  <table class="param-table">
+    <thead>
+      <tr><th style="width:15%;">方式</th><th style="width:30%;">操作方法</th><th style="width:55%;">适用场景</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>方式A：<br>鼠标拖拽</strong></td>
+        <td>在画布上直接拖动控件移动位置；拖动四角白色小方块缩放大小</td>
+        <td>快速摆放、肉眼估算位置时使用。<strong>优点</strong>：直观快速。<strong>缺点</strong>：不精确。</td>
+      </tr>
+      <tr>
+        <td><strong>方式B：<br>精确数值</strong></td>
+        <td>选中控件 → 右侧 Details 面板 → <strong>Slot</strong> 分组 → 修改 Position X/Y 和 Size X/Y 的数值</td>
+        <td>需要精确到像素时使用（如严格按设计稿标注），<strong>推荐日常使用这种方式</strong>。</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="alert alert-yellow">
+    <strong>💡 新手必知：</strong>为什么我拖了控件但位置对不准？<br>
+    因为控件的位置受「锚点 (Anchor)」影响！锚点决定了控件以屏幕哪个点为参照。详见 <a href="#sec8" style="color:var(--accent);">第8章：锚点详解</a>。<br>
+    <strong>简单记忆</strong>：左上角的 UI 设锚点左上角；正中间的弹窗设锚点中心；全屏背景设锚点四角拉伸。
+  </div>
+
+  <h3>Step 5：在游戏中显示这个 UI</h3>
+  <div class="explain-grid">
+    <div class="explain-row">
+      <div class="explain-ui-part">
+        <div class="ue-ui-box">
+          <div class="ue-ui-sec-title">📋 蓝图节点 (Blueprint Nodes)</div>
+          <div class="ue-ui-row" style="flex-direction:column; align-items:flex-start; padding:12px;">
+            <div style="font-size:11px; color:#888; margin-bottom:4px;">Event BeginPlay →</div>
+            <div style="background:#1a3a5c; border:1px solid #2980b9; padding:6px 10px; border-radius:3px; color:#fff; font-size:12px; margin-bottom:4px;">Create Widget<br><span style="font-size:10px; color:#aaa;">Class: WBP_MyFirstUI</span></div>
+            <div style="font-size:11px; color:#888; margin-bottom:4px;">→ Return Value →</div>
+            <div style="background:#1a5c3a; border:1px solid #27ae60; padding:6px 10px; border-radius:3px; color:#fff; font-size:12px;">Add to Viewport</div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-arrow">➔</div>
+      <div class="explain-text-part">
+        <p><strong>让 UI 在游戏开始时自动显示：</strong></p>
+        <p>① 打开你的 <strong>关卡蓝图 (Level Blueprint)</strong> 或 <strong>PlayerController 蓝图</strong></p>
+        <p>② 找到 <strong>Event BeginPlay</strong> 节点（游戏一启动就执行的入口）</p>
+        <p>③ 右键空白区域 → 搜索 <code>Create Widget</code> → 选择它</p>
+        <p>④ 在 Create Widget 节点的 <strong>Class</strong> 下拉框中选择你刚才创建的 <code>WBP_MyFirstUI</code></p>
+        <p>⑤ 从 Create Widget 的 <strong>Return Value</strong> 引脚拉线 → 搜索 <code>Add to Viewport</code></p>
+        <p>⑥ 连好线后，点击编辑器顶部的 <strong>▶ Play</strong> 按钮 → 你的 UI 出现了！🎉</p>
+      </div>
+    </div>
+  </div>
+  <div class="alert alert-blue">
+    <strong>🔑 理解整个流程：</strong><br>
+    <strong>创建 Widget Blueprint</strong>（设计 UI 长什么样）→ <strong>在蓝图中 Create Widget + Add to Viewport</strong>（让它在游戏中实际显示）<br>
+    这就像：先画好海报设计稿 → 再把海报贴到墙上。两步缺一不可。
+  </div>
+
+  <h3>Step 6：如何查看本文中提到的各个参数</h3>
+  <p>本文档后续所有章节中提到的参数，你都可以按照以下步骤找到它们：</p>
+  <table class="param-table">
+    <thead>
+      <tr><th style="width:20%;">文档中的写法</th><th style="width:35%;">在 UE5 中怎么找</th><th style="width:45%;">操作路径示例</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>面板分组<br>(Group)</strong></td>
+        <td>就是 Details 面板中可折叠的灰色分组标题栏</td>
+        <td>选中控件 → 右侧 Details 面板 → 找到对应的灰色折叠栏（如 <code>Appearance</code>、<code>Slot</code>）</td>
+      </tr>
+      <tr>
+        <td><strong>层级参数<br>▶ 子参数</strong></td>
+        <td>点击分组左边的 <strong>▶ 三角形</strong> 展开，会看到更多子属性</td>
+        <td>如 <code>Style ▶ Normal ▶ Image</code> = 先展开 Style → 再展开 Normal → 找到 Image 行</td>
+      </tr>
+      <tr>
+        <td><strong>即时预览 ✅</strong></td>
+        <td>改了数值后画布立刻变化，不用点Play</td>
+        <td>直接改数值 → 看画布反馈</td>
+      </tr>
+      <tr>
+        <td><strong>播放运行 ❌</strong></td>
+        <td>改了数值后必须点 Play 运行游戏才能看到效果</td>
+        <td>改完 → 点击顶部 ▶ Play → 在游戏中观察效果</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 
 <!-- 章节 1 -->
@@ -178,6 +379,12 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
   <h3 id="w-button">2.1 Button (按钮) — 极深解析</h3>
   <p><strong>💡 核心作用 (Core Function)：</strong> 提供给玩家点击交互的载体。具备普通 (Normal)、悬停 (Hovered)、按压 (Pressed)、禁用 (Disabled) 四种视觉状态反馈。<br>
   <strong>🎯 适用场景 (Use Cases)：</strong> 确认/取消按键、关闭叉叉、底部的页签切换按钮、技能释放图标。</p>
+
+  <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
+    <strong>📍 操作路径：</strong>在 Palette 面板搜索 <code>Button</code> → 拖入画布 → 选中它 → 右侧 Details 面板即可看到以下所有参数。<br>
+    <strong>📍 如何给按钮换图：</strong>Details → Appearance → Style → Normal → <strong>Image</strong> 栏位 → 点击下拉选择贴图资源。<br>
+    <strong>📍 如何做多态按钮：</strong>分别展开 Normal / Hovered / Pressed / Disabled，各自填入不同状态的图片。
+  </div>
 
   <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
   <table class="param-table">
@@ -279,6 +486,12 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
   <p><strong>💡 核心作用 (Core Function)：</strong> 界面中最基础的视觉元素，用于渲染一切位图贴图。<br>
   <strong>🎯 适用场景 (Use Cases)：</strong> 纯色背景底板、技能图标、带圆角的九宫格弹窗框、装饰性花纹。</p>
 
+  <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
+    <strong>📍 操作路径：</strong>Palette 搜索 <code>Image</code> → 拖入容器 → 选中 → Details 面板。<br>
+    <strong>📍 选图片：</strong>Appearance → Brush → <strong>Image</strong> 行 → 下拉选择已导入的纹理资源。<br>
+    <strong>📍 做九宫格：</strong>Draw As 改为 <code>Box</code> → Margin 填 <code>0.25</code> (根据图片圆角比例调整)。
+  </div>
+
   <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
   <table class="param-table">
     <thead>
@@ -328,6 +541,13 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
   <h3 id="w-lgtext">3.1 LGText (项目定制文本)</h3>
   <p><strong>💡 核心作用 (Core Function)：</strong> 替代 UE 默认 Text 的首选，底层已集成我们项目的多语言 (Localization) 规范。<br>
   <strong>🎯 适用场景 (Use Cases)：</strong> 各种界面标题、按钮上的单色文字、纯数据展示展示。</p>
+
+  <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
+    <strong>📍 操作路径：</strong>Palette 搜索 <code>LGText</code>（如果搜不到就搜 <code>Text</code>，找我们项目自定义的那个）→ 拖入容器 → 选中 → Details。<br>
+    <strong>📍 改文字内容：</strong>Details → Content → <strong>Text</strong> 栏位 → 直接输入文字。<br>
+    <strong>📍 改字体大小：</strong>Details → Appearance → Font → <strong>Size</strong> → 输入数值（常用 18~36）。<br>
+    <strong>📍 改字体颜色：</strong>Details → Appearance → Font → <strong>Color</strong> → 点击色块打开取色器。
+  </div>
 
   <div class="param-title">右侧面板详细参数清单 (Details Panel Parameters)</div>
   <table class="param-table">
@@ -613,6 +833,13 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
   <p><strong>💡 核心作用 (Core Function)：</strong> 给那些内部内容远远超过屏幕物理尺寸的元素提供一个滚动视口。玩家可以用鼠标滚轮或手指上下划动。<br>
   <strong>🎯 适用场景 (Use Cases)：</strong> 长篇大论的用户协议、带大量文字的装备详细描述说明、不经常变化长短的设置项列表。<br>
   <strong style="color:var(--red);">⚠️ 注意：如果列表条目超过 30 条且格式一致（如排行榜），绝对不能用 Scroll Box，必须用 List View 性能复用池！</strong></p>
+
+  <div class="alert alert-blue" style="font-size:13px; padding:12px 16px;">
+    <strong>📍 操作路径：</strong>Palette 搜索 <code>Scroll Box</code> → 拖入容器 → 然后把需要滚动的内容控件全部拖到 Scroll Box 下方作为子节点。<br>
+    <strong>📍 隐藏滚动条：</strong>选中 Scroll Box → Details → Scroll → <strong>Scrollbar Visibility</strong> → 选 <code>Collapsed</code>。<br>
+    <strong>📍 改滚动方向：</strong>Details → Scroll → <strong>Orientation</strong> → 改为 Horizontal（横滑）或 Vertical（竖滑）。<br>
+    <strong>📍 自定义滑块外观：</strong>Details → Style → 展开 Scrollbar Style → 替换各 Thumb Image。
+  </div>
 
   <div class="explain-grid">
     <div class="explain-row">
@@ -1032,7 +1259,351 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 
 </div>
 
-<div class="doc-footer">📐 游戏项目知识库 · UE5 UMG 拼接实操详细指南 · 顶端对齐与中英双语规范版 v9.1</div>
+<!-- 章节 9 - 实战案例 -->
+<div class="section" id="sec9">
+  <h2>🎮 9. 实战案例教程 (Hands-On Tutorials)</h2>
+  <div class="alert alert-green">
+    <strong>🎯 本章目标：</strong>通过3个从零开始的完整案例，手把手教你做出常见的游戏 UI 组件。每一步都写得像食谱一样精确，跟着做就行！
+  </div>
+
+  <h3>案例 A：制作一个「确认弹窗」(Confirm Dialog)</h3>
+  <p><strong>最终效果：</strong>半透明黑底遮罩 + 居中白色圆角面板 + 标题文字 + 确认/取消两个按钮</p>
+
+  <h4>A-1. 准备工作</h4>
+  <table class="param-table">
+    <thead>
+      <tr><th style="width:8%;">步骤</th><th style="width:35%;">操作</th><th style="width:57%;">详细说明</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>1</strong></td><td>创建 Widget Blueprint</td><td>Content Browser → 右键 → User Interface → Widget Blueprint → 命名为 <code>WBP_ConfirmDialog</code></td></tr>
+      <tr><td><strong>2</strong></td><td>双击打开 UMG 编辑器</td><td>确保能看到四大区域（Palette / Designer / Hierarchy / Details）</td></tr>
+      <tr><td><strong>3</strong></td><td>确认已有切图资源</td><td>你需要：一张白色圆角底框图（用于九宫格）、确认按钮图、取消按钮图。如果没有，可以先用纯色测试。</td></tr>
+    </tbody>
+  </table>
+
+  <h4>A-2. 搭建层级结构</h4>
+  <p>按照以下顺序依次从 Palette 拖入控件，构建层级树：</p>
+  <pre style="background:var(--panel); padding:16px; border-radius:8px; color:var(--accent); line-height:1.8; font-size:14px; overflow-x:auto;">
+[Canvas Panel]                       ← 根容器（创建时自带或手动拖入）
+ ├── 🖼️ Image [BG_Mask]             ← 全屏半透明黑色遮罩
+ └── 📏 Size Box [DialogBox]         ← 控制弹窗固定宽高
+      └── 🥞 Overlay                  ← 层叠：底图 + 内容
+           ├── 🖼️ Image [PanelBG]   ← 白色圆角底框（九宫格）
+           └── ⏬ Vertical Box        ← 纵向排列内容
+                ├── 🔤 LGText [Title]   ← 标题文字"确定要退出吗？"
+                ├── 🔤 LGText [Desc]    ← 描述文字（可选）
+                └── ⏸️ Horizontal Box  ← 按钮横排
+                     ├── 👆 Button [BtnConfirm]  ← 确认按钮
+                     └── 👆 Button [BtnCancel]   ← 取消按钮
+  </pre>
+
+  <h4>A-3. 逐个配置参数</h4>
+  <table class="param-table">
+    <thead>
+      <tr><th style="width:15%;">控件</th><th style="width:30%;">需要设置的参数</th><th style="width:55%;">具体操作步骤</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>BG_Mask<br>(背景遮罩)</strong></td>
+        <td>锚点：全屏拉伸<br>颜色：黑色半透明</td>
+        <td>
+          ① 选中 BG_Mask → Details → Slot → <strong>Anchors</strong> → 点右下角那个「全屏拉伸」图标（四角扩散的那个）<br>
+          ② Slot → Offsets 全部设为 0（上下左右都贴边）<br>
+          ③ Appearance → Color and Opacity → 颜色设为黑色，<strong>Alpha 设为 0.6</strong>（半透明遮罩效果）
+        </td>
+      </tr>
+      <tr>
+        <td><strong>DialogBox<br>(Size Box)</strong></td>
+        <td>固定宽高 + 居中</td>
+        <td>
+          ① 选中 Size Box → Details → Slot → Anchors → 选「正中心」锚点<br>
+          ② Slot → <strong>Alignment</strong> → X: 0.5, Y: 0.5（关键！让中心对准锚点）<br>
+          ③ Child Layout → <strong>Width Override</strong>: 600, <strong>Height Override</strong>: 350
+        </td>
+      </tr>
+      <tr>
+        <td><strong>PanelBG<br>(底框图)</strong></td>
+        <td>九宫格圆角底图</td>
+        <td>
+          ① 选中 PanelBG → Overlay Slot → Alignment 设为 Fill × Fill（铺满 Overlay）<br>
+          ② Appearance → Brush → Image → 选你的白色圆角底框图<br>
+          ③ <strong>Draw As</strong> → 改为 <code>Box</code><br>
+          ④ <strong>Margin</strong> → 填 <code>0.25</code>（保护四个圆角不被拉伸）
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Vertical Box</strong></td>
+        <td>内容垂直排列+居中</td>
+        <td>
+          ① Overlay Slot → Alignment: Center × Center<br>
+          ② 每个子节点的 Slot → Padding → 适当加间距（如 Top: 20, Bottom: 10）<br>
+          ③ 每个子节点的 Horizontal Alignment → Center（水平居中）
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Title 文字</strong></td>
+        <td>标题内容+字号+颜色</td>
+        <td>
+          ① Content → Text → 输入"确定要退出游戏吗？"<br>
+          ② Appearance → Font → Size → <code>28</code><br>
+          ③ Font → Color → 选深色或你项目的标题色
+        </td>
+      </tr>
+      <tr>
+        <td><strong>两个 Button</strong></td>
+        <td>图片+间距</td>
+        <td>
+          ① 各自展开 Style → Normal → Image → 填入对应按钮图<br>
+          ② <strong>必须把 Normal 的图也复制到 Pressed 里！</strong>（否则点击闪白块）<br>
+          ③ Horizontal Box Slot → Padding Left/Right 各加 10~20 间距<br>
+          ④ Interaction → <strong>取消勾选 Is Focusable</strong>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>A-4. 最终检查清单</h4>
+  <div class="alert alert-yellow">
+    <strong>✅ 完成后自查：</strong><br>
+    □ 遮罩铺满全屏？ → 检查锚点是否为全屏拉伸 + Offset 全0<br>
+    □ 弹窗居中？ → 检查 Size Box 锚点居中 + Alignment 0.5/0.5<br>
+    □ 圆角没变形？ → 检查 Draw As = Box + Margin > 0<br>
+    □ 按钮点击不闪白？ → 检查 Pressed 状态有图片<br>
+    □ 按钮没有虚线框？ → 检查 Is Focusable 已取消勾选
+  </div>
+
+  <h3>案例 B：制作一个「滚动公告列表」(Scrollable Announcement List)</h3>
+  <p><strong>最终效果：</strong>固定高度区域内展示多条公告文字，超出后可上下滑动查看</p>
+
+  <h4>B-1. 搭建层级结构</h4>
+  <pre style="background:var(--panel); padding:16px; border-radius:8px; color:var(--accent); line-height:1.8; font-size:14px; overflow-x:auto;">
+[Canvas Panel]
+ └── 📏 Size Box [AnnouncementArea]    ← 限制公告区域高度为 400px
+      └── 📜 Scroll Box                 ← 让内部内容可滚动
+           └── ⏬ Vertical Box          ← 公告条目纵向排列
+                ├── 🔤 LGText [公告1]     ← "服务器将于今晚22:00维护..."
+                ├── 🔤 LGText [公告2]     ← "新版本已开放，快来体验..."
+                ├── 🔤 LGText [公告3]     ← ...
+                └── ... (更多公告)
+  </pre>
+
+  <h4>B-2. 关键配置步骤</h4>
+  <table class="param-table">
+    <thead>
+      <tr><th style="width:8%;">步骤</th><th style="width:25%;">选中哪个控件</th><th style="width:67%;">操作内容</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>1</strong></td><td>Size Box</td><td>Details → Child Layout → <strong>Height Override</strong> → 400（固定公告区高度为 400 像素）</td></tr>
+      <tr><td><strong>2</strong></td><td>Scroll Box</td><td>Details → Scroll → <strong>Orientation</strong> → Vertical（上下滚动）</td></tr>
+      <tr><td><strong>3</strong></td><td>Scroll Box</td><td>Details → Scroll → <strong>Scrollbar Visibility</strong> → <code>Collapsed</code>（隐藏滚动条，让滑动区域更宽）</td></tr>
+      <tr><td><strong>4</strong></td><td>Scroll Box</td><td>Details → Scroll → <strong>Consume Mouse Wheel</strong> → Always（确保滚轮事件不漏到外层）</td></tr>
+      <tr><td><strong>5</strong></td><td>每条 LGText</td><td>Content → Text → 填入公告文字；Slot → Padding Bottom → 12（条目间距）</td></tr>
+      <tr><td><strong>6</strong></td><td>每条 LGText</td><td>Appearance → Font → Auto Wrap Text → <strong>勾选</strong>（文字太长自动换行）</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-yellow">
+    <strong>💡 新手常踩坑：</strong>为什么 Scroll Box 里的内容不滚动？<br>
+    → 检查 Scroll Box 的父容器是否限制了高度！如果父容器设为「Size to Content = true」，Scroll Box 会无限撑高就没东西需要滚了。<br>
+    → <strong>正确做法</strong>：用 Size Box 包裹 Scroll Box 并设置固定高度，或者给 Scroll Box 的 Canvas Panel Slot 设固定 Size Y。
+  </div>
+
+  <h3>案例 C：制作一个「底部 Tab 页签栏」(Bottom Tab Bar with Widget Switcher)</h3>
+  <p><strong>最终效果：</strong>底部有3个按钮（商城/背包/社交），点击不同按钮切换上方内容区域</p>
+
+  <h4>C-1. 搭建层级结构</h4>
+  <pre style="background:var(--panel); padding:16px; border-radius:8px; color:var(--accent); line-height:1.8; font-size:14px; overflow-x:auto;">
+[Canvas Panel]
+ └── ⏬ Vertical Box [FullScreen]    ← 全屏纵向排列：内容+底栏
+      ├── 🗂️ Widget Switcher [PageSwitcher]  ← 占据上方全部空间(Fill)
+      │    ├── 📦 [Page_Shop]        ← 商城子页面（任意内容）
+      │    ├── 📦 [Page_Bag]         ← 背包子页面
+      │    └── 📦 [Page_Social]      ← 社交子页面
+      └── ⏸️ Horizontal Box [TabBar]  ← 底栏按钮横排(Auto高度)
+           ├── 👆 Button [Tab_Shop]   ← 商城Tab
+           ├── 👆 Button [Tab_Bag]    ← 背包Tab
+           └── 👆 Button [Tab_Social] ← 社交Tab
+  </pre>
+
+  <h4>C-2. 关键配置步骤</h4>
+  <table class="param-table">
+    <thead>
+      <tr><th style="width:8%;">步骤</th><th style="width:25%;">选中哪个控件</th><th style="width:67%;">操作内容</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>1</strong></td><td>Vertical Box</td><td>Canvas Panel Slot → Anchors 设为全屏拉伸 + Offsets 全0（撑满屏幕）</td></tr>
+      <tr><td><strong>2</strong></td><td>Widget Switcher</td><td>Vertical Box Slot → Size → <strong>Fill</strong>（吃掉所有剩余空间作为内容区）</td></tr>
+      <tr><td><strong>3</strong></td><td>Horizontal Box (TabBar)</td><td>Vertical Box Slot → Size → <strong>Auto</strong>（底栏按实际按钮高度占位）</td></tr>
+      <tr><td><strong>4</strong></td><td>Widget Switcher</td><td>Details → Active Widget → <strong>Active Widget Index</strong> → 默认填 0（首次显示商城页）</td></tr>
+      <tr><td><strong>5</strong></td><td>Widget Switcher</td><td>勾选 <strong>Is Variable</strong>（让蓝图能访问它！否则代码控制不了切换！）</td></tr>
+      <tr><td><strong>6</strong></td><td>每个 Tab Button</td><td>Horizontal Box Slot → Size → <strong>Fill</strong>（三个按钮等宽平分底栏）</td></tr>
+      <tr><td><strong>7</strong></td><td>每个 Tab Button</td><td>分别配置 Normal/Pressed 图片 + 取消 Is Focusable</td></tr>
+    </tbody>
+  </table>
+
+  <h4>C-3. 蓝图连线实现切换</h4>
+  <div class="explain-grid">
+    <div class="explain-row">
+      <div class="explain-ui-part">
+        <div class="ue-ui-box">
+          <div class="ue-ui-sec-title">📋 蓝图节点连线示意</div>
+          <div class="ue-ui-row" style="flex-direction:column; align-items:flex-start; padding:12px;">
+            <div style="font-size:11px; color:#888; margin-bottom:6px;">On Clicked (Tab_Shop) →</div>
+            <div style="background:#1a3a5c; border:1px solid #2980b9; padding:6px 10px; border-radius:3px; color:#fff; font-size:12px; margin-bottom:8px;">
+              PageSwitcher → Set Active Widget Index<br>
+              <span style="font-size:10px; color:#aaa;">Index: 0</span>
+            </div>
+            <div style="font-size:11px; color:#888; margin-bottom:6px;">On Clicked (Tab_Bag) →</div>
+            <div style="background:#1a3a5c; border:1px solid #2980b9; padding:6px 10px; border-radius:3px; color:#fff; font-size:12px; margin-bottom:8px;">
+              PageSwitcher → Set Active Widget Index<br>
+              <span style="font-size:10px; color:#aaa;">Index: 1</span>
+            </div>
+            <div style="font-size:11px; color:#888; margin-bottom:6px;">On Clicked (Tab_Social) →</div>
+            <div style="background:#1a3a5c; border:1px solid #2980b9; padding:6px 10px; border-radius:3px; color:#fff; font-size:12px;">
+              PageSwitcher → Set Active Widget Index<br>
+              <span style="font-size:10px; color:#aaa;">Index: 2</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-arrow">➔</div>
+      <div class="explain-text-part">
+        <p><strong>连线步骤（在 Graph 蓝图编辑器中）：</strong></p>
+        <p>① 点击 UMG 编辑器顶部的 <strong>Graph</strong> 标签切换到蓝图视图</p>
+        <p>② 在左侧 My Blueprint 面板的 <strong>Variables</strong> 下找到 PageSwitcher（因为你勾选了 Is Variable）</p>
+        <p>③ 选中 Tab_Shop 按钮 → 右侧 Details 面板底部 → Events → 点击 <strong>On Clicked</strong> 旁边的 <strong>+</strong> 号</p>
+        <p>④ 这会自动创建一个 On Clicked 事件节点</p>
+        <p>⑤ 从 PageSwitcher 变量拖入蓝图 → 从它拉线 → 搜索 <strong>Set Active Widget Index</strong></p>
+        <p>⑥ 将 Index 设为 <strong>0</strong>（对应第一个子控件=商城页）</p>
+        <p>⑦ 连接 On Clicked → Set Active Widget Index</p>
+        <p>⑧ 对 Tab_Bag 和 Tab_Social 重复同样操作，Index 分别为 <strong>1</strong> 和 <strong>2</strong></p>
+      </div>
+    </div>
+  </div>
+  <div class="alert alert-blue">
+    <strong>🎉 完成！</strong>现在点击 Play 运行游戏，点击底部不同的 Tab 按钮就能切换上方的内容页面了。这就是绝大多数游戏底部导航栏的实现原理！
+  </div>
+</div>
+
+<!-- 章节 10 - 常见翻车排查表 -->
+<div class="section" id="sec10">
+  <h2>🔧 10. 常见翻车排查表 (Troubleshooting Checklist)</h2>
+  <div class="alert alert-green">
+    <strong>🎯 本章用法：</strong>遇到问题时，先在下表中找到你的症状，然后按「解决方案」一步一步排查。90%的新手问题都在这里！
+  </div>
+
+  <table class="param-table">
+    <thead>
+      <tr><th style="width:25%;">😱 症状描述</th><th style="width:25%;">🔍 根因分析</th><th style="width:50%;">✅ 解决方案（操作步骤）</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>按钮点击瞬间变成白色方块</strong></td>
+        <td>Pressed 状态没有填图片，引擎用纯白默认代替</td>
+        <td>选中 Button → Details → Style → 展开 <strong>Pressed</strong> → Image 栏位 → 填入和 Normal 一样的图（或者专门的按压态图）</td>
+      </tr>
+      <tr>
+        <td><strong>按钮周围有一圈难看的虚线/蓝色描边</strong></td>
+        <td>Is Focusable 勾选了，PC 键盘焦点显示</td>
+        <td>选中 Button → Details → Interaction → <strong>取消勾选 Is Focusable</strong></td>
+      </tr>
+      <tr>
+        <td><strong>按钮/图片怎么点都没反应（穿透了）</strong></td>
+        <td>99%是上面盖了一个 Visible 的透明控件挡住了点击</td>
+        <td>在层级树中检查该按钮上方（更靠下的节点 = 更上层）是否有看不见的 Image 或容器。将其改为 <strong>Hit Test Invisible</strong> 或 <strong>Self Hit Test Invisible</strong></td>
+      </tr>
+      <tr>
+        <td><strong>UI 元素位置在不同分辨率下跑偏</strong></td>
+        <td>锚点 (Anchor) 设置不正确</td>
+        <td>
+          ① 左上角的元素 → 锚点设左上<br>
+          ② 居中的弹窗 → 锚点设中心 + Alignment 0.5/0.5<br>
+          ③ 全屏背景 → 锚点设四角拉伸 + Offset 全0<br>
+          详见 <a href="#sec8" style="color:var(--accent);">第8章</a>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Scroll Box 里的内容不滚动</strong></td>
+        <td>Scroll Box 没有被限高，它自动撑到了内容的完整高度</td>
+        <td>
+          ① 给 Scroll Box 外面套一个 <strong>Size Box</strong> 并设置固定 Height Override<br>
+          ② 或者在 Canvas Panel Slot 中给 Scroll Box 设固定的 Size Y<br>
+          ③ <strong>不要</strong>勾选 Scroll Box 的 "Size to Content"
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Text 文字显示不出来/看不见</strong></td>
+        <td>多种可能：字色和背景同色 / 字号为0 / 控件太小</td>
+        <td>
+          ① 检查 Font → Color 是否和背景同色（如白底白字）<br>
+          ② 检查 Font → Size 是否 > 0<br>
+          ③ 检查控件的 Slot 分配空间是否足够（Auto vs Fill）<br>
+          ④ 检查 Visibility 是否为 Visible
+        </td>
+      </tr>
+      <tr>
+        <td><strong>九宫格图片的圆角变形/拉伸了</strong></td>
+        <td>Draw As 不是 Box，或者 Margin 值太小/太大</td>
+        <td>
+          ① 确认 Draw As = <strong>Box</strong><br>
+          ② Margin 建议从 0.2~0.3 开始试，代表保护图片四边 20%~30% 不被拉伸<br>
+          ③ 如果圆角非常大，Margin 要调大（如 0.4）
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Widget Switcher 切换无效/切不了页</strong></td>
+        <td>没有勾选 Is Variable，蓝图访问不到它</td>
+        <td>
+          ① 选中 Widget Switcher → Details → 搜索 "Variable" → 勾选 <strong>Is Variable</strong><br>
+          ② 编译蓝图后重新在 Graph 中拉变量引用
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Image 图片显示为白色方块</strong></td>
+        <td>没有指定 Image 资源，引擎用默认白色填充</td>
+        <td>选中 Image → Details → Appearance → Brush → <strong>Image</strong> → 从下拉中选择一张已导入的 Texture 资源</td>
+      </tr>
+      <tr>
+        <td><strong>手机端（微信小游戏）UI 被胶囊按钮遮挡</strong></td>
+        <td>没有使用 Safe Zone 保护</td>
+        <td>
+          ① 在最外层 Canvas Panel 下先放一个 <strong>Safe Zone</strong>（锚点全屏拉伸）<br>
+          ② 勾选 Pad Left/Right/Top/Bottom 全部保护<br>
+          ③ 把所有 UI 内容放在 Safe Zone 内部<br>
+          详见 <a href="#sec8" style="color:var(--accent);">第8章 8.3节</a>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Horizontal/Vertical Box 子节点大小异常</strong></td>
+        <td>Slot 的 Size 设置冲突：Auto 和 Fill 混淆</td>
+        <td>
+          ① <strong>Auto</strong>：控件多大它就占多大空间（适合按钮、图标）<br>
+          ② <strong>Fill</strong>：强制吃掉所有剩余空间（适合需要自适应撑满的区域）<br>
+          ③ 多个 Fill 之间用 <strong>Fill Ratio</strong> 控制分配比例
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Play 运行后 UI 不显示</strong></td>
+        <td>忘记在蓝图中 Create Widget + Add to Viewport</td>
+        <td>
+          ① 打开 Level Blueprint 或 PlayerController<br>
+          ② Event BeginPlay → <strong>Create Widget</strong> (选你的 WBP) → <strong>Add to Viewport</strong><br>
+          详见 <a href="#sec0" style="color:var(--accent);">第0章 Step 5</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>🔎 通用排查思路（万能三板斧）</h3>
+  <div class="alert alert-blue">
+    <strong>遇到任何 UI 问题，先做这三步：</strong><br><br>
+    <strong>① 检查层级树顺序：</strong>是否有东西在上面挡住了？层级树中越<strong>靠下的条目渲染越靠前</strong>（遮挡其他）。<br><br>
+    <strong>② 检查 Visibility：</strong>选中异常控件，搜索 Visibility，确认不是 Collapsed/Hidden。同时检查父容器的 Visibility（父隐则子全隐）。<br><br>
+    <strong>③ 检查 Slot 设置：</strong>选中控件，看 Details 最顶部的 <strong>Slot</strong> 分组。锚点对不对？Padding 是否把它挤出了可视范围？Size 是 Auto 还是 Fill？
+  </div>
+</div>
+
+<div class="doc-footer">📐 游戏项目知识库 · UE5 UMG 拼接实操详细指南 · 新手友好全解析版 v9.2</div>
 </div>
 <script>
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {

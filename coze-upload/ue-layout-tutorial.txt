@@ -5,18 +5,20 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
 
 
 
-  🎮 UE5 UMG 拼接实操详细指南 全控件极深解析版 v9.1
-  涵盖每一个UI控件的右侧面板细节拆解、滚动框/按钮参数精讲与多端自适应规范
+  🎮 UE5 UMG 拼接实操详细指南 全控件极深解析版 v9.2
+  涵盖零基础入门教程、每一个UI控件的右侧面板细节拆解、实战案例手把手教程与多端自适应规范
 
 
 
   📝 导读：本文档是极深度的 UI 拼接"标准操作字典"。修复并扩充了所有组件（特别是 Button、ScrollBox、Image 等）右侧面板中每一个层级属性的作用解析，并优化了表格排版避免文字被挤压换行。英文与中文描述已严格统一。
   👉 提示：在"分类总览"中点击任意卡片，可直接跳转至该控件的详细参数说明表格！
+  🆕 v9.2 新增：零基础分步操作教程 + 3个实战案例 + 常见翻车排查表，新手也能看着跟做！
 
 
 
   📑 目录 (Table of Contents)
   
+    🆕 零基础入门：从零创建第一个 UI (Step-by-Step Beginner Guide)
     UMG 常用控件分类总览 (Widget Gallery Overview)
     基础图形与交互 (Image & Button)
     文本双雄 (LGText & Rich Text)
@@ -25,6 +27,205 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
     高级列表视图 (List View & Tile View)
     通用核心属性 (Visibility & Render Transform)
     核心实操：锚点、对齐与微信小游戏适配规范 (Anchors & Alignment)
+    🆕 实战案例教程 (Hands-On Tutorials)
+    🆕 常见翻车排查表 (Troubleshooting Checklist)
+  
+
+
+
+
+  🆕 0. 零基础入门：从零创建第一个 UI (Step-by-Step Beginner Guide)
+  
+    🎯 本章目标：哪怕你从来没碰过 UE5 的 UI 系统，跟着下面的步骤一步一步做，10分钟就能创建出你的第一个 UI 界面并在游戏中显示出来。
+  
+
+  Step 1：创建 Widget Blueprint (控件蓝图)
+  
+    
+      
+        
+          📁 内容浏览器 (Content Browser)
+          
+            右键空白区域 → User Interface → Widget Blueprint
+          
+          
+            ✅ 新建成功
+            WBP_MyFirstUI
+          
+        
+      
+      ➔
+      
+        具体操作步骤：
+        ① 打开 UE5 编辑器，确保左下角「内容浏览器 (Content Browser)」面板可见
+        ② 先导航到你想存放 UI 文件的文件夹（建议放在 Content/UI/ 下）
+        ③ 在空白区域 右键 → 选择 User Interface → 选择 Widget Blueprint
+        ④ 给它起一个名字，项目规范命名为 WBP_功能名（如 WBP_MainMenu）
+        ⑤ 双击打开它，就进入了 UMG 编辑器界面！
+      
+    
+  
+
+  Step 2：认识 UMG 编辑器的四大区域
+  
+    
+      
+        
+          UMG 编辑器布局一览
+          
+            
+              ① 控件面板(Palette)📦 所有可拖入的控件列表
+            
+            
+              ② 设计视口 (Designer Viewport)🖥️ 所见即所得的画布，你在这里拖拽摆放控件
+            
+            
+              ④ 细节面板(Details)⚙️ 选中控件后右侧出现的所有参数
+            
+            
+              ③ 层级树 (Hierarchy)🌳 显示控件的父子嵌套关系
+            
+          
+        
+      
+    
+  
+  
+    
+      区域名称位置作用说明（大白话版）
+    
+    
+      
+        ① 控件面板 (Palette)
+        默认在左上角
+        相当于"工具箱"。所有能用的 UI 控件（按钮、图片、文字、容器等）都列在这里。操作方式：从这里拖一个控件扔到画布或层级树里。
+      
+      
+        ② 设计视口 (Designer)
+        正中间最大区域
+        这就是你的"画布"。你可以直观看到 UI 长什么样，拖动控件改位置，边角缩放改大小。绿色虚线框 = 屏幕边界。
+      
+      
+        ③ 层级树 (Hierarchy)
+        默认在左下角
+        显示所有控件的父子关系（像文件夹树一样）。把控件拖到另一个控件下面 = 变成它的子节点。控件的上下顺序 = 渲染层级：越下面的越在画面前面。
+      
+      
+        ④ 细节面板 (Details)
+        右侧
+        本文档后面所有参数说明都在这里调节！选中任何控件后，右侧就会出现它的全部可调属性。本文的「面板分组」就是这里的折叠分组。
+      
+    
+  
+
+  Step 3：拖入第一个控件并设置属性
+  
+    
+      
+        
+          操作演示
+          Step 3a从左侧 Palette 搜索 "Canvas Panel"，拖入画布
+          Step 3b再搜索 "Image"，拖入 Canvas Panel 下方
+          Step 3c选中 Image → 右侧 Details → Appearance → Brush → 选图片
+        
+      
+      ➔
+      
+        详细分步：
+        ① 在左上角 Palette 面板的搜索框输入 Canvas，找到 Canvas Panel，用鼠标左键按住它拖到中间画布的 [Root] 上
+        ② 现在层级树变成了 [Root] → Canvas Panel
+        ③ 再在 Palette 搜索 Image，拖到层级树的 Canvas Panel 下面（注意要拖到 Canvas Panel 的子层级！）
+        ④ 点击选中刚拖入的 Image 控件 → 看右侧 Details 面板
+        ⑤ 找到 Appearance → Brush → Image 栏位，点击下拉箭头选择一张项目中已导入的图片
+        ⑥ 画布上应该立刻显示出你选的图片了！🎉
+      
+    
+  
+
+  Step 4：调整位置和大小（两种方式）
+  
+    
+      方式操作方法适用场景
+    
+    
+      
+        方式A：鼠标拖拽
+        在画布上直接拖动控件移动位置；拖动四角白色小方块缩放大小
+        快速摆放、肉眼估算位置时使用。优点：直观快速。缺点：不精确。
+      
+      
+        方式B：精确数值
+        选中控件 → 右侧 Details 面板 → Slot 分组 → 修改 Position X/Y 和 Size X/Y 的数值
+        需要精确到像素时使用（如严格按设计稿标注），推荐日常使用这种方式。
+      
+    
+  
+  
+    💡 新手必知：为什么我拖了控件但位置对不准？
+    因为控件的位置受「锚点 (Anchor)」影响！锚点决定了控件以屏幕哪个点为参照。详见 第8章：锚点详解。
+    简单记忆：左上角的 UI 设锚点左上角；正中间的弹窗设锚点中心；全屏背景设锚点四角拉伸。
+  
+
+  Step 5：在游戏中显示这个 UI
+  
+    
+      
+        
+          📋 蓝图节点 (Blueprint Nodes)
+          
+            Event BeginPlay →
+            Create WidgetClass: WBP_MyFirstUI
+            → Return Value →
+            Add to Viewport
+          
+        
+      
+      ➔
+      
+        让 UI 在游戏开始时自动显示：
+        ① 打开你的 关卡蓝图 (Level Blueprint) 或 PlayerController 蓝图
+        ② 找到 Event BeginPlay 节点（游戏一启动就执行的入口）
+        ③ 右键空白区域 → 搜索 Create Widget → 选择它
+        ④ 在 Create Widget 节点的 Class 下拉框中选择你刚才创建的 WBP_MyFirstUI
+        ⑤ 从 Create Widget 的 Return Value 引脚拉线 → 搜索 Add to Viewport
+        ⑥ 连好线后，点击编辑器顶部的 ▶ Play 按钮 → 你的 UI 出现了！🎉
+      
+    
+  
+  
+    🔑 理解整个流程：
+    创建 Widget Blueprint（设计 UI 长什么样）→ 在蓝图中 Create Widget + Add to Viewport（让它在游戏中实际显示）
+    这就像：先画好海报设计稿 → 再把海报贴到墙上。两步缺一不可。
+  
+
+  Step 6：如何查看本文中提到的各个参数
+  本文档后续所有章节中提到的参数，你都可以按照以下步骤找到它们：
+  
+    
+      文档中的写法在 UE5 中怎么找操作路径示例
+    
+    
+      
+        面板分组(Group)
+        就是 Details 面板中可折叠的灰色分组标题栏
+        选中控件 → 右侧 Details 面板 → 找到对应的灰色折叠栏（如 Appearance、Slot）
+      
+      
+        层级参数▶ 子参数
+        点击分组左边的 ▶ 三角形 展开，会看到更多子属性
+        如 Style ▶ Normal ▶ Image = 先展开 Style → 再展开 Normal → 找到 Image 行
+      
+      
+        即时预览 ✅
+        改了数值后画布立刻变化，不用点Play
+        直接改数值 → 看画布反馈
+      
+      
+        播放运行 ❌
+        改了数值后必须点 Play 运行游戏才能看到效果
+        改完 → 点击顶部 ▶ Play → 在游戏中观察效果
+      
+    
   
 
 
@@ -73,6 +274,12 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   2.1 Button (按钮) — 极深解析
   💡 核心作用 (Core Function)： 提供给玩家点击交互的载体。具备普通 (Normal)、悬停 (Hovered)、按压 (Pressed)、禁用 (Disabled) 四种视觉状态反馈。
   🎯 适用场景 (Use Cases)： 确认/取消按键、关闭叉叉、底部的页签切换按钮、技能释放图标。
+
+  
+    📍 操作路径：在 Palette 面板搜索 Button → 拖入画布 → 选中它 → 右侧 Details 面板即可看到以下所有参数。
+    📍 如何给按钮换图：Details → Appearance → Style → Normal → Image 栏位 → 点击下拉选择贴图资源。
+    📍 如何做多态按钮：分别展开 Normal / Hovered / Pressed / Disabled，各自填入不同状态的图片。
+  
 
   右侧面板详细参数清单 (Details Panel Parameters)
   
@@ -174,6 +381,12 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   💡 核心作用 (Core Function)： 界面中最基础的视觉元素，用于渲染一切位图贴图。
   🎯 适用场景 (Use Cases)： 纯色背景底板、技能图标、带圆角的九宫格弹窗框、装饰性花纹。
 
+  
+    📍 操作路径：Palette 搜索 Image → 拖入容器 → 选中 → Details 面板。
+    📍 选图片：Appearance → Brush → Image 行 → 下拉选择已导入的纹理资源。
+    📍 做九宫格：Draw As 改为 Box → Margin 填 0.25 (根据图片圆角比例调整)。
+  
+
   右侧面板详细参数清单 (Details Panel Parameters)
   
     
@@ -223,6 +436,13 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   3.1 LGText (项目定制文本)
   💡 核心作用 (Core Function)： 替代 UE 默认 Text 的首选，底层已集成我们项目的多语言 (Localization) 规范。
   🎯 适用场景 (Use Cases)： 各种界面标题、按钮上的单色文字、纯数据展示展示。
+
+  
+    📍 操作路径：Palette 搜索 LGText（如果搜不到就搜 Text，找我们项目自定义的那个）→ 拖入容器 → 选中 → Details。
+    📍 改文字内容：Details → Content → Text 栏位 → 直接输入文字。
+    📍 改字体大小：Details → Appearance → Font → Size → 输入数值（常用 18~36）。
+    📍 改字体颜色：Details → Appearance → Font → Color → 点击色块打开取色器。
+  
 
   右侧面板详细参数清单 (Details Panel Parameters)
   
@@ -508,6 +728,13 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
   💡 核心作用 (Core Function)： 给那些内部内容远远超过屏幕物理尺寸的元素提供一个滚动视口。玩家可以用鼠标滚轮或手指上下划动。
   🎯 适用场景 (Use Cases)： 长篇大论的用户协议、带大量文字的装备详细描述说明、不经常变化长短的设置项列表。
   ⚠️ 注意：如果列表条目超过 30 条且格式一致（如排行榜），绝对不能用 Scroll Box，必须用 List View 性能复用池！
+
+  
+    📍 操作路径：Palette 搜索 Scroll Box → 拖入容器 → 然后把需要滚动的内容控件全部拖到 Scroll Box 下方作为子节点。
+    📍 隐藏滚动条：选中 Scroll Box → Details → Scroll → Scrollbar Visibility → 选 Collapsed。
+    📍 改滚动方向：Details → Scroll → Orientation → 改为 Horizontal（横滑）或 Vertical（竖滑）。
+    📍 自定义滑块外观：Details → Style → 展开 Scrollbar Style → 替换各 Thumb Image。
+  
 
   
     
@@ -927,4 +1154,348 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
 
 
 
-📐 游戏项目知识库 · UE5 UMG 拼接实操详细指南 · 顶端对齐与中英双语规范版 v9.1
+
+
+  🎮 9. 实战案例教程 (Hands-On Tutorials)
+  
+    🎯 本章目标：通过3个从零开始的完整案例，手把手教你做出常见的游戏 UI 组件。每一步都写得像食谱一样精确，跟着做就行！
+  
+
+  案例 A：制作一个「确认弹窗」(Confirm Dialog)
+  最终效果：半透明黑底遮罩 + 居中白色圆角面板 + 标题文字 + 确认/取消两个按钮
+
+  A-1. 准备工作
+  
+    
+      步骤操作详细说明
+    
+    
+      1创建 Widget BlueprintContent Browser → 右键 → User Interface → Widget Blueprint → 命名为 WBP_ConfirmDialog
+      2双击打开 UMG 编辑器确保能看到四大区域（Palette / Designer / Hierarchy / Details）
+      3确认已有切图资源你需要：一张白色圆角底框图（用于九宫格）、确认按钮图、取消按钮图。如果没有，可以先用纯色测试。
+    
+  
+
+  A-2. 搭建层级结构
+  按照以下顺序依次从 Palette 拖入控件，构建层级树：
+  
+[Canvas Panel]                       ← 根容器（创建时自带或手动拖入）
+ ├── 🖼️ Image [BG_Mask]             ← 全屏半透明黑色遮罩
+ └── 📏 Size Box [DialogBox]         ← 控制弹窗固定宽高
+      └── 🥞 Overlay                  ← 层叠：底图 + 内容
+           ├── 🖼️ Image [PanelBG]   ← 白色圆角底框（九宫格）
+           └── ⏬ Vertical Box        ← 纵向排列内容
+                ├── 🔤 LGText [Title]   ← 标题文字"确定要退出吗？"
+                ├── 🔤 LGText [Desc]    ← 描述文字（可选）
+                └── ⏸️ Horizontal Box  ← 按钮横排
+                     ├── 👆 Button [BtnConfirm]  ← 确认按钮
+                     └── 👆 Button [BtnCancel]   ← 取消按钮
+  
+
+  A-3. 逐个配置参数
+  
+    
+      控件需要设置的参数具体操作步骤
+    
+    
+      
+        BG_Mask(背景遮罩)
+        锚点：全屏拉伸颜色：黑色半透明
+        
+          ① 选中 BG_Mask → Details → Slot → Anchors → 点右下角那个「全屏拉伸」图标（四角扩散的那个）
+          ② Slot → Offsets 全部设为 0（上下左右都贴边）
+          ③ Appearance → Color and Opacity → 颜色设为黑色，Alpha 设为 0.6（半透明遮罩效果）
+        
+      
+      
+        DialogBox(Size Box)
+        固定宽高 + 居中
+        
+          ① 选中 Size Box → Details → Slot → Anchors → 选「正中心」锚点
+          ② Slot → Alignment → X: 0.5, Y: 0.5（关键！让中心对准锚点）
+          ③ Child Layout → Width Override: 600, Height Override: 350
+        
+      
+      
+        PanelBG(底框图)
+        九宫格圆角底图
+        
+          ① 选中 PanelBG → Overlay Slot → Alignment 设为 Fill × Fill（铺满 Overlay）
+          ② Appearance → Brush → Image → 选你的白色圆角底框图
+          ③ Draw As → 改为 Box
+          ④ Margin → 填 0.25（保护四个圆角不被拉伸）
+        
+      
+      
+        Vertical Box
+        内容垂直排列+居中
+        
+          ① Overlay Slot → Alignment: Center × Center
+          ② 每个子节点的 Slot → Padding → 适当加间距（如 Top: 20, Bottom: 10）
+          ③ 每个子节点的 Horizontal Alignment → Center（水平居中）
+        
+      
+      
+        Title 文字
+        标题内容+字号+颜色
+        
+          ① Content → Text → 输入"确定要退出游戏吗？"
+          ② Appearance → Font → Size → 28
+          ③ Font → Color → 选深色或你项目的标题色
+        
+      
+      
+        两个 Button
+        图片+间距
+        
+          ① 各自展开 Style → Normal → Image → 填入对应按钮图
+          ② 必须把 Normal 的图也复制到 Pressed 里！（否则点击闪白块）
+          ③ Horizontal Box Slot → Padding Left/Right 各加 10~20 间距
+          ④ Interaction → 取消勾选 Is Focusable
+        
+      
+    
+  
+
+  A-4. 最终检查清单
+  
+    ✅ 完成后自查：
+    □ 遮罩铺满全屏？ → 检查锚点是否为全屏拉伸 + Offset 全0
+    □ 弹窗居中？ → 检查 Size Box 锚点居中 + Alignment 0.5/0.5
+    □ 圆角没变形？ → 检查 Draw As = Box + Margin > 0
+    □ 按钮点击不闪白？ → 检查 Pressed 状态有图片
+    □ 按钮没有虚线框？ → 检查 Is Focusable 已取消勾选
+  
+
+  案例 B：制作一个「滚动公告列表」(Scrollable Announcement List)
+  最终效果：固定高度区域内展示多条公告文字，超出后可上下滑动查看
+
+  B-1. 搭建层级结构
+  
+[Canvas Panel]
+ └── 📏 Size Box [AnnouncementArea]    ← 限制公告区域高度为 400px
+      └── 📜 Scroll Box                 ← 让内部内容可滚动
+           └── ⏬ Vertical Box          ← 公告条目纵向排列
+                ├── 🔤 LGText [公告1]     ← "服务器将于今晚22:00维护..."
+                ├── 🔤 LGText [公告2]     ← "新版本已开放，快来体验..."
+                ├── 🔤 LGText [公告3]     ← ...
+                └── ... (更多公告)
+  
+
+  B-2. 关键配置步骤
+  
+    
+      步骤选中哪个控件操作内容
+    
+    
+      1Size BoxDetails → Child Layout → Height Override → 400（固定公告区高度为 400 像素）
+      2Scroll BoxDetails → Scroll → Orientation → Vertical（上下滚动）
+      3Scroll BoxDetails → Scroll → Scrollbar Visibility → Collapsed（隐藏滚动条，让滑动区域更宽）
+      4Scroll BoxDetails → Scroll → Consume Mouse Wheel → Always（确保滚轮事件不漏到外层）
+      5每条 LGTextContent → Text → 填入公告文字；Slot → Padding Bottom → 12（条目间距）
+      6每条 LGTextAppearance → Font → Auto Wrap Text → 勾选（文字太长自动换行）
+    
+  
+
+  
+    💡 新手常踩坑：为什么 Scroll Box 里的内容不滚动？
+    → 检查 Scroll Box 的父容器是否限制了高度！如果父容器设为「Size to Content = true」，Scroll Box 会无限撑高就没东西需要滚了。
+    → 正确做法：用 Size Box 包裹 Scroll Box 并设置固定高度，或者给 Scroll Box 的 Canvas Panel Slot 设固定 Size Y。
+  
+
+  案例 C：制作一个「底部 Tab 页签栏」(Bottom Tab Bar with Widget Switcher)
+  最终效果：底部有3个按钮（商城/背包/社交），点击不同按钮切换上方内容区域
+
+  C-1. 搭建层级结构
+  
+[Canvas Panel]
+ └── ⏬ Vertical Box [FullScreen]    ← 全屏纵向排列：内容+底栏
+      ├── 🗂️ Widget Switcher [PageSwitcher]  ← 占据上方全部空间(Fill)
+      │    ├── 📦 [Page_Shop]        ← 商城子页面（任意内容）
+      │    ├── 📦 [Page_Bag]         ← 背包子页面
+      │    └── 📦 [Page_Social]      ← 社交子页面
+      └── ⏸️ Horizontal Box [TabBar]  ← 底栏按钮横排(Auto高度)
+           ├── 👆 Button [Tab_Shop]   ← 商城Tab
+           ├── 👆 Button [Tab_Bag]    ← 背包Tab
+           └── 👆 Button [Tab_Social] ← 社交Tab
+  
+
+  C-2. 关键配置步骤
+  
+    
+      步骤选中哪个控件操作内容
+    
+    
+      1Vertical BoxCanvas Panel Slot → Anchors 设为全屏拉伸 + Offsets 全0（撑满屏幕）
+      2Widget SwitcherVertical Box Slot → Size → Fill（吃掉所有剩余空间作为内容区）
+      3Horizontal Box (TabBar)Vertical Box Slot → Size → Auto（底栏按实际按钮高度占位）
+      4Widget SwitcherDetails → Active Widget → Active Widget Index → 默认填 0（首次显示商城页）
+      5Widget Switcher勾选 Is Variable（让蓝图能访问它！否则代码控制不了切换！）
+      6每个 Tab ButtonHorizontal Box Slot → Size → Fill（三个按钮等宽平分底栏）
+      7每个 Tab Button分别配置 Normal/Pressed 图片 + 取消 Is Focusable
+    
+  
+
+  C-3. 蓝图连线实现切换
+  
+    
+      
+        
+          📋 蓝图节点连线示意
+          
+            On Clicked (Tab_Shop) →
+            
+              PageSwitcher → Set Active Widget Index
+              Index: 0
+            
+            On Clicked (Tab_Bag) →
+            
+              PageSwitcher → Set Active Widget Index
+              Index: 1
+            
+            On Clicked (Tab_Social) →
+            
+              PageSwitcher → Set Active Widget Index
+              Index: 2
+            
+          
+        
+      
+      ➔
+      
+        连线步骤（在 Graph 蓝图编辑器中）：
+        ① 点击 UMG 编辑器顶部的 Graph 标签切换到蓝图视图
+        ② 在左侧 My Blueprint 面板的 Variables 下找到 PageSwitcher（因为你勾选了 Is Variable）
+        ③ 选中 Tab_Shop 按钮 → 右侧 Details 面板底部 → Events → 点击 On Clicked 旁边的 + 号
+        ④ 这会自动创建一个 On Clicked 事件节点
+        ⑤ 从 PageSwitcher 变量拖入蓝图 → 从它拉线 → 搜索 Set Active Widget Index
+        ⑥ 将 Index 设为 0（对应第一个子控件=商城页）
+        ⑦ 连接 On Clicked → Set Active Widget Index
+        ⑧ 对 Tab_Bag 和 Tab_Social 重复同样操作，Index 分别为 1 和 2
+      
+    
+  
+  
+    🎉 完成！现在点击 Play 运行游戏，点击底部不同的 Tab 按钮就能切换上方的内容页面了。这就是绝大多数游戏底部导航栏的实现原理！
+  
+
+
+
+
+  🔧 10. 常见翻车排查表 (Troubleshooting Checklist)
+  
+    🎯 本章用法：遇到问题时，先在下表中找到你的症状，然后按「解决方案」一步一步排查。90%的新手问题都在这里！
+  
+
+  
+    
+      😱 症状描述🔍 根因分析✅ 解决方案（操作步骤）
+    
+    
+      
+        按钮点击瞬间变成白色方块
+        Pressed 状态没有填图片，引擎用纯白默认代替
+        选中 Button → Details → Style → 展开 Pressed → Image 栏位 → 填入和 Normal 一样的图（或者专门的按压态图）
+      
+      
+        按钮周围有一圈难看的虚线/蓝色描边
+        Is Focusable 勾选了，PC 键盘焦点显示
+        选中 Button → Details → Interaction → 取消勾选 Is Focusable
+      
+      
+        按钮/图片怎么点都没反应（穿透了）
+        99%是上面盖了一个 Visible 的透明控件挡住了点击
+        在层级树中检查该按钮上方（更靠下的节点 = 更上层）是否有看不见的 Image 或容器。将其改为 Hit Test Invisible 或 Self Hit Test Invisible
+      
+      
+        UI 元素位置在不同分辨率下跑偏
+        锚点 (Anchor) 设置不正确
+        
+          ① 左上角的元素 → 锚点设左上
+          ② 居中的弹窗 → 锚点设中心 + Alignment 0.5/0.5
+          ③ 全屏背景 → 锚点设四角拉伸 + Offset 全0
+          详见 第8章
+        
+      
+      
+        Scroll Box 里的内容不滚动
+        Scroll Box 没有被限高，它自动撑到了内容的完整高度
+        
+          ① 给 Scroll Box 外面套一个 Size Box 并设置固定 Height Override
+          ② 或者在 Canvas Panel Slot 中给 Scroll Box 设固定的 Size Y
+          ③ 不要勾选 Scroll Box 的 "Size to Content"
+        
+      
+      
+        Text 文字显示不出来/看不见
+        多种可能：字色和背景同色 / 字号为0 / 控件太小
+        
+          ① 检查 Font → Color 是否和背景同色（如白底白字）
+          ② 检查 Font → Size 是否 > 0
+          ③ 检查控件的 Slot 分配空间是否足够（Auto vs Fill）
+          ④ 检查 Visibility 是否为 Visible
+        
+      
+      
+        九宫格图片的圆角变形/拉伸了
+        Draw As 不是 Box，或者 Margin 值太小/太大
+        
+          ① 确认 Draw As = Box
+          ② Margin 建议从 0.2~0.3 开始试，代表保护图片四边 20%~30% 不被拉伸
+          ③ 如果圆角非常大，Margin 要调大（如 0.4）
+        
+      
+      
+        Widget Switcher 切换无效/切不了页
+        没有勾选 Is Variable，蓝图访问不到它
+        
+          ① 选中 Widget Switcher → Details → 搜索 "Variable" → 勾选 Is Variable
+          ② 编译蓝图后重新在 Graph 中拉变量引用
+        
+      
+      
+        Image 图片显示为白色方块
+        没有指定 Image 资源，引擎用默认白色填充
+        选中 Image → Details → Appearance → Brush → Image → 从下拉中选择一张已导入的 Texture 资源
+      
+      
+        手机端（微信小游戏）UI 被胶囊按钮遮挡
+        没有使用 Safe Zone 保护
+        
+          ① 在最外层 Canvas Panel 下先放一个 Safe Zone（锚点全屏拉伸）
+          ② 勾选 Pad Left/Right/Top/Bottom 全部保护
+          ③ 把所有 UI 内容放在 Safe Zone 内部
+          详见 第8章 8.3节
+        
+      
+      
+        Horizontal/Vertical Box 子节点大小异常
+        Slot 的 Size 设置冲突：Auto 和 Fill 混淆
+        
+          ① Auto：控件多大它就占多大空间（适合按钮、图标）
+          ② Fill：强制吃掉所有剩余空间（适合需要自适应撑满的区域）
+          ③ 多个 Fill 之间用 Fill Ratio 控制分配比例
+        
+      
+      
+        Play 运行后 UI 不显示
+        忘记在蓝图中 Create Widget + Add to Viewport
+        
+          ① 打开 Level Blueprint 或 PlayerController
+          ② Event BeginPlay → Create Widget (选你的 WBP) → Add to Viewport
+          详见 第0章 Step 5
+        
+      
+    
+  
+
+  🔎 通用排查思路（万能三板斧）
+  
+    遇到任何 UI 问题，先做这三步：
+    ① 检查层级树顺序：是否有东西在上面挡住了？层级树中越靠下的条目渲染越靠前（遮挡其他）。
+    ② 检查 Visibility：选中异常控件，搜索 Visibility，确认不是 Collapsed/Hidden。同时检查父容器的 Visibility（父隐则子全隐）。
+    ③ 检查 Slot 设置：选中控件，看 Details 最顶部的 Slot 分组。锚点对不对？Padding 是否把它挤出了可视范围？Size 是 Auto 还是 Fill？
+  
+
+
+📐 游戏项目知识库 · UE5 UMG 拼接实操详细指南 · 新手友好全解析版 v9.2
