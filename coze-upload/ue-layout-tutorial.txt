@@ -392,6 +392,113 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
     
   
 
+  4.3 ComboBox (组合框/下拉菜单)
+  💡 核心作用 (Core Function)： 点击后展开一个下拉列表，玩家从中选择一项。节省界面空间的同时提供多选项交互。
+  🎯 适用场景 (Use Cases)： 语言选择、分辨率选择、服务器选择、筛选排序条件。
+
+  右侧面板详细参数清单 (Details Panel Parameters)
+  
+    
+      面板分组 (Group)具体参数名 (Parameter)效果与如何调节 (Description)即时预览 (Preview)
+    
+    
+      
+        Content (内容)
+        Default Options (默认选项列表)
+        在编辑器里预填好的字符串数组，每个元素对应下拉列表的一行选项文字。运行时也可动态通过蓝图 AddOption 追加。
+        ✅ 立刻刷新
+      
+      
+        Selected Option (已选项)
+        当前高亮选中的那一项的字符串值。可以在蓝图中通过 SetSelectedOption 设置默认值。
+        ✅ 立刻刷新
+      
+      
+        Is Open (是否展开)
+        只读属性，运行时用来判断下拉列表当前是否处于展开状态。
+        ❌ 播放运行
+      
+      
+        Style (样式)
+        Widget Style → Normal/Hovered/Pressed
+        与 Button 类似的三态皮肤。控制收起状态下那个"小框"的视觉（背景底图 + 右侧小箭头图）。
+        ✅ 立刻刷新
+      
+      
+        Content Padding (内容填充)
+        选中文字距离框体边缘的内边距，防止文字贴边。
+        ✅ 立刻刷新
+      
+      
+        Max List Height (最大列表高度)
+        下拉弹出时列表区域的最大高度像素值。超出后自动出现滚动条，防止选项太多撑爆屏幕。
+        ✅ 立刻刷新
+      
+      
+        Events (事件)
+        On Selection Changed (选中改变)
+        玩家选择不同选项时触发的蓝图事件委托，参数返回新选中的字符串值和选择类型。
+        ❌ 播放运行
+      
+    
+  
+
+  4.4 Editable Text (可编辑文本/输入框)
+  💡 核心作用 (Core Function)： 允许玩家在游戏中输入文字。点击后出现光标和键盘（移动端弹出虚拟键盘）。
+  🎯 适用场景 (Use Cases)： 玩家昵称输入、聊天消息编辑、搜索框、密码输入、兑换码填写。
+
+  右侧面板详细参数清单 (Details Panel Parameters)
+  
+    
+      面板分组 (Group)具体参数名 (Parameter)效果与如何调节 (Description)即时预览 (Preview)
+    
+    
+      
+        Content (内容)
+        Text (文本)
+        输入框当前显示的文字内容。运行时可通过 SetText 蓝图节点赋值。
+        ✅ 立刻刷新
+      
+      
+        Hint Text (提示文本)
+        当输入框为空时显示的灰色提示文字（placeholder），如"请输入昵称..."。一旦玩家开始输入就自动消失。
+        ✅ 立刻刷新
+      
+      
+        Is Read Only (是否只读)
+        勾选后变成纯展示框，玩家不可编辑，但可以框选复制。适合兑换码/邀请链接展示场景。
+        ✅ 立刻刷新
+      
+      
+        Appearance (外观)
+        Font (字体)
+        输入文字的字体、字号和颜色设置，同 LGText 的 Font 配置逻辑。
+        ✅ 立刻刷新
+      
+      
+        Widget Style (样式)
+        输入框的背景底图、获得焦点时的边框高亮图等。展开后可分别设置 Normal / Focused / Hovered 三态底图。
+        ✅ 立刻刷新
+      
+      
+        Behavior (行为)
+        Is Password (是否密码)
+        勾选后输入的字符全部显示为 ●●●●● 圆点，适合密码输入场景。
+        ✅ 立刻刷新
+      
+      
+        Keyboard Type (键盘类型)
+        移动端弹出的虚拟键盘布局：Default(全键盘)、Number(纯数字)、Email(带@符号键)、Password 等。
+        ❌ 播放运行
+      
+      
+        On Text Changed / Committed (文字变化/确认事件)
+        每输入一个字触发 Changed；按回车或点击其他地方失焦时触发 Committed。用于实时搜索联想或最终提交。
+        ❌ 播放运行
+      
+    
+  
+
 
 
 
@@ -526,6 +633,104 @@ UE5 UMG 拼接实操详细指南 — UI 工业化规范
       
     
   
+
+  5.4 Widget Switcher (控件切换器)
+  💡 核心作用 (Core Function)： 同一个位置放多个子控件，但同时只显示其中一个。通过切换"活跃索引"来实现页签/抽屉式切换，无需反复创建删除控件。
+  🎯 适用场景 (Use Cases)： 底部页签栏（商城/背包/社交切页）、状态面板切换（详情/属性/技能子页面）、加载中↔内容区域切换。
+
+  右侧面板详细参数清单 (Details Panel Parameters)
+  
+    
+      面板分组 (Group)具体参数名 (Parameter)效果与如何调节 (Description)即时预览 (Preview)
+    
+    
+      
+        Active Widget (活跃控件)
+        Active Widget Index (活跃索引)
+        核心！决定当前显示第几个子控件（从0开始计数）。通过蓝图 SetActiveWidgetIndex 动态切换页签。
+        ✅ 立刻刷新
+      
+      
+        Active Widget (活跃控件引用)
+        也可以通过传入具体的子控件引用来切换，而不是用索引号。蓝图节点 SetActiveWidget。
+        ✅ 立刻刷新
+      
+      
+        Transition (过渡)
+        Transition Type (过渡类型)
+        切换时的动画效果：None(无) 瞬切、Fade(淡入淡出)、Horizontal/Vertical(水平/垂直滑动)。一般游戏选 None 或 Fade 即可。
+        ✅ 立刻刷新
+      
+      
+        Behavior (行为)
+        Is Widget Switcher Variable (公开为变量)
+        勾选"Is Variable"后才能在蓝图中拖出来调用 SetActiveWidgetIndex。必须勾选！
+        ❌ 播放运行
+      
+    
+  
+  💡 避坑：Widget Switcher 的所有子控件在创建时就已经全部实例化了（即使没显示的也在内存里）。如果你有 20 个重量级页面都塞进同一个 Switcher，可能吃爆内存。超过5个子页面时建议结合代码动态加载。
+
+  5.5 Horizontal Box / Vertical Box (水平框/垂直框)
+  💡 核心作用 (Core Function)： UMG 中最常用的线性排布容器。Horizontal Box 让子节点从左到右自动排队，Vertical Box 让子节点从上到下自动排队。
+  🎯 适用场景 (Use Cases)： 按钮行排列、表单标签+输入框横排、设置项纵向列表、底部导航栏图标横排。
+
+  右侧面板详细参数清单 (Details Panel Parameters)
+  
+    
+      面板分组 (Group)层级与具体参数名 (Parameter)效果与如何调节 (Description)即时预览 (Preview)
+    
+    
+      
+        Slot (子节点插槽)每个子节点都有
+        Padding (填充)Left / Top / Right / Bottom
+        子节点与相邻兄弟/容器边缘的间距像素值。等效于 CSS margin。
+        ✅ 立刻刷新
+      
+      
+        Size (尺寸) → Auto / Fill
+        Auto：子节点按自身内容大小占位。Fill：子节点吃掉父容器的所有剩余空间（多个 Fill 按比例瓜分 Fill Ratio）。
+        ✅ 立刻刷新
+      
+      
+        Horizontal / Vertical Alignment (对齐)
+        当子节点比分配空间小时，控制它在格子内靠左/居中/靠右/拉伸填满（Horizontal Box 对应垂直方向对齐，反之亦然）。
+        ✅ 立刻刷新
+      
+      
+        Fill Ratio (填充比例)
+        仅 Size=Fill 时生效。多个 Fill 子节点之间的空间瓜分比例。A 设 1、B 设 2，则 B 占 2/3 空间。
+        ✅ 立刻刷新
+      
+    
+  
+  🔑 核心理解：Horizontal/Vertical Box 本身没有什么参数，它的核心全在每个子节点的 Slot 属性上。拖入子控件后，选中子控件才能看到 Slot 相关设置。
+
+  5.6 Overlay (覆层)
+  💡 核心作用 (Core Function)： 将所有子控件层叠在同一个区域（像 PS 图层那样堆叠）。列表越靠后的子控件越在上面。
+  🎯 适用场景 (Use Cases)： 头像+等级徽章叠放、背景图+前景内容的分层、角色模型上叠加血条和名字。
+  ⚡ 性能优势：Overlay 不做任何排列计算，只是简单堆叠，性能开销比 Canvas Panel 低得多，能用 Overlay 就不用 Canvas Panel。
+
+  右侧面板详细参数清单 (Details Panel Parameters)
+  
+    
+      面板分组 (Group)具体参数名 (Parameter)效果与如何调节 (Description)即时预览 (Preview)
+    
+    
+      
+        Slot (子节点插槽)每个子节点都有
+        Padding (填充)
+        子控件相对于 Overlay 容器四边的内距。可以用来微调某个图层的位置偏移。
+        ✅ 立刻刷新
+      
+      
+        Horizontal / Vertical Alignment (对齐)
+        每个子控件在 Overlay 中的水平/垂直对齐：Left/Center/Right/Fill × Top/Center/Bottom/Fill。Fill = 拉伸铺满整个 Overlay。
+        ✅ 立刻刷新
+      
+    
+  
+  💡 技巧：Overlay 中第一个子节点（最底层）一般是铺满的背景 Image，设 Alignment 为 Fill×Fill。后续的子节点选择 Center×Center 居中摆放。这就是最经典的"背景+前景"两层结构。
 
 
 
