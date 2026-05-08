@@ -16,7 +16,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .doc-header .subtitle{color:var(--dim);font-size:15px}
 .toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
 .toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
-.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent);display:grid;grid-template-columns:1fr 1fr;gap:4px;}.toc li{margin-bottom:6px}
 .toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
 .section{margin-bottom:40px}
 .section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:8px}
@@ -32,21 +32,22 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
 .alert-blue strong{color:var(--accent)}
 .alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--text)}
 .alert-yellow strong{color:var(--yellow)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--text)}
 
 /* Widget Gallery Overview */
-.widget-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.widget-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
 .widget-card { background: var(--panel); border: 1px solid var(--border); padding: 16px; border-radius: 8px; display: flex; align-items: center; gap: 16px; transition: transform 0.2s, border-color 0.2s; }
 .widget-card:hover { transform: translateY(-2px); border-color: var(--accent); background: rgba(108,140,255,0.05); }
-.widget-icon { font-size: 28px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; flex: 0 0 50px; text-align: center; }
-.widget-info h5 { margin: 0 0 4px 0; color: var(--heading); font-size: 16px; }
+.widget-icon { font-size: 24px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; flex: 0 0 50px; text-align: center; }
+.widget-info h5 { margin: 0 0 4px 0; color: var(--heading); font-size: 15px; }
 .widget-info p { margin: 0; font-size: 12px; color: var(--dim); line-height: 1.4; }
 
 /* Explanation Rows (Red Arrow Style) */
 .explain-grid { display: flex; flex-direction: column; gap: 16px; margin: 24px 0; }
-.explain-row { display: flex; align-items: stretch; background: var(--panel); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.explain-row { display: flex; align-items: stretch; background: var(--panel); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.2); flex-wrap: wrap; }
 .explain-ui-part { flex: 0 0 340px; padding: 16px; background: #16181d; border-right: 1px dashed #333; display: flex; flex-direction: column; justify-content: center; }
 .explain-arrow { flex: 0 0 50px; display: flex; justify-content: center; align-items: center; color: var(--red); font-size: 28px; font-weight: bold; background: rgba(248,113,113,0.05); border-right: 1px dashed #333; }
-.explain-text-part { flex: 1; padding: 20px 24px; color: var(--text); font-size: 14px; display: flex; flex-direction: column; justify-content: center; background: rgba(255,255,255,0.01); }
+.explain-text-part { flex: 1; padding: 20px 24px; color: var(--text); font-size: 14px; display: flex; flex-direction: column; justify-content: center; background: rgba(255,255,255,0.01); min-width: 300px; }
 .explain-text-part p { margin-bottom: 12px; line-height: 1.6; }
 .explain-text-part p:last-child { margin-bottom: 0; }
 .explain-text-part strong { color: var(--accent); font-weight: 600; }
@@ -68,6 +69,7 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
 .ue-highlight-box .ue-ui-row:last-child { border-bottom: none; }
 
 .vs-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:20px 0}
+@media (max-width: 768px) { .vs-grid { grid-template-columns: 1fr; } .explain-row { flex-direction: column; } .explain-ui-part { flex: auto; border-right: none; border-bottom: 1px dashed #333; } .explain-arrow { display: none; } }
 .vs-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px}
 .vs-card h4{color:var(--accent);margin-top:0;border-bottom:1px dashed var(--border);padding-bottom:10px}
 .vs-card ul{padding-left:20px;margin-top:10px}
@@ -83,271 +85,334 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
 <div class="doc">
 
 <div class="doc-header">
-  <h1>🎮 UE5 UMG 拼接实操详细指南 <span class="ver">新手向规范</span></h1>
-  <div class="subtitle">按照标准规范：先总览组件，再详解核心功能与细节参数</div>
+  <h1>🎮 UE5 UMG 拼接实操详细指南 <span class="ver">全控件深度解析版</span></h1>
+  <div class="subtitle">涵盖常用控件面板拆解、实时反馈效果、多端与小游戏自适应规范</div>
 </div>
 
 <div class="alert alert-blue">
-  <strong>📝 导读：</strong>本文档重构了学习路径。首先为你建立 UMG 常用控件的全局认知，然后依次通过直观的图解拆解 Image（图像）、Button（按钮）等高频控件的核心参数，最后带你掌握布局、滚动列表及自适应原理。
+  <strong>📝 导读：</strong>本文档是 UI 拼接的“标准操作字典”。第一部分带你俯瞰所有高频组件；第二部分拆解具体每个组件右侧细节面板（Details）的必调参数及避坑指南；第三部分深入讲解锚点、安全区与多平台（特别是微信小游戏）的屏幕适配规范。
 </div>
 
 <div class="toc">
   <h3>📑 目录</h3>
   <ol>
-    <li><a href="#sec1">UMG 常用控件分类总览</a></li>
-    <li><a href="#sec2">基础交互控件详解与参数对照</a></li>
-    <li><a href="#sec3">布局与容器面板详解</a></li>
-    <li><a href="#sec4">高级列表与滚动控件</a></li>
-    <li><a href="#sec5">通用核心属性：可见性与变换</a></li>
-    <li><a href="#sec6">核心实操：锚点与自适应搭建</a></li>
+    <li><a href="#sec1">UMG 常用控件分类总览（图鉴）</a></li>
+    <li><a href="#sec2">基础图形与交互（Image & Button）</a></li>
+    <li><a href="#sec3">文本双雄（LGText 与 Rich Text）</a></li>
+    <li><a href="#sec4">数据展示（滑条、进度条、组合框）</a></li>
+    <li><a href="#sec5">布局容器（水平框/垂直框/尺寸框/切换器）</a></li>
+    <li><a href="#sec6">高级列表视图（List View / Tile View）</a></li>
+    <li><a href="#sec7">通用核心属性（可见性与变换）</a></li>
+    <li><a href="#sec8">核心实操：锚点、对齐与微信小游戏适配规范</a></li>
   </ol>
 </div>
 
 <!-- 章节 1 -->
 <div class="section" id="sec1">
   <h2>🗂️ 1. UMG 常用控件分类总览</h2>
-  <p>在开始拼接界面前，我们先梳理 UE5 中最常用的控件类型，它们是你搭建 UI 的积木：</p>
+  <p>拼接界面前，先熟悉我们工具箱里的各种“积木”。以下是我们项目最常使用到的核心控件类型：</p>
   
   <h3>🔹 基础与交互控件 (Common)</h3>
   <div class="widget-gallery">
-    <div class="widget-card">
-      <div class="widget-icon">🖼️</div>
-      <div class="widget-info"><h5>Image (图像)</h5><p>显示背景、图标及九宫格</p></div>
-    </div>
-    <div class="widget-card">
-      <div class="widget-icon">👆</div>
-      <div class="widget-info"><h5>Button (按钮)</h5><p>提供点击与悬停状态切换</p></div>
-    </div>
-    <div class="widget-card">
-      <div class="widget-icon">🔤</div>
-      <div class="widget-info"><h5>Text (文本)</h5><p>显示文字、标题或动态数值</p></div>
-    </div>
-    <div class="widget-card">
-      <div class="widget-icon">⌨️</div>
-      <div class="widget-info"><h5>Editable Text (输入框)</h5><p>允许玩家输入文字或密码</p></div>
-    </div>
+    <div class="widget-card"><div class="widget-icon">🖼️</div><div class="widget-info"><h5>Image (图像)</h5><p>显示背景、图标及九宫格</p></div></div>
+    <div class="widget-card"><div class="widget-icon">👆</div><div class="widget-info"><h5>Button (按钮)</h5><p>提供点击与悬停状态切换</p></div></div>
+    <div class="widget-card"><div class="widget-icon">🔤</div><div class="widget-info"><h5>LGText (项目文本)</h5><p>项目定制标准文本，支持多语言</p></div></div>
+    <div class="widget-card"><div class="widget-icon">📝</div><div class="widget-info"><h5>Rich Text (富文本)</h5><p>图文混排，多彩色标签文本</p></div></div>
+  </div>
+
+  <h3>🔹 数据流与表单控件 (Data & Forms)</h3>
+  <div class="widget-gallery">
+    <div class="widget-card"><div class="widget-icon">🎚️</div><div class="widget-info"><h5>Slider (滑条)</h5><p>数值拖动调整（如音量控制）</p></div></div>
+    <div class="widget-card"><div class="widget-icon">🔋</div><div class="widget-info"><h5>Progress Bar</h5><p>进度条（如血条、经验槽）</p></div></div>
+    <div class="widget-card"><div class="widget-icon">🔽</div><div class="widget-info"><h5>ComboBox (组合框)</h5><p>下拉菜单列表选择</p></div></div>
+    <div class="widget-card"><div class="widget-icon">⌨️</div><div class="widget-info"><h5>Editable Text</h5><p>允许玩家输入文字或密码</p></div></div>
   </div>
 
   <h3>🔹 布局与容器面板 (Panels)</h3>
   <div class="widget-gallery">
-    <div class="widget-card">
-      <div class="widget-icon">🎨</div>
-      <div class="widget-info"><h5>Canvas Panel (画布)</h5><p>依靠锚点自由拖拽摆放控件</p></div>
-    </div>
-    <div class="widget-card">
-      <div class="widget-icon">🥞</div>
-      <div class="widget-info"><h5>Overlay (覆层)</h5><p>将子节点层叠摆放，性能极佳</p></div>
-    </div>
-    <div class="widget-card">
-      <div class="widget-icon">⏸️</div>
-      <div class="widget-info"><h5>Horizontal Box (水平框)</h5><p>子节点自动横向从左排到右</p></div>
-    </div>
-    <div class="widget-card">
-      <div class="widget-icon">⏬</div>
-      <div class="widget-info"><h5>Vertical Box (垂直框)</h5><p>子节点自动纵向从上排到下</p></div>
-    </div>
-  </div>
-
-  <h3>🔹 高级列表与滚动 (Lists)</h3>
-  <div class="widget-gallery">
-    <div class="widget-card">
-      <div class="widget-icon">↕️</div>
-      <div class="widget-info"><h5>Scroll Box (滚动框)</h5><p>基础容器，用于少量静态内容超出滚动</p></div>
-    </div>
-    <div class="widget-card">
-      <div class="widget-icon">♾️</div>
-      <div class="widget-info"><h5>List View (列表视图)</h5><p>高性能动态复用列表（处理成千上百条）</p></div>
-    </div>
-    <div class="widget-card">
-      <div class="widget-icon">🔲</div>
-      <div class="widget-info"><h5>Tile View (瓦片视图)</h5><p>高性能网格复用列表（如背包格子）</p></div>
-    </div>
+    <div class="widget-card"><div class="widget-icon">🥞</div><div class="widget-info"><h5>Overlay (覆层)</h5><p>将子节点层叠摆放，性能极佳</p></div></div>
+    <div class="widget-card"><div class="widget-icon">🛡️</div><div class="widget-info"><h5>Safe Zone (安全区)</h5><p>防止刘海屏与微信胶囊遮挡UI</p></div></div>
+    <div class="widget-card"><div class="widget-icon">🗂️</div><div class="widget-info"><h5>Widget Switcher</h5><p>控件切换器，用于页签切换</p></div></div>
+    <div class="widget-card"><div class="widget-icon">📏</div><div class="widget-info"><h5>Size Box (尺寸框)</h5><p>强制覆写控件的宽高尺寸</p></div></div>
+    <div class="widget-card"><div class="widget-icon">⏸️</div><div class="widget-info"><h5>Horizontal Box</h5><p>水平框，子节点从左到右排队</p></div></div>
+    <div class="widget-card"><div class="widget-icon">⏬</div><div class="widget-info"><h5>Vertical Box</h5><p>垂直框，子节点从上到下排队</p></div></div>
   </div>
 </div>
 
 <!-- 章节 2 -->
 <div class="section" id="sec2">
-  <h2>🛠️ 2. 基础交互控件详解与参数对照</h2>
-  <p>选中任何图层后，参数面板会出现该图层的各项参数，这里为你详解配置它们的最标准方式。</p>
+  <h2>🛠️ 2. 基础图形与交互（Image & Button）</h2>
 
-  <h3>2.1 图像控件 (Image) 参数详解</h3>
-  
+  <h3>2.1 图像控件 (Image)</h3>
   <div class="explain-grid">
-    <!-- Slot Area -->
     <div class="explain-row">
       <div class="explain-ui-part">
         <div class="ue-ui-box">
           <div class="ue-ui-section">
-            <div class="ue-ui-sec-title">▼ 插槽 (画布插槽)</div>
-            <div class="ue-highlight-box">
-              <div class="ue-ui-row"><div class="ue-ui-label">锚点 (Anchors)</div><div class="ue-ui-val">锚点 ▼</div></div>
-              <div class="ue-ui-row"><div class="ue-ui-label">位置X / Y</div><div class="ue-ui-val blue-edge">0.0</div></div>
-              <div class="ue-ui-row"><div class="ue-ui-label">尺寸X / Y</div><div class="ue-ui-val blue-edge">100.0</div></div>
-              <div class="ue-ui-row"><div class="ue-ui-label">大小到内容</div><div class="ue-ui-val check">☑</div></div>
-              <div class="ue-ui-row"><div class="ue-ui-label">ZOrder</div><div class="ue-ui-val">1</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="explain-arrow">➔</div>
-      <div class="explain-text-part">
-        <p><strong>改变控件的位置和尺寸</strong>：通过修改“位置 X/Y”和“尺寸 X/Y”直接控制它在界面中的绝对坐标和长宽。</p>
-        <p><strong>固定尺寸至理想大小 (大小到内容)</strong>：非常重要。如果是图片，点选这个勾选框，你的美术切图是多大分辨率，界面里直接呈现同样的一比一大小，无需手动量。</p>
-        <p><strong>ZOrder (层级)</strong>：控制该图层的视觉渲染顺序。数值越大，越在顶层显示（避免后面的层挡住前面的）。</p>
-      </div>
-    </div>
-
-    <!-- Appearance / Brush Area -->
-    <div class="explain-row">
-      <div class="explain-ui-part">
-        <div class="ue-ui-box">
-          <div class="ue-ui-section">
-            <div class="ue-ui-sec-title">▼ 外观</div>
-            <div class="ue-ui-row"><div class="ue-ui-label">Brush -> 图像</div><div class="ue-ui-val">T_Bg_01 (资产)</div></div>
+            <div class="ue-ui-sec-title">▼ 外观 (Appearance)</div>
+            <div class="ue-ui-row"><div class="ue-ui-label">Brush -> 图像</div><div class="ue-ui-val">T_Bg_01</div></div>
             <div class="ue-highlight-box">
               <div class="ue-ui-row"><div class="ue-ui-label">绘制为 (Draw As)</div><div class="ue-ui-val blue-edge">盒体 ▼</div></div>
               <div class="ue-ui-row"><div class="ue-ui-label">Margin (边界)</div><div class="ue-ui-val blue-edge">0.25</div></div>
             </div>
           </div>
+          <div class="ue-ui-section">
+            <div class="ue-ui-sec-title">▼ 颜色和不透明度</div>
+            <div class="ue-ui-row"><div class="ue-ui-label">Tint (色相)</div><div class="ue-ui-val" style="background:#fff;border-radius:2px;border:1px solid #777;"></div></div>
+            <div class="ue-highlight-box">
+              <div class="ue-ui-row"><div class="ue-ui-label">A (Alpha) 不透明度</div><div class="ue-ui-val blue-edge">0.5</div></div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="explain-arrow">➔</div>
       <div class="explain-text-part">
-        <p><strong>怎么替换图片？</strong><br>
-        方法一：选中外部内容浏览器的图片，点击这里的向左小箭头即可赋值。<br>
-        方法二：拖拽外部文件，悬停在 UI 选项卡等界面出现后扔进去。</p>
         <p><strong>绘制为 (Draw As) —— 九宫格核心！</strong><br>
-        • <strong>无</strong>：就是空集。<br>
-        • <strong>盒体 (Box)</strong>：做“九宫格”必须选它！配合下方的 Margin（例如设为 0.25）以保护边角在拉伸时不变形。<br>
-        • <strong>图像 (Image)</strong>：默认拉伸选项。如果不做九宫格处理，默认选这个即可。</p>
+        如果是带圆角的弹窗底板，拉伸会变形。必须将 <code>Draw As</code> 设为 <strong>盒体 (Box)</strong>，并将 <code>Margin</code> 设为图片圆角的安全百分比（如 0.25，代表保护四周 25% 不被拉伸）。</p>
+        <p><strong>A (Alpha) 不透明度</strong>：0 表示 0%（全透明），1 表示 100%（全实色）。</p>
+        <p><strong>【即时预览】</strong>：调节颜色、尺寸和九宫格参数时，视口中心会立刻实时刷新变化。</p>
       </div>
     </div>
+  </div>
 
-    <!-- Color and Transform -->
+  <h3>2.2 按钮控件 (Button)</h3>
+  <div class="explain-grid">
     <div class="explain-row">
       <div class="explain-ui-part">
         <div class="ue-ui-box">
           <div class="ue-ui-section">
-            <div class="ue-ui-sec-title">▼ 颜色和不透明度</div>
-            <div class="ue-ui-row"><div class="ue-ui-label">R / G / B</div><div class="ue-ui-val">1.0</div></div>
+            <div class="ue-ui-sec-title">▼ 样式 (Style)</div>
+            <div class="ue-ui-row"><div class="ue-ui-label">▶ 普通 (Normal)</div><div class="ue-ui-val">Btn_Base</div></div>
+            <div class="ue-ui-row"><div class="ue-ui-label">▶ 已悬停 (Hovered)</div><div class="ue-ui-val">Btn_Hover</div></div>
             <div class="ue-highlight-box">
-              <div class="ue-ui-row"><div class="ue-ui-label">A (Alpha)</div><div class="ue-ui-val blue-edge">0.5</div></div>
+              <div class="ue-ui-row"><div class="ue-ui-label" style="font-weight:bold;color:var(--accent)">▶ 已按压 (Pressed)</div><div class="ue-ui-val">Btn_Press</div></div>
+              <div class="ue-ui-row"><div class="ue-ui-label">▶ 已禁用 (Disabled)</div><div class="ue-ui-val">Btn_Base</div></div>
             </div>
           </div>
-          <div class="ue-ui-section">
-            <div class="ue-ui-sec-title">▼ 渲染变换</div>
-            <div class="ue-ui-row"><div class="ue-ui-label">倾斜角度</div><div class="ue-ui-val">X: 0.0 &nbsp;&nbsp; Y: 0.0</div></div>
-            <div class="ue-ui-row"><div class="ue-ui-label">旋转角度</div><div class="ue-ui-val blue-edge">45.0</div></div>
-          </div>
         </div>
       </div>
       <div class="explain-arrow">➔</div>
       <div class="explain-text-part">
-        <p><strong>调整颜色与不透明度</strong>：单击色块进入调色板，可随意调节 RGBA。色号规则跟 Photoshop 是互通的。<br>
-        其中 <strong>A 为不透明度</strong>：0 表示 0%（全透明），1 表示 100%（全实色）。</p>
-        <p><strong>渲染变换</strong>：可以通过“倾斜角度”和“旋转角度”做一些基于原点的几何变换（常用于动效或斜体标签）。</p>
+        <p>分别对应按钮静止、鼠标放上、点击瞬间和不可用时的四张切图。</p>
+        <span class="highlight-text">【避坑注意】：如果美术没有给专门的按压状态图，务必在这四个状态里填入同一张图！绝对不可以留空（None），否则点击瞬间会变成默认的丑陋白色方块！</span>
+        <p><strong>【即时预览】</strong>：按钮的状态图在编辑器中无法直接预览点击效果，需要点击引擎上方“播放”运行后才能看到点击反馈。</p>
       </div>
-    </div>
-  </div>
-
-  <h3>2.2 按钮控件 (Button) 状态详析</h3>
-  <p>按钮自带交互响应，我们需要为其不同的交互状态填充图片，以实现按压反馈。</p>
-
-  <div class="explain-grid">
-    <div class="explain-row">
-      <div class="explain-ui-part" style="flex: 0 0 340px;">
-        <div class="ue-ui-box">
-          <div class="ue-ui-section">
-            <div class="ue-ui-sec-title">▼ 样式 (Style)</div>
-            <div class="ue-ui-row" style="background: rgba(255,255,255,0.03);"><div class="ue-ui-label" style="font-weight:bold;color:#ccc;">▶ 普通 (Normal)</div><div class="ue-ui-val">Btn_Base</div></div>
-            <div class="ue-ui-row" style="background: rgba(255,255,255,0.03);"><div class="ue-ui-label" style="font-weight:bold;color:#ccc;">▶ 已悬停 (Hovered)</div><div class="ue-ui-val">Btn_Hover</div></div>
-            <div class="ue-ui-row" style="background: rgba(255,255,255,0.03);"><div class="ue-ui-label" style="font-weight:bold;color:#ccc;">▶ 已按压 (Pressed)</div><div class="ue-ui-val">Btn_Press</div></div>
-            <div class="ue-ui-row" style="background: rgba(255,255,255,0.03);"><div class="ue-ui-label" style="font-weight:bold;color:#ccc;">▶ 已禁用 (Disabled)</div><div class="ue-ui-val">Btn_Base</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="explain-arrow">➔</div>
-      <div class="explain-text-part">
-        <p><strong>▶ 普通</strong>：按钮正常的静止状态。</p>
-        <p><strong>▶ 已悬停</strong>：鼠标指针放在按钮上方时的状态（移动端不常用，PC端必备）。</p>
-        <p><strong>▶ 已按压</strong>：鼠标点击/手指触摸按下去瞬间的状态。</p>
-        <p><strong>▶ 已禁用</strong>：当你在逻辑里把它设为“不可用”时显示的灰化状态。</p>
-        <span class="highlight-text">注：如果按钮没有提供多张图片作为点击反馈，务必这几个状态全用同一张普通图拖入覆盖！不可以留空！否则点击时会出现默认的亮瞎眼白块！</span>
-      </div>
-    </div>
-  </div>
-
-  <h3>2.3 文本与输入控件</h3>
-  <div class="vs-grid">
-    <div class="vs-card">
-      <h4>🔡 可编辑文本 (Editable Text)</h4>
-      <p>用于<strong>单行输入</strong>（如注册账号、兑换码）。支持设置 Is Password（星号遮罩）。</p>
-    </div>
-    <div class="vs-card">
-      <h4>🔠 多行可编辑文本 (Multi-Line)</h4>
-      <p>用于<strong>大段输入</strong>（如意见反馈、公会宣言）。不支持密码，但支持内容自动到边缘换行 (Auto Wrap Text)。</p>
     </div>
   </div>
 </div>
 
 <!-- 章节 3 -->
 <div class="section" id="sec3">
-  <h2>📦 3. 布局与容器面板详解</h2>
+  <h2>🔤 3. 文本双雄（LGText 与 Rich Text）对比详解</h2>
+
   <div class="vs-grid">
     <div class="vs-card">
-      <h4>🖼️ 画布面板 (Canvas Panel)</h4>
-      <p><strong>作用：</strong> 允许自由拖拽摆放。依靠 <code>Anchor</code> (锚点) 定位。</p>
+      <h4>🔤 LGText (项目定制文本)</h4>
+      <p>替代 UE 默认 Text 的首选。做了本地化多语言包装和性能优化。</p>
       <ul>
-        <li><strong>适用场景：</strong> 界面最底层的根容器；右下角自由摆放的技能球。</li>
-        <li><strong>缺点：</strong> 计算复杂，绝对不要在列表内部套娃使用 Canvas。</li>
+        <li><strong>面板核心参数：</strong>
+          <ul>
+            <li><code>Text (文本)</code>：填入你要显示的默认字。</li>
+            <li><code>Font (字体)</code>：选择字库及 <strong>Size (字号大小)</strong>。</li>
+            <li><code>Color (颜色)</code>：改变字体颜色。</li>
+            <li><code>Shadow Offset</code>：字体的阴影偏移量（X/Y 设为 1 则有右下角阴影）。</li>
+            <li><code>Justification (对齐)</code>：居左、居中、居右对齐。</li>
+          </ul>
+        </li>
+        <li><strong>适用场景：</strong> 标题、按钮文案、单色属性数值。</li>
       </ul>
     </div>
     <div class="vs-card">
-      <h4>🥞 覆层 (Overlay)</h4>
-      <p><strong>作用：</strong> 控件像汉堡一样叠放，依靠水平/垂直对齐(Alignment)排版。</p>
+      <h4>📝 Rich Text Block (富文本)</h4>
+      <p>通过 HTML 标签驱动的图文混排神器。</p>
       <ul>
-        <li><strong>适用场景：</strong> 头像底图叠上头像再叠上边框。</li>
-        <li><strong>优点：</strong> 性能极高！<strong>能用 Overlay 解决的层叠，绝对不用 Canvas。</strong></li>
+        <li><strong>面板核心参数：</strong>
+          <ul>
+            <li><strong style="color:var(--accent)">Text Style Set</strong>：必须！要在这里挂载一个数据表，定义好红色标签、黄色标签。</li>
+            <li><code>Text (文本)</code>：支持写标签，例如：<br>
+            <code>你获得了 &lt;Red&gt;100&lt;/&gt; 点伤害！</code><br>
+            <code>花费 &lt;img id="coin"/&gt; 500 购买</code>。</li>
+          </ul>
+        </li>
+        <li><strong>适用场景：</strong> 聊天频道（带表情）、多色彩的物品掉落提示、技能描述（重点字加粗标红）。</li>
       </ul>
     </div>
   </div>
+  <p><strong>【即时预览】</strong>：无论哪种文本，修改字号、颜色、打出富文本标签后，编辑器均会<strong>100%立刻渲染刷新</strong>。</p>
 </div>
 
 <!-- 章节 4 -->
 <div class="section" id="sec4">
-  <h2>📜 4. 高级列表与滚动控件</h2>
-  <div class="vs-grid">
-    <div class="vs-card">
-      <h4>↕️ Scroll Box (基础滚动框)</h4>
-      <p>超出范围自动出现滚动条。由于会把所有子节点同时渲染，所以<strong>千万不要用来装几百条数据</strong>，会严重掉帧。适合做简单的设置界面。</p>
+  <h2>🎛️ 4. 数据展示控件（滑条、进度条、组合框）</h2>
+
+  <div class="explain-grid">
+    <!-- Progress Bar & Slider -->
+    <div class="explain-row">
+      <div class="explain-ui-part">
+        <div class="ue-ui-box">
+          <div class="ue-ui-section">
+            <div class="ue-ui-sec-title">▼ 进度条 (Progress Bar) / 滑条 (Slider)</div>
+            <div class="ue-highlight-box">
+              <div class="ue-ui-row"><div class="ue-ui-label">Percent / Value</div><div class="ue-ui-val blue-edge">0.65</div></div>
+            </div>
+            <div class="ue-ui-row"><div class="ue-ui-label">Fill Color (填充色)</div><div class="ue-ui-val" style="background:#e11d48"></div></div>
+            <div class="ue-ui-row"><div class="ue-ui-label">Bar Image (底图)</div><div class="ue-ui-val">T_HealthBar</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-arrow">➔</div>
+      <div class="explain-text-part">
+        <p><strong>Percent / Value (当前数值)</strong>：核心参数！取值范围固定在 <strong>0.0 ~ 1.0</strong> 之间（代表 0% 到 100%）。比如填入 0.65，进度条就会只满 65%。修改此值，画面立刻刷新。</p>
+        <p><strong>滑条专属特性</strong>：滑条比进度条多一个 <code>Thumb Image</code> (滑块图标)，就是玩家按住拖动的那个按钮。</p>
+        <p><strong>【避坑注意】</strong>：如果在程序中血量是 500 / 1000，必须在代码里除一下变成 0.5 传给 UI，不能直接把 500 传给进度条！</p>
+      </div>
     </div>
-    <div class="vs-card">
-      <h4>♾️ List View & Tile View (高性能)</h4>
-      <p>采用<strong>对象池动态复用原理</strong>。只渲染屏幕看得见的那几个格子，滑动时复用外面的。适合处理背包、邮件等几百上千条的数据。必须通过指定 <code>Entry Widget Class</code> 蓝图来渲染子条目。</p>
+
+    <!-- ComboBox -->
+    <div class="explain-row">
+      <div class="explain-ui-part">
+        <div class="ue-ui-box">
+          <div class="ue-ui-section">
+            <div class="ue-ui-sec-title">▼ 组合框 (ComboBox String)</div>
+            <div class="ue-highlight-box">
+              <div class="ue-ui-row"><div class="ue-ui-label">Default Options</div><div class="ue-ui-val blue-edge">3 个数组元素</div></div>
+              <div class="ue-ui-row"><div class="ue-ui-label">Selected Option</div><div class="ue-ui-val blue-edge">"高画质"</div></div>
+            </div>
+            <div class="ue-ui-row"><div class="ue-ui-label">Max List Height</div><div class="ue-ui-val">200.0</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-arrow">➔</div>
+      <div class="explain-text-part">
+        <p><strong>下拉菜单核心逻辑：</strong></p>
+        <p><strong>Default Options</strong>：列表选项的初始内容（例如：低、中、高画质）。</p>
+        <p><strong>Selected Option</strong>：当前框内正在显示的选中项文字。</p>
+        <p><strong>【适用场景与坑点】</strong>：主要用于游戏设置界面的下拉框。<strong>难点在于：</strong>ComboBox 弹出的下拉菜单（List）的样式极难修改，如果对美术要求极高，通常不建议用自带的组合框，而是用按钮+弹出另一个面板来自定义制作。</p>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- 章节 5 -->
 <div class="section" id="sec5">
-  <h2>👁️ 5. 通用核心属性：可见性与变换</h2>
-  
-  <h3>可见性 (Visibility) —— 极度重要！</h3>
-  <table>
-    <tr><th>可见性选项</th><th>视觉状态</th><th>是否挡击穿透？</th><th>性能消耗</th><th>最适用场景</th></tr>
-    <tr><td><strong>可见 (Visible)</strong></td><td>👀 看得见</td><td>👆 挡击/可点</td><td>高</td><td>普通按钮、面板</td></tr>
-    <tr><td><strong>折叠 (Collapsed)</strong></td><td>❌ 看不见</td><td>❌ 彻底消失</td><td><strong>极低</strong></td><td><strong>隐藏UI首选！</strong>完全不计算也不占空间。</td></tr>
-    <tr><td><strong>隐藏 (Hidden)</strong></td><td>❌ 看不见</td><td>❌ 无法点击</td><td>中</td><td>看不见但仍然占据排队占位空间。</td></tr>
-    <tr><td><strong>不可见命中测试<br>(Hit Test Invisible)</strong></td><td>👀 看得见</td><td>👻 穿透(不可点)</td><td>低</td><td><strong>纯装饰的背景底图！</strong>不挡住下方的按钮。</td></tr>
-    <tr><td><strong>自身不可见命中测试<br>(Self Hit Test Invisible)</strong></td><td>👀 看得见</td><td>👻 自身穿透<br>👆 子可点</td><td>低</td><td><strong>作为父容器（Canvas/Overlay）的最佳选择！</strong></td></tr>
-  </table>
+  <h2>📦 5. 布局容器面板（尺寸框、安全区、切换器等）</h2>
+
+  <h3>5.1 尺寸框 (Size Box) —— 强制覆写尺寸的神器</h3>
+  <div class="explain-grid">
+    <div class="explain-row">
+      <div class="explain-ui-part">
+        <div class="ue-ui-box">
+          <div class="ue-ui-section">
+            <div class="ue-ui-sec-title">▼ 子布局 (Child Layout)</div>
+            <div class="ue-highlight-box">
+              <div class="ue-ui-row"><div class="ue-ui-label" style="color:var(--text);">☑ Width Override</div><div class="ue-ui-val blue-edge">120.0</div></div>
+              <div class="ue-ui-row"><div class="ue-ui-label" style="color:var(--text);">☑ Height Override</div><div class="ue-ui-val blue-edge">50.0</div></div>
+            </div>
+            <div class="ue-ui-row"><div class="ue-ui-label">☐ Min Desired Width</div><div class="ue-ui-val">0.0</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-arrow">➔</div>
+      <div class="explain-text-part">
+        <p><strong>使用场景：</strong>当一个控件（比如 Button）放在 Horizontal Box 里时，它失去了调节大小的权利，只能被动拉伸。如果我想强行让这个按钮就是 120x50 像素怎么办？</p>
+        <p><strong>解法：</strong>在 Button 外面包裹一层 <strong>Size Box (尺寸框)</strong>，并勾选 <code>Width/Height Override</code>。尺寸框就像一个钢铁牢笼，强行把里面的控件框死在设定好的尺寸里。修改后立刻生效。</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>5.2 Widget Switcher (控件切换器) —— 抽屉式翻页</h3>
+  <div class="explain-grid">
+    <div class="explain-row">
+      <div class="explain-ui-part">
+        <div class="ue-ui-box">
+          <div class="ue-ui-section">
+            <div class="ue-ui-sec-title">▼ 切换器 (Switcher)</div>
+            <div class="ue-highlight-box">
+              <div class="ue-ui-row"><div class="ue-ui-label">Active Widget Index</div><div class="ue-ui-val blue-edge">1</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-arrow">➔</div>
+      <div class="explain-text-part">
+        <p><strong>核心特性：</strong>你可以把十个界面板子塞进切换器里，但<strong>它同一时间永远只显示一个！</strong></p>
+        <p><strong>Active Widget Index (激活索引)</strong>：0 代表显示第一个子节点，1 代表显示第二个节点。在编辑器中修改数字，<strong>能立刻看到翻页效果</strong>。</p>
+        <p><strong>使用场景：</strong>商城顶部的“武器/防具/消耗品”页签切换。点页签时让代码改变这个 Index 即可瞬间切面板，无需创建和销毁，性能优秀。</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>5.3 水平框 (H-Box) / 垂直框 (V-Box) / 安全区 (Safe Zone) 对比</h3>
+  <div class="vs-grid">
+    <div class="vs-card">
+      <h4>⏸️ 水平/垂直框</h4>
+      <p><strong>排队神器</strong>。把控件丢进去，它们就会自动向右或向下排列。<br>
+      <strong>核心参数：</strong>在子节点的插槽中选择 <strong>Auto(按内容尺寸)</strong> 还是 <strong>Fill(填满剩余全部空间)</strong>。通过 Padding 控制兄弟间的间隙。</p>
+    </div>
+    <div class="vs-card">
+      <h4>🛡️ Safe Zone (安全区)</h4>
+      <p><strong>全面屏守护者</strong>。勾选 Pad Left/Right/Top/Bottom。<br>
+      <strong>核心场景：</strong>移动端设备有“刘海”、挖孔、圆角。把整个界面放在 Safe Zone 里，系统会自动把 UI 往里挤，防止按钮被屏幕黑边遮挡。</p>
+    </div>
+  </div>
+
 </div>
 
 <!-- 章节 6 -->
 <div class="section" id="sec6">
-  <h2>🎯 6. 核心实操：锚点与自适应搭建</h2>
-  <p>在不同分辨率屏幕下保持界面不拉伸，核心就是锚点对齐：</p>
+  <h2>♾️ 6. 高级列表视图（List View / Tile View）</h2>
+  <div class="alert alert-yellow">
+    <strong>⚠️ 核心理念：</strong>对于超长列表（如排行榜、背包），决不能用 Scroll Box 无脑塞，会卡死引擎。必须使用对象池复用的 <strong>ListView (单列)</strong> 或 <strong>TileView (九宫格)</strong>。
+  </div>
   
+  <div class="explain-grid">
+    <div class="explain-row">
+      <div class="explain-ui-part">
+        <div class="ue-ui-box">
+          <div class="ue-ui-section">
+            <div class="ue-ui-sec-title">▼ 列表 / 瓦片列表</div>
+            <div class="ue-highlight-box">
+              <div class="ue-ui-row"><div class="ue-ui-label" style="font-weight:bold;color:var(--accent)">Entry Widget Class</div><div class="ue-ui-val blue-edge">WBP_BagItem ▼</div></div>
+            </div>
+          </div>
+          <div class="ue-ui-section">
+            <div class="ue-ui-sec-title">▼ Tile View 专属参数</div>
+            <div class="ue-ui-row"><div class="ue-ui-label">Entry Height / Width</div><div class="ue-ui-val">100.0 / 100.0</div></div>
+            <div class="ue-ui-row"><div class="ue-ui-label">Tile Alignment</div><div class="ue-ui-val">Left (居左对齐)</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-arrow">➔</div>
+      <div class="explain-text-part">
+        <p><strong>Entry Widget Class (条目类)</strong>：绝不允许手动在列表下拖入子控件！必须在这里指定一个独立的组件蓝图（比如单独画的一个背包格子）。</p>
+        <p><strong>TileView 高/宽</strong>：限制每个方块的大小，系统会根据屏幕宽度自动计算一行能塞几个格子。</p>
+        <p><strong>【即时预览】</strong>：配置好类后，编辑器会自动生成 5 个假占位符填充列表，方便你预览排版（但实际运行是空的，需要代码给数据）。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 章节 7 -->
+<div class="section" id="sec7">
+  <h2>👁️ 7. 通用核心属性：可见性 (Visibility)</h2>
+  <p>所有控件都有可见性属性，这是 UI 交互的基础：</p>
+  <table>
+    <tr><th>可见性选项</th><th>视觉状态</th><th>点击状态</th><th>性能消耗</th><th>最适用场景</th></tr>
+    <tr><td><strong>可见 (Visible)</strong></td><td>👀 看得见</td><td>👆 挡击/可点</td><td>高</td><td>普通可交互按钮、弹窗面板。</td></tr>
+    <tr><td><strong>折叠 (Collapsed)</strong></td><td>❌ 看不见</td><td>❌ 彻底消失</td><td><strong>极低</strong></td><td><strong>隐藏UI首选！</strong>完全不计算也不占排队空间。</td></tr>
+    <tr><td><strong>隐藏 (Hidden)</strong></td><td>❌ 看不见</td><td>❌ 无法点击</td><td>中</td><td>看不见但仍然占据排队占位空间（占坑）。</td></tr>
+    <tr><td><strong>不可见命中测试<br>(Hit Test Invisible)</strong></td><td>👀 看得见</td><td>👻 鼠标穿透</td><td>低</td><td><strong>纯装饰用的背景图！</strong>不挡住下方的按钮。</td></tr>
+    <tr><td><strong>自身不可见命中测试<br>(Self Hit Test Invisible)</strong></td><td>👀 看得见</td><td>👻 自身穿透<br>👆 子可点</td><td>低</td><td><strong>作为父容器（Canvas/Overlay）的最佳选择！</strong></td></tr>
+  </table>
+  <div class="alert alert-yellow"><strong>避坑指南：</strong>点不动按钮？99%是因为上面盖了张 Visible 的全屏透明图，把它改成 <code>Hit Test Invisible</code>！</div>
+</div>
+
+<!-- 章节 8 -->
+<div class="section" id="sec8">
+  <h2>🎯 8. 核心实操：锚点、对齐与多端/小游戏适配规范</h2>
+  <p>在不同分辨率屏幕下保持界面不拉伸，核心就是锚点对齐。尤其是多端游戏和<strong>微信小游戏</strong>（手机屏幕存在大量异形屏），必须遵循严格的拼规范。</p>
+  
+  <h3>8.1 锚点 (Anchor) 九宫格对照表</h3>
   <div style="display:flex; justify-content:center; margin:30px 0; overflow-x:auto;">
     <div style="background:#1a1c1e; padding:24px; border:1px solid #333; border-radius:8px; display:inline-block; position:relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
       <div style="display:grid; grid-template-columns:repeat(4, 40px); gap:12px;">
@@ -380,13 +445,37 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
          🎯 正中央全局弹窗 <div style="width:40px; height:2px; background:var(--accent); margin-left:8px;"></div>
       </div>
       <div style="position:absolute; right:-160px; bottom:32px; color:var(--red); font-size:14px; font-weight:bold; display:flex; align-items:center;">
-         <div style="width:30px; height:2px; background:var(--red); margin-right:8px;"></div> 全屏铺满背景底图 🔲
+         <div style="width:30px; height:2px; background:var(--red); margin-right:8px;"></div> 全屏拉伸(底图/遮罩) 🔲
       </div>
     </div>
   </div>
+
+  <h3>8.2 对齐 (Alignment) —— 绝对居中的密码</h3>
+  <p>当你要把弹窗绝对居中时，光把锚点设为“居中”是不够的（那只是以控件的左上角点对齐屏幕中心）。<br>
+  <strong>必须将 <code>Alignment</code> 设为 X: 0.5, Y: 0.5</strong>。这代表用控件自己的正中心点，去贴合锚点。这是所有弹窗类 UI 必须遵守的铁律！</p>
+
+  <h3>8.3 多端与微信小游戏适配专属规范</h3>
+  <div class="alert alert-green">
+    <strong>📱 微信小游戏/手游端必须遵循的布局层级树：</strong>
+    <p>由于微信小游戏在各种带鱼屏手机（如 21:9）、异形屏上有严重差异，且<strong>右上角必定有一个不可去掉的“胶囊按钮（更多/关闭）”</strong>，如果乱摆放会导致按键完全点不到。</p>
+  </div>
+  
+  <p><strong>标准根节点搭建规范范例：</strong></p>
+  <pre style="background:var(--panel); padding:16px; border-radius:8px; color:var(--accent); line-height:1.6; font-size:14px; overflow-x:auto;">
+[根容器] Canvas Panel (画板)
+ ├── 🖼️ Image [背景大图] 
+ │    └─ 规范：锚点选「四边全屏拉伸(大方块)」，Offsets全部归0。无视刘海直接铺满全屏，做视觉延伸。
+ ├── 🛡️ Safe Zone [安全区] 
+ │    ├─ 规范：紧接背景之上，勾选四边Pad，系统会自动挤开微信胶囊和刘海屏幕的黑边。
+ │    └─ 🥞 Overlay [全屏覆层] (放在SafeZone里铺满)
+ │         ├── 📦 VBox/HBox (各种功能面板内容，绝对安全)
+ │         └── 👆 Button [退出/返回按钮] 
+ │              └─ 规范：锚点设为右上角。因为有SafeZone保护，绝对不会和微信的胶囊按钮重叠！
+  </pre>
+
 </div>
 
-<div class="doc-footer">📐 游戏项目知识库 · UE5 UMG 拼接实操详细指南 · 规范化版本</div>
+<div class="doc-footer">📐 游戏项目知识库 · UE5 UMG 拼接实操详细指南 · 全控件深化解析规范版</div>
 </div>
 </body>
 </html>
