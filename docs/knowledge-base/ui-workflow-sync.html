@@ -174,9 +174,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
       <text x="660" y="888" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">🔍 ⑨ 资产合规检查</text>
       <text x="660" y="907" text-anchor="middle" fill="#9499b0" font-size="11">命名·尺寸·格式自动校验</text>
       <rect x="795" y="862" width="38" height="16" rx="5" fill="#22d3ee"/><text x="814" y="874" text-anchor="middle" fill="#000" font-size="9" font-weight="700">NEW</text>
-      <!-- 中期对齐 -->
-      <rect x="380" y="706" width="148" height="28" rx="8" fill="rgba(248,113,113,.08)" stroke="#f87171" stroke-width="1" stroke-dasharray="4,3"/>
-      <text x="454" y="724" text-anchor="middle" fill="#f87171" font-size="12" font-weight="600">⚠️ UI 50% 中期对齐</text>
+
       <!-- 汇合A -->
       <!-- 左线：Layout/客户端直连汇合 -->
       <line x1="240" y1="680" x2="240" y2="946" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr)"/>
@@ -296,21 +294,9 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
         <div class="flow" style="margin:0"><div class="flow-node teal" style="min-width:90px"><strong>⑤-a 白模</strong></div><span class="flow-arrow">→</span><div class="flow-node yellow" style="min-width:90px"><strong>⑤-b 客户端</strong></div></div>
       </div>
     </div>
-    <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--dim)"><span style="color:var(--red);font-weight:600">⚠️ UI设计50%时须与Layout中期对齐</span></div>
+
   </div>
-  <!-- 中期对齐执行保障 NEW -->
-  <div style="margin:12px 0;background:rgba(248,113,113,.05);border:2px solid rgba(248,113,113,.2);border-radius:12px;padding:16px">
-    <div style="font-size:14px;color:var(--red);font-weight:700;margin-bottom:10px">🔒 UI 50% 中期对齐 — 执行保障机制 <span class="badge badge-new">NEW</span></div>
-    <table style="font-size:13px;margin:0">
-      <tr><th style="width:100px">项目</th><th>要求</th></tr>
-      <tr><td><strong>触发机制</strong></td><td>UI子单状态流转至「设计中-50%」时，UX管线负责人在 <strong>1个工作日内</strong> 组织中期对齐会</td></tr>
-      <tr><td><strong>必须参与</strong></td><td>UI设计师 + 交互设计师 + Layout工程师（缺一不可），UX管线负责人主持</td></tr>
-      <tr><td><strong>会议时长</strong></td><td>≤30分钟，当场出结论</td></tr>
-      <tr><td><strong>产出标准</strong></td><td>UI在Figma上标注所有与交互稿存在差异的区域（红色标记 <code>⚠️ 偏离交互</code>），Layout/交互当场确认，结论记录在TAPD评论</td></tr>
-      <tr style="background:rgba(248,113,113,.04)"><td><strong style="color:var(--red)">缺席处罚</strong></td><td>若UI设计师跳过中期对齐，后续因偏离导致的Layout返工，<strong style="color:var(--red)">工期自动计入UI设计阶段</strong>，不延长Layout排期</td></tr>
-      <tr><td><strong>适用范围</strong></td><td>S级、A级需求<strong>强制执行</strong>；B级需求建议执行；C级快速通道豁免</td></tr>
-    </table>
-  </div>
+
   <div style="text-align:center;margin:4px 0"><span style="display:inline-block;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:6px 18px;font-size:13px;color:var(--heading);font-weight:600">🔗 汇合 — UI 资产 + Layout 白模就绪</span></div>
   <div style="margin:20px 0 8px;font-size:13px;color:var(--dim);letter-spacing:2px;font-weight:600">▸ 阶段三 · 正式蓝图与动效（<span style="color:var(--cyan)">⚡ 可并行</span>）</div>
   <div style="border:2px dashed var(--cyan);border-radius:14px;padding:16px 16px 12px;position:relative;margin-bottom:12px">
@@ -343,39 +329,8 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   </div>
 </div>
 
-<!-- SEC-GRADE 需求分级与流程裁剪 NEW -->
-<div class="section" id="sec-grade">
-  <h2>📋 2.5 需求分级与流程裁剪方案 <span class="badge badge-new">NEW</span></h2>
-  <p style="font-size:14px;color:var(--dim);margin-bottom:16px">不同体量的需求应匹配不同的流程深度。<strong style="color:var(--heading)">策划发单时必须标注需求等级</strong>，UX管线负责人根据等级执行对应的裁剪方案。</p>
-  <table style="font-size:13px">
-    <tr><th style="width:60px">等级</th><th style="width:180px">适用场景</th><th>流程裁剪方案</th><th style="width:90px">预估工期</th></tr>
-    <tr style="background:rgba(248,113,113,.04)">
-      <td><strong style="color:var(--red)">S 级</strong></td>
-      <td>主界面 / 系统级新功能</td>
-      <td><strong>全流程不可裁剪</strong>：①~⑰ 所有环节 + 所有评审 + 中期对齐 + 偏离度检查均必须执行</td>
-      <td>15-22天</td>
-    </tr>
-    <tr>
-      <td><strong style="color:var(--orange)">A 级</strong></td>
-      <td>常规新界面 / 复杂改版</td>
-      <td><strong>标准流程</strong>：全流程执行，评审可快审（≤15min）。中期对齐和偏离度检查必须执行</td>
-      <td>12-18天</td>
-    </tr>
-    <tr>
-      <td><strong style="color:var(--yellow)">B 级</strong></td>
-      <td>轻量改版 / 活动页</td>
-      <td><strong>精简流程</strong>：跳过需求评审、动效评审；交互评审+UI评审可合并为一次「设计快审」（≤20min）；资产合规+走查不可省</td>
-      <td>8-12天</td>
-    </tr>
-    <tr style="background:rgba(74,222,128,.04)">
-      <td><strong style="color:var(--green)">C 级</strong></td>
-      <td>热修 / 紧急视觉修复</td>
-      <td><strong>快速通道</strong>：策划直接发单→UI/Layout直接修改→走查验收。仅保留资产合规+走查</td>
-      <td>1-3天</td>
-    </tr>
-  </table>
-  <div class="alert alert-red"><strong>🔴 分级铁律</strong>：策划发单时「需求等级」为必填字段；UX管线负责人有权调升等级（不可调降）；C级快速通道需PM/UX管线负责人审批；⑨资产合规 和 ⑭走查 在任何等级下<strong>不可跳过</strong>。</div>
-</div>
+
+
 
 <!-- SEC3 TAPD 发单机制 -->
 <div class="section" id="sec3">
@@ -391,7 +346,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
         <span style="padding-left:12px">• 标题：<code>[UI] 界面名称 — 功能简述</code></span><br>
         <span style="padding-left:12px">• 详细描述：需求文档链接、页面清单</span><br>
         <span style="padding-left:12px">• 优先级/迭代版本/截止日期</span><br>
-        <span style="padding-left:12px">• 关联文档：Figma链接</span><br>
+        <span style="padding-left:12px">• 关联文档：Figma链接（交互稿 Figma 地址，便于各方查阅交互设计稿）</span><br>
         <strong style="color:var(--heading)">拆解子单清单：</strong><br>
         <span style="padding-left:12px">• UX设计</span><br>
         <span style="padding-left:12px">• UI设计</span><br>
@@ -399,8 +354,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
         <span style="padding-left:12px">• UI动效</span><br>
         <span style="padding-left:12px">• 客户端制作</span><br>
         <span style="padding-left:12px">• 客户端动效接入</span><br>
-        <strong style="color:var(--heading)">处理人：</strong>父单设为<strong>策划本人</strong>（便于跟踪整体进度，子单进度向上汇总）。<strong style="color:var(--yellow)">子单处理人由项目PM在宣讲阶段挂上</strong>。<br>
-        <strong style="color:var(--heading)">走查说明：</strong>界面走查不单独占一个子任务单，由策划/UI设计/Layout负责人在流转环节进行统一走查与验收。
+        <strong style="color:var(--heading)">处理人：</strong>父单设为<strong>策划本人</strong>（便于跟踪整体进度，子单进度向上汇总）。<strong style="color:var(--yellow)">子单处理人由项目PM在宣讲阶段挂上</strong>。
       </div>
     </div>
     <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:10px;padding:14px">
@@ -435,6 +389,9 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
       </div>
     </div>
   </div>
+
+  <!-- 走查说明（独立说明） -->
+  <div class="alert alert-blue" style="margin:16px 0"><strong>📌 走查说明：</strong>界面走查不单独占一个子任务单，由策划/UI设计/Layout负责人在流转环节进行统一走查与验收。</div>
 
   <!-- 职权边界与管线归属规则 -->
   <div style="background:rgba(248,113,113,.06);border:2px solid rgba(248,113,113,.3);border-radius:12px;padding:16px;margin-bottom:16px">
@@ -473,48 +430,23 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     • 评审类节点（③⑦⑭）通过 TAPD <strong>评论/备注</strong>记录结论与调整点，不单独建单。<br>
     • 走查发现的问题统一通过 TAPD <strong>缺陷单</strong>记录并关联父需求单。<strong style="color:var(--orange)">提报规范：必须包含【问题截图/录屏】、【期望表现】及【当前表现】</strong>，避免沟通拉扯造成返工。</div>
 
-  <!-- 阻塞升级时间触发机制 NEW -->
-  <div style="margin:16px 0 0;background:rgba(251,191,36,.05);border:1.5px solid rgba(251,191,36,.2);border-radius:10px;padding:14px">
-    <div style="font-size:14px;color:var(--yellow);font-weight:700;margin-bottom:10px">⏰ 阻塞升级 — 时间触发机制 <span class="badge badge-new">NEW</span></div>
-    <table style="font-size:13px;margin:0">
-      <tr><th style="width:80px">预警级别</th><th style="width:100px">触发条件</th><th>动作</th></tr>
-      <tr><td><strong style="color:var(--yellow)">🟡 黄灯</strong></td><td>截止日前 <strong>2天</strong></td><td>UX管线负责人 TAPD @处理人 + @PM 进度提醒</td></tr>
-      <tr style="background:rgba(248,113,113,.04)"><td><strong style="color:var(--red)">🔴 红灯</strong></td><td>超期 <strong>1天</strong></td><td>PM介入：分析原因、调配资源、更新排期</td></tr>
-      <tr style="background:rgba(248,113,113,.08)"><td><strong style="color:var(--red)">🚨 超红灯</strong></td><td>超期 <strong>3天</strong></td><td>升级至项目经理/制作人，启动应急方案</td></tr>
-    </table>
-  </div>
+
 </div>
 
-<!-- SEC-SEVERITY 走查问题严重度分级 NEW -->
-<div class="section" id="sec-severity">
-  <h2>🚦 3.5 走查问题严重度分级与交付阻断标准 <span class="badge badge-new">NEW</span></h2>
-  <p style="font-size:14px;color:var(--dim);margin-bottom:16px">走查缺陷单按严重度分级标注，交付决策以严重度为依据。</p>
-  <table style="font-size:13px">
-    <tr><th style="width:70px">严重度</th><th style="width:200px">定义</th><th>典型表现</th><th style="width:110px">处理要求</th></tr>
-    <tr style="background:rgba(248,113,113,.06)"><td><strong style="color:var(--red)">P0 阻断</strong></td><td>功能不可用 / 崩溃 / 布局严重错位</td><td>点击无响应、崩溃、核心流程走不通</td><td><strong style="color:var(--red)">必须修复后交付</strong></td></tr>
-    <tr><td><strong style="color:var(--orange)">P1 必修</strong></td><td>明显还原偏差 / 交互路径不通</td><td>颜色偏差、>4px误差、动效方向错误</td><td><strong style="color:var(--orange)">本版本修复，阻断上线</strong></td></tr>
-    <tr style="background:rgba(74,222,128,.04)"><td><strong style="color:var(--green)">P2 建议</strong></td><td>微小偏差 / 优化建议</td><td>1-2px偏差、非核心页面优化</td><td>延后下个迭代</td></tr>
-  </table>
-  <div class="alert alert-green"><strong>✅ 交付标准</strong>：<strong>P0 = 0 且 P1 ≤ 3</strong>（均有修复计划）→ 允许交付。否则继续修复后复查。缺陷单必须标注严重度（P0/P1/P2）。</div>
-</div>
+
+
 
 <!-- SEC4 常见问题 FAQ -->
 <div class="section" id="sec4">
   <h2>❓ 4. 常见问题 FAQ</h2>
-  <div class="faq-item"><div class="faq-q">💬 Q1：策划中途改需求怎么办？</div><div class="faq-a"><strong>答</strong>：需求冻结后变更必须走正式流程：① 提交变更申请单 ② 各方评估影响 ③ 项目经理审批 ④ 更新需求文档标注变更。<strong>未审批的变更 = 不执行。</strong><br><br>
-    <div style="background:rgba(34,211,238,.05);border:1px solid rgba(34,211,238,.2);border-radius:8px;padding:12px;margin:4px 0">
-      <strong style="color:var(--cyan)">📋 变更影响评估模板 <span class="badge badge-new">NEW</span></strong>
-      <div style="font-size:13px;line-height:2;margin-top:6px">
-        <strong>① 受影响环节</strong>：□ UX □ UI □ Layout □ VX □ 客户端<br>
-        <strong>② 已完成环节返工</strong>：各环节返工天数<br>
-        <strong>③ 总工期变更</strong>：原计划完成日 → 变更后（+X天）<br>
-        <strong>④ 风险说明</strong>：连锁风险评估<br>
-        <strong style="color:var(--heading)">流程：</strong>UX管线负责人汇总 → PM审批 → 项目经理确认
-      </div>
-    </div></div></div>
+  <div class="faq-item"><div class="faq-q">💬 Q1：策划中途改需求怎么办？</div><div class="faq-a"><strong>答</strong>：实际项目中，策划通常已与项目PM和相关方沟通过一轮后才会提出变更。此时各方应快速评估影响范围，重点关注：<br>
+    　• <strong>哪些环节受影响</strong>（UX / UI / Layout / VX / 客户端）<br>
+    　• <strong>是否涉及已完成环节的返工</strong>，以及预计增加的工期<br>
+    　• <strong>更新需求文档</strong>，在 TAPD 中标注变更内容和影响范围<br>
+    <strong style="color:var(--orange)">关键原则：</strong>变更信息必须同步到所有相关角色（尤其是已在执行中的环节），避免信息不对称导致无效工作。</div></div>
   <div class="faq-item"><div class="faq-q">💬 Q2：小团队也要走这么多评审吗？</div><div class="faq-a"><strong>答</strong>：评审可以简化但<strong>不能跳过</strong>。小团队可以：合并③④为一个快速评审、合并⑦⑧为一个快速评审。但<strong>⑨资产合规（自动化30秒）</strong>和<strong>⑭界面走查</strong>绝不能省。</div></div>
   <div class="faq-item"><div class="faq-q">💬 Q3：Layout白模和UI设计并行，如果UI改了怎么办？</div><div class="faq-a"><strong>答</strong>：分两种情况——<br><strong>① 仅视觉层变更（配色/字体/图标样式）：</strong>白模不受影响，Layout切正式资产时直接替换即可。<br><strong>② 布局/结构性变更（控件增减、层级调整、页面布局大改）：</strong>这是并行模式下的<strong style="color:var(--red)">高风险场景</strong>。此时白模功能蓝图可能无法使用，需要触发「偏离评估会」。<br><strong>预防关键：</strong>UI设计进行至50%时必须与交互/Layout做一次中期对齐，提前暴露布局变更意图。</div></div>
-  <div class="faq-item"><div class="faq-q">💬 Q4：走查发现大量问题，是否需要重新走全流程？</div><div class="faq-a"><strong>答</strong>：不需要。走查问题按类型分流修复后进行<strong>复查</strong>，而非重走全流程。但如果问题是系统性的（如需求理解偏差），则需评估是否回退到对应阶段重做。</div></div>
+
   <div class="faq-item" style="border-color:rgba(248,113,113,.3)"><div class="faq-q">💬 Q5：拿到UI视觉稿后，发现跟交互稿出入很大，程序说功能蓝图没法用，怎么办？ <span class="badge badge-new">NEW</span></div><div class="faq-a"><strong>答</strong>：这是并行管线中最典型的返工风险。处理步骤：<br>
     <strong>第一步 · 紧急评估（≤半天）：</strong>交互+UI+Layout+客户端四方快速对齐，量化偏离范围。<br>
     <strong>第二步 · 责任判定：</strong><br>
