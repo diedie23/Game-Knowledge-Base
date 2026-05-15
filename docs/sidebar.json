@@ -29,15 +29,6 @@
               "file": "knowledge-base/ui-production-workflow.html",
               "badge": "管理",
               "craft": "UI"
-            },
-            {
-              "id": "ui-workflow-sync",
-              "icon": "🔄",
-              "title": "UX 管线流程 · 环节同步版",
-              "type": "iframe",
-              "file": "knowledge-base/ui-workflow-sync.html",
-              "badge": "管理",
-              "craft": "UI"
             }
           ]
         },

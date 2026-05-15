@@ -218,47 +218,7 @@
       "content_type": "方法论",
       "quality_level": "premium"
     },
-    {
-      "id": "ui-workflow-sync",
-      "module": "project",
-      "craft": "UI",
-      "type": "iframe",
-      "title": "UX 管线流程 · 环节同步版",
-      "desc": "基于全流程 v1.2 精简的 UX 管线环节同步版，聚焦并行组协作、环节衔接与关键节点。含需求分级裁剪、中期对齐保障、走查P0/P1/P2分级、阻塞预警机制，适合日常快速参考",
-      "tags": [
-        "UI",
-        "UX管线",
-        "流程",
-        "同步版",
-        "并行",
-        "环节衔接",
-        "需求分级",
-        "走查分级"
-      ],
-      "icon": "🔄",
-      "action": "openTool",
-      "path": "knowledge-base/ui-workflow-sync.html",
-      "owner": "周八",
-      "last_updated": "2026-05-15",
-      "applicable_stage": "全阶段",
-      "priority": "high",
-      "is_hot": false,
-      "keywords": [
-        "UX管线",
-        "环节同步",
-        "并行组",
-        "UI管线精简",
-        "流程同步版",
-        "需求分级",
-        "中期对齐",
-        "走查严重度",
-        "阻塞升级",
-        "PM衔接",
-        "TAPD发单"
-      ],
-      "content_type": "方法论",
-      "quality_level": "premium"
-    },
+
     {
       "id": "cp-outsource",
       "module": "outsource",
