@@ -426,22 +426,24 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 <!-- SEC4 常见问题 FAQ -->
 <div class="section" id="sec4">
   <h2>❓ 4. 常见问题 FAQ</h2>
-  <div class="faq-item"><div class="faq-q">💬 Q1：策划中途改需求怎么办？</div><div class="faq-a"><strong>答</strong>：实际项目中，策划通常已与项目PM和相关方沟通过一轮后才会提出变更。此时各方应快速评估影响范围，重点关注：<br>
-    　• <strong>哪些环节受影响</strong>（UX / UI / Layout / VX / 客户端）<br>
-    　• <strong>是否涉及已完成环节的返工</strong>，以及预计增加的工期<br>
-    　• <strong>更新需求文档</strong>，在 TAPD 中标注变更内容和影响范围<br>
-    <strong style="color:var(--orange)">关键原则：</strong>变更信息必须同步到所有相关角色（尤其是已在执行中的环节），避免信息不对称导致无效工作。</div></div>
+  <div class="faq-item" style="border-color:rgba(96,165,250,.3)"><div class="faq-q">💬 Q1：需求只涉及UI/Layout/动效，没有UX交互环节，应该找谁跟进？ <span class="badge badge-new">NEW</span></div><div class="faq-a"><strong>答</strong>：<strong style="color:var(--blue)">仍然由UX管线负责人统筹跟进。</strong><br><br>
+    <strong>常见场景举例：</strong><br>
+    　• 策划在写案子时已与交互沟通好，无需额外出交互稿，但后续需要UI设计→蓝图→动效→客户端<br>
+    　• 纯视觉改版需求（UI出新稿→Layout切正式→动效调整），没有交互变更<br>
+    　• 小程序/活动页等轻量界面，策划直接给了参考稿，跳过了UX环节<br><br>
+    <strong>为什么必须这样？</strong><br>
+    　• UX管线负责人的核心职责不是"做交互设计"，而是<strong>确保 UX→UI→蓝图→动效 这条管线的流转顺畅</strong>（客户端制作/动效接入的排期由项目PM或客户端自行管理）<br>
+    　• 如果APM/项目PM越过UX管线负责人直接找UI/Layout/动效排期，会导致信息碎片化——动效去找APM、UI来找UX管线负责人、Layout没人跟，造成严重混乱<br>
+    　• <strong style="color:var(--red)">判断标准很简单：只要需求涉及UI/Layout/动效中任意一项产出，这些环节的排期就归UX管线负责人跟进</strong><br><br>
+    <div class="alert alert-red" style="margin:8px 0 0"><strong>🔴 明确要求：</strong>APM/项目PM不得越过UX管线负责人直接安排UI/Layout/动效人员的排期。UX→UI→蓝图→动效的排期协调，统一由UX管线负责人对接。客户端排期不在此范围内。</div></div></div>
 
-  <div class="faq-item"><div class="faq-q">💬 Q3：Layout白模和UI设计并行，如果UI改了怎么办？</div><div class="faq-a"><strong>答</strong>：分两种情况——<br><strong>① 仅视觉层变更（配色/字体/图标样式）：</strong>白模不受影响，Layout切正式资产时直接替换即可。<br><strong>② 布局/结构性变更（控件增减、层级调整、页面布局大改）：</strong>这是并行模式下的<strong style="color:var(--red)">高风险场景</strong>。此时白模功能蓝图可能无法使用，需要触发「偏离评估会」。<br><strong>预防关键：</strong>UI设计进行至50%时必须与交互/Layout做一次中期对齐，提前暴露布局变更意图。</div></div>
-
-
-  <div class="faq-item"><div class="faq-q">💬 Q6：测试发现界面 Bug，TAPD 缺陷单应该挂给谁？ <span class="badge badge-new">NEW</span></div><div class="faq-a"><strong>答</strong>：为了提高问题处理效率，请遵循以下分流原则：<br>
+  <div class="faq-item"><div class="faq-q">💬 Q2：测试发现界面 Bug，TAPD 缺陷单应该挂给谁？ <span class="badge badge-new">NEW</span></div><div class="faq-a"><strong>答</strong>：为了提高问题处理效率，请遵循以下分流原则：<br>
     　• <strong>界面表现相关（含 Layout 还原/布局 及 视觉切图/资源错误）</strong>：统一挂单给 <strong>v_zhyszhang（张荧）</strong>。由张荧统一排查后，分配给对应的 Layout 制作人或 UI 设计师跟进处理。<br>
     　• <strong>业务逻辑/数据异常问题</strong>：挂单给对应的<strong>客户端开发</strong>。<br>
     　• <strong>界面表现相关但不确定归属的问题</strong>：优先挂单给 <strong>v_zhyszhang（张荧）</strong>协助定位排查。<br>
     其他明确不属于界面的常规问题，按已有逻辑挂给对应接口人即可。</div></div>
 
-  <div class="faq-item" style="border-color:rgba(251,146,60,.3)"><div class="faq-q">💬 Q5：动效需求在界面制作基本完成后才补充提出，应该怎么处理？附交互图还是最终效果图？ <span class="badge badge-new">NEW</span></div><div class="faq-a"><strong>答</strong>：这是实际项目中常见的情况，通常有两种原因导致动效需求后置。以具体案例说明：<br><br>
+  <div class="faq-item" style="border-color:rgba(251,146,60,.3)"><div class="faq-q">💬 Q3：动效需求在界面制作基本完成后才补充提出，应该怎么处理？附交互图还是最终效果图？ <span class="badge badge-new">NEW</span></div><div class="faq-a"><strong>答</strong>：这是实际项目中常见的情况，通常有两种原因导致动效需求后置。以具体案例说明：<br><br>
     <strong style="color:var(--orange)">案例场景：</strong>A运营的界面已进入制作落地阶段，功能基本完成。此时策划/运营补充提出了动效需求，并在需求详情中附上了交互图。<br><br>
     <strong style="color:var(--purple)">常见原因分析：</strong><br>
     　• <strong>原因一：交互最初就有动效需求，但未及时发单</strong> — 交互在需求评审阶段已经提出了动效需求，但由于沟通遗漏、流程疏忽等原因，没有在当时同步创建动效子单。等到界面制作接近完成时才想起来补发，导致动效制作时间被压缩<br>
@@ -456,16 +458,14 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     　• 动效需求<strong>尽量在设计阶段就明确</strong>（流程中 ⑥ UI设计 阶段），交互提出动效需求时<strong>应同步创建动效子单</strong>，避免遗漏导致后期才补发<br>
     　• 后置提出的动效需求，发单时必须包含：<strong>① UI 终稿截图/Figma链接</strong>（无终稿找 v_zhyszhang 获取）　<strong>② 动效描述（触发方式、动画类型、时长等）</strong>　<strong>③ 参考示例（如有）</strong><br>
     　• UX管线负责人需评估后置动效对当前排期的影响，必要时协调调整节点</div></div>
-  <div class="faq-item" style="border-color:rgba(96,165,250,.3)"><div class="faq-q">💬 Q8：需求只涉及UI/Layout/动效，没有UX交互环节，应该找谁跟进？ <span class="badge badge-new">NEW</span></div><div class="faq-a"><strong>答</strong>：<strong style="color:var(--blue)">仍然由UX管线负责人统筹跟进。</strong><br><br>
-    <strong>常见场景举例：</strong><br>
-    　• 策划在写案子时已与交互沟通好，无需额外出交互稿，但后续需要UI设计→蓝图→动效→客户端<br>
-    　• 纯视觉改版需求（UI出新稿→Layout切正式→动效调整），没有交互变更<br>
-    　• 小程序/活动页等轻量界面，策划直接给了参考稿，跳过了UX环节<br><br>
-    <strong>为什么必须这样？</strong><br>
-    　• UX管线负责人的核心职责不是"做交互设计"，而是<strong>确保 UX→UI→蓝图→动效 这条管线的流转顺畅</strong>（客户端制作/动效接入的排期由项目PM或客户端自行管理）<br>
-    　• 如果APM/项目PM越过UX管线负责人直接找UI/Layout/动效排期，会导致信息碎片化——动效去找APM、UI来找UX管线负责人、Layout没人跟，造成严重混乱<br>
-    　• <strong style="color:var(--red)">判断标准很简单：只要需求涉及UI/Layout/动效中任意一项产出，这些环节的排期就归UX管线负责人跟进</strong><br><br>
-    <div class="alert alert-red" style="margin:8px 0 0"><strong>🔴 明确要求：</strong>APM/项目PM不得越过UX管线负责人直接安排UI/Layout/动效人员的排期。UX→UI→蓝图→动效的排期协调，统一由UX管线负责人对接。客户端排期不在此范围内。</div></div></div>
+
+  <div class="faq-item"><div class="faq-q">💬 Q4：策划中途改需求怎么办？</div><div class="faq-a"><strong>答</strong>：实际项目中，策划通常已与项目PM和相关方沟通过一轮后才会提出变更。此时各方应快速评估影响范围，重点关注：<br>
+    　• <strong>哪些环节受影响</strong>（UX / UI / Layout / VX / 客户端）<br>
+    　• <strong>是否涉及已完成环节的返工</strong>，以及预计增加的工期<br>
+    　• <strong>更新需求文档</strong>，在 TAPD 中标注变更内容和影响范围<br>
+    <strong style="color:var(--orange)">关键原则：</strong>变更信息必须同步到所有相关角色（尤其是已在执行中的环节），避免信息不对称导致无效工作。</div></div>
+
+  <div class="faq-item"><div class="faq-q">💬 Q5：Layout白模和UI设计并行，如果UI改了怎么办？</div><div class="faq-a"><strong>答</strong>：分两种情况——<br><strong>① 仅视觉层变更（配色/字体/图标样式）：</strong>白模不受影响，Layout切正式资产时直接替换即可。<br><strong>② 布局/结构性变更（控件增减、层级调整、页面布局大改）：</strong>这是并行模式下的<strong style="color:var(--red)">高风险场景</strong>。此时白模功能蓝图可能无法使用，需要触发「偏离评估会」。<br><strong>预防关键：</strong>UI设计进行至50%时必须与交互/Layout做一次中期对齐，提前暴露布局变更意图。</div></div>
 </div>
 
 <div class="doc-footer">🖥️ 游戏 UX 管线流程 · 环节同步版 · 2026-05-15 · 基于全流程 v1.2 精简</div>
