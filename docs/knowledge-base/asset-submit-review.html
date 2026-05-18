@@ -249,7 +249,7 @@ def check_naming(file_path):
     <div class="faq-q">🚨 案例 1：覆盖他人文件 <span class="badge badge-red">高频</span></div>
     <div class="faq-a">
       <p><strong>场景</strong>：美术 A 周一 checkout 贴图文件，美术 B 周二修改并提交，美术 A 周三未 update 直接提交，覆盖了 B 的修改。</p>
-      <p><strong>解法</strong>：① PSD/MAX 等二进制文件强制使用 <code>exclusive lock</code>；② 提交前必须先 <code>svn update</code> / <code>p4 sync</code>。</p>
+      <p><strong>解法</strong>：① PSD/MAX 等二进制文件强制使用 <code>exclusive lock</code>；② 提交前建议先 <code>svn update</code> / <code>p4 sync</code>。</p>
     </div>
   </div>
 

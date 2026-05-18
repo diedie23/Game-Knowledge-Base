@@ -97,7 +97,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <ol>
     <li><a href="#sec1">性能红线与规格限制</a></li>
     <li><a href="#sec2">素体安全区与关节 Padding 规范</a></li>
-    <li><a href="#sec3">图层绝对层级顺序（Z-Order 铁律）</a></li>
+    <li><a href="#sec3">图层绝对层级顺序（Z-Order 流程约定）</a></li>
     <li><a href="#sec4">资产命名与目录规范</a></li>
     <li><a href="#sec5">图文红黑榜 Do's &amp; Don'ts</a></li>
     <li><a href="#sec6">标准作业流程 SOP</a></li>
@@ -124,9 +124,9 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </table>
 
   <div class="redline">
-    <p><strong>🔴 铁律 #1</strong>：所有贴图尺寸<strong>必须为 2 的幂次（POT）</strong>或 <strong>4 的整数倍</strong>（ASTC/ETC2 压缩要求）。非 POT 贴图在移动端 GPU 上会被 padding 到最近的 POT，浪费显存。</p>
-    <p><strong>🔴 铁律 #2</strong>：单个角色（含所有部件贴图）<strong>总显存 ≤ 4 MB</strong>（ASTC 压缩后），超出将触发 LOD 降级。</p>
-    <p><strong>🔴 铁律 #3</strong>：如果部件不需要透明（如纯色背景块），<strong>禁止使用 RGBA</strong>，改用 RGB 格式——省 25% 显存。</p>
+    <p><strong>📌 流程约定 #1</strong>：所有贴图尺寸<strong>必须为 2 的幂次（POT）</strong>或 <strong>4 的整数倍</strong>（ASTC/ETC2 压缩要求）。非 POT 贴图在移动端 GPU 上会被 padding 到最近的 POT，浪费显存。</p>
+    <p><strong>📌 流程约定 #2</strong>：单个角色（含所有部件贴图）<strong>总显存 ≤ 4 MB</strong>（ASTC 压缩后），超出将触发 LOD 降级。</p>
+    <p><strong>📌 流程约定 #3</strong>：如果部件不需要透明（如纯色背景块），<strong>禁止使用 RGBA</strong>，改用 RGB 格式——省 25% 显存。</p>
   </div>
 
   <div class="sub-title">1.2 文件格式强制要求</div>
@@ -177,13 +177,13 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <div class="sub-title">2.2 素体与部件的坐标锚定</div>
   <p>所有部件<strong>必须</strong>与素体共享同一画布原点 <code>(0, 0)</code>，部件图与素体图<strong>画布尺寸完全一致</strong>。</p>
   <div class="redline">
-    <p><strong>🔴 铁律</strong>：禁止"裁切后单独导出部件"——部件 PNG 的画布大小必须等于素体画布大小。引擎通过 Alpha 通道裁切透明区域，美术不得手动裁切。</p>
+    <p><strong>📌 流程约定</strong>：禁止"裁切后单独导出部件"——部件 PNG 的画布大小必须等于素体画布大小。引擎通过 Alpha 通道裁切透明区域，美术不得手动裁切。</p>
   </div>
 </div>
 
 <!-- ═══ SEC 3: Z-Order ═══ -->
 <div class="section" id="sec3">
-  <h2>📚 3. 图层绝对层级顺序（Z-Order 铁律）</h2>
+  <h2>📚 3. 图层绝对层级顺序（Z-Order 流程约定）</h2>
   
   <p>2D 换装系统的渲染顺序完全由 Z-Order 整数值决定。<strong>Z 值越大越靠前（离摄像机越近）</strong>。</p>
 

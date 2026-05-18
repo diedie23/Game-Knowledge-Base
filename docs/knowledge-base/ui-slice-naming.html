@@ -98,9 +98,9 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <div class="alert alert-red"><strong>⛔ 红线 = 强制标准。</strong>不满足以下条件的切图资产将被 CI/CD 脚本自动拦截。</div>
 
   <div class="redline">
-    <p><strong>🔴 铁律 #1 偶数尺寸原则</strong>：所有 UI 切图的<strong>宽度和高度必须为偶数</strong>（能被 2 整除）。奇数尺寸在纹理压缩（ETC2/ASTC/BC7）时会被 pad 到偶数，导致边缘出现 1px 模糊条纹。<strong>推荐 4 的整数倍</strong>（ASTC 4×4 最小块）。</p>
-    <p><strong>🔴 铁律 #2 最大尺寸限制</strong>：单张切图 ≤ <strong>2048×2048</strong>。超大 UI 元素必须拆分为多个切片或使用 9 宫格拉伸。</p>
-    <p><strong>🔴 铁律 #3 透明通道审计</strong>：不含透明区域的 UI 元素（如纯色背景板）<strong>禁止导出 Alpha 通道</strong>——用 RGB 24bit 代替 RGBA 32bit，节省 25% 内存。</p>
+    <p><strong>📌 流程约定 #1 偶数尺寸原则</strong>：所有 UI 切图的<strong>宽度和高度必须为偶数</strong>（能被 2 整除）。奇数尺寸在纹理压缩（ETC2/ASTC/BC7）时会被 pad 到偶数，导致边缘出现 1px 模糊条纹。<strong>推荐 4 的整数倍</strong>（ASTC 4×4 最小块）。</p>
+    <p><strong>📌 流程约定 #2 最大尺寸限制</strong>：单张切图 ≤ <strong>2048×2048</strong>。超大 UI 元素必须拆分为多个切片或使用 9 宫格拉伸。</p>
+    <p><strong>📌 流程约定 #3 透明通道审计</strong>：不含透明区域的 UI 元素（如纯色背景板）<strong>禁止导出 Alpha 通道</strong>——用 RGB 24bit 代替 RGBA 32bit，节省 25% 内存。</p>
   </div>
 
   <div class="sub-title">1.1 尺寸规格表</div>
@@ -141,7 +141,7 @@ T_UI_Common_PanelBg_9s.png      // 公共-面板背景-9宫格</pre>
   <div class="sub-title">2.2 交互状态后缀字典（强制标准）</div>
   <table>
     <tr><th>后缀</th><th>全称</th><th>含义</th><th>使用场景</th></tr>
-    <tr><td><code>_N</code></td><td>Normal</td><td>常态 / 默认状态</td><td>所有可交互元素必须有</td></tr>
+    <tr><td><code>_N</code></td><td>Normal</td><td>常态 / 默认状态</td><td>所有可交互元素建议有</td></tr>
     <tr><td><code>_P</code></td><td>Pressed</td><td>按下状态</td><td>按钮、开关</td></tr>
     <tr><td><code>_H</code></td><td>Hover</td><td>鼠标悬停状态</td><td>PC 端按钮（移动端可省略）</td></tr>
     <tr><td><code>_D</code></td><td>Disabled</td><td>不可用/置灰状态</td><td>条件未满足时的按钮</td></tr>

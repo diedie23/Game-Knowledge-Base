@@ -208,7 +208,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><th>项目</th><th>说明</th></tr>
     <tr><td><strong>需要 Root Motion 的动画</strong></td><td>Run / Walk / Dash / Roll</td></tr>
     <tr><td><strong>不需要 Root Motion 的动画</strong></td><td>Idle / Attack / Skill / Hit / Death</td></tr>
-    <tr><td><strong>Root 骨骼要求</strong></td><td>必须有一根名为 <code>Root</code> 或 <code>root</code> 的根骨骼</td></tr>
+    <tr><td><strong>Root 骨骼要求</strong></td><td>建议有一根名为 <code>Root</code> 或 <code>root</code> 的根骨骼</td></tr>
     <tr><td><strong>Root 骨骼位移</strong></td><td>Run/Walk 的位移数据写在 Root 骨骼上</td></tr>
   </table>
 
@@ -291,7 +291,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <p>❌ 有问题 → 📋 反馈修改清单 → 🔧 美术修复 → 📤 重新提交 → 🧪 二次验证 → 完成</p>
 
   <div class="sub-title">📦 5.2 交接清单</div>
-  <div class="alert alert-blue"><strong>量产必读</strong>：每次交付必须包含以下内容。</div>
+  <div class="alert alert-blue"><strong>量产必读</strong>：每次交付建议包含以下内容。</div>
   <table>
     <tr><th>#</th><th>交付物</th><th>格式</th><th>必须</th><th>说明</th></tr>
     <tr><td>1</td><td>动画 FBX 文件</td><td><code>.fbx</code></td><td>✅</td><td>按命名规范</td></tr>
@@ -332,7 +332,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <div class="faq-a">
       <p>角色播放动画后位置偏移/不回原点。</p>
       <p><strong>典型场景</strong>：Attack 动画中 Root 骨骼有位移数据残留。引擎中未关闭 Root Motion，角色每次攻击后向前滑。</p>
-      <p><strong>解决方案</strong>：① 明确标注哪些动画需要 Root Motion ② 不需要 Root Motion 的动画，Root 骨骼必须在原点不动 ③ 在交接文档中增加 Root Motion 标注列</p>
+      <p><strong>解决方案</strong>：① 明确标注哪些动画需要 Root Motion ② 不需要 Root Motion 的动画，Root 骨骼建议在原点不动 ③ 在交接文档中增加 Root Motion 标注列</p>
     </div>
   </div>
 

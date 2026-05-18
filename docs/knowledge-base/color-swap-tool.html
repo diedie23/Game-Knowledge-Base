@@ -309,7 +309,7 @@ S.activeCh=i;rebuildChUI();toast(`已添加 Mask${mi+1}-${CH_NM[ci]}`,'s');if(i>
 
 function genMaskCh(idx){const ch=S.channels[idx];if(!ch.color)return;const[tr,tg,tb]=hex2rgb(ch.color);const tol=parseInt($('tolA').value),fea=parseInt($('feaA').value),sp=S.colorSpace;const d=S.imgData.data;const mask=new Uint8Array(S.imgW*S.imgH);
 for(let i=0,n=d.length/4;i<n;i++){const id=i*4;if(d[id+3]<10)continue;const dist=cDist(d[id],d[id+1],d[id+2],tr,tg,tb,sp);if(dist<=tol)mask[i]=255;else if(fea>0&&dist<=tol+fea)mask[i]=Math.round((1-(dist-tol)/fea)*255)}
-// ═══ 通道互斥铁律 ═══
+// ═══ 通道互斥流程约定 ═══
 const same=S.channels.filter((c,j)=>j!==idx&&c.mi===ch.mi);
 for(let i=0;i<mask.length;i++){if(!mask[i])continue;for(const o of same)if(o.md[i]>0)o.md[i]=0}
 ch.md=mask;qaCheck(idx)}

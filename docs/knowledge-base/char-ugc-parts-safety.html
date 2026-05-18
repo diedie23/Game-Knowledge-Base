@@ -88,7 +88,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <ol>
     <li><a href="#sec1">五大部件标准拆分体系</a></li>
     <li><a href="#sec2">素体安全区与关节 Padding 规范</a></li>
-    <li><a href="#sec3">图层绝对层级顺序（Z-Order 铁律）</a></li>
+    <li><a href="#sec3">图层绝对层级顺序（Z-Order 流程约定）</a></li>
     <li><a href="#sec4">性能红线与面数预算</a></li>
     <li><a href="#sec5">衔接线精确对齐规范</a></li>
     <li><a href="#sec6">换装兼容性测试矩阵</a></li>
@@ -167,8 +167,8 @@ SP_Unisex_Hat_003_Red      // 通用帽子-003-红色变体</pre>
 
 <!-- ═══ S3: Z-Order ═══ -->
 <div class="section" id="sec3">
-  <h2>③ 图层绝对层级顺序（Z-Order 铁律）</h2>
-  <div class="alert alert-red"><strong>🚨 铁律：</strong>所有部件必须严格遵守以下 Z-Order 堆叠顺序，不得随意调换！</div>
+  <h2>③ 图层绝对层级顺序（Z-Order 流程约定）</h2>
+  <div class="alert alert-yellow"><strong>🚨 流程约定：</strong>所有部件必须严格遵守以下 Z-Order 堆叠顺序，不得随意调换！</div>
 
   <div class="layer-stack">
     <div class="layer"><span class="z">Z=110</span><span class="name">特效层</span><span class="note">粒子特效、光晕等（最前）</span></div>
@@ -263,7 +263,7 @@ SP_Unisex_Hat_003_Red      // 通用帽子-003-红色变体</pre>
     <div class="dd-card dd-dont">
       <h4>❌ Don't — Z-Order 错乱导致穿模</h4>
       <div class="img-placeholder">[ 裤子渲染在上衣前面 → 腰部穿模 ]</div>
-      <p>未遵守 Z-Order 铁律，部件遮挡关系混乱。</p>
+      <p>未遵守 Z-Order 流程约定，部件遮挡关系混乱。</p>
     </div>
     <div class="dd-card dd-do">
       <h4>✅ Do — 严格遵守层级规范</h4>

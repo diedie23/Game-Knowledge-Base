@@ -130,7 +130,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </table>
 
   <div class="sub-title">2.3 换色遮罩图（Mask Texture）— 最关键</div>
-  <div class="alert alert-red"><strong>⛔ 通道互斥铁律：</strong>同一像素在 R/G/B 三个通道中<strong>只能有一个通道有值</strong>，其余必须为 0。A 通道独立控制染色开关（白=可染 · 黑=禁染）。</div>
+  <div class="alert alert-yellow"><strong>⛔ 通道互斥流程约定：</strong>同一像素在 R/G/B 三个通道中<strong>只能有一个通道有值</strong>，其余必须为 0。A 通道独立控制染色开关（白=可染 · 黑=禁染）。</div>
 
   <table>
     <tr><th>通道</th><th>含义</th></tr>
@@ -142,9 +142,9 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 
   <div class="sub-title">2.4 遮罩图制作要求</div>
   <div class="redline">
-    <p><strong>🔴 铁律 #1</strong>：尺寸<strong>必须与基础原图完全一致</strong>，像素级对齐，差 1px 也打回。</p>
-    <p><strong>🔴 铁律 #2</strong>：格式为 PNG（RGBA 32bit）或 TGA，<strong>绝对禁止 JPEG</strong>（有损压缩导致通道噪点）。</p>
-    <p><strong>🔴 铁律 #3</strong>：区域边缘建议留 1~2px 渐变过渡，避免硬边锯齿。非染色区域 A 通道涂黑(0)。</p>
+    <p><strong>📌 流程约定 #1</strong>：尺寸<strong>必须与基础原图完全一致</strong>，像素级对齐，差 1px 也打回。</p>
+    <p><strong>📌 流程约定 #2</strong>：格式为 PNG（RGBA 32bit）或 TGA，<strong>绝对禁止 JPEG</strong>（有损压缩导致通道噪点）。</p>
+    <p><strong>📌 流程约定 #3</strong>：区域边缘建议留 1~2px 渐变过渡，避免硬边锯齿。非染色区域 A 通道涂黑(0)。</p>
   </div>
 
   <div class="sub-title">2.5 配色方案表（可选但推荐）</div>
@@ -285,7 +285,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
       <h4>✅ 六大核心原则</h4>
       <p><strong>1. 先定方案再出图</strong> — 不同技术路线对资源要求完全不同</p>
       <p><strong>2. Mask 是关键</strong> — 遮罩图质量直接决定换色效果好坏</p>
-      <p><strong>3. 无损格式是铁律</strong> — Mask 图绝对不能用有损压缩</p>
+      <p><strong>3. 无损格式是流程约定</strong> — Mask 图绝对不能用有损压缩</p>
       <p><strong>4. 通道互斥</strong> — 一个像素只能属于一个换色区域</p>
       <p><strong>5. 保留明暗层次</strong> — 换色区域要有足够的光影细节</p>
       <p><strong>6. 充分沟通</strong> — 通道定义、区域划分需美术与程序达成共识</p>

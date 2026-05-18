@@ -126,7 +126,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <div class="alert alert-blue"><strong>核心原则</strong>：每个阶段都有明确的<strong>Input（上游交付物）</strong>和<strong>Output（本阶段交付物）</strong>。上游的 Output = 下游的 Input。<strong>契约不满足 → 不允许进入下一阶段。</strong></div>
 
   <div class="redline">
-    <p><strong>🔴 铁律</strong>：Pipeline 的 8 个阶段可以合并但<strong>不能跳过</strong>。尤其是 ⑤QA 验证，自动化脚本跑一次只要 30 秒，但能避免 90% 的返工。<strong>跳过 QA = 引擎翻车。</strong></p>
+    <p><strong>📌 流程约定</strong>：Pipeline 的 8 个阶段可以合并但<strong>不能跳过</strong>。尤其是 ⑤QA 验证，自动化脚本跑一次只要 30 秒，但能避免 90% 的返工。<strong>跳过 QA = 引擎翻车。</strong></p>
   </div>
 </div>
 
@@ -285,7 +285,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <div class="faq-a">
       <p><strong>答</strong>：靠<strong>契约+工具</strong>而非口头约定：</p>
       <p>① 每个阶段的 I/O 契约<strong>写成文档</strong>，全员可查。</p>
-      <p>② 工程规范通过<strong>自动化脚本强制执行</strong>（CI/CD 拦截不合规提交）。</p>
+      <p>② 工程规范通过<strong>自动化脚本推荐执行</strong>（CI/CD 拦截不合规提交）。</p>
       <p>③ 每周 <strong>Pipeline Review</strong>——TA Lead 抽检各阶段交付物，发现流程偏差及时修正。</p>
     </div>
   </div>

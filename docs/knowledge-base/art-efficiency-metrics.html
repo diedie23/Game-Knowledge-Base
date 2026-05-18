@@ -118,7 +118,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </div>
 
   <div class="redline">
-    <p><strong>🔴 铁律</strong>：ADEI 是<strong>唯一</strong>全团队对齐的顶层指标。所有工种组、外包管理、工具团队的 KPI 都必须能<strong>向上归因</strong>到 ADEI。如果某个指标无法影响 ADEI，说明它不值得追踪。</p>
+    <p><strong>📌 流程约定</strong>：ADEI 是<strong>唯一</strong>全团队对齐的顶层指标。所有工种组、外包管理、工具团队的 KPI 都必须能<strong>向上归因</strong>到 ADEI。如果某个指标无法影响 ADEI，说明它不值得追踪。</p>
   </div>
 
   <div class="sub-title">🎯 1.2 ADEI 基准值</div>
@@ -218,7 +218,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><th>问题</th><th>影响</th><th>防治措施</th></tr>
     <tr><td><strong>任务未关闭</strong></td><td>完成率虚低</td><td>Sprint 结束前自动提醒未关闭任务；超 48h 未关闭自动通知组长</td></tr>
     <tr><td><strong>Git 提交不规范</strong></td><td>无法关联任务</td><td>Commit Message 强制包含任务 ID（CI 拦截不合规提交）</td></tr>
-    <tr><td><strong>评审未录入</strong></td><td>一次通过率不准</td><td>评审结果必须在系统中填写，否则无法关闭评审流程</td></tr>
+    <tr><td><strong>评审未录入</strong></td><td>一次通过率不准</td><td>评审结果建议在系统中填写，否则无法关闭评审流程</td></tr>
     <tr><td><strong>外包数据缺失</strong></td><td>ROI 无法计算</td><td>每批外包交付必须附《验收单》，验收单数据自动录入</td></tr>
   </table>
 
@@ -263,7 +263,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="s5">
   <h2>🚨 5. 预警 SOP</h2>
 
-  <div class="alert alert-red"><strong>核心原则</strong>：预警不是"看到数据变红了再处理"，而是<strong>提前设定阈值 → 自动触发 → 规定动作 → 限时闭环</strong>。每条预警必须有 Owner、有响应时限、有处理 SOP。</div>
+  <div class="alert alert-yellow"><strong>核心原则</strong>：预警不是"看到数据变红了再处理"，而是<strong>提前设定阈值 → 自动触发 → 规定动作 → 限时闭环</strong>。每条预警建议有 Owner、有响应时限、有处理 SOP。</div>
 
   <div class="sub-title">🚦 5.1 三级预警体系</div>
   <table>
@@ -313,7 +313,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   1. 新外包 CP 交付质量不达标 (外包通过率仅 30%)
   2. 策划 Q2 角色设计调整，参考图不够清晰
 [建议措施]:
-  1. 约谈外包 CP，提供详细反馈 + 示例修改
+  1. 沟通对齐外包 CP，提供详细反馈 + 示例修改
   2. 与策划同步，补充角色设计细节文档
 [负责人]: APM 周八
 [响应时限]: 2026-04-09 14:30 前提交改进方案</pre>
@@ -369,7 +369,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
       <p style="margin-top:8px"><strong>🔍 问题根因</strong></p>
       <p>• 评审结果未强制在系统中录入，存在大量"线下评审"<br>• 只统计了走系统的提交，线下退回的资产未计入分母<br>• 数据质量保障规则缺失，无人检查数据完整性</p>
       <p style="margin-top:8px"><strong>💡 破局思路</strong></p>
-      <p>1. <strong>强制系统化</strong>：所有评审必须在系统中记录，线下口头评审无效<br>2. <strong>数据完整性校验</strong>：每周自动检查"提交数 vs 评审数"，差异 &gt; 5% 自动报警<br>3. <strong>数据治理 Owner</strong>：APM 每周花 15 分钟审查数据质量<br>4. <strong>数据可追溯</strong>：每条指标数值可追溯到源数据，支持 drill-down</p>
+      <p>1. <strong>强制系统化</strong>：所有评审建议在系统中记录，线下口头评审无效<br>2. <strong>数据完整性校验</strong>：每周自动检查"提交数 vs 评审数"，差异 &gt; 5% 自动报警<br>3. <strong>数据治理 Owner</strong>：APM 每周花 15 分钟审查数据质量<br>4. <strong>数据可追溯</strong>：每条指标数值可追溯到源数据，支持 drill-down</p>
     </div>
   </div>
 
@@ -381,7 +381,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
       <p><strong>APM：</strong>"我以为有人在跟进…"</p>
       <p><strong>制作人：</strong>"为什么到 Sprint 结束了我才知道进度这么差？"</p>
       <p style="margin-top:8px"><strong>💡 破局思路</strong></p>
-      <p>1. 预警必须指定<strong>唯一 Owner</strong>，不能群发了事<br>2. Owner 必须在<strong>限时内</strong>在系统中确认收到并填写初步分析<br>3. 超时未确认自动<strong>升级</strong>到上一级（APM → 制作人）<br>4. 每月统计预警<strong>响应及时率</strong>，纳入 APM 绩效考核</p>
+      <p>1. 预警必须指定<strong>唯一 Owner</strong>，不能群发了事<br>2. Owner 建议在<strong>限时内</strong>在系统中确认收到并填写初步分析<br>3. 超时未确认自动<strong>升级</strong>到上一级（APM → 制作人）<br>4. 每月统计预警<strong>响应及时率</strong>，纳入 APM 绩效考核</p>
     </div>
   </div>
 </div>

@@ -352,7 +352,7 @@ $('chSel').onchange=()=>updPrvCh();
      channelIndex = i % 3     → 0=R, 1=G, 2=B
      maskIndex    = floor(i/3) → 第几张 Mask 图
    
-   通道互斥铁律:
+   通道互斥流程约定:
      同一张 Mask 图内(相同 maskIndex),
      一个像素只能属于 R/G/B 中的一个通道.
    ═══════════════════════════════════════════════════════════ */
@@ -370,7 +370,7 @@ const d=bData.data,mask=new Uint8Array(S.imgW*S.imgH);
 for(let i=0,n=d.length/4;i<n;i++){const id=i*4;if(d[id+3]<10)continue;
 const dist=cDist(d[id],d[id+1],d[id+2],tr,tg,tb,sp);
 if(dist<=tol)mask[i]=255;else if(fea>0&&dist<=tol+fea)mask[i]=Math.round((1-(dist-tol)/fea)*255)}
-/* ═══ 通道互斥铁律 ═══ 同 Mask 图内其他通道的重叠像素被清除 */
+/* ═══ 通道互斥流程约定 ═══ 同 Mask 图内其他通道的重叠像素被清除 */
 const same=S.channels.filter((c,j)=>j!==idx&&c.mi===ch.mi);
 for(let i=0;i<mask.length;i++){if(!mask[i])continue;for(const o of same)if(o.md[i]>0)o.md[i]=0}
 ch.md=mask;qaCheck(idx)}

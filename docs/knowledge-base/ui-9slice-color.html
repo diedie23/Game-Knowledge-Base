@@ -114,7 +114,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 
   <div class="sub-title">1.2 安全区设定规则</div>
   <div class="alert alert-red">
-    <strong>⛔ 铁律</strong>：9宫格的四角区域<strong>必须包含所有不可拉伸的装饰元素</strong>（圆角、阴影、描边渐变）。如果装饰元素超出了角区进入边区，拉伸后会<strong>出现重复条纹/断裂</strong>。
+    <strong>⛔ 流程约定</strong>：9宫格的四角区域<strong>建议包含所有不可拉伸的装饰元素</strong>（圆角、阴影、描边渐变）。如果装饰元素超出了角区进入边区，拉伸后会<strong>出现重复条纹/断裂</strong>。
   </div>
 
   <table>
@@ -126,8 +126,8 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </table>
 
   <div class="redline">
-    <p><strong>🔴 铁律 #1</strong>：9宫格原图的<strong>中心区必须是纯色或可平铺纹理</strong>。如果中心区有渐变/花纹/Logo，拉伸后会变形失真。</p>
-    <p><strong>🔴 铁律 #2</strong>：四角的圆角半径在所有使用场景中<strong>必须一致</strong>——禁止在同一个 9 宫格图上出现不同半径的圆角（左上 8px、右下 12px 是禁止的）。</p>
+    <p><strong>📌 流程约定 #1</strong>：9宫格原图的<strong>中心区必须是纯色或可平铺纹理</strong>。如果中心区有渐变/花纹/Logo，拉伸后会变形失真。</p>
+    <p><strong>📌 流程约定 #2</strong>：四角的圆角半径在所有使用场景中<strong>必须一致</strong>——禁止在同一个 9 宫格图上出现不同半径的圆角（左上 8px、右下 12px 是禁止的）。</p>
   </div>
 
   <div class="sub-title">1.3 各引擎 9 宫格设置</div>
@@ -154,7 +154,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </table>
 
   <div class="redline">
-    <p><strong>🔴 铁律</strong>：以下资源<strong>必须关闭 sRGB</strong>（设为 Linear）：</p>
+    <p><strong>📌 流程约定</strong>：以下资源<strong>必须关闭 sRGB</strong>（设为 Linear）：</p>
     <p>① 换色 Mask 遮罩图 — Gamma 校正扭曲通道阈值，导致换色区域偏移</p>
     <p>② 法线贴图 (Normal Map) — Gamma 压缩使法线方向偏移，光照计算错误</p>
     <p>③ 粗糙度/金属度/AO 等 PBR 数据图 — 非线性映射导致材质表现失真</p>

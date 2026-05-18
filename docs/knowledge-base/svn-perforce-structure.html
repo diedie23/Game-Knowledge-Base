@@ -329,7 +329,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <div class="faq-a">
       <p><strong>🎬 典型场景</strong>：美术在本地直接 rename 文件后重新 add 到 SVN，引擎中所有引用该文件的 Material 全部失效。</p>
       <p><strong>🔍 根因</strong>：直接 rename + re-add 会丢失文件历史，引擎引用的是旧路径。</p>
-      <p><strong>💡 破局思路</strong>：使用 <code>svn move</code> / <code>p4 move</code>（保留历史记录和路径关联）；<strong>严禁</strong>在本地直接 rename 后重新 add。</p>
+      <p><strong>💡 破局思路</strong>：使用 <code>svn move</code> / <code>p4 move</code>（保留历史记录和路径关联）；<strong>请避免</strong>在本地直接 rename 后重新 add。</p>
     </div>
   </div>
 

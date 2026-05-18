@@ -105,7 +105,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="section" id="s1">
   <h2>🎯 1. 总则：AIGC 在游戏美术中的定位</h2>
 
-  <div class="alert alert-blue"><strong>核心立场</strong>：AIGC 是<strong>提效工具</strong>，不是<strong>替代方案</strong>。AI 生成的内容是"半成品原料"，必须经过人类美术师的<strong>审核、筛选、修改、精修</strong>后才能进入生产管线。<strong>直接将 AI 原始输出用于最终资产是被禁止的。</strong></div>
+  <div class="alert alert-blue"><strong>核心立场</strong>：AIGC 是<strong>提效工具</strong>，不是<strong>替代方案</strong>。AI 生成的内容是"半成品原料"，建议经过人类美术师的<strong>审核、筛选、修改、精修</strong>后才能进入生产管线。<strong>直接将 AI 原始输出用于最终资产是被禁止的。</strong></div>
 
   <div class="sub-title">📐 1.1 AIGC 适用场景界定</div>
   <table>
@@ -114,13 +114,13 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td><strong>气氛图 / Mood Board</strong></td><td><span class="badge badge-green">✅ 推荐</span></td><td>快速搭建场景氛围、色调方向</td><td>内部参考</td></tr>
     <tr><td><strong>贴图/材质辅助</strong></td><td><span class="badge badge-yellow">⚠️ 有条件</span></td><td>AI 生成基础纹理 → 美术师精修</td><td>需标注 AIGC 辅助</td></tr>
     <tr><td><strong>原画设计稿</strong></td><td><span class="badge badge-yellow">⚠️ 有条件</span></td><td>AI 出草稿 → 人工大幅重绘（≥ 70% 手工修改）</td><td>需标注 + 保留过程文件</td></tr>
-    <tr><td><strong>最终游戏资产</strong></td><td><span class="badge badge-red">❌ 禁止</span></td><td>AI 直出 → 直接进引擎，未经人工精修</td><td>严禁</td></tr>
-    <tr><td><strong>角色立绘 / 营销海报</strong></td><td><span class="badge badge-red">❌ 禁止</span></td><td>面向公众的核心视觉物料</td><td>严禁 AI 直出</td></tr>
+    <tr><td><strong>最终游戏资产</strong></td><td><span class="badge badge-red">❌ 禁止</span></td><td>AI 直出 → 直接进引擎，未经人工精修</td><td>请避免</td></tr>
+    <tr><td><strong>角色立绘 / 营销海报</strong></td><td><span class="badge badge-red">❌ 禁止</span></td><td>面向公众的核心视觉物料</td><td>请避免 AI 直出</td></tr>
     <tr><td><strong>外包 CP 冒充手绘</strong></td><td><span class="badge badge-red">❌ 严禁</span></td><td>CP 使用 AI 生成但声称手绘</td><td>一票否决</td></tr>
   </table>
 
   <div class="redline">
-    <p><strong>🔴 铁律</strong>：任何使用 AIGC 辅助的资产，必须在资产元数据中标注 <code>AIGC_ASSISTED=true</code>。隐瞒 AIGC 使用（尤其是外包场景）视为<strong>严重违规</strong>。</p>
+    <p><strong>📌 核心原则</strong>：任何使用 AIGC 辅助的资产，必须在资产元数据中标注 <code>AIGC_ASSISTED=true</code>。隐瞒 AIGC 使用（尤其是外包场景）视为<strong>严重违规</strong>。</p>
   </div>
 </div>
 
@@ -178,7 +178,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </table>
 
   <div class="redline">
-    <p><strong>🔴 铁律</strong>：当前阶段，<strong>L4（AI 直出）在正式生产管线中完全禁止</strong>。即使是内部使用的功能性资产（如占位图），也需要明确标注 "PLACEHOLDER_AIGC" 并在后续替换为 L2 以下级别的正式资产。</p>
+    <p><strong>📌 核心原则</strong>：当前阶段，<strong>L4（AI 直出）在正式生产管线中完全禁止</strong>。即使是内部使用的功能性资产（如占位图），也需要明确标注 "PLACEHOLDER_AIGC" 并在后续替换为 L2 以下级别的正式资产。</p>
   </div>
 
   <div class="sub-title">📐 3.1 "人工修改量"如何判定</div>
@@ -307,7 +307,7 @@ Seed: 随机（记录每张的 seed）</pre>
   <h2>🏷️ 6. AIGC 资产审核与标注</h2>
 
   <div class="sub-title">🏷️ 6.1 资产标注规范</div>
-  <p>所有使用 AIGC 辅助的资产，必须在以下位置进行标注：</p>
+  <p>所有使用 AIGC 辅助的资产，建议在以下位置进行标注：</p>
   <table>
     <tr><th>标注位置</th><th>格式</th><th>示例</th></tr>
     <tr><td><strong>文件元数据</strong></td><td>PNG/PSD 的 EXIF 或 XMP 字段</td><td><code>AIGC_LEVEL=L2; MODEL=SDXL; PROMPT_ID=P20260408_001</code></td></tr>
@@ -356,7 +356,7 @@ Seed: 随机（记录每张的 seed）</pre>
     <tr><th>条款</th><th>内容</th><th>违约后果</th></tr>
     <tr><td><strong>AIGC 使用声明</strong></td><td>CP 必须事先声明是否使用 AIGC 辅助，使用方式和程度</td><td>未声明视为隐瞒</td></tr>
     <tr><td><strong>AIGC 使用限制</strong></td><td>允许 L1~L2 级（需报备）；L3 级需甲方审批；L4 禁止</td><td>超限使用视为违约</td></tr>
-    <tr><td><strong>过程文件提交</strong></td><td>AIGC 辅助资产必须提交 AI 原稿 + PSD + Prompt 记录</td><td>无法提交过程文件的资产拒收</td></tr>
+    <tr><td><strong>过程文件提交</strong></td><td>AIGC 辅助资产建议提交 AI 原稿 + PSD + Prompt 记录</td><td>无法提交过程文件的资产拒收</td></tr>
     <tr><td><strong>冒充禁止</strong></td><td>使用 AIGC 但声称纯手绘 → 一票否决</td><td>终止合作 + 永久黑名单</td></tr>
     <tr><td><strong>版权担保</strong></td><td>CP 担保交付资产不侵犯第三方知识产权</td><td>侵权损失由 CP 承担</td></tr>
   </table>
@@ -402,8 +402,8 @@ Seed: 随机（记录每张的 seed）</pre>
       <p><strong>玩家社区：</strong>"这个场景贴图明显是 AI 生成的！花瓣有 6 片但又好像 7 片，树干纹理在循环！"</p>
       <p><strong>运营：</strong>"社区炸了，#XX游戏AI偷工减料 上了热搜……"</p>
       <p style="margin-top:8px"><strong>💡 破局思路</strong></p>
-      <p>1. <strong>L4 禁止</strong>：AI 直出不得进入正式管线，这是铁律<br>
-      2. 贴图辅助（L2~L3）必须经过美术师精修，消除 AI 典型特征<br>
+      <p>1. <strong>L4 禁止</strong>：AI 直出不得进入正式管线，这是核心原则<br>
+      2. 贴图辅助（L2~L3）建议经过美术师精修，消除 AI 典型特征<br>
       3. QA 增加 <strong>"AI 痕迹检查"</strong> 到版本走查清单<br>
       4. 内部建立 <strong>AI 典型缺陷图例库</strong>（6 指、循环纹理、诡异光影等），供 QA 和美术师参考<br>
       5. 发生舆论事件后启动<strong>应急公关 SOP</strong>，诚恳回应 + 承诺整改</p>
@@ -419,7 +419,7 @@ Seed: 随机（记录每张的 seed）</pre>
       <p><strong>主美：</strong>"到底让不让用？没有统一标准大家各行其是。"</p>
       <p style="margin-top:8px"><strong>💡 破局思路</strong></p>
       <p>1. <strong>制度先行</strong>：本规范就是统一标准，明确什么能用、什么不能用<br>
-      2. <strong>定位清晰</strong>：AIGC 是"效率工具"，不是"替代者"——最终资产必须有人工精修<br>
+      2. <strong>定位清晰</strong>：AIGC 是"效率工具"，不是"替代者"——最终资产建议有人工精修<br>
       3. <strong>技能升级</strong>：培训美术师掌握 AIGC 工具（Prompt 工程、ControlNet 等），<strong>会用 AI 的美术师更值钱</strong><br>
       4. <strong>渐进推广</strong>：从概念期的 L1 开始，让团队逐步体会到好处，不强制一步到位<br>
       5. <strong>绩效不挂钩</strong>：不因使用 AIGC 而降低对美术师的工作量认定</p>

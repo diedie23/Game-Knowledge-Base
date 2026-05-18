@@ -89,7 +89,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <h3>📑 目录</h3>
   <ol>
     <li><a href="#sec1">多分辨率适配原则</a></li>
-    <li><a href="#sec2">锚点 Anchor 打法铁律</a></li>
+    <li><a href="#sec2">锚点 Anchor 打法流程约定</a></li>
     <li><a href="#sec3">图文红黑榜</a></li>
     <li><a href="#sec4">标准作业流程 SOP</a></li>
     <li><a href="#sec5">常见问题排查 FAQ</a></li>
@@ -117,7 +117,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 
   <div class="sub-title">1.2 缩放策略</div>
   <div class="redline">
-    <p><strong>🔴 铁律</strong>：<strong>禁止使用固定像素坐标定位 UI 元素</strong>。所有 UI 元素必须通过锚点（Anchor）+ 偏移量（Offset）定位。固定坐标在非基准分辨率下会导致 UI 偏移出屏幕。</p>
+    <p><strong>📌 流程约定</strong>：<strong>禁止使用固定像素坐标定位 UI 元素</strong>。所有 UI 元素必须通过锚点（Anchor）+ 偏移量（Offset）定位。固定坐标在非基准分辨率下会导致 UI 偏移出屏幕。</p>
   </div>
 
   <table>
@@ -130,7 +130,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 
 <!-- SEC2 -->
 <div class="section" id="sec2">
-  <h2>⚓ 2. 锚点 Anchor 打法铁律</h2>
+  <h2>⚓ 2. 锚点 Anchor 打法流程约定</h2>
 
   <div class="alert alert-red"><strong>⛔ 核心原则</strong>：UI 元素的 Anchor 决定了它<strong>相对于父容器哪个点定位</strong>。搞错 Anchor = 换分辨率就炸。</div>
 
@@ -155,9 +155,9 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </table>
 
   <div class="redline">
-    <p><strong>🔴 铁律 #1</strong>：角落元素（返回键/设置键）<strong>必须锚定到对应角</strong>，禁止锚定到中心再偏移。否则宽屏设备上按钮会"飘"到屏幕中间区域。</p>
-    <p><strong>🔴 铁律 #2</strong>：底部导航栏<strong>必须使用水平拉伸锚点</strong> Anchor(0,0)→(1,0)，禁止固定宽度。否则窄屏设备上导航栏不够宽，宽屏设备上两侧空白。</p>
-    <p><strong>🔴 铁律 #3</strong>：弹窗/对话框<strong>必须居中锚定</strong> Anchor(0.5,0.5)，禁止贴边。弹窗在不同分辨率上应始终在视觉中心。</p>
+    <p><strong>📌 流程约定 #1</strong>：角落元素（返回键/设置键）<strong>必须锚定到对应角</strong>，禁止锚定到中心再偏移。否则宽屏设备上按钮会"飘"到屏幕中间区域。</p>
+    <p><strong>📌 流程约定 #2</strong>：底部导航栏<strong>必须使用水平拉伸锚点</strong> Anchor(0,0)→(1,0)，禁止固定宽度。否则窄屏设备上导航栏不够宽，宽屏设备上两侧空白。</p>
+    <p><strong>📌 流程约定 #3</strong>：弹窗/对话框<strong>必须居中锚定</strong> Anchor(0.5,0.5)，禁止贴边。弹窗在不同分辨率上应始终在视觉中心。</p>
   </div>
 </div>
 

@@ -120,8 +120,8 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </table>
 
   <div class="redline">
-    <p><strong>🔴 铁律 #1</strong>：一个 <code>Invalidation Box</code>（或 Unity Canvas）内<strong>任何子元素变化</strong>，该 Box 内<strong>所有元素都重新绘制</strong>。因此高频动态元素<strong>绝对不能</strong>和静态元素放在同一个 Box 内。</p>
-    <p><strong>🔴 铁律 #2</strong>：<strong>禁止在 Tick/Update 中修改不会变化的 UI 属性</strong>（如每帧设置文本为同一个值）。即使值不变，引擎仍会标记为脏(dirty)并触发重绘。</p>
+    <p><strong>📌 流程约定 #1</strong>：一个 <code>Invalidation Box</code>（或 Unity Canvas）内<strong>任何子元素变化</strong>，该 Box 内<strong>所有元素都重新绘制</strong>。因此高频动态元素<strong>绝对不能</strong>和静态元素放在同一个 Box 内。</p>
+    <p><strong>📌 流程约定 #2</strong>：<strong>禁止在 Tick/Update 中修改不会变化的 UI 属性</strong>（如每帧设置文本为同一个值）。即使值不变，引擎仍会标记为脏(dirty)并触发重绘。</p>
   </div>
 
   <div class="sub-title">2.2 UE5 Invalidation Box 使用规范</div>
@@ -160,7 +160,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <h2>🌳 3. UI 树层级扁平化</h2>
 
   <div class="redline">
-    <p><strong>🔴 铁律</strong>：UI 树嵌套深度<strong>不得超过 10 层</strong>。每增加一层嵌套，布局计算复杂度近似 O(n)——10 层以上的深树在低端机上 Layout Pass 可能花费 > 2ms。</p>
+    <p><strong>📌 流程约定</strong>：UI 树嵌套深度<strong>不得超过 10 层</strong>。每增加一层嵌套，布局计算复杂度近似 O(n)——10 层以上的深树在低端机上 Layout Pass 可能花费 > 2ms。</p>
   </div>
 
   <div class="sub-title">3.1 扁平化策略</div>
@@ -285,7 +285,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <div class="sub-title">7.1 明确的容器与层级结构（Hierarchy &amp; Layout）</div>
 
   <div class="redline">
-    <p><strong>🔴 铁律</strong>：Prompt 中<strong>必须指明根节点类型</strong>。未指定根节点的 Prompt 会让 AI 随机选择 Canvas Panel / Overlay / User Widget，导致布局基础不可预测。</p>
+    <p><strong>📌 流程约定</strong>：Prompt 中<strong>必须指明根节点类型</strong>。未指定根节点的 Prompt 会让 AI 随机选择 Canvas Panel / Overlay / User Widget，导致布局基础不可预测。</p>
   </div>
 
   <table>
@@ -317,8 +317,8 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </table>
 
   <div class="redline">
-    <p><strong>🔴 铁律 #1</strong>：描述居中元素时，必须同时写明 <code>Anchor (0.5, 0.5)</code> + <code>Alignment (0.5, 0.5)</code>。缺少 Alignment 会导致元素以左上角对齐锚点中心，视觉上偏右偏下。</p>
-    <p><strong>🔴 铁律 #2</strong>：需要全屏自适应的元素（如背景遮罩、底图），使用 <code>Anchor Min(0,0) Max(1,1) Offset 全 0</code>，<strong>禁止使用绝对尺寸</strong>。</p>
+    <p><strong>📌 流程约定 #1</strong>：描述居中元素时，必须同时写明 <code>Anchor (0.5, 0.5)</code> + <code>Alignment (0.5, 0.5)</code>。缺少 Alignment 会导致元素以左上角对齐锚点中心，视觉上偏右偏下。</p>
+    <p><strong>📌 流程约定 #2</strong>：需要全屏自适应的元素（如背景遮罩、底图），使用 <code>Anchor Min(0,0) Max(1,1) Offset 全 0</code>，<strong>禁止使用绝对尺寸</strong>。</p>
   </div>
 
   <h4>常用锚点 Preset 速查</h4>
@@ -358,7 +358,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </table>
 
   <div class="redline">
-    <p><strong>🔴 铁律</strong>：需要在蓝图中写逻辑的控件（如按钮回调、动态文本更新），<strong>必须</strong>在 Prompt 中标注 <code>Is Variable: True</code>（暴露为变量）。格式：<code>"Btn_Close (Is Variable: True) — 关闭按钮，蓝图中绑定 OnClicked 事件"</code>。</p>
+    <p><strong>📌 流程约定</strong>：需要在蓝图中写逻辑的控件（如按钮回调、动态文本更新），<strong>必须</strong>在 Prompt 中标注 <code>Is Variable: True</code>（暴露为变量）。格式：<code>"Btn_Close (Is Variable: True) — 关闭按钮，蓝图中绑定 OnClicked 事件"</code>。</p>
   </div>
 
   <!-- 7.4 交互与可见性 -->

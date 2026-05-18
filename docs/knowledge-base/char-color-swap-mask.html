@@ -93,7 +93,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <h3>📑 目录</h3>
   <ol>
     <li><a href="#sec1">三种换色方案全景对比</a></li>
-    <li><a href="#sec2">RGBA 通道分配铁律（核心）</a></li>
+    <li><a href="#sec2">RGBA 通道分配流程约定（核心）</a></li>
     <li><a href="#sec3">多 Mask 无限扩展算法</a></li>
     <li><a href="#sec4">性能红线与规格限制</a></li>
     <li><a href="#sec5">灰度图明暗阈值限制</a></li>
@@ -108,7 +108,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <!-- ═══ Section 1: 三种方案全景对比 ═══ -->
 <div class="section" id="sec1">
   <h2>① 三种换色方案全景对比</h2>
-  <p>不同的换色技术路线对美术的出图要求差异极大。<strong>先定方案再出图</strong>，是避免返工的第一条铁律。</p>
+  <p>不同的换色技术路线对美术的出图要求差异极大。<strong>先定方案再出图</strong>，是避免返工的第一条流程约定。</p>
 
   <table>
     <thead>
@@ -129,12 +129,12 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </div>
 </div>
 
-<!-- ═══ Section 2: RGBA 通道分配铁律 ═══ -->
+<!-- ═══ Section 2: RGBA 通道分配流程约定 ═══ -->
 <div class="section" id="sec2">
-  <h2>② RGBA 通道分配铁律（核心）</h2>
+  <h2>② RGBA 通道分配流程约定（核心）</h2>
 
   <div class="alert alert-red">
-    <strong>🚨 铁律：</strong>同一像素在 R/G/B 三个通道中<strong>只能有一个通道有值</strong>（通道互斥），否则会导致两个换色区域串色！
+    <strong>🚨 流程约定：</strong>同一像素在 R/G/B 三个通道中<strong>只能有一个通道有值</strong>（通道互斥），否则会导致两个换色区域串色！
   </div>
 
   <div class="ch-box">
@@ -174,7 +174,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tbody>
       <tr><td><strong>尺寸</strong></td><td>必须与基础原图<strong>完全一致</strong>（像素级对齐）</td></tr>
       <tr><td><strong>格式</strong></td><td>PNG（RGBA 32bit）或 TGA — <strong>绝不允许 JPEG</strong></td></tr>
-      <tr><td><strong>压缩</strong></td><td>无损格式是铁律，有损压缩会导致通道值杂色噪点</td></tr>
+      <tr><td><strong>压缩</strong></td><td>无损格式是流程约定，有损压缩会导致通道值杂色噪点</td></tr>
       <tr><td><strong>边缘处理</strong></td><td>区域边缘建议留 1~2px 渐变过渡，避免硬边锯齿</td></tr>
       <tr><td><strong>通道互斥</strong></td><td>同一像素 R/G/B 仅允许一个通道有值</td></tr>
       <tr><td><strong>非染色区域</strong></td><td>A 通道涂黑 (0)，无论 RGB 值都不会变色</td></tr>
@@ -231,7 +231,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tbody>
       <tr><td><strong>Mask 图尺寸</strong></td><td>与原图一致（2<sup>N</sup>）</td><td>512×512</td><td>必须与 Base 图像素级对齐</td></tr>
       <tr><td><strong>单角色 Mask 张数</strong></td><td>≤ 3 张</td><td>1 张</td><td>每多一张增加一次纹理采样</td></tr>
-      <tr><td><strong>单 Mask 换色区域</strong></td><td>3 个（RGB三通道）</td><td>—</td><td>通道互斥铁律</td></tr>
+      <tr><td><strong>单 Mask 换色区域</strong></td><td>3 个（RGB三通道）</td><td>—</td><td>通道互斥流程约定</td></tr>
       <tr><td><strong>Base 图纯黑/白像素</strong></td><td>禁止 (0,0,0) 和 (255,255,255)</td><td>HSV 饱和度 40~70%</td><td>纯黑白 HSV 偏移无效</td></tr>
       <tr><td><strong>Mask 通道溢出</strong></td><td>0%（同像素多通道有值率）</td><td>—</td><td>溢出导致串色</td></tr>
       <tr><td><strong>调色板贴图尺寸</strong></td><td>256×1 固定</td><td>—</td><td>Palette Swap 方案专用</td></tr>
@@ -330,7 +330,7 @@ hero001_config.json        ← 配色方案表</pre>
     <div class="dd-card dd-dont">
       <h4>❌ Don't — 同一像素 R+G 都有值</h4>
       <div class="img-placeholder">[ R=200, G=180 → 头发和上衣串色 ]</div>
-      <p>违反通道互斥铁律，导致一个像素同时被两个区域染色，产生脏色。</p>
+      <p>违反通道互斥流程约定，导致一个像素同时被两个区域染色，产生脏色。</p>
     </div>
     <div class="dd-card dd-do">
       <h4>✅ Do — 每像素严格只属于一个通道</h4>
@@ -390,7 +390,7 @@ hero001_config.json        ← 配色方案表</pre>
   </div>
   <div class="faq-item">
     <div class="faq-q">❓ 两个区域换色互相串色？</div>
-    <div class="faq-a"><strong>原因：</strong>Mask 中同一像素多个通道同时有值，违反互斥铁律。<br><strong>解法：</strong>确保 R/G/B 三通道严格互斥，使用工具批量检测。</div>
+    <div class="faq-a"><strong>原因：</strong>Mask 中同一像素多个通道同时有值，违反互斥流程约定。<br><strong>解法：</strong>确保 R/G/B 三通道严格互斥，使用工具批量检测。</div>
   </div>
   <div class="faq-item">
     <div class="faq-q">❓ 换色后光影消失变平？</div>

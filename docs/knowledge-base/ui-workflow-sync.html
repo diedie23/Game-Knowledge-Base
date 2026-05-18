@@ -305,7 +305,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
       <tr><td><strong>⑩ 资产合规检查</strong> <span class="badge badge-new">NEW</span></td><td>Layout 基于 UI 源文件自行切图并接入引擎后，需人工自查命名规范、尺寸偶数、PNG-24/WebP、sRGB色域、9宫格完整性等资产规范项。</td><td>⑨ Layout切正式资产完成后立即执行</td></tr>
       <tr><td><strong>③⑦ 评审"有条件通过"</strong> <span class="badge badge-new">NEW</span></td><td>评审主体方案确认但存在局部微调项（≤3项）时，允许后续环节先行启动。调整项以 TAPD checklist 追踪，2 工作日内补完。避免"主体 OK 但细节待调"时纯打回卡进度。</td><td>交互评审（③）或 UI评审（⑦）结论为"有条件通过"时</td></tr>
       <tr><td><strong>⑫ VX动效需求流转</strong></td><td>动效需求由交互/策划在设计阶段明确。策划发单时若包含动效则创建对应子单，启动预演与制作；无动效需求则跳过此环节。</td><td>仅界面涉及动效表现时触发</td></tr>
-      <tr><td><strong>⚠️ 性能与规范红线</strong></td><td>游戏 UI 必须兼顾视觉表现与运行性能。全管线中需严控图集尺寸碎片化、动效粒子数量及渲染层级；Layout 拼接阶段需持续关注 Drawcall 及 Overdraw（过度绘制）优化。</td><td>贯穿 ⑥ UI设计、⑪ Layout蓝图 及 ⑫ VX动效 阶段</td></tr>
+      <tr><td><strong>⚠️ 性能与规范提醒</strong></td><td>游戏 UI 需要兼顾视觉表现与运行性能。建议全管线中关注图集尺寸碎片化、动效粒子数量及渲染层级；Layout 拼接阶段持续关注 Drawcall 及 Overdraw（过度绘制）优化。</td><td>贯穿 ⑥ UI设计、⑪ Layout蓝图 及 ⑫ VX动效 阶段</td></tr>
     </table>
   </div>
 </div>
@@ -376,7 +376,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 
   <!-- 职权边界与管线归属规则 -->
   <div style="background:rgba(248,113,113,.06);border:2px solid rgba(248,113,113,.3);border-radius:12px;padding:16px;margin-bottom:16px">
-    <div style="font-size:15px;color:var(--red);font-weight:700;margin-bottom:12px">🔴 职权边界与管线归属规则（铁律）</div>
+    <div style="font-size:15px;color:var(--blue);font-weight:700;margin-bottom:12px">📌 职权边界与管线归属规则（协作约定）</div>
     <div style="font-size:13px;line-height:2">
       <strong style="color:var(--heading)">核心原则：</strong>只要该需求涉及<strong style="color:var(--cyan)">界面产出</strong>（含 UI设计 / Layout蓝图 / UI动效 中的任意一项），无论是否包含UX设计环节，后续 <strong>UX→UI→蓝图→动效</strong> 的管线流转<strong style="color:var(--red)">均由 UX管线负责人 统筹跟进</strong>。客户端制作/客户端动效接入的排期由项目PM或客户端自行管理。<br><br>
       <strong style="color:var(--heading)">适用场景说明：</strong><br>
@@ -388,7 +388,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
         <tr><td>小程序/活动页等轻量界面</td><td>视情况而定</td><td><strong style="color:var(--blue)">UX管线负责人</strong></td><td>只要涉及UI/Layout/动效产出</td></tr>
         <tr><td>纯数值/文案调整（无界面变更）</td><td>❌</td><td>策划自行处理</td><td>不涉及界面产出，不进入UX管线</td></tr>
       </table>
-      <div class="alert alert-red" style="margin:8px 0 0"><strong>⚠️ 严禁越级：</strong>APM/项目PM <strong>不得</strong>越过UX管线负责人直接联系UI/Layout/动效人员进行排期。所有涉及界面产出的排期协调，<strong>统一经由UX管线负责人</strong>。这是为了避免多头管理导致的信息混乱（例如：动效找APM排期、UI找UX管线负责人排期、Layout没人跟的情况）。</div>
+      <div class="alert alert-yellow" style="margin:8px 0 0"><strong>💡 协作提醒：</strong>建议涉及界面产出的排期协调<strong>统一经由UX管线负责人</strong>，避免多头管理导致的信息混乱（例如：动效找APM排期、UI找UX管线负责人排期、Layout没人跟的情况）。</div>
     </div>
   </div>
   <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px">
@@ -407,9 +407,9 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <div class="alert alert-yellow" style="margin:0"><strong>⚠️ 发单与流转注意事项</strong>：<br>
     • 父单和子单均由<strong>策划</strong>创建（确保需求来源可追溯、子单拆解与需求一致）。<strong>子单处理人由项目PM挂上。</strong><br>
     • 项目PM负责拉群宣讲 & 挂对接人；<strong>UX管线负责人</strong>负责跟进 <strong>UX→UI→蓝图→动效</strong> 的排期确认与进度推动（客户端排期由PM或客户端自行管理）。<br>
-    • 每个子单必须强关联父需求单，便于项目看板追踪系统整体研发进度。<br>
+    • 每个子单建议关联父需求单，便于项目看板追踪系统整体研发进度。<br>
     • 评审类节点（③⑦⑬）通过 TAPD <strong>评论/备注</strong>记录结论与调整点，不单独建单。<br>
-    • 走查发现的问题统一通过 TAPD <strong>缺陷单</strong>记录并关联父需求单。<strong style="color:var(--orange)">提报规范：必须包含【问题截图/录屏】、【期望表现】及【当前表现】</strong>，避免沟通拉扯造成返工。</div>
+    • 走查发现的问题统一通过 TAPD <strong>缺陷单</strong>记录并关联父需求单。<strong style="color:var(--orange)">提报建议：请包含【问题截图/录屏】、【期望表现】及【当前表现】</strong>，这样能有效减少沟通成本。</div>
 
   <!-- 有条件通过机制 -->
   <div style="background:rgba(74,222,128,.06);border:2px solid rgba(74,222,128,.25);border-radius:12px;padding:16px;margin-top:16px">
@@ -447,11 +447,11 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     　• 策划在写案子时已与交互沟通好，无需额外出交互稿，但后续需要UI设计→蓝图→动效→客户端<br>
     　• 纯视觉改版需求（UI出新稿→Layout切正式→动效调整），没有交互变更<br>
     　• 小程序/活动页等轻量界面，策划直接给了参考稿，跳过了UX环节<br><br>
-    <strong>为什么必须这样？</strong><br>
+    <strong>为什么建议这样做？</strong><br>
     　• UX管线负责人的核心职责不是"做交互设计"，而是<strong>确保 UX→UI→蓝图→动效 这条管线的流转顺畅</strong>（客户端制作/动效接入的排期由项目PM或客户端自行管理）<br>
-    　• 如果APM/项目PM越过UX管线负责人直接找UI/Layout/动效排期，会导致信息碎片化——动效去找APM、UI来找UX管线负责人、Layout没人跟，造成严重混乱<br>
-    　• <strong style="color:var(--red)">判断标准很简单：只要需求涉及UI/Layout/动效中任意一项产出，这些环节的排期就归UX管线负责人跟进</strong><br><br>
-    <div class="alert alert-red" style="margin:8px 0 0"><strong>🔴 明确要求：</strong>APM/项目PM不得越过UX管线负责人直接安排UI/Layout/动效人员的排期。UX→UI→蓝图→动效的排期协调，统一由UX管线负责人对接。客户端排期不在此范围内。</div></div></div>
+    　• 如果各方分别直接找UI/Layout/动效排期，容易导致信息碎片化——动效去找APM、UI来找UX管线负责人、Layout没人跟，造成不必要的沟通混乱<br>
+    　• <strong style="color:var(--blue)">判断标准很简单：只要需求涉及UI/Layout/动效中任意一项产出，这些环节的排期建议由UX管线负责人统一协调</strong><br><br>
+    <div class="alert alert-blue" style="margin:8px 0 0"><strong>💡 协作建议：</strong>涉及界面产出的排期协调，建议统一由UX管线负责人对接，便于信息集中管理。客户端排期不在此范围内。</div></div></div>
 
   <div class="faq-item"><div class="faq-q">💬 Q2：测试发现界面 Bug，TAPD 缺陷单应该挂给谁？ <span class="badge badge-new">NEW</span></div><div class="faq-a"><strong>答</strong>：为了提高问题处理效率，请遵循以下分流原则：<br>
     　• <strong>界面表现相关（含 Layout 还原/布局 及 视觉切图/资源错误）</strong>：统一挂单给 <strong>v_zhyszhang（张荧）</strong>。由张荧统一排查后，分配给对应的 Layout 制作人或 UI 设计师跟进处理。<br>
@@ -466,22 +466,22 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     　• <strong>原因二：后期新增的动效需求</strong> — 界面功能完成后，策划/运营在体验过程中觉得某些交互需要动效增强，临时补充提出<br><br>
     <strong style="color:var(--red)">问题：</strong>仅附交互图是<strong>不够的</strong>。交互图描述的是交互逻辑和操作流程，但动效制作需要的是<strong>最终视觉效果的参考</strong>。<br><br>
     <strong style="color:var(--cyan)">正确做法：</strong><br>
-    　• 需求详情中<strong>必须附上最终效果图（UI 终稿）</strong>，而非仅交互图。动效制作是基于 UI 视觉稿来实现的，交互图无法体现颜色、层级、动画起止状态等关键信息<br>
+    　• 需求详情中<strong>建议附上最终效果图（UI 终稿）</strong>，而非仅交互图。动效制作是基于 UI 视觉稿来实现的，交互图无法体现颜色、层级、动画起止状态等关键信息<br>
     　• <strong style="color:var(--orange)">运营/策划如果手上没有效果图</strong>，可以联系 <strong>v_zhyszhang（张荧）</strong>获取对应界面的 UI 视觉稿，切勿仅凭交互图就发动效单<br>
     　• 如有动效参考视频或预演 Demo，一并附上，便于 VX 动效设计师理解预期效果<br>
     　• 如果需要新增动效子单，走正常的 TAPD 子单创建流程，关联到父需求单<br><br>
     <strong style="color:var(--green)">建议规范：</strong><br>
     　• 动效需求<strong>尽量在设计阶段就明确</strong>（流程中 ⑥ UI设计 阶段），交互提出动效需求时<strong>应同步创建动效子单</strong>，避免遗漏导致后期才补发<br>
-    　• 后置提出的动效需求，发单时必须包含：<strong>① UI 终稿截图/Figma链接</strong>（无终稿找 v_zhyszhang 获取）　<strong>② 动效描述（触发方式、动画类型、时长等）</strong>　<strong>③ 参考示例（如有）</strong><br>
+    　• 后置提出的动效需求，发单时建议包含：<strong>① UI 终稿截图/Figma链接</strong>（无终稿找 v_zhyszhang 获取）　<strong>② 动效描述（触发方式、动画类型、时长等）</strong>　<strong>③ 参考示例（如有）</strong><br>
     　• UX管线负责人需评估后置动效对当前排期的影响，必要时协调调整节点</div></div>
 
   <div class="faq-item"><div class="faq-q">💬 Q4：策划中途改需求怎么办？</div><div class="faq-a"><strong>答</strong>：实际项目中，策划通常已与项目PM和相关方沟通过一轮后才会提出变更。此时各方应快速评估影响范围，重点关注：<br>
     　• <strong>哪些环节受影响</strong>（UX / UI / Layout / VX / 客户端）<br>
     　• <strong>是否涉及已完成环节的返工</strong>，以及预计增加的工期<br>
     　• <strong>更新需求文档</strong>，在 TAPD 中标注变更内容和影响范围<br>
-    <strong style="color:var(--orange)">关键原则：</strong>变更信息必须同步到所有相关角色（尤其是已在执行中的环节），避免信息不对称导致无效工作。</div></div>
+    <strong style="color:var(--orange)">关键原则：</strong>变更信息建议同步到所有相关角色（尤其是已在执行中的环节），避免信息不对称导致无效工作。</div></div>
 
-  <div class="faq-item"><div class="faq-q">💬 Q5：Layout白模和UI设计并行，如果UI改了怎么办？</div><div class="faq-a"><strong>答</strong>：分两种情况——<br><strong>① 仅视觉层变更（配色/字体/图标样式）：</strong>白模不受影响，Layout切正式资产时直接替换即可。<br><strong>② 布局/结构性变更（控件增减、层级调整、页面布局大改）：</strong>这是并行模式下的<strong style="color:var(--red)">高风险场景</strong>。此时白模功能蓝图可能无法使用，需要触发「偏离评估会」。<br><strong>预防关键：</strong>UI设计进行至50%时必须与交互/Layout做一次中期对齐，提前暴露布局变更意图。</div></div>
+  <div class="faq-item"><div class="faq-q">💬 Q5：Layout白模和UI设计并行，如果UI改了怎么办？</div><div class="faq-a"><strong>答</strong>：分两种情况——<br><strong>① 仅视觉层变更（配色/字体/图标样式）：</strong>白模不受影响，Layout切正式资产时直接替换即可。<br><strong>② 布局/结构性变更（控件增减、层级调整、页面布局大改）：</strong>这是并行模式下<strong style="color:var(--orange)">需要注意的场景</strong>。此时白模功能蓝图可能无法使用，需要触发「偏离评估会」。<br><strong>预防关键：</strong>建议UI设计进行至50%时与交互/Layout做一次中期对齐，提前暴露布局变更意图。</div></div>
 </div>
 
 <div class="doc-footer">🖥️ 游戏 UX 管线流程 · 环节同步版 · 2026-05-18 · 基于全流程 v1.2 精简</div>

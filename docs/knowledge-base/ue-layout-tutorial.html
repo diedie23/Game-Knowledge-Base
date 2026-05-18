@@ -657,7 +657,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
     <strong>📍 创建 Text Style Set（数据表格）：</strong><br>
     &nbsp;&nbsp;① Content Browser → 右键 → Miscellaneous → Data Table<br>
     &nbsp;&nbsp;② 行结构搜索 <code>RichTextStyleRow</code> → 创建<br>
-    &nbsp;&nbsp;③ <strong>必须有一行名为 Default 的数据</strong>，再添加 Red/Blue 等格式行<br>
+    &nbsp;&nbsp;③ <strong>建议有一行名为 Default 的数据</strong>，再添加 Red/Blue 等格式行<br>
     <strong>📍 项目富文本资源：</strong><br>
     &nbsp;&nbsp;• 普通富文本：<code>DT_RichTextFontStyle</code><br>
     &nbsp;&nbsp;• 带下划线：<code>DT_RichHyperlinkStyleTable</code>（参考 <code>UI_Rule_FirstView</code>）<br>
@@ -680,7 +680,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
       <tr>
         <td rowspan="3"><strong>Appearance (外观)</strong></td>
         <td><strong>Text Style Set (文本样式集)</strong></td>
-        <td><strong>【必填项】</strong>在此挂载定义了标签对应颜色的 Data Table（如 <code>DT_RichTextFontStyle</code>）。不挂的话源码原样输出。表格中必须有一行名为 <strong>Default</strong> 的数据！</td>
+        <td><strong>【必填项】</strong>在此挂载定义了标签对应颜色的 Data Table（如 <code>DT_RichTextFontStyle</code>）。不挂的话源码原样输出。表格中建议有一行名为 <strong>Default</strong> 的数据！</td>
         <td class="preview-cell"><span class="badge-yes">✅ 立刻刷新</span></td>
       </tr>
       <tr>
@@ -1404,7 +1404,7 @@ a.widget-card:hover { transform: translateY(-4px); border-color: var(--accent); 
 
   <h3>8.2 对齐 (Alignment) —— 绝对居中的密码</h3>
   <p>当你要把弹窗绝对居中时，光把锚点设为"居中"是不够的！因为那只是以控件左上角对准屏幕中心。<br>
-  <strong>【核心铁律】必须同时将 <code>Alignment (对齐)</code> 设为 X: 0.5, Y: 0.5</strong>，这代表用控件自己的正中心去贴合锚点，实现完美居中。</p>
+  <strong>【核心流程约定】必须同时将 <code>Alignment (对齐)</code> 设为 X: 0.5, Y: 0.5</strong>，这代表用控件自己的正中心去贴合锚点，实现完美居中。</p>
 
   <h3>8.3 多端与微信小游戏适配专属规范 (WeChat Mini-Game Guidelines)</h3>
   <div class="alert alert-green">

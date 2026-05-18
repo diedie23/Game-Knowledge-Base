@@ -484,7 +484,7 @@ async function sendToEngine() {
 <div class="alert alert-red"><strong>⛔ 安全红线：</strong><br>
 ① Bridge Agent <strong>仅监听 localhost</strong>（127.0.0.1），禁止绑定 0.0.0.0<br>
 ② WebSocket 握手时验证 <strong>Origin Header</strong>，仅允许知识库域名<br>
-③ 写入路径必须在项目目录白名单内，禁止路径穿越 (Path Traversal)<br>
+③ 写入路径建议在项目目录白名单内，禁止路径穿越 (Path Traversal)<br>
 ④ 单文件大小上限 <strong>100MB</strong>，超过拒绝</div>
 
 <table>

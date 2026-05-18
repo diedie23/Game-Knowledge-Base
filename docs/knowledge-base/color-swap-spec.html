@@ -91,7 +91,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <h3>📑 目录</h3>
   <ol>
     <li><a href="#sec1">性能红线与规格限制</a></li>
-    <li><a href="#sec2">RGBA 通道分配铁律</a></li>
+    <li><a href="#sec2">RGBA 通道分配流程约定</a></li>
     <li><a href="#sec3">灰度图明暗阈值限制</a></li>
     <li><a href="#sec4">资产命名与目录规范</a></li>
     <li><a href="#sec5">图文红黑榜 Do's &amp; Don'ts</a></li>
@@ -114,9 +114,9 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </table>
 
   <div class="redline">
-    <p><strong>🔴 铁律 #1</strong>：Mask 图<strong>绝对禁止 JPEG</strong>。有损压缩引入 ±3~5 随机噪声，导致换色边缘脏色。</p>
-    <p><strong>🔴 铁律 #2</strong>：Mask 与 Base <strong>像素级 1:1 对齐</strong>，画布尺寸完全相同，差 1px 也打回。</p>
-    <p><strong>🔴 铁律 #3</strong>：引擎导入 Mask 时<strong>必须关闭 sRGB</strong>（Linear）。Mask 是数据图，Gamma 校正会扭曲通道阈值。</p>
+    <p><strong>📌 流程约定 #1</strong>：Mask 图<strong>绝对禁止 JPEG</strong>。有损压缩引入 ±3~5 随机噪声，导致换色边缘脏色。</p>
+    <p><strong>📌 流程约定 #2</strong>：Mask 与 Base <strong>像素级 1:1 对齐</strong>，画布尺寸完全相同，差 1px 也打回。</p>
+    <p><strong>📌 流程约定 #3</strong>：引擎导入 Mask 时<strong>必须关闭 sRGB</strong>（Linear）。Mask 是数据图，Gamma 校正会扭曲通道阈值。</p>
   </div>
 
   <div class="sub-title">1.1 引擎导入设置速查</div>
@@ -130,7 +130,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 
 <!-- SEC2 -->
 <div class="section" id="sec2">
-  <h2>🔴🟢🔵🟡 2. RGBA 通道分配铁律</h2>
+  <h2>🔴🟢🔵🟡 2. RGBA 通道分配流程约定</h2>
   <div class="alert alert-blue"><strong>核心原则：一个像素 = 一个归属。</strong>R/G/B 中<strong>有且仅有一个通道有值</strong>，其余必须为 0。A 通道独立控制开关。</div>
 
   <div class="ch-box">

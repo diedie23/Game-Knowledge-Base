@@ -184,7 +184,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </table>
 
   <div class="redline">
-    <p><strong>🔴 Obliterate / Dump+Filter 铁律</strong>：这两个操作<strong>不可逆</strong>。执行前必须：<br>① 完整备份当前仓库<br>② 制作人/APM/TL 三方签字审批<br>③ 在维护窗口执行（非工作时间）<br>④ 执行后通知全员重新同步</p>
+    <p><strong>🔴 Obliterate / Dump+Filter 流程约定</strong>：这两个操作<strong>不可逆</strong>。执行前必须：<br>① 完整备份当前仓库<br>② 制作人/APM/TL 三方签字审批<br>③ 在维护窗口执行（非工作时间）<br>④ 执行后通知全员重新同步</p>
   </div>
 
   <div class="sub-title">📊 3.4 存储空间健康度监控</div>
@@ -307,7 +307,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><th>步骤</th><th>操作</th><th>注意事项</th></tr>
     <tr><td><strong>① 检索</strong></td><td>在 <code>_CATALOG.json</code> 中搜索关键词</td><td>支持工种/类型/风格/标签多维搜索</td></tr>
     <tr><td><strong>② 预览</strong></td><td>查看缩略图 + 技术参数（面数/骨骼数/贴图尺寸）</td><td>确认是否满足当前项目规格要求</td></tr>
-    <tr><td><strong>③ 拷贝</strong></td><td>从复用库 <code>checkout</code> 到工作目录</td><td>严禁直接在复用库中修改源文件</td></tr>
+    <tr><td><strong>③ 拷贝</strong></td><td>从复用库 <code>checkout</code> 到工作目录</td><td>请避免直接在复用库中修改源文件</td></tr>
     <tr><td><strong>④ 改造</strong></td><td>基于复用模板进行定制化修改</td><td>修改后的资产按正常流程提交到项目仓库</td></tr>
     <tr><td><strong>⑤ 回馈</strong></td><td>如果改造后的资产具有通用价值，提交回复用库</td><td>需主美/TA 审核后方可入库</td></tr>
   </table>
@@ -453,7 +453,7 @@ with open('stale_asset_report.json', 'w') as f:
     <div class="faq-q">🔴 案例 1：误删在用资产，导致版本打包失败 <span class="badge badge-red">致命</span></div>
     <div class="faq-a">
       <p><strong>🎬 场景</strong>：TA 在清理孤儿资产时，将一组"看起来没被引用"的贴图删除。实际上这些贴图被动态加载（代码中用字符串路径引用），Reference Viewer 无法检测到。删除后版本打包时部分角色变成白模。</p>
-      <p><strong>💡 教训</strong>：<br>① 动态加载的资产必须在<strong>资产注册表</strong>中登记，清理前交叉检查<br>② 清理后必须<strong>全量 Build 验证</strong>，确认无红色引用<br>③ 高风险清理（如贴图、材质）必须在<strong>独立分支</strong>上操作，验证无误后再 merge</p>
+      <p><strong>💡 教训</strong>：<br>① 动态加载的资产建议在<strong>资产注册表</strong>中登记，清理前交叉检查<br>② 清理后必须<strong>全量 Build 验证</strong>，确认无红色引用<br>③ 高风险清理（如贴图、材质）建议在<strong>独立分支</strong>上操作，验证无误后再 merge</p>
     </div>
   </div>
 
