@@ -90,7 +90,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <h2>🔗 1. 流程管线可视化总览</h2>
   <p><strong style="color:var(--cyan)">蓝色虚线框</strong> = 可并行区域　<strong style="color:var(--red)">红色虚线</strong> = 评审打回路径　<span class="badge badge-new">NEW</span> = 新增环节</p>
   <div class="flowchart-wrap">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1880" width="900" height="1880">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1760" width="900" height="1760">
       <defs>
         <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#8b90a5"/></marker>
         <marker id="arr-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0,0 8,3 0,6" fill="#4ade80"/></marker>
@@ -164,84 +164,84 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
       <rect x="510" y="778" width="300" height="55" rx="12" fill="url(#gPink)" stroke="#f472b6" stroke-width="1.5" filter="url(#ns)"/>
       <text x="660" y="801" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📦 ⑧ UI 源文件交付</text>
       <text x="660" y="820" text-anchor="middle" fill="#9499b0" font-size="11">设计源文件 · 标注</text>
-      <line x1="660" y1="833" x2="660" y2="865" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
-      <!-- ⑨ 资产合规 NEW -->
-      <rect x="510" y="865" width="300" height="55" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="2" filter="url(#ns)"/>
-      <text x="660" y="888" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">🔍 ⑨ 资产合规检查</text>
-      <text x="660" y="907" text-anchor="middle" fill="#9499b0" font-size="11">命名·尺寸·格式人工自查</text>
-      <rect x="795" y="862" width="38" height="16" rx="5" fill="#22d3ee"/><text x="814" y="874" text-anchor="middle" fill="#000" font-size="9" font-weight="700">NEW</text>
 
       <!-- 汇合A -->
       <!-- 左线：Layout/客户端直连汇合 -->
-      <line x1="240" y1="680" x2="240" y2="946" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr)"/>
-      <!-- 右线：资产合规到汇合 -->
-      <line x1="660" y1="920" x2="660" y2="946" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="240" y1="680" x2="240" y2="870" stroke="#8b90a5" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+      <!-- 右线：UI源文件交付到汇合 -->
+      <line x1="660" y1="833" x2="660" y2="870" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
       <!-- 汇合横线 + 圆点 -->
-      <line x1="240" y1="946" x2="660" y2="946" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="5,3"/>
-      <circle cx="240" cy="946" r="4" fill="#22d3ee"/>
-      <circle cx="660" cy="946" r="4" fill="#22d3ee"/>
-      <circle cx="450" cy="946" r="5" fill="#22d3ee"/>
-      <line x1="450" y1="946" x2="450" y2="990" stroke="#22d3ee" stroke-width="2" marker-end="url(#arr-cyan)"/>
-      <rect x="275" y="990" width="350" height="46" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="450" y="1017" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — UI源文件 + Layout白模就绪</text>
-      <line x1="450" y1="1036" x2="450" y2="1198" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="240" y1="870" x2="660" y2="870" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <circle cx="240" cy="870" r="4" fill="#22d3ee"/>
+      <circle cx="660" cy="870" r="4" fill="#22d3ee"/>
+      <circle cx="450" cy="870" r="5" fill="#22d3ee"/>
+      <line x1="450" y1="870" x2="450" y2="914" stroke="#22d3ee" stroke-width="2" marker-end="url(#arr-cyan)"/>
+      <rect x="275" y="914" width="350" height="46" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="1.5" filter="url(#ns)"/>
+      <text x="450" y="941" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — UI源文件 + Layout白模就绪</text>
+      <line x1="450" y1="960" x2="450" y2="1010" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
       <!-- ⑩ Layout切正式 -->
-      <rect x="300" y="1198" width="300" height="62" rx="14" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="450" y="1224" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">📐 ⑩ Layout切正式资产</text>
-      <text x="450" y="1244" text-anchor="middle" fill="#9499b0" font-size="11">基于UI源文件自行切图 · 接入引擎</text>
-      <line x1="450" y1="1260" x2="450" y2="1328" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <rect x="300" y="1010" width="300" height="62" rx="14" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="1.5" filter="url(#ns)"/>
+      <text x="450" y="1036" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">📐 ⑩ Layout切正式资产</text>
+      <text x="450" y="1056" text-anchor="middle" fill="#9499b0" font-size="11">基于UI源文件自行切图 · 接入引擎</text>
+      <line x1="450" y1="1072" x2="450" y2="1102" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- ⑨ 资产合规 NEW（Layout切图后自查） -->
+      <rect x="300" y="1102" width="300" height="55" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="2" filter="url(#ns)"/>
+      <text x="450" y="1125" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">🔍 ⑨ 资产合规检查</text>
+      <text x="450" y="1144" text-anchor="middle" fill="#9499b0" font-size="11">命名·尺寸·格式人工自查</text>
+      <rect x="585" y="1099" width="38" height="16" rx="5" fill="#22d3ee"/><text x="604" y="1111" text-anchor="middle" fill="#000" font-size="9" font-weight="700">NEW</text>
+      <line x1="450" y1="1157" x2="450" y2="1200" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
       <!-- 并行组B -->
-      <rect x="108" y="1292" width="684" height="148" rx="16" fill="rgba(34,211,238,.025)" stroke="#22d3ee" stroke-width="2" stroke-dasharray="10,5"/>
-      <rect x="120" y="1300" width="310" height="22" rx="6" fill="rgba(34,211,238,.08)"/>
-      <text x="128" y="1315" fill="#22d3ee" font-size="11" font-weight="700">⚡ 并行组 B — 切正式资产后双线启动</text>
-      <circle cx="450" cy="1328" r="3" fill="#8b90a5"/>
-      <line x1="450" y1="1328" x2="280" y2="1328" stroke="#8b90a5" stroke-width="1.5"/>
-      <line x1="280" y1="1328" x2="280" y2="1354" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
-      <line x1="450" y1="1328" x2="620" y2="1328" stroke="#8b90a5" stroke-width="1.5"/>
-      <line x1="620" y1="1328" x2="620" y2="1354" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
-      <rect x="130" y="1354" width="300" height="58" rx="12" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="280" y="1378" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📐 ⑪ Layout正式蓝图</text>
-      <text x="280" y="1397" text-anchor="middle" fill="#9499b0" font-size="11">绑定 · 自适应 · 动画</text>
-      <rect x="470" y="1354" width="300" height="58" rx="12" fill="url(#gOrange)" stroke="#fb923c" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="620" y="1378" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">✨ ⑫ VX动效预演+制作</text>
-      <text x="620" y="1397" text-anchor="middle" fill="#9499b0" font-size="11">预演视频 · 正式动效资产</text>
+      <rect x="108" y="1164" width="684" height="148" rx="16" fill="rgba(34,211,238,.025)" stroke="#22d3ee" stroke-width="2" stroke-dasharray="10,5"/>
+      <rect x="120" y="1172" width="310" height="22" rx="6" fill="rgba(34,211,238,.08)"/>
+      <text x="128" y="1187" fill="#22d3ee" font-size="11" font-weight="700">⚡ 并行组 B — 资产合规后双线启动</text>
+      <circle cx="450" cy="1200" r="3" fill="#8b90a5"/>
+      <line x1="450" y1="1200" x2="280" y2="1200" stroke="#8b90a5" stroke-width="1.5"/>
+      <line x1="280" y1="1200" x2="280" y2="1226" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="450" y1="1200" x2="620" y2="1200" stroke="#8b90a5" stroke-width="1.5"/>
+      <line x1="620" y1="1200" x2="620" y2="1226" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <rect x="130" y="1226" width="300" height="58" rx="12" fill="url(#gTeal)" stroke="#2dd4bf" stroke-width="1.5" filter="url(#ns)"/>
+      <text x="280" y="1250" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">📐 ⑪ Layout正式蓝图</text>
+      <text x="280" y="1269" text-anchor="middle" fill="#9499b0" font-size="11">绑定 · 自适应 · 动画</text>
+      <rect x="470" y="1226" width="300" height="58" rx="12" fill="url(#gOrange)" stroke="#fb923c" stroke-width="1.5" filter="url(#ns)"/>
+      <text x="620" y="1250" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">✨ ⑫ VX动效预演+制作</text>
+      <text x="620" y="1269" text-anchor="middle" fill="#9499b0" font-size="11">预演视频 · 正式动效资产</text>
       <!-- 汇合B -->
       <!-- 左线：Layout正式蓝图直连汇合 -->
-      <line x1="280" y1="1412" x2="280" y2="1440" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="280" y1="1284" x2="280" y2="1312" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
       <!-- 右线：动效制作直连汇合 -->
-      <line x1="620" y1="1412" x2="620" y2="1440" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="620" y1="1284" x2="620" y2="1312" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
       <!-- 汇合横线 + 圆点 -->
-      <line x1="280" y1="1440" x2="620" y2="1440" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="5,3"/>
-      <circle cx="280" cy="1440" r="4" fill="#22d3ee"/>
-      <circle cx="620" cy="1440" r="4" fill="#22d3ee"/>
-      <circle cx="450" cy="1440" r="5" fill="#22d3ee"/>
-      <line x1="450" y1="1440" x2="450" y2="1470" stroke="#22d3ee" stroke-width="2" marker-end="url(#arr-cyan)"/>
-      <rect x="275" y="1470" width="350" height="46" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="450" y="1497" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — 正式蓝图 + 动效资产就绪</text>
-      <line x1="450" y1="1516" x2="450" y2="1548" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="280" y1="1312" x2="620" y2="1312" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <circle cx="280" cy="1312" r="4" fill="#22d3ee"/>
+      <circle cx="620" cy="1312" r="4" fill="#22d3ee"/>
+      <circle cx="450" cy="1312" r="5" fill="#22d3ee"/>
+      <line x1="450" y1="1312" x2="450" y2="1342" stroke="#22d3ee" stroke-width="2" marker-end="url(#arr-cyan)"/>
+      <rect x="275" y="1342" width="350" height="46" rx="12" fill="url(#gCyan)" stroke="#22d3ee" stroke-width="1.5" filter="url(#ns)"/>
+      <text x="450" y="1369" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="600">🔗 汇合 — 正式蓝图 + 动效资产就绪</text>
+      <line x1="450" y1="1388" x2="450" y2="1420" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
       <!-- ⑭ 界面走查 -->
-      <polygon points="450,1548 525,1584 450,1620 375,1584" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="1.5" filter="url(#ds)"/>
-      <text x="450" y="1580" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="700">✅ ⑭ 界面走查</text>
-      <text x="450" y="1596" text-anchor="middle" fill="#9499b0" font-size="10">还原度校对 · 规范与性能初检</text>
-      <line x1="525" y1="1584" x2="570" y2="1584" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-orange)"/>
-      <rect x="578" y="1564" width="180" height="40" rx="8" fill="rgba(251,146,60,.06)" stroke="#fb923c" stroke-width="1"/>
-      <text x="668" y="1580" text-anchor="middle" fill="#fb923c" font-size="11" font-weight="600">问题分流</text>
-      <text x="668" y="1594" text-anchor="middle" fill="#9499b0" font-size="10">UI/Layout/客户端/交互</text>
-      <line x1="450" y1="1620" x2="450" y2="1660" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <polygon points="450,1420 525,1456 450,1492 375,1456" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="1.5" filter="url(#ds)"/>
+      <text x="450" y="1452" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="700">✅ ⑭ 界面走查</text>
+      <text x="450" y="1468" text-anchor="middle" fill="#9499b0" font-size="10">还原度校对 · 规范与性能初检</text>
+      <line x1="525" y1="1456" x2="570" y2="1456" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-orange)"/>
+      <rect x="578" y="1436" width="180" height="40" rx="8" fill="rgba(251,146,60,.06)" stroke="#fb923c" stroke-width="1"/>
+      <text x="668" y="1452" text-anchor="middle" fill="#fb923c" font-size="11" font-weight="600">问题分流</text>
+      <text x="668" y="1466" text-anchor="middle" fill="#9499b0" font-size="10">UI/Layout/客户端/交互</text>
+      <line x1="450" y1="1492" x2="450" y2="1532" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
       <!-- ⑮ VX动效 -->
-      <rect x="300" y="1660" width="300" height="52" rx="14" fill="url(#gOrange)" stroke="#fb923c" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="450" y="1682" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">✨ ⑮ VX界面动效制作</text>
-      <text x="450" y="1700" text-anchor="middle" fill="#9499b0" font-size="11">正式动效集成 · 参数调优</text>
-      <line x1="450" y1="1712" x2="450" y2="1742" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <rect x="300" y="1532" width="300" height="52" rx="14" fill="url(#gOrange)" stroke="#fb923c" stroke-width="1.5" filter="url(#ns)"/>
+      <text x="450" y="1554" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">✨ ⑮ VX界面动效制作</text>
+      <text x="450" y="1572" text-anchor="middle" fill="#9499b0" font-size="11">正式动效集成 · 参数调优</text>
+      <line x1="450" y1="1584" x2="450" y2="1614" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
       <!-- ⑯ 客户端集成 -->
-      <rect x="300" y="1742" width="300" height="52" rx="14" fill="url(#gYellow)" stroke="#fbbf24" stroke-width="1.5" filter="url(#ns)"/>
-      <text x="450" y="1764" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">💻 ⑯ 客户端集成动效</text>
-      <text x="450" y="1782" text-anchor="middle" fill="#9499b0" font-size="11">功能+动效合并 · 联调</text>
-      <line x1="450" y1="1794" x2="450" y2="1824" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <rect x="300" y="1614" width="300" height="52" rx="14" fill="url(#gYellow)" stroke="#fbbf24" stroke-width="1.5" filter="url(#ns)"/>
+      <text x="450" y="1636" text-anchor="middle" fill="#e4e6ed" font-size="14" font-weight="700">💻 ⑯ 客户端集成动效</text>
+      <text x="450" y="1654" text-anchor="middle" fill="#9499b0" font-size="11">功能+动效合并 · 联调</text>
+      <line x1="450" y1="1666" x2="450" y2="1696" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
       <!-- ⑰ 交付完成 -->
-      <rect x="300" y="1824" width="300" height="48" rx="14" fill="url(#gGreen)" stroke="#4ade80" stroke-width="2" filter="url(#gG)"/>
-      <text x="450" y="1846" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">🎉 ⑰ 界面交付完成</text>
-      <text x="450" y="1862" text-anchor="middle" fill="#9499b0" font-size="11">资产归档 · 上线</text>
+      <rect x="300" y="1696" width="300" height="48" rx="14" fill="url(#gGreen)" stroke="#4ade80" stroke-width="2" filter="url(#gG)"/>
+      <text x="450" y="1718" text-anchor="middle" fill="#e4e6ed" font-size="15" font-weight="700">🎉 ⑰ 界面交付完成</text>
+      <text x="450" y="1734" text-anchor="middle" fill="#9499b0" font-size="11">资产归档 · 上线</text>
     </svg>
   </div>
   <!-- 图例 -->
@@ -274,7 +274,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div style="background:rgba(244,114,182,.04);border:1px solid rgba(244,114,182,.15);border-radius:10px;padding:12px">
         <div style="font-size:11px;color:#f472b6;font-weight:700;margin-bottom:8px">UI 设计线</div>
-        <div class="flow" style="margin:0"><div class="flow-node pink" style="min-width:70px"><strong>⑥UI设计</strong></div><span class="flow-arrow">→</span><div class="flow-node gate" style="min-width:60px"><strong>⑦UI评审</strong></div><span class="flow-arrow">→</span><div class="flow-node pink" style="min-width:70px"><strong>⑧UI源文件交付</strong></div><span class="flow-arrow">→</span><div class="flow-node pink new" style="min-width:70px"><strong>⑨资产合规</strong></div></div>
+        <div class="flow" style="margin:0"><div class="flow-node pink" style="min-width:70px"><strong>⑥UI设计</strong></div><span class="flow-arrow">→</span><div class="flow-node gate" style="min-width:60px"><strong>⑦UI评审</strong></div><span class="flow-arrow">→</span><div class="flow-node pink" style="min-width:70px"><strong>⑧UI源文件交付</strong></div></div>
       </div>
       <div style="background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.15);border-radius:10px;padding:12px">
         <div style="font-size:11px;color:#2dd4bf;font-weight:700;margin-bottom:8px">Layout + 客户端线</div>
@@ -290,7 +290,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     <div style="position:absolute;top:-11px;left:20px;background:var(--bg);padding:0 8px;font-size:11px;color:var(--cyan);font-weight:700">⚡ 并行组 B</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div style="background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.15);border-radius:10px;padding:12px">
-        <div class="flow" style="margin:0"><div class="flow-node teal" style="min-width:100px"><strong>⑩切正式</strong></div><span class="flow-arrow">→</span><div class="flow-node teal" style="min-width:100px"><strong>⑪正式蓝图</strong></div></div>
+        <div class="flow" style="margin:0"><div class="flow-node teal" style="min-width:100px"><strong>⑩切正式</strong></div><span class="flow-arrow">→</span><div class="flow-node teal new" style="min-width:100px"><strong>⑨资产合规</strong></div><span class="flow-arrow">→</span><div class="flow-node teal" style="min-width:100px"><strong>⑪正式蓝图</strong></div></div>
       </div>
       <div style="background:rgba(251,146,60,.04);border:1px solid rgba(251,146,60,.15);border-radius:10px;padding:12px">
         <div class="flow" style="margin:0"><div class="flow-node orange" style="min-width:90px"><strong>⑫VX动效</strong></div></div>
@@ -309,7 +309,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     <div style="font-size:14px;color:var(--cyan);font-weight:700;margin-bottom:12px">📌 关键特殊节点说明</div>
     <table style="margin:0;font-size:13px">
       <tr><th style="width:150px">节点</th><th>说明</th><th>触发条件</th></tr>
-      <tr><td><strong>⑨ 资产合规检查</strong> <span class="badge badge-new">NEW</span></td><td>UI源文件交付后，由 Layout 自行切图加入引擎。设计师需人工自查命名规范、尺寸偶数、PNG-24/WebP、sRGB色域、9宫格完整性等资产规范项。</td><td>UI源文件交付后由设计师自查确认</td></tr>
+      <tr><td><strong>⑨ 资产合规检查</strong> <span class="badge badge-new">NEW</span></td><td>Layout 基于 UI 源文件自行切图并接入引擎后，需人工自查命名规范、尺寸偶数、PNG-24/WebP、sRGB色域、9宫格完整性等资产规范项。</td><td>⑩ Layout切正式资产完成后立即执行</td></tr>
       <tr><td><strong>⑫ VX动效需求流转</strong></td><td>动效需求由交互/策划在设计阶段明确。策划发单时若包含动效则创建对应子单，启动预演与制作；无动效需求则跳过此环节。</td><td>仅界面涉及动效表现时触发</td></tr>
       <tr><td><strong>⚠️ 性能与规范红线</strong></td><td>游戏 UI 必须兼顾视觉表现与运行性能。全管线中需严控图集尺寸碎片化、动效粒子数量及渲染层级；Layout 拼接阶段需持续关注 Drawcall 及 Overdraw（过度绘制）优化。</td><td>贯穿 ⑥ UI设计、⑪ Layout蓝图 及 ⑫ VX动效 阶段</td></tr>
     </table>
@@ -405,8 +405,8 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
       <tr><td>②</td><td>项目PM拉群宣讲 & 挂对接人</td><td>在子单上挂各方处理人、同步排期节点</td><td>项目PM</td></tr>
       <tr><td>②→③</td><td>UX管线负责人跟进排期</td><td>确认 UX→UI→蓝图→动效 排期与前置依赖（不含客户端）</td><td>UX管线负责人</td></tr>
       <tr><td>③→④</td><td>UX评审通过 & 交付</td><td>UX子单 → <strong>已完成</strong>，UI / 功能蓝图子单 → <strong>进行中</strong></td><td>UX管线负责人</td></tr>
-      <tr><td>⑥→⑨</td><td>UI评审通过 & 资产合规</td><td>UI子单 → <strong>已完成</strong>，正式蓝图单 → <strong>进行中</strong></td><td>UI / QA</td></tr>
-      <tr><td>⑩→⑫</td><td>正式蓝图与动效资产就绪</td><td>正式蓝图子单 → <strong>已完成</strong>，UI动效子单 → <strong>已完成</strong></td><td>Layout / VX</td></tr>
+      <tr><td>⑧→⑩</td><td>UI源文件交付 & Layout切正式资产</td><td>UI子单 → <strong>已完成</strong>，正式蓝图单 → <strong>进行中</strong></td><td>UI / Layout</td></tr>
+      <tr><td>⑩→⑨→⑪</td><td>切正式资产后资产合规自查 & 正式蓝图</td><td>资产合规自查通过后，正式蓝图子单 → <strong>进行中</strong>，UI动效子单 → <strong>进行中</strong></td><td>Layout / VX</td></tr>
       <tr><td>⑭→⑰</td><td>走查验收与客户端制作/动效接入</td><td>客户端制作/接入单 → <strong>已完成</strong>，父需求单验收 → <strong>已完成</strong></td><td>客户端 / 策划</td></tr>
     </table>
   </div>
