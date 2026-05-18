@@ -303,7 +303,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     <table style="margin:0;font-size:13px">
       <tr><th style="width:150px">节点</th><th>说明</th><th>触发条件</th></tr>
       <tr><td><strong>⑩ 资产合规检查</strong> <span class="badge badge-new">NEW</span></td><td>Layout 基于 UI 源文件自行切图并接入引擎后，需人工自查命名规范、尺寸偶数、PNG-24/WebP、sRGB色域、9宫格完整性等资产规范项。</td><td>⑨ Layout切正式资产完成后立即执行</td></tr>
-      <tr><td><strong>③⑦ 评审"有条件通过"</strong> <span class="badge badge-new">NEW</span></td><td>评审主体方案确认但存在局部微调项（≤3项）时，允许后续环节先行启动。调整项以 TAPD checklist 追踪，2 工作日内补完。避免"主体 OK 但细节待调"时纯打回卡进度。</td><td>交互评审（③）或 UI评审（⑦）结论为"有条件通过"时</td></tr>
+
       <tr><td><strong>⑫ VX动效需求流转</strong></td><td>动效需求由交互/策划在设计阶段明确。策划发单时若包含动效则创建对应子单，启动预演与制作；无动效需求则跳过此环节。</td><td>仅界面涉及动效表现时触发</td></tr>
       <tr><td><strong>⚠️ 性能与规范提醒</strong></td><td>游戏 UI 需要兼顾视觉表现与运行性能。建议全管线中关注图集尺寸碎片化、动效粒子数量及渲染层级；Layout 拼接阶段持续关注 Drawcall 及 Overdraw（过度绘制）优化。</td><td>贯穿 ⑥ UI设计、⑪ Layout蓝图 及 ⑫ VX动效 阶段</td></tr>
     </table>
@@ -410,28 +410,6 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     • 每个子单建议关联父需求单，便于项目看板追踪系统整体研发进度。<br>
     • 评审类节点（③⑦⑬）通过 TAPD <strong>评论/备注</strong>记录结论与调整点，不单独建单。<br>
     • 走查发现的问题统一通过 TAPD <strong>缺陷单</strong>记录并关联父需求单。<strong style="color:var(--orange)">提报建议：请包含【问题截图/录屏】、【期望表现】及【当前表现】</strong>，这样能有效减少沟通成本。</div>
-
-  <!-- 有条件通过机制 -->
-  <div style="background:rgba(74,222,128,.06);border:2px solid rgba(74,222,128,.25);border-radius:12px;padding:16px;margin-top:16px">
-    <div style="font-size:15px;color:var(--green);font-weight:700;margin-bottom:12px">✅ 评审"有条件通过"机制 <span class="badge badge-new">NEW</span></div>
-    <div style="font-size:13px;line-height:2">
-      <strong style="color:var(--heading)">适用场景：</strong>评审主体方案已确认，但存在<strong>局部可微调项</strong>（如：配色细节、间距微调、文案措辞等），不影响后续环节启动。<br><br>
-      <strong style="color:var(--heading)">核心规则：</strong><br>
-      <table style="margin:8px 0;font-size:13px">
-        <tr><th style="width:130px">评审结论</th><th>定义</th><th>后续环节</th><th>操作要求</th></tr>
-        <tr><td><strong style="color:var(--green)">通过</strong></td><td>方案完全确认，无需任何修改</td><td>立即启动</td><td>TAPD 评论记录「评审通过」</td></tr>
-        <tr><td><strong style="color:var(--cyan)">有条件通过</strong></td><td>主体方案确认，标注局部调整项（≤3 项小修改）</td><td><strong>允许后续环节先行启动</strong></td><td>TAPD 评论记录调整项 checklist + 补完截止时间</td></tr>
-        <tr><td><strong style="color:var(--red)">打回</strong></td><td>方案方向/结构性问题，需返工重做</td><td>阻塞，退回上一环节</td><td>TAPD 评论记录打回原因与修改方向</td></tr>
-      </table>
-      <strong style="color:var(--heading)">"有条件通过"操作规范：</strong><br>
-      <span style="padding-left:12px">① 评审结束后在 TAPD 父单/子单评论中记录：<code>[有条件通过] 调整项：1.xxx 2.xxx | 补完截止：YYYY-MM-DD</code></span><br>
-      <span style="padding-left:12px">② 调整项以 checklist 形式列出，每项完成后打勾确认</span><br>
-      <span style="padding-left:12px">③ 调整项数量<strong style="color:var(--red)">不超过 3 项</strong>，且均为不影响整体布局/结构的小修改；超过 3 项或涉及结构变更则应<strong>打回</strong></span><br>
-      <span style="padding-left:12px">④ 补完截止时间通常为评审后 <strong>2 个工作日内</strong>，由设计/交互方自行完成并更新</span><br>
-      <span style="padding-left:12px">⑤ UX管线负责人需在截止日确认调整项已全部闭环，未闭环则升级处理</span><br><br>
-      <div class="alert alert-yellow" style="margin:0"><strong>⚠️ 注意：</strong>"有条件通过"的本质是<strong>避免评审成为进度杀手</strong>。游戏行业迭代节奏快，很多情况是"主体 OK 但细节待调"，纯打回会导致整体进度被卡 2-3 天。通过此机制，后续环节可先行启动，调整项在后台并行完成。</div>
-    </div>
-  </div>
 
 
 </div>
