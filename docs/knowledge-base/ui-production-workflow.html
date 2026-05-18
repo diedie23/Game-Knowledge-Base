@@ -122,7 +122,7 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
 <div class="doc">
 
 <div class="doc-header">
-  <h1>🖥️ 游戏 UI 界面制作全流程 <span class="ver">v1.2</span></h1>
+  <h1>🖥️ 游戏 UI 界面制作全流程 <span class="ver">v1.3</span></h1>
   <div class="subtitle">UI Production Workflow — 需求到交付的全链路制作管线与协作规范</div>
   <div class="meta"><span>📋 适用范围：全项目 UI 界面制作</span><span>👤 协作角色：策划 · 交互 · UI · Layout · VX · 客户端 · QA</span><span>📅 2026-04-20</span></div>
 </div>
@@ -136,7 +136,8 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
 <li><a href="#sec4">关键评审节点与通过标准</a></li>
 <li><a href="#sec5">走查问题分流与闭环机制</a></li>
 <li><a href="#sec6">参考工期与并行策略</a></li>
-<li><a href="#sec7">常见问题 FAQ</a></li>
+<li><a href="#sec7">流程度量与持续改进</a> <span class="badge badge-new">NEW</span></li>
+<li><a href="#sec8">常见问题 FAQ</a></li>
 </ol></div>
 
 <!-- SEC1 -->
@@ -583,8 +584,16 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
   <div class="role-tags"><span class="label">责任人</span><span class="role-tag ri"><span class="dot"></span>交互设计师</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">3-5 天</span></div></div>
 
   <div class="pipeline-stage"><h4>④ 交互评审 → ⑤ 交互图交付 <span class="badge badge-orig">原有</span></h4>
-  <div class="io"><div class="input"><strong>📥 评审输入</strong><br>• 交互稿 • 需求文档（对照）<br>• 技术可行性评估</div><div class="output"><strong>📤 交付输出</strong><br>• 正式交互标注文档（含尺寸、间距、状态）<br>• 交互动效说明 • 同步至蓝湖/Figma</div></div>
-  <div class="role-tags"><span class="label">参与人</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rc"><span class="dot"></span>客户端</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">0.5 天评审 + 0.5 天交付</span></div></div>
+  <div class="io"><div class="input"><strong>📥 评审输入</strong><br>• 交互稿 • 需求文档（对照）<br>• 技术可行性评估</div><div class="output"><strong>📤 交付输出</strong><br>• 正式交互标注文档（含尺寸、间距、状态）<br>• 交互动效说明 • 同步至蓝湖/Figma<br>• <strong style="color:var(--orange)">动效必要性结论</strong> <span class="badge badge-new">NEW</span></div></div>
+  <div class="role-tags"><span class="label">参与人</span><span class="role-tag rp"><span class="dot"></span>策划</span><span class="role-tag ri"><span class="dot"></span>交互</span><span class="role-tag ru"><span class="dot"></span>UI</span><span class="role-tag rc"><span class="dot"></span>客户端</span><span class="label" style="margin-left:12px">预计</span><span style="font-size:12px;color:var(--dim)">0.5 天评审 + 0.5 天交付</span></div>
+  <div style="margin-top:10px;background:rgba(251,146,60,.05);border:1px solid rgba(251,146,60,.2);border-radius:8px;padding:12px;font-size:13px;line-height:1.9">
+    <strong style="color:var(--orange)">✨ VX 动效必要性前置评估 <span class="badge badge-new">NEW</span></strong><br>
+    交互评审结论中<strong>必须明确</strong>该需求是否需要 VX 动效介入，避免后续 VX 资源被白占或动效环节被遗漏：<br>
+    <span style="padding-left:12px">• <strong style="color:var(--green)">需要动效</strong>：明确列出动效点清单（如：页面切换过渡、按钮反馈、列表进入动画等），后续进入⑪⑫动效环节</span><br>
+    <span style="padding-left:12px">• <strong style="color:var(--dim)">不需要动效</strong>：交互评审结论中注明"本需求无动效需求"，后续可跳过⑪⑫节点，阶段三仅走 Layout 正式蓝图线</span><br>
+    <span style="padding-left:12px">• <strong style="color:var(--yellow)">待定（需 UI 设计后再议）</strong>：标记为"动效待评估"，在 UI 评审⑦中追加动效必要性结论</span><br>
+    <strong style="color:var(--red)">⚠️ 铁律：</strong>未在交互评审中明确动效结论的需求，VX 有权拒绝后续动效排期请求。
+  </div></div>
 
   <div class="pipeline-stage"><h4>⑥ UI 设计 <span class="badge badge-orig">原有</span></h4>
   <div class="io"><div class="input"><strong>📥 Input</strong><br>• 交互标注文档 • 视觉风格指南<br>• UI 组件库/Design Token</div><div class="output"><strong>📤 Output</strong><br>• 高保真 UI 设计稿（含各状态）<br>• 标注文件 • 图标素材<br>• 多分辨率适配方案</div></div>
@@ -782,6 +791,71 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
   </table>
   <div class="redline"><p><strong>🔴 铁律</strong>：超过最大迭代次数仍未通过 → <strong>上升至项目经理</strong>介入。连续2次打回需<strong>根因分析</strong>。</p></div>
 
+  <!-- 评审"有条件通过"机制 NEW -->
+  <div style="margin:20px 0;background:rgba(74,222,128,.04);border:2px solid rgba(74,222,128,.25);border-radius:14px;padding:20px;position:relative">
+    <div style="position:absolute;top:-12px;left:20px;background:var(--bg);padding:0 10px;font-size:14px;color:var(--green);font-weight:700">✅ 评审三档决策机制 <span class="badge badge-new">NEW</span></div>
+    <p style="margin:8px 0 16px;font-size:14px;color:var(--dim)">传统二元评审（通过/打回）容易因少量小问题导致整个流程阻塞 2-3 天。引入<strong style="color:var(--heading)">「有条件通过」</strong>第三档，在保证质量的前提下减少无谓等待。</p>
+    <table style="font-size:13px">
+      <tr><th style="width:100px">决策档位</th><th style="width:120px">适用条件</th><th>执行规则</th><th style="width:150px">后续流转</th></tr>
+      <tr style="background:rgba(74,222,128,.04)">
+        <td><strong style="color:var(--green)">✅ 通过</strong></td>
+        <td>无遗留问题</td>
+        <td>评审无争议，交付物完整达标</td>
+        <td>正常流转至下一节点</td>
+      </tr>
+      <tr style="background:rgba(251,191,36,.04)">
+        <td><strong style="color:var(--yellow)">⚠️ 有条件通过</strong></td>
+        <td>遗留 ≤3 项<strong>非结构性</strong>小调整</td>
+        <td>主体 OK，仅需微调（如文案、间距微调、图标替换等）。调整项当场明确列出，责任人签认</td>
+        <td><strong>后续环节可先行启动</strong>，调整项在 1 个工作日内完成并由评审发起人确认关闭</td>
+      </tr>
+      <tr style="background:rgba(248,113,113,.04)">
+        <td><strong style="color:var(--red)">🔴 打回</strong></td>
+        <td>存在结构性问题</td>
+        <td>逻辑缺失、方向偏差、布局需重做等影响下游的根本性问题</td>
+        <td>修改后需重新发起评审</td>
+      </tr>
+    </table>
+    <div class="alert alert-yellow" style="margin:12px 0 0"><strong>⚠️ 边界约束</strong>：<br>
+      • 「有条件通过」的调整项仅限<strong>不影响下游启动</strong>的表层问题（配色、文案、图标风格等）<br>
+      • 若涉及<strong>布局结构、控件增删、交互逻辑</strong>变更，即使只有 1 项也必须判定为「打回」<br>
+      • 调整项超过 <strong>3 项</strong> 或单项预估修改时间超过 <strong>半天</strong>，自动升级为「打回」<br>
+      • UX管线负责人在 TAPD 评论中记录有条件通过的具体调整项清单及完成截止时间</div>
+  </div>
+
+  <!-- 评审前预检 Checklist NEW -->
+  <div style="margin:20px 0;background:rgba(167,139,250,.04);border:2px solid rgba(167,139,250,.25);border-radius:14px;padding:20px;position:relative">
+    <div style="position:absolute;top:-12px;left:20px;background:var(--bg);padding:0 10px;font-size:14px;color:var(--accent2);font-weight:700">📋 评审前预检 Checklist <span class="badge badge-new">NEW</span></div>
+    <p style="margin:8px 0 16px;font-size:14px;color:var(--dim)">提交评审前，责任人须完成自检清单。<strong style="color:var(--heading)">自检不通过的，禁止发起正式评审</strong>——将低级问题拦截在评审会外，节省全员时间。</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <!-- 交互评审预检 -->
+      <div style="background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.2);border-radius:10px;padding:14px">
+        <div style="font-size:13px;color:var(--blue);font-weight:700;margin-bottom:10px">🎨 交互评审预检（④之前）</div>
+        <div style="font-size:12px;line-height:2">
+          □ 所有页面状态已覆盖（空/加载/错误/满）<br>
+          □ 返回路径已标注、无死路<br>
+          □ 手势/操作定义表已填写<br>
+          □ 边界场景说明（超长文案、极值数据）<br>
+          □ 已对照需求文档逐项验证覆盖度<br>
+          □ 交互稿已同步至蓝湖/Figma 可访问
+        </div>
+      </div>
+      <!-- UI评审预检 -->
+      <div style="background:rgba(244,114,182,.06);border:1px solid rgba(244,114,182,.2);border-radius:10px;padding:14px">
+        <div style="font-size:13px;color:#f472b6;font-weight:700;margin-bottom:10px">🖌️ UI 评审预检（⑦之前）</div>
+        <div style="font-size:12px;line-height:2">
+          □ 设计稿与交互稿逐页对照，无遗漏页面<br>
+          □ 偏离交互稿的区域已用红色标注并附说明<br>
+          □ 各状态视觉已完成（normal/hover/pressed/disabled）<br>
+          □ 标注尺寸/间距/字号/色值齐全<br>
+          □ 多分辨率适配方案已说明<br>
+          □ 中期对齐已执行（并行模式下）
+        </div>
+      </div>
+    </div>
+    <div class="alert alert-red" style="margin:12px 0 0"><strong>🔴 执行铁律</strong>：评审发起人须在 TAPD 评论中附上预检截图（勾选完毕的 Checklist），<strong>无预检记录的评审邀请可被拒绝参加</strong>。此举预计可减少 40% 以上的评审打回。</div>
+  </div>
+
   <!-- 阻塞升级时间触发机制 NEW -->
   <div style="margin:20px 0;background:rgba(251,191,36,.04);border:2px solid rgba(251,191,36,.2);border-radius:14px;padding:20px;position:relative">
     <div style="position:absolute;top:-12px;left:20px;background:var(--bg);padding:0 10px;font-size:14px;color:var(--yellow);font-weight:700">⏰ 阻塞升级 — 时间触发机制 <span class="badge badge-new">NEW</span></div>
@@ -870,6 +944,24 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
     </div>
     <div class="alert alert-yellow" style="margin:12px 0 0"><strong>⚠️ 标注规范</strong>：走查提 TAPD 缺陷单时，<strong>必须标注严重度等级（P0/P1/P2）</strong>作为必填字段。UX管线负责人在走查结束后汇总各级别问题数量，作为交付决策依据。</div>
   </div>
+
+  <!-- 各节点 Done Criteria NEW -->
+  <div style="margin:24px 0;background:rgba(34,211,238,.04);border:2px solid rgba(34,211,238,.25);border-radius:14px;padding:20px;position:relative">
+    <div style="position:absolute;top:-12px;left:20px;background:var(--bg);padding:0 10px;font-size:14px;color:var(--cyan);font-weight:700">🎯 各节点完成定义（Done Criteria） <span class="badge badge-new">NEW</span></div>
+    <p style="margin:8px 0 16px;font-size:14px;color:var(--dim)">明确<strong>「什么算完成」</strong>，减少交接时因标准模糊导致的扯皮和返工。每个节点只有满足 Done Criteria 后才允许流转至下游。</p>
+    <table style="font-size:13px">
+      <tr><th style="width:120px">节点</th><th>Done Criteria（全部满足方可流转）</th></tr>
+      <tr><td><strong>③ 交互设计</strong></td><td>✅ 交互稿覆盖所有页面及状态 ✅ 页面跳转逻辑图完整 ✅ 异常/边界状态已定义 ✅ 手势/操作定义表已填 ✅ 动效必要性已评估</td></tr>
+      <tr><td><strong>⑥ UI 设计</strong></td><td>✅ 高保真稿覆盖全状态 ✅ 偏离交互处已红色标注 ✅ 标注文件齐全（尺寸/间距/色值/字号） ✅ 中期对齐已执行（并行模式）</td></tr>
+      <tr><td><strong>⑧⑨ UI 交付</strong></td><td>✅ 切图命名100%合规 ✅ 偶数尺寸 ✅ PNG-24/WebP格式 ✅ sRGB颜色空间 ✅ 9宫格标注完整 ✅ 资产合规脚本 PASS</td></tr>
+      <tr><td><strong>⑩-a Layout 白模</strong></td><td>✅ 功能蓝图可跑通核心流程 ✅ 控件层级与交互稿一致 ✅ 客户端可基于白模开发功能逻辑</td></tr>
+      <tr><td><strong>⑩-c Layout 正式蓝图</strong></td><td>✅ 正式资产替换完毕 ✅ 自适应规则已实现 ✅ 数据绑定已完成 ✅ 动画状态机已搭建 ✅ 内部自查无明显还原偏差</td></tr>
+      <tr><td><strong>⑪ VX 动效</strong></td><td>✅ 动效预演视频已产出 ✅ 参数文档已填写 ✅ 性能预估在预算内（DrawCall/帧率） ✅ 正式动效资产格式正确</td></tr>
+      <tr><td><strong>⑬ 客户端集成</strong></td><td>✅ 功能逻辑跑通 ✅ Layout 蓝图正确加载 ✅ 动效资产已集成 ✅ 基础自测通过（冒烟测试） ✅ 无崩溃/卡死</td></tr>
+      <tr><td><strong>⑭ 界面走查</strong></td><td>✅ P0=0 ✅ P1≤3且有修复排期 ✅ 所有走查问题已录入 TAPD ✅ 分流至各责任人 ✅ 修复+复查闭环</td></tr>
+    </table>
+    <div class="alert alert-blue" style="margin:12px 0 0"><strong>💡 使用方式</strong>：责任人完成当前节点后，在 TAPD 子单评论中逐项确认 Done Criteria 达标，然后将子单状态流转为「已完成」。下游节点接收方有权核查，若 Done Criteria 未满足可<strong>拒绝接收</strong>（退回给上游补齐）。</div>
+  </div>
 </div>
 
 <!-- SEC6 -->
@@ -896,11 +988,156 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
   </table>
   <div class="alert alert-red" style="margin-top:0;margin-bottom:12px"><strong>🔴 并行风险警示</strong>：Layout白模 ∥ UI设计 的并行策略存在<strong>设计稿偏离风险</strong>——UI 终稿可能与交互稿在布局/结构上出现重大差异，导致白模蓝图无法使用。<strong>必须执行 UI 设计 50% 中期对齐</strong>以防控此风险。详见第⑩节「异常场景」。</div>
   <div class="alert alert-blue"><strong>💡 UX管线负责人提示</strong>：识别<strong>关键路径</strong>（通常是 UI 设计 → Layout 正式资产 → 走查），确保关键路径不被阻塞。</div>
+
+  <!-- 阶段四并行优化 NEW -->
+  <h3>6.3 阶段四串行段并行优化 <span class="badge badge-new">NEW</span></h3>
+  <div style="margin:12px 0;background:rgba(34,211,238,.04);border:2px solid rgba(34,211,238,.25);border-radius:14px;padding:20px;position:relative">
+    <div style="position:absolute;top:-12px;left:20px;background:var(--bg);padding:0 10px;font-size:11px;color:var(--cyan);font-weight:700">⚡ 阶段四优化 — 走查与动效接入部分并行，尾段省 1-3 天</div>
+    <p style="margin:8px 0 12px;font-size:14px;color:var(--dim)">原阶段四为纯串行（集成→走查→动效→再走查→交付），可优化为<strong>部分并行</strong>：</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="background:rgba(248,113,113,.04);border:1px solid rgba(248,113,113,.15);border-radius:10px;padding:14px">
+        <div style="font-size:13px;color:var(--red);font-weight:700;margin-bottom:8px">❌ 优化前（纯串行 8-13天）</div>
+        <div class="flow" style="margin:0;flex-wrap:wrap;justify-content:flex-start">
+          <div class="flow-node yellow" style="min-width:60px"><strong>集成</strong><div class="sub">3-5天</div></div><span class="flow-arrow">→</span>
+          <div class="flow-node gate" style="min-width:60px"><strong>走查</strong><div class="sub">2-3天</div></div><span class="flow-arrow">→</span>
+          <div class="flow-node orange" style="min-width:60px"><strong>动效接入</strong><div class="sub">1-2天</div></div><span class="flow-arrow">→</span>
+          <div class="flow-node gate" style="min-width:60px"><strong>复查</strong><div class="sub">1-2天</div></div><span class="flow-arrow">→</span>
+          <div class="flow-node green" style="min-width:60px"><strong>交付</strong><div class="sub">0.5天</div></div>
+        </div>
+      </div>
+      <div style="background:rgba(74,222,128,.04);border:1px solid rgba(74,222,128,.15);border-radius:10px;padding:14px">
+        <div style="font-size:13px;color:var(--green);font-weight:700;margin-bottom:8px">✅ 优化后（部分并行 6-10天）</div>
+        <div class="flow" style="margin:0;flex-wrap:wrap;justify-content:flex-start">
+          <div class="flow-node yellow" style="min-width:60px"><strong>集成</strong><div class="sub">3-5天</div></div><span class="flow-arrow">→</span>
+          <div class="flow-node gate" style="min-width:80px"><strong>功能走查</strong><div class="sub">1-2天</div></div><span class="flow-arrow">→</span>
+          <div class="flow-node orange" style="min-width:60px"><strong>动效接入∥功能修复</strong><div class="sub">并行1-2天</div></div><span class="flow-arrow">→</span>
+          <div class="flow-node gate" style="min-width:60px"><strong>终审走查</strong><div class="sub">1天</div></div><span class="flow-arrow">→</span>
+          <div class="flow-node green" style="min-width:60px"><strong>交付</strong><div class="sub">0.5天</div></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:13px;line-height:1.9">
+      <strong style="color:var(--heading)">优化逻辑：</strong>将原来的一次性走查拆分为<strong>功能走查 + 终审走查</strong>两轮，第一轮走查完成后客户端修复功能问题的同时，VX 可并行接入动效。终审走查统一验收功能修复 + 动效效果。<br>
+      <strong style="color:var(--heading)">前置条件：</strong>功能走查仅验证逻辑/还原度，动效暂用占位；动效接入不依赖功能走查的修复结果。<br>
+      <strong style="color:var(--heading)">预计收益：</strong>尾段工期从 8-13 天缩短至 <strong>6-10 天</strong>（节省 1-3 天）。
+    </div>
+  </div>
+
+  <!-- 分段走查+分段交付 NEW -->
+  <h3>6.4 分段走查与分段交付 <span class="badge badge-new">NEW</span></h3>
+  <div style="margin:12px 0;background:rgba(251,191,36,.04);border:2px solid rgba(251,191,36,.25);border-radius:14px;padding:20px;position:relative">
+    <div style="position:absolute;top:-12px;left:20px;background:var(--bg);padding:0 10px;font-size:11px;color:var(--yellow);font-weight:700">📦 S/A 级多页面需求分批走查策略</div>
+    <p style="margin:8px 0 12px;font-size:14px;color:var(--dim)">对于包含 <strong>≥3 个页面</strong> 的 S/A 级需求，传统的「全部完成再统一走查」模式容易导致问题集中爆发、修复周期拉长。改用<strong>分段走查</strong>策略，让问题早暴露、早修复。</p>
+    <table style="font-size:13px">
+      <tr><th style="width:80px">策略</th><th>适用场景</th><th>执行方式</th><th style="width:120px">收益</th></tr>
+      <tr>
+        <td><strong style="color:var(--yellow)">分批走查</strong></td>
+        <td>S/A 级多页面需求（≥3页）</td>
+        <td>按页面/模块拆为 2-3 批，每批完成后立即走查。第一批走查暴露的共性问题可在后续批次中前置规避</td>
+        <td>问题修复率提升、末期集中返工减少 50%+</td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--green)">分段交付</strong></td>
+        <td>可独立上线的模块化界面</td>
+        <td>各模块走查通过后即可独立交付上线，无需等待全部页面就绪</td>
+        <td>缩短首个页面上线时间、降低全量阻塞风险</td>
+      </tr>
+    </table>
+    <div class="alert alert-blue" style="margin:12px 0 0"><strong>💡 分批规则</strong>：<br>
+      • 第一批优先走查<strong>核心主界面</strong>（用户首次接触、流量最高的页面），确保核心体验最先稳定<br>
+      • 各批次之间间隔 ≥1 天，给修复留出缓冲<br>
+      • 分批走查不增加总走查次数上限（仍为 3 次），但每批独立计数<br>
+      • UX管线负责人在排期阶段确定分批方案并同步全员</div>
+  </div>
 </div>
 
 <!-- SEC7 -->
 <div class="section" id="sec7">
-  <h2>❓ 7. 常见问题 FAQ</h2>
+  <h2>📊 7. 流程度量与持续改进 <span class="badge badge-new">NEW</span></h2>
+
+  <!-- 流程度量仪表盘 -->
+  <h3>7.1 流程度量仪表盘</h3>
+  <p>量化才能优化。以下为 UX 管线核心度量指标，由 UX 管线负责人<strong>每双周统计一次</strong>并在项目周会同步。</p>
+  <table style="font-size:13px">
+    <tr><th style="width:160px">指标名称</th><th style="width:160px">计算方式</th><th>健康基线</th><th style="width:140px">预警阈值</th><th>采集来源</th></tr>
+    <tr>
+      <td><strong>端到端交付周期</strong></td>
+      <td>①策划发单 → ⑮走查通过的自然天数</td>
+      <td>S级：15-22天<br>A级：12-18天<br>B级：8-12天</td>
+      <td style="color:var(--red)">超出基线 +30%</td>
+      <td>TAPD 父单时间戳</td>
+    </tr>
+    <tr>
+      <td><strong>评审一次通过率</strong></td>
+      <td>（评审通过+有条件通过）/ 评审总次数</td>
+      <td>≥ 70%</td>
+      <td style="color:var(--red)">< 50%（需根因分析）</td>
+      <td>TAPD 评审评论</td>
+    </tr>
+    <tr>
+      <td><strong>走查修改轮次</strong></td>
+      <td>单个需求走查→修复→复查的循环次数</td>
+      <td>≤ 2 轮</td>
+      <td style="color:var(--red)">≥ 3 轮</td>
+      <td>TAPD 走查缺陷单</td>
+    </tr>
+    <tr>
+      <td><strong>偏离事件发生率</strong></td>
+      <td>触发偏离评估会的需求数 / 总需求数</td>
+      <td>≤ 10%</td>
+      <td style="color:var(--red)">> 20%（中期对齐执行质量存疑）</td>
+      <td>TAPD 偏离评估记录</td>
+    </tr>
+    <tr>
+      <td><strong>并行节省天数</strong></td>
+      <td>理论串行工期 - 实际交付工期</td>
+      <td>≥ 4 天/需求</td>
+      <td style="color:var(--yellow)">< 2 天（并行策略未有效执行）</td>
+      <td>排期对比</td>
+    </tr>
+    <tr>
+      <td><strong>有条件通过占比</strong></td>
+      <td>有条件通过次数 / 评审总次数</td>
+      <td>20%-40%</td>
+      <td style="color:var(--yellow)">> 50%（评审门槛可能过松）</td>
+      <td>TAPD 评审评论</td>
+    </tr>
+  </table>
+  <div class="alert alert-green" style="margin-top:12px"><strong>💡 度量目的</strong>：度量不是为了考核个人，而是发现流程瓶颈。持续关注各指标变化趋势，识别哪个环节拖了后腿，针对性优化。</div>
+
+  <!-- 流程裁剪审计 -->
+  <h3>7.2 流程裁剪审计</h3>
+  <div style="margin:12px 0;background:rgba(248,113,113,.04);border:2px solid rgba(248,113,113,.2);border-radius:14px;padding:20px;position:relative">
+    <div style="position:absolute;top:-12px;left:20px;background:var(--bg);padding:0 10px;font-size:11px;color:var(--red);font-weight:700">🔍 C 级快速通道月度审计机制</div>
+    <p style="margin:8px 0 12px;font-size:14px;color:var(--dim)">C 级快速通道大幅精简了流程，但存在被滥用的风险（大量 A/B 级需求被降级为 C 级以规避评审）。需要建立审计机制确保流程裁剪合理。</p>
+    <table style="font-size:13px">
+      <tr><th style="width:100px">审计项</th><th>审计标准</th><th style="width:120px">预警阈值</th><th style="width:140px">处置方式</th></tr>
+      <tr>
+        <td><strong>C级占比</strong></td>
+        <td>当月 C 级需求数 / 当月需求总数</td>
+        <td style="color:var(--red)">> 30%</td>
+        <td>逐个复核 C 级定级理由，违规需求补走标准流程</td>
+      </tr>
+      <tr>
+        <td><strong>C级走查问题率</strong></td>
+        <td>C 级需求走查发现 P0/P1 问题的比例</td>
+        <td style="color:var(--red)">> 20%</td>
+        <td>收紧 C 级审批门槛，要求 PM 额外确认</td>
+      </tr>
+      <tr>
+        <td><strong>降级合理性</strong></td>
+        <td>UX管线负责人复核被策划标为 C 级的需求是否真正符合定义</td>
+        <td style="color:var(--yellow)">发现 ≥2 例不合理降级</td>
+        <td>约谈对应策划、要求后续 C 级需 PM+UX管线负责人双签</td>
+      </tr>
+    </table>
+    <div class="alert alert-yellow" style="margin:12px 0 0"><strong>⚠️ 执行周期</strong>：每月最后一个工作日，UX管线负责人导出当月数据完成审计，在次月首次周会上同步审计结果。发现异常的需求需在 <strong>3 个工作日</strong>内补齐对应流程环节。</div>
+  </div>
+</div>
+
+<!-- SEC8 -->
+<div class="section" id="sec8">
+  <h2>❓ 8. 常见问题 FAQ</h2>
   <div class="faq-item"><div class="faq-q">💬 Q1：策划中途改需求怎么办？</div><div class="faq-a"><strong>答</strong>：需求冻结后变更必须走正式流程：① 提交变更申请单 ② 各方评估影响 ③ 项目经理审批 ④ 更新需求文档标注变更。<strong>未审批的变更 = 不执行。</strong><br><br>
     <div style="background:rgba(34,211,238,.05);border:1px solid rgba(34,211,238,.2);border-radius:8px;padding:12px;margin:4px 0">
       <strong style="color:var(--cyan)">📋 变更影响评估模板 <span class="badge badge-new">NEW</span></strong>
@@ -955,7 +1192,7 @@ span.rq{background:rgba(248,113,113,.12);color:var(--red)}
     <div class="alert alert-red" style="margin:8px 0 0"><strong>🔴 明确要求：</strong>APM/项目PM不得越过UX管线负责人直接安排UI/Layout/动效人员的排期。UX→UI→蓝图→动效的排期协调，统一由UX管线负责人对接。客户端排期不在此范围内。</div></div></div>
 </div>
 
-<div class="doc-footer">🖥️ 游戏 UI 界面制作全流程 · v1.2 · 最后更新 2026-05-15 · 项目内部资料 · 未经授权不得外传</div>
+<div class="doc-footer">🖥️ 游戏 UI 界面制作全流程 · v1.3 · 最后更新 2026-05-18 · 项目内部资料 · 未经授权不得外传</div>
 </div>
 <script src="editor-kit.js"></script>
 </body>
