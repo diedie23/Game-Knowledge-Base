@@ -124,7 +124,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
       <!-- ③ 交互评审 -->
       <polygon points="450,238 520,272 450,306 380,272" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="1.5" filter="url(#ds)"/>
       <text x="450" y="268" text-anchor="middle" fill="#e4e6ed" font-size="13" font-weight="700">✅ ③ 交互评审</text>
-      <text x="450" y="284" text-anchor="middle" fill="#9499b0" font-size="10">通过 / 打回</text>
+      <text x="450" y="284" text-anchor="middle" fill="#9499b0" font-size="10">通过 / 有条件通过 / 打回</text>
       <path d="M520,272 L558,272 L558,192" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
       <polygon points="558,192 554,200 562,200" fill="#f87171"/>
       <line x1="450" y1="306" x2="450" y2="350" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
@@ -157,7 +157,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
       <line x1="660" y1="580" x2="660" y2="610" stroke="#8b90a5" stroke-width="1.5" marker-end="url(#arr)"/>
       <polygon points="660,610 724,640 660,670 596,640" fill="url(#gGray)" stroke="#9e9e9e" stroke-width="1.5" filter="url(#ds)"/>
       <text x="660" y="636" text-anchor="middle" fill="#e4e6ed" font-size="12" font-weight="700">✅ ⑦ UI 评审</text>
-      <text x="660" y="652" text-anchor="middle" fill="#9499b0" font-size="10">通过 / 打回</text>
+      <text x="660" y="652" text-anchor="middle" fill="#9499b0" font-size="10">通过 / 有条件通过 / 打回</text>
       <path d="M724,640 L762,640 L762,580" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3" fill="none"/>
       <polygon points="762,580 758,588 766,588" fill="#f87171"/>
       <line x1="660" y1="670" x2="660" y2="778" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-green)"/>
@@ -259,7 +259,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <div class="flow">
     <div class="flow-node purple"><strong>①策划需求</strong><div class="sub">需求文档</div></div><span class="flow-arrow">→</span>
     <div class="flow-node blue"><strong>②交互设计</strong><div class="sub">交互稿</div></div><span class="flow-arrow">→</span>
-    <div class="flow-node gate"><strong>③交互评审</strong><div class="sub">通过/打回</div></div><span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>③交互评审</strong><div class="sub">通过/有条件通过/打回</div></div><span class="flow-arrow">→</span>
     <div class="flow-node blue"><strong>④交互交付</strong><div class="sub">标注文档</div></div>
   </div>
   <div style="margin:24px 0 8px;font-size:13px;color:var(--dim);letter-spacing:2px;font-weight:600">▸ 阶段二 · 设计与蓝图（<span style="color:var(--cyan)">⚡ 可并行</span>）</div>
@@ -303,6 +303,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     <table style="margin:0;font-size:13px">
       <tr><th style="width:150px">节点</th><th>说明</th><th>触发条件</th></tr>
       <tr><td><strong>⑩ 资产合规检查</strong> <span class="badge badge-new">NEW</span></td><td>Layout 基于 UI 源文件自行切图并接入引擎后，需人工自查命名规范、尺寸偶数、PNG-24/WebP、sRGB色域、9宫格完整性等资产规范项。</td><td>⑨ Layout切正式资产完成后立即执行</td></tr>
+      <tr><td><strong>③⑦ 评审"有条件通过"</strong> <span class="badge badge-new">NEW</span></td><td>评审主体方案确认但存在局部微调项（≤3项）时，允许后续环节先行启动。调整项以 TAPD checklist 追踪，2 工作日内补完。避免"主体 OK 但细节待调"时纯打回卡进度。</td><td>交互评审（③）或 UI评审（⑦）结论为"有条件通过"时</td></tr>
       <tr><td><strong>⑫ VX动效需求流转</strong></td><td>动效需求由交互/策划在设计阶段明确。策划发单时若包含动效则创建对应子单，启动预演与制作；无动效需求则跳过此环节。</td><td>仅界面涉及动效表现时触发</td></tr>
       <tr><td><strong>⚠️ 性能与规范红线</strong></td><td>游戏 UI 必须兼顾视觉表现与运行性能。全管线中需严控图集尺寸碎片化、动效粒子数量及渲染层级；Layout 拼接阶段需持续关注 Drawcall 及 Overdraw（过度绘制）优化。</td><td>贯穿 ⑥ UI设计、⑪ Layout蓝图 及 ⑫ VX动效 阶段</td></tr>
     </table>
@@ -410,6 +411,28 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     • 评审类节点（③⑦⑬）通过 TAPD <strong>评论/备注</strong>记录结论与调整点，不单独建单。<br>
     • 走查发现的问题统一通过 TAPD <strong>缺陷单</strong>记录并关联父需求单。<strong style="color:var(--orange)">提报规范：必须包含【问题截图/录屏】、【期望表现】及【当前表现】</strong>，避免沟通拉扯造成返工。</div>
 
+  <!-- 有条件通过机制 -->
+  <div style="background:rgba(74,222,128,.06);border:2px solid rgba(74,222,128,.25);border-radius:12px;padding:16px;margin-top:16px">
+    <div style="font-size:15px;color:var(--green);font-weight:700;margin-bottom:12px">✅ 评审"有条件通过"机制 <span class="badge badge-new">NEW</span></div>
+    <div style="font-size:13px;line-height:2">
+      <strong style="color:var(--heading)">适用场景：</strong>评审主体方案已确认，但存在<strong>局部可微调项</strong>（如：配色细节、间距微调、文案措辞等），不影响后续环节启动。<br><br>
+      <strong style="color:var(--heading)">核心规则：</strong><br>
+      <table style="margin:8px 0;font-size:13px">
+        <tr><th style="width:130px">评审结论</th><th>定义</th><th>后续环节</th><th>操作要求</th></tr>
+        <tr><td><strong style="color:var(--green)">通过</strong></td><td>方案完全确认，无需任何修改</td><td>立即启动</td><td>TAPD 评论记录「评审通过」</td></tr>
+        <tr><td><strong style="color:var(--cyan)">有条件通过</strong></td><td>主体方案确认，标注局部调整项（≤3 项小修改）</td><td><strong>允许后续环节先行启动</strong></td><td>TAPD 评论记录调整项 checklist + 补完截止时间</td></tr>
+        <tr><td><strong style="color:var(--red)">打回</strong></td><td>方案方向/结构性问题，需返工重做</td><td>阻塞，退回上一环节</td><td>TAPD 评论记录打回原因与修改方向</td></tr>
+      </table>
+      <strong style="color:var(--heading)">"有条件通过"操作规范：</strong><br>
+      <span style="padding-left:12px">① 评审结束后在 TAPD 父单/子单评论中记录：<code>[有条件通过] 调整项：1.xxx 2.xxx | 补完截止：YYYY-MM-DD</code></span><br>
+      <span style="padding-left:12px">② 调整项以 checklist 形式列出，每项完成后打勾确认</span><br>
+      <span style="padding-left:12px">③ 调整项数量<strong style="color:var(--red)">不超过 3 项</strong>，且均为不影响整体布局/结构的小修改；超过 3 项或涉及结构变更则应<strong>打回</strong></span><br>
+      <span style="padding-left:12px">④ 补完截止时间通常为评审后 <strong>2 个工作日内</strong>，由设计/交互方自行完成并更新</span><br>
+      <span style="padding-left:12px">⑤ UX管线负责人需在截止日确认调整项已全部闭环，未闭环则升级处理</span><br><br>
+      <div class="alert alert-yellow" style="margin:0"><strong>⚠️ 注意：</strong>"有条件通过"的本质是<strong>避免评审成为进度杀手</strong>。游戏行业迭代节奏快，很多情况是"主体 OK 但细节待调"，纯打回会导致整体进度被卡 2-3 天。通过此机制，后续环节可先行启动，调整项在后台并行完成。</div>
+    </div>
+  </div>
+
 
 </div>
 
@@ -461,7 +484,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <div class="faq-item"><div class="faq-q">💬 Q5：Layout白模和UI设计并行，如果UI改了怎么办？</div><div class="faq-a"><strong>答</strong>：分两种情况——<br><strong>① 仅视觉层变更（配色/字体/图标样式）：</strong>白模不受影响，Layout切正式资产时直接替换即可。<br><strong>② 布局/结构性变更（控件增减、层级调整、页面布局大改）：</strong>这是并行模式下的<strong style="color:var(--red)">高风险场景</strong>。此时白模功能蓝图可能无法使用，需要触发「偏离评估会」。<br><strong>预防关键：</strong>UI设计进行至50%时必须与交互/Layout做一次中期对齐，提前暴露布局变更意图。</div></div>
 </div>
 
-<div class="doc-footer">🖥️ 游戏 UX 管线流程 · 环节同步版 · 2026-05-15 · 基于全流程 v1.2 精简</div>
+<div class="doc-footer">🖥️ 游戏 UX 管线流程 · 环节同步版 · 2026-05-18 · 基于全流程 v1.2 精简</div>
 </div>
 </body>
 </html>
