@@ -429,7 +429,18 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     　• UX管线负责人的核心职责不是"做交互设计"，而是<strong>确保 UX→UI→蓝图→动效 这条管线的流转顺畅</strong>（客户端制作/动效接入的排期由项目PM或客户端自行管理）<br>
     　• 如果各方分别直接找UI/Layout/动效排期，容易导致信息碎片化——动效去找APM、UI来找UX管线负责人、Layout没人跟，造成不必要的沟通混乱<br>
     　• <strong style="color:var(--blue)">判断标准很简单：只要需求涉及UI/Layout/动效中任意一项产出，这些环节的排期建议由UX管线负责人统一协调</strong><br><br>
-    <div class="alert alert-blue" style="margin:8px 0 0"><strong>💡 协作建议：</strong>涉及界面产出的排期协调，建议统一由UX管线负责人对接，便于信息集中管理。客户端排期不在此范围内。</div></div></div>
+    <div class="alert alert-blue" style="margin:8px 0 0"><strong>💡 协作建议：</strong>涉及界面产出的排期协调，建议统一由UX管线负责人对接，便于信息集中管理。客户端排期不在此范围内。</div><br>
+    <strong style="color:var(--orange)">补充说明：项目组有APM（美术项目经理）的情况</strong><br>
+    　部分项目组存在APM角色，主要负责<strong>美术相关排期</strong>及<strong>运营侧内容</strong>的协调管理。此时容易出现职责边界模糊的问题。<br><br>
+    　<strong>建议分工原则：</strong><br>
+    <table style="margin:8px 0;font-size:13px">
+      <tr><th style="width:200px">需求类型</th><th>建议跟进人</th><th>说明</th></tr>
+      <tr><td>涉及UI/Layout/动效的界面产出需求</td><td><strong style="color:var(--blue)">UX管线负责人</strong></td><td>属于UX→UI→蓝图→动效管线范畴，由UX管线负责人统筹排期与流转</td></tr>
+      <tr><td>美术资源制作（原画/概念图/3D等）</td><td><strong style="color:var(--purple)">APM</strong></td><td>属于美术产能管理范畴，由APM统筹排期</td></tr>
+      <tr><td>运营侧视觉内容（活动banner/运营素材等）</td><td><strong style="color:var(--purple)">APM</strong></td><td>运营侧内容排期由APM负责</td></tr>
+      <tr><td>界面需求同时涉及美术资源配合</td><td><strong style="color:var(--blue)">UX管线负责人</strong>主导，与APM协调</td><td>界面流转归UX管线，所需美术资源的排期由APM配合</td></tr>
+    </table>
+    　<strong style="color:var(--cyan)">核心原则：</strong>不建议按需求分散管理（即"谁空谁接"），容易导致信息断层。建议以<strong>产出类型</strong>划分职责边界——<strong>凡涉及界面产出（UI设计/Layout蓝图/UI动效）的环节排期，统一归UX管线负责人</strong>；美术资源与运营侧内容归APM。两者需要配合时，由UX管线负责人发起协调。</div></div>
 
   <div class="faq-item"><div class="faq-q">💬 Q2：测试发现界面 Bug，TAPD 缺陷单应该挂给谁？ <span class="badge badge-new">NEW</span></div><div class="faq-a"><strong>答</strong>：为了提高问题处理效率，请遵循以下分流原则：<br>
     　• <strong>界面表现相关（含 Layout 还原/布局 及 视觉切图/资源错误）</strong>：统一挂单给 <strong>v_zhyszhang（张荧）</strong>。由张荧统一排查后，分配给对应的 Layout 制作人或 UI 设计师跟进处理。<br>
