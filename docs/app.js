@@ -55,6 +55,65 @@ var searchIndexData=null; // 全文搜索索引原始数据
 var pageRegistry={};     // pageId → {type, file, download, badge, craft, catId, module ...}
 var activeTagFilter='';  // 当前标签过滤关键词
 
+// ═══ 同义词搜索映射表（提升中文搜索召回率） ═══
+var SYNONYM_MAP = {
+  '排期':['里程碑','进度','timeline','deadline','日程','工期'],
+  '里程碑':['排期','进度','milestone','deadline'],
+  '外包':['乙方','供应商','CP','外发','外协','代工'],
+  '乙方':['外包','供应商','CP'],
+  '供应商':['外包','乙方','CP','vendor'],
+  '验收':['审核','检查','review','QC','品控'],
+  '审核':['验收','检查','review','approval'],
+  'PBR':['物理渲染','金属度','粗糙度','metallic','roughness','材质'],
+  '材质':['PBR','贴图','texture','shader'],
+  '贴图':['材质','纹理','texture','map','UV'],
+  'Spine':['骨骼动画','2D动画','spine','帧动画'],
+  '骨骼动画':['Spine','DragonBones','2D动画'],
+  'Mask':['遮罩','蒙版','mask','通道','alpha'],
+  '遮罩':['Mask','蒙版','mask','alpha'],
+  '换色':['换肤','变色','color swap','调色','配色'],
+  '命名':['规范','naming','取名','标识'],
+  '性能':['优化','帧率','fps','红线','performance','drawcall','内存'],
+  '优化':['性能','提速','加速','精简','performance'],
+  'LOD':['层级','精度','多分辨率','细节层级'],
+  'UGC':['用户生成','玩家自制','自定义','DIY'],
+  'AIGC':['AI生成','人工智能','AI辅助','AI绘图'],
+  '工具':['软件','插件','脚本','tool','utility','助手'],
+  '预算':['费用','成本','cost','报价','经费','结算'],
+  '成本':['预算','费用','cost','人天','报价'],
+  '风险':['隐患','问题','risk','告警','异常'],
+  '复盘':['回顾','总结','postmortem','retrospective','反思'],
+  '模板':['template','范本','格式','样板'],
+  '周报':['周总结','weekly report','汇报'],
+  '入职':['新人','onboarding','新员工','入门'],
+  '权限':['访问','permission','授权','申请'],
+  '安全':['保密','防泄密','security','加密'],
+  '协作':['协同','配合','跨部门','communication','合作'],
+  '需求':['需求文档','PRD','策划案','brief','设计稿'],
+  'Bug':['缺陷','问题','defect','bug','报错','异常'],
+  '特效':['VFX','粒子','effect','动效'],
+  'UI':['界面','交互','用户界面','HUD','GUI']
+};
+
+// 查询同义词扩展：返回原始词 + 同义词数组
+function expandSynonyms(query){
+  var words = query.trim().split(/\s+/);
+  var expanded = [];
+  words.forEach(function(w){
+    expanded.push(w);
+    // 遍历同义词表查找匹配
+    var wLower = w.toLowerCase();
+    Object.keys(SYNONYM_MAP).forEach(function(key){
+      if(key.toLowerCase() === wLower || key.toLowerCase().indexOf(wLower)>=0 || wLower.indexOf(key.toLowerCase())>=0){
+        SYNONYM_MAP[key].forEach(function(syn){
+          if(expanded.indexOf(syn)<0) expanded.push(syn);
+        });
+      }
+    });
+  });
+  return expanded;
+}
+
 // ═══ 访客浏览记录系统 ═══
 var VISIT_LOG_KEY = 'kb_visit_log';
 var VISITOR_ID_KEY = 'kb_visitor_id';
@@ -1178,22 +1237,46 @@ function handleSearch(q){
   // ═══ 标题/关键词搜索（原有 Fuse） ═══
   var titleResults=fuse.search(q).slice(0,6);
 
+  // ═══ 同义词扩展搜索（当原始结果不足时触发） ═══
+  if(titleResults.length < 3){
+    var synonyms = expandSynonyms(q);
+    var titleIds = {};
+    titleResults.forEach(function(r){titleIds[r.item.id]=true;});
+    for(var si=1; si<synonyms.length && titleResults.length<6; si++){
+      var synResults = fuse.search(synonyms[si]).slice(0,3);
+      synResults.forEach(function(r){
+        if(!titleIds[r.item.id] && titleResults.length<6){
+          titleIds[r.item.id]=true;
+          titleResults.push(r);
+        }
+      });
+    }
+  }
+
   // ═══ 全文内容搜索（新增 search-index.json） ═══
   var fulltextResults=[];
   if(fuseFulltext){
     var rawFt=fuseFulltext.search(q).slice(0,8);
+    // 同义词扩展全文搜索
+    var synonymsForFt = expandSynonyms(q);
+    for(var sfi=1; sfi<synonymsForFt.length && rawFt.length<10; sfi++){
+      var sfResults = fuseFulltext.search(synonymsForFt[sfi]).slice(0,3);
+      sfResults.forEach(function(r){ rawFt.push(r); });
+    }
     // 合并并去重（排除已在标题结果中出现的）
-    var titleIds={};
-    titleResults.forEach(function(r){titleIds[r.item.id]=true;});
+    var titleIds2={};
+    titleResults.forEach(function(r){titleIds2[r.item.id]=true;});
     rawFt.forEach(function(r){
-      if(!titleIds[r.item.id]) fulltextResults.push(r);
+      if(!titleIds2[r.item.id]) fulltextResults.push(r);
     });
     fulltextResults=fulltextResults.slice(0,4);
   }
 
   if(!titleResults.length && !fulltextResults.length){
     dd.innerHTML='<div style="padding:14px;text-align:center;color:var(--dim);font-size:13px">未找到相关内容</div>';
-    dd.classList.add('show');return;
+    dd.classList.add('show');
+    if(window.__APM_TRACK_SEARCH) window.__APM_TRACK_SEARCH(q, 0, 'sidebar');
+    return;
   }
 
   var html='';
@@ -1244,6 +1327,7 @@ function handleSearch(q){
   }
 
   dd.innerHTML=html;dd.classList.add('show');
+  if(window.__APM_TRACK_SEARCH) window.__APM_TRACK_SEARCH(q, titleResults.length + fulltextResults.length, 'sidebar');
 }
 
 // ═══ 搜索辅助函数：高亮文本中的关键词 ═══
@@ -4666,7 +4750,10 @@ function aiLocalAnswer(query){
 
     // 提取关键词
     var keywords = _aiExtractKeywords(query);
-    console.log('[AI搜索] 原始查询:', query, '提取关键词:', keywords);
+    // 同义词扩展关键词
+    var synExpanded = expandSynonyms(query);
+    synExpanded.forEach(function(s){ if(keywords.indexOf(s)<0) keywords.push(s); });
+    console.log('[AI搜索] 原始查询:', query, '提取关键词(含同义词):', keywords);
 
     var allResults = [];
 
@@ -4795,7 +4882,11 @@ function aiLocalAnswer(query){
       }
     } else {
       answer = 'emmm 🤔 在知识库中暂时没找到和「' + query + '」直接相关的内容。\n\n不过你可以试试：\n- **拆分关键词**：比如把问题拆成「需求」「变更」分别搜\n- 在左侧导航栏翻翻相关模块\n- 用顶部搜索框 🔍 模糊搜索\n\n实在找不到的话，可能是知识库还没收录这块内容，可以反馈给管理员哦 📮';
+      if(window.__APM_TRACK_SEARCH) window.__APM_TRACK_SEARCH(query, 0, 'ai');
     }
+
+    // 记录 AI 搜索命中
+    if(allResults.length > 0 && window.__APM_TRACK_SEARCH) window.__APM_TRACK_SEARCH(query, allResults.length, 'ai');
 
     aiAppendMessage('bot', answer, relatedDocs);
   }, 600 + Math.random() * 400);

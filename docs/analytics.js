@@ -152,5 +152,87 @@
   // ═══ 全局暴露（供管理员页面使用）═══
   window.__APM_ANALYTICS_API = API_BASE;
 
+  // ═══ 搜索行为追踪（记录搜索失败关键词，用于内容运营） ═══
+  var SEARCH_LOG_KEY = 'apm_search_log';
+  var SEARCH_LOG_MAX = 200; // 本地最多保留 200 条
+
+  /**
+   * 记录一次搜索事件
+   * @param {string} query - 用户搜索词
+   * @param {number} resultCount - 搜索结果数量
+   * @param {string} source - 搜索来源：'sidebar'|'hero'|'ai'|'command'
+   */
+  function trackSearch(query, resultCount, source) {
+    if (!query || query.length < 2) return;
+    try {
+      var logs = JSON.parse(localStorage.getItem(SEARCH_LOG_KEY) || '[]');
+      logs.unshift({
+        q: query.trim().substring(0, 50),
+        n: resultCount,
+        s: source || 'sidebar',
+        t: Date.now()
+      });
+      // 保留最近 200 条
+      if (logs.length > SEARCH_LOG_MAX) logs = logs.slice(0, SEARCH_LOG_MAX);
+      localStorage.setItem(SEARCH_LOG_KEY, JSON.stringify(logs));
+
+      // 如果搜索失败（0结果），额外向 Worker 上报（可选，需后端配合）
+      if (resultCount === 0) {
+        sendBeacon('/api/track', {
+          path: '/search-miss',
+          title: 'SearchMiss: ' + query.trim().substring(0, 50),
+          referrer: ''
+        });
+      }
+    } catch(e) {}
+  }
+
+  /**
+   * 获取搜索失败热词排行（供管理员面板使用）
+   * @param {number} topN - 返回前 N 个高频失败词
+   * @returns {Array} [{query, count}]
+   */
+  function getSearchMissReport(topN) {
+    try {
+      var logs = JSON.parse(localStorage.getItem(SEARCH_LOG_KEY) || '[]');
+      var missMap = {};
+      logs.forEach(function(log) {
+        if (log.n === 0) {
+          var key = log.q.toLowerCase();
+          missMap[key] = (missMap[key] || 0) + 1;
+        }
+      });
+      var sorted = Object.keys(missMap).map(function(k) {
+        return { query: k, count: missMap[k] };
+      }).sort(function(a, b) { return b.count - a.count; });
+      return sorted.slice(0, topN || 20);
+    } catch(e) { return []; }
+  }
+
+  /**
+   * 获取搜索使用统计摘要
+   * @returns {Object} {total, hits, misses, hitRate, topMissed}
+   */
+  function getSearchStats() {
+    try {
+      var logs = JSON.parse(localStorage.getItem(SEARCH_LOG_KEY) || '[]');
+      var total = logs.length;
+      var misses = logs.filter(function(l) { return l.n === 0; }).length;
+      return {
+        total: total,
+        hits: total - misses,
+        misses: misses,
+        hitRate: total > 0 ? Math.round((total - misses) / total * 100) : 0,
+        topMissed: getSearchMissReport(10)
+      };
+    } catch(e) { return { total: 0, hits: 0, misses: 0, hitRate: 0, topMissed: [] }; }
+  }
+
+  // 暴露全局搜索追踪 API
+  window.__APM_TRACK_SEARCH = trackSearch;
+  window.__APM_SEARCH_MISS_REPORT = getSearchMissReport;
+  window.__APM_SEARCH_STATS = getSearchStats;
+
   console.log('[Analytics] 访客追踪已启用');
+  console.log('[Analytics] 搜索行为追踪已启用 (管理员可用 __APM_SEARCH_STATS() 查看)');
 })();
