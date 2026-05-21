@@ -138,26 +138,15 @@
         <h1>📊 游戏项目<span>知识库</span></h1>
         <p class="hero-tagline" id="heroTagline">项目管理 · 职能协同 · 效能工具 — 面向PM与项目团队的一站式知识平台</p>
         <span class="hero-tagline-toggle" id="heroToggle" onclick="toggleHeroTagline()">▲ 收起简介</span>
-        <!-- ═══ 首页全局搜索框（突出展示）═══ -->
-        <div class="hero-search-box" id="heroSearchBox">
-          <div class="hero-search-inner">
-            <span class="hero-search-icon">🔍</span>
-            <input type="text" id="heroSearchInput" class="hero-search-input" placeholder="搜索知识文档... 输入关键词如：排期模板、外包验收、Bug定级" oninput="handleHeroSearch(this.value)" onfocus="document.getElementById('heroSearchDropdown').classList.add('show')" onblur="setTimeout(()=>document.getElementById('heroSearchDropdown').classList.remove('show'),250)">
-            <kbd class="hero-search-kbd" onclick="openCommandPalette()" title="打开命令面板" style="cursor:pointer">⌘ 命令面板</kbd>
-          </div>
-          <div class="hero-search-dropdown" id="heroSearchDropdown"></div>
-          <div class="hero-search-hot">
-            <span class="hero-hot-label">热门：</span>
-            <button class="hero-hot-chip" onclick="quickHeroSearch('排期管理')">📅 排期管理</button>
-            <button class="hero-hot-chip" onclick="quickHeroSearch('外包验收')">📦 外包验收</button>
-            <button class="hero-hot-chip" onclick="quickHeroSearch('Bug定级')">🐛 Bug定级</button>
-            <button class="hero-hot-chip" onclick="quickHeroSearch('项目复盘')">🔥 项目复盘</button>
-            <button class="hero-hot-chip" onclick="quickHeroSearch('效能工具')">🔧 效能工具</button>
-          </div>
+        <!-- ═══ 首页搜索入口（精简：仅保留命令面板触发按钮）═══ -->
+        <div class="hero-search-box" id="heroSearchBox" style="margin:12px auto 0;text-align:center">
+          <button class="km-btn" onclick="openCommandPalette()" style="font-size:14px;padding:10px 24px">
+            🔍 搜索知识文档 <kbd style="margin-left:8px;padding:2px 8px;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--dim)">Ctrl+K</kbd>
+          </button>
         </div>
         <!-- ═══ 三大核心入口卡片 ═══ -->
         <div class="hero-entry-cards">
-          <div class="hero-entry-card hec-knowledge" onclick="document.getElementById('moduleSection0').scrollIntoView({behavior:'smooth'})">
+          <div class="hero-entry-card hec-knowledge" onclick="document.getElementById('section-project').scrollIntoView({behavior:'smooth'})">
             <div class="hec-icon">📋</div>
             <div class="hec-title">知识查询</div>
             <div class="hec-desc">按模块浏览全部知识文档</div>
@@ -178,34 +167,34 @@
         <div class="scene-nav" id="sceneNav">
           <div class="scene-nav-title">💡 我想要...</div>
           <div class="scene-nav-grid">
-            <button class="scene-chip" onclick="quickHeroSearch('排期模板')">
+            <button class="scene-chip" onclick="document.getElementById('section-project').scrollIntoView({behavior:'smooth'})">
               <span class="sc-icon">📅</span><span class="sc-text">制定排期计划</span>
             </button>
-            <button class="scene-chip" onclick="quickHeroSearch('外包管理')">
+            <button class="scene-chip" onclick="document.getElementById('section-outsource').scrollIntoView({behavior:'smooth'})">
               <span class="sc-icon">📦</span><span class="sc-text">管理外包资源</span>
             </button>
-            <button class="scene-chip" onclick="quickHeroSearch('需求对接')">
+            <button class="scene-chip" onclick="document.getElementById('section-collab').scrollIntoView({behavior:'smooth'})">
               <span class="sc-icon">📝</span><span class="sc-text">理清需求流转</span>
             </button>
-            <button class="scene-chip" onclick="quickHeroSearch('风险管理')">
+            <button class="scene-chip" onclick="document.getElementById('section-quality').scrollIntoView({behavior:'smooth'})">
               <span class="sc-icon">⚠️</span><span class="sc-text">做项目风险管控</span>
             </button>
-            <button class="scene-chip" onclick="quickHeroSearch('复盘')">
+            <button class="scene-chip" onclick="document.getElementById('section-casestudy').scrollIntoView({behavior:'smooth'})">
               <span class="sc-icon">🔥</span><span class="sc-text">组织项目复盘</span>
             </button>
-            <button class="scene-chip" onclick="quickHeroSearch('效能度量')">
+            <button class="scene-chip" onclick="document.getElementById('section-toolchain').scrollIntoView({behavior:'smooth'})">
               <span class="sc-icon">📊</span><span class="sc-text">搭建效能度量</span>
             </button>
-            <button class="scene-chip" onclick="quickHeroSearch('美术规范')">
+            <button class="scene-chip" onclick="document.getElementById('section-craft').scrollIntoView({behavior:'smooth'})">
               <span class="sc-icon">🎨</span><span class="sc-text">了解美术规范</span>
             </button>
-            <button class="scene-chip" onclick="quickHeroSearch('Bug定级')">
+            <button class="scene-chip" onclick="document.getElementById('section-quality').scrollIntoView({behavior:'smooth'})">
               <span class="sc-icon">🐛</span><span class="sc-text">明确Bug定级标准</span>
             </button>
             <button class="scene-chip" onclick="document.getElementById('toolsQuickSection').scrollIntoView({behavior:'smooth'})">
               <span class="sc-icon">🔧</span><span class="sc-text">获取效能工具</span>
             </button>
-            <button class="scene-chip" onclick="quickHeroSearch('新人')">
+            <button class="scene-chip" onclick="document.getElementById('section-project').scrollIntoView({behavior:'smooth'})">
               <span class="sc-icon">🆕</span><span class="sc-text">新人入职指引</span>
             </button>
           </div>
@@ -251,10 +240,14 @@
             <button class="mf-chip" data-filter="ctype" data-value="案例">📂 案例</button>
           </div>
         </div>
-        <!-- 知识地图入口 -->
-        <div class="knowledge-map-entry">
-          <button class="km-btn" onclick="openKnowledgeMap()">🗺️ 打开知识地图</button>
-          <span class="km-desc">可视化浏览 9 大模块 · 72 篇文档的关系网络</span>
+        <!-- 知识地图 - 内嵌迷你预览 -->
+        <div class="knowledge-map-inline" id="knowledgeMapInline">
+          <div class="kmi-header">
+            <span class="kmi-title">🗺️ 知识地图</span>
+            <span class="kmi-desc">点击模块直达 · 9 大模块 · 72 篇文档</span>
+            <button class="kmi-expand" onclick="openKnowledgeMap()" title="全屏查看">⛶ 全屏</button>
+          </div>
+          <canvas id="kmInlineCanvas" class="kmi-canvas"></canvas>
         </div>
       </div>
 

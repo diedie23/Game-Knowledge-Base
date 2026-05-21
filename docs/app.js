@@ -1157,6 +1157,7 @@ function initSearch(){
         renderHotCards();
         renderCardBadges();
         renderDashboard();
+        buildInlineKnowledgeMap();
         // 【Bug 2 修复】indexData 已就绪，补刷当前页面的 detailMetaBar
         // 解决刷新页面时 indexData 尚未加载导致编辑按钮不显示的问题
         if(curPage && curPage!=='home'){
@@ -6384,12 +6385,188 @@ function applyMultiFilter(){
 
 // ═══ 知识地图 ═══
 var kmState = { scale: 1, offsetX: 0, offsetY: 0, dragging: false, lastX: 0, lastY: 0, nodes: [], edges: [], hoveredNode: null };
+var kmInlineState = { nodes: [], edges: [], animId: null, hoveredNode: null, time: 0 };
 
 var KM_COLORS = {
   project: '#6c8cff', outsource: '#fb923c', craft: '#a78bfa',
   collab: '#4ade80', toolchain: '#22d3ee', quality: '#f472b6',
   casestudy: '#f87171', system: '#8b8fa3', mynotes: '#fbbf24'
 };
+
+// ═══ 内嵌迷你知识地图（带浮动动画）═══
+function buildInlineKnowledgeMap(){
+  var canvas = document.getElementById('kmInlineCanvas');
+  if(!canvas) return;
+  var rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * (window.devicePixelRatio || 1);
+  canvas.height = 220 * (window.devicePixelRatio || 1);
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = '220px';
+  var ctx = canvas.getContext('2d');
+  ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+
+  var w = rect.width, h = 220;
+  var cx = w / 2, cy = h / 2;
+  var nodes = [], edges = [];
+
+  // 中心节点
+  nodes.push({ id: 'center', label: '知识库', x: cx, y: cy, r: 22, color: '#6c8cff', type: 'center', baseX: cx, baseY: cy, phase: Math.random() * Math.PI * 2 });
+
+  // 模块节点
+  var modules = indexData && indexData.moduleConfig ? indexData.moduleConfig : {};
+  var modKeys = Object.keys(modules).filter(function(k){ return modules[k].weight > 0; });
+  var angleStep = (Math.PI * 2) / modKeys.length;
+  var modRadius = Math.min(cx, cy) * 0.55;
+
+  modKeys.forEach(function(key, i){
+    var mod = modules[key];
+    var angle = angleStep * i - Math.PI / 2;
+    var x = cx + Math.cos(angle) * modRadius;
+    var y = cy + Math.sin(angle) * modRadius;
+    var count = 0;
+    if(indexData && indexData.items){
+      count = indexData.items.filter(function(it){ return it.module === key; }).length;
+    }
+    nodes.push({ id: key, label: mod.icon + ' ' + mod.label.replace(/^.+\s/, ''), x: x, y: y, r: 14 + count * 0.5, color: KM_COLORS[key] || '#888', type: 'module', count: count, fullLabel: mod.label, baseX: x, baseY: y, phase: Math.random() * Math.PI * 2 });
+    edges.push({ from: 'center', to: key });
+  });
+
+  // 子文档节点（只显示热门或前3个，保持简洁）
+  if(indexData && indexData.items){
+    modKeys.forEach(function(modKey){
+      var modNode = nodes.find(function(n){ return n.id === modKey; });
+      if(!modNode) return;
+      var items = indexData.items.filter(function(it){ return it.module === modKey; });
+      var hotItems = items.filter(function(it){ return it.is_hot; });
+      if(hotItems.length < 2) hotItems = items.slice(0, 2);
+      var subAngleStep = (Math.PI * 2) / Math.max(hotItems.length, 1);
+      var subRadius = 30 + hotItems.length * 3;
+      hotItems.forEach(function(item, j){
+        var angle = subAngleStep * j + Math.random() * 0.5;
+        var x = modNode.baseX + Math.cos(angle) * subRadius;
+        var y = modNode.baseY + Math.sin(angle) * subRadius;
+        nodes.push({ id: item.id, label: '', x: x, y: y, r: 4, color: KM_COLORS[modKey] || '#888', type: 'doc', baseX: x, baseY: y, phase: Math.random() * Math.PI * 2 });
+        edges.push({ from: modKey, to: item.id });
+      });
+    });
+  }
+
+  kmInlineState.nodes = nodes;
+  kmInlineState.edges = edges;
+
+  // 启动动画循环
+  if(kmInlineState.animId) cancelAnimationFrame(kmInlineState.animId);
+  animateInlineMap();
+
+  // 交互：hover + click
+  canvas.addEventListener('mousemove', function(e){
+    var rect = canvas.getBoundingClientRect();
+    var mx = e.clientX - rect.left;
+    var my = e.clientY - rect.top;
+    var hovered = null;
+    kmInlineState.nodes.forEach(function(node){
+      if(node.type === 'doc') return;
+      var dx = mx - node.x, dy = my - node.y;
+      if(dx*dx + dy*dy < (node.r + 4) * (node.r + 4)) hovered = node;
+    });
+    kmInlineState.hoveredNode = hovered;
+    canvas.style.cursor = hovered ? 'pointer' : 'default';
+  });
+  canvas.addEventListener('click', function(e){
+    var node = kmInlineState.hoveredNode;
+    if(!node) return;
+    if(node.type === 'module'){
+      var sectionId = 'section-' + node.id;
+      var el = document.getElementById(sectionId);
+      if(el) el.scrollIntoView({behavior:'smooth'});
+    } else if(node.type === 'center'){
+      openKnowledgeMap();
+    }
+  });
+}
+
+function animateInlineMap(){
+  kmInlineState.time += 0.015;
+  var canvas = document.getElementById('kmInlineCanvas');
+  if(!canvas || !canvas.offsetParent) { kmInlineState.animId = requestAnimationFrame(animateInlineMap); return; }
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var w = canvas.width / dpr, h = canvas.height / dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  var t = kmInlineState.time;
+  var nodes = kmInlineState.nodes;
+  var edges = kmInlineState.edges;
+
+  // 更新浮动位置
+  nodes.forEach(function(node){
+    var amp = node.type === 'center' ? 1.5 : node.type === 'module' ? 3 : 2;
+    node.x = node.baseX + Math.sin(t + node.phase) * amp;
+    node.y = node.baseY + Math.cos(t * 0.7 + node.phase) * amp;
+  });
+
+  // 绘制连线（带发光效果）
+  edges.forEach(function(edge){
+    var fromNode = nodes.find(function(n){ return n.id === edge.from; });
+    var toNode = nodes.find(function(n){ return n.id === edge.to; });
+    if(!fromNode || !toNode) return;
+    ctx.beginPath();
+    ctx.moveTo(fromNode.x, fromNode.y);
+    ctx.lineTo(toNode.x, toNode.y);
+    var alpha = toNode.type === 'doc' ? 0.06 : 0.18 + Math.sin(t * 2 + toNode.phase) * 0.05;
+    ctx.strokeStyle = 'rgba(255,255,255,' + alpha + ')';
+    ctx.lineWidth = toNode.type === 'doc' ? 0.5 : 1.2;
+    ctx.stroke();
+  });
+
+  // 绘制节点（带脉冲呼吸效果）
+  nodes.forEach(function(node){
+    var pulse = 1 + Math.sin(t * 2 + node.phase) * 0.08;
+    var r = node.r * pulse;
+    var isHovered = node === kmInlineState.hoveredNode;
+
+    // 光晕效果
+    if(node.type !== 'doc'){
+      var glow = ctx.createRadialGradient(node.x, node.y, r * 0.5, node.x, node.y, r * 2);
+      glow.addColorStop(0, node.color + '33');
+      glow.addColorStop(1, node.color + '00');
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, r * 2, 0, Math.PI * 2);
+      ctx.fillStyle = glow;
+      ctx.fill();
+    }
+
+    // 主体
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = node.type === 'doc' ? node.color + '44' : node.color + (isHovered ? 'dd' : 'aa');
+    ctx.fill();
+    ctx.strokeStyle = isHovered ? '#fff' : node.color;
+    ctx.lineWidth = isHovered ? 2.5 : 1;
+    ctx.stroke();
+
+    // 标签
+    if(node.type !== 'doc'){
+      ctx.font = (node.type === 'center' ? 'bold 11px' : '10px') + ' -apple-system, "PingFang SC", sans-serif';
+      ctx.fillStyle = isHovered ? '#fff' : '#e8eaed';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      if(node.type === 'module'){
+        ctx.fillText(node.label, node.x, node.y + r + 10);
+        if(isHovered){
+          ctx.font = '9px sans-serif';
+          ctx.fillStyle = '#8b8fa3';
+          ctx.fillText(node.count + '篇', node.x, node.y + r + 21);
+        }
+      } else {
+        ctx.fillText(node.label, node.x, node.y);
+      }
+    }
+  });
+
+  kmInlineState.animId = requestAnimationFrame(animateInlineMap);
+}
 
 function openKnowledgeMap(){
   var overlay = document.getElementById('kmOverlay');
@@ -6466,8 +6643,11 @@ function buildKnowledgeMap(){
 
   kmState.nodes = nodes;
   kmState.edges = edges;
+  kmState.time = 0;
+  // 给节点添加随机相位用于动画
+  nodes.forEach(function(n){ n.phase = Math.random() * Math.PI * 2; n.baseX = n.x; n.baseY = n.y; });
   renderKmLegend(modules, modKeys);
-  drawKnowledgeMap();
+  startKmAnimation();
   initKmInteraction(canvas);
 }
 
@@ -6480,6 +6660,18 @@ function renderKmLegend(modules, modKeys){
   legend.innerHTML = html;
 }
 
+function startKmAnimation(){
+  if(kmState.animId) cancelAnimationFrame(kmState.animId);
+  function loop(){
+    var overlay = document.getElementById('kmOverlay');
+    if(!overlay || overlay.style.display === 'none'){ kmState.animId = null; return; }
+    kmState.time = (kmState.time || 0) + 0.012;
+    drawKnowledgeMap();
+    kmState.animId = requestAnimationFrame(loop);
+  }
+  loop();
+}
+
 function drawKnowledgeMap(){
   var canvas = document.getElementById('kmCanvas');
   var ctx = canvas.getContext('2d');
@@ -6487,6 +6679,17 @@ function drawKnowledgeMap(){
   ctx.save();
   ctx.translate(kmState.offsetX, kmState.offsetY);
   ctx.scale(kmState.scale, kmState.scale);
+
+  var t = kmState.time || 0;
+
+  // 更新浮动位置
+  kmState.nodes.forEach(function(node){
+    if(node.baseX !== undefined){
+      var amp = node.type === 'center' ? 1 : node.type === 'module' ? 2.5 : 1.5;
+      node.x = node.baseX + Math.sin(t + node.phase) * amp;
+      node.y = node.baseY + Math.cos(t * 0.8 + node.phase) * amp;
+    }
+  });
 
   // 绘制连线
   kmState.edges.forEach(function(edge){
@@ -6496,25 +6699,41 @@ function drawKnowledgeMap(){
     ctx.beginPath();
     ctx.moveTo(fromNode.x, fromNode.y);
     ctx.lineTo(toNode.x, toNode.y);
-    ctx.strokeStyle = toNode.type === 'doc' ? 'rgba(255,255,255,.06)' : 'rgba(255,255,255,.15)';
+    var alpha = toNode.type === 'doc' ? 0.06 : 0.15 + Math.sin(t * 1.5 + (toNode.phase || 0)) * 0.04;
+    ctx.strokeStyle = 'rgba(255,255,255,' + alpha + ')';
     ctx.lineWidth = toNode.type === 'doc' ? 0.5 : 1.5;
     ctx.stroke();
   });
 
-  // 绘制节点
+  // 绘制节点（带脉冲呼吸效果）
   kmState.nodes.forEach(function(node){
+    var pulse = 1 + Math.sin(t * 2 + (node.phase || 0)) * 0.06;
+    var r = node.r * pulse;
+    var isHovered = node === kmState.hoveredNode;
+
+    // 光晕
+    if(node.type !== 'doc'){
+      var glow = ctx.createRadialGradient(node.x, node.y, r * 0.3, node.x, node.y, r * 1.8);
+      glow.addColorStop(0, node.color + '22');
+      glow.addColorStop(1, node.color + '00');
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, r * 1.8, 0, Math.PI * 2);
+      ctx.fillStyle = glow;
+      ctx.fill();
+    }
+
     ctx.beginPath();
-    ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
-    ctx.fillStyle = node.color + (node.type === 'doc' ? '33' : 'aa');
+    ctx.arc(node.x, node.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = node.color + (node.type === 'doc' ? '33' : (isHovered ? 'dd' : 'aa'));
     ctx.fill();
-    ctx.strokeStyle = node.color;
-    ctx.lineWidth = node === kmState.hoveredNode ? 3 : 1;
+    ctx.strokeStyle = isHovered ? '#fff' : node.color;
+    ctx.lineWidth = isHovered ? 3 : 1;
     ctx.stroke();
 
     // 标签
     if(node.type !== 'doc' || node === kmState.hoveredNode){
       ctx.font = (node.type === 'center' ? 'bold 14px' : node.type === 'module' ? '12px' : '10px') + ' sans-serif';
-      ctx.fillStyle = '#e8eaed';
+      ctx.fillStyle = isHovered ? '#fff' : '#e8eaed';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       if(node.type === 'module'){
@@ -6587,12 +6806,11 @@ function initKmInteraction(canvas){
       closeKnowledgeMap();
       navigate(node.id);
     } else if(node.type === 'module'){
-      // 聚焦该模块 - 居中并放大
-      var canvas = document.getElementById('kmCanvas');
-      kmState.offsetX = canvas.width/2 - node.x * kmState.scale;
-      kmState.offsetY = canvas.height/2 - node.y * kmState.scale;
-      kmState.scale = Math.min(2, kmState.scale * 1.5);
-      drawKnowledgeMap();
+      // 单击模块节点：关闭地图并跳转到对应区段
+      closeKnowledgeMap();
+      var sectionId = 'section-' + node.id;
+      var el = document.getElementById(sectionId);
+      if(el) setTimeout(function(){ el.scrollIntoView({behavior:'smooth'}); }, 100);
     }
   });
   canvas.addEventListener('wheel', function(e){
