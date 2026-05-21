@@ -6337,6 +6337,107 @@ function handleHeroSearch(q){
   dd.classList.add('show');
 }
 
+// ═══ 首页内联搜索框（直接输入直接搜索）═══
+function initHeroInlineSearch(){
+  var input = document.getElementById('heroInlineSearchInput');
+  var resultsEl = document.getElementById('heroInlineResults');
+  if(!input || !resultsEl) return;
+  var activeIdx = -1;
+
+  input.addEventListener('input', function(){
+    var q = this.value.trim();
+    if(!q){ resultsEl.style.display='none'; resultsEl.innerHTML=''; activeIdx=-1; return; }
+    if(!fuse){ resultsEl.style.display='none'; return; }
+    // 触发全文索引延迟加载
+    if(!fuseFulltext && window._loadSearchIndex) window._loadSearchIndex();
+
+    var titleResults = fuse.search(q).slice(0, 8);
+    var fulltextResults = [];
+    if(fuseFulltext){
+      var rawFt = fuseFulltext.search(q).slice(0, 4);
+      var titleIds = {};
+      titleResults.forEach(function(r){ titleIds[r.item.id] = true; });
+      rawFt.forEach(function(r){ if(!titleIds[r.item.id]) fulltextResults.push(r); });
+      fulltextResults = fulltextResults.slice(0, 3);
+    }
+    var allResults = titleResults.concat(fulltextResults);
+    if(!allResults.length){
+      resultsEl.innerHTML = '<div class="his-results-empty">未找到相关内容，试试其他关键词</div>';
+      resultsEl.style.display = 'block'; activeIdx = -1; return;
+    }
+    var html = '';
+    allResults.forEach(function(r, i){
+      var item = r.item;
+      var icon = '📋';
+      if(item.module==='outsource') icon='📦';
+      else if(item.module==='craft') icon='🎨';
+      else if(item.module==='collab') icon='🤝';
+      else if(item.module==='toolchain') icon='🔧';
+      else if(item.module==='quality') icon='🛡️';
+      else if(item.module==='casestudy') icon='🔥';
+      var modLabel = '';
+      if(indexData && indexData.moduleConfig && indexData.moduleConfig[item.module]){
+        modLabel = indexData.moduleConfig[item.module].label || '';
+      }
+      html += '<div class="his-results-item" data-idx="'+i+'" data-page="'+item.id+'">'
+        +'<span class="his-r-icon">'+icon+'</span>'
+        +'<span class="his-r-title">'+(typeof highlightText==='function'?highlightText(item.title,q):item.title)+'</span>'
+        +'<span class="his-r-module">'+modLabel+'</span>'
+        +'</div>';
+    });
+    resultsEl.innerHTML = html;
+    resultsEl.style.display = 'block';
+    activeIdx = -1;
+  });
+
+  // 键盘上下选择 + 回车
+  input.addEventListener('keydown', function(e){
+    var items = resultsEl.querySelectorAll('.his-results-item');
+    if(!items.length) return;
+    if(e.key === 'ArrowDown'){
+      e.preventDefault();
+      activeIdx = Math.min(activeIdx + 1, items.length - 1);
+      updateHisActive(items, activeIdx);
+    } else if(e.key === 'ArrowUp'){
+      e.preventDefault();
+      activeIdx = Math.max(activeIdx - 1, 0);
+      updateHisActive(items, activeIdx);
+    } else if(e.key === 'Enter'){
+      e.preventDefault();
+      if(activeIdx >= 0 && items[activeIdx]){
+        var pageId = items[activeIdx].getAttribute('data-page');
+        if(pageId){ navigate(pageId); input.value=''; resultsEl.style.display='none'; }
+      } else if(items.length === 1){
+        var pageId = items[0].getAttribute('data-page');
+        if(pageId){ navigate(pageId); input.value=''; resultsEl.style.display='none'; }
+      }
+    } else if(e.key === 'Escape'){
+      resultsEl.style.display='none'; activeIdx=-1;
+    }
+  });
+
+  // 点击结果项
+  resultsEl.addEventListener('mousedown', function(e){
+    var item = e.target.closest('.his-results-item');
+    if(!item) return;
+    var pageId = item.getAttribute('data-page');
+    if(pageId){ navigate(pageId); input.value=''; resultsEl.style.display='none'; }
+  });
+
+  // 失焦隐藏
+  input.addEventListener('blur', function(){
+    setTimeout(function(){ resultsEl.style.display='none'; activeIdx=-1; }, 200);
+  });
+  // 聚焦时如果有内容则显示
+  input.addEventListener('focus', function(){
+    if(this.value.trim() && resultsEl.innerHTML) resultsEl.style.display='block';
+  });
+}
+function updateHisActive(items, idx){
+  items.forEach(function(el, i){ el.classList.toggle('active', i===idx); });
+  if(items[idx]) items[idx].scrollIntoView({block:'nearest'});
+}
+
 // ═══ 多维标签筛选 ═══
 var multiFilterState = { craft: 'all', ctype: 'all' };
 
@@ -6855,6 +6956,7 @@ document.addEventListener('DOMContentLoaded', function(){
   restoreModuleCollapseState();
   initCtxMenu();
   initCommandPalette();
+  initHeroInlineSearch();
   initMultiFilter();
 
   // 0.1 Mermaid 区域默认折叠

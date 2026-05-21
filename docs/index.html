@@ -138,11 +138,14 @@
         <h1>📊 游戏项目<span>知识库</span></h1>
         <p class="hero-tagline" id="heroTagline">项目管理 · 职能协同 · 效能工具 — 面向PM与项目团队的一站式知识平台</p>
         <span class="hero-tagline-toggle" id="heroToggle" onclick="toggleHeroTagline()">▲ 收起简介</span>
-        <!-- ═══ 首页搜索入口（精简：仅保留命令面板触发按钮）═══ -->
-        <div class="hero-search-box" id="heroSearchBox" style="margin:12px auto 0;text-align:center">
-          <button class="km-btn" onclick="openCommandPalette()" style="font-size:14px;padding:10px 24px">
-            🔍 搜索知识文档 <kbd style="margin-left:8px;padding:2px 8px;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--dim)">Ctrl+K</kbd>
-          </button>
+        <!-- ═══ 首页内联搜索框（直接输入关键字即可搜索）═══ -->
+        <div class="hero-search-box" id="heroSearchBox" style="margin:12px auto 0;max-width:480px">
+          <div class="hero-inline-search">
+            <span class="his-icon">🔍</span>
+            <input type="text" id="heroInlineSearchInput" class="his-input" placeholder="输入关键字搜索知识文档..." autocomplete="off" />
+            <kbd class="his-kbd" title="也可按 Ctrl+K 打开命令面板">Ctrl+K</kbd>
+          </div>
+          <div class="his-results" id="heroInlineResults" style="display:none"></div>
         </div>
         <!-- ═══ 三大核心入口卡片 ═══ -->
         <div class="hero-entry-cards">
@@ -379,36 +382,7 @@
             </div>
           </div>
 
-          <!-- 卡片 3：外包 PM -->
-          <div class="role-card rc-pm">
-            <div class="rc-icon">💼</div>
-            <div class="rc-title">我是外包 PM</div>
-            <div class="rc-desc">外包项目管理者，关注外包管理、验收标准、预算结算和供应商生态。</div>
-            <div class="rc-links">
-              <a class="rc-link" onclick="navigate('cp-outsource')">
-                <span class="rc-link-icon">📋</span>
-                <span class="rc-link-text">外包管理与验收规范</span>
-                <span class="rc-link-arrow">→</span>
-              </a>
-              <a class="rc-link" onclick="navigate('budget-apply')">
-                <span class="rc-link-icon">💰</span>
-                <span class="rc-link-text">外包预算申请与结算流转</span>
-                <span class="rc-link-arrow">→</span>
-              </a>
-              <a class="rc-link" onclick="navigate('cost-standard')">
-                <span class="rc-link-icon">📊</span>
-                <span class="rc-link-text">人月成本核算标准</span>
-                <span class="rc-link-arrow">→</span>
-              </a>
-              <a class="rc-link" onclick="navigate('supplier-ecosystem')">
-                <span class="rc-link-icon">🏢</span>
-                <span class="rc-link-text">供应商生态管理规范</span>
-                <span class="rc-link-arrow">→</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- 卡片 4：QA / 主美 -->
+          <!-- 卡片 3：QA / 主美（质量把关，与制作类角色相邻）-->
           <div class="role-card rc-qa">
             <div class="rc-icon">🔍</div>
             <div class="rc-title">我是 QA / 主美</div>
@@ -436,6 +410,35 @@
               </a>
             </div>
             <button class="rc-view-all rc-view-all-qa" onclick="event.stopPropagation();enterRoleView('qa')">📋 查看该角色全部文档 →</button>
+          </div>
+
+          <!-- 卡片 4：外包 PM（独立管理类角色，单独一栏）-->
+          <div class="role-card rc-pm">
+            <div class="rc-icon">💼</div>
+            <div class="rc-title">我是外包 PM</div>
+            <div class="rc-desc">外包项目管理者，关注外包管理、验收标准、预算结算和供应商生态。</div>
+            <div class="rc-links">
+              <a class="rc-link" onclick="navigate('cp-outsource')">
+                <span class="rc-link-icon">📋</span>
+                <span class="rc-link-text">外包管理与验收规范</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+              <a class="rc-link" onclick="navigate('budget-apply')">
+                <span class="rc-link-icon">💰</span>
+                <span class="rc-link-text">外包预算申请与结算流转</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+              <a class="rc-link" onclick="navigate('cost-standard')">
+                <span class="rc-link-icon">📊</span>
+                <span class="rc-link-text">人月成本核算标准</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+              <a class="rc-link" onclick="navigate('supplier-ecosystem')">
+                <span class="rc-link-icon">🏢</span>
+                <span class="rc-link-text">供应商生态管理规范</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+            </div>
           </div>
 
         </div>

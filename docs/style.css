@@ -282,19 +282,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .hero-tagline-toggle:hover{opacity:1}
 
 /* ═══ 首页全局搜索框（突出展示）═══ */
-.hero-search-box{max-width:680px;margin:16px auto 0;position:relative}
-.hero-search-inner{position:relative;display:flex;align-items:center}
-.hero-search-icon{position:absolute;left:20px;font-size:18px;pointer-events:none;z-index:1}
-.hero-search-input{width:100%;padding:12px 110px 12px 46px;background:var(--card-bg);border:2px solid var(--border);border-radius:14px;color:var(--heading);font-size:15px;font-family:inherit;outline:none;transition:all .2s;box-shadow:0 4px 20px rgba(0,0,0,.2)}
-.hero-search-input:focus{border-color:var(--accent);box-shadow:0 4px 24px rgba(108,140,255,.15)}
-.hero-search-input::placeholder{color:var(--dim);font-size:15px}
-.hero-search-kbd{position:absolute;right:12px;padding:4px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--dim);font-family:inherit}
-.hero-search-dropdown{position:absolute;top:100%;left:0;right:0;margin-top:8px;background:var(--card-bg);border:1px solid var(--border);border-radius:14px;max-height:360px;overflow-y:auto;z-index:20;display:none;box-shadow:0 12px 36px rgba(0,0,0,.5)}
-.hero-search-dropdown.show{display:block}
-.hero-search-hot{display:flex;align-items:center;gap:6px;margin-top:10px;justify-content:center;flex-wrap:wrap}
-.hero-hot-label{font-size:12px;color:var(--dim)}
-.hero-hot-chip{padding:4px 12px;background:var(--card-bg);border:1px solid var(--border);border-radius:16px;font-size:12px;color:var(--text);cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
-.hero-hot-chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+.hero-search-box{max-width:480px;margin:12px auto 0;position:relative}
+.hero-inline-search{position:relative;display:flex;align-items:center;background:var(--card-bg);border:2px solid var(--border);border-radius:14px;transition:all .2s;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.hero-inline-search:focus-within{border-color:var(--accent);box-shadow:0 4px 24px rgba(108,140,255,.18)}
+.his-icon{position:absolute;left:14px;font-size:16px;pointer-events:none;opacity:.7}
+.his-input{width:100%;padding:11px 70px 11px 40px;background:transparent;border:none;color:var(--heading);font-size:14px;font-family:inherit;outline:none}
+.his-input::placeholder{color:var(--dim);font-size:13px}
+.his-kbd{position:absolute;right:10px;padding:3px 8px;background:var(--bg);border:1px solid var(--border);border-radius:5px;font-size:10px;color:var(--dim);font-family:inherit;pointer-events:none}
+.his-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;max-height:320px;overflow-y:auto;z-index:50;box-shadow:0 12px 40px rgba(0,0,0,.55)}
+.his-results-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background .12s;border-bottom:1px solid var(--border)}
+.his-results-item:last-child{border-bottom:none}
+.his-results-item:hover,.his-results-item.active{background:var(--accent-bg)}
+.his-results-item .his-r-icon{font-size:16px;flex-shrink:0}
+.his-results-item .his-r-title{font-size:13px;color:var(--heading);font-weight:500}
+.his-results-item .his-r-module{font-size:11px;color:var(--dim);margin-left:auto}
+.his-results-empty{padding:16px;text-align:center;color:var(--dim);font-size:12px}
 
 /* ═══ 三大核心入口卡片 ═══ */
 .hero-entry-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:680px;margin:18px auto 0}
@@ -832,7 +834,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .role-explore-header{display:flex;align-items:center;gap:10px;margin-bottom:18px}
 .role-explore-header h2{font-size:22px;color:var(--heading);font-weight:700;margin:0}
 .role-explore-header .re-sub{font-size:15px;color:var(--dim);margin-left:4px}
-.role-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.role-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;justify-items:center}
+.role-cards>.role-card{width:100%}
 @media(max-width:1200px){.role-cards{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.role-cards{grid-template-columns:1fr}}
 .role-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px 22px;cursor:pointer;transition:all .25s ease;position:relative;overflow:hidden}
