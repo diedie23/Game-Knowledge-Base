@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════
-// APM 专属知识库 v7.0 — 美术项目管理增强版
-// 核心架构：30% 美术生产 · 30% 跨部门协同 · 20% 提效工具 · 20% 成本·风险·团队
-// v7.0新增：美术工艺MECE重构 · 通用基础层 · 动画归入3D · UGC/AIGC专项管线 · 统一命名范式
+// 游戏项目知识库 v8.1 — 项目管理与团队知识平台
+// 核心架构：30% 项目管理 · 30% 跨部门协同 · 20% 提效工具 · 20% 质量·风险·团队
+// v8.1新增：品牌升级 · 角色扩展 · 搜索增强 · 工具下载优化 · 最近浏览
 // ═══════════════════════════════════════════════════
 
 // ═══ Markdown Parser (智能表格增强) ═══
@@ -102,6 +102,59 @@ function logVisit(pageId){
   }catch(e){
     console.log('[VisitLog] 记录失败:', e);
   }
+  // 更新最近浏览侧边栏
+  updateRecentViews(pageId, title);
+}
+
+// ═══ 最近浏览侧边栏模块 ═══
+var RECENT_VIEWS_KEY = 'kb_recent_views';
+
+function updateRecentViews(pageId, title){
+  try{
+    var recent = JSON.parse(localStorage.getItem(RECENT_VIEWS_KEY) || '[]');
+    // 移除已有的相同页面
+    recent = recent.filter(function(r){ return r.id !== pageId; });
+    // 插入到开头
+    recent.unshift({ id: pageId, title: title || pageId, time: Date.now() });
+    // 保留最近 8 条
+    if(recent.length > 8) recent = recent.slice(0, 8);
+    localStorage.setItem(RECENT_VIEWS_KEY, JSON.stringify(recent));
+    renderRecentViews();
+  }catch(e){}
+}
+
+function renderRecentViews(){
+  var container = document.getElementById('sidebarRecent');
+  var list = document.getElementById('sidebarRecentList');
+  if(!container || !list) return;
+  try{
+    var recent = JSON.parse(localStorage.getItem(RECENT_VIEWS_KEY) || '[]');
+    if(!recent.length){ container.style.display='none'; return; }
+    container.style.display='block';
+    var html='';
+    recent.slice(0,5).forEach(function(r){
+      var timeStr = formatRecentTime(r.time);
+      html+='<button class="sidebar-recent-item" onclick="navigate(\''+r.id+'\')">'
+        +'<span class="sri-icon">📄</span>'
+        +'<span class="sri-text">'+r.title+'</span>'
+        +'<span class="sri-time">'+timeStr+'</span>'
+        +'</button>';
+    });
+    list.innerHTML=html;
+  }catch(e){ container.style.display='none'; }
+}
+
+function formatRecentTime(ts){
+  var diff = Date.now() - ts;
+  if(diff < 60000) return '刚刚';
+  if(diff < 3600000) return Math.floor(diff/60000)+'分钟前';
+  if(diff < 86400000) return Math.floor(diff/3600000)+'小时前';
+  return Math.floor(diff/86400000)+'天前';
+}
+
+function clearRecentViews(){
+  localStorage.removeItem(RECENT_VIEWS_KEY);
+  renderRecentViews();
 }
 
 // 获取浏览记录统计
@@ -2742,6 +2795,24 @@ function updateBreadcrumb(pageId){
 
 // ═══ 角色专属视图系统 ═══
 var ROLE_TAG_MAP = {
+  'project-pm': {
+    name: '项目 PM',
+    icon: '🎯',
+    color: 'var(--accent)',
+    colorBg: 'linear-gradient(135deg,rgba(108,140,255,.1),rgba(74,222,128,.1))',
+    tags: ['排期','里程碑','敏捷','Sprint','燃尽图','风险管理','Risk Log','流程管理','进度',
+           '需求管理','TAPD','Jira','项目管理','跨部门','协同','资源调配','复盘',
+           '周报','汇报','效能度量','甘特图','WBS','迭代','版本计划','看板']
+  },
+  'art-pm': {
+    name: '美术 PM',
+    icon: '🎨',
+    color: 'var(--purple)',
+    colorBg: 'rgba(167,139,250,.1)',
+    tags: ['美术管线','美术流程','排期','里程碑','外包','CP评级','验收','资产规范','Pipeline',
+           '2D','3D','Spine','角色','场景','特效','UI','质量','工艺','美术生产',
+           '美术排期','资产提交','命名规范','效能度量','制作规范']
+  },
   'artist': {
     name: '新人美术',
     icon: '🎨',
@@ -6045,6 +6116,66 @@ async function _doUploadNotes(notesArr,label){
   }
 }
 
+// ═══ 首页 Hero 全局搜索框 ═══
+function handleHeroSearch(q){
+  var dd=document.getElementById('heroSearchDropdown');
+  q=q.trim();
+  if(!q){dd.classList.remove('show');dd.innerHTML='';return;}
+  if(!fuse){dd.classList.remove('show');return;}
+  // 触发全文索引延迟加载
+  if(!fuseFulltext && window._loadSearchIndex) window._loadSearchIndex();
+
+  var titleResults=fuse.search(q).slice(0,8);
+  var fulltextResults=[];
+  if(fuseFulltext){
+    var rawFt=fuseFulltext.search(q).slice(0,6);
+    var titleIds={};
+    titleResults.forEach(function(r){titleIds[r.item.id]=true;});
+    rawFt.forEach(function(r){
+      if(!titleIds[r.item.id]) fulltextResults.push(r);
+    });
+    fulltextResults=fulltextResults.slice(0,4);
+  }
+
+  if(!titleResults.length && !fulltextResults.length){
+    dd.innerHTML='<div style="padding:16px;text-align:center;color:var(--dim);font-size:14px">未找到相关内容，试试其他关键词</div>';
+    dd.classList.add('show');return;
+  }
+
+  var html='';
+  titleResults.forEach(function(r){
+    var item=r.item;
+    var modLabel='📋', modCls='background:rgba(108,140,255,.08);color:#6c8cff';
+    if(item.module==='outsource') { modLabel='📦'; modCls='background:rgba(251,146,60,.08);color:#fb923c'; }
+    if(item.module==='craft') { modLabel='🎨'; modCls='background:rgba(167,139,250,.08);color:#a78bfa'; }
+    if(item.module==='collab') { modLabel='🤝'; modCls='background:rgba(74,222,128,.08);color:#4ade80'; }
+    if(item.module==='toolkit') { modLabel='🛠️'; modCls='background:rgba(34,211,238,.08);color:#22d3ee'; }
+    if(item.module==='quality'||item.module==='governance') { modLabel='🛡️'; modCls='background:rgba(244,114,182,.08);color:#f472b6'; }
+    if(item.module==='casestudy') { modLabel='🔥'; modCls='background:rgba(248,113,113,.08);color:#f87171'; }
+    html+='<div class="sr-item" onmousedown="navigate(\''+item.id+'\');document.getElementById(\'heroSearchDropdown\').classList.remove(\'show\');document.getElementById(\'heroSearchInput\').value=\'\'">'
+      +'<span class="sr-type" style="'+modCls+'">'+modLabel+'</span>'
+      +'<span class="sr-title">'+(typeof highlightText==='function'?highlightText(item.title,q):item.title)+'</span>'
+      +'</div>';
+  });
+  if(fulltextResults.length){
+    html+='<div style="padding:6px 16px 4px;font-size:11px;color:var(--dim);border-top:1px solid var(--border);font-weight:600">📄 正文匹配</div>';
+    fulltextResults.forEach(function(r){
+      var item=r.item;
+      html+='<div class="sr-item" onmousedown="navigate(\''+item.id+'\');document.getElementById(\'heroSearchDropdown\').classList.remove(\'show\');document.getElementById(\'heroSearchInput\').value=\'\'">'
+        +'<span class="sr-type" style="background:rgba(139,143,163,.08);color:#8b8fa3">📄</span>'
+        +'<span class="sr-title">'+item.title+'</span>'
+        +'</div>';
+    });
+  }
+  dd.innerHTML=html;
+  dd.classList.add('show');
+}
+
+function quickHeroSearch(keyword){
+  var input=document.getElementById('heroSearchInput');
+  if(input){input.value=keyword;handleHeroSearch(keyword);input.focus();}
+}
+
 // ═══ Init ═══
 document.addEventListener('DOMContentLoaded', function(){
   // 0. 初始化交互增强模块
@@ -6079,6 +6210,8 @@ document.addEventListener('DOMContentLoaded', function(){
     initSearch();
     // 3. 处理 hash 路由
     setupScrollSpy();
+    // 3.1 渲染最近浏览
+    renderRecentViews();
     // 【Bug 2 修复】先尝试导航到 hash 页面（侧边栏按钮/文档内容依赖 pageRegistry 已就绪）
     // 但由于 indexData 尚在异步加载，detailMetaBar 可能缺失，需在 indexData 就绪后补刷
     var hash=location.hash.slice(1);
