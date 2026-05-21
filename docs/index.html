@@ -143,7 +143,7 @@
           <div class="hero-search-inner">
             <span class="hero-search-icon">🔍</span>
             <input type="text" id="heroSearchInput" class="hero-search-input" placeholder="搜索知识文档... 输入关键词如：排期模板、外包验收、Bug定级" oninput="handleHeroSearch(this.value)" onfocus="document.getElementById('heroSearchDropdown').classList.add('show')" onblur="setTimeout(()=>document.getElementById('heroSearchDropdown').classList.remove('show'),250)">
-            <kbd class="hero-search-kbd">Ctrl+K</kbd>
+            <kbd class="hero-search-kbd" onclick="openCommandPalette()" title="打开命令面板" style="cursor:pointer">⌘ 命令面板</kbd>
           </div>
           <div class="hero-search-dropdown" id="heroSearchDropdown"></div>
           <div class="hero-search-hot">
@@ -152,7 +152,7 @@
             <button class="hero-hot-chip" onclick="quickHeroSearch('外包验收')">📦 外包验收</button>
             <button class="hero-hot-chip" onclick="quickHeroSearch('Bug定级')">🐛 Bug定级</button>
             <button class="hero-hot-chip" onclick="quickHeroSearch('项目复盘')">🔥 项目复盘</button>
-            <button class="hero-hot-chip" onclick="quickHeroSearch('工具下载')">🔧 工具下载</button>
+            <button class="hero-hot-chip" onclick="quickHeroSearch('效能工具')">🔧 效能工具</button>
           </div>
         </div>
         <!-- ═══ 三大核心入口卡片 ═══ -->
@@ -167,10 +167,10 @@
             <div class="hec-title">角色导航</div>
             <div class="hec-desc">按角色找到最相关内容</div>
           </div>
-          <div class="hero-entry-card hec-tools" onclick="window.open('tools.html','_blank')">
+          <div class="hero-entry-card hec-tools" onclick="document.getElementById('toolsQuickSection').scrollIntoView({behavior:'smooth'})">
             <div class="hec-icon">🔧</div>
-            <div class="hec-title">工具下载</div>
-            <div class="hec-desc">桌面工具与在线工具集</div>
+            <div class="hec-title">效能工具</div>
+            <div class="hec-desc">桌面工具与在线工具快速获取</div>
           </div>
         </div>
 
@@ -202,8 +202,8 @@
             <button class="scene-chip" onclick="quickHeroSearch('Bug定级')">
               <span class="sc-icon">🐛</span><span class="sc-text">明确Bug定级标准</span>
             </button>
-            <button class="scene-chip" onclick="window.open('tools.html','_blank')">
-              <span class="sc-icon">🔧</span><span class="sc-text">下载效能工具</span>
+            <button class="scene-chip" onclick="document.getElementById('toolsQuickSection').scrollIntoView({behavior:'smooth'})">
+              <span class="sc-icon">🔧</span><span class="sc-text">获取效能工具</span>
             </button>
             <button class="scene-chip" onclick="quickHeroSearch('新人')">
               <span class="sc-icon">🆕</span><span class="sc-text">新人入职指引</span>
