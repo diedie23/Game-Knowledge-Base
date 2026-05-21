@@ -229,6 +229,33 @@
           <button class="stage-btn stage-btn-test" onclick="filterByStage('测试期')"><span class="stage-dot" style="background:#4ade80"></span>测试期</button>
           <button class="stage-btn stage-btn-allstage" onclick="filterByStage('全阶段')"><span class="stage-dot" style="background:#a78bfa"></span>全阶段</button>
         </div>
+        <!-- 多维标签筛选 -->
+        <div class="multi-filter-row" id="multiFilterRow">
+          <div class="mf-group">
+            <span class="mf-label">工种：</span>
+            <button class="mf-chip active" data-filter="craft" data-value="all">全部</button>
+            <button class="mf-chip" data-filter="craft" data-value="管理">📋 管理</button>
+            <button class="mf-chip" data-filter="craft" data-value="角色">🧑 角色</button>
+            <button class="mf-chip" data-filter="craft" data-value="UI">🖥️ UI</button>
+            <button class="mf-chip" data-filter="craft" data-value="场景">🏔️ 场景</button>
+            <button class="mf-chip" data-filter="craft" data-value="特效">✨ 特效</button>
+            <button class="mf-chip" data-filter="craft" data-value="TA">🔬 TA</button>
+          </div>
+          <div class="mf-group">
+            <span class="mf-label">类型：</span>
+            <button class="mf-chip active" data-filter="ctype" data-value="all">全部</button>
+            <button class="mf-chip" data-filter="ctype" data-value="方法论">📖 方法论</button>
+            <button class="mf-chip" data-filter="ctype" data-value="模板">📄 模板</button>
+            <button class="mf-chip" data-filter="ctype" data-value="工具">🔧 工具</button>
+            <button class="mf-chip" data-filter="ctype" data-value="规范">📏 规范</button>
+            <button class="mf-chip" data-filter="ctype" data-value="案例">📂 案例</button>
+          </div>
+        </div>
+        <!-- 知识地图入口 -->
+        <div class="knowledge-map-entry">
+          <button class="km-btn" onclick="openKnowledgeMap()">🗺️ 打开知识地图</button>
+          <span class="km-desc">可视化浏览 9 大模块 · 72 篇文档的关系网络</span>
+        </div>
       </div>
 
       <!-- ═══ 🧭 角色探索 — 快速导航（第一视觉焦点）═══ -->
@@ -1648,8 +1675,36 @@ function switchMermaidTab(panelId, btn) {
 }
 </script>
 
+<!-- 知识地图覆盖层 -->
+<div class="km-overlay" id="kmOverlay" style="display:none">
+  <div class="km-header">
+    <h2 class="km-title">🗺️ 知识地图 — 模块关系总览</h2>
+    <div class="km-controls">
+      <button class="km-ctrl-btn" onclick="kmZoom(1.2)" title="放大">🔍+</button>
+      <button class="km-ctrl-btn" onclick="kmZoom(0.8)" title="缩小">🔍−</button>
+      <button class="km-ctrl-btn" onclick="kmReset()" title="重置">↺</button>
+    </div>
+    <button class="km-close" onclick="closeKnowledgeMap()">✕</button>
+  </div>
+  <canvas id="kmCanvas"></canvas>
+  <div class="km-legend" id="kmLegend"></div>
+  <div class="km-tooltip" id="kmTooltip" style="display:none"></div>
+</div>
+
 <!-- 主逻辑 -->
 <script src="app.js" defer></script>
+<!-- 离线缓存 Service Worker 注册 -->
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./sw.js').then(function(reg){
+      console.log('[KB] Service Worker registered, scope:', reg.scope);
+    }).catch(function(err){
+      console.warn('[KB] SW registration failed:', err);
+    });
+  });
+}
+</script>
 <!-- 访客统计采集（静默，不影响页面性能） -->
 <script src="analytics.js" defer></script>
 </body>

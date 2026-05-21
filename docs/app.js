@@ -3644,6 +3644,7 @@ function updateDetailMetaBar(pageId){
   }
   html+='<button class="dm-btn dm-btn-fav" id="favBtn_'+pageId+'" onclick="toggleFavorite(\''+pageId+'\')" title="收藏/取消收藏">'+(isFavorited(pageId)?'⭐ 已收藏':'☆ 收藏')+'</button>';
   html+='<button class="dm-btn" onclick="copyCardLink(\''+pageId+'\')" title="复制链接">📋 复制链接</button>';
+  html+='<button class="dm-btn" onclick="exportToPdf()" title="导出为PDF">📥 导出PDF</button>';
   html+='<button class="dm-btn" onclick="navigate(\'home\')" title="返回首页">🏠 返回首页</button>';
   html+='</span>';
   bar.innerHTML=html;
@@ -6335,6 +6336,294 @@ function handleHeroSearch(q){
   dd.classList.add('show');
 }
 
+// ═══ 多维标签筛选 ═══
+var multiFilterState = { craft: 'all', ctype: 'all' };
+
+function initMultiFilter(){
+  var chips = document.querySelectorAll('.mf-chip');
+  chips.forEach(function(chip){
+    chip.addEventListener('click', function(){
+      var filterType = this.getAttribute('data-filter');
+      var value = this.getAttribute('data-value');
+      multiFilterState[filterType] = value;
+      // 更新active状态
+      var siblings = document.querySelectorAll('.mf-chip[data-filter="'+filterType+'"]');
+      siblings.forEach(function(s){ s.classList.remove('active'); });
+      this.classList.add('active');
+      applyMultiFilter();
+    });
+  });
+}
+
+function applyMultiFilter(){
+  if(!indexData || !indexData.items) return;
+  var craft = multiFilterState.craft;
+  var ctype = multiFilterState.ctype;
+  // 获取所有首页grid卡片
+  var allCards = document.querySelectorAll('.home-grid .hg-card');
+  allCards.forEach(function(card){
+    var cardId = card.getAttribute('data-page-id') || card.getAttribute('onclick');
+    // 尝试从onclick中提取pageId
+    var match = cardId && cardId.match && cardId.match(/navigate\('([^']+)'\)/);
+    var pageId = match ? match[1] : (card.getAttribute('data-page-id') || '');
+    if(!pageId){card.style.display=''; return;}
+    var meta = getItemMeta(pageId);
+    if(!meta){card.style.display=''; return;}
+    var show = true;
+    if(craft !== 'all' && meta.craft && meta.craft.indexOf(craft) === -1) show = false;
+    if(ctype !== 'all' && meta.content_type && meta.content_type !== ctype) show = false;
+    card.style.display = show ? '' : 'none';
+  });
+  // 也过滤grid组
+  var gridGroups = document.querySelectorAll('.home-grid .grid-section');
+  gridGroups.forEach(function(group){
+    var visibleCards = group.querySelectorAll('.hg-card:not([style*="display: none"]):not([style*="display:none"])');
+    group.style.display = visibleCards.length ? '' : 'none';
+  });
+}
+
+// ═══ 知识地图 ═══
+var kmState = { scale: 1, offsetX: 0, offsetY: 0, dragging: false, lastX: 0, lastY: 0, nodes: [], edges: [], hoveredNode: null };
+
+var KM_COLORS = {
+  project: '#6c8cff', outsource: '#fb923c', craft: '#a78bfa',
+  collab: '#4ade80', toolchain: '#22d3ee', quality: '#f472b6',
+  casestudy: '#f87171', system: '#8b8fa3', mynotes: '#fbbf24'
+};
+
+function openKnowledgeMap(){
+  var overlay = document.getElementById('kmOverlay');
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  buildKnowledgeMap();
+}
+
+function closeKnowledgeMap(){
+  document.getElementById('kmOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function kmZoom(factor){
+  kmState.scale *= factor;
+  kmState.scale = Math.max(0.3, Math.min(3, kmState.scale));
+  drawKnowledgeMap();
+}
+
+function kmReset(){
+  kmState.scale = 1; kmState.offsetX = 0; kmState.offsetY = 0;
+  drawKnowledgeMap();
+}
+
+function buildKnowledgeMap(){
+  var canvas = document.getElementById('kmCanvas');
+  var rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height - 60; // 减去header
+  var cx = canvas.width / 2;
+  var cy = canvas.height / 2;
+  var nodes = [];
+  var edges = [];
+
+  // 中心节点
+  nodes.push({ id: 'center', label: '知识库', x: cx, y: cy, r: 40, color: '#6c8cff', type: 'center', children: 0 });
+
+  // 模块节点 围绕中心排列
+  var modules = indexData && indexData.moduleConfig ? indexData.moduleConfig : {};
+  var modKeys = Object.keys(modules).filter(function(k){ return modules[k].weight > 0; });
+  var angleStep = (Math.PI * 2) / modKeys.length;
+  var modRadius = Math.min(cx, cy) * 0.4;
+
+  modKeys.forEach(function(key, i){
+    var mod = modules[key];
+    var angle = angleStep * i - Math.PI / 2;
+    var x = cx + Math.cos(angle) * modRadius;
+    var y = cy + Math.sin(angle) * modRadius;
+    var count = 0;
+    if(indexData && indexData.items){
+      count = indexData.items.filter(function(it){ return it.module === key; }).length;
+    }
+    nodes.push({ id: key, label: mod.icon + ' ' + mod.label.replace(/^.+\s/, ''), x: x, y: y, r: 24 + count, color: KM_COLORS[key] || '#888', type: 'module', count: count, fullLabel: mod.label });
+    edges.push({ from: 'center', to: key });
+  });
+
+  // 子文档节点 - 围绕各模块排列
+  if(indexData && indexData.items){
+    modKeys.forEach(function(modKey){
+      var modNode = nodes.find(function(n){ return n.id === modKey; });
+      if(!modNode) return;
+      var items = indexData.items.filter(function(it){ return it.module === modKey; });
+      var subAngleStep = (Math.PI * 2) / Math.max(items.length, 1);
+      var subRadius = 80 + items.length * 4;
+      items.forEach(function(item, j){
+        var angle = subAngleStep * j;
+        var x = modNode.x + Math.cos(angle) * subRadius;
+        var y = modNode.y + Math.sin(angle) * subRadius;
+        nodes.push({ id: item.id, label: (item.icon || '📄') + ' ' + (item.title || item.id).substring(0, 8), x: x, y: y, r: 10 + (item.is_hot ? 4 : 0), color: KM_COLORS[modKey] || '#888', type: 'doc', title: item.title, module: modKey, desc: item.desc || '' });
+        edges.push({ from: modKey, to: item.id });
+      });
+    });
+  }
+
+  kmState.nodes = nodes;
+  kmState.edges = edges;
+  renderKmLegend(modules, modKeys);
+  drawKnowledgeMap();
+  initKmInteraction(canvas);
+}
+
+function renderKmLegend(modules, modKeys){
+  var legend = document.getElementById('kmLegend');
+  var html = '';
+  modKeys.forEach(function(key){
+    html += '<div class="km-legend-item"><span class="km-legend-dot" style="background:'+KM_COLORS[key]+'"></span>'+modules[key].label+'</div>';
+  });
+  legend.innerHTML = html;
+}
+
+function drawKnowledgeMap(){
+  var canvas = document.getElementById('kmCanvas');
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(kmState.offsetX, kmState.offsetY);
+  ctx.scale(kmState.scale, kmState.scale);
+
+  // 绘制连线
+  kmState.edges.forEach(function(edge){
+    var fromNode = kmState.nodes.find(function(n){ return n.id === edge.from; });
+    var toNode = kmState.nodes.find(function(n){ return n.id === edge.to; });
+    if(!fromNode || !toNode) return;
+    ctx.beginPath();
+    ctx.moveTo(fromNode.x, fromNode.y);
+    ctx.lineTo(toNode.x, toNode.y);
+    ctx.strokeStyle = toNode.type === 'doc' ? 'rgba(255,255,255,.06)' : 'rgba(255,255,255,.15)';
+    ctx.lineWidth = toNode.type === 'doc' ? 0.5 : 1.5;
+    ctx.stroke();
+  });
+
+  // 绘制节点
+  kmState.nodes.forEach(function(node){
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
+    ctx.fillStyle = node.color + (node.type === 'doc' ? '33' : 'aa');
+    ctx.fill();
+    ctx.strokeStyle = node.color;
+    ctx.lineWidth = node === kmState.hoveredNode ? 3 : 1;
+    ctx.stroke();
+
+    // 标签
+    if(node.type !== 'doc' || node === kmState.hoveredNode){
+      ctx.font = (node.type === 'center' ? 'bold 14px' : node.type === 'module' ? '12px' : '10px') + ' sans-serif';
+      ctx.fillStyle = '#e8eaed';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      if(node.type === 'module'){
+        ctx.fillText(node.label, node.x, node.y + node.r + 14);
+        ctx.font = '10px sans-serif';
+        ctx.fillStyle = '#8b8fa3';
+        ctx.fillText(node.count + '篇', node.x, node.y + node.r + 28);
+      } else {
+        ctx.fillText(node.label, node.x, node.y);
+      }
+    }
+  });
+
+  ctx.restore();
+}
+
+function initKmInteraction(canvas){
+  // 防止重复绑定
+  if(canvas._kmBound) return;
+  canvas._kmBound = true;
+
+  canvas.addEventListener('mousedown', function(e){
+    kmState.dragging = true;
+    kmState.lastX = e.clientX;
+    kmState.lastY = e.clientY;
+  });
+  canvas.addEventListener('mousemove', function(e){
+    if(kmState.dragging){
+      kmState.offsetX += e.clientX - kmState.lastX;
+      kmState.offsetY += e.clientY - kmState.lastY;
+      kmState.lastX = e.clientX;
+      kmState.lastY = e.clientY;
+      drawKnowledgeMap();
+    } else {
+      // hover检测
+      var rect = canvas.getBoundingClientRect();
+      var mx = (e.clientX - rect.left - kmState.offsetX) / kmState.scale;
+      var my = (e.clientY - rect.top - kmState.offsetY) / kmState.scale;
+      var hovered = null;
+      kmState.nodes.forEach(function(node){
+        var dx = mx - node.x, dy = my - node.y;
+        if(dx*dx + dy*dy < node.r*node.r) hovered = node;
+      });
+      if(hovered !== kmState.hoveredNode){
+        kmState.hoveredNode = hovered;
+        drawKnowledgeMap();
+        var tooltip = document.getElementById('kmTooltip');
+        if(hovered && hovered.type !== 'center'){
+          tooltip.style.display = 'block';
+          tooltip.style.left = (e.clientX + 12) + 'px';
+          tooltip.style.top = (e.clientY + 12) + 'px';
+          tooltip.innerHTML = '<div class="km-tooltip-title">'+(hovered.fullLabel || hovered.title || hovered.label)+'</div>'
+            +'<div class="km-tooltip-desc">'+(hovered.desc || (hovered.count ? hovered.count+'篇文档' : '点击跳转'))+'</div>';
+        } else {
+          tooltip.style.display = 'none';
+        }
+      }
+      canvas.style.cursor = hovered ? 'pointer' : 'grab';
+    }
+  });
+  canvas.addEventListener('mouseup', function(){ kmState.dragging = false; });
+  canvas.addEventListener('mouseleave', function(){
+    kmState.dragging = false;
+    document.getElementById('kmTooltip').style.display = 'none';
+  });
+  canvas.addEventListener('click', function(e){
+    if(!kmState.hoveredNode) return;
+    var node = kmState.hoveredNode;
+    if(node.type === 'doc'){
+      closeKnowledgeMap();
+      navigate(node.id);
+    } else if(node.type === 'module'){
+      // 聚焦该模块 - 居中并放大
+      var canvas = document.getElementById('kmCanvas');
+      kmState.offsetX = canvas.width/2 - node.x * kmState.scale;
+      kmState.offsetY = canvas.height/2 - node.y * kmState.scale;
+      kmState.scale = Math.min(2, kmState.scale * 1.5);
+      drawKnowledgeMap();
+    }
+  });
+  canvas.addEventListener('wheel', function(e){
+    e.preventDefault();
+    var factor = e.deltaY > 0 ? 0.9 : 1.1;
+    kmZoom(factor);
+  });
+}
+
+// ═══ PDF导出功能 ═══
+function exportToPdf(){
+  var content = document.getElementById('pageDetail');
+  if(!content) { showToast('无内容可导出'); return; }
+  showToast('🖨️ 正在准备打印/PDF导出...');
+  // 使用浏览器原生打印为PDF
+  var printContent = content.innerHTML;
+  var printWin = window.open('', '_blank', 'width=800,height=600');
+  printWin.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+document.title+' - 导出</title>');
+  printWin.document.write('<style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;padding:40px;line-height:1.8;color:#333;max-width:800px;margin:0 auto}');
+  printWin.document.write('h1,h2,h3{color:#1a1d2e;margin-top:24px}h1{font-size:24px;border-bottom:2px solid #e5e7eb;padding-bottom:8px}h2{font-size:20px}h3{font-size:16px}');
+  printWin.document.write('table{border-collapse:collapse;width:100%;margin:16px 0}th,td{border:1px solid #e5e7eb;padding:8px 12px;text-align:left}th{background:#f9fafb;font-weight:600}');
+  printWin.document.write('pre{background:#f5f5f5;padding:12px;border-radius:6px;overflow-x:auto;font-size:13px}code{background:#f5f5f5;padding:2px 6px;border-radius:3px;font-size:13px}');
+  printWin.document.write('img{max-width:100%;height:auto}a{color:#4f6df5}');
+  printWin.document.write('.dm-meta-bar,.doc-rating,.interaction-placeholder{display:none!important}');
+  printWin.document.write('@media print{body{padding:20px}}</style></head><body>');
+  printWin.document.write(printContent);
+  printWin.document.write('</body></html>');
+  printWin.document.close();
+  setTimeout(function(){ printWin.print(); }, 500);
+}
+
 function quickHeroSearch(keyword){
   var input=document.getElementById('heroSearchInput');
   if(input){input.value=keyword;handleHeroSearch(keyword);input.focus();}
@@ -6348,6 +6637,7 @@ document.addEventListener('DOMContentLoaded', function(){
   restoreModuleCollapseState();
   initCtxMenu();
   initCommandPalette();
+  initMultiFilter();
 
   // 0.1 Mermaid 区域默认折叠
   var mermaidBody = document.getElementById('mermaidBody');
