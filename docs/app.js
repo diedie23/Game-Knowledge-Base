@@ -780,6 +780,8 @@ function navigate(pageId,btn){
   updateRelatedDocs(pageId);
   // 互动模块占位
   updateInteractionPlaceholder(pageId);
+  // 文档评分组件
+  showDocRating(pageId);
 
   if(pageId==='home'){
     scroll.style.display='block';home.style.display='block';scroll.scrollTop=0;
@@ -3640,6 +3642,7 @@ function updateDetailMetaBar(pageId){
       html+='<button class="dm-btn htmpl-btn-exit dm-admin-edit" id="dmBtnExitEdit" onclick="unifiedExitEdit(\''+pageId+'\')" style="display:none" title="退出编辑模式">✖ 退出编辑</button>';
     }
   }
+  html+='<button class="dm-btn dm-btn-fav" id="favBtn_'+pageId+'" onclick="toggleFavorite(\''+pageId+'\')" title="收藏/取消收藏">'+(isFavorited(pageId)?'⭐ 已收藏':'☆ 收藏')+'</button>';
   html+='<button class="dm-btn" onclick="copyCardLink(\''+pageId+'\')" title="复制链接">📋 复制链接</button>';
   html+='<button class="dm-btn" onclick="navigate(\'home\')" title="返回首页">🏠 返回首页</button>';
   html+='</span>';
@@ -6116,6 +6119,167 @@ async function _doUploadNotes(notesArr,label){
   }
 }
 
+// ═══ 文档有用性评分 ═══
+var RATING_KEY = 'kb_ratings';
+
+function getRatings(){
+  try{ return JSON.parse(localStorage.getItem(RATING_KEY) || '{}'); }catch(e){ return {}; }
+}
+
+function submitRating(score){
+  var pageId = curPage;
+  if(!pageId || pageId === 'home') return;
+  var ratings = getRatings();
+  if(!ratings[pageId]) ratings[pageId] = { scores: [], total: 0, avg: 0 };
+  ratings[pageId].scores.push(score);
+  ratings[pageId].total = ratings[pageId].scores.length;
+  var sum = 0;
+  ratings[pageId].scores.forEach(function(s){ sum += s; });
+  ratings[pageId].avg = (sum / ratings[pageId].total).toFixed(1);
+  localStorage.setItem(RATING_KEY, JSON.stringify(ratings));
+
+  // UI反馈
+  var buttons = document.querySelectorAll('.rating-btn');
+  buttons.forEach(function(btn){ btn.classList.remove('active'); btn.disabled = true; btn.style.opacity='0.6'; });
+  // 高亮选中的
+  var scoreMap = { 3: 'rating-great', 2: 'rating-ok', 1: 'rating-bad' };
+  var target = document.querySelector('.rating-btn.' + scoreMap[score]);
+  if(target){ target.classList.add('active'); target.style.opacity='1'; }
+
+  document.getElementById('ratingResult').style.display='block';
+  renderRatingStats(pageId);
+}
+
+function renderRatingStats(pageId){
+  var el = document.getElementById('ratingStats');
+  if(!el) return;
+  var ratings = getRatings();
+  var data = ratings[pageId];
+  if(!data || !data.total){ el.textContent=''; return; }
+  var labels = { 3: '🤩', 2: '😊', 1: '😕' };
+  var count3=0, count2=0, count1=0;
+  data.scores.forEach(function(s){ if(s===3)count3++; if(s===2)count2++; if(s===1)count1++; });
+  el.textContent = '共 '+data.total+' 次评价 · '+labels[3]+' '+count3+' · '+labels[2]+' '+count2+' · '+labels[1]+' '+count1;
+}
+
+function showDocRating(pageId){
+  var el = document.getElementById('docRating');
+  if(!el) return;
+  var reg = pageRegistry[pageId];
+  if(pageId !== 'home' && reg && (reg.type==='md' || reg.type==='iframe')){
+    el.style.display='block';
+    // 重置状态
+    var buttons = document.querySelectorAll('.rating-btn');
+    buttons.forEach(function(btn){ btn.classList.remove('active'); btn.disabled=false; btn.style.opacity='1'; });
+    document.getElementById('ratingResult').style.display='none';
+    // 如果已评过则显示结果
+    var ratings = getRatings();
+    if(ratings[pageId] && ratings[pageId].total > 0){
+      renderRatingStats(pageId);
+    } else {
+      document.getElementById('ratingStats').textContent='';
+    }
+  } else {
+    el.style.display='none';
+  }
+}
+
+// ═══ 文档收藏功能 ═══
+var FAV_KEY = 'kb_favorites';
+
+function getFavorites(){
+  try{ return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); }catch(e){ return []; }
+}
+
+function isFavorited(pageId){
+  return getFavorites().some(function(f){ return f.id === pageId; });
+}
+
+function toggleFavorite(pageId){
+  var favs = getFavorites();
+  var idx = -1;
+  favs.forEach(function(f, i){ if(f.id === pageId) idx = i; });
+  if(idx >= 0){
+    favs.splice(idx, 1);
+    showToast('已取消收藏');
+  } else {
+    var title = pageId;
+    var reg = pageRegistry[pageId];
+    if(reg && reg.title) title = reg.title;
+    else {
+      // 尝试从sidebar数据获取标题
+      var meta = getItemMeta(pageId);
+      if(meta && meta.title) title = meta.title;
+    }
+    favs.unshift({ id: pageId, title: title, time: Date.now() });
+    if(favs.length > 20) favs = favs.slice(0, 20);
+    showToast('⭐ 已收藏');
+  }
+  localStorage.setItem(FAV_KEY, JSON.stringify(favs));
+  // 更新按钮状态
+  var btn = document.getElementById('favBtn_' + pageId);
+  if(btn) btn.textContent = isFavorited(pageId) ? '⭐ 已收藏' : '☆ 收藏';
+  renderFavorites();
+}
+
+function renderFavorites(){
+  var container = document.getElementById('sidebarFavorites');
+  var list = document.getElementById('sidebarFavList');
+  var countEl = document.getElementById('favCount');
+  if(!container || !list) return;
+  var favs = getFavorites();
+  if(!favs.length){ container.style.display='none'; return; }
+  container.style.display='block';
+  if(countEl) countEl.textContent = favs.length + '篇';
+  var html='';
+  favs.slice(0,8).forEach(function(f){
+    html+='<button class="sidebar-recent-item" onclick="navigate(\''+f.id+'\')">'
+      +'<span class="sri-icon">⭐</span>'
+      +'<span class="sri-text">'+f.title+'</span>'
+      +'<span class="sri-time" onclick="event.stopPropagation();removeFavorite(\''+f.id+'\')" title="取消收藏" style="cursor:pointer;color:var(--red)">✕</span>'
+      +'</button>';
+  });
+  list.innerHTML=html;
+}
+
+function removeFavorite(pageId){
+  var favs = getFavorites().filter(function(f){ return f.id !== pageId; });
+  localStorage.setItem(FAV_KEY, JSON.stringify(favs));
+  renderFavorites();
+  // 如果当前在该页面，更新按钮
+  var btn = document.getElementById('favBtn_' + pageId);
+  if(btn) btn.textContent = '☆ 收藏';
+  showToast('已取消收藏');
+}
+
+// ═══ 浅色/深色模式切换 ═══
+var THEME_KEY = 'kb_theme';
+
+function toggleTheme(){
+  var html = document.documentElement;
+  var current = html.getAttribute('data-theme') || 'dark';
+  var next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem(THEME_KEY, next);
+  updateThemeIcon(next);
+}
+
+function updateThemeIcon(theme){
+  var btn = document.getElementById('themeToggleBtn');
+  if(btn) btn.textContent = theme === 'light' ? '☀️' : '🌙';
+}
+
+function initTheme(){
+  var saved = localStorage.getItem(THEME_KEY);
+  // 如果没有保存过偏好，默认深色
+  var theme = saved || 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  updateThemeIcon(theme);
+}
+
+// 尽早初始化主题以避免闪烁
+initTheme();
+
 // ═══ 首页 Hero 全局搜索框 ═══
 function handleHeroSearch(q){
   var dd=document.getElementById('heroSearchDropdown');
@@ -6212,6 +6376,8 @@ document.addEventListener('DOMContentLoaded', function(){
     setupScrollSpy();
     // 3.1 渲染最近浏览
     renderRecentViews();
+    // 3.2 渲染收藏夹
+    renderFavorites();
     // 【Bug 2 修复】先尝试导航到 hash 页面（侧边栏按钮/文档内容依赖 pageRegistry 已就绪）
     // 但由于 indexData 尚在异步加载，detailMetaBar 可能缺失，需在 indexData 就绪后补刷
     var hash=location.hash.slice(1);

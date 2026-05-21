@@ -39,6 +39,14 @@
       </div>
       <div class="sidebar-recent-list" id="sidebarRecentList"></div>
     </div>
+    <!-- 收藏夹 -->
+    <div class="sidebar-favorites" id="sidebarFavorites" style="display:none">
+      <div class="sidebar-recent-header">
+        <span class="sidebar-recent-title">⭐ 我的收藏</span>
+        <span class="sidebar-fav-count" id="favCount"></span>
+      </div>
+      <div class="sidebar-recent-list" id="sidebarFavList"></div>
+    </div>
     <div style="padding:20px;text-align:center;color:var(--dim);font-size:12px">⏳ 加载中...</div>
   </nav>
   <div class="sidebar-footer">
@@ -56,7 +64,7 @@
         <span class="sf-cmd-icon">⚙️</span>
       </button>
     </div>
-    <div class="sf-links"><span style="cursor:pointer;transition:color .15s" onclick="_onVersionTap()" title="查看更新日志">v8.1</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a><a onclick="navigate('editor-guide')" title="编辑器使用指南">❓</a><a id="mobileAdminToggle" class="sf-mobile-admin" onclick="toggleAdminMode()" title="管理模式" style="display:none !important">🔧 管理模式</a></div>
+    <div class="sf-links"><span style="cursor:pointer;transition:color .15s" onclick="_onVersionTap()" title="查看更新日志">v8.1</span><a onclick="copyShareLink()">🔗</a><a onclick="showFeedback()">📮</a><a onclick="navigate('editor-guide')" title="编辑器使用指南">❓</a><a onclick="toggleTheme()" id="themeToggleBtn" title="切换浅色/深色模式" style="cursor:pointer">🌙</a><a id="mobileAdminToggle" class="sf-mobile-admin" onclick="toggleAdminMode()" title="管理模式" style="display:none !important">🔧 管理模式</a></div>
   </div>
 </aside>
 
@@ -163,6 +171,43 @@
             <div class="hec-icon">🔧</div>
             <div class="hec-title">工具下载</div>
             <div class="hec-desc">桌面工具与在线工具集</div>
+          </div>
+        </div>
+
+        <!-- ═══ 场景化「我要...」快速导航 ═══ -->
+        <div class="scene-nav" id="sceneNav">
+          <div class="scene-nav-title">💡 我想要...</div>
+          <div class="scene-nav-grid">
+            <button class="scene-chip" onclick="quickHeroSearch('排期模板')">
+              <span class="sc-icon">📅</span><span class="sc-text">制定排期计划</span>
+            </button>
+            <button class="scene-chip" onclick="quickHeroSearch('外包管理')">
+              <span class="sc-icon">📦</span><span class="sc-text">管理外包资源</span>
+            </button>
+            <button class="scene-chip" onclick="quickHeroSearch('需求对接')">
+              <span class="sc-icon">📝</span><span class="sc-text">理清需求流转</span>
+            </button>
+            <button class="scene-chip" onclick="quickHeroSearch('风险管理')">
+              <span class="sc-icon">⚠️</span><span class="sc-text">做项目风险管控</span>
+            </button>
+            <button class="scene-chip" onclick="quickHeroSearch('复盘')">
+              <span class="sc-icon">🔥</span><span class="sc-text">组织项目复盘</span>
+            </button>
+            <button class="scene-chip" onclick="quickHeroSearch('效能度量')">
+              <span class="sc-icon">📊</span><span class="sc-text">搭建效能度量</span>
+            </button>
+            <button class="scene-chip" onclick="quickHeroSearch('美术规范')">
+              <span class="sc-icon">🎨</span><span class="sc-text">了解美术规范</span>
+            </button>
+            <button class="scene-chip" onclick="quickHeroSearch('Bug定级')">
+              <span class="sc-icon">🐛</span><span class="sc-text">明确Bug定级标准</span>
+            </button>
+            <button class="scene-chip" onclick="window.open('tools.html','_blank')">
+              <span class="sc-icon">🔧</span><span class="sc-text">下载效能工具</span>
+            </button>
+            <button class="scene-chip" onclick="quickHeroSearch('新人')">
+              <span class="sc-icon">🆕</span><span class="sc-text">新人入职指引</span>
+            </button>
           </div>
         </div>
 
@@ -1184,6 +1229,31 @@ sequenceDiagram
           <button onclick="openEditor()" style="display:inline-flex;align-items:center;gap:8px;padding:10px 24px;background:linear-gradient(135deg,rgba(251,191,36,.15),rgba(251,191,36,.1));border:1px solid rgba(251,191,36,.3);border-radius:10px;color:#fbbf24;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s">✍️ 创建第一篇笔记</button>
         </div>
 
+        </div>
+      </div>
+
+      <!-- ═══ 文档有用性评分组件 ═══ -->
+      <div class="doc-rating" id="docRating" style="display:none">
+        <div class="rating-container">
+          <div class="rating-question">📝 这篇文档对你有帮助吗？</div>
+          <div class="rating-buttons" id="ratingButtons">
+            <button class="rating-btn rating-great" onclick="submitRating(3)" title="非常有用">
+              <span class="rb-emoji">🤩</span>
+              <span class="rb-text">很有帮助</span>
+            </button>
+            <button class="rating-btn rating-ok" onclick="submitRating(2)" title="一般般">
+              <span class="rb-emoji">😊</span>
+              <span class="rb-text">还可以</span>
+            </button>
+            <button class="rating-btn rating-bad" onclick="submitRating(1)" title="需要改进">
+              <span class="rb-emoji">😕</span>
+              <span class="rb-text">需改进</span>
+            </button>
+          </div>
+          <div class="rating-result" id="ratingResult" style="display:none">
+            <span class="rating-thanks">✅ 感谢反馈！你的评价帮助我们持续优化内容。</span>
+          </div>
+          <div class="rating-stats" id="ratingStats"></div>
         </div>
       </div>
 
