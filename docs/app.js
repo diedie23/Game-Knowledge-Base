@@ -525,7 +525,8 @@ function buildSidebar(data){
   sidebarData=data;
   var nav=document.getElementById('sidebarNav');
   var html='<div class="sidebar-nav-actions"><button class="nav-home active" onclick="navigate(\'home\')" id="navHome"><span class="nav-home-emoji">🏠</span><span>知识库首页</span></button>'
-    +'<div class="nav-toggle-btns"><button class="nav-toggle-btn" onclick="expandAllSidebar()" title="全部展开">📂 展开</button><button class="nav-toggle-btn" onclick="collapseAllSidebar()" title="全部折叠">📁 折叠</button></div></div>';
+    +'<div class="nav-toggle-btns"><button class="nav-toggle-btn" onclick="expandAllSidebar()" title="全部展开">📂 展开</button><button class="nav-toggle-btn" onclick="collapseAllSidebar()" title="全部折叠">📁 折叠</button></div>'
+    +'<div class="nav-toggle-btns" style="margin-top:4px"><button class="nav-toggle-btn" onclick="window.open(\'tools.html\',\'_blank\')" title="APM 工具集">🔧 工具集</button><button class="nav-toggle-btn" onclick="window.open(\'project-manager/index.html\',\'_blank\')" title="项目管理看板">📋 项目管理</button></div></div>';
 
   // 统计计数器
   var projectCount=0, outsourceCount=0, craftCount=0, collabCount=0, toolchainCount=0, qualityCount=0, casestudyCount=0;
