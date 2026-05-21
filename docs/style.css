@@ -1,6 +1,6 @@
 :root{--bg:#0f1117;--sidebar-bg:#161822;--card-bg:#1c1f2e;--border:#2a2d3e;--text:#c9cdd4;--dim:#8b8fa3;--dim-light:#70748a;--heading:#e8eaed;--accent:#6c8cff;--accent-light:#8ba3ff;--accent-bg:rgba(108,140,255,.08);--green:#4ade80;--green-bg:rgba(74,222,128,.08);--orange:#fb923c;--orange-bg:rgba(251,191,36,.08);--red:#f87171;--purple:#a78bfa;--purple-bg:rgba(167,139,250,.08);--pink:#f472b6;--pink-bg:rgba(244,114,182,.08);--cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.08);--code-bg:#1a1d2d;--st:#5a5e73;--guide:#2a2d3e;--active-bg:rgba(108,140,255,.12);--radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:18px}
 /* ═══ 浅色模式 ═══ */
-[data-theme="light"]{--bg:#f8f9fc;--sidebar-bg:#ffffff;--card-bg:#ffffff;--border:#e2e5f0;--text:#3d4255;--dim:#8892a4;--dim-light:#a0a8b8;--heading:#1a1d2e;--accent:#4f6df5;--accent-light:#6c85ff;--accent-bg:rgba(79,109,245,.06);--green:#16a34a;--green-bg:rgba(22,163,74,.06);--orange:#ea580c;--orange-bg:rgba(234,88,12,.06);--red:#dc2626;--purple:#7c3aed;--purple-bg:rgba(124,58,237,.06);--pink:#db2777;--pink-bg:rgba(219,39,119,.06);--cyan:#0891b2;--cyan-bg:rgba(8,145,178,.06);--code-bg:#f1f3f8;--st:#d4d8e0;--guide:#e8ecf2;--active-bg:rgba(79,109,245,.08)}
+[data-theme="light"]{--bg:#f8f9fc;--sidebar-bg:#ffffff;--card-bg:#ffffff;--border:#e2e5f0;--text:#3d4255;--dim:#6b7280;--dim-light:#9ca3af;--heading:#1a1d2e;--accent:#4f6df5;--accent-light:#3b5ce4;--accent-bg:rgba(79,109,245,.06);--green:#16a34a;--green-bg:rgba(22,163,74,.06);--orange:#ea580c;--orange-bg:rgba(234,88,12,.06);--red:#dc2626;--purple:#7c3aed;--purple-bg:rgba(124,58,237,.06);--pink:#db2777;--pink-bg:rgba(219,39,119,.06);--cyan:#0891b2;--cyan-bg:rgba(8,145,178,.06);--code-bg:#f1f3f8;--st:#d4d8e0;--guide:#e8ecf2;--active-bg:rgba(79,109,245,.08)}
 [data-theme="light"] body{background:var(--bg)}
 [data-theme="light"] .sidebar{box-shadow:2px 0 12px rgba(0,0,0,.04)}
 [data-theme="light"] .search-dropdown{box-shadow:0 8px 24px rgba(0,0,0,.1)}
@@ -9,8 +9,62 @@
 [data-theme="light"] .hero-entry-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.08)}
 [data-theme="light"] .nav-home.active{background:rgba(79,109,245,.08);color:var(--accent)}
 [data-theme="light"] .sidebar-recent-item:hover{background:rgba(0,0,0,.04)}
-[data-theme="light"] .chv-svg{color:rgba(0,0,0,.35)}
+[data-theme="light"] .chv-svg{color:rgba(0,0,0,.4)}
 [data-theme="light"] .t1.open>.t1-h .chv-svg,[data-theme="light"] .t2.open>.t2-h .chv-svg,[data-theme="light"] .t3.open>.t3-h .chv-svg{color:var(--text)}
+/* ═══ 浅色模式 — 侧边栏树结构文字修复 ═══ */
+[data-theme="light"] .nav-home:hover{background:rgba(0,0,0,.04);color:var(--heading)}
+[data-theme="light"] .folder-icon{color:rgba(0,0,0,.45)}
+[data-theme="light"] .group-icon{color:rgba(0,0,0,.4)}
+[data-theme="light"] .t2-h:hover .group-icon{color:rgba(0,0,0,.7)}
+[data-theme="light"] .leaf-icon{color:rgba(0,0,0,.55)}
+[data-theme="light"] .emoji-icon-l1{filter:none}
+[data-theme="light"] .t1.open>.t1-h .emoji-icon-l1{filter:drop-shadow(0 0 2px rgba(79,109,245,.2))}
+[data-theme="light"] .t1-h:hover{background:rgba(0,0,0,.03)}
+[data-theme="light"] .t1-h .cc{background:rgba(0,0,0,.05)}
+[data-theme="light"] .t1-c{border-left-color:rgba(0,0,0,.08)}
+[data-theme="light"] .t2-h:hover{background:rgba(0,0,0,.03)}
+[data-theme="light"] .t2-h .sl{color:rgba(0,0,0,.6)}
+[data-theme="light"] .t2.open>.t2-h .sl{color:var(--text)}
+[data-theme="light"] .t2-c{border-left-color:rgba(0,0,0,.06)}
+[data-theme="light"] .t3-h:hover{background:rgba(0,0,0,.03)}
+[data-theme="light"] .t3-h .sl{color:rgba(0,0,0,.6)}
+[data-theme="light"] .t3.open>.t3-h .sl{color:var(--text)}
+[data-theme="light"] .t3-c{border-left-color:rgba(0,0,0,.06)}
+[data-theme="light"] .leaf{color:rgba(0,0,0,.6)}
+[data-theme="light"] .leaf:hover{background:rgba(0,0,0,.04);color:var(--text)}
+/* ═══ 浅色模式 — TOC 目录文字修复 ═══ */
+[data-theme="light"] .toc-box{border-left-color:rgba(0,0,0,.08)}
+[data-theme="light"] .toc-a{color:rgba(0,0,0,.5)}
+[data-theme="light"] .toc-a.toc-h2{color:rgba(0,0,0,.7)}
+[data-theme="light"] .toc-a.toc-h3{color:rgba(0,0,0,.5)}
+[data-theme="light"] .toc-a.toc-h4{color:rgba(0,0,0,.38)}
+/* ═══ 浅色模式 — 最近浏览/收藏区域 ═══ */
+[data-theme="light"] .sidebar-recent-item{color:rgba(0,0,0,.6)}
+[data-theme="light"] .sidebar-recent-item:hover{background:rgba(0,0,0,.04);color:var(--text)}
+/* ═══ 浅色模式 — 导航切换按钮 ═══ */
+[data-theme="light"] .nav-toggle-btn{background:rgba(0,0,0,.03)}
+/* ═══ 浅色模式 — 标签/筛选按钮 ═══ */
+[data-theme="light"] .tag-outline:hover{border-color:rgba(0,0,0,.2)!important;color:var(--text)!important;background:rgba(0,0,0,.03)!important}
+[data-theme="light"] .stage-btn:hover{border-color:rgba(0,0,0,.2);color:var(--text)}
+[data-theme="light"] .hot-tab:hover{border-color:rgba(0,0,0,.2);color:var(--text)}
+/* ═══ 浅色模式 — 角色卡片链接 ═══ */
+[data-theme="light"] .rc-link{background:rgba(0,0,0,.02)}
+[data-theme="light"] .rc-link:hover{background:rgba(79,109,245,.06)}
+/* ═══ 浅色模式 — 高频速查卡片 ═══ */
+[data-theme="light"] .hot-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.1)}
+[data-theme="light"] .stat:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);border-color:rgba(0,0,0,.12)}
+/* ═══ 浅色模式 — 文档管理分类标签 ═══ */
+[data-theme="light"] .doc-mgr-row .doc-mgr-cat{background:rgba(0,0,0,.05)}
+/* ═══ 浅色模式 — 版本日志/访客表格 ═══ */
+[data-theme="light"] .vl-table td{border-bottom-color:rgba(0,0,0,.06)}
+[data-theme="light"] .vl-recent-item{border-bottom-color:rgba(0,0,0,.06)}
+[data-theme="light"] .vl-visitor-item{border-bottom-color:rgba(0,0,0,.06)}
+[data-theme="light"] .vl-visitor-device{background:rgba(0,0,0,.05)}
+/* ═══ 浅色模式 — 风险项/杂项 ═══ */
+[data-theme="light"] .risk-item:hover{background:rgba(0,0,0,.03)}
+/* ═══ 浅色模式 — 内联搜索框 ═══ */
+[data-theme="light"] .hero-inline-search{box-shadow:0 2px 12px rgba(0,0,0,.06)}
+[data-theme="light"] .his-results{box-shadow:0 8px 32px rgba(0,0,0,.12)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;display:flex;height:100vh;overflow:hidden;font-size:16px}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--st);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:#555}
