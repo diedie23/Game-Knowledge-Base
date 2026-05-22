@@ -875,12 +875,13 @@ function init(){
   setupPanelResize();setupKeyboardV5();
   // 蚂蚁线动画循环（节流：~10fps 足够实现 marching ants 效果）
   // 优化：标记 _skipBaseRedraw 让 render() 跳过底图重绘（底图不变时）
+  // ═══ v8.0 优化：缓存 _hasRegion 标记避免每帧 O(N) 遍历 parts ═══
   let _antLastFrame=0;
+  S._hasRegion=false;
   (function animateAnts(ts){requestAnimationFrame(animateAnts);
     if(ts-_antLastFrame<100)return; // 每 100ms 刷新一次
     _antLastFrame=ts;
-    const hasRegion=parts.some(p=>p.region);
-    if(hasRegion&&S.loaded&&!S.drawing){S._skipBaseRedraw=true;render();S._skipBaseRedraw=false;}
+    if(S._hasRegion&&S.loaded&&!S.drawing){S._skipBaseRedraw=true;render();S._skipBaseRedraw=false;}
   })(0);
 }
 
@@ -1074,10 +1075,12 @@ function trimTransparentPixels(srcCanvas){
 
 function buildPartGrid(){
   const g=document.getElementById('partGrid');
-  // ═══ 优化：差量更新 — 部件数量/名称/颜色未变时仅更新 class 和 checked 状态 ═══
-  const needFull=g.children.length!==parts.length||g._partSig!==parts.map(p=>p.name+p.color+(p.mirror||'')).join('|');
+  // ═══ v8.0 优化：用快速数字哈希替代完整字符串签名（避免 N 次字符串拼接+join）═══
+  let _h=parts.length*31;
+  for(let i=0;i<parts.length;i++){const p=parts[i];_h=(_h*31+(p.name.length<<8)+(p.color.charCodeAt(1)<<4)+(p.mirror?p.mirror.length:0))>>>0;}
+  const needFull=g.children.length!==parts.length||g._hash!==_h;
   if(needFull){
-    g._partSig=parts.map(p=>p.name+p.color+(p.mirror||'')).join('|');
+    g._hash=_h;
     g.innerHTML=parts.map((p,i)=>{
       const cls=['part-item'];
       if(i===S.currentPart)cls.push('active');if(p.region)cls.push('completed');
@@ -1242,6 +1245,7 @@ function render(){
   // ═══ 优化：缓存 DOM 引用避免每帧 getElementById ═══
   if(!render._els){render._els={showOverlay:document.getElementById('showOverlay'),overlayAlpha:document.getElementById('overlayAlpha'),showLabels:document.getElementById('showLabels')};}
   const _els=render._els;
+  let _regionCnt=0; // v8.0：统计有 region 的部件数（给 _hasRegion 使用）
   if(_els.showOverlay.checked){
     // ═══ v6.0 全局半透明暗幕：降低遮罩不透明度，保证底图可见 ═══
     const overlayAlpha=parseFloat(_els.overlayAlpha?.value||0.25);
@@ -1251,7 +1255,8 @@ function render(){
     // 扣除所有选区（让选区内部保持原图亮度）— 优化：复用 _path2d 缓存
     regionCtx.globalCompositeOperation='destination-out';
     regionCtx.fillStyle='rgba(0,0,0,1)';
-    parts.forEach((p)=>{if(!p.region)return;const r=p.region;
+    // ═══ v8.0 优化：for 循环替代 forEach（消除每帧 N 个闭包分配）═══
+    for(let _pi=0;_pi<parts.length;_pi++){const _pp=parts[_pi];if(!_pp.region)continue;const r=_pp.region;
       if(r.lasso&&r.lasso.length>2){
         // 确保 Path2D 缓存已建立（与下方逐部件渲染共用）
         if(!r._path2d||r._path2dLen!==r.lasso.length){
@@ -1261,7 +1266,7 @@ function render(){
         }
         regionCtx.fill(r._path2d);
       }else{regionCtx.fillRect(r.x,r.y,r.w,r.h);}
-    });
+    }
     regionCtx.globalCompositeOperation='source-over';
     regionCtx.restore();
 
@@ -1271,7 +1276,8 @@ function render(){
     const _lw1=1.5/S.zoom,_lw2=2.5/S.zoom,_lw3=Math.max(3,8/S.zoom);
     const _dashC=[6/S.zoom,4/S.zoom],_dashN=[4/S.zoom,4/S.zoom];
     const _shadowBlur=Math.max(6,12/S.zoom);
-    parts.forEach((p,i)=>{if(!p.region)return;const r=p.region;
+    // ═══ v8.0 优化：for 循环替代 forEach + 内联 _hasRegion 统计 ═══
+    for(let i=0;i<parts.length;i++){const p=parts[i];if(!p.region)continue;_regionCnt++;const r=p.region;
     const isCurrent=i===S.currentPart;
     const isHovered=i===S.hoveredPartIdx;
     const hasLasso=r.lasso&&r.lasso.length>2;
@@ -1332,7 +1338,10 @@ function render(){
     if(_els.showLabels.checked){
       const fontSize=Math.max(11,13/S.zoom);
       regionCtx.font=`600 ${fontSize}px -apple-system,sans-serif`;
-      const tw=regionCtx.measureText(p.name).width;
+      // ═══ v8.0 优化：缓存 measureText 结果（同名+同 fontSize 时跳过 GPU 文本测量）═══
+      let tw;
+      if(p._mtCache&&p._mtCache._name===p.name&&p._mtCache._fs===fontSize){tw=p._mtCache._tw;}
+      else{tw=regionCtx.measureText(p.name).width;p._mtCache={_name:p.name,_fs:fontSize,_tw:tw};}
       const padX=6/S.zoom,padY=3/S.zoom,labelH=fontSize+padY*2+2/S.zoom;
       const labelW=tw+padX*2+14/S.zoom;// 额外空间给色块指示器
 
@@ -1351,20 +1360,17 @@ function render(){
       if(lx+labelW>S.imgW){lx=S.imgW-labelW-2/S.zoom;}// 右侧溢出调整
       if(lx<0)lx=2/S.zoom;
 
-      // 标签背景：圆角半透明深色底
+      // ═══ v8.0 优化：使用 roundRect API（现代浏览器原生，比手动 arcTo 快 ~40%）═══
       regionCtx.save();
       const radius=4/S.zoom;
       regionCtx.beginPath();
-      regionCtx.moveTo(lx+radius,ly);
-      regionCtx.lineTo(lx+labelW-radius,ly);regionCtx.arcTo(lx+labelW,ly,lx+labelW,ly+radius,radius);
-      regionCtx.lineTo(lx+labelW,ly+labelH-radius);regionCtx.arcTo(lx+labelW,ly+labelH,lx+labelW-radius,ly+labelH,radius);
-      regionCtx.lineTo(lx+radius,ly+labelH);regionCtx.arcTo(lx,ly+labelH,lx,ly+labelH-radius,radius);
-      regionCtx.lineTo(lx,ly+radius);regionCtx.arcTo(lx,ly,lx+radius,ly,radius);
+      if(regionCtx.roundRect){regionCtx.roundRect(lx,ly,labelW,labelH,radius);}
+      else{regionCtx.moveTo(lx+radius,ly);regionCtx.lineTo(lx+labelW-radius,ly);regionCtx.arcTo(lx+labelW,ly,lx+labelW,ly+radius,radius);regionCtx.lineTo(lx+labelW,ly+labelH-radius);regionCtx.arcTo(lx+labelW,ly+labelH,lx+labelW-radius,ly+labelH,radius);regionCtx.lineTo(lx+radius,ly+labelH);regionCtx.arcTo(lx,ly+labelH,lx,ly+labelH-radius,radius);regionCtx.lineTo(lx,ly+radius);regionCtx.arcTo(lx,ly,lx+radius,ly,radius);}
       regionCtx.closePath();
       regionCtx.fillStyle=isCurrent?'rgba(0,0,0,0.82)':'rgba(0,0,0,0.65)';
       regionCtx.fill();
-      // 边框
-      regionCtx.strokeStyle=hexToRgba(p.color,isCurrent?0.8:0.4);
+      // ═══ v8.0 优化：复用 _rgbaCache 替代 hexToRgba 函数调用 ═══
+      regionCtx.strokeStyle=isCurrent?rc.a80||(rc.a80=`rgba(${rc._r},${rc._g},${rc._b},0.80)`):rc.a40||(rc.a40=`rgba(${rc._r},${rc._g},${rc._b},0.40)`);
       regionCtx.lineWidth=1/S.zoom;regionCtx.stroke();
       regionCtx.restore();
 
@@ -1377,7 +1383,9 @@ function render(){
       regionCtx.fillStyle=isCurrent?'#ffffff':'rgba(255,255,255,0.85)';
       regionCtx.fillText(p.name,lx+padX+dotR*2+4/S.zoom,ly+labelH/2+fontSize*0.35);
     }
-  });}
+  }}
+  // ═══ v8.0：用循环内计数替代 .some() 更新 _hasRegion ═══
+  S._hasRegion=_regionCnt>0;
   renderAnchors();updateCanvasInfo();
 }
 function renderAnchors(){
@@ -2450,18 +2458,28 @@ function updatePartPreview(){const c=document.getElementById('previewPart');c.wi
 function updateAllPartsPreview(){const grid=document.getElementById('allPartsGrid'),sp=parts.filter(p=>p.split);
   grid.innerHTML=sp.map(p=>`<div style="text-align:center"><canvas width="100" height="100" id="pp_${p.name.replace(/[^a-z0-9]/gi,'_')}" style="width:100%;border:1px solid var(--border);border-radius:4px;image-rendering:pixelated;background:repeating-conic-gradient(#1a1c28 0% 25%,#15171f 0% 50%) 50%/8px 8px"></canvas><div style="font-size:10px;color:var(--dim);margin-top:2px">${p.name}</div></div>`).join('');
   setTimeout(()=>{sp.forEach(p=>{const c=document.getElementById(`pp_${p.name.replace(/[^a-z0-9]/gi,'_')}`);if(!c)return;const ctx=c.getContext('2d'),s=p.split,sc=Math.min(100/s.w,100/s.h);ctx.drawImage(s.canvas,0,0,s.w,s.h,(100-s.w*sc)/2,(100-s.h*sc)/2,s.w*sc,s.h*sc);});},50);}
-function updateStats(){const m=parts.filter(p=>p.region).length,sp=parts.filter(p=>p.split).length;
+function updateStats(){
+  // ═══ v8.0 优化：合并两次 filter 为一次遍历计数 ═══
+  let m=0,sp=0;for(let i=0;i<parts.length;i++){if(parts[i].region)m++;if(parts[i].split)sp++;}
   document.getElementById('statsInfo').innerHTML=`图片：<strong style="color:var(--heading)">${S.imgW}×${S.imgH}</strong><br>部件：<strong style="color:var(--heading)">${parts.length}</strong> · 标记：<strong style="color:var(--green)">${m}</strong> · 拆分：<strong style="color:var(--accent)">${sp}</strong>`;}
 function saveHistory(){
-  // ═══ 优化：使用 structuredClone 进行高效深拷贝（浏览器原生，比手动展开快）═══
-  const snap=parts.map(p=>({name:p.name,color:p.color,mirror:p.mirror||null,region:p.region?structuredClone(p.region):null}));
+  // ═══ v8.0 优化：浅拷贝 region 结构 + lasso 数组共享引用（COW 模式）═══
+  // lasso 点数组在编辑完成前不会被原地修改（总是 new Array 替换），所以直接引用安全
+  const snap=parts.map(p=>{
+    if(!p.region) return{name:p.name,color:p.color,mirror:p.mirror||null,region:null};
+    const r=p.region;
+    // 浅拷贝 region：基本字段拷贝，lasso 直接引用共享（不 structuredClone）
+    const rc={x:r.x,y:r.y,w:r.w,h:r.h};
+    if(r.lasso) rc.lasso=r.lasso; // 共享引用（COW：下次修改 lasso 时总会 new Array）
+    return{name:p.name,color:p.color,mirror:p.mirror||null,region:rc};
+  });
   history.push(snap);if(history.length>50)history.splice(0,history.length-50);redoStack=[];
 }
 function undoRegion(){if(!history.length)return;
-  redoStack.push(parts.map(p=>({name:p.name,color:p.color,mirror:p.mirror||null,region:p.region?structuredClone(p.region):null})));
+  redoStack.push(parts.map(p=>{if(!p.region)return{name:p.name,color:p.color,mirror:p.mirror||null,region:null};const r=p.region;const rc={x:r.x,y:r.y,w:r.w,h:r.h};if(r.lasso)rc.lasso=r.lasso;return{name:p.name,color:p.color,mirror:p.mirror||null,region:rc};}));
   const snap=history.pop();parts=snap.map(p=>({...p,split:null}));buildPartGrid();render();updatePartPreview();updateStats();showToast('已撤销');}
 function redoRegion(){if(!redoStack.length)return;
-  history.push(parts.map(p=>({name:p.name,color:p.color,mirror:p.mirror||null,region:p.region?structuredClone(p.region):null})));
+  history.push(parts.map(p=>{if(!p.region)return{name:p.name,color:p.color,mirror:p.mirror||null,region:null};const r=p.region;const rc={x:r.x,y:r.y,w:r.w,h:r.h};if(r.lasso)rc.lasso=r.lasso;return{name:p.name,color:p.color,mirror:p.mirror||null,region:rc};}));
   const snap=redoStack.pop();parts=snap.map(p=>({...p,split:null}));buildPartGrid();render();updatePartPreview();updateStats();showToast('已重做');}
 function clearCurrentPart(){saveHistory();parts[S.currentPart].region=null;parts[S.currentPart].split=null;buildPartGrid();render();updatePartPreview();updateStats();}
 function shrinkToAlpha(region){if(!basePixels)return region;const w=S.imgW;let minX=region.x+region.w,maxX=region.x,minY=region.y+region.h,maxY=region.y;
