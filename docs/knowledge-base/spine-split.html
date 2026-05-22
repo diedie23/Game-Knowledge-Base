@@ -663,50 +663,54 @@ function applyFeathering(canvas, radius) {
  */
 function applyAlphaBleeding(data, w, h, iterations) {
   if (iterations <= 0) return;
-  // 标记有效像素（Alpha > 0）
-  const filled = new Uint8Array(w * h);
-  for (let i = 0; i < w * h; i++) {
+  // ═══ 优化：BFS 边界队列法替代全图遍历 ═══
+  // 只追踪 Alpha 边界像素，每轮仅处理当前前沿（O(边界周长) 而非 O(w×h)）
+  const total = w * h;
+  const filled = new Uint8Array(total);
+  // 初始化：标记有效像素并收集初始边界
+  let frontier = []; // 当前轮边界（有 filled 邻居的 unfilled 像素）
+  const inFrontier = new Uint8Array(total);
+  for (let i = 0; i < total; i++) {
     if (data[i * 4 + 3] > 0) filled[i] = 1;
   }
-
+  // 找初始边界：有 Alpha>0 邻居的 Alpha=0 像素
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = y * w + x;
+      if (filled[idx]) continue;
+      const hasNeighbor = (x > 0 && filled[idx - 1]) || (x < w - 1 && filled[idx + 1]) ||
+        (y > 0 && filled[idx - w]) || (y < h - 1 && filled[idx + w]);
+      if (hasNeighbor) { frontier.push(idx); inFrontier[idx] = 1; }
+    }
+  }
   for (let iter = 0; iter < iterations; iter++) {
-    const newFills = [];
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const idx = y * w + x;
-        if (filled[idx]) continue; // 已有颜色
-        // 检查 4-邻域是否有 filled 像素
-        let sumR = 0, sumG = 0, sumB = 0, cnt = 0;
-        const neighbors = [
-          x > 0 ? idx - 1 : -1,
-          x < w - 1 ? idx + 1 : -1,
-          y > 0 ? idx - w : -1,
-          y < h - 1 ? idx + w : -1
-        ];
-        for (const ni of neighbors) {
-          if (ni >= 0 && filled[ni]) {
-            sumR += data[ni * 4];
-            sumG += data[ni * 4 + 1];
-            sumB += data[ni * 4 + 2];
-            cnt++;
-          }
-        }
-        if (cnt > 0) {
-          newFills.push({ idx, r: Math.round(sumR / cnt), g: Math.round(sumG / cnt), b: Math.round(sumB / cnt) });
-        }
+    if (frontier.length === 0) break;
+    const nextFrontier = [];
+    for (let fi = 0; fi < frontier.length; fi++) {
+      const idx = frontier[fi];
+      inFrontier[idx] = 0;
+      if (filled[idx]) continue; // 可能已被本轮早期处理
+      const x = idx % w, y = (idx - x) / w;
+      let sumR = 0, sumG = 0, sumB = 0, cnt = 0;
+      if (x > 0 && filled[idx - 1]) { const ni = (idx - 1) * 4; sumR += data[ni]; sumG += data[ni + 1]; sumB += data[ni + 2]; cnt++; }
+      if (x < w - 1 && filled[idx + 1]) { const ni = (idx + 1) * 4; sumR += data[ni]; sumG += data[ni + 1]; sumB += data[ni + 2]; cnt++; }
+      if (y > 0 && filled[idx - w]) { const ni = (idx - w) * 4; sumR += data[ni]; sumG += data[ni + 1]; sumB += data[ni + 2]; cnt++; }
+      if (y < h - 1 && filled[idx + w]) { const ni = (idx + w) * 4; sumR += data[ni]; sumG += data[ni + 1]; sumB += data[ni + 2]; cnt++; }
+      if (cnt > 0) {
+        const pi = idx * 4;
+        data[pi] = Math.round(sumR / cnt);
+        data[pi + 1] = Math.round(sumG / cnt);
+        data[pi + 2] = Math.round(sumB / cnt);
+        data[pi + 3] = 0; // Alpha 保持 0（Bleeding 核心）
+        filled[idx] = 1;
+        // 将新暴露的 unfilled 邻居加入下一轮前沿
+        if (x > 0 && !filled[idx - 1] && !inFrontier[idx - 1]) { nextFrontier.push(idx - 1); inFrontier[idx - 1] = 1; }
+        if (x < w - 1 && !filled[idx + 1] && !inFrontier[idx + 1]) { nextFrontier.push(idx + 1); inFrontier[idx + 1] = 1; }
+        if (y > 0 && !filled[idx - w] && !inFrontier[idx - w]) { nextFrontier.push(idx - w); inFrontier[idx - w] = 1; }
+        if (y < h - 1 && !filled[idx + w] && !inFrontier[idx + w]) { nextFrontier.push(idx + w); inFrontier[idx + w] = 1; }
       }
     }
-    // 应用新填充（RGB 扩展，Alpha 保持 0）
-    for (const f of newFills) {
-      data[f.idx * 4] = f.r;
-      data[f.idx * 4 + 1] = f.g;
-      data[f.idx * 4 + 2] = f.b;
-      // Alpha 保持为 0 —— 这是 Alpha Bleeding 的核心：
-      // RGB 有值但 Alpha=0，双线性采样不会拾取黑色
-      data[f.idx * 4 + 3] = 0;
-      filled[f.idx] = 1;
-    }
-    if (newFills.length === 0) break; // 已无可扩展
+    frontier = nextFrontier;
   }
 }
 
@@ -1004,24 +1008,26 @@ function extractContourFromMask(mask,w,h,offX,offY){
 }
 
 // ═══ Minimal Content Bounding Box（Alpha Shrink v2）═══
-// 提取后剔除四周全透明像素行/列，返回紧凑 Canvas
+// 优化：四边向内逐行/列扫描，一旦遇到非透明像素即停止（避免全图遍历）
 function trimTransparentPixels(srcCanvas){
   const w=srcCanvas.width,h=srcCanvas.height;
   if(w<1||h<1)return{canvas:srcCanvas,trimX:0,trimY:0};
   const ctx=srcCanvas.getContext('2d');
-  const imgData=ctx.getImageData(0,0,w,h);
-  const data=imgData.data;
-  let minX=w,maxX=0,minY=h,maxY=0,found=false;
-  for(let y=0;y<h;y++){
-    for(let x=0;x<w;x++){
-      if(data[(y*w+x)*4+3]>0){
-        if(x<minX)minX=x;if(x>maxX)maxX=x;
-        if(y<minY)minY=y;if(y>maxY)maxY=y;
-        found=true;
-      }
-    }
-  }
-  if(!found)return{canvas:srcCanvas,trimX:0,trimY:0};
+  const data=ctx.getImageData(0,0,w,h).data;
+  // 从上方向下扫描找 minY
+  let minY=-1;
+  topScan:for(let y=0;y<h;y++){const row=y*w*4;for(let x=0;x<w;x++){if(data[row+x*4+3]>0){minY=y;break topScan;}}}
+  if(minY<0)return{canvas:srcCanvas,trimX:0,trimY:0};
+  // 从下方向上扫描找 maxY
+  let maxY=h-1;
+  botScan:for(let y=h-1;y>=minY;y--){const row=y*w*4;for(let x=0;x<w;x++){if(data[row+x*4+3]>0){maxY=y;break botScan;}}}
+  // 从左向右扫描找 minX（仅在 minY~maxY 范围内）
+  let minX=-1;
+  leftScan:for(let x=0;x<w;x++){for(let y=minY;y<=maxY;y++){if(data[(y*w+x)*4+3]>0){minX=x;break leftScan;}}}
+  if(minX<0)minX=0;
+  // 从右向左扫描找 maxX
+  let maxX=w-1;
+  rightScan:for(let x=w-1;x>=minX;x--){for(let y=minY;y<=maxY;y++){if(data[(y*w+x)*4+3]>0){maxX=x;break rightScan;}}}
   const tw=maxX-minX+1,th=maxY-minY+1;
   if(tw===w&&th===h)return{canvas:srcCanvas,trimX:0,trimY:0};
   const trimC=document.createElement('canvas');trimC.width=tw;trimC.height=th;
@@ -1434,9 +1440,9 @@ function setupEvents(){const vp=document.getElementById('viewport');
     // v5.0 平移中
     if(S.isPanning){S.panX=S.panStartPanX+(e.clientX-S.panStartX);S.panY=S.panStartPanY+(e.clientY-S.panStartY);applyTransform();return;}
     const pos=getCanvasPos(e);drawCursor(pos.x,pos.y);
-    if(S.drawing){if(S.tool==='rect'){render();const x=Math.min(S.startX,pos.x),y=Math.min(S.startY,pos.y),w=Math.abs(pos.x-S.startX),h=Math.abs(pos.y-S.startY);
+    if(S.drawing){if(S.tool==='rect'){S._skipBaseRedraw=true;render();S._skipBaseRedraw=false;const x=Math.min(S.startX,pos.x),y=Math.min(S.startY,pos.y),w=Math.abs(pos.x-S.startX),h=Math.abs(pos.y-S.startY);
       regionCtx.strokeStyle=parts[S.currentPart].color;regionCtx.lineWidth=2/S.zoom;regionCtx.setLineDash([6,3]);regionCtx.strokeRect(x,y,w,h);regionCtx.setLineDash([]);regionCtx.fillStyle=hexToRgba(parts[S.currentPart].color,0.15);regionCtx.fillRect(x,y,w,h);
-    }else if(S.tool==='lasso'){S.lassoPoints.push({x:pos.x,y:pos.y});render();
+    }else if(S.tool==='lasso'){S.lassoPoints.push({x:pos.x,y:pos.y});S._skipBaseRedraw=true;render();S._skipBaseRedraw=false;
       // ═══ v5.1 蚂蚁线套索：极低透明度填充 + marching ants 动画 ═══
       regionCtx.save();
       regionCtx.beginPath();regionCtx.moveTo(S.lassoPoints[0].x,S.lassoPoints[0].y);
@@ -2198,6 +2204,8 @@ function lerp(a,b,t){return a+(b-a)*t;}
 
 // ═══ Auto Split (支持不规则多边形精确裁剪) ═══
 function autoSplitAll(){if(!S.loaded)return;const expand=parseInt(document.getElementById('expandPx').value),fm=document.getElementById('fillMode').value;let cnt=0;
+  // ═══ 优化：提前缓存 DOM 查询结果，避免在 forEach 中重复查 DOM ═══
+  const featherR=parseInt(document.getElementById('featherPx').value)||0;
   parts.forEach(part=>{if(!part.region)return;const r=part.region;
     const hasLasso=r.lasso&&r.lasso.length>2;
 
@@ -2225,7 +2233,6 @@ function autoSplitAll(){if(!S.loaded)return;const expand=parseInt(document.getEl
       pCtx.drawImage(baseImage,ex,ey,ew,eh,0,0,ew,eh);
       pCtx.restore();
       // v5.0 边缘羽化
-      const featherR=parseInt(document.getElementById('featherPx').value)||0;
       if(featherR>0) applyFeathering(pc, featherR);
       // 6. Alpha Shrink v2：剔除四周全透明像素
       const trimResult=trimTransparentPixels(pc);
@@ -2243,8 +2250,7 @@ function autoSplitAll(){if(!S.loaded)return;const expand=parseInt(document.getEl
       pCtx.drawImage(baseImage,ex,ey,ew,eh,0,0,ew,eh);
       if(expand>0){const d=pCtx.getImageData(0,0,ew,eh);applyTopologyFill(d.data,ew,eh,r.x-ex,r.y-ey,r.w,r.h,expand,fm);pCtx.putImageData(d,0,0);}
       // v5.0 边缘羽化（矩形裁剪）
-      const featherR2=parseInt(document.getElementById('featherPx').value)||0;
-      if(featherR2>0) applyFeathering(pc, featherR2);
+      if(featherR>0) applyFeathering(pc, featherR);
       // Alpha Shrink v2：矩形裁剪也剔除全透明像素
       const trimRect=trimTransparentPixels(pc);
       const finalRC=trimRect.canvas;
@@ -2678,10 +2684,33 @@ function trimPartCanvas(part){
   tc.getContext('2d').drawImage(src,tl,tt,tw,th,0,0,tw,th);
   return{canvas:tc,trimW:tw,trimH:th,trimOffX:tl,trimOffY:tt};
 }
-function createAtlas(sp){const pad=2;let tw=0,mh=0;sp.forEach(p=>{tw+=p.split.w+pad;mh=Math.max(mh,p.split.h);});const tgt=Math.ceil(Math.sqrt(tw*mh));let x=0,y=0,rh=0;const pos=[];let th=0;
-  sp.forEach(p=>{if(x+p.split.w>tgt){x=0;y+=rh+pad;rh=0;}pos.push({x,y});x+=p.split.w+pad;rh=Math.max(rh,p.split.h);th=Math.max(th,y+p.split.h);});
-  const ac=document.createElement('canvas');ac.width=nextPOT(Math.max(...pos.map((p,i)=>p.x+sp[i].split.w)));ac.height=nextPOT(th);const ctx=ac.getContext('2d'),mapping={};
-  sp.forEach((p,i)=>{ctx.drawImage(p.split.canvas,pos[i].x,pos[i].y);mapping[p.name]={x:pos[i].x,y:pos[i].y,w:p.split.w,h:p.split.h};});return{canvas:ac,mapping};}
+function createAtlas(sp){
+  // ═══ 优化：Shelf-Packing + 高度降序排序，生成更紧凑的图集 ═══
+  const pad=2;
+  // 按高度降序排列（shelf-packing 最优策略），记录原始索引
+  const indexed=sp.map((p,i)=>({p,i,w:p.split.w,h:p.split.h}));
+  indexed.sort((a,b)=>b.h-a.h);
+  // 估算合理的 atlas 宽度（取总面积开方 × 1.2）
+  const totalArea=indexed.reduce((s,it)=>(s+(it.w+pad)*(it.h+pad)),0);
+  const estSide=Math.ceil(Math.sqrt(totalArea)*1.1);
+  const atlasW=nextPOT(estSide);
+  // Shelf packing
+  const pos=new Array(sp.length);
+  let shelfY=0,shelfH=0,curX=0;
+  for(const it of indexed){
+    if(curX+it.w>atlasW){// 换行
+      shelfY+=shelfH+pad;shelfH=0;curX=0;
+    }
+    pos[it.i]={x:curX,y:shelfY};
+    curX+=it.w+pad;
+    if(it.h>shelfH)shelfH=it.h;
+  }
+  const atlasH=nextPOT(shelfY+shelfH);
+  const ac=document.createElement('canvas');ac.width=atlasW;ac.height=atlasH;
+  const ctx=ac.getContext('2d'),mapping={};
+  sp.forEach((p,i)=>{ctx.drawImage(p.split.canvas,pos[i].x,pos[i].y);mapping[p.name]={x:pos[i].x,y:pos[i].y,w:p.split.w,h:p.split.h};});
+  return{canvas:ac,mapping};
+}
 function nextPOT(n){let v=1;while(v<n)v*=2;return v;}
 function showGuide(){document.getElementById('guideBar').style.display='flex';}
 function canvasToBlob(c){return new Promise(r=>{c.toBlob(b=>r(b),'image/png');});}
