@@ -1,0 +1,132 @@
+/**
+ * ═══════════════════════════════════════════════════════
+ *   Game Knowledge Base — Design Tokens v1.0
+ *   统一设计令牌系统 · 支持 Dark / Light 双主题
+ * ═══════════════════════════════════════════════════════
+ * 
+ * 使用方式：
+ *   <link rel="stylesheet" href="design-tokens.css">
+ *   <script src="theme-toggle.js"></script>
+ * 
+ * 主题切换：
+ *   document.documentElement.setAttribute('data-theme', 'light')
+ *   document.documentElement.setAttribute('data-theme', 'dark')
+ */
+
+/* ═══ Dark Theme (default) ═══ */
+:root, [data-theme="dark"] {
+  /* Background */
+  --bg: #0d0f15;
+  --panel: #141620;
+  --card: #1a1d2b;
+  --surface: #1e2130;
+  
+  /* Borders */
+  --border: #262a3a;
+  --border-hover: #3d4155;
+  
+  /* Typography */
+  --text: #c5c9d6;
+  --text-secondary: #8b8fa3;
+  --dim: #6b7085;
+  --heading: #e4e6ed;
+  
+  /* Brand Colors */
+  --accent: #6c8cff;
+  --accent-hover: #5a7aee;
+  --accent2: #a78bfa;
+  
+  /* Semantic Colors */
+  --red: #f87171;
+  --green: #4ade80;
+  --blue: #60a5fa;
+  --yellow: #fbbf24;
+  --orange: #fb923c;
+  --cyan: #22d3ee;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.2);
+  --shadow-md: 0 8px 24px rgba(0,0,0,.3);
+  --shadow-lg: 0 16px 48px rgba(0,0,0,.4);
+  
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 7px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  /* Spacing (for reference) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  
+  /* Font */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  
+  /* Scrollbar */
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: #3d4155;
+  
+  /* Overlay */
+  --overlay: rgba(0,0,0,.6);
+  
+  /* Checkerboard (for transparent backgrounds) */
+  --checker-a: #1a1a2e;
+  --checker-b: #12121e;
+}
+
+/* ═══ Light Theme ═══ */
+[data-theme="light"] {
+  /* Background */
+  --bg: #f5f6f8;
+  --panel: #ffffff;
+  --card: #f0f1f4;
+  --surface: #e8eaef;
+  
+  /* Borders */
+  --border: #dcdfe6;
+  --border-hover: #b8bcc8;
+  
+  /* Typography */
+  --text: #2d3748;
+  --text-secondary: #5a6178;
+  --dim: #8892a5;
+  --heading: #1a202c;
+  
+  /* Brand Colors */
+  --accent: #4a6cf7;
+  --accent-hover: #3b5ce5;
+  --accent2: #8b5cf6;
+  
+  /* Semantic Colors */
+  --red: #ef4444;
+  --green: #22c55e;
+  --blue: #3b82f6;
+  --yellow: #eab308;
+  --orange: #f97316;
+  --cyan: #06b6d4;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 4px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+  
+  /* Scrollbar */
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: #c8cdd5;
+  
+  /* Overlay */
+  --overlay: rgba(0,0,0,.3);
+  
+  /* Checkerboard */
+  --checker-a: #e8e8e8;
+  --checker-b: #f4f4f4;
+}
+
+/* ═══ Common Resets (opt-in via class "dt-base") ═══ */
+.dt-base ::-webkit-scrollbar { width: 6px; }
+.dt-base ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+.dt-base ::-webkit-scrollbar-track { background: var(--scrollbar-bg); }
