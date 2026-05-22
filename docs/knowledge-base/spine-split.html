@@ -7,13 +7,8 @@
 <link rel="stylesheet" href="design-tokens.css">
 <link rel="stylesheet" href="tool-base.css">
 <style>
-:root{
-  --bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;
-  --text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;
-  --accent:#6c8cff;--accent2:#a78bfa;
-  --red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;
-  --cyan:#22d3ee;--orange:#fb923c;--pink:#f472b6;
-}
+/* 工具专属变量 — 公共变量已由 design-tokens.css 提供 */
+:root{--pink:#f472b6}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
@@ -270,6 +265,8 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
         <option value="bleeding" selected>Alpha Bleeding（Spine 推荐）</option>
         <option value="aware">内容感知</option>
         <option value="edge">边缘延伸</option>
+        <option value="mirror">镜像翻转</option>
+        <option value="solid">纯色填充</option>
       </select>
       <div class="setting-row" style="margin-top:8px">
         <span class="setting-label">边缘羽化 <span style="color:var(--dim);font-weight:400">[W]</span></span>
@@ -277,9 +274,6 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
       </div>
       <input type="range" id="featherPx" min="0" max="16" value="0" oninput="document.getElementById('featherVal').textContent=this.value+'px'">
       <div style="font-size:10px;color:var(--dim);margin-top:2px">消除锯齿，0=不羽化。推荐 1~3px</div>
-        <option value="mirror">镜像翻转</option>
-        <option value="solid">纯色填充</option>
-      </select>
       <div class="setting-row" style="margin-top:8px">
         <span class="setting-label">输出格式</span>
       </div>
@@ -857,11 +851,15 @@ function init(){
   baseCanvas=document.getElementById('baseCanvas');regionCanvas=document.getElementById('regionCanvas');cursorCanvas=document.getElementById('cursorCanvas');
   baseCtx=baseCanvas.getContext('2d');regionCtx=regionCanvas.getContext('2d');cursorCtx=cursorCanvas.getContext('2d');
   buildPartGrid();setTool('rect');selectPart(0);setupEvents();setupTplMaker();
-  // 蚂蚁线动画循环（套索+矩形均需动画刷新）
-  (function animateAnts(){requestAnimationFrame(animateAnts);
+  setupPanelResize();setupKeyboardV5();
+  // 蚂蚁线动画循环（节流：~10fps 足够实现 marching ants 效果）
+  let _antLastFrame=0;
+  (function animateAnts(ts){requestAnimationFrame(animateAnts);
+    if(ts-_antLastFrame<100)return; // 每 100ms 刷新一次
+    _antLastFrame=ts;
     const hasRegion=parts.some(p=>p.region);
     if(hasRegion&&S.loaded&&!S.drawing)render();
-  })();
+  })(0);
 }
 
 // ═══ 路径平滑：Ramer-Douglas-Peucker 算法 ═══
@@ -2763,7 +2761,7 @@ function runValidation(){
   });
 
   // ─── 渲染报告 ───
-  const panel=document.getElementById('sec-qa');if(panel.classList.contains('collapsed'))panel.classList.remove('collapsed');
+  const panel=document.getElementById('qaPanel');if(panel){panel.style.display='';if(panel.classList.contains('collapsed'))panel.classList.remove('collapsed');}
   const report=document.getElementById('qaReport');
   const errCount=issues.filter(i=>i.level==='error').length;
   const warnCount=issues.filter(i=>i.level==='warn').length;
@@ -2880,8 +2878,8 @@ init();
 ToolBus.register('spine-split', { name: 'Spine 角色拆分工具', version: '6.0' });
 
 </script>
-<script src="editor-kit.js"></script>
 <script src="shortcut-help.js"></script>
 <script src="theme-toggle.js"></script>
+<script src="editor-kit.js"></script>
 </body>
 </html>
