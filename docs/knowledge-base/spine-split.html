@@ -853,30 +853,41 @@ function init(){
   buildPartGrid();setTool('rect');selectPart(0);setupEvents();setupTplMaker();
   setupPanelResize();setupKeyboardV5();
   // 蚂蚁线动画循环（节流：~10fps 足够实现 marching ants 效果）
+  // 优化：标记 _skipBaseRedraw 让 render() 跳过底图重绘（底图不变时）
   let _antLastFrame=0;
   (function animateAnts(ts){requestAnimationFrame(animateAnts);
     if(ts-_antLastFrame<100)return; // 每 100ms 刷新一次
     _antLastFrame=ts;
     const hasRegion=parts.some(p=>p.region);
-    if(hasRegion&&S.loaded&&!S.drawing)render();
+    if(hasRegion&&S.loaded&&!S.drawing){S._skipBaseRedraw=true;render();S._skipBaseRedraw=false;}
   })(0);
 }
 
-// ═══ 路径平滑：Ramer-Douglas-Peucker 算法 ═══
+// ═══ 路径平滑：Ramer-Douglas-Peucker 算法（迭代版，避免长路径递归爆栈）═══
 function simplifyPath(points,epsilon){
   if(points.length<=2)return points;
-  let maxDist=0,maxIdx=0;
-  const first=points[0],last=points[points.length-1];
-  for(let i=1;i<points.length-1;i++){
-    const d=pointToLineDist(points[i],first,last);
-    if(d>maxDist){maxDist=d;maxIdx=i;}
+  const n=points.length;
+  const keep=new Uint8Array(n);
+  keep[0]=1;keep[n-1]=1;
+  // 迭代 DFS 栈代替递归
+  const stack=[[0,n-1]];
+  while(stack.length){
+    const[start,end]=stack.pop();
+    let maxDist=0,maxIdx=start;
+    const a=points[start],b=points[end];
+    for(let i=start+1;i<end;i++){
+      const d=pointToLineDist(points[i],a,b);
+      if(d>maxDist){maxDist=d;maxIdx=i;}
+    }
+    if(maxDist>epsilon){
+      keep[maxIdx]=1;
+      if(maxIdx-start>1)stack.push([start,maxIdx]);
+      if(end-maxIdx>1)stack.push([maxIdx,end]);
+    }
   }
-  if(maxDist>epsilon){
-    const left=simplifyPath(points.slice(0,maxIdx+1),epsilon);
-    const right=simplifyPath(points.slice(maxIdx),epsilon);
-    return left.slice(0,-1).concat(right);
-  }
-  return[first,last];
+  const result=[];
+  for(let i=0;i<n;i++)if(keep[i])result.push(points[i]);
+  return result;
 }
 function pointToLineDist(p,a,b){
   const dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy;
@@ -1120,6 +1131,7 @@ function setTool(t){
     if(S.penState==='DRAWING'&&S.penPoints.length>0){S.penPoints=[];S.penClosed=false;S.penState='IDLE';render();}
     if(S.penState==='EDITING'){S.penState='IDLE';S.penEditTarget=null;S.penEditDragging=false;render();}
   }
+  if(t==='pen')S._penNeedsFullRender=true;
   S.tool=t;
   const map={select:'toolSelect',rect:'toolRect',lasso:'toolLasso',pen:'toolPen',auto:'toolAuto'};
   Object.values(map).forEach(id=>{const el=document.getElementById(id);if(el)el.style.borderColor='';});
@@ -1134,8 +1146,30 @@ function loadImage(file){const reader=new FileReader();reader.onload=e=>{const i
   showToast(`已加载 ${img.width}×${img.height}`);};img.src=e.target.result;};reader.readAsDataURL(file);}
 function setupCanvases(){[baseCanvas,regionCanvas,cursorCanvas].forEach(c=>{c.width=S.imgW;c.height=S.imgH;});
   const c=document.getElementById('canvasContainer');c.style.width=S.imgW+'px';c.style.height=S.imgH+'px';}
+// ═══ 优化：仅重绘 regionCanvas 选区叠加层（不碰 baseCanvas 底图）═══
+function renderRegionsOnly(){
+  if(!S.loaded)return;
+  regionCtx.clearRect(0,0,S.imgW,S.imgH);
+  if(!document.getElementById('showOverlay').checked)return;
+  const overlayAlpha=parseFloat(document.getElementById('overlayAlpha')?.value||0.25);
+  regionCtx.save();
+  regionCtx.fillStyle=`rgba(0,0,0,${overlayAlpha})`;
+  regionCtx.fillRect(0,0,S.imgW,S.imgH);
+  regionCtx.globalCompositeOperation='destination-out';
+  parts.forEach((p)=>{if(!p.region)return;const r=p.region;
+    const hasLasso=r.lasso&&r.lasso.length>2;
+    if(hasLasso){regionCtx.beginPath();regionCtx.moveTo(r.lasso[0].x,r.lasso[0].y);
+      for(let k=1;k<r.lasso.length;k++)regionCtx.lineTo(r.lasso[k].x,r.lasso[k].y);
+      regionCtx.closePath();regionCtx.fillStyle='rgba(0,0,0,1)';regionCtx.fill();
+    }else{regionCtx.fillStyle='rgba(0,0,0,1)';regionCtx.fillRect(r.x,r.y,r.w,r.h);}
+  });
+  regionCtx.globalCompositeOperation='source-over';
+  regionCtx.restore();
+}
 function render(){
-  if(!S.loaded)return;baseCtx.clearRect(0,0,S.imgW,S.imgH);baseCtx.drawImage(baseImage,0,0);
+  if(!S.loaded)return;
+  // ═══ 优化：蚂蚁线动画帧仅重绘 regionCanvas，底图不变时跳过底图重绘 ═══
+  if(!S._skipBaseRedraw){baseCtx.clearRect(0,0,S.imgW,S.imgH);baseCtx.drawImage(baseImage,0,0);}
   regionCtx.clearRect(0,0,S.imgW,S.imgH);
   if(document.getElementById('showOverlay').checked){
     // ═══ v6.0 全局半透明暗幕：降低遮罩不透明度，保证底图可见 ═══
@@ -1675,7 +1709,10 @@ function buildBezierPath(ctx,points,closed){
 
 function renderPenOverlay(){
   if(S.tool!=='pen'||S.penPoints.length===0)return;
-  render();// 先刷底
+  // ═══ 优化：不再每帧调用 render() 全量重绘，改为仅清理+重绘 regionCanvas ═══
+  // 只在首次或选区变更时 render()，钢笔 mousemove 时仅更新 overlay
+  if(S._penNeedsFullRender){render();S._penNeedsFullRender=false;}
+  else{regionCtx.clearRect(0,0,S.imgW,S.imgH);renderRegionsOnly();}
   regionCtx.save();
   const pts=S.penPoints;
   const marchOff=-(Date.now()/60%16);
@@ -2095,34 +2132,60 @@ function applyAnchorAlignment(){
   cancelAnchorAlign();buildPartGrid();render();updatePartPreview();updateStats();document.getElementById('autoSplitBtn').disabled=false;showToast(`已完成三点锚点对齐（${parts.length}个部件）+ Alpha密度微调`);}
 
 // ═══ Alpha 密度自适应：向四周探测非透明像素，自动扩展 BBox ═══
+// 优化：两阶段扫描——先 4x4 降采样快速定位粗边界，再逐像素精确化
 function alphaDensityAdjust(region){
   if(!basePixels)return region;
   const w=S.imgW,h=S.imgH;
   const alphaTh=parseInt(document.getElementById('swAlpha').value)||10;
-  const expandSearch=Math.max(30,Math.round(Math.max(region.w,region.h)*0.25)); // 向外探测 25% 或 30px
-  // 在扩大的搜索区域内找到实际的像素边界
+  const expandSearch=Math.max(30,Math.round(Math.max(region.w,region.h)*0.25));
   const searchX=Math.max(0,region.x-expandSearch);
   const searchY=Math.max(0,region.y-expandSearch);
   const searchX2=Math.min(w,region.x+region.w+expandSearch);
   const searchY2=Math.min(h,region.y+region.h+expandSearch);
-  let minX=searchX2,maxX=searchX,minY=searchY2,maxY=searchY;
+  // ── 阶段1：4x4 降采样粗扫描 ──
+  const step=4;
+  let coarseMinX=searchX2,coarseMaxX=searchX,coarseMinY=searchY2,coarseMaxY=searchY;
   let found=false;
-  // 只检测原始 BBox 附近一定范围内的像素
-  for(let y=searchY;y<searchY2;y++){
-    for(let x=searchX;x<searchX2;x++){
+  for(let y=searchY;y<searchY2;y+=step){
+    for(let x=searchX;x<searchX2;x+=step){
       if(basePixels[(y*w+x)*4+3]>alphaTh){
-        // 检查是否在原始 BBox 的合理延伸范围内（避免抓到无关的像素）
         const distX=x<region.x?region.x-x:x>(region.x+region.w)?x-(region.x+region.w):0;
         const distY=y<region.y?region.y-y:y>(region.y+region.h)?y-(region.y+region.h):0;
         if(distX<=expandSearch&&distY<=expandSearch){
-          if(x<minX)minX=x;if(x>maxX)maxX=x;
-          if(y<minY)minY=y;if(y>maxY)maxY=y;
+          if(x<coarseMinX)coarseMinX=x;if(x>coarseMaxX)coarseMaxX=x;
+          if(y<coarseMinY)coarseMinY=y;if(y>coarseMaxY)coarseMaxY=y;
           found=true;
         }
       }
     }
   }
   if(!found)return region;
+  // ── 阶段2：仅在粗边界 ±step 范围内逐像素精确化 ──
+  let minX=coarseMinX,maxX=coarseMaxX,minY=coarseMinY,maxY=coarseMaxY;
+  // 精确化左边缘
+  for(let y=Math.max(searchY,coarseMinY-step);y<=Math.min(searchY2-1,coarseMaxY+step);y++){
+    for(let x=Math.max(searchX,coarseMinX-step);x<Math.min(searchX2,coarseMinX+step);x++){
+      if(basePixels[(y*w+x)*4+3]>alphaTh){if(x<minX)minX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;}
+    }
+  }
+  // 精确化右边缘
+  for(let y=Math.max(searchY,coarseMinY-step);y<=Math.min(searchY2-1,coarseMaxY+step);y++){
+    for(let x=Math.max(searchX,coarseMaxX-step);x<Math.min(searchX2,coarseMaxX+step);x++){
+      if(basePixels[(y*w+x)*4+3]>alphaTh){if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;}
+    }
+  }
+  // 精确化上边缘
+  for(let y=Math.max(searchY,coarseMinY-step);y<Math.min(searchY2,coarseMinY+step);y++){
+    for(let x=Math.max(searchX,coarseMinX-step);x<=Math.min(searchX2-1,coarseMaxX+step);x++){
+      if(basePixels[(y*w+x)*4+3]>alphaTh){if(y<minY)minY=y;if(x<minX)minX=x;if(x>maxX)maxX=x;}
+    }
+  }
+  // 精确化下边缘
+  for(let y=Math.max(searchY,coarseMaxY-step);y<Math.min(searchY2,coarseMaxY+step);y++){
+    for(let x=Math.max(searchX,coarseMinX-step);x<=Math.min(searchX2-1,coarseMaxX+step);x++){
+      if(basePixels[(y*w+x)*4+3]>alphaTh){if(y>maxY)maxY=y;if(x<minX)minX=x;if(x>maxX)maxX=x;}
+    }
+  }
   // 加 2px padding
   return{
     x:Math.max(0,minX-2),y:Math.max(0,minY-2),
@@ -2225,9 +2288,17 @@ function updateAllPartsPreview(){const grid=document.getElementById('allPartsGri
   setTimeout(()=>{sp.forEach(p=>{const c=document.getElementById(`pp_${p.name.replace(/[^a-z0-9]/gi,'_')}`);if(!c)return;const ctx=c.getContext('2d'),s=p.split,sc=Math.min(100/s.w,100/s.h);ctx.drawImage(s.canvas,0,0,s.w,s.h,(100-s.w*sc)/2,(100-s.h*sc)/2,s.w*sc,s.h*sc);});},50);}
 function updateStats(){const m=parts.filter(p=>p.region).length,sp=parts.filter(p=>p.split).length;
   document.getElementById('statsInfo').innerHTML=`图片：<strong style="color:var(--heading)">${S.imgW}×${S.imgH}</strong><br>部件：<strong style="color:var(--heading)">${parts.length}</strong> · 标记：<strong style="color:var(--green)">${m}</strong> · 拆分：<strong style="color:var(--accent)">${sp}</strong>`;}
-function saveHistory(){history.push(parts.map(p=>({...p,region:p.region?{...p.region,lasso:p.region.lasso?[...p.region.lasso]:null}:null})));if(history.length>50)history.shift();redoStack=[];}
-function undoRegion(){if(!history.length)return;redoStack.push(parts.map(p=>({...p,region:p.region?{...p.region,lasso:p.region.lasso?[...p.region.lasso]:null}:null})));parts=history.pop().map(p=>({...p,split:null}));buildPartGrid();render();updatePartPreview();updateStats();showToast('已撤销');}
-function redoRegion(){if(!redoStack.length)return;history.push(parts.map(p=>({...p,region:p.region?{...p.region,lasso:p.region.lasso?[...p.region.lasso]:null}:null})));parts=redoStack.pop().map(p=>({...p,split:null}));buildPartGrid();render();updatePartPreview();updateStats();showToast('已重做');}
+function saveHistory(){
+  // ═══ 优化：使用 structuredClone 进行高效深拷贝（浏览器原生，比手动展开快）═══
+  const snap=parts.map(p=>({name:p.name,color:p.color,mirror:p.mirror||null,region:p.region?structuredClone(p.region):null}));
+  history.push(snap);if(history.length>50)history.splice(0,history.length-50);redoStack=[];
+}
+function undoRegion(){if(!history.length)return;
+  redoStack.push(parts.map(p=>({name:p.name,color:p.color,mirror:p.mirror||null,region:p.region?structuredClone(p.region):null})));
+  const snap=history.pop();parts=snap.map(p=>({...p,split:null}));buildPartGrid();render();updatePartPreview();updateStats();showToast('已撤销');}
+function redoRegion(){if(!redoStack.length)return;
+  history.push(parts.map(p=>({name:p.name,color:p.color,mirror:p.mirror||null,region:p.region?structuredClone(p.region):null})));
+  const snap=redoStack.pop();parts=snap.map(p=>({...p,split:null}));buildPartGrid();render();updatePartPreview();updateStats();showToast('已重做');}
 function clearCurrentPart(){saveHistory();parts[S.currentPart].region=null;parts[S.currentPart].split=null;buildPartGrid();render();updatePartPreview();updateStats();}
 function shrinkToAlpha(region){if(!basePixels)return region;const w=S.imgW;let minX=region.x+region.w,maxX=region.x,minY=region.y+region.h,maxY=region.y;
   const endX=Math.min(w,region.x+region.w),endY=Math.min(S.imgH,region.y+region.h);let found=false;
