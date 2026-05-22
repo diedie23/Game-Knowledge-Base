@@ -130,3 +130,67 @@
 .dt-base ::-webkit-scrollbar { width: 6px; }
 .dt-base ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
 .dt-base ::-webkit-scrollbar-track { background: var(--scrollbar-bg); }
+
+/* ═══ Micro Animations (P2-M) ═══ */
+@keyframes dt-fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes dt-slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes dt-scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes dt-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+@keyframes dt-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 通用过渡效果 - 会自动应用到所有使用 design-tokens 的页面 */
+button, .btn, [class*="btn"] {
+  transition: all 0.15s ease;
+}
+button:active, .btn:active, [class*="btn"]:active {
+  transform: scale(0.97);
+}
+
+/* 面板/卡片出现动画 */
+.card, [class*="card"], .ps, [class*="panel"] {
+  animation: dt-fadeIn 0.25s ease;
+}
+
+/* 列表项交错动画 */
+.file-row:not(.header), .ch-item, .chi, [class*="-item"]:not(.summary-item) {
+  animation: dt-fadeIn 0.2s ease backwards;
+}
+
+/* Toast 弹出优化 */
+.toast.show, .tst {
+  animation: dt-slideDown 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* 模态/弹窗出现 */
+[style*="position:fixed"][style*="inset:0"],
+[style*="position: fixed"][style*="inset: 0"] {
+  animation: dt-scaleIn 0.2s ease;
+}
+
+/* 加载/进度指示器 */
+.progress-fill, [class*="progress"] .fill {
+  transition: width 0.4s ease;
+}
+
+/* 悬停效果增强 */
+[class*="btn"]:hover {
+  transform: translateY(-1px);
+}
+[class*="btn-sm"]:hover {
+  transform: translateY(0) scale(1.02);
+}

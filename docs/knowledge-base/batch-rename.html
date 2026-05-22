@@ -206,6 +206,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   <!-- 正则模式 -->
   <div id="modeRegex" style="display:none">
     <div class="tip">💡 正则匹配原文件名并替换。支持捕获组 <code>$1, $2</code>。</div>
+    <div style="font-size:13px;color:var(--heading);margin-bottom:6px;font-weight:600">📋 常用正则模板 <span style="font-size:11px;color:var(--dim);font-weight:400">(点击快速填入)</span></div>
+    <div class="token-list" style="margin-bottom:12px">
+      <span class="token" onclick="applyRegexPreset('去除中文','[\\u4e00-\\u9fa5]+','')">去除中文</span>
+      <span class="token" onclick="applyRegexPreset('去除空格','\\s+','_')">空格→下划线</span>
+      <span class="token" onclick="applyRegexPreset('去除编号后缀','_?\\d+$','')">去除编号后缀</span>
+      <span class="token" onclick="applyRegexPreset('版本号标准化','[_-]?v?(\\d+)','_v$1')">版本号标准化</span>
+      <span class="token" onclick="applyRegexPreset('驼峰转下划线','([a-z])([A-Z])','$1_$2')">驼峰→下划线</span>
+      <span class="token" onclick="applyRegexPreset('添加T_前缀','^(?!T_)(.*)','T_$1')">添加T_前缀</span>
+      <span class="token" onclick="applyRegexPreset('提取括号内容','.*\\((.+)\\).*','$1')">提取括号内容</span>
+      <span class="token" onclick="applyRegexPreset('连续下划线合并','_{2,}','_')">合并连续下划线</span>
+    </div>
     <div class="regex-panel">
       <div class="regex-row"><label>查找：</label><input type="text" id="regexFind" placeholder="正则，如 ^(\w+)_v(\d+)" oninput="updatePreview()"></div>
       <div class="regex-row"><label>替换为：</label><input type="text" id="regexReplace" placeholder="如 $1_version$2" oninput="updatePreview()"></div>
@@ -333,6 +344,7 @@ function getUserPresets(){try{return JSON.parse(localStorage.getItem('br_presets
 function getAllPresets(){return{...BUILTIN_PRESETS,...getUserPresets()}}
 function toast(m,t=''){const e=document.getElementById('toast');e.textContent=m;e.className='toast show '+t;setTimeout(()=>e.className='toast',2500)}
 function switchMode(m,btn){currentMode=m;document.querySelectorAll('.mode-tab').forEach(b=>b.classList.remove('act'));btn.classList.add('act');document.getElementById('modeTemplate').style.display=m==='template'?'':'none';document.getElementById('modeRegex').style.display=m==='regex'?'':'none';document.getElementById('modeCsv').style.display=m==='csv'?'':'none';updatePreview()}
+function applyRegexPreset(name,find,replace){document.getElementById('regexFind').value=find;document.getElementById('regexReplace').value=replace;updatePreview();toast('✅ 已应用: '+name,'success')}
 function goToStep(s){document.querySelectorAll('.stp').forEach((el,i)=>{el.classList.remove('act','done');if(i+1<s)el.classList.add('done');if(i+1===s)el.classList.add('act')});const c=document.getElementById('s'+s);if(c)c.scrollIntoView({behavior:'smooth',block:'start'})}
 function toggleCustom(sel){const ci=sel.parentElement.querySelector('input[type=text]');if(ci){ci.style.display=sel.value===''?'block':'none'}}
 function getVal(id){const s=document.getElementById(id);if(!s)return'';if(s.value===''){const c=document.getElementById(id+'Custom');return c?c.value:''}return s.value}
@@ -355,7 +367,7 @@ function handleDrop(e){e.preventDefault();e.currentTarget.classList.remove('dg')
 function handleFiles(e){addFiles(Array.from(e.target.files))}
 function addFiles(fs){if(!fs.length){toast('⚠️ 未检测到文件','warning');return}loadedFiles=loadedFiles.concat(fs);document.getElementById('fileCount').textContent=loadedFiles.length;document.getElementById('fileActions').style.display='block';goToStep(2);renderFileList();toast('📁 已载入 '+fs.length+' 个文件','success')}
 function renderFileList(){const c=document.getElementById('srcFileList'),q=(document.getElementById('fileSearch').value||'').toLowerCase();c.innerHTML='';loadedFiles.forEach((f,i)=>{if(q&&!f.name.toLowerCase().includes(q))return;const r=document.createElement('div');r.className='file-row';r.innerHTML='<div class="idx">'+(i+1)+'</div><div class="old-name" title="'+f.name+'">'+f.name+'</div><div style="color:var(--dim);font-size:11px">'+(f.size<1024?f.size+'B':f.size<1048576?(f.size/1024).toFixed(1)+'KB':(f.size/1048576).toFixed(1)+'MB')+'</div><div><button class="btn btn-sm" style="padding:2px 8px;font-size:11px" onclick="loadedFiles.splice('+i+',1);document.getElementById(\'fileCount\').textContent=loadedFiles.length;renderFileList()">✕</button></div>';c.appendChild(r)})}
-function clearFiles(){loadedFiles=[];renameResults=[];document.getElementById('fileCount').textContent='0';document.getElementById('fileActions').style.display='none';document.getElementById('s3').style.display='none';document.getElementById('srcFileList').innerHTML='';goToStep(1);toast('🗑 已清空','success')}
+function clearFiles(){if(loadedFiles.length>0&&!confirm('确定要清空所有已载入的文件吗？'))return;loadedFiles=[];renameResults=[];document.getElementById('fileCount').textContent='0';document.getElementById('fileActions').style.display='none';document.getElementById('s3').style.display='none';document.getElementById('srcFileList').innerHTML='';goToStep(1);toast('🗑 已清空','success')}
 // CSV
 function handleCsv(e){const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=ev=>{const lines=ev.target.result.split(/\r?\n/).filter(l=>l.trim());csvMap={};let c=0;lines.forEach((l,i)=>{if(i===0&&(l.includes('原文件名')||l.toLowerCase().includes('original')))return;const sep=l.includes('\t')?'\t':',';const p=l.split(sep).map(s=>s.replace(/^"|"$/g,'').trim());if(p.length>=2&&p[0]&&p[1]){csvMap[p[0]]=p[1];c++}});document.getElementById('csvInfo').style.display='block';document.getElementById('csvCount').textContent=c;toast('📊 已加载 '+c+' 条映射','success')};rd.readAsText(f)}
 // Generate
