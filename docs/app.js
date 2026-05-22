@@ -3524,21 +3524,109 @@ function filterByStage(stage){
       if(btn.textContent.trim().indexOf(stage)!==-1) btn.classList.add('active');
     });
   }
-  // 过滤卡片
-  var cards=document.querySelectorAll('.home-card');
-  var visibleCount=0;
-  cards.forEach(function(card){
-    var cardStage=card.getAttribute('data-stage')||'';
-    if(stage==='all' || cardStage===stage || cardStage==='全阶段'){
-      card.style.display='';
-      visibleCount++;
-    } else {
-      card.style.display='none';
-    }
-  });
+  // 联合 multiFilter 一起过滤
+  _applyAllFilters();
+  // 筛选后自动展开所有模块并滚动到内容区
   if(stage!=='all'){
-    showToast('📅 筛选「'+stage+'」— 显示 '+visibleCount+' 个条目');
+    _expandAllModulesForFilter();
+    var firstSection=document.querySelector('.module-section');
+    if(firstSection) firstSection.scrollIntoView({behavior:'smooth', block:'start'});
   }
+}
+
+/** 联合阶段 + 工种 + 类型进行统一筛选 */
+function _applyAllFilters(){
+  var stage = activeStageFilter || 'all';
+  var craft = multiFilterState.craft;
+  var ctype = multiFilterState.ctype;
+  var cards = document.querySelectorAll('.home-card');
+  var visibleCount = 0;
+
+  cards.forEach(function(card){
+    var show = true;
+    // 阶段筛选
+    if(stage !== 'all'){
+      var cardStage = card.getAttribute('data-stage') || '';
+      if(cardStage !== stage && cardStage !== '全阶段') show = false;
+    }
+    // 工种筛选
+    if(show && craft !== 'all'){
+      var cardId = card.getAttribute('data-id') || '';
+      var onclickAttr = card.getAttribute('onclick') || '';
+      var match = onclickAttr.match(/navigate\('([^']+)'\)/);
+      var pageId = cardId || (match ? match[1] : '');
+      if(pageId){
+        var meta = getItemMeta(pageId);
+        if(meta && meta.craft && meta.craft.indexOf(craft) === -1) show = false;
+      }
+    }
+    // 类型筛选
+    if(show && ctype !== 'all'){
+      var cardId2 = card.getAttribute('data-id') || '';
+      var onclickAttr2 = card.getAttribute('onclick') || '';
+      var match2 = onclickAttr2.match(/navigate\('([^']+)'\)/);
+      var pageId2 = cardId2 || (match2 ? match2[1] : '');
+      if(pageId2){
+        var meta2 = getItemMeta(pageId2);
+        if(meta2 && meta2.content_type && meta2.content_type !== ctype) show = false;
+      }
+    }
+    card.style.display = show ? '' : 'none';
+    if(show) visibleCount++;
+  });
+
+  // 隐藏空的子标题组
+  document.querySelectorAll('.module-body').forEach(function(body){
+    var hsts = body.querySelectorAll('.hst');
+    hsts.forEach(function(hst){
+      var nextGrid = hst.nextElementSibling;
+      while(nextGrid && !nextGrid.classList.contains('home-grid') && !nextGrid.classList.contains('hst')){
+        nextGrid = nextGrid.nextElementSibling;
+      }
+      if(nextGrid && nextGrid.classList.contains('home-grid')){
+        var visCards = nextGrid.querySelectorAll('.home-card:not([style*="display: none"]):not([style*="display:none"])');
+        hst.style.display = visCards.length ? '' : 'none';
+        nextGrid.style.display = visCards.length ? '' : 'none';
+      }
+    });
+  });
+
+  // 隐藏完全无可见卡片的模块 section
+  document.querySelectorAll('.module-section').forEach(function(sec){
+    var visCards = sec.querySelectorAll('.home-card:not([style*="display: none"]):not([style*="display:none"])');
+    sec.style.display = visCards.length ? '' : 'none';
+  });
+
+  var isFiltering = (stage !== 'all' || craft !== 'all' || ctype !== 'all');
+  if(isFiltering){
+    showToast('🔍 筛选结果 — 共 ' + visibleCount + ' 个匹配条目');
+  }
+}
+
+/** 筛选时自动展开所有模块 section */
+function _expandAllModulesForFilter(){
+  document.querySelectorAll('.module-section').forEach(function(sec){
+    if(!sec.classList.contains('collapsed')) return; // 已展开
+    var body = sec.querySelector('.module-body');
+    if(!body) return;
+    sec.classList.remove('collapsed');
+    body.style.overflow = 'hidden';
+    body.style.maxHeight = '0';
+    body.style.opacity = '0';
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        body.style.maxHeight = body.scrollHeight + 'px';
+        body.style.opacity = '1';
+        var onEnd = function(e){
+          if(e.target !== body) return;
+          body.style.maxHeight = 'none';
+          body.style.overflow = 'visible';
+          body.removeEventListener('transitionend', onEnd);
+        };
+        body.addEventListener('transitionend', onEnd);
+      });
+    });
+  });
 }
 
 // ═══ 责任人与时效展示增强 ═══
@@ -6550,29 +6638,17 @@ function initMultiFilter(){
 
 function applyMultiFilter(){
   if(!indexData || !indexData.items) return;
+  _forceRenderAllSections();  // 确保所有卡片已渲染
+  // 联合阶段筛选一起执行
+  _applyAllFilters();
+  // 如果有任何非 all 的筛选，自动展开模块
   var craft = multiFilterState.craft;
   var ctype = multiFilterState.ctype;
-  // 获取所有首页grid卡片
-  var allCards = document.querySelectorAll('.home-grid .hg-card');
-  allCards.forEach(function(card){
-    var cardId = card.getAttribute('data-page-id') || card.getAttribute('onclick');
-    // 尝试从onclick中提取pageId
-    var match = cardId && cardId.match && cardId.match(/navigate\('([^']+)'\)/);
-    var pageId = match ? match[1] : (card.getAttribute('data-page-id') || '');
-    if(!pageId){card.style.display=''; return;}
-    var meta = getItemMeta(pageId);
-    if(!meta){card.style.display=''; return;}
-    var show = true;
-    if(craft !== 'all' && meta.craft && meta.craft.indexOf(craft) === -1) show = false;
-    if(ctype !== 'all' && meta.content_type && meta.content_type !== ctype) show = false;
-    card.style.display = show ? '' : 'none';
-  });
-  // 也过滤grid组
-  var gridGroups = document.querySelectorAll('.home-grid .grid-section');
-  gridGroups.forEach(function(group){
-    var visibleCards = group.querySelectorAll('.hg-card:not([style*="display: none"]):not([style*="display:none"])');
-    group.style.display = visibleCards.length ? '' : 'none';
-  });
+  if(craft !== 'all' || ctype !== 'all'){
+    _expandAllModulesForFilter();
+    var firstSection=document.querySelector('.module-section:not([style*="display: none"]):not([style*="display:none"])');
+    if(firstSection) firstSection.scrollIntoView({behavior:'smooth', block:'start'});
+  }
 }
 
 // ═══ 知识地图 ═══
