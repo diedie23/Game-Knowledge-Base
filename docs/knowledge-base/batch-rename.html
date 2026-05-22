@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>美术资源批量重命名 — Batch Rename v1.0</title>
+<title>美术资源批量重命名 — Batch Rename v2.0</title>
 <style>
-:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--glow:0 0 20px rgba(34,211,238,.3)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
@@ -14,312 +14,292 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .hdr h1{font-size:28px;color:var(--heading);display:flex;align-items:center;justify-content:center;gap:10px}
 .hdr h1 .ver{font-size:12px;background:var(--cyan);color:#000;padding:3px 10px;border-radius:10px}
 .hdr p{color:var(--dim);font-size:15px;margin-top:5px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;transition:all .3s ease}
 .card-title{font-size:17px;color:var(--heading);font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .badge{font-size:11px;padding:3px 8px;border-radius:4px;font-weight:500}
 .badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}
 .badge-green{background:rgba(74,222,128,.15);color:var(--green)}
 .badge-orange{background:rgba(251,146,60,.15);color:var(--orange)}
 .badge-cyan{background:rgba(34,211,238,.15);color:var(--cyan)}
-
-/* Steps */
+.badge-purple{background:rgba(167,139,250,.15);color:var(--accent2)}
 .steps{display:flex;justify-content:center;gap:0;margin:12px 0 16px}
-.stp{display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:14px;color:var(--dim)}
-.stp .n{width:24px;height:24px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
-.stp.act{color:var(--heading)}.stp.act .n{background:var(--accent);border-color:var(--accent);color:#fff}
-.stp.done .n{background:var(--green);border-color:var(--green);color:#fff}
+.stp{display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:14px;color:var(--dim);cursor:pointer;transition:all .2s;border-radius:6px}
+.stp:hover{background:rgba(108,140,255,.06)}
+.stp .n{width:24px;height:24px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;transition:all .3s}
+.stp.act{color:var(--heading)}.stp.act .n{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 12px rgba(108,140,255,.4)}
+.stp.done{color:var(--green)}.stp.done .n{background:var(--green);border-color:var(--green);color:#fff}
 .sa{color:var(--border);font-size:16px;padding:0 4px}
-
-/* Buttons */
-.btn{padding:8px 18px;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--text);cursor:pointer;font-size:14px;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
-.btn:hover{border-color:var(--accent);color:var(--heading)}
-.btn-p{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}.btn-p:hover{background:#5a7aee}
-.btn-g{background:var(--green);border-color:var(--green);color:#000;font-weight:500}
+.btn{padding:8px 18px;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--text);cursor:pointer;font-size:14px;font-family:inherit;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{border-color:var(--accent);color:var(--heading);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.btn:active{transform:translateY(0)}
+.btn-p{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}.btn-p:hover{background:#5a7aee;box-shadow:0 4px 16px rgba(108,140,255,.3)}
+.btn-g{background:var(--green);border-color:var(--green);color:#000;font-weight:500}.btn-g:hover{box-shadow:0 4px 16px rgba(74,222,128,.3)}
 .btn-r{background:var(--red);border-color:var(--red);color:#fff;font-weight:500}
-.btn-c{background:var(--cyan);border-color:var(--cyan);color:#000;font-weight:500}
+.btn-c{background:var(--cyan);border-color:var(--cyan);color:#000;font-weight:500}.btn-c:hover{box-shadow:0 4px 16px rgba(34,211,238,.3)}
 .btn-sm{padding:5px 12px;font-size:12px}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-
-/* Drop zone */
-.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:50px 20px;text-align:center;cursor:pointer;transition:all .2s}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.mode-tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--card);padding:4px;border-radius:8px;border:1px solid var(--border)}
+.mode-tab{padding:8px 20px;border-radius:6px;border:none;background:transparent;color:var(--dim);cursor:pointer;font-size:14px;font-family:inherit;transition:all .2s;flex:1;text-align:center}
+.mode-tab:hover{color:var(--heading)}
+.mode-tab.act{background:var(--accent);color:#fff;font-weight:500;box-shadow:0 2px 8px rgba(108,140,255,.3)}
+.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:50px 20px;text-align:center;cursor:pointer;transition:all .3s}
 .drop-zone:hover,.drop-zone.dg{border-color:var(--cyan);background:rgba(34,211,238,.04)}
+.drop-zone.dg{animation:pulse 1s ease infinite}
+@keyframes pulse{0%,100%{border-color:var(--cyan)}50%{border-color:var(--accent)}}
 .drop-zone h3{color:var(--heading);font-size:17px;margin-bottom:5px}
 .drop-zone p{color:var(--dim);font-size:14px}
-
-/* Tip */
 .tip{background:linear-gradient(90deg,rgba(34,211,238,.08),rgba(108,140,255,.08));border:1px solid rgba(34,211,238,.15);border-radius:7px;padding:10px 14px;font-size:14px;color:var(--cyan);margin-bottom:12px}
-
-/* Alert */
-.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.7}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.7;animation:fadeIn .3s ease}
 .alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
 .alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
 .alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
-
-/* Template config */
 .tpl-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .tpl-row label{font-size:14px;color:var(--dim);min-width:80px;flex-shrink:0}
-.tpl-row input,.tpl-row select{padding:7px 10px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:14px;font-family:inherit}
+.tpl-row input,.tpl-row select{padding:7px 10px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:14px;font-family:inherit;transition:border-color .2s}
+.tpl-row input:focus,.tpl-row select:focus{border-color:var(--accent);outline:none}
 .tpl-row input[type=text]{flex:1;min-width:200px}
-.tpl-preview{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin:12px 0}
-.tpl-preview .lbl{font-size:12px;color:var(--dim);margin-bottom:5px}
-.tpl-preview .val{font-size:16px;color:var(--cyan);font-weight:600;font-family:'Courier New',monospace}
-
-/* Token list */
+.tpl-preview{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:12px 0;position:relative;overflow:hidden}
+.tpl-preview::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(34,211,238,.05),rgba(108,140,255,.05));pointer-events:none}
+.tpl-preview .lbl{font-size:12px;color:var(--dim);margin-bottom:6px}
+.tpl-preview .val{font-size:22px;color:var(--cyan);font-weight:700;font-family:'Courier New',monospace;text-shadow:var(--glow);letter-spacing:.5px}
 .token-list{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-.token{padding:5px 12px;background:var(--card);border:1px solid var(--border);border-radius:5px;font-size:13px;color:var(--accent);cursor:pointer;transition:all .15s;font-family:'Courier New',monospace}
-.token:hover{border-color:var(--accent);background:rgba(108,140,255,.08)}
-
-/* File list */
-.file-list{max-height:400px;overflow-y:auto;margin:12px 0;border:1px solid var(--border);border-radius:8px}
-.file-row{display:grid;grid-template-columns:30px 2fr 2fr 80px;gap:6px;padding:8px 12px;font-size:13px;align-items:center;border-bottom:1px solid var(--border)}
+.token{padding:5px 12px;background:var(--card);border:1px solid var(--border);border-radius:5px;font-size:13px;color:var(--accent);cursor:pointer;transition:all .2s;font-family:'Courier New',monospace;user-select:none}
+.token:hover{border-color:var(--accent);background:rgba(108,140,255,.08);transform:translateY(-1px)}
+.file-list{max-height:500px;overflow-y:auto;margin:12px 0;border:1px solid var(--border);border-radius:8px}
+.file-row{display:grid;grid-template-columns:30px 2fr 2fr 90px;gap:6px;padding:8px 12px;font-size:13px;align-items:center;border-bottom:1px solid var(--border);transition:all .2s;animation:fadeIn .3s ease}
 .file-row:last-child{border-bottom:none}
-.file-row.header{background:var(--card);font-weight:600;color:var(--heading);position:sticky;top:0;z-index:1;font-size:13px}
+.file-row:hover{background:rgba(108,140,255,.03)}
+.file-row.header{background:var(--card);font-weight:600;color:var(--heading);position:sticky;top:0;z-index:1;font-size:13px;animation:none}
 .file-row .idx{color:var(--dim);text-align:center}
 .file-row .old-name{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.file-row .new-name{color:var(--cyan);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.file-row .conflict{color:var(--red);font-weight:600}
-.file-row .ok{color:var(--green)}
-
-/* Conflict indicator */
+.file-row .new-name{color:var(--cyan);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;border-bottom:1px dashed transparent;transition:border-color .2s}
+.file-row .new-name:hover{border-color:var(--cyan)}
+.file-row .new-name input{background:transparent;border:1px solid var(--cyan);border-radius:3px;color:var(--cyan);font-size:13px;padding:2px 6px;width:100%;font-family:inherit}
+.file-row.has-conflict{background:rgba(248,113,113,.04);border-left:3px solid var(--red)}
 .conflict-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:12px;font-weight:600}
 .conflict-badge.has-conflict{background:rgba(248,113,113,.12);color:var(--red)}
 .conflict-badge.no-conflict{background:rgba(74,222,128,.12);color:var(--green)}
-
-/* Segment config */
-.seg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:10px 0}
-.seg-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px}
+.seg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin:10px 0}
+.seg-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px}
 .seg-item .seg-label{font-size:12px;color:var(--dim);margin-bottom:5px;font-weight:600}
-.seg-item select,.seg-item input{width:100%;padding:6px 8px;background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:13px;margin-top:4px}
-
-/* Summary */
+.seg-item select,.seg-item input{width:100%;padding:7px 10px;background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:13px;margin-top:4px;transition:border-color .2s}
+.seg-item select:focus,.seg-item input:focus{border-color:var(--accent);outline:none}
 .summary-bar{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0}
-.summary-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 24px;text-align:center;flex:1;min-width:100px}
+.summary-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 24px;text-align:center;flex:1;min-width:100px;transition:all .3s}
+.summary-item:hover{border-color:var(--accent);transform:translateY(-2px)}
 .summary-item .num{font-size:24px;font-weight:700;margin-bottom:3px}
 .summary-item .lbl{font-size:13px;color:var(--dim)}
 .summary-item.green .num{color:var(--green)}
 .summary-item.red .num{color:var(--red)}
 .summary-item.cyan .num{color:var(--cyan)}
-
-/* Preset bar */
 .preset-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.preset-btn{padding:7px 16px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s}
-.preset-btn:hover{border-color:var(--cyan);color:var(--heading)}
-.preset-btn.act{border-color:var(--cyan);color:var(--cyan);background:rgba(34,211,238,.06)}
-
-/* Toast */
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--cyan);padding:10px 24px;border-radius:7px;font-size:14px;color:var(--heading);z-index:999;transition:transform .3s;pointer-events:none}
+.preset-btn{padding:7px 16px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit;transition:all .2s;position:relative}
+.preset-btn:hover{border-color:var(--cyan);color:var(--heading);transform:translateY(-1px)}
+.preset-btn.act{border-color:var(--cyan);color:var(--cyan);background:rgba(34,211,238,.06);border-left:3px solid var(--cyan)}
+.preset-btn .del-x{display:none;position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:var(--red);color:#fff;font-size:10px;line-height:16px;text-align:center;cursor:pointer}
+.preset-btn.user-preset:hover .del-x{display:block}
+.regex-panel{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0}
+.regex-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.regex-row label{font-size:13px;color:var(--dim);min-width:60px}
+.regex-row input[type=text]{flex:1;min-width:200px;padding:8px 12px;background:var(--panel);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:14px;font-family:'Courier New',monospace;transition:border-color .2s}
+.regex-row input[type=text]:focus{border-color:var(--accent);outline:none}
+.regex-flags{display:flex;gap:12px;margin-top:8px}
+.regex-flags label{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--dim);cursor:pointer}
+.regex-flags input[type=checkbox]{accent-color:var(--accent)}
+.conflict-strategy{display:flex;gap:8px;align-items:center;margin:10px 0;flex-wrap:wrap}
+.conflict-strategy label{font-size:14px;color:var(--dim)}
+.conflict-strategy select{padding:6px 10px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:13px}
+.search-bar{display:flex;gap:8px;align-items:center;margin:10px 0}
+.search-bar input{flex:1;padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;transition:border-color .2s}
+.search-bar input:focus{border-color:var(--accent);outline:none}
+.clean-opts{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0}
+.clean-opts label{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--dim);cursor:pointer}
+.clean-opts input[type=checkbox]{accent-color:var(--accent)}
+.csv-zone{border:1px dashed var(--border);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;margin:10px 0}
+.csv-zone:hover{border-color:var(--accent);background:rgba(108,140,255,.04)}
+.history-panel{max-height:250px;overflow-y:auto}
+.history-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border:1px solid var(--border);border-radius:6px;margin-bottom:6px;font-size:12px;transition:all .2s}
+.history-item:hover{border-color:var(--accent);background:rgba(108,140,255,.04)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--cyan);padding:10px 24px;border-radius:7px;font-size:14px;color:var(--heading);z-index:999;transition:transform .3s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
 .toast.show{transform:translateX(-50%) translateY(0)}
+.toast.error{border-color:var(--red)}.toast.success{border-color:var(--green)}.toast.warning{border-color:var(--yellow)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:768px){.seg-grid{grid-template-columns:1fr}.steps{flex-wrap:wrap;gap:4px}.sa{display:none}}
 </style>
 </head>
 <body>
 <div class="app">
-
-<!-- ═══ HEADER ═══ -->
 <div class="hdr">
-  <h1>📁 美术资源批量重命名 <span class="ver">Batch Rename v1.0</span></h1>
-  <p>自定义命名模板 · 实时预览 · 冲突检测 · 导出命名对照表</p>
+  <h1>📁 美术资源批量重命名 <span class="ver">v2.0</span></h1>
+  <p>模板命名 · 正则替换 · CSV导入 · 冲突自动解决 · 回滚脚本 · 预设管理</p>
 </div>
 
-<!-- ═══ STEPS ═══ -->
 <div class="steps" id="stepBar">
-  <div class="stp act" data-s="1"><span class="n">1</span>配置模板</div><span class="sa">→</span>
-  <div class="stp" data-s="2"><span class="n">2</span>载入文件</div><span class="sa">→</span>
-  <div class="stp" data-s="3"><span class="n">3</span>预览确认</div>
+  <div class="stp act" data-s="1" onclick="goToStep(1)"><span class="n">1</span>配置规则</div><span class="sa">→</span>
+  <div class="stp" data-s="2" onclick="goToStep(2)"><span class="n">2</span>载入文件</div><span class="sa">→</span>
+  <div class="stp" data-s="3" onclick="goToStep(3)"><span class="n">3</span>预览确认</div>
 </div>
 
-<!-- ═══ STEP 1: 命名模板配置 ═══ -->
+<!-- STEP 1 -->
 <div class="card" id="s1">
-  <div class="card-title">⚙️ 命名模板配置 <span class="badge badge-blue">Step 1</span></div>
-  <div class="tip">💡 使用模板变量定义命名规则。变量使用 <code>{变量名}</code> 格式，系统将根据各段规则自动生成新文件名。</div>
-
-  <div style="font-size:15px;color:var(--heading);margin-bottom:8px;font-weight:600">📋 命名预设</div>
-  <div class="preset-bar" id="presetBar">
-    <button class="preset-btn act" onclick="applyPreset('character')">角色资源</button>
-    <button class="preset-btn" onclick="applyPreset('weapon')">武器/道具</button>
-    <button class="preset-btn" onclick="applyPreset('ui')">UI 资源</button>
-    <button class="preset-btn" onclick="applyPreset('scene')">场景资源</button>
-    <button class="preset-btn" onclick="applyPreset('texture')">贴图文件</button>
-    <button class="preset-btn" onclick="applyPreset('custom')">自定义</button>
+  <div class="card-title">⚙️ 命名规则配置 <span class="badge badge-blue">Step 1</span></div>
+  <div class="mode-tabs">
+    <button class="mode-tab act" onclick="switchMode('template',this)">📐 模板模式</button>
+    <button class="mode-tab" onclick="switchMode('regex',this)">🔍 正则替换</button>
+    <button class="mode-tab" onclick="switchMode('csv',this)">📊 CSV 导入</button>
   </div>
 
-  <div class="tpl-row">
-    <label>命名模板</label>
-    <input type="text" id="tplInput" value="{类型}_{性别}_{部件}_{编号}_{变体}" oninput="updatePreview()">
-  </div>
-
-  <div class="tpl-row">
-    <label>分隔符</label>
-    <select id="separator" onchange="updatePreview()">
-      <option value="_">下划线 (_)</option>
-      <option value="-">连字符 (-)</option>
-      <option value=".">点号 (.)</option>
-      <option value="">无分隔</option>
-    </select>
-    <label style="margin-left:12px">大小写</label>
-    <select id="caseMode" onchange="updatePreview()">
-      <option value="keep">保持原样</option>
-      <option value="lower">全部小写</option>
-      <option value="upper">全部大写</option>
-      <option value="pascal">PascalCase</option>
-      <option value="camel">camelCase</option>
-    </select>
-  </div>
-
-  <div style="font-size:13px;color:var(--dim);margin:8px 0">💡 点击下方变量标签快速插入到模板中：</div>
-  <div class="token-list" id="tokenList">
-    <span class="token" onclick="insertToken('{类型}')">{类型}</span>
-    <span class="token" onclick="insertToken('{性别}')">{性别}</span>
-    <span class="token" onclick="insertToken('{部件}')">{部件}</span>
-    <span class="token" onclick="insertToken('{编号}')">{编号}</span>
-    <span class="token" onclick="insertToken('{变体}')">{变体}</span>
-    <span class="token" onclick="insertToken('{序号}')">{序号}</span>
-    <span class="token" onclick="insertToken('{原名}')">{原名}</span>
-    <span class="token" onclick="insertToken('{日期}')">{日期}</span>
-    <span class="token" onclick="insertToken('{前缀}')">{前缀}</span>
-    <span class="token" onclick="insertToken('{后缀}')">{后缀}</span>
-  </div>
-
-  <div style="font-size:11px;color:var(--heading);margin:14px 0 6px;font-weight:600">🔧 各段默认值设置</div>
-  <div class="seg-grid" id="segGrid">
-    <div class="seg-item">
-      <div class="seg-label">类型</div>
-      <select id="segType" onchange="updatePreview()">
-        <option value="CH">CH (角色)</option>
-        <option value="WP">WP (武器)</option>
-        <option value="UI">UI (界面)</option>
-        <option value="BG">BG (背景)</option>
-        <option value="EF">EF (特效)</option>
-        <option value="IT">IT (道具)</option>
-        <option value="">自定义输入</option>
-      </select>
-      <input type="text" id="segTypeCustom" placeholder="自定义类型" style="display:none" oninput="updatePreview()">
+  <!-- 模板模式 -->
+  <div id="modeTemplate">
+    <div class="tip">💡 使用 <code>{变量名}</code> 定义命名规则，系统自动生成新文件名。</div>
+    <div style="font-size:15px;color:var(--heading);margin-bottom:8px;font-weight:600">📋 命名预设</div>
+    <div class="preset-bar" id="presetBar"></div>
+    <div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn btn-sm" onclick="saveCurrentPreset()">💾 保存为预设</button>
+      <button class="btn btn-sm" onclick="exportPresets()">📤 导出预设</button>
+      <button class="btn btn-sm" onclick="document.getElementById('presetFile').click()">📥 导入预设</button>
+      <input type="file" id="presetFile" accept=".json" style="display:none" onchange="importPresets(event)">
     </div>
-    <div class="seg-item">
-      <div class="seg-label">性别</div>
-      <select id="segGender" onchange="updatePreview()">
-        <option value="M">M (男性)</option>
-        <option value="F">F (女性)</option>
-        <option value="N">N (中性)</option>
-        <option value="">自定义输入</option>
-      </select>
-      <input type="text" id="segGenderCustom" placeholder="自定义性别" style="display:none" oninput="updatePreview()">
+    <div class="tpl-row">
+      <label>命名模板</label>
+      <input type="text" id="tplInput" value="{类型}_{性别}_{部件}_{编号}_{变体}" oninput="pushHistory();updatePreview()">
+      <button class="btn btn-sm" onclick="document.getElementById('tplInput').value='';updatePreview()" title="清空">✕</button>
     </div>
-    <div class="seg-item">
-      <div class="seg-label">部件</div>
-      <select id="segPart" onchange="updatePreview()">
-        <option value="Body">Body (身体)</option>
-        <option value="Head">Head (头部)</option>
-        <option value="Hair">Hair (头发)</option>
-        <option value="Face">Face (脸部)</option>
-        <option value="Hand">Hand (手部)</option>
-        <option value="Leg">Leg (腿部)</option>
-        <option value="Acc">Acc (配件)</option>
-        <option value="">自定义输入</option>
-      </select>
-      <input type="text" id="segPartCustom" placeholder="自定义部件" style="display:none" oninput="updatePreview()">
+    <div class="tpl-row">
+      <label>分隔符</label>
+      <select id="separator" onchange="updatePreview()"><option value="_">下划线 (_)</option><option value="-">连字符 (-)</option><option value=".">点号 (.)</option><option value="">无分隔</option></select>
+      <label style="margin-left:12px">大小写</label>
+      <select id="caseMode" onchange="updatePreview()"><option value="keep">保持原样</option><option value="lower">全部小写</option><option value="upper">全部大写</option><option value="pascal">PascalCase</option><option value="camel">camelCase</option></select>
     </div>
-    <div class="seg-item">
-      <div class="seg-label">编号 (起始)</div>
-      <input type="number" id="segNumStart" value="001" min="0" step="1" oninput="updatePreview()">
-      <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-        <span style="font-size:9px;color:var(--dim)">位数:</span>
-        <select id="segNumPad" style="width:50px" onchange="updatePreview()">
-          <option value="2">2位</option>
-          <option value="3" selected>3位</option>
-          <option value="4">4位</option>
-        </select>
+    <div class="clean-opts">
+      <label><input type="checkbox" id="cleanChinese" onchange="updatePreview()"> 去除中文</label>
+      <label><input type="checkbox" id="cleanSpaces" onchange="updatePreview()"> 去除空格</label>
+      <label><input type="checkbox" id="cleanSpecial" onchange="updatePreview()"> 去除特殊字符</label>
+      <label><input type="checkbox" id="trimDots" onchange="updatePreview()"> 去除多余点号</label>
+    </div>
+    <div style="font-size:13px;color:var(--dim);margin:8px 0">💡 点击变量标签插入模板：</div>
+    <div class="token-list" id="tokenList">
+      <span class="token" onclick="insertToken('{类型}')">{类型}</span>
+      <span class="token" onclick="insertToken('{性别}')">{性别}</span>
+      <span class="token" onclick="insertToken('{部件}')">{部件}</span>
+      <span class="token" onclick="insertToken('{编号}')">{编号}</span>
+      <span class="token" onclick="insertToken('{变体}')">{变体}</span>
+      <span class="token" onclick="insertToken('{序号}')">{序号}</span>
+      <span class="token" onclick="insertToken('{原名}')">{原名}</span>
+      <span class="token" onclick="insertToken('{日期}')">{日期}</span>
+      <span class="token" onclick="insertToken('{前缀}')">{前缀}</span>
+      <span class="token" onclick="insertToken('{后缀}')">{后缀}</span>
+      <span class="token" onclick="insertToken('{扩展名}')">{扩展名}</span>
+    </div>
+    <div style="font-size:13px;color:var(--heading);margin:14px 0 6px;font-weight:600">🔧 各段默认值</div>
+    <div class="seg-grid" id="segGrid">
+      <div class="seg-item"><div class="seg-label">类型</div><select id="segType" onchange="toggleCustom(this);updatePreview()"><option value="CH">CH (角色)</option><option value="WP">WP (武器)</option><option value="UI">UI (界面)</option><option value="BG">BG (背景)</option><option value="EF">EF (特效)</option><option value="IT">IT (道具)</option><option value="">自定义</option></select><input type="text" id="segTypeCustom" placeholder="自定义类型" style="display:none" oninput="updatePreview()"></div>
+      <div class="seg-item"><div class="seg-label">性别</div><select id="segGender" onchange="toggleCustom(this);updatePreview()"><option value="M">M (男性)</option><option value="F">F (女性)</option><option value="N">N (中性)</option><option value="">自定义</option></select><input type="text" id="segGenderCustom" placeholder="自定义" style="display:none" oninput="updatePreview()"></div>
+      <div class="seg-item"><div class="seg-label">部件</div><select id="segPart" onchange="toggleCustom(this);updatePreview()"><option value="Body">Body (身体)</option><option value="Head">Head (头部)</option><option value="Hair">Hair (头发)</option><option value="Face">Face (脸部)</option><option value="Hand">Hand (手部)</option><option value="Leg">Leg (腿部)</option><option value="Acc">Acc (配件)</option><option value="">自定义</option></select><input type="text" id="segPartCustom" placeholder="自定义部件" style="display:none" oninput="updatePreview()"></div>
+      <div class="seg-item"><div class="seg-label">编号 (起始)</div><input type="number" id="segNumStart" value="1" min="0" step="1" oninput="updatePreview()"><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font-size:11px;color:var(--dim)">位数:</span><select id="segNumPad" style="width:50px" onchange="updatePreview()"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></div></div>
+      <div class="seg-item"><div class="seg-label">变体</div><select id="segVariant" onchange="toggleCustom(this);updatePreview()"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="Base">Base</option><option value="Alt">Alt</option><option value="">自定义</option></select><input type="text" id="segVariantCustom" placeholder="自定义" style="display:none" oninput="updatePreview()"></div>
+      <div class="seg-item"><div class="seg-label">前缀 / 后缀</div><input type="text" id="segPrefix" placeholder="前缀 (如 T_)" oninput="updatePreview()"><input type="text" id="segSuffix" placeholder="后缀 (如 _D)" style="margin-top:4px" oninput="updatePreview()"></div>
+    </div>
+    <div class="tpl-preview"><div class="lbl">📋 命名预览</div><div class="val" id="tplPreviewText">CH_M_Body_001_A</div></div>
+  </div>
+
+  <!-- 正则模式 -->
+  <div id="modeRegex" style="display:none">
+    <div class="tip">💡 正则匹配原文件名并替换。支持捕获组 <code>$1, $2</code>。</div>
+    <div class="regex-panel">
+      <div class="regex-row"><label>查找：</label><input type="text" id="regexFind" placeholder="正则，如 ^(\w+)_v(\d+)" oninput="updatePreview()"></div>
+      <div class="regex-row"><label>替换为：</label><input type="text" id="regexReplace" placeholder="如 $1_version$2" oninput="updatePreview()"></div>
+      <div class="regex-flags">
+        <label><input type="checkbox" id="regexG" checked onchange="updatePreview()"> 全局(g)</label>
+        <label><input type="checkbox" id="regexI" onchange="updatePreview()"> 忽略大小写(i)</label>
       </div>
-    </div>
-    <div class="seg-item">
-      <div class="seg-label">变体</div>
-      <select id="segVariant" onchange="updatePreview()">
-        <option value="A">A</option>
-        <option value="B">B</option>
-        <option value="C">C</option>
-        <option value="Base">Base</option>
-        <option value="Alt">Alt</option>
-        <option value="">自定义输入</option>
-      </select>
-      <input type="text" id="segVariantCustom" placeholder="自定义变体" style="display:none" oninput="updatePreview()">
-    </div>
-    <div class="seg-item">
-      <div class="seg-label">前缀 / 后缀</div>
-      <input type="text" id="segPrefix" placeholder="前缀 (如 T_)" oninput="updatePreview()">
-      <input type="text" id="segSuffix" placeholder="后缀 (如 _D)" oninput="updatePreview()">
+      <div class="tpl-preview" style="margin-top:12px"><div class="lbl">🔍 预览 (示例: example_v01)</div><div class="val" id="regexPreview">—</div></div>
     </div>
   </div>
 
-  <div class="tpl-preview">
-    <div class="lbl">📋 命名预览示例</div>
-    <div class="val" id="tplPreviewText">CH_M_Body_001_A</div>
+  <!-- CSV模式 -->
+  <div id="modeCsv" style="display:none">
+    <div class="tip">💡 上传 CSV：第一列原名，第二列新名。支持 .csv/.tsv/.txt。</div>
+    <div class="csv-zone" onclick="document.getElementById('csvFile').click()">
+      <div style="font-size:16px;color:var(--heading)">📊 点击上传 CSV 映射文件</div>
+      <div style="font-size:13px;color:var(--dim);margin-top:4px">格式：原文件名, 新文件名</div>
+    </div>
+    <input type="file" id="csvFile" accept=".csv,.tsv,.txt" style="display:none" onchange="handleCsv(event)">
+    <div id="csvInfo" class="alert alert-green" style="display:none">✅ 已加载 <strong id="csvCount">0</strong> 条映射</div>
   </div>
 </div>
 
-<!-- ═══ STEP 2: 载入文件 ═══ -->
+<!-- STEP 2 -->
 <div class="card" id="s2">
-  <div class="card-title">📁 载入文件列表 <span class="badge badge-green">Step 2</span></div>
-  <div class="tip">💡 拖入需要重命名的文件。工具将按照上方模板为每个文件生成新名称。文件不会实际上传，仅在浏览器本地处理。</div>
-
+  <div class="card-title">📁 载入文件 <span class="badge badge-green">Step 2</span></div>
+  <div class="tip">💡 拖入文件，工具在浏览器本地处理，不会上传。</div>
   <div class="drop-zone" id="dropZone" ondrop="handleDrop(event)" ondragover="event.preventDefault();this.classList.add('dg')" ondragleave="this.classList.remove('dg')">
     <h3>📂 拖入文件 / 点击选择</h3>
-    <p>支持任意格式（图片、PSD、模型文件、音频等）</p>
+    <p>支持任意格式（图片、PSD、模型、音频等）</p>
   </div>
   <input type="file" id="fileInput" multiple style="display:none" onchange="handleFiles(event)">
-
   <div id="fileActions" style="display:none;margin-top:12px">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <span style="font-size:15px;color:var(--heading);font-weight:600">📋 文件列表 (<span id="fileCount">0</span> 个)</span>
-      <div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <span style="font-size:15px;color:var(--heading);font-weight:600">📋 已载入 <span id="fileCount">0</span> 个文件</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn btn-sm" onclick="clearFiles()">🗑 清空</button>
         <button class="btn btn-sm btn-c" onclick="generatePreview()">🔄 生成预览</button>
       </div>
     </div>
+    <div class="search-bar"><input type="text" id="fileSearch" placeholder="🔍 搜索文件名..." oninput="renderFileList()"></div>
+    <div class="file-list" id="srcFileList"></div>
   </div>
 </div>
 
-<!-- ═══ STEP 3: 预览与确认 ═══ -->
+<!-- STEP 3 -->
 <div class="card" id="s3" style="display:none">
-  <div class="card-title">👁️ 重命名预览 & 冲突检测 <span class="badge badge-orange">Step 3</span></div>
-
-  <div class="summary-bar" id="summaryBar">
-    <div class="summary-item cyan"><div class="num" id="sumTotal">0</div><div class="lbl">总文件数</div></div>
-    <div class="summary-item green"><div class="num" id="sumOk">0</div><div class="lbl">✅ 无冲突</div></div>
-    <div class="summary-item red"><div class="num" id="sumConflict">0</div><div class="lbl">⚠️ 名称冲突</div></div>
+  <div class="card-title">👁️ 预览 & 冲突检测 <span class="badge badge-orange">Step 3</span></div>
+  <div class="conflict-strategy">
+    <label>⚙️ 冲突解决：</label>
+    <select id="conflictStrategy" onchange="generatePreview()">
+      <option value="none">不自动解决</option>
+      <option value="suffix_num">追加数字 (_1, _2)</option>
+      <option value="suffix_alpha">追加字母 (_a, _b)</option>
+      <option value="suffix_time">追加时间戳</option>
+    </select>
   </div>
-
-  <div id="conflictAlert" class="alert alert-red" style="display:none">
-    <strong>⚠️ 检测到名称冲突！</strong>冲突的文件将使用相同名称，请调整模板或手动修改。
+  <div class="summary-bar">
+    <div class="summary-item cyan"><div class="num" id="sumTotal">0</div><div class="lbl">总计</div></div>
+    <div class="summary-item green"><div class="num" id="sumOk">0</div><div class="lbl">✅ 正常</div></div>
+    <div class="summary-item red"><div class="num" id="sumConflict">0</div><div class="lbl">⚠️ 冲突</div></div>
   </div>
-
-  <div class="file-list" id="previewList">
-    <div class="file-row header">
-      <div class="idx">#</div>
-      <div>原文件名</div>
-      <div>新文件名</div>
-      <div>状态</div>
-    </div>
-  </div>
-
+  <div id="conflictAlert" class="alert alert-red" style="display:none"><strong>⚠️ 检测到名称冲突！</strong>请调整模板或选择自动解决策略。</div>
+  <div class="search-bar"><input type="text" id="previewSearch" placeholder="🔍 搜索..." oninput="renderPreviewList()"><label style="font-size:12px;color:var(--dim);display:flex;align-items:center;gap:4px"><input type="checkbox" id="showConflicts" onchange="renderPreviewList()"> 仅冲突</label></div>
+  <div class="file-list" id="previewList"></div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
-    <button class="btn btn-g" onclick="exportMapping()">📥 导出命名对照表 (CSV)</button>
-    <button class="btn btn-p" onclick="exportScript()">💾 导出重命名脚本 (BAT)</button>
-    <button class="btn btn-sm" onclick="exportPS1()">📋 导出 PowerShell 脚本</button>
-    <button class="btn btn-sm" onclick="copyMapping()">📋 复制对照表</button>
+    <button class="btn btn-g" onclick="exportCSV()">📥 CSV对照表</button>
+    <button class="btn btn-p" onclick="exportBAT()">💾 BAT脚本</button>
+    <button class="btn btn-c" onclick="exportPS1()">📋 PowerShell</button>
+    <button class="btn" onclick="exportSH()">🐧 Shell</button>
+    <button class="btn" onclick="exportPY()">🐍 Python</button>
+    <button class="btn btn-r" onclick="exportRollback()">⏪ 回滚脚本</button>
+    <button class="btn btn-sm" onclick="copyMapping()">📋 复制</button>
   </div>
 </div>
 
-<!-- ═══ 使用帮助 ═══ -->
+<!-- 历史 -->
 <div class="card">
-  <div class="card-title">📖 使用指南</div>
-  <div style="font-size:14px;line-height:1.8">
-    <h4 style="color:var(--heading);font-size:16px;margin:10px 0 6px">🎯 适用场景</h4>
-    <ul style="padding-left:18px;font-size:14px">
-      <li><strong>外包交付规范化：</strong>统一外包交付文件的命名格式</li>
-      <li><strong>入库前整理：</strong>批量将零散文件名转为项目规范命名</li>
-      <li><strong>版本迭代：</strong>批量为资源添加版本号/变体后缀</li>
-      <li><strong>多语言/多平台：</strong>批量生成不同平台的资源命名</li>
-    </ul>
+  <div class="card-title">📜 操作历史 <span class="badge badge-purple">本地存储</span></div>
+  <div class="history-panel" id="historyPanel"><p style="color:var(--dim);font-size:13px;text-align:center;padding:16px">暂无记录</p></div>
+  <button class="btn btn-sm" style="margin-top:8px" onclick="clearAllHistory()">🗑 清空历史</button>
+</div>
 
+<!-- 使用帮助 -->
+<div class="card">
+  <div class="card-title">📖 使用指南 & 快捷键</div>
+  <div style="font-size:14px;line-height:1.8">
+    <h4 style="color:var(--heading);font-size:16px;margin:10px 0 6px">⌨️ 快捷键</h4>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:10px 0">
+      <tr style="background:var(--panel)"><th style="padding:6px 8px;border:1px solid var(--border)">快捷键</th><th style="padding:6px;border:1px solid var(--border)">功能</th></tr>
+      <tr><td style="padding:4px 8px;border:1px solid var(--border)">Ctrl+Enter</td><td style="padding:4px 8px;border:1px solid var(--border)">生成预览</td></tr>
+      <tr><td style="padding:4px 8px;border:1px solid var(--border)">Ctrl+E</td><td style="padding:4px 8px;border:1px solid var(--border)">导出 CSV</td></tr>
+      <tr><td style="padding:4px 8px;border:1px solid var(--border)">Ctrl+Z</td><td style="padding:4px 8px;border:1px solid var(--border)">撤销模板修改</td></tr>
+    </table>
     <h4 style="color:var(--heading);font-size:16px;margin:14px 0 6px">📋 命名规范参考</h4>
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:10px 0">
       <tr style="background:var(--panel)"><th style="padding:8px;border:1px solid var(--border)">资源类型</th><th style="padding:8px;border:1px solid var(--border)">推荐模板</th><th style="padding:8px;border:1px solid var(--border)">示例</th></tr>
@@ -328,325 +308,88 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <tr><td style="padding:6px 8px;border:1px solid var(--border)">UI 图标</td><td style="padding:6px;border:1px solid var(--border)"><code>{前缀}{类型}_{部件}_{编号}</code></td><td style="padding:6px;border:1px solid var(--border)">Icon_UI_Btn_001</td></tr>
       <tr><td style="padding:6px 8px;border:1px solid var(--border)">贴图文件</td><td style="padding:6px;border:1px solid var(--border)"><code>T_{类型}_{部件}_{后缀}</code></td><td style="padding:6px;border:1px solid var(--border)">T_CH_Body_D</td></tr>
     </table>
-
     <h4 style="color:var(--heading);font-size:16px;margin:14px 0 6px">🔧 变量说明</h4>
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin:10px 0">
       <tr style="background:var(--panel)"><th style="padding:6px;border:1px solid var(--border)">变量</th><th style="padding:6px;border:1px solid var(--border)">说明</th></tr>
-      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{类型}</td><td style="padding:4px;border:1px solid var(--border)">资源类型缩写（CH/WP/UI/BG/EF/IT）</td></tr>
-      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{性别}</td><td style="padding:4px;border:1px solid var(--border)">性别标识（M/F/N）</td></tr>
-      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{部件}</td><td style="padding:4px;border:1px solid var(--border)">部件名称（Body/Head/Hair 等）</td></tr>
-      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{编号}</td><td style="padding:4px;border:1px solid var(--border)">自增编号（根据起始值和位数自动填充）</td></tr>
-      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{变体}</td><td style="padding:4px;border:1px solid var(--border)">变体标识（A/B/C/Base/Alt）</td></tr>
-      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{序号}</td><td style="padding:4px;border:1px solid var(--border)">纯递增序号（从 1 开始）</td></tr>
-      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{原名}</td><td style="padding:4px;border:1px solid var(--border)">原文件名（去除扩展名）</td></tr>
-      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{日期}</td><td style="padding:4px;border:1px solid var(--border)">当天日期（YYYYMMDD 格式）</td></tr>
-      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{前缀}/{后缀}</td><td style="padding:4px;border:1px solid var(--border)">自定义前后缀字符串</td></tr>
+      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{类型}</td><td style="padding:4px 8px;border:1px solid var(--border)">资源类型缩写</td></tr>
+      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{性别}</td><td style="padding:4px 8px;border:1px solid var(--border)">性别标识 M/F/N</td></tr>
+      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{部件}</td><td style="padding:4px 8px;border:1px solid var(--border)">部件名称</td></tr>
+      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{编号}</td><td style="padding:4px 8px;border:1px solid var(--border)">自增编号</td></tr>
+      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{变体}</td><td style="padding:4px 8px;border:1px solid var(--border)">变体标识 A/B/C/Base/Alt</td></tr>
+      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{序号}</td><td style="padding:4px 8px;border:1px solid var(--border)">纯递增序号</td></tr>
+      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{原名}</td><td style="padding:4px 8px;border:1px solid var(--border)">原文件名（无扩展名）</td></tr>
+      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{日期}</td><td style="padding:4px 8px;border:1px solid var(--border)">YYYYMMDD</td></tr>
+      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{前缀}/{后缀}</td><td style="padding:4px 8px;border:1px solid var(--border)">自定义前后缀</td></tr>
+      <tr><td style="padding:4px 8px;border:1px solid var(--border);font-family:monospace">{扩展名}</td><td style="padding:4px 8px;border:1px solid var(--border)">原文件扩展名</td></tr>
     </table>
   </div>
 </div>
-
-</div><!-- /app -->
-
+</div>
 <div class="toast" id="toast"></div>
-
 <script>
-// ═══════════════════════════════════════════
-// Batch Rename Core Logic
-// ═══════════════════════════════════════════
-
-let loadedFiles = [];
-let renameResults = [];
-
-// Presets
-const PRESETS = {
-  character: { tpl:'{类型}_{性别}_{部件}_{编号}_{变体}', type:'CH', gender:'M', part:'Body', variant:'A', prefix:'', suffix:'', desc:'角色资源' },
-  weapon:   { tpl:'{类型}_{部件}_{编号}', type:'WP', gender:'', part:'Sword', variant:'', prefix:'', suffix:'', desc:'武器/道具' },
-  ui:       { tpl:'{前缀}{类型}_{部件}_{编号}', type:'UI', gender:'', part:'Btn', variant:'', prefix:'Icon_', suffix:'', desc:'UI 资源' },
-  scene:    { tpl:'{类型}_{部件}_{编号}_{变体}', type:'BG', gender:'', part:'Tree', variant:'Base', prefix:'', suffix:'', desc:'场景资源' },
-  texture:  { tpl:'T_{类型}_{部件}_{后缀}', type:'CH', gender:'', part:'Body', variant:'', prefix:'', suffix:'D', desc:'贴图文件' },
-  custom:   { tpl:'{原名}_{序号}', type:'', gender:'', part:'', variant:'', prefix:'', suffix:'', desc:'自定义' }
-};
-let currentPreset = 'character';
-
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-function applyPreset(key) {
-  currentPreset = key;
-  const p = PRESETS[key];
-  document.getElementById('tplInput').value = p.tpl;
-  if (p.type) document.getElementById('segType').value = p.type;
-  if (p.gender) document.getElementById('segGender').value = p.gender;
-  if (p.part) {
-    const partSel = document.getElementById('segPart');
-    const exists = Array.from(partSel.options).some(o => o.value === p.part);
-    if (exists) { partSel.value = p.part; }
-    else { partSel.value = ''; document.getElementById('segPartCustom').value = p.part; document.getElementById('segPartCustom').style.display = 'block'; }
-  }
-  if (p.variant) document.getElementById('segVariant').value = p.variant;
-  document.getElementById('segPrefix').value = p.prefix || '';
-  document.getElementById('segSuffix').value = p.suffix || '';
-
-  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('act'));
-  event.target.classList.add('act');
-  updatePreview();
-  toast('✅ 已切换到预设：' + p.desc);
-}
-
-// Custom select toggle
-document.querySelectorAll('.seg-item select').forEach(sel => {
-  sel.addEventListener('change', function() {
-    const customInput = this.parentElement.querySelector('input[type=text]');
-    if (customInput && this.id.startsWith('seg')) {
-      if (this.value === '') { customInput.style.display = 'block'; }
-      else { customInput.style.display = 'none'; }
-    }
-  });
-});
-
-function insertToken(token) {
-  const input = document.getElementById('tplInput');
-  const pos = input.selectionStart || input.value.length;
-  input.value = input.value.slice(0, pos) + token + input.value.slice(pos);
-  input.focus();
-  updatePreview();
-}
-
-function getSegValue(id) {
-  const sel = document.getElementById(id);
-  if (sel.value === '') {
-    const customInput = document.getElementById(id + 'Custom');
-    return customInput ? customInput.value : '';
-  }
-  return sel.value;
-}
-
-function generateName(tpl, index, originalName) {
-  const sep = document.getElementById('separator').value;
-  const type = getSegValue('segType');
-  const gender = getSegValue('segGender');
-  const part = getSegValue('segPart');
-  const variant = getSegValue('segVariant');
-  const prefix = document.getElementById('segPrefix').value;
-  const suffix = document.getElementById('segSuffix').value;
-  const numStart = parseInt(document.getElementById('segNumStart').value) || 0;
-  const numPad = parseInt(document.getElementById('segNumPad').value) || 3;
-  const num = String(numStart + index).padStart(numPad, '0');
-  const seq = String(index + 1).padStart(numPad, '0');
-  const today = new Date();
-  const dateStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0');
-
-  let name = tpl;
-  name = name.replace(/\{类型\}/g, type);
-  name = name.replace(/\{性别\}/g, gender);
-  name = name.replace(/\{部件\}/g, part);
-  name = name.replace(/\{编号\}/g, num);
-  name = name.replace(/\{变体\}/g, variant);
-  name = name.replace(/\{序号\}/g, seq);
-  name = name.replace(/\{原名\}/g, originalName || '');
-  name = name.replace(/\{日期\}/g, dateStr);
-  name = name.replace(/\{前缀\}/g, prefix);
-  name = name.replace(/\{后缀\}/g, suffix);
-
-  // Apply case mode
-  const caseMode = document.getElementById('caseMode').value;
-  switch (caseMode) {
-    case 'lower': name = name.toLowerCase(); break;
-    case 'upper': name = name.toUpperCase(); break;
-    case 'pascal': name = name.split(/[_\-.\s]/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(''); break;
-    case 'camel': name = name.split(/[_\-.\s]/).map((w,i) => i===0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(''); break;
-  }
-
-  return name;
-}
-
-function updatePreview() {
-  const tpl = document.getElementById('tplInput').value;
-  const example = generateName(tpl, 0, 'example_file');
-  document.getElementById('tplPreviewText').textContent = example || '—';
-}
-
-function updateStep(step) {
-  document.querySelectorAll('.stp').forEach((s, i) => {
-    s.classList.remove('act', 'done');
-    if (i + 1 < step) s.classList.add('done');
-    if (i + 1 === step) s.classList.add('act');
-  });
-}
-
+let loadedFiles=[],renameResults=[],currentMode='template',csvMap={},tplHistory=[];
+const BUILTIN_PRESETS={character:{tpl:'{类型}_{性别}_{部件}_{编号}_{变体}',type:'CH',gender:'M',part:'Body',variant:'A',prefix:'',suffix:'',desc:'角色资源'},weapon:{tpl:'{类型}_{部件}_{编号}',type:'WP',gender:'',part:'Sword',variant:'',prefix:'',suffix:'',desc:'武器/道具'},ui:{tpl:'{前缀}{类型}_{部件}_{编号}',type:'UI',gender:'',part:'Btn',variant:'',prefix:'Icon_',suffix:'',desc:'UI 资源'},scene:{tpl:'{类型}_{部件}_{编号}_{变体}',type:'BG',gender:'',part:'Tree',variant:'Base',prefix:'',suffix:'',desc:'场景资源'},texture:{tpl:'T_{类型}_{部件}_{后缀}',type:'CH',gender:'',part:'Body',variant:'',prefix:'',suffix:'D',desc:'贴图文件'},custom:{tpl:'{原名}_{序号}',type:'',gender:'',part:'',variant:'',prefix:'',suffix:'',desc:'自定义'}};
+function getUserPresets(){try{return JSON.parse(localStorage.getItem('br_presets')||'{}')}catch(e){return{}}}
+function getAllPresets(){return{...BUILTIN_PRESETS,...getUserPresets()}}
+function toast(m,t=''){const e=document.getElementById('toast');e.textContent=m;e.className='toast show '+t;setTimeout(()=>e.className='toast',2500)}
+function switchMode(m,btn){currentMode=m;document.querySelectorAll('.mode-tab').forEach(b=>b.classList.remove('act'));btn.classList.add('act');document.getElementById('modeTemplate').style.display=m==='template'?'':'none';document.getElementById('modeRegex').style.display=m==='regex'?'':'none';document.getElementById('modeCsv').style.display=m==='csv'?'':'none';updatePreview()}
+function goToStep(s){document.querySelectorAll('.stp').forEach((el,i)=>{el.classList.remove('act','done');if(i+1<s)el.classList.add('done');if(i+1===s)el.classList.add('act')});const c=document.getElementById('s'+s);if(c)c.scrollIntoView({behavior:'smooth',block:'start'})}
+function toggleCustom(sel){const ci=sel.parentElement.querySelector('input[type=text]');if(ci){ci.style.display=sel.value===''?'block':'none'}}
+function getVal(id){const s=document.getElementById(id);if(!s)return'';if(s.value===''){const c=document.getElementById(id+'Custom');return c?c.value:''}return s.value}
+function pushHistory(){tplHistory.push(document.getElementById('tplInput').value);if(tplHistory.length>30)tplHistory.shift()}
+function insertToken(t){const inp=document.getElementById('tplInput');pushHistory();const p=inp.selectionStart||inp.value.length;inp.value=inp.value.slice(0,p)+t+inp.value.slice(p);inp.focus();updatePreview()}
+function genName(tpl,idx,orig,ext){const type=getVal('segType'),gender=getVal('segGender'),part=getVal('segPart'),variant=getVal('segVariant'),prefix=document.getElementById('segPrefix').value,suffix=document.getElementById('segSuffix').value,numStart=parseInt(document.getElementById('segNumStart').value)||0,pad=parseInt(document.getElementById('segNumPad').value)||3,num=String(numStart+idx).padStart(pad,'0'),seq=String(idx+1).padStart(pad,'0'),d=new Date(),ds=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'),extN=ext?ext.replace('.',''):'';
+let n=tpl.replace(/\{类型\}/g,type).replace(/\{性别\}/g,gender).replace(/\{部件\}/g,part).replace(/\{编号\}/g,num).replace(/\{变体\}/g,variant).replace(/\{序号\}/g,seq).replace(/\{原名\}/g,orig||'').replace(/\{日期\}/g,ds).replace(/\{前缀\}/g,prefix).replace(/\{后缀\}/g,suffix).replace(/\{扩展名\}/g,extN);
+if(document.getElementById('cleanChinese').checked)n=n.replace(/[\u4e00-\u9fff]/g,'');
+if(document.getElementById('cleanSpaces').checked)n=n.replace(/\s+/g,'');
+if(document.getElementById('cleanSpecial').checked)n=n.replace(/[^a-zA-Z0-9_\-\.]/g,'');
+if(document.getElementById('trimDots').checked)n=n.replace(/\.{2,}/g,'.').replace(/^\.+|\.+$/g,'');
+const cm=document.getElementById('caseMode').value;
+if(cm==='lower')n=n.toLowerCase();else if(cm==='upper')n=n.toUpperCase();else if(cm==='pascal')n=n.split(/[_\-.\s]/).map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join('');else if(cm==='camel')n=n.split(/[_\-.\s]/).map((w,i)=>i===0?w.toLowerCase():w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join('');
+return n}
+function genRegex(orig){try{const f=document.getElementById('regexFind').value,r=document.getElementById('regexReplace').value;if(!f)return orig;let fl='';if(document.getElementById('regexG').checked)fl+='g';if(document.getElementById('regexI').checked)fl+='i';return orig.replace(new RegExp(f,fl),r)}catch(e){return orig}}
+function updatePreview(){if(currentMode==='template'){const ex=genName(document.getElementById('tplInput').value,0,'example_file','.png');document.getElementById('tplPreviewText').textContent=ex||'—'}else if(currentMode==='regex'){document.getElementById('regexPreview').textContent=genRegex('example_v01')||'—'}}
 // File handling
-document.getElementById('dropZone').addEventListener('click', () => {
-  document.getElementById('fileInput').click();
-});
-
-function handleDrop(e) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('dg');
-  const files = Array.from(e.dataTransfer.files);
-  addFiles(files);
-}
-
-function handleFiles(e) {
-  const files = Array.from(e.target.files);
-  addFiles(files);
-}
-
-function addFiles(files) {
-  if (files.length === 0) { toast('⚠️ 未检测到文件'); return; }
-  loadedFiles = loadedFiles.concat(files);
-  document.getElementById('fileCount').textContent = loadedFiles.length;
-  document.getElementById('fileActions').style.display = 'block';
-  updateStep(2);
-  toast(`📁 已载入 ${files.length} 个文件，共 ${loadedFiles.length} 个`);
-}
-
-function clearFiles() {
-  loadedFiles = [];
-  renameResults = [];
-  document.getElementById('fileCount').textContent = '0';
-  document.getElementById('fileActions').style.display = 'none';
-  document.getElementById('s3').style.display = 'none';
-  updateStep(1);
-  toast('🗑 已清空所有文件');
-}
-
-// Generate preview
-function generatePreview() {
-  if (loadedFiles.length === 0) { toast('⚠️ 请先载入文件'); return; }
-
-  const tpl = document.getElementById('tplInput').value;
-  renameResults = [];
-
-  loadedFiles.forEach((f, i) => {
-    const originalNameNoExt = f.name.replace(/\.[^.]+$/, '');
-    const ext = f.name.includes('.') ? '.' + f.name.split('.').pop() : '';
-    const newNameBase = generateName(tpl, i, originalNameNoExt);
-    const newName = newNameBase + ext;
-    renameResults.push({
-      original: f.name,
-      newName: newName,
-      newNameBase: newNameBase,
-      ext: ext,
-      conflict: false
-    });
-  });
-
-  // Detect conflicts
-  const nameMap = {};
-  renameResults.forEach((r, i) => {
-    const key = r.newName.toLowerCase();
-    if (nameMap[key] !== undefined) {
-      r.conflict = true;
-      renameResults[nameMap[key]].conflict = true;
-    } else {
-      nameMap[key] = i;
-    }
-  });
-
-  updateStep(3);
-  showPreview();
-  toast(`🔄 预览生成完成，共 ${renameResults.length} 个文件`);
-}
-
-function showPreview() {
-  document.getElementById('s3').style.display = 'block';
-
-  const total = renameResults.length;
-  const conflicts = renameResults.filter(r => r.conflict).length;
-  const ok = total - conflicts;
-
-  document.getElementById('sumTotal').textContent = total;
-  document.getElementById('sumOk').textContent = ok;
-  document.getElementById('sumConflict').textContent = conflicts;
-
-  document.getElementById('conflictAlert').style.display = conflicts > 0 ? 'block' : 'none';
-
-  const list = document.getElementById('previewList');
-  list.innerHTML = `<div class="file-row header"><div class="idx">#</div><div>原文件名</div><div>新文件名</div><div>状态</div></div>`;
-
-  renameResults.forEach((r, i) => {
-    const row = document.createElement('div');
-    row.className = 'file-row';
-    const statusHtml = r.conflict
-      ? '<span class="conflict-badge has-conflict">⚠️ 冲突</span>'
-      : '<span class="conflict-badge no-conflict">✅ OK</span>';
-    row.innerHTML = `<div class="idx">${i+1}</div><div class="old-name" title="${r.original}">${r.original}</div><div class="new-name" title="${r.newName}">${r.newName}</div><div>${statusHtml}</div>`;
-    list.appendChild(row);
-  });
-
-  document.getElementById('s3').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// Export CSV mapping
-function exportMapping() {
-  if (renameResults.length === 0) { toast('⚠️ 暂无重命名结果'); return; }
-  let csv = '\uFEFF序号,原文件名,新文件名,是否冲突\n';
-  renameResults.forEach((r, i) => {
-    csv += `${i+1},"${r.original}","${r.newName}",${r.conflict?'是':'否'}\n`;
-  });
-  downloadText(csv, 'rename-mapping.csv', 'text/csv;charset=utf-8');
-  toast('📥 命名对照表已导出');
-}
-
-// Export BAT script
-function exportScript() {
-  if (renameResults.length === 0) { toast('⚠️ 暂无重命名结果'); return; }
-  let bat = '@echo off\nchcp 65001 >nul\necho ══════════════════════════════════════\necho   美术资源批量重命名脚本\necho   生成时间: ' + new Date().toLocaleString() + '\necho ══════════════════════════════════════\necho.\n\n';
-  renameResults.forEach((r) => {
-    if (!r.conflict) {
-      bat += `ren "${r.original}" "${r.newName}"\n`;
-    } else {
-      bat += `REM [冲突跳过] ren "${r.original}" "${r.newName}"\n`;
-    }
-  });
-  bat += '\necho.\necho ✅ 重命名完成！\npause\n';
-  downloadText(bat, 'batch-rename.bat', 'text/plain;charset=utf-8');
-  toast('💾 BAT 脚本已导出');
-}
-
-// Export PowerShell script
-function exportPS1() {
-  if (renameResults.length === 0) { toast('⚠️ 暂无重命名结果'); return; }
-  let ps = '# 美术资源批量重命名 PowerShell 脚本\n# 生成时间: ' + new Date().toLocaleString() + '\n\n';
-  renameResults.forEach((r) => {
-    if (!r.conflict) {
-      ps += `Rename-Item -Path "${r.original}" -NewName "${r.newName}"\n`;
-    } else {
-      ps += `# [冲突跳过] Rename-Item -Path "${r.original}" -NewName "${r.newName}"\n`;
-    }
-  });
-  ps += '\nWrite-Host "✅ 重命名完成！" -ForegroundColor Green\n';
-  downloadText(ps, 'batch-rename.ps1', 'text/plain;charset=utf-8');
-  toast('📋 PowerShell 脚本已导出');
-}
-
-function copyMapping() {
-  if (renameResults.length === 0) { toast('⚠️ 暂无重命名结果'); return; }
-  let text = '美术资源批量重命名对照表\n';
-  text += `生成时间: ${new Date().toLocaleString()}\n`;
-  text += `总计: ${renameResults.length} 个文件 | 冲突: ${renameResults.filter(r=>r.conflict).length} 个\n\n`;
-  text += '序号\t原文件名\t新文件名\t状态\n';
-  renameResults.forEach((r, i) => {
-    text += `${i+1}\t${r.original}\t${r.newName}\t${r.conflict?'⚠️冲突':'✅OK'}\n`;
-  });
-  navigator.clipboard.writeText(text).then(() => toast('📋 已复制到剪贴板'));
-}
-
-function downloadText(content, filename, mime) {
-  const blob = new Blob([content], { type: mime });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
+document.getElementById('dropZone').addEventListener('click',()=>document.getElementById('fileInput').click());
+function handleDrop(e){e.preventDefault();e.currentTarget.classList.remove('dg');addFiles(Array.from(e.dataTransfer.files))}
+function handleFiles(e){addFiles(Array.from(e.target.files))}
+function addFiles(fs){if(!fs.length){toast('⚠️ 未检测到文件','warning');return}loadedFiles=loadedFiles.concat(fs);document.getElementById('fileCount').textContent=loadedFiles.length;document.getElementById('fileActions').style.display='block';goToStep(2);renderFileList();toast('📁 已载入 '+fs.length+' 个文件','success')}
+function renderFileList(){const c=document.getElementById('srcFileList'),q=(document.getElementById('fileSearch').value||'').toLowerCase();c.innerHTML='';loadedFiles.forEach((f,i)=>{if(q&&!f.name.toLowerCase().includes(q))return;const r=document.createElement('div');r.className='file-row';r.innerHTML='<div class="idx">'+(i+1)+'</div><div class="old-name" title="'+f.name+'">'+f.name+'</div><div style="color:var(--dim);font-size:11px">'+(f.size<1024?f.size+'B':f.size<1048576?(f.size/1024).toFixed(1)+'KB':(f.size/1048576).toFixed(1)+'MB')+'</div><div><button class="btn btn-sm" style="padding:2px 8px;font-size:11px" onclick="loadedFiles.splice('+i+',1);document.getElementById(\'fileCount\').textContent=loadedFiles.length;renderFileList()">✕</button></div>';c.appendChild(r)})}
+function clearFiles(){loadedFiles=[];renameResults=[];document.getElementById('fileCount').textContent='0';document.getElementById('fileActions').style.display='none';document.getElementById('s3').style.display='none';document.getElementById('srcFileList').innerHTML='';goToStep(1);toast('🗑 已清空','success')}
+// CSV
+function handleCsv(e){const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=ev=>{const lines=ev.target.result.split(/\r?\n/).filter(l=>l.trim());csvMap={};let c=0;lines.forEach((l,i)=>{if(i===0&&(l.includes('原文件名')||l.toLowerCase().includes('original')))return;const sep=l.includes('\t')?'\t':',';const p=l.split(sep).map(s=>s.replace(/^"|"$/g,'').trim());if(p.length>=2&&p[0]&&p[1]){csvMap[p[0]]=p[1];c++}});document.getElementById('csvInfo').style.display='block';document.getElementById('csvCount').textContent=c;toast('📊 已加载 '+c+' 条映射','success')};rd.readAsText(f)}
+// Generate
+function generatePreview(){if(!loadedFiles.length){toast('⚠️ 请先载入文件','warning');return}const tpl=document.getElementById('tplInput').value;renameResults=[];loadedFiles.forEach((f,i)=>{const noExt=f.name.replace(/\.[^.]+$/,''),ext=f.name.includes('.')?'.'+f.name.split('.').pop():'';let nb;if(currentMode==='template')nb=genName(tpl,i,noExt,ext);else if(currentMode==='regex')nb=genRegex(noExt);else nb=csvMap[f.name]?csvMap[f.name].replace(/\.[^.]+$/,''):noExt;renameResults.push({orig:f.name,newName:nb+ext,base:nb,ext,conflict:false})});resolveConflicts();goToStep(3);showResults();saveOp();toast('🔄 预览完成','success')}
+function resolveConflicts(){renameResults.forEach(r=>r.conflict=false);const map={};renameResults.forEach((r,i)=>{const k=r.newName.toLowerCase();if(map[k]!==undefined){r.conflict=true;renameResults[map[k]].conflict=true}else map[k]=i});const st=document.getElementById('conflictStrategy').value;if(st==='none')return;const groups={};renameResults.forEach((r,i)=>{const k=r.newName.toLowerCase();if(!groups[k])groups[k]=[];groups[k].push(i)});Object.values(groups).forEach(ids=>{if(ids.length<=1)return;ids.forEach((idx,di)=>{if(di===0)return;const r=renameResults[idx];let b=r.base;if(st==='suffix_num')b+='_'+(di);else if(st==='suffix_alpha')b+='_'+String.fromCharCode(96+di);else if(st==='suffix_time')b+='_'+Date.now().toString(36).slice(-4)+di;r.base=b;r.newName=b+r.ext;r.conflict=false})});
+// recheck
+const fm={};renameResults.forEach((r,i)=>{const k=r.newName.toLowerCase();if(fm[k]!==undefined){r.conflict=true;renameResults[fm[k]].conflict=true}else fm[k]=i})}
+function showResults(){document.getElementById('s3').style.display='block';const t=renameResults.length,c=renameResults.filter(r=>r.conflict).length;document.getElementById('sumTotal').textContent=t;document.getElementById('sumOk').textContent=t-c;document.getElementById('sumConflict').textContent=c;document.getElementById('conflictAlert').style.display=c?'block':'none';renderPreviewList();document.getElementById('s3').scrollIntoView({behavior:'smooth',block:'start'})}
+function renderPreviewList(){const list=document.getElementById('previewList'),q=(document.getElementById('previewSearch')?.value||'').toLowerCase(),co=document.getElementById('showConflicts')?.checked;list.innerHTML='<div class="file-row header"><div class="idx">#</div><div>原文件名</div><div>新文件名</div><div>状态</div></div>';renameResults.forEach((r,i)=>{if(q&&!r.orig.toLowerCase().includes(q)&&!r.newName.toLowerCase().includes(q))return;if(co&&!r.conflict)return;const row=document.createElement('div');row.className='file-row'+(r.conflict?' has-conflict':'');row.innerHTML='<div class="idx">'+(i+1)+'</div><div class="old-name" title="'+r.orig+'">'+r.orig+'</div><div class="new-name" title="双击编辑" ondblclick="editName('+i+',this)">'+r.newName+'</div><div>'+(r.conflict?'<span class="conflict-badge has-conflict">⚠️冲突</span>':'<span class="conflict-badge no-conflict">✅</span>')+'</div>';list.appendChild(row)})}
+function editName(i,el){const r=renameResults[i],inp=document.createElement('input');inp.value=r.newName;inp.onblur=()=>{if(inp.value&&inp.value!==r.newName){r.newName=inp.value;r.base=inp.value.replace(/\.[^.]+$/,'');resolveConflicts();showResults();toast('✏️ 已修改','success')}else el.textContent=r.newName};inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape'){el.textContent=r.newName}};el.innerHTML='';el.appendChild(inp);inp.focus();inp.select()}
+// Exports
+function dl(content,name,mime){const b=new Blob([content],{type:mime}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href)}
+function exportCSV(){if(!renameResults.length){toast('⚠️ 无数据','warning');return}let c='\uFEFF序号,原文件名,新文件名,冲突\n';renameResults.forEach((r,i)=>c+=(i+1)+',"'+r.orig+'","'+r.newName+'",'+(r.conflict?'是':'否')+'\n');dl(c,'rename-mapping.csv','text/csv;charset=utf-8');toast('📥 CSV已导出','success')}
+function exportBAT(){if(!renameResults.length)return;let s='@echo off\nchcp 65001 >nul\necho 美术资源批量重命名 v2.0\necho 生成: '+new Date().toLocaleString()+'\necho.\n\n';renameResults.forEach(r=>{s+=r.conflict?'REM [冲突] ':'';s+='ren "'+r.orig+'" "'+r.newName+'"\n'});s+='\necho.\necho 完成！\npause\n';dl(s,'batch-rename.bat','text/plain;charset=utf-8');toast('💾 BAT已导出','success')}
+function exportPS1(){if(!renameResults.length)return;let s='# 批量重命名 v2.0 | '+new Date().toLocaleString()+'\n\n';renameResults.forEach(r=>{s+=r.conflict?'# [冲突] ':'';s+='Rename-Item -Path "'+r.orig+'" -NewName "'+r.newName+'"\n'});s+='\nWrite-Host "完成！" -ForegroundColor Green\n';dl(s,'batch-rename.ps1','text/plain;charset=utf-8');toast('📋 PS1已导出','success')}
+function exportSH(){if(!renameResults.length)return;let s='#!/bin/bash\n# 批量重命名 v2.0 | '+new Date().toLocaleString()+'\n\n';renameResults.forEach(r=>{s+=r.conflict?'# [冲突] ':'';s+='mv "'+r.orig+'" "'+r.newName+'"\n'});s+='\necho "完成！"\n';dl(s,'batch-rename.sh','text/plain;charset=utf-8');toast('🐧 Shell已导出','success')}
+function exportPY(){if(!renameResults.length)return;let s='#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n"""批量重命名 v2.0 | '+new Date().toLocaleString()+'"""\nimport os, sys\n\nmappings = [\n';renameResults.forEach(r=>{if(!r.conflict)s+='    ("'+r.orig+'", "'+r.newName+'"),\n'});s+=']\n\ndef main():\n    d = os.path.dirname(os.path.abspath(__file__))\n    os.chdir(d)\n    for old, new in mappings:\n        if os.path.exists(old):\n            os.rename(old, new)\n            print(f"  ✓ {old} → {new}")\n        else:\n            print(f"  ✗ 未找到: {old}")\n    print(f"\\n完成! 共处理 {len(mappings)} 个文件")\n\nif __name__ == "__main__":\n    main()\n';dl(s,'batch-rename.py','text/plain;charset=utf-8');toast('🐍 Python已导出','success')}
+function exportRollback(){if(!renameResults.length)return;let bat='@echo off\nchcp 65001 >nul\necho ⏪ 回滚脚本 - 将文件名恢复为原始名称\necho 生成: '+new Date().toLocaleString()+'\necho.\n\n';renameResults.forEach(r=>{if(!r.conflict)bat+='ren "'+r.newName+'" "'+r.orig+'"\n'});bat+='\necho.\necho 回滚完成！\npause\n';let ps='# ⏪ 回滚脚本\n';renameResults.forEach(r=>{if(!r.conflict)ps+='Rename-Item -Path "'+r.newName+'" -NewName "'+r.orig+'"\n'});dl(bat,'rollback-rename.bat','text/plain;charset=utf-8');setTimeout(()=>dl(ps,'rollback-rename.ps1','text/plain;charset=utf-8'),500);toast('⏪ 回滚脚本已导出(BAT+PS1)','success')}
+function copyMapping(){if(!renameResults.length)return;let t='批量重命名对照表 | '+new Date().toLocaleString()+'\n\n序号\t原名\t新名\t状态\n';renameResults.forEach((r,i)=>t+=(i+1)+'\t'+r.orig+'\t'+r.newName+'\t'+(r.conflict?'⚠️':'✅')+'\n');navigator.clipboard.writeText(t).then(()=>toast('📋 已复制','success'))}
+// Presets
+function renderPresetBar(){const bar=document.getElementById('presetBar');bar.innerHTML='';Object.entries(getAllPresets()).forEach(([k,p])=>{const b=document.createElement('button');b.className='preset-btn'+(k===currentPreset?' act':'')+(k.startsWith('user_')?' user-preset':'');b.textContent=p.desc;b.onclick=()=>{currentPreset=k;applyPreset(k)};if(k.startsWith('user_')){const d=document.createElement('span');d.className='del-x';d.textContent='×';d.onclick=e=>{e.stopPropagation();const up=getUserPresets();delete up[k];localStorage.setItem('br_presets',JSON.stringify(up));renderPresetBar();toast('🗑 已删除','warning')};b.appendChild(d)}bar.appendChild(b)})}
+let currentPreset='character';
+function applyPreset(k){const p=getAllPresets()[k];if(!p)return;currentPreset=k;document.getElementById('tplInput').value=p.tpl;['segType','segGender','segVariant'].forEach(id=>{const s=document.getElementById(id);if(s&&p[id.replace('seg','').toLowerCase()]!==undefined){const v=p[id.replace('seg','').toLowerCase()]||p.type||'';if(Array.from(s.options).some(o=>o.value===v))s.value=v}});if(p.type){const s=document.getElementById('segType');if(Array.from(s.options).some(o=>o.value===p.type))s.value=p.type}if(p.gender){const s=document.getElementById('segGender');if(Array.from(s.options).some(o=>o.value===p.gender))s.value=p.gender}if(p.part){const s=document.getElementById('segPart');if(Array.from(s.options).some(o=>o.value===p.part)){s.value=p.part}else{s.value='';const c=document.getElementById('segPartCustom');if(c){c.value=p.part;c.style.display='block'}}}if(p.variant){const s=document.getElementById('segVariant');if(Array.from(s.options).some(o=>o.value===p.variant))s.value=p.variant}document.getElementById('segPrefix').value=p.prefix||'';document.getElementById('segSuffix').value=p.suffix||'';document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('act'));renderPresetBar();updatePreview();toast('✅ 预设: '+p.desc,'success')}
+function saveCurrentPreset(){const n=prompt('输入预设名称:');if(!n)return;const k='user_'+Date.now(),up=getUserPresets();up[k]={tpl:document.getElementById('tplInput').value,type:getVal('segType'),gender:getVal('segGender'),part:getVal('segPart'),variant:getVal('segVariant'),prefix:document.getElementById('segPrefix').value,suffix:document.getElementById('segSuffix').value,desc:n};localStorage.setItem('br_presets',JSON.stringify(up));renderPresetBar();toast('💾 已保存: '+n,'success')}
+function exportPresets(){const up=getUserPresets();if(!Object.keys(up).length){toast('⚠️ 无自定义预设','warning');return}dl(JSON.stringify(up,null,2),'presets.json','application/json');toast('📤 已导出','success')}
+function importPresets(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result),up=getUserPresets();Object.assign(up,d);localStorage.setItem('br_presets',JSON.stringify(up));renderPresetBar();toast('📥 导入成功','success')}catch(e){toast('❌ 格式错误','error')}};r.readAsText(f)}
+// History
+function saveOp(){const ops=JSON.parse(localStorage.getItem('br_history')||'[]');ops.unshift({time:new Date().toLocaleString(),count:renameResults.length,conflicts:renameResults.filter(r=>r.conflict).length,mode:currentMode});if(ops.length>20)ops.length=20;localStorage.setItem('br_history',JSON.stringify(ops));renderHistory()}
+function renderHistory(){const el=document.getElementById('historyPanel'),ops=JSON.parse(localStorage.getItem('br_history')||'[]');if(!ops.length){el.innerHTML='<p style="color:var(--dim);font-size:13px;text-align:center;padding:16px">暂无记录</p>';return}el.innerHTML='';ops.forEach(op=>{const d=document.createElement('div');d.className='history-item';d.innerHTML='<span class="name">'+op.mode+' | '+op.count+'个文件'+(op.conflicts?' ('+op.conflicts+'冲突)':'')+'</span><span class="info">'+op.time+'</span>';el.appendChild(d)})}
+function clearAllHistory(){localStorage.removeItem('br_history');renderHistory();toast('🗑 历史已清空','success')}
+// Keyboard shortcuts
+document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();generatePreview()}else if(e.ctrlKey&&e.key==='e'){e.preventDefault();exportCSV()}else if(e.ctrlKey&&e.key==='z'&&document.activeElement.id!=='tplInput'){e.preventDefault();if(tplHistory.length){document.getElementById('tplInput').value=tplHistory.pop();updatePreview();toast('↩️ 已撤销','success')}}});
 // Init
-updatePreview();
+renderPresetBar();updatePreview();renderHistory();
 </script>
 </body>
 </html>
