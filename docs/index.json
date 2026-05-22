@@ -1685,6 +1685,77 @@
       "quality_level": "mature"
     },
     {
+      "id": "texture-checker",
+      "module": "toolchain",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "贴图规范检测器",
+      "desc": "批量拖入贴图文件，自动检测尺寸/格式/Alpha/色彩空间等规范项，生成红/黄/绿三级检测报告，支持导出CSV作为验收记录",
+      "tags": [
+        "在线工具",
+        "贴图检测",
+        "合规检查",
+        "外包验收",
+        "CSV报告"
+      ],
+      "icon": "🔎",
+      "action": "openTool",
+      "path": "knowledge-base/texture-checker.html",
+      "owner": "APM团队",
+      "last_updated": "2026-05-22",
+      "applicable_stage": "量产期",
+      "priority": "high",
+      "is_hot": true,
+      "keywords": [
+        "贴图检测",
+        "规范检查",
+        "尺寸检测",
+        "Alpha检测",
+        "色彩空间",
+        "POT",
+        "外包验收",
+        "CSV导出",
+        "合规"
+      ],
+      "content_type": "工具",
+      "quality_level": "mature"
+    },
+    {
+      "id": "batch-rename",
+      "module": "toolchain",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "美术资源批量重命名",
+      "desc": "拖入文件列表，按自定义模板（类型_性别_部件_编号_变体）批量重命名，预览更改，检测名称冲突，导出命名对照表",
+      "tags": [
+        "在线工具",
+        "批量重命名",
+        "命名规范",
+        "冲突检测",
+        "对照表"
+      ],
+      "icon": "📁",
+      "action": "openTool",
+      "path": "knowledge-base/batch-rename.html",
+      "owner": "APM团队",
+      "last_updated": "2026-05-22",
+      "applicable_stage": "全阶段",
+      "priority": "high",
+      "is_hot": true,
+      "keywords": [
+        "批量重命名",
+        "命名规范",
+        "文件重命名",
+        "命名模板",
+        "冲突检测",
+        "对照表",
+        "命名规范化",
+        "资源整理"
+      ],
+      "content_type": "工具",
+      "quality_level": "mature"
+    },
+    {
       "id": "image-skew-corrector",
       "module": "toolchain",
       "craft": "UI",

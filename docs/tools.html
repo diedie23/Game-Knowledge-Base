@@ -200,10 +200,10 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 
   <!-- Stats -->
   <div class="stats">
-    <div class="stat-chip"><span class="num">8</span><span class="label">在线工具</span></div>
+    <div class="stat-chip"><span class="num">10</span><span class="label">在线工具</span></div>
     <div class="stat-chip"><span class="num">6</span><span class="label">桌面工具</span></div>
-    <div class="stat-chip"><span class="num">5</span><span class="label">功能分类</span></div>
-    <div class="stat-chip"><span class="num">3</span><span class="label">规划中</span></div>
+    <div class="stat-chip"><span class="num">6</span><span class="label">功能分类</span></div>
+    <div class="stat-chip"><span class="num">1</span><span class="label">规划中</span></div>
   </div>
 
   <!-- Filter Bar -->
@@ -662,22 +662,22 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
   </div>
 
   <!-- ════════════════════════════════════════════ -->
-  <!-- Category 5: 规划中的工具 -->
+  <!-- Category 5: 资产检查 & 合规 -->
   <!-- ════════════════════════════════════════════ -->
-  <div class="cat-section" id="cat-planned" data-type="coming">
+  <div class="cat-section" id="cat-check" data-type="online">
     <div class="cat-header">
-      <div class="cat-icon" style="background:var(--yellow-bg);color:var(--yellow)">🗺️</div>
-      <h2>规划中 <span style="font-size:12px;color:var(--dim);font-weight:400;margin-left:6px">即将开发</span></h2>
-      <span class="cat-count">3 个工具 · 规划中</span>
+      <div class="cat-icon" style="background:var(--red-bg);color:var(--red)">🔍</div>
+      <h2>资产检查 & 合规</h2>
+      <span class="cat-count">2 个工具 · 在线</span>
     </div>
 
     <div class="tool-grid">
       <!-- 贴图规范检测器 -->
-      <div class="tool-card coming" data-env="coming">
+      <div class="tool-card" data-env="online">
         <div class="tc-head">
           <div class="tc-icon" style="background:var(--red-bg)">🔎</div>
           <div class="tc-title-area">
-            <h3>贴图规范检测器 <span class="status status-coming">🟡 规划中</span></h3>
+            <h3>贴图规范检测器 <span class="status status-online">🟢 在线</span></h3>
             <div class="tc-subtitle">批量检测 PNG/TGA 尺寸、Alpha、色彩规范等</div>
           </div>
         </div>
@@ -689,17 +689,19 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
         </div>
         <div class="tc-meta">
           <span class="env-badge env-online">🌐 浏览器在线</span>
+          <span class="meta-item"><span class="mi-icon">💻</span> Win / Mac / Linux</span>
+          <span class="meta-item"><span class="mi-icon">📅</span> 2026-05-22</span>
           <span class="spacer"></span>
-          <button class="tc-btn tc-btn-disabled">📅 规划中</button>
+          <a class="tc-btn tc-btn-primary" href="knowledge-base/texture-checker.html" target="_blank">🚀 立即使用</a>
         </div>
       </div>
 
       <!-- 批量重命名 -->
-      <div class="tool-card coming" data-env="coming">
+      <div class="tool-card" data-env="online">
         <div class="tc-head">
           <div class="tc-icon" style="background:var(--cyan-bg)">📁</div>
           <div class="tc-title-area">
-            <h3>美术资源批量重命名 <span class="status status-coming">🟡 规划中</span></h3>
+            <h3>美术资源批量重命名 <span class="status status-online">🟢 在线</span></h3>
             <div class="tc-subtitle">按命名规则批量重命名 · 预览 · 冲突检测</div>
           </div>
         </div>
@@ -711,10 +713,26 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
         </div>
         <div class="tc-meta">
           <span class="env-badge env-online">🌐 浏览器在线</span>
+          <span class="meta-item"><span class="mi-icon">💻</span> Win / Mac / Linux</span>
+          <span class="meta-item"><span class="mi-icon">📅</span> 2026-05-22</span>
           <span class="spacer"></span>
-          <button class="tc-btn tc-btn-disabled">📅 规划中</button>
+          <a class="tc-btn tc-btn-primary" href="knowledge-base/batch-rename.html" target="_blank">🚀 立即使用</a>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- Category 6: 规划中的工具 -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="cat-section" id="cat-planned" data-type="coming">
+    <div class="cat-header">
+      <div class="cat-icon" style="background:var(--yellow-bg);color:var(--yellow)">🗺️</div>
+      <h2>规划中 <span style="font-size:12px;color:var(--dim);font-weight:400;margin-left:6px">即将开发</span></h2>
+      <span class="cat-count">1 个工具 · 规划中</span>
+    </div>
+
+    <div class="tool-grid">
 
       <!-- 资源版本对比器 -->
       <div class="tool-card coming" data-env="coming">

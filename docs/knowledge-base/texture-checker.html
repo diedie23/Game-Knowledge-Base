@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>贴图规范检测器 — Texture Checker v1.0</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.app{max-width:1400px;margin:0 auto;padding:16px}
+.hdr{text-align:center;padding:14px 0 10px}
+.hdr h1{font-size:22px;color:var(--heading);display:flex;align-items:center;justify-content:center;gap:8px}
+.hdr h1 .ver{font-size:10px;background:var(--accent);color:#fff;padding:2px 8px;border-radius:10px}
+.hdr p{color:var(--dim);font-size:12px;margin-top:3px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.card-title{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.badge{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:500}
+.badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-orange{background:rgba(251,146,60,.15);color:var(--orange)}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+
+/* Steps */
+.steps{display:flex;justify-content:center;gap:0;margin:8px 0 12px}
+.stp{display:flex;align-items:center;gap:5px;padding:6px 12px;font-size:11px;color:var(--dim)}
+.stp .n{width:20px;height:20px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600}
+.stp.act{color:var(--heading)}.stp.act .n{background:var(--accent);border-color:var(--accent);color:#fff}
+.stp.done .n{background:var(--green);border-color:var(--green);color:#fff}
+.sa{color:var(--border);font-size:14px;padding:0 2px}
+
+/* Buttons */
+.btn{padding:6px 14px;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--text);cursor:pointer;font-size:11px;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.btn:hover{border-color:var(--accent);color:var(--heading)}
+.btn-p{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}.btn-p:hover{background:#5a7aee}
+.btn-g{background:var(--green);border-color:var(--green);color:#000;font-weight:500}
+.btn-r{background:var(--red);border-color:var(--red);color:#fff;font-weight:500}
+.btn-sm{padding:4px 10px;font-size:10px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Drop zone */
+.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s}
+.drop-zone:hover,.drop-zone.dg{border-color:var(--accent);background:rgba(108,140,255,.04)}
+.drop-zone h3{color:var(--heading);font-size:14px;margin-bottom:3px}
+.drop-zone p{color:var(--dim);font-size:11px}
+
+/* Tip */
+.tip{background:linear-gradient(90deg,rgba(108,140,255,.08),rgba(167,139,250,.08));border:1px solid rgba(108,140,255,.15);border-radius:7px;padding:8px 12px;font-size:11px;color:var(--accent);margin-bottom:10px}
+
+/* Alert */
+.alert{padding:10px 14px;border-radius:8px;margin:10px 0;font-size:11px;line-height:1.7}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+
+/* Rule config */
+.rule-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+@media(max-width:700px){.rule-grid{grid-template-columns:1fr}}
+.rule-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;align-items:center;gap:8px}
+.rule-item label{font-size:11px;color:var(--text);flex:1}
+.rule-item select,.rule-item input{padding:3px 6px;background:var(--panel);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:10px;font-family:inherit;width:110px}
+.rule-item .sw{position:relative;width:34px;height:18px;background:var(--border);border-radius:9px;cursor:pointer;transition:.2s}
+.rule-item .sw.on{background:var(--green)}
+.rule-item .sw::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.2s}
+.rule-item .sw.on::after{left:18px}
+
+/* File list */
+.file-list{max-height:260px;overflow-y:auto;margin:10px 0;border:1px solid var(--border);border-radius:8px}
+.file-row{display:grid;grid-template-columns:30px 1fr 70px 70px 80px 60px 60px;gap:4px;padding:6px 10px;font-size:10px;align-items:center;border-bottom:1px solid var(--border)}
+.file-row:last-child{border-bottom:none}
+.file-row.header{background:var(--card);font-weight:600;color:var(--heading);position:sticky;top:0;z-index:1}
+.file-row .idx{color:var(--dim);text-align:center}
+.file-row .fname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-row .pass{color:var(--green);font-weight:600}
+.file-row .warn{color:var(--yellow);font-weight:600}
+.file-row .fail{color:var(--red);font-weight:600}
+
+/* Summary bar */
+.summary-bar{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
+.summary-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 20px;text-align:center;flex:1;min-width:120px}
+.summary-item .num{font-size:22px;font-weight:700;margin-bottom:2px}
+.summary-item .lbl{font-size:10px;color:var(--dim)}
+.summary-item.green .num{color:var(--green)}
+.summary-item.yellow .num{color:var(--yellow)}
+.summary-item.red .num{color:var(--red)}
+.summary-item.blue .num{color:var(--accent)}
+
+/* Detail panel */
+.detail-panel{display:none;margin-top:12px}
+.detail-panel.show{display:block}
+.detail-row{display:grid;grid-template-columns:30px 2fr 1fr 1fr 1fr 1fr 1fr 80px;gap:4px;padding:6px 10px;font-size:10px;align-items:center;border-bottom:1px solid var(--border)}
+.detail-row.header{background:var(--card);font-weight:600;color:var(--heading);position:sticky;top:0}
+.detail-row:last-child{border-bottom:none}
+
+/* Tag */
+.tag{display:inline-block;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:500}
+.tag-pass{background:rgba(74,222,128,.12);color:var(--green)}
+.tag-warn{background:rgba(251,191,36,.12);color:var(--yellow)}
+.tag-fail{background:rgba(248,113,113,.12);color:var(--red)}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--accent);padding:8px 20px;border-radius:7px;font-size:12px;color:var(--heading);z-index:999;transition:transform .3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* Progress */
+.progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:8px 0}
+.progress-bar .fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+
+/* Preset bar */
+.preset-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.preset-btn{padding:5px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--dim);cursor:pointer;font-size:10px;font-family:inherit;transition:all .15s}
+.preset-btn:hover{border-color:var(--accent);color:var(--heading)}
+.preset-btn.act{border-color:var(--accent);color:var(--accent);background:rgba(108,140,255,.06)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ═══ HEADER ═══ -->
+<div class="hdr">
+  <h1>🔎 贴图规范检测器 <span class="ver">Texture Checker v1.0</span></h1>
+  <p>批量检测贴图尺寸/格式/Alpha/色彩空间等规范项 · 生成三级检测报告 · 导出 CSV 验收记录</p>
+</div>
+
+<!-- ═══ STEPS ═══ -->
+<div class="steps" id="stepBar">
+  <div class="stp act" data-s="1"><span class="n">1</span>配置规则</div><span class="sa">→</span>
+  <div class="stp" data-s="2"><span class="n">2</span>载入文件</div><span class="sa">→</span>
+  <div class="stp" data-s="3"><span class="n">3</span>查看报告</div>
+</div>
+
+<!-- ═══ STEP 1: 规则配置 ═══ -->
+<div class="card" id="s1">
+  <div class="card-title">⚙️ 检测规则配置 <span class="badge badge-blue">Step 1</span></div>
+  <div class="tip">💡 根据项目规范设置检测规则。可使用预设模板或自定义各项参数。</div>
+
+  <div style="font-size:11px;color:var(--heading);margin-bottom:6px;font-weight:600">📋 规范预设模板</div>
+  <div class="preset-bar" id="presetBar">
+    <button class="preset-btn act" onclick="applyPreset('mobile')">移动端 (手游)</button>
+    <button class="preset-btn" onclick="applyPreset('pc')">PC 端 (主机/端游)</button>
+    <button class="preset-btn" onclick="applyPreset('spine')">Spine 贴图</button>
+    <button class="preset-btn" onclick="applyPreset('ui')">UI 贴图</button>
+    <button class="preset-btn" onclick="applyPreset('custom')">自定义</button>
+  </div>
+
+  <div class="rule-grid">
+    <div class="rule-item">
+      <label>✅ 最大尺寸</label>
+      <select id="ruleMaxSize">
+        <option value="512">512 × 512</option>
+        <option value="1024">1024 × 1024</option>
+        <option value="2048" selected>2048 × 2048</option>
+        <option value="4096">4096 × 4096</option>
+        <option value="8192">8192 × 8192</option>
+      </select>
+    </div>
+    <div class="rule-item">
+      <label>✅ 必须 2 的幂次</label>
+      <div class="sw on" id="rulePOT" onclick="toggleSwitch(this)"></div>
+    </div>
+    <div class="rule-item">
+      <label>✅ 必须正方形</label>
+      <div class="sw" id="ruleSquare" onclick="toggleSwitch(this)"></div>
+    </div>
+    <div class="rule-item">
+      <label>✅ 允许的格式</label>
+      <select id="ruleFormat">
+        <option value="png,tga">PNG + TGA</option>
+        <option value="png">仅 PNG</option>
+        <option value="tga">仅 TGA</option>
+        <option value="png,tga,psd">PNG + TGA + PSD</option>
+        <option value="any">任意格式</option>
+      </select>
+    </div>
+    <div class="rule-item">
+      <label>✅ Alpha 通道检测</label>
+      <select id="ruleAlpha">
+        <option value="check">检测空 Alpha（警告）</option>
+        <option value="required">必须有 Alpha</option>
+        <option value="forbidden">禁止 Alpha</option>
+        <option value="ignore">不检测</option>
+      </select>
+    </div>
+    <div class="rule-item">
+      <label>✅ 色彩空间</label>
+      <select id="ruleColorSpace">
+        <option value="any">不限制</option>
+        <option value="srgb">必须 sRGB</option>
+        <option value="linear">必须 Linear</option>
+      </select>
+    </div>
+    <div class="rule-item">
+      <label>✅ 最大文件大小</label>
+      <select id="ruleFileSize">
+        <option value="0">不限制</option>
+        <option value="512">512 KB</option>
+        <option value="1024">1 MB</option>
+        <option value="2048" selected>2 MB</option>
+        <option value="4096">4 MB</option>
+        <option value="10240">10 MB</option>
+      </select>
+    </div>
+    <div class="rule-item">
+      <label>✅ 命名规范 (正则)</label>
+      <input type="text" id="ruleNaming" placeholder="如: ^T_[A-Z]\\w+$" value="">
+    </div>
+  </div>
+
+  <div class="alert alert-green">
+    <strong>📌 当前预设：移动端 (手游)</strong><br>
+    最大尺寸 2048×2048 · 必须 POT · 允许 PNG+TGA · 检测空 Alpha · 最大 2MB<br>
+    <span style="font-size:10px;color:var(--dim)">适用于移动端二次元/卡通角色项目，贴图需严格控制包体大小。</span>
+  </div>
+</div>
+
+<!-- ═══ STEP 2: 载入文件 ═══ -->
+<div class="card" id="s2">
+  <div class="card-title">📁 批量载入贴图 <span class="badge badge-green">Step 2</span></div>
+  <div class="tip">💡 拖入或选择多张贴图文件，工具将自动识别格式并依据规则进行批量检测。支持 PNG / TGA / PSD / JPG 等常见格式。</div>
+
+  <div class="drop-zone" id="dropZone" ondrop="handleDrop(event)" ondragover="event.preventDefault();this.classList.add('dg')" ondragleave="this.classList.remove('dg')">
+    <h3>📂 拖入贴图文件 / 点击选择</h3>
+    <p>支持批量上传多个文件（最多 500 个）</p>
+  </div>
+  <input type="file" id="fileInput" accept="image/*,.tga,.psd" multiple style="display:none" onchange="handleFiles(event)">
+
+  <div id="fileListWrap" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+      <span style="font-size:11px;color:var(--heading);font-weight:600">📋 已载入文件 (<span id="fileCount">0</span> 个)</span>
+      <div>
+        <button class="btn btn-sm" onclick="clearFiles()">🗑 清空</button>
+        <button class="btn btn-sm btn-p" onclick="runCheck()" id="btnRun">▶️ 开始检测</button>
+      </div>
+    </div>
+    <div class="progress-bar" id="progressBar" style="display:none"><div class="fill" id="progressFill" style="width:0"></div></div>
+    <div class="file-list" id="fileList">
+      <div class="file-row header">
+        <div class="idx">#</div>
+        <div>文件名</div>
+        <div>尺寸</div>
+        <div>文件大小</div>
+        <div>格式</div>
+        <div>Alpha</div>
+        <div>状态</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STEP 3: 检测报告 ═══ -->
+<div class="card" id="s3" style="display:none">
+  <div class="card-title">📊 检测报告 <span class="badge badge-orange">Step 3</span></div>
+
+  <div class="summary-bar" id="summaryBar">
+    <div class="summary-item blue"><div class="num" id="sumTotal">0</div><div class="lbl">总数</div></div>
+    <div class="summary-item green"><div class="num" id="sumPass">0</div><div class="lbl">✅ 通过</div></div>
+    <div class="summary-item yellow"><div class="num" id="sumWarn">0</div><div class="lbl">⚠️ 警告</div></div>
+    <div class="summary-item red"><div class="num" id="sumFail">0</div><div class="lbl">❌ 不通过</div></div>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
+    <button class="btn btn-sm" onclick="filterReport('all')">全部</button>
+    <button class="btn btn-sm btn-r" onclick="filterReport('fail')">仅看 ❌</button>
+    <button class="btn btn-sm" style="border-color:var(--yellow);color:var(--yellow)" onclick="filterReport('warn')">仅看 ⚠️</button>
+    <button class="btn btn-sm btn-g" onclick="filterReport('pass')">仅看 ✅</button>
+  </div>
+
+  <div class="file-list" id="reportList" style="max-height:400px">
+    <div class="file-row header" style="grid-template-columns:30px 2fr 80px 80px 80px 60px 60px 1.5fr">
+      <div class="idx">#</div>
+      <div>文件名</div>
+      <div>尺寸</div>
+      <div>文件大小</div>
+      <div>格式</div>
+      <div>Alpha</div>
+      <div>等级</div>
+      <div>问题详情</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+    <button class="btn btn-g" onclick="exportCSV()">📥 导出 CSV 报告</button>
+    <button class="btn btn-p" onclick="exportJSON()">💾 导出 JSON 详情</button>
+    <button class="btn btn-sm" onclick="copyReport()">📋 复制到剪贴板</button>
+  </div>
+</div>
+
+<!-- ═══ 使用帮助 ═══ -->
+<div class="card">
+  <div class="card-title">📖 使用指南</div>
+  <div style="font-size:12px;line-height:1.8">
+    <h4 style="color:var(--heading);font-size:13px;margin:8px 0 4px">🎯 适用场景</h4>
+    <ul style="padding-left:18px;font-size:11px">
+      <li><strong>外包验收：</strong>批量检测外包交付的贴图是否符合项目规范</li>
+      <li><strong>日常合规：</strong>美术同学自查贴图是否满足引擎/平台要求</li>
+      <li><strong>提交前检查：</strong>资产入库前的自动化规范验证</li>
+    </ul>
+
+    <h4 style="color:var(--heading);font-size:13px;margin:12px 0 4px">📋 检测等级说明</h4>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;margin:8px 0">
+      <tr style="background:var(--panel)"><th style="padding:8px;border:1px solid var(--border)">等级</th><th style="padding:8px;border:1px solid var(--border)">含义</th><th style="padding:8px;border:1px solid var(--border)">处理方式</th></tr>
+      <tr><td style="padding:6px 8px;border:1px solid var(--border)"><span class="tag tag-pass">✅ 通过</span></td><td style="padding:6px;border:1px solid var(--border)">所有规则检测通过</td><td style="padding:6px;border:1px solid var(--border)">可直接入库</td></tr>
+      <tr><td style="padding:6px 8px;border:1px solid var(--border)"><span class="tag tag-warn">⚠️ 警告</span></td><td style="padding:6px;border:1px solid var(--border)">非致命问题（如空 Alpha、文件较大）</td><td style="padding:6px;border:1px solid var(--border)">建议优化后入库</td></tr>
+      <tr><td style="padding:6px 8px;border:1px solid var(--border)"><span class="tag tag-fail">❌ 不通过</span></td><td style="padding:6px;border:1px solid var(--border)">关键规则违反（尺寸超标、格式错误）</td><td style="padding:6px;border:1px solid var(--border)">必须修正后重新提交</td></tr>
+    </table>
+
+    <h4 style="color:var(--heading);font-size:13px;margin:12px 0 4px">⚠️ 注意事项</h4>
+    <ul style="padding-left:18px;font-size:11px">
+      <li>TGA 文件在浏览器中仅做基本检测（尺寸/大小），深度通道分析需依赖 PNG</li>
+      <li>色彩空间检测基于 ICC Profile 解析，部分贴图可能缺少该信息</li>
+      <li>文件在浏览器本地处理，<strong>不会上传到任何服务器</strong></li>
+    </ul>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// Texture Checker Core Logic
+// ═══════════════════════════════════════════
+
+let loadedFiles = [];
+let checkResults = [];
+
+// Presets
+const PRESETS = {
+  mobile: { maxSize:'2048', pot:true, square:false, format:'png,tga', alpha:'check', colorSpace:'any', fileSize:'2048', naming:'', desc:'移动端 (手游)', detail:'最大尺寸 2048×2048 · 必须 POT · 允许 PNG+TGA · 检测空 Alpha · 最大 2MB' },
+  pc:     { maxSize:'4096', pot:true, square:false, format:'png,tga', alpha:'check', colorSpace:'any', fileSize:'4096', naming:'', desc:'PC 端 (主机/端游)', detail:'最大尺寸 4096×4096 · 必须 POT · 允许 PNG+TGA · 检测空 Alpha · 最大 4MB' },
+  spine:  { maxSize:'4096', pot:true, square:false, format:'png', alpha:'required', colorSpace:'srgb', fileSize:'4096', naming:'', desc:'Spine 贴图', detail:'最大尺寸 4096×4096 · 必须 POT · 仅 PNG · 必须有 Alpha · sRGB · 最大 4MB' },
+  ui:     { maxSize:'2048', pot:false, square:false, format:'png', alpha:'ignore', colorSpace:'srgb', fileSize:'1024', naming:'', desc:'UI 贴图', detail:'最大尺寸 2048×2048 · 无需 POT · 仅 PNG · 不检测 Alpha · sRGB · 最大 1MB' },
+  custom: { maxSize:'4096', pot:false, square:false, format:'any', alpha:'ignore', colorSpace:'any', fileSize:'0', naming:'', desc:'自定义', detail:'所有规则自定义设置' }
+};
+let currentPreset = 'mobile';
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function toggleSwitch(el) {
+  el.classList.toggle('on');
+}
+
+function applyPreset(key) {
+  currentPreset = key;
+  const p = PRESETS[key];
+  document.getElementById('ruleMaxSize').value = p.maxSize;
+  document.getElementById('rulePOT').classList.toggle('on', p.pot);
+  document.getElementById('ruleSquare').classList.toggle('on', p.square);
+  document.getElementById('ruleFormat').value = p.format;
+  document.getElementById('ruleAlpha').value = p.alpha;
+  document.getElementById('ruleColorSpace').value = p.colorSpace;
+  document.getElementById('ruleFileSize').value = p.fileSize;
+  document.getElementById('ruleNaming').value = p.naming;
+
+  // Update preset buttons
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('act'));
+  event.target.classList.add('act');
+
+  // Update alert
+  const alerts = document.querySelectorAll('#s1 .alert');
+  alerts.forEach(a => {
+    a.innerHTML = `<strong>📌 当前预设：${p.desc}</strong><br>${p.detail}<br><span style="font-size:10px;color:var(--dim)">可在上方规则网格中进行微调。</span>`;
+  });
+
+  toast('✅ 已切换到预设：' + p.desc);
+}
+
+function updateStep(step) {
+  document.querySelectorAll('.stp').forEach((s, i) => {
+    s.classList.remove('act', 'done');
+    if (i + 1 < step) s.classList.add('done');
+    if (i + 1 === step) s.classList.add('act');
+  });
+}
+
+// File handling
+document.getElementById('dropZone').addEventListener('click', () => {
+  document.getElementById('fileInput').click();
+});
+
+function handleDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dg');
+  const files = Array.from(e.dataTransfer.files).filter(f => isImageFile(f));
+  addFiles(files);
+}
+
+function handleFiles(e) {
+  const files = Array.from(e.target.files).filter(f => isImageFile(f));
+  addFiles(files);
+}
+
+function isImageFile(f) {
+  const ext = f.name.split('.').pop().toLowerCase();
+  return ['png','jpg','jpeg','tga','psd','bmp','webp','gif'].includes(ext);
+}
+
+function addFiles(files) {
+  if (files.length === 0) { toast('⚠️ 未检测到有效的图片文件'); return; }
+  loadedFiles = loadedFiles.concat(files);
+  document.getElementById('fileCount').textContent = loadedFiles.length;
+  document.getElementById('fileListWrap').style.display = 'block';
+  updateStep(2);
+  renderFileList();
+  toast(`📁 已载入 ${files.length} 个文件，共 ${loadedFiles.length} 个`);
+}
+
+function clearFiles() {
+  loadedFiles = [];
+  checkResults = [];
+  document.getElementById('fileCount').textContent = '0';
+  document.getElementById('fileListWrap').style.display = 'none';
+  document.getElementById('s3').style.display = 'none';
+  updateStep(1);
+  toast('🗑 已清空所有文件');
+}
+
+function renderFileList() {
+  const list = document.getElementById('fileList');
+  // Keep header
+  list.innerHTML = `<div class="file-row header">
+    <div class="idx">#</div><div>文件名</div><div>尺寸</div><div>文件大小</div><div>格式</div><div>Alpha</div><div>状态</div>
+  </div>`;
+  loadedFiles.forEach((f, i) => {
+    const ext = f.name.split('.').pop().toUpperCase();
+    const size = formatSize(f.size);
+    const row = document.createElement('div');
+    row.className = 'file-row';
+    row.innerHTML = `<div class="idx">${i+1}</div><div class="fname" title="${f.name}">${f.name}</div><div>—</div><div>${size}</div><div>${ext}</div><div>—</div><div style="color:var(--dim)">待检测</div>`;
+    list.appendChild(row);
+  });
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+// Run check
+async function runCheck() {
+  if (loadedFiles.length === 0) { toast('⚠️ 请先载入文件'); return; }
+
+  const btn = document.getElementById('btnRun');
+  btn.disabled = true;
+  btn.textContent = '⏳ 检测中...';
+  document.getElementById('progressBar').style.display = 'block';
+
+  checkResults = [];
+  const rules = getRules();
+
+  for (let i = 0; i < loadedFiles.length; i++) {
+    const f = loadedFiles[i];
+    const result = await checkFile(f, rules);
+    checkResults.push(result);
+
+    // Update progress
+    const pct = ((i + 1) / loadedFiles.length * 100).toFixed(0);
+    document.getElementById('progressFill').style.width = pct + '%';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '▶️ 重新检测';
+  document.getElementById('progressBar').style.display = 'none';
+
+  updateStep(3);
+  showReport();
+  toast(`✅ 检测完成！共 ${checkResults.length} 个文件`);
+}
+
+function getRules() {
+  return {
+    maxSize: parseInt(document.getElementById('ruleMaxSize').value),
+    pot: document.getElementById('rulePOT').classList.contains('on'),
+    square: document.getElementById('ruleSquare').classList.contains('on'),
+    format: document.getElementById('ruleFormat').value,
+    alpha: document.getElementById('ruleAlpha').value,
+    colorSpace: document.getElementById('ruleColorSpace').value,
+    maxFileSize: parseInt(document.getElementById('ruleFileSize').value) * 1024, // to bytes
+    naming: document.getElementById('ruleNaming').value
+  };
+}
+
+function checkFile(file, rules) {
+  return new Promise((resolve) => {
+    const result = {
+      name: file.name,
+      size: file.size,
+      sizeStr: formatSize(file.size),
+      ext: file.name.split('.').pop().toLowerCase(),
+      width: 0,
+      height: 0,
+      hasAlpha: false,
+      alphaEmpty: false,
+      level: 'pass', // pass, warn, fail
+      issues: []
+    };
+
+    // Format check
+    const allowedFormats = rules.format === 'any' ? null : rules.format.split(',');
+    if (allowedFormats && !allowedFormats.includes(result.ext)) {
+      result.issues.push({ type: 'fail', msg: `格式 ${result.ext.toUpperCase()} 不允许` });
+    }
+
+    // File size check
+    if (rules.maxFileSize > 0 && file.size > rules.maxFileSize) {
+      result.issues.push({ type: 'warn', msg: `文件大小 ${result.sizeStr} 超出限制` });
+    }
+
+    // Naming check
+    if (rules.naming) {
+      try {
+        const nameWithoutExt = file.name.replace(/\.[^.]+$/, '');
+        const re = new RegExp(rules.naming);
+        if (!re.test(nameWithoutExt)) {
+          result.issues.push({ type: 'fail', msg: `命名不符合规范` });
+        }
+      } catch(e) {}
+    }
+
+    // For TGA / PSD / non-standard formats, skip pixel analysis
+    if (!['png','jpg','jpeg','webp','gif','bmp'].includes(result.ext)) {
+      // Determine level
+      result.level = getLevel(result.issues);
+      resolve(result);
+      return;
+    }
+
+    // Load image for pixel analysis
+    const img = new Image();
+    img.onload = function() {
+      result.width = img.width;
+      result.height = img.height;
+
+      // Size check
+      if (img.width > rules.maxSize || img.height > rules.maxSize) {
+        result.issues.push({ type: 'fail', msg: `尺寸 ${img.width}×${img.height} 超出 ${rules.maxSize}×${rules.maxSize}` });
+      }
+
+      // POT check
+      if (rules.pot) {
+        if (!isPOT(img.width) || !isPOT(img.height)) {
+          result.issues.push({ type: 'fail', msg: `尺寸非 2 的幂次 (${img.width}×${img.height})` });
+        }
+      }
+
+      // Square check
+      if (rules.square && img.width !== img.height) {
+        result.issues.push({ type: 'warn', msg: `非正方形 (${img.width}×${img.height})` });
+      }
+
+      // Alpha analysis
+      const cv = document.createElement('canvas');
+      cv.width = img.width;
+      cv.height = img.height;
+      const ctx = cv.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const data = ctx.getImageData(0, 0, img.width, img.height).data;
+
+      let hasNonFullAlpha = false;
+      let allAlphaFull = true;
+      for (let p = 3; p < data.length; p += 4) {
+        if (data[p] < 255) { hasNonFullAlpha = true; break; }
+      }
+      result.hasAlpha = hasNonFullAlpha;
+      result.alphaEmpty = !hasNonFullAlpha;
+
+      // Alpha rules
+      if (rules.alpha === 'required' && !hasNonFullAlpha) {
+        result.issues.push({ type: 'fail', msg: 'Alpha 通道为空（规则要求必须有 Alpha）' });
+      }
+      if (rules.alpha === 'forbidden' && hasNonFullAlpha) {
+        result.issues.push({ type: 'fail', msg: 'Alpha 通道存在非 255 值（规则禁止 Alpha）' });
+      }
+      if (rules.alpha === 'check' && result.alphaEmpty && result.ext === 'png') {
+        result.issues.push({ type: 'warn', msg: 'PNG 含 Alpha 通道但全为 255（可改用 RGB 减少体积）' });
+      }
+
+      result.level = getLevel(result.issues);
+      resolve(result);
+    };
+    img.onerror = function() {
+      result.issues.push({ type: 'warn', msg: '无法解析图片像素（可能损坏）' });
+      result.level = getLevel(result.issues);
+      resolve(result);
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function isPOT(n) { return n > 0 && (n & (n - 1)) === 0; }
+
+function getLevel(issues) {
+  if (issues.some(i => i.type === 'fail')) return 'fail';
+  if (issues.some(i => i.type === 'warn')) return 'warn';
+  return 'pass';
+}
+
+// Report
+function showReport() {
+  document.getElementById('s3').style.display = 'block';
+
+  const total = checkResults.length;
+  const pass = checkResults.filter(r => r.level === 'pass').length;
+  const warn = checkResults.filter(r => r.level === 'warn').length;
+  const fail = checkResults.filter(r => r.level === 'fail').length;
+
+  document.getElementById('sumTotal').textContent = total;
+  document.getElementById('sumPass').textContent = pass;
+  document.getElementById('sumWarn').textContent = warn;
+  document.getElementById('sumFail').textContent = fail;
+
+  renderReport('all');
+
+  // Scroll to report
+  document.getElementById('s3').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderReport(filter) {
+  const list = document.getElementById('reportList');
+  list.innerHTML = `<div class="file-row header" style="grid-template-columns:30px 2fr 80px 80px 80px 60px 60px 1.5fr">
+    <div class="idx">#</div><div>文件名</div><div>尺寸</div><div>文件大小</div><div>格式</div><div>Alpha</div><div>等级</div><div>问题详情</div>
+  </div>`;
+
+  const filtered = filter === 'all' ? checkResults : checkResults.filter(r => r.level === filter);
+  filtered.forEach((r, i) => {
+    const row = document.createElement('div');
+    row.className = 'file-row';
+    row.style.gridTemplateColumns = '30px 2fr 80px 80px 80px 60px 60px 1.5fr';
+    const levelTag = r.level === 'pass' ? '<span class="tag tag-pass">✅ 通过</span>' :
+                     r.level === 'warn' ? '<span class="tag tag-warn">⚠️ 警告</span>' :
+                     '<span class="tag tag-fail">❌ 不通过</span>';
+    const sizeStr = r.width ? `${r.width}×${r.height}` : '—';
+    const alphaStr = r.hasAlpha ? '✓ 有' : (r.alphaEmpty ? '✗ 空' : '—');
+    const issueStr = r.issues.length ? r.issues.map(i => i.msg).join('；') : '—';
+    row.innerHTML = `<div class="idx">${i+1}</div><div class="fname" title="${r.name}">${r.name}</div><div>${sizeStr}</div><div>${r.sizeStr}</div><div>${r.ext.toUpperCase()}</div><div>${alphaStr}</div><div>${levelTag}</div><div style="font-size:9px;color:var(--dim)">${issueStr}</div>`;
+    list.appendChild(row);
+  });
+}
+
+function filterReport(level) {
+  renderReport(level);
+}
+
+// Export CSV
+function exportCSV() {
+  if (checkResults.length === 0) { toast('⚠️ 暂无检测结果'); return; }
+  let csv = '\uFEFF序号,文件名,宽度,高度,文件大小,格式,有Alpha,检测等级,问题详情\n';
+  checkResults.forEach((r, i) => {
+    const issues = r.issues.map(x => x.msg).join('|');
+    csv += `${i+1},"${r.name}",${r.width},${r.height},"${r.sizeStr}",${r.ext.toUpperCase()},${r.hasAlpha?'是':'否'},${r.level==='pass'?'通过':r.level==='warn'?'警告':'不通过'},"${issues}"\n`;
+  });
+  downloadText(csv, 'texture-check-report.csv', 'text/csv;charset=utf-8');
+  toast('📥 CSV 报告已导出');
+}
+
+// Export JSON
+function exportJSON() {
+  if (checkResults.length === 0) { toast('⚠️ 暂无检测结果'); return; }
+  const data = {
+    exportTime: new Date().toISOString(),
+    rules: getRules(),
+    summary: {
+      total: checkResults.length,
+      pass: checkResults.filter(r => r.level === 'pass').length,
+      warn: checkResults.filter(r => r.level === 'warn').length,
+      fail: checkResults.filter(r => r.level === 'fail').length
+    },
+    results: checkResults.map(r => ({
+      name: r.name, width: r.width, height: r.height,
+      size: r.size, sizeStr: r.sizeStr, format: r.ext,
+      hasAlpha: r.hasAlpha, level: r.level,
+      issues: r.issues
+    }))
+  };
+  downloadText(JSON.stringify(data, null, 2), 'texture-check-report.json', 'application/json');
+  toast('💾 JSON 报告已导出');
+}
+
+function copyReport() {
+  if (checkResults.length === 0) { toast('⚠️ 暂无检测结果'); return; }
+  let text = '贴图规范检测报告\n';
+  text += `检测时间: ${new Date().toLocaleString()}\n`;
+  text += `总计: ${checkResults.length} | 通过: ${checkResults.filter(r=>r.level==='pass').length} | 警告: ${checkResults.filter(r=>r.level==='warn').length} | 不通过: ${checkResults.filter(r=>r.level==='fail').length}\n\n`;
+  checkResults.forEach((r, i) => {
+    const lvl = r.level === 'pass' ? '✅' : r.level === 'warn' ? '⚠️' : '❌';
+    text += `${i+1}. ${lvl} ${r.name} (${r.width}×${r.height}, ${r.sizeStr})`;
+    if (r.issues.length) text += ' → ' + r.issues.map(x => x.msg).join('; ');
+    text += '\n';
+  });
+  navigator.clipboard.writeText(text).then(() => toast('📋 已复制到剪贴板'));
+}
+
+function downloadText(content, filename, mime) {
+  const blob = new Blob([content], { type: mime });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>
