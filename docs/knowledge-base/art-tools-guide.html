@@ -70,10 +70,10 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:rgba(108,140,2
 
 <!-- ═══ 文档头 ═══ -->
 <div class="doc-header">
-<h1>🛠️ 美术在线工具使用指南 <span class="ver">v1.0</span></h1>
-<div class="subtitle">Auto Mask · Spine Split · Color Swap — 三大核心工具操作全解</div>
+<h1>🛠️ 美术在线工具使用指南 <span class="ver">v2.0</span></h1>
+<div class="subtitle">Auto Mask · Spine Split · Color Swap · Channel Packer · 6 桌面工具 — 全量工具操作全解</div>
 <div class="meta">
-<span>📅 2026-04-10</span>
+<span>📅 2026-05-22</span>
 <span>👤 TA 工具组</span>
 <span>📂 工具链与自动化</span>
 <span>🏷️ 面向：美术 / TA / 外包</span>
@@ -85,11 +85,14 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:rgba(108,140,2
 <h3>📑 目录</h3>
 <ol>
 <li><a href="#s1">工具总览与快速入口</a></li>
-<li><a href="#s2">自动 Mask 通道生成器 (v6.4)</a></li>
+<li><a href="#s2">自动 Mask 通道生成器 (v7.0)</a></li>
 <li><a href="#s3">Spine 拆分工具</a></li>
 <li><a href="#s4">换色资源生成器</a></li>
 <li><a href="#s5">通用操作技巧与快捷键</a></li>
 <li><a href="#s6">常见问题 FAQ</a></li>
+<li><a href="#s7">贴图通道打包工具 (Channel Packer)</a></li>
+<li><a href="#s8">桌面工具速查 (Windows)</a></li>
+<li><a href="#s9">工具互联工作流</a></li>
 </ol>
 </div>
 
@@ -401,10 +404,162 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:rgba(108,140,2
 </div>
 </div>
 
+<!-- ═══ §7 贴图通道打包工具 ═══ -->
+<div class="section" id="s7">
+<h2>⑦ 贴图通道打包工具 (Channel Packer)</h2>
+
+<div class="sub-title">7.1 工作流程</div>
+<div class="step-grid">
+<div class="step-card">
+<span class="step-num">1</span>
+<h5>选择通道配置</h5>
+<p>确定目标贴图的通道布局（如 R=Metallic, G=Roughness, B=AO, A=Mask）。工具提供常用预设模板。</p>
+</div>
+<div class="step-card">
+<span class="step-num">2</span>
+<h5>导入源图</h5>
+<p>为每个通道拖入对应的灰度图或 RGB 图（工具自动提取指定通道）。支持从单张 RGB 图拆分多通道。</p>
+</div>
+<div class="step-card">
+<span class="step-num">3</span>
+<h5>预览合成</h5>
+<p>实时预览 RGBA 合成结果和各独立通道。可切换显示模式（合成/单通道/棋盘格透明）。</p>
+</div>
+<div class="step-card">
+<span class="step-num">4</span>
+<h5>导出</h5>
+<p>选择 PNG 或 TGA 格式导出。文件名自动标注通道配置（如 <code>char_packed_MRAO.png</code>）。</p>
+</div>
+</div>
+
+<div class="sub-title">7.2 常用通道配置预设</div>
+<table>
+<tr><th>预设名称</th><th>R</th><th>G</th><th>B</th><th>A</th><th>适用场景</th></tr>
+<tr><td>UE4 ORM</td><td>AO</td><td>Roughness</td><td>Metallic</td><td>—</td><td>UE4/UE5 标准 PBR</td></tr>
+<tr><td>Unity MRAO</td><td>Metallic</td><td>Roughness</td><td>AO</td><td>—</td><td>Unity HDRP/URP</td></tr>
+<tr><td>Mask 4通道</td><td>区域1</td><td>区域2</td><td>区域3</td><td>区域4</td><td>换色/变色系统</td></tr>
+<tr><td>法线+高度</td><td>Normal.R</td><td>Normal.G</td><td>—</td><td>Height</td><td>地形混合贴图</td></tr>
+</table>
+
+<div class="alert alert-green">✅ 导出的 Packed Texture 可直接导入 UE4/UE5/Unity，在材质编辑器中使用 Channel Mask 节点解包各通道。相比独立贴图方案，显存占用减少 60~75%。</div>
+</div>
+
+<!-- ═══ §8 桌面工具速查 ═══ -->
+<div class="section" id="s8">
+<h2>⑧ 桌面工具速查 (Windows)</h2>
+
+<p>以下 6 个桌面工具均为 <strong>Windows 免安装 exe</strong>，双击即可运行，无需管理员权限。</p>
+
+<table>
+<tr><th>工具名称</th><th>文件名</th><th>核心功能</th><th>典型场景</th></tr>
+<tr>
+<td><strong>Auto Mask 桌面版</strong></td>
+<td><code>AutoMaskGenerator-v7.0.0-Portable.exe</code></td>
+<td>与在线版功能一致，支持离线 + 批量文件夹处理</td>
+<td>无网络环境、大批量 Mask 生成</td>
+</tr>
+<tr>
+<td><strong>图片倾斜矫正</strong></td>
+<td><code>ImageSkewCorrector.exe</code></td>
+<td>自动检测倾斜角度，透视变换批量矫正</td>
+<td>手绘原稿扫描、白板拍照、证件照</td>
+</tr>
+<tr>
+<td><strong>游戏资源工具集</strong></td>
+<td><code>GameResourceToolkit.exe</code></td>
+<td>格式转换、元数据查看/编辑、命名检查</td>
+<td>外包交付验收、资源入库前检查</td>
+</tr>
+<tr>
+<td><strong>图片尺寸统一调整</strong></td>
+<td><code>CanvasResizer.exe</code></td>
+<td>批量缩放/裁切/画布扩展，支持 POT 对齐</td>
+<td>统一贴图规格、Atlas 素材准备</td>
+</tr>
+<tr>
+<td><strong>UGC 批量上传助手</strong></td>
+<td><code>UGCBatchUploader.exe</code></td>
+<td>拖拽上传、断点续传、失败重试、清单报告</td>
+<td>大量 UGC 资源入库</td>
+</tr>
+<tr>
+<td><strong>资源分拣与增量同步</strong></td>
+<td><code>ResourceSorter.exe</code></td>
+<td>按规则自动分拣到目录，增量检测只处理新文件</td>
+<td>版本库目录维护、外包资源整理</td>
+</tr>
+</table>
+
+<div class="alert alert-yellow">⚠️ 桌面工具均为 Electron 封装，首次启动可能因 Windows SmartScreen 弹出安全提示。点击「更多信息 → 仍要运行」即可。后续启动不再提示。</div>
+
+<div class="sub-title">8.1 获取与更新</div>
+<ul>
+<li>桌面工具 exe 存放在知识库 <code>docs/knowledge-base/</code> 目录下，可通过各工具详情页直接下载</li>
+<li>版本号以文件名中的版本号为准（如 <code>v7.0.0</code>）</li>
+<li>更新日志请查看 <a href="tools-changelog.html">工具更新日志</a></li>
+</ul>
+</div>
+
+<!-- ═══ §9 工具互联工作流 ═══ -->
+<div class="section" id="s9">
+<h2>⑨ 工具互联工作流</h2>
+
+<div class="sub-title">9.1 角色换色全流程（推荐）</div>
+<div class="step-grid">
+<div class="step-card">
+<span class="step-num">1</span>
+<h5>Auto Mask 生成</h5>
+<p>上传角色原画 → 自动生成 RGBA Mask → 导出 ZIP（含 config.json）</p>
+</div>
+<div class="step-card">
+<span class="step-num">2</span>
+<h5>Mask 编辑器精修</h5>
+<p>导入 Auto Mask 输出 → 用画笔精修细节 → 导出修正后的 Mask PNG</p>
+</div>
+<div class="step-card">
+<span class="step-num">3</span>
+<h5>换色资源生成器</h5>
+<p>导入原图 + Mask → 配置多套配色方案 → 批量导出换色变体</p>
+</div>
+<div class="step-card">
+<span class="step-num">4</span>
+<h5>Channel Packer 打包</h5>
+<p>将各通道 Mask 打包为单张 Packed Texture → 导出引擎可用格式</p>
+</div>
+<div class="step-card">
+<span class="step-num">5</span>
+<h5>Engine Bridge 推送</h5>
+<p>通过 WebSocket 将最终资源实时推送到 UE/Unity 编辑器，秒级刷新预览</p>
+</div>
+</div>
+
+<div class="alert alert-blue">💡 每个工具的输出格式已设计为下游工具的标准输入——无需手动格式转换。ZIP 包中的 config.json 可在全链路中复用。</div>
+
+<div class="sub-title">9.2 外包交付验收流程</div>
+<div class="step-grid">
+<div class="step-card">
+<span class="step-num">1</span>
+<h5>Canvas Resizer 检查</h5>
+<p>批量验证贴图尺寸是否符合 POT 规范</p>
+</div>
+<div class="step-card">
+<span class="step-num">2</span>
+<h5>Game Resource Toolkit</h5>
+<p>检查格式/元数据/命名规范</p>
+</div>
+<div class="step-card">
+<span class="step-num">3</span>
+<h5>Resource Sorter 分拣</h5>
+<p>按规则自动分类到项目目录结构</p>
+</div>
+</div>
+</div>
+
 <!-- ═══ Footer ═══ -->
 <div class="footer">
-🛠️ 美术在线工具使用指南 v1.0 — TA 工具组 · 2026-04-10<br>
-Auto Mask v6.4 · Spine Split · Color Swap Generator
+🛠️ 美术在线工具使用指南 v2.0 — TA 工具组 · 2026-05-22<br>
+Auto Mask v7.0 · Spine Split · Color Swap · Channel Packer · 6 桌面工具<br>
+<a href="tools-changelog.html" style="color:var(--cyan)">📋 查看完整更新日志</a>
 </div>
 
 </div>
