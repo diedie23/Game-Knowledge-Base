@@ -4,7 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>2D 角色换色 Mask 通道生成工具 v2.0</title>
+<link rel="stylesheet" href="design-tokens.css">
+<link rel="stylesheet" href="tool-base.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="toast.js"></script>
+<script src="file-drop.js"></script>
+<script src="tool-bus.js"></script>
+<script src="color-utils.js"></script>
 <style>
 :root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--cyan:#22d3ee}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -823,6 +829,14 @@ window.addEventListener('beforeunload',e=>{if(S.loaded&&projectDirty){autoSavePr
     }
   }}catch(e){}}
 })();
+// ToolBus 注册 — mask-tool 可以向其他工具发送 Mask 数据
+ToolBus.register('mask-tool', { name: 'Mask 手动编辑器', version: '2.0' });
+ToolBus.on('get-mask', function(data) {
+  // 响应其他工具的 Mask 请求
+  const c = document.getElementById('canvas');
+  if (c) return { imageDataURL: c.toDataURL('image/png'), width: c.width, height: c.height };
+  return null;
+});
 </script>
 <script src="psd-reader.js"></script>
 <script src="editor-kit.js"></script>

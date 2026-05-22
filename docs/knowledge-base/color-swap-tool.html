@@ -4,7 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>2D 角色换色资源生成器 v1.0</title>
+<link rel="stylesheet" href="design-tokens.css">
+<link rel="stylesheet" href="tool-base.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="toast.js"></script>
+<script src="file-drop.js"></script>
+<script src="tool-bus.js"></script>
+<script src="color-utils.js"></script>
 <script src="canvas-enhance.js"></script>
 <style>
 :root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--cyan:#22d3ee}
@@ -594,6 +600,15 @@ window.addEventListener('beforeunload',e=>{if(S.img&&_projectDirty){_autoSavePro
     }
   }}catch(e){}}
 })();
+// ToolBus 注册 + 图像接收
+ToolBus.register('color-swap-tool', { name: '2D角色换色资源生成器', version: '1.0' });
+ToolBus.onImageTransfer(function(data) {
+  if (data && data.imageDataURL) {
+    const img = new Image();
+    img.onload = function() { if (typeof _csLoadFromImg === 'function') _csLoadFromImg(img); Toast.success('📥 接收到外部图像'); };
+    img.src = data.imageDataURL;
+  }
+});
 </script>
 <script src="psd-reader.js"></script>
 <script src="shortcut-help.js"></script>

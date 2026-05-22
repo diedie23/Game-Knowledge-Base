@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Spine 角色拆分工具</title>
+<link rel="stylesheet" href="design-tokens.css">
+<link rel="stylesheet" href="tool-base.css">
 <style>
 :root{
   --bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;
@@ -461,6 +463,11 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;hei
 <input type="file" id="psdInput" accept=".psd" style="display:none">
 <input type="file" id="projectInput" accept=".json" style="display:none">
 
+<!-- 公共模块 -->
+<script src="toast.js"></script>
+<script src="file-drop.js"></script>
+<script src="tool-bus.js"></script>
+<script src="color-utils.js"></script>
 <!-- JSZip -->
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <!-- ag-psd for PSD parsing -->
@@ -2870,6 +2877,7 @@ function finishPSDLoad(psd){
 }
 
 init();
+ToolBus.register('spine-split', { name: 'Spine 角色拆分工具', version: '6.0' });
 
 </script>
 <script src="editor-kit.js"></script>

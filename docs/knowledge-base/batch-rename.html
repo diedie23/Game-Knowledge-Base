@@ -4,55 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>美术资源批量重命名 — Batch Rename v2.0</title>
+<link rel="stylesheet" href="design-tokens.css">
+<link rel="stylesheet" href="tool-base.css">
 <style>
-:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--glow:0 0 20px rgba(34,211,238,.3)}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
-::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
-.app{max-width:1400px;margin:0 auto;padding:24px}
-.hdr{text-align:center;padding:20px 0 14px}
-.hdr h1{font-size:28px;color:var(--heading);display:flex;align-items:center;justify-content:center;gap:10px}
-.hdr h1 .ver{font-size:12px;background:var(--cyan);color:#000;padding:3px 10px;border-radius:10px}
-.hdr p{color:var(--dim);font-size:15px;margin-top:5px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;transition:all .3s ease}
-.card-title{font-size:17px;color:var(--heading);font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.badge{font-size:11px;padding:3px 8px;border-radius:4px;font-weight:500}
-.badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}
-.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
-.badge-orange{background:rgba(251,146,60,.15);color:var(--orange)}
-.badge-cyan{background:rgba(34,211,238,.15);color:var(--cyan)}
-.badge-purple{background:rgba(167,139,250,.15);color:var(--accent2)}
-.steps{display:flex;justify-content:center;gap:0;margin:12px 0 16px}
-.stp{display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:14px;color:var(--dim);cursor:pointer;transition:all .2s;border-radius:6px}
-.stp:hover{background:rgba(108,140,255,.06)}
-.stp .n{width:24px;height:24px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;transition:all .3s}
-.stp.act{color:var(--heading)}.stp.act .n{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 12px rgba(108,140,255,.4)}
-.stp.done{color:var(--green)}.stp.done .n{background:var(--green);border-color:var(--green);color:#fff}
-.sa{color:var(--border);font-size:16px;padding:0 4px}
-.btn{padding:8px 18px;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--text);cursor:pointer;font-size:14px;font-family:inherit;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
-.btn:hover{border-color:var(--accent);color:var(--heading);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
-.btn:active{transform:translateY(0)}
-.btn-p{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}.btn-p:hover{background:#5a7aee;box-shadow:0 4px 16px rgba(108,140,255,.3)}
-.btn-g{background:var(--green);border-color:var(--green);color:#000;font-weight:500}.btn-g:hover{box-shadow:0 4px 16px rgba(74,222,128,.3)}
-.btn-r{background:var(--red);border-color:var(--red);color:#fff;font-weight:500}
-.btn-c{background:var(--cyan);border-color:var(--cyan);color:#000;font-weight:500}.btn-c:hover{box-shadow:0 4px 16px rgba(34,211,238,.3)}
-.btn-sm{padding:5px 12px;font-size:12px}
-.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
-.mode-tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--card);padding:4px;border-radius:8px;border:1px solid var(--border)}
-.mode-tab{padding:8px 20px;border-radius:6px;border:none;background:transparent;color:var(--dim);cursor:pointer;font-size:14px;font-family:inherit;transition:all .2s;flex:1;text-align:center}
-.mode-tab:hover{color:var(--heading)}
-.mode-tab.act{background:var(--accent);color:#fff;font-weight:500;box-shadow:0 2px 8px rgba(108,140,255,.3)}
-.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:50px 20px;text-align:center;cursor:pointer;transition:all .3s}
-.drop-zone:hover,.drop-zone.dg{border-color:var(--cyan);background:rgba(34,211,238,.04)}
-.drop-zone.dg{animation:pulse 1s ease infinite}
-@keyframes pulse{0%,100%{border-color:var(--cyan)}50%{border-color:var(--accent)}}
-.drop-zone h3{color:var(--heading);font-size:17px;margin-bottom:5px}
-.drop-zone p{color:var(--dim);font-size:14px}
-.tip{background:linear-gradient(90deg,rgba(34,211,238,.08),rgba(108,140,255,.08));border:1px solid rgba(34,211,238,.15);border-radius:7px;padding:10px 14px;font-size:14px;color:var(--cyan);margin-bottom:12px}
-.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.7;animation:fadeIn .3s ease}
-.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
-.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
-.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+/* ═══ Batch Rename 专有样式 ═══ */
+:root{--glow:0 0 20px rgba(34,211,238,.3)}
+.hdr h1 .ver{background:var(--cyan);color:#000}
 .tpl-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .tpl-row label{font-size:14px;color:var(--dim);min-width:80px;flex-shrink:0}
 .tpl-row input,.tpl-row select{padding:7px 10px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:14px;font-family:inherit;transition:border-color .2s}
@@ -65,12 +22,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .token-list{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
 .token{padding:5px 12px;background:var(--card);border:1px solid var(--border);border-radius:5px;font-size:13px;color:var(--accent);cursor:pointer;transition:all .2s;font-family:'Courier New',monospace;user-select:none}
 .token:hover{border-color:var(--accent);background:rgba(108,140,255,.08);transform:translateY(-1px)}
-.file-list{max-height:500px;overflow-y:auto;margin:12px 0;border:1px solid var(--border);border-radius:8px}
-.file-row{display:grid;grid-template-columns:30px 2fr 2fr 90px;gap:6px;padding:8px 12px;font-size:13px;align-items:center;border-bottom:1px solid var(--border);transition:all .2s;animation:fadeIn .3s ease}
-.file-row:last-child{border-bottom:none}
-.file-row:hover{background:rgba(108,140,255,.03)}
-.file-row.header{background:var(--card);font-weight:600;color:var(--heading);position:sticky;top:0;z-index:1;font-size:13px;animation:none}
-.file-row .idx{color:var(--dim);text-align:center}
+.file-list{max-height:500px}
+.file-row{grid-template-columns:30px 2fr 2fr 90px;animation:dt-fadeIn .3s ease}
+.file-row.header{animation:none}
 .file-row .old-name{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .file-row .new-name{color:var(--cyan);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;border-bottom:1px dashed transparent;transition:border-color .2s}
 .file-row .new-name:hover{border-color:var(--cyan)}
@@ -336,13 +290,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   </div>
 </div>
 </div>
-<div class="toast" id="toast"></div>
+<script src="toast.js"></script>
+<script src="file-drop.js"></script>
+<script src="tool-bus.js"></script>
+<script src="color-utils.js"></script>
 <script>
 let loadedFiles=[],renameResults=[],currentMode='template',csvMap={},tplHistory=[];
 const BUILTIN_PRESETS={character:{tpl:'{类型}_{性别}_{部件}_{编号}_{变体}',type:'CH',gender:'M',part:'Body',variant:'A',prefix:'',suffix:'',desc:'角色资源'},weapon:{tpl:'{类型}_{部件}_{编号}',type:'WP',gender:'',part:'Sword',variant:'',prefix:'',suffix:'',desc:'武器/道具'},ui:{tpl:'{前缀}{类型}_{部件}_{编号}',type:'UI',gender:'',part:'Btn',variant:'',prefix:'Icon_',suffix:'',desc:'UI 资源'},scene:{tpl:'{类型}_{部件}_{编号}_{变体}',type:'BG',gender:'',part:'Tree',variant:'Base',prefix:'',suffix:'',desc:'场景资源'},texture:{tpl:'T_{类型}_{部件}_{后缀}',type:'CH',gender:'',part:'Body',variant:'',prefix:'',suffix:'D',desc:'贴图文件'},custom:{tpl:'{原名}_{序号}',type:'',gender:'',part:'',variant:'',prefix:'',suffix:'',desc:'自定义'}};
 function getUserPresets(){try{return JSON.parse(localStorage.getItem('br_presets')||'{}')}catch(e){return{}}}
 function getAllPresets(){return{...BUILTIN_PRESETS,...getUserPresets()}}
-function toast(m,t=''){const e=document.getElementById('toast');e.textContent=m;e.className='toast show '+t;setTimeout(()=>e.className='toast',2500)}
+function toast(m,t=''){Toast.show(m,t)}
 function switchMode(m,btn){currentMode=m;document.querySelectorAll('.mode-tab').forEach(b=>b.classList.remove('act'));btn.classList.add('act');document.getElementById('modeTemplate').style.display=m==='template'?'':'none';document.getElementById('modeRegex').style.display=m==='regex'?'':'none';document.getElementById('modeCsv').style.display=m==='csv'?'':'none';updatePreview()}
 function applyRegexPreset(name,find,replace){document.getElementById('regexFind').value=find;document.getElementById('regexReplace').value=replace;updatePreview();toast('✅ 已应用: '+name,'success')}
 function goToStep(s){document.querySelectorAll('.stp').forEach((el,i)=>{el.classList.remove('act','done');if(i+1<s)el.classList.add('done');if(i+1===s)el.classList.add('act')});const c=document.getElementById('s'+s);if(c)c.scrollIntoView({behavior:'smooth',block:'start'})}
@@ -402,6 +359,7 @@ function clearAllHistory(){localStorage.removeItem('br_history');renderHistory()
 document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();generatePreview()}else if(e.ctrlKey&&e.key==='e'){e.preventDefault();exportCSV()}else if(e.ctrlKey&&e.key==='z'&&document.activeElement.id!=='tplInput'){e.preventDefault();if(tplHistory.length){document.getElementById('tplInput').value=tplHistory.pop();updatePreview();toast('↩️ 已撤销','success')}}});
 // Init
 renderPresetBar();updatePreview();renderHistory();
+ToolBus.register('batch-rename', { name: '美术资源批量重命名', version: '2.0' });
 </script>
 <script src="shortcut-help.js"></script>
 <script src="theme-toggle.js"></script>

@@ -4,79 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>贴图规范检测器 — Texture Checker v1.1</title>
+<link rel="stylesheet" href="design-tokens.css">
+<link rel="stylesheet" href="tool-base.css">
 <style>
-:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
-::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
-.app{max-width:1400px;margin:0 auto;padding:24px}
-.hdr{text-align:center;padding:20px 0 14px}
-.hdr h1{font-size:28px;color:var(--heading);display:flex;align-items:center;justify-content:center;gap:10px}
-.hdr h1 .ver{font-size:12px;background:var(--accent);color:#fff;padding:3px 10px;border-radius:10px}
-.hdr p{color:var(--dim);font-size:15px;margin-top:5px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
-.card-title{font-size:17px;color:var(--heading);font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.badge{font-size:11px;padding:3px 8px;border-radius:4px;font-weight:500}
-.badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}
-.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
-.badge-orange{background:rgba(251,146,60,.15);color:var(--orange)}
-.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
-
-/* Steps */
-.steps{display:flex;justify-content:center;gap:0;margin:12px 0 16px}
-.stp{display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:14px;color:var(--dim)}
-.stp .n{width:24px;height:24px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
-.stp.act{color:var(--heading)}.stp.act .n{background:var(--accent);border-color:var(--accent);color:#fff}
-.stp.done .n{background:var(--green);border-color:var(--green);color:#fff}
-.sa{color:var(--border);font-size:16px;padding:0 4px}
-
-/* Buttons */
-.btn{padding:8px 18px;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--text);cursor:pointer;font-size:14px;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
-.btn:hover{border-color:var(--accent);color:var(--heading)}
-.btn-p{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}.btn-p:hover{background:#5a7aee}
-.btn-g{background:var(--green);border-color:var(--green);color:#000;font-weight:500}
-.btn-r{background:var(--red);border-color:var(--red);color:#fff;font-weight:500}
-.btn-sm{padding:5px 12px;font-size:12px}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-
-/* Drop zone */
-.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:50px 20px;text-align:center;cursor:pointer;transition:all .2s}
-.drop-zone:hover,.drop-zone.dg{border-color:var(--accent);background:rgba(108,140,255,.04)}
-.drop-zone h3{color:var(--heading);font-size:17px;margin-bottom:5px}
-.drop-zone p{color:var(--dim);font-size:14px}
-
-/* Tip */
-.tip{background:linear-gradient(90deg,rgba(108,140,255,.08),rgba(167,139,250,.08));border:1px solid rgba(108,140,255,.15);border-radius:7px;padding:10px 14px;font-size:14px;color:var(--accent);margin-bottom:12px}
-
-/* Alert */
-.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.7}
-.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
-.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
-.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
-
-/* Rule config */
-.rule-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
-@media(max-width:700px){.rule-grid{grid-template-columns:1fr}}
-.rule-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;align-items:center;gap:10px}
-.rule-item label{font-size:14px;color:var(--text);flex:1}
-.rule-item select,.rule-item input{padding:5px 8px;background:var(--panel);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:13px;font-family:inherit;width:120px}
-.rule-item .sw{position:relative;width:38px;height:20px;background:var(--border);border-radius:10px;cursor:pointer;transition:.2s}
-.rule-item .sw.on{background:var(--green)}
-.rule-item .sw::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s}
-.rule-item .sw.on::after{left:20px}
-
-/* File list */
-.file-list{max-height:300px;overflow-y:auto;margin:12px 0;border:1px solid var(--border);border-radius:8px}
-.file-row{display:grid;grid-template-columns:30px 40px 1fr 70px 70px 80px 60px 60px;gap:6px;padding:8px 12px;font-size:13px;align-items:center;border-bottom:1px solid var(--border)}
-.file-row:last-child{border-bottom:none}
-.file-row.header{background:var(--card);font-weight:600;color:var(--heading);position:sticky;top:0;z-index:1;font-size:13px}
-.file-row .idx{color:var(--dim);text-align:center}
-.file-row .fname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.file-row .pass{color:var(--green);font-weight:600}
-.file-row .warn{color:var(--yellow);font-weight:600}
-.file-row .fail{color:var(--red);font-weight:600}
-
-/* Summary bar */
+/* ═══ Texture Checker 专有样式 ═══ */
 .summary-bar{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0}
 .summary-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 24px;text-align:center;flex:1;min-width:120px}
 .summary-item .num{font-size:26px;font-weight:700;margin-bottom:3px}
@@ -98,10 +29,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .tag-pass{background:rgba(74,222,128,.12);color:var(--green)}
 .tag-warn{background:rgba(251,191,36,.12);color:var(--yellow)}
 .tag-fail{background:rgba(248,113,113,.12);color:var(--red)}
-
-/* Toast */
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--accent);padding:10px 24px;border-radius:7px;font-size:14px;color:var(--heading);z-index:999;transition:transform .3s;pointer-events:none}
-.toast.show{transform:translateX(-50%) translateY(0)}
 
 /* Progress */
 .progress-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin:10px 0}
@@ -343,7 +270,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
 </div><!-- /app -->
 
-<div class="toast" id="toast"></div>
+<script src="toast.js"></script>
+<script src="file-drop.js"></script>
+<script src="tool-bus.js"></script>
+<script src="color-utils.js"></script>
 
 <script>
 // ═══════════════════════════════════════════
@@ -364,10 +294,7 @@ const PRESETS = {
 let currentPreset = 'mobile';
 
 function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  Toast.show(msg);
 }
 
 function toggleSwitch(el) {
@@ -787,6 +714,7 @@ function downloadText(content, filename, mime) {
   a.click();
   URL.revokeObjectURL(a.href);
 }
+ToolBus.register('texture-checker', { name: '贴图规范检测器', version: '1.1' });
 </script>
 <script src="shortcut-help.js"></script>
 <script src="theme-toggle.js"></script>
