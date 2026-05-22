@@ -738,6 +738,7 @@ function exportJSON() {
 }
 
 function clearAll() {
+  if(!confirm('确定清空所有通道数据？此操作不可撤销。'))return;
   for (const ch of ['R','G','B','A']) {
     channels[ch] = null;
     channelData[ch] = null;
@@ -746,14 +747,76 @@ function clearAll() {
     document.getElementById('fi' + ch).value = '';
   }
   outputW = outputH = 0;
+  _cpSaveSnap();
   updatePreview();
   toast('🗑 已清除全部通道');
 }
 
+/* ═══════════════════════════════════════════
+   撤销/重做系统 v1.0
+   ═══════════════════════════════════════════ */
+let _cpUndoStack=[],_cpRedoStack=[];const _CP_MAX_UNDO=30;
+
+function _cpGetState(){
+  const state={};
+  for(const ch of ['R','G','B','A']){
+    state[ch]={loaded:!!channels[ch],swz:document.getElementById('swz'+ch).value,inv:document.getElementById('inv'+ch).checked};
+    if(channelData[ch]){const c=document.createElement('canvas');c.width=channelData[ch].width;c.height=channelData[ch].height;const x=c.getContext('2d');x.putImageData(new ImageData(new Uint8ClampedArray(channelData[ch].data),channelData[ch].width,channelData[ch].height),0,0);state[ch].dataURL=c.toDataURL();state[ch].w=channelData[ch].width;state[ch].h=channelData[ch].height}
+  }
+  state.preset=document.querySelector('.preset-btn.act')?.dataset?.p||'custom';
+  state.outSize=document.getElementById('outSize').value;
+  state.bitDepth=document.getElementById('bitDepth').value;
+  state.defA=document.getElementById('defA').value;
+  return state;
+}
+
+function _cpSaveSnap(){
+  const snap=JSON.stringify(_cpGetState());
+  _cpUndoStack.push(snap);if(_cpUndoStack.length>_CP_MAX_UNDO)_cpUndoStack.shift();_cpRedoStack=[]}
+
+function _cpRestoreState(json){
+  const s=JSON.parse(json);
+  let pending=0,total=0;
+  for(const ch of ['R','G','B','A']){
+    document.getElementById('swz'+ch).value=s[ch].swz;
+    document.getElementById('inv'+ch).checked=s[ch].inv;
+    if(s[ch].dataURL){
+      total++;
+      const img=new Image();img.onload=(function(c,st){return function(){
+        const cv=document.createElement('canvas');cv.width=st.w;cv.height=st.h;const cx=cv.getContext('2d');cx.drawImage(img,0,0);
+        channelData[c]={data:cx.getImageData(0,0,st.w,st.h).data,width:st.w,height:st.h};
+        channels[c]=img;document.getElementById('slot'+c).classList.add('has-img');
+        document.getElementById('info'+c).textContent=`${st.w}×${st.h}`;
+        pending++;if(pending>=total){updatePreview();updateStep()}
+      }})(ch,s[ch]);img.src=s[ch].dataURL;
+    }else{channels[ch]=null;channelData[ch]=null;document.getElementById('slot'+ch).classList.remove('has-img');document.getElementById('info'+ch).textContent=ch==='A'?'未载入 (默认纯白)':'未载入'}
+  }
+  document.getElementById('outSize').value=s.outSize||'auto';
+  document.getElementById('bitDepth').value=s.bitDepth||'8';
+  document.getElementById('defA').value=s.defA||'255';
+  if(!total){updatePreview();updateStep()}
+}
+
+function _cpUndo(){if(_cpUndoStack.length<=1)return;_cpRedoStack.push(_cpUndoStack.pop());_cpRestoreState(_cpUndoStack[_cpUndoStack.length-1]);toast('↩ 已撤销')}
+function _cpRedo(){if(!_cpRedoStack.length)return;const s=_cpRedoStack.pop();_cpUndoStack.push(s);_cpRestoreState(s);toast('↪ 已重做')}
+
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();_cpUndo()}
+  if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();_cpRedo()}
+});
+
+// Hook: 通道加载后保存快照
+for(const ch of ['R','G','B','A']){
+  const fi=document.getElementById('fi'+ch);
+  if(fi)fi.addEventListener('change',()=>setTimeout(_cpSaveSnap,600));
+}
+
 // Init
+_cpSaveSnap();
 updatePreview();
 updateNaming();
 </script>
 <script src="editor-kit.js"></script>
+<script src="shortcut-help.js"></script>
 </body>
 </html>

@@ -106,6 +106,8 @@ input[type="color"]{width:28px;height:22px;border:1px solid var(--border);border
     <button class="stab" data-s="gray">🅲 灰度叠色</button>
   </div>
   <div class="sp"></div>
+  <button class="btn" id="bSave" title="Ctrl+S 保存工程">💾 保存工程</button>
+  <button class="btn" id="bLoad">📂 打开工程</button>
   <button class="btn" id="bIm">📂 导入原图</button>
   <button class="btn" id="bImM">📥 导入 Mask</button>
   <button class="btn btn-p" id="bEx">📦 一键导出 ZIP</button>
@@ -364,16 +366,46 @@ if(ci===0&&mi>0)toast(`已自动创建第${mi+1}张 Mask 图`,'i',3000);
 toast(`已添加 Mask${mi+1}-${CN[ci]}`,'s')};
 
 /* 智能选色(LAB/HSL)：点击取色后遍历全图，按色差容差自动生成区域 mask */
+/* ═══ Web Worker 加速色差计算 ═══ */
+let _colorWorker=null;
+let _workerReqId=0;
+const _workerCallbacks={};
+function getColorWorker(){
+  if(!_colorWorker){
+    try{_colorWorker=new Worker('color-worker.js');
+      _colorWorker.onmessage=e=>{const m=e.data;if(m.id&&_workerCallbacks[m.id]){_workerCallbacks[m.id](m);delete _workerCallbacks[m.id]}};
+      _colorWorker.onerror=()=>{_colorWorker=null};
+    }catch(e){_colorWorker=null}
+  }
+  return _colorWorker;
+}
+
 function genMaskCh(idx){const ch=S.channels[idx];if(!ch.color)return;
 const[tr,tg,tb]=h2r(ch.color),tol=parseInt($('rTol').value),fea=parseInt($('rFea').value),sp=S.colorSpace;
-const d=bData.data,mask=new Uint8Array(S.imgW*S.imgH);
-for(let i=0,n=d.length/4;i<n;i++){const id=i*4;if(d[id+3]<10)continue;
-const dist=cDist(d[id],d[id+1],d[id+2],tr,tg,tb,sp);
-if(dist<=tol)mask[i]=255;else if(fea>0&&dist<=tol+fea)mask[i]=Math.round((1-(dist-tol)/fea)*255)}
-/* ═══ 通道互斥流程约定 ═══ 同 Mask 图内其他通道的重叠像素被清除 */
-const same=S.channels.filter((c,j)=>j!==idx&&c.mi===ch.mi);
-for(let i=0;i<mask.length;i++){if(!mask[i])continue;for(const o of same)if(o.md[i]>0)o.md[i]=0}
-ch.md=mask;qaCheck(idx)}
+const w=getColorWorker();
+if(w&&S.imgW*S.imgH>500000){
+  // 大图用 Worker 异步计算
+  const reqId=++_workerReqId;
+  toast('计算中…','i',1500);
+  _workerCallbacks[reqId]=m=>{
+    if(m.type==='maskResult'){
+      const mask=new Uint8Array(m.mask);
+      const same=S.channels.filter((c,j)=>j!==idx&&c.mi===ch.mi);
+      for(let i=0;i<mask.length;i++){if(!mask[i])continue;for(const o of same)if(o.md[i]>0)o.md[i]=0}
+      ch.md=mask;qaCheck(idx);renderAll();saveH();
+    }
+  };
+  w.postMessage({type:'genMask',id:reqId,imgData:bData.data,targetColor:[tr,tg,tb],tolerance:tol,feather:fea,colorSpace:sp,width:S.imgW,height:S.imgH});
+}else{
+  // 小图直接主线程计算
+  const d=bData.data,mask=new Uint8Array(S.imgW*S.imgH);
+  for(let i=0,n=d.length/4;i<n;i++){const id=i*4;if(d[id+3]<10)continue;
+  const dist=cDist(d[id],d[id+1],d[id+2],tr,tg,tb,sp);
+  if(dist<=tol)mask[i]=255;else if(fea>0&&dist<=tol+fea)mask[i]=Math.round((1-(dist-tol)/fea)*255)}
+  const same=S.channels.filter((c,j)=>j!==idx&&c.mi===ch.mi);
+  for(let i=0;i<mask.length;i++){if(!mask[i])continue;for(const o of same)if(o.md[i]>0)o.md[i]=0}
+  ch.md=mask;qaCheck(idx);
+}}
 
 /* QA 纯黑/纯白检测 — 实时检测当前通道选区内的亮度极端像素 */
 function qaCheck(idx){const ch=S.channels[idx];let bk=false,wt=false;const d=bData.data;
@@ -401,7 +433,7 @@ l.innerHTML=S.palette.map((p,i)=>`<div class="plsw" style="background:${p.origin
 r.innerHTML=S.palette.map((p,i)=>`<div class="sr" style="margin-bottom:3px"><div style="width:22px;height:16px;border-radius:3px;background:${p.original};border:1px solid var(--border);flex-shrink:0"></div><span style="color:var(--dim);font-size:10px">→</span><input type="color" value="${p.replace}" onchange="updPal(${i},this.value)" style="width:24px;height:16px;border:1px solid var(--border);border-radius:3px"><span style="font-size:10px;color:var(--heading);font-family:monospace">${p.replace.toUpperCase()}</span></div>`).join('')}
 window.rmPal=i=>{S.palette.splice(i,1);rebuildPalUI();renderAll()};
 window.updPal=(i,h)=>{S.palette[i].replace=h;rebuildPalUI();renderAll()};
-$('bClrP').onclick=()=>{S.palette=[];rebuildPalUI();renderAll()};
+$('bClrP').onclick=()=>{if(!S.palette.length)return;if(!confirm('确定清空所有调色板颜色？'))return;S.palette=[];rebuildPalUI();renderAll()};
 $('bSrtP').onclick=()=>{S.palette.sort((a,b)=>{const[,,la]=rgbToHsl(...h2r(a.original)),[,,lb]=rgbToHsl(...h2r(b.original));return la-lb});rebuildPalUI();toast('已按亮度排序','s')};
 
 /* ═══════ 方案C: 灰度区域 ═══════ */
@@ -608,7 +640,127 @@ bC=$('bC');oC=$('oC');cC=$('cC');
 bx=bC.getContext('2d',{willReadFrequently:true});
 ox=oC.getContext('2d',{willReadFrequently:true});
 cx=cC.getContext('2d');
+
+/* ═══════════════════════════════════════════
+   工程持久化系统 v1.0
+   ═══════════════════════════════════════════ */
+const PROJECT_KEY='mask-tool-project-v1';
+const AUTO_SAVE_INTERVAL=30000;
+let autoSaveTimer=null;
+let projectDirty=false;
+
+function serializeProject(){
+  if(!S.loaded)return null;
+  const tc=document.createElement('canvas');tc.width=S.imgW;tc.height=S.imgH;tc.getContext('2d').drawImage(bImg,0,0);
+  return JSON.stringify({
+    version:'2.0',tool:'mask-tool',savedAt:new Date().toISOString(),
+    imgW:S.imgW,imgH:S.imgH,scheme:S.scheme,
+    imgBase64:tc.toDataURL('image/png'),
+    channels:S.channels.map(c=>({nm:c.nm,color:c.color,dc:c.dc,ci:c.ci,mi:c.mi,md:Array.from(c.md||[])})),
+    schemeColors:S.schemeColors.slice(),
+    palette:S.palette.slice(),
+    grayRegs:S.grayRegs.map(r=>({nm:r.nm,color:r.color,dc:r.dc,md:Array.from(r.md||[])})),
+    activeCh:S.activeCh,activeGr:S.activeGr,
+    tintColor:S.tintColor,tintStr:S.tintStr,brOff:S.brOff,
+    brushSize:S.brushSize,hardness:S.hardness,colorSpace:S.colorSpace
+  });
+}
+
+function deserializeProject(json){
+  try{
+    const p=JSON.parse(json);if(!p||!p.imgBase64)return false;
+    const img=new Image();img.onload=()=>{
+      bImg=img;S.imgW=p.imgW;S.imgH=p.imgH;S.scheme=p.scheme||'mask';
+      [bC,oC,cC].forEach(c=>{c.width=S.imgW;c.height=S.imgH});
+      const tc=document.createElement('canvas');tc.width=S.imgW;tc.height=S.imgH;const tx=tc.getContext('2d');tx.drawImage(img,0,0);bData=tx.getImageData(0,0,S.imgW,S.imgH);
+      S.channels=p.channels.map(c=>({...c,md:new Uint8Array(c.md)}));
+      S.schemeColors=p.schemeColors||S.channels.map(c=>c.dc);
+      S.palette=p.palette||[];
+      S.grayRegs=(p.grayRegs||[]).map(r=>({...r,md:new Uint8Array(r.md)}));
+      S.activeCh=p.activeCh!=null?p.activeCh:-1;
+      S.activeGr=p.activeGr!=null?p.activeGr:-1;
+      S.tintColor=p.tintColor||'#ff6b6b';S.tintStr=p.tintStr!=null?p.tintStr:.8;S.brOff=p.brOff!=null?p.brOff:20;
+      S.brushSize=p.brushSize||10;S.hardness=p.hardness!=null?p.hardness:100;
+      S.colorSpace=p.colorSpace||'lab';
+      S.loaded=true;undoStack=[];redoStack=[];
+      $('emS').style.display='none';[bC,oC,cC].forEach(c=>c.style.display='block');$('cTb').style.display='flex';$('zI').style.display='block';
+      document.querySelectorAll('.stab').forEach(t=>{t.classList.toggle('act',t.dataset.s===S.scheme)});
+      document.querySelectorAll('.spnl').forEach(p2=>p2.style.display='none');
+      const tgt=document.querySelector(`.spnl[data-for="${S.scheme}"]`);if(tgt)tgt.style.display='';
+      rebuildChUI();rebuildSchCol();rebuildPalUI();rebuildGrUI();
+      fitWin();renderAll();saveH();
+      toast('工程已恢复 ('+new Date(p.savedAt).toLocaleTimeString()+')','s');
+      startAutoSave();
+    };img.src=p.imgBase64;return true;
+  }catch(e){console.error('恢复工程失败:',e);return false}
+}
+
+function autoSaveProject(){
+  if(!S.loaded)return;
+  const data=serializeProject();
+  if(!data)return;
+  try{localStorage.setItem(PROJECT_KEY,data);projectDirty=false}
+  catch(e){if(e.name==='QuotaExceededError'){console.warn('LocalStorage 已满，自动保存跳过');toast('存储空间已满，请手动导出工程','w')}}
+}
+
+function startAutoSave(){
+  if(autoSaveTimer)clearInterval(autoSaveTimer);
+  autoSaveTimer=setInterval(autoSaveProject,AUTO_SAVE_INTERVAL);
+}
+
+function markDirty(){projectDirty=true}
+
+function saveProjectToFile(){
+  if(!S.loaded){toast('没有可保存的工程','w');return}
+  const data=serializeProject();if(!data)return;
+  const blob=new Blob([data],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`mask-tool-project-${Date.now()}.json`;a.click();
+  autoSaveProject();toast('工程文件已保存','s');
+}
+
+function loadProjectFromFile(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.json';
+  inp.onchange=e=>{const f=e.target.files[0];if(!f)return;
+    const rd=new FileReader();rd.onload=ev=>{
+      if(deserializeProject(ev.target.result)){localStorage.setItem(PROJECT_KEY,ev.target.result)}
+      else toast('工程文件格式错误','e')};
+    rd.readAsText(f)};
+  inp.click();
+}
+
+$('bSave').onclick=saveProjectToFile;
+$('bLoad').onclick=loadProjectFromFile;
+
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveProjectToFile()}
+});
+
+// 关键操作后标记脏数据并触发自动保存
+const _origSaveH=saveH;
+saveH=function(){_origSaveH();markDirty();clearTimeout(window._debounceSave);window._debounceSave=setTimeout(autoSaveProject,3000)};
+
+// 页面关闭前保存
+window.addEventListener('beforeunload',e=>{if(S.loaded&&projectDirty){autoSaveProject();e.returnValue=''}});
+
+// 启动时检测工程恢复
+(function checkAutoRecover(){
+  const saved=localStorage.getItem(PROJECT_KEY);
+  if(saved){try{const p=JSON.parse(saved);if(p&&p.imgBase64&&p.savedAt){
+    const ago=Date.now()-new Date(p.savedAt).getTime();
+    if(ago<7*24*3600000){
+      const dt=new Date(p.savedAt);
+      const tip=document.createElement('div');
+      tip.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:var(--panel);border:1px solid var(--accent);border-radius:12px;padding:24px 30px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6);max-width:380px';
+      tip.innerHTML=`<div style="font-size:16px;color:var(--heading);margin-bottom:8px">💾 发现未完成工程</div><div style="font-size:12px;color:var(--dim);margin-bottom:16px">保存时间：${dt.toLocaleString()}<br>尺寸：${p.imgW}×${p.imgH} · 方案：${p.scheme}</div><div style="display:flex;gap:10px;justify-content:center"><button id="_prRestore" style="padding:8px 20px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-weight:600;cursor:pointer">恢复工程</button><button id="_prDiscard" style="padding:8px 20px;border:none;border-radius:6px;background:var(--card);border:1px solid var(--border);color:var(--text);cursor:pointer">放弃</button></div>`;
+      document.body.appendChild(tip);
+      document.getElementById('_prRestore').onclick=()=>{tip.remove();deserializeProject(saved)};
+      document.getElementById('_prDiscard').onclick=()=>{tip.remove();localStorage.removeItem(PROJECT_KEY)};
+    }
+  }}catch(e){}}
+})();
 </script>
 <script src="editor-kit.js"></script>
+<script src="shortcut-help.js"></script>
 </body>
 </html>

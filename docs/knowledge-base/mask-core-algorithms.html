@@ -219,6 +219,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
     <div style="margin-top:10px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
       <button class="btn btn-g" onclick="downloadMask()">⬇ 下载 Mask PNG</button>
       <button class="btn" onclick="downloadOverlay()">⬇ 下载叠加预览</button>
+      <button class="btn" onclick="_mcSaveProject()" title="Ctrl+S">💾 保存工程</button>
+      <button class="btn" onclick="_mcLoadProject()">📂 打开工程</button>
     </div>
   </div>
 
@@ -485,6 +487,7 @@ function renderWandOverlay() {
 
 function clearWandMask() {
   if (!wandMask) return;
+  if(!confirm('确定清除魔棒选区？此操作不可撤销。'))return;
   wandMask.fill(0);
   renderWandOverlay();
   mergeFinalMask();
@@ -756,6 +759,7 @@ function renderBrushMaskOverlay() {
 
 function clearBrushMask() {
   if (!brushMask) return;
+  if(!confirm('确定清除画笔绘制的 Mask？此操作不可撤销。'))return;
   brushMask.fill(0);
   renderBrushMaskOverlay();
   mergeFinalMask();
@@ -903,7 +907,114 @@ function toast(m) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
+
+/* ═══════════════════════════════════════════
+   工程持久化系统 v1.0
+   ═══════════════════════════════════════════ */
+const _MC_PROJECT_KEY='mask-core-algo-project-v1';
+const _MC_AUTO_INTERVAL=30000;
+let _mcAutoTimer=null;
+
+function _mcSerialize(){
+  if(!srcImg||!W||!H)return null;
+  const tc=document.createElement('canvas');tc.width=W;tc.height=H;tc.getContext('2d').drawImage(srcImg,0,0);
+  return JSON.stringify({
+    version:'2.0',tool:'mask-core-algorithms',savedAt:new Date().toISOString(),
+    W:W,H:H,imgBase64:tc.toDataURL('image/png'),
+    wandMask:wandMask?Array.from(wandMask):null,
+    brushMask:brushMask?Array.from(brushMask):null,
+    currentTab:currentTab
+  });
+}
+
+function _mcDeserialize(json){
+  try{
+    const p=JSON.parse(json);if(!p||!p.imgBase64)return false;
+    const img=new Image();img.onload=function(){
+      srcImg=img;W=p.W;H=p.H;
+      srcPixels=getPixels(img,W,H);
+      wandMask=p.wandMask?new Float32Array(p.wandMask):new Float32Array(W*H);
+      brushMask=p.brushMask?new Float32Array(p.brushMask):new Float32Array(W*H);
+      finalMask=new Float32Array(W*H);
+      for(let i=0;i<W*H;i++)finalMask[i]=Math.max(wandMask[i]||0,brushMask[i]||0);
+      edgeMap=null;
+      initCanvases();
+      document.getElementById('importCard').style.display='none';
+      document.getElementById('workspace').style.display='block';
+      initWorkers();
+      if(p.currentTab)switchTab(p.currentTab);
+      renderWandOverlay();renderBrushMaskOverlay();
+      toast('工程已恢复 ('+new Date(p.savedAt).toLocaleTimeString()+')');
+      _mcStartAuto();
+    };img.src=p.imgBase64;return true;
+  }catch(e){console.error('恢复工程失败:',e);return false}
+}
+
+function _mcAutoSave(){
+  if(!srcImg)return;
+  const data=_mcSerialize();if(!data)return;
+  try{localStorage.setItem(_MC_PROJECT_KEY,data)}
+  catch(e){if(e.name==='QuotaExceededError')console.warn('LocalStorage已满')}
+}
+
+function _mcStartAuto(){
+  if(_mcAutoTimer)clearInterval(_mcAutoTimer);
+  _mcAutoTimer=setInterval(_mcAutoSave,_MC_AUTO_INTERVAL);
+}
+
+function _mcSaveProject(){
+  if(!srcImg){toast('没有可保存的工程');return}
+  const data=_mcSerialize();if(!data)return;
+  const blob=new Blob([data],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`mask-algo-project-${Date.now()}.json`;a.click();
+  _mcAutoSave();toast('工程文件已保存');
+}
+
+function _mcLoadProject(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.json';
+  inp.onchange=e=>{const f=e.target.files[0];if(!f)return;
+    const rd=new FileReader();rd.onload=ev=>{
+      if(_mcDeserialize(ev.target.result)){localStorage.setItem(_MC_PROJECT_KEY,ev.target.result)}
+      else toast('工程文件格式错误')};
+    rd.readAsText(f)};
+  inp.click();
+}
+
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();_mcSaveProject()}
+});
+
+window.addEventListener('beforeunload',e=>{if(srcImg){_mcAutoSave()}});
+
+// 图片加载后启动自动保存
+const _origLoadImage=loadImage;
+loadImage=function(file){_origLoadImage(file);setTimeout(_mcStartAuto,1000)};
+
+// 魔棒/画笔操作后触发延迟自动保存
+const _origRenderWandOverlay=renderWandOverlay;
+renderWandOverlay=function(){_origRenderWandOverlay();clearTimeout(window._mcDebSave);window._mcDebSave=setTimeout(_mcAutoSave,5000)};
+const _origRenderBrushMask=renderBrushMaskOverlay;
+renderBrushMaskOverlay=function(){_origRenderBrushMask();clearTimeout(window._mcDebSave2);window._mcDebSave2=setTimeout(_mcAutoSave,5000)};
+
+// 启动时检测工程恢复
+(function(){
+  const saved=localStorage.getItem(_MC_PROJECT_KEY);
+  if(saved){try{const p=JSON.parse(saved);if(p&&p.imgBase64&&p.savedAt){
+    const ago=Date.now()-new Date(p.savedAt).getTime();
+    if(ago<7*24*3600000){
+      const dt=new Date(p.savedAt);
+      const tip=document.createElement('div');
+      tip.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:var(--panel);border:1px solid var(--accent);border-radius:12px;padding:24px 30px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6);max-width:380px';
+      tip.innerHTML=`<div style="font-size:16px;color:var(--heading);margin-bottom:8px">💾 发现未完成工程</div><div style="font-size:12px;color:var(--dim);margin-bottom:16px">保存时间：${dt.toLocaleString()}<br>尺寸：${p.W}×${p.H}</div><div style="display:flex;gap:10px;justify-content:center"><button id="_mcRestore" style="padding:8px 20px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-weight:600;cursor:pointer">恢复工程</button><button id="_mcDiscard" style="padding:8px 20px;border:none;border-radius:6px;background:var(--card);border:1px solid var(--border);color:var(--text);cursor:pointer">放弃</button></div>`;
+      document.body.appendChild(tip);
+      document.getElementById('_mcRestore').onclick=()=>{tip.remove();_mcDeserialize(saved)};
+      document.getElementById('_mcDiscard').onclick=()=>{tip.remove();localStorage.removeItem(_MC_PROJECT_KEY)};
+    }
+  }}catch(e){}}
+})();
 </script>
 <script src="editor-kit.js"></script>
+<script src="shortcut-help.js"></script>
 </body>
 </html>
