@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2D 角色换色资源生成器 v1.0</title>
+<title>2D 角色换色资源生成器 v1.1</title>
 <link rel="stylesheet" href="design-tokens.css">
 <link rel="stylesheet" href="tool-base.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -95,7 +95,7 @@ button{cursor:pointer;font-family:inherit}
 <input type="file" id="fileInput" accept="image/*,.psd">
 
 <div class="top-bar">
-  <div class="logo">🎨 换色生成器 <span class="ver">v1.0</span></div>
+  <div class="logo">🎨 换色生成器 <span class="ver">v1.1</span></div>
   <div class="scheme-tabs" id="sTabs">
     <button class="scheme-tab active" data-s="A">🅰 遮罩分区换色</button>
     <button class="scheme-tab" data-s="B">🅱 调色板替换</button>
@@ -244,9 +244,13 @@ function resetData(){S.channels=[];S.activeCh=-1;S.palette=[];S.grayRegs=[];S.ac
 /* ─── 撤销/重做系统 ─── */
 let _csUndoStack=[],_csRedoStack=[];const _CS_MAX_UNDO=40;
 function _csSaveSnapshot(){
-  const snap=JSON.stringify({ch:S.channels.map(c=>({...c,md:Array.from(c.md||[])})),pal:S.palette.slice(),gr:S.grayRegs.map(r=>({...r,md:Array.from(r.md||[])})),aCh:S.activeCh,aGr:S.activeGr});
+  // ═══ 优化：直接存 Uint8Array.slice()（比 Array.from 快 5-10x，GC 压力降低）═══
+  const snap={ch:S.channels.map(c=>({nm:c.nm,color:c.color,dc:c.dc,ci:c.ci,mi:c.mi||0,md:c.md?c.md.slice():null,_px:c._px})),
+    pal:S.palette.slice(),
+    gr:S.grayRegs.map(r=>({nm:r.nm,color:r.color,dc:r.dc,md:r.md?r.md.slice():null,_px:r._px})),
+    aCh:S.activeCh,aGr:S.activeGr};
   _csUndoStack.push(snap);if(_csUndoStack.length>_CS_MAX_UNDO)_csUndoStack.shift();_csRedoStack=[];_csUpdUndoUI()}
-function _csRestoreSnap(s){const d=JSON.parse(s);S.channels=d.ch.map(c=>({...c,md:new Uint8Array(c.md)}));S.palette=d.pal;S.grayRegs=d.gr.map(r=>({...r,md:new Uint8Array(r.md)}));S.activeCh=d.aCh;S.activeGr=d.aGr;rebuildChUI();rebuildPalUI();rebuildGrUI();renderAll()}
+function _csRestoreSnap(s){S.channels=s.ch.map(c=>({...c,md:c.md?new Uint8Array(c.md):new Uint8Array(0)}));S.palette=s.pal;S.grayRegs=s.gr.map(r=>({...r,md:r.md?new Uint8Array(r.md):new Uint8Array(0)}));S.activeCh=s.aCh;S.activeGr=s.aGr;rebuildChUI();rebuildPalUI();rebuildGrUI();renderAll()}
 function _csUndo(){if(_csUndoStack.length<=1)return;_csRedoStack.push(_csUndoStack.pop());_csRestoreSnap(_csUndoStack[_csUndoStack.length-1]);_csUpdUndoUI();toast('已撤销','i',800)}
 function _csRedo(){if(!_csRedoStack.length)return;const s=_csRedoStack.pop();_csUndoStack.push(s);_csRestoreSnap(s);_csUpdUndoUI();toast('已重做','i',800)}
 function _csUpdUndoUI(){}
@@ -269,23 +273,54 @@ if(S.scheme==='A')overlayA();else if(S.scheme==='B')overlayB();else overlayC();
 if(S.rStart&&S.rEnd){ctx.save();ctx.strokeStyle='rgba(108,140,255,.8)';ctx.lineWidth=1/S.zoom;ctx.setLineDash([4/S.zoom,4/S.zoom]);const x=Math.min(S.rStart.x,S.rEnd.x),y=Math.min(S.rStart.y,S.rEnd.y);ctx.strokeRect(x,y,Math.abs(S.rEnd.x-S.rStart.x),Math.abs(S.rEnd.y-S.rStart.y));ctx.restore()}
 renderPrev();$('zI').textContent=Math.round(S.zoom*100)+'%'}
 
-function drawCB(c,w,h){const sz=8;c.save();for(let y=0;y<h;y+=sz)for(let x=0;x<w;x+=sz){c.fillStyle=((x/sz+y/sz)%2===0)?'#1a1a2e':'#12121e';c.fillRect(x,y,sz,sz)}c.restore()}
+// ═══ 优化：棋盘格缓存（只在尺寸变化时重绘，正常帧直接 drawImage）═══
+let _cbCache=null,_cbW=0,_cbH=0;
+function drawCB(c,w,h){
+  if(_cbW!==w||_cbH!==h||!_cbCache){
+    _cbCache=document.createElement('canvas');_cbCache.width=w;_cbCache.height=h;
+    const cc=_cbCache.getContext('2d');const sz=8;
+    for(let y=0;y<h;y+=sz)for(let x=0;x<w;x+=sz){cc.fillStyle=((x/sz+y/sz)%2===0)?'#1a1a2e':'#12121e';cc.fillRect(x,y,sz,sz)}
+    _cbW=w;_cbH=h;
+  }
+  c.drawImage(_cbCache,0,0);
+}
 
-function overlayA(){if(!S.channels.length)return;const tc=document.createElement('canvas');tc.width=S.imgW;tc.height=S.imgH;const tx=tc.getContext('2d');const ov=tx.createImageData(S.imgW,S.imgH);const od=ov.data;
-for(const ch of S.channels){if(!ch.md)continue;const[cr,cg,cb]=hex2rgb(ch.dc);for(let i=0;i<ch.md.length;i++){const a=ch.md[i];if(!a)continue;const idx=i*4,al=a/255*.45;od[idx]=Math.min(255,od[idx]+cr*al);od[idx+1]=Math.min(255,od[idx+1]+cg*al);od[idx+2]=Math.min(255,od[idx+2]+cb*al);od[idx+3]=Math.min(255,od[idx+3]+255*al)}}
+// ═══ 优化：overlay 离屏缓存（避免每帧 createElement + createImageData）═══
+let _ovCanvas=null,_ovCtx=null,_ovImg=null,_ovW=0,_ovH=0;
+function _getOvBuf(){if(_ovW!==S.imgW||_ovH!==S.imgH||!_ovCanvas){_ovCanvas=document.createElement('canvas');_ovCanvas.width=S.imgW;_ovCanvas.height=S.imgH;_ovCtx=_ovCanvas.getContext('2d');_ovImg=_ovCtx.createImageData(S.imgW,S.imgH);_ovW=S.imgW;_ovH=S.imgH}return{c:_ovCanvas,x:_ovCtx,img:_ovImg}}
+function overlayA(){if(!S.channels.length)return;const{c:tc,x:tx,img:ov}=_getOvBuf();const od=ov.data;
+// 清零 overlay buffer
+const od32=new Uint32Array(od.buffer);od32.fill(0);
+for(let ci=0;ci<S.channels.length;ci++){const ch=S.channels[ci];if(!ch.md)continue;const[cr,cg,cb]=hex2rgb(ch.dc);for(let i=0;i<ch.md.length;i++){const a=ch.md[i];if(!a)continue;const idx=i*4,al=a/255*.45;od[idx]=Math.min(255,od[idx]+cr*al|0);od[idx+1]=Math.min(255,od[idx+1]+cg*al|0);od[idx+2]=Math.min(255,od[idx+2]+cb*al|0);od[idx+3]=Math.min(255,od[idx+3]+255*al|0)}}
 tx.putImageData(ov,0,0);ctx.drawImage(tc,0,0)}
 
-function overlayB(){if(!S.palette.length)return;const d=S.imgData.data,tol=parseInt($('tolB').value);const tc=document.createElement('canvas');tc.width=S.imgW;tc.height=S.imgH;const tx=tc.getContext('2d');const ov=tx.createImageData(S.imgW,S.imgH);const od=ov.data;
-for(const p of S.palette){const[pr,pg,pb]=hex2rgb(p.original);const[rr,rg,rb]=hex2rgb(p.replace);for(let i=0,n=d.length/4;i<n;i++){const idx=i*4;if(d[idx+3]<10)continue;if(Math.sqrt((d[idx]-pr)**2+(d[idx+1]-pg)**2+(d[idx+2]-pb)**2)<=tol){od[idx]=rr;od[idx+1]=rg;od[idx+2]=rb;od[idx+3]=140}}}
+function overlayB(){if(!S.palette.length)return;const d=S.imgData.data,tol=parseInt($('tolB').value),tolSq=tol*tol;const{c:tc,x:tx,img:ov}=_getOvBuf();const od=ov.data;
+const od32=new Uint32Array(od.buffer);od32.fill(0);
+// ═══ 优化：预解析调色板颜色避免内循环中反复 hex2rgb ═══
+const palLen=S.palette.length,palOr=new Array(palLen),palRp=new Array(palLen);
+for(let k=0;k<palLen;k++){palOr[k]=hex2rgb(S.palette[k].original);palRp[k]=hex2rgb(S.palette[k].replace)}
+for(let i=0,n=d.length/4;i<n;i++){const idx=i*4;if(d[idx+3]<10)continue;const pr=d[idx],pg=d[idx+1],pb=d[idx+2];
+  for(let k=0;k<palLen;k++){const[or,og,ob]=palOr[k];const dr=pr-or,dg=pg-og,db=pb-ob;
+    if(dr*dr+dg*dg+db*db<=tolSq){const[rr,rg,rb]=palRp[k];od[idx]=rr;od[idx+1]=rg;od[idx+2]=rb;od[idx+3]=140;break}}}
 tx.putImageData(ov,0,0);ctx.save();ctx.globalAlpha=.5;ctx.drawImage(tc,0,0);ctx.restore()}
 
 function overlayC(){if(!S.grayRegs.length)return;const d=S.imgData.data;const[tr,tg,tb]=hex2rgb(S.tintColor);const str=S.tintStr,off=S.brOff;
-const tc=document.createElement('canvas');tc.width=S.imgW;tc.height=S.imgH;const tx=tc.getContext('2d');const ov=tx.createImageData(S.imgW,S.imgH);const od=ov.data;
-for(const reg of S.grayRegs){if(!reg.md)continue;for(let i=0;i<reg.md.length;i++){const a=reg.md[i];if(!a)continue;const idx=i*4;let g=Math.round(.2126*d[idx]+.7152*d[idx+1]+.0722*d[idx+2]);g=Math.max(0,Math.min(255,g+off));od[idx]=Math.round(g*(1-str)+(g/255*tr)*str);od[idx+1]=Math.round(g*(1-str)+(g/255*tg)*str);od[idx+2]=Math.round(g*(1-str)+(g/255*tb)*str);od[idx+3]=Math.round(a*.6)}}
+// ═══ 优化：预计算 tint/255 系数，减少每像素除法 ═══
+const tr255=tr/255*str,tg255=tg/255*str,tb255=tb/255*str,inv=1-str;
+const{c:tc,x:tx,img:ov}=_getOvBuf();const od=ov.data;
+const od32=new Uint32Array(od.buffer);od32.fill(0);
+for(let ri=0;ri<S.grayRegs.length;ri++){const reg=S.grayRegs[ri];if(!reg.md)continue;for(let i=0;i<reg.md.length;i++){const a=reg.md[i];if(!a)continue;const idx=i*4;let g=(.2126*d[idx]+.7152*d[idx+1]+.0722*d[idx+2]+off)|0;if(g<0)g=0;else if(g>255)g=255;od[idx]=(g*inv+g*tr255+.5)|0;od[idx+1]=(g*inv+g*tg255+.5)|0;od[idx+2]=(g*inv+g*tb255+.5)|0;od[idx+3]=(a*.6)|0}}
 tx.putImageData(ov,0,0);ctx.save();ctx.globalAlpha=.6;ctx.drawImage(tc,0,0);ctx.restore()}
 
-function renderPrev(){if(S.scheme==='A'&&S.channels.length){$('prevP').style.display='block';const pw=160,ph=Math.round(160*S.imgH/S.imgW)||1;pvC.width=pw;pvC.height=ph;const pv=pCtx.createImageData(pw,ph);const pd=pv.data;const sx=S.imgW/pw,sy=S.imgH/ph;
-for(let y=0;y<ph;y++)for(let x=0;x<pw;x++){const si=Math.floor(y*sy)*S.imgW+Math.floor(x*sx),pi=(y*pw+x)*4;pd[pi+3]=255;for(let ci=0;ci<S.channels.length;ci++){const ch=S.channels[ci];if(!ch.md||!ch.md[si])continue;pd[pi+ch.ci]=ch.md[si]}}
+function renderPrev(){if(S.scheme==='A'&&S.channels.length){$('prevP').style.display='block';const pw=160,ph=Math.round(160*S.imgH/S.imgW)||1;pvC.width=pw;pvC.height=ph;const pv=pCtx.createImageData(pw,ph);const pd=pv.data;
+// ═══ 优化：预计算采样映射表（缩略图尺寸固定时复用）═══
+if(!renderPrev._map||renderPrev._pw!==pw||renderPrev._ph!==ph||renderPrev._iw!==S.imgW||renderPrev._ih!==S.imgH){
+  const sx=S.imgW/pw,sy=S.imgH/ph;const map=new Uint32Array(pw*ph);
+  for(let y=0;y<ph;y++){const row=Math.floor(y*sy)*S.imgW;for(let x=0;x<pw;x++)map[y*pw+x]=row+Math.floor(x*sx)}
+  renderPrev._map=map;renderPrev._pw=pw;renderPrev._ph=ph;renderPrev._iw=S.imgW;renderPrev._ih=S.imgH}
+const map=renderPrev._map,total=pw*ph;
+for(let i=0;i<total;i++){const si=map[i],pi=i*4;pd[pi+3]=255;
+  for(let ci=0;ci<S.channels.length;ci++){const ch=S.channels[ci];if(!ch.md||!ch.md[si])continue;pd[pi+ch.ci]=ch.md[si]}}
 pCtx.putImageData(pv,0,0)}else{$('prevP').style.display='none'}}
 
 /* ─── 画布交互 ─── */
@@ -303,7 +338,7 @@ $('tZi').onclick=()=>{S.zoom=Math.min(S.zoom*1.3,20);renderAll()};
 $('tZo').onclick=()=>{S.zoom=Math.max(S.zoom/1.3,.05);renderAll()};
 $('tFit').onclick=()=>{fitWin();renderAll()};
 
-$('cArea').addEventListener('wheel',e=>{if(!S.img)return;e.preventDefault();const r=$('cArea').getBoundingClientRect();const mx=e.clientX-r.left,my=e.clientY-r.top,oz=S.zoom;S.zoom=e.deltaY<0?Math.min(oz*1.15,20):Math.max(oz/1.15,.05);S.panX=mx-(mx-S.panX)*(S.zoom/oz);S.panY=my-(my-S.panY)*(S.zoom/oz);renderAll()},{passive:false});
+$('cArea').addEventListener('wheel',e=>{if(!S.img)return;e.preventDefault();const r=$('cArea').getBoundingClientRect();const mx=e.clientX-r.left,my=e.clientY-r.top,oz=S.zoom;S.zoom=e.deltaY<0?Math.min(oz*1.15,20):Math.max(oz/1.15,.05);S.panX=mx-(mx-S.panX)*(S.zoom/oz);S.panY=my-(my-S.panY)*(S.zoom/oz);_schedRender()},{passive:false});
 
 let spHeld=false;
 document.addEventListener('keydown',e=>{if(e.code==='Space'){spHeld=true;if(S.img)mc.style.cursor='grab'}if(!S.img)return;if(e.key==='i')setTool('pick');if(e.key==='m')setTool('rect');if(e.key==='b')setTool('brush');if(e.key==='e')setTool('eraser');if(e.key==='v')setTool('pan');if(e.key==='0'){fitWin();renderAll()}if(e.key==='+'||e.key==='='){S.zoom=Math.min(S.zoom*1.3,20);renderAll()}if(e.key==='-'){S.zoom=Math.max(S.zoom/1.3,.05);renderAll()}});
@@ -315,11 +350,15 @@ if(S.tool==='pick'){if(inB(p))pickColor(p);return}
 if(S.tool==='rect'){S.rStart=p;S.rEnd=p;S.dragging=true;return}
 if(S.tool==='brush'||S.tool==='eraser'){S.dragging=true;applyBrush(p);return}});
 
+// ═══ 优化：拖拽渲染 rAF 节流（避免高刷显示器每帧多次 renderAll）═══
+let _rafPending=false;
+function _schedRender(){if(!_rafPending){_rafPending=true;requestAnimationFrame(()=>{_rafPending=false;renderAll()})}}
+
 $('cArea').addEventListener('mousemove',e=>{if(!S.img)return;const p=cCoord(e);
 if(inB(p)){const idx=(p.y*S.imgW+p.x)*4,d=S.imgData.data;const r=d[idx],g=d[idx+1],b=d[idx+2],a=d[idx+3];const hv=$('cHov');hv.style.display='flex';hv.style.left=(e.clientX+14)+'px';hv.style.top=(e.clientY+14)+'px';$('cPv').style.background=`rgba(${r},${g},${b},${a/255})`;$('cHex').textContent=rgb2hex(r,g,b).toUpperCase();$('cRgb').textContent=`R:${r} G:${g} B:${b} A:${a}`}else{$('cHov').style.display='none'}
 if(!S.dragging)return;
-if(spHeld||S.tool==='pan'){S.panX+=e.clientX-S.lastM.x;S.panY+=e.clientY-S.lastM.y;S.lastM={x:e.clientX,y:e.clientY};renderAll();return}
-if(S.tool==='rect'){S.rEnd=p;renderAll();return}
+if(spHeld||S.tool==='pan'){S.panX+=e.clientX-S.lastM.x;S.panY+=e.clientY-S.lastM.y;S.lastM={x:e.clientX,y:e.clientY};_schedRender();return}
+if(S.tool==='rect'){S.rEnd=p;_schedRender();return}
 if(S.tool==='brush'||S.tool==='eraser'){applyBrush(p);return}});
 
 document.addEventListener('mouseup',e=>{if(!S.img)return;
@@ -350,15 +389,15 @@ if(w&&S.imgW*S.imgH>500000){
   _csWCbs[rid]=m=>{if(m.type==='maskResult'){
     const mask=new Uint8Array(m.mask);
     const same=S.channels.filter((c,j)=>j!==idx&&c.mi===ch.mi);
-    for(let i=0;i<mask.length;i++){if(!mask[i])continue;for(const o of same)if(o.md[i]>0)o.md[i]=0}
-    ch.md=mask;qaCheck(idx);rebuildChUI();renderAll();_csSaveSnapshot()}};
+    for(let i=0;i<mask.length;i++){if(!mask[i])continue;for(const o of same)if(o.md[i]>0){o.md[i]=0;o._px=null}}
+    ch.md=mask;ch._px=null;qaCheck(idx);rebuildChUI();renderAll();_csSaveSnapshot()}};
   w.postMessage({type:'genMask',id:rid,imgData:S.imgData.data,targetColor:[tr,tg,tb],tolerance:tol,feather:fea,colorSpace:sp,width:S.imgW,height:S.imgH});
 }else{
   const d=S.imgData.data;const mask=new Uint8Array(S.imgW*S.imgH);
   for(let i=0,n=d.length/4;i<n;i++){const id=i*4;if(d[id+3]<10)continue;const dist=cDist(d[id],d[id+1],d[id+2],tr,tg,tb,sp);if(dist<=tol)mask[i]=255;else if(fea>0&&dist<=tol+fea)mask[i]=Math.round((1-(dist-tol)/fea)*255)}
   const same=S.channels.filter((c,j)=>j!==idx&&c.mi===ch.mi);
-  for(let i=0;i<mask.length;i++){if(!mask[i])continue;for(const o of same)if(o.md[i]>0)o.md[i]=0}
-  ch.md=mask;qaCheck(idx);
+  for(let i=0;i<mask.length;i++){if(!mask[i])continue;for(const o of same)if(o.md[i]>0){o.md[i]=0;o._px=null}}
+  ch.md=mask;ch._px=null;qaCheck(idx);
 }}
 
 function qaCheck(idx){const ch=S.channels[idx];let bk=false,wt=false;const d=S.imgData.data;
@@ -367,8 +406,11 @@ const ws=[];if(bk)ws.push('⚠ 选区含纯黑(0,0,0)，HSV偏移对纯黑无效
 $('qaW').innerHTML=ws.length?ws.map(w=>`<div class="warn y" style="margin-bottom:5px">${w}</div>`).join(''):''}
 
 function rebuildChUI(){const l=$('chList');if(!S.channels.length){l.innerHTML='<div style="color:var(--dim);font-size:11px">（尚未添加换色区域）</div>';return}
-l.innerHTML=S.channels.map((ch,i)=>{const ac=i===S.activeCh,px=ch.md?ch.md.reduce((s,v)=>s+(v>0?1:0),0):0;
+l.innerHTML=S.channels.map((ch,i)=>{const ac=i===S.activeCh;
+// ═══ 优化：使用缓存的 _px 计数，避免每次 UI 刷新遍历整个 mask ═══
+const px=ch._px!=null?ch._px:(ch.md?_countPx(ch):0);
 return`<div class="ch-item${ac?' active':''}" onclick="selCh(${i})"><div class="ch-hdr"><div class="ch-dot" style="background:${ch.dc}"></div><span class="ch-nm">${ch.nm}</span>${ch.color?`<div class="ch-prev" style="background:${ch.color}"></div>`:''}<button class="btn-s danger" onclick="event.stopPropagation();rmCh(${i})" style="padding:2px 6px">✕</button></div><div class="ch-inf">${ch.color?`取样: ${ch.color.toUpperCase()} · ${px.toLocaleString()}px`:'← 用吸色工具取色'}${ch.mi>0?` · Mask#${ch.mi+1}`:''}</div></div>`}).join('')}
+function _countPx(obj){let c=0;const m=obj.md;for(let i=0;i<m.length;i++)if(m[i])c++;obj._px=c;return c}
 window.selCh=i=>{S.activeCh=i;rebuildChUI()};
 window.rmCh=i=>{S.channels.splice(i,1);if(S.activeCh>=S.channels.length)S.activeCh=S.channels.length-1;S.channels.forEach((c,j)=>{const mi=Math.floor(j/3),ci=j%3;c.nm=`Mask${mi+1}-${CH_NM[ci]}`;c.dc=CH_DC[ci];c.ci=ci;c.mi=mi});rebuildChUI();renderAll();_csSaveSnapshot()};
 
@@ -386,20 +428,23 @@ $('btnSortPal').onclick=()=>{S.palette.sort((a,b)=>{const[,,la]=rgbToHsl(...hex2
 $('btnAddGr').onclick=()=>{if(!S.img){toast('请先导入图片','w');return}const i=S.grayRegs.length;S.grayRegs.push({nm:`区域${i+1}`,color:null,md:new Uint8Array(S.imgW*S.imgH)});S.activeGr=i;rebuildGrUI();toast(`已添加灰度区域${i+1}`,'s')};
 function genMaskGr(idx){const reg=S.grayRegs[idx];if(!reg.color)return;const[tr,tg,tb]=hex2rgb(reg.color);const tol=parseInt($('tolC').value);const d=S.imgData.data;const mask=new Uint8Array(S.imgW*S.imgH);
 for(let i=0,n=d.length/4;i<n;i++){const id=i*4;if(d[id+3]<10)continue;const dist=cDist(d[id],d[id+1],d[id+2],tr,tg,tb,'lab');if(dist<=tol)mask[i]=255;else if(dist<=tol+5)mask[i]=Math.round((1-(dist-tol)/5)*255)}
-reg.md=mask;updAvgG()}
+reg.md=mask;reg._px=null;updAvgG()}
 function updAvgG(){let t=0,c=0;const d=S.imgData.data,off=S.brOff;for(const r of S.grayRegs){if(!r.md)continue;for(let i=0;i<r.md.length;i++){if(!r.md[i])continue;const id=i*4;let g=Math.round(.2126*d[id]+.7152*d[id+1]+.0722*d[id+2]);g=Math.max(0,Math.min(255,g+off));t+=g;c++}}
 $('avgG').textContent=c?Math.round(t/c):'—';const avg=c?Math.round(t/c):0;$('avgG').style.color=c&&(avg<128||avg>200)?'var(--yellow)':'var(--green)'}
 function rebuildGrUI(){const l=$('grList');if(!S.grayRegs.length){l.innerHTML='<div style="color:var(--dim);font-size:11px">（尚未添加灰度区域）</div>';return}
-l.innerHTML=S.grayRegs.map((r,i)=>{const ac=i===S.activeGr,px=r.md?r.md.reduce((s,v)=>s+(v>0?1:0),0):0;
+l.innerHTML=S.grayRegs.map((r,i)=>{const ac=i===S.activeGr;
+// ═══ 优化：使用缓存的 _px 计数 ═══
+const px=r._px!=null?r._px:(r.md?_countPx(r):0);
 return`<div class="ch-item${ac?' active':''}" onclick="selGr(${i})"><div class="ch-hdr"><div class="ch-dot" style="background:#888"></div><span class="ch-nm">${r.nm}</span>${r.color?`<div class="ch-prev" style="background:${r.color}"></div>`:''}<button class="btn-s danger" onclick="event.stopPropagation();rmGr(${i})" style="padding:2px 6px">✕</button></div><div class="ch-inf">${r.color?`取样: ${r.color.toUpperCase()} · ${px.toLocaleString()}px`:'← 用吸色工具取色'}</div></div>`}).join('')}
 window.selGr=i=>{S.activeGr=i;rebuildGrUI()};
 window.rmGr=i=>{S.grayRegs.splice(i,1);if(S.activeGr>=S.grayRegs.length)S.activeGr=S.grayRegs.length-1;S.grayRegs.forEach((r,j)=>r.nm=`区域${j+1}`);rebuildGrUI();renderAll()};
 
 /* ─── 笔刷/橡皮/框选 ─── */
 function applyBrush(p){if(!inB(p))return;const isE=S.tool==='eraser',sz=S.brushSize;
-if(S.scheme==='A'){if(S.activeCh<0)return;const ch=S.channels[S.activeCh];for(let dy=-sz;dy<=sz;dy++)for(let dx=-sz;dx<=sz;dx++){if(dx*dx+dy*dy>sz*sz)continue;const px=p.x+dx,py=p.y+dy;if(px<0||px>=S.imgW||py<0||py>=S.imgH)continue;const i=py*S.imgW+px;if(isE){ch.md[i]=0}else{ch.md[i]=255;for(const o of S.channels)if(o!==ch&&o.mi===ch.mi)o.md[i]=0}}}
-else if(S.scheme==='C'){if(S.activeGr<0)return;const reg=S.grayRegs[S.activeGr];for(let dy=-sz;dy<=sz;dy++)for(let dx=-sz;dx<=sz;dx++){if(dx*dx+dy*dy>sz*sz)continue;const px=p.x+dx,py=p.y+dy;if(px<0||px>=S.imgW||py<0||py>=S.imgH)continue;reg.md[py*S.imgW+px]=isE?0:255}updAvgG()}
-renderAll()}
+if(S.scheme==='A'){if(S.activeCh<0)return;const ch=S.channels[S.activeCh];ch._px=null;for(let dy=-sz;dy<=sz;dy++)for(let dx=-sz;dx<=sz;dx++){if(dx*dx+dy*dy>sz*sz)continue;const px=p.x+dx,py=p.y+dy;if(px<0||px>=S.imgW||py<0||py>=S.imgH)continue;const i=py*S.imgW+px;if(isE){ch.md[i]=0}else{ch.md[i]=255;for(const o of S.channels)if(o!==ch&&o.mi===ch.mi){if(o.md[i])o._px=null;o.md[i]=0}}}}
+else if(S.scheme==='C'){if(S.activeGr<0)return;const reg=S.grayRegs[S.activeGr];reg._px=null;for(let dy=-sz;dy<=sz;dy++)for(let dx=-sz;dx<=sz;dx++){if(dx*dx+dy*dy>sz*sz)continue;const px=p.x+dx,py=p.y+dy;if(px<0||px>=S.imgW||py<0||py>=S.imgH)continue;reg.md[py*S.imgW+px]=isE?0:255}updAvgG()}
+// ═══ 优化：笔刷连续绘制使用 rAF 节流（避免 mousemove 每像素都触发完整渲染）═══
+_schedRender()}
 
 function applyRect(x1,y1,x2,y2){
 if(S.scheme==='A'){if(S.activeCh<0){toast('请先选择换色区域','w');return}const ch=S.channels[S.activeCh];for(let y=y1;y<=y2;y++)for(let x=x1;x<=x2;x++){const i=y*S.imgW+x;if(S.imgData.data[i*4+3]<10)continue;ch.md[i]=255;for(const o of S.channels)if(o!==ch&&o.mi===ch.mi)o.md[i]=0}qaCheck(S.activeCh);rebuildChUI();toast(`框选已添加到 ${ch.nm}`,'s')}
@@ -472,13 +517,17 @@ function canvasToBlob(c){return new Promise(r=>{c.toBlob(b=>{b.arrayBuffer().the
 function drawBaseA(){const c=document.createElement('canvas');c.width=S.imgW;c.height=S.imgH;c.getContext('2d').drawImage(S.img,0,0);return c}
 
 function drawBaseB(){
-  // 将原图中匹配的颜色替换为灰度索引
+  // ═══ 优化：预解析调色板 + 用 tolSq 避免 sqrt ═══
   const c=document.createElement('canvas');c.width=S.imgW;c.height=S.imgH;const cx=c.getContext('2d');cx.drawImage(S.img,0,0);
-  const iData=cx.getImageData(0,0,S.imgW,S.imgH);const d=iData.data;const tol=parseInt($('tolB').value);
+  const iData=cx.getImageData(0,0,S.imgW,S.imgH);const d=iData.data;const tol=parseInt($('tolB').value),tolSq=tol*tol;
+  const palLen=S.palette.length,palOr=new Array(palLen);
+  for(let k=0;k<palLen;k++)palOr[k]=hex2rgb(S.palette[k].original);
+  const maxIdx=Math.max(1,palLen-1);
   for(let i=0,n=d.length/4;i<n;i++){const idx=i*4;if(d[idx+3]<10)continue;
-    for(let pi=0;pi<S.palette.length;pi++){const[pr,pg,pb]=hex2rgb(S.palette[pi].original);
-      if(Math.sqrt((d[idx]-pr)**2+(d[idx+1]-pg)**2+(d[idx+2]-pb)**2)<=tol){
-        const gray=Math.round(pi/Math.max(1,S.palette.length-1)*255);d[idx]=gray;d[idx+1]=gray;d[idx+2]=gray;break}}}
+    for(let pi=0;pi<palLen;pi++){const[pr,pg,pb]=palOr[pi];
+      const dr=d[idx]-pr,dg=d[idx+1]-pg,db=d[idx+2]-pb;
+      if(dr*dr+dg*dg+db*db<=tolSq){
+        const gray=Math.round(pi/maxIdx*255);d[idx]=gray;d[idx+1]=gray;d[idx+2]=gray;break}}}
   cx.putImageData(iData,0,0);return c}
 
 function drawBaseC(){
