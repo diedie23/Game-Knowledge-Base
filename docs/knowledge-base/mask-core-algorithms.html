@@ -81,9 +81,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   <div class="card-title">📁 导入图片</div>
   <div class="drop-zone" id="dz" onclick="document.getElementById('fi').click()">
     <h3>点击选择或拖放图片</h3>
-    <p>PNG / JPG · 建议 2048×2048 以内</p>
+    <p>PNG / JPG / PSD · 建议 2048×2048 以内</p>
   </div>
-  <input type="file" id="fi" accept="image/*" style="display:none">
+  <input type="file" id="fi" accept="image/*,.psd" style="display:none">
 </div>
 
 <!-- ═══ 主工作区 ═══ -->
@@ -264,8 +264,21 @@ dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dg')
 fi.addEventListener('change', function() { if (this.files[0]) loadImage(this.files[0]); });
 
 function loadImage(file) {
+  // PSD 文件特殊处理
+  if(file&&file.name.toLowerCase().endsWith('.psd')){
+    if(!window.PSDReader){toast('PSD模块未加载');return}
+    window.PSDReader.handlePSD(file, canvas=>{
+      const img=new Image();
+      img.onload=function(){_doLoadImage(img)};
+      img.src=canvas.toDataURL();
+    }, err=>toast(err));
+    return;
+  }
   const img = new Image();
-  img.onload = function() {
+  img.onload = function() {_doLoadImage(img)};
+  img.src = URL.createObjectURL(file);
+}
+function _doLoadImage(img){
     srcImg = img; W = img.width; H = img.height;
     srcPixels = getPixels(img, W, H);
     wandMask = new Float32Array(W * H);
@@ -281,8 +294,6 @@ function loadImage(file) {
 
     // 初始化 Workers
     initWorkers();
-  };
-  img.src = URL.createObjectURL(file);
 }
 
 function getPixels(img, w, h) {
@@ -987,9 +998,9 @@ document.addEventListener('keydown',e=>{
 
 window.addEventListener('beforeunload',e=>{if(srcImg){_mcAutoSave()}});
 
-// 图片加载后启动自动保存
-const _origLoadImage=loadImage;
-loadImage=function(file){_origLoadImage(file);setTimeout(_mcStartAuto,1000)};
+// 图片加载后启动自动保存（包括 PSD 异步路径）
+const _origDoLoadImage=_doLoadImage;
+_doLoadImage=function(img){_origDoLoadImage(img);setTimeout(_mcStartAuto,1000)};
 
 // 魔棒/画笔操作后触发延迟自动保存
 const _origRenderWandOverlay=renderWandOverlay;
@@ -1014,6 +1025,7 @@ renderBrushMaskOverlay=function(){_origRenderBrushMask();clearTimeout(window._mc
   }}catch(e){}}
 })();
 </script>
+<script src="psd-reader.js"></script>
 <script src="editor-kit.js"></script>
 <script src="shortcut-help.js"></script>
 </body>

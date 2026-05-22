@@ -86,7 +86,7 @@ button{cursor:pointer;font-family:inherit}
 <body>
 <div class="drop-ov" id="dropOv">📁 松开鼠标导入图片</div>
 <div class="toast-c" id="toastC"></div>
-<input type="file" id="fileInput" accept="image/*">
+<input type="file" id="fileInput" accept="image/*,.psd">
 
 <div class="top-bar">
   <div class="logo">🎨 换色生成器 <span class="ver">v1.0</span></div>
@@ -222,8 +222,17 @@ function toast(m,t='i',d=2500){const e=document.createElement('div');e.className
 document.querySelectorAll('.scheme-tab').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.scheme-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');S.scheme=t.dataset.s;document.querySelectorAll('.sp').forEach(p=>p.style.display='none');$('p'+S.scheme).style.display='';if(S.img)renderAll();toast('方案 '+S.scheme,'i',1200)})});
 
 /* ─── 图片加载 ─── */
-async function handleFile(file){if(!file||!file.type.startsWith('image/')){toast('请选择图片','e');return}
-const url=URL.createObjectURL(file);const img=new Image();img.onload=()=>{S.img=img;S.imgW=img.naturalWidth;S.imgH=img.naturalHeight;const tc=document.createElement('canvas');tc.width=S.imgW;tc.height=S.imgH;const tx=tc.getContext('2d');tx.drawImage(img,0,0);S.imgData=tx.getImageData(0,0,S.imgW,S.imgH);resetData();mc.width=S.imgW;mc.height=S.imgH;mc.style.display='block';$('emptyS').style.display='none';$('cTb').style.display='flex';$('zI').style.display='block';fitWin();renderAll();$('imgInfo').style.display='block';$('imgInfo').innerHTML=`📐 ${S.imgW}×${S.imgH} · ${(file.size/1024).toFixed(1)}KB · ${file.name}`;_csSaveSnapshot();toast('图片已加载','s');_startAutoSave()};img.src=url}
+async function handleFile(file){if(!file)return;
+// PSD 文件特殊处理
+if(file.name.toLowerCase().endsWith('.psd')){
+  if(!window.PSDReader){toast('PSD模块未加载','e');return}
+  window.PSDReader.handlePSD(file, canvas=>{_csLoadFromCanvas(canvas,file)}, err=>toast(err,'e'));
+  return;
+}
+if(!file.type.startsWith('image/')){toast('请选择图片或PSD文件','e');return}
+const url=URL.createObjectURL(file);const img=new Image();img.onload=()=>{_csLoadFromImg(img,file)};img.src=url}
+function _csLoadFromImg(img,file){S.img=img;S.imgW=img.naturalWidth;S.imgH=img.naturalHeight;const tc=document.createElement('canvas');tc.width=S.imgW;tc.height=S.imgH;const tx=tc.getContext('2d');tx.drawImage(img,0,0);S.imgData=tx.getImageData(0,0,S.imgW,S.imgH);resetData();mc.width=S.imgW;mc.height=S.imgH;mc.style.display='block';$('emptyS').style.display='none';$('cTb').style.display='flex';$('zI').style.display='block';fitWin();renderAll();$('imgInfo').style.display='block';$('imgInfo').innerHTML=`📐 ${S.imgW}×${S.imgH} · ${file?(file.size/1024).toFixed(1)+'KB · '+file.name:'PSD图层'}`;_csSaveSnapshot();toast('图片已加载','s');_startAutoSave()}
+function _csLoadFromCanvas(canvas,file){const img=new Image();img.onload=()=>_csLoadFromImg(img,file);img.src=canvas.toDataURL()}
 function resetData(){S.channels=[];S.activeCh=-1;S.palette=[];S.grayRegs=[];S.activeGr=-1;_csUndoStack=[];_csRedoStack=[];rebuildChUI();rebuildPalUI();rebuildGrUI()}
 
 /* ─── 撤销/重做系统 ─── */
@@ -582,6 +591,7 @@ window.addEventListener('beforeunload',e=>{if(S.img&&_projectDirty){_autoSavePro
   }}catch(e){}}
 })();
 </script>
+<script src="psd-reader.js"></script>
 <script src="shortcut-help.js"></script>
 </body>
 </html>

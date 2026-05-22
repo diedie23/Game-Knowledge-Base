@@ -96,7 +96,7 @@ input[type="color"]{width:28px;height:22px;border:1px solid var(--border);border
 <div class="tc" id="tc"></div>
 <div class="bst" id="bst"></div>
 <div class="chov" id="chov"><div class="cpv" id="cpv"></div><div><div id="chx" style="font-family:monospace;color:var(--heading)">#000000</div><div id="crg" style="color:var(--dim)">R:0 G:0 B:0</div></div></div>
-<input type="file" id="fI" accept="image/*"><input type="file" id="mfI" accept="image/*">
+<input type="file" id="fI" accept="image/*,.psd"><input type="file" id="mfI" accept="image/*">
 
 <div class="hdr">
   <div class="hdr-t">🎨 Mask 通道生成工具 <span class="v">v2.0</span></div>
@@ -205,7 +205,7 @@ input[type="color"]{width:28px;height:22px;border:1px solid var(--border);border
 </div>
 
 <div class="ca" id="cA">
-  <div class="es" id="emS"><div class="ic">🖼️</div><p>拖拽角色原图到此处开始</p><p style="font-size:11px;color:var(--dim)">支持 PNG / JPG · 拖拽或点击导入</p><button class="ub" id="bEU">📂 选择图片</button></div>
+  <div class="es" id="emS"><div class="ic">🖼️</div><p>拖拽角色原图到此处开始</p><p style="font-size:11px;color:var(--dim)">支持 PNG / JPG / PSD · 拖拽或点击导入</p><button class="ub" id="bEU">📂 选择图片</button></div>
   <canvas id="bC" style="display:none"></canvas>
   <canvas id="oC" style="display:none"></canvas>
   <canvas id="cC" style="display:none;pointer-events:none;z-index:5"></canvas>
@@ -270,13 +270,22 @@ function toast(m,t='i',d=2500){const e=document.createElement('div');e.className
 document.querySelectorAll('.stab').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.stab').forEach(x=>x.classList.remove('act'));t.classList.add('act');S.scheme=t.dataset.s;document.querySelectorAll('.spnl').forEach(p=>p.style.display='none');const tgt=document.querySelector(`.spnl[data-for="${S.scheme}"]`);if(tgt)tgt.style.display='';if(S.loaded)renderAll();toast('已切换到 '+t.textContent.trim(),'i',1200)})});
 
 /* ═══════ 图片加载 ═══════ */
-function handleFile(file){if(!file||!file.type.startsWith('image/')){toast('请选择图片','e');return}
-const url=URL.createObjectURL(file);const img=new Image();img.onload=()=>{bImg=img;S.imgW=img.naturalWidth;S.imgH=img.naturalHeight;
+function handleFile(file){if(!file)return;
+// PSD 文件特殊处理
+if(file.name.toLowerCase().endsWith('.psd')){
+  if(!window.PSDReader){toast('PSD模块未加载','e');return}
+  window.PSDReader.handlePSD(file, canvas=>{loadFromCanvas(canvas)}, err=>toast(err,'e'));
+  return;
+}
+if(!file.type.startsWith('image/')){toast('请选择图片或PSD文件','e');return}
+const url=URL.createObjectURL(file);const img=new Image();img.onload=()=>{loadFromImage(img)};img.src=url}
+function loadFromImage(img){bImg=img;S.imgW=img.naturalWidth;S.imgH=img.naturalHeight;
 [bC,oC,cC].forEach(c=>{c.width=S.imgW;c.height=S.imgH});
 const tc=document.createElement('canvas');tc.width=S.imgW;tc.height=S.imgH;const tx=tc.getContext('2d');tx.drawImage(img,0,0);bData=tx.getImageData(0,0,S.imgW,S.imgH);
 resetData();S.loaded=true;
 $('emS').style.display='none';[bC,oC,cC].forEach(c=>c.style.display='block');$('cTb').style.display='flex';$('zI').style.display='block';
-fitWin();renderAll();saveH();toast(`已加载 ${img.width}×${img.height}`,'s')};img.src=url}
+fitWin();renderAll();saveH();toast(`已加载 ${img.width}×${img.height}`,'s')}
+function loadFromCanvas(canvas){const img=new Image();img.onload=()=>loadFromImage(img);img.src=canvas.toDataURL()}
 function resetData(){S.channels=[];S.activeCh=-1;S.schemeColors=[];S.palette=[];S.grayRegs=[];S.activeGr=-1;undoStack=[];redoStack=[];rebuildChUI();rebuildPalUI();rebuildGrUI();updHInfo()}
 $('bIm').onclick=$('bEU').onclick=()=>$('fI').click();
 $('fI').onchange=e=>{if(e.target.files[0])handleFile(e.target.files[0]);e.target.value=''};
@@ -760,6 +769,7 @@ window.addEventListener('beforeunload',e=>{if(S.loaded&&projectDirty){autoSavePr
   }}catch(e){}}
 })();
 </script>
+<script src="psd-reader.js"></script>
 <script src="editor-kit.js"></script>
 <script src="shortcut-help.js"></script>
 </body>
