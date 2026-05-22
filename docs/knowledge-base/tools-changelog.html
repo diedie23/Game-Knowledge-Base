@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工具更新日志 · Changelog — APM 工具集</title>
+<style>
+:root{--bg:#0d0f15;--panel:#111320;--card:#161829;--border:#222540;--text:#c5c9d6;--dim:#6b7085;--heading:#e8eaed;--accent:#6c8cff;--accent-bg:rgba(108,140,255,.07);--green:#4ade80;--green-bg:rgba(74,222,128,.07);--orange:#fb923c;--orange-bg:rgba(251,146,60,.07);--red:#f87171;--red-bg:rgba(248,113,113,.07);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.07);--cyan:#22d3ee;--cyan-bg:rgba(34,211,238,.07);--yellow:#fbbf24;--yellow-bg:rgba(251,191,36,.07)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+.page{max-width:900px;margin:0 auto;padding:40px 24px 80px}
+.page-header{text-align:center;padding-bottom:32px;border-bottom:1px solid var(--border);margin-bottom:36px}
+.page-header h1{font-size:28px;color:var(--heading);font-weight:800;margin-bottom:6px}
+.page-header p{font-size:14px;color:var(--dim)}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);margin-bottom:20px}
+
+/* Timeline */
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:8px;top:8px;bottom:0;width:2px;background:var(--border)}
+.tl-entry{position:relative;margin-bottom:32px}
+.tl-dot{position:absolute;left:-24px;top:6px;width:12px;height:12px;border-radius:50%;border:2px solid var(--border);background:var(--bg)}
+.tl-dot.major{background:var(--accent);border-color:var(--accent)}
+.tl-dot.minor{background:var(--green);border-color:var(--green)}
+.tl-dot.fix{background:var(--orange);border-color:var(--orange)}
+
+.tl-header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.tl-tool{font-size:14px;font-weight:700;color:var(--heading)}
+.tl-version{font-size:11px;background:var(--accent);color:#fff;padding:2px 8px;border-radius:10px;font-weight:500}
+.tl-date{font-size:11px;color:var(--dim)}
+.tl-type{font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600}
+.type-feat{background:var(--green-bg);color:var(--green)}
+.type-fix{background:var(--orange-bg);color:var(--orange)}
+.type-refactor{background:var(--purple-bg);color:var(--purple)}
+.type-perf{background:var(--cyan-bg);color:var(--cyan)}
+
+.tl-body{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px}
+.tl-body ul{list-style:none;padding:0;margin:0}
+.tl-body li{font-size:13px;padding:4px 0;display:flex;align-items:flex-start;gap:8px;line-height:1.6;color:var(--text)}
+.tl-body li::before{content:'•';color:var(--accent);font-weight:700;flex-shrink:0;margin-top:0}
+.tl-body li .tag{font-size:10px;background:var(--accent-bg);color:var(--accent);padding:1px 6px;border-radius:4px;flex-shrink:0}
+
+.filter-row{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.cl-filter{padding:6px 14px;border-radius:7px;font-size:12px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;transition:all .15s}
+.cl-filter:hover{border-color:var(--accent);color:var(--accent)}
+.cl-filter.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+
+.footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;color:var(--dim);font-size:12px}
+</style>
+</head>
+<body>
+<div class="page">
+
+<a class="back-link" href="../tools.html">← 返回工具集</a>
+
+<div class="page-header">
+  <h1>📋 工具更新日志</h1>
+  <p>所有 APM 美术生产工具的版本变更记录 · 按时间倒序排列</p>
+</div>
+
+<!-- Filter -->
+<div class="filter-row">
+  <button class="cl-filter active" data-tool="all">全部工具</button>
+  <button class="cl-filter" data-tool="auto-mask">Auto Mask</button>
+  <button class="cl-filter" data-tool="mask-editor">Mask 编辑器</button>
+  <button class="cl-filter" data-tool="spine-split">Spine 拆分</button>
+  <button class="cl-filter" data-tool="color-swap">换色生成器</button>
+  <button class="cl-filter" data-tool="channel-packer">Channel Packer</button>
+  <button class="cl-filter" data-tool="desktop">桌面工具</button>
+</div>
+
+<!-- Timeline -->
+<div class="timeline">
+
+  <!-- Auto Mask v7.0 -->
+  <div class="tl-entry" data-tool="auto-mask">
+    <div class="tl-dot major"></div>
+    <div class="tl-header">
+      <span class="tl-tool">🤖 自动 Mask 生成器</span>
+      <span class="tl-version">v7.0</span>
+      <span class="tl-type type-feat">✨ 重大更新</span>
+      <span class="tl-date">2026-04-29</span>
+    </div>
+    <div class="tl-body">
+      <ul>
+        <li><span class="tag">新增</span> 二值化 Mask 模式 — 输出硬边 0/255 Mask，适配 Shader 硬切换场景</li>
+        <li><span class="tag">新增</span> 画布调整功能 — 支持旋转/翻转/裁切后再生成 Mask</li>
+        <li><span class="tag">优化</span> 大图处理性能提升 40%（Web Worker 并行计算）</li>
+        <li><span class="tag">修复</span> 4096×4096 图片在部分浏览器下黑屏的问题</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Desktop tools update -->
+  <div class="tl-entry" data-tool="desktop">
+    <div class="tl-dot minor"></div>
+    <div class="tl-header">
+      <span class="tl-tool">💻 桌面工具集</span>
+      <span class="tl-version">批量更新</span>
+      <span class="tl-type type-feat">✨ 功能更新</span>
+      <span class="tl-date">2026-04-16~17</span>
+    </div>
+    <div class="tl-body">
+      <ul>
+        <li><span class="tag">新增</span> Canvas Resizer — 图片尺寸统一调整工具上线</li>
+        <li><span class="tag">新增</span> UGC Batch Uploader — UGC 批量上传助手上线</li>
+        <li><span class="tag">新增</span> Resource Sorter — 资源分拣与增量同步工具上线</li>
+        <li><span class="tag">优化</span> Game Resource Toolkit 新增 TGA 格式元数据解析</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Color Swap v1.0 -->
+  <div class="tl-entry" data-tool="color-swap">
+    <div class="tl-dot major"></div>
+    <div class="tl-header">
+      <span class="tl-tool">🎨 换色资源生成器</span>
+      <span class="tl-version">v1.0</span>
+      <span class="tl-type type-feat">🚀 首次发布</span>
+      <span class="tl-date">2026-04-10</span>
+    </div>
+    <div class="tl-body">
+      <ul>
+        <li><span class="tag">新增</span> HSL 色相偏移 + 饱和度缩放换色算法</li>
+        <li><span class="tag">新增</span> 多配色方案管理 — 一键批量导出所有方案</li>
+        <li><span class="tag">新增</span> 实时预览画布 + 原图对比模式</li>
+        <li><span class="tag">新增</span> 支持从 Auto Mask ZIP 导入 config.json</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Auto Mask v6.4 -->
+  <div class="tl-entry" data-tool="auto-mask">
+    <div class="tl-dot minor"></div>
+    <div class="tl-header">
+      <span class="tl-tool">🤖 自动 Mask 生成器</span>
+      <span class="tl-version">v6.4</span>
+      <span class="tl-type type-feat">✨ 功能更新</span>
+      <span class="tl-date">2026-04-09</span>
+    </div>
+    <div class="tl-body">
+      <ul>
+        <li><span class="tag">新增</span> CIELAB ΔE 色差算法 — 替代旧版 HSV 匹配，色彩识别更精准</li>
+        <li><span class="tag">新增</span> 亮度容差 (L±) 独立门控 — 解决「描边变剪影」核心痛点</li>
+        <li><span class="tag">新增</span> 空状态反馈 — 通道 0 像素时红色叠加警告 + Toast 提示</li>
+        <li><span class="tag">新增</span> 自定义通道颜色选择器 — 替代固定色点，支持任意标识色</li>
+        <li><span class="tag">优化</span> 智能分析增强：低占比(< 1%) 噪点自动警告</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Spine Split v1.0 -->
+  <div class="tl-entry" data-tool="spine-split">
+    <div class="tl-dot major"></div>
+    <div class="tl-header">
+      <span class="tl-tool">✂️ Spine 拆分工具</span>
+      <span class="tl-version">v1.0</span>
+      <span class="tl-type type-feat">🚀 首次发布</span>
+      <span class="tl-date">2026-04-07</span>
+    </div>
+    <div class="tl-body">
+      <ul>
+        <li><span class="tag">新增</span> 矩形 / 套索 / 魔棒三种选区工具</li>
+        <li><span class="tag">新增</span> 4 种拓扑延展模式（内容感知/边缘扩展/镜像/纯色）</li>
+        <li><span class="tag">新增</span> Atlas 图集自动生成 + POT 尺寸对齐</li>
+        <li><span class="tag">新增</span> Spine 兼容 JSON 导出，支持直接导入 Spine Editor</li>
+        <li><span class="tag">新增</span> ZIP 打包导出（含全部部件 + Atlas + JSON）</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Mask 核心算法 -->
+  <div class="tl-entry" data-tool="mask-editor">
+    <div class="tl-dot minor"></div>
+    <div class="tl-header">
+      <span class="tl-tool">🧪 Mask 核心算法演示</span>
+      <span class="tl-version">v1.0</span>
+      <span class="tl-type type-feat">🚀 首次发布</span>
+      <span class="tl-date">2026-04-02</span>
+    </div>
+    <div class="tl-body">
+      <ul>
+        <li><span class="tag">新增</span> 魔棒选区算法可视化 — 实时展示容差匹配过程</li>
+        <li><span class="tag">新增</span> 边缘保护画笔算法演示 — 参数调节实时对比</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Mask Editor & Auto Mask 初版 -->
+  <div class="tl-entry" data-tool="auto-mask">
+    <div class="tl-dot major"></div>
+    <div class="tl-header">
+      <span class="tl-tool">🤖 自动 Mask 生成器 + 🖌️ Mask 编辑器</span>
+      <span class="tl-version">v1.0~v6.0</span>
+      <span class="tl-type type-feat">🚀 首次发布</span>
+      <span class="tl-date">2026-03-31</span>
+    </div>
+    <div class="tl-body">
+      <ul>
+        <li><span class="tag">新增</span> Auto Mask：LAB 色彩空间 K-Means++ 聚类自动生成换色遮罩</li>
+        <li><span class="tag">新增</span> Mask 编辑器：画笔 / 油漆桶 / 橡皮擦 / 实时四通道预览</li>
+        <li><span class="tag">新增</span> 通道互斥保证 + 纯黑/纯白/冲突自动修复</li>
+        <li><span class="tag">新增</span> 质量评分系统 + RGBA/RGB 双模式</li>
+        <li><span class="tag">新增</span> 边缘精修（膨胀/腐蚀/羽化/锐化）</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Channel Packer -->
+  <div class="tl-entry" data-tool="channel-packer">
+    <div class="tl-dot major"></div>
+    <div class="tl-header">
+      <span class="tl-tool">📦 贴图通道打包工具</span>
+      <span class="tl-version">v1.0</span>
+      <span class="tl-type type-feat">🚀 首次发布</span>
+      <span class="tl-date">2026-03-28</span>
+    </div>
+    <div class="tl-body">
+      <ul>
+        <li><span class="tag">新增</span> R/G/B/A 四通道自由组合打包</li>
+        <li><span class="tag">新增</span> 支持导入灰度图、RGB 图自动转换</li>
+        <li><span class="tag">新增</span> 预览合成结果 + 单通道独立查看</li>
+        <li><span class="tag">新增</span> PNG/TGA 双格式导出</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  📋 APM 工具更新日志 · 持续维护中<br>
+  <a href="../tools.html">← 返回工具集首页</a>
+</div>
+
+</div>
+
+<script>
+// Filter logic
+const filters = document.querySelectorAll('.cl-filter');
+const entries = document.querySelectorAll('.tl-entry');
+
+filters.forEach(btn => {
+  btn.addEventListener('click', () => {
+    filters.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tool = btn.dataset.tool;
+    entries.forEach(entry => {
+      if (tool === 'all' || entry.dataset.tool === tool) {
+        entry.style.display = '';
+      } else {
+        entry.style.display = 'none';
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
