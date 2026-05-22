@@ -1037,26 +1037,46 @@ function trimTransparentPixels(srcCanvas){
 
 function buildPartGrid(){
   const g=document.getElementById('partGrid');
-  g.innerHTML=parts.map((p,i)=>{
-    const cls=['part-item'];
-    if(i===S.currentPart)cls.push('active');if(p.region)cls.push('completed');
-    if(S.multiSelect.has(i))cls.push('selected');
-    if(i===S.hoveredPartIdx)cls.push('hovered-highlight');
-    if(i===S.dragOverIdx)cls.push('drag-over');
-    if(i===S.dragPartIdx)cls.push('dragging');
-    const mt=p.mirror?`<span class="mirror-tag">↔${p.mirror}</span>`:'';
-    return `<div class="${cls.join(' ')}" data-idx="${i}" draggable="true"
-      onclick="handlePartClick(event,${i})"
-      ondragstart="onPartDragStart(event,${i})" ondragover="onPartDragOver(event,${i})"
-      ondragleave="onPartDragLeave(event,${i})" ondrop="onPartDrop(event,${i})"
-      ondragend="onPartDragEnd()" onmouseenter="onPartHover(${i})"
-      onmouseleave="onPartLeave()" ondblclick="onPartDblClick(event,${i})">
-      <span class="part-drag-handle" title="拖拽排序">⠿</span>
-      <input type="checkbox" class="part-check" ${S.multiSelect.has(i)?'checked':''} onclick="event.stopPropagation();toggleMS(${i})">
-      <span class="part-dot" style="background:${p.color}"></span>
-      <span class="part-label" id="partLabel_${i}">${p.name}${mt}</span>
-      <span class="part-status ${p.region?'done':''}">${p.region?'✓':'—'}</span></div>`;
-  }).join('');
+  // ═══ 优化：差量更新 — 部件数量/名称/颜色未变时仅更新 class 和 checked 状态 ═══
+  const needFull=g.children.length!==parts.length||g._partSig!==parts.map(p=>p.name+p.color+(p.mirror||'')).join('|');
+  if(needFull){
+    g._partSig=parts.map(p=>p.name+p.color+(p.mirror||'')).join('|');
+    g.innerHTML=parts.map((p,i)=>{
+      const cls=['part-item'];
+      if(i===S.currentPart)cls.push('active');if(p.region)cls.push('completed');
+      if(S.multiSelect.has(i))cls.push('selected');
+      if(i===S.hoveredPartIdx)cls.push('hovered-highlight');
+      if(i===S.dragOverIdx)cls.push('drag-over');
+      if(i===S.dragPartIdx)cls.push('dragging');
+      const mt=p.mirror?`<span class="mirror-tag">↔${p.mirror}</span>`:'';
+      return `<div class="${cls.join(' ')}" data-idx="${i}" draggable="true"
+        onclick="handlePartClick(event,${i})"
+        ondragstart="onPartDragStart(event,${i})" ondragover="onPartDragOver(event,${i})"
+        ondragleave="onPartDragLeave(event,${i})" ondrop="onPartDrop(event,${i})"
+        ondragend="onPartDragEnd()" onmouseenter="onPartHover(${i})"
+        onmouseleave="onPartLeave()" ondblclick="onPartDblClick(event,${i})">
+        <span class="part-drag-handle" title="拖拽排序">⠿</span>
+        <input type="checkbox" class="part-check" ${S.multiSelect.has(i)?'checked':''} onclick="event.stopPropagation();toggleMS(${i})">
+        <span class="part-dot" style="background:${p.color}"></span>
+        <span class="part-label" id="partLabel_${i}">${p.name}${mt}</span>
+        <span class="part-status ${p.region?'done':''}">${p.region?'✓':'—'}</span></div>`;
+    }).join('');
+  }else{
+    // 快速路径：仅更新 class 和 checkbox（不触发 DOM 重建/重排）
+    for(let i=0;i<parts.length;i++){
+      const el=g.children[i];if(!el)continue;
+      const p=parts[i];
+      const cls=['part-item'];
+      if(i===S.currentPart)cls.push('active');if(p.region)cls.push('completed');
+      if(S.multiSelect.has(i))cls.push('selected');
+      if(i===S.hoveredPartIdx)cls.push('hovered-highlight');
+      if(i===S.dragOverIdx)cls.push('drag-over');
+      if(i===S.dragPartIdx)cls.push('dragging');
+      el.className=cls.join(' ');
+      const chk=el.querySelector('.part-check');if(chk)chk.checked=S.multiSelect.has(i);
+      const st=el.querySelector('.part-status');if(st){st.className='part-status'+(p.region?' done':'');st.textContent=p.region?'✓':'—';}
+    }
+  }
 }
 // v5.0 拖拽排序
 function onPartDragStart(e,idx){S.dragPartIdx=idx;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',idx);setTimeout(()=>buildPartGrid(),0);}
@@ -1164,9 +1184,14 @@ function renderRegionsOnly(){
   regionCtx.globalCompositeOperation='destination-out';
   parts.forEach((p)=>{if(!p.region)return;const r=p.region;
     const hasLasso=r.lasso&&r.lasso.length>2;
-    if(hasLasso){regionCtx.beginPath();regionCtx.moveTo(r.lasso[0].x,r.lasso[0].y);
-      for(let k=1;k<r.lasso.length;k++)regionCtx.lineTo(r.lasso[k].x,r.lasso[k].y);
-      regionCtx.closePath();regionCtx.fillStyle='rgba(0,0,0,1)';regionCtx.fill();
+    if(hasLasso){
+      // 复用 Path2D 缓存
+      if(!r._path2d||r._path2dLen!==r.lasso.length){
+        const p2d=new Path2D();p2d.moveTo(r.lasso[0].x,r.lasso[0].y);
+        for(let k=1;k<r.lasso.length;k++)p2d.lineTo(r.lasso[k].x,r.lasso[k].y);
+        p2d.closePath();r._path2d=p2d;r._path2dLen=r.lasso.length;
+      }
+      regionCtx.fillStyle='rgba(0,0,0,1)';regionCtx.fill(r._path2d);
     }else{regionCtx.fillStyle='rgba(0,0,0,1)';regionCtx.fillRect(r.x,r.y,r.w,r.h);}
   });
   regionCtx.globalCompositeOperation='source-over';
@@ -1177,9 +1202,12 @@ function render(){
   // ═══ 优化：蚂蚁线动画帧仅重绘 regionCanvas，底图不变时跳过底图重绘 ═══
   if(!S._skipBaseRedraw){baseCtx.clearRect(0,0,S.imgW,S.imgH);baseCtx.drawImage(baseImage,0,0);}
   regionCtx.clearRect(0,0,S.imgW,S.imgH);
-  if(document.getElementById('showOverlay').checked){
+  // ═══ 优化：缓存 DOM 引用避免每帧 getElementById ═══
+  if(!render._els){render._els={showOverlay:document.getElementById('showOverlay'),overlayAlpha:document.getElementById('overlayAlpha'),showLabels:document.getElementById('showLabels')};}
+  const _els=render._els;
+  if(_els.showOverlay.checked){
     // ═══ v6.0 全局半透明暗幕：降低遮罩不透明度，保证底图可见 ═══
-    const overlayAlpha=parseFloat(document.getElementById('overlayAlpha')?.value||0.25);
+    const overlayAlpha=parseFloat(_els.overlayAlpha?.value||0.25);
     regionCtx.save();
     regionCtx.fillStyle=`rgba(0,0,0,${overlayAlpha})`;
     regionCtx.fillRect(0,0,S.imgW,S.imgH);
@@ -1200,50 +1228,69 @@ function render(){
 
     // ═══ 逐部件渲染：内发光 + 蚂蚁线 + 外部标签 ═══
     const marchOffset=-(Date.now()/80%20);
+    // ═══ 优化：预计算 zoom 相关值（避免每部件重复除法）═══
+    const _lw1=1.5/S.zoom,_lw2=2.5/S.zoom,_lw3=Math.max(3,8/S.zoom);
+    const _dashC=[6/S.zoom,4/S.zoom],_dashN=[4/S.zoom,4/S.zoom];
+    const _shadowBlur=Math.max(6,12/S.zoom);
     parts.forEach((p,i)=>{if(!p.region)return;const r=p.region;
     const isCurrent=i===S.currentPart;
     const isHovered=i===S.hoveredPartIdx;
     const hasLasso=r.lasso&&r.lasso.length>2;
+    // ═══ 优化：hexToRgba 缓存（每部件颜色固定，避免每帧多次 parseInt 解析）═══
+    if(!p._rgbaCache||p._rgbaCache._hex!==p.color){
+      const R=parseInt(p.color.slice(1,3),16),G=parseInt(p.color.slice(3,5),16),B=parseInt(p.color.slice(5,7),16);
+      p._rgbaCache={_hex:p.color,_r:R,_g:G,_b:B,
+        a10:`rgba(${R},${G},${B},0.10)`,a15:`rgba(${R},${G},${B},0.15)`,
+        a20:`rgba(${R},${G},${B},0.20)`,a30:`rgba(${R},${G},${B},0.30)`,
+        a50:`rgba(${R},${G},${B},0.50)`,a70:`rgba(${R},${G},${B},0.70)`};
+    }
+    const rc=p._rgbaCache;
 
     if(hasLasso){
-      // ── v6.0 不规则多边形渲染（半透明优化）──
+      // ── v6.0 不规则多边形渲染 + Path2D 缓存优化 ──
       regionCtx.save();
-      function buildLP(){regionCtx.beginPath();regionCtx.moveTo(r.lasso[0].x,r.lasso[0].y);for(let k=1;k<r.lasso.length;k++)regionCtx.lineTo(r.lasso[k].x,r.lasso[k].y);regionCtx.closePath();}
-      // 半透明色调填充（使用部件颜色的半透明版本，alpha 0.15~0.30）
-      buildLP();regionCtx.fillStyle=hexToRgba(p.color,isCurrent?0.20:isHovered?0.30:0.10);regionCtx.fill();
-      // 内发光效果（clip 到多边形内，沿边缘画粗 shadow）
-      regionCtx.save();buildLP();regionCtx.clip();
-      regionCtx.shadowColor=hexToRgba(p.color,0.7);
-      regionCtx.shadowBlur=Math.max(6,12/S.zoom);
-      regionCtx.lineWidth=Math.max(3,8/S.zoom);
-      regionCtx.strokeStyle=hexToRgba(p.color,0.5);
-      buildLP();regionCtx.stroke();
+      // ═══ 优化：使用 Path2D 缓存 lasso 路径（避免每帧多次遍历 lasso 点数组）═══
+      if(!r._path2d||r._path2dLen!==r.lasso.length){
+        const p2d=new Path2D();p2d.moveTo(r.lasso[0].x,r.lasso[0].y);
+        for(let k=1;k<r.lasso.length;k++)p2d.lineTo(r.lasso[k].x,r.lasso[k].y);
+        p2d.closePath();r._path2d=p2d;r._path2dLen=r.lasso.length;
+      }
+      const lp=r._path2d;
+      // 半透明色调填充
+      regionCtx.fillStyle=isCurrent?rc.a20:isHovered?rc.a30:rc.a10;regionCtx.fill(lp);
+      // 内发光效果
+      regionCtx.save();regionCtx.clip(lp);
+      regionCtx.shadowColor=rc.a70;
+      regionCtx.shadowBlur=_shadowBlur;
+      regionCtx.lineWidth=_lw3;
+      regionCtx.strokeStyle=rc.a50;
+      regionCtx.stroke(lp);
       regionCtx.restore();
       // 白色底衬线（增强对比度）
-      buildLP();regionCtx.strokeStyle='rgba(255,255,255,0.45)';regionCtx.lineWidth=2.5/S.zoom;regionCtx.setLineDash([]);regionCtx.stroke();
+      regionCtx.strokeStyle='rgba(255,255,255,0.45)';regionCtx.lineWidth=_lw2;regionCtx.setLineDash([]);regionCtx.stroke(lp);
       // 彩色蚂蚁线
-      buildLP();regionCtx.strokeStyle=p.color;regionCtx.lineWidth=1.5/S.zoom;
-      regionCtx.setLineDash(isCurrent?[6/S.zoom,4/S.zoom]:[4/S.zoom,4/S.zoom]);
-      regionCtx.lineDashOffset=marchOffset;regionCtx.stroke();regionCtx.setLineDash([]);
+      regionCtx.strokeStyle=p.color;regionCtx.lineWidth=_lw1;
+      regionCtx.setLineDash(isCurrent?_dashC:_dashN);
+      regionCtx.lineDashOffset=marchOffset;regionCtx.stroke(lp);regionCtx.setLineDash([]);
       regionCtx.restore();
     }else{
       // ── v6.0 矩形渲染（半透明优化）──
-      regionCtx.fillStyle=hexToRgba(p.color,isCurrent?0.20:isHovered?0.30:0.10);regionCtx.fillRect(r.x,r.y,r.w,r.h);
+      regionCtx.fillStyle=isCurrent?rc.a20:isHovered?rc.a30:rc.a10;regionCtx.fillRect(r.x,r.y,r.w,r.h);
       // 内发光
       regionCtx.save();regionCtx.beginPath();regionCtx.rect(r.x,r.y,r.w,r.h);regionCtx.clip();
-      regionCtx.shadowColor=hexToRgba(p.color,0.7);regionCtx.shadowBlur=Math.max(6,12/S.zoom);
-      regionCtx.lineWidth=Math.max(3,8/S.zoom);regionCtx.strokeStyle=hexToRgba(p.color,0.5);
+      regionCtx.shadowColor=rc.a70;regionCtx.shadowBlur=_shadowBlur;
+      regionCtx.lineWidth=_lw3;regionCtx.strokeStyle=rc.a50;
       regionCtx.strokeRect(r.x,r.y,r.w,r.h);regionCtx.restore();
       // 白色底衬线
-      regionCtx.strokeStyle='rgba(255,255,255,0.45)';regionCtx.lineWidth=2.5/S.zoom;regionCtx.setLineDash([]);regionCtx.strokeRect(r.x,r.y,r.w,r.h);
+      regionCtx.strokeStyle='rgba(255,255,255,0.45)';regionCtx.lineWidth=_lw2;regionCtx.setLineDash([]);regionCtx.strokeRect(r.x,r.y,r.w,r.h);
       // 彩色蚂蚁线
-      regionCtx.strokeStyle=p.color;regionCtx.lineWidth=1.5/S.zoom;
-      regionCtx.setLineDash(isCurrent?[6/S.zoom,4/S.zoom]:[4/S.zoom,4/S.zoom]);
+      regionCtx.strokeStyle=p.color;regionCtx.lineWidth=_lw1;
+      regionCtx.setLineDash(isCurrent?_dashC:_dashN);
       regionCtx.lineDashOffset=marchOffset;regionCtx.strokeRect(r.x,r.y,r.w,r.h);regionCtx.setLineDash([]);
     }
 
     // ═══ v4.0 标签渲染：定位到选区外部，不遮挡内容 ═══
-    if(document.getElementById('showLabels').checked){
+    if(_els.showLabels.checked){
       const fontSize=Math.max(11,13/S.zoom);
       regionCtx.font=`600 ${fontSize}px -apple-system,sans-serif`;
       const tw=regionCtx.measureText(p.name).width;
@@ -1891,18 +1938,10 @@ function drawCursor(x,y){cursorCtx.clearRect(0,0,S.imgW,S.imgH);cursorCtx.beginP
 function autoSelectRegion(sx,sy){if(!basePixels)return;const w=S.imgW,h=S.imgH,tol=parseInt(document.getElementById('tolerance').value);
   const alphaTh=parseInt(document.getElementById('swAlpha').value)||10;
   const si=(sy*w+sx)*4,sr=basePixels[si],sg=basePixels[si+1],sb=basePixels[si+2],sa=basePixels[si+3];
-  // ═══ Phase 1: Span-based Flood Fill — 扫描线泛洪（栈深度 O(H) 而非 O(W×H)）═══
+  // ═══ Phase 1: Span-based Flood Fill — 优化：内联 canFill + 预计算阈值平方 ═══
   const visited=new Uint8Array(w*h);
+  const tolSq=(tol*2)*(tol*2); // 预计算阈值平方，避免 sqrt
   let minX=sx,maxX=sx,minY=sy,maxY=sy,fillCount=0;
-  function canFill(px,py){
-    if(px<0||px>=w||py<0||py>=h)return false;
-    const pi=py*w+px;if(visited[pi])return false;
-    const idx=pi*4;
-    if(basePixels[idx+3]<alphaTh&&!(px===sx&&py===sy))return false;
-    const dr=basePixels[idx]-sr,dg=basePixels[idx+1]-sg,db=basePixels[idx+2]-sb,da=basePixels[idx+3]-sa;
-    const colorDist=Math.sqrt(dr*dr*0.3+dg*dg*0.59+db*db*0.11+da*da*0.4);
-    return colorDist<=tol*2;
-  }
   // Span filling: 每个 span = [y, x_left, x_right, direction]
   const spanStack=[[sy,sx,sx,1],[sy,sx,sx,-1]];
   visited[sy*w+sx]=1;fillCount=1;
@@ -1910,33 +1949,55 @@ function autoSelectRegion(sx,sy){if(!basePixels)return;const w=S.imgW,h=S.imgH,t
     let[y,xl,xr,dy]=spanStack.pop();
     const ny=y+dy;
     if(ny<0||ny>=h)continue;
-    // 从 xl 向左扩展
+    const nyRow=ny*w; // 预计算行偏移
+    // 从 xl 向左扩展（内联 canFill）
     let x=xl;
-    while(x>=0&&canFill(x,ny)){visited[ny*w+x]=1;fillCount++;x--;}
+    while(x>=0){
+      const pi=nyRow+x;if(visited[pi]){break;}
+      const idx=pi*4;
+      if(basePixels[idx+3]<alphaTh){break;}
+      const dr=basePixels[idx]-sr,dg=basePixels[idx+1]-sg,db=basePixels[idx+2]-sb,da=basePixels[idx+3]-sa;
+      if(dr*dr*0.3+dg*dg*0.59+db*db*0.11+da*da*0.4>tolSq){break;}
+      visited[pi]=1;fillCount++;x--;
+    }
     const spanLeft=x+1;
-    // 从 xl+1 向右扩展
+    // 从 xl+1 向右扩展（内联 canFill）
     x=xl+1;
-    while(x<w&&canFill(x,ny)){visited[ny*w+x]=1;fillCount++;x++;}
+    while(x<w){
+      const pi=nyRow+x;if(visited[pi]){break;}
+      const idx=pi*4;
+      if(basePixels[idx+3]<alphaTh){break;}
+      const dr=basePixels[idx]-sr,dg=basePixels[idx+1]-sg,db=basePixels[idx+2]-sb,da=basePixels[idx+3]-sa;
+      if(dr*dr*0.3+dg*dg*0.59+db*db*0.11+da*da*0.4>tolSq){break;}
+      visited[pi]=1;fillCount++;x++;
+    }
     const spanRight=x-1;
     // 更新 BBox
     if(spanLeft<minX)minX=spanLeft;if(spanRight>maxX)maxX=spanRight;
     if(ny<minY)minY=ny;if(ny>maxY)maxY=ny;
-    // 对当前方向和反方向都检查新 span（含对角覆盖）
-    // 在 spanLeft-1 到 spanRight+1 范围内寻找同方向和反方向的新种子
-    pushSpans(ny,spanLeft,spanRight,dy);
-    pushSpans(ny,spanLeft,spanRight,-dy);
-  }
-  function pushSpans(fromY,sl,sr,dir){
-    const ty=fromY+dir;if(ty<0||ty>=h)return;
-    let inSpan=false,spanStart=0;
-    for(let x=Math.max(0,sl-1);x<=Math.min(w-1,sr+1);x++){
-      if(canFill(x,ty)){
-        if(!inSpan){inSpan=true;spanStart=x;}
-      }else{
-        if(inSpan){spanStack.push([fromY,spanStart,x-1,dir]);inSpan=false;}
+    // ═══ 内联 pushSpans：消除函数调用开销 ═══
+    for(let dd=0;dd<2;dd++){
+      const dir=dd===0?dy:-dy;
+      const ty=ny+dir;if(ty<0||ty>=h)continue;
+      const tyRow=ty*w;
+      let inSpan=false,spanStart=0;
+      const scanL=spanLeft>0?spanLeft-1:0;
+      const scanR=spanRight<w-1?spanRight+1:w-1;
+      for(let sx2=scanL;sx2<=scanR;sx2++){
+        const pi2=tyRow+sx2;
+        let ok=false;
+        if(!visited[pi2]){
+          const idx2=pi2*4;
+          if(basePixels[idx2+3]>=alphaTh){
+            const dr2=basePixels[idx2]-sr,dg2=basePixels[idx2+1]-sg,db2=basePixels[idx2+2]-sb,da2=basePixels[idx2+3]-sa;
+            ok=(dr2*dr2*0.3+dg2*dg2*0.59+db2*db2*0.11+da2*da2*0.4<=tolSq);
+          }
+        }
+        if(ok){if(!inSpan){inSpan=true;spanStart=sx2;}}
+        else{if(inSpan){spanStack.push([ny,spanStart,sx2-1,dir]);inSpan=false;}}
       }
+      if(inSpan)spanStack.push([ny,spanStart,scanR,dir]);
     }
-    if(inSpan)spanStack.push([fromY,spanStart,Math.min(w-1,sr+1),dir]);
   }
   // 标记边界外像素
   for(let y=Math.max(0,minY);y<=Math.min(h-1,maxY);y++){
