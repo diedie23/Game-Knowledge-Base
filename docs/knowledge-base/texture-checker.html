@@ -7,69 +7,69 @@
 <style>
 :root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
-.app{max-width:1400px;margin:0 auto;padding:16px}
-.hdr{text-align:center;padding:14px 0 10px}
-.hdr h1{font-size:22px;color:var(--heading);display:flex;align-items:center;justify-content:center;gap:8px}
-.hdr h1 .ver{font-size:10px;background:var(--accent);color:#fff;padding:2px 8px;border-radius:10px}
-.hdr p{color:var(--dim);font-size:12px;margin-top:3px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
-.card-title{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.badge{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:500}
+.app{max-width:1400px;margin:0 auto;padding:24px}
+.hdr{text-align:center;padding:20px 0 14px}
+.hdr h1{font-size:28px;color:var(--heading);display:flex;align-items:center;justify-content:center;gap:10px}
+.hdr h1 .ver{font-size:12px;background:var(--accent);color:#fff;padding:3px 10px;border-radius:10px}
+.hdr p{color:var(--dim);font-size:15px;margin-top:5px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.card-title{font-size:17px;color:var(--heading);font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.badge{font-size:11px;padding:3px 8px;border-radius:4px;font-weight:500}
 .badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}
 .badge-green{background:rgba(74,222,128,.15);color:var(--green)}
 .badge-orange{background:rgba(251,146,60,.15);color:var(--orange)}
 .badge-red{background:rgba(248,113,113,.15);color:var(--red)}
 
 /* Steps */
-.steps{display:flex;justify-content:center;gap:0;margin:8px 0 12px}
-.stp{display:flex;align-items:center;gap:5px;padding:6px 12px;font-size:11px;color:var(--dim)}
-.stp .n{width:20px;height:20px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600}
+.steps{display:flex;justify-content:center;gap:0;margin:12px 0 16px}
+.stp{display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:14px;color:var(--dim)}
+.stp .n{width:24px;height:24px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
 .stp.act{color:var(--heading)}.stp.act .n{background:var(--accent);border-color:var(--accent);color:#fff}
 .stp.done .n{background:var(--green);border-color:var(--green);color:#fff}
-.sa{color:var(--border);font-size:14px;padding:0 2px}
+.sa{color:var(--border);font-size:16px;padding:0 4px}
 
 /* Buttons */
-.btn{padding:6px 14px;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--text);cursor:pointer;font-size:11px;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.btn{padding:8px 18px;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--text);cursor:pointer;font-size:14px;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
 .btn:hover{border-color:var(--accent);color:var(--heading)}
 .btn-p{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}.btn-p:hover{background:#5a7aee}
 .btn-g{background:var(--green);border-color:var(--green);color:#000;font-weight:500}
 .btn-r{background:var(--red);border-color:var(--red);color:#fff;font-weight:500}
-.btn-sm{padding:4px 10px;font-size:10px}
+.btn-sm{padding:5px 12px;font-size:12px}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 
 /* Drop zone */
-.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s}
+.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:50px 20px;text-align:center;cursor:pointer;transition:all .2s}
 .drop-zone:hover,.drop-zone.dg{border-color:var(--accent);background:rgba(108,140,255,.04)}
-.drop-zone h3{color:var(--heading);font-size:14px;margin-bottom:3px}
-.drop-zone p{color:var(--dim);font-size:11px}
+.drop-zone h3{color:var(--heading);font-size:17px;margin-bottom:5px}
+.drop-zone p{color:var(--dim);font-size:14px}
 
 /* Tip */
-.tip{background:linear-gradient(90deg,rgba(108,140,255,.08),rgba(167,139,250,.08));border:1px solid rgba(108,140,255,.15);border-radius:7px;padding:8px 12px;font-size:11px;color:var(--accent);margin-bottom:10px}
+.tip{background:linear-gradient(90deg,rgba(108,140,255,.08),rgba(167,139,250,.08));border:1px solid rgba(108,140,255,.15);border-radius:7px;padding:10px 14px;font-size:14px;color:var(--accent);margin-bottom:12px}
 
 /* Alert */
-.alert{padding:10px 14px;border-radius:8px;margin:10px 0;font-size:11px;line-height:1.7}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.7}
 .alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
 .alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
 .alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
 
 /* Rule config */
-.rule-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.rule-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
 @media(max-width:700px){.rule-grid{grid-template-columns:1fr}}
-.rule-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;align-items:center;gap:8px}
-.rule-item label{font-size:11px;color:var(--text);flex:1}
-.rule-item select,.rule-item input{padding:3px 6px;background:var(--panel);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:10px;font-family:inherit;width:110px}
-.rule-item .sw{position:relative;width:34px;height:18px;background:var(--border);border-radius:9px;cursor:pointer;transition:.2s}
+.rule-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;align-items:center;gap:10px}
+.rule-item label{font-size:14px;color:var(--text);flex:1}
+.rule-item select,.rule-item input{padding:5px 8px;background:var(--panel);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:13px;font-family:inherit;width:120px}
+.rule-item .sw{position:relative;width:38px;height:20px;background:var(--border);border-radius:10px;cursor:pointer;transition:.2s}
 .rule-item .sw.on{background:var(--green)}
-.rule-item .sw::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.2s}
-.rule-item .sw.on::after{left:18px}
+.rule-item .sw::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s}
+.rule-item .sw.on::after{left:20px}
 
 /* File list */
-.file-list{max-height:260px;overflow-y:auto;margin:10px 0;border:1px solid var(--border);border-radius:8px}
-.file-row{display:grid;grid-template-columns:30px 1fr 70px 70px 80px 60px 60px;gap:4px;padding:6px 10px;font-size:10px;align-items:center;border-bottom:1px solid var(--border)}
+.file-list{max-height:300px;overflow-y:auto;margin:12px 0;border:1px solid var(--border);border-radius:8px}
+.file-row{display:grid;grid-template-columns:30px 1fr 70px 70px 80px 60px 60px;gap:6px;padding:8px 12px;font-size:13px;align-items:center;border-bottom:1px solid var(--border)}
 .file-row:last-child{border-bottom:none}
-.file-row.header{background:var(--card);font-weight:600;color:var(--heading);position:sticky;top:0;z-index:1}
+.file-row.header{background:var(--card);font-weight:600;color:var(--heading);position:sticky;top:0;z-index:1;font-size:13px}
 .file-row .idx{color:var(--dim);text-align:center}
 .file-row .fname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .file-row .pass{color:var(--green);font-weight:600}
@@ -77,39 +77,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .file-row .fail{color:var(--red);font-weight:600}
 
 /* Summary bar */
-.summary-bar{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
-.summary-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 20px;text-align:center;flex:1;min-width:120px}
-.summary-item .num{font-size:22px;font-weight:700;margin-bottom:2px}
-.summary-item .lbl{font-size:10px;color:var(--dim)}
+.summary-bar{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0}
+.summary-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 24px;text-align:center;flex:1;min-width:120px}
+.summary-item .num{font-size:26px;font-weight:700;margin-bottom:3px}
+.summary-item .lbl{font-size:13px;color:var(--dim)}
 .summary-item.green .num{color:var(--green)}
 .summary-item.yellow .num{color:var(--yellow)}
 .summary-item.red .num{color:var(--red)}
 .summary-item.blue .num{color:var(--accent)}
 
 /* Detail panel */
-.detail-panel{display:none;margin-top:12px}
+.detail-panel{display:none;margin-top:14px}
 .detail-panel.show{display:block}
-.detail-row{display:grid;grid-template-columns:30px 2fr 1fr 1fr 1fr 1fr 1fr 80px;gap:4px;padding:6px 10px;font-size:10px;align-items:center;border-bottom:1px solid var(--border)}
+.detail-row{display:grid;grid-template-columns:30px 2fr 1fr 1fr 1fr 1fr 1fr 80px;gap:6px;padding:8px 12px;font-size:13px;align-items:center;border-bottom:1px solid var(--border)}
 .detail-row.header{background:var(--card);font-weight:600;color:var(--heading);position:sticky;top:0}
 .detail-row:last-child{border-bottom:none}
 
 /* Tag */
-.tag{display:inline-block;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:500}
+.tag{display:inline-block;padding:3px 8px;border-radius:4px;font-size:12px;font-weight:500}
 .tag-pass{background:rgba(74,222,128,.12);color:var(--green)}
 .tag-warn{background:rgba(251,191,36,.12);color:var(--yellow)}
 .tag-fail{background:rgba(248,113,113,.12);color:var(--red)}
 
 /* Toast */
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--accent);padding:8px 20px;border-radius:7px;font-size:12px;color:var(--heading);z-index:999;transition:transform .3s;pointer-events:none}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--card);border:1px solid var(--accent);padding:10px 24px;border-radius:7px;font-size:14px;color:var(--heading);z-index:999;transition:transform .3s;pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
 
 /* Progress */
-.progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:8px 0}
-.progress-bar .fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+.progress-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin:10px 0}
+.progress-bar .fill{height:100%;background:var(--accent);border-radius:3px;transition:width .3s}
 
 /* Preset bar */
-.preset-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.preset-btn{padding:5px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--dim);cursor:pointer;font-size:10px;font-family:inherit;transition:all .15s}
+.preset-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.preset-btn{padding:7px 16px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s}
 .preset-btn:hover{border-color:var(--accent);color:var(--heading)}
 .preset-btn.act{border-color:var(--accent);color:var(--accent);background:rgba(108,140,255,.06)}
 </style>
@@ -135,7 +135,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   <div class="card-title">⚙️ 检测规则配置 <span class="badge badge-blue">Step 1</span></div>
   <div class="tip">💡 根据项目规范设置检测规则。可使用预设模板或自定义各项参数。</div>
 
-  <div style="font-size:11px;color:var(--heading);margin-bottom:6px;font-weight:600">📋 规范预设模板</div>
+  <div style="font-size:15px;color:var(--heading);margin-bottom:8px;font-weight:600">📋 规范预设模板</div>
   <div class="preset-bar" id="presetBar">
     <button class="preset-btn act" onclick="applyPreset('mobile')">移动端 (手游)</button>
     <button class="preset-btn" onclick="applyPreset('pc')">PC 端 (主机/端游)</button>
@@ -210,7 +210,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   <div class="alert alert-green">
     <strong>📌 当前预设：移动端 (手游)</strong><br>
     最大尺寸 2048×2048 · 必须 POT · 允许 PNG+TGA · 检测空 Alpha · 最大 2MB<br>
-    <span style="font-size:10px;color:var(--dim)">适用于移动端二次元/卡通角色项目，贴图需严格控制包体大小。</span>
+    <span style="font-size:13px;color:var(--dim)">适用于移动端二次元/卡通角色项目，贴图需严格控制包体大小。</span>
   </div>
 </div>
 
@@ -227,7 +227,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
   <div id="fileListWrap" style="display:none">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
-      <span style="font-size:11px;color:var(--heading);font-weight:600">📋 已载入文件 (<span id="fileCount">0</span> 个)</span>
+      <span style="font-size:15px;color:var(--heading);font-weight:600">📋 已载入文件 (<span id="fileCount">0</span> 个)</span>
       <div>
         <button class="btn btn-sm" onclick="clearFiles()">🗑 清空</button>
         <button class="btn btn-sm btn-p" onclick="runCheck()" id="btnRun">▶️ 开始检测</button>
@@ -289,24 +289,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 <!-- ═══ 使用帮助 ═══ -->
 <div class="card">
   <div class="card-title">📖 使用指南</div>
-  <div style="font-size:12px;line-height:1.8">
-    <h4 style="color:var(--heading);font-size:13px;margin:8px 0 4px">🎯 适用场景</h4>
-    <ul style="padding-left:18px;font-size:11px">
+  <div style="font-size:14px;line-height:1.8">
+    <h4 style="color:var(--heading);font-size:16px;margin:10px 0 6px">🎯 适用场景</h4>
+    <ul style="padding-left:18px;font-size:14px">
       <li><strong>外包验收：</strong>批量检测外包交付的贴图是否符合项目规范</li>
       <li><strong>日常合规：</strong>美术同学自查贴图是否满足引擎/平台要求</li>
       <li><strong>提交前检查：</strong>资产入库前的自动化规范验证</li>
     </ul>
 
-    <h4 style="color:var(--heading);font-size:13px;margin:12px 0 4px">📋 检测等级说明</h4>
-    <table style="width:100%;border-collapse:collapse;font-size:11px;margin:8px 0">
+    <h4 style="color:var(--heading);font-size:16px;margin:14px 0 6px">📋 检测等级说明</h4>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:10px 0">
       <tr style="background:var(--panel)"><th style="padding:8px;border:1px solid var(--border)">等级</th><th style="padding:8px;border:1px solid var(--border)">含义</th><th style="padding:8px;border:1px solid var(--border)">处理方式</th></tr>
       <tr><td style="padding:6px 8px;border:1px solid var(--border)"><span class="tag tag-pass">✅ 通过</span></td><td style="padding:6px;border:1px solid var(--border)">所有规则检测通过</td><td style="padding:6px;border:1px solid var(--border)">可直接入库</td></tr>
       <tr><td style="padding:6px 8px;border:1px solid var(--border)"><span class="tag tag-warn">⚠️ 警告</span></td><td style="padding:6px;border:1px solid var(--border)">非致命问题（如空 Alpha、文件较大）</td><td style="padding:6px;border:1px solid var(--border)">建议优化后入库</td></tr>
       <tr><td style="padding:6px 8px;border:1px solid var(--border)"><span class="tag tag-fail">❌ 不通过</span></td><td style="padding:6px;border:1px solid var(--border)">关键规则违反（尺寸超标、格式错误）</td><td style="padding:6px;border:1px solid var(--border)">必须修正后重新提交</td></tr>
     </table>
 
-    <h4 style="color:var(--heading);font-size:13px;margin:12px 0 4px">⚠️ 注意事项</h4>
-    <ul style="padding-left:18px;font-size:11px">
+    <h4 style="color:var(--heading);font-size:16px;margin:14px 0 6px">⚠️ 注意事项</h4>
+    <ul style="padding-left:18px;font-size:14px">
       <li>TGA 文件在浏览器中仅做基本检测（尺寸/大小），深度通道分析需依赖 PNG</li>
       <li>色彩空间检测基于 ICC Profile 解析，部分贴图可能缺少该信息</li>
       <li>文件在浏览器本地处理，<strong>不会上传到任何服务器</strong></li>
@@ -366,7 +366,7 @@ function applyPreset(key) {
   // Update alert
   const alerts = document.querySelectorAll('#s1 .alert');
   alerts.forEach(a => {
-    a.innerHTML = `<strong>📌 当前预设：${p.desc}</strong><br>${p.detail}<br><span style="font-size:10px;color:var(--dim)">可在上方规则网格中进行微调。</span>`;
+    a.innerHTML = `<strong>📌 当前预设：${p.desc}</strong><br>${p.detail}<br><span style="font-size:13px;color:var(--dim)">可在上方规则网格中进行微调。</span>`;
   });
 
   toast('✅ 已切换到预设：' + p.desc);
