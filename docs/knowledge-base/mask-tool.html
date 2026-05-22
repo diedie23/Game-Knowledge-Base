@@ -463,6 +463,9 @@ function fitWin(){const a=$('cA'),aw=a.clientWidth,ah=a.clientHeight;S.zoom=Math
 function cCoord(e){const r=$('cA').getBoundingClientRect();return{x:Math.floor((e.clientX-r.left-S.panX)/S.zoom),y:Math.floor((e.clientY-r.top-S.panY)/S.zoom)}}
 function inB(p){return p.x>=0&&p.x<S.imgW&&p.y>=0&&p.y<S.imgH}
 
+/* ═══ 画布增强初始化 ═══ */
+if(window.CanvasEnhance){CanvasEnhance.init({areaId:'cA',getState:()=>({zoom:S.zoom,panX:S.panX,panY:S.panY,imgW:S.imgW,imgH:S.imgH}),fitWin,renderAll})}
+
 /* 工具切换 */
 const tbMap={pan:$('tbPan'),smartPick:$('tbPick'),brush:$('tbBrush'),eraser:$('tbEraser'),rect:$('tbRect')};
 const lpMap={smartPick:'smartPick',brush:'brush',eraser:'eraser',rect:'rect'};

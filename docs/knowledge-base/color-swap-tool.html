@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>2D 角色换色资源生成器 v1.0</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="canvas-enhance.js"></script>
 <style>
 :root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--cyan:#22d3ee}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -286,6 +287,9 @@ pCtx.putImageData(pv,0,0)}else{$('prevP').style.display='none'}}
 function fitWin(){const a=$('cArea'),aw=a.clientWidth,ah=a.clientHeight;S.zoom=Math.min((aw-30)/S.imgW,(ah-30)/S.imgH,4);S.panX=(aw-S.imgW*S.zoom)/2;S.panY=(ah-S.imgH*S.zoom)/2}
 function cCoord(e){const r=$('cArea').getBoundingClientRect();return{x:Math.floor((e.clientX-r.left-S.panX)/S.zoom),y:Math.floor((e.clientY-r.top-S.panY)/S.zoom)}}
 function inB(p){return p.x>=0&&p.x<S.imgW&&p.y>=0&&p.y<S.imgH}
+
+/* ═══ 画布增强初始化 ═══ */
+if(window.CanvasEnhance){CanvasEnhance.init({areaId:'cArea',getState:()=>({zoom:S.zoom,panX:S.panX,panY:S.panY,imgW:S.imgW,imgH:S.imgH}),fitWin,renderAll})}
 
 const tBtns={pan:$('tPan'),pick:$('tPick'),rect:$('tRect'),brush:$('tBrush'),eraser:$('tEraser')};
 function setTool(t){S.tool=t;Object.values(tBtns).forEach(b=>b.classList.remove('active'));if(tBtns[t])tBtns[t].classList.add('active');mc.style.cursor=t==='pan'?'grab':'crosshair'}
