@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2D 角色换色 Mask 通道生成工具 v2.1</title>
+<title>2D 角色换色 Mask 通道生成工具 v2.1.1</title>
 <link rel="stylesheet" href="design-tokens.css">
 <link rel="stylesheet" href="tool-base.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -105,6 +105,19 @@ input[type="color"]{width:28px;height:22px;border:1px solid var(--border);border
 /* ═══ 通道拖拽手柄 ═══ */
 .chi-drag{cursor:grab;color:var(--dim);font-size:12px;padding:0 2px;user-select:none}
 .chi-drag:active{cursor:grabbing}
+/* ═══ 内联操作面板（替代 prompt） ═══ */
+.inline-panel{position:fixed;z-index:99998;background:var(--panel);border:1px solid var(--accent);border-radius:10px;padding:14px 18px;box-shadow:0 12px 40px rgba(0,0,0,.5);min-width:220px;animation:fi .2s}
+.inline-panel .ip-title{font-size:13px;font-weight:600;color:var(--heading);margin-bottom:10px}
+.inline-panel .ip-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.inline-panel .ip-label{font-size:11px;color:var(--dim);min-width:60px}
+.inline-panel select{flex:1;padding:4px 8px;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:11px;font-family:inherit}
+.inline-panel input[type="range"]{flex:1}
+.inline-panel .ip-btns{display:flex;gap:6px;margin-top:12px}
+.inline-panel .ip-btn{flex:1;padding:6px 12px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+.inline-panel .ip-ok{background:var(--accent);color:#fff}
+.inline-panel .ip-ok:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(108,140,255,.3)}
+.inline-panel .ip-cancel{background:var(--card);border:1px solid var(--border);color:var(--text)}
+.inline-panel .ip-cancel:hover{border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -115,7 +128,7 @@ input[type="color"]{width:28px;height:22px;border:1px solid var(--border);border
 <input type="file" id="fI" accept="image/*,.psd"><input type="file" id="mfI" accept="image/*">
 
 <div class="hdr">
-  <div class="hdr-t">🎨 Mask 通道生成工具 <span class="v">v2.1</span></div>
+  <div class="hdr-t">🎨 Mask 通道生成工具 <span class="v">v2.1.1</span></div>
   <div class="stabs" id="stabs">
     <button class="stab act" data-s="mask">🅰 Mask + HSV</button>
     <button class="stab" data-s="palette">🅱 调色板替换</button>
@@ -265,6 +278,18 @@ input[type="color"]{width:28px;height:22px;border:1px solid var(--border);border
 
 <script>
 'use strict';
+/* ═══ 全局错误边界 ═══ */
+window.addEventListener('error',e=>{
+  console.error('[mask-tool] 运行时错误:',e.error||e.message);
+  // 不对 script 加载错误做处理
+  if(e.target&&e.target.tagName==='SCRIPT')return;
+  // 尝试通知用户
+  try{if(typeof toast==='function')toast('⚠️ 操作异常，请稍后重试','e',3000)}catch(te){}
+});
+window.addEventListener('unhandledrejection',e=>{
+  console.error('[mask-tool] 未处理的Promise异常:',e.reason);
+  try{if(typeof toast==='function')toast('⚠️ 异步操作异常','e',2000)}catch(te){}
+});
 /* ═══════════════════════════════════════════
    全局状态
    ═══════════════════════════════════════════ */
@@ -280,7 +305,17 @@ const S={
 };
 
 const CN=['R','G','B'],CC=['#ff6b6b','#4ade80','#60a5fa'];
-let undoStack=[],redoStack=[];const MAX_H=30;
+let undoStack=[],redoStack=[];
+/* 动态计算最大撤销步数：小图30步、2K图20步、4K图10步 */
+function getMaxHistory(){
+  if(!S.imgW||!S.imgH)return 30;
+  const pixels=S.imgW*S.imgH;
+  if(pixels>8000000)return 8;   // 4K+
+  if(pixels>4000000)return 12;  // 2K~4K
+  if(pixels>2000000)return 18;  // 1080p~2K
+  return 30;                     // 小图
+}
+let MAX_H=30;
 let bC,oC,cC,bx,ox,cx,bImg=null,bData=null;
 const $=id=>document.getElementById(id);
 
@@ -310,6 +345,7 @@ if(file.name.toLowerCase().endsWith('.psd')){
 if(!file.type.startsWith('image/')){toast('请选择图片或PSD文件','e');return}
 const url=URL.createObjectURL(file);const img=new Image();img.onload=()=>{loadFromImage(img)};img.src=url}
 function loadFromImage(img){bImg=img;S.imgW=img.naturalWidth;S.imgH=img.naturalHeight;
+MAX_H=getMaxHistory(); // 根据图片大小动态调整撤销上限
 [bC,oC,cC].forEach(c=>{c.width=S.imgW;c.height=S.imgH});
 const tc=document.createElement('canvas');tc.width=S.imgW;tc.height=S.imgH;const tx=tc.getContext('2d');tx.drawImage(img,0,0);bData=tx.getImageData(0,0,S.imgW,S.imgH);
 resetData();S.loaded=true;
@@ -333,14 +369,16 @@ dov.addEventListener('dragover',e=>e.preventDefault());
 dov.addEventListener('drop',e=>{e.preventDefault();dov.classList.remove('sh');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0])});
 
 /* ═══════ 画布渲染 ═══════ */
-function renderAll(){if(!S.loaded)return;
+function renderAll(){if(!S.loaded||!bImg||!bx)return;
+try{
 const tf=`translate(${S.panX}px,${S.panY}px) scale(${S.zoom})`;
 [bC,oC,cC].forEach(c=>{c.style.transform=tf;c.style.transformOrigin='0 0'});
 bx.clearRect(0,0,S.imgW,S.imgH);drawCB(bx,S.imgW,S.imgH);bx.drawImage(bImg,0,0);
 ox.clearRect(0,0,S.imgW,S.imgH);
 if(S.scheme==='mask')ovA();else if(S.scheme==='palette')ovB();else ovC();
 if(S.rStart&&S.rEnd){ox.save();ox.strokeStyle='rgba(108,140,255,.8)';ox.lineWidth=1/S.zoom;ox.setLineDash([4/S.zoom,4/S.zoom]);const x=Math.min(S.rStart.x,S.rEnd.x),y=Math.min(S.rStart.y,S.rEnd.y);ox.strokeRect(x,y,Math.abs(S.rEnd.x-S.rStart.x),Math.abs(S.rEnd.y-S.rStart.y));ox.restore()}
-$('zI').textContent=Math.round(S.zoom*100)+'%';updPrev()}
+$('zI').textContent=Math.round(S.zoom*100)+'%';updPrev();
+}catch(e){console.error('[renderAll] 渲染异常:',e)}}
 
 function drawCB(c,w,h){const sz=8;c.save();for(let y=0;y<h;y+=sz)for(let x=0;x<w;x+=sz){c.fillStyle=((x/sz+y/sz)%2===0)?'#1a1a2e':'#12121e';c.fillRect(x,y,sz,sz)}c.restore()}
 
@@ -405,28 +443,51 @@ if(ci===0&&mi>0)toast(`已自动创建第${mi+1}张 Mask 图`,'i',3000);
 toast(`已添加 Mask${mi+1}-${CN[ci]}`,'s')};
 
 /* 智能选色(LAB/HSL)：点击取色后遍历全图，按色差容差自动生成区域 mask */
-/* ═══ Web Worker 加速色差计算 ═══ */
+/* ═══ Web Worker 加速色差计算（含超时保护） ═══ */
 let _colorWorker=null;
 let _workerReqId=0;
 const _workerCallbacks={};
+const _workerTimers={};
+const WORKER_TIMEOUT=10000; // 10秒超时
+
 function getColorWorker(){
   if(!_colorWorker){
     try{_colorWorker=new Worker('color-worker.js');
-      _colorWorker.onmessage=e=>{const m=e.data;if(m.id&&_workerCallbacks[m.id]){_workerCallbacks[m.id](m);delete _workerCallbacks[m.id]}};
-      _colorWorker.onerror=()=>{_colorWorker=null};
+      _colorWorker.onmessage=e=>{const m=e.data;if(m.id&&_workerCallbacks[m.id]){
+        clearTimeout(_workerTimers[m.id]);delete _workerTimers[m.id];
+        _workerCallbacks[m.id](m);delete _workerCallbacks[m.id]}};
+      _colorWorker.onerror=e=>{
+        console.warn('Worker 异常:',e);
+        // 清理所有待处理回调
+        Object.keys(_workerTimers).forEach(id=>{clearTimeout(_workerTimers[id]);delete _workerTimers[id]});
+        Object.keys(_workerCallbacks).forEach(id=>delete _workerCallbacks[id]);
+        _colorWorker.terminate();_colorWorker=null;
+      };
     }catch(e){_colorWorker=null}
   }
   return _colorWorker;
+}
+
+/* Worker 超时后回退到主线程计算 */
+function workerFallback(reqId,imgData,targetColor,tolerance,feather,colorSpace,width,height,callback){
+  toast('Worker 超时，切换主线程计算…','w',2000);
+  const d=imgData,mask=new Uint8Array(width*height);
+  const[tr,tg,tb]=targetColor;
+  for(let i=0,n=width*height;i<n;i++){const id=i*4;if(d[id+3]<10)continue;
+    const dist=cDist(d[id],d[id+1],d[id+2],tr,tg,tb,colorSpace);
+    if(dist<=tolerance)mask[i]=255;
+    else if(feather>0&&dist<=tolerance+feather)mask[i]=Math.round((1-(dist-tolerance)/feather)*255)}
+  callback({type:'maskResult',mask:mask.buffer,id:reqId});
 }
 
 function genMaskCh(idx){const ch=S.channels[idx];if(!ch.color)return;
 const[tr,tg,tb]=h2r(ch.color),tol=parseInt($('rTol').value),fea=parseInt($('rFea').value),sp=S.colorSpace;
 const w=getColorWorker();
 if(w&&S.imgW*S.imgH>500000){
-  // 大图用 Worker 异步计算
+  // 大图用 Worker 异步计算（含超时保护）
   const reqId=++_workerReqId;
   toast('计算中…','i',1500);
-  _workerCallbacks[reqId]=m=>{
+  const applyMask=m=>{
     if(m.type==='maskResult'){
       const mask=new Uint8Array(m.mask);
       const same=S.channels.filter((c,j)=>j!==idx&&c.mi===ch.mi);
@@ -434,6 +495,12 @@ if(w&&S.imgW*S.imgH>500000){
       ch.md=mask;qaCheck(idx);renderAll();saveH();
     }
   };
+  _workerCallbacks[reqId]=applyMask;
+  // 超时保护
+  _workerTimers[reqId]=setTimeout(()=>{
+    delete _workerCallbacks[reqId];delete _workerTimers[reqId];
+    workerFallback(reqId,bData.data,[tr,tg,tb],tol,fea,sp,S.imgW,S.imgH,applyMask);
+  },WORKER_TIMEOUT);
   w.postMessage({type:'genMask',id:reqId,imgData:bData.data,targetColor:[tr,tg,tb],tolerance:tol,feather:fea,colorSpace:sp,width:S.imgW,height:S.imgH});
 }else{
   // 小图直接主线程计算
@@ -513,54 +580,87 @@ $('bShrink').onclick=()=>{
   else toast('选区已为最小','i')
 };
 
-/* ═══ 选区布尔运算 (P0-2) ═══ */
+/* ═══ 选区布尔运算 (P0-2) — 内联面板 ═══ */
+function showInlinePanel(title,content,onConfirm,anchorEl){
+  // 通用内联面板工具函数
+  const existing=document.querySelector('.inline-panel');if(existing)existing.remove();
+  const panel=document.createElement('div');panel.className='inline-panel';
+  const rect=anchorEl?anchorEl.getBoundingClientRect():{left:window.innerWidth/2-110,top:window.innerHeight/2-60};
+  panel.style.left=Math.min(rect.left,window.innerWidth-260)+'px';
+  panel.style.top=Math.min(rect.bottom+6,window.innerHeight-200)+'px';
+  panel.innerHTML=`<div class="ip-title">${title}</div>${content}<div class="ip-btns"><button class="ip-btn ip-cancel">取消</button><button class="ip-btn ip-ok">确定</button></div>`;
+  document.body.appendChild(panel);
+  panel.querySelector('.ip-cancel').onclick=()=>panel.remove();
+  panel.querySelector('.ip-ok').onclick=()=>{onConfirm(panel);panel.remove()};
+  // ESC 关闭
+  const esc=e=>{if(e.key==='Escape'){panel.remove();document.removeEventListener('keydown',esc)}};
+  document.addEventListener('keydown',esc);
+  return panel;
+}
+
 function boolOp(mode){
   if(S.scheme!=='mask'||S.activeCh<0){toast('请先选中一个通道','w');return}
   if(S.channels.length<2){toast('至少需要2个通道才能执行布尔运算','w');return}
   const current=S.channels[S.activeCh];if(!current.md){toast('当前通道无选区','w');return}
-  // 弹出选择目标通道
-  const others=S.channels.map((c,i)=>i!==S.activeCh?`${i}: ${c.nm}`:null).filter(Boolean);
-  const input=prompt(`选择目标通道编号 (${mode})\n可用通道:\n${others.join('\n')}\n\n输入通道编号:`);
-  if(input===null)return;
-  const targetIdx=parseInt(input);
-  if(isNaN(targetIdx)||targetIdx<0||targetIdx>=S.channels.length||targetIdx===S.activeCh){toast('无效通道编号','e');return}
-  const target=S.channels[targetIdx];if(!target.md){toast('目标通道无选区','w');return}
-  const n=S.imgW*S.imgH;let changed=0;
-  switch(mode){
-    case 'union':
-      for(let i=0;i<n;i++){const nv=Math.max(current.md[i],target.md[i]);if(nv!==current.md[i]){current.md[i]=nv;changed++}}
-      break;
-    case 'subtract':
-      for(let i=0;i<n;i++){if(target.md[i]>0&&current.md[i]>0){const nv=Math.max(0,current.md[i]-target.md[i]);if(nv!==current.md[i]){current.md[i]=nv;changed++}}}
-      break;
-    case 'intersect':
-      for(let i=0;i<n;i++){const nv=Math.min(current.md[i],target.md[i]);if(nv!==current.md[i]){current.md[i]=nv;changed++}}
-      break;
-  }
-  // 执行后需维护通道互斥
-  const same=S.channels.filter((c,j)=>j!==S.activeCh&&c.mi===current.mi);
-  for(let i=0;i<n;i++){if(current.md[i]>0)for(const o of same)o.md[i]=0}
-  saveH();renderAll();rebuildChUI();
-  toast(`${mode==='union'?'并集':mode==='subtract'?'差集':'交集'} 完成 · ${changed.toLocaleString()}px 变更`,'s');
+  const modeLabel=mode==='union'?'∪ 并集':mode==='subtract'?'∖ 差集':'∩ 交集';
+  // 构造通道选择下拉
+  const options=S.channels.map((c,i)=>i!==S.activeCh?`<option value="${i}">${i}: ${c.nm}${c.color?' ('+c.color.toUpperCase()+')':''}</option>`:'').filter(Boolean).join('');
+  const content=`<div class="ip-row"><span class="ip-label">当前通道</span><span style="color:var(--heading);font-size:11px">${current.nm}</span></div><div class="ip-row"><span class="ip-label">目标通道</span><select id="_boolTarget">${options}</select></div>`;
+  const anchor=$('bBoolUnion');
+  showInlinePanel(`选区布尔运算 · ${modeLabel}`,content,panel=>{
+    const targetIdx=parseInt(panel.querySelector('#_boolTarget').value);
+    if(isNaN(targetIdx))return;
+    const target=S.channels[targetIdx];if(!target||!target.md){toast('目标通道无选区','w');return}
+    const n=S.imgW*S.imgH;let changed=0;
+    switch(mode){
+      case 'union':
+        for(let i=0;i<n;i++){const nv=Math.max(current.md[i],target.md[i]);if(nv!==current.md[i]){current.md[i]=nv;changed++}}
+        break;
+      case 'subtract':
+        for(let i=0;i<n;i++){if(target.md[i]>0&&current.md[i]>0){const nv=Math.max(0,current.md[i]-target.md[i]);if(nv!==current.md[i]){current.md[i]=nv;changed++}}}
+        break;
+      case 'intersect':
+        for(let i=0;i<n;i++){const nv=Math.min(current.md[i],target.md[i]);if(nv!==current.md[i]){current.md[i]=nv;changed++}}
+        break;
+    }
+    // 执行后需维护通道互斥
+    const same=S.channels.filter((c,j)=>j!==S.activeCh&&c.mi===current.mi);
+    for(let i=0;i<n;i++){if(current.md[i]>0)for(const o of same)o.md[i]=0}
+    saveH();renderAll();rebuildChUI();
+    toast(`${modeLabel} 完成 · ${changed.toLocaleString()}px 变更`,'s');
+  },anchor);
 }
 $('bBoolUnion').onclick=()=>boolOp('union');
 $('bBoolSub').onclick=()=>boolOp('subtract');
 $('bBoolInter').onclick=()=>boolOp('intersect');
 
-/* ═══ 形态学操作 (P1-6) ═══ */
+/* ═══ 形态学操作 (P1-6) — 内联面板 ═══ */
 function morphOp(mode){
   if(S.scheme!=='mask'||S.activeCh<0){toast('请先选中一个通道','w');return}
   const ch=S.channels[S.activeCh];if(!ch.md){toast('当前通道无选区','w');return}
+  const label=mode==='dilate'?'⊕ 膨胀':'⊖ 腐蚀';
+  const content=`<div class="ip-row"><span class="ip-label">半径</span><input type="range" id="_morphR" min="1" max="5" value="2" style="flex:1"><span id="_morphRV" style="font-size:11px;color:var(--cyan);min-width:30px;text-align:right">2px</span></div>`;
+  const anchor=$(mode==='dilate'?'bMorphDilate':'bMorphErode');
+  const panel=showInlinePanel(`${label} 操作`,content,p=>{
+    const radius=parseInt(p.querySelector('#_morphR').value)||2;
+    executeMorph(mode,radius);
+  },anchor);
+  // 滑块实时反馈
+  const slider=panel.querySelector('#_morphR');
+  const valSpan=panel.querySelector('#_morphRV');
+  if(slider)slider.oninput=()=>{valSpan.textContent=slider.value+'px'};
+}
+
+function executeMorph(mode,radius){
+  const ch=S.channels[S.activeCh];
   const w=S.imgW,h=S.imgH,md=ch.md;
-  const radius=parseInt(prompt(`${mode==='dilate'?'膨胀':'腐蚀'}半径(1-5px):`,2))||2;
-  if(radius<1||radius>5)return;
+  if(radius<1||radius>5){toast('半径超出范围(1-5)','w');return}
   const result=new Uint8Array(md);
   let changed=0;
   for(let y=radius;y<h-radius;y++){
     for(let x=radius;x<w-radius;x++){
       const idx=y*w+x;
       if(mode==='dilate'){
-        // 膨胀：如果邻域内有任何像素>0，则当前像素设为邻域最大值
         if(md[idx]>0)continue;
         let maxV=0;
         outer1:for(let dy=-radius;dy<=radius;dy++)for(let dx=-radius;dx<=radius;dx++){
@@ -571,7 +671,6 @@ function morphOp(mode){
         }
         if(maxV>0){result[idx]=maxV;changed++}
       }else{
-        // 腐蚀：如果邻域内有任何像素为0，则当前像素设为0
         if(md[idx]===0)continue;
         let minV=255;
         for(let dy=-radius;dy<=radius;dy++)for(let dx=-radius;dx<=radius;dx++){
@@ -674,6 +773,7 @@ if(bstTimer)clearTimeout(bstTimer);bstTimer=setTimeout(()=>{t.style.display='non
 
 /* 鼠标/指针事件 — PointerEvent 升级（支持压感） */
 let _pressure=0.5; // 当前压感值 0~1
+let _activePointerId=null; // 追踪当前活跃的指针 ID
 S.pressureMode='none'; // none | size | opacity
 document.querySelectorAll('[data-prs]').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('[data-prs]').forEach(x=>x.classList.remove('act'));
@@ -683,6 +783,7 @@ document.querySelectorAll('[data-prs]').forEach(b=>b.addEventListener('click',()
 
 $('cA').addEventListener('pointerdown',e=>{if(!S.loaded)return;
 e.preventDefault();$('cA').setPointerCapture(e.pointerId);
+_activePointerId=e.pointerId;
 _pressure=e.pressure||0.5;const p=cCoord(e);
 if(S.spHeld||S.tool==='pan'){S.dragging=true;S.lastM={x:e.clientX,y:e.clientY};bC.style.cursor='grabbing';return}
 if(S.tool==='smartPick'){if(inB(p))pickColor(p);return}
@@ -703,6 +804,8 @@ if(S.tool==='rect'){S.rEnd=p;renderAll();return}
 if(S.tool==='brush'||S.tool==='eraser'){interpolate(S.lastM,p,_pressure);S.lastM=p;renderAll();return}});
 
 document.addEventListener('pointerup',e=>{if(!S.loaded)return;
+if(_activePointerId!==null&&e.pointerId!==_activePointerId)return; // 过滤非当前指针
+_activePointerId=null;
 if(S.tool==='rect'&&S.rStart&&S.rEnd&&S.dragging){
 const x1=Math.max(0,Math.min(S.rStart.x,S.rEnd.x)),y1=Math.max(0,Math.min(S.rStart.y,S.rEnd.y)),x2=Math.min(S.imgW-1,Math.max(S.rStart.x,S.rEnd.x)),y2=Math.min(S.imgH-1,Math.max(S.rStart.y,S.rEnd.y));
 if(x2-x1>2&&y2-y1>2)applyRect(x1,y1,x2,y2);S.rStart=null;S.rEnd=null}
@@ -711,7 +814,9 @@ S.dragging=false;if(S.spHeld||S.tool==='pan')bC.style.cursor='grab';renderAll()}
 $('cA').addEventListener('pointerleave',()=>{$('chov').style.display='none';cx.clearRect(0,0,S.imgW,S.imgH)});
 
 /* ═══════ 吸色 ═══════ */
-function pickColor(p){const idx=(p.y*S.imgW+p.x)*4,d=bData.data;const r=d[idx],g=d[idx+1],b=d[idx+2],a=d[idx+3];if(a<10){toast('透明像素无法取色','w');return}const hex=r2h(r,g,b);
+function pickColor(p){if(!bData||!bData.data)return;
+const idx=(p.y*S.imgW+p.x)*4,d=bData.data;if(idx<0||idx+3>=d.length)return;
+const r=d[idx],g=d[idx+1],b=d[idx+2],a=d[idx+3];if(a<10){toast('透明像素无法取色','w');return}const hex=r2h(r,g,b);
 if(S.scheme==='mask'){if(S.activeCh<0||S.activeCh>=S.channels.length){toast('请先添加并选择换色区域','w');return}S.channels[S.activeCh].color=hex;genMaskCh(S.activeCh);rebuildChUI();saveH();renderAll();toast(`${S.channels[S.activeCh].nm} 取色: ${hex.toUpperCase()}`,'s')}
 else if(S.scheme==='palette'){if(S.palette.find(x=>x.original===hex)){toast('颜色已存在','w');return}S.palette.push({original:hex,replace:hex});rebuildPalUI();renderAll();toast(`已添加: ${hex.toUpperCase()}`,'s')}
 else if(S.scheme==='gray'){if(S.activeGr<0){toast('请先添加灰度区域','w');return}S.grayRegs[S.activeGr].color=hex;genMaskGr(S.activeGr);rebuildGrUI();saveH();renderAll();toast(`${S.grayRegs[S.activeGr].nm} 取色: ${hex.toUpperCase()}`,'s')}}
@@ -883,11 +988,26 @@ function captureState(){
 }
 
 function saveH(){
-  const snap=createDiff(_prevChannels,S.channels,_prevGray,S.grayRegs,_prevPal,S.palette);
-  // 存完整状态用于后续 diff
-  snap.chDiffs=S.channels.map(c=>c.md?{full:true,data:new Uint8Array(c.md)}:null);
-  snap.grDiffs=S.grayRegs.map(r=>r.md?{full:true,data:new Uint8Array(r.md)}:null);
-  snap.palChanged=true;snap.pal=JSON.parse(JSON.stringify(S.palette));
+  const pixels=S.imgW*S.imgH;
+  const isLargeImage=pixels>2000000; // >2MP 使用增量策略
+  let snap;
+  if(isLargeImage){
+    // 大图：使用增量 diff，只记录变化像素
+    snap=createDiff(_prevChannels,S.channels,_prevGray,S.grayRegs,_prevPal,S.palette);
+    // 但第一帧和每10帧存完整快照作为关键帧
+    if(undoStack.length===0||undoStack.length%10===0){
+      snap.chDiffs=S.channels.map(c=>c.md?{full:true,data:new Uint8Array(c.md)}:null);
+      snap.grDiffs=S.grayRegs.map(r=>r.md?{full:true,data:new Uint8Array(r.md)}:null);
+      snap.palChanged=true;snap.pal=JSON.parse(JSON.stringify(S.palette));
+      snap._keyframe=true;
+    }
+  }else{
+    // 小图：直接存完整快照（恢复更可靠）
+    snap=createDiff(_prevChannels,S.channels,_prevGray,S.grayRegs,_prevPal,S.palette);
+    snap.chDiffs=S.channels.map(c=>c.md?{full:true,data:new Uint8Array(c.md)}:null);
+    snap.grDiffs=S.grayRegs.map(r=>r.md?{full:true,data:new Uint8Array(r.md)}:null);
+    snap.palChanged=true;snap.pal=JSON.parse(JSON.stringify(S.palette));
+  }
   undoStack.push(snap);
   if(undoStack.length>MAX_H){undoStack.shift()}
   redoStack=[];
@@ -938,9 +1058,12 @@ function encodeTGA(width,height,imageData){
 }
 
 $('bEx').onclick=async()=>{if(!S.loaded){toast('请先导入图片','e');return}
+if(S.scheme==='mask'&&(!S.channels.length||S.channels.every(c=>!c.md||c.md.every(v=>v===0)))){toast('当前无有效选区数据，请先绘制或选色','w');return}
+if(S.scheme==='palette'&&!S.palette.length){toast('请先添加调色板颜色','w');return}
+if(S.scheme==='gray'&&(!S.grayRegs.length||S.grayRegs.every(r=>!r.md||r.md.every(v=>v===0)))){toast('请先绘制灰度区域','w');return}
 toast('正在生成资源包…','i');
 try{const zip=new JSZip();
-const config={scheme:S.scheme,version:'2.0',exportTime:new Date().toISOString(),imageSize:{w:S.imgW,h:S.imgH}};
+const config={scheme:S.scheme,version:'2.1',exportTime:new Date().toISOString(),imageSize:{w:S.imgW,h:S.imgH}};
 
 if(S.scheme==='mask'){
   /* 原图 */
@@ -1003,10 +1126,11 @@ function applyDPR(canvas,w,h){
 function setupPreviewDPR(){
   ['pvComp','pvCh','pvClr'].forEach(id=>{
     const c=$(id);if(!c)return;
-    // 保持逻辑尺寸 200px，物理分辨率按 DPR 放大
     if(!S.loaded)return;
     c.style.width='100%';c.style.imageRendering='auto';
   });
+  // 主画布 touch-action 防止移动端误操作
+  if(bC){bC.style.touchAction='none';oC.style.touchAction='none';cC.style.touchAction='none'}
 }
 
 bx=bC.getContext('2d',{willReadFrequently:true});
@@ -1160,7 +1284,7 @@ document.addEventListener('keydown',e=>{
 
 // 关键操作后标记脏数据并触发自动保存
 const _origSaveH=saveH;
-saveH=function(){_origSaveH();captureState();markDirty();clearTimeout(window._debounceSave);window._debounceSave=setTimeout(autoSaveProject,3000)};
+saveH=function(){_origSaveH();markDirty();clearTimeout(window._debounceSave);window._debounceSave=setTimeout(autoSaveProject,3000)};
 
 // 页面关闭前保存
 window.addEventListener('beforeunload',e=>{if(S.loaded&&projectDirty){autoSaveProject();e.returnValue=''}});
@@ -1185,16 +1309,27 @@ window.addEventListener('beforeunload',e=>{if(S.loaded&&projectDirty){autoSavePr
     }
   }}catch(e){}
 })();
-/* ═══ 预览放大弹窗 (P2) ═══ */
+/* ═══ 预览放大弹窗 (P2) — 含安全检查和 DPR 适配 ═══ */
 ['pvComp','pvCh','pvClr'].forEach(id=>{
   const c=$(id);if(!c)return;
   c.addEventListener('dblclick',()=>{
-    if(!S.loaded)return;
+    if(!S.loaded||!S.imgW||!S.imgH)return;
+    // 检查源 canvas 是否有有效内容
+    if(c.width===0||c.height===0){toast('预览无内容','i');return}
     const modal=document.createElement('div');modal.className='pv-modal';
     const bigC=document.createElement('canvas');
-    bigC.width=S.imgW;bigC.height=S.imgH;
-    const sx=c.getContext('2d');
-    bigC.getContext('2d').drawImage(c,0,0,c.width,c.height,0,0,S.imgW,S.imgH);
+    // 使用 DPR 提升放大预览清晰度
+    const dispW=Math.min(S.imgW,window.innerWidth*0.85);
+    const dispH=Math.min(S.imgH,window.innerHeight*0.85);
+    const scale=Math.min(dispW/S.imgW,dispH/S.imgH,1);
+    bigC.width=Math.round(S.imgW*scale*DPR);
+    bigC.height=Math.round(S.imgH*scale*DPR);
+    bigC.style.width=Math.round(S.imgW*scale)+'px';
+    bigC.style.height=Math.round(S.imgH*scale)+'px';
+    const bCtx=bigC.getContext('2d');
+    bCtx.scale(DPR,DPR);
+    bCtx.imageSmoothingEnabled=false;
+    bCtx.drawImage(c,0,0,c.width,c.height,0,0,S.imgW*scale,S.imgH*scale);
     modal.appendChild(bigC);document.body.appendChild(modal);
     modal.onclick=()=>modal.remove();
     document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){modal.remove();document.removeEventListener('keydown',esc)}});
@@ -1220,12 +1355,15 @@ function showGuide(){
 setTimeout(showGuide,500);
 
 // ToolBus 注册 — mask-tool 可以向其他工具发送 Mask 数据
-ToolBus.register('mask-tool', { name: 'Mask 手动编辑器', version: '2.1' });
+ToolBus.register('mask-tool', { name: 'Mask 手动编辑器', version: '2.1.1' });
 ToolBus.on('get-mask', function(data) {
-  // 响应其他工具的 Mask 请求
-  const c = document.getElementById('canvas');
-  if (c) return { imageDataURL: c.toDataURL('image/png'), width: c.width, height: c.height };
-  return null;
+  // 响应其他工具的 Mask 请求：返回当前合成 Mask
+  if(!S.loaded)return null;
+  const mc=document.createElement('canvas');mc.width=S.imgW;mc.height=S.imgH;
+  const mx=mc.getContext('2d');const mD=mx.createImageData(S.imgW,S.imgH);const md=mD.data;
+  for(const ch of S.channels){if(!ch.md)continue;for(let i=0;i<ch.md.length;i++){if(!ch.md[i])continue;const idx=i*4;md[idx+ch.ci]=ch.md[i];md[idx+3]=255}}
+  mx.putImageData(mD,0,0);
+  return { imageDataURL: mc.toDataURL('image/png'), width: S.imgW, height: S.imgH, scheme: S.scheme };
 });
 </script>
 <script src="psd-reader.js"></script>
