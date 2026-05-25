@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>贴图通道打包工具 — Channel Packer v1.0</title>
+<title>贴图通道打包工具 — Channel Packer v1.1</title>
 <link rel="stylesheet" href="design-tokens.css">
 <link rel="stylesheet" href="tool-base.css">
 <style>
@@ -75,14 +75,44 @@
 /* Histogram */
 .histogram-box{height:60px;background:var(--card);border:1px solid var(--border);border-radius:6px;margin:6px 0;overflow:hidden;position:relative}
 .histogram-box canvas{width:100%;height:100%}
+
+/* Loading overlay */
+.loading-mask{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);z-index:999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.loading-mask.show{display:flex}
+.loading-spinner{width:36px;height:36px;border:3px solid var(--border);border-top:3px solid var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+.loading-text{font-size:13px;color:#fff}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Swap handle */
+.ch-swap{position:absolute;top:10px;right:10px;padding:3px 7px;background:var(--panel);border:1px solid var(--border);border-radius:5px;font-size:10px;cursor:pointer;color:var(--dim);transition:all .15s;z-index:2}
+.ch-swap:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Zoom modal */
+.zoom-modal{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1000;display:none;align-items:center;justify-content:center;cursor:zoom-out}
+.zoom-modal.show{display:flex}
+.zoom-modal canvas{max-width:90vw;max-height:90vh;border:2px solid var(--border);border-radius:8px;background:repeating-conic-gradient(#1a1c28 0% 25%,#15171f 0% 50%) 50%/16px 16px}
+
+/* Level sliders */
+.level-row{display:flex;align-items:center;gap:6px;margin-top:6px}
+.level-row label{font-size:10px;color:var(--dim);min-width:30px}
+.level-row input[type=range]{flex:1;height:3px;accent-color:var(--accent)}
+.level-row .v{font-size:10px;color:var(--dim);min-width:28px;text-align:right}
+
+/* Drop zone paste hint */
+.paste-hint{font-size:10px;color:var(--dim);margin-top:4px}
 </style>
 </head>
 <body>
+<!-- Loading 遮罩 -->
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text" id="loadingText">处理中…</div></div>
+<!-- 放大预览弹窗 -->
+<div class="zoom-modal" id="zoomModal" onclick="this.classList.remove('show')"><canvas id="zoomCanvas"></canvas></div>
+
 <div class="app">
 
 <!-- ═══ HEADER ═══ -->
 <div class="hdr">
-  <h1>📦 贴图通道打包工具 <span class="ver">Channel Packer v1.0</span></h1>
+  <h1>📦 贴图通道打包工具 <span class="ver">Channel Packer v1.1</span></h1>
   <p>RGBA 通道自由拼合 · Swizzle 重映射 · 预设管线配置 · 一键导出 PNG/TGA/EXR</p>
 </div>
 
@@ -105,6 +135,7 @@
   <div class="ch-grid" id="channelGrid">
     <!-- R Channel -->
     <div class="ch-slot" id="slotR" ondrop="handleDrop(event,'R')" ondragover="event.preventDefault()" ondragleave="this.classList.remove('dg')" ondragenter="this.classList.add('dg')">
+      <div class="ch-swap" onclick="openSwapMenu('R')" title="与其他通道交换">⇄ 交换</div>
       <div class="ch-label">
         <div class="dot" style="background:#f66"></div>
         <span>R 通道</span>
@@ -112,19 +143,24 @@
       </div>
       <div class="drop-zone" onclick="pickFile('R')">
         <div class="ch-color" style="color:#f66">R</div>
-        <p>拖入灰度图 / 点击选择</p>
+        <p>拖入灰度图 / 点击选择 / Ctrl+V 粘贴</p>
       </div>
       <div class="swizzle-row">
-        <label>源通道:</label>
+        <label>源通道：</label>
         <select id="swzR" onchange="updatePreview()">
-          <option value="r">R (红)</option>
-          <option value="g">G (绿)</option>
-          <option value="b">B (蓝)</option>
-          <option value="a">A (透明度)</option>
-          <option value="lum">Luminance (亮度)</option>
+          <option value="r">R（红）</option>
+          <option value="g">G（绿）</option>
+          <option value="b">B（蓝）</option>
+          <option value="a">A（透明度）</option>
+          <option value="lum">Luminance（亮度）</option>
         </select>
-        <label style="margin-left:8px">反转:</label>
+        <label style="margin-left:8px">反转：</label>
         <input type="checkbox" id="invR" onchange="updatePreview()" style="accent-color:var(--red)">
+      </div>
+      <div class="level-row">
+        <label>亮度：</label>
+        <input type="range" id="lvlR" min="-100" max="100" value="0" oninput="document.getElementById('lvlRv').textContent=this.value;updatePreview()">
+        <span class="v" id="lvlRv">0</span>
       </div>
       <canvas id="cvR" style="display:none"></canvas>
       <input type="file" id="fiR" accept="image/*" style="display:none" onchange="loadChannel(event,'R')">
@@ -132,6 +168,7 @@
 
     <!-- G Channel -->
     <div class="ch-slot" id="slotG" ondrop="handleDrop(event,'G')" ondragover="event.preventDefault()" ondragleave="this.classList.remove('dg')" ondragenter="this.classList.add('dg')">
+      <div class="ch-swap" onclick="openSwapMenu('G')" title="与其他通道交换">⇄ 交换</div>
       <div class="ch-label">
         <div class="dot" style="background:#6f6"></div>
         <span>G 通道</span>
@@ -139,19 +176,24 @@
       </div>
       <div class="drop-zone" onclick="pickFile('G')">
         <div class="ch-color" style="color:#6f6">G</div>
-        <p>拖入灰度图 / 点击选择</p>
+        <p>拖入灰度图 / 点击选择 / Ctrl+V 粘贴</p>
       </div>
       <div class="swizzle-row">
-        <label>源通道:</label>
+        <label>源通道：</label>
         <select id="swzG" onchange="updatePreview()">
-          <option value="r">R (红)</option>
-          <option value="g" selected>G (绿)</option>
-          <option value="b">B (蓝)</option>
-          <option value="a">A (透明度)</option>
-          <option value="lum">Luminance (亮度)</option>
+          <option value="r">R（红）</option>
+          <option value="g" selected>G（绿）</option>
+          <option value="b">B（蓝）</option>
+          <option value="a">A（透明度）</option>
+          <option value="lum">Luminance（亮度）</option>
         </select>
-        <label style="margin-left:8px">反转:</label>
+        <label style="margin-left:8px">反转：</label>
         <input type="checkbox" id="invG" onchange="updatePreview()" style="accent-color:var(--green)">
+      </div>
+      <div class="level-row">
+        <label>亮度：</label>
+        <input type="range" id="lvlG" min="-100" max="100" value="0" oninput="document.getElementById('lvlGv').textContent=this.value;updatePreview()">
+        <span class="v" id="lvlGv">0</span>
       </div>
       <canvas id="cvG" style="display:none"></canvas>
       <input type="file" id="fiG" accept="image/*" style="display:none" onchange="loadChannel(event,'G')">
@@ -159,6 +201,7 @@
 
     <!-- B Channel -->
     <div class="ch-slot" id="slotB" ondrop="handleDrop(event,'B')" ondragover="event.preventDefault()" ondragleave="this.classList.remove('dg')" ondragenter="this.classList.add('dg')">
+      <div class="ch-swap" onclick="openSwapMenu('B')" title="与其他通道交换">⇄ 交换</div>
       <div class="ch-label">
         <div class="dot" style="background:#66f"></div>
         <span>B 通道</span>
@@ -166,19 +209,24 @@
       </div>
       <div class="drop-zone" onclick="pickFile('B')">
         <div class="ch-color" style="color:#66f">B</div>
-        <p>拖入灰度图 / 点击选择</p>
+        <p>拖入灰度图 / 点击选择 / Ctrl+V 粘贴</p>
       </div>
       <div class="swizzle-row">
-        <label>源通道:</label>
+        <label>源通道：</label>
         <select id="swzB" onchange="updatePreview()">
-          <option value="r">R (红)</option>
-          <option value="g">G (绿)</option>
-          <option value="b" selected>B (蓝)</option>
-          <option value="a">A (透明度)</option>
-          <option value="lum">Luminance (亮度)</option>
+          <option value="r">R（红）</option>
+          <option value="g">G（绿）</option>
+          <option value="b" selected>B（蓝）</option>
+          <option value="a">A（透明度）</option>
+          <option value="lum">Luminance（亮度）</option>
         </select>
-        <label style="margin-left:8px">反转:</label>
+        <label style="margin-left:8px">反转：</label>
         <input type="checkbox" id="invB" onchange="updatePreview()" style="accent-color:var(--blue)">
+      </div>
+      <div class="level-row">
+        <label>亮度：</label>
+        <input type="range" id="lvlB" min="-100" max="100" value="0" oninput="document.getElementById('lvlBv').textContent=this.value;updatePreview()">
+        <span class="v" id="lvlBv">0</span>
       </div>
       <canvas id="cvB" style="display:none"></canvas>
       <input type="file" id="fiB" accept="image/*" style="display:none" onchange="loadChannel(event,'B')">
@@ -186,32 +234,38 @@
 
     <!-- A Channel -->
     <div class="ch-slot" id="slotA" ondrop="handleDrop(event,'A')" ondragover="event.preventDefault()" ondragleave="this.classList.remove('dg')" ondragenter="this.classList.add('dg')">
+      <div class="ch-swap" onclick="openSwapMenu('A')" title="与其他通道交换">⇄ 交换</div>
       <div class="ch-label">
         <div class="dot" style="background:#ccc"></div>
         <span>A 通道</span>
-        <span class="info" id="infoA">未载入 (默认纯白)</span>
+        <span class="info" id="infoA">未载入（默认纯白）</span>
       </div>
       <div class="drop-zone" onclick="pickFile('A')">
         <div class="ch-color" style="color:#ccc">A</div>
-        <p>拖入灰度图 / 点击选择</p>
+        <p>拖入灰度图 / 点击选择 / Ctrl+V 粘贴</p>
       </div>
       <div class="swizzle-row">
-        <label>源通道:</label>
+        <label>源通道：</label>
         <select id="swzA" onchange="updatePreview()">
-          <option value="r">R (红)</option>
-          <option value="g">G (绿)</option>
-          <option value="b">B (蓝)</option>
-          <option value="a" selected>A (透明度)</option>
-          <option value="lum">Luminance (亮度)</option>
+          <option value="r">R（红）</option>
+          <option value="g">G（绿）</option>
+          <option value="b">B（蓝）</option>
+          <option value="a" selected>A（透明度）</option>
+          <option value="lum">Luminance（亮度）</option>
         </select>
-        <label style="margin-left:8px">反转:</label>
+        <label style="margin-left:8px">反转：</label>
         <input type="checkbox" id="invA" onchange="updatePreview()" style="accent-color:#ccc">
-        <label style="margin-left:8px">默认值:</label>
+        <label style="margin-left:8px">默认值：</label>
         <select id="defA" onchange="updatePreview()">
-          <option value="255">纯白 (255)</option>
-          <option value="0">纯黑 (0)</option>
-          <option value="128">中灰 (128)</option>
+          <option value="255">纯白（255）</option>
+          <option value="0">纯黑（0）</option>
+          <option value="128">中灰（128）</option>
         </select>
+      </div>
+      <div class="level-row">
+        <label>亮度：</label>
+        <input type="range" id="lvlA" min="-100" max="100" value="0" oninput="document.getElementById('lvlAv').textContent=this.value;updatePreview()">
+        <span class="v" id="lvlAv">0</span>
       </div>
       <canvas id="cvA" style="display:none"></canvas>
       <input type="file" id="fiA" accept="image/*" style="display:none" onchange="loadChannel(event,'A')">
@@ -220,7 +274,7 @@
 
   <div style="text-align:center;margin-top:12px">
     <button class="btn btn-sm" onclick="clearAll()">🗑 全部清除</button>
-    <button class="btn btn-sm" onclick="document.getElementById('fiBatch').click()">📂 批量导入 (按后缀自动分配)</button>
+    <button class="btn btn-sm" onclick="document.getElementById('fiBatch').click()">📂 批量导入（按后缀自动分配）</button>
     <input type="file" id="fiBatch" accept="image/*" multiple style="display:none" onchange="batchLoad(event)">
   </div>
 </div>
@@ -229,13 +283,13 @@
 <div class="card" id="s2">
   <div class="card-title">⚙️ 管线预设 & Swizzle 配置 <span class="badge badge-green">Step 2</span></div>
   
-  <div style="font-size:11px;color:var(--heading);margin-bottom:6px;font-weight:600">📋 快捷预设模板</div>
+  <div style="font-size:12px;color:var(--heading);margin-bottom:6px;font-weight:600">📋 快捷预设模板</div>
   <div class="preset-bar" id="presetBar">
-    <button class="preset-btn act" onclick="applyPreset('ue5-orm')">UE5 ORM (AO+Rough+Metal)</button>
-    <button class="preset-btn" onclick="applyPreset('unity-mas')">Unity MAS (Metal+AO+Smooth)</button>
-    <button class="preset-btn" onclick="applyPreset('mask-rgba')">换色 Mask RGBA</button>
-    <button class="preset-btn" onclick="applyPreset('normal-pack')">法线+高度打包</button>
-    <button class="preset-btn" onclick="applyPreset('custom')">自定义</button>
+    <button class="preset-btn act" data-p="ue5-orm" onclick="applyPreset('ue5-orm',this)">UE5 ORM（AO+Rough+Metal）</button>
+    <button class="preset-btn" data-p="unity-mas" onclick="applyPreset('unity-mas',this)">Unity MAS（Metal+AO+Smooth）</button>
+    <button class="preset-btn" data-p="mask-rgba" onclick="applyPreset('mask-rgba',this)">换色 Mask RGBA</button>
+    <button class="preset-btn" data-p="normal-pack" onclick="applyPreset('normal-pack',this)">法线+高度打包</button>
+    <button class="preset-btn" data-p="custom" onclick="applyPreset('custom',this)">自定义</button>
   </div>
 
   <div class="alert alert-green">
@@ -246,10 +300,10 @@
 
   <div id="presetDesc"></div>
 
-  <div style="font-size:11px;color:var(--heading);margin:12px 0 6px;font-weight:600">🔧 全局处理参数</div>
+  <div style="font-size:12px;color:var(--heading);margin:12px 0 6px;font-weight:600">🔧 全局处理参数</div>
   <div class="pr"><label>输出尺寸</label>
     <select id="outSize" onchange="updatePreview()">
-      <option value="auto">跟随源图 (Auto)</option>
+      <option value="auto">跟随源图（Auto）</option>
       <option value="256">256 × 256</option>
       <option value="512">512 × 512</option>
       <option value="1024">1024 × 1024</option>
@@ -259,14 +313,14 @@
   </div>
   <div class="pr"><label>位深度</label>
     <select id="bitDepth">
-      <option value="8">8-bit (256 级灰度)</option>
-      <option value="16">16-bit (HDR, 需 EXR 导出)</option>
+      <option value="8">8-bit（256 级灰度）</option>
+      <option value="16">16-bit（HDR，需 EXR 导出）</option>
     </select>
   </div>
   <div class="pr"><label>色彩空间</label>
     <select id="colorSpace">
-      <option value="linear">Linear (数据贴图 — 推荐)</option>
-      <option value="srgb">sRGB (表现贴图)</option>
+      <option value="linear">Linear（数据贴图 — 推荐）</option>
+      <option value="srgb">sRGB（表现贴图）</option>
     </select>
   </div>
 </div>
@@ -277,46 +331,48 @@
   
   <div class="preview-grid">
     <div class="preview-item">
-      <div class="img-box"><canvas id="pvR" width="256" height="256"></canvas></div>
+      <div class="img-box" onclick="zoomPreview('pvR')" style="cursor:zoom-in" title="点击放大"><canvas id="pvR" width="256" height="256"></canvas></div>
       <div class="label" style="color:#f66">R 通道</div>
       <div class="histogram-box"><canvas id="histR"></canvas></div>
     </div>
     <div class="preview-item">
-      <div class="img-box"><canvas id="pvG" width="256" height="256"></canvas></div>
+      <div class="img-box" onclick="zoomPreview('pvG')" style="cursor:zoom-in" title="点击放大"><canvas id="pvG" width="256" height="256"></canvas></div>
       <div class="label" style="color:#6f6">G 通道</div>
       <div class="histogram-box"><canvas id="histG"></canvas></div>
     </div>
     <div class="preview-item">
-      <div class="img-box"><canvas id="pvB" width="256" height="256"></canvas></div>
+      <div class="img-box" onclick="zoomPreview('pvB')" style="cursor:zoom-in" title="点击放大"><canvas id="pvB" width="256" height="256"></canvas></div>
       <div class="label" style="color:#66f">B 通道</div>
       <div class="histogram-box"><canvas id="histB"></canvas></div>
     </div>
     <div class="preview-item">
-      <div class="img-box"><canvas id="pvA" width="256" height="256"></canvas></div>
+      <div class="img-box" onclick="zoomPreview('pvA')" style="cursor:zoom-in" title="点击放大"><canvas id="pvA" width="256" height="256"></canvas></div>
       <div class="label" style="color:#ccc">A 通道</div>
       <div class="histogram-box"><canvas id="histA"></canvas></div>
     </div>
     <div class="preview-item">
-      <div class="img-box"><canvas id="pvRGBA" width="256" height="256"></canvas></div>
+      <div class="img-box" onclick="zoomPreview('pvRGBA')" style="cursor:zoom-in" title="点击放大"><canvas id="pvRGBA" width="256" height="256"></canvas></div>
       <div class="label" style="color:var(--accent)">RGBA 合成</div>
     </div>
   </div>
 
-  <div style="margin-top:14px;font-size:11px;color:var(--heading);font-weight:600">📊 输出信息</div>
-  <div id="outputInfo" style="font-size:11px;color:var(--dim);margin:4px 0">
+  <div style="margin-top:14px;font-size:12px;color:var(--heading);font-weight:600">📊 输出信息</div>
+  <div id="outputInfo" style="font-size:12px;color:var(--dim);margin:4px 0">
     尺寸：— × — · 格式：RGBA 8bit · 预估文件大小：—
   </div>
 
-  <div style="font-size:11px;color:var(--heading);margin:12px 0 6px;font-weight:600">💾 导出命名</div>
+  <div style="font-size:12px;color:var(--heading);margin:12px 0 6px;font-weight:600">💾 导出命名</div>
   <div class="pr"><label>命名模板</label><input type="text" id="nameTpl" value="T_{Preset}_{Name}_Packed" oninput="updateNaming()"></div>
   <div class="pr"><label>资产名</label><input type="text" id="assetName" value="Hero01" oninput="updateNaming()"></div>
   <div id="namePreview" style="font-size:10px;color:var(--green);margin-bottom:8px">预览：T_ORM_Hero01_Packed.png</div>
 
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-    <button class="btn btn-g" onclick="exportPNG()">📥 导出 PNG (8bit)</button>
-    <button class="btn btn-p" onclick="exportTGA()">📥 导出 TGA (无压缩)</button>
-    <button class="btn btn-sm" onclick="exportSplit()">📥 分通道导出 (4张灰度图)</button>
+    <button class="btn btn-g" onclick="exportPNG()">📥 导出 PNG（8bit）</button>
+    <button class="btn btn-p" onclick="exportTGA()">📥 导出 TGA（无压缩）</button>
+    <button class="btn btn-sm" onclick="exportSplit()">📥 分通道导出（4 张灰度图）</button>
     <button class="btn btn-sm" onclick="exportJSON()">💾 保存配置 JSON</button>
+    <button class="btn btn-sm" onclick="document.getElementById('fiJSON').click()">📂 导入配置 JSON</button>
+    <input type="file" id="fiJSON" accept=".json" style="display:none" onchange="importJSON(event)">
   </div>
 </div>
 
@@ -343,7 +399,7 @@
       <li><strong>色彩空间：</strong>数据贴图（AO、Roughness、Mask）必须设为 <strong>Linear</strong>，切勿勾选 sRGB；仅 BaseColor / Emissive 等表现贴图使用 sRGB</li>
       <li><strong>压缩格式：</strong>UE5 推荐使用 <strong>BC7</strong>（Masks 纹理类型）；Unity 推荐 <strong>ASTC 6×6</strong>（移动端）或 <strong>BC7</strong>（PC端）</li>
       <li><strong>反转通道：</strong>Unity 的 Smoothness = 1.0 - Roughness，若从 UE5 迁移，需在 G 通道勾选反转</li>
-      <li><strong>空通道处理：</strong>未载入的通道默认填充纯白 (255)。如果 Shader 预期 0 值，请手动调整默认值</li>
+      <li><strong>空通道处理：</strong>未载入的通道默认填充纯白（255）。如果 Shader 预期 0 值，请手动调整默认值</li>
     </ul>
   </div>
 </div>
@@ -357,34 +413,48 @@
 
 <script>
 // ═══════════════════════════════════════════
-// Channel Packer Core Logic
+// Channel Packer Core Logic v1.1
 // ═══════════════════════════════════════════
 
 const channels = { R: null, G: null, B: null, A: null };
 const channelData = { R: null, G: null, B: null, A: null };
+const channelURLs = { R: null, G: null, B: null, A: null }; // 用于内存释放
 let outputW = 0, outputH = 0;
 
 // Presets
 const PRESETS = {
-  'ue5-orm':   { name:'UE5 ORM',  R:'AO', G:'Roughness', B:'Metallic', A:'未使用(白)' },
-  'unity-mas': { name:'Unity MAS', R:'Metallic', G:'AO', B:'Smoothness', A:'未使用(白)' },
+  'ue5-orm':   { name:'UE5 ORM',  R:'AO', G:'Roughness', B:'Metallic', A:'未使用（白）' },
+  'unity-mas': { name:'Unity MAS', R:'Metallic', G:'AO', B:'Smoothness', A:'未使用（白）' },
   'mask-rgba': { name:'换色 Mask', R:'区域1', G:'区域2', B:'区域3', A:'区域4/Alpha' },
   'normal-pack':{ name:'法线+高度', R:'Normal.X', G:'Normal.Y', B:'Height', A:'AO' },
   'custom':    { name:'自定义',    R:'自定义', G:'自定义', B:'自定义', A:'自定义' }
 };
 let currentPreset = 'ue5-orm';
 
-function toast(msg) {
-  Toast.show(msg);
+/* ── Loading 控制 ── */
+function showLoading(msg) {
+  document.getElementById('loadingText').textContent = msg || '处理中…';
+  document.getElementById('loadingMask').classList.add('show');
 }
+function hideLoading() {
+  document.getElementById('loadingMask').classList.remove('show');
+}
+
+function toast(msg) { Toast.show(msg); }
 
 function pickFile(ch) {
   document.getElementById('fi' + ch).click();
 }
 
+/* ── 通道载入（核心） ── */
 function loadChannel(e, ch) {
   const file = e.target.files[0];
   if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    toast('⚠️ 请选择图片文件');
+    return;
+  }
+  showLoading(`正在载入 ${ch} 通道：${file.name}`);
   const img = new Image();
   img.onload = function() {
     const cv = document.getElementById('cv' + ch);
@@ -398,18 +468,44 @@ function loadChannel(e, ch) {
     document.getElementById('slot' + ch).classList.add('has-img');
     document.getElementById('info' + ch).textContent = `${img.width}×${img.height}`;
     
-    toast(`✅ ${ch} 通道已载入: ${file.name}`);
+    hideLoading();
+    toast(`✅ ${ch} 通道已载入：${file.name}`);
     updatePreview();
     updateStep();
   };
-  img.src = URL.createObjectURL(file);
+  img.onerror = function() {
+    hideLoading();
+    toast('❌ 图片载入失败，请检查文件格式');
+  };
+  // 释放旧的 ObjectURL
+  if (channelURLs[ch]) URL.revokeObjectURL(channelURLs[ch]);
+  channelURLs[ch] = URL.createObjectURL(file);
+  img.src = channelURLs[ch];
+}
+
+/* ── 从 Image 对象直接载入通道（工具总线/粘贴用） ── */
+function loadChannelFromImage(img, ch) {
+  const cv = document.getElementById('cv' + ch);
+  cv.width = img.width;
+  cv.height = img.height;
+  const ctx = cv.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  channels[ch] = img;
+  channelData[ch] = ctx.getImageData(0, 0, img.width, img.height);
+  document.getElementById('slot' + ch).classList.add('has-img');
+  document.getElementById('info' + ch).textContent = `${img.width}×${img.height}`;
+  updatePreview();
+  updateStep();
 }
 
 function handleDrop(e, ch) {
   e.preventDefault();
   e.currentTarget.classList.remove('dg');
   const file = e.dataTransfer.files[0];
-  if (!file || !file.type.startsWith('image/')) return;
+  if (!file || !file.type.startsWith('image/')) {
+    toast('⚠️ 请拖入图片文件');
+    return;
+  }
   
   const dt = new DataTransfer();
   dt.items.add(file);
@@ -419,10 +515,13 @@ function handleDrop(e, ch) {
 
 function batchLoad(e) {
   const files = Array.from(e.target.files);
+  if (files.length === 0) return;
+  showLoading(`正在批量导入 ${files.length} 张贴图…`);
   const chMap = { '_r': 'R', '_g': 'G', '_b': 'B', '_a': 'A',
                   '_ao': 'R', '_roughness': 'G', '_metallic': 'B',
                   '_mask': 'R', '_height': 'B', '_normal': 'R' };
   
+  let loaded = 0;
   files.forEach(file => {
     const name = file.name.toLowerCase();
     let targetCh = null;
@@ -438,10 +537,74 @@ function batchLoad(e) {
     dt.items.add(file);
     document.getElementById('fi' + targetCh).files = dt.files;
     document.getElementById('fi' + targetCh).dispatchEvent(new Event('change'));
+    loaded++;
+    if (loaded >= files.length) setTimeout(hideLoading, 800);
   });
 }
 
-function getSwizzledValue(data, idx, swizzle, invert) {
+/* ── 剪贴板粘贴导入 ── */
+let _lastFocusedChannel = 'R';
+document.querySelectorAll('.ch-slot').forEach(slot => {
+  slot.addEventListener('click', function() {
+    const id = this.id.replace('slot', '');
+    if (['R','G','B','A'].includes(id)) _lastFocusedChannel = id;
+  });
+});
+document.addEventListener('paste', function(e) {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      const blob = item.getAsFile();
+      const img = new Image();
+      img.onload = function() {
+        loadChannelFromImage(img, _lastFocusedChannel);
+        toast(`📋 已从剪贴板粘贴到 ${_lastFocusedChannel} 通道`);
+      };
+      img.src = URL.createObjectURL(blob);
+      break;
+    }
+  }
+});
+
+/* ── 通道交换 ── */
+function openSwapMenu(fromCh) {
+  const others = ['R','G','B','A'].filter(c => c !== fromCh);
+  const target = prompt(`将 ${fromCh} 通道与哪个通道交换？\n可选：${others.join('、')}`);
+  if (!target || !others.includes(target.toUpperCase())) return;
+  swapChannels(fromCh, target.toUpperCase());
+}
+
+function swapChannels(a, b) {
+  // 交换数据
+  [channels[a], channels[b]] = [channels[b], channels[a]];
+  [channelData[a], channelData[b]] = [channelData[b], channelData[a]];
+  
+  // 交换 UI 状态
+  for (const ch of [a, b]) {
+    if (channels[ch]) {
+      document.getElementById('slot' + ch).classList.add('has-img');
+      document.getElementById('info' + ch).textContent = `${channelData[ch].width}×${channelData[ch].height}`;
+      // 同步隐藏 canvas
+      const cv = document.getElementById('cv' + ch);
+      cv.width = channelData[ch].width;
+      cv.height = channelData[ch].height;
+      const ctx = cv.getContext('2d');
+      ctx.putImageData(new ImageData(new Uint8ClampedArray(channelData[ch].data), channelData[ch].width, channelData[ch].height), 0, 0);
+    } else {
+      document.getElementById('slot' + ch).classList.remove('has-img');
+      document.getElementById('info' + ch).textContent = ch === 'A' ? '未载入（默认纯白）' : '未载入';
+    }
+  }
+  
+  updatePreview();
+  _cpSaveSnap();
+  toast(`🔄 ${a} ⇄ ${b} 通道已交换`);
+}
+
+/* ── Swizzle & Levels ── */
+function getSwizzledValue(data, idx, swizzle, invert, levelOffset) {
   let v;
   const r = data[idx], g = data[idx+1], b = data[idx+2], a = data[idx+3];
   switch(swizzle) {
@@ -452,9 +615,24 @@ function getSwizzledValue(data, idx, swizzle, invert) {
     case 'lum': v = Math.round(0.299*r + 0.587*g + 0.114*b); break;
     default: v = r;
   }
-  return invert ? 255 - v : v;
+  if (invert) v = 255 - v;
+  if (levelOffset) v = Math.max(0, Math.min(255, v + levelOffset));
+  return v;
 }
 
+/* ── 放大预览 ── */
+function zoomPreview(canvasId) {
+  const srcCv = document.getElementById(canvasId);
+  const zoomCv = document.getElementById('zoomCanvas');
+  const size = Math.min(window.innerWidth * 0.85, window.innerHeight * 0.85, 1024);
+  zoomCv.width = zoomCv.height = size;
+  const ctx = zoomCv.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(srcCv, 0, 0, size, size);
+  document.getElementById('zoomModal').classList.add('show');
+}
+
+/* ── 实时预览 ── */
 function updatePreview() {
   // Determine output size
   let w = 0, h = 0;
@@ -474,7 +652,6 @@ function updatePreview() {
   outputW = w; outputH = h;
   
   const pvSize = 256;
-  const rgba = new Uint8ClampedArray(pvSize * pvSize * 4);
   const chArrays = { R: new Uint32Array(256), G: new Uint32Array(256), B: new Uint32Array(256), A: new Uint32Array(256) };
   
   for (const ch of ['R','G','B','A']) {
@@ -485,6 +662,8 @@ function updatePreview() {
     const swz = document.getElementById('swz' + ch).value;
     const inv = document.getElementById('inv' + ch).checked;
     const defVal = ch === 'A' ? parseInt(document.getElementById('defA').value) : 0;
+    const lvlEl = document.getElementById('lvl' + ch);
+    const lvlOffset = lvlEl ? parseInt(lvlEl.value) : 0;
     
     const imgData = ctx.createImageData(pvSize, pvSize);
     const px = imgData.data;
@@ -499,18 +678,13 @@ function updatePreview() {
           const sx = Math.floor(x * srcW / pvSize);
           const sy = Math.floor(y * srcH / pvSize);
           const si = (sy * srcW + sx) * 4;
-          v = getSwizzledValue(channelData[ch].data, si, swz, inv);
+          v = getSwizzledValue(channelData[ch].data, si, swz, inv, lvlOffset);
         } else {
           v = ch === 'A' ? defVal : 0;
         }
         
         px[di] = px[di+1] = px[di+2] = v;
         px[di+3] = 255;
-        
-        const ci = { R:0, G:1, B:2, A:3 }[ch];
-        const rgbaIdx = (y * pvSize + x) * 4;
-        rgba[rgbaIdx + ci] = v;
-        if (ch === 'R') { rgba[rgbaIdx + 3] = parseInt(document.getElementById('defA').value); }
         
         chArrays[ch][v]++;
       }
@@ -524,7 +698,6 @@ function updatePreview() {
   pvRGBA.width = pvRGBA.height = pvSize;
   const ctxRGBA = pvRGBA.getContext('2d');
   
-  // Re-composite from individual channels
   const compositeData = ctxRGBA.createImageData(pvSize, pvSize);
   const cpx = compositeData.data;
   
@@ -535,11 +708,10 @@ function updatePreview() {
     const ci = { R:0, G:1, B:2, A:3 }[ch];
     
     for (let i = 0; i < pvSize * pvSize; i++) {
-      cpx[i * 4 + ci] = srcData[i * 4]; // All channels stored as grayscale, take R component
+      cpx[i * 4 + ci] = srcData[i * 4];
     }
   }
   
-  // If no A channel loaded, set alpha to defA
   if (!channelData.A) {
     const defVal = parseInt(document.getElementById('defA').value);
     for (let i = 0; i < pvSize * pvSize; i++) cpx[i * 4 + 3] = defVal;
@@ -574,10 +746,10 @@ function drawHistogram(ch, counts) {
   }
 }
 
-function applyPreset(key) {
+function applyPreset(key, btnEl) {
   currentPreset = key;
   document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('act'));
-  event.target.classList.add('act');
+  if (btnEl) btnEl.classList.add('act');
   
   const p = PRESETS[key];
   const alertEl = document.querySelector('#s2 .alert-green');
@@ -587,7 +759,6 @@ function applyPreset(key) {
       <span style="font-size:10px;color:var(--dim)">切换预设后，请确保载入的通道源图与预设匹配。</span>`;
   }
   
-  // Update channel labels
   for (const ch of ['R','G','B','A']) {
     const label = document.querySelector(`#slot${ch} .ch-label span:nth-child(2)`);
     if (label) label.textContent = `${ch} 通道 — ${p[ch]}`;
@@ -619,8 +790,9 @@ function updateNaming() {
   document.getElementById('namePreview').textContent = `预览：${result}.png`;
 }
 
-function exportPNG() {
-  if (outputW === 0) { toast('⚠️ 请先载入至少一个通道'); return; }
+/* ── 生成全尺寸 RGBA 像素数据 ── */
+function buildFullResData() {
+  if (outputW === 0) return null;
   
   const cv = document.createElement('canvas');
   cv.width = outputW; cv.height = outputH;
@@ -632,6 +804,8 @@ function exportPNG() {
     const swz = document.getElementById('swz' + ch).value;
     const inv = document.getElementById('inv' + ch).checked;
     const defVal = ch === 'A' ? parseInt(document.getElementById('defA').value) : 0;
+    const lvlEl = document.getElementById('lvl' + ch);
+    const lvlOffset = lvlEl ? parseInt(lvlEl.value) : 0;
     const ci = { R:0, G:1, B:2, A:3 }[ch];
     
     for (let y = 0; y < outputH; y++) {
@@ -643,7 +817,7 @@ function exportPNG() {
           const sx = Math.min(Math.floor(x * srcW / outputW), srcW - 1);
           const sy = Math.min(Math.floor(y * srcH / outputH), srcH - 1);
           const si = (sy * srcW + sx) * 4;
-          v = getSwizzledValue(channelData[ch].data, si, swz, inv);
+          v = getSwizzledValue(channelData[ch].data, si, swz, inv, lvlOffset);
         } else {
           v = defVal;
         }
@@ -653,37 +827,143 @@ function exportPNG() {
   }
   
   ctx.putImageData(imgData, 0, 0);
-  
-  const link = document.createElement('a');
-  const tpl = document.getElementById('nameTpl').value;
-  const name = document.getElementById('assetName').value;
-  const presetName = PRESETS[currentPreset]?.name.replace(/\s+/g,'') || 'Custom';
-  link.download = tpl.replace('{Preset}', presetName).replace('{Name}', name) + '.png';
-  link.href = cv.toDataURL('image/png');
-  link.click();
-  toast('✅ PNG 已导出');
+  return cv;
 }
 
-function exportTGA() { toast('💡 TGA 导出需要 ArrayBuffer 编码，建议使用桌面端工具或 wasm 版本'); }
-function exportSplit() {
-  for (const ch of ['R','G','B','A']) {
-    if (!channelData[ch]) continue;
-    const cv = document.getElementById('pv' + ch);
+/* ── 导出 PNG ── */
+function exportPNG() {
+  if (outputW === 0) { toast('⚠️ 请先载入至少一个通道'); return; }
+  showLoading('正在导出 PNG…');
+  
+  requestAnimationFrame(() => {
+    const cv = buildFullResData();
     const link = document.createElement('a');
-    link.download = `${document.getElementById('assetName').value}_${ch}.png`;
+    const tpl = document.getElementById('nameTpl').value;
+    const name = document.getElementById('assetName').value;
+    const presetName = PRESETS[currentPreset]?.name.replace(/\s+/g,'') || 'Custom';
+    link.download = tpl.replace('{Preset}', presetName).replace('{Name}', name) + '.png';
     link.href = cv.toDataURL('image/png');
     link.click();
-  }
-  toast('✅ 分通道灰度图已导出');
+    hideLoading();
+    toast('✅ PNG 已导出');
+  });
+}
+
+/* ── 导出 TGA（实际实现：无压缩 32bit RGBA）── */
+function exportTGA() {
+  if (outputW === 0) { toast('⚠️ 请先载入至少一个通道'); return; }
+  showLoading('正在生成 TGA 文件…');
+  
+  requestAnimationFrame(() => {
+    const cv = buildFullResData();
+    const ctx = cv.getContext('2d');
+    const imgData = ctx.getImageData(0, 0, outputW, outputH);
+    const px = imgData.data;
+    
+    // TGA Header（18 bytes）+ pixel data（BGRA 格式，上下翻转）
+    const headerSize = 18;
+    const dataSize = outputW * outputH * 4;
+    const buffer = new ArrayBuffer(headerSize + dataSize);
+    const view = new DataView(buffer);
+    const data = new Uint8Array(buffer);
+    
+    // TGA Header
+    data[0] = 0;             // ID Length
+    data[1] = 0;             // Color Map Type
+    data[2] = 2;             // Image Type: Uncompressed True-color
+    // Color Map (5 bytes all 0)
+    view.setUint16(8, 0, true);   // X Origin
+    view.setUint16(10, 0, true);  // Y Origin
+    view.setUint16(12, outputW, true);  // Width
+    view.setUint16(14, outputH, true);  // Height
+    data[16] = 32;           // Pixel Depth: 32 bits
+    data[17] = 0x28;         // Image Descriptor: top-left origin, 8-bit alpha
+    
+    // Pixel data: BGRA format
+    for (let y = 0; y < outputH; y++) {
+      for (let x = 0; x < outputW; x++) {
+        const srcIdx = (y * outputW + x) * 4;
+        const dstIdx = headerSize + (y * outputW + x) * 4;
+        data[dstIdx + 0] = px[srcIdx + 2]; // B
+        data[dstIdx + 1] = px[srcIdx + 1]; // G
+        data[dstIdx + 2] = px[srcIdx + 0]; // R
+        data[dstIdx + 3] = px[srcIdx + 3]; // A
+      }
+    }
+    
+    const blob = new Blob([buffer], { type: 'image/x-tga' });
+    const link = document.createElement('a');
+    const tpl = document.getElementById('nameTpl').value;
+    const assetName = document.getElementById('assetName').value;
+    const presetName = PRESETS[currentPreset]?.name.replace(/\s+/g,'') || 'Custom';
+    link.download = tpl.replace('{Preset}', presetName).replace('{Name}', assetName) + '.tga';
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    URL.revokeObjectURL(link.href);
+    hideLoading();
+    toast('✅ TGA 已导出（32bit 无压缩）');
+  });
+}
+
+/* ── 分通道导出（使用原始尺寸而非预览 256px） ── */
+function exportSplit() {
+  if (outputW === 0) { toast('⚠️ 请先载入至少一个通道'); return; }
+  showLoading('正在导出分通道灰度图…');
+  
+  requestAnimationFrame(() => {
+    let exported = 0;
+    for (const ch of ['R','G','B','A']) {
+      const cv = document.createElement('canvas');
+      cv.width = outputW; cv.height = outputH;
+      const ctx = cv.getContext('2d');
+      const imgData = ctx.createImageData(outputW, outputH);
+      const px = imgData.data;
+      
+      const swz = document.getElementById('swz' + ch).value;
+      const inv = document.getElementById('inv' + ch).checked;
+      const defVal = ch === 'A' ? parseInt(document.getElementById('defA').value) : 0;
+      const lvlEl = document.getElementById('lvl' + ch);
+      const lvlOffset = lvlEl ? parseInt(lvlEl.value) : 0;
+      
+      for (let y = 0; y < outputH; y++) {
+        for (let x = 0; x < outputW; x++) {
+          const di = (y * outputW + x) * 4;
+          let v;
+          if (channelData[ch]) {
+            const srcW = channelData[ch].width, srcH = channelData[ch].height;
+            const sx = Math.min(Math.floor(x * srcW / outputW), srcW - 1);
+            const sy = Math.min(Math.floor(y * srcH / outputH), srcH - 1);
+            const si = (sy * srcW + sx) * 4;
+            v = getSwizzledValue(channelData[ch].data, si, swz, inv, lvlOffset);
+          } else {
+            v = defVal;
+          }
+          px[di] = px[di+1] = px[di+2] = v;
+          px[di+3] = 255;
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+      
+      const link = document.createElement('a');
+      link.download = `${document.getElementById('assetName').value}_${ch}.png`;
+      link.href = cv.toDataURL('image/png');
+      link.click();
+      exported++;
+    }
+    hideLoading();
+    toast(`✅ 已导出 ${exported} 张分通道灰度图（原始尺寸 ${outputW}×${outputH}）`);
+  });
 }
 
 function exportJSON() {
   const config = {
-    version: '1.0',
+    version: '1.1',
     preset: currentPreset,
     outputSize: document.getElementById('outSize').value,
     bitDepth: document.getElementById('bitDepth').value,
     colorSpace: document.getElementById('colorSpace').value,
+    nameTpl: document.getElementById('nameTpl').value,
+    assetName: document.getElementById('assetName').value,
     channels: {}
   };
   for (const ch of ['R','G','B','A']) {
@@ -691,6 +971,7 @@ function exportJSON() {
       loaded: channels[ch] !== null,
       swizzle: document.getElementById('swz' + ch).value,
       invert: document.getElementById('inv' + ch).checked,
+      level: parseInt(document.getElementById('lvl' + ch)?.value || 0),
       defaultValue: ch === 'A' ? parseInt(document.getElementById('defA').value) : 0
     };
   }
@@ -699,7 +980,59 @@ function exportJSON() {
   link.download = 'channel-packer-config.json';
   link.href = URL.createObjectURL(blob);
   link.click();
+  URL.revokeObjectURL(link.href);
   toast('✅ 配置 JSON 已保存');
+}
+
+/* ── 导入配置 JSON ── */
+function importJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function() {
+    try {
+      const config = JSON.parse(reader.result);
+      if (!config.channels) throw new Error('无效的配置文件');
+      
+      // 恢复全局配置
+      if (config.outputSize) document.getElementById('outSize').value = config.outputSize;
+      if (config.bitDepth) document.getElementById('bitDepth').value = config.bitDepth;
+      if (config.colorSpace) document.getElementById('colorSpace').value = config.colorSpace;
+      if (config.nameTpl) document.getElementById('nameTpl').value = config.nameTpl;
+      if (config.assetName) document.getElementById('assetName').value = config.assetName;
+      
+      // 恢复通道配置
+      for (const ch of ['R','G','B','A']) {
+        if (config.channels[ch]) {
+          const cfg = config.channels[ch];
+          document.getElementById('swz' + ch).value = cfg.swizzle || (ch === 'A' ? 'a' : ch.toLowerCase());
+          document.getElementById('inv' + ch).checked = cfg.invert || false;
+          const lvlEl = document.getElementById('lvl' + ch);
+          if (lvlEl && cfg.level !== undefined) {
+            lvlEl.value = cfg.level;
+            document.getElementById('lvl' + ch + 'v').textContent = cfg.level;
+          }
+        }
+      }
+      if (config.channels.A?.defaultValue !== undefined) {
+        document.getElementById('defA').value = config.channels.A.defaultValue;
+      }
+      
+      // 恢复预设
+      if (config.preset) {
+        const btn = document.querySelector(`.preset-btn[data-p="${config.preset}"]`);
+        if (btn) applyPreset(config.preset, btn);
+      }
+      
+      updateNaming();
+      updatePreview();
+      toast(`✅ 配置已导入（v${config.version || '?'}）`);
+    } catch (err) {
+      toast('❌ 配置文件解析失败：' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = ''; // 重置
 }
 
 function clearAll() {
@@ -707,9 +1040,12 @@ function clearAll() {
   for (const ch of ['R','G','B','A']) {
     channels[ch] = null;
     channelData[ch] = null;
+    if (channelURLs[ch]) { URL.revokeObjectURL(channelURLs[ch]); channelURLs[ch] = null; }
     document.getElementById('slot' + ch).classList.remove('has-img');
-    document.getElementById('info' + ch).textContent = ch === 'A' ? '未载入 (默认纯白)' : '未载入';
+    document.getElementById('info' + ch).textContent = ch === 'A' ? '未载入（默认纯白）' : '未载入';
     document.getElementById('fi' + ch).value = '';
+    const lvlEl = document.getElementById('lvl' + ch);
+    if (lvlEl) { lvlEl.value = 0; document.getElementById('lvl' + ch + 'v').textContent = '0'; }
   }
   outputW = outputH = 0;
   _cpSaveSnap();
@@ -718,17 +1054,17 @@ function clearAll() {
 }
 
 /* ═══════════════════════════════════════════
-   撤销/重做系统 v1.0
+   撤销/重做系统 v1.1
    ═══════════════════════════════════════════ */
 let _cpUndoStack=[],_cpRedoStack=[];const _CP_MAX_UNDO=30;
 
 function _cpGetState(){
   const state={};
   for(const ch of ['R','G','B','A']){
-    state[ch]={loaded:!!channels[ch],swz:document.getElementById('swz'+ch).value,inv:document.getElementById('inv'+ch).checked};
+    state[ch]={loaded:!!channels[ch],swz:document.getElementById('swz'+ch).value,inv:document.getElementById('inv'+ch).checked,lvl:parseInt(document.getElementById('lvl'+ch)?.value||0)};
     if(channelData[ch]){const c=document.createElement('canvas');c.width=channelData[ch].width;c.height=channelData[ch].height;const x=c.getContext('2d');x.putImageData(new ImageData(new Uint8ClampedArray(channelData[ch].data),channelData[ch].width,channelData[ch].height),0,0);state[ch].dataURL=c.toDataURL();state[ch].w=channelData[ch].width;state[ch].h=channelData[ch].height}
   }
-  state.preset=document.querySelector('.preset-btn.act')?.dataset?.p||'custom';
+  state.preset=currentPreset;
   state.outSize=document.getElementById('outSize').value;
   state.bitDepth=document.getElementById('bitDepth').value;
   state.defA=document.getElementById('defA').value;
@@ -745,6 +1081,8 @@ function _cpRestoreState(json){
   for(const ch of ['R','G','B','A']){
     document.getElementById('swz'+ch).value=s[ch].swz;
     document.getElementById('inv'+ch).checked=s[ch].inv;
+    const lvlEl=document.getElementById('lvl'+ch);
+    if(lvlEl&&s[ch].lvl!==undefined){lvlEl.value=s[ch].lvl;document.getElementById('lvl'+ch+'v').textContent=s[ch].lvl}
     if(s[ch].dataURL){
       total++;
       const img=new Image();img.onload=(function(c,st){return function(){
@@ -754,7 +1092,7 @@ function _cpRestoreState(json){
         document.getElementById('info'+c).textContent=`${st.w}×${st.h}`;
         pending++;if(pending>=total){updatePreview();updateStep()}
       }})(ch,s[ch]);img.src=s[ch].dataURL;
-    }else{channels[ch]=null;channelData[ch]=null;document.getElementById('slot'+ch).classList.remove('has-img');document.getElementById('info'+ch).textContent=ch==='A'?'未载入 (默认纯白)':'未载入'}
+    }else{channels[ch]=null;channelData[ch]=null;document.getElementById('slot'+ch).classList.remove('has-img');document.getElementById('info'+ch).textContent=ch==='A'?'未载入（默认纯白）':'未载入'}
   }
   document.getElementById('outSize').value=s.outSize||'auto';
   document.getElementById('bitDepth').value=s.bitDepth||'8';
@@ -781,7 +1119,7 @@ _cpSaveSnap();
 updatePreview();
 updateNaming();
 // 注册工具总线 — 支持接收外部工具传入的通道图
-ToolBus.register('channel-packer', { name: '贴图通道打包工具', version: '1.0' });
+ToolBus.register('channel-packer', { name: '贴图通道打包工具', version: '1.1' });
 ToolBus.on('channel-data', function(data) {
   if (data && data.channel && data.imageDataURL) {
     const img = new Image();
