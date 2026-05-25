@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>美术资源批量重命名 — Batch Rename v2.2</title>
+<title>美术资源批量重命名 — Batch Rename v2.3</title>
 <link rel="stylesheet" href="design-tokens.css">
 <link rel="stylesheet" href="tool-base.css">
 <style>
@@ -120,7 +120,7 @@
 <body>
 <div class="app">
 <div class="hdr">
-  <h1>📁 美术资源批量重命名 <span class="ver">v2.2</span></h1>
+  <h1>📁 美术资源批量重命名 <span class="ver">v2.3</span></h1>
   <p>模板命名 · 正则替换 · CSV导入 · 冲突自动解决 · 合规校验 · 回滚脚本 · 预设管理</p>
 </div>
 
@@ -162,11 +162,13 @@
       <!-- 文本模式（默认隐藏） -->
       <input type="text" id="tplInput" value="{类型}_{性别}_{部件}_{编号}_{变体}" oninput="pushHistory();syncChipsFromInput();updatePreview()" style="display:none">
     </div>
-    <div class="tpl-row">
+    <div class="tpl-row" style="align-items:center">
       <label>分隔符</label>
-      <select id="separator" onchange="updatePreview()"><option value="_">下划线 (_)</option><option value="-">连字符 (-)</option><option value=".">点号 (.)</option><option value="">无分隔</option></select>
+      <select id="separator" onchange="onSeparatorChange(this)"><option value="_">下划线 (_)</option><option value="-">连字符 (-)</option><option value=".">点号 (.)</option><option value="">无分隔</option></select>
+      <span style="font-size:11px;color:var(--dim);margin-left:4px">← 切换会自动替换模板中的分隔符</span>
       <label style="margin-left:12px">大小写</label>
-      <select id="caseMode" onchange="updatePreview()"><option value="keep">保持原样</option><option value="lower">全部小写</option><option value="upper">全部大写</option><option value="pascal">PascalCase</option><option value="camel">camelCase</option></select>
+      <select id="caseMode" onchange="syncChipsFromInput();updatePreview()"><option value="keep">保持原样</option><option value="lower">全部小写</option><option value="upper">全部大写</option><option value="pascal">PascalCase</option><option value="camel">camelCase</option></select>
+      <span style="font-size:11px;color:var(--dim);margin-left:4px">← 影响最终输出</span>
     </div>
     <div class="clean-opts">
       <label><input type="checkbox" id="cleanChinese" onchange="updatePreview()"> 去除中文</label>
@@ -368,7 +370,10 @@ function syncChipsFromInput(){const tpl=document.getElementById('tplInput').valu
 function renderChips(tokens){const container=document.getElementById('tplChips');container.innerHTML='';if(!tokens.length){container.innerHTML='<span style="color:var(--dim);font-size:13px;font-style:italic">点击下方变量标签添加...</span>';return}tokens.forEach((tk,idx)=>{const chip=document.createElement('span');const cls=tk.type==='var'?'var':(tk.value.length<=2&&/^[_\-.\s]+$/.test(tk.value)?'sep':'text');chip.className='tpl-chip '+cls;const label=document.createElement('span');label.textContent=tk.value;chip.appendChild(label);const x=document.createElement('span');x.className='chip-x';x.textContent='×';x.title='点击删除此标签';x.onclick=function(e){e.stopPropagation();removeChipAt(idx)};chip.appendChild(x);container.appendChild(chip)})}
 function removeChipAt(idx){pushHistory();const tpl=document.getElementById('tplInput').value;const tokens=parseTplToTokens(tpl);if(idx<0||idx>=tokens.length)return;tokens.splice(idx,1);const newTpl=tokens.map(t=>t.value).join('');document.getElementById('tplInput').value=newTpl;syncChipsFromInput();updatePreview();toast('🗑 已移除标签','success')}
 function focusChipsEnd(e){if(e.target.classList.contains('tpl-chips')){/* clicking empty area: switch to text mode for typing */toggleTplEditMode()}}
-function insertToken(t){const inp=document.getElementById('tplInput');pushHistory();inp.value+=t;syncChipsFromInput();updatePreview()}
+function insertToken(t){const inp=document.getElementById('tplInput');pushHistory();const sep=document.getElementById('separator').value;/* 自动在变量前加分隔符（如果模板非空且末尾不是分隔符） */if(inp.value.length>0&&sep&&!inp.value.endsWith(sep)){inp.value+=sep}inp.value+=t;syncChipsFromInput();updatePreview()}
+let prevSeparator='_';
+function onSeparatorChange(sel){const newSep=sel.value;const inp=document.getElementById('tplInput');pushHistory();/* 将模板中变量间的旧分隔符替换为新分隔符 */let tpl=inp.value;if(prevSeparator){/* 替换变量之间的旧分隔符: }{old_sep}{ → }{new_sep}{ */tpl=tpl.replace(new RegExp('\\}'+escReg(prevSeparator)+'\\{','g'),'}'+newSep+'{');/* 也替换变量与普通文本间的 */tpl=tpl.replace(new RegExp(escReg(prevSeparator)+'(?=\\{)','g'),newSep);tpl=tpl.replace(new RegExp('(?<=\\})'+escReg(prevSeparator),'g'),newSep)}else{/* 之前是无分隔，现在插入新分隔 */tpl=tpl.replace(/\}\{/g,'}'+newSep+'{')}inp.value=tpl;prevSeparator=newSep;syncChipsFromInput();updatePreview();toast('✅ 分隔符已切换为 '+(newSep||'无'),'success')}
+function escReg(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
 function genName(tpl,idx,orig,ext){const type=getVal('segType'),gender=getVal('segGender'),part=getVal('segPart'),variant=getVal('segVariant'),prefix=document.getElementById('segPrefix').value,suffix=document.getElementById('segSuffix').value,numStart=parseInt(document.getElementById('segNumStart').value)||0,pad=parseInt(document.getElementById('segNumPad').value)||3,num=String(numStart+idx).padStart(pad,'0'),seq=String(idx+1).padStart(pad,'0'),d=new Date(),ds=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'),extN=ext?ext.replace('.',''):'';
 let n=tpl.replace(/\{类型\}/g,type).replace(/\{性别\}/g,gender).replace(/\{部件\}/g,part).replace(/\{编号\}/g,num).replace(/\{变体\}/g,variant).replace(/\{序号\}/g,seq).replace(/\{原名\}/g,orig||'').replace(/\{日期\}/g,ds).replace(/\{前缀\}/g,prefix).replace(/\{后缀\}/g,suffix).replace(/\{扩展名\}/g,extN);
 if(document.getElementById('cleanChinese').checked)n=n.replace(/[\u4e00-\u9fff]/g,'');
@@ -467,7 +472,7 @@ function clearAllHistory(){localStorage.removeItem('br_history');renderHistory()
 document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();generatePreview()}else if(e.ctrlKey&&e.key==='e'){e.preventDefault();exportCSV()}else if(e.ctrlKey&&e.key==='z'&&document.activeElement.id!=='tplInput'){e.preventDefault();if(tplHistory.length){document.getElementById('tplInput').value=tplHistory.pop();syncChipsFromInput();updatePreview();toast('↩️ 已撤销','success')}}});
 // Init
 renderPresetBar();syncChipsFromInput();updatePreview();renderHistory();
-ToolBus.register('batch-rename', { name: '美术资源批量重命名', version: '2.2' });
+ToolBus.register('batch-rename', { name: '美术资源批量重命名', version: '2.3' });
 </script>
 <script src="shortcut-help.js"></script>
 <script src="theme-toggle.js"></script>
