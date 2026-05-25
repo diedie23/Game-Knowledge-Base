@@ -7,60 +7,139 @@
 <link rel="stylesheet" href="design-tokens.css">
 <link rel="stylesheet" href="tool-base.css">
 <style>
-/* ═══ Texture Checker 专有样式 ═══ */
-.summary-bar{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0}
-.summary-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 24px;text-align:center;flex:1;min-width:120px}
-.summary-item .num{font-size:26px;font-weight:700;margin-bottom:3px}
-.summary-item .lbl{font-size:13px;color:var(--dim)}
-.summary-item.green .num{color:var(--green)}
-.summary-item.yellow .num{color:var(--yellow)}
-.summary-item.red .num{color:var(--red)}
-.summary-item.blue .num{color:var(--accent)}
+/* ═══ Texture Checker v2.0 — 高级 UI 样式 ═══ */
 
-/* Detail panel */
+/* ═══ 规则配置网格 ═══ */
+.rule-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:14px;margin:16px 0}
+.rule-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;transition:all .2s ease}
+.rule-item:hover{border-color:var(--accent);background:rgba(108,140,255,.03);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.rule-item label{font-size:13px;color:var(--text);font-weight:500;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.rule-item select,.rule-item input[type="text"]{padding:7px 12px;background:var(--panel);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit;transition:all .2s;min-width:140px;max-width:180px}
+.rule-item select:focus,.rule-item input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(108,140,255,.15)}
+.rule-item select:hover,.rule-item input:hover{border-color:var(--border-hover)}
+
+/* ═══ 预设卡片 ═══ */
+.preset-bar{display:grid;grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));gap:10px;margin-bottom:18px}
+.preset-btn{position:relative;padding:14px 16px;border:1.5px solid var(--border);border-radius:10px;background:var(--card);color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit;transition:all .2s ease;text-align:left;display:flex;flex-direction:column;gap:4px;overflow:hidden}
+.preset-btn::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--border);border-radius:10px 10px 0 0;transition:all .2s}
+.preset-btn:hover{border-color:var(--accent);color:var(--heading);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.preset-btn:hover::before{background:var(--accent);opacity:.6}
+.preset-btn.act{border-color:var(--accent);color:var(--accent);background:rgba(108,140,255,.06);box-shadow:0 0 0 1px rgba(108,140,255,.2),0 4px 16px rgba(108,140,255,.1)}
+.preset-btn.act::before{background:var(--accent);height:3px}
+.preset-btn .preset-name{font-weight:600;font-size:14px}
+.preset-btn .preset-desc{font-size:11px;color:var(--dim);line-height:1.4}
+
+/* ═══ 概览统计卡片 ═══ */
+.summary-bar{display:grid;grid-template-columns:repeat(4, 1fr);gap:12px;margin:16px 0}
+.summary-item{position:relative;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;text-align:center;overflow:hidden;transition:all .2s}
+.summary-item::before{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 12px 12px}
+.summary-item:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.15)}
+.summary-item .num{font-size:32px;font-weight:700;margin-bottom:2px;letter-spacing:-1px}
+.summary-item .lbl{font-size:12px;color:var(--dim);font-weight:500}
+.summary-item.green .num{color:var(--green)}
+.summary-item.green::before{background:var(--green)}
+.summary-item.yellow .num{color:var(--yellow)}
+.summary-item.yellow::before{background:var(--yellow)}
+.summary-item.red .num{color:var(--red)}
+.summary-item.red::before{background:var(--red)}
+.summary-item.blue .num{color:var(--accent)}
+.summary-item.blue::before{background:var(--accent)}
+
+/* ═══ 详情面板 ═══ */
 .detail-panel{display:none;margin-top:14px}
 .detail-panel.show{display:block}
 .detail-row{display:grid;grid-template-columns:30px 2fr 1fr 1fr 1fr 1fr 1fr 80px;gap:6px;padding:8px 12px;font-size:13px;align-items:center;border-bottom:1px solid var(--border)}
 .detail-row.header{background:var(--card);font-weight:600;color:var(--heading);position:sticky;top:0}
 .detail-row:last-child{border-bottom:none}
 
-/* Tag */
-.tag{display:inline-block;padding:3px 8px;border-radius:4px;font-size:12px;font-weight:500}
-.tag-pass{background:rgba(74,222,128,.12);color:var(--green)}
-.tag-warn{background:rgba(251,191,36,.12);color:var(--yellow)}
-.tag-fail{background:rgba(248,113,113,.12);color:var(--red)}
+/* ═══ 等级标签 ═══ */
+.tag{display:inline-flex;align-items:center;gap:3px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;letter-spacing:.3px}
+.tag-pass{background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.2)}
+.tag-warn{background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.2)}
+.tag-fail{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.2)}
 
-/* Progress */
-.progress-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin:10px 0}
-.progress-bar .fill{height:100%;background:var(--accent);border-radius:3px;transition:width .3s}
+/* ═══ 进度条 ═══ */
+.progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin:12px 0;position:relative}
+.progress-bar .fill{height:100%;background:linear-gradient(90deg, var(--accent), var(--cyan));border-radius:3px;transition:width .3s ease;position:relative}
+.progress-bar .fill::after{content:'';position:absolute;top:0;right:0;bottom:0;width:40px;background:linear-gradient(90deg, transparent, rgba(255,255,255,.2));animation:progress-shimmer 1.5s infinite}
+@keyframes progress-shimmer{0%{opacity:0}50%{opacity:1}100%{opacity:0}}
 
-/* Preset bar */
-.preset-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.preset-btn{padding:7px 16px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s}
-.preset-btn:hover{border-color:var(--accent);color:var(--heading)}
-.preset-btn.act{border-color:var(--accent);color:var(--accent);background:rgba(108,140,255,.06)}
-
-/* Thumbnails */
-.thumb{width:36px;height:36px;border-radius:4px;object-fit:contain;border:1px solid var(--border);background:repeating-conic-gradient(#1a1c28 0% 25%,#15171f 0% 50%) 50%/8px 8px}
+/* ═══ 缩略图 ═══ */
+.thumb{width:38px;height:38px;border-radius:6px;object-fit:contain;border:1px solid var(--border);background:repeating-conic-gradient(var(--checker-a) 0% 25%,var(--checker-b) 0% 50%) 50%/8px 8px;transition:transform .2s}
+.file-row:hover .thumb{transform:scale(1.1)}
 .file-row .thumb-cell{display:flex;align-items:center;justify-content:center}
 
-/* Statistics Chart */
-.stat-chart{display:flex;gap:12px;align-items:flex-end;height:100px;margin:12px 0;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:10px}
-.stat-bar-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
-.stat-bar{width:100%;border-radius:4px 4px 0 0;transition:height .4s ease;min-height:2px}
-.stat-bar-label{font-size:10px;color:var(--dim);white-space:nowrap}
-.stat-bar-val{font-size:11px;font-weight:600}
+/* ═══ 统计图表 ═══ */
+.stat-chart{display:flex;gap:12px;align-items:flex-end;height:120px;margin:12px 0;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;position:relative;overflow:hidden}
+.stat-chart::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(180deg, transparent 0%, rgba(108,140,255,.02) 100%);pointer-events:none}
+.stat-bar-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;z-index:1}
+.stat-bar{width:100%;border-radius:4px 4px 0 0;transition:height .6s cubic-bezier(.4,0,.2,1);min-height:3px;position:relative}
+.stat-bar::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,.3);border-radius:4px 4px 0 0}
+.stat-bar-label{font-size:11px;color:var(--dim);white-space:nowrap;font-weight:500}
+.stat-bar-val{font-size:12px;font-weight:700}
 .stat-chart-title{font-size:12px;color:var(--heading);font-weight:600;margin-bottom:6px}
 
-/* Rule tag in issues */
-.rule-tag{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600;margin-right:3px;vertical-align:middle}
-.rule-tag.size{background:rgba(108,140,255,.15);color:var(--accent)}
-.rule-tag.pot{background:rgba(167,139,250,.15);color:var(--accent2)}
-.rule-tag.format{background:rgba(251,146,60,.15);color:var(--orange)}
-.rule-tag.alpha{background:rgba(34,211,238,.15);color:var(--cyan)}
-.rule-tag.naming{background:rgba(251,191,36,.15);color:var(--yellow)}
-.rule-tag.filesize{background:rgba(248,113,113,.15);color:var(--red)}
-.rule-tag.colorspace{background:rgba(167,139,250,.15);color:var(--accent2)}
+/* ═══ 规则标签 ═══ */
+.rule-tag{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;margin-right:4px;vertical-align:middle;letter-spacing:.2px}
+.rule-tag.size{background:rgba(108,140,255,.12);color:var(--accent);border:1px solid rgba(108,140,255,.2)}
+.rule-tag.pot{background:rgba(167,139,250,.12);color:var(--accent2);border:1px solid rgba(167,139,250,.2)}
+.rule-tag.format{background:rgba(251,146,60,.12);color:var(--orange);border:1px solid rgba(251,146,60,.2)}
+.rule-tag.alpha{background:rgba(34,211,238,.12);color:var(--cyan);border:1px solid rgba(34,211,238,.2)}
+.rule-tag.naming{background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.2)}
+.rule-tag.filesize{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.rule-tag.colorspace{background:rgba(167,139,250,.12);color:var(--accent2);border:1px solid rgba(167,139,250,.2)}
+
+/* ═══ 文件行高亮 ═══ */
+.file-row.level-fail{background:rgba(248,113,113,.04);border-left:3px solid var(--red)}
+.file-row.level-warn{background:rgba(251,191,36,.03);border-left:3px solid var(--yellow)}
+.file-row.level-pass:hover{background:rgba(74,222,128,.03)}
+
+/* ═══ 筛选按钮组 ═══ */
+.filter-group{display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:14px 0}
+.filter-btn{padding:8px 16px;border:none;background:var(--card);color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s;border-right:1px solid var(--border);font-weight:500}
+.filter-btn:last-child{border-right:none}
+.filter-btn:hover{background:rgba(108,140,255,.06);color:var(--heading)}
+.filter-btn.act{background:var(--accent);color:#fff;font-weight:600}
+.filter-btn .filter-count{display:inline-block;min-width:18px;height:18px;line-height:18px;border-radius:9px;background:rgba(255,255,255,.15);font-size:10px;text-align:center;margin-left:5px;font-weight:700}
+.filter-btn.act .filter-count{background:rgba(255,255,255,.25)}
+
+/* ═══ 导出按钮区域 ═══ */
+.export-bar{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* ═══ 浮动操作栏 ═══ */
+.fab-bar{position:sticky;bottom:16px;z-index:100;display:flex;justify-content:center;margin-top:20px;pointer-events:none}
+.fab-bar .fab-inner{display:flex;gap:8px;padding:10px 20px;background:var(--panel);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-lg);pointer-events:auto;backdrop-filter:blur(10px)}
+
+/* ═══ 拖拽区增强 ═══ */
+.drop-zone{position:relative;overflow:hidden}
+.drop-zone::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center, rgba(34,211,238,.03) 0%, transparent 70%);pointer-events:none;opacity:0;transition:opacity .3s}
+.drop-zone:hover::before,.drop-zone.dg::before{opacity:1}
+.drop-zone .upload-icon{font-size:42px;margin-bottom:8px;opacity:.7;transition:transform .3s}
+.drop-zone:hover .upload-icon{transform:translateY(-4px) scale(1.05)}
+
+/* ═══ 规则状态指示器 ═══ */
+.rule-indicator{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px}
+.rule-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;background:rgba(108,140,255,.08);color:var(--accent);border:1px solid rgba(108,140,255,.15);transition:all .2s}
+.rule-chip.active{background:rgba(74,222,128,.1);color:var(--green);border-color:rgba(74,222,128,.2)}
+.rule-chip.strict{background:rgba(248,113,113,.08);color:var(--red);border-color:rgba(248,113,113,.15)}
+
+/* ═══ 空状态 ═══ */
+.empty-state{text-align:center;padding:40px 20px;color:var(--dim)}
+.empty-state .empty-icon{font-size:48px;opacity:.5;margin-bottom:12px}
+.empty-state p{font-size:14px;margin-top:8px}
+
+/* ═══ 响应式补丁 ═══ */
+@media(max-width:768px){
+  .rule-grid{grid-template-columns:1fr}
+  .preset-bar{grid-template-columns:repeat(2, 1fr)}
+  .summary-bar{grid-template-columns:repeat(2, 1fr)}
+  .filter-group{flex-wrap:wrap;border-radius:8px}
+  .filter-btn{flex:1;min-width:80px;text-align:center}
+}
+@media(max-width:480px){
+  .summary-bar{grid-template-columns:1fr}
+  .preset-bar{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
@@ -74,8 +153,10 @@
 
 <!-- ═══ STEPS ═══ -->
 <div class="steps" id="stepBar">
-  <div class="stp act" data-s="1"><span class="n">1</span>配置规则</div><span class="sa">→</span>
-  <div class="stp" data-s="2"><span class="n">2</span>载入文件</div><span class="sa">→</span>
+  <div class="stp act" data-s="1"><span class="n">1</span>配置规则</div>
+  <span class="sa" style="width:40px;height:2px;background:var(--border);border-radius:1px;align-self:center"></span>
+  <div class="stp" data-s="2"><span class="n">2</span>载入文件</div>
+  <span class="sa" style="width:40px;height:2px;background:var(--border);border-radius:1px;align-self:center"></span>
   <div class="stp" data-s="3"><span class="n">3</span>查看报告</div>
 </div>
 
@@ -84,13 +165,13 @@
   <div class="card-title">⚙️ 检测规则配置 <span class="badge badge-blue">Step 1</span></div>
   <div class="tip">💡 根据项目规范设置检测规则。可使用预设模板或自定义各项参数。</div>
 
-  <div style="font-size:15px;color:var(--heading);margin-bottom:8px;font-weight:600">📋 规范预设模板</div>
+  <div style="font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600;display:flex;align-items:center;gap:8px">📋 规范预设模板 <span style="font-size:11px;color:var(--dim);font-weight:400">点击快速应用</span></div>
   <div class="preset-bar" id="presetBar">
-    <button class="preset-btn act" onclick="applyPreset('mobile')">移动端 (手游)</button>
-    <button class="preset-btn" onclick="applyPreset('pc')">PC 端 (主机/端游)</button>
-    <button class="preset-btn" onclick="applyPreset('spine')">Spine 贴图</button>
-    <button class="preset-btn" onclick="applyPreset('ui')">UI 贴图</button>
-    <button class="preset-btn" onclick="applyPreset('custom')">自定义</button>
+    <button class="preset-btn act" onclick="applyPreset('mobile')"><span class="preset-name">📱 移动端 (手游)</span><span class="preset-desc">2048px · POT · PNG+TGA · ≤2MB</span></button>
+    <button class="preset-btn" onclick="applyPreset('pc')"><span class="preset-name">🖥️ PC 端 (主机/端游)</span><span class="preset-desc">4096px · POT · PNG+TGA · ≤4MB</span></button>
+    <button class="preset-btn" onclick="applyPreset('spine')"><span class="preset-name">🦴 Spine 贴图</span><span class="preset-desc">4096px · POT · PNG · sRGB · Alpha必须</span></button>
+    <button class="preset-btn" onclick="applyPreset('ui')"><span class="preset-name">🎨 UI 贴图</span><span class="preset-desc">2048px · 无POT · PNG · sRGB · ≤1MB</span></button>
+    <button class="preset-btn" onclick="applyPreset('custom')"><span class="preset-name">⚙️ 自定义</span><span class="preset-desc">自由配置所有参数</span></button>
   </div>
 
   <div class="rule-grid">
@@ -156,10 +237,17 @@
     </div>
   </div>
 
-  <div class="alert alert-green">
+  <div class="alert alert-green" id="presetAlert">
     <strong>📌 当前预设：移动端 (手游)</strong><br>
     最大尺寸 2048×2048 · 必须 POT · 允许 PNG+TGA · 检测空 Alpha · 最大 2MB<br>
     <span style="font-size:13px;color:var(--dim)">适用于移动端二次元/卡通角色项目，贴图需严格控制包体大小。</span>
+  </div>
+  <div class="rule-indicator" id="ruleIndicator">
+    <span class="rule-chip active">✓ 尺寸 ≤2048</span>
+    <span class="rule-chip strict">POT 必须</span>
+    <span class="rule-chip active">PNG+TGA</span>
+    <span class="rule-chip">Alpha 检测</span>
+    <span class="rule-chip active">≤2MB</span>
   </div>
 </div>
 
@@ -169,15 +257,24 @@
   <div class="tip">💡 拖入或选择多张贴图文件，工具将自动识别格式并依据规则进行批量检测。支持 PNG / TGA / PSD / JPG 等常见格式。</div>
 
   <div class="drop-zone" id="dropZone" ondrop="handleDrop(event)" ondragover="event.preventDefault();this.classList.add('dg')" ondragleave="this.classList.remove('dg')">
-    <h3>📂 拖入贴图文件 / 点击选择</h3>
+    <div class="upload-icon">📂</div>
+    <h3>拖入贴图文件 / 点击选择</h3>
     <p>支持批量上传多个文件（最多 500 个）</p>
+    <div style="display:flex;gap:6px;justify-content:center;margin-top:12px;flex-wrap:wrap">
+      <span class="rule-chip">PNG</span>
+      <span class="rule-chip">TGA</span>
+      <span class="rule-chip">PSD</span>
+      <span class="rule-chip">JPG</span>
+      <span class="rule-chip">WebP</span>
+      <span class="rule-chip">BMP</span>
+    </div>
   </div>
   <input type="file" id="fileInput" accept="image/*,.tga,.psd" multiple style="display:none" onchange="handleFiles(event)">
 
   <div id="fileListWrap" style="display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
-      <span style="font-size:15px;color:var(--heading);font-weight:600">📋 已载入文件 (<span id="fileCount">0</span> 个)</span>
-      <div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px">
+      <span style="font-size:14px;color:var(--heading);font-weight:600;display:flex;align-items:center;gap:8px">📋 已载入文件 <span style="background:var(--accent);color:#fff;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:700" id="fileCount">0</span></span>
+      <div style="display:flex;gap:8px">
         <button class="btn btn-sm" onclick="clearFiles()">🗑 清空</button>
         <button class="btn btn-sm btn-p" onclick="runCheck()" id="btnRun">▶️ 开始检测</button>
       </div>
@@ -213,15 +310,15 @@
   <div style="font-size:13px;color:var(--heading);font-weight:600;margin:14px 0 4px">📈 问题分布统计</div>
   <div class="stat-chart" id="statChart"></div>
 
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
-    <button class="btn btn-sm" onclick="filterReport('all')">全部</button>
-    <button class="btn btn-sm btn-r" onclick="filterReport('fail')">仅看 ❌</button>
-    <button class="btn btn-sm" style="border-color:var(--yellow);color:var(--yellow)" onclick="filterReport('warn')">仅看 ⚠️</button>
-    <button class="btn btn-sm btn-g" onclick="filterReport('pass')">仅看 ✅</button>
+  <div class="filter-group" id="filterGroup">
+    <button class="filter-btn act" onclick="filterReport('all')">全部<span class="filter-count" id="fcAll">0</span></button>
+    <button class="filter-btn" onclick="filterReport('fail')">❌ 不通过<span class="filter-count" id="fcFail">0</span></button>
+    <button class="filter-btn" onclick="filterReport('warn')">⚠️ 警告<span class="filter-count" id="fcWarn">0</span></button>
+    <button class="filter-btn" onclick="filterReport('pass')">✅ 通过<span class="filter-count" id="fcPass">0</span></button>
   </div>
 
-  <div class="file-list" id="reportList" style="max-height:400px">
-    <div class="file-row header" style="grid-template-columns:30px 40px 2fr 80px 80px 70px 55px 65px 60px 1.5fr">
+  <div class="file-list" id="reportList" style="max-height:450px">
+    <div class="file-row header" style="grid-template-columns:30px 42px 2fr 80px 80px 65px 55px 65px 70px 1.5fr">
       <div class="idx">#</div>
       <div>预览</div>
       <div>文件名</div>
@@ -235,10 +332,11 @@
     </div>
   </div>
 
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+  <div class="export-bar">
     <button class="btn btn-g" onclick="exportCSV()">📥 导出 CSV 报告</button>
     <button class="btn btn-p" onclick="exportJSON()">💾 导出 JSON 详情</button>
     <button class="btn btn-sm" onclick="copyReport()">📋 复制到剪贴板</button>
+    <button class="btn btn-sm" onclick="runCheck()" style="margin-left:auto">🔄 重新检测</button>
   </div>
 </div>
 
@@ -303,6 +401,7 @@ function toast(msg) {
 
 function toggleSwitch(el) {
   el.classList.toggle('on');
+  updateRuleIndicator();
 }
 
 function applyPreset(key) {
@@ -319,15 +418,32 @@ function applyPreset(key) {
 
   // Update preset buttons
   document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('act'));
-  event.target.classList.add('act');
+  event.target.closest('.preset-btn').classList.add('act');
 
   // Update alert
-  const alerts = document.querySelectorAll('#s1 .alert');
-  alerts.forEach(a => {
-    a.innerHTML = `<strong>📌 当前预设：${p.desc}</strong><br>${p.detail}<br><span style="font-size:13px;color:var(--dim)">可在上方规则网格中进行微调。</span>`;
-  });
+  const alert = document.getElementById('presetAlert');
+  alert.innerHTML = `<strong>📌 当前预设：${p.desc}</strong><br>${p.detail}<br><span style="font-size:13px;color:var(--dim)">可在上方规则网格中进行微调。</span>`;
+
+  // Update rule indicator chips
+  updateRuleIndicator();
 
   toast('✅ 已切换到预设：' + p.desc);
+}
+
+function updateRuleIndicator() {
+  const rules = getRules();
+  const chips = [];
+  chips.push(`<span class="rule-chip active">✓ 尺寸 ≤${rules.maxSize}</span>`);
+  if (rules.pot) chips.push(`<span class="rule-chip strict">POT 必须</span>`);
+  if (rules.square) chips.push(`<span class="rule-chip strict">正方形</span>`);
+  const fmtMap = {'png,tga':'PNG+TGA','png':'仅PNG','tga':'仅TGA','png,tga,psd':'PNG+TGA+PSD','any':'任意格式'};
+  chips.push(`<span class="rule-chip active">${fmtMap[rules.format]||rules.format}</span>`);
+  const alphaMap = {'check':'Alpha检测','required':'Alpha必须','forbidden':'禁止Alpha','ignore':'不检测Alpha'};
+  if (rules.alpha !== 'ignore') chips.push(`<span class="rule-chip">${alphaMap[rules.alpha]}</span>`);
+  if (rules.colorSpace !== 'any') chips.push(`<span class="rule-chip strict">${rules.colorSpace.toUpperCase()}</span>`);
+  if (rules.maxFileSize > 0) chips.push(`<span class="rule-chip active">≤${formatSize(rules.maxFileSize)}</span>`);
+  if (rules.naming) chips.push(`<span class="rule-chip strict">命名规则</span>`);
+  document.getElementById('ruleIndicator').innerHTML = chips.join('');
 }
 
 function updateStep(step) {
@@ -418,8 +534,9 @@ async function runCheck() {
 
   const btn = document.getElementById('btnRun');
   btn.disabled = true;
-  btn.textContent = '⏳ 检测中...';
-  document.getElementById('progressBar').style.display = 'block';
+  btn.innerHTML = '<span style="display:inline-block;animation:dt-spin 1s linear infinite">⏳</span> 检测中...';
+  const progressBar = document.getElementById('progressBar');
+  progressBar.style.display = 'block';
 
   checkResults = new Array(loadedFiles.length);
   const rules = getRules();
@@ -433,6 +550,8 @@ async function runCheck() {
       completed++;
       const pct = (completed / loadedFiles.length * 100).toFixed(0);
       document.getElementById('progressFill').style.width = pct + '%';
+      // Update button text with progress
+      btn.innerHTML = `<span style="display:inline-block;animation:dt-spin 1s linear infinite">⏳</span> ${pct}%（${completed}/${loadedFiles.length}）`;
     }
   }
 
@@ -447,8 +566,8 @@ async function runCheck() {
   checkResults = Array.from(checkResults);
 
   btn.disabled = false;
-  btn.textContent = '▶️ 重新检测';
-  document.getElementById('progressBar').style.display = 'none';
+  btn.innerHTML = '🔄 重新检测';
+  progressBar.style.display = 'none';
 
   updateStep(3);
   showReport();
@@ -736,10 +855,17 @@ function showReport() {
   const warn = checkResults.filter(r => r.level === 'warn').length;
   const fail = checkResults.filter(r => r.level === 'fail').length;
 
-  document.getElementById('sumTotal').textContent = total;
-  document.getElementById('sumPass').textContent = pass;
-  document.getElementById('sumWarn').textContent = warn;
-  document.getElementById('sumFail').textContent = fail;
+  // Animate numbers
+  animateNumber('sumTotal', total);
+  animateNumber('sumPass', pass);
+  animateNumber('sumWarn', warn);
+  animateNumber('sumFail', fail);
+
+  // Update filter counts
+  document.getElementById('fcAll').textContent = total;
+  document.getElementById('fcFail').textContent = fail;
+  document.getElementById('fcWarn').textContent = warn;
+  document.getElementById('fcPass').textContent = pass;
 
   // Render statistics chart
   renderStatChart();
@@ -748,6 +874,22 @@ function showReport() {
 
   // Scroll to report
   document.getElementById('s3').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Animate number count up
+function animateNumber(id, target) {
+  const el = document.getElementById(id);
+  const start = parseInt(el.textContent) || 0;
+  const duration = 400;
+  const startTime = performance.now();
+  function tick(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+    el.textContent = Math.round(start + (target - start) * ease);
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
 }
 
 function renderStatChart() {
@@ -781,15 +923,28 @@ function renderStatChart() {
 
 function renderReport(filter) {
   const list = document.getElementById('reportList');
-  list.innerHTML = `<div class="file-row header" style="grid-template-columns:30px 40px 2fr 80px 80px 70px 55px 65px 60px 1.5fr">
+  list.innerHTML = `<div class="file-row header" style="grid-template-columns:30px 42px 2fr 80px 80px 65px 55px 65px 70px 1.5fr">
     <div class="idx">#</div><div>预览</div><div>文件名</div><div>尺寸</div><div>文件大小</div><div>格式</div><div>Alpha</div><div>色彩空间</div><div>等级</div><div>问题详情</div>
   </div>`;
 
+  // Update filter button active state
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('act'));
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const filterIdx = {'all':0,'fail':1,'warn':2,'pass':3};
+  if (filterBtns[filterIdx[filter]]) filterBtns[filterIdx[filter]].classList.add('act');
+
   const filtered = filter === 'all' ? checkResults : checkResults.filter(r => r.level === filter);
+
+  if (filtered.length === 0) {
+    list.innerHTML += `<div class="empty-state"><div class="empty-icon">🎉</div><p>${filter === 'all' ? '暂无检测结果' : '没有匹配的文件'}</p></div>`;
+    return;
+  }
+
   filtered.forEach((r, i) => {
     const row = document.createElement('div');
-    row.className = 'file-row';
-    row.style.gridTemplateColumns = '30px 40px 2fr 80px 80px 70px 55px 65px 60px 1.5fr';
+    row.className = `file-row level-${r.level}`;
+    row.style.gridTemplateColumns = '30px 42px 2fr 80px 80px 65px 55px 65px 70px 1.5fr';
+    row.style.animationDelay = `${i * 20}ms`;
     const levelTag = r.level === 'pass' ? '<span class="tag tag-pass">✅ 通过</span>' :
                      r.level === 'warn' ? '<span class="tag tag-warn">⚠️ 警告</span>' :
                      '<span class="tag tag-fail">❌ 不通过</span>';
@@ -807,7 +962,7 @@ function renderReport(filter) {
     const issueStr = r.issues.length ? r.issues.map(i => {
       const ruleTag = i.rule ? `<span class="rule-tag ${i.rule}">${{size:'尺寸',pot:'POT',format:'格式',alpha:'Alpha',naming:'命名',filesize:'大小',colorspace:'色彩'}[i.rule]||i.rule}</span>` : '';
       return ruleTag + i.msg;
-    }).join('；') : '—';
+    }).join('；') : '<span style="color:var(--green)">—</span>';
     row.innerHTML = `<div class="idx">${i+1}</div>${thumbHtml}<div class="fname" title="${r.name}">${r.name}</div><div>${sizeStr}</div><div>${r.sizeStr}</div><div>${r.ext.toUpperCase()}</div><div>${alphaStr}</div><div style="font-size:11px">${csStr}</div><div>${levelTag}</div><div style="font-size:11px;color:var(--dim)">${issueStr}</div>`;
     list.appendChild(row);
   });
@@ -874,6 +1029,12 @@ function downloadText(content, filename, mime) {
   a.click();
   URL.revokeObjectURL(a.href);
 }
+// Listen for rule changes to update indicator in real-time
+['ruleMaxSize','ruleFormat','ruleAlpha','ruleColorSpace','ruleFileSize'].forEach(id => {
+  document.getElementById(id).addEventListener('change', updateRuleIndicator);
+});
+document.getElementById('ruleNaming').addEventListener('input', updateRuleIndicator);
+
 ToolBus.register('texture-checker', { name: '贴图规范检测器', version: '2.0' });
 </script>
 <script src="shortcut-help.js"></script>
