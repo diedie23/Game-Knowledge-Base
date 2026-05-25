@@ -104,6 +104,10 @@ button{cursor:pointer;font-family:inherit}
 .toast.i{background:rgba(108,140,255,.15);border:1px solid rgba(108,140,255,.3);color:var(--accent)}
 @keyframes ti{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 #fileInput{display:none}
+.export-progress{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--panel);border:1px solid var(--accent);border-radius:8px;padding:12px 20px;box-shadow:0 8px 30px rgba(0,0,0,.5);display:none;min-width:280px;text-align:center}
+.export-progress .ep-bar{height:6px;background:var(--bg);border-radius:3px;margin-top:8px;overflow:hidden}
+.export-progress .ep-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width .15s;width:0%}
+.export-progress .ep-text{font-size:11px;color:var(--dim);margin-top:4px}
 </style>
 </head>
 <body>
@@ -173,6 +177,9 @@ button{cursor:pointer;font-family:inherit}
       <div style="margin-top:6px;display:flex;gap:3px"><button class="btn-s" id="btnClrPal">🗑 清空</button><button class="btn-s" id="btnSortPal">↕ 排序</button></div>
     </div>
     <div class="ps"><h3>🔄 替换目标色</h3><div id="palRepl" style="font-size:11px;color:var(--dim)">（先提取原色）</div></div>
+    <div class="ps"><h3>👁 全局预览</h3>
+      <div class="pr"><label>替换预览</label><button class="btn-s" id="btnPrevB">关闭</button><span style="font-size:10px;color:var(--dim);margin-left:6px">完整替换效果</span></div>
+    </div>
   </div>
   <!-- 方案 C -->
   <div id="pC" class="sp" style="display:none">
@@ -215,13 +222,14 @@ button{cursor:pointer;font-family:inherit}
     <button id="tUndo" title="撤销(Ctrl+Z)" style="opacity:.3">↩</button>
     <button id="tRedo" title="重做(Ctrl+Y)" style="opacity:.3">↪</button>
   </div>
-  <div class="prev-p" id="prevP" style="display:none"><h4>🖼 Mask 预览</h4><canvas id="pvC" width="160" height="160"></canvas></div>
+  <div class="prev-p" id="prevP" style="display:none"><h4>🖼 Mask 预览</h4><canvas id="pvC" width="160" height="160"></canvas><div id="pvLegend" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px"></div></div>
   <div class="zoom-i" id="zI" style="display:none">100%</div>
 </div>
 </div>
 
 <div class="ch-info-float" id="cHov"><div class="cpv" id="cPv"></div><div><div id="cHex" style="font-family:monospace;color:var(--heading)">#000000</div><div id="cRgb" style="color:var(--dim)">R:0 G:0 B:0</div></div></div>
 <div class="brush-cursor" id="brushCur"></div>
+<div class="export-progress" id="expProg"><div style="font-size:12px;color:var(--heading);font-weight:600">📦 正在生成资源包…</div><div class="ep-bar"><div class="ep-fill" id="epFill"></div></div><div class="ep-text" id="epText">准备中...</div></div>
 
 <script>
 'use strict';
@@ -231,7 +239,7 @@ button{cursor:pointer;font-family:inherit}
 const S={scheme:'A',img:null,imgData:null,imgW:0,imgH:0,zoom:1,panX:0,panY:0,
   tool:'pan',brushSize:10,dragging:false,lastM:null,rStart:null,rEnd:null,
   channels:[],activeCh:-1,colorSpace:'lab',
-  palette:[],
+  palette:[],previewB:false,
   grayRegs:[],activeGr:-1,tintColor:'#ff6b6b',tintStr:.8,brOff:20};
 const $=id=>document.getElementById(id);
 const mc=$('mc'),ctx=mc.getContext('2d',{willReadFrequently:true});
@@ -352,6 +360,17 @@ for(let ci=0;ci<S.channels.length;ci++){const ch=S.channels[ci];if(!ch.md)contin
 tx.putImageData(ov,0,0);ctx.drawImage(tc,0,0)}
 
 function overlayB(){if(!S.palette.length)return;const d=S.imgData.data,tol=parseInt($('tolB').value),tolSq=tol*tol;
+// ═══ P3: 全局预览模式 — 直接绘制替换后完整图像 ═══
+if(S.previewB){
+  const{c:tc,x:tx,img:ov}=_getOvBuf();const od=ov.data;
+  const palLen=S.palette.length,palOr=new Array(palLen),palRp=new Array(palLen);
+  for(let k=0;k<palLen;k++){palOr[k]=hex2rgb(S.palette[k].original);palRp[k]=hex2rgb(S.palette[k].replace)}
+  for(let i=0,n=d.length/4;i<n;i++){const idx=i*4;od[idx]=d[idx];od[idx+1]=d[idx+1];od[idx+2]=d[idx+2];od[idx+3]=d[idx+3];
+    if(d[idx+3]<10)continue;const pr=d[idx],pg=d[idx+1],pb=d[idx+2];
+    for(let k=0;k<palLen;k++){const[or,og,ob]=palOr[k];const dr=pr-or,dg=pg-og,db=pb-ob;
+      if(dr*dr+dg*dg+db*db<=tolSq){od[idx]=palRp[k][0];od[idx+1]=palRp[k][1];od[idx+2]=palRp[k][2];break}}}
+  tx.putImageData(ov,0,0);ctx.clearRect(0,0,S.imgW,S.imgH);drawCB(ctx,S.imgW,S.imgH);ctx.drawImage(tc,0,0);return;
+}
 // ═══ P2: 大图方案B使用 Worker 加速 ═══
 const w=_getWorker();
 if(w&&S.imgW*S.imgH>500000&&!S._ovBLock){
@@ -394,7 +413,10 @@ if(!renderPrev._map||renderPrev._pw!==pw||renderPrev._ph!==ph||renderPrev._iw!==
 const map=renderPrev._map,total=pw*ph;
 for(let i=0;i<total;i++){const si=map[i],pi=i*4;pd[pi+3]=255;
   for(let ci=0;ci<S.channels.length;ci++){const ch=S.channels[ci];if(!ch.md||!ch.md[si])continue;pd[pi+ch.ci]=ch.md[si]}}
-pCtx.putImageData(pv,0,0)}else{$('prevP').style.display='none'}}
+pCtx.putImageData(pv,0,0);
+// ═══ P3: Mask 通道颜色图例 ═══
+const lg=$('pvLegend');if(lg){lg.innerHTML=S.channels.map(ch=>`<div style="display:flex;align-items:center;gap:3px;font-size:9px;color:var(--dim)"><div style="width:8px;height:8px;border-radius:2px;background:${ch.dc}"></div>${ch.nm.split('-').pop()}</div>`).join('')}
+}else{$('prevP').style.display='none'}}
 
 /* ─── 画布交互 ─── */
 function fitWin(){const a=$('cArea'),aw=a.clientWidth,ah=a.clientHeight;S.zoom=Math.min((aw-30)/S.imgW,(ah-30)/S.imgH,4);S.panX=(aw-S.imgW*S.zoom)/2;S.panY=(ah-S.imgH*S.zoom)/2}
@@ -513,6 +535,9 @@ window.updPal=(i,h)=>{S.palette[i].replace=h;rebuildPalUI();renderAll()};
 $('btnClrPal').onclick=()=>{if(!S.palette.length)return;if(!confirm('确定清空所有调色板颜色？'))return;S.palette=[];rebuildPalUI();renderAll();_csSaveSnapshot()};
 $('btnSortPal').onclick=()=>{S.palette.sort((a,b)=>{const[,,la]=rgbToHsl(...hex2rgb(a.original)),[,,lb]=rgbToHsl(...hex2rgb(b.original));return la-lb});rebuildPalUI();toast('已按亮度排序','s')};
 
+// ═══ P3: 方案B全局预览 toggle ═══
+$('btnPrevB').onclick=()=>{S.previewB=!S.previewB;$('btnPrevB').textContent=S.previewB?'开启':'关闭';$('btnPrevB').classList.toggle('active',S.previewB);if(S.img)renderAll()};
+
 /* ─── 方案C: 灰度区域 ─── */
 $('btnAddGr').onclick=()=>{if(!S.img){toast('请先导入图片','w');return}const i=S.grayRegs.length;S.grayRegs.push({nm:`区域${i+1}`,color:null,md:new Uint8Array(S.imgW*S.imgH)});S.activeGr=i;rebuildGrUI();toast(`已添加灰度区域${i+1}`,'s')};
 function genMaskGr(idx){const reg=S.grayRegs[idx];if(!reg.color)return;const[tr,tg,tb]=hex2rgb(reg.color);const tol=parseInt($('tolC').value);const d=S.imgData.data;const mask=new Uint8Array(S.imgW*S.imgH);
@@ -558,12 +583,18 @@ $('csHsl').onclick=()=>{S.colorSpace='hsl';$('csHsl').classList.add('active');$(
    ═══════════════════════════════════════════ */
 $('btnExport').onclick=async()=>{if(!S.img){toast('请先导入图片','e');return}
 if(typeof JSZip==='undefined'){toast('ZIP压缩库未加载，请检查网络后刷新页面','e');return}
-toast('正在生成资源包…','i');
+// ═══ P3: 导出进度条 ═══
+const prog=$('expProg'),fill=$('epFill'),ptxt=$('epText');
+prog.style.display='block';fill.style.width='0%';ptxt.textContent='准备中...';
+function ep(pct,msg){fill.style.width=pct+'%';ptxt.textContent=msg}
 try{const zip=new JSZip();const config={scheme:S.scheme,version:'1.0',exportTime:new Date().toISOString(),imageSize:{w:S.imgW,h:S.imgH}};
+ep(10,'正在处理图像数据...');
 
 if(S.scheme==='A'){
+  ep(20,'生成基础原图...');
   // 基础原图
   zip.file('character_base.png',await canvasToBlob(drawBaseA()));
+  ep(40,'生成 Mask 通道图...');
   // Mask图（按 maskIndex 分组）
   const maxMi=S.channels.reduce((m,c)=>Math.max(m,c.mi),0);
   config.masks=[];config.channels=[];
@@ -582,8 +613,10 @@ if(S.scheme==='A'){
     for(const ch of chs)config.channels.push({name:ch.nm,maskFile:fn,channel:CH_NM[ch.ci],sampledColor:ch.color||null})
   }
 }else if(S.scheme==='B'){
+  ep(20,'生成索引色原图...');
   // 索引色原图
   zip.file('character_base.png',await canvasToBlob(drawBaseB()));
+  ep(50,'生成调色板...');
   // 256x1调色板
   const palC=document.createElement('canvas');palC.width=256;palC.height=1;
   const palCtx=palC.getContext('2d');const palData=palCtx.createImageData(256,1);const pd=palData.data;
@@ -592,6 +625,7 @@ if(S.scheme==='A'){
   zip.file('palette.png',await canvasToBlob(palC));
   config.palette=S.palette.map(p=>({original:p.original,replace:p.replace}));
 }else if(S.scheme==='C'){
+  ep(20,'生成灰度底图...');
   // 灰度底图
   zip.file('character_base.png',await canvasToBlob(drawBaseC()));
   config.tint={color:S.tintColor,strength:S.tintStr,brightnessOffset:S.brOff};
@@ -599,9 +633,12 @@ if(S.scheme==='A'){
 }
 
 zip.file('palette_config.json',JSON.stringify(config,null,2));
-const blob=await zip.generateAsync({type:'blob'});
+ep(70,'正在压缩打包...');
+const blob=await zip.generateAsync({type:'blob'},meta=>{ep(70+Math.round(meta.percent*.28),'压缩中 '+Math.round(meta.percent)+'%')});
+ep(100,'导出完成！');
 const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`color-swap-${S.scheme}-${Date.now()}.zip`;a.click();
-toast('资源包已导出！','s',3000)}catch(e){toast('导出失败: '+e.message,'e')}};
+setTimeout(()=>{prog.style.display='none'},1500);
+toast('资源包已导出！','s',3000)}catch(e){prog.style.display='none';toast('导出失败: '+e.message,'e')}};
 
 function canvasToBlob(c){return new Promise(r=>{c.toBlob(b=>{b.arrayBuffer().then(ab=>r(new Uint8Array(ab)))},'image/png')})}
 
@@ -631,19 +668,35 @@ function drawBaseC(){
   cx.putImageData(iData,0,0);return c}
 
 /* ═══════════════════════════════════════════
-   工程持久化系统 v1.0
+   工程持久化系统 v1.1
    ═══════════════════════════════════════════ */
 const PROJECT_KEY='color-swap-project-v1';
+const PROJECT_VERSION='1.1';
 const AUTO_SAVE_INTERVAL=30000;
 let _autoSaveTimer=null;
 let _projectDirty=false;
+
+// ═══ P3: 版本迁移机制 ═══
+function _migrateProject(p){
+  if(!p.version) p.version='1.0';
+  // v1.0 → v1.1: 添加 previewB, 确保 channels 有 _px 字段
+  if(p.version==='1.0'){
+    p.previewB=false;
+    if(p.channels)p.channels.forEach(c=>{if(c._px==null)c._px=null});
+    if(p.grayRegs)p.grayRegs.forEach(r=>{if(r._px==null)r._px=null});
+    p.version='1.1';
+  }
+  // 未来版本迁移在此追加：
+  // if(p.version==='1.1'){ ... p.version='1.2' }
+  return p;
+}
 
 function _serializeProject(){
   if(!S.img)return null;
   const tc=document.createElement('canvas');tc.width=S.imgW;tc.height=S.imgH;tc.getContext('2d').drawImage(S.img,0,0);
   return JSON.stringify({
-    version:'1.0',tool:'color-swap-tool',savedAt:new Date().toISOString(),
-    imgW:S.imgW,imgH:S.imgH,scheme:S.scheme,
+    version:PROJECT_VERSION,tool:'color-swap-tool',savedAt:new Date().toISOString(),
+    imgW:S.imgW,imgH:S.imgH,scheme:S.scheme,previewB:S.previewB||false,
     imgBase64:tc.toDataURL('image/png'),
     channels:S.channels.map(c=>({nm:c.nm,color:c.color,dc:c.dc,ci:c.ci,mi:c.mi||0,md:Array.from(c.md||[])})),
     palette:S.palette.slice(),
@@ -656,9 +709,10 @@ function _serializeProject(){
 
 function _deserializeProject(json){
   try{
-    const p=JSON.parse(json);if(!p||!p.imgBase64)return false;
+    let p=JSON.parse(json);if(!p||!p.imgBase64)return false;
+    p=_migrateProject(p);
     const img=new Image();img.onload=()=>{
-      S.img=img;S.imgW=p.imgW;S.imgH=p.imgH;S.scheme=p.scheme||'A';
+      S.img=img;S.imgW=p.imgW;S.imgH=p.imgH;S.scheme=p.scheme||'A';S.previewB=p.previewB||false;
       const tc=document.createElement('canvas');tc.width=S.imgW;tc.height=S.imgH;const tx=tc.getContext('2d');tx.drawImage(img,0,0);S.imgData=tx.getImageData(0,0,S.imgW,S.imgH);
       S.channels=(p.channels||[]).map(c=>({...c,md:new Uint8Array(c.md)}));
       S.palette=p.palette||[];

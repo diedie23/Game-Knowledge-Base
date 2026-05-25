@@ -9,31 +9,36 @@
 'use strict';
 
 const AG_PSD_CDN='https://cdn.jsdelivr.net/npm/ag-psd@19.2.0/dist/browser.min.js';
+const AG_PSD_CDN_FALLBACK='https://unpkg.com/ag-psd@19.2.0/dist/browser.min.js';
 let agPsd=null;
 let loading=false;
 const loadCallbacks=[];
+
+function _loadScript(url){
+  return new Promise((resolve,reject)=>{
+    const s=document.createElement('script');s.src=url;
+    s.onload=()=>resolve(true);s.onerror=()=>resolve(false);
+    document.head.appendChild(s);
+  });
+}
 
 function loadLib(cb){
   if(agPsd){cb(agPsd);return}
   loadCallbacks.push(cb);
   if(loading)return;
   loading=true;
-  const s=document.createElement('script');
-  s.src=AG_PSD_CDN;
-  s.onload=()=>{
+  // ═══ P3: 双 CDN fallback ═══
+  _loadScript(AG_PSD_CDN).then(ok=>{
+    if(!ok) return _loadScript(AG_PSD_CDN_FALLBACK);
+    return true;
+  }).then(ok2=>{
     agPsd=window.agPsd||window['ag-psd'];
-    // ag-psd 暴露为 window.agPsd
     if(!agPsd&&window.readPsd){agPsd={readPsd:window.readPsd}}
     loading=false;
-    loadCallbacks.forEach(fn=>fn(agPsd));
+    if(agPsd){loadCallbacks.forEach(fn=>fn(agPsd))}
+    else{loadCallbacks.forEach(fn=>fn(null))}
     loadCallbacks.length=0;
-  };
-  s.onerror=()=>{
-    loading=false;
-    loadCallbacks.forEach(fn=>fn(null));
-    loadCallbacks.length=0;
-  };
-  document.head.appendChild(s);
+  });
 }
 
 /**
