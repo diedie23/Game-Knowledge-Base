@@ -164,11 +164,11 @@
     </div>
     <div class="tpl-row" style="align-items:center">
       <label>分隔符</label>
-      <select id="separator" onchange="onSeparatorChange(this)"><option value="_">下划线 (_)</option><option value="-">连字符 (-)</option><option value=".">点号 (.)</option><option value="">无分隔</option></select>
-      <span style="font-size:11px;color:var(--dim);margin-left:4px">← 切换会自动替换模板中的分隔符</span>
+      <select id="separator" onchange="onSeparatorChange(this)"><option value="_">下划线 (_) — 最常用，如 CH_M_Body</option><option value="-">连字符 (-) — 如 CH-M-Body</option><option value=".">点号 (.) — 如 CH.M.Body</option><option value="">无分隔 — 变量直接拼接</option></select>
+      <span style="font-size:13px;color:var(--dim);margin-left:6px">← 切换会自动替换模板中的分隔符</span>
       <label style="margin-left:12px">大小写</label>
-      <select id="caseMode" onchange="syncChipsFromInput();updatePreview()"><option value="keep">保持原样</option><option value="lower">全部小写</option><option value="upper">全部大写</option><option value="pascal">PascalCase</option><option value="camel">camelCase</option></select>
-      <span style="font-size:11px;color:var(--dim);margin-left:4px">← 影响最终输出</span>
+      <select id="caseMode" onchange="syncChipsFromInput();updatePreview()"><option value="keep">保持原样 — 不做任何转换</option><option value="lower">全部小写 — ch_m_body</option><option value="upper">全部大写 — CH_M_BODY</option><option value="pascal">PascalCase — 每个词首字母大写</option><option value="camel">camelCase — 首词小写后续首字母大写</option></select>
+      <span style="font-size:13px;color:var(--dim);margin-left:6px">← 影响最终输出的文件名格式</span>
     </div>
     <div class="clean-opts">
       <label><input type="checkbox" id="cleanChinese" onchange="updatePreview()"> 去除中文</label>
