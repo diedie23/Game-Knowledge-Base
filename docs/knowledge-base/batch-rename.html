@@ -164,10 +164,10 @@
     </div>
     <div class="tpl-row" style="align-items:center">
       <label>分隔符</label>
-      <select id="separator" onchange="onSeparatorChange(this)"><option value="_">下划线 (_) — 最常用，如 CH_M_Body</option><option value="-">连字符 (-) — 如 CH-M-Body</option><option value=".">点号 (.) — 如 CH.M.Body</option><option value="">无分隔 — 变量直接拼接</option></select>
+      <select id="separator" onchange="onSeparatorChange(this)"><option value="_">下划线（_）— 最常用，如 CH_M_Body</option><option value="-">连字符（-）— 如 CH-M-Body</option><option value=".">点号（.）— 如 CH.M.Body</option><option value="">无分隔 — 变量直接拼接</option></select>
       <span style="font-size:13px;color:var(--dim);margin-left:6px">← 切换会自动替换模板中的分隔符</span>
       <label style="margin-left:12px">大小写</label>
-      <select id="caseMode" onchange="syncChipsFromInput();updatePreview()"><option value="keep">保持原样 — 不做任何转换</option><option value="lower">全部小写 — ch_m_body</option><option value="upper">全部大写 — CH_M_BODY</option><option value="pascal">PascalCase — 每个词首字母大写</option><option value="camel">camelCase — 首词小写后续首字母大写</option></select>
+      <select id="caseMode" onchange="syncChipsFromInput();updatePreview()"><option value="keep">保持原样 — 不做任何转换</option><option value="lower">全部小写 — 如 ch_m_body</option><option value="upper">全部大写 — 如 CH_M_BODY</option><option value="pascal">PascalCase — 每个词首字母大写，如 ChMBody</option><option value="camel">camelCase — 首词小写，如 chMBody</option></select>
       <span style="font-size:13px;color:var(--dim);margin-left:6px">← 影响最终输出的文件名格式</span>
     </div>
     <div class="clean-opts">
@@ -192,12 +192,12 @@
     </div>
     <div style="font-size:13px;color:var(--heading);margin:14px 0 6px;font-weight:600">🔧 各段默认值</div>
     <div class="seg-grid" id="segGrid">
-      <div class="seg-item"><div class="seg-label">类型</div><select id="segType" onchange="toggleCustom(this);updatePreview()"><option value="CH">CH (角色)</option><option value="WP">WP (武器)</option><option value="UI">UI (界面)</option><option value="BG">BG (背景)</option><option value="EF">EF (特效)</option><option value="IT">IT (道具)</option><option value="">自定义</option></select><input type="text" id="segTypeCustom" placeholder="自定义类型" style="display:none" oninput="updatePreview()"></div>
-      <div class="seg-item"><div class="seg-label">性别</div><select id="segGender" onchange="toggleCustom(this);updatePreview()"><option value="M">M (男性)</option><option value="F">F (女性)</option><option value="N">N (中性)</option><option value="">自定义</option></select><input type="text" id="segGenderCustom" placeholder="自定义" style="display:none" oninput="updatePreview()"></div>
-      <div class="seg-item"><div class="seg-label">部件</div><select id="segPart" onchange="toggleCustom(this);updatePreview()"><option value="Body">Body (身体)</option><option value="Head">Head (头部)</option><option value="Hair">Hair (头发)</option><option value="Face">Face (脸部)</option><option value="Hand">Hand (手部)</option><option value="Leg">Leg (腿部)</option><option value="Acc">Acc (配件)</option><option value="">自定义</option></select><input type="text" id="segPartCustom" placeholder="自定义部件" style="display:none" oninput="updatePreview()"></div>
-      <div class="seg-item"><div class="seg-label">编号 (起始)</div><input type="number" id="segNumStart" value="1" min="0" step="1" oninput="updatePreview()"><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font-size:11px;color:var(--dim)">位数:</span><select id="segNumPad" style="width:50px" onchange="updatePreview()"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></div></div>
+      <div class="seg-item"><div class="seg-label">类型</div><select id="segType" onchange="toggleCustom(this);updatePreview()"><option value="CH">CH（角色）</option><option value="WP">WP（武器）</option><option value="UI">UI（界面）</option><option value="BG">BG（背景）</option><option value="EF">EF（特效）</option><option value="IT">IT（道具）</option><option value="">自定义</option></select><input type="text" id="segTypeCustom" placeholder="自定义类型" style="display:none" oninput="updatePreview()"></div>
+      <div class="seg-item"><div class="seg-label">性别</div><select id="segGender" onchange="toggleCustom(this);updatePreview()"><option value="M">M（男性）</option><option value="F">F（女性）</option><option value="N">N（中性）</option><option value="">自定义</option></select><input type="text" id="segGenderCustom" placeholder="自定义" style="display:none" oninput="updatePreview()"></div>
+      <div class="seg-item"><div class="seg-label">部件</div><select id="segPart" onchange="toggleCustom(this);updatePreview()"><option value="Body">Body（身体）</option><option value="Head">Head（头部）</option><option value="Hair">Hair（头发）</option><option value="Face">Face（脸部）</option><option value="Hand">Hand（手部）</option><option value="Leg">Leg（腿部）</option><option value="Acc">Acc（配件）</option><option value="">自定义</option></select><input type="text" id="segPartCustom" placeholder="自定义部件" style="display:none" oninput="updatePreview()"></div>
+      <div class="seg-item"><div class="seg-label">编号（起始）</div><input type="number" id="segNumStart" value="1" min="0" step="1" oninput="updatePreview()"><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font-size:11px;color:var(--dim)">位数:</span><select id="segNumPad" style="width:50px" onchange="updatePreview()"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></div></div>
       <div class="seg-item"><div class="seg-label">变体</div><select id="segVariant" onchange="toggleCustom(this);updatePreview()"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="Base">Base</option><option value="Alt">Alt</option><option value="">自定义</option></select><input type="text" id="segVariantCustom" placeholder="自定义" style="display:none" oninput="updatePreview()"></div>
-      <div class="seg-item"><div class="seg-label">前缀 / 后缀</div><input type="text" id="segPrefix" placeholder="前缀 (如 T_)" oninput="updatePreview()"><input type="text" id="segSuffix" placeholder="后缀 (如 _D)" style="margin-top:4px" oninput="updatePreview()"></div>
+      <div class="seg-item"><div class="seg-label">前缀 / 后缀</div><input type="text" id="segPrefix" placeholder="前缀（如 T_）" oninput="updatePreview()"><input type="text" id="segSuffix" placeholder="后缀（如 _D）" style="margin-top:4px" oninput="updatePreview()"></div>
     </div>
     <div class="tpl-preview"><div class="lbl">📋 命名预览</div><div class="val" id="tplPreviewText">CH_M_Body_001_A</div></div>
   </div>
@@ -205,7 +205,7 @@
   <!-- 正则模式 -->
   <div id="modeRegex" style="display:none">
     <div class="tip">💡 正则匹配原文件名并替换。支持捕获组 <code>$1, $2</code>。</div>
-    <div style="font-size:13px;color:var(--heading);margin-bottom:6px;font-weight:600">📋 常用正则模板 <span style="font-size:11px;color:var(--dim);font-weight:400">(点击快速填入)</span></div>
+    <div style="font-size:13px;color:var(--heading);margin-bottom:6px;font-weight:600">📋 常用正则模板 <span style="font-size:11px;color:var(--dim);font-weight:400">（点击快速填入）</span></div>
     <div class="token-list" style="margin-bottom:12px">
       <span class="token" onclick="applyRegexPreset('去除中文','[\\u4e00-\\u9fa5]+','')">去除中文</span>
       <span class="token" onclick="applyRegexPreset('去除空格','\\s+','_')">空格→下划线</span>
@@ -220,10 +220,10 @@
       <div class="regex-row"><label>查找：</label><input type="text" id="regexFind" placeholder="正则，如 ^(\w+)_v(\d+)" oninput="updatePreview()"></div>
       <div class="regex-row"><label>替换为：</label><input type="text" id="regexReplace" placeholder="如 $1_version$2" oninput="updatePreview()"></div>
       <div class="regex-flags">
-        <label><input type="checkbox" id="regexG" checked onchange="updatePreview()"> 全局(g)</label>
-        <label><input type="checkbox" id="regexI" onchange="updatePreview()"> 忽略大小写(i)</label>
+        <label><input type="checkbox" id="regexG" checked onchange="updatePreview()"> 全局（g）</label>
+        <label><input type="checkbox" id="regexI" onchange="updatePreview()"> 忽略大小写（i）</label>
       </div>
-      <div class="tpl-preview" style="margin-top:12px"><div class="lbl">🔍 预览 (示例: example_v01)</div><div class="val" id="regexPreview">—</div></div>
+      <div class="tpl-preview" style="margin-top:12px"><div class="lbl">🔍 预览（示例: example_v01）</div><div class="val" id="regexPreview">—</div></div>
       <div class="regex-error" id="regexError">❌ 正则表达式语法错误</div>
     </div>
   </div>
@@ -272,8 +272,8 @@
     <label>⚙️ 冲突解决：</label>
     <select id="conflictStrategy" onchange="generatePreview()">
       <option value="none">不自动解决</option>
-      <option value="suffix_num">追加数字 (_1, _2)</option>
-      <option value="suffix_alpha">追加字母 (_a, _b)</option>
+      <option value="suffix_num">追加数字（_1, _2）</option>
+      <option value="suffix_alpha">追加字母（_a, _b）</option>
       <option value="suffix_time">追加时间戳</option>
     </select>
   </div>
