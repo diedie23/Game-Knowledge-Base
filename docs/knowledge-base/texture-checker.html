@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>贴图规范检测器 — Texture Checker v2.1</title>
+<title>贴图规范检测器 — Texture Checker v2.2</title>
 <link rel="stylesheet" href="design-tokens.css">
 <link rel="stylesheet" href="tool-base.css">
 <style>
-/* ═══ Texture Checker v2.1 — 高级 UI 样式 ═══ */
+/* ═══ Texture Checker v2.2 — 高级 UI 样式 ═══ */
 
 /* ═══ 步骤连接线 ═══ */
 .step-line{width:50px;height:3px;background:var(--border);border-radius:2px;align-self:center;position:relative;overflow:hidden;display:block}
@@ -217,6 +217,13 @@
 .empty-state .empty-icon{font-size:48px;opacity:.5;margin-bottom:12px}
 .empty-state p{font-size:14px;margin-top:8px}
 
+/* ═══ 自定义文件大小输入 ═══ */
+#customFileSizeWrap{animation:dt-fadeIn .2s ease}
+#customFileSizeInput:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(108,140,255,.12)}
+#customFileSizeInput::-webkit-inner-spin-button{opacity:.5}
+#customFileSizeUnit:focus{border-color:var(--accent);outline:none}
+#fileSizeRuleItem .rule-item-inner{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
 /* ═══ 响应式补丁 ═══ */
 @media(max-width:768px){
   .rule-grid{grid-template-columns:1fr}
@@ -242,7 +249,7 @@
 
 <!-- ═══ HEADER ═══ -->
 <div class="hdr">
-  <h1>🔎 贴图规范检测器 <span class="ver">Texture Checker v2.1</span></h1>
+  <h1>🔎 贴图规范检测器 <span class="ver">Texture Checker v2.2</span></h1>
   <p>批量检测贴图尺寸/格式/Alpha/色彩空间等规范项 · TGA/PSD 深度解析 · 并行加速 · 生成三级检测报告</p>
 </div>
 
@@ -315,16 +322,26 @@
         <option value="linear">必须 Linear</option>
       </select>
     </div>
-    <div class="rule-item">
+    <div class="rule-item" id="fileSizeRuleItem">
       <label><span class="rule-icon rule-icon-filesize">💾</span>最大文件大小</label>
-      <select id="ruleFileSize">
-        <option value="0">不限制</option>
-        <option value="512">512 KB</option>
-        <option value="1024">1 MB</option>
-        <option value="2048" selected>2 MB</option>
-        <option value="4096">4 MB</option>
-        <option value="10240">10 MB</option>
-      </select>
+      <div style="display:flex;align-items:center;gap:8px;position:relative;z-index:1">
+        <select id="ruleFileSize" onchange="onFileSizeChange(this)">
+          <option value="0">不限制</option>
+          <option value="512">512 KB</option>
+          <option value="1024">1 MB</option>
+          <option value="2048" selected>2 MB</option>
+          <option value="4096">4 MB</option>
+          <option value="10240">10 MB</option>
+          <option value="custom">⚙️ 自定义...</option>
+        </select>
+        <div id="customFileSizeWrap" style="display:none;align-items:center;gap:4px">
+          <input type="number" id="customFileSizeInput" min="1" max="102400" step="1" placeholder="数值" style="width:72px;padding:6px 8px;background:var(--panel);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:inherit;transition:all .2s" oninput="onCustomFileSizeInput()">
+          <select id="customFileSizeUnit" style="padding:6px 8px;background:var(--panel);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:inherit" onchange="onCustomFileSizeInput()">
+            <option value="KB">KB</option>
+            <option value="MB" selected>MB</option>
+          </select>
+        </div>
+      </div>
     </div>
     <div class="rule-item">
       <label><span class="rule-icon rule-icon-naming">✏️</span>命名规范</label>
@@ -554,6 +571,11 @@ function applyPreset(key) {
   document.getElementById('ruleFileSize').value = p.fileSize;
   document.getElementById('ruleNaming').value = p.naming;
 
+  // 重置自定义文件大小输入
+  document.getElementById('customFileSizeWrap').style.display = 'none';
+  document.getElementById('customFileSizeInput').value = '';
+  customFileSizeKB = 0;
+
   // Update preset buttons
   document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('act'));
   event.target.closest('.preset-btn').classList.add('act');
@@ -579,7 +601,11 @@ function updateRuleIndicator() {
   const alphaMap = {'check':'Alpha检测','required':'Alpha必须','forbidden':'禁止Alpha','ignore':'不检测Alpha'};
   if (rules.alpha !== 'ignore') chips.push(`<span class="rule-chip">${alphaMap[rules.alpha]}</span>`);
   if (rules.colorSpace !== 'any') chips.push(`<span class="rule-chip strict">${rules.colorSpace.toUpperCase()}</span>`);
-  if (rules.maxFileSize > 0) chips.push(`<span class="rule-chip active">≤${formatSize(rules.maxFileSize)}</span>`);
+  if (rules.maxFileSize > 0) {
+    const fileSizeKB = getFileSizeKB();
+    const label = fileSizeKB >= 1024 ? `≤${(fileSizeKB/1024).toFixed(fileSizeKB%1024===0?0:1)}MB` : `≤${fileSizeKB}KB`;
+    chips.push(`<span class="rule-chip active">${label}</span>`);
+  }
   if (rules.naming) chips.push(`<span class="rule-chip strict">命名规则</span>`);
   document.getElementById('ruleIndicator').innerHTML = chips.join('');
 }
@@ -734,6 +760,43 @@ async function runCheck() {
   toast(`✅ 检测完成！共 ${checkResults.length} 个文件，耗时 ${totalTime}s（${CONCURRENCY} 路并行）`);
 }
 
+// ═══ 自定义文件大小逻辑 ═══
+let customFileSizeKB = 0; // 存储自定义的 KB 值
+
+function onFileSizeChange(sel) {
+  const wrap = document.getElementById('customFileSizeWrap');
+  if (sel.value === 'custom') {
+    wrap.style.display = 'flex';
+    document.getElementById('customFileSizeInput').focus();
+  } else {
+    wrap.style.display = 'none';
+    customFileSizeKB = 0;
+  }
+  updateRuleIndicator();
+}
+
+function onCustomFileSizeInput() {
+  const input = document.getElementById('customFileSizeInput');
+  const unit = document.getElementById('customFileSizeUnit').value;
+  const val = parseFloat(input.value) || 0;
+  customFileSizeKB = unit === 'MB' ? Math.round(val * 1024) : Math.round(val);
+  // 边界提示
+  if (val > 0) {
+    input.style.borderColor = 'var(--green)';
+  } else {
+    input.style.borderColor = 'var(--border)';
+  }
+  updateRuleIndicator();
+}
+
+function getFileSizeKB() {
+  const sel = document.getElementById('ruleFileSize');
+  if (sel.value === 'custom') {
+    return customFileSizeKB;
+  }
+  return parseInt(sel.value);
+}
+
 function getRules() {
   return {
     maxSize: parseInt(document.getElementById('ruleMaxSize').value),
@@ -742,7 +805,7 @@ function getRules() {
     format: document.getElementById('ruleFormat').value,
     alpha: document.getElementById('ruleAlpha').value,
     colorSpace: document.getElementById('ruleColorSpace').value,
-    maxFileSize: parseInt(document.getElementById('ruleFileSize').value) * 1024, // to bytes
+    maxFileSize: getFileSizeKB() * 1024, // to bytes
     naming: document.getElementById('ruleNaming').value
   };
 }
@@ -1364,12 +1427,12 @@ function downloadText(content, filename, mime) {
   URL.revokeObjectURL(a.href);
 }
 // Listen for rule changes to update indicator in real-time
-['ruleMaxSize','ruleFormat','ruleAlpha','ruleColorSpace','ruleFileSize'].forEach(id => {
+['ruleMaxSize','ruleFormat','ruleAlpha','ruleColorSpace'].forEach(id => {
   document.getElementById(id).addEventListener('change', updateRuleIndicator);
 });
 document.getElementById('ruleNaming').addEventListener('input', updateRuleIndicator);
 
-ToolBus.register('texture-checker', { name: '贴图规范检测器', version: '2.1' });
+ToolBus.register('texture-checker', { name: '贴图规范检测器', version: '2.2' });
 </script>
 <script src="shortcut-help.js"></script>
 <script src="theme-toggle.js"></script>
