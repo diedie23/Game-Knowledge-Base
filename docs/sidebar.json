@@ -615,24 +615,6 @@
               "file": "knowledge-base/umg-checker.html",
               "badge": "UI",
               "craft": "UI"
-            },
-            {
-              "id": "texture-checker",
-              "icon": "🔎",
-              "title": "贴图规范检测器",
-              "type": "iframe",
-              "file": "knowledge-base/texture-checker.html",
-              "badge": "管理",
-              "craft": "管理"
-            },
-            {
-              "id": "batch-rename",
-              "icon": "📁",
-              "title": "美术资源批量重命名",
-              "type": "iframe",
-              "file": "knowledge-base/batch-rename.html",
-              "badge": "管理",
-              "craft": "管理"
             }
           ]
         },
