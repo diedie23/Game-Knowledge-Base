@@ -7,6 +7,22 @@
 <link rel="stylesheet" href="design-tokens.css">
 <link rel="stylesheet" href="tool-base.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+// ═══ P1: JSZip CDN fallback ═══
+if(typeof JSZip==='undefined'){
+  document.write('<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"><\/script>');
+}
+</script>
+<script>
+// ═══ P1: JSZip 最终检测 ═══
+window.addEventListener('DOMContentLoaded',function(){
+  if(typeof JSZip==='undefined'){
+    var w=document.createElement('div');w.className='warn y';w.style.cssText='position:fixed;bottom:60px;left:50%;transform:translateX(-50%);z-index:9999;padding:10px 20px;max-width:420px';
+    w.textContent='⚠ ZIP 压缩库加载失败（CDN不可达），导出功能暂不可用。请检查网络连接。';
+    document.body.appendChild(w);setTimeout(function(){w.remove()},8000);
+  }
+});
+</script>
 <script src="toast.js"></script>
 <script src="file-drop.js"></script>
 <script src="tool-bus.js"></script>
@@ -117,6 +133,10 @@ button{cursor:pointer;font-family:inherit}
     </div>
     <div id="imgInfo" style="margin-top:6px;font-size:10px;color:var(--dim);display:none"></div>
   </div>
+  <div class="ps">
+    <h3>🖌 笔刷设置</h3>
+    <div class="pr"><label>笔刷大小</label><input type="range" id="brushSz" min="1" max="80" value="10"><span class="val" id="brushSzV">10</span></div>
+  </div>
   <!-- 方案 A -->
   <div id="pA" class="sp">
     <div class="ps"><h3>📖 操作引导</h3><div class="guide">
@@ -225,7 +245,8 @@ function rgb2hex(r,g,b){return'#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0'))
 function toast(m,t='i',d=2500){const e=document.createElement('div');e.className='toast '+t;e.textContent=m;$('toastC').appendChild(e);setTimeout(()=>{e.style.opacity='0';e.style.transition='opacity .3s';setTimeout(()=>e.remove(),300)},d)}
 
 /* ─── 方案切换 ─── */
-document.querySelectorAll('.scheme-tab').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.scheme-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');S.scheme=t.dataset.s;document.querySelectorAll('.sp').forEach(p=>p.style.display='none');$('p'+S.scheme).style.display='';if(S.img)renderAll();toast('方案 '+S.scheme,'i',1200)})});
+function _hasUnsavedWork(){return S.channels.some(c=>c.md&&c.md.some(v=>v>0))||S.palette.length>0||S.grayRegs.some(r=>r.md&&r.md.some(v=>v>0))}
+document.querySelectorAll('.scheme-tab').forEach(t=>{t.addEventListener('click',()=>{if(t.dataset.s===S.scheme)return;if(S.img&&_hasUnsavedWork()){if(!confirm('切换方案将丢失当前未导出的编辑数据，是否继续？'))return}document.querySelectorAll('.scheme-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');S.scheme=t.dataset.s;document.querySelectorAll('.sp').forEach(p=>p.style.display='none');$('p'+S.scheme).style.display='';if(S.img)renderAll();toast('方案 '+S.scheme,'i',1200)})});
 
 /* ─── 图片加载 ─── */
 async function handleFile(file){if(!file)return;
@@ -237,7 +258,21 @@ if(file.name.toLowerCase().endsWith('.psd')){
 }
 if(!file.type.startsWith('image/')){toast('请选择图片或PSD文件','e');return}
 const url=URL.createObjectURL(file);const img=new Image();img.onload=()=>{_csLoadFromImg(img,file)};img.src=url}
-function _csLoadFromImg(img,file){S.img=img;S.imgW=img.naturalWidth;S.imgH=img.naturalHeight;const tc=document.createElement('canvas');tc.width=S.imgW;tc.height=S.imgH;const tx=tc.getContext('2d');tx.drawImage(img,0,0);S.imgData=tx.getImageData(0,0,S.imgW,S.imgH);resetData();mc.width=S.imgW;mc.height=S.imgH;mc.style.display='block';$('emptyS').style.display='none';$('cTb').style.display='flex';$('zI').style.display='block';fitWin();renderAll();$('imgInfo').style.display='block';$('imgInfo').innerHTML=`📐 ${S.imgW}×${S.imgH} · ${file?(file.size/1024).toFixed(1)+'KB · '+file.name:'PSD图层'}`;_csSaveSnapshot();toast('图片已加载','s');_startAutoSave()}
+const _CS_MAX_DIM=4096;
+function _csLoadFromImg(img,file){
+  let w=img.naturalWidth,h=img.naturalHeight;
+  // ═══ P0: 超大图片尺寸检查 + 自动缩放 ═══
+  if(w*h>_CS_MAX_DIM*_CS_MAX_DIM||w>_CS_MAX_DIM*2||h>_CS_MAX_DIM*2){
+    const scale=Math.min(_CS_MAX_DIM/w,_CS_MAX_DIM/h,1);
+    const nw=Math.round(w*scale),nh=Math.round(h*scale);
+    toast(`⚠ 原图${w}×${h}过大，已缩放至${nw}×${nh}以保证性能`,'w',4000);
+    const sc=document.createElement('canvas');sc.width=nw;sc.height=nh;
+    sc.getContext('2d').drawImage(img,0,0,nw,nh);
+    const sImg=new Image();sImg.onload=()=>{_doLoadImg(sImg,file,w,h)};sImg.src=sc.toDataURL();return;
+  }
+  _doLoadImg(img,file,w,h);
+}
+function _doLoadImg(img,file,origW,origH){S.img=img;S.imgW=img.naturalWidth;S.imgH=img.naturalHeight;const tc=document.createElement('canvas');tc.width=S.imgW;tc.height=S.imgH;const tx=tc.getContext('2d');tx.drawImage(img,0,0);S.imgData=tx.getImageData(0,0,S.imgW,S.imgH);resetData();mc.width=S.imgW;mc.height=S.imgH;mc.style.display='block';$('emptyS').style.display='none';$('cTb').style.display='flex';$('zI').style.display='block';fitWin();renderAll();$('imgInfo').style.display='block';const scaleNote=(origW!==S.imgW||origH!==S.imgH)?` (原始${origW}×${origH})`:'';$('imgInfo').innerHTML=`📐 ${S.imgW}×${S.imgH}${scaleNote} · ${file?(file.size/1024).toFixed(1)+'KB · '+file.name:'PSD图层'}`;_csSaveSnapshot();toast('图片已加载','s');_startAutoSave()}
 function _csLoadFromCanvas(canvas,file){const img=new Image();img.onload=()=>_csLoadFromImg(img,file);img.src=canvas.toDataURL()}
 function resetData(){S.channels=[];S.activeCh=-1;S.palette=[];S.grayRegs=[];S.activeGr=-1;_csUndoStack=[];_csRedoStack=[];rebuildChUI();rebuildPalUI();rebuildGrUI()}
 
@@ -380,7 +415,8 @@ S.activeCh=i;rebuildChUI();_csSaveSnapshot();toast(`已添加 Mask${mi+1}-${CH_N
 
 /* ─── Web Worker 加速 ─── */
 let _csWorker=null,_csWReqId=0;const _csWCbs={};
-function _getWorker(){if(!_csWorker){try{_csWorker=new Worker('color-worker.js');_csWorker.onmessage=e=>{const m=e.data;if(m.id&&_csWCbs[m.id]){_csWCbs[m.id](m);delete _csWCbs[m.id]}};_csWorker.onerror=()=>{_csWorker=null}}catch(e){_csWorker=null}}return _csWorker}
+let _csWorkerRetry=0;const _CS_MAX_RETRY=3;
+function _getWorker(){if(!_csWorker){try{_csWorker=new Worker('color-worker.js');_csWorkerRetry=0;_csWorker.onmessage=e=>{const m=e.data;if(m.id&&_csWCbs[m.id]){_csWCbs[m.id](m);delete _csWCbs[m.id]}};_csWorker.onerror=err=>{console.warn('Worker error:',err);_csWorker.terminate();_csWorker=null;if(_csWorkerRetry<_CS_MAX_RETRY){_csWorkerRetry++;toast('Worker异常，正在重建…','w',1500);setTimeout(()=>_getWorker(),200)}else{toast('Worker反复崩溃，已回退到主线程计算','w',3000)}}}catch(e){_csWorker=null}}return _csWorker}
 
 function genMaskCh(idx){const ch=S.channels[idx];if(!ch.color)return;const[tr,tg,tb]=hex2rgb(ch.color);const tol=parseInt($('tolA').value),fea=parseInt($('feaA').value),sp=S.colorSpace;
 const w=_getWorker();
@@ -453,6 +489,7 @@ renderAll()}
 
 /* ─── 滑块绑定 ─── */
 function bSlider(sid,vid,suf,cb){const s=$(sid),v=$(vid);if(!s)return;s.oninput=()=>{v.textContent=s.value+(suf||'');if(cb)cb(parseFloat(s.value))}}
+bSlider('brushSz','brushSzV','',v=>{S.brushSize=v});
 bSlider('tolA','tolAV','',()=>{if(S.activeCh>=0&&S.channels[S.activeCh].color){genMaskCh(S.activeCh);rebuildChUI();renderAll()}});
 bSlider('feaA','feaAV','',()=>{if(S.activeCh>=0&&S.channels[S.activeCh].color){genMaskCh(S.activeCh);rebuildChUI();renderAll()}});
 bSlider('tolB','tolBV','',()=>renderAll());
@@ -467,6 +504,7 @@ $('csHsl').onclick=()=>{S.colorSpace='hsl';$('csHsl').classList.add('active');$(
    统一导出系统（ZIP）
    ═══════════════════════════════════════════ */
 $('btnExport').onclick=async()=>{if(!S.img){toast('请先导入图片','e');return}
+if(typeof JSZip==='undefined'){toast('ZIP压缩库未加载，请检查网络后刷新页面','e');return}
 toast('正在生成资源包…','i');
 try{const zip=new JSZip();const config={scheme:S.scheme,version:'1.0',exportTime:new Date().toISOString(),imageSize:{w:S.imgW,h:S.imgH}};
 
