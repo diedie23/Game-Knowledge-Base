@@ -146,5 +146,38 @@ self.onmessage = function(e){
       self.postMessage({type:'qaResult', id, hasBlack, hasWhite});
       break;
     }
+
+    case 'overlayB': {
+      // ═══ P2: 方案B调色板替换 Worker 加速 ═══
+      const {imgData, palette, tolerance, width, height, id} = msg;
+      const d = imgData;
+      const total = width * height;
+      const tolSq = tolerance * tolerance;
+      const palLen = palette.length;
+      // 预解析调色板
+      const palOr = new Array(palLen), palRp = new Array(palLen);
+      for(let k=0; k<palLen; k++){
+        palOr[k] = palette[k].original;
+        palRp[k] = palette[k].replace;
+      }
+      // 生成 overlay RGBA buffer
+      const overlay = new Uint8Array(total * 4);
+      for(let i=0; i<total; i++){
+        const idx = i*4;
+        if(d[idx+3] < 10) continue;
+        const pr=d[idx], pg=d[idx+1], pb=d[idx+2];
+        for(let k=0; k<palLen; k++){
+          const [or,og,ob] = palOr[k];
+          const dr=pr-or, dg=pg-og, db=pb-ob;
+          if(dr*dr+dg*dg+db*db <= tolSq){
+            const [rr,rg,rb] = palRp[k];
+            overlay[idx]=rr; overlay[idx+1]=rg; overlay[idx+2]=rb; overlay[idx+3]=140;
+            break;
+          }
+        }
+      }
+      self.postMessage({type:'overlayBResult', id, overlay: overlay.buffer}, [overlay.buffer]);
+      break;
+    }
   }
 };
