@@ -3,19 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>贴图规范检测器 — Texture Checker v2.0</title>
+<title>贴图规范检测器 — Texture Checker v2.1</title>
 <link rel="stylesheet" href="design-tokens.css">
 <link rel="stylesheet" href="tool-base.css">
 <style>
-/* ═══ Texture Checker v2.0 — 高级 UI 样式 ═══ */
+/* ═══ Texture Checker v2.1 — 高级 UI 样式 ═══ */
+
+/* ═══ 步骤连接线 ═══ */
+.step-line{width:50px;height:3px;background:var(--border);border-radius:2px;align-self:center;position:relative;overflow:hidden;display:block}
+.step-line-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);border-radius:2px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+.step-line.done .step-line-fill{width:100%;background:var(--green)}
+.step-line.active .step-line-fill{width:50%;background:var(--accent);animation:step-pulse 1.5s ease infinite}
+@keyframes step-pulse{0%,100%{opacity:1}50%{opacity:.5}}
 
 /* ═══ 规则配置网格 ═══ */
 .rule-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:14px;margin:16px 0}
-.rule-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;transition:all .2s ease}
-.rule-item:hover{border-color:var(--accent);background:rgba(108,140,255,.03);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
-.rule-item label{font-size:13px;color:var(--text);font-weight:500;white-space:nowrap;display:flex;align-items:center;gap:6px}
-.rule-item select,.rule-item input[type="text"]{padding:7px 12px;background:var(--panel);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit;transition:all .2s;min-width:140px;max-width:180px}
-.rule-item select:focus,.rule-item input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(108,140,255,.15)}
+.rule-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;transition:all .25s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}
+.rule-item::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(108,140,255,.03),transparent);opacity:0;transition:opacity .25s}
+.rule-item:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.rule-item:hover::after{opacity:1}
+.rule-item label{font-size:13px;color:var(--text);font-weight:500;white-space:nowrap;display:flex;align-items:center;gap:8px;position:relative;z-index:1}
+.rule-item label .rule-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:transform .2s}
+.rule-item:hover label .rule-icon{transform:scale(1.1)}
+.rule-icon-size{background:rgba(108,140,255,.12);color:var(--accent)}
+.rule-icon-pot{background:rgba(167,139,250,.12);color:var(--accent2)}
+.rule-icon-square{background:rgba(34,211,238,.12);color:var(--cyan)}
+.rule-icon-format{background:rgba(251,146,60,.12);color:var(--orange)}
+.rule-icon-alpha{background:rgba(74,222,128,.12);color:var(--green)}
+.rule-icon-color{background:rgba(251,191,36,.12);color:var(--yellow)}
+.rule-icon-filesize{background:rgba(248,113,113,.12);color:var(--red)}
+.rule-icon-naming{background:rgba(167,139,250,.12);color:var(--accent2)}
+.rule-item select,.rule-item input[type="text"]{padding:8px 12px;background:var(--panel);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;font-family:inherit;transition:all .2s;min-width:140px;max-width:180px;position:relative;z-index:1}
+.rule-item select:focus,.rule-item input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(108,140,255,.12)}
 .rule-item select:hover,.rule-item input:hover{border-color:var(--border-hover)}
 
 /* ═══ 预设卡片 ═══ */
@@ -30,20 +49,28 @@
 .preset-btn .preset-desc{font-size:11px;color:var(--dim);line-height:1.4}
 
 /* ═══ 概览统计卡片 ═══ */
-.summary-bar{display:grid;grid-template-columns:repeat(4, 1fr);gap:12px;margin:16px 0}
-.summary-item{position:relative;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;text-align:center;overflow:hidden;transition:all .2s}
-.summary-item::before{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 12px 12px}
-.summary-item:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.15)}
-.summary-item .num{font-size:32px;font-weight:700;margin-bottom:2px;letter-spacing:-1px}
-.summary-item .lbl{font-size:12px;color:var(--dim);font-weight:500}
+.summary-bar{display:grid;grid-template-columns:repeat(4, 1fr);gap:14px;margin:16px 0}
+.summary-item{position:relative;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 16px;text-align:center;overflow:hidden;transition:all .25s cubic-bezier(.4,0,.2,1)}
+.summary-item::before{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 14px 14px}
+.summary-item::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,currentColor 0%,transparent 60%);opacity:0;transition:opacity .3s;pointer-events:none}
+.summary-item:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.2)}
+.summary-item:hover::after{opacity:.03}
+.summary-item .num{font-size:36px;font-weight:800;margin-bottom:4px;letter-spacing:-1.5px;transition:transform .3s}
+.summary-item:hover .num{transform:scale(1.05)}
+.summary-item .lbl{font-size:12px;color:var(--dim);font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.summary-item .sum-icon{font-size:20px;margin-bottom:6px;opacity:.7}
 .summary-item.green .num{color:var(--green)}
 .summary-item.green::before{background:var(--green)}
+.summary-item.green{color:var(--green)}
 .summary-item.yellow .num{color:var(--yellow)}
 .summary-item.yellow::before{background:var(--yellow)}
+.summary-item.yellow{color:var(--yellow)}
 .summary-item.red .num{color:var(--red)}
 .summary-item.red::before{background:var(--red)}
+.summary-item.red{color:var(--red)}
 .summary-item.blue .num{color:var(--accent)}
 .summary-item.blue::before{background:var(--accent)}
+.summary-item.blue{color:var(--accent)}
 
 /* ═══ 详情面板 ═══ */
 .detail-panel{display:none;margin-top:14px}
@@ -59,10 +86,12 @@
 .tag-fail{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.2)}
 
 /* ═══ 进度条 ═══ */
-.progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin:12px 0;position:relative}
-.progress-bar .fill{height:100%;background:linear-gradient(90deg, var(--accent), var(--cyan));border-radius:3px;transition:width .3s ease;position:relative}
-.progress-bar .fill::after{content:'';position:absolute;top:0;right:0;bottom:0;width:40px;background:linear-gradient(90deg, transparent, rgba(255,255,255,.2));animation:progress-shimmer 1.5s infinite}
-@keyframes progress-shimmer{0%{opacity:0}50%{opacity:1}100%{opacity:0}}
+.progress-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin:12px 0;position:relative}
+.progress-bar .fill{height:100%;background:linear-gradient(90deg, var(--accent), var(--cyan), var(--green));border-radius:4px;transition:width .3s ease;position:relative;background-size:200% 100%;animation:progress-gradient 2s linear infinite}
+.progress-bar .fill::after{content:'';position:absolute;top:0;right:0;bottom:0;width:60px;background:linear-gradient(90deg, transparent, rgba(255,255,255,.25));animation:progress-shimmer 1.2s ease infinite}
+@keyframes progress-shimmer{0%{transform:translateX(-100%);opacity:0}50%{opacity:1}100%{transform:translateX(100%);opacity:0}}
+@keyframes progress-gradient{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+.progress-text{position:absolute;top:-22px;right:0;font-size:11px;font-weight:600;color:var(--accent)}
 
 /* ═══ 缩略图 ═══ */
 .thumb{width:38px;height:38px;border-radius:6px;object-fit:contain;border:1px solid var(--border);background:repeating-conic-gradient(var(--checker-a) 0% 25%,var(--checker-b) 0% 50%) 50%/8px 8px;transition:transform .2s}
@@ -92,30 +121,90 @@
 /* ═══ 文件行高亮 ═══ */
 .file-row.level-fail{background:rgba(248,113,113,.04);border-left:3px solid var(--red)}
 .file-row.level-warn{background:rgba(251,191,36,.03);border-left:3px solid var(--yellow)}
-.file-row.level-pass:hover{background:rgba(74,222,128,.03)}
+.file-row.level-pass{border-left:3px solid transparent}
+.file-row.level-pass:hover{background:rgba(74,222,128,.03);border-left-color:var(--green)}
+.file-row:not(.header){animation:row-enter .3s ease backwards}
+@keyframes row-enter{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+
+/* 行展开详情 */
+.file-row.expandable{cursor:pointer}
+.file-row.expandable:hover{background:rgba(108,140,255,.04)}
+.file-row .expand-icon{transition:transform .2s;font-size:10px;opacity:.5}
+.file-row.expanded .expand-icon{transform:rotate(90deg);opacity:1}
+.row-detail{display:none;grid-column:1/-1;padding:12px 16px;background:var(--panel);border-radius:8px;margin:4px 0 8px;border:1px solid var(--border);font-size:12px;animation:dt-fadeIn .2s ease}
+.row-detail.show{display:block}
+.row-detail-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:10px}
+.row-detail-item{display:flex;flex-direction:column;gap:2px}
+.row-detail-item .rdl{color:var(--dim);font-size:11px}
+.row-detail-item .rdv{color:var(--heading);font-weight:600;font-size:13px}
 
 /* ═══ 筛选按钮组 ═══ */
-.filter-group{display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:14px 0}
-.filter-btn{padding:8px 16px;border:none;background:var(--card);color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s;border-right:1px solid var(--border);font-weight:500}
+.filter-group{display:flex;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:14px 0;background:var(--card)}
+.filter-btn{padding:9px 18px;border:none;background:transparent;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit;transition:all .2s;border-right:1px solid var(--border);font-weight:500;position:relative}
 .filter-btn:last-child{border-right:none}
 .filter-btn:hover{background:rgba(108,140,255,.06);color:var(--heading)}
-.filter-btn.act{background:var(--accent);color:#fff;font-weight:600}
-.filter-btn .filter-count{display:inline-block;min-width:18px;height:18px;line-height:18px;border-radius:9px;background:rgba(255,255,255,.15);font-size:10px;text-align:center;margin-left:5px;font-weight:700}
+.filter-btn.act{background:var(--accent);color:#fff;font-weight:600;box-shadow:inset 0 -2px 0 rgba(0,0,0,.15)}
+.filter-btn .filter-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border-radius:10px;background:rgba(255,255,255,.12);font-size:10px;text-align:center;margin-left:6px;font-weight:700;padding:0 5px}
 .filter-btn.act .filter-count{background:rgba(255,255,255,.25)}
 
+/* ═══ 搜索和排序栏 ═══ */
+.report-toolbar{display:flex;align-items:center;gap:10px;margin:12px 0;flex-wrap:wrap}
+.search-input{flex:1;min-width:180px;padding:8px 14px 8px 36px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;transition:all .2s;position:relative}
+.search-input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(108,140,255,.1)}
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-wrap::before{content:'🔍';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.5;pointer-events:none}
+.sort-select{padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:inherit;cursor:pointer}
+.sort-select:focus{border-color:var(--accent);outline:none}
+
 /* ═══ 导出按钮区域 ═══ */
-.export-bar{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+.export-bar{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;padding:16px;border-top:1px solid var(--border);background:var(--card);border-radius:10px;align-items:center}
 
 /* ═══ 浮动操作栏 ═══ */
 .fab-bar{position:sticky;bottom:16px;z-index:100;display:flex;justify-content:center;margin-top:20px;pointer-events:none}
-.fab-bar .fab-inner{display:flex;gap:8px;padding:10px 20px;background:var(--panel);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-lg);pointer-events:auto;backdrop-filter:blur(10px)}
+.fab-bar .fab-inner{display:flex;gap:8px;padding:10px 20px;background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-lg);pointer-events:auto;backdrop-filter:blur(12px)}
 
 /* ═══ 拖拽区增强 ═══ */
-.drop-zone{position:relative;overflow:hidden}
-.drop-zone::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center, rgba(34,211,238,.03) 0%, transparent 70%);pointer-events:none;opacity:0;transition:opacity .3s}
+.drop-zone{position:relative;overflow:hidden;transition:all .3s ease}
+.drop-zone::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center, rgba(34,211,238,.04) 0%, transparent 60%);pointer-events:none;opacity:0;transition:opacity .3s}
 .drop-zone:hover::before,.drop-zone.dg::before{opacity:1}
-.drop-zone .upload-icon{font-size:42px;margin-bottom:8px;opacity:.7;transition:transform .3s}
-.drop-zone:hover .upload-icon{transform:translateY(-4px) scale(1.05)}
+.drop-zone .upload-icon{font-size:48px;margin-bottom:10px;opacity:.7;transition:all .3s cubic-bezier(.4,0,.2,1)}
+.drop-zone:hover .upload-icon{transform:translateY(-6px) scale(1.1);opacity:1}
+.drop-zone.dg{border-color:var(--green);background:rgba(74,222,128,.04)}
+.drop-zone.dg .upload-icon{animation:bounce .6s ease infinite alternate}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+
+/* ═══ 通过率环形图 ═══ */
+.pass-rate-ring{position:relative;width:80px;height:80px;margin:0 auto}
+.pass-rate-ring svg{transform:rotate(-90deg)}
+.pass-rate-ring .ring-bg{fill:none;stroke:var(--border);stroke-width:6}
+.pass-rate-ring .ring-fg{fill:none;stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)}
+.pass-rate-ring .ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.pass-rate-ring .ring-pct{font-size:18px;font-weight:800;color:var(--heading)}
+.pass-rate-ring .ring-label{font-size:9px;color:var(--dim);margin-top:1px}
+
+/* ═══ Tooltip ═══ */
+.tt{position:relative}
+.tt::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(4px);padding:6px 12px;background:var(--card);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--text);white-space:nowrap;opacity:0;pointer-events:none;transition:all .2s;box-shadow:var(--shadow-md);z-index:100}
+.tt:hover::after{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ═══ 骨架屏加载态 ═══ */
+.skeleton{background:linear-gradient(90deg, var(--card) 25%, var(--border) 50%, var(--card) 75%);background-size:200% 100%;animation:skeleton-shimmer 1.5s infinite;border-radius:6px}
+@keyframes skeleton-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skeleton-row{display:grid;grid-template-columns:30px 42px 2fr 80px 80px 65px 55px 65px 70px 1.5fr;gap:6px;padding:10px 12px}
+.skeleton-cell{height:16px;border-radius:4px}
+
+/* ═══ 评分指标 ═══ */
+.score-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700}
+.score-badge.excellent{background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.2)}
+.score-badge.good{background:rgba(108,140,255,.12);color:var(--accent);border:1px solid rgba(108,140,255,.2)}
+.score-badge.fair{background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.2)}
+.score-badge.poor{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+
+/* ═══ 键盘快捷键提示 ═══ */
+.shortcuts-hint{position:fixed;bottom:16px;right:16px;display:flex;gap:6px;z-index:50;opacity:.6;transition:opacity .2s}
+.shortcuts-hint:hover{opacity:1}
+.shortcut-key{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;background:var(--card);border:1px solid var(--border);border-radius:5px;font-size:10px;color:var(--dim)}
+.shortcut-key kbd{padding:1px 4px;background:var(--panel);border:1px solid var(--border);border-radius:3px;font-size:10px}
 
 /* ═══ 规则状态指示器 ═══ */
 .rule-indicator{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px}
@@ -133,12 +222,18 @@
   .rule-grid{grid-template-columns:1fr}
   .preset-bar{grid-template-columns:repeat(2, 1fr)}
   .summary-bar{grid-template-columns:repeat(2, 1fr)}
-  .filter-group{flex-wrap:wrap;border-radius:8px}
+  .filter-group{flex-wrap:wrap;border-radius:10px}
   .filter-btn{flex:1;min-width:80px;text-align:center}
+  .report-toolbar{flex-direction:column}
+  .search-wrap{width:100%}
+  .export-bar{flex-direction:column}
+  .shortcuts-hint{display:none}
 }
 @media(max-width:480px){
   .summary-bar{grid-template-columns:1fr}
   .preset-bar{grid-template-columns:1fr}
+  .rule-item{flex-direction:column;align-items:stretch;gap:8px}
+  .rule-item select,.rule-item input[type="text"]{max-width:100%;min-width:0}
 }
 </style>
 </head>
@@ -147,16 +242,16 @@
 
 <!-- ═══ HEADER ═══ -->
 <div class="hdr">
-  <h1>🔎 贴图规范检测器 <span class="ver">Texture Checker v2.0</span></h1>
+  <h1>🔎 贴图规范检测器 <span class="ver">Texture Checker v2.1</span></h1>
   <p>批量检测贴图尺寸/格式/Alpha/色彩空间等规范项 · TGA/PSD 深度解析 · 并行加速 · 生成三级检测报告</p>
 </div>
 
 <!-- ═══ STEPS ═══ -->
 <div class="steps" id="stepBar">
   <div class="stp act" data-s="1"><span class="n">1</span>配置规则</div>
-  <span class="sa" style="width:40px;height:2px;background:var(--border);border-radius:1px;align-self:center"></span>
+  <span class="sa step-line" id="stepLine1"><span class="step-line-fill"></span></span>
   <div class="stp" data-s="2"><span class="n">2</span>载入文件</div>
-  <span class="sa" style="width:40px;height:2px;background:var(--border);border-radius:1px;align-self:center"></span>
+  <span class="sa step-line" id="stepLine2"><span class="step-line-fill"></span></span>
   <div class="stp" data-s="3"><span class="n">3</span>查看报告</div>
 </div>
 
@@ -176,7 +271,7 @@
 
   <div class="rule-grid">
     <div class="rule-item">
-      <label>✅ 最大尺寸</label>
+      <label><span class="rule-icon rule-icon-size">📐</span>最大尺寸</label>
       <select id="ruleMaxSize">
         <option value="512">512 × 512</option>
         <option value="1024">1024 × 1024</option>
@@ -186,15 +281,15 @@
       </select>
     </div>
     <div class="rule-item">
-      <label>✅ 必须 2 的幂次</label>
+      <label><span class="rule-icon rule-icon-pot">⊞</span>必须 2 的幂次</label>
       <div class="sw on" id="rulePOT" onclick="toggleSwitch(this)"></div>
     </div>
     <div class="rule-item">
-      <label>✅ 必须正方形</label>
+      <label><span class="rule-icon rule-icon-square">◻️</span>必须正方形</label>
       <div class="sw" id="ruleSquare" onclick="toggleSwitch(this)"></div>
     </div>
     <div class="rule-item">
-      <label>✅ 允许的格式</label>
+      <label><span class="rule-icon rule-icon-format">🗂️</span>允许的格式</label>
       <select id="ruleFormat">
         <option value="png,tga">PNG + TGA</option>
         <option value="png">仅 PNG</option>
@@ -204,7 +299,7 @@
       </select>
     </div>
     <div class="rule-item">
-      <label>✅ Alpha 通道检测</label>
+      <label><span class="rule-icon rule-icon-alpha">🔲</span>Alpha 通道</label>
       <select id="ruleAlpha">
         <option value="check">检测空 Alpha（警告）</option>
         <option value="required">必须有 Alpha</option>
@@ -213,7 +308,7 @@
       </select>
     </div>
     <div class="rule-item">
-      <label>✅ 色彩空间</label>
+      <label><span class="rule-icon rule-icon-color">🎨</span>色彩空间</label>
       <select id="ruleColorSpace">
         <option value="any">不限制</option>
         <option value="srgb">必须 sRGB</option>
@@ -221,7 +316,7 @@
       </select>
     </div>
     <div class="rule-item">
-      <label>✅ 最大文件大小</label>
+      <label><span class="rule-icon rule-icon-filesize">💾</span>最大文件大小</label>
       <select id="ruleFileSize">
         <option value="0">不限制</option>
         <option value="512">512 KB</option>
@@ -232,8 +327,8 @@
       </select>
     </div>
     <div class="rule-item">
-      <label>✅ 命名规范 (正则)</label>
-      <input type="text" id="ruleNaming" placeholder="如: ^T_[A-Z]\\w+$" value="">
+      <label><span class="rule-icon rule-icon-naming">✏️</span>命名规范</label>
+      <input type="text" id="ruleNaming" placeholder="正则: ^T_[A-Z]\\w+$" value="">
     </div>
   </div>
 
@@ -299,11 +394,28 @@
 <div class="card" id="s3" style="display:none">
   <div class="card-title">📊 检测报告 <span class="badge badge-orange">Step 3</span></div>
 
-  <div class="summary-bar" id="summaryBar">
-    <div class="summary-item blue"><div class="num" id="sumTotal">0</div><div class="lbl">总数</div></div>
-    <div class="summary-item green"><div class="num" id="sumPass">0</div><div class="lbl">✅ 通过</div></div>
-    <div class="summary-item yellow"><div class="num" id="sumWarn">0</div><div class="lbl">⚠️ 警告</div></div>
-    <div class="summary-item red"><div class="num" id="sumFail">0</div><div class="lbl">❌ 不通过</div></div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px">
+    <div style="flex:1">
+      <div class="summary-bar" id="summaryBar">
+        <div class="summary-item blue"><div class="sum-icon">📊</div><div class="num" id="sumTotal">0</div><div class="lbl">总计文件</div></div>
+        <div class="summary-item green"><div class="sum-icon">✅</div><div class="num" id="sumPass">0</div><div class="lbl">通过</div></div>
+        <div class="summary-item yellow"><div class="sum-icon">⚠️</div><div class="num" id="sumWarn">0</div><div class="lbl">警告</div></div>
+        <div class="summary-item red"><div class="sum-icon">❌</div><div class="num" id="sumFail">0</div><div class="lbl">不通过</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px" id="passRateWrap">
+      <div class="pass-rate-ring" id="passRateRing">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle class="ring-bg" cx="40" cy="40" r="34"/>
+          <circle class="ring-fg" cx="40" cy="40" r="34" id="passRateCircle" stroke="var(--green)" stroke-dasharray="213.6" stroke-dashoffset="213.6"/>
+        </svg>
+        <div class="ring-text">
+          <span class="ring-pct" id="passRatePct">0%</span>
+          <span class="ring-label">通过率</span>
+        </div>
+      </div>
+      <span class="score-badge good" id="scoreBadge">— 评分</span>
+    </div>
   </div>
 
   <!-- 统计图表 -->
@@ -317,8 +429,24 @@
     <button class="filter-btn" onclick="filterReport('pass')">✅ 通过<span class="filter-count" id="fcPass">0</span></button>
   </div>
 
-  <div class="file-list" id="reportList" style="max-height:450px">
-    <div class="file-row header" style="grid-template-columns:30px 42px 2fr 80px 80px 65px 55px 65px 70px 1.5fr">
+  <div class="report-toolbar">
+    <div class="search-wrap">
+      <input class="search-input" type="text" id="reportSearch" placeholder="搜索文件名..." oninput="onSearchReport()">
+    </div>
+    <select class="sort-select" id="reportSort" onchange="onSortReport()">
+      <option value="default">默认排序</option>
+      <option value="name-asc">文件名 A→Z</option>
+      <option value="name-desc">文件名 Z→A</option>
+      <option value="size-desc">文件大小 大→小</option>
+      <option value="size-asc">文件大小 小→大</option>
+      <option value="level-desc">问题严重度 高→低</option>
+      <option value="level-asc">问题严重度 低→高</option>
+    </select>
+  </div>
+
+  <div class="file-list" id="reportList" style="max-height:500px">
+    <div class="file-row header" style="grid-template-columns:24px 30px 42px 2fr 80px 80px 60px 50px 60px 66px 1.5fr">
+      <div></div>
       <div class="idx">#</div>
       <div>预览</div>
       <div>文件名</div>
@@ -326,17 +454,20 @@
       <div>文件大小</div>
       <div>格式</div>
       <div>Alpha</div>
-      <div>色彩空间</div>
+      <div>色彩</div>
       <div>等级</div>
       <div>问题详情</div>
     </div>
   </div>
 
   <div class="export-bar">
-    <button class="btn btn-g" onclick="exportCSV()">📥 导出 CSV 报告</button>
-    <button class="btn btn-p" onclick="exportJSON()">💾 导出 JSON 详情</button>
-    <button class="btn btn-sm" onclick="copyReport()">📋 复制到剪贴板</button>
-    <button class="btn btn-sm" onclick="runCheck()" style="margin-left:auto">🔄 重新检测</button>
+    <button class="btn btn-g" onclick="exportCSV()">📥 CSV 报告</button>
+    <button class="btn btn-p" onclick="exportJSON()">💾 JSON 详情</button>
+    <button class="btn btn-sm" onclick="copyReport()">📋 复制文本</button>
+    <button class="btn btn-sm" onclick="exportMarkdown()">📝 Markdown</button>
+    <span style="flex:1"></span>
+    <span style="font-size:11px;color:var(--dim);align-self:center" id="reportTime"></span>
+    <button class="btn btn-sm btn-p" onclick="runCheck()">🔄 重新检测</button>
   </div>
 </div>
 
@@ -371,6 +502,13 @@
 </div>
 
 </div><!-- /app -->
+
+<!-- 键盘快捷键提示 -->
+<div class="shortcuts-hint" id="shortcutsHint">
+  <div class="shortcut-key"><kbd>R</kbd> 检测</div>
+  <div class="shortcut-key"><kbd>/</kbd> 搜索</div>
+  <div class="shortcut-key"><kbd>1-4</kbd> 筛选</div>
+</div>
 
 <script src="toast.js"></script>
 <script src="file-drop.js"></script>
@@ -452,6 +590,15 @@ function updateStep(step) {
     if (i + 1 < step) s.classList.add('done');
     if (i + 1 === step) s.classList.add('act');
   });
+  // Update step lines
+  const line1 = document.getElementById('stepLine1');
+  const line2 = document.getElementById('stepLine2');
+  line1.classList.remove('done', 'active');
+  line2.classList.remove('done', 'active');
+  if (step >= 2) { line1.classList.add('done'); }
+  else if (step === 1) { line1.classList.add('active'); }
+  if (step >= 3) { line2.classList.add('done'); }
+  else if (step === 2) { line2.classList.add('active'); }
 }
 
 // File handling
@@ -534,13 +681,22 @@ async function runCheck() {
 
   const btn = document.getElementById('btnRun');
   btn.disabled = true;
-  btn.innerHTML = '<span style="display:inline-block;animation:dt-spin 1s linear infinite">⏳</span> 检测中...';
+  btn.innerHTML = '<span style="display:inline-block;animation:dt-spin 1s linear infinite">⏳</span> 准备中...';
   const progressBar = document.getElementById('progressBar');
   progressBar.style.display = 'block';
+
+  // Show skeleton in report area
+  document.getElementById('s3').style.display = 'block';
+  const reportList = document.getElementById('reportList');
+  reportList.innerHTML = '';
+  for (let s = 0; s < Math.min(5, loadedFiles.length); s++) {
+    reportList.innerHTML += `<div class="skeleton-row"><div class="skeleton skeleton-cell" style="height:14px"></div><div class="skeleton skeleton-cell" style="height:14px"></div><div class="skeleton skeleton-cell" style="height:14px"></div><div class="skeleton skeleton-cell" style="height:14px"></div><div class="skeleton skeleton-cell" style="height:14px"></div><div class="skeleton skeleton-cell" style="height:14px"></div><div class="skeleton skeleton-cell" style="height:14px"></div><div class="skeleton skeleton-cell" style="height:14px"></div><div class="skeleton skeleton-cell" style="height:14px"></div><div class="skeleton skeleton-cell" style="height:14px"></div><div class="skeleton skeleton-cell" style="height:14px"></div></div>`;
+  }
 
   checkResults = new Array(loadedFiles.length);
   const rules = getRules();
   let completed = 0;
+  const startTime = performance.now();
 
   // Concurrent pool: process up to CONCURRENCY files at a time
   async function worker(startIdx) {
@@ -550,8 +706,10 @@ async function runCheck() {
       completed++;
       const pct = (completed / loadedFiles.length * 100).toFixed(0);
       document.getElementById('progressFill').style.width = pct + '%';
-      // Update button text with progress
-      btn.innerHTML = `<span style="display:inline-block;animation:dt-spin 1s linear infinite">⏳</span> ${pct}%（${completed}/${loadedFiles.length}）`;
+      // Update button text with progress + ETA
+      const elapsed = performance.now() - startTime;
+      const eta = completed > 0 ? ((elapsed / completed) * (loadedFiles.length - completed) / 1000).toFixed(1) : '...';
+      btn.innerHTML = `<span style="display:inline-block;animation:dt-spin 1s linear infinite">⏳</span> ${pct}%（${completed}/${loadedFiles.length}）预计 ${eta}s`;
     }
   }
 
@@ -565,13 +723,15 @@ async function runCheck() {
   // Convert to plain array (remove holes if any)
   checkResults = Array.from(checkResults);
 
+  const totalTime = ((performance.now() - startTime) / 1000).toFixed(2);
+
   btn.disabled = false;
   btn.innerHTML = '🔄 重新检测';
   progressBar.style.display = 'none';
 
   updateStep(3);
   showReport();
-  toast(`✅ 检测完成！共 ${checkResults.length} 个文件（${CONCURRENCY} 路并行）`);
+  toast(`✅ 检测完成！共 ${checkResults.length} 个文件，耗时 ${totalTime}s（${CONCURRENCY} 路并行）`);
 }
 
 function getRules() {
@@ -867,13 +1027,65 @@ function showReport() {
   document.getElementById('fcWarn').textContent = warn;
   document.getElementById('fcPass').textContent = pass;
 
+  // Pass rate ring
+  const passRate = total > 0 ? (pass / total * 100) : 0;
+  updatePassRateRing(passRate);
+
+  // Score badge
+  updateScoreBadge(pass, warn, fail, total);
+
   // Render statistics chart
   renderStatChart();
 
   renderReport('all');
 
+  // Update report timestamp
+  document.getElementById('reportTime').textContent = '检测于 ' + new Date().toLocaleTimeString();
+
   // Scroll to report
   document.getElementById('s3').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function updatePassRateRing(pct) {
+  const circle = document.getElementById('passRateCircle');
+  const circumference = 2 * Math.PI * 34; // r=34
+  const offset = circumference - (pct / 100) * circumference;
+  // Animate
+  setTimeout(() => { circle.style.strokeDashoffset = offset; }, 50);
+  // Color
+  if (pct >= 90) circle.style.stroke = 'var(--green)';
+  else if (pct >= 70) circle.style.stroke = 'var(--accent)';
+  else if (pct >= 50) circle.style.stroke = 'var(--yellow)';
+  else circle.style.stroke = 'var(--red)';
+  // Text
+  animateCounter('passRatePct', pct, '%');
+}
+
+function animateCounter(id, target, suffix) {
+  const el = document.getElementById(id);
+  const duration = 600;
+  const startTime = performance.now();
+  function tick(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(target * ease) + (suffix || '');
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function updateScoreBadge(pass, warn, fail, total) {
+  const badge = document.getElementById('scoreBadge');
+  if (total === 0) { badge.textContent = '— 评分'; badge.className = 'score-badge good'; return; }
+  // Score: pass=100, warn=60, fail=0
+  const score = Math.round((pass * 100 + warn * 60) / total);
+  let cls, label;
+  if (score >= 90) { cls = 'excellent'; label = '优秀'; }
+  else if (score >= 75) { cls = 'good'; label = '良好'; }
+  else if (score >= 50) { cls = 'fair'; label = '一般'; }
+  else { cls = 'poor'; label = '待改进'; }
+  badge.className = 'score-badge ' + cls;
+  badge.textContent = `${score}分 · ${label}`;
 }
 
 // Animate number count up
@@ -921,10 +1133,25 @@ function renderStatChart() {
   }).join('');
 }
 
+let currentFilter = 'all';
+let currentSort = 'default';
+let currentSearch = '';
+
+function onSearchReport() {
+  currentSearch = document.getElementById('reportSearch').value.trim().toLowerCase();
+  renderReport(currentFilter);
+}
+
+function onSortReport() {
+  currentSort = document.getElementById('reportSort').value;
+  renderReport(currentFilter);
+}
+
 function renderReport(filter) {
+  currentFilter = filter;
   const list = document.getElementById('reportList');
-  list.innerHTML = `<div class="file-row header" style="grid-template-columns:30px 42px 2fr 80px 80px 65px 55px 65px 70px 1.5fr">
-    <div class="idx">#</div><div>预览</div><div>文件名</div><div>尺寸</div><div>文件大小</div><div>格式</div><div>Alpha</div><div>色彩空间</div><div>等级</div><div>问题详情</div>
+  list.innerHTML = `<div class="file-row header" style="grid-template-columns:24px 30px 42px 2fr 80px 80px 60px 50px 60px 66px 1.5fr">
+    <div></div><div class="idx">#</div><div>预览</div><div>文件名</div><div>尺寸</div><div>文件大小</div><div>格式</div><div>Alpha</div><div>色彩</div><div>等级</div><div>问题详情</div>
   </div>`;
 
   // Update filter button active state
@@ -933,24 +1160,46 @@ function renderReport(filter) {
   const filterIdx = {'all':0,'fail':1,'warn':2,'pass':3};
   if (filterBtns[filterIdx[filter]]) filterBtns[filterIdx[filter]].classList.add('act');
 
-  const filtered = filter === 'all' ? checkResults : checkResults.filter(r => r.level === filter);
+  let filtered = filter === 'all' ? [...checkResults] : checkResults.filter(r => r.level === filter);
+
+  // Apply search
+  if (currentSearch) {
+    filtered = filtered.filter(r => r.name.toLowerCase().includes(currentSearch));
+  }
+
+  // Apply sort
+  if (currentSort !== 'default') {
+    const levelOrder = {fail:0, warn:1, pass:2};
+    filtered.sort((a, b) => {
+      switch(currentSort) {
+        case 'name-asc': return a.name.localeCompare(b.name);
+        case 'name-desc': return b.name.localeCompare(a.name);
+        case 'size-desc': return b.size - a.size;
+        case 'size-asc': return a.size - b.size;
+        case 'level-desc': return levelOrder[a.level] - levelOrder[b.level];
+        case 'level-asc': return levelOrder[b.level] - levelOrder[a.level];
+        default: return 0;
+      }
+    });
+  }
 
   if (filtered.length === 0) {
-    list.innerHTML += `<div class="empty-state"><div class="empty-icon">🎉</div><p>${filter === 'all' ? '暂无检测结果' : '没有匹配的文件'}</p></div>`;
+    list.innerHTML += `<div class="empty-state"><div class="empty-icon">${currentSearch ? '🔍' : '🎉'}</div><p>${currentSearch ? '未找到匹配 "'+currentSearch+'" 的文件' : (filter === 'all' ? '暂无检测结果' : '没有匹配的文件')}</p></div>`;
     return;
   }
 
   filtered.forEach((r, i) => {
     const row = document.createElement('div');
-    row.className = `file-row level-${r.level}`;
-    row.style.gridTemplateColumns = '30px 42px 2fr 80px 80px 65px 55px 65px 70px 1.5fr';
-    row.style.animationDelay = `${i * 20}ms`;
-    const levelTag = r.level === 'pass' ? '<span class="tag tag-pass">✅ 通过</span>' :
-                     r.level === 'warn' ? '<span class="tag tag-warn">⚠️ 警告</span>' :
-                     '<span class="tag tag-fail">❌ 不通过</span>';
+    row.className = `file-row level-${r.level} expandable`;
+    row.style.gridTemplateColumns = '24px 30px 42px 2fr 80px 80px 60px 50px 60px 66px 1.5fr';
+    row.style.animationDelay = `${i * 25}ms`;
+    row.onclick = function() { toggleRowDetail(this, r); };
+    const levelTag = r.level === 'pass' ? '<span class="tag tag-pass">✅</span>' :
+                     r.level === 'warn' ? '<span class="tag tag-warn">⚠️</span>' :
+                     '<span class="tag tag-fail">❌</span>';
     const sizeStr = r.width ? `${r.width}×${r.height}` : '—';
-    const alphaStr = r.hasAlpha ? '✓ 有' : (r.alphaEmpty ? '✗ 空' : '—');
-    const csStr = r.colorSpace === 'srgb' ? 'sRGB' : r.colorSpace === 'linear' ? 'Linear' : r.colorSpace === 'unknown' ? '—' : r.colorSpace;
+    const alphaStr = r.hasAlpha ? '✓' : (r.alphaEmpty ? '✗' : '—');
+    const csStr = r.colorSpace === 'srgb' ? 'sRGB' : r.colorSpace === 'linear' ? 'Lin' : r.colorSpace === 'unknown' ? '—' : r.colorSpace.substring(0,6);
     // Thumbnail
     let thumbHtml;
     if (r.thumbUrl) {
@@ -958,19 +1207,82 @@ function renderReport(filter) {
     } else {
       thumbHtml = `<div class="thumb-cell"><div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--dim)">${r.ext.toUpperCase()}</div></div>`;
     }
-    // Issue string with rule tags
-    const issueStr = r.issues.length ? r.issues.map(i => {
-      const ruleTag = i.rule ? `<span class="rule-tag ${i.rule}">${{size:'尺寸',pot:'POT',format:'格式',alpha:'Alpha',naming:'命名',filesize:'大小',colorspace:'色彩'}[i.rule]||i.rule}</span>` : '';
-      return ruleTag + i.msg;
-    }).join('；') : '<span style="color:var(--green)">—</span>';
-    row.innerHTML = `<div class="idx">${i+1}</div>${thumbHtml}<div class="fname" title="${r.name}">${r.name}</div><div>${sizeStr}</div><div>${r.sizeStr}</div><div>${r.ext.toUpperCase()}</div><div>${alphaStr}</div><div style="font-size:11px">${csStr}</div><div>${levelTag}</div><div style="font-size:11px;color:var(--dim)">${issueStr}</div>`;
+    // Issue string with rule tags (compact)
+    const issueStr = r.issues.length ? r.issues.slice(0, 2).map(iss => {
+      const ruleTag = iss.rule ? `<span class="rule-tag ${iss.rule}">${{size:'尺寸',pot:'POT',format:'格式',alpha:'Alpha',naming:'命名',filesize:'大小',colorspace:'色彩'}[iss.rule]||iss.rule}</span>` : '';
+      return ruleTag + iss.msg;
+    }).join('；') + (r.issues.length > 2 ? ` <span style="color:var(--accent)">+${r.issues.length-2}</span>` : '') : '<span style="color:var(--green)">全部通过</span>';
+    row.innerHTML = `<div class="expand-icon">▶</div><div class="idx">${i+1}</div>${thumbHtml}<div class="fname" title="${r.name}">${highlightSearch(r.name)}</div><div>${sizeStr}</div><div>${r.sizeStr}</div><div>${r.ext.toUpperCase()}</div><div>${alphaStr}</div><div style="font-size:10px">${csStr}</div><div>${levelTag}</div><div style="font-size:11px;color:var(--dim)">${issueStr}</div>`;
     list.appendChild(row);
   });
 }
 
+function highlightSearch(name) {
+  if (!currentSearch) return name;
+  const idx = name.toLowerCase().indexOf(currentSearch);
+  if (idx < 0) return name;
+  return name.substring(0, idx) + '<mark style="background:rgba(108,140,255,.25);color:var(--heading);padding:0 2px;border-radius:2px">' + name.substring(idx, idx + currentSearch.length) + '</mark>' + name.substring(idx + currentSearch.length);
+}
+
+function toggleRowDetail(row, r) {
+  const existing = row.nextElementSibling;
+  if (existing && existing.classList.contains('row-detail')) {
+    existing.classList.toggle('show');
+    row.classList.toggle('expanded');
+    if (!existing.classList.contains('show')) { existing.remove(); }
+    return;
+  }
+  // Create detail panel
+  row.classList.add('expanded');
+  const detail = document.createElement('div');
+  detail.className = 'row-detail show';
+  const potStr = r.width ? (isPOT(r.width) && isPOT(r.height) ? '✅ 是' : '❌ 否') : '—';
+  const squareStr = r.width ? (r.width === r.height ? '✅ 是' : '❌ 否') : '—';
+  detail.innerHTML = `<div class="row-detail-grid">
+    <div class="row-detail-item"><span class="rdl">文件名</span><span class="rdv">${r.name}</span></div>
+    <div class="row-detail-item"><span class="rdl">尺寸</span><span class="rdv">${r.width ? r.width+'×'+r.height : '未知'}</span></div>
+    <div class="row-detail-item"><span class="rdl">文件大小</span><span class="rdv">${r.sizeStr}</span></div>
+    <div class="row-detail-item"><span class="rdl">格式</span><span class="rdv">${r.ext.toUpperCase()}</span></div>
+    <div class="row-detail-item"><span class="rdl">Alpha 通道</span><span class="rdv">${r.hasAlpha ? '有' : '无'}${r.alphaEmpty ? ' (空)' : ''}</span></div>
+    <div class="row-detail-item"><span class="rdl">色彩空间</span><span class="rdv">${r.colorSpace}</span></div>
+    <div class="row-detail-item"><span class="rdl">POT</span><span class="rdv">${potStr}</span></div>
+    <div class="row-detail-item"><span class="rdl">正方形</span><span class="rdv">${squareStr}</span></div>
+  </div>${r.issues.length ? '<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)"><strong style="font-size:11px;color:var(--heading)">问题详情：</strong><ul style="margin-top:4px;padding-left:16px;font-size:12px;color:var(--dim)">' + r.issues.map(iss => '<li style="margin:3px 0">' + (iss.rule ? '<span class="rule-tag '+iss.rule+'">'+(({size:'尺寸',pot:'POT',format:'格式',alpha:'Alpha',naming:'命名',filesize:'大小',colorspace:'色彩'})[iss.rule]||iss.rule)+'</span>' : '') + iss.msg + '</li>').join('') + '</ul></div>' : ''}`;
+  row.insertAdjacentElement('afterend', detail);
+}
+
 function filterReport(level) {
+  currentFilter = level;
   renderReport(level);
 }
+
+// ═══ Keyboard Shortcuts ═══
+document.addEventListener('keydown', (e) => {
+  // Don't trigger if typing in input/select
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+  if (e.key === 'Enter' || e.key === 'r') {
+    // R or Enter = Run Check
+    if (loadedFiles.length > 0) { e.preventDefault(); runCheck(); }
+  }
+  if (e.key === '1') { filterReport('all'); }
+  if (e.key === '2') { filterReport('fail'); }
+  if (e.key === '3') { filterReport('warn'); }
+  if (e.key === '4') { filterReport('pass'); }
+  if (e.key === '/') { 
+    // Focus search
+    e.preventDefault();
+    const search = document.getElementById('reportSearch');
+    if (search) search.focus();
+  }
+  if (e.key === 'Escape') {
+    // Clear search
+    const search = document.getElementById('reportSearch');
+    if (search && document.activeElement === search) {
+      search.value = ''; currentSearch = ''; renderReport(currentFilter); search.blur();
+    }
+  }
+});
 
 // Export CSV
 function exportCSV() {
@@ -1021,6 +1333,28 @@ function copyReport() {
   navigator.clipboard.writeText(text).then(() => toast('📋 已复制到剪贴板'));
 }
 
+function exportMarkdown() {
+  if (checkResults.length === 0) { toast('⚠️ 暂无检测结果'); return; }
+  const pass = checkResults.filter(r=>r.level==='pass').length;
+  const warn = checkResults.filter(r=>r.level==='warn').length;
+  const fail = checkResults.filter(r=>r.level==='fail').length;
+  let md = `# 🔎 贴图规范检测报告\n\n`;
+  md += `> 检测时间: ${new Date().toLocaleString()}  \n`;
+  md += `> 预设: ${PRESETS[currentPreset]?.desc || currentPreset}\n\n`;
+  md += `## 📊 概览\n\n`;
+  md += `| 指标 | 数量 |\n|------|------|\n`;
+  md += `| 总计 | ${checkResults.length} |\n| ✅ 通过 | ${pass} |\n| ⚠️ 警告 | ${warn} |\n| ❌ 不通过 | ${fail} |\n| 通过率 | ${(pass/checkResults.length*100).toFixed(1)}% |\n\n`;
+  md += `## 📋 详细结果\n\n`;
+  md += `| # | 文件名 | 尺寸 | 大小 | 格式 | 等级 | 问题 |\n|---|--------|------|------|------|------|------|\n`;
+  checkResults.forEach((r, i) => {
+    const lvl = r.level === 'pass' ? '✅' : r.level === 'warn' ? '⚠️' : '❌';
+    const issues = r.issues.map(x => x.msg).join('; ') || '—';
+    md += `| ${i+1} | ${r.name} | ${r.width?r.width+'×'+r.height:'—'} | ${r.sizeStr} | ${r.ext.toUpperCase()} | ${lvl} | ${issues} |\n`;
+  });
+  downloadText(md, 'texture-check-report.md', 'text/markdown;charset=utf-8');
+  toast('📝 Markdown 报告已导出');
+}
+
 function downloadText(content, filename, mime) {
   const blob = new Blob([content], { type: mime });
   const a = document.createElement('a');
@@ -1035,7 +1369,7 @@ function downloadText(content, filename, mime) {
 });
 document.getElementById('ruleNaming').addEventListener('input', updateRuleIndicator);
 
-ToolBus.register('texture-checker', { name: '贴图规范检测器', version: '2.0' });
+ToolBus.register('texture-checker', { name: '贴图规范检测器', version: '2.1' });
 </script>
 <script src="shortcut-help.js"></script>
 <script src="theme-toggle.js"></script>
