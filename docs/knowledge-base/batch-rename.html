@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>美术资源批量重命名 — Batch Rename v2.1</title>
+<title>美术资源批量重命名 — Batch Rename v2.2</title>
 <link rel="stylesheet" href="design-tokens.css">
 <link rel="stylesheet" href="tool-base.css">
 <style>
@@ -83,6 +83,24 @@
 .sort-handle{cursor:grab;color:var(--dim);font-size:14px;user-select:none}
 .sort-handle:active{cursor:grabbing}
 .file-row.dragging{opacity:.4;border:1px dashed var(--accent)}
+/* v2.2 模板标签卡片 */
+.tpl-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:40px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:6px;cursor:text;transition:border-color .2s}
+.tpl-chips:hover,.tpl-chips.focus{border-color:var(--accent)}
+.tpl-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:5px;font-size:13px;font-family:'Courier New',monospace;cursor:default;transition:all .2s;user-select:none;position:relative}
+.tpl-chip.var{background:rgba(108,140,255,.12);border:1px solid rgba(108,140,255,.3);color:var(--accent)}
+.tpl-chip.var:hover{background:rgba(108,140,255,.2);border-color:var(--accent);transform:translateY(-1px);box-shadow:0 2px 8px rgba(108,140,255,.15)}
+.tpl-chip.sep{background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.25);color:var(--cyan);font-weight:600;min-width:20px;justify-content:center}
+.tpl-chip.sep:hover{background:rgba(34,211,238,.15);transform:translateY(-1px)}
+.tpl-chip.text{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text)}
+.tpl-chip.text:hover{border-color:var(--dim);transform:translateY(-1px)}
+.tpl-chip .chip-x{display:none;width:16px;height:16px;border-radius:50%;background:var(--red);color:#fff;font-size:10px;line-height:16px;text-align:center;cursor:pointer;margin-left:4px;flex-shrink:0;transition:transform .15s}
+.tpl-chip:hover .chip-x{display:inline-block}
+.tpl-chip .chip-x:hover{transform:scale(1.2)}
+.tpl-chip .chip-x:active{transform:scale(.9)}
+.tpl-chips-hint{font-size:11px;color:var(--dim);margin-top:4px;display:flex;align-items:center;gap:8px}
+.tpl-chips-hint kbd{background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-size:10px}
+.tpl-raw-toggle{font-size:11px;color:var(--accent);cursor:pointer;margin-left:auto;text-decoration:underline;opacity:.7;transition:opacity .2s}
+.tpl-raw-toggle:hover{opacity:1}
 .regex-error{color:var(--red);font-size:12px;margin-top:6px;display:none;animation:fadeIn .3s}
 .compliance-panel{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;margin:12px 0}
 .compliance-result{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
@@ -102,7 +120,7 @@
 <body>
 <div class="app">
 <div class="hdr">
-  <h1>📁 美术资源批量重命名 <span class="ver">v2.1</span></h1>
+  <h1>📁 美术资源批量重命名 <span class="ver">v2.2</span></h1>
   <p>模板命名 · 正则替换 · CSV导入 · 冲突自动解决 · 合规校验 · 回滚脚本 · 预设管理</p>
 </div>
 
@@ -132,10 +150,17 @@
       <button class="btn btn-sm" onclick="document.getElementById('presetFile').click()">📥 导入预设</button>
       <input type="file" id="presetFile" accept=".json" style="display:none" onchange="importPresets(event)">
     </div>
-    <div class="tpl-row">
-      <label>命名模板</label>
-      <input type="text" id="tplInput" value="{类型}_{性别}_{部件}_{编号}_{变体}" oninput="pushHistory();updatePreview()">
-      <button class="btn btn-sm" onclick="document.getElementById('tplInput').value='';updatePreview()" title="清空">✕</button>
+    <div class="tpl-row" style="flex-direction:column;align-items:stretch">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <label style="margin:0">命名模板</label>
+        <span class="tpl-raw-toggle" id="tplModeToggle" onclick="toggleTplEditMode()">📝 切换文本编辑</span>
+        <button class="btn btn-sm" onclick="clearTemplate()" title="清空" style="margin-left:auto;padding:3px 10px">✕ 清空</button>
+      </div>
+      <!-- 卡片模式 -->
+      <div class="tpl-chips" id="tplChips" onclick="focusChipsEnd(event)"></div>
+      <div class="tpl-chips-hint"><span>💡 点击标签上的 <kbd>×</kbd> 可快速删除 · 点击下方变量可追加</span></div>
+      <!-- 文本模式（默认隐藏） -->
+      <input type="text" id="tplInput" value="{类型}_{性别}_{部件}_{编号}_{变体}" oninput="pushHistory();syncChipsFromInput();updatePreview()" style="display:none">
     </div>
     <div class="tpl-row">
       <label>分隔符</label>
@@ -334,7 +359,16 @@ function goToStep(s){document.querySelectorAll('.stp').forEach((el,i)=>{el.class
 function toggleCustom(sel){const ci=sel.parentElement.querySelector('input[type=text]');if(ci){ci.style.display=sel.value===''?'block':'none'}}
 function getVal(id){const s=document.getElementById(id);if(!s)return'';if(s.value===''){const c=document.getElementById(id+'Custom');return c?c.value:''}return s.value}
 function pushHistory(){tplHistory.push(document.getElementById('tplInput').value);if(tplHistory.length>30)tplHistory.shift()}
-function insertToken(t){const inp=document.getElementById('tplInput');pushHistory();const p=inp.selectionStart||inp.value.length;inp.value=inp.value.slice(0,p)+t+inp.value.slice(p);inp.focus();updatePreview()}
+// === v2.2 Template Chips Logic ===
+let tplEditMode='chips'; // 'chips' or 'text'
+function toggleTplEditMode(){const inp=document.getElementById('tplInput'),chips=document.getElementById('tplChips'),hint=document.querySelector('.tpl-chips-hint'),toggle=document.getElementById('tplModeToggle');if(tplEditMode==='chips'){tplEditMode='text';inp.style.display='block';chips.style.display='none';hint.style.display='none';toggle.textContent='🎨 切换卡片模式';inp.focus()}else{tplEditMode='chips';inp.style.display='none';chips.style.display='flex';hint.style.display='flex';toggle.textContent='📝 切换文本编辑';syncChipsFromInput()}}
+function clearTemplate(){pushHistory();document.getElementById('tplInput').value='';syncChipsFromInput();updatePreview();toast('✕ 模板已清空','success')}
+function parseTplToTokens(tpl){const tokens=[];const regex=/(\{[^}]+\})/g;let last=0,m;while((m=regex.exec(tpl))!==null){if(m.index>last){tokens.push({type:'text',value:tpl.slice(last,m.index)})}tokens.push({type:'var',value:m[1]});last=regex.lastIndex}if(last<tpl.length)tokens.push({type:'text',value:tpl.slice(last)});return tokens}
+function syncChipsFromInput(){const tpl=document.getElementById('tplInput').value;const tokens=parseTplToTokens(tpl);renderChips(tokens)}
+function renderChips(tokens){const container=document.getElementById('tplChips');container.innerHTML='';if(!tokens.length){container.innerHTML='<span style="color:var(--dim);font-size:13px;font-style:italic">点击下方变量标签添加...</span>';return}tokens.forEach((tk,idx)=>{const chip=document.createElement('span');const cls=tk.type==='var'?'var':(tk.value.length<=2&&/^[_\-.\s]+$/.test(tk.value)?'sep':'text');chip.className='tpl-chip '+cls;const label=document.createElement('span');label.textContent=tk.value;chip.appendChild(label);const x=document.createElement('span');x.className='chip-x';x.textContent='×';x.title='点击删除此标签';x.onclick=function(e){e.stopPropagation();removeChipAt(idx)};chip.appendChild(x);container.appendChild(chip)})}
+function removeChipAt(idx){pushHistory();const tpl=document.getElementById('tplInput').value;const tokens=parseTplToTokens(tpl);if(idx<0||idx>=tokens.length)return;tokens.splice(idx,1);const newTpl=tokens.map(t=>t.value).join('');document.getElementById('tplInput').value=newTpl;syncChipsFromInput();updatePreview();toast('🗑 已移除标签','success')}
+function focusChipsEnd(e){if(e.target.classList.contains('tpl-chips')){/* clicking empty area: switch to text mode for typing */toggleTplEditMode()}}
+function insertToken(t){const inp=document.getElementById('tplInput');pushHistory();inp.value+=t;syncChipsFromInput();updatePreview()}
 function genName(tpl,idx,orig,ext){const type=getVal('segType'),gender=getVal('segGender'),part=getVal('segPart'),variant=getVal('segVariant'),prefix=document.getElementById('segPrefix').value,suffix=document.getElementById('segSuffix').value,numStart=parseInt(document.getElementById('segNumStart').value)||0,pad=parseInt(document.getElementById('segNumPad').value)||3,num=String(numStart+idx).padStart(pad,'0'),seq=String(idx+1).padStart(pad,'0'),d=new Date(),ds=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'),extN=ext?ext.replace('.',''):'';
 let n=tpl.replace(/\{类型\}/g,type).replace(/\{性别\}/g,gender).replace(/\{部件\}/g,part).replace(/\{编号\}/g,num).replace(/\{变体\}/g,variant).replace(/\{序号\}/g,seq).replace(/\{原名\}/g,orig||'').replace(/\{日期\}/g,ds).replace(/\{前缀\}/g,prefix).replace(/\{后缀\}/g,suffix).replace(/\{扩展名\}/g,extN);
 if(document.getElementById('cleanChinese').checked)n=n.replace(/[\u4e00-\u9fff]/g,'');
@@ -421,7 +455,7 @@ function copyMapping(){if(!renameResults.length)return;let t='批量重命名对
 // Presets
 function renderPresetBar(){const bar=document.getElementById('presetBar');bar.innerHTML='';Object.entries(getAllPresets()).forEach(([k,p])=>{const b=document.createElement('button');b.className='preset-btn'+(k===currentPreset?' act':'')+(k.startsWith('user_')?' user-preset':'');b.textContent=p.desc;b.onclick=()=>{currentPreset=k;applyPreset(k)};if(k.startsWith('user_')){const d=document.createElement('span');d.className='del-x';d.textContent='×';d.onclick=e=>{e.stopPropagation();const up=getUserPresets();delete up[k];localStorage.setItem('br_presets',JSON.stringify(up));renderPresetBar();toast('🗑 已删除','warning')};b.appendChild(d)}bar.appendChild(b)})}
 let currentPreset='character';
-function applyPreset(k){const p=getAllPresets()[k];if(!p)return;currentPreset=k;document.getElementById('tplInput').value=p.tpl;['segType','segGender','segVariant'].forEach(id=>{const s=document.getElementById(id);if(s&&p[id.replace('seg','').toLowerCase()]!==undefined){const v=p[id.replace('seg','').toLowerCase()]||p.type||'';if(Array.from(s.options).some(o=>o.value===v))s.value=v}});if(p.type){const s=document.getElementById('segType');if(Array.from(s.options).some(o=>o.value===p.type))s.value=p.type}if(p.gender){const s=document.getElementById('segGender');if(Array.from(s.options).some(o=>o.value===p.gender))s.value=p.gender}if(p.part){const s=document.getElementById('segPart');if(Array.from(s.options).some(o=>o.value===p.part)){s.value=p.part}else{s.value='';const c=document.getElementById('segPartCustom');if(c){c.value=p.part;c.style.display='block'}}}if(p.variant){const s=document.getElementById('segVariant');if(Array.from(s.options).some(o=>o.value===p.variant))s.value=p.variant}document.getElementById('segPrefix').value=p.prefix||'';document.getElementById('segSuffix').value=p.suffix||'';document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('act'));renderPresetBar();updatePreview();toast('✅ 预设: '+p.desc,'success')}
+function applyPreset(k){const p=getAllPresets()[k];if(!p)return;currentPreset=k;document.getElementById('tplInput').value=p.tpl;syncChipsFromInput();['segType','segGender','segVariant'].forEach(id=>{const s=document.getElementById(id);if(s&&p[id.replace('seg','').toLowerCase()]!==undefined){const v=p[id.replace('seg','').toLowerCase()]||p.type||'';if(Array.from(s.options).some(o=>o.value===v))s.value=v}});if(p.type){const s=document.getElementById('segType');if(Array.from(s.options).some(o=>o.value===p.type))s.value=p.type}if(p.gender){const s=document.getElementById('segGender');if(Array.from(s.options).some(o=>o.value===p.gender))s.value=p.gender}if(p.part){const s=document.getElementById('segPart');if(Array.from(s.options).some(o=>o.value===p.part)){s.value=p.part}else{s.value='';const c=document.getElementById('segPartCustom');if(c){c.value=p.part;c.style.display='block'}}}if(p.variant){const s=document.getElementById('segVariant');if(Array.from(s.options).some(o=>o.value===p.variant))s.value=p.variant}document.getElementById('segPrefix').value=p.prefix||'';document.getElementById('segSuffix').value=p.suffix||'';document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('act'));renderPresetBar();updatePreview();toast('✅ 预设: '+p.desc,'success')}
 function saveCurrentPreset(){const n=prompt('输入预设名称:');if(!n)return;const k='user_'+Date.now(),up=getUserPresets();up[k]={tpl:document.getElementById('tplInput').value,type:getVal('segType'),gender:getVal('segGender'),part:getVal('segPart'),variant:getVal('segVariant'),prefix:document.getElementById('segPrefix').value,suffix:document.getElementById('segSuffix').value,desc:n};localStorage.setItem('br_presets',JSON.stringify(up));renderPresetBar();toast('💾 已保存: '+n,'success')}
 function exportPresets(){const up=getUserPresets();if(!Object.keys(up).length){toast('⚠️ 无自定义预设','warning');return}dl(JSON.stringify(up,null,2),'presets.json','application/json');toast('📤 已导出','success')}
 function importPresets(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result),up=getUserPresets();Object.assign(up,d);localStorage.setItem('br_presets',JSON.stringify(up));renderPresetBar();toast('📥 导入成功','success')}catch(e){toast('❌ 格式错误','error')}};r.readAsText(f)}
@@ -430,10 +464,10 @@ function saveOp(){const ops=JSON.parse(localStorage.getItem('br_history')||'[]')
 function renderHistory(){const el=document.getElementById('historyPanel'),ops=JSON.parse(localStorage.getItem('br_history')||'[]');if(!ops.length){el.innerHTML='<p style="color:var(--dim);font-size:13px;text-align:center;padding:16px">暂无记录</p>';return}el.innerHTML='';ops.forEach(op=>{const d=document.createElement('div');d.className='history-item';d.innerHTML='<span class="name">'+op.mode+' | '+op.count+'个文件'+(op.conflicts?' ('+op.conflicts+'冲突)':'')+'</span><span class="info">'+op.time+'</span>';el.appendChild(d)})}
 function clearAllHistory(){localStorage.removeItem('br_history');renderHistory();toast('🗑 历史已清空','success')}
 // Keyboard shortcuts
-document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();generatePreview()}else if(e.ctrlKey&&e.key==='e'){e.preventDefault();exportCSV()}else if(e.ctrlKey&&e.key==='z'&&document.activeElement.id!=='tplInput'){e.preventDefault();if(tplHistory.length){document.getElementById('tplInput').value=tplHistory.pop();updatePreview();toast('↩️ 已撤销','success')}}});
+document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();generatePreview()}else if(e.ctrlKey&&e.key==='e'){e.preventDefault();exportCSV()}else if(e.ctrlKey&&e.key==='z'&&document.activeElement.id!=='tplInput'){e.preventDefault();if(tplHistory.length){document.getElementById('tplInput').value=tplHistory.pop();syncChipsFromInput();updatePreview();toast('↩️ 已撤销','success')}}});
 // Init
-renderPresetBar();updatePreview();renderHistory();
-ToolBus.register('batch-rename', { name: '美术资源批量重命名', version: '2.1' });
+renderPresetBar();syncChipsFromInput();updatePreview();renderHistory();
+ToolBus.register('batch-rename', { name: '美术资源批量重命名', version: '2.2' });
 </script>
 <script src="shortcut-help.js"></script>
 <script src="theme-toggle.js"></script>
