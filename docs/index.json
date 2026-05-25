@@ -1726,19 +1726,20 @@
       "craft": "管理",
       "type": "iframe",
       "title": "美术资源批量重命名",
-      "desc": "拖入文件列表，按自定义模板（类型_性别_部件_编号_变体）批量重命名，预览更改，检测名称冲突，导出命名对照表",
+      "desc": "拖入文件列表，按自定义模板批量重命名，正则替换/CSV映射，预览冲突检测+合规校验，导出多平台脚本+回滚",
       "tags": [
         "在线工具",
         "批量重命名",
         "命名规范",
         "冲突检测",
+        "合规校验",
         "对照表"
       ],
       "icon": "📁",
       "action": "openTool",
       "path": "knowledge-base/batch-rename.html",
       "owner": "APM团队",
-      "last_updated": "2026-05-22",
+      "last_updated": "2026-05-25",
       "applicable_stage": "全阶段",
       "priority": "high",
       "is_hot": true,
@@ -1748,9 +1749,11 @@
         "文件重命名",
         "命名模板",
         "冲突检测",
+        "合规校验",
         "对照表",
         "命名规范化",
-        "资源整理"
+        "资源整理",
+        "正则替换"
       ],
       "content_type": "工具",
       "quality_level": "mature"

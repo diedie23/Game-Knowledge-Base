@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>美术资源批量重命名 — Batch Rename v2.0</title>
+<title>美术资源批量重命名 — Batch Rename v2.1</title>
 <link rel="stylesheet" href="design-tokens.css">
 <link rel="stylesheet" href="tool-base.css">
 <style>
@@ -79,13 +79,31 @@
 .toast.error{border-color:var(--red)}.toast.success{border-color:var(--green)}.toast.warning{border-color:var(--yellow)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:768px){.seg-grid{grid-template-columns:1fr}.steps{flex-wrap:wrap;gap:4px}.sa{display:none}}
+/* v2.1 新增样式 */
+.sort-handle{cursor:grab;color:var(--dim);font-size:14px;user-select:none}
+.sort-handle:active{cursor:grabbing}
+.file-row.dragging{opacity:.4;border:1px dashed var(--accent)}
+.regex-error{color:var(--red);font-size:12px;margin-top:6px;display:none;animation:fadeIn .3s}
+.compliance-panel{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;margin:12px 0}
+.compliance-result{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.comp-tag{padding:3px 10px;border-radius:4px;font-size:12px;font-weight:500}
+.comp-tag.pass{background:rgba(74,222,128,.12);color:var(--green)}
+.comp-tag.warn{background:rgba(251,191,36,.12);color:var(--yellow)}
+.comp-tag.fail{background:rgba(248,113,113,.12);color:var(--red)}
+.file-row .edit-hint{opacity:0;font-size:11px;color:var(--dim);transition:opacity .2s;margin-left:4px}
+.file-row:hover .edit-hint{opacity:1}
+.batch-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin:12px 0}
+.batch-stat{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center}
+.batch-stat .val{font-size:18px;font-weight:700;color:var(--cyan)}
+.batch-stat .lbl{font-size:11px;color:var(--dim);margin-top:2px}
+
 </style>
 </head>
 <body>
 <div class="app">
 <div class="hdr">
-  <h1>📁 美术资源批量重命名 <span class="ver">v2.0</span></h1>
-  <p>模板命名 · 正则替换 · CSV导入 · 冲突自动解决 · 回滚脚本 · 预设管理</p>
+  <h1>📁 美术资源批量重命名 <span class="ver">v2.1</span></h1>
+  <p>模板命名 · 正则替换 · CSV导入 · 冲突自动解决 · 合规校验 · 回滚脚本 · 预设管理</p>
 </div>
 
 <div class="steps" id="stepBar">
@@ -179,6 +197,7 @@
         <label><input type="checkbox" id="regexI" onchange="updatePreview()"> 忽略大小写(i)</label>
       </div>
       <div class="tpl-preview" style="margin-top:12px"><div class="lbl">🔍 预览 (示例: example_v01)</div><div class="val" id="regexPreview">—</div></div>
+      <div class="regex-error" id="regexError">❌ 正则表达式语法错误</div>
     </div>
   </div>
 
@@ -207,6 +226,9 @@
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
       <span style="font-size:15px;color:var(--heading);font-weight:600">📋 已载入 <span id="fileCount">0</span> 个文件</span>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm" onclick="sortFiles('name')">🔤 按名称排序</button>
+        <button class="btn btn-sm" onclick="sortFiles('ext')">📎 按类型排序</button>
+        <button class="btn btn-sm" onclick="sortFiles('size')">📐 按大小排序</button>
         <button class="btn btn-sm" onclick="clearFiles()">🗑 清空</button>
         <button class="btn btn-sm btn-c" onclick="generatePreview()">🔄 生成预览</button>
       </div>
@@ -244,6 +266,12 @@
     <button class="btn" onclick="exportPY()">🐍 Python</button>
     <button class="btn btn-r" onclick="exportRollback()">⏪ 回滚脚本</button>
     <button class="btn btn-sm" onclick="copyMapping()">📋 复制</button>
+  </div>
+  <!-- 合规检测 -->
+  <div class="compliance-panel" id="compliancePanel" style="display:none">
+    <div style="font-size:14px;font-weight:600;color:var(--heading);margin-bottom:8px">🛡️ 命名合规校验</div>
+    <div class="batch-stats" id="compStats"></div>
+    <div class="compliance-result" id="compResult"></div>
   </div>
 </div>
 
@@ -316,7 +344,7 @@ if(document.getElementById('trimDots').checked)n=n.replace(/\.{2,}/g,'.').replac
 const cm=document.getElementById('caseMode').value;
 if(cm==='lower')n=n.toLowerCase();else if(cm==='upper')n=n.toUpperCase();else if(cm==='pascal')n=n.split(/[_\-.\s]/).map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join('');else if(cm==='camel')n=n.split(/[_\-.\s]/).map((w,i)=>i===0?w.toLowerCase():w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join('');
 return n}
-function genRegex(orig){try{const f=document.getElementById('regexFind').value,r=document.getElementById('regexReplace').value;if(!f)return orig;let fl='';if(document.getElementById('regexG').checked)fl+='g';if(document.getElementById('regexI').checked)fl+='i';return orig.replace(new RegExp(f,fl),r)}catch(e){return orig}}
+function genRegex(orig){const errEl=document.getElementById('regexError');try{const f=document.getElementById('regexFind').value,r=document.getElementById('regexReplace').value;if(!f){if(errEl)errEl.style.display='none';return orig}let fl='';if(document.getElementById('regexG').checked)fl+='g';if(document.getElementById('regexI').checked)fl+='i';const result=orig.replace(new RegExp(f,fl),r);if(errEl)errEl.style.display='none';return result}catch(e){if(errEl){errEl.textContent='❌ '+e.message;errEl.style.display='block'}return orig}}
 function updatePreview(){if(currentMode==='template'){const ex=genName(document.getElementById('tplInput').value,0,'example_file','.png');document.getElementById('tplPreviewText').textContent=ex||'—'}else if(currentMode==='regex'){document.getElementById('regexPreview').textContent=genRegex('example_v01')||'—'}}
 // File handling
 document.getElementById('dropZone').addEventListener('click',()=>document.getElementById('fileInput').click());
@@ -325,24 +353,70 @@ function handleFiles(e){addFiles(Array.from(e.target.files))}
 function addFiles(fs){if(!fs.length){toast('⚠️ 未检测到文件','warning');return}loadedFiles=loadedFiles.concat(fs);document.getElementById('fileCount').textContent=loadedFiles.length;document.getElementById('fileActions').style.display='block';goToStep(2);renderFileList();toast('📁 已载入 '+fs.length+' 个文件','success')}
 function renderFileList(){const c=document.getElementById('srcFileList'),q=(document.getElementById('fileSearch').value||'').toLowerCase();c.innerHTML='';loadedFiles.forEach((f,i)=>{if(q&&!f.name.toLowerCase().includes(q))return;const r=document.createElement('div');r.className='file-row';r.innerHTML='<div class="idx">'+(i+1)+'</div><div class="old-name" title="'+f.name+'">'+f.name+'</div><div style="color:var(--dim);font-size:11px">'+(f.size<1024?f.size+'B':f.size<1048576?(f.size/1024).toFixed(1)+'KB':(f.size/1048576).toFixed(1)+'MB')+'</div><div><button class="btn btn-sm" style="padding:2px 8px;font-size:11px" onclick="loadedFiles.splice('+i+',1);document.getElementById(\'fileCount\').textContent=loadedFiles.length;renderFileList()">✕</button></div>';c.appendChild(r)})}
 function clearFiles(){if(loadedFiles.length>0&&!confirm('确定要清空所有已载入的文件吗？'))return;loadedFiles=[];renameResults=[];document.getElementById('fileCount').textContent='0';document.getElementById('fileActions').style.display='none';document.getElementById('s3').style.display='none';document.getElementById('srcFileList').innerHTML='';goToStep(1);toast('🗑 已清空','success')}
+function sortFiles(by){if(!loadedFiles.length)return;if(by==='name')loadedFiles.sort((a,b)=>a.name.localeCompare(b.name));else if(by==='ext')loadedFiles.sort((a,b)=>{const ea=a.name.split('.').pop()||'',eb=b.name.split('.').pop()||'';return ea.localeCompare(eb)||a.name.localeCompare(b.name)});else if(by==='size')loadedFiles.sort((a,b)=>a.size-b.size);renderFileList();toast('🔄 已按'+({name:'名称',ext:'类型',size:'大小'}[by])+'排序','success')}
 // CSV
 function handleCsv(e){const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=ev=>{const lines=ev.target.result.split(/\r?\n/).filter(l=>l.trim());csvMap={};let c=0;lines.forEach((l,i)=>{if(i===0&&(l.includes('原文件名')||l.toLowerCase().includes('original')))return;const sep=l.includes('\t')?'\t':',';const p=l.split(sep).map(s=>s.replace(/^"|"$/g,'').trim());if(p.length>=2&&p[0]&&p[1]){csvMap[p[0]]=p[1];c++}});document.getElementById('csvInfo').style.display='block';document.getElementById('csvCount').textContent=c;toast('📊 已加载 '+c+' 条映射','success')};rd.readAsText(f)}
 // Generate
-function generatePreview(){if(!loadedFiles.length){toast('⚠️ 请先载入文件','warning');return}const tpl=document.getElementById('tplInput').value;renameResults=[];loadedFiles.forEach((f,i)=>{const noExt=f.name.replace(/\.[^.]+$/,''),ext=f.name.includes('.')?'.'+f.name.split('.').pop():'';let nb;if(currentMode==='template')nb=genName(tpl,i,noExt,ext);else if(currentMode==='regex')nb=genRegex(noExt);else nb=csvMap[f.name]?csvMap[f.name].replace(/\.[^.]+$/,''):noExt;renameResults.push({orig:f.name,newName:nb+ext,base:nb,ext,conflict:false})});resolveConflicts();goToStep(3);showResults();saveOp();toast('🔄 预览完成','success')}
+function generatePreview(){if(!loadedFiles.length){toast('⚠️ 请先载入文件','warning');return}const tpl=document.getElementById('tplInput').value;renameResults=[];loadedFiles.forEach((f,i)=>{const noExt=f.name.replace(/\.[^.]+$/,''),ext=f.name.includes('.')?'.'+f.name.split('.').pop():'';let nb;if(currentMode==='template')nb=genName(tpl,i,noExt,ext);else if(currentMode==='regex')nb=genRegex(noExt);else nb=csvMap[f.name]?csvMap[f.name].replace(/\.[^.]+$/,''):noExt;renameResults.push({orig:f.name,newName:nb+ext,base:nb,ext,conflict:false})});resolveConflicts();goToStep(3);showResults();runComplianceCheck();saveOp();toast('🔄 预览完成','success')}
 function resolveConflicts(){renameResults.forEach(r=>r.conflict=false);const map={};renameResults.forEach((r,i)=>{const k=r.newName.toLowerCase();if(map[k]!==undefined){r.conflict=true;renameResults[map[k]].conflict=true}else map[k]=i});const st=document.getElementById('conflictStrategy').value;if(st==='none')return;const groups={};renameResults.forEach((r,i)=>{const k=r.newName.toLowerCase();if(!groups[k])groups[k]=[];groups[k].push(i)});Object.values(groups).forEach(ids=>{if(ids.length<=1)return;ids.forEach((idx,di)=>{if(di===0)return;const r=renameResults[idx];let b=r.base;if(st==='suffix_num')b+='_'+(di);else if(st==='suffix_alpha')b+='_'+String.fromCharCode(96+di);else if(st==='suffix_time')b+='_'+Date.now().toString(36).slice(-4)+di;r.base=b;r.newName=b+r.ext;r.conflict=false})});
 // recheck
 const fm={};renameResults.forEach((r,i)=>{const k=r.newName.toLowerCase();if(fm[k]!==undefined){r.conflict=true;renameResults[fm[k]].conflict=true}else fm[k]=i})}
 function showResults(){document.getElementById('s3').style.display='block';const t=renameResults.length,c=renameResults.filter(r=>r.conflict).length;document.getElementById('sumTotal').textContent=t;document.getElementById('sumOk').textContent=t-c;document.getElementById('sumConflict').textContent=c;document.getElementById('conflictAlert').style.display=c?'block':'none';renderPreviewList();document.getElementById('s3').scrollIntoView({behavior:'smooth',block:'start'})}
-function renderPreviewList(){const list=document.getElementById('previewList'),q=(document.getElementById('previewSearch')?.value||'').toLowerCase(),co=document.getElementById('showConflicts')?.checked;list.innerHTML='<div class="file-row header"><div class="idx">#</div><div>原文件名</div><div>新文件名</div><div>状态</div></div>';renameResults.forEach((r,i)=>{if(q&&!r.orig.toLowerCase().includes(q)&&!r.newName.toLowerCase().includes(q))return;if(co&&!r.conflict)return;const row=document.createElement('div');row.className='file-row'+(r.conflict?' has-conflict':'');row.innerHTML='<div class="idx">'+(i+1)+'</div><div class="old-name" title="'+r.orig+'">'+r.orig+'</div><div class="new-name" title="双击编辑" ondblclick="editName('+i+',this)">'+r.newName+'</div><div>'+(r.conflict?'<span class="conflict-badge has-conflict">⚠️冲突</span>':'<span class="conflict-badge no-conflict">✅</span>')+'</div>';list.appendChild(row)})}
+function renderPreviewList(){const list=document.getElementById('previewList'),q=(document.getElementById('previewSearch')?.value||'').toLowerCase(),co=document.getElementById('showConflicts')?.checked;list.innerHTML='<div class="file-row header"><div class="idx">#</div><div>原文件名</div><div>新文件名</div><div>状态</div></div>';renameResults.forEach((r,i)=>{if(q&&!r.orig.toLowerCase().includes(q)&&!r.newName.toLowerCase().includes(q))return;if(co&&!r.conflict)return;const row=document.createElement('div');row.className='file-row'+(r.conflict?' has-conflict':'');row.innerHTML='<div class="idx">'+(i+1)+'</div><div class="old-name" title="'+r.orig+'">'+r.orig+'</div><div class="new-name" title="双击编辑" ondblclick="editName('+i+',this)">'+r.newName+'<span class="edit-hint">✏️</span></div><div>'+(r.conflict?'<span class="conflict-badge has-conflict">⚠️冲突</span>':'<span class="conflict-badge no-conflict">✅</span>')+'</div>';list.appendChild(row)})}
 function editName(i,el){const r=renameResults[i],inp=document.createElement('input');inp.value=r.newName;inp.onblur=()=>{if(inp.value&&inp.value!==r.newName){r.newName=inp.value;r.base=inp.value.replace(/\.[^.]+$/,'');resolveConflicts();showResults();toast('✏️ 已修改','success')}else el.textContent=r.newName};inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape'){el.textContent=r.newName}};el.innerHTML='';el.appendChild(inp);inp.focus();inp.select()}
+// Compliance check — 命名合规校验
+function runComplianceCheck(){
+  if(!renameResults.length)return;
+  const panel=document.getElementById('compliancePanel');
+  panel.style.display='block';
+  const rules=[
+    {name:'无中文字符',test:n=>!/[\u4e00-\u9fff]/.test(n),level:'fail'},
+    {name:'无空格',test:n=>!/\s/.test(n),level:'fail'},
+    {name:'无特殊字符',test:n=>!/[^\w.\-]/.test(n.replace(/\.[^.]+$/,'')),level:'warn'},
+    {name:'全小写/标准格式',test:n=>{const b=n.replace(/\.[^.]+$/,'');return/^[A-Z][A-Za-z0-9]*([_\-][A-Za-z0-9]+)*$/.test(b)||/^[a-z][a-z0-9]*([_\-][a-z0-9]+)*$/.test(b)||/^[A-Z][A-Z0-9]*([_][A-Z0-9]+)*$/.test(b)},level:'warn'},
+    {name:'长度≤80字符',test:n=>n.length<=80,level:'warn'},
+    {name:'无连续下划线',test:n=>!/__/.test(n),level:'warn'},
+    {name:'不以数字开头',test:n=>!/^\d/.test(n.replace(/\.[^.]+$/,'')),level:'warn'}
+  ];
+  let stats={pass:0,warn:0,fail:0};
+  const issues=[];
+  renameResults.forEach(r=>{
+    rules.forEach(rule=>{
+      if(!rule.test(r.newName)){
+        if(rule.level==='fail')stats.fail++;else stats.warn++;
+        issues.push({file:r.newName,rule:rule.name,level:rule.level});
+      }else{stats.pass++}
+    });
+  });
+  const statsEl=document.getElementById('compStats');
+  statsEl.innerHTML=`
+    <div class="batch-stat"><div class="val" style="color:var(--green)">${renameResults.length*rules.length-stats.fail-stats.warn}</div><div class="lbl">✅ 通过</div></div>
+    <div class="batch-stat"><div class="val" style="color:var(--yellow)">${stats.warn}</div><div class="lbl">⚠️ 警告</div></div>
+    <div class="batch-stat"><div class="val" style="color:var(--red)">${stats.fail}</div><div class="lbl">❌ 不通过</div></div>
+  `;
+  const resEl=document.getElementById('compResult');
+  if(stats.fail===0&&stats.warn===0){resEl.innerHTML='<span class="comp-tag pass">🎉 全部文件名符合规范</span>'}
+  else{
+    const grouped={};issues.forEach(i=>{if(!grouped[i.rule])grouped[i.rule]={level:i.level,count:0};grouped[i.rule].count++});
+    resEl.innerHTML=Object.entries(grouped).map(([k,v])=>`<span class="comp-tag ${v.level==='fail'?'fail':'warn'}">${v.level==='fail'?'❌':'⚠️'} ${k} (${v.count}个文件)</span>`).join('');
+  }
+}
+// Safe filename escaping for script export
+function escapeForScript(s,type){
+  if(type==='bat')return s.replace(/"/g,'""').replace(/%/g,'%%').replace(/[&|<>^]/g,'^$&');
+  if(type==='ps1')return s.replace(/'/g,"''");
+  if(type==='sh')return s.replace(/'/g,"'\\''");
+  if(type==='py')return s.replace(/\\/g,'\\\\').replace(/"/g,'\\"');
+  return s;
+}
 // Exports
 function dl(content,name,mime){const b=new Blob([content],{type:mime}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href)}
 function exportCSV(){if(!renameResults.length){toast('⚠️ 无数据','warning');return}let c='\uFEFF序号,原文件名,新文件名,冲突\n';renameResults.forEach((r,i)=>c+=(i+1)+',"'+r.orig+'","'+r.newName+'",'+(r.conflict?'是':'否')+'\n');dl(c,'rename-mapping.csv','text/csv;charset=utf-8');toast('📥 CSV已导出','success')}
-function exportBAT(){if(!renameResults.length)return;let s='@echo off\nchcp 65001 >nul\necho 美术资源批量重命名 v2.0\necho 生成: '+new Date().toLocaleString()+'\necho.\n\n';renameResults.forEach(r=>{s+=r.conflict?'REM [冲突] ':'';s+='ren "'+r.orig+'" "'+r.newName+'"\n'});s+='\necho.\necho 完成！\npause\n';dl(s,'batch-rename.bat','text/plain;charset=utf-8');toast('💾 BAT已导出','success')}
-function exportPS1(){if(!renameResults.length)return;let s='# 批量重命名 v2.0 | '+new Date().toLocaleString()+'\n\n';renameResults.forEach(r=>{s+=r.conflict?'# [冲突] ':'';s+='Rename-Item -Path "'+r.orig+'" -NewName "'+r.newName+'"\n'});s+='\nWrite-Host "完成！" -ForegroundColor Green\n';dl(s,'batch-rename.ps1','text/plain;charset=utf-8');toast('📋 PS1已导出','success')}
-function exportSH(){if(!renameResults.length)return;let s='#!/bin/bash\n# 批量重命名 v2.0 | '+new Date().toLocaleString()+'\n\n';renameResults.forEach(r=>{s+=r.conflict?'# [冲突] ':'';s+='mv "'+r.orig+'" "'+r.newName+'"\n'});s+='\necho "完成！"\n';dl(s,'batch-rename.sh','text/plain;charset=utf-8');toast('🐧 Shell已导出','success')}
-function exportPY(){if(!renameResults.length)return;let s='#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n"""批量重命名 v2.0 | '+new Date().toLocaleString()+'"""\nimport os, sys\n\nmappings = [\n';renameResults.forEach(r=>{if(!r.conflict)s+='    ("'+r.orig+'", "'+r.newName+'"),\n'});s+=']\n\ndef main():\n    d = os.path.dirname(os.path.abspath(__file__))\n    os.chdir(d)\n    for old, new in mappings:\n        if os.path.exists(old):\n            os.rename(old, new)\n            print(f"  ✓ {old} → {new}")\n        else:\n            print(f"  ✗ 未找到: {old}")\n    print(f"\\n完成! 共处理 {len(mappings)} 个文件")\n\nif __name__ == "__main__":\n    main()\n';dl(s,'batch-rename.py','text/plain;charset=utf-8');toast('🐍 Python已导出','success')}
-function exportRollback(){if(!renameResults.length)return;let bat='@echo off\nchcp 65001 >nul\necho ⏪ 回滚脚本 - 将文件名恢复为原始名称\necho 生成: '+new Date().toLocaleString()+'\necho.\n\n';renameResults.forEach(r=>{if(!r.conflict)bat+='ren "'+r.newName+'" "'+r.orig+'"\n'});bat+='\necho.\necho 回滚完成！\npause\n';let ps='# ⏪ 回滚脚本\n';renameResults.forEach(r=>{if(!r.conflict)ps+='Rename-Item -Path "'+r.newName+'" -NewName "'+r.orig+'"\n'});dl(bat,'rollback-rename.bat','text/plain;charset=utf-8');setTimeout(()=>dl(ps,'rollback-rename.ps1','text/plain;charset=utf-8'),500);toast('⏪ 回滚脚本已导出(BAT+PS1)','success')}
+function exportBAT(){if(!renameResults.length)return;let s='@echo off\nchcp 65001 >nul\necho 美术资源批量重命名 v2.1\necho 生成: '+new Date().toLocaleString()+'\necho.\n\n';renameResults.forEach(r=>{s+=r.conflict?'REM [冲突] ':'';s+='ren "'+escapeForScript(r.orig,'bat')+'" "'+escapeForScript(r.newName,'bat')+'"\n'});s+='\necho.\necho 完成！\npause\n';dl(s,'batch-rename.bat','text/plain;charset=utf-8');toast('💾 BAT已导出','success')}
+function exportPS1(){if(!renameResults.length)return;let s='# 批量重命名 v2.1 | '+new Date().toLocaleString()+'\n\n';renameResults.forEach(r=>{s+=r.conflict?'# [冲突] ':'';s+="Rename-Item -Path '"+escapeForScript(r.orig,'ps1')+"' -NewName '"+escapeForScript(r.newName,'ps1')+"'\n"});s+='\nWrite-Host "完成！" -ForegroundColor Green\n';dl(s,'batch-rename.ps1','text/plain;charset=utf-8');toast('📋 PS1已导出','success')}
+function exportSH(){if(!renameResults.length)return;let s='#!/bin/bash\n# 批量重命名 v2.1 | '+new Date().toLocaleString()+'\n\n';renameResults.forEach(r=>{s+=r.conflict?'# [冲突] ':'';s+="mv '"+escapeForScript(r.orig,'sh')+"' '"+escapeForScript(r.newName,'sh')+"'\n"});s+='\necho "完成！"\n';dl(s,'batch-rename.sh','text/plain;charset=utf-8');toast('🐧 Shell已导出','success')}
+function exportPY(){if(!renameResults.length)return;let s='#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n"""批量重命名 v2.1 | '+new Date().toLocaleString()+'"""\nimport os, sys\n\nmappings = [\n';renameResults.forEach(r=>{if(!r.conflict)s+='    ("'+escapeForScript(r.orig,'py')+'", "'+escapeForScript(r.newName,'py')+'"),\n'});s+=']\n\ndef main():\n    d = os.path.dirname(os.path.abspath(__file__))\n    os.chdir(d)\n    for old, new in mappings:\n        if os.path.exists(old):\n            os.rename(old, new)\n            print(f"  ✓ {old} → {new}")\n        else:\n            print(f"  ✗ 未找到: {old}")\n    print(f"\\n完成! 共处理 {len(mappings)} 个文件")\n\nif __name__ == "__main__":\n    main()\n';dl(s,'batch-rename.py','text/plain;charset=utf-8');toast('🐍 Python已导出','success')}
+function exportRollback(){if(!renameResults.length)return;let bat='@echo off\nchcp 65001 >nul\necho ⏪ 回滚脚本 - 将文件名恢复为原始名称\necho 生成: '+new Date().toLocaleString()+'\necho.\n\n';renameResults.forEach(r=>{if(!r.conflict)bat+='ren "'+escapeForScript(r.newName,'bat')+'" "'+escapeForScript(r.orig,'bat')+'"\n'});bat+='\necho.\necho 回滚完成！\npause\n';let ps='# ⏪ 回滚脚本\n';renameResults.forEach(r=>{if(!r.conflict)ps+="Rename-Item -Path '"+escapeForScript(r.newName,'ps1')+"' -NewName '"+escapeForScript(r.orig,'ps1')+"'\n"});dl(bat,'rollback-rename.bat','text/plain;charset=utf-8');setTimeout(()=>dl(ps,'rollback-rename.ps1','text/plain;charset=utf-8'),500);toast('⏪ 回滚脚本已导出(BAT+PS1)','success')}
 function copyMapping(){if(!renameResults.length)return;let t='批量重命名对照表 | '+new Date().toLocaleString()+'\n\n序号\t原名\t新名\t状态\n';renameResults.forEach((r,i)=>t+=(i+1)+'\t'+r.orig+'\t'+r.newName+'\t'+(r.conflict?'⚠️':'✅')+'\n');navigator.clipboard.writeText(t).then(()=>toast('📋 已复制','success'))}
 // Presets
 function renderPresetBar(){const bar=document.getElementById('presetBar');bar.innerHTML='';Object.entries(getAllPresets()).forEach(([k,p])=>{const b=document.createElement('button');b.className='preset-btn'+(k===currentPreset?' act':'')+(k.startsWith('user_')?' user-preset':'');b.textContent=p.desc;b.onclick=()=>{currentPreset=k;applyPreset(k)};if(k.startsWith('user_')){const d=document.createElement('span');d.className='del-x';d.textContent='×';d.onclick=e=>{e.stopPropagation();const up=getUserPresets();delete up[k];localStorage.setItem('br_presets',JSON.stringify(up));renderPresetBar();toast('🗑 已删除','warning')};b.appendChild(d)}bar.appendChild(b)})}
@@ -359,7 +433,7 @@ function clearAllHistory(){localStorage.removeItem('br_history');renderHistory()
 document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();generatePreview()}else if(e.ctrlKey&&e.key==='e'){e.preventDefault();exportCSV()}else if(e.ctrlKey&&e.key==='z'&&document.activeElement.id!=='tplInput'){e.preventDefault();if(tplHistory.length){document.getElementById('tplInput').value=tplHistory.pop();updatePreview();toast('↩️ 已撤销','success')}}});
 // Init
 renderPresetBar();updatePreview();renderHistory();
-ToolBus.register('batch-rename', { name: '美术资源批量重命名', version: '2.0' });
+ToolBus.register('batch-rename', { name: '美术资源批量重命名', version: '2.1' });
 </script>
 <script src="shortcut-help.js"></script>
 <script src="theme-toggle.js"></script>
