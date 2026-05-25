@@ -131,6 +131,7 @@
 | auto-mask-spec | 自动 Mask 通道生成器（规范） |
 | spine-split-spec | Spine 角色拆分工具（规范） |
 | naming-check-tool | 资产合规性检查工具 |
+| texture-checker | 贴图规范检测器 |
 
 ### 🛠️ 在线工具（浏览器直接使用）
 | 文档ID | 标题 | 核心功能 |
