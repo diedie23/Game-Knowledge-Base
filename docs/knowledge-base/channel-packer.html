@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>贴图通道打包工具 — Channel Packer v1.1</title>
+<title>贴图通道打包工具 — Channel Packer v1.2</title>
 <link rel="stylesheet" href="design-tokens.css">
 <link rel="stylesheet" href="tool-base.css">
 <style>
@@ -100,6 +100,14 @@
 
 /* Drop zone paste hint */
 .paste-hint{font-size:10px;color:var(--dim);margin-top:4px}
+
+/* Swap popup panel */
+.swap-popup{position:absolute;top:10px;right:10px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);z-index:10;display:none;min-width:100px}
+.swap-popup.show{display:block}
+.swap-popup .swap-title{font-size:10px;color:var(--dim);margin-bottom:6px;text-align:center}
+.swap-popup .swap-opt{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px;color:var(--text);transition:background .15s}
+.swap-popup .swap-opt:hover{background:rgba(108,140,255,.1);color:var(--accent)}
+.swap-popup .swap-opt .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -112,7 +120,7 @@
 
 <!-- ═══ HEADER ═══ -->
 <div class="hdr">
-  <h1>📦 贴图通道打包工具 <span class="ver">Channel Packer v1.1</span></h1>
+  <h1>📦 贴图通道打包工具 <span class="ver">Channel Packer v1.2</span></h1>
   <p>RGBA 通道自由拼合 · Swizzle 重映射 · 预设管线配置 · 一键导出 PNG/TGA/EXR</p>
 </div>
 
@@ -159,7 +167,7 @@
       </div>
       <div class="level-row">
         <label>亮度：</label>
-        <input type="range" id="lvlR" min="-100" max="100" value="0" oninput="document.getElementById('lvlRv').textContent=this.value;updatePreview()">
+        <input type="range" id="lvlR" min="-100" max="100" value="0" oninput="document.getElementById('lvlRv').textContent=this.value;updatePreview(false)">
         <span class="v" id="lvlRv">0</span>
       </div>
       <canvas id="cvR" style="display:none"></canvas>
@@ -192,7 +200,7 @@
       </div>
       <div class="level-row">
         <label>亮度：</label>
-        <input type="range" id="lvlG" min="-100" max="100" value="0" oninput="document.getElementById('lvlGv').textContent=this.value;updatePreview()">
+        <input type="range" id="lvlG" min="-100" max="100" value="0" oninput="document.getElementById('lvlGv').textContent=this.value;updatePreview(false)">
         <span class="v" id="lvlGv">0</span>
       </div>
       <canvas id="cvG" style="display:none"></canvas>
@@ -225,7 +233,7 @@
       </div>
       <div class="level-row">
         <label>亮度：</label>
-        <input type="range" id="lvlB" min="-100" max="100" value="0" oninput="document.getElementById('lvlBv').textContent=this.value;updatePreview()">
+        <input type="range" id="lvlB" min="-100" max="100" value="0" oninput="document.getElementById('lvlBv').textContent=this.value;updatePreview(false)">
         <span class="v" id="lvlBv">0</span>
       </div>
       <canvas id="cvB" style="display:none"></canvas>
@@ -264,7 +272,7 @@
       </div>
       <div class="level-row">
         <label>亮度：</label>
-        <input type="range" id="lvlA" min="-100" max="100" value="0" oninput="document.getElementById('lvlAv').textContent=this.value;updatePreview()">
+        <input type="range" id="lvlA" min="-100" max="100" value="0" oninput="document.getElementById('lvlAv').textContent=this.value;updatePreview(false)">
         <span class="v" id="lvlAv">0</span>
       </div>
       <canvas id="cvA" style="display:none"></canvas>
@@ -413,7 +421,7 @@
 
 <script>
 // ═══════════════════════════════════════════
-// Channel Packer Core Logic v1.1
+// Channel Packer Core Logic v1.2
 // ═══════════════════════════════════════════
 
 const channels = { R: null, G: null, B: null, A: null };
@@ -558,22 +566,56 @@ document.addEventListener('paste', function(e) {
       e.preventDefault();
       const blob = item.getAsFile();
       const img = new Image();
+      const blobURL = URL.createObjectURL(blob);
       img.onload = function() {
         loadChannelFromImage(img, _lastFocusedChannel);
+        URL.revokeObjectURL(blobURL);
         toast(`📋 已从剪贴板粘贴到 ${_lastFocusedChannel} 通道`);
       };
-      img.src = URL.createObjectURL(blob);
+      img.onerror = function() {
+        URL.revokeObjectURL(blobURL);
+        toast('❌ 剪贴板图片载入失败');
+      };
+      img.src = blobURL;
       break;
     }
   }
 });
 
-/* ── 通道交换 ── */
+/* ── 通道交换（弹出面板） ── */
+let _swapPopup = null;
 function openSwapMenu(fromCh) {
+  // 关闭已有面板
+  closeSwapMenu();
+  const slot = document.getElementById('slot' + fromCh);
+  const colors = { R:'#f66', G:'#6f6', B:'#66f', A:'#ccc' };
+  const names = { R:'R 通道', G:'G 通道', B:'B 通道', A:'A 通道' };
   const others = ['R','G','B','A'].filter(c => c !== fromCh);
-  const target = prompt(`将 ${fromCh} 通道与哪个通道交换？\n可选：${others.join('、')}`);
-  if (!target || !others.includes(target.toUpperCase())) return;
-  swapChannels(fromCh, target.toUpperCase());
+  
+  const popup = document.createElement('div');
+  popup.className = 'swap-popup show';
+  popup.innerHTML = `<div class="swap-title">交换 ${fromCh} 与…</div>` +
+    others.map(c => `<div class="swap-opt" onclick="doSwap('${fromCh}','${c}')"><div class="dot" style="background:${colors[c]}"></div>${names[c]}</div>`).join('');
+  
+  slot.style.position = 'relative';
+  slot.appendChild(popup);
+  _swapPopup = popup;
+  
+  // 点击外部关闭
+  setTimeout(() => document.addEventListener('click', _swapOutsideClick, { once: true }), 0);
+}
+
+function _swapOutsideClick(e) {
+  if (_swapPopup && !_swapPopup.contains(e.target)) closeSwapMenu();
+}
+
+function closeSwapMenu() {
+  if (_swapPopup) { _swapPopup.remove(); _swapPopup = null; }
+}
+
+function doSwap(a, b) {
+  closeSwapMenu();
+  swapChannels(a, b);
 }
 
 function swapChannels(a, b) {
@@ -583,7 +625,7 @@ function swapChannels(a, b) {
   
   // 交换 UI 状态
   for (const ch of [a, b]) {
-    if (channels[ch]) {
+    if (channelData[ch]) {
       document.getElementById('slot' + ch).classList.add('has-img');
       document.getElementById('info' + ch).textContent = `${channelData[ch].width}×${channelData[ch].height}`;
       // 同步隐藏 canvas
@@ -591,7 +633,7 @@ function swapChannels(a, b) {
       cv.width = channelData[ch].width;
       cv.height = channelData[ch].height;
       const ctx = cv.getContext('2d');
-      ctx.putImageData(new ImageData(new Uint8ClampedArray(channelData[ch].data), channelData[ch].width, channelData[ch].height), 0, 0);
+      ctx.putImageData(channelData[ch], 0, 0);
     } else {
       document.getElementById('slot' + ch).classList.remove('has-img');
       document.getElementById('info' + ch).textContent = ch === 'A' ? '未载入（默认纯白）' : '未载入';
@@ -601,6 +643,43 @@ function swapChannels(a, b) {
   updatePreview();
   _cpSaveSnap();
   toast(`🔄 ${a} ⇄ ${b} 通道已交换`);
+}
+
+/* ── sRGB ↔ Linear 色彩空间转换 ── */
+// 预计算 sRGB→Linear 查找表（256 entries）
+const _srgbToLinearLUT = new Uint8Array(256);
+const _linearToSrgbLUT = new Uint8Array(256);
+(function buildGammaLUTs() {
+  for (let i = 0; i < 256; i++) {
+    const s = i / 255;
+    // sRGB to Linear
+    const lin = s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+    _srgbToLinearLUT[i] = Math.round(lin * 255);
+    // Linear to sRGB
+    const srgb = lin <= 0.0031308 ? lin * 12.92 : 1.055 * Math.pow(lin, 1/2.4) - 0.055;
+    _linearToSrgbLUT[i] = Math.round(Math.max(0, Math.min(1, s <= 0.0031308 ? s * 12.92 : 1.055 * Math.pow(s, 1/2.4) - 0.055)) * 255);
+  }
+  // 修正 linearToSrgb LUT（以 linear 值为索引）
+  for (let i = 0; i < 256; i++) {
+    const lin = i / 255;
+    const srgb = lin <= 0.0031308 ? lin * 12.92 : 1.055 * Math.pow(lin, 1/2.4) - 0.055;
+    _linearToSrgbLUT[i] = Math.round(Math.max(0, Math.min(1, srgb)) * 255);
+  }
+})();
+
+function applyGamma(value, mode) {
+  // mode: 'linear' = 数据贴图（不做转换）, 'srgb' = 表现贴图（需 gamma 编码）
+  if (mode === 'srgb') return _linearToSrgbLUT[value];
+  return value; // linear 模式：原样输出
+}
+
+/* ── Debounce 工具 ── */
+function _debounce(fn, delay) {
+  let timer = null;
+  return function(...args) {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => { timer = null; fn.apply(this, args); }, delay);
+  };
 }
 
 /* ── Swizzle & Levels ── */
@@ -633,10 +712,11 @@ function zoomPreview(canvasId) {
 }
 
 /* ── 实时预览 ── */
-function updatePreview() {
+function _updatePreviewCore() {
   // Determine output size
   let w = 0, h = 0;
   const sizeMode = document.getElementById('outSize').value;
+  const colorMode = document.getElementById('colorSpace').value;
   
   if (sizeMode === 'auto') {
     for (const ch of ['R','G','B','A']) {
@@ -683,6 +763,9 @@ function updatePreview() {
           v = ch === 'A' ? defVal : 0;
         }
         
+        // 应用色彩空间转换
+        v = applyGamma(v, colorMode);
+        
         px[di] = px[di+1] = px[di+2] = v;
         px[di+3] = 255;
         
@@ -724,7 +807,19 @@ function updatePreview() {
   const estSize = (outputW * outputH * 4 * parseInt(bits) / 8);
   const sizeStr = estSize > 1048576 ? (estSize/1048576).toFixed(1) + ' MB' : (estSize/1024).toFixed(0) + ' KB';
   document.getElementById('outputInfo').textContent = 
-    `尺寸：${outputW} × ${outputH} · 格式：RGBA ${bits}bit · 预估未压缩大小：${sizeStr}`;
+    `尺寸：${outputW} × ${outputH} · 格式：RGBA ${bits}bit · 色彩空间：${colorMode === 'srgb' ? 'sRGB' : 'Linear'} · 预估未压缩大小：${sizeStr}`;
+}
+
+// Debounced 版本 — 用于滑块等高频触发场景
+const _updatePreviewDebounced = _debounce(_updatePreviewCore, 30);
+
+// 对外暴露的 updatePreview：立即执行（用于载入/交换等离散事件），滑块场景用 debounce
+function updatePreview(immediate) {
+  if (immediate === false) {
+    _updatePreviewDebounced();
+  } else {
+    _updatePreviewCore();
+  }
 }
 
 function drawHistogram(ch, counts) {
@@ -793,6 +888,7 @@ function updateNaming() {
 /* ── 生成全尺寸 RGBA 像素数据 ── */
 function buildFullResData() {
   if (outputW === 0) return null;
+  const colorMode = document.getElementById('colorSpace').value;
   
   const cv = document.createElement('canvas');
   cv.width = outputW; cv.height = outputH;
@@ -821,6 +917,8 @@ function buildFullResData() {
         } else {
           v = defVal;
         }
+        // 应用色彩空间转换（Alpha 通道不做 gamma）
+        if (ch !== 'A') v = applyGamma(v, colorMode);
         px[di + ci] = v;
       }
     }
@@ -836,16 +934,27 @@ function exportPNG() {
   showLoading('正在导出 PNG…');
   
   requestAnimationFrame(() => {
-    const cv = buildFullResData();
-    const link = document.createElement('a');
-    const tpl = document.getElementById('nameTpl').value;
-    const name = document.getElementById('assetName').value;
-    const presetName = PRESETS[currentPreset]?.name.replace(/\s+/g,'') || 'Custom';
-    link.download = tpl.replace('{Preset}', presetName).replace('{Name}', name) + '.png';
-    link.href = cv.toDataURL('image/png');
-    link.click();
-    hideLoading();
-    toast('✅ PNG 已导出');
+    try {
+      const cv = buildFullResData();
+      const dataURL = cv.toDataURL('image/png');
+      const link = document.createElement('a');
+      const tpl = document.getElementById('nameTpl').value;
+      const name = document.getElementById('assetName').value;
+      const presetName = PRESETS[currentPreset]?.name.replace(/\s+/g,'') || 'Custom';
+      link.download = tpl.replace('{Preset}', presetName).replace('{Name}', name) + '.png';
+      link.href = dataURL;
+      link.click();
+      hideLoading();
+      toast('✅ PNG 已导出');
+    } catch (err) {
+      hideLoading();
+      if (err.name === 'SecurityError') {
+        toast('❌ 导出失败：画布被跨域图片污染（tainted canvas），请使用本地图片');
+      } else {
+        toast('❌ 导出失败：' + err.message);
+      }
+      console.error('[exportPNG]', err);
+    }
   });
 }
 
@@ -855,53 +964,63 @@ function exportTGA() {
   showLoading('正在生成 TGA 文件…');
   
   requestAnimationFrame(() => {
-    const cv = buildFullResData();
-    const ctx = cv.getContext('2d');
-    const imgData = ctx.getImageData(0, 0, outputW, outputH);
-    const px = imgData.data;
-    
-    // TGA Header（18 bytes）+ pixel data（BGRA 格式，上下翻转）
-    const headerSize = 18;
-    const dataSize = outputW * outputH * 4;
-    const buffer = new ArrayBuffer(headerSize + dataSize);
-    const view = new DataView(buffer);
-    const data = new Uint8Array(buffer);
-    
-    // TGA Header
-    data[0] = 0;             // ID Length
-    data[1] = 0;             // Color Map Type
-    data[2] = 2;             // Image Type: Uncompressed True-color
-    // Color Map (5 bytes all 0)
-    view.setUint16(8, 0, true);   // X Origin
-    view.setUint16(10, 0, true);  // Y Origin
-    view.setUint16(12, outputW, true);  // Width
-    view.setUint16(14, outputH, true);  // Height
-    data[16] = 32;           // Pixel Depth: 32 bits
-    data[17] = 0x28;         // Image Descriptor: top-left origin, 8-bit alpha
-    
-    // Pixel data: BGRA format
-    for (let y = 0; y < outputH; y++) {
-      for (let x = 0; x < outputW; x++) {
-        const srcIdx = (y * outputW + x) * 4;
-        const dstIdx = headerSize + (y * outputW + x) * 4;
-        data[dstIdx + 0] = px[srcIdx + 2]; // B
-        data[dstIdx + 1] = px[srcIdx + 1]; // G
-        data[dstIdx + 2] = px[srcIdx + 0]; // R
-        data[dstIdx + 3] = px[srcIdx + 3]; // A
+    try {
+      const cv = buildFullResData();
+      const ctx = cv.getContext('2d');
+      const imgData = ctx.getImageData(0, 0, outputW, outputH);
+      const px = imgData.data;
+      
+      // TGA Header（18 bytes）+ pixel data（BGRA 格式，上下翻转）
+      const headerSize = 18;
+      const dataSize = outputW * outputH * 4;
+      const buffer = new ArrayBuffer(headerSize + dataSize);
+      const view = new DataView(buffer);
+      const data = new Uint8Array(buffer);
+      
+      // TGA Header
+      data[0] = 0;             // ID Length
+      data[1] = 0;             // Color Map Type
+      data[2] = 2;             // Image Type: Uncompressed True-color
+      // Color Map (5 bytes all 0)
+      view.setUint16(8, 0, true);   // X Origin
+      view.setUint16(10, 0, true);  // Y Origin
+      view.setUint16(12, outputW, true);  // Width
+      view.setUint16(14, outputH, true);  // Height
+      data[16] = 32;           // Pixel Depth: 32 bits
+      data[17] = 0x28;         // Image Descriptor: top-left origin, 8-bit alpha
+      
+      // Pixel data: BGRA format
+      for (let y = 0; y < outputH; y++) {
+        for (let x = 0; x < outputW; x++) {
+          const srcIdx = (y * outputW + x) * 4;
+          const dstIdx = headerSize + (y * outputW + x) * 4;
+          data[dstIdx + 0] = px[srcIdx + 2]; // B
+          data[dstIdx + 1] = px[srcIdx + 1]; // G
+          data[dstIdx + 2] = px[srcIdx + 0]; // R
+          data[dstIdx + 3] = px[srcIdx + 3]; // A
+        }
       }
+      
+      const blob = new Blob([buffer], { type: 'image/x-tga' });
+      const link = document.createElement('a');
+      const tpl = document.getElementById('nameTpl').value;
+      const assetName = document.getElementById('assetName').value;
+      const presetName = PRESETS[currentPreset]?.name.replace(/\s+/g,'') || 'Custom';
+      link.download = tpl.replace('{Preset}', presetName).replace('{Name}', assetName) + '.tga';
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      URL.revokeObjectURL(link.href);
+      hideLoading();
+      toast('✅ TGA 已导出（32bit 无压缩）');
+    } catch (err) {
+      hideLoading();
+      if (err.name === 'SecurityError') {
+        toast('❌ 导出失败：画布被跨域图片污染（tainted canvas），请使用本地图片');
+      } else {
+        toast('❌ 导出失败：' + err.message);
+      }
+      console.error('[exportTGA]', err);
     }
-    
-    const blob = new Blob([buffer], { type: 'image/x-tga' });
-    const link = document.createElement('a');
-    const tpl = document.getElementById('nameTpl').value;
-    const assetName = document.getElementById('assetName').value;
-    const presetName = PRESETS[currentPreset]?.name.replace(/\s+/g,'') || 'Custom';
-    link.download = tpl.replace('{Preset}', presetName).replace('{Name}', assetName) + '.tga';
-    link.href = URL.createObjectURL(blob);
-    link.click();
-    URL.revokeObjectURL(link.href);
-    hideLoading();
-    toast('✅ TGA 已导出（32bit 无压缩）');
   });
 }
 
@@ -911,53 +1030,63 @@ function exportSplit() {
   showLoading('正在导出分通道灰度图…');
   
   requestAnimationFrame(() => {
-    let exported = 0;
-    for (const ch of ['R','G','B','A']) {
-      const cv = document.createElement('canvas');
-      cv.width = outputW; cv.height = outputH;
-      const ctx = cv.getContext('2d');
-      const imgData = ctx.createImageData(outputW, outputH);
-      const px = imgData.data;
-      
-      const swz = document.getElementById('swz' + ch).value;
-      const inv = document.getElementById('inv' + ch).checked;
-      const defVal = ch === 'A' ? parseInt(document.getElementById('defA').value) : 0;
-      const lvlEl = document.getElementById('lvl' + ch);
-      const lvlOffset = lvlEl ? parseInt(lvlEl.value) : 0;
-      
-      for (let y = 0; y < outputH; y++) {
-        for (let x = 0; x < outputW; x++) {
-          const di = (y * outputW + x) * 4;
-          let v;
-          if (channelData[ch]) {
-            const srcW = channelData[ch].width, srcH = channelData[ch].height;
-            const sx = Math.min(Math.floor(x * srcW / outputW), srcW - 1);
-            const sy = Math.min(Math.floor(y * srcH / outputH), srcH - 1);
-            const si = (sy * srcW + sx) * 4;
-            v = getSwizzledValue(channelData[ch].data, si, swz, inv, lvlOffset);
-          } else {
-            v = defVal;
+    try {
+      let exported = 0;
+      for (const ch of ['R','G','B','A']) {
+        const cv = document.createElement('canvas');
+        cv.width = outputW; cv.height = outputH;
+        const ctx = cv.getContext('2d');
+        const imgData = ctx.createImageData(outputW, outputH);
+        const px = imgData.data;
+        
+        const swz = document.getElementById('swz' + ch).value;
+        const inv = document.getElementById('inv' + ch).checked;
+        const defVal = ch === 'A' ? parseInt(document.getElementById('defA').value) : 0;
+        const lvlEl = document.getElementById('lvl' + ch);
+        const lvlOffset = lvlEl ? parseInt(lvlEl.value) : 0;
+        
+        for (let y = 0; y < outputH; y++) {
+          for (let x = 0; x < outputW; x++) {
+            const di = (y * outputW + x) * 4;
+            let v;
+            if (channelData[ch]) {
+              const srcW = channelData[ch].width, srcH = channelData[ch].height;
+              const sx = Math.min(Math.floor(x * srcW / outputW), srcW - 1);
+              const sy = Math.min(Math.floor(y * srcH / outputH), srcH - 1);
+              const si = (sy * srcW + sx) * 4;
+              v = getSwizzledValue(channelData[ch].data, si, swz, inv, lvlOffset);
+            } else {
+              v = defVal;
+            }
+            px[di] = px[di+1] = px[di+2] = v;
+            px[di+3] = 255;
           }
-          px[di] = px[di+1] = px[di+2] = v;
-          px[di+3] = 255;
         }
+        ctx.putImageData(imgData, 0, 0);
+        
+        const link = document.createElement('a');
+        link.download = `${document.getElementById('assetName').value}_${ch}.png`;
+        link.href = cv.toDataURL('image/png');
+        link.click();
+        exported++;
       }
-      ctx.putImageData(imgData, 0, 0);
-      
-      const link = document.createElement('a');
-      link.download = `${document.getElementById('assetName').value}_${ch}.png`;
-      link.href = cv.toDataURL('image/png');
-      link.click();
-      exported++;
+      hideLoading();
+      toast(`✅ 已导出 ${exported} 张分通道灰度图（原始尺寸 ${outputW}×${outputH}）`);
+    } catch (err) {
+      hideLoading();
+      if (err.name === 'SecurityError') {
+        toast('❌ 导出失败：画布被跨域图片污染（tainted canvas），请使用本地图片');
+      } else {
+        toast('❌ 导出失败：' + err.message);
+      }
+      console.error('[exportSplit]', err);
     }
-    hideLoading();
-    toast(`✅ 已导出 ${exported} 张分通道灰度图（原始尺寸 ${outputW}×${outputH}）`);
   });
 }
 
 function exportJSON() {
   const config = {
-    version: '1.1',
+    version: '1.2',
     preset: currentPreset,
     outputSize: document.getElementById('outSize').value,
     bitDepth: document.getElementById('bitDepth').value,
@@ -1054,15 +1183,24 @@ function clearAll() {
 }
 
 /* ═══════════════════════════════════════════
-   撤销/重做系统 v1.1
+   撤销/重做系统 v1.2（轻量快照）
+   只保存 UI 状态 + ImageData 引用克隆（避免 dataURL 序列化爆内存）
    ═══════════════════════════════════════════ */
-let _cpUndoStack=[],_cpRedoStack=[];const _CP_MAX_UNDO=30;
+let _cpUndoStack=[],_cpRedoStack=[];const _CP_MAX_UNDO=20;
 
 function _cpGetState(){
   const state={};
   for(const ch of ['R','G','B','A']){
-    state[ch]={loaded:!!channels[ch],swz:document.getElementById('swz'+ch).value,inv:document.getElementById('inv'+ch).checked,lvl:parseInt(document.getElementById('lvl'+ch)?.value||0)};
-    if(channelData[ch]){const c=document.createElement('canvas');c.width=channelData[ch].width;c.height=channelData[ch].height;const x=c.getContext('2d');x.putImageData(new ImageData(new Uint8ClampedArray(channelData[ch].data),channelData[ch].width,channelData[ch].height),0,0);state[ch].dataURL=c.toDataURL();state[ch].w=channelData[ch].width;state[ch].h=channelData[ch].height}
+    state[ch]={
+      swz:document.getElementById('swz'+ch).value,
+      inv:document.getElementById('inv'+ch).checked,
+      lvl:parseInt(document.getElementById('lvl'+ch)?.value||0)
+    };
+    // 保存 ImageData 的浅克隆（Uint8ClampedArray 共享底层 buffer 引用，非常轻量）
+    if(channelData[ch]){
+      state[ch].imgData=channelData[ch]; // 引用原生 ImageData（不可变，安全引用）
+      state[ch].img=channels[ch];
+    }
   }
   state.preset=currentPreset;
   state.outSize=document.getElementById('outSize').value;
@@ -1072,32 +1210,40 @@ function _cpGetState(){
 }
 
 function _cpSaveSnap(){
-  const snap=JSON.stringify(_cpGetState());
-  _cpUndoStack.push(snap);if(_cpUndoStack.length>_CP_MAX_UNDO)_cpUndoStack.shift();_cpRedoStack=[]}
+  _cpUndoStack.push(_cpGetState());
+  if(_cpUndoStack.length>_CP_MAX_UNDO)_cpUndoStack.shift();
+  _cpRedoStack=[];
+}
 
-function _cpRestoreState(json){
-  const s=JSON.parse(json);
-  let pending=0,total=0;
+function _cpRestoreState(s){
   for(const ch of ['R','G','B','A']){
     document.getElementById('swz'+ch).value=s[ch].swz;
     document.getElementById('inv'+ch).checked=s[ch].inv;
     const lvlEl=document.getElementById('lvl'+ch);
     if(lvlEl&&s[ch].lvl!==undefined){lvlEl.value=s[ch].lvl;document.getElementById('lvl'+ch+'v').textContent=s[ch].lvl}
-    if(s[ch].dataURL){
-      total++;
-      const img=new Image();img.onload=(function(c,st){return function(){
-        const cv=document.createElement('canvas');cv.width=st.w;cv.height=st.h;const cx=cv.getContext('2d');cx.drawImage(img,0,0);
-        channelData[c]={data:cx.getImageData(0,0,st.w,st.h).data,width:st.w,height:st.h};
-        channels[c]=img;document.getElementById('slot'+c).classList.add('has-img');
-        document.getElementById('info'+c).textContent=`${st.w}×${st.h}`;
-        pending++;if(pending>=total){updatePreview();updateStep()}
-      }})(ch,s[ch]);img.src=s[ch].dataURL;
-    }else{channels[ch]=null;channelData[ch]=null;document.getElementById('slot'+ch).classList.remove('has-img');document.getElementById('info'+ch).textContent=ch==='A'?'未载入（默认纯白）':'未载入'}
+    if(s[ch].imgData){
+      channelData[ch]=s[ch].imgData;
+      channels[ch]=s[ch].img;
+      document.getElementById('slot'+ch).classList.add('has-img');
+      document.getElementById('info'+ch).textContent=`${channelData[ch].width}×${channelData[ch].height}`;
+      // 同步 canvas
+      const cv=document.getElementById('cv'+ch);
+      cv.width=channelData[ch].width;cv.height=channelData[ch].height;
+      cv.getContext('2d').putImageData(channelData[ch],0,0);
+    }else{
+      channels[ch]=null;channelData[ch]=null;
+      document.getElementById('slot'+ch).classList.remove('has-img');
+      document.getElementById('info'+ch).textContent=ch==='A'?'未载入（默认纯白）':'未载入';
+    }
   }
   document.getElementById('outSize').value=s.outSize||'auto';
   document.getElementById('bitDepth').value=s.bitDepth||'8';
   document.getElementById('defA').value=s.defA||'255';
-  if(!total){updatePreview();updateStep()}
+  if(s.preset){
+    const btn=document.querySelector(`.preset-btn[data-p="${s.preset}"]`);
+    if(btn)applyPreset(s.preset,btn);
+  }
+  updatePreview();updateStep();
 }
 
 function _cpUndo(){if(_cpUndoStack.length<=1)return;_cpRedoStack.push(_cpUndoStack.pop());_cpRestoreState(_cpUndoStack[_cpUndoStack.length-1]);toast('↩ 已撤销')}
@@ -1119,7 +1265,7 @@ _cpSaveSnap();
 updatePreview();
 updateNaming();
 // 注册工具总线 — 支持接收外部工具传入的通道图
-ToolBus.register('channel-packer', { name: '贴图通道打包工具', version: '1.1' });
+ToolBus.register('channel-packer', { name: '贴图通道打包工具', version: '1.2' });
 ToolBus.on('channel-data', function(data) {
   if (data && data.channel && data.imageDataURL) {
     const img = new Image();
