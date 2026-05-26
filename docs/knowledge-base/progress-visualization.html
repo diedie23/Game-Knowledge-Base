@@ -54,44 +54,62 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 <div class="doc">
 
 <div class="doc-header">
-  <h1>📊 进度可视化工具 <span class="ver">v1.0</span></h1>
+  <h1>📊 进度可视化工具 <span class="ver">v2.0</span></h1>
   <div class="subtitle">Progress Visualization &amp; Dashboard Tools</div>
   <div class="meta">
     <span>📋 适用：全阶段</span>
     <span>👤 维护：周八</span>
-    <span>📅 2026-04-02</span>
+    <span>📅 2026-05-26（v2.0 升级）</span>
   </div>
 </div>
 
 <div class="toc">
   <h3>📑 目录导航</h3>
   <ol>
-    <li><a href="#s1">可视化工具矩阵</a></li>
+    <li><a href="#s1">可视化工具矩阵与选型</a></li>
     <li><a href="#s2">甘特图设计</a></li>
     <li><a href="#s3">燃尽图设计</a></li>
     <li><a href="#s4">风险预警热力图</a></li>
     <li><a href="#s5">里程碑达成率看板</a></li>
     <li><a href="#s6">数据看板整合</a></li>
-    <li><a href="#s7">典型问题</a></li>
-    <li><a href="#s8">Do / Don't 示例</a></li>
-    <li><a href="#s9">附录：Excel 模板速配</a></li>
+    <li><a href="#s7">数据自动化采集方案</a> <span class="badge badge-green">v2.0</span></li>
+    <li><a href="#s8">数据校验与准确性保障 SOP</a> <span class="badge badge-green">v2.0</span></li>
+    <li><a href="#s9b">看板落地推动方法论</a> <span class="badge badge-green">v2.0</span></li>
+    <li><a href="#s10">典型问题</a></li>
+    <li><a href="#s11">Do / Don't 示例</a></li>
+    <li><a href="#s12">附录：各工具实操配置速查</a> <span class="badge badge-green">v2.0</span></li>
+    <li><a href="#s13">关联文档导航</a> <span class="badge badge-green">v2.0</span></li>
   </ol>
 </div>
 
 <!-- ======== 1. 可视化工具矩阵 ======== -->
 <div class="section" id="s1">
-  <h2>📋 1. 可视化工具矩阵</h2>
+  <h2>📋 1. 可视化工具矩阵与选型</h2>
 
-  <div class="sub-title">1.1 工具选型</div>
+  <div class="alert alert-blue"><strong>⏱️ 本文定位</strong>：「可视化搭建手册」—— 教你<strong>怎么搭建看板、选什么工具、如何配置</strong>。排期方法论看 → <strong>📅 美术排期与里程碑管理</strong>；效能指标定义看 → <strong>📊 美术效能度量体系</strong>；风险全生命周期管理看 → <strong>📋 项目风险登记册</strong>。</div>
+
+  <div class="sub-title">1.1 功能对比矩阵</div>
   <table>
-    <tr><th>工具</th><th>甘特图</th><th>燃尽图</th><th>看板</th><th>热力图</th><th>学习成本</th><th>推荐指数</th></tr>
-    <tr><td><strong>TAPD</strong></td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>低</td><td>⭐⭐⭐⭐⭐</td></tr>
-    <tr><td><strong>Jira + Tempo</strong></td><td>✅</td><td>✅</td><td>✅</td><td>⚠️</td><td>中</td><td>⭐⭐⭐⭐</td></tr>
-    <tr><td><strong>飞书多维表格</strong></td><td>✅</td><td>⚠️</td><td>✅</td><td>❌</td><td>低</td><td>⭐⭐⭐⭐</td></tr>
-    <tr><td><strong>Excel/WPS</strong></td><td>✅</td><td>✅</td><td>❌</td><td>✅</td><td>低</td><td>⭐⭐⭐</td></tr>
-    <tr><td><strong>Monday.com</strong></td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>中</td><td>⭐⭐⭐</td></tr>
-    <tr><td><strong>自研看板</strong></td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>高</td><td>⭐⭐⭐⭐</td></tr>
+    <tr><th>工具</th><th>甘特图</th><th>燃尽图</th><th>看板</th><th>热力图</th><th>自动预警</th><th>API/自动化</th><th>外包协作</th><th>成本</th></tr>
+    <tr><td><strong>TAPD</strong></td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>✅</td><td>✅ OpenAPI</td><td>⚠️ 需邀请</td><td>免费</td></tr>
+    <tr><td><strong>Jira + Tempo</strong></td><td>✅</td><td>✅</td><td>✅</td><td>⚠️ 插件</td><td>✅</td><td>✅ Webhook+REST</td><td>✅</td><td>付费</td></tr>
+    <tr><td><strong>飞书多维表格</strong></td><td>✅</td><td>⚠️ 需配置</td><td>✅</td><td>❌</td><td>❌</td><td>✅ 开放平台</td><td>✅ 链接分享</td><td>免费</td></tr>
+    <tr><td><strong>Excel/WPS</strong></td><td>✅ 手动</td><td>✅ 手动</td><td>❌</td><td>✅ 手动</td><td>❌</td><td>❌</td><td>❌</td><td>免费</td></tr>
+    <tr><td><strong>Monday.com</strong></td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>✅</td><td>✅ GraphQL</td><td>✅</td><td>付费</td></tr>
+    <tr><td><strong>自研看板</strong></td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>全自定义</td><td>✅</td><td>开发成本高</td></tr>
   </table>
+
+  <div class="sub-title">1.2 场景化选型建议</div>
+  <table>
+    <tr><th>团队情况</th><th>推荐方案</th><th>理由</th></tr>
+    <tr><td>腾讯系 / 已使用企微</td><td><strong>TAPD</strong></td><td>零成本、与企微深度集成、消息自动推送</td></tr>
+    <tr><td>大团队(30+人) / 多项目并行</td><td><strong>Jira + Tempo</strong></td><td>工时统计精准、跨项目看板、报表丰富</td></tr>
+    <tr><td>中小团队 / 快速搭建 / 外包协作</td><td><strong>飞书多维表格</strong></td><td>5分钟出看板、链接分享不需外包注册</td></tr>
+    <tr><td>预算紧 / 需离线 / 临时兜底</td><td><strong>Excel/WPS</strong></td><td>万能但纯手动，适合过渡期</td></tr>
+    <tr><td>有前端开发资源 / 数据定制需求</td><td><strong>自研看板</strong></td><td>最灵活，但维护成本高</td></tr>
+  </table>
+
+  <div class="alert alert-red">⚠️ <strong>核心原则</strong>：<strong>只用一套工具</strong>。多套工具并存 = 没有工具（因为没人维护全部）。</div>
 </div>
 
 <!-- ======== 2. 甘特图设计 ======== -->
@@ -127,6 +145,8 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 <div class="section" id="s3">
   <h2>📉 3. 燃尽图设计</h2>
 
+  <div class="alert alert-blue">🔗 <strong>边界说明</strong>：本节讲「燃尽图怎么搭建、数据源从哪来、模板怎么用」。燃尽图的<strong>解读方法和异常诊断</strong>请参阅 <strong>📅 美术排期与里程碑管理 · §4 燃尽图跟踪指南</strong>。</div>
+
   <div class="sub-title">3.1 Sprint 燃尽图</div>
   <div class="alert alert-yellow">⚠️ <strong>预警规则</strong>：当实际线<strong>持续 3 天偏离理想线 > 20%</strong> 时，APM 需启动赶工/裁剪方案。</div>
 
@@ -144,6 +164,8 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 <!-- ======== 4. 风险预警热力图 ======== -->
 <div class="section" id="s4">
   <h2>🔥 4. 风险预警热力图</h2>
+
+  <div class="alert alert-blue">🔗 <strong>边界说明</strong>：本节讲「热力图怎么搭建和展示」。风险的<strong>登记规范、评分标准和全生命周期管理</strong>请参阅 <strong>📋 项目风险登记册</strong>；排期维度的预警触发与SOP请参阅 <strong>📅 美术排期与里程碑管理 · §5 风险预警机制</strong>。</div>
 
   <div class="sub-title">4.1 热力图设计</div>
   <p><strong>风险热力图矩阵</strong>（影响度 × 紧急度）：</p>
@@ -206,6 +228,8 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 <div class="section" id="s6">
   <h2>📊 6. 数据看板整合</h2>
 
+  <div class="alert alert-blue">🔗 <strong>边界说明</strong>：本节讲「进度类看板」的配置和组合方式。如果需要搭建<strong>效能度量看板</strong>（ADEI指标、一次通过率、Sprint完成率等），请参阅 <strong>📊 美术效能度量体系</strong>。</div>
+
   <div class="sub-title">6.1 APM 日常看板（推荐配置）</div>
   <table>
     <tr><th>区域</th><th>展示内容</th><th>更新频率</th></tr>
@@ -225,9 +249,103 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   </table>
 </div>
 
-<!-- ======== 7. 典型问题 ======== -->
+<!-- ======== 7. 数据自动化采集方案 ======== -->
 <div class="section" id="s7">
-  <h2>🚨 7. 典型问题</h2>
+  <h2>🤖 7. 数据自动化采集方案</h2>
+
+  <div class="alert alert-green">🎯 <strong>目标</strong>：让看板数据「自动流入」，APM 不再手动填表。搭建自动化管道约需 <strong>2~4 小时</strong>一次性投入，之后每天节省 <strong>30~60 分钟</strong>。</div>
+
+  <div class="sub-title">7.1 各工具自动化方案</div>
+  <table>
+    <tr><th>工具</th><th>采集方式</th><th>刷新频率</th><th>配置难度</th><th>说明</th></tr>
+    <tr><td><strong>TAPD</strong></td><td>OpenAPI + 企微机器人</td><td>每小时</td><td>⭐⭐</td><td>可自动推送日报到群</td></tr>
+    <tr><td><strong>Jira</strong></td><td>Webhook + Automation</td><td>实时</td><td>⭐⭐⭐</td><td>状态变更即触发</td></tr>
+    <tr><td><strong>飞书多维表格</strong></td><td>开放平台 API + 自动化流程</td><td>每日</td><td>⭐⭐</td><td>多维表格自带自动化节点</td></tr>
+    <tr><td><strong>Excel</strong></td><td>Power Query + VBA 宏</td><td>手动/每日</td><td>⭐⭐⭐</td><td>需配合共享 OneDrive</td></tr>
+    <tr><td><strong>Git</strong></td><td>CI/CD Hook → 自动统计</td><td>实时</td><td>⭐⭐</td><td>统计合入频率/贡献量</td></tr>
+  </table>
+
+  <div class="sub-title">7.2 推荐自动化流程（以 TAPD 为例）</div>
+  <p style="font-size:14px;line-height:2;padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--border)">
+    每日 10:00 定时触发 → TAPD OpenAPI 拉取全部任务状态 → 计算燃尽图数据点 → 计算各工种达成率 → 检测偏离阈值 → 推送日报到企微群 → 触发预警则 @APM + 主美
+  </p>
+</div>
+
+<!-- ======== 8. 数据校验与准确性保障 SOP ======== -->
+<div class="section" id="s8">
+  <h2>🔍 8. 数据校验与准确性保障 SOP</h2>
+
+  <div class="alert alert-red">🎯 <strong>核心原则</strong>：看板数据的可信度 = 看板的生命线。数据失真一次，信任崩塌难以恢复。</div>
+
+  <div class="sub-title">8.1 数据失真的常见原因</div>
+  <table>
+    <tr><th>失真类型</th><th>表现</th><th>根因</th><th>占比</th></tr>
+    <tr><td><strong>虚假完成</strong></td><td>任务标「完成」但未验收</td><td>完成标准不统一</td><td>~40%</td></tr>
+    <tr><td><strong>状态滞后</strong></td><td>实际已做但忘记更新</td><td>更新成本高/无激励</td><td>~30%</td></tr>
+    <tr><td><strong>权重缺失</strong></td><td>P0 和 P2 一视同仁</td><td>未配置权重</td><td>~20%</td></tr>
+    <tr><td><strong>僵尸任务</strong></td><td>已取消但未关闭</td><td>无人清理</td><td>~10%</td></tr>
+  </table>
+
+  <div class="sub-title">8.2 校验 SOP（每周一次 + 里程碑前加频）</div>
+  <table>
+    <tr><th>步骤</th><th>操作</th><th>频率</th><th>责任人</th></tr>
+    <tr><td>1️⃣ 抽检</td><td>随机抽查 5~10 个"已完成"任务，确认是否真正验收通过</td><td>每周</td><td>APM</td></tr>
+    <tr><td>2️⃣ 对账</td><td>将看板数据 vs 实际交付产出做一次对比</td><td>每周</td><td>APM + TA</td></tr>
+    <tr><td>3️⃣ 清洗</td><td>关闭僵尸任务、修正状态滞后、标记阻塞项</td><td>每周</td><td>APM</td></tr>
+    <tr><td>4️⃣ 双轨展示</td><td>同时展示「名义完成率」和「验收完成率」</td><td>每日</td><td>看板自动</td></tr>
+    <tr><td>5️⃣ 加频</td><td>里程碑前 2 周 → 每日抽检 3 个任务</td><td>里程碑前</td><td>APM</td></tr>
+  </table>
+
+  <div class="sub-title">8.3 完成标准统一定义</div>
+  <table>
+    <tr><th>状态</th><th>定义</th><th>谁有权标记</th></tr>
+    <tr><td>⬜ <strong>未开始</strong></td><td>任务创建但未动工</td><td>自动</td></tr>
+    <tr><td>🔵 <strong>进行中</strong></td><td>已开始制作</td><td>美术本人</td></tr>
+    <tr><td>🟡 <strong>待审核</strong></td><td>制作完成，等待审核</td><td>美术本人</td></tr>
+    <tr><td>✅ <strong>已完成</strong></td><td><strong>审核通过 + 入库成功</strong></td><td>QA/TA/主美</td></tr>
+    <tr><td>🔴 <strong>阻塞</strong></td><td>因外部依赖无法继续</td><td>任何人</td></tr>
+  </table>
+  <div class="alert alert-yellow">⚠️ <strong>关键</strong>：只有 <strong>QA/TA/主美</strong> 有权将任务标为"已完成"。美术自己只能标到"待审核"。这是消除虚假完成的根本手段。</div>
+</div>
+
+<!-- ======== 9. 看板落地推动方法论 ======== -->
+<div class="section" id="s9b">
+  <h2>🚀 9. 看板落地推动方法论</h2>
+
+  <div class="alert alert-blue">💬 <strong>核心洞察</strong>：搭看板容易（30 分钟），让团队<strong>真正用起来</strong>才是难点（需要 2~4 周养成习惯）。</div>
+
+  <div class="sub-title">9.1 看板推动四阶段</div>
+  <table>
+    <tr><th>阶段</th><th>周期</th><th>核心动作</th><th>成功标志</th></tr>
+    <tr><td>🏗️ <strong>搭建期</strong></td><td>第 1 周</td><td>选工具、搭看板、配自动化</td><td>看板上线，数据可刷新</td></tr>
+    <tr><td>📣 <strong>推广期</strong></td><td>第 2 周</td><td>写使用指南、周会演示、一对一教</td><td>全员知道看板在哪、怎么看</td></tr>
+    <tr><td>🔁 <strong>嵌入期</strong></td><td>第 3~4 周</td><td>强制嵌入工作流（周会第一项看看板）</td><td>周会上有人主动引用数据</td></tr>
+    <tr><td>🚀 <strong>自驱期</strong></td><td>第 5 周+</td><td>团队自发看板、提出优化建议</td><td>APM 不提醒也有人看</td></tr>
+  </table>
+
+  <div class="sub-title">9.2 嵌入工作流的具体手段</div>
+  <table>
+    <tr><th>手段</th><th>操作</th><th>效果</th></tr>
+    <tr><td><strong>周会锚点</strong></td><td>周会议程第一项 = 看板数据通读（5 分钟）</td><td>强制每周至少看一次</td></tr>
+    <tr><td><strong>日站会引用</strong></td><td>Standup 时看板投屏，"红的说一下"</td><td>让数据成为讨论基础</td></tr>
+    <tr><td><strong>预警推送</strong></td><td>偏差 > 20% 自动 @相关人</td><td>被动触达，无需主动打开</td></tr>
+    <tr><td><strong>周报模板</strong></td><td>周报必须附看板截图 + 数据变化说明</td><td>倒逼数据更新</td></tr>
+    <tr><td><strong>制作人开会</strong></td><td>向上汇报用看板数据，不接受"口头感觉"</td><td>自上而下推动数据文化</td></tr>
+  </table>
+
+  <div class="sub-title">9.3 常见推动阻力与应对</div>
+  <table>
+    <tr><th>阻力</th><th>团队说</th><th>APM 应对</th></tr>
+    <tr><td>懒得更新</td><td>"太麻烦了"</td><td>降低更新成本 → 自动化采集（见第 7 节）</td></tr>
+    <tr><td>不信数据</td><td>"看板不准"</td><td>提高数据质量 → 校验 SOP（见第 8 节）</td></tr>
+    <tr><td>不觉得有用</td><td>"我不需要看板"</td><td>制造使用场景 → 嵌入周会/预警推送</td></tr>
+    <tr><td>信息过载</td><td>"太多了看不懂"</td><td>精简 → 只放 4 个核心模块（3 秒原则）</td></tr>
+  </table>
+</div>
+
+<!-- ======== 10. 典型问题 ======== -->
+<div class="section" id="s10">
+  <h2>🚨 10. 典型问题</h2>
 
   <div class="faq-item">
     <div class="faq-q">🚨 案例 1：进度数据失真——甘特图 85% 实际达成不到 60%</div>
@@ -250,9 +368,9 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   </div>
 </div>
 
-<!-- ======== 8. Do / Don't 示例 ======== -->
-<div class="section" id="s8">
-  <h2>📌 8. Do / Don't 示例</h2>
+<!-- ======== 11. Do / Don't 示例 ======== -->
+<div class="section" id="s11">
+  <h2>📌 11. Do / Don't 示例</h2>
   <div class="dd-grid">
     <div class="dd-card dd-do">
       <h4>✅ Do（正确示范）</h4>
@@ -273,22 +391,71 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   </div>
 </div>
 
-<!-- ======== 9. 附录 ======== -->
-<div class="section" id="s9">
-  <h2>📎 附录：Excel 模板速配方案</h2>
-  <p>如果暂时没有 TAPD/Jira，可用 Excel 快速搭建：</p>
+<!-- ======== 12. 附录：各工具实操配置速查 ======== -->
+<div class="section" id="s12">
+  <h2>📎 附录：各工具实操配置速查</h2>
+
+  <div class="sub-title">A. Excel/WPS 快速搭建（30 分钟方案）</div>
   <table>
-    <tr><th>Sheet</th><th>内容</th><th>图表</th></tr>
-    <tr><td>Sheet1: 任务清单</td><td>全部任务列表 + 状态 + 日期</td><td>数据源</td></tr>
-    <tr><td>Sheet2: 甘特图</td><td>条件格式着色</td><td>甘特视图</td></tr>
-    <tr><td>Sheet3: 燃尽图</td><td>每日剩余统计</td><td>折线图</td></tr>
-    <tr><td>Sheet4: 达成率</td><td>按工种汇总</td><td>堆叠柱状图</td></tr>
-    <tr><td>Sheet5: 风险登记</td><td>风险清单 + 评级</td><td>散点图（热力）</td></tr>
+    <tr><th>Sheet</th><th>内容</th><th>图表</th><th>搭建要点</th></tr>
+    <tr><td>Sheet1: 任务清单</td><td>全部任务列表 + 状态 + 日期</td><td>数据源</td><td>字段参照美术排期§2.2任务卡片</td></tr>
+    <tr><td>Sheet2: 甘特图</td><td>条件格式着色</td><td>甘特视图</td><td>用条件格式+日期公式自动着色</td></tr>
+    <tr><td>Sheet3: 燃尽图</td><td>每日剩余统计</td><td>折线图</td><td>COUNTIF 统计"未完成"数量</td></tr>
+    <tr><td>Sheet4: 达成率</td><td>按工种汇总</td><td>堆叠柱状图</td><td>SUMPRODUCT 加权公式</td></tr>
+    <tr><td>Sheet5: 风险登记</td><td>风险清单 + 评级</td><td>散点图（热力）</td><td>X轴=紧急度，Y轴=影响度</td></tr>
+  </table>
+
+  <div class="sub-title">B. TAPD 看板配置要点</div>
+  <table>
+    <tr><th>配置项</th><th>操作</th><th>说明</th></tr>
+    <tr><td>迭代看板</td><td>项目设置 → 看板 → 新建迭代看板</td><td>对应 Sprint 看板</td></tr>
+    <tr><td>燃尽图</td><td>迭代详情 → 统计 → 燃尽图</td><td>自动生成，无需配置</td></tr>
+    <tr><td>自定义字段</td><td>工作项设置 → 添加"工种""优先级""复杂度"</td><td>支撑按工种筛选</td></tr>
+    <tr><td>企微推送</td><td>应用设置 → 通知 → 企微机器人 Webhook</td><td>状态变更自动推群</td></tr>
+    <tr><td>API 取数</td><td>开放平台 → 创建应用 → 获取 Access Token</td><td>用于自动化日报脚本</td></tr>
+  </table>
+
+  <div class="sub-title">C. Jira + Tempo 配置要点</div>
+  <table>
+    <tr><th>配置项</th><th>操作</th><th>说明</th></tr>
+    <tr><td>看板</td><td>创建 Scrum Board → 配置列映射</td><td>列 = 未开始/进行中/待审核/完成</td></tr>
+    <tr><td>燃尽图</td><td>Board → Reports → Burndown</td><td>Sprint 级自动生成</td></tr>
+    <tr><td>Tempo 工时</td><td>Tempo → Timesheets → 关联 Issue</td><td>可做「预估 vs 实际」对比</td></tr>
+    <tr><td>Automation</td><td>Project → Automation → 创建规则</td><td>状态变更 → 发 Slack/邮件</td></tr>
+    <tr><td>Dashboard</td><td>创建 Dashboard → 添加 Gadget</td><td>拼装自定义看板</td></tr>
+  </table>
+
+  <div class="sub-title">D. 飞书多维表格配置要点</div>
+  <table>
+    <tr><th>配置项</th><th>操作</th><th>说明</th></tr>
+    <tr><td>表格结构</td><td>新建多维表格 → 字段设计</td><td>字段：任务名/负责人/工种/状态/日期/优先级</td></tr>
+    <tr><td>甘特视图</td><td>视图 → 新建甘特视图</td><td>自动按日期展示</td></tr>
+    <tr><td>看板视图</td><td>视图 → 新建看板视图 → 按"状态"分组</td><td>Kanban 风格</td></tr>
+    <tr><td>自动化</td><td>高级设置 → 自动化 → 状态变更触发通知</td><td>通知到飞书群</td></tr>
+    <tr><td>外包分享</td><td>分享 → 生成链接 → 设置"可查看"</td><td>外包无需注册飞书即可查看</td></tr>
+  </table>
+</div>
+
+<!-- ======== 13. 关联文档导航 ======== -->
+<div class="section" id="s13">
+  <h2>📚 13. 关联文档导航</h2>
+
+  <div class="alert alert-blue">📖 以下文档与本文形成知识网络，建议按需扩展阅读。</div>
+
+  <table>
+    <tr><th>关联主题</th><th>推荐文档</th><th>何时阅读</th></tr>
+    <tr><td>排期方法论</td><td>📅 美术排期与里程碑管理</td><td>需要了解排期策略、燃尽图解读、预警SOP</td></tr>
+    <tr><td>效能度量</td><td>📊 美术效能度量体系</td><td>需要搭建效能看板、定义 KPI 指标</td></tr>
+    <tr><td>风险管理</td><td>📋 项目风险登记册</td><td>需要了解风险评分标准和登记规范</td></tr>
+    <tr><td>延期决策</td><td>⏰ 项目延期应对决策</td><td>看板预警触发后如何做决策</td></tr>
+    <tr><td>外包管理</td><td>🏭 外包全流程管理</td><td>看板中外包进度数据从哪来</td></tr>
+    <tr><td>跨部门协作</td><td>🤝 跨部门协作破局手册</td><td>推动看板落地遇到跨部门阻力时</td></tr>
+    <tr><td>复盘模板</td><td>🔄 版本复盘模板</td><td>用看板数据做Sprint复盘时</td></tr>
   </table>
 </div>
 
 <div class="doc-footer">
-  游戏美术项目管理知识库 · 进度可视化工具 v1.0
+  游戏美术项目管理知识库 · 进度可视化工具 v2.0 · 2026-05-26
 </div>
 
 </div>
