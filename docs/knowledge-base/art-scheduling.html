@@ -70,18 +70,37 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 .milestone .ms-node strong{display:block;color:var(--heading);font-size:12px;margin-bottom:2px}
 .milestone .ms-node .sub{color:var(--dim);font-size:10px}
 .milestone .ms-arrow{color:var(--cyan);font-size:18px;padding:0 4px;flex-shrink:0}
+/* ─── 新增模块样式 ─── */
+.formula-box{background:linear-gradient(135deg,rgba(34,211,238,.06),rgba(108,140,255,.06));border:1px solid rgba(34,211,238,.25);border-radius:14px;padding:24px;margin:20px 0;position:relative;overflow:hidden}
+.formula-box::before{content:'📐';position:absolute;top:-6px;right:16px;font-size:48px;opacity:.1}
+.formula-box h4{font-size:16px;color:var(--cyan);margin-bottom:12px}
+.formula-box code{font-size:14px;background:var(--card);padding:8px 14px;border-radius:8px;display:inline-block;margin:6px 0}
+.formula-box p{font-size:14px;line-height:1.8}
+.strategy-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin:12px 0}
+.strategy-card h4{color:var(--heading);font-size:15px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.strategy-card p,.strategy-card li{font-size:14px;line-height:1.8}
+.strategy-card ul{padding-left:20px;margin-top:8px}
+.insight-box{background:linear-gradient(135deg,rgba(167,139,250,.06),rgba(244,114,182,.06));border:1px solid rgba(167,139,250,.25);border-radius:14px;padding:20px;margin:20px 0}
+.insight-box h4{color:var(--accent2);font-size:15px;margin-bottom:10px}
+.insight-box p{font-size:14px;line-height:1.8}
+.parallel-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:900px){.parallel-grid{grid-template-columns:1fr}}
+.parallel-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.parallel-card .pc-icon{font-size:28px;margin-bottom:8px}
+.parallel-card .pc-title{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:6px}
+.parallel-card .pc-desc{font-size:12px;color:var(--dim);line-height:1.6}
 </style>
 </head>
 <body>
 <div class="doc">
 
 <div class="doc-header">
-  <h1>📅 美术排期与里程碑管理 <span class="ver">v1.0</span></h1>
-  <div class="subtitle">Art Scheduling & Milestone Management</div>
+  <h1>📅 美术排期与里程碑管理 <span class="ver">v2.0</span></h1>
+  <div class="subtitle">Art Scheduling & Milestone Management — 资深 APM 实战调度手册</div>
   <div class="meta">
     <span>📋 适用：2D/3D 项目通用</span>
     <span>👤 维护：APM 组</span>
-    <span>📅 2026-04-07</span>
+    <span>📅 2026-05-26</span>
   </div>
 </div>
 
@@ -92,9 +111,13 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <ol>
     <li><a href="#sec1">美术排期的特殊性</a></li>
     <li><a href="#sec2">Sprint 排期模板</a></li>
+    <li><a href="#sec2b">人天系数速查表（按等级/工种）</a> <span class="badge badge-green">NEW</span></li>
+    <li><a href="#sec2c">排期校准方法论</a> <span class="badge badge-green">NEW</span></li>
     <li><a href="#sec3">里程碑分解方法</a></li>
+    <li><a href="#sec3b">关键路径优化策略</a> <span class="badge badge-green">NEW</span></li>
     <li><a href="#sec4">燃尽图跟踪指南</a></li>
     <li><a href="#sec5">风险预警机制</a></li>
+    <li><a href="#sec5b">多版本并行排期</a> <span class="badge badge-green">NEW</span></li>
     <li><a href="#sec6">实战模板：中型手游完整排期示例</a></li>
     <li><a href="#sec7">常见问题与避坑指南</a></li>
     <li><a href="#sec8">附录：工具推荐</a></li>
@@ -182,6 +205,103 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </table>
 </div>
 
+<!-- SEC2B — 人天系数速查表 -->
+<div class="section" id="sec2b">
+  <h2>⏱️ 2B. 人天系数速查表（按等级/工种）</h2>
+
+  <div class="alert alert-blue"><strong>💡 使用说明</strong>：以下人天数据基于<strong>中大型手游项目实战统计</strong>（样本 ≥ 200 个资产），作为排期评估的基准参考。实际工期 = 基准人天 × 复杂度系数 × 团队校准系数（见下一节）。</div>
+
+  <div class="sub-title">2B.1 角色资产人天基准</div>
+  <table>
+    <tr><th>工序</th><th>🏆 S级（Boss/主角）</th><th>🅰️ A级（常规可操作）</th><th>🅱️ B级（精英怪/NPC）</th><th>©️ C级（杂兵/背景）</th></tr>
+    <tr><td><strong>原画设计</strong></td><td>8~12d</td><td>5~7d</td><td>3~4d</td><td>1~2d</td></tr>
+    <tr><td><strong>高模雕刻</strong></td><td>10~15d</td><td>6~8d</td><td>3~5d</td><td>—</td></tr>
+    <tr><td><strong>低模拓扑</strong></td><td>4~6d</td><td>3~4d</td><td>2~3d</td><td>1~2d</td></tr>
+    <tr><td><strong>UV + 贴图</strong></td><td>8~12d</td><td>5~7d</td><td>3~4d</td><td>2~3d</td></tr>
+    <tr><td><strong>绑定 + 蒙皮</strong></td><td>5~7d</td><td>3~4d</td><td>2~3d</td><td>1d</td></tr>
+    <tr><td><strong>动画（基础状态机）</strong></td><td>10~15d</td><td>6~8d</td><td>3~5d</td><td>2~3d</td></tr>
+    <tr><td style="background:rgba(34,211,238,.06)"><strong>📊 单角色总计</strong></td><td style="color:var(--red)"><strong>45~67d</strong></td><td style="color:var(--orange)"><strong>28~38d</strong></td><td style="color:var(--yellow)"><strong>16~24d</strong></td><td style="color:var(--green)"><strong>7~11d</strong></td></tr>
+  </table>
+
+  <div class="sub-title">2B.2 场景资产人天基准</div>
+  <table>
+    <tr><th>工序</th><th>🏰 大型场景（主城/开放世界区块）</th><th>⚔️ 中型场景（战斗关卡）</th><th>🏠 小型场景（室内/过场）</th></tr>
+    <tr><td><strong>白盒搭建</strong></td><td>8~12d</td><td>3~5d</td><td>1~2d</td></tr>
+    <tr><td><strong>美化制作</strong></td><td>25~40d</td><td>12~18d</td><td>5~8d</td></tr>
+    <tr><td><strong>灯光 + 后处理</strong></td><td>5~8d</td><td>2~3d</td><td>1~2d</td></tr>
+    <tr><td><strong>性能优化（LOD/遮挡剔除）</strong></td><td>3~5d</td><td>2~3d</td><td>1d</td></tr>
+    <tr><td style="background:rgba(34,211,238,.06)"><strong>📊 单场景总计</strong></td><td style="color:var(--red)"><strong>41~65d</strong></td><td style="color:var(--orange)"><strong>19~29d</strong></td><td style="color:var(--green)"><strong>8~13d</strong></td></tr>
+  </table>
+
+  <div class="sub-title">2B.3 UI / 特效 / 动画人天基准</div>
+  <table>
+    <tr><th>工种</th><th>复杂（S/A 级）</th><th>标准（B 级）</th><th>简单（C 级）</th></tr>
+    <tr><td><strong>UI 界面设计</strong></td><td>3~5d（主界面/战斗HUD）</td><td>1.5~2.5d（功能面板）</td><td>0.5~1d（弹窗/提示）</td></tr>
+    <tr><td><strong>UI 切图 + 适配</strong></td><td>2~3d</td><td>1~1.5d</td><td>0.5d</td></tr>
+    <tr><td><strong>技能特效</strong></td><td>3~5d（大招/全屏）</td><td>1.5~2.5d（普攻/被动）</td><td>0.5~1d（buff 图标特效）</td></tr>
+    <tr><td><strong>场景特效</strong></td><td>5~8d（天气/大场景环境）</td><td>2~3d（火焰/瀑布）</td><td>1~2d（粒子装饰）</td></tr>
+    <tr><td><strong>角色动画（单段）</strong></td><td>2~3d（连招/QTE）</td><td>1~1.5d（普攻/受击）</td><td>0.5d（待机变体）</td></tr>
+  </table>
+
+  <div class="formula-box">
+    <h4>📐 排期计算公式</h4>
+    <code>实际排期 = 基准人天 × 复杂度系数 × 团队校准系数 + 审核时间(2~3d) + 外部依赖等待</code>
+    <p style="margin-top:10px"><strong>复杂度系数：</strong>S 级 = 1.5x ｜ A 级 = 1.0x ｜ B 级 = 0.8x ｜ C 级 = 0.6x<br>
+    <strong>团队校准系数：</strong>基于上 3 个 Sprint 的「预估/实际」比值（见下一节详解）</p>
+  </div>
+
+  <div class="redline">
+    <p><strong>🔴 核心红线</strong>：禁止对所有资产使用统一人天评估。S 级角色 vs C 级角色的工期差异可达 <strong>6~8 倍</strong>，统一评估 = 必然爆雷。</p>
+  </div>
+</div>
+
+<!-- SEC2C — 排期校准方法论 -->
+<div class="section" id="sec2c">
+  <h2>🎯 2C. 排期校准方法论</h2>
+
+  <div class="alert alert-blue"><strong>💡 核心理念</strong>：排期不是「拍脑袋」，而是基于<strong>历史数据持续校准</strong>的过程。每个团队都有自己的「速度常数」，找到它就能大幅提升排期准确率。</div>
+
+  <div class="sub-title">2C.1 速度系数计算法</div>
+  <div class="formula-box">
+    <h4>📐 团队速度系数（Velocity Factor）</h4>
+    <code>VF = 实际耗时总和 ÷ 预估耗时总和（取最近 3 个 Sprint 的均值）</code>
+    <p style="margin-top:10px"><strong>解读：</strong><br>
+    • VF = 1.0 → 预估完美准确<br>
+    • VF = 1.3 → 团队实际耗时比预估多 30%（你的预估偏乐观，下次排期应 ×1.3）<br>
+    • VF = 0.8 → 团队实际耗时比预估少 20%（预估偏保守，可适当压缩）</p>
+  </div>
+
+  <div class="sub-title">2C.2 分工种校准示例</div>
+  <table>
+    <tr><th>工种</th><th>Sprint 1 VF</th><th>Sprint 2 VF</th><th>Sprint 3 VF</th><th>均值 VF</th><th>建议</th></tr>
+    <tr><td>👤 角色组</td><td>1.35</td><td>1.28</td><td>1.20</td><td style="color:var(--orange)"><strong>1.28</strong></td><td>排期 ×1.3，重点优化 S 级评估</td></tr>
+    <tr><td>🏔️ 场景组</td><td>1.10</td><td>1.05</td><td>1.08</td><td style="color:var(--green)"><strong>1.08</strong></td><td>排期合理，保持 ×1.1 Buffer</td></tr>
+    <tr><td>🖥️ UI 组</td><td>0.90</td><td>0.95</td><td>0.88</td><td style="color:var(--cyan)"><strong>0.91</strong></td><td>预估偏保守，可提高任务饱和度</td></tr>
+    <tr><td>✨ 特效组</td><td>1.50</td><td>1.40</td><td>1.25</td><td style="color:var(--red)"><strong>1.38</strong></td><td>排期严重偏乐观，需 ×1.4 校准</td></tr>
+  </table>
+
+  <div class="sub-title">2C.3 校准闭环流程</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>Sprint 开始</strong><div class="sub">录入预估人天</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Sprint 期间</strong><div class="sub">记录实际人天</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Sprint 结束</strong><div class="sub">计算本期 VF</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>回顾会分析</strong><div class="sub">哪些偏差最大？</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>下 Sprint 修正</strong><div class="sub">应用新 VF 系数</div></div>
+  </div>
+
+  <div class="insight-box">
+    <h4>💡 资深 APM 经验分享</h4>
+    <p>经过 3~4 个 Sprint 的校准后，团队排期准确率通常能从 <strong>60% → 85%+</strong>。关键在于：<br>
+    ① <strong>分工种统计</strong> — 不同工种的 VF 差异巨大，不可混用<br>
+    ② <strong>分等级统计</strong> — S 级资产的 VF 往往比 C 级高 30~50%（S 级更难预估）<br>
+    ③ <strong>趋势追踪</strong> — VF 如果逐月递减，说明团队在成长；如果递增，说明有系统性问题</p>
+  </div>
+</div>
+
 <!-- SEC3 -->
 <div class="section" id="sec3">
   <h2>🚩 3. 里程碑分解方法</h2>
@@ -241,6 +361,61 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 
   <div class="redline">
     <p><strong>🔴 关键路径警告</strong>：角色工序为严格串行（原画 → 建模 → 贴图 → 绑定），总计 <strong>120 天</strong>，是所有工种中<strong>最长的关键路径</strong>，务必优先排期。</p>
+  </div>
+</div>
+
+<!-- SEC3B — 关键路径优化策略 -->
+<div class="section" id="sec3b">
+  <h2>⚡ 3B. 关键路径优化策略</h2>
+
+  <div class="alert alert-blue"><strong>💡 核心问题</strong>：角色管线 120 天的串行依赖是大多数项目的瓶颈。以下 5 种策略可在<strong>不牺牲质量</strong>的前提下缩短关键路径 20~40%。</div>
+
+  <div class="sub-title">3B.1 五大优化策略一览</div>
+  <table>
+    <tr><th>策略</th><th>原理</th><th>节省时间</th><th>适用场景</th><th>风险</th></tr>
+    <tr><td><strong>🔀 分批启动</strong></td><td>S 级角色提前 2 周启动，与预研期并行</td><td>~15d</td><td>所有项目</td><td style="color:var(--green)">低（风格已锁定即可）</td></tr>
+    <tr><td><strong>✂️ 阶段重叠</strong></td><td>建模完成 80% 时启动贴图（而非等 100%）</td><td>~10d</td><td>团队配合默契时</td><td style="color:var(--yellow)">中（需要沟通成本）</td></tr>
+    <tr><td><strong>📦 模块化拆分</strong></td><td>头/身/武器拆分给不同建模师并行</td><td>~12d</td><td>S/A 级复杂角色</td><td style="color:var(--yellow)">中（接缝匹配）</td></tr>
+    <tr><td><strong>🤖 工具加速</strong></td><td>AI 辅助原画变体 / 自动拓扑 / 批量贴图</td><td>~8d</td><td>批量同类资产</td><td style="color:var(--green)">低（需 TA 支持）</td></tr>
+    <tr><td><strong>🏭 外包前置</strong></td><td>B/C 级角色全部外包，内部专注 S/A 级</td><td>~20d</td><td>有成熟 CP 资源</td><td style="color:var(--orange)">中高（质量管控）</td></tr>
+  </table>
+
+  <div class="sub-title">3B.2 策略①详解：分批启动时间线</div>
+  <div class="strategy-card">
+    <h4>🔀 分批启动 — 让 S 级角色「跑在前面」</h4>
+    <p><strong>传统方式：</strong>等风格定稿 → 所有角色统一启动原画 → 串行到底<br>
+    <strong>优化方式：</strong>预研期 1~2 周即可锁定 S 级角色风格 → 提前启动 S 级原画 → 与预研其他工作并行</p>
+    <table>
+      <tr><th>角色等级</th><th>启动时机</th><th>说明</th></tr>
+      <tr><td style="color:var(--red)"><strong>S 级（3~5 个）</strong></td><td>预研中期（风格锁定后）</td><td>提前 2~3 周启动，不等全部风格定稿会</td></tr>
+      <tr><td style="color:var(--orange)"><strong>A 级（8~10 个）</strong></td><td>预研结束（风格正式定稿）</td><td>第一批启动</td></tr>
+      <tr><td style="color:var(--yellow)"><strong>B/C 级（其余）</strong></td><td>Alpha 前 4 周</td><td>A 级进入建模后，释放原画产能</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-title">3B.3 策略②详解：阶段重叠法</div>
+  <div class="strategy-card">
+    <h4>✂️ 阶段重叠 — 80% 完成即可触发下游</h4>
+    <p><strong>原理：</strong>下游工序并不需要等上游 100% 完成。例如建模完成 80%（大型已定，细节微调中）时，贴图师就可以开始 UV 展开和基础色块。</p>
+    <table>
+      <tr><th>重叠节点</th><th>上游完成度</th><th>下游可启动内容</th><th>注意事项</th></tr>
+      <tr><td>原画 → 建模</td><td>70%（三视图 + 色板确认）</td><td>开始搭建大型</td><td>细节可能微调</td></tr>
+      <tr><td>建模 → 贴图</td><td>80%（拓扑定版 + UV 初版）</td><td>开始铺色块 + 材质测试</td><td>UV 若有修改需返工</td></tr>
+      <tr><td>贴图 → 绑定</td><td>90%（基础贴图完成）</td><td>开始骨骼绑定</td><td>几乎无风险</td></tr>
+    </table>
+    <div class="alert alert-yellow"><strong>⚠️ 重叠法风险管控：</strong>① 重叠节点需双方口头确认「当前状态是否足够下游启动」② 返工概率 ~15%，但节省的时间远超返工成本 ③ 仅推荐团队内协作，<strong>不适用于外包</strong>（沟通链路长，返工成本高）。</div>
+  </div>
+
+  <div class="sub-title">3B.4 优化前后对比</div>
+  <table>
+    <tr><th>场景</th><th>传统串行</th><th>优化后</th><th>节省</th></tr>
+    <tr><td>S 级角色（单体）</td><td>~60d</td><td style="color:var(--green)"><strong>~42d</strong>（分批+重叠+模块化）</td><td style="color:var(--green)">-30%</td></tr>
+    <tr><td>20 个角色（团队并行）</td><td>~120d（关键路径）</td><td style="color:var(--green)"><strong>~85d</strong>（分批+外包前置）</td><td style="color:var(--green)">-29%</td></tr>
+    <tr><td>整体项目（6 个月）</td><td>角色组成为瓶颈</td><td style="color:var(--green)"><strong>角色组提前 5 周完成</strong></td><td>留出 5 周 Buffer</td></tr>
+  </table>
+
+  <div class="redline">
+    <p><strong>🔴 核心红线</strong>：关键路径优化不等于「压缩工期」。优化 = 消除等待浪费 + 提高并行度。<strong>任何优化方案的前提是不降低质量标准</strong>。如果质量下降了，说明优化过头了。</p>
   </div>
 </div>
 
@@ -338,6 +513,75 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </div>
 
   <div class="alert alert-red"><strong>🚨 案例：红色预警处理不及时</strong><br>APM 发现进度偏差已超 30%，但抱有"赶一赶能追回来"的侥幸心理，延迟 3 天才上报，导致错失最佳补救窗口。<br><strong>破局</strong>：① 建立自动化预警机制（看板工具自动检测进度偏差 > 25% 时触发通知） ② 将"4h 上报"写入团队章程，延迟上报纳入绩效考核</div>
+
+  <div class="sub-title">5.4 量化预警指标体系</div>
+  <div class="formula-box">
+    <h4>📐 进度健康度公式（每日自动计算）</h4>
+    <code>健康度 = (已完成任务点数 ÷ 理论应完成点数) × 100%</code>
+    <p style="margin-top:10px"><strong>理论应完成 = Sprint 总点数 × (已过天数 ÷ Sprint 总天数)</strong><br>
+    健康度 ≥ 90% = 🟢 绿色 ｜ 75%~89% = 🟡 黄色 ｜ &lt; 75% = 🔴 红色</p>
+  </div>
+
+  <table>
+    <tr><th>指标名</th><th>计算公式</th><th>阈值</th><th>数据来源</th></tr>
+    <tr><td><strong>Sprint 燃尽偏差率</strong></td><td>(实际剩余 - 理想剩余) ÷ Sprint 总量 × 100%</td><td>&gt;15% 黄色 / &gt;25% 红色</td><td>TAPD 看板</td></tr>
+    <tr><td><strong>里程碑完成率</strong></td><td>已交付资产数 ÷ 里程碑目标数 × 100%</td><td>里程碑前 3 天 &lt; 80% = 红色</td><td>资产管理系统</td></tr>
+    <tr><td><strong>阻塞任务占比</strong></td><td>被阻塞任务数 ÷ 进行中任务数 × 100%</td><td>&gt;20% = 黄色 / &gt;40% = 红色</td><td>每日站会记录</td></tr>
+    <tr><td><strong>外包延期率</strong></td><td>延期交付批次 ÷ 应交付批次 × 100%</td><td>&gt;30% = 红色（考虑更换 CP）</td><td>外包交付记录</td></tr>
+    <tr><td><strong>需求变更频率</strong></td><td>本 Sprint 新增/变更需求数</td><td>&gt;3 条 = 黄色 / &gt;5 条 = 红色</td><td>变更申请单</td></tr>
+  </table>
+
+  <div class="alert alert-green"><strong>💡 APM 周报模板</strong>：每周五下午用以上 5 个指标生成一页「排期健康度仪表盘」，发送给制作人和主美。数据驱动的汇报比感性描述更有说服力。</div>
+</div>
+
+<!-- SEC5B — 多版本并行排期 -->
+<div class="section" id="sec5b">
+  <h2>🔄 5B. 多版本并行排期（长线运营）</h2>
+
+  <div class="alert alert-blue"><strong>💡 适用场景</strong>：项目进入运营期后，通常 2~3 个版本并行推进（当前版本收尾 + 下版本量产 + 下下版本预研）。如何管理多条时间线并行不打架，是资深 APM 的核心能力。</div>
+
+  <div class="sub-title">5B.1 三线并行模型</div>
+  <div class="parallel-grid">
+    <div class="parallel-card">
+      <div class="pc-icon">🔴</div>
+      <div class="pc-title">Line A — 当前版本</div>
+      <div class="pc-desc">收尾优化 + Bug Fix<br>剩余工时 ≤ 20%<br>人力配比：15~20%</div>
+    </div>
+    <div class="parallel-card">
+      <div class="pc-icon">🟡</div>
+      <div class="pc-title">Line B — 下版本</div>
+      <div class="pc-desc">量产制作中<br>主力冲刺阶段<br>人力配比：60~70%</div>
+    </div>
+    <div class="parallel-card">
+      <div class="pc-icon">🟢</div>
+      <div class="pc-title">Line C — 下下版本</div>
+      <div class="pc-desc">预研 + 原画设计<br>探索期，节奏较松<br>人力配比：15~20%</div>
+    </div>
+  </div>
+
+  <div class="sub-title">5B.2 人力分配切换时机</div>
+  <table>
+    <tr><th>时间节点</th><th>Line A（当前版）</th><th>Line B（下版）</th><th>Line C（下下版）</th><th>切换动作</th></tr>
+    <tr><td><strong>版本发布前 2 周</strong></td><td style="color:var(--red)">30%（冲刺）</td><td>55%</td><td>15%</td><td>Line A 抽调精兵全力收尾</td></tr>
+    <tr><td><strong>版本发布日</strong></td><td style="color:var(--green)">5%（仅 Bug）</td><td style="color:var(--red)">75%（主力）</td><td>20%</td><td>Line A 人力释放给 B/C</td></tr>
+    <tr><td><strong>下版 Beta 节点</strong></td><td>0%</td><td>60%</td><td style="color:var(--yellow)">40%（爬坡）</td><td>Line C 开始爬坡，准备接棒</td></tr>
+    <tr><td><strong>下版 RC 节点</strong></td><td>—</td><td style="color:var(--green)">15%（收尾）</td><td style="color:var(--red)">70%（量产）</td><td>Line B→C 完成主力切换</td></tr>
+  </table>
+
+  <div class="sub-title">5B.3 多版本并行的排期要诀</div>
+  <div class="strategy-card">
+    <h4>📋 五条黄金法则</h4>
+    <ul>
+      <li><strong>人力不跨三线</strong> — 单人同时只参与 ≤ 2 条线，否则上下文切换成本爆炸（效率降低 30~40%）</li>
+      <li><strong>明确优先级</strong> — 当多线冲突时：Line A Bug Fix &gt; Line B 里程碑资产 &gt; Line C 探索任务</li>
+      <li><strong>Buffer 独立</strong> — 每条线的 Buffer 独立计算，禁止「借用 C 线 Buffer 补 B 线」</li>
+      <li><strong>切换需公告</strong> — 人力从一条线切换到另一条线，APM 必须提前 3 天通知 + 更新排期表</li>
+      <li><strong>预研产出限时</strong> — Line C 的预研探索设置明确截止日（如 2 周），到期无论结果如何都进入决策</li>
+    </ul>
+  </div>
+
+  <div class="alert alert-yellow"><strong>⚠️ 常见踩坑</strong>：制作人临时从 Line B 抽调 3 人去支援 Line A 紧急 Bug，导致 Line B 里程碑延期。<br>
+  <strong>正确做法</strong>：① 抽调前评估 Line B 影响 ② 如抽调 &gt; 2 天，Line B 排期必须同步调整 ③ 被抽调人员明确回归日期</div>
 </div>
 
 <!-- SEC6 -->
@@ -438,7 +682,7 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <div class="alert alert-green"><strong>⚡ APM 金句</strong>：「排期不是承诺，而是一份持续校准的导航地图。」</div>
 </div>
 
-<div class="doc-footer">📅 美术排期与里程碑管理 · v1.0 · APM 组 · 项目内部资料</div>
+<div class="doc-footer">📅 美术排期与里程碑管理 v2.0 · 资深 APM 实战调度手册 · 2026-05-26</div>
 </div>
 <script src="editor-kit.js"></script>
 </body>
