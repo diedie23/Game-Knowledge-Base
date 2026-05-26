@@ -147,6 +147,17 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 .impact-dept{font-size:24px;margin-bottom:8px}
 .impact-name{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:4px}
 .impact-desc{font-size:12px;color:var(--dim);line-height:1.6}
+/* ─── 制作人决策复盘模块 ─── */
+.decision-review{background:linear-gradient(135deg,rgba(108,140,255,.06),rgba(167,139,250,.06));border:1px solid rgba(108,140,255,.25);border-radius:14px;padding:24px;margin:28px 0;position:relative;overflow:hidden}
+.decision-review::before{content:'🎯';position:absolute;top:-6px;right:16px;font-size:48px;opacity:.12}
+.decision-review h4{font-size:16px;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.decision-review h4 .dr-badge{font-size:11px;background:rgba(108,140,255,.15);color:var(--accent);padding:3px 10px;border-radius:12px;font-weight:600}
+.dr-timeline{list-style:none;padding:0;margin:0}
+.dr-item{position:relative;padding:12px 16px 12px 40px;margin-bottom:10px;background:var(--panel);border:1px solid var(--border);border-radius:8px;font-size:14px;line-height:1.7}
+.dr-item::before{content:attr(data-icon);position:absolute;left:12px;top:12px;font-size:16px}
+.dr-item strong{color:var(--heading)}
+.dr-item .dr-when{font-size:12px;color:var(--accent2);font-weight:600;margin-bottom:2px}
+.dr-verdict{margin-top:14px;padding:12px 16px;background:rgba(108,140,255,.08);border-radius:8px;font-size:14px;color:var(--accent);line-height:1.7;border-left:3px solid var(--accent)}
 </style>
 </head>
 <body>
@@ -154,9 +165,9 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 
 <!-- ═══════ 文档头部 ═══════ -->
 <div class="doc-header">
-  <h1>💣 项目管理踩坑复盘 — 7 大真实案例全收录 <span class="ver">v3.0</span></h1>
-  <div class="subtitle">Game Production Pitfall Log — APM 的真实翻车复盘手册</div>
-  <div class="meta"><span>🎮 中大型手游项目</span><span>👤 APM / 制作人</span><span>📅 2026-04-13</span></div>
+  <h1>💣 项目管理踩坑复盘 — 7 大真实案例全收录 <span class="ver">v4.0</span></h1>
+  <div class="subtitle">Game Production Pitfall Log — APM / 制作人的决策复盘参考手册</div>
+  <div class="meta"><span>🎮 中大型手游项目</span><span>👤 APM / 制作人</span><span>📅 2026-05-26</span></div>
   <div class="badge">🔥 7 大真实案例 · 血泪复盘 · 降维收纳版</div>
   <div class="tag-bar">
     <span class="tag tag-danger">外包翻车</span>
@@ -242,6 +253,25 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 <div class="alert alert-red"><strong>🎯 根因：</strong>外包启动流程缺乏三道防线 — ① 风格指南 ② 首件样品 ③ 定期 Review。</div>
 
 <div class="golden-quote"><div class="gq-text">「参考图只是方向，风格指南才是标准。没有标准就开工，翻车只是时间问题。」</div><div class="gq-author">— APM 踩坑复盘 · 外包管理第一流程约定</div></div>
+
+<h3>🛠️ 改进措施</h3>
+<table>
+  <tr><th>改进项</th><th>措施</th><th>状态</th></tr>
+  <tr><td><strong>风格指南强制</strong></td><td>外包启动前必须交付 ≥10 页风格指南（色板+材质标杆+面数红线）</td><td style="color:var(--green)">✅ 已落地</td></tr>
+  <tr><td><strong>首件样品机制</strong></td><td>批量生产前先做 1 个标杆件，通过后方可批量</td><td style="color:var(--green)">✅ 已落地</td></tr>
+  <tr><td><strong>每周 Review</strong></td><td>外包期间每周 2 次在线 Review，实时纠偏</td><td style="color:var(--green)">✅ 已落地</td></tr>
+  <tr><td><strong>启动 Checklist</strong></td><td>制定《外包启动 Checklist》，缺失项不允许开工</td><td style="color:var(--green)">✅ 已落地</td></tr>
+</table>
+
+<div class="decision-review">
+  <h4>🎯 制作人决策复盘 — 如果时间倒流 <span class="dr-badge">关键干预点</span></h4>
+  <ul class="dr-timeline">
+    <li class="dr-item" data-icon="🚦"><div class="dr-when">Day 0 · 签约前</div><strong>干预点①：</strong>要求主美提前 3 天出风格指南，并作为合同附件。没有风格指南 = 不签约。</li>
+    <li class="dr-item" data-icon="🔍"><div class="dr-when">Day 3 · 开工后</div><strong>干预点②：</strong>要求 CP 第 3 天交付 1 个标杆件粗模，APM + 主美 2 小时内完成在线 Review。</li>
+    <li class="dr-item" data-icon="⏱️"><div class="dr-when">Day 7 · 中期</div><strong>干预点③：</strong>预设 Day 7 中期检查节点。如偏差 > 30%，立即暂停并调整或更换 CP。</li>
+  </ul>
+  <div class="dr-verdict">💡 <strong>复盘结论：</strong>制作人应在「签约前」介入风格指南交付，而非等到 Day 11 评审时才发现偏差。前置 3 天成本 ≈ 0，事后返工成本 = ¥3.5 万 + 18 天延期。</div>
+</div>
 </div>
 </div>
 
@@ -278,6 +308,25 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 </ol>
 
 <div class="golden-quote"><div class="gq-text">「方案没锁定就开工，等于在流沙上盖房子。评审不到位，加班到崩溃。」</div><div class="gq-author">— 场景组组长 · 排期爆雷后的痛悟</div></div>
+
+<h3>🛠️ 改进措施</h3>
+<table>
+  <tr><th>改进项</th><th>措施</th><th>状态</th></tr>
+  <tr><td><strong>白盒三方确认</strong></td><td>策划方案经制作人+策划+主美三方签字后才能进入美化阶段</td><td style="color:var(--green)">✅ 已落地</td></tr>
+  <tr><td><strong>变更申请单</strong></td><td>方案变更走正式流程，需评估影响范围 + 加班成本</td><td style="color:var(--green)">✅ 已落地</td></tr>
+  <tr><td><strong>模块化拆分</strong></td><td>大型场景按区域拆分交付确认，不再一次性全量下发</td><td style="color:var(--yellow)">🔄 推进中</td></tr>
+  <tr><td><strong>排期缓冲</strong></td><td>排期统一预留 15~20% buffer 应对不确定性</td><td style="color:var(--green)">✅ 已落地</td></tr>
+</table>
+
+<div class="decision-review">
+  <h4>🎯 制作人决策复盘 — 如果时间倒流 <span class="dr-badge">关键干预点</span></h4>
+  <ul class="dr-timeline">
+    <li class="dr-item" data-icon="🚦"><div class="dr-when">方案 v1 下发前</div><strong>干预点①：</strong>制作人应在白盒方案下发前做 30 分钟 Gate Review，确认动线 + 区域布局。签字后才允许场景组开工。</li>
+    <li class="dr-item" data-icon="✂️"><div class="dr-when">方案下发时</div><strong>干预点②：</strong>大场景按区域拆分为 3~4 个模块，每模块独立确认。避免一个变更牵动全局。</li>
+    <li class="dr-item" data-icon="🛡️"><div class="dr-when">策划变更时</div><strong>干预点③：</strong>APM 应第一时间要求策划填写《变更影响评估单》，量化人天 + 延期成本，让决策者看到代价。</li>
+  </ul>
+  <div class="dr-verdict">💡 <strong>复盘结论：</strong>制作人应在「方案下发前」参与 Gate Review，而非 3 周后才看成品。前置 30 分钟评审 → 省掉 3 周加班 + 2 人调岗。</div>
+</div>
 </div>
 </div>
 
@@ -312,6 +361,25 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 </ol>
 
 <div class="golden-quote"><div class="gq-text">「质量问题发现得越晚，修复成本越高。最后走查才发现超标，已经是最贵的时候了。」</div><div class="gq-author">— TA 组长 · 资产返工事件后</div></div>
+
+<h3>🛠️ 改进措施</h3>
+<table>
+  <tr><th>改进项</th><th>措施</th><th>状态</th></tr>
+  <tr><td><strong>Pre-commit CI</strong></td><td>提交时自动检测面数，超红线直接拒绝合入</td><td style="color:var(--green)">✅ 已落地</td></tr>
+  <tr><td><strong>Sprint 中期抽检</strong></td><td>每 Sprint 中期 TA 抽检 20% 资产，提前发现超标</td><td style="color:var(--green)">✅ 已落地</td></tr>
+  <tr><td><strong>任务卡红线标注</strong></td><td>TAPD 任务卡强制填写面数红线字段</td><td style="color:var(--green)">✅ 已落地</td></tr>
+  <tr><td><strong>TA 工具提权</strong></td><td>TA 自动化工具需求提升到 P0 优先级</td><td style="color:var(--yellow)">🔄 推进中</td></tr>
+</table>
+
+<div class="decision-review">
+  <h4>🎯 制作人决策复盘 — 如果时间倒流 <span class="dr-badge">关键干预点</span></h4>
+  <ul class="dr-timeline">
+    <li class="dr-item" data-icon="🚦"><div class="dr-when">Sprint 启动时</div><strong>干预点①：</strong>制作人应在 Sprint 规划会上推动 TA 的 Pre-commit 面数检查脚本上线，作为本 Sprint 技术债务清理项。</li>
+    <li class="dr-item" data-icon="📊"><div class="dr-when">制作过程中</div><strong>干预点②：</strong>安排 Sprint 中期（第 5 天）TA 抽检 30% 资产面数，发现异常立即拉群提醒建模师。</li>
+    <li class="dr-item" data-icon="📋"><div class="dr-when">任务下发时</div><strong>干预点③：</strong>确保每张 TAPD 任务卡都明确标注面数红线（如"≤15k"），让执行者心中有数。</li>
+  </ul>
+  <div class="dr-verdict">💡 <strong>复盘结论：</strong>制作人应推动「过程卡点」而非依赖「最终走查」。CI 自动拦截的成本 ≈ 0，而 8 个角色返工 = 5 天 × 全组。</div>
+</div>
 </div>
 </div>
 
@@ -371,6 +439,17 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <tr><td><strong>关键人力锁定</strong></td><td>冲刺期核心成员"锁定"标记，借调需 APM 评估</td><td style="color:var(--yellow)">🔄 推进中</td></tr>
   <tr><td><strong>周进度预警</strong></td><td>每周五燃尽图，偏差 >20% 自动黄色预警</td><td style="color:var(--green)">✅ 已落地</td></tr>
 </table>
+
+<div class="decision-review">
+  <h4>🎯 制作人决策复盘 — 如果时间倒流 <span class="dr-badge">关键干预点</span></h4>
+  <ul class="dr-timeline">
+    <li class="dr-item" data-icon="🚦"><div class="dr-when">Sprint 规划会</div><strong>干预点①：</strong>制作人应要求按角色等级（S/A/B/C）差异化评估人天，而非统一用 2.5 天/个。S 级至少 ×2 系数。</li>
+    <li class="dr-item" data-icon="🛡️"><div class="dr-when">Week 1 Day 4</div><strong>干预点②：</strong>发现 S 级角色实际耗时翻倍时，立即触发黄色预警 → 评估是否缩减范围或追加人力。</li>
+    <li class="dr-item" data-icon="✋"><div class="dr-when">策划口头加需求时</div><strong>干预点③：</strong>制作人应当场回复「需走 CR 流程评估影响」，而非碍于情面默认接受。</li>
+    <li class="dr-item" data-icon="📢"><div class="dr-when">关键人力被借调时</div><strong>干预点④：</strong>制作人应向上反馈「人力锁定需求」，冲刺期核心成员不可外借。</li>
+  </ul>
+  <div class="dr-verdict">💡 <strong>复盘结论：</strong>制作人应在「排期评估阶段」就按复杂度分级，并在第一个红色信号出现时果断介入（缩范围/加人力），而非被动等待最后崩盘。前置预警 → 省掉 ¥12 万 + 3 周延期。</div>
+</div>
 </div>
 </div>
 
@@ -422,6 +501,16 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <tr><td><strong>CR 推荐执行</strong></td><td>TAPD 配置 CR 审批流，不走流程的变更 APM 有权拒绝</td><td style="color:var(--green)">✅ 已落地</td></tr>
   <tr><td><strong>成本可视化</strong></td><td>制作"变更成本速查表"分发给策划团队</td><td style="color:var(--green)">✅ 已落地</td></tr>
 </table>
+
+<div class="decision-review">
+  <h4>🎯 制作人决策复盘 — 如果时间倒流 <span class="dr-badge">关键干预点</span></h4>
+  <ul class="dr-timeline">
+    <li class="dr-item" data-icon="🚦"><div class="dr-when">预研期结束时</div><strong>干预点①：</strong>制作人应在预研结束会议上明确宣布「风格冻结」，量产期不接受风格级变更。形成正式文档记录。</li>
+    <li class="dr-item" data-icon="✋"><div class="dr-when">策划微信通知改风格时</div><strong>干预点②：</strong>APM 应第一时间回复「请先走 CR 流程 + 影响评估」，而非沉默接受。同时抄送制作人。</li>
+    <li class="dr-item" data-icon="📊"><div class="dr-when">三方会议上</div><strong>干预点③：</strong>拿出「变更成本速查表」— "改 8 个角色风格 = 32 人天归零 + ¥X 万成本"，让决策者看到真实代价。</li>
+  </ul>
+  <div class="dr-verdict">💡 <strong>复盘结论：</strong>制作人应在「预研期结束时」设置风格冻结 Gate。一旦进入量产期，风格级变更的代价必须被公开量化，而非由美术团队默默承受。</div>
+</div>
 </div>
 </div>
 
@@ -474,6 +563,16 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <tr><td><strong>供应商池扩充</strong></td><td>每季度评估 2-3 家新 CP，A/B 级扩充到 8 家+</td><td style="color:var(--yellow)">🔄 推进中</td></tr>
   <tr><td><strong>首次合作保护</strong></td><td>新 CP 首单限量 ≤ 3 个资产</td><td style="color:var(--green)">✅ 已落地</td></tr>
 </table>
+
+<div class="decision-review">
+  <h4>🎯 制作人决策复盘 — 如果时间倒流 <span class="dr-badge">关键干预点</span></h4>
+  <ul class="dr-timeline">
+    <li class="dr-item" data-icon="🚦"><div class="dr-when">决定外包前</div><strong>干预点①：</strong>制作人应评估「首次合作 + C 级评级 + 工期紧」三重风险叠加后，坚决拒绝将 20 个资产给新 CP，改为限量 3 个试单。</li>
+    <li class="dr-item" data-icon="📦"><div class="dr-when">发包时</div><strong>干预点②：</strong>要求团队准备标准化《外包规范包》（面数预算 + 命名规范 + Mask 通道要求 + 贴图尺寸标准），随合同一同交付。</li>
+    <li class="dr-item" data-icon="🔍"><div class="dr-when">Week 1.5（50%节点）</div><strong>干预点③：</strong>强制设置 50% 进度检查节点。如果中期检查发现规范不达标，还有时间止损或更换 CP。</li>
+  </ul>
+  <div class="dr-verdict">💡 <strong>复盘结论：</strong>制作人应在「发包决策时」识别三重风险叠加，执行「新 CP 限量试单」原则。¥18 万的损失本可通过 3 个试单件（成本 ≈ ¥2700）提前暴露。</div>
+</div>
 </div>
 </div>
 
@@ -531,9 +630,39 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <tr><td><strong>变更成本公示</strong></td><td>新增需求必须附带三方签字的《影响评估报告》</td><td style="color:var(--green)">✅ 已落地</td></tr>
   <tr><td><strong>版本分流</strong></td><td>来不及做的需求自动进入"下一版本待办"</td><td style="color:var(--green)">✅ 已落地</td></tr>
 </table>
+
+<div class="decision-review">
+  <h4>🎯 制作人决策复盘 — 如果时间倒流 <span class="dr-badge">关键干预点</span></h4>
+  <ul class="dr-timeline">
+    <li class="dr-item" data-icon="🚦"><div class="dr-when">产品规划期</div><strong>干预点①：</strong>公会系统应在预研期就纳入路线图评估。制作人应推动「3 个版本路线图」确保大功能不会被「临时发现」。</li>
+    <li class="dr-item" data-icon="✋"><div class="dr-when">制作人宣布加功能时</div><strong>干预点②：</strong>APM 应立即拉三方评估会议，用数据说话：「15 页面 = 70+ 人天，封版前 7 天 = 不可能」。提出「延期 or 精简 or 下版本」三选一。</li>
+    <li class="dr-item" data-icon="🛡️"><div class="dr-when">Feature Freeze 节点</div><strong>干预点③：</strong>制作人应提前 2 周公告 Feature Freeze，并将此纳入团队 OKR/里程碑，使之成为不可打破的「硬约束」。</li>
+  </ul>
+  <div class="dr-verdict">💡 <strong>复盘结论：</strong>制作人应在「封版前 2 周」设置 Feature Freeze 硬约束。任何新功能强制进入下版本待办。200+ 人时的无效加班 = 一句「好的老板」的代价。APM 的价值 = 用专业数据帮老板做正确决策。</div>
+</div>
 </div>
 </div>
 
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- ═══════ 7 案例成本雷达速查 ═══════ -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section" id="cost-radar">
+<h2>💰 7 案例成本雷达速查 — 哪类坑最贵？</h2>
+<p>一表看清每类踩坑的真实代价，帮助制作人在资源有限时<strong>优先堵住损失最大的漏洞</strong>。</p>
+<table>
+<tr><th>案例</th><th>类型</th><th>严重度</th><th>延期</th><th>直接成本</th><th>隐性成本</th><th>本可避免？</th></tr>
+<tr><td>💥 案例1</td><td>外包翻车</td><td style="color:var(--red)">S</td><td>+18天</td><td style="color:var(--red)">¥3.5万</td><td>主美信任受损</td><td style="color:var(--green)">✅ 风格指南 0 成本</td></tr>
+<tr><td>📅 案例2</td><td>排期爆雷</td><td style="color:var(--orange)">A</td><td>+3周</td><td>加班费</td><td style="color:var(--red)">2人调岗（招聘成本¥8万+）</td><td style="color:var(--green)">✅ Gate Review 30分钟</td></tr>
+<tr><td>🔧 案例3</td><td>资产返工</td><td style="color:var(--orange)">A</td><td>+5天</td><td>内部工时浪费</td><td>团队挫败感</td><td style="color:var(--green)">✅ CI脚本半天搭建</td></tr>
+<tr><td>⏰ 案例4</td><td>项目延期</td><td style="color:var(--red)">S</td><td>+3周</td><td style="color:var(--red)">¥12万（外包追加）</td><td>Beta 推迟影响市场窗口</td><td style="color:var(--green)">✅ 分级人天模型</td></tr>
+<tr><td>💥 案例5</td><td>跨部门冲突</td><td style="color:var(--orange)">A</td><td>+2周</td><td>32人天归零</td><td style="color:var(--red)">1人离职意向</td><td style="color:var(--green)">✅ 风格冻结机制</td></tr>
+<tr><td>🚨 案例6</td><td>外包质量崩盘</td><td style="color:var(--red)">S</td><td>+2周</td><td style="color:var(--red)">¥18万（全部废弃）</td><td>供应商关系破裂</td><td style="color:var(--green)">✅ 限量试单¥2700</td></tr>
+<tr><td>🔄 案例7</td><td>需求变更</td><td style="color:var(--red)">S</td><td>+2周</td><td>200+人时加班</td><td style="color:var(--red)">12个新Bug + 团队士气崩</td><td style="color:var(--green)">✅ Feature Freeze</td></tr>
+</table>
+<div class="alert alert-red" style="margin-top:16px"><strong>📊 数据洞察：</strong>7 起事故累计造成 <strong>~¥40 万+直接损失 + 10 周延期 + 3 人流失/调岗</strong>。其中 <strong>外包类（案例 1+6）占总损失 54%</strong>，是最应优先建立防线的领域。而所有事故的预防成本总和 < ¥5000 + 3 天工时。</div>
+<div class="alert alert-green"><strong>💡 制作人优先级建议：</strong>①先堵「外包管理」（损失最大）→ ②再建「变更管控」（频率最高）→ ③最后完善「自动化卡点」（长期收益）。</div>
+</div>
 
 <!-- ═══════════════════════════════════════════ -->
 <!-- ═══════ APM 踩坑预防 5 道防线体系 ═══════ -->
@@ -612,7 +741,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 </div>
 
 <div class="doc-footer">
-  💣 项目管理踩坑复盘 v3.0 · 7 大真实案例全收录 · 2026-04-13<br>
+  💣 项目管理踩坑复盘 v4.0 · 7 大真实案例全收录 · 制作人决策参考手册 · 2026-05-26<br>
   「别人踩过的坑，你不必再踩」· 每次复盘，都是团队升级
 </div>
 
