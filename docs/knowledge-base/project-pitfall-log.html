@@ -26,15 +26,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .tag-orange{background:rgba(251,146,60,.12);color:var(--orange);border:1px solid rgba(251,146,60,.25)}
 .tag-cyan{background:rgba(34,211,238,.12);color:var(--cyan);border:1px solid rgba(34,211,238,.25)}
 .tag:hover{transform:translateY(-1px);filter:brightness(1.2)}
-/* ─── Tab 切换系统 ─── */
-.tab-bar{display:flex;flex-wrap:wrap;gap:6px;padding:16px 0;margin-bottom:24px;border-bottom:1px solid var(--border)}
-.tab-btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--panel);color:var(--dim);transition:all .2s;display:flex;align-items:center;gap:6px}
-.tab-btn:hover{border-color:rgba(108,140,255,.3);color:var(--text)}
-.tab-btn.active{background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.4);color:var(--red)}
+/* ─── Tab 导航系统（Sticky 吸顶 + 滚动联动） ─── */
+.tab-bar{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px;margin-bottom:24px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;background:var(--bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:box-shadow .3s}
+.tab-bar.scrolled{box-shadow:0 4px 20px rgba(0,0,0,.4);border-bottom-color:rgba(248,113,113,.2)}
+.tab-btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--panel);color:var(--dim);transition:all .25s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tab-btn:hover{border-color:rgba(108,140,255,.3);color:var(--text);transform:translateY(-1px)}
+.tab-btn.active{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.5);color:var(--red);box-shadow:0 0 12px rgba(248,113,113,.15)}
 .tab-btn .sev{font-size:9px;padding:1px 6px;border-radius:6px;color:#fff;font-weight:700}
 .sev-s{background:var(--red)}.sev-a{background:var(--orange)}.sev-b{background:var(--yellow);color:#000}
-.tab-panel{display:none}.tab-panel.active{display:block}
+/* 所有面板始终可见（滚动模式） */
+.tab-panel{display:block;scroll-margin-top:80px;padding-top:8px;border-top:2px solid transparent;transition:border-color .3s}
+.tab-panel.viewing{border-top-color:rgba(248,113,113,.3)}
+/* 当前可视案例的高亮指示器 */
+.tab-panel::before{content:'';display:block;height:0;margin-top:-80px;padding-top:80px;visibility:hidden;pointer-events:none}
 .section{margin-bottom:40px}
+/* 案例面板间距与分隔 */
+.tab-panel + .tab-panel{margin-top:48px;padding-top:48px;border-top:1px solid var(--border);position:relative}
+.tab-panel + .tab-panel::after{content:'';position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:60px;height:3px;background:linear-gradient(90deg,var(--red),var(--orange));border-radius:2px}
 .section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--red);display:flex;align-items:center;gap:8px}
 .section h3{font-size:17px;color:var(--heading);margin:20px 0 10px;font-weight:600}
 .section p,.section li{font-size:15px;margin-bottom:8px;line-height:1.8}
@@ -186,7 +194,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 <!-- ╔═══════════════════════════════════════════╗ -->
 <!-- ║  案例 1：外包翻车 — 首批角色交付全部打回   ║ -->
 <!-- ╚═══════════════════════════════════════════╝ -->
-<div class="tab-panel active" id="panel-c1">
+<div class="tab-panel viewing" id="panel-c1">
 <div class="section">
 <h2>💥 案例 1：外包翻车 — 首批角色交付全部打回</h2>
 <div class="case-info">
@@ -635,21 +643,86 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 })();
 </script>
 
-<!-- ═══════ Tab 切换 JS ═══════ -->
+<!-- ═══════ 滚动联动导航 JS ═══════ -->
 <script>
 (function(){
+  var tabBar = document.getElementById('tabBar');
   var btns = document.querySelectorAll('.tab-btn');
   var panels = document.querySelectorAll('.tab-panel');
+  var isScrolling = false;
+  var scrollTimeout;
+
+  // 点击 Tab → 平滑滚动到对应案例
   btns.forEach(function(btn){
     btn.addEventListener('click', function(){
       var t = btn.getAttribute('data-tab');
-      btns.forEach(function(b){ b.classList.remove('active'); });
-      panels.forEach(function(p){ p.classList.remove('active'); });
-      btn.classList.add('active');
       var target = document.getElementById('panel-' + t);
-      if(target) target.classList.add('active');
+      if(!target) return;
+      isScrolling = true;
+      // 高亮当前 Tab
+      btns.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      // 高亮当前面板
+      panels.forEach(function(p){ p.classList.remove('viewing'); });
+      target.classList.add('viewing');
+      // 平滑滚动
+      target.scrollIntoView({ behavior:'smooth', block:'start' });
+      // 滚动完成后恢复自动检测
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(function(){ isScrolling = false; }, 800);
     });
   });
+
+  // 滚动时自动检测当前可视案例并高亮对应 Tab
+  var ticking = false;
+  function onScroll(){
+    if(isScrolling) return;
+    if(!ticking){
+      ticking = true;
+      requestAnimationFrame(function(){
+        var tabBarRect = tabBar.getBoundingClientRect();
+        var checkPoint = tabBarRect.bottom + 60; // Tab栏底部往下60px作为检测线
+
+        var currentPanel = null;
+        for(var i = panels.length - 1; i >= 0; i--){
+          var rect = panels[i].getBoundingClientRect();
+          if(rect.top <= checkPoint){
+            currentPanel = panels[i];
+            break;
+          }
+        }
+
+        if(currentPanel){
+          var panelId = currentPanel.id.replace('panel-','');
+          btns.forEach(function(b){
+            if(b.getAttribute('data-tab') === panelId){
+              if(!b.classList.contains('active')){
+                btns.forEach(function(bb){ bb.classList.remove('active'); });
+                b.classList.add('active');
+                // 确保当前激活的 Tab 在可视区域内（水平滚动）
+                b.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'nearest' });
+              }
+            }
+          });
+          panels.forEach(function(p){ p.classList.remove('viewing'); });
+          currentPanel.classList.add('viewing');
+        }
+
+        // Tab bar 吸顶阴影
+        if(window.scrollY > 200){
+          tabBar.classList.add('scrolled');
+        } else {
+          tabBar.classList.remove('scrolled');
+        }
+
+        ticking = false;
+      });
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, {passive:true});
+  // 初始触发一次
+  onScroll();
 })();
 </script>
 <script src="editor-kit.js"></script>
