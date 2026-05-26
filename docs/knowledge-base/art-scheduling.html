@@ -120,7 +120,11 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#sec5b">多版本并行排期</a> <span class="badge badge-green">NEW</span></li>
     <li><a href="#sec6">实战模板：中型手游完整排期示例</a></li>
     <li><a href="#sec7">常见问题与避坑指南</a></li>
-    <li><a href="#sec8">附录：工具推荐</a></li>
+    <li><a href="#sec8">附录：工具选型对比</a></li>
+    <li><a href="#sec9">外包任务排期附加规则</a> <span class="badge badge-green">v2.1</span></li>
+    <li><a href="#sec10">制作人/管理层速查板</a> <span class="badge badge-green">v2.1</span></li>
+    <li><a href="#sec11">排期沟通框架</a> <span class="badge badge-green">v2.1</span></li>
+    <li><a href="#sec12">关联文档导航</a> <span class="badge badge-green">v2.1</span></li>
   </ol>
 </div>
 
@@ -342,21 +346,21 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td><strong>🔴 RC</strong></td><td><strong>100%</strong> 角色 + 全部优化</td><td>100% 场景 + LOD + 性能优化</td><td>全 UI 适配 + 优化</td><td>100% + 性能优化</td><td>100% + Bug 修复</td></tr>
   </table>
 
-  <div class="sub-title">3.3 甘特图示意（2026-Q2 美术排期）</div>
-  <div class="alert alert-blue"><strong>📊 说明</strong>：以下为中型项目的典型排期分布，实际项目请根据资产量调整。</div>
+  <div class="sub-title">3.3 甘特图示意（通用模板）</div>
+  <div class="alert alert-blue"><strong>📊 说明</strong>：以下为中型项目的<strong>通用排期模板</strong>，使用相对时间（T+天数）。实际项目请将 T+0 替换为开工日期。<br>🔗 可视化呈现方式（甘特图/看板/热力图）请参阅 <strong>📊 进度可视化工具方案</strong>。</div>
 
   <table>
     <tr><th>工种</th><th>任务</th><th>开始</th><th>结束</th><th>工期</th><th>依赖</th></tr>
-    <tr><td>👤 角色</td><td>角色原画</td><td>04-01</td><td>04-30</td><td>30d</td><td>—</td></tr>
-    <tr><td>👤 角色</td><td>角色建模</td><td>05-01</td><td>06-09</td><td>40d</td><td>原画完成后</td></tr>
-    <tr><td>👤 角色</td><td>角色贴图</td><td>06-10</td><td>07-09</td><td>30d</td><td>建模完成后</td></tr>
-    <tr><td>👤 角色</td><td>角色绑定</td><td>07-10</td><td>07-29</td><td>20d</td><td>贴图完成后</td></tr>
-    <tr><td>🏔️ 场景</td><td>场景白盒</td><td>04-01</td><td>04-20</td><td>20d</td><td>—</td></tr>
-    <tr><td>🏔️ 场景</td><td>场景美化</td><td>04-21</td><td>06-19</td><td>60d</td><td>白盒完成后</td></tr>
-    <tr><td>🖥️ UI</td><td>UI 设计</td><td>04-01</td><td>05-05</td><td>35d</td><td>—</td></tr>
-    <tr><td>🖥️ UI</td><td>UI 切图</td><td>05-06</td><td>06-19</td><td>45d</td><td>设计完成后</td></tr>
-    <tr><td>✨ 特效</td><td>特效制作</td><td>04-15</td><td>06-13</td><td>60d</td><td>—</td></tr>
-    <tr><td>🎬 动画</td><td>动画制作</td><td>04-22</td><td>06-15</td><td>55d</td><td>—</td></tr>
+    <tr><td>👤 角色</td><td>角色原画</td><td>T+0</td><td>T+30d</td><td>30d</td><td>—</td></tr>
+    <tr><td>👤 角色</td><td>角色建模</td><td>T+31d</td><td>T+70d</td><td>40d</td><td>原画完成后</td></tr>
+    <tr><td>👤 角色</td><td>角色贴图</td><td>T+71d</td><td>T+100d</td><td>30d</td><td>建模完成后</td></tr>
+    <tr><td>👤 角色</td><td>角色绑定</td><td>T+101d</td><td>T+120d</td><td>20d</td><td>贴图完成后</td></tr>
+    <tr><td>🏔️ 场景</td><td>场景白盒</td><td>T+0</td><td>T+20d</td><td>20d</td><td>—</td></tr>
+    <tr><td>🏔️ 场景</td><td>场景美化</td><td>T+21d</td><td>T+80d</td><td>60d</td><td>白盒完成后</td></tr>
+    <tr><td>🖥️ UI</td><td>UI 设计</td><td>T+0</td><td>T+35d</td><td>35d</td><td>—</td></tr>
+    <tr><td>🖥️ UI</td><td>UI 切图</td><td>T+36d</td><td>T+80d</td><td>45d</td><td>设计完成后</td></tr>
+    <tr><td>✨ 特效</td><td>特效制作</td><td>T+15d</td><td>T+75d</td><td>60d</td><td>—</td></tr>
+    <tr><td>🎬 动画</td><td>动画制作</td><td>T+22d</td><td>T+77d</td><td>55d</td><td>—</td></tr>
   </table>
 
   <div class="redline">
@@ -668,21 +672,135 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 
 <!-- SEC8 -->
 <div class="section" id="sec8">
-  <h2>📎 8. 附录：工具推荐</h2>
+  <h2>📎 8. 附录：工具选型对比</h2>
+
+  <div class="alert alert-blue"><strong>🔗 详细方案</strong>：各工具的详细配置方法、模板下载、看板搭建教程请参阅 <strong>📊 进度可视化工具方案</strong>。</div>
 
   <table>
-    <tr><th>工具</th><th>用途</th><th>推荐指数</th></tr>
-    <tr><td><strong>TAPD</strong></td><td>任务管理、看板、燃尽图</td><td>⭐⭐⭐⭐⭐</td></tr>
-    <tr><td><strong>Jira + Tempo</strong></td><td>工时统计、排期规划</td><td>⭐⭐⭐⭐</td></tr>
-    <tr><td><strong>飞书多维表格</strong></td><td>灵活的排期视图</td><td>⭐⭐⭐⭐</td></tr>
-    <tr><td><strong>Monday.com</strong></td><td>可视化甘特图</td><td>⭐⭐⭐</td></tr>
-    <tr><td><strong>Excel/WPS</strong></td><td>万能兜底方案</td><td>⭐⭐⭐</td></tr>
+    <tr><th>工具</th><th>适用场景</th><th>燃尽图</th><th>甘特图</th><th>自动预警</th><th>外包协作</th><th>成本</th></tr>
+    <tr><td><strong>TAPD</strong></td><td>腾讯系团队首选</td><td>✅</td><td>✅</td><td>✅</td><td>⚠️ 一般</td><td>免费</td></tr>
+    <tr><td><strong>Jira + Tempo</strong></td><td>大型团队/多项目</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>付费</td></tr>
+    <tr><td><strong>飞书多维表格</strong></td><td>轻量快速启动</td><td>⚠️ 需配置</td><td>✅</td><td>❌</td><td>✅</td><td>免费</td></tr>
+    <tr><td><strong>Monday.com</strong></td><td>可视化优先</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>付费</td></tr>
+    <tr><td><strong>Excel/WPS</strong></td><td>万能兜底、离线</td><td>❌ 手动</td><td>⚠️ 手动</td><td>❌</td><td>❌</td><td>免费</td></tr>
   </table>
 
-  <div class="alert alert-green"><strong>⚡ APM 金句</strong>：「排期不是承诺，而是一份持续校准的导航地图。」</div>
+  <div class="sub-title">选型建议</div>
+  <ul style="padding-left:20px;font-size:14px;line-height:2">
+    <li><strong>内部团队 + 腾讯体系</strong> → TAPD（零成本接入，与企微打通）</li>
+    <li><strong>大规模 + 需要工时统计</strong> → Jira + Tempo</li>
+    <li><strong>快速搭建 + 外包协作</strong> → 飞书多维表格</li>
+    <li><strong>预算有限 + 离线需求</strong> → Excel（配合本文甘特图模板）</li>
+  </ul>
+
+  <div class="alert alert-green"><strong>⚡ APM 金句</strong>：「排期不是承诺，而是一份持续校准的导航地图。好的排期 = 准确预估 × 果断响应 × 持续校准。」</div>
 </div>
 
-<div class="doc-footer">📅 美术排期与里程碑管理 v2.0 · 资深 APM 实战调度手册 · 2026-05-26</div>
+<!-- SEC9 — 外包任务排期附加规则 -->
+<div class="section" id="sec9">
+  <h2>🏭 9. 外包任务排期附加规则</h2>
+
+  <div class="alert alert-blue"><strong>🔗 指路</strong>：外包管理的完整流程和验收规范请参阅 <strong>🏭 外包全流程管理</strong>；人天和成本的具体评估方法请参阅 <strong>💰 外包工作量评估模型</strong>。本节仅聚焦<strong>排期维度</strong>的附加规则。</div>
+
+  <div class="sub-title">9.1 外包排期额外环节耗时</div>
+  <table>
+    <tr><th>附加环节</th><th>额外耗时</th><th>说明</th></tr>
+    <tr><td>📋 需求整理 + 发包</td><td><strong>+3~5d</strong></td><td>需产出完整的需求规格文档和参考包</td></tr>
+    <tr><td>🔍 首件确认</td><td><strong>+2~3d</strong></td><td>第一个资产验收通过后才批量生产</td></tr>
+    <tr><td>🔄 中间验收节点</td><td>每节点 <strong>+2d</strong></td><td>沟通反馈+修改确认</td></tr>
+    <tr><td>🛠️ 返修周期</td><td><strong>+5~7d</strong></td><td>按经验平均 1~2 轮修改</td></tr>
+    <tr><td>✅ 终验 + 引擎测试</td><td><strong>+3d</strong></td><td>导入引擎测试，性能/规格检测</td></tr>
+  </table>
+
+  <div class="redline">
+    <p><strong>📌 经验法则</strong>：外包任务总工期通常比纯内部制作多 <strong>30%~50%</strong>。排期时切忌按内部效率直接估算外包工期。</p>
+  </div>
+
+  <div class="sub-title">9.2 外包排期公式</div>
+  <div class="code-block"><code>外包总工期 = 制作工期 + 发包准备(3~5d) + 首件确认(3d) + 验收轮次×(2d) + 返修(5~7d) + 入库测试(3d)</code></div>
+
+  <div class="sub-title">9.3 外包排期 vs 内部排期对比</div>
+  <table>
+    <tr><th>任务</th><th>内部排期</th><th>外包排期</th><th>差额</th><th>原因</th></tr>
+    <tr><td>A级角色建模</td><td>8d</td><td>12d</td><td>+50%</td><td>沟通+首件+返修</td></tr>
+    <tr><td>B级场景资产</td><td>5d</td><td>7d</td><td>+40%</td><td>沟通+返修</td></tr>
+    <tr><td>UI 切图</td><td>3d</td><td>4d</td><td>+33%</td><td>返修周期短</td></tr>
+  </table>
+</div>
+
+<!-- SEC10 — 制作人/管理层速查板 -->
+<div class="section" id="sec10">
+  <h2>👔 10. 制作人/管理层速查板</h2>
+
+  <div class="alert alert-blue"><strong>💼 本节说明</strong>：面向制作人和总监，帮助快速判断美术排期是否健康、是否需要介入。</div>
+
+  <div class="sub-title">10.1 排期健康度指标一览</div>
+  <table>
+    <tr><th>指标</th><th>健康 🟢</th><th>警戒 🟡</th><th>危险 🔴</th></tr>
+    <tr><td>Sprint 完成率</td><td>≥ 85%</td><td>70~85%</td><td>< 70%</td></tr>
+    <tr><td>排期偏差（实际/预估）</td><td>≤ 10%</td><td>10~25%</td><td>> 25%</td></tr>
+    <tr><td>需求变更频率</td><td>≤ 2 次/Sprint</td><td>3~5 次</td><td>> 5 次</td></tr>
+    <tr><td>外包返修率</td><td>≤ 15%</td><td>15~30%</td><td>> 30%</td></tr>
+    <tr><td>关键路径余量</td><td>≥ 5d</td><td>2~5d</td><td>< 2d</td></tr>
+    <tr><td>燃尽图偏差</td><td>紧贴理想线</td><td>在上方 5~15%</td><td>上方 >15% 或平坦</td></tr>
+  </table>
+
+  <div class="sub-title">10.2 制作人常见疑问速答</div>
+  <table>
+    <tr><th>制作人问</th><th>快速答案</th><th>依据</th></tr>
+    <tr><td>"美术人力够吗？"</td><td>资产量 ÷ 团队产能 × 校准系数 ≤ 工期？</td><td>见排期校准方法论</td></tr>
+    <tr><td>"外包排得下吗？"</td><td>外包工期 = 内部 × 1.3~1.5</td><td>见第 9 节外包附加规则</td></tr>
+    <tr><td>"能不能再快一点？"</td><td>只能砍需求/加人/降质量三选一</td><td>「铁三角」不可能同时满足</td></tr>
+    <tr><td>"延期了影响多大？"</td><td>参考延期决策文档的影响矩阵</td><td>👉 项目延期应对决策</td></tr>
+    <tr><td>"这个风险要不要管？"</td><td>看预警等级，🔴 必须立即介入</td><td>见第 5 节预警等级</td></tr>
+  </table>
+</div>
+
+<!-- SEC11 — 排期沟通框架 -->
+<div class="section" id="sec11">
+  <h2>🗣️ 11. 排期沟通框架</h2>
+
+  <div class="alert alert-blue"><strong>💬 本节说明</strong>：60% 的排期 miss 源于沟通问题而非评估失误。本节提供 APM 在关键场景的应对框架。<br>🔗 更全面的跨部门协作痛点和机制设计请参阅 <strong>🤝 跨部门协作破局手册</strong>。</div>
+
+  <div class="sub-title">11.1 高频沟通场景与话术框架</div>
+  <table>
+    <tr><th>场景</th><th>对方说</th><th>❌ 错误回应</th><th>✅ 推荐话术</th></tr>
+    <tr><td>策划加急</td><td>"这个下周就要"</td><td>"做不了"</td><td>"可以做，但需要后推 XX 任务。确认优先级调整后我来排"</td></tr>
+    <tr><td>制作人催期</td><td>"能不能再快点"</td><td>"我尽量"</td><td>"当前关键路径是 XX（120d），提速方案有三个：①砍 XX ②加人 ③降质量。推荐方案①，影响最小"</td></tr>
+    <tr><td>主美质疑工期</td><td>"不需要这么久"</td><td>"我觉得需要"</td><td>"基于过去 3 个 Sprint 校准系数 1.2 估的，如果你觉得可以更快，约个 5 分钟校准下"</td></tr>
+    <tr><td>外包催进度</td><td>"什么时候给需求"</td><td>"快了快了"</td><td>"下周三前给，包含 XX 内容。如果提前完成会更早同步"</td></tr>
+  </table>
+
+  <div class="sub-title">11.2 排期谈判三原则</div>
+  <table>
+    <tr><th>原则</th><th>说明</th></tr>
+    <tr><td>🔢 <strong>用数据说话</strong></td><td>不说"感觉要很久"，而是"根据历史数据，A级角色平均 12d，校准系数 1.2，预计 15d"</td></tr>
+    <tr><td>🔄 <strong>给选项不给拒绝</strong></td><td>不说"做不了"，而是"有 3 个方案，分别代价是…推荐方案 X"</td></tr>
+    <tr><td>📋 <strong>留书面记录</strong></td><td>所有排期变更必须邮件/飞书确认，避免口头承诺后扯皮</td></tr>
+  </table>
+</div>
+
+<!-- SEC12 — 关联文档导航 -->
+<div class="section" id="sec12">
+  <h2>📚 12. 关联文档导航</h2>
+
+  <div class="alert alert-blue"><strong>📖 说明</strong>：以下文档与本文形成知识网络，建议按需扩展阅读。</div>
+
+  <table>
+    <tr><th>关联主题</th><th>推荐文档</th><th>何时阅读</th></tr>
+    <tr><td>管线全貌</td><td>🔄 角色美术资产管线</td><td>排期前了解全工序</td></tr>
+    <tr><td>外包管理</td><td>🏭 外包全流程管理</td><td>排期含外包任务时</td></tr>
+    <tr><td>人天估算</td><td>💰 外包工作量评估模型</td><td>评估排期工时时</td></tr>
+    <tr><td>延期决策</td><td>⏰ 项目延期应对决策</td><td>排期 miss 需做决策时</td></tr>
+    <tr><td>风险管理</td><td>📋 项目风险登记册</td><td>识别/登记排期风险时</td></tr>
+    <tr><td>进度可视化</td><td>📊 进度可视化工具方案</td><td>搭建看板/图表时</td></tr>
+    <tr><td>效能指标</td><td>📊 美术效能度量体系</td><td>量化排期准确率时</td></tr>
+    <tr><td>复盘模板</td><td>🔄 版本复盘模板</td><td>Sprint/版本复盘时</td></tr>
+    <tr><td>跨部门协作</td><td>🤝 跨部门协作破局手册</td><td>排期受跨部门依赖阻塞时</td></tr>
+  </table>
+</div>
+
+<div class="doc-footer">📅 美术排期与里程碑管理 v2.1 · 资深 APM 实战调度手册 · 2026-05-26</div>
 </div>
 <script src="editor-kit.js"></script>
 </body>
