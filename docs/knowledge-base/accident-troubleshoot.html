@@ -70,15 +70,29 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 .timeline .step .st{font-size:12px;color:var(--heading);font-weight:600}
 .timeline .step .sd{font-size:11px;color:var(--dim);margin-top:2px}
 .doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+/* ─── 制作人决策复盘模块 ─── */
+.decision-review{background:linear-gradient(135deg,rgba(248,113,113,.06),rgba(251,146,60,.06));border:1px solid rgba(248,113,113,.25);border-radius:14px;padding:24px;margin:28px 0;position:relative;overflow:hidden}
+.decision-review::before{content:'🎯';position:absolute;top:-6px;right:16px;font-size:48px;opacity:.12}
+.decision-review h4{font-size:16px;color:var(--red);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.decision-review h4 .dr-badge{font-size:11px;background:rgba(248,113,113,.15);color:var(--red);padding:3px 10px;border-radius:12px;font-weight:600}
+.dr-timeline{list-style:none;padding:0;margin:0}
+.dr-item{position:relative;padding:12px 16px 12px 40px;margin-bottom:10px;background:var(--panel);border:1px solid var(--border);border-radius:8px;font-size:14px;line-height:1.7}
+.dr-item::before{content:attr(data-icon);position:absolute;left:12px;top:12px;font-size:16px}
+.dr-item strong{color:var(--heading)}
+.dr-item .dr-when{font-size:12px;color:var(--orange);font-weight:600;margin-bottom:2px}
+.dr-verdict{margin-top:14px;padding:12px 16px;background:rgba(248,113,113,.08);border-radius:8px;font-size:14px;color:var(--red);line-height:1.7;border-left:3px solid var(--red)}
+/* ─── 成本雷达表 ─── */
+.cost-radar-table tr:hover{background:rgba(248,113,113,.05)}
+.cost-radar-table td:nth-child(3){font-weight:700}
 </style>
 </head>
 <body>
 <div class="doc">
 
 <div class="doc-header">
-  <h1>🚨 典型事故排雷手册 <span class="ver">v1.1</span></h1>
-  <div class="subtitle">Game Production Incident Playbook — "别人踩过的坑，你不必再踩"</div>
-  <div class="meta"><span>🎮 中大型手游项目</span><span>👤 APM / 制作人</span><span>📅 2026-04-13</span></div>
+  <h1>🚨 典型事故排雷手册 <span class="ver">v2.0</span></h1>
+  <div class="subtitle">Game Production Incident Playbook — "别人踩过的坑，你不必再踩" · 制作人决策参考手册</div>
+  <div class="meta"><span>🎮 中大型手游项目</span><span>👤 APM / 制作人</span><span>📅 2026-05-26</span></div>
   <div class="badge">🔥 血泪经验 · 实战复盘</div>
   <div class="tag-bar">
     <span class="tag tag-danger">包体暴增</span>
@@ -99,6 +113,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <li><a href="#c3">Case 3：引擎内效果与设计图严重不符</a></li>
   <li><a href="#c4">Case 4：上线后低端机闪退率飙升</a></li>
   <li><a href="#c5">Case 5：热更包下发后角色动画"抽搐"</a></li>
+  <li><a href="#cost-radar">💰 5 案例成本雷达速查</a></li>
   <li><a href="#s-matrix">责任速查矩阵（总表）</a></li>
   <li><a href="#s-prevent">事故预防体系：5 道防线</a></li>
 </ol></div>
@@ -145,6 +160,16 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 ② 资源目录强制分离 <code>_Source/</code>（源文件）和 <code>Export/</code>（导出文件），前者加入 .gitignore<br>
 ③ 提交钩子 (pre-commit hook) 禁止 <code>＞10MB</code> 的单文件直接提交<br>
 ④ 每周自动报告包体组成 Top 20 文件
+</div>
+
+<div class="decision-review">
+  <h4>🎯 制作人决策复盘 — 如果时间倒流 <span class="dr-badge">关键干预点</span></h4>
+  <ul class="dr-timeline">
+    <li class="dr-item" data-icon="🚦"><div class="dr-when">项目初期 · 目录规范制定时</div><strong>干预点①：</strong>制作人应在立项期推动 TA 完成「源文件/导出文件」目录分离方案，并写入项目规范。0 成本，一次性收益。</li>
+    <li class="dr-item" data-icon="🔧"><div class="dr-when">CI 搭建阶段</div><strong>干预点②：</strong>要求程序在 CI 流水线中增加「包体增量检测」。超上版 50MB 自动阻断 + 通知。搭建成本 ≈ 2 小时。</li>
+    <li class="dr-item" data-icon="📋"><div class="dr-when">出包前 1 天</div><strong>干预点③：</strong>APM 应建立「出包前 Checklist」——包含 Git 大文件扫描、包体预估。3 分钟检查 → 避免 3 天紧急修复。</li>
+  </ul>
+  <div class="dr-verdict">💡 <strong>复盘结论：</strong>包体暴增属于「完全可预防」型事故。制作人应在项目初期推动目录规范 + CI 卡点二合一方案，总投入 ≈ 半天，而事后修复耗时 3 天 + 延误提审。</div>
 </div>
 </div>
 </div>
@@ -194,6 +219,16 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 ③ 毛玻璃改为<strong>预截图 + 1/4 分辨率模糊</strong>（开包时截一次，之后用静态图）<br>
 ④ 建立「UI 性能 Checklist」：任何新 UI 上线前必须通过 DC/Overdraw/节点数三项检查
 </div>
+
+<div class="decision-review">
+  <h4>🎯 制作人决策复盘 — 如果时间倒流 <span class="dr-badge">关键干预点</span></h4>
+  <ul class="dr-timeline">
+    <li class="dr-item" data-icon="🚦"><div class="dr-when">UI 需求评审阶段</div><strong>干预点①：</strong>制作人应在需求评审时追问「200 格全展示的性能代价是什么？」，推动策划接受分页/虚拟列表方案。10 分钟讨论 → 省掉后续 2 周性能返工。</li>
+    <li class="dr-item" data-icon="🔍"><div class="dr-when">UI 进入开发前</div><strong>干预点②：</strong>APM 应要求 TA 在 UI 开发前给出「性能预算」：Drawcall ≤ 50 / 节点 ≤ 30 / 无全屏后处理。作为验收红线写入任务卡。</li>
+    <li class="dr-item" data-icon="📊"><div class="dr-when">UI 提测前</div><strong>干预点③：</strong>强制执行「UI 性能冒烟测试」——在目标最低配机型上跑一次。帧率 < 24fps 不允许提测。</li>
+  </ul>
+  <div class="dr-verdict">💡 <strong>复盘结论：</strong>UI 性能问题的根源是「没有性能预算」。制作人应在需求阶段就设定性能红线，并在提测前强制验收。前置成本 = 10 分钟评审 + 1 小时冒烟，事后代价 = Beta 期间紧急返工 + 玩家差评。</div>
+</div>
 </div>
 </div>
 </div>
@@ -242,6 +277,16 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 ③ 导入脚本自动检测：BaseColor 后缀 → 强制 sRGB ｜ Normal 后缀 → 强制 Linear ｜ 法线绿通道按引擎自动翻转<br>
 ④ <strong>冒烟环节前置</strong>：美术交付后 TA 先在标准场景过一遍，通过后再进主美评审
 </div>
+
+<div class="decision-review">
+  <h4>🎯 制作人决策复盘 — 如果时间倒流 <span class="dr-badge">关键干预点</span></h4>
+  <ul class="dr-timeline">
+    <li class="dr-item" data-icon="🚦"><div class="dr-when">项目启动期 · 管线搭建时</div><strong>干预点①：</strong>制作人应在管线搭建期推动 TA 建立「Standard Lookdev Scene」+ 贴图导入规范。1 天工作量 → 杜绝后续所有 DCC↔引擎效果偏差问题。</li>
+    <li class="dr-item" data-icon="📋"><div class="dr-when">美术任务下发时</div><strong>干预点②：</strong>每张任务卡必须附带《DCC → Engine 导出清单》链接。执行者不需要记规范，只需 Check 清单。降低执行门槛。</li>
+    <li class="dr-item" data-icon="✋"><div class="dr-when">主美评审前</div><strong>干预点③：</strong>APM 应设置「TA 冒烟关」——美术交付 → TA 在标准场景验证 → 通过后才进主美评审。避免主美直接面对错误效果引发情绪爆炸。</li>
+  </ul>
+  <div class="dr-verdict">💡 <strong>复盘结论：</strong>DCC↔引擎效果不一致属于「管线缺失」问题。制作人应在管线搭建期一次性解决（Lookdev Scene + 导入脚本 + 导出清单），而非靠人肉记忆。前置 1 天 → 省掉每次 3 天返工 + 团队情绪内耗。</div>
+</div>
 </div>
 </div>
 </div>
@@ -281,6 +326,17 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 ③ 增加<strong>内存水位告警</strong>：接近设备上限 80% 时主动释放缓存<br>
 ④ QA 测试矩阵强制覆盖至少 <strong>3 款 2-3GB 安卓机</strong>
 </div>
+
+<div class="decision-review">
+  <h4>🎯 制作人决策复盘 — 如果时间倒流 <span class="dr-badge">关键干预点</span></h4>
+  <ul class="dr-timeline">
+    <li class="dr-item" data-icon="🚦"><div class="dr-when">立项期 · 目标用户定义时</div><strong>干预点①：</strong>制作人应在立项期就确定「目标机型矩阵」（最低配 = 红米 Note 9 / 3GB RAM），并写入技术标书。所有性能指标以最低配为基准。</li>
+    <li class="dr-item" data-icon="📊"><div class="dr-when">Alpha 阶段</div><strong>干预点②：</strong>推动 TA 在 Alpha 阶段就完成「三档画质」方案：高配原始贴图 / 中配 75% / 低配 50%。而非等到上线前才发现低配跑不动。</li>
+    <li class="dr-item" data-icon="🛡️"><div class="dr-when">提审前 1 周</div><strong>干预点③：</strong>APM 应设置「低端机通过」作为提审硬门槛——QA 必须在 3 款 2-3GB 机型上完成全流程测试。不通过 = 不提审。</li>
+    <li class="dr-item" data-icon="📢"><div class="dr-when">上线后 2 小时</div><strong>干预点④：</strong>上线首日前 2 小时内，值班人员必须盯住 Crash 监控面板。闪退率 > 2% 立即触发热修复流程。</li>
+  </ul>
+  <div class="dr-verdict">💡 <strong>复盘结论：</strong>低端机闪退是「测试覆盖不足」+「画质分级缺失」的双重失误。制作人应在立项期锁定目标机型矩阵，在 Alpha 完成画质分级，在提审前设置低端机硬门槛。商店评分从 4.5→3.2 的代价 ≈ 数十万用户的首印象损失。</div>
+</div>
 </div>
 </div>
 </div>
@@ -318,8 +374,34 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 ② QA 热更测试 SOP：<strong>必须</strong>在旧版本基础上做增量更新测试，禁止全量安装后直接 PASS<br>
 ③ 资源版本号绑定：骨骼结构变更必须<strong>升 Major 版本号</strong>，动画引用时校验版本匹配
 </div>
+
+<div class="decision-review">
+  <h4>🎯 制作人决策复盘 — 如果时间倒流 <span class="dr-badge">关键干预点</span></h4>
+  <ul class="dr-timeline">
+    <li class="dr-item" data-icon="🚦"><div class="dr-when">热更工具开发阶段</div><strong>干预点①：</strong>制作人应在热更系统设计时要求程序实现「资源依赖自动分析」——动画变更 → 自动把关联骨骼/Mesh 一起打入热更包。技术投入 ≈ 2 天，杜绝所有版本不一致问题。</li>
+    <li class="dr-item" data-icon="📋"><div class="dr-when">热更包发布前</div><strong>干预点②：</strong>APM 应建立《热更发布 SOP》，其中必须包含「增量更新验证」环节：QA 必须在旧版本上做增量更新测试，而非全量安装。</li>
+    <li class="dr-item" data-icon="🛡️"><div class="dr-when">灰度发布阶段</div><strong>干预点③：</strong>热更包先灰度推送 5% 用户 → 观察 30 分钟 Crash/异常指标 → 无问题再全量推送。灰度成本 = 0，但能拦截 95% 的线上事故。</li>
+  </ul>
+  <div class="dr-verdict">💡 <strong>复盘结论：</strong>热更动画异常属于「工具链不完善」+「测试方法不对」的组合问题。制作人应推动热更工具内置依赖分析，并在 SOP 中写死「增量测试 + 灰度发布」两道关卡。客服涌入的口碑损失远超 2 天的工具开发成本。</div>
 </div>
 </div>
+</div>
+</div>
+
+<!-- ═══════ 5 案例成本雷达速查 ═══════ -->
+<div class="section" id="cost-radar">
+<h2>💰 5 案例成本雷达速查 — 哪类事故最致命？</h2>
+<p>一表看清每类技术事故的真实代价，帮助制作人在资源有限时<strong>优先堵住影响最大的漏洞</strong>。</p>
+<table class="cost-radar-table">
+<tr><th>Case</th><th>事故类型</th><th>严重度</th><th>影响时长</th><th>直接损失</th><th>隐性损失</th><th>预防成本</th></tr>
+<tr><td>💣 Case 1</td><td>包体暴增 400MB</td><td style="color:var(--red)">P0</td><td>3 天紧急修复</td><td>提审延误</td><td>团队信任受损 · 出包流程不自信</td><td style="color:var(--green)">半天（CI + 目录规范）</td></tr>
+<tr><td>🔥 Case 2</td><td>UI 掉帧发热</td><td style="color:var(--red)">P0</td><td>Beta 期 2 周返工</td><td style="color:var(--red)">大量差评 · 渠道评分下降</td><td>玩家首印象负面 · 口碑传播受阻</td><td style="color:var(--green)">10 分钟评审 + 1h 冒烟</td></tr>
+<tr><td>😡 Case 3</td><td>效果不一致</td><td style="color:var(--orange)">P1</td><td>每次 3 天返工</td><td>美术人天浪费</td><td>主美暴怒 · 团队情绪内耗 · 互相推诿</td><td style="color:var(--green)">1 天（Lookdev Scene + 脚本）</td></tr>
+<tr><td>💥 Case 4</td><td>低端机闪退</td><td style="color:var(--red)">P0</td><td>上线后 48h 紧急修复</td><td style="color:var(--red)">评分 4.5→3.2 · 损失数十万用户</td><td>市场窗口损失 · 渠道信任下降</td><td style="color:var(--green)">低端机测试矩阵（0 成本）</td></tr>
+<tr><td>🤪 Case 5</td><td>热更动画异常</td><td style="color:var(--orange)">P1</td><td>客服爆满 + 半天热修</td><td>用户流失 · 客服成本激增</td><td style="color:var(--red)">品牌口碑受损 · 玩家信任危机</td><td style="color:var(--green)">2 天（依赖分析工具）</td></tr>
+</table>
+<div class="alert alert-red" style="margin-top:16px"><strong>📊 数据洞察：</strong>5 起事故中 <strong>3 起为 P0（直接影响线上/提审）</strong>。最致命的是 Case 4「低端机闪退」——48 小时内商店评分暴跌 1.3 分，相当于损失未来数十万潜在下载。而预防成本仅需「测试矩阵覆盖低端机」= <strong>0 额外成本</strong>。</div>
+<div class="alert alert-green"><strong>💡 制作人优先级建议：</strong>①先堵「低端机适配」（损失最大 + 预防成本最低）→ ②再建「CI 自动化卡点」（包体/贴图/资源校验）→ ③搭建「标准管线」（Lookdev + 热更依赖分析）→ ④最后完善「性能评审机制」。</div>
 </div>
 
 <!-- ═══════ 责任矩阵总表 ═══════ -->
@@ -353,7 +435,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 </div>
 
 <div class="doc-footer">
-  🚨 典型事故排雷手册 v1.1 · APM 实战指南 · 2026-04-13<br>
+  🚨 典型事故排雷手册 v2.0 · 制作人决策参考手册 · 2026-05-26<br>
   "别人踩过的坑，你不必再踩" · 每次复盘，都是团队升级
 </div>
 
