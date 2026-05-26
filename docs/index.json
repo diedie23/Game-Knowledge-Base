@@ -1,6 +1,6 @@
 {
-  "version": "8.0",
-  "lastUpdate": "2026-04-13",
+  "version": "8.2",
+  "lastUpdate": "2026-05-26",
   "subtitle": "游戏项目知识库 — 项目管理·职能协同·效能工具",
   "milestones": [
     {
@@ -11,12 +11,12 @@
     {
       "label": "CB1 内部评审",
       "date": "2026-05-01",
-      "status": "in_progress"
+      "status": "completed"
     },
     {
       "label": "Beta 封版",
       "date": "2026-06-10",
-      "status": "upcoming"
+      "status": "in_progress"
     },
     {
       "label": "RC 提交 & 上线",
@@ -218,7 +218,6 @@
       "content_type": "方法论",
       "quality_level": "premium"
     },
-
     {
       "id": "cp-outsource",
       "module": "outsource",
@@ -323,7 +322,7 @@
         "进度跟踪"
       ],
       "content_type": "方法论",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "char-naming-redline",
@@ -548,7 +547,7 @@
         "出图流程"
       ],
       "content_type": "规范",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "auto-mask-spec",
@@ -674,7 +673,7 @@
         "UI规范"
       ],
       "content_type": "规范",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "ui-layout",
@@ -703,7 +702,7 @@
         "适配规范"
       ],
       "content_type": "规范",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "ui-umg-tips",
@@ -803,7 +802,7 @@
         "距离切换"
       ],
       "content_type": "规范",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "svn-perforce-structure",
@@ -838,7 +837,7 @@
         "资产库"
       ],
       "content_type": "规范",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "asset-submit-review",
@@ -873,7 +872,7 @@
         "代码审查"
       ],
       "content_type": "方法论",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "outsource-workload-model",
@@ -907,7 +906,7 @@
         "外包定价"
       ],
       "content_type": "方法论",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "vfx-perf-spec",
@@ -944,7 +943,7 @@
         "层级管理"
       ],
       "content_type": "规范",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "anim-state-handoff",
@@ -980,7 +979,7 @@
         "骨骼"
       ],
       "content_type": "规范",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "art-vs-planner-req",
@@ -1048,7 +1047,7 @@
         "验收标准"
       ],
       "content_type": "模板",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "art-vs-ta-naming",
@@ -1081,7 +1080,7 @@
         "文件命名"
       ],
       "content_type": "规范",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "art-vs-ta-perfbudget",
@@ -1183,7 +1182,7 @@
         "优先级"
       ],
       "content_type": "规范",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "art-vs-qa-checklist",
@@ -1214,7 +1213,7 @@
         "截图归档"
       ],
       "content_type": "模板",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "cross-dept-collab",
@@ -1319,7 +1318,7 @@
         "看板"
       ],
       "content_type": "方法论",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "naming-check-tool",
@@ -1351,7 +1350,7 @@
         "重命名"
       ],
       "content_type": "工具",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "progress-visualization",
@@ -1385,7 +1384,7 @@
         "达成率"
       ],
       "content_type": "工具",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "art-tools-guide",
@@ -1952,7 +1951,7 @@
         "引擎对接"
       ],
       "content_type": "工具",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "budget-apply",
@@ -2156,7 +2155,7 @@
         "账号开通"
       ],
       "content_type": "指南",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "project-pitfall-log",
@@ -2229,7 +2228,7 @@
         "话术模板"
       ],
       "content_type": "实战经验",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "personal-growth-roadmap",
@@ -2263,7 +2262,7 @@
         "学习路径"
       ],
       "content_type": "指南",
-      "quality_level": "initial"
+      "quality_level": "mature"
     },
     {
       "id": "personal-growth-interactive",
@@ -2272,7 +2271,13 @@
       "type": "iframe",
       "title": "🌱 APM 个人成长中心（互动版）",
       "desc": "交互式成长追踪：APM路线图可视化、3维度技能树（技术/管理/软技能）、实战任务系统、成就墙",
-      "tags": ["个人成长","技能树","实战任务","成就系统","互动"],
+      "tags": [
+        "个人成长",
+        "技能树",
+        "实战任务",
+        "成就系统",
+        "互动"
+      ],
       "icon": "🌱",
       "action": "openTool",
       "path": "knowledge-base/personal-growth-interactive.html",
@@ -2281,7 +2286,15 @@
       "applicable_stage": "全阶段",
       "priority": "high",
       "is_hot": true,
-      "keywords": ["个人成长","技能树","实战任务","成就","APM路线图","能力模型","互动"],
+      "keywords": [
+        "个人成长",
+        "技能树",
+        "实战任务",
+        "成就",
+        "APM路线图",
+        "能力模型",
+        "互动"
+      ],
       "content_type": "工具",
       "quality_level": "mature"
     },
@@ -2575,7 +2588,13 @@
       "type": "iframe",
       "title": "案例模板A — 观察者视角",
       "desc": "以旁观者/复盘者角度完整还原事件：案件背景→问题表现→5Whys原因分析→处理方式→我的思考",
-      "tags": ["案例模板","观察者","5Whys","复盘","根因分析"],
+      "tags": [
+        "案例模板",
+        "观察者",
+        "5Whys",
+        "复盘",
+        "根因分析"
+      ],
       "icon": "🔍",
       "action": "openTool",
       "path": "knowledge-base/case-template-observer.html",
@@ -2584,7 +2603,15 @@
       "applicable_stage": "全阶段",
       "priority": "high",
       "is_hot": true,
-      "keywords": ["案例模板","观察者视角","5Whys","根因分析","复盘","案件背景","问题表现"],
+      "keywords": [
+        "案例模板",
+        "观察者视角",
+        "5Whys",
+        "根因分析",
+        "复盘",
+        "案件背景",
+        "问题表现"
+      ],
       "content_type": "模板",
       "quality_level": "mature"
     },
@@ -2595,7 +2622,12 @@
       "type": "iframe",
       "title": "案例模板B — 支援角色视角",
       "desc": "以参与者/支援者角度快速记录：发生什么→影响什么→原因猜测→值得注意的点，15分钟完成记录",
-      "tags": ["案例模板","支援角色","快速记录","一线观察"],
+      "tags": [
+        "案例模板",
+        "支援角色",
+        "快速记录",
+        "一线观察"
+      ],
       "icon": "🛡️",
       "action": "openTool",
       "path": "knowledge-base/case-template-support.html",
@@ -2604,7 +2636,14 @@
       "applicable_stage": "全阶段",
       "priority": "high",
       "is_hot": true,
-      "keywords": ["案例模板","支援角色","快速记录","影响评估","原因猜测","一线观察"],
+      "keywords": [
+        "案例模板",
+        "支援角色",
+        "快速记录",
+        "影响评估",
+        "原因猜测",
+        "一线观察"
+      ],
       "content_type": "模板",
       "quality_level": "mature"
     },

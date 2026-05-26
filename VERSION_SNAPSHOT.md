@@ -1,9 +1,9 @@
 # 📸 版本快照 — APM 知识库 v8.2
 
-> **快照时间**：2026-04-22  
-> **Git Commit**：`1651d2c2009c87c1e03794831610375e089a510a`  
+> **快照时间**：2026-05-26  
+> **Git Commit**：（待本次提交后更新）  
 > **基线版本**：v8.0-baseline（Commit: `73b0e1e`，2026-04-20）  
-> **当前版本**：v8.2（在 v8.0 基线上经 22 次提交迭代）  
+> **当前版本**：v8.2（在 v8.0 基线上持续迭代）  
 > **分支**：`main`  
 > **⚠️ 重要：v8.0 基线保护规则仍然有效。后续新增/调整均基于本版本（v8.2）之上。**
 
@@ -49,6 +49,14 @@
 | `e88ce11` | optimize | ②需求评审补充触发场景/主导人/决策人；⑫动效评审精简流程 |
 | `1651d2c` | optimize | ⑭界面走查负责人改为策划/UI/Layout主导，QA专注功能测试 |
 
+### 质量审计（2026-05-26）
+| 操作 | 说明 |
+|------|------|
+| 版本号升级 | index.json / sidebar.json version → 8.2，lastUpdate → 2026-05-26 |
+| 里程碑状态 | "CB1 内部评审" (2026-05-01) 标记为 completed；"Beta 封版" 标记为 in_progress |
+| 质量等级批量升级 | 19 篇文档从 📄 初版 升级为 ✅ 成熟（经全面内容审查确认达标） |
+| 升级清单 | ui-9slice-color, ui-layout, scene-lod-spec, svn-perforce-structure, asset-submit-review, outsource-workload-model, vfx-perf-spec, anim-state-handoff, art-vs-planner-template, art-vs-ta-naming, art-vs-qa-buggrade, art-vs-qa-checklist, jira-tapd-automation, naming-check-tool, progress-visualization, engine-bridge, permission-nav, cross-dept-communication-tips, personal-growth-roadmap |
+
 ---
 
 ## 📋 模块一：项目管理与排期 (project) — 11 条
@@ -57,15 +65,15 @@
 |---|-----|------|------|------|----------|
 | 1 | `game-art-pipeline` | 角色美术资产管线 — 2D/Spine/二次元制作全流程 | iframe/html | ⭐ 精华 | 2026-03-25 |
 | 2 | `ui-production-workflow` | UI 界面制作全流程 | iframe/html | ⭐ 精华 | 2026-04-21 |
-| 3 | `art-scheduling` | 美术排期与里程碑管理 | md | 📄 初版 | 2026-04-07 |
-| 4 | `svn-perforce-structure` | SVN/Perforce 目录结构标准 | md | 📄 初版 | 2026-04-07 |
-| 5 | `asset-submit-review` | 资产提交与审核工作流 | md | 📄 初版 | 2026-04-07 |
-| 6 | `progress-visualization` | 进度可视化工具 | md | 📄 初版 | 2026-04-07 |
-| 7 | `jira-tapd-automation` | 项目管理工具模板 | md | 📄 初版 | 2026-04-07 |
+| 3 | `art-scheduling` | 美术排期与里程碑管理 | md | ✅ 成熟 | 2026-04-07 |
+| 4 | `svn-perforce-structure` | SVN/Perforce 目录结构标准 | md | ✅ 成熟 | 2026-04-07 |
+| 5 | `asset-submit-review` | 资产提交与审核工作流 | md | ✅ 成熟 | 2026-04-07 |
+| 6 | `progress-visualization` | 进度可视化工具 | md | ✅ 成熟 | 2026-04-07 |
+| 7 | `jira-tapd-automation` | 项目管理工具模板 | md | ✅ 成熟 | 2026-04-07 |
 | 8 | `outsource-vs-inhouse-decision` | 外包 vs 内发决策矩阵 | iframe/html | ✅ 成熟 | 2026-04-13 |
 | 9 | `delay-response-decision` | 项目延期应对决策 | iframe/html | ✅ 成熟 | 2026-04-13 |
 | 10 | `deprecated-asset-cleanup` | 废弃资产归档与清理规范 | iframe/html | ✅ 成熟 | 2026-04-09 |
-| 11 | `personal-growth-roadmap` | APM 个人成长路线图 | md | 📄 初版 | 2026-04-07 |
+| 11 | `personal-growth-roadmap` | APM 个人成长路线图 | md | ✅ 成熟 | 2026-04-07 |
 | 12 | `personal-growth-interactive` | APM 成长中心（互动版） | iframe/html | ✅ 成熟 | 2026-04-14 |
 
 ---
@@ -76,7 +84,7 @@
 |---|-----|------|------|------|----------|
 | 1 | `cp-outsource` | 外包管理与验收规范 | iframe/html | ⭐ 精华 | 2026-03-25 |
 | 2 | `cp-management` | 外包资产验收 Checklist（附录） | iframe/html | ✅ 成熟 | 2026-03-30 |
-| 3 | `outsource-workload-model` | 美术外包工作量评估标准 (人天模型) | md | 📄 初版 | 2026-04-07 |
+| 3 | `outsource-workload-model` | 美术外包工作量评估标准 (人天模型) | md | ✅ 成熟 | 2026-04-07 |
 | 4 | `budget-apply` | 外包预算申请与结算流转 | md | ✅ 成熟 | 2026-04-07 |
 | 5 | `cost-standard` | 美术人月成本核算标准 | md | ✅ 成熟 | 2026-04-07 |
 | 6 | `supplier-ecosystem` | 供应商生态管理规范 | iframe/html | ✅ 成熟 | 2026-04-09 |
@@ -92,14 +100,14 @@
 | 3 | `spine-animation-pipeline` | Spine 动画导出与性能排雷全指南 | 角色 | iframe/html | ⭐ 精华 | 2026-04-13 |
 | 4 | `char-3d-topo-pbr` | 拓扑与 PBR 贴图规范 | 角色 | iframe/html | ✅ 成熟 | 2026-04-10 |
 | 5 | `char-ugc-parts-safety` | [UGC] 部件拆分与安全区规范 | UGC | iframe/html | ⭐ 精华 | 2026-04-10 |
-| 6 | `ugc-2d-export-spec` | 2D 出图与图层规范 | UGC | iframe/html | 📄 初版 | 2026-04-10 |
+| 6 | `ugc-2d-export-spec` | 2D 出图与图层规范 | UGC | iframe/html | ✅ 成熟 | 2026-04-10 |
 | 7 | `ui-slice-naming` | 切图与命名规范 | UI | iframe/html | ✅ 成熟 | 2026-03-28 |
-| 8 | `ui-9slice-color` | [UI] 9宫格与颜色空间 | UI | iframe/html | 📄 初版 | 2026-03-28 |
-| 9 | `ui-layout` | [UI] Layout 拼接规范 | UI | iframe/html | 📄 初版 | 2026-03-28 |
+| 8 | `ui-9slice-color` | [UI] 9宫格与颜色空间 | UI | iframe/html | ✅ 成熟 | 2026-03-28 |
+| 9 | `ui-layout` | [UI] Layout 拼接规范 | UI | iframe/html | ✅ 成熟 | 2026-03-28 |
 | 10 | `ui-umg-tips` | UMG 生成技巧 | UI | iframe/html | ✅ 成熟 | 2026-04-01 |
-| 11 | `scene-lod-spec` | 模块化与 LOD 规范 | 场景 | iframe/html | 📄 初版 | 2026-03-30 |
-| 12 | `vfx-perf-spec` | [特效] 性能红线与层级规范 | 特效 | md | 📄 初版 | 2026-04-07 |
-| 13 | `anim-state-handoff` | 动画状态机交接与导出规范 | 角色 | md | 📄 初版 | 2026-04-07 |
+| 11 | `scene-lod-spec` | 模块化与 LOD 规范 | 场景 | iframe/html | ✅ 成熟 | 2026-03-30 |
+| 12 | `vfx-perf-spec` | [特效] 性能红线与层级规范 | 特效 | md | ✅ 成熟 | 2026-04-07 |
+| 13 | `anim-state-handoff` | 动画状态机交接与导出规范 | 角色 | md | ✅ 成熟 | 2026-04-07 |
 | 14 | `aigc-production-spec` | [AIGC] 辅助生产规范 | AIGC | iframe/html | ✅ 成熟 | 2026-04-10 |
 
 ---
@@ -109,14 +117,14 @@
 | # | ID | 标题 | 类型 | 质量 | 最后更新 |
 |---|-----|------|------|------|----------|
 | 1 | `art-vs-planner-req` | 需求对接流转规范 | md | ✅ 成熟 | 2026-04-07 |
-| 2 | `art-vs-planner-template` | UI/原画需求模板 | md | 📄 初版 | 2026-04-07 |
-| 3 | `art-vs-ta-naming` | 引擎导入与命名规范 | md | 📄 初版 | 2026-04-07 |
+| 2 | `art-vs-planner-template` | UI/原画需求模板 | md | ✅ 成熟 | 2026-04-07 |
+| 3 | `art-vs-ta-naming` | 引擎导入与命名规范 | md | ✅ 成熟 | 2026-04-07 |
 | 4 | `art-vs-ta-perfbudget` | 性能红线与资产预算 | md | ✅ 成熟 | 2026-04-07 |
 | 5 | `perf-redline-glossary` | 跨工种黑话速查表 | iframe/html | ✅ 成熟 | 2026-03-30 |
-| 6 | `art-vs-qa-buggrade` | 美术表现类 Bug 定级标准 | md | 📄 初版 | 2026-04-07 |
-| 7 | `art-vs-qa-checklist` | 版本走查验收清单 | md | 📄 初版 | 2026-04-07 |
+| 6 | `art-vs-qa-buggrade` | 美术表现类 Bug 定级标准 | md | ✅ 成熟 | 2026-04-07 |
+| 7 | `art-vs-qa-checklist` | 版本走查验收清单 | md | ✅ 成熟 | 2026-04-07 |
 | 8 | `cross-dept-collab` | 跨部门协作三大经典痛点 — 策略破局指南 | iframe/html | ⭐ 精华 | 2026-03-28 |
-| 9 | `cross-dept-communication-tips` | 跨部门沟通话术模板 — 7 大场景 | md | 📄 初版 | 2026-04-07 |
+| 9 | `cross-dept-communication-tips` | 跨部门沟通话术模板 — 7 大场景 | md | ✅ 成熟 | 2026-04-07 |
 
 ---
 
@@ -127,7 +135,7 @@
 |---|-----|------|------|------|----------|
 | 1 | `auto-mask-spec` | [工具规范] 自动 Mask 通道生成器 | iframe/html | ✅ 成熟 | 2026-04-10 |
 | 2 | `spine-split-spec` | [工具规范] Spine 角色拆分工具 | iframe/html | ✅ 成熟 | 2026-04-10 |
-| 3 | `naming-check-tool` | 资产合规性检查工具 | md | 📄 初版 | 2026-04-07 |
+| 3 | `naming-check-tool` | 资产合规性检查工具 | md | ✅ 成熟 | 2026-04-07 |
 
 ### 美术在线工具（6 个）
 | # | ID | 标题 | 质量 | 最后更新 |
@@ -165,7 +173,7 @@
 | 2 | `art-efficiency-system` | 美术效能度量与标准化汇报体系 | iframe/html | ⭐ 精华 | 2026-04-13 |
 | 3 | `asset-security-handover` | 美术资产防泄密与离职交接 SOP | iframe/html | ⭐ 精华 | 2026-04-09 |
 | 4 | `onboarding-guide` | 美术新人入职管线必读 (Onboarding) | md | ✅ 成熟 | 2026-04-07 |
-| 5 | `permission-nav` | 常用系统权限申请导航 | md | 📄 初版 | 2026-04-07 |
+| 5 | `permission-nav` | 常用系统权限申请导航 | md | ✅ 成熟 | 2026-04-07 |
 
 ---
 
@@ -392,4 +400,4 @@
 
 ---
 
-*此快照由 AI 助手生成于 2026-04-22，基于 Git commit `1651d2c`。后续所有新增/调整均应基于本版本之上。*
+*此快照由 AI 助手更新于 2026-05-26。后续所有新增/调整均应基于本版本之上。*
