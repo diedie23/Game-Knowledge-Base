@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>需求对接流转规范</title>
 <style>
-:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--purple:#c084fc}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
@@ -20,6 +20,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
 .toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
 .toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.toc ol ol{margin-top:4px;padding-left:18px;font-size:14px}
 .section{margin-bottom:40px}
 .section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
 .sub-title{font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600}
@@ -33,6 +34,7 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
 .alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
 .alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
 .alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-purple{background:rgba(192,132,252,.08);border:1px solid rgba(192,132,252,.2);color:var(--purple)}
 code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
 .dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
 @media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
@@ -47,6 +49,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 .badge-red{background:rgba(248,113,113,.15);color:var(--red)}
 .badge-green{background:rgba(74,222,128,.15);color:var(--green)}
 .badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.badge-purple{background:rgba(192,132,252,.15);color:var(--purple)}
 .doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
 .redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
 .flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
@@ -57,40 +60,120 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 .flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
 .flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
 .flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+.flow-node.warn{border-color:var(--yellow);background:rgba(251,191,36,.05)}
+.flow-node.purple{border-color:var(--purple);background:rgba(192,132,252,.05)}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:16px 0}
+.kpi-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.kpi-card .kpi-value{font-size:24px;font-weight:700;color:var(--cyan);margin:8px 0 4px}
+.kpi-card .kpi-label{font-size:13px;color:var(--dim)}
+.kpi-card .kpi-target{font-size:12px;color:var(--green);margin-top:4px}
+.state-machine{display:flex;align-items:center;gap:4px;margin:16px 0;flex-wrap:wrap}
+.state{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;white-space:nowrap}
+.state-arrow{color:var(--dim);font-size:14px}
+.state.s-draft{border-color:var(--dim);color:var(--dim)}
+.state.s-review{border-color:var(--yellow);color:var(--yellow)}
+.state.s-approved{border-color:var(--green);color:var(--green)}
+.state.s-progress{border-color:var(--accent);color:var(--accent)}
+.state.s-verify{border-color:var(--purple);color:var(--purple)}
+.state.s-done{border-color:var(--cyan);color:var(--cyan)}
+.state.s-reject{border-color:var(--red);color:var(--red)}
+.raci-table td.r{color:var(--red);font-weight:700}
+.raci-table td.a{color:var(--yellow);font-weight:700}
+.raci-table td.c{color:var(--accent);font-weight:700}
+.raci-table td.i{color:var(--dim)}
+.score-bar{display:flex;align-items:center;gap:8px;margin:4px 0}
+.score-bar .bar-track{flex:1;height:6px;background:var(--card);border-radius:3px;overflow:hidden}
+.score-bar .bar-fill{height:100%;border-radius:3px}
+.score-bar .bar-fill.high{background:var(--green)}
+.score-bar .bar-fill.mid{background:var(--yellow)}
+.score-bar .bar-fill.low{background:var(--red)}
+.checklist{list-style:none;padding:0;margin:12px 0}
+.checklist li{padding:6px 0;font-size:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.checklist li:last-child{border-bottom:none}
+.sla-level{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700}
+.sla-l1{background:rgba(248,113,113,.15);color:var(--red)}
+.sla-l2{background:rgba(251,191,36,.15);color:var(--yellow)}
+.sla-l3{background:rgba(108,140,255,.15);color:var(--accent)}
 </style>
 </head>
 <body>
 <div class="doc">
 
 <div class="doc-header">
-  <h1>📋 需求对接流转规范 <span class="ver">v1.0</span></h1>
+  <h1>📋 需求对接流转规范 <span class="ver">v2.0</span></h1>
   <div class="subtitle">Art-Planner Requirement Handoff Specification</div>
   <div class="meta">
     <span>📋 适用：全阶段</span>
     <span>⚡ 优先级：高</span>
     <span>👤 负责人：周八</span>
+    <span>📅 更新：2026-05</span>
   </div>
 </div>
 
 <div class="toc">
   <h3>📑 目录导航</h3>
   <ol>
-    <li><a href="#s1">需求对接全流程</a></li>
-    <li><a href="#s2">标准需求单模板</a></li>
-    <li><a href="#s3">评审机制</a></li>
-    <li><a href="#s4">变更管控</a></li>
-    <li><a href="#s5">常见冲突场景与解法</a></li>
-    <li><a href="#s6">附录：跨部门协作日历</a></li>
+    <li><a href="#s1">需求对接全流程</a>
+      <ol>
+        <li><a href="#s1-1">流程全景图</a></li>
+        <li><a href="#s1-2">各阶段标准流转时间</a></li>
+        <li><a href="#s1-3">需求生命周期状态机</a></li>
+      </ol>
+    </li>
+    <li><a href="#s2">标准需求单模板</a>
+      <ol>
+        <li><a href="#s2-1">需求单字段定义</a></li>
+        <li><a href="#s2-2">需求分类体系</a></li>
+        <li><a href="#s2-3">优先级定义</a></li>
+        <li><a href="#s2-4">参考图规格要求</a></li>
+        <li><a href="#s2-5">需求质量评分卡</a></li>
+      </ol>
+    </li>
+    <li><a href="#s3">RACI 责任矩阵</a></li>
+    <li><a href="#s4">SLA 服务等级协议</a>
+      <ol>
+        <li><a href="#s4-1">各角色承诺时效</a></li>
+        <li><a href="#s4-2">超时升级路径</a></li>
+      </ol>
+    </li>
+    <li><a href="#s5">评审机制</a>
+      <ol>
+        <li><a href="#s5-1">评审会设置</a></li>
+        <li><a href="#s5-2">评审决策流程</a></li>
+        <li><a href="#s5-3">评审检查要点</a></li>
+        <li><a href="#s5-4">分歧处理规则</a></li>
+      </ol>
+    </li>
+    <li><a href="#s6">变更管控</a>
+      <ol>
+        <li><a href="#s6-1">变更申请流程</a></li>
+        <li><a href="#s6-2">变更影响评估模板</a></li>
+        <li><a href="#s6-3">变更冻结期规则</a></li>
+        <li><a href="#s6-4">变更成本追踪机制</a></li>
+      </ol>
+    </li>
+    <li><a href="#s7">常见冲突场景与解法</a></li>
+    <li><a href="#s8">数据度量与持续改进</a>
+      <ol>
+        <li><a href="#s8-1">核心度量指标</a></li>
+        <li><a href="#s8-2">健康度评分模型</a></li>
+        <li><a href="#s8-3">持续改进闭环</a></li>
+      </ol>
+    </li>
+    <li><a href="#s9">工具链集成与自动化</a></li>
+    <li><a href="#s10">附录：跨部门协作日历</a></li>
   </ol>
 </div>
 
-<!-- ===== Section 1 ===== -->
+<!-- ===== Section 1: 全流程 ===== -->
 <div class="section" id="s1">
   <h2>🔄 1. 需求对接全流程</h2>
 
-  <div class="sub-title">🗺️ 1.1 流程全景图</div>
+  <div class="sub-title" id="s1-1">🗺️ 1.1 流程全景图</div>
   <div class="flow">
     <div class="flow-node start"><strong>策划提需求</strong><span class="sub">需求单模板<br>参考图上传</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node warn"><strong>质量预检</strong><span class="sub">评分卡自检<br>字段完整性</span></div>
     <span class="flow-arrow">→</span>
     <div class="flow-node"><strong>需求评审</strong><span class="sub">评审会决议<br>可行性评估</span></div>
     <span class="flow-arrow">→</span>
@@ -100,153 +183,313 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     <span class="flow-arrow">→</span>
     <div class="flow-node gate"><strong>内部验收</strong><span class="sub">主美审核<br>TA技术审核</span></div>
     <span class="flow-arrow">→</span>
-    <div class="flow-node"><strong>策划验收</strong><span class="sub">策划确认<br>修改意见</span></div>
+    <div class="flow-node purple"><strong>策划验收</strong><span class="sub">策划确认<br>修改意见</span></div>
     <span class="flow-arrow">→</span>
-    <div class="flow-node end"><strong>归档完成</strong></div>
+    <div class="flow-node end"><strong>归档完成</strong><span class="sub">数据统计<br>经验沉淀</span></div>
   </div>
+  <div class="alert alert-blue">💡 <strong>v2.0 新增「质量预检」环节</strong>：需求单提交后系统自动校验评分卡得分 ≥ 70 分方可进入评审，低于 70 分退回补充。</div>
 
-  <div class="sub-title">⏱️ 1.2 各阶段标准流转时间</div>
+  <div class="sub-title" id="s1-2">⏱️ 1.2 各阶段标准流转时间</div>
   <table>
-    <tr><th>阶段</th><th>标准时效</th><th>超时预警</th></tr>
-    <tr><td>需求单填写</td><td>策划提交后 <strong>0.5d</strong></td><td>—</td></tr>
-    <tr><td>需求评审</td><td>收到后 <strong>1~2d</strong></td><td>2d 未评审自动催</td></tr>
-    <tr><td>APM 排期</td><td>评审后 <strong>1d</strong></td><td>—</td></tr>
-    <tr><td>美术制作</td><td>按排期</td><td>燃尽图跟踪</td></tr>
-    <tr><td>内部验收</td><td>提交后 <strong>1d</strong></td><td>超时升级</td></tr>
-    <tr><td>策划验收</td><td>提交后 <strong>2d</strong></td><td>超时视为通过</td></tr>
+    <tr><th>阶段</th><th>标准时效</th><th>超时预警</th><th>超时升级</th></tr>
+    <tr><td>需求单填写</td><td>策划提交后 <strong>0.5d</strong></td><td>—</td><td>—</td></tr>
+    <tr><td>质量预检</td><td>提交后 <strong>即时</strong>（自动）</td><td>不通过即退回</td><td>—</td></tr>
+    <tr><td>需求评审</td><td>收到后 <strong>1~2d</strong></td><td>2d 未评审自动催</td><td>3d → 升级主美</td></tr>
+    <tr><td>APM 排期</td><td>评审后 <strong>1d</strong></td><td>1d 未排期自动催</td><td>2d → 升级制作人</td></tr>
+    <tr><td>美术制作</td><td>按排期</td><td>燃尽图跟踪</td><td>超期 20% → 预警</td></tr>
+    <tr><td>内部验收</td><td>提交后 <strong>1d</strong></td><td>超时升级</td><td>2d → 升级主美</td></tr>
+    <tr><td>策划验收</td><td>提交后 <strong>2d</strong></td><td>超时视为通过</td><td>3d → 自动通过</td></tr>
+  </table>
+
+  <div class="sub-title" id="s1-3">🔁 1.3 需求生命周期状态机</div>
+  <p>每个需求在系统中有且仅有一个当前状态，状态流转严格按以下路径：</p>
+  <div class="state-machine">
+    <span class="state s-draft">📝 草稿</span>
+    <span class="state-arrow">→</span>
+    <span class="state s-review">🔍 待评审</span>
+    <span class="state-arrow">→</span>
+    <span class="state s-approved">✅ 已排期</span>
+    <span class="state-arrow">→</span>
+    <span class="state s-progress">🎨 制作中</span>
+    <span class="state-arrow">→</span>
+    <span class="state s-verify">🔬 验收中</span>
+    <span class="state-arrow">→</span>
+    <span class="state s-done">📦 已归档</span>
+  </div>
+  <div class="state-machine" style="margin-top:8px">
+    <span class="state s-review">🔍 待评审</span>
+    <span class="state-arrow">→</span>
+    <span class="state s-reject">🚫 已退回</span>
+    <span class="state-arrow">→</span>
+    <span class="state s-draft">📝 草稿</span>
+    <span style="color:var(--dim);font-size:12px;margin-left:12px">（退回后修改重新提交）</span>
+  </div>
+  <table>
+    <tr><th>状态</th><th>触发条件</th><th>负责角色</th><th>系统动作</th></tr>
+    <tr><td><strong>草稿</strong></td><td>策划创建需求单</td><td>策划</td><td>生成需求 ID</td></tr>
+    <tr><td><strong>待评审</strong></td><td>质量预检通过（≥70 分）</td><td>APM</td><td>通知评审人、启动 SLA 计时</td></tr>
+    <tr><td><strong>已退回</strong></td><td>评审不通过 / 预检不达标</td><td>策划</td><td>标注退回原因、暂停 SLA</td></tr>
+    <tr><td><strong>已排期</strong></td><td>评审通过，APM 分配资源</td><td>APM</td><td>写入排期表、通知美术</td></tr>
+    <tr><td><strong>制作中</strong></td><td>美术开始制作</td><td>美术</td><td>启动工时记录</td></tr>
+    <tr><td><strong>验收中</strong></td><td>美术提交成果</td><td>主美 → 策划</td><td>通知验收人、启动验收 SLA</td></tr>
+    <tr><td><strong>已归档</strong></td><td>策划验收通过</td><td>系统</td><td>归档资产、更新统计</td></tr>
   </table>
 </div>
 
-<!-- ===== Section 2 ===== -->
+<!-- ===== Section 2: 需求单模板 ===== -->
 <div class="section" id="s2">
   <h2>📝 2. 标准需求单模板</h2>
 
-  <div class="sub-title">📄 2.1 需求单字段定义</div>
+  <div class="sub-title" id="s2-1">📄 2.1 需求单字段定义</div>
   <table>
     <tr><th>字段</th><th>必填</th><th>说明</th><th>示例</th></tr>
     <tr><td><strong>需求 ID</strong></td><td>✅</td><td>唯一编号，APM 分配</td><td><code>REQ-2026-0108</code></td></tr>
-    <tr><td><strong>需求标题</strong></td><td>✅</td><td>一句话描述</td><td>新英雄「夜叉」角色设计</td></tr>
-    <tr><td><strong>需求类型</strong></td><td>✅</td><td>原画/建模/UI/特效/动画/场景</td><td>角色原画</td></tr>
+    <tr><td><strong>需求标题</strong></td><td>✅</td><td>一句话描述，≤20 字</td><td>新英雄「夜叉」角色设计</td></tr>
+    <tr><td><strong>需求类型</strong></td><td>✅</td><td>见 2.2 分类体系</td><td>角色原画</td></tr>
+    <tr><td><strong>需求子类</strong></td><td>✅</td><td>二级细分类别</td><td>写实/Q版/半身/全身</td></tr>
     <tr><td><strong>优先级</strong></td><td>✅</td><td>P0/P1/P2/P3</td><td>P1</td></tr>
-    <tr><td><strong>关联版本</strong></td><td>✅</td><td>目标里程碑</td><td>Alpha</td></tr>
+    <tr><td><strong>关联版本</strong></td><td>✅</td><td>目标里程碑</td><td>Alpha 1.2</td></tr>
+    <tr><td><strong>关联需求 ID</strong></td><td>⚠️</td><td>前置/关联需求</td><td><code>REQ-2026-0095</code></td></tr>
     <tr><td><strong>策划负责人</strong></td><td>✅</td><td>需求发起人</td><td>王策划</td></tr>
     <tr><td><strong>美术负责人</strong></td><td>✅</td><td>APM 指定</td><td>张美术</td></tr>
-    <tr><td><strong>参考图</strong></td><td>✅</td><td>至少 3 张参考图</td><td>上传至附件</td></tr>
-    <tr><td><strong>验收标准</strong></td><td>✅</td><td>量化的验收条件</td><td>—</td></tr>
+    <tr><td><strong>需求描述</strong></td><td>✅</td><td>结构化描述（背景/目标/约束）</td><td>(详见模板)</td></tr>
+    <tr><td><strong>参考图</strong></td><td>✅</td><td>至少 3 张，含标注</td><td>上传至附件</td></tr>
+    <tr><td><strong>验收标准</strong></td><td>✅</td><td>量化验收条件 Checklist</td><td>(详见模板)</td></tr>
+    <tr><td><strong>技术约束</strong></td><td>⚠️</td><td>面数/贴图尺寸/动画帧数等</td><td>≤15K 面, 1024px 贴图</td></tr>
+    <tr><td><strong>预估工期</strong></td><td>⚠️</td><td>美术侧评估后填写</td><td>5d</td></tr>
     <tr><td><strong>截止日期</strong></td><td>✅</td><td>与里程碑对齐</td><td>2026-04-20</td></tr>
+    <tr><td><strong>备注</strong></td><td>❌</td><td>补充说明</td><td>—</td></tr>
   </table>
 
-  <div class="sub-title">🚦 2.2 优先级定义</div>
+  <div class="sub-title" id="s2-2">🏷️ 2.2 需求分类体系</div>
+  <p>需求按「工种维度」和「复杂度维度」进行二维分类，不同类别对应不同的评审流程和 SLA 标准：</p>
   <table>
-    <tr><th>等级</th><th>定义</th><th>响应时效</th><th>排期位置</th></tr>
-    <tr><td>🔴 <strong>P0 紧急</strong></td><td>阻塞里程碑 / Boss 要求</td><td><strong>当天响应</strong></td><td>插入当前 Sprint</td></tr>
-    <tr><td>🟡 <strong>P1 高</strong></td><td>当前版本必须</td><td><strong>1d 内响应</strong></td><td>当前/下个 Sprint</td></tr>
-    <tr><td>🟢 <strong>P2 中</strong></td><td>重要但不紧急</td><td><strong>3d 内响应</strong></td><td>正常排期</td></tr>
-    <tr><td>⚪ <strong>P3 低</strong></td><td>锦上添花</td><td>下版本处理</td><td>需求池候选</td></tr>
+    <tr><th>一级分类（工种）</th><th>二级分类（子类）</th><th>复杂度参考</th><th>标准工期参考</th></tr>
+    <tr><td rowspan="4"><strong>🎨 原画</strong></td><td>角色原画（全身）</td><td>高</td><td>5~10d</td></tr>
+    <tr><td>角色原画（半身/头像）</td><td>中</td><td>2~5d</td></tr>
+    <tr><td>场景概念图</td><td>高</td><td>5~8d</td></tr>
+    <tr><td>道具/图标设计</td><td>低</td><td>0.5~2d</td></tr>
+    <tr><td rowspan="3"><strong>🧊 建模</strong></td><td>角色模型（高模+低模）</td><td>高</td><td>10~20d</td></tr>
+    <tr><td>场景模型</td><td>中~高</td><td>5~15d</td></tr>
+    <tr><td>道具/武器模型</td><td>低~中</td><td>2~5d</td></tr>
+    <tr><td rowspan="2"><strong>🎬 动画</strong></td><td>角色动作（整套）</td><td>高</td><td>10~15d</td></tr>
+    <tr><td>单个动作/表情</td><td>低~中</td><td>1~3d</td></tr>
+    <tr><td rowspan="2"><strong>✨ 特效</strong></td><td>技能特效</td><td>中~高</td><td>3~8d</td></tr>
+    <tr><td>环境/UI 特效</td><td>低~中</td><td>1~3d</td></tr>
+    <tr><td rowspan="2"><strong>🖥️ UI</strong></td><td>系统界面设计</td><td>中</td><td>3~7d</td></tr>
+    <tr><td>图标/Banner</td><td>低</td><td>0.5~2d</td></tr>
+    <tr><td rowspan="2"><strong>🌄 场景</strong></td><td>大场景搭建</td><td>高</td><td>15~30d</td></tr>
+    <tr><td>局部场景/关卡</td><td>中</td><td>5~10d</td></tr>
   </table>
+  <div class="alert alert-yellow">⚠️ <strong>分类规则</strong>：策划提交时必须选择到二级分类；复杂度由 APM 在评审时最终确认；跨工种需求（如"角色原画+建模"）需拆分为多张独立需求单。</div>
 
-  <div class="sub-title">🖼️ 2.3 参考图规格要求</div>
+  <div class="sub-title" id="s2-3">🚦 2.3 优先级定义</div>
   <table>
-    <tr><th>要求</th><th>标准</th></tr>
-    <tr><td><strong>数量</strong></td><td>至少 <strong>3 张</strong>（正面/侧面/细节或风格参考）</td></tr>
-    <tr><td><strong>分辨率</strong></td><td>≥ <strong>720p</strong>，清晰可辨别细节</td></tr>
-    <tr><td><strong>标注</strong></td><td>需标注"参考哪里"（颜色/造型/材质/风格）</td></tr>
-    <tr><td><strong>来源</strong></td><td>注明原画出处，避免版权风险</td></tr>
-    <tr><td><strong>反例</strong></td><td>可提供"不要的风格"反面参考</td></tr>
+    <tr><th>等级</th><th>定义</th><th>响应时效</th><th>排期位置</th><th>全项目上限</th></tr>
+    <tr><td>🔴 <strong>P0 紧急</strong></td><td>阻塞里程碑 / Boss 要求</td><td><strong>当天响应</strong></td><td>插入当前 Sprint</td><td>≤ 3 个</td></tr>
+    <tr><td>🟡 <strong>P1 高</strong></td><td>当前版本必须</td><td><strong>1d 内响应</strong></td><td>当前/下个 Sprint</td><td>≤ 总量 30%</td></tr>
+    <tr><td>🟢 <strong>P2 中</strong></td><td>重要但不紧急</td><td><strong>3d 内响应</strong></td><td>正常排期</td><td>—</td></tr>
+    <tr><td>⚪ <strong>P3 低</strong></td><td>锦上添花</td><td>下版本处理</td><td>需求池候选</td><td>—</td></tr>
+  </table>
+  <div class="alert alert-red">🚨 <strong>P0 超标自动预警</strong>：当全项目 P0 需求 > 3 个时，系统自动通知制作人进行优先级仲裁。</div>
+
+  <div class="sub-title" id="s2-4">🖼️ 2.4 参考图规格要求</div>
+  <table>
+    <tr><th>要求</th><th>标准</th><th>评分权重</th></tr>
+    <tr><td><strong>数量</strong></td><td>至少 <strong>3 张</strong>（正面/侧面/细节或风格参考）</td><td>20%</td></tr>
+    <tr><td><strong>分辨率</strong></td><td>≥ <strong>720p</strong>，清晰可辨别细节</td><td>10%</td></tr>
+    <tr><td><strong>标注</strong></td><td>需标注"参考哪里"（颜色/造型/材质/风格）</td><td>30%</td></tr>
+    <tr><td><strong>来源</strong></td><td>注明原画出处，避免版权风险</td><td>10%</td></tr>
+    <tr><td><strong>反例</strong></td><td>可提供"不要的风格"反面参考</td><td>15%</td></tr>
+    <tr><td><strong>一致性</strong></td><td>多张参考图风格方向一致，不矛盾</td><td>15%</td></tr>
   </table>
   <div class="dd-grid">
-    <div class="dd-card dd-do"><h4>✅ Do</h4><p>提交 3 张参考图，分别标注"图1-造型参考""图2-配色参考""图3-材质参考"，附带反面参考说明"不要暖色系"。</p></div>
-    <div class="dd-card dd-dont"><h4>❌ Don't</h4><p>甩一句"参考某游戏的感觉"，不附任何图片；或贴 10 张风格完全不同的图让美术"自行理解"。</p></div>
+    <div class="dd-card dd-do"><h4>✅ Do</h4><p>提交 3 张参考图，分别标注"图1-造型参考""图2-配色参考""图3-材质参考"，附带反面参考说明"不要暖色系"。所有参考图风格一致（偏日系赛璐珞）。</p></div>
+    <div class="dd-card dd-dont"><h4>❌ Don't</h4><p>甩一句"参考某游戏的感觉"，不附任何图片；或贴 10 张风格完全不同的图让美术"自行理解"；参考图分辨率低于 480p 看不清细节。</p></div>
+  </div>
+
+  <div class="sub-title" id="s2-5">📊 2.5 需求质量评分卡</div>
+  <p>需求单提交后系统自动评分，<strong>≥ 70 分</strong>方可进入评审池，低于 70 分退回修改：</p>
+  <table>
+    <tr><th>评分维度</th><th>权重</th><th>满分标准</th><th>扣分规则</th></tr>
+    <tr><td><strong>字段完整性</strong></td><td>25%</td><td>所有必填字段均已填写</td><td>每缺1个必填字段 -5 分</td></tr>
+    <tr><td><strong>描述清晰度</strong></td><td>20%</td><td>需求描述含背景/目标/约束三要素</td><td>缺一要素 -7 分</td></tr>
+    <tr><td><strong>参考图质量</strong></td><td>25%</td><td>≥3张 + 有标注 + 风格一致</td><td>按 2.4 参考图规格逐项评</td></tr>
+    <tr><td><strong>验收标准</strong></td><td>15%</td><td>含 ≥3 条可量化验收条件</td><td>每少1条 -5 分</td></tr>
+    <tr><td><strong>技术约束</strong></td><td>15%</td><td>明确面数/尺寸/帧数等技术限制</td><td>未填写技术约束 -10 分</td></tr>
+  </table>
+  <div class="alert alert-green">💡 <strong>评分示例</strong>：一份需求单所有字段填满(25) + 三要素齐全(20) + 3张参考图有标注(22) + 4条验收标准(15) + 明确技术约束(15) = <strong>97分</strong> ✅ 通过</div>
+</div>
+
+<!-- ===== Section 3: RACI 矩阵 ===== -->
+<div class="section" id="s3">
+  <h2>👥 3. RACI 责任矩阵</h2>
+  <p>明确每个环节"谁执行、谁审批、谁咨询、谁知会"，杜绝推诿和遗漏：</p>
+  <table class="raci-table">
+    <tr><th>环节</th><th>策划</th><th>APM</th><th>主美</th><th>美术执行</th><th>TA</th><th>制作人</th></tr>
+    <tr><td><strong>提交需求单</strong></td><td class="r">R 执行</td><td class="a">A 审批</td><td class="c">C 咨询</td><td class="i">I 知会</td><td class="i">I 知会</td><td class="i">I 知会</td></tr>
+    <tr><td><strong>需求评审</strong></td><td class="c">C 咨询</td><td class="r">R 执行</td><td class="a">A 审批</td><td class="c">C 咨询</td><td class="c">C 咨询</td><td class="i">I 知会</td></tr>
+    <tr><td><strong>排期分配</strong></td><td class="i">I 知会</td><td class="r">R 执行</td><td class="a">A 审批</td><td class="i">I 知会</td><td class="i">I 知会</td><td class="i">I 知会</td></tr>
+    <tr><td><strong>美术制作</strong></td><td class="i">I 知会</td><td class="c">C 咨询</td><td class="a">A 审批</td><td class="r">R 执行</td><td class="c">C 咨询</td><td class="i">I 知会</td></tr>
+    <tr><td><strong>内部验收</strong></td><td class="i">I 知会</td><td class="c">C 咨询</td><td class="r">R 执行</td><td class="i">I 知会</td><td class="r">R 执行</td><td class="i">I 知会</td></tr>
+    <tr><td><strong>策划验收</strong></td><td class="r">R 执行</td><td class="c">C 咨询</td><td class="i">I 知会</td><td class="i">I 知会</td><td class="i">I 知会</td><td class="i">I 知会</td></tr>
+    <tr><td><strong>变更审批（大）</strong></td><td class="r">R 执行</td><td class="c">C 咨询</td><td class="a">A 审批</td><td class="i">I 知会</td><td class="c">C 咨询</td><td class="a">A 审批</td></tr>
+    <tr><td><strong>优先级仲裁</strong></td><td class="c">C 咨询</td><td class="c">C 咨询</td><td class="c">C 咨询</td><td class="i">I 知会</td><td class="i">I 知会</td><td class="r">R 执行</td></tr>
+  </table>
+  <div class="alert alert-blue">💡 <strong>RACI 说明</strong>：R = Responsible（执行者），A = Accountable（审批者/最终负责），C = Consulted（事前咨询），I = Informed（事后知会）。每个环节有且仅有一个 A。</div>
+</div>
+
+<!-- ===== Section 4: SLA ===== -->
+<div class="section" id="s4">
+  <h2>⏱️ 4. SLA 服务等级协议</h2>
+
+  <div class="sub-title" id="s4-1">📋 4.1 各角色承诺时效</div>
+  <p>以下 SLA 为各角色对需求响应的承诺时效，超时将触发升级机制：</p>
+  <table>
+    <tr><th>角色</th><th>承诺事项</th><th>P0 时效</th><th>P1 时效</th><th>P2/P3 时效</th></tr>
+    <tr><td><strong>策划</strong></td><td>提交完整需求单</td><td>即时</td><td>0.5d</td><td>1d</td></tr>
+    <tr><td><strong>APM</strong></td><td>完成评审 + 排期</td><td>当天</td><td>2d</td><td>3d</td></tr>
+    <tr><td><strong>主美</strong></td><td>参与评审决策</td><td>当天</td><td>1d</td><td>2d</td></tr>
+    <tr><td><strong>美术</strong></td><td>确认接单 + 开始制作</td><td>当天</td><td>1d</td><td>排期日起</td></tr>
+    <tr><td><strong>策划</strong></td><td>完成验收反馈</td><td>0.5d</td><td>1d</td><td>2d</td></tr>
+    <tr><td><strong>TA</strong></td><td>技术可行性评估</td><td>当天</td><td>1d</td><td>3d</td></tr>
+  </table>
+
+  <div class="sub-title" id="s4-2">🚨 4.2 超时升级路径（Escalation Path）</div>
+  <div class="alert alert-red">🚨 <strong>升级原则</strong>：超时不是为了惩罚，而是确保问题被关注到正确层级并快速解决。</div>
+  <table>
+    <tr><th>升级层级</th><th>触发条件</th><th>升级对象</th><th>处理时效</th><th>系统动作</th></tr>
+    <tr><td><span class="sla-level sla-l3">L1 提醒</span></td><td>超时 50%</td><td>当事人</td><td>—</td><td>飞书/企微自动提醒</td></tr>
+    <tr><td><span class="sla-level sla-l2">L2 警告</span></td><td>超时 100%</td><td>直属上级（组长/主美）</td><td>0.5d</td><td>邮件 + 飞书群通知</td></tr>
+    <tr><td><span class="sla-level sla-l1">L3 升级</span></td><td>超时 200%</td><td>制作人/总监</td><td>当天</td><td>升级邮件 + 周报标红</td></tr>
+  </table>
+  <div class="dd-grid">
+    <div class="dd-card dd-do"><h4>✅ Do — 正确响应超时</h4><p>收到 L1 提醒后，若确实无法按时完成，<strong>主动回复预计完成时间</strong>并说明原因。APM 据此调整排期或重新分配。</p></div>
+    <div class="dd-card dd-dont"><h4>❌ Don't — 错误应对</h4><p>无视提醒消息；私下口头说"我忙不过来"但不在系统中更新状态；等到 L3 才解释原因。</p></div>
   </div>
 </div>
 
-<!-- ===== Section 3 ===== -->
-<div class="section" id="s3">
-  <h2>🔍 3. 评审机制</h2>
+<!-- ===== Section 5: 评审机制 ===== -->
+<div class="section" id="s5">
+  <h2>🔍 5. 评审机制</h2>
 
-  <div class="sub-title">📅 3.1 评审会设置</div>
+  <div class="sub-title" id="s5-1">📅 5.1 评审会设置</div>
   <table>
     <tr><th>项目</th><th>标准</th></tr>
     <tr><td><strong>频率</strong></td><td>每周 1~2 次（周一/周四下午）</td></tr>
     <tr><td><strong>时长</strong></td><td>30~60 分钟</td></tr>
     <tr><td><strong>参与人</strong></td><td>APM（主持）、主美、对应工种组长、策划负责人</td></tr>
-    <tr><td><strong>输出</strong></td><td>评审记录表（通过/修改/拒绝/挂起）</td></tr>
+    <tr><td><strong>输出</strong></td><td>评审记录表（通过/修改/拒绝/挂起 + 原因 + Action Item）</td></tr>
+    <tr><td><strong>前置条件</strong></td><td>所有需求单质量预检 ≥ 70 分；参考图已上传至共享空间</td></tr>
+    <tr><td><strong>会议纪律</strong></td><td>每个需求 ≤ 10min 讲解 + 讨论；超时的需求排下次或单独沟通</td></tr>
   </table>
 
-  <div class="sub-title">🔀 3.2 评审决策流程</div>
+  <div class="sub-title" id="s5-2">🔀 5.2 评审决策流程</div>
   <div class="flow">
-    <div class="flow-node start"><strong>策划讲述需求</strong></div>
+    <div class="flow-node start"><strong>策划讲述需求</strong><span class="sub">≤ 5min</span></div>
     <span class="flow-arrow">→</span>
-    <div class="flow-node"><strong>美术评估可行性</strong></div>
+    <div class="flow-node"><strong>美术评估可行性</strong><span class="sub">技术/工期/资源</span></div>
     <span class="flow-arrow">→</span>
-    <div class="flow-node gate"><strong>讨论结果</strong><span class="sub">✅通过 / 🟡修改后通过 / ❌拒绝</span></div>
+    <div class="flow-node"><strong>TA 技术确认</strong><span class="sub">管线/性能</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>集体决议</strong><span class="sub">✅通过 / 🟡修改 / ❌拒绝 / ⏸️挂起</span></div>
   </div>
-
-  <div class="sub-title">✅ 3.3 评审检查要点</div>
   <table>
-    <tr><th>维度</th><th>核心问题</th></tr>
-    <tr><td><strong>需求完整性</strong></td><td>描述是否清晰？参考图是否充分？</td></tr>
-    <tr><td><strong>技术可行性</strong></td><td>现有管线能否实现？性能预算够吗？</td></tr>
-    <tr><td><strong>工期合理性</strong></td><td>截止日期是否留有 Buffer？</td></tr>
-    <tr><td><strong>优先级合理性</strong></td><td>P0/P1 是否真的紧急？是否有挤占风险？</td></tr>
-    <tr><td><strong>重复性检查</strong></td><td>是否与已有需求重复？可否复用？</td></tr>
+    <tr><th>决议类型</th><th>定义</th><th>后续动作</th><th>SLA</th></tr>
+    <tr><td>✅ <strong>通过</strong></td><td>需求明确、可执行</td><td>APM 当天排期</td><td>1d 内完成排期</td></tr>
+    <tr><td>🟡 <strong>修改后通过</strong></td><td>方向可以但细节需完善</td><td>策划修改后免重评</td><td>策划 1d 内修改完</td></tr>
+    <tr><td>❌ <strong>拒绝</strong></td><td>不可行 / 不合理</td><td>给出原因 + 替代方案</td><td>—</td></tr>
+    <tr><td>⏸️ <strong>挂起</strong></td><td>信息不足，待补充</td><td>策划补充后下次评审</td><td>1 周内补充否则关闭</td></tr>
   </table>
 
-  <div class="sub-title">⚖️ 3.4 分歧处理规则</div>
-  <div class="alert alert-blue">💡 <strong>核心原则</strong>：用数据说话，用机制裁决，对事不对人。</div>
-  <p>① 美术与策划分歧 → APM 主持协商，给出数据支撑<br>② 无法达成一致 → 升级到主美 + 制作人层面决策<br>③ 技术不可行 → TA 出具技术评估报告<br>④ 工期分歧 → APM 出具历史数据对比</p>
+  <div class="sub-title" id="s5-3">✅ 5.3 评审检查要点</div>
+  <table>
+    <tr><th>维度</th><th>核心问题</th><th>决策依据</th></tr>
+    <tr><td><strong>需求完整性</strong></td><td>描述是否清晰？参考图是否充分？</td><td>质量评分卡 ≥ 70 分</td></tr>
+    <tr><td><strong>技术可行性</strong></td><td>现有管线能否实现？性能预算够吗？</td><td>TA 技术评估报告</td></tr>
+    <tr><td><strong>工期合理性</strong></td><td>截止日期是否留有 Buffer？</td><td>历史同类需求工期数据</td></tr>
+    <tr><td><strong>优先级合理性</strong></td><td>P0/P1 是否真的紧急？是否有挤占风险？</td><td>版本里程碑紧迫度</td></tr>
+    <tr><td><strong>重复性检查</strong></td><td>是否与已有需求重复？可否复用？</td><td>需求池 / 资产库检索</td></tr>
+    <tr><td><strong>依赖关系</strong></td><td>是否有前置依赖？依赖是否已就绪？</td><td>关联需求 ID 状态</td></tr>
+  </table>
+
+  <div class="sub-title" id="s5-4">⚖️ 5.4 分歧处理规则</div>
+  <div class="alert alert-blue">💡 <strong>核心原则</strong>：用数据说话，用机制裁决，对事不对人。30 分钟内无法达成一致的议题必须升级。</div>
+  <table>
+    <tr><th>分歧类型</th><th>处理机制</th><th>仲裁人</th><th>时限</th></tr>
+    <tr><td>美术与策划分歧</td><td>APM 主持协商，给出数据支撑</td><td>APM</td><td>当场</td></tr>
+    <tr><td>工期评估分歧</td><td>APM 出具历史数据对比 + 类似需求耗时</td><td>主美</td><td>1d</td></tr>
+    <tr><td>技术可行性分歧</td><td>TA 出具技术评估报告（含 Demo 验证）</td><td>TA Lead</td><td>2d</td></tr>
+    <tr><td>优先级争议</td><td>制作人根据版本目标统一排序</td><td>制作人</td><td>当周</td></tr>
+    <tr><td>无法达成一致</td><td>升级到制作人/总监层面，邮件留档</td><td>制作人/总监</td><td>2d</td></tr>
+  </table>
 </div>
 
-<!-- ===== Section 4 ===== -->
-<div class="section" id="s4">
-  <h2>🔒 4. 变更管控</h2>
+<!-- ===== Section 6: 变更管控 ===== -->
+<div class="section" id="s6">
+  <h2>🔒 6. 变更管控</h2>
 
-  <div class="sub-title">📝 4.1 变更申请流程</div>
+  <div class="sub-title" id="s6-1">📝 6.1 变更申请流程</div>
   <div class="flow">
-    <div class="flow-node start"><strong>策划提出变更</strong></div>
+    <div class="flow-node start"><strong>策划提出变更</strong><span class="sub">变更申请单</span></div>
     <span class="flow-arrow">→</span>
-    <div class="flow-node"><strong>填写变更申请单</strong></div>
+    <div class="flow-node"><strong>APM 影响评估</strong><span class="sub">人天/成本/风险</span></div>
     <span class="flow-arrow">→</span>
-    <div class="flow-node"><strong>APM 影响评估</strong></div>
+    <div class="flow-node gate"><strong>分级审批</strong><span class="sub">&lt;2d APM<br>2~5d 主美+APM<br>&gt;5d 制作人</span></div>
     <span class="flow-arrow">→</span>
-    <div class="flow-node gate"><strong>审批</strong><span class="sub">&lt;2d APM<br>2~5d 主美+APM<br>&gt;5d 制作人</span></div>
+    <div class="flow-node warn"><strong>排期调整</strong><span class="sub">影响通知<br>资源重分配</span></div>
     <span class="flow-arrow">→</span>
-    <div class="flow-node end"><strong>排期调整执行</strong></div>
+    <div class="flow-node end"><strong>执行变更</strong><span class="sub">工时追踪<br>成本归集</span></div>
   </div>
 
-  <div class="sub-title">📊 4.2 变更影响评估模板</div>
+  <div class="sub-title" id="s6-2">📊 6.2 变更影响评估模板</div>
   <table>
-    <tr><th>评估项</th><th>内容</th></tr>
-    <tr><td><strong>变更描述</strong></td><td>具体变更了什么？</td></tr>
-    <tr><td><strong>影响范围</strong></td><td>涉及哪些已完成/进行中的资产？</td></tr>
-    <tr><td><strong>工期影响</strong></td><td>额外需要多少人天？</td></tr>
-    <tr><td><strong>成本影响</strong></td><td>额外费用（外包返工/加班）？</td></tr>
-    <tr><td><strong>质量影响</strong></td><td>是否影响其他资产的一致性？</td></tr>
-    <tr><td><strong>里程碑影响</strong></td><td>是否导致里程碑延期？</td></tr>
-    <tr><td><strong>风险等级</strong></td><td>低/中/高</td></tr>
+    <tr><th>评估项</th><th>内容</th><th>量化标准</th></tr>
+    <tr><td><strong>变更描述</strong></td><td>具体变更了什么？</td><td>前后对比说明</td></tr>
+    <tr><td><strong>影响范围</strong></td><td>涉及哪些已完成/进行中的资产？</td><td>受影响资产数量</td></tr>
+    <tr><td><strong>工期影响</strong></td><td>额外需要多少人天？</td><td>精确到 0.5d</td></tr>
+    <tr><td><strong>成本影响</strong></td><td>额外费用（外包返工/加班）？</td><td>金额估算</td></tr>
+    <tr><td><strong>质量影响</strong></td><td>是否影响其他资产的一致性？</td><td>关联资产清单</td></tr>
+    <tr><td><strong>里程碑影响</strong></td><td>是否导致里程碑延期？</td><td>延期天数预估</td></tr>
+    <tr><td><strong>风险等级</strong></td><td>综合评估</td><td>低(绿)/中(黄)/高(红)</td></tr>
+    <tr><td><strong>替代方案</strong></td><td>是否存在低成本替代方案？</td><td>至少给出 1 个备选</td></tr>
   </table>
 
-  <div class="sub-title">🚨 4.3 变更冻结期规则</div>
+  <div class="sub-title" id="s6-3">🚨 6.3 变更冻结期规则</div>
   <div class="alert alert-red">🚨 <strong>核心红线</strong>：越接近发版，变更门槛越高。RC 阶段原则上禁止美术变更。</div>
   <table>
-    <tr><th>阶段</th><th>变更权限</th></tr>
-    <tr><td>预研期</td><td>✅ 自由变更</td></tr>
-    <tr><td>Alpha 前 2 周</td><td>🟡 P0 变更需审批</td></tr>
-    <tr><td>Beta 前 1 月</td><td>🔴 仅 P0 变更，必须制作人审批</td></tr>
-    <tr><td>RC 阶段</td><td>🚫 原则上禁止美术变更，仅修 Bug</td></tr>
+    <tr><th>阶段</th><th>变更权限</th><th>审批流程</th><th>变更代价系数</th></tr>
+    <tr><td>预研期</td><td>✅ 自由变更</td><td>APM 备案即可</td><td>×1.0</td></tr>
+    <tr><td>Alpha 前 2 周</td><td>🟡 P0 变更需审批</td><td>APM + 主美</td><td>×1.5</td></tr>
+    <tr><td>Beta 前 1 月</td><td>🔴 仅 P0 变更</td><td>制作人审批</td><td>×2.0</td></tr>
+    <tr><td>RC 阶段</td><td>🚫 禁止美术变更</td><td>仅修 Bug，总监特批</td><td>×3.0</td></tr>
+  </table>
+  <div class="alert alert-yellow">⚠️ <strong>变更代价系数</strong>：用于成本核算，在周/月报中体现。例如 RC 阶段一个 2d 的变更，实际计为 6d（2×3.0）成本，倒逼前期需求收敛。</div>
+
+  <div class="sub-title" id="s6-4">📈 6.4 变更成本追踪机制</div>
+  <p>所有变更的成本数据自动汇入度量看板：</p>
+  <table>
+    <tr><th>追踪维度</th><th>统计口径</th><th>展示方式</th></tr>
+    <tr><td>单次变更成本</td><td>额外人天 × 代价系数</td><td>变更单详情页</td></tr>
+    <tr><td>策划维度变更率</td><td>某策划变更次数 / 该策划总需求数</td><td>策划维度排行榜</td></tr>
+    <tr><td>版本维度变更率</td><td>版本变更总次数 / 版本总需求数</td><td>版本健康度报告</td></tr>
+    <tr><td>累计变更成本</td><td>所有变更的加权人天总和</td><td>月度成本报表</td></tr>
   </table>
 </div>
 
-<!-- ===== Section 5 ===== -->
-<div class="section" id="s5">
-  <h2>🤯 5. 常见冲突场景与解法</h2>
+<!-- ===== Section 7: 冲突场景 ===== -->
+<div class="section" id="s7">
+  <h2>🤯 7. 常见冲突场景与解法</h2>
 
   <div class="faq-item">
     <div class="faq-q">🔴 案例 1：需求描述不清 <span class="badge badge-red">高频</span></div>
     <div class="faq-a">
       <p><strong>🎬 场景还原：</strong>策划说"做一个好看的角色"、"参考某游戏的感觉"，美术无从下手。</p>
-      <p><strong>🔍 根因：</strong>需求描述模糊、参考图不足；策划缺乏美术语言；缺少需求单填写指南和培训。</p>
-      <p><strong>💡 APM 破局思路：</strong><br>1. 要求补充参考图<br>2. 组织 15min 面对面沟通，产出美术理解确认书<br>3. 提供需求单填写指南培训<br>4. 新入职策划需要学习后才能提交需求</p>
+      <p><strong>🔍 根因分析（5 Whys）：</strong></p>
+      <p>① 表面：需求描述模糊、参考图不足（策划执行问题）<br>② 中层：策划缺乏美术语言，不知道怎么描述（能力缺失）<br>③ 深层：缺少需求单填写指南和培训（流程缺陷）<br>④ 系统层：没有质量门禁阻止低质量需求进入评审（机制缺失）</p>
+      <p><strong>💡 系统性解决方案：</strong></p>
+      <p>1. <strong>质量评分卡门禁</strong>（v2.0 新增）：&lt; 70 分自动退回<br>2. APM 主动出击，要求补充参考图<br>3. 组织 <strong>15min 面对面沟通</strong>，产出美术理解确认书<br>4. 建立 <strong>需求单填写培训机制</strong>，新入职策划必须学习后才能提交需求<br>5. 维护 <strong>优秀需求单示例库</strong>，策划可直接参考填写</p>
+      <p><strong>📊 预期效果：</strong>退回率从 40% 降至 15% 以下；首次通过率从 30% 提升至 65%。</p>
     </div>
   </div>
 
@@ -254,8 +497,11 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     <div class="faq-q">🔴 案例 2：策划频繁变更 <span class="badge badge-red">高频</span></div>
     <div class="faq-a">
       <p><strong>🎬 场景还原：</strong>原画做到一半改设定，建模快完成改造型。</p>
-      <p><strong>🔍 根因：</strong>策划设计未收敛就下需求；缺乏变更成本可视化机制。</p>
-      <p><strong>💡 APM 破局思路：</strong><br>1. 所有变更走 TAPD 工单<br>2. 量化变更成本，标注影响人天和费用<br>3. 建立变更成本可视化看板</p>
+      <p><strong>🔍 根因分析（5 Whys）：</strong></p>
+      <p>① 表面：原画做到一半改设定（结果）<br>② 中层：策划设计未收敛就下需求 / 上级反复审核（流程前置不足）<br>③ 深层：缺乏变更成本可视化机制，变更"零成本感"（机制缺失）<br>④ 系统层：绩效不关联变更率，无负反馈（激励失当）</p>
+      <p><strong>💡 系统性解决方案：</strong></p>
+      <p>1. 所有变更走 <strong>TAPD 工单</strong>，留痕追踪<br>2. <strong>量化变更成本</strong>，每次变更标注影响人天 × 代价系数<br>3. 建立 <strong>变更成本可视化看板</strong>，让决策者在知道代价的前提下做决定<br>4. 定期汇报变更次数和代价，形成压力<br>5. 将变更率纳入策划侧 <strong>过程质量考核</strong> 参考指标</p>
+      <p><strong>📊 预期效果：</strong>月变更率从 25% 降至 10% 以下；变更引发的返工人天减少 60%。</p>
     </div>
   </div>
 
@@ -263,27 +509,161 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     <div class="faq-q">🔴 案例 3：优先级争议 <span class="badge badge-red">高频</span></div>
     <div class="faq-a">
       <p><strong>🎬 场景还原：</strong>所有需求都标 P0，排期陷入混乱。</p>
-      <p><strong>🔍 根因：</strong>策划之间没有统一的优先级标准；缺乏统一的仲裁机制。</p>
-      <p><strong>💡 APM 破局思路：</strong><br>1. 建立优先级矩阵（紧急×重要）<br>2. 每周制作人会上统一排序<br>3. P0 全项目不超过 3 个<br>4. P0 超标自动预警</p>
+      <p><strong>🔍 根因分析（5 Whys）：</strong></p>
+      <p>① 表面：所有需求都标 P0（滥用）<br>② 中层：策划之间没有统一的优先级标准（共识缺失）<br>③ 深层：缺乏统一的优先级仲裁机制 + 数量上限（规则缺失）<br>④ 系统层：P0 无上限约束，"通货膨胀"无代价（系统缺陷）</p>
+      <p><strong>💡 系统性解决方案：</strong></p>
+      <p>1. <strong>P0 全项目上限 3 个</strong>，超标自动预警制作人仲裁<br>2. 建立 <strong>优先级矩阵</strong>（紧急×重要×里程碑关联度）<br>3. 每周制作人会上 <strong>统一排序 + 公示</strong><br>4. 在需求评审会上强制执行 P0 上限<br>5. P1 不超过总需求量 30%，超标触发复审</p>
+      <p><strong>📊 预期效果：</strong>P0 需求数稳定控制在 3 个以内；排期冲突减少 70%。</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">🟡 案例 4：验收标准不一致 <span class="badge badge-yellow">中频</span></div>
+    <div class="faq-a">
+      <p><strong>🎬 场景还原：</strong>美术按需求单做完，策划验收时说"和我想的不一样"，但需求单上没写清楚。</p>
+      <p><strong>🔍 根因分析：</strong>验收标准模糊/主观化；缺少"美术理解确认"环节；未在制作中期做 Check-in。</p>
+      <p><strong>💡 解决方案：</strong></p>
+      <p>1. 需求单必须包含 <strong>≥3 条可量化验收标准</strong>（如"配色暖色系为主""面数 ≤ 15K"）<br>2. 制作前产出 <strong>美术理解确认书</strong>，策划签字认可<br>3. 制作中期（50% 进度）做 <strong>WIP Review</strong>，策划确认方向正确<br>4. 验收时对照 Checklist 逐条打分，非主观感受</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">🟡 案例 5：跨工种需求协调困难 <span class="badge badge-yellow">中频</span></div>
+    <div class="faq-a">
+      <p><strong>🎬 场景还原：</strong>一个角色需要原画→建模→动画→特效四个工种串联，但各工种信息不同步，前一环节的修改没传递到后一环节。</p>
+      <p><strong>🔍 根因分析：</strong>信息在工种间传递时衰减；缺少统一的需求单关联机制；各工种只看自己那张需求单。</p>
+      <p><strong>💡 解决方案：</strong></p>
+      <p>1. 跨工种需求必须建立 <strong>需求链</strong>（Parent-Child 关联）<br>2. APM 指定一个 <strong>需求链 Owner</strong> 负责全链路协调<br>3. 上游工种完成后 <strong>自动触发下游启动通知</strong><br>4. 任何一环变更 <strong>自动通知全链路相关人</strong></p>
     </div>
   </div>
 </div>
 
-<!-- ===== Section 6 ===== -->
-<div class="section" id="s6">
-  <h2>📅 附录：跨部门协作日历</h2>
+<!-- ===== Section 8: 度量与改进 ===== -->
+<div class="section" id="s8">
+  <h2>📊 8. 数据度量与持续改进</h2>
+
+  <div class="sub-title" id="s8-1">📈 8.1 核心度量指标（KPI Dashboard）</div>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">需求首次通过率</div>
+      <div class="kpi-value">≥ 65%</div>
+      <div class="kpi-target">目标: 需求评审一次性通过比例</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">平均流转周期</div>
+      <div class="kpi-value">≤ 3d</div>
+      <div class="kpi-target">目标: 从提交到排期的平均耗时</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">月变更率</div>
+      <div class="kpi-value">≤ 10%</div>
+      <div class="kpi-target">目标: 变更需求数/总需求数</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">SLA 达标率</div>
+      <div class="kpi-value">≥ 90%</div>
+      <div class="kpi-target">目标: 各环节未超时比例</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">需求退回率</div>
+      <div class="kpi-value">≤ 15%</div>
+      <div class="kpi-target">目标: 因质量不达标退回比例</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">验收一次通过率</div>
+      <div class="kpi-value">≥ 80%</div>
+      <div class="kpi-target">目标: 策划验收无返修比例</div>
+    </div>
+  </div>
+
+  <div class="sub-title" id="s8-2">🏥 8.2 需求健康度评分模型</div>
+  <p>按版本/Sprint 周期，综合以下维度计算需求流转健康度（满分 100）：</p>
   <table>
-    <tr><th>时间</th><th>事项</th><th>参与人</th></tr>
-    <tr><td>每周一 10:00</td><td>需求评审会</td><td>APM + 策划 + 主美</td></tr>
-    <tr><td>每周三 14:00</td><td>美术内部 Review</td><td>APM + 各组长</td></tr>
-    <tr><td>每周五 16:00</td><td>周报同步</td><td>APM → 策划/制作人</td></tr>
-    <tr><td>Sprint 首日</td><td>Sprint 规划</td><td>全美术团队</td></tr>
-    <tr><td>Sprint 末日</td><td>Sprint 评审+回顾</td><td>全美术团队 + 策划</td></tr>
+    <tr><th>评分维度</th><th>权重</th><th>满分标准</th><th>数据来源</th></tr>
+    <tr><td><strong>需求质量</strong></td><td>20%</td><td>首次通过率 ≥ 65%</td><td>评审记录</td></tr>
+    <tr><td><strong>流转效率</strong></td><td>25%</td><td>平均流转周期 ≤ 3d</td><td>状态流转时间戳</td></tr>
+    <tr><td><strong>变更可控</strong></td><td>20%</td><td>月变更率 ≤ 10%</td><td>变更工单统计</td></tr>
+    <tr><td><strong>SLA 履约</strong></td><td>20%</td><td>SLA 达标率 ≥ 90%</td><td>超时记录</td></tr>
+    <tr><td><strong>协作满意度</strong></td><td>15%</td><td>双方满意度 ≥ 4/5</td><td>季度匿名调研</td></tr>
   </table>
-  <div class="alert alert-green">⚡ <strong>APM 金句：</strong>「需求对接的核心不是'传话'，而是'翻译+风控'。」</div>
+  <div class="alert alert-purple">💡 <strong>健康度等级</strong>：≥ 85 优秀（绿色）| 70~84 良好（黄色）| &lt; 70 需改进（红色，触发专项复盘）</div>
+
+  <div class="sub-title" id="s8-3">🔄 8.3 持续改进闭环（PDCA）</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>P - Plan</strong><span class="sub">分析度量数据<br>识别瓶颈</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>D - Do</strong><span class="sub">制定改进措施<br>试点执行</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node warn"><strong>C - Check</strong><span class="sub">对比改进前后<br>数据验证</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>A - Act</strong><span class="sub">固化成功经验<br>推广全团队</span></div>
+  </div>
+  <table>
+    <tr><th>改进节奏</th><th>内容</th><th>参与人</th><th>输出物</th></tr>
+    <tr><td><strong>每周</strong></td><td>Review 本周 SLA 达标情况 + 异常分析</td><td>APM</td><td>周报异常项</td></tr>
+    <tr><td><strong>每 Sprint</strong></td><td>Sprint 回顾中的需求流转议题</td><td>全美术 + 策划代表</td><td>改进 Action List</td></tr>
+    <tr><td><strong>每月</strong></td><td>月度健康度报告 + 趋势分析</td><td>APM + 主美</td><td>月度报告</td></tr>
+    <tr><td><strong>每季度</strong></td><td>流程大复盘 + 规则迭代</td><td>制作人 + 全团队</td><td>规范版本更新</td></tr>
+  </table>
 </div>
 
-<div class="doc-footer">📋 需求对接流转规范 · 游戏美术项目管理知识库</div>
+<!-- ===== Section 9: 工具链 ===== -->
+<div class="section" id="s9">
+  <h2>🔧 9. 工具链集成与自动化</h2>
+  <p>需求流转规范的落地依赖工具链支撑，以下是各工具的职责分工与自动化规则：</p>
+  <table>
+    <tr><th>工具</th><th>职责</th><th>自动化规则</th></tr>
+    <tr><td><strong>TAPD</strong></td><td>需求单管理、状态流转、变更工单</td><td>状态变更自动触发通知；超时自动升级；质量评分自动计算</td></tr>
+    <tr><td><strong>飞书/企微</strong></td><td>即时通知、评审日程、提醒</td><td>L1/L2/L3 超时分级通知；评审会前 1h 自动提醒</td></tr>
+    <tr><td><strong>Perforce/SVN</strong></td><td>美术资产版本管理</td><td>资产提交自动关联需求 ID；验收通过自动打 Tag</td></tr>
+    <tr><td><strong>共享网盘</strong></td><td>参考图、交付物存储</td><td>按需求 ID 自动建文件夹；命名规范校验</td></tr>
+    <tr><td><strong>数据看板</strong></td><td>KPI 展示、趋势分析</td><td>每日自动同步 TAPD 数据；阈值超标自动告警</td></tr>
+  </table>
+
+  <div class="sub-title">⚡ 自动化触发规则清单</div>
+  <table>
+    <tr><th>触发事件</th><th>自动动作</th><th>通知对象</th></tr>
+    <tr><td>需求单提交</td><td>自动评分 + 字段校验</td><td>策划（不达标时退回提示）</td></tr>
+    <tr><td>评分 ≥ 70 分</td><td>进入评审池 + 通知 APM</td><td>APM + 主美</td></tr>
+    <tr><td>评审通过</td><td>生成排期任务 + 启动 SLA</td><td>美术负责人</td></tr>
+    <tr><td>SLA 超时 50%</td><td>L1 提醒</td><td>当事人</td></tr>
+    <tr><td>SLA 超时 100%</td><td>L2 警告 + 标黄</td><td>当事人 + 组长</td></tr>
+    <tr><td>SLA 超时 200%</td><td>L3 升级 + 标红</td><td>制作人/总监</td></tr>
+    <tr><td>美术提交资产</td><td>自动关联需求 ID + 触发验收</td><td>主美 + 策划</td></tr>
+    <tr><td>策划验收超时 3d</td><td>自动通过 + 归档</td><td>策划（通知已自动通过）</td></tr>
+    <tr><td>变更申请提交</td><td>自动计算影响范围 + 代价系数</td><td>APM + 审批人</td></tr>
+    <tr><td>P0 数量 > 3</td><td>自动预警</td><td>制作人</td></tr>
+    <tr><td>月变更率 > 10%</td><td>触发变更专项复盘</td><td>APM + 策划主管</td></tr>
+  </table>
+
+  <div class="sub-title">📁 资产命名与存储规范</div>
+  <table>
+    <tr><th>场景</th><th>命名格式</th><th>示例</th></tr>
+    <tr><td>参考图文件夹</td><td><code>/Ref/[需求ID]/</code></td><td><code>/Ref/REQ-2026-0108/</code></td></tr>
+    <tr><td>WIP 交付</td><td><code>[需求ID]_[资产名]_WIP[版本].[格式]</code></td><td><code>REQ-2026-0108_Yasha_WIP02.psd</code></td></tr>
+    <tr><td>最终交付</td><td><code>[需求ID]_[资产名]_Final.[格式]</code></td><td><code>REQ-2026-0108_Yasha_Final.psd</code></td></tr>
+    <tr><td>变更记录</td><td><code>[需求ID]_CR[序号]_[日期]</code></td><td><code>REQ-2026-0108_CR01_20260415</code></td></tr>
+  </table>
+</div>
+
+<!-- ===== Section 10: 协作日历 ===== -->
+<div class="section" id="s10">
+  <h2>📅 10. 附录：跨部门协作日历</h2>
+  <table>
+    <tr><th>时间</th><th>事项</th><th>参与人</th><th>输出物</th></tr>
+    <tr><td>每周一 10:00</td><td>需求评审会</td><td>APM + 策划 + 主美</td><td>评审记录表</td></tr>
+    <tr><td>每周三 14:00</td><td>美术内部 Review</td><td>APM + 各组长</td><td>WIP 进度表</td></tr>
+    <tr><td>每周四 15:00</td><td>变更审批会（如有）</td><td>APM + 主美 + 制作人</td><td>变更决议</td></tr>
+    <tr><td>每周五 16:00</td><td>周报同步</td><td>APM → 策划/制作人</td><td>周报 + SLA 数据</td></tr>
+    <tr><td>Sprint 首日</td><td>Sprint 规划</td><td>全美术团队</td><td>Sprint Backlog</td></tr>
+    <tr><td>Sprint 末日</td><td>Sprint 评审+回顾</td><td>全美术团队 + 策划</td><td>回顾 Action List</td></tr>
+    <tr><td>每月最后一周</td><td>月度健康度复盘</td><td>APM + 主美 + 制作人</td><td>月度报告</td></tr>
+    <tr><td>每季度末</td><td>流程大复盘</td><td>全团队</td><td>规范版本更新</td></tr>
+  </table>
+  <div class="alert alert-green">⚡ <strong>APM 金句：</strong>「需求对接的核心不是'传话'，而是'翻译+风控'。好的流程让所有人聚焦在创作本身，而不是扯皮和返工。」</div>
+</div>
+
+<div class="doc-footer">📋 需求对接流转规范 v2.0 · 游戏美术项目管理知识库</div>
 
 </div>
 <script src="editor-kit.js"></script>
