@@ -43,7 +43,7 @@ open: function(img, title) {
 
 ---
 
-## 🆕 核心优化 1：新手/专家双模式
+## 核心优化 1：新手/专家双模式
 
 ### 设计理念
 
@@ -86,7 +86,7 @@ open: function(img, title) {
 
 ---
 
-## 🆕 核心优化 2：大白话 Tooltip
+## 核心优化 2：大白话 Tooltip
 
 ### 替换 Tooltip 对照表
 
@@ -122,7 +122,7 @@ open: function(img, title) {
 
 ---
 
-## 🆕 核心优化 3：场景化傻瓜预设
+## 核心优化 3：场景化傻瓜预设
 
 ### 三个场景按钮
 
