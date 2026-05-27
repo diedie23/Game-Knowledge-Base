@@ -286,7 +286,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .fb-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:300;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}.fb-overlay.show{display:flex}
 
 /* ═══ Main Content Area ═══ */
-.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;position:relative}
+.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;position:relative;padding-left:24px}
 .lbar{position:absolute;top:0;left:0;width:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--purple));z-index:50;transition:width .3s ease;border-radius:0 2px 2px 0}
 .lbar.on{animation:lp 1.5s ease infinite}@keyframes lp{0%{opacity:1}50%{opacity:.5}100%{opacity:1}}
 .content-frame{flex:1;border:none;width:100%;height:100%;display:none;background:var(--bg)}
