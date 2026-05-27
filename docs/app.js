@@ -913,7 +913,7 @@ function navigate(pageId,btn){
         tp.style.display='block';tp.classList.add('active');scroll.scrollTop=0;setTimeout(hideLoading,400);
       } else {
         frame.style.display='block';
-        frame.src=reg.file+(reg.file.indexOf('?')===-1?'?':'&')+'_cb=20260527b';
+        frame.src=reg.file+(reg.file.indexOf('?')===-1?'?':'&')+'_cb=20260527c';
 
         // 判断是否为可编辑的 HTML 模板（文件在 knowledge-base 目录下的 .html）
         var isEditableTemplate=reg.file && reg.file.indexOf('knowledge-base/')!==-1 && reg.file.endsWith('.html');
@@ -930,10 +930,15 @@ function navigate(pageId,btn){
           // ★ 强制注入左侧 padding 样式（覆盖缓存的旧 CSS）
           try{
             var iDoc=frame.contentDocument||frame.contentWindow.document;
-            var forceStyle=iDoc.createElement('style');
-            forceStyle.textContent='.doc{padding-left:100px!important}';
-            iDoc.head.appendChild(forceStyle);
-          }catch(e){}
+            if(iDoc&&iDoc.head){
+              var forceStyle=iDoc.createElement('style');
+              forceStyle.textContent='.doc{padding-left:120px!important;padding-right:40px!important;max-width:1100px!important}';
+              iDoc.head.appendChild(forceStyle);
+              console.log('[KB] padding injected OK');
+            }else{
+              console.warn('[KB] iDoc or iDoc.head is null');
+            }
+          }catch(e){console.warn('[KB] inject error:',e)}
           buildIframeToc(pageId);
           setupIframeScrollSpy(pageId);
           setupIframeBackToTop();
