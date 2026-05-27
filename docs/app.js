@@ -927,6 +927,13 @@ function navigate(pageId,btn){
 
         frame.onload=function(){
           hideLoading();
+          // ★ 强制注入左侧 padding 样式（覆盖缓存的旧 CSS）
+          try{
+            var iDoc=frame.contentDocument||frame.contentWindow.document;
+            var forceStyle=iDoc.createElement('style');
+            forceStyle.textContent='.doc{padding-left:100px!important}';
+            iDoc.head.appendChild(forceStyle);
+          }catch(e){}
           buildIframeToc(pageId);
           setupIframeScrollSpy(pageId);
           setupIframeBackToTop();
