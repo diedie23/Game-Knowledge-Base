@@ -1,78 +1,31 @@
-<!DOCTYPE html>
+# -*- coding: utf-8 -*-
+"""升级【项目管理工具模板】v1.0 → v2.0 - 分段写入"""
+import os
+
+output = r"h:\游戏项目知识库\docs\knowledge-base\jira-tapd-automation.html"
+
+# Read current file to get the CSS (reuse existing styles)
+with open(output, 'r', encoding='utf-8') as f:
+    old = f.read()
+
+# Extract style block from old file
+style_start = old.find('<style>')
+style_end = old.find('</style>') + len('</style>')
+old_style = old[style_start:style_end]
+
+# Build new HTML
+parts = []
+
+# Head
+parts.append('''<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>项目管理工具模板</title>
-<style>
-:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
-::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
-.doc{max-width:1200px;margin:0 auto;padding:32px 48px}
-.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
-.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
-.doc-header h1 .ver{font-size:12px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
-.doc-header .subtitle{color:var(--dim);font-size:15px}
-.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim)}
-.doc-header .meta span{display:flex;align-items:center;gap:4px}
-.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
-.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
-.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
-.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
-.section{margin-bottom:40px}
-.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
-.sub-title{font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600}
-.section p{font-size:15px;margin-bottom:12px;line-height:1.8}
-table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
-th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
-td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
-tr:nth-child(even){background:rgba(108,140,255,.02)}
-.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
-.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
-.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
-code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
-pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
-.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
-.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
-.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
-.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
-.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
-.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
-.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;min-width:90px}
-.flow-node strong{display:block;color:var(--heading);font-size:14px;margin-bottom:2px}
-.flow-node .sub{color:var(--dim);font-size:12px}
-.flow-arrow{color:var(--cyan);font-size:18px;padding:0 6px;flex-shrink:0}
-.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
-.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
-.flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
-.checklist{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
-.checklist h4{color:var(--heading);margin-bottom:8px}
-.check-item{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:14px}
-.check-item .box{width:16px;height:16px;border:1px solid var(--border);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;background:var(--card)}
-
-/* === TOC Inline Collapse + Grid === */
-.toc{position:relative;overflow:hidden;transition:all .3s ease}
-.toc.toc-folded .toc-inner{max-height:0;padding-top:0;padding-bottom:0;overflow:hidden}
-.toc .toc-inner{max-height:2000px;transition:max-height .35s cubic-bezier(.4,0,.2,1),padding .35s ease;overflow:hidden}
-.toc .toc-toggle-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 0 8px;cursor:pointer;user-select:none}
-.toc .toc-toggle-bar:hover{opacity:.85}
-.toc .toc-toggle-bar .toc-badge{font-size:11px;background:rgba(108,140,255,.15);color:var(--accent,#6c8cff);padding:2px 8px;border-radius:8px;font-weight:600;margin-left:10px}
-.toc .toc-toggle-bar .toc-hint{font-size:12px;color:var(--dim,#6b7085);display:flex;align-items:center;gap:4px}
-.toc .toc-toggle-bar .toc-chevron{display:inline-block;transition:transform .25s ease}
-.toc.toc-folded .toc-toggle-bar .toc-chevron{transform:rotate(-90deg)}
-.toc .toc-inner>ol{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px 20px;list-style:none;padding:0;margin:0;counter-reset:toc-top}
-.toc .toc-inner>ol>li{counter-increment:toc-top;margin:0;padding:0}
-.toc .toc-inner>ol>li>a{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;font-size:13px;text-decoration:none;font-weight:500;transition:all .15s ease}
-.toc .toc-inner>ol>li>a::before{content:counter(toc-top);font-size:11px;font-weight:700;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:5px;background:rgba(108,140,255,.1);color:var(--accent,#6c8cff);flex-shrink:0}
-.toc .toc-inner>ol>li>a:hover{background:rgba(108,140,255,.08)}
-.toc .toc-inner>ol>li>a:hover::before{background:var(--accent,#6c8cff);color:#000}
-.toc .toc-inner>ol>li>ol{list-style:none;padding:0 0 0 28px;margin:2px 0 6px}
-.toc .toc-inner>ol>li>ol>li{margin:0}
-.toc .toc-inner>ol>li>ol a{display:block;padding:2px 10px;font-size:12px;color:var(--dim,#6b7085);text-decoration:none;border-radius:4px;transition:all .12s;line-height:1.6}
-.toc .toc-inner>ol>li>ol a:hover{color:var(--text,#c5c9d6);background:rgba(108,140,255,.05)}
-@media(max-width:600px){.toc .toc-inner>ol{grid-template-columns:1fr}}
-</style>
+''')
+parts.append(old_style)
+parts.append('''
 </head>
 <body>
 <div class="doc">
@@ -106,7 +59,10 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#s14">附录：快速配置清单</a></li>
   </ol>
 </div>
+''')
 
+# Section 1
+parts.append('''
 <div class="section" id="s1">
   <h2>⚙️ 1. 美术任务状态机</h2>
   <div class="sub-title">1.1 标准状态流</div>
@@ -164,7 +120,10 @@ Project Settings → Workflows → 添加Status → 配置Transitions
 Conditions: "In Review→Approved" 需 reviewer 角色
 Post Functions: "Done" 触发 Webhook 通知资产管理平台</pre>
 </div>
+''')
 
+# Section 2
+parts.append('''
 <div class="section" id="s2">
   <h2>📂 2. 需求分类与自定义字段体系</h2>
   <div class="sub-title">2.1 任务类型</div>
@@ -216,7 +175,10 @@ Post Functions: "Done" 触发 Webhook 通知资产管理平台</pre>
 ## 5. 依赖与风险
 - 前置依赖：   潜在风险：</pre>
 </div>
+''')
 
+# Section 3
+parts.append('''
 <div class="section" id="s3">
   <h2>🔄 3. Sprint 规划与迭代管理</h2>
   <div class="sub-title">3.1 迭代节奏</div>
@@ -257,7 +219,10 @@ Post Functions: "Done" 触发 Webhook 通知资产管理平台</pre>
     <div class="flow-node end"><strong>Sprint开始</strong><div class="sub">D2</div></div>
   </div>
 </div>
+''')
 
+# Section 4
+parts.append('''
 <div class="section" id="s4">
   <h2>👤 4. 自动指派与路由规则</h2>
   <div class="sub-title">4.1 工种路由</div>
@@ -284,7 +249,10 @@ Post Functions: "Done" 触发 Webhook 通知资产管理平台</pre>
   <div class="sub-title">4.3 负载均衡策略</div>
   <div class="alert alert-green">🔄 <strong>优先级</strong>：① 进行中最少 → ② 本Sprint完成最多 → ③ 技能匹配度最高</div>
 </div>
+''')
 
+# Section 5
+parts.append('''
 <div class="section" id="s5">
   <h2>✅ 5. 多级审核流程</h2>
   <div class="sub-title">5.1 审核链</div>
@@ -327,7 +295,10 @@ Post Functions: "Done" 触发 Webhook 通知资产管理平台</pre>
     <tr><td>超SLA 200%</td><td>自动通过+标记"未审核放行"</td></tr>
   </table>
 </div>
+''')
 
+# Section 6
+parts.append('''
 <div class="section" id="s6">
   <h2>🤖 6. 自动化规则库（20条）</h2>
   <div class="sub-title">6.1 生命周期规则</div>
@@ -383,7 +354,10 @@ Post Functions: "Done" 触发 Webhook 通知资产管理平台</pre>
 触发: →审核不通过
 动作: 创建子任务"修改-{标题}" | 返工次数+1 | 通知负责人</pre>
 </div>
+''')
 
+# Section 7
+parts.append('''
 <div class="section" id="s7">
   <h2>📢 7. 通知策略与消息治理</h2>
   <div class="sub-title">7.1 分级机制</div>
@@ -411,18 +385,14 @@ Post Functions: "Done" 触发 Webhook 通知资产管理平台</pre>
 {
   "msgtype": "markdown",
   "markdown": {
-    "content": "## 📊 美术日报 ({{date}})
-> Sprint: {{sprint}} | 第{{day}}/10天
-| 指标 | 数值 |
-|---|---|
-| ✅完成 | {{done}} |
-| 🔄进行中 | {{wip}} |
-| 🔴超期 | {{overdue}} |
-| 📈进度 | {{progress}}% |"
+    "content": "## 📊 美术日报 ({{date}})\n> Sprint: {{sprint}} | 第{{day}}/10天\n| 指标 | 数值 |\n|---|---|\n| ✅完成 | {{done}} |\n| 🔄进行中 | {{wip}} |\n| 🔴超期 | {{overdue}} |\n| 📈进度 | {{progress}}% |"
   }
 }</pre>
 </div>
+''')
 
+# Section 8
+parts.append('''
 <div class="section" id="s8">
   <h2>📋 8. 看板配置与 WIP 管控</h2>
   <div class="sub-title">8.1 看板列</div>
@@ -471,7 +441,10 @@ Post Functions: "Done" 触发 Webhook 通知资产管理平台</pre>
     <tr><td>返工次数</td><td>角标(≥2显示)</td><td>推荐</td></tr>
   </table>
 </div>
+''')
 
+# Section 9
+parts.append('''
 <div class="section" id="s9">
   <h2>🏁 9. 版本管理与里程碑追踪</h2>
   <div class="sub-title">9.1 版本层级</div>
@@ -500,7 +473,10 @@ Post Functions: "Done" 触发 Webhook 通知资产管理平台</pre>
     <tr><td><span class="badge badge-red">红色</span></td><td>落后>20%</td><td>升级制作人+应急方案</td></tr>
   </table>
 </div>
+''')
 
+# Section 10
+parts.append('''
 <div class="section" id="s10">
   <h2>📊 10. 数据报表与效能度量</h2>
   <div class="sub-title">10.1 核心KPI</div>
@@ -544,7 +520,10 @@ Post Functions: "Done" 触发 Webhook 通知资产管理平台</pre>
     <tr><td>待审核→通过/打回</td><td>1.8d</td><td>0.5d</td><td>1.3d</td><td><span class="badge badge-yellow">⚠️高</span></td></tr>
   </table>
 </div>
+''')
 
+# Section 11
+parts.append('''
 <div class="section" id="s11">
   <h2>🔗 11. 工具集成与生态</h2>
   <div class="sub-title">11.1 集成架构</div>
@@ -590,7 +569,10 @@ ArtTaskLink change-commit //depot/Art/... "%//trigger/tapd-sync.py% %changelist%
     <tr><td>性能测试</td><td>DrawCall/帧率</td><td>生成报告</td></tr>
   </table>
 </div>
+''')
 
+# Section 12
+parts.append('''
 <div class="section" id="s12">
   <h2>📈 12. 团队效能成熟度模型</h2>
   <div class="sub-title">12.1 五级定义</div>
@@ -629,7 +611,10 @@ ArtTaskLink change-commit //depot/Art/... "%//trigger/tapd-sync.py% %changelist%
     <div class="flow-node end"><strong>固化</strong><div class="sub">更新标准</div></div>
   </div>
 </div>
+''')
 
+# Section 13
+parts.append('''
 <div class="section" id="s13">
   <h2>📦 13. 模板导入/导出实操指南</h2>
   <div class="sub-title">13.1 CSV 导入模板</div>
@@ -674,7 +659,10 @@ VFX_Skill_01,ART_VFX,P1,特效,L,20,2026-06-25,主角大招特效</pre>
     <tr><td>仪表盘配置</td><td>每月</td><td>截图+配置文本</td><td>12个月</td></tr>
   </table>
 </div>
+''')
 
+# Section 14
+parts.append('''
 <div class="section" id="s14">
   <h2>📎 14. 附录：快速配置清单</h2>
   <div class="sub-title">TAPD 完整配置</div>
@@ -707,7 +695,10 @@ VFX_Skill_01,ART_VFX,P1,特效,L,20,2026-06-25,主角大招特效</pre>
     <div class="check-item"><div class="box">☐</div><span>Perforce/Bitbucket集成</span></div>
   </div>
 </div>
+''')
 
+# Footer
+parts.append('''
 <div class="doc-footer">
   游戏美术项目管理知识库 · 项目管理工具模板 v2.0
 </div>
@@ -730,8 +721,8 @@ VFX_Skill_01,ART_VFX,P1,特效,L,20,2026-06-25,主角大招特效</pre>
   bar.className='toc-toggle-bar';
   bar.innerHTML='<div style="display:flex;align-items:center">'+
     (h3?h3.outerHTML:'')+
-    '<span class="toc-badge">'+topCount+' \u7AE0 \u00B7 '+totalCount+' \u8282</span></div>'+
-    '<span class="toc-hint"><span class="toc-hint-text">\u70B9\u51FB\u5C55\u5F00</span> <span class="toc-chevron">\u25BC</span></span>';
+    '<span class="toc-badge">'+topCount+' \\u7AE0 \\u00B7 '+totalCount+' \\u8282</span></div>'+
+    '<span class="toc-hint"><span class="toc-hint-text">\\u70B9\\u51FB\\u5C55\\u5F00</span> <span class="toc-chevron">\\u25BC</span></span>';
   var inner=document.createElement('div');
   inner.className='toc-inner';
   inner.appendChild(ol);
@@ -742,10 +733,19 @@ VFX_Skill_01,ART_VFX,P1,特效,L,20,2026-06-25,主角大招特效</pre>
   var hintText=bar.querySelector('.toc-hint-text');
   bar.addEventListener('click',function(){
     var folded=toc.classList.toggle('toc-folded');
-    hintText.textContent=folded?'\u70B9\u51FB\u5C55\u5F00':'\u70B9\u51FB\u6536\u8D77';
+    hintText.textContent=folded?'\\u70B9\\u51FB\\u5C55\\u5F00':'\\u70B9\\u51FB\\u6536\\u8D77';
   });
   if(h3&&h3.parentNode===toc)h3.remove();
 })();
 </script>
 </body>
-</html>
+</html>''')
+
+# Write output
+content = ''.join(parts)
+with open(output, 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print(f"Done! File size: {len(content)} chars")
+print(f"Sections: {content.count('<h2>')}")
+print(f"Has </html>: {'</html>' in content}")
