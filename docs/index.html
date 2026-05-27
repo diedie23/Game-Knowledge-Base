@@ -3,8 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>游戏项目知识库</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20260527">
 </head>
 <body>
 <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
@@ -1688,13 +1691,23 @@ function switchMermaidTab(panelId, btn) {
 </div>
 
 <!-- 主逻辑 -->
-<script src="app.js" defer></script>
-<!-- 离线缓存 Service Worker 注册 -->
+<script src="app.js?v=20260527" defer></script>
+<!-- 离线缓存 Service Worker 注册（v3 强制刷新） -->
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
+    // 强制清除所有旧缓存
+    if(window.caches){
+      caches.keys().then(function(names){
+        names.forEach(function(name){
+          if(name!=='kb-cache-v3') caches.delete(name);
+        });
+      });
+    }
     navigator.serviceWorker.register('./sw.js').then(function(reg){
       console.log('[KB] Service Worker registered, scope:', reg.scope);
+      // 强制更新 SW
+      reg.update();
     }).catch(function(err){
       console.warn('[KB] SW registration failed:', err);
     });

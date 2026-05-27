@@ -1,4 +1,4 @@
-// ═══ 游戏项目知识库 Service Worker v1.0 ═══
+// ═══ 游戏项目知识库 Service Worker v3.0 ═══
 // 支持离线访问已浏览过的文档
 
 var CACHE_NAME = 'kb-cache-v3';
@@ -70,8 +70,13 @@ self.addEventListener('fetch', function(event) {
   }
 
   // 本地资源使用 Network First 策略（保持内容最新）
+  // 对 HTML/JS/CSS 文件强制跳过浏览器 HTTP 缓存
+  var fetchOpts = {};
+  if (url.pathname.match(/\.(html|js|css|json)(\?|$)/)) {
+    fetchOpts = { cache: 'no-cache' };
+  }
   event.respondWith(
-    fetch(event.request).then(function(response) {
+    fetch(event.request, fetchOpts).then(function(response) {
       if (response.ok) {
         var clone = response.clone();
         caches.open(CACHE_NAME).then(function(cache) {
