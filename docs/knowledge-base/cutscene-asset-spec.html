@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>过场演出资产管理规范</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--pink:#f472b6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1400px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:12px;background:var(--orange);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--orange);display:flex;align-items:center;gap:8px}
+.section h3{font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:15px;margin-bottom:12px;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-orange{background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.2);color:var(--orange)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.flow-diagram{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0;padding:16px;background:var(--card);border-radius:10px;border:1px solid var(--border)}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;text-align:center;min-width:100px}
+.flow-node.highlight{border-color:var(--orange);background:rgba(251,146,60,.08)}
+.flow-arrow{color:var(--dim);font-size:18px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:16px 0}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.kpi-card .kpi-value{font-size:24px;font-weight:700;color:var(--orange);margin:4px 0}
+.kpi-card .kpi-label{font-size:12px;color:var(--dim)}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.badge-orange{background:rgba(251,146,60,.15);color:var(--orange)}
+.badge-blue{background:rgba(96,165,250,.15);color:var(--blue)}
+.state-machine{display:flex;flex-direction:column;gap:4px;margin:16px 0;padding:16px;background:var(--card);border-radius:10px;border:1px solid var(--border)}
+.state-row{display:flex;align-items:center;gap:8px;font-size:13px}
+.state-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.checklist{list-style:none;padding:0;margin:12px 0}
+.checklist li{padding:6px 0;font-size:14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px}
+.checklist li::before{content:'☐';color:var(--orange);font-weight:bold;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+<h1>🎬 过场演出资产管理规范 <span class="ver">v1.0</span></h1>
+<p class="subtitle">Cutscene / Cinematic Asset Management Specification</p>
+<div class="meta">
+<span>📅 2026-05-27</span>
+<span>👤 美术管理组 × 演出组 × TA</span>
+<span>🏷️ 演出 · Sequencer · 分镜 · 镜头 · 资产管理</span>
+</div>
+</div>
+
+<!-- 目录 -->
+<div class="toc">
+<h3>📑 目录</h3>
+<ol>
+<li><a href="#sec1">概述与适用范围</a></li>
+<li><a href="#sec2">过场演出类型分类体系</a></li>
+<li><a href="#sec3">制作全流程与状态机</a></li>
+<li><a href="#sec4">目录结构与命名规范</a></li>
+<li><a href="#sec5">分镜文件交接 SOP</a></li>
+<li><a href="#sec6">Level Sequence 组织架构</a></li>
+<li><a href="#sec7">镜头语言标准</a></li>
+<li><a href="#sec8">性能预算与红线</a></li>
+<li><a href="#sec9">多人协作与锁规范</a></li>
+<li><a href="#sec10">RACI 责任矩阵</a></li>
+<li><a href="#sec11">质量验收标准</a></li>
+<li><a href="#sec12">常见问题与踩坑记录</a></li>
+</ol>
+</div>
+
+<!-- 第1节 -->
+<div class="section" id="sec1">
+<h2>📋 1. 概述与适用范围</h2>
+<p>本规范定义了游戏项目中所有 <strong>过场演出（Cutscene / Cinematic）</strong> 资产的制作标准、交接流程、版本管理和质量门禁，覆盖实时演出（引擎内 Sequencer）与离线预渲染（CG/PV）两大类型。</p>
+
+<h3>适用场景</h3>
+<table>
+<tr><th>场景类型</th><th>引擎</th><th>典型案例</th></tr>
+<tr><td>主线剧情过场</td><td>UE5 Sequencer / Unity Timeline</td><td>章节转场、BOSS 登场、结局动画</td></tr>
+<tr><td>角色必杀技演出</td><td>引擎实时</td><td>大招释放 → 特写镜头 → 慢动作回放</td></tr>
+<tr><td>抽卡/获得演出</td><td>引擎实时 + 后期合成</td><td>SSR 角色抽取 → 全屏演出 → 立绘展示</td></tr>
+<tr><td>PV / CG</td><td>离线渲染（Maya/Blender → AE/Nuke）</td><td>宣传 PV、版本更新 CG</td></tr>
+<tr><td>剧情对话演出</td><td>引擎内轻量 Sequence</td><td>NPC 对话 → 表情/动作切换 → 镜头微运动</td></tr>
+<tr><td>过场转场（Loading）</td><td>引擎实时 / 预渲视频</td><td>地图加载过渡动画</td></tr>
+</table>
+
+<div class="alert alert-blue">💡 <strong>核心原则：</strong>演出是玩家情感体验的"放大镜"——所有规范的终极目标是保障<strong>叙事节奏感</strong>和<strong>技术稳定性</strong>的统一。</div>
+</div>
+
+<!-- 第2节 -->
+<div class="section" id="sec2">
+<h2>🎯 2. 过场演出类型分类体系</h2>
+
+<h3>2.1 按制作方式分类</h3>
+<table>
+<tr><th>类型</th><th>代号</th><th>技术方案</th><th>典型时长</th><th>参考工期</th></tr>
+<tr><td>实时引擎演出（A 类）</td><td>RT</td><td>UE5 Level Sequence / Unity Playable</td><td>15s ~ 3min</td><td>3~10 人天/分钟</td></tr>
+<tr><td>预渲染 CG（B 类）</td><td>CG</td><td>Maya/Blender → After Effects/Nuke</td><td>30s ~ 5min</td><td>15~40 人天/分钟</td></tr>
+<tr><td>2D+3D 混合演出（C 类）</td><td>HY</td><td>Spine/Live2D + 引擎粒子 + 后期合成</td><td>10s ~ 1min</td><td>5~15 人天/分钟</td></tr>
+<tr><td>轻量对话演出（D 类）</td><td>DLG</td><td>引擎 Timeline + 表情/动作数据驱动</td><td>5s ~ 30s</td><td>0.5~2 人天/段</td></tr>
+</table>
+
+<h3>2.2 按叙事功能分类</h3>
+<table>
+<tr><th>功能标签</th><th>说明</th><th>优先级</th><th>可跳过</th></tr>
+<tr><td>🎭 主线剧情</td><td>推动主线叙事、关键剧情节点</td><td><span class="badge badge-red">P0</span></td><td>首次不可跳过</td></tr>
+<tr><td>⚔️ 战斗演出</td><td>必杀技、QTE、处决动画</td><td><span class="badge badge-red">P0</span></td><td>可设置关闭</td></tr>
+<tr><td>🎁 获得演出</td><td>抽卡、装备获得、成就解锁</td><td><span class="badge badge-orange">P1</span></td><td>可加速/跳过</td></tr>
+<tr><td>💬 对话演出</td><td>NPC 对话、支线任务过场</td><td><span class="badge badge-yellow">P2</span></td><td>可跳过</td></tr>
+<tr><td>🌄 环境演出</td><td>场景转场、天气变化、时间流逝</td><td><span class="badge badge-yellow">P2</span></td><td>可跳过</td></tr>
+<tr><td>📺 宣传 PV/CG</td><td>版本宣传、活动预告片</td><td><span class="badge badge-blue">P1</span></td><td>可跳过</td></tr>
+</table>
+</div>
+
+<!-- 第3节 -->
+<div class="section" id="sec3">
+<h2>🔄 3. 制作全流程与状态机</h2>
+
+<h3>3.1 制作流程总览</h3>
+<div class="flow-diagram">
+<div class="flow-node">📝 分镜策划</div><span class="flow-arrow">→</span>
+<div class="flow-node">🎨 分镜绘制</div><span class="flow-arrow">→</span>
+<div class="flow-node highlight">✅ 分镜评审</div><span class="flow-arrow">→</span>
+<div class="flow-node">🎬 Layout</div><span class="flow-arrow">→</span>
+<div class="flow-node">🎭 动画制作</div><span class="flow-arrow">→</span>
+<div class="flow-node">✨ 特效/光照</div><span class="flow-arrow">→</span>
+<div class="flow-node">🎵 音频集成</div><span class="flow-arrow">→</span>
+<div class="flow-node highlight">🔍 技术审查</div><span class="flow-arrow">→</span>
+<div class="flow-node">📦 打包出包</div><span class="flow-arrow">→</span>
+<div class="flow-node highlight">✅ 终验收</div>
+</div>
+
+<h3>3.2 演出资产状态机</h3>
+<div class="state-machine">
+<div class="state-row"><div class="state-dot" style="background:var(--dim)"></div> <strong>Draft</strong> — 分镜/脚本编写中，不可引用</div>
+<div class="state-row"><div class="state-dot" style="background:var(--yellow)"></div> <strong>Storyboard_Review</strong> — 分镜评审中（策划 + 导演确认）</div>
+<div class="state-row"><div class="state-dot" style="background:var(--blue)"></div> <strong>Layout_WIP</strong> — 引擎内 Layout 粗动/镜头摆放</div>
+<div class="state-row"><div class="state-dot" style="background:var(--accent2)"></div> <strong>Animation_WIP</strong> — 角色/相机动画精调中</div>
+<div class="state-row"><div class="state-dot" style="background:var(--orange)"></div> <strong>Polish</strong> — 特效/光照/音频集成精修</div>
+<div class="state-row"><div class="state-dot" style="background:var(--cyan)"></div> <strong>Tech_Review</strong> — 性能/兼容性技术审查</div>
+<div class="state-row"><div class="state-dot" style="background:var(--green)"></div> <strong>Approved</strong> — 通过验收，可出包</div>
+<div class="state-row"><div class="state-dot" style="background:var(--red)"></div> <strong>Rejected</strong> — 被驳回，标注原因后回退至对应阶段</div>
+</div>
+
+<h3>3.3 各阶段交付物与门禁</h3>
+<table>
+<tr><th>阶段</th><th>输入</th><th>输出（交付物）</th><th>门禁条件</th></tr>
+<tr><td>分镜策划</td><td>剧本/演出需求单</td><td>分镜脚本（含台词/时长/镜头描述）</td><td>策划 + 导演签字</td></tr>
+<tr><td>分镜绘制</td><td>分镜脚本</td><td>分镜画板（.psd/.clip / Storyboarder）</td><td>≥12 帧/分钟，关键姿态标注</td></tr>
+<tr><td>Layout</td><td>分镜画板 + 角色/场景资产</td><td>引擎粗动 Sequence（含基础镜头轨道）</td><td>时长误差 ±10%，节奏点对齐</td></tr>
+<tr><td>动画精调</td><td>Layout Sequence</td><td>完整角色动画 + 相机关键帧</td><td>无穿模/抖动，曲线平滑</td></tr>
+<tr><td>特效/光照</td><td>精调 Sequence</td><td>Niagara/粒子 + Light Rig + PostProcess</td><td>不超性能预算，视觉风格统一</td></tr>
+<tr><td>音频集成</td><td>完成画面的 Sequence</td><td>绑定 AudioTrack + Wwise Event</td><td>音画同步误差 ≤2帧</td></tr>
+<tr><td>技术审查</td><td>完整 Sequence</td><td>性能报告 + 兼容性测试结果</td><td>全平台帧率 ≥30fps，内存增量 ≤50MB</td></tr>
+<tr><td>终验收</td><td>技术审查通过</td><td>最终版本标记 + 出包配置</td><td>导演 + 制作人签字</td></tr>
+</table>
+</div>
+
+<!-- 第4节 -->
+<div class="section" id="sec4">
+<h2>📂 4. 目录结构与命名规范</h2>
+
+<h3>4.1 Perforce/SVN 目录结构</h3>
+<pre>
+/Content/Cinematics/                    # 过场演出根目录
+├── _Shared/                            # 共享资源（通用相机Rig/通用过渡/字幕系统）
+│   ├── CameraRigs/                     # 可复用相机 Rig
+│   ├── Transitions/                    # 通用转场素材
+│   └── SubtitleData/                   # 字幕数据表
+├── MainStory/                          # 主线剧情
+│   ├── Chapter01/                      # 按章节组织
+│   │   ├── CUT_MS_C01_001/            # 单个演出单元文件夹
+│   │   │   ├── CUT_MS_C01_001_Master.uasset   # Master Sequence
+│   │   │   ├── CUT_MS_C01_001_Cam.uasset      # 相机子 Sequence
+│   │   │   ├── CUT_MS_C01_001_Anim.uasset     # 角色动画子 Sequence
+│   │   │   ├── CUT_MS_C01_001_FX.uasset       # 特效子 Sequence
+│   │   │   ├── CUT_MS_C01_001_Audio.uasset    # 音频子 Sequence
+│   │   │   └── CUT_MS_C01_001_Light.uasset    # 灯光子 Sequence
+│   │   └── Chapter01_Overview.uasset           # 章节总预览
+│   └── Chapter02/
+├── Battle/                             # 战斗演出（必杀/QTE/处决）
+│   ├── Ultimate/                       # 必杀技
+│   │   └── CUT_BT_ULT_{CharID}_{Skin}/
+│   ├── QTE/                            # 快速事件
+│   └── Execution/                      # 处决动画
+├── Gacha/                              # 抽卡/获得演出
+│   ├── SSR/
+│   ├── SR/
+│   └── R/
+├── Dialogue/                           # 对话演出
+│   └── NPC_{NPCID}/
+├── Environment/                        # 环境演出
+│   ├── Weather/
+│   ├── DayNight/
+│   └── MapTransition/
+└── PV/                                 # 宣传 PV/CG（源文件 + 最终视频）
+    ├── PV_20260501_Anniversary/
+    └── PV_20260601_NewChar/
+</pre>
+
+<h3>4.2 命名规范</h3>
+<table>
+<tr><th>资产类型</th><th>命名规则</th><th>示例</th></tr>
+<tr><td>Master Sequence</td><td><code>CUT_{类型}_{章节}_{序号}_Master</code></td><td><code>CUT_MS_C01_001_Master</code></td></tr>
+<tr><td>相机 Sequence</td><td><code>CUT_{类型}_{章节}_{序号}_Cam</code></td><td><code>CUT_MS_C01_001_Cam</code></td></tr>
+<tr><td>动画 Sequence</td><td><code>CUT_{类型}_{章节}_{序号}_Anim</code></td><td><code>CUT_MS_C01_001_Anim</code></td></tr>
+<tr><td>特效 Sequence</td><td><code>CUT_{类型}_{章节}_{序号}_FX</code></td><td><code>CUT_BT_ULT_Char01_FX</code></td></tr>
+<tr><td>音频 Sequence</td><td><code>CUT_{类型}_{章节}_{序号}_Audio</code></td><td><code>CUT_MS_C01_001_Audio</code></td></tr>
+<tr><td>灯光 Sequence</td><td><code>CUT_{类型}_{章节}_{序号}_Light</code></td><td><code>CUT_MS_C01_001_Light</code></td></tr>
+<tr><td>分镜文件</td><td><code>SB_{类型}_{章节}_{序号}_v{版本}</code></td><td><code>SB_MS_C01_001_v03.psd</code></td></tr>
+<tr><td>导出视频</td><td><code>VID_{类型}_{章节}_{序号}_{分辨率}</code></td><td><code>VID_MS_C01_001_1080p.mp4</code></td></tr>
+</table>
+
+<div class="alert alert-yellow">⚠️ <strong>类型代号速查：</strong>MS=主线, BT=战斗, GA=抽卡, DLG=对话, ENV=环境, PV=宣传片</div>
+
+<h3>4.3 命名正则校验</h3>
+<pre>
+# Master Sequence
+^CUT_(MS|BT|GA|DLG|ENV|PV)_[A-Z][A-Za-z0-9]+_\d{3}_Master$
+
+# 子 Sequence
+^CUT_(MS|BT|GA|DLG|ENV|PV)_[A-Z][A-Za-z0-9]+_\d{3}_(Cam|Anim|FX|Audio|Light)$
+
+# 分镜文件
+^SB_(MS|BT|GA|DLG|ENV|PV)_[A-Z][A-Za-z0-9]+_\d{3}_v\d{2}\.(psd|clip|pdf)$
+</pre>
+</div>
+
+<!-- 第5节 -->
+<div class="section" id="sec5">
+<h2>📋 5. 分镜文件交接 SOP</h2>
+
+<h3>5.1 分镜文件规范</h3>
+<table>
+<tr><th>要素</th><th>必填</th><th>说明</th></tr>
+<tr><td>镜头编号</td><td>✅</td><td>按时间序编号，如 Shot_001 ~ Shot_N</td></tr>
+<tr><td>景别标注</td><td>✅</td><td>ECU / CU / MS / FS / LS / ELS（参见第7节）</td></tr>
+<tr><td>运镜方式</td><td>✅</td><td>固定 / 推 / 拉 / 摇 / 移 / 跟 / 升降 / 环绕</td></tr>
+<tr><td>时长标注</td><td>✅</td><td>每镜时长（秒），总计时长</td></tr>
+<tr><td>台词/旁白</td><td>✅</td><td>对应镜头的台词文本，标注语种</td></tr>
+<tr><td>表情/动作描述</td><td>✅</td><td>角色情绪关键词 + 参考动作</td></tr>
+<tr><td>音效/BGM 指示</td><td>⬜</td><td>建议使用的音效类型或 BGM 段落</td></tr>
+<tr><td>特效指示</td><td>⬜</td><td>需要配合的粒子/光效/屏幕后处理</td></tr>
+<tr><td>转场方式</td><td>✅</td><td>硬切 / 溶解 / 淡入淡出 / 划 / 自定义</td></tr>
+<tr><td>参考素材链接</td><td>⬜</td><td>动画参考视频 / 电影片段 URL</td></tr>
+</table>
+
+<h3>5.2 交接流程</h3>
+<table>
+<tr><th>步骤</th><th>负责人</th><th>动作</th><th>产出</th><th>时限</th></tr>
+<tr><td>1</td><td>策划/导演</td><td>提交分镜需求单到 TAPD</td><td>需求单（含脚本 + 演出意图）</td><td>—</td></tr>
+<tr><td>2</td><td>分镜师</td><td>绘制分镜板</td><td>SB 文件 + PDF 导出</td><td>3 工作日/分钟</td></tr>
+<tr><td>3</td><td>导演 + 策划</td><td>分镜评审会</td><td>评审记录 + 修改意见</td><td>评审后 1 日内反馈</td></tr>
+<tr><td>4</td><td>分镜师</td><td>修改并锁定版本</td><td>终版 SB（版本号标记 Final）</td><td>2 工作日</td></tr>
+<tr><td>5</td><td>演出 TA</td><td>创建引擎 Layout Sequence</td><td>粗动 + 相机预设</td><td>2 工作日/分钟</td></tr>
+<tr><td>6</td><td>全组</td><td>Layout 审查（对照分镜板）</td><td>确认节奏 → 进入精调</td><td>审查当日</td></tr>
+</table>
+
+<div class="alert alert-green">✅ <strong>交接核心原则：</strong>分镜板是全组"合约"——未通过评审的分镜不得进入引擎制作阶段。任何分镜修改必须走变更流程。</div>
+</div>
+
+<!-- 第6节 -->
+<div class="section" id="sec6">
+<h2>🏗️ 6. Level Sequence 组织架构</h2>
+
+<h3>6.1 Master / Sub-Sequence 分层设计</h3>
+<pre>
+CUT_MS_C01_001_Master (Master Sequence)
+│
+├── Subscenes Track ─────────────────────────
+│   ├── CUT_MS_C01_001_Cam      # 相机轨道（所有镜头切换/运镜）
+│   ├── CUT_MS_C01_001_Anim     # 角色动画轨道（骨骼动画 + IK）
+│   ├── CUT_MS_C01_001_FX       # 特效轨道（Niagara + 后处理）
+│   ├── CUT_MS_C01_001_Audio    # 音频轨道（Wwise Event + Attenuation）
+│   └── CUT_MS_C01_001_Light    # 灯光轨道（灯光动画 + 渐变）
+│
+├── Event Track ─────────────────────────────
+│   ├── GameplayEvent_Start      # 演出开始事件（禁用输入/HUD隐藏）
+│   ├── GameplayEvent_End        # 演出结束事件（恢复控制/触发后续逻辑）
+│   └── SkipPoint_Markers[]      # 可跳过检查点标记
+│
+└── Fade Track ──────────────────────────────
+    ├── FadeIn (0~0.5s)          # 入场淡入
+    └── FadeOut (end-0.5s~end)   # 结束淡出
+</pre>
+
+<h3>6.2 分层职责与锁定规则</h3>
+<table>
+<tr><th>子 Sequence</th><th>负责人</th><th>锁定策略</th><th>说明</th></tr>
+<tr><td>_Cam</td><td>演出导演 / Layout 师</td><td>Layout 完成后锁定</td><td>镜头切换、FOV、运镜曲线</td></tr>
+<tr><td>_Anim</td><td>动画师</td><td>精调完成后锁定</td><td>角色骨骼动画、Additive 层</td></tr>
+<tr><td>_FX</td><td>特效师</td><td>Polish 完成后锁定</td><td>粒子系统、后处理体积</td></tr>
+<tr><td>_Audio</td><td>音频设计师</td><td>音频集成完成后锁定</td><td>Wwise Event 绑定、音量曲线</td></tr>
+<tr><td>_Light</td><td>灯光师 / TA</td><td>与 FX 同步锁定</td><td>关键灯光 + 氛围光动画</td></tr>
+<tr><td>_Master</td><td>演出 Lead</td><td>终验收后锁定</td><td>统筹时间线、Event Track</td></tr>
+</table>
+
+<div class="alert alert-red">🚫 <strong>禁止行为：</strong>在他人锁定的子 Sequence 中直接修改——必须通过 TAPD 提解锁申请或在 Perforce 中请求锁文件转移。</div>
+
+<h3>6.3 Shot Section 规范</h3>
+<p>每个 Master Sequence 中使用 <strong>Shot Section</strong> 划分镜头，每个 Shot 对应分镜板一帧/一组：</p>
+<table>
+<tr><th>规则</th><th>说明</th></tr>
+<tr><td>Shot 命名</td><td><code>Shot_{3位序号}_{景别缩写}</code>，如 <code>Shot_001_CU</code></td></tr>
+<tr><td>过渡帧</td><td>相邻 Shot 重叠 2~4 帧用于转场混合</td></tr>
+<tr><td>标记点</td><td>每个 Shot 起始帧添加 Marker（颜色按景别区分）</td></tr>
+<tr><td>空镜处理</td><td>无角色的纯环境镜头仍需保留 Shot 容器</td></tr>
+</table>
+</div>
+
+<!-- 第7节 -->
+<div class="section" id="sec7">
+<h2>🎥 7. 镜头语言标准</h2>
+
+<h3>7.1 景别定义</h3>
+<table>
+<tr><th>景别</th><th>代号</th><th>取景范围</th><th>常用场景</th><th>FOV 参考</th></tr>
+<tr><td>极特写</td><td>ECU</td><td>眼/嘴/手部细节</td><td>情绪爆发点、物件线索</td><td>20~30°</td></tr>
+<tr><td>特写</td><td>CU</td><td>头 + 肩</td><td>对话、表情演技</td><td>30~40°</td></tr>
+<tr><td>中景</td><td>MS</td><td>腰部以上</td><td>日常对话、肢体语言</td><td>40~55°</td></tr>
+<tr><td>全身</td><td>FS</td><td>完整人物</td><td>动作展示、登场亮相</td><td>55~70°</td></tr>
+<tr><td>远景</td><td>LS</td><td>人物 + 较大环境</td><td>场景建立、空间关系</td><td>70~90°</td></tr>
+<tr><td>大远景</td><td>ELS</td><td>全景鸟瞰</td><td>史诗开场、世界观展示</td><td>90~120°</td></tr>
+</table>
+
+<h3>7.2 运镜模式库</h3>
+<table>
+<tr><th>运镜类型</th><th>英文</th><th>适用场景</th><th>速度参考（单位/帧）</th><th>注意事项</th></tr>
+<tr><td>推镜</td><td>Dolly In</td><td>聚焦、强调、紧迫感</td><td>0.5~2 单位/帧</td><td>不可过快导致晕眩</td></tr>
+<tr><td>拉镜</td><td>Dolly Out</td><td>揭示全貌、结束段落</td><td>0.5~2 单位/帧</td><td>配合淡出效果更佳</td></tr>
+<tr><td>摇镜（水平）</td><td>Pan</td><td>横向展示空间/跟随</td><td>0.3~1.5°/帧</td><td>匀速为主，忌急停</td></tr>
+<tr><td>摇镜（垂直）</td><td>Tilt</td><td>展示纵向尺度（高塔/瀑布）</td><td>0.3~1.5°/帧</td><td>—</td></tr>
+<tr><td>跟镜</td><td>Tracking</td><td>跟随角色移动</td><td>匹配角色速度</td><td>微量阻尼增加真实感</td></tr>
+<tr><td>环绕</td><td>Orbit</td><td>360° 展示/登场亮相</td><td>1~3°/帧</td><td>环绕角度不超过 270°</td></tr>
+<tr><td>升降</td><td>Crane</td><td>史诗感升华/俯冲</td><td>自定义曲线</td><td>配合 FOV 缩放效果更佳</td></tr>
+<tr><td>手持/晃动</td><td>Handheld</td><td>紧张/战斗/纪实感</td><td>Noise 振幅 0.2~0.8</td><td>振幅不可超过 1.0</td></tr>
+<tr><td>慢动作</td><td>Slow-Mo</td><td>打击瞬间/关键节点</td><td>时间膨胀 0.1~0.3x</td><td>需提前提升采样率</td></tr>
+</table>
+
+<h3>7.3 转场标准</h3>
+<table>
+<tr><th>转场类型</th><th>时长范围</th><th>适用场景</th><th>实现方式</th></tr>
+<tr><td>硬切 (Cut)</td><td>0 帧</td><td>快节奏、对话正反打</td><td>Shot 直接切换</td></tr>
+<tr><td>溶解 (Dissolve)</td><td>8~24 帧</td><td>时间流逝、回忆闪回</td><td>PostProcess Material</td></tr>
+<tr><td>淡入/淡出 (Fade)</td><td>12~30 帧</td><td>段落开始/结束</td><td>Fade Track</td></tr>
+<tr><td>划入 (Wipe)</td><td>8~16 帧</td><td>并列叙事、漫画感</td><td>Custom Transition Material</td></tr>
+<tr><td>匹配切 (Match Cut)</td><td>0~4 帧</td><td>视觉呼应（形状/动作匹配）</td><td>精确对齐两镜关键帧</td></tr>
+<tr><td>闪白 (Flash)</td><td>4~8 帧</td><td>爆炸、觉醒、变身</td><td>PostProcess Exposure Spike</td></tr>
+</table>
+</div>
+
+<!-- 第8节 -->
+<div class="section" id="sec8">
+<h2>🚦 8. 性能预算与红线</h2>
+
+<h3>8.1 实时演出性能红线（移动端）</h3>
+<table>
+<tr><th>指标</th><th>红线值</th><th>目标值</th><th>测量方法</th></tr>
+<tr><td>帧率</td><td>≥ 30 fps（低端机）</td><td>≥ 45 fps</td><td>演出全程 Stat FPS</td></tr>
+<tr><td>Draw Call</td><td>≤ 600</td><td>≤ 400</td><td>RenderDoc / Stat SceneRendering</td></tr>
+<tr><td>三角面</td><td>≤ 200 万</td><td>≤ 120 万</td><td>Stat RHI</td></tr>
+<tr><td>粒子数量</td><td>≤ 5000 粒子同屏</td><td>≤ 3000</td><td>Niagara Debugger</td></tr>
+<tr><td>灯光数量</td><td>≤ 4 动态光</td><td>≤ 2 动态光</td><td>含 Movable 类型</td></tr>
+<tr><td>内存增量</td><td>≤ 80 MB（演出期间）</td><td>≤ 50 MB</td><td>演出前后 Memory Diff</td></tr>
+<tr><td>加载时间</td><td>≤ 3 秒（进入演出）</td><td>≤ 1.5 秒</td><td>Stream Level 异步预加载</td></tr>
+<tr><td>音频内存</td><td>≤ 20 MB（演出音频包）</td><td>≤ 12 MB</td><td>Wwise Profiler</td></tr>
+</table>
+
+<h3>8.2 PC / 主机端性能红线</h3>
+<table>
+<tr><th>指标</th><th>红线值</th><th>说明</th></tr>
+<tr><td>帧率</td><td>≥ 60 fps</td><td>支持 4K 下 ≥ 30 fps</td></tr>
+<tr><td>Draw Call</td><td>≤ 2000</td><td>含半透明排序</td></tr>
+<tr><td>三角面</td><td>≤ 800 万</td><td>含细节 LOD0</td></tr>
+<tr><td>Ray Tracing</td><td>≤ 2 Bounce GI + Reflection</td><td>仅高配开启</td></tr>
+</table>
+
+<h3>8.3 性能优化 Checklist</h3>
+<ul class="checklist">
+<li>演出场景使用独立 Streaming Level，演出结束后立即 Unload</li>
+<li>角色仅保留演出所需骨骼（非全身 Full-body 时剔除下半身）</li>
+<li>粒子系统设置 MaxCount + Auto-Deactivate</li>
+<li>相机视锥外物体启用 Visibility Culling</li>
+<li>光照烘焙 LightMap 用于静态物体，动态光仅照关键角色</li>
+<li>后处理体积限定在 Sequence 时间范围内激活</li>
+<li>音频资源使用 Stream 模式加载（非 Resident）</li>
+<li>低端机降级方案：关闭 DOF / Motion Blur / Volumetric Fog</li>
+</ul>
+</div>
+
+<!-- 第9节 -->
+<div class="section" id="sec9">
+<h2>🔐 9. 多人协作与锁规范</h2>
+
+<h3>9.1 Perforce Workspace 规则</h3>
+<table>
+<tr><th>规则</th><th>说明</th></tr>
+<tr><td>独占锁</td><td>所有 <code>.uasset</code>（Sequence / AnimSequence）默认使用 Exclusive Checkout</td></tr>
+<tr><td>分支策略</td><td>演出资产禁止在 feature branch 中修改——统一在 <code>cinematic/dev</code> Stream 操作</td></tr>
+<tr><td>锁定时长</td><td>单次锁定不超过 4 小时，超时自动通知并可强制解锁</td></tr>
+<tr><td>提交粒度</td><td>每次提交仅含一个演出单元（一个 Master + 其子 Sequence）</td></tr>
+<tr><td>提交备注</td><td>格式：<code>[CUT] {演出ID} - {阶段} - {变更摘要}</code></td></tr>
+</table>
+
+<h3>9.2 提交备注示例</h3>
+<pre>
+[CUT] CUT_MS_C01_001 - Layout - 镜头01-05粗动完成
+[CUT] CUT_BT_ULT_Char01 - Polish - 特效粒子替换+光照调整
+[CUT] CUT_MS_C01_001 - AudioIntegration - 绑定BGM+音效Event
+[CUT] CUT_GA_SSR_NewChar - TechReview - 修复低端机掉帧问题
+</pre>
+
+<h3>9.3 冲突预防机制</h3>
+<table>
+<tr><th>场景</th><th>预防方案</th></tr>
+<tr><td>同一演出多人修改</td><td>子 Sequence 分层隔离，各自仅 Checkout 自己负责的子 Sequence</td></tr>
+<tr><td>共享资源冲突</td><td><code>_Shared/</code> 文件夹专人维护（TA Lead），变更需走 Code Review</td></tr>
+<tr><td>Layout 与 Anim 时序冲突</td><td>Layout 锁定后 Anim 才可开始——通过 TAPD 状态机自动校验</td></tr>
+<tr><td>紧急热修</td><td>使用 Shelve 临时保存 → 切换到 hotfix Stream → 单独提交</td></tr>
+</table>
+</div>
+
+<!-- 第10节 -->
+<div class="section" id="sec10">
+<h2>👥 10. RACI 责任矩阵</h2>
+
+<table>
+<tr><th>阶段 / 角色</th><th>演出导演</th><th>分镜师</th><th>动画师</th><th>特效师</th><th>音频设计</th><th>TA</th><th>策划</th><th>制作人</th></tr>
+<tr><td>分镜策划</td><td>A</td><td>R</td><td>C</td><td>I</td><td>I</td><td>I</td><td>R</td><td>I</td></tr>
+<tr><td>分镜评审</td><td>R</td><td>C</td><td>C</td><td>I</td><td>I</td><td>I</td><td>A</td><td>I</td></tr>
+<tr><td>Layout</td><td>A</td><td>C</td><td>R</td><td>I</td><td>I</td><td>C</td><td>I</td><td>I</td></tr>
+<tr><td>动画精调</td><td>C</td><td>I</td><td>R</td><td>I</td><td>I</td><td>C</td><td>I</td><td>I</td></tr>
+<tr><td>特效/光照</td><td>C</td><td>I</td><td>I</td><td>R</td><td>I</td><td>A</td><td>I</td><td>I</td></tr>
+<tr><td>音频集成</td><td>C</td><td>I</td><td>I</td><td>I</td><td>R</td><td>C</td><td>I</td><td>I</td></tr>
+<tr><td>技术审查</td><td>C</td><td>I</td><td>I</td><td>C</td><td>I</td><td>R</td><td>I</td><td>A</td></tr>
+<tr><td>终验收</td><td>R</td><td>I</td><td>I</td><td>I</td><td>I</td><td>C</td><td>C</td><td>A</td></tr>
+</table>
+<p style="font-size:13px;color:var(--dim);">R=负责执行 | A=最终审批 | C=需咨询 | I=需知会</p>
+</div>
+
+<!-- 第11节 -->
+<div class="section" id="sec11">
+<h2>✅ 11. 质量验收标准</h2>
+
+<h3>11.1 视觉质量评分卡</h3>
+<table>
+<tr><th>维度</th><th>权重</th><th>评分标准（1~5 分）</th><th>不合格阈值</th></tr>
+<tr><td>镜头节奏</td><td>25%</td><td>镜头时长合理、切换流畅、节奏感强</td><td>&lt;3 分</td></tr>
+<tr><td>角色表演</td><td>25%</td><td>动作自然、表情到位、无穿模/滑步</td><td>&lt;3 分</td></tr>
+<tr><td>光影氛围</td><td>20%</td><td>光照层次分明、色调统一、无漏光</td><td>&lt;3 分</td></tr>
+<tr><td>特效/音画同步</td><td>15%</td><td>音效同步、特效节奏匹配、无延迟</td><td>&lt;3 分</td></tr>
+<tr><td>技术稳定性</td><td>15%</td><td>无闪退/掉帧/加载卡顿/黑屏</td><td>&lt;4 分（一票否决）</td></tr>
+</table>
+<div class="alert alert-orange">🎯 <strong>门禁线：</strong>加权总分 ≥ 3.5 分方可通过，任意维度 &lt; 不合格阈值则整体驳回。</div>
+
+<h3>11.2 常见驳回原因 Top 10</h3>
+<table>
+<tr><th>#</th><th>问题</th><th>类别</th><th>修复难度</th></tr>
+<tr><td>1</td><td>角色穿模（手/武器穿入身体/场景）</td><td>动画</td><td><span class="badge badge-yellow">中</span></td></tr>
+<tr><td>2</td><td>镜头抖动/急停（曲线关键帧异常）</td><td>相机</td><td><span class="badge badge-green">低</span></td></tr>
+<tr><td>3</td><td>音画不同步（音效延迟 &gt;3帧）</td><td>音频</td><td><span class="badge badge-green">低</span></td></tr>
+<tr><td>4</td><td>低端机掉帧到 &lt;20fps</td><td>性能</td><td><span class="badge badge-red">高</span></td></tr>
+<tr><td>5</td><td>转场黑屏/闪烁</td><td>技术</td><td><span class="badge badge-yellow">中</span></td></tr>
+<tr><td>6</td><td>角色表情僵硬/嘴型不匹配</td><td>动画</td><td><span class="badge badge-yellow">中</span></td></tr>
+<tr><td>7</td><td>灯光/阴影穿帮（浮空阴影/漏光）</td><td>光照</td><td><span class="badge badge-green">低</span></td></tr>
+<tr><td>8</td><td>字幕超出安全区 / 时序错乱</td><td>UI</td><td><span class="badge badge-green">低</span></td></tr>
+<tr><td>9</td><td>跳过功能失效（按钮无响应/逻辑不触发）</td><td>逻辑</td><td><span class="badge badge-yellow">中</span></td></tr>
+<tr><td>10</td><td>演出后游戏逻辑异常（操控恢复失败）</td><td>逻辑</td><td><span class="badge badge-red">高</span></td></tr>
+</table>
+</div>
+
+<!-- 第12节 -->
+<div class="section" id="sec12">
+<h2>💣 12. 常见问题与踩坑记录</h2>
+
+<h3>Case 1：Master Sequence 丢失引用</h3>
+<div class="alert alert-red">
+<strong>现象：</strong>提交后其他人 Sync 发现 Master Sequence 中子 Sequence 引用断裂。<br>
+<strong>根因：</strong>子 Sequence 文件被移动到新路径，但 Master 中的 Soft Reference 未更新。<br>
+<strong>解法：</strong>① 移动资产前先在 Master 中 Remove Track → 移动文件 → 重新 Add Track；② 使用 <code>Fix Redirectors</code> 命令修复残留重定向器。
+</div>
+
+<h3>Case 2：低端机演出崩溃</h3>
+<div class="alert alert-red">
+<strong>现象：</strong>某必杀技演出在 Mali-G57 GPU 设备上 100% 崩溃。<br>
+<strong>根因：</strong>粒子 Ribbon 的材质使用了 4 层 Texture Sample，超出低端 Shader Model 限制。<br>
+<strong>解法：</strong>① 建立低配材质变体（≤ 2 层采样）；② 在 Device Profile 中设置粒子 Scalability 自动降级。
+</div>
+
+<h3>Case 3：音画同步问题</h3>
+<div class="alert alert-yellow">
+<strong>现象：</strong>对话演出中嘴型与配音不匹配，延迟约 5~8 帧。<br>
+<strong>根因：</strong>Audio Track 中 Wwise Event 的 Pre-Roll 未与 Animation Notify 对齐。<br>
+<strong>解法：</strong>① 在 Audio Sequence 中使用 <code>Section Start Offset</code> 预偏移；② 统一规定音频 Event 触发点为嘴型动画起始帧 -2 帧。
+</div>
+
+<h3>Case 4：多平台字幕安全区</h3>
+<div class="alert alert-yellow">
+<strong>现象：</strong>iPad Pro 上字幕被刘海/Home Indicator 遮挡。<br>
+<strong>根因：</strong>字幕 Widget 未考虑 Safe Area Padding。<br>
+<strong>解法：</strong>字幕 Widget 内嵌 <code>SafeZone</code> 节点，底部预留 ≥ 5% 屏幕高度。
+</div>
+
+<h3>Case 5：Perforce 锁死无法提交</h3>
+<div class="alert alert-blue">
+<strong>现象：</strong>动画师 Checkout 了 _Anim 子 Sequence 后请假，其他人无法修改。<br>
+<strong>解法：</strong>① Admin 强制解锁 + Shelve 该用户未提交变更；② 流程改进：设置 4 小时锁定超时自动通知机制。
+</div>
+
+<div class="alert alert-green" style="margin-top:24px">
+📌 <strong>持续更新：</strong>本文档随项目迭代持续补充踩坑案例。发现新问题请在 TAPD 中创建「演出踩坑」标签的 Issue，由演出 Lead 定期归档至本文档。
+</div>
+</div>
+
+</div>
+</body>
+</html>

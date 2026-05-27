@@ -446,6 +446,36 @@
               "craft": "AIGC"
             }
           ]
+        },
+        {
+          "name": "过场演出",
+          "icon": "🎬",
+          "items": [
+            {
+              "id": "cutscene-asset-spec",
+              "icon": "🎬",
+              "title": "过场演出资产管理规范",
+              "type": "iframe",
+              "file": "knowledge-base/cutscene-asset-spec.html",
+              "badge": "演出",
+              "craft": "演出"
+            }
+          ]
+        },
+        {
+          "name": "音频",
+          "icon": "🎵",
+          "items": [
+            {
+              "id": "audio-asset-spec",
+              "icon": "🎵",
+              "title": "音频资产管理规范",
+              "type": "iframe",
+              "file": "knowledge-base/audio-asset-spec.html",
+              "badge": "音频",
+              "craft": "音频"
+            }
+          ]
         }
       ]
     },

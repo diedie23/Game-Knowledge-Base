@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>音频资产管理规范</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--pink:#f472b6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1400px;margin:0 auto;padding:32px 24px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:12px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.section h3{font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:15px;margin-bottom:12px;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-cyan{background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);color:var(--cyan)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.flow-diagram{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0;padding:16px;background:var(--card);border-radius:10px;border:1px solid var(--border)}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;text-align:center;min-width:100px}
+.flow-node.highlight{border-color:var(--cyan);background:rgba(34,211,238,.08)}
+.flow-arrow{color:var(--dim);font-size:18px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:16px 0}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.kpi-card .kpi-value{font-size:24px;font-weight:700;color:var(--cyan);margin:4px 0}
+.kpi-card .kpi-label{font-size:12px;color:var(--dim)}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.badge-orange{background:rgba(251,146,60,.15);color:var(--orange)}
+.badge-blue{background:rgba(96,165,250,.15);color:var(--blue)}
+.badge-cyan{background:rgba(34,211,238,.15);color:var(--cyan)}
+.checklist{list-style:none;padding:0;margin:12px 0}
+.checklist li{padding:6px 0;font-size:14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px}
+.checklist li::before{content:'☐';color:var(--cyan);font-weight:bold;flex-shrink:0}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:768px){.two-col{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+<h1>🎵 音频资产管理规范 <span class="ver">v1.0</span></h1>
+<p class="subtitle">Game Audio Asset Management Specification</p>
+<div class="meta">
+<span>📅 2026-05-27</span>
+<span>👤 音频组 × 美术管理 × TA × 策划</span>
+<span>🏷️ 音频 · Wwise · FMOD · 配音 · SFX · BGM · 资产管理</span>
+</div>
+</div>
+
+<!-- 目录 -->
+<div class="toc">
+<h3>📑 目录</h3>
+<ol>
+<li><a href="#sec1">概述与适用范围</a></li>
+<li><a href="#sec2">音频资源分类体系</a></li>
+<li><a href="#sec3">中间件集成规范（Wwise / FMOD）</a></li>
+<li><a href="#sec4">目录结构与命名规范</a></li>
+<li><a href="#sec5">技术规格标准</a></li>
+<li><a href="#sec6">音量标准与响度规范</a></li>
+<li><a href="#sec7">音频状态机与实时混音</a></li>
+<li><a href="#sec8">语音本地化工作流</a></li>
+<li><a href="#sec9">打包策略与内存管理</a></li>
+<li><a href="#sec10">制作流程与交付 SOP</a></li>
+<li><a href="#sec11">RACI 责任矩阵</a></li>
+<li><a href="#sec12">质量验收标准</a></li>
+<li><a href="#sec13">常见问题与踩坑记录</a></li>
+</ol>
+</div>
+
+<!-- 第1节 -->
+<div class="section" id="sec1">
+<h2>📋 1. 概述与适用范围</h2>
+<p>本规范定义了游戏项目中所有 <strong>音频资产（Audio Assets）</strong> 的分类标准、制作规格、集成流程、版本管理和质量门禁。覆盖 BGM、SFX、环境音、语音（VO）、UI 音效五大类别。</p>
+
+<h3>适用项目类型</h3>
+<table>
+<tr><th>项目类型</th><th>音频中间件</th><th>引擎</th><th>典型规模</th></tr>
+<tr><td>手游（二次元 / MMO）</td><td>Wwise / CRI ADX2</td><td>Unity / UE5</td><td>5000~20000 音频事件</td></tr>
+<tr><td>端游 / 主机</td><td>Wwise / FMOD Studio</td><td>UE5 / 自研引擎</td><td>20000~80000 音频事件</td></tr>
+<tr><td>小型/独立游戏</td><td>FMOD / 引擎原生</td><td>Unity / Godot</td><td>500~3000 音频事件</td></tr>
+</table>
+
+<div class="alert alert-cyan">💡 <strong>核心原则：</strong>声音是游戏世界的"第二画面"——优秀的音频设计让玩家"闭眼也能感知游戏状态"。所有音频规范围绕<strong>沉浸感</strong>、<strong>信息传达</strong>和<strong>性能可控</strong>三大目标展开。</div>
+</div>
+
+<!-- 第2节 -->
+<div class="section" id="sec2">
+<h2>🎯 2. 音频资源分类体系</h2>
+
+<h3>2.1 一级分类</h3>
+<table>
+<tr><th>类别</th><th>代号</th><th>说明</th><th>典型数量占比</th><th>内存权重</th></tr>
+<tr><td>🎼 BGM（背景音乐）</td><td>BGM</td><td>场景/战斗/剧情背景音乐</td><td>5%</td><td>35%</td></tr>
+<tr><td>💥 SFX（音效）</td><td>SFX</td><td>技能/打击/环境交互音效</td><td>55%</td><td>30%</td></tr>
+<tr><td>🌳 AMB（环境音）</td><td>AMB</td><td>场景氛围层/天气/环境循环</td><td>10%</td><td>15%</td></tr>
+<tr><td>🗣️ VO（语音/配音）</td><td>VO</td><td>角色台词/旁白/系统播报</td><td>25%</td><td>15%</td></tr>
+<tr><td>🔘 UI（界面音效）</td><td>UI</td><td>按钮点击/弹窗/抽卡结果音</td><td>5%</td><td>5%</td></tr>
+</table>
+
+<h3>2.2 二级分类细表</h3>
+<table>
+<tr><th>一级类别</th><th>二级分类</th><th>前缀</th><th>说明</th></tr>
+<tr><td rowspan="4">BGM</td><td>场景 BGM</td><td><code>BGM_Scene_</code></td><td>主城/副本/野外/大厅</td></tr>
+<tr><td>战斗 BGM</td><td><code>BGM_Battle_</code></td><td>PVE/PVP/Boss 战</td></tr>
+<tr><td>剧情 BGM</td><td><code>BGM_Story_</code></td><td>过场/对话/回忆</td></tr>
+<tr><td>活动 BGM</td><td><code>BGM_Event_</code></td><td>节日/赛季/限时活动</td></tr>
+<tr><td rowspan="6">SFX</td><td>角色技能</td><td><code>SFX_Skill_</code></td><td>施法/命中/终结</td></tr>
+<tr><td>武器/打击</td><td><code>SFX_Weapon_</code></td><td>挥砍/射击/爆炸</td></tr>
+<tr><td>移动/步伐</td><td><code>SFX_Footstep_</code></td><td>按材质分（草/石/木/金属）</td></tr>
+<tr><td>物理交互</td><td><code>SFX_Physics_</code></td><td>碰撞/掉落/破碎</td></tr>
+<tr><td>NPC/怪物</td><td><code>SFX_Creature_</code></td><td>嘶吼/受击/死亡</td></tr>
+<tr><td>系统/反馈</td><td><code>SFX_System_</code></td><td>升级/完成/错误</td></tr>
+<tr><td rowspan="3">AMB</td><td>自然环境</td><td><code>AMB_Nature_</code></td><td>风/雨/鸟鸣/溪流</td></tr>
+<tr><td>城市/室内</td><td><code>AMB_Urban_</code></td><td>街道喧嚣/酒馆/工坊</td></tr>
+<tr><td>特殊空间</td><td><code>AMB_Special_</code></td><td>地牢/太空/水下</td></tr>
+<tr><td rowspan="4">VO</td><td>角色战斗语音</td><td><code>VO_Battle_</code></td><td>技能喊招/受击/死亡/胜利</td></tr>
+<tr><td>角色对话</td><td><code>VO_Dialogue_</code></td><td>主线/支线/日常</td></tr>
+<tr><td>系统播报</td><td><code>VO_System_</code></td><td>教程引导/倒计时/公告</td></tr>
+<tr><td>角色待机</td><td><code>VO_Idle_</code></td><td>好感度/节日/生日</td></tr>
+<tr><td rowspan="3">UI</td><td>通用交互</td><td><code>UI_Common_</code></td><td>点击/悬浮/切换</td></tr>
+<tr><td>特殊反馈</td><td><code>UI_Special_</code></td><td>抽卡出金/成就解锁/警告</td></tr>
+<tr><td>导航/切换</td><td><code>UI_Nav_</code></td><td>页面切换/Tab 切换/返回</td></tr>
+</table>
+</div>
+
+<!-- 第3节 -->
+<div class="section" id="sec3">
+<h2>⚙️ 3. 中间件集成规范（Wwise / FMOD）</h2>
+
+<h3>3.1 Wwise 项目结构规范</h3>
+<pre>
+Wwise Project/
+├── Actor-Mixer Hierarchy/
+│   ├── BGM/                        # 所有背景音乐
+│   │   ├── BGM_Scene/
+│   │   ├── BGM_Battle/
+│   │   └── BGM_Story/
+│   ├── SFX/                        # 所有音效
+│   │   ├── SFX_Character/          # 按角色分组
+│   │   ├── SFX_Weapon/
+│   │   ├── SFX_Environment/
+│   │   └── SFX_System/
+│   ├── AMB/                        # 环境音
+│   ├── VO/                         # 语音
+│   │   ├── VO_{Language}/          # 按语种分
+│   │   └── ...
+│   └── UI/                         # UI 音效
+├── Interactive Music Hierarchy/
+│   └── (BGM 交互音乐系统)
+├── Events/
+│   ├── Play_BGM_*                  # 播放事件
+│   ├── Stop_BGM_*                  # 停止事件
+│   ├── Play_SFX_*
+│   ├── Play_VO_*
+│   └── Set_State_*                 # 状态切换
+├── SoundBanks/
+│   ├── Bank_Init                   # 初始化 Bank（必载）
+│   ├── Bank_Common                 # 通用音效 Bank
+│   ├── Bank_BGM_Scene_{区域}       # 按场景分 Bank
+│   ├── Bank_VO_{语种}_{章节}       # 按语种+章节分 Bank
+│   └── Bank_Character_{角色ID}     # 按角色分 Bank
+├── Game Syncs/
+│   ├── States/                     # 状态组（战斗/探索/菜单...）
+│   ├── Switches/                   # 切换组（材质/武器类型...）
+│   └── RTPCs/                      # 实时参数（距离/血量/速度...）
+└── Busses/
+    ├── Master Audio Bus
+    ├── BGM_Bus
+    ├── SFX_Bus
+    ├── VO_Bus
+    ├── AMB_Bus
+    └── UI_Bus
+</pre>
+
+<h3>3.2 FMOD Studio 项目结构规范</h3>
+<pre>
+FMOD Project/
+├── Events/
+│   ├── BGM/
+│   ├── SFX/
+│   ├── AMB/
+│   ├── VO/
+│   └── UI/
+├── Mixer/
+│   ├── Master (Routing)
+│   ├── BGM Group
+│   ├── SFX Group
+│   ├── VO Group
+│   ├── AMB Group
+│   └── UI Group
+├── Banks/
+│   ├── Master.bank
+│   ├── Master.strings.bank
+│   ├── BGM_{场景}.bank
+│   ├── SFX_Common.bank
+│   ├── VO_{语种}.bank
+│   └── ...
+├── Parameters/
+│   ├── Distance (连续)
+│   ├── Health (连续)
+│   ├── GameState (离散: Explore/Battle/Menu)
+│   └── SurfaceType (离散: Grass/Stone/Wood/Metal)
+└── Snapshots/
+    ├── Snapshot_Battle (战斗时 ducking BGM)
+    ├── Snapshot_Cutscene (过场时 mute SFX)
+    └── Snapshot_Pause (暂停时 lowpass 全部)
+</pre>
+
+<h3>3.3 Event 命名规范</h3>
+<table>
+<tr><th>操作类型</th><th>命名规则</th><th>示例</th></tr>
+<tr><td>播放</td><td><code>Play_{类别}_{描述}</code></td><td><code>Play_SFX_Skill_FireBall_Cast</code></td></tr>
+<tr><td>停止</td><td><code>Stop_{类别}_{描述}</code></td><td><code>Stop_BGM_Battle_Boss01</code></td></tr>
+<tr><td>暂停/恢复</td><td><code>Pause_{描述}</code> / <code>Resume_{描述}</code></td><td><code>Pause_BGM_All</code></td></tr>
+<tr><td>设置状态</td><td><code>Set_State_{组}_{值}</code></td><td><code>Set_State_GameMode_Battle</code></td></tr>
+<tr><td>设置切换</td><td><code>Set_Switch_{组}_{值}</code></td><td><code>Set_Switch_Surface_Stone</code></td></tr>
+<tr><td>设置参数</td><td><code>Set_RTPC_{参数名}</code></td><td><code>Set_RTPC_PlayerHealth</code></td></tr>
+</table>
+
+<div class="alert alert-blue">💡 <strong>Event 设计原则：</strong>Event 是程序调用的"接口"——命名应让程序员无需文档即可理解意图。禁止使用私人缩写或内部编号。</div>
+</div>
+
+<!-- 第4节 -->
+<div class="section" id="sec4">
+<h2>📂 4. 目录结构与命名规范</h2>
+
+<h3>4.1 源文件目录结构（工作目录）</h3>
+<pre>
+/Audio_Source/                           # 音频源文件根目录（不进引擎）
+├── BGM/
+│   ├── Composed/                       # 已完成混缩的 BGM
+│   │   └── BGM_Scene_MainCity_v02.wav
+│   └── WIP/                            # 制作中版本
+├── SFX/
+│   ├── Recorded/                       # 录制原始素材
+│   ├── Designed/                       # 设计完成版
+│   └── Variations/                     # 变体（随机播放池）
+├── AMB/
+│   ├── Loops/                          # 循环素材
+│   └── OneShots/                       # 一次性触发
+├── VO/
+│   ├── Script/                         # 配音脚本
+│   ├── Raw/                            # 录制原始文件
+│   │   └── {Language}/{CharID}/
+│   ├── Edited/                         # 剪辑降噪后
+│   └── Final/                          # 最终交付版
+│       └── {Language}/{CharID}/
+└── UI/
+    └── Designed/
+</pre>
+
+<h3>4.2 引擎内目录结构</h3>
+<pre>
+/Content/Audio/                          # 引擎内音频资产
+├── Wwise/                              # Wwise Generated SoundBanks
+│   ├── Windows/
+│   ├── Android/
+│   └── iOS/
+├── WwiseProject/                       # Wwise 工程文件（可选入库）
+├── Events/                             # 蓝图中引用的 AkAudioEvent
+├── AuxBus/                             # Reverb / Effect 配置
+└── RTPC/                               # 参数控制曲线
+</pre>
+
+<h3>4.3 文件命名规范</h3>
+<table>
+<tr><th>资产类型</th><th>命名规则</th><th>示例</th></tr>
+<tr><td>BGM 源文件</td><td><code>BGM_{场景/功能}_{描述}_v{版本}.wav</code></td><td><code>BGM_Scene_MainCity_Peaceful_v03.wav</code></td></tr>
+<tr><td>SFX 源文件</td><td><code>SFX_{分类}_{描述}_{变体号}.wav</code></td><td><code>SFX_Weapon_Sword_Slash_01.wav</code></td></tr>
+<tr><td>AMB 循环</td><td><code>AMB_{环境}_{描述}_Loop.wav</code></td><td><code>AMB_Nature_Forest_Birds_Loop.wav</code></td></tr>
+<tr><td>VO 文件</td><td><code>VO_{语种}_{角色ID}_{场景}_{序号}.wav</code></td><td><code>VO_JP_Char01_Battle_Skill01.wav</code></td></tr>
+<tr><td>UI 音效</td><td><code>UI_{功能}_{描述}.wav</code></td><td><code>UI_Common_ButtonClick.wav</code></td></tr>
+<tr><td>SoundBank</td><td><code>Bank_{分类}_{描述}</code></td><td><code>Bank_BGM_Chapter01</code></td></tr>
+</table>
+
+<h3>4.4 命名正则校验</h3>
+<pre>
+# BGM
+^BGM_(Scene|Battle|Story|Event)_[A-Za-z0-9]+(_[A-Za-z0-9]+)*(_v\d{2})?\.wav$
+
+# SFX
+^SFX_(Skill|Weapon|Footstep|Physics|Creature|System)_[A-Za-z0-9]+(_[A-Za-z0-9]+)*_\d{2}\.wav$
+
+# VO
+^VO_(CN|JP|KR|EN)_Char\d{2,4}_[A-Za-z]+_[A-Za-z0-9]+\.wav$
+
+# UI
+^UI_(Common|Special|Nav)_[A-Za-z0-9]+\.wav$
+</pre>
+</div>
+
+<!-- 第5节 -->
+<div class="section" id="sec5">
+<h2>📐 5. 技术规格标准</h2>
+
+<h3>5.1 源文件规格</h3>
+<table>
+<tr><th>类别</th><th>采样率</th><th>位深</th><th>声道</th><th>格式</th><th>时长限制</th></tr>
+<tr><td>BGM</td><td>48 kHz</td><td>24 bit</td><td>Stereo</td><td>WAV（LPCM）</td><td>单曲 ≤ 5 min</td></tr>
+<tr><td>SFX</td><td>48 kHz</td><td>24 bit</td><td>Mono / Stereo</td><td>WAV（LPCM）</td><td>单条 ≤ 10s</td></tr>
+<tr><td>AMB</td><td>48 kHz</td><td>24 bit</td><td>Stereo / Quad</td><td>WAV（LPCM）</td><td>循环段 ≤ 2 min</td></tr>
+<tr><td>VO</td><td>48 kHz</td><td>24 bit</td><td>Mono</td><td>WAV（LPCM）</td><td>单句 ≤ 30s</td></tr>
+<tr><td>UI</td><td>48 kHz</td><td>16/24 bit</td><td>Mono</td><td>WAV（LPCM）</td><td>单条 ≤ 3s</td></tr>
+</table>
+
+<h3>5.2 运行时编码格式</h3>
+<table>
+<tr><th>平台</th><th>BGM 编码</th><th>SFX 编码</th><th>VO 编码</th><th>说明</th></tr>
+<tr><td>iOS</td><td>AAC / Vorbis</td><td>ADPCM / PCM</td><td>Vorbis Q4~Q6</td><td>AAC 硬解省 CPU</td></tr>
+<tr><td>Android</td><td>Vorbis Q6~Q8</td><td>ADPCM / Vorbis Q4</td><td>Vorbis Q4~Q6</td><td>兼容性优先</td></tr>
+<tr><td>PC / 主机</td><td>Vorbis Q8 / PCM</td><td>PCM / ADPCM</td><td>Vorbis Q6</td><td>品质优先</td></tr>
+<tr><td>Switch</td><td>Opus / ADPCM</td><td>ADPCM</td><td>Opus</td><td>内存敏感</td></tr>
+</table>
+
+<h3>5.3 关键技术指标</h3>
+<table>
+<tr><th>指标</th><th>标准</th><th>说明</th></tr>
+<tr><td>底噪</td><td>≤ -60 dBFS</td><td>静默段测量，VO 要求更严格 ≤ -65 dBFS</td></tr>
+<tr><td>Peak（峰值）</td><td>≤ -1 dBTP</td><td>True Peak 不可超过 -1 dB</td></tr>
+<tr><td>DC Offset</td><td>≤ 0.01</td><td>交付前必须消除 DC 偏移</td></tr>
+<tr><td>循环点</td><td>零交叉点 ± 1 sample</td><td>Loop 素材必须在零交叉点剪辑</td></tr>
+<tr><td>头尾静默</td><td>头: 0~5ms / 尾: ≤ 50ms</td><td>SFX 不含多余静默（影响触发响应）</td></tr>
+<tr><td>采样率转换</td><td>禁止上采样</td><td>44.1k → 48k 必须使用 SRC 高质量插值</td></tr>
+</table>
+
+<div class="alert alert-red">🚫 <strong>禁止行为：</strong>① 提交 MP3 作为源文件（有损不可逆）；② 源文件采样率低于 44.1kHz；③ VO 文件包含环境噪声/呼吸声未处理；④ 循环素材首尾有爆音 Click。</div>
+</div>
+
+<!-- 第6节 -->
+<div class="section" id="sec6">
+<h2>🔊 6. 音量标准与响度规范</h2>
+
+<h3>6.1 响度目标（LUFS）</h3>
+<table>
+<tr><th>类别</th><th>目标响度</th><th>容差范围</th><th>测量工具</th></tr>
+<tr><td>BGM（探索）</td><td>-20 LUFS</td><td>±2 LUFS</td><td>Wwise Loudness Meter / iZotope Insight</td></tr>
+<tr><td>BGM（战斗）</td><td>-16 LUFS</td><td>±2 LUFS</td><td>同上</td></tr>
+<tr><td>SFX（常规）</td><td>-18 LUFS (瞬态)</td><td>±3 LUFS</td><td>Short-term 测量</td></tr>
+<tr><td>SFX（打击/爆炸）</td><td>-12 LUFS (峰值)</td><td>±2 LUFS</td><td>同上</td></tr>
+<tr><td>VO（对话）</td><td>-16 LUFS</td><td>±1 LUFS</td><td>统一 VO 响度至关重要</td></tr>
+<tr><td>AMB</td><td>-26 LUFS</td><td>±3 LUFS</td><td>长时间段落测量</td></tr>
+<tr><td>UI</td><td>-20 LUFS</td><td>±2 LUFS</td><td>—</td></tr>
+</table>
+
+<h3>6.2 混音层级关系</h3>
+<pre>
+优先级从高到低（同时播放时的 Ducking 策略）：
+
+┌─────────────────────────────────────────────────────┐
+│ 1. VO（对话/播报）    — 最高优先级，播放时 Duck 其他层 │
+│ 2. UI 音效           — 反馈确定性，不被 Duck           │
+│ 3. SFX（玩家操作）   — 玩家行为的即时反馈              │
+│ 4. SFX（环境/NPC）   — 世界反馈                        │
+│ 5. BGM              — 氛围底层，被 VO 触发时 -6~-12dB  │
+│ 6. AMB              — 最低层，填充空间                  │
+└─────────────────────────────────────────────────────┘
+</pre>
+
+<h3>6.3 Ducking 规则表</h3>
+<table>
+<tr><th>触发条件</th><th>被 Duck 对象</th><th>衰减量</th><th>Attack</th><th>Release</th></tr>
+<tr><td>VO 播放</td><td>BGM + AMB</td><td>-8 dB</td><td>200 ms</td><td>500 ms</td></tr>
+<tr><td>战斗 BGM 切入</td><td>AMB</td><td>-12 dB</td><td>500 ms</td><td>1000 ms</td></tr>
+<tr><td>过场演出开始</td><td>SFX_Environment + AMB</td><td>Mute</td><td>300 ms</td><td>300 ms</td></tr>
+<tr><td>暂停菜单</td><td>全部</td><td>Low-Pass 1kHz + -6dB</td><td>200 ms</td><td>200 ms</td></tr>
+<tr><td>关键 UI 弹窗</td><td>BGM</td><td>-4 dB</td><td>100 ms</td><td>300 ms</td></tr>
+</table>
+</div>
+
+<!-- 第7节 -->
+<div class="section" id="sec7">
+<h2>🎛️ 7. 音频状态机与实时混音</h2>
+
+<h3>7.1 Game State 状态定义</h3>
+<table>
+<tr><th>状态组</th><th>状态值</th><th>音频行为</th></tr>
+<tr><td rowspan="5">GameMode</td><td>Explore</td><td>场景 BGM + 环境音 + 脚步声</td></tr>
+<tr><td>Battle</td><td>战斗 BGM + 技能 SFX + 淡出 AMB</td></tr>
+<tr><td>Cutscene</td><td>演出音轨独占 + Mute 其他 SFX</td></tr>
+<tr><td>Menu</td><td>UI BGM + UI SFX Only</td></tr>
+<tr><td>Loading</td><td>Loading BGM / 静音</td></tr>
+<tr><td rowspan="3">CombatPhase</td><td>Normal</td><td>常规战斗配乐 Layer A</td></tr>
+<tr><td>Intense</td><td>叠加高强度 Layer B（鼓点/弦乐加速）</td></tr>
+<tr><td>Boss</td><td>Boss 专属 BGM + 全局 Reverb 增强</td></tr>
+<tr><td rowspan="3">PlayerState</td><td>Alive</td><td>正常音频</td></tr>
+<tr><td>LowHP</td><td>心跳声 Layer + Low-Pass BGM + 紧迫 SFX</td></tr>
+<tr><td>Dead</td><td>全局 Duck + 死亡音效 → Fade Out</td></tr>
+</table>
+
+<h3>7.2 RTPC（实时参数控制）标准</h3>
+<table>
+<tr><th>参数名</th><th>范围</th><th>控制目标</th><th>说明</th></tr>
+<tr><td>RTPC_Distance</td><td>0~100</td><td>SFX Volume + LPF</td><td>3D 音源距离衰减</td></tr>
+<tr><td>RTPC_PlayerHealth</td><td>0~100</td><td>心跳层音量 + BGM LPF</td><td>血量越低效果越强</td></tr>
+<tr><td>RTPC_Speed</td><td>0~50</td><td>风声音量 + Pitch</td><td>速度感音效</td></tr>
+<tr><td>RTPC_TimeOfDay</td><td>0~24</td><td>AMB 昼夜切换</td><td>虫鸣/鸟叫/城市杂音</td></tr>
+<tr><td>RTPC_Reverb_Size</td><td>0~100</td><td>Aux Bus Send Level</td><td>空间大小混响匹配</td></tr>
+<tr><td>RTPC_Underwater</td><td>0~1</td><td>全局 LPF + Reverb</td><td>水下效果</td></tr>
+</table>
+
+<h3>7.3 交互音乐系统设计</h3>
+<p>BGM 采用 <strong>水平分层（Horizontal Re-sequencing）+ 垂直分层（Vertical Layering）</strong> 双轨设计：</p>
+<table>
+<tr><th>技术</th><th>适用场景</th><th>实现方式</th><th>过渡方式</th></tr>
+<tr><td>水平重组</td><td>场景切换 / 战斗阶段切换</td><td>预设过渡段（Transition Segment）</td><td>等待当前 Bar 结束 → 插入过渡 → 新段落</td></tr>
+<tr><td>垂直叠加</td><td>战斗强度变化 / 探索发现</td><td>多轨 Layer + State 控制</td><td>Fade in/out 各 Layer（0.5~2s）</td></tr>
+<tr><td>Stinger</td><td>事件触发一次性音乐强调</td><td>短乐句叠加在当前 BGM 上</td><td>Beat 对齐触发 → 自然衰减</td></tr>
+</table>
+</div>
+
+<!-- 第8节 -->
+<div class="section" id="sec8">
+<h2>🌍 8. 语音本地化工作流</h2>
+
+<h3>8.1 支持语种规划</h3>
+<table>
+<tr><th>语种</th><th>代号</th><th>优先级</th><th>配音要求</th><th>说明</th></tr>
+<tr><td>日语</td><td>JP</td><td><span class="badge badge-red">P0</span></td><td>全量配音</td><td>二次元核心市场</td></tr>
+<tr><td>中文（普通话）</td><td>CN</td><td><span class="badge badge-red">P0</span></td><td>全量配音</td><td>国服必须</td></tr>
+<tr><td>韩语</td><td>KR</td><td><span class="badge badge-orange">P1</span></td><td>主线+角色语音</td><td>韩服重点</td></tr>
+<tr><td>英语</td><td>EN</td><td><span class="badge badge-orange">P1</span></td><td>主线+角色语音</td><td>全球版</td></tr>
+<tr><td>繁体中文</td><td>TW</td><td><span class="badge badge-yellow">P2</span></td><td>复用 CN 配音 + 字幕</td><td>—</td></tr>
+</table>
+
+<h3>8.2 配音制作流程</h3>
+<div class="flow-diagram">
+<div class="flow-node">📝 台本编写</div><span class="flow-arrow">→</span>
+<div class="flow-node">🌐 台本翻译</div><span class="flow-arrow">→</span>
+<div class="flow-node highlight">🎙️ 录音棚录制</div><span class="flow-arrow">→</span>
+<div class="flow-node">✂️ 剪辑降噪</div><span class="flow-arrow">→</span>
+<div class="flow-node">🔍 QA 校验</div><span class="flow-arrow">→</span>
+<div class="flow-node">📦 命名归档</div><span class="flow-arrow">→</span>
+<div class="flow-node highlight">⚙️ Wwise 集成</div><span class="flow-arrow">→</span>
+<div class="flow-node">🎮 引擎内验证</div>
+</div>
+
+<h3>8.3 配音台本模板</h3>
+<table>
+<tr><th>字段</th><th>说明</th><th>示例</th></tr>
+<tr><td>VO_ID</td><td>唯一标识符</td><td><code>VO_JP_Char01_Battle_Skill01</code></td></tr>
+<tr><td>角色名</td><td>角色中文/日文名</td><td>樱 / さくら</td></tr>
+<tr><td>场景</td><td>触发场景描述</td><td>释放一技能时</td></tr>
+<tr><td>情绪标签</td><td>声优表演指引</td><td>自信 + 略带挑衅</td></tr>
+<tr><td>台词原文</td><td>原始语言台词</td><td>これで終わりだ！</td></tr>
+<tr><td>参考时长</td><td>建议时长（秒）</td><td>1.2s</td></tr>
+<tr><td>口型要求</td><td>是否需要对口型</td><td>是（过场演出）/ 否（战斗）</td></tr>
+<tr><td>备注</td><td>特殊要求</td><td>需录制 3 个变体</td></tr>
+</table>
+
+<h3>8.4 VO QA 检查清单</h3>
+<ul class="checklist">
+<li>文件名与台本 VO_ID 完全一致</li>
+<li>采样率 48kHz / 24bit / Mono</li>
+<li>底噪 ≤ -65 dBFS（VO 专用标准）</li>
+<li>无爆音 / 齿音过重 / 口水音</li>
+<li>情绪与场景描述匹配</li>
+<li>时长在参考时长 ±30% 以内</li>
+<li>头部无多余静默（≤ 5ms）</li>
+<li>尾部自然衰减，无截断</li>
+<li>同角色不同台词音量一致性（±2 LUFS）</li>
+<li>变体间差异明显（避免重复感）</li>
+</ul>
+</div>
+
+<!-- 第9节 -->
+<div class="section" id="sec9">
+<h2>💾 9. 打包策略与内存管理</h2>
+
+<h3>9.1 SoundBank 拆分策略</h3>
+<table>
+<tr><th>Bank 类型</th><th>加载方式</th><th>卸载时机</th><th>目标大小</th><th>包含内容</th></tr>
+<tr><td>Bank_Init</td><td>启动时加载</td><td>永不卸载</td><td>≤ 2 MB</td><td>Bus 配置 / RTPC / State 定义</td></tr>
+<tr><td>Bank_Common</td><td>启动时加载</td><td>永不卸载</td><td>≤ 8 MB</td><td>UI 音效 + 通用 SFX + 系统 VO</td></tr>
+<tr><td>Bank_BGM_{场景}</td><td>场景预加载</td><td>离开场景时卸载</td><td>≤ 15 MB/场景</td><td>当前场景 BGM + 过渡段</td></tr>
+<tr><td>Bank_Character_{ID}</td><td>角色登场预加载</td><td>角色退场时卸载</td><td>≤ 5 MB/角色</td><td>角色技能 SFX + 战斗 VO</td></tr>
+<tr><td>Bank_VO_{语种}_{章节}</td><td>剧情开始时流式加载</td><td>剧情结束时卸载</td><td>≤ 20 MB/章节</td><td>当前章节对话 VO</td></tr>
+<tr><td>Bank_AMB_{区域}</td><td>区域进入时加载</td><td>区域离开时卸载</td><td>≤ 6 MB/区域</td><td>区域环境音循环</td></tr>
+</table>
+
+<h3>9.2 内存预算（移动端）</h3>
+<div class="kpi-grid">
+<div class="kpi-card"><div class="kpi-value">40 MB</div><div class="kpi-label">音频总内存红线</div></div>
+<div class="kpi-card"><div class="kpi-value">15 MB</div><div class="kpi-label">BGM 内存上限</div></div>
+<div class="kpi-card"><div class="kpi-value">12 MB</div><div class="kpi-label">SFX 内存上限</div></div>
+<div class="kpi-card"><div class="kpi-value">8 MB</div><div class="kpi-label">VO 内存上限</div></div>
+<div class="kpi-card"><div class="kpi-value">5 MB</div><div class="kpi-label">AMB+UI 内存上限</div></div>
+<div class="kpi-card"><div class="kpi-value">≤ 32</div><div class="kpi-label">同时发声数上限</div></div>
+</div>
+
+<h3>9.3 流式加载（Streaming）规则</h3>
+<table>
+<tr><th>资产类型</th><th>加载模式</th><th>Prefetch 大小</th><th>说明</th></tr>
+<tr><td>BGM（≥ 30s）</td><td>Streaming</td><td>前 256 KB</td><td>大文件必须 Stream，禁止全量加载</td></tr>
+<tr><td>SFX（≤ 5s）</td><td>In-Memory</td><td>全量</td><td>低延迟需求，必须驻留内存</td></tr>
+<tr><td>VO（对话）</td><td>Streaming</td><td>前 64 KB</td><td>按句加载 → 播完释放</td></tr>
+<tr><td>VO（战斗短句）</td><td>In-Memory</td><td>全量</td><td>战斗响应要求低延迟</td></tr>
+<tr><td>AMB Loop</td><td>Streaming</td><td>前 128 KB</td><td>循环播放，Stream 最节省</td></tr>
+</table>
+
+<h3>9.4 Voice 限制与优先级</h3>
+<table>
+<tr><th>类别</th><th>最大同时发声数</th><th>优先级</th><th>超限处理</th></tr>
+<tr><td>BGM</td><td>2（当前 + 过渡）</td><td>最高</td><td>—</td></tr>
+<tr><td>VO</td><td>3</td><td>高</td><td>打断最早的 VO</td></tr>
+<tr><td>SFX（玩家）</td><td>8</td><td>中高</td><td>Virtual Voice → 恢复</td></tr>
+<tr><td>SFX（环境/NPC）</td><td>12</td><td>中</td><td>距离最远的 Kill</td></tr>
+<tr><td>AMB</td><td>4</td><td>低</td><td>Fade out 最弱的</td></tr>
+<tr><td>UI</td><td>3</td><td>中高</td><td>打断前一个同类 UI 音效</td></tr>
+</table>
+</div>
+
+<!-- 第10节 -->
+<div class="section" id="sec10">
+<h2>🔄 10. 制作流程与交付 SOP</h2>
+
+<h3>10.1 音频制作全流程</h3>
+<div class="flow-diagram">
+<div class="flow-node">📋 需求接收</div><span class="flow-arrow">→</span>
+<div class="flow-node">🎯 音频设计方案</div><span class="flow-arrow">→</span>
+<div class="flow-node highlight">✅ 方案评审</div><span class="flow-arrow">→</span>
+<div class="flow-node">🎹 素材制作/录制</div><span class="flow-arrow">→</span>
+<div class="flow-node">🔧 后期处理</div><span class="flow-arrow">→</span>
+<div class="flow-node">⚙️ 中间件集成</div><span class="flow-arrow">→</span>
+<div class="flow-node highlight">🎮 引擎内调试</div><span class="flow-arrow">→</span>
+<div class="flow-node">🔍 QA 验收</div><span class="flow-arrow">→</span>
+<div class="flow-node highlight">📦 Bank 出包</div>
+</div>
+
+<h3>10.2 各阶段 SLA</h3>
+<table>
+<tr><th>阶段</th><th>标准工期</th><th>紧急工期</th><th>输出物</th></tr>
+<tr><td>需求分析 & 设计方案</td><td>2 工作日</td><td>1 工作日</td><td>音频设计文档（含参考音/风格描述）</td></tr>
+<tr><td>方案评审</td><td>1 工作日</td><td>0.5 工作日</td><td>评审记录 + 确认</td></tr>
+<tr><td>SFX 制作（单条）</td><td>0.5~1 工作日</td><td>4 小时</td><td>WAV 源文件（含变体）</td></tr>
+<tr><td>BGM 制作（单曲）</td><td>5~10 工作日</td><td>3 工作日</td><td>WAV + 分段标记</td></tr>
+<tr><td>VO 录制（单语种/角色）</td><td>2~3 工作日</td><td>1 工作日</td><td>录制 + 剪辑完成的 WAV</td></tr>
+<tr><td>中间件集成</td><td>1~2 工作日</td><td>0.5 工作日</td><td>Event + Bank 配置完成</td></tr>
+<tr><td>引擎调试</td><td>1~2 工作日</td><td>0.5 工作日</td><td>引擎内效果确认</td></tr>
+<tr><td>QA 验收</td><td>1 工作日</td><td>0.5 工作日</td><td>验收报告</td></tr>
+</table>
+
+<h3>10.3 交付 Checklist</h3>
+<ul class="checklist">
+<li>所有源文件按命名规范归档到正确目录</li>
+<li>Wwise/FMOD 工程文件已更新并可编译</li>
+<li>新增 Event 已在 Event 清单表中登记</li>
+<li>SoundBank 已重新生成并通过大小检查</li>
+<li>引擎内试听效果与设计方案一致</li>
+<li>多平台 Bank 均已生成（Win/Android/iOS）</li>
+<li>内存增量未超预算（差异报告）</li>
+<li>TAPD 任务状态更新为"已交付"</li>
+</ul>
+</div>
+
+<!-- 第11节 -->
+<div class="section" id="sec11">
+<h2>👥 11. RACI 责任矩阵</h2>
+
+<table>
+<tr><th>阶段 / 角色</th><th>音频总监</th><th>音效设计师</th><th>作曲</th><th>VO 制片</th><th>音频程序</th><th>策划</th><th>TA</th><th>QA</th></tr>
+<tr><td>需求接收</td><td>A</td><td>R</td><td>I</td><td>I</td><td>I</td><td>R</td><td>I</td><td>I</td></tr>
+<tr><td>音频设计方案</td><td>A</td><td>R</td><td>R</td><td>C</td><td>C</td><td>C</td><td>I</td><td>I</td></tr>
+<tr><td>SFX 制作</td><td>C</td><td>R</td><td>I</td><td>I</td><td>I</td><td>I</td><td>I</td><td>I</td></tr>
+<tr><td>BGM 作曲/编曲</td><td>A</td><td>C</td><td>R</td><td>I</td><td>I</td><td>C</td><td>I</td><td>I</td></tr>
+<tr><td>VO 录制管理</td><td>C</td><td>I</td><td>I</td><td>R</td><td>I</td><td>C</td><td>I</td><td>I</td></tr>
+<tr><td>中间件集成</td><td>C</td><td>R</td><td>I</td><td>I</td><td>A</td><td>I</td><td>C</td><td>I</td></tr>
+<tr><td>引擎内调试</td><td>I</td><td>R</td><td>I</td><td>I</td><td>R</td><td>I</td><td>C</td><td>I</td></tr>
+<tr><td>QA 验收</td><td>A</td><td>C</td><td>I</td><td>C</td><td>C</td><td>I</td><td>I</td><td>R</td></tr>
+<tr><td>Bank 出包</td><td>I</td><td>I</td><td>I</td><td>I</td><td>R</td><td>I</td><td>A</td><td>I</td></tr>
+</table>
+<p style="font-size:13px;color:var(--dim);">R=负责执行 | A=最终审批 | C=需咨询 | I=需知会</p>
+</div>
+
+<!-- 第12节 -->
+<div class="section" id="sec12">
+<h2>✅ 12. 质量验收标准</h2>
+
+<h3>12.1 音频质量评分卡</h3>
+<table>
+<tr><th>维度</th><th>权重</th><th>评分标准（1~5 分）</th><th>不合格阈值</th></tr>
+<tr><td>设计契合度</td><td>25%</td><td>音效风格与游戏世界观/角色性格匹配</td><td>&lt;3 分</td></tr>
+<tr><td>技术规格</td><td>20%</td><td>采样率/位深/响度/底噪达标</td><td>&lt;4 分（一票否决）</td></tr>
+<tr><td>混音平衡</td><td>20%</td><td>各层级关系合理，不互相遮蔽</td><td>&lt;3 分</td></tr>
+<tr><td>交互反馈</td><td>20%</td><td>触发准确、延迟低、随机性自然</td><td>&lt;3 分</td></tr>
+<tr><td>性能达标</td><td>15%</td><td>内存/CPU/发声数在预算内</td><td>&lt;4 分（一票否决）</td></tr>
+</table>
+
+<div class="alert alert-cyan">🎯 <strong>门禁线：</strong>加权总分 ≥ 3.5 分方可通过。技术规格和性能达标为一票否决项。</div>
+
+<h3>12.2 常见驳回原因 Top 8</h3>
+<table>
+<tr><th>#</th><th>问题</th><th>类别</th><th>频率</th></tr>
+<tr><td>1</td><td>音量不一致（同类 SFX 响度差 &gt;4 LUFS）</td><td>混音</td><td><span class="badge badge-red">高频</span></td></tr>
+<tr><td>2</td><td>循环素材接口爆音（Click/Pop）</td><td>技术</td><td><span class="badge badge-red">高频</span></td></tr>
+<tr><td>3</td><td>BGM 与游戏节奏不匹配（过快/过慢）</td><td>设计</td><td><span class="badge badge-orange">中频</span></td></tr>
+<tr><td>4</td><td>VO 底噪明显 / 环境杂音残留</td><td>技术</td><td><span class="badge badge-orange">中频</span></td></tr>
+<tr><td>5</td><td>3D 音源衰减不自然（突然消失/距离感错误）</td><td>集成</td><td><span class="badge badge-orange">中频</span></td></tr>
+<tr><td>6</td><td>触发延迟过高（&gt;100ms）</td><td>性能</td><td><span class="badge badge-yellow">低频</span></td></tr>
+<tr><td>7</td><td>Bank 过大导致加载卡顿</td><td>性能</td><td><span class="badge badge-yellow">低频</span></td></tr>
+<tr><td>8</td><td>多语种 VO 时长差异过大（&gt;50%）导致对话节奏异常</td><td>本地化</td><td><span class="badge badge-yellow">低频</span></td></tr>
+</table>
+</div>
+
+<!-- 第13节 -->
+<div class="section" id="sec13">
+<h2>💣 13. 常见问题与踩坑记录</h2>
+
+<h3>Case 1：BGM 切换时断裂</h3>
+<div class="alert alert-red">
+<strong>现象：</strong>从探索场景切换到战斗时 BGM 直接截断，出现不和谐的"硬切"。<br>
+<strong>根因：</strong>Event 使用了 <code>Stop + Play</code> 而非 <code>Transition Segment</code>，未等待当前小节结束。<br>
+<strong>解法：</strong>① BGM 使用 Interactive Music 系统，配置 Transition Rules（Exit/Entry Cue）；② 设置最小 1 Bar 的 Cross-Fade；③ Stop Event 使用 Fade-Out Time ≥ 500ms。
+</div>
+
+<h3>Case 2：安卓低端机音频卡顿</h3>
+<div class="alert alert-red">
+<strong>现象：</strong>战斗中同时释放多个技能时音效出现延迟/丢失。<br>
+<strong>根因：</strong>同时发声数超过 32 上限 + Stream 音频 IO 争用导致缓冲区饥饿。<br>
+<strong>解法：</strong>① 降低 Max Voice 至 24（低端机配置）；② 战斗短 SFX 全部改为 In-Memory；③ 设置 Voice Priority 确保玩家操作 SFX 优先级最高。
+</div>
+
+<h3>Case 3：VO 多语种时长不一致</h3>
+<div class="alert alert-yellow">
+<strong>现象：</strong>日语配音 1.5s，英语配音 3.2s，导致对话界面等待时间差异过大。<br>
+<strong>根因：</strong>英语翻译过长，录制时未做时长控制。<br>
+<strong>解法：</strong>① 台本阶段设置各语种参考时长上限（容差 ±30%）；② 录制时给声优看倒计时；③ 引擎对话系统增加"最小等待 / 最大等待"参数。
+</div>
+
+<h3>Case 4：iOS 后台 BGM 中断</h3>
+<div class="alert alert-yellow">
+<strong>现象：</strong>游戏切后台再返回时 BGM 消失，需重启才恢复。<br>
+<strong>根因：</strong>iOS Audio Session 被系统回收后未正确重新激活。<br>
+<strong>解法：</strong>① 配置 AVAudioSession Category 为 <code>AVAudioSessionCategoryPlayback</code> + <code>MixWithOthers</code>；② 监听 <code>AudioSessionInterruption</code> 通知，中断结束后重新 Post BGM Event。
+</div>
+
+<h3>Case 5：Wwise Bank 版本冲突</h3>
+<div class="alert alert-blue">
+<strong>现象：</strong>程序更新引擎版本后，音频 Bank 加载报错 "Invalid Bank Version"。<br>
+<strong>根因：</strong>Wwise SDK 版本与 Bank 生成版本不一致。<br>
+<strong>解法：</strong>① 锁定 Wwise SDK 版本号到项目全局配置；② Bank 重新 Generate 前必须检查 SDK 版本；③ CI/CD 流程增加 Wwise 版本校验步骤。
+</div>
+
+<div class="alert alert-green" style="margin-top:24px">
+📌 <strong>持续更新：</strong>本文档随项目迭代持续补充。发现音频相关问题请在 TAPD 中创建「音频踩坑」标签的 Issue，由音频总监定期归档至本文档。
+</div>
+</div>
+
+</div>
+</body>
+</html>

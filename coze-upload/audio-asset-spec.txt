@@ -1,0 +1,96 @@
+标题：音频资产管理规范 v1.0
+标签：音频, Audio, Wwise, FMOD, BGM, SFX, 音效, 配音, VO, 中间件, SoundBank, 内存管理
+更新日期：2026-05-27
+
+一、概述
+本规范定义游戏项目中所有音频资产的分类标准、制作规格、集成流程、版本管理和质量门禁。覆盖BGM/SFX/AMB/VO/UI五大类别。
+
+二、资源分类体系
+一级分类：
+- BGM(背景音乐,5%数量,35%内存)
+- SFX(音效,55%数量,30%内存)
+- AMB(环境音,10%数量,15%内存)
+- VO(语音配音,25%数量,15%内存)
+- UI(界面音效,5%数量,5%内存)
+
+二级分类：
+BGM: Scene/Battle/Story/Event
+SFX: Skill/Weapon/Footstep/Physics/Creature/System
+AMB: Nature/Urban/Special
+VO: Battle/Dialogue/System/Idle
+UI: Common/Special/Nav
+
+三、中间件集成（Wwise/FMOD）
+Wwise项目结构：Actor-Mixer Hierarchy / Events / SoundBanks / Game Syncs / Busses
+Event命名：Play_{类别}_{描述} / Stop_{类别}_{描述} / Set_State_{组}_{值} / Set_RTPC_{参数}
+SoundBank拆分：Init(≤2MB) / Common(≤8MB) / BGM_场景(≤15MB) / Character_ID(≤5MB) / VO_语种_章节(≤20MB)
+
+四、命名规范
+- BGM: BGM_{场景}_{描述}_v{版本}.wav
+- SFX: SFX_{分类}_{描述}_{变体号}.wav
+- AMB: AMB_{环境}_{描述}_Loop.wav
+- VO: VO_{语种}_{角色ID}_{场景}_{序号}.wav
+- UI: UI_{功能}_{描述}.wav
+
+五、技术规格
+源文件：48kHz/24bit/WAV(LPCM)
+底噪≤-60dBFS(VO≤-65) / Peak≤-1dBTP / DC Offset≤0.01
+循环点零交叉±1sample / 头部静默0~5ms / 尾部≤50ms
+
+运行时编码：
+- iOS: AAC/Vorbis(BGM) + ADPCM(SFX) + Vorbis Q4~6(VO)
+- Android: Vorbis Q6~8(BGM) + ADPCM/Vorbis Q4(SFX) + Vorbis Q4~6(VO)
+- PC: Vorbis Q8/PCM(BGM) + PCM/ADPCM(SFX) + Vorbis Q6(VO)
+
+六、响度规范（LUFS）
+BGM探索-20 / BGM战斗-16 / SFX常规-18 / SFX打击-12 / VO对话-16 / AMB-26 / UI-20
+混音优先级：VO > UI > SFX(玩家) > SFX(环境) > BGM > AMB
+
+Ducking规则：
+- VO播放→BGM+AMB衰减-8dB(Attack200ms/Release500ms)
+- 战斗BGM→AMB衰减-12dB
+- 过场演出→环境SFX+AMB静音
+- 暂停→全部LPF 1kHz + -6dB
+
+七、音频状态机
+GameMode: Explore/Battle/Cutscene/Menu/Loading
+CombatPhase: Normal/Intense/Boss
+PlayerState: Alive/LowHP/Dead
+
+RTPC参数：Distance(0~100)/PlayerHealth(0~100)/Speed(0~50)/TimeOfDay(0~24)/Underwater(0~1)
+
+交互音乐：水平重组(Transition Segment) + 垂直叠加(Layer State控制) + Stinger(Beat对齐)
+
+八、语音本地化
+语种：JP(P0全量)/CN(P0全量)/KR(P1主线+角色)/EN(P1主线+角色)
+流程：台本→翻译→录音→剪辑降噪→QA→命名归档→Wwise集成→引擎验证
+
+VO QA清单：文件名一致/48kHz24bitMono/底噪≤-65dBFS/无爆音齿音/情绪匹配/时长±30%/音量一致性±2LUFS
+
+九、内存管理（移动端）
+总预算40MB：BGM(15MB)+SFX(12MB)+VO(8MB)+AMB+UI(5MB)
+同时发声数≤32
+
+流式加载：
+- BGM(≥30s)→Streaming(Prefetch 256KB)
+- SFX(≤5s)→In-Memory
+- VO对话→Streaming / VO战斗→In-Memory
+- AMB Loop→Streaming(Prefetch 128KB)
+
+Voice限制：BGM(2)/VO(3)/SFX玩家(8)/SFX环境(12)/AMB(4)/UI(3)
+
+十、制作流程SLA
+需求分析2天 / SFX制作0.5~1天/条 / BGM作曲5~10天/曲 / VO录制2~3天/角色/语种 / 中间件集成1~2天 / QA验收1天
+
+十一、RACI
+音频总监(A审批) / 音效设计师(R制作集成) / 作曲(R BGM) / VO制片(R录制) / 音频程序(A集成/R引擎调试) / 策划(R需求) / QA(R验收)
+
+十二、验收标准
+五维度加权≥3.5通过：设计契合度(25%)/技术规格(20%,一票否决)/混音平衡(20%)/交互反馈(20%)/性能达标(15%,一票否决)
+
+十三、踩坑记录
+1. BGM切换断裂→用Interactive Music+Transition Segment
+2. 安卓低端机卡顿→战斗SFX改In-Memory+降MaxVoice至24
+3. VO多语种时长不一致→台本设参考时长上限±30%
+4. iOS后台BGM中断→AVAudioSession+监听Interruption
+5. Wwise Bank版本冲突→CI/CD增加SDK版本校验

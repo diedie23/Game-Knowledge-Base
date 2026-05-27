@@ -1,0 +1,71 @@
+标题：过场演出资产管理规范 v1.0
+标签：演出, Sequencer, 分镜, 镜头, Cutscene, Cinematic, 过场动画, 资产管理, Level Sequence
+更新日期：2026-05-27
+
+一、概述
+本规范定义游戏项目中所有过场演出（Cutscene/Cinematic）资产的制作标准、交接流程、版本管理和质量门禁。覆盖实时演出（引擎内Sequencer）与离线预渲染（CG/PV）。
+
+二、类型分类
+按制作方式：
+- A类 实时引擎演出(RT)：UE5 Level Sequence / Unity Playable，15s~3min，3~10人天/分钟
+- B类 预渲染CG(CG)：Maya/Blender→AE/Nuke，30s~5min，15~40人天/分钟
+- C类 2D+3D混合(HY)：Spine/Live2D+引擎粒子+后期合成，10s~1min，5~15人天/分钟
+- D类 轻量对话(DLG)：引擎Timeline+表情动作数据驱动，5s~30s，0.5~2人天/段
+
+按叙事功能：主线剧情(P0)/战斗演出(P0)/获得演出(P1)/对话演出(P2)/环境演出(P2)/宣传PV(P1)
+
+三、制作流程
+分镜策划→分镜绘制→分镜评审→Layout→动画制作→特效光照→音频集成→技术审查→打包→终验收
+
+状态机：Draft→Storyboard_Review→Layout_WIP→Animation_WIP→Polish→Tech_Review→Approved/Rejected
+
+四、目录结构
+/Content/Cinematics/
+├── _Shared/（共享资源）
+├── MainStory/Chapter01/CUT_MS_C01_001/
+├── Battle/Ultimate/QTE/Execution/
+├── Gacha/SSR/SR/R/
+├── Dialogue/NPC_{ID}/
+├── Environment/Weather/DayNight/MapTransition/
+└── PV/
+
+五、命名规范
+- Master Sequence: CUT_{类型}_{章节}_{序号}_Master
+- 子Sequence: CUT_{类型}_{章节}_{序号}_{Cam|Anim|FX|Audio|Light}
+- 分镜: SB_{类型}_{章节}_{序号}_v{版本}.psd
+- 类型代号：MS=主线, BT=战斗, GA=抽卡, DLG=对话, ENV=环境, PV=宣传
+
+六、分镜交接SOP
+必填：镜头编号/景别/运镜方式/时长/台词/表情动作描述/转场方式
+核心原则：未通过评审的分镜不得进入引擎制作阶段
+
+七、Level Sequence组织
+Master Sequence包含子Sequence：_Cam（相机）/_Anim（动画）/_FX（特效）/_Audio（音频）/_Light（灯光）
+各层独立锁定，分工明确。Event Track管理演出事件（开始/结束/跳过点）。
+
+八、镜头语言
+景别：ECU极特写(20~30°)/CU特写(30~40°)/MS中景(40~55°)/FS全身(55~70°)/LS远景(70~90°)/ELS大远景(90~120°)
+运镜：推/拉/摇/移/跟/环绕/升降/手持/慢动作
+转场：硬切/溶解(8~24帧)/淡入淡出(12~30帧)/划入(8~16帧)/匹配切/闪白(4~8帧)
+
+九、性能红线（移动端）
+帧率≥30fps / DrawCall≤600 / 三角面≤200万 / 粒子≤5000 / 动态光≤4 / 内存增量≤80MB / 加载≤3秒
+
+十、协作与锁规范
+- .uasset默认Exclusive Checkout
+- 统一在cinematic/dev Stream操作
+- 锁定不超4小时
+- 提交备注：[CUT] {演出ID} - {阶段} - {摘要}
+
+十一、RACI
+演出导演(A审批/R执行) / 分镜师(R分镜) / 动画师(R动画Layout) / 特效师(R特效光照) / 音频(R音频集成) / TA(R技术审查) / 策划(R需求/C评审) / 制作人(A终验收)
+
+十二、验收标准
+五维度加权评分≥3.5通过：镜头节奏(25%)/角色表演(25%)/光影氛围(20%)/音画同步(15%)/技术稳定性(15%,一票否决)
+
+十三、踩坑记录
+1. Master Sequence丢失引用→移动前Remove Track再重新Add
+2. 低端机崩溃→粒子材质建立低配变体
+3. 音画不同步→Audio Event触发点为嘴型起始帧-2帧
+4. 字幕安全区→Widget嵌SafeZone底部≥5%
+5. Perforce锁死→4小时超时自动通知

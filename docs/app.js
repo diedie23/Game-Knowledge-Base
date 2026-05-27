@@ -92,7 +92,15 @@ var SYNONYM_MAP = {
   '需求':['需求文档','PRD','策划案','brief','设计稿'],
   'Bug':['缺陷','问题','defect','bug','报错','异常'],
   '特效':['VFX','粒子','effect','动效'],
-  'UI':['界面','交互','用户界面','HUD','GUI']
+  'UI':['界面','交互','用户界面','HUD','GUI'],
+  '演出':['过场','Cutscene','Cinematic','Sequencer','分镜','镜头'],
+  '过场':['演出','Cutscene','Cinematic','CG','PV'],
+  '分镜':['Storyboard','演出','过场','镜头语言'],
+  '音频':['音效','声音','Audio','Sound','BGM','SFX','Wwise','FMOD'],
+  '音效':['SFX','Sound','音频','声音','打击感'],
+  'BGM':['背景音乐','配乐','music','OST','音乐'],
+  '配音':['VO','语音','Voice','录音','声优'],
+  'Wwise':['音频中间件','FMOD','SoundBank','音频引擎']
 };
 
 // 查询同义词扩展：返回原始词 + 同义词数组
