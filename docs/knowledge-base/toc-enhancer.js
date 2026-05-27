@@ -1,7 +1,10 @@
 /**
- * TOC Enhancer v1.0
+ * TOC Enhancer v1.1
  * 知识库文档目录导航交互增强脚本
- * 功能：粘性侧边栏 / ScrollSpy 滚动高亮 / 折叠展开 / 返回顶部 / 阅读进度条 / 移动端适配
+ * 功能：
+ *   - 原始 TOC 排版优化：默认折叠 + 多列网格 + 展开/收起动画
+ *   - 粘性浮动侧边栏 / ScrollSpy 滚动高亮 / 折叠展开
+ *   - 返回顶部 / 阅读进度条 / 移动端适配
  * 用法：在 HTML 文档末尾引入 <script src="toc-enhancer.js"></script>
  */
 (function () {
@@ -21,6 +24,147 @@
   // ═══════════════════════════════════════════
   const style = document.createElement('style');
   style.textContent = `
+/* ===== 原始 TOC 排版优化 ===== */
+.toc.toc-enhanced {
+  padding: 0;
+  overflow: hidden;
+  transition: all .3s ease;
+}
+.toc-enhanced .toc-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  cursor: pointer;
+  user-select: none;
+  transition: background .15s;
+}
+.toc-enhanced .toc-header-bar:hover {
+  background: rgba(108,140,255,.04);
+}
+.toc-enhanced .toc-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.toc-enhanced .toc-header-left h3 {
+  margin: 0;
+  font-size: 14px;
+}
+.toc-enhanced .toc-header-badge {
+  font-size: 11px;
+  background: rgba(108,140,255,.15);
+  color: var(--accent, #6c8cff);
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.toc-enhanced .toc-header-hint {
+  font-size: 12px;
+  color: var(--dim, #6b7085);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.toc-enhanced .toc-chevron {
+  display: inline-block;
+  transition: transform .25s ease;
+  font-size: 14px;
+}
+.toc-enhanced.toc-collapsed .toc-chevron {
+  transform: rotate(-90deg);
+}
+.toc-enhanced .toc-body {
+  max-height: 600px;
+  overflow: hidden;
+  transition: max-height .35s cubic-bezier(.4,0,.2,1), padding .35s ease;
+  padding: 0 20px 16px;
+}
+.toc-enhanced.toc-collapsed .toc-body {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* 多列网格布局 */
+.toc-enhanced .toc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 6px 24px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: toc-grid-item;
+}
+.toc-enhanced .toc-grid > li {
+  counter-increment: toc-grid-item;
+  margin: 0;
+  padding: 0;
+}
+.toc-enhanced .toc-grid > li > a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--accent, #6c8cff);
+  text-decoration: none;
+  transition: all .15s ease;
+  font-weight: 500;
+}
+.toc-enhanced .toc-grid > li > a::before {
+  content: counter(toc-grid-item);
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  background: rgba(108,140,255,.1);
+  color: var(--accent, #6c8cff);
+  flex-shrink: 0;
+}
+.toc-enhanced .toc-grid > li > a:hover {
+  background: rgba(108,140,255,.08);
+  color: var(--heading, #e4e6ed);
+}
+.toc-enhanced .toc-grid > li > a:hover::before {
+  background: var(--accent, #6c8cff);
+  color: #000;
+}
+/* 子目录 */
+.toc-enhanced .toc-sub {
+  list-style: none;
+  padding: 0 0 0 28px;
+  margin: 0;
+}
+.toc-enhanced .toc-sub li {
+  margin: 0;
+}
+.toc-enhanced .toc-sub a {
+  display: block;
+  padding: 3px 10px;
+  font-size: 12px;
+  color: var(--dim, #6b7085);
+  text-decoration: none;
+  border-radius: 4px;
+  transition: all .12s ease;
+  line-height: 1.5;
+}
+.toc-enhanced .toc-sub a:hover {
+  color: var(--text, #c5c9d6);
+  background: rgba(108,140,255,.05);
+}
+
+@media (max-width: 600px) {
+  .toc-enhanced .toc-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ===== 阅读进度条 ===== */
 .reading-progress {
   position: fixed;
@@ -279,9 +423,6 @@
   }
 }
 
-/* ===== 原始 TOC 保持不变（可选隐藏） ===== */
-/* 不隐藏原始 TOC，它作为非 JS 回退 */
-
 /* ===== 平滑滚动 ===== */
 html {
   scroll-behavior: smooth;
@@ -293,6 +434,61 @@ html {
 }
 `;
   document.head.appendChild(style);
+
+  // ═══════════════════════════════════════════
+  // 1.5 改造原始内嵌 TOC — 折叠 + 多列网格
+  // ═══════════════════════════════════════════
+  (function enhanceOriginalToc() {
+    // 收集一级条目（直接子 ol > li）
+    const topOl = originalToc.querySelector('ol');
+    if (!topOl) return;
+
+    const topItems = Array.from(topOl.children).filter(el => el.tagName === 'LI');
+    const totalLinks = tocLinks.length;
+
+    // 构建新的 TOC HTML
+    let gridHtml = '';
+    topItems.forEach(li => {
+      const mainLink = li.querySelector(':scope > a');
+      if (!mainLink) return;
+      // 检查子列表
+      const subOl = li.querySelector(':scope > ol');
+      let subHtml = '';
+      if (subOl) {
+        const subItems = Array.from(subOl.querySelectorAll('a'));
+        subHtml = '<ul class="toc-sub">' +
+          subItems.map(a => `<li><a href="${a.getAttribute('href')}">${a.textContent}</a></li>`).join('') +
+          '</ul>';
+      }
+      gridHtml += `<li><a href="${mainLink.getAttribute('href')}">${mainLink.textContent}</a>${subHtml}</li>`;
+    });
+
+    // 替换 originalToc 内部 HTML
+    originalToc.classList.add('toc-enhanced', 'toc-collapsed');
+    originalToc.innerHTML = `
+      <div class="toc-header-bar">
+        <div class="toc-header-left">
+          <h3>📑 目录导航</h3>
+          <span class="toc-header-badge">${topItems.length} 章 · ${totalLinks} 节</span>
+        </div>
+        <span class="toc-header-hint">
+          <span>点击展开</span>
+          <span class="toc-chevron">▼</span>
+        </span>
+      </div>
+      <div class="toc-body">
+        <ol class="toc-grid">${gridHtml}</ol>
+      </div>
+    `;
+
+    // 绑定折叠/展开事件
+    const headerBar = originalToc.querySelector('.toc-header-bar');
+    const hintText = originalToc.querySelector('.toc-header-hint span:first-child');
+    headerBar.addEventListener('click', () => {
+      const isCollapsed = originalToc.classList.toggle('toc-collapsed');
+      hintText.textContent = isCollapsed ? '点击展开' : '点击收起';
+    });
+  })();
 
   // ═══════════════════════════════════════════
   // 2. 创建阅读进度条
