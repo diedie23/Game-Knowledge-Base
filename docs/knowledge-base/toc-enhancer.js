@@ -439,6 +439,9 @@ html {
   // 1.5 改造原始内嵌 TOC — 折叠 + 多列网格
   // ═══════════════════════════════════════════
   (function enhanceOriginalToc() {
+    // Skip if already enhanced by inline script
+    if (originalToc.classList.contains('toc-folded') || originalToc.querySelector('.toc-toggle-bar') || originalToc.querySelector('.toc-inner')) return;
+
     // 收集一级条目（直接子 ol > li）
     const topOl = originalToc.querySelector('ol');
     if (!topOl) return;
