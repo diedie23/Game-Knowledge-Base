@@ -913,7 +913,7 @@ function navigate(pageId,btn){
         tp.style.display='block';tp.classList.add('active');scroll.scrollTop=0;setTimeout(hideLoading,400);
       } else {
         frame.style.display='block';
-        frame.src=reg.file;
+        frame.src=reg.file+(reg.file.indexOf('?')===-1?'?':'&')+'_cb=20260527';
 
         // 判断是否为可编辑的 HTML 模板（文件在 knowledge-base 目录下的 .html）
         var isEditableTemplate=reg.file && reg.file.indexOf('knowledge-base/')!==-1 && reg.file.endsWith('.html');

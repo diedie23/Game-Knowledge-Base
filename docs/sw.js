@@ -1,7 +1,7 @@
 // ═══ 游戏项目知识库 Service Worker v1.0 ═══
 // 支持离线访问已浏览过的文档
 
-var CACHE_NAME = 'kb-cache-v2';
+var CACHE_NAME = 'kb-cache-v3';
 var PRECACHE_URLS = [
   './',
   './index.html',
