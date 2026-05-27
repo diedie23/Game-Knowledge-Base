@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
+  padding: 14px 20px 14px 36px;
   cursor: pointer;
   user-select: none;
   transition: background .15s;
@@ -78,7 +78,7 @@
   max-height: 600px;
   overflow: hidden;
   transition: max-height .35s cubic-bezier(.4,0,.2,1), padding .35s ease;
-  padding: 0 20px 16px;
+  padding: 0 20px 16px 36px;
 }
 .toc-enhanced.toc-collapsed .toc-body {
   max-height: 0;
