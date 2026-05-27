@@ -1,11 +1,11 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SVN/Perforce 目录结构标准</title>
-<style>
-:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+#!/usr/bin/env python3
+"""生成 SVN/Perforce 目录结构标准 v2.0 完整 HTML — 分段拼接"""
+import os, pathlib
+
+out = pathlib.Path(r"h:\游戏项目知识库\docs\knowledge-base\svn-perforce-structure.html")
+
+# ============ CSS ============
+css = """:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
@@ -59,7 +59,22 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 .flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
 .flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;text-align:center;min-width:80px}
 .flow-node strong{display:block;color:var(--heading);font-size:13px;margin-bottom:2px}
-.flow-arrow{color:var(--cyan);font-size:16px;padding:0 4px;flex-shrink:0}
+.flow-arrow{color:var(--cyan);font-size:16px;padding:0 4px;flex-shrink:0}"""
+
+# ============ Build HTML ============
+html_parts = []
+
+def H(s):
+    html_parts.append(s)
+
+H(f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SVN/Perforce 目录结构标准</title>
+<style>
+{css}
 </style>
 </head>
 <body>
@@ -98,8 +113,10 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#s17">Do / Don't 示例</a></li>
     <li><a href="#s18">提交前自检清单</a></li>
   </ol>
-</div>
+</div>""")
 
+# === S1: 根目录 ===
+H("""
 <div class="section" id="s1">
 <h2>📁 1. 美术资产根目录结构设计</h2>
 <div class="alert alert-blue"><strong>核心原则</strong>：按工种划分一级 + 按资产划分二级 + 四目录模型（Source/Export/Temp/Archive）三层标准。</div>
@@ -144,8 +161,10 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <tr><td><strong>扩展性</strong></td><td>新工种/新子类能平滑加入</td><td>✗ 目录层级超过5层</td></tr>
 <tr><td><strong>可清理性</strong></td><td>Temp/Archive有明确生命周期</td><td>✗ 无清理机制导致仓库膨胀</td></tr>
 </table>
-</div>
+</div>""")
 
+# === S2: 工种子目录 ===
+H("""
 <div class="section" id="s2">
 <h2>📂 2. 每个工种子目录规范</h2>
 <div class="sub-title">2.1 标准四目录模型</div>
@@ -204,8 +223,10 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 │   └── CS_Opening/ → Source/, Export/, Audio/, Storyboard/
 ├── Trailer/
 └── _Shared/</pre></details>
-</div>
+</div>""")
 
+# === S3: 命名 ===
+H("""
 <div class="section" id="s3">
 <h2>🏷️ 3. 文件命名规约</h2>
 <div class="sub-title">3.1 命名公式</div>
@@ -262,8 +283,10 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="sub-title">3.6 版本号规则</div>
 <div class="redline"><p><strong>🔴 核心红线</strong>：<strong>只在 Source/ 目录使用版本号</strong>，Export/ 始终使用最新版（无版本后缀）。</p></div>
 <p>格式：<code>_v01</code>, <code>_v02</code>... 归档旧版加日期：<code>CH_Luna_Body_v01_20260315.fbx</code></p>
-</div>
+</div>""")
 
+# === S4: 分支策略 ===
+H("""
 <div class="section" id="s4">
 <h2>🔀 4. SVN vs Perforce 分支策略</h2>
 <div class="sub-title">4.1 核心差异对比</div>
@@ -325,8 +348,10 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <tr><td>发布</td><td><code>tags/[milestone]_[date]</code></td><td><code>release/release_[ver]</code></td></tr>
 <tr><td>个人任务</td><td><code>branches/user_[name]</code></td><td><code>virtual/task_[name]</code></td></tr>
 </table>
-</div>
+</div>""")
 
+# === S5: 权限 ===
+H("""
 <div class="section" id="s5">
 <h2>🔐 5. 权限模型</h2>
 <div class="sub-title">5.1 三级权限体系</div>
@@ -369,8 +394,10 @@ programmers = dev1, dev2
 [/ArtAssets/_Archive]
 ta_lead = rw
 * = r</pre>
-</div>
+</div>""")
 
+# === S6: Typemap ===
+H("""
 <div class="section" id="s6">
 <h2>🗂️ 6. Perforce Typemap 完整配置 [NEW]</h2>
 <div class="alert alert-blue"><strong>为什么重要</strong>：Typemap 告诉 P4 如何存储和处理文件——错误配置会导致二进制被当文本、换行符损坏、或反复全量传输。</div>
@@ -443,8 +470,10 @@ TypeMap:
 <tr><td><code>text</code></td><td>文本，可diff/merge</td><td>代码、配置文件</td></tr>
 <tr><td><code>text+w</code></td><td>文本+始终可写</td><td>本地配置文件</td></tr>
 </table>
-</div>
+</div>""")
 
+# === S7: Workspace ===
+H("""
 <div class="section" id="s7">
 <h2>💻 7. Workspace / Client Spec 模板 [NEW]</h2>
 <div class="alert alert-blue">正确的Client Spec确保美术只同步自己工种文件，避免拉取整库导致磁盘爆满。</div>
@@ -452,7 +481,7 @@ TypeMap:
 <div class="sub-title">7.1 角色组美术 Workspace</div>
 <pre>Client: art_zhangsan_character
 Owner:  zhangsan
-Root:   D:\P4\ArtProject
+Root:   D:\\P4\\ArtProject
 Options: allwrite noclobber nocompress unlocked nomodtime
 SubmitOptions: submitunchanged
 LineEnd: local
@@ -476,8 +505,10 @@ View:
 <tr><td>SubmitOptions</td><td>submitunchanged</td><td>允许提交未修改文件（避免元数据报错）</td></tr>
 <tr><td>LineEnd</td><td>local</td><td>使用本地OS换行符</td></tr>
 </table>
-</div>
+</div>""")
 
+# === S8: SVN Properties ===
+H("""
 <div class="section" id="s8">
 <h2>🔧 8. SVN 属性管理最佳实践 [NEW]</h2>
 <div class="sub-title">8.1 必设属性</div>
@@ -503,8 +534,10 @@ View:
 <div class="sub-title">8.3 推荐全局忽略</div>
 <pre>svn:global-ignores = *.tmp *.bak *.swp .DS_Store Thumbs.db
     desktop.ini *.log *.cache __pycache__ .vs .idea *.suo</pre>
-</div>
+</div>""")
 
+# === S9: 大文件 ===
+H("""
 <div class="section" id="s9">
 <h2>📦 9. 大文件存储策略与容量规划 [NEW]</h2>
 <div class="sub-title">9.1 文件分级策略</div>
@@ -539,8 +572,10 @@ View:
 <tr><td>obliterate废弃资产</td><td>10~20%</td><td>永久删除无用历史（慎用）</td></tr>
 <tr><td>压缩Depot</td><td>15~25%</td><td>P4服务端启用压缩</td></tr>
 </table>
-</div>
+</div>""")
 
+# === S10: Hook ===
+H("""
 <div class="section" id="s10">
 <h2>🪝 10. Hook 脚本库 [NEW]</h2>
 <div class="alert alert-green"><strong>作用</strong>：Hook 在提交前/后自动执行校验，将规范从"人为记忆"变为"系统强制"。</div>
@@ -592,8 +627,10 @@ if [ -n "$JUNK" ]; then
   echo "ERROR: System files not allowed: $JUNK" >&2
   exit 1
 fi</pre>
-</div>
+</div>""")
 
+# === S11: CI/CD ===
+H("""
 <div class="section" id="s11">
 <h2>🔄 11. CI/CD 集成与资产校验管线 [NEW]</h2>
 <div class="sub-title">11.1 自动化校验管线流程</div>
@@ -650,8 +687,10 @@ fi</pre>
     }
   }
 }</pre>
-</div>
+</div>""")
 
+# === S12: 迁移指南 ===
+H("""
 <div class="section" id="s12">
 <h2>🚚 12. 迁移指南（SVN→P4 / P4→Git LFS）[NEW]</h2>
 <div class="sub-title">12.1 SVN → Perforce 迁移步骤</div>
@@ -675,8 +714,10 @@ fi</pre>
 </table>
 
 <div class="alert alert-yellow"><strong>⚠️ 迁移风险提示</strong>：大型仓库(>500GB)迁移建议分批进行；迁移期间冻结提交；保留旧系统只读访问至少30天。</div>
-</div>
+</div>""")
 
+# === S13: 性能调优 ===
+H("""
 <div class="section" id="s13">
 <h2>⚡ 13. 性能调优与运维 [NEW]</h2>
 <div class="sub-title">13.1 P4 服务端参数优化</div>
@@ -707,8 +748,10 @@ fi</pre>
 <tr><td>热备份</td><td>每日</td><td><code>svnadmin hotcopy</code></td></tr>
 <tr><td>清理日志</td><td>每月</td><td>归档>30天的access/error日志</td></tr>
 </table>
-</div>
+</div>""")
 
+# === S14: 跨部门协作 ===
+H("""
 <div class="section" id="s14">
 <h2>🤝 14. 跨部门协作流程 [NEW]</h2>
 <div class="sub-title">14.1 美术→程序 交付流程</div>
@@ -739,8 +782,10 @@ fi</pre>
 <tr><td>策划→美术</td><td>需求文档、风格参考、尺寸规格</td><td><code>/_Reference/[版本号]/</code></td></tr>
 <tr><td>美术→策划</td><td>效果预览图、阶段产出截图</td><td><code>/_Reference/Preview/</code></td></tr>
 </table>
-</div>
+</div>""")
 
+# === S15: 踩坑案例 ===
+H("""
 <div class="section" id="s15">
 <h2>⚠️ 15. 常见踩坑案例（10+）</h2>
 <div class="alert alert-yellow"><strong>避坑指南</strong>：新人Onboarding时重点培训以下场景。</div>
@@ -794,8 +839,10 @@ fi</pre>
 <div class="faq-q">🚨 案例10：备份恢复失败——checkpoint过旧 [NEW]</div>
 <div class="faq-a"><strong>根因</strong>：3个月未做checkpoint，journal文件巨大。<strong>对策</strong>：每日checkpoint + 每周增量备份 + 每月验证恢复。</div>
 </div>
-</div>
+</div>""")
 
+# === S16: Commit Message ===
+H("""
 <div class="section" id="s16">
 <h2>📝 16. Commit Message 规范</h2>
 <div class="sub-title">16.1 标准模板</div>
@@ -830,8 +877,10 @@ fi</pre>
 [FIX][特效] 修复Luna大招穿模 BUG-1024
 [OPT][场景] 优化MainCity Draw Call数量</pre></div>
 </div>
-</div>
+</div>""")
 
+# === S17: Do/Don't ===
+H("""
 <div class="section" id="s17">
 <h2>📌 17. Do / Don't 示例</h2>
 <div class="dd-grid">
@@ -862,8 +911,10 @@ fi</pre>
 <p>✗ 外包账号有正式目录写权限 [NEW]</p>
 </div>
 </div>
-</div>
+</div>""")
 
+# === S18: 自检清单 ===
+H("""
 <div class="section" id="s18">
 <h2>✅ 18. 提交前自检清单</h2>
 <div class="checklist">
@@ -897,8 +948,10 @@ fi</pre>
 <div class="check-item"><span class="box">☐</span>旧版本已归档到Archive/并加日期标签？</div>
 <div class="check-item"><span class="box">☐</span>确认无重复/冗余资产？</div>
 </div>
-</div>
+</div>""")
 
+# === Footer ===
+H("""
 <div class="doc-footer">📂 SVN/Perforce 目录结构标准 · v2.0 · 美术中心 / TA组 · 项目内部资料</div>
 </div>
 <script src="editor-kit.js"></script>
@@ -916,7 +969,7 @@ fi</pre>
   var totalCount=links.length;
   var bar=document.createElement('div');
   bar.className='toc-toggle-bar';
-  bar.innerHTML='<div style="display:flex;align-items:center">'+(h3?h3.outerHTML:'')+'<span class="toc-badge">'+topCount+' \u7AE0</span></div><span class="toc-hint"><span class="toc-hint-text">\u70B9\u51FB\u5C55\u5F00</span> <span class="toc-chevron">\u25BC</span></span>';
+  bar.innerHTML='<div style="display:flex;align-items:center">'+(h3?h3.outerHTML:'')+'<span class="toc-badge">'+topCount+' \\u7AE0</span></div><span class="toc-hint"><span class="toc-hint-text">\\u70B9\\u51FB\\u5C55\\u5F00</span> <span class="toc-chevron">\\u25BC</span></span>';
   var inner=document.createElement('div');
   inner.className='toc-inner';
   inner.appendChild(ol);
@@ -927,10 +980,17 @@ fi</pre>
   var hintText=bar.querySelector('.toc-hint-text');
   bar.addEventListener('click',function(){
     var folded=toc.classList.toggle('toc-folded');
-    hintText.textContent=folded?'\u70B9\u51FB\u5C55\u5F00':'\u70B9\u51FB\u6536\u8D77';
+    hintText.textContent=folded?'\\u70B9\\u51FB\\u5C55\\u5F00':'\\u70B9\\u51FB\\u6536\\u8D77';
   });
   if(h3&&h3.parentNode===toc)h3.remove();
 })();
 </script>
 </body>
-</html>
+</html>""")
+
+# ============ Write File ============
+content = "\n".join(html_parts)
+out.write_text(content, encoding="utf-8")
+print(f"✅ 生成完成: {out}")
+print(f"   文件大小: {len(content):,} 字符")
+print(f"   章节数: 18")
