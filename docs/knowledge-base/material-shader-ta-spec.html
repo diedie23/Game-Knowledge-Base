@@ -336,36 +336,37 @@ MF_{功能名}
   <table>
     <thead><tr><th>打包贴图名</th><th>R 通道</th><th>G 通道</th><th>B 通道</th><th>A 通道</th><th>压缩格式</th></tr></thead>
     <tbody>
-      <tr><td><code>T_{Name}_MRA</code></td><td>Metallic</td><td>Roughness</td><td>AO</td><td>—（RGB only）</td><td>BC7 / ASTC 4×4</td></tr>
-      <tr><td><code>T_{Name}_MRAE</code></td><td>Metallic</td><td>Roughness</td><td>AO</td><td>Emissive Mask</td><td>BC7 / ASTC 4×4</td></tr>
+      <tr><td><code>T_{Name}_ARM</code></td><td>AO</td><td>Roughness</td><td>Metallic</td><td>—（RGB only）</td><td>BC7 / ASTC 4×4</td></tr>
+      <tr><td><code>T_{Name}_ARME</code></td><td>AO</td><td>Roughness</td><td>Metallic</td><td>Emissive Mask</td><td>BC7 / ASTC 4×4</td></tr>
       <tr><td><code>T_{Name}_Mask</code></td><td>换色区域 1</td><td>换色区域 2</td><td>换色区域 3</td><td>Alpha/透贴</td><td>BC7 / ASTC 4×4</td></tr>
       <tr><td><code>T_{Name}_Detail</code></td><td>Detail Normal X</td><td>Detail Normal Y</td><td>Detail AO</td><td>Cavity</td><td>BC5(RG) + BC4(BA)</td></tr>
     </tbody>
   </table>
+
+  <div class="alert alert-yellow" style="border:1px solid rgba(251,191,36,.3)">
+    <strong>⚠️ 统一标准说明：</strong>本知识库统一采用 <strong>ARM</strong> 通道顺序（R=AO, G=Roughness, B=Metallic），与 UE5 默认 ORM 标准保持一致。所有新建材质和迁移旧材质时，必须遵循此通道顺序。详见 → <a href="char-3d-topo-pbr.html#sec2" style="color:var(--accent);font-weight:600">《3D角色拓扑与PBR贴图规范 §2》</a>。
+  </div>
 
   <div class="redline">
     <p><strong>📌 红线</strong>：禁止出现"一个参数用一张独立贴图"的情况。Metallic、Roughness、AO <strong>必须打包</strong>到同一张贴图的不同通道。违反此规则每多一张贴图 = 多一次 Texture Sample = 额外 GPU 开销。</p>
   </div>
 
   <h3>5.2 贴图内存预算（单角色）</h3>
+  <div class="alert alert-blue"><strong>📎 完整贴图规格表</strong>（含各贴图类型尺寸、压缩格式、分档内存计算）请参见 → <a href="char-3d-topo-pbr.html#sec2" style="color:var(--accent);font-weight:600">《3D角色拓扑规范 §2 PBR贴图通道规范》</a></div>
   <table>
-    <thead><tr><th>贴图类型</th><th>尺寸</th><th>格式</th><th>压缩后内存</th><th>数量</th><th>合计</th></tr></thead>
+    <thead><tr><th>平台</th><th>单角色贴图总预算</th><th>说明</th></tr></thead>
     <tbody>
-      <tr><td>BaseColor</td><td>2048×2048</td><td>ASTC 4×4 / BC7</td><td>~2.7 MB</td><td>1</td><td>2.7 MB</td></tr>
-      <tr><td>Normal</td><td>2048×2048</td><td>ASTC 4×4 / BC5</td><td>~2.7 MB</td><td>1</td><td>2.7 MB</td></tr>
-      <tr><td>MRA Pack</td><td>1024×1024</td><td>ASTC 4×4 / BC7</td><td>~0.7 MB</td><td>1</td><td>0.7 MB</td></tr>
-      <tr><td>Mask/换色</td><td>512×512</td><td>ASTC 4×4</td><td>~0.17 MB</td><td>1</td><td>0.17 MB</td></tr>
-      <tr><td colspan="5" style="text-align:right;font-weight:700">单角色贴图总预算（移动端）</td><td><span class="badge badge-red">≤ 8 MB</span></td></tr>
-      <tr><td colspan="5" style="text-align:right;font-weight:700">单角色贴图总预算（PC/主机）</td><td><span class="badge badge-yellow">≤ 16 MB</span></td></tr>
+      <tr><td><strong>移动端</strong></td><td><span class="badge badge-red">≤ 8 MB</span></td><td>BaseColor(2K) + Normal(2K) + ARM(1K) + Mask(512)</td></tr>
+      <tr><td><strong>PC/主机</strong></td><td><span class="badge badge-yellow">≤ 16 MB</span></td><td>可扩展至 4K BaseColor + 2K Normal + 1K ARM</td></tr>
     </tbody>
   </table>
 
   <h3>5.3 Mipmap 与 Streaming 策略</h3>
+  <div class="alert alert-blue"><strong>📎 详细 Mipmap 策略表（含各贴图类型的滤波方式、注意事项）</strong>请参见 → <a href="char-3d-topo-pbr.html#sec4" style="color:var(--accent);font-weight:600">《3D角色拓扑规范 §4 LOD 分级策略》</a></div>
   <ul>
-    <li><strong>所有 2D 贴图</strong>必须生成完整 Mipmap Chain，禁止关闭 Mipmap（UI 贴图除外）</li>
-    <li><strong>Texture Streaming</strong>：场景贴图必须开启 Streaming，角色贴图近景保持 Full Mip、远景自动降级</li>
-    <li><strong>Virtual Texture</strong>（UE5 专属）：大世界地表材质推荐使用 RVT 减少同时加载贴图数</li>
-    <li><strong>LOD Bias</strong>：LOD2+ 的模型自动使用降 1~2 级的 Mip，减少无效高清贴图占用</li>
+    <li><strong>核心原则</strong>：所有 2D 贴图必须生成完整 Mipmap Chain（UI 贴图除外），LOD2+ 自动降 1~2 级 Mip</li>
+    <li><strong>Texture Streaming</strong>：场景贴图必须开启 Streaming；角色贴图近景保持 Full Mip、远景自动降级</li>
+    <li><strong>Virtual Texture</strong>（UE5）：大世界地表推荐 RVT，减少同时加载贴图数</li>
   </ul>
 </div>
 
