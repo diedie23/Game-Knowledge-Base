@@ -1,3 +1,13 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""生成升级版 资产提交与审核工作流 v2.0 HTML - 分段拼接"""
+import pathlib, textwrap
+
+out = pathlib.Path(r"docs/knowledge-base/asset-submit-review.html")
+parts = []
+
+# ============ PART 1: HEAD + CSS ============
+parts.append(textwrap.dedent('''\
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -82,6 +92,10 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 </head>
 <body>
 <div class="doc">
+'''))
+
+# ============ PART 2: HEADER + TOC ============
+parts.append(textwrap.dedent('''\
 <div class="doc-header">
   <h1>📦 资产提交与审核工作流 <span class="ver">v2.0</span></h1>
   <div class="subtitle">Asset Submission & Review Workflow — 从提交到合入的全链路质量管控</div>
@@ -112,6 +126,10 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#sec14">附录：审核流程时效 SLA 与升级机制</a></li>
   </ol>
 </div>
+'''))
+
+# ============ PART 3: SEC 1 - Checklist ============
+parts.append(textwrap.dedent('''\
 <div class="section" id="sec1">
   <h2>📋 1. 资产提交前自检 Checklist（全工种版）</h2>
   <div class="sub-title">1.1 通用自检项（CI 自动验证）</div>
@@ -195,6 +213,10 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td>5</td><td>静音检查</td><td>首尾无超 0.5s 静音段</td></tr>
   </table>
 </div>
+'''))
+
+# ============ PART 4: SEC 2 - 提交流程 ============
+parts.append(textwrap.dedent('''\
 <div class="section" id="sec2">
   <h2>🔄 2. 提交流程标准化（全角色视角）</h2>
   <div class="sub-title">2.1 流程全景图</div>
@@ -247,6 +269,10 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <tr><td>音频</td><td>每版本/场景</td><td>≤ 50 文件</td><td>含 SoundBank 配置</td></tr>
   </table>
 </div>
+'''))
+
+# ============ PART 5: SEC 3 - 自动化审核 ============
+parts.append(textwrap.dedent('''\
 <div class="section" id="sec3">
   <h2>🤖 3. 自动化审核流水线设计</h2>
   <div class="sub-title">3.1 架构概览</div>
@@ -293,13 +319,13 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <pre>import re, os, sys, json
 
 NAMING_RULES = {
-    'Character': r'^CH_[A-Z][a-zA-Z0-9]+_[A-Za-z0-9]+(_v\d{2})?\.(?:fbx|tga|png|psd|exr)$',
-    'Scene':     r'^SC_[A-Z][a-zA-Z0-9]+_[A-Za-z0-9]+(_v\d{2})?\.(?:fbx|tga|png)$',
-    'UI':        r'^UI_[A-Z][a-zA-Z0-9]+_[A-Za-z0-9]+(_[a-z]+)?\.(?:png|psd)$',
-    'VFX':       r'^VFX_[A-Z][a-zA-Z0-9]+_[A-Za-z0-9]+\.(?:prefab|mat|tga|png)$',
-    'Animation': r'^AN_[A-Z][a-zA-Z0-9]+_[A-Za-z0-9]+(_v\d{2})?\.(?:fbx|anim)$',
-    'Texture':   r'^TEX_[A-Z][a-zA-Z0-9]+_[A-Za-z0-9]+_[DNMRAEO]\.(?:tga|png|exr)$',
-    'Audio':     r'^(SFX|MUS|AMB|VO)_[A-Z][a-zA-Z0-9]+_[A-Za-z0-9]+\.(?:wav|ogg)$',
+    'Character': r'^CH_[A-Z][a-zA-Z0-9]+_[A-Za-z0-9]+(_v\\d{2})?\\.(?:fbx|tga|png|psd|exr)$',
+    'Scene':     r'^SC_[A-Z][a-zA-Z0-9]+_[A-Za-z0-9]+(_v\\d{2})?\\.(?:fbx|tga|png)$',
+    'UI':        r'^UI_[A-Z][a-zA-Z0-9]+_[A-Za-z0-9]+(_[a-z]+)?\\.(?:png|psd)$',
+    'VFX':       r'^VFX_[A-Z][a-zA-Z0-9]+_[A-Za-z0-9]+\\.(?:prefab|mat|tga|png)$',
+    'Animation': r'^AN_[A-Z][a-zA-Z0-9]+_[A-Za-z0-9]+(_v\\d{2})?\\.(?:fbx|anim)$',
+    'Texture':   r'^TEX_[A-Z][a-zA-Z0-9]+_[A-Za-z0-9]+_[DNMRAEO]\\.(?:tga|png|exr)$',
+    'Audio':     r'^(SFX|MUS|AMB|VO)_[A-Z][a-zA-Z0-9]+_[A-Za-z0-9]+\\.(?:wav|ogg)$',
 }
 
 def check(filepath):
@@ -341,6 +367,10 @@ sys.exit(0 if all(r["pass"] for r in results) else 1)</pre>
     }
 }</pre>
 </div>
+'''))
+
+# ============ PART 6: SEC 4 - Art Review ============
+parts.append(textwrap.dedent('''\
 <div class="section" id="sec4">
   <h2>👁️ 4. Art Review 机制与多级审核</h2>
   <div class="sub-title">4.1 审核角色与权限</div>
@@ -407,6 +437,10 @@ sys.exit(0 if all(r["pass"] for r in results) else 1)</pre>
     <tr><td>外包不达标</td><td>TA修改清单→外包主管</td><td>外包管理</td></tr>
   </table>
 </div>
+'''))
+
+# ============ PART 7: SEC 5-6 ============
+parts.append(textwrap.dedent('''\
 <div class="section" id="sec5">
   <h2>📝 5. Commit Message 规范与模板</h2>
   <div class="sub-title">5.1 格式规范</div>
@@ -422,7 +456,7 @@ sys.exit(0 if all(r["pass"] for r in results) else 1)</pre>
   [MOD][场景][B] 城镇广场路灯调整 #TASK-5678</pre>
 
   <div class="sub-title">5.2 Hook 验证正则</div>
-  <pre>PATTERN = r'^\[(ADD|MOD|FIX|DEL|OPT|WIP|MERGE|CFG)\]\[(角色|场景|UI|特效|动画|音频|TA|通用)\](\[[SABCD]\])?\s+.{5,80}\s+#(TASK|BUG|STORY)-\d{3,6}$'</pre>
+  <pre>PATTERN = r'^\\[(ADD|MOD|FIX|DEL|OPT|WIP|MERGE|CFG)\\]\\[(角色|场景|UI|特效|动画|音频|TA|通用)\\](\\[[SABCD]\\])?\\s+.{5,80}\\s+#(TASK|BUG|STORY)-\\d{3,6}$'</pre>
 
   <div class="sub-title">5.3 扩展 Body（可选，大批量时建议附加）</div>
   <pre>[ADD][角色][S] Luna战斗形态终版 #TASK-1234
@@ -467,6 +501,10 @@ sys.exit(0 if all(r["pass"] for r in results) else 1)</pre>
   <div class="sub-title">6.3 级别标注</div>
   <div class="alert alert-blue">Commit Message 追加 <code>[S]</code>/<code>[A]</code>/<code>[B]</code>/<code>[C]</code>/<code>[D]</code>，CI 据此路由审核流程。未标注默认为 B 级。</div>
 </div>
+'''))
+
+# ============ PART 8: SEC 7-8 ============
+parts.append(textwrap.dedent('''\
 <div class="section" id="sec7">
   <h2>🏢 7. 外包资产专项审核流程</h2>
   <div class="sub-title">7.1 外包交付流程</div>
@@ -529,7 +567,7 @@ read  group vendor_A * -//depot/Code/...</pre>
   <pre>{
   "msgtype": "markdown",
   "markdown": {
-    "content": "## 📦 资产审核通知\n**提交者**: {{author}}\n**变更集**: CL-{{cl}}\n**CI结果**: {{ci_status}}\n- 命名: {{name_check}} | 面数: {{mesh_check}}\n**审核状态**: {{review_status}}\n[查看详情]({{url}})"
+    "content": "## 📦 资产审核通知\\n**提交者**: {{author}}\\n**变更集**: CL-{{cl}}\\n**CI结果**: {{ci_status}}\\n- 命名: {{name_check}} | 面数: {{mesh_check}}\\n**审核状态**: {{review_status}}\\n[查看详情]({{url}})"
   }
 }</pre>
 
@@ -542,6 +580,10 @@ read  group vendor_A * -//depot/Code/...</pre>
     <div class="metric"><div class="val">92.8%</div><div class="label">首次通过率</div></div>
   </div>
 </div>
+'''))
+
+# ============ PART 9: SEC 9-10 ============
+parts.append(textwrap.dedent('''\
 <div class="section" id="sec9">
   <h2>🔄 9. 资产版本管理与回退机制</h2>
   <div class="sub-title">9.1 版本命名</div>
@@ -609,6 +651,10 @@ read  group vendor_A * -//depot/Code/...</pre>
     <tr><td>骨骼</td><td>统一命名规范</td><td>Retarget映射</td></tr>
   </table>
 </div>
+'''))
+
+# ============ PART 10: SEC 11-12 ============
+parts.append(textwrap.dedent('''\
 <div class="section" id="sec11">
   <h2>🕸️ 11. 资产依赖图谱与完整性校验</h2>
   <div class="sub-title">11.1 依赖关系类型</div>
@@ -716,6 +762,10 @@ def find_broken_refs(path='/Game/Art/'):
     <div class="faq-a"><p><strong>场景</strong>：美术自定义Shader未提交，其他人同步后材质粉红色。</p><p><strong>解法</strong>：CI检查材质引用的Shader是否已存在主干；Shader修改需TA审批。</p></div>
   </div>
 </div>
+'''))
+
+# ============ PART 11: SEC 13-14 + Footer ============
+parts.append(textwrap.dedent('''\
 <div class="section" id="sec13">
   <h2>📊 13. 审核数据度量与看板</h2>
   <div class="sub-title">13.1 核心指标定义</div>
@@ -822,8 +872,8 @@ def find_broken_refs(path='/Game/Art/'):
   bar.className='toc-toggle-bar';
   bar.innerHTML='<div style="display:flex;align-items:center">'+
     (h3?h3.outerHTML:'')+
-    '<span class="toc-badge">'+topCount+' \u7AE0 \u00B7 '+totalCount+' \u8282</span></div>'+
-    '<span class="toc-hint"><span class="toc-hint-text">\u70B9\u51FB\u5C55\u5F00</span> <span class="toc-chevron">\u25BC</span></span>';
+    '<span class="toc-badge">'+topCount+' \\u7AE0 \\u00B7 '+totalCount+' \\u8282</span></div>'+
+    '<span class="toc-hint"><span class="toc-hint-text">\\u70B9\\u51FB\\u5C55\\u5F00</span> <span class="toc-chevron">\\u25BC</span></span>';
   var inner=document.createElement('div');
   inner.className='toc-inner';
   inner.appendChild(ol);
@@ -834,10 +884,17 @@ def find_broken_refs(path='/Game/Art/'):
   var hintText=bar.querySelector('.toc-hint-text');
   bar.addEventListener('click',function(){
     var folded=toc.classList.toggle('toc-folded');
-    hintText.textContent=folded?'\u70B9\u51FB\u5C55\u5F00':'\u70B9\u51FB\u6536\u8D77';
+    hintText.textContent=folded?'\\u70B9\\u51FB\\u5C55\\u5F00':'\\u70B9\\u51FB\\u6536\\u8D77';
   });
   if(h3&&h3.parentNode===toc)h3.remove();
 })();
 </script>
 </body>
 </html>
+'''))
+
+# ============ 写入文件 ============
+html = ''.join(parts)
+out.write_text(html, encoding='utf-8')
+print(f"Done! Size: {len(html):,} chars / {out.stat().st_size:,} bytes")
+print(f"Output: {out}")
