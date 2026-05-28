@@ -34,6 +34,7 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
 .alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
 .alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
 .alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-purple{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);color:var(--accent2)}
 code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
 .pain{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-bottom:24px;overflow:hidden}
 .pain-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
@@ -44,6 +45,8 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 .freq-resource{background:var(--green);color:#000}
 .freq-pain{background:var(--orange);color:#fff}
 .freq-star{background:var(--yellow);color:#000}
+.freq-insight{background:var(--pink);color:#fff}
+.freq-producer{background:var(--accent2);color:#fff}
 .pain-head .title{font-size:15px;color:var(--heading);font-weight:700}
 .pain-body{padding:16px 20px}
 .pain-body h4{font-size:13px;color:var(--accent2);margin:14px 0 6px;font-weight:600}
@@ -66,8 +69,26 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 .a-prod{background:rgba(251,191,36,.12)}
 .a-plan{background:rgba(244,114,182,.12)}
 .a-prog{background:rgba(96,165,250,.12)}
+.a-senior{background:rgba(74,222,128,.12)}
+.a-hr{background:rgba(167,139,250,.12)}
 .sj{color:var(--green)}.sm{color:var(--yellow)}.ss{color:var(--orange)}.se{color:var(--red)}
 .doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+.iceberg{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.iceberg{grid-template-columns:1fr}}
+.iceberg-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:12px;line-height:1.8}
+.iceberg-box.above{border-top:3px solid var(--green)}
+.iceberg-box.below{border-top:3px solid var(--accent2)}
+.iceberg-box h5{font-size:13px;margin-bottom:8px;color:var(--heading)}
+.timeline{position:relative;padding-left:24px;margin:16px 0}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--accent2);border-radius:2px}
+.timeline .tl-item{position:relative;margin-bottom:20px;padding-left:20px}
+.timeline .tl-item::before{content:'';position:absolute;left:-20px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--panel)}
+.timeline .tl-item h5{font-size:13px;color:var(--heading);margin-bottom:4px}
+.timeline .tl-item p{font-size:12px;color:var(--text)}
+.quad-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+@media(max-width:600px){.quad-grid{grid-template-columns:1fr}}
+.quad-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12px;line-height:1.8}
+.quad-box h5{font-size:13px;margin-bottom:6px;color:var(--heading)}
 
 /* === TOC Inline Collapse + Grid === */
 .toc{position:relative;overflow:hidden;transition:all .3s ease}
@@ -96,406 +117,1001 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 <div class="doc">
 
 <div class="doc-header">
-  <h1>🌱 APM 个人成长路线图 <span class="ver">v1.0</span></h1>
-  <div class="subtitle">APM Career Growth Roadmap — 从执行者到领导者的升级地图</div>
-  <div class="meta"><span>🎮 中大型游戏项目</span><span>👤 APM / 制作人</span><span>📅 2026-04-02</span></div>
-  <div class="badge">🌱 成长 · 职业发展</div>
+  <h1>APM 个人成长路线图 <span class="ver">v2.0</span></h1>
+  <div class="subtitle">APM Career Growth Roadmap -- 从执行者到领导者的升级地图（资深PM+制作人双视角深度版）</div>
+  <div class="meta"><span>中大型游戏项目</span><span>APM / 制作人</span><span>2026-05-28</span></div>
+  <div class="badge">成长 | 职业发展 | 制作人视角</div>
 </div>
 
-<div class="alert alert-blue" style="margin-bottom:24px"><strong>📖 核心观点：</strong>APM 的成长不是线性的，每个阶段都有一个<strong>关键突破点</strong>。突破了就上台阶，卡住了就是瓶颈。<br><br>本文档描述从初级 APM 到资深 APM 的能力模型、学习路径与阶段性自我评估清单。帮你<strong>看清位置 → 找到方向 → 制定计划 → 验证成长</strong>。</div>
+<div class="alert alert-blue" style="margin-bottom:24px"><strong>核心观点：</strong>APM 的成长不是线性的，每个阶段都有一个<strong>关键突破点</strong>。突破了就上台阶，卡住了就是瓶颈。<br><br>本文档从<strong>资深 PM + 制作人双重视角</strong>描述从初级 APM 到资深 APM 的能力模型、深层行为画像、职业路径分叉、制作人选拔逻辑与组织梯队建设。帮你<strong>看清位置 - 理解标准 - 找到方向 - 加速突破</strong>。</div>
 
-<div class="toc"><h3>📑 目录</h3>
+<div class="alert alert-purple" style="margin-bottom:24px"><strong>v2.0 升级说明：</strong>相比 v1.0（9 章），v2.0 新增至 <strong>18 章</strong>，新增内容包括：职业定位与价值认知、能力冰山模型、制作人选拔逻辑、游戏 vs 互联网差异、深度行为画像、六大高杠杆行为、制作人 Mentor 对话实录、职业分叉路径、OKR 成长体系、组织梯队建设、常见反模式与成长陷阱等。</div>
+
+<div class="toc"><h3>目录</h3>
 <ol>
-  <li><a href="#s1">APM 能力模型</a></li>
-  <li><a href="#s2">成长阶段划分</a></li>
-  <li><a href="#s3">推荐学习资源</a></li>
-  <li><a href="#s4">阶段性自我评估清单</a></li>
-  <li><a href="#s5">常见成长瓶颈与突破</a></li>
-  <li><a href="#s6">优秀 APM 的共性特征</a></li>
-  <li><a href="#s7">典型问题案例</a></li>
-  <li><a href="#s8">成长问题速查矩阵与防线体系</a></li>
-  <li><a href="#s9">Do/Don't 示例与年度计划模板</a></li>
+  <li><a href="#s1">APM 职业定位与价值认知</a></li>
+  <li><a href="#s2">能力冰山模型 -- 显性技能 vs 隐性能力</a></li>
+  <li><a href="#s3">硬技能矩阵（升级版）</a></li>
+  <li><a href="#s4">软技能矩阵 -- 硬技能决定下限，软技能决定上限</a></li>
+  <li><a href="#s5">制作人视角：我如何选拔和培养 APM</a></li>
+  <li><a href="#s6">游戏行业 APM vs 互联网 PM -- 差异化能力要求</a></li>
+  <li><a href="#s7">成长阶段划分与深度行为画像</a></li>
+  <li><a href="#s8">各阶段关键突破点 -- 制作人的观察视角</a></li>
+  <li><a href="#s9">成长加速器：六大高杠杆行为</a></li>
+  <li><a href="#s10">推荐学习资源（分层 + 制作人推荐）</a></li>
+  <li><a href="#s11">阶段性自我评估清单（升级版 30 题）</a></li>
+  <li><a href="#s12">常见成长瓶颈与突破（深度版）</a></li>
+  <li><a href="#s13">制作人 Mentor 对话实录 -- 六个经典成长话题</a></li>
+  <li><a href="#s14">APM 职业分叉与路径选择</a></li>
+  <li><a href="#s15">年度 OKR 式成长体系</a></li>
+  <li><a href="#s16">组织视角：APM 梯队建设</a></li>
+  <li><a href="#s17">成长问题速查矩阵与防线体系（升级版）</a></li>
+  <li><a href="#s18">成长反模式 / 金句 / 决策前自问</a></li>
 </ol></div>
 
-<!-- ═══════ 1. 能力模型 ═══════ -->
+<!-- ======= 1. 职业定位 ======= -->
 <div class="section" id="s1">
-<h2>🎯 1. APM 能力模型</h2>
+<h2>1. APM 职业定位与价值认知</h2>
 
 <div class="pain">
-<div class="pain-head"><span class="freq freq-core">基石</span><span class="title">1.1 硬技能矩阵</span></div>
+<div class="pain-head"><span class="freq freq-insight">洞察</span><span class="title">1.1 APM 不是"催活人" -- 重新定义你的价值锚点</span></div>
 <div class="pain-body">
+<h4>行业误解 vs 真相</h4>
 <table>
-<tr><th>技能领域</th><th class="sj">初级</th><th class="sm">中级</th><th class="ss">高级</th><th class="se">资深</th></tr>
-<tr><td><strong>项目管理方法论</strong></td><td>了解敏捷基础</td><td>熟练 Scrum/Kanban</td><td>混合方法论灵活运用</td><td>可定制团队方法论</td></tr>
-<tr><td><strong>美术管线理解</strong></td><td>知道基本流程</td><td>理解各工种管线细节</td><td>能优化管线效率</td><td>能设计全新管线</td></tr>
-<tr><td><strong>成本核算</strong></td><td>能做基础报价</td><td>熟练人天模型</td><td>能做年度预算规划</td><td>能做 ROI 分析与战略决策</td></tr>
-<tr><td><strong>工具链</strong></td><td>会用 TAPD/Jira</td><td>能配置自动化规则</td><td>能设计工具链方案</td><td>能推动工具研发</td></tr>
-<tr><td><strong>引擎基础</strong></td><td>知道 UE/Unity 是什么</td><td>能在引擎中查看资产</td><td>理解渲染管线与性能</td><td>能与 TA 讨论技术方案</td></tr>
-<tr><td><strong>数据分析</strong></td><td>能做 Excel 报表</td><td>能搭建看板/仪表盘</td><td>能从数据中发现问题</td><td>数据驱动决策</td></tr>
-<tr><td><strong>风险管理</strong></td><td>能识别明显风险</td><td>能评估风险等级</td><td>能制定应对策略</td><td>能建立预警体系</td></tr>
+<tr><th>常见误解</th><th>资深 PM 视角的真相</th></tr>
+<tr><td>"APM 就是催进度的"</td><td>APM 是<strong>项目节奏的设计者</strong>，不是催促者。好的 APM 让团队自驱运转。</td></tr>
+<tr><td>"APM 是制作人的跟班"</td><td>APM 是<strong>制作人的决策支撑系统</strong>，提供数据、预判风险、管理执行细节。</td></tr>
+<tr><td>"APM 不需要懂业务"</td><td>不懂业务的 APM 只能做表格管理员。<strong>理解游戏才能理解优先级</strong>。</td></tr>
+<tr><td>"APM 可以被 AI/工具替代"</td><td>工具替代的是信息汇总，<strong>人际协调、政治判断、危机决策</strong>无法替代。</td></tr>
+<tr><td>"APM 天花板很低"</td><td>资深 APM 可以成为制作人、总监、VP。<strong>管理能力的迁移性极强</strong>。</td></tr>
 </table>
+
+<h4>APM 的四层价值金字塔</h4>
+<table>
+<tr><th>层级</th><th>价值描述</th><th>对应阶段</th><th>制作人感知</th></tr>
+<tr><td><strong>L1 信息层</strong></td><td>确保信息透明、进度可视、问题被看见</td><td>初级</td><td>"他让我知道项目在哪"</td></tr>
+<tr><td><strong>L2 效率层</strong></td><td>优化流程、减少摩擦、提升团队产出</td><td>中级</td><td>"有他在项目跑得更快"</td></tr>
+<tr><td><strong>L3 决策层</strong></td><td>提供数据支撑、风险预判、方案建议</td><td>高级</td><td>"他的建议我愿意采纳"</td></tr>
+<tr><td><strong>L4 战略层</strong></td><td>组织能力建设、资源战略规划、人才梯队</td><td>资深</td><td>"没有他我管不了这么大盘子"</td></tr>
+</table>
+
+<div class="alert alert-yellow"><strong>制作人内心话：</strong>"我评价一个 APM 不是看他多忙，而是看他<strong>不在的时候</strong>项目会不会出问题。如果他休假一周项目照跑，说明体系建得好；如果他一走就乱，说明他还是在用<strong>个人能力</strong>而不是<strong>系统能力</strong>在撑。"</div>
 </div></div>
 
 <div class="pain">
-<div class="pain-head"><span class="freq freq-core">核心</span><span class="title">1.2 软技能矩阵 — 硬技能决定下限，软技能决定上限</span></div>
+<div class="pain-head"><span class="freq freq-core">核心</span><span class="title">1.2 APM 与其他角色的边界与协同</span></div>
 <div class="pain-body">
 <table>
-<tr><th>技能领域</th><th class="sj">初级</th><th class="sm">中级</th><th class="ss">高级</th><th class="se">资深</th></tr>
-<tr><td><strong>跨部门沟通</strong></td><td>能传达信息</td><td>能协调分歧</td><td>能影响决策</td><td>能建立协作机制</td></tr>
-<tr><td><strong>向上管理</strong></td><td>按时汇报</td><td>结构化汇报</td><td>影响上级决策</td><td>成为制作人的左右手</td></tr>
-<tr><td><strong>团队激励</strong></td><td>关心组员</td><td>能解决团队矛盾</td><td>能提升团队效率</td><td>能打造高绩效团队</td></tr>
-<tr><td><strong>冲突解决</strong></td><td>被动应对</td><td>主动调解</td><td>预防为主</td><td>建立机制</td></tr>
-<tr><td><strong>时间管理</strong></td><td>能管好自己</td><td>能管好团队排期</td><td>能管好多项目</td><td>能系统性提效</td></tr>
-<tr><td><strong>情绪管理</strong></td><td>基本控制</td><td>高压下保持冷静</td><td>能安抚他人</td><td>团队情绪锚点</td></tr>
+<tr><th>角色</th><th>核心职责</th><th>APM 与其的关系</th><th>常见边界冲突</th></tr>
+<tr><td><strong>制作人</strong></td><td>产品方向、品质标准、资源决策</td><td>APM 是制作人的执行延伸和信息中枢</td><td>APM 越权做产品决策 / 制作人插手排期细节</td></tr>
+<tr><td><strong>主策划</strong></td><td>设计方向、需求定义、体验标准</td><td>APM 协助需求拆解、跟踪交付、管理变更</td><td>APM 质疑设计方向 / 策划无视排期约束</td></tr>
+<tr><td><strong>主美/AD</strong></td><td>视觉标准、美术管线、品质把控</td><td>APM 管理美术产能、外包协调、交付节奏</td><td>APM 对品质说三道四 / 主美不配合进度管理</td></tr>
+<tr><td><strong>主程</strong></td><td>技术架构、性能标准、实现方案</td><td>APM 协调技术排期、管理技术债务可视化</td><td>APM 承诺超出技术能力 / 程序拒绝给估时</td></tr>
+<tr><td><strong>QA Lead</strong></td><td>质量保障、测试策略、缺陷管理</td><td>APM 协调测试窗口、管理修复优先级</td><td>APM 压缩测试时间 / QA 无限提 Bug 阻塞发版</td></tr>
 </table>
-</div></div>
-
-<div class="pain">
-<div class="pain-head"><span class="freq freq-tool">工具</span><span class="title">1.3 能力雷达图（自评）— 每季度更新</span></div>
-<div class="pain-body">
-<table>
-<tr><th>维度</th><th>评分</th><th>自评</th></tr>
-<tr><td>🎯 项目管理</td><td>★★★★★</td><td>/5</td></tr>
-<tr><td>🎨 美术管线</td><td>★★★★☆</td><td>/5</td></tr>
-<tr><td>💰 成本核算</td><td>★★★★☆</td><td>/5</td></tr>
-<tr><td>⚠️ 风险管理</td><td>★★★☆☆</td><td>/5</td></tr>
-<tr><td>📊 数据分析</td><td>★★★★☆</td><td>/5</td></tr>
-<tr><td>🤝 跨部门沟通</td><td>★★★★★</td><td>/5</td></tr>
-<tr><td>📈 向上管理</td><td>★★★★☆</td><td>/5</td></tr>
-<tr><td>💪 团队激励</td><td>★★★★☆</td><td>/5</td></tr>
-</table>
-<div class="alert alert-blue"><strong>💡 使用方法：</strong>将"评分"列替换为你的实际自评星级，每季度更新并与上一季度对比，聚焦薄弱项制定学习计划。</div>
+<div class="alert alert-green"><strong>金句：</strong>"APM 的边界不是固定的，而是随着信任度动态扩展的。你赢得的信任越多，你能影响的决策范围越大。"</div>
 </div></div>
 </div>
 
-<!-- ═══════ 2. 成长阶段 ═══════ -->
+<!-- ======= 2. 能力冰山模型 ======= -->
 <div class="section" id="s2">
-<h2>📈 2. 成长阶段划分</h2>
+<h2>2. 能力冰山模型 -- 显性技能 vs 隐性能力</h2>
 
 <div class="pain">
-<div class="pain-head"><span class="freq freq-core">路线图</span><span class="title">2.1 四阶段定义</span></div>
+<div class="pain-head"><span class="freq freq-insight">洞察</span><span class="title">2.1 为什么有些 APM 技能满分却晋升不了？</span></div>
 <div class="pain-body">
-<table>
-<tr><th>阶段</th><th>经验</th><th>核心能力</th><th>典型职责</th><th>管理范围</th></tr>
-<tr><td class="sj">🟢 <strong>初级</strong></td><td>0~2 年</td><td>执行力、基础沟通</td><td>跟踪进度、整理纪要、维护排期表</td><td>协助管理 1 个工种</td></tr>
-<tr><td class="sm">🟡 <strong>中级</strong></td><td>2~5 年</td><td>独立管理、数据能力</td><td>独立管理版本/模块、成本核算、外包管理</td><td>独立管理 10~20 人</td></tr>
-<tr><td class="ss">🟠 <strong>高级</strong></td><td>5~8 年</td><td>战略规划、机制设计</td><td>多版本/多项目管理、团队建设、流程优化</td><td>管理 20~50 人</td></tr>
-<tr><td class="se">🔴 <strong>资深</strong></td><td>8 年+</td><td>行业影响力、组织能力</td><td>美术中台建设、跨项目资源调配、培养后继</td><td>管理 50+ 人或多项目</td></tr>
-</table>
+<p>能力冰山模型告诉我们：<strong>水面上 20% 的显性技能</strong>（工具、方法论、流程）容易学习和评估，但真正决定上限的是<strong>水面下 80% 的隐性能力</strong>。</p>
+
+<div class="iceberg">
+<div class="iceberg-box above">
+<h5>水面上 -- 显性技能（容易学、容易评估）</h5>
+<ul>
+<li>项目管理方法论（Scrum/Kanban/混合）</li>
+<li>工具链操作（TAPD/Jira/飞书）</li>
+<li>成本核算与报价</li>
+<li>引擎基础知识</li>
+<li>数据分析与看板</li>
+<li>风险识别与评估</li>
+<li>文档撰写与汇报</li>
+</ul>
+</div>
+<div class="iceberg-box below">
+<h5>水面下 -- 隐性能力（难学、难评估、决定上限）</h5>
+<ul>
+<li><strong>政治敏感度</strong> -- 读懂各方利益与潜台词</li>
+<li><strong>信任资本管理</strong> -- 知道何时消耗、何时积累</li>
+<li><strong>优先级直觉</strong> -- 在信息不完整时做正确判断</li>
+<li><strong>情绪场域感知</strong> -- 感知团队情绪温度</li>
+<li><strong>非权力影响力</strong> -- 没有职权也能推动事情</li>
+<li><strong>模式识别</strong> -- 从历史经验中提取规律</li>
+<li><strong>自我觉察</strong> -- 知道自己的盲区在哪</li>
+<li><strong>延迟满足</strong> -- 愿意做短期看不到回报的事</li>
+</ul>
+</div>
+</div>
+
+<div class="alert alert-yellow"><strong>制作人视角：</strong>"初级 APM 我看技能，中级我看效率，高级我看判断力，资深我看<strong>格局和影响力</strong>。越往上，技能越不重要，<strong>隐性能力</strong>越决定一切。"</div>
 </div></div>
 
 <div class="pain">
-<div class="pain-head"><span class="freq freq-core">关键</span><span class="title">2.2 各阶段关键突破点</span></div>
+<div class="pain-head"><span class="freq freq-core">核心</span><span class="title">2.2 隐性能力的培养路径 -- 不是学出来的，是练出来的</span></div>
 <div class="pain-body">
 <table>
-<tr><th>突破</th><th>标志</th></tr>
-<tr><td><strong>初级→中级</strong></td><td>第一次独立管理一个版本并按时交付</td></tr>
-<tr><td><strong>中级→高级</strong></td><td>第一次在没人指导下处理项目危机并化解</td></tr>
-<tr><td><strong>高级→资深</strong></td><td>第一次建立了可复用的管理体系/工具</td></tr>
+<tr><th>隐性能力</th><th>培养方法</th><th>可观测的行为标志</th><th>典型训练场景</th></tr>
+<tr><td><strong>政治敏感度</strong></td><td>复盘每次会议中各方的真实诉求</td><td>能预判谁会反对什么、为什么</td><td>跨部门需求评审</td></tr>
+<tr><td><strong>信任资本管理</strong></td><td>记录承诺并 100% 兑现</td><td>别人愿意把重要事情托付给你</td><td>承诺交付时间后按时兑现</td></tr>
+<tr><td><strong>优先级直觉</strong></td><td>每周复盘"我这周最重要的 3 件事对了吗"</td><td>在信息模糊时也能做出正确排序</td><td>同时 5 个紧急事项需要排序</td></tr>
+<tr><td><strong>情绪场域感知</strong></td><td>观察会议中的非语言信号</td><td>能在团队情绪低落前采取行动</td><td>版本 Crunch 期间的团队管理</td></tr>
+<tr><td><strong>非权力影响力</strong></td><td>先帮别人解决问题，再请别人帮忙</td><td>没有职位权力也能推动跨部门协作</td><td>推动程序配合美术管线优化</td></tr>
+<tr><td><strong>模式识别</strong></td><td>写"项目日记"，每月总结一个规律</td><td>能说出"上次类似情况我们怎么处理的"</td><td>风险预判与历史案例关联</td></tr>
 </table>
 </div></div>
 </div>
 
-<!-- ═══════ 3. 学习资源 ═══════ -->
+<!-- ======= 3. 硬技能矩阵 ======= -->
 <div class="section" id="s3">
-<h2>📚 3. 推荐学习资源</h2>
+<h2>3. 硬技能矩阵（升级版）</h2>
 
 <div class="pain">
-<div class="pain-head"><span class="freq freq-resource">资源</span><span class="title">3.1 书籍推荐</span></div>
+<div class="pain-head"><span class="freq freq-core">基石</span><span class="title">3.1 八维硬技能分级 -- 每个等级都有明确的行为标准</span></div>
 <div class="pain-body">
 <table>
-<tr><th>阶段</th><th>书名</th><th>作者</th><th>推荐理由</th></tr>
-<tr><td>初级</td><td>《Scrum 敏捷软件开发》</td><td>Ken Schwaber</td><td>敏捷入门</td></tr>
-<tr><td>初级</td><td>《游戏设计艺术》</td><td>Jesse Schell</td><td>理解游戏开发全貌</td></tr>
-<tr><td>中级</td><td>《PMBOK 指南》</td><td>PMI</td><td>系统性项目管理</td></tr>
-<tr><td>中级</td><td>《关键对话》</td><td>Kerry Patterson</td><td>沟通技巧</td></tr>
-<tr><td>高级</td><td>《高效能人士的七个习惯》</td><td>Stephen Covey</td><td>管理者思维</td></tr>
-<tr><td>高级</td><td>《精益开发实战》</td><td>Henrik Kniberg</td><td>精益管理</td></tr>
-<tr><td>资深</td><td>《重新定义管理》</td><td>Brian Robertson</td><td>组织设计</td></tr>
-<tr><td>资深</td><td>《赋能》</td><td>Stanley McChrystal</td><td>团队赋能</td></tr>
+<tr><th>技能领域</th><th class="sj">初级（L1）</th><th class="sm">中级（L2）</th><th class="ss">高级（L3）</th><th class="se">资深（L4）</th></tr>
+<tr><td><strong>项目管理方法论</strong></td><td>了解敏捷基础，能参与站会</td><td>熟练 Scrum/Kanban，能主持迭代</td><td>混合方法论灵活运用，能设计流程</td><td>可定制团队方法论，输出方法论文档</td></tr>
+<tr><td><strong>美术管线理解</strong></td><td>知道基本流程（概设-精设-制作）</td><td>理解各工种管线细节和依赖关系</td><td>能优化管线效率，减少 30%+ 返工</td><td>能设计全新管线，适配 AI 工作流</td></tr>
+<tr><td><strong>成本核算</strong></td><td>能做基础报价（人天 x 单价）</td><td>熟练人天模型，能评估外包成本</td><td>能做年度预算规划与偏差控制</td><td>能做 ROI 分析与产能投资决策</td></tr>
+<tr><td><strong>工具链</strong></td><td>会用 TAPD/Jira 创建和跟踪任务</td><td>能配置自动化规则与看板</td><td>能设计工具链方案，串联上下游</td><td>能推动工具研发，建设效率平台</td></tr>
+<tr><td><strong>引擎基础</strong></td><td>知道 UE/Unity 是什么，能打开项目</td><td>能在引擎中查看资产、理解目录</td><td>理解渲染管线与性能指标含义</td><td>能与 TA 讨论技术方案，参与 Profiling</td></tr>
+<tr><td><strong>数据分析</strong></td><td>能做 Excel 报表和基础统计</td><td>能搭建看板/仪表盘（飞书/Grafana）</td><td>能从数据中发现问题并提出假设</td><td>数据驱动决策，建立度量体系</td></tr>
+<tr><td><strong>风险管理</strong></td><td>能识别明显风险并上报</td><td>能评估风险等级（概率 x 影响）</td><td>能制定应对策略和应急预案</td><td>能建立预警体系和风险文化</td></tr>
+<tr><td><strong>AI 工具应用</strong></td><td>会用 AI 辅助写文档/做表格</td><td>能用 AI 提升个人效率 50%+</td><td>能设计团队 AI 工作流</td><td>能评估 AI 对管线的战略影响</td></tr>
 </table>
 </div></div>
 
 <div class="pain">
-<div class="pain-head"><span class="freq freq-resource">资源</span><span class="title">3.2 课程 & 实践项目</span></div>
+<div class="pain-head"><span class="freq freq-tool">工具</span><span class="title">3.2 能力雷达图（自评）-- 每季度更新</span></div>
 <div class="pain-body">
 <table>
-<tr><th>阶段</th><th>课程</th><th>推荐实践</th></tr>
-<tr><td>初级</td><td>PMP/ACP 考试培训（光环国际）</td><td>作为副 APM 参与完整版本周期</td></tr>
-<tr><td>中级</td><td>GDC Talks 游戏制作管理</td><td>独立管理一个 DLC/小版本</td></tr>
-<tr><td>高级</td><td>领导力培训（公司内训/外部）</td><td>主导管线优化/工具建设</td></tr>
-<tr><td>全阶段</td><td>UE/Unity 官方课程</td><td>建立团队 APM 培训体系</td></tr>
+<tr><th>维度</th><th>自评星级</th><th>目标星级</th><th>本季度提升行动</th></tr>
+<tr><td>项目管理</td><td>/5</td><td>/5</td><td></td></tr>
+<tr><td>美术管线</td><td>/5</td><td>/5</td><td></td></tr>
+<tr><td>成本核算</td><td>/5</td><td>/5</td><td></td></tr>
+<tr><td>风险管理</td><td>/5</td><td>/5</td><td></td></tr>
+<tr><td>数据分析</td><td>/5</td><td>/5</td><td></td></tr>
+<tr><td>工具链</td><td>/5</td><td>/5</td><td></td></tr>
+<tr><td>引擎基础</td><td>/5</td><td>/5</td><td></td></tr>
+<tr><td>AI 工具应用</td><td>/5</td><td>/5</td><td></td></tr>
 </table>
+<div class="alert alert-blue"><strong>使用方法：</strong>填入当前自评星级和期望目标，识别差距最大的 2 项作为本季度聚焦提升方向。每季度更新并与上季度对比。</div>
 </div></div>
 </div>
 
-<!-- ═══════ 4. 自我评估 ═══════ -->
+<!-- ======= 4. 软技能矩阵 ======= -->
 <div class="section" id="s4">
-<h2>✅ 4. 阶段性自我评估清单（20 题）</h2>
+<h2>4. 软技能矩阵 -- 硬技能决定下限，软技能决定上限</h2>
 
 <div class="pain">
-<div class="pain-head"><span class="freq freq-tool">自检</span><span class="title">4.1 项目管理维度</span></div>
+<div class="pain-head"><span class="freq freq-core">核心</span><span class="title">4.1 八维软技能分级</span></div>
 <div class="pain-body">
 <table>
-<tr><th>#</th><th>问题</th><th>评分(1-5)</th></tr>
-<tr><td>1</td><td>我能准确预估美术任务的工期吗？</td><td></td></tr>
-<tr><td>2</td><td>我的排期准确率 ≥ 80% 吗？</td><td></td></tr>
-<tr><td>3</td><td>我能在里程碑前 2 周预判风险吗？</td><td></td></tr>
-<tr><td>4</td><td>我有有效的进度跟踪机制吗？</td><td></td></tr>
-<tr><td>5</td><td>我能清晰地分解大目标为可执行任务吗？</td><td></td></tr>
+<tr><th>技能领域</th><th class="sj">初级</th><th class="sm">中级</th><th class="ss">高级</th><th class="se">资深</th></tr>
+<tr><td><strong>跨部门沟通</strong></td><td>能传达信息不失真</td><td>能协调分歧达成一致</td><td>能影响他人决策</td><td>能建立跨部门协作机制</td></tr>
+<tr><td><strong>向上管理</strong></td><td>按时汇报进度</td><td>结构化汇报含建议</td><td>影响上级决策方向</td><td>成为制作人的决策伙伴</td></tr>
+<tr><td><strong>团队激励</strong></td><td>关心组员状态</td><td>能解决团队矛盾</td><td>能提升团队士气与效率</td><td>能打造高绩效文化</td></tr>
+<tr><td><strong>冲突解决</strong></td><td>被动应对已发生冲突</td><td>主动调解双方分歧</td><td>预防为主，建立预警</td><td>建立冲突解决机制</td></tr>
+<tr><td><strong>时间管理</strong></td><td>能管好自己的日程</td><td>能管好团队排期</td><td>能管好多项目并行</td><td>能系统性提效全组织</td></tr>
+<tr><td><strong>情绪管理</strong></td><td>基本情绪控制</td><td>高压下保持冷静</td><td>能安抚他人情绪</td><td>成为团队情绪锚点</td></tr>
+<tr><td><strong>谈判能力</strong></td><td>能表达诉求</td><td>能找到双方共赢点</td><td>能在复杂博弈中争取最优解</td><td>能设计长期合作框架</td></tr>
+<tr><td><strong>教练辅导</strong></td><td>能回答新人问题</td><td>能指导新人工作方法</td><td>能做 1on1 辅导帮人成长</td><td>能培养出独当一面的 APM</td></tr>
 </table>
 </div></div>
 
 <div class="pain">
-<div class="pain-head"><span class="freq freq-tool">自检</span><span class="title">4.2 沟通协作维度</span></div>
+<div class="pain-head"><span class="freq freq-producer">制作人</span><span class="title">4.2 制作人眼中的软技能优先级排序</span></div>
 <div class="pain-body">
+<div class="alert alert-purple"><strong>制作人内心排序（从最重要到次要）：</strong></div>
 <table>
-<tr><th>#</th><th>问题</th><th>评分(1-5)</th></tr>
-<tr><td>6</td><td>策划认为我是可靠的合作伙伴吗？</td><td></td></tr>
-<tr><td>7</td><td>程序/TA 愿意优先配合我吗？</td><td></td></tr>
-<tr><td>8</td><td>我能在冲突中保持客观吗？</td><td></td></tr>
-<tr><td>9</td><td>上级相信我的汇报和判断吗？</td><td></td></tr>
-<tr><td>10</td><td>我的邮件/消息是否简洁清晰？</td><td></td></tr>
-</table>
-</div></div>
-
-<div class="pain">
-<div class="pain-head"><span class="freq freq-tool">自检</span><span class="title">4.3 专业深度维度</span></div>
-<div class="pain-body">
-<table>
-<tr><th>#</th><th>问题</th><th>评分(1-5)</th></tr>
-<tr><td>11</td><td>我了解各工种的管线细节吗？</td><td></td></tr>
-<tr><td>12</td><td>我能看懂引擎 Profiler 数据吗？</td><td></td></tr>
-<tr><td>13</td><td>我能做外包成本分析和 ROI 评估吗？</td><td></td></tr>
-<tr><td>14</td><td>我了解当前市场的外包行情吗？</td><td></td></tr>
-<tr><td>15</td><td>我能识别资产的质量问题吗？</td><td></td></tr>
-</table>
-</div></div>
-
-<div class="pain">
-<div class="pain-head"><span class="freq freq-tool">自检</span><span class="title">4.4 团队与成长维度</span></div>
-<div class="pain-body">
-<table>
-<tr><th>#</th><th>问题</th><th>评分(1-5)</th></tr>
-<tr><td>16</td><td>我有在培养团队成员吗？</td><td></td></tr>
-<tr><td>17</td><td>本季度我学到了哪些新技能？</td><td></td></tr>
-<tr><td>18</td><td>我有在总结和沉淀经验吗？</td><td></td></tr>
-<tr><td>19</td><td>我能从失败中提取 Action Item 吗？</td><td></td></tr>
-<tr><td>20</td><td>我对下一阶段有清晰的成长目标吗？</td><td></td></tr>
-</table>
-</div></div>
-
-<div class="pain">
-<div class="pain-head"><span class="freq freq-tool">工具</span><span class="title">4.5 评分解读</span></div>
-<div class="pain-body">
-<table>
-<tr><th>总分</th><th>评级</th><th>建议</th></tr>
-<tr><td>80~100</td><td>⭐⭐⭐⭐⭐ 卓越</td><td>可以带新人、分享经验</td></tr>
-<tr><td>65~79</td><td>⭐⭐⭐⭐ 优秀</td><td>保持节奏，攻克薄弱点</td></tr>
-<tr><td>50~64</td><td>⭐⭐⭐ 良好</td><td>有提升空间，制定学习计划</td></tr>
-<tr><td>35~49</td><td>⭐⭐ 需努力</td><td>找 Mentor 指导</td></tr>
-<tr><td>&lt; 35</td><td>⭐ 基础薄弱</td><td>需要系统性补课</td></tr>
+<tr><th>排名</th><th>能力</th><th>制作人视角的理由</th></tr>
+<tr><td>1</td><td><strong>信任建立</strong></td><td>"我需要一个我能信赖的人。说到做到是第一位的。"</td></tr>
+<tr><td>2</td><td><strong>向上管理</strong></td><td>"坏消息要早说、说清楚、带方案。不要让我被 surprise。"</td></tr>
+<tr><td>3</td><td><strong>跨部门协调</strong></td><td>"我没时间处理每个部门的摩擦。我需要他帮我把关系理顺。"</td></tr>
+<tr><td>4</td><td><strong>优先级判断</strong></td><td>"100 件事都紧急的时候，他能帮我做减法。"</td></tr>
+<tr><td>5</td><td><strong>情绪管理</strong></td><td>"Crunch 期间团队崩了，我需要他稳住场面。"</td></tr>
 </table>
 </div></div>
 </div>
 
-<!-- ═══════ 5. 瓶颈与突破 ═══════ -->
+<!-- ======= 5. 制作人选拔 ======= -->
 <div class="section" id="s5">
-<h2>🚧 5. 常见成长瓶颈与突破</h2>
+<h2>5. 制作人视角：我如何选拔和培养 APM</h2>
 
 <div class="pain">
-<div class="pain-head"><span class="freq freq-pain">痛点</span><span class="title">5.1 "执行到管理"的瓶颈 — 中级最常见的卡点</span></div>
+<div class="pain-head"><span class="freq freq-producer">制作人</span><span class="title">5.1 制作人的选人哲学 -- "我不找最聪明的，我找最靠谱的"</span></div>
 <div class="pain-body">
-<h4>🎭 典型场景还原</h4>
-<div class="dialogue">
-  <div class="msg"><div class="avatar a-apm">👔</div><div class="bubble">APM（内心）："这件事交给别人我不放心，还是自己来吧。"</div></div>
-  <div class="msg"><div class="avatar a-prod">🎬</div><div class="bubble">制作人："你每天都在忙具体事务，团队的全局进度谁在看？"</div></div>
-  <div class="msg"><div class="avatar a-apm">👔</div><div class="bubble">APM："可是我不盯着，他们会出错……"</div></div>
-  <div class="msg"><div class="avatar a-prod">🎬</div><div class="bubble">制作人："你不放手，他们永远学不会。你自己也永远上不去。"</div></div>
-</div>
-<h4>🧪 问题根因拆解</h4>
+<h4>面试/选拔时我看什么</h4>
 <table>
-<tr><th>表现</th><th>根因</th><th>影响</th></tr>
-<tr><td>事事亲力亲为，不敢授权</td><td>对他人能力缺乏信任</td><td>自己成为团队瓶颈</td></tr>
-<tr><td>关注细节但失去全局视角</td><td>没有建立"看全局"的习惯</td><td>只见树木不见森林</td></tr>
-<tr><td>被动接受需求</td><td>缺乏主动优化意识</td><td>无法展示管理价值</td></tr>
+<tr><th>维度</th><th>我的观察点</th><th>淘汰信号</th><th>加分信号</th></tr>
+<tr><td><strong>责任心</strong></td><td>过去的承诺兑现记录</td><td>"那不是我负责的"</td><td>"虽然不是我的，但我推动了"</td></tr>
+<tr><td><strong>学习力</strong></td><td>面对陌生领域的态度</td><td>"我不太懂这个"然后停了</td><td>"我不太懂，但我昨晚查了资料..."</td></tr>
+<tr><td><strong>抗压性</strong></td><td>讲述过去的困难经历</td><td>只抱怨困难不讲解决方案</td><td>能清晰描述困境-分析-决策-结果</td></tr>
+<tr><td><strong>全局观</strong></td><td>如何描述过去的项目</td><td>只讲自己做了什么</td><td>能讲清楚项目全貌和自己的位置</td></tr>
+<tr><td><strong>利他性</strong></td><td>对团队成员的态度</td><td>"我带的人不行"</td><td>"我帮他找到了适合的方式"</td></tr>
 </table>
-<h4>🔑 APM 破局思路</h4>
+
+<h4>制作人的培养哲学</h4>
 <div class="sol">
-  <div class="st"><strong>① 练习授权</strong><p>"教会别人做"而非"自己做"，逐步授权并验收</p></div>
-  <div class="st"><strong>② 训练宏观视角</strong><p>每周花 1 小时看全局进度</p></div>
-  <div class="st"><strong>③ 主动优化</strong><p>主动提出优化建议，而不是等上级安排</p></div>
+  <div class="st"><strong>1. 先放手再扶手</strong><p>给任务不给答案，让 APM 自己解题，我在旁边看方向对不对</p></div>
+  <div class="st"><strong>2. 用结果验证能力</strong><p>不看过程好不好看，看结果交付了没有。过程中给容错空间</p></div>
+  <div class="st"><strong>3. 阶梯式加压</strong><p>每次挑战比上一次大 20%。太大会崩，太小没成长</p></div>
+  <div class="st"><strong>4. 关键时刻亲自下场</strong><p>在 APM 真的扛不住的时候出手，不是为了帮他做，而是让他看我怎么做</p></div>
+  <div class="st"><strong>5. 定期对焦方向</strong><p>每季度和 APM 聊一次"你觉得自己哪里在长、哪里卡住了"</p></div>
 </div>
 </div></div>
 
 <div class="pain">
-<div class="pain-head"><span class="freq freq-pain">痛点</span><span class="title">5.2 "管理到领导"的瓶颈 — 高级晋升资深的隐形门槛</span></div>
+<div class="pain-head"><span class="freq freq-producer">制作人</span><span class="title">5.2 制作人的晋升评估矩阵 -- 我凭什么让你升</span></div>
 <div class="pain-body">
-<h4>🎭 典型场景还原</h4>
-<div class="dialogue">
-  <div class="msg"><div class="avatar a-apm">👔</div><div class="bubble">高级 APM："流程我都搭好了，为什么团队还是不愿意执行？"</div></div>
-  <div class="msg"><div class="avatar a-prod">🎬</div><div class="bubble">制作人："流程是对的，但你有没有让大家理解为什么要这样做？"</div></div>
-  <div class="msg"><div class="avatar a-apm">👔</div><div class="bubble">高级 APM："我发了邮件通知了……"</div></div>
-  <div class="msg"><div class="avatar a-prod">🎬</div><div class="bubble">制作人："通知 ≠ 说服。领导力不是权力，是影响力。"</div></div>
-</div>
-<h4>🔑 APM 破局思路</h4>
-<div class="sol">
-  <div class="st"><strong>① 学习教练技术、1on1 方法</strong><p>提升团队管理能力</p></div>
-  <div class="st"><strong>② 建立机制和流程</strong><p>让问题被预防而非被解决</p></div>
-  <div class="st"><strong>③ 写文章/做分享/建知识库</strong><p>积累行业影响力</p></div>
-</div>
+<table>
+<tr><th>晋升节点</th><th>硬性门槛</th><th>软性观察</th><th>一票否决项</th></tr>
+<tr><td><strong>初级 - 中级</strong></td><td>独立管理 1 个版本按时交付</td><td>策划/程序认可其协作态度</td><td>多次承诺未兑现</td></tr>
+<tr><td><strong>中级 - 高级</strong></td><td>处理过 1 次以上项目危机</td><td>能独立做出正确的优先级判断</td><td>团队信任度低（360 低分）</td></tr>
+<tr><td><strong>高级 - 资深</strong></td><td>建立了可复用的管理体系</td><td>培养出至少 1 个可独当一面的后继</td><td>只会管事不会管人</td></tr>
+</table>
+<div class="alert alert-red"><strong>制作人忠告：</strong>"技术可以补，经验可以攒，但<strong>人品和责任心</strong>是底线。如果一个 APM 习惯性甩锅、隐瞒问题、不兑现承诺，无论技能多强我都不会用。"</div>
 </div></div>
 </div>
 
-<!-- ═══════ 6. 优秀特征 ═══════ -->
+<!-- ======= 6. 游戏 vs 互联网 ======= -->
 <div class="section" id="s6">
-<h2>⭐ 6. 优秀 APM 的共性特征</h2>
+<h2>6. 游戏行业 APM vs 互联网 PM -- 差异化能力要求</h2>
+
 <div class="pain">
-<div class="pain-head"><span class="freq freq-star">标杆</span><span class="title">行业顶尖 APM 的七大共同特质</span></div>
+<div class="pain-head"><span class="freq freq-insight">洞察</span><span class="title">6.1 两个行业的本质差异</span></div>
 <div class="pain-body">
 <table>
-<tr><th>特征</th><th>说明</th></tr>
-<tr><td>📊 <strong>数据驱动</strong></td><td>用数据说话，不凭感觉</td></tr>
-<tr><td>🔮 <strong>前瞻性</strong></td><td>能在问题发生前预判</td></tr>
-<tr><td>🤝 <strong>信任基石</strong></td><td>各方都信任你的判断和承诺</td></tr>
-<tr><td>📝 <strong>文档化思维</strong></td><td>重要的事一定落纸面</td></tr>
-<tr><td>⚡ <strong>快速响应</strong></td><td>坏消息不过夜</td></tr>
-<tr><td>🌱 <strong>持续学习</strong></td><td>不断扩展知识边界</td></tr>
-<tr><td>😊 <strong>正能量</strong></td><td>高压下依然能稳住团队情绪</td></tr>
+<tr><th>维度</th><th>互联网 PM</th><th>游戏行业 APM</th><th>对 APM 的影响</th></tr>
+<tr><td><strong>交付模式</strong></td><td>持续交付，小步快跑</td><td>里程碑制，大版本交付</td><td>需要更强的长线规划能力</td></tr>
+<tr><td><strong>团队构成</strong></td><td>工程师为主</td><td>策划+美术+程序+QA 多工种</td><td>需要理解多元工种的工作模式</td></tr>
+<tr><td><strong>不确定性</strong></td><td>需求相对明确，AB Test 验证</td><td>创意驱动，品质标准模糊</td><td>需要更高的容忍模糊度</td></tr>
+<tr><td><strong>成功标准</strong></td><td>DAU/MAU/转化率等数据</td><td>"好不好玩"的主观判断</td><td>不能只看数据，要理解游戏感受</td></tr>
+<tr><td><strong>加班文化</strong></td><td>看公司，总体在收敛</td><td>版本期 Crunch 普遍存在</td><td>需要更强的抗压和节奏管理能力</td></tr>
+<tr><td><strong>外包管理</strong></td><td>较少</td><td>大量美术外包</td><td>需要外包管理和质量管控能力</td></tr>
+<tr><td><strong>技术栈</strong></td><td>Web/App/后端</td><td>游戏引擎+DCC 工具+管线</td><td>需要理解引擎和管线知识</td></tr>
 </table>
+
+<h4>游戏 APM 独有的能力要求</h4>
+<div class="quad-grid">
+<div class="quad-box">
+<h5>1. 美术管线管理</h5>
+<p>理解概念设计 - 原画 - 模型 - 贴图 - 绑定 - 动画 - 特效的完整链路和依赖关系</p>
+</div>
+<div class="quad-box">
+<h5>2. 品质判断能力</h5>
+<p>不能做美术评审，但要知道"这个东西是不是对的"，能判断品质风险</p>
+</div>
+<div class="quad-box">
+<h5>3. 创意管理</h5>
+<p>在"好玩"和"按时交付"之间找到平衡，不能用互联网的效率思维扼杀创意</p>
+</div>
+<div class="quad-box">
+<h5>4. 外包生态管理</h5>
+<p>供应商评估、报价谈判、质量标准制定、交付节奏管控</p>
+</div>
+</div>
 </div></div>
 </div>
 
-<!-- ═══════ 7. 典型问题 ═══════ -->
+<!-- ======= 7. 成长阶段 ======= -->
 <div class="section" id="s7">
-<h2>🚨 7. 典型问题案例</h2>
+<h2>7. 成长阶段划分与深度行为画像</h2>
 
 <div class="pain">
-<div class="pain-head"><span class="freq freq-high">高频</span><span class="title">案例 1：瓶颈期躺平 — 中级 APM 三年原地踏步 · 🟠 A 级</span></div>
+<div class="pain-head"><span class="freq freq-core">路线图</span><span class="title">7.1 四阶段定义（升级版）</span></div>
 <div class="pain-body">
-<h4>🎭 典型场景还原</h4>
-<div class="dialogue">
-  <div class="msg"><div class="avatar a-apm">👔</div><div class="bubble">中级 APM（内心）："排期、外包管理每天都一样，闭着眼都能做。"</div></div>
-  <div class="msg"><div class="avatar a-prod">🎬</div><div class="bubble">制作人（年终 Review）："你的管理能力和去年比没什么变化，高级 APM 的候选人暂时不考虑你。"</div></div>
-  <div class="msg"><div class="avatar a-apm">👔</div><div class="bubble">APM："可是我每个版本都按时交了啊……"</div></div>
-  <div class="msg"><div class="avatar a-prod">🎬</div><div class="bubble">制作人："按时交付是中级的及格线，不是晋升的通行证。我需要看到你的<strong>机制设计、团队提效、危机处理</strong>能力。"</div></div>
-</div>
-<h4>🧪 问题根因拆解</h4>
 <table>
-<tr><th>层级</th><th>原因</th><th>责任方</th></tr>
-<tr><td>🔸 表面</td><td>日常工作已轻车熟路，不再遇到新挑战</td><td>个人</td></tr>
-<tr><td>🔶 中层</td><td>缺乏 Mentor 或标杆</td><td>个人 + 团队</td></tr>
-<tr><td>🔴 深层</td><td>公司内没有明确的 APM 晋升标准和成长路径</td><td>组织机制</td></tr>
+<tr><th>阶段</th><th>经验</th><th>核心能力</th><th>典型职责</th><th>管理范围</th><th>薪资参考(一线)</th></tr>
+<tr><td class="sj"><strong>初级</strong></td><td>0~2 年</td><td>执行力、基础沟通</td><td>跟踪进度、整理纪要、维护排期表</td><td>协助管理 1 个工种</td><td>15K~25K</td></tr>
+<tr><td class="sm"><strong>中级</strong></td><td>2~5 年</td><td>独立管理、数据能力</td><td>独立管理版本/模块、成本核算、外包管理</td><td>独立管理 10~20 人</td><td>25K~40K</td></tr>
+<tr><td class="ss"><strong>高级</strong></td><td>5~8 年</td><td>战略规划、机制设计</td><td>多版本/多项目管理、团队建设、流程优化</td><td>管理 20~50 人</td><td>40K~60K</td></tr>
+<tr><td class="se"><strong>资深</strong></td><td>8 年+</td><td>行业影响力、组织能力</td><td>美术中台建设、跨项目资源调配、培养后继</td><td>管理 50+ 人或多项目</td><td>60K~100K+</td></tr>
 </table>
-<h4>🔑 APM 破局思路</h4>
-<div class="sol">
-  <div class="st"><strong>① 用能力雷达图自评</strong><p>找到最薄弱的 2 个维度</p></div>
-  <div class="st"><strong>② 主动承担超出舒适区的项目</strong><p>如主导管线优化、跨项目资源调配</p></div>
-  <div class="st"><strong>③ 找 Mentor</strong><p>每月 1 次深度交流</p></div>
-  <div class="st"><strong>④ 每季度自我评估</strong><p>跟踪成长曲线</p></div>
-  <div class="st"><strong>⑤ 制定年度成长计划</strong><p>绑定可验证的里程碑</p></div>
-</div>
-<div class="alert alert-yellow"><strong>⚡ APM 金句：</strong>"按时交付是及格线，不是天花板。你的价值不在于做了什么，而在于改变了什么。"</div>
 </div></div>
 
 <div class="pain">
-<div class="pain-head"><span class="freq freq-high">高频</span><span class="title">案例 2：忽视软技能 — 硬指标达标但协作评价低 · 🟠 A 级</span></div>
+<div class="pain-head"><span class="freq freq-insight">洞察</span><span class="title">7.2 深度行为画像 -- 每个阶段的"可观测行为"</span></div>
 <div class="pain-body">
-<h4>🎭 典型场景还原</h4>
-<div class="dialogue">
-  <div class="msg"><div class="avatar a-apm">👔</div><div class="bubble">APM（周会上）："按数据看，这个需求不合理，不应该做。"（语气生硬）</div></div>
-  <div class="msg"><div class="avatar a-plan">📝</div><div class="bubble">策划（会后私下）："这人说话太冲了，以后有事我直接找制作人。"</div></div>
-  <div class="msg"><div class="avatar a-prog">💻</div><div class="bubble">程序："他说的数据没毛病，但就是不想配合他。"</div></div>
-  <div class="msg"><div class="avatar a-prod">🎬</div><div class="bubble">制作人（年终 Review）："你的排期和成本管理做得不错，但 360 评估里合作评价都很低……"</div></div>
-</div>
-<h4>🔑 APM 破局思路</h4>
-<div class="sol">
-  <div class="st"><strong>① 阅读《关键对话》并刻意练习</strong><p>在实际沟通中运用</p></div>
-  <div class="st"><strong>② 每次会议后 5 分钟回顾</strong><p>哪句话说得好 / 哪句话可以改进</p></div>
-  <div class="st"><strong>③ 主动收集合作方反馈</strong><p>匿名问卷 / 1on1 直接询问</p></div>
-  <div class="st"><strong>④ 年度成长计划含软技能</strong><p>至少 1 项软技能提升目标</p></div>
-</div>
-<div class="alert alert-yellow"><strong>⚡ APM 金句：</strong>"对的数据 + 错的说法 = 推不动。管理不只是管事，更是管人心。"</div>
+<h4>初级 APM 的行为画像（0~2 年）</h4>
+<table>
+<tr><th>维度</th><th>达标行为</th><th>警告信号</th></tr>
+<tr><td>日常</td><td>每日站会准时组织，纪要 2 小时内发出</td><td>站会流于形式，纪要拖延或缺失</td></tr>
+<tr><td>进度</td><td>能发现 1~2 天内的进度偏差</td><td>等到周报才发现问题</td></tr>
+<tr><td>沟通</td><td>传达信息准确无误，及时响应</td><td>信息传达失真或延迟</td></tr>
+<tr><td>态度</td><td>主动学习，不懂就问，笔记整理</td><td>被动等指令，不主动思考</td></tr>
+</table>
+
+<h4>中级 APM 的行为画像（2~5 年）</h4>
+<table>
+<tr><th>维度</th><th>达标行为</th><th>警告信号</th></tr>
+<tr><td>管理</td><td>独立管理版本节奏，不需制作人逐日跟进</td><td>每个决策都要请示上级</td></tr>
+<tr><td>预判</td><td>能在问题发生前 1 周预警</td><td>总是事后救火</td></tr>
+<tr><td>数据</td><td>用数据支撑决策，主动搭建看板</td><td>凭感觉判断，不看数据</td></tr>
+<tr><td>协作</td><td>策划/程序主动找你对齐信息</td><td>其他工种绕开你直接找制作人</td></tr>
+<tr><td>外包</td><td>能管理 3 家以上外包商，质量和交期达标</td><td>外包失控、返工率高</td></tr>
+</table>
+
+<h4>高级 APM 的行为画像（5~8 年）</h4>
+<table>
+<tr><th>维度</th><th>达标行为</th><th>警告信号</th></tr>
+<tr><td>体系</td><td>建立了可复用的流程/模板/工具</td><td>一切靠个人经验，没有沉淀</td></tr>
+<tr><td>危机</td><td>独立处理项目危机，事后复盘</td><td>危机时第一反应是找上级</td></tr>
+<tr><td>培养</td><td>带出了 1~2 个能独立工作的中级 APM</td><td>不愿意培养人，担心被替代</td></tr>
+<tr><td>影响力</td><td>跨部门领导认可你的专业判断</td><td>只在自己团队内有话语权</td></tr>
+<tr><td>战略</td><td>能参与制作人级别的资源规划讨论</td><td>只关注执行层面的事情</td></tr>
+</table>
+
+<h4>资深 APM 的行为画像（8 年+）</h4>
+<table>
+<tr><th>维度</th><th>达标行为</th><th>警告信号</th></tr>
+<tr><td>组织</td><td>建立了 APM 团队的能力体系和培养机制</td><td>只是"最资深的个人贡献者"</td></tr>
+<tr><td>战略</td><td>参与项目立项的可行性评估和资源规划</td><td>只管执行不参与决策</td></tr>
+<tr><td>影响力</td><td>在行业内有一定知名度，能对外分享</td><td>闷头干活不做输出</td></tr>
+<tr><td>创新</td><td>推动 AI/新工具在团队中的落地</td><td>抵触新技术，守旧</td></tr>
+<tr><td>传承</td><td>培养出 2+ 个高级 APM</td><td>团队离了自己转不了</td></tr>
+</table>
 </div></div>
 </div>
 
-<!-- ═══════ 8. 速查矩阵 + 防线 ═══════ -->
+<!-- ======= 8. 关键突破点 ======= -->
 <div class="section" id="s8">
-<h2>📊 8. 成长问题速查矩阵与防线体系</h2>
-
-<h3>成长问题速查矩阵</h3>
-<table>
-<tr><th>成长问题</th><th>👔 APM 本人</th><th>🎬 上级/制作人</th><th>🏢 组织</th></tr>
-<tr><td><strong>瓶颈期躺平</strong></td><td>🔴 主动突破舒适区</td><td>⚠️ 分配挑战性任务</td><td>❌ 建立晋升标准</td></tr>
-<tr><td><strong>软技能短板</strong></td><td>🔴 刻意练习沟通</td><td>⚠️ 及时反馈指导</td><td>⚠️ 考核平衡</td></tr>
-<tr><td><strong>方向迷茫</strong></td><td>🔴 找 Mentor + 自评</td><td>⚠️ 提供成长路径</td><td>❌ 明确职级体系</td></tr>
-<tr><td><strong>执行到管理卡壳</strong></td><td>🔴 学会授权</td><td>⚠️ 放手让做</td><td>⚠️ 管理培训</td></tr>
-<tr><td><strong>管理到领导卡壳</strong></td><td>🔴 建立机制 + 影响力</td><td>⚠️ 给予更大舞台</td><td>⚠️ 提供外部资源</td></tr>
-</table>
-<p style="font-size:11px;color:var(--dim)">🔴 = 主要责任 ｜ ⚠️ = 辅助责任/应推动 ｜ ❌ = 严重缺失</p>
-
-<h3 style="margin-top:24px">🛡️ 成长防线体系：5 道保障</h3>
-<table>
-<tr><th>防线</th><th>措施</th><th>负责人</th></tr>
-<tr><td><strong>第 1 道：自我评估</strong></td><td>每季度用能力雷达图 + 评估清单做自评</td><td>APM 本人</td></tr>
-<tr><td><strong>第 2 道：Mentor 机制</strong></td><td>找高级/资深 APM 做 Mentor，每月 1 次深度交流</td><td>APM + 上级</td></tr>
-<tr><td><strong>第 3 道：挑战性任务</strong></td><td>每半年主动承担至少 1 个超出舒适区的项目</td><td>APM + 制作人</td></tr>
-<tr><td><strong>第 4 道：外部输入</strong></td><td>参加 GDC / 行业分享会 / 阅读经典管理书籍</td><td>APM 本人</td></tr>
-<tr><td><strong>第 5 道：成长计划</strong></td><td>制定年度成长计划，绑定可验证里程碑，每季度 Review</td><td>APM + Mentor</td></tr>
-</table>
-
-<div class="alert alert-green"><strong>⚡ APM 成长法则：</strong>"成长不会自动发生。<strong>主动找挑战 → 刻意练习 → 定期复盘 → 寻求反馈</strong>，这是突破每个瓶颈期的唯一路径。"</div>
-</div>
-
-<!-- ═══════ 9. Do/Don't + 模板 ═══════ -->
-<div class="section" id="s9">
-<h2>📌 9. Do/Don't 示例与年度计划模板</h2>
+<h2>8. 各阶段关键突破点 -- 制作人的观察视角</h2>
 
 <div class="pain">
-<div class="pain-head"><span class="freq freq-tool">实战</span><span class="title">中级 APM 制定下一年度的个人成长计划</span></div>
+<div class="pain-head"><span class="freq freq-producer">制作人</span><span class="title">8.1 突破的标志 -- 不是你说了什么，而是别人怎么说你</span></div>
 <div class="pain-body">
-<h4>✅ Do（正确示范）</h4>
-<div class="vs-box good" style="margin:12px 0">
-<ul>
-  <li>用能力雷达图做自评，识别出「引擎基础」和「向上管理」为最弱项</li>
-  <li>年度目标：引擎基础从 ⭐⭐ 提升到 ⭐⭐⭐（完成 UE 基础课程 + 能独立 Profile）</li>
-  <li>制定季度里程碑：Q1 完成课程、Q2 实战练习、Q3 通过 TA 验证、Q4 输出 Profiler 数据</li>
-  <li>找高级 APM 做 Mentor，每月 1on1 讨论成长进展</li>
-  <li>年底用评估清单打分，对比年初数据看提升幅度</li>
-</ul>
+<table>
+<tr><th>突破</th><th>行为标志</th><th>制作人会说的话</th><th>平均耗时</th></tr>
+<tr><td><strong>初级-中级</strong></td><td>第一次独立管理一个版本并按时交付</td><td>"这个版本你管得不错，下个版本也你来。"</td><td>1.5~3 年</td></tr>
+<tr><td><strong>中级-高级</strong></td><td>第一次在没人指导下处理项目危机并化解</td><td>"那次危机你处理得很好，我开始放心把大事交给你。"</td><td>2~4 年</td></tr>
+<tr><td><strong>高级-资深</strong></td><td>第一次建立了可复用的管理体系/培养出独当一面的后继</td><td>"你不在的时候团队也能运转，说明你的体系建好了。"</td><td>3~5 年</td></tr>
+</table>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-producer">制作人</span><span class="title">8.2 制作人如何判断 APM 是否准备好晋升</span></div>
+<div class="pain-body">
+<h4>制作人的"三个能不能"测试</h4>
+<div class="sol">
+  <div class="st"><strong>测试 1：能不能在我不在的时候做出正确决策？</strong><p>如果 APM 每个决策都要等我确认，说明他还在中级水平。高级 APM 应该能在 80% 的情况下独立做出我认可的决策。</p></div>
+  <div class="st"><strong>测试 2：能不能让团队自愿跟随？</strong><p>管理权力是我给的，但领导力是他自己挣的。如果团队只因为"他是 APM"才配合，而不是因为"信服他"，那他还没到资深。</p></div>
+  <div class="st"><strong>测试 3：能不能教会别人做到自己的水平？</strong><p>最高级别的能力是"可复制性"。如果他的能力只存在于他个人身上，那是个人英雄主义，不是领导力。</p></div>
 </div>
-<h4>❌ Don't（错误示范）</h4>
-<div class="vs-box bad" style="margin:12px 0">
+
+<h4>各阶段晋升的"隐性门票"</h4>
+<table>
+<tr><th>晋升节点</th><th>显性条件（你知道的）</th><th>隐性门票（你可能不知道的）</th></tr>
+<tr><td><strong>初级-中级</strong></td><td>能独立管理版本</td><td>制作人不再需要检查你的细节工作</td></tr>
+<tr><td><strong>中级-高级</strong></td><td>能处理危机</td><td>其他部门主动来找你协调（而不是绕开你）</td></tr>
+<tr><td><strong>高级-资深</strong></td><td>能建体系</td><td>你的观点能影响制作人的决策</td></tr>
+</table>
+</div></div>
+</div>
+
+<!-- ======= 9. 成长加速器 ======= -->
+<div class="section" id="s9">
+<h2>9. 成长加速器：六大高杠杆行为</h2>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-star">加速</span><span class="title">9.1 高杠杆行为 -- 做对这 6 件事，成长速度翻倍</span></div>
+<div class="pain-body">
+<p>大多数 APM 的成长是线性的（每年进步一点）。少数 APM 的成长是指数级的。区别在于是否持续做<strong>高杠杆行为</strong> -- 投入少但回报大的行为。</p>
+
+<table>
+<tr><th>#</th><th>高杠杆行为</th><th>投入</th><th>回报</th><th>制作人视角</th></tr>
+<tr><td>1</td><td><strong>主动承担"没人想做的事"</strong></td><td>每季度 1 次</td><td>赢得信任 + 证明能力</td><td>"他愿意做脏活累活，说明靠得住"</td></tr>
+<tr><td>2</td><td><strong>每次交付后写复盘文档</strong></td><td>每版本 2~3 小时</td><td>经验沉淀 + 知识复利</td><td>"他能从经验中提炼规律，这是高级能力"</td></tr>
+<tr><td>3</td><td><strong>建立 1 个对团队有用的工具/模板</strong></td><td>集中投入 1~2 周</td><td>10x 效率提升 + 影响力</td><td>"他不只做事，还能改变做事的方式"</td></tr>
+<tr><td>4</td><td><strong>每月和 1 个跨部门 Leader 深度交流</strong></td><td>每月 1 小时</td><td>信息网络 + 理解力</td><td>"他理解各方诉求，不会做出各方都不满意的决策"</td></tr>
+<tr><td>5</td><td><strong>培养 1 个后继者</strong></td><td>每周 1~2 小时指导</td><td>释放产能 + 展示领导力</td><td>"他有培养人的意识，说明格局够大"</td></tr>
+<tr><td>6</td><td><strong>每次危机后做"决策日记"</strong></td><td>每次 30 分钟</td><td>决策能力飞速提升</td><td>"他的判断力在快速成长"</td></tr>
+</table>
+
+<div class="alert alert-green"><strong>成长公式：</strong>成长速度 = 挑战难度 x 复盘深度 x 反馈频率。三者缺一不可。只做不想没成长，只想不做没结果，做了想了但没反馈会走偏。</div>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-tool">实操</span><span class="title">9.2 高杠杆行为的具体执行方法</span></div>
+<div class="pain-body">
+<h4>行为 1："没人想做的事"清单</h4>
 <ul>
-  <li>年度目标写「全面提升」，没有具体维度和可衡量指标</li>
-  <li>只关注硬技能（考 PMP、学工具），忽略软技能规划</li>
-  <li>计划写完就放抽屉，全年不回顾不更新</li>
-  <li>不做自我评估，凭「感觉」判断自己的成长</li>
-  <li>拒绝寻求 Mentor 帮助，认为「自己摸索就行」</li>
+<li>项目复盘组织（大家嫌烦但价值高）</li>
+<li>跨部门流程梳理（各方踢皮球的地带）</li>
+<li>技术债务可视化（程序不想暴露但管理需要）</li>
+<li>外包供应商重新评估（费时费力但影响大）</li>
+<li>团队 OnBoarding 文档建设（都觉得应该做但没人做）</li>
 </ul>
+
+<h4>行为 2：复盘文档模板（5 分钟框架）</h4>
+<table>
+<tr><th>项</th><th>内容</th></tr>
+<tr><td><strong>做对了什么？</strong></td><td>哪些决策和行为带来了好结果？</td></tr>
+<tr><td><strong>做错了什么？</strong></td><td>哪些决策如果重来会不同？</td></tr>
+<tr><td><strong>学到了什么？</strong></td><td>提炼 1 条可复用的规律</td></tr>
+<tr><td><strong>下次怎么做？</strong></td><td>转化为具体的 Action Item</td></tr>
+</table>
+
+<h4>行为 6：决策日记模板</h4>
+<table>
+<tr><th>项</th><th>内容</th></tr>
+<tr><td><strong>决策场景</strong></td><td>什么情况下做了什么决定？</td></tr>
+<tr><td><strong>当时信息</strong></td><td>决策时知道什么、不知道什么？</td></tr>
+<tr><td><strong>考虑的方案</strong></td><td>有哪些选项？为什么选了这个？</td></tr>
+<tr><td><strong>实际结果</strong></td><td>结果是好是坏？</td></tr>
+<tr><td><strong>复盘归因</strong></td><td>决策质量高吗？结果是运气还是能力？</td></tr>
+</table>
+</div></div>
+</div>
+
+<!-- ======= 10. 学习资源 ======= -->
+<div class="section" id="s10">
+<h2>10. 推荐学习资源（分层 + 制作人推荐）</h2>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-resource">资源</span><span class="title">10.1 书籍推荐（含制作人点评）</span></div>
+<div class="pain-body">
+<table>
+<tr><th>阶段</th><th>书名</th><th>作者</th><th>推荐理由</th><th>制作人点评</th></tr>
+<tr><td>初级</td><td>《Scrum 敏捷软件开发》</td><td>Ken Schwaber</td><td>敏捷入门必读</td><td>"别背框架，理解背后的'为什么'"</td></tr>
+<tr><td>初级</td><td>《游戏设计艺术》</td><td>Jesse Schell</td><td>理解游戏开发全貌</td><td>"APM 必须懂游戏，不然你不知道自己在管什么"</td></tr>
+<tr><td>初级</td><td>《金字塔原理》</td><td>Barbara Minto</td><td>结构化思维入门</td><td>"所有汇报都用金字塔，先说结论"</td></tr>
+<tr><td>中级</td><td>《PMBOK 指南》</td><td>PMI</td><td>系统性项目管理</td><td>"作为工具书用，不要硬套"</td></tr>
+<tr><td>中级</td><td>《关键对话》</td><td>Kerry Patterson</td><td>高难度沟通技巧</td><td>"每次吵完架翻一遍"</td></tr>
+<tr><td>中级</td><td>《非暴力沟通》</td><td>Marshall Rosenberg</td><td>冲突化解底层逻辑</td><td>"APM 80% 的问题都是沟通问题"</td></tr>
+<tr><td>高级</td><td>《高效能人士的七个习惯》</td><td>Stephen Covey</td><td>管理者思维模式</td><td>"以终为始、要事第一，这两条够用很久"</td></tr>
+<tr><td>高级</td><td>《精益开发实战》</td><td>Henrik Kniberg</td><td>精益管理在游戏中的应用</td><td>"消除浪费的思维方式很重要"</td></tr>
+<tr><td>高级</td><td>《影响力》</td><td>Robert Cialdini</td><td>非权力影响力的底层原理</td><td>"不靠权力推动事情的秘密都在这本书里"</td></tr>
+<tr><td>资深</td><td>《赋能》</td><td>Stanley McChrystal</td><td>打造去中心化高效团队</td><td>"最高境界是你不在也行"</td></tr>
+<tr><td>资深</td><td>《组织的力量》</td><td>杨国安</td><td>组织能力三角</td><td>"从管项目到管组织的跳板"</td></tr>
+<tr><td>资深</td><td>《原则》</td><td>Ray Dalio</td><td>决策系统化</td><td>"把决策变成可迭代的系统"</td></tr>
+</table>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-resource">资源</span><span class="title">10.2 课程 & 实践项目</span></div>
+<div class="pain-body">
+<table>
+<tr><th>阶段</th><th>课程/认证</th><th>推荐实践项目</th><th>预期产出</th></tr>
+<tr><td>初级</td><td>PMP/ACP 考试培训</td><td>作为副 APM 参与完整版本周期</td><td>取得认证 + 完整项目经历</td></tr>
+<tr><td>中级</td><td>GDC Talks 游戏制作管理</td><td>独立管理一个 DLC/小版本</td><td>交付一个完整版本</td></tr>
+<tr><td>高级</td><td>领导力培训（光辉国际/DDI）</td><td>主导管线优化/工具建设</td><td>输出可复用的体系文档</td></tr>
+<tr><td>高级</td><td>教练技术（ICF 认证）</td><td>带教 2 个初/中级 APM</td><td>被带教者达到晋升标准</td></tr>
+<tr><td>全阶段</td><td>UE/Unity 官方课程</td><td>能在引擎中做基础操作</td><td>能与 TA 对话无障碍</td></tr>
+<tr><td>全阶段</td><td>AI 工具实战（Cursor/Claude/飞书AI）</td><td>将 AI 融入日常工作流</td><td>个人效率提升 50%+</td></tr>
+</table>
+</div></div>
+</div>
+
+<!-- ======= 11. 自我评估 ======= -->
+<div class="section" id="s11">
+<h2>11. 阶段性自我评估清单（升级版 30 题）</h2>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-tool">自检</span><span class="title">11.1 项目管理维度（8 题）</span></div>
+<div class="pain-body">
+<table>
+<tr><th>#</th><th>问题</th><th>评分(1-5)</th><th>对应阶段</th></tr>
+<tr><td>1</td><td>我能准确预估美术任务的工期吗？</td><td></td><td>中级</td></tr>
+<tr><td>2</td><td>我的排期准确率 &gt;= 80% 吗？</td><td></td><td>中级</td></tr>
+<tr><td>3</td><td>我能在里程碑前 2 周预判风险吗？</td><td></td><td>中级</td></tr>
+<tr><td>4</td><td>我有有效的进度跟踪机制吗？</td><td></td><td>初级</td></tr>
+<tr><td>5</td><td>我能清晰地分解大目标为可执行任务吗？</td><td></td><td>初级</td></tr>
+<tr><td>6</td><td>我建立了可复用的流程模板吗？</td><td></td><td>高级</td></tr>
+<tr><td>7</td><td>我的管理体系在我不在时也能运转吗？</td><td></td><td>资深</td></tr>
+<tr><td>8</td><td>我能用数据证明我的管理带来了可量化的改善吗？</td><td></td><td>高级</td></tr>
+</table>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-tool">自检</span><span class="title">11.2 沟通协作维度（8 题）</span></div>
+<div class="pain-body">
+<table>
+<tr><th>#</th><th>问题</th><th>评分(1-5)</th><th>对应阶段</th></tr>
+<tr><td>9</td><td>策划认为我是可靠的合作伙伴吗？</td><td></td><td>中级</td></tr>
+<tr><td>10</td><td>程序/TA 愿意优先配合我吗？</td><td></td><td>中级</td></tr>
+<tr><td>11</td><td>我能在冲突中保持客观并推动共识吗？</td><td></td><td>高级</td></tr>
+<tr><td>12</td><td>上级相信我的判断并采纳我的建议吗？</td><td></td><td>高级</td></tr>
+<tr><td>13</td><td>我的邮件/消息是否结构清晰、一读就懂？</td><td></td><td>初级</td></tr>
+<tr><td>14</td><td>跨部门 Leader 主动来找我对齐信息吗？</td><td></td><td>高级</td></tr>
+<tr><td>15</td><td>我能在不动用权力的情况下推动事情吗？</td><td></td><td>资深</td></tr>
+<tr><td>16</td><td>团队成员愿意向我坦诚真实问题吗？</td><td></td><td>高级</td></tr>
+</table>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-tool">自检</span><span class="title">11.3 专业深度维度（7 题）</span></div>
+<div class="pain-body">
+<table>
+<tr><th>#</th><th>问题</th><th>评分(1-5)</th><th>对应阶段</th></tr>
+<tr><td>17</td><td>我了解各工种的管线细节和依赖关系吗？</td><td></td><td>中级</td></tr>
+<tr><td>18</td><td>我能看懂引擎 Profiler 数据并定位瓶颈吗？</td><td></td><td>高级</td></tr>
+<tr><td>19</td><td>我能做外包成本分析和 ROI 评估吗？</td><td></td><td>中级</td></tr>
+<tr><td>20</td><td>我了解当前市场的外包行情和供应商能力吗？</td><td></td><td>中级</td></tr>
+<tr><td>21</td><td>我能识别资产的品质风险（不是品质本身）吗？</td><td></td><td>高级</td></tr>
+<tr><td>22</td><td>我了解 AI 工具对当前管线的影响和机会吗？</td><td></td><td>高级</td></tr>
+<tr><td>23</td><td>我能参与技术方案讨论并提出有价值的管理视角吗？</td><td></td><td>资深</td></tr>
+</table>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-tool">自检</span><span class="title">11.4 领导力与成长维度（7 题）</span></div>
+<div class="pain-body">
+<table>
+<tr><th>#</th><th>问题</th><th>评分(1-5)</th><th>对应阶段</th></tr>
+<tr><td>24</td><td>我有在培养团队成员吗？</td><td></td><td>高级</td></tr>
+<tr><td>25</td><td>本季度我学到了哪些新技能并实际应用了？</td><td></td><td>全阶段</td></tr>
+<tr><td>26</td><td>我有在总结和沉淀经验（写文档/做分享）吗？</td><td></td><td>高级</td></tr>
+<tr><td>27</td><td>我能从失败中提取可行的 Action Item 吗？</td><td></td><td>中级</td></tr>
+<tr><td>28</td><td>我对下一阶段有清晰的成长目标和计划吗？</td><td></td><td>全阶段</td></tr>
+<tr><td>29</td><td>我培养出了能独当一面的后继者吗？</td><td></td><td>资深</td></tr>
+<tr><td>30</td><td>我的工作方式是否在推动组织能力提升（而非只是个人贡献）？</td><td></td><td>资深</td></tr>
+</table>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-tool">工具</span><span class="title">11.5 评分解读</span></div>
+<div class="pain-body">
+<table>
+<tr><th>总分</th><th>评级</th><th>建议</th><th>制作人评价</th></tr>
+<tr><td>120~150</td><td>卓越</td><td>可以考虑转型制作人/总监方向</td><td>"你已经是我的核心搭档了"</td></tr>
+<tr><td>100~119</td><td>优秀</td><td>攻克最后 2~3 个薄弱点即可晋升</td><td>"再打磨一下就可以升了"</td></tr>
+<tr><td>80~99</td><td>良好</td><td>制定针对性提升计划</td><td>"潜力不错，需要更多历练"</td></tr>
+<tr><td>60~79</td><td>需努力</td><td>找 Mentor，聚焦基础能力</td><td>"还需要时间成长"</td></tr>
+<tr><td>&lt; 60</td><td>基础薄弱</td><td>系统性补课，从基础做起</td><td>"先把基本功打扎实"</td></tr>
+</table>
+</div></div>
+</div>
+
+<!-- ======= 12. 瓶颈与突破 ======= -->
+<div class="section" id="s12">
+<h2>12. 常见成长瓶颈与突破（深度版）</h2>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-pain">痛点</span><span class="title">12.1 "执行到管理"的瓶颈 -- 中级最常见的卡点</span></div>
+<div class="pain-body">
+<h4>典型场景还原</h4>
+<div class="dialogue">
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM（内心）："这件事交给别人我不放心，还是自己来吧。"</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："你每天都在忙具体事务，团队的全局进度谁在看？"</div></div>
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："可是我不盯着，他们会出错..."</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："你不放手，他们永远学不会。你自己也永远上不去。"</div></div>
+</div>
+<h4>问题根因拆解</h4>
+<table>
+<tr><th>表现</th><th>根因</th><th>影响</th><th>解药</th></tr>
+<tr><td>事事亲力亲为</td><td>对他人能力缺乏信任</td><td>自己成为团队瓶颈</td><td>分阶段授权：先小事后大事</td></tr>
+<tr><td>关注细节失去全局</td><td>没有建立"看全局"的习惯</td><td>只见树木不见森林</td><td>每日 15 分钟"升维时间"看全局</td></tr>
+<tr><td>被动接受需求</td><td>缺乏主动优化意识</td><td>无法展示管理价值</td><td>每月 1 个主动优化提案</td></tr>
+<tr><td>不敢说"不"</td><td>害怕冲突或得罪人</td><td>承诺过多导致交付失败</td><td>学会用数据说"不"</td></tr>
+</table>
+
+<h4>制作人的进阶建议</h4>
+<div class="sol">
+  <div class="st"><strong>1. 授权三部曲</strong><p>① 教他做（Show）- ② 看他做（Coach）- ③ 让他做（Delegate）。不是一步放手，而是阶梯式授权。</p></div>
+  <div class="st"><strong>2. "不在场测试"</strong><p>每月选一天完全不参与日常事务，看看团队能不能正常运转。如果不能，说明你还没授权到位。</p></div>
+  <div class="st"><strong>3. 从"做事的人"变成"设计系统的人"</strong><p>好的管理者不是自己做得快，而是设计一个让所有人都能高效运转的系统。</p></div>
 </div>
 </div></div>
 
-<h3 style="margin-top:24px">📝 年度成长计划模板</h3>
-<p>复制此表，逐项填写你的年度成长计划 — 每季度 Review 一次</p>
+<div class="pain">
+<div class="pain-head"><span class="freq freq-pain">痛点</span><span class="title">12.2 "管理到领导"的瓶颈 -- 高级晋升资深的隐形门槛</span></div>
+<div class="pain-body">
+<h4>典型场景还原</h4>
+<div class="dialogue">
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">高级 APM："流程我都搭好了，为什么团队还是不愿意执行？"</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："流程是对的，但你有没有让大家理解为什么要这样做？"</div></div>
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">高级 APM："我发了邮件通知了..."</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："通知不等于说服。领导力不是权力，是影响力。"</div></div>
+</div>
+<h4>从"管理者"到"领导者"的四个转变</h4>
 <table>
-<tr><th>维度</th><th>当前水平</th><th>年度目标</th><th>行动计划</th><th>检验标准</th></tr>
-<tr><td>项目管理</td><td>⭐⭐⭐</td><td>⭐⭐⭐⭐</td><td>考 PMP</td><td>取得证书</td></tr>
-<tr><td>引擎理解</td><td>⭐⭐</td><td>⭐⭐⭐</td><td>完成 UE 基础课</td><td>能在引擎中 Profile</td></tr>
-<tr><td>跨部门沟通</td><td>⭐⭐⭐</td><td>⭐⭐⭐⭐</td><td>读《关键对话》+ 实践</td><td>策划好评率提升</td></tr>
-<tr><td>团队管理</td><td>⭐⭐</td><td>⭐⭐⭐</td><td>带 1 个新人</td><td>新人 3 月转正</td></tr>
+<tr><th>维度</th><th>管理者（高级）</th><th>领导者（资深）</th></tr>
+<tr><td><strong>驱动力</strong></td><td>用流程和规则驱动</td><td>用愿景和影响力驱动</td></tr>
+<tr><td><strong>关注点</strong></td><td>事情做对了没有</td><td>方向对了没有</td></tr>
+<tr><td><strong>价值</strong></td><td>解决当前问题</td><td>建设长期能力</td></tr>
+<tr><td><strong>关系</strong></td><td>我管理团队</td><td>团队信任我并追随</td></tr>
+<tr><td><strong>影响范围</strong></td><td>自己的团队</td><td>跨团队、跨项目</td></tr>
 </table>
 
-<div class="alert alert-blue"><strong>🔖 推荐阅读：</strong><br>
-• 《关键对话》— Kerry Patterson · 沟通技巧经典<br>
-• 《跨部门沟通话术总结》— APM 沟通破局手册（本站同系列）<br>
-• 《高效能人士的七个习惯》— Stephen Covey · 管理者思维<br>
-• 《赋能》— Stanley McChrystal · 打造高绩效团队
+<h4>破局路径</h4>
+<div class="sol">
+  <div class="st"><strong>1. 学习教练技术</strong><p>从"告诉别人怎么做"转变为"帮助别人自己想明白"。推荐 GROW 模型。</p></div>
+  <div class="st"><strong>2. 建立个人品牌</strong><p>在内部做分享、写方法论文档、在行业会议发言。影响力需要载体。</p></div>
+  <div class="st"><strong>3. 跨项目经验</strong><p>主动参与其他项目的咨询或评审，拓宽视野。</p></div>
+  <div class="st"><strong>4. 培养继任者</strong><p>如果你不能被替代，你就不能被晋升。</p></div>
 </div>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-pain">痛点</span><span class="title">12.3 "舒适区躺平"-- 中级三年原地踏步</span></div>
+<div class="pain-body">
+<h4>典型场景还原</h4>
+<div class="dialogue">
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">中级 APM（内心）："排期、外包管理每天都一样，闭着眼都能做。"</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人（年终 Review）："你的能力和去年比没什么变化，高级候选人暂时不考虑你。"</div></div>
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："可是我每个版本都按时交了啊..."</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："按时交付是中级的及格线，不是晋升的通行证。我需要看到你的<strong>机制设计、团队提效、危机处理</strong>能力。"</div></div>
+</div>
+
+<h4>舒适区的四个信号</h4>
+<table>
+<tr><th>#</th><th>信号</th><th>自检方法</th></tr>
+<tr><td>1</td><td>工作中很少遇到不会做的事</td><td>回忆最近一个月，有没有让你紧张的任务？</td></tr>
+<tr><td>2</td><td>三个月没有学到新东西</td><td>能不能说出本季度学到的 1 个新知识/技能？</td></tr>
+<tr><td>3</td><td>周末不需要想工作的事</td><td>说明工作挑战不够，不需要额外思考</td></tr>
+<tr><td>4</td><td>同事不来请教你新问题</td><td>说明你不再是"成长中的人"，变成了"固化的人"</td></tr>
+</table>
+
+<h4>破局方法</h4>
+<div class="sol">
+  <div class="st"><strong>1. 主动找制作人要更大的挑战</strong><p>"我觉得当前的工作我已经能胜任，能不能给我一个更有挑战的模块？"</p></div>
+  <div class="st"><strong>2. 跨领域学习</strong><p>如果管理轻车熟路，开始学习业务/技术/设计的知识。</p></div>
+  <div class="st"><strong>3. 设定"不舒服指标"</strong><p>每月至少 1 件让自己不舒服的事（公开演讲/接手陌生模块/写方法论文章）。</p></div>
+</div>
+<div class="alert alert-yellow"><strong>金句：</strong>"按时交付是及格线，不是天花板。你的价值不在于做了什么，而在于改变了什么。"</div>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-pain">痛点</span><span class="title">12.4 "忽视软技能"-- 硬指标达标但协作评价低</span></div>
+<div class="pain-body">
+<h4>典型场景还原</h4>
+<div class="dialogue">
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM（周会上）："按数据看，这个需求不合理，不应该做。"（语气生硬）</div></div>
+  <div class="msg"><div class="avatar a-plan">S</div><div class="bubble">策划（会后私下）："这人说话太冲了，以后有事我直接找制作人。"</div></div>
+  <div class="msg"><div class="avatar a-prog">D</div><div class="bubble">程序："他说的数据没毛病，但就是不想配合他。"</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人（年终 Review）："你的数据和排期做得不错，但 360 评估里合作评价都很低..."</div></div>
+</div>
+<h4>破局路径</h4>
+<div class="sol">
+  <div class="st"><strong>1. "对事不对人"的表达升级</strong><p>"这个需求不合理" - "这个需求如果要做，需要额外 2 周，我们看看优先级怎么调"</p></div>
+  <div class="st"><strong>2. 先共情再给方案</strong><p>"我理解你想做这个功能的原因，我们来看看怎么在时间内找到最优解"</p></div>
+  <div class="st"><strong>3. 建立反馈环路</strong><p>每月匿名收集合作方对你的 3 个评价词，追踪变化</p></div>
+</div>
+<div class="alert alert-yellow"><strong>金句：</strong>"对的数据 + 错的说法 = 推不动。管理不只是管事，更是管人心。"</div>
+</div></div>
+</div>
+
+<!-- ======= 13. Mentor 对话 ======= -->
+<div class="section" id="s13">
+<h2>13. 制作人 Mentor 对话实录 -- 六个经典成长话题</h2>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-producer">制作人</span><span class="title">话题 1："我该不该在意晋升？"</span></div>
+<div class="pain-body">
+<div class="dialogue">
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："老板，我在这个级别已经两年了，感觉有点焦虑。同期的同事有些已经升了..."</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："你的焦虑我理解。但让我反问你：如果明天给你升一级，你的工作方式会变吗？"</div></div>
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："应该不会变..."</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："那就对了。<strong>晋升是结果，不是目标</strong>。你应该关注的是：'我有没有在做下一个级别的事'。如果你持续在做高一级的事，晋升只是时间问题。如果你只做当前级别的事等着被提拔，那可能等很久。"</div></div>
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："那我具体该怎么做？"</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："看高级 APM 在做什么，然后主动去做那些事。不要等别人安排。最好的证明方式是：你已经在做那个级别的事了，只是名义上还没升。"</div></div>
+</div>
+<div class="alert alert-green"><strong>核心洞察：</strong>先做到，再得到。晋升是水到渠成的结果，不是努力争取的目标。</div>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-producer">制作人</span><span class="title">话题 2："我觉得自己一直在忙，但好像没有成长"</span></div>
+<div class="pain-body">
+<div class="dialogue">
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："每天都很忙，加班到九十点，但感觉做的都是重复的事..."</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："忙不等于成长。<strong>成长 = 挑战 + 反思</strong>。如果你做的事情不需要你动脑子，那就是在消耗，不是在积累。"</div></div>
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："但项目就是这些事啊..."</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："同样是排期，做排期的人和<strong>优化排期方法的人</strong>不是同一个层次。前者是执行，后者是创造。你能不能把每天做的'同样的事'做得'不一样'？"</div></div>
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："我明白了...我应该在做事的过程中优化做事的方法。"</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："对。每个月问自己：'这个月和上个月比，我有没有找到一个更好的方法？'如果答案是没有，那你确实在原地踏步。"</div></div>
+</div>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-producer">制作人</span><span class="title">话题 3："我和策划/程序的关系总是很紧张"</span></div>
+<div class="pain-body">
+<div class="dialogue">
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："策划总是临时加需求不走流程，程序觉得我不懂技术在瞎指挥..."</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："你觉得他们为什么不配合你？"</div></div>
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："可能觉得我只是在管他们..."</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："关键词是'管'。没有人喜欢被管。你试试把定位从'管理者'换成'<strong>服务者</strong>'。你的工作不是管他们，而是<strong>帮他们更顺畅地做出好东西</strong>。"</div></div>
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："但流程还是要遵守啊..."</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："当然。但推动流程的方式不是'你必须这样做'，而是'这样做对你有什么好处'。<strong>先帮别人解决问题，再谈流程</strong>。信任是合作的前提。"</div></div>
+</div>
+<div class="alert alert-green"><strong>核心洞察：</strong>APM 的定位是"让团队更顺畅"的服务者，不是"盯着别人做事"的监工。先建立信任，再推行流程。</div>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-producer">制作人</span><span class="title">话题 4："我该走管理路线还是专家路线？"</span></div>
+<div class="pain-body">
+<div class="dialogue">
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："我发现我更喜欢研究工具和流程，但公司好像更看重带团队..."</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："这取决于你的长期愿景。但我告诉你一个事实：在游戏行业，<strong>纯专家线的 APM 天花板比管理线低</strong>。因为 APM 的价值核心就是'管理'。"</div></div>
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："那工具和流程研究就不值得做了吗？"</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："值得做，但它应该是你管理能力的<strong>加成项</strong>，不是替代项。最厉害的 APM 是：<strong>既能建体系/做工具，又能带团队/打仗</strong>。两条腿走路。"</div></div>
+</div>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-producer">制作人</span><span class="title">话题 5："Crunch 期间我快撑不住了"</span></div>
+<div class="pain-body">
+<div class="dialogue">
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："连续加班三周了，团队情绪也不好，我自己也很疲惫..."</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："先说身体健康第一。但作为管理者，你需要比团队更能扛。不是说你不能累，而是<strong>你不能让团队看到你崩了</strong>。"</div></div>
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："那我怎么办？"</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："三件事：<br>1. <strong>给自己找一个出口</strong> -- 和我聊、和朋友聊、运动，不要憋着。<br>2. <strong>给团队传递确定性</strong> -- '还有 X 天就结束了''这是最后一波了'，人在看到终点时会获得力量。<br>3. <strong>保护团队的底线</strong> -- 有些不合理的加班你要替他们挡掉，这是你作为管理者的责任。"</div></div>
+</div>
+<div class="alert alert-yellow"><strong>制作人忠告：</strong>"管理者是团队的情绪锚点。你可以私下崩溃，但在团队面前你需要是那个'没问题，我们能搞定'的人。"</div>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-producer">制作人</span><span class="title">话题 6："我想从 APM 转型做制作人，需要准备什么？"</span></div>
+<div class="pain-body">
+<div class="dialogue">
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："我的目标是三年后做制作人。我现在应该做什么准备？"</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："好目标。但你要知道，APM 到制作人不是线性晋升，是<strong>角色转型</strong>。核心区别是：APM 管执行，制作人管方向。"</div></div>
+  <div class="msg"><div class="avatar a-apm">A</div><div class="bubble">APM："我需要补什么？"</div></div>
+  <div class="msg"><div class="avatar a-prod">P</div><div class="bubble">制作人："三个方面：<br>1. <strong>产品感</strong> -- 你要开始关注'什么是好玩的'，而不只是'能不能按时交'。多体验竞品，多和策划讨论设计。<br>2. <strong>商业思维</strong> -- 理解市场、用户、付费、ROI。制作人需要对商业结果负责。<br>3. <strong>决断力</strong> -- 制作人每天要做大量模糊决策。你现在就可以练习：每次遇到选择，先给出自己的判断，然后看和我的判断差多远。"</div></div>
+</div>
+<div class="alert alert-green"><strong>转型路径：</strong>资深 APM - 副制作人 - 制作人。关键是从"管理执行"转向"管理产品方向"。</div>
+</div></div>
+</div>
+
+<!-- ======= 14. 职业分叉 ======= -->
+<div class="section" id="s14">
+<h2>14. APM 职业分叉与路径选择</h2>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-insight">洞察</span><span class="title">14.1 三条主路径 + 两条隐藏路径</span></div>
+<div class="pain-body">
+<table>
+<tr><th>路径</th><th>方向</th><th>适合人群</th><th>核心能力要求</th><th>天花板</th></tr>
+<tr><td><strong>管理线</strong></td><td>高级 APM - 资深 APM - PMO 负责人</td><td>擅长带人、协调、建机制</td><td>领导力 + 组织能力</td><td>PMO 总监 / VP</td></tr>
+<tr><td><strong>业务线</strong></td><td>高级 APM - 副制作人 - 制作人</td><td>有产品感、懂游戏、有决断力</td><td>产品感 + 商业思维</td><td>制作人 / 工作室负责人</td></tr>
+<tr><td><strong>专家线</strong></td><td>高级 APM - 流程专家 - 效能平台</td><td>擅长工具、数据、系统化思维</td><td>技术理解 + 系统设计</td><td>效能总监 / 平台负责人</td></tr>
+<tr><td><strong>隐藏路径 A</strong></td><td>转型为独立顾问/咨询</td><td>经验丰富 + 表达能力强</td><td>行业人脉 + 方法论输出</td><td>无天花板（按项目/时间计费）</td></tr>
+<tr><td><strong>隐藏路径 B</strong></td><td>转型为创业者</td><td>有商业嗅觉 + 执行力</td><td>资源整合 + 商业判断</td><td>无天花板</td></tr>
+</table>
+
+<h4>如何选择？四个决策维度</h4>
+<table>
+<tr><th>维度</th><th>管理线</th><th>业务线</th><th>专家线</th></tr>
+<tr><td><strong>你享受什么？</strong></td><td>培养人、建团队</td><td>做决策、影响产品</td><td>建系统、优化效率</td></tr>
+<tr><td><strong>别人怎么评价你？</strong></td><td>"他带的人都成长很快"</td><td>"他对游戏有自己的理解"</td><td>"他做的工具大家都在用"</td></tr>
+<tr><td><strong>你的精力分配？</strong></td><td>60% 在人身上</td><td>60% 在产品上</td><td>60% 在系统上</td></tr>
+<tr><td><strong>你的焦虑来源？</strong></td><td>团队不成长</td><td>产品不够好</td><td>效率不够高</td></tr>
+</table>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-producer">制作人</span><span class="title">14.2 制作人对各路径的建议</span></div>
+<div class="pain-body">
+<div class="sol">
+  <div class="st"><strong>选管理线的人</strong><p>你需要接受一个事实：你的价值不再体现在个人产出，而是团队产出。最好的管理者是"让别人成功的人"。如果你不能接受"功劳是团队的"，这条路会很痛苦。</p></div>
+  <div class="st"><strong>选业务线的人</strong><p>你需要培养"为决策负责"的勇气。APM 可以给建议，制作人必须做决定。很多好 APM 转不了制作人，不是能力问题，是不敢为模糊决策买单。</p></div>
+  <div class="st"><strong>选专家线的人</strong><p>你需要警惕"陷入技术自嗨"。工具和系统的价值必须体现在业务结果上。如果你做的东西只有你自己觉得好，那不是专家，是自嗨。</p></div>
+</div>
+</div></div>
+</div>
+
+<!-- ======= 15. OKR 成长体系 ======= -->
+<div class="section" id="s15">
+<h2>15. 年度 OKR 式成长体系</h2>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-tool">实操</span><span class="title">15.1 从模糊目标到可衡量增长 -- OKR 框架</span></div>
+<div class="pain-body">
+<h4>成长 OKR 设定原则</h4>
+<table>
+<tr><th>原则</th><th>说明</th><th>错误示范</th><th>正确示范</th></tr>
+<tr><td><strong>可衡量</strong></td><td>必须有明确的成功标准</td><td>"提升沟通能力"</td><td>"360 评估沟通项评分从 3.2 提升到 4.0"</td></tr>
+<tr><td><strong>有挑战</strong></td><td>60~70% 完成率才是好的 OKR</td><td>"按时完成每个版本"</td><td>"排期准确率从 70% 提升到 85%"</td></tr>
+<tr><td><strong>可归因</strong></td><td>结果能证明是你的行动带来的</td><td>"项目成功了"</td><td>"我设计的预警机制避免了 2 次延期"</td></tr>
+<tr><td><strong>有时限</strong></td><td>每个 KR 有明确的时间节点</td><td>"慢慢学"</td><td>"Q2 完成 UE 基础课程并通过验证"</td></tr>
+</table>
+
+<h4>中级 APM 年度成长 OKR 示例</h4>
+<table>
+<tr><th>Objective</th><th>Key Result 1</th><th>Key Result 2</th><th>Key Result 3</th></tr>
+<tr><td><strong>O1：提升项目管理专业度</strong></td><td>排期准确率从 72% 提升到 85%</td><td>建立 1 个可复用的版本管理模板</td><td>通过 PMP 认证</td></tr>
+<tr><td><strong>O2：提升跨部门影响力</strong></td><td>360 评估合作项从 3.5 提到 4.0</td><td>主动化解 3 次以上跨部门冲突</td><td>每月和 1 个其他部门 Leader 深度交流</td></tr>
+<tr><td><strong>O3：培养领导力基础</strong></td><td>带教 1 个初级 APM 达到独立工作水平</td><td>主导 1 次项目复盘并输出方法论文档</td><td>在团队内做 2 次分享</td></tr>
+</table>
+
+<h4>高级 APM 年度成长 OKR 示例</h4>
+<table>
+<tr><th>Objective</th><th>Key Result 1</th><th>Key Result 2</th><th>Key Result 3</th></tr>
+<tr><td><strong>O1：建立可复用管理体系</strong></td><td>输出 3 个标准化流程文档并在团队落地</td><td>设计 1 个自动化预警机制</td><td>管理体系在我不在时运转正常（通过请假测试）</td></tr>
+<tr><td><strong>O2：培养团队梯队</strong></td><td>带出 1 个达到高级水平的中级 APM</td><td>建立 APM 团队的 OnBoarding 体系</td><td>每月 4 次 1on1 辅导</td></tr>
+<tr><td><strong>O3：扩展战略视野</strong></td><td>参与 2 次以上制作人级别的决策讨论</td><td>完成 1 个跨项目的资源优化提案</td><td>在行业内做 1 次外部分享</td></tr>
+</table>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-tool">实操</span><span class="title">15.2 季度 Review 框架</span></div>
+<div class="pain-body">
+<table>
+<tr><th>Review 维度</th><th>核心问题</th><th>输出物</th></tr>
+<tr><td><strong>KR 进度</strong></td><td>每个 KR 完成了百分之几？卡在哪？</td><td>进度打分（0~1.0）</td></tr>
+<tr><td><strong>学习收获</strong></td><td>本季度最大的 1 个成长是什么？</td><td>1 句话总结</td></tr>
+<tr><td><strong>方向校准</strong></td><td>OKR 需要调整吗？环境变了吗？</td><td>调整/保持的决定</td></tr>
+<tr><td><strong>下季度重点</strong></td><td>下季度最重要的 1 件事是什么？</td><td>下季度 Focus</td></tr>
+<tr><td><strong>求助清单</strong></td><td>需要 Mentor/上级/组织帮什么忙？</td><td>具体求助事项</td></tr>
+</table>
+</div></div>
+</div>
+
+<!-- ======= 16. 组织梯队建设 ======= -->
+<div class="section" id="s16">
+<h2>16. 组织视角：APM 梯队建设</h2>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-producer">制作人</span><span class="title">16.1 为什么制作人需要关注 APM 梯队？</span></div>
+<div class="pain-body">
+<table>
+<tr><th>痛点</th><th>表现</th><th>根因</th><th>解决方案</th></tr>
+<tr><td><strong>关键人风险</strong></td><td>某个 APM 离职项目就乱</td><td>没有梯队，没有备份</td><td>建立 1+1 备份机制</td></tr>
+<tr><td><strong>招人难</strong></td><td>外面找不到合适的 APM</td><td>行业没有标准化培养体系</td><td>自己培养 + 建标准</td></tr>
+<tr><td><strong>成长慢</strong></td><td>初级 APM 3 年还是初级</td><td>没有 Mentor + 没有挑战</td><td>建立培养路径 + 分配挑战</td></tr>
+<tr><td><strong>管理一致性</strong></td><td>每个 APM 管法不一样</td><td>没有方法论沉淀</td><td>统一流程模板 + 定期分享</td></tr>
+</table>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-producer">制作人</span><span class="title">16.2 APM 梯队建设的五个支柱</span></div>
+<div class="pain-body">
+<table>
+<tr><th>支柱</th><th>内容</th><th>负责人</th><th>频率</th></tr>
+<tr><td><strong>1. 能力标准</strong></td><td>明确各级别的能力要求和行为标准</td><td>资深 APM + 制作人</td><td>每年更新</td></tr>
+<tr><td><strong>2. 培养路径</strong></td><td>每个级别的学习资源 + 实践项目 + 导师</td><td>高级 APM</td><td>每半年 Review</td></tr>
+<tr><td><strong>3. Mentor 机制</strong></td><td>每个初/中级 APM 配一个高级/资深 Mentor</td><td>PMO 负责人</td><td>每月 1on1</td></tr>
+<tr><td><strong>4. 轮岗/挑战</strong></td><td>定期给 APM 超出舒适区的任务</td><td>制作人</td><td>每季度评估</td></tr>
+<tr><td><strong>5. 知识沉淀</strong></td><td>项目复盘 + 方法论文档 + 内部分享会</td><td>全 APM 团队</td><td>每版本 1 次</td></tr>
+</table>
+
+<h4>APM 团队健康度指标</h4>
+<table>
+<tr><th>指标</th><th>健康标准</th><th>警告线</th></tr>
+<tr><td>梯队比例</td><td>资深:高级:中级:初级 = 1:2:4:2</td><td>任何层级缺失</td></tr>
+<tr><td>年度晋升率</td><td>20~30% 的人在成长通道中</td><td>< 10% 或 > 50%</td></tr>
+<tr><td>离职率</td><td>< 15%</td><td>> 25%</td></tr>
+<tr><td>360 评价均值</td><td>>= 4.0 / 5.0</td><td>< 3.5</td></tr>
+<tr><td>后备率</td><td>每个关键岗位有 1 个后备</td><td>关键岗位无后备</td></tr>
+</table>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-tool">实操</span><span class="title">16.3 APM 团队年度规划模板</span></div>
+<div class="pain-body">
+<table>
+<tr><th>项目</th><th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th></tr>
+<tr><td><strong>团队培训</strong></td><td>方法论统一</td><td>工具链培训</td><td>领导力培训</td><td>年度总结</td></tr>
+<tr><td><strong>分享会</strong></td><td>版本复盘</td><td>最佳实践</td><td>外部分享</td><td>年度知识库更新</td></tr>
+<tr><td><strong>梯队盘点</strong></td><td>能力评估</td><td>晋升候选确认</td><td>培养计划调整</td><td>年终评估</td></tr>
+<tr><td><strong>轮岗/挑战</strong></td><td>分配挑战任务</td><td>中期检查</td><td>跨项目轮岗</td><td>评估成长</td></tr>
+</table>
+</div></div>
+</div>
+
+<!-- ======= 17. 速查矩阵 ======= -->
+<div class="section" id="s17">
+<h2>17. 成长问题速查矩阵与防线体系（升级版）</h2>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-tool">速查</span><span class="title">17.1 成长问题速查矩阵</span></div>
+<div class="pain-body">
+<table>
+<tr><th>成长问题</th><th>APM 本人</th><th>上级/制作人</th><th>组织</th><th>解决时限</th></tr>
+<tr><td><strong>舒适区躺平</strong></td><td>主动突破舒适区</td><td>分配挑战性任务</td><td>建立晋升标准</td><td>1 个季度内启动</td></tr>
+<tr><td><strong>软技能短板</strong></td><td>刻意练习沟通</td><td>及时反馈指导</td><td>考核平衡硬/软</td><td>持续 6 个月</td></tr>
+<tr><td><strong>方向迷茫</strong></td><td>找 Mentor + 自评</td><td>提供成长路径</td><td>明确职级体系</td><td>1 个月内对焦</td></tr>
+<tr><td><strong>执行到管理卡壳</strong></td><td>学会授权</td><td>放手让做</td><td>管理培训</td><td>2~3 个季度</td></tr>
+<tr><td><strong>管理到领导卡壳</strong></td><td>建立机制 + 影响力</td><td>给予更大舞台</td><td>提供外部资源</td><td>1~2 年</td></tr>
+<tr><td><strong>职业瓶颈</strong></td><td>明确路径选择</td><td>提供转型机会</td><td>多路径发展通道</td><td>半年内决策</td></tr>
+<tr><td><strong>缺乏反馈</strong></td><td>主动求反馈</td><td>定期 1on1 反馈</td><td>360 评估机制</td><td>立即启动</td></tr>
+</table>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-core">防线</span><span class="title">17.2 成长防线体系：七道保障</span></div>
+<div class="pain-body">
+<table>
+<tr><th>防线</th><th>措施</th><th>负责人</th><th>频率</th></tr>
+<tr><td><strong>第 1 道：自我评估</strong></td><td>每季度用 30 题评估清单做自评</td><td>APM 本人</td><td>每季度</td></tr>
+<tr><td><strong>第 2 道：Mentor 1on1</strong></td><td>和 Mentor 深度交流成长进展</td><td>APM + Mentor</td><td>每月</td></tr>
+<tr><td><strong>第 3 道：上级反馈</strong></td><td>制作人定期给出方向性反馈</td><td>制作人</td><td>每季度</td></tr>
+<tr><td><strong>第 4 道：挑战性任务</strong></td><td>每半年承担至少 1 个超出舒适区的任务</td><td>APM + 制作人</td><td>每半年</td></tr>
+<tr><td><strong>第 5 道：外部输入</strong></td><td>参加行业分享/阅读/课程</td><td>APM 本人</td><td>持续</td></tr>
+<tr><td><strong>第 6 道：OKR Review</strong></td><td>按 OKR 框架做季度成长回顾</td><td>APM + Mentor</td><td>每季度</td></tr>
+<tr><td><strong>第 7 道：360 评估</strong></td><td>全方位收集合作方对你的评价</td><td>组织/HR</td><td>每半年</td></tr>
+</table>
+</div></div>
+</div>
+
+<!-- ======= 18. 反模式/金句/自问 ======= -->
+<div class="section" id="s18">
+<h2>18. 成长反模式 / 金句 / 决策前自问</h2>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-high">警告</span><span class="title">18.1 十大成长反模式 -- 这些坑不要踩</span></div>
+<div class="pain-body">
+<table>
+<tr><th>#</th><th>反模式</th><th>表现</th><th>危害</th><th>正确做法</th></tr>
+<tr><td>1</td><td><strong>效率陷阱</strong></td><td>用"忙"来代替"成长"</td><td>十年经验变成一年经验重复十次</td><td>每月问"我有没有学到新东西"</td></tr>
+<tr><td>2</td><td><strong>工具迷信</strong></td><td>把学工具等同于学管理</td><td>换了 5 个工具但管理能力没提升</td><td>工具是手段，管理是目的</td></tr>
+<tr><td>3</td><td><strong>证书收集癖</strong></td><td>考了 PMP+ACP+CSM 但实践不变</td><td>理论和实践脱节</td><td>每学一个方法论立刻实践验证</td></tr>
+<tr><td>4</td><td><strong>拒绝授权</strong></td><td>"我做更快"所以不放手</td><td>自己成为瓶颈，团队不成长</td><td>先教后放，接受初期效率下降</td></tr>
+<tr><td>5</td><td><strong>只管事不管人</strong></td><td>进度很好但团队想离职</td><td>人员流失导致项目震荡</td><td>定期关注团队状态和满意度</td></tr>
+<tr><td>6</td><td><strong>过度讨好</strong></td><td>什么都答应，不敢说不</td><td>承诺过多导致交付失败</td><td>用数据说不，给替代方案</td></tr>
+<tr><td>7</td><td><strong>信息囤积</strong></td><td>把信息垄断当作安全感</td><td>团队依赖你，你无法解放</td><td>主动信息透明，建立共享机制</td></tr>
+<tr><td>8</td><td><strong>对标焦虑</strong></td><td>总是和别人比，忽视自身节奏</td><td>焦虑影响判断和表现</td><td>和过去的自己比，专注自身成长</td></tr>
+<tr><td>9</td><td><strong>拒绝反馈</strong></td><td>"我觉得我做得挺好的"</td><td>盲区越来越大</td><td>主动求反馈，尤其是负面反馈</td></tr>
+<tr><td>10</td><td><strong>孤岛思维</strong></td><td>只关注自己团队，不看全局</td><td>视野受限，无法晋升</td><td>每月和 1 个跨部门 Leader 交流</td></tr>
+</table>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-star">金句</span><span class="title">18.2 APM 成长十二金句</span></div>
+<div class="pain-body">
+<table>
+<tr><th>#</th><th>金句</th><th>适用场景</th></tr>
+<tr><td>1</td><td>"按时交付是及格线，不是天花板。你的价值不在于做了什么，而在于改变了什么。"</td><td>舒适区躺平时</td></tr>
+<tr><td>2</td><td>"先做到，再得到。晋升是水到渠成的结果，不是努力争取的目标。"</td><td>焦虑晋升时</td></tr>
+<tr><td>3</td><td>"对的数据 + 错的说法 = 推不动。管理不只是管事，更是管人心。"</td><td>沟通受挫时</td></tr>
+<tr><td>4</td><td>"你的边界不是固定的，而是随着信任度动态扩展的。"</td><td>想扩大影响力时</td></tr>
+<tr><td>5</td><td>"如果你不能被替代，你就不能被晋升。"</td><td>不愿培养后继时</td></tr>
+<tr><td>6</td><td>"忙不等于成长。成长 = 挑战 + 反思。"</td><td>感觉原地踏步时</td></tr>
+<tr><td>7</td><td>"没有人喜欢被管。把定位从'管理者'换成'服务者'。"</td><td>协作关系紧张时</td></tr>
+<tr><td>8</td><td>"最高级别的能力是可复制性。"</td><td>只靠个人能力撑时</td></tr>
+<tr><td>9</td><td>"决策质量 = 信息完整度 x 判断力 x 决断速度。"</td><td>犹豫不决时</td></tr>
+<tr><td>10</td><td>"你可以私下崩溃，但在团队面前你需要是那个'没问题'的人。"</td><td>高压期间时</td></tr>
+<tr><td>11</td><td>"先帮别人解决问题，再谈流程。信任是合作的前提。"</td><td>推行流程受阻时</td></tr>
+<tr><td>12</td><td>"成长不会自动发生。主动找挑战 - 刻意练习 - 定期复盘 - 寻求反馈，是突破瓶颈的唯一路径。"</td><td>随时</td></tr>
+</table>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-tool">自问</span><span class="title">18.3 每月成长自问 10 问</span></div>
+<div class="pain-body">
+<table>
+<tr><th>#</th><th>问题</th><th>期望答案</th></tr>
+<tr><td>1</td><td>这个月我学到了什么新东西？</td><td>至少 1 个具体的新知识/技能</td></tr>
+<tr><td>2</td><td>这个月我做了什么让自己不舒服的事？</td><td>至少 1 次挑战舒适区</td></tr>
+<tr><td>3</td><td>这个月我的管理方式有什么改进？</td><td>至少 1 个流程/方法的优化</td></tr>
+<tr><td>4</td><td>这个月我帮谁成长了？</td><td>至少 1 次有效的辅导/帮助</td></tr>
+<tr><td>5</td><td>这个月我收到了什么反馈？</td><td>至少 1 条有价值的正面/负面反馈</td></tr>
+<tr><td>6</td><td>这个月我的判断力有没有提升？</td><td>至少 1 次正确的独立判断</td></tr>
+<tr><td>7</td><td>这个月和上个月比，我在做更高层次的事吗？</td><td>至少 1 件事比上月层次更高</td></tr>
+<tr><td>8</td><td>这个月我的信任资本是增加了还是减少了？</td><td>增加</td></tr>
+<tr><td>9</td><td>如果重来一遍这个月，我会做什么不同的决定？</td><td>至少 1 个有价值的复盘</td></tr>
+<tr><td>10</td><td>下个月我最重要的 1 件事是什么？</td><td>清晰的下月 Focus</td></tr>
+</table>
+</div></div>
+
+<div class="pain">
+<div class="pain-head"><span class="freq freq-star">标杆</span><span class="title">18.4 优秀 APM 的十大共同特质</span></div>
+<div class="pain-body">
+<table>
+<tr><th>特征</th><th>说明</th><th>制作人感知</th></tr>
+<tr><td><strong>数据驱动</strong></td><td>用数据说话，不凭感觉</td><td>"他的汇报有理有据"</td></tr>
+<tr><td><strong>前瞻性</strong></td><td>能在问题发生前预判</td><td>"他总是提前看到风险"</td></tr>
+<tr><td><strong>信任基石</strong></td><td>各方都信任你的判断和承诺</td><td>"他说的我放心"</td></tr>
+<tr><td><strong>文档化思维</strong></td><td>重要的事一定落纸面</td><td>"他管的项目信息从不丢失"</td></tr>
+<tr><td><strong>快速响应</strong></td><td>坏消息不过夜</td><td>"有问题他第一时间告诉我"</td></tr>
+<tr><td><strong>持续学习</strong></td><td>不断扩展知识边界</td><td>"他一直在进步"</td></tr>
+<tr><td><strong>正能量</strong></td><td>高压下依然能稳住团队情绪</td><td>"有他在团队就踏实"</td></tr>
+<tr><td><strong>服务心态</strong></td><td>把自己定位为团队的支持者</td><td>"各方都愿意配合他"</td></tr>
+<tr><td><strong>体系化思维</strong></td><td>能把经验转化为可复用的体系</td><td>"他做的东西别人能接着用"</td></tr>
+<tr><td><strong>自我觉察</strong></td><td>知道自己的盲区并主动补强</td><td>"他很有自知之明"</td></tr>
+</table>
+</div></div>
 </div>
 
 <div class="doc-footer">
-  🌱 APM 个人成长路线图 v1.0 · 职业发展指南 · 2026-04-02<br>
+  APM 个人成长路线图 v2.0 -- 资深PM+制作人双视角深度版 -- 2026-05-28<br>
   "成长不会自动发生，但只要你在路上，每一步都算数"
 </div>
 
@@ -508,37 +1124,32 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   if(!toc)return;
   var links=toc.querySelectorAll('a[href^="#"]');
   if(links.length<5)return;
-  // Wrap existing content
   var h3=toc.querySelector('h3');
   var ol=toc.querySelector('ol');
   if(!ol)return;
   var topCount=ol.querySelectorAll(':scope>li').length;
   var totalCount=links.length;
-  // Build toggle bar
   var bar=document.createElement('div');
   bar.className='toc-toggle-bar';
   bar.innerHTML='<div style="display:flex;align-items:center">'+
     (h3?h3.outerHTML:'')+
-    '<span class="toc-badge">'+topCount+' \u7AE0 \u00B7 '+totalCount+' \u8282</span></div>'+
+    '<span class="toc-badge">'+topCount+' \u7AE0</span></div>'+
     '<span class="toc-hint"><span class="toc-hint-text">\u70B9\u51FB\u5C55\u5F00</span> <span class="toc-chevron">\u25BC</span></span>';
-  // Create inner wrapper
   var inner=document.createElement('div');
   inner.className='toc-inner';
   inner.appendChild(ol);
-  // Clear and rebuild
   toc.innerHTML='';
   toc.appendChild(bar);
   toc.appendChild(inner);
   toc.classList.add('toc-folded');
-  // Bind toggle
   var hintText=bar.querySelector('.toc-hint-text');
   bar.addEventListener('click',function(){
     var folded=toc.classList.toggle('toc-folded');
     hintText.textContent=folded?'\u70B9\u51FB\u5C55\u5F00':'\u70B9\u51FB\u6536\u8D77';
   });
-  // Remove original h3 (already in bar)
   if(h3&&h3.parentNode===toc)h3.remove();
 })();
 </script>
 </body>
 </html>
+
