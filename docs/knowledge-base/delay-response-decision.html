@@ -33,6 +33,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .section{margin-bottom:40px}
 .section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:8px}
 .section h3{font-size:17px;color:var(--heading);margin:20px 0 10px;font-weight:600}
+.section h4{font-size:15px;color:var(--heading);margin:14px 0 8px;font-weight:600}
 .section p,.section li{font-size:15px;margin-bottom:8px;line-height:1.8}
 .section ul,.section ol{padding-left:20px;margin-bottom:12px}
 table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
@@ -44,12 +45,13 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
 .alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
 .alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
 .alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-purple{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);color:var(--accent2)}
 code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
-.case-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:20px 0}
+.case-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:20px 0}
 .case-info-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
 .case-info-item .label{font-size:12px;color:var(--dim);margin-bottom:6px}
 .case-info-item .value{font-size:18px;font-weight:700;color:var(--heading)}
-.case-info-item .value.val-red{color:var(--red)}.case-info-item .value.val-yellow{color:var(--yellow)}.case-info-item .value.val-green{color:var(--green)}.case-info-item .value.val-accent{color:var(--accent)}
+.case-info-item .value.val-red{color:var(--red)}.case-info-item .value.val-yellow{color:var(--yellow)}.case-info-item .value.val-green{color:var(--green)}.case-info-item .value.val-accent{color:var(--accent)}.case-info-item .value.val-orange{color:var(--orange)}.case-info-item .value.val-cyan{color:var(--cyan)}
 .dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
 @media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
 .dd-card{border-radius:10px;padding:16px;font-size:14px;line-height:1.8}
@@ -57,7 +59,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 .dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
 .dd-card h4{margin:0 0 8px;font-size:15px}
 .badge-sm{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
-.badge-red{background:rgba(248,113,113,.15);color:var(--red)}.badge-green{background:rgba(74,222,128,.15);color:var(--green)}.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}.badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}.badge-orange{background:rgba(251,146,60,.15);color:var(--orange)}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}.badge-green{background:rgba(74,222,128,.15);color:var(--green)}.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}.badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}.badge-orange{background:rgba(251,146,60,.15);color:var(--orange)}.badge-purple{background:rgba(167,139,250,.15);color:var(--accent2)}.badge-cyan{background:rgba(34,211,238,.15);color:var(--cyan)}
 /* ─── 5Whys ─── */
 .why-chain{display:flex;flex-direction:column;gap:0;margin:20px 0}
 .why-item{display:flex;gap:14px;position:relative;padding-bottom:0}
@@ -130,8 +132,28 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 .rc-card-tags{display:flex;flex-wrap:wrap;gap:4px}
 .rc-card-tags .tag{font-size:10px;padding:2px 8px;border-radius:8px}
 .doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
-
-/* === TOC Inline Collapse + Grid === */
+/* ─── 新增样式 ─── */
+.tri-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:16px 0}
+@media(max-width:900px){.tri-grid{grid-template-columns:1fr}}
+.tri-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;overflow:hidden}
+.tri-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.tri-card.tc-red::before{background:var(--red)}.tri-card.tc-yellow::before{background:var(--yellow)}.tri-card.tc-blue::before{background:var(--accent)}.tri-card.tc-green::before{background:var(--green)}.tri-card.tc-purple::before{background:var(--accent2)}.tri-card.tc-orange::before{background:var(--orange)}.tri-card.tc-cyan::before{background:var(--cyan)}
+.tri-card h4{font-size:15px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.tri-card p,.tri-card li{font-size:13px;line-height:1.7}
+.tri-card ul{padding-left:16px;margin:0}
+.formula-box{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin:16px 0;font-family:'Cascadia Code','Fira Code',monospace;font-size:14px;color:var(--cyan);line-height:2}
+.scenario-card{background:linear-gradient(135deg,rgba(167,139,250,.05),rgba(108,140,255,.03));border:1px solid rgba(167,139,250,.2);border-radius:14px;padding:24px;margin:20px 0}
+.scenario-card h4{font-size:16px;color:var(--accent2);margin-bottom:12px}
+.timeline-bar{display:flex;align-items:center;margin:16px 0;gap:0;flex-wrap:wrap}
+.tl-node{text-align:center;padding:8px 12px;min-width:90px;border-radius:8px;font-size:12px;line-height:1.5}
+.tl-node strong{display:block;font-size:13px;margin-bottom:2px}
+.tl-arrow{font-size:16px;color:var(--accent);padding:0 4px}
+.tab-container{margin:16px 0}
+.tab-nav{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px}
+.tab-btn{padding:10px 20px;font-size:14px;font-weight:600;color:var(--dim);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+/* TOC Inline Collapse + Grid */
 .toc{position:relative;overflow:hidden;transition:all .3s ease}
 .toc.toc-folded .toc-inner{max-height:0;padding-top:0;padding-bottom:0;overflow:hidden}
 .toc .toc-inner{max-height:2000px;transition:max-height .35s cubic-bezier(.4,0,.2,1),padding .35s ease;overflow:hidden}
@@ -147,10 +169,6 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 .toc .toc-inner>ol>li>a::before{content:counter(toc-top);font-size:11px;font-weight:700;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:5px;background:rgba(108,140,255,.1);color:var(--accent,#6c8cff);flex-shrink:0}
 .toc .toc-inner>ol>li>a:hover{background:rgba(108,140,255,.08)}
 .toc .toc-inner>ol>li>a:hover::before{background:var(--accent,#6c8cff);color:#000}
-.toc .toc-inner>ol>li>ol{list-style:none;padding:0 0 0 28px;margin:2px 0 6px}
-.toc .toc-inner>ol>li>ol>li{margin:0}
-.toc .toc-inner>ol>li>ol a{display:block;padding:2px 10px;font-size:12px;color:var(--dim,#6b7085);text-decoration:none;border-radius:4px;transition:all .12s;line-height:1.6}
-.toc .toc-inner>ol>li>ol a:hover{color:var(--text,#c5c9d6);background:rgba(108,140,255,.05)}
 @media(max-width:600px){.toc .toc-inner>ol{grid-template-columns:1fr}}
 </style>
 </head>
@@ -158,10 +176,10 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 <div class="doc">
 
 <div class="doc-header">
-  <h1>⏳ 决策指南 — 项目延期应对决策 <span class="ver">v1.0</span></h1>
-  <div class="subtitle">Decision Guide: Delay Response — 从延期预警到最终决策的完整框架</div>
-  <div class="meta"><span>📋 项目管理与排期</span><span>👤 维护人：周八</span><span>📅 2026-04-13</span></div>
-  <div class="badge">📋 决策指南系列 · 项目管理</div>
+  <h1>⏳ 决策指南 — 项目延期应对决策 <span class="ver">v2.0</span></h1>
+  <div class="subtitle">Decision Guide: Delay Response — 从延期预警到战略决策的全链路框架（资深PM+制作人双视角）</div>
+  <div class="meta"><span>📋 项目管理与排期</span><span>👤 维护人：周八</span><span>📅 2026-05-28</span><span>🔄 v1.0→v2.0 深度升级</span></div>
+  <div class="badge">📋 决策指南系列 · 项目管理 · PM+制作人双视角</div>
   <div class="tag-bar">
     <span class="tag tag-danger">🚨 延期应对</span>
     <span class="tag tag-warning">⏱️ 赶工评估</span>
@@ -169,192 +187,823 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     <span class="tag tag-purple">✂️ 砍需求</span>
     <span class="tag tag-success">✅ CheckList</span>
     <span class="tag tag-cyan">🧭 决策指南</span>
+    <span class="tag tag-orange">🎯 制作人视角</span>
   </div>
 </div>
 
 <div class="alert alert-red" style="margin-bottom:24px">
-  <strong>🚨 紧急使用说明：</strong>当排期偏差 &gt;20% 或收到延期风险信号时立即使用。延期不可怕，<strong>没有科学应对决策才可怕</strong>。
+  <strong>🚨 紧急使用说明：</strong>当排期偏差 &gt;20% 或收到延期风险信号时立即使用。延期不可怕，<strong>没有科学应对决策才可怕</strong>。本指南从<strong>资深PM执行层+制作人战略层</strong>双重视角提供全链路解决方案。
 </div>
 
 <div class="toc">
-  <h3>📑 目录</h3>
+  <h3>📑 目录（16章 · PM+制作人双视角深度版）</h3>
   <ol>
-    <li><a href="#s1">延期预警信号识别</a></li>
-    <li><a href="#s2">影响评估矩阵</a></li>
-    <li><a href="#s3">决策树 — Mermaid 可视化</a></li>
-    <li><a href="#s4">三大应对方案详解</a></li>
-    <li><a href="#s5">方案对比与选择</a></li>
-    <li><a href="#s6">5Whys 根因分析模板</a></li>
-    <li><a href="#s7">向上汇报话术</a></li>
-    <li><a href="#s8">决策自测 CheckList</a></li>
+    <li><a href="#s1">延期预警信号识别（三级预警体系）</a></li>
+    <li><a href="#s2">延期分类学 — 结构性/突发性/蠕变式</a></li>
+    <li><a href="#s3">影响评估矩阵（八维度量化模型）</a></li>
+    <li><a href="#s4">制作人视角 — 战略决策框架</a></li>
+    <li><a href="#s5">决策树 — 多层分支可视化</a></li>
+    <li><a href="#s6">赶工方案深度解析与ROI测算</a></li>
+    <li><a href="#s7">砍需求方案 — MoSCoW+RICE优先级矩阵</a></li>
+    <li><a href="#s8">正式延期方案 — 里程碑重建方法论</a></li>
+    <li><a href="#s9">混合方案设计 — 组合策略最优解</a></li>
+    <li><a href="#s10">延期谈判与向上管理（博弈论视角）</a></li>
+    <li><a href="#s11">团队士气管理与危机沟通</a></li>
+    <li><a href="#s12">5Whys 根因分析 + 鱼骨图模板</a></li>
+    <li><a href="#s13">决策复盘与组织学习体系</a></li>
+    <li><a href="#s14">实战案例 — 三个完整决策推演</a></li>
+    <li><a href="#s15">决策自测 CheckList（增强版）</a></li>
+    <li><a href="#s16">金句原则与反模式</a></li>
   </ol>
 </div>
 
 <!-- ═══ 1. 预警信号 ═══ -->
 <div class="section" id="s1">
-  <h2>🔔 一、延期预警信号识别</h2>
+  <h2>🔔 一、延期预警信号识别（三级预警体系）</h2>
   <div class="case-info">
     <div class="case-info-item"><div class="label">黄色预警线</div><div class="value val-yellow">偏差 &gt;20%</div></div>
-    <div class="case-info-item"><div class="label">红色预警线</div><div class="value val-red">偏差 &gt;40%</div></div>
+    <div class="case-info-item"><div class="label">橙色预警线</div><div class="value val-orange">偏差 &gt;40%</div></div>
+    <div class="case-info-item"><div class="label">红色预警线</div><div class="value val-red">偏差 &gt;60%</div></div>
     <div class="case-info-item"><div class="label">最佳决策窗口</div><div class="value val-green">48h 内</div></div>
     <div class="case-info-item"><div class="label">决策输出</div><div class="value val-accent">方案 + 报告</div></div>
   </div>
+
+  <h3>1.1 预警信号分级矩阵</h3>
   <table>
-    <tr><th>预警级别</th><th>信号特征</th><th>响应时效</th><th>决策权限</th></tr>
-    <tr><td><span class="badge-sm badge-yellow">🟡 黄色</span></td><td>燃尽图偏差 20-40%、Sprint 2+ 任务延期、外包返修率 &gt;30%</td><td>48h</td><td>APM 自行</td></tr>
-    <tr><td><span class="badge-sm badge-orange">🟠 橙色</span></td><td>偏差 40-60%、里程碑有风险、关键人力被借调</td><td>24h</td><td>APM + 制作人</td></tr>
-    <tr><td><span class="badge-sm badge-red">🔴 红色</span></td><td>偏差 &gt;60%、里程碑确定延期、连锁影响</td><td>立即</td><td>制作人 + 总监</td></tr>
+    <tr><th>预警级别</th><th>信号特征</th><th>量化触发条件</th><th>响应时效</th><th>决策权限</th><th>自动触发机制</th></tr>
+    <tr><td><span class="badge-sm badge-yellow">🟡 黄色</span></td><td>燃尽图偏差、Sprint 延期、外包返修率偏高</td><td>偏差 20-40%、返修率 &gt;30%、2+任务 Slip</td><td>48h</td><td>APM 自行调整</td><td>看板自动标黄</td></tr>
+    <tr><td><span class="badge-sm badge-orange">🟠 橙色</span></td><td>里程碑有风险、关键人力变动、依赖方延期</td><td>偏差 40-60%、关键路径受阻、核心人力缺口 &gt;20%</td><td>24h</td><td>APM + 制作人</td><td>邮件/IM 通知制作人</td></tr>
+    <tr><td><span class="badge-sm badge-red">🔴 红色</span></td><td>里程碑确定延期、连锁影响、品质不达标</td><td>偏差 &gt;60%、3+下游受影响、里程碑交付无望</td><td>立即</td><td>制作人 + 总监</td><td>升级为紧急战备会</td></tr>
   </table>
-  <div class="alert alert-yellow"><strong>⚠️ 黄金法则：</strong>永远不要选择"再等等看"。延期就像滚雪球——<strong>越早干预成本越低，越晚代价呈指数增长</strong>。</div>
+
+  <h3>1.2 先行指标 — 延期的"左移"预警</h3>
+  <div class="alert alert-blue"><strong>💡 资深PM经验：</strong>等到里程碑延期才响应为时已晚。真正有效的是监控先行指标（Leading Indicators）。</div>
+  <table>
+    <tr><th>先行指标</th><th>正常范围</th><th>预警阈值</th><th>数据来源</th></tr>
+    <tr><td>每日任务完成率</td><td>≥85%</td><td>&lt;70% 持续 3天</td><td>Jira/TAPD 看板</td></tr>
+    <tr><td>代码提交频率</td><td>稳定</td><td>下降 40%+</td><td>Git 提交记录</td></tr>
+    <tr><td>需求变更频率</td><td>≤1次/周</td><td>≥3次/周</td><td>CR审批流程</td></tr>
+    <tr><td>站会阻塞报告</td><td>≤1项</td><td>≥3项 持续 2天</td><td>站会纪要</td></tr>
+    <tr><td>外包沟通响应</td><td>≤4h</td><td>≥24h</td><td>IM/邮件</td></tr>
+    <tr><td>Bug新增/关闭比</td><td>≤1:1</td><td>&gt;2:1</td><td>缺陷跟踪系统</td></tr>
+  </table>
+
+  <h3>1.3 制作人视角 — 你需要关注的"元信号"</h3>
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>🚫 制作人常忽略的隐性信号</h4>
+      <ul>
+        <li>APM 汇报时开始频繁用"差不多"、"应该能赶上"等模糊措辞</li>
+        <li>核心成员出现无故缺席站会/周会</li>
+        <li>策划频繁调整需求优先级但不走变更流程</li>
+        <li>技术方案讨论突然变多（暗示遇到未预期的技术阻塞）</li>
+        <li>外包 CP 开始找借口减少交付量</li>
+      </ul>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ 制作人应建立的预警直觉</h4>
+      <ul>
+        <li>每周亲自看一次燃尽图/累计流量图，不只听口头汇报</li>
+        <li>保持与一线骨干的 1on1 频率（至少双周），感知真实状态</li>
+        <li>关注团队氛围的微妙变化（加班频率、会议气氛、离职倾向）</li>
+        <li>建立"信号-行动"映射表，防止信息在层级间衰减</li>
+        <li>设置关键里程碑的 T-2周 提前量检查点</li>
+      </ul>
+    </div>
+  </div>
+  <div class="alert alert-yellow"><strong>⚠️ 黄金法则：</strong>永远不要选择"再等等看"。延期就像滚雪球——<strong>越早干预成本越低，越晚代价呈指数增长</strong>。经验公式：延迟 1 天发现 ≈ 增加 3 天处理成本。</div>
 </div>
 
-<!-- ═══ 2. 影响评估 ═══ -->
+<!-- ═══ 2. 延期分类学 ═══ -->
 <div class="section" id="s2">
-  <h2>📊 二、影响评估矩阵</h2>
+  <h2>📐 二、延期分类学 — 结构性/突发性/蠕变式</h2>
+  <div class="alert alert-purple"><strong>🎯 核心观点：</strong>不同类型的延期需要截然不同的应对策略。一刀切的方案往往适得其反。</div>
+  
+  <div class="tri-grid">
+    <div class="tri-card tc-red">
+      <h4>🏗️ 结构性延期</h4>
+      <p><strong>定义：</strong>由项目架构、流程、组织缺陷导致的系统性延期</p>
+      <ul>
+        <li>排期方法论缺失（拍脑袋排期）</li>
+        <li>流水线设计不合理（串行瓶颈）</li>
+        <li>组织架构导致决策链过长</li>
+        <li>技术债累积导致开发效率递减</li>
+      </ul>
+      <p><strong>应对重点：</strong>改流程、改组织，不能只加资源</p>
+      <p><strong>典型比例：</strong>占延期案例的 45%</p>
+    </div>
+    <div class="tri-card tc-orange">
+      <h4>⚡ 突发性延期</h4>
+      <p><strong>定义：</strong>由不可预见事件造成的突然中断</p>
+      <ul>
+        <li>核心人员突然离职/重病</li>
+        <li>外包公司爆雷/跑路</li>
+        <li>技术方案验证失败需推倒重来</li>
+        <li>上级临时决定大改方向</li>
+      </ul>
+      <p><strong>应对重点：</strong>快速止血 + 应急预案启动</p>
+      <p><strong>典型比例：</strong>占延期案例的 25%</p>
+    </div>
+    <div class="tri-card tc-yellow">
+      <h4>🐌 蠕变式延期</h4>
+      <p><strong>定义：</strong>由多个微小偏差日积月累形成的"温水煮青蛙"</p>
+      <ul>
+        <li>每个任务只延 0.5-1 天，不触发预警</li>
+        <li>需求小幅蔓延（每次"只加一点点"）</li>
+        <li>质量标准逐步被拉高但人天不变</li>
+        <li>沟通返工的时间从未被计入排期</li>
+      </ul>
+      <p><strong>应对重点：</strong>数据化追踪 + 趋势分析 + 早期截断</p>
+      <p><strong>典型比例：</strong>占延期案例的 30%</p>
+    </div>
+  </div>
+
+  <h3>2.1 延期类型诊断快查表</h3>
   <table>
-    <tr><th>维度</th><th>评估内容</th><th>量化指标</th><th>评分(1-5)</th></tr>
-    <tr><td><strong>⏱️ 工期</strong></td><td>延期天数、里程碑影响</td><td>延期 X 天</td><td>&gt;2周=5分</td></tr>
-    <tr><td><strong>💰 成本</strong></td><td>额外人力、外包加急费</td><td>追加 ¥X 万</td><td>&gt;15%=5分</td></tr>
-    <tr><td><strong>🎨 质量</strong></td><td>赶工导致的质量下降</td><td>返修率提升 X%</td><td>&gt;30%=5分</td></tr>
-    <tr><td><strong>👥 团队</strong></td><td>加班强度、士气、流失</td><td>连续 X 周</td><td>&gt;3周=5分</td></tr>
-    <tr><td><strong>🔗 连锁</strong></td><td>下游依赖方影响</td><td>影响 N 个团队</td><td>&gt;3=5分</td></tr>
+    <tr><th>诊断问题</th><th>是→倾向类型</th><th>对应策略</th></tr>
+    <tr><td>延期是否在项目初期就开始了？</td><td>结构性</td><td>重新评估排期方法论</td></tr>
+    <tr><td>延期是否由单一事件触发？</td><td>突发性</td><td>启动应急预案</td></tr>
+    <tr><td>延期是否"不知不觉"积累的？</td><td>蠕变式</td><td>加强日/周粒度追踪</td></tr>
+    <tr><td>换一个 PM 来管，问题还会存在吗？</td><td>结构性/蠕变式</td><td>组织级改进</td></tr>
+    <tr><td>是否有明确的"某一天开始出问题"？</td><td>突发性</td><td>针对性解决+复盘</td></tr>
   </table>
-  <div class="alert alert-blue"><strong>💡 评分规则：</strong>总分 5-10 轻度（APM 调整），11-18 中度（与制作人商议），19-25 重度（上报总监 + Plan B）。</div>
+
+  <h3>2.2 三类延期的应对策略差异</h3>
+  <table>
+    <tr><th>策略维度</th><th>🏗️ 结构性</th><th>⚡ 突发性</th><th>🐌 蠕变式</th></tr>
+    <tr><td>首要动作</td><td>暂停 + 重规划</td><td>止血 + 应急</td><td>数据分析 + 趋势预测</td></tr>
+    <tr><td>资源投入</td><td>中长期改进</td><td>短期应急集中</td><td>精细化管理</td></tr>
+    <tr><td>加人有效性</td><td>⚠️ 低（Brooks定律）</td><td>✅ 高（替换缺口）</td><td>⚠️ 中（需配合流程）</td></tr>
+    <tr><td>砍需求优先级</td><td>⚠️ 中（治标不治本）</td><td>✅ 高（快速止损）</td><td>✅ 高（截断蔓延）</td></tr>
+    <tr><td>复盘重点</td><td>方法论+流程</td><td>风险预案完善</td><td>监控机制+变更管理</td></tr>
+  </table>
 </div>
 
-<!-- ═══ 3. 决策树 ═══ -->
+<!-- ═══ 3. 影响评估矩阵 ═══ -->
 <div class="section" id="s3">
-  <h2>🌳 三、延期应对决策树</h2>
+  <h2>📊 三、影响评估矩阵（八维度量化模型）</h2>
+  <table>
+    <tr><th>维度</th><th>评估内容</th><th>量化指标</th><th>评分标准</th><th>权重</th></tr>
+    <tr><td><strong>⏱️ 工期</strong></td><td>延期天数、里程碑影响</td><td>延期 X 天</td><td>≤3d=1 / ≤7d=2 / ≤14d=3 / ≤21d=4 / &gt;21d=5</td><td>×1.5</td></tr>
+    <tr><td><strong>💰 成本</strong></td><td>额外人力、外包加急费、机会成本</td><td>追加 ¥X 万</td><td>≤5%=1 / ≤10%=2 / ≤15%=3 / ≤25%=4 / &gt;25%=5</td><td>×1.2</td></tr>
+    <tr><td><strong>🎨 质量</strong></td><td>赶工导致质量妥协的程度</td><td>返修率提升 X%</td><td>≤10%=1 / ≤20%=2 / ≤30%=3 / ≤40%=4 / &gt;40%=5</td><td>×1.0</td></tr>
+    <tr><td><strong>👥 团队</strong></td><td>加班强度、士气、人员流失风险</td><td>连续加班 X 周</td><td>≤1w=1 / ≤2w=2 / ≤3w=3 / ≤4w=4 / &gt;4w=5</td><td>×1.0</td></tr>
+    <tr><td><strong>🔗 连锁</strong></td><td>下游依赖方受影响程度</td><td>影响 N 个团队/模块</td><td>0=1 / 1=2 / 2=3 / 3=4 / &gt;3=5</td><td>×1.3</td></tr>
+    <tr><td><strong>🏆 战略</strong></td><td>对公司/产品战略目标的影响</td><td>影响级别</td><td>无=1 / 低=2 / 中=3 / 高=4 / 致命=5</td><td>×1.5</td></tr>
+    <tr><td><strong>📢 声誉</strong></td><td>外部承诺(版号/发行/合作方)受影响</td><td>违约程度</td><td>无=1 / 内部=2 / 合作方=3 / 公开=4 / 法律=5</td><td>×1.2</td></tr>
+    <tr><td><strong>🔄 可恢复</strong></td><td>延期后恢复正常节奏的难度</td><td>恢复周期</td><td>≤1w=1 / ≤2w=2 / ≤1m=3 / ≤2m=4 / &gt;2m=5</td><td>×0.8</td></tr>
+  </table>
+
+  <div class="formula-box">
+    <strong>加权影响总分 = Σ (各维度评分 × 权重)</strong><br>
+    满分 = 5 × (1.5+1.2+1.0+1.0+1.3+1.5+1.2+0.8) = 5 × 9.5 = 47.5<br><br>
+    🟢 ≤12 分 → 轻度（APM 自行调整）<br>
+    🟡 13-24 分 → 中度（与制作人商议，48h内出方案）<br>
+    🟠 25-36 分 → 重度（上报总监，24h内决策）<br>
+    🔴 &gt;36 分 → 危急（启动战备会，4h内决策）
+  </div>
+
+  <h3>3.1 制作人评估维度 — "三个会不会"</h3>
+  <div class="tri-grid">
+    <div class="tri-card tc-red">
+      <h4>❶ 会不会影响发行节点？</h4>
+      <ul>
+        <li>版号窗口/App Store 审核时间</li>
+        <li>营销活动已定日期</li>
+        <li>合作方(品牌联动)合同时间</li>
+        <li>竞品发布时间窗口</li>
+      </ul>
+    </div>
+    <div class="tri-card tc-orange">
+      <h4>❷ 会不会引发团队危机？</h4>
+      <ul>
+        <li>核心人员离职意向</li>
+        <li>团队信心崩塌（连续失败）</li>
+        <li>跨部门信任受损</li>
+        <li>加班导致法律/合规风险</li>
+      </ul>
+    </div>
+    <div class="tri-card tc-blue">
+      <h4>❸ 会不会消耗管理信用？</h4>
+      <ul>
+        <li>对上承诺多次未兑现</li>
+        <li>其他项目组对本组信心下降</li>
+        <li>合作CP开始找借口拒接需求</li>
+        <li>总监/VP 开始"密切关注"</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 4. 制作人视角：战略决策框架 ═══ -->
+<div class="section" id="s4">
+  <h2>🎯 四、制作人视角 — 战略决策框架</h2>
+  <div class="golden-quote"><p>"PM 看项目延期问的是'怎么补回来'，制作人看项目延期问的是'这件事的本质是什么，值不值得补'。"</p></div>
+
+  <h3>4.1 制作人的四层思考模型</h3>
+  <table>
+    <tr><th>思考层次</th><th>核心问题</th><th>决策维度</th><th>输出</th></tr>
+    <tr><td><strong>L1 战术层</strong></td><td>如何在当前约束下解决延期？</td><td>时间、人力、范围</td><td>具体方案</td></tr>
+    <tr><td><strong>L2 战略层</strong></td><td>延期对产品竞争力的真实影响？</td><td>市场窗口、用户体验</td><td>优先级判断</td></tr>
+    <tr><td><strong>L3 组织层</strong></td><td>延期暴露了组织什么问题？</td><td>流程、能力、文化</td><td>长期改进</td></tr>
+    <tr><td><strong>L4 生态层</strong></td><td>延期如何影响团队、合作方生态？</td><td>信任、士气、合作关系</td><td>关系维护</td></tr>
+  </table>
+
+  <h3>4.2 制作人决策的"三不原则"</h3>
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>❌ 制作人不应该做的</h4>
+      <ul>
+        <li><strong>不直接下场微观管理</strong>——APM存在的意义就是处理执行细节</li>
+        <li><strong>不情绪化决策</strong>——"必须赶上"不是方案，是施压</li>
+        <li><strong>不忽视长期代价</strong>——赶上了但团队散了，得不偿失</li>
+        <li><strong>不回避决策</strong>——"让下面看着办"是最差的领导</li>
+        <li><strong>不二次变更</strong>——决策后反复更改方向比延期本身更致命</li>
+      </ul>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ 制作人应该做的</h4>
+      <ul>
+        <li><strong>快速定性</strong>——5分钟内判断这是"小波动"还是"大问题"</li>
+        <li><strong>给APM明确权限</strong>——"你可以砍这些需求"比"想想办法"有用100倍</li>
+        <li><strong>承担向上汇报责任</strong>——帮APM挡住来自上层的压力</li>
+        <li><strong>关注团队状态</strong>——在方案执行中持续关注人的状态</li>
+        <li><strong>做决策后的"兜底者"</strong>——方案失败时承担责任而非追责</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>4.3 制作人的"延期决策画布"</h3>
+  <div class="scenario-card">
+    <h4>📋 决策画布 — 每次面对延期时逐项思考</h4>
+    <table>
+      <tr><th>模块</th><th>关键问题</th><th>产出</th></tr>
+      <tr><td><strong>1️⃣ 事实</strong></td><td>延期多少？影响什么？根因是什么？</td><td>数据+事实陈述</td></tr>
+      <tr><td><strong>2️⃣ 约束</strong></td><td>时间弹性？预算弹性？人力弹性？质量底线？</td><td>约束边界定义</td></tr>
+      <tr><td><strong>3️⃣ 选项</strong></td><td>有哪些方案？各方案 ROI？制约因素？</td><td>≥3个备选方案</td></tr>
+      <tr><td><strong>4️⃣ 价值</strong></td><td>延期部分对用户价值如何？能否分期交付？</td><td>价值排序</td></tr>
+      <tr><td><strong>5️⃣ 风险</strong></td><td>各方案最坏情况？如何止损？</td><td>风险预案</td></tr>
+      <tr><td><strong>6️⃣ 决策</strong></td><td>选择哪个方案？为什么？谁负责执行？</td><td>签字确认的决策</td></tr>
+      <tr><td><strong>7️⃣ 沟通</strong></td><td>谁需要知道？怎么告知？口径一致？</td><td>沟通计划</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ 5. 决策树 ═══ -->
+<div class="section" id="s5">
+  <h2>🌳 五、延期应对决策树（多层分支可视化）</h2>
   <div class="mermaid-container">
     <div class="mc-header">
       <span style="font-size:24px">🌳</span>
-      <h3>项目延期应对 — 决策流程图</h3>
+      <h3>项目延期应对 — 全链路决策流程图 v2.0</h3>
       <span class="mc-badge">Mermaid.js 交互式</span>
     </div>
     <div class="mermaid">
 graph TD
-    A["🔔 发现延期风险<br/>排期偏差 &gt; 20%"] --> B{"📊 评估延期影响<br/>五维度打分"}
-    B -->|"轻度 5-10分"| C["✅ 内部微调<br/>重排优先级"]
-    B -->|"中度 11-18分"| D{"💰 测算赶工成本<br/>加班+外包+加急"}
-    B -->|"重度 19-25分"| E{"✂️ 评估砍需求可行性<br/>MVP最小交付范围"}
-    D -->|"成本可接受 ≤20%"| F["⚡ 方案A 赶工<br/>加人+加班+外包"]
-    D -->|"成本不可接受 &gt;20%"| E
-    E -->|"可砍非核心需求"| G["✂️ 方案B 砍需求<br/>缩减MVP范围"]
-    E -->|"全是核心需求"| H{"⏰ 协商延期<br/>重新规划时间线"}
-    H -->|"获批"| I["📅 方案C 正式延期<br/>新时间线+补救"]
-    H -->|"未获批"| J["🔄 混合方案<br/>部分赶工+部分砍"]
-    C --> K["📝 输出决策报告"]
-    F --> K
-    G --> K
-    I --> K
-    J --> K
-    K --> L["📢 制作人签字确认"]
+    A["🔔 发现延期风险<br/>排期偏差 > 20%"] --> B["📐 诊断延期类型<br/>结构/突发/蠕变"]
+    B --> C{"📊 八维度影响评估<br/>加权打分"}
+    C -->|"轻度 ≤12分"| D["✅ 内部微调<br/>重排优先级+缓冲消化"]
+    C -->|"中度 13-24分"| E{"🎯 制作人定性<br/>战略影响判断"}
+    C -->|"重度 25-36分"| F{"🚨 战备会<br/>制作人+总监"}
+    C -->|"危急 >36分"| G["💀 全面重规划<br/>冻结+重建"]
+    E -->|"战术层面可解"| H{"💰 赶工ROI测算<br/>成本÷收益"}
+    E -->|"需要取舍"| I{"✂️ 需求优先级<br/>MoSCoW+RICE"}
+    F -->|"时间可协商"| J{"📅 延期谈判<br/>准备新时间线"}
+    F -->|"时间不可协商"| K["🔄 混合方案<br/>赶工+砍+分期"]
+    H -->|"ROI≥1.5"| L["⚡ 方案A 赶工<br/>加人+加班+外包"]
+    H -->|"ROI<1.5"| I
+    I -->|"可砍非核心"| M["✂️ 方案B 砍需求<br/>MVP最小交付"]
+    I -->|"全是核心"| J
+    J -->|"获批"| N["📅 方案C 正式延期<br/>新里程碑+改进"]
+    J -->|"未获批"| K
+    D --> O["📝 输出决策报告<br/>记录+跟踪"]
+    L --> O
+    M --> O
+    N --> O
+    K --> O
+    G --> O
+    O --> P["📢 多方同步<br/>上/下/左/右"]
+    P --> Q["🔬 复盘+组织学习"]
     style A fill:#1a1d2b,stroke:#f87171,color:#e4e6ed,stroke-width:2px
-    style B fill:#1a1d2b,stroke:#fbbf24,color:#e4e6ed,stroke-width:2px
-    style C fill:#1a1d2b,stroke:#4ade80,color:#e4e6ed
-    style D fill:#1a1d2b,stroke:#fb923c,color:#e4e6ed,stroke-width:2px
-    style E fill:#1a1d2b,stroke:#f87171,color:#e4e6ed,stroke-width:2px
-    style F fill:#1a1d2b,stroke:#fb923c,color:#e4e6ed
-    style G fill:#1a1d2b,stroke:#a78bfa,color:#e4e6ed
-    style H fill:#1a1d2b,stroke:#6c8cff,color:#e4e6ed,stroke-width:2px
-    style I fill:#1a1d2b,stroke:#6c8cff,color:#e4e6ed
-    style J fill:#1a1d2b,stroke:#22d3ee,color:#e4e6ed
-    style K fill:#1a1d2b,stroke:#4ade80,color:#e4e6ed,stroke-width:2px
-    style L fill:#1a1d2b,stroke:#6c8cff,color:#e4e6ed
+    style B fill:#1a1d2b,stroke:#a78bfa,color:#e4e6ed,stroke-width:2px
+    style C fill:#1a1d2b,stroke:#fbbf24,color:#e4e6ed,stroke-width:2px
+    style D fill:#1a1d2b,stroke:#4ade80,color:#e4e6ed
+    style E fill:#1a1d2b,stroke:#fb923c,color:#e4e6ed,stroke-width:2px
+    style F fill:#1a1d2b,stroke:#f87171,color:#e4e6ed,stroke-width:2px
+    style G fill:#1a1d2b,stroke:#f87171,color:#e4e6ed,stroke-width:3px
+    style H fill:#1a1d2b,stroke:#fbbf24,color:#e4e6ed,stroke-width:2px
+    style I fill:#1a1d2b,stroke:#a78bfa,color:#e4e6ed,stroke-width:2px
+    style J fill:#1a1d2b,stroke:#6c8cff,color:#e4e6ed,stroke-width:2px
+    style K fill:#1a1d2b,stroke:#22d3ee,color:#e4e6ed,stroke-width:2px
+    style L fill:#1a1d2b,stroke:#fb923c,color:#e4e6ed
+    style M fill:#1a1d2b,stroke:#a78bfa,color:#e4e6ed
+    style N fill:#1a1d2b,stroke:#6c8cff,color:#e4e6ed
+    style O fill:#1a1d2b,stroke:#4ade80,color:#e4e6ed,stroke-width:2px
+    style P fill:#1a1d2b,stroke:#22d3ee,color:#e4e6ed
+    style Q fill:#1a1d2b,stroke:#6c8cff,color:#e4e6ed,stroke-width:2px
     </div>
   </div>
 </div>
 
-<!-- ═══ 4. 三大方案 ═══ -->
-<div class="section" id="s4">
-  <h2>🛠️ 四、三大应对方案详解</h2>
-  <h3>方案 A：赶工 Crashing — 用资源换时间</h3>
-  <table>
-    <tr><th>手段</th><th>效果</th><th>副作用</th><th>适用条件</th></tr>
-    <tr><td>内部加班</td><td>产能 +20~30%</td><td>&gt;2周质量下降、离职风险</td><td>短期冲刺（≤2周）</td></tr>
-    <tr><td>追加外包</td><td>产能 +40~80%</td><td>管理成本↑、质量波动</td><td>标准化资产、成熟CP</td></tr>
-    <tr><td>借调人力</td><td>产能 +25~50%</td><td>影响其他项目</td><td>公司级最高优先级</td></tr>
-    <tr><td>并行流水线</td><td>缩短 30% 串行时间</td><td>协调复杂度↑</td><td>任务可拆分并行</td></tr>
-  </table>
-  <h3>方案 B：砍需求 Scope Reduction — 缩小交付范围</h3>
-  <table>
-    <tr><th>砍法</th><th>典型操作</th><th>风险</th></tr>
-    <tr><td><strong>降级</strong></td><td>S 级→A 级品质（减少换装套数、简化特效）</td><td>策划不满</td></tr>
-    <tr><td><strong>延后</strong></td><td>非核心 NPC 移至下版本</td><td>下版本膨胀</td></tr>
-    <tr><td><strong>替代</strong></td><td>用复用/换色资产替代全新制作</td><td>同质化</td></tr>
-    <tr><td><strong>砍掉</strong></td><td>完全去掉低优先级功能</td><td>功能不完整</td></tr>
-  </table>
-  <h3>方案 C：正式延期 Timeline Extension</h3>
-  <div class="dd-card dd-do">
-    <h4>📅 核心要求</h4>
-    <ul>
-      <li><strong>新时间线建议包含 20% 缓冲</strong>——二次延期不可接受</li>
-      <li><strong>明确延期原因和改进措施</strong>——不能只调时间不改流程</li>
-      <li><strong>与所有下游方同步</strong>——程序、QA、运营需重新对齐</li>
-      <li><strong>制作人/总监签字确认</strong>——延期方案建议有决策者背书</li>
-    </ul>
-  </div>
-</div>
-
-<!-- ═══ 5. 方案对比 ═══ -->
-<div class="section" id="s5">
-  <h2>⚖️ 五、方案对比与选择</h2>
-  <table>
-    <tr><th>维度</th><th>⚡ 赶工</th><th>✂️ 砍需求</th><th>📅 延期</th></tr>
-    <tr><td><strong>见效速度</strong></td><td><span class="badge-sm badge-green">快</span></td><td><span class="badge-sm badge-green">快</span></td><td><span class="badge-sm badge-red">慢</span></td></tr>
-    <tr><td><strong>成本</strong></td><td><span class="badge-sm badge-red">高</span></td><td><span class="badge-sm badge-green">低</span></td><td><span class="badge-sm badge-yellow">中</span></td></tr>
-    <tr><td><strong>质量</strong></td><td><span class="badge-sm badge-red">负面</span></td><td><span class="badge-sm badge-yellow">部分降级</span></td><td><span class="badge-sm badge-green">正面</span></td></tr>
-    <tr><td><strong>团队</strong></td><td><span class="badge-sm badge-red">负面</span></td><td><span class="badge-sm badge-green">正面</span></td><td><span class="badge-sm badge-yellow">中性</span></td></tr>
-    <tr><td><strong>适用延期</strong></td><td>≤1 周</td><td>1-2 周</td><td>≥2 周</td></tr>
-  </table>
-  <div class="golden-quote"><p>"项目延期不是 APM 的失败，但延期后没有科学决策和透明沟通，才是真正的失败。"</p></div>
-</div>
-
-<!-- ═══ 6. 5Whys ═══ -->
+<!-- ═══ 6. 赶工方案深度解析与ROI测算 ═══ -->
 <div class="section" id="s6">
-  <h2>🔬 六、5Whys 根因分析模板</h2>
-  <div class="alert alert-blue"><strong>💡 使用说明：</strong>在制定应对方案前先用 5Whys 找到根因，防止同类问题复发。</div>
-  <div class="why-chain">
-    <div class="why-item why-1"><div class="why-dot-wrap"><div class="why-num">W1</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 1：项目为什么延期了？</div><div class="why-a">【填写直接原因】例如：实际工作量超出排期 60%</div></div></div>
-    <div class="why-item why-2"><div class="why-dot-wrap"><div class="why-num">W2</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 2：为什么工作量超出排期？</div><div class="why-a">【填写中间原因】例如：排期未使用复杂度分级模型</div></div></div>
-    <div class="why-item why-3"><div class="why-dot-wrap"><div class="why-num">W3</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 3：为什么没有使用分级模型？</div><div class="why-a">【填写深层原因】例如：团队没有标准化人天评估工具</div></div></div>
-    <div class="why-item why-4"><div class="why-dot-wrap"><div class="why-num">W4</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 4：为什么没有建立评估工具？</div><div class="why-a">【填写制度原因】例如：APM 培训体系缺少排期方法论</div></div></div>
-    <div class="why-item why-5"><div class="why-dot-wrap"><div class="why-num">W5</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 5：为什么培训体系缺失？</div><div class="why-a">【填写根本原因】例如：组织层面未将项目管理方法论纳入 APM 必修课</div></div></div>
+  <h2>⚡ 六、赶工方案深度解析与ROI测算</h2>
+  
+  <h3>6.1 赶工手段效能矩阵</h3>
+  <table>
+    <tr><th>赶工手段</th><th>产能提升</th><th>生效周期</th><th>副作用</th><th>适用条件</th><th>ROI参考</th></tr>
+    <tr><td>内部加班（996）</td><td>+20~30%</td><td>即时</td><td>≥2周质量下降30%、离职风险×3</td><td>短期冲刺≤2周</td><td>1.2~1.8</td></tr>
+    <tr><td>追加外包（成熟CP）</td><td>+40~80%</td><td>3-5天</td><td>管理成本+30%、质量波动</td><td>标准化资产、有现成规范</td><td>1.5~2.5</td></tr>
+    <tr><td>追加外包（新CP）</td><td>+20~40%</td><td>1-2周</td><td>磨合成本极高、返修率>50%</td><td>仅在万不得已时</td><td>0.6~1.0</td></tr>
+    <tr><td>借调内部人力</td><td>+25~50%</td><td>1-3天</td><td>影响其他项目、政治成本</td><td>公司级最高优先级</td><td>1.8~2.5</td></tr>
+    <tr><td>并行流水线拆分</td><td>缩短30%串行</td><td>3-7天</td><td>协调复杂度×2</td><td>任务可拆分、团队成熟</td><td>2.0~3.0</td></tr>
+    <tr><td>AI辅助工具加速</td><td>+15~25%</td><td>1-3天</td><td>需要学习成本、适用范围有限</td><td>适合标准化重复工作</td><td>2.5~4.0</td></tr>
+    <tr><td>降低质量标准</td><td>+30~50%</td><td>即时</td><td>用户体验下降、技术债增加</td><td>非核心模块、可后续迭代</td><td>视情况</td></tr>
+  </table>
+
+  <h3>6.2 赶工ROI计算模型</h3>
+  <div class="formula-box">
+    <strong>赶工 ROI = 避免损失 ÷ 赶工总成本</strong><br><br>
+    避免损失 = 延期天数 × 日均损失（市场机会+合同违约+团队空转）<br>
+    赶工总成本 = 直接成本 + 间接成本 + 风险成本<br><br>
+    直接成本 = 加班费 + 外包加急费 + 借调补偿<br>
+    间接成本 = 质量返修成本 + 管理协调成本 + 其他项目受影响的损失<br>
+    风险成本 = P(离职) × 招聘替换成本 + P(质量事故) × 返工成本<br><br>
+    <strong style="color:var(--green)">决策标准：ROI ≥ 1.5 → 值得赶工 | ROI 1.0-1.5 → 谨慎 | ROI < 1.0 → 放弃赶工</strong>
   </div>
-  <div class="why-root"><strong>🎯 根本原因（Root Cause）：</strong><br>在此总结 1-3 个根因，并输出对应的改进 Action Item。</div>
+
+  <h3>6.3 Brooks 定律警示</h3>
+  <div class="alert alert-red"><strong>🚨 Brooks 定律：</strong>"向进度落后的项目增加人力，只会使其更加落后。"新人上手需要时间，且增加了沟通路径 N×(N-1)/2。<br><strong>适用场景：</strong>当任务无法充分并行拆分、需要大量上下文知识、或项目已接近尾声时，加人 ≈ 自杀。</div>
+  
+  <h3>6.4 赶工决策的"红线"</h3>
+  <table>
+    <tr><th>红线</th><th>描述</th><th>触发后果</th></tr>
+    <tr><td>🔴 连续加班 &gt;3周</td><td>人体和认知极限</td><td>bug率翻倍、离职风险</td></tr>
+    <tr><td>🔴 赶工成本 &gt;原预算40%</td><td>投入产出严重失衡</td><td>不如延期重规划</td></tr>
+    <tr><td>🔴 核心模块质量下降</td><td>核心玩法/核心系统不可妥协</td><td>上线后口碑崩盘</td></tr>
+    <tr><td>🔴 同时赶工 + 新需求</td><td>逻辑矛盾，必然失败</td><td>冻结新需求是赶工前提</td></tr>
+  </table>
 </div>
 
-<!-- ═══ 7. 向上汇报 ═══ -->
+<!-- ═══ 7. 砍需求方案 ═══ -->
 <div class="section" id="s7">
-  <h2>📢 七、向上汇报话术</h2>
+  <h2>✂️ 七、砍需求方案 — MoSCoW+RICE优先级矩阵</h2>
+  
+  <h3>7.1 MoSCoW 分级法</h3>
+  <table>
+    <tr><th>分级</th><th>含义</th><th>占比建议</th><th>延期时处理方式</th><th>游戏项目示例</th></tr>
+    <tr><td><span class="badge-sm badge-red">Must Have</span></td><td>没有它产品无法交付</td><td>60%</td><td>❌ 不可砍</td><td>核心玩法、主线流程、登录支付</td></tr>
+    <tr><td><span class="badge-sm badge-orange">Should Have</span></td><td>重要但不是不可或缺</td><td>20%</td><td>⚠️ 可降级/延后</td><td>成就系统、社交排行榜、部分皮肤</td></tr>
+    <tr><td><span class="badge-sm badge-yellow">Could Have</span></td><td>锦上添花</td><td>15%</td><td>✅ 优先砍/移至下版本</td><td>彩蛋、限时活动、额外语音包</td></tr>
+    <tr><td><span class="badge-sm badge-blue">Won't Have (this time)</span></td><td>明确不做</td><td>5%</td><td>✅ 直接砍</td><td>全平台适配、MOD编辑器</td></tr>
+  </table>
+
+  <h3>7.2 RICE 评分模型（量化砍需求优先级）</h3>
+  <div class="formula-box">
+    <strong>RICE Score = (Reach × Impact × Confidence) ÷ Effort</strong><br><br>
+    Reach（覆盖面）= 影响多少用户/玩家（万人）<br>
+    Impact（影响力）= 对核心体验的影响 [3=大 / 2=高 / 1=中 / 0.5=低 / 0.25=微]<br>
+    Confidence（确定性）= 对预估的信心 [100%=高 / 80%=中 / 50%=低]<br>
+    Effort（人月）= 完成需要的人月数<br><br>
+    <strong style="color:var(--green)">决策标准：RICE Score 最低的需求 → 优先砍/延后</strong>
+  </div>
+
+  <h3>7.3 砍需求的四种姿势</h3>
+  <table>
+    <tr><th>砍法</th><th>操作描述</th><th>风险</th><th>适用场景</th><th>沟通话术</th></tr>
+    <tr><td><strong>🔽 降级</strong></td><td>S级→A级品质（减少换装套数、简化特效层数）</td><td>策划/美术抵触</td><td>视觉品质有弹性空间</td><td>"分两期做，首发保核心体验"</td></tr>
+    <tr><td><strong>⏭️ 延后</strong></td><td>非核心功能移至下版本</td><td>下版本膨胀、用户失望</td><td>功能独立、不影响核心流程</td><td>"先跑通主线，下版本加料"</td></tr>
+    <tr><td><strong>🔄 替代</strong></td><td>用复用/换色资产替代全新制作</td><td>同质化、"偷工减料"感</td><td>资产库有可用素材</td><td>"聪明复用，把精力留给差异化"</td></tr>
+    <tr><td><strong>❌ 砍掉</strong></td><td>完全去掉低优先级功能</td><td>功能完整性受损</td><td>数据证明该功能使用率极低</td><td>"数据说话，ROI不支持这个功能"</td></tr>
+  </table>
+
+  <h3>7.4 砍需求的"政治学"—— 制作人视角</h3>
+  <div class="alert alert-purple"><strong>🎭 现实：</strong>砍需求从来不只是技术决策，更是<strong>利益协调</strong>。策划的心血、主美的坚持、老板的期望——每一刀都是博弈。</div>
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>❌ 砍需求的错误方式</h4>
+      <ul>
+        <li>PM单方面宣布砍需求（越权、激化矛盾）</li>
+        <li>在大群里讨论砍谁的需求（公开处刑、面子问题）</li>
+        <li>"反正也做不完"的消极态度</li>
+        <li>砍完不给补偿方案（下版本优先级承诺）</li>
+        <li>没有数据支撑的主观判断</li>
+      </ul>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ 砍需求的正确方式</h4>
+      <ul>
+        <li>提前与策划/主美 1on1 沟通，给足尊重</li>
+        <li>用 RICE 数据说话，不做主观判断</li>
+        <li>制作人出面背书"这是项目的集体决策"</li>
+        <li>明确给出"延后承诺"——下版本第一优先级</li>
+        <li>砍完后在团队会议上感谢配合方的大局观</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 8. 正式延期方案 ═══ -->
+<div class="section" id="s8">
+  <h2>📅 八、正式延期方案 — 里程碑重建方法论</h2>
+  
+  <h3>8.1 延期方案的核心要求</h3>
+  <div class="tri-grid">
+    <div class="tri-card tc-green">
+      <h4>✅ 新时间线必须包含</h4>
+      <ul>
+        <li>20% 缓冲——二次延期绝不可接受</li>
+        <li>明确的交付物清单（可验收）</li>
+        <li>每周 Check-in 节点</li>
+        <li>风险触发条件 + Plan B</li>
+      </ul>
+    </div>
+    <div class="tri-card tc-blue">
+      <h4>📋 必须输出的文件</h4>
+      <ul>
+        <li>延期决策报告（制作人签字）</li>
+        <li>新 WBS + 甘特图</li>
+        <li>资源调整方案</li>
+        <li>沟通计划（上下游同步）</li>
+      </ul>
+    </div>
+    <div class="tri-card tc-purple">
+      <h4>🔒 不能只调时间不改流程</h4>
+      <ul>
+        <li>必须附带根因分析结果</li>
+        <li>必须附带改进措施</li>
+        <li>必须设置新的预警检查点</li>
+        <li>必须指定改进措施责任人</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>8.2 里程碑重建五步法</h3>
+  <div class="flow">
+    <div class="flow-node start"><strong>Step 1</strong><span class="sub">冻结当前scope</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Step 2</strong><span class="sub">重估剩余工作量</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node warn"><strong>Step 3</strong><span class="sub">逆推关键路径</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Step 4</strong><span class="sub">分配+20%缓冲</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>Step 5</strong><span class="sub">多方确认签字</span></div>
+  </div>
+
+  <h3>8.3 "三点估算法" — 避免二次延期</h3>
+  <div class="formula-box">
+    <strong>PERT 估算 = (最乐观 + 4×最可能 + 最悲观) ÷ 6</strong><br><br>
+    示例：某任务估算<br>
+    最乐观(O) = 3天 | 最可能(M) = 5天 | 最悲观(P) = 12天<br>
+    PERT = (3 + 4×5 + 12) ÷ 6 = 5.83天 ≈ <strong>6天</strong><br>
+    标准差 σ = (P - O) ÷ 6 = (12-3) ÷ 6 = 1.5天<br>
+    95%置信区间 = PERT + 2σ = 6 + 3 = <strong>9天（建议排期）</strong>
+  </div>
+
+  <h3>8.4 延期幅度与信用成本</h3>
+  <table>
+    <tr><th>延期幅度</th><th>信用消耗</th><th>需要的决策层级</th><th>恢复信用的代价</th></tr>
+    <tr><td>≤3天</td><td><span class="badge-sm badge-green">极低</span></td><td>APM 自行</td><td>下次准时即可恢复</td></tr>
+    <tr><td>3-7天</td><td><span class="badge-sm badge-yellow">低</span></td><td>APM + 制作人确认</td><td>附带改进措施</td></tr>
+    <tr><td>1-2周</td><td><span class="badge-sm badge-orange">中</span></td><td>制作人决策 + 总监知情</td><td>需要连续2次准时交付</td></tr>
+    <tr><td>2-4周</td><td><span class="badge-sm badge-red">高</span></td><td>总监决策 + VP知情</td><td>需要可见的流程改进成果</td></tr>
+    <tr><td>&gt;1月</td><td><span class="badge-sm badge-red">极高</span></td><td>VP级决策</td><td>可能需要组织调整</td></tr>
+  </table>
+</div>
+
+<!-- ═══ 9. 混合方案设计 ═══ -->
+<div class="section" id="s9">
+  <h2>🔄 九、混合方案设计 — 组合策略最优解</h2>
+  <div class="alert alert-blue"><strong>💡 实战经验：</strong>80%的延期应对最终都是混合方案——纯赶工、纯砍需求、纯延期都有局限性。关键是<strong>找到最优配比</strong>。</div>
+
+  <h3>9.1 五种经典混合模式</h3>
+  <table>
+    <tr><th>模式</th><th>配比</th><th>适用场景</th><th>关键成功因素</th></tr>
+    <tr><td><strong>🅰️ 赶工+砍需求</strong></td><td>核心模块赶工 + 边缘模块砍掉</td><td>时间紧但有明确优先级</td><td>优先级共识清晰</td></tr>
+    <tr><td><strong>🅱️ 砍需求+分期交付</strong></td><td>MVP先上 + 其余下版本</td><td>市场窗口不可错过</td><td>产品定义清晰、迭代能力强</td></tr>
+    <tr><td><strong>🅲️ 赶工+延期（缩短）</strong></td><td>加人赶工 + 小幅延期</td><td>延期幅度可协商缩短</td><td>有充足预算支持加人</td></tr>
+    <tr><td><strong>🅳️ 降级+赶工</strong></td><td>降低品质标准 + 加班冲刺</td><td>品质可接受一定妥协</td><td>上线后有修复迭代窗口</td></tr>
+    <tr><td><strong>🅴️ 全混合</strong></td><td>部分赶工+部分砍+小幅延期</td><td>严重延期但不可全面延期</td><td>需要非常精细的调度能力</td></tr>
+  </table>
+
+  <h3>9.2 混合方案设计"三步法"</h3>
+  <div class="flow">
+    <div class="flow-node start"><strong>Step 1</strong><span class="sub">计算GAP<br/>延期天数-可接受延期</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node warn"><strong>Step 2</strong><span class="sub">分解GAP<br/>各手段可填补多少</span></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>Step 3</strong><span class="sub">优化配比<br/>最小总成本方案</span></div>
+  </div>
+
+  <h3>9.3 实例 — 15天延期的混合方案设计</h3>
+  <div class="scenario-card">
+    <h4>📋 场景：预计延期15天，可接受延期≤5天</h4>
+    <table>
+      <tr><th>手段</th><th>可填补天数</th><th>成本</th><th>风险</th></tr>
+      <tr><td>砍2个Could Have需求</td><td>4天</td><td>低（移至下版本）</td><td>策划需要沟通</td></tr>
+      <tr><td>核心模块加班2周</td><td>3天</td><td>加班费+调休</td><td>需控制在2周内</td></tr>
+      <tr><td>追加1家成熟外包CP</td><td>3天</td><td>¥8万外包费</td><td>需3天上手磨合</td></tr>
+      <tr><td>接受延期5天</td><td>5天</td><td>管理信用</td><td>需制作人审批</td></tr>
+    </table>
+    <p><strong>合计：4+3+3+5 = 15天 ✅ GAP 填满</strong></p>
+    <p><strong>总成本：</strong>加班费约¥3万 + 外包¥8万 + 管理信用消耗（中等） = 可接受</p>
+  </div>
+</div>
+
+<!-- ═══ 10. 延期谈判与向上管理 ═══ -->
+<div class="section" id="s10">
+  <h2>📢 十、延期谈判与向上管理（博弈论视角）</h2>
+  
+  <h3>10.1 向上汇报的"金字塔结构"</h3>
   <div class="dd-grid">
     <div class="dd-card dd-dont">
       <h4>❌ 错误汇报方式</h4>
       <ul>
-        <li>"项目可能要延期了…"（模糊、没有方案）</li>
+        <li>"项目可能要延期了…"（模糊、被动、没有方案）</li>
         <li>"都是策划加需求导致的…"（甩锅、没有建设性）</li>
         <li>"我们尽力了但实在赶不上…"（被动、没有 Plan B）</li>
+        <li>"能不能给我们多点时间？"（没有锚定、没有交换）</li>
+        <li>邮件写了3页背景（浪费高管时间）</li>
       </ul>
     </div>
     <div class="dd-card dd-do">
-      <h4>✅ 正确汇报结构</h4>
+      <h4>✅ 金字塔汇报结构（30秒→3分钟→10分钟）</h4>
       <ul>
-        <li><strong>现状：</strong>"当前进度 62%，预计延期 X 天"（量化数据）</li>
-        <li><strong>原因：</strong>"主要因 S 级角色复杂度被低估 + 2个新增需求"（根因明确）</li>
-        <li><strong>方案：</strong>"准备了 A/B/C 三个方案，推荐方案 B"（有选项有推荐）</li>
-        <li><strong>请求：</strong>"需要您批准追加 ¥X 万外包预算"（明确需要什么）</li>
+        <li><strong>结论先行：</strong>"XX模块将延期X天，我的建议是方案B"</li>
+        <li><strong>现状数据：</strong>"当前进度62%，偏差+35%，主要因..."</li>
+        <li><strong>三个方案：</strong>A赶工（成本↑）/ B砍需求（范围↓）/ C延期（时间↑）</li>
+        <li><strong>推荐理由：</strong>"方案B的ROI最高，且不影响核心体验"</li>
+        <li><strong>明确请求：</strong>"需要您批准砍XX需求 + 追加¥X万预算"</li>
       </ul>
     </div>
   </div>
+
+  <h3>10.2 延期谈判的博弈策略</h3>
+  <table>
+    <tr><th>策略</th><th>描述</th><th>适用场景</th><th>话术示例</th></tr>
+    <tr><td><strong>🎯 锚定效应</strong></td><td>先报一个较大的延期，再"让步"到实际需要的</td><td>对方（上级）有砍时间的惯性</td><td>"最坏情况延3周，如果批准方案B，可控制在1周内"</td></tr>
+    <tr><td><strong>🔄 交换策略</strong></td><td>延期换取其他收益（质量/范围/资源）</td><td>纯延期难获批</td><td>"如果给我们5天，我保证S级品质不妥协"</td></tr>
+    <tr><td><strong>📊 数据武装</strong></td><td>用数据消除主观判断空间</td><td>对方质疑延期必要性</td><td>"过去3个同类项目平均偏差28%，我们目前32%"</td></tr>
+    <tr><td><strong>🤝 共赢框架</strong></td><td>把延期包装为"更好的结果"</td><td>制作人注重品质</td><td>"5天换来的是零返修上线，省了上线后2周hotfix"</td></tr>
+    <tr><td><strong>⚡ 紧迫性</strong></td><td>说明不做决策的成本在增加</td><td>对方犹豫不决时</td><td>"每多犹豫1天，我们的选择就少一个"</td></tr>
+  </table>
+
+  <h3>10.3 不同汇报对象的关注点</h3>
+  <table>
+    <tr><th>汇报对象</th><th>关注重点</th><th>汇报侧重</th><th>禁忌</th></tr>
+    <tr><td><strong>制作人</strong></td><td>品质、用户体验、团队状态</td><td>方案对品质的影响、团队可持续性</td><td>只说时间不说质量</td></tr>
+    <tr><td><strong>总监</strong></td><td>战略影响、资源投入产出比</td><td>ROI数据、对其他项目的影响</td><td>过多执行细节</td></tr>
+    <tr><td><strong>VP</strong></td><td>商业影响、风险等级</td><td>一句话结论 + 需要什么支持</td><td>解释过程、抱怨</td></tr>
+    <tr><td><strong>合作方</strong></td><td>对自己的影响、补偿方案</td><td>新时间线、我方承担的额外成本</td><td>归咎对方、推卸</td></tr>
+  </table>
+
+  <h3>10.4 制作人在汇报中的角色</h3>
+  <div class="alert alert-green"><strong>✅ 制作人的正确定位：</strong>在向上汇报中，制作人应该是 APM 的"翻译器"和"增信器"——把执行层的专业分析翻译为管理层关心的语言，同时用自己的信用为方案背书。<br><strong>关键动作：</strong>① 提前与APM对齐口径 ② 在汇报中明确表态"我支持这个方案" ③ 承诺对结果负责</div>
 </div>
 
-<!-- ═══ 8. 决策自测 CheckList ═══ -->
-<div class="section" id="s8">
-  <h2>✅ 八、决策自测 CheckList</h2>
+<!-- ═══ 11. 团队士气管理与危机沟通 ═══ -->
+<div class="section" id="s11">
+  <h2>💪 十一、团队士气管理与危机沟通</h2>
+  <div class="golden-quote"><p>"延期时最容易崩的不是项目，是人心。技术问题总能解决，人一旦散了，什么方案都没用。"</p></div>
+
+  <h3>11.1 延期期间的团队心理阶段</h3>
+  <table>
+    <tr><th>阶段</th><th>团队表现</th><th>PM应对</th><th>制作人应对</th></tr>
+    <tr><td><strong>① 否认期</strong></td><td>"应该能赶上的""再拼一把"</td><td>用数据唤醒认知</td><td>不要附和乐观，保持清醒</td></tr>
+    <tr><td><strong>② 愤怒期</strong></td><td>"都是XX导致的""谁排的期"</td><td>允许吐槽但引导建设性</td><td>绝不追责个人，强调集体决策</td></tr>
+    <tr><td><strong>③ 讨价还价</strong></td><td>"能不能只延一点""砍别人的"</td><td>提供客观数据辅助决策</td><td>拍板决策，避免无限讨论</td></tr>
+    <tr><td><strong>④ 沮丧期</strong></td><td>沉默、消极、敷衍</td><td>1on1关怀 + 明确方向</td><td>亲自到场鼓励 + 短期quick win</td></tr>
+    <tr><td><strong>⑤ 接受期</strong></td><td>认清现实、开始执行新方案</td><td>强化目标感 + 可视化进度</td><td>持续关注 + 阶段性庆祝</td></tr>
+  </table>
+
+  <h3>11.2 危机沟通的"五要五不要"</h3>
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>❌ 五个不要</h4>
+      <ul>
+        <li><strong>不要隐瞒</strong>——团队比你想象的更能接受坏消息</li>
+        <li><strong>不要追责</strong>——延期时追责=瓦解团队</li>
+        <li><strong>不要只画饼</strong>——空头承诺会加速信任崩塌</li>
+        <li><strong>不要独自扛</strong>——PM装无事发生，团队更焦虑</li>
+        <li><strong>不要朝令夕改</strong>——频繁改方案比延期本身更打击士气</li>
+      </ul>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ 五个要做</h4>
+      <ul>
+        <li><strong>要透明</strong>——第一时间同步真实情况和应对方案</li>
+        <li><strong>要有方向</strong>——"我们的新目标是X，路径是Y"</li>
+        <li><strong>要给quick win</strong>——设置短期可达成的小目标庆祝</li>
+        <li><strong>要看见个人</strong>——1on1了解每个人的状态和诉求</li>
+        <li><strong>要兑现承诺</strong>——说了调休就必须调休，说了减负就减负</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>11.3 针对不同角色的沟通策略</h3>
+  <table>
+    <tr><th>角色</th><th>核心诉求</th><th>沟通要点</th><th>忌讳</th></tr>
+    <tr><td>美术骨干</td><td>作品品质、个人成长</td><td>强调延期方案保护了品质底线</td><td>"先随便赶完再说"</td></tr>
+    <tr><td>策划</td><td>设计完整性、话语权</td><td>尊重其专业判断，共同决策砍什么</td><td>PM单方面砍其需求</td></tr>
+    <tr><td>程序</td><td>技术方案合理性、加班量</td><td>给明确scope和deadline，不做无用功</td><td>反复改需求</td></tr>
+    <tr><td>外包CP</td><td>付款、合作关系稳定</td><td>提前告知变更，保障合理利益</td><td>突然砍量/压价</td></tr>
+    <tr><td>新人</td><td>安全感、不被抛弃</td><td>明确任务、提供mentor支持</td><td>高压+放养</td></tr>
+  </table>
+
+  <h3>11.4 制作人的"出场时机"</h3>
+  <div class="alert alert-yellow"><strong>⚠️ 制作人亲自出面的信号：</strong>
+  <ul style="margin-top:8px">
+    <li>团队核心成员（≥2人）出现明显消极情绪</li>
+    <li>APM的激励手段已失效（团队不信任APM的承诺）</li>
+    <li>跨团队协作出现严重摩擦</li>
+    <li>需要做出影响所有人的重大决策（如砍需求/延期）</li>
+    <li>需要对外（VP/合作方）承诺的事项</li>
+  </ul>
+  </div>
+</div>
+
+<!-- ═══ 12. 5Whys 根因分析 + 鱼骨图 ═══ -->
+<div class="section" id="s12">
+  <h2>🔬 十二、5Whys 根因分析 + 鱼骨图模板</h2>
+  <div class="alert alert-blue"><strong>💡 使用说明：</strong>在制定应对方案前先用 5Whys 找到根因，防止同类问题复发。复盘时用鱼骨图系统化归因。</div>
+  
+  <h3>12.1 5Whys 分析模板</h3>
+  <div class="why-chain">
+    <div class="why-item why-1"><div class="why-dot-wrap"><div class="why-num">W1</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 1：项目为什么延期了？</div><div class="why-a">【填写直接原因】例如：实际工作量超出排期 60%</div></div></div>
+    <div class="why-item why-2"><div class="why-dot-wrap"><div class="why-num">W2</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 2：为什么工作量超出排期？</div><div class="why-a">【填写中间原因】例如：排期未考虑技术方案验证时间 + 需求描述模糊导致返工</div></div></div>
+    <div class="why-item why-3"><div class="why-dot-wrap"><div class="why-num">W3</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 3：为什么排期没有考虑这些因素？</div><div class="why-a">【填写深层原因】例如：团队没有标准化的排期Checklist + 不敢向策划确认模糊点</div></div></div>
+    <div class="why-item why-4"><div class="why-dot-wrap"><div class="why-num">W4</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 4：为什么没有建立标准化工具/敢于确认？</div><div class="why-a">【填写制度原因】例如：APM培训不足 + 团队文化不鼓励"挑战需求方"</div></div></div>
+    <div class="why-item why-5"><div class="why-dot-wrap"><div class="why-num">W5</div><div class="why-line"></div></div><div class="why-content"><div class="why-q">❓ Why 5：为什么组织层面缺少这些机制？</div><div class="why-a">【填写根本原因】例如：管理层重结果轻过程，未投入项目管理基建</div></div></div>
+  </div>
+  <div class="why-root"><strong>🎯 根本原因（Root Cause）：</strong><br>总结 1-3 个根因 → 输出对应 Action Item → 指定责任人 → 设定 Deadline → 纳入下次复盘验证</div>
+
+  <h3>12.2 鱼骨图六大归因维度</h3>
+  <table>
+    <tr><th>维度</th><th>典型原因</th><th>检查要点</th></tr>
+    <tr><td><strong>👥 人（Man）</strong></td><td>人力不足、技能缺口、骨干变动、士气低迷</td><td>人员配置率、关键岗位备份</td></tr>
+    <tr><td><strong>📋 法（Method）</strong></td><td>排期方法不当、评审流程缺失、变更管理松散</td><td>是否有SOP、是否执行</td></tr>
+    <tr><td><strong>🔧 机（Machine/Tool）</strong></td><td>工具链不完善、引擎版本问题、CI/CD故障</td><td>工具效率、自动化程度</td></tr>
+    <tr><td><strong>📦 料（Material）</strong></td><td>需求不明确、美术规范不完整、参考资料缺失</td><td>输入物质量评分</td></tr>
+    <tr><td><strong>🌍 环（Environment）</strong></td><td>跨时区协作、远程办公效率、组织文化</td><td>协作环境评估</td></tr>
+    <tr><td><strong>📏 测（Measurement）</strong></td><td>进度数据不准、KPI设定不合理、缺乏预警</td><td>数据采集频率、准确度</td></tr>
+  </table>
+</div>
+
+<!-- ═══ 13. 决策复盘与组织学习体系 ═══ -->
+<div class="section" id="s13">
+  <h2>📚 十三、决策复盘与组织学习体系</h2>
+  <div class="golden-quote"><p>"一次延期不可怕，同样的原因延期两次，才是组织的失败。"</p></div>
+
+  <h3>13.1 延期复盘的"黄金72小时"</h3>
+  <div class="alert alert-green"><strong>✅ 最佳实践：</strong>延期决策做出后 72 小时内必须完成首轮复盘。时间越久，记忆越模糊，归因越偏向"归咎他人"。</div>
+  
+  <table>
+    <tr><th>时间节点</th><th>复盘动作</th><th>参与者</th><th>输出物</th></tr>
+    <tr><td>T+24h</td><td>收集事实数据（排期vs实际、变更记录）</td><td>APM</td><td>数据报告</td></tr>
+    <tr><td>T+48h</td><td>1on1 访谈关键当事人</td><td>APM + 制作人</td><td>访谈纪要</td></tr>
+    <tr><td>T+72h</td><td>团队复盘会（5Whys+鱼骨图）</td><td>全团队</td><td>根因分析+Action Plan</td></tr>
+    <tr><td>T+1周</td><td>改进措施落地验证</td><td>APM跟踪</td><td>改进验证报告</td></tr>
+    <tr><td>T+1月</td><td>改进效果评估</td><td>制作人Review</td><td>效果量化数据</td></tr>
+  </table>
+
+  <h3>13.2 复盘会议的"安全原则"</h3>
+  <div class="tri-grid">
+    <div class="tri-card tc-green">
+      <h4>✅ 会议规则</h4>
+      <ul>
+        <li>不追责个人，只分析系统</li>
+        <li>"如果我是你的位置，我可能也会…"</li>
+        <li>聚焦"下次如何更好"而非"上次谁的错"</li>
+        <li>所有结论需要数据支撑</li>
+      </ul>
+    </div>
+    <div class="tri-card tc-blue">
+      <h4>📋 议程模板（90分钟）</h4>
+      <ul>
+        <li>10min — 事实回顾（APM陈述数据）</li>
+        <li>20min — 5Whys 深挖根因</li>
+        <li>20min — 鱼骨图分类归因</li>
+        <li>25min — 制定改进措施（SMART）</li>
+        <li>15min — 确认责任人+验证时间</li>
+      </ul>
+    </div>
+    <div class="tri-card tc-purple">
+      <h4>🎯 产出要求</h4>
+      <ul>
+        <li>≤5 条核心改进措施</li>
+        <li>每条有明确责任人</li>
+        <li>每条有量化验收标准</li>
+        <li>每条有完成 Deadline</li>
+        <li>纳入下月复盘验证</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>13.3 组织级学习 — 延期知识库沉淀</h3>
+  <table>
+    <tr><th>沉淀内容</th><th>形式</th><th>价值</th></tr>
+    <tr><td>延期案例集</td><td>标准化案例模板（背景/原因/方案/结果/教训）</td><td>新PM培训素材</td></tr>
+    <tr><td>排期偏差数据库</td><td>按工种/复杂度/阶段的历史偏差数据</td><td>未来排期校准参考</td></tr>
+    <tr><td>改进措施追踪表</td><td>Checklist（措施/状态/验证结果）</td><td>防止改进流于形式</td></tr>
+    <tr><td>预警阈值库</td><td>按项目类型的预警阈值配置</td><td>新项目快速复用</td></tr>
+  </table>
+
+  <h3>13.4 制作人的复盘职责</h3>
+  <div class="alert alert-purple"><strong>🎯 制作人在复盘中的角色：</strong>
+  <ul style="margin-top:8px">
+    <li><strong>保护者：</strong>确保复盘不会变成"公开审判"，营造安全氛围</li>
+    <li><strong>仲裁者：</strong>当归因出现分歧时，给出最终判断</li>
+    <li><strong>推动者：</strong>确保改进措施能获得资源支持并真正落地</li>
+    <li><strong>传承者：</strong>将经验教训传播到其他项目组</li>
+  </ul>
+  </div>
+</div>
+
+<!-- ═══ 14. 实战案例 ═══ -->
+<div class="section" id="s14">
+  <h2>🎮 十四、实战案例 — 三个完整决策推演</h2>
+
+  <h3>案例A：突发性延期 — 外包CP集体交付不达标</h3>
+  <div class="scenario-card">
+    <h4>📋 案例背景</h4>
+    <div class="case-info">
+      <div class="case-info-item"><div class="label">项目阶段</div><div class="value val-accent">量产中期</div></div>
+      <div class="case-info-item"><div class="label">延期幅度</div><div class="value val-red">12天</div></div>
+      <div class="case-info-item"><div class="label">延期类型</div><div class="value val-orange">突发性</div></div>
+      <div class="case-info-item"><div class="label">影响评分</div><div class="value val-red">28分（重度）</div></div>
+    </div>
+    <p><strong>事件：</strong>合作了2年的外包CP首批50个角色资产交付，验收通过率仅35%，远低于预期的80%+。原因：CP近期承接了另一个大项目，将核心团队抽调，用新人替代。</p>
+    
+    <h4>🎯 决策过程</h4>
+    <table>
+      <tr><th>步骤</th><th>动作</th><th>产出</th></tr>
+      <tr><td>1. 诊断</td><td>确认为突发性延期（CP资源变动）</td><td>类型判定</td></tr>
+      <tr><td>2. 评估</td><td>八维度打分：工期5×1.5 + 成本3×1.2 +... = 28分</td><td>重度级别</td></tr>
+      <tr><td>3. 制作人定性</td><td>不影响发行节点（还有6周缓冲），但影响下游程序</td><td>L1战术层可解</td></tr>
+      <tr><td>4. 方案设计</td><td>混合方案：换CP(5天)+内部赶工(3天)+砍2个C级需求(4天)</td><td>12天GAP填满</td></tr>
+      <tr><td>5. 执行</td><td>48h内启动备选CP、冻结新需求、核心模块加班</td><td>新排期表</td></tr>
+    </table>
+    <p><strong>结果：</strong>最终延期3天（优于预期），但追加了¥12万外包成本。制作人与原CP进行严肃沟通，降级为B级供应商。</p>
+    <p><strong>教训：</strong>① 外包CP的"排他性条款"很重要 ② 建立备选CP池是PM的基本功 ③ 验收节点应前置（T-2周预检）</p>
+  </div>
+
+  <h3>案例B：蠕变式延期 — 需求蔓延导致的累积偏差</h3>
+  <div class="scenario-card">
+    <h4>📋 案例背景</h4>
+    <div class="case-info">
+      <div class="case-info-item"><div class="label">项目阶段</div><div class="value val-accent">预研→量产</div></div>
+      <div class="case-info-item"><div class="label">延期幅度</div><div class="value val-red">18天</div></div>
+      <div class="case-info-item"><div class="label">延期类型</div><div class="value val-yellow">蠕变式</div></div>
+      <div class="case-info-item"><div class="label">影响评分</div><div class="value val-orange">22分（中度）</div></div>
+    </div>
+    <p><strong>事件：</strong>项目从预研进入量产后，策划不断"微调"需求（每次都是"就改一点点"），3个月累计47次未走CR流程的口头变更。单次平均增加0.4天工作量，累计增加18.8天。团队直到里程碑前2周才集体发现"做不完了"。</p>
+    
+    <h4>🎯 决策过程</h4>
+    <table>
+      <tr><th>步骤</th><th>动作</th><th>产出</th></tr>
+      <tr><td>1. 诊断</td><td>确认为蠕变式延期（需求蔓延+监控缺失）</td><td>类型判定</td></tr>
+      <tr><td>2. 数据分析</td><td>统计47次口头变更 → 可视化累计偏差曲线</td><td>事实报告</td></tr>
+      <tr><td>3. 方案设计</td><td>砍需求为主：MoSCoW分级后砍12个Could Have（7天）+ 延期7天 + 加班补4天</td><td>混合方案</td></tr>
+      <tr><td>4. 流程修补</td><td>立即上线CR审批流程 + 每周需求冻结检查</td><td>流程改进</td></tr>
+      <tr><td>5. 制作人动作</td><td>与策划负责人达成共识：量产期变更必须走CR</td><td>组织共识</td></tr>
+    </table>
+    <p><strong>结果：</strong>延期7天上线，后续月度需求蔓延率从47次/3月降至3次/月。</p>
+    <p><strong>教训：</strong>① "温水煮青蛙"是最危险的延期模式 ② 缺少变更管理=给延期打开后门 ③ 日粒度的偏差追踪至关重要</p>
+  </div>
+
+  <h3>案例C：结构性延期 — 技术架构问题导致的系统性延期</h3>
+  <div class="scenario-card">
+    <h4>📋 案例背景</h4>
+    <div class="case-info">
+      <div class="case-info-item"><div class="label">项目阶段</div><div class="value val-accent">Alpha→Beta</div></div>
+      <div class="case-info-item"><div class="label">延期幅度</div><div class="value val-red">5周</div></div>
+      <div class="case-info-item"><div class="label">延期类型</div><div class="value val-red">结构性</div></div>
+      <div class="case-info-item"><div class="label">影响评分</div><div class="value val-red">38分（危急）</div></div>
+    </div>
+    <p><strong>事件：</strong>项目从Alpha到Beta阶段，发现前期的美术资产管线（Asset Pipeline）设计存在严重瓶颈——所有资产必须经过一个人做最终check-in，形成串行瓶颈。随着资产量翻倍增长，这个人成为系统瓶颈，每天只能处理30个资产，但日产出已达80个。</p>
+    
+    <h4>🎯 决策过程</h4>
+    <table>
+      <tr><th>步骤</th><th>动作</th><th>产出</th></tr>
+      <tr><td>1. 诊断</td><td>确认为结构性延期（流水线设计缺陷）</td><td>加人无用</td></tr>
+      <tr><td>2. 战备会</td><td>制作人+总监+技术主管紧急会议</td><td>4h内出决策</td></tr>
+      <tr><td>3. 根本解法</td><td>重构资产Pipeline → 分层审核+自动化CI = 2周改造</td><td>长期解决方案</td></tr>
+      <tr><td>4. 过渡方案</td><td>培训3人分担审核+临时降低非核心资产审核标准</td><td>短期止血</td></tr>
+      <tr><td>5. 重新排期</td><td>接受3周延期 + Pipeline改造2周（并行）</td><td>新里程碑</td></tr>
+    </table>
+    <p><strong>结果：</strong>实际延期3.5周（含Pipeline重构）。重构后日处理量从30→200，彻底解决瓶颈。</p>
+    <p><strong>教训：</strong>① 结构性问题不能靠加资源解决 ② 流水线设计需要考虑scale-up ③ 早期投入自动化是最好的"延期保险"</p>
+  </div>
+</div>
+
+<!-- ═══ 15. 决策自测 CheckList ═══ -->
+<div class="section" id="s15">
+  <h2>✅ 十五、决策自测 CheckList（增强版）</h2>
 
   <div class="checklist-module">
     <h3>📋 延期风险自测 — 勾选你当前面临的风险项</h3>
-    <div class="cl-subtitle">每个勾选项都代表一个真实的延期风险因子。勾选越多，风险越高，越需要提前启动应对方案。</div>
+    <div class="cl-subtitle">每个勾选项都代表一个真实的延期风险因子。勾选越多，风险越高，越需要提前启动应对方案。v2.0新增制作人视角检查项。</div>
 
     <div class="cl-group">
       <div class="cl-group-title">🔴 排期与工作量风险</div>
@@ -362,27 +1011,30 @@ graph TD
       <div class="cl-item cl-danger"><input type="checkbox" id="c2" onchange="updateScore()"><label for="c2"><span class="cl-severity sev-high">高危</span>排期时未按资产复杂度分级（S/A/B/C）差异化评估人天</label></div>
       <div class="cl-item cl-warning"><input type="checkbox" id="c3" onchange="updateScore()"><label for="c3"><span class="cl-severity sev-mid">中危</span>排期未预留 20% 缓冲时间（风险准备金）</label></div>
       <div class="cl-item cl-warning"><input type="checkbox" id="c4" onchange="updateScore()"><label for="c4"><span class="cl-severity sev-mid">中危</span>存在串行瓶颈任务，无法并行拆分</label></div>
+      <div class="cl-item cl-warning"><input type="checkbox" id="c17" onchange="updateScore()"><label for="c17"><span class="cl-severity sev-mid">中危</span>未使用PERT三点估算法，排期基于单点乐观估计</label></div>
     </div>
 
     <div class="cl-group">
       <div class="cl-group-title">🟡 需求与变更风险</div>
       <div class="cl-item cl-danger"><input type="checkbox" id="c5" onchange="updateScore()"><label for="c5"><span class="cl-severity sev-high">高危</span>量产期仍在接受口头需求变更（无 CR 审批流程）</label></div>
       <div class="cl-item cl-warning"><input type="checkbox" id="c6" onchange="updateScore()"><label for="c6"><span class="cl-severity sev-mid">中危</span>过去 2 周内收到 2+ 个计划外需求插入</label></div>
-      <div class="cl-item"><input type="checkbox" id="c7" onchange="updateScore()"><label for="c7"><span class="cl-severity sev-low">低危</span>需求描述不完整，美术理解需 2+ 次确认</label></div>
+      <div class="cl-item"><input type="checkbox" id="c7" onchange="updateScore()"><label for="c7"><span class="cl-severity sev-low">低危</span>需求描述不完整，执行方需 2+ 次确认</label></div>
+      <div class="cl-item cl-danger"><input type="checkbox" id="c18" onchange="updateScore()"><label for="c18"><span class="cl-severity sev-high">高危</span>需求MoSCoW分级不清晰，团队不知道哪些可以砍</label></div>
     </div>
 
     <div class="cl-group">
       <div class="cl-group-title">🔴 人力与资源风险</div>
-      <div class="cl-item cl-danger"><input type="checkbox" id="c8" onchange="updateScore()"><label for="c8"><span class="cl-severity sev-high">高危</span>关键美术骨干被借调或即将离职</label></div>
+      <div class="cl-item cl-danger"><input type="checkbox" id="c8" onchange="updateScore()"><label for="c8"><span class="cl-severity sev-high">高危</span>关键骨干被借调或即将离职</label></div>
       <div class="cl-item cl-warning"><input type="checkbox" id="c9" onchange="updateScore()"><label for="c9"><span class="cl-severity sev-mid">中危</span>团队连续加班 &gt;2 周，士气明显下降</label></div>
       <div class="cl-item cl-warning"><input type="checkbox" id="c10" onchange="updateScore()"><label for="c10"><span class="cl-severity sev-mid">中危</span>外包 CP 当前同时服务 3+ 个甲方</label></div>
+      <div class="cl-item cl-warning"><input type="checkbox" id="c19" onchange="updateScore()"><label for="c19"><span class="cl-severity sev-mid">中危</span>没有备选CP池，当前CP出问题无法快速替换</label></div>
     </div>
 
     <div class="cl-group">
       <div class="cl-group-title">🟡 质量与返修风险</div>
       <div class="cl-item cl-danger"><input type="checkbox" id="c11" onchange="updateScore()"><label for="c11"><span class="cl-severity sev-high">高危</span>外包首版通过率 &lt;50%，返修已拖慢整体进度</label></div>
-      <div class="cl-item cl-warning"><input type="checkbox" id="c12" onchange="updateScore()"><label for="c12"><span class="cl-severity sev-mid">中危</span>美术规范文档不完整，验收标准模糊</label></div>
-      <div class="cl-item"><input type="checkbox" id="c13" onchange="updateScore()"><label for="c13"><span class="cl-severity sev-low">低危</span>内部 Art Review 未按时进行</label></div>
+      <div class="cl-item cl-warning"><input type="checkbox" id="c12" onchange="updateScore()"><label for="c12"><span class="cl-severity sev-mid">中危</span>规范文档不完整，验收标准模糊</label></div>
+      <div class="cl-item"><input type="checkbox" id="c13" onchange="updateScore()"><label for="c13"><span class="cl-severity sev-low">低危</span>内部 Review 未按时进行</label></div>
     </div>
 
     <div class="cl-group">
@@ -390,6 +1042,15 @@ graph TD
       <div class="cl-item cl-warning"><input type="checkbox" id="c14" onchange="updateScore()"><label for="c14"><span class="cl-severity sev-mid">中危</span>与策划/程序的需求对齐会 &gt;1 周未开</label></div>
       <div class="cl-item"><input type="checkbox" id="c15" onchange="updateScore()"><label for="c15"><span class="cl-severity sev-low">低危</span>进度数据未按时更新（燃尽图/看板）</label></div>
       <div class="cl-item"><input type="checkbox" id="c16" onchange="updateScore()"><label for="c16"><span class="cl-severity sev-low">低危</span>风险登记册 (Risk Log) 超过 2 周未更新</label></div>
+    </div>
+
+    <div class="cl-group">
+      <div class="cl-group-title">🎯 制作人视角风险（v2.0新增）</div>
+      <div class="cl-item cl-danger"><input type="checkbox" id="c20" onchange="updateScore()"><label for="c20"><span class="cl-severity sev-high">高危</span>APM汇报中频繁出现模糊措辞（"差不多""应该能赶上"）</label></div>
+      <div class="cl-item cl-danger"><input type="checkbox" id="c21" onchange="updateScore()"><label for="c21"><span class="cl-severity sev-high">高危</span>距里程碑&lt;2周但仍有&gt;30%工作量未完成</label></div>
+      <div class="cl-item cl-warning"><input type="checkbox" id="c22" onchange="updateScore()"><label for="c22"><span class="cl-severity sev-mid">中危</span>跨部门协作出现明显摩擦或推诿</label></div>
+      <div class="cl-item cl-warning"><input type="checkbox" id="c23" onchange="updateScore()"><label for="c23"><span class="cl-severity sev-mid">中危</span>本次延期已是近3个月内第2次以上</label></div>
+      <div class="cl-item cl-warning"><input type="checkbox" id="c24" onchange="updateScore()"><label for="c24"><span class="cl-severity sev-mid">中危</span>制作人超过2周未亲自查看进度数据</label></div>
     </div>
 
     <div class="cl-result">
@@ -400,38 +1061,91 @@ graph TD
   </div>
 </div>
 
+<!-- ═══ 16. 金句原则与反模式 ═══ -->
+<div class="section" id="s16">
+  <h2>💎 十六、金句原则与反模式</h2>
+
+  <h3>16.1 延期决策十大金句</h3>
+  <table>
+    <tr><th>#</th><th>金句</th><th>来源/场景</th></tr>
+    <tr><td>1</td><td>"延期不是 APM 的失败，但延期后没有科学决策和透明沟通，才是真正的失败。"</td><td>PM原则</td></tr>
+    <tr><td>2</td><td>"你不可能通过在怀孕的第9个月再加8个孕妇来缩短工期。"——Brooks</td><td>加人决策</td></tr>
+    <tr><td>3</td><td>"越早暴露坏消息，处理成本越低。延迟1天发现 ≈ 增加3天处理成本。"</td><td>预警决策</td></tr>
+    <tr><td>4</td><td>"砍需求不是认输，是用最少代价保住核心体验。"</td><td>砍需求场景</td></tr>
+    <tr><td>5</td><td>"制作人的价值不在于催促团队赶工，而在于帮团队做出最优取舍。"</td><td>制作人定位</td></tr>
+    <tr><td>6</td><td>"一次延期是事故，两次延期是模式，三次延期是文化。"</td><td>组织学习</td></tr>
+    <tr><td>7</td><td>"数据不会撒谎，但人会对数据视而不见。每天看燃尽图的PM，不会被延期突袭。"</td><td>日常管理</td></tr>
+    <tr><td>8</td><td>"与其加班3周赶出一个60分的版本，不如延期1周交出一个90分的版本。"</td><td>质量决策</td></tr>
+    <tr><td>9</td><td>"团队士气是隐性资产——赶工消耗的不只是时间，更是团队对项目的信心。"</td><td>人员管理</td></tr>
+    <tr><td>10</td><td>"好的PM让延期只发生一次，好的制作人让延期成为组织进化的契机。"</td><td>双角色定位</td></tr>
+  </table>
+
+  <h3>16.2 八大反模式（Anti-Patterns）</h3>
+  <table>
+    <tr><th>反模式</th><th>描述</th><th>后果</th><th>正确做法</th></tr>
+    <tr><td>🚫 鸵鸟模式</td><td>"再等等看，也许能赶上"</td><td>错过最佳干预窗口</td><td>20%偏差立即启动响应</td></tr>
+    <tr><td>🚫 甩锅模式</td><td>"都是XX部门/XX人导致的"</td><td>跨部门关系破裂</td><td>聚焦系统改进而非个人追责</td></tr>
+    <tr><td>🚫 堆人模式</td><td>"加5个人就能赶上了"</td><td>Brooks定律生效，更慢</td><td>评估任务可并行性后再决策</td></tr>
+    <tr><td>🚫 全赶模式</td><td>"所有人加班必须赶上"</td><td>质量崩盘+团队崩溃</td><td>理性评估ROI后选择性赶工</td></tr>
+    <tr><td>🚫 隐瞒模式</td><td>PM独自扛压不上报</td><td>错过决策支援窗口</td><td>48h内必须向上透明沟通</td></tr>
+    <tr><td>🚫 反复模式</td><td>方案定了又改，改了又定</td><td>团队丧失方向感</td><td>决策后72h内不动摇</td></tr>
+    <tr><td>🚫 加需模式</td><td>赶工同时接受新需求</td><td>逻辑矛盾，必然失败</td><td>赶工期间冻结一切新需求</td></tr>
+    <tr><td>🚫 只调不改</td><td>只延时间不改流程</td><td>下次必然重蹈覆辙</td><td>延期方案必须附带流程改进</td></tr>
+  </table>
+
+  <h3>16.3 决策前 Checklist — 快速自检</h3>
+  <div class="dd-card dd-do" style="margin:16px 0">
+    <h4>✅ 做出延期决策前的10个必答题</h4>
+    <ol>
+      <li>我是否已经用数据量化了延期的影响？（不只是"感觉严重"）</li>
+      <li>我是否已经诊断了延期类型？（结构性/突发性/蠕变式）</li>
+      <li>我是否准备了≥3个备选方案供决策者选择？</li>
+      <li>我是否计算了各方案的ROI？</li>
+      <li>我是否明确了各方案的风险和最坏情况？</li>
+      <li>我是否已经与关键干系人（制作人/策划/技术主管）预沟通？</li>
+      <li>新方案是否包含了防止同类问题复发的改进措施？</li>
+      <li>新时间线是否预留了20%缓冲？</li>
+      <li>团队是否知情并认可新的方向？</li>
+      <li>是否设置了新的预警检查点（不能等到下一次里程碑才发现问题）？</li>
+    </ol>
+  </div>
+</div>
+
 <!-- ═══ 关联推荐 ═══ -->
 <div class="related-cases">
   <h3>🔗 相关文档推荐</h3>
   <div class="rc-grid" id="relatedGrid"></div>
 </div>
 
-<div class="doc-footer">⏳ 决策指南 — 项目延期应对决策 v1.0 · 项目管理与排期 · 2026-04-13</div>
+<div class="doc-footer">⏳ 决策指南 — 项目延期应对决策 v2.0（资深PM+制作人双视角深度版） · 项目管理与排期 · 2026-05-28</div>
 
 </div>
 
 <script>
-/* ═══ CheckList 评分引擎 ═══ */
+/* ═══ CheckList 评分引擎 v2.0 ═══ */
 function updateScore(){
-  var weights={c1:3,c2:3,c5:3,c8:3,c11:3,c3:2,c4:2,c6:2,c9:2,c10:2,c12:2,c14:2,c7:1,c13:1,c15:1,c16:1};
+  var weights={c1:3,c2:3,c5:3,c8:3,c11:3,c18:3,c20:3,c21:3,c3:2,c4:2,c6:2,c9:2,c10:2,c12:2,c14:2,c17:2,c19:2,c22:2,c23:2,c24:2,c7:1,c13:1,c15:1,c16:1};
   var total=0;
-  for(var id in weights){if(document.getElementById(id).checked)total+=weights[id];}
-  var el=document.getElementById('clScore'),lv=document.getElementById('clLevel'),ad=document.getElementById('clAdvice');
-  el.textContent=total;
-  if(total<=5){el.style.color='var(--green)';lv.style.color='var(--green)';lv.textContent='✅ 风险可控 — 继续正常推进';ad.textContent='当前风险在可控范围内。保持周燃尽图跟踪，关注变化即可。';}
-  else if(total<=12){el.style.color='var(--yellow)';lv.style.color='var(--yellow)';lv.textContent='⚠️ 黄色预警 — 需要关注并准备 Plan B';ad.textContent='建议：① 本周内完成影响评估矩阵打分；② 准备赶工或砍需求预案；③ 向制作人口头预警。';}
-  else if(total<=20){el.style.color='var(--orange)';lv.style.color='var(--orange)';lv.textContent='🟠 橙色预警 — 必须立即启动应对方案';ad.textContent='建议：① 24h 内完成决策树走查；② 输出正式决策报告；③ 与制作人召开紧急会议确定方案。';}
-  else{el.style.color='var(--red)';lv.style.color='var(--red)';lv.textContent='🔴 红色预警 — 项目面临严重延期风险！';ad.textContent='建议：① 立即上报总监；② 启动混合方案（赶工+砍需求+延期协商）；③ 冻结一切新需求；④ 全面复盘启动改进。';}
+  for(var id in weights){var el=document.getElementById(id);if(el&&el.checked)total+=weights[id];}
+  var sc=document.getElementById('clScore'),lv=document.getElementById('clLevel'),ad=document.getElementById('clAdvice');
+  sc.textContent=total;
+  if(total<=6){sc.style.color='var(--green)';lv.style.color='var(--green)';lv.textContent='✅ 风险可控 — 继续正常推进';ad.textContent='当前风险在可控范围内。保持周燃尽图跟踪，关注变化即可。';}
+  else if(total<=15){sc.style.color='var(--yellow)';lv.style.color='var(--yellow)';lv.textContent='⚠️ 黄色预警 — 需要关注并准备 Plan B';ad.textContent='建议：① 本周内完成影响评估矩阵打分；② 准备赶工或砍需求预案；③ 向制作人口头预警。';}
+  else if(total<=25){sc.style.color='var(--orange)';lv.style.color='var(--orange)';lv.textContent='🟠 橙色预警 — 必须立即启动应对方案';ad.textContent='建议：① 24h内完成决策树走查；② 输出正式决策报告；③ 与制作人召开紧急会议确定方案。';}
+  else if(total<=38){sc.style.color='var(--red)';lv.style.color='var(--red)';lv.textContent='🔴 红色预警 — 项目面临严重延期风险！';ad.textContent='建议：① 立即上报总监；② 启动混合方案（赶工+砍需求+延期协商）；③ 冻结一切新需求；④ 制作人亲自出面主导决策。';}
+  else{sc.style.color='var(--red)';lv.style.color='var(--red)';lv.textContent='💀 危急 — 需要战备级响应！';ad.textContent='建议：① 4h内召开制作人+总监+VP战备会；② 全面冻结+重规划；③ 考虑组织级资源调配；④ 启动全链路复盘。';}
 }
 /* ═══ 关联推荐 ═══ */
 (function(){
   var recs=[
     {icon:'⏰',title:'项目延期案例 — 量产排期连环爆雷复盘',desc:'真实项目延期复盘：排期乐观估计引发连锁延期',tags:['延期','复盘'],variant:'danger',path:'case-delay.html'},
-    {icon:'🧭',title:'外包 vs 内发决策矩阵',desc:'外包与内发的七维度评估体系、成本对比、场景速查',tags:['外包','决策'],variant:'info',path:'outsource-vs-inhouse-decision.html'},
+    {icon:'🧭',title:'外包 vs 内发决策矩阵',desc:'外包与内发的十维度评估体系、成本对比、场景速查',tags:['外包','决策'],variant:'info',path:'outsource-vs-inhouse-decision.html'},
     {icon:'📅',title:'美术排期与里程碑管理',desc:'Sprint排期、里程碑分解、燃尽图跟踪与风险预警',tags:['排期','里程碑'],variant:'accent',path:'art-scheduling.html'},
     {icon:'⚠️',title:'项目风险登记册规范',desc:'风险识别→评估→分级→应对→闭环',tags:['Risk Log','管理'],variant:'warning',path:'risk-log.html'},
     {icon:'📊',title:'美术外包工作量评估标准',desc:'按工种和资产复杂度的标准人天评估模型',tags:['人天模型','外包'],variant:'info',path:'outsource-workload-model.html'},
-    {icon:'💣',title:'踩坑案例 — 外包翻车·排期爆雷',desc:'外包首批全打回、排期连续爆雷的复盘',tags:['踩坑','案例'],variant:'danger',path:'project-pitfall-log.html'}
+    {icon:'💣',title:'踩坑案例 — 外包翻车·排期爆雷',desc:'外包首批全打回、排期连续爆雷的复盘',tags:['踩坑','案例'],variant:'danger',path:'project-pitfall-log.html'},
+    {icon:'📈',title:'进度可视化与燃尽图',desc:'多维度进度追踪与可视化看板实战',tags:['进度','看板'],variant:'accent',path:'progress-visualization.html'},
+    {icon:'🔄',title:'需求变更管理（CR）流程',desc:'变更请求审批、影响评估、排期联动机制',tags:['CR','变更'],variant:'warning',path:'requirement-change.html'}
   ];
   var g=document.getElementById('relatedGrid');if(!g)return;
   recs.forEach(function(r){
@@ -453,37 +1167,32 @@ function updateScore(){
   if(!toc)return;
   var links=toc.querySelectorAll('a[href^="#"]');
   if(links.length<5)return;
-  // Wrap existing content
   var h3=toc.querySelector('h3');
   var ol=toc.querySelector('ol');
   if(!ol)return;
   var topCount=ol.querySelectorAll(':scope>li').length;
   var totalCount=links.length;
-  // Build toggle bar
   var bar=document.createElement('div');
   bar.className='toc-toggle-bar';
   bar.innerHTML='<div style="display:flex;align-items:center">'+
     (h3?h3.outerHTML:'')+
     '<span class="toc-badge">'+topCount+' \u7AE0 \u00B7 '+totalCount+' \u8282</span></div>'+
     '<span class="toc-hint"><span class="toc-hint-text">\u70B9\u51FB\u5C55\u5F00</span> <span class="toc-chevron">\u25BC</span></span>';
-  // Create inner wrapper
   var inner=document.createElement('div');
   inner.className='toc-inner';
   inner.appendChild(ol);
-  // Clear and rebuild
   toc.innerHTML='';
   toc.appendChild(bar);
   toc.appendChild(inner);
   toc.classList.add('toc-folded');
-  // Bind toggle
   var hintText=bar.querySelector('.toc-hint-text');
   bar.addEventListener('click',function(){
     var folded=toc.classList.toggle('toc-folded');
     hintText.textContent=folded?'\u70B9\u51FB\u5C55\u5F00':'\u70B9\u51FB\u6536\u8D77';
   });
-  // Remove original h3 (already in bar)
   if(h3&&h3.parentNode===toc)h3.remove();
 })();
 </script>
 </body>
 </html>
+
