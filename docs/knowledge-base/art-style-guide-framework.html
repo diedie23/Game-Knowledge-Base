@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>美术风格指南制定方法论</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--pink:#f472b6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1200px;margin:0 auto;padding:32px 48px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.doc-header h1 .ver{font-size:12px;background:var(--pink);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--pink);display:flex;align-items:center;gap:8px}
+.section h3{font-size:17px;color:var(--heading);margin:20px 0 8px;font-weight:600}
+.section h4{font-size:14px;color:var(--pink);margin:12px 0 6px;font-weight:600}
+.section p{font-size:15px;margin-bottom:12px;line-height:1.8}
+.section ul,.section ol{padding-left:20px;margin-bottom:12px;font-size:15px}
+.section li{margin-bottom:4px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(244,114,182,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-pink{background:rgba(244,114,182,.08);border:1px solid rgba(244,114,182,.2);color:var(--pink)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;min-width:100px}
+.flow-node strong{display:block;color:var(--heading);font-size:14px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:12px}
+.flow-arrow{color:var(--pink);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--pink);background:rgba(244,114,182,.05)}
+.flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:14px;line-height:1.8}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:15px}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}
+.badge-pink{background:rgba(244,114,182,.15);color:var(--pink)}
+.golden-quote{background:linear-gradient(135deg,rgba(244,114,182,.06),rgba(167,139,250,.06));border:1px solid rgba(244,114,182,.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:14px;line-height:1.8}
+.golden-quote p{margin-bottom:6px;font-style:italic}
+.golden-quote .src{font-size:12px;color:var(--dim);text-align:right}
+.checklist{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:16px 0}
+.checklist h4{color:var(--heading);margin-bottom:10px;font-size:15px}
+.ck-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:14px;border-bottom:1px solid var(--border)}
+.ck-item:last-child{border-bottom:none}
+.ck-num{color:var(--pink);font-weight:700;min-width:22px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin:16px 0}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.kpi-card .kpi-value{font-size:22px;font-weight:700;color:var(--pink);margin:4px 0}
+.kpi-card .kpi-label{font-size:12px;color:var(--dim)}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+
+/* === TOC Inline Collapse + Grid === */
+.toc{position:relative;overflow:hidden;transition:all .3s ease}
+.toc.toc-folded .toc-inner{max-height:0;padding-top:0;padding-bottom:0;overflow:hidden}
+.toc .toc-inner{max-height:2000px;transition:max-height .35s cubic-bezier(.4,0,.2,1),padding .35s ease;overflow:hidden}
+.toc .toc-toggle-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 0 8px;cursor:pointer;user-select:none}
+.toc .toc-toggle-bar:hover{opacity:.85}
+.toc .toc-toggle-bar .toc-badge{font-size:11px;background:rgba(244,114,182,.15);color:var(--pink);padding:2px 8px;border-radius:8px;font-weight:600;margin-left:10px}
+.toc .toc-toggle-bar .toc-hint{font-size:12px;color:var(--dim,#6b7085);display:flex;align-items:center;gap:4px}
+.toc .toc-toggle-bar .toc-chevron{display:inline-block;transition:transform .25s ease}
+.toc.toc-folded .toc-toggle-bar .toc-chevron{transform:rotate(-90deg)}
+.toc .toc-inner>ol{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px 20px;list-style:none;padding:0;margin:0;counter-reset:toc-top}
+.toc .toc-inner>ol>li{counter-increment:toc-top;margin:0;padding:0}
+.toc .toc-inner>ol>li>a{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;font-size:13px;text-decoration:none;font-weight:500;transition:all .15s ease}
+.toc .toc-inner>ol>li>a::before{content:counter(toc-top);font-size:11px;font-weight:700;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:5px;background:rgba(244,114,182,.15);color:var(--pink);flex-shrink:0}
+.toc .toc-inner>ol>li>a:hover{background:rgba(244,114,182,.08)}
+.toc .toc-inner>ol>li>a:hover::before{background:var(--pink);color:#000}
+@media(max-width:600px){.toc .toc-inner>ol{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>🎨 美术风格指南制定方法论 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Art Style Guide Framework — From Vision to Industrial Standard</div>
+  <div class="meta">
+    <span>📋 适用阶段：预研期 → 量产期全覆盖</span>
+    <span>👤 维护：美术总监 × 制作人 × 主美</span>
+    <span>📅 2026-05-28</span>
+  </div>
+</div>
+
+<div class="alert alert-pink" style="margin-bottom:24px">
+  <strong>📎 关联文档：</strong>本文聚焦<strong>如何建立和维护统一的美术风格标准</strong>。具体工艺执行规范（命名/贴图/性能红线）请参见模块内各专项文档；外包风格管控请参见 → <a href="cp-outsource.html" style="color:var(--pink);font-weight:600">《外包全链路管理指南》</a>
+</div>
+
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ol>
+    <li><a href="#sec1">风格指南的战略价值</a></li>
+    <li><a href="#sec2">风格指南编制六步法</a></li>
+    <li><a href="#sec3">风格锚点体系（Style Anchor System）</a></li>
+    <li><a href="#sec4">色彩体系设计</a></li>
+    <li><a href="#sec5">造型语言与比例规范</a></li>
+    <li><a href="#sec6">材质/光影/渲染风格定义</a></li>
+    <li><a href="#sec7">风格一致性管控机制</a></li>
+    <li><a href="#sec8">风格迭代与版本管理</a></li>
+    <li><a href="#sec9">制作人关注：风格管控常见翻车与应对</a></li>
+    <li><a href="#sec10">风格指南文档模板</a></li>
+  </ol>
+</div>
+
+<!-- ═══ SEC 1 ═══ -->
+<div class="section" id="sec1">
+  <h2>🎯 1. 风格指南的战略价值</h2>
+
+  <div class="golden-quote">
+    <p>"风格指南不是'限制创意的牢笼'，而是'让 50 个人画出来像 1 个人画的'工具。没有风格指南的项目，最终会变成'每个美术都在画自己心中的游戏'。"</p>
+    <div class="src">— 某百人美术团队制作人</div>
+  </div>
+
+  <h3>1.1 为什么需要风格指南</h3>
+  <table>
+    <thead><tr><th>维度</th><th>有风格指南</th><th>无风格指南</th></tr></thead>
+    <tbody>
+      <tr><td><strong>视觉一致性</strong></td><td>玩家感受到统一的世界观和品质感</td><td>不同角色/场景风格割裂，像"拼贴画"</td></tr>
+      <tr><td><strong>团队协作效率</strong></td><td>新人 3 天上手出图，返工率 ≤10%</td><td>反复口头沟通，返工率 30%~50%</td></tr>
+      <tr><td><strong>外包管控</strong></td><td>CP 有明确标准可参照，验收有据可依</td><td>验收全凭主观感受，甲乙双方扯皮不断</td></tr>
+      <tr><td><strong>品牌识别度</strong></td><td>游戏具备独特的视觉 DNA，截图即可辨认</td><td>泯然众人，无法建立视觉记忆点</td></tr>
+      <tr><td><strong>迭代可控</strong></td><td>新版本/新角色自然延续已有风格</td><td>每次新内容都可能"画风突变"</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1.2 风格指南的覆盖范围</h3>
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-value">🎨</div><div class="kpi-label">色彩体系</div></div>
+    <div class="kpi-card"><div class="kpi-value">📐</div><div class="kpi-label">造型/比例</div></div>
+    <div class="kpi-card"><div class="kpi-value">🖌️</div><div class="kpi-label">线条/笔触</div></div>
+    <div class="kpi-card"><div class="kpi-value">💡</div><div class="kpi-label">光影/渲染</div></div>
+    <div class="kpi-card"><div class="kpi-value">🧱</div><div class="kpi-label">材质表达</div></div>
+    <div class="kpi-card"><div class="kpi-value">🌍</div><div class="kpi-label">世界观映射</div></div>
+  </div>
+</div>
+
+<!-- ═══ SEC 2 ═══ -->
+<div class="section" id="sec2">
+  <h2>📋 2. 风格指南编制六步法</h2>
+
+  <div class="flow">
+    <div class="flow-node start"><strong>Step 1</strong><div class="sub">风格探索</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Step 2</strong><div class="sub">锚点确立</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Step 3</strong><div class="sub">规则提炼</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Step 4</strong><div class="sub">样板制作</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Step 5</strong><div class="sub">团队验证</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>Step 6</strong><div class="sub">文档发布</div></div>
+  </div>
+
+  <table>
+    <thead><tr><th>步骤</th><th>核心动作</th><th>产出物</th><th>参与者</th><th>周期参考</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1. 风格探索</strong></td><td>收集大量参考（200+张）→ 分类 → 提取共性</td><td>Mood Board × 5~10 方向</td><td>美术总监 + 主美</td><td>2~4 周</td></tr>
+      <tr><td><strong>2. 锚点确立</strong></td><td>从 Mood Board 中筛选 2~3 个核心方向 → 绘制 Key Art</td><td>3~5 张 Key Art（风格锚点图）</td><td>美术总监 + 概念设计师</td><td>3~6 周</td></tr>
+      <tr><td><strong>3. 规则提炼</strong></td><td>从 Key Art 反向推导色彩/比例/线条/材质规则</td><td>风格规则手册（草稿版）</td><td>美术总监 + TA</td><td>2~3 周</td></tr>
+      <tr><td><strong>4. 样板制作</strong></td><td>按规则制作 3~5 个完整样板角色/场景</td><td>样板资产 + 制作过程文档</td><td>主美 + 核心美术</td><td>4~8 周</td></tr>
+      <tr><td><strong>5. 团队验证</strong></td><td>非核心美术用规则手册试做 → 评估一致性 → 修正规则</td><td>修订版风格手册 + 培训材料</td><td>全美术团队</td><td>2~4 周</td></tr>
+      <tr><td><strong>6. 文档发布</strong></td><td>正式版风格指南发布 + 内部培训 + 外包培训包</td><td>正式版 Style Guide</td><td>美术管理</td><td>1~2 周</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-yellow"><strong>⚠️ 制作人注意：</strong>风格指南的编制是<strong>预研期最重要的美术工作之一</strong>（不是"画完概念设计就行"）。预研期不把风格指南做扎实，量产期将面临无尽的返工和风格不统一。建议预研期投入 <strong>2~4 个月</strong>完成。</div>
+</div>
+
+<!-- ═══ SEC 3 ═══ -->
+<div class="section" id="sec3">
+  <h2>⚓ 3. 风格锚点体系（Style Anchor System）</h2>
+
+  <div class="golden-quote">
+    <p>"风格锚点就是团队的'北极星'——当任何人对'这个对不对'产生疑问时，只需要拿出锚点图对比，答案立刻清晰。"</p>
+    <div class="src">— 美术总监经验</div>
+  </div>
+
+  <h3>3.1 锚点类型与层级</h3>
+  <table>
+    <thead><tr><th>锚点层级</th><th>类型</th><th>数量</th><th>作用</th><th>谁来定</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-red">L0 总锚</span></td><td>世界观 Key Visual</td><td>1~2 张</td><td>定义整个游戏的视觉调性和情绪基调</td><td>美术总监 + 制作人</td></tr>
+      <tr><td><span class="badge badge-yellow">L1 类型锚</span></td><td>角色锚/场景锚/UI锚</td><td>每类 2~3 张</td><td>定义该类型资产的风格标准</td><td>主美</td></tr>
+      <tr><td><span class="badge badge-green">L2 子类锚</span></td><td>各阵营/种族/环境的风格差异样板</td><td>每子类 1~2 张</td><td>在统一大风格下展现差异化</td><td>组长级美术</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.2 锚点图的制作要求</h3>
+  <ul>
+    <li><strong>完成度</strong>：锚点图必须是<strong>完全精修</strong>的高品质稿，不能是草图或概念探索稿</li>
+    <li><strong>标注</strong>：每张锚点图需附带<strong>设计说明文档</strong>（解释为什么这样设计、哪些元素是"必须保持"的、哪些可以灵活变化）</li>
+    <li><strong>覆盖性</strong>：锚点图应尽可能覆盖代表性场景（如角色锚要覆盖不同体型/性别/阵营）</li>
+    <li><strong>边界样本</strong>：除了"标准答案"，还应提供<strong>边界案例</strong>——"这是能接受的极限" vs "这已经超出风格范围"</li>
+  </ul>
+
+  <h3>3.3 锚点图对比使用法</h3>
+  <table>
+    <thead><tr><th>场景</th><th>使用方法</th><th>判定标准</th></tr></thead>
+    <tbody>
+      <tr><td>美术自检</td><td>制作完成后将成品与锚点图并排对比</td><td>色调/比例/材质表达是否在同一视觉语言体系内</td></tr>
+      <tr><td>评审会</td><td>投屏时锚点图常驻在侧边作为参照</td><td>偏离锚点需说明设计意图并获得主美确认</td></tr>
+      <tr><td>外包指导</td><td>锚点图作为外包合同附件的核心参考</td><td>CP 交付物与锚点图的风格偏差度打分</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ SEC 4 ═══ -->
+<div class="section" id="sec4">
+  <h2>🌈 4. 色彩体系设计</h2>
+
+  <h3>4.1 色彩体系的四层结构</h3>
+  <table>
+    <thead><tr><th>层级</th><th>内容</th><th>示例</th><th>决策者</th></tr></thead>
+    <tbody>
+      <tr><td><strong>L1 基调色</strong></td><td>定义整体色温倾向和明暗基调</td><td>"暖色调偏冷灰" / "高饱和明快" / "去饱和厚重感"</td><td>美术总监</td></tr>
+      <tr><td><strong>L2 主题色</strong></td><td>各阵营/系统/场景的标识色</td><td>火系=暖红橙、冰系=冷蓝青、暗系=紫黑</td><td>主美 + 策划</td></tr>
+      <tr><td><strong>L3 调色板</strong></td><td>具体资产可使用的颜色范围</td><td>每个阵营 5~8 个核心色 + 禁用色</td><td>主美</td></tr>
+      <tr><td><strong>L4 色值规范</strong></td><td>精确的 HSV / Hex 数值和使用比例</td><td>主色 60% / 辅色 30% / 点缀色 10%</td><td>美术组长</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.2 色彩约束规则</h3>
+  <div class="checklist">
+    <h4>🎨 色彩规范要点</h4>
+    <div class="ck-item"><span class="ck-num">01</span><strong>饱和度上限</strong>：除 UI 图标外，游戏内资产的<strong>饱和度 S ≤ 80%</strong>（HSV），避免"塑料感"</div>
+    <div class="ck-item"><span class="ck-num">02</span><strong>黑白极值限制</strong>：BaseColor 明度 V 不低于 10%、不高于 95%（留 5% 空间给光照）</div>
+    <div class="ck-item"><span class="ck-num">03</span><strong>冷暖对比规则</strong>：同一画面中冷暖色面积比应控制在 3:7 或 7:3，避免 5:5 平分（无主次）</div>
+    <div class="ck-item"><span class="ck-num">04</span><strong>禁用色清单</strong>：明确列出"绝对不可在该项目中出现的颜色"（如写实军事题材禁止荧光粉）</div>
+    <div class="ck-item"><span class="ck-num">05</span><strong>品阶区分</strong>：不同品质/稀有度角色通过色彩丰富度（而非饱和度爆炸）来区分层次</div>
+  </div>
+
+  <h3>4.3 配色参考工具推荐</h3>
+  <table>
+    <thead><tr><th>工具</th><th>用途</th><th>适用阶段</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Adobe Color</strong></td><td>提取参考图配色 + 和谐色生成</td><td>风格探索期</td></tr>
+      <tr><td><strong>Coolors.co</strong></td><td>快速生成配色方案</td><td>调色板设计</td></tr>
+      <tr><td><strong>Palette List</strong></td><td>游戏/电影/动画配色参考库</td><td>灵感收集</td></tr>
+      <tr><td><strong>引擎内 Color Grading LUT</strong></td><td>统一全场景色调的后处理方案</td><td>量产期</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ SEC 5 ═══ -->
+<div class="section" id="sec5">
+  <h2>📐 5. 造型语言与比例规范</h2>
+
+  <h3>5.1 体型比例标准</h3>
+  <table>
+    <thead><tr><th>角色类型</th><th>头身比</th><th>风格倾向</th><th>适用项目类型</th></tr></thead>
+    <tbody>
+      <tr><td>写实/次世代</td><td>7~8 头身</td><td>真实人体比例</td><td>3A 大作 / 开放世界</td></tr>
+      <tr><td>二次元/日系</td><td>6~7 头身</td><td>微拉长四肢 + 大眼</td><td>二次元手游 / ARPG</td></tr>
+      <tr><td>韩系时尚</td><td>7~8 头身</td><td>超模比例 + 精致五官</td><td>MMO / 时装游戏</td></tr>
+      <tr><td>Q版/可爱</td><td>2~3 头身</td><td>大头小身 + 圆润体型</td><td>休闲 / 派对游戏</td></tr>
+      <tr><td>欧美卡通</td><td>3~5 头身</td><td>夸张体型差异 + 几何化</td><td>合家欢 / 冒险</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.2 造型"形状语言"规则</h3>
+  <div class="alert alert-blue"><strong>核心概念：</strong>所有角色/场景设计都建立在<strong>三大基础形状</strong>的组合之上——圆形（亲和/柔软）、方形（稳重/力量）、三角形（危险/速度）。风格指南需明确项目的形状语言偏好。</div>
+
+  <table>
+    <thead><tr><th>角色定位</th><th>主导形状</th><th>造型特征</th><th>设计要点</th></tr></thead>
+    <tbody>
+      <tr><td>英雄/主角</td><td>方 + 三角</td><td>肩宽/V字身材/三角轮廓</td><td>正面剪影需一眼识别</td></tr>
+      <tr><td>萌系/辅助</td><td>圆</td><td>圆润体态/大头/柔和曲线</td><td>强调亲和力和可爱感</td></tr>
+      <tr><td>反派/Boss</td><td>三角 + 尖锐</td><td>尖角/不对称/压迫性剪影</td><td>剪影需传递威胁感</td></tr>
+      <tr><td>NPC/路人</td><td>简化几何</td><td>降低细节密度，保持背景感</td><td>不抢主角视觉焦点</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.3 剪影测试标准</h3>
+  <div class="alert alert-red"><strong>🚨 红线规则：</strong>所有角色设计在<strong>纯黑剪影状态下</strong>必须可辨识。如果两个角色的剪影高度相似（去色后无法区分），则必须回炉重做造型差异。这是角色设计的"生死线"。</div>
+
+  <ul>
+    <li><strong>辨识度测试</strong>：10 个角色缩小到 64px 高度的剪影 → 随机测试者应能正确识别 ≥ 80%</li>
+    <li><strong>远距测试</strong>：游戏实际远景（如团战场景）中角色缩小后仍可辨认</li>
+    <li><strong>动态剪影</strong>：角色标志性动作/待机的运动剪影也需有差异化</li>
+  </ul>
+</div>
+
+<!-- ═══ SEC 6 ═══ -->
+<div class="section" id="sec6">
+  <h2>💡 6. 材质/光影/渲染风格定义</h2>
+
+  <h3>6.1 渲染风格光谱定位</h3>
+  <table>
+    <thead><tr><th>风格类型</th><th>光影表达</th><th>材质细节</th><th>边缘处理</th><th>代表作</th></tr></thead>
+    <tbody>
+      <tr><td><strong>照片写实 PBR</strong></td><td>物理准确光照 + GI</td><td>高精度纹理 + 微表面细节</td><td>自然过渡</td><td>TLOU2, RDR2</td></tr>
+      <tr><td><strong>风格化 PBR</strong></td><td>PBR + 色彩夸张</td><td>简化纹理 + 风格化粗糙度</td><td>微描边</td><td>原神, 塞尔达</td></tr>
+      <tr><td><strong>赛璐璐/二次元</strong></td><td>硬边阴影 2~3 层</td><td>纯色块 + 渐变</td><td>明确描边</td><td>崩铁, 绝区零</td></tr>
+      <tr><td><strong>手绘/绘本</strong></td><td>手绘笔触阴影</td><td>纸质/水彩纹理叠加</td><td>手绘线条</td><td>Okami, Hades</td></tr>
+      <tr><td><strong>低多边形/极简</strong></td><td>平面光照或无阴影</td><td>纯色/低噪点</td><td>硬边几何</td><td>Monument Valley</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-pink"><strong>💡 关键决策：</strong>风格指南中必须明确项目位于这个光谱的<strong>哪个位置</strong>，以及允许的<strong>偏移范围</strong>。例如"以风格化 PBR 为主，允许在特效/UI 上偏向赛璐璐方向，但角色/场景不允许出现照片写实质感"。</div>
+
+  <h3>6.2 光影规则定义</h3>
+  <table>
+    <thead><tr><th>规则项</th><th>需要定义的内容</th><th>示例</th></tr></thead>
+    <tbody>
+      <tr><td><strong>主光方向</strong></td><td>全项目统一的光源方向约定</td><td>"永远从左上 45° 打光"（保证角色立绘一致）</td></tr>
+      <tr><td><strong>阴影层数</strong></td><td>阴影分几层、过渡方式</td><td>"2 层阴影：亮面 → 1 影（软过渡）→ 2 影（硬边）"</td></tr>
+      <tr><td><strong>阴影色相偏移</strong></td><td>阴影区域的色温变化方向</td><td>"暖光源 → 阴影偏冷蓝紫" / "冷光源 → 阴影偏暖"</td></tr>
+      <tr><td><strong>高光形态</strong></td><td>高光的形状和面积</td><td>"角色高光为圆润形、面积控制在 5%以内"</td></tr>
+      <tr><td><strong>描边/Outline</strong></td><td>是否有描边、描边宽度和颜色规则</td><td>"角色 1.5px 深色描边，颜色为暗面色 × 0.3"</td></tr>
+      <tr><td><strong>AO 强度</strong></td><td>环境遮蔽的可见度</td><td>"角色 AO 50% 强度、场景 AO 70% 强度"</td></tr>
+    </tbody>
+  </table>
+
+  <h3>6.3 材质表达规则</h3>
+  <ul>
+    <li><strong>金属</strong>：定义金属的高光清晰度、反射率范围、是否允许环境反射</li>
+    <li><strong>布料</strong>：定义褶皱密度、阴影软硬度、是否有次表面散射</li>
+    <li><strong>皮肤</strong>：定义肤色范围、SSS 强度、高光锐度</li>
+    <li><strong>头发</strong>：定义高光条（Angel Ring）宽度、透明度处理方式</li>
+    <li><strong>宝石/发光体</strong>：定义发光区域大小、Bloom 强度范围</li>
+  </ul>
+</div>
+
+<!-- ═══ SEC 7 ═══ -->
+<div class="section" id="sec7">
+  <h2>🔒 7. 风格一致性管控机制</h2>
+
+  <div class="golden-quote">
+    <p>"风格一致性不是靠'每张图都让主美看一遍'来保证的——那只能管 5 个人的团队。50 人团队需要<strong>制度化</strong>的管控机制。"</p>
+    <div class="src">— 美术管理经验</div>
+  </div>
+
+  <h3>7.1 四级审核体系</h3>
+  <table>
+    <thead><tr><th>审核层级</th><th>审核节点</th><th>审核人</th><th>关注重点</th><th>通过率目标</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-green">L1 自检</span></td><td>提交前</td><td>美术本人</td><td>Checklist 逐项自查</td><td>100% 完成自检</td></tr>
+      <tr><td><span class="badge badge-blue">L2 组审</span></td><td>提交时</td><td>组长</td><td>工艺合规 + 风格对标</td><td>首次通过率 ≥ 70%</td></tr>
+      <tr><td><span class="badge badge-yellow">L3 主美审</span></td><td>里程碑</td><td>主美</td><td>整体风格一致性 + 品质</td><td>首次通过率 ≥ 85%</td></tr>
+      <tr><td><span class="badge badge-red">L4 制作人审</span></td><td>关键节点</td><td>制作人/美术总监</td><td>是否符合游戏调性和品牌定位</td><td>一票否决权</td></tr>
+    </tbody>
+  </table>
+
+  <h3>7.2 风格偏差评分机制</h3>
+  <table>
+    <thead><tr><th>评分维度</th><th>权重</th><th>评分标准（1~5分）</th></tr></thead>
+    <tbody>
+      <tr><td><strong>色调一致性</strong></td><td>25%</td><td>与锚点图色温/饱和度的匹配程度</td></tr>
+      <tr><td><strong>比例正确性</strong></td><td>20%</td><td>头身比/面部比例是否在规范范围内</td></tr>
+      <tr><td><strong>材质表达</strong></td><td>20%</td><td>金属/布料/皮肤是否符合项目材质规则</td></tr>
+      <tr><td><strong>线条/笔触</strong></td><td>15%</td><td>描边/笔触是否符合项目美术语言</td></tr>
+      <tr><td><strong>细节密度</strong></td><td>10%</td><td>装饰/纹理密度是否与同品质角色一致</td></tr>
+      <tr><td><strong>剪影辨识度</strong></td><td>10%</td><td>去色后是否可与其他角色区分</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-yellow"><strong>⚠️ 打分规则：</strong>总分 ≥ 4.0 通过；3.5~4.0 有条件通过（需小改）；< 3.5 打回重做。<strong>任一维度 ≤ 2 分</strong>则不论总分直接打回。</div>
+
+  <h3>7.3 风格培训体系</h3>
+  <ul>
+    <li><strong>入职培训</strong>（Day 1~3）：风格指南精讲 + 临摹锚点图练习</li>
+    <li><strong>月度分享会</strong>：主美带领全组对标最新锚点，分析好/坏案例</li>
+    <li><strong>外包培训包</strong>：每个 CP 签约后发放风格培训视频 + 电子版 Style Guide + 测试稿评审</li>
+    <li><strong>Red Flag 案例库</strong>：累积典型的"风格偏离"案例，作为反面教材持续更新</li>
+  </ul>
+</div>
+
+<!-- ═══ SEC 8 ═══ -->
+<div class="section" id="sec8">
+  <h2>🔄 8. 风格迭代与版本管理</h2>
+
+  <h3>8.1 何时需要迭代风格指南</h3>
+  <table>
+    <thead><tr><th>触发条件</th><th>迭代范围</th><th>审批级别</th></tr></thead>
+    <tbody>
+      <tr><td>新大版本/新地图上线</td><td>可能新增 L2 子类锚（新阵营/新区域）</td><td>主美审批</td></tr>
+      <tr><td>玩家反馈大量"不协调"</td><td>排查风格规则是否需要修正</td><td>制作人决策</td></tr>
+      <tr><td>技术升级（如引擎换代）</td><td>渲染风格参数全面重校</td><td>美术总监 + TA Lead</td></tr>
+      <tr><td>竞品市场变化</td><td>评估是否需要风格进化</td><td>制作人 + 美术总监</td></tr>
+      <tr><td>每季度定期Review</td><td>清理过时规则 + 补充新场景规范</td><td>主美</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.2 风格指南版本号规则</h3>
+  <pre>
+风格指南版本号：Major.Minor
+  Major 升级 → 整体视觉方向调整（极少发生，需制作人审批）
+  Minor 升级 → 新增子类规范/细化规则/补充案例
+
+示例：
+  StyleGuide v1.0 — 预研期初版发布
+  StyleGuide v1.1 — 新增"冰系阵营"子类锚点
+  StyleGuide v1.2 — 补充"坐骑类"造型比例规范
+  StyleGuide v2.0 — 引擎升级后全面重修渲染风格参数
+  </pre>
+
+  <div class="alert alert-red"><strong>🚨 禁忌：</strong>量产中期（已有 50+ 角色上线后）<strong>严禁</strong>做 Major 版本风格变更！这会导致旧角色与新角色风格割裂，"翻新旧资产"的成本远超想象。如确需变更需制作人/总监双签 + 旧资产翻新排期。</div>
+</div>
+
+<!-- ═══ SEC 9 ═══ -->
+<div class="section" id="sec9">
+  <h2>🎯 9. 制作人关注：风格管控常见翻车与应对</h2>
+
+  <h3>9.1 Top 5 风格翻车场景</h3>
+  <table>
+    <thead><tr><th>#</th><th>翻车场景</th><th>根因</th><th>避坑策略</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>"画风不统一"被玩家群嘲</strong><br>不同角色明显像不同画师画的</td><td>预研期未建立风格锚点 / 锚点图质量不足 / 缺乏审核机制</td><td>严格执行"六步法"+ 四级审核 + 风格偏差评分</td></tr>
+      <tr><td>2</td><td><strong>外包交付风格严重偏离</strong><br>CP 画出来完全不是想要的风格</td><td>外包培训包不完善 / 风格指南描述过于抽象</td><td>交付风格培训包（视频+锚点图+正负面案例）+ 首批测试稿先行评审</td></tr>
+      <tr><td>3</td><td><strong>"主美个人风格绑架项目"</strong><br>主美离职后团队无法维持风格</td><td>风格标准停留在主美脑中，未文档化</td><td>风格指南必须文档化到"换人也能执行"的程度</td></tr>
+      <tr><td>4</td><td><strong>新角色品质越来越高，老角色显得寒酸</strong><br>"品质通胀"导致早期角色被嫌弃</td><td>风格指南只定了"下限"没定"上限"</td><td>明确各品质（N/R/SR/SSR）的细节密度上限和工时预算</td></tr>
+      <tr><td>5</td><td><strong>IP 联动角色与自家角色不搭</strong><br>联动角色插入后像"PS 上去的"</td><td>联动美术未经过本项目风格标准化处理</td><td>所有联动角色必须经过"风格转译"流程，按本项目规则重绘而非直接套用</td></tr>
+    </tbody>
+  </table>
+
+  <h3>9.2 制作人 Dashboard — 风格健康度</h3>
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-value">≥85%</div><div class="kpi-label">L3 审核首次通过率</div></div>
+    <div class="kpi-card"><div class="kpi-value">≥4.0</div><div class="kpi-label">风格偏差平均分</div></div>
+    <div class="kpi-card"><div class="kpi-value">≤10%</div><div class="kpi-label">风格原因返工率</div></div>
+    <div class="kpi-card"><div class="kpi-value">100%</div><div class="kpi-label">锚点图覆盖率</div></div>
+  </div>
+</div>
+
+<!-- ═══ SEC 10 ═══ -->
+<div class="section" id="sec10">
+  <h2>📄 10. 风格指南文档模板</h2>
+
+  <h3>10.1 推荐章节结构</h3>
+  <div class="checklist">
+    <h4>📋 Style Guide 标准目录模板</h4>
+    <div class="ck-item"><span class="ck-num">01</span><strong>前言 & 世界观概述</strong>：游戏的世界观背景如何映射到视觉风格</div>
+    <div class="ck-item"><span class="ck-num">02</span><strong>Key Visual & 锚点图集</strong>：L0~L2 所有锚点图 + 设计解读</div>
+    <div class="ck-item"><span class="ck-num">03</span><strong>色彩体系</strong>：四层色彩规则 + 调色板 + 禁用色</div>
+    <div class="ck-item"><span class="ck-num">04</span><strong>造型/比例规范</strong>：头身比 + 形状语言 + 剪影要求</div>
+    <div class="ck-item"><span class="ck-num">05</span><strong>材质/光影/渲染风格</strong>：光照规则 + 阴影层数 + 描边标准</div>
+    <div class="ck-item"><span class="ck-num">06</span><strong>角色设计规范</strong>：各品质的设计预算 + 各体型模板</div>
+    <div class="ck-item"><span class="ck-num">07</span><strong>场景设计规范</strong>：各区域的色调 + 材质倾向 + 植被密度</div>
+    <div class="ck-item"><span class="ck-num">08</span><strong>UI 视觉规范</strong>：UI 色彩/圆角/阴影/动效风格</div>
+    <div class="ck-item"><span class="ck-num">09</span><strong>Do's & Don'ts 红黑榜</strong>：大量正反面案例对比</div>
+    <div class="ck-item"><span class="ck-num">10</span><strong>附录</strong>：术语表 + 参考资料库 + 版本变更记录</div>
+  </div>
+
+  <h3>10.2 交付格式建议</h3>
+  <table>
+    <thead><tr><th>交付形式</th><th>用途</th><th>格式</th></tr></thead>
+    <tbody>
+      <tr><td><strong>完整版 PDF</strong></td><td>内部存档 + 外包合同附件</td><td>A3 横版，80~150 页</td></tr>
+      <tr><td><strong>快速参考卡</strong></td><td>美术桌面常驻参考</td><td>A4 双面 × 4~6 张</td></tr>
+      <tr><td><strong>在线版</strong></td><td>知识库 / Confluence</td><td>HTML 可搜索</td></tr>
+      <tr><td><strong>培训视频</strong></td><td>新人/外包培训</td><td>15~30 min 精讲视频</td></tr>
+      <tr><td><strong>Figma/PureRef Board</strong></td><td>主美日常更新 + 团队实时同步</td><td>在线协同画板</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="doc-footer">
+  📄 美术风格指南制定方法论 v1.0 — 游戏项目知识库<br>
+  更新时间：2026-05-28 · 适用阶段：预研期 → 量产期全覆盖
+</div>
+
+</div>
+<!-- TOC Collapse Script -->
+<script>
+document.querySelectorAll('.toc').forEach(toc=>{const inner=toc.querySelector('ol');if(!inner)return;const wrap=document.createElement('div');wrap.className='toc-inner';inner.parentNode.insertBefore(wrap,inner);wrap.appendChild(inner);const bar=document.createElement('div');bar.className='toc-toggle-bar';const items=inner.querySelectorAll(':scope>li').length;bar.innerHTML=`<span style="display:flex;align-items:center"><span class="toc-title" style="font-size:15px;color:var(--heading);font-weight:600">📑 目录</span><span class="toc-badge">${items} 项</span></span><span class="toc-hint"><span class="toc-chevron">▼</span></span>`;toc.insertBefore(bar,wrap);const h3=toc.querySelector('h3');if(h3)h3.style.display='none';bar.addEventListener('click',()=>{toc.classList.toggle('toc-folded')})});
+</script>
+</body>
+</html>

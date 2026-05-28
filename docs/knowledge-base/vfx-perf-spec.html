@@ -402,6 +402,34 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </div>
 </div>
 
+<!-- SEC-PM: 制作人关注 -->
+<div class="section" id="sec-pm">
+  <h2>🎯 制作人关注：特效性能管控策略</h2>
+
+  <div class="alert alert-yellow" style="border:1px solid rgba(251,191,36,.3)">
+    <strong>💡 制作人经验：</strong>"特效是最容易'温水煮青蛙'的性能杀手——单个特效看着没问题，但 10 个角色同时放大招时 GPU 直接爆了。必须从<strong>全屏总预算</strong>倒推每个特效的资源配额，而不是让特效师'先做出来再优化'。"
+  </div>
+
+  <h3>🚨 制作人必须拍板的 3 件事</h3>
+  <table>
+    <thead><tr><th>决策项</th><th>说明</th><th>建议</th></tr></thead>
+    <tbody>
+      <tr><td><strong>同屏最大特效数量</strong></td><td>决定了单个特效的预算分配</td><td>中端机同屏 ≤ 15 个特效</td></tr>
+      <tr><td><strong>大招特效 vs 普攻特效的资源配比</strong></td><td>大招可以用更多粒子但不能超过全屏 30% 预算</td><td>大招:普攻:环境 = 3:1:0.5</td></tr>
+      <tr><td><strong>低端机裁剪策略的底线</strong></td><td>裁剪到什么程度玩家会投诉"没手感"</td><td>技能 Hit 反馈不可裁剪，环境特效可关</td></tr>
+    </tbody>
+  </table>
+
+  <h3>📊 关键数据看板</h3>
+  <ul>
+    <li><strong>GPU 特效时间占比</strong>：特效占总 GPU 帧时间 ≤ 25%（中端机 16ms 中的 ≤ 4ms）</li>
+    <li><strong>超标特效清零率</strong>：每周构建后超过中端机红线的特效数量应为 0</li>
+    <li><strong>Overdraw 热力图</strong>：每次版本前出 Overdraw 热力图，标红区域必须优化</li>
+  </ul>
+
+  <div class="alert alert-blue"><strong>📎 关联文档：</strong>特效资产命名 → <a href="ugc-character-spec.html" style="color:var(--accent);font-weight:600">《资产命名与性能红线》</a>；材质 Shader → <a href="material-shader-ta-spec.html" style="color:var(--accent);font-weight:600">《材质 Shader 规范》</a></div>
+</div>
+
 <!-- SEC9 -->
 <div class="section" id="sec9">
   <h2>📎 9. 附录：性能优化速查</h2>

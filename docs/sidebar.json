@@ -267,6 +267,24 @@
               "file": "knowledge-base/ugc-character-spec.html",
               "badge": "通用",
               "craft": "通用"
+            },
+            {
+              "id": "material-shader-ta-spec",
+              "icon": "🎨",
+              "title": "材质 Shader 规范与 TA 协同",
+              "type": "iframe",
+              "file": "knowledge-base/material-shader-ta-spec.html",
+              "badge": "材质",
+              "craft": "通用"
+            },
+            {
+              "id": "art-style-guide-framework",
+              "icon": "🖌️",
+              "title": "美术风格指南制定方法论",
+              "type": "iframe",
+              "file": "knowledge-base/art-style-guide-framework.html",
+              "badge": "风格",
+              "craft": "通用"
             }
           ]
         },

@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>材质Shader规范与TA协同标准</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1200px;margin:0 auto;padding:32px 48px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.doc-header h1 .ver{font-size:12px;background:var(--accent2);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--accent2);display:flex;align-items:center;gap:8px}
+.section h3{font-size:17px;color:var(--heading);margin:20px 0 8px;font-weight:600}
+.section h4{font-size:14px;color:var(--accent2);margin:12px 0 6px;font-weight:600}
+.section p{font-size:15px;margin-bottom:12px;line-height:1.8}
+.section ul,.section ol{padding-left:20px;margin-bottom:12px;font-size:15px}
+.section li{margin-bottom:4px}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-purple{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);color:var(--accent2)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;min-width:100px}
+.flow-node strong{display:block;color:var(--heading);font-size:14px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:12px}
+.flow-arrow{color:var(--accent2);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:14px;line-height:1.8}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:15px}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}
+.badge-purple{background:rgba(167,139,250,.15);color:var(--accent2)}
+.redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.golden-quote{background:linear-gradient(135deg,rgba(251,191,36,.06),rgba(167,139,250,.06));border:1px solid rgba(251,191,36,.2);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:14px;line-height:1.8}
+.golden-quote p{margin-bottom:6px;font-style:italic}
+.golden-quote .src{font-size:12px;color:var(--dim);text-align:right}
+.checklist{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:16px 0}
+.checklist h4{color:var(--heading);margin-bottom:10px;font-size:15px}
+.ck-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:14px;border-bottom:1px solid var(--border)}
+.ck-item:last-child{border-bottom:none}
+.ck-num{color:var(--accent2);font-weight:700;min-width:22px}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+
+/* === TOC Inline Collapse + Grid === */
+.toc{position:relative;overflow:hidden;transition:all .3s ease}
+.toc.toc-folded .toc-inner{max-height:0;padding-top:0;padding-bottom:0;overflow:hidden}
+.toc .toc-inner{max-height:2000px;transition:max-height .35s cubic-bezier(.4,0,.2,1),padding .35s ease;overflow:hidden}
+.toc .toc-toggle-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 0 8px;cursor:pointer;user-select:none}
+.toc .toc-toggle-bar:hover{opacity:.85}
+.toc .toc-toggle-bar .toc-badge{font-size:11px;background:rgba(108,140,255,.15);color:var(--accent,#6c8cff);padding:2px 8px;border-radius:8px;font-weight:600;margin-left:10px}
+.toc .toc-toggle-bar .toc-hint{font-size:12px;color:var(--dim,#6b7085);display:flex;align-items:center;gap:4px}
+.toc .toc-toggle-bar .toc-chevron{display:inline-block;transition:transform .25s ease}
+.toc.toc-folded .toc-toggle-bar .toc-chevron{transform:rotate(-90deg)}
+.toc .toc-inner>ol{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px 20px;list-style:none;padding:0;margin:0;counter-reset:toc-top}
+.toc .toc-inner>ol>li{counter-increment:toc-top;margin:0;padding:0}
+.toc .toc-inner>ol>li>a{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;font-size:13px;text-decoration:none;font-weight:500;transition:all .15s ease}
+.toc .toc-inner>ol>li>a::before{content:counter(toc-top);font-size:11px;font-weight:700;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:5px;background:rgba(167,139,250,.15);color:var(--accent2);flex-shrink:0}
+.toc .toc-inner>ol>li>a:hover{background:rgba(167,139,250,.08)}
+.toc .toc-inner>ol>li>a:hover::before{background:var(--accent2);color:#000}
+@media(max-width:600px){.toc .toc-inner>ol{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>🎨 材质 Shader 规范与 TA 协同标准 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Material / Shader Specification & Technical Art Collaboration Standard</div>
+  <div class="meta">
+    <span>📋 适用引擎：UE5 / Unity 2022+ / 自研引擎</span>
+    <span>👤 维护：TA 组 × 美术中心 × 制作管理</span>
+    <span>📅 2026-05-28</span>
+  </div>
+</div>
+
+<div class="alert alert-purple" style="margin-bottom:24px">
+  <strong>📎 关联文档：</strong>本文聚焦<strong>材质/Shader 体系规范</strong>与 TA 协同标准。3D 角色拓扑与 PBR 贴图通道规范请参见 → <a href="char-3d-topo-pbr.html" style="color:var(--accent2);font-weight:600">《角色拓扑与 PBR 贴图规范》</a>；引擎导入命名请参见 → <a href="art-vs-ta-naming.html" style="color:var(--accent2);font-weight:600">《引擎导入与命名规范（美术 vs TA）》</a>
+</div>
+
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ol>
+    <li><a href="#sec1">材质体系架构总则</a></li>
+    <li><a href="#sec2">Master Material 设计规范</a></li>
+    <li><a href="#sec3">材质实例化策略与参数暴露</a></li>
+    <li><a href="#sec4">Shader 变体管控与性能红线</a></li>
+    <li><a href="#sec5">贴图通道打包与内存优化</a></li>
+    <li><a href="#sec6">TA 工具链交接标准（美术↔TA↔程序）</a></li>
+    <li><a href="#sec7">材质版本管理与迭代SOP</a></li>
+    <li><a href="#sec8">制作人关注：常见翻车场景与避坑策略</a></li>
+    <li><a href="#sec9">Do's & Don'ts 红黑榜</a></li>
+    <li><a href="#sec10">出包前材质审查 Checklist</a></li>
+  </ol>
+</div>
+
+<!-- ═══ SEC 1 ═══ -->
+<div class="section" id="sec1">
+  <h2>🏗️ 1. 材质体系架构总则</h2>
+
+  <div class="golden-quote">
+    <p>"材质体系是美术表现力和运行性能之间的'翻译官'——好的 Master Material 架构能让美术自由表达、让 TA 灵活扩展、让程序安心优化。三方共赢的前提是'规矩在前面'。"</p>
+    <div class="src">— 资深制作人经验</div>
+  </div>
+
+  <h3>1.1 三层架构模型</h3>
+  <table>
+    <thead><tr><th>层级</th><th>名称</th><th>职责</th><th>维护者</th><th>修改权限</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-red">L0</span></td><td><strong>Master Material</strong></td><td>定义光照模型、功能开关、参数架构</td><td>TA Lead</td><td>仅 TA Lead + 制作人审批</td></tr>
+      <tr><td><span class="badge badge-yellow">L1</span></td><td><strong>Material Function / Layer</strong></td><td>可复用计算模块（噪声、溶解、流光等）</td><td>TA</td><td>TA 内部 Code Review</td></tr>
+      <tr><td><span class="badge badge-green">L2</span></td><td><strong>Material Instance</strong></td><td>具体资产的参数配置（颜色、贴图、数值）</td><td>美术</td><td>美术自由调节（参数范围内）</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-red"><strong>🚨 红线规则：</strong>美术不允许创建新的 Material（L0），只能创建 Material Instance（L2）。新增材质类型需求走 <strong>TA 需求单 → TA 评估 → 制作人审批</strong> 流程。</div>
+
+  <h3>1.2 材质类型分类体系</h3>
+  <table>
+    <thead><tr><th>类型代号</th><th>材质类型</th><th>适用对象</th><th>Shader 复杂度</th><th>渲染队列</th></tr></thead>
+    <tbody>
+      <tr><td><code>M_Char</code></td><td>角色材质</td><td>皮肤/头发/眼球/布料/金属装备</td><td>中~高</td><td>Opaque</td></tr>
+      <tr><td><code>M_Env</code></td><td>场景材质</td><td>地面/墙壁/植被/水体</td><td>中</td><td>Opaque / Masked</td></tr>
+      <tr><td><code>M_VFX</code></td><td>特效材质</td><td>粒子/全屏后处理</td><td>低~中</td><td>Translucent</td></tr>
+      <tr><td><code>M_UI</code></td><td>UI 材质</td><td>界面特殊效果（模糊/渐变/遮罩）</td><td>低</td><td>UI 专用</td></tr>
+      <tr><td><code>M_Decal</code></td><td>贴花材质</td><td>弹孔/血迹/地面标记</td><td>低</td><td>Deferred Decal</td></tr>
+      <tr><td><code>M_Foliage</code></td><td>植被材质</td><td>树叶/草/花</td><td>中</td><td>Masked + Subsurface</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1.3 命名规范</h3>
+  <pre>
+// Master Material（L0）
+M_{类型}_{功能描述}
+  → M_Char_Skin_SSS        // 角色皮肤次表面散射
+  → M_Env_Rock_Triplanar   // 场景岩石三面投射
+  → M_VFX_Dissolve_UV      // 特效溶解 UV 驱动
+
+// Material Instance（L2）
+MI_{角色/场景名}_{部位}_{变体}
+  → MI_Luna_Body_Gold       // Luna 身体金色变体
+  → MI_Castle_Wall_Mossy    // 城堡墙壁苔藓版
+
+// Material Function（L1）
+MF_{功能名}
+  → MF_FresnelRim           // 菲涅尔边缘光
+  → MF_FlowMap              // 流动图计算
+  → MF_NoiseTile            // 无缝噪声
+  </pre>
+</div>
+
+<!-- ═══ SEC 2 ═══ -->
+<div class="section" id="sec2">
+  <h2>⚙️ 2. Master Material 设计规范</h2>
+
+  <h3>2.1 功能开关（Static Switch）设计原则</h3>
+  <div class="alert alert-blue"><strong>核心思路：</strong>一个 Master Material 通过 Static Switch 控制功能模块的编译开关，而非为每个效果创建独立 Material。这样可以最大化实例化复用率，同时通过关闭未使用功能减少 Shader 指令数。</div>
+
+  <table>
+    <thead><tr><th>开关名称</th><th>功能</th><th>默认值</th><th>开启代价</th></tr></thead>
+    <tbody>
+      <tr><td><code>bUseNormalMap</code></td><td>法线贴图</td><td>ON</td><td>+2 Texture Sample</td></tr>
+      <tr><td><code>bUseEmissive</code></td><td>自发光</td><td>OFF</td><td>+1 Tex + 2 指令</td></tr>
+      <tr><td><code>bUseDetailNormal</code></td><td>细节法线叠加</td><td>OFF</td><td>+2 Tex + 4 指令</td></tr>
+      <tr><td><code>bUseRimLight</code></td><td>边缘光/菲涅尔</td><td>OFF</td><td>+8 指令</td></tr>
+      <tr><td><code>bUseDissolve</code></td><td>溶解效果</td><td>OFF</td><td>+1 Tex + 12 指令</td></tr>
+      <tr><td><code>bUseVertexAnim</code></td><td>顶点动画（植被摆动）</td><td>OFF</td><td>+6 指令</td></tr>
+      <tr><td><code>bUseMaskTint</code></td><td>Mask 区域换色</td><td>OFF</td><td>+1 Tex + 8 指令</td></tr>
+      <tr><td><code>bUseSSS</code></td><td>次表面散射</td><td>OFF</td><td>光照模型切换</td></tr>
+    </tbody>
+  </table>
+
+  <div class="redline">
+    <p><strong>📌 红线 #1</strong>：单个 Master Material 的 Static Switch 数量 <strong>≤ 12 个</strong>。超过 12 个开关意味着功能范围过大，应拆分为两个 Master Material。</p>
+    <p><strong>📌 红线 #2</strong>：Static Switch 的排列组合不得产生 <strong>超过 64 个有效变体</strong>。需在设计时明确哪些组合是合法的（用 Variant Map 管理）。</p>
+  </div>
+
+  <h3>2.2 参数分组与暴露策略</h3>
+  <table>
+    <thead><tr><th>分组</th><th>参数示例</th><th>暴露给美术</th><th>参数范围</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Base Color</strong></td><td>BaseColor Texture / Tint Color / Brightness</td><td>✅</td><td>Color: 0~1; Brightness: 0.5~2.0</td></tr>
+      <tr><td><strong>Normal</strong></td><td>Normal Map / Normal Intensity</td><td>✅</td><td>Intensity: 0~2.0</td></tr>
+      <tr><td><strong>PBR Control</strong></td><td>Roughness / Metallic / Specular Override</td><td>✅</td><td>各 0~1</td></tr>
+      <tr><td><strong>Emissive</strong></td><td>Emissive Color / Intensity / Pulse Speed</td><td>✅</td><td>Intensity: 0~50; Speed: 0~5</td></tr>
+      <tr><td><strong>Effect</strong></td><td>Dissolve Threshold / Rim Power / Rim Color</td><td>✅</td><td>由 TA 定义安全范围</td></tr>
+      <tr><td><strong>⚠️ Internal</strong></td><td>UV Tiling / Vertex Offset Mask / LOD Bias</td><td>❌ 不暴露</td><td>TA 内部调控</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-yellow"><strong>⚠️ 制作人提醒：</strong>参数暴露过多 = 美术调崩风险大；参数暴露过少 = 美术需求走 TA 单太慢。建议每类材质暴露 <strong>8~15 个可调参数</strong>，并配备 <strong>预设参考值</strong>（Default Preset）。</div>
+
+  <h3>2.3 Shader 指令数预算</h3>
+  <table>
+    <thead><tr><th>材质类型</th><th>指令数红线</th><th>Texture Sample 上限</th><th>适用平台</th></tr></thead>
+    <tbody>
+      <tr><td>M_Char（移动端）</td><td>≤ 180 指令</td><td>≤ 8 采样</td><td>iOS / Android</td></tr>
+      <tr><td>M_Char（PC/主机）</td><td>≤ 350 指令</td><td>≤ 16 采样</td><td>PC / PS5 / Xbox</td></tr>
+      <tr><td>M_Env（移动端）</td><td>≤ 120 指令</td><td>≤ 6 采样</td><td>iOS / Android</td></tr>
+      <tr><td>M_Env（PC/主机）</td><td>≤ 250 指令</td><td>≤ 12 采样</td><td>PC / PS5</td></tr>
+      <tr><td>M_VFX（全平台）</td><td>≤ 80 指令</td><td>≤ 4 采样</td><td>全平台</td></tr>
+      <tr><td>M_UI（全平台）</td><td>≤ 50 指令</td><td>≤ 3 采样</td><td>全平台</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-red"><strong>🚨 硬红线：</strong>移动端角色材质超过 200 指令、场景材质超过 150 指令将<strong>直接打回</strong>。超标材质需 TA 进行指令优化或拆分渲染 Pass。</div>
+</div>
+
+<!-- ═══ SEC 3 ═══ -->
+<div class="section" id="sec3">
+  <h2>🎛️ 3. 材质实例化策略与参数暴露</h2>
+
+  <h3>3.1 实例化层级策略</h3>
+  <div class="flow">
+    <div class="flow-node start"><strong>Master Material</strong><div class="sub">M_Char_Body</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>一级实例</strong><div class="sub">MI_Char_Body_Skin</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>二级实例</strong><div class="sub">MI_Luna_Body_Skin</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>三级实例（变体）</strong><div class="sub">MI_Luna_Body_Skin_Gold</div></div>
+  </div>
+
+  <table>
+    <thead><tr><th>层级</th><th>用途</th><th>可修改内容</th><th>创建者</th></tr></thead>
+    <tbody>
+      <tr><td>一级实例</td><td>材质子类型（皮肤/布料/金属/头发）</td><td>开关 + 参数预设</td><td>TA</td></tr>
+      <tr><td>二级实例</td><td>具体角色/物件的材质</td><td>贴图替换 + 参数微调</td><td>美术</td></tr>
+      <tr><td>三级实例</td><td>同角色不同皮肤/变体</td><td>仅颜色/贴图替换</td><td>美术</td></tr>
+    </tbody>
+  </table>
+
+  <div class="redline">
+    <p><strong>📌 红线</strong>：实例化深度 <strong>≤ 3 层</strong>。超过 3 层的嵌套实例在引擎中查找参数来源困难，且增加编辑器卡顿风险。</p>
+  </div>
+
+  <h3>3.2 参数继承与锁定规则</h3>
+  <ul>
+    <li><strong>锁定参数</strong>：一级实例中设定的光照模型开关（如 SSS ON），下级实例<strong>不可覆盖</strong></li>
+    <li><strong>继承参数</strong>：数值型参数（Roughness、Metallic）可被下级实例覆盖</li>
+    <li><strong>范围约束</strong>：TA 可为暴露参数设置 min/max 范围，防止美术调出物理不合理的值（如 Metallic=0.5 的塑料）</li>
+  </ul>
+
+  <h3>3.3 材质实例数量预算</h3>
+  <table>
+    <thead><tr><th>项目规模</th><th>Master Material 数量</th><th>总 Material Instance 数量</th><th>比例参考</th></tr></thead>
+    <tbody>
+      <tr><td>小型项目（独立游戏）</td><td>5~10</td><td>50~200</td><td>1:15</td></tr>
+      <tr><td>中型项目（手游）</td><td>10~20</td><td>200~800</td><td>1:40</td></tr>
+      <tr><td>大型项目（端游/主机）</td><td>20~40</td><td>800~3000</td><td>1:75</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ SEC 4 ═══ -->
+<div class="section" id="sec4">
+  <h2>⚡ 4. Shader 变体管控与性能红线</h2>
+
+  <div class="golden-quote">
+    <p>"Shader 变体膨胀是'温水煮青蛙'——单个开关看似无害，但组合爆炸后编译时间翻十倍、包体膨胀数百 MB、首帧加载卡顿——等制作人意识到已经来不及了。"</p>
+    <div class="src">— TA Lead 血泪教训</div>
+  </div>
+
+  <h3>4.1 变体数量控制策略</h3>
+  <table>
+    <thead><tr><th>控制手段</th><th>适用场景</th><th>效果</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Variant Stripping</strong></td><td>剔除平台无用变体（如 PC 剔除移动端 LDR 路径）</td><td>变体数 -40~60%</td></tr>
+      <tr><td><strong>Feature Level Gating</strong></td><td>按画质档位裁剪高端特性</td><td>低端包体 -30%</td></tr>
+      <tr><td><strong>Shader Warmup</strong></td><td>启动时预编译高频变体</td><td>消除首帧卡顿</td></tr>
+      <tr><td><strong>Shader Cache</strong></td><td>PSO Cache / Pipeline Cache</td><td>二次启动零编译</td></tr>
+      <tr><td><strong>合法组合白名单</strong></td><td>明确哪些 Switch 组合允许共存</td><td>防止组合爆炸</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.2 Shader 编译与加载时间红线</h3>
+  <table>
+    <thead><tr><th>指标</th><th>移动端红线</th><th>PC/主机红线</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>首次场景加载 Shader 编译时间</td><td>≤ 3s</td><td>≤ 5s</td><td>超出需增加 Warmup 或减少变体</td></tr>
+      <tr><td>单 Shader 编译时间</td><td>≤ 500ms</td><td>≤ 2s</td><td>超出需简化 Shader 复杂度</td></tr>
+      <tr><td>项目总 Shader 变体数</td><td>≤ 5000</td><td>≤ 20000</td><td>超出需做 Stripping</td></tr>
+      <tr><td>Shader 包体占比</td><td>≤ 15%</td><td>≤ 10%</td><td>相对总安装包</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.3 变体监控流程</h3>
+  <div class="flow">
+    <div class="flow-node start"><strong>每周构建</strong><div class="sub">CI/CD 触发</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>变体统计</strong><div class="sub">ShaderVariant Report</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>阈值判定</strong><div class="sub">> 阈值则阻塞</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>TA 排查</strong><div class="sub">定位新增来源</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>优化修复</strong><div class="sub">Stripping / 合并</div></div>
+  </div>
+</div>
+
+<!-- ═══ SEC 5 ═══ -->
+<div class="section" id="sec5">
+  <h2>📦 5. 贴图通道打包与内存优化</h2>
+
+  <h3>5.1 通道打包标准（Channel Packing）</h3>
+  <div class="alert alert-blue"><strong>核心原则：</strong>通道打包可以将多张灰度图合并为一张 RGBA 贴图的不同通道，减少 Texture Sample 次数和内存占用。这是 TA 最重要的优化手段之一。</div>
+
+  <table>
+    <thead><tr><th>打包贴图名</th><th>R 通道</th><th>G 通道</th><th>B 通道</th><th>A 通道</th><th>压缩格式</th></tr></thead>
+    <tbody>
+      <tr><td><code>T_{Name}_MRA</code></td><td>Metallic</td><td>Roughness</td><td>AO</td><td>—（RGB only）</td><td>BC7 / ASTC 4×4</td></tr>
+      <tr><td><code>T_{Name}_MRAE</code></td><td>Metallic</td><td>Roughness</td><td>AO</td><td>Emissive Mask</td><td>BC7 / ASTC 4×4</td></tr>
+      <tr><td><code>T_{Name}_Mask</code></td><td>换色区域 1</td><td>换色区域 2</td><td>换色区域 3</td><td>Alpha/透贴</td><td>BC7 / ASTC 4×4</td></tr>
+      <tr><td><code>T_{Name}_Detail</code></td><td>Detail Normal X</td><td>Detail Normal Y</td><td>Detail AO</td><td>Cavity</td><td>BC5(RG) + BC4(BA)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="redline">
+    <p><strong>📌 红线</strong>：禁止出现"一个参数用一张独立贴图"的情况。Metallic、Roughness、AO <strong>必须打包</strong>到同一张贴图的不同通道。违反此规则每多一张贴图 = 多一次 Texture Sample = 额外 GPU 开销。</p>
+  </div>
+
+  <h3>5.2 贴图内存预算（单角色）</h3>
+  <table>
+    <thead><tr><th>贴图类型</th><th>尺寸</th><th>格式</th><th>压缩后内存</th><th>数量</th><th>合计</th></tr></thead>
+    <tbody>
+      <tr><td>BaseColor</td><td>2048×2048</td><td>ASTC 4×4 / BC7</td><td>~2.7 MB</td><td>1</td><td>2.7 MB</td></tr>
+      <tr><td>Normal</td><td>2048×2048</td><td>ASTC 4×4 / BC5</td><td>~2.7 MB</td><td>1</td><td>2.7 MB</td></tr>
+      <tr><td>MRA Pack</td><td>1024×1024</td><td>ASTC 4×4 / BC7</td><td>~0.7 MB</td><td>1</td><td>0.7 MB</td></tr>
+      <tr><td>Mask/换色</td><td>512×512</td><td>ASTC 4×4</td><td>~0.17 MB</td><td>1</td><td>0.17 MB</td></tr>
+      <tr><td colspan="5" style="text-align:right;font-weight:700">单角色贴图总预算（移动端）</td><td><span class="badge badge-red">≤ 8 MB</span></td></tr>
+      <tr><td colspan="5" style="text-align:right;font-weight:700">单角色贴图总预算（PC/主机）</td><td><span class="badge badge-yellow">≤ 16 MB</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.3 Mipmap 与 Streaming 策略</h3>
+  <ul>
+    <li><strong>所有 2D 贴图</strong>必须生成完整 Mipmap Chain，禁止关闭 Mipmap（UI 贴图除外）</li>
+    <li><strong>Texture Streaming</strong>：场景贴图必须开启 Streaming，角色贴图近景保持 Full Mip、远景自动降级</li>
+    <li><strong>Virtual Texture</strong>（UE5 专属）：大世界地表材质推荐使用 RVT 减少同时加载贴图数</li>
+    <li><strong>LOD Bias</strong>：LOD2+ 的模型自动使用降 1~2 级的 Mip，减少无效高清贴图占用</li>
+  </ul>
+</div>
+
+<!-- ═══ SEC 6 ═══ -->
+<div class="section" id="sec6">
+  <h2>🤝 6. TA 工具链交接标准（美术↔TA↔程序）</h2>
+
+  <div class="golden-quote">
+    <p>"TA 的价值不是'帮美术调参数'，而是建立让美术<strong>自己能调、调不坏、调出好效果</strong>的系统。做到这一步的 TA 团队才是真正的产能放大器。"</p>
+    <div class="src">— 某大型项目制作人</div>
+  </div>
+
+  <h3>6.1 TA 交付物清单</h3>
+  <table>
+    <thead><tr><th>交付物</th><th>格式</th><th>内容</th><th>交付节点</th></tr></thead>
+    <tbody>
+      <tr><td><strong>材质使用文档</strong></td><td>Confluence / 知识库 HTML</td><td>每个 Master Material 的参数说明 + 效果截图 + 使用限制</td><td>材质上线前</td></tr>
+      <tr><td><strong>参数预设表</strong></td><td>Excel / JSON</td><td>各材质类型的推荐参数值（金属/布料/皮肤/木材等）</td><td>与材质同步</td></tr>
+      <tr><td><strong>Shader 性能报告</strong></td><td>自动生成 CSV</td><td>指令数/采样数/变体数统计</td><td>每次构建后</td></tr>
+      <tr><td><strong>材质调试工具</strong></td><td>引擎内 Editor Tool</td><td>一键切换调试模式（Normal/AO/Metallic/Roughness 可视化）</td><td>预研期交付</td></tr>
+      <tr><td><strong>批量转换脚本</strong></td><td>Python / Editor Script</td><td>老材质 → 新体系的批量迁移工具</td><td>重构时交付</td></tr>
+    </tbody>
+  </table>
+
+  <h3>6.2 三方协作 RACI</h3>
+  <table>
+    <thead><tr><th>任务</th><th>美术</th><th>TA</th><th>程序</th><th>制作人</th></tr></thead>
+    <tbody>
+      <tr><td>定义材质类型需求</td><td>C</td><td>R</td><td>I</td><td>A</td></tr>
+      <tr><td>创建 Master Material</td><td>I</td><td>R</td><td>C</td><td>A</td></tr>
+      <tr><td>创建 Material Instance</td><td>R</td><td>C</td><td>—</td><td>I</td></tr>
+      <tr><td>Shader 性能优化</td><td>I</td><td>R</td><td>C</td><td>A</td></tr>
+      <tr><td>材质效果验收</td><td>R</td><td>C</td><td>—</td><td>A</td></tr>
+      <tr><td>变体管控与 Stripping</td><td>—</td><td>R</td><td>C</td><td>I</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:12px;color:var(--dim)">R=负责执行 A=最终审批 C=被咨询 I=被通知</p>
+
+  <h3>6.3 材质需求单流程</h3>
+  <div class="flow">
+    <div class="flow-node start"><strong>美术提需求</strong><div class="sub">填写材质需求单</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>TA 评估</strong><div class="sub">可行性/性能影响</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>制作人审批</strong><div class="sub">优先级排序</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>TA 开发</strong><div class="sub">实现+测试</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>美术验收</strong><div class="sub">效果达标?</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>发布上线</strong><div class="sub">文档+培训</div></div>
+  </div>
+</div>
+
+<!-- ═══ SEC 7 ═══ -->
+<div class="section" id="sec7">
+  <h2>📋 7. 材质版本管理与迭代 SOP</h2>
+
+  <h3>7.1 材质修改分级</h3>
+  <table>
+    <thead><tr><th>修改等级</th><th>定义</th><th>影响范围</th><th>审批流程</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-green">L1 微调</span></td><td>Instance 参数调整（颜色/数值）</td><td>仅影响单个资产</td><td>美术自行操作，无需审批</td></tr>
+      <tr><td><span class="badge badge-yellow">L2 变更</span></td><td>新增 Instance / 替换贴图</td><td>影响单个角色/物件</td><td>美术组长确认</td></tr>
+      <tr><td><span class="badge badge-red">L3 重大</span></td><td>修改 Master Material / 新增开关</td><td>影响所有使用该 Master 的实例</td><td>TA Lead + 制作人双签</td></tr>
+    </tbody>
+  </table>
+
+  <h3>7.2 Master Material 修改 SOP</h3>
+  <ol>
+    <li><strong>分支开发</strong>：在版本管理中创建 <code>feature/mat_{功能名}</code> 分支</li>
+    <li><strong>影响评估</strong>：列出所有引用此 Master 的 Instance 列表，确认兼容性</li>
+    <li><strong>自动化测试</strong>：运行材质编译检查脚本，确保所有 Instance 编译通过</li>
+    <li><strong>性能测试</strong>：对比修改前后的指令数/采样数/帧时间</li>
+    <li><strong>视觉回归</strong>：截图对比关键角色/场景的材质表现，确认无意外变化</li>
+    <li><strong>Code Review</strong>：TA 团队内部 Review</li>
+    <li><strong>制作人终审</strong>：确认修改必要性和风险可控</li>
+    <li><strong>合入主干</strong>：合并并通知所有美术"材质已更新，请检查自己负责的资产"</li>
+  </ol>
+
+  <div class="alert alert-yellow"><strong>⚠️ 关键提醒：</strong>Master Material 的修改是"牵一发动全身"的操作。一次不小心的修改可能导致<strong>数百个</strong> Material Instance 出现视觉异常。因此 L3 修改必须有完整的 Before/After 对比截图存档。</div>
+</div>
+
+<!-- ═══ SEC 8 ═══ -->
+<div class="section" id="sec8">
+  <h2>🎯 8. 制作人关注：常见翻车场景与避坑策略</h2>
+
+  <h3>8.1 Top 5 材质相关翻车场景</h3>
+  <table>
+    <thead><tr><th>#</th><th>翻车场景</th><th>根因</th><th>避坑策略</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>上线前 Shader 编译卡死</strong><br>玩家首次进入场景等待 10s+</td><td>Shader 变体过多，未做 Warmup/Cache</td><td>建立 PSO Cache 机制 + CI 阶段变体数监控 + 每周变体数报表</td></tr>
+      <tr><td>2</td><td><strong>角色材质"失明"</strong><br>某次更新后大量角色变黑/变白</td><td>Master Material 修改时参数默认值变化，导致旧 Instance 继承新默认值</td><td>L3 修改必须保持默认值向后兼容 + 修改后自动化截图回归</td></tr>
+      <tr><td>3</td><td><strong>低端机帧率暴跌</strong><br>美术自建 Material 跳过 TA 审核</td><td>美术直接创建 Material（而非 Instance），未受指令数限制</td><td>引擎权限管控：美术账号无法创建 Material 文件 + CI 拦截</td></tr>
+      <tr><td>4</td><td><strong>包体暴涨 500MB</strong><br>发版前才发现</td><td>贴图未打包通道 + 大量冗余 Shader 变体</td><td>每周自动生成包体分析报告 + 材质/Shader 占比趋势看板</td></tr>
+      <tr><td>5</td><td><strong>材质效果不一致</strong><br>同一材质在 iOS/Android/PC 表现不同</td><td>平台 Shader 精度差异（half vs float）+ 压缩格式差异</td><td>TA 需在 Master Material 中明确精度要求 + 三平台 Preview 验证环节</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.2 预研期必做的 3 件事</h3>
+  <div class="checklist">
+    <h4>🎯 制作人 Checklist — 材质体系预研</h4>
+    <div class="ck-item"><span class="ck-num">01</span>与 TA Lead 共同确定 Master Material 类型清单和总数量上限</div>
+    <div class="ck-item"><span class="ck-num">02</span>明确各平台性能指标红线（指令数 / Texture Sample / 变体数）并写入项目规范</div>
+    <div class="ck-item"><span class="ck-num">03</span>建立材质修改审批流程和自动化监控（变体数 / 包体占比 / 性能回归）</div>
+  </div>
+
+  <h3>8.3 量产期必看的 3 个数据</h3>
+  <div class="checklist">
+    <h4>📊 制作人 Dashboard — 材质健康度</h4>
+    <div class="ck-item"><span class="ck-num">01</span><strong>Shader 变体总数趋势</strong>（每周环比增长 ≤ 5% 为健康）</div>
+    <div class="ck-item"><span class="ck-num">02</span><strong>超标材质数量</strong>（指令数超红线的 Material Instance 数量应为 0）</div>
+    <div class="ck-item"><span class="ck-num">03</span><strong>材质复用率</strong>（Instance/Master 比应 ≥ 15:1，低于此值说明碎片化严重）</div>
+  </div>
+</div>
+
+<!-- ═══ SEC 9 ═══ -->
+<div class="section" id="sec9">
+  <h2>🟢🔴 9. Do's & Don'ts 红黑榜</h2>
+
+  <div class="dd-grid">
+    <div class="dd-card dd-do">
+      <h4>✅ Do — 正确做法</h4>
+      <ul>
+        <li>所有新材质从<strong>已有 Master Material 创建 Instance</strong></li>
+        <li>贴图 Metallic/Roughness/AO <strong>打包为 MRA 贴图</strong></li>
+        <li>Static Switch 开关使用语义化命名 <code>bUse{Feature}</code></li>
+        <li>每个 Master Material 配备<strong>参数文档 + 预设值表</strong></li>
+        <li>材质修改后运行<strong>全量 Instance 编译验证</strong></li>
+        <li>TA 工具暴露<strong>调试模式</strong>供美术自查（BaseColor Only / Roughness Only 等）</li>
+        <li>移动端材质使用 <strong>half 精度</strong>（除 WorldPosition 外）</li>
+        <li>场景地表使用 <strong>Virtual Texture</strong> 减少 Draw Call</li>
+      </ul>
+    </div>
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't — 错误做法</h4>
+      <ul>
+        <li>美术自行创建 Material 文件（应创建 Instance）</li>
+        <li>Metallic、Roughness、AO 各用一张独立灰度贴图</li>
+        <li>一个 Master Material 塞 20+ 个 Static Switch（变体爆炸）</li>
+        <li>修改 Master Material 不通知下游美术（导致视觉回归失败）</li>
+        <li>把不需要透明的材质设为 <code>Translucent</code>（性能 3x 开销）</li>
+        <li>全量使用 <code>float</code> 精度（移动端 GPU 吃不消）</li>
+        <li>关闭 Texture Mipmap（远景贴图锯齿 + 显存浪费）</li>
+        <li>材质中使用 <code>sin(Time)</code> 不加 Period 限制（长时间运行精度丢失）</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SEC 10 ═══ -->
+<div class="section" id="sec10">
+  <h2>✅ 10. 出包前材质审查 Checklist</h2>
+
+  <div class="checklist">
+    <h4>📋 材质审查清单（发版前必检）</h4>
+    <div class="ck-item"><span class="ck-num">01</span><strong>Master Material 数量</strong>：是否在预算范围内（不超过项目规范上限）</div>
+    <div class="ck-item"><span class="ck-num">02</span><strong>Shader 变体总数</strong>：移动端 ≤ 5000 / PC ≤ 20000</div>
+    <div class="ck-item"><span class="ck-num">03</span><strong>超标材质清零</strong>：无任何材质超过平台指令数红线</div>
+    <div class="ck-item"><span class="ck-num">04</span><strong>通道打包验证</strong>：无独立 Metallic/Roughness/AO 灰度贴图存在</div>
+    <div class="ck-item"><span class="ck-num">05</span><strong>Mipmap 完整性</strong>：所有 3D 贴图已生成完整 Mip Chain</div>
+    <div class="ck-item"><span class="ck-num">06</span><strong>Texture Streaming</strong>：场景贴图全部开启 Streaming</div>
+    <div class="ck-item"><span class="ck-num">07</span><strong>PSO/Shader Cache</strong>：已生成并集成到安装包</div>
+    <div class="ck-item"><span class="ck-num">08</span><strong>跨平台一致性</strong>：关键角色在 iOS/Android/PC 三平台截图对比通过</div>
+    <div class="ck-item"><span class="ck-num">09</span><strong>材质权限审计</strong>：无美术越权创建的 Material 文件（只应有 Instance）</div>
+    <div class="ck-item"><span class="ck-num">10</span><strong>废弃材质清理</strong>：无未引用的 Material / Instance 残留在包内</div>
+  </div>
+
+  <div class="alert alert-green"><strong>💡 自动化建议：</strong>以上 10 项中的 1~7 项均可通过 CI/CD 脚本自动检测。建议 TA 团队在构建流水线中集成材质健康检查 Step，每次出包自动生成报告。</div>
+</div>
+
+<div class="doc-footer">
+  📄 材质 Shader 规范与 TA 协同标准 v1.0 — 游戏项目知识库<br>
+  更新时间：2026-05-28 · 适用：UE5 / Unity 2022+ / 自研引擎
+</div>
+
+</div>
+<!-- TOC Collapse Script -->
+<script>
+document.querySelectorAll('.toc').forEach(toc=>{const inner=toc.querySelector('ol');if(!inner)return;const wrap=document.createElement('div');wrap.className='toc-inner';inner.parentNode.insertBefore(wrap,inner);wrap.appendChild(inner);const bar=document.createElement('div');bar.className='toc-toggle-bar';const items=inner.querySelectorAll(':scope>li').length;bar.innerHTML=`<span style="display:flex;align-items:center"><span class="toc-title" style="font-size:15px;color:var(--heading);font-weight:600">📑 目录</span><span class="toc-badge">${items} 项</span></span><span class="toc-hint"><span class="toc-chevron">▼</span></span>`;toc.insertBefore(bar,wrap);const h3=toc.querySelector('h3');if(h3)h3.style.display='none';bar.addEventListener('click',()=>{toc.classList.toggle('toc-folded')})});
+</script>
+</body>
+</html>

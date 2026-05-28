@@ -620,6 +620,36 @@ T_Hero01_Hair_BaseColor.tga      # 头发固有色</pre>
   </details>
 </div>
 
+<!-- ═══ SEC-PM: 制作人关注 ═══ -->
+<div class="section" id="sec-pm">
+  <h2>🎯 制作人关注：3D 角色管线关键风控点</h2>
+
+  <div class="alert alert-yellow" style="border:1px solid rgba(251,191,36,.3)">
+    <strong>💡 资深制作人经验：</strong>"3D 角色管线的核心矛盾是<strong>品质追求 vs 性能约束</strong>。预研期不把面数/骨骼/贴图预算锁死，量产期必然面临'要么砍品质、要么砍帧率'的痛苦二选一。"
+  </div>
+
+  <h3>🚨 预研期必做决策</h3>
+  <table>
+    <thead><tr><th>决策项</th><th>影响</th><th>建议时机</th></tr></thead>
+    <tbody>
+      <tr><td><strong>LOD0 总面数上限</strong></td><td>直接决定同屏角色上限和 GPU 帧时间</td><td>预研第 2 周</td></tr>
+      <tr><td><strong>贴图尺寸分档</strong></td><td>决定显存占用和包体大小</td><td>预研第 3 周</td></tr>
+      <tr><td><strong>骨骼数量预算</strong></td><td>决定动画表现力和 CPU 蒙皮开销</td><td>预研第 4 周</td></tr>
+      <tr><td><strong>LOD 级数 & 策略</strong></td><td>决定远景画面品质和渲染开销</td><td>Alpha 前锁定</td></tr>
+    </tbody>
+  </table>
+
+  <h3>📊 量产期关注指标</h3>
+  <ul>
+    <li><strong>面数超标率</strong>：所有提交角色中超过 LOD0 面数红线的比例应为 <strong>0%</strong></li>
+    <li><strong>LOD 覆盖率</strong>：100% 角色必须有完整 LOD Chain</li>
+    <li><strong>贴图内存周报</strong>：单角色平均贴图内存趋势（应稳定不膨胀）</li>
+    <li><strong>N-gon / 重叠顶点</strong>：CI 自动检测报告应全绿</li>
+  </ul>
+
+  <div class="alert alert-blue"><strong>📎 关联文档：</strong>材质 Shader 体系与 TA 协同标准 → <a href="material-shader-ta-spec.html" style="color:var(--accent);font-weight:600">《材质 Shader 规范与 TA 协同标准》</a>；性能红线速查 → <a href="perf-redline-glossary.html" style="color:var(--accent);font-weight:600">《性能红线与专业术语速查表》</a></div>
+</div>
+
 <!-- ═══ FOOTER ═══ -->
 <div class="doc-footer">
   🧊 【3D】角色拓扑与 PBR 贴图规范 · v1.0 · TA 组 · 角色建模组 · 最后更新 2026-04-10<br>
