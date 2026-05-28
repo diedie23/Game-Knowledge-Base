@@ -3,27 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>外包全流程管理指南</title>
+<title>外包全链路管理指南</title>
 <style>
-:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--pink:#f472b6}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
 .doc{max-width:1200px;margin:0 auto;padding:32px 48px}
 .doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
-.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
-.doc-header h1 .ver{font-size:12px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.doc-header h1 .ver{font-size:12px;background:linear-gradient(135deg,var(--cyan),var(--accent));color:#000;padding:2px 10px;border-radius:12px;font-weight:700}
 .doc-header .subtitle{color:var(--dim);font-size:15px}
-.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim)}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim);flex-wrap:wrap}
 .doc-header .meta span{display:flex;align-items:center;gap:4px}
+.badge{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;padding:4px 14px;border-radius:16px;font-size:11px;font-weight:600;margin-top:12px}
+.tag-bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:.3px;transition:all .2s}
+.tag-danger{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.25)}
+.tag-warning{background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.25)}
+.tag-info{background:rgba(108,140,255,.12);color:var(--accent);border:1px solid rgba(108,140,255,.25)}
+.tag-success{background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.25)}
+.tag-purple{background:rgba(167,139,250,.12);color:var(--accent2);border:1px solid rgba(167,139,250,.25)}
+.tag-orange{background:rgba(251,146,60,.12);color:var(--orange);border:1px solid rgba(251,146,60,.25)}
+.tag-cyan{background:rgba(34,211,238,.12);color:var(--cyan);border:1px solid rgba(34,211,238,.25)}
+.tag:hover{transform:translateY(-1px);filter:brightness(1.2)}
 .toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
 .toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
 .toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
 .toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
 .section{margin-bottom:40px}
 .section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
-.section h3{font-size:15px;color:var(--heading);margin:16px 0 8px;font-weight:600}
-.section p{font-size:15px;margin-bottom:12px;line-height:1.8}
+.section h3{font-size:17px;color:var(--heading);margin:20px 0 10px;font-weight:600}
+.section p,.section li{font-size:15px;margin-bottom:8px;line-height:1.8}
+.section ul,.section ol{padding-left:20px;margin-bottom:12px}
 table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
 th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
 td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
@@ -33,6 +45,7 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
 .alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
 .alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
 .alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-purple{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);color:var(--accent2)}
 code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
 pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
 .dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
@@ -40,17 +53,21 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 .dd-card{border-radius:10px;padding:16px;font-size:14px;line-height:1.8}
 .dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
 .dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-neutral{background:rgba(108,140,255,.06);border:1px solid rgba(108,140,255,.2)}
 .dd-card h4{margin:0 0 8px;font-size:15px}
-.dd-card .img-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:6px;padding:20px;text-align:center;color:var(--dim);font-size:11px;margin:8px 0}
-.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
-.faq-q{font-size:16px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
-.faq-a{font-size:14px;line-height:1.8;padding-left:28px}
-.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-sm{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
 .badge-red{background:rgba(248,113,113,.15);color:var(--red)}
 .badge-green{background:rgba(74,222,128,.15);color:var(--green)}
 .badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}
+.badge-orange{background:rgba(251,146,60,.15);color:var(--orange)}
+.badge-purple{background:rgba(167,139,250,.15);color:var(--accent2)}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:16px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:14px;line-height:1.8;padding-left:28px}
 .doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
 .redline{border-left:3px solid var(--red);padding-left:12px;margin:12px 0}
+.greenline{border-left:3px solid var(--green);padding-left:12px;margin:12px 0}
 .flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
 .flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;min-width:90px}
 .flow-node strong{display:block;color:var(--heading);font-size:14px;margin-bottom:2px}
@@ -59,11 +76,60 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 .flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
 .flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
 .flow-node.gate{border-color:var(--red);background:rgba(248,113,113,.05)}
+.flow-node.warn{border-color:var(--yellow);background:rgba(251,191,36,.05)}
+.flow-node.purple{border-color:var(--accent2);background:rgba(167,139,250,.05)}
 .checklist{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
 .checklist h4{color:var(--heading);margin-bottom:8px}
 .check-item{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:14px}
 .check-item .box{width:16px;height:16px;border:1px solid var(--border);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;background:var(--card)}
 .sub-title{font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.golden-quote{background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,146,60,.06));border:1px solid rgba(251,191,36,.25);border-radius:12px;padding:20px 24px;margin:20px 0;position:relative;overflow:hidden}
+.golden-quote::before{content:'\201C';position:absolute;top:-8px;left:12px;font-size:80px;color:rgba(251,191,36,.15);font-family:Georgia,serif;line-height:1}
+.golden-quote p{font-size:16px;font-weight:600;color:var(--yellow);position:relative;z-index:1;padding-left:40px;font-style:italic}
+.golden-quote .src{font-size:12px;color:var(--dim);position:relative;z-index:1;padding-left:40px;margin-top:8px;font-style:normal}
+.case-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:20px 0}
+.case-info-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.case-info-item .label{font-size:12px;color:var(--dim);margin-bottom:6px}
+.case-info-item .value{font-size:18px;font-weight:700;color:var(--heading)}
+.case-info-item .value.val-red{color:var(--red)}.case-info-item .value.val-yellow{color:var(--yellow)}
+.case-info-item .value.val-green{color:var(--green)}.case-info-item .value.val-accent{color:var(--accent)}
+.case-info-item .value.val-orange{color:var(--orange)}.case-info-item .value.val-purple{color:var(--accent2)}
+.matrix-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}
+@media(max-width:700px){.matrix-grid{grid-template-columns:1fr}}
+.matrix-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;overflow:hidden}
+.matrix-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.matrix-card.mc-s::before{background:linear-gradient(90deg,var(--cyan),var(--green))}
+.matrix-card.mc-a::before{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.matrix-card.mc-b::before{background:linear-gradient(90deg,var(--yellow),var(--orange))}
+.matrix-card.mc-c::before{background:linear-gradient(90deg,var(--orange),var(--red))}
+.matrix-card h4{font-size:16px;color:var(--heading);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.matrix-card ul{padding-left:18px;font-size:14px;margin:0}.matrix-card li{margin-bottom:6px;line-height:1.7}
+.radar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0}
+.radar-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px}
+.radar-item .ri-title{font-size:13px;color:var(--dim);margin-bottom:8px}
+.radar-bar{height:8px;background:var(--card);border-radius:4px;overflow:hidden;margin-bottom:6px}
+.radar-bar-fill{height:100%;border-radius:4px}
+.radar-item .ri-score{font-size:12px;color:var(--heading);font-weight:600;display:flex;justify-content:space-between}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin:16px 0}
+.kpi-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;position:relative;overflow:hidden}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi-card.kpi-green::before{background:var(--green)}.kpi-card.kpi-yellow::before{background:var(--yellow)}.kpi-card.kpi-red::before{background:var(--red)}.kpi-card.kpi-blue::before{background:var(--accent)}
+.kpi-card .kpi-val{font-size:28px;font-weight:800;margin:8px 0 4px}
+.kpi-card .kpi-label{font-size:12px;color:var(--dim)}
+.kpi-card .kpi-target{font-size:11px;color:var(--dim);margin-top:4px}
+.timeline{display:flex;flex-direction:column;gap:0;margin:20px 0}
+.tl-item{display:flex;gap:14px;position:relative}
+.tl-dot-wrap{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:20px;padding-top:4px}
+.tl-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;position:relative;z-index:1;background:var(--accent)}
+.tl-line{width:2px;flex:1;min-height:16px;background:var(--border);margin:4px auto 0}
+.tl-item:last-child .tl-line{display:none}
+.tl-item.tl-danger .tl-dot{background:var(--red);box-shadow:0 0 8px rgba(248,113,113,.4)}
+.tl-item.tl-warn .tl-dot{background:var(--yellow)}
+.tl-item.tl-ok .tl-dot{background:var(--green)}
+.tl-content{flex:1;padding-bottom:18px}
+.tl-date{font-size:12px;color:var(--dim);font-family:monospace;margin-bottom:2px}
+.tl-text{font-size:14px;color:var(--heading);font-weight:500}
+.tl-detail{font-size:13px;color:var(--text);margin-top:4px;line-height:1.7}
 
 /* === TOC Inline Collapse + Grid === */
 .toc{position:relative;overflow:hidden;transition:all .3s ease}
@@ -92,60 +158,294 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="doc">
 
 <div class="doc-header">
-  <h1>📋 外包全流程管理指南 <span class="ver">v1.0</span></h1>
-  <div class="subtitle">Outsource Full-Cycle Management Guide</div>
+  <h1>📋 外包全链路管理指南 <span class="ver">v2.0</span></h1>
+  <div class="subtitle">Outsource Full-Cycle Management Guide — 采购PM + 制作人双视角深度版</div>
   <div class="meta">
     <span>📋 适用：角色/场景/UI/特效/动画外包</span>
     <span>👤 维护：美术中心 · 制作管理</span>
-    <span>📅 2026-04-01</span>
+    <span>📅 2026-05-28</span>
+    <span>🔄 v1.0→v2.0 全面升级</span>
+  </div>
+  <div class="badge">📋 外包管理系列 · 采购PM深度版 · 制作人视角增强</div>
+  <div class="tag-bar">
+    <span class="tag tag-info">📋 全链路管理</span><span class="tag tag-warning">📦 CP管理</span><span class="tag tag-success">✅ 验收体系</span>
+    <span class="tag tag-purple">💰 成本控制</span><span class="tag tag-orange">⚠️ 风险预警</span><span class="tag tag-cyan">📊 数据驱动</span><span class="tag tag-danger">🔴 制作人红线</span>
   </div>
 </div>
 
-<div class="toc">
-  <h3>📑 目录</h3>
+<div class="alert alert-blue" style="margin-bottom:24px">
+  <strong>💡 v2.0 升级说明：</strong>从采购PM + 制作人双重专业视角全面深化。新增供应商准入与分级体系、采购谈判策略、成本控制工程、风险预警机制、质量SPC闭环、KPI数据看板、制作人品质红线、CP生命周期管理。从5章扩展到12章，覆盖从寻源到退出的完整链路。
+</div>
+
+<div class="toc"><h3>📑 目录</h3>
   <ol>
-    <li><a href="#sec1">外包对接完整流程</a></li>
-    <li><a href="#sec2">常见问题处理手册</a></li>
-    <li><a href="#sec3">按资源类型分类的验收 Checklist</a></li>
-    <li><a href="#sec4">模板与文档</a></li>
-    <li><a href="#sec5">APM 外包管理经验总结</a></li>
+    <li><a href="#sec1">全链路流程总览（10步闭环）</a></li>
+    <li><a href="#sec2">供应商准入与分级体系</a></li>
+    <li><a href="#sec3">采购谈判与合同策略</a></li>
+    <li><a href="#sec4">需求下发与首件管控</a></li>
+    <li><a href="#sec5">制作跟进与进度管控</a></li>
+    <li><a href="#sec6">三轮验收与质量闭环</a></li>
+    <li><a href="#sec7">按资源类型验收 Checklist</a></li>
+    <li><a href="#sec8">风险预警与应急体系</a></li>
+    <li><a href="#sec9">成本控制与结算工程</a></li>
+    <li><a href="#sec10">KPI 数据驱动管理看板</a></li>
+    <li><a href="#sec11">CP 生命周期管理（准入→培养→淘汰）</a></li>
+    <li><a href="#sec12">制作人红线与品质底线</a></li>
   </ol>
 </div>
 
 <!-- SEC1 -->
 <div class="section" id="sec1">
-  <h2>📋 1. 外包对接完整流程</h2>
-  <div class="alert alert-blue"><strong>适用范围：</strong>本手册适用于游戏美术项目中各类 CP（Content Provider）外包管理场景，涵盖角色、场景、UI、特效、动画等资源类型的全流程管理。所有模板和 Checklist 均可直接复制使用。</div>
+  <h2>🔄 1. 全链路流程总览（10步闭环）</h2>
 
-  <div class="flow">
-    <div class="flow-node start"><strong>1. 需求下发</strong><div class="sub">规范+Brief+参考+排期</div></div>
-    <span class="flow-arrow">→</span>
-    <div class="flow-node"><strong>2. 首件确认</strong><div class="sub">首件审核通过后才批量</div></div>
-    <span class="flow-arrow">→</span>
-    <div class="flow-node"><strong>3. 制作跟进</strong><div class="sub">周进度+中间检查点</div></div>
-    <span class="flow-arrow">→</span>
-    <div class="flow-node gate"><strong>4. 交付验收</strong><div class="sub">Checklist逐项检查</div></div>
-    <span class="flow-arrow">→</span>
-    <div class="flow-node"><strong>5. 修改闭环</strong><div class="sub">问题清单→复验</div></div>
-    <span class="flow-arrow">→</span>
-    <div class="flow-node end"><strong>6. 结算归档</strong><div class="sub">签收+付款+资料存档</div></div>
+  <div class="golden-quote">
+    <p>外包管理不是甲方思维，而是供应链思维。管好外包 = 管好一条微型供应链。</p>
+    <div class="src">— 资深采购PM视角</div>
   </div>
 
-  <div class="sub-title">1.1 需求下发</div>
-  <div class="alert alert-blue"><strong>核心原则：</strong>需求越清晰，返工越少。下发时建议做到"四有"——有规范、有参考、有排期、有验收标准。</div>
+  <div class="alert alert-blue"><strong>适用范围：</strong>本手册覆盖游戏美术项目中各类 CP 外包管理的完整链路——从寻源准入到退出淘汰，涵盖角色/场景/UI/特效/动画等全资源类型。所有模板和 Checklist 均可直接复制使用。</div>
 
+  <div class="flow">
+    <div class="flow-node start"><strong>1. 需求立项</strong><div class="sub">内需评审+预算</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node purple"><strong>2. 寻源比价</strong><div class="sub">供应商池+测试</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>3. 谈判签约</strong><div class="sub">合同+SLA</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>4. 需求下发</strong><div class="sub">规范+Brief+参考</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>5. 首件审核</strong><div class="sub">通过才批量</div></div>
+  </div>
+  <div class="flow">
+    <div class="flow-node"><strong>6. 制作跟进</strong><div class="sub">周进度+检查点</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>7. 三轮验收</strong><div class="sub">技术+美术+引擎</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>8. 修改闭环</strong><div class="sub">问题清单→复验</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>9. 结算归档</strong><div class="sub">签收+付款+存档</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>10. 复盘评估</strong><div class="sub">评分+迭代+决策</div></div>
+  </div>
+
+  <div class="alert alert-purple"><strong>🎬 制作人视角：</strong>制作人应在步骤 1（需求立项）、5（首件审核）、7（验收 — 抽查）、10（复盘评估）四个节点介入。其余步骤由采购PM全权负责，制作人只看结果不管过程。</div>
+
+  <h3>v1.0 → v2.0 升级对照</h3>
   <table>
-    <tr><th>材料</th><th>内容</th><th>格式</th><th>必要性</th></tr>
-    <tr><td><strong>美术规范文档</strong></td><td>风格定义、技术规范、命名规范、目录结构</td><td>PDF</td><td>🔴 必须</td></tr>
-    <tr><td><strong>需求 Brief</strong></td><td>具体任务描述、数量、尺寸、格式要求</td><td>Excel / 文档</td><td>🔴 必须</td></tr>
-    <tr><td><strong>参考图 / 设定画</strong></td><td>风格参考、角色设定、三视图等</td><td>PSD / PNG</td><td>🔴 必须</td></tr>
-    <tr><td><strong>排期计划</strong></td><td>里程碑节点、交付日期、检查点</td><td>Excel / 甘特图</td><td>🔴 必须</td></tr>
-    <tr><td><strong>验收标准</strong></td><td>Checklist、质量分级、面数/贴图预算</td><td>文档</td><td>🔴 必须</td></tr>
-    <tr><td><strong>引擎环境包</strong></td><td>Checker Scene、标准灯光、Master Material</td><td>引擎工程</td><td>🟡 建议</td></tr>
-    <tr><td><strong>交付模板</strong></td><td>文件命名示例、目录结构模板</td><td>ZIP</td><td>🟡 建议</td></tr>
+    <tr><th>维度</th><th>v1.0</th><th>v2.0</th></tr>
+    <tr><td>流程步骤</td><td>6 步（需求→结算）</td><td><strong>10 步（需求立项→复盘闭环）</strong></td></tr>
+    <tr><td>供应商管理</td><td>无体系化管理</td><td><strong>准入/分级/培养/淘汰全周期</strong></td></tr>
+    <tr><td>谈判策略</td><td>无</td><td><strong>年框 vs 项目制 + 阶梯报价</strong></td></tr>
+    <tr><td>风险管理</td><td>简单应对</td><td><strong>红黄绿灯预警 + 应急预案</strong></td></tr>
+    <tr><td>成本控制</td><td>基本结算</td><td><strong>成本结构拆解 + 单价优化策略</strong></td></tr>
+    <tr><td>数据管理</td><td>无</td><td><strong>KPI 看板 + 趋势追踪</strong></td></tr>
+    <tr><td>制作人维度</td><td>无</td><td><strong>品质红线 + 决策介入点</strong></td></tr>
+    <tr><td>质量体系</td><td>Checklist</td><td><strong>SPC 思维 + 质量趋势分析</strong></td></tr>
+  </table>
+</div>
+<!-- SEC2 -->
+<div class="section" id="sec2">
+  <h2>🏢 2. 供应商准入与分级体系</h2>
+
+  <div class="golden-quote">
+    <p>选 CP 就像选队友，能力是基础，但匹配度才是关键。最贵的不一定最好，最合适的才是最好。</p>
+    <div class="src">— 采购PM十年心得</div>
+  </div>
+
+  <h3>2.1 准入流程（新CP入池）</h3>
+  <div class="flow">
+    <div class="flow-node start"><strong>资质审查</strong><div class="sub">营业执照+案例</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>能力评估</strong><div class="sub">作品集审阅</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>测试件</strong><div class="sub">付费测试1~2件</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>商务洽谈</strong><div class="sub">报价+交期+条款</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>入池备案</strong><div class="sub">签NDA+入库</div></div>
+  </div>
+
+  <div class="alert alert-yellow"><strong>⚠️ 测试件是核心门槛：</strong>不要跳过测试件直接大批量合作。测试件应付费（按正常单价的 80%~100%），主要评估：① 风格匹配度 ② 规范执行力 ③ 修改配合度 ④ 交付准时率。</div>
+
+  <h3>2.2 准入评分表</h3>
+  <table>
+    <tr><th>评估维度</th><th>权重</th><th>评估内容</th><th>评分标准</th></tr>
+    <tr><td><strong>作品质量</strong></td><td>30%</td><td>过往案例水准、技术完成度</td><td>S/A/B/C 四档（90/80/70/60）</td></tr>
+    <tr><td><strong>风格匹配</strong></td><td>25%</td><td>与项目美术方向的契合度</td><td>高匹配/中等/需调整/不匹配</td></tr>
+    <tr><td><strong>产能规模</strong></td><td>15%</td><td>美术师数量、月产能上限</td><td>大(20+人)/中(10~20)/小(5~10)/微(&lt;5)</td></tr>
+    <tr><td><strong>价格水平</strong></td><td>15%</td><td>单价报价 vs 市场均价</td><td>低于均价/持平/高10%/高20%+</td></tr>
+    <tr><td><strong>合作经验</strong></td><td>10%</td><td>行业经验、头部项目经历</td><td>AAA经验/中型/小型/无游戏经验</td></tr>
+    <tr><td><strong>响应速度</strong></td><td>5%</td><td>初次对接沟通效率</td><td>当日/次日/3天内/超3天</td></tr>
+  </table>
+  <div class="alert alert-green"><strong>准入门槛：</strong>综合评分 ≥ 70 分方可入池。作品质量单项 &lt; 60 分一票否决。</div>
+
+  <h3>2.3 供应商四级分层</h3>
+  <div class="matrix-grid">
+    <div class="matrix-card mc-s">
+      <h4>🏆 S级 — 战略合作伙伴</h4>
+      <ul>
+        <li><strong>定义：</strong>连续 3 次评估 90+ 分，质量稳定</li>
+        <li><strong>特权：</strong>优先派单、年框保底量、价格优惠</li>
+        <li><strong>管理：</strong>季度高层会面、联合培训</li>
+        <li><strong>占比：</strong>2~3 家，承担 40% 核心量</li>
+      </ul>
+    </div>
+    <div class="matrix-card mc-a">
+      <h4>🥇 A级 — 主力供应商</h4>
+      <ul>
+        <li><strong>定义：</strong>评估 80~89 分，稳定可靠</li>
+        <li><strong>特权：</strong>正常派单、参与竞标</li>
+        <li><strong>管理：</strong>月度复盘、定期反馈</li>
+        <li><strong>占比：</strong>3~5 家，承担 35% 常规量</li>
+      </ul>
+    </div>
+    <div class="matrix-card mc-b">
+      <h4>🥈 B级 — 备选供应商</h4>
+      <ul>
+        <li><strong>定义：</strong>评估 70~79 分，能力达标但需磨合</li>
+        <li><strong>特权：</strong>小批量试用、应急补位</li>
+        <li><strong>管理：</strong>重点辅导、每批次复盘</li>
+        <li><strong>占比：</strong>3~5 家，承担 20% 量</li>
+      </ul>
+    </div>
+    <div class="matrix-card mc-c">
+      <h4>⚠️ C级 — 观察/淘汰</h4>
+      <ul>
+        <li><strong>定义：</strong>评估 60~69 分，或连续 2 次下滑</li>
+        <li><strong>处理：</strong>暂停派单、限期整改</li>
+        <li><strong>退出：</strong>整改后仍不达标则移出池</li>
+        <li><strong>占比：</strong>不超过总池 15%</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="alert alert-red"><strong>🔴 制作人红线：</strong>S 级 CP 的认定必须制作人签字确认。核心资源（主角、主城、核心 UI）只允许 S/A 级 CP 承接。</div>
+
+  <h3>2.4 CP 池健康度指标</h3>
+  <table>
+    <tr><th>指标</th><th>健康值</th><th>警戒值</th><th>计算方式</th></tr>
+    <tr><td>池内 CP 总数</td><td>12~20 家</td><td>&lt;8 或 &gt;30</td><td>在册活跃 CP 数量</td></tr>
+    <tr><td>S+A 级占比</td><td>≥ 50%</td><td>&lt; 40%</td><td>S+A 级数量 / 总数</td></tr>
+    <tr><td>单一 CP 依赖度</td><td>≤ 30%</td><td>&gt; 40%</td><td>单 CP 外包额 / 总外包额</td></tr>
+    <tr><td>年度淘汰率</td><td>10%~20%</td><td>&lt; 5% 或 &gt; 30%</td><td>年淘汰数 / 年初总数</td></tr>
+    <tr><td>年度新增率</td><td>15%~25%</td><td>&lt; 10%</td><td>年新增数 / 年初总数</td></tr>
+    <tr><td>各工种覆盖度</td><td>每工种 ≥ 3 家</td><td>某工种 &lt; 2 家</td><td>按工种统计合格 CP 数</td></tr>
+  </table>
+</div>
+
+<!-- SEC3 -->
+<div class="section" id="sec3">
+  <h2>💰 3. 采购谈判与合同策略</h2>
+
+  <div class="golden-quote">
+    <p>好的谈判不是压价，是找到双赢的结构。让 CP 有利润才有动力做好，但必须用结构绑定质量。</p>
+    <div class="src">— 资深采购PM谈判心法</div>
+  </div>
+
+  <h3>3.1 定价模式对比</h3>
+  <table>
+    <tr><th>模式</th><th>适用场景</th><th>优势</th><th>风险</th><th>PM建议</th></tr>
+    <tr><td><strong>年框保底</strong></td><td>量产期、稳定需求</td><td>单价低 15%~25%；CP 排期优先</td><td>需求波动时浪费预算</td><td>核心工种 S 级 CP 适用</td></tr>
+    <tr><td><strong>项目制</strong></td><td>预研期、不确定需求</td><td>灵活、无保底压力</td><td>单价偏高、CP 优先级低</td><td>新合作、试探期适用</td></tr>
+    <tr><td><strong>阶梯报价</strong></td><td>量大可协商</td><td>量越大越便宜</td><td>需准确预估用量</td><td>单工种月需求 &gt;20 件时</td></tr>
+    <tr><td><strong>竞标制</strong></td><td>大型单次项目</td><td>充分竞争、价优</td><td>管理成本高、关系维护难</td><td>单次 &gt;50 万项目时</td></tr>
+    <tr><td><strong>人头驻场</strong></td><td>长期稳定需求</td><td>管控强、灵活调度</td><td>管理精力大、用工风险</td><td>核心管线缺人时短期用</td></tr>
   </table>
 
-  <div class="sub-title">1.2 需求下发邮件模板</div>
+  <h3>3.2 谈判策略工具箱</h3>
+  <table>
+    <tr><th>策略</th><th>适用时机</th><th>操作要点</th><th>预期效果</th></tr>
+    <tr><td><strong>批量折扣</strong></td><td>大批量需求</td><td>承诺月均 N 件以上，换取单价下调 10%~15%</td><td>成本降低，CP 有稳定收入</td></tr>
+    <tr><td><strong>长约换价</strong></td><td>稳定合作方</td><td>签 6~12 月长约，锁定价格 + 排期优先权</td><td>双方都有确定性</td></tr>
+    <tr><td><strong>质量奖金</strong></td><td>激励高品质</td><td>一次通过率 &gt; 90% 给予 5%~10% 奖金</td><td>激励 CP 主动提升质量</td></tr>
+    <tr><td><strong>阶梯惩罚</strong></td><td>约束延期</td><td>延期 1~3 天扣 2%/天，&gt;7 天扣 10%+重新评估</td><td>CP 重视排期</td></tr>
+    <tr><td><strong>备选竞压</strong></td><td>价格偏高时</td><td>展示 2~3 家 CP 报价对比（脱敏后）</td><td>自然降价 5%~15%</td></tr>
+    <tr><td><strong>分阶付款</strong></td><td>大额合同</td><td>首件30% + 中期30% + 终验40%</td><td>降低财务风险</td></tr>
+  </table>
+
+  <div class="alert alert-yellow"><strong>⚠️ 谈判底线原则：</strong>不能为压价牺牲质量。如果 CP 报价低于市场价 30%+，需警惕是否会用低价接单后降低品质或转包。</div>
+
+  <h3>3.3 合同核心条款 Checklist（增强版）</h3>
+  <div class="checklist">
+    <h4>📝 必备条款（缺一不可）</h4>
+    <div class="check-item"><span class="box">☐</span><strong>[交付物]</strong> 明确资源类型+数量+格式+规格+品质等级</div>
+    <div class="check-item"><span class="box">☐</span><strong>[排期节点]</strong> 首件/中期/终验日期 + Buffer 天数</div>
+    <div class="check-item"><span class="box">☐</span><strong>[验收标准]</strong> 引用验收 Checklist 作为合同附件</div>
+    <div class="check-item"><span class="box">☐</span><strong>[修改次数]</strong> 上限 3 轮，超出另计费（单价的 20%/轮）</div>
+    <div class="check-item"><span class="box">☐</span><strong>[付款方式]</strong> 分阶段付款比例 + 付款周期（验收后 N 天）</div>
+    <div class="check-item"><span class="box">☐</span><strong>[原创声明]</strong> CP 保证资源非抄袭、非 AI 直出、非转包</div>
+    <div class="check-item"><span class="box">☐</span><strong>[版权归属]</strong> 全部知识产权归属甲方</div>
+    <div class="check-item"><span class="box">☐</span><strong>[保密条款]</strong> NDA 含泄露赔偿 + 竞品隔离</div>
+    <div class="check-item"><span class="box">☐</span><strong>[延期违约]</strong> 延期扣款比例 + 严重延期终止权</div>
+    <div class="check-item"><span class="box">☐</span><strong>[响应时效]</strong> 24 小时内必须回复，否则视为违约</div>
+    <div class="check-item"><span class="box">☐</span><strong>[人员变更]</strong> 核心人员变更须提前 7 天书面通知</div>
+    <div class="check-item"><span class="box">☐</span><strong>[争议解决]</strong> 约定仲裁/诉讼管辖地</div>
+  </div>
+
+  <div class="checklist">
+    <h4>🆕 v2.0 新增条款（采购PM视角）</h4>
+    <div class="check-item"><span class="box">☐</span><strong>[转包禁止]</strong> 未经甲方书面同意不得转包，违规立即终止+赔偿</div>
+    <div class="check-item"><span class="box">☐</span><strong>[竞品隔离]</strong> 合作期内同品类竞品项目不得同时承接</div>
+    <div class="check-item"><span class="box">☐</span><strong>[工具约束]</strong> 禁止使用 AI 生成工具作为最终交付，可作辅助但须申报</div>
+    <div class="check-item"><span class="box">☐</span><strong>[质量奖惩]</strong> 一次通过率 &gt; 90% 奖金条款 / &lt; 60% 扣款条款</div>
+    <div class="check-item"><span class="box">☐</span><strong>[审计权]</strong> 甲方有权审计制作过程（含工作环境、数据安全）</div>
+    <div class="check-item"><span class="box">☐</span><strong>[退出机制]</strong> 连续 2 个评估周期不达标自动终止，无需赔偿</div>
+    <div class="check-item"><span class="box">☐</span><strong>[涨价条款]</strong> 年度涨幅上限约定（通常 ≤5%/年）</div>
+  </div>
+
+  <h3>3.4 合同签约沟通模板</h3>
+  <pre>
+主题：【合同确认】[项目名] × [CP名称] 美术外包合作协议
+
+Hi [CP名称] 团队，
+
+经双方友好协商，就本次美术外包合作达成以下共识：
+
+■ 合作概要
+  · 合作模式：[年框保底 / 项目制]
+  · 资源类型：[角色 / 场景 / UI / 特效 / 动画]
+  · 预计总量：[X] 件（[年框则注明月保底量]）
+  · 合作周期：[起始日期] ~ [结束日期]
+
+■ 价格约定
+  · 基础单价：[按复杂度等级分列]
+  · 折扣条件：[如适用，注明阶梯折扣]
+  · 质量奖金：一次通过率 >90% 额外 [X]%
+
+■ 关键条款摘要
+  · 付款比例：首件通过30% + 中期30% + 终验40%
+  · 修改上限：3轮（超出按 [X] 元/轮计费）
+  · 延期处罚：逾期每天扣合同额 [X]%
+  · 响应时效：工作日 24h 内回复
+
+请确认以上内容无误，后续法务将发送正式合同文本。
+
+Best,
+[你的名字] · 采购PM</pre>
+</div>
+<!-- SEC4 -->
+<div class="section" id="sec4">
+  <h2>📋 4. 需求下发与首件管控</h2>
+
+  <div class="golden-quote">
+    <p>需求清晰度每提升 10%，返工率下降 20%。前期花 1 天写清需求，后期省 5 天改返工。</p>
+    <div class="src">— 外包管理ROI铁律</div>
+  </div>
+
+  <h3>4.1 需求下发"六有"标准</h3>
+  <table>
+    <tr><th>材料</th><th>内容</th><th>格式</th><th>必要性</th><th>制作人要求</th></tr>
+    <tr><td><strong>美术规范文档</strong></td><td>风格定义、技术规范、命名规范、目录结构</td><td>PDF</td><td><span class="badge-sm badge-red">必须</span></td><td>制作人审核风格定义部分</td></tr>
+    <tr><td><strong>需求 Brief</strong></td><td>具体任务描述、数量、尺寸、格式要求</td><td>Excel/文档</td><td><span class="badge-sm badge-red">必须</span></td><td>—</td></tr>
+    <tr><td><strong>参考图/设定画</strong></td><td>风格参考、角色设定、三视图等</td><td>PSD/PNG</td><td><span class="badge-sm badge-red">必须</span></td><td>制作人指定标杆参考</td></tr>
+    <tr><td><strong>排期计划</strong></td><td>里程碑节点、交付日期、检查点</td><td>Excel/甘特图</td><td><span class="badge-sm badge-red">必须</span></td><td>—</td></tr>
+    <tr><td><strong>验收标准</strong></td><td>Checklist、质量分级、面数/贴图预算</td><td>文档</td><td><span class="badge-sm badge-red">必须</span></td><td>制作人定义品质底线</td></tr>
+    <tr><td><strong>品质标杆包</strong></td><td>5~10件已审核标杆作品 + 反面案例</td><td>ZIP</td><td><span class="badge-sm badge-yellow">强烈建议</span></td><td>制作人选定标杆</td></tr>
+    <tr><td><strong>引擎环境包</strong></td><td>Checker Scene、标准灯光、Master Material</td><td>引擎工程</td><td><span class="badge-sm badge-yellow">建议</span></td><td>—</td></tr>
+    <tr><td><strong>交付模板</strong></td><td>文件命名示例、目录结构模板</td><td>ZIP</td><td><span class="badge-sm badge-yellow">建议</span></td><td>—</td></tr>
+  </table>
+
+  <h3>4.2 需求下发邮件模板</h3>
   <pre>
 主题：【项目名】美术外包需求 — [资源类型] 第 [N] 批
 
@@ -157,14 +457,16 @@ Hi [CP名称] 团队，
   · 资源类型：[角色模型 / 立绘 / 场景 / UI / 特效]
   · 数量：[X] 件
   · 风格：[写实 / 卡通 / 二次元 / 像素]
+  · 复杂度分布：S级[X]件 / A级[X]件 / B级[X]件
 
 ■ 附件清单
   1. 美术规范文档 v[X.X]（PDF）
-  2. 需求 Brief 表（Excel）
+  2. 需求 Brief 表（Excel）— 含每件资源的详细描述
   3. 参考图/设定画（ZIP）
-  4. 排期计划（Excel）
-  5. 验收 Checklist（PDF）
-  6. 交付模板（ZIP）
+  4. 品质标杆包（ZIP）— 含正例 + 反例
+  5. 排期计划（Excel）
+  6. 验收 Checklist（PDF）
+  7. 交付模板（ZIP）
 
 ■ 关键节点
   · 首件提交：[日期]（提交 1 件完成品供审核）
@@ -172,309 +474,739 @@ Hi [CP名称] 团队，
   · 最终交付：[日期]
   · 修改 Buffer：[X] 个工作日
 
+■ 首件要求
+  · 请优先制作 Brief 表中标注为"首件"的资源
+  · 首件必须包含完整工艺流程产出物
+  · 首件未通过审核前，严禁批量制作
+  · 首件审核预计 24h 内反馈结论
+
 ■ 注意事项
   · 请严格按照规范文档中的命名和目录结构交付
-  · 首件未通过审核前，请勿批量制作
-  · 如有疑问请在 [沟通渠道] 中及时提出
+  · 本批次禁止使用 AI 生成工具作为最终产出
+  · 如有疑问请在工作日 24h 内提出，逾期视为无异议
 
 请确认收到并回复预计首件提交时间。
 
 Best,
 [你的名字] · APM</pre>
 
-  <div class="sub-title">1.3 制作跟进</div>
+  <h3>4.3 首件审核制度（制作人视角增强版）</h3>
   <div class="redline">
-    <p><strong>🔴 首件制度是核心：</strong>80% 的批量返工源于首件审核不严格。首件建议由 Art Lead 亲自审核，审核通过后形成书面确认，作为后续批量制作的质量基准。</p>
+    <p><strong>🔴 首件制度是外包质量的生命线：</strong>80% 的批量返工源于首件审核不严格。首件是整个批次的品质锚点，决定后续 100 件的方向。</p>
   </div>
 
   <table>
-    <tr><th>检查点</th><th>时间</th><th>检查内容</th><th>形式</th></tr>
-    <tr><td><strong>首件审核</strong></td><td>启动后 3~5 天</td><td>完成 1 件成品，全面评审风格/质量/格式</td><td>在线会议 + 标注截图</td></tr>
-    <tr><td><strong>周进度同步</strong></td><td>每周固定时间</td><td>完成数量、在制数量、问题清单</td><td>进度表 + 截图</td></tr>
-    <tr><td><strong>中期检查</strong></td><td>50% 进度时</td><td>批量质量抽检、风格一致性、排期偏差</td><td>抽查 3~5 件 + 进度报告</td></tr>
-    <tr><td><strong>交付前预检</strong></td><td>交付前 2~3 天</td><td>提前抽检最终成品，确认无重大问题</td><td>在线预览</td></tr>
-    <tr><td><strong>正式交付</strong></td><td>约定日期</td><td>全量检查，出具验收报告</td><td>Checklist + 验收报告</td></tr>
+    <tr><th>审核维度</th><th>审核人</th><th>审核标准</th><th>否决权</th></tr>
+    <tr><td><strong>技术规范</strong></td><td>APM / TA</td><td>面数/UV/贴图/命名全部达标</td><td>任一 P0 不通过即打回</td></tr>
+    <tr><td><strong>风格品质</strong></td><td>Art Lead / 主美</td><td>与标杆一致、风格统一</td><td>主美一票否决权</td></tr>
+    <tr><td><strong>引擎表现</strong></td><td>TA / 程序</td><td>引擎内实际效果、性能达标</td><td>性能不达标即打回</td></tr>
+    <tr><td><strong>制作人抽查</strong></td><td>制作人</td><td>是否达到产品品质标准</td><td>制作人一票否决权</td></tr>
   </table>
 
-  <div class="sub-title">1.4 三轮验收制度</div>
-  <table>
-    <tr><th>轮次</th><th>检查重点</th><th>参与人</th><th>输出物</th></tr>
-    <tr><td><strong>第一轮：技术验收</strong></td><td>格式、尺寸、命名、面数、UV、通道等硬性指标</td><td>APM / TA</td><td>技术问题清单</td></tr>
-    <tr><td><strong>第二轮：美术验收</strong></td><td>风格、质量、细节、色彩、一致性</td><td>Art Lead / 主美</td><td>美术修改意见</td></tr>
-    <tr><td><strong>第三轮：引擎验收</strong></td><td>引擎内实际表现、性能、LOD、材质效果</td><td>TA / 程序</td><td>引擎截图 + 性能数据</td></tr>
-  </table>
+  <div class="alert alert-purple"><strong>🎬 制作人首件审核要点：</strong><br>
+  · 这个品质放到最终产品里，玩家会不会觉得"差"？<br>
+  · 与竞品同类资源对比，我们是否有品质优势？<br>
+  · 如果这个标准批量化，整体品质是否可接受？<br>
+  · 这个 CP 的"天花板"在哪里？是否值得长期投入？</div>
 
-  <div class="sub-title">1.5 验收反馈模板</div>
+  <h3>4.4 首件审核反馈模板</h3>
   <pre>
-主题：【验收反馈】[资源名称] — 第 [N] 轮
+主题：【首件审核】[资源名称] — 审核结论
 
+CP：[名称]
 资源名称：[XXX]
-验收日期：[YYYY-MM-DD]
-验收人：[姓名]
-验收结论：[✅ 通过 / 🔄 需修改 / ❌ 不通过]
+审核日期：[YYYY-MM-DD]
+审核团队：APM + Art Lead + TA [+ 制作人]
 
-━━ 问题清单 ━━
+━━ 审核结论 ━━
+[✅ 通过，可开始批量 / 🔄 条件通过，修改后复审 / ❌ 不通过，重新制作]
 
-#1 [P0-严重] 面数超标
-   · 当前：18,000 面 | 预算：15,000 面
-   · 修改要求：减面至 15K 以内，重点优化腰带和鞋底
+━━ 各维度评分 ━━
+  · 技术规范：[通过 / 不通过]  备注：______
+  · 风格品质：[95/100]         备注：______
+  · 引擎表现：[通过 / 不通过]  备注：______
+  · 制作人评语：______
 
-#2 [P1-中等] 法线方向错误
-   · 位置：左手手指第 3 关节
-   · 修改要求：翻转法线
+━━ 修改事项（如有）━━
+  #1 [P0] _______________
+  #2 [P1] _______________
 
-#3 [P2-轻微] UV 密度不均
-   · 位置：后背区域 UV 岛过小
-   · 修改要求：放大后背 UV 岛至与前胸接近
+━━ 批量生产指导 ━━
+  · 本首件确认为后续批量的品质基准
+  · 后续资源品质不得低于本件
+  · 偏差超过 15% 视为不合格
 
-━━ 修改截止日期 ━━
-请在 [日期] 前完成修改并重新提交。
-
-优先级说明：
-  P0 = 必须修改，否则无法通过
-  P1 = 需要修改，影响质量
-  P2 = 建议修改，提升品质</pre>
-
-  <div class="sub-title">1.6 结算流程</div>
-  <table>
-    <tr><th>步骤</th><th>内容</th><th>负责人</th><th>输出</th></tr>
-    <tr><td>1. 验收签收</td><td>全量资源通过验收，双方签字确认</td><td>APM + CP</td><td>验收签收单</td></tr>
-    <tr><td>2. 工作量核算</td><td>统计实际交付数量、规格、品质等级</td><td>APM</td><td>工作量确认表</td></tr>
-    <tr><td>3. 费用计算</td><td>按合同单价 × 实际数量，扣除不达标项</td><td>APM + 财务</td><td>费用明细表</td></tr>
-    <tr><td>4. 申请付款</td><td>提交付款申请 + 验收材料</td><td>APM</td><td>付款申请单</td></tr>
-    <tr><td>5. 资料归档</td><td>合同/验收单/沟通记录/源文件归档</td><td>APM</td><td>项目档案</td></tr>
-  </table>
-
-  <div class="alert alert-green"><strong>结算注意事项：</strong>· 验收签收前不启动付款流程 · 修改超过 3 轮的资源，评估是否需要调整单价 · 保留完整的沟通记录和每版本文件，作为争议解决依据 · 建议分阶段付款（首件通过 30% + 中期 30% + 终验 40%）</div>
+请在 [日期] 前完成修改并提交复审。</pre>
 </div>
 
-<!-- SEC2 -->
-<div class="section" id="sec2">
-  <h2>🚨 2. 常见问题处理手册</h2>
+<!-- SEC5 -->
+<div class="section" id="sec5">
+  <h2>📊 5. 制作跟进与进度管控</h2>
 
-  <div class="sub-title">2.1 资源不达标</div>
-  <table>
-    <tr><th>问题</th><th>典型表现</th><th>立即处理</th><th>长期预防</th></tr>
-    <tr><td><span class="badge badge-red">模型面数超标</span></td><td>角色交付面数远超预算（如预算 15K，实际 25K）</td><td>发送面数超标通知，标注具体数值和预算上限</td><td>需求下发时附带面数检测脚本</td></tr>
-    <tr><td><span class="badge badge-red">PBR 材质效果差</span></td><td>金属像塑料 / 布料像金属；SP 效果好引擎差异大</td><td>提供标准 Checker Scene + PBR 数值参考表</td><td>要求 CP 在引擎内截图而非 SP 内截图验收</td></tr>
-    <tr><td><span class="badge badge-yellow">命名目录不规范</span></td><td>文件名含中文/空格/特殊字符；目录不一致</td><td>随需求下发提供交付目录模板 ZIP</td><td>使用批量重命名工具自检后再提交</td></tr>
-    <tr><td><span class="badge badge-yellow">风格不统一</span></td><td>不同批次或不同美术师产出风格差异明显</td><td>提供 5~10 张已审核标杆作品</td><td>指定同批资源由同一美术师完成</td></tr>
-  </table>
-
-  <div class="sub-title">2.2 延期处理</div>
-  <div class="redline">
-    <p><strong>🔴 预防措施：</strong>① 排期预留 20% Buffer ② 设置中间检查点（50% 强制确认）③ 同类资源准备备选 CP</p>
+  <div class="golden-quote">
+    <p>外包跟进的核心不是"催"，而是"防"。等问题暴露再处理已经晚了，要在问题发生前设卡拦截。</p>
+    <div class="src">— 采购PM进度管控心法</div>
   </div>
 
+  <h3>5.1 五级检查点体系</h3>
   <table>
-    <tr><th>延期程度</th><th>应对措施</th></tr>
-    <tr><td>1~3 天</td><td>口头沟通原因，要求赶工 + 每日进度更新</td></tr>
-    <tr><td>3~7 天</td><td>书面警告 + 评估是否影响项目里程碑 + 通知项目组</td></tr>
-    <tr><td>&gt;7 天</td><td>启动备选 CP + 评估合同违约条款 + 重新评估合作关系</td></tr>
+    <tr><th>检查点</th><th>时间</th><th>检查内容</th><th>形式</th><th>异常处理</th></tr>
+    <tr><td><strong>T1 首件审核</strong></td><td>启动后 3~5 天</td><td>完成 1 件成品，全面评审</td><td>在线会议 + 标注截图</td><td>不通过重做 / 换人</td></tr>
+    <tr><td><strong>T2 周进度同步</strong></td><td>每周固定时间</td><td>完成量、在制量、问题清单</td><td>进度表 + 截图</td><td>连续 2 周滞后触发黄灯</td></tr>
+    <tr><td><strong>T3 中期检查</strong></td><td>50% 进度时</td><td>批量质量抽检、风格一致性</td><td>抽查 3~5 件 + 报告</td><td>质量偏差触发橙灯</td></tr>
+    <tr><td><strong>T4 交付前预检</strong></td><td>交付前 2~3 天</td><td>提前抽检最终成品</td><td>在线预览</td><td>重大问题延期交付</td></tr>
+    <tr><td><strong>T5 正式交付</strong></td><td>约定日期</td><td>全量检查，出具验收报告</td><td>Checklist + 报告</td><td>不通过退回 + 扣款评估</td></tr>
   </table>
 
-  <div class="sub-title">2.3 延期沟通模板</div>
+  <h3>5.2 周进度报告模板</h3>
   <pre>
-主题：【紧急】[资源名称] 交付延期跟进
+━━━━━━━━━━━━━━━━━━━━━━━━
+[CP名称] 周进度报告 — 第 [N] 周
+━━━━━━━━━━━━━━━━━━━━━━━━
+报告日期：[YYYY-MM-DD]
+项目名称：[XXX]
+
+■ 总体进度
+  · 计划完成：[X] 件
+  · 实际完成：[X] 件
+  · 进度偏差：[+X / -X] 件（[提前/滞后]）
+
+■ 本周完成
+  [列出具体完成的资源名称]
+
+■ 在制中
+  [列出正在制作中的资源 + 预计完成日期]
+
+■ 问题与风险
+  1. [问题描述 + 影响 + 应对]
+  2. _______________
+
+■ 下周计划
+  [计划完成的资源清单]
+
+■ 需协调事项
+  [如有]
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+进度状态：[🟢 正常 / 🟡 轻微滞后 / 🔴 严重滞后]</pre>
+
+  <h3>5.3 进度异常升级机制</h3>
+  <table>
+    <tr><th>异常等级</th><th>判定标准</th><th>响应动作</th><th>升级对象</th><th>时限</th></tr>
+    <tr><td><span class="badge-sm badge-green">🟢 绿灯</span></td><td>进度偏差 ≤10%</td><td>正常跟进，备注记录</td><td>APM</td><td>下次周会跟进</td></tr>
+    <tr><td><span class="badge-sm badge-yellow">🟡 黄灯</span></td><td>偏差 10%~20% 或连续2周滞后</td><td>书面警告 + 每日进度 + 分析原因</td><td>APM + PM Lead</td><td>24h 内响应</td></tr>
+    <tr><td><span class="badge-sm badge-orange">🟠 橙灯</span></td><td>偏差 20%~40% 或质量批量偏差</td><td>紧急会议 + 加人方案 + 备选CP</td><td>APM + 制作人</td><td>4h 内响应</td></tr>
+    <tr><td><span class="badge-sm badge-red">🔴 红灯</span></td><td>偏差 &gt;40% 或失联 &gt;2天</td><td>启动应急预案 + CP 评估降级</td><td>制作人 + 管理层</td><td>立即响应</td></tr>
+  </table>
+
+  <h3>5.4 延期沟通模板</h3>
+  <pre>
+主题：【紧急】[资源名称] 交付延期跟进 — [黄灯/橙灯/红灯]
 
 Hi [CP名称] 团队，
 
-本批次资源原定 [日期] 交付，目前已逾期 [X] 天，请反馈以下信息：
+本批次资源原定 [日期] 交付，目前已逾期 [X] 天 / 进度滞后 [X]%。
+当前状态判定为 [🟡黄灯 / 🟠橙灯 / 🔴红灯]。
 
-1. 延期原因说明
-2. 当前实际完成进度（百分比 + 截图）
-3. 预计最终交付日期
-4. 是否需要协调支持
+请在 [今日X点] 前反馈以下信息：
 
-请在今日内回复，感谢配合。
+1. 延期/滞后原因说明
+2. 当前实际完成进度（百分比 + 截图证明）
+3. 资源逐件完成时间表（精确到天）
+4. 自救方案（是否可加人/加班追赶）
+5. 最终交付日期承诺
 
-[你的名字] · APM</pre>
+注意：
+· 本次延期将记入 CP 季度评估
+· 如 [日期] 前仍无法交付，我们将启动备选 CP 接手
+· 根据合同第 [X] 条，延期超 [X] 天将触发违约扣款
 
-  <div class="sub-title">2.4 CP 失联/不回复升级流程</div>
+请务必按时回复。
+
+[你的名字] · 采购PM</pre>
+
+  <h3>5.5 CP 失联升级流程</h3>
   <table>
-    <tr><th>时间</th><th>动作</th></tr>
-    <tr><td>失联 1 天</td><td>工作群 + 邮件 + 电话三渠道同时联系</td></tr>
-    <tr><td>失联 2 天</td><td>联系 CP 对接人的直属上级</td></tr>
-    <tr><td>失联 3 天</td><td>发送正式书面函件（邮件，抄送双方管理层）</td></tr>
-    <tr><td>失联 5 天</td><td>启动应急预案：备选 CP 接手 + 评估合同违约</td></tr>
-    <tr><td>失联 7 天+</td><td>终止合作 + 法务介入（如涉及预付款）</td></tr>
-  </table>
-
-  <div class="alert alert-red"><strong>🚨 预防建议：</strong>· 合同中明确约定"响应时效"条款（如 24 小时内必须回复）· 每个 CP 至少 2 个联系人（对接人 + 其上级）· 重要沟通全部通过邮件留档，群聊内容定期截图备份</div>
-
-  <div class="sub-title">2.5 其他常见问题</div>
-  <table>
-    <tr><th>问题</th><th>处理方案</th></tr>
-    <tr><td><strong>版权争议 / 素材来源不明</strong></td><td>合同中要求 CP 签署原创性声明；敏感资源进行相似度查重；禁止 AI 生成素材作为最终交付物</td></tr>
-    <tr><td><strong>多 CP 协作冲突</strong></td><td>由 APM 统一分配任务边界；避免不同 CP 直接沟通；资源交接点建立衔接 Checklist</td></tr>
-    <tr><td><strong>CP 更换核心人员</strong></td><td>合同约定核心人员变更需提前通知；新人员必须通过首件测试；评估对排期的影响</td></tr>
+    <tr><th>时间</th><th>动作</th><th>记录</th></tr>
+    <tr><td>失联 4h</td><td>多渠道联系（企微 + 邮件 + 电话）</td><td>截图存档</td></tr>
+    <tr><td>失联 1 天</td><td>联系 CP 对接人直属上级 + 备用联系人</td><td>邮件留档</td></tr>
+    <tr><td>失联 2 天</td><td>正式书面函件（邮件抄送双方管理层）</td><td>函件编号</td></tr>
+    <tr><td>失联 3 天</td><td>启动备选 CP 准备接手 + 锁定已交付文件</td><td>应急启动记录</td></tr>
+    <tr><td>失联 5 天</td><td>终止合作 + 法务介入 + CP 池永久移除</td><td>法务函件</td></tr>
   </table>
 </div>
 
-<!-- SEC3 -->
-<div class="section" id="sec3">
-  <h2>✅ 3. 按资源类型分类的验收 Checklist</h2>
-  <div class="alert alert-blue"><strong>使用说明：</strong>以下 Checklist 按资源类型分类，每个 Checklist 包含技术验收（硬性指标）和美术验收（主观评估）两部分。P0 项为必须通过项，任一 P0 项不通过即判定为不合格。</div>
+<!-- SEC6 -->
+<div class="section" id="sec6">
+  <h2>✅ 6. 三轮验收与质量闭环</h2>
 
-  <div class="sub-title">3.1 角色 3D 模型</div>
+  <div class="golden-quote">
+    <p>验收不是终点，而是质量循环的起点。每次验收数据都应该反哺到下一次需求的清晰度上。</p>
+    <div class="src">— SPC(统计过程控制)思维在外包管理中的应用</div>
+  </div>
+
+  <h3>6.1 三轮验收制度</h3>
+  <table>
+    <tr><th>轮次</th><th>检查重点</th><th>参与人</th><th>输出物</th><th>时限</th></tr>
+    <tr><td><strong>第一轮：技术验收</strong></td><td>格式/尺寸/命名/面数/UV/通道等硬性指标</td><td>APM / TA</td><td>技术问题清单</td><td>收到后 1 个工作日</td></tr>
+    <tr><td><strong>第二轮：美术验收</strong></td><td>风格/质量/细节/色彩/一致性</td><td>Art Lead / 主美</td><td>美术修改意见</td><td>技术通过后 1~2 天</td></tr>
+    <tr><td><strong>第三轮：引擎验收</strong></td><td>引擎内表现/性能/LOD/材质效果</td><td>TA / 程序</td><td>引擎截图+性能数据</td><td>美术通过后 1 天</td></tr>
+  </table>
+
+  <div class="alert alert-purple"><strong>🎬 制作人抽查机制：</strong>制作人在每批次交付中随机抽查 10%~20% 的资源，重点关注：① 品质天花板是否达到预期 ② 批次内一致性 ③ 与竞品的对比优势。制作人抽查结果直接影响 CP 的季度评级。</div>
+
+  <h3>6.2 验收反馈模板（增强版）</h3>
+  <pre>
+主题：【验收反馈】[资源名称] — 第 [N] 轮 [技术/美术/引擎]
+
+CP：[名称]
+批次：第 [X] 批 共 [Y] 件
+验收日期：[YYYY-MM-DD]
+验收人：[姓名 + 角色]
+
+━━ 验收结论 ━━
+[✅ 通过 / 🔄 需修改(X件) / ❌ 不通过(X件)]
+
+━━ 统计数据 ━━
+  · 本批总数：[X] 件
+  · 一次通过：[X] 件（通过率 [X]%）
+  · 需修改：[X] 件
+  · 不合格：[X] 件
+
+━━ 问题清单（按优先级排序）━━
+
+#1 [P0-严重] [资源名] — [问题描述]
+   · 当前状态：[描述]
+   · 标准要求：[描述]
+   · 修改要求：[具体修改指导]
+   · 参考：[标杆截图/数值]
+
+#2 [P1-中等] _______________
+#3 [P2-轻微] _______________
+
+━━ 共性问题（需全批次自查）━━
+  · [如有共性问题，要求CP自行排查全批次]
+
+━━ 修改要求 ━━
+  · 修改截止：[日期]
+  · 当前修改轮次：第 [X] / 3 轮
+  · P0 问题必须全部修复
+  · P1 问题限期修复
+  · P2 问题建议修复
+
+优先级说明：
+  P0 = 必须修改，否则无法通过（技术硬伤/品质严重不达标）
+  P1 = 需要修改，影响质量（可感知的品质问题）
+  P2 = 建议修改，提升品质（锦上添花）</pre>
+
+  <h3>6.3 质量趋势追踪（SPC 思维）</h3>
+  <div class="alert alert-blue"><strong>统计过程控制思维：</strong>不只看单次结果，要看趋势。连续追踪每批次的通过率、修改轮次、问题类型分布，识别系统性问题。</div>
+
+  <table>
+    <tr><th>追踪指标</th><th>健康范围</th><th>黄线</th><th>红线</th><th>改进动作</th></tr>
+    <tr><td>一次通过率</td><td>≥ 80%</td><td>70%~80%</td><td>&lt; 70%</td><td>复盘+强化规范培训</td></tr>
+    <tr><td>平均修改轮次</td><td>≤ 1.5 轮</td><td>1.5~2.5 轮</td><td>&gt; 2.5 轮</td><td>首件标准重新校准</td></tr>
+    <tr><td>P0 问题占比</td><td>≤ 5%</td><td>5%~15%</td><td>&gt; 15%</td><td>CP 能力复评+降级</td></tr>
+    <tr><td>通过率趋势</td><td>持平或上升</td><td>连续 2 批下降</td><td>连续 3 批下降</td><td>紧急复盘+人员核查</td></tr>
+    <tr><td>重复问题率</td><td>≤ 10%</td><td>10%~20%</td><td>&gt; 20%</td><td>问题归档+前置检查</td></tr>
+  </table>
+
+  <div class="greenline">
+    <p><strong>🟢 质量闭环逻辑：</strong>验收发现问题 → 归类统计 → 识别 Top3 共性问题 → 反哺到需求下发阶段（增加针对性说明/示例）→ 下批次同类问题下降 → 持续循环改进</p>
+  </div>
+</div>
+<!-- SEC7 -->
+<div class="section" id="sec7">
+  <h2>📝 7. 按资源类型验收 Checklist</h2>
+  <div class="alert alert-blue"><strong>使用说明：</strong>以下 Checklist 按资源类型分类，每个 Checklist 包含技术验收（硬性指标）和美术验收（主观评估）。P0 为必须通过项，任一 P0 不通过即判定为不合格。v2.0 新增"制作人关注点"标注。</div>
+
+  <h3>7.1 角色 3D 模型</h3>
   <div class="checklist">
     <h4>🔧 技术验收（P0 全部必须通过）</h4>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 三角面数符合预算 — 主角 ≤30K / 精英 NPC ≤15K / 杂兵 ≤8K</div>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 法线方向全部正确，无黑面/翻面</div>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> UV 展开无重叠（UV0），Texel Density 偏差 ≤15%</div>
-    <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> PBR 贴图套装齐全 — BaseColor / Normal / ORM</div>
-    <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 贴图尺寸为 2^N（如 2048×2048）</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> PBR 贴图套装齐全 — BaseColor / Normal / ORM（+ Emissive 如需）</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 贴图尺寸为 2^N（如 2048x2048），无非标分辨率</div>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 文件命名符合规范，无中文/空格/特殊字符</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 骨骼结构与项目标准骨架一致，关节数量正确</div>
     <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> LOD 至少 3 级，切换距离合理</div>
-    <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 骨骼蒙皮权重正确，极端 Pose 无穿模/塌陷</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 蒙皮权重正确，极端 Pose 无穿模/塌陷</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 碰撞体简化合理，无过于复杂的物理碰撞</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P2]</strong> 源文件整理干净，无多余历史层/隐藏对象</div>
+  </div>
+  <div class="checklist">
+    <h4>🎬 制作人关注点</h4>
+    <div class="check-item"><span class="box">☐</span><strong>[品质]</strong> 角色辨识度 — 剪影是否独特可辨？</div>
+    <div class="check-item"><span class="box">☐</span><strong>[品质]</strong> 材质表现力 — 金属/布料/皮肤质感是否到位？</div>
+    <div class="check-item"><span class="box">☐</span><strong>[品质]</strong> 竞品对比 — 与同档次竞品角色品质对比结论</div>
   </div>
 
-  <div class="sub-title">3.2 角色立绘（2D）</div>
+  <h3>7.2 角色立绘（2D）</h3>
   <div class="checklist">
     <h4>🎨 视觉 + 技术验收</h4>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 分辨率 ≥ 2048px（长边），色彩模式 sRGB</div>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> PSD 图层分组清晰 — 线稿/底色/阴影/高光/特效分层</div>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> PNG 导出含正确 Alpha 通道</div>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 角色比例与设定画一致，头身比误差 ≤5%</div>
-    <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 画风与项目基准统一</div>
-    <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 光影方向统一（默认左上方 45°）</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 画风与项目基准统一，无明显风格割裂</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 光影方向统一（默认左上方 45 度）</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 配饰/武器细节完成度达标</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P2]</strong> 构图饱满，视觉重心明确</div>
   </div>
 
-  <div class="sub-title">3.3 场景资产</div>
+  <h3>7.3 场景资产</h3>
   <div class="checklist">
     <h4>🔧 技术验收</h4>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 面数符合预算 — 大物件 ≤5K / 中物件 ≤2K / 小物件 ≤500</div>
-    <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 模块化拼接无缝隙、无法线错误</div>
-    <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> Lightmap UV 无重叠</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 模块化拼接无缝隙、法线方向正确</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> Lightmap UV 无重叠，Texel Density 均匀</div>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 贴图分辨率匹配 — 大物件 2048 / 中物件 1024 / 小物件 512</div>
-    <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> Pivot Point 正确；碰撞体简化合理</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> Pivot Point 正确（底面中心）；碰撞体简化合理</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 支持 Instancing；相同材质合并</div>
   </div>
 
-  <div class="sub-title">3.4 UI 资源</div>
+  <h3>7.4 UI 资源</h3>
   <div class="checklist">
     <h4>🔧 技术验收</h4>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 切图精确，无多余透明像素；PNG 格式含正确 Alpha</div>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 9 宫格切片标注正确，拉伸测试无变形</div>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 命名规范 — <code>ui_模块_元素_状态.png</code></div>
+    <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 尺寸符合设计稿标注，误差 ≤2px</div>
     <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 交互状态齐全 — Normal / Pressed / Disabled / Hover</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 适配多分辨率，@1x/@2x/@3x 齐全</div>
   </div>
 
-  <div class="sub-title">3.5 动画资源</div>
+  <h3>7.5 动画资源</h3>
   <div class="checklist">
     <h4>🔧 技术验收</h4>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 帧率 30FPS（3D）/ 12~24FPS（2D 帧动画）</div>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> Root Motion 与实际位移匹配</div>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> Loop 动画首尾帧无跳变</div>
-    <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 无自穿插；重心符合物理规律</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 无自穿插；重心符合物理规律</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 动画时长在规范范围内（攻击 0.5~1.5s）</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> Blend 过渡自然，无突变帧</div>
   </div>
 
-  <div class="sub-title">3.6 特效资源</div>
+  <h3>7.6 特效资源</h3>
   <div class="checklist">
     <h4>🔧 技术验收</h4>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 单特效 Draw Call ≤10；Overdraw ≤ 屏幕 30%</div>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 特效结束后无残留粒子</div>
     <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 贴图格式正确（TGA/EXR，非 JPEG）</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P0]</strong> 特效层级正确，不会被场景/角色遮挡错误</div>
     <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 节奏感清晰 — 前摇 → 爆发 → 残留</div>
+    <div class="check-item"><span class="box">☐</span><strong>[P1]</strong> 颜色与项目色彩体系统一</div>
   </div>
 </div>
 
-<!-- SEC4 -->
-<div class="section" id="sec4">
-  <h2>📝 4. 模板与文档</h2>
+<!-- SEC8 -->
+<div class="section" id="sec8">
+  <h2>⚠️ 8. 风险预警与应急体系</h2>
 
-  <div class="sub-title">4.1 CP 综合评估模板</div>
-  <pre>
-━━━━━━━━━━━━━━━━━━━━━━━━
-CP 综合评估表
-━━━━━━━━━━━━━━━━━━━━━━━━
-
-CP 名称：_______________
-评估周期：_____ 至 _____
-评估人：_______________
-
-■ 质量评分（满分 30 分）
-  · 首件通过率：_____ / 10
-  · 最终验收通过率：_____ / 10
-  · 风格一致性：_____ / 10
-
-■ 效率评分（满分 30 分）
-  · 按时交付率：_____ / 10
-  · 修改轮次（越少越好）：_____ / 10
-  · 响应速度：_____ / 10
-
-■ 协作评分（满分 20 分）
-  · 沟通主动性：_____ / 10
-  · 规范遵循度：_____ / 10
-
-■ 性价比评分（满分 20 分）
-  · 价格合理性：_____ / 10
-  · 综合性价比：_____ / 10
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-总分：_____ / 100
-等级：□ S（90+）□ A（80~89）□ B（70~79）□ C（60~69）□ D（&lt;60）
-续约建议：□ 优先续约  □ 正常续约  □ 观察  □ 不推荐
-━━━━━━━━━━━━━━━━━━━━━━━━</pre>
-
-  <div class="sub-title">4.2 外包合同核心条款 Checklist</div>
-  <div class="checklist">
-    <h4>📝 合同必备条款</h4>
-    <div class="check-item"><span class="box">☐</span>明确交付物清单（资源类型 + 数量 + 格式 + 规格）</div>
-    <div class="check-item"><span class="box">☐</span>明确排期节点（首件 / 中期 / 终验日期）</div>
-    <div class="check-item"><span class="box">☐</span>明确验收标准（引用验收 Checklist 作为合同附件）</div>
-    <div class="check-item"><span class="box">☐</span>明确修改次数上限（通常 3 轮，超出另计费）</div>
-    <div class="check-item"><span class="box">☐</span>明确付款方式（分阶段：30% + 30% + 40%）</div>
-    <div class="check-item"><span class="box">☐</span>原创性声明（CP 保证资源非抄袭、非 AI 直出）</div>
-    <div class="check-item"><span class="box">☐</span>版权归属条款（通常全部归属甲方）</div>
-    <div class="check-item"><span class="box">☐</span>保密条款（NDA，含泄露赔偿）</div>
-    <div class="check-item"><span class="box">☐</span>延期违约条款（延期扣款比例）</div>
-    <div class="check-item"><span class="box">☐</span>响应时效条款（24 小时内必须回复）</div>
-    <div class="check-item"><span class="box">☐</span>核心人员变更通知义务</div>
-    <div class="check-item"><span class="box">☐</span>争议解决条款</div>
-  </div>
-</div>
-
-<!-- SEC5 -->
-<div class="section" id="sec5">
-  <h2>💡 5. APM 外包管理经验总结</h2>
-
-  <div class="sub-title">5.1 核心原则</div>
-  <div class="alert alert-blue"><strong>外包管理六字诀：清晰、前置、留痕</strong><br>· <strong>清晰</strong> — 需求越清晰，返工越少。模糊需求 = 返工成本 × 3<br>· <strong>前置</strong> — 首件制度、规范前置、风险前置。后期补救的成本是前期预防的 5~10 倍<br>· <strong>留痕</strong> — 所有关键决策通过邮件确认。口头约定 = 没有约定</div>
-
-  <div class="sub-title">5.2 常见误区</div>
-  <div class="dd-grid">
-    <div class="dd-card dd-dont">
-      <h4>❌ Don't — 常见误区</h4>
-      <p>· "CP 是专业的，不用说太细"→ 每家 CP 标准不同，不说清就各做各的</p>
-      <p>· "首件差不多就行，批量再改"→ 批量返工成本是首件修改的 10x</p>
-      <p>· "群里说了就算数"→ 事后扯皮无据可查</p>
-      <p>· "只看最终效果，过程不管"→ 到最后才发现问题，补救困难</p>
-      <p>· "便宜的 CP 更省钱"→ 低价 CP 返工率高，综合成本反而更贵</p>
-      <p>· "一家 CP 做所有"→ 单点依赖风险大</p>
-    </div>
-    <div class="dd-card dd-do">
-      <h4>✅ Do — 正确做法</h4>
-      <p>· 提供详细规范 + 参考图 + 交付模板</p>
-      <p>· 首件必须严格达标后才批量</p>
-      <p>· 重要决定邮件确认</p>
-      <p>· 设置中间检查点 + 周进度同步</p>
-      <p>· 用 CP 评估表综合评分选择</p>
-      <p>· 核心资源至少 2 家 CP 备选</p>
-    </div>
+  <div class="golden-quote">
+    <p>外包的最大风险不是"出问题"，而是"出了问题你不知道"。预警系统让你比问题先到。</p>
+    <div class="src">— 风险管理第一定律</div>
   </div>
 
-  <div class="sub-title">5.3 推荐流程优化</div>
+  <h3>8.1 红黄绿灯预警体系</h3>
   <table>
-    <tr><th>优化点</th><th>描述</th><th>效果</th></tr>
-    <tr><td>🔧 工具化验收</td><td>使用自动化检测工具替代人工逐项检查</td><td>验收效率提升 60%+</td></tr>
-    <tr><td>📊 数据化管理</td><td>建立 CP 评分数据库，量化质量/效率/成本</td><td>选 CP 有据可依</td></tr>
-    <tr><td>📝 模板化沟通</td><td>统一使用本手册中的模板进行沟通</td><td>减少信息遗漏</td></tr>
-    <tr><td>🔄 首件快速循环</td><td>首件审核 24 小时内反馈，加速进入批量</td><td>整体周期缩短 15%+</td></tr>
-    <tr><td>📦 标准化交付</td><td>提供交付 ZIP 模板 + 自检工具</td><td>格式问题降低 80%+</td></tr>
+    <tr><th>风险类型</th><th>🟢 绿灯</th><th>🟡 黄灯</th><th>🔴 红灯</th></tr>
+    <tr><td><strong>进度风险</strong></td><td>偏差 ≤10%</td><td>偏差 10%~25%</td><td>偏差 &gt;25% / 交付逾期</td></tr>
+    <tr><td><strong>质量风险</strong></td><td>通过率 ≥80%</td><td>通过率 60%~80%</td><td>通过率 &lt;60% / 批量 P0</td></tr>
+    <tr><td><strong>沟通风险</strong></td><td>响应 &lt;24h</td><td>响应 24~48h</td><td>响应 &gt;48h / 失联</td></tr>
+    <tr><td><strong>人员风险</strong></td><td>核心人员稳定</td><td>核心人员拟变更</td><td>核心人员突然离职</td></tr>
+    <tr><td><strong>财务风险</strong></td><td>正常运营</td><td>要求提前付款/频繁催款</td><td>传闻经营困难/欠薪</td></tr>
+    <tr><td><strong>合规风险</strong></td><td>无异常</td><td>疑似 AI 痕迹/素材来源可疑</td><td>确认抄袭/AI直出/转包</td></tr>
+  </table>
+
+  <h3>8.2 风险响应矩阵</h3>
+  <table>
+    <tr><th>场景</th><th>即时动作</th><th>48h 内动作</th><th>1 周内动作</th></tr>
+    <tr><td><strong>CP 突然失联</strong></td><td>多渠道联系+锁定已交付资产</td><td>启动备选 CP + 通知法务</td><td>完成交接 + 合同终止</td></tr>
+    <tr><td><strong>批量质量崩盘</strong></td><td>暂停该 CP 所有在制任务</td><td>原因分析 + 决定重做/修改/换CP</td><td>复盘报告 + CP 降级</td></tr>
+    <tr><td><strong>核心人员离职</strong></td><td>评估影响范围 + 获取交接承诺</td><td>新人员首件测试</td><td>重新评估合作等级</td></tr>
+    <tr><td><strong>确认转包</strong></td><td>收集证据 + 暂停付款</td><td>正式书面警告 + 要求整改</td><td>终止合同 + 索赔 + 永久移出</td></tr>
+    <tr><td><strong>AI 直出被发现</strong></td><td>退回 + 标记不合格</td><td>全批次复查 + 追溯历史批次</td><td>合同违约处理 + 评估影响</td></tr>
+    <tr><td><strong>CP 涨价要求</strong></td><td>分析合理性 + 参照合同条款</td><td>市场比价 + 内部评估</td><td>谈判/接受/更换</td></tr>
+  </table>
+
+  <h3>8.3 应急预案 — 备选CP快速启动</h3>
+  <div class="flow">
+    <div class="flow-node gate"><strong>触发</strong><div class="sub">红灯/失联/崩盘</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>评估影响</strong><div class="sub">量/排期/成本</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>激活备选</strong><div class="sub">从CP池选S/A级</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>需求转移</strong><div class="sub">打包+交接+对齐</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>恢复跟踪</strong><div class="sub">新CP首件→批量</div></div>
+  </div>
+
+  <div class="alert alert-red"><strong>🔴 应急预案前置要求：</strong><br>
+  · 每个核心工种至少 2 家备选 CP（已签 NDA、已通过测试件）<br>
+  · 备选 CP 每季度更新一次"预热沟通"（保持关系活跃）<br>
+  · 应急启动包提前准备好：含最新规范 + 引擎包 + 标杆包</div>
+
+  <h3>8.4 常见问题处理速查</h3>
+  <table>
+    <tr><th>问题</th><th>典型表现</th><th>立即处理</th><th>长期预防</th></tr>
+    <tr><td><span class="badge-sm badge-red">模型面数超标</span></td><td>交付面数远超预算</td><td>发送超标通知+具体数值</td><td>下发面数检测脚本+自检要求</td></tr>
+    <tr><td><span class="badge-sm badge-red">PBR 效果差</span></td><td>金属像塑料/布料像金属</td><td>提供标准Checker+数值参考</td><td>要求引擎内截图验收</td></tr>
+    <tr><td><span class="badge-sm badge-yellow">命名不规范</span></td><td>含中文/空格/特殊字符</td><td>提供交付目录模板ZIP</td><td>自检工具+不规范退回</td></tr>
+    <tr><td><span class="badge-sm badge-yellow">风格不统一</span></td><td>不同美术师差异明显</td><td>提供标杆对照组</td><td>同批资源指定同一美术师</td></tr>
+    <tr><td><span class="badge-sm badge-red">版权争议</span></td><td>素材来源不明</td><td>暂停使用+溯源</td><td>合同原创声明+定期查重</td></tr>
+    <tr><td><span class="badge-sm badge-orange">多CP协作冲突</span></td><td>衔接处品质/风格断裂</td><td>APM统一协调+衔接Checklist</td><td>边界定义清晰+跨CP首件对齐</td></tr>
   </table>
 </div>
 
-<div class="doc-footer">📋 外包全流程管理指南 · v1.0 · 美术中心 · 项目内部资料</div>
+<!-- SEC9 -->
+<div class="section" id="sec9">
+  <h2>💲 9. 成本控制与结算工程</h2>
+
+  <div class="golden-quote">
+    <p>成本控制不是"砍价"，而是"结构优化"。用对模式、管好质量、减少返工——这三件事做好，成本自然省 20%+。</p>
+    <div class="src">— 采购PM成本思维</div>
+  </div>
+
+  <h3>9.1 外包成本结构拆解</h3>
+  <table>
+    <tr><th>成本组成</th><th>占比</th><th>说明</th><th>优化杠杆</th></tr>
+    <tr><td><strong>直接制作成本</strong></td><td>60%~70%</td><td>CP报价 × 数量</td><td>批量折扣/年框/阶梯价</td></tr>
+    <tr><td><strong>管理成本</strong></td><td>10%~15%</td><td>APM人力+沟通+协调</td><td>标准化流程/模板化/自动化</td></tr>
+    <tr><td><strong>返工成本</strong></td><td>10%~20%</td><td>修改次数 × 单次成本</td><td>首件严把关/需求清晰度</td></tr>
+    <tr><td><strong>风险成本</strong></td><td>5%~10%</td><td>延期/失败/换CP重做</td><td>分级管理/预警/备选池</td></tr>
+    <tr><td><strong>隐性成本</strong></td><td>3%~5%</td><td>内部评审/沟通/等待</td><td>快速响应/并行评审</td></tr>
+  </table>
+
+  <h3>9.2 六大成本优化策略</h3>
+  <table>
+    <tr><th>策略</th><th>描述</th><th>预期效果</th><th>适用条件</th></tr>
+    <tr><td><strong>① 需求清晰化</strong></td><td>需求下发做到"六有"，减少因模糊导致的返工</td><td>返工率降 40%+</td><td>所有项目</td></tr>
+    <tr><td><strong>② 首件严把关</strong></td><td>首件审核不妥协，避免批量方向错误</td><td>方向性返工降 80%</td><td>所有项目</td></tr>
+    <tr><td><strong>③ 年框锁价</strong></td><td>与 S/A 级 CP 签年框，换取 15%~25% 价格优势</td><td>直接成本降 15%+</td><td>量产期稳定需求</td></tr>
+    <tr><td><strong>④ 工具自动化</strong></td><td>自动检测工具替代人工逐项检查</td><td>验收效率提 60%+</td><td>标准化资源</td></tr>
+    <tr><td><strong>⑤ 复杂度拆分</strong></td><td>复杂资源拆分为"高手做核心+普通CP做量"</td><td>综合成本降 10%~20%</td><td>大批量混合需求</td></tr>
+    <tr><td><strong>⑥ 竞争性比价</strong></td><td>保持 CP 池健康竞争，定期比价</td><td>杜绝价格虚高</td><td>长期稳定合作方</td></tr>
+  </table>
+
+  <h3>9.3 结算流程（标准化）</h3>
+  <table>
+    <tr><th>步骤</th><th>内容</th><th>负责人</th><th>输出</th><th>时限</th></tr>
+    <tr><td>1. 验收签收</td><td>全量资源通过三轮验收，双方签字确认</td><td>APM + CP</td><td>验收签收单</td><td>验收通过当日</td></tr>
+    <tr><td>2. 工作量核算</td><td>统计实际交付数量、规格、品质等级</td><td>APM</td><td>工作量确认表</td><td>签收后 2 天</td></tr>
+    <tr><td>3. 奖惩计算</td><td>质量奖金/延期扣款/超次修改费用</td><td>APM</td><td>奖惩明细表</td><td>随工作量核算</td></tr>
+    <tr><td>4. 费用汇总</td><td>直接费用 + 奖惩 = 最终应付金额</td><td>APM + 财务</td><td>费用明细表</td><td>核算后 1 天</td></tr>
+    <tr><td>5. CP 确认</td><td>发送费用明细给 CP 确认无异议</td><td>APM</td><td>CP 确认回执</td><td>发送后 3 天</td></tr>
+    <tr><td>6. 申请付款</td><td>提交付款申请 + 全套验收材料</td><td>APM</td><td>付款申请单</td><td>确认后 1 天</td></tr>
+    <tr><td>7. 资料归档</td><td>合同/验收单/沟通记录/源文件/评分归档</td><td>APM</td><td>项目档案</td><td>付款后 3 天</td></tr>
+  </table>
+
+  <div class="alert alert-yellow"><strong>⚠️ 结算注意事项：</strong><br>
+  · 验收签收前绝不启动付款流程<br>
+  · 修改超过 3 轮的资源，评估是否需要追加费用或扣减<br>
+  · 保留完整的沟通记录和每版本文件，作为争议解决依据<br>
+  · 大额合同分阶段付款：首件通过 30% + 中期 30% + 终验 40%<br>
+  · 每笔结算都要更新 CP 的累计合作数据（用于年度评估）</div>
+</div>
+<!-- SEC10 -->
+<div class="section" id="sec10">
+  <h2>📊 10. KPI 数据驱动管理看板</h2>
+
+  <div class="golden-quote">
+    <p>没有数据的管理是"凭感觉"，有数据的管理是"科学决策"。建立外包 KPI 看板，让每个决策都有据可依。</p>
+    <div class="src">— 数据驱动管理原则</div>
+  </div>
+
+  <h3>10.1 核心 KPI 指标体系</h3>
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">一次通过率</div>
+      <div class="kpi-val" style="color:var(--green)">≥80%</div>
+      <div class="kpi-target">目标值 | 黄线70% | 红线60%</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">按时交付率</div>
+      <div class="kpi-val" style="color:var(--green)">≥90%</div>
+      <div class="kpi-target">目标值 | 黄线80% | 红线70%</div>
+    </div>
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-label">平均修改轮次</div>
+      <div class="kpi-val" style="color:var(--accent)">≤1.5</div>
+      <div class="kpi-target">目标值 | 黄线2.0 | 红线2.5</div>
+    </div>
+    <div class="kpi-card kpi-yellow">
+      <div class="kpi-label">需求返工率</div>
+      <div class="kpi-val" style="color:var(--yellow)">≤10%</div>
+      <div class="kpi-target">目标值 | 黄线15% | 红线20%</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">CP响应时效</div>
+      <div class="kpi-val" style="color:var(--green)">≤12h</div>
+      <div class="kpi-target">目标值 | 黄线24h | 红线48h</div>
+    </div>
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-label">综合成本偏差</div>
+      <div class="kpi-val" style="color:var(--accent)">±5%</div>
+      <div class="kpi-target">vs预算 | 黄线±10% | 红线±15%</div>
+    </div>
+  </div>
+
+  <h3>10.2 月度/季度追踪表结构</h3>
+  <table>
+    <tr><th>指标</th><th>1月</th><th>2月</th><th>3月</th><th>Q1均值</th><th>趋势</th><th>动作</th></tr>
+    <tr><td>一次通过率</td><td>82%</td><td>78%</td><td>75%</td><td>78%</td><td><span class="badge-sm badge-red">↓ 下降</span></td><td>触发黄灯复盘</td></tr>
+    <tr><td>按时交付率</td><td>90%</td><td>92%</td><td>91%</td><td>91%</td><td><span class="badge-sm badge-green">→ 稳定</span></td><td>正常</td></tr>
+    <tr><td>平均修改轮次</td><td>1.3</td><td>1.5</td><td>1.8</td><td>1.5</td><td><span class="badge-sm badge-yellow">↑ 上升</span></td><td>分析原因</td></tr>
+    <tr><td>综合成本偏差</td><td>-2%</td><td>+3%</td><td>+5%</td><td>+2%</td><td><span class="badge-sm badge-yellow">↑ 上升</span></td><td>成本审计</td></tr>
+  </table>
+
+  <h3>10.3 CP 个体评分卡</h3>
+  <table>
+    <tr><th>评分维度</th><th>权重</th><th>S(90+)</th><th>A(80~89)</th><th>B(70~79)</th><th>C(&lt;70)</th></tr>
+    <tr><td><strong>质量分</strong></td><td>35%</td><td>一次通过率≥90%</td><td>80%~89%</td><td>70%~79%</td><td>&lt;70%</td></tr>
+    <tr><td><strong>效率分</strong></td><td>25%</td><td>按时率≥95%+修改≤1轮</td><td>按时90%+修改≤1.5轮</td><td>按时80%+修改≤2轮</td><td>按时&lt;80%</td></tr>
+    <tr><td><strong>协作分</strong></td><td>20%</td><td>响应&lt;4h+主动沟通</td><td>响应&lt;12h</td><td>响应&lt;24h</td><td>响应&gt;24h</td></tr>
+    <tr><td><strong>性价比</strong></td><td>15%</td><td>低于市场均价+品质优</td><td>持平+品质稳</td><td>略高+品质达标</td><td>高价+品质差</td></tr>
+    <tr><td><strong>稳定性</strong></td><td>5%</td><td>无人员/经营风险</td><td>轻微波动</td><td>有可控风险</td><td>高风险</td></tr>
+  </table>
+
+  <div class="alert alert-green"><strong>评分应用规则：</strong><br>
+  · 季度评估一次，取 3 个月数据加权<br>
+  · 连续 2 次 S 级 → 升级为战略合作伙伴<br>
+  · 单次 C 级 → 限期整改（1 个月）<br>
+  · 连续 2 次 C 级 → 移出 CP 池<br>
+  · 评分数据对 CP 透明公开（激励改进）</div>
+
+  <h3>10.4 数据采集清单</h3>
+  <table>
+    <tr><th>数据项</th><th>采集时点</th><th>采集人</th><th>存储位置</th></tr>
+    <tr><td>交付时间（计划 vs 实际）</td><td>每次交付</td><td>APM</td><td>CP 档案表</td></tr>
+    <tr><td>验收通过/不通过数量</td><td>每次验收</td><td>APM</td><td>验收记录表</td></tr>
+    <tr><td>修改轮次</td><td>最终通过时</td><td>APM</td><td>CP 档案表</td></tr>
+    <tr><td>问题类型标签</td><td>每次验收</td><td>APM</td><td>问题库</td></tr>
+    <tr><td>CP 响应时长</td><td>每次沟通</td><td>APM</td><td>CP 档案表</td></tr>
+    <tr><td>费用/人天消耗</td><td>每次结算</td><td>APM + 财务</td><td>财务台账</td></tr>
+  </table>
+</div>
+
+<!-- SEC11 -->
+<div class="section" id="sec11">
+  <h2>🔄 11. CP 生命周期管理（准入 → 培养 → 淘汰）</h2>
+
+  <div class="golden-quote">
+    <p>CP 池是活水不是死水。保持 15%~20% 的年周转率，既不折腾又有活力。</p>
+    <div class="src">— 供应商管理生态观</div>
+  </div>
+
+  <h3>11.1 生命周期全景</h3>
+  <div class="flow">
+    <div class="flow-node start"><strong>寻源</strong><div class="sub">行业搜集+推荐</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>准入</strong><div class="sub">评估+测试件</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>磨合期</strong><div class="sub">首批小单+辅导</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node purple"><strong>成长期</strong><div class="sub">扩量+深度合作</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>成熟期</strong><div class="sub">稳定产出+战略</div></div>
+  </div>
+  <div class="flow">
+    <div class="flow-node warn"><strong>衰退期</strong><div class="sub">品质/效率下降</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>整改期</strong><div class="sub">限期改进</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node gate"><strong>退出</strong><div class="sub">淘汰/友好结束</div></div>
+  </div>
+
+  <h3>11.2 各阶段管理重点</h3>
+  <table>
+    <tr><th>阶段</th><th>周期</th><th>管理重点</th><th>PM 动作</th><th>制作人角色</th></tr>
+    <tr><td><strong>寻源</strong></td><td>持续</td><td>信息搜集、行业关系</td><td>参加展会/行业群/同行推荐</td><td>提供方向性需求</td></tr>
+    <tr><td><strong>准入</strong></td><td>2~4 周</td><td>能力验证、价格合理性</td><td>评分表+测试件+商务洽谈</td><td>测试件品质判定</td></tr>
+    <tr><td><strong>磨合期</strong></td><td>1~3 个月</td><td>规范对齐、默契建立</td><td>密集沟通+小批量+快速反馈</td><td>首件审核</td></tr>
+    <tr><td><strong>成长期</strong></td><td>3~6 个月</td><td>提升产能、拓展品类</td><td>逐步放量+培训+标准输出</td><td>偶尔抽查</td></tr>
+    <tr><td><strong>成熟期</strong></td><td>6个月+</td><td>稳定高效、战略协同</td><td>年框+季度会面+联合优化</td><td>战略级审核</td></tr>
+    <tr><td><strong>衰退期</strong></td><td>不定</td><td>识别衰退信号、干预</td><td>数据预警+原因分析+警告</td><td>决策是否挽留</td></tr>
+    <tr><td><strong>整改期</strong></td><td>1~2 个月</td><td>给出明确改进要求</td><td>改进计划+定期检查</td><td>—</td></tr>
+    <tr><td><strong>退出</strong></td><td>1~2 周</td><td>有序退出、资产交接</td><td>结算清算+资料归档+关系维护</td><td>确认决策</td></tr>
+  </table>
+
+  <h3>11.3 衰退信号识别（早期预警）</h3>
+  <div class="alert alert-yellow"><strong>以下信号出现 3 个以上，应进入"衰退观察"：</strong></div>
+  <table>
+    <tr><th>序号</th><th>信号</th><th>可能原因</th></tr>
+    <tr><td>1</td><td>一次通过率连续 3 批下降</td><td>核心人员离职/疲劳/重心转移</td></tr>
+    <tr><td>2</td><td>响应速度明显变慢</td><td>接单过多/人手不足</td></tr>
+    <tr><td>3</td><td>主动沟通减少</td><td>合作倦怠/内部问题</td></tr>
+    <tr><td>4</td><td>频繁要求涨价或加预付</td><td>现金流压力/经营困难</td></tr>
+    <tr><td>5</td><td>核心美术师更换频繁</td><td>公司内部动荡</td></tr>
+    <tr><td>6</td><td>疑似接了竞品项目</td><td>产能分散/保密风险</td></tr>
+    <tr><td>7</td><td>交付物中出现 AI 痕迹增多</td><td>降本冲动/态度变化</td></tr>
+    <tr><td>8</td><td>修改后品质不升反降</td><td>对项目失去重视</td></tr>
+  </table>
+
+  <h3>11.4 友好退出流程</h3>
+  <div class="checklist">
+    <h4>CP 退出操作清单</h4>
+    <div class="check-item"><span class="box">☐</span>完成所有在制任务的结算（或协商中止方案）</div>
+    <div class="check-item"><span class="box">☐</span>收回所有项目资料（规范/设定/源文件/引擎包）</div>
+    <div class="check-item"><span class="box">☐</span>确认 NDA 持续有效期（通常合作结束后 2~3 年）</div>
+    <div class="check-item"><span class="box">☐</span>更新 CP 池状态为"已退出"+ 退出原因记录</div>
+    <div class="check-item"><span class="box">☐</span>通知内部相关人员（PM/Art Lead/制作人）</div>
+    <div class="check-item"><span class="box">☐</span>激活备选 CP 承接后续需求</div>
+    <div class="check-item"><span class="box">☐</span>保持基本联系（行业圈小，不要撕破脸）</div>
+  </div>
+</div>
+
+<!-- SEC12 -->
+<div class="section" id="sec12">
+  <h2>🎬 12. 制作人红线与品质底线</h2>
+
+  <div class="golden-quote">
+    <p>外包的品质底线不是"能用就行"，而是"放到产品里不会让玩家觉得差"。制作人的标准就是玩家的标准。</p>
+    <div class="src">— 制作人品质哲学</div>
+  </div>
+
+  <h3>12.1 制作人在外包管理中的角色定位</h3>
+  <table>
+    <tr><th>定位</th><th>描述</th><th>介入频率</th></tr>
+    <tr><td><strong>品质守门人</strong></td><td>定义"什么品质是可接受的"底线</td><td>首件+关键节点</td></tr>
+    <tr><td><strong>方向决策者</strong></td><td>当外包方向有分歧时做最终裁决</td><td>需要时</td></tr>
+    <tr><td><strong>战略审批者</strong></td><td>S级CP认定、大额合同审批</td><td>季度</td></tr>
+    <tr><td><strong>危机处理者</strong></td><td>红灯事件的最终决策（终止/更换/坚持）</td><td>偶发</td></tr>
+  </table>
+
+  <div class="alert alert-red"><strong>🔴 制作人不应该做的事：</strong><br>
+  · 不参与日常进度跟催（那是 APM 的工作）<br>
+  · 不直接和 CP 谈价格（那是采购 PM 的工作）<br>
+  · 不逐件审核（只抽查关键件）<br>
+  · 不频繁改变方向（改方向的成本 = 已完成量 × 单价）</div>
+
+  <h3>12.2 品质红线清单（不可妥协）</h3>
+  <div class="redline">
+    <p><strong>以下红线任一触碰，资源即判定不合格，无论其他方面多好：</strong></p>
+  </div>
+  <table>
+    <tr><th>序号</th><th>红线</th><th>原因</th><th>案例</th></tr>
+    <tr><td>1</td><td><strong>抄袭/侵权</strong></td><td>法律风险 + 品牌声誉</td><td>CP 直接使用竞品资源修改</td></tr>
+    <tr><td>2</td><td><strong>AI 直出未申报</strong></td><td>品质不可控 + 合规风险</td><td>Midjourney 直出当原画交付</td></tr>
+    <tr><td>3</td><td><strong>严重风格偏离</strong></td><td>破坏产品整体视觉统一</td><td>写实项目混入卡通风格</td></tr>
+    <tr><td>4</td><td><strong>性能严重超标</strong></td><td>影响游戏运行流畅度</td><td>单角色 50K+ 面（预算 15K）</td></tr>
+    <tr><td>5</td><td><strong>转包未告知</strong></td><td>品质不可控 + 保密风险</td><td>CP 私下转给第三方制作</td></tr>
+    <tr><td>6</td><td><strong>文化/政治敏感</strong></td><td>合规风险 + 上线障碍</td><td>含争议符号/手势/文字</td></tr>
+  </table>
+
+  <h3>12.3 制作人品质评级标准</h3>
+  <table>
+    <tr><th>品质等级</th><th>定义</th><th>对应产品场景</th><th>典型标准</th></tr>
+    <tr><td><span class="badge-sm badge-purple">SSS 超品质</span></td><td>超越竞品，可作为宣传卖点</td><td>PV/宣传/核心角色</td><td>高于竞品 Top10% 品质</td></tr>
+    <tr><td><span class="badge-sm badge-green">S 高品质</span></td><td>与竞品持平或略优</td><td>主要角色/核心场景</td><td>达到竞品平均品质</td></tr>
+    <tr><td><span class="badge-sm badge-blue">A 达标品质</span></td><td>不拉低产品整体水平</td><td>次要角色/普通场景</td><td>玩家无感知差异</td></tr>
+    <tr><td><span class="badge-sm badge-yellow">B 可用品质</span></td><td>功能可用但品质一般</td><td>临时/测试/内部验证</td><td>仅限非正式场景</td></tr>
+    <tr><td><span class="badge-sm badge-red">C 不可接受</span></td><td>品质明显低于标准</td><td>退回重做</td><td>任何正式场景均不可用</td></tr>
+  </table>
+
+  <div class="alert alert-purple"><strong>🎬 制作人决策锦囊：</strong><br>
+  · <strong>首件审核问自己三个问题：</strong>① 这个品质放到竞品里什么水平？② 批量化后整体观感如何？③ 玩家第一眼会不会觉得"廉价"？<br>
+  · <strong>当品质和排期冲突时：</strong>核心资源选品质，非核心资源选排期。永远不要让核心资源品质妥协。<br>
+  · <strong>当预算和品质冲突时：</strong>减量不减质。宁可少做 30% 数量，也不要 100% 都是平庸品质。<br>
+  · <strong>当 CP 达到天花板时：</strong>明确告知期望，给改进机会。如果连续 2 次仍不达标，友好更换不犹豫。</div>
+
+  <h3>12.4 制作人审核 Checklist</h3>
+  <div class="checklist">
+    <h4>🎬 制作人抽查评审表</h4>
+    <div class="check-item"><span class="box">☐</span><strong>[辨识度]</strong> 角色/场景的第一眼辨识度是否足够？剪影测试通过？</div>
+    <div class="check-item"><span class="box">☐</span><strong>[竞品对标]</strong> 与竞品同品类资源对比，品质处于什么档位？</div>
+    <div class="check-item"><span class="box">☐</span><strong>[风格统一]</strong> 放到已有资源旁边，是否和谐统一？</div>
+    <div class="check-item"><span class="box">☐</span><strong>[细节完成度]</strong> 微距查看细节是否经得起推敲？</div>
+    <div class="check-item"><span class="box">☐</span><strong>[情感传达]</strong> 资源是否传达了设计师想要的情感/氛围？</div>
+    <div class="check-item"><span class="box">☐</span><strong>[创意价值]</strong> 是否有超出预期的创意亮点？</div>
+    <div class="check-item"><span class="box">☐</span><strong>[批量一致性]</strong> 本批次内品质方差是否在可接受范围？</div>
+    <div class="check-item"><span class="box">☐</span><strong>[玩家视角]</strong> 站在玩家角度，这个品质是否让人愿意付费/点赞？</div>
+  </div>
+</div>
+
+<!-- 经验总结 -->
+<div class="section">
+  <h2>💡 附录：APM 外包管理核心心法</h2>
+
+  <h3>A.1 六字诀：清晰、前置、留痕</h3>
+  <div class="alert alert-blue"><strong>外包管理的底层逻辑：</strong><br>
+  · <strong>清晰</strong> — 需求越清晰，返工越少。模糊需求 = 返工成本 x 3<br>
+  · <strong>前置</strong> — 首件制度、规范前置、风险前置。后期补救成本是前期预防的 5~10 倍<br>
+  · <strong>留痕</strong> — 所有关键决策通过邮件确认。口头约定 = 没有约定</div>
+
+  <h3>A.2 Don't vs Do 对照</h3>
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't — 常见误区</h4>
+      <p>· "CP是专业的，不用说太细" → 每家标准不同，不说清就各做各的</p>
+      <p>· "首件差不多就行" → 批量返工成本是首件修改的 10x</p>
+      <p>· "群里说了就算数" → 事后扯皮无据可查</p>
+      <p>· "只看最终效果" → 到最后才发现问题已无力回天</p>
+      <p>· "最便宜的更省钱" → 低价CP返工率高，综合成本反而贵</p>
+      <p>· "一家CP做所有" → 单点依赖风险巨大</p>
+      <p>· "压到最低价" → CP没利润就没动力，品质必然下滑</p>
+      <p>· "出问题再说" → 等暴露已是最贵的时间修复</p>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ Do — 正确做法</h4>
+      <p>· 提供详细规范 + 参考图 + 标杆包 + 交付模板</p>
+      <p>· 首件必须严格达标后才批量，制作人把关</p>
+      <p>· 重要决定邮件确认，关键对话截图备份</p>
+      <p>· 设置 5 级检查点 + 红黄绿灯预警</p>
+      <p>· 用 CP 评分卡科学选择，数据说话</p>
+      <p>· 核心资源至少 2 家 CP 备选</p>
+      <p>· 用结构（奖惩/阶梯/长约）替代单纯压价</p>
+      <p>· 数据驱动：追踪趋势，提前干预</p>
+    </div>
+  </div>
+
+  <h3>A.3 制作人金句 — 外包管理篇</h3>
+  <div class="dd-grid">
+    <div class="dd-card dd-neutral">
+      <h4>🎬 关于品质</h4>
+      <p>· "外包品质的上限取决于你的标杆包，下限取决于你的红线清晰度"</p>
+      <p>· "不要指望 CP 超水平发挥，他们的天花板就是首件的品质"</p>
+      <p>· "验收时问自己：如果竞品看到这个品质，会嘲笑还是紧张？"</p>
+    </div>
+    <div class="dd-card dd-neutral">
+      <h4>💰 关于成本</h4>
+      <p>· "最贵的成本不是 CP 单价，而是方向错误后的全量重做"</p>
+      <p>· "省钱的最佳方式不是砍价，而是减少返工次数"</p>
+      <p>· "一个好的首件审核，胜过十轮批量修改"</p>
+    </div>
+  </div>
+  <div class="dd-grid">
+    <div class="dd-card dd-neutral">
+      <h4>🤝 关于关系</h4>
+      <p>· "把 CP 当合作伙伴而不是供应商，他们会多给你 20% 的用心"</p>
+      <p>· "但合同条款一个字都不能松，这是保护双方的底线"</p>
+      <p>· "行业圈子很小，每次合作都是在建立口碑"</p>
+    </div>
+    <div class="dd-card dd-neutral">
+      <h4>⚡ 关于效率</h4>
+      <p>· "外包管理 80% 的功夫在需求下发前，20% 在下发后"</p>
+      <p>· "如果你每天都在催进度，说明你的检查点设得不够"</p>
+      <p>· "好的外包管理是让 CP 知道你比他更清楚进度"</p>
+    </div>
+  </div>
+
+  <h3>A.4 推荐流程优化项</h3>
+  <table>
+    <tr><th>优化点</th><th>描述</th><th>效果</th><th>优先级</th></tr>
+    <tr><td>🔧 工具化验收</td><td>自动检测脚本替代人工逐项检查</td><td>验收效率提升 60%+</td><td><span class="badge-sm badge-red">P0</span></td></tr>
+    <tr><td>📊 CP 数据台账</td><td>建立 CP 评分数据库，量化追踪</td><td>选 CP 有据可依</td><td><span class="badge-sm badge-red">P0</span></td></tr>
+    <tr><td>📝 模板化沟通</td><td>统一使用标准模板进行沟通</td><td>减少信息遗漏</td><td><span class="badge-sm badge-yellow">P1</span></td></tr>
+    <tr><td>🔄 首件快速循环</td><td>首件审核 24h 内反馈</td><td>整体周期缩短 15%+</td><td><span class="badge-sm badge-red">P0</span></td></tr>
+    <tr><td>📦 标准化交付包</td><td>提供交付 ZIP 模板 + 自检工具</td><td>格式问题降低 80%+</td><td><span class="badge-sm badge-yellow">P1</span></td></tr>
+    <tr><td>🤖 AI 辅助审核</td><td>AI 工具初筛（面数/命名/UV），人工终审品质</td><td>技术验收效率翻倍</td><td><span class="badge-sm badge-blue">P2</span></td></tr>
+  </table>
+</div>
+
+<div class="doc-footer">📋 外包全链路管理指南 · v2.0 · 采购PM+制作人双视角深度版 · 美术中心 · 项目内部资料</div>
 </div>
 <script src="editor-kit.js"></script>
 <script src="toc-enhancer.js?v=1.1"></script>
@@ -484,35 +1216,29 @@ CP 名称：_______________
   if(!toc)return;
   var links=toc.querySelectorAll('a[href^="#"]');
   if(links.length<5)return;
-  // Wrap existing content
   var h3=toc.querySelector('h3');
   var ol=toc.querySelector('ol');
   if(!ol)return;
   var topCount=ol.querySelectorAll(':scope>li').length;
   var totalCount=links.length;
-  // Build toggle bar
   var bar=document.createElement('div');
   bar.className='toc-toggle-bar';
   bar.innerHTML='<div style="display:flex;align-items:center">'+
     (h3?h3.outerHTML:'')+
     '<span class="toc-badge">'+topCount+' \u7AE0 \u00B7 '+totalCount+' \u8282</span></div>'+
     '<span class="toc-hint"><span class="toc-hint-text">\u70B9\u51FB\u5C55\u5F00</span> <span class="toc-chevron">\u25BC</span></span>';
-  // Create inner wrapper
   var inner=document.createElement('div');
   inner.className='toc-inner';
   inner.appendChild(ol);
-  // Clear and rebuild
   toc.innerHTML='';
   toc.appendChild(bar);
   toc.appendChild(inner);
   toc.classList.add('toc-folded');
-  // Bind toggle
   var hintText=bar.querySelector('.toc-hint-text');
   bar.addEventListener('click',function(){
     var folded=toc.classList.toggle('toc-folded');
     hintText.textContent=folded?'\u70B9\u51FB\u5C55\u5F00':'\u70B9\u51FB\u6536\u8D77';
   });
-  // Remove original h3 (already in bar)
   if(h3&&h3.parentNode===toc)h3.remove();
 })();
 </script>
