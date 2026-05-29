@@ -96,12 +96,12 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="doc">
 
 <div class="doc-header">
-  <h1>📐 Layout 拼接规范 <span class="ver">UI 规范 v1.0</span></h1>
-  <div class="subtitle">Multi-Resolution Layout &amp; Anchor Specification</div>
+  <h1>📐 Layout 拼接规范 <span class="ver">UI 规范 v2.0</span></h1>
+  <div class="subtitle">Multi-Resolution Layout &amp; Anchor Specification · 含折叠屏适配与组件复用体系</div>
   <div class="meta">
     <span>📋 适用：UE5 UMG / Unity UGUI / Cocos</span>
     <span>👤 维护：UI 组 · TA 组</span>
-    <span>📅 2026-05-07</span>
+    <span>📅 2026-05-29 (v2.0 升级)</span>
   </div>
 </div>
 
@@ -118,6 +118,9 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#sec6">引擎差异对照表</a></li>
     <li><a href="#sec7">布局容器使用规范</a></li>
     <li><a href="#sec8">性能与优化准则</a></li>
+    <li><a href="#sec9">折叠屏与新设备深度适配</a> <span class="badge badge-green">NEW</span></li>
+    <li><a href="#sec10">Widget 组件复用体系</a> <span class="badge badge-green">NEW</span></li>
+    <li><a href="#sec11">PM视角：Layout 质量度量看板</a> <span class="badge badge-green">NEW</span></li>
   </ol>
 </div>
 
@@ -467,7 +470,169 @@ panel.anchorMax = safe.max / screenSize;</pre>
   </table>
 </div>
 
-<div class="doc-footer">📐 Layout 拼接规范 · UI 规范 v1.0 · UI组 + TA组 · 项目内部资料</div>
+<!-- SEC9 -->
+<div class="section" id="sec9">
+  <h2>📱 9. 折叠屏与新设备深度适配</h2>
+
+  <p>2025+ 年折叠屏、卷轴屏、车载横屏等新形态设备市占率持续上升。Layout 方案必须覆盖<strong>运行时动态宽高比变化</strong>场景（折叠/展开），而非仅在启动时读取分辨率。</p>
+
+  <div class="sub-title">9.1 新设备形态分辨率矩阵</div>
+  <table>
+    <tr><th>设备类型</th><th>折叠态分辨率</th><th>展开态分辨率</th><th>宽高比范围</th><th>触发场景</th></tr>
+    <tr><td>Samsung Z Fold</td><td>2316×904 (25:9)</td><td>2176×1812 (~6:5)</td><td>25:9 → 6:5</td><td>用户折叠/展开操作</td></tr>
+    <tr><td>华为 Mate X</td><td>2480×1176 (21:10)</td><td>2480×2200 (~9:8)</td><td>21:10 → 9:8</td><td>同上</td></tr>
+    <tr><td>OPPO Find N</td><td>1972×988 (~2:1)</td><td>1920×1792 (~16:15)</td><td>2:1 → 16:15</td><td>同上</td></tr>
+    <tr><td>车载横屏</td><td>—</td><td>2560×720 (32:9)</td><td>32:9 固定</td><td>超宽比</td></tr>
+    <tr><td>卷轴屏概念机</td><td>动态宽度</td><td>连续可变</td><td>16:9 → 4:3</td><td>滑动展开</td></tr>
+  </table>
+
+  <div class="sub-title">9.2 折叠屏 Layout 技术方案</div>
+  <div class="redline">
+    <p><strong>🔴 核心原则</strong>：UI 必须监听<strong>运行时分辨率变化事件</strong>，在折叠/展开时重新计算布局，不可仅在启动时适配一次。</p>
+  </div>
+
+  <table>
+    <tr><th>技术项</th><th>UE5 方案</th><th>Unity 方案</th></tr>
+    <tr><td>监听尺寸变化</td><td><code>FViewport::ViewportResizedEvent</code> 委托</td><td><code>Screen.width/height</code> 轮询 + <code>OnRectTransformDimensionsChange</code></td></tr>
+    <tr><td>重算布局</td><td>Widget → <code>ForceLayoutPrepass()</code> + 重设 Anchor/Offset</td><td><code>LayoutRebuilder.ForceRebuildLayoutImmediate()</code></td></tr>
+    <tr><td>布局模式切换</td><td>展开态切换为双列布局 Widget；折叠态切换为单列</td><td><code>LayoutGroup</code> 动态切换 <code>constraint</code> 参数</td></tr>
+    <tr><td>动画过渡</td><td>使用 <code>UMG Animation</code> 淡入淡出</td><td><code>DOTween / Animator</code> 平滑过渡</td></tr>
+    <tr><td>Safe Zone 更新</td><td>SafeZone 组件自动响应</td><td>需重新调用 <code>Screen.safeArea</code> 并刷新</td></tr>
+  </table>
+
+  <div class="sub-title">9.3 超宽比（32:9 车载/带鱼屏）适配策略</div>
+  <table>
+    <tr><th>区域</th><th>策略</th><th>实现建议</th></tr>
+    <tr><td>核心交互区</td><td>限制在中心 16:9 区域内</td><td>Max Width 约束 + 居中锚点</td></tr>
+    <tr><td>左右扩展区</td><td>显示装饰/辅助信息</td><td>条件渲染：宽高比 &gt; 21:9 时显示</td></tr>
+    <tr><td>底部导航栏</td><td>全宽拉伸 + 内容居中</td><td>内容区 Max Width + 两侧填充色块</td></tr>
+    <tr><td>弹窗</td><td>固定尺寸居中，不拉伸</td><td>与标准方案一致</td></tr>
+  </table>
+
+  <div class="sub-title">9.4 折叠屏测试检查清单</div>
+  <table>
+    <tr><th>测试项</th><th>通过标准</th><th>测试方式</th></tr>
+    <tr><td>折叠→展开过渡</td><td>UI 无闪烁、无重叠，1s 内完成重排</td><td>真机折叠操作 / 模拟器 Resize</td></tr>
+    <tr><td>展开→折叠过渡</td><td>无元素溢出、触控区不丢失</td><td>同上</td></tr>
+    <tr><td>前台→后台→前台</td><td>恢复时布局正确</td><td>折叠后切后台再切回</td></tr>
+    <tr><td>横竖屏旋转 + 折叠</td><td>四种组合均正常</td><td>组合测试矩阵</td></tr>
+    <tr><td>连续快速折叠/展开</td><td>无崩溃、无布局残留</td><td>压力测试（10 次/30s）</td></tr>
+  </table>
+
+  <div class="alert alert-yellow">
+    ⚠️ <strong>性能注意</strong>：折叠/展开触发的全量 Layout 重算可能导致帧率跌落。建议使用<strong>延迟重算</strong>策略（等待 resize 事件稳定 200ms 后再执行），避免连续 resize 时重复计算。
+  </div>
+</div>
+
+<!-- SEC10 -->
+<div class="section" id="sec10">
+  <h2>🧩 10. Widget 组件复用体系</h2>
+
+  <p>为避免 UI 布局代码重复、降低维护成本，建立<strong>四级组件复用层级</strong>体系。每个层级有明确的复用边界和复杂度限制。</p>
+
+  <div class="sub-title">10.1 组件层级定义（L0 → L3）</div>
+  <table>
+    <tr><th>层级</th><th>名称</th><th>定义</th><th>嵌套深度</th><th>示例</th><th>复用范围</th></tr>
+    <tr><td><strong>L0</strong></td><td>Atom 原子</td><td>不可再拆分的最小 UI 单元</td><td>1 层</td><td>Icon、Label、Divider、Badge</td><td>全局通用</td></tr>
+    <tr><td><strong>L1</strong></td><td>Molecule 分子</td><td>由 2~5 个原子组合而成的小组件</td><td>2~3 层</td><td>IconButton、InputField、Tag、Avatar+Name</td><td>全局通用</td></tr>
+    <tr><td><strong>L2</strong></td><td>Organism 有机体</td><td>由分子组合成的功能模块</td><td>4~6 层</td><td>PlayerCard、ItemSlot、ChatBubble、NavBar</td><td>模块内复用</td></tr>
+    <tr><td><strong>L3</strong></td><td>Page 页面</td><td>完整界面，由有机体组装</td><td>6~8 层</td><td>背包界面、商城界面、设置界面</td><td>唯一实例</td></tr>
+  </table>
+
+  <div class="sub-title">10.2 组件命名规范</div>
+  <table>
+    <tr><th>层级</th><th>UE5 Widget 命名</th><th>Unity Prefab 命名</th><th>示例</th></tr>
+    <tr><td>L0</td><td><code>WBP_Atom_[Name]</code></td><td><code>Atom_[Name]</code></td><td>WBP_Atom_Icon / Atom_Badge</td></tr>
+    <tr><td>L1</td><td><code>WBP_Mol_[Name]</code></td><td><code>Mol_[Name]</code></td><td>WBP_Mol_IconBtn / Mol_InputField</td></tr>
+    <tr><td>L2</td><td><code>WBP_Org_[Module]_[Name]</code></td><td><code>Org_[Module]_[Name]</code></td><td>WBP_Org_Shop_ItemCard / Org_Chat_Bubble</td></tr>
+    <tr><td>L3</td><td><code>WBP_Page_[Name]</code></td><td><code>Page_[Name]</code></td><td>WBP_Page_Backpack / Page_Settings</td></tr>
+  </table>
+
+  <div class="sub-title">10.3 复用规则与约束</div>
+  <div class="redline">
+    <p><strong>🔴 规则 #1</strong>：L0/L1 组件<strong>禁止包含业务逻辑</strong>（如请求网络、读写存档）。只接受数据输入并显示。</p>
+    <p><strong>🔴 规则 #2</strong>：L2 组件可包含模块内业务逻辑，但<strong>不得直接依赖其他模块的数据</strong>。跨模块通信走事件总线。</p>
+    <p><strong>🔴 规则 #3</strong>：新建 UI 前必须查询<strong>组件库目录</strong>，确认是否已存在可复用组件。重复创建同功能组件视为规范违规。</p>
+  </div>
+
+  <div class="sub-title">10.4 组件库管理流程</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>需求评审</strong><div class="sub">是否已有组件</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>查询组件库</strong><div class="sub">按层级/功能搜索</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>复用/新建</strong><div class="sub">已有→复用+扩展<br>无→新建+入库</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>组件评审</strong><div class="sub">层级/命名/接口</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>入库归档</strong><div class="sub">更新组件目录</div></div>
+  </div>
+
+  <div class="sub-title">10.5 组件复用度量指标</div>
+  <table>
+    <tr><th>指标</th><th>计算方式</th><th>目标值</th></tr>
+    <tr><td>L0/L1 复用率</td><td>被 ≥2 个 L2/L3 引用的 L0/L1 数 / 总 L0/L1 数</td><td>≥ 80%</td></tr>
+    <tr><td>重复组件率</td><td>功能重复组件数 / 总组件数</td><td>≤ 5%</td></tr>
+    <tr><td>L3 平均 L2 引用</td><td>每个 Page 引用的 L2 平均数</td><td>3~8 个</td></tr>
+    <tr><td>组件库使用率</td><td>新界面中复用已有组件比例</td><td>≥ 60%</td></tr>
+  </table>
+
+  <div class="alert alert-blue">
+    💡 <strong>交叉引用</strong>：Widget 性能优化详见 → <a href="ui-umg-tips.html#sec4">UMG 工业指南 §4 动静分离</a>；命名规范详见 → <a href="ui-slice-naming.html#sec3">切图命名规范 §3</a>
+  </div>
+</div>
+
+<!-- SEC11 -->
+<div class="section" id="sec11">
+  <h2>📊 11. PM视角：Layout 质量度量看板</h2>
+
+  <p>PM 需要量化 Layout 适配质量和组件复用效率，驱动团队持续优化。以下定义 Layout 专属的 KPI 体系和看板维度。</p>
+
+  <div class="sub-title">11.1 Layout 质量 KPI 指标</div>
+  <table>
+    <tr><th>指标名称</th><th>公式</th><th>目标值</th><th>采集方式</th></tr>
+    <tr><td>适配覆盖率</td><td>已验证通过的 [分辨率×界面] 组合数 / 应测总数 × 100%</td><td>≥ 95%</td><td>自动化截图回归</td></tr>
+    <tr><td>锚点规范合规率</td><td>锚点设置正确的元素数 / 总 UI 元素数 × 100%</td><td>≥ 98%</td><td>静态分析脚本</td></tr>
+    <tr><td>折叠屏适配通过率</td><td>折叠/展开测试通过界面数 / 总界面数 × 100%</td><td>≥ 90%</td><td>真机/模拟器测试</td></tr>
+    <tr><td>组件复用率</td><td>复用已有组件的实例数 / 新增组件总数 × 100%</td><td>≥ 60%</td><td>组件库引用统计</td></tr>
+    <tr><td>嵌套超标率</td><td>嵌套 &gt;8 层的界面数 / 总界面数 × 100%</td><td>≤ 3%</td><td>静态分析工具</td></tr>
+    <tr><td>Layout Bug 密度</td><td>Layout 相关 Bug 数 / 已交付界面数</td><td>≤ 0.3 Bug/界面</td><td>TAPD 缺陷标签</td></tr>
+  </table>
+
+  <div class="sub-title">11.2 适配覆盖矩阵（PM 重点关注）</div>
+  <table>
+    <tr><th>界面 \ 设备</th><th>16:9 (1080p)</th><th>19.5:9 (手机)</th><th>4:3 (iPad)</th><th>21:9 (超宽)</th><th>折叠屏展开</th><th>折叠屏折叠</th></tr>
+    <tr><td>主界面</td><td>✅ 必测</td><td>✅ 必测</td><td>✅ 必测</td><td>✅ 必测</td><td>✅ 必测</td><td>✅ 必测</td></tr>
+    <tr><td>战斗 HUD</td><td>✅ 必测</td><td>✅ 必测</td><td>✅ 必测</td><td>⚠️ 抽测</td><td>⚠️ 抽测</td><td>⚠️ 抽测</td></tr>
+    <tr><td>商城</td><td>✅ 必测</td><td>✅ 必测</td><td>✅ 必测</td><td>⚠️ 抽测</td><td>⚠️ 抽测</td><td>—</td></tr>
+    <tr><td>设置/次级界面</td><td>✅ 必测</td><td>⚠️ 抽测</td><td>⚠️ 抽测</td><td>—</td><td>—</td><td>—</td></tr>
+  </table>
+  <p><em>✅ 必测 = 每次提交必须自动化/人工验证；⚠️ 抽测 = 每周至少 1 次验证；— = 不要求</em></p>
+
+  <div class="sub-title">11.3 成本效益分析</div>
+  <table>
+    <tr><th>投入项</th><th>人天估算</th><th>收益</th></tr>
+    <tr><td>组件库体系搭建</td><td>5~8 人天（一次性）</td><td>后续每个新界面节省 30%~50% 开发时间</td></tr>
+    <tr><td>自动化截图回归</td><td>3~5 人天（一次性）</td><td>替代人工多分辨率走查，每版本省 2~3 人天</td></tr>
+    <tr><td>折叠屏适配改造</td><td>每界面 0.5~1 人天</td><td>覆盖 15%+ 高端用户群体</td></tr>
+    <tr><td>维护组件库文档</td><td>每周 0.5 人天</td><td>新人上手效率提升 40%</td></tr>
+  </table>
+
+  <div class="sub-title">11.4 质量门禁与里程碑联动</div>
+  <table>
+    <tr><th>里程碑</th><th>Layout 质量门禁</th><th>不达标处置</th></tr>
+    <tr><td>Alpha</td><td>适配覆盖率 ≥ 80%；锚点合规率 ≥ 90%</td><td>记录技术债务，不阻断</td></tr>
+    <tr><td>Beta</td><td>适配覆盖率 ≥ 90%；嵌套超标率 ≤ 5%</td><td>延迟发布直到达标</td></tr>
+    <tr><td>RC</td><td>适配覆盖率 ≥ 95%；折叠屏通过率 ≥ 90%</td><td>阻断发布</td></tr>
+    <tr><td>Live 热更</td><td>增量界面全部通过截图回归</td><td>回退热更</td></tr>
+  </table>
+
+  <div class="alert alert-green">
+    ✅ <strong>最佳实践</strong>：PM 每周一在站会上展示「适配覆盖率趋势图」+「组件复用率」两个核心指标，驱动团队持续关注 Layout 质量而非仅交付功能。
+  </div>
+</div>
+
+<div class="doc-footer">📐 Layout 拼接规范 · UI 规范 v2.0 · UI组 + TA组 · 项目内部资料</div>
 </div>
 <script src="editor-kit.js"></script>
 <script src="toc-enhancer.js?v=1.1"></script>

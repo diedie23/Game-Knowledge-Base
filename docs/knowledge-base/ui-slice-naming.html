@@ -93,12 +93,12 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="doc">
 
 <div class="doc-header">
-  <h1>✂️ 切图与命名规范 <span class="ver">UI 规范 v1.0</span></h1>
-  <div class="subtitle">UI Slice Export &amp; Naming Convention — Industrial Pipeline Standard</div>
+  <h1>✂️ 切图与命名规范 <span class="ver">UI 规范 v2.0</span></h1>
+  <div class="subtitle">UI Slice Export &amp; Naming Convention — Industrial Pipeline Standard · 含自动化工具链与PM看板</div>
   <div class="meta">
     <span>📋 适用：UE5 UMG / Unity UGUI / Cocos</span>
     <span>👤 维护：UI 组 · TA 组</span>
-    <span>📅 2026-04-02</span>
+    <span>📅 2026-05-29 (v2.0 升级)</span>
   </div>
 </div>
 
@@ -111,6 +111,9 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#sec4">标准作业流程 SOP</a></li>
     <li><a href="#sec5">常见问题排查 FAQ</a></li>
     <li><a href="#sec6">UGC 图标分类与状态字典</a></li>
+    <li><a href="#sec7">自动化切图工具链与 Figma 集成</a> <span class="badge badge-green">NEW</span></li>
+    <li><a href="#sec8">CI 管线切图校验 Pipeline</a> <span class="badge badge-green">NEW</span></li>
+    <li><a href="#sec9">PM视角：UI 资产管理 KPI 看板</a> <span class="badge badge-green">NEW</span></li>
   </ol>
 </div>
 
@@ -377,7 +380,285 @@ let selectedImg = "IconTab_" + capitalizeKey + "_Sel";   // 结果: IconTab_Top_
 let disabledImg = "IconTab_" + capitalizeKey + "_Dis";   // 结果: IconTab_Top_Dis</pre>
 </div>
 
-<div class="doc-footer">✂️ 切图与命名规范 · UI 规范 v1.0 · UI组 + TA组 · 项目内部资料</div>
+<!-- SEC7 -->
+<div class="section" id="sec7">
+  <h2>🔧 7. 自动化切图工具链与 Figma 集成</h2>
+
+  <p>手动从 Figma/Sketch 导出切图再手动命名是<strong>效率瓶颈 + 错误高发区</strong>。本节建立从设计工具到引擎的全自动化管线。</p>
+
+  <div class="sub-title">7.1 工具链架构</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>Figma 设计</strong><div class="sub">组件化 + 命名约定</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node tool"><strong>Figma Plugin</strong><div class="sub">自动导出+重命名</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Post-Process</strong><div class="sub">尺寸校正+压缩</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Git Commit</strong><div class="sub">触发 CI 校验</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>引擎热加载</strong><div class="sub">自动导入</div></div>
+  </div>
+
+  <div class="sub-title">7.2 Figma 侧规范要求</div>
+  <table>
+    <tr><th>规范项</th><th>要求</th><th>原因</th></tr>
+    <tr><td>Frame 命名</td><td>与导出文件名一致：<code>T_UI_[Module]_[Element]_[State]</code></td><td>插件直接用 Frame 名作为文件名</td></tr>
+    <tr><td>导出设置</td><td>1x PNG，偶数尺寸</td><td>避免小数像素导致的半透明边缘</td></tr>
+    <tr><td>组件变体</td><td>用 Figma Variant 管理 N/P/D/H 状态</td><td>插件可自动遍历 Variant 后缀</td></tr>
+    <tr><td>图层整理</td><td>导出 Frame 必须为 Flatten 后的单层</td><td>避免导出时保留编辑图层结构</td></tr>
+    <tr><td>颜色模式</td><td>文档颜色配置为 sRGB</td><td>与引擎 sRGB 对齐</td></tr>
+  </table>
+
+  <div class="sub-title">7.3 Figma Export Plugin 核心逻辑</div>
+  <pre>
+// figma-ui-export-plugin (TypeScript)
+// 核心功能：遍历选中的 Component Set，按 Variant 导出并规范命名
+
+interface ExportConfig {
+  prefix: "T_UI";
+  module: string;          // 从父 Frame 名称推断
+  scale: 1;
+  format: "PNG";
+  forceEvenSize: true;     // 强制偶数尺寸
+}
+
+async function exportVariants(componentSet: ComponentSetNode, config: ExportConfig) {
+  const variants = componentSet.children as ComponentNode[];
+  
+  for (const variant of variants) {
+    // 从 Variant property 提取状态后缀
+    const state = variant.variantProperties?.["State"] || "N";
+    const stateMap: Record&lt;string, string&gt; = {
+      "Normal": "N", "Pressed": "P", "Disabled": "D",
+      "Hover": "H", "Selected": "S", "Focused": "F"
+    };
+    const suffix = stateMap[state] || state;
+    
+    // 构建规范文件名
+    const element = componentSet.name.replace(/\s+/g, "");
+    const fileName = `${config.prefix}_${config.module}_${element}_${suffix}`;
+    
+    // 尺寸校正为偶数
+    let w = Math.ceil(variant.width);
+    let h = Math.ceil(variant.height);
+    if (w % 2 !== 0) w += 1;
+    if (h % 2 !== 0) h += 1;
+    
+    // 导出
+    const bytes = await variant.exportAsync({ format: "PNG", constraint: { type: "SCALE", value: 1 } });
+    // ... 保存为 fileName.png，尺寸后处理
+  }
+}
+  </pre>
+
+  <div class="sub-title">7.4 Post-Process 批处理脚本</div>
+  <pre>
+# post_process_slices.py — 导出后自动化处理
+from PIL import Image
+from pathlib import Path
+import re
+
+NAMING_REGEX = re.compile(r'^T_UI_[A-Z][a-zA-Z]+_[A-Z][a-zA-Z0-9]+_(N|P|H|D|S|F|On|Off|Fill|Bg|9s|Mask)\.png$')
+
+def process_directory(input_dir: str, output_dir: str):
+    results = {"ok": 0, "fixed": 0, "error": 0}
+    
+    for png in Path(input_dir).glob("*.png"):
+        # 1. 命名校验
+        if not NAMING_REGEX.match(png.name):
+            print(f"[ERROR] 命名不合规: {png.name}")
+            results["error"] += 1
+            continue
+        
+        # 2. 偶数尺寸校正
+        img = Image.open(png)
+        w, h = img.size
+        new_w = w if w % 4 == 0 else (w // 4 + 1) * 4
+        new_h = h if h % 4 == 0 else (h // 4 + 1) * 4
+        
+        if (new_w, new_h) != (w, h):
+            # 扩展画布，透明填充
+            new_img = Image.new("RGBA", (new_w, new_h), (0, 0, 0, 0))
+            new_img.paste(img, (0, 0))
+            img = new_img
+            results["fixed"] += 1
+        
+        # 3. 输出
+        img.save(Path(output_dir) / png.name, optimize=True)
+        results["ok"] += 1
+    
+    print(f"✅ 处理完成: {results['ok']} OK, {results['fixed']} 尺寸修正, {results['error']} 命名错误")
+  </pre>
+
+  <div class="alert alert-blue">
+    💡 <strong>交叉引用</strong>：9宫格参数自动校验详见 → <a href="ui-9slice-color.html#sec6">9宫格规范 §6 自动化检测</a>
+  </div>
+</div>
+
+<!-- SEC8 -->
+<div class="section" id="sec8">
+  <h2>🔄 8. CI 管线切图校验 Pipeline</h2>
+
+  <p>将切图规范校验集成到 CI/CD 管线中，实现<strong>提交时自动拦截违规资产</strong>，从源头杜绝不合规切图进入引擎。</p>
+
+  <div class="sub-title">8.1 校验规则引擎</div>
+  <table>
+    <tr><th>规则 ID</th><th>规则名称</th><th>检测内容</th><th>等级</th><th>自动修复</th></tr>
+    <tr><td>SN-001</td><td>命名合规</td><td>正则匹配 T_UI_[Module]_[Element]_[State].png</td><td>🔴 Error</td><td>❌ 需人工</td></tr>
+    <tr><td>SN-002</td><td>偶数尺寸</td><td>宽高均为偶数（推荐 4 的倍数）</td><td>🔴 Error</td><td>✅ 自动扩画布</td></tr>
+    <tr><td>SN-003</td><td>最大尺寸</td><td>单张 ≤ 2048×2048</td><td>🔴 Error</td><td>❌ 需拆分/9宫格</td></tr>
+    <tr><td>SN-004</td><td>Alpha 审计</td><td>全不透明贴图不应有 Alpha 通道</td><td>🟡 Warning</td><td>✅ 自动转 RGB</td></tr>
+    <tr><td>SN-005</td><td>状态完整性</td><td>Button 类元素至少有 _N + _D 两态</td><td>🟡 Warning</td><td>❌ 需补图</td></tr>
+    <tr><td>SN-006</td><td>Atlas 归属</td><td>切图已分配到正确模块 Atlas</td><td>🟡 Warning</td><td>❌ 需配置</td></tr>
+    <tr><td>SN-007</td><td>重复资产检测</td><td>像素级比较（SSIM &gt; 0.98）检测重复贴图</td><td>🟡 Warning</td><td>❌ 需人工确认</td></tr>
+    <tr><td>SN-008</td><td>文件大小</td><td>单张 PNG ≤ 500KB（全屏背景除外）</td><td>🟡 Warning</td><td>✅ 自动 pngquant 压缩</td></tr>
+  </table>
+
+  <div class="sub-title">8.2 GitHub Actions CI 配置示例</div>
+  <pre>
+# .github/workflows/ui-asset-check.yml
+name: UI Asset Validation
+on:
+  pull_request:
+    paths: ['Content/UI/**', 'Assets/UI/**']
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      
+      - name: Install deps
+        run: pip install Pillow numpy scikit-image
+      
+      - name: Run Naming Check (SN-001)
+        run: python tools/check_naming.py --path Content/UI/ --strict
+      
+      - name: Run Size Check (SN-002, SN-003)
+        run: python tools/check_size.py --path Content/UI/ --max 2048 --even
+      
+      - name: Run Alpha Audit (SN-004)
+        run: python tools/check_alpha.py --path Content/UI/ --auto-fix
+      
+      - name: Run Duplicate Detection (SN-007)
+        run: python tools/check_duplicate.py --path Content/UI/ --threshold 0.98
+      
+      - name: Generate Report
+        if: always()
+        run: python tools/generate_report.py --output reports/ui_asset_report.json
+      
+      - name: Upload Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-asset-report
+          path: reports/
+  </pre>
+
+  <div class="sub-title">8.3 Pre-commit Hook（本地即时反馈）</div>
+  <pre>
+#!/bin/bash
+# .git/hooks/pre-commit — UI 切图本地预检
+
+UI_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^Content/UI/.*\.png$')
+
+if [ -z "$UI_FILES" ]; then
+    exit 0
+fi
+
+echo "🔍 检查 UI 切图规范..."
+ERRORS=0
+
+for file in $UI_FILES; do
+    # 快速命名检查
+    basename=$(basename "$file")
+    if ! echo "$basename" | grep -qE '^T_UI_[A-Z][a-zA-Z]+_[A-Z][a-zA-Z0-9]+_(N|P|H|D|S|F|On|Off|Fill|Bg|9s|Mask)\.png$'; then
+        echo "❌ 命名不合规: $basename"
+        ERRORS=$((ERRORS + 1))
+    fi
+    
+    # 快速尺寸检查 (需要 identify 命令 from ImageMagick)
+    SIZE=$(identify -format '%w %h' "$file" 2>/dev/null)
+    W=$(echo $SIZE | cut -d' ' -f1)
+    H=$(echo $SIZE | cut -d' ' -f2)
+    if [ $((W % 2)) -ne 0 ] || [ $((H % 2)) -ne 0 ]; then
+        echo "❌ 尺寸非偶数: $basename (${W}x${H})"
+        ERRORS=$((ERRORS + 1))
+    fi
+done
+
+if [ $ERRORS -gt 0 ]; then
+    echo "⛔ 发现 $ERRORS 个问题，请修复后重新提交"
+    exit 1
+fi
+
+echo "✅ UI 切图校验通过"
+  </pre>
+
+  <div class="alert alert-yellow">
+    ⚠️ <strong>注意</strong>：Pre-commit Hook 仅做轻量快速检查（命名+尺寸），完整校验（重复检测、Atlas 归属）在 CI 服务器端执行，避免本地 commit 过慢。
+  </div>
+</div>
+
+<!-- SEC9 -->
+<div class="section" id="sec9">
+  <h2>📊 9. PM视角：UI 资产管理 KPI 看板</h2>
+
+  <p>PM 需要通过数据驱动来管控 UI 切图资产的质量、效率和成本。以下 KPI 体系覆盖<strong>生产效率、质量合规、资产健康度</strong>三个维度。</p>
+
+  <div class="sub-title">9.1 核心 KPI 定义</div>
+  <table>
+    <tr><th>维度</th><th>指标名称</th><th>公式</th><th>目标值</th><th>数据源</th></tr>
+    <tr><td rowspan="3">质量</td><td>命名合规率</td><td>合规文件数 / 总 UI 文件数 × 100%</td><td>≥ 99%</td><td>CI 命名检查日志</td></tr>
+    <tr><td>尺寸合规率</td><td>偶数尺寸文件数 / 总数 × 100%</td><td>= 100%</td><td>CI 尺寸检查日志</td></tr>
+    <tr><td>CI 首次通过率</td><td>一次提交即通过 / 总提交数 × 100%</td><td>≥ 85%</td><td>CI Build History</td></tr>
+    <tr><td rowspan="3">效率</td><td>切图交付周期</td><td>设计定稿 → 切图入库 平均耗时</td><td>≤ 4h</td><td>TAPD 工单时间戳</td></tr>
+    <tr><td>自动化覆盖率</td><td>自动导出数 / 总切图数 × 100%</td><td>≥ 70%</td><td>Figma 插件日志</td></tr>
+    <tr><td>返工率</td><td>需要重新切图的次数 / 总交付数 × 100%</td><td>≤ 10%</td><td>TAPD 退回工单</td></tr>
+    <tr><td rowspan="3">资产健康</td><td>Atlas 填充率</td><td>已用像素面积 / Atlas 总面积 × 100%</td><td>≥ 75%</td><td>TexturePacker 报告</td></tr>
+    <tr><td>冗余资产率</td><td>SSIM&gt;0.98 重复贴图数 / 总数 × 100%</td><td>≤ 3%</td><td>重复检测脚本</td></tr>
+    <tr><td>内存预算遵守率</td><td>实际 UI 内存 / 预算内存 × 100%</td><td>≤ 100%</td><td>引擎 Profiler</td></tr>
+  </table>
+
+  <div class="sub-title">9.2 看板可视化维度</div>
+  <table>
+    <tr><th>看板区域</th><th>展示内容</th><th>可视化形式</th><th>刷新频率</th></tr>
+    <tr><td>总览仪表盘</td><td>9 项 KPI 当前值 + 趋势</td><td>大数字卡片 + 趋势图</td><td>实时</td></tr>
+    <tr><td>模块资产统计</td><td>各模块切图数量、大小、Atlas 使用</td><td>堆叠柱状图</td><td>每日</td></tr>
+    <tr><td>违规热力图</td><td>各规则触发次数 × 模块分布</td><td>热力矩阵</td><td>每周</td></tr>
+    <tr><td>交付效率趋势</td><td>切图周期 + 返工率走势</td><td>双轴折线图</td><td>每周</td></tr>
+    <tr><td>Top 问题资产</td><td>违规次数 Top10 + 未修复列表</td><td>排行榜表格</td><td>每日</td></tr>
+    <tr><td>内存预算仪表盘</td><td>各平台 UI 内存使用量 vs 预算</td><td>环形进度条</td><td>每次构建</td></tr>
+  </table>
+
+  <div class="sub-title">9.3 资产生命周期管理</div>
+  <table>
+    <tr><th>阶段</th><th>PM 关注点</th><th>自动化动作</th></tr>
+    <tr><td>创建</td><td>是否遵循规范？是否有已存在的可复用资产？</td><td>Figma 插件导出 + 重复检测</td></tr>
+    <tr><td>使用中</td><td>被多少界面引用？是否合入正确 Atlas？</td><td>引用计数统计 + Atlas 分析</td></tr>
+    <tr><td>闲置</td><td>超过 30 天未被引用的资产</td><td>自动标记 + 清理候选通知</td></tr>
+    <tr><td>废弃</td><td>确认不再需要的资产</td><td>移入 Deprecated 目录 → 下版本删除</td></tr>
+  </table>
+
+  <div class="sub-title">9.4 质量门禁联动</div>
+  <table>
+    <tr><th>里程碑</th><th>切图资产质量门禁</th><th>不达标处置</th></tr>
+    <tr><td>Alpha</td><td>命名合规率 ≥ 95%；尺寸合规率 ≥ 98%</td><td>记录债务，不阻断</td></tr>
+    <tr><td>Beta</td><td>命名合规率 ≥ 99%；冗余率 ≤ 5%；Atlas 填充率 ≥ 70%</td><td>延迟发布直到达标</td></tr>
+    <tr><td>RC</td><td>全部 Error 级规则通过；内存预算遵守率 ≤ 100%</td><td>阻断发布</td></tr>
+    <tr><td>Live 热更</td><td>增量切图全部通过 CI 校验</td><td>回退热更</td></tr>
+  </table>
+
+  <div class="alert alert-green">
+    ✅ <strong>最佳实践</strong>：将 CI 报告自动推送至团队 IM 群组，每周五 PM 生成「UI 资产健康周报」包含 KPI 趋势 + Top 问题 + 下周改进计划。
+  </div>
+</div>
+
+<div class="doc-footer">✂️ 切图与命名规范 · UI 规范 v2.0 · UI组 + TA组 · 项目内部资料</div>
 </div>
 <script src="editor-kit.js"></script>
 <script src="toc-enhancer.js?v=1.1"></script>

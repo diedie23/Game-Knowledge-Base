@@ -95,12 +95,12 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="doc">
 
 <div class="doc-header">
-  <h1>🎨 9宫格与颜色空间 <span class="ver">UI 规范 v1.0</span></h1>
-  <div class="subtitle">9-Slice &amp; Color Space — Industrial Pipeline Standard</div>
+  <h1>🎨 9宫格与颜色空间 <span class="ver">UI 规范 v2.0</span></h1>
+  <div class="subtitle">9-Slice &amp; Color Space — Industrial Pipeline Standard · 含自动化检测与PM质量度量</div>
   <div class="meta">
     <span>📋 适用：UE5 UMG / Unity UGUI / Cocos</span>
     <span>👤 维护：UI 组 · TA 组</span>
-    <span>📅 2026-04-02</span>
+    <span>📅 2026-05-29 (v2.0 升级)</span>
   </div>
 </div>
 
@@ -112,6 +112,9 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#sec3">图文红黑榜</a></li>
     <li><a href="#sec4">标准作业流程 SOP</a></li>
     <li><a href="#sec5">常见问题排查 FAQ</a></li>
+    <li><a href="#sec6">自动化检测与 CI/CD 集成</a> <span class="badge badge-green">NEW</span></li>
+    <li><a href="#sec7">多引擎9宫格参数对照与批量迁移</a> <span class="badge badge-green">NEW</span></li>
+    <li><a href="#sec8">PM视角：9宫格/颜色空间质量度量看板</a> <span class="badge badge-green">NEW</span></li>
   </ol>
 </div>
 
@@ -284,7 +287,281 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </div>
 </div>
 
-<div class="doc-footer">🎨 9宫格与颜色空间 · UI 规范 v1.0 · UI组 + TA组 · 项目内部资料</div>
+<!-- SEC6 -->
+<div class="section" id="sec6">
+  <h2>🤖 6. 自动化检测与 CI/CD 集成</h2>
+
+  <p>人工逐张检查 9 宫格参数和 sRGB 标记极易漏审。本节给出可直接接入 <strong>Jenkins / GitHub Actions / GitLab CI</strong> 的自动化方案，实现<strong>提交即校验、合入即拦截</strong>。</p>
+
+  <div class="sub-title">6.1 自动校验维度总览</div>
+  <table>
+    <tr><th>检测项</th><th>规则</th><th>工具 / 命令</th><th>阻断等级</th></tr>
+    <tr><td>角区尺寸</td><td>角区 ≥ radius + shadow + 2px</td><td>Python PIL <code>imageCheck9Slice.py</code></td><td>🔴 Error（阻断合入）</td></tr>
+    <tr><td>中心区纯色</td><td>中心区色差 ΔE &lt; 1.5</td><td>Python PIL 中心区采样对比</td><td>🔴 Error</td></tr>
+    <tr><td>最小尺寸</td><td>最短边 ≥ 角区×2 + 4px</td><td>同上脚本</td><td>🔴 Error</td></tr>
+    <tr><td>sRGB 标记</td><td>表现图 sRGB=ON；遮罩/数据图 sRGB=OFF</td><td>Python pillow <code>info['icc_profile']</code> / UE <code>.uasset</code> 解析</td><td>🔴 Error</td></tr>
+    <tr><td>文件命名</td><td>符合 <code>T_UI_[Module]_[Element]_[State].png</code></td><td>正则 + <code>ui-slice-naming</code> 字典校验</td><td>🟡 Warning</td></tr>
+    <tr><td>拉伸极限测试</td><td>50%–400% 不断裂（像素跳变 &lt; 2px）</td><td>Headless 引擎截图 + SSIM 比对</td><td>🟡 Warning（触发人工复核）</td></tr>
+    <tr><td>Atlas 归属</td><td>已被分配到正确的 Atlas Group</td><td>UE <code>AssetRegistry</code> 查询</td><td>🟡 Warning</td></tr>
+  </table>
+
+  <div class="sub-title">6.2 Python 校验脚本核心逻辑（伪代码）</div>
+  <pre>
+# imageCheck9Slice.py — 核心入口
+import sys, os
+from PIL import Image
+from pathlib import Path
+
+RULES = {
+    "corner_min": lambda img, meta: meta["corner"] >= meta["radius"] + meta["shadow"] + 2,
+    "center_pure": lambda img, meta: center_delta_e(img, meta) < 1.5,
+    "min_size": lambda img, meta: min(img.size) >= meta["corner"] * 2 + 4,
+    "srgb_flag": lambda img, meta: check_srgb(img, meta["type"]),  # type: visual|mask
+}
+
+def run_checks(png_path: str, meta: dict) -> list[str]:
+    img = Image.open(png_path)
+    errors = []
+    for name, rule in RULES.items():
+        if not rule(img, meta):
+            errors.append(f"[FAIL] {name} — {png_path}")
+    return errors
+
+# CI 入口：遍历本次 commit 新增/修改的 UI 贴图
+if __name__ == "__main__":
+    changed_files = get_git_diff_files("T_UI_*.png")
+    all_errors = []
+    for f in changed_files:
+        meta = load_meta_json(f)  # 配套 .meta.json
+        all_errors += run_checks(f, meta)
+    if all_errors:
+        print("\n".join(all_errors))
+        sys.exit(1)  # 阻断流水线
+  </pre>
+
+  <div class="sub-title">6.3 CI Pipeline 集成示例（Jenkins Declarative）</div>
+  <pre>
+pipeline {
+    agent any
+    stages {
+        stage('UI Asset Validation') {
+            steps {
+                sh '''
+                    python3 tools/imageCheck9Slice.py \
+                        --path Content/UI/ \
+                        --meta Content/UI/.meta/ \
+                        --report reports/9slice_report.json
+                '''
+            }
+            post {
+                failure {
+                    slackSend channel: '#ui-ci', message: "❌ 9宫格校验失败，详见 ${BUILD_URL}"
+                }
+            }
+        }
+        stage('sRGB Audit') {
+            steps {
+                sh 'python3 tools/srgb_audit.py --path Content/UI/ --strict'
+            }
+        }
+    }
+}
+  </pre>
+
+  <div class="sub-title">6.4 UE5 Editor Utility 一键批量修正</div>
+  <p>对于历史遗留资产的批量修正，可在 UE5 中使用 Editor Utility Widget：</p>
+  <pre>
+# UE5 Python Editor Utility (unreal module)
+import unreal
+
+def batch_fix_srgb():
+    """批量扫描 UI 纹理并修正 sRGB 标记"""
+    asset_registry = unreal.AssetRegistryHelpers.get_asset_registry()
+    ui_textures = asset_registry.get_assets_by_path("/Game/UI", recursive=True)
+    
+    fixed = 0
+    for asset_data in ui_textures:
+        tex = asset_data.get_asset()
+        if not isinstance(tex, unreal.Texture2D):
+            continue
+        name = tex.get_name()
+        # 遮罩类贴图应关闭 sRGB
+        if "_Mask" in name or "_Data" in name or "_Alpha" in name:
+            if tex.srgb:
+                tex.srgb = False
+                tex.modify()
+                fixed += 1
+        # 表现类贴图应开启 sRGB
+        elif not tex.srgb:
+            tex.srgb = True
+            tex.modify()
+            fixed += 1
+    
+    unreal.log(f"[sRGB Fix] 修正 {fixed} 张纹理")
+  </pre>
+
+  <div class="alert alert-blue">
+    💡 <strong>交叉引用</strong>：命名规范校验规则详见 → <a href="ui-slice-naming.html#sec3">切图与命名规范 §3 命名公式</a>；Atlas 分组策略详见 → <a href="ui-umg-tips.html#sec9">UMG 工业指南 §9 Atlas</a>
+  </div>
+</div>
+
+<!-- SEC7 -->
+<div class="section" id="sec7">
+  <h2>🔄 7. 多引擎9宫格参数对照与批量迁移</h2>
+
+  <p>跨引擎项目或技术选型迁移时，9 宫格参数定义差异是 UI 资产返工的首要原因。本节建立<strong>引擎参数映射表</strong>，并提供批量迁移工具链。</p>
+
+  <div class="sub-title">7.1 引擎参数对照表</div>
+  <table>
+    <tr><th>概念</th><th>UE5 UMG</th><th>Unity UGUI</th><th>Cocos Creator</th><th>备注</th></tr>
+    <tr><td>9宫格参数入口</td><td>Texture → <code>Margin</code> (LTRB)</td><td>Sprite Editor → <code>Border</code> (LTRB)</td><td>Sprite Frame → <code>insetTop/Right/Bottom/Left</code></td><td>均为像素值</td></tr>
+    <tr><td>参数单位</td><td>0~1 归一化 / 像素（依版本）</td><td>像素</td><td>像素</td><td>UE5.3+ 支持像素直写</td></tr>
+    <tr><td>sRGB 控制</td><td>Texture Asset → <code>sRGB</code> 复选框</td><td>Texture Import → <code>sRGB</code></td><td>Texture → <code>Premultiply Alpha</code> 间接影响</td><td>—</td></tr>
+    <tr><td>颜色空间渲染</td><td>UI 层默认 sRGB 直通（绕过后处理）</td><td>Canvas → <code>Additional Shader Channels</code> 控制</td><td>全局 Pipeline 设置</td><td>确认 UI 不经过 Tone Mapping</td></tr>
+    <tr><td>批量设置工具</td><td>Editor Utility / Python Script</td><td>AssetPostprocessor + ScriptableObject</td><td>构建脚本 + Creator Plugin</td><td>—</td></tr>
+    <tr><td>拉伸模式</td><td>Draw As → <code>Box</code> (9-Slice)</td><td>Image Type → <code>Sliced</code></td><td>Sprite → Type <code>Sliced</code></td><td>—</td></tr>
+    <tr><td>Fill Center 选项</td><td>✅ 默认填充</td><td>✅ <code>Fill Center</code> 复选框</td><td>✅ <code>Trim</code> 选项反向控制</td><td>透明中心时关闭可省 Draw Call</td></tr>
+  </table>
+
+  <div class="sub-title">7.2 UE5 → Unity 批量迁移工具</div>
+  <pre>
+# migrate_9slice_ue2unity.py
+"""
+从 UE5 .uasset 中提取 9-Slice Margin → 生成 Unity .meta (sprite border) 配置
+"""
+import json, struct
+from pathlib import Path
+
+def parse_ue_margin(uasset_path: str) -> dict:
+    """解析 UE5 Texture2D 的 Margin 字段（简化示例）"""
+    # 实际需要 UAsset 解析库（如 UAssetAPI）
+    meta_json = Path(uasset_path).with_suffix('.9slice.json')
+    if meta_json.exists():
+        return json.loads(meta_json.read_text())
+    return {"left": 0, "top": 0, "right": 0, "bottom": 0}
+
+def generate_unity_meta(sprite_name: str, margin: dict, tex_size: tuple) -> dict:
+    """生成 Unity Sprite .meta 中的 border 字段"""
+    return {
+        "spriteBorder": {
+            "x": margin["left"],
+            "y": margin["bottom"],   # Unity Y 轴从底部起
+            "z": margin["right"],
+            "w": margin["top"]       # Unity W = top
+        },
+        "spritePixelsToUnits": 100,
+        "textureType": 8,  # Sprite
+        "sRGBTexture": 1
+    }
+
+def batch_migrate(ue_dir: str, unity_dir: str):
+    """批量迁移目录"""
+    migrated = 0
+    for png in Path(ue_dir).glob("T_UI_*.png"):
+        margin = parse_ue_margin(str(png.with_suffix('.uasset')))
+        from PIL import Image
+        w, h = Image.open(png).size
+        meta = generate_unity_meta(png.stem, margin, (w, h))
+        out = Path(unity_dir) / (png.stem + ".png.meta.json")
+        out.write_text(json.dumps(meta, indent=2))
+        migrated += 1
+    print(f"✅ 迁移完成: {migrated} 个 Sprite")
+  </pre>
+
+  <div class="sub-title">7.3 迁移风险检查清单</div>
+  <table>
+    <tr><th>风险项</th><th>症状</th><th>预防措施</th></tr>
+    <tr><td>坐标系差异</td><td>Unity Border Y/W 方向与 UE LTRB 相反</td><td>迁移脚本中做 Y 轴翻转映射</td></tr>
+    <tr><td>归一化→像素</td><td>UE 旧版 Margin 为 0~1 浮点</td><td>乘以纹理尺寸取整</td></tr>
+    <tr><td>sRGB 继承丢失</td><td>迁移后颜色偏暗/偏亮</td><td>迁移脚本同步写入 sRGB 标记</td></tr>
+    <tr><td>Fill Center 状态</td><td>原本透明中心变为填充</td><td>记录原始 Fill Center 状态并迁移</td></tr>
+    <tr><td>DPI 缩放因子</td><td>高分屏下尺寸翻倍</td><td>统一以 @1x 像素为基准迁移</td></tr>
+  </table>
+
+  <div class="alert alert-yellow">
+    ⚠️ <strong>重要</strong>：跨引擎迁移后务必运行 §6 自动化校验脚本进行全量回归检查，确保参数无丢失。
+  </div>
+</div>
+
+<!-- SEC8 -->
+<div class="section" id="sec8">
+  <h2>📊 8. PM视角：9宫格/颜色空间质量度量看板</h2>
+
+  <p>PM 需要<strong>可量化的质量指标</strong>来评估 UI 资产合规率、监控技术债务、驱动优化决策。本节定义度量体系与看板维度。</p>
+
+  <div class="sub-title">8.1 核心 KPI 指标定义</div>
+  <table>
+    <tr><th>指标名称</th><th>公式</th><th>目标值</th><th>采集频率</th><th>数据源</th></tr>
+    <tr><td>9宫格合规率</td><td>通过校验数 / UI 贴图总数 × 100%</td><td>≥ 98%</td><td>每次 CI 构建</td><td>CI 校验报告</td></tr>
+    <tr><td>sRGB 正确率</td><td>sRGB 标记正确数 / 总 UI 纹理数 × 100%</td><td>= 100%</td><td>每次 CI 构建</td><td>sRGB Audit 日志</td></tr>
+    <tr><td>拉伸安全通过率</td><td>极限拉伸无断裂数 / 抽检数 × 100%</td><td>≥ 95%</td><td>每周五抽检</td><td>自动化截图对比</td></tr>
+    <tr><td>命名规范合规率</td><td>命名合规数 / 新增贴图数 × 100%</td><td>≥ 99%</td><td>每次提交</td><td>命名正则校验</td></tr>
+    <tr><td>修复平均耗时 (MTTR)</td><td>∑(修复完成时间 − 发现时间) / 问题数</td><td>≤ 4h</td><td>按问题统计</td><td>TAPD 工单</td></tr>
+    <tr><td>CI 首次通过率</td><td>一次提交即通过 / 总提交数 × 100%</td><td>≥ 85%</td><td>每周汇总</td><td>Jenkins Build History</td></tr>
+  </table>
+
+  <div class="sub-title">8.2 看板维度与可视化建议</div>
+  <table>
+    <tr><th>看板区域</th><th>展示内容</th><th>可视化形式</th><th>刷新频率</th></tr>
+    <tr><td>总览仪表盘</td><td>6 项 KPI 当前值 + 趋势箭头</td><td>大数字卡片 + 迷你趋势图</td><td>实时</td></tr>
+    <tr><td>合规趋势</td><td>近 30 天各项合规率走势</td><td>折线图（多系列）</td><td>每日</td></tr>
+    <tr><td>问题热力图</td><td>按模块/功能分布的违规数量</td><td>树状图 / 热力矩阵</td><td>每周</td></tr>
+    <tr><td>Top 违规资产</td><td>本周违规次数 Top10 资产列表</td><td>排行榜表格</td><td>每周</td></tr>
+    <tr><td>修复效率</td><td>MTTR 分布 + 超时工单预警</td><td>箱线图 + 红色预警标记</td><td>每日</td></tr>
+    <tr><td>团队对比</td><td>各 UI 小组合规率对比</td><td>柱状图 / 雷达图</td><td>双周</td></tr>
+  </table>
+
+  <div class="sub-title">8.3 数据驱动决策模型</div>
+  <div class="dd-grid">
+    <div class="dd-card dd-do">
+      <h4 style="color:var(--green)">✅ 合规率 ≥ 98% 时</h4>
+      <p>• 维持当前 CI 检查策略<br>• 可适当放宽非关键 Warning 项<br>• 关注效率优化（减少 false positive）<br>• 季度回顾频率可降为月度</p>
+    </div>
+    <div class="dd-card dd-dont">
+      <h4 style="color:var(--red)">❌ 合规率 &lt; 90% 时</h4>
+      <p>• 触发专项治理 Sprint<br>• 增加 Code Review 中 UI 资产必检项<br>• 安排 TA 驻场辅导 UI 组<br>• 每日站会增加资产质量通报<br>• PM 升级为风险项，纳入周报</p>
+    </div>
+  </div>
+
+  <div class="sub-title">8.4 质量门禁与版本发布联动</div>
+  <table>
+    <tr><th>里程碑节点</th><th>质量门禁要求</th><th>不达标处置</th></tr>
+    <tr><td>Alpha 版本</td><td>9宫格合规率 ≥ 90%，sRGB 正确率 ≥ 95%</td><td>标记技术债务，制定修复计划</td></tr>
+    <tr><td>Beta 版本</td><td>9宫格合规率 ≥ 95%，sRGB 正确率 = 100%</td><td>延迟发布 / 热修复</td></tr>
+    <tr><td>RC / Gold</td><td>全部 KPI 达标，无 Error 级违规</td><td>阻断发布，必须全部修复</td></tr>
+    <tr><td>Live 热更新</td><td>增量资产全部通过 CI 校验</td><td>回退本次热更</td></tr>
+  </table>
+
+  <div class="sub-title">8.5 自动化报告模板</div>
+  <pre>
+# 每周自动生成的质量报告结构
+{
+  "report_date": "2026-W22",
+  "summary": {
+    "9slice_compliance": 98.5,
+    "srgb_accuracy": 100.0,
+    "stretch_pass_rate": 96.2,
+    "naming_compliance": 99.1,
+    "mttr_hours": 2.8,
+    "ci_first_pass": 87.3
+  },
+  "trend": "improving",  // improving / stable / declining
+  "top_issues": [
+    {"asset": "T_UI_Shop_BtnBg_Normal.png", "issue": "corner_min", "count": 3},
+    {"asset": "T_UI_Chat_Bubble_Press.png", "issue": "center_pure", "count": 2}
+  ],
+  "action_items": [
+    {"owner": "UI_TeamA", "action": "修复 Shop 模块 3 张违规贴图", "due": "2026-W23"}
+  ]
+}
+  </pre>
+
+  <div class="alert alert-green">
+    ✅ <strong>最佳实践</strong>：将质量报告自动推送至团队 IM（企微/飞书）+ TAPD 看板，确保全员可见；PM 在版本复盘会上使用趋势数据作为 UI 质量改进依据。
+  </div>
+</div>
+
+<div class="doc-footer">🎨 9宫格与颜色空间 · UI 规范 v2.0 · UI组 + TA组 · 项目内部资料</div>
 </div>
 <script src="editor-kit.js"></script>
 <script src="toc-enhancer.js?v=1.1"></script>

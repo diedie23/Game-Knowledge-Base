@@ -687,17 +687,19 @@
       "craft": "UI",
       "type": "iframe",
       "title": "切图与命名规范",
-      "desc": "UI 切图标准与文件命名规则",
+      "desc": "UI 切图标准与文件命名规则 · 含自动化工具链与 CI Pipeline 校验",
       "tags": [
         "切图",
         "命名",
-        "UI"
+        "UI",
+        "CI/CD",
+        "自动化"
       ],
       "icon": "✂️",
       "action": "openTool",
       "path": "knowledge-base/ui-slice-naming.html",
       "owner": "赵六",
-      "last_updated": "2026-03-28",
+      "last_updated": "2026-05-29",
       "applicable_stage": "量产期",
       "priority": "medium",
       "is_hot": false,
@@ -706,7 +708,12 @@
         "命名规则",
         "切图标准",
         "UI资产",
-        "文件命名"
+        "文件命名",
+        "Figma导出",
+        "CI校验",
+        "自动化工具链",
+        "Atlas合图",
+        "资产管理KPI"
       ],
       "content_type": "规范",
       "quality_level": "mature"
@@ -717,18 +724,20 @@
       "craft": "UI",
       "type": "iframe",
       "title": "[UI] 9宫格与颜色空间",
-      "desc": "9-Slice 拉伸与色彩空间规范",
+      "desc": "9-Slice 拉伸与色彩空间规范 · 含自动化检测/多引擎迁移/PM质量看板",
       "tags": [
         "9宫格",
-        "颜色空间"
+        "颜色空间",
+        "CI/CD",
+        "跨引擎"
       ],
       "icon": "🎨",
       "action": "openTool",
       "path": "knowledge-base/ui-9slice-color.html",
       "owner": "赵六",
-      "last_updated": "2026-03-28",
+      "last_updated": "2026-05-29",
       "applicable_stage": "量产期",
-      "priority": "low",
+      "priority": "medium",
       "is_hot": false,
       "keywords": [
         "9宫格",
@@ -736,7 +745,11 @@
         "拉伸",
         "颜色空间",
         "sRGB",
-        "UI规范"
+        "UI规范",
+        "自动化检测",
+        "CI校验",
+        "跨引擎迁移",
+        "PM质量看板"
       ],
       "content_type": "规范",
       "quality_level": "mature"
@@ -747,27 +760,70 @@
       "craft": "UI",
       "type": "iframe",
       "title": "[UI] Layout 拼接规范",
-      "desc": "界面布局与自适应拼接方案",
+      "desc": "界面布局与自适应拼接方案 · 含折叠屏适配/组件复用体系/PM质量看板",
       "tags": [
         "Layout",
-        "适配"
+        "适配",
+        "折叠屏",
+        "组件复用"
       ],
       "icon": "📐",
       "action": "openTool",
       "path": "knowledge-base/ui-layout.html",
       "owner": "赵六",
-      "last_updated": "2026-03-28",
+      "last_updated": "2026-05-29",
       "applicable_stage": "量产期",
-      "priority": "low",
+      "priority": "medium",
       "is_hot": false,
       "keywords": [
         "UI布局",
         "自适应",
         "响应式",
         "拼接方案",
-        "适配规范"
+        "适配规范",
+        "折叠屏",
+        "Widget复用",
+        "组件体系",
+        "锚点Anchor",
+        "PM质量看板"
       ],
       "content_type": "规范",
+      "quality_level": "mature"
+    },
+    {
+      "id": "ui-workflow-sync",
+      "module": "craft",
+      "craft": "UI",
+      "type": "iframe",
+      "title": "[UI] UX管线流程（环节同步版）",
+      "desc": "UX 生产管线全流程同步文档 · 含 TAPD 发单机制/角色分工/效率KPI度量",
+      "tags": [
+        "UX管线",
+        "流程同步",
+        "TAPD",
+        "KPI"
+      ],
+      "icon": "🖥️",
+      "action": "openTool",
+      "path": "knowledge-base/ui-workflow-sync.html",
+      "owner": "赵六",
+      "last_updated": "2026-05-29",
+      "applicable_stage": "全阶段",
+      "priority": "high",
+      "is_hot": false,
+      "keywords": [
+        "UX管线",
+        "流程同步",
+        "TAPD发单",
+        "角色分工",
+        "UI管线流程",
+        "效率KPI",
+        "走查",
+        "并行组",
+        "VX动效",
+        "Layout蓝图"
+      ],
+      "content_type": "流程",
       "quality_level": "mature"
     },
     {

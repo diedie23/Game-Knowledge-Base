@@ -79,8 +79,8 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 
 <div class="doc-header">
   <h1>🖥️ 游戏 UX 管线流程 <span class="ver">环节同步版</span></h1>
-  <div class="subtitle">UX Production Pipeline — 环节流程同步专用 · 精简版</div>
-  <div class="meta"><span>📋 UGC小游戏UX流程制作</span><span>👤 策划 · 交互 · UI · Layout · VX · 客户端 · QA</span><span>📅 2026-04-22</span></div>
+  <div class="subtitle">UX Production Pipeline — 环节流程同步专用 · 含效率KPI度量体系</div>
+  <div class="meta"><span>📋 UGC小游戏UX流程制作</span><span>👤 策划 · 交互 · UI · Layout · VX · 客户端 · QA</span><span>📅 2026-05-29 (v1.1 升级)</span></div>
 </div>
 
 <div class="alert alert-blue"><strong>📌 说明</strong>：本文档为<strong>环节流程同步专用精简版</strong>，聚焦流程节点、角色分工、Input/Output、TAPD 发单机制与常见问题。<span class="badge badge-new">NEW</span> 标记为新增环节。</div>
@@ -473,7 +473,61 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <div class="faq-item"><div class="faq-q">💬 Q5：Layout白模和UI设计并行，如果UI改了怎么办？</div><div class="faq-a"><strong>答</strong>：分两种情况——<br><strong>① 仅视觉层变更（配色/字体/图标样式）：</strong>白模不受影响，Layout切正式资产时直接替换即可。<br><strong>② 布局/结构性变更（控件增减、层级调整、页面布局大改）：</strong>这是并行模式下<strong style="color:var(--orange)">需要注意的场景</strong>。此时白模功能蓝图可能无法使用，需要触发「偏离评估会」。<br><strong>预防关键：</strong>建议UI设计进行至50%时与交互/Layout做一次中期对齐，提前暴露布局变更意图。</div></div>
 </div>
 
-<div class="doc-footer">🖥️ 游戏 UX 管线流程 · 环节同步版 · 2026-05-18 · 基于全流程 v1.2 精简</div>
+<!-- SEC5 效率度量 KPI 体系 -->
+<div class="section" id="sec5">
+  <h2>📊 5. 管线效率度量 KPI 体系</h2>
+
+  <p>将 UX 管线的效率和质量<strong>量化为可度量指标</strong>，便于 PM 和 UX 管线负责人进行数据驱动的流程优化。以下 KPI 均可从 TAPD 工单数据中自动或半自动采集。</p>
+
+  <div style="font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600">5.1 核心效率 KPI</div>
+  <table>
+    <tr><th>指标名称</th><th>定义 / 公式</th><th>目标值</th><th>采集方式</th><th>关注角色</th></tr>
+    <tr><td><strong>端到端交付周期</strong></td><td>①策划需求 → ⑯界面交付完成 的自然天数</td><td>单界面 ≤ 15 工作日</td><td>TAPD 父单 创建→关闭 时间差</td><td>PM / UX管线负责人</td></tr>
+    <tr><td><strong>环节平均耗时</strong></td><td>各环节子单 进行中→已完成 的平均天数</td><td>UX ≤ 3天；UI ≤ 5天；Layout ≤ 3天；VX ≤ 3天</td><td>TAPD 子单状态变更时间戳</td><td>UX管线负责人</td></tr>
+    <tr><td><strong>并行利用率</strong></td><td>实际并行天数 / 理论可并行天数 × 100%</td><td>≥ 70%</td><td>并行组 A/B 实际重叠天数统计</td><td>UX管线负责人</td></tr>
+    <tr><td><strong>评审一次通过率</strong></td><td>一次通过评审数 / 总评审数 × 100%</td><td>≥ 75%</td><td>TAPD 评论/评审记录</td><td>各环节负责人</td></tr>
+    <tr><td><strong>走查问题密度</strong></td><td>走查发现的缺陷数 / 已交付界面数</td><td>≤ 3 个/界面</td><td>TAPD 缺陷单（关联⑬走查）</td><td>QA / PM</td></tr>
+    <tr><td><strong>走查修复闭环率</strong></td><td>走查问题 48h 内关闭数 / 总走查问题数 × 100%</td><td>≥ 85%</td><td>TAPD 缺陷单 创建→关闭 时间差</td><td>UX管线负责人</td></tr>
+  </table>
+
+  <div style="font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600">5.2 质量回溯 KPI</div>
+  <table>
+    <tr><th>指标名称</th><th>定义 / 公式</th><th>目标值</th><th>采集方式</th></tr>
+    <tr><td><strong>需求变更率</strong></td><td>中途变更需求数 / 总需求数 × 100%</td><td>≤ 20%</td><td>TAPD 需求变更备注</td></tr>
+    <tr><td><strong>返工率</strong></td><td>评审打回或走查后需重做的环节数 / 总环节数 × 100%</td><td>≤ 15%</td><td>TAPD 状态回退记录</td></tr>
+    <tr><td><strong>资产合规率</strong></td><td>⑩ 资产合规检查一次通过数 / 总检查数 × 100%</td><td>≥ 90%</td><td>资产合规检查记录</td></tr>
+    <tr><td><strong>偏离评估触发率</strong></td><td>需触发偏离评估的界面数 / 总界面数 × 100%</td><td>≤ 10%</td><td>偏离评估会议记录</td></tr>
+  </table>
+
+  <div style="font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600">5.3 看板可视化建议</div>
+  <table>
+    <tr><th>看板区域</th><th>展示内容</th><th>可视化形式</th><th>刷新频率</th></tr>
+    <tr><td>交付漏斗</td><td>各阶段在手界面数量（①→⑯）</td><td>漏斗图 / 甘特图</td><td>每日</td></tr>
+    <tr><td>环节耗时分布</td><td>各环节平均耗时 + 异常值标注</td><td>箱线图</td><td>每周</td></tr>
+    <tr><td>评审通过率趋势</td><td>近 8 周各评审节点一次通过率</td><td>折线图</td><td>每周</td></tr>
+    <tr><td>瓶颈预警</td><td>超出目标值 120% 的环节高亮</td><td>红色预警卡片</td><td>实时</td></tr>
+    <tr><td>并行效率</td><td>并行组 A/B 实际 vs 理论时间线对比</td><td>双甘特图</td><td>按需求统计</td></tr>
+    <tr><td>走查闭环追踪</td><td>未关闭走查问题列表 + 超时预警</td><td>表格 + 倒计时</td><td>每日</td></tr>
+  </table>
+
+  <div style="font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600">5.4 数据驱动优化模型</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0">
+    <div style="border-radius:10px;padding:16px;font-size:14px;line-height:1.8;background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)">
+      <h4 style="margin:0 0 8px;font-size:15px;color:var(--green)">✅ 健康指标（目标区间内）</h4>
+      <p>• 维持当前流程，不做大变动<br>• 季度回顾频率可降为月度<br>• 关注持续改进空间（如提高并行利用率）<br>• 分享最佳实践到其他项目组</p>
+    </div>
+    <div style="border-radius:10px;padding:16px;font-size:14px;line-height:1.8;background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)">
+      <h4 style="margin:0 0 8px;font-size:15px;color:var(--red)">❌ 预警指标（超出目标值 120%）</h4>
+      <p>• 定位瓶颈环节（哪个阶段耗时最长？）<br>• 分析根因（人力不足/需求变更多/评审反复？）<br>• 制定针对性改进措施<br>• 增加检查频率至每日/每周<br>• PM 升级为风险项，纳入周报</p>
+    </div>
+  </div>
+
+  <div class="alert alert-green">
+    ✅ <strong>落地建议</strong>：UX管线负责人每两周汇总一次 KPI 数据，在项目复盘会上用数据说话。重点关注「端到端交付周期」和「走查修复闭环率」两个核心指标，前者衡量效率，后者衡量质量。
+  </div>
+</div>
+
+<div class="doc-footer">🖥️ 游戏 UX 管线流程 · 环节同步版 v1.1 · 2026-05-29 · 基于全流程 v1.2 精简 + 效率KPI</div>
 </div>
 </body>
 </html>
