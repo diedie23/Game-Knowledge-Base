@@ -322,6 +322,43 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <div class="alert alert-blue">⚡ <strong>APM 金句</strong>："标准越清晰，扯皮越少。定级不是为了惩罚美术，而是让所有人对'什么该先修'达成共识。"</div>
 </div>
 
+<!-- ═══ SEC-PM: 制作人关注 ═══ -->
+<div class="section" id="sec-pm">
+  <h2>🎯 制作人关注：版本品质与 Bug 管控策略</h2>
+
+  <div class="alert alert-yellow" style="border:1px solid rgba(251,191,36,.3)">
+    <strong>💡 制作人经验：</strong>"美术 Bug 的可怕之处不在于单个 Bug 有多严重，而在于<strong>积累效应</strong>——50 个 C 级 Bug 叠加起来的体验损伤，可能超过 1 个 S 级。制作人必须同时关注<strong>尖峰问题</strong>（S/A 级）和<strong>基底水位</strong>（B/C 级的总量趋势）。"
+  </div>
+
+  <h3>🚨 制作人在 Bug 管理中必须决策的事</h3>
+  <table>
+    <thead><tr><th>决策场景</th><th>APM 提交选项</th><th>制作人决策要点</th></tr></thead>
+    <tbody>
+      <tr><td><strong>"Won't Fix" 争议</strong></td><td>美术说 By Design / QA 坚持是 Bug</td><td>最终裁决权在制作人：从玩家视角判断是否影响体验</td></tr>
+      <tr><td><strong>上线前 Bug 取舍</strong></td><td>5 个 B 级 Bug 修不完，上线 or 延期？</td><td>逐条评估"玩家是否会感知到" → 做出上线/延期/热更计划</td></tr>
+      <tr><td><strong>降级验收</strong></td><td>某版本 A 级 Bug 清零但 B 级超标</td><td>是否允许"带B上线"需要制作人签字确认风险</td></tr>
+      <tr><td><strong>Bug 归因争议</strong></td><td>策划改了需求导致美术 Bug，谁背锅？</td><td>明确"变更引入的 Bug 归变更发起方"原则</td></tr>
+    </tbody>
+  </table>
+
+  <h3>📊 制作人关注的品质指标</h3>
+  <table>
+    <thead><tr><th>指标</th><th>健康值</th><th>警戒值</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><strong>S/A 级 Bug 修复周期</strong></td><td>≤ 24h</td><td>> 48h</td><td>严重 Bug 不隔夜是基本要求</td></tr>
+      <tr><td><strong>Bug 净增趋势</strong></td><td>每周净增 ≤ 0</td><td>连续 3 周净增</td><td>新增速度超过修复速度 = 失控预兆</td></tr>
+      <tr><td><strong>版本走查通过率</strong></td><td>≥ 90%</td><td>< 75%</td><td>走查项通过比例</td></tr>
+      <tr><td><strong>回归 Bug 率</strong></td><td>≤ 5%</td><td>> 10%</td><td>修了又复发 = 修复质量差</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-blue"><strong>📎 关联文档：</strong>
+    走查清单 → <a href="art-vs-qa-checklist.html" style="color:var(--accent);font-weight:600">《版本走查验收清单》</a> ·
+    度量体系 → <a href="collab-dashboard-metrics.html" style="color:var(--accent);font-weight:600">《跨部门协同 Dashboard》</a> ·
+    沟通话术 → <a href="cross-dept-communication-tips.html" style="color:var(--accent);font-weight:600">《处理QA打回场景》</a>
+  </div>
+</div>
+
 <div class="doc-footer">
   游戏美术项目管理知识库 · 美术表现类 Bug 定级标准 v1.0
 </div>

@@ -598,6 +598,30 @@
               "craft": "管理"
             }
           ]
+        },
+        {
+          "name": "外包与度量",
+          "icon": "📊",
+          "items": [
+            {
+              "id": "outsource-delivery-spec",
+              "icon": "🏭",
+              "title": "外包资产交付与验收规范",
+              "type": "iframe",
+              "file": "knowledge-base/outsource-delivery-spec.html",
+              "badge": "外包",
+              "craft": "跨部门"
+            },
+            {
+              "id": "collab-dashboard-metrics",
+              "icon": "📊",
+              "title": "跨部门协同 Dashboard 与度量体系",
+              "type": "iframe",
+              "file": "knowledge-base/collab-dashboard-metrics.html",
+              "badge": "度量",
+              "craft": "管理"
+            }
+          ]
         }
       ]
     },
