@@ -410,11 +410,38 @@
           "icon": "🏔️",
           "items": [
             {
+              "id": "scene-pipeline-workflow",
+              "icon": "🏗️",
+              "title": "场景制作全流程管线",
+              "type": "iframe",
+              "file": "knowledge-base/scene-pipeline-workflow.html",
+              "badge": "场景",
+              "craft": "场景"
+            },
+            {
               "id": "scene-lod-spec",
               "icon": "🏗️",
               "title": "模块化与 LOD 规范",
               "type": "iframe",
               "file": "knowledge-base/scene-lod-spec.html",
+              "badge": "场景",
+              "craft": "场景"
+            },
+            {
+              "id": "scene-lighting-spec",
+              "icon": "💡",
+              "title": "光照与 GI 规范",
+              "type": "iframe",
+              "file": "knowledge-base/scene-lighting-spec.html",
+              "badge": "场景",
+              "craft": "场景"
+            },
+            {
+              "id": "scene-terrain-vegetation",
+              "icon": "🌿",
+              "title": "地形与植被工业化规范",
+              "type": "iframe",
+              "file": "knowledge-base/scene-terrain-vegetation.html",
               "badge": "场景",
               "craft": "场景"
             }

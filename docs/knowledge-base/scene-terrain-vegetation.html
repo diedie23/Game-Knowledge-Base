@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地形与植被工业化规范 — 工业化规范文档</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1200px;margin:0 auto;padding:32px 48px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:26px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:12px;background:var(--green);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim)}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--green);display:flex;align-items:center;gap:8px}
+.sub-title{font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:15px;margin-bottom:12px;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(74,222,128,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;min-width:100px}
+.flow-node strong{display:block;color:var(--heading);font-size:14px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:12px}
+.flow-arrow{color:var(--green);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:14px;line-height:1.8}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:15px}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:16px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:14px;line-height:1.8;padding-left:28px}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>🌿 地形与植被工业化规范 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Terrain, Landscape & Foliage — Industrial Pipeline Specification</div>
+  <div class="meta"><span>📋 UE5 Landscape / Unity Terrain</span><span>👤 TA 组 · 场景组</span><span>📅 2026-05-29</span></div>
+</div>
+
+<div class="toc"><h3>📑 目录</h3>
+<ol>
+  <li><a href="#s1">地形系统技术选型</a></li>
+  <li><a href="#s2">地表材质与图层规范</a></li>
+  <li><a href="#s3">高度图与地形雕刻标准</a></li>
+  <li><a href="#s4">植被系统与 Instancing 规范</a></li>
+  <li><a href="#s5">地形 LOD 与 Streaming 策略</a></li>
+  <li><a href="#s6">水体与特殊地表</a></li>
+  <li><a href="#s7">命名与目录结构</a></li>
+  <li><a href="#s8">SOP 标准作业流程</a></li>
+  <li><a href="#s9">Do/Don't 红黑榜</a></li>
+  <li><a href="#s10">FAQ</a></li>
+  <li><a href="#s11">PM视角：地形植被质量度量看板</a></li>
+</ol></div>
+
+<!-- §1 -->
+<div class="section" id="s1">
+  <h2>1️⃣ 地形系统技术选型</h2>
+
+  <div class="sub-title">1.1 引擎地形系统对照</div>
+  <table>
+    <tr><th>特性</th><th>UE5 Landscape</th><th>Unity Terrain</th><th>说明</th></tr>
+    <tr><td>底层结构</td><td>Height Field + Component 分区</td><td>Height Map + Terrain Tiles</td><td>均为高度图驱动</td></tr>
+    <tr><td>分辨率单位</td><td>Quads (顶点间距)</td><td>Height Map Resolution</td><td>UE5 默认 100cm/quad</td></tr>
+    <tr><td>材质系统</td><td>Landscape Material + Weight Map</td><td>Terrain Layers + Splat Map</td><td>最大层数有差异</td></tr>
+    <tr><td>LOD 系统</td><td>Component-Level LOD（自动）</td><td>Base Map Distance + Pixel Error</td><td>UE5 更精细</td></tr>
+    <tr><td>物理碰撞</td><td>自带高度场碰撞（高效）</td><td>Terrain Collider（高效）</td><td>均为原生支持</td></tr>
+    <tr><td>Streaming 支持</td><td>World Partition 原生支持</td><td>需自行实现 Tile 加载/卸载</td><td>UE5 大世界优势明显</td></tr>
+    <tr><td>虚拟纹理 (VT)</td><td>Runtime Virtual Texture (RVT)</td><td>需自行实现或插件</td><td>RVT 极大减少 Draw Call</td></tr>
+  </table>
+
+  <div class="sub-title">1.2 地形规格决策参考</div>
+  <table>
+    <tr><th>场景规模</th><th>推荐地形尺寸</th><th>Quad 精度</th><th>Component 数</th><th>内存估算</th></tr>
+    <tr><td>小型关卡 (500m²)</td><td>512 × 512 quads</td><td>100cm/quad</td><td>1 × 1 (每 Component 512 quads)</td><td>~2MB Height Map</td></tr>
+    <tr><td>中型关卡 (2km²)</td><td>2017 × 2017</td><td>100cm/quad</td><td>4 × 4</td><td>~8MB</td></tr>
+    <tr><td>大世界 (8km²)</td><td>8129 × 8129</td><td>100cm/quad</td><td>16 × 16</td><td>~128MB（需 Streaming）</td></tr>
+    <tr><td>超大世界 (64km²)</td><td>多 Landscape Proxy 拼接</td><td>200cm/quad（远区降精度）</td><td>World Partition 管理</td><td>按需加载</td></tr>
+  </table>
+
+  <div class="alert alert-red"><strong>⛔ 红线：</strong>
+    <p>• 单 Landscape Component 顶点数 ≤ <strong>255×255</strong>（UE5 硬限制）</p>
+    <p>• 地形材质图层数 ≤ <strong>12 层</strong>（移动端 ≤ 4 层）— 超过引发性能断崖</p>
+    <p>• 地形 Quad 精度一旦预研期锁定 <strong>不可中途更改</strong>（会导致权重图/植被全部返工）</p>
+  </div>
+</div>
+
+<!-- §2 -->
+<div class="section" id="s2">
+  <h2>2️⃣ 地表材质与图层规范</h2>
+
+  <div class="sub-title">2.1 地表材质图层标准</div>
+  <table>
+    <tr><th>图层类型</th><th>贴图规格</th><th>Tiling 尺寸</th><th>示例</th><th>说明</th></tr>
+    <tr><td><strong>Base 基础层</strong></td><td>BC 2048² + N 2048² + ORM 2048²</td><td>4~8m / Tile</td><td>草地、泥土</td><td>覆盖面积最大</td></tr>
+    <tr><td><strong>Detail 细节层</strong></td><td>BC 1024² + N 1024²</td><td>1~2m / Tile</td><td>碎石、落叶</td><td>叠加在 Base 上</td></tr>
+    <tr><td><strong>Transition 过渡层</strong></td><td>BC 1024² + N 1024² + Mask</td><td>2~4m / Tile</td><td>草→泥过渡</td><td>自动权重混合</td></tr>
+    <tr><td><strong>Special 特殊层</strong></td><td>按需</td><td>按需</td><td>道路、河床</td><td>Spline Deform 适用</td></tr>
+  </table>
+
+  <div class="sub-title">2.2 Runtime Virtual Texture (RVT) 配置</div>
+  <table>
+    <tr><th>配置项</th><th>推荐值</th><th>说明</th></tr>
+    <tr><td>Tile Size</td><td>256 × 256</td><td>每个 VT Tile 的纹素分辨率</td></tr>
+    <tr><td>Tile Count</td><td>根据地形面积计算</td><td>覆盖完整地形</td></tr>
+    <tr><td>VT Page Size</td><td>128~256</td><td>GPU 端虚拟页大小</td></tr>
+    <tr><td>输出通道</td><td>Base Color + Normal + Roughness</td><td>与地形 Landscape Material 对应</td></tr>
+    <tr><td>Mip Level 数</td><td>自动</td><td>根据 Tile Size 自动计算</td></tr>
+  </table>
+
+  <div class="alert alert-blue">
+    💡 <strong>关键优势</strong>：RVT 将地形多层混合材质的 Pixel Shader 开销从每帧计算变为"按需烘焙到虚拟纹理"，<strong>Draw Call 降为 1</strong>（整个地形），对大世界场景至关重要。
+  </div>
+
+  <div class="sub-title">2.3 地表混合模式</div>
+  <table>
+    <tr><th>混合模式</th><th>效果</th><th>性能</th><th>适用</th></tr>
+    <tr><td><strong>Weight Blend</strong></td><td>线性插值，较柔和</td><td>低</td><td>大面积自然地表</td></tr>
+    <tr><td><strong>Height Blend</strong></td><td>基于高度图混合，更自然</td><td>中</td><td>岩石/泥土过渡</td></tr>
+    <tr><td><strong>Alpha Blend</strong></td><td>精确控制，边缘清晰</td><td>中</td><td>人工铺装/道路</td></tr>
+  </table>
+</div>
+
+<!-- §3 -->
+<div class="section" id="s3">
+  <h2>3️⃣ 高度图与地形雕刻标准</h2>
+
+  <div class="sub-title">3.1 高度图规格</div>
+  <table>
+    <tr><th>参数</th><th>标准</th><th>说明</th></tr>
+    <tr><td>格式</td><td>16-bit PNG / RAW</td><td>8-bit 精度不足，台阶感明显</td></tr>
+    <tr><td>分辨率</td><td>= Landscape 顶点数 + 1</td><td>如 2017×2017 地形用 2017×2017 高度图</td></tr>
+    <tr><td>高度范围</td><td>建议 -256m ~ +256m（共 512m）</td><td>根据场景地形起伏调整</td></tr>
+    <tr><td>DCC 来源</td><td>World Machine / Gaea / Houdini</td><td>程序化生成更高效</td></tr>
+  </table>
+
+  <div class="sub-title">3.2 雕刻规则</div>
+  <table>
+    <tr><th>规则</th><th>说明</th><th>违规后果</th></tr>
+    <tr><td>坡度上限</td><td>可行走区域坡度 ≤ 45°（= NavMesh Agent Slope）</td><td>AI/玩家无法通行</td></tr>
+    <tr><td>禁止尖锐突刺</td><td>单 Quad 高度差 ≤ 200cm</td><td>视觉穿帮 + 碰撞异常</td></tr>
+    <tr><td>边缘处理</td><td>地形边缘需平滑过渡到不可见区域</td><td>玩家看到地形截面</td></tr>
+    <tr><td>水面以下区域</td><td>需延伸至水面下方 ≥ 50cm</td><td>水面边缘穿帮</td></tr>
+    <tr><td>洞穴/悬崖</td><td>地形系统不支持洞穴 → 用 Static Mesh 补充</td><td>地形高度图限制</td></tr>
+  </table>
+</div>
+
+<!-- §4 -->
+<div class="section" id="s4">
+  <h2>4️⃣ 植被系统与 Instancing 规范</h2>
+
+  <div class="sub-title">4.1 植被分类与面数预算</div>
+  <table>
+    <tr><th>类别</th><th>示例</th><th>LOD0 面数</th><th>LOD 级数</th><th>Instancing</th><th>距离</th></tr>
+    <tr><td><strong>草</strong> (Grass)</td><td>杂草、花丛</td><td>20~100 tri</td><td>2 级（或 Impostor）</td><td>✅ GPU Instancing</td><td>≤ 30m 显示</td></tr>
+    <tr><td><strong>灌木</strong> (Bush)</td><td>灌木、低矮植物</td><td>500~2000 tri</td><td>3 级</td><td>✅ HISM</td><td>≤ 60m</td></tr>
+    <tr><td><strong>中型树</strong> (Tree M)</td><td>普通乔木</td><td>5,000~15,000 tri</td><td>4 级</td><td>✅ HISM</td><td>≤ 150m</td></tr>
+    <tr><td><strong>大型树</strong> (Tree L)</td><td>标志性大树</td><td>15,000~30,000 tri</td><td>4 级 + Billboard</td><td>✅ HISM</td><td>≤ 300m</td></tr>
+    <tr><td><strong>岩石</strong> (Rock)</td><td>地表石块</td><td>1,000~8,000 tri</td><td>3 级</td><td>✅ HISM / Nanite</td><td>≤ 200m</td></tr>
+  </table>
+
+  <div class="alert alert-red"><strong>⛔ 红线：</strong>
+    <p>• 同屏植被实例总数 ≤ <strong>50,000 个</strong>（含草）</p>
+    <p>• 同屏植被 Draw Call ≤ <strong>100 个</strong>（通过 HISM + 合批控制）</p>
+    <p>• 草地系统使用 <strong>Landscape Grass Type</strong>（UE5）自动密度管理，禁止手动逐株放置</p>
+  </div>
+
+  <div class="sub-title">4.2 Hierarchical Instanced Static Mesh (HISM) 规范</div>
+  <table>
+    <tr><th>配置项</th><th>推荐值</th><th>说明</th></tr>
+    <tr><td>Instance Count / Cluster</td><td>≤ 256</td><td>UE5 HISM Cluster 上限</td></tr>
+    <tr><td>Cull Distance Start</td><td>按植被类别设置</td><td>参考上表距离列</td></tr>
+    <tr><td>Collision</td><td>草→无碰撞；灌木→简单；树→Convex</td><td>减少不必要碰撞计算</td></tr>
+    <tr><td>WPO (World Position Offset)</td><td>仅草和小灌木启用</td><td>大树 WPO 开销高</td></tr>
+    <tr><td>Nanite 适用性</td><td>仅静态岩石推荐</td><td>树/草的 WPO + 半透明与 Nanite 不兼容</td></tr>
+  </table>
+
+  <div class="sub-title">4.3 植被风场与动画</div>
+  <table>
+    <tr><th>动画方式</th><th>适用</th><th>性能</th><th>说明</th></tr>
+    <tr><td><strong>SimpleGrassWind</strong> (Material)</td><td>草、小灌木</td><td>极低</td><td>UE5 内置材质函数</td></tr>
+    <tr><td><strong>WPO 自定义风场</strong></td><td>中型树</td><td>中</td><td>Vertex Shader 驱动</td></tr>
+    <tr><td><strong>SpeedTree Wind</strong></td><td>大型树</td><td>中高</td><td>专业树木动画库</td></tr>
+    <tr><td><strong>骨骼动画</strong></td><td>Hero 植被 / 可交互</td><td>高</td><td>仅极少量重要植被</td></tr>
+  </table>
+</div>
+
+<!-- §5 -->
+<div class="section" id="s5">
+  <h2>5️⃣ 地形 LOD 与 Streaming 策略</h2>
+
+  <div class="sub-title">5.1 地形 LOD 标准</div>
+  <table>
+    <tr><th>LOD 级别</th><th>距离范围</th><th>顶点密度</th><th>贴图精度</th></tr>
+    <tr><td><strong>LOD0</strong></td><td>0~100m</td><td>100% (全精度)</td><td>RVT 全精度</td></tr>
+    <tr><td><strong>LOD1</strong></td><td>100~300m</td><td>50% (隔行抽取)</td><td>RVT Mip 1</td></tr>
+    <tr><td><strong>LOD2</strong></td><td>300~600m</td><td>25%</td><td>RVT Mip 2~3</td></tr>
+    <tr><td><strong>LOD3</strong></td><td>600m+</td><td>12.5%</td><td>Base Map (低分辨率全景)</td></tr>
+  </table>
+
+  <div class="sub-title">5.2 Texture Streaming 配置</div>
+  <table>
+    <tr><th>配置项</th><th>推荐值</th><th>说明</th></tr>
+    <tr><td>Streaming Pool Size</td><td>PC: 2048 MB / 移动端: 512 MB</td><td>纹理 Streaming 内存池</td></tr>
+    <tr><td>地形贴图 Streaming</td><td>✅ 必须开启</td><td>关闭会导致显存爆炸</td></tr>
+    <tr><td>Mip Bias（远景）</td><td>+1~+2</td><td>远处地形自动降低 Mip</td></tr>
+    <tr><td>植被 LOD Bias</td><td>0 (近) / +1 (远)</td><td>远处植被提前降 LOD</td></tr>
+  </table>
+
+  <div class="alert alert-yellow">
+    ⚠️ <strong>注意</strong>：地形 + 植被的内存预算应单独管控，不与角色/UI 共享。推荐分配：<strong>地形贴图 ≤ 200MB，植被模型+贴图 ≤ 150MB</strong>（中端设备基准）。
+  </div>
+</div>
+
+<!-- §6 -->
+<div class="section" id="s6">
+  <h2>6️⃣ 水体与特殊地表</h2>
+
+  <div class="sub-title">6.1 水体系统规范</div>
+  <table>
+    <tr><th>水体类型</th><th>UE5 方案</th><th>Unity 方案</th><th>性能等级</th></tr>
+    <tr><td><strong>海洋/大面积水</strong></td><td>Water Body Ocean</td><td>自定义 Shader + Mesh</td><td>高（含 SSR + 半透明）</td></tr>
+    <tr><td><strong>河流</strong></td><td>Water Body River (Spline)</td><td>Flow Map Shader</td><td>中</td></tr>
+    <tr><td><strong>湖泊</strong></td><td>Water Body Lake</td><td>平面 + Depth Fade Shader</td><td>中</td></tr>
+    <tr><td><strong>水坑/积水</strong></td><td>RVT 叠加湿润层</td><td>Decal Shader</td><td>低</td></tr>
+  </table>
+
+  <div class="alert alert-red"><strong>⛔ 红线：</strong>
+    <p>• 同屏水体渲染面积 ≤ <strong>30% 屏幕</strong>（移动端 ≤ 15%）</p>
+    <p>• 移动端水体 <strong>禁用</strong> 实时反射 — 使用 Cubemap 近似</p>
+    <p>• 水下区域地形必须延伸至水面下 ≥ 50cm</p>
+  </div>
+
+  <div class="sub-title">6.2 特殊地表效果</div>
+  <table>
+    <tr><th>效果</th><th>实现方案</th><th>性能影响</th><th>适用</th></tr>
+    <tr><td>雪地脚印</td><td>RVT Deform / Tessellation</td><td>中</td><td>雪地关卡</td></tr>
+    <tr><td>泥地车辙</td><td>RVT Deform + Normal Offset</td><td>中</td><td>载具场景</td></tr>
+    <tr><td>沙漠风蚀纹</td><td>Procedural UV + Wind Function</td><td>低</td><td>沙漠环境</td></tr>
+    <tr><td>冰面裂纹</td><td>Decal + 程序化 Crack 生成</td><td>低</td><td>冰雪场景</td></tr>
+  </table>
+</div>
+
+<!-- §7 -->
+<div class="section" id="s7">
+  <h2>7️⃣ 命名与目录结构</h2>
+
+  <pre>
+Content/Environment/Terrain/
+├── HeightMaps/
+│   ├── HM_Zone01_Main.r16        ← 高度图 RAW
+│   └── HM_Zone01_Main.png        ← 预览图
+├── Materials/
+│   ├── M_Landscape_Master        ← 地形主材质
+│   ├── ML_Grass_01               ← Landscape Layer: 草地
+│   ├── ML_Dirt_01                ← Landscape Layer: 泥土
+│   └── ML_Rock_01                ← Landscape Layer: 岩石
+├── Textures/
+│   ├── T_Grass_01_BC.png
+│   ├── T_Grass_01_N.png
+│   ├── T_Grass_01_ORM.png
+│   └── ...
+├── Foliage/
+│   ├── SM_Grass_Wild_01          ← 草 Static Mesh
+│   ├── SM_Bush_Small_01          ← 灌木
+│   ├── SM_Tree_Oak_01            ← 乔木
+│   └── SM_Rock_Granite_01        ← 岩石
+└── Water/
+    ├── M_Water_Lake
+    └── M_Water_River
+  </pre>
+
+  <div class="sub-title">命名规则</div>
+  <table>
+    <tr><th>类型</th><th>前缀</th><th>格式</th><th>示例</th></tr>
+    <tr><td>高度图</td><td><code>HM_</code></td><td>HM_[区域]_[标识]</td><td>HM_Zone01_Main</td></tr>
+    <tr><td>地形图层材质</td><td><code>ML_</code></td><td>ML_[地表类型]_[变体]</td><td>ML_Grass_01</td></tr>
+    <tr><td>植被模型</td><td><code>SM_</code></td><td>SM_[类别]_[名称]_[变体]</td><td>SM_Tree_Oak_02</td></tr>
+    <tr><td>地形贴图</td><td><code>T_</code></td><td>T_[地表]_[变体]_[类型]</td><td>T_Grass_01_BC</td></tr>
+  </table>
+</div>
+
+<!-- §8 -->
+<div class="section" id="s8">
+  <h2>8️⃣ SOP 标准作业流程</h2>
+
+  <div class="flow">
+    <div class="flow-node start"><strong>1. 地形基底</strong><div class="sub">World Machine/Gaea<br>生成高度图</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>2. 导入 & 雕刻</strong><div class="sub">引擎导入高度图<br>手动精修细节</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>3. 地表铺设</strong><div class="sub">材质图层绘制<br>权重调整</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>4. 植被铺设</strong><div class="sub">Procedural + 手动<br>密度/分布规则</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>5. 水体 & 特效</strong><div class="sub">水面/瀑布/雾气</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>6. 优化 & 验收</strong><div class="sub">LOD/Streaming/Profile<br>性能达标</div></div>
+  </div>
+</div>
+
+<!-- §9 -->
+<div class="section" id="s9">
+  <h2>9️⃣ Do/Don't 红黑榜</h2>
+
+  <div class="dd-grid">
+    <div class="dd-card dd-do"><h4 style="color:var(--green)">✅ Do — 正确做法</h4>
+      <p>• 使用程序化工具生成地形基底（World Machine/Gaea）<br>• 地表材质层数 ≤ 12 层（移动端 ≤ 4）<br>• 草地使用 Landscape Grass Type 自动管理<br>• 植被使用 HISM（Hierarchical Instancing）<br>• 开启 RVT 减少地形 Draw Call<br>• 地形边缘平滑过渡到不可见区域<br>• 预研期锁定地形精度和材质层数</p>
+    </div>
+    <div class="dd-card dd-dont"><h4 style="color:var(--red)">❌ Don't — 错误做法</h4>
+      <p>• 手动逐株放置草地（效率极低 + 无法管理）<br>• 地形材质超过 12 层（Shader 爆炸）<br>• 使用 8-bit 高度图（台阶感明显）<br>• 同屏植被实例超过 50K（GPU 过载）<br>• 大树启用 WPO（顶点位移开销大）<br>• 移动端使用实时水面反射<br>• 忽略地形 Texture Streaming 配置</p>
+    </div>
+  </div>
+</div>
+
+<!-- §10 -->
+<div class="section" id="s10">
+  <h2>🔟 常见问题 FAQ</h2>
+
+  <div class="faq-item"><div class="faq-q">❓ 地形材质超过 4 层后移动端性能骤降？</div>
+  <div class="faq-a">这是因为每增加一层 Landscape Layer，Pixel Shader 复杂度近乎线性增长。移动端建议：① 使用 <strong>RVT</strong> 将多层混合预烘焙到虚拟纹理（Shader 变 1 次采样）；② 使用 <strong>Texture Array</strong> 减少 Sampler 数；③ 远距离自动切换为 Base Map（单张预混合贴图）。</div></div>
+
+  <div class="faq-item"><div class="faq-q">❓ 程序化植被和手动放置应如何配比？</div>
+  <div class="faq-a"><strong>80% 程序化 + 20% 手动</strong>是推荐比例。草地、小灌木、碎石 100% 程序化；中型树按密度规则程序化后手动微调；大型标志性树和 Hero 植被手动放置。</div></div>
+
+  <div class="faq-item"><div class="faq-q">❓ Nanite 能用于植被吗？</div>
+  <div class="faq-a">UE5.3+ 开始实验性支持 Nanite 植被，但有限制：① WPO 不完全支持（风摆效果受限）；② 半透明叶片不支持（需用 Masked + Dithered 替代 Alpha Blend）；③ 推荐仅对岩石类静态物体使用 Nanite，树木暂用传统 LOD + HISM。</div></div>
+</div>
+
+<!-- §11 -->
+<div class="section" id="s11">
+  <h2>📊 11. PM视角：地形植被质量度量看板</h2>
+
+  <p>地形和植被是场景中<strong>面积最大、资产量最多</strong>的部分，PM 需要量化监控其制作进度、性能达标情况和资产健康度。</p>
+
+  <div class="sub-title">11.1 核心 KPI 指标</div>
+  <table>
+    <tr><th>维度</th><th>指标名称</th><th>公式 / 说明</th><th>目标值</th><th>数据源</th></tr>
+    <tr><td rowspan="2">进度</td><td>地形完成率</td><td>已完成雕刻+地表的区域面积 / 总计划面积</td><td>按里程碑</td><td>TAPD 任务状态</td></tr>
+    <tr><td>植被覆盖完成率</td><td>已完成植被铺设的区域 / 总计划区域</td><td>按里程碑</td><td>TAPD 任务状态</td></tr>
+    <tr><td rowspan="3">质量</td><td>材质图层合规率</td><td>图层数 ≤ 上限的区域占比</td><td>= 100%</td><td>CI 自动检查</td></tr>
+    <tr><td>植被 LOD 完整率</td><td>LOD 达标的植被 Mesh 占比</td><td>≥ 98%</td><td>CI 资产校验</td></tr>
+    <tr><td>高度图精度合规率</td><td>使用 16-bit 高度图的区域占比</td><td>= 100%</td><td>文件格式检查</td></tr>
+    <tr><td rowspan="3">性能</td><td>同屏植被密度达标率</td><td>实例数 ≤ 50K 的测试点占比</td><td>≥ 95%</td><td>性能 Profiler</td></tr>
+    <tr><td>地形 Streaming 达标率</td><td>加载无卡顿测试点占比</td><td>≥ 95%</td><td>性能测试报告</td></tr>
+    <tr><td>内存预算遵守率</td><td>地形+植被内存 ≤ 预算 的场景占比</td><td>= 100%</td><td>引擎 Profiler</td></tr>
+  </table>
+
+  <div class="sub-title">11.2 地形制作人天模型</div>
+  <table>
+    <tr><th>工作项</th><th>小关卡 (500m²)</th><th>中型关卡 (2km²)</th><th>大世界区域 (8km²)</th></tr>
+    <tr><td>高度图生成 & 导入</td><td>0.5 天</td><td>1 天</td><td>3 天</td></tr>
+    <tr><td>地表材质绘制</td><td>1~2 天</td><td>3~5 天</td><td>8~15 天</td></tr>
+    <tr><td>植被铺设</td><td>1~2 天</td><td>3~5 天</td><td>10~20 天</td></tr>
+    <tr><td>水体制作</td><td>0~1 天</td><td>1~2 天</td><td>3~5 天</td></tr>
+    <tr><td>LOD & 性能优化</td><td>0.5 天</td><td>2~3 天</td><td>5~8 天</td></tr>
+    <tr><td><strong>总计</strong></td><td><strong>3~6 天</strong></td><td><strong>10~16 天</strong></td><td><strong>29~51 天</strong></td></tr>
+  </table>
+
+  <div class="sub-title">11.3 质量门禁联动</div>
+  <table>
+    <tr><th>里程碑</th><th>地形植被质量门禁</th><th>不达标处置</th></tr>
+    <tr><td>白盒</td><td>高度图导入完成；地形尺寸/精度锁定</td><td>不阻断</td></tr>
+    <tr><td>灰盒</td><td>地表 Base 层完成；植被密度规则设定</td><td>标记债务</td></tr>
+    <tr><td>Alpha</td><td>全区域地表完成；植被覆盖 ≥ 60%；性能首测通过</td><td>延迟进入精制</td></tr>
+    <tr><td>Beta</td><td>植被覆盖 100%；内存/性能预算 100% 达标</td><td>阻断发布</td></tr>
+    <tr><td>RC</td><td>全部 KPI 达标；视觉走查 0 严重问题</td><td>必须修复后发版</td></tr>
+  </table>
+
+  <div class="alert alert-green">
+    ✅ <strong>最佳实践</strong>：地形和植被是"面积大但迭代频率低"的资产类型。PM 应在白盒/灰盒阶段集中投入地形美术人力，Beta 前收敛到仅优化和 Bug 修复。避免在后期大量修改地形高度图（会导致植被和 NavMesh 全部重算）。
+  </div>
+</div>
+
+<div class="doc-footer">🌿 地形与植被工业化规范 v1.0 · TA 组 · 场景组 · 2026-05-29 · 项目内部资料</div>
+</div>
+<script src="editor-kit.js"></script>
+<script src="toc-enhancer.js?v=1.1"></script>
+</body>
+</html>

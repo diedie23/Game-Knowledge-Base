@@ -82,9 +82,9 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="doc">
 
 <div class="doc-header">
-  <h1>🏔️ 场景模块化与 LOD 规范 <span class="ver">v1.0</span></h1>
-  <div class="subtitle">Scene Modular Kit & Level of Detail — Industrial Pipeline Specification</div>
-  <div class="meta"><span>📋 UE5 / Unity 2022+</span><span>👤 TA 组 · 场景组</span><span>📅 2026-04-02</span></div>
+  <h1>🏔️ 场景模块化与 LOD 规范 <span class="ver">v2.0</span></h1>
+  <div class="subtitle">Scene Modular Kit & Level of Detail — Industrial Pipeline Specification · 含 HLOD/World Partition/CI 自动化/PM 看板</div>
+  <div class="meta"><span>📋 UE5 / Unity 2022+</span><span>👤 TA 组 · 场景组</span><span>📅 2026-05-29 (v2.0 升级)</span></div>
 </div>
 
 <div class="toc"><h3>📑 目录</h3>
@@ -93,6 +93,9 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <li><a href="#s3">LOD 层级与面数预算</a></li><li><a href="#s4">贴图与材质合批策略</a></li>
   <li><a href="#s5">命名与目录结构</a></li><li><a href="#s6">碰撞体与 NavMesh</a></li>
   <li><a href="#s7">Do/Don't 红黑榜</a></li><li><a href="#s8">SOP 流程</a></li><li><a href="#s9">FAQ</a></li>
+  <li><a href="#s10">HLOD 与 World Partition 规范</a> <span style="font-size:11px;background:var(--green);color:#000;padding:1px 6px;border-radius:8px;font-weight:600">NEW</span></li>
+  <li><a href="#s11">CI 自动化场景资产校验</a> <span style="font-size:11px;background:var(--green);color:#000;padding:1px 6px;border-radius:8px;font-weight:600">NEW</span></li>
+  <li><a href="#s12">PM视角：场景模块化质量度量看板</a> <span style="font-size:11px;background:var(--green);color:#000;padding:1px 6px;border-radius:8px;font-weight:600">NEW</span></li>
 </ol></div>
 
 <!-- §1 -->
@@ -326,10 +329,296 @@ Content/Environment/
     <tr><td><strong>Kit 覆盖率</strong></td><td>≥ 80%</td><td>< 60%</td><td>关卡中由标准 Kit 组成的面积占比</td></tr>
   </table>
 
-  <div class="alert alert-blue"><strong>📎 关联：</strong>材质合批策略 → <a href="material-shader-ta-spec.html" style="color:var(--accent);font-weight:600">《材质 Shader 规范》</a>；风格统一性 → <a href="art-style-guide-framework.html" style="color:var(--accent);font-weight:600">《美术风格指南方法论》</a></div>
+  <div class="alert alert-blue"><strong>📎 关联：</strong>材质合批策略 → <a href="material-shader-ta-spec.html" style="color:var(--accent);font-weight:600">《材质 Shader 规范》</a>；风格统一性 → <a href="art-style-guide-framework.html" style="color:var(--accent);font-weight:600">《美术风格指南方法论》</a>；性能预算总览 → <a href="art-vs-ta-perfbudget.html" style="color:var(--accent);font-weight:600">《性能红线与资产预算》</a></div>
 </div>
 
-<div class="doc-footer">📄 场景模块化与 LOD 规范 v1.0 · TA 组 · 场景组 · 2026-04-02 · 机密文档</div>
+<!-- §10 -->
+<div class="section" id="s10">
+  <h2>🌐 10. HLOD 与 World Partition 规范</h2>
+
+  <p>大世界场景中，传统手动 LOD 链无法满足数十平方公里的 Streaming 需求。<strong>HLOD (Hierarchical LOD)</strong> 和 <strong>World Partition</strong> 是 UE5 大世界核心技术栈，Unity 则通过 <strong>Addressables + DOTS Streaming</strong> 实现类似方案。</p>
+
+  <div class="sub-title">10.1 HLOD 层级策略</div>
+  <table>
+    <tr><th>HLOD 层级</th><th>合并范围</th><th>面数目标</th><th>距离</th><th>合并策略</th></tr>
+    <tr><td><strong>HLOD0</strong></td><td>单 Cell (128m²)</td><td>原始 LOD3 合并</td><td>150~300m</td><td>Mesh Merge + 材质合并（≤4 张 Atlas）</td></tr>
+    <tr><td><strong>HLOD1</strong></td><td>4 Cell 组 (256m²)</td><td>HLOD0 再减 50%</td><td>300~600m</td><td>Simplify + Impostor 混合</td></tr>
+    <tr><td><strong>HLOD2</strong></td><td>16 Cell 区域</td><td>≤ 5000 tri</td><td>600m+</td><td>全区域 Impostor / Billboard</td></tr>
+    <tr><td style="color:var(--yellow)"><strong>远景 LOD</strong></td><td>整个区域</td><td>≤ 500 tri</td><td>1km+</td><td>低模剪影 + 大气雾融合</td></tr>
+  </table>
+
+  <div class="sub-title">10.2 World Partition / Streaming 规范</div>
+  <table>
+    <tr><th>配置项</th><th>UE5 World Partition</th><th>Unity Addressables</th><th>建议值</th></tr>
+    <tr><td>Grid Cell 尺寸</td><td><code>WorldPartition → CellSize</code></td><td>手动按场景 Chunk 划分</td><td>128m × 128m（室外）/ 64m（室内）</td></tr>
+    <tr><td>加载距离</td><td><code>DataLayer → LoadingRange</code></td><td><code>Addressables.LoadSceneAsync</code></td><td>玩家可视距离 + 1 Cell 预加载缓冲</td></tr>
+    <tr><td>卸载距离</td><td>加载距离 × 1.2（避免抖动）</td><td>同理</td><td>加载距离 + 20%</td></tr>
+    <tr><td>Data Layer 分层</td><td>Gameplay / Visual / Audio 分层</td><td>不同 AssetGroup</td><td>至少分 3 层：玩法 + 美术 + 音频</td></tr>
+    <tr><td>Level Instance 复用</td><td><code>LevelInstance Actor</code></td><td>Prefab 嵌套</td><td>重复建筑群用 Instance 节省内存</td></tr>
+  </table>
+
+  <div class="alert alert-red"><strong>⛔ 红线：</strong>
+    <p>• 单 Cell 内 Actor 数量 ≤ <strong>500 个</strong>（含 Instanced Static Mesh）</p>
+    <p>• 单 Cell 加载耗时 ≤ <strong>100ms</strong>（中端设备 SSD 基准）</p>
+    <p>• 加载/卸载距离差值 ≥ <strong>20%</strong>，防止边界抖动反复加载</p>
+  </div>
+
+  <div class="sub-title">10.3 HLOD 构建与验证流程</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>1. Cell 划分</strong><div class="sub">确定 Grid Size<br>标记 Data Layer</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>2. HLOD Build</strong><div class="sub">World Partition → Build HLOD<br>或自定义 Pipeline</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>3. 质量验证</strong><div class="sub">远距离切换检查<br>HLOD Pop / 色差</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>4. 性能 Profile</strong><div class="sub">Cell 加载时间<br>内存占用峰值</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>5. 提交入库</strong><div class="sub">HLOD 资产 + Cell 配置<br>提交到版本控制</div></div>
+  </div>
+
+  <div class="sub-title">10.4 One File Per Actor (OFPA) 协作要点</div>
+  <table>
+    <tr><th>场景</th><th>问题</th><th>解决方案</th></tr>
+    <tr><td>多人同时编辑同一区域</td><td>Actor 文件冲突</td><td>OFPA 模式：每个 Actor 独立文件，减少锁冲突</td></tr>
+    <tr><td>大量小文件提交</td><td>Perforce Changelist 膨胀</td><td>按 Cell 分组提交 + 定期 Revert 无修改文件</td></tr>
+    <tr><td>HLOD 构建依赖全量</td><td>构建时间过长</td><td>增量 HLOD Build + 仅构建变更 Cell</td></tr>
+    <tr><td>Data Layer 误配</td><td>运行时加载遗漏</td><td>CI 脚本扫描 Actor 的 Data Layer 标记合规性</td></tr>
+  </table>
+
+  <div class="alert alert-blue">
+    💡 <strong>交叉引用</strong>：场景面数预算详见 → <a href="art-vs-ta-perfbudget.html#s2" style="color:var(--accent)">性能红线 §2.2 场景面数红线</a>；光照方案选型详见 → <a href="scene-lighting-spec.html" style="color:var(--accent)">光照与 GI 规范</a>
+  </div>
+</div>
+
+<!-- §11 -->
+<div class="section" id="s11">
+  <h2>🤖 11. CI 自动化场景资产校验</h2>
+
+  <p>场景资产数量庞大（一个中等关卡 500~2000 个模块），人工逐一检查不现实。本节建立 <strong>CI Pipeline</strong> 自动校验体系，在提交时即拦截违规资产。</p>
+
+  <div class="sub-title">11.1 校验规则引擎</div>
+  <table>
+    <tr><th>规则 ID</th><th>规则名称</th><th>检测内容</th><th>等级</th><th>自动修复</th></tr>
+    <tr><td>SC-001</td><td>LOD 完整性</td><td>每个 SM_ 静态网格至少具备 3 级 LOD 链</td><td>🔴 Error</td><td>❌</td></tr>
+    <tr><td>SC-002</td><td>LOD0 面数上限</td><td>LOD0 ≤ 50,000 tri（Hero Asset 例外需标记）</td><td>🔴 Error</td><td>❌</td></tr>
+    <tr><td>SC-003</td><td>碰撞体面数比</td><td>碰撞面数 ≤ 渲染面数 1%</td><td>🔴 Error</td><td>❌</td></tr>
+    <tr><td>SC-004</td><td>Grid 对齐</td><td>结构件 Pivot 位于 100cm Grid 整数点</td><td>🔴 Error</td><td>✅ 自动 Snap</td></tr>
+    <tr><td>SC-005</td><td>命名合规</td><td>符合 <code>SM_[分类]_[集合]_[变体]</code> 格式</td><td>🔴 Error</td><td>❌</td></tr>
+    <tr><td>SC-006</td><td>Texel Density 一致性</td><td>同 Kit 内 TD 差异 ≤ ±15%</td><td>🟡 Warning</td><td>❌</td></tr>
+    <tr><td>SC-007</td><td>LOD 过渡方式</td><td>必须使用 Dithered/CrossFade，禁止硬切</td><td>🟡 Warning</td><td>✅ 自动设置</td></tr>
+    <tr><td>SC-008</td><td>Complex Collision 禁用</td><td>运行时碰撞不得使用 Complex</td><td>🔴 Error</td><td>❌</td></tr>
+    <tr><td>SC-009</td><td>贴图尺寸上限</td><td>单张 ≤ 2048²（Trim Sheet ≤ 4096²）</td><td>🟡 Warning</td><td>❌</td></tr>
+    <tr><td>SC-010</td><td>材质实例数</td><td>单模块材质实例 ≤ 3 个</td><td>🟡 Warning</td><td>❌</td></tr>
+    <tr><td>SC-011</td><td>Nanite 适用性</td><td>半透明/骨骼/可破坏物不得启用 Nanite</td><td>🔴 Error</td><td>❌</td></tr>
+    <tr><td>SC-012</td><td>HLOD Cell Actor 上限</td><td>单 Cell Actor 数 ≤ 500</td><td>🟡 Warning</td><td>❌</td></tr>
+  </table>
+
+  <div class="sub-title">11.2 Python 校验脚本核心逻辑</div>
+  <pre>
+# scene_asset_validator.py — 场景资产 CI 校验入口
+import sys, json, re
+from pathlib import Path
+
+NAMING_REGEX = re.compile(r'^SM_(Floor|Wall|Pillar|Ceiling|Stair|Deco|Prop)_[A-Z]\w+_\d{2,3}$')
+MAX_LOD0_TRIS = 50000
+MIN_LOD_LEVELS = 3
+MAX_COLLISION_RATIO = 0.01
+
+def check_asset(asset_path: str, meta: dict) -> list[str]:
+    errors = []
+    
+    # SC-005: 命名合规
+    name = Path(asset_path).stem
+    if not NAMING_REGEX.match(name):
+        errors.append(f"[SC-005] 命名不合规: {name}")
+    
+    # SC-001: LOD 完整性
+    lod_count = meta.get("lod_count", 0)
+    if lod_count < MIN_LOD_LEVELS:
+        errors.append(f"[SC-001] LOD 不足: {lod_count} 级 (需 ≥{MIN_LOD_LEVELS})")
+    
+    # SC-002: LOD0 面数
+    lod0_tris = meta.get("lod0_tris", 0)
+    if lod0_tris > MAX_LOD0_TRIS and not meta.get("hero_asset", False):
+        errors.append(f"[SC-002] LOD0 面数超标: {lod0_tris} (上限 {MAX_LOD0_TRIS})")
+    
+    # SC-003: 碰撞面数比
+    collision_tris = meta.get("collision_tris", 0)
+    if lod0_tris > 0 and collision_tris / lod0_tris > MAX_COLLISION_RATIO:
+        ratio = collision_tris / lod0_tris * 100
+        errors.append(f"[SC-003] 碰撞面数比过高: {ratio:.1f}% (上限 1%)")
+    
+    # SC-008: Complex Collision
+    if meta.get("has_complex_collision", False):
+        errors.append(f"[SC-008] 禁止使用 Complex Collision")
+    
+    return errors
+
+if __name__ == "__main__":
+    changed = get_git_diff_files("SM_*.fbx")
+    all_errors = []
+    for f in changed:
+        meta = load_asset_meta(f)
+        all_errors += check_asset(f, meta)
+    if all_errors:
+        print("\n".join(all_errors))
+        sys.exit(1)
+  </pre>
+
+  <div class="sub-title">11.3 UE5 Editor Utility 批量扫描工具</div>
+  <pre>
+# UE5 Python — 场景资产批量合规扫描
+import unreal
+
+def scan_scene_assets():
+    """扫描 /Game/Environment/ 下所有 StaticMesh 的 LOD、碰撞、Nanite 合规性"""
+    registry = unreal.AssetRegistryHelpers.get_asset_registry()
+    assets = registry.get_assets_by_path("/Game/Environment", recursive=True)
+    
+    report = {"errors": [], "warnings": [], "passed": 0}
+    
+    for asset_data in assets:
+        asset = asset_data.get_asset()
+        if not isinstance(asset, unreal.StaticMesh):
+            continue
+        
+        name = asset.get_name()
+        
+        # LOD 检查
+        lod_count = asset.get_num_lods()
+        if lod_count < 3:
+            report["errors"].append(f"[SC-001] {name}: LOD {lod_count} 级 (需≥3)")
+        
+        # LOD0 面数检查
+        lod0_tris = asset.get_num_triangles(0)
+        if lod0_tris > 50000:
+            report["errors"].append(f"[SC-002] {name}: LOD0={lod0_tris} tri (上限 50K)")
+        
+        # Nanite 适用性检查
+        if asset.nanite_settings.enabled:
+            # 检查是否有透明材质
+            for mat_idx in range(asset.get_num_sections(0)):
+                mat = asset.get_material(mat_idx)
+                if mat and mat.blend_mode != unreal.BlendMode.OPAQUE:
+                    report["errors"].append(
+                        f"[SC-011] {name}: Nanite 启用但含非 Opaque 材质")
+        
+        report["passed"] += 1
+    
+    unreal.log(f"扫描完成: {report['passed']} 通过, "
+               f"{len(report['errors'])} Error, {len(report['warnings'])} Warning")
+    return report
+  </pre>
+
+  <div class="sub-title">11.4 Jenkins CI Pipeline 配置</div>
+  <pre>
+pipeline {
+    agent any
+    stages {
+        stage('Scene Asset Validation') {
+            steps {
+                sh '''
+                    python3 tools/scene_asset_validator.py \
+                        --path Content/Environment/ \
+                        --meta Content/Environment/.meta/ \
+                        --report reports/scene_validation.json
+                '''
+            }
+            post {
+                failure {
+                    slackSend channel: '#scene-ci',
+                             message: "❌ 场景资产校验失败 — ${BUILD_URL}"
+                }
+            }
+        }
+        stage('Texel Density Audit') {
+            steps {
+                sh 'python3 tools/td_checker.py --path Content/Environment/ --tolerance 0.15'
+            }
+        }
+        stage('HLOD Integrity Check') {
+            steps {
+                sh 'python3 tools/hlod_check.py --max-actors-per-cell 500'
+            }
+        }
+    }
+}
+  </pre>
+
+  <div class="alert alert-yellow">
+    ⚠️ <strong>注意</strong>：场景资产校验比 UI 切图更复杂——需要解析 FBX/uasset 获取面数和碰撞信息。建议使用 <code>UAssetAPI</code>（C#）或 <code>unreal.EditorAssetLibrary</code>（Python）进行数据提取，而非仅做文件名/尺寸级别的轻量检查。
+  </div>
+</div>
+
+<!-- §12 -->
+<div class="section" id="s12">
+  <h2>📊 12. PM视角：场景模块化质量度量看板</h2>
+
+  <p>PM 需要从<strong>复用效率、资产质量、性能合规</strong>三个维度量化场景团队的产出，驱动数据化管理决策。</p>
+
+  <div class="sub-title">12.1 核心 KPI 指标定义</div>
+  <table>
+    <tr><th>维度</th><th>指标名称</th><th>公式</th><th>目标值</th><th>数据源</th></tr>
+    <tr><td rowspan="3">复用</td><td>模块复用率</td><td>被 ≥2 个关卡引用的模块数 / 总模块数 × 100%</td><td>≥ 70%</td><td>引擎引用计数</td></tr>
+    <tr><td>Kit 覆盖率</td><td>由标准 Kit 组成的关卡面积 / 关卡总面积 × 100%</td><td>≥ 80%</td><td>关卡审计报告</td></tr>
+    <tr><td>定制资产比例</td><td>仅用 1 次的资产数 / 总资产数 × 100%</td><td>≤ 20%</td><td>引用计数统计</td></tr>
+    <tr><td rowspan="3">质量</td><td>LOD 完整率</td><td>LOD ≥3 级的模块数 / 总模块数 × 100%</td><td>≥ 98%</td><td>CI 校验报告</td></tr>
+    <tr><td>碰撞合规率</td><td>碰撞面数比 ≤1% 的模块数 / 总数 × 100%</td><td>= 100%</td><td>CI 校验报告</td></tr>
+    <tr><td>命名合规率</td><td>命名符合规范的模块数 / 总数 × 100%</td><td>≥ 99%</td><td>CI 命名检查</td></tr>
+    <tr><td rowspan="3">性能</td><td>TD 一致性</td><td>同 Kit 内 TD 差异 ≤ ±15% 的模块占比</td><td>≥ 95%</td><td>TD Checker 报告</td></tr>
+    <tr><td>材质实例控制</td><td>可见材质实例 ≤ 64 的关卡占比</td><td>= 100%</td><td>引擎 Profiler</td></tr>
+    <tr><td>Cell 加载性能</td><td>所有 Cell 加载时间 ≤ 100ms 的占比</td><td>≥ 95%</td><td>性能测试报告</td></tr>
+  </table>
+
+  <div class="sub-title">12.2 看板可视化维度</div>
+  <table>
+    <tr><th>看板区域</th><th>展示内容</th><th>可视化形式</th><th>刷新频率</th></tr>
+    <tr><td>总览仪表盘</td><td>9 项 KPI 当前值 + 趋势箭头</td><td>大数字卡片 + 迷你折线</td><td>实时</td></tr>
+    <tr><td>Kit 复用热力图</td><td>各 Kit 在各关卡的引用次数</td><td>热力矩阵</td><td>每周</td></tr>
+    <tr><td>关卡资产健康度</td><td>各关卡的 LOD/碰撞/TD 合规率</td><td>雷达图（按关卡）</td><td>每次构建</td></tr>
+    <tr><td>模块化趋势</td><td>近 8 周复用率 + 定制资产占比走势</td><td>双轴折线图</td><td>每周</td></tr>
+    <tr><td>违规 Top10</td><td>本周违规次数最多的资产列表</td><td>排行榜表格</td><td>每日</td></tr>
+    <tr><td>性能预算仪表盘</td><td>各关卡同屏面数/DC/内存 vs 预算</td><td>环形进度条</td><td>每次构建</td></tr>
+  </table>
+
+  <div class="sub-title">12.3 数据驱动决策模型</div>
+  <div class="dd-grid">
+    <div class="dd-card dd-do">
+      <h4 style="color:var(--green)">✅ 复用率 ≥ 70% 时</h4>
+      <p>• 维持当前模块化策略<br>• 定期清理引用 ≤1 的闲置模块<br>• 考虑扩展 Kit 变体增加多样性<br>• 季度回顾频率可降为月度</p>
+    </div>
+    <div class="dd-card dd-dont">
+      <h4 style="color:var(--red)">❌ 复用率 &lt; 50% 时</h4>
+      <p>• 触发模块化专项治理 Sprint<br>• 分析定制资产产生原因（需求驱动/规范缺失？）<br>• 安排 TA 驻场辅导关卡设计师<br>• 增加 Kit Review 频率至每周<br>• PM 升级为风险项，纳入周报</p>
+    </div>
+  </div>
+
+  <div class="sub-title">12.4 质量门禁与版本发布联动</div>
+  <table>
+    <tr><th>里程碑</th><th>场景质量门禁</th><th>不达标处置</th></tr>
+    <tr><td>白盒阶段</td><td>Grid 对齐率 ≥ 90%；Kit 覆盖率 ≥ 60%</td><td>标记技术债务，不阻断</td></tr>
+    <tr><td>灰盒阶段</td><td>LOD 完整率 ≥ 90%；命名合规率 ≥ 95%</td><td>延迟进入精制阶段</td></tr>
+    <tr><td>Alpha</td><td>碰撞合规率 = 100%；TD 一致性 ≥ 90%</td><td>延迟发布直到达标</td></tr>
+    <tr><td>Beta</td><td>全部 Error 级规则通过；Kit 覆盖率 ≥ 80%</td><td>阻断发布</td></tr>
+    <tr><td>RC / Gold</td><td>全部 KPI 达标 + 性能 Profile 通过</td><td>必须全部修复后才可发版</td></tr>
+  </table>
+
+  <div class="sub-title">12.5 场景制作人天模型（PM 排期参考）</div>
+  <table>
+    <tr><th>场景类型</th><th>白盒</th><th>Kit 制作</th><th>关卡组装</th><th>精制优化</th><th>总计</th></tr>
+    <tr><td>室内小场景 (100m²)</td><td>1 人天</td><td>3~5 人天</td><td>1~2 人天</td><td>2~3 人天</td><td><strong>7~11 人天</strong></td></tr>
+    <tr><td>室内中场景 (500m²)</td><td>2 人天</td><td>8~12 人天</td><td>3~5 人天</td><td>5~8 人天</td><td><strong>18~27 人天</strong></td></tr>
+    <tr><td>室外关卡 (2500m²)</td><td>3 人天</td><td>15~20 人天</td><td>5~8 人天</td><td>8~12 人天</td><td><strong>31~43 人天</strong></td></tr>
+    <tr><td>大世界区域 (1km²)</td><td>5 人天</td><td>25~35 人天</td><td>10~15 人天</td><td>15~20 人天</td><td><strong>55~75 人天</strong></td></tr>
+  </table>
+  <p><em>注：以上为纯场景美术工时，不含关卡策划、TA 支持、光照调试工时。Kit 复用率 ≥ 70% 可使组装+精制阶段节省 30%~40% 工时。</em></p>
+
+  <div class="alert alert-green">
+    ✅ <strong>最佳实践</strong>：PM 每周一在站会展示「Kit 复用率」+「LOD 完整率」+「性能预算执行率」三个核心指标。每个里程碑节点前 3 天进行质量门禁预检，确保不在版本提交日发现大量违规。
+  </div>
+</div>
+
+<div class="doc-footer">📄 场景模块化与 LOD 规范 v2.0 · TA 组 · 场景组 · 2026-05-29 · 机密文档</div>
 </div>
 <script src="editor-kit.js"></script>
 <script src="toc-enhancer.js?v=1.1"></script>

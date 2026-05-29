@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>场景制作全流程管线 — 工业化规范文档</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1200px;margin:0 auto;padding:32px 48px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:26px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:12px;background:var(--green);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim)}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--green);display:flex;align-items:center;gap:8px}
+.sub-title{font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:15px;margin-bottom:12px;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(74,222,128,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;min-width:100px}
+.flow-node strong{display:block;color:var(--heading);font-size:14px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:12px}
+.flow-arrow{color:var(--green);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:14px;line-height:1.8}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:15px}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:16px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:14px;line-height:1.8;padding-left:28px}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+.phase-badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600;margin-left:6px}
+.phase-wb{background:rgba(108,140,255,.15);color:var(--accent)}
+.phase-gb{background:rgba(167,139,250,.15);color:var(--accent2)}
+.phase-ref{background:rgba(74,222,128,.15);color:var(--green)}
+.phase-opt{background:rgba(251,191,36,.15);color:var(--yellow)}
+.phase-ship{background:rgba(248,113,113,.15);color:var(--red)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>🏗️ 场景制作全流程管线 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Scene Production Pipeline — 白盒→灰盒→精制→优化→交付 · 全阶段工业化标准</div>
+  <div class="meta"><span>📋 适用全引擎/全平台</span><span>👤 场景组 · TA 组 · 关卡策划 · PM</span><span>📅 2026-05-29</span></div>
+</div>
+
+<div class="toc"><h3>📑 目录</h3>
+<ol>
+  <li><a href="#s1">管线总览与阶段定义</a></li>
+  <li><a href="#s2">白盒阶段（Blockout）</a></li>
+  <li><a href="#s3">灰盒阶段（Graybox）</a></li>
+  <li><a href="#s4">精制阶段（Art Pass）</a></li>
+  <li><a href="#s5">优化阶段（Optimization）</a></li>
+  <li><a href="#s6">交付阶段（Ship & Review）</a></li>
+  <li><a href="#s7">角色分工与 RACI 矩阵</a></li>
+  <li><a href="#s8">评审门禁（Stage Gate）体系</a></li>
+  <li><a href="#s9">风险识别与应对预案</a></li>
+  <li><a href="#s10">PM视角：场景管线效率看板</a></li>
+</ol></div>
+
+<!-- §1 -->
+<div class="section" id="s1">
+  <h2>1️⃣ 管线总览与阶段定义</h2>
+
+  <div class="flow">
+    <div class="flow-node start"><strong>白盒</strong> <span class="phase-badge phase-wb">Blockout</span><div class="sub">验证尺寸/玩法<br>BSP / ProBuilder</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>灰盒</strong> <span class="phase-badge phase-gb">Graybox</span><div class="sub">模块化 Kit 替换<br>初步材质/光照</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>精制</strong> <span class="phase-badge phase-ref">Art Pass</span><div class="sub">细节填充/光照调试<br>植被/特效/氛围</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>优化</strong> <span class="phase-badge phase-opt">Optimize</span><div class="sub">LOD/HLOD/Streaming<br>性能 Profile 达标</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>交付</strong> <span class="phase-badge phase-ship">Ship</span><div class="sub">走查验收/Bug 修复<br>合入主干分支</div></div>
+  </div>
+
+  <div class="sub-title">1.1 阶段目标与时间占比</div>
+  <table>
+    <tr><th>阶段</th><th>核心目标</th><th>工时占比</th><th>关键交付物</th><th>质量标准</th></tr>
+    <tr><td><span class="phase-badge phase-wb">白盒</span></td><td>验证空间尺寸、玩法动线、战斗节奏</td><td>10~15%</td><td>白盒关卡 + 玩法测试报告</td><td>策划/关卡设计确认通过</td></tr>
+    <tr><td><span class="phase-badge phase-gb">灰盒</span></td><td>用模块化 Kit 替换白盒；初步视觉氛围</td><td>25~30%</td><td>灰盒关卡 + 模块化使用报告</td><td>Kit 覆盖率 ≥ 60%</td></tr>
+    <tr><td><span class="phase-badge phase-ref">精制</span></td><td>细节填充、光照调试、植被/特效/音频</td><td>30~35%</td><td>精制关卡 + 视觉标准达标</td><td>美术总监视觉确认</td></tr>
+    <tr><td><span class="phase-badge phase-opt">优化</span></td><td>性能达标、LOD/HLOD 构建、Streaming 验证</td><td>15~20%</td><td>优化后关卡 + Profile 报告</td><td>全部性能指标达标</td></tr>
+    <tr><td><span class="phase-badge phase-ship">交付</span></td><td>走查验收、Bug 修复、合入主干</td><td>5~10%</td><td>正式关卡 + 验收清单签字</td><td>走查 0 Critical/High Bug</td></tr>
+  </table>
+
+  <div class="alert alert-yellow">
+    ⚠️ <strong>关键原则</strong>：每个阶段必须通过<strong>评审门禁</strong>（Stage Gate）才能进入下一阶段。禁止跳过白盒直接进入精制——这是场景返工率居高不下的首要原因。
+  </div>
+</div>
+
+<!-- §2 -->
+<div class="section" id="s2">
+  <h2>2️⃣ 白盒阶段 <span class="phase-badge phase-wb">Blockout</span></h2>
+
+  <div class="sub-title">2.1 白盒制作标准</div>
+  <table>
+    <tr><th>维度</th><th>标准</th><th>说明</th></tr>
+    <tr><td>工具</td><td>BSP (UE5) / ProBuilder (Unity) / 引擎原语</td><td>不使用美术模型</td></tr>
+    <tr><td>尺寸精度</td><td>对齐 100cm Grid</td><td>与最终模块化 Kit 匹配</td></tr>
+    <tr><td>颜色编码</td><td>地面=灰色；墙=白色；可交互=绿色；危险=红色</td><td>便于策划/QA 识别</td></tr>
+    <tr><td>碰撞</td><td>BSP 自带碰撞</td><td>需可玩可测试</td></tr>
+    <tr><td>光照</td><td>仅主光 + 天空光（不调细节）</td><td>提供基本可见性</td></tr>
+    <tr><td>NavMesh</td><td>需生成并验证 AI 寻路</td><td>白盒阶段即验证动线</td></tr>
+  </table>
+
+  <div class="sub-title">2.2 白盒评审清单</div>
+  <table>
+    <tr><th>#</th><th>检查项</th><th>通过标准</th><th>责任人</th></tr>
+    <tr><td>1</td><td>空间尺寸</td><td>关键区域尺寸与设计文档一致 (±10%)</td><td>关卡策划</td></tr>
+    <tr><td>2</td><td>玩法动线</td><td>主动线畅通、无死角卡点</td><td>关卡策划</td></tr>
+    <tr><td>3</td><td>战斗空间</td><td>战斗区域满足掩体/回合需求</td><td>关卡策划 + 战斗策划</td></tr>
+    <tr><td>4</td><td>AI 寻路</td><td>NavMesh 覆盖所有可行走区域</td><td>关卡策划 + 程序</td></tr>
+    <tr><td>5</td><td>性能预估</td><td>粗估同屏面数在预算 80% 以内</td><td>TA</td></tr>
+  </table>
+</div>
+
+<!-- §3 -->
+<div class="section" id="s3">
+  <h2>3️⃣ 灰盒阶段 <span class="phase-badge phase-gb">Graybox</span></h2>
+
+  <div class="sub-title">3.1 灰盒制作标准</div>
+  <table>
+    <tr><th>维度</th><th>标准</th><th>说明</th></tr>
+    <tr><td>替换范围</td><td>所有 BSP 替换为模块化 Kit Mesh</td><td>遵循 <a href="scene-lod-spec.html" style="color:var(--accent)">模块化规范</a></td></tr>
+    <tr><td>Kit 覆盖率</td><td>≥ 60%</td><td>允许 40% 定制件（后续迭代提升）</td></tr>
+    <tr><td>材质</td><td>使用 Kit 标准材质实例（非最终精度）</td><td>确认 Texel Density 一致</td></tr>
+    <tr><td>地形</td><td>高度图导入 + 基础地表 2~3 层</td><td>参考 <a href="scene-terrain-vegetation.html" style="color:var(--accent)">地形植被规范</a></td></tr>
+    <tr><td>光照</td><td>主光方向确认 + 临时 GI</td><td>参考 <a href="scene-lighting-spec.html" style="color:var(--accent)">光照规范</a></td></tr>
+    <tr><td>碰撞更新</td><td>Kit 自带碰撞替换 BSP 碰撞</td><td>需重新验证 NavMesh</td></tr>
+  </table>
+
+  <div class="sub-title">3.2 灰盒评审清单</div>
+  <table>
+    <tr><th>#</th><th>检查项</th><th>通过标准</th><th>责任人</th></tr>
+    <tr><td>1</td><td>Kit 覆盖率</td><td>≥ 60%</td><td>场景美术 + TA</td></tr>
+    <tr><td>2</td><td>Grid 对齐</td><td>所有 Kit 对齐 100cm Grid</td><td>场景美术</td></tr>
+    <tr><td>3</td><td>视觉氛围</td><td>整体氛围方向明确（色调/光照/材质倾向）</td><td>美术总监</td></tr>
+    <tr><td>4</td><td>模块命名</td><td>符合命名规范</td><td>场景美术</td></tr>
+    <tr><td>5</td><td>碰撞/NavMesh</td><td>玩法动线无回退</td><td>关卡策划</td></tr>
+    <tr><td>6</td><td>性能初测</td><td>同屏面数 ≤ 预算 120%（留优化空间）</td><td>TA</td></tr>
+  </table>
+</div>
+
+<!-- §4 -->
+<div class="section" id="s4">
+  <h2>4️⃣ 精制阶段 <span class="phase-badge phase-ref">Art Pass</span></h2>
+
+  <div class="sub-title">4.1 精制工作清单</div>
+  <table>
+    <tr><th>工作项</th><th>说明</th><th>参考规范</th></tr>
+    <tr><td>Kit 覆盖率提升</td><td>从 60% 提升至 ≥ 80%，减少定制件</td><td><a href="scene-lod-spec.html" style="color:var(--accent)">模块化规范</a></td></tr>
+    <tr><td>装饰物 & 道具填充</td><td>摆放 Deco/Prop，营造生活感/战斗感</td><td>美术风格指南</td></tr>
+    <tr><td>地形精修</td><td>地表材质补充至目标层数；高度图细节雕刻</td><td><a href="scene-terrain-vegetation.html" style="color:var(--accent)">地形植被规范</a></td></tr>
+    <tr><td>植被铺设</td><td>草/灌木/树木按密度规则铺设</td><td><a href="scene-terrain-vegetation.html" style="color:var(--accent)">地形植被规范 §4</a></td></tr>
+    <tr><td>光照调试</td><td>完整光照方案落地 + 补光 + 后处理</td><td><a href="scene-lighting-spec.html" style="color:var(--accent)">光照规范</a></td></tr>
+    <tr><td>特效布置</td><td>环境特效（雾气/灰尘/火焰/水花）</td><td><a href="vfx-perf-spec.html" style="color:var(--accent)">特效性能规范</a></td></tr>
+    <tr><td>音频标记</td><td>放置 Ambient Sound Zone 和触发区域</td><td><a href="audio-asset-spec.html" style="color:var(--accent)">音频规范</a></td></tr>
+  </table>
+
+  <div class="sub-title">4.2 精制评审清单</div>
+  <table>
+    <tr><th>#</th><th>检查项</th><th>通过标准</th><th>责任人</th></tr>
+    <tr><td>1</td><td>视觉完成度</td><td>美术总监目测 OK；与风格指南一致</td><td>美术总监</td></tr>
+    <tr><td>2</td><td>Kit 覆盖率</td><td>≥ 80%</td><td>场景美术</td></tr>
+    <tr><td>3</td><td>光照完成</td><td>主光 + GI + 补光 + 后处理全部完成</td><td>灯光师</td></tr>
+    <tr><td>4</td><td>植被覆盖</td><td>目标区域 100% 覆盖</td><td>场景美术</td></tr>
+    <tr><td>5</td><td>TD 一致性</td><td>同 Kit 内 ≤ ±15%</td><td>场景美术 + TA</td></tr>
+  </table>
+</div>
+
+<!-- §5 -->
+<div class="section" id="s5">
+  <h2>5️⃣ 优化阶段 <span class="phase-badge phase-opt">Optimize</span></h2>
+
+  <div class="sub-title">5.1 优化工作清单</div>
+  <table>
+    <tr><th>优化项</th><th>目标</th><th>工具/方法</th></tr>
+    <tr><td>LOD 链完善</td><td>所有 StaticMesh ≥ 3 级 LOD</td><td>Simplygon / 手动减面 / Nanite（静态）</td></tr>
+    <tr><td>HLOD 构建</td><td>大世界 Cell 内合并 LOD 资产</td><td>UE5 HLOD Builder / 自定义管线</td></tr>
+    <tr><td>材质合并</td><td>可见材质实例 ≤ 64</td><td>Material Instance 参数化 + Merge Actors</td></tr>
+    <tr><td>碰撞简化</td><td>碰撞面数 ≤ 渲染面数 1%</td><td>UCX/UBX 简化碰撞</td></tr>
+    <tr><td>Streaming 验证</td><td>Cell 加载 ≤ 100ms</td><td>World Partition Profiler</td></tr>
+    <tr><td>植被密度调整</td><td>同屏 ≤ 50K 实例</td><td>Cull Distance + 密度曲线</td></tr>
+    <tr><td>光照预算验证</td><td>光照 GPU ≤ 预算</td><td>GPU Profiler</td></tr>
+    <tr><td>内存审计</td><td>贴图+网格内存 ≤ 预算</td><td>Memory Profiler</td></tr>
+  </table>
+
+  <div class="sub-title">5.2 性能 Profile Checklist</div>
+  <table>
+    <tr><th>#</th><th>检测项</th><th>目标值</th><th>工具</th></tr>
+    <tr><td>1</td><td>总帧时间</td><td>PC ≤ 16.6ms (60fps) / 移动端 ≤ 33.3ms (30fps)</td><td>Stat Unit / Profiler</td></tr>
+    <tr><td>2</td><td>同屏三角面</td><td>参考性能预算文档</td><td>Stat RHI / Stat Mesh</td></tr>
+    <tr><td>3</td><td>Draw Call</td><td>场景 ≤ 150 DC</td><td>Stat SceneRendering</td></tr>
+    <tr><td>4</td><td>显存占用</td><td>场景贴图 ≤ 200MB</td><td>Memory Report</td></tr>
+    <tr><td>5</td><td>光照 GPU</td><td>≤ 7.5ms (PC) / ≤ 2.5ms (移动)</td><td>GPU Profiler</td></tr>
+    <tr><td>6</td><td>Cell 加载</td><td>≤ 100ms</td><td>Streaming Profiler</td></tr>
+  </table>
+
+  <div class="alert alert-blue">
+    💡 <strong>交叉引用</strong>：性能预算总分配详见 → <a href="art-vs-ta-perfbudget.html" style="color:var(--accent)">性能红线与资产预算</a>；场景材质 Shader 指令数详见 → <a href="material-shader-ta-spec.html" style="color:var(--accent)">材质 Shader 规范</a>
+  </div>
+</div>
+
+<!-- §6 -->
+<div class="section" id="s6">
+  <h2>6️⃣ 交付阶段 <span class="phase-badge phase-ship">Ship & Review</span></h2>
+
+  <div class="sub-title">6.1 交付前走查清单</div>
+  <table>
+    <tr><th>类别</th><th>检查项</th><th>通过标准</th></tr>
+    <tr><td rowspan="3">视觉</td><td>材质/贴图</td><td>无明显 Mip 降级；TD 一致；无拉伸</td></tr>
+    <tr><td>光照</td><td>无漏光/黑斑；后处理一致</td></tr>
+    <tr><td>接缝</td><td>模块拼接无缝隙/Z-fighting</td></tr>
+    <tr><td rowspan="3">功能</td><td>碰撞</td><td>可行走区域无穿模/卡点</td></tr>
+    <tr><td>NavMesh</td><td>AI 寻路无异常</td></tr>
+    <tr><td>触发器/交互</td><td>所有交互点正常触发</td></tr>
+    <tr><td rowspan="3">性能</td><td>帧率</td><td>目标帧率 ±5% 以内</td></tr>
+    <tr><td>内存</td><td>预算内</td></tr>
+    <tr><td>Streaming</td><td>无可感知的加载卡顿</td></tr>
+  </table>
+
+  <div class="sub-title">6.2 Bug 分级与处置</div>
+  <table>
+    <tr><th>等级</th><th>定义</th><th>处置</th><th>修复时限</th></tr>
+    <tr><td style="color:var(--red)"><strong>Critical</strong></td><td>崩溃/穿模到关卡外/性能骤降 50%+</td><td>🔴 阻断交付</td><td>当天修复</td></tr>
+    <tr><td style="color:var(--orange)"><strong>High</strong></td><td>明显视觉穿帮/碰撞异常/AI 寻路卡死</td><td>🔴 阻断交付</td><td>24h 内修复</td></tr>
+    <tr><td style="color:var(--yellow)"><strong>Medium</strong></td><td>轻微视觉瑕疵/非关键区域问题</td><td>🟡 不阻断，标记修复</td><td>本版本内修复</td></tr>
+    <tr><td style="color:var(--green)"><strong>Low</strong></td><td>建议优化项</td><td>🟢 不阻断，排入 Backlog</td><td>下版本修复</td></tr>
+  </table>
+</div>
+
+<!-- §7 -->
+<div class="section" id="s7">
+  <h2>7️⃣ 角色分工与 RACI 矩阵</h2>
+
+  <p><strong>R</strong>=Responsible（执行）<strong>A</strong>=Accountable（负责）<strong>C</strong>=Consulted（咨询）<strong>I</strong>=Informed（知会）</p>
+
+  <table>
+    <tr><th>工作项</th><th>关卡策划</th><th>场景美术</th><th>灯光师</th><th>TA</th><th>PM</th><th>美术总监</th></tr>
+    <tr><td>白盒制作</td><td><strong>R/A</strong></td><td>C</td><td>—</td><td>C</td><td>I</td><td>I</td></tr>
+    <tr><td>灰盒替换</td><td>C</td><td><strong>R/A</strong></td><td>—</td><td>C</td><td>I</td><td>C</td></tr>
+    <tr><td>Kit 制作</td><td>—</td><td><strong>R/A</strong></td><td>—</td><td>C</td><td>I</td><td>A</td></tr>
+    <tr><td>地形/植被</td><td>C</td><td><strong>R/A</strong></td><td>—</td><td>C</td><td>I</td><td>C</td></tr>
+    <tr><td>光照调试</td><td>I</td><td>C</td><td><strong>R/A</strong></td><td>C</td><td>I</td><td>A</td></tr>
+    <tr><td>LOD/优化</td><td>—</td><td>R</td><td>—</td><td><strong>R/A</strong></td><td>I</td><td>I</td></tr>
+    <tr><td>性能 Profile</td><td>—</td><td>I</td><td>I</td><td><strong>R/A</strong></td><td>I</td><td>I</td></tr>
+    <tr><td>走查验收</td><td>R</td><td>R</td><td>R</td><td>R</td><td><strong>A</strong></td><td>R</td></tr>
+    <tr><td>排期管控</td><td>I</td><td>I</td><td>I</td><td>I</td><td><strong>R/A</strong></td><td>C</td></tr>
+  </table>
+</div>
+
+<!-- §8 -->
+<div class="section" id="s8">
+  <h2>8️⃣ 评审门禁（Stage Gate）体系</h2>
+
+  <div class="sub-title">8.1 门禁流程图</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>Gate 0</strong><div class="sub">白盒 → 灰盒<br>策划+TA 签字</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Gate 1</strong><div class="sub">灰盒 → 精制<br>场景+美术总监 签字</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Gate 2</strong><div class="sub">精制 → 优化<br>美术总监+TA 签字</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Gate 3</strong><div class="sub">优化 → 交付<br>TA+PM 签字</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>Gate 4</strong><div class="sub">交付验收<br>全员签字</div></div>
+  </div>
+
+  <div class="sub-title">8.2 门禁不通过处置方案</div>
+  <table>
+    <tr><th>情况</th><th>处置</th><th>PM 动作</th></tr>
+    <tr><td>白盒门禁不通过</td><td>返回白盒，修改动线/尺寸后重审</td><td>记录延期风险；协调策划/场景美术排期</td></tr>
+    <tr><td>灰盒门禁不通过</td><td>补充 Kit / 修复对齐问题</td><td>追溯是否 Kit 库不足导致覆盖率低</td></tr>
+    <tr><td>精制门禁不通过</td><td>补充细节 / 调整光照 / 修复 TD 差异</td><td>评估是否需增加人力</td></tr>
+    <tr><td>优化门禁不通过</td><td>继续优化直到性能达标</td><td>升级为风险项；每日跟踪 Profile 数据</td></tr>
+    <tr><td>交付验收不通过</td><td>修复 Critical/High Bug 后重新提交</td><td>协调 QA 优先级；确认修复不影响其他关卡</td></tr>
+  </table>
+</div>
+
+<!-- §9 -->
+<div class="section" id="s9">
+  <h2>9️⃣ 风险识别与应对预案</h2>
+
+  <table>
+    <tr><th>风险项</th><th>概率</th><th>影响</th><th>预警信号</th><th>应对措施</th></tr>
+    <tr><td><strong>Kit 库不足</strong></td><td>高</td><td>高</td><td>灰盒阶段 Kit 覆盖率 &lt; 50%</td><td>增加 Kit 制作人力；临时使用 Marketplace 资产占位</td></tr>
+    <tr><td><strong>性能超预算</strong></td><td>中</td><td>高</td><td>灰盒阶段同屏面数 &gt; 预算 150%</td><td>提前引入 TA 做性能评估；缩减场景规模</td></tr>
+    <tr><td><strong>光照方案变更</strong></td><td>低</td><td>极高</td><td>量产期提出切换光照方案</td><td>绝对避免！在预研期锁定；若确需变更需制作人审批</td></tr>
+    <tr><td><strong>美术外包质量</strong></td><td>中</td><td>中</td><td>外包 Kit 验收一次通过率 &lt; 60%</td><td>加强验收标准培训；增加中期检查频率</td></tr>
+    <tr><td><strong>工期压缩</strong></td><td>高</td><td>中</td><td>实际进度落后计划 &gt; 20%</td><td>优先完成主动线；次要区域降为灰盒交付</td></tr>
+    <tr><td><strong>跨部门协调</strong></td><td>中</td><td>中</td><td>白盒评审后策划频繁变更需求</td><td>设定需求冻结期（灰盒后禁止大改）</td></tr>
+  </table>
+</div>
+
+<!-- §10 -->
+<div class="section" id="s10">
+  <h2>📊 10. PM视角：场景管线效率看板</h2>
+
+  <p>PM 需要通过数据驱动的看板来监控场景管线的<strong>进度、效率和质量</strong>，确保每个关卡按计划通过各阶段门禁。</p>
+
+  <div class="sub-title">10.1 核心效率 KPI</div>
+  <table>
+    <tr><th>指标名称</th><th>定义 / 公式</th><th>目标值</th><th>数据源</th></tr>
+    <tr><td><strong>端到端交付周期</strong></td><td>白盒开始 → 交付验收通过 的工作日</td><td>小关卡 ≤ 20 天<br>中型 ≤ 45 天<br>大世界 ≤ 90 天</td><td>TAPD 父单时间戳</td></tr>
+    <tr><td><strong>阶段平均耗时</strong></td><td>各阶段实际耗时 / 计划耗时</td><td>≤ 110%（每阶段）</td><td>TAPD 子单状态</td></tr>
+    <tr><td><strong>门禁一次通过率</strong></td><td>一次通过门禁数 / 总门禁评审数 × 100%</td><td>≥ 70%</td><td>评审记录</td></tr>
+    <tr><td><strong>返工率</strong></td><td>被打回阶段数 / 总阶段数 × 100%</td><td>≤ 15%</td><td>TAPD 状态回退</td></tr>
+    <tr><td><strong>走查 Bug 密度</strong></td><td>走查 Bug 数 / 已交付关卡数</td><td>≤ 5 个/关卡（Critical+High ≤ 1）</td><td>TAPD 缺陷单</td></tr>
+    <tr><td><strong>修复闭环率</strong></td><td>48h 内关闭 Bug 数 / 总 Bug 数 × 100%</td><td>≥ 80%</td><td>TAPD 缺陷单</td></tr>
+  </table>
+
+  <div class="sub-title">10.2 看板可视化维度</div>
+  <table>
+    <tr><th>看板区域</th><th>展示内容</th><th>可视化形式</th><th>刷新频率</th></tr>
+    <tr><td>关卡进度看板</td><td>各关卡当前阶段 + 预计完成日期</td><td>甘特图 / 看板墙</td><td>每日</td></tr>
+    <tr><td>门禁通过率</td><td>各 Gate 近 4 周一次通过率趋势</td><td>折线图</td><td>每周</td></tr>
+    <tr><td>阶段耗时分布</td><td>各阶段实际 vs 计划耗时</td><td>堆叠柱状图</td><td>每次门禁评审</td></tr>
+    <tr><td>性能达标仪表盘</td><td>各关卡性能指标 vs 预算</td><td>雷达图（按关卡）</td><td>每次构建</td></tr>
+    <tr><td>Bug 燃尽图</td><td>待修复 Bug 数量趋势</td><td>燃尽图</td><td>每日</td></tr>
+    <tr><td>风险预警</td><td>当前活跃风险项 + 处置状态</td><td>红/黄/绿 卡片</td><td>每周</td></tr>
+  </table>
+
+  <div class="sub-title">10.3 数据驱动决策模型</div>
+  <div class="dd-grid">
+    <div class="dd-card dd-do">
+      <h4 style="color:var(--green)">✅ 健康状态</h4>
+      <p>• 门禁通过率 ≥ 70%<br>• 各阶段耗时 ≤ 计划 110%<br>• 走查 Bug 密度 ≤ 5<br><br><strong>动作</strong>：维持节奏；关注长期趋势优化</p>
+    </div>
+    <div class="dd-card dd-dont">
+      <h4 style="color:var(--red)">❌ 预警状态</h4>
+      <p>• 门禁通过率 &lt; 50%<br>• 某阶段耗时 &gt; 计划 150%<br>• 走查 Critical Bug &gt; 2/关卡<br><br><strong>动作</strong>：启动专项治理；增加人力或缩减范围；每日站会跟踪</p>
+    </div>
+  </div>
+
+  <div class="sub-title">10.4 跨关卡资源调度模型</div>
+  <table>
+    <tr><th>场景</th><th>问题</th><th>PM 调度策略</th></tr>
+    <tr><td>关卡 A 提前完成</td><td>人力闲置</td><td>将场景美术调配至落后关卡支援</td></tr>
+    <tr><td>关卡 B 精制阶段严重延期</td><td>影响总进度</td><td>① 评估是否降级为灰盒交付 ② 增调人力 ③ 缩减非核心区域</td></tr>
+    <tr><td>Kit 库缺口</td><td>多个关卡等待新 Kit</td><td>Kit 制作优先级提升；按关卡权重排序</td></tr>
+    <tr><td>TA 资源紧张</td><td>优化阶段堆积</td><td>提前规划 TA 排期；工具化自动优化流程</td></tr>
+  </table>
+
+  <div class="alert alert-green">
+    ✅ <strong>最佳实践</strong>：PM 每周三进行「场景管线周检」—— 逐关卡检查当前阶段、门禁预期日期、风险项状态。使用「交付漏斗图」展示各阶段堆积情况，提前发现瓶颈。
+  </div>
+</div>
+
+<div class="doc-footer">🏗️ 场景制作全流程管线 v1.0 · 场景组 · TA 组 · PM · 2026-05-29 · 项目内部资料</div>
+</div>
+<script src="editor-kit.js"></script>
+<script src="toc-enhancer.js?v=1.1"></script>
+</body>
+</html>

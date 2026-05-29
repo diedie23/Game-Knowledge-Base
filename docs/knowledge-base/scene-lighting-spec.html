@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>场景光照与 GI 规范 — 工业化规范文档</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1200px;margin:0 auto;padding:32px 48px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:26px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.doc-header h1 .ver{font-size:12px;background:var(--green);color:#000;padding:2px 10px;border-radius:12px}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim)}
+.toc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-size:15px;color:var(--heading);margin-bottom:10px;font-weight:600}
+.toc ol{padding-left:20px;font-size:15px;color:var(--accent)}.toc li{margin-bottom:6px}
+.toc a{color:var(--accent);text-decoration:none}.toc a:hover{text-decoration:underline}
+.section{margin-bottom:40px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--green);display:flex;align-items:center;gap:8px}
+.sub-title{font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600}
+.section p{font-size:15px;margin-bottom:12px;line-height:1.8}
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600;white-space:nowrap}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(74,222,128,.02)}
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;overflow-x:auto;line-height:1.6;color:var(--text);font-family:'Cascadia Code','Fira Code',monospace}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-node{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;min-width:100px}
+.flow-node strong{display:block;color:var(--heading);font-size:14px;margin-bottom:2px}
+.flow-node .sub{color:var(--dim);font-size:12px}
+.flow-arrow{color:var(--green);font-size:18px;padding:0 6px;flex-shrink:0}
+.flow-node.start{border-color:var(--green);background:rgba(74,222,128,.05)}
+.flow-node.end{border-color:var(--accent);background:rgba(108,140,255,.05)}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:700px){.dd-grid{grid-template-columns:1fr}}
+.dd-card{border-radius:10px;padding:16px;font-size:14px;line-height:1.8}
+.dd-dont{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)}
+.dd-do{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.dd-card h4{margin:0 0 8px;font-size:15px}
+.faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.faq-q{font-size:16px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.faq-a{font-size:14px;line-height:1.8;padding-left:28px}
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>💡 场景光照与 GI 规范 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Scene Lighting & Global Illumination — Industrial Pipeline Specification</div>
+  <div class="meta"><span>📋 UE5 Lumen / Unity / 通用</span><span>👤 TA 组 · 场景组 · 灯光组</span><span>📅 2026-05-29</span></div>
+</div>
+
+<div class="toc"><h3>📑 目录</h3>
+<ol>
+  <li><a href="#s1">光照方案选型决策矩阵</a></li>
+  <li><a href="#s2">光源类型与参数规范</a></li>
+  <li><a href="#s3">GI 方案技术细节（Lumen / 烘焙 / 混合）</a></li>
+  <li><a href="#s4">LightMap UV 制作规范</a></li>
+  <li><a href="#s5">光照探针与间接光规范</a></li>
+  <li><a href="#s6">后处理与色调映射标准</a></li>
+  <li><a href="#s7">光照性能预算与优化</a></li>
+  <li><a href="#s8">光照 SOP 标准作业流程</a></li>
+  <li><a href="#s9">Do/Don't 红黑榜</a></li>
+  <li><a href="#s10">FAQ</a></li>
+  <li><a href="#s11">PM视角：光照质量度量看板</a></li>
+</ol></div>
+
+<!-- §1 -->
+<div class="section" id="s1">
+  <h2>1️⃣ 光照方案选型决策矩阵</h2>
+
+  <div class="alert alert-yellow"><strong>⚠️ 关键决策：</strong>光照方案必须在<strong>预研期锁定</strong>，量产中期切换方案将导致所有 LightMap UV 返工或全场景 GI 重调。</div>
+
+  <div class="sub-title">1.1 方案对照表</div>
+  <table>
+    <tr><th>方案</th><th>引擎实现</th><th>优点</th><th>缺点</th><th>适用场景</th><th>成本评估</th></tr>
+    <tr><td><strong>全烘焙</strong> (Baked)</td><td>UE5 Lightmass<br>Unity Enlighten / Progressive</td><td>运行时零 GI 开销；移动端友好；光照一致性高</td><td>无法动态变化（昼夜/天气）；LightMap 内存大；迭代慢（烘焙时间）</td><td>线性关卡、室内、移动端</td><td>灯光师 + TA 配合<br>烘焙时间：中~大场景 2~8h</td></tr>
+    <tr><td><strong>全动态</strong> (Dynamic)</td><td>UE5 Lumen<br>Unity HDRP RTGI / SSGI</td><td>完全实时；支持昼夜/天气/可破坏环境；无需 LightMap UV</td><td>GPU 开销高；移动端受限；光照噪点需后处理</td><td>开放世界、昼夜循环、主机/PC 高端</td><td>灯光师主导<br>TA 需 Profile 优化</td></tr>
+    <tr><td><strong>混合方案</strong> (Hybrid)</td><td>UE5 Distance Field + 部分烘焙<br>Unity Adaptive Probe Volumes</td><td>平衡性能与表现；大区域烘焙 + 局部动态</td><td>复杂度高；需明确分区策略</td><td>中大型项目、有部分动态需求</td><td>灯光师 + TA 深度配合<br>规范要求最高</td></tr>
+  </table>
+
+  <div class="sub-title">1.2 决策流程</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>目标平台</strong><div class="sub">移动端 / 主机 / PC</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>是否需要昼夜循环？</strong><div class="sub">是→动态或混合<br>否→可考虑烘焙</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>GPU 预算</strong><div class="sub">Lumen: ≥ 3ms<br>烘焙: ~0ms GI</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>场景规模</strong><div class="sub">线性关卡 vs 开放世界</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>锁定方案</strong><div class="sub">写入技术设计文档<br>不可中途更换</div></div>
+  </div>
+</div>
+
+<!-- §2 -->
+<div class="section" id="s2">
+  <h2>2️⃣ 光源类型与参数规范</h2>
+
+  <div class="sub-title">2.1 光源分类与使用建议</div>
+  <table>
+    <tr><th>光源类型</th><th>UE5</th><th>Unity</th><th>适用</th><th>性能开销</th><th>投射阴影</th></tr>
+    <tr><td><strong>定向光</strong> (Directional)</td><td>DirectionalLight</td><td>Directional Light</td><td>太阳/月亮主光</td><td>低（全局 1 盏）</td><td>✅ CSM 级联阴影</td></tr>
+    <tr><td><strong>点光源</strong> (Point)</td><td>PointLight</td><td>Point Light</td><td>灯泡、火焰</td><td>中（按距离衰减）</td><td>⚠️ 按需开启</td></tr>
+    <tr><td><strong>聚光灯</strong> (Spot)</td><td>SpotLight</td><td>Spot Light</td><td>手电筒、射灯</td><td>中</td><td>⚠️ 按需开启</td></tr>
+    <tr><td><strong>面光源</strong> (Rect)</td><td>RectLight</td><td>Area Light (HDRP)</td><td>窗户、屏幕、灯箱</td><td>高</td><td>✅ 仅烘焙或 Lumen</td></tr>
+    <tr><td><strong>天空光</strong> (Sky)</td><td>SkyLight + HDRI</td><td>Environment Light</td><td>环境填充光</td><td>低~中</td><td>❌（间接光源）</td></tr>
+  </table>
+
+  <div class="alert alert-red"><strong>⛔ 红线：</strong>
+    <p>• 同屏投射阴影的动态光源 ≤ <strong>4 盏</strong>（移动端 ≤ 2 盏）</p>
+    <p>• 点光源/聚光灯衰减半径 ≤ <strong>30m</strong>（避免过大范围计算）</p>
+    <p>• 面光源 <strong>禁止</strong> 在移动端使用（性能不可接受）</p>
+  </div>
+
+  <div class="sub-title">2.2 阴影参数标准</div>
+  <table>
+    <tr><th>参数</th><th>PC/主机</th><th>移动端</th><th>说明</th></tr>
+    <tr><td>CSM 级联数</td><td>4 级</td><td>2~3 级</td><td>更多级联 = 近处阴影更清晰</td></tr>
+    <tr><td>阴影贴图分辨率</td><td>2048~4096</td><td>1024~2048</td><td>主光源（定向光）</td></tr>
+    <tr><td>动态阴影距离</td><td>80~120m</td><td>30~50m</td><td>超过距离用 Distance Field Shadow</td></tr>
+    <tr><td>Contact Shadow</td><td>✅ 开启</td><td>❌ 关闭</td><td>细节接触阴影，GPU 开销高</td></tr>
+    <tr><td>阴影偏移 (Bias)</td><td>0.5~1.0</td><td>0.5~2.0</td><td>过小→自阴影条纹；过大→Peter Panning</td></tr>
+  </table>
+</div>
+
+<!-- §3 -->
+<div class="section" id="s3">
+  <h2>3️⃣ GI 方案技术细节</h2>
+
+  <div class="sub-title">3.1 UE5 Lumen 配置规范</div>
+  <table>
+    <tr><th>配置项</th><th>推荐值</th><th>说明</th></tr>
+    <tr><td>Global Illumination Method</td><td><code>Lumen</code></td><td>项目设置 → Rendering → GI</td></tr>
+    <tr><td>Lumen Scene Detail</td><td><code>1.0</code> (室内 1.25)</td><td>控制 Mesh Card 精度</td></tr>
+    <tr><td>Final Gather Quality</td><td><code>1.0</code></td><td>高于 1.0 性价比下降</td></tr>
+    <tr><td>Reflection Method</td><td><code>Lumen</code></td><td>配合 GI 一起使用</td></tr>
+    <tr><td>Software Ray Tracing</td><td><code>ON</code> (无 RTX 硬件)</td><td>依赖 Mesh Distance Fields</td></tr>
+    <tr><td>Hardware Ray Tracing</td><td><code>ON</code> (有 RTX 硬件)</td><td>RTX 2060+ / RX 6600+</td></tr>
+    <tr><td>Emissive 作为光源</td><td>需手动启用</td><td>仅限小面积高亮度自发光</td></tr>
+  </table>
+
+  <div class="sub-title">3.2 烘焙光照配置规范</div>
+  <table>
+    <tr><th>配置项</th><th>UE5 Lightmass</th><th>Unity Progressive</th><th>说明</th></tr>
+    <tr><td>间接光弹射次数</td><td>3~5 次</td><td>2~4 次</td><td>过多增加烘焙时间</td></tr>
+    <tr><td>LightMap 分辨率</td><td>根据物体尺寸（见 §4）</td><td>同理</td><td>统一管控 Texel Density</td></tr>
+    <tr><td>烘焙精度等级</td><td>Production (正式版)</td><td>High</td><td>Preview 仅调试用</td></tr>
+    <tr><td>烘焙结果压缩</td><td><code>BC6H</code> (HDR)</td><td><code>BC6H</code></td><td>保留高动态范围</td></tr>
+    <tr><td>Volumetric Lightmap</td><td>✅ 推荐</td><td>Light Probe Group</td><td>为动态物体提供间接光</td></tr>
+  </table>
+
+  <div class="sub-title">3.3 混合方案分区策略</div>
+  <table>
+    <tr><th>区域类型</th><th>GI 方案</th><th>原因</th><th>示例</th></tr>
+    <tr><td>大面积室外</td><td>Lumen / 动态</td><td>昼夜变化、天气系统</td><td>主城广场、野外</td></tr>
+    <tr><td>室内（封闭）</td><td>烘焙</td><td>光照固定、性能友好</td><td>NPC 商店、地牢</td></tr>
+    <tr><td>室内外过渡</td><td>混合（烘焙 + 动态补光）</td><td>需平滑过渡</td><td>建筑入口、洞穴口</td></tr>
+    <tr><td>可破坏区域</td><td>动态</td><td>结构变化后光照需实时响应</td><td>可破坏建筑</td></tr>
+  </table>
+
+  <div class="alert alert-yellow">
+    ⚠️ <strong>混合方案注意</strong>：烘焙区与动态区的边界需要放置 <strong>LightTransition Volume</strong>（UE5）或 <strong>Probe Blending Region</strong>（Unity），确保玩家穿越时无明显光照跳变。
+  </div>
+</div>
+
+<!-- §4 -->
+<div class="section" id="s4">
+  <h2>4️⃣ LightMap UV 制作规范</h2>
+
+  <div class="alert alert-red"><strong>⛔ 仅适用于烘焙/混合方案。</strong>使用全动态 Lumen 方案时，无需制作 LightMap UV（Lumen 使用 Mesh Card 代替）。</div>
+
+  <div class="sub-title">4.1 LightMap 分辨率标准</div>
+  <table>
+    <tr><th>物体类型</th><th>LightMap 分辨率</th><th>参考 TD</th><th>说明</th></tr>
+    <tr><td>地板 (4m²)</td><td>64</td><td>~16 px/m</td><td>大面积平整表面</td></tr>
+    <tr><td>墙体 (标准)</td><td>64~128</td><td>~16~32 px/m</td><td>视距离和重要度</td></tr>
+    <tr><td>柱体 / 楼梯</td><td>32~64</td><td>~8~16 px/m</td><td>结构件</td></tr>
+    <tr><td>装饰 / 道具</td><td>32</td><td>~8 px/m</td><td>小物件低分辨率即可</td></tr>
+    <tr><td>Hero Asset</td><td>128~256</td><td>~32~64 px/m</td><td>视觉焦点物体</td></tr>
+    <tr><td>地形 (Landscape)</td><td>由 Landscape 系统管理</td><td>—</td><td>不单独设置 LightMap</td></tr>
+  </table>
+
+  <div class="sub-title">4.2 LightMap UV 制作规则</div>
+  <table>
+    <tr><th>规则</th><th>说明</th><th>违规后果</th></tr>
+    <tr><td>UV 不可重叠</td><td>LightMap UV（Channel 1）所有面片不可重叠</td><td>光照漏光/黑斑</td></tr>
+    <tr><td>UV 不可翻转</td><td>所有面片朝向一致（无 Mirror）</td><td>阴影方向错误</td></tr>
+    <tr><td>边缘间距 (Padding)</td><td>≥ 2 texels（推荐 4 texels）</td><td>烘焙时光照渗色</td></tr>
+    <tr><td>UV 利用率</td><td>≥ 50%（大型物件 ≥ 60%）</td><td>浪费 LightMap 空间</td></tr>
+    <tr><td>UV 岛数量</td><td>尽量少（Flatten → Pack）</td><td>过多碎片影响烘焙质量</td></tr>
+    <tr><td>UV Channel</td><td>UE5: Channel 1（默认）；Unity: Channel 2</td><td>引擎找不到 LightMap UV</td></tr>
+  </table>
+
+  <div class="alert alert-blue">
+    💡 <strong>自动化建议</strong>：UE5 可使用 <code>Generate Lightmap UVs</code> 自动生成 Channel 1 UV。但复杂物体建议 DCC 手动制作以获得更高质量。
+  </div>
+</div>
+
+<!-- §5 -->
+<div class="section" id="s5">
+  <h2>5️⃣ 光照探针与间接光规范</h2>
+
+  <div class="sub-title">5.1 光照探针放置策略</div>
+  <table>
+    <tr><th>场景区域</th><th>探针密度</th><th>UE5 方案</th><th>Unity 方案</th></tr>
+    <tr><td>室外空旷</td><td>每 4~8m 一组</td><td>Volumetric Lightmap（自动）</td><td>Light Probe Group（手动排布）</td></tr>
+    <tr><td>室内走廊</td><td>每 2~4m 一组</td><td>同上</td><td>沿走廊方向密集排布</td></tr>
+    <tr><td>明暗交界处</td><td>加密至每 1~2m</td><td>同上</td><td>过渡区域加密放置</td></tr>
+    <tr><td>垂直空间</td><td>每层至少 1 组</td><td>同上</td><td>多层楼宇需逐层放置</td></tr>
+  </table>
+
+  <div class="alert alert-red"><strong>⛔ 红线：</strong>
+    <p>• 动态角色/物体 <strong>必须</strong> 通过探针获取间接光，不可使用平面一色的环境光</p>
+    <p>• Unity Light Probe 总数单场景 ≤ <strong>5000 个</strong>（过多影响烘焙和内存）</p>
+    <p>• 探针组内探针间距 ≤ <strong>角色身高的 2 倍</strong>（约 4m），避免光照跳变</p>
+  </div>
+
+  <div class="sub-title">5.2 反射探针 (Reflection Probe) 规范</div>
+  <table>
+    <tr><th>场景</th><th>反射探针数量</th><th>分辨率</th><th>更新模式</th></tr>
+    <tr><td>高反射区（水面/金属地板）</td><td>按区域覆盖</td><td>256~512</td><td>Baked / Realtime (按需)</td></tr>
+    <tr><td>普通室内</td><td>每个房间 1~2 个</td><td>128~256</td><td>Baked</td></tr>
+    <tr><td>室外</td><td>关键区域 + 远景</td><td>128</td><td>Baked + 天空球 Fallback</td></tr>
+  </table>
+  <p><em>注：UE5 Lumen 方案下，Screen Space Reflection + Lumen Reflection 可大幅减少对静态反射探针的依赖。</em></p>
+</div>
+
+<!-- §6 -->
+<div class="section" id="s6">
+  <h2>6️⃣ 后处理与色调映射标准</h2>
+
+  <div class="sub-title">6.1 核心后处理参数约定</div>
+  <table>
+    <tr><th>参数</th><th>推荐范围</th><th>说明</th></tr>
+    <tr><td>Tone Mapper</td><td>ACES / Filmic</td><td>项目统一一种，不可混用</td></tr>
+    <tr><td>Exposure (曝光)</td><td>Auto Exposure + Min/Max 限制</td><td>Min EV: 2~4；Max EV: 10~14</td></tr>
+    <tr><td>Bloom Intensity</td><td>0.3~0.6</td><td>过高导致画面"糊"</td></tr>
+    <tr><td>Ambient Occlusion</td><td>Intensity 0.5~0.8</td><td>场景 AO 可略强于角色 AO</td></tr>
+    <tr><td>Color Grading LUT</td><td>项目级统一 LUT</td><td>不同区域可叠加氛围 LUT</td></tr>
+    <tr><td>Motion Blur</td><td>可选（按项目风格）</td><td>FPS 游戏通常关闭</td></tr>
+  </table>
+
+  <div class="alert alert-red"><strong>⛔ 红线：</strong>
+    <p>• 后处理 Volume <strong>不得</strong> 无限范围（Infinite Extent Unbound）— 必须限定有效区域</p>
+    <p>• 不同场景设计师 <strong>不得</strong> 各自创建独立 Tone Mapper — 必须使用项目统一配置</p>
+  </div>
+
+  <div class="sub-title">6.2 昼夜循环色温参考</div>
+  <table>
+    <tr><th>时段</th><th>色温 (K)</th><th>主光强度</th><th>天空色调</th><th>说明</th></tr>
+    <tr><td>清晨 (06:00)</td><td>3500~4000K</td><td>低 (0.3~0.5)</td><td>暖橙 → 淡蓝过渡</td><td>长阴影、低角度</td></tr>
+    <tr><td>正午 (12:00)</td><td>6500K</td><td>最高 (1.0)</td><td>纯蓝</td><td>标准白光</td></tr>
+    <tr><td>黄昏 (18:00)</td><td>2500~3000K</td><td>中 (0.5~0.7)</td><td>橙红 → 紫</td><td>Golden Hour</td></tr>
+    <tr><td>夜晚 (22:00)</td><td>8000~10000K</td><td>极低 (0.05~0.15)</td><td>深蓝</td><td>月光冷色调</td></tr>
+  </table>
+</div>
+
+<!-- §7 -->
+<div class="section" id="s7">
+  <h2>7️⃣ 光照性能预算与优化</h2>
+
+  <div class="sub-title">7.1 光照 GPU 预算</div>
+  <table>
+    <tr><th>渲染项</th><th>PC/主机预算</th><th>移动端预算</th><th>说明</th></tr>
+    <tr><td>Lumen GI</td><td>≤ 3ms</td><td>N/A（不支持）</td><td>含 Surface Cache + Final Gather</td></tr>
+    <tr><td>阴影（总计）</td><td>≤ 2ms</td><td>≤ 1.5ms</td><td>CSM + 局部光源阴影</td></tr>
+    <tr><td>反射（总计）</td><td>≤ 1.5ms</td><td>≤ 0.5ms</td><td>SSR + Probe 采样</td></tr>
+    <tr><td>后处理</td><td>≤ 1ms</td><td>≤ 0.5ms</td><td>Bloom + AO + Tonemap</td></tr>
+    <tr><td><strong>光照总计</strong></td><td><strong>≤ 7.5ms</strong></td><td><strong>≤ 2.5ms</strong></td><td>占总帧时间预算约 45%</td></tr>
+  </table>
+
+  <div class="sub-title">7.2 优化手段速查</div>
+  <table>
+    <tr><th>问题</th><th>症状</th><th>优化方案</th></tr>
+    <tr><td>阴影开销过高</td><td>CSM 渲染 &gt; 2ms</td><td>减少 CSM 级联数；缩短阴影距离；关闭小物体阴影投射</td></tr>
+    <tr><td>Lumen 开销高</td><td>GI &gt; 3ms</td><td>降低 Scene Detail；减少小网格 Mesh Card；增大 Far Field Distance</td></tr>
+    <tr><td>动态光源过多</td><td>前向渲染叠加</td><td>合并临近光源；使用 IES Profile 替代多光源；非关键光源设为静态</td></tr>
+    <tr><td>反射探针过多</td><td>反射通道 &gt; 1.5ms</td><td>降低分辨率；合并覆盖区域；使用 SSR 替代部分探针</td></tr>
+    <tr><td>LightMap 内存过大</td><td>显存占用异常</td><td>降低非关键物体 LightMap 分辨率；使用 Virtual LightMap</td></tr>
+  </table>
+
+  <div class="alert alert-blue">
+    💡 <strong>交叉引用</strong>：场景整体性能预算分配详见 → <a href="art-vs-ta-perfbudget.html" style="color:var(--accent)">性能红线与资产预算</a>；材质 Shader 指令数预算详见 → <a href="material-shader-ta-spec.html" style="color:var(--accent)">材质 Shader 规范</a>
+  </div>
+</div>
+
+<!-- §8 -->
+<div class="section" id="s8">
+  <h2>8️⃣ 光照 SOP 标准作业流程</h2>
+
+  <div class="flow">
+    <div class="flow-node start"><strong>1. 方案锁定</strong><div class="sub">预研期决策<br>写入技术文档</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>2. 主光设定</strong><div class="sub">定向光方向/色温<br>天空光 HDRI</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>3. GI 配置</strong><div class="sub">Lumen 参数 / 烘焙设置<br>探针布局</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>4. 补光</strong><div class="sub">局部点光/聚光灯<br>氛围灯效</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>5. 后处理</strong><div class="sub">Exposure/Bloom/AO<br>Color Grading</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>6. Profile & 验收</strong><div class="sub">GPU 预算达标<br>视觉走查通过</div></div>
+  </div>
+
+  <div class="sub-title">各阶段关键交付物</div>
+  <table>
+    <tr><th>阶段</th><th>交付物</th><th>责任人</th></tr>
+    <tr><td>方案锁定</td><td>光照技术设计文档（含方案选型理由、预算分配）</td><td>TA + 灯光主管</td></tr>
+    <tr><td>主光设定</td><td>主光参数表 + 天空球 HDRI</td><td>灯光师</td></tr>
+    <tr><td>GI 配置</td><td>GI 参数配置文件 + 探针布局图</td><td>灯光师 + TA</td></tr>
+    <tr><td>补光</td><td>关卡光源列表（含位置、参数、是否投射阴影）</td><td>灯光师</td></tr>
+    <tr><td>后处理</td><td>Post Process Profile + LUT 文件</td><td>灯光师 + 美术总监确认</td></tr>
+    <tr><td>Profile</td><td>GPU Profiler 截图 + 光照预算执行报告</td><td>TA</td></tr>
+  </table>
+</div>
+
+<!-- §9 -->
+<div class="section" id="s9">
+  <h2>9️⃣ Do/Don't 红黑榜</h2>
+
+  <div class="dd-grid">
+    <div class="dd-card dd-do"><h4 style="color:var(--green)">✅ Do — 正确做法</h4>
+      <p>• 预研期锁定光照方案，写入技术文档<br>• 使用项目统一的 Tone Mapper 和 LUT<br>• 动态角色通过探针/Volumetric Lightmap 获取间接光<br>• 在明暗交界处加密探针密度<br>• 后处理 Volume 限定有效区域<br>• LightMap UV 无重叠、无翻转、Padding ≥ 2 texels<br>• 每次光照调整后 Profile 验证预算</p>
+    </div>
+    <div class="dd-card dd-dont"><h4 style="color:var(--red)">❌ Don't — 错误做法</h4>
+      <p>• 量产中期切换光照方案（全量返工）<br>• 无限范围后处理 Volume（影响全局）<br>• 每个灯光师自定义 Tone Mapper（色调不一致）<br>• 动态角色无间接光（"黑人"现象）<br>• 移动端使用面光源 / Lumen（性能不可承受）<br>• LightMap UV 重叠（光照漏光/黑斑）<br>• 同屏 &gt; 4 盏投射阴影的动态光源</p>
+    </div>
+  </div>
+</div>
+
+<!-- §10 -->
+<div class="section" id="s10">
+  <h2>🔟 常见问题 FAQ</h2>
+
+  <div class="faq-item"><div class="faq-q">❓ Lumen 在移动端能用吗？</div>
+  <div class="faq-a">截至 UE5.4，Lumen 仅支持 PC / 主机 / 高端安卓（部分 Vulkan 设备实验性支持）。移动端建议使用<strong>烘焙 + 动态主光</strong>的混合方案。</div></div>
+
+  <div class="faq-item"><div class="faq-q">❓ 烘焙时间太长怎么优化？</div>
+  <div class="faq-a">① 使用 <strong>GPU Lightmass</strong>（UE5）替代 CPU Lightmass，速度提升 5~10 倍；② 降低非关键物体 LightMap 分辨率；③ 减少间接光弹射次数（3 次通常足够）；④ 使用 Swarm Agent 分布式烘焙。</div></div>
+
+  <div class="faq-item"><div class="faq-q">❓ 角色在室内外过渡时"闪白/闪黑"怎么办？</div>
+  <div class="faq-a">这通常是 <strong>Auto Exposure 响应速度</strong>问题。解决方案：① 缩窄 Min/Max EV 范围；② 使用 Exposure Compensation Volume 在过渡区域预调曝光；③ 增加 Auto Exposure Speed Down 的过渡时间。</div></div>
+
+  <div class="faq-item"><div class="faq-q">❓ 开放世界的昼夜循环用什么 GI 方案？</div>
+  <div class="faq-a">• 主机/PC → <strong>Lumen</strong>（原生支持太阳角度实时变化）<br>• 移动端 → <strong>动态主光 + 预烘焙的多套探针/LUT 插值</strong>（按时段切换预制数据）</div></div>
+</div>
+
+<!-- §11 -->
+<div class="section" id="s11">
+  <h2>📊 11. PM视角：光照质量度量看板</h2>
+
+  <p>PM 需要量化光照工作的<strong>进度、质量和性能合规</strong>，避免光照调试成为版本发布的隐性瓶颈。</p>
+
+  <div class="sub-title">11.1 核心 KPI 指标</div>
+  <table>
+    <tr><th>指标名称</th><th>公式</th><th>目标值</th><th>数据源</th></tr>
+    <tr><td>光照完成率</td><td>已完成光照调试的关卡数 / 总关卡数 × 100%</td><td>每阶段 ≥ 当期目标</td><td>TAPD 任务状态</td></tr>
+    <tr><td>GPU 光照预算达标率</td><td>光照 GPU 时间 ≤ 预算的关卡数 / 总数 × 100%</td><td>≥ 95%</td><td>GPU Profiler 报告</td></tr>
+    <tr><td>LightMap UV 合规率</td><td>UV 无重叠无翻转的模块数 / 总数 × 100%</td><td>= 100%</td><td>CI 自动校验</td></tr>
+    <tr><td>动态阴影光源数达标率</td><td>阴影光源 ≤ 4 的关卡占比</td><td>= 100%</td><td>引擎 Profiler</td></tr>
+    <tr><td>烘焙质量通过率</td><td>无漏光/黑斑的关卡数 / 总数 × 100%</td><td>≥ 95%</td><td>视觉走查报告</td></tr>
+    <tr><td>后处理一致性</td><td>使用项目统一配置的关卡占比</td><td>= 100%</td><td>配置文件审计</td></tr>
+  </table>
+
+  <div class="sub-title">11.2 光照工时估算（PM 排期参考）</div>
+  <table>
+    <tr><th>关卡规模</th><th>主光+天空</th><th>GI 配置</th><th>补光</th><th>后处理</th><th>Profile</th><th>总计</th></tr>
+    <tr><td>室内小关卡</td><td>0.5 天</td><td>0.5 天</td><td>1~2 天</td><td>0.5 天</td><td>0.5 天</td><td><strong>3~4 天</strong></td></tr>
+    <tr><td>室外中型关卡</td><td>1 天</td><td>1 天</td><td>2~3 天</td><td>1 天</td><td>1 天</td><td><strong>6~7 天</strong></td></tr>
+    <tr><td>大世界开放区域</td><td>1 天</td><td>2 天</td><td>3~5 天</td><td>1 天</td><td>2 天</td><td><strong>9~11 天</strong></td></tr>
+    <tr><td>昼夜循环（附加）</td><td>+1 天</td><td>+2 天</td><td>+2 天</td><td>+1 天</td><td>+1 天</td><td><strong>+7 天</strong></td></tr>
+  </table>
+
+  <div class="sub-title">11.3 质量门禁联动</div>
+  <table>
+    <tr><th>里程碑</th><th>光照质量门禁</th><th>不达标处置</th></tr>
+    <tr><td>灰盒阶段</td><td>主光方向+天空光完成；临时 GI 可用</td><td>不阻断（允许占位光照）</td></tr>
+    <tr><td>Alpha</td><td>所有关卡完成光照首调；GPU 预算达标率 ≥ 80%</td><td>标记技术债务</td></tr>
+    <tr><td>Beta</td><td>GPU 预算达标率 ≥ 95%；LightMap UV 合规率 = 100%</td><td>延迟发布直到达标</td></tr>
+    <tr><td>RC</td><td>全部指标达标；视觉走查 0 漏光/黑斑</td><td>阻断发布</td></tr>
+  </table>
+
+  <div class="alert alert-green">
+    ✅ <strong>最佳实践</strong>：光照调试是场景制作中<strong>最容易被低估工时</strong>的环节。PM 在排期时应为光照调试预留总关卡工时的 <strong>25%~35%</strong>，且光照验收需安排在版本提交前至少 3~5 天完成，预留修复缓冲。
+  </div>
+</div>
+
+<div class="doc-footer">💡 场景光照与 GI 规范 v1.0 · TA 组 · 场景组 · 灯光组 · 2026-05-29 · 项目内部资料</div>
+</div>
+<script src="editor-kit.js"></script>
+<script src="toc-enhancer.js?v=1.1"></script>
+</body>
+</html>
