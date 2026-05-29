@@ -133,55 +133,50 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 <div class="section" id="sec2">
   <h2>🏅 2. CP 准入评估与分级管理</h2>
 
-  <h3>2.1 准入评估维度（百分制）</h3>
+  <div class="alert alert-blue" style="border:1px solid rgba(108,140,255,.3)">
+    <strong>📎 权威定义源：</strong>CP 准入评估的完整流程与评分表，请参见 → <a href="cp-outsource.html#sec2" style="color:var(--accent);font-weight:600">《外包全链路管理指南 §2 供应商准入与分级体系》</a>。<br>
+    供应商长期评级体系（半年度/年度评级、升降级、淘汰）请参见 → <a href="supplier-ecosystem.html#s3" style="color:var(--accent);font-weight:600">《供应商生态管理规范 §3 评级体系》</a>。
+  </div>
+
+  <h3>2.1 本文档适用场景（与全链路指南的分工）</h3>
   <table>
-    <thead><tr><th>评估维度</th><th>权重</th><th>评估要点</th><th>合格线</th></tr></thead>
+    <thead><tr><th>关注点</th><th>本文档覆盖</th><th>全链路指南覆盖</th></tr></thead>
     <tbody>
-      <tr><td><strong>作品品质</strong></td><td>35%</td><td>历史案例与本项目风格匹配度、技术表现力</td><td>≥ 70 分</td></tr>
-      <tr><td><strong>产能稳定性</strong></td><td>20%</td><td>团队规模、核心人员稳定性、并发项目数</td><td>≥ 60 分</td></tr>
-      <tr><td><strong>沟通协作</strong></td><td>20%</td><td>响应速度、文档规范度、问题主动暴露意识</td><td>≥ 65 分</td></tr>
-      <tr><td><strong>交付准时率</strong></td><td>15%</td><td>历史项目的 On-Time Delivery 率</td><td>≥ 80%</td></tr>
-      <tr><td><strong>安全合规</strong></td><td>10%</td><td>保密协议签署、文件管理规范、防泄露措施</td><td>必须合格</td></tr>
+      <tr><td>单次交付的验收流程</td><td>✅ 详见 §5</td><td>—</td></tr>
+      <tr><td>CP 首次准入评分</td><td>概要引用 ↓</td><td>✅ 详见 cp-outsource §2.2</td></tr>
+      <tr><td>CP 长期分级与升降级</td><td>概要引用 ↓</td><td>✅ 详见 supplier-ecosystem §3~4</td></tr>
+      <tr><td>合同/成本/商务谈判</td><td>—</td><td>✅ 详见 cp-outsource §9</td></tr>
     </tbody>
   </table>
 
-  <h3>2.2 CP 分级体系</h3>
+  <h3>2.2 CP 分级快速参照（统一标准）</h3>
   <table>
-    <thead><tr><th>等级</th><th>综合评分</th><th>权限</th><th>配额</th></tr></thead>
+    <thead><tr><th>等级</th><th>准入评分</th><th>可承接资产类型</th><th>核心约束</th></tr></thead>
     <tbody>
-      <tr><td><span style="color:var(--green);font-weight:700">S 级</span></td><td>≥ 90</td><td>可承接核心角色外包、参与预研、获得长期框架合同</td><td>不限</td></tr>
-      <tr><td><span style="color:var(--blue);font-weight:700">A 级</span></td><td>80~89</td><td>可承接量产角色/主要场景，每批次 ≤ 20 件</td><td>月产能 60%</td></tr>
-      <tr><td><span style="color:var(--yellow);font-weight:700">B 级</span></td><td>70~79</td><td>可承接标准场景道具/UI/图标，每批次 ≤ 50 件</td><td>月产能 40%</td></tr>
-      <tr><td><span style="color:var(--dim);font-weight:700">C 级</span></td><td>60~69</td><td>仅承接最标准化的批量资产，需加强监控</td><td>月产能 20%</td></tr>
+      <tr><td><span style="color:var(--green);font-weight:700">S 级</span></td><td>连续 3 次评估 ≥ 90</td><td>核心角色/预研资产/联合研发</td><td>制作人签字确认</td></tr>
+      <tr><td><span style="color:var(--blue);font-weight:700">A 级</span></td><td>80~89</td><td>量产角色/主要场景</td><td>每批次 ≤ 20 件</td></tr>
+      <tr><td><span style="color:var(--yellow);font-weight:700">B 级</span></td><td>70~79</td><td>标准场景道具/UI/图标</td><td>新CP默认等级，需磨合期</td></tr>
+      <tr><td><span style="color:var(--dim);font-weight:700">C 级</span></td><td>60~69</td><td>仅最标准化批量资产</td><td>限期整改，连续不达标则淘汰</td></tr>
     </tbody>
   </table>
 
-  <div class="alert alert-yellow"><strong>⚠️ 降级/淘汰机制：</strong>连续 2 个月交付合格率 < 70% → 降一级；降至 C 级后仍不达标 → 暂停合作 3 个月后重新评估。</div>
+  <div class="alert alert-yellow"><strong>⚠️ 统一标准说明：</strong>本知识库中所有外包相关文档统一遵循上述 S/A/B/C 四级体系（百分制）。准入评分维度详见<a href="cp-outsource.html#sec2" style="color:var(--accent)">全链路指南 §2.2</a>，持续评级维度详见<a href="supplier-ecosystem.html#s3" style="color:var(--accent)">供应商生态 §3.1</a>。降级规则：连续 2 次评估低于当前等级分数线 → 降一级。</div>
 </div>
 
 <!-- ═══ SEC 3 ═══ -->
 <div class="section" id="sec3">
   <h2>📋 3. 需求下发规范（Briefing Package）</h2>
 
+  <div class="alert alert-blue" style="border:1px solid rgba(108,140,255,.3)">
+    <strong>📎 完整 Briefing 规范：</strong>8 要素完整度检查表、下发流程、首件管控机制，请参见 → <a href="cp-outsource.html#sec4" style="color:var(--accent);font-weight:600">《外包全链路管理指南 §4 需求下发与首件管控》</a>
+  </div>
+
   <div class="golden-quote">
     <p>"外包做出来不像，80% 的原因不是 CP 能力不行，而是 Briefing 没写清楚。给模糊需求就别期待精确产出。"</p>
     <div class="src">— 某 3A 外包经理</div>
   </div>
 
-  <h3>3.1 Briefing Package 必备要素</h3>
-  <div class="checklist">
-    <h4>📦 需求包完整度检查（缺一不可）</h4>
-    <div class="ck-item"><span class="ck-num">01</span><strong>风格锚点图</strong>：≥ 3 张已确认的风格参考（含"正确范围"和"超出底线"的边界示例）</div>
-    <div class="ck-item"><span class="ck-num">02</span><strong>技术规格表</strong>：面数上限/贴图尺寸/骨骼数/文件格式/命名规范/目录结构（引用内部标准文档）</div>
-    <div class="ck-item"><span class="ck-num">03</span><strong>设计文档</strong>：角色背景/功能需求/关键设计意图/情绪关键词</div>
-    <div class="ck-item"><span class="ck-num">04</span><strong>三视图/正侧背</strong>：已审核通过的定稿设计图（非草图）</div>
-    <div class="ck-item"><span class="ck-num">05</span><strong>验收标准清单</strong>：量化指标 + 主观评分维度 + 评分权重</div>
-    <div class="ck-item"><span class="ck-num">06</span><strong>里程碑计划</strong>：分阶段交付时间点 + 每阶段交付物 + 审核反馈周期</div>
-    <div class="ck-item"><span class="ck-num">07</span><strong>沟通机制</strong>：对接人/审核人/响应时效/周会安排/紧急联系方式</div>
-    <div class="ck-item"><span class="ck-num">08</span><strong>合同条款摘要</strong>：付款节点/修改轮次/超出范围变更计费</div>
-  </div>
-
-  <h3>3.2 常见 Briefing 缺陷与后果</h3>
+  <h3>3.1 Briefing 质量红线（快速自检）</h3>
   <table>
     <thead><tr><th>Briefing 缺陷</th><th>后果</th><th>修复成本</th></tr></thead>
     <tbody>
@@ -197,7 +192,11 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 <div class="section" id="sec4">
   <h2>📐 4. 里程碑分阶段交付机制</h2>
 
-  <h3>4.1 标准四阶段模型</h3>
+  <div class="alert alert-blue" style="border:1px solid rgba(108,140,255,.3)">
+    <strong>📎 完整里程碑管理流程：</strong>含里程碑通过/打回决策树、各阶段审核 Checklist，请参见 → <a href="cp-outsource.html#sec5" style="color:var(--accent);font-weight:600">《外包全链路管理指南 §5 里程碑管理》</a>
+  </div>
+
+  <h3>4.1 标准四阶段模型与付款节点</h3>
   <div class="flow">
     <div class="flow-node start"><strong>M1: 白模/草稿</strong><div class="sub">造型/比例确认</div></div>
     <span class="flow-arrow">→</span>
@@ -209,16 +208,17 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   </div>
 
   <table>
-    <thead><tr><th>里程碑</th><th>交付物</th><th>审核重点</th><th>通过条件</th><th>付款节点</th></tr></thead>
+    <thead><tr><th>里程碑</th><th>审核重点</th><th>通过条件</th><th>付款节点</th></tr></thead>
     <tbody>
-      <tr><td><strong>M1 白模/草稿</strong></td><td>低模白模 / 线稿草图</td><td>大比例/剪影/造型语言/体量感</td><td>主美确认✓</td><td>签约款 20%</td></tr>
-      <tr><td><strong>M2 高模/精稿</strong></td><td>高模 / 精修稿（含正侧背）</td><td>细节品质/风格还原度/设计意图</td><td>主美+制作人确认✓</td><td>阶段款 30%</td></tr>
-      <tr><td><strong>M3 引擎效果</strong></td><td>引擎内截图 / 材质球 / LOD</td><td>引擎还原度/性能达标/材质正确</td><td>TA 技术验收✓ + 主美视觉验收✓</td><td>阶段款 30%</td></tr>
-      <tr><td><strong>M4 最终交付</strong></td><td>全套源文件 + 自检报告</td><td>文件完整性/命名/目录/自检表</td><td>APM 流程验收✓</td><td>尾款 20%</td></tr>
+      <tr><td><strong>M1</strong></td><td>大比例/剪影/造型语言</td><td>主美确认✓</td><td>签约款 20%</td></tr>
+      <tr><td><strong>M2</strong></td><td>细节品质/风格还原度</td><td>主美+制作人确认✓</td><td>阶段款 30%</td></tr>
+      <tr><td><strong>M3</strong></td><td>引擎还原度/性能达标</td><td>TA技术验收✓ + 主美视觉验收✓</td><td>阶段款 30%</td></tr>
+      <tr><td><strong>M4</strong></td><td>文件完整性/命名/自检</td><td>APM流程验收✓</td><td>尾款 20%</td></tr>
     </tbody>
   </table>
 
   <div class="alert alert-red"><strong>🚨 红线：</strong>禁止跳过里程碑！"为了赶进度直接交终稿"是最常见的翻车原因——问题积累到 M4 才暴露，修改成本是 M1 阶段的 <strong>8 倍以上</strong>。</div>
+</div>
 
   <h3>4.2 审核反馈时效承诺</h3>
   <table>
