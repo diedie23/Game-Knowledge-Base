@@ -503,7 +503,7 @@
       "craft": "角色",
       "type": "iframe",
       "title": "拓扑与 PBR 贴图规范",
-      "desc": "3D 角色拓扑布线标准、PBR 贴图通道规范（BaseColor/Normal/ARM/Emissive）、LOD 分级、骨骼绑定要求",
+      "desc": "3D 角色拓扑布线标准、PBR 贴图通道规范（BaseColor/Normal/ARM/Emissive）、LOD 分级、骨骼绑定要求、高模→低模工业化方案、多平台 Scalability 架构、PM 视角排期拆解与甘特图、成本模型与 ROI 分析、风险矩阵与 RACI、外包验收评分卡、数据度量看板",
       "tags": [
         "3D",
         "拓扑",
@@ -511,16 +511,21 @@
         "贴图",
         "LOD",
         "骨骼绑定",
-        "法线"
+        "法线",
+        "PM",
+        "排期",
+        "成本",
+        "外包验收",
+        "风险管理"
       ],
       "icon": "🧊",
       "action": "openTool",
       "path": "knowledge-base/char-3d-topo-pbr.html",
       "owner": "陈工",
-      "last_updated": "2026-04-10",
+      "last_updated": "2026-05-29",
       "applicable_stage": "预研期",
-      "priority": "medium",
-      "is_hot": false,
+      "priority": "high",
+      "is_hot": true,
       "keywords": [
         "3D角色",
         "拓扑",
@@ -530,10 +535,16 @@
         "骨骼绑定",
         "法线贴图",
         "布线标准",
-        "BaseColor"
+        "BaseColor",
+        "PM排期",
+        "甘特图",
+        "成本模型",
+        "ROI",
+        "外包评分卡",
+        "Scalability"
       ],
       "content_type": "规范",
-      "quality_level": "mature"
+      "quality_level": "premium"
     },
     {
       "id": "char-ugc-parts-safety",
@@ -1006,19 +1017,23 @@
       "craft": "角色",
       "type": "md",
       "title": "动画状态机交接与导出规范",
-      "desc": "动画状态机文档化标准、引擎导入规范、美术与程序的动画资产交接 SOP",
+      "desc": "动画状态机文档化标准、引擎导入规范、美术与程序的动画资产交接 SOP、Retarget 与骨架复用体系、动画压缩与内存优化、PM 视角交接排期与跨工种协调、量产效率度量 KPI",
       "tags": [
         "动画",
         "状态机",
         "导出规范",
         "交接",
-        "引擎导入"
+        "引擎导入",
+        "Retarget",
+        "PM",
+        "排期",
+        "效率度量"
       ],
       "icon": "🎬",
       "action": "showDoc",
       "path": "knowledge-base/anim-state-handoff.md",
       "owner": "王五",
-      "last_updated": "2026-04-07",
+      "last_updated": "2026-05-29",
       "applicable_stage": "量产期",
       "priority": "high",
       "is_hot": false,
@@ -1031,10 +1046,13 @@
         "交接",
         "AnimBlueprint",
         "Root Motion",
-        "骨骼"
+        "骨骼",
+        "Retarget",
+        "PM排期",
+        "效率KPI"
       ],
       "content_type": "规范",
-      "quality_level": "mature"
+      "quality_level": "premium"
     },
     {
       "id": "art-vs-planner-req",

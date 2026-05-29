@@ -90,12 +90,12 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="doc">
 
 <div class="doc-header">
-  <h1>🎬 动画状态机交接与导出规范 <span class="ver">v1.0</span></h1>
-  <div class="subtitle">Animation State Machine Handoff & Export Specification</div>
+  <h1>🎬 动画状态机交接与导出规范 <span class="ver">v2.0</span></h1>
+  <div class="subtitle">Animation State Machine Handoff & Export Specification · 管线专家 + PM 视角综合升级版</div>
   <div class="meta">
     <span>📋 适用：量产期</span>
-    <span>👤 负责人：王五</span>
-    <span>📅 2026-04-02</span>
+    <span>👤 负责人：王五 · PM</span>
+    <span>📅 2026-05-29</span>
   </div>
 </div>
 
@@ -109,6 +109,10 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#sec5">美术→程序交接 SOP</a></li>
     <li><a href="#sec6">常见踩坑案例</a></li>
     <li><a href="#sec7">版本管理建议</a></li>
+    <li><a href="#sec8">动画 Retarget 与骨架复用体系</a></li>
+    <li><a href="#sec9">动画压缩与内存优化策略</a></li>
+    <li><a href="#sec10">PM 视角：动画交接排期与跨工种协调</a></li>
+    <li><a href="#sec11">PM 视角：动画资产量产效率度量</a></li>
   </ol>
 </div>
 
@@ -422,7 +426,161 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <div class="alert alert-green">⚡ <strong>APM 金句</strong>：Source 留版本，Export 留最新，Preview 留证据。</div>
 </div>
 
-<div class="doc-footer">🎬 动画状态机交接与导出规范 · v1.0 · 美术中心 · 项目内部资料</div>
+<!-- ═══ Section 8: 动画 Retarget 与骨架复用体系 ═══ -->
+<div class="section" id="sec8">
+  <h2>🔄 8. 动画 Retarget 与骨架复用体系</h2>
+
+  <div class="sub-title">🦴 8.1 骨架共享架构</div>
+  <div class="alert alert-blue"><strong>核心策略</strong>：一套 Master Skeleton 覆盖 80% 以上人形角色，通过 Retarget 实现动画复用。</div>
+  <table>
+    <tr><th>骨架类型</th><th>适用范围</th><th>骨骼数</th><th>维护责任人</th></tr>
+    <tr><td><code>SK_Humanoid_Master</code></td><td>所有人形角色（男/女/儿童通过比例缩放）</td><td>85 骨骼</td><td>TA Lead</td></tr>
+    <tr><td><code>SK_Monster_Biped</code></td><td>二足怪物/Boss</td><td>65 骨骼</td><td>TA</td></tr>
+    <tr><td><code>SK_Monster_Quadruped</code></td><td>四足生物</td><td>72 骨骼</td><td>TA</td></tr>
+    <tr><td><code>SK_Creature_Custom</code></td><td>特殊形态（触手/多肢/飞行）</td><td>按需定制</td><td>TA + 绑定师</td></tr>
+  </table>
+
+  <div class="sub-title">📐 8.2 Retarget 设置标准</div>
+  <table>
+    <tr><th>引擎</th><th>Retarget 方案</th><th>关键设置</th><th>注意事项</th></tr>
+    <tr><td><strong>UE5</strong></td><td>IK Retargeter</td><td>IK Rig 定义 → Chain Mapping → Retarget Pose 校准</td><td>体型差异大时需手动调整 Chain 缩放</td></tr>
+    <tr><td><strong>Unity</strong></td><td>Humanoid Avatar</td><td>Avatar → Configure → Muscle 范围校准</td><td>非标准骨骼需手动映射到 Avatar Bone</td></tr>
+  </table>
+
+  <div class="alert alert-yellow">
+    <strong>⚠️ Retarget 失败高频原因：</strong>① T-Pose/A-Pose 不一致（源与目标 Pose 不同）→ 修正 Retarget Pose；② 手指骨骼数不匹配 → 忽略或映射到最近骨骼；③ 武器插槽位置偏移 → 使用 Socket 相对坐标而非绝对坐标。
+  </div>
+
+  <div class="sub-title">♻️ 8.3 动画复用优先级</div>
+  <table>
+    <tr><th>动画类型</th><th>复用策略</th><th>节省工时</th></tr>
+    <tr><td>Locomotion (Walk/Run/Idle)</td><td>全复用：所有人形角色共享一套 Locomotion</td><td>~80%</td></tr>
+    <tr><td>基础动作 (Hit/Death/Stun)</td><td>Retarget + 微调：共享后针对体型调整混合</td><td>~60%</td></tr>
+    <tr><td>攻击/技能</td><td>角色专属：SSR 原创，SR 可变体复用，R/N 共享</td><td>R/N ~50%</td></tr>
+    <tr><td>表情/口型</td><td>Morph Target 共享同一套 ARKit 52 Blend Shape</td><td>~90%</td></tr>
+  </table>
+</div>
+
+<!-- ═══ Section 9: 动画压缩与内存优化策略 ═══ -->
+<div class="section" id="sec9">
+  <h2>📦 9. 动画压缩与内存优化策略</h2>
+
+  <div class="sub-title">📊 9.1 压缩方案对比</div>
+  <table>
+    <tr><th>方案</th><th>压缩率</th><th>精度损失</th><th>适用场景</th><th>引擎支持</th></tr>
+    <tr><td><strong>无压缩 (Raw)</strong></td><td>1:1</td><td>无</td><td>仅调试阶段</td><td>UE5 / Unity</td></tr>
+    <tr><td><strong>Uniform Sampling</strong></td><td>2~4×</td><td>极低</td><td>短动画（&lt;30帧）</td><td>UE5</td></tr>
+    <tr><td><strong>Keyframe Reduction</strong></td><td>5~10×</td><td>低</td><td>通用动画</td><td>UE5 / Unity</td></tr>
+    <tr><td><strong>ACL (Animation Compression Library)</strong></td><td>10~20×</td><td>极低</td><td>所有量产动画（推荐默认）</td><td>UE5 内置</td></tr>
+    <tr><td><strong>Optimal (Unity)</strong></td><td>5~15×</td><td>低</td><td>Unity 默认推荐</td><td>Unity</td></tr>
+  </table>
+
+  <div class="alert alert-green">
+    <strong>✅ 推荐配置：</strong>UE5 项目统一使用 ACL 压缩（默认即可），误差阈值：平移 0.1mm、旋转 0.1°。Unity 项目使用 Optimal + Keyframe Reduction。
+  </div>
+
+  <div class="sub-title">💾 9.2 动画内存预算</div>
+  <table>
+    <tr><th>角色品级</th><th>动画片段数</th><th>压缩后总内存</th><th>说明</th></tr>
+    <tr><td>SSR（主角）</td><td>40~60 clips</td><td>≤ 8 MB</td><td>含全套技能/表情/交互</td></tr>
+    <tr><td>SR（精英）</td><td>20~30 clips</td><td>≤ 4 MB</td><td>含基础战斗+特殊技能</td></tr>
+    <tr><td>R（普通）</td><td>12~18 clips</td><td>≤ 2 MB</td><td>共享 Locomotion + 少量专属</td></tr>
+    <tr><td>N（杂兵）</td><td>8~12 clips</td><td>≤ 1 MB</td><td>大量复用</td></tr>
+  </table>
+
+  <div class="sub-title">🔧 9.3 优化手段清单</div>
+  <table>
+    <tr><th>优化手段</th><th>节省效果</th><th>风险</th><th>适用场景</th></tr>
+    <tr><td>移除不需要的骨骼 Track</td><td>30~50%</td><td>低</td><td>面部骨骼在战斗动画中不动时移除</td></tr>
+    <tr><td>降帧率（30→15 FPS）</td><td>50%</td><td>中</td><td>远景 LOD2+ 的动画</td></tr>
+    <tr><td>Additive 动画替代全身动画</td><td>60~80%</td><td>低</td><td>呼吸/晃动等细节动画</td></tr>
+    <tr><td>共享 Skeleton Pose 缓存</td><td>40%</td><td>极低</td><td>同屏多相同角色</td></tr>
+  </table>
+</div>
+
+<!-- ═══ Section 10: PM 视角 - 动画交接排期与跨工种协调 ═══ -->
+<div class="section" id="sec10">
+  <h2>📋 10. PM 视角：动画交接排期与跨工种协调</h2>
+
+  <div class="sub-title">📅 10.1 动画制作排期基准</div>
+  <table>
+    <tr><th>工序</th><th>SSR 角色动画套件</th><th>SR 角色</th><th>R/N 角色</th><th>前置依赖</th></tr>
+    <tr><td><strong>动画设计稿</strong></td><td>3d</td><td>2d</td><td>1d</td><td>策划需求文档确认</td></tr>
+    <tr><td><strong>关键帧制作</strong></td><td>10d</td><td>6d</td><td>3d</td><td>骨骼绑定完成</td></tr>
+    <tr><td><strong>Graph 调节（缓动/曲线）</strong></td><td>4d</td><td>2d</td><td>1d</td><td>关键帧初稿完成</td></tr>
+    <tr><td><strong>引擎联调</strong></td><td>3d</td><td>2d</td><td>1d</td><td>FBX 导出通过检查</td></tr>
+    <tr><td><strong>状态机配置</strong></td><td>2d</td><td>1.5d</td><td>0.5d</td><td>动画导入引擎完成</td></tr>
+    <tr><td><strong>验收修改</strong></td><td>3d</td><td>2d</td><td>1d</td><td>策划/QA 验收反馈</td></tr>
+    <tr><td><strong>合计</strong></td><td><strong>25d（5周）</strong></td><td><strong>15.5d（3周）</strong></td><td><strong>7.5d（1.5周）</strong></td><td>—</td></tr>
+  </table>
+
+  <div class="alert alert-yellow">
+    <strong>⚠️ 关键依赖链：</strong>动画制作<strong>强依赖骨骼绑定完成</strong>。如果建模/绑定延迟 1 天，动画全链路同步延迟 1 天。PM 需确保骨骼冻结时间点不可晚于动画启动时间。
+  </div>
+
+  <div class="sub-title">🔗 10.2 跨工种协调矩阵</div>
+  <table>
+    <tr><th>交接节点</th><th>上游</th><th>下游</th><th>交付物</th><th>PM 检查点</th></tr>
+    <tr><td>骨骼冻结 → 动画启动</td><td>绑定师</td><td>动画师</td><td>骨骼 FBX + Pose 参考</td><td>确认骨骼不再变更（变更需审批）</td></tr>
+    <tr><td>动画初稿 → 策划审核</td><td>动画师</td><td>策划</td><td>预览视频 + 帧数据表</td><td>确认 48h 内反馈，超时视为通过</td></tr>
+    <tr><td>动画终稿 → 引擎导入</td><td>动画师</td><td>TA/程序</td><td>FBX + 状态机文档</td><td>确认交接清单 7 项完整</td></tr>
+    <tr><td>状态机配置 → QA 验证</td><td>TA/程序</td><td>QA</td><td>引擎内可播放 Build</td><td>确认全状态遍历测试</td></tr>
+    <tr><td>QA 反馈 → 修复</td><td>QA</td><td>动画师/TA</td><td>Bug 列表 + 优先级</td><td>P0 Bug 24h 响应，P1 72h</td></tr>
+  </table>
+
+  <div class="sub-title">🚨 10.3 交接失败高频根因与 PM 预防措施</div>
+  <table>
+    <tr><th>根因</th><th>发生率</th><th>后果</th><th>PM 预防措施</th></tr>
+    <tr><td>骨骼中途变更未通知动画师</td><td>高</td><td>全部动画重做</td><td>骨骼变更必须走审批流+群组通知</td></tr>
+    <tr><td>策划需求口头传达无文档</td><td>高</td><td>动画方向偏离、返工</td><td>强制需求文档确认（无文档不排期）</td></tr>
+    <tr><td>交接文档不完整</td><td>中</td><td>程序误配状态机</td><td>CI Hook 检测交接清单完整性</td></tr>
+    <tr><td>无预览视频直接提交</td><td>中</td><td>低级错误流入引擎</td><td>提交门禁：必须附 .mp4 预览</td></tr>
+    <tr><td>Root Motion 标注缺失</td><td>中</td><td>角色滑步/偏移</td><td>交接表模板中 Root Motion 为必填项</td></tr>
+  </table>
+</div>
+
+<!-- ═══ Section 11: PM 视角 - 动画资产量产效率度量 ═══ -->
+<div class="section" id="sec11">
+  <h2>📊 11. PM 视角：动画资产量产效率度量</h2>
+
+  <div class="sub-title">📈 11.1 核心效率 KPI</div>
+  <table>
+    <tr><th>KPI 名称</th><th>计算公式</th><th>健康值</th><th>预警值</th><th>追踪频率</th></tr>
+    <tr><td>动画产出速率</td><td>完成 clips 数 / 动画师人数 / 周</td><td>≥ 3 clips/人/周</td><td>&lt; 2 clips/人/周</td><td>每周</td></tr>
+    <tr><td>Retarget 复用率</td><td>复用 clips / 新增 clips</td><td>≥ 40%</td><td>&lt; 20%</td><td>每月</td></tr>
+    <tr><td>交接一次通过率</td><td>无返修交接数 / 交接总数</td><td>≥ 75%</td><td>&lt; 50%</td><td>每周</td></tr>
+    <tr><td>动画 Bug 密度</td><td>动画相关 Bug / 提交 clips 数</td><td>≤ 0.1 Bug/clip</td><td>&gt; 0.3 Bug/clip</td><td>每版本</td></tr>
+    <tr><td>平均返修次数</td><td>返修总轮次 / 提交总数</td><td>≤ 1.2 次</td><td>&gt; 2.0 次</td><td>每月</td></tr>
+    <tr><td>策划反馈等待时间</td><td>策划收到预览到返回意见的时间</td><td>≤ 48h</td><td>&gt; 72h（阻塞动画师）</td><td>每周</td></tr>
+  </table>
+
+  <div class="sub-title">📋 11.2 效率看板模板</div>
+  <table>
+    <tr><th>指标</th><th>本周</th><th>上周</th><th>趋势</th><th>状态</th></tr>
+    <tr><td>完成动画 clips 数</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>新建 vs 复用比例</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>交接一次通过率</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>待策划审核积压</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>骨骼变更事件数</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>本周阻塞问题</td><td colspan="4">—</td></tr>
+  </table>
+
+  <div class="sub-title">💡 11.3 效率提升策略</div>
+  <table>
+    <tr><th>策略</th><th>预期提效</th><th>实施难度</th><th>适用条件</th></tr>
+    <tr><td><strong>建立动画库 + Retarget 体系</strong></td><td>30~50%</td><td>中</td><td>角色数 ≥ 10 时必做</td></tr>
+    <tr><td><strong>状态机模板化</strong></td><td>20~30%</td><td>低</td><td>同类型角色共享模板</td></tr>
+    <tr><td><strong>Motion Matching（UE5）</strong></td><td>40~60%</td><td>高</td><td>开放世界/大量 Locomotion 场景</td></tr>
+    <tr><td><strong>AI 辅助动画（如 DeepMotion/RADiCAL）</strong></td><td>50~70%</td><td>中</td><td>R/N 级角色基础动作</td></tr>
+    <tr><td><strong>自动化交接流水线</strong></td><td>15~25%</td><td>低</td><td>CI/CD 集成 FBX 检查+自动导入</td></tr>
+  </table>
+
+  <div class="alert alert-blue">
+    <strong>📎 关联文档：</strong>通用排期管理 → <a href="art-scheduling.html" style="color:var(--accent);font-weight:600">《美术排期与里程碑管理》</a>；外包管理流程 → <a href="cp-outsource.html" style="color:var(--accent);font-weight:600">《外包全链路管理指南》</a>；3D 角色排期拆解 → <a href="char-3d-topo-pbr.html" style="color:var(--accent);font-weight:600">《3D 角色拓扑与 PBR 贴图规范 §12》</a>
+  </div>
+</div>
+
+<div class="doc-footer">🎬 动画状态机交接与导出规范 · v2.0 · 美术中心 · PM · 项目内部资料</div>
 </div>
 <script src="editor-kit.js"></script>
 <script src="toc-enhancer.js?v=1.1"></script>

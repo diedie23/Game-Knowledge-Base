@@ -95,12 +95,12 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 
 <!-- ═══ HEADER ═══ -->
 <div class="doc-header">
-  <h1>🧊 【3D】角色拓扑与 PBR 贴图规范 <span class="ver">v1.0</span></h1>
-  <div class="subtitle">3D Character Topology & PBR Texture Specification</div>
+  <h1>🧊 【3D】角色拓扑与 PBR 贴图规范 <span class="ver">v2.0</span></h1>
+  <div class="subtitle">3D Character Topology & PBR Texture Specification · 管线专家 + PM 视角综合升级版</div>
   <div class="meta">
     <span>📋 适用引擎：UE5 / Unity 2022+ / 自研引擎</span>
-    <span>👤 维护：TA 组 · 角色建模组</span>
-    <span>📅 2026-04-10</span>
+    <span>👤 维护：TA 组 · 角色建模组 · PM</span>
+    <span>📅 2026-05-29</span>
   </div>
 </div>
 
@@ -116,6 +116,15 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#sec6">FBX 导出与引擎导入标准</a></li>
     <li><a href="#sec7">Do's &amp; Don'ts 红黑榜</a></li>
     <li><a href="#sec8">出图检查清单 Checklist</a></li>
+    <li><a href="#sec9">高模→低模拓扑重建工业化方案</a></li>
+    <li><a href="#sec10">多平台适配与 Scalability 架构</a></li>
+    <li><a href="#sec11">3D 角色 Shader 与材质球规范要点</a></li>
+    <li><a href="#sec12">PM 视角：单角色排期拆解与甘特图模板</a></li>
+    <li><a href="#sec13">PM 视角：3D 角色成本模型与 ROI 分析</a></li>
+    <li><a href="#sec14">PM 视角：3D 管线风险矩阵与预案机制</a></li>
+    <li><a href="#sec15">PM 视角：3D 角色外包验收量化评分卡</a></li>
+    <li><a href="#sec16">PM 视角：数据度量与管线健康度看板</a></li>
+    <li><a href="#sec-pm">制作人关注：3D 角色管线关键风控点</a></li>
   </ol>
 </div>
 
@@ -559,7 +568,352 @@ T_Hero01_Hair_BaseColor.tga      # 头发固有色</pre>
   </div>
 </div>
 
-<!-- ═══ SOP 流程 ═══ -->
+<!-- ═══ Section 9: 高模→低模拓扑重建工业化方案 ═══ -->
+<div class="section" id="sec9">
+  <h2>⑨ 高模→低模拓扑重建工业化方案</h2>
+
+  <h3>高模到低模的三条路径对比</h3>
+  <table>
+    <thead><tr><th>路径</th><th>工具</th><th>适用场景</th><th>品质</th><th>耗时</th><th>成本系数</th></tr></thead>
+    <tbody>
+      <tr><td><strong>手动重拓扑</strong></td><td>TopoGun / Maya Quad Draw</td><td>主角/SSR 级角色</td><td>⭐⭐⭐⭐⭐</td><td>8~16h</td><td>1.0×</td></tr>
+      <tr><td><strong>半自动重拓扑</strong></td><td>ZRemesher + 手动修正</td><td>SR 级角色/NPC 精英怪</td><td>⭐⭐⭐⭐</td><td>3~6h</td><td>0.4×</td></tr>
+      <tr><td><strong>全自动 Decimation</strong></td><td>ZBrush Decimation Master / Simplygon</td><td>R/N 级小怪、远景角色</td><td>⭐⭐⭐</td><td>0.5~1h</td><td>0.1×</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-blue">
+    <strong>📌 工业化策略：</strong>SSR/SR 级角色走"手动+半自动"组合（面部手动、躯干半自动），R/N 级角色走全自动 + 关键部位微调，可节省 60% 拓扑工时。
+  </div>
+
+  <h3>拓扑重建质量验收标准</h3>
+  <table>
+    <thead><tr><th>维度</th><th>SSR（主角）</th><th>SR（精英）</th><th>R/N（杂兵）</th></tr></thead>
+    <tbody>
+      <tr><td>四边面率</td><td>≥ 99%</td><td>≥ 95%</td><td>≥ 85%</td></tr>
+      <tr><td>面部环线完整度</td><td>100%（含 Lip/Eye）</td><td>Eye Loop 必须</td><td>不强制</td></tr>
+      <tr><td>关节布线规范</td><td>严格（膝≥3、肩≥5）</td><td>标准（膝≥3、肩≥4）</td><td>基本（膝≥2、肩≥3）</td></tr>
+      <tr><td>法线烘焙误差</td><td>高模→低模偏差 ≤ 1px</td><td>≤ 2px</td><td>≤ 3px</td></tr>
+      <tr><td>Silhouette 保持度</td><td>≥ 98%</td><td>≥ 90%</td><td>≥ 80%</td></tr>
+    </tbody>
+  </table>
+
+  <h3>法线烘焙工业化 SOP</h3>
+  <div class="flow">
+    <div class="flow-node start"><strong>高模导入</strong><div class="sub">ZBrush 分组导出</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>Cage 生成</strong><div class="sub">低模外扩 2~5mm</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node tool"><strong>Match Explode</strong><div class="sub">部件分离避免交叉</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>烘焙</strong><div class="sub">Marmoset/SP/xNormal</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>质检</strong><div class="sub">Checker Map + 8方位光照</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>Normal + AO 输出</strong><div class="sub">统一 Linear 色彩</div></div>
+  </div>
+
+  <div class="alert alert-red">
+    <strong>🚨 烘焙红线：</strong>法线烘焙必须在 Substance Painter 或 Marmoset Toolbag 中用 <code>Match by Mesh Name</code>（按部件名称匹配），禁止使用 "Average" 模式 — 后者会导致重叠部位（头发穿插躯干）出现严重的法线错误。
+  </div>
+</div>
+
+<!-- ═══ Section 10: 多平台适配与 Scalability 架构 ═══ -->
+<div class="section" id="sec10">
+  <h2>⑩ 多平台适配与 Scalability 架构</h2>
+
+  <h3>平台分档预算矩阵</h3>
+  <table>
+    <thead><tr><th>指标</th><th>高端 PC/主机</th><th>中端移动（8 Gen2 级）</th><th>低端移动（骁龙 6 级）</th><th>Switch/掌机</th></tr></thead>
+    <tbody>
+      <tr><td><strong>单角色 LOD0 面数</strong></td><td>≤ 80K tri</td><td>≤ 50K tri</td><td>≤ 25K tri</td><td>≤ 35K tri</td></tr>
+      <tr><td><strong>贴图套件尺寸</strong></td><td>4096²</td><td>2048²</td><td>1024²</td><td>2048²</td></tr>
+      <tr><td><strong>骨骼数合计</strong></td><td>≤ 200</td><td>≤ 150</td><td>≤ 80</td><td>≤ 120</td></tr>
+      <tr><td><strong>Shader 指令数</strong></td><td>≤ 350</td><td>≤ 180</td><td>≤ 100</td><td>≤ 160</td></tr>
+      <tr><td><strong>同屏角色数</strong></td><td>≤ 50</td><td>≤ 30</td><td>≤ 15</td><td>≤ 25</td></tr>
+      <tr><td><strong>目标帧率</strong></td><td>60 FPS</td><td>60 FPS</td><td>30 FPS</td><td>30 FPS</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Scalability 自动降级策略</h3>
+  <table>
+    <thead><tr><th>Quality Level</th><th>LOD 偏移</th><th>贴图 Mip 偏移</th><th>骨骼处理</th><th>效果降级</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Epic (PC)</strong></td><td>0</td><td>0</td><td>全骨骼 + 物理布料</td><td>无降级</td></tr>
+      <tr><td><strong>High (Mobile-High)</strong></td><td>0</td><td>+1</td><td>全骨骼，简化布料</td><td>关闭 SSS</td></tr>
+      <tr><td><strong>Medium</strong></td><td>+1</td><td>+1</td><td>合并手指为拳</td><td>关闭法线细节层</td></tr>
+      <tr><td><strong>Low</strong></td><td>+2</td><td>+2</td><td>简化为 40 骨骼</td><td>Flat Shading fallback</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-green">
+    <strong>✅ 管线要求：</strong>所有 3D 角色必须在制作时就按"最高画质制作，向下兼容降级"原则设计。即高模产出后，LOD0 面向 PC/主机，LOD1~LOD3 自动适配移动端各档位。
+  </div>
+
+  <h3>多平台贴图压缩策略</h3>
+  <table>
+    <thead><tr><th>贴图类型</th><th>PC (DX12)</th><th>iOS (Metal)</th><th>Android (Vulkan)</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>BaseColor</td><td>BC7</td><td>ASTC 4×4</td><td>ASTC 4×4 / ETC2</td><td>sRGB 色彩空间</td></tr>
+      <tr><td>Normal</td><td>BC5 (RG)</td><td>ASTC 5×5</td><td>ASTC 5×5 / EAC RG11</td><td>Linear，2通道</td></tr>
+      <tr><td>ARM</td><td>BC7</td><td>ASTC 4×4</td><td>ASTC 4×4</td><td>Linear，3通道独立</td></tr>
+      <tr><td>Emissive</td><td>BC7</td><td>ASTC 6×6</td><td>ASTC 6×6</td><td>sRGB，允许更高压缩</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ Section 11: 3D 角色 Shader 与材质球规范要点 ═══ -->
+<div class="section" id="sec11">
+  <h2>⑪ 3D 角色 Shader 与材质球规范要点</h2>
+
+  <div class="alert alert-blue">
+    <strong>📎 说明：</strong>完整 Shader 体系详见 <a href="material-shader-ta-spec.html" style="color:var(--accent);font-weight:600">《材质 Shader 规范与 TA 协同标准》</a>，本节仅摘录 3D 角色专属要点，避免重复。
+  </div>
+
+  <h3>3D 角色 Master Material 功能开关清单</h3>
+  <table>
+    <thead><tr><th>功能开关 (Static Switch)</th><th>用途</th><th>性能开销</th><th>启用场景</th></tr></thead>
+    <tbody>
+      <tr><td><code>USE_SSS</code></td><td>次表面散射（皮肤）</td><td>+30 指令</td><td>SSR 级角色面部</td></tr>
+      <tr><td><code>USE_HAIR_ANISO</code></td><td>各向异性高光（头发）</td><td>+25 指令</td><td>所有角色头发</td></tr>
+      <tr><td><code>USE_EMISSIVE</code></td><td>自发光</td><td>+5 指令</td><td>发光部件/特效部件</td></tr>
+      <tr><td><code>USE_DETAIL_NORMAL</code></td><td>细节法线叠加层</td><td>+15 指令</td><td>近景展示/PC 专属</td></tr>
+      <tr><td><code>USE_RIM_LIGHT</code></td><td>边缘光（二次元/卡通渲染）</td><td>+10 指令</td><td>全角色（可选风格化）</td></tr>
+      <tr><td><code>USE_DISSOLVE</code></td><td>溶解/消散效果</td><td>+20 指令</td><td>死亡/传送特效</td></tr>
+    </tbody>
+  </table>
+
+  <h3>材质实例化命名与管理</h3>
+  <pre>Materials/Characters/
+├── M_Char_Body_Master          # 躯干 Master Material (TA 维护)
+├── MI_Hero01_Body              # Hero01 躯干材质实例 (美术调参)
+├── MI_Hero01_Hair              # Hero01 头发材质实例
+├── MI_Hero01_Weapon            # Hero01 武器材质实例
+└── MF_Char_SkinSSS            # 皮肤 SSS Material Function</pre>
+
+  <div class="alert alert-yellow">
+    <strong>⚠️ 红线约束：</strong>美术禁止创建新 Master Material（必须复用 TA 维护的 Master），只允许创建 Material Instance 并调节暴露参数。违规创建将导致 Shader 变体爆炸（每个 Master = 一套独立 Shader 编译）。
+  </div>
+</div>
+
+<!-- ═══ Section 12: PM 视角 - 单角色排期拆解与甘特图模板 ═══ -->
+<div class="section" id="sec12">
+  <h2>⑫ PM 视角：单角色排期拆解与甘特图模板</h2>
+
+  <h3>单角色生产工时基准表（按品质分级）</h3>
+  <table>
+    <thead><tr><th>工序阶段</th><th>SSR 级（主角）</th><th>SR 级（精英）</th><th>R 级（普通）</th><th>N 级（杂兵）</th><th>负责工种</th></tr></thead>
+    <tbody>
+      <tr><td><strong>概念设计</strong></td><td>5d</td><td>3d</td><td>2d</td><td>1d</td><td>原画</td></tr>
+      <tr><td><strong>高模雕刻</strong></td><td>10d</td><td>6d</td><td>3d</td><td>1.5d</td><td>3D建模</td></tr>
+      <tr><td><strong>拓扑重建</strong></td><td>5d</td><td>3d</td><td>1d（自动）</td><td>0.5d（自动）</td><td>3D建模</td></tr>
+      <tr><td><strong>UV 展开</strong></td><td>2d</td><td>1.5d</td><td>0.5d</td><td>0.3d</td><td>3D建模</td></tr>
+      <tr><td><strong>PBR 贴图绘制</strong></td><td>8d</td><td>5d</td><td>3d</td><td>1.5d</td><td>贴图师</td></tr>
+      <tr><td><strong>骨骼绑定</strong></td><td>4d</td><td>3d</td><td>2d</td><td>1d</td><td>绑定师/TA</td></tr>
+      <tr><td><strong>蒙皮权重</strong></td><td>3d</td><td>2d</td><td>1d</td><td>0.5d</td><td>绑定师</td></tr>
+      <tr><td><strong>LOD 制作</strong></td><td>2d</td><td>1.5d</td><td>1d</td><td>0.5d</td><td>3D建模/TA</td></tr>
+      <tr><td><strong>引擎调试</strong></td><td>3d</td><td>2d</td><td>1d</td><td>0.5d</td><td>TA</td></tr>
+      <tr><td><strong>验收修改</strong></td><td>3d</td><td>2d</td><td>1d</td><td>0.5d</td><td>全员</td></tr>
+      <tr><td class="badge-blue" style="background:rgba(108,140,255,.08)"><strong>合计</strong></td><td><strong>45d（9周）</strong></td><td><strong>29d（6周）</strong></td><td><strong>15.5d（3周）</strong></td><td><strong>7.8d（1.5周）</strong></td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-yellow">
+    <strong>⚠️ 并行优化：</strong>高模雕刻完成后，拓扑重建与贴图绘制可部分并行（高模阶段即可开始 Substance Painter 预设材质调试），实际串行路径可压缩 15~20%。
+  </div>
+
+  <h3>甘特图排期模板（SSR 级角色示例）</h3>
+  <table>
+    <thead><tr><th>阶段</th><th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>W5</th><th>W6</th><th>W7</th><th>W8</th><th>W9</th></tr></thead>
+    <tbody>
+      <tr><td>概念设计</td><td>██</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>高模雕刻</td><td></td><td>██</td><td>██</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>拓扑重建</td><td></td><td></td><td></td><td>██</td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>UV+贴图</td><td></td><td></td><td></td><td>▓▓</td><td>██</td><td>██</td><td></td><td></td><td></td></tr>
+      <tr><td>骨骼绑定</td><td></td><td></td><td></td><td></td><td></td><td>██</td><td></td><td></td><td></td></tr>
+      <tr><td>蒙皮+LOD</td><td></td><td></td><td></td><td></td><td></td><td></td><td>██</td><td></td><td></td></tr>
+      <tr><td>引擎调试</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>██</td><td></td></tr>
+      <tr><td>验收修改</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>██</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:13px;color:var(--dim)">██ = 满负荷执行 | ▓▓ = 并行准备（低强度前置工作）</p>
+
+  <h3>多角色并行排期策略</h3>
+  <table>
+    <thead><tr><th>策略</th><th>适用场景</th><th>核心逻辑</th><th>PM 决策点</th></tr></thead>
+    <tbody>
+      <tr><td><strong>流水线式</strong></td><td>同品质批量角色（如 5 个 SR）</td><td>建模师完成角色A高模→立即开始角色B，贴图师接力角色A</td><td>需确保各工种产能匹配，瓶颈在贴图</td></tr>
+      <tr><td><strong>并联式</strong></td><td>不同品质混合（SSR+多个R）</td><td>高级建模师做SSR，初级建模师同时做R级</td><td>需按人员能力分配，避免SSR品质失控</td></tr>
+      <tr><td><strong>里程碑式</strong></td><td>版本节奏驱动</td><td>按版本 Deadline 倒排，关键路径角色优先</td><td>需识别关键路径，设置 Buffer 时间</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ Section 13: PM 视角 - 3D 角色成本模型与 ROI 分析 ═══ -->
+<div class="section" id="sec13">
+  <h2>⑬ PM 视角：3D 角色成本模型与 ROI 分析</h2>
+
+  <h3>3D 角色单体成本模型</h3>
+  <table>
+    <thead><tr><th>成本项</th><th>SSR 级</th><th>SR 级</th><th>R 级</th><th>N 级</th><th>计算方式</th></tr></thead>
+    <tbody>
+      <tr><td><strong>内部人力（人天）</strong></td><td>45d</td><td>29d</td><td>15.5d</td><td>7.8d</td><td>见排期表</td></tr>
+      <tr><td><strong>内部成本（按 2500 元/人天）</strong></td><td>11.25万</td><td>7.25万</td><td>3.88万</td><td>1.95万</td><td>人天 × 日薪</td></tr>
+      <tr><td><strong>外包成本（按报价）</strong></td><td>5~8万</td><td>3~5万</td><td>1.5~2.5万</td><td>0.8~1.2万</td><td>市场行情</td></tr>
+      <tr><td><strong>审美风险系数</strong></td><td>1.3×</td><td>1.2×</td><td>1.1×</td><td>1.0×</td><td>返修概率加权</td></tr>
+      <tr><td><strong>含风险总成本</strong></td><td>14.6万</td><td>8.7万</td><td>4.3万</td><td>1.95万</td><td>基础成本 × 风险系数</td></tr>
+    </tbody>
+  </table>
+
+  <h3>ROI 决策框架</h3>
+  <table>
+    <thead><tr><th>角色品级</th><th>预期收入来源</th><th>ROI 公式</th><th>健康 ROI 阈值</th></tr></thead>
+    <tbody>
+      <tr><td><strong>SSR</strong></td><td>卡池抽取 + 皮肤 + IP 联动</td><td>(首月流水 × 角色贡献率) / 含风险总成本</td><td>≥ 5×</td></tr>
+      <tr><td><strong>SR</strong></td><td>卡池抽取 + 基础皮肤</td><td>(首月流水 × 角色贡献率) / 含风险总成本</td><td>≥ 3×</td></tr>
+      <tr><td><strong>R/N</strong></td><td>游戏体验充实度（非直接营收）</td><td>不单独计算，按版本整体内容 ROI</td><td>版本 ROI ≥ 2×</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-green">
+    <strong>✅ PM 决策原则：</strong>SSR 角色投入高但 ROI 最高，应保证品质不妥协；R/N 级角色应最大化自动化（ZRemesher + Simplygon），控制单体成本 ≤ 2 万。
+  </div>
+
+  <h3>内制 vs 外包决策矩阵</h3>
+  <table>
+    <thead><tr><th>维度</th><th>适合内制</th><th>适合外包</th></tr></thead>
+    <tbody>
+      <tr><td><strong>品质要求</strong></td><td>SSR / 核心 IP 角色</td><td>R/N 级量产角色</td></tr>
+      <tr><td><strong>迭代频率</strong></td><td>需频繁调整（策划需求变更多）</td><td>需求明确、一次性交付</td></tr>
+      <tr><td><strong>保密性</strong></td><td>核心玩法角色（泄露风险高）</td><td>通用 NPC/杂兵</td></tr>
+      <tr><td><strong>技术复杂度</strong></td><td>特殊 Shader/绑定（需 TA 深度介入）</td><td>标准 PBR 管线角色</td></tr>
+      <tr><td><strong>工期压力</strong></td><td>有充裕排期</td><td>短期需大量产出</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ Section 14: PM 视角 - 3D 管线风险矩阵与预案机制 ═══ -->
+<div class="section" id="sec14">
+  <h2>⑭ PM 视角：3D 管线风险矩阵与预案机制</h2>
+
+  <h3>3D 角色管线 Top 10 风险矩阵</h3>
+  <table>
+    <thead><tr><th>#</th><th>风险项</th><th>概率</th><th>影响</th><th>风险等级</th><th>触发信号</th><th>预案措施</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>面数持续膨胀</strong></td><td>高</td><td>高</td><td><span class="badge badge-red">P0</span></td><td>LOD0 超预算 10%+</td><td>CI 自动检测+阻断提交；PM 周报追踪面数趋势</td></tr>
+      <tr><td>2</td><td><strong>骨骼结构中途变更</strong></td><td>中</td><td>极高</td><td><span class="badge badge-red">P0</span></td><td>绑定完成后策划新增动作需求</td><td>骨骼变更需制作人审批；预留 10% 辅助骨骼余量</td></tr>
+      <tr><td>3</td><td><strong>贴图内存超标</strong></td><td>中</td><td>高</td><td><span class="badge badge-yellow">P1</span></td><td>单角色贴图 &gt; 24MB（未压缩）</td><td>ARM 通道合并；低端档位强制降 Mip</td></tr>
+      <tr><td>4</td><td><strong>高模→低模烘焙瑕疵</strong></td><td>中</td><td>中</td><td><span class="badge badge-yellow">P1</span></td><td>法线接缝黑线、AO 溢出</td><td>标准化 Cage 参数；部件 Explode 烘焙</td></tr>
+      <tr><td>5</td><td><strong>多平台 Shader 不一致</strong></td><td>中</td><td>高</td><td><span class="badge badge-yellow">P1</span></td><td>iOS/Android 效果差异明显</td><td>TA 提供平台 Fallback 方案；每周真机截图对比</td></tr>
+      <tr><td>6</td><td><strong>外包品质不达标</strong></td><td>高</td><td>中</td><td><span class="badge badge-yellow">P1</span></td><td>评分卡得分 &lt; 70</td><td>首批提交前设 Milestone Review；合同约定返修免费</td></tr>
+      <tr><td>7</td><td><strong>蒙皮穿模</strong></td><td>中</td><td>低</td><td><span class="badge badge-green">P2</span></td><td>ROM 动画测试中检出</td><td>标准 Pose 测试集+自动化穿模检测脚本</td></tr>
+      <tr><td>8</td><td><strong>LOD 跳变明显</strong></td><td>低</td><td>低</td><td><span class="badge badge-green">P2</span></td><td>QA 在 5~15m 距离发现切换</td><td>启用 Dithered LOD Transition</td></tr>
+      <tr><td>9</td><td><strong>命名/目录混乱</strong></td><td>中</td><td>低</td><td><span class="badge badge-green">P2</span></td><td>CI 命名检测 ≥ 3 条 Warning</td><td>提交 Hook 自动校验命名；新人入组培训</td></tr>
+      <tr><td>10</td><td><strong>美术与策划对齐不足</strong></td><td>高</td><td>高</td><td><span class="badge badge-red">P0</span></td><td>高模完成后策划要求大改设计</td><td>概念设计阶段强制三方（策划/美术/PM）签字确认</td></tr>
+    </tbody>
+  </table>
+
+  <h3>RACI 责任分配矩阵</h3>
+  <table>
+    <thead><tr><th>活动</th><th>3D建模</th><th>贴图师</th><th>绑定师</th><th>TA</th><th>PM</th><th>策划</th></tr></thead>
+    <tbody>
+      <tr><td>面数预算制定</td><td>C</td><td>I</td><td>I</td><td>R</td><td>A</td><td>I</td></tr>
+      <tr><td>高模雕刻</td><td>R</td><td>I</td><td>I</td><td>C</td><td>I</td><td>I</td></tr>
+      <tr><td>拓扑+UV</td><td>R</td><td>C</td><td>I</td><td>C</td><td>I</td><td>I</td></tr>
+      <tr><td>PBR 贴图</td><td>C</td><td>R</td><td>I</td><td>C</td><td>I</td><td>I</td></tr>
+      <tr><td>骨骼绑定</td><td>I</td><td>I</td><td>R</td><td>A</td><td>I</td><td>I</td></tr>
+      <tr><td>LOD 制作</td><td>R</td><td>I</td><td>I</td><td>A</td><td>I</td><td>I</td></tr>
+      <tr><td>引擎集成验证</td><td>C</td><td>C</td><td>C</td><td>R</td><td>I</td><td>I</td></tr>
+      <tr><td>最终验收</td><td>I</td><td>I</td><td>I</td><td>C</td><td>A</td><td>R</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:13px;color:var(--dim)">R = Responsible（执行） | A = Accountable（审批） | C = Consulted（咨询） | I = Informed（知会）</p>
+</div>
+
+<!-- ═══ Section 15: PM 视角 - 3D 角色外包验收量化评分卡 ═══ -->
+<div class="section" id="sec15">
+  <h2>⑮ PM 视角：3D 角色外包验收量化评分卡</h2>
+
+  <div class="alert alert-blue">
+    <strong>📎 与通用外包文档的关系：</strong>通用外包流程详见 <a href="cp-outsource.html" style="color:var(--accent);font-weight:600">《外包全链路管理指南》</a>，本节聚焦 3D 角色专属的量化验收标准，不重复通用流程。
+  </div>
+
+  <h3>3D 角色外包验收评分卡（100 分制）</h3>
+  <table>
+    <thead><tr><th>维度</th><th>权重</th><th>评分标准</th><th>扣分项</th></tr></thead>
+    <tbody>
+      <tr><td><strong>造型还原度</strong></td><td>25%</td><td>与原画三视图 Silhouette 匹配度 ≥ 95%</td><td>比例偏差每处 -3分；轮廓偏差 -5分</td></tr>
+      <tr><td><strong>拓扑质量</strong></td><td>20%</td><td>四边面率 / 环线完整 / 面数达标</td><td>N-gon 每处 -5分；面数超标 -10分</td></tr>
+      <tr><td><strong>贴图质量</strong></td><td>20%</td><td>PBR 数值正确 / TD 均匀 / 无接缝</td><td>Metallic 中间值 -5分；BaseColor 烘入光影 -8分</td></tr>
+      <tr><td><strong>绑定质量</strong></td><td>15%</td><td>穿模率 0% / 权重归一化 / IK 正确</td><td>穿模每处 -3分；Free Vertex -10分</td></tr>
+      <tr><td><strong>技术规范合规</strong></td><td>10%</td><td>命名/目录/FBX设置/LOD 完整</td><td>命名错误每处 -2分；缺LOD -8分</td></tr>
+      <tr><td><strong>交付及时性</strong></td><td>10%</td><td>按 SLA 时间交付</td><td>延迟 1d -2分；延迟 3d+ -5分</td></tr>
+    </tbody>
+  </table>
+
+  <h3>评分等级与处理机制</h3>
+  <table>
+    <thead><tr><th>等级</th><th>分数范围</th><th>处理方式</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-green">优秀</span></td><td>90~100</td><td>正常验收付款；列入优选供应商池</td></tr>
+      <tr><td><span class="badge badge-blue">合格</span></td><td>75~89</td><td>正常验收付款；反馈改进建议</td></tr>
+      <tr><td><span class="badge badge-yellow">待改</span></td><td>60~74</td><td>返修后重新评分；返修工时不另计费</td></tr>
+      <tr><td><span class="badge badge-red">不合格</span></td><td>&lt; 60</td><td>退回重做；连续 2 次不合格解除合作</td></tr>
+    </tbody>
+  </table>
+
+  <h3>外包 SLA 时效标准（3D 角色）</h3>
+  <table>
+    <thead><tr><th>品级</th><th>首稿交付</th><th>返修响应</th><th>最终交付</th><th>最大返修次数</th></tr></thead>
+    <tbody>
+      <tr><td>SSR</td><td>≤ 25 工作日</td><td>≤ 3 工作日</td><td>≤ 35 工作日</td><td>3 次</td></tr>
+      <tr><td>SR</td><td>≤ 15 工作日</td><td>≤ 2 工作日</td><td>≤ 22 工作日</td><td>2 次</td></tr>
+      <tr><td>R/N</td><td>≤ 8 工作日</td><td>≤ 1 工作日</td><td>≤ 12 工作日</td><td>2 次</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ Section 16: PM 视角 - 数据度量与管线健康度看板 ═══ -->
+<div class="section" id="sec16">
+  <h2>⑯ PM 视角：数据度量与管线健康度看板</h2>
+
+  <h3>3D 角色管线核心 KPI 指标</h3>
+  <table>
+    <thead><tr><th>指标类别</th><th>KPI 名称</th><th>计算公式</th><th>健康值</th><th>预警值</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="3"><strong>品质</strong></td><td>面数超标率</td><td>超标角色数 / 提交总数</td><td>0%</td><td>≥ 5%</td></tr>
+      <tr><td>PBR 合规率</td><td>通过自动检测角色数 / 提交总数</td><td>≥ 98%</td><td>&lt; 90%</td></tr>
+      <tr><td>外包验收通过率</td><td>首稿评分 ≥ 75 的比例</td><td>≥ 80%</td><td>&lt; 60%</td></tr>
+      <tr><td rowspan="3"><strong>效率</strong></td><td>单角色平均工时</td><td>实际总工时 / 完成角色数</td><td>≤ 基准值 110%</td><td>&gt; 基准值 130%</td></tr>
+      <tr><td>按时交付率</td><td>按 Deadline 完成数 / 计划总数</td><td>≥ 90%</td><td>&lt; 75%</td></tr>
+      <tr><td>返修率</td><td>需返修角色数 / 提交总数</td><td>≤ 15%</td><td>&gt; 30%</td></tr>
+      <tr><td rowspan="2"><strong>成本</strong></td><td>预算偏差率</td><td>(实际成本 - 预算) / 预算</td><td>≤ ±10%</td><td>&gt; ±20%</td></tr>
+      <tr><td>外包占比</td><td>外包成本 / 总成本</td><td>30~50%</td><td>&gt; 70%</td></tr>
+      <tr><td rowspan="2"><strong>性能</strong></td><td>同屏渲染帧时间</td><td>30 角色同屏 GPU 耗时</td><td>≤ 12ms</td><td>&gt; 14ms</td></tr>
+      <tr><td>贴图内存趋势</td><td>版本平均单角色贴图内存</td><td>≤ 24MB（未压缩）</td><td>&gt; 32MB</td></tr>
+    </tbody>
+  </table>
+
+  <h3>周报看板模板</h3>
+  <table>
+    <thead><tr><th>指标</th><th>本周值</th><th>上周值</th><th>趋势</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>本周完成角色数</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>面数超标事件</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>外包交付件数</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>外包首稿通过率</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>返修队列积压</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>关键路径角色进度</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>本周阻塞问题</td><td colspan="4">—</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-blue">
+    <strong>📎 关联文档：</strong>通用排期管理详见 <a href="art-scheduling.html" style="color:var(--accent);font-weight:600">《美术排期与里程碑管理》</a>；人月成本基准详见 <a href="cost-standard.html" style="color:var(--accent);font-weight:600">《美术人月成本核算标准》</a>。本看板聚焦 3D 角色管线专属度量。
+  </div>
+</div>
+
+
 <div class="section">
   <h2>📋 3D 角色出图 SOP 全流程</h2>
   <div class="flow">
@@ -625,34 +979,38 @@ T_Hero01_Hair_BaseColor.tga      # 头发固有色</pre>
   <h2>🎯 制作人关注：3D 角色管线关键风控点</h2>
 
   <div class="alert alert-yellow" style="border:1px solid rgba(251,191,36,.3)">
-    <strong>💡 资深制作人经验：</strong>"3D 角色管线的核心矛盾是<strong>品质追求 vs 性能约束</strong>。预研期不把面数/骨骼/贴图预算锁死，量产期必然面临'要么砍品质、要么砍帧率'的痛苦二选一。"
+    <strong>💡 资深制作人经验：</strong>"3D 角色管线的核心矛盾是<strong>品质追求 vs 性能约束</strong>。预研期不把面数/骨骼/贴图预算锁死，量产期必然面临'要么砍品质、要么砍帧率'的痛苦二选一。另一个隐藏矛盾是<strong>策划设计自由度 vs 技术可行性</strong>——高模雕刻完成后的大改，成本翻倍且士气严重受挫。"
   </div>
 
   <h3>🚨 预研期必做决策</h3>
   <table>
-    <thead><tr><th>决策项</th><th>影响</th><th>建议时机</th></tr></thead>
+    <thead><tr><th>决策项</th><th>影响</th><th>建议时机</th><th>决策人</th></tr></thead>
     <tbody>
-      <tr><td><strong>LOD0 总面数上限</strong></td><td>直接决定同屏角色上限和 GPU 帧时间</td><td>预研第 2 周</td></tr>
-      <tr><td><strong>贴图尺寸分档</strong></td><td>决定显存占用和包体大小</td><td>预研第 3 周</td></tr>
-      <tr><td><strong>骨骼数量预算</strong></td><td>决定动画表现力和 CPU 蒙皮开销</td><td>预研第 4 周</td></tr>
-      <tr><td><strong>LOD 级数 & 策略</strong></td><td>决定远景画面品质和渲染开销</td><td>Alpha 前锁定</td></tr>
+      <tr><td><strong>LOD0 总面数上限</strong></td><td>直接决定同屏角色上限和 GPU 帧时间</td><td>预研第 2 周</td><td>TA Lead + PM</td></tr>
+      <tr><td><strong>贴图尺寸分档</strong></td><td>决定显存占用和包体大小</td><td>预研第 3 周</td><td>TA Lead</td></tr>
+      <tr><td><strong>骨骼数量预算</strong></td><td>决定动画表现力和 CPU 蒙皮开销</td><td>预研第 4 周</td><td>动画 Lead + TA</td></tr>
+      <tr><td><strong>LOD 级数 & 策略</strong></td><td>决定远景画面品质和渲染开销</td><td>Alpha 前锁定</td><td>PM + TA</td></tr>
+      <tr><td><strong>Master Material 方案</strong></td><td>决定 Shader 变体数和维护成本</td><td>预研第 3 周</td><td>TA Lead</td></tr>
+      <tr><td><strong>角色品质分级标准</strong></td><td>决定投入分配和团队结构</td><td>预研第 1 周</td><td>PM + 美术总监</td></tr>
     </tbody>
   </table>
 
   <h3>📊 量产期关注指标</h3>
   <ul>
-    <li><strong>面数超标率</strong>：所有提交角色中超过 LOD0 面数红线的比例应为 <strong>0%</strong></li>
+    <li><strong>面数超标率</strong>：所有提交角色中超过 LOD0 面数红线的比例应为 <strong>0%</strong>（CI 自动阻断）</li>
     <li><strong>LOD 覆盖率</strong>：100% 角色必须有完整 LOD Chain</li>
     <li><strong>贴图内存周报</strong>：单角色平均贴图内存趋势（应稳定不膨胀）</li>
     <li><strong>N-gon / 重叠顶点</strong>：CI 自动检测报告应全绿</li>
+    <li><strong>外包首稿通过率</strong>：≥ 80%，低于 60% 触发供应商评估</li>
+    <li><strong>关键路径角色进度</strong>：SSR 角色必须在里程碑 -2 周完成，预留 Buffer</li>
   </ul>
 
-  <div class="alert alert-blue"><strong>📎 关联文档：</strong>材质 Shader 体系与 TA 协同标准 → <a href="material-shader-ta-spec.html" style="color:var(--accent);font-weight:600">《材质 Shader 规范与 TA 协同标准》</a>；性能红线速查 → <a href="perf-redline-glossary.html" style="color:var(--accent);font-weight:600">《性能红线与专业术语速查表》</a></div>
+  <div class="alert alert-blue"><strong>📎 关联文档：</strong>材质 Shader 体系与 TA 协同标准 → <a href="material-shader-ta-spec.html" style="color:var(--accent);font-weight:600">《材质 Shader 规范与 TA 协同标准》</a>；性能红线速查 → <a href="perf-redline-glossary.html" style="color:var(--accent);font-weight:600">《性能红线与专业术语速查表》</a>；通用排期管理 → <a href="art-scheduling.html" style="color:var(--accent);font-weight:600">《美术排期与里程碑管理》</a></div>
 </div>
 
 <!-- ═══ FOOTER ═══ -->
 <div class="doc-footer">
-  🧊 【3D】角色拓扑与 PBR 贴图规范 · v1.0 · TA 组 · 角色建模组 · 最后更新 2026-04-10<br>
+  🧊 【3D】角色拓扑与 PBR 贴图规范 · v2.0 · TA 组 · 角色建模组 · PM · 最后更新 2026-05-29<br>
   💬 如有疑问请在知识库 Issue 中提交，帮助我们持续完善 3D 管线规范！
 </div>
 
