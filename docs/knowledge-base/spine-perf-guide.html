@@ -81,13 +81,21 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="doc">
 
 <div class="doc-header">
-  <h1>🦴 Spine 性能红线与排查指南 <span class="ver">v1.0</span></h1>
-  <div class="subtitle">Spine Animation Performance Redline & Troubleshooting Guide</div>
-  <div class="meta"><span>🎮 2D 游戏 / 二次元手游</span><span>📱 移动端为主</span><span>📅 2026-04-02</span></div>
-  <div class="badge">🔧 TA + 动效 + APM 联合参考</div>
+  <h1>🦴 Spine 动画全链路规范 <span class="ver">v2.0</span></h1>
+  <div class="subtitle">Spine Full Pipeline — 性能红线 · 动画设计规范 · 换装系统 · LOD 分级 · 拆分策略 · 工业化管线</div>
+  <div class="meta"><span>🎮 2D 游戏 / 二次元手游</span><span>📱 移动端为主</span><span>📅 2026-05-29 (v2.0 升级)</span></div>
+  <div class="badge">🔧 TA + 动效 + 角色程序 + APM 联合参考</div>
 </div>
 
 <div class="alert alert-blue" style="margin-bottom:24px"><strong>📖 本文背景：</strong>Spine 是 2D 游戏（尤其是二次元卡牌/ARPG）最常用的骨骼动画方案。它轻量、效果好，但<strong>用不好一样能把性能干趴</strong>。本文聚焦 Spine 在 Unity / Cocos / 自研引擎中的性能陷阱，面向 TA、动效师和需要理解风险的 APM。</div>
+
+<div class="alert alert-blue" style="margin-bottom:24px;border:1px solid rgba(108,140,255,.3)">
+  <strong>📎 2D 角色模块导航：</strong>
+  管线总览 → <a href="2d-char-pipeline-overview.html" style="color:var(--accent);font-weight:600">2D 角色全链路管线</a> ·
+  换色 Mask → <a href="char-color-swap-mask.html" style="color:var(--accent);font-weight:600">角色换色与材质遮罩规范</a> ·
+  UGC 出图 → <a href="art/2D-UGC角色出图规范.html" style="color:var(--accent);font-weight:600">UGC 角色出图规范</a> ·
+  美术管线 → <a href="game-art-pipeline.html" style="color:var(--accent);font-weight:600">角色美术资产管线</a>
+</div>
 
 <div class="toc"><div class="toc-title">📑 目录</div>
 <ol>
@@ -97,6 +105,12 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <li><a href="#s4">Spine 资源制作规范（防雷清单）</a></li>
   <li><a href="#s5">典型场景性能预算</a></li>
   <li><a href="#s6">FAQ：常见问题速答</a></li>
+  <li><a href="#s7">角色动画状态机设计规范</a></li>
+  <li><a href="#s8">Spine 换装系统技术方案</a></li>
+  <li><a href="#s9">角色 LOD 分级与画质策略</a></li>
+  <li><a href="#s10">Spine 工程拆分与合并策略</a></li>
+  <li><a href="#s11">2D 角色动画制作全流程 SOP</a></li>
+  <li><a href="#s12">多引擎集成最佳实践</a></li>
 </ol></div>
 
 
@@ -436,8 +450,300 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 </div>
 
 <div class="doc-footer">
-  🦴 【2D】Spine 骨骼动画导出与性能规范 v2.0 · TA 组 · 2026-04-10<br>
-  "Spine 虽轻量，用不好一样能把性能干趴"
+  🦴 【2D】Spine 动画全链路规范 v2.0 · TA 组 + 角色程序 · 2026-05-29<br>
+  "从动画设计到引擎集成，覆盖 Spine 角色的完整生命周期"
+</div>
+
+<!-- ═══════ §7 动画状态机设计规范 ═══════ -->
+<div class="section" id="s7">
+<h2>7️⃣ 角色动画状态机设计规范</h2>
+
+<div class="alert alert-blue"><strong>📌 核心问题：</strong>动效师做动画是艺术创作，但最终动画要被<strong>程序的状态机消费</strong>。如果动画命名混乱、过渡规则不清、状态拆分不合理，程序集成时会疯狂加班。<strong>规范定义 = 减少联调 80% 扯皮</strong>。</div>
+
+<div class="sub-title">7.1 动画命名规范（强制）</div>
+<table>
+<tr><th>动画类型</th><th>命名格式</th><th>示例</th><th>说明</th></tr>
+<tr><td><strong>待机</strong></td><td><code>idle_{变体}</code></td><td><code>idle</code>, <code>idle_breathe</code>, <code>idle_combat</code></td><td>默认待机必须叫 <code>idle</code></td></tr>
+<tr><td><strong>行走/跑步</strong></td><td><code>walk</code> / <code>run</code></td><td><code>walk</code>, <code>run</code>, <code>run_fast</code></td><td>循环动画，确认 Looping=true</td></tr>
+<tr><td><strong>攻击</strong></td><td><code>atk_{编号}_{变体}</code></td><td><code>atk_01</code>, <code>atk_02_crit</code></td><td>编号从01开始，按连招顺序</td></tr>
+<tr><td><strong>技能</strong></td><td><code>skill_{技能ID}</code></td><td><code>skill_001</code>, <code>skill_ult</code></td><td>与策划技能表 ID 对齐</td></tr>
+<tr><td><strong>受击</strong></td><td><code>hit_{方向}</code></td><td><code>hit</code>, <code>hit_back</code>, <code>hit_air</code></td><td>被击中的反馈动画</td></tr>
+<tr><td><strong>死亡</strong></td><td><code>die_{变体}</code></td><td><code>die</code>, <code>die_fall</code></td><td>非循环，最后一帧保持</td></tr>
+<tr><td><strong>UI 展示</strong></td><td><code>show_{场景}</code></td><td><code>show_lobby</code>, <code>show_gacha</code></td><td>角色详情页/抽卡展示动画</td></tr>
+<tr><td><strong>表情</strong></td><td><code>face_{表情名}</code></td><td><code>face_happy</code>, <code>face_angry</code></td><td>可叠加在其他动画上</td></tr>
+<tr><td><strong>特效</strong></td><td><code>fx_{效果名}</code></td><td><code>fx_levelup</code>, <code>fx_hit_spark</code></td><td>独立的特效动画</td></tr>
+</table>
+
+<div class="alert alert-red"><strong>🚨 硬性规范：</strong>① 全部使用<strong>小写 + 下划线</strong>命名 ② 禁止中文命名 ③ 禁止空格 ④ 默认 idle 动画<strong>必须存在</strong>（程序 fallback 兜底用）</div>
+
+<div class="sub-title">7.2 动画状态机拓扑设计</div>
+<table>
+<tr><th>状态</th><th>可转移到</th><th>触发条件</th><th>过渡时长(Mix)</th></tr>
+<tr><td><code>idle</code></td><td>walk / run / atk_01 / skill_* / hit / die / show_*</td><td>手动触发</td><td>0.2s (默认)</td></tr>
+<tr><td><code>walk</code> / <code>run</code></td><td>idle / atk_01 / skill_* / hit / die</td><td>速度=0 → idle</td><td>0.15s</td></tr>
+<tr><td><code>atk_*</code></td><td>idle / atk_next / hit / die</td><td>动画播完 → idle / 输入 → atk_next</td><td>0.1s (连招紧凑)</td></tr>
+<tr><td><code>skill_*</code></td><td>idle / hit (可打断类技能)</td><td>动画播完 → idle</td><td>0.2s</td></tr>
+<tr><td><code>hit</code></td><td>idle / hit (连续受击) / die</td><td>硬直结束 → idle</td><td>0.05s (快速响应)</td></tr>
+<tr><td><code>die</code></td><td>无（终态）或 → idle（复活）</td><td>手动触发</td><td>0.3s</td></tr>
+</table>
+
+<div class="sub-title">7.3 Mix Duration（动画过渡混合时间）参考表</div>
+<table>
+<tr><th>过渡类型</th><th>推荐 Mix 时长</th><th>原则</th></tr>
+<tr><td>idle → 任何动作</td><td>0.15~0.25s</td><td>自然过渡，不要太生硬</td></tr>
+<tr><td>动作 → idle</td><td>0.2~0.3s</td><td>缓慢回到放松状态</td></tr>
+<tr><td>连招 atk_01 → atk_02</td><td>0.05~0.1s</td><td>紧凑、连贯，模拟真实打击感</td></tr>
+<tr><td>任何 → hit</td><td>0.03~0.05s</td><td>受击必须<strong>瞬间响应</strong>，Mix 尽可能短</td></tr>
+<tr><td>任何 → die</td><td>0.2~0.3s</td><td>死亡动画不急，给玩家视觉缓冲</td></tr>
+<tr><td>walk ↔ run</td><td>0.1~0.15s</td><td>步态切换自然</td></tr>
+</table>
+
+<div class="alert alert-yellow"><strong>⚠️ 资深经验：</strong>Mix Duration 不是"越短越好"也不是"越长越好"。<strong>核心原则：响应性动作(hit/atk)短混合、舒适性动作(idle/walk)长混合</strong>。建议在 Spine Preview 中反复调试直到"手感正确"。</div>
+
+<div class="sub-title">7.4 动画 Event（事件点）规范</div>
+<table>
+<tr><th>事件类型</th><th>命名</th><th>时机</th><th>用途</th></tr>
+<tr><td><strong>打击判定</strong></td><td><code>hit_check</code></td><td>攻击动画中武器到达目标的那一帧</td><td>程序在此帧做碰撞检测</td></tr>
+<tr><td><strong>音效触发</strong></td><td><code>sfx_{音效名}</code></td><td>需要播放音效的精确帧</td><td>脚步声、挥刀声、击中声</td></tr>
+<tr><td><strong>特效生成</strong></td><td><code>vfx_{特效名}</code></td><td>需要生成粒子/特效的帧</td><td>技能释放特效、命中火花</td></tr>
+<tr><td><strong>可取消点</strong></td><td><code>cancel_ok</code></td><td>攻击动画的后摇阶段开始处</td><td>允许玩家在此之后输入下一个动作</td></tr>
+<tr><td><strong>无敌帧</strong></td><td><code>invincible_start</code> / <code>_end</code></td><td>翻滚/闪避动画的无敌期间</td><td>程序在此期间忽略伤害判定</td></tr>
+</table>
+</div>
+
+
+<!-- ═══════ §8 换装系统 ═══════ -->
+<div class="section" id="s8">
+<h2>8️⃣ Spine 换装系统技术方案</h2>
+
+<div class="alert alert-blue"><strong>📌 核心挑战：</strong>2D 换装不像 3D 那样可以换模型网格。2D 角色换装本质是<strong>换 Attachment（贴图素材）</strong>，需要在不破坏骨骼结构和动画的前提下替换外观。</div>
+
+<div class="sub-title">8.1 换装技术路线对比</div>
+<table>
+<tr><th>方案</th><th>原理</th><th>优点</th><th>缺点</th><th>适用场景</th></tr>
+<tr><td><strong>Skin 机制（推荐）</strong></td><td>Spine 原生 Skin 系统，每套皮肤定义一组 Attachment 映射</td><td>官方支持、性能最优、支持 Skin 组合</td><td>每套皮肤需要在 Spine 工程中制作</td><td>固定数量的皮肤/服装</td></tr>
+<tr><td><strong>图集替换 (Atlas Swap)</strong></td><td>运行时替换整张图集贴图（大小/布局必须一致）</td><td>不需要改 Spine 工程结构</td><td>图集布局必须严格一致；图集浪费空间</td><td>换色变体（布局不变，只换色彩）</td></tr>
+<tr><td><strong>Attachment 动态替换</strong></td><td>代码运行时替换指定 Slot 的 Attachment 为新 Region</td><td>灵活，支持 UGC 用户自定义</td><td>需要程序维护替换逻辑；可能破坏图集合批</td><td>UGC 自定义装扮</td></tr>
+<tr><td><strong>分体骨骼拼装</strong></td><td>角色拆成多个独立 Spine 文件（头/身/腿/武器），运行时组装</td><td>极致灵活，部件独立更新</td><td>性能差（多实例）、制作复杂、动画同步困难</td><td>超大量装备组合(MMO)</td></tr>
+</table>
+
+<div class="sub-title">8.2 Skin 机制深度用法</div>
+<pre>
+// ═══ Spine 换装 Skin 组合（spine-unity 示例）═══
+
+// 1. 获取已有 Skin 数据
+var baseSkin = skeletonData.FindSkin("base");        // 基础身体
+var hairSkin = skeletonData.FindSkin("hair_style_02"); // 发型2
+var coatSkin = skeletonData.FindSkin("coat_winter");  // 冬装上衣
+var weaponSkin = skeletonData.FindSkin("weapon_sword"); // 武器
+
+// 2. 创建组合 Skin（运行时混搭）
+var combinedSkin = new Skin("combined");
+combinedSkin.AddSkin(baseSkin);      // 添加基础
+combinedSkin.AddSkin(hairSkin);      // 叠加发型
+combinedSkin.AddSkin(coatSkin);      // 叠加上衣
+combinedSkin.AddSkin(weaponSkin);    // 叠加武器
+
+// 3. 应用到骨架
+skeleton.SetSkin(combinedSkin);
+skeleton.SetSlotsToSetupPose();  // 重置 Slot 到 Setup Pose
+animationState.Apply(skeleton);  // 重新应用当前动画</pre>
+
+<div class="sub-title">8.3 换装资源规划</div>
+<table>
+<tr><th>部件类型</th><th>Slot 划分</th><th>图集策略</th><th>数量级</th></tr>
+<tr><td><strong>发型</strong></td><td>slot_hair_back / slot_hair_front</td><td>所有发型打同一张图集（共享尺寸）</td><td>10~30 款</td></tr>
+<tr><td><strong>上装</strong></td><td>slot_body / slot_sleeve_L / slot_sleeve_R</td><td>按系列打包（夏/冬/节日各一张图集）</td><td>20~50 款</td></tr>
+<tr><td><strong>下装</strong></td><td>slot_legs / slot_shoes</td><td>与上装同策略</td><td>15~30 款</td></tr>
+<tr><td><strong>配饰</strong></td><td>slot_acc_head / slot_acc_hand / slot_acc_back</td><td>小件统一打 1024×1024 公共图集</td><td>30~100 款</td></tr>
+<tr><td><strong>武器</strong></td><td>slot_weapon</td><td>武器独立图集（尺寸较大）</td><td>10~20 款</td></tr>
+</table>
+
+<div class="alert alert-yellow"><strong>⚠️ 图集爆炸预防：</strong>50 套皮肤 × 每套 1 页图集 = 50 张 2048² 贴图 = <strong>800MB 内存</strong>。解决方案：① 按需加载（只加载当前穿戴的 Skin 图集）② 公共部件共享图集 ③ 低分辨率预览图集 + 高清按需加载</div>
+
+<div class="sub-title">8.4 换装动画兼容性检查</div>
+<table>
+<tr><th>检查项</th><th>问题</th><th>解决方案</th></tr>
+<tr><td>不同服装的 Mesh 边界不一致</td><td>长袖和短袖的 Mesh 顶点数不同，动画中变形出 Bug</td><td>同一 Slot 的所有 Attachment 必须<strong>相同顶点数和拓扑</strong></td></tr>
+<tr><td>换装后动画穿帮</td><td>长发挥动动画在短发上看起来奇怪</td><td>按发型长度分组 Skin，不同组绑定不同动画变体</td></tr>
+<tr><td>武器大小不一</td><td>巨剑和匕首共用同一个挥砍动画比例失调</td><td>武器按尺寸分 S/M/L 三档，每档有对应的攻击动画</td></tr>
+<tr><td>换装后层级遮挡错误</td><td>披风应该在身体后面，换装后跑到前面</td><td>Skin 中明确定义每个 Attachment 的 Draw Order 偏移</td></tr>
+</table>
+</div>
+
+
+<!-- ═══════ §9 LOD 分级 ═══════ -->
+<div class="section" id="s9">
+<h2>9️⃣ 角色 LOD 分级与画质策略</h2>
+
+<div class="alert alert-blue"><strong>📌 核心理念：</strong>不是所有场景都需要"角色详情页"级别的高精度骨骼。<strong>远景 NPC 用 100 骨骼的角色 = 浪费 90% 算力</strong>。LOD（Level of Detail）= 在不同场景/距离下使用不同规格的角色资源。</div>
+
+<div class="sub-title">9.1 LOD 分级标准</div>
+<table>
+<tr><th>LOD 级别</th><th>使用场景</th><th>骨骼数</th><th>网格顶点</th><th>图集</th><th>动画帧率</th><th>特效</th></tr>
+<tr><td><strong>LOD0 极致</strong></td><td>角色详情页 / 抽卡展示 / 过场动画</td><td>≤100</td><td>≤300</td><td>2048² × 2页</td><td>30fps</td><td>全开</td></tr>
+<tr><td><strong>LOD1 高</strong></td><td>战斗主角 / Boss</td><td>≤60</td><td>≤150</td><td>2048² × 1页</td><td>24fps</td><td>简化</td></tr>
+<tr><td><strong>LOD2 中</strong></td><td>战斗敌人 / 队友</td><td>≤40</td><td>≤80</td><td>1024² × 1页</td><td>15fps</td><td>关闭</td></tr>
+<tr><td><strong>LOD3 低</strong></td><td>远景 NPC / 列表缩略图</td><td>≤20</td><td>≤30</td><td>512² × 1页</td><td>12fps</td><td>关闭</td></tr>
+<tr><td><strong>LOD4 静态</strong></td><td>图鉴列表 / 极远背景</td><td>0（纯序列帧/静态图）</td><td>0</td><td>256² 单图</td><td>—</td><td>—</td></tr>
+</table>
+
+<div class="sub-title">9.2 LOD 自动切换策略</div>
+<table>
+<tr><th>触发条件</th><th>切换方式</th><th>技术实现</th></tr>
+<tr><td><strong>屏幕占比</strong></td><td>角色像素高度 < 200px → 降级</td><td>计算角色 Bounding Box 在屏幕的像素高度</td></tr>
+<tr><td><strong>场景类型</strong></td><td>战斗场景→LOD1/2 / 大厅→LOD2/3</td><td>场景切换时通知角色管理器切换规格</td></tr>
+<tr><td><strong>设备性能</strong></td><td>低端机全局降一级</td><td>启动时检测设备等级（GPU/RAM/核心数）</td></tr>
+<tr><td><strong>同屏数量</strong></td><td>同屏 >5 个 Spine → 远处降级</td><td>按距离排序，保留最近 N 个高规格</td></tr>
+<tr><td><strong>帧率保护</strong></td><td>实时帧率 <25fps → 动态降级</td><td>FPS Monitor 触发 → 由远到近逐个降级</td></tr>
+</table>
+
+<div class="sub-title">9.3 LOD 资源制作流程</div>
+<pre>
+制作顺序（从高到低）:
+┌─────────────────────────────────────────────────────────┐
+│ 1. 先做 LOD0（最高品质完整版）                              │
+│    → 完整骨骼 + 精细网格 + 全部动画 + 最高分辨率图集         │
+├─────────────────────────────────────────────────────────┤
+│ 2. LOD1 = LOD0 删减（删除装饰骨骼/简化网格/缩小图集）        │
+│    → 动画可共享骨骼数据（Spine 的 Skeleton 共享）             │
+├─────────────────────────────────────────────────────────┤
+│ 3. LOD2/3 = 新建简化版                                      │
+│    → 仅保留核心骨骼（脊柱/四肢），网格用 Region 代替 Mesh     │
+├─────────────────────────────────────────────────────────┤
+│ 4. LOD4 = 导出静态图 / 录制序列帧                            │
+│    → 最小化内存开销                                          │
+└─────────────────────────────────────────────────────────┘</pre>
+
+<div class="alert alert-green"><strong>✅ 收益量化：</strong>某二次元卡牌项目在战斗场景引入 LOD 后：CPU Spine 耗时从 <code>8.2ms</code> 降到 <code>3.1ms</code>（-62%），内存从 <code>340MB</code> 降到 <code>180MB</code>（-47%）。</div>
+</div>
+
+
+<!-- ═══════ §10 拆分合并策略 ═══════ -->
+<div class="section" id="s10">
+<h2>🔟 Spine 工程拆分与合并策略</h2>
+
+<div class="alert alert-blue"><strong>📌 痛点：</strong>一个角色的 Spine 工程 = 数十个动画 + 多套 Skin + 多个图集。工程越来越大 → 打开慢、导出慢、协作冲突。资深 TA 需要制定<strong>合理的拆分粒度</strong>。</div>
+
+<div class="sub-title">10.1 拆分维度决策</div>
+<table>
+<tr><th>拆分维度</th><th>做法</th><th>适用条件</th><th>注意事项</th></tr>
+<tr><td><strong>按动画类别拆分</strong></td><td>核心动画(idle/walk/atk)一个工程，UI展示动画另一个工程</td><td>角色动画数量 > 20 个</td><td>需共享同一份 Skeleton 数据</td></tr>
+<tr><td><strong>按品质拆分(LOD)</strong></td><td>LOD0 一个工程、LOD2/3 一个精简工程</td><td>需要多 LOD 的大型项目</td><td>低 LOD 可以独立骨骼结构</td></tr>
+<tr><td><strong>按部件拆分</strong></td><td>身体/武器/特效分别独立 Spine 工程</td><td>换装组合极多的 MMO 类</td><td>运行时需要同步多实例</td></tr>
+<tr><td><strong>不拆分（单工程）</strong></td><td>所有内容在一个 .spine 文件中</td><td>动画 ≤15 个 + Skin ≤5 套</td><td>简单项目最佳，避免过度工程化</td></tr>
+</table>
+
+<div class="sub-title">10.2 图集合并策略</div>
+<table>
+<tr><th>策略</th><th>做法</th><th>收益</th><th>代价</th></tr>
+<tr><td><strong>按角色独立图集</strong></td><td>每个角色自己的 Atlas，不共享</td><td>加载/卸载独立、无依赖</td><td>公共元素重复（通用表情/特效）</td></tr>
+<tr><td><strong>公共图集提取</strong></td><td>通用元素（阴影、通用特效）抽到 Atlas_Common</td><td>减少冗余，内存优化 10~20%</td><td>需要运行时 Atlas 替换技术</td></tr>
+<tr><td><strong>按场景打包</strong></td><td>同一关卡的所有角色打包到一张大图集</td><td>极致 DC 优化（同图集 = 合批）</td><td>加载粒度粗、灵活性差</td></tr>
+</table>
+
+<div class="sub-title">10.3 多人协作防冲突</div>
+<table>
+<tr><th>问题</th><th>原因</th><th>解决方案</th></tr>
+<tr><td>两人同改一个 .spine 文件冲突</td><td>Spine 文件是 JSON/Binary，合并困难</td><td>① 按角色分工（一人负责一个角色）<br>② 按动画分支（A 做 idle/walk，B 做 atk/skill）<br>③ 用 Git LFS + Lock 机制</td></tr>
+<tr><td>图集素材频繁冲突</td><td>多人同时添加/修改素材图片</td><td>源图片用文件夹隔离，导出时统一 Pack</td></tr>
+<tr><td>Skin 新增导致 Draw Order 混乱</td><td>新增 Skin 的 Attachment 插入位置不确定</td><td>约定 Draw Order 规则：公共在前 → Skin 专属在后</td></tr>
+</table>
+</div>
+
+
+<!-- ═══════ §11 制作全流程SOP ═══════ -->
+<div class="section" id="s11">
+<h2>1️⃣1️⃣ 2D 角色动画制作全流程 SOP</h2>
+
+<div class="sub-title">11.1 全流程阶段概览</div>
+<table>
+<tr><th>阶段</th><th>负责人</th><th>输入</th><th>输出</th><th>耗时参考</th></tr>
+<tr><td><strong>P1 需求确认</strong></td><td>策划+美术主管</td><td>角色设定文档、动画需求列表</td><td>动画 Brief 表（含状态机图）</td><td>0.5 天</td></tr>
+<tr><td><strong>P2 原画设计</strong></td><td>角色原画</td><td>角色设定</td><td>多角度设计稿 + 表情 Sheet + 色彩方案</td><td>2~5 天</td></tr>
+<tr><td><strong>P3 PSD 拆分</strong></td><td>角色原画/助理</td><td>完稿设计稿</td><td>结构化 PSD（按规范分层命名）</td><td>0.5~1 天</td></tr>
+<tr><td><strong>P4 骨骼绑定</strong></td><td>动效师</td><td>拆分好的 PSD</td><td>完成绑定的 .spine 工程（含权重刷好的 Mesh）</td><td>1~2 天</td></tr>
+<tr><td><strong>P5 动画制作</strong></td><td>动效师</td><td>动画 Brief + 绑定工程</td><td>全部动画完成 + Event 标记</td><td>3~7 天</td></tr>
+<tr><td><strong>P6 TA 审查</strong></td><td>TA</td><td>完成的 .spine 工程</td><td>性能审查报告（骨骼/顶点/图集/文件大小）</td><td>0.5 天</td></tr>
+<tr><td><strong>P7 导出打包</strong></td><td>TA/构建系统</td><td>审查通过的工程</td><td>.skel + .atlas + .png（多 LOD 版本）</td><td>自动化（CI）</td></tr>
+<tr><td><strong>P8 引擎集成</strong></td><td>客户端程序</td><td>导出资源包</td><td>游戏内可运行的角色 Prefab/Node</td><td>0.5~1 天</td></tr>
+<tr><td><strong>P9 联调验收</strong></td><td>策划+美术+程序</td><td>集成完成的角色</td><td>验收通过 / Bug 列表</td><td>0.5~1 天</td></tr>
+</table>
+
+<div class="sub-title">11.2 P3 PSD 拆分交接标准</div>
+<table>
+<tr><th>#</th><th>检查项</th><th>标准</th></tr>
+<tr><td>1</td><td>图层按部位拆分</td><td>头发/脸/身体/四肢/配饰/武器 各独立图层组</td></tr>
+<tr><td>2</td><td>关节处留有重叠区</td><td>相邻部件在关节处重叠 5~10px（避免旋转时露白）</td></tr>
+<tr><td>3</td><td>需旋转的部件独立</td><td>手臂/前臂/手掌 必须分开（用于骨骼驱动旋转）</td></tr>
+<tr><td>4</td><td>对称部件左右分开</td><td>左手/右手、左脚/右脚 各自独立图层</td></tr>
+<tr><td>5</td><td>表情单独一组</td><td>眼睛/眉毛/嘴巴 各自独立，支持 Skin 切换</td></tr>
+<tr><td>6</td><td>画布尺寸为 2<sup>N</sup></td><td>推荐 1024×1024 或 2048×2048</td></tr>
+<tr><td>7</td><td>导出格式</td><td>PSD（保留图层）+ 各部件 PNG（透明背景）</td></tr>
+</table>
+
+<div class="sub-title">11.3 动效师 P5 交付 Checklist</div>
+<table>
+<tr><th>#</th><th>检查项</th><th>标准</th></tr>
+<tr><td>1</td><td>所有需求动画已制作</td><td>对照 Brief 表逐条确认</td></tr>
+<tr><td>2</td><td>动画命名符合规范</td><td>全小写+下划线，与程序约定一致</td></tr>
+<tr><td>3</td><td>循环动画设置正确</td><td>idle/walk/run 等 Looping=true</td></tr>
+<tr><td>4</td><td>Event 事件已标记</td><td>hit_check/sfx_*/vfx_*/cancel_ok 已打好</td></tr>
+<tr><td>5</td><td>Mix Duration 已设置</td><td>在 Spine 中配置好过渡时间</td></tr>
+<tr><td>6</td><td>性能指标达标</td><td>骨骼/顶点/Slot/图集 ≤ 红线值</td></tr>
+<tr><td>7</td><td>无冗余关键帧</td><td>手动清理过或用 spine-cli --clean</td></tr>
+<tr><td>8</td><td>Skin 换装正确</td><td>所有 Skin 组合已验证无穿帮</td></tr>
+</table>
+</div>
+
+
+<!-- ═══════ §12 多引擎集成 ═══════ -->
+<div class="section" id="s12">
+<h2>1️⃣2️⃣ 多引擎集成最佳实践</h2>
+
+<div class="sub-title">12.1 引擎集成方案对比</div>
+<table>
+<tr><th>引擎</th><th>运行时库</th><th>渲染方式</th><th>合批支持</th><th>特殊注意</th></tr>
+<tr><td><strong>Unity</strong></td><td>spine-unity (官方)</td><td>MeshRenderer / CanvasRenderer</td><td>同 Material + 同 Atlas = 自动合批</td><td>UI 场景用 SkeletonGraphic；Sorting Order 影响合批</td></tr>
+<tr><td><strong>Cocos Creator</strong></td><td>sp.Skeleton (内置)</td><td>2D Renderer</td><td>同 Atlas + 无 Clipping = 合批</td><td>3.x 版本需注意 RenderEntity 合批条件</td></tr>
+<tr><td><strong>Cocos2d-x</strong></td><td>spine-cocos2dx</td><td>CCNode 渲染</td><td>手动优化 Batch</td><td>老项目维护为主</td></tr>
+<tr><td><strong>Godot</strong></td><td>spine-godot (社区)</td><td>Node2D</td><td>需手动管理</td><td>API 与官方 Runtime 有差异</td></tr>
+<tr><td><strong>自研引擎</strong></td><td>spine-c / spine-cpp</td><td>自定义 Mesh 提交</td><td>完全可控</td><td>需要自行处理蒙皮/合批/裁剪</td></tr>
+</table>
+
+<div class="sub-title">12.2 Unity 集成进阶技巧</div>
+<table>
+<tr><th>技巧</th><th>做法</th><th>收益</th></tr>
+<tr><td><strong>MaterialPropertyBlock 换色</strong></td><td>用 MPB 设置 Tint Color / Shader 参数，不 clone Material</td><td>保持合批不断裂（同 Material 实例）</td></tr>
+<tr><td><strong>SkeletonRenderSeparator</strong></td><td>将角色 Mesh 分层渲染（如角色身体和武器特效分离）</td><td>武器特效可插入其他 Sorting Layer</td></tr>
+<tr><td><strong>Skeleton Utility Bone</strong></td><td>将 Spine 骨骼暴露为 Unity Transform</td><td>在骨骼位置挂载 Unity 粒子/光源</td></tr>
+<tr><td><strong>Timeline 集成</strong></td><td>Spine Animation State Track 集成 Unity Timeline</td><td>过场动画可视化编排</td></tr>
+<tr><td><strong>Addressables 懒加载</strong></td><td>SkeletonDataAsset 通过 Addressables 异步加载</td><td>减少启动加载时间</td></tr>
+</table>
+
+<div class="sub-title">12.3 Cocos Creator 集成进阶技巧</div>
+<table>
+<tr><th>技巧</th><th>做法</th><th>收益</th></tr>
+<tr><td><strong>缓存模式 (SHARED_CACHE)</strong></td><td>多个同类 Spine 共享一份动画计算结果</td><td>CPU 降低 50%+（如战斗中同模型小怪）</td></tr>
+<tr><td><strong>REALTIME 模式用于主角</strong></td><td>主角需要独立控制，用 REALTIME 模式</td><td>支持独立的动画混合和事件回调</td></tr>
+<tr><td><strong>premultipliedAlpha</strong></td><td>确保 <code>premultipliedAlpha</code> 与图集导出设置一致</td><td>避免半透明边缘出现黑边/白边</td></tr>
+<tr><td><strong>自定义 Assembler</strong></td><td>重写渲染数据提交，实现自定义 Shader 效果</td><td>支持溶解/描边/换色等自定义渲染</td></tr>
+</table>
+
+<div class="sub-title">12.4 导出配置标准（统一规范）</div>
+<table>
+<tr><th>导出参数</th><th>标准值</th><th>说明</th></tr>
+<tr><td>格式</td><td><code>Binary (.skel)</code></td><td>比 JSON 体积小 50%+，加载更快</td></tr>
+<tr><td>Atlas 格式</td><td><code>PNG (无 premultiply)</code> 或 <code>PNG (premultiply)</code></td><td>需与引擎端设置对齐</td></tr>
+<tr><td>Atlas Max Size</td><td><code>2048</code></td><td>硬限制，超过需拆分</td></tr>
+<tr><td>Atlas Padding</td><td><code>2px</code></td><td>防止采样时边缘渗色</td></tr>
+<tr><td>Strip Whitespace</td><td><code>✅ 开启</code></td><td>去除素材周围空白，图集利用率+</td></tr>
+<tr><td>Rotation</td><td><code>✅ 允许旋转</code></td><td>提高图集利用率 10~15%</td></tr>
+<tr><td>Scale</td><td><code>1.0</code>（或按 LOD 设 0.5/0.25）</td><td>LOD 可用缩小 Scale 导出低规格版</td></tr>
+<tr><td>Non-Essential Data</td><td><code>❌ 不导出</code></td><td>去掉编辑器辅助数据，文件瘦身</td></tr>
+</table>
+
+<div class="alert alert-green"><strong>✅ 工业化标准：</strong>以上导出配置写入 CI 脚本（<code>spine-cli export</code>），确保所有角色导出参数<strong>完全一致</strong>。人工导出 = 参数不一致的温床。</div>
 </div>
 
 </div>

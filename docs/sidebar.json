@@ -293,6 +293,15 @@
           "icon": "👤",
           "items": [
             {
+              "id": "2d-char-pipeline-overview",
+              "icon": "👤",
+              "title": "2D 角色全链路制作管线总览",
+              "type": "iframe",
+              "file": "knowledge-base/2d-char-pipeline-overview.html",
+              "badge": "2D",
+              "craft": "角色"
+            },
+            {
               "id": "char-color-swap-pipeline",
               "icon": "🎨",
               "title": "2D 角色换色工业化全管线",

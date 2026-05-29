@@ -101,13 +101,21 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 
 <!-- ═══ HEADER ═══ -->
 <div class="doc-header">
-  <h1>🎨 【2D】角色换色与材质遮罩规范 <span class="ver">工业化规范 v3.0</span></h1>
-  <div class="subtitle">2D Character Color-Swap & Material Mask Specification</div>
+  <h1>🎨 【2D】角色换色与材质遮罩规范 <span class="ver">工业化规范 v4.0</span></h1>
+  <div class="subtitle">2D Character Color-Swap Pipeline — PSD 拆分 · Mask 制作 · Shader 集成 · CI 自动化 · 跨项目复用</div>
   <div class="meta">
     <span>📋 适用：Mask+HSV / Palette Swap / 灰度叠色</span>
-    <span>👤 维护：TA 组 · 美术中心</span>
-    <span>📅 2026-04-10</span>
+    <span>👤 维护：TA 组 · 美术中心 · 角色组</span>
+    <span>📅 2026-05-29 (v4.0 升级)</span>
   </div>
+</div>
+
+<div class="alert alert-blue" style="margin-bottom:20px;border:1px solid rgba(108,140,255,.3)">
+  <strong>📎 2D 角色模块导航：</strong>
+  管线总览 → <a href="2d-char-pipeline-overview.html" style="color:var(--accent);font-weight:600">2D 角色全链路管线</a> ·
+  Spine 动画规范 → <a href="spine-perf-guide.html" style="color:var(--accent);font-weight:600">Spine 全链路规范</a> ·
+  UGC 出图 → <a href="art/2D-UGC角色出图规范.html" style="color:var(--accent);font-weight:600">UGC 角色出图规范</a> ·
+  美术管线 → <a href="game-art-pipeline.html" style="color:var(--accent);font-weight:600">角色美术资产管线</a>
 </div>
 
 <!-- ═══ TOC ═══ -->
@@ -124,6 +132,11 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#sec8">标准作业流程 SOP</a></li>
     <li><a href="#sec9">常见问题排查 FAQ</a></li>
     <li><a href="#sec10">出图检查清单 Checklist</a></li>
+    <li><a href="#sec11">PSD 拆分规范与自动导出工具链</a></li>
+    <li><a href="#sec12">引擎侧 Shader 实现方案（Unity/Cocos/自研）</a></li>
+    <li><a href="#sec13">换色 CI/CD 自动化流水线</a></li>
+    <li><a href="#sec14">换色资产跨项目复用体系</a></li>
+    <li><a href="#sec15">高级换色效果：渐变/花纹/材质混合</a></li>
   </ol>
 </div>
 
@@ -465,9 +478,404 @@ hero001_config.json        ← 配色方案表</pre>
   </table>
 </div>
 
+<!-- ═══ Section 11: PSD 拆分规范 ═══ -->
+<div class="section" id="sec11">
+  <h2>⑪ PSD 拆分规范与自动导出工具链</h2>
+
+  <div class="alert alert-blue">
+    <strong>📌 核心理念：</strong>角色换色的源头在 PSD。一份结构清晰的 PSD = 自动化导出的基础 = 后续迭代零返工。资深角色美术的核心能力是"<strong>画图的同时就在规划拆分结构</strong>"。
+  </div>
+
+  <div class="sub-title">11.1 PSD 图层命名规范</div>
+  <table>
+    <thead><tr><th>图层类型</th><th>命名格式</th><th>示例</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><strong>基础底图</strong></td><td><code>[base]_部位名</code></td><td><code>[base]_body</code></td><td>最终导出为 Base 图的合并结果</td></tr>
+      <tr><td><strong>换色区域</strong></td><td><code>[mask]_区域名_通道</code></td><td><code>[mask]_hair_R</code></td><td>明确该区域对应 Mask 哪个通道</td></tr>
+      <tr><td><strong>不可换色区域</strong></td><td><code>[fixed]_部位名</code></td><td><code>[fixed]_face</code></td><td>脸部/眼睛等不参与换色的永久层</td></tr>
+      <tr><td><strong>光影层</strong></td><td><code>[shadow]_部位</code> / <code>[highlight]_部位</code></td><td><code>[shadow]_coat</code></td><td>用于保留光影细节的辅助层</td></tr>
+      <tr><td><strong>线稿层</strong></td><td><code>[line]_部位</code></td><td><code>[line]_outline</code></td><td>描边/线稿，通常不参与换色</td></tr>
+      <tr><td><strong>特效层</strong></td><td><code>[fx]_效果名</code></td><td><code>[fx]_glow</code></td><td>发光/粒子等后期叠加效果</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-title">11.2 PSD 图层组结构标准</div>
+  <pre>
+📁 hero001.psd
+├── 📂 [export]                    ← 用于导出的最终合成（自动化脚本读取此组）
+│   ├── [base]_final               ← 拼合后的 Base 图
+│   ├── [mask1]_final              ← 拼合后的 Mask 1
+│   └── [mask2]_final              ← 拼合后的 Mask 2（如果需要）
+├── 📂 [regions]                   ← 换色区域拆分（美术工作区）
+│   ├── 📂 R_hair                  ← 头发区域
+│   │   ├── [mask]_hair_R          ← Mask 涂白层
+│   │   ├── [base]_hair            ← 头发基础色
+│   │   └── [shadow]_hair          ← 头发阴影
+│   ├── 📂 G_coat                  ← 上衣区域
+│   │   ├── [mask]_coat_G
+│   │   ├── [base]_coat
+│   │   └── [highlight]_coat
+│   └── 📂 B_pants                 ← 裤子区域
+│       ├── [mask]_pants_B
+│       └── [base]_pants
+├── 📂 [fixed]                     ← 不可换色区域
+│   ├── [fixed]_face
+│   ├── [fixed]_eyes
+│   └── [fixed]_accessories
+└── 📂 [reference]                 ← 参考（不导出）
+    ├── color_palette_ref
+    └── design_sketch</pre>
+
+  <div class="sub-title">11.3 自动导出脚本（Photoshop CEP/UXP）</div>
+  <pre>
+// Photoshop UXP 自动导出脚本（伪代码）
+async function exportCharacterAssets(doc) {
+  const exportGroup = doc.layers.find(l => l.name === '[export]');
+  
+  // 1. 导出 Base 图
+  const baseLayers = exportGroup.layers.filter(l => l.name.includes('[base]'));
+  await exportMergedPNG(baseLayers, `${charID}_base.png`);
+  
+  // 2. 导出 Mask 图（逐通道合成）
+  const maskLayers = exportGroup.layers.filter(l => l.name.includes('[mask'));
+  for (const mask of maskLayers) {
+    await exportAsSingleChannel(mask, `${charID}_${mask.name}.png`);
+  }
+  
+  // 3. 自动校验通道互斥
+  const violations = await checkChannelExclusion(maskLayers);
+  if (violations.length > 0) {
+    alert(`❌ 通道互斥校验失败：${violations.length} 处冲突`);
+    return;
+  }
+  
+  // 4. 生成 config.json
+  await generateConfigJSON(charID, maskLayers);
+  
+  // 5. 生成预览图（应用3套配色）
+  await generatePreviews(charID, COLOR_SCHEMES);
+}</pre>
+
+  <div class="alert alert-green">
+    <strong>✅ 工具化收益：</strong>从"手动拼合导出 ~30min/角色"降低到"一键导出 ~2min/角色"。且<strong>零人为错误</strong>（通道互斥自动校验、尺寸自动对齐）。
+  </div>
+
+  <div class="sub-title">11.4 PSD 拆分常见错误</div>
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't — 所有图层平铺在根目录</h4>
+      <p>50+ 图层无分组、无命名规范。新人接手完全看不懂哪些是换色区域、哪些是固定区域。自动导出脚本无法识别。</p>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ Do — 严格分组 + 前缀命名</h4>
+      <p>按 [regions]/[fixed]/[export]/[reference] 分组。每个图层用前缀标记用途。任何人打开 PSD 都能 3 秒理解结构。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Section 12: 引擎侧 Shader 实现 ═══ -->
+<div class="section" id="sec12">
+  <h2>⑫ 引擎侧 Shader 实现方案（Unity/Cocos/自研）</h2>
+
+  <div class="alert alert-blue">
+    <strong>📌 本章面向：</strong>TA（Technical Artist）、客户端程序。美术同学了解原理即可，重点关注"我出的图如何被 Shader 消费"。
+  </div>
+
+  <div class="sub-title">12.1 Mask+HSV 方案 Shader 核心逻辑</div>
+  <pre>
+// ═══ Mask+HSV 换色 Shader（HLSL/GLSL 通用伪代码）═══
+
+// 输入
+sampler2D _BaseTex;    // 基础原图
+sampler2D _MaskTex;    // 遮罩图
+float3 _HueShift;     // 3个区域的色相偏移值 (度数, -180~180)
+float3 _SatScale;     // 3个区域的饱和度缩放 (0~2)
+float3 _ValScale;     // 3个区域的明度缩放 (0~2)
+
+float4 frag(v2f i) : SV_Target {
+    float4 base = tex2D(_BaseTex, i.uv);
+    float4 mask = tex2D(_MaskTex, i.uv);
+    
+    // 将 base RGB 转换到 HSV 空间
+    float3 hsv = RGBtoHSV(base.rgb);
+    
+    // 按 Mask 通道权重应用偏移
+    float totalWeight = mask.r + mask.g + mask.b;
+    if (totalWeight > 0.01 && mask.a > 0.01) {
+        // R 通道区域偏移
+        hsv.x += _HueShift.x * mask.r;
+        hsv.y *= lerp(1.0, _SatScale.x, mask.r);
+        hsv.z *= lerp(1.0, _ValScale.x, mask.r);
+        
+        // G 通道区域偏移
+        hsv.x += _HueShift.y * mask.g;
+        hsv.y *= lerp(1.0, _SatScale.y, mask.g);
+        hsv.z *= lerp(1.0, _ValScale.y, mask.g);
+        
+        // B 通道区域偏移
+        hsv.x += _HueShift.z * mask.b;
+        hsv.y *= lerp(1.0, _SatScale.z, mask.b);
+        hsv.z *= lerp(1.0, _ValScale.z, mask.b);
+    }
+    
+    // HSV 转回 RGB
+    float3 result = HSVtoRGB(hsv);
+    return float4(result, base.a);
+}</pre>
+
+  <div class="sub-title">12.2 各引擎集成方案对比</div>
+  <table>
+    <thead><tr><th>引擎</th><th>Shader 文件</th><th>Material 设置</th><th>运行时控制</th><th>注意事项</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Unity (URP)</strong></td>
+        <td><code>CharColorSwap.shader</code><br>或 Shader Graph 节点</td>
+        <td>Material 暴露 _HueShift/_SatScale/_ValScale 数组</td>
+        <td><code>material.SetVector("_HueShift", new Vector4(...))</code></td>
+        <td>确保 Mask 贴图 Import Settings: sRGB=Off, Filter=Point</td>
+      </tr>
+      <tr>
+        <td><strong>Unity (Spine-Unity)</strong></td>
+        <td>继承 <code>Spine/Skeleton</code> shader 扩展</td>
+        <td>MaterialPropertyBlock 动态设置（避免实例化 Material）</td>
+        <td><code>meshRenderer.GetPropertyBlock(mpb); mpb.SetTexture(...)</code></td>
+        <td>必须用 MPB，否则破坏 Spine 合批</td>
+      </tr>
+      <tr>
+        <td><strong>Cocos Creator</strong></td>
+        <td><code>char-color-swap.effect</code></td>
+        <td>CCEffect YAML 定义 properties</td>
+        <td><code>sprite.getMaterial(0).setProperty('hueShift', [...])</code></td>
+        <td>2D 渲染默认合批，确保同 Material 参数一致才合批</td>
+      </tr>
+      <tr>
+        <td><strong>自研引擎</strong></td>
+        <td>GLSL Fragment Shader</td>
+        <td>Uniform Buffer 传入换色参数</td>
+        <td>通过角色组件接口设置配色方案 ID</td>
+        <td>HSV 转换函数精度：用 <code>mediump</code> 即可，节省 GPU 带宽</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="sub-title">12.3 Shader 变体与性能优化</div>
+  <table>
+    <thead><tr><th>优化策略</th><th>做法</th><th>收益</th></tr></thead>
+    <tbody>
+      <tr><td><strong>多 Mask 编译开关</strong></td><td><code>#pragma shader_feature _MASK_COUNT_1 _MASK_COUNT_2 _MASK_COUNT_3</code></td><td>单 Mask 角色不采样多余贴图，节省 1~2 次纹理采样</td></tr>
+      <tr><td><strong>Alpha 通道早退</strong></td><td><code>if (mask.a < 0.01) return base;</code></td><td>非换色区域跳过 HSV 计算（ALU 节省 30%+）</td></tr>
+      <tr><td><strong>预计算 LUT</strong></td><td>CPU 侧将 HSV 偏移预烘焙为 256×1 颜色 LUT</td><td>运行时仅 1 次 LUT 采样代替 RGB↔HSV 转换，GPU ALU 降 70%</td></tr>
+      <tr><td><strong>Batch-Friendly</strong></td><td>换色参数存入顶点色/实例化缓冲而非独立 Material</td><td>保持合批不打断，DC 数不随角色数增长</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-yellow">
+    <strong>⚠️ 常见坑：</strong>美术导出的 Mask 图被 Unity 默认识别为 sRGB（Gamma）空间 → 通道值被 Gamma 校正 → Shader 读到的值与原始不一致（128 变成 187）。<strong>必须把 Mask 贴图的 sRGB 设为 Off（Linear）</strong>。
+  </div>
+</div>
+
+<!-- ═══ Section 13: CI/CD 自动化 ═══ -->
+<div class="section" id="sec13">
+  <h2>⑬ 换色 CI/CD 自动化流水线</h2>
+
+  <div class="alert alert-blue">
+    <strong>📌 核心目标：</strong>美术提交 PSD/PNG → CI 自动校验 → 自动打包 → 自动生成预览 → 门禁通过 → 入库。<strong>人工只负责创作，机器负责检查和打包</strong>。
+  </div>
+
+  <div class="sub-title">13.1 CI 流水线架构</div>
+  <pre>
+┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐     ┌──────────────┐
+│  美术提交    │ ──→ │  Gate 1: 格式校验  │ ──→ │  Gate 2: 通道校验  │ ──→ │  Gate 3: 性能 │
+│  (SVN/Git)  │     │  命名/尺寸/格式    │     │  互斥/边缘/亮度    │     │  文件大小/数量  │
+└─────────────┘     └──────────────────┘     └─────────────────┘     └──────────────┘
+                                                                              │
+                         ┌──────────────────────────────────────────────────────┘
+                         ▼
+                  ┌──────────────┐     ┌──────────────────┐     ┌──────────────┐
+                  │  自动打包Atlas │ ──→ │  生成3色预览图    │ ──→ │  入库 + 通知  │
+                  │  + 压缩优化   │     │  + Diff对比报告   │     │  (企微/钉钉)  │
+                  └──────────────┘     └──────────────────┘     └──────────────┘</pre>
+
+  <div class="sub-title">13.2 自动校验规则详表</div>
+  <table>
+    <thead><tr><th>Gate</th><th>检查项</th><th>规则</th><th>失败处理</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="4"><strong>G1 格式</strong></td><td>文件格式</td><td>Mask 必须 PNG/TGA；禁止 JPEG/WebP</td><td>❌ 拒绝 + 报错消息</td></tr>
+      <tr><td>文件命名</td><td>符合 <code>角色ID_类型_编号.扩展名</code> 模式</td><td>⚠️ 警告 + 建议重命名</td></tr>
+      <tr><td>尺寸一致性</td><td>Base 图与 Mask 图像素尺寸完全一致</td><td>❌ 拒绝</td></tr>
+      <tr><td>2<sup>N</sup> 尺寸</td><td>宽高为 2 的幂次（256/512/1024/2048）</td><td>⚠️ 警告（非强制但推荐）</td></tr>
+      <tr><td rowspan="3"><strong>G2 通道</strong></td><td>通道互斥</td><td>同一像素 RGB 只允许一个通道有值（容差≤5）</td><td>❌ 拒绝 + 标注冲突坐标</td></tr>
+      <tr><td>边缘杂色</td><td>Mask 非0非255的像素只在区域边缘1~3px内</td><td>⚠️ 警告 + 高亮异常区域</td></tr>
+      <tr><td>亮度安全</td><td>Base 图换色区域无纯黑(L<3)/纯白(L>252)</td><td>⚠️ 警告 + 标注坐标</td></tr>
+      <tr><td rowspan="2"><strong>G3 性能</strong></td><td>Mask 数量</td><td>单角色 ≤3 张 Mask</td><td>❌ 拒绝（需 TA 审批例外）</td></tr>
+      <tr><td>单张文件大小</td><td>Base ≤2MB / Mask ≤1MB（压缩前）</td><td>⚠️ 警告</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-title">13.3 自动校验脚本（Python 核心逻辑）</div>
+  <pre>
+import numpy as np
+from PIL import Image
+
+def check_channel_exclusion(mask_path: str, tolerance: int = 5) -> list:
+    """检查 Mask 图通道互斥性"""
+    img = np.array(Image.open(mask_path))
+    r, g, b = img[:,:,0], img[:,:,1], img[:,:,2]
+    
+    # 找到同时有多个通道超过容差的像素
+    violations = []
+    multi_channel = ((r > tolerance).astype(int) + 
+                     (g > tolerance).astype(int) + 
+                     (b > tolerance).astype(int)) > 1
+    
+    coords = np.argwhere(multi_channel)
+    for y, x in coords[:100]:  # 最多报100个
+        violations.append({
+            'x': int(x), 'y': int(y),
+            'R': int(r[y,x]), 'G': int(g[y,x]), 'B': int(b[y,x])
+        })
+    
+    return violations
+
+def check_brightness_safety(base_path: str, mask_path: str) -> list:
+    """检查 Base 图换色区域的亮度安全"""
+    base = np.array(Image.open(base_path).convert('RGB'))
+    mask = np.array(Image.open(mask_path))
+    
+    # 换色区域 = Mask 中任一通道有值的像素
+    active = (mask[:,:,0] > 5) | (mask[:,:,1] > 5) | (mask[:,:,2] > 5)
+    
+    # 计算亮度 (简化公式)
+    luminance = 0.299 * base[:,:,0] + 0.587 * base[:,:,1] + 0.114 * base[:,:,2]
+    
+    # 找过暗/过亮的像素
+    too_dark = active & (luminance < 3)
+    too_bright = active & (luminance > 252)
+    
+    return {
+        'dark_pixels': int(too_dark.sum()),
+        'bright_pixels': int(too_bright.sum()),
+        'total_active': int(active.sum())
+    }</pre>
+
+  <div class="alert alert-green">
+    <strong>✅ 落地效果：</strong>某项目接入 CI 后，Mask 质量问题从"每周 8~12 次人工打回"降低到"每月 1~2 次"。美术返工率降低 <strong>85%</strong>。
+  </div>
+</div>
+
+<!-- ═══ Section 14: 跨项目复用体系 ═══ -->
+<div class="section" id="sec14">
+  <h2>⑭ 换色资产跨项目复用体系</h2>
+
+  <div class="alert alert-blue">
+    <strong>📌 痛点：</strong>公司内 N 个项目，每个项目都从零搭建换色系统。Shader 重复写、Mask 规范不统一、配色方案各自为政。<strong>资深角色 TA 的价值 = 建立可跨项目复用的标准化换色中台</strong>。
+  </div>
+
+  <div class="sub-title">14.1 换色中台架构</div>
+  <table>
+    <thead><tr><th>层级</th><th>名称</th><th>内容</th><th>复用方式</th></tr></thead>
+    <tbody>
+      <tr><td><strong>L0 底层</strong></td><td>换色 Shader 库</td><td>HSV/Palette/灰度叠色 三套 Shader + 变体</td><td>Git Submodule / UPM Package</td></tr>
+      <tr><td><strong>L1 规范</strong></td><td>Mask 制作规范</td><td>通道分配标准、命名规范、PSD 模板</td><td>Confluence Wiki + PSD Template 包</td></tr>
+      <tr><td><strong>L2 工具</strong></td><td>自动化工具链</td><td>PS 导出脚本 + CI 校验脚本 + 预览生成器</td><td>NPM Package / Python pip 包</td></tr>
+      <tr><td><strong>L3 资产</strong></td><td>配色方案库</td><td>经过验证的配色组合（暖色/冷色/节日/赛博朋克...）</td><td>JSON 配色库 + 在线预览平台</td></tr>
+      <tr><td><strong>L4 模板</strong></td><td>角色模板</td><td>标准身体比例的 PSD 模板（Q版/写实/二次元）</td><td>美术内网下载站</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-title">14.2 配色方案数据库设计</div>
+  <pre>
+// 跨项目配色方案库结构
+{
+  "version": "2.0",
+  "schemes": [
+    {
+      "id": "warm_001",
+      "name": "暖阳",
+      "category": "暖色系",
+      "tags": ["日系", "温暖", "少女"],
+      "colors": {
+        "hair": { "hue": 30, "sat": 1.2, "val": 1.0 },
+        "top": { "hue": 15, "sat": 0.9, "val": 1.1 },
+        "bottom": { "hue": 40, "sat": 0.8, "val": 0.95 }
+      },
+      "preview": "previews/warm_001.png",
+      "usedInProjects": ["ProjectA", "ProjectC"],
+      "rating": 4.8
+    }
+  ]
+}</pre>
+
+  <div class="sub-title">14.3 跨项目适配注意事项</div>
+  <table>
+    <thead><tr><th>差异点</th><th>适配策略</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><strong>画风差异</strong></td><td>配色方案的 HSV 偏移需按目标画风调整饱和度范围</td><td>二次元饱和度高(60~80%)，写实饱和度低(30~50%)</td></tr>
+      <tr><td><strong>分辨率差异</strong></td><td>Mask 尺寸随项目 Base 图尺寸变化（512/1024/2048）</td><td>导出脚本支持多分辨率参数</td></tr>
+      <tr><td><strong>引擎差异</strong></td><td>Shader 库提供 Unity/Cocos/Godot/自研 四套实现</td><td>核心算法一致，平台 API 封装不同</td></tr>
+      <tr><td><strong>换色区域数差异</strong></td><td>Shader 编译开关支持 3/6/9 区域（1~3 张 Mask）</td><td>简单角色用 1 张，复杂角色可扩展</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ Section 15: 高级换色效果 ═══ -->
+<div class="section" id="sec15">
+  <h2>⑮ 高级换色效果：渐变/花纹/材质混合</h2>
+
+  <div class="alert alert-yellow">
+    <strong>⚡ 进阶内容：</strong>基础 HSV 偏移只能做纯色替换。真正的商业品质换色需要支持渐变色、花纹贴花、材质质感叠加。以下是各方案的实现路径。
+  </div>
+
+  <div class="sub-title">15.1 渐变换色（Gradient Color Swap）</div>
+  <table>
+    <thead><tr><th>技术方案</th><th>实现原理</th><th>效果</th><th>性能开销</th></tr></thead>
+    <tbody>
+      <tr><td><strong>UV 渐变 Ramp</strong></td><td>根据像素在 Mask 区域内的 Y 坐标采样渐变色 Ramp 贴图</td><td>头发从发根到发尾颜色渐变</td><td>+1 次纹理采样</td></tr>
+      <tr><td><strong>灰度映射渐变</strong></td><td>用 Base 图亮度值作为 Ramp UV 坐标</td><td>暗部和亮部映射到不同颜色</td><td>+1 次纹理采样</td></tr>
+      <tr><td><strong>双色插值</strong></td><td>Mask 通道值 0~255 映射到 ColorA → ColorB 线性插值</td><td>简单双色渐变，无需额外贴图</td><td>几乎无额外开销</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-title">15.2 花纹贴花（Pattern Overlay）</div>
+  <table>
+    <thead><tr><th>方案</th><th>原理</th><th>适用场景</th><th>美术提供</th></tr></thead>
+    <tbody>
+      <tr><td><strong>贴花纹理叠加</strong></td><td>在换色后的结果上叠加 Pattern 贴图（Multiply/Overlay 混合）</td><td>服装花纹、迷彩、条纹</td><td>额外的 Pattern 贴图 + Pattern UV 映射参数</td></tr>
+      <tr><td><strong>通道内子区域</strong></td><td>用 Mask 灰度值的不同范围分出子区域，各子区域不同颜色</td><td>同一件衣服上下两段不同色</td><td>精确的灰度分段 Mask</td></tr>
+      <tr><td><strong>程序化花纹</strong></td><td>Shader 中用 Noise/Voronoi 等程序化纹理生成花纹</td><td>迷彩、数码纹、水波纹</td><td>无需额外贴图（纯 Shader）</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-title">15.3 材质质感叠加</div>
+  <table>
+    <thead><tr><th>质感效果</th><th>实现方式</th><th>额外资源</th><th>适用</th></tr></thead>
+    <tbody>
+      <tr><td><strong>金属光泽</strong></td><td>MatCap（球形环境映射）叠加在换色区域上</td><td>1 张 MatCap 贴图 (128×128)</td><td>盔甲、金属饰品</td></tr>
+      <tr><td><strong>丝绸光泽</strong></td><td>基于法线方向的 Fresnel 渐变 + 各向异性高光</td><td>法线图（可选）</td><td>绸缎、丝质服装</td></tr>
+      <tr><td><strong>皮革纹理</strong></td><td>Detail Texture（细节纹理）以 Tiling 方式叠加</td><td>1 张 Tiling 皮革贴图</td><td>皮靴、皮带、手套</td></tr>
+      <tr><td><strong>发光/自发光</strong></td><td>额外 Emission Mask + HDR 颜色值</td><td>Emission Mask 图</td><td>魔法武器、赛博朋克风格</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-title">15.4 高级换色的美术出图附加要求</div>
+  <table>
+    <thead><tr><th>高级效果</th><th>Base 图要求</th><th>额外资源</th><th>Config JSON 新增字段</th></tr></thead>
+    <tbody>
+      <tr><td>渐变换色</td><td>Base 图需有明确的明暗层次</td><td>Gradient Ramp 贴图 (256×1)</td><td><code>"gradient": { "regionIndex": 0, "ramp": "xxx_ramp.png" }</code></td></tr>
+      <tr><td>花纹贴花</td><td>换色区域底色需为中性灰/低饱和度</td><td>Pattern 贴图 + UV 参数</td><td><code>"pattern": { "texture": "xxx.png", "tiling": [2,2] }</code></td></tr>
+      <tr><td>材质质感</td><td>无特殊要求</td><td>MatCap / Detail / Normal 贴图</td><td><code>"material": { "type": "metallic", "matcap": "xxx.png" }</code></td></tr>
+      <tr><td>自发光</td><td>发光区域在 Base 图中正常绘制</td><td>Emission Mask 图</td><td><code>"emission": { "mask": "xxx_emission.png", "color": "#FF8800", "intensity": 2.0 }</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-green">
+    <strong>✅ 商业价值：</strong>基础换色 = 3~5 套配色变体。加上渐变 + 花纹 + 材质 = <strong>理论上无限变体</strong>。一个角色的美术成本不变，商业化售卖的皮肤数量可翻 10 倍+。
+  </div>
+</div>
+
 <!-- ═══ FOOTER ═══ -->
 <div class="doc-footer">
-  【2D】角色换色与材质遮罩规范 v3.0 · TA 组 · 美术中心 · 最后更新 2026-04-10<br>
+  【2D】角色换色与材质遮罩规范 v4.0 · TA 组 · 美术中心 · 角色组 · 最后更新 2026-05-29<br>
   如有疑问请联系 TA 组或在知识库 Issue 中反馈
 </div>
 

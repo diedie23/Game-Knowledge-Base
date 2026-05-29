@@ -366,7 +366,7 @@
       "craft": "角色",
       "type": "iframe",
       "title": "2D 角色换色工业化全管线",
-      "desc": "三种换色方案对比（Mask+HSV / Palette Swap / 灰度叠色）、RGBA 通道互斥铁律、多 Mask 扩展、美术出图 SOP、通道分配与调色板约定、工具规范与资源生成标准",
+      "desc": "三种换色方案对比（Mask+HSV / Palette Swap / 灰度叠色）、RGBA 通道互斥铁律、多 Mask 扩展、PSD 拆分规范与自动导出工具链、引擎侧 Shader 实现（Unity/Cocos/自研）、CI/CD 自动化流水线、跨项目复用体系、高级换色效果（渐变/花纹/材质混合）",
       "tags": [
         "换色",
         "Mask",
@@ -407,8 +407,8 @@
       "module": "craft",
       "craft": "角色",
       "type": "iframe",
-      "title": "Spine 动画导出与性能排雷全指南",
-      "desc": "Spine 动画 10 项红线指标、骨骼/Mesh/Atlas 导出标准、7 大性能雷区深度解析、拆分工具 SOP、跨部门排查流程",
+      "title": "Spine 动画全链路规范",
+      "desc": "Spine 10 项红线指标、7 大性能雷区、角色动画状态机设计规范、换装系统技术方案（Skin 机制）、角色 LOD 分级策略、Spine 工程拆分合并、2D 角色制作全流程 SOP、多引擎集成最佳实践",
       "tags": [
         "Spine",
         "骨骼动画",
@@ -438,6 +438,48 @@
         "动画性能",
         "帧率",
         "内存"
+      ],
+      "content_type": "规范",
+      "quality_level": "premium"
+    },
+    {
+      "id": "2d-char-pipeline-overview",
+      "module": "craft",
+      "craft": "角色",
+      "type": "iframe",
+      "title": "2D 角色全链路制作管线总览",
+      "desc": "从企划到引擎的完整 2D 角色制作地图：9 阶段管线全景、原画设计规范、技术方案选型（Spine/Live2D）、资产规格矩阵、职能分工与协作边界、质量门禁体系、资产版本管理、行业对标",
+      "tags": [
+        "2D角色",
+        "管线",
+        "全链路",
+        "原画",
+        "Spine",
+        "Live2D",
+        "LOD",
+        "质量门禁",
+        "版本管理",
+        "职能分工"
+      ],
+      "icon": "👤",
+      "action": "openTool",
+      "path": "knowledge-base/2d-char-pipeline-overview.html",
+      "owner": "角色组",
+      "last_updated": "2026-05-29",
+      "applicable_stage": "全阶段",
+      "priority": "high",
+      "is_hot": true,
+      "keywords": [
+        "2D角色",
+        "制作管线",
+        "全链路",
+        "原画设计",
+        "PSD拆分",
+        "骨骼绑定",
+        "动画制作",
+        "质量门禁",
+        "LOD",
+        "版本管理"
       ],
       "content_type": "规范",
       "quality_level": "premium"
