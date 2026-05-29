@@ -87,13 +87,22 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="doc">
 
 <div class="doc-header">
-  <h1>⚡ UMG 生成技巧 <span class="ver">UI 规范 v1.0</span></h1>
-  <div class="subtitle">UMG/UGUI Performance Optimization — DrawCall &amp; Hierarchy Best Practices</div>
+  <h1>⚡ UMG 生成技巧 <span class="ver">UI 规范 v2.0</span></h1>
+  <div class="subtitle">UMG 全链路工业化指南 — 从设计稿还原 · 性能优化 · 图集策略 · 多端适配 · 动效规范 · 团队协作</div>
   <div class="meta">
     <span>📋 适用：UE5 UMG / Unity UGUI / Cocos</span>
     <span>👤 维护：UI 程序 · TA 组</span>
-    <span>📅 2026-04-02</span>
+    <span>📅 2026-05-29 (v2.0 升级)</span>
   </div>
+</div>
+
+<div class="alert alert-blue" style="margin-bottom:20px;border:1px solid rgba(108,140,255,.3)">
+  <strong>📎 UI 模块导航：</strong>
+  拼接实操字典 → <a href="ue-layout-tutorial.html" style="color:var(--accent);font-weight:600">UE5 UMG 拼接详细指南</a> ·
+  蓝图结构检查 → <a href="umg-checker.html" style="color:var(--accent);font-weight:600">UMG Checker 工具</a> ·
+  切图命名规范 → <a href="ui-slice-naming.html" style="color:var(--accent);font-weight:600">切图与命名</a> ·
+  Layout 拼接 → <a href="ui-layout.html" style="color:var(--accent);font-weight:600">Layout 拼接规范</a> ·
+  9宫格/颜色 → <a href="ui-9slice-color.html" style="color:var(--accent);font-weight:600">9宫格与颜色空间</a>
 </div>
 
 <div class="toc">
@@ -106,6 +115,11 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#sec5">标准作业流程 SOP</a></li>
     <li><a href="#sec6">常见问题排查 FAQ</a></li>
     <li><a href="#sec7">如何提升 AI 生成 UE UMG 界面的准确率（Prompt 编写指南）</a></li>
+    <li><a href="#sec8">设计稿→引擎还原：拼接方法论</a></li>
+    <li><a href="#sec9">Atlas 图集规划与合批实战策略</a></li>
+    <li><a href="#sec10">多分辨率/异形屏/折叠屏适配实战</a></li>
+    <li><a href="#sec11">UI 动效性能预算与实现规范</a></li>
+    <li><a href="#sec12">团队协作与 Widget 复用体系</a></li>
   </ol>
 </div>
 
@@ -556,7 +570,299 @@ Logo 和第一个输入框之间可以稍微大一点间距（如 24px），
 
 </div>
 
-<div class="doc-footer">⚡ UMG 生成技巧 · UI 规范 v1.0 · UI程序 + TA组 · 项目内部资料</div>
+<!-- SEC8 -->
+<div class="section" id="sec8">
+  <h2>🎯 8. 设计稿→引擎还原：拼接方法论</h2>
+
+  <div class="alert alert-blue">
+    <strong>📌 核心理念：</strong>界面拼接还原不是"照着设计稿摆控件"，而是一套<strong>结构化解构→分层映射→参数校验</strong>的系统工程。资深拼接师的核心能力是"<strong>看到设计稿的第一秒就知道如何拆解层级</strong>"。
+  </div>
+
+  <div class="sub-title">8.1 五步还原法（从 Figma/PSD 到 UMG）</div>
+  <div class="flow">
+    <div class="flow-node start"><strong>S1: 结构解构</strong><div class="sub">识别容器边界</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>S2: 层级映射</strong><div class="sub">确定Widget类型</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>S3: 尺寸标注</strong><div class="sub">提取间距/大小</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node"><strong>S4: 资产切图</strong><div class="sub">图集规划/9宫格</div></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node end"><strong>S5: 引擎搭建</strong><div class="sub">参数还原/自检</div></div>
+  </div>
+
+  <table>
+    <tr><th>步骤</th><th>核心动作</th><th>产出物</th><th>常见错误</th></tr>
+    <tr><td><strong>S1 结构解构</strong></td><td>用矩形框圈出设计稿中每个独立功能区域（标题栏/内容区/按钮栏/列表项），识别嵌套层级</td><td>手绘/标注版层级框图</td><td>把所有元素平铺在 Canvas Panel 上（无层级概念）</td></tr>
+    <tr><td><strong>S2 层级映射</strong></td><td>将每个框映射到 UMG Widget 类型：<br>垂直排列→VBox、水平排列→HBox、层叠→Overlay、绝对定位→Canvas Panel、网格→Grid/WrapBox</td><td>Widget 树状图（含类型+命名）</td><td>滥用 Canvas Panel 绝对坐标（导致多分辨率崩溃）</td></tr>
+    <tr><td><strong>S3 尺寸标注</strong></td><td>从设计稿量取：外边距(Margin)、内边距(Padding)、元素固定尺寸、Fill比例、字号</td><td>标注数据表（px值/比例）</td><td>用"眼睛看差不多"代替精确数值</td></tr>
+    <tr><td><strong>S4 资产切图</strong></td><td>识别可复用9宫格、纯色可Code替代的区域、需单独切图的元素、Atlas归属</td><td>切图清单 + Atlas规划</td><td>每个图标单独一张贴图（DC爆炸）</td></tr>
+    <tr><td><strong>S5 引擎搭建</strong></td><td>在 UMG Editor 中按树结构搭建，逐节点设置参数，最后叠加截图对比</td><td>完成的 WBP + 对比截图</td><td>不做截图叠加对比（像素级偏差不自知）</td></tr>
+  </table>
+
+  <div class="sub-title">8.2 结构解构的黄金法则</div>
+  <table>
+    <tr><th>设计稿特征</th><th>映射到 UMG</th><th>判定依据</th></tr>
+    <tr><td>元素从上到下排列、间距均匀</td><td><code>Vertical Box</code></td><td>元素高度各异，宽度相同或 Fill</td></tr>
+    <tr><td>元素从左到右排列</td><td><code>Horizontal Box</code></td><td>元素宽度各异，高度相同或 Fill</td></tr>
+    <tr><td>多个元素层叠（如背景+内容+蒙版）</td><td><code>Overlay</code></td><td>同一区域的 Z 轴堆叠</td></tr>
+    <tr><td>元素必须固定在屏幕某个角/某个绝对位置</td><td><code>Canvas Panel</code> + Anchor</td><td>HUD 类、不受布局流影响的元素</td></tr>
+    <tr><td>等尺寸小格子排列（如背包、技能栏）</td><td><code>Uniform Grid Panel</code> / <code>Wrap Box</code></td><td>所有子项尺寸相同，自动换行</td></tr>
+    <tr><td>列表数据量 > 20 且会滚动</td><td><code>List View</code>（虚拟化）</td><td>数据驱动、运行时数量不固定</td></tr>
+    <tr><td>固定少量子项(≤10)的滚动</td><td><code>Scroll Box</code></td><td>子项数量固定且少</td></tr>
+    <tr><td>子元素需要强制固定宽高（如图标48×48）</td><td><code>Size Box</code> 包裹</td><td>防止父布局拉伸子元素</td></tr>
+  </table>
+
+  <div class="sub-title">8.3 像素级还原对比技巧</div>
+  <table>
+    <tr><th>方法</th><th>操作</th><th>精度</th></tr>
+    <tr><td><strong>截图叠加法</strong></td><td>引擎截图→PS叠加设计稿→差异模式(Difference)→全黑=完美还原</td><td>最高（像素级）</td></tr>
+    <tr><td><strong>Snipping 对比</strong></td><td>左右并排截图，肉眼快速扫描大面积偏差</td><td>中等（5px+偏差可见）</td></tr>
+    <tr><td><strong>红线标注法</strong></td><td>在引擎中开启 Widget Reflector 的边框显示，对比设计稿标注线</td><td>高（结构层面）</td></tr>
+    <tr><td><strong>DPI缩放测试</strong></td><td>切换 100%/125%/150% DPI Scale，检查是否崩溃</td><td>适配层面</td></tr>
+  </table>
+
+  <div class="alert alert-yellow"><strong>⚠️ 资深经验：</strong>还原精度目标不是100%像素完美——<strong>≤2px偏差视为达标</strong>。花80%时间追最后2px性价比极低，优先保证：① 结构层级正确 ② 间距比例正确 ③ 交互区域尺寸正确。</div>
+
+  <div class="sub-title">8.4 设计稿中常见"陷阱"及应对</div>
+  <table>
+    <tr><th>设计稿陷阱</th><th>问题本质</th><th>正确应对</th></tr>
+    <tr><td>设计稿用绝对坐标标注所有元素位置</td><td>设计师习惯 Figma 的绝对布局，但 UMG 需响应式</td><td>忽略绝对坐标，<strong>分析排布规律</strong>，用 VBox/HBox + Padding 还原</td></tr>
+    <tr><td>设计稿中文字用了系统不存在的字体</td><td>引擎内字体渲染宽度不同，导致换行位置不一致</td><td>提前确认项目字体，用 <code>Font Size + Letter Spacing</code> 微调</td></tr>
+    <tr><td>设计稿出现半像素值（如 0.5px 描边）</td><td>引擎不支持亚像素渲染</td><td>向上取整到 1px，或用 Material 实现</td></tr>
+    <tr><td>设计稿按钮只给了一种状态</td><td>缺少 Hovered / Pressed / Disabled 态</td><td>主动找设计师补充 4 态资源，否则先用程序渐变处理</td></tr>
+    <tr><td>设计稿颜色空间是 sRGB（Display P3）</td><td>引擎默认 Linear，颜色会偏暗</td><td>导入时确认 sRGB 标记正确；颜色值用 Hex 对照而非吸管</td></tr>
+  </table>
+</div>
+
+<!-- SEC9 -->
+<div class="section" id="sec9">
+  <h2>🎨 9. Atlas 图集规划与合批实战策略</h2>
+
+  <div class="alert alert-blue">
+    <strong>📌 核心理念：</strong>UI 性能优化 70% 靠图集规划。一张规划合理的 Atlas 可以让整个页面 DC=1~3；一套规划混乱的散图会让简单页面也飙到 DC=40+。</div>
+
+  <div class="sub-title">9.1 图集分组策略</div>
+  <table>
+    <tr><th>分组维度</th><th>Atlas 命名</th><th>包含内容</th><th>尺寸建议</th></tr>
+    <tr><td><strong>全局通用</strong></td><td><code>Atlas_Common</code></td><td>关闭按钮、返回箭头、通用图标(金币/钻石/体力)、通用边框9宫格</td><td>1024×1024</td></tr>
+    <tr><td><strong>功能模块</strong></td><td><code>Atlas_Shop</code> / <code>Atlas_Bag</code></td><td>该页面专属的装饰元素、Tab图标、品质框</td><td>1024×1024 或 2048×1024</td></tr>
+    <tr><td><strong>HUD 战斗</strong></td><td><code>Atlas_BattleHUD</code></td><td>血条/蓝条/技能框/Buff图标/准星</td><td>1024×1024（常驻内存）</td></tr>
+    <tr><td><strong>字体图标</strong></td><td><code>Atlas_IconFont</code></td><td>小型单色图标(16~32px)，用 Slate Brush Tint 变色</td><td>512×512</td></tr>
+    <tr><td><strong>临时/大图</strong></td><td>不打Atlas</td><td>全屏背景、立绘、Loading图</td><td>单张独立管理</td></tr>
+  </table>
+
+  <div class="redline">
+    <p><strong>📌 铁律 #1</strong>：同一个界面内<strong>同时显示的元素</strong>必须在同一张 Atlas 中（或在相邻层级确保不打断合批）。</p>
+    <p><strong>📌 铁律 #2</strong>：Atlas 尺寸<strong>不超过 2048×2048</strong>（移动端兼容性底线）。优先用多张 1024×1024 而非一张 4096×4096。</p>
+    <p><strong>📌 铁律 #3</strong>：9宫格资源单独一个 Atlas Group，避免因 Padding/Margin 浪费过多空间。</p>
+  </div>
+
+  <div class="sub-title">9.2 合批顺序优化实战</div>
+  <pre>
+❌ 错误排列（DC = 5）:
+VBox
+├── Image_Icon (Atlas_A)      ← DC 1
+├── Text_Name                 ← DC 2（字体Atlas）
+├── Image_Frame (Atlas_A)     ← DC 3（被Text打断，无法与Icon合批）
+├── Text_Desc                 ← DC 4
+└── Image_Btn (Atlas_A)       ← DC 5
+
+✅ 正确排列（DC = 2）:
+Overlay
+├── VBox_Images (Hit Test Invisible)
+│   ├── Image_Icon (Atlas_A)      ← ┐
+│   ├── Image_Frame (Atlas_A)     ← ├ DC 1（连续同Atlas → 合批！）
+│   └── Image_Btn (Atlas_A)       ← ┘
+└── VBox_Texts (Self Hit Test Invisible)
+    ├── Text_Name                  ← ┐
+    └── Text_Desc                  ← ┘ DC 2（连续Text → 合批！）
+  </pre>
+  <div class="alert alert-green"><strong>✅ 实操技巧：</strong>当无法调整视觉层级时，使用 <code>Retainer Box</code> 将混合区域先渲染到离屏 RT（1 DC），再作为单张 Image 参与主 Pass 合批。代价：多 1 张 RT 内存，适用于复杂但不常变化的子树。</div>
+
+  <div class="sub-title">9.3 9宫格切图规范</div>
+  <table>
+    <tr><th>场景</th><th>切图要求</th><th>UMG 设置</th><th>常见错误</th></tr>
+    <tr><td>圆角面板背景</td><td>保留四角圆角区域 + 1px可拉伸带</td><td><code>Draw As: Box</code>, 设置 Margin (L/T/R/B)</td><td>Margin值设错导致圆角变形</td></tr>
+    <tr><td>带描边的按钮</td><td>保留描边粗细 + 内部纯色区至少2px</td><td>同上，Margin = 描边宽度 + 圆角半径</td><td>拉伸时描边粗细不均</td></tr>
+    <tr><td>渐变边框</td><td>无法9宫格！渐变方向会被打断</td><td>用 <code>Material</code> 实现或全图不切</td><td>强行9宫格导致渐变断裂</td></tr>
+    <tr><td>对话气泡（带箭头）</td><td>箭头放在不拉伸区域内（通常是底边）</td><td>Margin 设置避开箭头区域</td><td>箭头被拉伸变大</td></tr>
+  </table>
+
+  <div class="sub-title">9.4 切图尺寸精简策略</div>
+  <table>
+    <tr><th>设计稿元素</th><th>新手做法</th><th>资深做法</th><th>内存节省</th></tr>
+    <tr><td>纯色矩形背景</td><td>切一张 200×100 的图</td><td>用 1×1 白色像素 + Tint 着色</td><td>99.99%</td></tr>
+    <tr><td>单色渐变</td><td>切完整渐变图</td><td>2×1 像素条 + Image Stretch</td><td>95%+</td></tr>
+    <tr><td>对称图标</td><td>切完整图标</td><td>切1/4 + Render Transform 镜像</td><td>75%</td></tr>
+    <tr><td>可9宫格面板</td><td>切完整面板 400×300</td><td>切最小9宫格源（~64×64）</td><td>95%+</td></tr>
+    <tr><td>品质色框(5个颜色)</td><td>5张不同颜色的图</td><td>1张白色框 + 5种 Tint Color</td><td>80%</td></tr>
+  </table>
+</div>
+
+<!-- SEC10 -->
+<div class="section" id="sec10">
+  <h2>📱 10. 多分辨率/异形屏/折叠屏适配实战</h2>
+
+  <div class="alert alert-red"><strong>⛔ 适配红线：</strong>UI 在以下任一分辨率下出现元素溢出屏幕、重叠、文字截断，均判定为<strong>不合格</strong>，禁止合入。</div>
+
+  <div class="sub-title">10.1 必须验证的分辨率矩阵</div>
+  <table>
+    <tr><th>设备类型</th><th>分辨率</th><th>宽高比</th><th>重点验证</th></tr>
+    <tr><td>标准手机</td><td>1920×1080</td><td>16:9</td><td>基准设计稿</td></tr>
+    <tr><td>全面屏手机</td><td>2400×1080</td><td>20:9</td><td>左右边缘是否有空白/元素偏移</td></tr>
+    <tr><td>超宽屏手机</td><td>2560×1080</td><td>21:9</td><td>HUD 元素间距是否过大</td></tr>
+    <tr><td>iPad 竖屏</td><td>2048×1536</td><td>4:3</td><td>上下空间多出、元素是否过于分散</td></tr>
+    <tr><td>iPad Pro 横屏</td><td>2732×2048</td><td>4:3</td><td>同上 + 字号是否过小</td></tr>
+    <tr><td>折叠屏展开</td><td>2176×1812</td><td>~6:5</td><td>近正方形比例，布局是否合理</td></tr>
+    <tr><td>PC 标准</td><td>1920×1080</td><td>16:9</td><td>鼠标点击区域足够大</td></tr>
+    <tr><td>PC 超宽</td><td>3440×1440</td><td>21:9</td><td>居中弹窗不变形，背景铺满</td></tr>
+  </table>
+
+  <div class="sub-title">10.2 安全区与刘海屏处理</div>
+  <table>
+    <tr><th>区域类型</th><th>UMG 实现</th><th>说明</th></tr>
+    <tr><td><strong>Safe Zone</strong>（安全区）</td><td><code>Safe Zone</code> 控件包裹内容</td><td>自动避开刘海、底部手势条、状态栏</td></tr>
+    <tr><td><strong>系统状态栏区域</strong></td><td>顶部预留 44px（iOS）/ 24~48px（Android）</td><td>或直接用 Safe Zone 自动处理</td></tr>
+    <tr><td><strong>底部手势条</strong></td><td>底部预留 34px（iOS）/ 20px（Android）</td><td>关键按钮不可放在此区域</td></tr>
+    <tr><td><strong>折叠屏铰链区</strong></td><td>中间 60px 范围避免放置关键交互元素</td><td>折叠屏展开态铰链处有物理缝隙</td></tr>
+  </table>
+
+  <div class="sub-title">10.3 DPI Scale 策略选择</div>
+  <table>
+    <tr><th>策略</th><th>UE5 设置</th><th>效果</th><th>适用场景</th></tr>
+    <tr><td><strong>Shortest Side</strong></td><td><code>DPI Scaling Rule = Shortest Side</code>，基准 1080</td><td>以短边为基准缩放，长边方向出现安全区留白</td><td>手游（竖屏/横屏均可）</td></tr>
+    <tr><td><strong>Longest Side</strong></td><td><code>DPI Scaling Rule = Longest Side</code>，基准 1920</td><td>以长边为基准，短边方向可能被裁切</td><td>PC 端为主的游戏</td></tr>
+    <tr><td><strong>自定义曲线</strong></td><td><code>DPI Curve</code> 自定义缩放曲线</td><td>在不同分辨率区间使用不同缩放因子</td><td>需要精细控制的跨平台游戏</td></tr>
+  </table>
+
+  <div class="sub-title">10.4 响应式布局策略决策树</div>
+  <table>
+    <tr><th>设计意图</th><th>UMG 方案</th><th>核心参数</th></tr>
+    <tr><td>元素始终在某个角（如右上角货币栏）</td><td>Canvas Panel + Anchor TopRight</td><td>Offset 相对右上偏移固定 px</td></tr>
+    <tr><td>底部按钮栏宽度铺满、高度固定</td><td>Anchor H-Fill Bottom + Size Y 固定</td><td>Auto Size = X only</td></tr>
+    <tr><td>弹窗始终居中且宽度不超过屏幕80%</td><td>Anchor Center + Size Box (Max Width)</td><td>Size Box Width Override = Min(设计宽, 屏幕宽×0.8)</td></tr>
+    <tr><td>宽屏时分栏、窄屏时上下堆叠</td><td>蓝图判断宽高比切换布局</td><td><code>OnScreenResized</code> 事件 → 切换 Widget Switcher</td></tr>
+    <tr><td>不同 DPI 下字号保持可读性</td><td>Font Size 基准 + DPI Curve 联动</td><td>最小 12pt，最大 18pt</td></tr>
+  </table>
+
+  <div class="alert alert-yellow"><strong>⚠️ 折叠屏实战经验：</strong>折叠屏展开后宽高比接近 1:1（如 6:5），传统 16:9 横版布局会出现大面积空白。解决方案：① HUD 元素向中心收缩（Anchor 改为相对比例） ② 对话/商城等全屏面板加 Max Width 限制 ③ 背景用 <code>Scale to Fill</code> 裁切而非拉伸。</div>
+</div>
+
+<!-- SEC11 -->
+<div class="section" id="sec11">
+  <h2>✨ 11. UI 动效性能预算与实现规范</h2>
+
+  <div class="alert alert-red"><strong>⛔ 动效性能红线：</strong>UI 动画导致的额外 GPU 开销不得超过帧预算的 <strong>10%</strong>（60fps 游戏 = 1.6ms 以内）。</div>
+
+  <div class="sub-title">11.1 动效方案选型</div>
+  <table>
+    <tr><th>动效类型</th><th>实现方式</th><th>性能开销</th><th>适用场景</th></tr>
+    <tr><td>位移/缩放/旋转/透明度</td><td><code>Widget Animation</code>（UMG内置）</td><td><span class="badge badge-green">极低</span></td><td>弹窗弹入、按钮缩放反馈、淡入淡出</td></tr>
+    <tr><td>颜色渐变/色相循环</td><td><code>Widget Animation</code> Color Track</td><td><span class="badge badge-green">低</span></td><td>按钮 Hover 色变、品质光效</td></tr>
+    <tr><td>复杂路径动画</td><td><code>UMG Sequence</code> / Blueprint Timeline</td><td><span class="badge badge-yellow">中</span></td><td>引导手指动画、复杂轨迹移动</td></tr>
+    <tr><td>粒子/光效叠加</td><td><code>Retainer Box</code> + Material 动效</td><td><span class="badge badge-yellow">中高</span></td><td>抽卡光效、稀有品质高光扫过</td></tr>
+    <tr><td>Spine/序列帧</td><td>Spine Widget / Flipbook Image</td><td><span class="badge badge-red">高</span></td><td>角色立绘动态、Loading动画</td></tr>
+    <tr><td>全屏后处理转场</td><td>Post Process Material</td><td><span class="badge badge-red">极高</span></td><td>场景切换、全屏闪白/模糊</td></tr>
+  </table>
+
+  <div class="sub-title">11.2 动效优化红黑榜</div>
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't — 每个列表项都带循环动画</h4>
+      <p><strong>问题</strong>：背包 60 个格子每个都有"呼吸光效"循环 Material 动画，60 个 Material Instance 每帧更新参数。</p>
+      <p><strong>后果</strong>：GPU 60 次 Material Evaluate + 打断合批 → DC 60+，帧率暴跌。</p>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ Do — 仅选中项播放动效</h4>
+      <p><strong>方案</strong>：默认全部静态（无动画）。仅当 Item 被选中/获得时，该单个 Item 播放一次性动画，结束后回到静态。循环光效最多同时 ≤ 3 个。</p>
+    </div>
+  </div>
+  <div class="dd-grid">
+    <div class="dd-card dd-dont">
+      <h4>❌ Don't — Tick 中每帧 SetRenderTranslation</h4>
+      <p><strong>问题</strong>：在 Blueprint Tick 中手动计算 Sin 曲线做浮动动画，即使 UI 不可见也在每帧执行。</p>
+      <p><strong>后果</strong>：不可见时仍消耗 CPU；可见时因每帧修改触发 Invalidation（如果在 Invalidation Box 内）。</p>
+    </div>
+    <div class="dd-card dd-do">
+      <h4>✅ Do — 使用 Widget Animation + Visibility 控制</h4>
+      <p><strong>方案</strong>：用 <code>Widget Animation</code> 的 Looping 功能驱动浮动。UI 不可见时自动 Pause Animation。进入 Invalidation Box 时，将动画元素放在独立高频层。</p>
+    </div>
+  </div>
+
+  <div class="sub-title">11.3 动效时间预算分配</div>
+  <table>
+    <tr><th>动效类型</th><th>推荐时长</th><th>缓动曲线</th><th>说明</th></tr>
+    <tr><td>弹窗弹入</td><td>200~300ms</td><td>EaseOutBack（轻微过冲）</td><td>过冲量 ≤ 10%，给用户"弹性"感</td></tr>
+    <tr><td>弹窗关闭</td><td>150~200ms</td><td>EaseInCubic（加速消失）</td><td>关闭比打开快——"用完即走"</td></tr>
+    <tr><td>页面切换</td><td>200~250ms</td><td>EaseInOutQuad</td><td>同时做旧页淡出 + 新页淡入</td></tr>
+    <tr><td>按钮点击反馈</td><td>80~120ms</td><td>EaseOutQuad</td><td>缩放到 0.9 → 回弹到 1.0</td></tr>
+    <tr><td>列表项入场</td><td>每项间隔 30~50ms</td><td>EaseOutCubic</td><td>瀑布式依次入场，总时长 ≤ 500ms</td></tr>
+    <tr><td>Toast/提示条</td><td>出现 200ms + 停留 2s + 消失 300ms</td><td>出 EaseOut / 消 EaseIn</td><td>停留时间 ≥ 文字阅读时间</td></tr>
+  </table>
+
+  <div class="alert alert-green"><strong>✅ 体验金律：</strong>所有动效时长之和（一次交互触发的连续动画）<strong>不超过 600ms</strong>。超过 600ms 用户会感觉"卡顿/拖沓"。核心路径（如战斗中捡装备）的动效总时长 ≤ 300ms。</div>
+</div>
+
+<!-- SEC12 -->
+<div class="section" id="sec12">
+  <h2>🤝 12. 团队协作与 Widget 复用体系</h2>
+
+  <div class="alert alert-blue">
+    <strong>📌 核心问题：</strong>UI 开发是多人协作最容易产生"<strong>重复造轮子</strong>"的领域。没有复用体系时，10 个界面可能各自独立实现了 10 遍相同样式的按钮。
+  </div>
+
+  <div class="sub-title">12.1 Widget 复用层级体系</div>
+  <table>
+    <tr><th>层级</th><th>名称</th><th>示例</th><th>修改权限</th></tr>
+    <tr><td>L0 - 原子</td><td>基础控件（不可再拆）</td><td>Btn_Primary、Txt_H1、Icon_24、Divider</td><td>仅 UI Lead 可改</td></tr>
+    <tr><td>L1 - 分子</td><td>原子组合的通用组件</td><td>ItemSlot（图标+品质框+数量）、PlayerBrief（头像+名字+等级）</td><td>UI Lead 审核后可改</td></tr>
+    <tr><td>L2 - 组织</td><td>分子组合的功能区块</td><td>TabBar、DialogHeader、ListItem_Horizontal</td><td>模块负责人可改</td></tr>
+    <tr><td>L3 - 页面</td><td>完整界面（引用 L0~L2 搭建）</td><td>WBP_Shop、WBP_BattleHUD、WBP_Settings</td><td>业务开发者自建</td></tr>
+  </table>
+
+  <div class="redline">
+    <p><strong>📌 复用铁律 #1</strong>：L0/L1 组件<strong>禁止在业务 WBP 中 Copy-Paste</strong>，必须通过<strong>引用 User Widget</strong> 的方式使用。修改 L0 = 全局更新。</p>
+    <p><strong>📌 复用铁律 #2</strong>：同一个视觉元素如果在 ≥ 3 个界面出现，<strong>必须提取为 L1 组件</strong>。</p>
+    <p><strong>📌 复用铁律 #3</strong>：L0/L1 组件使用<strong>暴露参数（Expose on Spawn）</strong>实现差异化，禁止通过继承分裂出多个变体。</p>
+  </div>
+
+  <div class="sub-title">12.2 多人协作防冲突规范</div>
+  <table>
+    <tr><th>问题</th><th>原因</th><th>解决方案</th></tr>
+    <tr><td>两人同时修改同一个 WBP 导致合并冲突</td><td>UE Widget Blueprint 是二进制格式，无法文本Merge</td><td>① 按功能模块拆分 WBP（一人负责一个子 Widget） ② 使用 <code>Git LFS Lock</code> 锁文件</td></tr>
+    <tr><td>命名风格不统一</td><td>缺少强制规范</td><td>提交前运行 <code>UMG Checker</code> 自动检查命名合规 → 不过不许提交</td></tr>
+    <tr><td>引用断裂（重命名/移动文件后引用丢失）</td><td>硬路径引用</td><td>使用 <code>Redirector</code> 机制；重命名必须在编辑器内操作（Fix Up Redirectors）</td></tr>
+    <tr><td>Atlas 图集冲突</td><td>多人同时向同一 Atlas 添加切图</td><td>一个 Atlas 指定唯一负责人；新增切图走 PR 审核</td></tr>
+    <tr><td>重复创建相同组件</td><td>不知道已有可复用组件</td><td>维护<strong>组件库文档</strong>（Storybook 式的 Widget 目录页），新建 Widget 前必须先查</td></tr>
+  </table>
+
+  <div class="sub-title">12.3 UI 资产提交 Checklist</div>
+  <table>
+    <tr><th>#</th><th>检查项</th><th>通过标准</th><th>检查方式</th></tr>
+    <tr><td>1</td><td>命名规范</td><td>所有节点符合 §7.3 命名前缀</td><td>UMG Checker 自动检查</td></tr>
+    <tr><td>2</td><td>嵌套深度</td><td>≤ 10 层（推荐 ≤ 6 层）</td><td>UMG Checker 自动检查</td></tr>
+    <tr><td>3</td><td>节点总数</td><td>≤ 页面类型对应预算</td><td>Widget Reflector 计数</td></tr>
+    <tr><td>4</td><td>DC 数量</td><td>≤ 50（推荐 ≤ 30）</td><td><code>stat slate</code></td></tr>
+    <tr><td>5</td><td>Visibility 设置</td><td>装饰元素 = Hit Test Invisible</td><td>逐节点抽查</td></tr>
+    <tr><td>6</td><td>动静分离</td><td>高频元素不在 Invalidation Box 内</td><td>Invalidation Debugging</td></tr>
+    <tr><td>7</td><td>多分辨率</td><td>16:9 / 20:9 / 4:3 三种比例下无溢出</td><td>Preview 切换分辨率</td></tr>
+    <tr><td>8</td><td>Safe Zone</td><td>全屏界面使用了 Safe Zone 控件</td><td>目视检查</td></tr>
+    <tr><td>9</td><td>复用合规</td><td>未 Copy-Paste L0/L1 组件代码</td><td>CR 审核</td></tr>
+    <tr><td>10</td><td>图集归属</td><td>新切图已归入正确 Atlas Group</td><td>资产目录检查</td></tr>
+  </table>
+
+  <div class="sub-title">12.4 版本迭代中的 UI 资产管理</div>
+  <table>
+    <tr><th>场景</th><th>操作规范</th><th>禁止事项</th></tr>
+    <tr><td>新增界面</td><td>先查组件库 → 引用 L0~L2 搭建 → 提交前跑 Checker</td><td>禁止从其他 WBP 中 Duplicate 子树（引用会断裂）</td></tr>
+    <tr><td>修改通用组件(L0/L1)</td><td>评估影响面 → 全局搜索引用 → 回归测试所有引用页面</td><td>禁止不做影响面分析直接改（可能破坏 N 个页面）</td></tr>
+    <tr><td>删除/废弃资源</td><td>标记 Deprecated + 留一个版本过渡 → 下个迭代真正删除</td><td>禁止直接删除（可能有运行时 Soft Reference）</td></tr>
+    <tr><td>大版本 UI 改版</td><td>新建平行目录 <code>UI_V2/</code>，逐页面迁移，保持旧版可回退</td><td>禁止在原地直接大改（回退困难）</td></tr>
+  </table>
+</div>
+
+<div class="doc-footer">⚡ UMG 生成技巧 · UI 规范 v2.0 · UI程序 + TA组 · 项目内部资料</div>
 </div>
 <script src="editor-kit.js"></script>
 <script src="toc-enhancer.js?v=1.1"></script>
