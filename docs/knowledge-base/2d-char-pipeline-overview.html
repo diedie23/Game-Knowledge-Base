@@ -88,12 +88,12 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="doc">
 
 <div class="doc-header">
-  <h1>👤 2D 角色全链路制作管线总览 <span class="ver">v1.0</span></h1>
-  <div class="subtitle">2D Character Production Pipeline — 从企划到引擎的完整角色制作地图</div>
+  <h1>👤 2D 角色全链路制作管线总览 <span class="ver">v2.0</span></h1>
+  <div class="subtitle">2D Character Production Pipeline — 管线全景 · PM 排期 · 成本核算 · 风险管理 · 外包体系 · 数据度量</div>
   <div class="meta">
     <span>📋 适用：2D/Spine/Live2D 角色制作</span>
-    <span>👤 维护：角色组 · TA 组 · 美术中心</span>
-    <span>📅 2026-05-29</span>
+    <span>👤 维护：角色组 · TA 组 · 美术中心 · PM</span>
+    <span>📅 2026-05-29 (v2.0 PM 视角升级)</span>
   </div>
 </div>
 
@@ -116,6 +116,12 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#sec6">质量门禁与里程碑验收</a></li>
     <li><a href="#sec7">角色资产版本管理</a></li>
     <li><a href="#sec8">行业对标与进阶参考</a></li>
+    <li><a href="#sec9">PM 排期模型与甘特图模板</a></li>
+    <li><a href="#sec10">角色成本核算与 ROI 分析</a></li>
+    <li><a href="#sec11">风险管理矩阵与预案机制</a></li>
+    <li><a href="#sec12">外包管理与质量验收体系</a></li>
+    <li><a href="#sec13">数据度量 KPI 与效率看板</a></li>
+    <li><a href="#sec14">商业化决策框架与版本规划</a></li>
   </ol>
 </div>
 
@@ -408,9 +414,337 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </div>
 </div>
 
+<!-- ═══ Section 9: PM 排期模型 ═══ -->
+<div class="section" id="sec9">
+  <h2>⑨ PM 排期模型与甘特图模板</h2>
+
+  <div class="alert alert-blue">
+    <strong>📌 PM 核心痛点：</strong>"角色什么时候能做完？""并行几个角色不会阻塞？""哪个阶段经常延期？"——这些问题需要<strong>量化的排期模型</strong>，而不是靠感觉估时间。
+  </div>
+
+  <div class="sub-title">9.1 单角色排期基准（人天）</div>
+  <table>
+    <tr><th>阶段</th><th>最小值</th><th>标准值</th><th>上限值</th><th>并行度</th><th>前置依赖</th><th>延期风险</th></tr>
+    <tr><td><strong>P1 需求定义</strong></td><td>0.25d</td><td>0.5d</td><td>1d</td><td>可并行</td><td>—</td><td class="gv">低</td></tr>
+    <tr><td><strong>P2 原画设计</strong></td><td>2d</td><td>3d</td><td>5d</td><td>独占1人</td><td>P1</td><td class="rv">高（返修多）</td></tr>
+    <tr><td><strong>P3 PSD 拆分</strong></td><td>0.25d</td><td>0.5d</td><td>1d</td><td>可外包</td><td>P2</td><td class="gv">低</td></tr>
+    <tr><td><strong>P4 骨骼绑定</strong></td><td>0.5d</td><td>1d</td><td>2d</td><td>独占1人</td><td>P3</td><td class="yv">中</td></tr>
+    <tr><td><strong>P5 动画制作</strong></td><td>2d</td><td>4d</td><td>7d</td><td>独占1人</td><td>P4</td><td class="rv">高（连招调试）</td></tr>
+    <tr><td><strong>P6 换色/换装</strong></td><td>0.5d</td><td>1d</td><td>2d</td><td>可并行</td><td>P5</td><td class="yv">中</td></tr>
+    <tr><td><strong>P7 TA 审查</strong></td><td>0.25d</td><td>0.5d</td><td>1d</td><td>可并行</td><td>P5/P6</td><td class="gv">低（自动化后）</td></tr>
+    <tr><td><strong>P8 导出打包</strong></td><td>—</td><td>CI 自动</td><td>0.5d</td><td>自动</td><td>P7</td><td class="gv">极低</td></tr>
+    <tr><td><strong>P9 引擎集成+联调</strong></td><td>0.5d</td><td>1d</td><td>2d</td><td>独占1人</td><td>P8</td><td class="yv">中</td></tr>
+  </table>
+
+  <div class="alert alert-yellow">
+    <strong>📊 关键路径：</strong>P1 → P2 → P3 → P4 → P5 → P7 → P8 → P9，<strong>标准关键路径 = 10.5 人天</strong>。P6（换色/换装）可与 P5 后半段并行。PM 排期必须加 <strong>20% 缓冲系数</strong>（= 12.5 人天 ≈ 2.5 周）。
+  </div>
+
+  <div class="sub-title">9.2 甘特图排期模板（单角色）</div>
+  <pre>
+Week 1                   Week 2                   Week 3
+Mon Tue Wed Thu Fri      Mon Tue Wed Thu Fri      Mon Tue Wed
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+P1  ▓▓                                                        ← 需求定义 (0.5d)
+P2     ▓▓▓▓▓▓▓▓▓▓▓▓                                          ← 原画设计 (3d)
+P3                 ▓▓                                         ← PSD 拆分 (0.5d)
+P4                    ▓▓▓▓                                    ← 骨骼绑定 (1d)
+P5                         ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓                 ← 动画制作 (4d)
+P6                                    ░░░░▓▓▓▓               ← 换色/换装 (1d, 与P5并行)
+P7                                              ▓▓           ← TA 审查 (0.5d)
+P8                                                 ⚡         ← CI 自动导出
+P9                                                 ▓▓▓▓      ← 集成+联调 (1d)
+BUF                                                     ░░░░ ← 缓冲区 (2d)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▓▓ = 实际工作   ░░ = 并行/缓冲   ⚡ = 自动化</pre>
+
+  <div class="sub-title">9.3 多角色并行排期策略</div>
+  <table>
+    <tr><th>团队规模</th><th>并行能力</th><th>瓶颈环节</th><th>建议</th></tr>
+    <tr><td>原画师 ×1 + 动效师 ×1</td><td>串行 1 角色/2.5周</td><td>原画师（P2 独占）</td><td>原画完成后立即开始下一个角色的 P2</td></tr>
+    <tr><td>原画师 ×2 + 动效师 ×1</td><td>1.5 角色/2.5周</td><td>动效师（P4+P5 独占）</td><td>动效师交替做 P4+P5，原画师保持满负荷</td></tr>
+    <tr><td>原画师 ×2 + 动效师 ×2</td><td>2 角色/2.5周</td><td>TA 审查（需统一标准）</td><td>TA 审查自动化后可支撑 4 角色/2.5周</td></tr>
+    <tr><td>原画师 ×3 + 动效师 ×3 + 外包</td><td>4~6 角色/2.5周</td><td>PM 协调 + 质量一致性</td><td>必须有专职美术 PM，外包仅限 P3/P6</td></tr>
+  </table>
+
+  <div class="sub-title">9.4 里程碑与交付节奏</div>
+  <table>
+    <tr><th>里程碑</th><th>时间点</th><th>交付物</th><th>评审方式</th></tr>
+    <tr><td><strong>M1 设计确认</strong></td><td>P2 完成时</td><td>设计稿 + 色彩方案 + 三视图</td><td>策划+美术主管+动效师 联审（30min）</td></tr>
+    <tr><td><strong>M2 动画 Demo</strong></td><td>P5 完成 50%</td><td>idle + walk + atk_01 三个核心动画</td><td>录屏发群，异步评审（策划确认手感）</td></tr>
+    <tr><td><strong>M3 资产交付</strong></td><td>P7 通过后</td><td>完整导出资产包 + TA 审查报告</td><td>CI 自动门禁 + TA 签字</td></tr>
+    <tr><td><strong>M4 集成验收</strong></td><td>P9 完成时</td><td>游戏内可运行角色 + QA 测试报告</td><td>策划+QA+美术 三方验收会（1h）</td></tr>
+  </table>
+</div>
+
+<!-- ═══ Section 10: 成本核算 ═══ -->
+<div class="section" id="sec10">
+  <h2>⑩ 角色成本核算与 ROI 分析</h2>
+
+  <div class="alert alert-blue">
+    <strong>📌 PM 必须掌握：</strong>"做一个角色到底要花多少钱？" 这个问题的答案直接决定了排期合理性、外包预算、以及商业化定价的底线。
+  </div>
+
+  <div class="sub-title">10.1 角色制作成本模型</div>
+  <table>
+    <tr><th>阶段</th><th>人天</th><th>参考日薪(元)</th><th>内部成本(元)</th><th>外包成本(元)</th><th>说明</th></tr>
+    <tr><td><strong>P1 需求定义</strong></td><td>0.5d</td><td>策划 1,500</td><td>750</td><td>—</td><td>内部完成</td></tr>
+    <tr><td><strong>P2 原画设计</strong></td><td>3d</td><td>原画 2,000</td><td>6,000</td><td>3,000~15,000</td><td>外包价差大（品质决定价格）</td></tr>
+    <tr><td><strong>P3 PSD 拆分</strong></td><td>0.5d</td><td>助理 800</td><td>400</td><td>200~500</td><td>可标准化外包</td></tr>
+    <tr><td><strong>P4 骨骼绑定</strong></td><td>1d</td><td>动效 1,800</td><td>1,800</td><td>1,000~2,000</td><td>需要经验，外包风险中等</td></tr>
+    <tr><td><strong>P5 动画制作</strong></td><td>4d</td><td>动效 1,800</td><td>7,200</td><td>3,000~8,000</td><td>核心环节，品质差异最大</td></tr>
+    <tr><td><strong>P6 换色/换装</strong></td><td>1d</td><td>美术 1,200</td><td>1,200</td><td>500~1,000</td><td>规范化后可标准外包</td></tr>
+    <tr><td><strong>P7 TA 审查</strong></td><td>0.5d</td><td>TA 2,500</td><td>1,250</td><td>—</td><td>内部核心能力</td></tr>
+    <tr><td><strong>P8~P9 集成联调</strong></td><td>1d</td><td>程序 2,000</td><td>2,000</td><td>—</td><td>内部完成</td></tr>
+    <tr style="background:rgba(108,140,255,.08);font-weight:700"><td><strong>合计</strong></td><td><strong>11.5d</strong></td><td>—</td><td><strong>~20,600</strong></td><td><strong>~10,000~30,000</strong></td><td>按标准角色（LOD1 级）</td></tr>
+  </table>
+
+  <div class="sub-title">10.2 不同品质等级的成本差异</div>
+  <table>
+    <tr><th>角色品质</th><th>制作周期</th><th>内部成本</th><th>外包成本</th><th>适用场景</th></tr>
+    <tr><td><strong>SSR 旗舰角色</strong></td><td>4~6 周</td><td>50,000~80,000</td><td>30,000~60,000</td><td>版本主推角色、限定角色</td></tr>
+    <tr><td><strong>SR 标准角色</strong></td><td>2~3 周</td><td>20,000~30,000</td><td>10,000~20,000</td><td>常规卡池角色</td></tr>
+    <tr><td><strong>R 简单角色</strong></td><td>1~1.5 周</td><td>8,000~15,000</td><td>5,000~10,000</td><td>小怪/NPC/辅助角色</td></tr>
+    <tr><td><strong>N 基础角色</strong></td><td>2~3 天</td><td>3,000~6,000</td><td>2,000~4,000</td><td>背景NPC/列表图标</td></tr>
+  </table>
+
+  <div class="sub-title">10.3 ROI 分析框架</div>
+  <table>
+    <tr><th>指标</th><th>计算公式</th><th>基准值</th><th>说明</th></tr>
+    <tr><td><strong>角色单位成本</strong></td><td>总制作成本 ÷ 角色数</td><td>≤25,000元/SR角色</td><td>包含内部+外包+管理成本</td></tr>
+    <tr><td><strong>皮肤增量成本</strong></td><td>换色成本 ÷ 变体数</td><td>≤1,500元/配色变体</td><td>换色体系成熟后的增量成本极低</td></tr>
+    <tr><td><strong>角色生命周期价值</strong></td><td>(首发收入 + 复刻收入 + 皮肤收入) ÷ 角色成本</td><td>≥5x</td><td>低于 3x 的角色在商业上"亏损"</td></tr>
+    <tr><td><strong>产能利用率</strong></td><td>实际产出人天 ÷ 可用人天</td><td>≥75%</td><td>低于60%说明排期有空档或阻塞</td></tr>
+    <tr><td><strong>返工率成本</strong></td><td>返工人天 × 日薪</td><td>≤总成本的10%</td><td>返工率>20%需检查流程</td></tr>
+  </table>
+
+  <div class="alert alert-green">
+    <strong>✅ PM 洞察：</strong>换色系统建设投入约 <strong>50,000 元</strong>（Shader + 工具 + 规范），但后续每个角色的配色变体增量成本仅 <strong>~500 元</strong>（美术 0.5d）。如果一个角色出 5 套配色皮肤，单皮肤成本 = (20,600 + 2,500) ÷ 6 = <strong>3,850 元</strong>，而皮肤售价通常 30~128 元/套，月活 100 万的游戏即使 1% 付费率也是 <strong>30 万+/套收入</strong>。
+  </div>
+</div>
+
+<!-- ═══ Section 11: 风险管理 ═══ -->
+<div class="section" id="sec11">
+  <h2>⑪ 风险管理矩阵与预案机制</h2>
+
+  <div class="alert alert-blue">
+    <strong>📌 PM 格言：</strong>"没有不延期的项目，只有没做预案的 PM。" 角色管线的风险管理 = <strong>提前识别 + 分级响应 + 预案到人</strong>。
+  </div>
+
+  <div class="sub-title">11.1 风险矩阵（按影响×概率排序）</div>
+  <table>
+    <tr><th>风险项</th><th>影响级</th><th>概率</th><th>风险值</th><th>触发信号</th><th>预案</th></tr>
+    <tr><td><strong>原画反复修改</strong></td><td class="rv">高</td><td class="rv">高</td><td><span class="badge badge-red">🔴 极高</span></td><td>P2 超过 5 天未定稿</td><td>① 线稿阶段拉动效师评审 ② 修改次数上限 3 次 ③ 超限升级美术总监定夺</td></tr>
+    <tr><td><strong>动画品质不达标</strong></td><td class="rv">高</td><td class="yv">中</td><td><span class="badge badge-yellow">🟡 高</span></td><td>M2 Demo 被驳回 2 次+</td><td>① P5 进行到 50% 时必须出 Demo ② 指定资深动效师 Mentor ③ 预留 2 天返修缓冲</td></tr>
+    <tr><td><strong>性能超标被打回</strong></td><td class="yv">中</td><td class="yv">中</td><td><span class="badge badge-yellow">🟡 中</span></td><td>Gate B 不通过</td><td>① P4 阶段就做骨骼数预审 ② CI 预检集成 ③ 超标部件列清单逐一优化</td></tr>
+    <tr><td><strong>外包交付质量差</strong></td><td class="rv">高</td><td class="yv">中</td><td><span class="badge badge-yellow">🟡 高</span></td><td>外包首稿合格率 < 60%</td><td>① 首次合作提供完整示范包 ② 分阶段验收（不等完稿再看）③ 建立外包评分档案</td></tr>
+    <tr><td><strong>关键人员请假/离职</strong></td><td class="rv">高</td><td class="gv">低</td><td><span class="badge badge-yellow">🟡 中</span></td><td>原画/动效师突然请假 3 天+</td><td>① 每个角色至少 2 人了解进度 ② 工程文件提交到 SVN/Git ③ 规范化确保他人可接手</td></tr>
+    <tr><td><strong>引擎集成兼容问题</strong></td><td class="yv">中</td><td class="gv">低</td><td><span class="badge badge-green">🟢 低</span></td><td>P9 联调发现 Spine 版本不兼容</td><td>① 锁定 Spine Runtime 版本 ② P8 自动化测试包含兼容性校验</td></tr>
+    <tr><td><strong>需求变更（策划改设定）</strong></td><td class="rv">高</td><td class="yv">中</td><td><span class="badge badge-yellow">🟡 高</span></td><td>P3 之后策划要改角色设定</td><td>① P1 签字确认需求冻结 ② 变更走审批流程（PM+美术主管+策划主管）③ 评估额外工时</td></tr>
+  </table>
+
+  <div class="sub-title">11.2 风险响应 SOP</div>
+  <pre>
+┌──────────────────────────────────────────────────────────────────┐
+│ Step 1: 识别 → 每日站会/周会由 PM 检查风险清单                       │
+│ Step 2: 评估 → 触发信号命中 → 确认影响范围和延期天数                  │
+│ Step 3: 响应 → 按风险等级执行预案                                     │
+│         🔴 极高：立即升级（2h内通知上级+调整排期+启动B计划）            │
+│         🟡 高/中：当天处理（PM 协调资源 + 调整后续排期）                │
+│         🟢 低：下次周会跟进                                           │
+│ Step 4: 复盘 → 风险关闭后填写《风险复盘单》（根因+改进措施）            │
+└──────────────────────────────────────────────────────────────────┘</pre>
+
+  <div class="sub-title">11.3 RACI 责任矩阵</div>
+  <table>
+    <tr><th>事项</th><th>PM</th><th>美术主管</th><th>原画师</th><th>动效师</th><th>TA</th><th>程序</th><th>策划</th></tr>
+    <tr><td>角色需求定义</td><td>C</td><td>A</td><td>I</td><td>I</td><td>I</td><td>I</td><td><strong>R</strong></td></tr>
+    <tr><td>排期制定</td><td><strong>R</strong></td><td>A</td><td>C</td><td>C</td><td>I</td><td>I</td><td>C</td></tr>
+    <tr><td>原画评审决策</td><td>I</td><td><strong>R</strong></td><td>C</td><td>C</td><td>I</td><td>I</td><td>A</td></tr>
+    <tr><td>性能达标审查</td><td>I</td><td>I</td><td>I</td><td>C</td><td><strong>R</strong></td><td>C</td><td>I</td></tr>
+    <tr><td>引擎集成</td><td>I</td><td>I</td><td>I</td><td>C</td><td>C</td><td><strong>R</strong></td><td>A</td></tr>
+    <tr><td>最终验收</td><td>A</td><td>C</td><td>I</td><td>I</td><td>C</td><td>C</td><td><strong>R</strong></td></tr>
+    <tr><td>外包管理</td><td><strong>R</strong></td><td>A</td><td>C</td><td>I</td><td>I</td><td>I</td><td>I</td></tr>
+  </table>
+  <div class="alert alert-yellow"><strong>📌 RACI 说明：</strong>R=Responsible(执行) A=Accountable(审批) C=Consulted(咨询) I=Informed(知会)</div>
+</div>
+
+<!-- ═══ Section 12: 外包管理 ═══ -->
+<div class="section" id="sec12">
+  <h2>⑫ 外包管理与质量验收体系</h2>
+
+  <div class="alert alert-blue">
+    <strong>📌 现实：</strong>大部分团队的角色产能无法靠内部完全覆盖。外包是提升产能的关键手段，但<strong>管不好外包 = 质量灾难 + 返工地狱</strong>。
+  </div>
+
+  <div class="sub-title">12.1 可外包/不可外包环节划分</div>
+  <table>
+    <tr><th>环节</th><th>外包推荐度</th><th>外包风险</th><th>外包前提</th></tr>
+    <tr><td><strong>P2 原画设计</strong></td><td>⭐⭐⭐⭐</td><td class="yv">中</td><td>提供详细设定文档 + 画风参考 + 至少 3 套样稿比对</td></tr>
+    <tr><td><strong>P3 PSD 拆分</strong></td><td>⭐⭐⭐⭐⭐</td><td class="gv">低</td><td>提供拆分规范文档 + PSD 模板 + 示范视频</td></tr>
+    <tr><td><strong>P4 骨骼绑定</strong></td><td>⭐⭐⭐</td><td class="yv">中</td><td>提供骨骼模板 + 权重参考 + 规格红线</td></tr>
+    <tr><td><strong>P5 动画制作</strong></td><td>⭐⭐</td><td class="rv">高</td><td>核心角色不建议外包；小怪/NPC 可外包（需严格验收）</td></tr>
+    <tr><td><strong>P6 换色 Mask</strong></td><td>⭐⭐⭐⭐⭐</td><td class="gv">低</td><td>规范化程度最高的环节，完美适合外包</td></tr>
+    <tr><td><strong>P7 TA 审查</strong></td><td>⭐ 不外包</td><td>—</td><td>内部核心能力，外包 TA = 失去质量底线</td></tr>
+    <tr><td><strong>P9 引擎集成</strong></td><td>⭐ 不外包</td><td>—</td><td>涉及项目代码和引擎框架，不可外包</td></tr>
+  </table>
+
+  <div class="sub-title">12.2 外包交付包模板</div>
+  <pre>
+📁 外包发包资料包（PM 必须准备）
+├── 📂 spec/                        ← 规范文档
+│   ├── 01-角色设定文档.pdf          ← 角色详细设定
+│   ├── 02-PSD拆分规范.pdf           ← 拆分标准（如果外包P3）
+│   ├── 03-动画命名规范.pdf          ← 命名/状态机/Event（如果外包P5）
+│   ├── 04-性能红线.pdf              ← 骨骼/顶点/图集上限
+│   └── 05-换色Mask规范.pdf          ← 通道分配/格式要求（如果外包P6）
+├── 📂 reference/                   ← 参考资料
+│   ├── 画风参考_01.png ~ 05.png     ← 至少 5 张画风参考
+│   ├── 动画参考.mp4                 ← 动作参考视频
+│   └── 已完成角色样例.zip            ← 内部已完成的角色作为标杆
+├── 📂 template/                    ← 模板文件
+│   ├── PSD_template.psd            ← PSD 分层模板
+│   ├── spine_template.spine        ← 骨骼模板工程
+│   └── mask_template.psd           ← Mask 制作模板
+└── 📄 交付要求 & SLA.docx           ← 交付时间/格式/质量标准/付款条件</pre>
+
+  <div class="sub-title">12.3 外包质量验收标准</div>
+  <table>
+    <tr><th>验收维度</th><th>合格标准</th><th>验收方式</th><th>不合格处理</th></tr>
+    <tr><td><strong>画风一致性</strong></td><td>与参考样稿差异度 ≤15%（主观评估 3 人打分取均值）</td><td>美术主管 + 2 位资深原画评分</td><td>打回修改（不计入修改次数限制之外）</td></tr>
+    <tr><td><strong>PSD 结构</strong></td><td>100% 符合命名规范 + 分组结构</td><td>自动化脚本校验</td><td>打回（机器校验，零容忍）</td></tr>
+    <tr><td><strong>性能指标</strong></td><td>骨骼/顶点/图集 ≤ 红线值</td><td>CI 自动校验</td><td>打回 + 标注超标项</td></tr>
+    <tr><td><strong>动画流畅度</strong></td><td>无穿帮/抖动/跳帧</td><td>2 人独立观看 + Spine 预览</td><td>打回修改 + 标注具体动画和时间点</td></tr>
+    <tr><td><strong>Mask 质量</strong></td><td>通道互斥 0 冲突 + 边缘干净</td><td>Python 校验脚本</td><td>打回（机器校验，零容忍）</td></tr>
+    <tr><td><strong>交付完整性</strong></td><td>资源包内容与清单 100% 一致</td><td>文件清单对比脚本</td><td>退回补齐</td></tr>
+  </table>
+
+  <div class="sub-title">12.4 外包供应商评分体系</div>
+  <table>
+    <tr><th>评分维度</th><th>权重</th><th>5分标准</th><th>1分标准</th></tr>
+    <tr><td><strong>质量</strong></td><td>40%</td><td>首稿合格率 ≥90%</td><td>首稿合格率 < 40%</td></tr>
+    <tr><td><strong>时效</strong></td><td>25%</td><td>按时交付率 ≥95%</td><td>按时交付率 < 60%</td></tr>
+    <tr><td><strong>沟通</strong></td><td>15%</td><td>响应时间 <4h，需求理解准确</td><td>经常失联，理解偏差大</td></tr>
+    <tr><td><strong>性价比</strong></td><td>10%</td><td>同品质最低价</td><td>同品质最高价</td></tr>
+    <tr><td><strong>稳定性</strong></td><td>10%</td><td>连续 6 个月合作无断档</td><td>人员频繁变动，品质波动大</td></tr>
+  </table>
+
+  <div class="alert alert-green"><strong>✅ PM 经验：</strong>建议维护 3~5 家外包供应商的评分档案。核心供应商(≥4分)给 60% 任务量，培养供应商(3~4分)给 30%，试用供应商(<3分)给 10% 小单测试。每季度更新评分，淘汰底部 10%。</div>
+</div>
+
+<!-- ═══ Section 13: 数据度量 ═══ -->
+<div class="section" id="sec13">
+  <h2>⑬ 数据度量 KPI 与效率看板</h2>
+
+  <div class="alert alert-blue">
+    <strong>📌 PM 铁律：</strong>"无法度量的事物无法优化。" 角色管线的效率提升必须靠<strong>数据驱动</strong>，而不是拍脑袋。
+  </div>
+
+  <div class="sub-title">13.1 核心 KPI 指标体系</div>
+  <table>
+    <tr><th>类别</th><th>KPI</th><th>计算方式</th><th>健康值</th><th>告警值</th><th>采集频率</th></tr>
+    <tr><td rowspan="3"><strong>效率指标</strong></td><td>角色制作周期</td><td>P1 开始 → M4 验收通过的日历天</td><td>≤15 天</td><td>＞20 天</td><td>每角色</td></tr>
+    <tr><td>人效（角色/人/月）</td><td>月产出角色数 ÷ 等效全职人数</td><td>≥2 个/人/月(SR级)</td><td>＜1.5</td><td>月度</td></tr>
+    <tr><td>并行效率</td><td>实际并行角色数 ÷ 理论最大并行数</td><td>≥70%</td><td>＜50%</td><td>月度</td></tr>
+    <tr><td rowspan="3"><strong>质量指标</strong></td><td>Gate B 一次通过率</td><td>P7 首次审查通过 ÷ 总提交数</td><td>≥85%</td><td>＜60%</td><td>每角色</td></tr>
+    <tr><td>返工率</td><td>返工人天 ÷ 总人天</td><td>≤10%</td><td>＞25%</td><td>月度</td></tr>
+    <tr><td>线上 Bug 率</td><td>上线 1 周内角色相关 Bug 数</td><td>≤1 个/角色</td><td>＞3 个</td><td>每版本</td></tr>
+    <tr><td rowspan="2"><strong>成本指标</strong></td><td>角色单位成本</td><td>总成本(内部+外包) ÷ 角色数</td><td>≤25,000 元/SR</td><td>＞40,000</td><td>月度</td></tr>
+    <tr><td>外包成本占比</td><td>外包支出 ÷ 角色总成本</td><td>20~40%</td><td>＞60%</td><td>月度</td></tr>
+    <tr><td rowspan="2"><strong>产能指标</strong></td><td>月产出角色数</td><td>当月 M4 验收通过的角色总数</td><td>视团队规模而定</td><td>低于计划 70%</td><td>月度</td></tr>
+    <tr><td>产能利用率</td><td>实际产出人天 ÷ 可用人天</td><td>≥75%</td><td>＜60%</td><td>月度</td></tr>
+  </table>
+
+  <div class="sub-title">13.2 效率看板模板（周会用）</div>
+  <pre>
+╔══════════════════════════════════════════════════════════════════╗
+║  2D 角色管线效率看板 — Week 22 (2026-05-25 ~ 05-29)              ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  📊 本周产出                    📈 月度趋势                       ║
+║  ┌─────────────────┐          ┌─────────────────┐               ║
+║  │ 完成角色: 3 个   │          │ M1 ▓▓▓▓▓▓ 6     │               ║
+║  │ 在制角色: 5 个   │          │ M2 ▓▓▓▓▓ 5      │               ║
+║  │ 等待中:  2 个   │          │ M3 ▓▓▓▓▓▓▓ 7    │               ║
+║  └─────────────────┘          │ M4 ▓▓▓▓ 4       │               ║
+║                                └─────────────────┘               ║
+║  🔴 风险提醒                                                      ║
+║  • hero_035 P2 已超 7 天未定稿 → 预案A（升级美术总监）              ║
+║  • 动效师 A 下周请假 3 天 → 预案C（hero_042 暂停，优先 hero_038）   ║
+║                                                                  ║
+║  📋 质量指标          💰 成本指标           ⏱ 效率指标             ║
+║  Gate B 通过率: 87%   本月成本: 152K        人效: 2.3 角/人/月     ║
+║  返工率: 8.5%         外包占比: 35%         并行效率: 72%          ║
+║  线上 Bug: 0          单角色成本: 22K                             ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝</pre>
+
+  <div class="sub-title">13.3 数据采集方案</div>
+  <table>
+    <tr><th>数据项</th><th>采集方式</th><th>存储位置</th><th>自动化程度</th></tr>
+    <tr><td>制作周期</td><td>JIRA/TAPD 工单起止时间</td><td>项目管理工具</td><td>全自动（工单状态流转）</td></tr>
+    <tr><td>Gate B 通过率</td><td>CI 门禁结果 + TA 审查记录</td><td>CI 日志 + 飞书文档</td><td>半自动（CI 自动 + 人工记录）</td></tr>
+    <tr><td>外包成本</td><td>采购系统 / 付款记录</td><td>财务系统</td><td>手动录入（月度汇总）</td></tr>
+    <tr><td>返工次数</td><td>JIRA 工单 reopen 次数</td><td>项目管理工具</td><td>全自动</td></tr>
+    <tr><td>资源规格</td><td>CI 自动扫描 Spine 统计数据</td><td>CI 报告 + 数据库</td><td>全自动</td></tr>
+  </table>
+</div>
+
+<!-- ═══ Section 14: 商业化决策 ═══ -->
+<div class="section" id="sec14">
+  <h2>⑭ 商业化决策框架与版本规划</h2>
+
+  <div class="alert alert-blue">
+    <strong>📌 PM 视角的终极问题：</strong>"做什么角色、什么时候做、做到什么品质"——这不仅是美术问题，更是<strong>商业决策</strong>。PM 需要在品质、成本、时间三角之间找到最优解。
+  </div>
+
+  <div class="sub-title">14.1 角色投放节奏规划</div>
+  <table>
+    <tr><th>版本周期</th><th>建议角色投放</th><th>品质分布</th><th>产能需求</th></tr>
+    <tr><td><strong>大版本（6~8周）</strong></td><td>2~3 个新角色</td><td>1 SSR + 1~2 SR</td><td>原画×2 + 动效×2 + TA×1</td></tr>
+    <tr><td><strong>中版本（3~4周）</strong></td><td>1~2 个新角色</td><td>1 SR + 0~1 R</td><td>原画×1 + 动效×1 + TA×0.5</td></tr>
+    <tr><td><strong>小版本/活动（1~2周）</strong></td><td>0~1 个新角色 + 皮肤</td><td>0~1 R + 2~3 套换色皮肤</td><td>原画×0.5 + 美术助理×1</td></tr>
+    <tr><td><strong>热更新</strong></td><td>0 个新角色</td><td>配色变体 / Bug 修复</td><td>美术助理×0.5</td></tr>
+  </table>
+
+  <div class="sub-title">14.2 角色商业价值评估模型</div>
+  <table>
+    <tr><th>维度</th><th>权重</th><th>高分标准(5分)</th><th>低分标准(1分)</th></tr>
+    <tr><td><strong>IP 热度</strong></td><td>25%</td><td>角色在剧情中戏份多、玩家讨论度高</td><td>路人角色、无剧情铺垫</td></tr>
+    <tr><td><strong>玩法价值</strong></td><td>20%</td><td>独特机制/强度 Meta → 驱动付费</td><td>可替代性强、非 Meta</td></tr>
+    <tr><td><strong>美术吸引力</strong></td><td>20%</td><td>设计独特、立绘品质 SSR 级</td><td>设计平庸、品质中等</td></tr>
+    <tr><td><strong>换色/换装潜力</strong></td><td>15%</td><td>服装结构适合多套变体 → 长尾收入</td><td>设计难以做变体</td></tr>
+    <tr><td><strong>制作可行性</strong></td><td>10%</td><td>结构简单、可复用模板</td><td>结构复杂、需大量定制</td></tr>
+    <tr><td><strong>时效性</strong></td><td>10%</td><td>配合节日/联动/热点 → 溢价空间</td><td>无时效关联</td></tr>
+  </table>
+
+  <div class="sub-title">14.3 皮肤/换色的商业化策略参考</div>
+  <table>
+    <tr><th>商业化方式</th><th>适用类型</th><th>定价参考</th><th>成本结构</th><th>利润空间</th></tr>
+    <tr><td><strong>免费赠送</strong></td><td>基础配色变体（2~3套）</td><td>0</td><td>~500元/套</td><td>玩家留存工具，不追求利润</td></tr>
+    <tr><td><strong>游戏内货币购买</strong></td><td>普通换色皮肤</td><td>100~500 钻石</td><td>~1,500元/套</td><td>适中（促进钻石消耗）</td></tr>
+    <tr><td><strong>限时活动获取</strong></td><td>活动限定配色</td><td>活动参与 → 免费获取</td><td>~2,000元/套</td><td>间接（拉活跃/拉新）</td></tr>
+    <tr><td><strong>付费皮肤</strong></td><td>高品质换装（新模型/新动画）</td><td>30~128 元</td><td>~15,000元/套</td><td>高（直接付费）</td></tr>
+    <tr><td><strong>通行证奖励</strong></td><td>赛季限定皮肤</td><td>通行证 68~128 元</td><td>~8,000元/套</td><td>高（配合通行证销售）</td></tr>
+  </table>
+
+  <div class="sub-title">14.4 产能规划年度模板</div>
+  <table>
+    <tr><th>季度</th><th>版本数</th><th>新角色数</th><th>皮肤数</th><th>所需产能</th><th>缓冲</th></tr>
+    <tr><td><strong>Q1</strong></td><td>1 大版 + 1 中版</td><td>4 (1SSR+2SR+1R)</td><td>8 套换色</td><td>原画 2.5人月 + 动效 3人月</td><td>+20%</td></tr>
+    <tr><td><strong>Q2</strong></td><td>1 大版 + 2 小版</td><td>3 (1SSR+1SR+1R)</td><td>10 套换色 + 2 套换装</td><td>原画 2人月 + 动效 2.5人月</td><td>+20%</td></tr>
+    <tr><td><strong>Q3</strong></td><td>1 大版（周年庆）+ 1 中版</td><td>5 (2SSR+2SR+1R)</td><td>12 套换色 + 3 套换装</td><td>原画 3.5人月 + 动效 4人月</td><td>+25%（节日加压）</td></tr>
+    <tr><td><strong>Q4</strong></td><td>1 大版 + 1 中版 + 1 小版</td><td>4 (1SSR+2SR+1R)</td><td>8 套换色 + 1 套换装</td><td>原画 2.5人月 + 动效 3人月</td><td>+20%</td></tr>
+  </table>
+
+  <div class="alert alert-green">
+    <strong>✅ PM 终极指标：</strong>如果你的团队做到——① 角色制作周期可预测（标准差 ≤2 天）② 外包合格率 ≥80% ③ 返工率 ≤10% ④ 商业化 ROI ≥5x ⑤ 每季度产能规划偏差 ≤15%——恭喜，你的 2D 角色管线已达到<strong>工业化运营水平</strong>。
+  </div>
+</div>
+
 <div class="doc-footer">
-  👤 2D 角色全链路制作管线总览 v1.0 · 角色组 · TA 组 · 美术中心 · 2026-05-29<br>
-  "从一张原画到游戏内可运行的角色，每个环节都有章法可循"
+  👤 2D 角色全链路制作管线总览 v2.0 · 角色组 · TA 组 · 美术中心 · PM · 2026-05-29<br>
+  "从一张原画到游戏内可运行的角色，从创意到商业化——每个环节都有章法可循"
 </div>
 
 </div>

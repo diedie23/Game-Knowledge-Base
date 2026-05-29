@@ -81,10 +81,10 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 <div class="doc">
 
 <div class="doc-header">
-  <h1>🦴 Spine 动画全链路规范 <span class="ver">v2.0</span></h1>
-  <div class="subtitle">Spine Full Pipeline — 性能红线 · 动画设计规范 · 换装系统 · LOD 分级 · 拆分策略 · 工业化管线</div>
-  <div class="meta"><span>🎮 2D 游戏 / 二次元手游</span><span>📱 移动端为主</span><span>📅 2026-05-29 (v2.0 升级)</span></div>
-  <div class="badge">🔧 TA + 动效 + 角色程序 + APM 联合参考</div>
+  <h1>🦴 Spine 动画全链路规范 <span class="ver">v3.0</span></h1>
+  <div class="subtitle">Spine Full Pipeline — 性能红线 · 动画设计 · 换装系统 · LOD · PM 排期 · 人效度量 · 验收量化</div>
+  <div class="meta"><span>🎮 2D 游戏 / 二次元手游</span><span>📱 移动端为主</span><span>📅 2026-05-29 (v3.0 PM 视角升级)</span></div>
+  <div class="badge">🔧 TA + 动效 + 角色程序 + APM + PM 联合参考</div>
 </div>
 
 <div class="alert alert-blue" style="margin-bottom:24px"><strong>📖 本文背景：</strong>Spine 是 2D 游戏（尤其是二次元卡牌/ARPG）最常用的骨骼动画方案。它轻量、效果好，但<strong>用不好一样能把性能干趴</strong>。本文聚焦 Spine 在 Unity / Cocos / 自研引擎中的性能陷阱，面向 TA、动效师和需要理解风险的 APM。</div>
@@ -111,6 +111,8 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   <li><a href="#s10">Spine 工程拆分与合并策略</a></li>
   <li><a href="#s11">2D 角色动画制作全流程 SOP</a></li>
   <li><a href="#s12">多引擎集成最佳实践</a></li>
+  <li><a href="#s13">PM 视角：动画排期与人效度量</a></li>
+  <li><a href="#s14">Spine 资产验收量化标准与评分卡</a></li>
 </ol></div>
 
 
@@ -449,11 +451,6 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 </table>
 </div>
 
-<div class="doc-footer">
-  🦴 【2D】Spine 动画全链路规范 v2.0 · TA 组 + 角色程序 · 2026-05-29<br>
-  "从动画设计到引擎集成，覆盖 Spine 角色的完整生命周期"
-</div>
-
 <!-- ═══════ §7 动画状态机设计规范 ═══════ -->
 <div class="section" id="s7">
 <h2>7️⃣ 角色动画状态机设计规范</h2>
@@ -746,6 +743,102 @@ animationState.Apply(skeleton);  // 重新应用当前动画</pre>
 <div class="alert alert-green"><strong>✅ 工业化标准：</strong>以上导出配置写入 CI 脚本（<code>spine-cli export</code>），确保所有角色导出参数<strong>完全一致</strong>。人工导出 = 参数不一致的温床。</div>
 </div>
 
+
+<!-- ═══════ §13 PM 视角 ═══════ -->
+<div class="section" id="s13">
+<h2>1️⃣3️⃣ PM 视角：动画排期与人效度量</h2>
+
+<div class="alert alert-blue"><strong>📌 PM 核心问题：</strong>"动效师这个月能做几个角色？""为什么动画总是延期？""怎么衡量动效团队的产出效率？"——用数据回答这些问题。</div>
+
+<div class="sub-title">13.1 Spine 动画环节排期基准</div>
+<table>
+<tr><th>任务</th><th>最短</th><th>标准</th><th>上限</th><th>影响因子</th><th>PM 关注点</th></tr>
+<tr><td><strong>骨骼绑定(P4)</strong></td><td>0.5d</td><td>1d</td><td>2d</td><td>骨骼数量、Mesh 复杂度</td><td>超过 1.5d 检查是否 PSD 拆分质量差</td></tr>
+<tr><td><strong>核心动画 idle+walk+run</strong></td><td>0.5d</td><td>1d</td><td>1.5d</td><td>角色风格、Loop 自然度</td><td>基础动画如果超时 → 绑定可能有问题</td></tr>
+<tr><td><strong>攻击动画 atk×3</strong></td><td>1d</td><td>2d</td><td>3d</td><td>连招数量、打击感要求</td><td>这是最容易延期的环节（反复调打击感）</td></tr>
+<tr><td><strong>技能动画 skill×2</strong></td><td>1d</td><td>1.5d</td><td>3d</td><td>特效复杂度、表演性</td><td>策划改技能设定 = 最大风险源</td></tr>
+<tr><td><strong>受击+死亡</strong></td><td>0.25d</td><td>0.5d</td><td>1d</td><td>受击类型数（方向/空中/倒地）</td><td>通常不会延期</td></tr>
+<tr><td><strong>展示动画 show</strong></td><td>0.5d</td><td>1d</td><td>2d</td><td>表演要求高 → 容易反复修改</td><td>抽卡展示动画经常因为"不够酷"被驳回</td></tr>
+<tr><td><strong>Event 标记 + 调试</strong></td><td>0.25d</td><td>0.5d</td><td>1d</td><td>Event 类型数量</td><td>这个环节被低估导致联调时补标 Event</td></tr>
+</table>
+
+<div class="alert alert-yellow"><strong>⚠️ PM 血泪经验：</strong>动画排期最常被低估的三件事：① <strong>连招调打击感</strong>（策划总说"再快一点/再有力一点"，反复调 3~5 遍）② <strong>展示动画</strong>（"抽到 SSR 的感觉不够惊艳"）③ <strong>Event 标记</strong>（"动效师不知道程序需要哪些 Event"→联调时疯狂补标）。建议在标准排期上 <strong>+30% 缓冲</strong>。</div>
+
+<div class="sub-title">13.2 动效师人效指标</div>
+<table>
+<tr><th>指标</th><th>计算方式</th><th>健康值</th><th>告警值</th><th>说明</th></tr>
+<tr><td><strong>月产出角色数</strong></td><td>月内完成 P4+P5 的角色数</td><td>≥2.5 个(SR级)/人/月</td><td>＜1.5</td><td>按 SR 级标准（15 个动画）折算</td></tr>
+<tr><td><strong>动画人均产出</strong></td><td>月完成动画总条数 ÷ 动效师数</td><td>≥30 条/人/月</td><td>＜20 条</td><td>包含所有品质级别的动画</td></tr>
+<tr><td><strong>Gate B 一次通过率</strong></td><td>P7 首次审查通过 ÷ 总提交数</td><td>≥85%</td><td>＜60%</td><td>低通过率 = 制作规范执行不到位</td></tr>
+<tr><td><strong>返工率</strong></td><td>返工人天 ÷ 总制作人天</td><td>≤10%</td><td>＞25%</td><td>返工主因：打击感/策划变更/性能超标</td></tr>
+<tr><td><strong>闲置率</strong></td><td>等待输入(等PSD/等Brief)的天数 ÷ 总天数</td><td>≤15%</td><td>＞30%</td><td>高闲置率 = 上游管线不流畅</td></tr>
+</table>
+
+<div class="sub-title">13.3 动画延期根因分析与对策</div>
+<table>
+<tr><th>延期根因</th><th>占比</th><th>表现</th><th>PM 对策</th></tr>
+<tr><td><strong>策划需求变更</strong></td><td>35%</td><td>P5 做到一半策划改技能设计/改连招逻辑</td><td>P1 签字冻结需求；变更走审批流程 + 重新评估排期</td></tr>
+<tr><td><strong>原画返工导致 PSD 延期</strong></td><td>25%</td><td>P3 输入延迟 → P4 被迫等待 → 动效师闲置</td><td>P2 阶段前置动效师评审；原画排期加缓冲</td></tr>
+<tr><td><strong>打击感反复调优</strong></td><td>20%</td><td>"再快一点""再有力一点" 反复 5~8 轮</td><td>M2 Demo 里程碑强制确认；修改次数上限 3 次</td></tr>
+<tr><td><strong>性能超标被打回</strong></td><td>10%</td><td>骨骼/顶点/图集超红线 → 需要精简</td><td>P4 阶段做预审（骨骼数确认后再做动画）</td></tr>
+<tr><td><strong>动效师技能不足</strong></td><td>10%</td><td>新人做复杂角色品质达不到要求</td><td>按人员能力分配角色难度；资深 Mentor 制度</td></tr>
+</table>
+
+<div class="sub-title">13.4 排期优化策略</div>
+<table>
+<tr><th>策略</th><th>做法</th><th>收益</th><th>适用条件</th></tr>
+<tr><td><strong>Pipeline 并行化</strong></td><td>P5 和 P6 并行（动画做到 70% 就可以开始换色 Mask）</td><td>节省 1~2 天</td><td>换色 Mask 不依赖动画完成</td></tr>
+<tr><td><strong>模板化骨骼</strong></td><td>同比例角色共享骨骼模板，P4 只需微调</td><td>P4 从 1d 降到 0.5d</td><td>角色画风和比例统一</td></tr>
+<tr><td><strong>动画库复用</strong></td><td>通用动画(idle/walk)做成可调参模板，微调即可</td><td>核心动画从 1d 降到 0.25d</td><td>角色骨骼结构一致</td></tr>
+<tr><td><strong>批量制作</strong></td><td>同批 3~5 个角色的同一阶段一起做（如一次性做 5 个角色的 P4）</td><td>上下文切换成本降低 20%</td><td>同批角色排期集中</td></tr>
+</table>
+</div>
+
+
+<!-- ═══════ §14 验收量化 ═══════ -->
+<div class="section" id="s14">
+<h2>1️⃣4️⃣ Spine 资产验收量化标准与评分卡</h2>
+
+<div class="alert alert-blue"><strong>📌 核心问题：</strong>"这个角色做得好不好？" 不能只靠主观感觉。PM 需要一套<strong>可量化的评分标准</strong>，让验收有据可依、有分可打。</div>
+
+<div class="sub-title">14.1 Spine 角色质量评分卡</div>
+<table>
+<tr><th>评分维度</th><th>权重</th><th>5分（优秀）</th><th>3分（合格）</th><th>1分（不合格）</th><th>评分方式</th></tr>
+<tr><td><strong>动画流畅度</strong></td><td>25%</td><td>动作自然、节奏感好、无卡顿</td><td>基本流畅、偶有僵硬</td><td>明显卡顿/穿帮/抖动</td><td>3 人评审打分取均值</td></tr>
+<tr><td><strong>性能达标</strong></td><td>20%</td><td>所有指标在安全值内</td><td>1~2 项在警戒区间</td><td>有指标超红线</td><td>CI 自动检测</td></tr>
+<tr><td><strong>规范合规</strong></td><td>15%</td><td>命名/Event/Mix 全部符合规范</td><td>1~2 处不符合，非关键</td><td>3 处以上不符合</td><td>自动+人工校验</td></tr>
+<tr><td><strong>换装兼容</strong></td><td>15%</td><td>所有 Skin 组合无穿帮</td><td>个别组合有小问题</td><td>多个组合穿帮严重</td><td>遍历测试</td></tr>
+<tr><td><strong>打击感/手感</strong></td><td>15%</td><td>策划确认"非常好"</td><td>策划确认"可以"</td><td>策划要求返修</td><td>策划主观评价</td></tr>
+<tr><td><strong>交付完整性</strong></td><td>10%</td><td>资源包完整、文档齐全</td><td>缺少预览图或说明文档</td><td>缺少核心资源文件</td><td>清单对比</td></tr>
+</table>
+
+<div class="sub-title">14.2 评分结果与处理</div>
+<table>
+<tr><th>总分</th><th>等级</th><th>处理</th></tr>
+<tr><td><strong>4.5~5.0</strong></td><td><span class="badge badge-green">🟢 优秀</span></td><td>直接入库，可作为团队标杆案例</td></tr>
+<tr><td><strong>3.5~4.4</strong></td><td><span class="badge badge-blue">🔵 良好</span></td><td>入库，记录优化建议下个角色改进</td></tr>
+<tr><td><strong>2.5~3.4</strong></td><td><span class="badge badge-yellow">🟡 合格</span></td><td>入库，但需在 1 个版本内完成优化</td></tr>
+<tr><td><strong>1.5~2.4</strong></td><td><span class="badge badge-yellow">🟠 待改进</span></td><td>不入库，返回对应阶段修改后重新评审</td></tr>
+<tr><td><strong>＜1.5</strong></td><td><span class="badge badge-red">🔴 不合格</span></td><td>不入库，严重情况需重做。PM 启动根因分析</td></tr>
+</table>
+
+<div class="sub-title">14.3 验收会议流程（PM 组织）</div>
+<table>
+<tr><th>环节</th><th>时长</th><th>参与人</th><th>内容</th></tr>
+<tr><td><strong>1. 资产展示</strong></td><td>5min</td><td>动效师演示</td><td>Spine 预览播放所有动画 + 换装效果</td></tr>
+<tr><td><strong>2. 性能报告</strong></td><td>3min</td><td>TA 讲解</td><td>CI 自动检测报告 + 图集利用率</td></tr>
+<tr><td><strong>3. 游戏内演示</strong></td><td>5min</td><td>程序演示</td><td>在引擎内实际运行效果</td></tr>
+<tr><td><strong>4. 评审打分</strong></td><td>5min</td><td>全员</td><td>6 维度打分 + 意见记录</td></tr>
+<tr><td><strong>5. 总结决策</strong></td><td>2min</td><td>PM 主持</td><td>宣布评分结果 + 后续行动项</td></tr>
+</table>
+
+<div class="alert alert-green"><strong>✅ PM 终极建议：</strong>评分卡数据按月汇总，形成<strong>团队/个人质量趋势图</strong>。连续 3 个月评分提升 = 团队在进步。连续 3 个月评分下滑 = 需要排查根因（人员变动？需求复杂度提高？规范执行松懈？）。<strong>数据驱动管理，才能持续改进。</strong></div>
+</div>
+
+
+<div class="doc-footer">
+  🦴 【2D】Spine 动画全链路规范 v3.0 · TA 组 + 角色程序 + PM · 2026-05-29<br>
+  "从动画设计到引擎集成到效率度量，覆盖 Spine 角色的完整生命周期"
 </div>
 <script src="editor-kit.js"></script>
 <script src="toc-enhancer.js?v=1.1"></script>

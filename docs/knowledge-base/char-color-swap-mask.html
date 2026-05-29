@@ -101,12 +101,12 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
 
 <!-- ═══ HEADER ═══ -->
 <div class="doc-header">
-  <h1>🎨 【2D】角色换色与材质遮罩规范 <span class="ver">工业化规范 v4.0</span></h1>
-  <div class="subtitle">2D Character Color-Swap Pipeline — PSD 拆分 · Mask 制作 · Shader 集成 · CI 自动化 · 跨项目复用</div>
+  <h1>🎨 【2D】角色换色与材质遮罩规范 <span class="ver">工业化规范 v5.0</span></h1>
+  <div class="subtitle">2D Character Color-Swap Pipeline — PSD 拆分 · Mask 制作 · Shader 集成 · CI 自动化 · 跨项目复用 · PM 商业化</div>
   <div class="meta">
     <span>📋 适用：Mask+HSV / Palette Swap / 灰度叠色</span>
-    <span>👤 维护：TA 组 · 美术中心 · 角色组</span>
-    <span>📅 2026-05-29 (v4.0 升级)</span>
+    <span>👤 维护：TA 组 · 美术中心 · 角色组 · PM</span>
+    <span>📅 2026-05-29 (v5.0 PM 视角升级)</span>
   </div>
 </div>
 
@@ -137,6 +137,8 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
     <li><a href="#sec13">换色 CI/CD 自动化流水线</a></li>
     <li><a href="#sec14">换色资产跨项目复用体系</a></li>
     <li><a href="#sec15">高级换色效果：渐变/花纹/材质混合</a></li>
+    <li><a href="#sec16">PM 视角：换色体系成本收益与商业决策</a></li>
+    <li><a href="#sec17">换色外包质控与交付 SLA</a></li>
   </ol>
 </div>
 
@@ -873,9 +875,107 @@ def check_brightness_safety(base_path: str, mask_path: str) -> list:
   </div>
 </div>
 
+<!-- ═══ Section 16: PM 视角 ═══ -->
+<div class="section" id="sec16">
+  <h2>⑯ PM 视角：换色体系成本收益与商业决策</h2>
+
+  <div class="alert alert-blue">
+    <strong>📌 PM 核心关切：</strong>"建设换色体系到底值不值？投入多少、回收多少、多久回本？" 以下用数据说话。
+  </div>
+
+  <div class="sub-title">16.1 换色体系建设一次性投入</div>
+  <table>
+    <tr><th>投入项</th><th>人天</th><th>成本(元)</th><th>负责人</th><th>说明</th></tr>
+    <tr><td><strong>换色 Shader 开发</strong></td><td>5d</td><td>12,500</td><td>TA</td><td>HSV + Palette + 灰度 三套 Shader</td></tr>
+    <tr><td><strong>PS 自动导出脚本</strong></td><td>3d</td><td>7,500</td><td>TA</td><td>Photoshop UXP 导出脚本</td></tr>
+    <tr><td><strong>CI 校验脚本</strong></td><td>3d</td><td>7,500</td><td>TA</td><td>通道互斥/亮度/格式自动校验</td></tr>
+    <tr><td><strong>预览生成器</strong></td><td>2d</td><td>5,000</td><td>TA</td><td>自动生成 N 套配色预览图</td></tr>
+    <tr><td><strong>规范文档编写</strong></td><td>2d</td><td>5,000</td><td>TA + PM</td><td>本文档 + PSD 模板 + 培训材料</td></tr>
+    <tr><td><strong>美术培训</strong></td><td>1d</td><td>2,500</td><td>TA + PM</td><td>全员培训 + 考核</td></tr>
+    <tr style="background:rgba(108,140,255,.08);font-weight:700"><td><strong>合计一次性投入</strong></td><td><strong>16d</strong></td><td><strong>~40,000</strong></td><td>—</td><td>约 3 周 TA 时间</td></tr>
+  </table>
+
+  <div class="sub-title">16.2 换色增量成本（体系建成后）</div>
+  <table>
+    <tr><th>操作</th><th>人天</th><th>增量成本(元)</th><th>产出</th></tr>
+    <tr><td>制作 1 套换色 Mask（新角色）</td><td>0.5d</td><td>600</td><td>3 区域换色能力</td></tr>
+    <tr><td>新增 1 套配色方案</td><td>0.25d</td><td>300</td><td>1 套新配色（设计+调参+预览）</td></tr>
+    <tr><td>CI 校验 + 入库</td><td>自动</td><td>~0</td><td>质量保证</td></tr>
+    <tr><td>高级换色（渐变/花纹）</td><td>1d</td><td>1,200</td><td>1 套高级皮肤</td></tr>
+    <tr style="background:rgba(74,222,128,.08);font-weight:700"><td><strong>1 个角色 5 套配色总成本</strong></td><td><strong>1.75d</strong></td><td><strong>~2,100</strong></td><td><strong>5 套商业化皮肤</strong></td></tr>
+  </table>
+
+  <div class="sub-title">16.3 ROI 回报测算</div>
+  <table>
+    <tr><th>场景</th><th>假设</th><th>收入</th><th>成本</th><th>ROI</th></tr>
+    <tr><td><strong>保守估计</strong></td><td>月活 50 万 · 付费率 1% · 皮肤均价 30 元 · 月出 3 套皮肤</td><td>45 万/月</td><td>体系成本 4 万 + 月增量 0.63 万</td><td>首月 <strong>9.7x</strong></td></tr>
+    <tr><td><strong>中等估计</strong></td><td>月活 200 万 · 付费率 2% · 皮肤均价 50 元 · 月出 5 套皮肤</td><td>1,000 万/月</td><td>体系 4 万 + 月增量 1.05 万</td><td>首月 <strong>96x</strong></td></tr>
+    <tr><td><strong>乐观估计</strong></td><td>月活 500 万 · 付费率 3% · 皮肤均价 68 元 · 月出 8 套皮肤</td><td>8,160 万/月</td><td>体系 4 万 + 月增量 1.68 万</td><td>首月 <strong>1,434x</strong></td></tr>
+  </table>
+
+  <div class="alert alert-green">
+    <strong>✅ PM 结论：</strong>换色体系投入 4 万元，即使在最保守场景下也能<strong>首月回本</strong>。这是游戏行业<strong>ROI 最高的技术投资之一</strong>。如果你的团队还没有建设换色体系，这是应该<strong>立刻启动</strong>的优先级最高的技术基建。
+  </div>
+
+  <div class="sub-title">16.4 换色皮肤发售节奏建议</div>
+  <table>
+    <tr><th>时机</th><th>皮肤类型</th><th>数量</th><th>策略</th></tr>
+    <tr><td><strong>新角色上线</strong></td><td>免费基础配色 2~3 套</td><td>随角色发布</td><td>降低抽卡犹豫、提升首日体验</td></tr>
+    <tr><td><strong>上线 1~2 周后</strong></td><td>付费限定配色 1 套</td><td>限时商城</td><td>趁角色热度期消费</td></tr>
+    <tr><td><strong>节日/活动</strong></td><td>活动限定配色（可免费获取）</td><td>1~2 套</td><td>拉活跃，错过变绝版</td></tr>
+    <tr><td><strong>通行证</strong></td><td>赛季专属配色</td><td>2~3 套（不同等级解锁）</td><td>通行证价值填充</td></tr>
+    <tr><td><strong>角色复刻</strong></td><td>新增高级皮肤（渐变/花纹）</td><td>1 套</td><td>为复刻提供新鲜感</td></tr>
+  </table>
+</div>
+
+<!-- ═══ Section 17: 换色外包质控 ═══ -->
+<div class="section" id="sec17">
+  <h2>⑰ 换色外包质控与交付 SLA</h2>
+
+  <div class="alert alert-blue">
+    <strong>📌 为什么换色特别适合外包：</strong>换色 Mask 制作是 2D 角色管线中<strong>规范化程度最高</strong>的环节。有明确的规格标准（通道互斥/格式/尺寸）、可自动化校验（Python 脚本）、且不涉及创意判断——完美满足外包条件。
+  </div>
+
+  <div class="sub-title">17.1 外包交付 SLA 标准</div>
+  <table>
+    <tr><th>SLA 指标</th><th>标准</th><th>超标处理</th></tr>
+    <tr><td><strong>交付时效</strong></td><td>收到素材后 2 个工作日内交付</td><td>延期 1 天扣 5% 费用；延期 3 天可取消</td></tr>
+    <tr><td><strong>首稿合格率</strong></td><td>≥80%（CI 校验通过）</td><td>低于 60% 触发供应商降级评审</td></tr>
+    <tr><td><strong>修改响应</strong></td><td>收到反馈后 1 个工作日内返修</td><td>延期按交付时效同等处理</td></tr>
+    <tr><td><strong>修改次数上限</strong></td><td>2 次免费修改，第 3 次起加收 30%</td><td>超过 3 次修改的根因分析 → 改进发包资料</td></tr>
+    <tr><td><strong>保密条款</strong></td><td>未发布角色素材严禁外泄</td><td>泄露即终止合作 + 追究法律责任</td></tr>
+  </table>
+
+  <div class="sub-title">17.2 外包换色 Mask 验收 Checklist</div>
+  <table>
+    <tr><th>#</th><th>验收项</th><th>验收方式</th><th>合格标准</th></tr>
+    <tr><td>1</td><td>文件格式</td><td>自动</td><td>PNG 格式，RGBA 32bit</td></tr>
+    <tr><td>2</td><td>文件尺寸</td><td>自动</td><td>与 Base 图像素级一致</td></tr>
+    <tr><td>3</td><td>通道互斥</td><td>自动</td><td>冲突像素 = 0（容差≤5）</td></tr>
+    <tr><td>4</td><td>边缘质量</td><td>自动+人工</td><td>非 0/255 的像素仅在边缘 1~3px 内</td></tr>
+    <tr><td>5</td><td>Alpha 通道</td><td>自动</td><td>不换色区域 Alpha = 0</td></tr>
+    <tr><td>6</td><td>区域完整性</td><td>人工</td><td>所有指定区域均已覆盖，无遗漏</td></tr>
+    <tr><td>7</td><td>预览图效果</td><td>人工</td><td>3 套配色预览效果自然、无杂色</td></tr>
+    <tr><td>8</td><td>命名规范</td><td>自动</td><td>符合 <code>角色ID_mask编号.png</code> 格式</td></tr>
+  </table>
+
+  <div class="sub-title">17.3 换色外包定价参考</div>
+  <table>
+    <tr><th>任务</th><th>市场均价(元)</th><th>优质供应商(元)</th><th>说明</th></tr>
+    <tr><td>单角色 Mask 制作（1张/3区域）</td><td>200~500</td><td>300~400</td><td>含 Mask + 3 套配色 JSON + 预览图</td></tr>
+    <tr><td>单角色 Mask 制作（2张/6区域）</td><td>400~800</td><td>500~700</td><td>复杂角色（服装细节多）</td></tr>
+    <tr><td>批量（10角色以上）</td><td>单价打 7 折</td><td>单价打 8 折</td><td>批量有规模效应</td></tr>
+    <tr><td>加急（1 个工作日内交付）</td><td>加收 50%</td><td>加收 30%</td><td>非特殊情况不建议加急</td></tr>
+  </table>
+
+  <div class="alert alert-green">
+    <strong>✅ PM 最佳实践：</strong>换色 Mask 外包的核心成功要素 = <strong>规范文档写到位 + CI 校验自动化</strong>。这两点做好后，外包首稿合格率可以从 40% 提升到 85%+，PM 的审核工作量降低 70%。
+  </div>
+</div>
+
 <!-- ═══ FOOTER ═══ -->
 <div class="doc-footer">
-  【2D】角色换色与材质遮罩规范 v4.0 · TA 组 · 美术中心 · 角色组 · 最后更新 2026-05-29<br>
+  【2D】角色换色与材质遮罩规范 v5.0 · TA 组 · 美术中心 · 角色组 · PM · 最后更新 2026-05-29<br>
   如有疑问请联系 TA 组或在知识库 Issue 中反馈
 </div>
 
