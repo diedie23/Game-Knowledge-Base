@@ -12,7 +12,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .flowchart-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px 20px;margin:16px 0;overflow-x:auto;display:flex;justify-content:center}
 .flowchart-wrap svg{display:block;max-width:100%}
 .flowchart-wrap svg text{font-family:'PingFang SC','Microsoft YaHei',sans-serif}
-.doc{max-width:1200px;margin:0 auto;padding:32px 48px}
+.doc{max-width:1400px;margin:0 auto;padding:32px 24px}
 .doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
 .doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px}
 .doc-header h1 .ver{font-size:12px;background:var(--cyan);color:#000;padding:2px 10px;border-radius:12px}
@@ -71,7 +71,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 .faq-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
 .faq-q{font-size:16px;color:var(--heading);font-weight:600;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
 .faq-a{font-size:14px;line-height:1.8;padding-left:28px}
-@media print{body{background:#fff;color:#333;font-size:12px}.doc{padding:32px 28px 32px 100px}.section{margin-bottom:20px;page-break-inside:avoid}.flowchart-wrap{border:1px solid #ddd;background:#f9f9f9}.flow-node{background:#f5f5f5;border-color:#ddd;color:#333}.flow-node strong{color:#222}table{font-size:11px}th{background:#eee;color:#333}td{border-color:#ddd}.ps{background:#f9f9f9;border-color:#ddd}}
+@media print{body{background:#fff;color:#333;font-size:12px}.doc{padding:16px}.section{margin-bottom:20px;page-break-inside:avoid}.flowchart-wrap{border:1px solid #ddd;background:#f9f9f9}.flow-node{background:#f5f5f5;border-color:#ddd;color:#333}.flow-node strong{color:#222}table{font-size:11px}th{background:#eee;color:#333}td{border-color:#ddd}.ps{background:#f9f9f9;border-color:#ddd}}
 </style>
 </head>
 <body>
@@ -79,8 +79,8 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 
 <div class="doc-header">
   <h1>🖥️ 游戏 UX 管线流程 <span class="ver">环节同步版</span></h1>
-  <div class="subtitle">UX Production Pipeline — 环节流程同步专用 · 含效率KPI度量体系</div>
-  <div class="meta"><span>📋 UGC小游戏UX流程制作</span><span>👤 策划 · 交互 · UI · Layout · VX · 客户端 · QA</span><span>📅 2026-05-29 (v1.1 升级)</span></div>
+  <div class="subtitle">UX Production Pipeline — 环节流程同步专用 · 精简版</div>
+  <div class="meta"><span>📋 UGC小游戏UX流程制作</span><span>👤 策划 · 交互 · UI · Layout · VX · 客户端 · QA</span><span>📅 2026-04-22</span></div>
 </div>
 
 <div class="alert alert-blue"><strong>📌 说明</strong>：本文档为<strong>环节流程同步专用精简版</strong>，聚焦流程节点、角色分工、Input/Output、TAPD 发单机制与常见问题。<span class="badge badge-new">NEW</span> 标记为新增环节。</div>
@@ -316,7 +316,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 <!-- SEC3 TAPD 发单机制 -->
 <div class="section" id="sec3">
   <h2>📋 3. TAPD 发单机制与职责分工</h2>
-  <p style="margin:8px 0 16px;font-size:14px;color:var(--dim)">UI管线涉及多角色协作，TAPD单据的创建和流转直接影响进度跟踪和复盘效率。当前实际采用<strong style="color:var(--heading)">「策划创建父单+子单 → 项目PM宣讲 → UX管线负责人跟进排期」</strong>的协作模式：</p>
+  <p style="margin:8px 0 16px;font-size:14px;color:var(--dim)">UI管线涉及多角色协作，TAPD单据的创建和流转直接影响进度跟踪和复盘效率。当前实际采用<strong style="color:var(--heading)">「策划创建父单+子单 → 特性PM宣讲 → 管线PM跟进排期」</strong>的协作模式：</p>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px">
     <div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);border-radius:10px;padding:14px">
       <div style="font-size:14px;color:var(--accent2);font-weight:700;margin-bottom:10px">📝 策划 — 创建父需求单 + 子需求单</div>
@@ -335,11 +335,11 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
         <span style="padding-left:12px">• UI动效</span><br>
         <span style="padding-left:12px">• 客户端制作</span><br>
         <span style="padding-left:12px">• 客户端动效接入</span><br>
-        <strong style="color:var(--heading)">处理人：</strong>父单设为<strong>策划本人</strong>（便于跟踪整体进度，子单进度向上汇总）。<strong style="color:var(--yellow)">子单处理人由项目PM在宣讲阶段挂上</strong>。
+        <strong style="color:var(--heading)">处理人：</strong>父单设为<strong>策划本人</strong>（便于跟踪整体进度，子单进度向上汇总）。<strong style="color:var(--yellow)">子单处理人由特性PM在宣讲阶段挂上</strong>。
       </div>
     </div>
     <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:10px;padding:14px">
-      <div style="font-size:14px;color:var(--yellow);font-weight:700;margin-bottom:10px">📢 项目PM — 拉群宣讲 & 挂对接人</div>
+      <div style="font-size:14px;color:var(--yellow);font-weight:700;margin-bottom:10px">📢 特性PM — 拉群宣讲 & 挂对接人</div>
       <div style="font-size:13px;line-height:1.9">
         <strong style="color:var(--heading)">时机：</strong>策划发单后<br>
         <strong style="color:var(--heading)">职责：</strong><br>
@@ -350,11 +350,11 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
         <span style="padding-left:24px">UI动效 → VX动效设计师</span><br>
         <span style="padding-left:24px">客户端制作/动效接入 → 客户端程序</span><br>
         <span style="padding-left:12px">• 同步项目整体排期节点</span><br>
-        <strong style="color:var(--heading)">关键动作：</strong>确保所有相关角色知晓需求启动，子单处理人到位，并明确UX管线负责人为后续跟进人
+        <strong style="color:var(--heading)">关键动作：</strong>确保所有相关角色知晓需求启动，子单处理人到位，并明确管线PM为后续跟进人
       </div>
     </div>
     <div style="background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.2);border-radius:10px;padding:14px">
-      <div style="font-size:14px;color:var(--blue);font-weight:700;margin-bottom:10px">🔗 UX管线负责人 — 跟进排期与进度推动</div>
+      <div style="font-size:14px;color:var(--blue);font-weight:700;margin-bottom:10px">🔗 管线PM — 跟进排期与进度推动</div>
       <div style="font-size:13px;line-height:1.9">
         <strong style="color:var(--heading)">时机：</strong>宣讲完成后持续跟进<br>
         <strong style="color:var(--heading)">职责：</strong><br>
@@ -362,11 +362,11 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
         <span style="padding-left:12px">• 推动上述环节进度、协调跨职能问题</span><br>
         <span style="padding-left:12px">• 监控子单流转状态，预警延期风险</span><br>
         <span style="padding-left:12px">• 走查环节协调问题分流与闭环</span><br>
-        <div style="margin:6px 0 4px;padding:6px 10px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:6px;font-size:12px;color:var(--yellow)"><strong>⚠️ 范围说明：</strong>客户端制作/客户端动效接入的排期<strong>不由</strong>UX管线负责人跟进，由项目PM或客户端自行管理。UX管线负责人的排期跟进范围为 <strong>UX → UI → Layout → VX</strong> 这四个环节。</div>
+        <div style="margin:6px 0 4px;padding:6px 10px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:6px;font-size:12px;color:var(--yellow)"><strong>⚠️ 范围说明：</strong>客户端制作/客户端动效接入的排期<strong>不由</strong>管线PM跟进，由特性PM或客户端自行管理。管线PM的排期跟进范围为 <strong>UX → UI → Layout → VX</strong> 这四个环节。</div>
         <strong style="color:var(--heading)">关键动作：</strong>设置子单依赖关系、里程碑、预警
         <div style="margin:8px 0 4px;padding:8px 10px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);border-radius:6px;font-size:12px;color:var(--cyan);line-height:1.9"><strong>🤝 PM衔接机制 <span class="badge badge-new">NEW</span>：</strong><br>
-          • <strong>关键衔接同步</strong>：在并行组A汇合点（UI源文件+白模就绪）和走查启动前，UX管线负责人 + PM做一次<strong>5分钟状态同步</strong>，确保交接无缝<br>
-          • <strong>走查闭环分工</strong>：界面相关问题（UI/Layout/VX）的闭环由<strong>UX管线负责人</strong>跟；客户端/逻辑相关问题的闭环由<strong>PM</strong>跟</div>
+          • <strong>关键衔接同步</strong>：在并行组A汇合点（UI源文件+白模就绪）和走查启动前，管线PM + 特性PM做一次<strong>5分钟状态同步</strong>，确保交接无缝<br>
+          • <strong>走查闭环分工</strong>：界面相关问题（UI/Layout/VX）的闭环由<strong>管线PM</strong>跟；客户端/逻辑相关问题的闭环由<strong>特性PM</strong>跟</div>
       </div>
     </div>
   </div>
@@ -378,17 +378,16 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <div style="background:rgba(248,113,113,.06);border:2px solid rgba(248,113,113,.3);border-radius:12px;padding:16px;margin-bottom:16px">
     <div style="font-size:15px;color:var(--blue);font-weight:700;margin-bottom:12px">📌 职权边界与管线归属规则（协作约定）</div>
     <div style="font-size:13px;line-height:2">
-      <strong style="color:var(--heading)">核心原则：</strong>只要该需求涉及<strong style="color:var(--cyan)">界面产出</strong>（含 UI设计 / Layout蓝图 / UI动效 中的任意一项），无论是否包含UX设计环节，后续 <strong>UX→UI→蓝图→动效</strong> 的管线流转<strong style="color:var(--red)">均由 UX管线负责人 统筹跟进</strong>。客户端制作/客户端动效接入的排期由项目PM或客户端自行管理。<br><br>
+      <strong style="color:var(--heading)">核心原则：</strong>只要该需求涉及<strong style="color:var(--cyan)">界面产出</strong>（含 UI设计 / Layout蓝图 / UI动效 中的任意一项），无论是否包含UX设计环节，后续 <strong>UX→UI→蓝图→动效</strong> 的管线流转<strong style="color:var(--red)">均由 管线PM 统筹跟进</strong>。客户端制作/客户端动效接入的排期由特性PM或客户端自行管理。<br><br>
       <strong style="color:var(--heading)">适用场景说明：</strong><br>
       <table style="margin:8px 0;font-size:13px">
         <tr><th style="width:200px">需求类型</th><th>是否含UX环节</th><th>管线跟进人</th><th>说明</th></tr>
-        <tr><td>完整新功能界面</td><td>✅ 是（UX→UI→蓝图→动效→客户端）</td><td><strong style="color:var(--blue)">UX管线负责人</strong></td><td>标准全流程</td></tr>
-        <tr><td>策划已前置消化交互</td><td>❌ 无独立UX环节（直接从UI开始）</td><td><strong style="color:var(--blue)">UX管线负责人</strong></td><td>UX环节被策划前置完成，但后续UI→蓝图→动效仍归管线统筹</td></tr>
-        <tr><td>纯视觉改版（无交互变更）</td><td>❌ 无UX环节（UI→蓝图→动效）</td><td><strong style="color:var(--blue)">UX管线负责人</strong></td><td>涉及界面产出即归管线</td></tr>
-        <tr><td>小程序/活动页等轻量界面</td><td>视情况而定</td><td><strong style="color:var(--blue)">UX管线负责人</strong></td><td>只要涉及UI/Layout/动效产出</td></tr>
+        <tr><td>完整新功能界面</td><td>✅ 是（UX→UI→蓝图→动效→客户端）</td><td><strong style="color:var(--blue)">管线PM</strong></td><td>标准全流程</td></tr>
+        <tr><td>策划已前置消化交互</td><td>❌ 无独立UX环节（直接从UI开始）</td><td><strong style="color:var(--blue)">管线PM</strong></td><td>UX环节被策划前置完成，但后续UI→蓝图→动效仍归管线统筹</td></tr>
+        <tr><td>纯视觉改版（无交互变更）</td><td>❌ 无UX环节（UI→蓝图→动效）</td><td><strong style="color:var(--blue)">管线PM</strong></td><td>涉及界面产出即归管线</td></tr>
         <tr><td>纯数值/文案调整（无界面变更）</td><td>❌</td><td>策划自行处理</td><td>不涉及界面产出，不进入UX管线</td></tr>
       </table>
-      <div class="alert alert-yellow" style="margin:8px 0 0"><strong>💡 协作提醒：</strong>建议涉及界面产出的排期协调<strong>统一经由UX管线负责人</strong>，避免多头管理导致的信息混乱（例如：动效找APM排期、UI找UX管线负责人排期、Layout没人跟的情况）。</div>
+      <div class="alert alert-yellow" style="margin:8px 0 0"><strong>💡 协作提醒：</strong>建议涉及界面产出的排期协调<strong>统一经由管线PM</strong>，避免多头管理导致的信息混乱（例如：动效找APM排期、UI找管线PM排期、Layout没人跟的情况）。</div>
     </div>
   </div>
   <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px">
@@ -396,17 +395,17 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     <table style="margin:0;font-size:13px">
       <tr><th style="width:70px">环节阶段</th><th>触发动作 / 里程碑</th><th>TAPD 单据状态流转</th><th>操作人</th></tr>
       <tr><td>①→②</td><td>需求文档定稿</td><td>策划建父需求单 + 各环节子单，状态设为 <strong>已受理</strong></td><td>策划</td></tr>
-      <tr><td>②</td><td>项目PM拉群宣讲 & 挂对接人</td><td>在子单上挂各方处理人、同步排期节点</td><td>项目PM</td></tr>
-      <tr><td>②→③</td><td>UX管线负责人跟进排期</td><td>确认 UX→UI→蓝图→动效 排期与前置依赖（不含客户端）</td><td>UX管线负责人</td></tr>
-      <tr><td>③→④</td><td>UX评审通过 & 交付</td><td>UX子单 → <strong>已完成</strong>，UI / 功能蓝图子单 → <strong>进行中</strong></td><td>UX管线负责人</td></tr>
+      <tr><td>②</td><td>特性PM拉群宣讲 & 挂对接人</td><td>在子单上挂各方处理人、同步排期节点</td><td>特性PM</td></tr>
+      <tr><td>②→③</td><td>管线PM跟进排期</td><td>确认 UX→UI→蓝图→动效 排期与前置依赖（不含客户端）</td><td>管线PM</td></tr>
+      <tr><td>③→④</td><td>UX评审通过 & 交付</td><td>UX子单 → <strong>已完成</strong>，UI / 功能蓝图子单 → <strong>进行中</strong></td><td>管线PM</td></tr>
       <tr><td>⑧→⑨</td><td>UI源文件交付 & Layout切正式资产</td><td>UI子单 → <strong>已完成</strong>，正式蓝图单 → <strong>进行中</strong></td><td>UI / Layout</td></tr>
       <tr><td>⑨→⑩→⑪</td><td>切正式资产后资产合规自查 & 正式蓝图</td><td>资产合规自查通过后，正式蓝图子单 → <strong>进行中</strong>，UI动效子单 → <strong>进行中</strong></td><td>Layout / VX</td></tr>
       <tr><td>⑬→⑯</td><td>走查验收与客户端制作/动效接入</td><td>客户端制作/接入单 → <strong>已完成</strong>，父需求单验收 → <strong>已完成</strong></td><td>客户端 / 策划</td></tr>
     </table>
   </div>
   <div class="alert alert-yellow" style="margin:0"><strong>⚠️ 发单与流转注意事项</strong>：<br>
-    • 父单和子单均由<strong>策划</strong>创建（确保需求来源可追溯、子单拆解与需求一致）。<strong>子单处理人由项目PM挂上。</strong><br>
-    • 项目PM负责拉群宣讲 & 挂对接人；<strong>UX管线负责人</strong>负责跟进 <strong>UX→UI→蓝图→动效</strong> 的排期确认与进度推动（客户端排期由PM或客户端自行管理）。<br>
+    • 父单和子单均由<strong>策划</strong>创建（确保需求来源可追溯、子单拆解与需求一致）。<strong>子单处理人由特性PM挂上。</strong><br>
+    • 特性PM负责拉群宣讲 & 挂对接人；<strong>管线PM</strong>负责跟进 <strong>UX→UI→蓝图→动效</strong> 的排期确认与进度推动（客户端排期由特性PM或客户端自行管理）。<br>
     • 每个子单建议关联父需求单，便于项目看板追踪系统整体研发进度。<br>
     • 评审类节点（③⑦⑬）通过 TAPD <strong>评论/备注</strong>记录结论与调整点，不单独建单。<br>
     • 走查发现的问题统一通过 TAPD <strong>缺陷单</strong>记录并关联父需求单。<strong style="color:var(--orange)">提报建议：请包含【问题截图/录屏】、【期望表现】及【当前表现】</strong>，这样能有效减少沟通成本。</div>
@@ -420,32 +419,20 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
 <!-- SEC4 常见问题 FAQ -->
 <div class="section" id="sec4">
   <h2>❓ 4. 常见问题 FAQ</h2>
-  <div class="faq-item" style="border-color:rgba(96,165,250,.3)"><div class="faq-q">💬 Q1：需求只涉及UI/Layout/动效，没有UX交互环节，应该找谁跟进？ <span class="badge badge-new">NEW</span></div><div class="faq-a"><strong>答</strong>：<strong style="color:var(--blue)">仍然由UX管线负责人统筹跟进。</strong><br><br>
+  <div class="faq-item" style="border-color:rgba(96,165,250,.3)"><div class="faq-q">💬 Q1：需求只涉及UI/Layout/动效，没有UX交互环节，应该找谁跟进？ <span class="badge badge-new">NEW</span></div><div class="faq-a">    <strong>答</strong>：<strong style="color:var(--blue)">仍然由管线PM统筹跟进。</strong><br><br>
     <strong>常见场景举例：</strong><br>
     　• 策划在写案子时已与交互沟通好，无需额外出交互稿，但后续需要UI设计→蓝图→动效→客户端<br>
-    　• 纯视觉改版需求（UI出新稿→Layout切正式→动效调整），没有交互变更<br>
-    　• 小程序/活动页等轻量界面，策划直接给了参考稿，跳过了UX环节<br><br>
+    　• 纯视觉改版需求（UI出新稿→Layout切正式→动效调整），没有交互变更<br><br>
     <strong>为什么建议这样做？</strong><br>
-    　• UX管线负责人的核心职责不是"做交互设计"，而是<strong>确保 UX→UI→蓝图→动效 这条管线的流转顺畅</strong>（客户端制作/动效接入的排期由项目PM或客户端自行管理）<br>
-    　• 如果各方分别直接找UI/Layout/动效排期，容易导致信息碎片化——动效去找APM、UI来找UX管线负责人、Layout没人跟，造成不必要的沟通混乱<br>
-    　• <strong style="color:var(--blue)">判断标准很简单：只要需求涉及UI/Layout/动效中任意一项产出，这些环节的排期建议由UX管线负责人统一协调</strong><br><br>
-    <div class="alert alert-blue" style="margin:8px 0 0"><strong>💡 协作建议：</strong>涉及界面产出的排期协调，建议统一由UX管线负责人对接，便于信息集中管理。客户端排期不在此范围内。</div><br>
-    <strong style="color:var(--orange)">补充说明：APM与UX管线的分工</strong><br>
-    　APM（美术项目经理）主要负责<strong>美术相关排期</strong>及<strong>运营侧内容</strong>的协调管理，UX管线负责人负责界面产出环节的统筹。两者职责边界如下：<br><br>
-    　<strong>建议分工原则：</strong><br>
-    <table style="margin:8px 0;font-size:13px">
-      <tr><th style="width:200px">需求类型</th><th>建议跟进人</th><th>说明</th></tr>
-      <tr><td>涉及UI/Layout/动效的界面产出需求</td><td><strong style="color:var(--blue)">UX管线负责人</strong></td><td>属于UX→UI→蓝图→动效管线范畴，由UX管线负责人统筹排期与流转</td></tr>
-      <tr><td>美术资源制作（原画/概念图/3D等）</td><td><strong style="color:var(--purple)">APM</strong></td><td>属于美术产能管理范畴，由APM统筹排期</td></tr>
-      <tr><td>运营侧视觉内容（活动banner/运营素材等）</td><td><strong style="color:var(--purple)">APM</strong></td><td>运营侧内容排期由APM负责</td></tr>
-      <tr><td>界面需求同时涉及美术资源配合</td><td><strong style="color:var(--blue)">UX管线负责人</strong>主导，与APM协调</td><td>界面流转（UI设计/Layout蓝图/UI动效）归UX管线统筹；所需美术资源（如原画、3D模型、特效素材等非界面类资产）的制作排期由APM负责协调，UX管线负责人提出需求节点与交付时间要求，APM据此安排美术产能</td></tr>
-    </table>
-    　<strong style="color:var(--cyan)">核心原则：</strong>不建议按需求分散管理（即"谁空谁接"），容易导致信息断层。建议以<strong>产出类型</strong>划分职责边界——<strong>凡涉及界面产出（UI设计/Layout蓝图/UI动效）的环节排期，统一归UX管线负责人</strong>；美术资源与运营侧内容归APM。两者需要配合时，由UX管线负责人发起协调。</div></div>
+    　• 管线PM的核心职责不是"做交互设计"，而是<strong>确保 UX→UI→蓝图→动效 这条管线的流转顺畅</strong>（客户端制作/动效接入的排期由特性PM或客户端自行管理）<br>
+    　• 如果各方分别直接找UI/Layout/动效排期，容易导致信息碎片化——动效去找APM、UI来找管线PM、Layout没人跟，造成不必要的沟通混乱<br>
+    　• <strong style="color:var(--blue)">判断标准很简单：只要需求涉及UI/Layout/动效中任意一项产出，这些环节的排期建议由管线PM统一协调</strong><br><br>
+    <div class="alert alert-blue" style="margin:8px 0 0"><strong>💡 协作建议：</strong>涉及界面产出的排期协调，建议统一由管线PM对接，便于信息集中管理。客户端排期不在此范围内。</div></div></div>
 
   <div class="faq-item"><div class="faq-q">💬 Q2：测试发现界面 Bug，TAPD 缺陷单应该挂给谁？ <span class="badge badge-new">NEW</span></div><div class="faq-a"><strong>答</strong>：为了提高问题处理效率，请遵循以下分流原则：<br>
-    　• <strong>界面表现相关（含 Layout 还原/布局 及 视觉切图/资源错误）</strong>：统一挂单给 <strong>v_zhyszhang（张荧）</strong>。由张荧统一排查后，分配给对应的 Layout 制作人或 UI 设计师跟进处理。<br>
+    　• <strong>界面表现相关（含 Layout 还原/布局 及 视觉切图/资源错误）</strong>：统一挂单给 <strong>管线PM</strong>。由管线PM统一排查后，分配给对应的 Layout 制作人或 UI 设计师跟进处理。<br>
     　• <strong>业务逻辑/数据异常问题</strong>：挂单给对应的<strong>客户端开发</strong>。<br>
-    　• <strong>界面表现相关但不确定归属的问题</strong>：优先挂单给 <strong>v_zhyszhang（张荧）</strong>协助定位排查。<br>
+    　• <strong>界面表现相关但不确定归属的问题</strong>：优先挂单给 <strong>管线PM</strong>协助定位排查。<br>
     其他明确不属于界面的常规问题，按已有逻辑挂给对应接口人即可。</div></div>
 
   <div class="faq-item" style="border-color:rgba(251,146,60,.3)"><div class="faq-q">💬 Q3：动效需求在界面制作基本完成后才补充提出，应该怎么处理？附交互图还是最终效果图？ <span class="badge badge-new">NEW</span></div><div class="faq-a"><strong>答</strong>：这是实际项目中常见的情况，通常有两种原因导致动效需求后置。以具体案例说明：<br><br>
@@ -456,15 +443,15 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
     <strong style="color:var(--red)">问题：</strong>仅附交互图是<strong>不够的</strong>。交互图描述的是交互逻辑和操作流程，但动效制作需要的是<strong>最终视觉效果的参考</strong>。<br><br>
     <strong style="color:var(--cyan)">正确做法：</strong><br>
     　• 需求详情中<strong>建议附上最终效果图（UI 终稿）</strong>，而非仅交互图。动效制作是基于 UI 视觉稿来实现的，交互图无法体现颜色、层级、动画起止状态等关键信息<br>
-    　• <strong style="color:var(--orange)">运营/策划如果手上没有效果图</strong>，可以联系 <strong>v_zhyszhang（张荧）</strong>获取对应界面的 UI 视觉稿，切勿仅凭交互图就发动效单<br>
+    　• <strong style="color:var(--orange)">运营/策划如果手上没有效果图</strong>，可以联系 <strong>管线PM</strong>获取对应界面的 UI 视觉稿，切勿仅凭交互图就发动效单<br>
     　• 如有动效参考视频或预演 Demo，一并附上，便于 VX 动效设计师理解预期效果<br>
     　• 如果需要新增动效子单，走正常的 TAPD 子单创建流程，关联到父需求单<br><br>
     <strong style="color:var(--green)">建议规范：</strong><br>
     　• 动效需求<strong>尽量在设计阶段就明确</strong>（流程中 ⑥ UI设计 阶段），交互提出动效需求时<strong>应同步创建动效子单</strong>，避免遗漏导致后期才补发<br>
-    　• 后置提出的动效需求，发单时建议包含：<strong>① UI 终稿截图/Figma链接</strong>（无终稿找 v_zhyszhang 获取）　<strong>② 动效描述（触发方式、动画类型、时长等）</strong>　<strong>③ 参考示例（如有）</strong><br>
-    　• UX管线负责人需评估后置动效对当前排期的影响，必要时协调调整节点</div></div>
+    　• 后置提出的动效需求，发单时建议包含：<strong>① UI 终稿截图/Figma链接</strong>（无终稿找管线PM获取）　<strong>② 动效描述（触发方式、动画类型、时长等）</strong>　<strong>③ 参考示例（如有）</strong><br>
+    　• 管线PM需评估后置动效对当前排期的影响，必要时协调调整节点</div></div>
 
-  <div class="faq-item"><div class="faq-q">💬 Q4：策划中途改需求怎么办？</div><div class="faq-a"><strong>答</strong>：实际项目中，策划通常已与项目PM和相关方沟通过一轮后才会提出变更。此时各方应快速评估影响范围，重点关注：<br>
+  <div class="faq-item"><div class="faq-q">💬 Q4：策划中途改需求怎么办？</div><div class="faq-a"><strong>答</strong>：实际项目中，策划通常已与特性PM和相关方沟通过一轮后才会提出变更。此时各方应快速评估影响范围，重点关注：<br>
     　• <strong>哪些环节受影响</strong>（UX / UI / Layout / VX / 客户端）<br>
     　• <strong>是否涉及已完成环节的返工</strong>，以及预计增加的工期<br>
     　• <strong>更新需求文档</strong>，在 TAPD 中标注变更内容和影响范围<br>
@@ -473,61 +460,7 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <div class="faq-item"><div class="faq-q">💬 Q5：Layout白模和UI设计并行，如果UI改了怎么办？</div><div class="faq-a"><strong>答</strong>：分两种情况——<br><strong>① 仅视觉层变更（配色/字体/图标样式）：</strong>白模不受影响，Layout切正式资产时直接替换即可。<br><strong>② 布局/结构性变更（控件增减、层级调整、页面布局大改）：</strong>这是并行模式下<strong style="color:var(--orange)">需要注意的场景</strong>。此时白模功能蓝图可能无法使用，需要触发「偏离评估会」。<br><strong>预防关键：</strong>建议UI设计进行至50%时与交互/Layout做一次中期对齐，提前暴露布局变更意图。</div></div>
 </div>
 
-<!-- SEC5 效率度量 KPI 体系 -->
-<div class="section" id="sec5">
-  <h2>📊 5. 管线效率度量 KPI 体系</h2>
-
-  <p>将 UX 管线的效率和质量<strong>量化为可度量指标</strong>，便于 PM 和 UX 管线负责人进行数据驱动的流程优化。以下 KPI 均可从 TAPD 工单数据中自动或半自动采集。</p>
-
-  <div style="font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600">5.1 核心效率 KPI</div>
-  <table>
-    <tr><th>指标名称</th><th>定义 / 公式</th><th>目标值</th><th>采集方式</th><th>关注角色</th></tr>
-    <tr><td><strong>端到端交付周期</strong></td><td>①策划需求 → ⑯界面交付完成 的自然天数</td><td>单界面 ≤ 15 工作日</td><td>TAPD 父单 创建→关闭 时间差</td><td>PM / UX管线负责人</td></tr>
-    <tr><td><strong>环节平均耗时</strong></td><td>各环节子单 进行中→已完成 的平均天数</td><td>UX ≤ 3天；UI ≤ 5天；Layout ≤ 3天；VX ≤ 3天</td><td>TAPD 子单状态变更时间戳</td><td>UX管线负责人</td></tr>
-    <tr><td><strong>并行利用率</strong></td><td>实际并行天数 / 理论可并行天数 × 100%</td><td>≥ 70%</td><td>并行组 A/B 实际重叠天数统计</td><td>UX管线负责人</td></tr>
-    <tr><td><strong>评审一次通过率</strong></td><td>一次通过评审数 / 总评审数 × 100%</td><td>≥ 75%</td><td>TAPD 评论/评审记录</td><td>各环节负责人</td></tr>
-    <tr><td><strong>走查问题密度</strong></td><td>走查发现的缺陷数 / 已交付界面数</td><td>≤ 3 个/界面</td><td>TAPD 缺陷单（关联⑬走查）</td><td>QA / PM</td></tr>
-    <tr><td><strong>走查修复闭环率</strong></td><td>走查问题 48h 内关闭数 / 总走查问题数 × 100%</td><td>≥ 85%</td><td>TAPD 缺陷单 创建→关闭 时间差</td><td>UX管线负责人</td></tr>
-  </table>
-
-  <div style="font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600">5.2 质量回溯 KPI</div>
-  <table>
-    <tr><th>指标名称</th><th>定义 / 公式</th><th>目标值</th><th>采集方式</th></tr>
-    <tr><td><strong>需求变更率</strong></td><td>中途变更需求数 / 总需求数 × 100%</td><td>≤ 20%</td><td>TAPD 需求变更备注</td></tr>
-    <tr><td><strong>返工率</strong></td><td>评审打回或走查后需重做的环节数 / 总环节数 × 100%</td><td>≤ 15%</td><td>TAPD 状态回退记录</td></tr>
-    <tr><td><strong>资产合规率</strong></td><td>⑩ 资产合规检查一次通过数 / 总检查数 × 100%</td><td>≥ 90%</td><td>资产合规检查记录</td></tr>
-    <tr><td><strong>偏离评估触发率</strong></td><td>需触发偏离评估的界面数 / 总界面数 × 100%</td><td>≤ 10%</td><td>偏离评估会议记录</td></tr>
-  </table>
-
-  <div style="font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600">5.3 看板可视化建议</div>
-  <table>
-    <tr><th>看板区域</th><th>展示内容</th><th>可视化形式</th><th>刷新频率</th></tr>
-    <tr><td>交付漏斗</td><td>各阶段在手界面数量（①→⑯）</td><td>漏斗图 / 甘特图</td><td>每日</td></tr>
-    <tr><td>环节耗时分布</td><td>各环节平均耗时 + 异常值标注</td><td>箱线图</td><td>每周</td></tr>
-    <tr><td>评审通过率趋势</td><td>近 8 周各评审节点一次通过率</td><td>折线图</td><td>每周</td></tr>
-    <tr><td>瓶颈预警</td><td>超出目标值 120% 的环节高亮</td><td>红色预警卡片</td><td>实时</td></tr>
-    <tr><td>并行效率</td><td>并行组 A/B 实际 vs 理论时间线对比</td><td>双甘特图</td><td>按需求统计</td></tr>
-    <tr><td>走查闭环追踪</td><td>未关闭走查问题列表 + 超时预警</td><td>表格 + 倒计时</td><td>每日</td></tr>
-  </table>
-
-  <div style="font-size:17px;color:var(--heading);margin:16px 0 8px;font-weight:600">5.4 数据驱动优化模型</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0">
-    <div style="border-radius:10px;padding:16px;font-size:14px;line-height:1.8;background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)">
-      <h4 style="margin:0 0 8px;font-size:15px;color:var(--green)">✅ 健康指标（目标区间内）</h4>
-      <p>• 维持当前流程，不做大变动<br>• 季度回顾频率可降为月度<br>• 关注持续改进空间（如提高并行利用率）<br>• 分享最佳实践到其他项目组</p>
-    </div>
-    <div style="border-radius:10px;padding:16px;font-size:14px;line-height:1.8;background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2)">
-      <h4 style="margin:0 0 8px;font-size:15px;color:var(--red)">❌ 预警指标（超出目标值 120%）</h4>
-      <p>• 定位瓶颈环节（哪个阶段耗时最长？）<br>• 分析根因（人力不足/需求变更多/评审反复？）<br>• 制定针对性改进措施<br>• 增加检查频率至每日/每周<br>• PM 升级为风险项，纳入周报</p>
-    </div>
-  </div>
-
-  <div class="alert alert-green">
-    ✅ <strong>落地建议</strong>：UX管线负责人每两周汇总一次 KPI 数据，在项目复盘会上用数据说话。重点关注「端到端交付周期」和「走查修复闭环率」两个核心指标，前者衡量效率，后者衡量质量。
-  </div>
-</div>
-
-<div class="doc-footer">🖥️ 游戏 UX 管线流程 · 环节同步版 v1.1 · 2026-05-29 · 基于全流程 v1.2 精简 + 效率KPI</div>
+<div class="doc-footer">🖥️ 游戏 UX 管线流程 · 环节同步版 · 2026-05-18 · 基于全流程 v1.2 精简</div>
 </div>
 </body>
 </html>
