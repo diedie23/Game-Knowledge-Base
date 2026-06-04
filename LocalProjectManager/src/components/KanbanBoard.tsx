@@ -16,7 +16,8 @@ import { confirmDialog } from './common/ConfirmDialog';
 const COLUMNS = [
   { id: 'todo', title: '待办', color: 'bg-slate-800/40', borderColor: 'border-slate-700/50' },
   { id: 'in_progress', title: '进行中', color: 'bg-blue-900/20', borderColor: 'border-blue-700/40' },
-  { id: 'done', title: '已完成', color: 'bg-emerald-900/20', borderColor: 'border-emerald-700/40' }
+  { id: 'done', title: '已完成', color: 'bg-emerald-900/20', borderColor: 'border-emerald-700/40' },
+  { id: 'cancelled', title: '已关闭', color: 'bg-red-900/20', borderColor: 'border-red-700/40' }
 ];
 
 export const KanbanBoard: React.FC = () => {
@@ -231,7 +232,7 @@ export const KanbanBoard: React.FC = () => {
     const colTasks = filteredTasks.filter(col.filterFn);
     // When grouped by person or priority, sort: todo & in_progress first, done last
     if (groupBy !== 'status') {
-        const statusOrder: Record<string, number> = { todo: 0, in_progress: 1, done: 2, paused: 3 };
+        const statusOrder: Record<string, number> = { todo: 0, in_progress: 1, done: 2, paused: 3, cancelled: 4 };
       colTasks.sort((a, b) => (statusOrder[a.status] ?? 1) - (statusOrder[b.status] ?? 1));
     }
     return colTasks;
@@ -900,7 +901,7 @@ export const KanbanBoard: React.FC = () => {
                                           <button
                                             onClick={async (e) => {
                                               e.stopPropagation();
-                                              const nextStatus = task.status === 'todo' ? 'in_progress' : task.status === 'in_progress' ? 'done' : 'todo';
+                                              const nextStatus = task.status === 'todo' ? 'in_progress' : task.status === 'in_progress' ? 'done' : task.status === 'done' ? 'cancelled' : 'todo';
                                               await trackedDb.tasks.update(task.id!, { status: nextStatus }, `快速切换任务状态为「${nextStatus === 'todo' ? '待办' : nextStatus === 'in_progress' ? '进行中' : '已完成'}」`);
                                             }}
                                             className={`opacity-0 group-hover/card:opacity-100 text-[10px] px-2 py-0.5 rounded-full hover:opacity-80 transition-opacity cursor-pointer ${
@@ -910,7 +911,7 @@ export const KanbanBoard: React.FC = () => {
                                           }`}
                                             title="点击快速切换状态"
                                           >
-                                            {task.status === 'done' ? '已完成' : task.status === 'in_progress' ? '进行中' : '待办'}
+                                            {task.status === 'done' ? '已完成' : task.status === 'in_progress' ? '进行中' : task.status === 'cancelled' ? '已关闭' : '待办'}
                                           </button>
                                         )}
                                         {groupBy === 'status' && (

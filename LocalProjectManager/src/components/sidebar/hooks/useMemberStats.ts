@@ -21,6 +21,7 @@ export interface MemberOverviewData {
 export function useMemberStats() {
   const resources = useLiveQuery(() => db.resources.toArray());
   const tasks = useLiveQuery(() => db.tasks.toArray());
+  const projects = useLiveQuery(() => db.projects.toArray());
   const today = startOfToday();
 
   // Get dominant task type color for a resource
@@ -55,16 +56,22 @@ export function useMemberStats() {
       const resource = resources?.find(r => r.id === memberId);
       if (!resource || !tasks) return null;
 
-      // Leaf tasks only (exclude parent tasks to match heatmap stats)
+      // Build archived project id set
+      const archivedProjectIds = new Set(
+        (projects || []).filter(p => p.status === 'archived').map(p => p.id)
+      );
+
+      // Leaf tasks only (exclude parent tasks to match heatmap stats, exclude archived project tasks)
       const myTasks = tasks.filter(t => {
         if (!t.assigneeIds?.includes(memberId)) return false;
+        if (t.projectId !== undefined && archivedProjectIds.has(t.projectId)) return false;
         const hasChildren = tasks.some(child => child.parentId === t.id);
         return !hasChildren;
       });
       const todo = myTasks.filter(t => t.status === 'todo');
       const inProgress = myTasks.filter(t => t.status === 'in_progress');
       const done = myTasks.filter(t => t.status === 'done');
-      const overdue = myTasks.filter(t => t.status !== 'done' && t.endDate && new Date(t.endDate) < today);
+      const overdue = myTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled' && t.endDate && new Date(t.endDate) < today);
 
       // Find free days in the next 14 days (excluding weekends and holidays)
       const freeDays: Date[] = [];
@@ -75,20 +82,24 @@ export function useMemberStats() {
           if (!t.startDate || !t.endDate) return false;
           const start = new Date(t.startDate);
           const end = new Date(t.endDate);
-          return day >= start && day <= end && t.status !== 'done';
+          return day >= start && day <= end && t.status !== 'done' && t.status !== 'cancelled';
         });
         if (!hasTasks) freeDays.push(day);
       }
 
       return { resource, total: myTasks.length, todo, inProgress, done, overdue, freeDays, myTasks };
     };
-  }, [resources, tasks, today]);
+  }, [resources, tasks, projects, today]);
 
   // Get task stats for a single member (for micro indicators, leaf tasks only)
   const getMemberTaskStats = useMemo(() => {
     return (resourceId: number) => {
+      const archivedProjectIds = new Set(
+        (projects || []).filter(p => p.status === 'archived').map(p => p.id)
+      );
       const memberTasks = tasks?.filter(t => {
         if (!t.assigneeIds?.includes(resourceId)) return false;
+        if (t.projectId !== undefined && archivedProjectIds.has(t.projectId)) return false;
         // Exclude parent tasks
         const hasChildren = tasks.some(child => child.parentId === t.id);
         return !hasChildren;
@@ -97,10 +108,10 @@ export function useMemberStats() {
         inProgress: memberTasks.filter(t => t.status === 'in_progress').length,
         todo: memberTasks.filter(t => t.status === 'todo').length,
         done: memberTasks.filter(t => t.status === 'done').length,
-        overdue: memberTasks.filter(t => t.status !== 'done' && t.endDate && new Date(t.endDate) < today).length,
+        overdue: memberTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled' && t.endDate && new Date(t.endDate) < today).length,
       };
     };
-  }, [tasks, today]);
+  }, [tasks, projects, today]);
 
   return {
     resources,

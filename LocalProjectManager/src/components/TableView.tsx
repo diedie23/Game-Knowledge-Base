@@ -100,7 +100,7 @@ export function TableView() {
           comparison = a.title.localeCompare(b.title, 'zh-CN');
           break;
         case 'status': {
-    const statusOrder: Record<string, number> = { todo: 0, in_progress: 1, done: 2, paused: 3 };
+    const statusOrder: Record<string, number> = { todo: 0, in_progress: 1, done: 2, paused: 3, cancelled: 4 };
           comparison = (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0);
           break;
         }

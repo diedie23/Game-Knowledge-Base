@@ -1,7 +1,7 @@
 ﻿// ─── Task Enums ──────────────────────────────────────────────────
 
 /** Task workflow status */
-export type TaskStatus = 'todo' | 'in_progress' | 'done' | 'paused';
+export type TaskStatus = 'todo' | 'in_progress' | 'done' | 'paused' | 'cancelled';
 
 /** Project lifecycle status */
 export type ProjectStatus = 'active' | 'paused' | 'archived';

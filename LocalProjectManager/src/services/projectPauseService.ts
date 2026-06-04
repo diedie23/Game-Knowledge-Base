@@ -103,15 +103,19 @@ export const projectPauseService = {
   },
 
   /**
-   * Archive a project: similar to pause but indicates the project is permanently cancelled.
-   * Tasks are paused and the project is marked as 'archived'.
+   * Archive a project: permanently cancel all tasks and mark project as 'archived'.
+   * Tasks are set to 'cancelled' status (cascading close).
    */
   async archiveProject(projectId: number, reason?: string): Promise<{ archivedCount: number }> {
+    console.log(`[Cascade Close] Starting archiveProject for project ${projectId}`);
+    
     const project = await db.projects.get(projectId);
     if (!project) {
       toast.error('项目不存在');
       return { archivedCount: 0 };
     }
+
+    console.log(`[Cascade Close] Project found: ${project.name}, current status: ${project.status}`);
 
     // Update project status to archived
     await db.projects.update(projectId, {
@@ -120,31 +124,39 @@ export const projectPauseService = {
       pauseReason: reason || '项目已归档',
     });
 
-    // Get all non-done, non-paused tasks under this project
+    console.log(`[Cascade Close] Project status updated to 'archived'`);
+
+    // Get all non-done, non-cancelled tasks under this project
     const tasks = await db.tasks
       .where('projectId')
       .equals(projectId)
-      .filter(t => t.status !== 'done' && t.status !== 'paused')
+      .filter(t => t.status !== 'done' && t.status !== 'cancelled')
       .toArray();
 
+    console.log(`[Cascade Close] Found ${tasks.length} tasks to cancel`);
+
     if (tasks.length === 0) {
-      toast.info(`项目「${project.name}」已归档`);
+      toast.info(`项目「${project.name}」已归档，无需要关闭的任务`);
       return { archivedCount: 0 };
     }
 
-    // Batch pause all tasks
+    // Batch cancel all tasks (cascading close)
     const updates = tasks.map(t => ({
       id: t.id!,
       changes: {
-        status: 'paused' as TaskStatus,
+        status: 'cancelled' as TaskStatus,
         previousStatus: t.status as TaskStatus,
         pausedAt: new Date(),
       } as Partial<Task>,
     }));
 
-    await trackedDb.tasks.bulkUpdate(updates, `归档项目「${project.name}」下 ${tasks.length} 个任务`);
+    console.log(`[Cascade Close] Cancelling ${tasks.length} tasks:`, tasks.map(t => `${t.id}:${t.title}`));
 
-    toast.success(`已归档项目「${project.name}」，共 ${tasks.length} 个任务被暂停`);
+    await trackedDb.tasks.bulkUpdate(updates, `归档项目「${project.name}」— 级联关闭 ${tasks.length} 个任务`);
+
+    console.log(`[Cascade Close] Successfully cancelled ${tasks.length} tasks`);
+
+    toast.success(`已归档项目「${project.name}」，共 ${tasks.length} 个任务已关闭`);
     return { archivedCount: tasks.length };
   },
 

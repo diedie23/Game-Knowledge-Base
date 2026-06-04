@@ -84,7 +84,7 @@ export function calcMemberWorkload(
     if (!t.startDate || !t.endDate) return false;
     if (t.id === excludeTaskId) return false;
     if (!t.assigneeIds?.includes(resourceId)) return false;
-    if (t.status === 'done') return false;
+    if (t.status === 'done' || t.status === 'cancelled') return false;
     // Only count leaf tasks (with parentId) to avoid double-counting parent tasks
     const hasChildren = allTasks.some(child => child.parentId === t.id);
     if (hasChildren) return false;

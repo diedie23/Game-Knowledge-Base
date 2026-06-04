@@ -466,3 +466,48 @@ export class LocalProjectManagerDB extends Dexie {
 }
 
 export const db = new LocalProjectManagerDB();
+
+// ============================================================================
+// 自动级联关闭：包装 db.projects.update
+// 当项目状态变为 'archived' 时，自动将所有非 done/cancelled 任务设为 'cancelled'
+// ============================================================================
+{
+  const _origUpdate = db.projects.update.bind(db.projects);
+  db.projects.update = async function (
+    projectId: number,
+    changes: { status?: string; [key: string]: any }
+  ): Promise<number> {
+    // 仅拦截状态改为 'archived' 的调用
+    if (changes.status === 'archived') {
+      const project = await db.projects.get(projectId);
+      if (project && project.status !== 'archived') {
+        // 先执行原版更新
+        const result = await _origUpdate(projectId, changes);
+
+        // 级联关闭所有非 done/cancelled 的任务
+        const tasks = await db.tasks
+          .where('projectId').equals(projectId)
+          .filter((t: any) => t.status !== 'done' && t.status !== 'cancelled')
+          .toArray();
+
+        if (tasks.length > 0) {
+          await db.tasks.bulkUpdate(
+            tasks.map((t: any) => ({
+              id: t.id!,
+              changes: {
+                status: 'cancelled',
+                previousStatus: t.status,
+                pausedAt: new Date(),
+              },
+            }))
+          );
+          console.log(`[Cascade] 自动关闭项目「${project.name}」下的 ${tasks.length} 个任务`);
+        }
+
+        return result;
+      }
+    }
+    // 非归档更新，直接走原版
+    return await _origUpdate(projectId, changes);
+  } as typeof db.projects.update;
+}

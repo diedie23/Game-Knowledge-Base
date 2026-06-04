@@ -19,8 +19,8 @@ export function Dashboard() {
     [selectedProjectId]
   ) || [];
   const resources = useLiveQuery(() => db.resources.toArray()) || [];
-  // Exclude paused tasks from dashboard statistics
-  const tasks = useMemo(() => allTasks.filter(t => t.status !== 'paused'), [allTasks]);
+  // Exclude paused and cancelled tasks from dashboard statistics
+  const tasks = useMemo(() => allTasks.filter(t => t.status !== 'paused' && t.status !== 'cancelled'), [allTasks]);
 
   // 1. 顶部一行：今天是几号、本周第几天、距离下个版本节点还有几天
   const today = new Date();
@@ -76,12 +76,12 @@ export function Dashboard() {
   // 2. 今日需要关注:今天到期的任务，已延期的任务，今天新开始的任务
   const todayTasksGrouped = useMemo(() => {
     const dueToday = tasks.filter(t => {
-      if (!t.endDate || t.status === 'done') return false;
+      if (!t.endDate || t.status === 'done' || t.status === 'cancelled') return false;
       const endDate = new Date(t.endDate);
       // Include tasks due today OR already overdue (endDate in the past)
       return isToday(endDate) || isPast(endDate);
     });
-    const startToday = tasks.filter(t => t.startDate && isToday(new Date(t.startDate)) && t.status !== 'done');
+    const startToday = tasks.filter(t => t.startDate && isToday(new Date(t.startDate)) && t.status !== 'done' && t.status !== 'cancelled');
     
     // 红色=已延期，橙色=今日到期，绿色=正常
     const getTaskColor = (task: any) => {
@@ -288,11 +288,11 @@ export function Dashboard() {
       const memberTasks = tasks.filter(t => t.assigneeIds?.includes(resource.id!) && !parentTaskIds.has(t.id!));
       const memberInProgress = memberTasks.filter(t => t.status === 'in_progress').length;
       const memberTodo = memberTasks.filter(t => t.status === 'todo').length;
-      const memberOverdue = memberTasks.filter(t => t.status !== 'done' && t.endDate && new Date(t.endDate) < today).length;
+      const memberOverdue = memberTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled' && t.endDate && new Date(t.endDate) < today).length;
 
       // Collect active tasks (in_progress + overdue) for expandable detail
       const memberActiveTasks = memberTasks.filter(t => 
-        t.status === 'in_progress' || (t.status !== 'done' && t.endDate && new Date(t.endDate) < today)
+        t.status === 'in_progress' || (t.status !== 'done' && t.status !== 'cancelled' && t.endDate && new Date(t.endDate) < today)
       );
 
       return {

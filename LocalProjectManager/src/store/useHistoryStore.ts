@@ -189,9 +189,15 @@ export const trackedDb = {
               updates.push({ id: parent.id!, changes: { status: 'in_progress' } });
             } else if (newStatus === 'done') {
               // If child becomes done, check if ALL children are done
-              const allSiblingsDone = siblings.every(t => t.status === 'done');
-              if (allSiblingsDone && parent.status !== 'done') {
+              const allSiblingsDone = siblings.every(t => t.status === 'done' || t.status === 'cancelled');
+              if (allSiblingsDone && parent.status !== 'done' && parent.status !== 'cancelled') {
                 updates.push({ id: parent.id!, changes: { status: 'done' } });
+              }
+            } else if (newStatus === 'cancelled') {
+              // If child becomes cancelled, check if ALL children are done/cancelled
+              const allSiblingsDone = siblings.every(t => t.status === 'done' || t.status === 'cancelled');
+              if (allSiblingsDone && parent.status !== 'done' && parent.status !== 'cancelled') {
+                updates.push({ id: parent.id!, changes: { status: 'cancelled' } });
               }
             }
           }

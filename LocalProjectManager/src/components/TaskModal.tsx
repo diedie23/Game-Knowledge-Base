@@ -1188,6 +1188,7 @@ export function TaskModal() {
                 <option value="todo">待办</option>
                 <option value="in_progress">进行中</option>
                 <option value="done">已完成</option>
+                <option value="cancelled">已关闭</option>
               </select>
             </div>
             

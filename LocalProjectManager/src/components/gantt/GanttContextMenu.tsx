@@ -11,7 +11,7 @@ interface Props {
   onRename: () => void;
   onDelete: () => void;
   onClose: () => void;
-  onStatusChange?: (taskId: number, status: 'todo' | 'in_progress' | 'done') => void;
+  onStatusChange?: (taskId: number, status: 'todo' | 'in_progress' | 'done' | 'cancelled') => void;
   onBatchShift?: (days: number) => void;
   onBatchAlignEnd?: () => void;
   onBatchCopyMarkdown?: () => void;
@@ -19,7 +19,7 @@ interface Props {
   hasChildren?: boolean;
 }
 
-const STATUS_OPTIONS: { value: 'todo' | 'in_progress' | 'done'; label: string; icon: React.ReactNode; activeColor: string; hoverBg: string }[] = [
+const STATUS_OPTIONS: { value: 'todo' | 'in_progress' | 'done' | 'cancelled'; label: string; icon: React.ReactNode; activeColor: string; hoverBg: string }[] = [
   {
     value: 'todo',
     label: '待办',
@@ -40,6 +40,13 @@ const STATUS_OPTIONS: { value: 'todo' | 'in_progress' | 'done'; label: string; i
     icon: <CheckCircle2 size={13} />,
     activeColor: 'text-emerald-400',
     hoverBg: 'hover:bg-emerald-500/10',
+  },
+  {
+    value: 'cancelled',
+    label: '已关闭',
+    icon: <Circle size={13} />,
+    activeColor: 'text-red-400',
+    hoverBg: 'hover:bg-red-500/10',
   },
 ];
 

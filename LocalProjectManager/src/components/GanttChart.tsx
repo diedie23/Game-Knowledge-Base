@@ -753,7 +753,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     setContextMenu(null);
   };
 
-  const handleStatusChange = async (taskId: number, status: 'todo' | 'in_progress' | 'done') => {
+  const handleStatusChange = async (taskId: number, status: 'todo' | 'in_progress' | 'done' | 'cancelled') => {
     const updateData: Partial<Task> = { status };
 
     if (status === 'done') {
@@ -791,7 +791,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
       updateData.completedAt = undefined;
     }
 
-    await trackedDb.tasks.update(taskId, updateData, `更改任务状态为${status === 'todo' ? '待办' : status === 'in_progress' ? '进行中' : '已完成'}`);
+    await trackedDb.tasks.update(taskId, updateData, `更改任务状态为${status === 'todo' ? '待办' : status === 'in_progress' ? '进行中' : status === 'done' ? '已完成' : '已关闭'}`);
     setContextMenu(null);
   };
 
