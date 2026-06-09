@@ -27,10 +27,13 @@ export function Dashboard() {
   const todayStr = format(today, 'yyyy年MM月dd日 EEEE', { locale: zhCN });
   const weekDay = today.getDay() === 0 ? 7 : today.getDay(); // 1-7
   
-  // 手动管理重要节点 — 持久化到 IndexedDB (projects 表)
-  const project = useLiveQuery(() => db.projects.toCollection().first());
-  const milestoneName = project?.milestoneName || '下个版本';
-  const milestoneDate = project?.milestoneDate || '';
+  // 手动管理重要节点 — 按当前选中项目读取里程碑
+  const milestoneProject = useLiveQuery(
+    () => selectedProjectId ? db.projects.get(selectedProjectId) : db.projects.toCollection().first(),
+    [selectedProjectId]
+  );
+  const milestoneName = milestoneProject?.milestoneName || '下个版本';
+  const milestoneDate = milestoneProject?.milestoneDate || '';
   const [isEditingMilestone, setIsEditingMilestone] = useState(false);
   const [tempMilestoneName, setTempMilestoneName] = useState(milestoneName);
   const [tempMilestoneDate, setTempMilestoneDate] = useState(milestoneDate);
