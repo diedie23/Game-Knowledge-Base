@@ -27,7 +27,7 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const { openResourceModal, selectedMemberId, setSelectedMemberId, currentView, setCurrentView, selectedProjectId, setSelectedProjectId, openAiPanel } = useStore();
-  const { resources, tasks, today, sortedResources, getResourceColor, getMemberOverview, getMemberTaskStats } = useMemberStats();
+  const { resources, tasks, today, sortedResources, getResourceColor, getMemberOverview, getMemberTaskStats } = useMemberStats(selectedProjectId);
   const [isTeamExpanded, setIsTeamExpanded] = useState(true);
   const [isDepartedExpanded, setIsDepartedExpanded] = useState(false);
   // Member grouping mode: 'role' = by function/role, 'group' = by project team

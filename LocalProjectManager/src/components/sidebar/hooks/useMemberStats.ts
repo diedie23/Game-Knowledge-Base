@@ -18,7 +18,7 @@ export interface MemberOverviewData {
   myTasks: Task[];
 }
 
-export function useMemberStats() {
+export function useMemberStats(projectId?: number | null) {
   const resources = useLiveQuery(() => db.resources.toArray());
   const tasks = useLiveQuery(() => db.tasks.toArray());
   const projects = useLiveQuery(() => db.projects.toArray());
@@ -45,10 +45,17 @@ export function useMemberStats() {
   }, [tasks]);
 
   // Sorted resources: type (internal→cp) → role order (UX→UI→Layout→…) → sortOrder
+  // When projectId is provided, only include resources with tasks in that project
   const sortedResources = useMemo(() => {
     if (!resources) return [];
-    return [...resources].sort(compareResources);
-  }, [resources]);
+    let filtered = [...resources];
+    if (projectId != null && tasks) {
+      filtered = filtered.filter(r =>
+        tasks.some(t => t.assigneeIds?.includes(r.id!) && t.projectId === projectId)
+      );
+    }
+    return filtered.sort(compareResources);
+  }, [resources, tasks, projectId]);
 
   // Compute member overview data
   const getMemberOverview = useMemo(() => {
@@ -61,10 +68,11 @@ export function useMemberStats() {
         (projects || []).filter(p => p.status === 'archived').map(p => p.id)
       );
 
-      // Leaf tasks only (exclude parent tasks to match heatmap stats, exclude archived project tasks)
+      // Leaf tasks only (exclude parent tasks to match heatmap stats, exclude archived project tasks, filter by selected project)
       const myTasks = tasks.filter(t => {
         if (!t.assigneeIds?.includes(memberId)) return false;
         if (t.projectId !== undefined && archivedProjectIds.has(t.projectId)) return false;
+        if (projectId != null && t.projectId !== projectId) return false;
         const hasChildren = tasks.some(child => child.parentId === t.id);
         return !hasChildren;
       });
@@ -89,7 +97,7 @@ export function useMemberStats() {
 
       return { resource, total: myTasks.length, todo, inProgress, done, overdue, freeDays, myTasks };
     };
-  }, [resources, tasks, projects, today]);
+  }, [resources, tasks, projects, today, projectId]);
 
   // Get task stats for a single member (for micro indicators, leaf tasks only)
   const getMemberTaskStats = useMemo(() => {
@@ -100,6 +108,7 @@ export function useMemberStats() {
       const memberTasks = tasks?.filter(t => {
         if (!t.assigneeIds?.includes(resourceId)) return false;
         if (t.projectId !== undefined && archivedProjectIds.has(t.projectId)) return false;
+        if (projectId != null && t.projectId !== projectId) return false;
         // Exclude parent tasks
         const hasChildren = tasks.some(child => child.parentId === t.id);
         return !hasChildren;
@@ -111,7 +120,7 @@ export function useMemberStats() {
         overdue: memberTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled' && t.endDate && new Date(t.endDate) < today).length,
       };
     };
-  }, [tasks, projects, today]);
+  }, [tasks, projects, today, projectId]);
 
   return {
     resources,
