@@ -118,6 +118,8 @@ export function TaskModal() {
   const [recommendedTemplateId, setRecommendedTemplateId] = useState<string | null>(null);
   // Sub-task upstream/downstream dependency date errors: index -> error message
   const [subTaskDepErrors, setSubTaskDepErrors] = useState<Record<number, string>>({});
+  // Wizard step index — MUST be declared with other hooks, before any early return
+  const [activeStep, setActiveStep] = useState<number>(0);
 
   useEffect(() => {
     if (!isTaskModalOpen) return; // Only reset when modal opens, not when it closes
@@ -678,7 +680,6 @@ export function TaskModal() {
     }
   };
 
-  const [activeStep, setActiveStep] = useState<number>(0);
   const steps = editingTaskId 
     ? [
         { id: 0, label: '基本信息', icon: '📋' },
