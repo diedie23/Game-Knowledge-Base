@@ -220,6 +220,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   <div>没有匹配的案例。试试放宽筛选条件，或<a href="javascript:void(0)" id="resetLink" style="color:var(--accent)">重置全部</a>。</div>
 </div>
 
+<div class="alert alert-purple" style="margin-top:24px">
+  <strong>📚 想要快速通览？</strong> 上面 4 篇是<strong>完整叙事版</strong>（单案例深挖）。若想一次浏览更多事故的<strong>精简合集</strong>（7 大案例 + 5Whys 速览），见
+  <a href="project-pitfall-log.html" class="pitfall-link" style="color:var(--accent2);text-decoration:none;border-bottom:1px dashed var(--accent2)">项目管理踩坑复盘（7大案例合集）</a>。
+  技术类事故排查见 <a href="accident-troubleshoot.html" class="pitfall-link" style="color:var(--accent2);text-decoration:none;border-bottom:1px dashed var(--accent2)">典型事故排雷手册</a>。
+</div>
+
 <div class="doc-footer">
   🔍 案例情境检索 v1.0 · 真实案例库 · 2026-07-24 · 新增案例请同步在此登记卡片与标签
 </div>
@@ -275,6 +281,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   document.getElementById('resetBtn').addEventListener('click',reset);
   var rl=document.getElementById('resetLink');
   if(rl) rl.addEventListener('click',reset);
+
+  // 在知识库 iframe 内：让案例卡片与合集链接走父窗口 navigate，保持在框架内浏览
+  function navById(id){
+    try{
+      if(window.parent && window.parent!==window && typeof window.parent.navigate==='function'){
+        window.parent.navigate(id); return true;
+      }
+    }catch(e){}
+    return false;
+  }
+  document.querySelectorAll('.case-card').forEach(function(card){
+    card.addEventListener('click',function(e){
+      var href=this.getAttribute('href')||'';
+      var id=href.replace('.html','');
+      if(navById(id)) e.preventDefault();
+    });
+  });
+  document.querySelectorAll('.pitfall-link').forEach(function(a){
+    a.addEventListener('click',function(e){
+      var href=this.getAttribute('href')||'';
+      var id=href.replace('.html','');
+      if(navById(id)) e.preventDefault();
+    });
+  });
 
   apply();
 })();

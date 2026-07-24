@@ -325,6 +325,48 @@
       "quality_level": "mature"
     },
     {
+      "id": "workload-standards-hub",
+      "module": "project",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "全工种标效总表 — 人日/发包/成本一站查",
+      "desc": "把散落各处的人天标效、发包报价、成本单价、效率指标汇总到一页，并补全 TA/音频/UGC/UI 发包细化的标效缺口",
+      "tags": [
+        "标效",
+        "人天",
+        "发包",
+        "成本",
+        "报价",
+        "工作量"
+      ],
+      "icon": "📐",
+      "action": "showDoc",
+      "path": "knowledge-base/workload-standards-hub.html",
+      "owner": "周八",
+      "last_updated": "2026-07-24",
+      "applicable_stage": "全阶段",
+      "priority": "high",
+      "is_hot": true,
+      "keywords": [
+        "标效",
+        "人日标效",
+        "发包标效",
+        "人天",
+        "工作量",
+        "报价",
+        "日单价",
+        "成本核算",
+        "UI标效",
+        "UI发包",
+        "切图报价",
+        "TA标效",
+        "音频标效",
+        "效率度量"
+      ],
+      "content_type": "方法论",
+      "quality_level": "mature"
+    },
+    {
       "id": "stage-playbook",
       "module": "project",
       "craft": "管理",

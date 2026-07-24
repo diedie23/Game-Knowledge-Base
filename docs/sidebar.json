@@ -37,6 +37,15 @@
           "icon": "📅",
           "items": [
             {
+              "id": "workload-standards-hub",
+              "icon": "📐",
+              "title": "全工种标效总表 — 人日/发包/成本一站查",
+              "type": "iframe",
+              "file": "knowledge-base/workload-standards-hub.html",
+              "badge": "管理",
+              "craft": "管理"
+            },
+            {
               "id": "stage-playbook",
               "icon": "🗺️",
               "title": "阶段作战地图 — 各阶段该盯什么+健康自检",
@@ -920,6 +929,15 @@
           "icon": "📊",
           "items": [
             {
+              "id": "art-efficiency-metrics",
+              "icon": "📈",
+              "title": "美术效能度量与数据指标体系（ADEI）",
+              "type": "iframe",
+              "file": "knowledge-base/art-efficiency-metrics.html",
+              "badge": "管理",
+              "craft": "管理"
+            },
+            {
               "id": "art-efficiency-system",
               "icon": "📊",
               "title": "美术效能度量与标准化汇报体系",
@@ -988,6 +1006,48 @@
               "title": "案例情境检索 — 按根因/阶段/量级反查",
               "type": "iframe",
               "file": "knowledge-base/case-index.html",
+              "badge": "案例",
+              "craft": "管理"
+            }
+          ]
+        },
+        {
+          "name": "案例详情（完整叙事版）",
+          "icon": "📖",
+          "items": [
+            {
+              "id": "case-delay",
+              "icon": "⏰",
+              "title": "延期案例 — 量产排期连环爆雷",
+              "type": "iframe",
+              "file": "knowledge-base/case-delay.html",
+              "badge": "案例",
+              "craft": "管理"
+            },
+            {
+              "id": "case-outsource-accident",
+              "icon": "🚨",
+              "title": "外包事故 — CP 交付质量崩盘",
+              "type": "iframe",
+              "file": "knowledge-base/case-outsource-accident.html",
+              "badge": "案例",
+              "craft": "管理"
+            },
+            {
+              "id": "case-cross-dept",
+              "icon": "💥",
+              "title": "跨部门冲突 — 改需求引发返工风暴",
+              "type": "iframe",
+              "file": "knowledge-base/case-cross-dept.html",
+              "badge": "案例",
+              "craft": "管理"
+            },
+            {
+              "id": "case-requirement-change",
+              "icon": "🔄",
+              "title": "需求变更 — 封版前大改连锁崩塌",
+              "type": "iframe",
+              "file": "knowledge-base/case-requirement-change.html",
               "badge": "案例",
               "craft": "管理"
             }
