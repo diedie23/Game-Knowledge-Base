@@ -408,6 +408,45 @@
       "quality_level": "mature"
     },
     {
+      "id": "case-success-outsource",
+      "module": "retrospect",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "成功案例 — 外包从翻车到标杆的逆袭",
+      "desc": "与外包事故案例对照的正面 Playbook：同一起点的 C 级 CP，通过规范前置/首件/中期卡点/样板共创/达标免检，把一次通过率做到 92%",
+      "tags": [
+        "成功案例",
+        "外包",
+        "Playbook",
+        "可复制",
+        "一次通过率"
+      ],
+      "icon": "🏆",
+      "action": "showDoc",
+      "path": "knowledge-base/case-success-outsource.html",
+      "owner": "周八",
+      "last_updated": "2026-07-24",
+      "applicable_stage": "量产期",
+      "priority": "high",
+      "is_hot": true,
+      "keywords": [
+        "成功案例",
+        "正面复盘",
+        "外包逆袭",
+        "标杆",
+        "一次通过率",
+        "规范包",
+        "首件",
+        "中期检查",
+        "样板共创",
+        "达标免检",
+        "可复制",
+        "Playbook"
+      ],
+      "content_type": "案例",
+      "quality_level": "mature"
+    },
+    {
       "id": "stage-playbook",
       "module": "project",
       "craft": "管理",

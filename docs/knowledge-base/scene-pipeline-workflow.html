@@ -371,9 +371,39 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </div>
 </div>
 
+<!-- SEC11: 场景标效速查 -->
+<div class="section" id="sec11">
+  <h2>📐 11. 场景标效速查（排期 / 发包用）</h2>
+  <div class="alert alert-blue" style="border:1px solid rgba(108,140,255,.25)">
+    💡 本节给出场景制作的<strong>基准人天</strong>，补齐本文只有效率看板、缺人天基准表的短板。完整跨工种标效与报价公式见
+    <a href="workload-standards-hub.html" class="doc-inline" style="color:var(--accent);font-weight:600;text-decoration:none;border-bottom:1px dashed var(--accent)">全工种标效总表</a>。
+  </div>
+  <table>
+    <tr><th>复杂度</th><th>定义</th><th>基准人天</th><th>参考案例</th></tr>
+    <tr><td><strong style="color:var(--red)">S</strong></td><td>大型场景，含室内外，高美术完成度</td><td><strong>20~30d</strong></td><td>RPG 主城</td></tr>
+    <tr><td><strong style="color:var(--orange)">A</strong></td><td>中型战斗关卡 / 副本</td><td><strong>12~18d</strong></td><td>MOBA 地图</td></tr>
+    <tr><td><strong style="color:var(--yellow)">B</strong></td><td>小型场景 / 单一房间</td><td><strong>6~10d</strong></td><td>对话场景</td></tr>
+    <tr><td><strong style="color:var(--green)">C</strong></td><td>场景道具 / 模块化组件</td><td><strong>1~3d</strong></td><td>箱子、路灯</td></tr>
+  </table>
+  <div class="alert alert-yellow">
+    <strong>⚠️ 估算提醒：</strong>大型场景可拆分为多个模块<strong>并行</strong>制作，实际日历工期短于人天总和；模块化 Kit 复用度越高，边际人天越低。发包报价 = 基准人天 × 日单价（场景二线CP ¥900~1,300/天）× 复杂度系数 × 风险系数。请按团队历史校准。
+  </div>
+</div>
+
 <div class="doc-footer">🏗️ 场景制作全流程管线 v1.0 · 场景组 · TA 组 · PM · 2026-05-29 · 项目内部资料</div>
 </div>
 <script src="editor-kit.js"></script>
 <script src="toc-enhancer.js?v=1.1"></script>
+<script>
+/* 标效速查互链：在知识库 iframe 内走父窗口 navigate */
+document.querySelectorAll('a.doc-inline').forEach(function(a){
+  a.addEventListener('click',function(e){
+    var href=this.getAttribute('href')||'';var id=href.replace('.html','');
+    try{
+      if(window.parent && window.parent!==window && typeof window.parent.navigate==='function'){window.parent.navigate(id);e.preventDefault();}
+    }catch(err){}
+  });
+});
+</script>
 </body>
 </html>

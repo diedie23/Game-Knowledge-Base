@@ -1054,6 +1054,21 @@
           ]
         },
         {
+          "name": "成功复盘（正面 Playbook）",
+          "icon": "🏆",
+          "items": [
+            {
+              "id": "case-success-outsource",
+              "icon": "🏆",
+              "title": "成功案例 — 外包从翻车到标杆的逆袭",
+              "type": "iframe",
+              "file": "knowledge-base/case-success-outsource.html",
+              "badge": "案例",
+              "craft": "管理"
+            }
+          ]
+        },
+        {
           "name": "踩坑记录",
           "icon": "💣",
           "items": [

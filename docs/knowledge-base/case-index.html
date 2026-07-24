@@ -108,6 +108,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
     <button class="fchip" data-group="sev" data-value="A">A 级（严重）</button>
   </div>
   <div class="filter-row">
+    <span class="filter-label">🎭 按类型</span>
+    <button class="fchip active" data-group="type" data-value="all">全部</button>
+    <button class="fchip" data-group="type" data-value="教训">💣 踩坑教训</button>
+    <button class="fchip" data-group="type" data-value="经验">🏆 成功经验</button>
+  </div>
+  <div class="filter-row">
     <div class="filter-search">
       <span class="fs-icon">🔎</span>
       <input type="text" id="caseSearch" placeholder="搜关键词：返工、封版、面数超标、离职、燃尽图...">
@@ -116,13 +122,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   </div>
 </div>
 
-<div class="result-count">共 <b id="rcNum">4</b> 个匹配案例</div>
+<div class="result-count">共 <b id="rcNum">5</b> 个匹配案例</div>
 
 <!-- ═══ 案例卡片 ═══ -->
 <div class="case-grid" id="caseGrid">
 
   <a class="case-card" href="case-delay.html"
-     data-cause="排期" data-stage="量产期" data-sev="S"
+     data-cause="排期" data-stage="量产期" data-sev="S" data-type="教训"
      data-kw="排期 燃尽图 人天 复杂度 乐观估计 缓冲 里程碑 延期">
     <div class="cc-top">
       <span class="cc-emoji">⏰</span>
@@ -145,7 +151,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   </a>
 
   <a class="case-card" href="case-outsource-accident.html"
-     data-cause="外包" data-stage="量产期" data-sev="S"
+     data-cause="外包" data-stage="量产期" data-sev="S" data-type="教训"
      data-kw="外包 CP 面数超标 命名 mask 验收 首件 中期检查 规范包 供应商">
     <div class="cc-top">
       <span class="cc-emoji">🚨</span>
@@ -168,7 +174,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   </a>
 
   <a class="case-card" href="case-cross-dept.html"
-     data-cause="沟通 需求变更" data-stage="量产期" data-sev="A"
+     data-cause="沟通 需求变更" data-stage="量产期" data-sev="A" data-type="教训"
      data-kw="跨部门 冲突 风格 返工 离职 士气 CR 变更 微信 拦截 说不">
     <div class="cc-top">
       <span class="cc-emoji">💥</span>
@@ -191,7 +197,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   </a>
 
   <a class="case-card" href="case-requirement-change.html"
-     data-cause="需求变更" data-stage="测试期" data-sev="S"
+     data-cause="需求变更" data-stage="测试期" data-sev="S" data-type="教训"
      data-kw="需求变更 封版 beta 公会 UI 加班 连锁 新系统 冻结 送审">
     <div class="cc-top">
       <span class="cc-emoji">🔄</span>
@@ -213,6 +219,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
     </div>
   </a>
 
+  <a class="case-card" href="case-success-outsource.html"
+     data-cause="外包" data-stage="量产期" data-sev="A" data-type="经验"
+     data-kw="成功 外包 逆袭 标杆 一次通过率 规范包 首件 中期检查 样板 评分卡 免检 playbook 可复制">
+    <div class="cc-top">
+      <span class="cc-emoji">🏆</span>
+      <div class="cc-titles">
+        <div class="cc-title">外包从翻车到标杆的逆袭</div>
+        <div class="cc-sub">同一起点的 C 级 CP → 一次通过率 92%</div>
+      </div>
+      <span class="cc-sev" style="background:rgba(74,222,128,.15);color:var(--green)">🏆 成功</span>
+    </div>
+    <div class="cc-tags">
+      <span class="cc-tag tag-stage">📅 量产中期</span>
+      <span class="cc-tag tag-cause">🔬 外包管控</span>
+      <span class="cc-tag" style="color:var(--green);border-color:rgba(74,222,128,.3)">♻️ 可复制</span>
+    </div>
+    <div class="cc-signal" style="border-left-color:var(--green)"><b style="color:var(--green)">✅ 成功关键：</b>规范前置 + 首件确认 + 3 个中期卡点 + 样板共创 + 达标免检——把翻车的每个根因反过来做。</div>
+    <div class="cc-loss">
+      <div class="cc-loss-item">一次通过率<b style="color:var(--green)">→92%</b></div>
+      <div class="cc-loss-item">返工成本<b style="color:var(--green)">↓70%</b></div>
+    </div>
+  </a>
+
 </div>
 
 <div class="no-result" id="noResult">
@@ -221,7 +250,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 </div>
 
 <div class="alert alert-purple" style="margin-top:24px">
-  <strong>📚 想要快速通览？</strong> 上面 4 篇是<strong>完整叙事版</strong>（单案例深挖）。若想一次浏览更多事故的<strong>精简合集</strong>（7 大案例 + 5Whys 速览），见
+  <strong>📚 想要快速通览？</strong> 上面既有<strong>踩坑教训</strong>（避坑），也有<strong>成功经验</strong>（可复制 Playbook）——用"🎭 按类型"筛选切换。若想一次浏览更多事故的<strong>精简合集</strong>（7 大案例 + 5Whys 速览），见
   <a href="project-pitfall-log.html" class="pitfall-link" style="color:var(--accent2);text-decoration:none;border-bottom:1px dashed var(--accent2)">项目管理踩坑复盘（7大案例合集）</a>。
   技术类事故排查见 <a href="accident-troubleshoot.html" class="pitfall-link" style="color:var(--accent2);text-decoration:none;border-bottom:1px dashed var(--accent2)">典型事故排雷手册</a>。
 </div>
@@ -234,7 +263,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
 <script>
 (function(){
-  var filters={cause:'all',stage:'all',sev:'all',kw:''};
+  var filters={cause:'all',stage:'all',sev:'all',type:'all',kw:''};
   var cards=Array.prototype.slice.call(document.querySelectorAll('.case-card'));
 
   function apply(){
@@ -243,11 +272,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       var cause=card.getAttribute('data-cause')||'';
       var stage=card.getAttribute('data-stage')||'';
       var sev=card.getAttribute('data-sev')||'';
+      var type=card.getAttribute('data-type')||'';
       var kw=(card.getAttribute('data-kw')||'')+' '+card.textContent;
       var ok=true;
       if(filters.cause!=='all' && cause.indexOf(filters.cause)===-1) ok=false;
       if(filters.stage!=='all' && stage.indexOf(filters.stage)===-1) ok=false;
       if(filters.sev!=='all' && sev!==filters.sev) ok=false;
+      if(filters.type!=='all' && type!==filters.type) ok=false;
       if(filters.kw && kw.toLowerCase().indexOf(filters.kw.toLowerCase())===-1) ok=false;
       card.classList.toggle('hidden',!ok);
       if(ok) shown++;
@@ -271,7 +302,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   searchEl.addEventListener('input',function(){filters.kw=this.value.trim();apply();});
 
   function reset(){
-    filters={cause:'all',stage:'all',sev:'all',kw:''};
+    filters={cause:'all',stage:'all',sev:'all',type:'all',kw:''};
     searchEl.value='';
     document.querySelectorAll('.fchip').forEach(function(c){
       c.classList.toggle('active',c.getAttribute('data-value')==='all');

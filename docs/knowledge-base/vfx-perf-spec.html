@@ -443,6 +443,25 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </table>
 </div>
 
+<!-- SEC10: 标效速查 -->
+<div class="section" id="sec10">
+  <h2>📐 10. 特效标效速查（排期 / 发包用）</h2>
+  <div class="alert alert-blue" style="border:1px solid rgba(108,140,255,.25)">
+    💡 本节给出特效制作的<strong>基准人天</strong>，用于内部排期与外包发包估算。完整跨工种标效与报价公式见
+    <a href="workload-standards-hub.html" class="doc-inline" style="color:var(--accent);font-weight:600;text-decoration:none;border-bottom:1px dashed var(--accent)">全工种标效总表</a>。
+  </div>
+  <table>
+    <tr><th>复杂度</th><th>定义</th><th>基准人天</th><th>参考案例</th></tr>
+    <tr><td><strong style="color:var(--red)">S</strong></td><td>大招 / 全屏特效，含多阶段表演</td><td><strong>5~8d</strong></td><td>英雄大招</td></tr>
+    <tr><td><strong style="color:var(--orange)">A</strong></td><td>普通技能特效，含命中反馈</td><td><strong>3~4d</strong></td><td>普攻特效</td></tr>
+    <tr><td><strong style="color:var(--yellow)">B</strong></td><td>简单特效（Buff 光环 / 脚印 / 环境粒子）</td><td><strong>1~2d</strong></td><td>治疗光环</td></tr>
+    <tr><td><strong style="color:var(--green)">C</strong></td><td>变体 / 换色</td><td><strong>0.5~1d</strong></td><td>颜色替换</td></tr>
+  </table>
+  <div class="alert alert-yellow">
+    <strong>⚠️ 估算提醒：</strong>特效人天受"表演阶段数"影响极大，多阶段大招按上限估；发包报价 = 基准人天 × 日单价（特效二线CP ¥1,000~1,500/天）× 复杂度系数 × 风险系数。数值请按团队历史校准。
+  </div>
+</div>
+
 <div class="doc-footer">✨ 特效性能红线与层级规范 · v1.0 · 美术中心 · 项目内部资料</div>
 </div>
 <script src="editor-kit.js"></script>
@@ -484,6 +503,15 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   // Remove original h3 (already in bar)
   if(h3&&h3.parentNode===toc)h3.remove();
 })();
+/* 标效速查互链：在知识库 iframe 内走父窗口 navigate */
+document.querySelectorAll('a.doc-inline').forEach(function(a){
+  a.addEventListener('click',function(e){
+    var href=this.getAttribute('href')||'';var id=href.replace('.html','');
+    try{
+      if(window.parent && window.parent!==window && typeof window.parent.navigate==='function'){window.parent.navigate(id);e.preventDefault();}
+    }catch(err){}
+  });
+});
 </script>
 </body>
 </html>
