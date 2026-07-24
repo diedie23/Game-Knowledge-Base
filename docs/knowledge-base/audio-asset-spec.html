@@ -689,6 +689,25 @@ FMOD Project/
 <div class="alert alert-green" style="margin-top:24px">
 📌 <strong>持续更新：</strong>本文档随项目迭代持续补充。发现音频相关问题请在 TAPD 中创建「音频踩坑」标签的 Issue，由音频总监定期归档至本文档。
 </div>
+
+<!-- 标效速查 -->
+<div class="section" id="sec-workload">
+  <h2 style="font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px">📐 音频标效速查（排期 / 发包用）</h2>
+  <div class="alert alert-blue" style="border:1px solid rgba(108,140,255,.25)">
+    💡 本节给出音频制作的<strong>基准人天</strong>——音频工种此前在外包人天模型中缺失，这里补上。完整跨工种标效与报价公式见
+    <a href="workload-standards-hub.html" class="doc-inline" style="color:var(--accent);font-weight:600;text-decoration:none;border-bottom:1px dashed var(--accent)">全工种标效总表</a>。
+  </div>
+  <table style="width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px">
+    <tr><th style="background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border)">复杂度</th><th style="background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border)">定义</th><th style="background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border)">基准人天</th><th style="background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border)">参考案例</th></tr>
+    <tr><td style="padding:9px 12px;border:1px solid var(--border)"><strong style="color:var(--red)">S</strong></td><td style="padding:9px 12px;border:1px solid var(--border)">整曲 BGM 作曲 + 编曲 + 引擎适配（含分层/循环）</td><td style="padding:9px 12px;border:1px solid var(--border)"><strong>6~12d</strong></td><td style="padding:9px 12px;border:1px solid var(--border)">主城/战斗主题曲</td></tr>
+    <tr><td style="padding:9px 12px;border:1px solid var(--border)"><strong style="color:var(--orange)">A</strong></td><td style="padding:9px 12px;border:1px solid var(--border)">一套技能/交互音效组（含命中反馈 + Wwise 集成）</td><td style="padding:9px 12px;border:1px solid var(--border)"><strong>3~5d</strong></td><td style="padding:9px 12px;border:1px solid var(--border)">新英雄技能音效包</td></tr>
+    <tr><td style="padding:9px 12px;border:1px solid var(--border)"><strong style="color:var(--yellow)">B</strong></td><td style="padding:9px 12px;border:1px solid var(--border)">单个 UI 音 / 环境氛围音 / 短提示音</td><td style="padding:9px 12px;border:1px solid var(--border)"><strong>1~2d</strong></td><td style="padding:9px 12px;border:1px solid var(--border)">按钮音、开箱音</td></tr>
+    <tr><td style="padding:9px 12px;border:1px solid var(--border)"><strong style="color:var(--green)">C</strong></td><td style="padding:9px 12px;border:1px solid var(--border)">音量/响度微调 / 已有音效变体</td><td style="padding:9px 12px;border:1px solid var(--border)"><strong>0.3~0.8d</strong></td><td style="padding:9px 12px;border:1px solid var(--border)">音量平衡、变调</td></tr>
+  </table>
+  <div class="alert alert-yellow">
+    <strong>⚠️ 估算提醒：</strong>BGM 作曲含创作不确定性，按上限估并预留修改轮次；音效强依赖 Wwise/FMOD 集成工作量，别只算"做声音"忽略"接引擎"。发包报价 = 基准人天 × 日单价（音频二线 ¥1,000~1,600/天）× 复杂度系数 × 风险系数。请按团队历史校准。
+  </div>
+</div>
 </div>
 
 </div>
@@ -730,6 +749,15 @@ FMOD Project/
   // Remove original h3 (already in bar)
   if(h3&&h3.parentNode===toc)h3.remove();
 })();
+/* 标效速查互链：在知识库 iframe 内走父窗口 navigate */
+document.querySelectorAll('a.doc-inline').forEach(function(a){
+  a.addEventListener('click',function(e){
+    var href=this.getAttribute('href')||'';var id=href.replace('.html','');
+    try{
+      if(window.parent && window.parent!==window && typeof window.parent.navigate==='function'){window.parent.navigate(id);e.preventDefault();}
+    }catch(err){}
+  });
+});
 </script>
 </body>
 </html>

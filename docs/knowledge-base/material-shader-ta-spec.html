@@ -538,6 +538,25 @@ MF_{功能名}
   <div class="alert alert-green"><strong>💡 自动化建议：</strong>以上 10 项中的 1~7 项均可通过 CI/CD 脚本自动检测。建议 TA 团队在构建流水线中集成材质健康检查 Step，每次出包自动生成报告。</div>
 </div>
 
+<!-- 标效速查 -->
+<div class="section" id="sec-workload">
+  <h2 style="font-size:22px;color:var(--heading);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px">📐 TA / 材质标效速查（排期 / 发包用）</h2>
+  <div class="alert alert-blue" style="border:1px solid rgba(108,140,255,.25)">
+    💡 本节给出 TA / 材质工作的<strong>基准人天</strong>——TA 工种此前在外包人天模型中缺失，这里补上。完整跨工种标效与报价公式见
+    <a href="workload-standards-hub.html" class="doc-inline" style="color:var(--accent);font-weight:600;text-decoration:none;border-bottom:1px dashed var(--accent)">全工种标效总表</a>。
+  </div>
+  <table style="width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px">
+    <tr><th style="background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border)">复杂度</th><th style="background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border)">定义</th><th style="background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border)">基准人天</th><th style="background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border)">参考案例</th></tr>
+    <tr><td style="padding:9px 12px;border:1px solid var(--border)"><strong style="color:var(--red)">S</strong></td><td style="padding:9px 12px;border:1px solid var(--border)">Master 材质体系搭建（多变体 + 参数化 + LOD）</td><td style="padding:9px 12px;border:1px solid var(--border)"><strong>8~15d</strong></td><td style="padding:9px 12px;border:1px solid var(--border)">角色/场景通用材质框架</td></tr>
+    <tr><td style="padding:9px 12px;border:1px solid var(--border)"><strong style="color:var(--orange)">A</strong></td><td style="padding:9px 12px;border:1px solid var(--border)">单个自定义 Shader（含效果调试与性能优化）</td><td style="padding:9px 12px;border:1px solid var(--border)"><strong>4~7d</strong></td><td style="padding:9px 12px;border:1px solid var(--border)">溶解/水面/角色特殊材质</td></tr>
+    <tr><td style="padding:9px 12px;border:1px solid var(--border)"><strong style="color:var(--yellow)">B</strong></td><td style="padding:9px 12px;border:1px solid var(--border)">材质实例配置 / 通道打包 / 参数暴露</td><td style="padding:9px 12px;border:1px solid var(--border)"><strong>2~3d</strong></td><td style="padding:9px 12px;border:1px solid var(--border)">量产材质实例批</td></tr>
+    <tr><td style="padding:9px 12px;border:1px solid var(--border)"><strong style="color:var(--green)">C</strong></td><td style="padding:9px 12px;border:1px solid var(--border)">参数微调 / 已有 Shader 变体</td><td style="padding:9px 12px;border:1px solid var(--border)"><strong>0.5~1d</strong></td><td style="padding:9px 12px;border:1px solid var(--border)">换色/数值调整</td></tr>
+  </table>
+  <div class="alert alert-yellow">
+    <strong>⚠️ 估算提醒：</strong>TA 工作强依赖引擎与技术难度，"Master 材质体系"属一次性基建投入、可被后续大量复用，边际成本递减。发包报价 = 基准人天 × 日单价（TA 二线 ¥1,400~2,000/天，技术门槛高于普通美术）× 复杂度系数 × 风险系数。请按团队历史校准。
+  </div>
+</div>
+
 <div class="doc-footer">
   📄 材质 Shader 规范与 TA 协同标准 v1.0 — 游戏项目知识库<br>
   更新时间：2026-05-28 · 适用：UE5 / Unity 2022+ / 自研引擎
@@ -547,6 +566,15 @@ MF_{功能名}
 <!-- TOC Collapse Script -->
 <script>
 document.querySelectorAll('.toc').forEach(toc=>{const inner=toc.querySelector('ol');if(!inner)return;const wrap=document.createElement('div');wrap.className='toc-inner';inner.parentNode.insertBefore(wrap,inner);wrap.appendChild(inner);const bar=document.createElement('div');bar.className='toc-toggle-bar';const items=inner.querySelectorAll(':scope>li').length;bar.innerHTML=`<span style="display:flex;align-items:center"><span class="toc-title" style="font-size:15px;color:var(--heading);font-weight:600">📑 目录</span><span class="toc-badge">${items} 项</span></span><span class="toc-hint"><span class="toc-chevron">▼</span></span>`;toc.insertBefore(bar,wrap);const h3=toc.querySelector('h3');if(h3)h3.style.display='none';bar.addEventListener('click',()=>{toc.classList.toggle('toc-folded')})});
+/* 标效速查互链：在知识库 iframe 内走父窗口 navigate */
+document.querySelectorAll('a.doc-inline').forEach(function(a){
+  a.addEventListener('click',function(e){
+    var href=this.getAttribute('href')||'';var id=href.replace('.html','');
+    try{
+      if(window.parent && window.parent!==window && typeof window.parent.navigate==='function'){window.parent.navigate(id);e.preventDefault();}
+    }catch(err){}
+  });
+});
 </script>
 </body>
 </html>
