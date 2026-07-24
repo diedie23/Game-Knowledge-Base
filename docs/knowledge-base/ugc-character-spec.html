@@ -122,6 +122,13 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   场景 → <a href="scene-lod-spec.html" style="color:var(--accent);font-weight:600">模块化 LOD</a>
 </div>
 
+<div class="alert" style="margin-bottom:20px;padding:12px 16px;border-radius:8px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.25);color:var(--accent2);line-height:1.8">
+  <strong>📌 本篇定位（通用向）：</strong>聚焦<strong>所有角色资产通用</strong>的命名规范、目录约定与性能红线，是这两项的<strong>权威参考</strong>。
+  若你做的是 <strong>UGC 换装角色</strong>，需要"五大部件拆分、换装兼容矩阵、衔接线对齐"等专项内容，请看
+  <a href="char-ugc-parts-safety.html" class="doc-inline" style="color:var(--accent2);text-decoration:none;border-bottom:1px dashed var(--accent2)">UGC 专项 · 部件拆分与安全区规范</a>。
+  （安全区/Z-Order 两节两篇皆有，UGC 换装场景以专项篇为准。）
+</div>
+
 <!-- ═══ TOC ═══ -->
 <div class="toc">
   <h3>📑 目录</h3>
@@ -479,6 +486,16 @@ T_Char_F_Miku_Upper_002_Winter.png    // 女性-初音-上装-002-冬季款</pre
   // Remove original h3 (already in bar)
   if(h3&&h3.parentNode===toc)h3.remove();
 })();
+/* 定位互链：在知识库 iframe 内走父窗口 navigate */
+document.querySelectorAll('a.doc-inline').forEach(function(a){
+  a.addEventListener('click',function(e){
+    var href=this.getAttribute('href')||'';var id=href.replace('.html','');
+    if(id==='ugc-character-spec')id='char-naming-redline';
+    try{
+      if(window.parent && window.parent!==window && typeof window.parent.navigate==='function'){window.parent.navigate(id);e.preventDefault();}
+    }catch(err){}
+  });
+});
 </script>
 </body>
 </html>

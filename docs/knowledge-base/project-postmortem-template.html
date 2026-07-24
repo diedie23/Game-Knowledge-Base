@@ -101,6 +101,11 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   <strong>📖 使用说明：</strong>点击右上角「✏️ 编辑模式」进入编辑，<strong>直接点击文字即可修改</strong>。完成后点击「💾 保存并覆盖」或「📄 另存为新文档」下载。
 </div>
 
+<div class="alert" style="padding:12px 16px;border-radius:8px;margin:0 0 24px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);color:var(--accent2)">
+  <strong>📌 这份 vs 那份？</strong> 本篇是<strong>可直接填写 / 导出的报告模板</strong>，拿来就能写。若想学"复盘会怎么开、数据怎么统计"的方法论，见
+  <a href="postmortem-template.html" class="doc-inline" style="color:var(--accent2);text-decoration:none;border-bottom:1px dashed var(--accent2)">版本研发复盘模板（方法论版）</a>。
+</div>
+
 <div class="toc">
   <h3>📑 目录</h3>
   <ol>
@@ -345,6 +350,15 @@ code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);pa
   // Remove original h3 (already in bar)
   if(h3&&h3.parentNode===toc)h3.remove();
 })();
+/* 页内定位互链：在知识库 iframe 内走父窗口 navigate */
+document.querySelectorAll('a.doc-inline').forEach(function(a){
+  a.addEventListener('click',function(e){
+    var href=this.getAttribute('href')||'';var id=href.replace('.html','');
+    try{
+      if(window.parent && window.parent!==window && typeof window.parent.navigate==='function'){window.parent.navigate(id);e.preventDefault();}
+    }catch(err){}
+  });
+});
 </script>
 </body>
 </html>

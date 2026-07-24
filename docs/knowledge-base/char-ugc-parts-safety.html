@@ -105,6 +105,12 @@ pre{background:var(--card);border:1px solid var(--border);border-radius:8px;padd
   </div>
 </div>
 
+<div class="alert" style="margin:0 0 20px;padding:12px 16px;border-radius:8px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.25);color:var(--accent2);line-height:1.8">
+  <strong>📌 本篇定位（UGC 换装专项）：</strong>聚焦 <strong>UGC 换装角色特有</strong>的五大部件拆分、衔接线对齐、换装兼容矩阵——这些是本篇独有的<strong>权威内容</strong>。
+  通用的<strong>命名规范、目录约定、通用性能红线</strong>以
+  <a href="ugc-character-spec.html" class="doc-inline" style="color:var(--accent2);text-decoration:none;border-bottom:1px dashed var(--accent2)">通用 · 角色资产命名与性能红线</a> 为准，本篇不重复展开。
+</div>
+
 <div class="toc">
   <h3>📑 目录</h3>
   <ol>
@@ -379,6 +385,16 @@ SP_Unisex_Hat_003_Red      // 通用帽子-003-红色变体</pre>
   // Remove original h3 (already in bar)
   if(h3&&h3.parentNode===toc)h3.remove();
 })();
+/* 定位互链：在知识库 iframe 内走父窗口 navigate（注意通用篇的 sidebar id 为 char-naming-redline）*/
+document.querySelectorAll('a.doc-inline').forEach(function(a){
+  a.addEventListener('click',function(e){
+    var href=this.getAttribute('href')||'';var id=href.replace('.html','');
+    if(id==='ugc-character-spec')id='char-naming-redline';
+    try{
+      if(window.parent && window.parent!==window && typeof window.parent.navigate==='function'){window.parent.navigate(id);e.preventDefault();}
+    }catch(err){}
+  });
+});
 </script>
 </body>
 </html>

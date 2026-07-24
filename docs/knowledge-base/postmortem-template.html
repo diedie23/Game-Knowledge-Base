@@ -76,6 +76,11 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
   </div>
 </div>
 
+<div class="alert alert-purple" style="padding:12px 16px;border-radius:8px;margin:12px 0;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);color:var(--accent2)">
+  <strong>📌 这份 vs 那份？</strong> 本篇是<strong>复盘方法论 + 会议流程版</strong>（含数据统计口径、复盘会 Agenda），适合学"怎么开好一场复盘"。若只想要一份<strong>可直接点击编辑填写、导出的报告模板</strong>，用
+  <a href="project-postmortem-template.html" class="doc-inline" style="color:var(--accent2);text-decoration:none;border-bottom:1px dashed var(--accent2)">项目复盘报告模板（可编辑版）</a>。
+</div>
+
 <div class="alert alert-blue">💡 <strong>复盘原则</strong>：<strong>对事不对人</strong>。复盘目的是发现系统性问题并改进流程，而非追责个人。</div>
 
 <div class="toc">
@@ -297,6 +302,15 @@ tr:nth-child(even){background:rgba(108,140,255,.02)}
   // Remove original h3 (already in bar)
   if(h3&&h3.parentNode===toc)h3.remove();
 })();
+/* 页内定位互链：在知识库 iframe 内走父窗口 navigate */
+document.querySelectorAll('a.doc-inline').forEach(function(a){
+  a.addEventListener('click',function(e){
+    var href=this.getAttribute('href')||'';var id=href.replace('.html','');
+    try{
+      if(window.parent && window.parent!==window && typeof window.parent.navigate==='function'){window.parent.navigate(id);e.preventDefault();}
+    }catch(err){}
+  });
+});
 </script>
 </body>
 </html>

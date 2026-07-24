@@ -367,6 +367,47 @@
       "quality_level": "mature"
     },
     {
+      "id": "pm-daily-toolkit",
+      "module": "mynotes",
+      "craft": "管理",
+      "type": "iframe",
+      "title": "PM 日常工具箱 — 站会/Blocker/DoD/变更台账/RACI",
+      "desc": "PM 每天高频用的轻量模板集：每日站会记录、Blocker 追踪、里程碑 DoD 验收清单、变更(CR)登记台账、干系人 RACI 矩阵，复制即用",
+      "tags": [
+        "站会",
+        "日报",
+        "DoD",
+        "变更台账",
+        "RACI",
+        "模板"
+      ],
+      "icon": "🧰",
+      "action": "showDoc",
+      "path": "knowledge-base/pm-daily-toolkit.html",
+      "owner": "周八",
+      "last_updated": "2026-07-24",
+      "applicable_stage": "全阶段",
+      "priority": "high",
+      "is_hot": true,
+      "keywords": [
+        "站会",
+        "每日站会",
+        "日报",
+        "Blocker",
+        "阻塞项",
+        "DoD",
+        "完成定义",
+        "里程碑验收",
+        "变更台账",
+        "CR登记",
+        "干系人",
+        "RACI",
+        "责任矩阵"
+      ],
+      "content_type": "模板",
+      "quality_level": "mature"
+    },
+    {
       "id": "stage-playbook",
       "module": "project",
       "craft": "管理",
