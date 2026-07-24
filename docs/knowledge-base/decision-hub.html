@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>量化决策中心 — PM 现场判断红线与决策树</title>
+<style>
+:root{--bg:#0d0f15;--panel:#141620;--card:#1a1d2b;--border:#262a3a;--text:#c5c9d6;--dim:#6b7085;--heading:#e4e6ed;--accent:#6c8cff;--accent2:#a78bfa;--red:#f87171;--green:#4ade80;--blue:#60a5fa;--yellow:#fbbf24;--orange:#fb923c;--cyan:#22d3ee;--pink:#f472b6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:16px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#3d4155;border-radius:3px}
+.doc{max-width:1200px;margin:0 auto;padding:32px 48px}
+.doc-header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.doc-header h1{font-size:28px;color:var(--heading);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.doc-header h1 .ver{font-size:12px;background:linear-gradient(135deg,var(--cyan),var(--accent));color:#000;padding:2px 10px;border-radius:12px;font-weight:700}
+.doc-header .subtitle{color:var(--dim);font-size:15px}
+.doc-header .meta{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+.tag-bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:.3px;transition:all .2s}
+.tag-danger{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.25)}
+.tag-warning{background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.25)}
+.tag-info{background:rgba(108,140,255,.12);color:var(--accent);border:1px solid rgba(108,140,255,.25)}
+.tag-success{background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.25)}
+.tag-purple{background:rgba(167,139,250,.12);color:var(--accent2);border:1px solid rgba(167,139,250,.25)}
+.tag-cyan{background:rgba(34,211,238,.12);color:var(--cyan);border:1px solid rgba(34,211,238,.25)}
+.tag:hover{transform:translateY(-1px);filter:brightness(1.2)}
+
+/* ═══ 场景速览导航 ═══ */
+.scene-jump{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:24px 0 36px}
+.sj-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;cursor:pointer;transition:all .18s;text-decoration:none;display:block}
+.sj-card:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.sj-card .sj-icon{font-size:26px;display:block;margin-bottom:8px}
+.sj-card .sj-title{font-size:16px;color:var(--heading);font-weight:700;margin-bottom:4px}
+.sj-card .sj-q{font-size:13px;color:var(--dim);line-height:1.6}
+
+.section{margin-bottom:48px;scroll-margin-top:20px}
+.section h2{font-size:22px;color:var(--heading);margin-bottom:8px;padding-bottom:8px;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.section .sec-lead{color:var(--dim);font-size:14px;margin-bottom:18px}
+.section h3{font-size:17px;color:var(--heading);margin:24px 0 10px;font-weight:600;display:flex;align-items:center;gap:6px}
+.section p,.section li{font-size:15px;margin-bottom:8px;line-height:1.8}
+.section ul,.section ol{padding-left:20px;margin-bottom:12px}
+
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:14px}
+th{background:var(--panel);color:var(--heading);text-align:left;padding:10px 12px;border:1px solid var(--border);font-weight:600}
+td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even){background:rgba(108,140,255,.02)}
+
+.alert{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:14px;line-height:1.8}
+.alert-red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red)}
+.alert-blue{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.2);color:var(--accent)}
+.alert-yellow{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.alert-green{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--green)}
+.alert-purple{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);color:var(--accent2)}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--card);padding:1px 6px;border-radius:4px;font-size:13px;color:var(--cyan)}
+
+.badge-sm{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-green{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+.badge-blue{background:rgba(108,140,255,.15);color:var(--accent)}
+.badge-orange{background:rgba(251,146,60,.15);color:var(--orange)}
+.badge-purple{background:rgba(167,139,250,.15);color:var(--accent2)}
+
+/* ═══ 量化红线卡片 ═══ */
+.redline-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:16px 0}
+@media(max-width:820px){.redline-grid{grid-template-columns:1fr}}
+.rl-card{border-radius:12px;padding:16px 18px;border:1px solid var(--border);background:var(--panel)}
+.rl-card.rl-reject{border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.05)}
+.rl-card.rl-conditional{border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.05)}
+.rl-card.rl-accept{border-color:rgba(74,222,128,.35);background:rgba(74,222,128,.05)}
+.rl-card .rl-verdict{font-size:16px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.rl-card.rl-reject .rl-verdict{color:var(--red)}
+.rl-card.rl-conditional .rl-verdict{color:var(--yellow)}
+.rl-card.rl-accept .rl-verdict{color:var(--green)}
+.rl-card ul{padding-left:18px;margin:0}
+.rl-card li{font-size:13.5px;margin-bottom:6px;line-height:1.65}
+
+/* ═══ 决策树 ═══ */
+.dtree{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px 20px;margin:16px 0}
+.dtree-node{margin:0 0 4px}
+.dtree-q{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--accent);border-radius:8px;padding:8px 14px;font-size:14px;color:var(--heading);font-weight:600}
+.dtree-q .qmark{color:var(--accent);font-weight:700}
+.dtree-branch{margin:6px 0 6px 24px;padding-left:20px;border-left:2px dashed var(--border)}
+.dtree-cond{font-size:13px;color:var(--dim);margin:8px 0 4px}
+.dtree-cond b{color:var(--cyan)}
+.dtree-result{display:inline-flex;align-items:center;gap:6px;border-radius:8px;padding:7px 14px;font-size:13.5px;font-weight:600;margin:2px 0}
+.dtree-result.r-red{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--red)}
+.dtree-result.r-yellow{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:var(--yellow)}
+.dtree-result.r-green{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:var(--green)}
+.dtree-result.r-blue{background:rgba(108,140,255,.1);border:1px solid rgba(108,140,255,.3);color:var(--accent)}
+
+/* ═══ 速算器 ═══ */
+.calc-box{background:var(--panel);border:1px solid var(--accent);border-radius:12px;padding:20px 22px;margin:16px 0}
+.calc-box h4{font-size:15px;color:var(--heading);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.calc-row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;margin-bottom:14px}
+.calc-field{display:flex;flex-direction:column;gap:4px}
+.calc-field label{font-size:12px;color:var(--dim)}
+.calc-field input,.calc-field select{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:14px;min-width:120px}
+.calc-field input:focus,.calc-field select:focus{outline:none;border-color:var(--accent)}
+.calc-result{background:var(--card);border:1px dashed var(--accent);border-radius:8px;padding:14px 16px;font-size:14px;line-height:1.9}
+.calc-result .cr-num{font-size:22px;font-weight:700;color:var(--cyan)}
+.calc-result .cr-hint{color:var(--dim);font-size:13px;margin-top:6px}
+
+.who-decides{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:14px 0}
+.wd-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.wd-item .wd-role{font-size:13px;font-weight:700;color:var(--heading);margin-bottom:4px}
+.wd-item .wd-scope{font-size:12.5px;color:var(--dim);line-height:1.6}
+
+.related-cases{margin-top:40px}
+.related-cases h3{font-size:17px;color:var(--heading);margin-bottom:14px}
+.rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.rc-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;transition:all .18s;text-decoration:none;display:block}
+.rc-item:hover{transform:translateY(-2px);border-color:var(--accent)}
+.rc-item .rci-title{font-size:14px;color:var(--heading);font-weight:600;margin-bottom:6px}
+.rc-item .rci-desc{font-size:12.5px;color:var(--dim);line-height:1.6}
+
+.doc-footer{text-align:center;padding:24px 0;border-top:1px solid var(--border);margin-top:40px;font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="doc-header">
+  <h1>⚖️ 量化决策中心 <span class="ver">v1.0</span></h1>
+  <div class="subtitle">Decision Hub — 把"凭经验拍脑袋"变成"照红线判断"</div>
+  <div class="meta">
+    <span>🧭 决策指南</span>
+    <span>👤 面向：项目PM / 美术PM / 外包PM</span>
+    <span>📅 2026-07-24</span>
+  </div>
+  <div class="tag-bar">
+    <span class="tag tag-danger">🚦 量化红线</span>
+    <span class="tag tag-warning">🌳 决策树</span>
+    <span class="tag tag-info">🧮 成本速算</span>
+    <span class="tag tag-purple">⚖️ 谁拍板</span>
+  </div>
+</div>
+
+<div class="alert alert-purple" style="margin-bottom:8px">
+  <strong>💡 这份文档解决什么问题？</strong> 规范告诉你"流程是什么"，本页告诉你<strong>"这种情况到底该怎么判断"</strong>。
+  每个场景都提供 <b>量化红线（接收/让步/打回的数字边界）</b> + <b>决策树（照着走一遍就有结论）</b> + <b>谁拍板（避免扯皮）</b>。
+</div>
+
+<!-- ═══ 场景速览 ═══ -->
+<div class="scene-jump">
+  <a class="sj-card" href="#d-outsource">
+    <span class="sj-icon">📦</span>
+    <span class="sj-title">外包验收判定</span>
+    <span class="sj-q">"这批资产该打回、让步还是接收？"</span>
+  </a>
+  <a class="sj-card" href="#d-bug">
+    <span class="sj-icon">🐛</span>
+    <span class="sj-title">Bug 定级争议</span>
+    <span class="sj-q">"美术说不是bug，QA说是，谁说了算？"</span>
+  </a>
+  <a class="sj-card" href="#d-delay">
+    <span class="sj-icon">⏳</span>
+    <span class="sj-title">延期止损决策</span>
+    <span class="sj-q">"砍量、延期、加人还是降标准？"</span>
+  </a>
+  <a class="sj-card" href="#d-change">
+    <span class="sj-icon">📝</span>
+    <span class="sj-title">需求变更评估</span>
+    <span class="sj-q">"改这一版到底要付出多少代价？"</span>
+  </a>
+</div>
+
+<!-- ═══════════ 一、外包验收判定 ═══════════ -->
+<div class="section" id="d-outsource">
+  <h2>📦 一、外包验收判定 — 打回 / 让步接收 / 接收</h2>
+  <p class="sec-lead">外包PM每天纠结的核心：交付物没达到满分，但砍了重做又赶不上排期。用红线代替"感觉差不多"。</p>
+
+  <h3>🚦 三档量化红线</h3>
+  <div class="redline-grid">
+    <div class="rl-card rl-reject">
+      <div class="rl-verdict">🔴 必须打回重做</div>
+      <ul>
+        <li>面数 / Drawcall 超预算 <b>&gt; 30%</b></li>
+        <li>贴图规格错误（尺寸、通道、命名）<b>≥ 3 处</b></li>
+        <li>骨骼层级 / 绑定结构与规范不符，无法直接入引擎</li>
+        <li>核心视觉与原画偏差明显（角色识别度受损）</li>
+        <li>出现<b>版权 / AIGC 合规</b>风险素材</li>
+      </ul>
+    </div>
+    <div class="rl-card rl-conditional">
+      <div class="rl-verdict">🟡 让步接收（限时补救）</div>
+      <ul>
+        <li>面数 / Drawcall 超预算 <b>10%~30%</b>，且非性能敏感场景</li>
+        <li>色差 <b>ΔE 3~6</b>，非关键氛围资产</li>
+        <li>命名 / 目录不规范但不影响功能（可脚本批量修）</li>
+        <li>次要部件精度不足，主体达标</li>
+        <li>➡ <b>条件</b>：签让步单 + 限X天补齐 + 结算扣款/记录</li>
+      </ul>
+    </div>
+    <div class="rl-card rl-accept">
+      <div class="rl-verdict">🟢 直接接收</div>
+      <ul>
+        <li>面数 / Drawcall 在预算 <b>±10%</b> 内</li>
+        <li>色差 <b>ΔE &lt; 3</b>（肉眼几乎无差）</li>
+        <li>命名、目录、格式全部符合规范</li>
+        <li>首件已验、批量抽检合格率 <b>≥ 95%</b></li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>🌳 验收决策树</h3>
+  <div class="dtree">
+    <div class="dtree-node"><span class="dtree-q"><span class="qmark">Q1</span> 有无合规 / 版权 / 无法入引擎的硬伤？</span></div>
+    <div class="dtree-branch">
+      <div class="dtree-cond">✅ <b>有</b> → 无条件</div>
+      <div class="dtree-result r-red">🔴 打回，不进入后续判断</div>
+      <div class="dtree-cond">❌ <b>无</b> → 进入 Q2</div>
+    </div>
+    <div class="dtree-node"><span class="dtree-q"><span class="qmark">Q2</span> 技术指标（面数/贴图/骨骼）超标幅度？</span></div>
+    <div class="dtree-branch">
+      <div class="dtree-cond"><b>&gt; 30%</b> 或 结构性错误</div>
+      <div class="dtree-result r-red">🔴 打回重做</div>
+      <div class="dtree-cond"><b>10%~30%</b> 且可后期优化</div>
+      <div class="dtree-result r-yellow">🟡 进入 Q3 判断是否让步</div>
+      <div class="dtree-cond"><b>&lt; 10%</b></div>
+      <div class="dtree-result r-green">🟢 进入 Q4 最终抽检</div>
+    </div>
+    <div class="dtree-node"><span class="dtree-q"><span class="qmark">Q3</span> 该资产是否处在性能/视觉敏感位（主角、高频、近景）？</span></div>
+    <div class="dtree-branch">
+      <div class="dtree-cond"><b>是</b> — 敏感资产</div>
+      <div class="dtree-result r-red">🔴 打回（敏感位不接受让步）</div>
+      <div class="dtree-cond"><b>否</b> — 次要资产 + 排期紧张</div>
+      <div class="dtree-result r-yellow">🟡 让步接收 + 签让步单 + 限时补救 + 结算扣款</div>
+    </div>
+    <div class="dtree-node"><span class="dtree-q"><span class="qmark">Q4</span> 批量抽检合格率 ≥ 95%？</span></div>
+    <div class="dtree-branch">
+      <div class="dtree-cond"><b>是</b></div>
+      <div class="dtree-result r-green">🟢 接收入库</div>
+      <div class="dtree-cond"><b>否</b>（80%~95%）</div>
+      <div class="dtree-result r-yellow">🟡 退回不合格件返修，合格件先入库</div>
+    </div>
+  </div>
+
+  <div class="alert alert-yellow">
+    <strong>⚠️ 让步接收不是"放水"：</strong>每次让步都必须留痕（让步单 + 扣款/评分记录）。让步率是评估 CP 的关键指标，季度让步率 &gt; 20% 的供应商应进入淘汰观察名单。
+  </div>
+
+  <h3>⚖️ 谁拍板</h3>
+  <div class="who-decides">
+    <div class="wd-item"><div class="wd-role">外包PM</div><div class="wd-scope">技术指标判定、常规让步/打回，直接执行</div></div>
+    <div class="wd-item"><div class="wd-role">主美</div><div class="wd-scope">视觉品质争议、核心资产的最终审美裁定</div></div>
+    <div class="wd-item"><div class="wd-role">制作人</div><div class="wd-scope">让步涉及品质底线、或影响里程碑时的最终拍板</div></div>
+  </div>
+</div>
+
+<!-- ═══════════ 二、Bug 定级争议 ═══════════ -->
+<div class="section" id="d-bug">
+  <h2>🐛 二、Bug 定级争议仲裁 — "算不算 bug、算几级"</h2>
+  <p class="sec-lead">"美术说是设计如此，QA说是缺陷"——这类争议最耗人。定级看客观影响，不看主观立场。</p>
+
+  <h3>🚦 定级量化标准（客观影响优先）</h3>
+  <table>
+    <tr><th>等级</th><th>客观判定标准</th><th>响应时限</th></tr>
+    <tr><td><span class="badge-sm badge-red">S / 阻断</span></td><td>崩溃、黑屏、资产丢失、无法进入关卡、送审必挂</td><td>当天</td></tr>
+    <tr><td><span class="badge-sm badge-orange">A / 严重</span></td><td>核心角色/主界面明显穿模、错位、闪烁；付费点视觉异常</td><td>1~2 天</td></tr>
+    <tr><td><span class="badge-sm badge-yellow">B / 一般</span></td><td>非核心资产瑕疵、边缘视角可见、不影响核心体验</td><td>本迭代内</td></tr>
+    <tr><td><span class="badge-sm badge-blue">C / 轻微</span></td><td>极端条件才可见、审美倾向类、优化建议</td><td>排期允许时</td></tr>
+  </table>
+
+  <h3>🌳 "算不算 Bug" 仲裁决策树</h3>
+  <div class="dtree">
+    <div class="dtree-node"><span class="dtree-q"><span class="qmark">Q1</span> 是否偏离已签署的规范 / 需求单 / 原画？</span></div>
+    <div class="dtree-branch">
+      <div class="dtree-cond"><b>是</b> — 有明确文档依据</div>
+      <div class="dtree-result r-red">🔴 判定为 Bug，按客观影响定级</div>
+      <div class="dtree-cond"><b>否</b> — 无文档，属主观审美/体验争议 → Q2</div>
+    </div>
+    <div class="dtree-node"><span class="dtree-q"><span class="qmark">Q2</span> 是否影响玩家可感知的核心体验或送审？</span></div>
+    <div class="dtree-branch">
+      <div class="dtree-cond"><b>是</b></div>
+      <div class="dtree-result r-yellow">🟡 记为"体验优化项"，主美 + 制作人评审优先级</div>
+      <div class="dtree-cond"><b>否</b></div>
+      <div class="dtree-result r-blue">🔵 记入 backlog（C 级），不阻塞版本</div>
+    </div>
+    <div class="dtree-node"><span class="dtree-q"><span class="qmark">Q3</span> 双方仍无法达成一致？</span></div>
+    <div class="dtree-branch">
+      <div class="dtree-cond">升级仲裁</div>
+      <div class="dtree-result r-blue">⚖️ 主美裁定"是否偏离预期" + QA主管裁定"定级"，制作人对送审级争议终裁</div>
+    </div>
+  </div>
+
+  <div class="alert alert-blue">
+    <strong>🎯 反扯皮原则：</strong>先问"<b>有没有白纸黑字的依据</b>"。有依据 → 客观定级；没依据 → 这不是 bug 争议，是"需求没写清"的流程问题，应回溯补规范，而非在群里吵。
+  </div>
+
+  <h3>⚖️ 谁拍板</h3>
+  <div class="who-decides">
+    <div class="wd-item"><div class="wd-role">QA</div><div class="wd-scope">依标准初判定级，登记 issue</div></div>
+    <div class="wd-item"><div class="wd-role">主美</div><div class="wd-scope">"是否偏离美术预期"的裁定</div></div>
+    <div class="wd-item"><div class="wd-role">制作人</div><div class="wd-scope">送审级(S)争议、上线卡点的终裁</div></div>
+  </div>
+</div>
+
+<!-- ═══════════ 三、延期止损决策 ═══════════ -->
+<div class="section" id="d-delay">
+  <h2>⏳ 三、延期止损决策 — 砍量 / 延期 / 加人 / 降标准</h2>
+  <p class="sec-lead">发现要延期时，慌乱加人往往越帮越忙。先算清偏差量级，再从代价最小的手段依次选。</p>
+
+  <h3>🚦 触发红线（偏差多少该动手）</h3>
+  <table>
+    <tr><th>燃尽偏差</th><th>信号</th><th>动作</th></tr>
+    <tr><td><span class="badge-sm badge-green">&lt; 10%</span></td><td>🟢 正常波动</td><td>观察，周会同步，不额外动作</td></tr>
+    <tr><td><span class="badge-sm badge-yellow">10%~20%</span></td><td>🟡 黄色预警</td><td>本周内定位瓶颈 + 内部消化（调优先级/微调分工）</td></tr>
+    <tr><td><span class="badge-sm badge-orange">20%~35%</span></td><td>🟠 橙色预警</td><td>启动止损决策树，上报制作人，出 Plan B</td></tr>
+    <tr><td><span class="badge-sm badge-red">&gt; 35%</span></td><td>🔴 红色告警</td><td>里程碑重排，砍量/延期二选一，全员对齐</td></tr>
+  </table>
+
+  <h3>🌳 止损手段决策树（按代价从低到高）</h3>
+  <div class="dtree">
+    <div class="dtree-node"><span class="dtree-q"><span class="qmark">Q1</span> 是否有"锦上添花、砍掉不影响核心体验"的内容？</span></div>
+    <div class="dtree-branch">
+      <div class="dtree-cond"><b>有</b> — 优先级最低成本</div>
+      <div class="dtree-result r-green">🟢 砍量 / 降规格（首选，代价最低）</div>
+      <div class="dtree-cond"><b>无</b> → Q2</div>
+    </div>
+    <div class="dtree-node"><span class="dtree-q"><span class="qmark">Q2</span> 剩余工作是否可拆分、能被新人快速接手？</span></div>
+    <div class="dtree-branch">
+      <div class="dtree-cond"><b>能</b> 且 有可靠外包/机动人力</div>
+      <div class="dtree-result r-yellow">🟡 加人/外包分担（注意沟通与磨合成本，最晚不超过剩余工期的 60% 节点）</div>
+      <div class="dtree-cond"><b>不能</b>（强依赖核心人 / 难拆）→ Q3</div>
+    </div>
+    <div class="dtree-node"><span class="dtree-q"><span class="qmark">Q3</span> 该里程碑是否为对外硬节点（发行/送审/买量）？</span></div>
+    <div class="dtree-branch">
+      <div class="dtree-cond"><b>是</b> — 不能延</div>
+      <div class="dtree-result r-red">🔴 降标准保节点（降精度/占位过审），并登记技术债后续补</div>
+      <div class="dtree-cond"><b>否</b> — 可协商</div>
+      <div class="dtree-result r-blue">🔵 申请延期（给出新排期 + 根因 + 防复发措施）</div>
+    </div>
+  </div>
+
+  <div class="alert alert-red">
+    <strong>🧨 Brooks 定律提醒：</strong>"向进度落后的项目盲目加人只会让它更慢"。加人窗口越晚越无效——过了剩余工期 60% 节点还想靠加人救火，通常只会增加沟通成本。此时应转向砍量或降标准。
+  </div>
+
+  <h3>⚖️ 谁拍板</h3>
+  <div class="who-decides">
+    <div class="wd-item"><div class="wd-role">PM</div><div class="wd-scope">10%~20% 内部消化，自行处置</div></div>
+    <div class="wd-item"><div class="wd-role">制作人</div><div class="wd-scope">砍量、降标准、加预算的决策</div></div>
+    <div class="wd-item"><div class="wd-role">发行/项目负责人</div><div class="wd-scope">对外节点延期、里程碑重排的最终确认</div></div>
+  </div>
+</div>
+
+<!-- ═══════════ 四、需求变更评估 ═══════════ -->
+<div class="section" id="d-change">
+  <h2>📝 四、需求变更成本评估 — "改这版到底多贵"</h2>
+  <p class="sec-lead">口头一句"稍微改改"，落到已完成资产上可能是几人天 + 排期连锁反应。用速算器把成本摆到台面上再决定。</p>
+
+  <h3>🧮 变更成本速算器</h3>
+  <div class="calc-box">
+    <h4>🧮 输入变更参数，估算真实成本</h4>
+    <div class="calc-row">
+      <div class="calc-field">
+        <label>受影响资产数量</label>
+        <input type="number" id="c-count" value="3" min="0" step="1">
+      </div>
+      <div class="calc-field">
+        <label>单个资产返工人天</label>
+        <input type="number" id="c-day" value="1.5" min="0" step="0.5">
+      </div>
+      <div class="calc-field">
+        <label>资产当前完成度</label>
+        <select id="c-stage">
+          <option value="0.3">草稿期 (×0.3)</option>
+          <option value="0.6" selected>制作中 (×0.6)</option>
+          <option value="1.0">已完成 (×1.0)</option>
+          <option value="1.4">已入引擎联调 (×1.4)</option>
+        </select>
+      </div>
+      <div class="calc-field">
+        <label>连锁影响系数</label>
+        <select id="c-chain">
+          <option value="1.0">独立资产 (×1.0)</option>
+          <option value="1.3" selected>影响少量关联 (×1.3)</option>
+          <option value="1.8">影响整套/风格基线 (×1.8)</option>
+        </select>
+      </div>
+    </div>
+    <div class="calc-result" id="c-out">
+      <div>预计返工成本：<span class="cr-num" id="c-total">—</span> 人天</div>
+      <div class="cr-hint" id="c-hint">按 5 人天/周折算，约影响 <b id="c-week">—</b> 个工作日的排期。</div>
+    </div>
+  </div>
+
+  <h3>🚦 变更放行红线</h3>
+  <div class="redline-grid">
+    <div class="rl-card rl-accept">
+      <div class="rl-verdict">🟢 PM 可直接放行</div>
+      <ul>
+        <li>成本 <b>&lt; 2 人天</b> 且不影响里程碑</li>
+        <li>资产处于草稿/制作早期</li>
+        <li>无连锁影响，独立可控</li>
+      </ul>
+    </div>
+    <div class="rl-card rl-conditional">
+      <div class="rl-verdict">🟡 走 CR 评审</div>
+      <ul>
+        <li>成本 <b>2~5 人天</b> 或触碰当前 Sprint 缓冲</li>
+        <li>影响已完成资产 / 少量关联</li>
+        <li>➡ 填变更单，评估后制作人签字</li>
+      </ul>
+    </div>
+    <div class="rl-card rl-reject">
+      <div class="rl-verdict">🔴 冻结期原则不接</div>
+      <ul>
+        <li>成本 <b>&gt; 5 人天</b> 或冲击里程碑</li>
+        <li>影响整套资产 / 风格基线</li>
+        <li>处于量产冻结期 / 封版前</li>
+        <li>➡ 除非制作人拍板并同步顺延排期</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="alert alert-green">
+    <strong>✅ 落地话术：</strong>面对"随口加需求"，不要说"不行"，而是说"<b>可以，这版改动约 X 人天，会占用 Y 天排期，需要走个变更单让制作人确认下优先级</b>"。把成本可视化，决策权自然回到该拍板的人手里。
+  </div>
+
+  <h3>⚖️ 谁拍板</h3>
+  <div class="who-decides">
+    <div class="wd-item"><div class="wd-role">PM</div><div class="wd-scope">&lt; 2 人天的低风险变更</div></div>
+    <div class="wd-item"><div class="wd-role">制作人 + 策划负责人</div><div class="wd-scope">CR 评审，优先级与排期让路的决定</div></div>
+    <div class="wd-item"><div class="wd-role">主美</div><div class="wd-scope">涉及风格基线/整套资产的变更评估</div></div>
+  </div>
+</div>
+
+<!-- ═══════════ 关联推荐 ═══════════ -->
+<div class="related-cases">
+  <h3>🔗 配套规范 & 案例</h3>
+  <div class="rc-grid" id="relatedGrid"></div>
+</div>
+
+<div class="doc-footer">
+  ⚖️ 量化决策中心 v1.0 · 决策指南 · 2026-07-24 · 数字为经验参考区间，请按团队实际校准
+</div>
+
+</div>
+
+<script>
+/* ═══ 变更成本速算器 ═══ */
+(function(){
+  var ids=['c-count','c-day','c-stage','c-chain'];
+  function calc(){
+    var count=parseFloat(document.getElementById('c-count').value)||0;
+    var day=parseFloat(document.getElementById('c-day').value)||0;
+    var stage=parseFloat(document.getElementById('c-stage').value)||1;
+    var chain=parseFloat(document.getElementById('c-chain').value)||1;
+    var total=count*day*stage*chain;
+    var week=total/5;
+    document.getElementById('c-total').textContent=total.toFixed(1);
+    document.getElementById('c-week').textContent=week.toFixed(1);
+    var out=document.getElementById('c-out');
+    var num=document.getElementById('c-total');
+    // 颜色随成本档位变化
+    if(total<2){num.style.color='var(--green)';}
+    else if(total<=5){num.style.color='var(--yellow)';}
+    else{num.style.color='var(--red)';}
+  }
+  ids.forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){el.addEventListener('input',calc);el.addEventListener('change',calc);}
+  });
+  calc();
+})();
+
+/* ═══ 关联推荐渲染 ═══ */
+(function(){
+  var recs=[
+    {title:'📦 外包全链路管理指南', desc:'准入分级、首件管控、三轮验收与结算工程', path:'cp-outsource.html'},
+    {title:'🐛 美术 Bug 定级标准', desc:'S/A/B/C 定级细则与走查验收清单', path:'art-vs-qa-buggrade.html'},
+    {title:'⏳ 项目延期应对决策', desc:'延期场景的成因分析与系统化应对', path:'delay-response-decision.html'},
+    {title:'📝 需求对接流转规范', desc:'需求变更管控与 CR 审批全流程', path:'art-vs-planner-req.html'},
+    {title:'📊 美术外包工作量评估标准', desc:'按工种/复杂度的标准人天模型', path:'outsource-workload-model.html'},
+    {title:'⏰ 项目延期案例复盘', desc:'量产排期连环爆雷的真实复盘', path:'case-delay.html'}
+  ];
+  var grid=document.getElementById('relatedGrid');
+  if(!grid) return;
+  recs.forEach(function(r){
+    var a=document.createElement('a');
+    a.className='rc-item';
+    a.href=r.path;
+    a.innerHTML='<div class="rci-title">'+r.title+'</div><div class="rci-desc">'+r.desc+'</div>';
+    grid.appendChild(a);
+  });
+})();
+
+/* ═══ 平滑滚动到锚点 ═══ */
+document.querySelectorAll('.sj-card').forEach(function(card){
+  card.addEventListener('click',function(e){
+    var id=this.getAttribute('href');
+    if(id&&id.charAt(0)==='#'){
+      e.preventDefault();
+      var t=document.querySelector(id);
+      if(t) t.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+  });
+});
+</script>
+</body>
+</html>

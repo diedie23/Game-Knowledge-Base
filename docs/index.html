@@ -169,6 +169,40 @@
           </div>
         </div>
 
+        <!-- ═══ 🚀 从这里开始 — 新人/新项目主路径引导 ═══ -->
+        <div class="start-path" id="startPath">
+          <div class="start-path-head">
+            <span class="sp-title">🚀 第一次来？从这里开始</span>
+            <span class="sp-sub">按你的身份，3 步进入状态</span>
+          </div>
+          <div class="start-path-grid">
+            <div class="sp-card">
+              <div class="sp-card-role"><span class="sp-role-icon">🆕</span> 我是新人 / 刚接手</div>
+              <ol class="sp-steps">
+                <li><a onclick="navigate('onboarding-guide')">读「入职管线必读」建立全局认知</a></li>
+                <li><a onclick="navigate('game-art-pipeline')">看「美术资产管线」了解生产链路</a></li>
+                <li><a onclick="navigate('asset-submit-review')">熟悉「提交与审核工作流」再上手</a></li>
+              </ol>
+            </div>
+            <div class="sp-card">
+              <div class="sp-card-role"><span class="sp-role-icon">🎯</span> 我要推进项目 / 做决策</div>
+              <ol class="sp-steps">
+                <li><a onclick="navigate('decision-hub')">「量化决策中心」查红线 &amp; 决策树</a></li>
+                <li><a onclick="navigate('art-scheduling')">「排期与里程碑」搭建计划基线</a></li>
+                <li><a onclick="navigate('case-index')">「案例检索」提前避开前人的坑</a></li>
+              </ol>
+            </div>
+            <div class="sp-card">
+              <div class="sp-card-role"><span class="sp-role-icon">🔥</span> 我在救火 / 遇到具体难题</div>
+              <ol class="sp-steps">
+                <li><a onclick="navigate('decision-hub')">按场景直达「决策中心」找判断标准</a></li>
+                <li><a onclick="navigate('case-index')">「案例检索」按根因反查历史复盘</a></li>
+                <li><a onclick="navigate('accident-troubleshoot')">翻「典型事故排雷手册」对症处理</a></li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
         <!-- ═══ 场景化「我要...」快速导航 ═══ -->
         <div class="scene-nav" id="sceneNav">
           <div class="scene-nav-title">💡 我想要...</div>
@@ -206,15 +240,19 @@
           </div>
         </div>
 
-        <div class="home-ratio-bar" title="知识库内容分布比例（7大模块）">
-          <span class="ratio-seg ratio-production" title="📋 项目管理与排期：占比 20%">📋 20%</span>
-          <span class="ratio-seg ratio-outsource" title="📦 外包全链路管理：占比 10%">📦 10%</span>
-          <span class="ratio-seg ratio-craft" title="🎨 美术工艺与规范：占比 25%">🎨 25%</span>
-          <span class="ratio-seg ratio-collab" title="🤝 跨部门协同与交付：占比 10%">🤝 10%</span>
-          <span class="ratio-seg ratio-toolkit" title="🛠️ 工具链与自动化：占比 15%">🛠️ 15%</span>
-          <span class="ratio-seg ratio-governance" title="🛡️ 质量·风险·团队：占比 10%">🛡️ 10%</span>
-          <span class="ratio-seg ratio-retrospect" title="🔥 真实案例库：占比 10%">🔥 10%</span>
-        </div>
+        <!-- 内容分布占比条（默认折叠，降低首屏视觉噪音） -->
+        <details class="ratio-details">
+          <summary class="ratio-summary">📊 查看知识库内容分布</summary>
+          <div class="home-ratio-bar" title="知识库内容分布比例（7大模块）">
+            <span class="ratio-seg ratio-production" title="📋 项目管理与排期：占比 20%">📋 20%</span>
+            <span class="ratio-seg ratio-outsource" title="📦 外包全链路管理：占比 10%">📦 10%</span>
+            <span class="ratio-seg ratio-craft" title="🎨 美术工艺与规范：占比 25%">🎨 25%</span>
+            <span class="ratio-seg ratio-collab" title="🤝 跨部门协同与交付：占比 10%">🤝 10%</span>
+            <span class="ratio-seg ratio-toolkit" title="🛠️ 工具链与自动化：占比 15%">🛠️ 15%</span>
+            <span class="ratio-seg ratio-governance" title="🛡️ 质量·风险·团队：占比 10%">🛡️ 10%</span>
+            <span class="ratio-seg ratio-retrospect" title="🔥 真实案例库：占比 10%">🔥 10%</span>
+          </div>
+        </details>
         <!-- 阶段快速筛选 -->
         <div class="stage-filter-row" id="stageFilterRow">
           <span class="stage-filter-label">按阶段筛选：</span>
@@ -290,6 +328,11 @@
               <a class="rc-link" onclick="navigate('art-vs-planner-req')">
                 <span class="rc-link-icon">📝</span>
                 <span class="rc-link-text">需求对接流转规范</span>
+                <span class="rc-link-arrow">→</span>
+              </a>
+              <a class="rc-link" onclick="navigate('decision-hub')">
+                <span class="rc-link-icon">⚖️</span>
+                <span class="rc-link-text">量化决策中心（红线·决策树）</span>
                 <span class="rc-link-arrow">→</span>
               </a>
             </div>
