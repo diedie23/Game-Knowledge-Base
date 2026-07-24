@@ -47,8 +47,8 @@ export function Dashboard() {
   }, [milestoneName, milestoneDate, isEditingMilestone]);
 
   const handleSaveMilestone = async () => {
-    if (project?.id) {
-      await db.projects.update(project.id, {
+    if (milestoneProject?.id) {
+      await db.projects.update(milestoneProject.id, {
         milestoneName: tempMilestoneName,
         milestoneDate: tempMilestoneDate,
       });

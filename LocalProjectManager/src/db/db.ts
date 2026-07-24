@@ -491,17 +491,14 @@ export const db = new LocalProjectManagerDB();
           .toArray();
 
         if (tasks.length > 0) {
-          await db.tasks.bulkUpdate(
-            tasks.map((t: any) => ({
-              id: t.id!,
-              changes: {
-                status: 'cancelled',
-                previousStatus: t.status,
-                pausedAt: new Date(),
-              },
-            }))
-          );
-          console.log(`[Cascade] 自动关闭项目「${project.name}」下的 ${tasks.length} 个任务`);
+          // Dexie 3.2.x 没有 bulkUpdate（4.x 才有），用 bulkPut 整条写回实现部分字段更新
+          const updated = tasks.map((t: any) => ({
+            ...t,
+            status: 'cancelled' as const,
+            previousStatus: t.status,
+            pausedAt: new Date(),
+          }));
+          await db.tasks.bulkPut(updated);
         }
 
         return result;
