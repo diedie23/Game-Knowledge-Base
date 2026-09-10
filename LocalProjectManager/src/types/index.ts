@@ -13,3 +13,6 @@ export type { ProjectNote, TodoItem } from './projectNote';
 export type { TapdConfig, TapdWorkspaceInfo, TapdStory, TapdIteration, SyncResult, SyncDetailItem, ImportResult, ModuleMapping, DuplicateCandidate, RefreshResult, RefreshDetailItem } from './tapd';
 export type { ChangeLog, SyncMeta, SyncConflict, CommandPayload, SyncEvent } from './sync';
 export type { Nullable, WithId, DeepPartial } from './common';
+
+export type { UxStage, WorkPackageStatus, WorkEstimateSource, UxWorkPackage, ResourceCapacity, ScheduleRisk, ScheduleSuggestion, UxDemandGroup } from './scheduling';
+export { UX_STAGE_META } from './scheduling';
