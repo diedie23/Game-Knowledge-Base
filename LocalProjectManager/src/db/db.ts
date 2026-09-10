@@ -1,6 +1,7 @@
 import Dexie, { Table } from 'dexie';
 import type { Task, Resource, Project, TapdConfig, ChangeLog, SyncMeta, SyncConflict, ChangeSnapshot } from '../types';
 import type { ProjectNote } from '../types/projectNote';
+import type { ResourceCapacity } from '../types/scheduling';
 
 // Re-export all types so existing consumers can still import from db.ts
 export type { Task, Resource, Project, TapdConfig, ChangeLog, SyncMeta, SyncConflict, ChangeSnapshot };
@@ -16,6 +17,7 @@ export class LocalProjectManagerDB extends Dexie {
   syncConflicts!: Table<SyncConflict, number>;
   changeSnapshots!: Table<ChangeSnapshot, string>;
   projectNotes!: Table<ProjectNote, number>;
+  resourceCapacities!: Table<ResourceCapacity, number>;
 
   constructor() {
     super('LocalProjectManagerDB');
@@ -448,6 +450,20 @@ export class LocalProjectManagerDB extends Dexie {
           project.status = 'active';
         }
       });
+    });
+
+    // Version 28: Add per-resource capacity configuration for scheduling
+    this.version(28).stores({
+      tasks: '++id, title, status, priority, *assigneeIds, startDate, endDate, projectId, parentId, syncId, updatedAt, tapdId, sortOrder, workCategory, completedAt, module',
+      resources: '++id, name, role, sortOrder, type, avatarStyle, status, joinDate, departDate, tapdAccount, group',
+      resourceCapacities: 'resourceId, updatedAt',
+      projects: '++id, name, status',
+      tapdConfigs: '++id, workspaceId, projectId, authMode',
+      changeLogs: '++id, table, recordId, action, timestamp, synced',
+      syncMeta: '++id, source, projectId',
+      syncConflicts: '++id, table, recordId, detectedAt, resolution',
+      changeSnapshots: 'id, date',
+      projectNotes: '++id, title, category, createdAt, updatedAt, pinned, projectId, *tags'
     });
 
     // Version 27: Add group field to resources (for project team / functional grouping)
