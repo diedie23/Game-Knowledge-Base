@@ -90,6 +90,10 @@ async function mcpGatewayInitialize(accessToken: string, gatewayUrl?: string): P
     }),
   });
 
+  if (response.headers.get('x-tapd-gateway-error') === 'woa-access-denied') {
+    throw new Error('WOA Passport 未授权访问 TAPD MCP 网关，请先申请 mcpgw.knot.woa.com 访问权限，或切换 REST API');
+  }
+
   if (!response.ok) {
     const errorText = await response.text().catch(() => '');
     if (response.status === 401 || response.status === 403) {
@@ -171,6 +175,10 @@ async function mcpGatewayFetch<T>(
       }),
       signal: controller.signal,
     });
+
+    if (response.headers.get('x-tapd-gateway-error') === 'woa-access-denied') {
+      throw new Error('WOA Passport 未授权访问 TAPD MCP 网关，请先申请 mcpgw.knot.woa.com 访问权限，或切换 REST API');
+    }
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => '');

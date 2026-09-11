@@ -1,7 +1,44 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite';
+import { defineConfig, type ProxyOptions } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+
+const tapdProxy: Record<string, string | ProxyOptions> = {
+  '/tapd-api': {
+    // 腾讯内部版 TAPD API 地址（apiv2.tapd.woa.com）
+    // 如果是外部公有云，请改为 https://api.tapd.cn
+    target: 'http://apiv2.tapd.woa.com',
+    changeOrigin: true,
+    rewrite: proxyPath => proxyPath.replace(/^\/tapd-api/, ''),
+    configure: proxy => {
+      proxy.on('proxyRes', proxyRes => {
+        // 拦截 401 响应，移除 www-authenticate 头，防止浏览器弹出原生登录框
+        if (proxyRes.statusCode === 401 && proxyRes.headers['www-authenticate']) {
+          proxyRes.headers['x-www-authenticate'] = proxyRes.headers['www-authenticate'];
+          delete proxyRes.headers['www-authenticate'];
+        }
+      });
+    },
+  },
+  '/mcp-gateway': {
+    // TAPD MCP Gateway (streamable-http)
+    target: 'https://mcpgw.knot.woa.com',
+    changeOrigin: true,
+    secure: true,
+    rewrite: proxyPath => proxyPath.replace(/^\/mcp-gateway/, '/tapd'),
+    configure: proxy => {
+      proxy.on('proxyRes', proxyRes => {
+        const location = String(proxyRes.headers.location || '');
+        if (proxyRes.statusCode && proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && location.includes('passport.woa.com/denied')) {
+          proxyRes.statusCode = 502;
+          proxyRes.statusMessage = 'Bad Gateway';
+          proxyRes.headers['x-tapd-gateway-error'] = 'woa-access-denied';
+          delete proxyRes.headers.location;
+        }
+      });
+    },
+  },
+};
 
 export default defineConfig({
   plugins: [react()],
@@ -10,33 +47,8 @@ export default defineConfig({
     outDir: path.resolve(__dirname, '../docs/project-manager-v2'),
     emptyOutDir: true,
   },
-  server: {
-    proxy: {
-      '/tapd-api': {
-        // 腾讯内部版 TAPD API 地址（apiv2.tapd.woa.com）
-        // 如果是外部公有云，请改为 https://api.tapd.cn
-        target: 'http://apiv2.tapd.woa.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/tapd-api/, ''),
-        configure: (proxy, _options) => {
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            // 拦截 401 响应，移除 www-authenticate 头，防止浏览器弹出原生登录框
-            if (proxyRes.statusCode === 401 && proxyRes.headers['www-authenticate']) {
-              proxyRes.headers['x-www-authenticate'] = proxyRes.headers['www-authenticate'];
-              delete proxyRes.headers['www-authenticate'];
-            }
-          });
-        },
-      },
-      '/mcp-gateway': {
-        // TAPD MCP Gateway (streamable-http)
-        target: 'https://mcpgw.knot.woa.com',
-        changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/mcp-gateway/, '/tapd'),
-      },
-    },
-  },
+  server: { proxy: tapdProxy },
+  preview: { proxy: tapdProxy },
   test: {
     globals: true,
     environment: 'jsdom',
