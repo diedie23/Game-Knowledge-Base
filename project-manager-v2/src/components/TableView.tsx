@@ -10,6 +10,7 @@ import { getEffectiveStatus } from '../types/resource';
 import { syncParentDateRange } from '../services/workloadService';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { confirmDialog } from './common/ConfirmDialog';
+import { UxStageTable } from './UxStageTable';
 import {
   ArrowUpDown, ArrowUp, ArrowDown, Search, Filter,
   Edit2, Trash2, ChevronRight, ChevronDown, Plus,
@@ -35,6 +36,16 @@ const PRIORITY_OPTIONS = [
 ];
 
 export function TableView() {
+  const [mode, setMode] = useState<'stages' | 'tasks'>('stages');
+  return <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+    <div className="flex shrink-0 gap-1 border-b border-gray-800 bg-[#0f1115] px-5 py-2" role="group" aria-label="列表展示方式">
+      {([{ key: 'stages', label: '环节总览' }, { key: 'tasks', label: '任务表格' }] as const).map(item => <button key={item.key} aria-pressed={mode === item.key} onClick={() => setMode(item.key)} className={`rounded-lg px-3 py-1.5 text-xs ${mode === item.key ? 'bg-indigo-500/15 text-indigo-300' : 'text-gray-500 hover:text-gray-200'}`}>{item.label}</button>)}
+    </div>
+    {mode === 'stages' ? <UxStageTable /> : <TaskTableView />}
+  </div>;
+}
+
+function TaskTableView() {
   const { selectedProjectId, openTaskModal, expandedTaskIds, toggleTaskExpansion } = useStore();
 
   const tasks = useLiveQuery(
