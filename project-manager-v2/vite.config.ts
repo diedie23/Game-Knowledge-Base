@@ -25,7 +25,7 @@ const tapdProxy: Record<string, string | ProxyOptions> = {
     target: 'https://mcpgw.knot.woa.com',
     changeOrigin: true,
     secure: true,
-    rewrite: proxyPath => proxyPath.replace(/^\/mcp-gateway/, '/tapd'),
+    rewrite: proxyPath => proxyPath.replace(/^\/mcp-gateway\/?/, '/tapd/'),
     configure: proxy => {
       proxy.on('proxyRes', proxyRes => {
         const location = String(proxyRes.headers.location || '');

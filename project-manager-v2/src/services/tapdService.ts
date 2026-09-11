@@ -14,7 +14,7 @@ const MCP_GATEWAY_TIMEOUT_MS = 20_000;
 const TAPD_API_BASE = '/tapd-api'; // Uses Vite proxy
 
 // ─── MCP Gateway Configuration (streamable-http) ─────────────────
-const MCP_GATEWAY_PROXY = '/mcp-gateway'; // Uses Vite proxy → https://mcpgw.knot.woa.com/tapd/
+const MCP_GATEWAY_PROXY = '/mcp-gateway/'; // Uses Vite proxy → https://mcpgw.knot.woa.com/tapd/
 
 // ─── MCP Proxy Fetch Helper ──────────────────────────────────────
 
