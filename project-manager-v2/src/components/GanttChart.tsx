@@ -1793,6 +1793,12 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
               <span>{format(displayStartDate, 'MM/dd')} - {format(displayEndDate, 'MM/dd')}</span>
               <span className="text-gray-600">({differenceInDays(displayEndDate, displayStartDate) + 1}天)</span>
             </div>
+            {task.estimatedHours !== undefined && (
+              <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                <Clock size={10} />
+                <span>预估工时 {task.estimatedHours}h</span>
+              </div>
+            )}
             <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
               <Flag size={10} />
               <span>{config.label}</span>
@@ -2173,7 +2179,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                     width: `${Math.max(duration, 1) * dayWidth - 2}px`
                   }}
                   onClick={() => toggleTaskExpansion(task.id!)}
-                  title={`${format(displayStartDate!, 'MM/dd')} - ${format(displayEndDate!, 'MM/dd')} (${differenceInDays(displayEndDate!, displayStartDate!) + 1}天)`}
+                  title={`${format(displayStartDate!, 'MM/dd')} - ${format(displayEndDate!, 'MM/dd')} (${differenceInDays(displayEndDate!, displayStartDate!) + 1}天)${task.estimatedHours !== undefined ? ` · ${task.estimatedHours}h` : ''}`}
                 >
                   {renderTaskTooltip(task, displayStartDate!, displayEndDate!)}
                   {/* Bracket top bar */}
@@ -2291,7 +2297,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                       }}
                       onClick={(e) => handleTaskClick(e, task)}
                       onContextMenu={(e) => handleContextMenu(e, task.id!)}
-                      title={`${format(displayStartDate!, 'MM/dd')} - ${format(displayEndDate!, 'MM/dd')} (${differenceInDays(displayEndDate!, displayStartDate!) + 1}天)`}
+                      title={`${format(displayStartDate!, 'MM/dd')} - ${format(displayEndDate!, 'MM/dd')} (${differenceInDays(displayEndDate!, displayStartDate!) + 1}天)${task.estimatedHours !== undefined ? ` · ${task.estimatedHours}h` : ''}`}
                     >
                       {renderTaskTooltip(task, displayStartDate!, displayEndDate!)}
                       {/* Progress fill overlay — shows completion percentage */}
@@ -2307,6 +2313,12 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                         />
                       )}
                       
+                      {task.estimatedHours !== undefined && barWidth >= 42 && (
+                        <span className="absolute right-1.5 top-1/2 z-[3] -translate-y-1/2 rounded bg-black/25 px-1 text-[9px] font-bold text-white/90 tabular-nums">
+                          {task.estimatedHours}h
+                        </span>
+                      )}
+
                       {/* Cascade shift indicator */}
                       {cascadeShiftDays !== 0 && (
                         <div className={`absolute -top-4 left-0 text-[8px] font-medium px-1 rounded z-50 ${cascadeShiftDays > 0 ? 'bg-amber-500/30 text-amber-200' : 'bg-emerald-500/30 text-emerald-200'}`}>
@@ -2840,9 +2852,9 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                 >
                   <option value="">不修改</option>
                   <option value="none">- (无)</option>
-                  <option value="high">高</option>
-                  <option value="medium">中</option>
-                  <option value="low">低</option>
+                  <option value="high">P0</option>
+                  <option value="medium">P1</option>
+                  <option value="low">P2</option>
                 </select>
               </div>
 

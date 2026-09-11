@@ -1,4 +1,4 @@
-﻿import type { TaskStatus, TaskPriority, TaskType, SyncSource, WorkCategory } from './enums';
+import type { TaskStatus, TaskPriority, TaskType, SyncSource, WorkCategory } from './enums';
 
 // ─── Task ────────────────────────────────────────────────────────
 
@@ -30,6 +30,9 @@ export interface Task {
 
   /** General notes / remarks for the task */
   notes?: string;
+
+  /** Estimated effort in hours, displayed on the Gantt bar and tooltip. */
+  estimatedHours?: number;
 
   /** Work category: 'self_made' = self-produced content, 'cp_follow' = CP supplier follow-up */
   workCategory?: WorkCategory;

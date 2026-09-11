@@ -213,9 +213,9 @@ export const KanbanBoard: React.FC = () => {
       }
       case 'priority': {
         return [
-          { id: 'priority-high', title: '高优先级', subtitle: '', color: 'bg-red-900/20', borderColor: 'border-red-800/40', filterFn: (t: Task) => t.priority === 'high' },
-          { id: 'priority-medium', title: '中优先级', subtitle: '', color: 'bg-yellow-900/20', borderColor: 'border-yellow-800/40', filterFn: (t: Task) => t.priority === 'medium' },
-          { id: 'priority-low', title: '低优先级', subtitle: '', color: 'bg-blue-900/20', borderColor: 'border-blue-800/40', filterFn: (t: Task) => t.priority === 'low' },
+          { id: 'priority-high', title: 'P0', subtitle: '', color: 'bg-red-900/20', borderColor: 'border-red-800/40', filterFn: (t: Task) => t.priority === 'high' },
+          { id: 'priority-medium', title: 'P1', subtitle: '', color: 'bg-yellow-900/20', borderColor: 'border-yellow-800/40', filterFn: (t: Task) => t.priority === 'medium' },
+          { id: 'priority-low', title: 'P2', subtitle: '', color: 'bg-blue-900/20', borderColor: 'border-blue-800/40', filterFn: (t: Task) => t.priority === 'low' },
           { id: 'priority-none', title: '无优先级', subtitle: '', color: 'bg-gray-800/50', borderColor: 'border-gray-700', filterFn: (t: Task) => !t.priority },
         ];
       }
@@ -338,7 +338,7 @@ export const KanbanBoard: React.FC = () => {
       else if (destColId === 'priority-medium') newPriority = 'medium';
       else if (destColId === 'priority-low') newPriority = 'low';
       
-      await trackedDb.tasks.update(taskId, { priority: newPriority as any }, `变更任务优先级为「${newPriority === 'high' ? '高' : newPriority === 'medium' ? '中' : newPriority === 'low' ? '低' : '无'}」`);
+      await trackedDb.tasks.update(taskId, { priority: newPriority as any }, `变更任务优先级为「${newPriority === 'high' ? 'P0' : newPriority === 'medium' ? 'P1' : newPriority === 'low' ? 'P2' : '无'}」`);
       const updated = await db.tasks.toArray();
       setTasks(updated);
     }
@@ -355,9 +355,9 @@ export const KanbanBoard: React.FC = () => {
 
   const getPriorityLabel = (priority: string | undefined) => {
     switch (priority) {
-      case 'high': return '高';
-      case 'medium': return '中';
-      case 'low': return '低';
+      case 'high': return 'P0';
+      case 'medium': return 'P1';
+      case 'low': return 'P2';
       default: return '无';
     }
   };

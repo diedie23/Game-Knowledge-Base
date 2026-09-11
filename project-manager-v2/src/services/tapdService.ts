@@ -482,7 +482,7 @@ export class TapdService {
           
           // Build query params from syncRange config for preview
           const previewLimit = syncRange?.limit || 200;
-          const previewParams: Record<string, unknown> = { workspace_id: workspaceId.trim(), limit: previewLimit, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,parent_id,children_id,release_id,iteration_id,priority,description' };
+          const previewParams: Record<string, unknown> = { workspace_id: workspaceId.trim(), limit: previewLimit, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,parent_id,children_id,release_id,iteration_id,priority,description,effort' };
           if (syncRange) {
             if (syncRange.mode === 'recent' && syncRange.recentDays) {
               const endDate = new Date();
@@ -726,7 +726,7 @@ export class TapdService {
               try {
                 const parentData = await mcpGatewayFetch<any>(
                   'stories_get',
-                  { workspace_id: workspaceId.trim(), id: Array.from(missingParentIds).join(','), fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,parent_id,children_id,release_id,iteration_id,priority,description' },
+                  { workspace_id: workspaceId.trim(), id: Array.from(missingParentIds).join(','), fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,parent_id,children_id,release_id,iteration_id,priority,description,effort' },
                   mcpAccessToken
                 );
                 let parentStories: any[] = [];
@@ -949,7 +949,7 @@ export class TapdService {
         // Fetch via MCP Gateway (streamable-http) — include fields param to get custom fields for filtering
         const data = await mcpGatewayFetch<{ status?: number; data?: any; count?: number }>(
           'stories_get',
-          { workspace_id: workspaceId.trim(), limit, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,parent_id,children_id,release_id,iteration_id,priority,description,begin,due', ...extraParams },
+          { workspace_id: workspaceId.trim(), limit, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,parent_id,children_id,release_id,iteration_id,priority,description,effort,begin,due', ...extraParams },
           this.config!.mcpAccessToken!
         );
         console.log('[TapdService] MCP Gateway response:', typeof data, Array.isArray(data));
@@ -1162,7 +1162,7 @@ export class TapdService {
           if (this.hasMcpGatewayCredentials()) {
             const data = await mcpGatewayFetch<{ status?: number; data?: any }>(
               'stories_get',
-              { workspace_id: workspaceId, id: parentIds, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,parent_id,children_id,release_id,iteration_id,priority,description,begin,due' },
+              { workspace_id: workspaceId, id: parentIds, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,parent_id,children_id,release_id,iteration_id,priority,description,effort,begin,due' },
               this.config!.mcpAccessToken!
             );
             if (Array.isArray(data)) {
@@ -1410,6 +1410,9 @@ export class TapdService {
       'medium': 'medium',
       'high': 'high',
       'urgent': 'high',
+      'p0': 'high',
+      'p1': 'medium',
+      'p2': 'low',
     };
     return priorityMap[tapdPriority?.toLowerCase()] || 'medium';
   }
@@ -1442,6 +1445,9 @@ export class TapdService {
       status === 'in_progress' ? (story.progress ? parseInt(story.progress, 10) : 50) :
       0;
 
+    const effortDays = Number.parseFloat(String(story.effort || '').replace(/[^\d.]/g, ''));
+    const estimatedHours = Number.isFinite(effortDays) ? effortDays * 8 : undefined;
+
     // Build TAPD external URL for direct navigation
     const workspaceId = this.config?.workspaceId || '';
     const externalUrl = workspaceId && story.id
@@ -1466,6 +1472,7 @@ export class TapdService {
       tapdId: story.id,
       externalUrl,
       module,
+      estimatedHours,
       syncSource: 'tapd',
       updatedAt: Date.now(),
       // Extended metadata (stripped before DB insert)
@@ -1952,7 +1959,7 @@ export class TapdService {
           if (this.hasMcpGatewayCredentials()) {
             const data = await mcpGatewayFetch<{ status?: number; data?: any; count?: number }>(
               'stories_get',
-              { workspace_id: wsId, id: batchIds.join(','), fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,parent_id,children_id,release_id,iteration_id,priority,description,begin,due' },
+              { workspace_id: wsId, id: batchIds.join(','), fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,parent_id,children_id,release_id,iteration_id,priority,description,effort,begin,due' },
               config.mcpAccessToken!
             );
             if (Array.isArray(data)) {
@@ -2310,6 +2317,8 @@ export interface PreviewRow {
   endDate: string;
   progress: number;
   description: string;
+  module?: string;
+  estimatedHours?: number;
   /** Whether this row already exists in local DB (by tapdId or title) */
   existsLocally: boolean;
   /** The local task id if it exists */
@@ -2437,6 +2446,8 @@ export class TapdImportService {
         const tapdId = get('id');
         const parentTapdId = get('parentId');
         const module = get('module');
+        const effortRaw = get('estimatedHours');
+        const estimatedHours = effortRaw ? Number.parseFloat(effortRaw.replace(/[^\d.]/g, '')) : undefined;
         const status = TapdImportService.mapImportStatus(statusRaw);
         const priority = TapdImportService.mapImportPriority(priorityRaw);
         const progressStr = get('progress');
@@ -2502,6 +2513,8 @@ export class TapdImportService {
           endDate: get('endDate'),
           progress: isNaN(progress) ? 0 : Math.min(100, Math.max(0, progress)),
           description: get('description'),
+          module: module || undefined,
+          estimatedHours: estimatedHours !== undefined && Number.isFinite(estimatedHours) ? estimatedHours : undefined,
           existsLocally,
           localTaskId,
           parentTapdId: parentTapdId || undefined,
@@ -2689,6 +2702,8 @@ export class TapdImportService {
           progress: row.progress,
           assigneeIds: matchedAssigneeIds.length > 0 ? matchedAssigneeIds : [],
           tapdId: row.tapdId || undefined,
+          module: row.module,
+          estimatedHours: row.estimatedHours,
           // Build TAPD external URL for direct navigation
           externalUrl: workspaceId && row.tapdId
             ? `https://tapd.woa.com/${workspaceId}/prong/stories/view/${row.tapdId}`
@@ -2735,6 +2750,8 @@ export class TapdImportService {
             progress: taskData.progress,
             assigneeIds: matchedAssigneeIds.length > 0 ? matchedAssigneeIds : undefined,
             tapdId: taskData.tapdId || undefined,
+            module: taskData.module,
+            estimatedHours: taskData.estimatedHours,
             updatedAt: Date.now(),
             syncedAt: Date.now(),
             syncSource: 'tapd-import',
@@ -2915,6 +2932,7 @@ export class TapdImportService {
       progress: null,
       parentId: null,
       module: null,
+      estimatedHours: null,
     };
 
     const patterns: Record<string, RegExp> = {
@@ -2929,6 +2947,7 @@ export class TapdImportService {
       progress: /^(进度|完成度|progress)$/i,
       parentId: /^(父需求|父任务|父需求ID|parent_id|parent|parentId)$/i,
       module: /^(模块|分类|需求分类|类别|module|category)$/i,
+      estimatedHours: /^(预估工时|预计工时|工时|工作量|effort|hours?)$/i,
     };
 
     headers.forEach((h, idx) => {
@@ -2974,6 +2993,8 @@ export class TapdImportService {
       progress: isNaN(progress) ? 0 : Math.min(100, Math.max(0, progress)),
       assigneeIds: [],
       tapdId: get('id') || undefined,
+      module: get('module') || undefined,
+      estimatedHours: get('estimatedHours') ? Number.parseFloat(get('estimatedHours').replace(/[^\d.]/g, '')) : undefined,
     };
   }
 
@@ -2991,10 +3012,10 @@ export class TapdImportService {
 
   /** Map Chinese priority strings from TAPD export */
   private static mapImportPriority(priority: string): 'low' | 'medium' | 'high' {
-    const p = priority.toLowerCase();
-    if (['紧急', '高', 'urgent', 'high'].some(k => p.includes(k))) return 'high';
-    if (['中', 'medium', 'middle'].some(k => p.includes(k))) return 'medium';
-    if (['低', 'low', 'nice'].some(k => p.includes(k))) return 'low';
+    const p = priority.trim().toLowerCase();
+    if (/^p0\b/.test(p) || ['紧急', '高', 'urgent', 'high'].some(k => p.includes(k))) return 'high';
+    if (/^p1\b/.test(p) || ['中', 'medium', 'middle'].some(k => p.includes(k))) return 'medium';
+    if (/^p[2-4]\b/.test(p) || ['低', 'low', 'nice'].some(k => p.includes(k))) return 'low';
     return 'medium';
   }
 }

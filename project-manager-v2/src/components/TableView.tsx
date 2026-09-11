@@ -30,9 +30,9 @@ const STATUS_OPTIONS = [
 
 const PRIORITY_OPTIONS = [
   { value: '', label: '-', color: 'bg-gray-500/10 text-gray-500 border-gray-500/20' },
-  { value: 'low', label: '低', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  { value: 'medium', label: '中', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  { value: 'high', label: '高', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
+  { value: 'low', label: 'P2', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  { value: 'medium', label: 'P1', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
+  { value: 'high', label: 'P0', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
 ];
 
 export function TableView() {
@@ -155,9 +155,9 @@ function TaskTableView() {
       });
     } else if (groupBy === 'priority') {
       const priorityOrder = [
-        { value: 'high', label: '🔴 高优先级' },
-        { value: 'medium', label: '🟡 中优先级' },
-        { value: 'low', label: '🔵 低优先级' },
+        { value: 'high', label: '🔴 P0' },
+        { value: 'medium', label: '🟡 P1' },
+        { value: 'low', label: '🔵 P2' },
         { value: '', label: '⚪ 未设置' },
       ];
       priorityOrder.forEach(opt => groups.set(opt.value, { label: opt.label, tasks: [] }));
@@ -201,7 +201,7 @@ function TaskTableView() {
   };
 
   const handlePriorityChange = async (taskId: number, newPriority: Task['priority']) => {
-    await trackedDb.tasks.update(taskId, { priority: newPriority }, `变更任务优先级为「${newPriority === 'high' ? '高' : newPriority === 'medium' ? '中' : newPriority === 'low' ? '低' : '未设置'}」`);
+    await trackedDb.tasks.update(taskId, { priority: newPriority }, `变更任务优先级为「${newPriority === 'high' ? 'P0' : newPriority === 'medium' ? 'P1' : newPriority === 'low' ? 'P2' : '未设置'}」`);
     setEditingCell(null);
   };
 

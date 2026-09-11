@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useStore } from '../store/useStore';
 import { db, Task } from '../db/db';
 import { trackedDb } from '../store/useHistoryStore';
@@ -36,11 +36,11 @@ function parsePastedText(
 ): PasteParseResult {
   const urls = pasted.match(URL_REGEX) || [];
 
-  // Parse priority: P0/P1/P2/P3, Chinese keywords, TAPD formats
+  // Parse priority: P0/P1/P2, Chinese keywords, TAPD formats
   let priority: TaskPriority | undefined = undefined;
-  if (/优先级[:：]\s*(高|紧急|High|Urgent)/i.test(pasted) || /【高】|\[高\]/.test(pasted) || /\bP0\b|\bP1\b/i.test(pasted) || /紧急/.test(pasted)) priority = 'high';
-  else if (/优先级[:：]\s*(中|Medium|Middle)/i.test(pasted) || /【中】|\[中\]/.test(pasted) || /\bP2\b/i.test(pasted)) priority = 'medium';
-  else if (/优先级[:：]\s*(低|Low|Nice)/i.test(pasted) || /【低】|\[低\]/.test(pasted) || /\bP3\b|\bP4\b/i.test(pasted)) priority = 'low';
+  if (/优先级[:：]\s*(高|紧急|High|Urgent)/i.test(pasted) || /【高】|\[高\]/.test(pasted) || /\bP0\b/i.test(pasted) || /紧急/.test(pasted)) priority = 'high';
+  else if (/优先级[:：]\s*(中|Medium|Middle)/i.test(pasted) || /【中】|\[中\]/.test(pasted) || /\bP1\b/i.test(pasted)) priority = 'medium';
+  else if (/优先级[:：]\s*(低|Low|Nice)/i.test(pasted) || /【低】|\[低\]/.test(pasted) || /\bP2\b|\bP3\b|\bP4\b/i.test(pasted)) priority = 'low';
 
   // Parse dates (e.g. 2026-04-22 ~ 2026-04-30)
   let startDate: Date | undefined = currentStartDate;
@@ -226,6 +226,19 @@ export function TaskModal() {
     );
     setDepConflicts(conflicts);
   }, [formData.startDate, formData.dependencies, allTasks, editingTaskId]);
+
+  const invalidDateRange = useMemo(() => (
+    !!formData.startDate && !!formData.endDate && formData.endDate < formData.startDate
+  ), [formData.startDate, formData.endDate]);
+
+  const scheduleHealth = useMemo(() => {
+    if (!formData.startDate || !formData.endDate) return { level: 'incomplete' as const, title: '排期信息待完善', detail: '填写开始和结束日期后自动检查冲突' };
+    if (invalidDateRange) return { level: 'conflict' as const, title: '日期范围冲突', detail: '结束时间不能早于开始时间' };
+    if (depConflicts.length > 0) return { level: 'conflict' as const, title: `发现 ${depConflicts.length} 个依赖冲突`, detail: '请调整日期或前置依赖后再保存' };
+    if (workloadWarnings.size > 0) return { level: 'warning' as const, title: `发现 ${workloadWarnings.size} 位负责人同期有任务`, detail: '展开下方详情确认人员负荷，再决定是否保存' };
+    if (!(formData.assigneeIds?.length)) return { level: 'incomplete' as const, title: '日期范围可用', detail: '选择负责人后可继续检查人员排期冲突' };
+    return { level: 'clear' as const, title: '排期可用', detail: '未发现依赖冲突或负责人同期任务' };
+  }, [formData.startDate, formData.endDate, formData.assigneeIds, invalidDateRange, depConflicts, workloadWarnings]);
 
   // Auto-calculate workload warnings for subtask assignees
   useEffect(() => {
@@ -520,6 +533,16 @@ export function TaskModal() {
       }
     }
 
+    if (invalidDateRange) {
+      await alertDialog({ title: '日期范围冲突', message: '结束时间不能早于开始时间，请调整排期后再保存。', type: 'warning' });
+      return;
+    }
+
+    if (depConflicts.length > 0) {
+      await alertDialog({ title: '排期冲突', message: `存在依赖日期冲突，请调整后再保存：\n\n${depConflicts.map(item => item.message).join('\n')}`, type: 'warning' });
+      return;
+    }
+
     // Block submission if there are pipeline dependency date conflicts
     if (selectedTemplateId && Object.keys(subTaskDepErrors).length > 0) {
       const errorMessages = Object.values(subTaskDepErrors);
@@ -615,6 +638,7 @@ export function TaskModal() {
               projectId: formData.projectId || 1,
               parentId: parentId as number,
               workCategory: formData.workCategory || 'self_made',
+              estimatedHours: sub.durationDays * 8,
             }, `新建子任务「${subTaskTitle}」`);
             subTaskIds.push(subTaskId as number);
             indexToTaskId[i] = subTaskId as number;
@@ -1201,9 +1225,9 @@ export function TaskModal() {
                 className="w-full bg-[#11111b] border border-gray-700/50 rounded-lg px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all appearance-none"
               >
                 <option value="">-</option>
-                <option value="low">低</option>
-                <option value="medium">中</option>
-                <option value="high">高</option>
+                <option value="high">P0</option>
+                <option value="medium">P1</option>
+                <option value="low">P2</option>
               </select>
             </div>
           </div>
@@ -1240,6 +1264,29 @@ export function TaskModal() {
             <p className="text-[10px] text-gray-600 mt-1">
               {formData.workCategory === 'cp_follow' ? 'CP跟进任务负荷权重较低（30%/项）' : '自制任务负荷权重正常（60%/项）'}
             </p>
+          </div>
+          <div className="grid grid-cols-2 gap-5">
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">分类</label>
+              <input
+                value={formData.module || ''}
+                onChange={e => setFormData({ ...formData, module: e.target.value || undefined })}
+                placeholder="例如：梦境调查、战斗、UX管线"
+                className="w-full bg-[#11111b] border border-gray-700/50 rounded-lg px-3.5 py-2.5 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">预估工时 <span className="normal-case font-normal text-gray-600">(小时)</span></label>
+              <input
+                type="number"
+                min="0"
+                step="0.5"
+                value={formData.estimatedHours ?? ''}
+                onChange={e => setFormData({ ...formData, estimatedHours: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)) })}
+                placeholder="例如：16"
+                className="w-full bg-[#11111b] border border-gray-700/50 rounded-lg px-3.5 py-2.5 text-sm text-gray-200 font-mono focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
           </div>
           </div>
 
@@ -1295,6 +1342,19 @@ export function TaskModal() {
                 }}
                 className="w-full bg-[#11111b] border border-gray-700/50 rounded-lg px-3.5 py-2.5 text-sm text-gray-200 font-mono tabular-nums focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer [color-scheme:dark]"
               />
+            </div>
+          </div>
+
+          <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${
+            scheduleHealth.level === 'conflict' ? 'border-red-500/40 bg-red-500/10' :
+            scheduleHealth.level === 'warning' ? 'border-amber-500/35 bg-amber-500/10' :
+            scheduleHealth.level === 'clear' ? 'border-emerald-500/35 bg-emerald-500/10' :
+            'border-gray-700/60 bg-gray-800/35'
+          }`}>
+            {scheduleHealth.level === 'clear' ? <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-emerald-400" /> : <AlertTriangle size={17} className={`mt-0.5 shrink-0 ${scheduleHealth.level === 'conflict' ? 'text-red-400' : scheduleHealth.level === 'warning' ? 'text-amber-400' : 'text-gray-500'}`} />}
+            <div>
+              <div className={`text-sm font-semibold ${scheduleHealth.level === 'conflict' ? 'text-red-300' : scheduleHealth.level === 'warning' ? 'text-amber-300' : scheduleHealth.level === 'clear' ? 'text-emerald-300' : 'text-gray-300'}`}>{scheduleHealth.title}</div>
+              <div className="mt-1 text-[11px] text-gray-500">{scheduleHealth.detail}</div>
             </div>
           </div>
 

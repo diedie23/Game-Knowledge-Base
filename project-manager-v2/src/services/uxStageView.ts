@@ -53,7 +53,10 @@ export function buildStageRows(tasks: Task[]) {
     }
   });
   return tasks.filter(t => !t.parentId || byId.get(t.parentId)?.projectId !== t.projectId).map(root => {
-    const stages = Object.fromEntries(STAGES.map(s => [s.key, []])) as Record<UxStage, Task[]>;
+    const stages = STAGES.reduce<Record<UxStage, Task[]>>((result, stage) => {
+      result[stage.key] = [];
+      return result;
+    }, {} as Record<UxStage, Task[]>);
     const descendants: Task[] = [];
     const visited = new Set<number>();
     const visit = (task: Task) => {

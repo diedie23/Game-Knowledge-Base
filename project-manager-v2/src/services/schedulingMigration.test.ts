@@ -10,7 +10,7 @@ describe('migrated UX scheduling core', () => {
     ...['交互案', '视觉设计', '还原', '动效', '程序'].map((stage, index) => ({
       id: String(index), parent_id: 'parent', name: `【${stage}】商城`, effort: 4,
     })),
-  ] as TapdStory[];
+  ] as unknown as TapdStory[];
   it('groups the four UX disciplines and excludes unrelated work', () => {
     const groups = buildUxDemandGroups(stories);
     expect(groups).toHaveLength(1);
