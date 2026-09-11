@@ -133,7 +133,7 @@ export function useTapdState() {
   }, [isTapdModalOpen]);
 
   // ─── Module Feature Presets ───
-  const MODULE_FEATURE_PRESETS = useMemo(() => ['PUGC', 'UGC小游戏', '运营', 'Rivals', '轻舟编辑器', '2D Avatar'], []);
+  const MODULE_FEATURE_PRESETS = useMemo<string[]>(() => [], []);
 
   return {
     // Global

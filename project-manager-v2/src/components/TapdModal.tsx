@@ -118,7 +118,7 @@ export function TapdModal() {
   }, [isTapdModalOpen]);
 
   // Preset module feature tags
-  const MODULE_FEATURE_PRESETS = ['PUGC', 'UGC小游戏', '运营', 'Rivals', '轻舟编辑器', '2D Avatar'];
+  const MODULE_FEATURE_PRESETS: string[] = [];
 
   // ─── Tree structure for preview stories ───
   interface StoryTreeNode {
@@ -1381,7 +1381,7 @@ export function TapdModal() {
                     value={moduleFeatureInput}
                     onChange={(e) => setModuleFeatureInput(e.target.value)}
                     className="w-full bg-gray-950/80 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all duration-200"
-                    placeholder="点击上方标签快速选择，或手动输入（多个用逗号分隔）"
+                    placeholder="手动输入模块特性（多个用逗号分隔）"
                   />
                   <p className="text-[11px] text-gray-600 mt-0.5">
                     <Info size={10} className="inline mr-0.5 -mt-0.5" />
