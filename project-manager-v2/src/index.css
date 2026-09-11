@@ -1,0 +1,405 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background-color: #121212;
+  color: #ffffff;
+}
+
+/* ===== Resource Matrix: Glassmorphism & Heatmap ===== */
+
+/* Glassmorphism tooltip fade-in */
+@keyframes glass-tooltip-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    backdrop-filter: blur(16px);
+  }
+}
+
+.glass-tooltip {
+  animation: glass-tooltip-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(16px) saturate(1.6);
+  -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Overload pulse animation */
+@keyframes overload-pulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+.heatmap-overload {
+  animation: overload-pulse 2s ease-in-out infinite;
+}
+
+/* Heatmap cell hover glow */
+.heatmap-cell {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.heatmap-cell:hover {
+  transform: scale(1.15);
+  z-index: 5;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
+}
+
+/* Continuous gradient legend bar */
+.heatmap-legend-bar {
+  background: linear-gradient(
+    to right,
+    rgba(100, 116, 139, 0.15),
+    rgba(34, 197, 94, 0.55) 25%,
+    rgba(234, 179, 8, 0.65) 55%,
+    rgba(239, 68, 68, 0.8) 85%,
+    rgba(220, 38, 38, 0.95)
+  );
+}
+
+/* ===== Kanban: Physics-Damping Drag & Drop ===== */
+
+/* Dragging card: elevated shadow + subtle tilt */
+.kanban-card-dragging {
+  transform: rotate(1.5deg) scale(1.04) !important;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.55),
+    0 8px 24px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(99, 102, 241, 0.4) !important;
+  transition: box-shadow 0.15s ease-out;
+  z-index: 9999 !important;
+}
+
+/* Drop placeholder: animated insertion indicator */
+@keyframes placeholder-slide-in {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: scaleY(0.3);
+  }
+  to {
+    opacity: 1;
+    max-height: 80px;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes placeholder-pulse {
+  0%, 100% {
+    border-color: rgba(99, 102, 241, 0.3);
+    background: rgba(99, 102, 241, 0.04);
+  }
+  50% {
+    border-color: rgba(99, 102, 241, 0.6);
+    background: rgba(99, 102, 241, 0.1);
+  }
+}
+
+.kanban-placeholder {
+  animation:
+    placeholder-slide-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    placeholder-pulse 1.5s ease-in-out infinite 0.25s;
+  border: 2px dashed rgba(99, 102, 241, 0.4);
+  border-radius: 0.75rem;
+  background: rgba(99, 102, 241, 0.06);
+  transform-origin: top center;
+}
+
+/* Column glow when dragging over */
+@keyframes column-glow {
+  0%, 100% {
+    box-shadow: inset 0 0 20px rgba(99, 102, 241, 0.05);
+    border-color: rgba(99, 102, 241, 0.25);
+  }
+  50% {
+    box-shadow: inset 0 0 30px rgba(99, 102, 241, 0.12);
+    border-color: rgba(99, 102, 241, 0.5);
+  }
+}
+
+.kanban-column-active {
+  animation: column-glow 1.2s ease-in-out infinite;
+  background: rgba(99, 102, 241, 0.04) !important;
+}
+
+/* Card settle animation after drop */
+@keyframes card-settle {
+  0% {
+    transform: rotate(1.5deg) scale(1.04);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  }
+  40% {
+    transform: rotate(-0.5deg) scale(0.98);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  70% {
+    transform: rotate(0.2deg) scale(1.01);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.kanban-card-settled {
+  animation: card-settle 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Smooth card transitions in list */
+.kanban-card-idle {
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.28s ease-out,
+              border-color 0.2s ease;
+}
+
+.kanban-card-idle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* Column empty state shimmer */
+@keyframes empty-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.kanban-empty-drop-zone {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(99, 102, 241, 0.06) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: empty-shimmer 3s ease-in-out infinite;
+}
+
+/* ===== What-If Ghost Schedule ===== */
+@keyframes ghostPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes ghostSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.ghost-bar {
+  animation: ghostPulse 2s ease-in-out infinite, ghostSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ===== History Panel Animation ===== */
+@keyframes historyPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ===== Unified Animation System ===== */
+
+/* Micro-interaction hover lift */
+.hover-lift {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Panel slide-in (used by sidebar, popover, drawers) */
+@keyframes panelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.panel-slide-in {
+  animation: panelSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Tooltip / popover scale-in */
+@keyframes popoverIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.popover-in {
+  animation: popoverIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Pulse highlight (used by warnings, badges) */
+@keyframes pulseHighlight {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15); }
+}
+
+.pulse-danger {
+  animation: pulseHighlight 2s ease-in-out infinite;
+}
+
+/* ===== View Transition Animation ===== */
+@keyframes viewFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes viewFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.view-enter {
+  animation: viewFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.view-exit {
+  animation: viewFadeOut 0.15s ease-out forwards;
+}
+
+/* Custom scrollbar for dark theme */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.4);
+  border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.6);
+}
+
+/* Kanban specific scrollbar */
+.kanban-column-scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+.kanban-column-scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+.kanban-column-scrollable::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.2);
+  border-radius: 3px;
+}
+.kanban-column-scrollable:hover::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.5);
+}
+
+/* ===== Gantt Weekend / Holiday Column Stripes ===== */
+
+/* Weekend column: diagonal stripe pattern for clear visual distinction */
+.gantt-weekend-col {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 4px,
+      rgba(100, 116, 139, 0.07) 4px,
+      rgba(100, 116, 139, 0.07) 5px
+    ),
+    rgba(30, 35, 50, 0.55) !important;
+}
+
+/* Weekend column in header: slightly more visible */
+.gantt-weekend-header {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 4px,
+      rgba(100, 116, 139, 0.10) 4px,
+      rgba(100, 116, 139, 0.10) 5px
+    ),
+    rgba(30, 35, 50, 0.65) !important;
+}
+
+/* Holiday column: red-tinted stripe pattern */
+.gantt-holiday-col {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 4px,
+      rgba(239, 68, 68, 0.06) 4px,
+      rgba(239, 68, 68, 0.06) 5px
+    ),
+    rgba(50, 20, 20, 0.45) !important;
+}
+
+/* Holiday column in header */
+.gantt-holiday-header {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 4px,
+      rgba(239, 68, 68, 0.08) 4px,
+      rgba(239, 68, 68, 0.08) 5px
+    ),
+    rgba(50, 20, 20, 0.55) !important;
+}
+
+/* ===== Date Input Dark Theme Fix ===== */
+input[type="date"] {
+  color-scheme: dark;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
