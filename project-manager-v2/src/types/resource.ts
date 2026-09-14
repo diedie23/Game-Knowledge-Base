@@ -29,6 +29,8 @@ export interface Resource {
   leaveDates?: string[];
   /** TAPD账号名（英文ID），用于同步时自动匹配处理人 */
   tapdAccount?: string;
+  /** 成员所属的本地项目；TAPD 成员同步后用于在对应项目侧栏中显示 */
+  projectIds?: number[];
   /** 项目组/团队分组（如 "2D Avatar"、"轻舟编辑器"、"UGC小游戏"、"元梦之星"） */
   group?: string;
   /** 入职日期，格式为 YYYY-MM-DD */

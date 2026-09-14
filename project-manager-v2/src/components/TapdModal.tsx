@@ -863,6 +863,27 @@ export function TapdModal() {
       );
       setUpsertResult(result);
       setLocalSyncStatus('success');
+
+      // Keep the current project team aligned with TAPD Member Management.
+      if (config.authMode === 'rest') {
+        try {
+          const memberResult = await tapdService.syncProjectMembers(selectedProjectId);
+          setMemberSyncResult(memberResult);
+          const allResources = await db.resources.toArray();
+          const activeResources = allResources
+            .filter(resource => resource.status !== 'departed' && resource.type !== 'cp')
+            .sort((a, b) => getRoleOrderIndex(a.role) - getRoleOrderIndex(b.role));
+          setTeamResources(activeResources.map(resource => ({
+            id: resource.id,
+            name: resource.name,
+            role: resource.role,
+            tapdAccount: resource.tapdAccount,
+          })));
+        } catch (memberError: any) {
+          console.error('[TapdModal] Automatic member sync failed:', memberError);
+          setErrorMessage('需求已同步，但成员分组录入失败：' + (memberError.message || '请检查成员接口权限'));
+        }
+      }
       // Clear merge decisions after successful sync
       if (mergeDecisions.size > 0) {
         setMergeDecisions(new Map());

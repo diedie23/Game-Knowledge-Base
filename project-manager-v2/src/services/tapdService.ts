@@ -501,11 +501,13 @@ export class TapdService {
       );
 
       if (existing?.id) {
+        const projectIds = Array.from(new Set([...(existing.projectIds || []), projectId]));
         await db.resources.update(existing.id, {
           name,
           role,
           group: tapdGroup,
           tapdAccount: account,
+          projectIds,
           type: 'internal',
           status: existing.status === 'departed' ? 'active' : (existing.status || 'active'),
           joinDate: joinDate || existing.joinDate,
@@ -517,6 +519,7 @@ export class TapdService {
           role,
           group: tapdGroup,
           tapdAccount: account,
+          projectIds: [projectId],
           type: 'internal' as const,
           status: 'active' as const,
           joinDate,

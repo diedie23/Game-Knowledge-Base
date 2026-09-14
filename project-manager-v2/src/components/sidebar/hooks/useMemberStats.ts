@@ -1,4 +1,4 @@
-﻿import { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../../db/db';
 import { addDays, startOfToday, isWeekend, format } from 'date-fns';
@@ -45,12 +45,13 @@ export function useMemberStats(projectId?: number | null) {
   }, [tasks]);
 
   // Sorted resources: type (internal→cp) → role order (UX→UI→Layout→…) → sortOrder
-  // When projectId is provided, only include resources with tasks in that project
+  // Include explicit project members as well as legacy resources with tasks in that project.
   const sortedResources = useMemo(() => {
     if (!resources) return [];
     let filtered = [...resources];
     if (projectId != null && tasks) {
       filtered = filtered.filter(r =>
+        r.projectIds?.includes(projectId) ||
         tasks.some(t => t.assigneeIds?.includes(r.id!) && t.projectId === projectId)
       );
     }
