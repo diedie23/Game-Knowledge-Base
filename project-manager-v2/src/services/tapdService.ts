@@ -479,7 +479,9 @@ export class TapdService {
     const groupCounts: Record<string, number> = Object.fromEntries(targetGroupOrder.map(group => [group, 0]));
     const groupMembers: Record<string, string[]> = Object.fromEntries(targetGroupOrder.map(group => [group, []]));
     const processedMemberKeys = new Set<string>();
-    const processedNames = new Set<string>();
+    const accountGroupOverrides: Record<string, string> = workspaceId === '70182144'
+      ? { klaudzhang: 'UX-交互', v_zypgzhang: 'UX-还原' }
+      : {};
 
     for (const item of usersResponse.data) {
       const member = item?.UserWorkspace || item;
@@ -495,11 +497,12 @@ export class TapdService {
       ));
       const rawName = String(member.name || member.user || '').trim();
       const normalizedName = rawName.replace(/\s+/g, '');
-      const explicitGroup = workspaceId === '70182144' && normalizedName.includes('云鹏') ? 'UX-交互' : undefined;
+      const account = String(member.user || '').trim();
+      const accountKey = account.toLowerCase();
+      const explicitGroup = accountGroupOverrides[accountKey];
       const tapdGroup = explicitGroup || targetGroupOrder.find(group => memberGroups.includes(group));
       if (!tapdGroup) continue;
 
-      const account = String(member.user || '').trim();
       const userId = String(member.user_id || '').trim();
       const memberKey = (account || userId || normalizedName).toLowerCase();
       if (!memberKey || processedMemberKeys.has(memberKey)) continue;
@@ -511,10 +514,12 @@ export class TapdService {
         /(基地|外包|派遣|正式员工|实习|校招|社招|供应商|合作方|编制)/.test(group)
       );
       const joinDate = String(member.real_join_time || member.join_project_time || '').slice(0, 10) || undefined;
-      const existing = existingResources.find(resource =>
-        (!!account && resource.tapdAccount?.trim().toLowerCase() === account.toLowerCase()) ||
-        (!!name && resource.name.trim() === name)
-      );
+      const existing = existingResources.find(resource => {
+        if (account) {
+          return resource.tapdAccount?.trim().toLowerCase() === accountKey;
+        }
+        return !!name && !resource.tapdAccount && resource.name.trim() === name;
+      });
 
       if (existing?.id) {
         const projectIds = Array.from(new Set([...(existing.projectIds || []), projectId]));
@@ -550,42 +555,7 @@ export class TapdService {
         inserted++;
       }
       groupCounts[tapdGroup]++;
-      groupMembers[tapdGroup].push(name);
-      processedNames.add(normalizedName);
-    }
-
-    // The project owner explicitly confirmed 张云鹏 as a UX interaction member.
-    // Keep this workspace-level roster fact even when TAPD omits account/group data.
-    if (workspaceId === '70182144' && !Array.from(processedNames).some(name => name.includes('云鹏'))) {
-      const existingYunpeng = existingResources.find(resource => resource.name.replace(/\s+/g, '').includes('云鹏'));
-      if (existingYunpeng?.id) {
-        await db.resources.update(existingYunpeng.id, {
-          name: existingYunpeng.name || '张云鹏',
-          role: 'UX设计',
-          group: 'UX-交互',
-          projectIds: Array.from(new Set([...(existingYunpeng.projectIds || []), projectId])),
-          tapdGroups: Array.from(new Set([...(existingYunpeng.tapdGroups || []), 'UX-交互'])),
-          type: 'internal',
-          status: existingYunpeng.status === 'departed' ? 'active' : (existingYunpeng.status || 'active'),
-        });
-        updated++;
-        groupMembers['UX-交互'].push(existingYunpeng.name || '张云鹏');
-      } else {
-        const fallbackMember = {
-          name: '张云鹏',
-          role: 'UX设计',
-          group: 'UX-交互',
-          projectIds: [projectId],
-          tapdGroups: ['UX-交互'],
-          type: 'internal' as const,
-          status: 'active' as const,
-          sortOrder: nextSortOrder++,
-        };
-        await db.resources.add(fallbackMember);
-        inserted++;
-        groupMembers['UX-交互'].push('张云鹏');
-      }
-      groupCounts['UX-交互']++;
+      groupMembers[tapdGroup].push(account ? name + ' (' + account + ')' : name);
     }
 
     return {
