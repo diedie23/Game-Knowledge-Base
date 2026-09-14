@@ -788,7 +788,6 @@ export class TapdService {
           hasApiUser: !!apiUser,
           hasApiToken: !!apiToken,
           hasApiPassword: !!apiPassword,
-          authHeader: `Basic ${btoa(unescape(encodeURIComponent(`${tempConfig.apiUser || ''}:${tempConfig.apiToken || tempConfig.apiPassword || ''}`)))}`,
         });
 
         // Step 1: Use /quickstart/testauth to verify credentials (official TAPD test endpoint)

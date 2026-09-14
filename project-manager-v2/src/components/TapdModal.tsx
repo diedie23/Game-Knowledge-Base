@@ -633,6 +633,10 @@ export function TapdModal() {
       setErrorMessage('请填写 API 账号');
       return;
     }
+    if (authMode === 'rest' && !apiToken.trim() && !apiPassword.trim()) {
+      setErrorMessage('请填写 API 密钥或个人令牌');
+      return;
+    }
     setIsSaving(true);
     setErrorMessage('');
     try {
@@ -700,6 +704,18 @@ export function TapdModal() {
   const handleTestConnection = async () => {
     if (!workspaceId.trim()) {
       setErrorMessage('请先填写工作区 ID');
+      return;
+    }
+    if (authMode === 'mcp-gateway' && !mcpAccessToken.trim()) {
+      setErrorMessage('请填写 MCP 个人访问令牌');
+      return;
+    }
+    if (authMode === 'rest' && !apiUser.trim()) {
+      setErrorMessage('请先填写 API 账号');
+      return;
+    }
+    if (authMode === 'rest' && !apiToken.trim() && !apiPassword.trim()) {
+      setErrorMessage('请填写 API 密钥或个人令牌');
       return;
     }
     setIsTesting(true);
@@ -1105,8 +1121,7 @@ export function TapdModal() {
                       {/* Personal Token */}
                       <div>
                         <label className="block text-[10px] text-gray-500 mb-1 flex items-center gap-1">
-                          <span className="px-1 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-[9px] font-bold">推荐</span>
-                          个人令牌 (Personal Token)
+                          个人令牌（仅在开放平台已启用时使用）
                         </label>
                         <input
                           type="password"
@@ -1126,7 +1141,7 @@ export function TapdModal() {
 
                       {/* API Password */}
                       <div>
-                        <label className="block text-[10px] text-gray-500 mb-1">API 密钥</label>
+                        <label className="block text-[10px] text-gray-500 mb-1">API 密钥 <span className="text-blue-400">（REST 推荐）</span></label>
                         <input
                           type="password"
                           value={apiPassword}
