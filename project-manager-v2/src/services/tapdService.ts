@@ -579,7 +579,7 @@ export class TapdService {
     authMode?: TapdAuthMode,
     mcpAccessToken?: string,
     syncRange?: import('../types/tapd').SyncRangeConfig
-  ): Promise<{ success: true; workspaceName: string; previewStories?: any[] } | { success: false; error: string }> {
+  ): Promise<{ success: true; workspaceName: string; previewStories?: any[]; workitemTypes?: { id: string; name: string }[] } | { success: false; error: string }> {
     try {
       if (!workspaceId.trim()) {
         return { success: false, error: '请输入工作区 ID' };
@@ -635,7 +635,7 @@ export class TapdService {
           
           // Build query params from syncRange config for preview
           const previewLimit = syncRange?.limit || 200;
-          const previewParams: Record<string, unknown> = { workspace_id: workspaceId.trim(), limit: previewLimit, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,parent_id,children_id,release_id,iteration_id,priority,description,effort' };
+          const previewParams: Record<string, unknown> = { workspace_id: workspaceId.trim(), limit: previewLimit, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,description,effort' };
           if (syncRange) {
             if (syncRange.mode === 'recent' && syncRange.recentDays) {
               const endDate = new Date();
@@ -879,7 +879,7 @@ export class TapdService {
               try {
                 const parentData = await mcpGatewayFetch<any>(
                   'stories_get',
-                  { workspace_id: workspaceId.trim(), id: Array.from(missingParentIds).join(','), fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,parent_id,children_id,release_id,iteration_id,priority,description,effort' },
+                  { workspace_id: workspaceId.trim(), id: Array.from(missingParentIds).join(','), fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,description,effort' },
                   mcpAccessToken
                 );
                 let parentStories: any[] = [];
@@ -968,6 +968,10 @@ export class TapdService {
             {
               workspace_id: workspaceId.trim(),
               limit: String(previewLimit),
+              fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,description,effort,begin,due',
+              ...(syncRange?.workitemTypeFilter?.length
+                ? { workitem_type_id: syncRange.workitemTypeFilter.join('|') }
+                : {}),
             }
           );
           console.log('[TAPD] stories preview response:', {
@@ -983,10 +987,25 @@ export class TapdService {
           }
 
           const previewStories = Array.isArray(data?.data) ? data.data : [];
+          let workitemTypes: { id: string; name: string }[] = [];
+          try {
+            const typeData = await tapdRestFetch<{ status: number; data: any[]; info: string }>(
+              '/workitem_types',
+              tempConfig,
+              { workspace_id: workspaceId.trim(), limit: '200', fields: 'id,name,entity_type,status' }
+            );
+            workitemTypes = (Array.isArray(typeData?.data) ? typeData.data : [])
+              .map(item => item?.WorkitemType || item)
+              .filter(item => item?.id && item?.name && String(item.status || '3') !== '2')
+              .map(item => ({ id: String(item.id), name: String(item.name) }));
+          } catch (typeError) {
+            console.warn('[TAPD] Failed to load work item types:', typeError);
+          }
           return {
             success: true,
             workspaceName: '已连接 (ID: ' + workspaceId.trim() + ', 获取到 ' + previewStories.length + ' 条需求)',
             previewStories,
+            workitemTypes,
           };
         } catch (wsError: any) {
           console.warn('[TAPD] workspace stories query failed:', wsError);
@@ -1093,6 +1112,9 @@ export class TapdService {
         if (syncRange.statusFilter && syncRange.statusFilter.length > 0) {
           extraParams.status = syncRange.statusFilter.join('|');
         }
+        if (syncRange.workitemTypeFilter && syncRange.workitemTypeFilter.length > 0) {
+          extraParams.workitem_type_id = syncRange.workitemTypeFilter.join('|');
+        }
         // Owner filter (server-side) — skip when keyword or module filter is active
         // because all filters now use OR logic on client-side
         const hasClientFiltersForOwner = (syncRange.categoryKeywords && syncRange.categoryKeywords.length > 0) ||
@@ -1109,7 +1131,7 @@ export class TapdService {
         // Fetch via MCP Gateway (streamable-http) — include fields param to get custom fields for filtering
         const data = await mcpGatewayFetch<{ status?: number; data?: any; count?: number }>(
           'stories_get',
-          { workspace_id: workspaceId.trim(), limit, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,parent_id,children_id,release_id,iteration_id,priority,description,effort,begin,due', ...extraParams },
+          { workspace_id: workspaceId.trim(), limit, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,description,effort,begin,due', ...extraParams },
           this.config!.mcpAccessToken!
         );
         console.log('[TapdService] MCP Gateway response:', typeof data, Array.isArray(data));
@@ -1322,7 +1344,7 @@ export class TapdService {
           if (this.hasMcpGatewayCredentials()) {
             const data = await mcpGatewayFetch<{ status?: number; data?: any }>(
               'stories_get',
-              { workspace_id: workspaceId, id: parentIds, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,parent_id,children_id,release_id,iteration_id,priority,description,effort,begin,due' },
+              { workspace_id: workspaceId, id: parentIds, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,description,effort,begin,due' },
               this.config!.mcpAccessToken!
             );
             if (Array.isArray(data)) {
@@ -2119,7 +2141,7 @@ export class TapdService {
           if (this.hasMcpGatewayCredentials()) {
             const data = await mcpGatewayFetch<{ status?: number; data?: any; count?: number }>(
               'stories_get',
-              { workspace_id: wsId, id: batchIds.join(','), fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,parent_id,children_id,release_id,iteration_id,priority,description,effort,begin,due' },
+              { workspace_id: wsId, id: batchIds.join(','), fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,description,effort,begin,due' },
               config.mcpAccessToken!
             );
             if (Array.isArray(data)) {

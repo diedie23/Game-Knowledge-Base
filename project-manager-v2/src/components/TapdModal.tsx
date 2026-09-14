@@ -57,6 +57,8 @@ export function TapdModal() {
   const [syncEndDate, setSyncEndDate] = useState<string>('');
   const [syncLimit, setSyncLimit] = useState<number>(200);
   const [categoryKeywords, setCategoryKeywords] = useState<string>('');
+  const [workitemTypes, setWorkitemTypes] = useState<{ id: string; name: string }[]>([]);
+  const [workitemTypeFilter, setWorkitemTypeFilter] = useState<string[]>([]);
   const [ownerFilterInput, setOwnerFilterInput] = useState<string>('');
   const [moduleFeatureInput, setModuleFeatureInput] = useState<string>('');
   const [ownerFilterMode, setOwnerFilterMode] = useState<'server' | 'client'>('server');
@@ -337,6 +339,7 @@ export function TapdModal() {
       setSyncEndDate(sr?.endDate || '');
       setSyncLimit(sr?.limit || 200);
       setCategoryKeywords((sr?.categoryKeywords || []).join(', '));
+      setWorkitemTypeFilter(sr?.workitemTypeFilter || []);
       setOwnerFilterInput([...new Set(sr?.ownerFilter || [])].join(', '));
       setModuleFeatureInput((sr?.moduleFeatureFilter || []).join(', '));
       setOwnerFilterMode(sr?.ownerFilterMode || 'server');
@@ -357,6 +360,8 @@ export function TapdModal() {
       setSyncEndDate('');
       setSyncLimit(200);
       setCategoryKeywords('');
+      setWorkitemTypes([]);
+      setWorkitemTypeFilter([]);
       setOwnerFilterInput('');
       setModuleFeatureInput('');
       setOwnerFilterMode('server');
@@ -661,6 +666,7 @@ export function TapdModal() {
         endDate: syncEndDate || undefined,
         limit: syncLimit,
         categoryKeywords: parsedKeywords.length > 0 ? parsedKeywords : undefined,
+        workitemTypeFilter: workitemTypeFilter.length > 0 ? workitemTypeFilter : undefined,
         moduleMappings: moduleMappings.length > 0 ? moduleMappings : undefined,
         ownerFilter: parsedOwners.length > 0 ? parsedOwners : undefined,
         moduleFeatureFilter: parsedModuleFeatures.length > 0 ? parsedModuleFeatures : undefined,
@@ -747,6 +753,7 @@ export function TapdModal() {
         endDate: syncEndDate || undefined,
         limit: syncLimit,
         categoryKeywords: parsedKeywords.length > 0 ? parsedKeywords : undefined,
+        workitemTypeFilter: workitemTypeFilter.length > 0 ? workitemTypeFilter : undefined,
         ownerFilter: parsedOwnersPrev.length > 0 ? parsedOwnersPrev : undefined,
         moduleFeatureFilter: parsedModulesPrev.length > 0 ? parsedModulesPrev : undefined,
         ownerFilterMode: ownerFilterMode,
@@ -757,6 +764,7 @@ export function TapdModal() {
       if (result.success) {
         setTestStatus('success');
         setWorkspaceName(result.workspaceName);
+        if (result.workitemTypes) setWorkitemTypes(result.workitemTypes);
         // Save preview stories for display
         if (result.previewStories && result.previewStories.length > 0) {
           setPreviewStories(result.previewStories);
@@ -1426,6 +1434,28 @@ export function TapdModal() {
                         </p>
                       </div>
                     )}
+                  </div>
+
+                  {/* TAPD requirement type filter */}
+                  <div className="col-span-2 rounded-lg border border-cyan-500/20 bg-cyan-500/[0.05] p-3">
+                    <div className="text-[11px] text-cyan-300 mb-1.5 flex items-center gap-1">
+                      <Filter size={11} /> TAPD 需求类别
+                    </div>
+                    {workitemTypes.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {workitemTypes.map(type => {
+                          const selected = workitemTypeFilter.includes(type.id);
+                          return (
+                            <button key={type.id} type="button" onClick={() => setWorkitemTypeFilter(selected ? workitemTypeFilter.filter(id => id !== type.id) : [...workitemTypeFilter, type.id])} className={'px-2 py-1 rounded-md text-[11px] border transition-colors ' + (selected ? 'bg-cyan-500/20 border-cyan-400/50 text-cyan-200' : 'bg-gray-900/50 border-white/10 text-gray-400 hover:text-cyan-300')}>
+                              {selected && <span className="mr-1">✓</span>}{type.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-[10px] text-gray-500">验证连接后显示当前工作区的需求类别；不选择则读取全部类别。</div>
+                    )}
+                    <div className="text-[10px] text-gray-600 mt-1.5">只读取所选类别的需求，并自动补取它们的父需求以保留层级。</div>
                   </div>
 
                   {/* Category Keywords Filter */}
