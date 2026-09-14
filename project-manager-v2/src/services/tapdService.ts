@@ -438,6 +438,24 @@ export class TapdService {
       .map(item => ({ id: String(item.id), name: String(item.name) }));
   }
 
+  /** Read TAPD release plans for the current workspace. */
+  async getReleasePlans(projectId: number): Promise<{ id: string; name: string; status?: string; startdate?: string; enddate?: string }[]> {
+    const config = await this.loadConfig(projectId);
+    if (!config || config.authMode !== 'rest' || !this.hasRestCredentials()) return [];
+    const response = await tapdRestFetch<{ status: number; data: any[]; info: string }>(
+      '/releases', config,
+      { workspace_id: config.workspaceId.trim(), limit: '200', fields: 'id,name,status,startdate,enddate', order: 'startdate desc' }
+    );
+    if (response?.status !== 1) throw new Error(response?.info || '无法读取 TAPD 发布计划');
+    return (Array.isArray(response.data) ? response.data : []).map(item => item?.Release || item)
+      .filter(item => item?.id && item?.name).map(item => ({
+        id: String(item.id), name: String(item.name),
+        status: item.status ? String(item.status) : undefined,
+        startdate: item.startdate ? String(item.startdate) : undefined,
+        enddate: item.enddate ? String(item.enddate) : undefined,
+      }));
+  }
+
   /** Import the UX team from TAPD member-management role groups. */
   async syncProjectMembers(projectId: number): Promise<{
     inserted: number;
@@ -595,7 +613,7 @@ export class TapdService {
     authMode?: TapdAuthMode,
     mcpAccessToken?: string,
     syncRange?: import('../types/tapd').SyncRangeConfig
-  ): Promise<{ success: true; workspaceName: string; previewStories?: any[]; workitemTypes?: { id: string; name: string }[] } | { success: false; error: string }> {
+  ): Promise<{ success: true; workspaceName: string; previewStories?: any[]; workitemTypes?: { id: string; name: string }[]; releasePlans?: { id: string; name: string; status?: string; startdate?: string; enddate?: string }[] } | { success: false; error: string }> {
     try {
       if (!workspaceId.trim()) {
         return { success: false, error: '请输入工作区 ID' };
@@ -670,6 +688,8 @@ export class TapdService {
             if (syncRange.ownerFilter && syncRange.ownerFilter.length > 0 && syncRange.ownerFilterMode !== 'client' && !hasClientFilters) {
               previewParams.owner = syncRange.ownerFilter.join(';');
             }
+            if (syncRange.workitemTypeFilter?.length) previewParams.workitem_type_id = syncRange.workitemTypeFilter.join('|');
+            if (syncRange.releaseFilter?.length) previewParams.release_id = syncRange.releaseFilter.join('|');
           }
           // Helper: fetch stories from MCP gateway and parse response
           const fetchAndParseStories = async (): Promise<{ count: number; stories: any[] }> => {
@@ -988,6 +1008,9 @@ export class TapdService {
               ...(syncRange?.workitemTypeFilter?.length
                 ? { workitem_type_id: syncRange.workitemTypeFilter.join('|') }
                 : {}),
+              ...(syncRange?.releaseFilter?.length
+                ? { release_id: syncRange.releaseFilter.join('|') }
+                : {}),
             }
           );
           console.log('[TAPD] stories preview response:', {
@@ -1004,24 +1027,27 @@ export class TapdService {
 
           const previewStories = Array.isArray(data?.data) ? data.data : [];
           let workitemTypes: { id: string; name: string }[] = [];
+          let releasePlans: { id: string; name: string; status?: string; startdate?: string; enddate?: string }[] = [];
           try {
-            const typeData = await tapdRestFetch<{ status: number; data: any[]; info: string }>(
-              '/workitem_types',
-              tempConfig,
-              { workspace_id: workspaceId.trim(), limit: '200', fields: 'id,name,entity_type,status' }
-            );
-            workitemTypes = (Array.isArray(typeData?.data) ? typeData.data : [])
-              .map(item => item?.WorkitemType || item)
+            const [typeData, releaseData] = await Promise.all([
+              tapdRestFetch<{ status: number; data: any[]; info: string }>('/workitem_types', tempConfig, { workspace_id: workspaceId.trim(), limit: '200', fields: 'id,name,entity_type,status' }),
+              tapdRestFetch<{ status: number; data: any[]; info: string }>('/releases', tempConfig, { workspace_id: workspaceId.trim(), limit: '200', fields: 'id,name,status,startdate,enddate', order: 'startdate desc' }),
+            ]);
+            workitemTypes = (Array.isArray(typeData?.data) ? typeData.data : []).map(item => item?.WorkitemType || item)
               .filter(item => item?.id && item?.name && String(item.status || '3') !== '2')
               .map(item => ({ id: String(item.id), name: String(item.name) }));
-          } catch (typeError) {
-            console.warn('[TAPD] Failed to load work item types:', typeError);
+            releasePlans = (Array.isArray(releaseData?.data) ? releaseData.data : []).map(item => item?.Release || item)
+              .filter(item => item?.id && item?.name)
+              .map(item => ({ id: String(item.id), name: String(item.name), status: item.status, startdate: item.startdate, enddate: item.enddate }));
+          } catch (metadataError) {
+            console.warn('[TAPD] Failed to load filter metadata:', metadataError);
           }
           return {
             success: true,
             workspaceName: '已连接 (ID: ' + workspaceId.trim() + ', 获取到 ' + previewStories.length + ' 条需求)',
             previewStories,
             workitemTypes,
+            releasePlans,
           };
         } catch (wsError: any) {
           console.warn('[TAPD] workspace stories query failed:', wsError);
@@ -1131,6 +1157,9 @@ export class TapdService {
         if (syncRange.workitemTypeFilter && syncRange.workitemTypeFilter.length > 0) {
           extraParams.workitem_type_id = syncRange.workitemTypeFilter.join('|');
         }
+        if (syncRange.releaseFilter && syncRange.releaseFilter.length > 0) {
+          extraParams.release_id = syncRange.releaseFilter.join('|');
+        }
         // Owner filter (server-side) — skip when keyword or module filter is active
         // because all filters now use OR logic on client-side
         const hasClientFiltersForOwner = (syncRange.categoryKeywords && syncRange.categoryKeywords.length > 0) ||
@@ -1169,6 +1198,8 @@ export class TapdService {
         if (extraParams.modified) restParams.modified = String(extraParams.modified);
         if (extraParams.status) restParams.status = String(extraParams.status);
         if (extraParams.owner) restParams.owner = String(extraParams.owner);
+        if (extraParams.workitem_type_id) restParams.workitem_type_id = String(extraParams.workitem_type_id);
+        if (extraParams.release_id) restParams.release_id = String(extraParams.release_id);
 
         const data = await tapdRestFetch<{ status: number; data: any; info: string }>(
           '/stories',

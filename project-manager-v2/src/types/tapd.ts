@@ -50,6 +50,8 @@ export interface SyncRangeConfig {
   categoryKeywords?: string[];
   /** TAPD work item type IDs; only sync stories in these requirement types */
   workitemTypeFilter?: string[];
+  /** TAPD release plan IDs; only sync stories assigned to these release plans */
+  releaseFilter?: string[];
   /** Module mappings for automatic project categorization */
   moduleMappings?: ModuleMapping[];
   /** Filter by TAPD owner (处理人), semicolon-separated names. Only sync stories assigned to these owners. */
@@ -98,6 +100,8 @@ export interface TapdStory {
     category_id?: string;
     /** TAPD requirement type ID */
     workitem_type_id?: string;
+    /** TAPD release plan ID */
+    release_id?: string;
     /** Custom field: module feature (模块特性), e.g. "轻舟编辑器/主体" */
     custom_field_one?: string;
     /** Custom field two (备用自定义字段) */

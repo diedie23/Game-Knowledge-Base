@@ -60,6 +60,9 @@ export function TapdModal() {
   const [workitemTypes, setWorkitemTypes] = useState<{ id: string; name: string }[]>([]);
   const [isLoadingWorkitemTypes, setIsLoadingWorkitemTypes] = useState(false);
   const [workitemTypeFilter, setWorkitemTypeFilter] = useState<string[]>([]);
+  const [releasePlans, setReleasePlans] = useState<{ id: string; name: string; status?: string; startdate?: string; enddate?: string }[]>([]);
+  const [isLoadingReleasePlans, setIsLoadingReleasePlans] = useState(false);
+  const [releaseFilter, setReleaseFilter] = useState<string[]>([]);
   const [ownerFilterInput, setOwnerFilterInput] = useState<string>('');
   const [moduleFeatureInput, setModuleFeatureInput] = useState<string>('');
   const [ownerFilterMode, setOwnerFilterMode] = useState<'server' | 'client'>('server');
@@ -327,10 +330,22 @@ export function TapdModal() {
     if (!isTapdModalOpen || !selectedProjectId || !existingConfig || existingConfig.authMode !== 'rest') return;
     let cancelled = false;
     setIsLoadingWorkitemTypes(true);
-    tapdService.getWorkitemTypes(selectedProjectId)
-      .then(types => { if (!cancelled) setWorkitemTypes(types); })
-      .catch(error => console.warn('[TapdModal] Failed to auto-load work item types:', error))
-      .finally(() => { if (!cancelled) setIsLoadingWorkitemTypes(false); });
+    setIsLoadingReleasePlans(true);
+    Promise.allSettled([
+      tapdService.getWorkitemTypes(selectedProjectId),
+      tapdService.getReleasePlans(selectedProjectId),
+    ]).then(([typesResult, releasesResult]) => {
+      if (cancelled) return;
+      if (typesResult.status === 'fulfilled') setWorkitemTypes(typesResult.value);
+      else console.warn('[TapdModal] Failed to auto-load work item types:', typesResult.reason);
+      if (releasesResult.status === 'fulfilled') setReleasePlans(releasesResult.value);
+      else console.warn('[TapdModal] Failed to auto-load release plans:', releasesResult.reason);
+    }).finally(() => {
+      if (!cancelled) {
+        setIsLoadingWorkitemTypes(false);
+        setIsLoadingReleasePlans(false);
+      }
+    });
     return () => { cancelled = true; };
   }, [isTapdModalOpen, selectedProjectId, existingConfig?.id, existingConfig?.authMode]);
 
@@ -352,6 +367,7 @@ export function TapdModal() {
       setSyncLimit(sr?.limit || 200);
       setCategoryKeywords((sr?.categoryKeywords || []).join(', '));
       setWorkitemTypeFilter(sr?.workitemTypeFilter || []);
+      setReleaseFilter(sr?.releaseFilter || []);
       setOwnerFilterInput([...new Set(sr?.ownerFilter || [])].join(', '));
       setModuleFeatureInput((sr?.moduleFeatureFilter || []).join(', '));
       setOwnerFilterMode(sr?.ownerFilterMode || 'server');
@@ -374,6 +390,8 @@ export function TapdModal() {
       setCategoryKeywords('');
       setWorkitemTypes([]);
       setWorkitemTypeFilter([]);
+      setReleasePlans([]);
+      setReleaseFilter([]);
       setOwnerFilterInput('');
       setModuleFeatureInput('');
       setOwnerFilterMode('server');
@@ -679,6 +697,7 @@ export function TapdModal() {
         limit: syncLimit,
         categoryKeywords: parsedKeywords.length > 0 ? parsedKeywords : undefined,
         workitemTypeFilter: workitemTypeFilter.length > 0 ? workitemTypeFilter : undefined,
+        releaseFilter: releaseFilter.length > 0 ? releaseFilter : undefined,
         moduleMappings: moduleMappings.length > 0 ? moduleMappings : undefined,
         ownerFilter: parsedOwners.length > 0 ? parsedOwners : undefined,
         moduleFeatureFilter: parsedModuleFeatures.length > 0 ? parsedModuleFeatures : undefined,
@@ -766,6 +785,7 @@ export function TapdModal() {
         limit: syncLimit,
         categoryKeywords: parsedKeywords.length > 0 ? parsedKeywords : undefined,
         workitemTypeFilter: workitemTypeFilter.length > 0 ? workitemTypeFilter : undefined,
+        releaseFilter: releaseFilter.length > 0 ? releaseFilter : undefined,
         ownerFilter: parsedOwnersPrev.length > 0 ? parsedOwnersPrev : undefined,
         moduleFeatureFilter: parsedModulesPrev.length > 0 ? parsedModulesPrev : undefined,
         ownerFilterMode: ownerFilterMode,
@@ -777,6 +797,7 @@ export function TapdModal() {
         setTestStatus('success');
         setWorkspaceName(result.workspaceName);
         if (result.workitemTypes) setWorkitemTypes(result.workitemTypes);
+        if (result.releasePlans) setReleasePlans(result.releasePlans);
         // Save preview stories for display
         if (result.previewStories && result.previewStories.length > 0) {
           setPreviewStories(result.previewStories);
@@ -1338,6 +1359,43 @@ export function TapdModal() {
                       <div className="text-[10px] text-gray-500">验证连接后显示当前工作区的需求类别；不选择则读取全部类别。</div>
                     )}
                     <div className="text-[10px] text-gray-600 mt-1.5">只读取所选类别的需求，并自动补取它们的父需求以保留层级。</div>
+                  </div>
+
+                  {/* TAPD release plan filter */}
+                  <div className="col-span-2 rounded-lg border border-violet-500/20 bg-violet-500/[0.05] p-3 mb-2">
+                    <div className="text-[11px] text-violet-300 mb-1.5 flex items-center gap-1">
+                      <Clock size={11} /> TAPD 发布计划
+                      {releaseFilter.length > 0 && (
+                        <button type="button" onClick={() => setReleaseFilter([])} className="ml-auto text-[10px] text-gray-500 hover:text-violet-200">清空选择</button>
+                      )}
+                    </div>
+                    {isLoadingReleasePlans ? (
+                      <div className="text-[10px] text-violet-300/70">正在读取 TAPD 发布计划...</div>
+                    ) : releasePlans.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
+                        {releasePlans.map(plan => {
+                          const selected = releaseFilter.includes(plan.id);
+                          const dateText = plan.startdate || plan.enddate
+                            ? [plan.startdate, plan.enddate].filter(Boolean).join(' ~ ')
+                            : '';
+                          return (
+                            <button
+                              key={plan.id}
+                              type="button"
+                              onClick={() => setReleaseFilter(selected ? releaseFilter.filter(id => id !== plan.id) : [...releaseFilter, plan.id])}
+                              className={'px-2 py-1 rounded-md text-left text-[11px] border transition-colors ' + (selected ? 'bg-violet-500/20 border-violet-400/50 text-violet-100' : 'bg-gray-900/50 border-white/10 text-gray-400 hover:text-violet-300')}
+                              title={dateText || plan.name}
+                            >
+                              <span>{selected && <span className="mr-1">✓</span>}{plan.name}</span>
+                              {dateText && <span className="ml-1.5 text-[9px] opacity-60">{dateText}</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-[10px] text-gray-500">当前工作区没有可读取的发布计划；不选择则同步全部发布计划。</div>
+                    )}
+                    <div className="text-[10px] text-gray-600 mt-1.5">可多选，只同步归属所选发布计划的需求。</div>
                   </div>
 
                 {/* Range Mode Selector */}
