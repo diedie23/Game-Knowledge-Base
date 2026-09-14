@@ -813,33 +813,41 @@ export class TapdService {
           };
         }
 
-        // Step 2: Verify workspace access by fetching stories count
+        // Step 2: Verify workspace access by fetching actual stories.
+        // The internal API may not expose /stories/count even when /stories is available.
         try {
-          const data = await tapdRestFetch<{ status: number; data: { count: number }; info: string }>(
-            '/stories/count',
+          const previewLimit = Math.min(syncRange?.limit || 200, 200);
+          const data = await tapdRestFetch<{ status: number; data: any; info: string }>(
+            '/stories',
             tempConfig,
-            { workspace_id: workspaceId.trim() }
+            {
+              workspace_id: workspaceId.trim(),
+              limit: String(previewLimit),
+            }
           );
-          console.log('[TAPD] stories/count response:', data);
+          console.log('[TAPD] stories preview response:', {
+            status: data?.status,
+            count: Array.isArray(data?.data) ? data.data.length : 0,
+          });
 
-          if (data?.status === 1) {
+          if (data?.status !== 1) {
             return {
-              success: true,
-              workspaceName: `已连接 (ID: ${workspaceId.trim()}, ${data.data?.count ?? 0} 个需求)`,
-            };
-          } else {
-            // Auth succeeded but workspace access failed
-            return {
-              success: true,
-              workspaceName: `已认证 (ID: ${workspaceId.trim()})`,
+              success: false,
+              error: data?.info || '认证成功，但无法读取该工作区的需求',
             };
           }
-        } catch (wsError: any) {
-          // Auth succeeded but workspace query failed - still consider it a success
-          console.warn('[TAPD] workspace query failed but auth ok:', wsError);
+
+          const previewStories = Array.isArray(data?.data) ? data.data : [];
           return {
             success: true,
-            workspaceName: `已认证 (ID: ${workspaceId.trim()})`,
+            workspaceName: '已连接 (ID: ' + workspaceId.trim() + ', 获取到 ' + previewStories.length + ' 条需求)',
+            previewStories,
+          };
+        } catch (wsError: any) {
+          console.warn('[TAPD] workspace stories query failed:', wsError);
+          return {
+            success: false,
+            error: 'API 认证成功，但读取工作区需求失败：' + (wsError.message || '未知错误'),
           };
         }
       }
