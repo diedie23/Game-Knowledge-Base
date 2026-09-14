@@ -422,6 +422,22 @@ export class TapdService {
     return this.config;
   }
 
+  /** Read active TAPD requirement types for the current workspace. */
+  async getWorkitemTypes(projectId: number): Promise<{ id: string; name: string }[]> {
+    const config = await this.loadConfig(projectId);
+    if (!config || config.authMode !== 'rest' || !this.hasRestCredentials()) return [];
+    const response = await tapdRestFetch<{ status: number; data: any[]; info: string }>(
+      '/workitem_types',
+      config,
+      { workspace_id: config.workspaceId.trim(), limit: '200', fields: 'id,name,entity_type,status' }
+    );
+    if (response?.status !== 1) throw new Error(response?.info || '无法读取 TAPD 需求类别');
+    return (Array.isArray(response.data) ? response.data : [])
+      .map(item => item?.WorkitemType || item)
+      .filter(item => item?.id && item?.name && String(item.status || '3') !== '2')
+      .map(item => ({ id: String(item.id), name: String(item.name) }));
+  }
+
   /** Import the UX team from TAPD member-management role groups. */
   async syncProjectMembers(projectId: number): Promise<{
     inserted: number;

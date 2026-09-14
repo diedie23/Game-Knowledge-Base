@@ -58,6 +58,7 @@ export function TapdModal() {
   const [syncLimit, setSyncLimit] = useState<number>(200);
   const [categoryKeywords, setCategoryKeywords] = useState<string>('');
   const [workitemTypes, setWorkitemTypes] = useState<{ id: string; name: string }[]>([]);
+  const [isLoadingWorkitemTypes, setIsLoadingWorkitemTypes] = useState(false);
   const [workitemTypeFilter, setWorkitemTypeFilter] = useState<string[]>([]);
   const [ownerFilterInput, setOwnerFilterInput] = useState<string>('');
   const [moduleFeatureInput, setModuleFeatureInput] = useState<string>('');
@@ -321,6 +322,17 @@ export function TapdModal() {
     loadConfig();
     return () => { cancelled = true; };
   }, [selectedProjectId, isTapdModalOpen]);
+
+  useEffect(() => {
+    if (!isTapdModalOpen || !selectedProjectId || !existingConfig || existingConfig.authMode !== 'rest') return;
+    let cancelled = false;
+    setIsLoadingWorkitemTypes(true);
+    tapdService.getWorkitemTypes(selectedProjectId)
+      .then(types => { if (!cancelled) setWorkitemTypes(types); })
+      .catch(error => console.warn('[TapdModal] Failed to auto-load work item types:', error))
+      .finally(() => { if (!cancelled) setIsLoadingWorkitemTypes(false); });
+    return () => { cancelled = true; };
+  }, [isTapdModalOpen, selectedProjectId, existingConfig?.id, existingConfig?.authMode]);
 
   useEffect(() => {
     if (existingConfig) {
@@ -1304,6 +1316,30 @@ export function TapdModal() {
                   数据拉取范围
                 </div>
 
+                  {/* TAPD requirement type filter */}
+                  <div className="col-span-2 rounded-lg border border-cyan-500/20 bg-cyan-500/[0.05] p-3 mb-2">
+                    <div className="text-[11px] text-cyan-300 mb-1.5 flex items-center gap-1">
+                      <Filter size={11} /> TAPD 需求类别
+                    </div>
+                    {isLoadingWorkitemTypes ? (
+                      <div className="text-[10px] text-cyan-300/70">正在读取 TAPD 需求类别...</div>
+                    ) : workitemTypes.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {workitemTypes.map(type => {
+                          const selected = workitemTypeFilter.includes(type.id);
+                          return (
+                            <button key={type.id} type="button" onClick={() => setWorkitemTypeFilter(selected ? workitemTypeFilter.filter(id => id !== type.id) : [...workitemTypeFilter, type.id])} className={'px-2 py-1 rounded-md text-[11px] border transition-colors ' + (selected ? 'bg-cyan-500/20 border-cyan-400/50 text-cyan-200' : 'bg-gray-900/50 border-white/10 text-gray-400 hover:text-cyan-300')}>
+                              {selected && <span className="mr-1">✓</span>}{type.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-[10px] text-gray-500">验证连接后显示当前工作区的需求类别；不选择则读取全部类别。</div>
+                    )}
+                    <div className="text-[10px] text-gray-600 mt-1.5">只读取所选类别的需求，并自动补取它们的父需求以保留层级。</div>
+                  </div>
+
                 {/* Range Mode Selector */}
                 <div className="flex gap-1.5 mb-2">
                   {([
@@ -1434,28 +1470,6 @@ export function TapdModal() {
                         </p>
                       </div>
                     )}
-                  </div>
-
-                  {/* TAPD requirement type filter */}
-                  <div className="col-span-2 rounded-lg border border-cyan-500/20 bg-cyan-500/[0.05] p-3">
-                    <div className="text-[11px] text-cyan-300 mb-1.5 flex items-center gap-1">
-                      <Filter size={11} /> TAPD 需求类别
-                    </div>
-                    {workitemTypes.length > 0 ? (
-                      <div className="flex flex-wrap gap-1.5">
-                        {workitemTypes.map(type => {
-                          const selected = workitemTypeFilter.includes(type.id);
-                          return (
-                            <button key={type.id} type="button" onClick={() => setWorkitemTypeFilter(selected ? workitemTypeFilter.filter(id => id !== type.id) : [...workitemTypeFilter, type.id])} className={'px-2 py-1 rounded-md text-[11px] border transition-colors ' + (selected ? 'bg-cyan-500/20 border-cyan-400/50 text-cyan-200' : 'bg-gray-900/50 border-white/10 text-gray-400 hover:text-cyan-300')}>
-                              {selected && <span className="mr-1">✓</span>}{type.name}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="text-[10px] text-gray-500">验证连接后显示当前工作区的需求类别；不选择则读取全部类别。</div>
-                    )}
-                    <div className="text-[10px] text-gray-600 mt-1.5">只读取所选类别的需求，并自动补取它们的父需求以保留层级。</div>
                   </div>
 
                   {/* Category Keywords Filter */}
