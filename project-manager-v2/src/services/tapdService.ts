@@ -428,6 +428,7 @@ export class TapdService {
     updated: number;
     total: number;
     groupCounts: Record<string, number>;
+    groupMembers: Record<string, string[]>;
   }> {
     const config = this.config || (await this.loadConfig(projectId));
     if (!config) {
@@ -476,7 +477,9 @@ export class TapdService {
     let inserted = 0;
     let updated = 0;
     const groupCounts: Record<string, number> = Object.fromEntries(targetGroupOrder.map(group => [group, 0]));
-    const processedAccounts = new Set<string>();
+    const groupMembers: Record<string, string[]> = Object.fromEntries(targetGroupOrder.map(group => [group, []]));
+    const processedMemberKeys = new Set<string>();
+    const processedNames = new Set<string>();
 
     for (const item of usersResponse.data) {
       const member = item?.UserWorkspace || item;
@@ -490,22 +493,26 @@ export class TapdService {
           .map((roleId: string) => roleNames[roleId]?.trim())
           .filter((name: string | undefined): name is string => Boolean(name))
       ));
-      const tapdGroup = targetGroupOrder.find(group => memberGroups.includes(group));
+      const rawName = String(member.name || member.user || '').trim();
+      const normalizedName = rawName.replace(/\s+/g, '');
+      const explicitGroup = workspaceId === '70182144' && normalizedName.includes('云鹏') ? 'UX-交互' : undefined;
+      const tapdGroup = explicitGroup || targetGroupOrder.find(group => memberGroups.includes(group));
       if (!tapdGroup) continue;
 
       const account = String(member.user || '').trim();
-      const accountKey = account.toLowerCase();
-      if (!account || processedAccounts.has(accountKey)) continue;
-      processedAccounts.add(accountKey);
+      const userId = String(member.user_id || '').trim();
+      const memberKey = (account || userId || normalizedName).toLowerCase();
+      if (!memberKey || processedMemberKeys.has(memberKey)) continue;
+      processedMemberKeys.add(memberKey);
 
-      const name = String(member.name || member.user || '').trim();
+      const name = rawName || account || userId;
       const role = targetGroupRoles[tapdGroup];
       const workforceType = memberGroups.find(group =>
         /(基地|外包|派遣|正式员工|实习|校招|社招|供应商|合作方|编制)/.test(group)
       );
       const joinDate = String(member.real_join_time || member.join_project_time || '').slice(0, 10) || undefined;
       const existing = existingResources.find(resource =>
-        resource.tapdAccount?.trim().toLowerCase() === accountKey ||
+        (!!account && resource.tapdAccount?.trim().toLowerCase() === account.toLowerCase()) ||
         (!!name && resource.name.trim() === name)
       );
 
@@ -515,7 +522,7 @@ export class TapdService {
           name,
           role,
           group: tapdGroup,
-          tapdAccount: account,
+          tapdAccount: account || existing.tapdAccount,
           projectIds,
           tapdGroups: memberGroups,
           workforceType: workforceType || existing.workforceType,
@@ -529,7 +536,7 @@ export class TapdService {
           name,
           role,
           group: tapdGroup,
-          tapdAccount: account,
+          tapdAccount: account || undefined,
           projectIds: [projectId],
           tapdGroups: memberGroups,
           workforceType,
@@ -543,6 +550,42 @@ export class TapdService {
         inserted++;
       }
       groupCounts[tapdGroup]++;
+      groupMembers[tapdGroup].push(name);
+      processedNames.add(normalizedName);
+    }
+
+    // The project owner explicitly confirmed 张云鹏 as a UX interaction member.
+    // Keep this workspace-level roster fact even when TAPD omits account/group data.
+    if (workspaceId === '70182144' && !Array.from(processedNames).some(name => name.includes('云鹏'))) {
+      const existingYunpeng = existingResources.find(resource => resource.name.replace(/\s+/g, '').includes('云鹏'));
+      if (existingYunpeng?.id) {
+        await db.resources.update(existingYunpeng.id, {
+          name: existingYunpeng.name || '张云鹏',
+          role: 'UX设计',
+          group: 'UX-交互',
+          projectIds: Array.from(new Set([...(existingYunpeng.projectIds || []), projectId])),
+          tapdGroups: Array.from(new Set([...(existingYunpeng.tapdGroups || []), 'UX-交互'])),
+          type: 'internal',
+          status: existingYunpeng.status === 'departed' ? 'active' : (existingYunpeng.status || 'active'),
+        });
+        updated++;
+        groupMembers['UX-交互'].push(existingYunpeng.name || '张云鹏');
+      } else {
+        const fallbackMember = {
+          name: '张云鹏',
+          role: 'UX设计',
+          group: 'UX-交互',
+          projectIds: [projectId],
+          tapdGroups: ['UX-交互'],
+          type: 'internal' as const,
+          status: 'active' as const,
+          sortOrder: nextSortOrder++,
+        };
+        await db.resources.add(fallbackMember);
+        inserted++;
+        groupMembers['UX-交互'].push('张云鹏');
+      }
+      groupCounts['UX-交互']++;
     }
 
     return {
@@ -550,6 +593,7 @@ export class TapdService {
       updated,
       total: inserted + updated,
       groupCounts,
+      groupMembers,
     };
   }
 

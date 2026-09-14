@@ -40,7 +40,7 @@ export function TapdModal() {
   const [isTesting, setIsTesting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSyncingMembers, setIsSyncingMembers] = useState(false);
-  const [memberSyncResult, setMemberSyncResult] = useState<{ inserted: number; updated: number; total: number; groupCounts: Record<string, number> } | null>(null);
+  const [memberSyncResult, setMemberSyncResult] = useState<{ inserted: number; updated: number; total: number; groupCounts: Record<string, number>; groupMembers: Record<string, string[]> } | null>(null);
   const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [localSyncStatus, setLocalSyncStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
@@ -1250,7 +1250,7 @@ export function TapdModal() {
                       已录入 {memberSyncResult.total} 人（新增 {memberSyncResult.inserted}，更新 {memberSyncResult.updated}）
                       <div className="mt-1 flex flex-wrap gap-1.5 text-gray-400">
                         {Object.entries(memberSyncResult.groupCounts).map(([group, count]) => (
-                          <span key={group} className="px-1.5 py-0.5 rounded bg-gray-900/50 border border-white/5">
+                          <span key={group} title={(memberSyncResult.groupMembers[group] || []).join('、')} className="px-1.5 py-0.5 rounded bg-gray-900/50 border border-white/5 cursor-help">
                             {group} {count}
                           </span>
                         ))}
