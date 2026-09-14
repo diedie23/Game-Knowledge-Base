@@ -55,7 +55,7 @@ export function TapdModal() {
   const [syncRecentDays, setSyncRecentDays] = useState<number>(30);
   const [syncStartDate, setSyncStartDate] = useState<string>('');
   const [syncEndDate, setSyncEndDate] = useState<string>('');
-  const [syncLimit, setSyncLimit] = useState<number>(200);
+  const [syncLimit, setSyncLimit] = useState<number>(1000);
   const [categoryKeywords, setCategoryKeywords] = useState<string>('');
   const [workitemTypes, setWorkitemTypes] = useState<{ id: string; name: string }[]>([]);
   const [isLoadingWorkitemTypes, setIsLoadingWorkitemTypes] = useState(false);
@@ -66,6 +66,7 @@ export function TapdModal() {
   const [ownerFilterInput, setOwnerFilterInput] = useState<string>('');
   const [moduleFeatureInput, setModuleFeatureInput] = useState<string>('');
   const [ownerFilterMode, setOwnerFilterMode] = useState<'server' | 'client'>('server');
+  const [filterLogic, setFilterLogic] = useState<'and' | 'or'>('and');
   const [pipelineFilter, setPipelineFilter] = useState<boolean>(false);
   const [pipelineStages, setPipelineStages] = useState<string[]>(['interaction', 'ui_design', 'layout']);
 
@@ -106,27 +107,68 @@ export function TapdModal() {
   const [refreshDetailExpanded, setRefreshDetailExpanded] = useState(false);
 
   // ─── Load team members for owner filter tags ───
-  const [teamResources, setTeamResources] = useState<{ id?: number; name: string; role?: string; tapdAccount?: string }[]>([]);
+  const [teamResources, setTeamResources] = useState<{ id?: number; name: string; role?: string; tapdAccount?: string; projectIds?: number[]; workforceType?: string }[]>([]);
   useEffect(() => {
     let cancelled = false;
     const loadResources = async () => {
       try {
         const all = await db.resources.toArray();
-        // Only active (non-departed) internal members, exclude CP outsource
+        // Prefer members assigned to the current project. Legacy data without projectIds remains available as a fallback.
         const active = all.filter(r => r.status !== 'departed' && r.type !== 'cp');
-        // Sort by role order: UX → UI → Layout → 动效 → 原画 → ...
-        active.sort((a, b) => getRoleOrderIndex(a.role) - getRoleOrderIndex(b.role));
-        if (!cancelled) setTeamResources(active.map(r => ({ id: r.id, name: r.name, role: r.role, tapdAccount: r.tapdAccount })));
+        const projectMembers = active.filter(r => selectedProjectId != null && r.projectIds?.includes(selectedProjectId));
+        const scoped = projectMembers.length > 0 ? projectMembers : active;
+        scoped.sort((a, b) => getRoleOrderIndex(a.role) - getRoleOrderIndex(b.role));
+        if (!cancelled) setTeamResources(scoped.map(r => ({
+          id: r.id, name: r.name, role: r.role, tapdAccount: r.tapdAccount,
+          projectIds: r.projectIds, workforceType: r.workforceType,
+        })));
       } catch (e) {
         console.error('[TapdModal] Failed to load resources:', e);
       }
     };
     if (isTapdModalOpen) loadResources();
     return () => { cancelled = true; };
-  }, [isTapdModalOpen]);
+  }, [isTapdModalOpen, selectedProjectId]);
 
-  // Preset module feature tags
-  const MODULE_FEATURE_PRESETS: string[] = [];
+  const parseFilterValues = (value: string) => value.split(/[,，;；]/).map(item => item.trim()).filter(Boolean);
+
+  const keywordSuggestions = useMemo(() => {
+    const counts = new Map<string, number>();
+    previewStories.forEach(item => {
+      const story = item?.Story || item;
+      if (story?._tapdStructuralAncestor) return;
+      const title = String(story?.name || '');
+      for (const match of title.matchAll(/【([^】]+)】|\[([^]]+)\]/g)) {
+        const value = (match[1] || match[2])?.trim();
+        if (value && value.length <= 24) counts.set(value, (counts.get(value) || 0) + 1);
+      }
+    });
+    return [...counts.entries()].sort((x, y) => y[1] - x[1]).slice(0, 12).map(([value, count]) => ({ value, count }));
+  }, [previewStories]);
+
+  const moduleFeatureSuggestions = useMemo(() => {
+    const counts = new Map<string, number>();
+    previewStories.forEach(item => {
+      const story = item?.Story || item;
+      if (story?._tapdStructuralAncestor) return;
+      [story?.custom_field_one, story?.custom_field_two].filter(Boolean).forEach(raw => {
+        String(raw).split(/[,，;；]/).map(value => value.trim()).filter(Boolean).forEach(value => {
+          if (value.length <= 40) counts.set(value, (counts.get(value) || 0) + 1);
+        });
+      });
+    });
+    return [...counts.entries()].sort((x, y) => y[1] - x[1]).slice(0, 16).map(([value, count]) => ({ value, count }));
+  }, [previewStories]);
+
+  const ownerGroups = useMemo(() => {
+    const groups = new Map<string, typeof teamResources>();
+    teamResources.forEach(member => {
+      const role = String(member.role || '其他');
+      const label = /UX|交互/i.test(role) ? '交互' : /UI|视觉/i.test(role) ? '视觉' : /Layout|还原/i.test(role) ? '还原' : /动效|Motion/i.test(role) ? '动效' : role;
+      groups.set(label, [...(groups.get(label) || []), member]);
+    });
+    return [...groups.entries()];
+  }, [teamResources]);
 
   // ─── Tree structure for preview stories ───
   interface StoryTreeNode {
@@ -364,13 +406,14 @@ export function TapdModal() {
       setSyncRecentDays(sr?.recentDays || 30);
       setSyncStartDate(sr?.startDate || '');
       setSyncEndDate(sr?.endDate || '');
-      setSyncLimit(sr?.limit || 200);
+      setSyncLimit(sr?.limit || 1000);
       setCategoryKeywords((sr?.categoryKeywords || []).join(', '));
       setWorkitemTypeFilter(sr?.workitemTypeFilter || []);
       setReleaseFilter(sr?.releaseFilter || []);
       setOwnerFilterInput([...new Set(sr?.ownerFilter || [])].join(', '));
       setModuleFeatureInput((sr?.moduleFeatureFilter || []).join(', '));
       setOwnerFilterMode(sr?.ownerFilterMode || 'server');
+      setFilterLogic(sr?.filterLogic || 'and');
       setPipelineFilter(sr?.pipelineFilter || false);
       setPipelineStages(sr?.pipelineStages || ['interaction', 'ui_design', 'layout']);
       setModuleMappings(sr?.moduleMappings || []);
@@ -386,7 +429,7 @@ export function TapdModal() {
       setSyncRecentDays(30);
       setSyncStartDate('');
       setSyncEndDate('');
-      setSyncLimit(200);
+      setSyncLimit(1000);
       setCategoryKeywords('');
       setWorkitemTypes([]);
       setWorkitemTypeFilter([]);
@@ -395,6 +438,7 @@ export function TapdModal() {
       setOwnerFilterInput('');
       setModuleFeatureInput('');
       setOwnerFilterMode('server');
+      setFilterLogic('and');
       setPipelineFilter(false);
       setPipelineStages(['interaction', 'ui_design', 'layout']);
       setModuleMappings([]);
@@ -702,6 +746,7 @@ export function TapdModal() {
         ownerFilter: parsedOwners.length > 0 ? parsedOwners : undefined,
         moduleFeatureFilter: parsedModuleFeatures.length > 0 ? parsedModuleFeatures : undefined,
         ownerFilterMode: ownerFilterMode,
+        filterLogic,
         pipelineFilter: pipelineFilter || undefined,
         pipelineStages: pipelineFilter && pipelineStages.length > 0 ? pipelineStages : undefined,
       };
@@ -789,6 +834,7 @@ export function TapdModal() {
         ownerFilter: parsedOwnersPrev.length > 0 ? parsedOwnersPrev : undefined,
         moduleFeatureFilter: parsedModulesPrev.length > 0 ? parsedModulesPrev : undefined,
         ownerFilterMode: ownerFilterMode,
+        filterLogic,
         pipelineFilter: pipelineFilter || undefined,
         pipelineStages: pipelineFilter && pipelineStages.length > 0 ? pipelineStages : undefined,
       };
@@ -1461,17 +1507,27 @@ export function TapdModal() {
                   <input
                     type="number"
                     min={10}
-                    max={1000}
+                    max={5000}
                     step={10}
                     value={syncLimit}
-                    onChange={(e) => setSyncLimit(Math.max(10, Math.min(1000, parseInt(e.target.value) || 200)))}
+                    onChange={(e) => setSyncLimit(Math.max(10, Math.min(5000, parseInt(e.target.value) || 1000)))}
                     className="w-20 bg-gray-950/80 border border-white/10 rounded-lg px-2 py-1 text-xs text-white text-center focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200 font-mono"
                   />
-                  <span className="text-[10px] text-gray-600">（10~1000）</span>
+                  <span className="text-[10px] text-gray-600">总量 10~5000，REST 每页 200 条自动翻页并去重</span>
                 </div>
 
                 {/* Category Keywords + Module Feature Filter - Two Column Layout */}
                 <div className="mt-2 pt-1.5 border-t border-white/5 grid grid-cols-2 gap-3">
+
+                  <div className="col-span-2 flex items-center justify-between gap-3 rounded-lg border border-blue-500/20 bg-blue-500/5 px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-gray-400">筛选组合</span>
+                      <button type="button" onClick={() => setFilterLogic('and')} className={`px-2 py-0.5 rounded text-[11px] border ${filterLogic === 'and' ? 'bg-blue-500/20 border-blue-500/50 text-blue-300' : 'border-white/10 text-gray-500'}`}>同时满足</button>
+                      <button type="button" onClick={() => setFilterLogic('or')} className={`px-2 py-0.5 rounded text-[11px] border ${filterLogic === 'or' ? 'bg-blue-500/20 border-blue-500/50 text-blue-300' : 'border-white/10 text-gray-500'}`}>满足任一</button>
+                      <span className="text-[10px] text-gray-600">同一筛选内多选为“任一”</span>
+                    </div>
+                    <button type="button" onClick={() => { setCategoryKeywords(''); setModuleFeatureInput(''); setOwnerFilterInput(''); }} disabled={!categoryKeywords && !moduleFeatureInput && !ownerFilterInput} className="text-[11px] text-gray-500 hover:text-red-300 disabled:opacity-30 disabled:cursor-not-allowed">清空三项筛选</button>
+                  </div>
 
                   {/* Pipeline Smart Filter Toggle */}
                   <div className="col-span-2 mb-1">
@@ -1532,7 +1588,19 @@ export function TapdModal() {
 
                   {/* Category Keywords Filter */}
                   <div>
-                    <div className="text-[11px] text-gray-500 mb-1">标题关键词过滤</div>
+                    <div className="text-[11px] text-gray-500 mb-1 flex items-center justify-between">
+                      <span>标题关键词过滤</span>
+                      {categoryKeywords && <button type="button" onClick={() => setCategoryKeywords('')} className="text-[10px] text-gray-600 hover:text-blue-300">清空</button>}
+                    </div>
+                    {keywordSuggestions.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-1.5">
+                        {keywordSuggestions.map(({ value, count }) => {
+                          const current = parseFilterValues(categoryKeywords);
+                          const selected = current.includes(value);
+                          return <button key={value} type="button" onClick={() => setCategoryKeywords(selected ? current.filter(item => item !== value).join(', ') : [...current, value].join(', '))} className={`px-1.5 py-0.5 rounded text-[10px] border ${selected ? 'bg-blue-500/20 border-blue-500/50 text-blue-300' : 'border-white/10 text-gray-500 hover:text-blue-300'}`}>{selected ? '✓ ' : ''}{value}<span className="ml-1 opacity-50">{count}</span></button>;
+                        })}
+                      </div>
+                    )}
                     <input
                       type="text"
                       value={categoryKeywords}
@@ -1554,7 +1622,7 @@ export function TapdModal() {
                   </div>
                   {/* Preset module feature tags */}
                   <div className="flex flex-wrap gap-1.5 mb-1.5">
-                    {MODULE_FEATURE_PRESETS.map(tag => {
+                    {moduleFeatureSuggestions.map(({ value: tag, count }) => {
                       const currentList = moduleFeatureInput.split(/[,，;；]/).map(s => s.trim()).filter(Boolean);
                       const isSelected = currentList.some(k => k === tag);
                       return (
@@ -1576,7 +1644,7 @@ export function TapdModal() {
                               : 'bg-gray-800/60 border-white/10 text-gray-400 hover:border-purple-500/30 hover:text-purple-300'
                           }`}
                         >
-                          {isSelected && <span className="mr-0.5">✓</span>}{tag}
+                          {isSelected && <span className="mr-0.5">✓</span>}{tag}<span className="ml-1 opacity-50">{count}</span>
                         </button>
                       );
                     })}
@@ -1596,10 +1664,29 @@ export function TapdModal() {
 
                 {/* Owner Filter */}
                 <div className="mt-2 pt-1.5 border-t border-white/5">
-                  <div className="text-[11px] text-gray-500 mb-1.5 flex items-center gap-1">
-                    <Filter size={11} className="text-amber-400" />
-                    处理人筛选
+                  <div className="text-[11px] text-gray-500 mb-1.5 flex items-center justify-between">
+                    <span className="flex items-center gap-1"><Filter size={11} className="text-amber-400" />处理人筛选 · 当前项目 {teamResources.length} 人</span>
+                    {ownerFilterInput && <button type="button" onClick={() => setOwnerFilterInput('')} className="text-[10px] text-gray-600 hover:text-amber-300">清空</button>}
                   </div>
+                  {ownerGroups.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {ownerGroups.map(([label, members]) => {
+                        const current = parseFilterValues(ownerFilterInput);
+                        const accounts = members.map(member => member.tapdAccount || member.name).filter(Boolean);
+                        const normalized = (value: string) => value.replace(/\(.*?\)$/, '').replace(/（.*?）$/, '').trim().toLowerCase();
+                        const allSelected = accounts.every(account => current.some(value => normalized(value) === normalized(account)));
+                        return (
+                          <button key={label} type="button" onClick={() => {
+                            const accountKeys = new Set(accounts.map(normalized));
+                            const retained = current.filter(value => !accountKeys.has(normalized(value)));
+                            setOwnerFilterInput((allSelected ? retained : [...retained, ...accounts]).join(', '));
+                          }} className={`px-2 py-0.5 rounded-md text-[10px] border ${allSelected ? 'bg-amber-500/20 border-amber-500/50 text-amber-300' : 'border-white/10 text-gray-500 hover:text-amber-300'}`}>
+                            {allSelected ? '✓ ' : ''}{label}组 {members.length}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                   {/* Team member tags from project resources */}
                   {teamResources.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-2">
@@ -1646,10 +1733,11 @@ export function TapdModal() {
                                   ? 'bg-gray-800/60 border-white/10 text-gray-400 hover:border-amber-500/30 hover:text-amber-300'
                                   : 'bg-gray-800/60 border-white/10 text-gray-500 hover:border-gray-500/30 hover:text-gray-400'
                             }`}
-                            title={hasTapdAccount ? `TAPD账号: ${member.tapdAccount}` : '未配置TAPD账号，点击编辑成员信息添加'}
+                            title={hasTapdAccount ? `TAPD账号: ${member.tapdAccount} · ${member.workforceType || '未标注人力归属'}` : '未配置TAPD账号，点击编辑成员信息添加'}
                           >
                             {isSelected && <span className="mr-0.5">✓</span>}
                             {member.name}
+                            {member.workforceType && <span className="ml-1 text-[8px] opacity-55">{member.workforceType}</span>}
                             {hasTapdAccount && <span className="ml-0.5 text-[8px] opacity-60">🔗</span>}
                             {!hasTapdAccount && <span className="ml-0.5 text-[8px] opacity-40">⚠</span>}
                           </button>
@@ -1666,13 +1754,10 @@ export function TapdModal() {
                       <span>⚠ 标记的成员未配置TAPD账号，筛选可能不准确。请在侧边栏编辑成员信息，填写TAPD英文账号ID。</span>
                     </p>
                   )}
-                  <input
-                    type="text"
-                    value={ownerFilterInput}
-                    onChange={(e) => setOwnerFilterInput(e.target.value)}
-                    className="w-full bg-gray-950/80 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all duration-200"
-                    placeholder="点击上方成员标签快速选择，或手动输入TAPD英文账号（多个用逗号或分号分隔）"
-                  />
+                  <details className="mb-1">
+                    <summary className="cursor-pointer text-[10px] text-gray-600 hover:text-amber-300">手动输入 TAPD 账号 · 已选 {parseFilterValues(ownerFilterInput).length} 人</summary>
+                    <input type="text" value={ownerFilterInput} onChange={(e) => setOwnerFilterInput(e.target.value)} className="mt-1 w-full bg-gray-950/80 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all duration-200" placeholder="多个账号用逗号或分号分隔" />
+                  </details>
                   <div className="flex items-center gap-3 mt-1">
                     <label className="flex items-center gap-1 cursor-pointer">
                       <input

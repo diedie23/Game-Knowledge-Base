@@ -469,6 +469,49 @@ export class TapdService {
     });
   }
 
+  /** Apply user-facing filter dimensions. Values inside a dimension use OR; active dimensions default to AND. */
+  private filterStoriesByAdvancedFilters(stories: any[], syncRange?: SyncRangeConfig): any[] {
+    const keywords = (syncRange?.categoryKeywords || []).map(value => value.toLowerCase().trim()).filter(Boolean);
+    const modules = (syncRange?.moduleFeatureFilter || []).map(value => value.toLowerCase().trim()).filter(Boolean);
+    const owners = (syncRange?.ownerFilter || []).map(value => value.toLowerCase().trim()).filter(Boolean);
+    if (keywords.length === 0 && modules.length === 0 && owners.length === 0) return stories;
+    return stories.filter(item => {
+      const story = item?.Story || item;
+      const title = String(story?.name || '').toLowerCase();
+      const moduleText = [story?.custom_field_one, story?.custom_field_two, story?.category_id, story?.category].filter(Boolean).join(' ').toLowerCase();
+      const ownerNames = String(story?.owner || '').toLowerCase().split(/[;；]/).map(value => value.trim()).filter(Boolean);
+      const matches: boolean[] = [];
+      if (keywords.length > 0) matches.push(keywords.some(keyword => title.includes(keyword)));
+      if (modules.length > 0) matches.push(modules.some(module => moduleText.includes(module) || title.includes('【' + module + '】') || title.includes('[' + module + ']')));
+      if (owners.length > 0) matches.push(owners.some(owner => ownerNames.some(name => name.includes(owner) || owner.includes(name))));
+      return syncRange?.filterLogic === 'or' ? matches.some(Boolean) : matches.every(Boolean);
+    });
+  }
+
+  /** TAPD REST returns at most 200 stories per page. Fetch up to the configured total and deduplicate by story ID. */
+  private async fetchRestStoriesPaginated(config: TapdConfig, params: Record<string, string>, totalLimit: number): Promise<any[]> {
+    const target = Math.max(1, Math.min(5000, totalLimit));
+    const results: any[] = [];
+    const seenIds = new Set<string>();
+    for (let page = 1; results.length < target; page++) {
+      const pageSize = 200;
+      const response = await tapdRestFetch<{ status: number; data: any; info: string }>('/stories', config, { ...params, limit: String(pageSize), page: String(page) });
+      if (response?.status !== 1) throw new Error(response?.info || 'TAPD API 返回错误状态: ' + response?.status);
+      const batch = Array.isArray(response.data) ? response.data : response.data ? [response.data] : [];
+      const beforeCount = results.length;
+      for (const item of batch) {
+        const story = item?.Story || item;
+        const id = String(story?.id || '');
+        if (id && seenIds.has(id)) continue;
+        if (id) seenIds.add(id);
+        results.push(item);
+        if (results.length >= target) break;
+      }
+      if (results.length === beforeCount || batch.length < pageSize) break;
+    }
+    return results;
+  }
+
   /** Recursively fetch every missing ancestor so deep TAPD hierarchies remain intact. */
   private async fetchStoryAncestors(
     workspaceId: string,
@@ -728,7 +771,7 @@ export class TapdService {
           console.log('[TAPD] Token length:', mcpAccessToken.length);
           
           // Build query params from syncRange config for preview
-          const previewLimit = syncRange?.limit || 200;
+          const previewLimit = syncRange?.limit || 1000;
           const previewParams: Record<string, unknown> = { workspace_id: workspaceId.trim(), limit: previewLimit, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort' };
           if (syncRange) {
             if (syncRange.mode === 'recent' && syncRange.recentDays) {
@@ -742,7 +785,7 @@ export class TapdService {
               previewParams.modified = `${start}~${end}`;
             }
             // Owner filter (server-side) — skip when keyword or module filter is active
-            // because all filters now use OR logic on client-side
+            // when cross-dimension OR requires client-side union matching
             const hasClientFilters = (syncRange.categoryKeywords && syncRange.categoryKeywords.length > 0) || 
               (syncRange.moduleFeatureFilter && syncRange.moduleFeatureFilter.length > 0);
             if (syncRange.ownerFilter && syncRange.ownerFilter.length > 0 && syncRange.ownerFilterMode !== 'client' && !hasClientFilters) {
@@ -819,8 +862,8 @@ export class TapdService {
           previewStories = this.filterStoriesBySyncScope(previewStories, syncRange);
 
           // Apply category keyword filter + module feature filter (client-side)
-          // Apply combined filter: keyword, module, and owner use OR (union) logic
-          // A story passes if it matches ANY of the configured filters
+          // Apply combined filter: keyword, module, and owner use the configured cross-dimension logic
+          // Values within one dimension use OR; active dimensions default to AND
           const hasKeywordFilter = syncRange?.categoryKeywords && syncRange.categoryKeywords.length > 0;
           const hasModuleFilter = syncRange?.moduleFeatureFilter && syncRange.moduleFeatureFilter.length > 0;
           const hasOwnerFilter = syncRange?.ownerFilter && syncRange.ownerFilter.length > 0;
@@ -891,8 +934,11 @@ export class TapdService {
                 return ownerFilters.some(of => ownerNames.some((on: string) => on.includes(of) || of.includes(on)));
               })();
 
-              // OR logic: pass if matches ANY of the active filters
-              return keywordMatch || moduleMatch || ownerMatch;
+              const activeMatches: boolean[] = [];
+              if (hasKeywordFilter) activeMatches.push(keywordMatch);
+              if (hasModuleFilter) activeMatches.push(moduleMatch);
+              if (hasOwnerFilter) activeMatches.push(ownerMatch);
+              return syncRange?.filterLogic === 'or' ? activeMatches.some(Boolean) : activeMatches.every(Boolean);
             });
 
             count = previewStories.length;
@@ -900,7 +946,7 @@ export class TapdService {
             const moduleInfo = moduleFilters.length > 0 ? `modules: ${moduleFilters.join(', ')}` : '';
             const ownerInfo = ownerFilters.length > 0 ? `owners: ${ownerFilters.join(', ')}` : '';
             const filterDesc = [keywordInfo, moduleInfo, ownerInfo].filter(Boolean).join(' | ');
-            console.log(`[TAPD] Combined filter (OR logic) in preview: ${beforeCount} → ${count} stories (${filterDesc})`);
+            console.log(`[TAPD] Combined filter in preview: ${beforeCount} → ${count} stories (${filterDesc})`);
           }
 
           // --- Pipeline Smart Filter for preview ---
@@ -1062,22 +1108,18 @@ export class TapdService {
         // Step 2: Verify workspace access by fetching actual stories.
         // The internal API may not expose /stories/count even when /stories is available.
         try {
-          const previewLimit = Math.min(syncRange?.limit || 200, 200);
-          const data = await tapdRestFetch<{ status: number; data: any; info: string }>(
-            '/stories',
+          const previewLimit = syncRange?.limit || 1000;
+          const previewData = await this.fetchRestStoriesPaginated(
             tempConfig,
             {
               workspace_id: workspaceId.trim(),
-              limit: String(previewLimit),
               fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort,begin,due',
-              ...(syncRange?.workitemTypeFilter?.length
-                ? { workitem_type_id: syncRange.workitemTypeFilter.join('|') }
-                : {}),
-              ...(syncRange?.releaseFilter?.length
-                ? { release_id: syncRange.releaseFilter.join('|') }
-                : {}),
-            }
+              ...(syncRange?.workitemTypeFilter?.length ? { workitem_type_id: syncRange.workitemTypeFilter.join('|') } : {}),
+              ...(syncRange?.releaseFilter?.length ? { release_id: syncRange.releaseFilter.join('|') } : {}),
+            },
+            previewLimit
           );
+          const data = { status: 1, data: previewData, info: '' };
           console.log('[TAPD] stories preview response:', {
             status: data?.status,
             count: Array.isArray(data?.data) ? data.data.length : 0,
@@ -1091,6 +1133,7 @@ export class TapdService {
           }
 
           let previewStories = this.filterStoriesBySyncScope(Array.isArray(data?.data) ? data.data : [], syncRange);
+          previewStories = this.filterStoriesByAdvancedFilters(previewStories, syncRange);
           previewStories = await this.fetchStoryAncestors(workspaceId.trim(), previewStories, tempConfig);
           let workitemTypes: { id: string; name: string }[] = [];
           let releasePlans: { id: string; name: string; status?: string; startdate?: string; enddate?: string }[] = [];
@@ -1190,7 +1233,7 @@ export class TapdService {
 
       // Build query params from syncRange config
       const syncRange = this.config?.syncRange;
-      const limit = syncRange?.limit || 200;
+      const limit = syncRange?.limit || 1000;
       const extraParams: Record<string, unknown> = {};
 
       // Debug: log active filter conditions
@@ -1227,7 +1270,7 @@ export class TapdService {
           extraParams.release_id = syncRange.releaseFilter.join('|');
         }
         // Owner filter (server-side) — skip when keyword or module filter is active
-        // because all filters now use OR logic on client-side
+        // when cross-dimension OR requires client-side union matching
         const hasClientFiltersForOwner = (syncRange.categoryKeywords && syncRange.categoryKeywords.length > 0) ||
           (syncRange.moduleFeatureFilter && syncRange.moduleFeatureFilter.length > 0);
         if (syncRange.ownerFilter && syncRange.ownerFilter.length > 0 && syncRange.ownerFilterMode !== 'client' && !hasClientFiltersForOwner) {
@@ -1259,7 +1302,7 @@ export class TapdService {
         // Fetch via REST API — convert all params to strings
         const restParams: Record<string, string> = {
           workspace_id: workspaceId.trim(),
-          limit: String(limit),
+          fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort,begin,due',
         };
         if (extraParams.modified) restParams.modified = String(extraParams.modified);
         if (extraParams.status) restParams.status = String(extraParams.status);
@@ -1267,17 +1310,8 @@ export class TapdService {
         if (extraParams.workitem_type_id) restParams.workitem_type_id = String(extraParams.workitem_type_id);
         if (extraParams.release_id) restParams.release_id = String(extraParams.release_id);
 
-        const data = await tapdRestFetch<{ status: number; data: any; info: string }>(
-          '/stories',
-          this.config!,
-          restParams
-        );
-        console.log('[TapdService] REST API response status:', data?.status, 'data type:', typeof data?.data, 'is array:', Array.isArray(data?.data));
-        
-        if (data?.status !== 1) {
-          throw new Error(data?.info || `TAPD API 返回错误状态: ${data?.status}`);
-        }
-        stories = data?.data || [];
+        stories = await this.fetchRestStoriesPaginated(this.config!, restParams, limit);
+        console.log('[TapdService] REST API paginated response count:', stories.length);
       } else {
         console.log('[TapdService] Fetching tasks via MCP proxy for workspace:', workspaceId);
         // Fetch via MCP proxy
@@ -1299,8 +1333,8 @@ export class TapdService {
         console.log('[TapdService] First story structure:', JSON.stringify(stories[0]).substring(0, 300));
       }
 
-      // Apply combined filter: keyword, module, and owner use OR (union) logic
-      // A story passes if it matches ANY of the configured filters
+      // Apply combined filter: keyword, module, and owner use the configured cross-dimension logic
+      // Values within one dimension use OR; active dimensions default to AND
       const hasKeywordFilter = syncRange?.categoryKeywords && syncRange.categoryKeywords.length > 0;
       const hasModuleFilter = syncRange?.moduleFeatureFilter && syncRange.moduleFeatureFilter.length > 0;
       const hasOwnerFilter = syncRange?.ownerFilter && syncRange.ownerFilter.length > 0;
@@ -1361,15 +1395,18 @@ export class TapdService {
             return ownerFilters.some(of => ownerNames.some((on: string) => on.includes(of) || of.includes(on)));
           })();
 
-          // OR logic: pass if matches ANY of the active filters
-          return keywordMatch || moduleMatch || ownerMatch;
+          const activeMatches: boolean[] = [];
+          if (hasKeywordFilter) activeMatches.push(keywordMatch);
+          if (hasModuleFilter) activeMatches.push(moduleMatch);
+          if (hasOwnerFilter) activeMatches.push(ownerMatch);
+          return syncRange?.filterLogic === 'or' ? activeMatches.some(Boolean) : activeMatches.every(Boolean);
         });
 
         const keywordInfo = keywords.length > 0 ? `keywords: ${keywords.join(', ')}` : '';
         const moduleInfo = moduleFilters.length > 0 ? `modules: ${moduleFilters.join(', ')}` : '';
         const ownerInfo = ownerFilters.length > 0 ? `owners: ${ownerFilters.join(', ')}` : '';
         const filterDesc = [keywordInfo, moduleInfo, ownerInfo].filter(Boolean).join(' | ');
-        console.log(`[TapdService] Combined filter (OR logic): ${beforeCount} → ${stories.length} stories (${filterDesc})`);
+        console.log(`[TapdService] Combined filter: ${beforeCount} → ${stories.length} stories (${filterDesc})`);
       }
 
       // --- Pipeline Smart Filter: Only keep tasks related to specific pipeline stages ---
@@ -3373,3 +3410,4 @@ export class TapdImportService {
     return 'medium';
   }
 }
+

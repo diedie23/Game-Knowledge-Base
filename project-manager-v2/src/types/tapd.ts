@@ -44,7 +44,7 @@ export interface SyncRangeConfig {
   endDate?: string;
   /** Filter by TAPD status (empty = all statuses) */
   statusFilter?: string[];
-  /** Max number of stories to fetch (default 200) */
+  /** Max total number of stories to fetch across automatically paged requests (default 1000) */
   limit?: number;
   /** Category/module keywords filter — only sync stories whose title contains any of these keywords */
   categoryKeywords?: string[];
@@ -60,6 +60,8 @@ export interface SyncRangeConfig {
   moduleFeatureFilter?: string[];
   /** Whether to use server-side owner filter (via API param) or client-side filter */
   ownerFilterMode?: 'server' | 'client';
+  /** How active keyword/module/owner dimensions are combined. Values inside one dimension always use OR. */
+  filterLogic?: 'and' | 'or';
   /** Pipeline smart filter: only pull tasks related to interaction/UI/Layout pipeline stages */
   pipelineFilter?: boolean;
   /** Custom pipeline stage IDs to filter (default: interaction, ui_design, layout) */
