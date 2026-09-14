@@ -18,6 +18,9 @@ interface GanttTimelineProps {
   isResizing?: boolean;
   // Batch operation props
   selectedCount?: number;
+  selectableCount?: number;
+  allSelected?: boolean;
+  onToggleSelectAll?: () => void;
   onBatchShift?: (days: number) => void;
   onBatchAlignEnd?: () => void;
   onBatchCopyMarkdown?: () => void;
@@ -42,6 +45,9 @@ export const GanttTimeline = React.memo(function GanttTimeline({
   onLpResizeStart,
   isResizing = false,
   selectedCount = 0,
+  selectableCount = 0,
+  allSelected = false,
+  onToggleSelectAll,
   onBatchShift,
   onBatchAlignEnd,
   onBatchCopyMarkdown,
@@ -116,6 +122,13 @@ export const GanttTimeline = React.memo(function GanttTimeline({
               </div>
               <div className="w-px h-4 bg-gray-700 mx-0.5" />
               <button
+                onClick={onToggleSelectAll}
+                className="px-1.5 py-1 text-[10px] rounded bg-indigo-500/15 text-indigo-300 hover:bg-indigo-500/25 transition-colors border border-indigo-500/30"
+                title={allSelected ? '取消选择当前筛选结果' : '选择当前筛选结果中的全部任务'}
+              >
+                {allSelected ? '取消全选' : '全选'}
+              </button>
+              <button
                 onClick={() => onBatchShift?.(1)}
                 className="px-1.5 py-1 text-[10px] rounded bg-gray-800/80 text-gray-400 hover:bg-indigo-500/20 hover:text-indigo-300 transition-colors border border-gray-700/50 hover:border-indigo-500/30"
                 title="批量顺延1天"
@@ -185,6 +198,15 @@ export const GanttTimeline = React.memo(function GanttTimeline({
             <>
               <span className="text-base">任务详情</span>
               <div className="flex items-center gap-1 relative z-20">
+                {multiSelectMode && selectableCount > 0 && (
+                  <button
+                    onClick={onToggleSelectAll}
+                    className="px-2 py-1 rounded text-[10px] bg-indigo-500/15 text-indigo-300 hover:bg-indigo-500/25 border border-indigo-500/30 transition-colors"
+                    title="选择当前筛选结果中的全部任务"
+                  >
+                    全选
+                  </button>
+                )}
                 <button
                   onClick={onToggleMultiSelect}
                   className={`p-1 rounded transition-colors relative ${

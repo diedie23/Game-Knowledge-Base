@@ -143,7 +143,7 @@ export function TapdModal() {
     const allIds = new Set<string>();
     previewStories.forEach((item: any, idx: number) => {
       const story = item.Story || item;
-      const sid = story.id || String(idx);
+      const sid = story.id != null ? String(story.id) : String(idx);
       idMap.set(sid, item);
       allIds.add(sid);
     });
@@ -156,8 +156,8 @@ export function TapdModal() {
     const parentGroupMap = new Map<string, string[]>(); // parent_id → child story ids (for items whose parent is NOT in list)
     previewStories.forEach((item: any, idx: number) => {
       const story = item.Story || item;
-      const sid = story.id || String(idx);
-      const parentId = story.parent_id;
+      const sid = story.id != null ? String(story.id) : String(idx);
+      const parentId = story.parent_id != null ? String(story.parent_id) : '';
       if (parentId && parentId !== '0') {
         if (idMap.has(parentId)) {
           // Parent is in the list → real parent-child relationship
@@ -176,7 +176,7 @@ export function TapdModal() {
     // Build tree nodes
     const buildNode = (item: any, idx: number): StoryTreeNode => {
       const story = item.Story || item;
-      const sid = story.id || String(idx);
+      const sid = story.id != null ? String(story.id) : String(idx);
       const childIds = parentChildMap.get(sid) || [];
       const children = childIds.map(cid => {
         const childItem = idMap.get(cid)!;
@@ -189,8 +189,8 @@ export function TapdModal() {
     // 1) Items with no parent or parent_id=0, and not a child of another item in list
     previewStories.forEach((item: any, idx: number) => {
       const story = item.Story || item;
-      const sid = story.id || String(idx);
-      const parentId = story.parent_id;
+      const sid = story.id != null ? String(story.id) : String(idx);
+      const parentId = story.parent_id != null ? String(story.parent_id) : '';
       const hasParent = parentId && parentId !== '0';
       if (!childSet.has(sid) && (!hasParent || idMap.has(parentId))) {
         // This is a true root or a real parent in the list
@@ -804,7 +804,7 @@ export function TapdModal() {
           // Auto-select all stories (use same ID extraction as list rendering)
           const allIds = new Set(result.previewStories.map((s: any, idx: number) => {
             const story = s.Story || s;
-            return story.id || String(idx);
+            return story.id != null ? String(story.id) : String(idx);
           }));
           setSelectedStories(allIds);
         }

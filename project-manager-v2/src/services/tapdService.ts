@@ -1,6 +1,6 @@
 import { db } from '../db/db';
 import type { Task, TapdConfig, TapdWorkspaceInfo, TapdStory, TapdIteration, SyncResult, SyncDetailItem, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem } from '../types';
-import type { TapdAuthMode, ModuleMapping } from '../types/tapd';
+import type { TapdAuthMode, ModuleMapping, SyncRangeConfig } from '../types/tapd';
 
 // Re-export for consumers
 export type { SyncResult, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem };
@@ -456,6 +456,66 @@ export class TapdService {
       }));
   }
 
+  /** Enforce work-item type and release filters even if TAPD ignores combined server parameters. */
+  private filterStoriesBySyncScope(stories: any[], syncRange?: SyncRangeConfig): any[] {
+    const typeIds = new Set((syncRange?.workitemTypeFilter || []).map(String));
+    const releaseIds = new Set((syncRange?.releaseFilter || []).map(String));
+    if (typeIds.size === 0 && releaseIds.size === 0) return stories;
+    return stories.filter(item => {
+      const story = item?.Story || item;
+      const typeMatches = typeIds.size === 0 || typeIds.has(String(story?.workitem_type_id || ''));
+      const releaseMatches = releaseIds.size === 0 || releaseIds.has(String(story?.release_id || ''));
+      return typeMatches && releaseMatches;
+    });
+  }
+
+  /** Recursively fetch every missing ancestor so deep TAPD hierarchies remain intact. */
+  private async fetchStoryAncestors(
+    workspaceId: string,
+    initialStories: any[],
+    config?: TapdConfig,
+    mcpAccessToken?: string
+  ): Promise<any[]> {
+    const stories = [...initialStories];
+    const knownIds = new Set(stories.map(item => String((item?.Story || item)?.id || '')).filter(Boolean));
+    const fields = 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort,begin,due';
+
+    for (let depth = 0; depth < 20; depth++) {
+      const missingIds = new Set<string>();
+      for (const item of stories) {
+        const parentId = String((item?.Story || item)?.parent_id || '');
+        if (parentId && parentId !== '0' && !knownIds.has(parentId)) missingIds.add(parentId);
+      }
+      if (missingIds.size === 0) break;
+
+      const ids = Array.from(missingIds).join(',');
+      let fetched: any[] = [];
+      if (mcpAccessToken) {
+        const data = await mcpGatewayFetch<any>('stories_get', { workspace_id: workspaceId, id: ids, fields }, mcpAccessToken);
+        fetched = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : data?.data ? [data.data] : [];
+      } else if (config && (config.apiToken || (config.apiUser && config.apiPassword))) {
+        const data = await tapdRestFetch<{ status: number; data: any; info: string }>('/stories', config, { workspace_id: workspaceId, id: ids, fields });
+        if (data?.status === 1 && data?.data) fetched = Array.isArray(data.data) ? data.data : [data.data];
+      } else {
+        const data = await mcpFetch<{ data: any[] }>('/tapd/stories_get', { workspace_id: workspaceId, id: ids, fields });
+        fetched = Array.isArray(data?.data) ? data.data : [];
+      }
+
+      let added = 0;
+      for (const item of fetched) {
+        const story = item?.Story || item;
+        const id = String(story?.id || '');
+        if (!id || knownIds.has(id)) continue;
+        story._tapdStructuralAncestor = true;
+        knownIds.add(id);
+        stories.unshift(item);
+        added++;
+      }
+      if (added === 0) break;
+    }
+    return stories;
+  }
+
   /** Import the UX team from TAPD member-management role groups. */
   async syncProjectMembers(projectId: number): Promise<{
     inserted: number;
@@ -756,6 +816,8 @@ export class TapdService {
             }
           }
 
+          previewStories = this.filterStoriesBySyncScope(previewStories, syncRange);
+
           // Apply category keyword filter + module feature filter (client-side)
           // Apply combined filter: keyword, module, and owner use OR (union) logic
           // A story passes if it matches ANY of the configured filters
@@ -937,6 +999,9 @@ export class TapdService {
             }
           }
 
+          previewStories = await this.fetchStoryAncestors(workspaceId.trim(), previewStories, undefined, mcpAccessToken);
+          count = previewStories.length;
+
           return {
             success: true,
             workspaceName: count > 0
@@ -1025,7 +1090,8 @@ export class TapdService {
             };
           }
 
-          const previewStories = Array.isArray(data?.data) ? data.data : [];
+          let previewStories = this.filterStoriesBySyncScope(Array.isArray(data?.data) ? data.data : [], syncRange);
+          previewStories = await this.fetchStoryAncestors(workspaceId.trim(), previewStories, tempConfig);
           let workitemTypes: { id: string; name: string }[] = [];
           let releasePlans: { id: string; name: string; status?: string; startdate?: string; enddate?: string }[] = [];
           try {
@@ -1227,7 +1293,8 @@ export class TapdService {
         return [];
       }
 
-      console.log('[TapdService] Fetched', stories.length, 'stories');
+      stories = this.filterStoriesBySyncScope(stories, syncRange);
+      console.log('[TapdService] Fetched', stories.length, 'strictly scoped stories');
       if (stories.length > 0) {
         console.log('[TapdService] First story structure:', JSON.stringify(stories[0]).substring(0, 300));
       }
@@ -1427,6 +1494,8 @@ export class TapdService {
       }
 
       // Handle both { Story: {...} } and direct story object formats
+      stories = await this.fetchStoryAncestors(workspaceId.trim(), stories, this.config || undefined);
+
       return stories.map(item => {
         const story = item?.Story || item;
         return this.mapTapdStoryToTask(story);
@@ -1702,7 +1771,7 @@ export class TapdService {
       type: 'task',
       dependencies: [],
       assigneeIds: [],
-      tapdId: story.id,
+      tapdId: String(story.id),
       externalUrl,
       module,
       estimatedHours,
@@ -1713,7 +1782,7 @@ export class TapdService {
       syncSource: 'tapd',
       updatedAt: Date.now(),
       // Extended metadata (stripped before DB insert)
-      _tapdParentId: story.parent_id || undefined,
+      _tapdParentId: story.parent_id ? String(story.parent_id) : undefined,
       _tapdOwner: story.owner || undefined,
       _tapdModuleFeature: story.custom_field_one || undefined,
     } as any;

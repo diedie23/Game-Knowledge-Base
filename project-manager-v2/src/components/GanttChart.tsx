@@ -1565,6 +1565,12 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     return { filteredTaskRows: filtered, searchMatchCount: matchingIds.size };
   }, [visibleTaskRows, searchQuery]);
 
+  const selectableTaskIds = useMemo(
+    () => Array.from(new Set(filteredTaskRows.map(({ task }) => task.id!).filter(id => id > 0))),
+    [filteredTaskRows]
+  );
+  const allSelectableTasksSelected = selectableTaskIds.length > 0 && selectableTaskIds.every(id => selectedTaskIds.has(id));
+
   // Compute SVG dependency lines (Bezier curves)
   const dependencyLines = useMemo(() => {
     if (!tasks || filteredTaskRows.length === 0) return [];
@@ -2606,6 +2612,9 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                   onLpResizeStart={handleLpResizeStart}
                   isResizing={isLpResizing}
                   selectedCount={selectedTaskIds.size}
+                  selectableCount={selectableTaskIds.length}
+                  allSelected={allSelectableTasksSelected}
+                  onToggleSelectAll={() => setSelectedTaskIds(allSelectableTasksSelected ? new Set() : new Set(selectableTaskIds))}
                   onBatchShift={handleBatchShift}
                   onBatchAlignEnd={handleBatchAlignEnd}
                   onBatchCopyMarkdown={handleBatchCopyMarkdown}
