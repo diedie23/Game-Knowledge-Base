@@ -118,7 +118,8 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       active = active.filter(r => 
         r.name.toLowerCase().includes(q) || 
         (r.role || '').toLowerCase().includes(q) ||
-        (r.group || '').toLowerCase().includes(q)
+        (r.group || '').toLowerCase().includes(q) ||
+        (r.workforceType || '').toLowerCase().includes(q)
       );
     }
     if (memberGroupMode === 'group') {
@@ -879,6 +880,11 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                                           getRoleBadgeStyle(resource.role)
                                         }`}>
                                           {resource.role}
+                                        </span>
+                                      )}
+                                      {resource.workforceType && (
+                                        <span className="shrink-0 px-1.5 py-[1px] rounded-md text-[9px] font-semibold leading-tight border text-amber-300 bg-amber-500/10 border-amber-500/25" title={'TAPD 人力归属：' + resource.workforceType}>
+                                          {resource.workforceType}
                                         </span>
                                       )}
                                       {resource.type === 'cp' && (

@@ -308,6 +308,26 @@ export function ResourceModal() {
             />
           )}
 
+          {formData.type !== 'cp' && (
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">人力归属</label>
+              <input
+                type="text"
+                list="workforce-type-options"
+                value={formData.workforceType || ''}
+                onChange={e => setFormData({ ...formData, workforceType: e.target.value || undefined })}
+                placeholder="例如：基地人员"
+                className="w-full bg-[#11111b] border border-gray-700/50 rounded-lg px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+              />
+              <datalist id="workforce-type-options">
+                <option value="基地人员" />
+                <option value="正式员工" />
+                <option value="外包人员" />
+                <option value="实习人员" />
+              </datalist>
+            </div>
+          )}
+
           {/* Type selector */}
           <div>
             <label className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">人员类型</label>

@@ -468,7 +468,9 @@ export class TapdService {
       'UX-还原': 'Layout',
     };
     const targetGroupOrder = Object.keys(targetGroupRoles);
-    const roleNames = rolesResponse.data || {};
+    const roleNames: Record<string, string> = Object.fromEntries(
+      Object.entries(rolesResponse.data || {}).map(([id, name]) => [String(id), String(name).trim()])
+    );
     const existingResources = await db.resources.toArray();
     let nextSortOrder = existingResources.reduce((max, item) => Math.max(max, item.sortOrder || 0), 0) + 1;
     let inserted = 0;
@@ -483,7 +485,11 @@ export class TapdService {
       const roleIds = Array.isArray(member.role_id)
         ? member.role_id.map(String)
         : String(member.role_id || '').split(',').map((value: string) => value.trim()).filter(Boolean);
-      const memberGroups = roleIds.map((roleId: string) => roleNames[roleId]).filter(Boolean);
+      const memberGroups: string[] = Array.from(new Set(
+        roleIds
+          .map((roleId: string) => roleNames[roleId]?.trim())
+          .filter((name: string | undefined): name is string => Boolean(name))
+      ));
       const tapdGroup = targetGroupOrder.find(group => memberGroups.includes(group));
       if (!tapdGroup) continue;
 
@@ -494,6 +500,9 @@ export class TapdService {
 
       const name = String(member.name || member.user || '').trim();
       const role = targetGroupRoles[tapdGroup];
+      const workforceType = memberGroups.find(group =>
+        /(基地|外包|派遣|正式员工|实习|校招|社招|供应商|合作方|编制)/.test(group)
+      );
       const joinDate = String(member.real_join_time || member.join_project_time || '').slice(0, 10) || undefined;
       const existing = existingResources.find(resource =>
         resource.tapdAccount?.trim().toLowerCase() === accountKey ||
@@ -508,6 +517,8 @@ export class TapdService {
           group: tapdGroup,
           tapdAccount: account,
           projectIds,
+          tapdGroups: memberGroups,
+          workforceType: workforceType || existing.workforceType,
           type: 'internal',
           status: existing.status === 'departed' ? 'active' : (existing.status || 'active'),
           joinDate: joinDate || existing.joinDate,
@@ -520,6 +531,8 @@ export class TapdService {
           group: tapdGroup,
           tapdAccount: account,
           projectIds: [projectId],
+          tapdGroups: memberGroups,
+          workforceType,
           type: 'internal' as const,
           status: 'active' as const,
           joinDate,

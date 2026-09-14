@@ -31,6 +31,10 @@ export interface Resource {
   tapdAccount?: string;
   /** 成员所属的本地项目；TAPD 成员同步后用于在对应项目侧栏中显示 */
   projectIds?: number[];
+  /** TAPD 成员管理中的全部用户组 */
+  tapdGroups?: string[];
+  /** 人力归属，如“基地人员”“外包人员” */
+  workforceType?: string;
   /** 项目组/团队分组（如 "2D Avatar"、"轻舟编辑器"、"UGC小游戏"、"元梦之星"） */
   group?: string;
   /** 入职日期，格式为 YYYY-MM-DD */
