@@ -46,6 +46,10 @@ export interface SyncRangeConfig {
   statusFilter?: string[];
   /** Max total number of stories to fetch across automatically paged requests (default 1000) */
   limit?: number;
+  /** Unit used by this TAPD workspace when effort has no explicit suffix. */
+  effortUnit?: 'days' | 'hours';
+  /** Working hours represented by one person-day. */
+  hoursPerDay?: number;
   /** Category/module keywords filter — only sync stories whose title contains any of these keywords */
   categoryKeywords?: string[];
   /** TAPD work item type IDs; only sync stories in these requirement types */

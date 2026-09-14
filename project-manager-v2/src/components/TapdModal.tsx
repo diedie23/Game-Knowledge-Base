@@ -19,6 +19,7 @@ import { TapdSyncAdapter } from '../services/syncAdapter';
 import { syncAllParentDateRanges } from '../services/workloadService';
 import { getRoleOrderIndex } from './gantt/constants';
 import { getLocalPriorityLabel, mapTapdPriority } from '../utils/tapdPriority';
+import { parseTapdEffortHours } from '../utils/tapdFields';
 
 type TabId = 'config' | 'sync' | 'conflicts' | 'log';
 
@@ -57,6 +58,8 @@ export function TapdModal() {
   const [syncStartDate, setSyncStartDate] = useState<string>('');
   const [syncEndDate, setSyncEndDate] = useState<string>('');
   const [syncLimit, setSyncLimit] = useState<number>(1000);
+  const [effortUnit, setEffortUnit] = useState<'days' | 'hours'>('days');
+  const [hoursPerDay, setHoursPerDay] = useState<number>(8);
   const [categoryKeywords, setCategoryKeywords] = useState<string>('');
   const [workitemTypes, setWorkitemTypes] = useState<{ id: string; name: string }[]>([]);
   const [isLoadingWorkitemTypes, setIsLoadingWorkitemTypes] = useState(false);
@@ -88,6 +91,22 @@ export function TapdModal() {
   const [selectedStories, setSelectedStories] = useState<Set<string>>(new Set());
   const [collapsedParents, setCollapsedParents] = useState<Set<string>>(new Set());
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const previewFieldCoverage = useMemo(() => {
+    const stories = previewStories.map(item => item?.Story || item).filter(Boolean);
+    const hasValue = (value: unknown) => {
+      const text = String(value ?? '').trim();
+      return text !== '' && text !== '0000-00-00';
+    };
+    const count = (predicate: (story: any) => boolean) => stories.filter(predicate).length;
+    return {
+      total: stories.length,
+      priority: count(story => hasValue(story.priority_label) || hasValue(story.priority)),
+      effort: count(story => hasValue(story.effort)),
+      begin: count(story => hasValue(story.begin)),
+      due: count(story => hasValue(story.due)),
+    };
+  }, [previewStories]);
 
   // ─── Module Mapping State ───
   const [moduleMappings, setModuleMappings] = useState<ModuleMapping[]>([]);
@@ -408,6 +427,8 @@ export function TapdModal() {
       setSyncStartDate(sr?.startDate || '');
       setSyncEndDate(sr?.endDate || '');
       setSyncLimit(sr?.limit || 1000);
+      setEffortUnit(sr?.effortUnit || 'days');
+      setHoursPerDay(sr?.hoursPerDay || 8);
       setCategoryKeywords((sr?.categoryKeywords || []).join(', '));
       setWorkitemTypeFilter(sr?.workitemTypeFilter || []);
       setReleaseFilter(sr?.releaseFilter || []);
@@ -431,6 +452,8 @@ export function TapdModal() {
       setSyncStartDate('');
       setSyncEndDate('');
       setSyncLimit(1000);
+      setEffortUnit('days');
+      setHoursPerDay(8);
       setCategoryKeywords('');
       setWorkitemTypes([]);
       setWorkitemTypeFilter([]);
@@ -740,6 +763,8 @@ export function TapdModal() {
         startDate: syncStartDate || undefined,
         endDate: syncEndDate || undefined,
         limit: syncLimit,
+        effortUnit,
+        hoursPerDay,
         categoryKeywords: parsedKeywords.length > 0 ? parsedKeywords : undefined,
         workitemTypeFilter: workitemTypeFilter.length > 0 ? workitemTypeFilter : undefined,
         releaseFilter: releaseFilter.length > 0 ? releaseFilter : undefined,
@@ -829,6 +854,8 @@ export function TapdModal() {
         startDate: syncStartDate || undefined,
         endDate: syncEndDate || undefined,
         limit: syncLimit,
+        effortUnit,
+        hoursPerDay,
         categoryKeywords: parsedKeywords.length > 0 ? parsedKeywords : undefined,
         workitemTypeFilter: workitemTypeFilter.length > 0 ? workitemTypeFilter : undefined,
         releaseFilter: releaseFilter.length > 0 ? releaseFilter : undefined,
@@ -1364,9 +1391,19 @@ export function TapdModal() {
 
               {/* Preview Stories summary (full list shown in right panel) */}
               {testStatus === 'success' && previewStories.length > 0 && (
-                <div className="flex items-center gap-2 text-emerald-400 text-xs bg-emerald-400/10 p-2 rounded-lg border border-emerald-400/20">
-                  <CheckCircle2 size={14} className="shrink-0" />
-                  <span>已获取 {previewStories.length} 条需求，已选择 {Array.from(selectedStories).filter(id => !id.startsWith('_virtual_')).length} 条 → 右侧面板查看详情</span>
+                <div className="text-emerald-400 text-xs bg-emerald-400/10 p-2 rounded-lg border border-emerald-400/20">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 size={14} className="shrink-0" />
+                    <span>已获取 {previewStories.length} 条需求，已选择 {Array.from(selectedStories).filter(id => !id.startsWith('_virtual_')).length} 条 → 右侧面板查看详情</span>
+                  </div>
+                  <div className="mt-1 pl-[22px] text-[10px] text-emerald-200/70">
+                    字段有值：优先级 {previewFieldCoverage.priority}/{previewFieldCoverage.total} · 预估工时 {previewFieldCoverage.effort}/{previewFieldCoverage.total} · 预计开始 {previewFieldCoverage.begin}/{previewFieldCoverage.total} · 预计结束 {previewFieldCoverage.due}/{previewFieldCoverage.total}
+                  </div>
+                  {previewStories.filter(item => !((item?.Story || item)?._tapdStructuralAncestor)).length >= syncLimit && (
+                    <div className="mt-1 pl-[22px] text-[10px] text-amber-300">
+                      已达到最大拉取条数，TAPD 中可能还有更多匹配需求；请提高上限或缩小筛选范围后重新验证。
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1503,18 +1540,41 @@ export function TapdModal() {
                 )}
 
                 {/* Fetch Limit */}
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[10px] text-gray-500 shrink-0">最大拉取条数</span>
                   <input
                     type="number"
                     min={10}
-                    max={5000}
-                    step={10}
+                    max={20000}
+                    step={100}
                     value={syncLimit}
-                    onChange={(e) => setSyncLimit(Math.max(10, Math.min(5000, parseInt(e.target.value) || 1000)))}
+                    onChange={(e) => setSyncLimit(Math.max(10, Math.min(20000, parseInt(e.target.value) || 1000)))}
                     className="w-20 bg-gray-950/80 border border-white/10 rounded-lg px-2 py-1 text-xs text-white text-center focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200 font-mono"
                   />
-                  <span className="text-[10px] text-gray-600">总量 10~5000，REST 每页 200 条自动翻页并去重</span>
+                  <span className="text-[10px] text-gray-600">总量 10~20000，REST 每页 200 条自动翻页并按 ID 去重</span>
+                  <span className="ml-2 text-[10px] text-gray-500">TAPD 工时单位</span>
+                  <select
+                    value={effortUnit}
+                    onChange={(e) => setEffortUnit(e.target.value as 'days' | 'hours')}
+                    className="bg-gray-950/80 border border-white/10 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="days">人天</option>
+                    <option value="hours">人时</option>
+                  </select>
+                  {effortUnit === 'days' && (
+                    <>
+                      <input
+                        type="number"
+                        min={0.5}
+                        max={24}
+                        step={0.5}
+                        value={hoursPerDay}
+                        onChange={(e) => setHoursPerDay(Math.max(0.5, Math.min(24, Number(e.target.value) || 8)))}
+                        className="w-14 bg-gray-950/80 border border-white/10 rounded-lg px-2 py-1 text-xs text-white text-center focus:outline-none focus:border-blue-500 font-mono"
+                      />
+                      <span className="text-[10px] text-gray-600">小时/人天</span>
+                    </>
+                  )}
                 </div>
 
                 {/* Category Keywords + Module Feature Filter - Two Column Layout */}
@@ -1968,8 +2028,7 @@ export function TapdModal() {
                           const sel = selectedStories.has(sid);
                           const rawPriority = String(s.priority_label || s.priority || '').trim();
                           const priorityLabel = rawPriority ? getLocalPriorityLabel(mapTapdPriority(rawPriority)) : '';
-                          const effortDays = Number.parseFloat(String(s.effort || '').replace(/[^\d.]/g, ''));
-                          const effortHours = Number.isFinite(effortDays) ? effortDays * 8 : undefined;
+                          const effortHours = parseTapdEffortHours(s.effort, effortUnit, hoursPerDay);
                           const releaseName = releasePlans.find(plan => plan.id === String(s.release_id || ''))?.name;
                           return (
                             <div

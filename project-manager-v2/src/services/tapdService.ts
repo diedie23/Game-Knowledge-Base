@@ -2,6 +2,7 @@ import { db } from '../db/db';
 import type { Task, TapdConfig, TapdWorkspaceInfo, TapdStory, TapdIteration, SyncResult, SyncDetailItem, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem } from '../types';
 import type { TapdAuthMode, ModuleMapping, SyncRangeConfig } from '../types/tapd';
 import { mapTapdPriority } from '../utils/tapdPriority';
+import { parseTapdDate, parseTapdEffortHours } from '../utils/tapdFields';
 
 // Re-export for consumers
 export type { SyncResult, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem };
@@ -13,6 +14,7 @@ const MCP_GATEWAY_TIMEOUT_MS = 20_000;
 
 // ─── TAPD REST API Configuration ─────────────────────────────────
 const TAPD_API_BASE = '/tapd-api'; // Uses Vite proxy
+const STORY_FIELDS = 'id,name,owner,status,created,modified,completed,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,progress,effort,effort_completed,remain,exceed,begin,due';
 
 // ─── MCP Gateway Configuration (streamable-http) ─────────────────
 const MCP_GATEWAY_PROXY = '/mcp-gateway/'; // Uses Vite proxy → https://mcpgw.knot.woa.com/tapd/
@@ -514,12 +516,12 @@ export class TapdService {
 
   /** TAPD REST returns at most 200 stories per page. Fetch up to the configured total and deduplicate by story ID. */
   private async fetchRestStoriesPaginated(config: TapdConfig, params: Record<string, string>, totalLimit: number): Promise<any[]> {
-    const target = Math.max(1, Math.min(5000, totalLimit));
+    const target = Math.max(1, Math.min(20000, totalLimit));
     const results: any[] = [];
     const seenIds = new Set<string>();
     for (let page = 1; results.length < target; page++) {
       const pageSize = 200;
-      const response = await tapdRestFetch<{ status: number; data: any; info: string }>('/stories', config, { ...params, limit: String(pageSize), page: String(page) });
+      const response = await tapdRestFetch<{ status: number; data: any; info: string }>('/stories', config, { order: 'id asc', ...params, limit: String(pageSize), page: String(page) });
       if (response?.status !== 1) throw new Error(response?.info || 'TAPD API 返回错误状态: ' + response?.status);
       const batch = Array.isArray(response.data) ? response.data : response.data ? [response.data] : [];
       const beforeCount = results.length;
@@ -552,8 +554,15 @@ export class TapdService {
         : [{}];
     const results: any[] = [];
     const seenIds = new Set<string>();
+    const requiresClientScan = Boolean(
+      syncRange?.categoryKeywords?.length ||
+      syncRange?.moduleFeatureFilter?.length ||
+      syncRange?.ownerFilter?.length ||
+      syncRange?.pipelineFilter
+    );
+    const scanLimit = requiresClientScan ? 20000 : totalLimit;
     for (const scope of scopes) {
-      const batch = await this.fetchRestStoriesPaginated(config, { ...params, ...scope }, totalLimit);
+      const batch = await this.fetchRestStoriesPaginated(config, { ...params, ...scope }, scanLimit);
       for (const item of batch) {
         const story = item?.Story || item;
         const id = String(story?.id || '');
@@ -562,7 +571,7 @@ export class TapdService {
         results.push(item);
       }
     }
-    return this.filterStoriesBySyncScope(results, syncRange).slice(0, totalLimit);
+    return this.filterStoriesBySyncScope(results, syncRange);
   }
 
   /** Recursively fetch every missing ancestor so deep TAPD hierarchies remain intact. */
@@ -574,7 +583,7 @@ export class TapdService {
   ): Promise<any[]> {
     const stories = [...initialStories];
     const knownIds = new Set(stories.map(item => String((item?.Story || item)?.id || '')).filter(Boolean));
-    const fields = 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort,begin,due';
+    const fields = STORY_FIELDS;
 
     for (let depth = 0; depth < 20; depth++) {
       const missingIds = new Set<string>();
@@ -584,17 +593,22 @@ export class TapdService {
       }
       if (missingIds.size === 0) break;
 
-      const ids = Array.from(missingIds).join(',');
       let fetched: any[] = [];
-      if (mcpAccessToken) {
-        const data = await mcpGatewayFetch<any>('stories_get', { workspace_id: workspaceId, id: ids, fields }, mcpAccessToken);
-        fetched = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : data?.data ? [data.data] : [];
-      } else if (config && (config.apiToken || (config.apiUser && config.apiPassword))) {
-        const data = await tapdRestFetch<{ status: number; data: any; info: string }>('/stories', config, { workspace_id: workspaceId, id: ids, fields });
-        if (data?.status === 1 && data?.data) fetched = Array.isArray(data.data) ? data.data : [data.data];
-      } else {
-        const data = await mcpFetch<{ data: any[] }>('/tapd/stories_get', { workspace_id: workspaceId, id: ids, fields });
-        fetched = Array.isArray(data?.data) ? data.data : [];
+      const missingIdList = Array.from(missingIds);
+      for (let offset = 0; offset < missingIdList.length; offset += 200) {
+        const ids = missingIdList.slice(offset, offset + 200).join(',');
+        let batch: any[] = [];
+        if (mcpAccessToken) {
+          const data = await mcpGatewayFetch<any>('stories_get', { workspace_id: workspaceId, id: ids, limit: 200, fields }, mcpAccessToken);
+          batch = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : data?.data ? [data.data] : [];
+        } else if (config && (config.apiToken || (config.apiUser && config.apiPassword))) {
+          const data = await tapdRestFetch<{ status: number; data: any; info: string }>('/stories', config, { workspace_id: workspaceId, id: ids, limit: '200', fields });
+          if (data?.status === 1 && data?.data) batch = Array.isArray(data.data) ? data.data : [data.data];
+        } else {
+          const data = await mcpFetch<{ data: any[] }>('/tapd/stories_get', { workspace_id: workspaceId, id: ids, limit: '200', fields });
+          batch = Array.isArray(data?.data) ? data.data : [];
+        }
+        fetched.push(...batch);
       }
 
       let added = 0;
@@ -825,7 +839,7 @@ export class TapdService {
           
           // Build query params from syncRange config for preview
           const previewLimit = syncRange?.limit || 1000;
-          const previewParams: Record<string, unknown> = { workspace_id: workspaceId.trim(), limit: previewLimit, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort' };
+          const previewParams: Record<string, unknown> = { workspace_id: workspaceId.trim(), limit: previewLimit, fields: STORY_FIELDS };
           if (syncRange) {
             if (syncRange.mode === 'recent' && syncRange.recentDays) {
               const endDate = new Date();
@@ -1056,7 +1070,10 @@ export class TapdService {
           }
 
 
-          // Fetch missing parent stories that are not in the filtered results
+          // Apply the configured cap after all client-side filters, so later matching pages are not lost.
+      stories = stories.slice(0, limit);
+
+      // Fetch missing parent stories that are not in the filtered results
           if (previewStories.length > 0) {
             const existingIds = new Set<string>();
             const missingParentIds = new Set<string>();
@@ -1076,7 +1093,7 @@ export class TapdService {
               try {
                 const parentData = await mcpGatewayFetch<any>(
                   'stories_get',
-                  { workspace_id: workspaceId.trim(), id: Array.from(missingParentIds).join(','), fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort' },
+                  { workspace_id: workspaceId.trim(), id: Array.from(missingParentIds).join(','), fields: STORY_FIELDS },
                   mcpAccessToken
                 );
                 let parentStories: any[] = [];
@@ -1166,7 +1183,7 @@ export class TapdService {
             tempConfig,
             {
               workspace_id: workspaceId.trim(),
-              fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort,begin,due',
+              fields: STORY_FIELDS,
             },
             previewLimit,
             syncRange
@@ -1185,7 +1202,7 @@ export class TapdService {
           }
 
           let previewStories = this.filterStoriesBySyncScope(Array.isArray(data?.data) ? data.data : [], syncRange);
-          previewStories = this.filterStoriesByAdvancedFilters(previewStories, syncRange);
+          previewStories = this.filterStoriesByAdvancedFilters(previewStories, syncRange).slice(0, previewLimit);
           previewStories = await this.fetchStoryAncestors(workspaceId.trim(), previewStories, tempConfig);
           previewStories = this.normalizeStoryHierarchy(previewStories);
           let workitemTypes: { id: string; name: string }[] = [];
@@ -1338,7 +1355,7 @@ export class TapdService {
         // Fetch via MCP Gateway (streamable-http) — include fields param to get custom fields for filtering
         const data = await mcpGatewayFetch<{ status?: number; data?: any; count?: number }>(
           'stories_get',
-          { workspace_id: workspaceId.trim(), limit, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort,begin,due', ...extraParams },
+          { workspace_id: workspaceId.trim(), limit, fields: STORY_FIELDS, ...extraParams },
           this.config!.mcpAccessToken!
         );
         console.log('[TapdService] MCP Gateway response:', typeof data, Array.isArray(data));
@@ -1355,7 +1372,7 @@ export class TapdService {
         // Fetch via REST API — convert all params to strings
         const restParams: Record<string, string> = {
           workspace_id: workspaceId.trim(),
-          fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort,begin,due',
+          fields: STORY_FIELDS,
         };
         if (extraParams.modified) restParams.modified = String(extraParams.modified);
         if (extraParams.status) restParams.status = String(extraParams.status);
@@ -1545,7 +1562,7 @@ export class TapdService {
           if (this.hasMcpGatewayCredentials()) {
             const data = await mcpGatewayFetch<{ status?: number; data?: any }>(
               'stories_get',
-              { workspace_id: workspaceId, id: parentIds, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort,begin,due' },
+              { workspace_id: workspaceId, id: parentIds, fields: STORY_FIELDS },
               this.config!.mcpAccessToken!
             );
             if (Array.isArray(data)) {
@@ -1559,7 +1576,7 @@ export class TapdService {
             const data = await tapdRestFetch<{ status: number; data: any }>(
               '/stories',
               this.config!,
-              { workspace_id: workspaceId, id: parentIds }
+              { workspace_id: workspaceId, id: parentIds, limit: '200', fields: STORY_FIELDS }
             );
             if (data?.status === 1 && data?.data) {
               parentStories = Array.isArray(data.data) ? data.data : [data.data];
@@ -1567,7 +1584,7 @@ export class TapdService {
           } else {
             const data = await mcpFetch<{ data: any[] }>(
               '/tapd/stories_get',
-              { workspace_id: workspaceId, id: parentIds }
+              { workspace_id: workspaceId, id: parentIds, limit: '200', fields: STORY_FIELDS }
             );
             parentStories = data?.data || [];
           }
@@ -1821,8 +1838,9 @@ export class TapdService {
       status === 'in_progress' ? (story.progress ? parseInt(story.progress, 10) : 50) :
       0;
 
-    const effortDays = Number.parseFloat(String(story.effort || '').replace(/[^\d.]/g, ''));
-    const estimatedHours = Number.isFinite(effortDays) ? effortDays * 8 : undefined;
+    const effortUnit = this.config?.syncRange?.effortUnit || 'days';
+    const hoursPerDay = this.config?.syncRange?.hoursPerDay || 8;
+    const estimatedHours = parseTapdEffortHours(story.effort, effortUnit, hoursPerDay);
 
     // Build TAPD external URL for direct navigation
     const workspaceId = this.config?.workspaceId || '';
@@ -1839,8 +1857,8 @@ export class TapdService {
       status,
       priority: this.mapPriority(story.priority_label || story.priority),
       // Leave dates undefined when no schedule info (don't fill with current date)
-      startDate: story.begin ? new Date(story.begin) : undefined,
-      endDate: story.due ? new Date(story.due) : undefined,
+      startDate: parseTapdDate(story.begin),
+      endDate: parseTapdDate(story.due),
       progress,
       type: 'task',
       dependencies: [],
@@ -2103,7 +2121,18 @@ export class TapdService {
     // Filter by selected story IDs if provided (user checked specific stories in preview panel)
     if (selectedStoryIds && selectedStoryIds.size > 0) {
       const beforeCount = remoteTasks.length;
-      remoteTasks = remoteTasks.filter(t => t.tapdId && selectedStoryIds.has(t.tapdId));
+      const taskByTapdId = new Map(remoteTasks.filter(t => t.tapdId).map(t => [t.tapdId!, t]));
+      const idsToKeep = new Set(selectedStoryIds);
+      for (const selectedId of selectedStoryIds) {
+        let current = taskByTapdId.get(selectedId);
+        const visited = new Set<string>();
+        while (current?.tapdParentId && current.tapdParentId !== '0' && !visited.has(current.tapdParentId)) {
+          visited.add(current.tapdParentId);
+          idsToKeep.add(current.tapdParentId);
+          current = taskByTapdId.get(current.tapdParentId);
+        }
+      }
+      remoteTasks = remoteTasks.filter(t => t.tapdId && idsToKeep.has(t.tapdId));
       console.log(`[TapdService] Filtered by selectedStoryIds: ${beforeCount} → ${remoteTasks.length} tasks`);
     }
     const moduleMappings = config.syncRange?.moduleMappings;
@@ -2378,7 +2407,7 @@ export class TapdService {
           if (this.hasMcpGatewayCredentials()) {
             const data = await mcpGatewayFetch<{ status?: number; data?: any; count?: number }>(
               'stories_get',
-              { workspace_id: wsId, id: batchIds.join(','), fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort,begin,due' },
+              { workspace_id: wsId, id: batchIds.join(','), fields: STORY_FIELDS },
               config.mcpAccessToken!
             );
             if (Array.isArray(data)) {
