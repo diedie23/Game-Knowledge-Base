@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { AlertTriangle, AlertCircle, Clock, ChevronDown, ChevronRight, X, ShieldAlert, Users } from 'lucide-react';
 import type { Task } from '../../db/db';
 import type { Resource } from '../../types';
-import { assessTaskRisk, type TaskRisk, type RiskLevel, type RiskTag, RISK_THRESHOLDS } from '../../services/workloadService';
+import { type TaskRisk, type RiskLevel, type RiskTag, RISK_THRESHOLDS } from '../../services/workloadService';
 
 interface RiskEntry {
   task: Task;
@@ -15,6 +15,7 @@ interface GanttRiskPanelProps {
   tasks: Task[] | undefined;
   resources: Resource[] | undefined;
   today: Date;
+  riskMap: ReadonlyMap<number, TaskRisk>;
   onClose: () => void;
   onOpenTask: (taskId: number | undefined) => void;
 }
@@ -78,6 +79,7 @@ export const GanttRiskPanel = React.memo(function GanttRiskPanel({
   tasks,
   resources,
   today,
+  riskMap,
   onClose,
   onOpenTask,
 }: GanttRiskPanelProps) {
@@ -115,7 +117,11 @@ export const GanttRiskPanel = React.memo(function GanttRiskPanel({
     if (!tasks || !resources) return new Map<string, RiskEntry[]>();
 
     const taskMap = new Map<number, Task>();
-    tasks.forEach(t => { if (t.id) taskMap.set(t.id, t); });
+    const parentIds = new Set<number>();
+    tasks.forEach(task => {
+      if (task.id) taskMap.set(task.id, task);
+      if (task.parentId) parentIds.add(task.parentId);
+    });
 
     const groups = new Map<string, RiskEntry[]>();
     RISK_ORDER.forEach(l => groups.set(l, []));
@@ -123,11 +129,11 @@ export const GanttRiskPanel = React.memo(function GanttRiskPanel({
     for (const task of tasks) {
       if (!task.id || task.status === 'done') continue;
       // Only assess leaf tasks
-      const hasChildren = tasks.some(t => t.parentId === task.id);
+      const hasChildren = parentIds.has(task.id);
       if (hasChildren) continue;
 
-      const risk = assessTaskRisk(task, tasks, resources, today);
-      if (risk.level === 'none') continue;
+      const risk = riskMap.get(task.id);
+      if (!risk || risk.level === 'none') continue;
 
       const parentTitle = task.parentId ? taskMap.get(task.parentId)?.title : undefined;
       groups.get(risk.level)!.push({ task, risk, parentTitle });
@@ -143,7 +149,7 @@ export const GanttRiskPanel = React.memo(function GanttRiskPanel({
     });
 
     return groups;
-  }, [tasks, resources, today]);
+  }, [tasks, resources, today, riskMap]);
 
   const totalRiskCount = useMemo(() => {
     let count = 0;

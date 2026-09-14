@@ -5,6 +5,7 @@ import {
   calcParentDateRange,
   checkDependencyConflicts,
   assessTaskRisk,
+  buildTaskRiskContext,
   RISK_THRESHOLDS,
 } from './workloadService';
 import type { Task, Resource } from '../types';
@@ -271,6 +272,16 @@ describe('assessTaskRisk', () => {
     expect(result.riskReasons.some(r => r.tag === 'overlap')).toBe(true);
   });
 
+  it('returns identical risk results with the shared index', () => {
+    const tasks = [
+      makeTask({ id: 1, assigneeIds: [1], startDate: d('2026-05-01'), endDate: d('2026-05-04'), status: 'in_progress', parentId: 100, dependencies: [2] }),
+      makeTask({ id: 2, assigneeIds: [1], startDate: d('2026-05-01'), endDate: d('2026-05-08'), status: 'in_progress', parentId: 100 }),
+      makeTask({ id: 100, assigneeIds: [], status: 'in_progress' }),
+    ];
+    const legacy = assessTaskRisk(tasks[0], tasks, resources, today);
+    const indexed = assessTaskRisk(tasks[0], tasks, resources, today, buildTaskRiskContext(tasks, resources));
+    expect(indexed).toEqual(legacy);
+  });
   it('does NOT trigger overlap for CP-heavy tasks below threshold', () => {
     // 1 self-made + 5 CP tasks: weighted = 1 + 5*0.5 = 3.5 (below threshold 4)
     const tasks = [

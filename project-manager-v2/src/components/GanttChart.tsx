@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useMemo, useCallback, useEffect, useDeferredValue } from 'react';
 import { createPortal } from 'react-dom';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -46,7 +46,7 @@ import { GanttToolbar } from './gantt/GanttToolbar';
 import { GanttTimeline } from './gantt/GanttTimeline';
 import { GanttScrollbar } from './gantt/GanttScrollbar';
 import { GanttResourceHeatRow } from './gantt/GanttResourceHeatRow';
-import { assessTaskRisk, type TaskRisk, RISK_THRESHOLDS, syncParentDateRange } from '../services/workloadService';
+import { assessTaskRisk, buildTaskRiskContext, type TaskRisk, RISK_THRESHOLDS, syncParentDateRange } from '../services/workloadService';
 import { getEffectiveStatus } from '../types/resource';
 import { confirmDialog, alertDialog } from './common/ConfirmDialog';
 import { toast } from '../store/useToastStore';
@@ -62,7 +62,43 @@ export function GanttChart() {
     [selectedProjectId]
   );
   const resources = useLiveQuery(() => db.resources.toArray());
-  const today = startOfToday();
+  const taskIndex = useMemo(() => {
+    const byId = new Map<number, Task>();
+    const childrenByParentId = new Map<number, Task[]>();
+    const parentIds = new Set<number>();
+    const roots: Task[] = [];
+    const byAssigneeId = new Map<number, Task[]>();
+    const unassigned: Task[] = [];
+
+    for (const task of tasks || []) {
+      if (task.id) byId.set(task.id, task);
+      if (task.parentId) {
+        parentIds.add(task.parentId);
+        const siblings = childrenByParentId.get(task.parentId) || [];
+        siblings.push(task);
+        childrenByParentId.set(task.parentId, siblings);
+      } else {
+        roots.push(task);
+      }
+
+      if (!task.assigneeIds?.length) {
+        unassigned.push(task);
+      } else {
+        for (const assigneeId of task.assigneeIds) {
+          const assignedTasks = byAssigneeId.get(assigneeId) || [];
+          assignedTasks.push(task);
+          byAssigneeId.set(assigneeId, assignedTasks);
+        }
+      }
+    }
+
+    for (const children of childrenByParentId.values()) {
+      children.sort((a, b) => (a.sortOrder ?? a.id ?? 0) - (b.sortOrder ?? b.id ?? 0));
+    }
+
+    return { byId, childrenByParentId, parentIds, roots, byAssigneeId, unassigned };
+  }, [tasks]);
+  const today = useMemo(() => startOfToday(), []);
   
   const ganttScrollRef = useRef<HTMLDivElement>(null);
   const { zoomIndex, zoomConfig, dayWidth, visibleDays, handleZoomIn, handleZoomOut, handleZoomReset } = useGanttZoom(ganttScrollRef);
@@ -700,33 +736,28 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
 
   // Member task summary (leaf tasks only, excluding parent tasks)
   const memberSummary = useMemo(() => {
-    if (!resources || !tasks) return [];
+    if (!showMemberPanel || !resources || !tasks) return [];
     return [...resources].filter(r => r.status !== 'departed').sort(compareResources).map(r => {
-      const myTasks = tasks.filter(t => {
-        if (!t.assigneeIds?.includes(r.id!)) return false;
-        // Exclude parent tasks to avoid double-counting
-        const hasChildren = tasks.some(child => child.parentId === t.id);
-        return !hasChildren;
-      });
+      const myTasks = (taskIndex.byAssigneeId.get(r.id!) || []).filter(t => !taskIndex.parentIds.has(t.id!));
       const todo = myTasks.filter(t => t.status === 'todo').length;
       const inProgress = myTasks.filter(t => t.status === 'in_progress').length;
       const done = myTasks.filter(t => t.status === 'done').length;
       const overdue = myTasks.filter(t => t.status !== 'done' && t.endDate && new Date(t.endDate) < today).length;
       return { resource: r, tasks: myTasks, todo, inProgress, done, overdue, total: myTasks.length };
     });
-  }, [resources, tasks, today]);
+  }, [showMemberPanel, resources, tasks, taskIndex, today]);
 
   // Smart display name: when siblings share the same short name, show more context
   const getSmartDisplayName = useCallback((task: Task) => {
     if (groupBy === 'assignee') {
       // In assignee view, show the full task title or parent + child title
       if (!task.parentId || task.parentId < 0) return task.title;
-      const parent = tasks?.find(t => t.id === task.parentId);
+      const parent = taskIndex.byId.get(task.parentId);
       if (!parent) return task.title;
       return `${parent.title} - ${task.title}`;
     }
-    if (!task.parentId || !tasks) return task.title;
-    const siblings = tasks.filter(t => t.parentId === task.parentId && t.id !== task.id);
+    if (!task.parentId) return task.title;
+    const siblings = (taskIndex.childrenByParentId.get(task.parentId) || []).filter(t => t.id !== task.id);
     const myShort = getShortTaskName(task.title, task);
     const hasDuplicate = siblings.some(s => getShortTaskName(s.title, s) === myShort);
     if (hasDuplicate) {
@@ -734,7 +765,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
       return task.title;
     }
     return myShort;
-  }, [tasks, getShortTaskName, groupBy]);
+  }, [taskIndex, getShortTaskName, groupBy]);
 
   const handleContextMenu = (e: React.MouseEvent, taskId: number) => {
     e.preventDefault();
@@ -967,7 +998,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
         const next = new Set(prev);
         // Recursively get all descendant task IDs
         const getDescendantIds = (parentId: number): number[] => {
-          const children = tasks?.filter(t => t.parentId === parentId) || [];
+          const children = taskIndex.childrenByParentId.get(parentId) || [];
           let ids: number[] = [];
           for (const child of children) {
             if (child.id) {
@@ -1062,23 +1093,18 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     setDraggingTaskId(null);
   };
 
-  const getChildren = (parentId: number) => {
+  const getChildren = useCallback((parentId: number) => {
     if (groupBy === 'assignee') {
       if (parentId < 0) {
-        if (parentId === -9999) {
-          return (tasks?.filter(t => !t.assigneeIds || t.assigneeIds.length === 0) || [])
-            .sort((a, b) => (a.startDate?.getTime() ?? Infinity) - (b.startDate?.getTime() ?? Infinity));
-        } else {
-          const resourceId = -parentId;
-          return (tasks?.filter(t => t.assigneeIds?.includes(resourceId)) || [])
-            .sort((a, b) => (a.startDate?.getTime() ?? Infinity) - (b.startDate?.getTime() ?? Infinity));
-        }
+        const children = parentId === -9999
+          ? taskIndex.unassigned
+          : (taskIndex.byAssigneeId.get(-parentId) || []);
+        return [...children].sort((a, b) => (a.startDate?.getTime() ?? Infinity) - (b.startDate?.getTime() ?? Infinity));
       }
       return []; // In assignee view, tasks don't have children
     }
-    return (tasks?.filter(t => t.parentId === parentId) || [])
-      .sort((a, b) => (a.sortOrder ?? a.id ?? 0) - (b.sortOrder ?? b.id ?? 0));
-  };
+    return taskIndex.childrenByParentId.get(parentId) || [];
+  }, [groupBy, taskIndex]);
 
   // --- Row reorder handlers ---
   const handleReorderDragStart = useCallback((e: React.DragEvent, taskId: number) => {
@@ -1172,7 +1198,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
       // Sort resources by role order before building groups
       const sortedRes = [...resources].filter(r => r.status !== 'departed').sort(compareResources);
       sortedRes.forEach(resource => {
-        const resourceTasks = tasks.filter(t => t.assigneeIds?.includes(resource.id!));
+        const resourceTasks = taskIndex.byAssigneeId.get(resource.id!) || [];
         if (resourceTasks.length > 0) {
           const scheduledRT = resourceTasks.filter(t => t.startDate && t.endDate);
           const minStart = scheduledRT.length > 0 ? new Date(Math.min(...scheduledRT.map(t => t.startDate!.getTime()))) : new Date();
@@ -1195,7 +1221,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
       });
 
       // Unassigned tasks
-      const unassignedTasks = tasks.filter(t => !t.assigneeIds || t.assigneeIds.length === 0);
+      const unassignedTasks = taskIndex.unassigned;
       if (unassignedTasks.length > 0) {
         const scheduledUA = unassignedTasks.filter(t => t.startDate && t.endDate);
         const minStart = scheduledUA.length > 0 ? new Date(Math.min(...scheduledUA.map(t => t.startDate!.getTime()))) : new Date();
@@ -1216,10 +1242,10 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
       return groupedRoots;
     }
 
-    const allRoots = tasks?.filter(t => !t.parentId) || [];
+    const allRoots = [...taskIndex.roots];
     const rootGroups = new Map<number, number>();
     allRoots.forEach(root => {
-      const children = tasks?.filter(t => t.parentId === root.id!) || [];
+      const children = taskIndex.childrenByParentId.get(root.id!) || [];
       if (children.length > 0) {
         const isCompleted = root.status === 'done' || children.every(c => c.status === 'done');
         rootGroups.set(root.id!, isCompleted ? 1 : 3);
@@ -1237,7 +1263,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     });
 
     // Apply status/schedule filter. Parents are kept as context when a descendant matches.
-    const hasChildren = (taskId: number) => tasks?.some(task => task.parentId === taskId) ?? false;
+    const hasChildren = (taskId: number) => taskIndex.parentIds.has(taskId);
     const isUnscheduledLeaf = (task: Task) => !hasChildren(task.id!) && (!task.startDate || !task.endDate);
     const matchesFilter = (task: Task) => {
       const status = task.status;
@@ -1248,21 +1274,20 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
       if (filterStatus === 'active') return status === 'todo' || status === 'in_progress';
       return status === filterStatus;
     };
-    const hasMatchingDescendant = (parentId: number): boolean => (tasks || [])
-      .filter(task => task.parentId === parentId)
+    const hasMatchingDescendant = (parentId: number): boolean => (taskIndex.childrenByParentId.get(parentId) || [])
       .some(child => matchesFilter(child) || hasMatchingDescendant(child.id!));
 
     const filteredRoots = (filterStatus === 'all' || filterStatus === 'show_all' || filterStatus === 'collapse_done' || filterStatus === 'group_module') ? allRoots.filter(root => {
       // In default views, hide paused tasks (unless show_all)
       if (filterStatus !== 'show_all' && root.status === 'paused') {
-        const children = tasks?.filter(t => t.parentId === root.id!) || [];
+        const children = taskIndex.childrenByParentId.get(root.id!) || [];
         return children.some(child => child.status !== 'paused');
       }
       return true;
     }) : allRoots.filter(root => {
       // Parent task: show if itself matches OR any child matches
       if (matchesFilter(root)) return true;
-      const children = tasks?.filter(t => t.parentId === root.id!) || [];
+      const children = taskIndex.childrenByParentId.get(root.id!) || [];
       return children.some(child => matchesFilter(child) || hasMatchingDescendant(child.id!));
     });
 
@@ -1270,7 +1295,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     if (selectedMemberId) {
       // Recursively check if any descendant (at any depth) is assigned to the member
       const hasDescendantWithMember = (parentId: number): boolean => {
-        const children = tasks?.filter(t => t.parentId === parentId) || [];
+        const children = taskIndex.childrenByParentId.get(parentId) || [];
         return children.some(child =>
           child.assigneeIds?.includes(selectedMemberId!) ||
           hasDescendantWithMember(child.id!)
@@ -1285,7 +1310,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
 
     // Helper: infer effective status of a parent task based on its children
     const inferParentStatus = (root: Task): string => {
-      const children = tasks?.filter(t => t.parentId === root.id!) || [];
+      const children = taskIndex.childrenByParentId.get(root.id!) || [];
       if (children.length === 0) return root.status;
       const allDone = children.every(c => c.status === 'done');
       if (allDone) return 'done';
@@ -1390,11 +1415,11 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
         const moduleTasks = moduleMap.get(moduleName)!;
         // Count stats for this module
         const totalTasks = moduleTasks.reduce((sum, root) => {
-          const children = tasks?.filter(t => t.parentId === root.id!) || [];
+          const children = taskIndex.childrenByParentId.get(root.id!) || [];
           return sum + 1 + children.length;
         }, 0);
         const doneTasks = moduleTasks.reduce((sum, root) => {
-          const children = tasks?.filter(t => t.parentId === root.id!) || [];
+          const children = taskIndex.childrenByParentId.get(root.id!) || [];
           const rootDone = root.status === 'done' ? 1 : 0;
           const childDone = children.filter(c => c.status === 'done').length;
           return sum + rootDone + childDone;
@@ -1470,7 +1495,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     }
 
     return memberFilteredRoots;
-  }, [tasks, resources, selectedMemberId, groupBy, filterStatus]);
+  }, [tasks, resources, selectedMemberId, groupBy, filterStatus, taskIndex]);
 
   // Build a flat ordered list of visible task rows for SVG dependency lines
   const visibleTaskRows = useMemo(() => {
@@ -1482,15 +1507,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
       rootTasks.forEach(root => {
         rows.push({ task: root, level: 0, rowIndex: rowIdx++ });
         if (expandedTaskIds.has(root.id!)) {
-          let children: Task[] = [];
-          if (root.id === -9999) {
-            children = tasks.filter(t => !t.assigneeIds || t.assigneeIds.length === 0);
-          } else {
-            const resourceId = -root.id!;
-            children = tasks.filter(t => t.assigneeIds?.includes(resourceId));
-          }
-          // Sort children by start date (unscheduled tasks go to end)
-          children.sort((a, b) => (a.startDate?.getTime() ?? Infinity) - (b.startDate?.getTime() ?? Infinity));
+          const children = getChildren(root.id!);
           children.forEach(child => {
             // Create a clone of the child task to avoid mutating the original
             // and to set its parentId to the resource root id so that renderTaskRow treats it as a child
@@ -1503,23 +1520,21 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     }
 
     // Helper: check if a task matches the current status/schedule filter
-    const hasChildren = (taskId: number) => tasks.some(candidate => candidate.parentId === taskId);
+    const hasChildren = (taskId: number) => taskIndex.parentIds.has(taskId);
     const matchesFilter = (task: Task) => {
       if (filterStatus === 'unscheduled') return !hasChildren(task.id!) && (!task.startDate || !task.endDate);
       if (filterStatus === 'all' || filterStatus === 'collapse_done' || filterStatus === 'group_module') return true;
       if (filterStatus === 'active') return task.status === 'todo' || task.status === 'in_progress';
       return task.status === filterStatus;
     };
-    const hasMatchingDescendant = (parentId: number): boolean => tasks
-      .filter(candidate => candidate.parentId === parentId)
+    const hasMatchingDescendant = (parentId: number): boolean => (taskIndex.childrenByParentId.get(parentId) || [])
       .some(child => matchesFilter(child) || hasMatchingDescendant(child.id!));
 
     const buildRows = (parentTasks: Task[], level: number) => {
       parentTasks.forEach(task => {
         rows.push({ task, level, rowIndex: rowIdx });
         rowIdx++;
-        let children = tasks.filter(t => t.parentId === task.id)
-          .sort((a, b) => (a.sortOrder ?? a.id ?? 0) - (b.sortOrder ?? b.id ?? 0));
+        let children = taskIndex.childrenByParentId.get(task.id!) || [];
         // Apply status filter to child tasks
         if (filterStatus !== 'all' && filterStatus !== 'collapse_done' && filterStatus !== 'group_module') {
           children = children.filter(c => matchesFilter(c) || hasMatchingDescendant(c.id!));
@@ -1540,14 +1555,16 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     };
     buildRows(rootTasks, 0);
     return rows;
-  }, [tasks, rootTasks, expandedTaskIds, groupBy, filterStatus]);
+  }, [tasks, rootTasks, expandedTaskIds, groupBy, filterStatus, taskIndex, getChildren]);
+
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   // Search-filtered visible task rows
   const { filteredTaskRows, searchMatchCount } = useMemo(() => {
-    if (!searchQuery.trim()) {
+    if (!deferredSearchQuery.trim()) {
       return { filteredTaskRows: visibleTaskRows, searchMatchCount: 0 };
     }
-    const query = searchQuery.trim().toLowerCase();
+    const query = deferredSearchQuery.trim().toLowerCase();
     // Find all task IDs that match the search query
     const matchingIds = new Set<number>();
     visibleTaskRows.forEach(({ task }) => {
@@ -1555,6 +1572,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
         matchingIds.add(task.id!);
       }
     });
+    const visibleRowById = new Map(visibleTaskRows.map(row => [row.task.id!, row]));
     // Also keep parent rows of matching tasks so structure is preserved
     const keepIds = new Set<number>(matchingIds);
     visibleTaskRows.forEach(({ task }) => {
@@ -1563,7 +1581,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
         let parentId = task.parentId;
         while (parentId) {
           keepIds.add(parentId);
-          const parent = visibleTaskRows.find(r => r.task.id === parentId);
+          const parent = visibleRowById.get(parentId);
           parentId = parent?.task.parentId || undefined;
         }
       }
@@ -1574,7 +1592,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
       .filter(({ task }) => keepIds.has(task.id!))
       .map(row => ({ ...row, rowIndex: newIdx++ }));
     return { filteredTaskRows: filtered, searchMatchCount: matchingIds.size };
-  }, [visibleTaskRows, searchQuery]);
+  }, [visibleTaskRows, deferredSearchQuery]);
 
   const selectableTaskIds = useMemo(
     () => Array.from(new Set(filteredTaskRows.map(({ task }) => task.id!).filter(id => id > 0))),
@@ -1599,7 +1617,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     filteredTaskRows.forEach(({ task }) => {
       if (!task.dependencies || task.dependencies.length === 0) return;
       task.dependencies.forEach(depId => {
-        const depTask = tasks.find(t => t.id === depId);
+        const depTask = taskIndex.byId.get(depId);
         if (!depTask) return;
         if (!depTask.endDate || !task.startDate) return; // Skip lines for unscheduled tasks
         const fromRowIdx = taskRowMap.get(depId);
@@ -1624,15 +1642,16 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
 
     // Ghost dependency lines: show projected dependency arrows based on what-if ghost schedules
     if (ghostSchedules.length > 0) {
+      const ghostByTaskId = new Map(ghostSchedules.map(ghost => [ghost.taskId, ghost]));
       filteredTaskRows.forEach(({ task }) => {
         if (!task.dependencies || task.dependencies.length === 0) return;
         task.dependencies.forEach(depId => {
-          const depGhost = ghostSchedules.find(g => g.taskId === depId);
-          const taskGhost = ghostSchedules.find(g => g.taskId === task.id!);
+          const depGhost = ghostByTaskId.get(depId);
+          const taskGhost = ghostByTaskId.get(task.id!);
           // Only draw ghost line if at least one side has a ghost schedule
           if (!depGhost && !taskGhost) return;
 
-          const depTask = tasks.find(t => t.id === depId);
+          const depTask = taskIndex.byId.get(depId);
           if (!depTask) return;
 
           // Use ghost end date for dep, ghost start date for task (fall back to real dates)
@@ -1659,9 +1678,11 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     }
 
     return lines;
-  }, [tasks, filteredTaskRows, startDate, dayWidth, ghostSchedules]);
+  }, [tasks, filteredTaskRows, startDate, dayWidth, ghostSchedules, taskIndex]);
 
 
+
+  const riskContext = useMemo(() => buildTaskRiskContext(tasks || [], resources || []), [tasks, resources]);
 
   // Deadline warning: check if a task is near its deadline (within 2 days) and not done
   // Pre-compute risk assessments for all visible tasks
@@ -1670,24 +1691,24 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     const map = new Map<number, TaskRisk>();
     for (const task of tasks) {
       if (!task.id || task.status === 'done') continue;
-      const risk = assessTaskRisk(task, tasks, resources, today);
+      const risk = assessTaskRisk(task, tasks, resources, today, riskContext);
       if (risk.level !== 'none') {
         map.set(task.id, risk);
       }
     }
     return map;
-  }, [tasks, resources, today]);
+  }, [tasks, resources, today, riskContext]);
 
   // Count only leaf tasks with risk (exclude parent tasks to avoid double-counting)
   const riskCount = useMemo(() => {
     if (!tasks) return 0;
     let count = 0;
     taskRiskMap.forEach((_, taskId) => {
-      const hasChildren = tasks.some(t => t.parentId === taskId);
+      const hasChildren = taskIndex.parentIds.has(taskId);
       if (!hasChildren) count++;
     });
     return count;
-  }, [taskRiskMap, tasks]);
+  }, [taskRiskMap, tasks, taskIndex]);
 
   const getDeadlineWarning = useCallback((task: Task): 'overdue' | 'urgent' | null => {
     if (task.status === 'done' || !task.parentId || !task.endDate) return null;
@@ -1700,7 +1721,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
   // Get dominant task type color for a resource based on their assigned tasks
   const getResourceColor = useCallback((resourceId: number) => {
     if (!tasks) return '#5b5fc7'; // default indigo
-    const myTasks = tasks.filter(t => t.assigneeIds?.includes(resourceId) && t.parentId);
+    const myTasks = (taskIndex.byAssigneeId.get(resourceId) || []).filter(t => t.parentId);
     if (myTasks.length === 0) return '#5b5fc7';
     // Count task types and pick the most frequent
     const colorCount = new Map<string, number>();
@@ -1714,7 +1735,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
       if (count > maxCount) { maxCount = count; maxColor = color; }
     });
     return maxColor;
-  }, [tasks]);
+  }, [tasks, taskIndex]);
 
   const renderAvatarGroup = (assigneeIds?: number[], taskTitle?: string) => {
     if (!assigneeIds || assigneeIds.length === 0) return null;
@@ -1962,7 +1983,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                         const next = new Set(prev);
                         // Recursively get all descendant task IDs
                         const getDescendantIds = (parentId: number): number[] => {
-                          const children = tasks?.filter(t => t.parentId === parentId) || [];
+                          const children = taskIndex.childrenByParentId.get(parentId) || [];
                           let ids: number[] = [];
                           for (const child of children) {
                             if (child.id) {
@@ -2788,6 +2809,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
           tasks={tasks}
           resources={resources}
           today={today}
+          riskMap={taskRiskMap}
           onClose={() => setShowRiskPanel(false)}
           onOpenTask={openTaskModal}
         />

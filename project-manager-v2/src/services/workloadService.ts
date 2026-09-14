@@ -45,6 +45,34 @@ export interface ParentDateRange {
   endDate: Date | undefined;
 }
 
+export interface TaskRiskContext {
+  taskById: Map<number, Task>;
+  parentIds: Set<number>;
+  tasksByAssigneeId: Map<number, Task[]>;
+  resourceById: Map<number, Resource>;
+}
+
+export function buildTaskRiskContext(allTasks: Task[], allResources: Resource[]): TaskRiskContext {
+  const taskById = new Map<number, Task>();
+  const parentIds = new Set<number>();
+  const tasksByAssigneeId = new Map<number, Task[]>();
+  const resourceById = new Map<number, Resource>();
+
+  for (const resource of allResources) {
+    if (resource.id) resourceById.set(resource.id, resource);
+  }
+  for (const task of allTasks) {
+    if (task.id) taskById.set(task.id, task);
+    if (task.parentId) parentIds.add(task.parentId);
+    for (const assigneeId of task.assigneeIds || []) {
+      const assigned = tasksByAssigneeId.get(assigneeId) || [];
+      assigned.push(task);
+      tasksByAssigneeId.set(assigneeId, assigned);
+    }
+  }
+
+  return { taskById, parentIds, tasksByAssigneeId, resourceById };
+}
 // ─── Workload Calculation ────────────────────────────────────────
 
 /**
@@ -57,9 +85,10 @@ export function calcMemberWorkload(
   endDate: Date | undefined,
   allTasks: Task[],
   allResources: Resource[],
-  excludeTaskId?: number
+  excludeTaskId?: number,
+  context?: TaskRiskContext
 ): WorkloadInfo {
-  const resource = allResources.find(r => r.id === resourceId);
+  const resource = context?.resourceById.get(resourceId) || allResources.find(r => r.id === resourceId);
   const resourceName = resource?.name || 'Unknown';
 
   if (!startDate || !endDate) {
@@ -80,13 +109,14 @@ export function calcMemberWorkload(
   }
 
   // Find all tasks assigned to this resource that overlap with the given period
-  const overlapping = allTasks.filter(t => {
+  const workloadCandidates = context?.tasksByAssigneeId.get(resourceId) || allTasks;
+  const overlapping = workloadCandidates.filter(t => {
     if (!t.startDate || !t.endDate) return false;
     if (t.id === excludeTaskId) return false;
     if (!t.assigneeIds?.includes(resourceId)) return false;
     if (t.status === 'done' || t.status === 'cancelled') return false;
     // Only count leaf tasks (with parentId) to avoid double-counting parent tasks
-    const hasChildren = allTasks.some(child => child.parentId === t.id);
+    const hasChildren = context ? context.parentIds.has(t.id!) : allTasks.some(child => child.parentId === t.id);
     if (hasChildren) return false;
 
     const tStart = new Date(t.startDate);
@@ -274,13 +304,15 @@ export function checkDependencyConflicts(
   taskId: number,
   startDate: Date | undefined,
   dependencies: number[],
-  allTasks: Task[]
+  allTasks: Task[],
+  indexedTasks?: ReadonlyMap<number, Task>
 ): DependencyConflict[] {
   if (!startDate || !dependencies || dependencies.length === 0) return [];
 
   const conflicts: DependencyConflict[] = [];
-  const taskMap = new Map<number, Task>();
-  allTasks.forEach(t => { if (t.id) taskMap.set(t.id, t); });
+  const mutableTaskMap = indexedTasks ? undefined : new Map<number, Task>();
+  if (mutableTaskMap) allTasks.forEach(t => { if (t.id) mutableTaskMap.set(t.id, t); });
+  const taskMap: ReadonlyMap<number, Task> = indexedTasks || mutableTaskMap!;
 
   const currentTask = taskMap.get(taskId);
   const taskTitle = currentTask?.title || '';
@@ -385,7 +417,8 @@ export function assessTaskRisk(
   task: Task,
   allTasks: Task[],
   allResources: Resource[],
-  today: Date = new Date()
+  today: Date = new Date(),
+  context?: TaskRiskContext
 ): TaskRisk {
   // Paused tasks are excluded from risk assessment
   if (task.status === 'paused') {
@@ -421,7 +454,7 @@ export function assessTaskRisk(
 
   // 2. Dependency conflict check
   if (task.id && task.dependencies && task.dependencies.length > 0) {
-    const conflicts = checkDependencyConflicts(task.id, task.startDate, task.dependencies, allTasks);
+    const conflicts = checkDependencyConflicts(task.id, task.startDate, task.dependencies, allTasks, context?.taskById);
     if (conflicts.length > 0) {
       conflicts.forEach(c => addRisk('dependency', c.message, 'high'));
       shouldAutoAlert = true;
@@ -430,10 +463,10 @@ export function assessTaskRisk(
 
   // 3. Assignee overload check
   if (task.assigneeIds && task.assigneeIds.length > 0 && task.startDate && task.endDate) {
-    const hasChildren = allTasks.some(t => t.parentId === task.id);
+    const hasChildren = context ? context.parentIds.has(task.id!) : allTasks.some(t => t.parentId === task.id);
     if (!hasChildren) {
       for (const rid of task.assigneeIds) {
-        const wl = calcMemberWorkload(rid, task.startDate, task.endDate, allTasks, allResources, task.id);
+        const wl = calcMemberWorkload(rid, task.startDate, task.endDate, allTasks, allResources, task.id, context);
         if (wl.severity === 'danger') {
           addRisk('overload', `${wl.resourceName}负荷率${wl.loadPercent}%`, 'high');
         } else if (wl.severity === 'warning') {
@@ -445,17 +478,18 @@ export function assessTaskRisk(
 
   // 4. ★ Task overlap check — weighted by category (self-made×1, CP×0.5)
   if (task.assigneeIds && task.assigneeIds.length > 0 && task.startDate && task.endDate && task.status !== 'done') {
-    const hasChildren = allTasks.some(t => t.parentId === task.id);
+    const hasChildren = context ? context.parentIds.has(task.id!) : allTasks.some(t => t.parentId === task.id);
     if (!hasChildren) {
       for (const rid of task.assigneeIds) {
-        const resource = allResources.find(r => r.id === rid);
+        const resource = context?.resourceById.get(rid) || allResources.find(r => r.id === rid);
         const rName = resource?.name || '成员';
         // Count concurrent leaf tasks for this assignee during this task's period
-        const concurrent = allTasks.filter(t => {
+        const overlapCandidates = context?.tasksByAssigneeId.get(rid) || allTasks;
+        const concurrent = overlapCandidates.filter(t => {
           if (!t.startDate || !t.endDate || t.id === task.id) return false;
           if (t.status === 'done') return false;
           if (!t.assigneeIds?.includes(rid)) return false;
-          const hasKids = allTasks.some(child => child.parentId === t.id);
+          const hasKids = context ? context.parentIds.has(t.id!) : allTasks.some(child => child.parentId === t.id);
           if (hasKids) return false;
           const tStart = new Date(t.startDate);
           const tEnd = new Date(t.endDate);
