@@ -1236,15 +1236,21 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
       return (a.sortOrder ?? a.id ?? 0) - (b.sortOrder ?? b.id ?? 0);
     });
 
-    // Apply status filter
-    const matchesFilter = (status: string) => {
+    // Apply status/schedule filter. Parents are kept as context when a descendant matches.
+    const hasChildren = (taskId: number) => tasks?.some(task => task.parentId === taskId) ?? false;
+    const isUnscheduledLeaf = (task: Task) => !hasChildren(task.id!) && (!task.startDate || !task.endDate);
+    const matchesFilter = (task: Task) => {
+      const status = task.status;
+      if (filterStatus === 'unscheduled') return isUnscheduledLeaf(task);
       if (filterStatus === 'paused') return status === 'paused';
-      // By default, hide paused tasks unless explicitly filtering for them
       if (status === 'paused' && filterStatus !== 'show_all') return false;
       if (filterStatus === 'all' || filterStatus === 'show_all' || filterStatus === 'collapse_done' || filterStatus === 'group_module') return true;
       if (filterStatus === 'active') return status === 'todo' || status === 'in_progress';
       return status === filterStatus;
     };
+    const hasMatchingDescendant = (parentId: number): boolean => (tasks || [])
+      .filter(task => task.parentId === parentId)
+      .some(child => matchesFilter(child) || hasMatchingDescendant(child.id!));
 
     const filteredRoots = (filterStatus === 'all' || filterStatus === 'show_all' || filterStatus === 'collapse_done' || filterStatus === 'group_module') ? allRoots.filter(root => {
       // In default views, hide paused tasks (unless show_all)
@@ -1255,9 +1261,9 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
       return true;
     }) : allRoots.filter(root => {
       // Parent task: show if itself matches OR any child matches
-      if (matchesFilter(root.status)) return true;
+      if (matchesFilter(root)) return true;
       const children = tasks?.filter(t => t.parentId === root.id!) || [];
-      return children.some(child => matchesFilter(child.status));
+      return children.some(child => matchesFilter(child) || hasMatchingDescendant(child.id!));
     });
 
     let memberFilteredRoots = filteredRoots;
@@ -1496,12 +1502,17 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
       return rows;
     }
 
-    // Helper: check if a task matches the current status filter
-    const matchesFilter = (status: string) => {
+    // Helper: check if a task matches the current status/schedule filter
+    const hasChildren = (taskId: number) => tasks.some(candidate => candidate.parentId === taskId);
+    const matchesFilter = (task: Task) => {
+      if (filterStatus === 'unscheduled') return !hasChildren(task.id!) && (!task.startDate || !task.endDate);
       if (filterStatus === 'all' || filterStatus === 'collapse_done' || filterStatus === 'group_module') return true;
-      if (filterStatus === 'active') return status === 'todo' || status === 'in_progress';
-      return status === filterStatus;
+      if (filterStatus === 'active') return task.status === 'todo' || task.status === 'in_progress';
+      return task.status === filterStatus;
     };
+    const hasMatchingDescendant = (parentId: number): boolean => tasks
+      .filter(candidate => candidate.parentId === parentId)
+      .some(child => matchesFilter(child) || hasMatchingDescendant(child.id!));
 
     const buildRows = (parentTasks: Task[], level: number) => {
       parentTasks.forEach(task => {
@@ -1511,10 +1522,10 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
           .sort((a, b) => (a.sortOrder ?? a.id ?? 0) - (b.sortOrder ?? b.id ?? 0));
         // Apply status filter to child tasks
         if (filterStatus !== 'all' && filterStatus !== 'collapse_done' && filterStatus !== 'group_module') {
-          children = children.filter(c => matchesFilter(c.status));
+          children = children.filter(c => matchesFilter(c) || hasMatchingDescendant(c.id!));
         }
 
-        if (children.length > 0 && expandedTaskIds.has(task.id!)) {
+        if (children.length > 0 && (expandedTaskIds.has(task.id!) || filterStatus === 'unscheduled')) {
           buildRows(children, level + 1);
         }
 

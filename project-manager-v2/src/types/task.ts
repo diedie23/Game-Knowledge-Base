@@ -17,6 +17,8 @@ export interface Task {
   projectId: number;
   parentId?: number;
   tapdId?: string;
+  /** Original TAPD parent story ID, retained so hierarchy can be rebuilt after every sync. */
+  tapdParentId?: string;
   /** External URL (e.g. TAPD story/bug link). When set, clicking the task name opens this URL. */
   externalUrl?: string;
 

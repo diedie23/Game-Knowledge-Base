@@ -238,6 +238,7 @@ export const GanttToolbar = React.memo(function GanttToolbar({
           >
             <option value="all" className="bg-gray-900">全部任务</option>
             <option value="active" className="bg-gray-900">进行中 + 未开始</option>
+            <option value="unscheduled" className="bg-gray-900">仅未排期</option>
             <option value="collapse_done" className="bg-gray-900">按状态分组</option>
             <option value="group_module" className="bg-gray-900">按模块分组</option>
             <option value="todo" className="bg-gray-900">仅未开始</option>

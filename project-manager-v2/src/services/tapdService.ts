@@ -469,6 +469,29 @@ export class TapdService {
     });
   }
 
+  /** Fill missing parent_id values from TAPD children_id so both hierarchy response shapes are supported. */
+  private normalizeStoryHierarchy(stories: any[]): any[] {
+    const storyById = new Map<string, any>();
+    stories.forEach(item => {
+      const story = item?.Story || item;
+      if (story?.id != null) storyById.set(String(story.id), story);
+    });
+    stories.forEach(item => {
+      const parent = item?.Story || item;
+      if (!parent?.id || !parent?.children_id) return;
+      const childIds = Array.isArray(parent.children_id)
+        ? parent.children_id.map(String)
+        : String(parent.children_id).split(/[,，;；|]/).map((id: string) => id.trim()).filter(Boolean);
+      childIds.forEach((childId: string) => {
+        const child = storyById.get(childId);
+        if (child && (!child.parent_id || String(child.parent_id) === '0')) {
+          child.parent_id = String(parent.id);
+        }
+      });
+    });
+    return stories;
+  }
+
   /** Apply user-facing filter dimensions. Values inside a dimension use OR; active dimensions default to AND. */
   private filterStoriesByAdvancedFilters(stories: any[], syncRange?: SyncRangeConfig): any[] {
     const keywords = (syncRange?.categoryKeywords || []).map(value => value.toLowerCase().trim()).filter(Boolean);
@@ -510,6 +533,35 @@ export class TapdService {
       if (results.length === beforeCount || batch.length < pageSize) break;
     }
     return results;
+  }
+
+  /** Query one requirement type (or release) at a time because TAPD multi-value parameters are inconsistent across gateways. */
+  private async fetchRestStoriesForSyncScope(
+    config: TapdConfig,
+    params: Record<string, string>,
+    totalLimit: number,
+    syncRange?: SyncRangeConfig
+  ): Promise<any[]> {
+    const typeIds = (syncRange?.workitemTypeFilter || []).map(String).filter(Boolean);
+    const releaseIds = (syncRange?.releaseFilter || []).map(String).filter(Boolean);
+    const scopes: Record<string, string>[] = typeIds.length > 0
+      ? typeIds.map(workitemTypeId => ({ workitem_type_id: workitemTypeId }))
+      : releaseIds.length > 0
+        ? releaseIds.map(releaseId => ({ release_id: releaseId }))
+        : [{}];
+    const results: any[] = [];
+    const seenIds = new Set<string>();
+    for (const scope of scopes) {
+      const batch = await this.fetchRestStoriesPaginated(config, { ...params, ...scope }, totalLimit);
+      for (const item of batch) {
+        const story = item?.Story || item;
+        const id = String(story?.id || '');
+        if (id && seenIds.has(id)) continue;
+        if (id) seenIds.add(id);
+        results.push(item);
+      }
+    }
+    return this.filterStoriesBySyncScope(results, syncRange).slice(0, totalLimit);
   }
 
   /** Recursively fetch every missing ancestor so deep TAPD hierarchies remain intact. */
@@ -1109,15 +1161,14 @@ export class TapdService {
         // The internal API may not expose /stories/count even when /stories is available.
         try {
           const previewLimit = syncRange?.limit || 1000;
-          const previewData = await this.fetchRestStoriesPaginated(
+          const previewData = await this.fetchRestStoriesForSyncScope(
             tempConfig,
             {
               workspace_id: workspaceId.trim(),
               fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort,begin,due',
-              ...(syncRange?.workitemTypeFilter?.length ? { workitem_type_id: syncRange.workitemTypeFilter.join('|') } : {}),
-              ...(syncRange?.releaseFilter?.length ? { release_id: syncRange.releaseFilter.join('|') } : {}),
             },
-            previewLimit
+            previewLimit,
+            syncRange
           );
           const data = { status: 1, data: previewData, info: '' };
           console.log('[TAPD] stories preview response:', {
@@ -1135,6 +1186,7 @@ export class TapdService {
           let previewStories = this.filterStoriesBySyncScope(Array.isArray(data?.data) ? data.data : [], syncRange);
           previewStories = this.filterStoriesByAdvancedFilters(previewStories, syncRange);
           previewStories = await this.fetchStoryAncestors(workspaceId.trim(), previewStories, tempConfig);
+          previewStories = this.normalizeStoryHierarchy(previewStories);
           let workitemTypes: { id: string; name: string }[] = [];
           let releasePlans: { id: string; name: string; status?: string; startdate?: string; enddate?: string }[] = [];
           try {
@@ -1307,10 +1359,7 @@ export class TapdService {
         if (extraParams.modified) restParams.modified = String(extraParams.modified);
         if (extraParams.status) restParams.status = String(extraParams.status);
         if (extraParams.owner) restParams.owner = String(extraParams.owner);
-        if (extraParams.workitem_type_id) restParams.workitem_type_id = String(extraParams.workitem_type_id);
-        if (extraParams.release_id) restParams.release_id = String(extraParams.release_id);
-
-        stories = await this.fetchRestStoriesPaginated(this.config!, restParams, limit);
+        stories = await this.fetchRestStoriesForSyncScope(this.config!, restParams, limit, syncRange);
         console.log('[TapdService] REST API paginated response count:', stories.length);
       } else {
         console.log('[TapdService] Fetching tasks via MCP proxy for workspace:', workspaceId);
@@ -1532,6 +1581,7 @@ export class TapdService {
 
       // Handle both { Story: {...} } and direct story object formats
       stories = await this.fetchStoryAncestors(workspaceId.trim(), stories, this.config || undefined);
+      stories = this.normalizeStoryHierarchy(stories);
 
       return stories.map(item => {
         const story = item?.Story || item;
@@ -1809,6 +1859,7 @@ export class TapdService {
       dependencies: [],
       assigneeIds: [],
       tapdId: String(story.id),
+      tapdParentId: story.parent_id != null ? String(story.parent_id) : undefined,
       externalUrl,
       module,
       estimatedHours,
@@ -2109,7 +2160,7 @@ export class TapdService {
       const tapdId = remoteTask.tapdId;
       if (!tapdId) continue;
 
-      const tapdParentId = (remoteTask as any)._tapdParentId as string | undefined;
+      const tapdParentId = remoteTask.tapdParentId || (remoteTask as any)._tapdParentId as string | undefined;
       const tapdOwner = (remoteTask as any)._tapdOwner as string | undefined;
 
       // Clean extended metadata before DB operations
@@ -2155,6 +2206,7 @@ export class TapdService {
           tapdStatus: cleanTask.tapdStatus,
           tapdPriorityLabel: cleanTask.tapdPriorityLabel,
           tapdOwner: cleanTask.tapdOwner,
+          tapdParentId,
           assigneeIds: cleanTask.assigneeIds && cleanTask.assigneeIds.length > 0
             ? cleanTask.assigneeIds
             : existing.assigneeIds, // Preserve existing assignments if no match
@@ -2165,7 +2217,7 @@ export class TapdService {
           syncSource: 'tapd',
         });
         tapdIdToLocalId.set(tapdId, existing.id);
-        if (tapdParentId) tasksWithParent.push({ localId: existing.id, tapdParentId });
+        if (tapdParentId !== undefined) tasksWithParent.push({ localId: existing.id, tapdParentId });
         details.push({ title: cleanTask.title || '', tapdId, action: 'updated', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
         updated++;
       } else {
@@ -2190,13 +2242,14 @@ export class TapdService {
             tapdStatus: cleanTask.tapdStatus,
             tapdPriorityLabel: cleanTask.tapdPriorityLabel,
             tapdOwner: cleanTask.tapdOwner,
+            tapdParentId,
             assigneeIds: cleanTask.assigneeIds && cleanTask.assigneeIds.length > 0
               ? cleanTask.assigneeIds
               : undefined,
             projectId: targetProjectId,
           });
           tapdIdToLocalId.set(tapdId, decision);
-          if (tapdParentId) tasksWithParent.push({ localId: decision, tapdParentId });
+          if (tapdParentId !== undefined) tasksWithParent.push({ localId: decision, tapdParentId });
           details.push({ title: cleanTask.title || '', tapdId, action: 'merged', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
           merged++;
           continue;
@@ -2220,13 +2273,14 @@ export class TapdService {
             tapdStatus: cleanTask.tapdStatus,
             tapdPriorityLabel: cleanTask.tapdPriorityLabel,
             tapdOwner: cleanTask.tapdOwner,
+            tapdParentId,
             assigneeIds: cleanTask.assigneeIds && cleanTask.assigneeIds.length > 0
               ? cleanTask.assigneeIds
               : undefined,
             projectId: targetProjectId,
           });
           tapdIdToLocalId.set(tapdId, matchedLocalId);
-          if (tapdParentId) tasksWithParent.push({ localId: matchedLocalId, tapdParentId });
+          if (tapdParentId !== undefined) tasksWithParent.push({ localId: matchedLocalId, tapdParentId });
           details.push({ title: cleanTask.title || '', tapdId, action: 'merged', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
           merged++;
           continue;
@@ -2244,23 +2298,23 @@ export class TapdService {
           syncSource: 'tapd',
         } as Task);
         tapdIdToLocalId.set(tapdId, newId as number);
-        if (tapdParentId) tasksWithParent.push({ localId: newId as number, tapdParentId });
+        if (tapdParentId !== undefined) tasksWithParent.push({ localId: newId as number, tapdParentId });
         details.push({ title: cleanTask.title || '', tapdId, action: 'inserted', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
         inserted++;
       }
     }
 
-    // Phase 3: Resolve parent-child relationships
+    // Phase 3: Resolve and repair parent-child relationships after all TAPD IDs are known.
+    let resolvedParentCount = 0;
     for (const { localId, tapdParentId } of tasksWithParent) {
-      if (tapdParentId && tapdParentId !== '0') {
-        const parentLocalId = tapdIdToLocalId.get(tapdParentId);
-        if (parentLocalId) {
-          await db.tasks.update(localId, { parentId: parentLocalId });
-        }
-      }
+      const parentLocalId = tapdParentId && tapdParentId !== '0'
+        ? tapdIdToLocalId.get(tapdParentId)
+        : undefined;
+      await db.tasks.update(localId, { tapdParentId, parentId: parentLocalId });
+      if (parentLocalId) resolvedParentCount++;
     }
 
-    console.log(`[TapdService] Sync complete: ${inserted} inserted, ${updated} updated, ${merged} merged, ${tasksWithParent.length} parent relationships resolved`);
+    console.log(`[TapdService] Sync complete: ${inserted} inserted, ${updated} updated, ${merged} merged, ${resolvedParentCount} parent relationships resolved`);
 
     return {
       inserted,
@@ -2569,6 +2623,25 @@ export class TapdService {
           await db.tasks.update(localTask.id!, silentUpdates);
         }
         unchangedCount++;
+      }
+    }
+
+    // Rebuild hierarchy for already imported tasks during quick refresh.
+    const refreshedTapdIdToLocalId = new Map<string, number>();
+    allLocalTasks.forEach(task => {
+      if (task.tapdId && task.id) refreshedTapdIdToLocalId.set(task.tapdId, task.id);
+    });
+    for (const localTask of linkedTasks) {
+      const remote = localTask.tapdId ? remoteMap.get(localTask.tapdId) : undefined;
+      if (!remote || remote.tapdParentId === undefined || !localTask.id) continue;
+      const parentId = remote.tapdParentId && remote.tapdParentId !== '0'
+        ? refreshedTapdIdToLocalId.get(remote.tapdParentId)
+        : undefined;
+      if (localTask.tapdParentId !== remote.tapdParentId || localTask.parentId !== parentId) {
+        await db.tasks.update(localTask.id, {
+          tapdParentId: remote.tapdParentId,
+          parentId,
+        });
       }
     }
 
