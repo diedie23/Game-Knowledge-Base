@@ -422,6 +422,121 @@ export class TapdService {
     return this.config;
   }
 
+  /** Import the UX team from TAPD member-management role groups. */
+  async syncProjectMembers(projectId: number): Promise<{
+    inserted: number;
+    updated: number;
+    total: number;
+    groupCounts: Record<string, number>;
+  }> {
+    const config = this.config || (await this.loadConfig(projectId));
+    if (!config) {
+      throw new Error('未找到 TAPD 配置，请先保存配置');
+    }
+    if (config.authMode !== 'rest' || !this.hasRestCredentials()) {
+      throw new Error('成员分组同步目前需要 REST API 账号和密钥');
+    }
+
+    const workspaceId = config.workspaceId.trim();
+    const [rolesResponse, usersResponse] = await Promise.all([
+      tapdRestFetch<{ status: number; data: Record<string, string>; info: string }>(
+        '/roles',
+        config,
+        { workspace_id: workspaceId }
+      ),
+      tapdRestFetch<{ status: number; data: any[]; info: string }>(
+        '/workspaces/users',
+        config,
+        {
+          workspace_id: workspaceId,
+          fields: 'user,user_id,role_id,name,email,real_join_time',
+        }
+      ),
+    ]);
+
+    if (rolesResponse?.status !== 1) {
+      throw new Error(rolesResponse?.info || '无法读取 TAPD 成员分组');
+    }
+    if (usersResponse?.status !== 1 || !Array.isArray(usersResponse?.data)) {
+      throw new Error(usersResponse?.info || '无法读取 TAPD 项目成员');
+    }
+
+    const targetGroupRoles: Record<string, string> = {
+      'UX-交互': 'UX设计',
+      'UX-视觉': 'UI设计',
+      'UX-动效': '动效',
+      'UX-还原': 'Layout',
+    };
+    const targetGroupOrder = Object.keys(targetGroupRoles);
+    const roleNames = rolesResponse.data || {};
+    const existingResources = await db.resources.toArray();
+    let nextSortOrder = existingResources.reduce((max, item) => Math.max(max, item.sortOrder || 0), 0) + 1;
+    let inserted = 0;
+    let updated = 0;
+    const groupCounts: Record<string, number> = Object.fromEntries(targetGroupOrder.map(group => [group, 0]));
+    const processedAccounts = new Set<string>();
+
+    for (const item of usersResponse.data) {
+      const member = item?.UserWorkspace || item;
+      if (!member || String(member.status ?? '1') === '0') continue;
+
+      const roleIds = Array.isArray(member.role_id)
+        ? member.role_id.map(String)
+        : String(member.role_id || '').split(',').map((value: string) => value.trim()).filter(Boolean);
+      const memberGroups = roleIds.map((roleId: string) => roleNames[roleId]).filter(Boolean);
+      const tapdGroup = targetGroupOrder.find(group => memberGroups.includes(group));
+      if (!tapdGroup) continue;
+
+      const account = String(member.user || '').trim();
+      const accountKey = account.toLowerCase();
+      if (!account || processedAccounts.has(accountKey)) continue;
+      processedAccounts.add(accountKey);
+
+      const name = String(member.name || member.user || '').trim();
+      const role = targetGroupRoles[tapdGroup];
+      const joinDate = String(member.real_join_time || member.join_project_time || '').slice(0, 10) || undefined;
+      const existing = existingResources.find(resource =>
+        resource.tapdAccount?.trim().toLowerCase() === accountKey ||
+        (!!name && resource.name.trim() === name)
+      );
+
+      if (existing?.id) {
+        await db.resources.update(existing.id, {
+          name,
+          role,
+          group: tapdGroup,
+          tapdAccount: account,
+          type: 'internal',
+          status: existing.status === 'departed' ? 'active' : (existing.status || 'active'),
+          joinDate: joinDate || existing.joinDate,
+        });
+        updated++;
+      } else {
+        const newResource = {
+          name,
+          role,
+          group: tapdGroup,
+          tapdAccount: account,
+          type: 'internal' as const,
+          status: 'active' as const,
+          joinDate,
+          sortOrder: nextSortOrder++,
+        };
+        const newId = await db.resources.add(newResource);
+        existingResources.push({ ...newResource, id: newId });
+        inserted++;
+      }
+      groupCounts[tapdGroup]++;
+    }
+
+    return {
+      inserted,
+      updated,
+      total: inserted + updated,
+      groupCounts,
+    };
+  }
+
   /**
    * Test connection by fetching workspace info via MCP proxy.
    * Returns workspace name on success.

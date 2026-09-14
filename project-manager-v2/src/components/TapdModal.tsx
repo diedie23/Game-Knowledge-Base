@@ -39,6 +39,8 @@ export function TapdModal() {
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isSyncingMembers, setIsSyncingMembers] = useState(false);
+  const [memberSyncResult, setMemberSyncResult] = useState<{ inserted: number; updated: number; total: number; groupCounts: Record<string, number> } | null>(null);
   const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [localSyncStatus, setLocalSyncStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
@@ -777,6 +779,36 @@ export function TapdModal() {
     }
   };
 
+  const handleSyncProjectMembers = async () => {
+    if (!existingConfig) {
+      setErrorMessage('请先保存 TAPD 配置，再同步成员分组');
+      return;
+    }
+    setIsSyncingMembers(true);
+    setMemberSyncResult(null);
+    setErrorMessage('');
+    try {
+      await tapdService.loadConfig(selectedProjectId);
+      const result = await tapdService.syncProjectMembers(selectedProjectId);
+      setMemberSyncResult(result);
+
+      const all = await db.resources.toArray();
+      const active = all.filter(resource => resource.status !== 'departed' && resource.type !== 'cp');
+      active.sort((a, b) => getRoleOrderIndex(a.role) - getRoleOrderIndex(b.role));
+      setTeamResources(active.map(resource => ({
+        id: resource.id,
+        name: resource.name,
+        role: resource.role,
+        tapdAccount: resource.tapdAccount,
+      })));
+    } catch (err: any) {
+      console.error('[TapdModal] Member group sync failed:', err);
+      setErrorMessage(err.message || '同步 TAPD 成员分组失败');
+    } finally {
+      setIsSyncingMembers(false);
+    }
+  };
+
   const handleRefreshStatus = async () => {
     if (!existingConfig) {
       setErrorMessage('请先保存配置');
@@ -1169,6 +1201,41 @@ export function TapdModal() {
                     <div className="text-sm text-emerald-300 font-semibold truncate">{workspaceName}</div>
                   </div>
                   <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
+                </div>
+              )}
+
+              {/* TAPD member group import */}
+              {authMode === 'rest' && (testStatus === 'success' || !!existingConfig) && (
+                <div className="rounded-lg border border-blue-500/20 bg-blue-500/[0.06] p-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold text-blue-200">按 TAPD「成员管理」分组录入</div>
+                      <div className="text-[10px] text-gray-500 mt-1">
+                        同步 UX-交互、UX-视觉、UX-动效、UX-还原；按 TAPD 英文账号去重。
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSyncProjectMembers}
+                      disabled={isSyncingMembers || !existingConfig}
+                      className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/80 hover:bg-blue-500 disabled:opacity-40 text-xs font-medium text-white transition-colors"
+                    >
+                      <RefreshCw size={12} className={isSyncingMembers ? 'animate-spin' : ''} />
+                      {isSyncingMembers ? '同步中...' : '同步成员分组'}
+                    </button>
+                  </div>
+                  {memberSyncResult && (
+                    <div className="mt-2 pt-2 border-t border-blue-500/15 text-[10px] text-blue-200/80">
+                      已录入 {memberSyncResult.total} 人（新增 {memberSyncResult.inserted}，更新 {memberSyncResult.updated}）
+                      <div className="mt-1 flex flex-wrap gap-1.5 text-gray-400">
+                        {Object.entries(memberSyncResult.groupCounts).map(([group, count]) => (
+                          <span key={group} className="px-1.5 py-0.5 rounded bg-gray-900/50 border border-white/5">
+                            {group} {count}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
