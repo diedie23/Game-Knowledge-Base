@@ -669,7 +669,7 @@ export class TapdService {
           
           // Build query params from syncRange config for preview
           const previewLimit = syncRange?.limit || 200;
-          const previewParams: Record<string, unknown> = { workspace_id: workspaceId.trim(), limit: previewLimit, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,description,effort' };
+          const previewParams: Record<string, unknown> = { workspace_id: workspaceId.trim(), limit: previewLimit, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort' };
           if (syncRange) {
             if (syncRange.mode === 'recent' && syncRange.recentDays) {
               const endDate = new Date();
@@ -915,7 +915,7 @@ export class TapdService {
               try {
                 const parentData = await mcpGatewayFetch<any>(
                   'stories_get',
-                  { workspace_id: workspaceId.trim(), id: Array.from(missingParentIds).join(','), fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,description,effort' },
+                  { workspace_id: workspaceId.trim(), id: Array.from(missingParentIds).join(','), fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort' },
                   mcpAccessToken
                 );
                 let parentStories: any[] = [];
@@ -1004,7 +1004,7 @@ export class TapdService {
             {
               workspace_id: workspaceId.trim(),
               limit: String(previewLimit),
-              fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,description,effort,begin,due',
+              fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort,begin,due',
               ...(syncRange?.workitemTypeFilter?.length
                 ? { workitem_type_id: syncRange.workitemTypeFilter.join('|') }
                 : {}),
@@ -1176,7 +1176,7 @@ export class TapdService {
         // Fetch via MCP Gateway (streamable-http) — include fields param to get custom fields for filtering
         const data = await mcpGatewayFetch<{ status?: number; data?: any; count?: number }>(
           'stories_get',
-          { workspace_id: workspaceId.trim(), limit, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,description,effort,begin,due', ...extraParams },
+          { workspace_id: workspaceId.trim(), limit, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort,begin,due', ...extraParams },
           this.config!.mcpAccessToken!
         );
         console.log('[TapdService] MCP Gateway response:', typeof data, Array.isArray(data));
@@ -1391,7 +1391,7 @@ export class TapdService {
           if (this.hasMcpGatewayCredentials()) {
             const data = await mcpGatewayFetch<{ status?: number; data?: any }>(
               'stories_get',
-              { workspace_id: workspaceId, id: parentIds, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,description,effort,begin,due' },
+              { workspace_id: workspaceId, id: parentIds, fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort,begin,due' },
               this.config!.mcpAccessToken!
             );
             if (Array.isArray(data)) {
@@ -1642,6 +1642,10 @@ export class TapdService {
       'p0': 'high',
       'p1': 'medium',
       'p2': 'low',
+      '4': 'high',
+      '3': 'medium',
+      '2': 'low',
+      '1': 'low',
     };
     return priorityMap[tapdPriority?.toLowerCase()] || 'medium';
   }
@@ -1690,7 +1694,7 @@ export class TapdService {
       title: story.name,
       description: story.description || '',
       status,
-      priority: this.mapPriority(story.priority),
+      priority: this.mapPriority(story.priority_label || story.priority),
       // Leave dates undefined when no schedule info (don't fill with current date)
       startDate: story.begin ? new Date(story.begin) : undefined,
       endDate: story.due ? new Date(story.due) : undefined,
@@ -1702,6 +1706,10 @@ export class TapdService {
       externalUrl,
       module,
       estimatedHours,
+      tapdReleaseId: story.release_id || undefined,
+      tapdStatus: story.status || undefined,
+      tapdPriorityLabel: story.priority_label || story.priority || undefined,
+      tapdOwner: story.owner || undefined,
       syncSource: 'tapd',
       updatedAt: Date.now(),
       // Extended metadata (stripped before DB insert)
@@ -1955,6 +1963,16 @@ export class TapdService {
       console.log(`[TapdService] Filtered by selectedStoryIds: ${beforeCount} → ${remoteTasks.length} tasks`);
     }
     const moduleMappings = config.syncRange?.moduleMappings;
+    const releaseNameById = new Map<string, string>();
+    try {
+      const plans = await this.getReleasePlans(projectId);
+      plans.forEach(plan => releaseNameById.set(plan.id, plan.name));
+    } catch (error) {
+      console.warn('[TapdService] Failed to resolve release plan names:', error);
+    }
+    remoteTasks.forEach(task => {
+      if (task.tapdReleaseId) task.tapdReleaseName = releaseNameById.get(task.tapdReleaseId);
+    });
     let inserted = 0;
     let updated = 0;
     let merged = 0;
@@ -2025,6 +2043,12 @@ export class TapdService {
           startDate: cleanTask.startDate,
           endDate: cleanTask.endDate,
           progress: cleanTask.progress,
+          estimatedHours: cleanTask.estimatedHours,
+          tapdReleaseId: cleanTask.tapdReleaseId,
+          tapdReleaseName: cleanTask.tapdReleaseName,
+          tapdStatus: cleanTask.tapdStatus,
+          tapdPriorityLabel: cleanTask.tapdPriorityLabel,
+          tapdOwner: cleanTask.tapdOwner,
           assigneeIds: cleanTask.assigneeIds && cleanTask.assigneeIds.length > 0
             ? cleanTask.assigneeIds
             : existing.assigneeIds, // Preserve existing assignments if no match
@@ -2054,6 +2078,12 @@ export class TapdService {
             startDate: cleanTask.startDate,
             endDate: cleanTask.endDate,
             progress: cleanTask.progress,
+            estimatedHours: cleanTask.estimatedHours,
+            tapdReleaseId: cleanTask.tapdReleaseId,
+            tapdReleaseName: cleanTask.tapdReleaseName,
+            tapdStatus: cleanTask.tapdStatus,
+            tapdPriorityLabel: cleanTask.tapdPriorityLabel,
+            tapdOwner: cleanTask.tapdOwner,
             assigneeIds: cleanTask.assigneeIds && cleanTask.assigneeIds.length > 0
               ? cleanTask.assigneeIds
               : undefined,
@@ -2078,6 +2108,12 @@ export class TapdService {
             startDate: cleanTask.startDate,
             endDate: cleanTask.endDate,
             progress: cleanTask.progress,
+            estimatedHours: cleanTask.estimatedHours,
+            tapdReleaseId: cleanTask.tapdReleaseId,
+            tapdReleaseName: cleanTask.tapdReleaseName,
+            tapdStatus: cleanTask.tapdStatus,
+            tapdPriorityLabel: cleanTask.tapdPriorityLabel,
+            tapdOwner: cleanTask.tapdOwner,
             assigneeIds: cleanTask.assigneeIds && cleanTask.assigneeIds.length > 0
               ? cleanTask.assigneeIds
               : undefined,
@@ -2175,6 +2211,13 @@ export class TapdService {
 
     // Support multiple workspace IDs
     const workspaceIds = config.workspaceId.split(/[,;，；]/).map(id => id.trim()).filter(Boolean);
+    const refreshReleaseNameById = new Map<string, string>();
+    try {
+      const plans = await this.getReleasePlans(projectId);
+      plans.forEach(plan => refreshReleaseNameById.set(plan.id, plan.name));
+    } catch (error) {
+      console.warn('[TapdService] Failed to resolve release names during refresh:', error);
+    }
 
     // Batch fetch all linked tasks by ID (max ~50 per request for API stability)
     const batchSize = 50;
@@ -2188,7 +2231,7 @@ export class TapdService {
           if (this.hasMcpGatewayCredentials()) {
             const data = await mcpGatewayFetch<{ status?: number; data?: any; count?: number }>(
               'stories_get',
-              { workspace_id: wsId, id: batchIds.join(','), fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,description,effort,begin,due' },
+              { workspace_id: wsId, id: batchIds.join(','), fields: 'id,name,owner,status,created,modified,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,effort,begin,due' },
               config.mcpAccessToken!
             );
             if (Array.isArray(data)) {
@@ -2222,6 +2265,7 @@ export class TapdService {
           const story = item?.Story || item;
           if (story?.id) {
             const mapped = this.mapTapdStoryToTask(story);
+            if (mapped.tapdReleaseId) mapped.tapdReleaseName = refreshReleaseNameById.get(mapped.tapdReleaseId);
             remoteMap.set(story.id, mapped as any);
             (mapped as any)._tapdOwner = story.owner || undefined;
           }
@@ -2356,6 +2400,12 @@ export class TapdService {
         if (remote.module) {
           updateData.module = remote.module;
         }
+        updateData.estimatedHours = remote.estimatedHours;
+        updateData.tapdReleaseId = remote.tapdReleaseId;
+        updateData.tapdReleaseName = remote.tapdReleaseName;
+        updateData.tapdStatus = remote.tapdStatus;
+        updateData.tapdPriorityLabel = remote.tapdPriorityLabel;
+        updateData.tapdOwner = remote.tapdOwner;
         for (const change of changes) {
           switch (change.field) {
             case 'status':
@@ -2398,6 +2448,12 @@ export class TapdService {
         if (remote.module && !localTask.module) {
           silentUpdates.module = remote.module;
         }
+        if (remote.estimatedHours !== localTask.estimatedHours) silentUpdates.estimatedHours = remote.estimatedHours;
+        if (remote.tapdReleaseId !== localTask.tapdReleaseId) silentUpdates.tapdReleaseId = remote.tapdReleaseId;
+        if (remote.tapdReleaseName !== localTask.tapdReleaseName) silentUpdates.tapdReleaseName = remote.tapdReleaseName;
+        if (remote.tapdStatus !== localTask.tapdStatus) silentUpdates.tapdStatus = remote.tapdStatus;
+        if (remote.tapdPriorityLabel !== localTask.tapdPriorityLabel) silentUpdates.tapdPriorityLabel = remote.tapdPriorityLabel;
+        if (remote.tapdOwner !== localTask.tapdOwner) silentUpdates.tapdOwner = remote.tapdOwner;
         // Fix corrupted assigneeIds containing NaN values
         if (localTask.assigneeIds && localTask.assigneeIds.some(id => isNaN(id))) {
           const validIds = localTask.assigneeIds.filter(id => !isNaN(id));

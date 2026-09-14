@@ -1880,6 +1880,12 @@ export function TapdModal() {
                         // Render a single story row
                         const renderStoryRow = (s: any, sid: string, depth: number, isParent: boolean, childCount: number, isCollapsedNode: boolean, isPartialSel: boolean) => {
                           const sel = selectedStories.has(sid);
+                          const rawPriority = String(s.priority_label || s.priority || '').trim();
+                          const priorityKey = rawPriority.toLowerCase();
+                          const priorityLabel = ({ '4': 'P0', high: 'P0', urgent: 'P0', '3': 'P1', middle: 'P1', medium: 'P1', '2': 'P2', '1': 'P2', low: 'P2', 'nice to have': 'P2' } as Record<string, string>)[priorityKey] || rawPriority.toUpperCase();
+                          const effortDays = Number.parseFloat(String(s.effort || '').replace(/[^\d.]/g, ''));
+                          const effortHours = Number.isFinite(effortDays) ? effortDays * 8 : undefined;
+                          const releaseName = releasePlans.find(plan => plan.id === String(s.release_id || ''))?.name;
                           return (
                             <div
                               key={sid}
@@ -1917,11 +1923,18 @@ export function TapdModal() {
                                   {isParent && (
                                     <span className="text-[9px] text-gray-500 shrink-0">({childCount})</span>
                                   )}
-                                  {s._isVirtual && (
+                                  {(s._isVirtual || isParent) && (
                                     <span className="text-[9px] px-1 py-0.5 rounded bg-purple-500/15 text-purple-400 shrink-0">父需求</span>
+                                  )}
+                                  {!s._isVirtual && s.parent_id && s.parent_id !== '0' && (
+                                    <span className="text-[9px] px-1 py-0.5 rounded bg-cyan-500/15 text-cyan-400 shrink-0">子需求</span>
                                   )}
                                 </div>
                                 <div className="text-[10px] text-gray-500 flex items-center gap-2 mt-0.5 flex-wrap">
+                                  {priorityLabel && !s._isVirtual && <span className="font-medium text-orange-300">{priorityLabel}</span>}
+                                  {effortHours !== undefined && !s._isVirtual && <span>⏱ {effortHours}h</span>}
+                                  {(s.begin || s.due) && !s._isVirtual && <span>📅 {s.begin || '未定'} ~ {s.due || '未定'}</span>}
+                                  {releaseName && !s._isVirtual && <span className="text-violet-300">🚀 {releaseName}</span>}
                                   {s.owner && <span className="flex items-center gap-0.5">👤 {s.owner}</span>}
                                   {s.status && !s._isVirtual && (
                                     <span className={`px-1 py-0.5 rounded text-[9px] ${

@@ -39,6 +39,12 @@ export interface Task {
 
   /** TAPD module name (e.g. '2D Avatar', '轻舟编辑器', 'UGC小游戏', '元梦之星') for grouping */
   module?: string;
+  /** TAPD source fields retained for display and refresh. */
+  tapdReleaseId?: string;
+  tapdReleaseName?: string;
+  tapdStatus?: string;
+  tapdPriorityLabel?: string;
+  tapdOwner?: string;
 
   /** Actual completion date (set when task is marked as done) */
   completedAt?: Date;

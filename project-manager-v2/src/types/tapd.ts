@@ -86,6 +86,8 @@ export interface TapdStory {
     description: string;
     status: string;
     priority: string;
+    /** Custom/display priority returned by TAPD (for example P0/P1/P2) */
+    priority_label?: string;
     owner: string;
     begin: string;
     due: string;
