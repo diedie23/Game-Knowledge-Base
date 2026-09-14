@@ -18,6 +18,7 @@ import { conflictResolver } from '../services/syncEngine';
 import { TapdSyncAdapter } from '../services/syncAdapter';
 import { syncAllParentDateRanges } from '../services/workloadService';
 import { getRoleOrderIndex } from './gantt/constants';
+import { getLocalPriorityLabel, mapTapdPriority } from '../utils/tapdPriority';
 
 type TabId = 'config' | 'sync' | 'conflicts' | 'log';
 
@@ -1966,8 +1967,7 @@ export function TapdModal() {
                         const renderStoryRow = (s: any, sid: string, depth: number, isParent: boolean, childCount: number, isCollapsedNode: boolean, isPartialSel: boolean) => {
                           const sel = selectedStories.has(sid);
                           const rawPriority = String(s.priority_label || s.priority || '').trim();
-                          const priorityKey = rawPriority.toLowerCase();
-                          const priorityLabel = ({ '4': 'P0', high: 'P0', urgent: 'P0', '3': 'P1', middle: 'P1', medium: 'P1', '2': 'P2', '1': 'P2', low: 'P2', 'nice to have': 'P2' } as Record<string, string>)[priorityKey] || rawPriority.toUpperCase();
+                          const priorityLabel = rawPriority ? getLocalPriorityLabel(mapTapdPriority(rawPriority)) : '';
                           const effortDays = Number.parseFloat(String(s.effort || '').replace(/[^\d.]/g, ''));
                           const effortHours = Number.isFinite(effortDays) ? effortDays * 8 : undefined;
                           const releaseName = releasePlans.find(plan => plan.id === String(s.release_id || ''))?.name;

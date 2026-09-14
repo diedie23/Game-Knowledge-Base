@@ -1,6 +1,7 @@
 import { db } from '../db/db';
 import type { Task, TapdConfig, TapdWorkspaceInfo, TapdStory, TapdIteration, SyncResult, SyncDetailItem, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem } from '../types';
 import type { TapdAuthMode, ModuleMapping, SyncRangeConfig } from '../types/tapd';
+import { mapTapdPriority } from '../utils/tapdPriority';
 
 // Re-export for consumers
 export type { SyncResult, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem };
@@ -1789,21 +1790,7 @@ export class TapdService {
 
   /** Map TAPD priority string to local priority */
   private mapPriority(tapdPriority: string): 'low' | 'medium' | 'high' {
-    const priorityMap: Record<string, 'low' | 'medium' | 'high'> = {
-      'nice to have': 'low',
-      'low': 'low',
-      'medium': 'medium',
-      'high': 'high',
-      'urgent': 'high',
-      'p0': 'high',
-      'p1': 'medium',
-      'p2': 'low',
-      '4': 'high',
-      '3': 'medium',
-      '2': 'low',
-      '1': 'low',
-    };
-    return priorityMap[tapdPriority?.toLowerCase()] || 'medium';
+    return mapTapdPriority(tapdPriority);
   }
 
   /** Map local status to TAPD status string */
@@ -3476,11 +3463,7 @@ export class TapdImportService {
 
   /** Map Chinese priority strings from TAPD export */
   private static mapImportPriority(priority: string): 'low' | 'medium' | 'high' {
-    const p = priority.trim().toLowerCase();
-    if (/^p0\b/.test(p) || ['紧急', '高', 'urgent', 'high'].some(k => p.includes(k))) return 'high';
-    if (/^p1\b/.test(p) || ['中', 'medium', 'middle'].some(k => p.includes(k))) return 'medium';
-    if (/^p[2-4]\b/.test(p) || ['低', 'low', 'nice'].some(k => p.includes(k))) return 'low';
-    return 'medium';
+    return mapTapdPriority(priority);
   }
 }
 
