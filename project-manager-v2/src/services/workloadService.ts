@@ -268,20 +268,40 @@ export async function syncParentDateRange(parentId: number): Promise<boolean> {
  */
 export async function syncAllParentDateRanges(): Promise<number> {
   const allTasks = await db.tasks.toArray();
-  const parentIds = new Set<number>();
-  
-  // Find all unique parent IDs
-  allTasks.forEach(t => {
-    if (t.parentId) parentIds.add(t.parentId);
+  const taskById = new Map<number, Task>();
+  const childrenByParentId = new Map<number, Task[]>();
+
+  allTasks.forEach(task => {
+    if (task.id) taskById.set(task.id, task);
+    if (!task.parentId) return;
+    const children = childrenByParentId.get(task.parentId) || [];
+    children.push(task);
+    childrenByParentId.set(task.parentId, children);
   });
 
-  let updatedCount = 0;
-  for (const pid of parentIds) {
-    const updated = await syncParentDateRange(pid);
-    if (updated) updatedCount++;
+  const updates: Array<{ id: number; changes: Partial<Task> }> = [];
+  childrenByParentId.forEach((children, parentId) => {
+    const parent = taskById.get(parentId);
+    if (!parent) return;
+    const { startDate, endDate } = calcParentDateRange(children);
+    const changes: Partial<Task> = {};
+    if (startDate && (!parent.startDate || new Date(parent.startDate).getTime() !== startDate.getTime())) {
+      changes.startDate = startDate;
+    }
+    if (endDate && (!parent.endDate || new Date(parent.endDate).getTime() !== endDate.getTime())) {
+      changes.endDate = endDate;
+    }
+    if (Object.keys(changes).length > 0) updates.push({ id: parentId, changes });
+  });
+
+  if (updates.length > 0) {
+    await db.transaction('rw', db.tasks, async () => {
+      for (const update of updates) {
+        await db.tasks.update(update.id, update.changes);
+      }
+    });
   }
-  
-  return updatedCount;
+  return updates.length;
 }
 
 // ─── Dependency Conflict Detection ───────────────────────────────

@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { tapdService } from '../services/tapdService';
 import { useStore } from '../store/useStore';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
@@ -32,23 +31,6 @@ export function Dashboard() {
     () => tasks.filter(task => !task.id || !parentTaskIds.has(task.id)),
     [tasks, parentTaskIds]
   );
-
-  React.useEffect(() => {
-    if (!selectedProjectId) return;
-    const refreshKey = 'tapd-dashboard-refresh-' + selectedProjectId;
-    const refresh = () => {
-      const lastRefresh = Number(sessionStorage.getItem(refreshKey) || 0);
-      if (Date.now() - lastRefresh < 5 * 60 * 1000) return;
-      sessionStorage.setItem(refreshKey, String(Date.now()));
-      void tapdService.refreshExistingTasks(selectedProjectId).catch(error => {
-        sessionStorage.removeItem(refreshKey);
-        console.warn('[Dashboard] TAPD background refresh failed:', error);
-      });
-    };
-    refresh();
-    window.addEventListener('focus', refresh);
-    return () => window.removeEventListener('focus', refresh);
-  }, [selectedProjectId]);
 
   // 1. 顶部一行：今天是几号、本周第几天、距离下个版本节点还有几天
   const today = new Date();

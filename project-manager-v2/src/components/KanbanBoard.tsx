@@ -10,7 +10,6 @@ import { Avatar } from './common/Avatar';
 import { compareResources, getRoleOrderIndex } from './gantt/constants';
 import { getEffectiveStatus } from '../types/resource';
 import { syncParentDateRange } from '../services/workloadService';
-import { tapdService } from '../services/tapdService';
 import EmptyState from './common/EmptyState';
 import { confirmDialog } from './common/ConfirmDialog';
 
@@ -138,18 +137,6 @@ export const KanbanBoard: React.FC = () => {
       setTasks(rawTasks);
     }
   }, [rawTasks]);
-
-  useEffect(() => {
-    if (!selectedProjectId) return;
-    const refreshKey = 'tapd-dashboard-refresh-' + selectedProjectId;
-    const lastRefresh = Number(sessionStorage.getItem(refreshKey) || 0);
-    if (Date.now() - lastRefresh < 5 * 60 * 1000) return;
-    sessionStorage.setItem(refreshKey, String(Date.now()));
-    void tapdService.refreshExistingTasks(selectedProjectId).catch(error => {
-      sessionStorage.removeItem(refreshKey);
-      console.warn('[Kanban] TAPD background refresh failed:', error);
-    });
-  }, [selectedProjectId]);
 
   // Sync sidebar member selection with local filter
   useEffect(() => {
