@@ -2,7 +2,7 @@ import { db } from '../db/db';
 import type { Task, Resource, TapdConfig, TapdWorkspaceInfo, TapdStory, TapdIteration, SyncResult, SyncDetailItem, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem } from '../types';
 import type { TapdAuthMode, ModuleMapping, SyncRangeConfig } from '../types/tapd';
 import { getTapdPriorityValue, mapTapdPriority } from '../utils/tapdPriority';
-import { parseTapdDate, parseTapdEffortHours } from '../utils/tapdFields';
+import { formatTapdCalendarDate, parseTapdDate, parseTapdEffortHours } from '../utils/tapdFields';
 import { applyTapdCompletionStatus, mapTapdStatus } from '../utils/tapdStatus';
 import {
   extractCpSupplierNames,
@@ -11,6 +11,7 @@ import {
   matchCpResourcesFromTitle,
   normalizeSupplierName,
 } from '../utils/cpSupplier';
+import { classifyTapdMember } from '../utils/memberClassification';
 
 // Re-export for consumers
 export type { SyncResult, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem };
@@ -841,15 +842,9 @@ export class TapdService {
       processedMemberKeys.add(memberKey);
 
       const name = rawName || account || userId;
-      const role = targetGroupRoles[tapdGroup];
-      const workforceType = memberGroups.find(group =>
-        /(基地|外包|派遣|正式员工|实习|校招|社招|供应商|合作方|编制)/.test(group)
-      );
-      const memberType = workforceType && /供应商|合作方|外包/.test(workforceType)
-        ? 'cp' as const
-        : workforceType && /基地/.test(workforceType)
-          ? 'base' as const
-          : 'internal' as const;
+      const classification = classifyTapdMember(memberGroups, tapdGroup, targetGroupRoles[tapdGroup]);
+      const { role, workforceType, type: memberType, supplierAffiliation } = classification;
+      const resourceGroup = classification.group;
       const joinDate = String(member.real_join_time || member.join_project_time || '').slice(0, 10) || undefined;
       const existing = existingResources.find(resource => {
         if (account) {
@@ -863,11 +858,12 @@ export class TapdService {
         await db.resources.update(existing.id, {
           name,
           role,
-          group: tapdGroup,
+          group: resourceGroup,
           tapdAccount: account || existing.tapdAccount,
           projectIds,
           tapdGroups: memberGroups,
           workforceType: workforceType || existing.workforceType,
+          supplierAffiliation: supplierAffiliation || existing.supplierAffiliation,
           type: memberType,
           status: existing.status === 'departed' ? 'active' : (existing.status || 'active'),
           joinDate: joinDate || existing.joinDate,
@@ -877,11 +873,12 @@ export class TapdService {
         const newResource = {
           name,
           role,
-          group: tapdGroup,
+          group: resourceGroup,
           tapdAccount: account || undefined,
           projectIds: [projectId],
           tapdGroups: memberGroups,
           workforceType,
+          supplierAffiliation,
           type: memberType,
           status: 'active' as const,
           joinDate,
@@ -1840,10 +1837,10 @@ export class TapdService {
       
       // Format dates to YYYY-MM-DD
       if (updates.startDate !== undefined) {
-        tapdUpdates.begin = new Date(updates.startDate).toISOString().split('T')[0];
+        tapdUpdates.begin = formatTapdCalendarDate(updates.startDate) || '';
       }
       if (updates.endDate !== undefined) {
-        tapdUpdates.due = new Date(updates.endDate).toISOString().split('T')[0];
+        tapdUpdates.due = formatTapdCalendarDate(updates.endDate) || '';
       }
 
       // Try MCP Gateway first if configured
@@ -2240,8 +2237,8 @@ export class TapdService {
             tapdId: remote.tapdId,
             tapdTitle: remote.title || '',
             tapdOwner: (remote as any)._tapdOwner || '',
-            tapdStartDate: remote.startDate ? new Date(remote.startDate).toISOString().slice(0, 10) : undefined,
-            tapdEndDate: remote.endDate ? new Date(remote.endDate).toISOString().slice(0, 10) : undefined,
+            tapdStartDate: remote.startDate ? formatTapdCalendarDate(remote.startDate) : undefined,
+            tapdEndDate: remote.endDate ? formatTapdCalendarDate(remote.endDate) : undefined,
             localTaskId: local.id!,
             localTitle: local.title,
             localOwner: ownerNames || undefined,
@@ -2724,8 +2721,8 @@ export class TapdService {
       }
 
       // TAPD dates are authoritative for both parent and child requirements.
-      const localStart = localTask.startDate ? new Date(localTask.startDate).toISOString().slice(0, 10) : '';
-      const remoteStart = remote.startDate ? new Date(remote.startDate).toISOString().slice(0, 10) : '';
+      const localStart = localTask.startDate ? formatTapdCalendarDate(localTask.startDate) : '';
+      const remoteStart = remote.startDate ? formatTapdCalendarDate(remote.startDate) : '';
       if (localStart !== remoteStart) {
         changes.push({
           field: 'startDate',
@@ -2734,8 +2731,8 @@ export class TapdService {
         });
       }
 
-      const localEnd = localTask.endDate ? new Date(localTask.endDate).toISOString().slice(0, 10) : '';
-      const remoteEnd = remote.endDate ? new Date(remote.endDate).toISOString().slice(0, 10) : '';
+      const localEnd = localTask.endDate ? formatTapdCalendarDate(localTask.endDate) : '';
+      const remoteEnd = remote.endDate ? formatTapdCalendarDate(remote.endDate) : '';
       if (localEnd !== remoteEnd) {
         changes.push({
           field: 'endDate',
@@ -2821,10 +2818,10 @@ export class TapdService {
               updateData.status = change.newValue as Task['status'];
               break;
             case 'startDate':
-              updateData.startDate = change.newValue === '未设置' ? null as any : new Date(change.newValue);
+              updateData.startDate = change.newValue === '未设置' ? null as any : parseTapdDate(change.newValue) as Date;
               break;
             case 'endDate':
-              updateData.endDate = change.newValue === '未设置' ? null as any : new Date(change.newValue);
+              updateData.endDate = change.newValue === '未设置' ? null as any : parseTapdDate(change.newValue) as Date;
               break;
             case 'priority':
               updateData.priority = change.newValue === '未设置' ? undefined : change.newValue as Task['priority'];
@@ -3734,4 +3731,3 @@ export class TapdImportService {
     return mapTapdPriority(priority);
   }
 }
-

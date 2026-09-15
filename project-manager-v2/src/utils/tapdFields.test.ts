@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseTapdDate, parseTapdEffortHours } from './tapdFields';
+import { formatTapdCalendarDate, parseTapdDate, parseTapdEffortHours } from './tapdFields';
 
 describe('TAPD field parsing', () => {
   it('parses TAPD calendar dates without a timezone shift', () => {
@@ -9,6 +9,11 @@ describe('TAPD field parsing', () => {
     expect(result?.getDate()).toBe(14);
   });
 
+  it('formats local calendar dates without converting through UTC', () => {
+    const localMidnight = new Date(2026, 8, 14, 0, 0, 0);
+    expect(formatTapdCalendarDate(localMidnight)).toBe('2026-09-14');
+    expect(formatTapdCalendarDate('2026/09/14 23:59:59')).toBe('2026-09-14');
+  });
   it('rejects empty and invalid TAPD dates', () => {
     expect(parseTapdDate('0000-00-00')).toBeUndefined();
     expect(parseTapdDate('2026-02-31')).toBeUndefined();

@@ -700,23 +700,21 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                         const typeCount = activeResources.filter(r => (r.type || 'internal') === resourceType).length;
 
                         // Role/project sub-groups are useful for internal and base execution members.
-                        const showRoleGroupDivider = (() => {
-                          if (resourceType === 'cp') return false;
-                          if (!prevResource || prevType !== resourceType) return true;
-                          if (memberGroupMode === 'group') {
-                            return (resource.group || '未分组') !== (prevResource.group || '未分组');
-                          }
-                          return (resource.role || '') !== (prevResource.role || '');
-                        })();
-                        const roleGroupLabel = memberGroupMode === 'group'
-                          ? (resource.group || '未分组')
-                          : (resource.role || '其他');
+                        // Pre-base trial members stay under 基地人员/测试 and are nested by supplier.
+                        const getSubgroupLabel = (item: Resource) => {
+                          if (memberGroupMode === 'group') return item.group || '未分组';
+                          if (item.type === 'base' && item.supplierAffiliation) return `测试 · ${item.supplierAffiliation}`;
+                          return item.role || '其他';
+                        };
+                        const roleGroupLabel = getSubgroupLabel(resource);
+                        const showRoleGroupDivider = resourceType !== 'cp'
+                          && (!prevResource || prevType !== resourceType || roleGroupLabel !== getSubgroupLabel(prevResource));
                         const roleGroupCount = resourceType !== 'cp'
-                          ? memberGroupMode === 'group'
-                            ? activeResources.filter(r => (r.type || 'internal') === resourceType && (r.group || '未分组') === (resource.group || '未分组')).length
-                            : activeResources.filter(r => (r.type || 'internal') === resourceType && (r.role || '') === (resource.role || '')).length
+                          ? activeResources.filter(item =>
+                              (item.type || 'internal') === resourceType
+                              && getSubgroupLabel(item) === roleGroupLabel
+                            ).length
                           : 0;
-
                         // Use hook-provided stats for micro indicator
                         const { inProgress: memberInProgress, todo: memberTodo, done: memberDone, overdue: memberOverdue } = getMemberTaskStats(resource.id!);
                         

@@ -8,13 +8,14 @@ const task = (overrides: Partial<Task> = {}): Task => ({
 
 describe('task hierarchy labels', () => {
   it('uses TAPD work item types when available', () => {
-    expect(getRequirementKindLabel(task({ tapdWorkitemTypeName: 'UIStory' }))).toBe('父·UIStory');
-    expect(getRequirementKindLabel(task({ tapdWorkitemTypeName: 'UI' }))).toBe('子·UI');
+    expect(getRequirementKindLabel(task({ tapdWorkitemTypeName: 'UIStory' }))).toBe('UIStory · 父需求');
+    expect(getRequirementKindLabel(task({ tapdWorkitemTypeName: 'UI' }))).toBe('UI · 子需求');
   });
 
   it('falls back to the resolved local hierarchy', () => {
     expect(getRequirementKind(task(), true)).toBe('parent');
     expect(getRequirementKind(task({ parentId: 10 }))).toBe('child');
+    expect(getRequirementKind(task({ tapdParentId: '9876' }))).toBe('child');
     expect(getRequirementKind(task())).toBe('standalone');
   });
 });

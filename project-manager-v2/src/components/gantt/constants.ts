@@ -122,8 +122,8 @@ export function getRoleOrderIndex(role: string): number {
  * @param groupMode - 'group' to sort by project group first, 'role' (default) to sort by role first
  */
 export function compareResources(
-  a: { role: string; type?: string; sortOrder?: number; id?: number; group?: string },
-  b: { role: string; type?: string; sortOrder?: number; id?: number; group?: string },
+  a: { role: string; type?: string; sortOrder?: number; id?: number; group?: string; supplierAffiliation?: string },
+  b: { role: string; type?: string; sortOrder?: number; id?: number; group?: string; supplierAffiliation?: string },
   groupMode: 'role' | 'group' = 'role',
 ): number {
   // 1. personnel source: internal first, base second, CP supplier third
@@ -144,6 +144,11 @@ export function compareResources(
   // 3. role order
   const roleDiff = getRoleOrderIndex(a.role) - getRoleOrderIndex(b.role);
   if (roleDiff !== 0) return roleDiff;
+  // Keep pre-base test members together by their supplier affiliation.
+  if (a.type === 'base' && b.type === 'base') {
+    const supplierDiff = (a.supplierAffiliation || '').localeCompare(b.supplierAffiliation || '', 'zh-CN');
+    if (supplierDiff !== 0) return supplierDiff;
+  }
   // 4. fallback: sortOrder / id
   return (a.sortOrder ?? a.id ?? 0) - (b.sortOrder ?? b.id ?? 0);
 }

@@ -1955,6 +1955,8 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
           className={`flex items-center group transition-all duration-150 relative w-full ${
             isDragSource ? 'opacity-70 scale-[0.99] z-50 shadow-2xl bg-indigo-500/10 ring-1 ring-indigo-500/30' :
             isSearchMatch ? 'bg-amber-500/10 ring-1 ring-amber-500/20' :
+            requirementKindLabel?.includes('父需求') ? 'bg-blue-500/[0.07] border-l-2 border-blue-400/70' :
+            requirementKindLabel?.includes('子需求') ? 'border-l-2 border-emerald-400/35' :
             isHighlighted ? 'bg-amber-500/15 shadow-[inset_0_0_20px_rgba(245,158,11,0.15)]' :
             isHovered ? 'bg-indigo-500/8' :
             rowIndex % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.015]'
@@ -2092,7 +2094,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                     : isChildTask ? task.title : '单击打开详情，双击快速重命名'}
                 >
                   {requirementKindLabel && (
-                    <span className={`shrink-0 rounded border px-1.5 py-0.5 text-[9px] font-semibold ${requirementKindLabel.startsWith('父') ? 'border-blue-400/30 bg-blue-500/15 text-blue-300' : 'border-emerald-400/30 bg-emerald-500/15 text-emerald-300'}`}>
+                    <span className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-bold tracking-wide ${requirementKindLabel.includes('父需求') ? 'border-blue-400/30 bg-blue-500/15 text-blue-300' : 'border-emerald-400/30 bg-emerald-500/15 text-emerald-300'}`}>
                       {requirementKindLabel}
                     </span>
                   )}

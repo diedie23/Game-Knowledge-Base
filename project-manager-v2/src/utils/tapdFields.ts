@@ -19,6 +19,15 @@ export function parseTapdDate(value: unknown): Date | undefined {
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;
 }
 
+/** Format a TAPD calendar field in local time so midnight never shifts to the previous UTC day. */
+export function formatTapdCalendarDate(value: unknown): string | undefined {
+  const parsed = parseTapdDate(value);
+  if (!parsed) return undefined;
+  const year = parsed.getFullYear();
+  const month = String(parsed.getMonth() + 1).padStart(2, '0');
+  const day = String(parsed.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 export function parseTapdEffortHours(value: unknown, unit: TapdEffortUnit = 'days', hoursPerDay = 8): number | undefined {
   const text = String(value ?? '').trim().toLowerCase();
   if (!text) return undefined;

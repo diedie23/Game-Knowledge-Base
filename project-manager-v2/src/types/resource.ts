@@ -35,6 +35,8 @@ export interface Resource {
   tapdGroups?: string[];
   /** 人力归属，如“基地人员”“外包人员” */
   workforceType?: string;
+  /** 供应商测试人员对应的供应商或人员标记。 */
+  supplierAffiliation?: string;
   /** 项目组/团队分组（如 "2D Avatar"、"轻舟编辑器"、"UGC小游戏"、"元梦之星"） */
   group?: string;
   /** 入职日期，格式为 YYYY-MM-DD */
