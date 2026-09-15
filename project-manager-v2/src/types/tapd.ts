@@ -91,6 +91,8 @@ export interface TapdStory {
     name: string;
     description: string;
     status: string;
+    /** Actual completion timestamp returned by TAPD. */
+    completed?: string;
     priority: string;
     /** Custom/display priority returned by TAPD (for example P0/P1/P2) */
     priority_label?: string;

@@ -282,7 +282,8 @@ export async function syncAllParentDateRanges(): Promise<number> {
   const updates: Array<{ id: number; changes: Partial<Task> }> = [];
   childrenByParentId.forEach((children, parentId) => {
     const parent = taskById.get(parentId);
-    if (!parent) return;
+    // TAPD-linked parents keep their own authoritative source schedule.
+    if (!parent || parent.tapdId) return;
     const { startDate, endDate } = calcParentDateRange(children);
     const changes: Partial<Task> = {};
     if (startDate && (!parent.startDate || new Date(parent.startDate).getTime() !== startDate.getTime())) {

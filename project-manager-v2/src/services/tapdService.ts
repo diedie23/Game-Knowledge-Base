@@ -1,9 +1,9 @@
 import { db } from '../db/db';
-import type { Task, TapdConfig, TapdWorkspaceInfo, TapdStory, TapdIteration, SyncResult, SyncDetailItem, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem } from '../types';
+import type { Task, Resource, TapdConfig, TapdWorkspaceInfo, TapdStory, TapdIteration, SyncResult, SyncDetailItem, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem } from '../types';
 import type { TapdAuthMode, ModuleMapping, SyncRangeConfig } from '../types/tapd';
 import { getTapdPriorityValue, mapTapdPriority } from '../utils/tapdPriority';
 import { parseTapdDate, parseTapdEffortHours } from '../utils/tapdFields';
-import { mapTapdStatus } from '../utils/tapdStatus';
+import { applyTapdCompletionStatus, mapTapdStatus } from '../utils/tapdStatus';
 
 // Re-export for consumers
 export type { SyncResult, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem };
@@ -1932,10 +1932,15 @@ export class TapdService {
   /** Map a single TAPD Story to a partial local Task (extended with parent/owner metadata) */
   private mapTapdStoryToTask(story: TapdStory['Story']): Partial<Task> & { _tapdParentId?: string; _tapdOwner?: string } {
     const tapdStatusLabel = this.resolveStoryStatus(story.status);
-    const status = this.mapStatus(tapdStatusLabel);
+    const mappedStatus = this.mapStatus(tapdStatusLabel);
+    const completedAt = parseTapdDate(story.completed);
+    // TAPD's completed timestamp is authoritative for custom terminal statuses.
+    // Rejected requirements remain cancelled even if TAPD records a timestamp.
+    const status = applyTapdCompletionStatus(mappedStatus, completedAt);
+    const parsedProgress = Number.parseInt(String(story.progress ?? '').replace('%', ''), 10);
     const progress =
       status === 'done' ? 100 :
-      status === 'in_progress' ? (story.progress ? parseInt(story.progress, 10) : 50) :
+      status === 'in_progress' ? (Number.isFinite(parsedProgress) ? Math.min(100, Math.max(0, parsedProgress)) : 50) :
       0;
 
     const effortUnit = this.config?.syncRange?.effortUnit || 'days';
@@ -1961,6 +1966,7 @@ export class TapdService {
       startDate: parseTapdDate(story.begin),
       endDate: parseTapdDate(story.due),
       progress,
+      completedAt,
       type: 'task',
       dependencies: [],
       assigneeIds: [],
@@ -2036,13 +2042,13 @@ export class TapdService {
    * Match TAPD owner string to local resource IDs.
    * TAPD owner format: "张三;李四" or "张三" (semicolon-separated Chinese names)
    */
-  private async matchOwnerToResources(ownerStr: string): Promise<number[]> {
+  private async matchOwnerToResources(ownerStr: string, cachedResources?: Resource[]): Promise<number[]> {
     if (!ownerStr || !ownerStr.trim()) return [];
     
     const ownerNames = ownerStr.split(/[;；,，]/).map(n => n.trim()).filter(Boolean);
     if (ownerNames.length === 0) return [];
     
-    const allResources = await db.resources.toArray();
+    const allResources = cachedResources || await db.resources.toArray();
     const matchedIds: number[] = [];
     
     for (const name of ownerNames) {
@@ -2085,9 +2091,9 @@ export class TapdService {
   /**
    * Convert resource IDs to display names.
    */
-  private async getResourceNamesByIds(ids: number[]): Promise<string> {
+  private async getResourceNamesByIds(ids: number[], cachedResources?: Resource[]): Promise<string> {
     if (!ids || ids.length === 0) return '未分配';
-    const allResources = await db.resources.toArray();
+    const allResources = cachedResources || await db.resources.toArray();
     const names = ids.map(id => {
       const r = allResources.find(res => res.id === id);
       return r ? r.name : String(id);
@@ -2253,18 +2259,26 @@ export class TapdService {
     let updated = 0;
     let merged = 0;
     const details: SyncDetailItem[] = [];
+    const addDetail = (detail: SyncDetailItem) => {
+      if (details.length < 300) details.push(detail);
+    };
 
     // Phase 1: Build tapdId → localId mapping for parent-child resolution
     const tapdIdToLocalId = new Map<string, number>();
     
     // Pre-load existing tapdId mappings
     const existingTasks = await db.tasks.filter(t => !!t.tapdId).toArray();
+    const existingTaskByTapdId = new Map<string, Task>();
     for (const t of existingTasks) {
-      if (t.tapdId && t.id) tapdIdToLocalId.set(t.tapdId, t.id);
+      if (t.tapdId && t.id) {
+        tapdIdToLocalId.set(t.tapdId, t.id);
+        existingTaskByTapdId.set(t.tapdId, t);
+      }
     }
 
     // Pre-load all local tasks for title matching
     const allLocalTasks = await db.tasks.where('projectId').equals(projectId).toArray();
+    const syncResources = await db.resources.toArray();
     const manualTasksByTitle = new Map<string, number>();
     for (const t of allLocalTasks) {
       if (!t.tapdId && t.title) {
@@ -2274,7 +2288,9 @@ export class TapdService {
 
     // Phase 2: Insert/Update tasks (first pass - without parent relationships)
     const tasksWithParent: { localId: number; tapdParentId: string }[] = [];
+    let resolvedParentCount = 0;
 
+    await db.transaction('rw', [db.tasks, db.projects], async () => {
     for (const remoteTask of remoteTasks) {
       const tapdId = remoteTask.tapdId;
       if (!tapdId) continue;
@@ -2290,7 +2306,7 @@ export class TapdService {
 
       // Auto-match owner to local resources
       if (tapdOwner) {
-        const matchedIds = await this.matchOwnerToResources(tapdOwner);
+        const matchedIds = await this.matchOwnerToResources(tapdOwner, syncResources);
         if (matchedIds.length > 0) {
           cleanTask.assigneeIds = matchedIds;
         }
@@ -2303,11 +2319,8 @@ export class TapdService {
         moduleMappings
       );
 
-      // Look up existing task by tapdId
-      const existing = await db.tasks
-        .where('tapdId')
-        .equals(tapdId)
-        .first();
+      // Reuse the preloaded index instead of issuing one IndexedDB query per story.
+      const existing = existingTaskByTapdId.get(tapdId);
 
       if (existing?.id) {
         // Update existing task (preserve local-only fields like sortOrder, notes, workCategory)
@@ -2319,6 +2332,7 @@ export class TapdService {
           startDate: cleanTask.startDate,
           endDate: cleanTask.endDate,
           progress: cleanTask.progress,
+          completedAt: cleanTask.completedAt,
           estimatedHours: cleanTask.estimatedHours,
           tapdReleaseId: cleanTask.tapdReleaseId,
           tapdReleaseName: cleanTask.tapdReleaseName,
@@ -2339,14 +2353,14 @@ export class TapdService {
         });
         tapdIdToLocalId.set(tapdId, existing.id);
         if (tapdParentId !== undefined) tasksWithParent.push({ localId: existing.id, tapdParentId });
-        details.push({ title: cleanTask.title || '', tapdId, action: 'updated', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
+        addDetail({ title: cleanTask.title || '', tapdId, action: 'updated', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
         updated++;
       } else {
         // Check merge decisions (user-confirmed dedup)
         if (mergeDecisions?.has(tapdId)) {
           const decision = mergeDecisions.get(tapdId)!;
           if (decision === 'skip') {
-            details.push({ title: cleanTask.title || '', tapdId, action: 'skipped', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
+            addDetail({ title: cleanTask.title || '', tapdId, action: 'skipped', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
             continue;
           }
           // Merge: link tapdId to existing local task
@@ -2357,6 +2371,7 @@ export class TapdService {
             startDate: cleanTask.startDate,
             endDate: cleanTask.endDate,
             progress: cleanTask.progress,
+            completedAt: cleanTask.completedAt,
             estimatedHours: cleanTask.estimatedHours,
             tapdReleaseId: cleanTask.tapdReleaseId,
             tapdReleaseName: cleanTask.tapdReleaseName,
@@ -2373,7 +2388,7 @@ export class TapdService {
           });
           tapdIdToLocalId.set(tapdId, decision);
           if (tapdParentId !== undefined) tasksWithParent.push({ localId: decision, tapdParentId });
-          details.push({ title: cleanTask.title || '', tapdId, action: 'merged', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
+          addDetail({ title: cleanTask.title || '', tapdId, action: 'merged', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
           merged++;
           continue;
         }
@@ -2390,6 +2405,7 @@ export class TapdService {
             startDate: cleanTask.startDate,
             endDate: cleanTask.endDate,
             progress: cleanTask.progress,
+            completedAt: cleanTask.completedAt,
             estimatedHours: cleanTask.estimatedHours,
             tapdReleaseId: cleanTask.tapdReleaseId,
             tapdReleaseName: cleanTask.tapdReleaseName,
@@ -2406,7 +2422,7 @@ export class TapdService {
           });
           tapdIdToLocalId.set(tapdId, matchedLocalId);
           if (tapdParentId !== undefined) tasksWithParent.push({ localId: matchedLocalId, tapdParentId });
-          details.push({ title: cleanTask.title || '', tapdId, action: 'merged', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
+          addDetail({ title: cleanTask.title || '', tapdId, action: 'merged', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
           merged++;
           continue;
         }
@@ -2424,13 +2440,12 @@ export class TapdService {
         } as Task);
         tapdIdToLocalId.set(tapdId, newId as number);
         if (tapdParentId !== undefined) tasksWithParent.push({ localId: newId as number, tapdParentId });
-        details.push({ title: cleanTask.title || '', tapdId, action: 'inserted', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
+        addDetail({ title: cleanTask.title || '', tapdId, action: 'inserted', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
         inserted++;
       }
     }
 
     // Phase 3: Resolve and repair parent-child relationships after all TAPD IDs are known.
-    let resolvedParentCount = 0;
     for (const { localId, tapdParentId } of tasksWithParent) {
       const parentLocalId = tapdParentId && tapdParentId !== '0'
         ? tapdIdToLocalId.get(tapdParentId)
@@ -2438,6 +2453,7 @@ export class TapdService {
       await db.tasks.update(localId, { tapdParentId, parentId: parentLocalId });
       if (parentLocalId) resolvedParentCount++;
     }
+    });
 
     console.log(`[TapdService] Sync complete: ${inserted} inserted, ${updated} updated, ${merged} merged, ${resolvedParentCount} parent relationships resolved`);
 
@@ -2579,16 +2595,15 @@ export class TapdService {
 
     console.log(`[TapdService] Direct ID fetch complete: ${remoteMap.size}/${allTapdIds.length} tasks retrieved from TAPD`);
 
-    // --- Phase 2: Refresh all linked tasks (including newly bound ones) ---
-    // Pre-compute parent task IDs (tasks that have children) to skip date comparison for them
-    const parentTaskIds = new Set<number>();
-    for (const t of allLocalTasks) {
-      if (t.parentId) parentTaskIds.add(t.parentId);
-    }
+    // --- Phase 2: Refresh all linked tasks ---
+    // Resolve owners from one resource snapshot instead of re-reading the whole
+    // resource table for every task in a large refresh.
+    const cachedResources = await db.resources.toArray();
 
+    // Keep every write in one transaction so live queries invalidate once after
+    // the batch instead of re-rendering all views once per TAPD story.
+    await db.transaction('rw', db.tasks, async () => {
     for (const localTask of linkedTasks) {
-      // Skip newly bound tasks (already processed in Phase 1)
-      if (details.some(d => d.tapdId === localTask.tapdId)) continue;
 
       const tapdId = localTask.tapdId!;
       const remote = remoteMap.get(tapdId);
@@ -2598,9 +2613,6 @@ export class TapdService {
         failedCount++;
         continue;
       }
-
-      // Check if this task is a parent task (has children locally)
-      const isParentTask = localTask.id != null && parentTaskIds.has(localTask.id);
 
       const changes: RefreshDetailItem['changes'] = [];
 
@@ -2622,30 +2634,25 @@ export class TapdService {
         });
       }
 
-      // Compare startDate (skip for parent tasks whose dates are auto-calculated from children)
-      if (!isParentTask) {
-        const localStart = localTask.startDate ? new Date(localTask.startDate).toISOString().slice(0, 10) : '';
-        const remoteStart = remote.startDate ? new Date(remote.startDate).toISOString().slice(0, 10) : '';
-        if (localStart !== remoteStart) {
-          changes.push({
-            field: 'startDate',
-            oldValue: localStart || '未设置',
-            newValue: remoteStart || '未设置',
-          });
-        }
+      // TAPD dates are authoritative for both parent and child requirements.
+      const localStart = localTask.startDate ? new Date(localTask.startDate).toISOString().slice(0, 10) : '';
+      const remoteStart = remote.startDate ? new Date(remote.startDate).toISOString().slice(0, 10) : '';
+      if (localStart !== remoteStart) {
+        changes.push({
+          field: 'startDate',
+          oldValue: localStart || '未设置',
+          newValue: remoteStart || '未设置',
+        });
       }
 
-      // Compare endDate (skip for parent tasks whose dates are auto-calculated from children)
-      if (!isParentTask) {
-        const localEnd = localTask.endDate ? new Date(localTask.endDate).toISOString().slice(0, 10) : '';
-        const remoteEnd = remote.endDate ? new Date(remote.endDate).toISOString().slice(0, 10) : '';
-        if (localEnd !== remoteEnd) {
-          changes.push({
-            field: 'endDate',
-            oldValue: localEnd || '未设置',
-            newValue: remoteEnd || '未设置',
-          });
-        }
+      const localEnd = localTask.endDate ? new Date(localTask.endDate).toISOString().slice(0, 10) : '';
+      const remoteEnd = remote.endDate ? new Date(remote.endDate).toISOString().slice(0, 10) : '';
+      if (localEnd !== remoteEnd) {
+        changes.push({
+          field: 'endDate',
+          oldValue: localEnd || '未设置',
+          newValue: remoteEnd || '未设置',
+        });
       }
 
       // Compare priority
@@ -2672,15 +2679,15 @@ export class TapdService {
       const tapdOwner = (remote as any)._tapdOwner as string | undefined;
       let resolvedAssigneeIds: number[] | null = null;
       if (tapdOwner) {
-        const matchedIds = await this.matchOwnerToResources(tapdOwner);
+        const matchedIds = await this.matchOwnerToResources(tapdOwner, cachedResources);
         if (matchedIds.length > 0) {
           // Filter out NaN values from local assigneeIds before comparison
           const validLocalIds = (localTask.assigneeIds || []).filter(id => !isNaN(id));
           const localAssignees = validLocalIds.sort().join(',');
           const remoteAssignees = matchedIds.sort().join(',');
           if (localAssignees !== remoteAssignees) {
-            const oldNames = await this.getResourceNamesByIds(validLocalIds);
-            const newNames = await this.getResourceNamesByIds(matchedIds);
+            const oldNames = await this.getResourceNamesByIds(validLocalIds, cachedResources);
+            const newNames = await this.getResourceNamesByIds(matchedIds, cachedResources);
             changes.push({
               field: 'assignee',
               oldValue: oldNames,
@@ -2709,6 +2716,8 @@ export class TapdService {
         updateData.tapdOwner = remote.tapdOwner;
         updateData.tapdWorkitemTypeId = remote.tapdWorkitemTypeId;
         updateData.tapdWorkitemTypeName = remote.tapdWorkitemTypeName;
+        updateData.completedAt = remote.completedAt;
+        updateData.syncSource = 'tapd';
         for (const change of changes) {
           switch (change.field) {
             case 'status':
@@ -2739,12 +2748,14 @@ export class TapdService {
         }
         await db.tasks.update(localTask.id!, updateData);
         updatedCount++;
-        details.push({
-          title: localTask.title || '',
-          tapdId,
-          externalUrl: localTask.externalUrl,
-          changes,
-        });
+        if (details.length < 200) {
+          details.push({
+            title: localTask.title || '',
+            tapdId,
+            externalUrl: remote.externalUrl || localTask.externalUrl,
+            changes,
+          });
+        }
       } else {
         // Silently fix corrupted data and update module even when no other changes detected
         const silentUpdates: Partial<Task> = {};
@@ -2759,6 +2770,9 @@ export class TapdService {
         if (remote.tapdOwner !== localTask.tapdOwner) silentUpdates.tapdOwner = remote.tapdOwner;
         if (remote.tapdWorkitemTypeId !== localTask.tapdWorkitemTypeId) silentUpdates.tapdWorkitemTypeId = remote.tapdWorkitemTypeId;
         if (remote.tapdWorkitemTypeName !== localTask.tapdWorkitemTypeName) silentUpdates.tapdWorkitemTypeName = remote.tapdWorkitemTypeName;
+        if (remote.completedAt?.getTime() !== localTask.completedAt?.getTime()) silentUpdates.completedAt = remote.completedAt;
+        silentUpdates.syncedAt = Date.now();
+        silentUpdates.syncSource = 'tapd';
         // Fix corrupted assigneeIds containing NaN values
         if (localTask.assigneeIds && localTask.assigneeIds.some(id => isNaN(id))) {
           const validIds = localTask.assigneeIds.filter(id => !isNaN(id));
@@ -2789,6 +2803,7 @@ export class TapdService {
         });
       }
     }
+    });
 
     const totalChecked = linkedTasks.length + newlyBoundCount;
     console.log(`[TapdService] Refresh complete: ${newlyBoundCount} newly bound, ${updatedCount} updated, ${unchangedCount} unchanged, ${failedCount} not found in remote`);
@@ -3241,8 +3256,12 @@ export class TapdImportService {
 
     // Pre-load existing tapdId mappings
     const existingTasks = await db.tasks.filter(t => !!t.tapdId).toArray();
+    const existingTaskByTapdId = new Map<string, Task>();
     for (const t of existingTasks) {
-      if (t.tapdId && t.id) tapdIdToLocalId.set(t.tapdId, t.id);
+      if (t.tapdId && t.id) {
+        tapdIdToLocalId.set(t.tapdId, t.id);
+        existingTaskByTapdId.set(t.tapdId, t);
+      }
     }
 
     // Pre-load all local tasks for fuzzy matching

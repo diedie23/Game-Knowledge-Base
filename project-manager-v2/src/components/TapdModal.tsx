@@ -936,9 +936,8 @@ export function TapdModal() {
     try {
       const result = await tapdService.refreshExistingTasks(selectedProjectId);
       setRefreshResult(result);
-      if (result.updatedCount > 0) {
-        setRefreshDetailExpanded(true);
-      }
+      // Keep large refresh results collapsed; users can expand the capped detail list on demand.
+      setRefreshDetailExpanded(false);
     } catch (err: any) {
       console.error('[TapdModal] Refresh failed:', err);
       setErrorMessage(err.message || '刷新状态时发生错误');
@@ -2220,7 +2219,7 @@ export function TapdModal() {
                   <div className="p-3 space-y-1.5">
                     <div className="flex items-center justify-between mb-2">
                       <div className="text-xs font-medium text-sky-300">🔄 状态刷新结果</div>
-                      {refreshResult.details.length > 0 && (
+                      {refreshResult.updatedCount > 0 && (
                         <button
                           onClick={() => setRefreshDetailExpanded(!refreshDetailExpanded)}
                           className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-gray-200 transition-colors"
@@ -2257,6 +2256,11 @@ export function TapdModal() {
                   {/* Expandable refresh detail list */}
                   {refreshDetailExpanded && refreshResult.details.length > 0 && (
                     <div className="border-t border-sky-500/15">
+                      {refreshResult.updatedCount > refreshResult.details.length && (
+                        <div className="px-3 pt-2 text-[10px] text-gray-500">
+                          变更过多，仅展示前 {refreshResult.details.length} 条，统计数仍为完整结果。
+                        </div>
+                      )}
                       <div className="max-h-[300px] overflow-y-auto px-3 py-2 space-y-1.5">
                         {refreshResult.details.map((item, idx) => (
                           <div key={`${item.tapdId}-${idx}`} className="py-2 px-2.5 rounded-md bg-gray-800/30 hover:bg-gray-800/50 transition-colors">
