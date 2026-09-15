@@ -4,6 +4,7 @@ import type { TapdAuthMode, ModuleMapping, SyncRangeConfig } from '../types/tapd
 import { getTapdPriorityValue, mapTapdPriority } from '../utils/tapdPriority';
 import { parseTapdDate, parseTapdEffortHours } from '../utils/tapdFields';
 import { applyTapdCompletionStatus, mapTapdStatus } from '../utils/tapdStatus';
+import { matchCpResourcesFromTitle } from '../utils/cpSupplier';
 
 // Re-export for consumers
 export type { SyncResult, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem };
@@ -2309,13 +2310,15 @@ export class TapdService {
       delete (cleanTask as any)._tapdOwner;
       delete (cleanTask as any)._tapdModuleFeature;
 
-      // Auto-match owner to local resources
-      if (tapdOwner) {
-        const matchedIds = await this.matchOwnerToResources(tapdOwner, syncResources);
-        if (matchedIds.length > 0) {
-          cleanTask.assigneeIds = matchedIds;
-        }
-      }
+      // Keep the TAPD owner as the internal coordinator and append any configured
+      // CP supplier explicitly named in the story title.
+      const ownerIds = tapdOwner
+        ? await this.matchOwnerToResources(tapdOwner, syncResources)
+        : [];
+      const supplierIds = matchCpResourcesFromTitle(cleanTask.title || '', syncResources);
+      const matchedIds = Array.from(new Set([...ownerIds, ...supplierIds]));
+      if (matchedIds.length > 0) cleanTask.assigneeIds = matchedIds;
+      if (supplierIds.length > 0) cleanTask.workCategory = 'cp_follow';
 
       // Resolve target project based on module mappings
       const targetProjectId = await this.resolveTargetProject(
@@ -2338,6 +2341,7 @@ export class TapdService {
           endDate: cleanTask.endDate,
           progress: cleanTask.progress,
           completedAt: cleanTask.completedAt,
+          workCategory: cleanTask.workCategory || existing.workCategory,
           estimatedHours: cleanTask.estimatedHours,
           tapdReleaseId: cleanTask.tapdReleaseId,
           tapdReleaseName: cleanTask.tapdReleaseName,
@@ -2377,6 +2381,7 @@ export class TapdService {
             endDate: cleanTask.endDate,
             progress: cleanTask.progress,
             completedAt: cleanTask.completedAt,
+            workCategory: cleanTask.workCategory,
             estimatedHours: cleanTask.estimatedHours,
             tapdReleaseId: cleanTask.tapdReleaseId,
             tapdReleaseName: cleanTask.tapdReleaseName,
@@ -2411,6 +2416,7 @@ export class TapdService {
             endDate: cleanTask.endDate,
             progress: cleanTask.progress,
             completedAt: cleanTask.completedAt,
+            workCategory: cleanTask.workCategory,
             estimatedHours: cleanTask.estimatedHours,
             tapdReleaseId: cleanTask.tapdReleaseId,
             tapdReleaseName: cleanTask.tapdReleaseName,
@@ -2701,26 +2707,32 @@ export class TapdService {
         });
       }
 
-      // Compare assignee (via owner matching)
+      // Combine the TAPD owner with any configured CP supplier named in the title.
       const tapdOwner = (remote as any)._tapdOwner as string | undefined;
+      const validLocalIds = (localTask.assigneeIds || []).filter(id => !isNaN(id));
+      const supplierIds = matchCpResourcesFromTitle(remote.title || localTask.title, cachedResources);
+      const ownerIds = tapdOwner
+        ? await this.matchOwnerToResources(tapdOwner, cachedResources)
+        : [];
+      const existingCoordinatorIds = validLocalIds.filter(id => {
+        const resource = cachedResources.find(item => item.id === id);
+        return resource?.type !== 'cp';
+      });
+      const coordinatorIds = ownerIds.length > 0 ? ownerIds : existingCoordinatorIds;
+      const matchedIds = Array.from(new Set([...coordinatorIds, ...supplierIds]));
       let resolvedAssigneeIds: number[] | null = null;
-      if (tapdOwner) {
-        const matchedIds = await this.matchOwnerToResources(tapdOwner, cachedResources);
-        if (matchedIds.length > 0) {
-          // Filter out NaN values from local assigneeIds before comparison
-          const validLocalIds = (localTask.assigneeIds || []).filter(id => !isNaN(id));
-          const localAssignees = validLocalIds.sort().join(',');
-          const remoteAssignees = matchedIds.sort().join(',');
-          if (localAssignees !== remoteAssignees) {
-            const oldNames = await this.getResourceNamesByIds(validLocalIds, cachedResources);
-            const newNames = await this.getResourceNamesByIds(matchedIds, cachedResources);
-            changes.push({
-              field: 'assignee',
-              oldValue: oldNames,
-              newValue: newNames,
-            });
-            resolvedAssigneeIds = matchedIds;
-          }
+      if ((tapdOwner || supplierIds.length > 0) && matchedIds.length > 0) {
+        const localAssignees = [...validLocalIds].sort((a, b) => a - b).join(',');
+        const remoteAssignees = [...matchedIds].sort((a, b) => a - b).join(',');
+        if (localAssignees !== remoteAssignees) {
+          const oldNames = await this.getResourceNamesByIds(validLocalIds, cachedResources);
+          const newNames = await this.getResourceNamesByIds(matchedIds, cachedResources);
+          changes.push({
+            field: 'assignee',
+            oldValue: oldNames,
+            newValue: newNames,
+          });
+          resolvedAssigneeIds = matchedIds;
         }
       }
 
@@ -2743,6 +2755,7 @@ export class TapdService {
         updateData.tapdWorkitemTypeId = remote.tapdWorkitemTypeId;
         updateData.tapdWorkitemTypeName = remote.tapdWorkitemTypeName;
         updateData.completedAt = remote.completedAt;
+        if (supplierIds.length > 0) updateData.workCategory = 'cp_follow';
         updateData.syncSource = 'tapd';
         for (const change of changes) {
           switch (change.field) {
@@ -2797,6 +2810,7 @@ export class TapdService {
         if (remote.tapdWorkitemTypeId !== localTask.tapdWorkitemTypeId) silentUpdates.tapdWorkitemTypeId = remote.tapdWorkitemTypeId;
         if (remote.tapdWorkitemTypeName !== localTask.tapdWorkitemTypeName) silentUpdates.tapdWorkitemTypeName = remote.tapdWorkitemTypeName;
         if (remote.completedAt?.getTime() !== localTask.completedAt?.getTime()) silentUpdates.completedAt = remote.completedAt;
+        if (supplierIds.length > 0 && localTask.workCategory !== 'cp_follow') silentUpdates.workCategory = 'cp_follow';
         silentUpdates.syncedAt = Date.now();
         silentUpdates.syncSource = 'tapd';
         // Fix corrupted assigneeIds containing NaN values
