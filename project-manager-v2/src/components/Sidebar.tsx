@@ -986,7 +986,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                         <li className="px-3 pt-3 pb-0.5">
                           <div className="flex items-center gap-2">
                             <Building2 size={12} className="text-emerald-400/40 shrink-0" />
-                            <div className="text-[10px] font-semibold text-emerald-400/40 uppercase tracking-widest">CP 外包 (0)</div>
+                            <div className="text-[10px] font-semibold text-emerald-400/40 uppercase tracking-widest">CP供应商 (0)</div>
                             <div className="flex-1 h-px bg-emerald-500/10" />
                           </div>
                         </li>

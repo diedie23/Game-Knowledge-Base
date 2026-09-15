@@ -8,6 +8,7 @@ import { zhCN } from 'date-fns/locale';
 import { compareResources, getRoleOrderIndex } from './gantt/constants';
 import { getEffectiveStatus } from '../types/resource';
 import { syncParentDateRange } from '../services/workloadService';
+import { isTaskOverdue } from '../utils/taskState';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { confirmDialog } from './common/ConfirmDialog';
 import { UxStageTable } from './UxStageTable';
@@ -304,7 +305,7 @@ function TaskTableView() {
   };
 
   const getDuration = (task: Task) => (task.startDate && task.endDate) ? differenceInDays(new Date(task.endDate), new Date(task.startDate)) : 0;
-  const isOverdue = (task: Task) => task.status !== 'done' && task.endDate && new Date(task.endDate) < new Date();
+  const isOverdue = (task: Task) => isTaskOverdue(task);
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return <ArrowUpDown size={14} className="text-gray-600" />;

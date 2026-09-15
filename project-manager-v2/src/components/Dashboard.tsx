@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useStore } from '../store/useStore';
+import { tapdService } from '../services/tapdService';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
 import { Calendar, AlertCircle, Clock, Users, CheckCircle2, AlertTriangle, Edit2, Check, X } from 'lucide-react';
@@ -20,6 +21,14 @@ export function Dashboard() {
     [selectedProjectId]
   ) || [];
   const resources = useLiveQuery(() => db.resources.toArray()) || [];
+
+  // Refresh TAPD-linked tasks when entering the dashboard so due/overdue data is current.
+  React.useEffect(() => {
+    if (!selectedProjectId) return;
+    tapdService.refreshExistingTasks(selectedProjectId).catch(error => {
+      console.warn('[Dashboard] TAPD background refresh failed:', error);
+    });
+  }, [selectedProjectId]);
   // Exclude paused and cancelled tasks from dashboard statistics
   const tasks = useMemo(() => allTasks.filter(t => t.status !== 'paused' && !isTaskCancelled(t)), [allTasks]);
 

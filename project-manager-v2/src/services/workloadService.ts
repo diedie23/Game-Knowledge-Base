@@ -1,8 +1,8 @@
 import { db } from '../db/db';
 import type { Task, Resource } from '../types';
-import { differenceInDays, addDays } from 'date-fns';
+import { differenceInDays, addDays, startOfDay } from 'date-fns';
 import { isWorkingDay } from '../utils/dateUtils';
-import { isTaskTerminal } from '../utils/taskState';
+import { isTaskOverdue, isTaskTerminal } from '../utils/taskState';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -460,12 +460,13 @@ export function assessTaskRisk(
     maxLevel = upgradeRisk(maxLevel, severity);
   };
 
-  // 1. Overdue check
-  if (task.endDate && task.status !== 'done') {
-    const endDate = new Date(task.endDate);
-    const daysUntilDue = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (daysUntilDue < 0) {
+  // 1. Deadline check uses the same effective TAPD state and natural-day boundary as the dashboard.
+  if (task.endDate && !isTaskTerminal(task)) {
+    const endDate = startOfDay(new Date(task.endDate));
+    const referenceDate = startOfDay(today);
+    const daysUntilDue = differenceInDays(endDate, referenceDate);
+
+    if (isTaskOverdue(task, today)) {
       addRisk('overdue', `已逾期${Math.abs(daysUntilDue)}天`, 'critical');
       shouldAutoAlert = true;
     } else if (daysUntilDue <= RISK_THRESHOLDS.DEADLINE_URGENT_DAYS) {

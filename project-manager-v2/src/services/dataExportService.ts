@@ -2,6 +2,7 @@ import { db } from '../db/db';
 import type { Task, Resource, Project } from '../types';
 import { format, startOfWeek, endOfWeek, subWeeks, isWithinInterval, differenceInDays } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { isTaskCompleted, isTaskOverdue, isTaskTerminal } from '../utils/taskState';
 
 // Full database snapshot type
 interface DatabaseSnapshot {
@@ -125,23 +126,21 @@ export const dataExportService = {
 
     // Completed this week
     const completedThisWeek = leafTasks.filter(t =>
-      t.status === 'done' && t.endDate &&
+      isTaskCompleted(t) && t.endDate &&
       isWithinInterval(new Date(t.endDate), { start: weekStart, end: weekEnd })
     );
 
     // In progress this week
     const inProgressThisWeek = leafTasks.filter(t =>
-      t.status === 'in_progress' ||
+      (t.status === 'in_progress' && !isTaskTerminal(t)) ||
       (t.startDate && t.endDate &&
         new Date(t.startDate) <= weekEnd &&
         new Date(t.endDate) >= weekStart &&
-        t.status !== 'done')
+        !isTaskTerminal(t))
     );
 
     // Overdue tasks
-    const overdueTasks = leafTasks.filter(t =>
-      t.status !== 'done' && t.endDate && new Date(t.endDate) < now
-    );
+    const overdueTasks = leafTasks.filter(t => isTaskOverdue(t, now));
 
     // Blocked tasks
     const blockedTasks = leafTasks.filter(t => (t as any).isBlocked);

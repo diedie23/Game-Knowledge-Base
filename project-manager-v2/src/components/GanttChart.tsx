@@ -50,6 +50,8 @@ import { assessTaskRisk, buildTaskRiskContext, type TaskRisk, RISK_THRESHOLDS, s
 import { getEffectiveStatus } from '../types/resource';
 import { confirmDialog, alertDialog } from './common/ConfirmDialog';
 import { toast } from '../store/useToastStore';
+import { isTaskCompleted, isTaskOverdue, isTaskTerminal } from '../utils/taskState';
+import { getRequirementKindLabel } from '../utils/taskHierarchy';
 
 // Constants, types, and sub-components are now imported from ./gantt/ sub-modules
 
@@ -99,10 +101,10 @@ export function GanttChart() {
     return { byId, childrenByParentId, parentIds, roots, byAssigneeId, unassigned };
   }, [tasks]);
   const today = useMemo(() => startOfToday(), []);
-  
+
   const ganttScrollRef = useRef<HTMLDivElement>(null);
   const { zoomIndex, zoomConfig, dayWidth, visibleDays, handleZoomIn, handleZoomOut, handleZoomReset } = useGanttZoom(ganttScrollRef);
-  
+
   // Dynamic start date: 2 weeks before the earliest task, or fallback to fixed date
   const startDate = useMemo(() => {
     if (tasks && tasks.length > 0) {
@@ -145,7 +147,7 @@ export function GanttChart() {
   useEffect(() => {
     if (hasAutoFocused.current || !tasks || tasks.length === 0 || !ganttScrollRef.current) return;
     // Find all in-progress (active) tasks with a start date
-    const activeTasks = tasks.filter(t => 
+    const activeTasks = tasks.filter(t =>
       (t.status === 'in_progress' || t.status === 'todo') && t.startDate
     );
     if (activeTasks.length === 0) return;
@@ -252,6 +254,15 @@ export function GanttChart() {
     }
   }, [selectedProjectId]);
 
+  // Keep TAPD state, dates and supplier assignments current when opening Gantt.
+  // The service deduplicates concurrent refreshes, so navigating from Dashboard
+  // does not start a second large request.
+  useEffect(() => {
+    if (!selectedProjectId) return;
+    tapdService.refreshExistingTasks(selectedProjectId).catch(error => {
+      console.warn('[GanttChart] TAPD background refresh failed:', error);
+    });
+  }, [selectedProjectId]);
   // Auto-reclassify modules when switching to group_module view
   useEffect(() => {
     if (filterStatus === 'group_module' && tasks && tasks.length > 0) {
@@ -346,20 +357,20 @@ export function GanttChart() {
   // Calculate Dashboard Metrics
   const dashboardMetrics = useMemo(() => {
     if (!tasks) return null;
-    
+
     const blockedCount = scheduleConflicts.size;
-    
+
     // Health by type
     const typeHealth = new Map<string, { total: number, onTime: number }>();
     tasks.forEach(t => {
-      const type = t.title.includes('UI') ? 'UI设计' : 
-                   t.title.includes('交互') ? '交互设计' : 
-                   t.title.includes('开发') ? '开发' : 
+      const type = t.title.includes('UI') ? 'UI设计' :
+                   t.title.includes('交互') ? '交互设计' :
+                   t.title.includes('开发') ? '开发' :
                    t.title.includes('测试') ? '测试' : '其他';
       if (!typeHealth.has(type)) typeHealth.set(type, { total: 0, onTime: 0 });
       const stats = typeHealth.get(type)!;
       stats.total++;
-      
+
       const isOverdue = t.endDate && t.endDate < new Date() && t.status !== 'done';
       if (t.status === 'done' || (!scheduleConflicts.has(t.id!) && !isOverdue)) {
         stats.onTime++;
@@ -377,7 +388,7 @@ export function GanttChart() {
 
   const criticalPathTaskIds = useMemo(() => {
     if (!focusMode || !tasks) return new Set<number>();
-    
+
     const criticalIds = new Set<number>();
     const taskMap = new Map<number, Task>();
     tasks.forEach(t => taskMap.set(t.id!, t));
@@ -393,11 +404,11 @@ export function GanttChart() {
 
     // Calculate Late Finish (LF) for each task
     const lfMap = new Map<number, Date>();
-    
+
     // Helper to get LF recursively
     const getLF = (taskId: number): Date => {
       if (lfMap.has(taskId)) return lfMap.get(taskId)!;
-      
+
       const dependents = reverseDeps.get(taskId) || [];
       if (dependents.length === 0) {
         const t = taskMap.get(taskId)!;
@@ -418,7 +429,7 @@ export function GanttChart() {
         lfMap.set(taskId, endDate);
         return endDate;
       }
-      
+
       const minLS = new Date(Math.min(...lsDates.map(d => d.getTime())));
       lfMap.set(taskId, minLS);
       return minLS;
@@ -521,12 +532,12 @@ export function GanttChart() {
       // Dynamically import html2canvas to avoid initial bundle bloat
       const html2canvas = (await import('html2canvas')).default;
       const element = ganttScrollRef.current;
-      
+
       // Temporarily expand the container to capture everything
       const originalWidth = element.style.width;
       const originalHeight = element.style.height;
       const originalOverflow = element.style.overflow;
-      
+
       element.style.width = `${element.scrollWidth}px`;
       element.style.height = `${element.scrollHeight}px`;
       element.style.overflow = 'visible';
@@ -609,7 +620,7 @@ export function GanttChart() {
   const handleDepDrop = async (e: React.MouseEvent, targetTaskId: number) => {
     if (!depDragStart || depDragStart.taskId === targetTaskId) return;
     e.stopPropagation();
-    
+
     const targetTask = tasks?.find(t => t.id === targetTaskId);
     if (!targetTask) return;
 
@@ -675,7 +686,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     // Only start drag if clicking on the background, not on a task or button
     const target = e.target as HTMLElement;
     if (target.closest('button, .task-bar, .task-row-content, .resize-handle, .dep-handle, .group\\/name')) return;
-    
+
     setIsDraggingCanvas(true);
     dragCanvasStart.current = {
       x: e.clientX,
@@ -739,10 +750,10 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     if (!showMemberPanel || !resources || !tasks) return [];
     return [...resources].filter(r => r.status !== 'departed').sort(compareResources).map(r => {
       const myTasks = (taskIndex.byAssigneeId.get(r.id!) || []).filter(t => !taskIndex.parentIds.has(t.id!));
-      const todo = myTasks.filter(t => t.status === 'todo').length;
-      const inProgress = myTasks.filter(t => t.status === 'in_progress').length;
-      const done = myTasks.filter(t => t.status === 'done').length;
-      const overdue = myTasks.filter(t => t.status !== 'done' && t.endDate && new Date(t.endDate) < today).length;
+      const todo = myTasks.filter(t => t.status === 'todo' && !isTaskTerminal(t)).length;
+      const inProgress = myTasks.filter(t => t.status === 'in_progress' && !isTaskTerminal(t)).length;
+      const done = myTasks.filter(isTaskCompleted).length;
+      const overdue = myTasks.filter(t => isTaskOverdue(t, today)).length;
       return { resource: r, tasks: myTasks, todo, inProgress, done, overdue, total: myTasks.length };
     });
   }, [showMemberPanel, resources, tasks, taskIndex, today]);
@@ -991,7 +1002,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
 
     // Prevent click from firing after a drag move
     if (justMovedRef.current) return;
-    
+
     // Multi-select: via button toggle mode OR keyboard shortcuts
     if (multiSelectMode || e.shiftKey || e.ctrlKey || e.metaKey) {
       setSelectedTaskIds(prev => {
@@ -1081,9 +1092,9 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
           if (shouldShift) {
             for (const depTask of dependentTasks) {
               if (!depTask.startDate || !depTask.endDate) continue; // Skip unscheduled
-              await trackedDb.tasks.update(depTask.id!, { 
-                startDate: addDays(depTask.startDate, daysShifted), 
-                endDate: addDays(depTask.endDate, daysShifted) 
+              await trackedDb.tasks.update(depTask.id!, {
+                startDate: addDays(depTask.startDate, daysShifted),
+                endDate: addDays(depTask.endDate, daysShifted)
               }, '自动顺延依赖任务');
             }
           }
@@ -1194,7 +1205,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     if (groupBy === 'assignee') {
       if (!tasks || !resources) return [];
       const groupedRoots: Task[] = [];
-      
+
       // Sort resources by role order before building groups
       const sortedRes = [...resources].filter(r => r.status !== 'departed').sort(compareResources);
       sortedRes.forEach(resource => {
@@ -1203,7 +1214,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
           const scheduledRT = resourceTasks.filter(t => t.startDate && t.endDate);
           const minStart = scheduledRT.length > 0 ? new Date(Math.min(...scheduledRT.map(t => t.startDate!.getTime()))) : new Date();
           const maxEnd = scheduledRT.length > 0 ? new Date(Math.max(...scheduledRT.map(t => t.endDate!.getTime()))) : new Date();
-          
+
           groupedRoots.push({
             id: -resource.id!, // Negative ID for resource parent
             title: resource.name,
@@ -1711,9 +1722,9 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
   }, [taskRiskMap, tasks, taskIndex]);
 
   const getDeadlineWarning = useCallback((task: Task): 'overdue' | 'urgent' | null => {
-    if (task.status === 'done' || !task.parentId || !task.endDate) return null;
-    const daysLeft = differenceInDays(task.endDate, today);
-    if (daysLeft < 0) return 'overdue';
+    if (isTaskTerminal(task) || !task.parentId || !task.endDate) return null;
+    if (isTaskOverdue(task, today)) return 'overdue';
+    const daysLeft = differenceInDays(startOfDay(new Date(task.endDate)), startOfDay(today));
     if (daysLeft <= 2) return 'urgent';
     return null;
   }, [today]);
@@ -1788,7 +1799,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
 
     // Use a wrapper that detects position relative to viewport and flips direction
     return (
-      <div 
+      <div
         className="absolute left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 group-hover/bar:opacity-100 transition-opacity duration-200"
         ref={(el) => {
           if (!el) return;
@@ -1876,9 +1887,9 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
   const renderTaskRow = (task: Task, level: number, rowIndex: number) => {
     // Check if this is a virtual status group row (进行中/待办/已完成)
     const isStatusGroup = [(-88801), (-88802), (-88888)].includes(task.id!);
-    
+
     const children = isStatusGroup ? [] : getChildren(task.id!);
-    const hasChildren = isStatusGroup 
+    const hasChildren = isStatusGroup
       ? true  // Status groups are always expandable
       : children.length > 0;
     const isExpanded = expandedTaskIds.has(task.id!);
@@ -1886,7 +1897,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
 
     let displayStartDate = task.startDate;
     let displayEndDate = task.endDate;
-    
+
     if (hasChildren) {
       // Recursively collect ALL descendant dates for accurate parent bracket
       const collectAllDescendantDates = (parentId: number): { starts: number[]; ends: number[] } => {
@@ -1918,10 +1929,12 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     const isHovered = hoveredTaskId === task.id;
     const config = getStatusConfig(task.status);
     const typeColor = isChildTask ? getTaskTypeColor(task.title) : null;
+    const taskCompleted = isTaskCompleted(task);
+    const requirementKindLabel = getRequirementKindLabel(task, hasChildren);
 
     // Progress width: use task.progress (0-100) for real percentage
     const getProgressPercent = (t: Task): number => {
-      if (t.status === 'done') return 100;
+      if (isTaskCompleted(t)) return 100;
       if (t.status === 'todo') return 0;
       return Math.min(100, Math.max(0, t.progress || 0));
     };
@@ -1937,12 +1950,12 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
 
     return (
       <React.Fragment key={task.id}>
-        <div 
+        <div
           data-task-row={task.id}
           className={`flex items-center group transition-all duration-150 relative w-full ${
             isDragSource ? 'opacity-70 scale-[0.99] z-50 shadow-2xl bg-indigo-500/10 ring-1 ring-indigo-500/30' :
             isSearchMatch ? 'bg-amber-500/10 ring-1 ring-amber-500/20' :
-            isHighlighted ? 'bg-amber-500/15 shadow-[inset_0_0_20px_rgba(245,158,11,0.15)]' : 
+            isHighlighted ? 'bg-amber-500/15 shadow-[inset_0_0_20px_rgba(245,158,11,0.15)]' :
             isHovered ? 'bg-indigo-500/8' :
             rowIndex % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.015]'
           }`}
@@ -2022,7 +2035,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                 <GripVertical size={12} />
               </div>
               {hasChildren ? (
-                <button 
+                <button
                   onClick={() => toggleTaskExpansion(task.id!)}
                   className="mr-1.5 text-gray-500 hover:text-indigo-400 transition-colors flex-shrink-0 p-0.5 rounded hover:bg-indigo-500/10"
                 >
@@ -2035,21 +2048,21 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
               {isChildTask ? (
                 <span className={`w-2.5 h-2.5 rounded-sm mr-2 shrink-0 ${
                   getDeadlineWarning(task) === 'overdue' ? 'bg-red-400' :
-                  task.status === 'done' ? 'bg-emerald-400' : 
+                  taskCompleted ? 'bg-emerald-400' :
                   task.status === 'in_progress' ? 'bg-blue-400 animate-pulse' : 'bg-gray-500'
                 }`} title={`状态: ${
                   getDeadlineWarning(task) === 'overdue' ? '逾期' :
-                  task.status === 'done' ? '已完成' : 
+                  taskCompleted ? '已完成' :
                   task.status === 'in_progress' ? '进行中' : '未开始'
                 }`} />
               ) : (
                 <span className={`w-1.5 h-1.5 rounded-full mr-2 shrink-0 ${
                   getDeadlineWarning(task) === 'overdue' ? 'bg-red-400' :
-                  task.status === 'done' ? 'bg-emerald-400' : 
+                  taskCompleted ? 'bg-emerald-400' :
                   task.status === 'in_progress' ? 'bg-blue-400 animate-pulse' : 'bg-gray-500'
                 }`} title={`状态: ${
                   getDeadlineWarning(task) === 'overdue' ? '逾期' :
-                  task.status === 'done' ? '已完成' : 
+                  taskCompleted ? '已完成' :
                   task.status === 'in_progress' ? '进行中' : '未开始'
                 }`} />
               )}
@@ -2066,19 +2079,24 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                   onDoubleClick={(e) => e.stopPropagation()}
                 />
               ) : (
-                <span 
+                <span
                   className={`cursor-pointer truncate select-none transition-all duration-200 flex items-center gap-1.5 text-sm ${
-                    hasChildren ? 'font-bold text-gray-100 hover:text-white' : 
-                    task.status === 'done' ? 'text-emerald-400/80 hover:text-emerald-300' :
+                    hasChildren ? 'font-bold text-gray-100 hover:text-white' :
+                    taskCompleted ? 'text-emerald-400/80 hover:text-emerald-300' :
                     task.status === 'in_progress' ? (task.externalUrl ? 'text-blue-400/90 hover:text-blue-200 hover:underline' : 'text-blue-400/90 hover:text-blue-200') :
                     task.externalUrl ? 'text-blue-400/90 hover:text-blue-200 hover:underline' : 'hover:text-indigo-200'
                   }`}
                   onClick={(e) => handleTaskClick(e, task)}
-                  title={task.externalUrl 
-                    ? `点击跳转：${task.externalUrl}\n双击重命名` 
+                  title={task.externalUrl
+                    ? `点击跳转：${task.externalUrl}\n双击重命名`
                     : isChildTask ? task.title : '单击打开详情，双击快速重命名'}
                 >
-                  {isChildTask ? getSmartDisplayName(task) : task.title}
+                  {requirementKindLabel && (
+                    <span className={`shrink-0 rounded border px-1.5 py-0.5 text-[9px] font-semibold ${requirementKindLabel.startsWith('父') ? 'border-blue-400/30 bg-blue-500/15 text-blue-300' : 'border-emerald-400/30 bg-emerald-500/15 text-emerald-300'}`}>
+                      {requirementKindLabel}
+                    </span>
+                  )}
+                  <span className="truncate">{isChildTask ? getSmartDisplayName(task) : task.title}</span>
                   {task.externalUrl && (
                     <ExternalLink size={12} className="shrink-0 opacity-60 hover:opacity-100 transition-opacity" />
                   )}
@@ -2086,7 +2104,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
               )}
               {/* Schedule conflict warning icon */}
               {scheduleConflicts.has(task.id!) && (
-                <span 
+                <span
                   className="ml-1 shrink-0 text-red-400 animate-pulse cursor-help"
                   title={scheduleConflicts.get(task.id!)}
                 >
@@ -2099,7 +2117,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                 if (!risk || !risk.shouldAutoAlert) return null;
                 const riskTitle = risk.riskReasons?.map(r => r.text).join('\n') || '存在风险';
                 return (
-                  <span 
+                  <span
                     className={`ml-1 shrink-0 cursor-help ${
                       risk.level === 'critical' ? 'text-red-400 animate-pulse' :
                       risk.level === 'high' ? 'text-orange-400' : 'text-amber-400'
@@ -2112,7 +2130,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                 );
               })()}
             </div>
-            <div 
+            <div
               className="cursor-pointer hover:opacity-80 transition-opacity"
               onClick={(e) => {
                 e.stopPropagation();
@@ -2140,10 +2158,10 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
               const isDayWeekend = isWeekend(day);
               const isDayHoliday = isHoliday(day);
               return (
-                <div 
-                  key={day.toISOString()} 
+                <div
+                  key={day.toISOString()}
                   className={`shrink-0 border-l border-gray-800/10 ${
-                    isToday ? 'bg-indigo-500/[0.08]' : 
+                    isToday ? 'bg-indigo-500/[0.08]' :
                     isDayHoliday ? 'gantt-holiday-col' :
                     isDayWeekend ? 'gantt-weekend-col' : ''
                   }`}
@@ -2152,7 +2170,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                 />
               );
             })}
-            
+
             {/* Ghost schedule overlay */}
             {ghostSchedules.length > 0 && (() => {
               const ghost = ghostSchedules.find(g => g.taskId === task.id);
@@ -2194,14 +2212,14 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                       const resourceTasks = tasks?.filter(t => t.assigneeIds?.includes(resourceId) && t.startDate && t.endDate && day >= startOfDay(new Date(t.startDate)) && day <= startOfDay(new Date(t.endDate))) || [];
                       const count = resourceTasks.length;
                       if (count === 0) return null;
-                      
+
                       let colorClass = 'bg-emerald-500';
                       if (count === 2) colorClass = 'bg-amber-500';
                       else if (count >= 3) colorClass = 'bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]';
-                      
+
                       return (
-                        <div 
-                          key={i} 
+                        <div
+                          key={i}
                           className={`absolute h-full rounded-full ${colorClass}`}
                           style={{ left: `${i * dayWidth}px`, width: `${dayWidth}px` }}
                           title={`${format(day, 'MM/dd')}: ${count} 个任务`}
@@ -2248,7 +2266,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                       resizeWidthDelta = resizing.daysDelta * dayWidth;
                     }
                   }
-                  
+
                   // Calculate move and cascade shifts
                   const cascadeShiftDays = cascadeShifts.get(task.id!) || 0;
                   const moveLeftDelta = cascadeShiftDays * dayWidth;
@@ -2328,8 +2346,8 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                         backgroundColor: effectiveBgColor,
                         backgroundImage: isTodo ? 'none' : `linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0))`,
                         boxShadow: isTodo ? 'none' : 'inset 0 1px 1px rgba(255,255,255,0.2)',
-                        border: isTodo 
-                          ? `1.5px dashed ${effectiveBarColor}80` 
+                        border: isTodo
+                          ? `1.5px dashed ${effectiveBarColor}80`
                           : `1.5px solid ${effectiveBarColor}80`,
                         zIndex: movingTask?.taskId === task.id ? 50 : (cascadeShiftDays !== 0 ? 40 : 10)
                       }}
@@ -2340,9 +2358,9 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                       {renderTaskTooltip(task, displayStartDate!, displayEndDate!)}
                       {/* Progress fill overlay — shows completion percentage */}
                       {progressPercent > 0 && (
-                        <div 
+                        <div
                           className="absolute left-0 top-0 bottom-0 rounded-l-[4px] transition-all duration-300"
-                          style={{ 
+                          style={{
                             width: `${progressPercent}%`,
                             backgroundColor: effectiveBarColor,
                             opacity: isDone ? 0.9 : 0.85,
@@ -2350,7 +2368,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                           }}
                         />
                       )}
-                      
+
                       {task.estimatedHours !== undefined && barWidth >= 42 && (
                         <span className="absolute right-1.5 top-1/2 z-[3] -translate-y-1/2 rounded bg-black/25 px-1 text-[9px] font-bold text-white/90 tabular-nums">
                           {task.estimatedHours}h
@@ -2371,7 +2389,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                       )}
                       {/* In-progress: subtle shimmer animation at progress edge */}
                       {isInProgress && progressPercent > 0 && progressPercent < 100 && (
-                        <div 
+                        <div
                           className="absolute top-0 bottom-0 w-[2px] bg-white/40 blur-[1px] animate-pulse z-[1]"
                           style={{ left: `${progressPercent}%` }}
                         />
@@ -2395,10 +2413,10 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
 
                       {/* ★ Auto-popup risk alert badge — shows when shouldAutoAlert is true */}
                       {taskRisk && taskRisk.shouldAutoAlert && !scheduleConflicts.has(task.id!) && (
-                        <div 
+                        <div
                           className={`absolute -top-5 left-1/2 -translate-x-1/2 z-30 pointer-events-none flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold whitespace-nowrap shadow-lg ${
-                            taskRisk.level === 'critical' 
-                              ? 'bg-red-500 text-white shadow-red-500/40 border border-red-300 animate-pulse' 
+                            taskRisk.level === 'critical'
+                              ? 'bg-red-500 text-white shadow-red-500/40 border border-red-300 animate-pulse'
                               : taskRisk.level === 'high'
                                 ? 'bg-orange-500 text-white shadow-orange-500/40 border border-orange-300 animate-pulse'
                                 : 'bg-amber-500 text-white shadow-amber-500/40 border border-amber-300 animate-pulse'
@@ -2431,7 +2449,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                       >
                         <div className="w-[3px] h-4 rounded-full bg-white/0 group-hover/bar:bg-white/30 group-hover/handle-r:bg-white/70 transition-colors" />
                       </div>
-                      
+
                       {/* Dependency Drag Handle (Right Edge) — enhanced visual */}
                       <div
                         className="absolute -right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-indigo-400 border-2 border-white shadow-md opacity-0 group-hover/bar:opacity-100 cursor-crosshair z-30 hover:scale-150 hover:bg-indigo-300 hover:shadow-indigo-400/50 hover:shadow-lg transition-all duration-200"
@@ -2624,8 +2642,8 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
               今天
             </button>
             {/* Scrollable gantt content */}
-            <div 
-              ref={ganttScrollRef} 
+            <div
+              ref={ganttScrollRef}
               className={`flex-1 overflow-x-auto overflow-y-auto ${isDraggingCanvas ? 'cursor-grabbing select-none' : ''}`}
               id="gantt-scroll-container"
               onMouseDown={handleCanvasMouseDown}
@@ -2687,7 +2705,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                   {/* SVG Dependency Topology Layer */}
                   <div className="absolute inset-0 z-[3] pointer-events-none" style={{ clipPath: `inset(0 0 0 ${effectiveLpWidth}px)` }}>
                     <GanttDependencyLines lines={dependencyLines} />
-                    
+
                     {/* Dynamic Dependency Drag Line — Enhanced */}
                     {depDragStart && depDragCurrent && (
                       <svg className="absolute inset-0 pointer-events-none" style={{ overflow: 'visible' }} width="100%" height="100%">
@@ -2749,7 +2767,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
 
                   {/* Today indicator line */}
                   <GanttTodayLine startDate={startDate} dayWidth={dayWidth} leftPanelWidth={effectiveLpWidth} />
-                  
+
                   <div className="py-0.5 w-full" ref={ganttBodyRef}>
                     {filteredTaskRows.length > 0 ? (
                       <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative', width: '100%' }}>
@@ -2825,8 +2843,8 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
       {/* Dependency Toast Notification */}
       {depToast && createPortal(
         <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[99999] px-4 py-2.5 rounded-lg shadow-2xl border backdrop-blur-md text-sm font-medium transition-all animate-in fade-in slide-in-from-top-2 ${
-          depToast.type === 'success' 
-            ? 'bg-emerald-900/90 border-emerald-500/40 text-emerald-200 shadow-emerald-500/20' 
+          depToast.type === 'success'
+            ? 'bg-emerald-900/90 border-emerald-500/40 text-emerald-200 shadow-emerald-500/20'
             : 'bg-red-900/90 border-red-500/40 text-red-200 shadow-red-500/20'
         }`}>
           {depToast.message}
@@ -2869,7 +2887,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="p-5 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1.5">状态</label>
@@ -2947,12 +2965,12 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                 <p className="text-sm text-emerald-400">提前 {earlyFinishConfirm.daysEarly} 天完成</p>
               </div>
             </div>
-            
+
             <div className="p-5 space-y-4">
               <p className="text-sm text-gray-300">
                 <span className="font-medium text-gray-100">「{earlyFinishConfirm.taskTitle}」</span> 已标记为完成。
               </p>
-              
+
               <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
                 <p className="text-sm text-gray-400 mb-2">是否将下游任务也提前 <span className="text-emerald-400 font-medium">{earlyFinishConfirm.daysEarly} 天</span>？</p>
                 <div className="space-y-1.5">
