@@ -21,6 +21,8 @@ export interface Resource {
   sortOrder?: number;
   /** 'internal' = 内部成员, 'base' = 基地人员, 'cp' = CP供应商 */
   type?: ResourceType;
+  /** Keep a locally selected personnel type from being overwritten by TAPD refresh. */
+  typeLocked?: boolean;
   /** Avatar display style */
   avatarStyle?: AvatarStyle;
   /** 成员状态：'active' = 正常, 'wfh' = 居家办公, 'sick' = 身体欠佳, 'leave' = 休假中, 'focus' = 专注模式, 'departed' = 已离职 */

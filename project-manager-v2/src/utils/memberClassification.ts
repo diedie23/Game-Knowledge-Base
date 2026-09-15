@@ -1,4 +1,4 @@
-import type { ResourceType } from '../types/resource';
+import type { Resource, ResourceType } from '../types/resource';
 
 export interface TapdMemberClassification {
   type: ResourceType;
@@ -6,6 +6,33 @@ export interface TapdMemberClassification {
   role: string;
   workforceType?: string;
   supplierAffiliation?: string;
+}
+
+export interface ResolvedMemberType {
+  type: ResourceType;
+  typeLocked: boolean;
+}
+
+/** Preserve explicit local personnel ownership while allowing TAPD to classify untouched members. */
+export function resolveMemberTypeAfterTapdSync(
+  existing: Pick<Resource, 'type' | 'typeLocked' | 'workforceType'> | undefined,
+  incomingType: ResourceType,
+): ResolvedMemberType {
+  if (!existing) return { type: incomingType, typeLocked: false };
+
+  if (existing.typeLocked && existing.type) {
+    return { type: existing.type, typeLocked: true };
+  }
+
+  // Compatibility for members manually classified before typeLocked existed.
+  if (existing.workforceType?.trim() === '基地人员') {
+    return { type: 'base', typeLocked: true };
+  }
+  if (existing.type === 'cp' && /供应商|外包|合作方/.test(existing.workforceType || '')) {
+    return { type: 'cp', typeLocked: true };
+  }
+
+  return { type: incomingType, typeLocked: false };
 }
 
 /** Classify TAPD member groups while keeping supplier trial members under CP. */

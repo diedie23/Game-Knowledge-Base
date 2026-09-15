@@ -11,7 +11,7 @@ import {
   matchCpResourcesFromTitle,
   normalizeSupplierName,
 } from '../utils/cpSupplier';
-import { classifyTapdMember } from '../utils/memberClassification';
+import { classifyTapdMember, resolveMemberTypeAfterTapdSync } from '../utils/memberClassification';
 
 // Re-export for consumers
 export type { SyncResult, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem };
@@ -854,6 +854,10 @@ export class TapdService {
       });
 
       if (existing?.id) {
+        const resolvedType = resolveMemberTypeAfterTapdSync(existing, memberType);
+        const resolvedWorkforceType = resolvedType.typeLocked
+          ? existing.workforceType || (resolvedType.type === 'base' ? '基地人员' : resolvedType.type === 'cp' ? '供应商' : undefined)
+          : workforceType || existing.workforceType;
         const projectIds = Array.from(new Set([...(existing.projectIds || []), projectId]));
         await db.resources.update(existing.id, {
           name,
@@ -862,9 +866,10 @@ export class TapdService {
           tapdAccount: account || existing.tapdAccount,
           projectIds,
           tapdGroups: memberGroups,
-          workforceType: workforceType || existing.workforceType,
+          workforceType: resolvedWorkforceType,
           supplierAffiliation: supplierAffiliation || existing.supplierAffiliation,
-          type: memberType,
+          type: resolvedType.type,
+          typeLocked: resolvedType.typeLocked,
           status: existing.status === 'departed' ? 'active' : (existing.status || 'active'),
           joinDate: joinDate || existing.joinDate,
         });
@@ -880,6 +885,7 @@ export class TapdService {
           workforceType,
           supplierAffiliation,
           type: memberType,
+          typeLocked: false,
           status: 'active' as const,
           joinDate,
           sortOrder: nextSortOrder++,

@@ -331,7 +331,11 @@ export function Dashboard() {
     });
 
     const typeWeight = (type?: string) => type === 'cp' ? 2 : type === 'base' ? 1 : 0;
-    return statuses.sort((a, b) => typeWeight(a.type) - typeWeight(b.type) || a.weight - b.weight);
+    return statuses.sort((a, b) =>
+      typeWeight(a.type) - typeWeight(b.type)
+      || a.weight - b.weight
+      || (a.role || '其他岗位').localeCompare(b.role || '其他岗位', 'zh-CN')
+    );
   }, [resources, tasks, today]);
 
   // 6. 数据概览统计
@@ -947,13 +951,24 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
             const showTypeHeader = index === 0 || previousType !== memberType;
             const typeCount = memberStatus.filter(item => (item.type || 'internal') === memberType).length;
             const typeLabel = memberType === 'cp' ? '供应商 · 承接需求' : memberType === 'base' ? '基地人员' : '内部成员';
+            const roleLabel = member.role || '其他岗位';
+            const previousRole = previousType === memberType && index > 0 ? (memberStatus[index - 1].role || '其他岗位') : null;
+            const showRoleHeader = showTypeHeader || previousRole !== roleLabel;
+            const roleCount = memberStatus.filter(item => (item.type || 'internal') === memberType && (item.role || '其他岗位') === roleLabel).length;
             return (
             <React.Fragment key={member.id}>
               {showTypeHeader && (
-                <div className={`basis-full flex items-center gap-3 pt-3 text-xs font-semibold ${memberType === 'cp' ? 'text-emerald-400' : memberType === 'base' ? 'text-amber-400' : 'text-indigo-300'}`}>
+                <div className={`basis-full flex items-center gap-3 mt-2 px-4 py-2.5 rounded-xl border text-sm font-semibold ${memberType === 'cp' ? 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20' : memberType === 'base' ? 'text-amber-300 bg-amber-500/10 border-amber-500/20' : 'text-indigo-200 bg-indigo-500/10 border-indigo-500/20'}`}>
                   <span>{typeLabel}</span>
-                  <span className="text-gray-500">({typeCount})</span>
+                  <span className="text-gray-500">{typeCount} 人</span>
                   <span className={`h-px flex-1 ${memberType === 'cp' ? 'bg-emerald-500/20' : memberType === 'base' ? 'bg-amber-500/20' : 'bg-indigo-500/15'}`} />
+                </div>
+              )}
+              {showRoleHeader && (
+                <div className="basis-full flex items-center gap-2 pl-3 -mb-2 text-[11px] font-medium text-gray-400">
+                  <span className={`w-1.5 h-1.5 rounded-full ${memberType === 'cp' ? 'bg-emerald-400' : memberType === 'base' ? 'bg-amber-400' : 'bg-indigo-400'}`} />
+                  <span>{roleLabel}</span>
+                  <span className="text-gray-600">{roleCount}</span>
                 </div>
               )}
             <div className="flex flex-col">

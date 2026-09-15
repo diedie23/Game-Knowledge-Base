@@ -179,9 +179,9 @@ export function ResourceModal() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingResourceId) {
-      await trackedDb.resources.update(editingResourceId, formData, '编辑成员信息');
+      await trackedDb.resources.update(editingResourceId, { ...formData, typeLocked: true }, '编辑成员信息');
     } else {
-      await trackedDb.resources.add(formData as Resource, `新建成员「${formData.name}」`);
+      await trackedDb.resources.add({ ...formData, typeLocked: true } as Resource, `新建成员「${formData.name}」`);
     }
     closeResourceModal();
   };

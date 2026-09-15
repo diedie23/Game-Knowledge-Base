@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { classifyTapdMember } from './memberClassification';
+import { classifyTapdMember, resolveMemberTypeAfterTapdSync } from './memberClassification';
 
 describe('TAPD member classification', () => {
   it('keeps supplier-name trial members under the matching CP supplier', () => {
@@ -18,5 +18,16 @@ describe('TAPD member classification', () => {
   it('keeps ordinary supplier and base groups unchanged', () => {
     expect(classifyTapdMember(['UX-动效', '供应商'], 'UX-动效', '动效').type).toBe('cp');
     expect(classifyTapdMember(['UX-视觉', '基地人员'], 'UX-视觉', 'UI设计').type).toBe('base');
+  });
+  it('preserves manually selected and legacy base personnel types during refresh', () => {
+    expect(resolveMemberTypeAfterTapdSync(
+      { type: 'base', typeLocked: true, workforceType: '基地人员' },
+      'internal',
+    )).toEqual({ type: 'base', typeLocked: true });
+
+    expect(resolveMemberTypeAfterTapdSync(
+      { type: 'internal', workforceType: '基地人员' },
+      'internal',
+    )).toEqual({ type: 'base', typeLocked: true });
   });
 });
