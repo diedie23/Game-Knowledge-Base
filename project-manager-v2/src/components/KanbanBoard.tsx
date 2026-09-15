@@ -14,6 +14,8 @@ import { tapdService } from '../services/tapdService';
 import EmptyState from './common/EmptyState';
 import { confirmDialog } from './common/ConfirmDialog';
 
+const KANBAN_INITIAL_BATCH = 20;
+
 const COLUMNS = [
   { id: 'todo', title: '待办', color: 'bg-slate-800/40', borderColor: 'border-slate-700/50' },
   { id: 'in_progress', title: '进行中', color: 'bg-blue-900/20', borderColor: 'border-blue-700/40' },
@@ -29,6 +31,7 @@ export const KanbanBoard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; taskId: number } | null>(null);
+  const [visibleTaskCounts, setVisibleTaskCounts] = useState<Record<string, number>>({});
 
   // Quick create state
   const [quickCreateColumnId, setQuickCreateColumnId] = useState<string | null>(null);
@@ -161,6 +164,18 @@ export const KanbanBoard: React.FC = () => {
     return ids;
   }, [tasks]);
 
+  const childStatsByParentId = useMemo(() => {
+    const stats = new Map<number, { total: number; completed: number }>();
+    tasks.forEach(task => {
+      if (!task.parentId) return;
+      const current = stats.get(task.parentId) || { total: 0, completed: 0 };
+      current.total += 1;
+      if (task.status === 'done' || task.status === 'cancelled') current.completed += 1;
+      stats.set(task.parentId, current);
+    });
+    return stats;
+  }, [tasks]);
+
   const filteredTasks = useMemo(() => {
     let result = tasks;
     if (filterPersonId !== null) result = result.filter(t => t.assigneeIds?.includes(filterPersonId));
@@ -252,6 +267,10 @@ export const KanbanBoard: React.FC = () => {
         ];
     }
   }, [groupBy, resources]);
+
+  useEffect(() => {
+    setVisibleTaskCounts({});
+  }, [groupBy, filterPersonId, searchQuery, selectedProjectId]);
 
   const getTasksForColumn = (col: typeof columns[0]) => {
     const colTasks = filteredTasks.filter(col.filterFn);
@@ -707,6 +726,9 @@ export const KanbanBoard: React.FC = () => {
           <div className="flex h-full gap-6 items-start">
             {columns.map(column => {
               const columnTasks = getTasksForColumn(column);
+              const visibleCount = visibleTaskCounts[column.id] || KANBAN_INITIAL_BATCH;
+              const renderedTasks = columnTasks.slice(0, visibleCount);
+              const remainingCount = columnTasks.length - renderedTasks.length;
               const wipLimit = getWipLimit(column.id);
               const overLimit = isOverWipLimit(column.id, columnTasks.length);
               const isCollapsed = collapsedColumns.has(column.id);
@@ -881,7 +903,7 @@ export const KanbanBoard: React.FC = () => {
                           </div>
                         )}
                         <div className="flex flex-col gap-3 min-h-[100px] relative">
-                          {columnTasks.map((task, index) => (
+                          {renderedTasks.map((task, index) => (
                             <Draggable key={task.id} draggableId={task.id!.toString()} index={index}>
                               {(provided, snapshot) => {
                                 const isDragging = snapshot.isDragging;
@@ -986,19 +1008,16 @@ export const KanbanBoard: React.FC = () => {
 
                                     {/* Subtasks progress */}
                                     {(() => {
-                                      const subtasks = tasks.filter(t => t.parentId === task.id);
-                                      if (subtasks.length > 0) {
-                                        const completed = subtasks.filter(t => t.status === 'done').length;
-                                        return (
-                                          <div className="mb-3 flex items-center gap-1.5 text-xs text-gray-400">
-                                            <CheckCircle2 size={12} className={completed === subtasks.length ? 'text-emerald-400' : 'text-gray-500'} />
-                                            <span className={completed === subtasks.length ? 'text-emerald-400/80' : ''}>
-                                              {completed}/{subtasks.length}
-                                            </span>
-                                          </div>
-                                        );
-                                      }
-                                      return null;
+                                      const stats = task.id ? childStatsByParentId.get(task.id) : undefined;
+                                      if (!stats) return null;
+                                      return (
+                                        <div className="mb-3 flex items-center gap-1.5 text-xs text-gray-400">
+                                          <CheckCircle2 size={12} className={stats.completed === stats.total ? 'text-emerald-400' : 'text-gray-500'} />
+                                          <span className={stats.completed === stats.total ? 'text-emerald-400/80' : ''}>
+                                            {stats.completed}/{stats.total}
+                                          </span>
+                                        </div>
+                                      );
                                     })()}
 
                                     <div className="flex items-center justify-between mt-4">
@@ -1033,6 +1052,18 @@ export const KanbanBoard: React.FC = () => {
                               }}
                             </Draggable>
                           ))}
+                          {remainingCount > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setVisibleTaskCounts(current => ({
+                                ...current,
+                                [column.id]: visibleCount + KANBAN_INITIAL_BATCH,
+                              }))}
+                              className="w-full rounded-lg border border-gray-700 bg-gray-800/60 px-3 py-2 text-xs text-indigo-300 hover:border-indigo-500/50 hover:bg-indigo-500/10 transition-colors"
+                            >
+                              再显示 {Math.min(KANBAN_INITIAL_BATCH, remainingCount)} 条 · 还有 {remainingCount} 条
+                            </button>
+                          )}
                           {columnTasks.length === 0 && !snapshot.isDraggingOver && (
                             <EmptyState variant="no-tasks" title="暂无任务" size="sm" />
                           )}

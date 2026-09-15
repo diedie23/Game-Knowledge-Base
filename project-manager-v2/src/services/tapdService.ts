@@ -403,6 +403,7 @@ export class TapdService {
   private activeStatusLabels = new Map<string, string>();
   private workitemTypeNamesByWorkspace = new Map<string, Map<string, string>>();
   private activeWorkitemTypeNames = new Map<string, string>();
+  private refreshRequestsByProject = new Map<number, Promise<RefreshResult>>();
 
   private getStoryFields(): string {
     return [...new Set([...STORY_FIELDS.split(','), ...this.activeCustomPriorityFields])].join(',');
@@ -2456,7 +2457,16 @@ export class TapdService {
    * Does NOT insert new tasks — only updates status, dates, priority, progress, assignee.
    * Returns detailed change report.
    */
-  async refreshExistingTasks(projectId: number): Promise<RefreshResult> {
+  refreshExistingTasks(projectId: number): Promise<RefreshResult> {
+    const inFlight = this.refreshRequestsByProject.get(projectId);
+    if (inFlight) return inFlight;
+    const request = this.performRefreshExistingTasks(projectId)
+      .finally(() => this.refreshRequestsByProject.delete(projectId));
+    this.refreshRequestsByProject.set(projectId, request);
+    return request;
+  }
+
+  private async performRefreshExistingTasks(projectId: number): Promise<RefreshResult> {
     const config = this.config || (await this.loadConfig(projectId));
     if (!config) {
       throw new Error('未找到 TAPD 配置，请先配置 TAPD 连接');
