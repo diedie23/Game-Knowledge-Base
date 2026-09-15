@@ -842,7 +842,7 @@ export class TapdService {
       processedMemberKeys.add(memberKey);
 
       const name = rawName || account || userId;
-      const classification = classifyTapdMember(memberGroups, tapdGroup, targetGroupRoles[tapdGroup]);
+      const classification = classifyTapdMember(memberGroups, tapdGroup, targetGroupRoles[tapdGroup], name);
       const { role, workforceType, type: memberType, supplierAffiliation } = classification;
       const resourceGroup = classification.group;
       const joinDate = String(member.real_join_time || member.join_project_time || '').slice(0, 10) || undefined;

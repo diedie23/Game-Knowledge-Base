@@ -8,24 +8,23 @@ export interface TapdMemberClassification {
   supplierAffiliation?: string;
 }
 
-/**
- * Classify TAPD member groups. Groups named "供应商-姓名/名称" represent
- * pre-base trial members in this workspace: keep them under 基地人员/测试,
- * while retaining the supplier affiliation for display and auditing.
- */
+/** Classify TAPD member groups while keeping supplier trial members under CP. */
 export function classifyTapdMember(
   memberGroups: string[],
   tapdGroup: string,
   defaultRole: string,
+  memberName = '',
 ): TapdMemberClassification {
-  const supplierTestGroup = memberGroups.find(group => /^供应商\s*[-—_：:]\s*\S+/.test(group.trim()));
-  if (supplierTestGroup) {
-    const supplierAffiliation = supplierTestGroup.replace(/^供应商\s*[-—_：:]\s*/, '').trim();
+  const supplierMemberGroup = memberGroups.find(group => /^供应商(?:\s*[-—_：:]\s*\S+)?$/.test(group.trim()));
+  if (supplierMemberGroup) {
+    const nameSupplier = memberName.trim().match(/^([^\-—_]+)[\-—_]\s*.+$/)?.[1]?.trim();
+    const supplierAffiliation = nameSupplier || supplierMemberGroup.replace(/^供应商\s*[-—_：:]\s*/, '').trim();
+    const role = /动效|动画|motion|vfx/i.test(defaultRole) ? 'CP-动效' : 'CP-UI设计';
     return {
-      type: 'base',
-      group: '测试',
-      role: '测试',
-      workforceType: supplierAffiliation ? `供应商测试·${supplierAffiliation}` : '供应商测试',
+      type: 'cp',
+      group: supplierAffiliation || '供应商',
+      role,
+      workforceType: '供应商',
       supplierAffiliation: supplierAffiliation || undefined,
     };
   }

@@ -19,6 +19,7 @@ import { useMemberStats } from './sidebar/hooks/useMemberStats';
 import EmptyState from './common/EmptyState';
 import { confirmDialog, alertDialog } from './common/ConfirmDialog';
 import { toast } from '../store/useToastStore';
+import { formatResourceDisplayName } from '../utils/resourceDisplay';
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -699,22 +700,20 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                         const showTypeDivider = !prevResource || prevType !== resourceType;
                         const typeCount = activeResources.filter(r => (r.type || 'internal') === resourceType).length;
 
-                        // Role/project sub-groups are useful for internal and base execution members.
-                        // Pre-base trial members stay under 基地人员/测试 and are nested by supplier.
+                        // Keep members nested by role/project group, and CP people by supplier.
                         const getSubgroupLabel = (item: Resource) => {
+                          if (item.type === 'cp') return item.supplierAffiliation || item.group || '其他供应商';
                           if (memberGroupMode === 'group') return item.group || '未分组';
-                          if (item.type === 'base' && item.supplierAffiliation) return `测试 · ${item.supplierAffiliation}`;
                           return item.role || '其他';
                         };
                         const roleGroupLabel = getSubgroupLabel(resource);
-                        const showRoleGroupDivider = resourceType !== 'cp'
-                          && (!prevResource || prevType !== resourceType || roleGroupLabel !== getSubgroupLabel(prevResource));
-                        const roleGroupCount = resourceType !== 'cp'
-                          ? activeResources.filter(item =>
-                              (item.type || 'internal') === resourceType
-                              && getSubgroupLabel(item) === roleGroupLabel
-                            ).length
-                          : 0;
+                        const showRoleGroupDivider = !prevResource
+                          || prevType !== resourceType
+                          || roleGroupLabel !== getSubgroupLabel(prevResource);
+                        const roleGroupCount = activeResources.filter(item =>
+                          (item.type || 'internal') === resourceType
+                          && getSubgroupLabel(item) === roleGroupLabel
+                        ).length;
                         // Use hook-provided stats for micro indicator
                         const { inProgress: memberInProgress, todo: memberTodo, done: memberDone, overdue: memberOverdue } = getMemberTaskStats(resource.id!);
                         
@@ -773,7 +772,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                                   }
                                   handleMemberClick(resource.id!, e);
                                 }}
-                                title={collapsed ? resource.name : undefined}
+                                title={collapsed ? formatResourceDisplayName(resource) : undefined}
                               >
                                 {collapsed ? (
                                   /* Collapsed: just Avatar */
@@ -853,7 +852,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                                   </div>
                                   <div className="flex flex-col min-w-0 gap-0.5 flex-1">
                                     <div className="flex items-center gap-1.5">
-                                      <span className={`font-medium text-sm leading-tight whitespace-nowrap ${isResourceDeparted(resource) ? 'text-gray-500 line-through decoration-gray-600' : 'text-gray-200'}`}>{resource.name}</span>
+                                      <span className={`font-medium text-sm leading-tight whitespace-nowrap ${isResourceDeparted(resource) ? 'text-gray-500 line-through decoration-gray-600' : 'text-gray-200'}`}>{formatResourceDisplayName(resource)}</span>
                                       {/* Default: compact role dot indicator */}
                                       {resource.role && (
                                         <span className={`shrink-0 px-1.5 py-[1px] rounded-md text-[9px] font-semibold leading-tight border opacity-60 group-hover:opacity-100 transition-opacity ${
@@ -1058,7 +1057,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                             </div>
                             <div className="flex flex-col min-w-0 gap-0.5 flex-1">
                               <div className="flex items-center gap-1.5">
-                                <span className="font-medium text-sm leading-tight whitespace-nowrap text-gray-500 line-through decoration-gray-600">{resource.name}</span>
+                                <span className="font-medium text-sm leading-tight whitespace-nowrap text-gray-500 line-through decoration-gray-600">{formatResourceDisplayName(resource)}</span>
                                 {resource.role && (
                                   <span className="shrink-0 px-1.5 py-[1px] rounded-md text-[9px] font-semibold leading-tight border opacity-40 border-gray-600 text-gray-500 bg-gray-800/30">
                                     {resource.role}

@@ -145,7 +145,7 @@ export function compareResources(
   const roleDiff = getRoleOrderIndex(a.role) - getRoleOrderIndex(b.role);
   if (roleDiff !== 0) return roleDiff;
   // Keep pre-base test members together by their supplier affiliation.
-  if (a.type === 'base' && b.type === 'base') {
+  if ((a.type === 'base' && b.type === 'base') || (a.type === 'cp' && b.type === 'cp')) {
     const supplierDiff = (a.supplierAffiliation || '').localeCompare(b.supplierAffiliation || '', 'zh-CN');
     if (supplierDiff !== 0) return supplierDiff;
   }

@@ -11,6 +11,8 @@ import { getEffectiveStatus } from '../types/resource';
 import { getRoleBadgeStyle } from '../constants/theme';
 import EmptyState from './common/EmptyState';
 import { isTaskCancelled, isTaskCompleted, isTaskDueToday, isTaskOverdue, isTaskTerminal } from '../utils/taskState';
+import { dedupeResourcesForDisplay, getResourceAliasIds } from '../utils/resourceDedup';
+import { formatResourceDisplayName } from '../utils/resourceDisplay';
 
 export function Dashboard() {
   const { setCurrentView, openTaskModal, selectedProjectId } = useStore();
@@ -27,6 +29,9 @@ export function Dashboard() {
     if (!selectedProjectId) return;
     tapdService.refreshExistingTasks(selectedProjectId).catch(error => {
       console.warn('[Dashboard] TAPD background refresh failed:', error);
+    });
+    tapdService.syncProjectMembers(selectedProjectId).catch(error => {
+      console.warn('[Dashboard] TAPD member refresh failed:', error);
     });
   }, [selectedProjectId]);
   // Exclude paused and cancelled tasks from dashboard statistics
@@ -246,7 +251,7 @@ export function Dashboard() {
 
   // 4. 未排期任务:所有还没有开始时间的任务列表
   const unscheduledTasksGrouped = useMemo(() => {
-    const unscheduled = tasks.filter(t => !t.startDate || !t.endDate);
+    const unscheduled = actionableTasks.filter(t => !t.startDate || !t.endDate);
     const groups = new Map<string, { parentTitle: string, items: any[], isStandalone?: boolean, parentTask?: any, isParentInList?: boolean }>();
     
     unscheduled.forEach(task => {
@@ -275,7 +280,7 @@ export function Dashboard() {
     });
     
     return Array.from(groups.values());
-  }, [tasks]);
+  }, [tasks, actionableTasks]);
 
   // 5. 底部一行：成员今日状态
   const memberStatus = useMemo(() => {
@@ -302,8 +307,10 @@ export function Dashboard() {
       if (t.parentId) parentTaskIds.add(t.parentId);
     });
 
-    const statuses = resources.filter(r => r.status !== 'departed').map(resource => {
-      const memberTasks = tasks.filter(t => t.assigneeIds?.includes(resource.id!) && !parentTaskIds.has(t.id!));
+    const visibleResources = dedupeResourcesForDisplay(resources.filter(r => r.status !== 'departed'));
+    const statuses = visibleResources.map(resource => {
+      const aliasIds = getResourceAliasIds(resource, resources);
+      const memberTasks = tasks.filter(t => t.assigneeIds?.some(id => aliasIds.includes(id)) && !parentTaskIds.has(t.id!));
       const memberInProgress = memberTasks.filter(t => t.status === 'in_progress' && !isTaskTerminal(t)).length;
       const memberTodo = memberTasks.filter(t => t.status === 'todo' && !isTaskTerminal(t)).length;
       const memberOverdue = memberTasks.filter(t => isTaskOverdue(t, today)).length;
@@ -323,14 +330,15 @@ export function Dashboard() {
       };
     });
 
-    return statuses.sort((a, b) => a.weight - b.weight);
+    const typeWeight = (type?: string) => type === 'cp' ? 2 : type === 'base' ? 1 : 0;
+    return statuses.sort((a, b) => typeWeight(a.type) - typeWeight(b.type) || a.weight - b.weight);
   }, [resources, tasks, today]);
 
   // 6. 数据概览统计
   const stats = useMemo(() => {
     // 过滤出真正的"工作项"：即没有子任务的任务（独立任务或具体的子任务）
     // 这样可以避免父任务和子任务重复统计，导致数据对不上
-    const workItems = tasks.filter(task => !tasks.some(t => t.parentId === task.id));
+    const workItems = actionableTasks;
     
     const total = workItems.length;
     const completed = workItems.filter(isTaskCompleted).length;
@@ -364,7 +372,7 @@ export function Dashboard() {
     const weeklyTrend = thisWeekCompleted - lastWeekCompleted; // positive = up, negative = down
 
     return { total, completed, inProgress, unscheduled, completionRate, thisWeekCompleted, lastWeekCompleted, weeklyTrend };
-  }, [tasks]);
+  }, [actionableTasks, today]);
   return (
     <div className="flex-1 overflow-y-auto p-8 bg-[#0f111a] text-gray-300 space-y-8 custom-scrollbar">
       {/* 1. 顶部时间信息栏 — 橙色渐变横条 + 信息卡片 */}
@@ -516,7 +524,7 @@ export function Dashboard() {
       </div>
 
       <div className="grid grid-cols-3 gap-8 h-[620px]" style={{ gridAutoRows: '1fr' }}>
-        {/* 2. 今日到期 / 已延期 — Tab 切换 */}
+        {/* 2. 今日到期 / 逾期未完成 — Tab 切换 */}
         <div className={`relative bg-gray-800/30 rounded-2xl p-6 flex flex-col gap-5 shadow-lg overflow-hidden border min-h-0 ${
           todayTasksGrouped.overdueCount > 0 
             ? 'border-red-500/40 shadow-red-500/10' 
@@ -535,7 +543,7 @@ export function Dashboard() {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-white flex items-center gap-2">
               <Clock size={20} className="text-orange-400" />
-              今日到期 / 已延期
+              今日到期 / 逾期未完成
             </h3>
             <div className="flex items-center gap-1.5">
               {todayTasksGrouped.overdueCount > 0 && (
@@ -560,7 +568,7 @@ export function Dashboard() {
                   : 'text-gray-400 hover:text-gray-300 border border-transparent'
               }`}
             >
-              已延期
+              逾期未完成
               {todayTasksGrouped.overdueCount > 0 && (
                 <span className={`text-[10px] font-bold px-1.5 py-[1px] rounded-full ${
                   dueTab === 'overdue' ? 'bg-red-500/30 text-red-300' : 'bg-gray-700 text-gray-400'
@@ -591,7 +599,7 @@ export function Dashboard() {
           {/* Tab content */}
           {(() => {
             const activeGroups = dueTab === 'overdue' ? todayTasksGrouped.overdueGroups : todayTasksGrouped.dueTodayOnlyGroups;
-            const emptyText = dueTab === 'overdue' ? '暂无延期任务 🎉' : '今日无到期任务 🎉';
+            const emptyText = dueTab === 'overdue' ? '暂无逾期未完成任务 🎉' : '今日无到期任务 🎉';
             return (
               <div className="space-y-4 overflow-y-auto flex-1 min-h-0 pr-2 custom-scrollbar">
 {activeGroups.length === 0 && (
@@ -931,11 +939,24 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
           成员今日状态
         </h3>
         <div className="flex flex-wrap gap-5">
-          {memberStatus.map(member => {
+          {memberStatus.map((member, index) => {
             const isExpanded = expandedMemberId === member.id;
             const hasActiveTasks = member.memberActiveTasks && member.memberActiveTasks.length > 0;
+            const memberType = member.type || 'internal';
+            const previousType = index > 0 ? (memberStatus[index - 1].type || 'internal') : null;
+            const showTypeHeader = index === 0 || previousType !== memberType;
+            const typeCount = memberStatus.filter(item => (item.type || 'internal') === memberType).length;
+            const typeLabel = memberType === 'cp' ? '供应商 · 承接需求' : memberType === 'base' ? '基地人员' : '内部成员';
             return (
-            <div key={member.id} className="flex flex-col">
+            <React.Fragment key={member.id}>
+              {showTypeHeader && (
+                <div className={`basis-full flex items-center gap-3 pt-3 text-xs font-semibold ${memberType === 'cp' ? 'text-emerald-400' : memberType === 'base' ? 'text-amber-400' : 'text-indigo-300'}`}>
+                  <span>{typeLabel}</span>
+                  <span className="text-gray-500">({typeCount})</span>
+                  <span className={`h-px flex-1 ${memberType === 'cp' ? 'bg-emerald-500/20' : memberType === 'base' ? 'bg-amber-500/20' : 'bg-indigo-500/15'}`} />
+                </div>
+              )}
+            <div className="flex flex-col">
               <div 
                 className={`flex items-center gap-3 p-3 rounded-xl bg-gray-800/40 border min-w-[220px] transition-all shadow-sm ${
                   isExpanded ? 'border-blue-500/40 bg-gray-800/60 rounded-b-none' : 'border-gray-700/40 hover:bg-gray-800/60'
@@ -946,7 +967,7 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
                 <Avatar name={member.name} avatar={member.avatar} size="md" type={member.type || 'internal'} role={member.role} />
               </div>
               <div className="flex flex-col min-w-0 gap-0.5 flex-1">
-                <span className="font-medium text-sm leading-tight whitespace-nowrap text-gray-200">{member.name}</span>
+                <span className="font-medium text-sm leading-tight whitespace-nowrap text-gray-200">{formatResourceDisplayName(member)}</span>
                 <div className="flex items-center justify-between gap-1">
                   <div className="flex items-center gap-1">
                     {member.type === 'cp' && (
@@ -1033,6 +1054,7 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
                 </div>
               )}
             </div>
+            </React.Fragment>
             );
           })}
         </div>

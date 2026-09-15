@@ -7,6 +7,7 @@ import { isHoliday } from '../../../utils/dateUtils';
 import { compareResources } from '../../gantt/constants';
 import { getTaskTypeColorValue } from '../../../constants/theme';
 import { isTaskCompleted, isTaskOverdue, isTaskTerminal } from '../../../utils/taskState';
+import { dedupeResourcesForDisplay, getResourceAliasIds } from '../../../utils/resourceDedup';
 
 export interface MemberOverviewData {
   resource: Resource;
@@ -29,7 +30,9 @@ export function useMemberStats(projectId?: number | null) {
   const getResourceColor = useMemo(() => {
     return (resourceId: number) => {
       if (!tasks) return '#5b5fc7';
-      const myTasks = tasks.filter(t => t.assigneeIds?.includes(resourceId) && t.parentId);
+      const resource = resources?.find(item => item.id === resourceId);
+      const aliasIds = resource ? getResourceAliasIds(resource, resources || []) : [resourceId];
+      const myTasks = tasks.filter(t => t.assigneeIds?.some(id => aliasIds.includes(id)) && t.parentId);
       if (myTasks.length === 0) return '#5b5fc7';
       const colorCount = new Map<string, number>();
       myTasks.forEach(t => {
@@ -43,7 +46,7 @@ export function useMemberStats(projectId?: number | null) {
       });
       return maxColor;
     };
-  }, [tasks]);
+  }, [resources, tasks]);
 
   // Sorted resources: type (internal→cp) → role order (UX→UI→Layout→…) → sortOrder
   // Include explicit project members as well as legacy resources with tasks in that project.
@@ -56,7 +59,7 @@ export function useMemberStats(projectId?: number | null) {
         tasks.some(t => t.assigneeIds?.includes(r.id!) && t.projectId === projectId)
       );
     }
-    return filtered.sort(compareResources);
+    return dedupeResourcesForDisplay(filtered).sort(compareResources);
   }, [resources, tasks, projectId]);
 
   // Compute member overview data
@@ -65,6 +68,8 @@ export function useMemberStats(projectId?: number | null) {
       const resource = resources?.find(r => r.id === memberId);
       if (!resource || !tasks) return null;
 
+      const aliasIds = getResourceAliasIds(resource, resources || []);
+
       // Build archived project id set
       const archivedProjectIds = new Set(
         (projects || []).filter(p => p.status === 'archived').map(p => p.id)
@@ -72,7 +77,7 @@ export function useMemberStats(projectId?: number | null) {
 
       // Leaf tasks only (exclude parent tasks to match heatmap stats, exclude archived project tasks, filter by selected project)
       const myTasks = tasks.filter(t => {
-        if (!t.assigneeIds?.includes(memberId)) return false;
+        if (!t.assigneeIds?.some(id => aliasIds.includes(id))) return false;
         if (t.projectId !== undefined && archivedProjectIds.has(t.projectId)) return false;
         if (projectId != null && t.projectId !== projectId) return false;
         const hasChildren = tasks.some(child => child.parentId === t.id);
@@ -104,11 +109,13 @@ export function useMemberStats(projectId?: number | null) {
   // Get task stats for a single member (for micro indicators, leaf tasks only)
   const getMemberTaskStats = useMemo(() => {
     return (resourceId: number) => {
+      const resource = resources?.find(item => item.id === resourceId);
+      const aliasIds = resource ? getResourceAliasIds(resource, resources || []) : [resourceId];
       const archivedProjectIds = new Set(
         (projects || []).filter(p => p.status === 'archived').map(p => p.id)
       );
       const memberTasks = tasks?.filter(t => {
-        if (!t.assigneeIds?.includes(resourceId)) return false;
+        if (!t.assigneeIds?.some(id => aliasIds.includes(id))) return false;
         if (t.projectId !== undefined && archivedProjectIds.has(t.projectId)) return false;
         if (projectId != null && t.projectId !== projectId) return false;
         // Exclude parent tasks
@@ -122,7 +129,7 @@ export function useMemberStats(projectId?: number | null) {
         overdue: memberTasks.filter(t => isTaskOverdue(t, today)).length,
       };
     };
-  }, [tasks, projects, today, projectId]);
+  }, [resources, tasks, projects, today, projectId]);
 
   return {
     resources,
