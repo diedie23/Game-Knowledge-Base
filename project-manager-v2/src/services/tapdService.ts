@@ -2421,7 +2421,7 @@ export class TapdService {
             const data = await tapdRestFetch<{ status: number; data: any; info: string }>(
               '/stories',
               config,
-              { workspace_id: wsId, id: batchIds.join(',') }
+              { workspace_id: wsId, id: batchIds.join(','), limit: '200', fields: STORY_FIELDS }
             );
             if (data?.status === 1 && data?.data) {
               const fetched = Array.isArray(data.data) ? data.data : [data.data];
@@ -2430,7 +2430,7 @@ export class TapdService {
           } else {
             const data = await mcpFetch<{ data: any[] }>(
               '/tapd/stories_get',
-              { workspace_id: wsId, id: batchIds.join(',') }
+              { workspace_id: wsId, id: batchIds.join(','), limit: '200', fields: STORY_FIELDS }
             );
             if (data?.data) stories.push(...data.data);
           }
