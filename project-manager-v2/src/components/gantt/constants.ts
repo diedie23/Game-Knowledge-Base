@@ -117,7 +117,7 @@ export function getRoleOrderIndex(role: string): number {
 }
 
 /**
- * Compare two resources by: type (internal→cp) → group → role order → sortOrder/id.
+ * Compare two resources by: type (internal→base→cp) → group → role order → sortOrder/id.
  * Use this as the standard comparator wherever member lists are displayed.
  * @param groupMode - 'group' to sort by project group first, 'role' (default) to sort by role first
  */
@@ -126,8 +126,8 @@ export function compareResources(
   b: { role: string; type?: string; sortOrder?: number; id?: number; group?: string },
   groupMode: 'role' | 'group' = 'role',
 ): number {
-  // 1. type: internal first, cp second
-  const typeOrder = (t?: string) => t === 'cp' ? 1 : 0;
+  // 1. personnel source: internal first, base second, CP supplier third
+  const typeOrder = (t?: string) => t === 'cp' ? 2 : t === 'base' ? 1 : 0;
   const typeDiff = typeOrder(a.type) - typeOrder(b.type);
   if (typeDiff !== 0) return typeDiff;
   // 2. group-first mode: sort by group name alphabetically

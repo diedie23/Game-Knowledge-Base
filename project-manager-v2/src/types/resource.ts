@@ -1,6 +1,6 @@
 // ─── Resource ────────────────────────────────────────────────────
 
-export type ResourceType = 'internal' | 'cp';
+export type ResourceType = 'internal' | 'base' | 'cp';
 
 /** Avatar display style presets */
 export type AvatarStyle = 'circle' | 'rounded' | 'hexagon' | 'diamond' | 'shield';
@@ -19,7 +19,7 @@ export interface Resource {
   role: string;
   avatar?: string;
   sortOrder?: number;
-  /** 'internal' = 内部成员, 'cp' = CP外包方 */
+  /** 'internal' = 内部成员, 'base' = 基地人员, 'cp' = CP供应商 */
   type?: ResourceType;
   /** Avatar display style */
   avatarStyle?: AvatarStyle;

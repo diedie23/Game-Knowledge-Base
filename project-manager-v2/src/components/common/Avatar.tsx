@@ -1,6 +1,6 @@
 import React from 'react';
 import { Building2 } from 'lucide-react';
-import type { AvatarStyle } from '../../types/resource';
+import type { AvatarStyle, ResourceType } from '../../types/resource';
 import { getRoleColor } from '../gantt/constants';
 
 // Backward-compatible: getMemberColor now delegates to the canonical getRoleColor
@@ -40,7 +40,7 @@ const BORDER_RADIUS: Record<string, string> = {
 interface AvatarProps {
   name: string;
   size?: 'xs' | 'sm' | 'md' | 'lg';
-  type?: 'internal' | 'cp';
+  type?: ResourceType;
   avatar?: string;
   avatarStyle?: AvatarStyle;
   showStatus?: boolean;
@@ -72,7 +72,9 @@ export function Avatar({
     ? name 
     : (isEnglish ? name.slice(0, 2).toUpperCase() : name.slice(-2));
   const isCp = type === 'cp';
-  const titleText = tooltip || `${name}${isCp ? ' (CP)' : ''}${role ? ` · ${role}` : ''}`;
+  const isBase = type === 'base';
+  const typeLabel = isCp ? 'CP供应商' : isBase ? '基地人员' : '';
+  const titleText = tooltip || `${name}${typeLabel ? ` (${typeLabel})` : ''}${role ? ` · ${role}` : ''}`;
   const gradDir = GRADIENT_DIRS[avatarStyle] || '135deg';
   const clipPath = CLIP_PATHS[avatarStyle];
   const borderRadius = BORDER_RADIUS[avatarStyle] || '0.5rem';
@@ -95,11 +97,17 @@ export function Avatar({
           clipPath: clipPath || undefined,
           background: isCp
             ? `linear-gradient(${gradDir}, #059669, #10b981)`
-            : `linear-gradient(${gradDir}, ${color.from}, ${color.to})`,
+            : isBase
+              ? `linear-gradient(${gradDir}, #b45309, #f59e0b)`
+              : `linear-gradient(${gradDir}, ${color.from}, ${color.to})`,
           boxShadow: `0 2px 8px ${color.from}30`,
           // Ring effect via box-shadow for clipped shapes
           ...(clipPath ? {} : {
-            outline: isCp ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
+            outline: isCp
+              ? '1px solid rgba(16, 185, 129, 0.3)'
+              : isBase
+                ? '1px solid rgba(245, 158, 11, 0.35)'
+                : '1px solid rgba(255, 255, 255, 0.1)',
           }),
         }}
       >
@@ -109,9 +117,9 @@ export function Avatar({
           displayName
         )}
       </div>
-      {/* CP indicator */}
-      {isCp && size !== 'xs' && (
-        <div title="外部供应商(CP)" className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-600 rounded-full flex items-center justify-center border border-gray-900">
+      {/* Personnel source indicator */}
+      {(isCp || isBase) && size !== 'xs' && (
+        <div title={isCp ? 'CP供应商' : '基地人员'} className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 ${isCp ? 'bg-emerald-600' : 'bg-amber-600'} rounded-full flex items-center justify-center border border-gray-900`}>
           <Building2 size={sizeConfig.cpIcon} className="text-white" />
         </div>
       )}

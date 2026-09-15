@@ -693,37 +693,28 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                         const isSelected = selectedMemberId === resource.id;
                         const isOverviewOpen = overviewMemberId === resource.id;
                         const avatarColor = getResourceColor(resource.id!);
-                        // Show group divider when switching from internal to cp
                         const prevResource = index > 0 ? activeResources[index - 1] : null;
-                        const showCpDivider = resource.type === 'cp' && (!prevResource || prevResource.type !== 'cp');
-                        const hasCpMembers = activeResources.some(r => r.type === 'cp');
-                        const internalCount = activeResources.filter(r => r.type !== 'cp').length;
-                        const cpCount = activeResources.filter(r => r.type === 'cp').length;
-                        
-                        // Role-based sub-group divider for internal members
+                        const resourceType = resource.type || 'internal';
+                        const prevType = prevResource?.type || 'internal';
+                        const showTypeDivider = !prevResource || prevType !== resourceType;
+                        const typeCount = activeResources.filter(r => (r.type || 'internal') === resourceType).length;
+
+                        // Role/project sub-groups are useful for internal and base execution members.
                         const showRoleGroupDivider = (() => {
-                          if (resource.type === 'cp') return false;
-                          if (index === 0) return true; // First internal member always shows group header
-                          if (!prevResource || prevResource.type === 'cp') return false;
+                          if (resourceType === 'cp') return false;
+                          if (!prevResource || prevType !== resourceType) return true;
                           if (memberGroupMode === 'group') {
-                            // Show divider when project group changes
-                            const currGroup = resource.group || '未分组';
-                            const prevGroup = prevResource.group || '未分组';
-                            return currGroup !== prevGroup;
-                          } else {
-                            // Show divider when role group changes
-                            const currRole = resource.role || '';
-                            const prevRole = prevResource.role || '';
-                            return currRole !== prevRole;
+                            return (resource.group || '未分组') !== (prevResource.group || '未分组');
                           }
+                          return (resource.role || '') !== (prevResource.role || '');
                         })();
-                        const roleGroupLabel = memberGroupMode === 'group' 
+                        const roleGroupLabel = memberGroupMode === 'group'
                           ? (resource.group || '未分组')
                           : (resource.role || '其他');
-                        const roleGroupCount = resource.type !== 'cp' 
+                        const roleGroupCount = resourceType !== 'cp'
                           ? memberGroupMode === 'group'
-                            ? activeResources.filter(r => r.type !== 'cp' && (r.group || '未分组') === (resource.group || '未分组')).length
-                            : activeResources.filter(r => r.type !== 'cp' && (r.role || '') === (resource.role || '')).length 
+                            ? activeResources.filter(r => (r.type || 'internal') === resourceType && (r.group || '未分组') === (resource.group || '未分组')).length
+                            : activeResources.filter(r => (r.type || 'internal') === resourceType && (r.role || '') === (resource.role || '')).length
                           : 0;
 
                         // Use hook-provided stats for micro indicator
@@ -731,39 +722,30 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                         
                         return (
                           <React.Fragment key={resource.id}>
-                            {index === 0 && !collapsed && (
-                              <li className="px-3 pt-1.5 pb-0.5">
+                            {showTypeDivider && !collapsed && (
+                              <li className="px-3 pt-3 pb-0.5">
                                 <div className="flex items-center gap-2">
-                                  <div className="text-[10px] font-semibold text-indigo-400/60 uppercase tracking-widest">内部成员 ({internalCount})</div>
-                                  <div className="flex-1 h-px bg-indigo-500/10" />
+                                  {resourceType !== 'internal' && (
+                                    <Building2 size={12} className={resourceType === 'cp' ? 'text-emerald-400/70 shrink-0' : 'text-amber-400/70 shrink-0'} />
+                                  )}
+                                  <div className={`text-[10px] font-semibold uppercase tracking-widest ${resourceType === 'cp' ? 'text-emerald-400/70' : resourceType === 'base' ? 'text-amber-400/70' : 'text-indigo-400/60'}`}>
+                                    {resourceType === 'cp' ? 'CP供应商' : resourceType === 'base' ? '基地人员' : '内部成员'} ({typeCount})
+                                  </div>
+                                  <div className={`flex-1 h-px ${resourceType === 'cp' ? 'bg-emerald-500/15' : resourceType === 'base' ? 'bg-amber-500/15' : 'bg-indigo-500/10'}`} />
                                 </div>
                               </li>
                             )}
-                            {index === 0 && collapsed && (
-                              <li className="px-1 pt-1.5 pb-0.5">
-                                <div className="h-px bg-indigo-500/20" />
+                            {showTypeDivider && collapsed && (
+                              <li className="px-1 pt-2 pb-0.5">
+                                <div className={`h-px ${resourceType === 'cp' ? 'bg-emerald-500/25' : resourceType === 'base' ? 'bg-amber-500/25' : 'bg-indigo-500/20'}`} />
                               </li>
                             )}
-                            {showRoleGroupDivider && resource.type !== 'cp' && !collapsed && (
+                            {showRoleGroupDivider && !collapsed && (
                               <li className="px-3 pt-2 pb-0.5">
                                 <div className="flex items-center gap-1.5">
                                   <div className="text-[9px] font-medium text-gray-500/80 tracking-wide">{roleGroupLabel} ({roleGroupCount})</div>
                                   <div className="flex-1 h-px bg-white/[0.04]" />
                                 </div>
-                              </li>
-                            )}
-                            {showCpDivider && !collapsed && (
-                              <li className="px-3 pt-3 pb-0.5">
-                                <div className="flex items-center gap-2">
-                                  <Building2 size={12} className="text-emerald-400/60 shrink-0" />
-                                  <div className="text-[10px] font-semibold text-emerald-400/60 uppercase tracking-widest">CP 外包 ({cpCount})</div>
-                                  <div className="flex-1 h-px bg-emerald-500/10" />
-                                </div>
-                              </li>
-                            )}
-                            {showCpDivider && collapsed && (
-                              <li className="px-1 pt-3 pb-0.5">
-                                <div className="h-px bg-emerald-500/20" />
                               </li>
                             )}
                           <Draggable draggableId={`member-${resource.id}`} index={index}>
@@ -801,7 +783,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                                     <Avatar
                                       name={resource.name}
                                       size="sm"
-                                      type={(resource.type as 'internal' | 'cp') || 'internal'}
+                                      type={resource.type || 'internal'}
                                       avatar={resource.avatar}
                                       avatarStyle={resource.avatarStyle}
                                       role={resource.role}
@@ -865,7 +847,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                                     <Avatar
                                       name={resource.name}
                                       size="md"
-                                      type={(resource.type as 'internal' | 'cp') || 'internal'}
+                                      type={resource.type || 'internal'}
                                       avatar={resource.avatar}
                                       avatarStyle={resource.avatarStyle}
                                       role={resource.role}
@@ -889,7 +871,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                                       )}
                                       {resource.type === 'cp' && (
                                         <span className="shrink-0 px-1.5 py-[1px] rounded-md text-[9px] font-semibold leading-tight border text-emerald-300 bg-emerald-500/15 border-emerald-500/25 opacity-60 group-hover:opacity-100 transition-opacity">
-                                          CP
+                                          CP供应商
                                         </span>
                                       )}
                                       {/* Status emoji - always visible if active */}
@@ -1070,7 +1052,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                               <Avatar
                                 name={resource.name}
                                 size="md"
-                                type={(resource.type as 'internal' | 'cp') || 'internal'}
+                                type={resource.type || 'internal'}
                                 avatar={resource.avatar}
                                 avatarStyle={resource.avatarStyle}
                                 role={resource.role}

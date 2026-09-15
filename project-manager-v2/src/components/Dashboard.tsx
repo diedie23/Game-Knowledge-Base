@@ -3,12 +3,13 @@ import { useStore } from '../store/useStore';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
 import { Calendar, AlertCircle, Clock, Users, CheckCircle2, AlertTriangle, Edit2, Check, X } from 'lucide-react';
-import { format, differenceInDays, isToday, isPast, isFuture, addDays, startOfDay, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
+import { format, differenceInDays, isToday, addDays, startOfDay, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { Avatar } from './common/Avatar';
 import { getEffectiveStatus } from '../types/resource';
 import { getRoleBadgeStyle } from '../constants/theme';
 import EmptyState from './common/EmptyState';
+import { isTaskCancelled, isTaskCompleted, isTaskDueToday, isTaskOverdue, isTaskTerminal } from '../utils/taskState';
 
 export function Dashboard() {
   const { setCurrentView, openTaskModal, selectedProjectId } = useStore();
@@ -20,7 +21,7 @@ export function Dashboard() {
   ) || [];
   const resources = useLiveQuery(() => db.resources.toArray()) || [];
   // Exclude paused and cancelled tasks from dashboard statistics
-  const tasks = useMemo(() => allTasks.filter(t => t.status !== 'paused' && t.status !== 'cancelled'), [allTasks]);
+  const tasks = useMemo(() => allTasks.filter(t => t.status !== 'paused' && !isTaskCancelled(t)), [allTasks]);
 
   const parentTaskIds = useMemo(() => {
     const ids = new Set<number>();
@@ -88,18 +89,13 @@ export function Dashboard() {
 
   // 2. 今日需要关注:今天到期的任务，已延期的任务，今天新开始的任务
   const todayTasksGrouped = useMemo(() => {
-    const dueToday = actionableTasks.filter(t => {
-      if (!t.endDate || t.status === 'done' || t.status === 'cancelled') return false;
-      const endDate = new Date(t.endDate);
-      // Include tasks due today OR already overdue (endDate in the past)
-      return isToday(endDate) || isPast(endDate);
-    });
-    const startToday = actionableTasks.filter(t => t.startDate && isToday(new Date(t.startDate)) && t.status !== 'done' && t.status !== 'cancelled');
+    const dueToday = actionableTasks.filter(t => isTaskDueToday(t, today) || isTaskOverdue(t, today));
+    const startToday = actionableTasks.filter(t => t.startDate && isToday(new Date(t.startDate)) && !isTaskTerminal(t));
     
     // 红色=已延期，橙色=今日到期，绿色=正常
     const getTaskColor = (task: any) => {
-      if (task.endDate && isPast(new Date(task.endDate)) && !isToday(new Date(task.endDate))) return 'text-red-300 border-red-500/20 bg-red-500/10 hover:bg-red-500/20';
-      if (task.endDate && isToday(new Date(task.endDate))) return 'text-orange-300 border-orange-500/20 bg-orange-500/10 hover:bg-orange-500/20';
+      if (isTaskOverdue(task, today)) return 'text-red-300 border-red-500/20 bg-red-500/10 hover:bg-red-500/20';
+      if (isTaskDueToday(task, today)) return 'text-orange-300 border-orange-500/20 bg-orange-500/10 hover:bg-orange-500/20';
       return 'text-emerald-300 border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20';
     };
 
@@ -107,18 +103,18 @@ export function Dashboard() {
     const getTaskLabel = (task: any): { text: string; cls: string } | null => {
       if (!task.endDate) return null;
       const endDate = new Date(task.endDate);
-      if (isPast(endDate) && !isToday(endDate)) {
-        const daysOverdue = differenceInDays(new Date(), endDate);
+      if (isTaskOverdue(task, today)) {
+        const daysOverdue = differenceInDays(startOfDay(today), startOfDay(endDate));
         return { text: `已延期${daysOverdue}天`, cls: 'text-red-400 bg-red-500/20 border-red-500/30' };
       }
-      if (isToday(endDate)) {
+      if (isTaskDueToday(task, today)) {
         return { text: '今日到期', cls: 'text-orange-400 bg-orange-500/20 border-orange-500/30' };
       }
       return null;
     };
 
-    const overdueCount = dueToday.filter(t => t.endDate && isPast(new Date(t.endDate)) && !isToday(new Date(t.endDate))).length;
-    const dueTodayCount = dueToday.filter(t => t.endDate && isToday(new Date(t.endDate))).length;
+    const overdueCount = dueToday.filter(t => isTaskOverdue(t, today)).length;
+    const dueTodayCount = dueToday.filter(t => isTaskDueToday(t, today)).length;
 
     const groupTasksByParent = (taskList: any[]) => {
       const groups = new Map<string, { parentTitle: string, items: any[], isStandalone?: boolean, parentTask?: any, isParentInList?: boolean }>();
@@ -148,8 +144,8 @@ export function Dashboard() {
     };
 
     // Split dueToday into overdue and due-today-only lists
-    const overdueTasks = dueToday.filter(t => t.endDate && isPast(new Date(t.endDate)) && !isToday(new Date(t.endDate)));
-    const dueTodayOnlyTasks = dueToday.filter(t => t.endDate && isToday(new Date(t.endDate)));
+    const overdueTasks = dueToday.filter(t => isTaskOverdue(t, today));
+    const dueTodayOnlyTasks = dueToday.filter(t => isTaskDueToday(t, today));
 
     return { 
       dueTodayGroups: groupTasksByParent(dueToday), 
@@ -193,7 +189,7 @@ export function Dashboard() {
       if (resource.type === 'cp') return;
       const resourceTasks = tasks.filter(t => 
         t.assigneeIds?.includes(resource.id!) && 
-        t.status !== 'done' &&
+        !isTaskTerminal(t) &&
         t.startDate && t.endDate &&
         new Date(t.startDate) <= next3Days &&
         new Date(t.endDate) >= today &&
@@ -299,13 +295,13 @@ export function Dashboard() {
 
     const statuses = resources.filter(r => r.status !== 'departed').map(resource => {
       const memberTasks = tasks.filter(t => t.assigneeIds?.includes(resource.id!) && !parentTaskIds.has(t.id!));
-      const memberInProgress = memberTasks.filter(t => t.status === 'in_progress').length;
-      const memberTodo = memberTasks.filter(t => t.status === 'todo').length;
-      const memberOverdue = memberTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled' && t.endDate && new Date(t.endDate) < today).length;
+      const memberInProgress = memberTasks.filter(t => t.status === 'in_progress' && !isTaskTerminal(t)).length;
+      const memberTodo = memberTasks.filter(t => t.status === 'todo' && !isTaskTerminal(t)).length;
+      const memberOverdue = memberTasks.filter(t => isTaskOverdue(t, today)).length;
 
       // Collect active tasks (in_progress + overdue) for expandable detail
       const memberActiveTasks = memberTasks.filter(t => 
-        t.status === 'in_progress' || (t.status !== 'done' && t.status !== 'cancelled' && t.endDate && new Date(t.endDate) < today)
+        (t.status === 'in_progress' && !isTaskTerminal(t)) || isTaskOverdue(t, today)
       );
 
       return {
@@ -328,8 +324,8 @@ export function Dashboard() {
     const workItems = tasks.filter(task => !tasks.some(t => t.parentId === task.id));
     
     const total = workItems.length;
-    const completed = workItems.filter(t => t.status === 'done').length;
-    const inProgress = workItems.filter(t => t.status === 'in_progress').length;
+    const completed = workItems.filter(isTaskCompleted).length;
+    const inProgress = workItems.filter(t => t.status === 'in_progress' && !isTaskTerminal(t)).length;
     const unscheduled = workItems.filter(t => !t.startDate || !t.endDate).length;
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
@@ -341,14 +337,18 @@ export function Dashboard() {
 
     // Count tasks completed (status=done) whose endDate falls within each week
     const thisWeekCompleted = workItems.filter(t => {
-      if (t.status !== 'done' || !t.endDate) return false;
-      const end = new Date(t.endDate);
+      if (!isTaskCompleted(t)) return false;
+      const completionDate = t.completedAt || t.endDate;
+      if (!completionDate) return false;
+      const end = new Date(completionDate);
       return end >= thisWeekStart && end <= thisWeekEnd;
     }).length;
 
     const lastWeekCompleted = workItems.filter(t => {
-      if (t.status !== 'done' || !t.endDate) return false;
-      const end = new Date(t.endDate);
+      if (!isTaskCompleted(t)) return false;
+      const completionDate = t.completedAt || t.endDate;
+      if (!completionDate) return false;
+      const end = new Date(completionDate);
       return end >= lastWeekStart && end <= lastWeekEnd;
     }).length;
 
@@ -934,16 +934,17 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
                 onClick={() => hasActiveTasks && setExpandedMemberId(isExpanded ? null : member.id!)}
               >
               <div className="relative">
-                <Avatar name={member.name} avatar={member.avatar} size="md" type={(member.type as 'internal' | 'cp') || 'internal'} role={member.role} />
+                <Avatar name={member.name} avatar={member.avatar} size="md" type={member.type || 'internal'} role={member.role} />
               </div>
               <div className="flex flex-col min-w-0 gap-0.5 flex-1">
                 <span className="font-medium text-sm leading-tight whitespace-nowrap text-gray-200">{member.name}</span>
                 <div className="flex items-center justify-between gap-1">
                   <div className="flex items-center gap-1">
                     {member.type === 'cp' && (
-                      <span className="shrink-0 px-1.5 py-[1px] rounded-md text-[9px] font-semibold leading-tight border text-emerald-300 bg-emerald-500/15 border-emerald-500/25">
-                        CP
-                      </span>
+                      <span className="shrink-0 px-1.5 py-[1px] rounded-md text-[9px] font-semibold leading-tight border text-emerald-300 bg-emerald-500/15 border-emerald-500/25">CP供应商</span>
+                    )}
+                    {member.type === 'base' && (
+                      <span className="shrink-0 px-1.5 py-[1px] rounded-md text-[9px] font-semibold leading-tight border text-amber-300 bg-amber-500/15 border-amber-500/25">基地人员</span>
                     )}
                     {member.role && (
                       <span className={`shrink-0 px-1.5 py-[1px] rounded-md text-[9px] font-semibold leading-tight border ${getRoleBadgeStyle(member.role)}`}>
@@ -1003,7 +1004,7 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
               {isExpanded && member.memberActiveTasks && member.memberActiveTasks.length > 0 && (
                 <div className="bg-gray-900/60 border border-blue-500/30 border-t-0 rounded-b-xl px-3 py-2 space-y-1.5 min-w-[220px]">
                   {member.memberActiveTasks.map((task: any) => {
-                    const isOverdue = task.endDate && isPast(new Date(task.endDate)) && !isToday(new Date(task.endDate));
+                    const isOverdue = isTaskOverdue(task, today);
                     return (
                       <div 
                         key={task.id} 

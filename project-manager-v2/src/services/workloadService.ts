@@ -2,6 +2,7 @@ import { db } from '../db/db';
 import type { Task, Resource } from '../types';
 import { differenceInDays, addDays } from 'date-fns';
 import { isWorkingDay } from '../utils/dateUtils';
+import { isTaskTerminal } from '../utils/taskState';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -114,7 +115,7 @@ export function calcMemberWorkload(
     if (!t.startDate || !t.endDate) return false;
     if (t.id === excludeTaskId) return false;
     if (!t.assigneeIds?.includes(resourceId)) return false;
-    if (t.status === 'done' || t.status === 'cancelled') return false;
+    if (isTaskTerminal(t)) return false;
     // Only count leaf tasks (with parentId) to avoid double-counting parent tasks
     const hasChildren = context ? context.parentIds.has(t.id!) : allTasks.some(child => child.parentId === t.id);
     if (hasChildren) return false;
@@ -130,9 +131,11 @@ export function calcMemberWorkload(
     return dashIdx !== -1 ? t.title.substring(dashIdx + 1).trim() : t.title;
   });
 
-  // Category breakdown: self-made vs CP follow-up
-  const selfMadeTasks = overlapping.filter(t => t.workCategory !== 'cp_follow');
-  const cpFollowTasks = overlapping.filter(t => t.workCategory === 'cp_follow');
+  // CP-follow weight applies to the internal coordinator. Base and supplier members
+  // assigned to the same work item are execution capacity and keep the normal weight.
+  const isInternalCoordinator = (resource?.type || 'internal') === 'internal';
+  const selfMadeTasks = overlapping.filter(t => !isInternalCoordinator || t.workCategory !== 'cp_follow');
+  const cpFollowTasks = overlapping.filter(t => isInternalCoordinator && t.workCategory === 'cp_follow');
   const selfMadeCount = selfMadeTasks.length;
   const cpFollowCount = cpFollowTasks.length;
   const selfMadeTitles = selfMadeTasks.map(t => {

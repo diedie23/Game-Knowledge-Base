@@ -193,8 +193,9 @@ export function ResourceModal() {
   };
 
   const typeOptions: { value: ResourceType; label: string; icon: React.ReactNode; desc: string; color: string }[] = [
-    { value: 'internal', label: '内部成员', icon: <User size={14} />, desc: '项目组内部人员', color: 'indigo' },
-    { value: 'cp', label: 'CP外包', icon: <Building2 size={14} />, desc: '外部合作方人员', color: 'emerald' },
+    { value: 'internal', label: '内部成员', icon: <User size={14} />, desc: '公司内部人员', color: 'indigo' },
+    { value: 'base', label: '基地人员', icon: <Building2 size={14} />, desc: '基地执行人员', color: 'amber' },
+    { value: 'cp', label: 'CP供应商', icon: <Building2 size={14} />, desc: '外部供应商人员', color: 'emerald' },
   ];
 
   return (
@@ -218,7 +219,7 @@ export function ResourceModal() {
               <Avatar
                 name={formData.name || '?'}
                 size="lg"
-                type={(formData.type as 'internal' | 'cp') || 'internal'}
+                type={formData.type || 'internal'}
                 avatar={formData.avatar || undefined}
                 avatarStyle={(formData.avatarStyle as AvatarStyle) || 'rounded'}
               />
@@ -331,22 +332,29 @@ export function ResourceModal() {
           {/* Type selector */}
           <div>
             <label className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">人员类型</label>
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-3 gap-2.5">
               {typeOptions.map(opt => (
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => setFormData({ ...formData, type: opt.value, role: '' })}
+                  onClick={() => setFormData({
+                    ...formData,
+                    type: opt.value,
+                    role: '',
+                    workforceType: opt.value === 'base' ? '基地人员' : opt.value === 'cp' ? '供应商' : undefined,
+                  })}
                   className={`flex items-center gap-2.5 px-3.5 py-3 rounded-lg border text-left transition-all ${
                     formData.type === opt.value
                       ? opt.color === 'emerald'
-                    ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300 ring-1 ring-emerald-500/20'
-                        : 'bg-indigo-500/10 border-indigo-500/40 text-indigo-300 ring-1 ring-indigo-500/20'
+                        ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300 ring-1 ring-emerald-500/20'
+                        : opt.color === 'amber'
+                          ? 'bg-amber-500/10 border-amber-500/40 text-amber-300 ring-1 ring-amber-500/20'
+                          : 'bg-indigo-500/10 border-indigo-500/40 text-indigo-300 ring-1 ring-indigo-500/20'
                       : 'bg-[#11111b] border-gray-700/50 text-gray-400 hover:border-gray-600 hover:text-gray-300 hover:-translate-y-0.5'
                   }`}
                 >
                   <span className={formData.type === opt.value 
-                    ? (opt.color === 'emerald' ? 'text-emerald-400' : 'text-indigo-400')
+                    ? (opt.color === 'emerald' ? 'text-emerald-400' : opt.color === 'amber' ? 'text-amber-400' : 'text-indigo-400')
                     : 'text-gray-500'
                   }>
                     {opt.icon}

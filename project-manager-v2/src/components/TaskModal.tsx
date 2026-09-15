@@ -861,7 +861,7 @@ export function TaskModal() {
                               <option value="">负责人</option>
                               {resources?.filter(r => r.type !== 'cp' && r.status !== 'departed').length ? (
                                 <optgroup label="内部成员">
-                                  {resources?.filter(r => r.type !== 'cp' && r.status !== 'departed').sort((a, b) => getRoleOrderIndex(a.role) - getRoleOrderIndex(b.role)).map(r => (
+                                  {resources?.filter(r => (!r.type || r.type === 'internal') && r.status !== 'departed').sort((a, b) => getRoleOrderIndex(a.role) - getRoleOrderIndex(b.role)).map(r => (
                     <option key={r.id} value={r.id}>{r.role ? `【${r.role}】${r.name}` : r.name}{(() => { const s = getEffectiveStatus(r); return s === 'wfh' ? ' (居家)' : s === 'sick' ? ' (欠佳)' : s === 'leave' ? ' (休假)' : s === 'focus' ? ' (专注)' : ''; })()}</option>
                                   ))}
                                 </optgroup>
@@ -1435,7 +1435,7 @@ export function TaskModal() {
               <div className="mb-3">
                 <div className="flex items-center gap-1.5 mb-2">
                   <User size={11} className="text-indigo-400" />
-                  <span className="text-[10px] text-indigo-400 font-semibold uppercase tracking-wider">内部成员</span>
+                  <span className="text-[10px] text-indigo-400 font-semibold uppercase tracking-wider">内部成员 / 基地人员</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {resources?.filter(r => r.type !== 'cp' && r.status !== 'departed').sort((a, b) => getRoleOrderIndex(a.role) - getRoleOrderIndex(b.role)).map(r => {
@@ -1465,6 +1465,7 @@ export function TaskModal() {
                           {r.role && (
                             <span className="text-[9px] text-gray-500 ml-1.5">({r.role})</span>
                           )}
+                          {r.type === 'base' && <span className="text-[9px] text-amber-400 ml-1.5">基地</span>}
                           {(() => { const effStatus = getEffectiveStatus(r); return (<>
                           {effStatus === 'wfh' && <span className="text-[9px] text-blue-400 ml-1.5">🏠</span>}
                           {effStatus === 'sick' && <span className="text-[9px] text-orange-400 ml-1.5">🤒</span>}
@@ -1523,7 +1524,7 @@ export function TaskModal() {
               <div>
                 <div className="flex items-center gap-1.5 mb-2">
                   <Building2 size={11} className="text-emerald-400" />
-                  <span className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">CP 外包</span>
+                  <span className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">CP供应商</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {resources?.filter(r => r.type === 'cp' && r.status !== 'departed').sort((a, b) => getRoleOrderIndex(a.role) - getRoleOrderIndex(b.role)).map(r => {
@@ -1537,7 +1538,11 @@ export function TaskModal() {
                           const next = isSelected 
                             ? current.filter(id => id !== r.id)
                             : [...current, r.id!];
-                          setFormData({ ...formData, assigneeIds: next });
+                          setFormData({
+                            ...formData,
+                            assigneeIds: next,
+                            workCategory: !isSelected ? 'cp_follow' : formData.workCategory,
+                          });
                         }}
                         className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-200 border relative ${
                           isSelected 
@@ -1562,7 +1567,7 @@ export function TaskModal() {
               const hasInternalAssignee = (formData.assigneeIds || [])
                 .some(id => {
                   const r = resources?.find(res => res.id === id);
-                  return r && r.type !== 'cp';
+                  return r && (!r.type || r.type === 'internal');
                 });
               if (selectedCpAssignees.length > 0 && !hasInternalAssignee) {
                 return (
@@ -1574,7 +1579,7 @@ export function TaskModal() {
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
-                      {resources?.filter(r => r.type !== 'cp' && r.status !== 'departed').sort((a, b) => getRoleOrderIndex(a.role) - getRoleOrderIndex(b.role)).map(r => (
+                      {resources?.filter(r => (!r.type || r.type === 'internal') && r.status !== 'departed').sort((a, b) => getRoleOrderIndex(a.role) - getRoleOrderIndex(b.role)).map(r => (
                         <button
                           key={r.id}
                           type="button"

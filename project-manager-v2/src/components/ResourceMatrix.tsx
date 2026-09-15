@@ -475,9 +475,12 @@ export function ResourceMatrix() {
     });
   }, [resources, tasks, days, parentTaskIds]);
 
-  // Compute internal/cp counts for group dividers
-  const internalCount = useMemo(() => sortedResources.filter(r => r.type !== 'cp').length, [sortedResources]);
-  const cpCount = useMemo(() => sortedResources.filter(r => r.type === 'cp').length, [sortedResources]);
+  // Compute personnel-source counts for group dividers
+  const typeCounts = useMemo(() => ({
+    internal: sortedResources.filter(r => !r.type || r.type === 'internal').length,
+    base: sortedResources.filter(r => r.type === 'base').length,
+    cp: sortedResources.filter(r => r.type === 'cp').length,
+  }), [sortedResources]);
 
   return (
     <div className="flex-1 overflow-auto bg-[#0f1115] flex flex-col">
@@ -554,31 +557,24 @@ export function ResourceMatrix() {
           <div className="divide-y divide-white/[0.04]">
             {sortedResources?.map((resource, index) => {
               const prevResource = index > 0 ? sortedResources[index - 1] : null;
-              const showInternalHeader = index === 0 && internalCount > 0;
-              const showCpDivider = resource.type === 'cp' && (!prevResource || prevResource.type !== 'cp');
+              const resourceType = resource.type || 'internal';
+              const prevType = prevResource?.type || 'internal';
+              const showTypeHeader = !prevResource || prevType !== resourceType;
+              const typeCount = typeCounts[resourceType];
 
               return (
                 <React.Fragment key={resource.id}>
-                  {/* Internal members group header */}
-                  {showInternalHeader && (
-                    <div className="flex bg-gray-900/40">
-                      <div className="w-56 shrink-0 px-4 py-2 border-r border-white/[0.06]">
-                        <div className="flex items-center gap-2">
-                          <div className="text-[10px] font-semibold text-indigo-400/70 uppercase tracking-widest">内部成员 ({internalCount})</div>
-                          <div className="flex-1 h-px bg-indigo-500/15" />
-                        </div>
-                      </div>
-                      <div className="flex-1" />
-                    </div>
-                  )}
-                  {/* CP external members group header */}
-                  {showCpDivider && (
+                  {showTypeHeader && (
                     <div className="flex bg-gray-900/40">
                       <div className="w-56 shrink-0 px-4 py-2.5 border-r border-white/[0.06]">
                         <div className="flex items-center gap-2">
-                          <Building2 size={12} className="text-emerald-400/70 shrink-0" />
-                          <div className="text-[10px] font-semibold text-emerald-400/70 uppercase tracking-widest">CP 外包 ({cpCount})</div>
-                          <div className="flex-1 h-px bg-emerald-500/15" />
+                          {resourceType !== 'internal' && (
+                            <Building2 size={12} className={resourceType === 'cp' ? 'text-emerald-400/70 shrink-0' : 'text-amber-400/70 shrink-0'} />
+                          )}
+                          <div className={`text-[10px] font-semibold uppercase tracking-widest ${resourceType === 'cp' ? 'text-emerald-400/70' : resourceType === 'base' ? 'text-amber-400/70' : 'text-indigo-400/70'}`}>
+                            {resourceType === 'cp' ? 'CP供应商' : resourceType === 'base' ? '基地人员' : '内部成员'} ({typeCount})
+                          </div>
+                          <div className={`flex-1 h-px ${resourceType === 'cp' ? 'bg-emerald-500/15' : resourceType === 'base' ? 'bg-amber-500/15' : 'bg-indigo-500/15'}`} />
                         </div>
                       </div>
                       <div className="flex-1" />
@@ -591,7 +587,7 @@ export function ResourceMatrix() {
                     <Avatar
                       name={resource.name}
                       size="md"
-                      type={((resource as any).type as 'internal' | 'cp') || 'internal'}
+                      type={resource.type || 'internal'}
                       avatar={resource.avatar}
                       avatarStyle={(resource as any)?.avatarStyle}
                       role={resource.role}

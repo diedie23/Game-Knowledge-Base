@@ -2994,8 +2994,10 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
           const task = tasks?.find(t => t.id === assigneePopover.taskId);
           if (!task) return null;
           const selected = new Set(task.assigneeIds || []);
-          // Group resources by type (internal first, then CP), sorted by role order
-          const internals = (resources || []).filter(r => r.type !== 'cp' && r.status !== 'departed').sort(compareResources);
+          // Keep internal coordinators distinct from base executors and CP suppliers.
+          const internals = (resources || []).filter(r => (!r.type || r.type === 'internal') && r.status !== 'departed').sort(compareResources);
+          const bases = (resources || []).filter(r => r.type === 'base' && r.status !== 'departed').sort(compareResources);
+          const executionMembers = [...internals, ...bases];
           const cps = (resources || []).filter(r => r.type === 'cp' && r.status !== 'departed').sort(compareResources);
           return (
             <div
@@ -3020,10 +3022,10 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                 </button>
               </div>
               <div className="max-h-[320px] overflow-y-auto py-1">
-                {internals.length > 0 && (
+                {executionMembers.length > 0 && (
                   <>
-                    <div className="px-3 py-1 text-[10px] text-gray-500 uppercase tracking-wider">内部成员</div>
-                    {internals.map(r => {
+                    <div className="px-3 py-1 text-[10px] text-gray-500 uppercase tracking-wider">内部成员 / 基地人员</div>
+                    {executionMembers.map(r => {
                       const isSel = selected.has(r.id!);
                       return (
                         <button
@@ -3034,8 +3036,9 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                             isSel ? 'bg-indigo-500/15 text-white' : 'text-gray-300 hover:bg-gray-700/40 hover:text-white'
                           }`}
                         >
-                          <Avatar name={r.name} size="xs" type={(r.type as 'internal' | 'cp') || 'internal'} avatar={r.avatar} avatarStyle={r.avatarStyle} role={r.role} />
+                          <Avatar name={r.name} size="xs" type={r.type || 'internal'} avatar={r.avatar} avatarStyle={r.avatarStyle} role={r.role} />
                           <span className="flex-1 text-left truncate">{r.name}{r.role ? <span className="text-[10px] text-gray-500 ml-1">· {r.role}</span> : null}</span>
+                          {r.type === 'base' && <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 shrink-0">基地</span>}
                           {isSel && <CheckCircle2 size={13} className="text-indigo-400 shrink-0" />}
                         </button>
                       );
@@ -3044,7 +3047,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                 )}
                 {cps.length > 0 && (
                   <>
-                    <div className="px-3 py-1 mt-1 text-[10px] text-gray-500 uppercase tracking-wider">CP 外包</div>
+                    <div className="px-3 py-1 mt-1 text-[10px] text-gray-500 uppercase tracking-wider">CP供应商</div>
                     {cps.map(r => {
                       const isSel = selected.has(r.id!);
                       return (

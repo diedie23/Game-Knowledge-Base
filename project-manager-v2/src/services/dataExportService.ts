@@ -421,7 +421,7 @@ export const dataExportService = {
         isWithinInterval(new Date(t.endDate), { start: weekStart, end: weekEnd })
       ).length;
       const myOverdue = myTasks.filter(t => t.status !== 'done' && t.endDate && new Date(t.endDate) < now).length;
-      const typeLabel = r.type === 'cp' ? 'CP' : '内部';
+      const typeLabel = r.type === 'cp' ? 'CP供应商' : r.type === 'base' ? '基地人员' : '内部';
       
       let loadLabel = '';
       if (myInProgress >= 4) loadLabel = '🔴 超负荷';

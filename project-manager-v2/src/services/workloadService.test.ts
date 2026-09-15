@@ -64,9 +64,27 @@ describe('calcMemberWorkload', () => {
 
     const result = calcMemberWorkload(1, d('2026-05-03'), d('2026-05-06'), tasks, resources);
     expect(result.overlappingTaskCount).toBe(2);
-    expect(result.loadPercent).toBe(120);
+    expect(result.loadPercent).toBe(105);
     expect(result.isOverloaded).toBe(true);
     expect(result.severity).toBe('warning');
+  });
+
+  it('uses follow-up weight only for the internal coordinator', () => {
+    const cpFollowTask = makeTask({
+      id: 11,
+      assigneeIds: [1],
+      startDate: d('2026-05-01'),
+      endDate: d('2026-05-05'),
+      status: 'in_progress',
+      workCategory: 'cp_follow',
+    });
+    const internal = makeResource(1, 'Internal');
+    const base = { ...makeResource(1, 'Base'), type: 'base' as const };
+    const supplier = { ...makeResource(1, 'Supplier'), type: 'cp' as const };
+
+    expect(calcMemberWorkload(1, d('2026-05-01'), d('2026-05-05'), [cpFollowTask], [internal]).loadPercent).toBe(30);
+    expect(calcMemberWorkload(1, d('2026-05-01'), d('2026-05-05'), [cpFollowTask], [base]).loadPercent).toBe(60);
+    expect(calcMemberWorkload(1, d('2026-05-01'), d('2026-05-05'), [cpFollowTask], [supplier]).loadPercent).toBe(60);
   });
 
   it('excludes the task being edited', () => {
@@ -80,7 +98,7 @@ describe('calcMemberWorkload', () => {
     expect(result.loadPercent).toBe(60);
   });
 
-  it('returns danger when load > 150%', () => {
+  it('returns warning when load is exactly 150%', () => {
     const tasks = [
       makeTask({ id: 11, assigneeIds: [1], startDate: d('2026-05-01'), endDate: d('2026-05-10'), status: 'in_progress' }),
       makeTask({ id: 12, assigneeIds: [1], startDate: d('2026-05-01'), endDate: d('2026-05-10'), status: 'in_progress' }),
@@ -89,8 +107,8 @@ describe('calcMemberWorkload', () => {
 
     const result = calcMemberWorkload(1, d('2026-05-01'), d('2026-05-10'), tasks, resources);
     expect(result.overlappingTaskCount).toBe(3);
-    expect(result.loadPercent).toBe(180);
-    expect(result.severity).toBe('danger');
+    expect(result.loadPercent).toBe(150);
+    expect(result.severity).toBe('warning');
   });
 });
 

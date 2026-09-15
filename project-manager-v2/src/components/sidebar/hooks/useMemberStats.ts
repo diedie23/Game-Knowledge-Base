@@ -6,6 +6,7 @@ import type { Task, Resource } from '../../../types';
 import { isHoliday } from '../../../utils/dateUtils';
 import { compareResources } from '../../gantt/constants';
 import { getTaskTypeColorValue } from '../../../constants/theme';
+import { isTaskCompleted, isTaskOverdue, isTaskTerminal } from '../../../utils/taskState';
 
 export interface MemberOverviewData {
   resource: Resource;
@@ -77,10 +78,10 @@ export function useMemberStats(projectId?: number | null) {
         const hasChildren = tasks.some(child => child.parentId === t.id);
         return !hasChildren;
       });
-      const todo = myTasks.filter(t => t.status === 'todo');
-      const inProgress = myTasks.filter(t => t.status === 'in_progress');
-      const done = myTasks.filter(t => t.status === 'done');
-      const overdue = myTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled' && t.endDate && new Date(t.endDate) < today);
+      const todo = myTasks.filter(t => t.status === 'todo' && !isTaskTerminal(t));
+      const inProgress = myTasks.filter(t => t.status === 'in_progress' && !isTaskTerminal(t));
+      const done = myTasks.filter(isTaskCompleted);
+      const overdue = myTasks.filter(t => isTaskOverdue(t, today));
 
       // Find free days in the next 14 days (excluding weekends and holidays)
       const freeDays: Date[] = [];
@@ -91,7 +92,7 @@ export function useMemberStats(projectId?: number | null) {
           if (!t.startDate || !t.endDate) return false;
           const start = new Date(t.startDate);
           const end = new Date(t.endDate);
-          return day >= start && day <= end && t.status !== 'done' && t.status !== 'cancelled';
+          return day >= start && day <= end && !isTaskTerminal(t);
         });
         if (!hasTasks) freeDays.push(day);
       }
@@ -115,10 +116,10 @@ export function useMemberStats(projectId?: number | null) {
         return !hasChildren;
       }) || [];
       return {
-        inProgress: memberTasks.filter(t => t.status === 'in_progress').length,
-        todo: memberTasks.filter(t => t.status === 'todo').length,
-        done: memberTasks.filter(t => t.status === 'done').length,
-        overdue: memberTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled' && t.endDate && new Date(t.endDate) < today).length,
+        inProgress: memberTasks.filter(t => t.status === 'in_progress' && !isTaskTerminal(t)).length,
+        todo: memberTasks.filter(t => t.status === 'todo' && !isTaskTerminal(t)).length,
+        done: memberTasks.filter(isTaskCompleted).length,
+        overdue: memberTasks.filter(t => isTaskOverdue(t, today)).length,
       };
     };
   }, [tasks, projects, today, projectId]);

@@ -838,6 +838,11 @@ export class TapdService {
       const workforceType = memberGroups.find(group =>
         /(基地|外包|派遣|正式员工|实习|校招|社招|供应商|合作方|编制)/.test(group)
       );
+      const memberType = workforceType && /供应商|合作方|外包/.test(workforceType)
+        ? 'cp' as const
+        : workforceType && /基地/.test(workforceType)
+          ? 'base' as const
+          : 'internal' as const;
       const joinDate = String(member.real_join_time || member.join_project_time || '').slice(0, 10) || undefined;
       const existing = existingResources.find(resource => {
         if (account) {
@@ -856,7 +861,7 @@ export class TapdService {
           projectIds,
           tapdGroups: memberGroups,
           workforceType: workforceType || existing.workforceType,
-          type: 'internal',
+          type: memberType,
           status: existing.status === 'departed' ? 'active' : (existing.status || 'active'),
           joinDate: joinDate || existing.joinDate,
         });
@@ -870,7 +875,7 @@ export class TapdService {
           projectIds: [projectId],
           tapdGroups: memberGroups,
           workforceType,
-          type: 'internal' as const,
+          type: memberType,
           status: 'active' as const,
           joinDate,
           sortOrder: nextSortOrder++,
@@ -2536,60 +2541,81 @@ export class TapdService {
       console.warn('[TapdService] Failed to resolve release names during refresh:', error);
     }
 
-    // Batch fetch all linked tasks by ID (max ~50 per request for API stability)
+    // Batch fetch all linked tasks by ID. TAPD may return a partial batch under load,
+    // so unresolved IDs are retried in smaller batches before they are reported missing.
+    const fetchRemoteBatch = async (batchIds: string[]): Promise<number> => {
+      const before = remoteMap.size;
+      const stories: any[] = [];
+
+      for (const wsId of workspaceIds) {
+        if (this.hasMcpGatewayCredentials()) {
+          const data = await mcpGatewayFetch<{ status?: number; data?: any; count?: number }>(
+            'stories_get',
+            { workspace_id: wsId, id: batchIds.join(','), fields: this.getStoryFields() },
+            config.mcpAccessToken!
+          );
+          if (Array.isArray(data)) stories.push(...data);
+          else if (Array.isArray(data?.data)) stories.push(...data.data);
+          else if (data?.data) stories.push(data.data);
+        } else if (this.hasRestCredentials()) {
+          const data = await tapdRestFetch<{ status: number; data: any; info: string }>(
+            '/stories',
+            config,
+            { workspace_id: wsId, id: batchIds.join(','), limit: String(Math.max(20, batchIds.length)), fields: this.getStoryFields() }
+          );
+          if (data?.status === 1 && data?.data) {
+            stories.push(...(Array.isArray(data.data) ? data.data : [data.data]));
+          }
+        } else {
+          const data = await mcpFetch<{ data: any[] }>(
+            '/tapd/stories_get',
+            { workspace_id: wsId, id: batchIds.join(','), limit: String(Math.max(20, batchIds.length)), fields: this.getStoryFields() }
+          );
+          if (data?.data) stories.push(...data.data);
+        }
+      }
+
+      for (const item of stories) {
+        const story = item?.Story || item;
+        const storyId = String(story?.id || '');
+        if (!storyId) continue;
+        const mapped = this.mapTapdStoryToTask(story);
+        if (mapped.tapdReleaseId) mapped.tapdReleaseName = refreshReleaseNameById.get(mapped.tapdReleaseId);
+        (mapped as any)._tapdOwner = story.owner || undefined;
+        remoteMap.set(storyId, mapped as any);
+      }
+      return remoteMap.size - before;
+    };
+
+    const uniqueTapdIds = Array.from(new Set(allTapdIds.map(String)));
     const batchSize = 50;
-    for (let i = 0; i < allTapdIds.length; i += batchSize) {
-      const batchIds = allTapdIds.slice(i, i + batchSize);
+    for (let i = 0; i < uniqueTapdIds.length; i += batchSize) {
+      const batchIds = uniqueTapdIds.slice(i, i + batchSize);
       try {
-        let stories: any[] = [];
-
-        // Query each workspace (task may belong to different workspaces)
-        for (const wsId of workspaceIds) {
-          if (this.hasMcpGatewayCredentials()) {
-            const data = await mcpGatewayFetch<{ status?: number; data?: any; count?: number }>(
-              'stories_get',
-              { workspace_id: wsId, id: batchIds.join(','), fields: this.getStoryFields() },
-              config.mcpAccessToken!
-            );
-            if (Array.isArray(data)) {
-              stories.push(...data);
-            } else if (data?.data && Array.isArray(data.data)) {
-              stories.push(...data.data);
-            } else if (data?.data) {
-              stories.push(data.data);
+        await fetchRemoteBatch(batchIds);
+        const unresolved = batchIds.filter(id => !remoteMap.has(id));
+        if (unresolved.length > 0) {
+          console.warn(`[TapdService] Batch returned ${batchIds.length - unresolved.length}/${batchIds.length}; retrying ${unresolved.length} IDs in smaller requests`);
+          const retryBatchSize = 10;
+          for (let j = 0; j < unresolved.length; j += retryBatchSize) {
+            const retryIds = unresolved.slice(j, j + retryBatchSize);
+            try {
+              await fetchRemoteBatch(retryIds);
+            } catch (retryError) {
+              console.warn('[TapdService] Small-batch retry failed:', retryError);
             }
-          } else if (this.hasRestCredentials()) {
-            const data = await tapdRestFetch<{ status: number; data: any; info: string }>(
-              '/stories',
-              config,
-              { workspace_id: wsId, id: batchIds.join(','), limit: '200', fields: this.getStoryFields() }
-            );
-            if (data?.status === 1 && data?.data) {
-              const fetched = Array.isArray(data.data) ? data.data : [data.data];
-              stories.push(...fetched);
-            }
-          } else {
-            const data = await mcpFetch<{ data: any[] }>(
-              '/tapd/stories_get',
-              { workspace_id: wsId, id: batchIds.join(','), limit: '200', fields: this.getStoryFields() }
-            );
-            if (data?.data) stories.push(...data.data);
           }
         }
-
-        // Map fetched stories into remoteMap
-        for (const item of stories) {
-          const story = item?.Story || item;
-          if (story?.id) {
-            const mapped = this.mapTapdStoryToTask(story);
-            if (mapped.tapdReleaseId) mapped.tapdReleaseName = refreshReleaseNameById.get(mapped.tapdReleaseId);
-            remoteMap.set(story.id, mapped as any);
-            (mapped as any)._tapdOwner = story.owner || undefined;
-          }
-        }
-        console.log(`[TapdService] Fetched ${stories.length} stories by ID (batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(allTapdIds.length / batchSize)})`);
+        console.log(`[TapdService] Refreshed ID batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(uniqueTapdIds.length / batchSize)}`);
       } catch (err) {
-        console.warn(`[TapdService] Failed to fetch stories by ID batch:`, err);
+        console.warn('[TapdService] Failed to fetch stories by ID batch; retrying individually:', err);
+        for (const tapdId of batchIds) {
+          try {
+            await fetchRemoteBatch([tapdId]);
+          } catch (singleError) {
+            console.warn(`[TapdService] Failed to refresh TAPD story ${tapdId}:`, singleError);
+          }
+        }
       }
     }
 
