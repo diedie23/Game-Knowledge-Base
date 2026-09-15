@@ -55,6 +55,14 @@ const statusConfig: Record<string, { label: string; icon: React.ReactNode; color
   in_progress: { label: '进行中', icon: <Clock size={14} />, color: 'text-blue-400', bg: 'bg-blue-500/20' },
   done:        { label: '已完成', icon: <CheckCircle2 size={14} />, color: 'text-emerald-400', bg: 'bg-emerald-500/20' },
   paused:      { label: '暂停', icon: <Circle size={14} />, color: 'text-gray-500', bg: 'bg-gray-600/20' },
+  cancelled:   { label: '已拒绝 / 已关闭', icon: <Circle size={14} />, color: 'text-red-400', bg: 'bg-red-500/20' },
+};
+
+const unknownStatusConfig = {
+  label: '未知状态',
+  icon: <Circle size={14} />,
+  color: 'text-gray-400',
+  bg: 'bg-gray-500/20',
 };
 
 // ─── Category labels ─────────────────────────────────────────────
@@ -81,12 +89,18 @@ export function CommandPalette() {
 
   // ── Live data ────────────────────────────────────────────────
   const tasks = useLiveQuery(
-    () => selectedProjectId
-      ? db.tasks.where('projectId').equals(selectedProjectId).toArray()
-      : db.tasks.toArray(),
-    [selectedProjectId]
+    () => {
+      if (!isOpen) return Promise.resolve([] as Task[]);
+      return selectedProjectId
+        ? db.tasks.where('projectId').equals(selectedProjectId).toArray()
+        : db.tasks.toArray();
+    },
+    [isOpen, selectedProjectId]
   ) ?? [];
-  const resources = useLiveQuery(() => db.resources.toArray()) ?? [];
+  const resources = useLiveQuery(
+    () => isOpen ? db.resources.toArray() : Promise.resolve([] as Resource[]),
+    [isOpen]
+  ) ?? [];
 
   // ── Resource map for display ─────────────────────────────────
   const resourceMap = useMemo(() => {
@@ -144,7 +158,9 @@ export function CommandPalette() {
     tasks.forEach(task => {
       if (!task.id) return;
       const assignees = (task.assigneeIds || []).map(id => resourceMap.get(id)?.name).filter(Boolean).join(', ');
-      const st = statusConfig[task.status];
+      // Historical or imported data can contain a TAPD status unknown to this client.
+      // Keep the command palette usable instead of crashing the entire application.
+      const st = statusConfig[task.status] ?? unknownStatusConfig;
       cmds.push({
         id: `task-${task.id}`,
         label: task.title,
@@ -414,3 +430,4 @@ export function CommandPalette() {
     </div>
   );
 }
+
