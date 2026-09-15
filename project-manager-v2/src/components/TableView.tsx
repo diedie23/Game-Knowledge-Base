@@ -117,7 +117,7 @@ function TaskTableView() {
         }
         case 'priority': {
           const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
-          comparison = (priorityOrder[a.priority] || 0) - (priorityOrder[b.priority] || 0);
+          comparison = (a.priority ? priorityOrder[a.priority] ?? 3 : 3) - (b.priority ? priorityOrder[b.priority] ?? 3 : 3);
           break;
         }
         case 'startDate':

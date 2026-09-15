@@ -10,6 +10,7 @@ import { Avatar } from './common/Avatar';
 import { compareResources, getRoleOrderIndex } from './gantt/constants';
 import { getEffectiveStatus } from '../types/resource';
 import { syncParentDateRange } from '../services/workloadService';
+import { tapdService } from '../services/tapdService';
 import EmptyState from './common/EmptyState';
 import { confirmDialog } from './common/ConfirmDialog';
 
@@ -135,6 +136,18 @@ export const KanbanBoard: React.FC = () => {
     }
   }, [rawTasks]);
 
+  useEffect(() => {
+    if (!selectedProjectId) return;
+    const refreshKey = 'tapd-dashboard-refresh-' + selectedProjectId;
+    const lastRefresh = Number(sessionStorage.getItem(refreshKey) || 0);
+    if (Date.now() - lastRefresh < 5 * 60 * 1000) return;
+    sessionStorage.setItem(refreshKey, String(Date.now()));
+    void tapdService.refreshExistingTasks(selectedProjectId).catch(error => {
+      sessionStorage.removeItem(refreshKey);
+      console.warn('[Kanban] TAPD background refresh failed:', error);
+    });
+  }, [selectedProjectId]);
+
   // Sync sidebar member selection with local filter
   useEffect(() => {
     if (selectedMemberId !== null) {
@@ -142,37 +155,48 @@ export const KanbanBoard: React.FC = () => {
     }
   }, [selectedMemberId]);
 
-  // Filtered tasks: exclude parent tasks (tasks that have children), apply person filter
+  const parentTaskIds = useMemo(() => {
+    const ids = new Set<number>();
+    tasks.forEach(task => { if (task.parentId) ids.add(task.parentId); });
+    return ids;
+  }, [tasks]);
+
   const filteredTasks = useMemo(() => {
-    // Build a set of parent task IDs (tasks that have children)
-    const parentTaskIds = new Set<number>();
-    tasks.forEach(t => {
-      if (t.parentId) parentTaskIds.add(t.parentId);
-    });
-
-    // Filter out all parent tasks including nested ones (keep only leaf tasks)
-    let result = tasks.filter(t => !(t.id && parentTaskIds.has(t.id)));
-
-    if (filterPersonId !== null) {
-      result = result.filter(t => t.assigneeIds?.includes(filterPersonId));
-    }
-    
+    let result = tasks;
+    if (filterPersonId !== null) result = result.filter(t => t.assigneeIds?.includes(filterPersonId));
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      result = result.filter(t => 
-        t.title.toLowerCase().includes(query) || 
-        (t.description && t.description.toLowerCase().includes(query))
-      );
+      result = result.filter(t => t.title.toLowerCase().includes(query) || (t.description && t.description.toLowerCase().includes(query)));
     }
-    
     return result;
   }, [tasks, filterPersonId, searchQuery]);
+
+  const getHierarchyMeta = (task: Task) => {
+    const isParent = !!task.id && parentTaskIds.has(task.id);
+    const isChild = !!task.parentId || (!!task.tapdParentId && task.tapdParentId !== '0');
+    const typeName = task.tapdWorkitemTypeName || (isParent ? 'UIStory' : isChild ? 'UI' : '需求');
+    return isParent
+      ? { label: '父需求 · ' + typeName, className: 'text-violet-300 bg-violet-500/10 border-violet-500/30' }
+      : isChild
+        ? { label: '子需求 · ' + typeName, className: 'text-cyan-300 bg-cyan-500/10 border-cyan-500/30' }
+        : { label: typeName, className: 'text-gray-400 bg-gray-500/10 border-gray-500/20' };
+  };
+
+  const getStatusPresentation = (task: Task) => {
+    const raw = (task.tapdStatus || '').trim();
+    if (/rejected|已拒绝|拒绝|驳回/i.test(raw)) return { label: '已拒绝', className: 'bg-red-500/15 text-red-300 border-red-500/30' };
+    if (task.status === 'done') return { label: /^(resolved|closed|done|accepted|verified)$/i.test(raw) ? '已完成' : raw || '已完成', className: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' };
+    if (task.status === 'in_progress') return { label: /^(developing|progressing|testing|implemented)$/i.test(raw) ? '进行中' : raw || '进行中', className: 'bg-blue-500/15 text-blue-400 border-blue-500/30' };
+    if (task.status === 'cancelled') return { label: raw || '已关闭', className: 'bg-red-500/15 text-red-300 border-red-500/30' };
+    return { label: /^(planning|open|new)$/i.test(raw) ? '待办' : raw || '待办', className: 'bg-gray-500/15 text-gray-400 border-gray-500/30' };
+  };
 
   // Status color bar mapping for task cards
   const getStatusBarColor = (status: string) => {
     switch (status) {
       case 'in_progress': return 'bg-blue-500';
       case 'done': return 'bg-emerald-500';
+      case 'cancelled': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
   };
@@ -224,6 +248,7 @@ export const KanbanBoard: React.FC = () => {
           { id: 'todo', title: '待办', subtitle: '', color: 'bg-slate-800/40', borderColor: 'border-slate-700/50', filterFn: (t: Task) => t.status === 'todo' },
           { id: 'in_progress', title: '进行中', subtitle: '', color: 'bg-blue-900/20', borderColor: 'border-blue-700/40', filterFn: (t: Task) => t.status === 'in_progress' },
           { id: 'done', title: '已完成', subtitle: '', color: 'bg-emerald-900/20', borderColor: 'border-emerald-700/40', filterFn: (t: Task) => t.status === 'done' },
+          { id: 'cancelled', title: '已拒绝 / 已关闭', subtitle: '', color: 'bg-red-900/20', borderColor: 'border-red-700/40', filterFn: (t: Task) => t.status === 'cancelled' },
         ];
     }
   }, [groupBy, resources]);
@@ -896,41 +921,22 @@ export const KanbanBoard: React.FC = () => {
                                     <div className="flex-1 p-4">
                                     <div className="flex justify-between items-start mb-2">
                                       <div className="flex items-center gap-2">
-                                        {/* Status badge when not grouped by status */}
-                                        {groupBy !== 'status' && (
-                                          <button
-                                            onClick={async (e) => {
-                                              e.stopPropagation();
-                                              const nextStatus = task.status === 'todo' ? 'in_progress' : task.status === 'in_progress' ? 'done' : task.status === 'done' ? 'cancelled' : 'todo';
-                                              await trackedDb.tasks.update(task.id!, { status: nextStatus }, `快速切换任务状态为「${nextStatus === 'todo' ? '待办' : nextStatus === 'in_progress' ? '进行中' : '已完成'}」`);
-                                            }}
-                                            className={`opacity-0 group-hover/card:opacity-100 text-[10px] px-2 py-0.5 rounded-full hover:opacity-80 transition-opacity cursor-pointer ${
-                                            task.status === 'done' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' :
-                                            task.status === 'in_progress' ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30' :
-                                            'bg-gray-500/15 text-gray-400 border border-gray-500/30'
-                                          }`}
-                                            title="点击快速切换状态"
-                                          >
-                                            {task.status === 'done' ? '已完成' : task.status === 'in_progress' ? '进行中' : task.status === 'cancelled' ? '已关闭' : '待办'}
-                                          </button>
-                                        )}
-                                        {groupBy === 'status' && (
-                                          <button 
-                                            onClick={async (e) => {
-                                              e.stopPropagation();
-                                              const nextStatus = task.status === 'done' ? 'todo' : 'done';
-                                              await trackedDb.tasks.update(task.id!, { status: nextStatus }, `快速${nextStatus === 'done' ? '完成' : '重置'}任务`);
-                                            }}
-                                            title={task.status === 'done' ? '标记为未完成' : '标记为已完成'}
-                                            className={`opacity-0 group-hover/card:opacity-100 shrink-0 p-0.5 rounded-full border transition-all ${
-                                              task.status === 'done' 
-                                                ? 'bg-emerald-500 border-emerald-500 text-white' 
-                                                : 'bg-transparent border-gray-500 text-transparent hover:border-emerald-500 hover:text-emerald-500'
-                                            }`}
-                                          >
-                                            <CheckCircle2 size={12} strokeWidth={3} />
-                                          </button>
-                                        )}
+                                        {(() => {
+                                          const status = getStatusPresentation(task);
+                                          return (
+                                            <button
+                                              onClick={async (e) => {
+                                                e.stopPropagation();
+                                                const nextStatus = task.status === 'todo' ? 'in_progress' : task.status === 'in_progress' ? 'done' : task.status === 'done' ? 'cancelled' : 'todo';
+                                                await trackedDb.tasks.update(task.id!, { status: nextStatus }, '快速切换任务状态');
+                                              }}
+                                              className={'text-[10px] px-2 py-0.5 rounded-full border hover:brightness-125 transition-all cursor-pointer ' + status.className}
+                                              title={task.tapdStatus ? 'TAPD 状态：' + task.tapdStatus + '；点击快速切换' : '点击快速切换状态'}
+                                            >
+                                              {status.label}
+                                            </button>
+                                          );
+                                        })()}
                                         <span className={`text-[10px] px-2 py-0.5 rounded border ${getPriorityColor(task.priority)}`}>
                                           {getPriorityLabel(task.priority)}
                                         </span>
@@ -943,6 +949,17 @@ export const KanbanBoard: React.FC = () => {
                                       </button>
                                     </div>
                                     
+                                    {(() => {
+                                      const hierarchy = getHierarchyMeta(task);
+                                      return (
+                                        <div className="mb-2">
+                                          <span className={'inline-flex text-[10px] px-1.5 py-0.5 rounded border ' + hierarchy.className}>
+                                            {hierarchy.label}
+                                          </span>
+                                        </div>
+                                      );
+                                    })()}
+
                                     <h4 className="text-sm font-medium text-gray-200 mb-2 line-clamp-2">
                                       {task.externalUrl ? (
                                         <a
@@ -988,8 +1005,8 @@ export const KanbanBoard: React.FC = () => {
                                       <div className="flex items-center gap-3 text-xs text-gray-500">
                                         {task.endDate ? (
                                         <div className="flex items-center gap-1" title="截止日期">
-                                          <Clock size={12} className={new Date(task.endDate) < new Date() && task.status !== 'done' ? 'text-red-400' : ''} />
-                                          <span className={new Date(task.endDate) < new Date() && task.status !== 'done' ? 'text-red-400' : ''}>
+                                          <Clock size={12} className={new Date(task.endDate) < new Date() && task.status !== 'done' && task.status !== 'cancelled' ? 'text-red-400' : ''} />
+                                          <span className={new Date(task.endDate) < new Date() && task.status !== 'done' && task.status !== 'cancelled' ? 'text-red-400' : ''}>
                                             {format(new Date(task.endDate), 'MM-dd')}
                                           </span>
                                         </div>

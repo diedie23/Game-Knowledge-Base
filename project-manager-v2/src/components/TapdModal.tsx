@@ -2027,7 +2027,8 @@ export function TapdModal() {
                         const renderStoryRow = (s: any, sid: string, depth: number, isParent: boolean, childCount: number, isCollapsedNode: boolean, isPartialSel: boolean) => {
                           const sel = selectedStories.has(sid);
                           const rawPriority = String(s._tapdResolvedPriority || s.priority_label || s.priority || '').trim();
-                          const priorityLabel = rawPriority ? getLocalPriorityLabel(mapTapdPriority(rawPriority)) : '';
+                          const mappedPriority = mapTapdPriority(rawPriority);
+                          const priorityLabel = mappedPriority ? getLocalPriorityLabel(mappedPriority) : '';
                           const effortHours = parseTapdEffortHours(s.effort, effortUnit, hoursPerDay);
                           const releaseName = releasePlans.find(plan => plan.id === String(s.release_id || ''))?.name;
                           return (

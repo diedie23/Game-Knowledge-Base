@@ -3,6 +3,7 @@ import type { Task, TapdConfig, TapdWorkspaceInfo, TapdStory, TapdIteration, Syn
 import type { TapdAuthMode, ModuleMapping, SyncRangeConfig } from '../types/tapd';
 import { getTapdPriorityValue, mapTapdPriority } from '../utils/tapdPriority';
 import { parseTapdDate, parseTapdEffortHours } from '../utils/tapdFields';
+import { mapTapdStatus } from '../utils/tapdStatus';
 
 // Re-export for consumers
 export type { SyncResult, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem };
@@ -398,6 +399,10 @@ export class TapdService {
   private config: TapdConfig | null = null;
   private customPriorityFieldsByWorkspace = new Map<string, string[]>();
   private activeCustomPriorityFields = new Set<string>();
+  private statusLabelsByWorkspace = new Map<string, Map<string, string>>();
+  private activeStatusLabels = new Map<string, string>();
+  private workitemTypeNamesByWorkspace = new Map<string, Map<string, string>>();
+  private activeWorkitemTypeNames = new Map<string, string>();
 
   private getStoryFields(): string {
     return [...new Set([...STORY_FIELDS.split(','), ...this.activeCustomPriorityFields])].join(',');
@@ -441,6 +446,75 @@ export class TapdService {
     const value = getTapdPriorityValue(story, [...this.activeCustomPriorityFields]);
     story._tapdResolvedPriority = value;
     return value;
+  }
+
+  private async discoverStatusLabels(config: TapdConfig, workspaceId: string): Promise<Map<string, string>> {
+    const cached = this.statusLabelsByWorkspace.get(workspaceId);
+    if (cached) {
+      cached.forEach((label, value) => this.activeStatusLabels.set(value, label));
+      return cached;
+    }
+    const labels = new Map<string, string>();
+    try {
+      const response = await tapdRestFetch<{ status: number; data: Record<string, any>; info: string }>(
+        '/stories/get_fields_info', config, { workspace_id: workspaceId }
+      );
+      const field = response?.data?.status?.Field || response?.data?.status || {};
+      const options = field.options || field.option || field.values || {};
+      if (Array.isArray(options)) {
+        options.forEach((option: any) => {
+          const value = String(option?.value ?? option?.id ?? option?.key ?? '').trim();
+          const label = String(option?.label ?? option?.name ?? option?.text ?? value).trim();
+          if (value && label) { labels.set(value, label); labels.set(label, label); }
+        });
+      } else if (options && typeof options === 'object') {
+        Object.entries(options).forEach(([value, rawLabel]) => {
+          const label = typeof rawLabel === 'object'
+            ? String((rawLabel as any)?.label ?? (rawLabel as any)?.name ?? (rawLabel as any)?.text ?? value).trim()
+            : String(rawLabel ?? '').trim();
+          if (value && label) {
+            const key = value.trim();
+            const keyIsLabel = /[\u3400-\u9fff]/.test(key) && !/[\u3400-\u9fff]/.test(label);
+            const statusValue = keyIsLabel ? label : key;
+            const statusLabel = keyIsLabel ? key : label;
+            labels.set(statusValue, statusLabel);
+            labels.set(statusLabel, statusLabel);
+          }
+        });
+      }
+    } catch (error) {
+      console.warn('[TapdService] Failed to discover TAPD status labels:', error);
+    }
+    this.statusLabelsByWorkspace.set(workspaceId, labels);
+    labels.forEach((label, value) => this.activeStatusLabels.set(value, label));
+    return labels;
+  }
+
+  private async discoverWorkitemTypes(config: TapdConfig, workspaceId: string): Promise<Map<string, string>> {
+    const cached = this.workitemTypeNamesByWorkspace.get(workspaceId);
+    if (cached) {
+      cached.forEach((name, id) => this.activeWorkitemTypeNames.set(id, name));
+      return cached;
+    }
+    const names = new Map<string, string>();
+    try {
+      const response = await tapdRestFetch<{ status: number; data: any[]; info: string }>(
+        '/workitem_types', config, { workspace_id: workspaceId, limit: '200', fields: 'id,name,entity_type,status' }
+      );
+      (Array.isArray(response?.data) ? response.data : []).map(item => item?.WorkitemType || item)
+        .filter(item => item?.id && item?.name && String(item.status || '3') !== '2')
+        .forEach(item => names.set(String(item.id), String(item.name)));
+    } catch (error) {
+      console.warn('[TapdService] Failed to discover TAPD requirement types:', error);
+    }
+    this.workitemTypeNamesByWorkspace.set(workspaceId, names);
+    names.forEach((name, id) => this.activeWorkitemTypeNames.set(id, name));
+    return names;
+  }
+
+  private resolveStoryStatus(rawStatus: unknown): string {
+    const value = String(rawStatus ?? '').trim();
+    return this.activeStatusLabels.get(value) || value;
   }
 
   /** Load TAPD config for a given project (fallback: first available config) */
@@ -1226,7 +1300,11 @@ export class TapdService {
         // Step 2: Verify workspace access by fetching actual stories.
         // The internal API may not expose /stories/count even when /stories is available.
         try {
-          await this.discoverCustomPriorityFields(tempConfig, workspaceId.trim());
+          await Promise.all([
+            this.discoverCustomPriorityFields(tempConfig, workspaceId.trim()),
+            this.discoverStatusLabels(tempConfig, workspaceId.trim()),
+            this.discoverWorkitemTypes(tempConfig, workspaceId.trim()),
+          ]);
           const previewLimit = syncRange?.limit || 1000;
           const previewData = await this.fetchRestStoriesForSyncScope(
             tempConfig,
@@ -1420,7 +1498,11 @@ export class TapdService {
       } else if (this.hasRestCredentials()) {
         console.log('[TapdService] Fetching tasks via REST API for workspace:', workspaceId, 'range:', syncRange?.mode || 'all');
         // Fetch via REST API — convert all params to strings
-        await this.discoverCustomPriorityFields(this.config!, workspaceId.trim());
+        await Promise.all([
+          this.discoverCustomPriorityFields(this.config!, workspaceId.trim()),
+          this.discoverStatusLabels(this.config!, workspaceId.trim()),
+          this.discoverWorkitemTypes(this.config!, workspaceId.trim()),
+        ]);
         const restParams: Record<string, string> = {
           workspace_id: workspaceId.trim(),
           fields: this.getStoryFields(),
@@ -1817,50 +1899,12 @@ export class TapdService {
   // ─── Mapping Helpers ─────────────────────────────────────────
 
   /** Map TAPD status string to local status */
-  private mapStatus(tapdStatus: string): 'todo' | 'in_progress' | 'done' {
-    const statusMap: Record<string, 'todo' | 'in_progress' | 'done'> = {
-      'planning': 'todo',
-      'open': 'todo',
-      'new': 'todo',
-      'developing': 'in_progress',
-      'progressing': 'in_progress',
-      'testing': 'in_progress',
-      'implemented': 'in_progress',
-      'resolved': 'done',
-      'closed': 'done',
-      'done': 'done',
-      'rejected': 'done',
-      // Art stories: "验收中" should be treated as completed
-      'auditing': 'done',
-      'in_review': 'done',
-      'accepted': 'done',
-      'accepting': 'done',
-      'verified': 'done',
-      'delivered': 'done',
-      // "无需合入" means no merge needed, treat as done
-      '无需合入': 'done',
-      'no_merge': 'done',
-      'no_merge_needed': 'done',
-      'not_required': 'done',
-    };
-
-    const mapped = statusMap[tapdStatus?.toLowerCase()];
-    if (mapped) return mapped;
-
-    // Fallback: check if the status string contains Chinese keywords indicating completion
-    const lowerStatus = (tapdStatus || '').toLowerCase();
-    if (lowerStatus.includes('验收') || lowerStatus.includes('已完成') || lowerStatus.includes('已关闭') || lowerStatus.includes('已解决') || lowerStatus.includes('无需合入') || lowerStatus.includes('无需')) {
-      return 'done';
-    }
-    if (lowerStatus.includes('开发') || lowerStatus.includes('进行') || lowerStatus.includes('处理')) {
-      return 'in_progress';
-    }
-
-    return 'todo';
+  private mapStatus(tapdStatus: string): Task['status'] {
+    return mapTapdStatus(tapdStatus);
   }
 
-  /** Map TAPD priority string to local priority */
-  private mapPriority(tapdPriority: string): 'low' | 'medium' | 'high' {
+  /** Map TAPD priority string to local priority, preserving an empty value. */
+  private mapPriority(tapdPriority: string): Task['priority'] {
     return mapTapdPriority(tapdPriority);
   }
 
@@ -1886,7 +1930,8 @@ export class TapdService {
 
   /** Map a single TAPD Story to a partial local Task (extended with parent/owner metadata) */
   private mapTapdStoryToTask(story: TapdStory['Story']): Partial<Task> & { _tapdParentId?: string; _tapdOwner?: string } {
-    const status = this.mapStatus(story.status);
+    const tapdStatusLabel = this.resolveStoryStatus(story.status);
+    const status = this.mapStatus(tapdStatusLabel);
     const progress =
       status === 'done' ? 100 :
       status === 'in_progress' ? (story.progress ? parseInt(story.progress, 10) : 50) :
@@ -1920,11 +1965,13 @@ export class TapdService {
       assigneeIds: [],
       tapdId: String(story.id),
       tapdParentId: story.parent_id != null ? String(story.parent_id) : undefined,
+      tapdWorkitemTypeId: story.workitem_type_id ? String(story.workitem_type_id) : undefined,
+      tapdWorkitemTypeName: story.workitem_type_id ? this.activeWorkitemTypeNames.get(String(story.workitem_type_id)) : undefined,
       externalUrl,
       module,
       estimatedHours,
       tapdReleaseId: story.release_id || undefined,
-      tapdStatus: story.status || undefined,
+      tapdStatus: tapdStatusLabel || story.status || undefined,
       tapdPriorityLabel: priorityValue || undefined,
       tapdOwner: story.owner || undefined,
       syncSource: 'tapd',
@@ -2277,6 +2324,8 @@ export class TapdService {
           tapdStatus: cleanTask.tapdStatus,
           tapdPriorityLabel: cleanTask.tapdPriorityLabel,
           tapdOwner: cleanTask.tapdOwner,
+          tapdWorkitemTypeId: cleanTask.tapdWorkitemTypeId,
+          tapdWorkitemTypeName: cleanTask.tapdWorkitemTypeName,
           tapdParentId,
           assigneeIds: cleanTask.assigneeIds && cleanTask.assigneeIds.length > 0
             ? cleanTask.assigneeIds
@@ -2313,6 +2362,8 @@ export class TapdService {
             tapdStatus: cleanTask.tapdStatus,
             tapdPriorityLabel: cleanTask.tapdPriorityLabel,
             tapdOwner: cleanTask.tapdOwner,
+            tapdWorkitemTypeId: cleanTask.tapdWorkitemTypeId,
+            tapdWorkitemTypeName: cleanTask.tapdWorkitemTypeName,
             tapdParentId,
             assigneeIds: cleanTask.assigneeIds && cleanTask.assigneeIds.length > 0
               ? cleanTask.assigneeIds
@@ -2344,6 +2395,8 @@ export class TapdService {
             tapdStatus: cleanTask.tapdStatus,
             tapdPriorityLabel: cleanTask.tapdPriorityLabel,
             tapdOwner: cleanTask.tapdOwner,
+            tapdWorkitemTypeId: cleanTask.tapdWorkitemTypeId,
+            tapdWorkitemTypeName: cleanTask.tapdWorkitemTypeName,
             tapdParentId,
             assigneeIds: cleanTask.assigneeIds && cleanTask.assigneeIds.length > 0
               ? cleanTask.assigneeIds
@@ -2443,7 +2496,11 @@ export class TapdService {
     // Support multiple workspace IDs
     const workspaceIds = config.workspaceId.split(/[,;，；]/).map(id => id.trim()).filter(Boolean);
     if (this.hasRestCredentials()) {
-      await Promise.all(workspaceIds.map(workspaceId => this.discoverCustomPriorityFields(config, workspaceId)));
+      await Promise.all(workspaceIds.flatMap(workspaceId => [
+        this.discoverCustomPriorityFields(config, workspaceId),
+        this.discoverStatusLabels(config, workspaceId),
+        this.discoverWorkitemTypes(config, workspaceId),
+      ]));
     }
     const refreshReleaseNameById = new Map<string, string>();
     try {
@@ -2582,11 +2639,11 @@ export class TapdService {
       }
 
       // Compare priority
-      if (remote.priority && remote.priority !== localTask.priority) {
+      if (remote.priority !== localTask.priority) {
         changes.push({
           field: 'priority',
-          oldValue: localTask.priority || 'medium',
-          newValue: remote.priority,
+          oldValue: localTask.priority || '未设置',
+          newValue: remote.priority || '未设置',
         });
       }
 
@@ -2640,6 +2697,8 @@ export class TapdService {
         updateData.tapdStatus = remote.tapdStatus;
         updateData.tapdPriorityLabel = remote.tapdPriorityLabel;
         updateData.tapdOwner = remote.tapdOwner;
+        updateData.tapdWorkitemTypeId = remote.tapdWorkitemTypeId;
+        updateData.tapdWorkitemTypeName = remote.tapdWorkitemTypeName;
         for (const change of changes) {
           switch (change.field) {
             case 'status':
@@ -2652,7 +2711,7 @@ export class TapdService {
               updateData.endDate = change.newValue === '未设置' ? null as any : new Date(change.newValue);
               break;
             case 'priority':
-              updateData.priority = change.newValue as Task['priority'];
+              updateData.priority = change.newValue === '未设置' ? undefined : change.newValue as Task['priority'];
               break;
             case 'progress':
               updateData.progress = parseInt(change.newValue, 10);
@@ -2688,6 +2747,8 @@ export class TapdService {
         if (remote.tapdStatus !== localTask.tapdStatus) silentUpdates.tapdStatus = remote.tapdStatus;
         if (remote.tapdPriorityLabel !== localTask.tapdPriorityLabel) silentUpdates.tapdPriorityLabel = remote.tapdPriorityLabel;
         if (remote.tapdOwner !== localTask.tapdOwner) silentUpdates.tapdOwner = remote.tapdOwner;
+        if (remote.tapdWorkitemTypeId !== localTask.tapdWorkitemTypeId) silentUpdates.tapdWorkitemTypeId = remote.tapdWorkitemTypeId;
+        if (remote.tapdWorkitemTypeName !== localTask.tapdWorkitemTypeName) silentUpdates.tapdWorkitemTypeName = remote.tapdWorkitemTypeName;
         // Fix corrupted assigneeIds containing NaN values
         if (localTask.assigneeIds && localTask.assigneeIds.some(id => isNaN(id))) {
           const validIds = localTask.assigneeIds.filter(id => !isNaN(id));
@@ -2846,9 +2907,9 @@ export interface PreviewRow {
   rowIndex: number;
   tapdId: string;
   title: string;
-  status: 'todo' | 'in_progress' | 'done';
+  status: Task['status'];
   statusRaw: string;
-  priority: 'low' | 'medium' | 'high';
+  priority?: 'low' | 'medium' | 'high';
   priorityRaw: string;
   owner: string;
   startDate: string;
@@ -3537,19 +3598,12 @@ export class TapdImportService {
   }
 
   /** Map Chinese status strings from TAPD export */
-  private static mapImportStatus(status: string): 'todo' | 'in_progress' | 'done' {
-    const s = status.toLowerCase();
-    if (['已实现', '已关闭', '已完成', '已验证', '已拒绝', 'resolved', 'closed', 'done'].some(k => s.includes(k))) {
-      return 'done';
-    }
-    if (['开发中', '实现中', '测试中', '进行中', '处理中', 'developing', 'testing', 'in_progress', 'progressing'].some(k => s.includes(k))) {
-      return 'in_progress';
-    }
-    return 'todo';
+  private static mapImportStatus(status: string): Task['status'] {
+    return mapTapdStatus(status);
   }
 
   /** Map Chinese priority strings from TAPD export */
-  private static mapImportPriority(priority: string): 'low' | 'medium' | 'high' {
+  private static mapImportPriority(priority: string): Task['priority'] {
     return mapTapdPriority(priority);
   }
 }

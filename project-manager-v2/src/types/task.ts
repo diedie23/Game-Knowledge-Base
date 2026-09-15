@@ -7,7 +7,8 @@ export interface Task {
   title: string;
   description?: string;
   status: TaskStatus;
-  priority: TaskPriority;
+  /** Undefined means TAPD has no requirement priority; do not invent a local default. */
+  priority?: TaskPriority;
   assigneeIds?: number[];
   startDate?: Date;
   endDate?: Date;
@@ -19,6 +20,9 @@ export interface Task {
   tapdId?: string;
   /** Original TAPD parent story ID, retained so hierarchy can be rebuilt after every sync. */
   tapdParentId?: string;
+  /** TAPD requirement type retained so UIStory/UI can be shown explicitly. */
+  tapdWorkitemTypeId?: string;
+  tapdWorkitemTypeName?: string;
   /** External URL (e.g. TAPD story/bug link). When set, clicking the task name opens this URL. */
   externalUrl?: string;
 

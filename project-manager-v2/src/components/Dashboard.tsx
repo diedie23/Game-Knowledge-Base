@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { tapdService } from '../services/tapdService';
 import { useStore } from '../store/useStore';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
@@ -21,6 +22,33 @@ export function Dashboard() {
   const resources = useLiveQuery(() => db.resources.toArray()) || [];
   // Exclude paused and cancelled tasks from dashboard statistics
   const tasks = useMemo(() => allTasks.filter(t => t.status !== 'paused' && t.status !== 'cancelled'), [allTasks]);
+
+  const parentTaskIds = useMemo(() => {
+    const ids = new Set<number>();
+    allTasks.forEach(task => { if (task.parentId) ids.add(task.parentId); });
+    return ids;
+  }, [allTasks]);
+  const actionableTasks = useMemo(
+    () => tasks.filter(task => !task.id || !parentTaskIds.has(task.id)),
+    [tasks, parentTaskIds]
+  );
+
+  React.useEffect(() => {
+    if (!selectedProjectId) return;
+    const refreshKey = 'tapd-dashboard-refresh-' + selectedProjectId;
+    const refresh = () => {
+      const lastRefresh = Number(sessionStorage.getItem(refreshKey) || 0);
+      if (Date.now() - lastRefresh < 5 * 60 * 1000) return;
+      sessionStorage.setItem(refreshKey, String(Date.now()));
+      void tapdService.refreshExistingTasks(selectedProjectId).catch(error => {
+        sessionStorage.removeItem(refreshKey);
+        console.warn('[Dashboard] TAPD background refresh failed:', error);
+      });
+    };
+    refresh();
+    window.addEventListener('focus', refresh);
+    return () => window.removeEventListener('focus', refresh);
+  }, [selectedProjectId]);
 
   // 1. 顶部一行：今天是几号、本周第几天、距离下个版本节点还有几天
   const today = new Date();
@@ -78,13 +106,13 @@ export function Dashboard() {
 
   // 2. 今日需要关注:今天到期的任务，已延期的任务，今天新开始的任务
   const todayTasksGrouped = useMemo(() => {
-    const dueToday = tasks.filter(t => {
+    const dueToday = actionableTasks.filter(t => {
       if (!t.endDate || t.status === 'done' || t.status === 'cancelled') return false;
       const endDate = new Date(t.endDate);
       // Include tasks due today OR already overdue (endDate in the past)
       return isToday(endDate) || isPast(endDate);
     });
-    const startToday = tasks.filter(t => t.startDate && isToday(new Date(t.startDate)) && t.status !== 'done' && t.status !== 'cancelled');
+    const startToday = actionableTasks.filter(t => t.startDate && isToday(new Date(t.startDate)) && t.status !== 'done' && t.status !== 'cancelled');
     
     // 红色=已延期，橙色=今日到期，绿色=正常
     const getTaskColor = (task: any) => {
@@ -152,7 +180,7 @@ export function Dashboard() {
       dueTodayCount,
       totalCount: dueToday.length + startToday.length
     };
-  }, [tasks]);
+  }, [tasks, actionableTasks]);
 
   // Smart default tab: auto-select based on data
   React.useEffect(() => {

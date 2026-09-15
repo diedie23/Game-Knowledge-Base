@@ -29,8 +29,12 @@ export function getTapdPriorityValue(story: Record<string, unknown>, customPrior
 }
 
 /** Convert TAPD's project-specific display priority into the local P0/P1/P2 scale. */
-export function mapTapdPriority(value: unknown): LocalTaskPriority {
+export function mapTapdPriority(value: unknown): LocalTaskPriority | undefined {
   const priority = String(value ?? '').trim().toLowerCase();
+
+  if (!priority || ['null', 'undefined', '-', '--', '无', '未设置'].includes(priority)) {
+    return undefined;
+  }
 
   if (/\bp0\b/.test(priority) || priority === '4' || ['urgent', 'high', '高'].includes(priority) || /紧急|最高|高优先级/.test(priority)) {
     return 'high';
@@ -42,7 +46,8 @@ export function mapTapdPriority(value: unknown): LocalTaskPriority {
     return 'low';
   }
 
-  return 'medium';
+  // Unknown project-specific values must remain unset until their display label is resolved.
+  return undefined;
 }
 
 export function getLocalPriorityLabel(priority: LocalTaskPriority): 'P0' | 'P1' | 'P2' {

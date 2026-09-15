@@ -2,11 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { getLocalPriorityLabel, getTapdPriorityValue, mapTapdPriority } from './tapdPriority';
 
 describe('mapTapdPriority', () => {
+  it('keeps empty and unknown TAPD priorities unset', () => {
+    expect(mapTapdPriority('')).toBeUndefined();
+    expect(mapTapdPriority(null)).toBeUndefined();
+    expect(mapTapdPriority('custom-unresolved-value')).toBeUndefined();
+  });
   it.each(['P0', ' P0 ', 'P0（最高）', '优先级：P0', 'High', '紧急', '4'])(
     'maps TAPD P0 value %s to local high',
     value => {
       expect(mapTapdPriority(value)).toBe('high');
-      expect(getLocalPriorityLabel(mapTapdPriority(value))).toBe('P0');
+      expect(getLocalPriorityLabel(mapTapdPriority(value)!)).toBe('P0');
     },
   );
 
