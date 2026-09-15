@@ -101,7 +101,7 @@ export function TapdModal() {
     const count = (predicate: (story: any) => boolean) => stories.filter(predicate).length;
     return {
       total: stories.length,
-      priority: count(story => hasValue(story.priority_label) || hasValue(story.priority)),
+      priority: count(story => hasValue(story._tapdResolvedPriority) || hasValue(story.priority_label) || hasValue(story.priority)),
       effort: count(story => hasValue(story.effort)),
       begin: count(story => hasValue(story.begin)),
       due: count(story => hasValue(story.due)),
@@ -2026,7 +2026,7 @@ export function TapdModal() {
                         // Render a single story row
                         const renderStoryRow = (s: any, sid: string, depth: number, isParent: boolean, childCount: number, isCollapsedNode: boolean, isPartialSel: boolean) => {
                           const sel = selectedStories.has(sid);
-                          const rawPriority = String(s.priority_label || s.priority || '').trim();
+                          const rawPriority = String(s._tapdResolvedPriority || s.priority_label || s.priority || '').trim();
                           const priorityLabel = rawPriority ? getLocalPriorityLabel(mapTapdPriority(rawPriority)) : '';
                           const effortHours = parseTapdEffortHours(s.effort, effortUnit, hoursPerDay);
                           const releaseName = releasePlans.find(plan => plan.id === String(s.release_id || ''))?.name;
@@ -2075,7 +2075,7 @@ export function TapdModal() {
                                   )}
                                 </div>
                                 <div className="text-[10px] text-gray-500 flex items-center gap-2 mt-0.5 flex-wrap">
-                                  {priorityLabel && !s._isVirtual && <span className="font-medium text-orange-300">{priorityLabel}</span>}
+                                  {priorityLabel && !s._isVirtual && <span className="font-medium text-orange-300" title={`TAPD 原始优先级：${rawPriority}`}>{priorityLabel}</span>}
                                   {effortHours !== undefined && !s._isVirtual && <span>⏱ {effortHours}h</span>}
                                   {(s.begin || s.due) && !s._isVirtual && <span>📅 {s.begin || '未定'} ~ {s.due || '未定'}</span>}
                                   {releaseName && !s._isVirtual && <span className="text-violet-300">🚀 {releaseName}</span>}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getLocalPriorityLabel, mapTapdPriority } from './tapdPriority';
+import { getLocalPriorityLabel, getTapdPriorityValue, mapTapdPriority } from './tapdPriority';
 
 describe('mapTapdPriority', () => {
   it.each(['P0', ' P0 ', 'P0（最高）', '优先级：P0', 'High', '紧急', '4'])(
@@ -9,6 +9,20 @@ describe('mapTapdPriority', () => {
       expect(getLocalPriorityLabel(mapTapdPriority(value))).toBe('P0');
     },
   );
+
+  it('prefers a workspace field named 需求优先级 over the legacy priority fields', () => {
+    const story = {
+      priority: '3',
+      priority_label: 'P1',
+      custom_field_27: 'P0',
+    };
+    expect(getTapdPriorityValue(story, ['custom_field_27'])).toBe('P0');
+    expect(mapTapdPriority(getTapdPriorityValue(story, ['custom_field_27']))).toBe('high');
+  });
+
+  it('reads priority labels returned as TAPD option objects', () => {
+    expect(getTapdPriorityValue({ custom_field_27: { label: 'P0', value: 'internal-id' } }, ['custom_field_27'])).toBe('P0');
+  });
 
   it.each([
     ['P1', 'medium'],

@@ -1,7 +1,7 @@
 import { db } from '../db/db';
 import type { Task, TapdConfig, TapdWorkspaceInfo, TapdStory, TapdIteration, SyncResult, SyncDetailItem, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem } from '../types';
 import type { TapdAuthMode, ModuleMapping, SyncRangeConfig } from '../types/tapd';
-import { mapTapdPriority } from '../utils/tapdPriority';
+import { getTapdPriorityValue, mapTapdPriority } from '../utils/tapdPriority';
 import { parseTapdDate, parseTapdEffortHours } from '../utils/tapdFields';
 
 // Re-export for consumers
@@ -396,6 +396,52 @@ async function tapdRestFetch<T>(
 
 export class TapdService {
   private config: TapdConfig | null = null;
+  private customPriorityFieldsByWorkspace = new Map<string, string[]>();
+  private activeCustomPriorityFields = new Set<string>();
+
+  private getStoryFields(): string {
+    return [...new Set([...STORY_FIELDS.split(','), ...this.activeCustomPriorityFields])].join(',');
+  }
+
+  private async discoverCustomPriorityFields(config: TapdConfig, workspaceId: string): Promise<string[]> {
+    const cached = this.customPriorityFieldsByWorkspace.get(workspaceId);
+    if (cached) return cached;
+    try {
+      const response = await tapdRestFetch<{ status: number; data: Record<string, unknown>; info: string }>(
+        '/stories/get_fields_lable',
+        config,
+        { workspace_id: workspaceId }
+      );
+      const labels = response?.data && typeof response.data === 'object' ? response.data : {};
+      const fields = Object.entries(labels)
+        .filter(([fieldName, label]) =>
+          /^(custom_field_|custom_plan_field_)/.test(fieldName) &&
+          /优先级|priority/i.test(String(label ?? '').trim())
+        )
+        .sort(([, left], [, right]) => {
+          const leftExact = String(left).trim() === '需求优先级' ? 0 : 1;
+          const rightExact = String(right).trim() === '需求优先级' ? 0 : 1;
+          return leftExact - rightExact;
+        })
+        .map(([fieldName]) => fieldName);
+      this.customPriorityFieldsByWorkspace.set(workspaceId, fields);
+      fields.forEach(fieldName => this.activeCustomPriorityFields.add(fieldName));
+      if (fields.length > 0) {
+        console.log('[TapdService] Custom priority field detected:', workspaceId, fields);
+      }
+      return fields;
+    } catch (error) {
+      console.warn('[TapdService] Failed to discover custom priority field, using priority_label:', error);
+      this.customPriorityFieldsByWorkspace.set(workspaceId, []);
+      return [];
+    }
+  }
+
+  private resolveStoryPriority(story: Record<string, unknown>): string {
+    const value = getTapdPriorityValue(story, [...this.activeCustomPriorityFields]);
+    story._tapdResolvedPriority = value;
+    return value;
+  }
 
   /** Load TAPD config for a given project (fallback: first available config) */
   async loadConfig(projectId: number): Promise<TapdConfig | null> {
@@ -583,7 +629,7 @@ export class TapdService {
   ): Promise<any[]> {
     const stories = [...initialStories];
     const knownIds = new Set(stories.map(item => String((item?.Story || item)?.id || '')).filter(Boolean));
-    const fields = STORY_FIELDS;
+    const fields = this.getStoryFields();
 
     for (let depth = 0; depth < 20; depth++) {
       const missingIds = new Set<string>();
@@ -839,7 +885,7 @@ export class TapdService {
           
           // Build query params from syncRange config for preview
           const previewLimit = syncRange?.limit || 1000;
-          const previewParams: Record<string, unknown> = { workspace_id: workspaceId.trim(), limit: previewLimit, fields: STORY_FIELDS };
+          const previewParams: Record<string, unknown> = { workspace_id: workspaceId.trim(), limit: previewLimit, fields: this.getStoryFields() };
           if (syncRange) {
             if (syncRange.mode === 'recent' && syncRange.recentDays) {
               const endDate = new Date();
@@ -1071,9 +1117,9 @@ export class TapdService {
 
 
           // Apply the configured cap after all client-side filters, so later matching pages are not lost.
-      stories = stories.slice(0, limit);
+          previewStories = previewStories.slice(0, previewLimit);
 
-      // Fetch missing parent stories that are not in the filtered results
+          // Fetch missing parent stories that are not in the filtered results
           if (previewStories.length > 0) {
             const existingIds = new Set<string>();
             const missingParentIds = new Set<string>();
@@ -1093,7 +1139,7 @@ export class TapdService {
               try {
                 const parentData = await mcpGatewayFetch<any>(
                   'stories_get',
-                  { workspace_id: workspaceId.trim(), id: Array.from(missingParentIds).join(','), fields: STORY_FIELDS },
+                  { workspace_id: workspaceId.trim(), id: Array.from(missingParentIds).join(','), fields: this.getStoryFields() },
                   mcpAccessToken
                 );
                 let parentStories: any[] = [];
@@ -1116,6 +1162,8 @@ export class TapdService {
           }
 
           previewStories = await this.fetchStoryAncestors(workspaceId.trim(), previewStories, undefined, mcpAccessToken);
+          previewStories = this.normalizeStoryHierarchy(previewStories);
+          previewStories.forEach(item => this.resolveStoryPriority((item?.Story || item) as Record<string, unknown>));
           count = previewStories.length;
 
           return {
@@ -1178,12 +1226,13 @@ export class TapdService {
         // Step 2: Verify workspace access by fetching actual stories.
         // The internal API may not expose /stories/count even when /stories is available.
         try {
+          await this.discoverCustomPriorityFields(tempConfig, workspaceId.trim());
           const previewLimit = syncRange?.limit || 1000;
           const previewData = await this.fetchRestStoriesForSyncScope(
             tempConfig,
             {
               workspace_id: workspaceId.trim(),
-              fields: STORY_FIELDS,
+              fields: this.getStoryFields(),
             },
             previewLimit,
             syncRange
@@ -1205,6 +1254,7 @@ export class TapdService {
           previewStories = this.filterStoriesByAdvancedFilters(previewStories, syncRange).slice(0, previewLimit);
           previewStories = await this.fetchStoryAncestors(workspaceId.trim(), previewStories, tempConfig);
           previewStories = this.normalizeStoryHierarchy(previewStories);
+          previewStories.forEach(item => this.resolveStoryPriority((item?.Story || item) as Record<string, unknown>));
           let workitemTypes: { id: string; name: string }[] = [];
           let releasePlans: { id: string; name: string; status?: string; startdate?: string; enddate?: string }[] = [];
           try {
@@ -1355,7 +1405,7 @@ export class TapdService {
         // Fetch via MCP Gateway (streamable-http) — include fields param to get custom fields for filtering
         const data = await mcpGatewayFetch<{ status?: number; data?: any; count?: number }>(
           'stories_get',
-          { workspace_id: workspaceId.trim(), limit, fields: STORY_FIELDS, ...extraParams },
+          { workspace_id: workspaceId.trim(), limit, fields: this.getStoryFields(), ...extraParams },
           this.config!.mcpAccessToken!
         );
         console.log('[TapdService] MCP Gateway response:', typeof data, Array.isArray(data));
@@ -1370,9 +1420,10 @@ export class TapdService {
       } else if (this.hasRestCredentials()) {
         console.log('[TapdService] Fetching tasks via REST API for workspace:', workspaceId, 'range:', syncRange?.mode || 'all');
         // Fetch via REST API — convert all params to strings
+        await this.discoverCustomPriorityFields(this.config!, workspaceId.trim());
         const restParams: Record<string, string> = {
           workspace_id: workspaceId.trim(),
-          fields: STORY_FIELDS,
+          fields: this.getStoryFields(),
         };
         if (extraParams.modified) restParams.modified = String(extraParams.modified);
         if (extraParams.status) restParams.status = String(extraParams.status);
@@ -1540,6 +1591,9 @@ export class TapdService {
         console.log(`[TapdService] Pipeline filter (stages: ${activeStages.join(', ')}): ${beforePipelineCount} → ${stories.length} stories (keywords: ${pipelineKeywords.join(', ')})`);
       }
 
+      // Apply the configured cap after client-side filters, then add required structural parents.
+      stories = stories.slice(0, limit);
+
       // Fetch missing parent stories that are not in the filtered results
       const existingIds = new Set<string>();
       const missingParentIds = new Set<string>();
@@ -1562,7 +1616,7 @@ export class TapdService {
           if (this.hasMcpGatewayCredentials()) {
             const data = await mcpGatewayFetch<{ status?: number; data?: any }>(
               'stories_get',
-              { workspace_id: workspaceId, id: parentIds, fields: STORY_FIELDS },
+              { workspace_id: workspaceId, id: parentIds, fields: this.getStoryFields() },
               this.config!.mcpAccessToken!
             );
             if (Array.isArray(data)) {
@@ -1576,7 +1630,7 @@ export class TapdService {
             const data = await tapdRestFetch<{ status: number; data: any }>(
               '/stories',
               this.config!,
-              { workspace_id: workspaceId, id: parentIds, limit: '200', fields: STORY_FIELDS }
+              { workspace_id: workspaceId, id: parentIds, limit: '200', fields: this.getStoryFields() }
             );
             if (data?.status === 1 && data?.data) {
               parentStories = Array.isArray(data.data) ? data.data : [data.data];
@@ -1584,7 +1638,7 @@ export class TapdService {
           } else {
             const data = await mcpFetch<{ data: any[] }>(
               '/tapd/stories_get',
-              { workspace_id: workspaceId, id: parentIds, limit: '200', fields: STORY_FIELDS }
+              { workspace_id: workspaceId, id: parentIds, limit: '200', fields: this.getStoryFields() }
             );
             parentStories = data?.data || [];
           }
@@ -1841,6 +1895,7 @@ export class TapdService {
     const effortUnit = this.config?.syncRange?.effortUnit || 'days';
     const hoursPerDay = this.config?.syncRange?.hoursPerDay || 8;
     const estimatedHours = parseTapdEffortHours(story.effort, effortUnit, hoursPerDay);
+    const priorityValue = this.resolveStoryPriority(story as unknown as Record<string, unknown>);
 
     // Build TAPD external URL for direct navigation
     const workspaceId = this.config?.workspaceId || '';
@@ -1855,7 +1910,7 @@ export class TapdService {
       title: story.name,
       description: story.description || '',
       status,
-      priority: this.mapPriority(story.priority_label || story.priority),
+      priority: this.mapPriority(priorityValue),
       // Leave dates undefined when no schedule info (don't fill with current date)
       startDate: parseTapdDate(story.begin),
       endDate: parseTapdDate(story.due),
@@ -1870,7 +1925,7 @@ export class TapdService {
       estimatedHours,
       tapdReleaseId: story.release_id || undefined,
       tapdStatus: story.status || undefined,
-      tapdPriorityLabel: story.priority_label || story.priority || undefined,
+      tapdPriorityLabel: priorityValue || undefined,
       tapdOwner: story.owner || undefined,
       syncSource: 'tapd',
       updatedAt: Date.now(),
@@ -2387,6 +2442,9 @@ export class TapdService {
 
     // Support multiple workspace IDs
     const workspaceIds = config.workspaceId.split(/[,;，；]/).map(id => id.trim()).filter(Boolean);
+    if (this.hasRestCredentials()) {
+      await Promise.all(workspaceIds.map(workspaceId => this.discoverCustomPriorityFields(config, workspaceId)));
+    }
     const refreshReleaseNameById = new Map<string, string>();
     try {
       const plans = await this.getReleasePlans(projectId);
@@ -2407,7 +2465,7 @@ export class TapdService {
           if (this.hasMcpGatewayCredentials()) {
             const data = await mcpGatewayFetch<{ status?: number; data?: any; count?: number }>(
               'stories_get',
-              { workspace_id: wsId, id: batchIds.join(','), fields: STORY_FIELDS },
+              { workspace_id: wsId, id: batchIds.join(','), fields: this.getStoryFields() },
               config.mcpAccessToken!
             );
             if (Array.isArray(data)) {
@@ -2421,7 +2479,7 @@ export class TapdService {
             const data = await tapdRestFetch<{ status: number; data: any; info: string }>(
               '/stories',
               config,
-              { workspace_id: wsId, id: batchIds.join(','), limit: '200', fields: STORY_FIELDS }
+              { workspace_id: wsId, id: batchIds.join(','), limit: '200', fields: this.getStoryFields() }
             );
             if (data?.status === 1 && data?.data) {
               const fetched = Array.isArray(data.data) ? data.data : [data.data];
@@ -2430,7 +2488,7 @@ export class TapdService {
           } else {
             const data = await mcpFetch<{ data: any[] }>(
               '/tapd/stories_get',
-              { workspace_id: wsId, id: batchIds.join(','), limit: '200', fields: STORY_FIELDS }
+              { workspace_id: wsId, id: batchIds.join(','), limit: '200', fields: this.getStoryFields() }
             );
             if (data?.data) stories.push(...data.data);
           }
