@@ -4,7 +4,13 @@ import type { TapdAuthMode, ModuleMapping, SyncRangeConfig } from '../types/tapd
 import { getTapdPriorityValue, mapTapdPriority } from '../utils/tapdPriority';
 import { parseTapdDate, parseTapdEffortHours } from '../utils/tapdFields';
 import { applyTapdCompletionStatus, mapTapdStatus } from '../utils/tapdStatus';
-import { matchCpResourcesFromTitle } from '../utils/cpSupplier';
+import {
+  extractCpSupplierNames,
+  hasFollowupAssignment,
+  inferCpSupplierRole,
+  matchCpResourcesFromTitle,
+  normalizeSupplierName,
+} from '../utils/cpSupplier';
 
 // Re-export for consumers
 export type { SyncResult, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem };
@@ -2094,6 +2100,55 @@ export class TapdService {
     return uniqueIds;
   }
 
+  /** Create CP supplier records for explicit title markers that are not configured yet. */
+  private async ensureCpSuppliersFromTasks(
+    tasks: Array<Partial<Task> & { _tapdOwner?: string }>,
+    resources: Resource[],
+    projectId: number,
+  ): Promise<void> {
+    let nextSortOrder = resources.reduce((max, resource) => Math.max(max, resource.sortOrder || 0), 0) + 1;
+    for (const task of tasks) {
+      const supplierNames = extractCpSupplierNames(task.title || '');
+      if (supplierNames.length === 0) continue;
+      const ownerIds = task._tapdOwner
+        ? await this.matchOwnerToResources(task._tapdOwner, resources)
+        : [];
+      const ownerResources = ownerIds
+        .map(id => resources.find(resource => resource.id === id))
+        .filter((resource): resource is Resource => !!resource);
+      const role = inferCpSupplierRole(task.title || '', ownerResources);
+
+      for (const supplierName of supplierNames) {
+        const key = normalizeSupplierName(supplierName);
+        const existing = resources.find(resource => {
+          if (resource.type !== 'cp') return false;
+          const existingKey = normalizeSupplierName(resource.name || '');
+          return existingKey === key || existingKey === `cp${key}` || `cp${existingKey}` === key;
+        });
+        if (existing?.id) {
+          const projectIds = Array.from(new Set([...(existing.projectIds || []), projectId]));
+          if (!existing.projectIds?.includes(projectId)) {
+            await db.resources.update(existing.id, { projectIds });
+            existing.projectIds = projectIds;
+          }
+          continue;
+        }
+
+        const newResource: Resource = {
+          name: supplierName,
+          role,
+          type: 'cp',
+          workforceType: '供应商',
+          projectIds: [projectId],
+          status: 'active',
+          sortOrder: nextSortOrder++,
+        };
+        const id = await db.resources.add(newResource);
+        resources.push({ ...newResource, id });
+      }
+    }
+  }
+
   /**
    * Convert resource IDs to display names.
    */
@@ -2285,6 +2340,7 @@ export class TapdService {
     // Pre-load all local tasks for title matching
     const allLocalTasks = await db.tasks.where('projectId').equals(projectId).toArray();
     const syncResources = await db.resources.toArray();
+    await this.ensureCpSuppliersFromTasks(remoteTasks, syncResources, projectId);
     const manualTasksByTitle = new Map<string, number>();
     for (const t of allLocalTasks) {
       if (!t.tapdId && t.title) {
@@ -2318,7 +2374,7 @@ export class TapdService {
       const supplierIds = matchCpResourcesFromTitle(cleanTask.title || '', syncResources);
       const matchedIds = Array.from(new Set([...ownerIds, ...supplierIds]));
       if (matchedIds.length > 0) cleanTask.assigneeIds = matchedIds;
-      if (supplierIds.length > 0) cleanTask.workCategory = 'cp_follow';
+      if (hasFollowupAssignment(matchedIds, syncResources)) cleanTask.workCategory = 'cp_follow';
 
       // Resolve target project based on module mappings
       const targetProjectId = await this.resolveTargetProject(
@@ -2631,6 +2687,7 @@ export class TapdService {
     // Resolve owners from one resource snapshot instead of re-reading the whole
     // resource table for every task in a large refresh.
     const cachedResources = await db.resources.toArray();
+    await this.ensureCpSuppliersFromTasks(Array.from(remoteMap.values()), cachedResources, projectId);
 
     // Keep every write in one transaction so live queries invalidate once after
     // the batch instead of re-rendering all views once per TAPD story.
@@ -2720,6 +2777,7 @@ export class TapdService {
       });
       const coordinatorIds = ownerIds.length > 0 ? ownerIds : existingCoordinatorIds;
       const matchedIds = Array.from(new Set([...coordinatorIds, ...supplierIds]));
+      const followupAssignment = hasFollowupAssignment(matchedIds, cachedResources);
       let resolvedAssigneeIds: number[] | null = null;
       if ((tapdOwner || supplierIds.length > 0) && matchedIds.length > 0) {
         const localAssignees = [...validLocalIds].sort((a, b) => a - b).join(',');
@@ -2755,7 +2813,7 @@ export class TapdService {
         updateData.tapdWorkitemTypeId = remote.tapdWorkitemTypeId;
         updateData.tapdWorkitemTypeName = remote.tapdWorkitemTypeName;
         updateData.completedAt = remote.completedAt;
-        if (supplierIds.length > 0) updateData.workCategory = 'cp_follow';
+        if (followupAssignment) updateData.workCategory = 'cp_follow';
         updateData.syncSource = 'tapd';
         for (const change of changes) {
           switch (change.field) {
@@ -2810,7 +2868,7 @@ export class TapdService {
         if (remote.tapdWorkitemTypeId !== localTask.tapdWorkitemTypeId) silentUpdates.tapdWorkitemTypeId = remote.tapdWorkitemTypeId;
         if (remote.tapdWorkitemTypeName !== localTask.tapdWorkitemTypeName) silentUpdates.tapdWorkitemTypeName = remote.tapdWorkitemTypeName;
         if (remote.completedAt?.getTime() !== localTask.completedAt?.getTime()) silentUpdates.completedAt = remote.completedAt;
-        if (supplierIds.length > 0 && localTask.workCategory !== 'cp_follow') silentUpdates.workCategory = 'cp_follow';
+        if (followupAssignment && localTask.workCategory !== 'cp_follow') silentUpdates.workCategory = 'cp_follow';
         silentUpdates.syncedAt = Date.now();
         silentUpdates.syncSource = 'tapd';
         // Fix corrupted assigneeIds containing NaN values
