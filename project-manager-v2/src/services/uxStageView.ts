@@ -1,8 +1,9 @@
 import type { Task } from '../types/task';
-import type { UxStage } from '../types/scheduling';
 import { detectUxStage } from './uxWorkPackageService';
 
-export const STAGES: { key: UxStage; label: string }[] = [
+export type CoreUxStage = 'interaction' | 'ui_design' | 'implementation' | 'motion';
+
+export const STAGES: { key: CoreUxStage; label: string }[] = [
   { key: 'interaction', label: '交互' },
   { key: 'ui_design', label: '视觉' },
   { key: 'implementation', label: '还原' },
@@ -20,9 +21,9 @@ export const STAGE_STATUS: Record<StageStatus, { label: string; color: string }>
   cancelled: { label: '已取消', color: 'text-gray-400 bg-gray-500/15' },
 };
 
-export function taskStage(task: Task): UxStage | undefined {
+export function taskStage(task: Task): CoreUxStage | undefined {
   const detected = detectUxStage(task.title).stage;
-  if (detected) return detected;
+  if (detected && STAGES.some(stage => stage.key === detected)) return detected as CoreUxStage;
   // Local templates use these names instead of TAPD's bracketed titles.
   if (/^(?:【|\[)?交互设计/.test(task.title)) return 'interaction';
   if (/^(?:【|\[)?UI设计/i.test(task.title)) return 'ui_design';
@@ -44,6 +45,20 @@ export function stageStatus(tasks: Task[]): StageStatus {
   return 'todo';
 }
 
+/** A demand is complete only when every UX stage exists and every active child is done. */
+export function isDemandComplete(stages: Record<CoreUxStage, Task[]>): boolean {
+  return STAGES.every(({ key }) => stages[key].length > 0 && stageStatus(stages[key]) === 'done');
+}
+
+function isExplicitUiStory(task: Task): boolean {
+  const typeName = String(task.tapdWorkitemTypeName || '').trim();
+  return /ui\s*story|uistory/i.test(typeName);
+}
+
+function isExplicitEpic(task: Task): boolean {
+  return /epic|史诗/i.test(String(task.tapdWorkitemTypeName || '').trim());
+}
+
 export function buildStageRows(tasks: Task[]) {
   const byId = new Map(tasks.map(t => [t.id, t]));
   const children = new Map<number, Task[]>();
@@ -52,11 +67,18 @@ export function buildStageRows(tasks: Task[]) {
       children.set(t.parentId, [...(children.get(t.parentId) || []), t]);
     }
   });
-  return tasks.filter(t => !t.parentId || byId.get(t.parentId)?.projectId !== t.projectId).map(root => {
-    const stages = STAGES.reduce<Record<UxStage, Task[]>>((result, stage) => {
+  const explicitUiStories = tasks.filter(isExplicitUiStory);
+  // TAPD hierarchy can be EPIC -> UIStory -> UI. Once type metadata is present,
+  // the table must start at UIStory instead of promoting the highest ancestor.
+  const roots = explicitUiStories.length > 0
+    ? explicitUiStories
+    : tasks.filter(t => !isExplicitEpic(t) && (!t.parentId || byId.get(t.parentId)?.projectId !== t.projectId));
+
+  return roots.map(root => {
+    const stages = STAGES.reduce<Record<CoreUxStage, Task[]>>((result, stage) => {
       result[stage.key] = [];
       return result;
-    }, {} as Record<UxStage, Task[]>);
+    }, {} as Record<CoreUxStage, Task[]>);
     const descendants: Task[] = [];
     const visited = new Set<number>();
     const visit = (task: Task) => {

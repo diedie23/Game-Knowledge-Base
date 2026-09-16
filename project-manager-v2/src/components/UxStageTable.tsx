@@ -4,8 +4,8 @@ import { Search, Plus, X, ArrowUpDown, ExternalLink, ChevronRight } from 'lucide
 import { db } from '../db/db';
 import { useStore } from '../store/useStore';
 import type { Task } from '../types/task';
-import type { UxStage } from '../types/scheduling';
-import { buildStageRows, STAGES, STAGE_STATUS, stageStatus, taskStatus } from '../services/uxStageView';
+import type { CoreUxStage } from '../services/uxStageView';
+import { buildStageRows, isDemandComplete, STAGES, STAGE_STATUS, stageStatus, taskStatus } from '../services/uxStageView';
 import { getPriorityLabel } from '../utils/priority';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 
@@ -24,6 +24,22 @@ function taskRangeLabel(items: Task[]) {
   return dateLabel(start) + ' → ' + dateLabel(end);
 }
 
+type StageOwnerFilters = Record<CoreUxStage, string>;
+
+const EMPTY_STAGE_OWNERS: StageOwnerFilters = {
+  interaction: 'all',
+  ui_design: 'all',
+  implementation: 'all',
+  motion: 'all',
+};
+
+const STAGE_ROLE_PATTERN: Record<CoreUxStage, RegExp> = {
+  interaction: /UX|交互/i,
+  ui_design: /UI|视觉|美术/i,
+  implementation: /Layout|还原|实现/i,
+  motion: /动效|动画|Motion|VFX/i,
+};
+
 function StatusBadge({ status }: { status: keyof typeof STAGE_STATUS }) {
   const meta = STAGE_STATUS[status];
   return <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded px-2 py-1 text-[11px] font-medium ${meta.color}`}>
@@ -38,10 +54,10 @@ export function UxStageTable() {
   const [query, setQuery] = useState('');
   const [stage, setStage] = useState('all');
   const [status, setStatus] = useState('all');
-  const [person, setPerson] = useState('all');
+  const [stageOwners, setStageOwners] = useState<StageOwnerFilters>(EMPTY_STAGE_OWNERS);
   const [priority, setPriority] = useState('all');
   const [descending, setDescending] = useState(false);
-  const [detail, setDetail] = useState<{ rootId: number; stage: UxStage } | null>(null);
+  const [detail, setDetail] = useState<{ rootId: number; stage: CoreUxStage } | null>(null);
   const rows = useMemo(() => buildStageRows(tasks || []), [tasks]);
   const names = (items: Task[]) => {
     const ids = [...new Set(items.flatMap(t => t.assigneeIds || []))];
@@ -56,13 +72,25 @@ export function UxStageTable() {
     const text = query.trim().toLowerCase();
     if (text && ![row.root, ...row.descendants].some(t => `${t.title} ${t.tapdId || ''} ${t.module || ''}`.toLowerCase().includes(text))) return false;
     if (priority !== 'all' && row.root.priority !== priority) return false;
-    return STAGES.filter(s => stage === 'all' || s.key === stage).some(s => {
+    const visibleStages = STAGES.filter(s => stage === 'all' || s.key === stage);
+    const ownersMatch = STAGES.every(s => {
+      const selectedOwner = stageOwners[s.key];
+      if (selectedOwner === 'all') return true;
       const items = row.stages[s.key];
-      if (status === 'missing') return !items.length && person === 'all';
-      if (status === 'all' && person === 'all') return stage === 'all' || items.length > 0;
-      // Owner and status must match the same task.
-      return items.some(t => (status === 'all' || taskStatus(t) === status) &&
-        (person === 'all' || (person === 'unassigned' ? !t.assigneeIds?.length : t.assigneeIds?.includes(Number(person)))));
+      if (selectedOwner === 'unassigned') return items.some(t => !t.assigneeIds?.length);
+      return items.some(t => t.assigneeIds?.includes(Number(selectedOwner)));
+    });
+    if (!ownersMatch) return false;
+    // “已完成” is a demand-level state: all four stages must exist and be complete.
+    if (status === 'done') return isDemandComplete(row.stages);
+    if (status === 'missing') return visibleStages.some(s => row.stages[s.key].length === 0);
+    if (status === 'all') return stage === 'all' || visibleStages.some(s => row.stages[s.key].length > 0);
+    return visibleStages.some(s => {
+      const selectedOwner = stageOwners[s.key];
+      return row.stages[s.key].some(t => taskStatus(t) === status && (
+        selectedOwner === 'all' ||
+        (selectedOwner === 'unassigned' ? !t.assigneeIds?.length : t.assigneeIds?.includes(Number(selectedOwner)))
+      ));
     });
   }).sort((a, b) => {
     const left = a.root.endDate ? new Date(a.root.endDate).getTime() : Infinity;
@@ -74,8 +102,8 @@ export function UxStageTable() {
   });
   const detailRow = rows.find(row => row.root.id === detail?.rootId);
   const detailTasks = detail && detailRow ? detailRow.stages[detail.stage] : [];
-  const hasFilters = query || stage !== 'all' || status !== 'all' || person !== 'all' || priority !== 'all';
-  const clearFilters = () => { setQuery(''); setStage('all'); setStatus('all'); setPerson('all'); setPriority('all'); };
+  const hasFilters = query || stage !== 'all' || status !== 'all' || Object.values(stageOwners).some(value => value !== 'all') || priority !== 'all';
+  const clearFilters = () => { setQuery(''); setStage('all'); setStatus('all'); setStageOwners(EMPTY_STAGE_OWNERS); setPriority('all'); };
   const selectClass = 'bg-[#151923] border border-gray-700/60 rounded-lg px-3 py-2 text-xs text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500';
 
   return <div className="flex min-h-0 flex-1 flex-col bg-[#0f1115]">
@@ -87,13 +115,16 @@ export function UxStageTable() {
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <label className="relative min-w-[220px] flex-1 max-w-sm"><Search size={15} className="absolute left-3 top-3 text-gray-500" /><input aria-label="搜索需求" value={query} onChange={e => setQuery(e.target.value)} placeholder="搜索需求、子任务、TAPD ID…" className={`${selectClass} w-full pl-9`} /></label>
         <select aria-label="环节筛选" className={selectClass} value={stage} onChange={e => setStage(e.target.value)}><option value="all">全部环节</option>{STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}</select>
-        <select aria-label="负责人筛选" className={selectClass} value={person} onChange={e => setPerson(e.target.value)}><option value="all">全部负责人</option><option value="unassigned">待分配</option>{resources.map(r => <option key={r.id} value={r.id}>{formatResourceDisplayName(r)}</option>)}</select>
+        {STAGES.map(s => <select key={s.key} aria-label={`${s.label}处理人筛选`} className={`${selectClass} min-w-[132px]`} value={stageOwners[s.key]} onChange={e => setStageOwners(current => ({ ...current, [s.key]: e.target.value }))}>
+          <option value="all">全部{s.label}处理人</option><option value="unassigned">{s.label}待分配</option>
+          {resources.filter(resource => STAGE_ROLE_PATTERN[s.key].test(resource.role || '')).map(resource => <option key={resource.id} value={resource.id}>{formatResourceDisplayName(resource)}</option>)}
+        </select>)}
         <select aria-label="环节状态筛选" className={selectClass} value={status} onChange={e => setStatus(e.target.value)}><option value="all">全部环节状态</option>{Object.entries(STAGE_STATUS).map(([key, meta]) => <option key={key} value={key}>{meta.label}</option>)}</select>
         <select aria-label="优先级筛选" className={selectClass} value={priority} onChange={e => setPriority(e.target.value)}><option value="all">全部优先级</option><option value="high">P0</option><option value="medium">P1</option><option value="low">P2</option></select>
         {hasFilters && <button onClick={clearFilters} className="px-2 text-xs text-indigo-300 hover:text-white">清除筛选</button>}
       </div>
     </div>
-    <div className="flex items-center justify-between gap-3 px-5 py-3 text-xs text-gray-500"><span>显示 <strong className="text-gray-200">{filtered.length}</strong> / {rows.length} 个需求</span><span>状态筛选匹配子任务 · — 表示未建任务</span></div>
+    <div className="flex items-center justify-between gap-3 px-5 py-3 text-xs text-gray-500"><span>显示 <strong className="text-gray-200">{filtered.length}</strong> / {rows.length} 个需求</span><span>已完成 = 交互、视觉、还原、动效全部完成 · — 表示未建任务</span></div>
     <div className="min-h-0 flex-1 overflow-auto px-5 pb-5">
       <table className="w-full min-w-[1100px] table-fixed border-separate border-spacing-0 text-left text-xs">
         <colgroup><col style={{ width: '21%' }} /><col style={{ width: '9%' }} /><col style={{ width: '6%' }} />{STAGES.map(s => <col key={s.key} style={{ width: '14%' }} />)}<col style={{ width: '8%' }} /></colgroup>

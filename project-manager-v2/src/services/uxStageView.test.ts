@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Task } from '../types/task';
-import { buildStageRows, stageStatus, taskStage, taskStatus } from './uxStageView';
+import { buildStageRows, isDemandComplete, stageStatus, taskStage, taskStatus } from './uxStageView';
 
 const task = (id: number, title: string, props: Partial<Task> = {}): Task => ({ id, title, status: 'todo', priority: 'medium', projectId: 1, progress: 0, dependencies: [], type: 'task', ...props });
 
@@ -11,6 +11,26 @@ describe('UX stage rows', () => {
     expect(rows[0].stages.interaction.map(t => t.id)).toEqual([3]);
     expect(rows[0].descendants).toHaveLength(3);
     expect(rows[1].stages.interaction).toEqual([]);
+  });
+  it('starts TAPD rows at UIStory and never promotes EPIC into the first column', () => {
+    const rows = buildStageRows([
+      task(1, '版本总览', { tapdWorkitemTypeName: 'EPIC' }),
+      task(2, '商城 UIStory', { parentId: 1, tapdWorkitemTypeName: 'UIStory' }),
+      task(3, '【交互案】商城', { parentId: 2, tapdWorkitemTypeName: 'UI' }),
+      task(4, '另一个 UIStory', { parentId: 1, tapdWorkitemTypeName: 'UIStory' }),
+    ]);
+    expect(rows.map(row => row.root.id)).toEqual([2, 4]);
+    expect(rows[0].stages.interaction.map(item => item.id)).toEqual([3]);
+  });
+  it('only treats a demand as complete when all four stages exist and are complete', () => {
+    const done = (id: number, title: string) => task(id, title, { status: 'done' });
+    const full = buildStageRows([task(1, '需求'), done(2, '【交互案】A'), done(3, '【视觉设计】A'), done(4, '【还原】A'), done(5, '【动效】A')
+      ].map((item, index) => index === 0 ? item : { ...item, parentId: 1 }))[0].stages;
+    expect(isDemandComplete(full)).toBe(true);
+    full.motion[0] = { ...full.motion[0], status: 'in_progress' };
+    expect(isDemandComplete(full)).toBe(false);
+    full.motion = [];
+    expect(isDemandComplete(full)).toBe(false);
   });
   it('preserves orphan tasks and rejects cross-project parents', () => {
     expect(buildStageRows([task(1, '父需求'), task(2, '【动效】孤立任务', { parentId: 99 }), task(3, '【还原】其他项目', { parentId: 1, projectId: 2 })])).toHaveLength(3);
