@@ -68,7 +68,7 @@ export function UxStageTable() {
   const [priority, setPriority] = useState('all');
   const [descending, setDescending] = useState(false);
   const [detail, setDetail] = useState<{ rootId: number; stage: CoreUxStage } | null>(null);
-  const rows = useMemo(() => buildStageRows(tasks || []), [tasks]);
+  const rows = useMemo(() => buildStageRows(tasks || [], resources), [tasks, resources]);
   const names = (items: Task[]) => {
     const ids = [...new Set(items.flatMap(t => t.assigneeIds || []))];
     const result = ids.map(id => {
@@ -151,8 +151,8 @@ export function UxStageTable() {
           {STAGES.map((s, index) => <th key={s.key} className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 font-medium"><span className="mr-2 text-[10px] text-indigo-400">0{index + 1}</span><span className="text-gray-200">{s.label}</span><div className="mt-1 text-[10px] font-normal text-gray-500">负责人 / 状态</div></th>)}
           <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 font-medium"><button onClick={() => setDescending(!descending)} className="flex items-center gap-1" aria-label={descending ? '截止日期降序，点击升序' : '截止日期升序，点击降序'}>截止日期<ArrowUpDown size={12} /></button></th>
         </tr></thead>
-        <tbody>{filtered.map(({ root, stages }) => <tr key={root.id} className="group">
-          <td className="sticky left-0 z-10 border-b border-gray-800 bg-[#11151d] px-4 py-3 group-hover:bg-[#191e2b]">
+        <tbody>{filtered.map(({ root, stages }) => { const rootDone = root.status === 'done'; return <tr key={root.id} className={'group ' + (rootDone ? 'bg-emerald-500/[0.055]' : '')}>
+          <td className={'sticky left-0 z-10 border-b border-gray-800 px-4 py-3 ' + (rootDone ? 'bg-[#10231d] group-hover:bg-[#153027]' : 'bg-[#11151d] group-hover:bg-[#191e2b]')}>
             <div className="mb-2 flex items-center justify-between gap-2">
               <span className="rounded border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold text-sky-300">UIStory · 父需求</span>
               {root.externalUrl && <a href={root.externalUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="inline-flex shrink-0 items-center gap-1 rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 text-[10px] font-medium text-indigo-300 hover:bg-indigo-500/20 hover:text-white">打开 TAPD<ExternalLink size={10} /></a>}
@@ -185,7 +185,7 @@ export function UxStageTable() {
             </td>;
           })}
           <td className="border-b border-l border-gray-800 px-3 py-5 align-top text-gray-400">{dateLabel(root.endDate)}</td>
-        </tr>)}</tbody>
+        </tr>; })}</tbody>
       </table>
       {!filtered.length && <div className="py-20 text-center"><p className="text-sm text-gray-400">{tasks === undefined ? '正在加载需求…' : hasFilters ? '没有符合条件的需求' : '暂无需求，创建或导入 TAPD 任务后即可查看环节状态'}</p>{hasFilters && <button onClick={clearFilters} className="mt-3 text-sm text-indigo-300">清除筛选</button>}</div>}
     </div>

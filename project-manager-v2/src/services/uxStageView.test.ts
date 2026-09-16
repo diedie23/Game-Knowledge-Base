@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { Task } from '../types/task';
+import type { Resource } from '../types/resource';
 import { buildStageRows, isDemandComplete, stageStatus, taskStage, taskStatus } from './uxStageView';
 
 const task = (id: number, title: string, props: Partial<Task> = {}): Task => ({ id, title, status: 'todo', priority: 'medium', projectId: 1, progress: 0, dependencies: [], type: 'task', ...props });
+
+const resources: Resource[] = [
+  { id: 1, name: '柴姣', role: 'UI设计', tapdAccount: 'chaichai' },
+  { id: 2, name: '张云鹏', role: '还原', tapdAccount: 'v_zypgzhang' },
+  { id: 3, name: '罗梦晨', role: '动效', tapdAccount: 'luomengchen' },
+  { id: 4, name: '金天', role: '策划', tapdAccount: 'ritianjin' },
+];
 
 describe('UX stage rows', () => {
   it('rolls nested children into their demand without mixing unrelated work', () => {
@@ -36,9 +44,25 @@ describe('UX stage rows', () => {
   it('preserves orphan tasks and rejects cross-project parents', () => {
     expect(buildStageRows([task(1, '父需求'), task(2, '【动效】孤立任务', { parentId: 99 }), task(3, '【还原】其他项目', { parentId: 1, projectId: 2 })])).toHaveLength(3);
   });
-  it('recognizes TAPD stages and local template names without inferring from assignees', () => {
-    expect(['【交互案】A', '【视觉设计】A', '【还原】A', '【动效】A', '交互设计', 'UI设计'].map((name, i) => taskStage(task(i, name)))).toEqual(['interaction', 'ui_design', 'implementation', 'motion', 'interaction', 'ui_design']);
-    expect(taskStage(task(9, '程序开发', { assigneeIds: [1] }))).toBeUndefined();
+  it('uses title first and falls back to the TAPD owner role when titles are generic', () => {
+    expect(['【交互案】A', '【视觉设计】A', '【还原】A', '【动效】A', '交互设计', 'UI设计'].map((name, i) => taskStage(task(i, name), resources))).toEqual(['interaction', 'ui_design', 'implementation', 'motion', 'interaction', 'ui_design']);
+    expect(taskStage(task(9, '图标设计', { assigneeIds: [1] }), resources)).toBe('ui_design');
+    expect(taskStage(task(10, '资源入版', { tapdOwner: 'v_zypgzhang' }), resources)).toBe('implementation');
+    expect(taskStage(task(11, '动效稿', { assigneeIds: [1] }), resources)).toBe('motion');
+    expect(taskStage(task(12, '策划配置', { assigneeIds: [4] }), resources)).toBeUndefined();
+    expect(taskStage(task(13, '多人协作', { assigneeIds: [1, 2] }), resources)).toBeUndefined();
+  });
+
+  it('places generic UI children by their handler role without classifying the parent itself', () => {
+    const rows = buildStageRows([
+      task(20, '【会议流程】图标', { status: 'done', tapdWorkitemTypeName: 'UIStory' }),
+      task(21, '图标设计（CP萌动）', { parentId: 20, status: 'done', assigneeIds: [1], tapdWorkitemTypeName: 'UI' }),
+      task(22, '资源入版', { parentId: 20, status: 'done', tapdOwner: 'v_zypgzhang', tapdWorkitemTypeName: 'UI' }),
+      task(23, '策划配置', { parentId: 20, status: 'done', assigneeIds: [4], tapdWorkitemTypeName: 'CONFIG' }),
+    ], resources);
+    expect(rows[0].stages.ui_design.map(item => item.id)).toEqual([21]);
+    expect(rows[0].stages.implementation.map(item => item.id)).toEqual([22]);
+    expect(rows[0].descendants.map(item => item.id)).toEqual([21, 22, 23]);
   });
   it('distinguishes absent tasks from pending and cancelled work', () => {
     expect(stageStatus([])).toBe('missing');

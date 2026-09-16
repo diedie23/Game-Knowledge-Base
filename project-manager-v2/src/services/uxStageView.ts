@@ -1,4 +1,5 @@
 import type { Task } from '../types/task';
+import type { Resource } from '../types/resource';
 import { detectUxStage } from './uxWorkPackageService';
 
 export type CoreUxStage = 'interaction' | 'ui_design' | 'implementation' | 'motion';
@@ -21,13 +22,32 @@ export const STAGE_STATUS: Record<StageStatus, { label: string; color: string }>
   cancelled: { label: '已取消', color: 'text-gray-400 bg-gray-500/15' },
 };
 
-export function taskStage(task: Task): CoreUxStage | undefined {
+const RESOURCE_STAGE_PATTERNS: Array<{ stage: CoreUxStage; pattern: RegExp }> = [
+  { stage: 'interaction', pattern: /UX|交互|体验/i },
+  { stage: 'ui_design', pattern: /UI|视觉|美术/i },
+  { stage: 'implementation', pattern: /还原|Layout|排版|实现/i },
+  { stage: 'motion', pattern: /动效|动画|Motion|VFX|VX/i },
+];
+
+/** Prefer an explicit title marker, then use the TAPD owner's configured role as a safe fallback. */
+export function taskStage(task: Task, resources: Resource[] = []): CoreUxStage | undefined {
   const detected = detectUxStage(task.title).stage;
   if (detected && STAGES.some(stage => stage.key === detected)) return detected as CoreUxStage;
   // Local templates use these names instead of TAPD's bracketed titles.
   if (/^(?:【|\[)?交互设计/.test(task.title)) return 'interaction';
   if (/^(?:【|\[)?UI设计/i.test(task.title)) return 'ui_design';
-  return undefined;
+
+  const ownerTokens = String(task.tapdOwner || '').split(/[;,，；]/).map(value => value.trim().toLowerCase()).filter(Boolean);
+  const assigned = resources.filter(resource =>
+    task.assigneeIds?.includes(resource.id || -1) ||
+    ownerTokens.some(token => token === String(resource.tapdAccount || '').toLowerCase() || token === resource.name.trim().toLowerCase())
+  );
+  const matchedStages = new Set<CoreUxStage>();
+  assigned.forEach(resource => {
+    const matched = RESOURCE_STAGE_PATTERNS.find(rule => rule.pattern.test(resource.role || ''));
+    if (matched) matchedStages.add(matched.stage);
+  });
+  return matchedStages.size === 1 ? [...matchedStages][0] : undefined;
 }
 
 export function taskStatus(task: Task): StageStatus {
@@ -63,7 +83,7 @@ function isExplicitEpic(task: Task): boolean {
   return /epic|史诗/i.test(String(task.tapdWorkitemTypeName || '').trim());
 }
 
-export function buildStageRows(tasks: Task[]) {
+export function buildStageRows(tasks: Task[], resources: Resource[] = []) {
   const byId = new Map(tasks.map(t => [t.id, t]));
   const children = new Map<number, Task[]>();
   tasks.forEach(t => {
@@ -89,7 +109,7 @@ export function buildStageRows(tasks: Task[]) {
       if (task.id === undefined || visited.has(task.id)) return;
       visited.add(task.id);
       if (task !== root) descendants.push(task);
-      const stage = taskStage(task);
+      const stage = task === root ? undefined : taskStage(task, resources);
       if (stage) stages[stage].push(task);
       (children.get(task.id) || []).forEach(visit);
     };
