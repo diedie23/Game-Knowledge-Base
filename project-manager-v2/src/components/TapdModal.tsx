@@ -1604,7 +1604,7 @@ export function TapdModal() {
                         }`} />
                       </button>
                       <span className="text-[11px] text-gray-400">
-                        🎯 Pipeline 智能筛选（仅拉取交互/视觉/Layout相关任务）
+                        🎯 Pipeline 智能筛选（仅拉取交互/视觉/还原相关任务）
                       </span>
                     </div>
                     {pipelineFilter && (
@@ -1612,7 +1612,7 @@ export function TapdModal() {
                         {[
                           { id: 'interaction', label: '交互设计', icon: '🔄' },
                           { id: 'ui_design', label: 'UI设计', icon: '🎨' },
-                          { id: 'layout', label: 'Layout', icon: '📐' },
+                          { id: 'layout', label: '还原', icon: '📐' },
                           { id: 'motion_design', label: '动效设计', icon: '✨' },
                           { id: 'formal_blueprint', label: '正式蓝图', icon: '📋' },
                           { id: 'func_blueprint', label: '功能蓝图', icon: '⚙️' },

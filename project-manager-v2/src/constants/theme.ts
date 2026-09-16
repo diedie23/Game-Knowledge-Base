@@ -25,7 +25,7 @@ export const ROLE_BADGE_STYLES: RoleBadgeStyle[] = [
   { keywords: ['运维', 'Ops', 'DevOps'],        cls: 'text-orange-300 bg-orange-500/15 border-orange-500/25' },
   { keywords: ['平面', '视觉'],                 cls: 'text-fuchsia-300 bg-fuchsia-500/15 border-fuchsia-500/25' },
   { keywords: ['相关'],                         cls: 'text-gray-300 bg-gray-500/15 border-gray-500/25' },
-  { keywords: ['Layout', 'layout'],             cls: 'text-sky-300 bg-sky-500/15 border-sky-500/25' },
+  { keywords: ['还原', 'Layout', 'layout'],             cls: 'text-sky-300 bg-sky-500/15 border-sky-500/25' },
 ];
 
 const DEFAULT_ROLE_BADGE_CLS = 'text-gray-400 bg-gray-500/15 border-gray-500/25';

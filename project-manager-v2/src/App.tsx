@@ -29,6 +29,7 @@ import { syncEngine } from './services/syncEngine';
 import { TapdSyncAdapter } from './services/syncAdapter';
 import { BACKUP_STORAGE_KEY } from './services/dataExportService';
 import { toast } from './store/useToastStore';
+import { isEpicRequirement } from './utils/taskHierarchy';
 
 // View transition wrapper — triggers fade-in animation on view change
 function ViewTransition({ viewKey, children }: { viewKey: string; children: React.ReactNode }) {
@@ -102,6 +103,19 @@ function App() {
   useEffect(() => {
     const init = async () => {
       await initMockData();
+      // Remove TAPD EPIC ancestors imported by previous versions; they are hierarchy scaffolding.
+      const staleEpicIds = (await db.tasks.toArray())
+        .filter(task => Boolean(task.tapdId) && isEpicRequirement(task))
+        .flatMap(task => task.id == null ? [] : [task.id]);
+      if (staleEpicIds.length > 0) {
+        const epicIdSet = new Set(staleEpicIds);
+        await db.tasks.filter(task => task.parentId != null && epicIdSet.has(task.parentId)).modify(task => { delete task.parentId; });
+        await db.tasks.bulkDelete(staleEpicIds);
+      }
+      // Migrate the old English role label while retaining task titles exactly as TAPD supplied them.
+      await db.resources.toCollection().modify(resource => {
+        if (/^layout$/i.test(String(resource.role || '').trim())) resource.role = '还原';
+      });
       // Select the first available project (or create default if none exist)
       const allProjects = await db.projects.toArray();
       if (allProjects.length > 0) {

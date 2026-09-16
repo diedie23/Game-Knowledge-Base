@@ -2,6 +2,15 @@ import type { Task } from '../types';
 
 export type RequirementKind = 'parent' | 'child' | 'standalone';
 
+/** EPIC is a structural ancestor in TAPD and must not become a local UX demand. */
+export function isEpicWorkitemTypeName(value?: string): boolean {
+  return /(?:^|[\s·_\-—:：])epic(?:$|[\s·_\-—:：])|史诗/i.test(String(value || '').trim());
+}
+
+export function isEpicRequirement(task: Pick<Task, 'tapdWorkitemTypeName'>): boolean {
+  return isEpicWorkitemTypeName(task.tapdWorkitemTypeName);
+}
+
 export function getRequirementKind(task: Task, hasChildren = false): RequirementKind {
   const typeName = String(task.tapdWorkitemTypeName || '').trim().toLowerCase();
   const compactType = typeName.replace(/[\s·_\-—:：]/g, '');

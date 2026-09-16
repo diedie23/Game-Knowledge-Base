@@ -942,7 +942,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     );
 
     if (depMap.size === 0) {
-      await alertDialog({ title: '未检测到依赖', message: '未检测到可识别的 pipeline 任务类型\n\n支持自动识别的任务类型：\n• 交互设计 → 功能蓝图 / UI设计 / 客户端功能制作\n• UI设计 → Layout / 动效设计\n• Layout → 正式蓝图\n\n识别依据（按优先级）：\n1. 任务标题中的关键词（如 "-UI设计"、"-layout"、"-正式蓝图"）\n2. 任务处理人的角色（如 UI设计师、Layout、交互设计师）', type: 'warning' });
+      await alertDialog({ title: '未检测到依赖', message: '未检测到可识别的 pipeline 任务类型\n\n支持自动识别的任务类型：\n• 交互设计 → 功能蓝图 / UI设计 / 客户端功能制作\n• UI设计 → 还原 / 动效设计\n• 还原 → 正式蓝图\n\n识别依据（按优先级）：\n1. 任务标题中的关键词（如 "-UI设计"、"-layout"、"-正式蓝图"）\n2. 任务处理人的角色（如 UI设计师、还原、交互设计师）', type: 'warning' });
       return;
     }
 

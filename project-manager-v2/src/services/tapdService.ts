@@ -12,6 +12,7 @@ import {
   normalizeSupplierName,
 } from '../utils/cpSupplier';
 import { classifyTapdMember, resolveMemberTypeAfterTapdSync } from '../utils/memberClassification';
+import { isEpicWorkitemTypeName } from '../utils/taskHierarchy';
 
 // Re-export for consumers
 export type { SyncResult, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem };
@@ -601,6 +602,17 @@ export class TapdService {
     });
   }
 
+  /** Keep structural EPIC ancestors out of local demand views even after ancestor completion. */
+  private filterEpicStories(stories: any[]): any[] {
+    return stories.filter(item => {
+      const story = item?.Story || item;
+      const typeId = String(story?.workitem_type_id || '');
+      const typeName = this.activeWorkitemTypeNames.get(typeId)
+        || String(story?.workitem_type_name || story?.workitem_type || '');
+      return !isEpicWorkitemTypeName(typeName);
+    });
+  }
+
   /** Fill missing parent_id values from TAPD children_id so both hierarchy response shapes are supported. */
   private normalizeStoryHierarchy(stories: any[]): any[] {
     const storyById = new Map<string, any>();
@@ -799,7 +811,7 @@ export class TapdService {
       'UX-交互': 'UX设计',
       'UX-视觉': 'UI设计',
       'UX-动效': '动效',
-      'UX-还原': 'Layout',
+      'UX-还原': '还原',
     };
     const targetGroupOrder = Object.keys(targetGroupRoles);
     const roleNames: Record<string, string> = Object.fromEntries(
@@ -1253,6 +1265,7 @@ export class TapdService {
 
           previewStories = await this.fetchStoryAncestors(workspaceId.trim(), previewStories, undefined, mcpAccessToken);
           previewStories = this.normalizeStoryHierarchy(previewStories);
+          previewStories = this.filterEpicStories(this.filterStoriesBySyncScope(previewStories, syncRange));
           previewStories.forEach(item => this.resolveStoryPriority((item?.Story || item) as Record<string, unknown>));
           count = previewStories.length;
 
@@ -1348,6 +1361,7 @@ export class TapdService {
           previewStories = this.filterStoriesByAdvancedFilters(previewStories, syncRange).slice(0, previewLimit);
           previewStories = await this.fetchStoryAncestors(workspaceId.trim(), previewStories, tempConfig);
           previewStories = this.normalizeStoryHierarchy(previewStories);
+          previewStories = this.filterEpicStories(this.filterStoriesBySyncScope(previewStories, syncRange));
           previewStories.forEach(item => this.resolveStoryPriority((item?.Story || item) as Record<string, unknown>));
           let workitemTypes: { id: string; name: string }[] = [];
           let releasePlans: { id: string; name: string; status?: string; startdate?: string; enddate?: string }[] = [];
@@ -1752,6 +1766,7 @@ export class TapdService {
       // Handle both { Story: {...} } and direct story object formats
       stories = await this.fetchStoryAncestors(workspaceId.trim(), stories, this.config || undefined);
       stories = this.normalizeStoryHierarchy(stories);
+      stories = this.filterEpicStories(this.filterStoriesBySyncScope(stories, syncRange));
 
       return stories.map(item => {
         const story = item?.Story || item;

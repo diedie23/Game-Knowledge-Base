@@ -12,7 +12,7 @@ const SKILL_KEYWORDS: { keywords: string[]; skill: string }[] = [
   { keywords: ['正式蓝图', '蓝图', '开发', '编码', 'Dev'], skill: 'development' },
   { keywords: ['动效', '动画', 'Motion'], skill: 'motion_design' },
   { keywords: ['测试', 'QA', 'Test'], skill: 'testing' },
-  { keywords: ['Layout', 'layout', '布局'], skill: 'layout' },
+  { keywords: ['还原', 'Layout', 'layout', '布局'], skill: 'layout' },
   { keywords: ['UE', 'ue', '引擎'], skill: 'ue_development' },
 ];
 
@@ -24,6 +24,7 @@ const ROLE_SKILL_MAP: Record<string, string[]> = {
   'Product': ['product', 'interaction_design'],
   'Developer': ['development', 'ue_development', 'testing'],
   'Layout': ['layout', 'development'],
+  '还原': ['layout', 'development'],
   'UE设计': ['ue_development', 'development'],
   'QA': ['testing'],
 };

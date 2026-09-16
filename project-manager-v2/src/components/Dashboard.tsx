@@ -290,6 +290,7 @@ export function Dashboard() {
       'UI设计': 2,
       'UI': 2,
       'Layout': 3,
+      '还原': 3,
       'CP': 4
     };
 

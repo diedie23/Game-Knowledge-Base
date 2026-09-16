@@ -40,6 +40,16 @@ const STAGE_ROLE_PATTERN: Record<CoreUxStage, RegExp> = {
   motion: /动效|动画|Motion|VFX/i,
 };
 
+const STAGE_CARD_STYLE: Record<keyof typeof STAGE_STATUS, string> = {
+  done: 'border-emerald-400/20 bg-emerald-500/[0.07]',
+  in_progress: 'border-blue-400/20 bg-blue-500/[0.07]',
+  blocked: 'border-red-400/25 bg-red-500/[0.08]',
+  todo: 'border-slate-400/15 bg-slate-400/[0.05]',
+  paused: 'border-amber-400/20 bg-amber-500/[0.07]',
+  cancelled: 'border-gray-500/20 bg-gray-500/[0.05]',
+  missing: 'border-gray-700/50 bg-gray-900/20',
+};
+
 function StatusBadge({ status }: { status: keyof typeof STAGE_STATUS }) {
   const meta = STAGE_STATUS[status];
   return <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded px-2 py-1 text-[11px] font-medium ${meta.color}`}>
@@ -104,7 +114,7 @@ export function UxStageTable() {
   const detailTasks = detail && detailRow ? detailRow.stages[detail.stage] : [];
   const hasFilters = query || stage !== 'all' || status !== 'all' || Object.values(stageOwners).some(value => value !== 'all') || priority !== 'all';
   const clearFilters = () => { setQuery(''); setStage('all'); setStatus('all'); setStageOwners(EMPTY_STAGE_OWNERS); setPriority('all'); };
-  const selectClass = 'bg-[#151923] border border-gray-700/60 rounded-lg px-3 py-2 text-xs text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500';
+  const selectClass = 'h-9 bg-[#151923] border border-gray-700/60 rounded-lg px-3 py-2 text-xs text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500';
 
   return <div className="flex min-h-0 flex-1 flex-col bg-[#0f1115]">
     <div className="shrink-0 border-b border-gray-800 px-5 py-4">
@@ -112,19 +122,22 @@ export function UxStageTable() {
         <div><h2 className="text-lg font-semibold text-gray-100">UX 环节总览</h2><p className="mt-1 text-xs text-gray-500">一行一个需求 · 点击环节查看子任务与排期</p></div>
         <button onClick={() => openTaskModal()} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm text-white hover:bg-indigo-500"><Plus size={15} />新建任务</button>
       </div>
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <label className="relative min-w-[220px] flex-1 max-w-sm"><Search size={15} className="absolute left-3 top-3 text-gray-500" /><input aria-label="搜索需求" value={query} onChange={e => setQuery(e.target.value)} placeholder="搜索需求、子任务、TAPD ID…" className={`${selectClass} w-full pl-9`} /></label>
-        <select aria-label="环节筛选" className={selectClass} value={stage} onChange={e => setStage(e.target.value)}><option value="all">全部环节</option>{STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}</select>
+      <div className="mt-4 flex flex-wrap items-end gap-2">
+        <label className="flex min-w-[220px] max-w-sm flex-1 flex-col gap-1">
+          <span className="px-1 text-[10px] font-medium text-gray-500">搜索</span>
+          <span className="relative block"><Search size={15} className="absolute left-3 top-2.5 text-gray-500" /><input aria-label="搜索需求" value={query} onChange={e => setQuery(e.target.value)} placeholder="搜索需求、子任务、TAPD ID…" className={selectClass + ' w-full pl-9'} /></span>
+        </label>
+        <label className="flex min-w-[96px] flex-col gap-1"><span className="px-1 text-[10px] font-medium text-gray-500">环节</span><select aria-label="环节筛选" className={selectClass} value={stage} onChange={e => setStage(e.target.value)}><option value="all">全部</option>{STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}</select></label>
         {STAGES.map(s => <label key={s.key} className="flex min-w-[128px] flex-col gap-1">
           <span className="px-1 text-[10px] font-medium text-gray-500">{s.label}处理人</span>
-          <select aria-label={`${s.label}处理人筛选`} className={selectClass} value={stageOwners[s.key]} onChange={e => setStageOwners(current => ({ ...current, [s.key]: e.target.value }))}>
+          <select aria-label={s.label + '处理人筛选'} className={selectClass} value={stageOwners[s.key]} onChange={e => setStageOwners(current => ({ ...current, [s.key]: e.target.value }))}>
             <option value="all">全部</option>
             {resources.filter(resource => STAGE_ROLE_PATTERN[s.key].test(resource.role || '')).map(resource => <option key={resource.id} value={resource.id}>{resource.name}</option>)}
           </select>
         </label>)}
-        <select aria-label="环节状态筛选" className={selectClass} value={status} onChange={e => setStatus(e.target.value)}><option value="all">全部环节状态</option>{Object.entries(STAGE_STATUS).map(([key, meta]) => <option key={key} value={key}>{meta.label}</option>)}</select>
-        <select aria-label="优先级筛选" className={selectClass} value={priority} onChange={e => setPriority(e.target.value)}><option value="all">全部优先级</option><option value="high">P0</option><option value="medium">P1</option><option value="low">P2</option></select>
-        {hasFilters && <button onClick={clearFilters} className="px-2 text-xs text-indigo-300 hover:text-white">清除筛选</button>}
+        <label className="flex min-w-[120px] flex-col gap-1"><span className="px-1 text-[10px] font-medium text-gray-500">环节状态</span><select aria-label="环节状态筛选" className={selectClass} value={status} onChange={e => setStatus(e.target.value)}><option value="all">全部</option>{Object.entries(STAGE_STATUS).map(([key, meta]) => <option key={key} value={key}>{meta.label}</option>)}</select></label>
+        <label className="flex min-w-[96px] flex-col gap-1"><span className="px-1 text-[10px] font-medium text-gray-500">优先级</span><select aria-label="优先级筛选" className={selectClass} value={priority} onChange={e => setPriority(e.target.value)}><option value="all">全部</option><option value="high">P0</option><option value="medium">P1</option><option value="low">P2</option></select></label>
+        {hasFilters && <button onClick={clearFilters} className="h-9 px-2 text-xs text-indigo-300 hover:text-white">清除筛选</button>}
       </div>
     </div>
     <div className="flex items-center justify-between gap-3 px-5 py-3 text-xs text-gray-500"><span>显示 <strong className="text-gray-200">{filtered.length}</strong> / {rows.length} 个需求</span><span>已完成 = 交互、视觉、还原、动效全部完成 · — 表示未建任务</span></div>
@@ -149,13 +162,28 @@ export function UxStageTable() {
           </td>
           <td className="border-b border-l border-gray-800 px-3 py-5 align-top text-xs font-medium text-blue-300">{root.module || '未分类'}</td>
           <td className="border-b border-gray-800 px-2 py-3 align-top pt-5"><span className={`rounded px-2 py-1 text-[10px] ${root.priority === 'high' ? 'bg-red-500/10 text-red-300' : root.priority === 'medium' ? 'bg-amber-500/10 text-amber-300' : 'bg-gray-800 text-gray-400'}`}>{getPriorityLabel(root.priority)}</span></td>
-          {STAGES.map(s => { const items = stages[s.key]; const summary = stageStatus(items); return <td key={s.key} className="border-b border-l border-gray-800/80 px-2 py-2 align-top group-hover:bg-white/[0.015]">
-            {items.length ? <button aria-label={`${root.title} · ${s.label}：${STAGE_STATUS[summary].label}`} onClick={() => setDetail({ rootId: root.id!, stage: s.key })} className="w-full rounded-lg p-2 text-left transition-colors hover:bg-indigo-500/10 focus-visible:outline focus-visible:outline-indigo-400">
-              <div className="mb-2 flex items-center justify-between gap-2"><span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-medium text-emerald-300">UI · 子需求 {items.length}</span><span className="text-[9px] text-gray-600">{taskRangeLabel(items)}</span></div>
-              <div className={`mb-2 truncate text-xs ${items.some(t => !t.assigneeIds?.length) ? 'text-amber-200/80' : 'text-gray-300'}`} title={names(items)}>{names(items)}</div>
-              <div className="flex flex-wrap items-center gap-1"><StatusBadge status={summary} />{items.length > 1 && <span className="text-[10px] text-gray-500">{items.filter(t => t.status === 'done').length}/{items.length}</span>}</div>
-            </button> : <div className="px-2 py-2"><div className="mb-2 text-gray-600">—</div><span className="text-[10px] text-gray-600">未建任务</span></div>}
-          </td>; })}
+          {STAGES.map(s => {
+            const items = stages[s.key];
+            const summary = stageStatus(items);
+            const firstTapdTask = items.find(item => item.externalUrl);
+            const openStage = () => {
+              if (items.length === 1 && firstTapdTask?.externalUrl) {
+                window.open(firstTapdTask.externalUrl, '_blank', 'noopener,noreferrer');
+                return;
+              }
+              setDetail({ rootId: root.id!, stage: s.key });
+            };
+            return <td key={s.key} className="border-b border-l border-gray-800/80 px-2 py-2 align-top group-hover:bg-white/[0.015]">
+              {items.length ? <div className={'overflow-hidden rounded-lg border ' + STAGE_CARD_STYLE[summary]}>
+                <button aria-label={root.title + ' · ' + s.label + '：' + STAGE_STATUS[summary].label} onClick={openStage} className="w-full p-2 text-left transition-colors hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-indigo-400">
+                  <div className="mb-2 flex items-center justify-between gap-2"><span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-medium text-emerald-300">UI · 子需求 {items.length}</span><span className="text-[9px] text-gray-500">{taskRangeLabel(items)}</span></div>
+                  <div className={'mb-2 truncate text-xs ' + (items.some(t => !t.assigneeIds?.length) ? 'text-amber-200/80' : 'text-gray-300')} title={names(items)}>{names(items)}</div>
+                  <div className="flex flex-wrap items-center gap-1"><StatusBadge status={summary} />{items.length > 1 && <span className="text-[10px] text-gray-500">{items.filter(t => t.status === 'done').length}/{items.length}</span>}</div>
+                </button>
+                {firstTapdTask?.externalUrl && <a href={firstTapdTask.externalUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} className="flex items-center justify-center gap-1 border-t border-white/[0.06] px-2 py-1.5 text-[10px] text-indigo-300 hover:bg-indigo-500/10 hover:text-white">{items.length > 1 ? '打开首个 TAPD' : '打开 TAPD'}<ExternalLink size={10} /></a>}
+              </div> : <div className="rounded-lg border border-gray-800/50 bg-gray-900/20 px-2 py-2"><div className="mb-2 text-gray-600">—</div><span className="text-[10px] text-gray-600">未建任务</span></div>}
+            </td>;
+          })}
           <td className="border-b border-l border-gray-800 px-3 py-5 align-top text-gray-400">{dateLabel(root.endDate)}</td>
         </tr>)}</tbody>
       </table>
@@ -164,7 +192,7 @@ export function UxStageTable() {
     {detail && detailRow && <div className="absolute inset-0 z-40 flex justify-end bg-black/40" onClick={() => setDetail(null)}>
       <section role="dialog" aria-modal="true" aria-label="环节子任务" onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === 'Escape') setDetail(null); }} className="flex h-full w-full max-w-md flex-col border-l border-gray-700 bg-[#151923] shadow-2xl">
         <div className="border-b border-gray-800 p-5"><div className="flex items-center justify-between"><h3 className="font-semibold text-gray-100">{STAGES.find(s => s.key === detail.stage)?.label} · {detailTasks.length} 个子任务</h3><button autoFocus aria-label="关闭环节详情" onClick={() => setDetail(null)} className="rounded p-1 text-gray-400 hover:bg-gray-700"><X size={18} /></button></div><p className="mt-2 text-xs leading-5 text-gray-500">{detailRow.root.title}</p></div>
-        <div className="flex-1 space-y-3 overflow-auto p-5">{detailTasks.map(task => <div key={task.id} className="rounded-xl border border-gray-700/70 bg-[#11151d] p-4"><div className="mb-3 flex items-start justify-between gap-3"><h4 className="text-sm leading-5 text-gray-200">{task.title}</h4><StatusBadge status={taskStatus(task)} /></div><p className="text-xs text-gray-400">负责人：{names([task])}</p><p className="mt-2 text-xs text-gray-500">{dateLabel(task.startDate)} → {dateLabel(task.endDate)}</p>{taskStatus(task) === 'blocked' && <p className="mt-3 rounded bg-red-500/10 p-2 text-xs text-red-300">{task.blockReason || '任务已标记阻塞，尚未填写原因'}</p>}<button onClick={() => { setDetail(null); openTaskModal(task.id); }} className="mt-4 flex items-center gap-1 text-xs text-indigo-300 hover:text-white">查看 / 编辑任务<ChevronRight size={13} /></button></div>)}</div>
+        <div className="flex-1 space-y-3 overflow-auto p-5">{detailTasks.map(task => <div key={task.id} className="rounded-xl border border-gray-700/70 bg-[#11151d] p-4"><div className="mb-3 flex items-start justify-between gap-3"><h4 className="text-sm leading-5 text-gray-200">{task.title}</h4><StatusBadge status={taskStatus(task)} /></div><p className="text-xs text-gray-400">负责人：{names([task])}</p><p className="mt-2 text-xs text-gray-500">{dateLabel(task.startDate)} → {dateLabel(task.endDate)}</p>{taskStatus(task) === 'blocked' && <p className="mt-3 rounded bg-red-500/10 p-2 text-xs text-red-300">{task.blockReason || '任务已标记阻塞，尚未填写原因'}</p>}<div className="mt-4 flex flex-wrap items-center gap-3"><button onClick={() => { setDetail(null); openTaskModal(task.id); }} className="flex items-center gap-1 text-xs text-indigo-300 hover:text-white">查看 / 编辑任务<ChevronRight size={13} /></button>{task.externalUrl && <a href={task.externalUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-sky-300 hover:text-white">打开 TAPD<ExternalLink size={12} /></a>}</div></div>)}</div>
       </section>
     </div>}
   </div>;

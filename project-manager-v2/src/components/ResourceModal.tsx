@@ -274,7 +274,7 @@ export function ResourceModal() {
                       <optgroup label="── 设计 ──" className="bg-gray-900">
                         <option value="UX设计" className="bg-gray-900">UX设计（交互设计师）</option>
                         <option value="UI设计" className="bg-gray-900">UI设计（视觉设计师）</option>
-                        <option value="Layout" className="bg-gray-900">Layout（排版）</option>
+                        <option value="还原" className="bg-gray-900">还原</option>
                         <option value="动效" className="bg-gray-900">动效设计</option>
                       </optgroup>
                       <optgroup label="── 美术 ──" className="bg-gray-900">

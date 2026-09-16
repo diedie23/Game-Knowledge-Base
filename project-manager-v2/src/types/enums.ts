@@ -1,4 +1,4 @@
-﻿// ─── Task Enums ──────────────────────────────────────────────────
+// ─── Task Enums ──────────────────────────────────────────────────
 
 /** Task workflow status */
 export type TaskStatus = 'todo' | 'in_progress' | 'done' | 'paused' | 'cancelled';
@@ -24,6 +24,7 @@ export type ResourceRole =
   | 'UX设计'
   | 'Product'
   | 'Developer'
+  | '还原'
   | 'Layout'
   | 'UE设计'
   | 'QA'
