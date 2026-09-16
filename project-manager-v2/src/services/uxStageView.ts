@@ -50,9 +50,13 @@ export function isDemandComplete(stages: Record<CoreUxStage, Task[]>): boolean {
   return STAGES.every(({ key }) => stages[key].length > 0 && stageStatus(stages[key]) === 'done');
 }
 
+function normalizedWorkitemType(task: Task): string {
+  return String(task.tapdWorkitemTypeName || '').trim().toLowerCase().replace(/[\s·_\-—:：]/g, '');
+}
+
 function isExplicitUiStory(task: Task): boolean {
-  const typeName = String(task.tapdWorkitemTypeName || '').trim();
-  return /ui\s*story|uistory/i.test(typeName);
+  const typeName = normalizedWorkitemType(task);
+  return typeName === 'uistory' || typeName === 'uistory父需求' || typeName === 'ui需求';
 }
 
 function isExplicitEpic(task: Task): boolean {

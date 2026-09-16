@@ -4,9 +4,10 @@ export type RequirementKind = 'parent' | 'child' | 'standalone';
 
 export function getRequirementKind(task: Task, hasChildren = false): RequirementKind {
   const typeName = String(task.tapdWorkitemTypeName || '').trim().toLowerCase();
-  const rawType = `${typeName} ${task.tapdWorkitemTypeId || ''}`.trim().toLowerCase();
-  if (/uistory|ui\s*story|父需求/.test(rawType)) return 'parent';
-  if (typeName === 'ui' || /ui子需求|子需求/.test(typeName)) return 'child';
+  const compactType = typeName.replace(/[\s·_\-—:：]/g, '');
+  // Check child types first: names such as “UIStory子需求” must never be promoted to parents.
+  if (compactType === 'ui' || compactType === 'ui子需求' || compactType === 'uistory子需求' || /子需求/.test(compactType)) return 'child';
+  if (compactType === 'uistory' || compactType === 'uistory父需求' || compactType === 'ui需求' || /父需求/.test(compactType)) return 'parent';
   if (hasChildren) return 'parent';
   if (task.parentId || (task.tapdParentId && task.tapdParentId !== '0')) return 'child';
   return 'standalone';

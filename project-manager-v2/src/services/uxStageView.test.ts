@@ -15,9 +15,10 @@ describe('UX stage rows', () => {
   it('starts TAPD rows at UIStory and never promotes EPIC into the first column', () => {
     const rows = buildStageRows([
       task(1, '版本总览', { tapdWorkitemTypeName: 'EPIC' }),
-      task(2, '商城 UIStory', { parentId: 1, tapdWorkitemTypeName: 'UIStory' }),
-      task(3, '【交互案】商城', { parentId: 2, tapdWorkitemTypeName: 'UI' }),
+      task(2, '商城 UIStory', { parentId: 1, tapdWorkitemTypeName: 'UI需求' }),
+      task(3, '【交互案】商城', { parentId: 2, tapdWorkitemTypeName: 'UI子需求' }),
       task(4, '另一个 UIStory', { parentId: 1, tapdWorkitemTypeName: 'UIStory' }),
+      task(5, '普通子需求', { parentId: 2, tapdWorkitemTypeName: 'UIStory子需求' }),
     ]);
     expect(rows.map(row => row.root.id)).toEqual([2, 4]);
     expect(rows[0].stages.interaction.map(item => item.id)).toEqual([3]);

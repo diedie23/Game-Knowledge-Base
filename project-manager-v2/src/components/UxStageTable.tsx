@@ -115,10 +115,13 @@ export function UxStageTable() {
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <label className="relative min-w-[220px] flex-1 max-w-sm"><Search size={15} className="absolute left-3 top-3 text-gray-500" /><input aria-label="搜索需求" value={query} onChange={e => setQuery(e.target.value)} placeholder="搜索需求、子任务、TAPD ID…" className={`${selectClass} w-full pl-9`} /></label>
         <select aria-label="环节筛选" className={selectClass} value={stage} onChange={e => setStage(e.target.value)}><option value="all">全部环节</option>{STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}</select>
-        {STAGES.map(s => <select key={s.key} aria-label={`${s.label}处理人筛选`} className={`${selectClass} min-w-[132px]`} value={stageOwners[s.key]} onChange={e => setStageOwners(current => ({ ...current, [s.key]: e.target.value }))}>
-          <option value="all">全部{s.label}处理人</option><option value="unassigned">{s.label}待分配</option>
-          {resources.filter(resource => STAGE_ROLE_PATTERN[s.key].test(resource.role || '')).map(resource => <option key={resource.id} value={resource.id}>{formatResourceDisplayName(resource)}</option>)}
-        </select>)}
+        {STAGES.map(s => <label key={s.key} className="flex min-w-[128px] flex-col gap-1">
+          <span className="px-1 text-[10px] font-medium text-gray-500">{s.label}处理人</span>
+          <select aria-label={`${s.label}处理人筛选`} className={selectClass} value={stageOwners[s.key]} onChange={e => setStageOwners(current => ({ ...current, [s.key]: e.target.value }))}>
+            <option value="all">全部</option>
+            {resources.filter(resource => STAGE_ROLE_PATTERN[s.key].test(resource.role || '')).map(resource => <option key={resource.id} value={resource.id}>{resource.name}</option>)}
+          </select>
+        </label>)}
         <select aria-label="环节状态筛选" className={selectClass} value={status} onChange={e => setStatus(e.target.value)}><option value="all">全部环节状态</option>{Object.entries(STAGE_STATUS).map(([key, meta]) => <option key={key} value={key}>{meta.label}</option>)}</select>
         <select aria-label="优先级筛选" className={selectClass} value={priority} onChange={e => setPriority(e.target.value)}><option value="all">全部优先级</option><option value="high">P0</option><option value="medium">P1</option><option value="low">P2</option></select>
         {hasFilters && <button onClick={clearFilters} className="px-2 text-xs text-indigo-300 hover:text-white">清除筛选</button>}
