@@ -14,6 +14,32 @@ import type { ZoomConfig, TaskTypeColor } from './constants';
 import { useStore } from '../../store/useStore';
 import { useHistoryStore } from '../../store/useHistoryStore';
 import type { Resource } from '../../types/resource';
+import { dedupeResourcesForDisplay } from '../../utils/resourceDedup';
+
+type MemberRoleGroupKey = 'interaction' | 'visual' | 'layout' | 'motion' | 'other';
+
+const MEMBER_ROLE_GROUPS: Array<{ key: MemberRoleGroupKey; label: string }> = [
+  { key: 'interaction', label: '01 交互' },
+  { key: 'visual', label: '02 视觉' },
+  { key: 'layout', label: '03 还原' },
+  { key: 'motion', label: '04 动效' },
+  { key: 'other', label: '其他岗位' },
+];
+
+function memberRoleGroup(resource: Resource): MemberRoleGroupKey {
+  const role = resource.role || '';
+  if (/动效|动画|motion|vfx/i.test(role)) return 'motion';
+  if (/layout|还原|实现/i.test(role)) return 'layout';
+  if (/ux|交互/i.test(role)) return 'interaction';
+  if (/ui|视觉|美术/i.test(role)) return 'visual';
+  return 'other';
+}
+
+function memberTypeLabel(resource: Resource): string {
+  if (resource.type === 'cp') return '供应商';
+  if (resource.type === 'base') return '基地';
+  return '内部';
+}
 
 interface GanttToolbarProps {
   startDate: Date;
@@ -111,6 +137,13 @@ export const GanttToolbar = React.memo(function GanttToolbar({
   const moreMenuRef = useRef<HTMLDivElement>(null);
   const { openSnapshotModal, openSnapshotListModal } = useStore();
   const { canUndo, canRedo, undo, redo } = useHistoryStore();
+  const visibleMembers = dedupeResourcesForDisplay(resources || [])
+    .filter(resource => resource.status !== 'departed')
+    .sort((a, b) => compareResources(a, b));
+  const membersByRole = MEMBER_ROLE_GROUPS.map(group => ({
+    ...group,
+    members: visibleMembers.filter(resource => memberRoleGroup(resource) === group.key),
+  })).filter(group => group.members.length > 0);
 
   // Close legend when clicking outside
   useEffect(() => {
@@ -255,19 +288,16 @@ export const GanttToolbar = React.memo(function GanttToolbar({
           <Users size={14} className={selectedMemberId ? 'text-cyan-400' : 'text-gray-500'} />
           <select
             value={selectedMemberId ?? ''}
+            aria-label="按岗位筛选人员"
             onChange={(e) => onMemberFilterChange(e.target.value ? Number(e.target.value) : null)}
-            className="bg-transparent border border-gray-700/50 rounded-md px-2 py-1 text-xs text-gray-400 focus:outline-none focus:border-cyan-500 cursor-pointer hover:text-gray-300 hover:border-gray-600 transition-colors max-w-[120px]"
+            className="bg-transparent border border-gray-700/50 rounded-md px-2 py-1 text-xs text-gray-400 focus:outline-none focus:border-cyan-500 cursor-pointer hover:text-gray-300 hover:border-gray-600 transition-colors max-w-[165px]"
           >
-            <option value="" className="bg-gray-900">全部人员</option>
-            {resources?.filter(r => r.type !== 'cp' && r.status !== 'departed').sort((a, b) => compareResources(a as any, b as any)).map(r => (
-              <option key={r.id} value={r.id} className="bg-gray-900">{r.name}</option>
-            ))}
-            {resources?.some(r => r.type === 'cp' && r.status !== 'departed') && (
-              <option disabled className="bg-gray-900">── CP供应商 ──</option>
-            )}
-            {resources?.filter(r => r.type === 'cp' && r.status !== 'departed').sort((a, b) => compareResources(a as any, b as any)).map(r => (
-              <option key={r.id} value={r.id} className="bg-gray-900">{r.name}</option>
-            ))}
+            <option value="" className="bg-gray-900">全部岗位 / 全部人员</option>
+            {membersByRole.map(group => <optgroup key={group.key} label={group.label} className="bg-gray-900 text-gray-300">
+              {group.members.map(resource => <option key={resource.id} value={resource.id} className="bg-gray-900">
+                [{memberTypeLabel(resource)}] {resource.name}
+              </option>)}
+            </optgroup>)}
           </select>
         </div>
 
