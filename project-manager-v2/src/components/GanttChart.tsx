@@ -142,26 +142,14 @@ export function GanttChart() {
     }
   }, [dayWidth, today, startDate]);
 
-  // Auto-focus timeline to the earliest start date among in-progress tasks on initial load
+  // Open the timeline around today so the current month is immediately visible.
   const hasAutoFocused = useRef(false);
   useEffect(() => {
     if (hasAutoFocused.current || !tasks || tasks.length === 0 || !ganttScrollRef.current) return;
-    // Find all in-progress (active) tasks with a start date
-    const activeTasks = tasks.filter(t =>
-      (t.status === 'in_progress' || t.status === 'todo') && t.startDate
-    );
-    if (activeTasks.length === 0) return;
-    // Find the earliest start date among active tasks
-    const earliestStart = activeTasks.reduce((earliest, t) => {
-      const d = new Date(t.startDate!);
-      return d < earliest ? d : earliest;
-    }, new Date(activeTasks[0].startDate!));
-    // Scroll to 1 day before the earliest start date for context
-    const offset = differenceInDays(startOfDay(earliestStart), startDate);
-    ganttScrollRef.current.scrollLeft = Math.max(0, (offset - 1) * dayWidth);
+    const todayOffset = differenceInDays(today, startDate);
+    ganttScrollRef.current.scrollLeft = Math.max(0, (todayOffset - 2) * dayWidth);
     hasAutoFocused.current = true;
-  }, [tasks, startDate, dayWidth]);
-
+  }, [tasks, startDate, dayWidth, today]);
   const [draggingTaskId, setDraggingTaskId] = useState<number | null>(null);
   const [conflictTaskId, setConflictTaskId] = useState<number | null>(null);
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);

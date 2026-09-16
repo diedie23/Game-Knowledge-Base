@@ -12,6 +12,8 @@ import { getEffectiveStatus } from '../types/resource';
 import { getRoleBadgeStyle } from '../constants/theme';
 import type { Task, Resource } from '../types';
 import EmptyState from './common/EmptyState';
+import { dedupeResourcesForDisplay, getResourceAliasIds } from '../utils/resourceDedup';
+import { formatResourceDisplayName } from '../utils/resourceDisplay';
 
 // --- Continuous Heatmap Color Engine ---
 function getHeatColor(load: number, maxLoad: number): string {
@@ -356,12 +358,13 @@ export function ResourceMatrix() {
   const maxLoad = React.useMemo(() => {
     if (!resources || !tasks) return 3;
     let max = 0;
-    for (const res of resources) {
+    for (const res of dedupeResourcesForDisplay(resources)) {
+      const aliasIds = getResourceAliasIds(res, resources);
       for (const day of days) {
         const count = tasks.filter((t) => {
           if (t.status === 'done') return false;
           if (parentTaskIds.has(t.id!)) return false; // Exclude parent tasks
-          if (!t.assigneeIds?.includes(res.id!) || !t.startDate || !t.endDate) return false;
+          if (!t.assigneeIds?.some(id => aliasIds.includes(id)) || !t.startDate || !t.endDate) return false;
           const s = new Date(t.startDate);
           s.setHours(0, 0, 0, 0);
           const e = new Date(t.endDate);
@@ -447,15 +450,16 @@ export function ResourceMatrix() {
   const sortedResources = React.useMemo(() => {
     if (!resources) return [];
     // Filter out departed members
-    const activeResources = resources.filter(r => r.status !== 'departed');
+    const activeResources = dedupeResourcesForDisplay(resources.filter(r => r.status !== 'departed'));
     // Pre-compute total load per resource
     const loadMap = new Map<number, number>();
     activeResources.forEach(r => {
+      const aliasIds = getResourceAliasIds(r, resources);
       const load = days.reduce((acc, day) => {
         const dayTasks = tasks?.filter((t) => {
           if (t.status === 'done') return false;
           if (parentTaskIds.has(t.id!)) return false;
-          if (!t.assigneeIds?.includes(r.id!) || !t.startDate || !t.endDate) return false;
+          if (!t.assigneeIds?.some(id => aliasIds.includes(id)) || !t.startDate || !t.endDate) return false;
           const taskStart = new Date(t.startDate);
           taskStart.setHours(0, 0, 0, 0);
           const taskEnd = new Date(t.endDate);
@@ -561,6 +565,7 @@ export function ResourceMatrix() {
               const prevType = prevResource?.type || 'internal';
               const showTypeHeader = !prevResource || prevType !== resourceType;
               const typeCount = typeCounts[resourceType];
+              const resourceAliasIds = getResourceAliasIds(resource, resources || []);
 
               return (
                 <React.Fragment key={resource.id}>
@@ -613,7 +618,7 @@ export function ResourceMatrix() {
                     ) : null; })()}
                   </div>
                   <div className="flex flex-col min-w-0 gap-0.5">
-                    <span className="text-sm font-medium text-gray-200 truncate">{resource.name}</span>
+                    <span className="text-sm font-medium text-gray-200 truncate">{formatResourceDisplayName(resource)}</span>
                     {resource.role && (
                       <span className={`self-start shrink-0 px-1.5 py-[1px] rounded-md text-[9px] font-semibold leading-tight border ${getRoleBadgeStyle(resource.role)}`}>
                         {resource.role}
@@ -626,7 +631,7 @@ export function ResourceMatrix() {
                       const dayTasks = tasks?.filter((t) => {
                         if (t.status === 'done') return false;
                         if (parentTaskIds.has(t.id!)) return false; // Exclude parent tasks
-                        if (!t.assigneeIds?.includes(resource.id!) || !t.startDate || !t.endDate) return false;
+                        if (!t.assigneeIds?.some(id => resourceAliasIds.includes(id)) || !t.startDate || !t.endDate) return false;
                         const taskStart = new Date(t.startDate);
                         taskStart.setHours(0, 0, 0, 0);
                         const taskEnd = new Date(t.endDate);
@@ -637,7 +642,7 @@ export function ResourceMatrix() {
                     }, 0);
                     
                     // Calculate total tasks for this resource
-                    const activeTasks = tasks?.filter(t => t.assigneeIds?.includes(resource.id!) && t.status !== 'done' && !parentTaskIds.has(t.id!)) || [];
+                    const activeTasks = tasks?.filter(t => t.assigneeIds?.some(id => resourceAliasIds.includes(id)) && t.status !== 'done' && !parentTaskIds.has(t.id!)) || [];
                     const totalTasks = activeTasks.length;
                     const selfMadeCount = activeTasks.filter(t => t.workCategory !== 'cp_follow').length;
                     const cpFollowCount = activeTasks.filter(t => t.workCategory === 'cp_follow').length;
@@ -683,7 +688,7 @@ export function ResourceMatrix() {
                       tasks?.filter((t) => {
                         if (t.status === 'done') return false;
                         if (parentTaskIds.has(t.id!)) return false; // Exclude parent tasks
-                        if (!t.assigneeIds?.includes(resource.id!) || !t.startDate || !t.endDate) return false;
+                        if (!t.assigneeIds?.some(id => resourceAliasIds.includes(id)) || !t.startDate || !t.endDate) return false;
                         const taskStart = new Date(t.startDate);
                         taskStart.setHours(0, 0, 0, 0);
                         const taskEnd = new Date(t.endDate);

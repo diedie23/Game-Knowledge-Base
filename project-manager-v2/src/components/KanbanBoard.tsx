@@ -12,6 +12,8 @@ import { getEffectiveStatus } from '../types/resource';
 import { syncParentDateRange } from '../services/workloadService';
 import EmptyState from './common/EmptyState';
 import { confirmDialog } from './common/ConfirmDialog';
+import { dedupeResourcesForDisplay, getResourceAliasIds } from '../utils/resourceDedup';
+import { formatResourceDisplayName } from '../utils/resourceDisplay';
 
 const KANBAN_INITIAL_BATCH = 20;
 
@@ -99,7 +101,7 @@ export const KanbanBoard: React.FC = () => {
     if (boardRef.current && e.deltaY !== 0 && !e.shiftKey) {
       const target = e.target as HTMLElement;
       const isOverColumn = target.closest('.kanban-column-scrollable');
-      
+
       if (!isOverColumn) {
         boardRef.current.scrollLeft += e.deltaY;
       }
@@ -124,13 +126,14 @@ export const KanbanBoard: React.FC = () => {
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const rawTasks = useLiveQuery(
-    () => selectedProjectId 
+    () => selectedProjectId
       ? db.tasks.where('projectId').equals(selectedProjectId).toArray()
       : db.tasks.toArray(),
     [selectedProjectId]
   );
 
   const resources = useLiveQuery(() => db.resources.toArray(), []) || [];
+  const visibleResources = useMemo(() => dedupeResourcesForDisplay(resources.filter(r => r.status !== 'departed')), [resources]);
 
   useEffect(() => {
     if (rawTasks) {
@@ -165,13 +168,17 @@ export const KanbanBoard: React.FC = () => {
 
   const filteredTasks = useMemo(() => {
     let result = tasks;
-    if (filterPersonId !== null) result = result.filter(t => t.assigneeIds?.includes(filterPersonId));
+    if (filterPersonId !== null) {
+      const selected = visibleResources.find(r => r.id === filterPersonId) || resources.find(r => r.id === filterPersonId);
+      const aliasIds = selected ? getResourceAliasIds(selected, resources) : [filterPersonId];
+      result = result.filter(t => t.assigneeIds?.some(id => aliasIds.includes(id)));
+    }
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter(t => t.title.toLowerCase().includes(query) || (t.description && t.description.toLowerCase().includes(query)));
     }
     return result;
-  }, [tasks, filterPersonId, searchQuery]);
+  }, [tasks, filterPersonId, searchQuery, resources, visibleResources]);
 
   const getHierarchyMeta = (task: Task) => {
     const isParent = !!task.id && parentTaskIds.has(task.id);
@@ -219,13 +226,16 @@ export const KanbanBoard: React.FC = () => {
   const columns = useMemo(() => {
     switch (groupBy) {
       case 'person': {
-        const personCols = [...resources].filter(r => r.status !== 'departed').sort(compareResources).map(r => ({
+        const personCols = [...visibleResources].sort(compareResources).map(r => ({
           id: `person-${r.id}`,
-          title: r.name,
+          title: formatResourceDisplayName(r),
           subtitle: r.role || '',
           color: 'bg-indigo-900/15',
           borderColor: 'border-indigo-800/40',
-          filterFn: (t: Task) => t.assigneeIds?.includes(r.id!) || false,
+          filterFn: (t: Task) => {
+            const aliasIds = getResourceAliasIds(r, resources);
+            return t.assigneeIds?.some(id => aliasIds.includes(id)) || false;
+          },
         }));
         personCols.push({
           id: 'person-unassigned',
@@ -253,7 +263,7 @@ export const KanbanBoard: React.FC = () => {
           { id: 'cancelled', title: '已拒绝 / 已关闭', subtitle: '', color: 'bg-red-900/20', borderColor: 'border-red-700/40', filterFn: (t: Task) => t.status === 'cancelled' },
         ];
     }
-  }, [groupBy, resources]);
+  }, [groupBy, resources, visibleResources]);
 
   useEffect(() => {
     setVisibleTaskCounts({});
@@ -368,7 +378,7 @@ export const KanbanBoard: React.FC = () => {
       if (destColId === 'priority-high') newPriority = 'high';
       else if (destColId === 'priority-medium') newPriority = 'medium';
       else if (destColId === 'priority-low') newPriority = 'low';
-      
+
       await trackedDb.tasks.update(taskId, { priority: newPriority as any }, `变更任务优先级为「${newPriority === 'high' ? 'P0' : newPriority === 'medium' ? 'P1' : newPriority === 'low' ? 'P2' : '无'}」`);
       const updated = await db.tasks.toArray();
       setTasks(updated);
@@ -395,7 +405,7 @@ export const KanbanBoard: React.FC = () => {
 
   const renderAssignees = (assigneeIds?: number[]) => {
     if (!assigneeIds || assigneeIds.length === 0) return null;
-    
+
     const assignedResources = assigneeIds
       .map(id => resources.find(r => r.id === id))
       .filter(Boolean) as Resource[];
@@ -489,10 +499,10 @@ export const KanbanBoard: React.FC = () => {
         type: 'task',
         projectId: selectedProjectId || 1,
       } as Task, `快速创建任务「${title}」`);
-      
+
       setNewlyCreatedTaskId(newTaskId as number);
       setTimeout(() => setNewlyCreatedTaskId(null), 2000); // Clear highlight after 2s
-      
+
       // Scroll to bottom of the column
       setTimeout(() => {
         const columnEl = document.querySelector(`[data-rbd-droppable-id="${columnId}"]`);
@@ -530,8 +540,8 @@ export const KanbanBoard: React.FC = () => {
     setWipEditValue('');
   };
 
-  const activeFilterName = filterPersonId !== null 
-    ? resources.find(r => r.id === filterPersonId)?.name || '未知' 
+  const activeFilterName = filterPersonId !== null
+    ? (() => { const r = visibleResources.find(item => item.id === filterPersonId) || resources.find(item => item.id === filterPersonId); return r ? formatResourceDisplayName(r) : '未知'; })()
     : null;
 
   // Cleanup settle timer
@@ -549,22 +559,22 @@ export const KanbanBoard: React.FC = () => {
 
   const handleContextMenu = (e: React.MouseEvent, taskId: number) => {
     e.preventDefault();
-    
+
     // Calculate position with boundary detection
     const menuWidth = 160;
     const menuHeight = 80; // Approximate height of the menu
-    
+
     let x = e.clientX;
     let y = e.clientY;
-    
+
     if (x + menuWidth > window.innerWidth) {
       x = window.innerWidth - menuWidth - 10;
     }
-    
+
     if (y + menuHeight > window.innerHeight) {
       y = window.innerHeight - menuHeight - 10;
     }
-    
+
     setContextMenu({ x, y, taskId });
   };
 
@@ -586,14 +596,14 @@ export const KanbanBoard: React.FC = () => {
       <div className="p-4 border-b border-gray-800 flex justify-between items-center">
         <div className="flex items-center gap-4">
           <h2 className="text-lg font-semibold text-gray-100">看板视图</h2>
-          
+
           {/* Group by selector */}
           <div className="flex items-center gap-2 ml-4">
             <span className="text-xs text-gray-500">分组：</span>
             <div className="flex bg-gray-800/60 rounded-lg p-0.5 border border-gray-700/50">
               {[
                 { key: 'status' as const, label: '按状态' },
-                { key: 'person' as const, label: '按人员' },
+                { key: 'person' as const, label: '人员 × 状态' },
                 { key: 'priority' as const, label: '按优先级' },
               ].map(opt => (
                 <button
@@ -647,7 +657,7 @@ export const KanbanBoard: React.FC = () => {
               {activeFilterName ? `筛选：${activeFilterName}` : '筛选人员'}
               <ChevronDown size={12} />
             </button>
-            
+
             {showFilterDropdown && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowFilterDropdown(false)} />
@@ -660,7 +670,7 @@ export const KanbanBoard: React.FC = () => {
                   >
                     全部人员
                   </button>
-                  {[...resources].filter(r => r.status !== 'departed').sort(compareResources).map(r => (
+                  {[...visibleResources].sort(compareResources).map(r => (
                     <button
                       key={r.id}
                       onClick={() => { setFilterPersonId(r.id!); setSelectedMemberId(r.id!); setShowFilterDropdown(false); }}
@@ -671,7 +681,7 @@ export const KanbanBoard: React.FC = () => {
                       <div className="w-5 h-5 rounded-full bg-gray-700 flex items-center justify-center text-[10px] font-medium text-white shrink-0">
                         {r.name.charAt(0)}
                       </div>
-                      <span>{r.name}</span>
+                      <span>{formatResourceDisplayName(r)}</span>
                       <span className="text-[10px] text-gray-600 ml-auto">{r.role}</span>
                     </button>
                   ))}
@@ -692,15 +702,15 @@ export const KanbanBoard: React.FC = () => {
           )}
         </div>
 
-        <button 
+        <button
           onClick={() => openTaskModal()}
           className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors"
         >
           新建任务
         </button>
       </div>
-      
-      <div 
+
+      <div
         ref={boardRef}
         className={`flex-1 overflow-x-auto overflow-y-hidden p-6 ${isSpacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
         onMouseDown={handleBoardMouseDown}
@@ -713,6 +723,10 @@ export const KanbanBoard: React.FC = () => {
           <div className="flex h-full gap-6 items-start">
             {columns.map(column => {
               const columnTasks = getTasksForColumn(column);
+              const columnStatusCounts = columnTasks.reduce((counts, task) => {
+                counts[task.status] = (counts[task.status] || 0) + 1;
+                return counts;
+              }, {} as Record<string, number>);
               const visibleCount = visibleTaskCounts[column.id] || KANBAN_INITIAL_BATCH;
               const renderedTasks = columnTasks.slice(0, visibleCount);
               const remainingCount = columnTasks.length - renderedTasks.length;
@@ -722,8 +736,8 @@ export const KanbanBoard: React.FC = () => {
 
               if (isCollapsed) {
                 return (
-                  <div 
-                    key={column.id} 
+                  <div
+                    key={column.id}
                     className="flex flex-col w-12 shrink-0 h-full animate-in fade-in slide-in-from-bottom-2 duration-300 cursor-pointer hover:bg-gray-800/30 rounded-xl transition-colors"
                     onClick={() => toggleColumnCollapse(column.id)}
                     title={`展开 ${column.title}`}
@@ -769,6 +783,14 @@ export const KanbanBoard: React.FC = () => {
                         </h3>
                         {column.subtitle && (
                           <span className="text-[10px] text-gray-500">{column.subtitle}</span>
+                        )}
+                        {groupBy === 'person' && (
+                          <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                            <span className="px-1.5 py-0.5 rounded bg-slate-500/15 text-[9px] text-slate-400">待办 {columnStatusCounts.todo || 0}</span>
+                            <span className="px-1.5 py-0.5 rounded bg-blue-500/15 text-[9px] text-blue-300">进行中 {columnStatusCounts.in_progress || 0}</span>
+                            <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-[9px] text-emerald-300">完成 {columnStatusCounts.done || 0}</span>
+                            {(columnStatusCounts.cancelled || 0) > 0 && <span className="px-1.5 py-0.5 rounded bg-red-500/15 text-[9px] text-red-300">关闭 {columnStatusCounts.cancelled}</span>}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -821,7 +843,7 @@ export const KanbanBoard: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                  
+
                   <Droppable droppableId={column.id}>
                     {(provided, snapshot) => (
                       <div
@@ -950,14 +972,14 @@ export const KanbanBoard: React.FC = () => {
                                           {getPriorityLabel(task.priority)}
                                         </span>
                                       </div>
-                                      <button 
-                                        className="opacity-0 group-hover/card:opacity-100 text-gray-500 hover:text-gray-300 p-1 -mr-2 -mt-2 rounded-md hover:bg-gray-700 transition-all" 
+                                      <button
+                                        className="opacity-0 group-hover/card:opacity-100 text-gray-500 hover:text-gray-300 p-1 -mr-2 -mt-2 rounded-md hover:bg-gray-700 transition-all"
                                         onClick={(e) => { e.stopPropagation(); handleContextMenu(e, task.id!); }}
                                       >
                                         <MoreVertical size={14} />
                                       </button>
                                     </div>
-                                    
+
                                     {(() => {
                                       const hierarchy = getHierarchyMeta(task);
                                       return (
@@ -984,7 +1006,7 @@ export const KanbanBoard: React.FC = () => {
                                         </a>
                                       ) : task.title}
                                     </h4>
-                                    
+
                                     {task.type === 'milestone' && (
                                       <div className="mb-3">
                                         <span className="text-[10px] bg-purple-500/20 text-purple-400 border border-purple-500/30 px-1.5 py-0.5 rounded">
@@ -1029,7 +1051,7 @@ export const KanbanBoard: React.FC = () => {
                                           </div>
                                         )}
                                       </div>
-                                      
+
                                       {renderAssignees(task.assigneeIds)}
                                     </div>
                                     </div>{/* end flex-1 p-4 */}
