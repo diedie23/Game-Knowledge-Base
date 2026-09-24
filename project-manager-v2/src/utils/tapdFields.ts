@@ -1,22 +1,37 @@
 export type TapdEffortUnit = 'days' | 'hours';
 
-/** Locate the TAPD field whose configured display label is “模块分类”. */
+/** Locate TAPD fields whose configured display label is “模块分类”. */
 export function findTapdModuleCategoryFields(labels: Record<string, unknown>): string[] {
-  return Object.entries(labels)
-    .filter(([, label]) => String(label ?? '').trim() === '模块分类')
-    .map(([fieldName]) => fieldName);
+  const fields = new Set<string>();
+  const visit = (value: unknown) => {
+    if (!value || typeof value !== 'object') return;
+    Object.entries(value as Record<string, unknown>).forEach(([fieldName, label]) => {
+      if (String(label ?? '').trim() === '模块分类') fields.add(fieldName);
+      else if (label && typeof label === 'object') visit(label);
+    });
+  };
+  visit(labels);
+  return [...fields];
 }
 
-/** Read module classification only from the configured TAPD field, without title inference. */
+/**
+ * Resolve the visible module category from TAPD.
+ * Project custom fields take precedence, followed by the standard module field,
+ * then the category_id-to-name lookup returned by /story_categories.
+ */
 export function getTapdModuleCategoryValue(
   story: Record<string, unknown>,
-  fieldNames: Iterable<string>
+  fieldNames: Iterable<string>,
+  categoryNames: ReadonlyMap<string, string> = new Map()
 ): string | undefined {
   for (const fieldName of fieldNames) {
     const value = String(story[fieldName] ?? '').trim();
     if (value) return value;
   }
-  return undefined;
+  const standardModule = String(story.module ?? '').trim();
+  if (standardModule) return standardModule;
+  const categoryId = String(story.category_id ?? '').trim();
+  return categoryId ? categoryNames.get(categoryId) : undefined;
 }
 
 export function parseTapdDate(value: unknown): Date | undefined {

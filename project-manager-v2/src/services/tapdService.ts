@@ -30,7 +30,7 @@ const MCP_GATEWAY_TIMEOUT_MS = 20_000;
 
 // ─── TAPD REST API Configuration ─────────────────────────────────
 const TAPD_API_BASE = '/tapd-api'; // Uses Vite proxy
-const STORY_FIELDS = 'id,name,owner,status,created,modified,completed,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,progress,effort,effort_completed,remain,exceed,begin,due';
+const STORY_FIELDS = 'id,name,owner,status,created,modified,completed,module,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,progress,effort,effort_completed,remain,exceed,begin,due';
 
 // ─── MCP Gateway Configuration (streamable-http) ─────────────────
 const MCP_GATEWAY_PROXY = '/mcp-gateway/'; // Uses Vite proxy → https://mcpgw.knot.woa.com/tapd/
@@ -416,6 +416,8 @@ export class TapdService {
   private activeCustomPriorityFields = new Set<string>();
   private moduleCategoryFieldsByWorkspace = new Map<string, string[]>();
   private activeModuleCategoryFields = new Set<string>();
+  private categoryNamesByWorkspace = new Map<string, Map<string, string>>();
+  private activeCategoryNames = new Map<string, string>();
   private statusLabelsByWorkspace = new Map<string, Map<string, string>>();
   private activeStatusLabels = new Map<string, string>();
   private workitemTypeNamesByWorkspace = new Map<string, Map<string, string>>();
@@ -455,6 +457,35 @@ export class TapdService {
       this.moduleCategoryFieldsByWorkspace.set(workspaceId, []);
       return [];
     }
+  }
+
+  private async discoverStoryCategories(config: TapdConfig, workspaceId: string): Promise<Map<string, string>> {
+    const cached = this.categoryNamesByWorkspace.get(workspaceId);
+    if (cached) {
+      cached.forEach((name, id) => this.activeCategoryNames.set(id, name));
+      return cached;
+    }
+    const names = new Map<string, string>();
+    try {
+      for (let page = 1; page <= 50; page++) {
+        const response = await tapdRestFetch<{ status: number; data: any[]; info: string }>(
+          '/story_categories',
+          config,
+          { workspace_id: workspaceId, limit: '200', page: String(page), fields: 'id,name,parent_id' }
+        );
+        if (response?.status !== 1) throw new Error(response?.info || 'TAPD 需求分类接口返回失败');
+        const batch = Array.isArray(response.data) ? response.data : [];
+        batch.map(item => item?.Category || item)
+          .filter(item => item?.id != null && item?.name)
+          .forEach(item => names.set(String(item.id), String(item.name).trim()));
+        if (batch.length < 200) break;
+      }
+    } catch (error) {
+      console.warn('[TapdService] Failed to discover TAPD story categories:', error);
+    }
+    this.categoryNamesByWorkspace.set(workspaceId, names);
+    names.forEach((name, id) => this.activeCategoryNames.set(id, name));
+    return names;
   }
 
   private async discoverCustomPriorityFields(config: TapdConfig, workspaceId: string): Promise<string[]> {
@@ -1371,6 +1402,7 @@ export class TapdService {
           await Promise.all([
             this.discoverCustomPriorityFields(tempConfig, workspaceId.trim()),
             this.discoverModuleCategoryFields(tempConfig, workspaceId.trim()),
+            this.discoverStoryCategories(tempConfig, workspaceId.trim()),
             this.discoverStatusLabels(tempConfig, workspaceId.trim()),
             this.discoverWorkitemTypes(tempConfig, workspaceId.trim()),
           ]);
@@ -1571,6 +1603,7 @@ export class TapdService {
         await Promise.all([
           this.discoverCustomPriorityFields(this.config!, workspaceId.trim()),
           this.discoverModuleCategoryFields(this.config!, workspaceId.trim()),
+          this.discoverStoryCategories(this.config!, workspaceId.trim()),
           this.discoverStatusLabels(this.config!, workspaceId.trim()),
           this.discoverWorkitemTypes(this.config!, workspaceId.trim()),
         ]);
@@ -2028,7 +2061,8 @@ export class TapdService {
     // “模块分类” may be assigned to any TAPD field; its configured label is the source of truth.
     const module = getTapdModuleCategoryValue(
       story as unknown as Record<string, unknown>,
-      this.activeModuleCategoryFields
+      this.activeModuleCategoryFields,
+      this.activeCategoryNames
     );
 
     return {
@@ -2638,6 +2672,7 @@ export class TapdService {
       await Promise.all(workspaceIds.flatMap(workspaceId => [
         this.discoverCustomPriorityFields(config, workspaceId),
         this.discoverModuleCategoryFields(config, workspaceId),
+        this.discoverStoryCategories(config, workspaceId),
         this.discoverStatusLabels(config, workspaceId),
         this.discoverWorkitemTypes(config, workspaceId),
       ]));

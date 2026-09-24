@@ -10,9 +10,11 @@ import {
 describe('TAPD field parsing', () => {
   it('uses only the field labelled 模块分类', () => {
     const fields = findTapdModuleCategoryFields({
-      custom_field_one: '版本',
-      custom_field_three: '模块分类',
-      category_id: '需求分类',
+      Story: {
+        custom_field_one: '版本',
+        custom_field_three: '模块分类',
+        category_id: '需求分类',
+      },
     });
     expect(fields).toEqual(['custom_field_three']);
     expect(getTapdModuleCategoryValue({
@@ -21,8 +23,14 @@ describe('TAPD field parsing', () => {
     }, fields)).toBe('玩法关卡');
   });
 
-  it('does not infer a module category from unrelated fields', () => {
+  it('resolves standard module and category names without using unrelated fields', () => {
     const fields = findTapdModuleCategoryFields({ custom_field_one: '版本' });
+    expect(getTapdModuleCategoryValue({ custom_field_one: '11月版本', module: '战斗' }, fields)).toBe('战斗');
+    expect(getTapdModuleCategoryValue(
+      { custom_field_one: '11月版本', category_id: '42' },
+      fields,
+      new Map([['42', '玩法关卡']])
+    )).toBe('玩法关卡');
     expect(getTapdModuleCategoryValue({ custom_field_one: '11月版本' }, fields)).toBeUndefined();
   });
 

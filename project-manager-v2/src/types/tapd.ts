@@ -106,6 +106,8 @@ export interface TapdStory {
     parent_id?: string;
     /** Children story IDs (comma-separated) */
     children_id?: string;
+    /** Standard TAPD module field. */
+    module?: string;
     /** Category/module ID in TAPD */
     category_id?: string;
     /** TAPD requirement type ID */
