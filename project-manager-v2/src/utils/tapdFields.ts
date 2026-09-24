@@ -1,5 +1,24 @@
 export type TapdEffortUnit = 'days' | 'hours';
 
+/** Locate the TAPD field whose configured display label is “模块分类”. */
+export function findTapdModuleCategoryFields(labels: Record<string, unknown>): string[] {
+  return Object.entries(labels)
+    .filter(([, label]) => String(label ?? '').trim() === '模块分类')
+    .map(([fieldName]) => fieldName);
+}
+
+/** Read module classification only from the configured TAPD field, without title inference. */
+export function getTapdModuleCategoryValue(
+  story: Record<string, unknown>,
+  fieldNames: Iterable<string>
+): string | undefined {
+  for (const fieldName of fieldNames) {
+    const value = String(story[fieldName] ?? '').trim();
+    if (value) return value;
+  }
+  return undefined;
+}
+
 export function parseTapdDate(value: unknown): Date | undefined {
   if (value instanceof Date) return Number.isNaN(value.getTime()) ? undefined : new Date(value.getTime());
   const text = String(value ?? '').trim();

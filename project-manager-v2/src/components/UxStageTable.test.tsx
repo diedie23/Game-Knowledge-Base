@@ -4,10 +4,10 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { UxStageTable } from './UxStageTable';
 
 const state = vi.hoisted(() => ({ open: vi.fn(), tasks: [
-  { id: 1, title: '商城需求', projectId: 1, status: 'todo', priority: 'high' },
+  { id: 1, title: '商城需求', projectId: 1, status: 'todo', priority: 'high', module: '商城' },
   { id: 2, parentId: 1, title: '【视觉设计】商城初稿', status: 'done', projectId: 1, assigneeIds: [1] },
   { id: 3, parentId: 1, title: '【视觉设计】商城修改', status: 'todo', projectId: 1, assigneeIds: [2], isBlocked: true, blockReason: '等待素材' },
-  { id: 4, title: '活动需求', projectId: 1, status: 'done', priority: 'medium' },
+  { id: 4, title: '活动需求', projectId: 1, status: 'done', priority: 'medium', module: '活动' },
 ] }));
 vi.mock('../db/db', () => ({ db: { tasks: { toArray: () => state.tasks }, resources: { toArray: () => [{ id: 1, name: '小林', role: 'UI设计' }, { id: 2, name: '小陈', role: 'UI设计' }] } } }));
 vi.mock('dexie-react-hooks', () => ({ useLiveQuery: (query: () => unknown) => query() }));
@@ -41,6 +41,14 @@ describe('UX stage table', () => {
     fireEvent.change(screen.getByLabelText('搜索需求'), { target: { value: '初稿' } });
     expect(screen.queryByRole('button', { name: '活动需求' })).toBeNull();
     fireEvent.click(screen.getByText('清除筛选'));
+    expect(screen.getByRole('button', { name: '活动需求' })).toBeTruthy();
+  });
+  it('filters by module category and places completed demands after unfinished work', () => {
+    render(<UxStageTable />);
+    const titles = screen.getAllByText(/商城需求|活动需求/).map(node => node.textContent);
+    expect(titles).toEqual(['商城需求', '活动需求']);
+    fireEvent.change(screen.getByLabelText('模块分类筛选'), { target: { value: '活动' } });
+    expect(screen.queryByRole('button', { name: '商城需求' })).toBeNull();
     expect(screen.getByRole('button', { name: '活动需求' })).toBeTruthy();
   });
   it('filters missing work by the selected stage', () => {

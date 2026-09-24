@@ -1,7 +1,31 @@
 import { describe, expect, it } from 'vitest';
-import { formatTapdCalendarDate, parseTapdDate, parseTapdEffortHours } from './tapdFields';
+import {
+  findTapdModuleCategoryFields,
+  formatTapdCalendarDate,
+  getTapdModuleCategoryValue,
+  parseTapdDate,
+  parseTapdEffortHours,
+} from './tapdFields';
 
 describe('TAPD field parsing', () => {
+  it('uses only the field labelled 模块分类', () => {
+    const fields = findTapdModuleCategoryFields({
+      custom_field_one: '版本',
+      custom_field_three: '模块分类',
+      category_id: '需求分类',
+    });
+    expect(fields).toEqual(['custom_field_three']);
+    expect(getTapdModuleCategoryValue({
+      custom_field_one: '11月版本',
+      custom_field_three: '玩法关卡',
+    }, fields)).toBe('玩法关卡');
+  });
+
+  it('does not infer a module category from unrelated fields', () => {
+    const fields = findTapdModuleCategoryFields({ custom_field_one: '版本' });
+    expect(getTapdModuleCategoryValue({ custom_field_one: '11月版本' }, fields)).toBeUndefined();
+  });
+
   it('parses TAPD calendar dates without a timezone shift', () => {
     const result = parseTapdDate('2026-09-14 00:00:00');
     expect(result?.getFullYear()).toBe(2026);

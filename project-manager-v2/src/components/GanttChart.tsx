@@ -251,39 +251,20 @@ export function GanttChart() {
       console.warn('[GanttChart] TAPD background refresh failed:', error);
     });
   }, [selectedProjectId]);
-  // Auto-reclassify modules when switching to group_module view
+  // TAPD-linked tasks receive their module strictly from TAPD's “模块分类” field.
+  // Title inference is reserved for locally-created tasks that have no TAPD source.
   useEffect(() => {
     if (filterStatus === 'group_module' && tasks && tasks.length > 0) {
-      const tasksWithoutModule = tasks.filter(t => !t.module && t.title);
-      if (tasksWithoutModule.length > 0) {
-        // Check if there are TAPD-linked tasks without module - trigger TAPD refresh to get custom_field_one
-        const tapdTasksWithoutModule = tasksWithoutModule.filter(t => t.tapdId);
-        if (tapdTasksWithoutModule.length > 0) {
-          // Trigger TAPD refresh to fetch module from custom_field_one (模块特性)
-          import('../services/tapdService').then(({ tapdService }) => {
-            const projectId = useStore.getState().selectedProjectId;
-            if (!projectId) return;
-            tapdService.refreshExistingTasks(projectId).then(() => {
-              console.log(`[GanttChart] Auto-refreshed TAPD tasks to populate module field from custom_field_one`);
-            }).catch(err => {
-              console.warn(`[GanttChart] TAPD refresh for module failed, falling back to title extraction:`, err);
-              // Fallback: extract from title
-              import('../services/tapdService').then(({ reclassifyModules }) => {
-                reclassifyModules(projectId || undefined);
-              });
-            });
+      const localTasksWithoutModule = tasks.filter(t => !t.module && !t.tapdId && t.title);
+      if (localTasksWithoutModule.length > 0) {
+        import('../services/tapdService').then(({ reclassifyModules }) => {
+          const projectId = useStore.getState().selectedProjectId;
+          reclassifyModules(projectId || undefined).then(result => {
+            if (result.updated > 0) {
+              console.log('[GanttChart] Auto-reclassified local tasks into modules:', result.updated);
+            }
           });
-        } else {
-          // No TAPD-linked tasks, just extract from title
-          import('../services/tapdService').then(({ reclassifyModules }) => {
-            const projectId = useStore.getState().selectedProjectId;
-            reclassifyModules(projectId || undefined).then(result => {
-              if (result.updated > 0) {
-                console.log(`[GanttChart] Auto-reclassified ${result.updated} tasks into modules`);
-              }
-            });
-          });
-        }
+        });
       }
     }
   }, [filterStatus, tasks]);

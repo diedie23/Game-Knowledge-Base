@@ -2,7 +2,13 @@ import { db } from '../db/db';
 import type { Task, Resource, TapdConfig, TapdWorkspaceInfo, TapdStory, TapdIteration, SyncResult, SyncDetailItem, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem } from '../types';
 import type { TapdAuthMode, ModuleMapping, SyncRangeConfig } from '../types/tapd';
 import { getTapdPriorityValue, mapTapdPriority } from '../utils/tapdPriority';
-import { formatTapdCalendarDate, parseTapdDate, parseTapdEffortHours } from '../utils/tapdFields';
+import {
+  findTapdModuleCategoryFields,
+  formatTapdCalendarDate,
+  getTapdModuleCategoryValue,
+  parseTapdDate,
+  parseTapdEffortHours,
+} from '../utils/tapdFields';
 import { applyTapdCompletionStatus, mapTapdStatus } from '../utils/tapdStatus';
 import {
   extractCpSupplierNames,
@@ -408,6 +414,8 @@ export class TapdService {
   private config: TapdConfig | null = null;
   private customPriorityFieldsByWorkspace = new Map<string, string[]>();
   private activeCustomPriorityFields = new Set<string>();
+  private moduleCategoryFieldsByWorkspace = new Map<string, string[]>();
+  private activeModuleCategoryFields = new Set<string>();
   private statusLabelsByWorkspace = new Map<string, Map<string, string>>();
   private activeStatusLabels = new Map<string, string>();
   private workitemTypeNamesByWorkspace = new Map<string, Map<string, string>>();
@@ -415,7 +423,38 @@ export class TapdService {
   private refreshRequestsByProject = new Map<number, Promise<RefreshResult>>();
 
   private getStoryFields(): string {
-    return [...new Set([...STORY_FIELDS.split(','), ...this.activeCustomPriorityFields])].join(',');
+    return [...new Set([
+      ...STORY_FIELDS.split(','),
+      ...this.activeCustomPriorityFields,
+      ...this.activeModuleCategoryFields,
+    ])].join(',');
+  }
+
+  private async discoverModuleCategoryFields(config: TapdConfig, workspaceId: string): Promise<string[]> {
+    const cached = this.moduleCategoryFieldsByWorkspace.get(workspaceId);
+    if (cached) {
+      cached.forEach(fieldName => this.activeModuleCategoryFields.add(fieldName));
+      return cached;
+    }
+    try {
+      const response = await tapdRestFetch<{ status: number; data: Record<string, unknown>; info: string }>(
+        '/stories/get_fields_lable',
+        config,
+        { workspace_id: workspaceId }
+      );
+      const labels = response?.data && typeof response.data === 'object' ? response.data : {};
+      const fields = findTapdModuleCategoryFields(labels);
+      this.moduleCategoryFieldsByWorkspace.set(workspaceId, fields);
+      fields.forEach(fieldName => this.activeModuleCategoryFields.add(fieldName));
+      if (fields.length > 0) {
+        console.log('[TapdService] Module category field detected:', workspaceId, fields);
+      }
+      return fields;
+    } catch (error) {
+      console.warn('[TapdService] Failed to discover 模块分类 field:', error);
+      this.moduleCategoryFieldsByWorkspace.set(workspaceId, []);
+      return [];
+    }
   }
 
   private async discoverCustomPriorityFields(config: TapdConfig, workspaceId: string): Promise<string[]> {
@@ -1331,6 +1370,7 @@ export class TapdService {
         try {
           await Promise.all([
             this.discoverCustomPriorityFields(tempConfig, workspaceId.trim()),
+            this.discoverModuleCategoryFields(tempConfig, workspaceId.trim()),
             this.discoverStatusLabels(tempConfig, workspaceId.trim()),
             this.discoverWorkitemTypes(tempConfig, workspaceId.trim()),
           ]);
@@ -1530,6 +1570,7 @@ export class TapdService {
         // Fetch via REST API — convert all params to strings
         await Promise.all([
           this.discoverCustomPriorityFields(this.config!, workspaceId.trim()),
+          this.discoverModuleCategoryFields(this.config!, workspaceId.trim()),
           this.discoverStatusLabels(this.config!, workspaceId.trim()),
           this.discoverWorkitemTypes(this.config!, workspaceId.trim()),
         ]);
@@ -1984,8 +2025,11 @@ export class TapdService {
       ? `https://tapd.woa.com/${workspaceId}/prong/stories/view/${story.id}`
       : undefined;
 
-    // Extract module name from custom_field_one or title bracket tags
-    const module = this.extractModule(story.name, story.custom_field_one);
+    // “模块分类” may be assigned to any TAPD field; its configured label is the source of truth.
+    const module = getTapdModuleCategoryValue(
+      story as unknown as Record<string, unknown>,
+      this.activeModuleCategoryFields
+    );
 
     return {
       title: story.name,
@@ -2016,24 +2060,8 @@ export class TapdService {
       // Extended metadata (stripped before DB insert)
       _tapdParentId: story.parent_id ? String(story.parent_id) : undefined,
       _tapdOwner: story.owner || undefined,
-      _tapdModuleFeature: story.custom_field_one || undefined,
+      _tapdModuleFeature: module,
     } as any;
-  }
-
-  /**
-   * Extract module name from TAPD story data.
-   * Priority: custom_field_one (模块特性) > title bracket tags (【xxx】)
-   * Extracts the top-level module name (before '/') from custom_field_one.
-   */
-  private extractModule(title: string, customFieldOne?: string): string | undefined {
-    // 1. Try custom_field_one (e.g. "轻舟编辑器/主体" → "轻舟编辑器")
-    if (customFieldOne) {
-      const topLevel = customFieldOne.split('/')[0].trim();
-      if (topLevel) return topLevel;
-    }
-
-    // 2. Use the shared extractModuleFromTitle function for title-based extraction
-    return extractModuleFromTitle(title);
   }
 
   // ─── Enhanced Sync: Dedup + Parent-Child + Member Matching + Module Mapping ───
@@ -2609,6 +2637,7 @@ export class TapdService {
     if (this.hasRestCredentials()) {
       await Promise.all(workspaceIds.flatMap(workspaceId => [
         this.discoverCustomPriorityFields(config, workspaceId),
+        this.discoverModuleCategoryFields(config, workspaceId),
         this.discoverStatusLabels(config, workspaceId),
         this.discoverWorkitemTypes(config, workspaceId),
       ]));
@@ -2818,10 +2847,8 @@ export class TapdService {
           updatedAt: Date.now(),
           syncedAt: Date.now(),
         };
-        // Silently update module field if available (not tracked as a "change")
-        if (remote.module) {
-          updateData.module = remote.module;
-        }
+        // Keep the local value identical to TAPD, including clearing stale title-derived values.
+        updateData.module = remote.module;
         updateData.estimatedHours = remote.estimatedHours;
         updateData.tapdReleaseId = remote.tapdReleaseId;
         updateData.tapdReleaseName = remote.tapdReleaseName;
@@ -2874,9 +2901,7 @@ export class TapdService {
       } else {
         // Silently fix corrupted data and update module even when no other changes detected
         const silentUpdates: Partial<Task> = {};
-        if (remote.module && !localTask.module) {
-          silentUpdates.module = remote.module;
-        }
+        if (remote.module !== localTask.module) silentUpdates.module = remote.module;
         if (remote.estimatedHours !== localTask.estimatedHours) silentUpdates.estimatedHours = remote.estimatedHours;
         if (remote.tapdReleaseId !== localTask.tapdReleaseId) silentUpdates.tapdReleaseId = remote.tapdReleaseId;
         if (remote.tapdReleaseName !== localTask.tapdReleaseName) silentUpdates.tapdReleaseName = remote.tapdReleaseName;
