@@ -49,6 +49,8 @@ export interface Task {
   tapdReleaseId?: string;
   tapdReleaseName?: string;
   tapdStatus?: string;
+  /** TAPD workflow stage, such as 测试阶段. */
+  tapdStep?: string;
   tapdPriorityLabel?: string;
   tapdOwner?: string;
 

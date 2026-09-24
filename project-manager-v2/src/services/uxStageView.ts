@@ -70,6 +70,14 @@ export function isDemandComplete(stages: Record<CoreUxStage, Task[]>): boolean {
   return STAGES.every(({ key }) => stages[key].length > 0 && stageStatus(stages[key]) === 'done');
 }
 
+const COMPLETED_WORKFLOW_STAGE = /测试|提测|验收|发布|部署|上线|\btest(?:ing)?\b|\bqa\b|acceptance|release|deploy/i;
+
+export function isUiStoryOverallComplete(task: Task): boolean {
+  if (task.status === 'cancelled') return false;
+  if (task.status === 'done') return true;
+  return COMPLETED_WORKFLOW_STAGE.test(`${task.tapdStep || ''} ${task.tapdStatus || ''}`);
+}
+
 function normalizedWorkitemType(task: Task): string {
   return String(task.tapdWorkitemTypeName || '').trim().toLowerCase().replace(/[\s·_\-—:：]/g, '');
 }

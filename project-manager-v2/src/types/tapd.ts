@@ -91,6 +91,8 @@ export interface TapdStory {
     name: string;
     description: string;
     status: string;
+    /** Current TAPD workflow stage. */
+    step?: string;
     /** Actual completion timestamp returned by TAPD. */
     completed?: string;
     priority: string;

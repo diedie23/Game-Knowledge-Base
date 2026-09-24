@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Task } from '../types/task';
 import type { Resource } from '../types/resource';
-import { buildStageRows, isDemandComplete, stageStatus, taskStage, taskStatus } from './uxStageView';
+import { buildStageRows, isDemandComplete, isUiStoryOverallComplete, stageStatus, taskStage, taskStatus } from './uxStageView';
 
 const task = (id: number, title: string, props: Partial<Task> = {}): Task => ({ id, title, status: 'todo', priority: 'medium', projectId: 1, progress: 0, dependencies: [], type: 'task', ...props });
 
@@ -31,6 +31,13 @@ describe('UX stage rows', () => {
     expect(rows.map(row => row.root.id)).toEqual([2, 4]);
     expect(rows[0].stages.interaction.map(item => item.id)).toEqual([3]);
   });
+  it('treats UIStory testing and later workflow stages as overall complete', () => {
+    expect(isUiStoryOverallComplete(task(30, '测试父需求', { status: 'in_progress', tapdStep: '测试阶段' }))).toBe(true);
+    expect(isUiStoryOverallComplete(task(31, '发布父需求', { status: 'todo', tapdStatus: '发布部署' }))).toBe(true);
+    expect(isUiStoryOverallComplete(task(32, '开发父需求', { status: 'in_progress', tapdStep: '开发阶段' }))).toBe(false);
+    expect(isUiStoryOverallComplete(task(33, '拒绝父需求', { status: 'cancelled', tapdStep: '测试阶段', tapdStatus: '已拒绝' }))).toBe(false);
+  });
+
   it('only treats a demand as complete when all four stages exist and are complete', () => {
     const done = (id: number, title: string) => task(id, title, { status: 'done' });
     const full = buildStageRows([task(1, '需求'), done(2, '【交互案】A'), done(3, '【视觉设计】A'), done(4, '【还原】A'), done(5, '【动效】A')

@@ -30,7 +30,7 @@ const MCP_GATEWAY_TIMEOUT_MS = 20_000;
 
 // ─── TAPD REST API Configuration ─────────────────────────────────
 const TAPD_API_BASE = '/tapd-api'; // Uses Vite proxy
-const STORY_FIELDS = 'id,name,owner,status,created,modified,completed,module,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,progress,effort,effort_completed,remain,exceed,begin,due';
+const STORY_FIELDS = 'id,name,owner,status,created,modified,completed,module,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,progress,effort,effort_completed,remain,exceed,begin,due,step';
 
 // ─── MCP Gateway Configuration (streamable-http) ─────────────────
 const MCP_GATEWAY_PROXY = '/mcp-gateway/'; // Uses Vite proxy → https://mcpgw.knot.woa.com/tapd/
@@ -420,6 +420,8 @@ export class TapdService {
   private activeCategoryNames = new Map<string, string>();
   private statusLabelsByWorkspace = new Map<string, Map<string, string>>();
   private activeStatusLabels = new Map<string, string>();
+  private stepLabelsByWorkspace = new Map<string, Map<string, string>>();
+  private activeStepLabels = new Map<string, string>();
   private workitemTypeNamesByWorkspace = new Map<string, Map<string, string>>();
   private activeWorkitemTypeNames = new Map<string, string>();
   private refreshRequestsByProject = new Map<number, Promise<RefreshResult>>();
@@ -528,45 +530,55 @@ export class TapdService {
     return value;
   }
 
+  private parseTapdFieldOptionLabels(rawField: any): Map<string, string> {
+    const labels = new Map<string, string>();
+    const field = rawField?.Field || rawField || {};
+    const options = field.options || field.option || field.values || {};
+    if (Array.isArray(options)) {
+      options.forEach((option: any) => {
+        const value = String(option?.value ?? option?.id ?? option?.key ?? '').trim();
+        const label = String(option?.label ?? option?.name ?? option?.text ?? value).trim();
+        if (value && label) { labels.set(value, label); labels.set(label, label); }
+      });
+    } else if (options && typeof options === 'object') {
+      Object.entries(options).forEach(([value, rawLabel]) => {
+        const label = typeof rawLabel === 'object'
+          ? String((rawLabel as any)?.label ?? (rawLabel as any)?.name ?? (rawLabel as any)?.text ?? value).trim()
+          : String(rawLabel ?? '').trim();
+        if (!value || !label) return;
+        const key = value.trim();
+        const keyIsLabel = /[㐀-鿿]/.test(key) && !/[㐀-鿿]/.test(label);
+        const optionValue = keyIsLabel ? label : key;
+        const optionLabel = keyIsLabel ? key : label;
+        labels.set(optionValue, optionLabel);
+        labels.set(optionLabel, optionLabel);
+      });
+    }
+    return labels;
+  }
+
   private async discoverStatusLabels(config: TapdConfig, workspaceId: string): Promise<Map<string, string>> {
     const cached = this.statusLabelsByWorkspace.get(workspaceId);
     if (cached) {
       cached.forEach((label, value) => this.activeStatusLabels.set(value, label));
+      this.stepLabelsByWorkspace.get(workspaceId)?.forEach((label, value) => this.activeStepLabels.set(value, label));
       return cached;
     }
-    const labels = new Map<string, string>();
+    let labels = new Map<string, string>();
+    let stepLabels = new Map<string, string>();
     try {
       const response = await tapdRestFetch<{ status: number; data: Record<string, any>; info: string }>(
         '/stories/get_fields_info', config, { workspace_id: workspaceId }
       );
-      const field = response?.data?.status?.Field || response?.data?.status || {};
-      const options = field.options || field.option || field.values || {};
-      if (Array.isArray(options)) {
-        options.forEach((option: any) => {
-          const value = String(option?.value ?? option?.id ?? option?.key ?? '').trim();
-          const label = String(option?.label ?? option?.name ?? option?.text ?? value).trim();
-          if (value && label) { labels.set(value, label); labels.set(label, label); }
-        });
-      } else if (options && typeof options === 'object') {
-        Object.entries(options).forEach(([value, rawLabel]) => {
-          const label = typeof rawLabel === 'object'
-            ? String((rawLabel as any)?.label ?? (rawLabel as any)?.name ?? (rawLabel as any)?.text ?? value).trim()
-            : String(rawLabel ?? '').trim();
-          if (value && label) {
-            const key = value.trim();
-            const keyIsLabel = /[\u3400-\u9fff]/.test(key) && !/[\u3400-\u9fff]/.test(label);
-            const statusValue = keyIsLabel ? label : key;
-            const statusLabel = keyIsLabel ? key : label;
-            labels.set(statusValue, statusLabel);
-            labels.set(statusLabel, statusLabel);
-          }
-        });
-      }
+      labels = this.parseTapdFieldOptionLabels(response?.data?.status);
+      stepLabels = this.parseTapdFieldOptionLabels(response?.data?.step);
     } catch (error) {
-      console.warn('[TapdService] Failed to discover TAPD status labels:', error);
+      console.warn('[TapdService] Failed to discover TAPD status/step labels:', error);
     }
     this.statusLabelsByWorkspace.set(workspaceId, labels);
+    this.stepLabelsByWorkspace.set(workspaceId, stepLabels);
     labels.forEach((label, value) => this.activeStatusLabels.set(value, label));
+    stepLabels.forEach((label, value) => this.activeStepLabels.set(value, label));
     return labels;
   }
 
@@ -595,6 +607,11 @@ export class TapdService {
   private resolveStoryStatus(rawStatus: unknown): string {
     const value = String(rawStatus ?? '').trim();
     return this.activeStatusLabels.get(value) || value;
+  }
+
+  private resolveStoryStep(rawStep: unknown): string {
+    const value = String(rawStep ?? '').trim();
+    return this.activeStepLabels.get(value) || value;
   }
 
   /** Load TAPD config for a given project (fallback: first available config) */
@@ -2036,6 +2053,7 @@ export class TapdService {
   /** Map a single TAPD Story to a partial local Task (extended with parent/owner metadata) */
   private mapTapdStoryToTask(story: TapdStory['Story']): Partial<Task> & { _tapdParentId?: string; _tapdOwner?: string } {
     const tapdStatusLabel = this.resolveStoryStatus(story.status);
+    const tapdStepLabel = this.resolveStoryStep(story.step);
     const mappedStatus = this.mapStatus(tapdStatusLabel);
     const completedAt = parseTapdDate(story.completed);
     // TAPD's completed timestamp is authoritative for custom terminal statuses.
@@ -2087,6 +2105,7 @@ export class TapdService {
       estimatedHours,
       tapdReleaseId: story.release_id || undefined,
       tapdStatus: tapdStatusLabel || story.status || undefined,
+      tapdStep: tapdStepLabel || story.step || undefined,
       tapdPriorityLabel: priorityValue || undefined,
       tapdOwner: story.owner || undefined,
       syncSource: 'tapd',
@@ -2482,6 +2501,7 @@ export class TapdService {
           tapdReleaseId: cleanTask.tapdReleaseId,
           tapdReleaseName: cleanTask.tapdReleaseName,
           tapdStatus: cleanTask.tapdStatus,
+          tapdStep: cleanTask.tapdStep,
           tapdPriorityLabel: cleanTask.tapdPriorityLabel,
           tapdOwner: cleanTask.tapdOwner,
           tapdWorkitemTypeId: cleanTask.tapdWorkitemTypeId,
@@ -2522,6 +2542,7 @@ export class TapdService {
             tapdReleaseId: cleanTask.tapdReleaseId,
             tapdReleaseName: cleanTask.tapdReleaseName,
             tapdStatus: cleanTask.tapdStatus,
+            tapdStep: cleanTask.tapdStep,
             tapdPriorityLabel: cleanTask.tapdPriorityLabel,
             tapdOwner: cleanTask.tapdOwner,
             tapdWorkitemTypeId: cleanTask.tapdWorkitemTypeId,
@@ -2557,6 +2578,7 @@ export class TapdService {
             tapdReleaseId: cleanTask.tapdReleaseId,
             tapdReleaseName: cleanTask.tapdReleaseName,
             tapdStatus: cleanTask.tapdStatus,
+            tapdStep: cleanTask.tapdStep,
             tapdPriorityLabel: cleanTask.tapdPriorityLabel,
             tapdOwner: cleanTask.tapdOwner,
             tapdWorkitemTypeId: cleanTask.tapdWorkitemTypeId,
@@ -2888,6 +2910,7 @@ export class TapdService {
         updateData.tapdReleaseId = remote.tapdReleaseId;
         updateData.tapdReleaseName = remote.tapdReleaseName;
         updateData.tapdStatus = remote.tapdStatus;
+        updateData.tapdStep = remote.tapdStep;
         updateData.tapdPriorityLabel = remote.tapdPriorityLabel;
         updateData.tapdOwner = remote.tapdOwner;
         updateData.tapdWorkitemTypeId = remote.tapdWorkitemTypeId;
@@ -2941,6 +2964,7 @@ export class TapdService {
         if (remote.tapdReleaseId !== localTask.tapdReleaseId) silentUpdates.tapdReleaseId = remote.tapdReleaseId;
         if (remote.tapdReleaseName !== localTask.tapdReleaseName) silentUpdates.tapdReleaseName = remote.tapdReleaseName;
         if (remote.tapdStatus !== localTask.tapdStatus) silentUpdates.tapdStatus = remote.tapdStatus;
+        if (remote.tapdStep !== localTask.tapdStep) silentUpdates.tapdStep = remote.tapdStep;
         if (remote.tapdPriorityLabel !== localTask.tapdPriorityLabel) silentUpdates.tapdPriorityLabel = remote.tapdPriorityLabel;
         if (remote.tapdOwner !== localTask.tapdOwner) silentUpdates.tapdOwner = remote.tapdOwner;
         if (remote.tapdWorkitemTypeId !== localTask.tapdWorkitemTypeId) silentUpdates.tapdWorkitemTypeId = remote.tapdWorkitemTypeId;

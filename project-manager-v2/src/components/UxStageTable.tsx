@@ -5,7 +5,7 @@ import { db } from '../db/db';
 import { useStore } from '../store/useStore';
 import type { Task } from '../types/task';
 import type { CoreUxStage } from '../services/uxStageView';
-import { buildStageRows, isDemandComplete, STAGES, STAGE_STATUS, stageStatus, taskStatus } from '../services/uxStageView';
+import { buildStageRows, isDemandComplete, isUiStoryOverallComplete, STAGES, STAGE_STATUS, stageStatus, taskStatus } from '../services/uxStageView';
 import { getPriorityLabel } from '../utils/priority';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 
@@ -96,8 +96,8 @@ export function UxStageTable() {
       return items.some(t => t.assigneeIds?.includes(Number(selectedOwner)));
     });
     if (!ownersMatch) return false;
-    // “已完成” is a demand-level state: all four stages must exist and be complete.
-    if (status === 'done') return isDemandComplete(row.stages);
+    // “已完成” follows TAPD workflow progress, with all-stage completion as a fallback.
+    if (status === 'done') return isUiStoryOverallComplete(row.root) || isDemandComplete(row.stages);
     if (status === 'missing') return visibleStages.some(s => row.stages[s.key].length === 0);
     if (status === 'all') return stage === 'all' || visibleStages.some(s => row.stages[s.key].length > 0);
     return visibleStages.some(s => {
@@ -108,8 +108,8 @@ export function UxStageTable() {
       ));
     });
   }).sort((a, b) => {
-    const aDone = a.root.status === 'done';
-    const bDone = b.root.status === 'done';
+    const aDone = isUiStoryOverallComplete(a.root) || isDemandComplete(a.stages);
+    const bDone = isUiStoryOverallComplete(b.root) || isDemandComplete(b.stages);
     if (aDone !== bDone) return aDone ? 1 : -1;
 
     const priorityRank: Record<string, number> = { high: 0, medium: 1, low: 2 };
@@ -156,18 +156,18 @@ export function UxStageTable() {
         {hasFilters && <button onClick={clearFilters} className="h-9 px-2 text-xs text-indigo-300 hover:text-white">清除筛选</button>}
       </div>
     </div>
-    <div className="flex items-center justify-between gap-3 px-5 py-3 text-xs text-gray-500"><span>显示 <strong className="text-gray-200">{filtered.length}</strong> / {rows.length} 个需求</span><span>已完成 = 交互、视觉、还原、动效全部完成 · — 表示未建任务</span></div>
+    <div className="flex items-center justify-between gap-3 px-5 py-3 text-xs text-gray-500"><span>显示 <strong className="text-gray-200">{filtered.length}</strong> / {rows.length} 个需求</span><span>已完成 = 父需求进入测试阶段，或交互、视觉、还原、动效全部完成 · — 表示未建任务</span></div>
     <div className="min-h-0 flex-1 overflow-auto px-5 pb-5">
       <table className="w-full min-w-[1100px] table-fixed border-separate border-spacing-0 text-left text-xs">
         <colgroup><col style={{ width: '21%' }} /><col style={{ width: '9%' }} /><col style={{ width: '6%' }} />{STAGES.map(s => <col key={s.key} style={{ width: '14%' }} />)}<col style={{ width: '8%' }} /></colgroup>
         <thead className="sticky top-0 z-20"><tr className="text-gray-400">
           <th className="sticky left-0 z-30 border-y border-gray-800 bg-[#171b25] px-4 py-3 font-medium">UIStory</th>
-          <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 text-center text-sm font-semibold text-gray-200">模块分类</th>
-          <th className="border-y border-gray-800 bg-[#171b25] px-2 py-3 text-center text-sm font-semibold text-gray-200">优先级</th>
+          <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 text-center align-middle text-sm font-semibold text-gray-200">模块分类</th>
+          <th className="border-y border-gray-800 bg-[#171b25] px-2 py-3 text-center align-middle text-sm font-semibold text-gray-200">优先级</th>
           {STAGES.map((s, index) => <th key={s.key} className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 font-medium"><span className="mr-2 text-[10px] text-indigo-400">0{index + 1}</span><span className="text-gray-200">{s.label}</span><div className="mt-1 text-[10px] font-normal text-gray-500">负责人 / 状态</div></th>)}
-          <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 text-center text-sm font-semibold text-gray-200"><button onClick={() => setDescending(!descending)} className="flex w-full items-center justify-center gap-1" aria-label={descending ? '截止日期降序，点击升序' : '截止日期升序，点击降序'}>截止日期<ArrowUpDown size={13} /></button></th>
+          <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 text-center align-middle text-sm font-semibold text-gray-200"><button onClick={() => setDescending(!descending)} className="flex w-full items-center justify-center gap-1" aria-label={descending ? '截止日期降序，点击升序' : '截止日期升序，点击降序'}>截止日期<ArrowUpDown size={13} /></button></th>
         </tr></thead>
-        <tbody>{filtered.map(({ root, stages }) => { const rootDone = root.status === 'done'; return <tr key={root.id} className={'group ' + (rootDone ? 'bg-emerald-500/[0.055]' : '')}>
+        <tbody>{filtered.map(({ root, stages }) => { const rootDone = isUiStoryOverallComplete(root) || isDemandComplete(stages); return <tr key={root.id} className={'group ' + (rootDone ? 'bg-emerald-500/[0.055]' : '')}>
           <td className={'sticky left-0 z-10 border-b border-gray-800 px-4 py-3 ' + (rootDone ? 'bg-[#10231d] group-hover:bg-[#153027]' : 'bg-[#11151d] group-hover:bg-[#191e2b]')}>
             <div className="mb-2 flex items-center justify-between gap-2">
               <span className="rounded border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold text-sky-300">UIStory · 父需求</span>
@@ -176,8 +176,8 @@ export function UxStageTable() {
             {root.externalUrl ? <a href={root.externalUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="line-clamp-2 text-left text-[13px] font-medium leading-5 text-gray-200 hover:text-indigo-300 hover:underline" title={`${root.title} · 点击前往 TAPD`}>{root.title}</a> : <button onClick={() => openTaskModal(root.id)} className="line-clamp-2 text-left text-[13px] font-medium leading-5 text-gray-200 hover:text-indigo-300" title={root.title}>{root.title}</button>}
             <div className="mt-1.5 flex items-center gap-2 text-[10px] text-gray-500">{root.tapdId && <span>#{root.tapdId}</span>}<button onClick={() => openTaskModal(root.id)} className="text-gray-400 hover:text-white">本地详情</button></div>
           </td>
-          <td className="border-b border-l border-gray-800 px-3 py-5 text-center align-top text-sm font-semibold text-blue-300">{root.module || '未分类'}</td>
-          <td className="border-b border-gray-800 px-2 py-3 text-center align-top pt-5"><span className={`inline-flex min-w-9 justify-center rounded px-2.5 py-1 text-xs font-semibold ${root.priority === 'high' ? 'bg-red-500/10 text-red-300' : root.priority === 'medium' ? 'bg-amber-500/10 text-amber-300' : 'bg-gray-800 text-gray-400'}`}>{getPriorityLabel(root.priority)}</span></td>
+          <td className="border-b border-l border-gray-800 px-3 py-5 text-center align-middle text-sm font-semibold text-blue-300">{root.module || '未分类'}</td>
+          <td className="border-b border-gray-800 px-2 py-3 text-center align-middle"><span className={`inline-flex min-w-9 justify-center rounded px-2.5 py-1 text-xs font-semibold ${root.priority === 'high' ? 'bg-red-500/10 text-red-300' : root.priority === 'medium' ? 'bg-amber-500/10 text-amber-300' : 'bg-gray-800 text-gray-400'}`}>{getPriorityLabel(root.priority)}</span></td>
           {STAGES.map(s => {
             const items = stages[s.key];
             const summary = stageStatus(items);
@@ -200,7 +200,7 @@ export function UxStageTable() {
               </div> : <div className="rounded-lg border border-gray-800/50 bg-gray-900/20 px-2 py-2"><div className="mb-2 text-gray-600">—</div><span className="text-[10px] text-gray-600">未建任务</span></div>}
             </td>;
           })}
-          <td className="border-b border-l border-gray-800 px-3 py-5 text-center align-top text-base font-semibold text-gray-200">{dateLabel(root.endDate)}</td>
+          <td className="border-b border-l border-gray-800 px-3 py-5 text-center align-middle text-base font-semibold text-gray-200">{dateLabel(root.endDate)}</td>
         </tr>; })}</tbody>
       </table>
       {!filtered.length && <div className="py-20 text-center"><p className="text-sm text-gray-400">{tasks === undefined ? '正在加载需求…' : hasFilters ? '没有符合条件的需求' : '暂无需求，创建或导入 TAPD 任务后即可查看环节状态'}</p>{hasFilters && <button onClick={clearFilters} className="mt-3 text-sm text-indigo-300">清除筛选</button>}</div>}
