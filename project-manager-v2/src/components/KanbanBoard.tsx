@@ -28,11 +28,19 @@ export const KanbanBoard: React.FC = () => {
   const { selectedProjectId, openTaskModal, selectedMemberId, setSelectedMemberId } = useStore();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [groupBy, setGroupBy] = useState<'status' | 'person' | 'priority'>('person');
+  const [statusFilter, setStatusFilter] = useState<'all' | Task['status']>('all');
   const [filterPersonId, setFilterPersonId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; taskId: number } | null>(null);
   const [visibleTaskCounts, setVisibleTaskCounts] = useState<Record<string, number>>({});
+
+  const isTapdManagedTask = (task: Task) => Boolean(
+    task.tapdId
+    || task.syncSource === 'tapd'
+    || task.syncSource === 'tapd-import'
+    || /tapd\.(?:cn|woa\.com)/i.test(task.externalUrl || '')
+  );
 
   // Quick create state
   const [quickCreateColumnId, setQuickCreateColumnId] = useState<string | null>(null);
@@ -166,7 +174,7 @@ export const KanbanBoard: React.FC = () => {
     return stats;
   }, [tasks]);
 
-  const filteredTasks = useMemo(() => {
+  const baseFilteredTasks = useMemo(() => {
     let result = tasks;
     if (filterPersonId !== null) {
       const selected = visibleResources.find(r => r.id === filterPersonId) || resources.find(r => r.id === filterPersonId);
@@ -179,6 +187,11 @@ export const KanbanBoard: React.FC = () => {
     }
     return result;
   }, [tasks, filterPersonId, searchQuery, resources, visibleResources]);
+
+  const filteredTasks = useMemo(() => {
+    if (groupBy === 'status' || statusFilter === 'all') return baseFilteredTasks;
+    return baseFilteredTasks.filter(task => task.status === statusFilter);
+  }, [baseFilteredTasks, groupBy, statusFilter]);
 
   const getHierarchyMeta = (task: Task) => {
     const isParent = !!task.id && parentTaskIds.has(task.id);
@@ -267,7 +280,7 @@ export const KanbanBoard: React.FC = () => {
 
   useEffect(() => {
     setVisibleTaskCounts({});
-  }, [groupBy, filterPersonId, searchQuery, selectedProjectId]);
+  }, [groupBy, filterPersonId, searchQuery, selectedProjectId, statusFilter]);
 
   const getTasksForColumn = (col: typeof columns[0]) => {
     const colTasks = filteredTasks.filter(col.filterFn);
@@ -621,6 +634,26 @@ export const KanbanBoard: React.FC = () => {
             </div>
           </div>
 
+          {groupBy !== 'status' && (
+            <div className="flex items-center gap-1 rounded-lg border border-gray-700/50 bg-gray-800/40 p-0.5">
+              {[
+                { key: 'all' as const, label: '全部' },
+                { key: 'todo' as const, label: '待办' },
+                { key: 'in_progress' as const, label: '进行中' },
+                { key: 'done' as const, label: '已完成' },
+                { key: 'cancelled' as const, label: '已关闭' },
+              ].map(option => (
+                <button
+                  key={option.key}
+                  onClick={() => setStatusFilter(option.key)}
+                  className={`rounded-md px-2 py-1 text-[10px] font-medium transition-colors ${statusFilter === option.key ? 'bg-blue-500/20 text-blue-300' : 'text-gray-500 hover:bg-gray-700/50 hover:text-gray-300'}`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Search Input */}
           <div className="relative ml-2">
             <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
@@ -723,7 +756,8 @@ export const KanbanBoard: React.FC = () => {
           <div className="flex h-full gap-6 items-start">
             {columns.map(column => {
               const columnTasks = getTasksForColumn(column);
-              const columnStatusCounts = columnTasks.reduce((counts, task) => {
+              const statusSummaryTasks = groupBy === 'person' ? baseFilteredTasks.filter(column.filterFn) : columnTasks;
+              const columnStatusCounts = statusSummaryTasks.reduce((counts, task) => {
                 counts[task.status] = (counts[task.status] || 0) + 1;
                 return counts;
               }, {} as Record<string, number>);
@@ -913,7 +947,7 @@ export const KanbanBoard: React.FC = () => {
                         )}
                         <div className="flex flex-col gap-3 min-h-[100px] relative">
                           {renderedTasks.map((task, index) => (
-                            <Draggable key={task.id} draggableId={task.id!.toString()} index={index}>
+                            <Draggable key={task.id} draggableId={task.id!.toString()} index={index} isDragDisabled={isTapdManagedTask(task)}>
                               {(provided, snapshot) => {
                                 const isDragging = snapshot.isDragging;
                                 const isSettling = settledTaskId === task.id;
@@ -958,11 +992,19 @@ export const KanbanBoard: React.FC = () => {
                                             <button
                                               onClick={async (e) => {
                                                 e.stopPropagation();
+                                                if (isTapdManagedTask(task)) {
+                                                  if (task.externalUrl) window.open(task.externalUrl, '_blank', 'noopener,noreferrer');
+                                                  return;
+                                                }
                                                 const nextStatus = task.status === 'todo' ? 'in_progress' : task.status === 'in_progress' ? 'done' : task.status === 'done' ? 'cancelled' : 'todo';
                                                 await trackedDb.tasks.update(task.id!, { status: nextStatus }, '快速切换任务状态');
                                               }}
                                               className={'text-[10px] px-2 py-0.5 rounded-full border hover:brightness-125 transition-all cursor-pointer ' + status.className}
-                                              title={task.tapdStatus ? 'TAPD 状态：' + task.tapdStatus + '；点击快速切换' : '点击快速切换状态'}
+                                              title={isTapdManagedTask(task)
+                                                ? task.externalUrl
+                                                  ? `TAPD 状态：${task.tapdStatus || status.label}；点击前往 TAPD 调整`
+                                                  : `TAPD 状态：${task.tapdStatus || status.label}`
+                                                : '点击快速切换状态'}
                                             >
                                               {status.label}
                                             </button>
