@@ -54,23 +54,34 @@ export function taskStatus(task: Task): StageStatus {
   return task.isBlocked && task.status !== 'done' && task.status !== 'cancelled' ? 'blocked' : task.status;
 }
 
-const DEVELOPMENT_TASK_PATTERN = /开发|程序|客户端|前端|工程|接入|development|developer|client/i;
-const DEVELOPMENT_ROLE_PATTERN = /开发|程序|客户端|前端|工程|development|developer|client/i;
+const CHECKPOINT_RULES = [
+  { label: '程序接入', task: /开发|程序|客户端|前端|工程|接入|development|developer|client/i, role: /开发|程序|客户端|前端|工程|development|developer|client/i },
+  { label: '音频制作', task: /音频|声音|配音|音乐|音效|audio|sound|music|voice/i, role: /音频|声音|配音|音乐|音效|audio|sound|music|voice/i },
+] as const;
 
-/** Find unfinished development children without adding them to the four UX stage columns. */
-export function developmentCheckpointTasks(tasks: Task[], resources: Resource[] = []): Task[] {
+export interface RelatedCheckpoint {
+  task: Task;
+  label: string;
+}
+
+function assignedRoleText(task: Task, resources: Resource[]): string {
+  const ownerTokens = String(task.tapdOwner || '').split(/[;,，；]/).map(value => value.trim().toLowerCase()).filter(Boolean);
+  return resources.filter(resource =>
+    task.assigneeIds?.includes(resource.id || -1) ||
+    ownerTokens.some(token => token === String(resource.tapdAccount || '').toLowerCase() || token === resource.name.trim().toLowerCase())
+  ).map(resource => resource.role || '').join(' ');
+}
+
+/** Find unfinished cross-category children without adding them to the four UX stage columns. */
+export function relatedCheckpointItems(tasks: Task[], resources: Resource[] = []): RelatedCheckpoint[] {
   const rank: Record<StageStatus, number> = { blocked: 0, in_progress: 1, todo: 2, paused: 3, missing: 4, done: 5, cancelled: 6 };
-  return tasks.filter(task => {
-    if (task.status === 'done' || task.status === 'cancelled') return false;
-    if (taskStage(task, resources)) return false;
-    const typeOrTitle = `${task.tapdWorkitemTypeName || ''} ${task.title || ''}`;
-    if (DEVELOPMENT_TASK_PATTERN.test(typeOrTitle)) return true;
-    const ownerTokens = String(task.tapdOwner || '').split(/[;,，；]/).map(value => value.trim().toLowerCase()).filter(Boolean);
-    return resources.some(resource => DEVELOPMENT_ROLE_PATTERN.test(resource.role || '') && (
-      task.assigneeIds?.includes(resource.id || -1) ||
-      ownerTokens.some(token => token === String(resource.tapdAccount || '').toLowerCase() || token === resource.name.trim().toLowerCase())
-    ));
-  }).sort((left, right) => (rank[taskStatus(left)] ?? 9) - (rank[taskStatus(right)] ?? 9));
+  return tasks.flatMap(task => {
+    if (task.status === 'done' || task.status === 'cancelled' || taskStage(task, resources)) return [];
+    const descriptor = `${task.tapdWorkitemTypeName || ''} ${task.title || ''}`;
+    const roleText = assignedRoleText(task, resources);
+    const rule = CHECKPOINT_RULES.find(item => item.task.test(descriptor) || item.role.test(roleText));
+    return rule ? [{ task, label: rule.label }] : [];
+  }).sort((left, right) => (rank[taskStatus(left.task)] ?? 9) - (rank[taskStatus(right.task)] ?? 9));
 }
 
 export function stageStatus(tasks: Task[]): StageStatus {

@@ -31,6 +31,8 @@ const MCP_GATEWAY_TIMEOUT_MS = 20_000;
 // ─── TAPD REST API Configuration ─────────────────────────────────
 const TAPD_API_BASE = '/tapd-api'; // Uses Vite proxy
 const STORY_FIELDS = 'id,name,owner,status,created,modified,completed,module,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,progress,effort,effort_completed,remain,exceed,begin,due,step';
+const RELATED_CHECKPOINT_PATTERN = /开发|程序|客户端|前端|工程|接入|音频|声音|配音|音乐|音效|development|developer|client|audio|sound|music|voice/i;
+const UI_STORY_TYPE_PATTERN = /ui\s*story|uistory|ui需求/i;
 
 // ─── MCP Gateway Configuration (streamable-http) ─────────────────
 const MCP_GATEWAY_PROXY = '/mcp-gateway/'; // Uses Vite proxy → https://mcpgw.knot.woa.com/tapd/
@@ -683,6 +685,7 @@ export class TapdService {
     if (typeIds.size === 0 && releaseIds.size === 0) return stories;
     return stories.filter(item => {
       const story = item?.Story || item;
+      if (story?._tapdStructuralAncestor || story?._tapdRelatedCheckpoint) return true;
       const typeMatches = typeIds.size === 0 || typeIds.has(String(story?.workitem_type_id || ''));
       const releaseMatches = releaseIds.size === 0 || releaseIds.has(String(story?.release_id || ''));
       return typeMatches && releaseMatches;
@@ -800,6 +803,72 @@ export class TapdService {
       }
     }
     return this.filterStoriesBySyncScope(results, syncRange);
+  }
+
+  private storyChildIds(story: any): string[] {
+    if (!story?.children_id) return [];
+    return (Array.isArray(story.children_id) ? story.children_id : String(story.children_id).split(/[,，;；|]/))
+      .map(String).map(id => id.trim()).filter(id => id && id !== '0');
+  }
+
+  private isUiStory(story: any): boolean {
+    const typeName = this.activeWorkitemTypeNames.get(String(story?.workitem_type_id || ''))
+      || String(story?.workitem_type_name || story?.workitem_type || '');
+    return UI_STORY_TYPE_PATTERN.test(typeName);
+  }
+
+  private isRelatedCheckpointStory(story: any): boolean {
+    const typeName = this.activeWorkitemTypeNames.get(String(story?.workitem_type_id || ''))
+      || String(story?.workitem_type_name || story?.workitem_type || '');
+    return RELATED_CHECKPOINT_PATTERN.test(`${typeName} ${story?.name || ''}`);
+  }
+
+  /** Fetch cross-category program/audio children for selected UIStory roots without widening the main sync scope. */
+  private async fetchRelatedCheckpointChildren(
+    workspaceId: string,
+    initialStories: any[],
+    config?: TapdConfig,
+    mcpAccessToken?: string
+  ): Promise<any[]> {
+    const stories = [...initialStories];
+    const knownIds = new Set(stories.map(item => String((item?.Story || item)?.id || '')).filter(Boolean));
+    let frontier = stories.filter(item => this.isUiStory(item?.Story || item));
+    const fields = this.getStoryFields();
+
+    for (let depth = 0; depth < 6 && frontier.length > 0; depth++) {
+      const childIds = [...new Set(frontier.flatMap(item => this.storyChildIds(item?.Story || item)).filter(id => !knownIds.has(id)))];
+      if (childIds.length === 0) break;
+      const fetched: any[] = [];
+      for (let offset = 0; offset < childIds.length; offset += 200) {
+        const ids = childIds.slice(offset, offset + 200).join(',');
+        let batch: any[] = [];
+        if (mcpAccessToken) {
+          const data = await mcpGatewayFetch<any>('stories_get', { workspace_id: workspaceId, id: ids, limit: 200, fields }, mcpAccessToken);
+          batch = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : data?.data ? [data.data] : [];
+        } else if (config && (config.apiToken || (config.apiUser && config.apiPassword))) {
+          const data = await tapdRestFetch<{ status: number; data: any; info: string }>('/stories', config, { workspace_id: workspaceId, id: ids, limit: '200', fields });
+          if (data?.status === 1 && data?.data) batch = Array.isArray(data.data) ? data.data : [data.data];
+        } else {
+          const data = await mcpFetch<{ data: any[] }>('/tapd/stories_get', { workspace_id: workspaceId, id: ids, limit: 200, fields });
+          batch = Array.isArray(data?.data) ? data.data : [];
+        }
+        fetched.push(...batch);
+      }
+
+      frontier = [];
+      fetched.forEach(item => {
+        const story = item?.Story || item;
+        const id = String(story?.id || '');
+        if (!id || knownIds.has(id)) return;
+        knownIds.add(id);
+        frontier.push(item);
+        if (this.isRelatedCheckpointStory(story)) {
+          story._tapdRelatedCheckpoint = true;
+          stories.push(item);
+        }
+      });
+    }
+    return stories;
   }
 
   /** Recursively fetch every missing ancestor so deep TAPD hierarchies remain intact. */
@@ -1855,6 +1924,11 @@ export class TapdService {
       }
 
       // Handle both { Story: {...} } and direct story object formats
+      stories = await this.fetchStoryAncestors(workspaceId.trim(), stories, this.config || undefined);
+      stories = await this.fetchRelatedCheckpointChildren(
+        workspaceId.trim(), stories, this.config || undefined,
+        this.hasMcpGatewayCredentials() ? this.config!.mcpAccessToken : undefined
+      );
       stories = await this.fetchStoryAncestors(workspaceId.trim(), stories, this.config || undefined);
       stories = this.normalizeStoryHierarchy(stories);
       stories = this.filterEpicStories(this.filterStoriesBySyncScope(stories, syncRange));

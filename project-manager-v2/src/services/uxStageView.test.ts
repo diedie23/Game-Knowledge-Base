@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Task } from '../types/task';
 import type { Resource } from '../types/resource';
-import { buildStageRows, developmentCheckpointTasks, isDemandComplete, isUiStoryOverallComplete, stageStatus, taskStage, taskStatus } from './uxStageView';
+import { buildStageRows, relatedCheckpointItems, isDemandComplete, isUiStoryOverallComplete, stageStatus, taskStage, taskStatus } from './uxStageView';
 
 const task = (id: number, title: string, props: Partial<Task> = {}): Task => ({ id, title, status: 'todo', priority: 'medium', projectId: 1, progress: 0, dependencies: [], type: 'task', ...props });
 
@@ -76,7 +76,8 @@ describe('UX stage rows', () => {
     const blockedDevelopment = task(31, '客户端接入', { status: 'todo', isBlocked: true });
     const completedDevelopment = task(32, '程序接入完成', { status: 'done' });
     const visual = task(33, '动效接入', { status: 'in_progress' });
-    expect(developmentCheckpointTasks([development, completedDevelopment, visual, blockedDevelopment]).map(item => item.id)).toEqual([31, 30]);
+    const audio = task(34, '环境音效制作', { status: 'todo', tapdWorkitemTypeName: '音频子需求' });
+    expect(relatedCheckpointItems([development, completedDevelopment, visual, audio, blockedDevelopment]).map(item => [item.task.id, item.label])).toEqual([[31, '程序接入'], [30, '程序接入'], [34, '音频制作']]);
   });
 
   it('distinguishes absent tasks from pending and cancelled work', () => {

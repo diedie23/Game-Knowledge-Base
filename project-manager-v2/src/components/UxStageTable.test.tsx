@@ -8,6 +8,7 @@ const state = vi.hoisted(() => ({ open: vi.fn(), tasks: [
   { id: 2, parentId: 1, title: '【视觉设计】商城初稿', status: 'done', projectId: 1, assigneeIds: [1] },
   { id: 3, parentId: 1, title: '【视觉设计】商城修改', status: 'todo', projectId: 1, assigneeIds: [2], isBlocked: true, blockReason: '等待素材' },
   { id: 6, parentId: 1, title: '商城程序接入', status: 'in_progress', projectId: 1, tapdWorkitemTypeName: '开发子需求', externalUrl: 'https://tapd.example/story/6' },
+  { id: 7, parentId: 1, title: '商城环境音效', status: 'todo', projectId: 1, tapdWorkitemTypeName: '音频子需求', externalUrl: 'https://tapd.example/story/7' },
   { id: 4, title: '活动需求', projectId: 1, status: 'done', priority: 'medium', module: '活动' },
   { id: 5, title: '拒绝需求', projectId: 1, status: 'cancelled', priority: 'low', module: '活动' },
 ] }));
@@ -28,8 +29,9 @@ describe('UX stage table', () => {
   });
   it('shows an unfinished development child as a compact program-integration checkpoint', () => {
     render(<UxStageTable />);
-    const checkpoint = screen.getByText('卡点：程序接入 · 接入中');
+    const checkpoint = screen.getByText('卡点：程序接入 · 进行中');
     expect(checkpoint.closest('a')?.getAttribute('href')).toBe('https://tapd.example/story/6');
+    expect(screen.getByText('卡点：音频制作 · 待开始').closest('a')?.getAttribute('href')).toBe('https://tapd.example/story/7');
     expect(screen.queryByText('开发')).toBeNull();
   });
   it('shows a completed parent with the same overall treatment in green', () => {

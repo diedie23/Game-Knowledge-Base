@@ -1441,7 +1441,7 @@ export function TapdModal() {
                     ) : (
                       <div className="text-[10px] text-gray-500">验证连接后显示当前工作区的需求类别；不选择则读取全部类别。</div>
                     )}
-                    <div className="text-[10px] text-gray-600 mt-1.5">只读取所选类别的需求，并自动补取它们的父需求以保留层级。</div>
+                    <div className="text-[10px] text-gray-600 mt-1.5">主范围只读取所选类别，并自动补取父需求及其程序接入、音频制作等关联子需求，用于流程卡点提示。</div>
                   </div>
 
                   {/* TAPD release plan filter */}
