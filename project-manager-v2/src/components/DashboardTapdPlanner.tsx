@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
-import { AlertCircle, CalendarClock, ExternalLink, LocateFixed, RefreshCw, ShieldAlert, UserRoundX } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { AlertCircle, CalendarClock, Check, Copy, ExternalLink, LocateFixed, RefreshCw, ShieldAlert, UserRoundX, X } from 'lucide-react';
 import type { Resource, Task } from '../types';
-import { buildTapdPlanningItems, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
+import { buildTapdPlanningItems, formatTapdAdjustmentChecklist, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
 import { useStore } from '../store/useStore';
 import { getPriorityLabel } from '../utils/priority';
 
@@ -9,6 +9,8 @@ interface Props {
   tasks: Task[];
   resources: Resource[];
 }
+
+type QueueFilter = 'all' | 'severe' | 'unscheduled' | 'blocked' | 'unassigned';
 
 const LEVEL_STYLE = {
   critical: { label: '严重', card: 'border-red-500/30 bg-red-500/[0.07]', badge: 'border-red-500/30 bg-red-500/15 text-red-300' },
@@ -29,8 +31,19 @@ function syncFreshness(timestamp: number | null) {
 
 export function DashboardTapdPlanner({ tasks, resources }: Props) {
   const { setCurrentView, setHighlightedTaskIds, openTapdModal, openTaskModal } = useStore();
+  const [filter, setFilter] = useState<QueueFilter>('all');
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [showChecklist, setShowChecklist] = useState(false);
+  const [copied, setCopied] = useState(false);
   const allItems = useMemo(() => buildTapdPlanningItems(tasks, resources), [tasks, resources]);
-  const items = allItems.slice(0, 8);
+  const filteredItems = useMemo(() => allItems.filter(item => {
+    if (filter === 'severe') return item.level === 'critical' || item.level === 'high';
+    if (filter === 'unscheduled') return item.tags.includes('unscheduled');
+    if (filter === 'blocked') return item.tags.includes('blocked') || item.tags.includes('dependency');
+    if (filter === 'unassigned') return item.tags.includes('unassigned');
+    return true;
+  }), [allItems, filter]);
+  const items = filteredItems.slice(0, 8);
   const latestSyncAt = useMemo(() => latestTapdSyncAt(tasks), [tasks]);
   const freshness = syncFreshness(latestSyncAt);
   const counts = useMemo(() => ({
@@ -48,6 +61,22 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
   const enterRiskGantt = () => {
     setHighlightedTaskIds(items.map(item => item.task.id).filter((id): id is number => !!id));
     setCurrentView('gantt');
+  };
+  const selectedItems = allItems.filter(item => item.task.id && selectedIds.has(item.task.id));
+  const checklist = useMemo(() => formatTapdAdjustmentChecklist(selectedItems, resources), [selectedItems, resources]);
+  const toggleSelection = (taskId?: number) => {
+    if (!taskId) return;
+    setSelectedIds(current => {
+      const next = new Set(current);
+      if (next.has(taskId)) next.delete(taskId); else next.add(taskId);
+      return next;
+    });
+  };
+  const selectVisible = () => setSelectedIds(current => new Set([...current, ...items.map(item => item.task.id).filter((id): id is number => !!id)]));
+  const copyChecklist = async () => {
+    await navigator.clipboard.writeText(checklist);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
   };
 
   return (
@@ -73,21 +102,23 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
 
       <div className="mt-4 grid grid-cols-4 gap-2">
         {[
-          { label: '严重 / 高风险', value: counts.severe, icon: AlertCircle, color: 'text-red-300' },
-          { label: '缺少排期', value: counts.unscheduled, icon: CalendarClock, color: 'text-purple-300' },
-          { label: '依赖 / 卡点', value: counts.blocked, icon: ShieldAlert, color: 'text-amber-300' },
-          { label: '未匹配处理人', value: counts.unassigned, icon: UserRoundX, color: 'text-sky-300' },
-        ].map(summary => <div key={summary.label} className="flex items-center gap-2 rounded-lg border border-gray-700/60 bg-gray-950/30 px-3 py-2"><summary.icon size={14} className={summary.color} /><span className="text-lg font-bold text-white">{summary.value}</span><span className="text-[11px] text-gray-500">{summary.label}</span></div>)}
+          { filter: 'severe' as const, label: '严重 / 高风险', value: counts.severe, icon: AlertCircle, color: 'text-red-300' },
+          { filter: 'unscheduled' as const, label: '缺少排期', value: counts.unscheduled, icon: CalendarClock, color: 'text-purple-300' },
+          { filter: 'blocked' as const, label: '依赖 / 卡点', value: counts.blocked, icon: ShieldAlert, color: 'text-amber-300' },
+          { filter: 'unassigned' as const, label: '未匹配处理人', value: counts.unassigned, icon: UserRoundX, color: 'text-sky-300' },
+        ].map(summary => <button key={summary.label} onClick={() => setFilter(filter === summary.filter ? 'all' : summary.filter)} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition-colors ${filter === summary.filter ? 'border-indigo-500/50 bg-indigo-500/15' : 'border-gray-700/60 bg-gray-950/30 hover:border-gray-600'}`}><summary.icon size={14} className={summary.color} /><span className="text-lg font-bold text-white">{summary.value}</span><span className="text-[11px] text-gray-500">{summary.label}</span></button>)}
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        {items.length > 0 && <div className="col-span-2 flex items-center justify-between px-1 text-[10px] text-gray-500"><span>优先处理清单</span><span>显示前 {items.length} 项，共 {allItems.length} 项</span></div>}
+        {items.length > 0 && <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-gray-500"><div className="flex items-center gap-2"><span>优先处理清单</span>{filter !== 'all' && <button onClick={() => setFilter('all')} className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-indigo-300 hover:text-white">清除筛选</button>}<button onClick={selectVisible} className="hover:text-white">选择当前 {items.length} 项</button>{selectedIds.size > 0 && <button onClick={() => setSelectedIds(new Set())} className="hover:text-white">清空选择</button>}</div><div className="flex items-center gap-3"><span>显示前 {items.length} 项，共 {filteredItems.length} 项</span><button disabled={selectedItems.length === 0} onClick={() => setShowChecklist(true)} className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 font-medium text-indigo-300 hover:bg-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-40">生成调整清单（{selectedItems.length}）</button></div></div>}
         {items.length === 0 && <div className="col-span-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-5 text-center text-sm text-emerald-300">当前没有需要优先调整的 TAPD 排期项</div>}
         {items.map(item => {
           const style = LEVEL_STYLE[item.level];
           const assignees = (item.task.assigneeIds || []).map(id => resourceById.get(id)?.name).filter(Boolean).join('、') || '未匹配处理人';
-          return <article key={item.task.id} className={`rounded-xl border p-3 ${style.card}`}>
+          const isSelected = !!item.task.id && selectedIds.has(item.task.id);
+          return <article key={item.task.id} className={`rounded-xl border p-3 ${isSelected ? 'ring-1 ring-indigo-400/60' : ''} ${style.card}`}>
             <div className="flex items-start gap-2">
+              <button onClick={() => toggleSelection(item.task.id)} className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border ${isSelected ? 'border-indigo-400 bg-indigo-500 text-white' : 'border-gray-600 bg-gray-900/60 text-transparent hover:border-indigo-400'}`} aria-label={isSelected ? '取消选择' : '选择任务'}><Check size={11} /></button>
               <div className="min-w-0 flex-1">
                 <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
                   <span className={`rounded border px-1.5 py-0.5 text-[9px] font-semibold ${style.badge}`}>{style.label}</span>
@@ -106,6 +137,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
           </article>;
         })}
       </div>
+      {showChecklist && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-6 backdrop-blur-sm" onClick={() => setShowChecklist(false)}><div className="flex max-h-[82vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-gray-700 bg-[#121722] shadow-2xl" onClick={event => event.stopPropagation()}><div className="flex items-center justify-between border-b border-gray-700 px-5 py-4"><div><h3 className="font-semibold text-white">TAPD 排期调整清单</h3><p className="mt-1 text-xs text-gray-500">复制后可作为本轮调整记录，按顺序进入 TAPD 修改。</p></div><button onClick={() => setShowChecklist(false)} className="rounded p-1.5 text-gray-500 hover:bg-gray-800 hover:text-white"><X size={16} /></button></div><textarea readOnly value={checklist} className="m-5 min-h-80 flex-1 resize-none rounded-xl border border-gray-700 bg-gray-950/60 p-4 font-mono text-xs leading-6 text-gray-300 outline-none" /><div className="flex items-center justify-between border-t border-gray-700 px-5 py-4"><span className="text-xs text-gray-500">已选择 {selectedItems.length} 项；不会自动回写 TAPD。</span><button onClick={copyChecklist} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500 px-3 py-2 text-xs font-medium text-white hover:bg-indigo-400">{copied ? <Check size={14} /> : <Copy size={14} />}{copied ? '已复制' : '复制调整清单'}</button></div></div></div>}
     </section>
   );
 }

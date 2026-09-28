@@ -74,3 +74,25 @@ export function latestTapdSyncAt(tasks: Task[]): number | null {
     .filter(value => Number.isFinite(value) && value > 0);
   return timestamps.length ? Math.max(...timestamps) : null;
 }
+
+export function formatTapdAdjustmentChecklist(items: TapdPlanningItem[], resources: Resource[]): string {
+  const resourceById = new Map(resources.filter(resource => resource.id).map(resource => [resource.id!, resource]));
+  const lines = ['# TAPD 排期调整清单', '', `共 ${items.length} 项，按当前风险优先级排列。`, ''];
+  items.forEach((item, index) => {
+    const assignees = (item.task.assigneeIds || [])
+      .map(id => resourceById.get(id)?.name)
+      .filter(Boolean)
+      .join('、') || '未匹配处理人';
+    const priority = item.task.tapdPriorityLabel || (item.task.priority === 'high' ? 'P0' : item.task.priority === 'medium' ? 'P1' : item.task.priority === 'low' ? 'P2' : '无');
+    lines.push(
+      `${index + 1}. [${priority}] ${item.task.title}`,
+      `   - 问题：${item.reasons.join('；')}`,
+      `   - 建议动作：${item.actionLabel}`,
+      `   - 当前处理人：${assignees}`,
+      `   - 当前排期：${item.task.startDate ? item.task.startDate.toLocaleDateString('zh-CN') : '未排期'} → ${item.task.endDate ? item.task.endDate.toLocaleDateString('zh-CN') : '未排期'}`,
+      `   - TAPD：${item.task.externalUrl || item.task.tapdId || '无链接'}`,
+      '',
+    );
+  });
+  return lines.join('\n').trim();
+}

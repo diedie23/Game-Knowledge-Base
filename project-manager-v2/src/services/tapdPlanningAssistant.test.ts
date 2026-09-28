@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Resource, Task } from '../types';
-import { buildTapdPlanningItems, latestTapdSyncAt } from './tapdPlanningAssistant';
+import { buildTapdPlanningItems, formatTapdAdjustmentChecklist, latestTapdSyncAt } from './tapdPlanningAssistant';
 
 const task = (id: number, overrides: Partial<Task> = {}): Task => ({
   id,
@@ -49,5 +49,23 @@ describe('latestTapdSyncAt', () => {
       task(2, { syncedAt: 20 }),
       task(3, { tapdId: undefined, externalUrl: undefined, syncSource: 'local', syncedAt: 99 }),
     ])).toBe(20);
+  });
+});
+
+describe('formatTapdAdjustmentChecklist', () => {
+  it('creates a TAPD-first checklist with owner, reason and link', () => {
+    const source = task(8, { tapdPriorityLabel: 'P0', assigneeIds: [1] });
+    const text = formatTapdAdjustmentChecklist([{
+      task: source,
+      level: 'high',
+      reasons: ['缺少结束日期'],
+      tags: ['unscheduled'],
+      actionLabel: '补充 TAPD 排期',
+      score: 340,
+    }], [{ id: 1, name: '设计师', role: 'UI设计', type: 'internal' } as Resource]);
+    expect(text).toContain('[P0] 任务8');
+    expect(text).toContain('当前处理人：设计师');
+    expect(text).toContain('建议动作：补充 TAPD 排期');
+    expect(text).toContain('https://tapd.example/story/8');
   });
 });
