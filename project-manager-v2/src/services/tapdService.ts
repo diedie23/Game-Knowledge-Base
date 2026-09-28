@@ -2742,7 +2742,7 @@ export class TapdService {
     const linkedTasks = allLocalTasks.filter(t => !!t.tapdId && t.status !== 'paused');
 
     if (linkedTasks.length === 0) {
-      return { totalChecked: 0, updatedCount: 0, unchangedCount: 0, failedCount: 0, newlyBoundCount: 0, details: [] };
+      return { totalChecked: 0, updatedCount: 0, unchangedCount: 0, failedCount: 0, deletedCount: 0, newlyBoundCount: 0, details: [] };
     }
 
     console.log(`[TapdService] Refreshing: ${linkedTasks.length} linked tasks for project ${projectId} (manual tasks are skipped)`);
@@ -2759,6 +2759,7 @@ export class TapdService {
     let updatedCount = 0;
     let unchangedCount = 0;
     let failedCount = 0;
+    let deletedCount = 0;
     const newlyBoundCount = 0;
     const details: RefreshDetailItem[] = [];
 
@@ -2803,7 +2804,10 @@ export class TapdService {
             config,
             { workspace_id: wsId, id: batchIds.join(','), limit: String(Math.max(20, batchIds.length)), fields: this.getStoryFields() }
           );
-          if (data?.status === 1 && data?.data) {
+          if (data?.status !== 1) {
+            throw new Error(data?.info || `TAPD workspace ${wsId} 查询失败`);
+          }
+          if (data?.data) {
             stories.push(...(Array.isArray(data.data) ? data.data : [data.data]));
           }
         } else {
@@ -2859,6 +2863,19 @@ export class TapdService {
       }
     }
 
+    // A partial batch or transient network failure must never delete local data.
+    // Confirm every unresolved ID with one final exact-ID request. Only a successful
+    // response across all configured workspaces with no matching story proves deletion.
+    const confirmedDeletedIds = new Set<string>();
+    for (const tapdId of uniqueTapdIds.filter(id => !remoteMap.has(id))) {
+      try {
+        await fetchRemoteBatch([tapdId]);
+        if (!remoteMap.has(tapdId)) confirmedDeletedIds.add(tapdId);
+      } catch (error) {
+        console.warn(`[TapdService] Unable to confirm whether TAPD story ${tapdId} was deleted; keeping local cache`, error);
+      }
+    }
+
     console.log(`[TapdService] Direct ID fetch complete: ${remoteMap.size}/${allTapdIds.length} tasks retrieved from TAPD`);
 
     // --- Phase 2: Refresh all linked tasks ---
@@ -2876,8 +2893,20 @@ export class TapdService {
       const remote = remoteMap.get(tapdId);
 
       if (!remote) {
-        // Task truly not found in TAPD (may have been deleted)
-        failedCount++;
+        if (confirmedDeletedIds.has(tapdId)) {
+          await db.tasks.delete(localTask.id!);
+          deletedCount++;
+          if (details.length < 200) {
+            details.push({
+              title: localTask.title || '',
+              tapdId,
+              externalUrl: localTask.externalUrl,
+              changes: [{ field: 'deleted', oldValue: '本地缓存', newValue: 'TAPD 已删除，已清理' }],
+            });
+          }
+        } else {
+          failedCount++;
+        }
         continue;
       }
 
@@ -3062,7 +3091,7 @@ export class TapdService {
     // Rebuild hierarchy for already imported tasks during quick refresh.
     const refreshedTapdIdToLocalId = new Map<string, number>();
     allLocalTasks.forEach(task => {
-      if (task.tapdId && task.id) refreshedTapdIdToLocalId.set(task.tapdId, task.id);
+      if (task.tapdId && task.id && !confirmedDeletedIds.has(task.tapdId)) refreshedTapdIdToLocalId.set(task.tapdId, task.id);
     });
     for (const localTask of linkedTasks) {
       const remote = localTask.tapdId ? remoteMap.get(localTask.tapdId) : undefined;
@@ -3080,13 +3109,14 @@ export class TapdService {
     });
 
     const totalChecked = linkedTasks.length + newlyBoundCount;
-    console.log(`[TapdService] Refresh complete: ${newlyBoundCount} newly bound, ${updatedCount} updated, ${unchangedCount} unchanged, ${failedCount} not found in remote`);
+    console.log(`[TapdService] Refresh complete: ${newlyBoundCount} newly bound, ${updatedCount} updated, ${unchangedCount} unchanged, ${deletedCount} deleted, ${failedCount} unresolved`);
 
     return {
       totalChecked,
       updatedCount,
       unchangedCount,
       failedCount,
+      deletedCount,
       newlyBoundCount,
       details,
     };

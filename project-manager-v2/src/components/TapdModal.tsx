@@ -2219,7 +2219,7 @@ export function TapdModal() {
                   <div className="p-3 space-y-1.5">
                     <div className="flex items-center justify-between mb-2">
                       <div className="text-xs font-medium text-sky-300">🔄 状态刷新结果</div>
-                      {refreshResult.updatedCount > 0 && (
+                      {refreshResult.updatedCount + refreshResult.deletedCount > 0 && (
                         <button
                           onClick={() => setRefreshDetailExpanded(!refreshDetailExpanded)}
                           className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-gray-200 transition-colors"
@@ -2229,7 +2229,7 @@ export function TapdModal() {
                         </button>
                       )}
                     </div>
-                    <div className="grid grid-cols-5 gap-2 text-[11px]">
+                    <div className="grid grid-cols-6 gap-2 text-[11px]">
                       <div className="text-center">
                         <div className="text-lg font-bold font-mono tabular-nums text-sky-400">{refreshResult.totalChecked}</div>
                         <div className="text-gray-500">已检查</div>
@@ -2247,8 +2247,12 @@ export function TapdModal() {
                         <div className="text-gray-500">无变化</div>
                       </div>
                       <div className="text-center">
+                        <div className="text-lg font-bold font-mono tabular-nums text-red-400">{refreshResult.deletedCount}</div>
+                        <div className="text-gray-500">已清理</div>
+                      </div>
+                      <div className="text-center">
                         <div className="text-lg font-bold font-mono tabular-nums text-amber-400">{refreshResult.failedCount}</div>
-                        <div className="text-gray-500">未匹配</div>
+                        <div className="text-gray-500">待确认</div>
                       </div>
                     </div>
                   </div>
@@ -2256,7 +2260,7 @@ export function TapdModal() {
                   {/* Expandable refresh detail list */}
                   {refreshDetailExpanded && refreshResult.details.length > 0 && (
                     <div className="border-t border-sky-500/15">
-                      {refreshResult.updatedCount > refreshResult.details.length && (
+                      {refreshResult.updatedCount + refreshResult.deletedCount > refreshResult.details.length && (
                         <div className="px-3 pt-2 text-[10px] text-gray-500">
                           变更过多，仅展示前 {refreshResult.details.length} 条，统计数仍为完整结果。
                         </div>
@@ -2291,6 +2295,7 @@ export function TapdModal() {
                                   progress: '进度',
                                   assignee: '处理人',
                                   bind: '🔗 绑定TAPD',
+                                  deleted: '已清理',
                                 };
                                 const statusLabels: Record<string, string> = {
                                   todo: '待办',
@@ -2300,6 +2305,7 @@ export function TapdModal() {
                                 const formatValue = (field: string, val: string) => {
                                   if (field === 'status') return statusLabels[val] || val;
                                   if (field === 'bind') return '已绑定';
+                                  if (field === 'deleted') return val;
                                   return val;
                                 };
                                 // For "bind" type, show a special green badge

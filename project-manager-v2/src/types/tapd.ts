@@ -201,7 +201,7 @@ export interface RefreshDetailItem {
   externalUrl?: string;
   /** Changes detected */
   changes: {
-    field: 'status' | 'startDate' | 'endDate' | 'priority' | 'progress' | 'assignee' | 'bind' | 'title';
+    field: 'status' | 'startDate' | 'endDate' | 'priority' | 'progress' | 'assignee' | 'bind' | 'title' | 'deleted';
     oldValue: string;
     newValue: string;
   }[];
@@ -217,6 +217,8 @@ export interface RefreshResult {
   unchangedCount: number;
   /** Tasks that failed to fetch from TAPD (may have been deleted) */
   failedCount: number;
+  /** Local cached tasks removed after TAPD confirmed the story no longer exists. */
+  deletedCount: number;
   /** Manual tasks newly bound to TAPD via title matching */
   newlyBoundCount?: number;
   /** Detailed change list */

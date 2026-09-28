@@ -3136,7 +3136,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
               ) : tapdRefreshResult ? (
                 <>
                   {/* Summary stats */}
-                  <div className="grid grid-cols-5 gap-2 mb-4">
+                  <div className="grid grid-cols-6 gap-2 mb-4">
                     <div className="bg-gray-800/50 rounded-xl p-3 text-center border border-gray-700/30">
                       <div className="text-lg font-bold font-mono tabular-nums text-sky-400">{tapdRefreshResult.totalChecked}</div>
                       <div className="text-[10px] text-gray-500 mt-0.5">已检查</div>
@@ -3154,8 +3154,12 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                       <div className="text-[10px] text-gray-500 mt-0.5">无变化</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-xl p-3 text-center border border-gray-700/30">
+                      <div className="text-lg font-bold font-mono tabular-nums text-red-400">{tapdRefreshResult.deletedCount}</div>
+                      <div className="text-[10px] text-gray-500 mt-0.5">已清理</div>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-xl p-3 text-center border border-gray-700/30">
                       <div className="text-lg font-bold font-mono tabular-nums text-amber-400">{tapdRefreshResult.failedCount}</div>
-                      <div className="text-[10px] text-gray-500 mt-0.5">未找到</div>
+                      <div className="text-[10px] text-gray-500 mt-0.5">待确认</div>
                     </div>
                   </div>
 
@@ -3189,7 +3193,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                               {item.changes.map((change, ci) => {
                                 const fieldLabels: Record<string, string> = {
                                   status: '状态', startDate: '开始日期', endDate: '截止日期',
-                                  priority: '优先级', progress: '进度', assignee: '处理人', bind: '绑定'
+                                  priority: '优先级', progress: '进度', assignee: '处理人', bind: '绑定', deleted: '已清理'
                                 };
                                 return (
                                   <div key={ci} className="flex items-center gap-2 text-[11px]">
