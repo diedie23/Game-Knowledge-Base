@@ -54,6 +54,25 @@ export function taskStatus(task: Task): StageStatus {
   return task.isBlocked && task.status !== 'done' && task.status !== 'cancelled' ? 'blocked' : task.status;
 }
 
+const DEVELOPMENT_TASK_PATTERN = /开发|程序|客户端|前端|工程|接入|development|developer|client/i;
+const DEVELOPMENT_ROLE_PATTERN = /开发|程序|客户端|前端|工程|development|developer|client/i;
+
+/** Find unfinished development children without adding them to the four UX stage columns. */
+export function developmentCheckpointTasks(tasks: Task[], resources: Resource[] = []): Task[] {
+  const rank: Record<StageStatus, number> = { blocked: 0, in_progress: 1, todo: 2, paused: 3, missing: 4, done: 5, cancelled: 6 };
+  return tasks.filter(task => {
+    if (task.status === 'done' || task.status === 'cancelled') return false;
+    if (taskStage(task, resources)) return false;
+    const typeOrTitle = `${task.tapdWorkitemTypeName || ''} ${task.title || ''}`;
+    if (DEVELOPMENT_TASK_PATTERN.test(typeOrTitle)) return true;
+    const ownerTokens = String(task.tapdOwner || '').split(/[;,，；]/).map(value => value.trim().toLowerCase()).filter(Boolean);
+    return resources.some(resource => DEVELOPMENT_ROLE_PATTERN.test(resource.role || '') && (
+      task.assigneeIds?.includes(resource.id || -1) ||
+      ownerTokens.some(token => token === String(resource.tapdAccount || '').toLowerCase() || token === resource.name.trim().toLowerCase())
+    ));
+  }).sort((left, right) => (rank[taskStatus(left)] ?? 9) - (rank[taskStatus(right)] ?? 9));
+}
+
 export function stageStatus(tasks: Task[]): StageStatus {
   if (!tasks.length) return 'missing';
   const active = tasks.filter(t => t.status !== 'cancelled');

@@ -7,6 +7,7 @@ const state = vi.hoisted(() => ({ open: vi.fn(), tasks: [
   { id: 1, title: '商城需求', projectId: 1, status: 'todo', priority: 'high', module: '商城' },
   { id: 2, parentId: 1, title: '【视觉设计】商城初稿', status: 'done', projectId: 1, assigneeIds: [1] },
   { id: 3, parentId: 1, title: '【视觉设计】商城修改', status: 'todo', projectId: 1, assigneeIds: [2], isBlocked: true, blockReason: '等待素材' },
+  { id: 6, parentId: 1, title: '商城程序接入', status: 'in_progress', projectId: 1, tapdWorkitemTypeName: '开发子需求', externalUrl: 'https://tapd.example/story/6' },
   { id: 4, title: '活动需求', projectId: 1, status: 'done', priority: 'medium', module: '活动' },
   { id: 5, title: '拒绝需求', projectId: 1, status: 'cancelled', priority: 'low', module: '活动' },
 ] }));
@@ -24,6 +25,12 @@ describe('UX stage table', () => {
     expect(screen.getByText('等待素材')).toBeTruthy();
     fireEvent.click(screen.getAllByText('查看 / 编辑任务')[1]);
     expect(state.open).toHaveBeenCalledWith(3);
+  });
+  it('shows an unfinished development child as a compact program-integration checkpoint', () => {
+    render(<UxStageTable />);
+    const checkpoint = screen.getByText('卡点：程序接入 · 接入中');
+    expect(checkpoint.closest('a')?.getAttribute('href')).toBe('https://tapd.example/story/6');
+    expect(screen.queryByText('开发')).toBeNull();
   });
   it('shows a completed parent with the same overall treatment in green', () => {
     render(<UxStageTable />);

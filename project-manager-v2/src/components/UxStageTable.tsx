@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Search, Plus, X, ArrowUpDown, ExternalLink, ChevronRight } from 'lucide-react';
+import { Search, Plus, X, ArrowUpDown, ExternalLink, ChevronRight, AlertTriangle } from 'lucide-react';
 import { db } from '../db/db';
 import { useStore } from '../store/useStore';
 import type { Task } from '../types/task';
 import type { CoreUxStage } from '../services/uxStageView';
-import { buildStageRows, isDemandComplete, isUiStoryOverallComplete, STAGES, STAGE_STATUS, stageStatus, taskStatus } from '../services/uxStageView';
+import { buildStageRows, developmentCheckpointTasks, isDemandComplete, isUiStoryOverallComplete, STAGES, STAGE_STATUS, stageStatus, taskStatus } from '../services/uxStageView';
 import { getPriorityLabel } from '../utils/priority';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 
@@ -82,6 +82,9 @@ export function UxStageTable() {
     if (items.some(t => !t.assigneeIds?.length)) result.push('待分配');
     return result.join('、') || '—';
   };
+  const rowDevelopmentCheckpoints = (row: typeof rows[number]) => developmentCheckpointTasks(row.descendants, resources);
+  const isRowComplete = (row: typeof rows[number]) =>
+    isUiStoryOverallComplete(row.root) || (isDemandComplete(row.stages) && rowDevelopmentCheckpoints(row).length === 0);
   const filtered = rows.filter(row => {
     const text = query.trim().toLowerCase();
     if (text && ![row.root, ...row.descendants].some(t => `${t.title} ${t.tapdId || ''} ${t.module || ''}`.toLowerCase().includes(text))) return false;
@@ -97,7 +100,7 @@ export function UxStageTable() {
     });
     if (!ownersMatch) return false;
     // “已完成” follows TAPD workflow progress, with all-stage completion as a fallback.
-    if (status === 'done') return isUiStoryOverallComplete(row.root) || isDemandComplete(row.stages);
+    if (status === 'done') return isRowComplete(row);
     if (status === 'cancelled' && taskStatus(row.root) === 'cancelled') return true;
     if (status === 'missing') return visibleStages.some(s => row.stages[s.key].length === 0);
     if (status === 'all') return stage === 'all' || visibleStages.some(s => row.stages[s.key].length > 0);
@@ -109,8 +112,8 @@ export function UxStageTable() {
       ));
     });
   }).sort((a, b) => {
-    const aDone = isUiStoryOverallComplete(a.root) || isDemandComplete(a.stages);
-    const bDone = isUiStoryOverallComplete(b.root) || isDemandComplete(b.stages);
+    const aDone = isRowComplete(a);
+    const bDone = isRowComplete(b);
     if (aDone !== bDone) return aDone ? 1 : -1;
 
     const priorityRank: Record<string, number> = { high: 0, medium: 1, low: 2 };
@@ -168,7 +171,7 @@ export function UxStageTable() {
           {STAGES.map((s, index) => <th key={s.key} className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 font-medium"><span className="mr-2 text-[10px] text-indigo-400">0{index + 1}</span><span className="text-gray-200">{s.label}</span><div className="mt-1 text-[10px] font-normal text-gray-500">负责人 / 状态</div></th>)}
           <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 text-center align-middle text-sm font-semibold text-gray-200"><button onClick={() => setDescending(!descending)} className="flex w-full items-center justify-center gap-1" aria-label={descending ? '截止日期降序，点击升序' : '截止日期升序，点击降序'}>截止日期<ArrowUpDown size={13} /></button></th>
         </tr></thead>
-        <tbody>{filtered.map(({ root, stages }) => { const rootDone = isUiStoryOverallComplete(root) || isDemandComplete(stages); const rootCancelled = taskStatus(root) === 'cancelled'; return <tr key={root.id} className={'group ' + (rootCancelled ? 'bg-red-500/[0.07]' : rootDone ? 'bg-emerald-500/[0.07]' : '')}>
+        <tbody>{filtered.map(row => { const { root, stages } = row; const checkpoints = rowDevelopmentCheckpoints(row); const checkpoint = checkpoints[0]; const rootDone = isRowComplete(row); const rootCancelled = taskStatus(root) === 'cancelled'; const checkpointStatus = checkpoint ? taskStatus(checkpoint) : undefined; const checkpointLabel = checkpointStatus === 'blocked' ? '阻塞' : checkpointStatus === 'paused' ? '暂停' : checkpointStatus === 'in_progress' ? '接入中' : '待接入'; return <tr key={root.id} className={'group ' + (rootCancelled ? 'bg-red-500/[0.07]' : rootDone ? 'bg-emerald-500/[0.07]' : '')}>
           <td className={'sticky left-0 z-10 border-b border-gray-800 px-4 py-3 ' + (rootCancelled ? 'bg-[#28171c] group-hover:bg-[#341b22]' : rootDone ? 'bg-[#10231d] group-hover:bg-[#153027]' : 'bg-[#11151d] group-hover:bg-[#191e2b]')}>
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="flex flex-wrap items-center gap-1.5"><span className="rounded border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold text-sky-300">UIStory · 父需求</span>{rootCancelled ? <span className="rounded border border-red-500/30 bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-300">父需求已拒绝</span> : rootDone ? <span className="rounded border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">父需求已完成</span> : null}</div>
@@ -176,6 +179,7 @@ export function UxStageTable() {
             </div>
             {root.externalUrl ? <a href={root.externalUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="line-clamp-2 text-left text-[13px] font-medium leading-5 text-gray-200 hover:text-indigo-300 hover:underline" title={`${root.title} · 点击前往 TAPD`}>{root.title}</a> : <button onClick={() => openTaskModal(root.id)} className="line-clamp-2 text-left text-[13px] font-medium leading-5 text-gray-200 hover:text-indigo-300" title={root.title}>{root.title}</button>}
             <div className="mt-1.5 flex items-center gap-2 text-[10px] text-gray-500">{root.tapdId && <span>#{root.tapdId}</span>}<button onClick={() => openTaskModal(root.id)} className="text-gray-400 hover:text-white">本地详情</button></div>
+            {checkpoint && (checkpoint.externalUrl ? <a href={checkpoint.externalUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} title={checkpoint.title} className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-md border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[10px] font-medium text-amber-300 hover:bg-amber-500/20 hover:text-amber-200"><AlertTriangle size={11} /><span className="truncate">卡点：程序接入 · {checkpointLabel}{checkpoints.length > 1 ? `（${checkpoints.length}项）` : ''}</span><ExternalLink size={10} className="shrink-0" /></a> : <button onClick={() => openTaskModal(checkpoint.id)} title={checkpoint.title} className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-md border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[10px] font-medium text-amber-300 hover:bg-amber-500/20 hover:text-amber-200"><AlertTriangle size={11} /><span className="truncate">卡点：程序接入 · {checkpointLabel}{checkpoints.length > 1 ? `（${checkpoints.length}项）` : ''}</span></button>)}
           </td>
           <td className="border-b border-l border-gray-800 px-3 py-5 text-center align-middle text-sm font-semibold text-blue-300">{root.module || '未分类'}</td>
           <td className="border-b border-gray-800 px-2 py-3 text-center align-middle"><span className={`inline-flex min-w-9 justify-center rounded px-2.5 py-1 text-xs font-semibold ${root.priority === 'high' ? 'bg-red-500/10 text-red-300' : root.priority === 'medium' ? 'bg-amber-500/10 text-amber-300' : 'bg-gray-800 text-gray-400'}`}>{getPriorityLabel(root.priority)}</span></td>

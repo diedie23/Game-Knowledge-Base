@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Task } from '../types/task';
 import type { Resource } from '../types/resource';
-import { buildStageRows, isDemandComplete, isUiStoryOverallComplete, stageStatus, taskStage, taskStatus } from './uxStageView';
+import { buildStageRows, developmentCheckpointTasks, isDemandComplete, isUiStoryOverallComplete, stageStatus, taskStage, taskStatus } from './uxStageView';
 
 const task = (id: number, title: string, props: Partial<Task> = {}): Task => ({ id, title, status: 'todo', priority: 'medium', projectId: 1, progress: 0, dependencies: [], type: 'task', ...props });
 
@@ -71,6 +71,14 @@ describe('UX stage rows', () => {
     expect(rows[0].stages.implementation.map(item => item.id)).toEqual([22]);
     expect(rows[0].descendants.map(item => item.id)).toEqual([21, 22, 23]);
   });
+  it('finds unfinished development children without adding them to UX stages', () => {
+    const development = task(30, '程序接入', { status: 'in_progress', tapdWorkitemTypeName: '开发子需求' });
+    const blockedDevelopment = task(31, '客户端接入', { status: 'todo', isBlocked: true });
+    const completedDevelopment = task(32, '程序接入完成', { status: 'done' });
+    const visual = task(33, '动效接入', { status: 'in_progress' });
+    expect(developmentCheckpointTasks([development, completedDevelopment, visual, blockedDevelopment]).map(item => item.id)).toEqual([31, 30]);
+  });
+
   it('distinguishes absent tasks from pending and cancelled work', () => {
     expect(stageStatus([])).toBe('missing');
     expect(stageStatus([task(1, '')])).toBe('todo');
