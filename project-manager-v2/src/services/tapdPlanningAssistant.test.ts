@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Resource, Task } from '../types';
-import { buildTapdPlanningItems, formatTapdAdjustmentChecklist, latestTapdSyncAt } from './tapdPlanningAssistant';
+import { buildTapdPlanningItems, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, latestTapdSyncAt } from './tapdPlanningAssistant';
 
 const task = (id: number, overrides: Partial<Task> = {}): Task => ({
   id,
@@ -62,10 +62,49 @@ describe('formatTapdAdjustmentChecklist', () => {
       tags: ['unscheduled'],
       actionLabel: '补充 TAPD 排期',
       score: 340,
+      suggestion: {
+        resource: { id: 1, name: '设计师', role: 'UI设计', type: 'internal' } as Resource,
+        startDate: new Date('2026-09-28'),
+        endDate: new Date('2026-09-29'),
+        currentConflictCount: 0,
+        suggestedConflictCount: 0,
+        assigneeChanged: false,
+        scheduleChanged: true,
+        reasons: ['按 2 个工作日补齐排期'],
+      },
     }], [{ id: 1, name: '设计师', role: 'UI设计', type: 'internal' } as Resource]);
     expect(text).toContain('[P0] 任务8');
     expect(text).toContain('当前处理人：设计师');
     expect(text).toContain('建议动作：补充 TAPD 排期');
+    expect(text).toContain('建议处理人：设计师');
+    expect(text).toContain('调整依据：按 2 个工作日补齐排期');
     expect(text).toContain('https://tapd.example/story/8');
+  });
+});
+
+describe('buildTapdScheduleSuggestion', () => {
+  const today = new Date('2026-09-28T09:00:00');
+
+  it('keeps CP work within CP suppliers and chooses the lower-load matching role', () => {
+    const resources: Resource[] = [
+      { id: 1, name: '内部设计', role: 'UI设计', type: 'internal' } as Resource,
+      { id: 2, name: '供应商甲', role: 'UI设计', type: 'cp' } as Resource,
+      { id: 3, name: '供应商乙', role: 'UI设计', type: 'cp' } as Resource,
+    ];
+    const source = task(10, { title: '界面设计（CP全速）', workCategory: 'cp_follow', assigneeIds: [2], startDate: new Date('2026-09-28'), endDate: new Date('2026-09-29') });
+    const busy = task(11, { parentId: 99, assigneeIds: [2], startDate: new Date('2026-09-28'), endDate: new Date('2026-09-30') });
+    const suggestion = buildTapdScheduleSuggestion(source, ['overlap'], [source, busy], resources, today);
+    expect(suggestion.resource?.id).toBe(3);
+    expect(suggestion.resource?.type).toBe('cp');
+    expect(suggestion.assigneeChanged).toBe(true);
+  });
+
+  it('moves an overdue task to the next working period using its original duration', () => {
+    const resources: Resource[] = [{ id: 1, name: '设计师', role: 'UI设计', type: 'internal' } as Resource];
+    const source = task(12, { assigneeIds: [1], startDate: new Date('2026-09-21'), endDate: new Date('2026-09-22') });
+    const suggestion = buildTapdScheduleSuggestion(source, ['overdue'], [source], resources, today);
+    expect([suggestion.startDate.getFullYear(), suggestion.startDate.getMonth() + 1, suggestion.startDate.getDate()]).toEqual([2026, 9, 28]);
+    expect([suggestion.endDate.getFullYear(), suggestion.endDate.getMonth() + 1, suggestion.endDate.getDate()]).toEqual([2026, 9, 29]);
+    expect(suggestion.reasons.join('')).toContain('原排期已过期');
   });
 });

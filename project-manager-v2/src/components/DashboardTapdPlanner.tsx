@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { AlertCircle, CalendarClock, Check, Copy, ExternalLink, LocateFixed, RefreshCw, ShieldAlert, UserRoundX, X } from 'lucide-react';
+import { AlertCircle, ArrowRight, CalendarClock, Check, Copy, ExternalLink, LocateFixed, RefreshCw, ShieldAlert, UserRoundX, X } from 'lucide-react';
 import type { Resource, Task } from '../types';
-import { buildTapdPlanningItems, formatTapdAdjustmentChecklist, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
+import { buildTapdPlanningItems, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
 import { useStore } from '../store/useStore';
 import { getPriorityLabel } from '../utils/priority';
 
@@ -11,6 +11,8 @@ interface Props {
 }
 
 type QueueFilter = 'all' | 'severe' | 'unscheduled' | 'blocked' | 'unassigned';
+
+const formatDate = (date?: Date) => date ? `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}` : '未排期';
 
 const LEVEL_STYLE = {
   critical: { label: '严重', card: 'border-red-500/30 bg-red-500/[0.07]', badge: 'border-red-500/30 bg-red-500/15 text-red-300' },
@@ -43,7 +45,10 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     if (filter === 'unassigned') return item.tags.includes('unassigned');
     return true;
   }), [allItems, filter]);
-  const items = filteredItems.slice(0, 8);
+  const items = useMemo(() => filteredItems.slice(0, 8).map(item => ({
+    ...item,
+    suggestion: buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date()),
+  })), [filteredItems, tasks, resources]);
   const latestSyncAt = useMemo(() => latestTapdSyncAt(tasks), [tasks]);
   const freshness = syncFreshness(latestSyncAt);
   const counts = useMemo(() => ({
@@ -62,7 +67,9 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     setHighlightedTaskIds(items.map(item => item.task.id).filter((id): id is number => !!id));
     setCurrentView('gantt');
   };
-  const selectedItems = allItems.filter(item => item.task.id && selectedIds.has(item.task.id));
+  const selectedItems = useMemo(() => allItems
+    .filter(item => item.task.id && selectedIds.has(item.task.id))
+    .map(item => ({ ...item, suggestion: buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date()) })), [allItems, selectedIds, tasks, resources]);
   const checklist = useMemo(() => formatTapdAdjustmentChecklist(selectedItems, resources), [selectedItems, resources]);
   const toggleSelection = (taskId?: number) => {
     if (!taskId) return;
@@ -114,6 +121,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
         {items.length === 0 && <div className="col-span-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-5 text-center text-sm text-emerald-300">当前没有需要优先调整的 TAPD 排期项</div>}
         {items.map(item => {
           const style = LEVEL_STYLE[item.level];
+          const suggestion = item.suggestion!;
           const assignees = (item.task.assigneeIds || []).map(id => resourceById.get(id)?.name).filter(Boolean).join('、') || '未匹配处理人';
           const isSelected = !!item.task.id && selectedIds.has(item.task.id);
           return <article key={item.task.id} className={`rounded-xl border p-3 ${isSelected ? 'ring-1 ring-indigo-400/60' : ''} ${style.card}`}>
@@ -127,6 +135,11 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
                 </div>
                 <button onClick={() => openTaskModal(item.task.id)} title={item.task.title} className="line-clamp-1 text-left text-xs font-medium text-gray-200 hover:text-white">{item.task.title}</button>
                 <p className="mt-1 line-clamp-1 text-[10px] text-gray-400">{item.reasons.slice(0, 2).join('；')}</p>
+                <div className="mt-2 grid grid-cols-[36px_1fr] gap-x-2 gap-y-1 rounded-lg border border-white/[0.06] bg-black/15 px-2 py-1.5 text-[10px]">
+                  <span className="text-gray-500">当前</span><span className="truncate text-gray-400">{assignees} · {formatDate(item.task.startDate)}–{formatDate(item.task.endDate)} · {suggestion.currentConflictCount} 项并行</span>
+                  <span className="font-medium text-indigo-300">建议</span><span className="flex min-w-0 items-center gap-1 text-indigo-200"><span className="truncate">{suggestion.resource?.name || '待人工指定'} · {formatDate(suggestion.startDate)}–{formatDate(suggestion.endDate)} · {suggestion.suggestedConflictCount} 项并行</span><ArrowRight size={10} className="shrink-0" /></span>
+                  <span className="text-gray-500">依据</span><span className="truncate text-gray-500" title={suggestion.reasons.join('；')}>{suggestion.reasons.join('；')}</span>
+                </div>
               </div>
               <span className="shrink-0 rounded bg-white/[0.05] px-2 py-1 text-[10px] font-medium text-gray-300">{item.actionLabel}</span>
             </div>
