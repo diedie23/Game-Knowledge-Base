@@ -34,6 +34,23 @@ const STORY_FIELDS = 'id,name,owner,status,created,modified,completed,module,cus
 const RELATED_CHECKPOINT_PATTERN = /开发|程序|客户端|前端|工程|接入|音频|声音|配音|音乐|音效|development|developer|client|audio|sound|music|voice/i;
 const UI_STORY_TYPE_PATTERN = /ui\s*story|uistory|ui需求/i;
 
+/** Normalize the different REST/MCP wrappers used by TAPD's recycle-bin endpoint. */
+export function extractRemovedStoryIds(payload: unknown): string[] {
+  const response = payload as any;
+  const raw = Array.isArray(response)
+    ? response
+    : Array.isArray(response?.data)
+      ? response.data
+      : response?.data
+        ? [response.data]
+        : [];
+  const ids: string[] = raw
+    .map((item: any) => item?.RemovedStory?.id ?? item?.Story?.id ?? item?.id)
+    .filter((id: unknown) => id !== undefined && id !== null && String(id).trim())
+    .map((id: unknown) => String(id));
+  return [...new Set(ids)];
+}
+
 // ─── MCP Gateway Configuration (streamable-http) ─────────────────
 const MCP_GATEWAY_PROXY = '/mcp-gateway/'; // Uses Vite proxy → https://mcpgw.knot.woa.com/tapd/
 
@@ -2742,7 +2759,7 @@ export class TapdService {
     const linkedTasks = allLocalTasks.filter(t => !!t.tapdId && t.status !== 'paused');
 
     if (linkedTasks.length === 0) {
-      return { totalChecked: 0, updatedCount: 0, unchangedCount: 0, failedCount: 0, deletedCount: 0, newlyBoundCount: 0, details: [] };
+      return { totalChecked: 0, updatedCount: 0, unchangedCount: 0, failedCount: 0, deletedCount: 0, deletionAuditChecked: false, deletionAuditMessage: '没有需要核验的 TAPD 任务', newlyBoundCount: 0, details: [] };
     }
 
     console.log(`[TapdService] Refreshing: ${linkedTasks.length} linked tasks for project ${projectId} (manual tasks are skipped)`);
@@ -2760,6 +2777,8 @@ export class TapdService {
     let unchangedCount = 0;
     let failedCount = 0;
     let deletedCount = 0;
+    let deletionAuditChecked = false;
+    let deletionAuditMessage = '';
     const newlyBoundCount = 0;
     const details: RefreshDetailItem[] = [];
 
@@ -2863,11 +2882,48 @@ export class TapdService {
       }
     }
 
+    // TAPD keeps soft-deleted stories in a separate recycle-bin endpoint. A normal
+    // story-by-ID query alone is insufficient because some deployments may still
+    // return a recycled story from the ordinary endpoint for a period of time.
+    const confirmedDeletedIds = new Set<string>();
+    const linkedIdSet = new Set(uniqueTapdIds);
+    try {
+      for (const wsId of workspaceIds) {
+        for (let page = 1; page <= 100; page += 1) {
+          const params = { workspace_id: wsId, is_archived: '0', limit: '200', page: String(page) };
+          let payload: unknown;
+          if (this.hasMcpGatewayCredentials()) {
+            payload = await mcpGatewayFetch<unknown>('stories_get_removed_stories', params, config.mcpAccessToken!);
+          } else if (this.hasRestCredentials()) {
+            payload = await tapdRestFetch<unknown>('/stories/get_removed_stories', config, params);
+          } else {
+            payload = await mcpFetch<unknown>('/tapd/stories_get_removed_stories', params);
+          }
+          if (!Array.isArray(payload) && typeof (payload as any)?.status === 'number' && (payload as any).status !== 1) {
+            throw new Error((payload as any)?.info || `TAPD workspace ${wsId} 回收站查询失败`);
+          }
+          const removedIds = extractRemovedStoryIds(payload);
+          removedIds.forEach(id => {
+            if (linkedIdSet.has(id)) confirmedDeletedIds.add(id);
+          });
+          if (removedIds.length < 200 || confirmedDeletedIds.size === linkedIdSet.size) break;
+        }
+      }
+      deletionAuditChecked = true;
+      deletionAuditMessage = confirmedDeletedIds.size > 0
+        ? `已在 TAPD 回收站确认 ${confirmedDeletedIds.size} 个需求`
+        : '已核验 TAPD 回收站，未发现已删除需求';
+      confirmedDeletedIds.forEach(id => remoteMap.delete(id));
+    } catch (error: any) {
+      deletionAuditMessage = `回收站核验未完成：${error?.message || '接口不可用'}`;
+      console.warn('[TapdService] Recycle-bin verification failed; keeping local cache unless exact-ID lookup confirms deletion', error);
+    }
+
     // A partial batch or transient network failure must never delete local data.
     // Confirm every unresolved ID with one final exact-ID request. Only a successful
     // response across all configured workspaces with no matching story proves deletion.
-    const confirmedDeletedIds = new Set<string>();
     for (const tapdId of uniqueTapdIds.filter(id => !remoteMap.has(id))) {
+      if (confirmedDeletedIds.has(tapdId)) continue;
       try {
         await fetchRemoteBatch([tapdId]);
         if (!remoteMap.has(tapdId)) confirmedDeletedIds.add(tapdId);
@@ -3117,6 +3173,8 @@ export class TapdService {
       unchangedCount,
       failedCount,
       deletedCount,
+      deletionAuditChecked,
+      deletionAuditMessage,
       newlyBoundCount,
       details,
     };

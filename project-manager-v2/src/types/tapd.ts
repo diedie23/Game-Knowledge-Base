@@ -219,6 +219,10 @@ export interface RefreshResult {
   failedCount: number;
   /** Local cached tasks removed after TAPD confirmed the story no longer exists. */
   deletedCount: number;
+  /** Whether TAPD's recycle bin was successfully checked for soft-deleted stories. */
+  deletionAuditChecked?: boolean;
+  /** Human-readable explanation when recycle-bin verification is unavailable. */
+  deletionAuditMessage?: string;
   /** Manual tasks newly bound to TAPD via title matching */
   newlyBoundCount?: number;
   /** Detailed change list */

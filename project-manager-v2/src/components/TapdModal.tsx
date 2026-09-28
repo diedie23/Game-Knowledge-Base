@@ -2255,6 +2255,9 @@ export function TapdModal() {
                         <div className="text-gray-500">待确认</div>
                       </div>
                     </div>
+                    <div className={`mt-2 rounded-lg border px-3 py-2 text-[10px] ${refreshResult.deletionAuditChecked ? 'border-emerald-500/20 bg-emerald-500/[0.06] text-emerald-300' : 'border-amber-500/20 bg-amber-500/[0.06] text-amber-300'}`}>
+                      {refreshResult.deletionAuditChecked ? '✓' : '⚠'} {refreshResult.deletionAuditMessage || (refreshResult.deletionAuditChecked ? '已完成 TAPD 回收站核验' : '本次未完成 TAPD 回收站核验')}
+                    </div>
                   </div>
 
                   {/* Expandable refresh detail list */}

@@ -3162,6 +3162,9 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                       <div className="text-[10px] text-gray-500 mt-0.5">待确认</div>
                     </div>
                   </div>
+                  <div className={`mb-4 rounded-lg border px-3 py-2 text-[10px] ${tapdRefreshResult.deletionAuditChecked ? 'border-emerald-500/20 bg-emerald-500/[0.06] text-emerald-300' : 'border-amber-500/20 bg-amber-500/[0.06] text-amber-300'}`}>
+                    {tapdRefreshResult.deletionAuditChecked ? '✓' : '⚠'} {tapdRefreshResult.deletionAuditMessage || (tapdRefreshResult.deletionAuditChecked ? '已完成 TAPD 回收站核验' : '本次未完成 TAPD 回收站核验')}
+                  </div>
 
                   {/* Change details */}
                   {tapdRefreshResult.details.length > 0 ? (
