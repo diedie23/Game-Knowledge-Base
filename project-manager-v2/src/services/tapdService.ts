@@ -808,7 +808,7 @@ export class TapdService {
   private storyChildIds(story: any): string[] {
     if (!story?.children_id) return [];
     return (Array.isArray(story.children_id) ? story.children_id : String(story.children_id).split(/[,，;；|]/))
-      .map(String).map(id => id.trim()).filter(id => id && id !== '0');
+      .map((id: unknown) => String(id).trim()).filter((id: string) => id && id !== '0');
   }
 
   private isUiStory(story: any): boolean {

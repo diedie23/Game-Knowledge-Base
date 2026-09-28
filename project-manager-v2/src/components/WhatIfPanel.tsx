@@ -4,11 +4,10 @@ import { db, Task } from '../db/db';
 import { trackedDb } from '../store/useHistoryStore';
 import { useStore } from '../store/useStore';
 import { addDays, differenceInDays, format } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
 import {
   Sparkles, Play, X, Check, AlertTriangle, Clock,
   ArrowRight, Ghost, RotateCcw, ChevronDown, ChevronUp,
-  Search, CheckCircle2
+  Search, CheckCircle2, ExternalLink
 } from 'lucide-react';
 import { toast } from '../store/useToastStore';
 
@@ -39,13 +38,22 @@ interface ParsedCondition {
   candidates: ScoredTask[];
 }
 
+function isTapdManagedTask(task?: Task): boolean {
+  return Boolean(
+    task?.tapdId
+    || task?.syncSource === 'tapd'
+    || task?.syncSource === 'tapd-import'
+    || /tapd\.(?:cn|woa\.com)/i.test(task?.externalUrl || '')
+  );
+}
+
 // ─── Smart Tokenizer ─────────────────────────────────────────────
 /** Split a keyword into meaningful tokens for fuzzy matching */
 function tokenize(text: string): string[] {
   const lower = text.toLowerCase().replace(/[的了是在]+/g, ' ').trim();
   // Split by common delimiters: spaces, punctuation, CJK/Latin boundary
   const tokens = lower
-    .split(/[\s,，、;；·\-_/|()（）【】\[\]]+/)
+    .split(/[\s,，、;；·\-_/|()（）【】[\]]+/)
     .filter(t => t.length > 0);
   // If the whole string is short and didn't split, return as-is
   if (tokens.length <= 1 && lower.length > 2) {
@@ -630,8 +638,11 @@ export function WhatIfPanel({ onGhostScheduleChange, isOpen, onClose }: WhatIfPa
   const handleApply = useCallback(async () => {
     if (ghosts.length === 0) return;
 
-    // Generate AI-style change log
-    let changeLog = '🤖 **排期变更指令 (Schedule CLI)**\n\n';
+    const taskById = new Map(tasks.filter(task => task.id).map(task => [task.id!, task]));
+    const tapdGhosts = ghosts.filter(ghost => isTapdManagedTask(taskById.get(ghost.taskId)));
+    const localGhosts = ghosts.filter(ghost => !isTapdManagedTask(taskById.get(ghost.taskId)));
+    let changeLog = '# TAPD 排期推演调整清单\n\n';
+    changeLog += `共 ${ghosts.length} 项受影响，其中 ${tapdGhosts.length} 项需要进入 TAPD 调整。\n\n`;
     
     const triggers = ghosts.filter(g => g.isTrigger);
     const cascades = ghosts.filter(g => !g.isTrigger);
@@ -639,8 +650,10 @@ export function WhatIfPanel({ onGhostScheduleChange, isOpen, onClose }: WhatIfPa
     triggers.forEach(trigger => {
       const task = tasks.find(t => t.id === trigger.taskId);
       if (task) {
-        changeLog += `**[排期变更]** ${task.title}：${trigger.deltaDays > 0 ? '延期' : '提前'}至 ${format(trigger.newEnd, 'MM/dd')} (${trigger.deltaDays > 0 ? '+' : ''}${trigger.deltaDays}天)\n`;
-        changeLog += `> ⚠️ 原因：${trigger.reason}\n`;
+        changeLog += `## [直接调整] ${task.title}\n`;
+        changeLog += `- 建议排期：${format(trigger.newStart, 'yyyy-MM-dd')} → ${format(trigger.newEnd, 'yyyy-MM-dd')}（${trigger.deltaDays > 0 ? '+' : ''}${trigger.deltaDays} 天）\n`;
+        changeLog += `- 原因：${trigger.reason}\n`;
+        if (task.externalUrl || task.tapdId) changeLog += `- TAPD：${task.externalUrl || task.tapdId}\n`;
       }
     });
 
@@ -649,7 +662,7 @@ export function WhatIfPanel({ onGhostScheduleChange, isOpen, onClose }: WhatIfPa
       cascades.forEach(cascade => {
         const task = tasks.find(t => t.id === cascade.taskId);
         if (task) {
-          changeLog += `- ${task.title}：${cascade.deltaDays > 0 ? '顺延' : '提前'} ${Math.abs(cascade.deltaDays)} 天 (至 ${format(cascade.newEnd, 'MM/dd')})\n`;
+          changeLog += `- ${task.title}：${format(cascade.newStart, 'yyyy-MM-dd')} → ${format(cascade.newEnd, 'yyyy-MM-dd')}（${cascade.deltaDays > 0 ? '顺延' : '提前'} ${Math.abs(cascade.deltaDays)} 天）${task.externalUrl ? `\n  TAPD：${task.externalUrl}` : ''}\n`;
         }
       });
     }
@@ -657,17 +670,22 @@ export function WhatIfPanel({ onGhostScheduleChange, isOpen, onClose }: WhatIfPa
     // Copy to clipboard
     try {
       await navigator.clipboard.writeText(changeLog);
-      toast.success('变更日志已生成并复制到剪贴板！');
     } catch (err) {
       console.error('Failed to copy text: ', err);
     }
 
-    for (const ghost of ghosts) {
+    for (const ghost of localGhosts) {
       await trackedDb.tasks.update(
         ghost.taskId,
         { startDate: ghost.newStart, endDate: ghost.newEnd },
         `What-If 推演应用: ${ghost.reason}`
       );
+    }
+
+    if (tapdGhosts.length > 0) {
+      toast.success(`已复制 ${tapdGhosts.length} 项 TAPD 调整清单${localGhosts.length ? `，并应用 ${localGhosts.length} 项本地排期` : ''}`);
+    } else {
+      toast.success(`已应用 ${localGhosts.length} 项本地排期，并复制变更清单`);
     }
 
     // Clear state
@@ -698,7 +716,8 @@ export function WhatIfPanel({ onGhostScheduleChange, isOpen, onClose }: WhatIfPa
   const totalAffected = ghosts.filter(g => !g.isTrigger).length;
   const maxDelay = ghosts.length > 0 ? Math.max(...ghosts.map(g => g.deltaDays)) : 0;
   const triggerTasks = ghosts.filter(g => g.isTrigger);
-  const cascadeTasks = ghosts.filter(g => !g.isTrigger);
+  const tapdImpactCount = ghosts.filter(ghost => isTapdManagedTask(tasks.find(task => task.id === ghost.taskId))).length;
+  const localImpactCount = ghosts.length - tapdImpactCount;
 
   if (!isOpen) return null;
 
@@ -713,7 +732,7 @@ export function WhatIfPanel({ onGhostScheduleChange, isOpen, onClose }: WhatIfPa
             </div>
             <div>
               <h3 className="text-sm font-semibold text-gray-100">What-If 排期推演</h3>
-              <p className="text-[10px] text-gray-500 mt-0.5">输入假设条件，预测连锁影响</p>
+              <p className="text-[10px] text-gray-500 mt-0.5">先预判连锁影响，再进入 TAPD 调整正式排期</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-gray-300 transition-colors">
@@ -892,6 +911,11 @@ export function WhatIfPanel({ onGhostScheduleChange, isOpen, onClose }: WhatIfPa
                 <span className="text-[11px] text-gray-400">最大延期</span>
                 <span className="text-sm font-bold text-red-300">{maxDelay}天</span>
               </div>
+              {tapdImpactCount > 0 && <div className="flex items-center gap-1.5">
+                <ExternalLink size={11} className="text-sky-400" />
+                <span className="text-[11px] text-gray-400">待调 TAPD</span>
+                <span className="text-sm font-bold text-sky-300">{tapdImpactCount}</span>
+              </div>}
             </div>
           </div>
 
@@ -945,6 +969,7 @@ export function WhatIfPanel({ onGhostScheduleChange, isOpen, onClose }: WhatIfPa
                         </span>
                         <span className="text-gray-700 mx-1">|</span>
                         <span className="text-gray-600 truncate">{ghost.reason}</span>
+                        {task?.externalUrl && <a href={task.externalUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} className="ml-auto inline-flex shrink-0 items-center gap-1 text-sky-400 hover:text-sky-200">调整 TAPD<ExternalLink size={9} /></a>}
                       </div>
                     </div>
                   );
@@ -977,7 +1002,9 @@ export function WhatIfPanel({ onGhostScheduleChange, isOpen, onClose }: WhatIfPa
               className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-medium rounded-lg transition-all shadow-lg shadow-violet-500/20"
             >
               <Check size={12} />
-              应用推演结果
+              {tapdImpactCount > 0
+                ? localImpactCount > 0 ? '生成清单并应用本地任务' : '生成 TAPD 调整清单'
+                : '应用本地推演结果'}
             </button>
           </div>
         </div>
