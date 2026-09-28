@@ -72,15 +72,20 @@ function assignedRoleText(task: Task, resources: Resource[]): string {
   ).map(resource => resource.role || '').join(' ');
 }
 
+/** Identify work that affects UX delivery but belongs to another production pipeline. */
+export function relatedCheckpointLabel(task: Task, resources: Resource[] = []): string | undefined {
+  const descriptor = `${task.tapdWorkitemTypeName || ''} ${task.title || ''}`;
+  const roleText = assignedRoleText(task, resources);
+  return CHECKPOINT_RULES.find(item => item.task.test(descriptor) || item.role.test(roleText))?.label;
+}
+
 /** Find unfinished cross-category children without adding them to the four UX stage columns. */
 export function relatedCheckpointItems(tasks: Task[], resources: Resource[] = []): RelatedCheckpoint[] {
   const rank: Record<StageStatus, number> = { blocked: 0, in_progress: 1, todo: 2, paused: 3, missing: 4, done: 5, cancelled: 6 };
   return tasks.flatMap(task => {
     if (task.status === 'done' || task.status === 'cancelled' || taskStage(task, resources)) return [];
-    const descriptor = `${task.tapdWorkitemTypeName || ''} ${task.title || ''}`;
-    const roleText = assignedRoleText(task, resources);
-    const rule = CHECKPOINT_RULES.find(item => item.task.test(descriptor) || item.role.test(roleText));
-    return rule ? [{ task, label: rule.label }] : [];
+    const label = relatedCheckpointLabel(task, resources);
+    return label ? [{ task, label }] : [];
   }).sort((left, right) => (rank[taskStatus(left.task)] ?? 9) - (rank[taskStatus(right.task)] ?? 9));
 }
 

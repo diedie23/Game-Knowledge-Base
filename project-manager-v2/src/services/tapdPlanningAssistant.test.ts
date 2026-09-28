@@ -40,6 +40,17 @@ describe('buildTapdPlanningItems', () => {
     ], resources, today);
     expect(result).toEqual([]);
   });
+
+  it('excludes program integration and audio checkpoints from UX assignee risks', () => {
+    const result = buildTapdPlanningItems([
+      task(10, { title: '【系统】【11月版本】商业化表现优化 - 还原接入', tapdWorkitemTypeName: '开发子需求' }),
+      task(11, { title: '爆破手-UI动效接入' }),
+      task(12, { title: '环境音效制作', tapdWorkitemTypeName: '音频子需求' }),
+      task(13, { title: '【视觉设计】商城图标', tapdWorkitemTypeName: 'UI子需求' }),
+    ], resources, today);
+    expect(result.map(item => item.task.id)).toEqual([13]);
+    expect(result[0].tags).toContain('unassigned');
+  });
 });
 
 describe('latestTapdSyncAt', () => {

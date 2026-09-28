@@ -2,6 +2,7 @@ import type { Resource, Task } from '../types';
 import { isTaskTerminal } from '../utils/taskState';
 import { countWorkingDays, getNextWorkingDays, isWorkingDay } from '../utils/dateUtils';
 import { smartAssignService } from './smartAssignService';
+import { relatedCheckpointLabel } from './uxStageView';
 import { assessTaskRisk, buildTaskRiskContext, type RiskLevel, type RiskTag } from './workloadService';
 
 export interface TapdScheduleSuggestion {
@@ -163,6 +164,9 @@ export function buildTapdPlanningItems(
   return tasks.flatMap(task => {
     if (!task.id || context.parentIds.has(task.id) || isTaskTerminal(task) || task.status === 'paused') return [];
     if (!task.tapdId && !task.externalUrl && task.syncSource !== 'tapd' && task.syncSource !== 'tapd-import') return [];
+    // Program integration, development and audio are cross-pipeline checkpoints.
+    // They may block a UIStory, but their staffing is owned outside the UX pipeline.
+    if (relatedCheckpointLabel(task, resources)) return [];
 
     const assessed = assessTaskRisk(task, tasks, resources, today, context);
     const missingSchedule = !task.startDate || !task.endDate;

@@ -5,7 +5,7 @@ import { trackedDb } from '../store/useHistoryStore';
 import { addDays, startOfToday, format, differenceInDays, isSameDay, isWeekend } from 'date-fns';
 import { useStore } from '../store/useStore';
 import { Avatar } from './common/Avatar';
-import { Building2, User, X, Calendar, Eye, Plane, XCircle } from 'lucide-react';
+import { Building2, User, X, Calendar, Eye, Plane, XCircle, ExternalLink } from 'lucide-react';
 import { compareResources, getRoleOrderIndex } from './gantt/constants';
 import { CHINESE_HOLIDAYS, isHoliday, isNonWorkingDay } from '../utils/dateUtils';
 import { getEffectiveStatus } from '../types/resource';
@@ -104,27 +104,19 @@ function CellDetailPanel({ data, onClose, onToggleLeave }: {
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  // Position: try to show to the right of the cell, fallback to left if not enough space
-  const panelWidth = 320;
+  // Keep the panel centered on the clicked date; move it above only when the
+  // space below the selected matrix cell is insufficient.
+  const panelWidth = 340;
   const panelMaxHeight = 400;
   const viewportH = window.innerHeight;
   const viewportW = window.innerWidth;
   const { anchorRect } = data;
-  // Primary: right side of the cell
-  let left = anchorRect.left + anchorRect.width + 8;
-  let top = anchorRect.top + anchorRect.height / 2 - 60; // vertically align near the cell center
-  // Fallback: if right side overflows, show on left side
-  if (left + panelWidth > viewportW - 10) {
-    left = anchorRect.left - panelWidth - 8;
-  }
-  // Final fallback: if left side also overflows, clamp to viewport
-  if (left < 10) left = 10;
-  // Vertical bounds check
-  if (top < 10) top = 10;
-  if (top + panelMaxHeight > viewportH - 20) {
-    top = viewportH - panelMaxHeight - 20;
-    if (top < 10) top = 10;
-  }
+  const estimatedPanelHeight = Math.min(panelMaxHeight, 132 + Math.max(filteredTasks.length, data.isLeave ? 1 : 0) * 58);
+  let left = anchorRect.left + anchorRect.width / 2 - panelWidth / 2;
+  left = Math.min(Math.max(left, 10), Math.max(10, viewportW - panelWidth - 10));
+  let top = anchorRect.top + anchorRect.height + 8;
+  if (top + estimatedPanelHeight > viewportH - 10) top = anchorRect.top - estimatedPanelHeight - 8;
+  top = Math.max(10, top);
 
   // Whether we have mixed types (both self-made and CP)
   const hasMixedTypes = data.selfMade > 0 && data.cpFollow > 0;
@@ -211,18 +203,18 @@ function CellDetailPanel({ data, onClose, onToggleLeave }: {
           filteredTasks.map((task, i) => {
             const st = statusMap[task.status] || statusMap.todo;
             const isCp = task.workCategory === 'cp_follow';
-            return (
-              <div
-                key={task.id || i}
-                className="group/card px-3 py-2 rounded-lg border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.08] transition-all cursor-default"
-              >
+            const cardClass = 'group/card block px-3 py-2 rounded-lg border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.05] hover:border-sky-500/25 transition-all';
+            const content = (
                 <div className="flex items-start gap-2">
                   <div
                     className="w-1 h-full min-h-[24px] rounded-full shrink-0 mt-0.5"
                     style={{ backgroundColor: isCp ? 'rgb(34, 211, 238)' : 'rgb(129, 140, 248)' }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] text-gray-200 leading-snug line-clamp-2">{task.title}</p>
+                    <div className="flex items-start gap-1">
+                      <p className={`flex-1 text-[11px] leading-snug line-clamp-2 ${task.externalUrl ? 'text-sky-200 group-hover/card:text-sky-100' : 'text-gray-200'}`}>{task.title}</p>
+                      {task.externalUrl && <ExternalLink size={10} className="mt-0.5 shrink-0 text-sky-400/70" />}
+                    </div>
                     <div className="flex items-center gap-2 mt-1">
                       <span className={`text-[9px] px-1.5 py-[1px] rounded ${st.bg} ${st.color}`}>{st.text}</span>
                       {isCp && (
@@ -242,6 +234,14 @@ function CellDetailPanel({ data, onClose, onToggleLeave }: {
                     </div>
                   </div>
                 </div>
+            );
+            return task.externalUrl ? (
+              <a key={task.id || i} href={task.externalUrl} target="_blank" rel="noreferrer" className={cardClass} title="打开 TAPD 验证或修改">
+                {content}
+              </a>
+            ) : (
+              <div key={task.id || i} className={`${cardClass} cursor-default`} title="该任务没有 TAPD 链接">
+                {content}
               </div>
             );
           })
