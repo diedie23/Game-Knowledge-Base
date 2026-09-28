@@ -25,9 +25,11 @@ describe('UX stage table', () => {
     fireEvent.click(screen.getAllByText('查看 / 编辑任务')[1]);
     expect(state.open).toHaveBeenCalledWith(3);
   });
-  it('highlights an explicitly completed parent across the whole row', () => {
+  it('shows a completed parent with the same overall treatment in green', () => {
     render(<UxStageTable />);
-    expect(screen.getByRole('button', { name: '活动需求' }).closest('tr')?.className).toContain('bg-emerald');
+    const completedLabel = screen.getByText('父需求已完成');
+    expect(completedLabel.closest('tr')?.className).toContain('bg-emerald');
+    expect(completedLabel.className).toContain('text-emerald');
   });
   it('shows a rejected parent as an overall rejected row', () => {
     render(<UxStageTable />);
