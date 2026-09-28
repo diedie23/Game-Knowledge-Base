@@ -16,6 +16,13 @@ import { formatResourceDisplayName } from '../utils/resourceDisplay';
 
 export function Dashboard() {
   const { setCurrentView, openTaskModal, selectedProjectId } = useStore();
+  const openDashboardTask = React.useCallback((task: { id?: number; externalUrl?: string }) => {
+    if (task.externalUrl) {
+      window.open(task.externalUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    openTaskModal(task.id);
+  }, [openTaskModal]);
   const allTasks = useLiveQuery(
     () => selectedProjectId
       ? db.tasks.where('projectId').equals(selectedProjectId).toArray()
@@ -617,7 +624,7 @@ export function Dashboard() {
                       <div 
                         key={`standalone_${task.id}`} 
                         className={`p-3 rounded-xl border ${todayTasksGrouped.getTaskColor(task)} flex flex-col gap-2 transition-all shadow-sm cursor-pointer hover:brightness-110`}
-                        onClick={() => openTaskModal(task.id)}
+                        onClick={() => openDashboardTask(task)}
                       >
                         <div className="flex justify-between items-center gap-4">
                           <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -652,7 +659,7 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
                       <div 
                         className={`text-sm font-semibold border-b border-gray-700/50 pb-2 flex justify-between items-center cursor-pointer hover:text-white transition-colors ${group.isParentInList ? todayTasksGrouped.getTaskColor(group.parentTask).split(' ')[0] : 'text-gray-300'}`} 
                         title={group.parentTitle}
-                        onClick={() => group.parentTask && openTaskModal(group.parentTask.id)}
+                        onClick={() => group.parentTask && openDashboardTask(group.parentTask)}
                       >
                         <span className="truncate">{group.parentTitle}</span>
                         {group.parentTask && (group.parentTask.startDate || group.parentTask.endDate) && (
@@ -668,7 +675,7 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
                               <div 
                                 key={task.id} 
                                 className={`p-3 rounded-lg border ${todayTasksGrouped.getTaskColor(task)} flex flex-col gap-2 transition-all cursor-pointer hover:brightness-110`}
-                                onClick={() => openTaskModal(task.id)}
+                                onClick={() => openDashboardTask(task)}
                               >
                                 <div className="flex justify-between items-center gap-4">
                                   <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -737,7 +744,7 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
                   <div 
                     key={`standalone_${task.id}`} 
                     className="p-3 rounded-xl border border-blue-500/20 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 flex justify-between items-center gap-4 transition-all shadow-sm cursor-pointer"
-                    onClick={() => openTaskModal(task.id)}
+                    onClick={() => openDashboardTask(task)}
                   >
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <span className="font-medium leading-snug truncate text-sm" title={task.title}>
@@ -762,7 +769,7 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
                   <div 
                     className={`text-sm font-semibold border-b border-gray-700/50 pb-2 flex justify-between items-center cursor-pointer hover:text-white transition-colors ${group.isParentInList ? 'text-blue-300' : 'text-gray-300'}`} 
                     title={group.parentTitle}
-                    onClick={() => group.parentTask && openTaskModal(group.parentTask.id)}
+                    onClick={() => group.parentTask && openDashboardTask(group.parentTask)}
                   >
                     <span className="truncate">{group.parentTitle}</span>
                     {group.parentTask && (group.parentTask.startDate || group.parentTask.endDate) && (
@@ -778,7 +785,7 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
                           <div 
                             key={task.id} 
                             className="p-3 rounded-lg border border-blue-500/20 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 flex justify-between items-center gap-4 transition-all cursor-pointer"
-                            onClick={() => openTaskModal(task.id)}
+                            onClick={() => openDashboardTask(task)}
                           >
                             <div className="flex items-center gap-2 flex-1 min-w-0">
                               <span className="font-medium leading-snug truncate text-sm" title={task.title}>
@@ -857,7 +864,7 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
                         title={t.title}
                         onClick={(e) => {
                           e.stopPropagation();
-                          openTaskModal(t.id);
+                          openDashboardTask(t);
                         }}
                       >
                         {t.title}
@@ -893,7 +900,7 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
                 <div 
                   key={`standalone_${item.id}`} 
                   className="px-4 py-3 rounded-xl bg-gray-800/40 border border-gray-700/50 text-sm text-gray-300 flex items-center gap-3 hover:bg-gray-700/30 transition-colors cursor-pointer group/item"
-                  onClick={() => openTaskModal(item.id)}
+                  onClick={() => openDashboardTask(item)}
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-gray-500 group-hover/item:bg-gray-400 transition-colors shrink-0"></span>
                   <span className="truncate flex-1" title={item.title}>
@@ -908,7 +915,7 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
                 <div 
                   className={`text-sm font-semibold border-b border-gray-700/50 pb-2 flex justify-between items-center cursor-pointer hover:text-white transition-colors ${group.isParentInList ? 'text-gray-200' : 'text-gray-400'}`} 
                   title={group.parentTitle}
-                  onClick={() => group.parentTask && openTaskModal(group.parentTask.id)}
+                  onClick={() => group.parentTask && openDashboardTask(group.parentTask)}
                 >
                   <span className="truncate">{group.parentTitle}</span>
                   {group.isParentInList && (
@@ -921,7 +928,7 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
                       <div 
                         key={item.id} 
                         className="px-4 py-2 rounded-lg bg-gray-900/50 border border-gray-700/50 text-sm text-gray-300 flex items-center gap-2 hover:bg-gray-700/50 transition-colors cursor-pointer group/item max-w-[500px]"
-                        onClick={() => openTaskModal(item.id)}
+                        onClick={() => openDashboardTask(item)}
                       >
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-500 group-hover/item:bg-gray-400 transition-colors shrink-0"></span>
                         <span className="truncate" title={item.title}>
@@ -1057,7 +1064,7 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
                         className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs cursor-pointer transition-colors ${
                           isOverdue ? 'bg-red-500/10 hover:bg-red-500/20 text-red-300' : 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-300'
                         }`}
-                        onClick={(e) => { e.stopPropagation(); openTaskModal(task.id); }}
+                        onClick={(e) => { e.stopPropagation(); openDashboardTask(task); }}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isOverdue ? 'bg-red-400' : 'bg-blue-400'}`} />
                         <span className="truncate flex-1" title={task.title}>{task.title}</span>

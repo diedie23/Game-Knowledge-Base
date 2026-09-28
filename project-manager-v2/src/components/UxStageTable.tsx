@@ -98,6 +98,7 @@ export function UxStageTable() {
     if (!ownersMatch) return false;
     // “已完成” follows TAPD workflow progress, with all-stage completion as a fallback.
     if (status === 'done') return isUiStoryOverallComplete(row.root) || isDemandComplete(row.stages);
+    if (status === 'cancelled' && taskStatus(row.root) === 'cancelled') return true;
     if (status === 'missing') return visibleStages.some(s => row.stages[s.key].length === 0);
     if (status === 'all') return stage === 'all' || visibleStages.some(s => row.stages[s.key].length > 0);
     return visibleStages.some(s => {
@@ -167,10 +168,10 @@ export function UxStageTable() {
           {STAGES.map((s, index) => <th key={s.key} className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 font-medium"><span className="mr-2 text-[10px] text-indigo-400">0{index + 1}</span><span className="text-gray-200">{s.label}</span><div className="mt-1 text-[10px] font-normal text-gray-500">负责人 / 状态</div></th>)}
           <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 text-center align-middle text-sm font-semibold text-gray-200"><button onClick={() => setDescending(!descending)} className="flex w-full items-center justify-center gap-1" aria-label={descending ? '截止日期降序，点击升序' : '截止日期升序，点击降序'}>截止日期<ArrowUpDown size={13} /></button></th>
         </tr></thead>
-        <tbody>{filtered.map(({ root, stages }) => { const rootDone = isUiStoryOverallComplete(root) || isDemandComplete(stages); return <tr key={root.id} className={'group ' + (rootDone ? 'bg-emerald-500/[0.055]' : '')}>
-          <td className={'sticky left-0 z-10 border-b border-gray-800 px-4 py-3 ' + (rootDone ? 'bg-[#10231d] group-hover:bg-[#153027]' : 'bg-[#11151d] group-hover:bg-[#191e2b]')}>
+        <tbody>{filtered.map(({ root, stages }) => { const rootDone = isUiStoryOverallComplete(root) || isDemandComplete(stages); const rootCancelled = taskStatus(root) === 'cancelled'; return <tr key={root.id} className={'group ' + (rootCancelled ? 'bg-red-500/[0.07]' : rootDone ? 'bg-emerald-500/[0.055]' : '')}>
+          <td className={'sticky left-0 z-10 border-b border-gray-800 px-4 py-3 ' + (rootCancelled ? 'bg-[#28171c] group-hover:bg-[#341b22]' : rootDone ? 'bg-[#10231d] group-hover:bg-[#153027]' : 'bg-[#11151d] group-hover:bg-[#191e2b]')}>
             <div className="mb-2 flex items-center justify-between gap-2">
-              <span className="rounded border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold text-sky-300">UIStory · 父需求</span>
+              <div className="flex flex-wrap items-center gap-1.5"><span className="rounded border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold text-sky-300">UIStory · 父需求</span>{rootCancelled && <span className="rounded border border-red-500/30 bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-300">父需求已拒绝</span>}</div>
               {root.externalUrl && <a href={root.externalUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="inline-flex shrink-0 items-center gap-1 rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 text-[10px] font-medium text-indigo-300 hover:bg-indigo-500/20 hover:text-white">打开 TAPD<ExternalLink size={10} /></a>}
             </div>
             {root.externalUrl ? <a href={root.externalUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="line-clamp-2 text-left text-[13px] font-medium leading-5 text-gray-200 hover:text-indigo-300 hover:underline" title={`${root.title} · 点击前往 TAPD`}>{root.title}</a> : <button onClick={() => openTaskModal(root.id)} className="line-clamp-2 text-left text-[13px] font-medium leading-5 text-gray-200 hover:text-indigo-300" title={root.title}>{root.title}</button>}

@@ -8,6 +8,7 @@ const state = vi.hoisted(() => ({ open: vi.fn(), tasks: [
   { id: 2, parentId: 1, title: '【视觉设计】商城初稿', status: 'done', projectId: 1, assigneeIds: [1] },
   { id: 3, parentId: 1, title: '【视觉设计】商城修改', status: 'todo', projectId: 1, assigneeIds: [2], isBlocked: true, blockReason: '等待素材' },
   { id: 4, title: '活动需求', projectId: 1, status: 'done', priority: 'medium', module: '活动' },
+  { id: 5, title: '拒绝需求', projectId: 1, status: 'cancelled', priority: 'low', module: '活动' },
 ] }));
 vi.mock('../db/db', () => ({ db: { tasks: { toArray: () => state.tasks }, resources: { toArray: () => [{ id: 1, name: '小林', role: 'UI设计' }, { id: 2, name: '小陈', role: 'UI设计' }] } } }));
 vi.mock('dexie-react-hooks', () => ({ useLiveQuery: (query: () => unknown) => query() }));
@@ -27,6 +28,13 @@ describe('UX stage table', () => {
   it('highlights an explicitly completed parent across the whole row', () => {
     render(<UxStageTable />);
     expect(screen.getByRole('button', { name: '活动需求' }).closest('tr')?.className).toContain('bg-emerald');
+  });
+  it('shows a rejected parent as an overall rejected row', () => {
+    render(<UxStageTable />);
+    const rejectedLabel = screen.getByText('父需求已拒绝');
+    expect(rejectedLabel.closest('tr')?.className).toContain('bg-red');
+    fireEvent.change(screen.getByLabelText('环节状态筛选'), { target: { value: 'cancelled' } });
+    expect(screen.getByRole('button', { name: '拒绝需求' })).toBeTruthy();
   });
   it('combines owner and status on the same child', () => {
     render(<UxStageTable />);
