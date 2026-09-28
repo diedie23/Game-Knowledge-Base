@@ -1,0 +1,76 @@
+import type { Resource, Task } from '../types';
+import { isTaskTerminal } from '../utils/taskState';
+import { assessTaskRisk, buildTaskRiskContext, type RiskLevel, type RiskTag } from './workloadService';
+
+export interface TapdPlanningItem {
+  task: Task;
+  level: Exclude<RiskLevel, 'none'>;
+  reasons: string[];
+  tags: Array<RiskTag | 'unscheduled' | 'unassigned'>;
+  actionLabel: string;
+  score: number;
+}
+
+const LEVEL_SCORE: Record<Exclude<RiskLevel, 'none'>, number> = {
+  critical: 400,
+  high: 300,
+  medium: 200,
+  low: 100,
+};
+
+const PRIORITY_SCORE: Record<string, number> = { high: 40, medium: 20, low: 0 };
+
+function resolveAction(tags: TapdPlanningItem['tags']): string {
+  if (tags.includes('unscheduled')) return '补充 TAPD 排期';
+  if (tags.includes('blocked') || tags.includes('dependency')) return '处理卡点';
+  if (tags.includes('overload') || tags.includes('overlap')) return '调整负责人或日期';
+  if (tags.includes('unassigned')) return '补充 TAPD 处理人';
+  return '调整 TAPD 排期';
+}
+
+/** Build a TAPD-first planning queue from leaf tasks, using the same risk rules as the Gantt view. */
+export function buildTapdPlanningItems(
+  tasks: Task[],
+  resources: Resource[],
+  today: Date = new Date(),
+): TapdPlanningItem[] {
+  const context = buildTaskRiskContext(tasks, resources);
+
+  return tasks.flatMap(task => {
+    if (!task.id || context.parentIds.has(task.id) || isTaskTerminal(task) || task.status === 'paused') return [];
+    if (!task.tapdId && !task.externalUrl && task.syncSource !== 'tapd' && task.syncSource !== 'tapd-import') return [];
+
+    const assessed = assessTaskRisk(task, tasks, resources, today, context);
+    const missingSchedule = !task.startDate || !task.endDate;
+    const missingAssignee = !task.assigneeIds?.length;
+    const reasons = assessed.riskReasons.map(reason => reason.text);
+    const tags: TapdPlanningItem['tags'] = assessed.riskReasons.map(reason => reason.tag);
+
+    if (missingSchedule) {
+      reasons.unshift(`缺少${!task.startDate && !task.endDate ? '开始和结束日期' : !task.startDate ? '开始日期' : '结束日期'}`);
+      tags.unshift('unscheduled');
+    }
+    if (missingAssignee) {
+      reasons.push('未匹配到处理人');
+      tags.push('unassigned');
+    }
+    if (reasons.length === 0) return [];
+
+    let level: TapdPlanningItem['level'] = assessed.level === 'none' ? 'medium' : assessed.level;
+    if (missingSchedule && task.priority === 'high' && level === 'medium') level = 'high';
+    const dateScore = task.endDate
+      ? Math.max(0, 30 - Math.max(-30, Math.round((new Date(task.endDate).getTime() - today.getTime()) / 86_400_000)))
+      : 0;
+    const score = LEVEL_SCORE[level] + (PRIORITY_SCORE[task.priority || ''] || 0) + dateScore;
+
+    return [{ task, level, reasons: [...new Set(reasons)], tags: [...new Set(tags)], actionLabel: resolveAction(tags), score }];
+  }).sort((left, right) => right.score - left.score || (left.task.endDate?.getTime() || Infinity) - (right.task.endDate?.getTime() || Infinity));
+}
+
+export function latestTapdSyncAt(tasks: Task[]): number | null {
+  const timestamps = tasks
+    .filter(task => task.tapdId || task.syncSource === 'tapd' || task.syncSource === 'tapd-import')
+    .map(task => Number(task.syncedAt || 0))
+    .filter(value => Number.isFinite(value) && value > 0);
+  return timestamps.length ? Math.max(...timestamps) : null;
+}
