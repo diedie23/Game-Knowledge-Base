@@ -5,6 +5,7 @@ import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildTa
 import { updateTask } from '../services/taskService';
 import { useStore } from '../store/useStore';
 import { getPriorityLabel } from '../utils/priority';
+import { auditTaskDataQuality } from '../services/dataQualityService';
 
 interface Props {
   tasks: Task[];
@@ -44,6 +45,16 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
   const [applyingId, setApplyingId] = useState<number | null>(null);
   const [appliedMessage, setAppliedMessage] = useState('');
   const [applyError, setApplyError] = useState(false);
+  const dataAudit = useMemo(() => auditTaskDataQuality(tasks, resources), [tasks, resources]);
+  const criticalQualityByTask = useMemo(() => {
+    const result = new Map<number, string[]>();
+    dataAudit.issues.filter(issue => issue.severity === 'critical').forEach(issue => {
+      (issue.taskIds || (issue.task?.id ? [issue.task.id] : [])).forEach(taskId => {
+        result.set(taskId, [...(result.get(taskId) || []), `${issue.title}：${issue.detail}`]);
+      });
+    });
+    return result;
+  }, [dataAudit]);
   const allItems = useMemo(() => buildTapdPlanningItems(tasks, resources), [tasks, resources]);
   const planningItems = useMemo(() => allItems.filter(item => item.tags.includes('unscheduled')), [allItems]);
   const planningEntries = useMemo(() => planningItems.map(item => ({
@@ -86,7 +97,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     const suggestions = buildBatchTapdScheduleSuggestions(selected, tasks, resources, new Date());
     return selected.map(item => ({ ...item, suggestion: suggestions.get(item.task.id!) || buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date()) }));
   }, [planningEntries, selectedIds, tasks, resources]);
-  const applicableSelectedItems = useMemo(() => selectedItems.filter(item => !item.suggestion.requiresReview), [selectedItems]);
+  const applicableSelectedItems = useMemo(() => selectedItems.filter(item => !item.suggestion.requiresReview && !criticalQualityByTask.has(item.task.id!)), [selectedItems, criticalQualityByTask]);
   const scenarioImpact = useMemo(() => {
     if (!selectedItems.length) return null;
     const proposedStarts = applicableSelectedItems.map(item => item.suggestion.startDate.getTime());
@@ -113,7 +124,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
       return next;
     });
   };
-  const selectVisible = () => setSelectedIds(current => new Set([...current, ...items.filter(item => !item.suggestion.requiresReview).map(item => item.task.id).filter((id): id is number => !!id)]));
+  const selectVisible = () => setSelectedIds(current => new Set([...current, ...items.filter(item => !item.suggestion.requiresReview && !criticalQualityByTask.has(item.task.id!)).map(item => item.task.id).filter((id): id is number => !!id)]));
   const selectSameDemand = (task: Task) => {
     const demand = findDemandForTask(task, tasks);
     const sameDemandIds = planningEntries.filter(item => findDemandForTask(item.task, tasks).id === demand.id).map(item => item.task.id).filter((id): id is number => !!id);
@@ -125,7 +136,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     window.setTimeout(() => setCopied(false), 1600);
   };
   const applySuggestedDates = async (item: typeof items[number]) => {
-    if (!item.task.id || !item.suggestion || item.suggestion.requiresReview) return;
+    if (!item.task.id || !item.suggestion || item.suggestion.requiresReview || criticalQualityByTask.has(item.task.id)) return;
     setApplyingId(item.task.id);
     setApplyError(false);
     try {
@@ -199,6 +210,8 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
 
       {appliedMessage && <div className={`mt-3 flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-xs ${applyError ? 'border-red-500/20 bg-red-500/[0.07] text-red-300' : 'border-emerald-500/20 bg-emerald-500/[0.07] text-emerald-300'}`}><span>{appliedMessage}</span>{!applyError && <button onClick={openTapdModal} className="shrink-0 font-medium text-sky-300 hover:text-white">前往同步中心</button>}</div>}
 
+      {dataAudit.criticalCount > 0 && <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-red-500/25 bg-red-500/[0.07] px-3 py-2 text-xs text-red-200"><span><strong>{dataAudit.criticalCount} 项关键数据异常</strong>，相关任务已禁止直接应用排期，需先修复重复记录、父子关系或日期错误。</span><button onClick={openTapdModal} className="shrink-0 font-medium text-sky-300 hover:text-white">前往核查</button></div>}
+
       {scenarioImpact && (
         <div className="mt-4 overflow-hidden rounded-xl border border-indigo-500/25 bg-gray-950/30">
           <div className="flex items-center justify-between gap-3 border-b border-gray-800 px-4 py-2.5">
@@ -236,7 +249,8 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
           const suggestion = item.suggestion!;
           const assignees = (item.task.assigneeIds || []).map(id => resourceById.get(id)?.name).filter(Boolean).join('、') || '未匹配处理人';
           const isSelected = !!item.task.id && selectedIds.has(item.task.id);
-          const canApply = !suggestion.requiresReview;
+          const qualityReasons = item.task.id ? (criticalQualityByTask.get(item.task.id) || []) : [];
+          const canApply = !suggestion.requiresReview && qualityReasons.length === 0;
           const demand = findDemandForTask(item.task, tasks);
           const deadlineLabel = suggestion.parentDeadlineStatus === 'safe'
             ? `不晚于父需求 ${formatDate(suggestion.parentDeadline)}`
@@ -267,13 +281,13 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
                   <div className="rounded-md border border-white/[0.05] bg-black/10 px-2 py-1.5"><span className="text-gray-500">人员负载</span><span className="ml-2 font-medium text-gray-300">当期 {suggestion.currentConflictCount} → {suggestion.suggestedConflictCount} 项</span></div>
                   <div className={`rounded-md border px-2 py-1.5 ${suggestion.parentDeadlineStatus === 'late' ? 'border-red-500/20 bg-red-500/[0.06] text-red-300' : 'border-white/[0.05] bg-black/10 text-gray-300'}`}><span className="text-gray-500">截止影响</span><span className="ml-2 font-medium">{deadlineLabel}</span></div>
                 </div>
-                {!canApply && <p className="mt-2 rounded-md border border-orange-500/20 bg-orange-500/[0.06] px-2 py-1.5 text-[10px] text-orange-300">需确认：{suggestion.reviewReasons.join('；')}</p>}
+                {!canApply && <p className="mt-2 rounded-md border border-orange-500/20 bg-orange-500/[0.06] px-2 py-1.5 text-[10px] text-orange-300">需确认：{[...qualityReasons, ...suggestion.reviewReasons].join('；')}</p>}
               </div>
               <span className="shrink-0 rounded bg-white/[0.05] px-2 py-1 text-[10px] font-medium text-gray-300">{item.actionLabel}</span>
             </div>
             <div className="mt-2 flex items-center justify-end gap-3 border-t border-white/[0.05] pt-2">
               <button onClick={() => locateInGantt(item.task)} className="inline-flex items-center gap-1 text-[10px] text-gray-400 hover:text-indigo-300"><LocateFixed size={11} />甘特图定位</button>
-              <button disabled={applyingId !== null || !canApply} onClick={() => applySuggestedDates(item)} title={canApply ? '加入本地待同步' : suggestion.reviewReasons.join('；')} className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"><CalendarClock size={11} />{applyingId === item.task.id ? '正在加入...' : canApply ? '应用建议日期' : '请先人工确认'}</button>
+              <button disabled={applyingId !== null || !canApply} onClick={() => applySuggestedDates(item)} title={canApply ? '加入本地待同步' : [...qualityReasons, ...suggestion.reviewReasons].join('；')} className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"><CalendarClock size={11} />{applyingId === item.task.id ? '正在加入...' : canApply ? '应用建议日期' : qualityReasons.length ? '数据异常待修复' : '请先人工确认'}</button>
               {item.task.externalUrl ? <a href={item.task.externalUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[10px] font-medium text-sky-300 hover:text-white">打开 TAPD 调整<ExternalLink size={11} /></a> : <button onClick={() => openTaskModal(item.task.id)} className="text-[10px] font-medium text-sky-300 hover:text-white">查看本地详情</button>}
             </div>
           </article>;
