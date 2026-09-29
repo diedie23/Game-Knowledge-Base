@@ -30,6 +30,14 @@ const SYNC_FIELD_LABEL: Record<string, string> = {
   priority: '优先级', progress: '进度', title: '标题', estimatedHours: '预估工时',
 };
 
+const SYNC_IMPACT_STYLE = {
+  high: 'border-red-500/30 bg-red-500/15 text-red-300',
+  medium: 'border-amber-500/30 bg-amber-500/15 text-amber-300',
+  low: 'border-gray-600 bg-gray-800 text-gray-400',
+} as const;
+
+const SYNC_IMPACT_LABEL = { high: '高影响', medium: '需核对', low: '常规' } as const;
+
 export function TapdModal() {
   const { isTapdModalOpen, closeTapdModal, selectedProjectId } = useStore();
   const {
@@ -72,6 +80,11 @@ export function TapdModal() {
   const pendingSyncPreview = useMemo(() => pendingSyncBundle
     ? buildPendingSyncPreview(pendingSyncBundle.logs, pendingSyncBundle.tasks, pendingSyncBundle.resources)
     : [], [pendingSyncBundle]);
+  const pendingImpactCounts = useMemo(() => ({
+    high: pendingSyncPreview.filter(item => item.impact === 'high').length,
+    medium: pendingSyncPreview.filter(item => item.impact === 'medium').length,
+    low: pendingSyncPreview.filter(item => item.impact === 'low').length,
+  }), [pendingSyncPreview]);
 
   // ─── Sync Range State ───
   const [syncRangeMode, setSyncRangeMode] = useState<SyncRangeConfig['mode']>('all');
@@ -2276,6 +2289,7 @@ export function TapdModal() {
                     <div>
                       <div className="text-xs font-medium text-violet-200">同步前差异预览</div>
                       <div className="mt-0.5 text-[10px] text-gray-500">{pendingSyncPreview.length} 个对象、{pendingChanges} 条本地修改尚未推送</div>
+                      <div className="mt-1 flex gap-2 text-[9px]"><span className="text-red-300">高影响 {pendingImpactCounts.high}</span><span className="text-amber-300">需核对 {pendingImpactCounts.medium}</span><span className="text-gray-500">常规 {pendingImpactCounts.low}</span></div>
                     </div>
                     <button
                       type="button"
@@ -2293,6 +2307,7 @@ export function TapdModal() {
                             {item.action === 'delete' ? '删除' : item.action === 'create' ? '新增' : '修改'}
                           </span>
                           <span className="min-w-0 flex-1 truncate text-[11px] text-gray-200">{item.title}</span>
+                          <span title={item.impactReason} className={`rounded border px-1.5 py-0.5 text-[9px] ${SYNC_IMPACT_STYLE[item.impact]}`}>{SYNC_IMPACT_LABEL[item.impact]}</span>
                           {item.task?.externalUrl && <button type="button" onClick={() => window.open(item.task!.externalUrl, '_blank', 'noopener,noreferrer')} className="text-[10px] text-sky-400 hover:text-sky-300">打开 TAPD</button>}
                         </div>
                         {item.fields.length > 0 && (
@@ -2331,7 +2346,7 @@ export function TapdModal() {
                 <div className="flex items-center justify-between gap-3 rounded-lg border border-emerald-500/25 bg-emerald-500/[0.07] p-3">
                   <div>
                     <div className="text-xs font-medium text-emerald-200">确认将以上 {pendingSyncPreview.length} 个对象推送到 TAPD？</div>
-                    <div className="mt-0.5 text-[10px] text-gray-500">请重点核对处理人和日期；确认后 TAPD 将以这里的最终值为准。</div>
+                    <div className="mt-0.5 text-[10px] text-gray-500">其中高影响 {pendingImpactCounts.high} 项、需核对 {pendingImpactCounts.medium} 项；确认后 TAPD 将以这里的最终值为准。</div>
                   </div>
                   <div className="flex shrink-0 gap-2">
                     <button type="button" onClick={() => setSyncConfirmation(null)} className="rounded-md border border-gray-700 px-2.5 py-1.5 text-[10px] text-gray-300">返回检查</button>

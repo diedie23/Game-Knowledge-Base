@@ -17,6 +17,8 @@ export interface PendingSyncPreview {
   fields: PendingSyncField[];
   logIds: number[];
   lastChangedAt: number;
+  impact: 'high' | 'medium' | 'low';
+  impactReason: string;
 }
 
 export function buildPendingSyncPreview(logs: ChangeLog[], tasks: Task[], resources: Resource[]): PendingSyncPreview[] {
@@ -41,6 +43,26 @@ export function buildPendingSyncPreview(logs: ChangeLog[], tasks: Task[], resour
       });
     });
     const last = recordLogs[recordLogs.length - 1];
+    const fields = [...fieldMap.values()].filter(field => JSON.stringify(field.from) !== JSON.stringify(field.to));
+    const fieldNames = new Set(fields.map(field => field.field));
+    const impact: PendingSyncPreview['impact'] = last.action === 'delete' || fieldNames.has('parentId')
+      ? 'high'
+      : first.action === 'create' || ['startDate', 'endDate', 'assigneeIds', 'status', 'priority'].some(field => fieldNames.has(field))
+        ? 'medium'
+        : 'low';
+    const impactReason = last.action === 'delete'
+      ? '将删除 TAPD 对应记录'
+      : fieldNames.has('parentId')
+        ? '父子层级将发生变化'
+        : fieldNames.has('assigneeIds') && (fieldNames.has('startDate') || fieldNames.has('endDate'))
+          ? '处理人与排期将同时变化'
+          : fieldNames.has('assigneeIds')
+            ? '处理人将发生变化'
+            : fieldNames.has('startDate') || fieldNames.has('endDate')
+              ? '排期日期将发生变化'
+              : first.action === 'create'
+                ? '将新建 TAPD 记录'
+                : '常规字段更新';
     return {
       table: first.table,
       recordId: first.recordId,
@@ -48,9 +70,11 @@ export function buildPendingSyncPreview(logs: ChangeLog[], tasks: Task[], resour
       title: task?.title || resource?.name || first.snapshot?.title || first.snapshot?.name || `记录 #${first.recordId}`,
       task,
       resource,
-      fields: [...fieldMap.values()].filter(field => JSON.stringify(field.from) !== JSON.stringify(field.to)),
+      fields,
       logIds: recordLogs.map(log => log.id).filter((id): id is number => !!id),
       lastChangedAt: last.timestamp,
+      impact,
+      impactReason,
     };
   }).sort((a, b) => b.lastChangedAt - a.lastChangedAt);
 }

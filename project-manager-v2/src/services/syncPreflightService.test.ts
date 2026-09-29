@@ -16,6 +16,14 @@ describe('buildPendingSyncPreview', () => {
     expect(preview[0].fields.find(field => field.field === 'startDate')).toMatchObject({ from: undefined });
     expect(preview[0].fields.find(field => field.field === 'startDate')?.to).toEqual(new Date('2026-09-29'));
     expect(preview[0].logIds).toEqual([1, 2]);
+    expect(preview[0]).toMatchObject({ impact: 'medium', impactReason: '排期日期将发生变化' });
+  });
+
+  it('marks hierarchy and deletion changes as high impact', () => {
+    const hierarchy = buildPendingSyncPreview([log(3, { parentId: { from: 10, to: 20 } }, 3)], [source], [])[0];
+    const deletion = buildPendingSyncPreview([{ ...log(4, {}, 4), action: 'delete' }], [source], [])[0];
+    expect(hierarchy).toMatchObject({ impact: 'high', impactReason: '父子层级将发生变化' });
+    expect(deletion).toMatchObject({ impact: 'high', impactReason: '将删除 TAPD 对应记录' });
   });
 
   it('ignores already synced logs', () => {
