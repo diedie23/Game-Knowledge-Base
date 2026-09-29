@@ -140,6 +140,8 @@ describe('formatTapdAdjustmentChecklist', () => {
         parentDeadlineStatus: 'unknown',
         requiresReview: false,
         reviewReasons: [],
+        confidence: 90,
+        confidenceLevel: 'high',
       },
     }], [{ id: 1, name: '设计师', role: 'UI设计', type: 'internal' } as Resource]);
     expect(text).toContain('[P0] 任务8');
@@ -147,6 +149,7 @@ describe('formatTapdAdjustmentChecklist', () => {
     expect(text).toContain('建议动作：补充 TAPD 排期');
     expect(text).toContain('建议处理人：设计师');
     expect(text).toContain('调整依据：按 2 个工作日补齐排期');
+    expect(text).toContain('建议置信度：90%');
     expect(text).toContain('https://tapd.example/story/8');
   });
 });
@@ -208,6 +211,7 @@ describe('buildTapdScheduleSuggestion', () => {
     const suggestion = buildTapdScheduleSuggestion(source, ['unscheduled', 'unassigned'], [source], resources, today);
     expect(suggestion.resource).toBeUndefined();
     expect(suggestion.reasons.join('')).toContain('手动指定');
+    expect(suggestion.confidenceLevel).toBe('low');
   });
 
   it('requires review when effort is missing and allows a complete same-role task', () => {
@@ -225,6 +229,7 @@ describe('buildTapdScheduleSuggestion', () => {
     const suggestion = buildTapdScheduleSuggestion(source, ['unscheduled'], [parent, source], resources, today);
     expect(suggestion.parentDeadlineStatus).toBe('late');
     expect(suggestion.requiresReview).toBe(true);
+    expect(suggestion.confidence).toBeLessThan(80);
   });
 
   it('counts one active item when parent rows and duplicate TAPD records overlap the source', () => {

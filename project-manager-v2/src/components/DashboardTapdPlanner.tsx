@@ -25,6 +25,12 @@ const LEVEL_STYLE = {
   low: { label: '提醒', card: 'border-yellow-500/20 bg-yellow-500/[0.03]', badge: 'border-yellow-500/25 bg-yellow-500/10 text-yellow-300' },
 } as const;
 
+const CONFIDENCE_STYLE = {
+  high: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
+  medium: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
+  low: 'border-red-500/30 bg-red-500/10 text-red-300',
+} as const;
+
 function syncFreshness(timestamp: number | null) {
   if (!timestamp) return { label: '尚无同步记录', tone: 'text-gray-400 bg-gray-800 border-gray-700' };
   const minutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60_000));
@@ -265,6 +271,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
                   <span className={`rounded border px-1.5 py-0.5 text-[9px] font-semibold ${style.badge}`}>{style.label}</span>
                   <span className={`rounded border px-1.5 py-0.5 text-[9px] font-semibold ${canApply ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' : 'border-orange-500/30 bg-orange-500/10 text-orange-300'}`}>{canApply ? '可直接排期' : '需要人工确认'}</span>
                   <span className="rounded border border-gray-700 bg-gray-800/70 px-1.5 py-0.5 text-[9px] text-gray-300">{getPriorityLabel(item.task.priority)}</span>
+                  <span className={`rounded border px-1.5 py-0.5 text-[9px] font-medium ${CONFIDENCE_STYLE[suggestion.confidenceLevel]}`}>置信度 {suggestion.confidence}%</span>
                   <span className="text-[10px] text-gray-500">{assignees}</span>
                 </div>
                 {demand.id !== item.task.id && <div className="mb-1 flex items-center gap-1.5 text-[10px] text-cyan-300/80"><GitBranch size={10} /><button type="button" onClick={() => demand.externalUrl ? window.open(demand.externalUrl, '_blank', 'noopener,noreferrer') : openTaskModal(demand.id)} className="max-w-[75%] truncate hover:text-cyan-200" title={demand.title}>{demand.title}</button><button type="button" onClick={() => selectSameDemand(item.task)} className="ml-auto rounded bg-cyan-500/10 px-1.5 py-0.5 text-cyan-300 hover:bg-cyan-500/20">选择同需求</button></div>}

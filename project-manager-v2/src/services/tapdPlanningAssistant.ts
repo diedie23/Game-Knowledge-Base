@@ -20,6 +20,8 @@ export interface TapdScheduleSuggestion {
   parentDeadlineStatus: 'safe' | 'late' | 'unknown';
   requiresReview: boolean;
   reviewReasons: string[];
+  confidence: number;
+  confidenceLevel: 'high' | 'medium' | 'low';
 }
 
 export interface TapdScheduleReadiness {
@@ -261,6 +263,17 @@ export function buildTapdScheduleSuggestion(
   if (parentDeadlineStatus === 'late') reasons.push('建议排期将突破父需求截止日期');
   if (dependency.readyAt) reasons.push(`已避让前置任务，最早从 ${dependency.readyAt.toLocaleDateString('zh-CN')} 开始`);
 
+  let confidence = 100;
+  if (!selectedResource) confidence -= 45;
+  if (!task.estimatedHours || task.estimatedHours <= 0) confidence -= 20;
+  if (!expectedStage) confidence -= 20;
+  if (parentDeadlineStatus === 'late') confidence -= 25;
+  if (suggestedConflictCount > 1) confidence -= Math.min(20, (suggestedConflictCount - 1) * 10);
+  if (dependency.unresolved.length) confidence -= 30;
+  if (tags.includes('blocked')) confidence -= 20;
+  confidence = Math.max(10, confidence);
+  const confidenceLevel = confidence >= 80 ? 'high' : confidence >= 60 ? 'medium' : 'low';
+
   return {
     resource: selectedResource,
     startDate,
@@ -276,6 +289,8 @@ export function buildTapdScheduleSuggestion(
     parentDeadlineStatus,
     requiresReview: reviewReasons.length > 0,
     reviewReasons: [...new Set(reviewReasons)],
+    confidence,
+    confidenceLevel,
   };
 }
 
@@ -521,6 +536,7 @@ export function formatTapdAdjustmentChecklist(items: TapdPlanningItem[], resourc
       `   - 当前排期：${item.task.startDate ? item.task.startDate.toLocaleDateString('zh-CN') : '未排期'} → ${item.task.endDate ? item.task.endDate.toLocaleDateString('zh-CN') : '未排期'}`,
       `   - 建议处理人：${suggestion?.resource?.name || '待人工指定'}`,
       `   - 建议排期：${suggestion ? `${suggestion.startDate.toLocaleDateString('zh-CN')} → ${suggestion.endDate.toLocaleDateString('zh-CN')}` : '待评估'}`,
+      `   - 建议置信度：${suggestion ? `${suggestion.confidence}%` : '待评估'}`,
       `   - 调整依据：${suggestion?.reasons.join('；') || '需结合当前负载人工确认'}`,
       `   - TAPD：${item.task.externalUrl || item.task.tapdId || '无链接'}`,
       '',
