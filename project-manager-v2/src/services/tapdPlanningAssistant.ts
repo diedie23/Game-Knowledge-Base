@@ -49,6 +49,9 @@ export interface DemandRiskGroup {
   summaryReasons: string[];
   ownerNames: string[];
   nearestDeadline?: Date;
+  maxOverdueDays: number;
+  staleDays?: number;
+  escalation: 'normal' | 'watch' | 'escalate';
   score: number;
 }
 
@@ -384,6 +387,9 @@ export function buildDemandRiskGroups(
         summaryReasons: [],
         ownerNames: [],
         nearestDeadline: undefined,
+        maxOverdueDays: 0,
+        staleDays: undefined,
+        escalation: 'normal',
         score: 0,
       };
       groups.set(key, group);
@@ -440,9 +446,23 @@ export function buildDemandRiskGroups(
       String(task.tapdOwner || '').split(/[;,，；]/).map(value => value.trim()).filter(Boolean).forEach(value => owners.add(value));
     });
     const deadlines = groupTasks.map(task => task.endDate).filter((date): date is Date => !!date).sort((a, b) => a.getTime() - b.getTime());
-    return { ...group, summaryReasons: reasons, ownerNames: [...owners].slice(0, 4), nearestDeadline: deadlines[0] };
+    const maxOverdueDays = deadlines.reduce((max, deadline) => Math.max(max, Math.floor((startOfDay(today).getTime() - startOfDay(deadline).getTime()) / 86_400_000)), 0);
+    const latestUpdate = groupTasks.map(task => Number(task.updatedAt || 0)).filter(Boolean).sort((a, b) => b - a)[0];
+    const staleDays = latestUpdate ? Math.max(0, Math.floor((startOfDay(today).getTime() - startOfDay(new Date(latestUpdate)).getTime()) / 86_400_000)) : undefined;
+    const ownerNames = [...owners].slice(0, 4);
+    const escalation: DemandRiskGroup['escalation'] = group.blockedCount > 0 || maxOverdueDays >= 3
+      ? 'escalate'
+      : maxOverdueDays > 0 || ownerNames.length === 0 || (staleDays !== undefined && staleDays >= 3)
+        ? 'watch'
+        : 'normal';
+    if (maxOverdueDays > 0) reasons.push(`最长逾期 ${maxOverdueDays} 天`);
+    if (staleDays !== undefined && staleDays >= 3) reasons.push(`${staleDays} 天未更新`);
+    return { ...group, summaryReasons: [...new Set(reasons)], ownerNames, nearestDeadline: deadlines[0], maxOverdueDays, staleDays, escalation, score: group.score + maxOverdueDays * 5 };
   }).filter(group => group.items.length > 0 || group.checkpoints.length > 0)
-    .sort((left, right) => levelRank[right.level] - levelRank[left.level] || right.score - left.score);
+    .sort((left, right) => {
+      const escalationRank = { normal: 0, watch: 1, escalate: 2 };
+      return escalationRank[right.escalation] - escalationRank[left.escalation] || levelRank[right.level] - levelRank[left.level] || right.score - left.score;
+    });
 }
 
 export function latestTapdSyncAt(tasks: Task[]): number | null {

@@ -18,7 +18,15 @@ const LEVEL_STYLE = {
 
 export function DashboardDemandRisks({ tasks, resources }: Props) {
   const { openTaskModal } = useStore();
-  const groups = useMemo(() => buildDemandRiskGroups(tasks, resources).slice(0, 8), [tasks, resources]);
+  const [filter, setFilter] = useState<'all' | 'escalate' | 'checkpoint' | 'unowned'>('all');
+  const allGroups = useMemo(() => buildDemandRiskGroups(tasks, resources), [tasks, resources]);
+  const filteredGroups = useMemo(() => allGroups.filter(group => {
+    if (filter === 'escalate') return group.escalation === 'escalate';
+    if (filter === 'checkpoint') return group.checkpoints.length > 0;
+    if (filter === 'unowned') return group.ownerNames.length === 0;
+    return true;
+  }), [allGroups, filter]);
+  const groups = filteredGroups.slice(0, 8);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const openTask = (task: Task) => {
@@ -31,7 +39,7 @@ export function DashboardDemandRisks({ tasks, resources }: Props) {
     return next;
   });
 
-  if (!groups.length) return null;
+  if (!allGroups.length) return null;
 
   return (
     <section className="rounded-2xl border border-gray-700/50 bg-gray-900/35 p-5 shadow-lg">
@@ -43,11 +51,13 @@ export function DashboardDemandRisks({ tasks, resources }: Props) {
           </h3>
           <p className="mt-1 text-xs text-gray-500">按 UIStory 汇总 UX 子任务与跨管线卡点，先处理影响面最大的父需求。</p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-400">
-          <span className="rounded-md border border-gray-700 bg-gray-900/50 px-2 py-1">{groups.length} 个需求需关注</span>
-          <span className="rounded-md border border-red-500/20 bg-red-500/10 px-2 py-1 text-red-300">
-            {groups.filter(group => group.level === 'critical' || group.level === 'high').length} 个高风险
-          </span>
+        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400">
+          {[
+            { key: 'all' as const, label: '全部', value: allGroups.length },
+            { key: 'escalate' as const, label: '升级处理', value: allGroups.filter(group => group.escalation === 'escalate').length },
+            { key: 'checkpoint' as const, label: '跨管线卡点', value: allGroups.filter(group => group.checkpoints.length > 0).length },
+            { key: 'unowned' as const, label: '责任人待明确', value: allGroups.filter(group => group.ownerNames.length === 0).length },
+          ].map(item => <button key={item.key} type="button" onClick={() => setFilter(item.key)} className={`rounded-md border px-2 py-1 transition-colors ${filter === item.key ? 'border-orange-500/35 bg-orange-500/15 text-orange-200' : 'border-gray-700 bg-gray-900/50 hover:border-gray-600'}`}>{item.label} {item.value}</button>)}
         </div>
       </div>
 
@@ -73,6 +83,8 @@ export function DashboardDemandRisks({ tasks, resources }: Props) {
                 </button>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
+                    {group.escalation === 'escalate' && <span className="rounded border border-red-500/30 bg-red-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-red-300">升级处理</span>}
+                    {group.escalation === 'watch' && <span className="rounded border border-amber-500/25 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300">持续关注</span>}
                     <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${style.badge}`}>{style.label}</span>
                     <span className="rounded border border-cyan-500/20 bg-cyan-500/10 px-1.5 py-0.5 text-[10px] text-cyan-300">UIStory</span>
                     <span className="text-[11px] text-gray-500">{children.length} 个风险项</span>
@@ -94,6 +106,8 @@ export function DashboardDemandRisks({ tasks, resources }: Props) {
                   <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-500">
                     <span>责任人：<span className={group.ownerNames.length ? 'text-gray-300' : 'text-orange-300'}>{group.ownerNames.join('、') || '待明确'}</span></span>
                     <span>最近截止：<span className="text-gray-300">{group.nearestDeadline ? `${String(group.nearestDeadline.getMonth() + 1).padStart(2, '0')}/${String(group.nearestDeadline.getDate()).padStart(2, '0')}` : '未设置'}</span></span>
+                    {group.maxOverdueDays > 0 && <span className="text-red-300">最长逾期 {group.maxOverdueDays} 天</span>}
+                    {group.staleDays !== undefined && group.staleDays >= 3 && <span className="text-amber-300">{group.staleDays} 天未更新</span>}
                   </div>
                 </div>
               </div>
@@ -128,6 +142,7 @@ export function DashboardDemandRisks({ tasks, resources }: Props) {
           <AlertTriangle size={12} /> 当前展示优先级最高的 8 个需求
         </div>
       )}
+      {groups.length === 0 && <div className="rounded-xl border border-dashed border-gray-800 px-4 py-8 text-center text-xs text-gray-500">当前筛选条件下没有风险需求</div>}
     </section>
   );
 }

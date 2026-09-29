@@ -16,6 +16,7 @@ import { formatResourceDisplayName } from '../utils/resourceDisplay';
 import { DashboardTapdPlanner } from './DashboardTapdPlanner';
 import { DashboardDemandRisks } from './DashboardDemandRisks';
 import { DashboardWeeklyReport } from './DashboardWeeklyReport';
+import { DashboardCapacityForecast } from './DashboardCapacityForecast';
 
 export function Dashboard() {
   const { setCurrentView, openTaskModal, selectedProjectId } = useStore();
@@ -539,6 +540,8 @@ export function Dashboard() {
       </div>
 
       <DashboardTapdPlanner tasks={tasks} resources={resources} />
+
+      <DashboardCapacityForecast tasks={tasks} resources={resources} />
 
       <DashboardDemandRisks tasks={tasks} resources={resources} />
 

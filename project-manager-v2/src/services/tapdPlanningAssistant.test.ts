@@ -103,6 +103,18 @@ describe('buildDemandRiskGroups', () => {
     expect(groups[0].checkpoints.map(item => item.label)).toEqual(['程序接入']);
     expect(groups[0].staffingCount).toBe(0);
   });
+
+  it('escalates a parent demand when its child has been overdue for three days', () => {
+    const story = task(120, { title: '父需求', tapdWorkitemTypeName: 'UIStory' });
+    const child = task(121, {
+      title: '【视觉设计】逾期任务', parentId: 120, assigneeIds: [1], status: 'in_progress',
+      startDate: new Date('2026-09-20'), endDate: new Date('2026-09-24'), updatedAt: new Date('2026-09-23').getTime(),
+    });
+    const groups = buildDemandRiskGroups([story, child], resources, today);
+    expect(groups[0].maxOverdueDays).toBe(4);
+    expect(groups[0].escalation).toBe('escalate');
+    expect(groups[0].summaryReasons).toContain('最长逾期 4 天');
+  });
 });
 
 describe('formatTapdAdjustmentChecklist', () => {
