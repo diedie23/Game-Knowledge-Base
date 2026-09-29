@@ -85,6 +85,7 @@ describe('buildDemandRiskGroups', () => {
     expect(groups).toHaveLength(1);
     expect(groups[0].demand.id).toBe(101);
     expect(groups[0].items.map(item => item.task.id)).toEqual([103]);
+    expect(groups[0].ownerNames).toEqual(['视觉']);
   });
 
   it('keeps an active program checkpoint as a parent-demand risk without treating it as UX staffing', () => {

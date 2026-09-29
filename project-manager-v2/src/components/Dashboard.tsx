@@ -542,7 +542,7 @@ export function Dashboard() {
 
       <DashboardDemandRisks tasks={tasks} resources={resources} />
 
-      <DashboardWeeklyReport tasks={tasks} resources={resources} />
+      <DashboardWeeklyReport tasks={tasks} resources={resources} projectId={selectedProjectId || undefined} />
 
       <div className="grid grid-cols-3 gap-8 h-[620px]" style={{ gridAutoRows: '1fr' }}>
         {/* 2. 今日到期 / 逾期未完成 — Tab 切换 */}

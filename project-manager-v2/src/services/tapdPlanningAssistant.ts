@@ -47,6 +47,8 @@ export interface DemandRiskGroup {
   blockedCount: number;
   staffingCount: number;
   summaryReasons: string[];
+  ownerNames: string[];
+  nearestDeadline?: Date;
   score: number;
 }
 
@@ -380,6 +382,8 @@ export function buildDemandRiskGroups(
         blockedCount: 0,
         staffingCount: 0,
         summaryReasons: [],
+        ownerNames: [],
+        nearestDeadline: undefined,
         score: 0,
       };
       groups.set(key, group);
@@ -417,6 +421,7 @@ export function buildDemandRiskGroups(
     group.score += LEVEL_SCORE[checkpointLevel] + (overdue ? 30 : 10);
   });
 
+  const resourceById = new Map(resources.filter(resource => resource.id).map(resource => [resource.id!, resource]));
   return [...groups.values()].map(group => {
     const reasons: string[] = [];
     if (group.overdueCount) reasons.push(`${group.overdueCount} 项逾期`);
@@ -425,7 +430,17 @@ export function buildDemandRiskGroups(
     if (group.checkpoints.length) reasons.push(`${group.checkpoints.length} 个跨管线卡点`);
     const unscheduled = group.items.filter(item => item.tags.includes('unscheduled')).length;
     if (unscheduled) reasons.push(`${unscheduled} 项待排期`);
-    return { ...group, summaryReasons: reasons };
+    const groupTasks = [...group.items.map(item => item.task), ...group.checkpoints.map(item => item.task)];
+    const owners = new Set<string>();
+    groupTasks.forEach(task => {
+      (task.assigneeIds || []).forEach(id => {
+        const name = resourceById.get(id)?.name;
+        if (name) owners.add(name);
+      });
+      String(task.tapdOwner || '').split(/[;,，；]/).map(value => value.trim()).filter(Boolean).forEach(value => owners.add(value));
+    });
+    const deadlines = groupTasks.map(task => task.endDate).filter((date): date is Date => !!date).sort((a, b) => a.getTime() - b.getTime());
+    return { ...group, summaryReasons: reasons, ownerNames: [...owners].slice(0, 4), nearestDeadline: deadlines[0] };
   }).filter(group => group.items.length > 0 || group.checkpoints.length > 0)
     .sort((left, right) => levelRank[right.level] - levelRank[left.level] || right.score - left.score);
 }

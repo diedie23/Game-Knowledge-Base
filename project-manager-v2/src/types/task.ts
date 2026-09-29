@@ -94,6 +94,17 @@ export interface ChangeSnapshot {
   date: number; // timestamp
   reason: string;
   description?: string;
+  kind?: 'change' | 'weekly-report';
+  projectId?: number;
+  weekKey?: string;
+  reportData?: {
+    completed: number;
+    inProgress: number;
+    nextWeek: number;
+    riskCount: number;
+    highRiskCount: number;
+    text: string;
+  };
   // We could store the whole tasks state here if we wanted to actually revert,
   // but for now we just record the reason and date.
   // tasksSnapshot?: Task[]; 

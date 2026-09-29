@@ -1,21 +1,61 @@
 import React, { useMemo, useState } from 'react';
-import { Check, ChevronDown, ChevronUp, ClipboardCopy, ExternalLink, FileText } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, ClipboardCopy, ExternalLink, FileText, History, Save } from 'lucide-react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { format } from 'date-fns';
 import type { Resource, Task } from '../types';
 import { buildWeeklyUxReport, formatWeeklyUxReport } from '../services/weeklyReportService';
+import { db } from '../db/db';
 
 interface Props {
   tasks: Task[];
   resources: Resource[];
+  projectId?: number;
 }
 
-export function DashboardWeeklyReport({ tasks, resources }: Props) {
+export function DashboardWeeklyReport({ tasks, resources, projectId }: Props) {
   const [expanded, setExpanded] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [saved, setSaved] = useState(false);
   const report = useMemo(() => buildWeeklyUxReport(tasks, resources), [tasks, resources]);
   const reportText = useMemo(() => formatWeeklyUxReport(report), [report]);
+  const weekKey = format(report.weekStart, 'yyyy-MM-dd');
+  const snapshots = useLiveQuery(
+    () => db.changeSnapshots.filter(snapshot => snapshot.kind === 'weekly-report' && (!projectId || snapshot.projectId === projectId)).reverse().sortBy('date'),
+    [projectId],
+  ) || [];
+  const previousSnapshot = snapshots.find(snapshot => snapshot.weekKey !== weekKey);
   const openTask = (task: Task) => task.externalUrl && window.open(task.externalUrl, '_blank', 'noopener,noreferrer');
   const copy = async () => {
     await navigator.clipboard.writeText(reportText);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  };
+  const saveSnapshot = async () => {
+    const highRiskCount = report.risks.filter(group => group.level === 'critical' || group.level === 'high').length;
+    await db.changeSnapshots.put({
+      id: `weekly-report:${projectId || 'all'}:${weekKey}`,
+      date: Date.now(),
+      reason: `UX 管线周报 ${format(report.weekStart, 'MM/dd')} - ${format(report.weekEnd, 'MM/dd')}`,
+      description: reportText,
+      kind: 'weekly-report',
+      projectId,
+      weekKey,
+      reportData: {
+        completed: report.completed.length,
+        inProgress: report.inProgress.length,
+        nextWeek: report.nextWeek.length,
+        riskCount: report.risks.length,
+        highRiskCount,
+        text: reportText,
+      },
+    });
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 1600);
+  };
+  const copySnapshot = async (text?: string) => {
+    if (!text) return;
+    await navigator.clipboard.writeText(text);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1600);
   };
@@ -35,17 +75,48 @@ export function DashboardWeeklyReport({ tasks, resources }: Props) {
           <p className="mt-1 text-xs text-gray-500">自动汇总当前数据，可复制到周会或项目群，并通过 TAPD 链接核查。</p>
         </div>
         <div className="flex items-center gap-2">
+          <button type="button" onClick={saveSnapshot} className="flex items-center gap-1.5 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-200 hover:bg-emerald-500/20">
+            {saved ? <Check size={14} /> : <Save size={14} />}{saved ? '已保存' : '保存本周快照'}
+          </button>
           <button type="button" onClick={copy} className="flex items-center gap-1.5 rounded-lg border border-violet-500/25 bg-violet-500/10 px-3 py-2 text-xs font-medium text-violet-200 hover:bg-violet-500/20">
             {copied ? <Check size={14} /> : <ClipboardCopy size={14} />}{copied ? '已复制' : '复制周报'}
           </button>
           <button type="button" onClick={() => setExpanded(value => !value)} className="flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800/70 px-3 py-2 text-xs text-gray-300 hover:text-white">
             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}{expanded ? '收起明细' : '查看明细'}
           </button>
+          <button type="button" onClick={() => setShowHistory(value => !value)} className="flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800/70 px-3 py-2 text-xs text-gray-300 hover:text-white">
+            <History size={14} />历史 {snapshots.length}
+          </button>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2 border-t border-gray-800 px-5 py-4 md:grid-cols-4">
         {stats.map(stat => <div key={stat.label} className={`rounded-lg border px-3 py-2 ${stat.tone}`}><div className="text-lg font-semibold">{stat.value}</div><div className="text-[11px] opacity-80">{stat.label}</div></div>)}
       </div>
+      {previousSnapshot?.reportData && (
+        <div className="flex flex-wrap items-center gap-3 border-t border-gray-800 bg-gray-950/20 px-5 py-2.5 text-[11px] text-gray-500">
+          <span>较上次周报</span>
+          <span className={report.completed.length - previousSnapshot.reportData.completed >= 0 ? 'text-emerald-300' : 'text-orange-300'}>完成 {report.completed.length - previousSnapshot.reportData.completed >= 0 ? '+' : ''}{report.completed.length - previousSnapshot.reportData.completed}</span>
+          <span className={report.risks.length - previousSnapshot.reportData.riskCount <= 0 ? 'text-emerald-300' : 'text-red-300'}>风险 {report.risks.length - previousSnapshot.reportData.riskCount >= 0 ? '+' : ''}{report.risks.length - previousSnapshot.reportData.riskCount}</span>
+          <span className={report.risks.filter(group => group.level === 'critical' || group.level === 'high').length - previousSnapshot.reportData.highRiskCount <= 0 ? 'text-emerald-300' : 'text-red-300'}>高风险 {report.risks.filter(group => group.level === 'critical' || group.level === 'high').length - previousSnapshot.reportData.highRiskCount >= 0 ? '+' : ''}{report.risks.filter(group => group.level === 'critical' || group.level === 'high').length - previousSnapshot.reportData.highRiskCount}</span>
+        </div>
+      )}
+      {showHistory && (
+        <div className="border-t border-gray-800 bg-gray-950/30 p-5">
+          <h4 className="mb-3 text-xs font-semibold text-gray-300">历史周报快照</h4>
+          <div className="grid gap-2 lg:grid-cols-2">
+            {snapshots.map(snapshot => (
+              <div key={snapshot.id} className="flex items-center gap-3 rounded-lg border border-gray-800 bg-gray-900/70 px-3 py-2.5">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-xs text-gray-200">{snapshot.reason}</div>
+                  <div className="mt-1 flex gap-3 text-[10px] text-gray-500"><span>保存于 {format(snapshot.date, 'MM/dd HH:mm')}</span>{snapshot.reportData && <><span>完成 {snapshot.reportData.completed}</span><span>风险 {snapshot.reportData.riskCount}</span></>}</div>
+                </div>
+                <button type="button" onClick={() => copySnapshot(snapshot.reportData?.text || snapshot.description)} className="shrink-0 rounded-md border border-gray-700 px-2 py-1 text-[10px] text-violet-300 hover:bg-violet-500/10">复制</button>
+              </div>
+            ))}
+            {!snapshots.length && <div className="rounded-lg border border-dashed border-gray-800 px-3 py-6 text-center text-xs text-gray-600">尚未保存周报快照</div>}
+          </div>
+        </div>
+      )}
       {expanded && (
         <div className="grid gap-4 border-t border-gray-800 bg-gray-950/25 p-5 xl:grid-cols-3">
           {[

@@ -91,6 +91,10 @@ export function DashboardDemandRisks({ tasks, resources }: Props) {
                       <span key={reason} className="rounded-md bg-gray-800 px-2 py-1 text-[11px] text-gray-300">{reason}</span>
                     ))}
                   </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-500">
+                    <span>责任人：<span className={group.ownerNames.length ? 'text-gray-300' : 'text-orange-300'}>{group.ownerNames.join('、') || '待明确'}</span></span>
+                    <span>最近截止：<span className="text-gray-300">{group.nearestDeadline ? `${String(group.nearestDeadline.getMonth() + 1).padStart(2, '0')}/${String(group.nearestDeadline.getDate()).padStart(2, '0')}` : '未设置'}</span></span>
+                  </div>
                 </div>
               </div>
 
