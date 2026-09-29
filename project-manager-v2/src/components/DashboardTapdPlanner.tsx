@@ -107,6 +107,31 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
       setApplyingId(null);
     }
   };
+  const applySelectedDates = async () => {
+    if (selectedItems.length === 0) return;
+    setApplyingId(-1);
+    setApplyError(false);
+    let applied = 0;
+    let failed = 0;
+    for (const item of selectedItems) {
+      if (!item.task.id || !item.suggestion) continue;
+      try {
+        await updateTask(item.task.id, {
+          startDate: item.suggestion.startDate,
+          endDate: item.suggestion.endDate,
+        }, '批量应用 TAPD 排期助手建议日期');
+        applied += 1;
+      } catch {
+        failed += 1;
+      }
+    }
+    setApplyError(failed > 0);
+    setAppliedMessage(failed > 0
+      ? `已加入 ${applied} 项，另有 ${failed} 项应用失败，请重新检查。`
+      : `已将 ${applied} 项建议日期加入本地待同步，请在 TAPD 同步中心确认推送。`);
+    setSelectedIds(new Set());
+    setApplyingId(null);
+  };
 
   return (
     <section className="rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-indigo-500/[0.08] via-gray-900/60 to-gray-900/80 p-5 shadow-lg">
@@ -141,7 +166,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
       {appliedMessage && <div className={`mt-3 flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-xs ${applyError ? 'border-red-500/20 bg-red-500/[0.07] text-red-300' : 'border-emerald-500/20 bg-emerald-500/[0.07] text-emerald-300'}`}><span>{appliedMessage}</span>{!applyError && <button onClick={openTapdModal} className="shrink-0 font-medium text-sky-300 hover:text-white">前往同步中心</button>}</div>}
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        {items.length > 0 && <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-gray-500"><div className="flex items-center gap-2"><span>待排期任务清单</span>{filter !== 'all' && <button onClick={() => setFilter('all')} className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-indigo-300 hover:text-white">清除筛选</button>}<button onClick={selectVisible} className="hover:text-white">选择当前 {items.length} 项</button>{selectedIds.size > 0 && <button onClick={() => setSelectedIds(new Set())} className="hover:text-white">清空选择</button>}</div><div className="flex items-center gap-3"><span>显示前 {items.length} 项，共 {filteredItems.length} 项</span><button disabled={selectedItems.length === 0} onClick={() => setShowChecklist(true)} className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 font-medium text-indigo-300 hover:bg-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-40">生成排期清单（{selectedItems.length}）</button></div></div>}
+        {items.length > 0 && <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-gray-500"><div className="flex items-center gap-2"><span>待排期任务清单</span>{filter !== 'all' && <button onClick={() => setFilter('all')} className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-indigo-300 hover:text-white">清除筛选</button>}<button onClick={selectVisible} className="hover:text-white">选择当前 {items.length} 项</button>{selectedIds.size > 0 && <button onClick={() => setSelectedIds(new Set())} className="hover:text-white">清空选择</button>}</div><div className="flex items-center gap-2"><span>显示前 {items.length} 项，共 {filteredItems.length} 项</span><button disabled={selectedItems.length === 0 || applyingId !== null} onClick={applySelectedDates} className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-medium text-emerald-300 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40">{applyingId === -1 ? '正在应用...' : `应用所选日期（${selectedItems.length}）`}</button><button disabled={selectedItems.length === 0} onClick={() => setShowChecklist(true)} className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 font-medium text-indigo-300 hover:bg-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-40">生成排期清单（{selectedItems.length}）</button></div></div>}
         {items.length === 0 && <div className="col-span-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-5 text-center text-sm text-emerald-300">当前没有缺少开始或结束日期的 TAPD 任务</div>}
         {items.map(item => {
           const style = LEVEL_STYLE[item.level];
@@ -169,7 +194,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
             </div>
             <div className="mt-2 flex items-center justify-end gap-3 border-t border-white/[0.05] pt-2">
               <button onClick={() => locateInGantt(item.task)} className="inline-flex items-center gap-1 text-[10px] text-gray-400 hover:text-indigo-300"><LocateFixed size={11} />甘特图定位</button>
-              <button disabled={applyingId === item.task.id} onClick={() => applySuggestedDates(item)} className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300 hover:text-white disabled:cursor-wait disabled:opacity-50"><CalendarClock size={11} />{applyingId === item.task.id ? '正在加入...' : '应用建议日期'}</button>
+              <button disabled={applyingId !== null} onClick={() => applySuggestedDates(item)} className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300 hover:text-white disabled:cursor-wait disabled:opacity-50"><CalendarClock size={11} />{applyingId === item.task.id ? '正在加入...' : '应用建议日期'}</button>
               {item.task.externalUrl ? <a href={item.task.externalUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[10px] font-medium text-sky-300 hover:text-white">打开 TAPD 调整<ExternalLink size={11} /></a> : <button onClick={() => openTaskModal(item.task.id)} className="text-[10px] font-medium text-sky-300 hover:text-white">查看本地详情</button>}
             </div>
           </article>;
