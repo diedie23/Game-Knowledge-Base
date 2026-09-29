@@ -63,6 +63,10 @@ export function auditTaskDataQuality(tasks: Task[], resources: Resource[], now: 
 
   const criticalCount = issues.filter(issue => issue.severity === 'critical').length;
   const warningCount = issues.filter(issue => issue.severity === 'warning').length;
-  const score = Math.max(0, 100 - criticalCount * 15 - warningCount * 5);
+  // Keep the score useful on large projects: repeated warnings should lower
+  // confidence, but must not make every sizeable TAPD workspace read as zero.
+  const criticalPenalty = Math.min(60, criticalCount * 15);
+  const warningPenalty = Math.min(30, warningCount * 2);
+  const score = Math.max(10, 100 - criticalPenalty - warningPenalty);
   return { issues: issues.sort((a, b) => (a.severity === 'critical' ? 0 : 1) - (b.severity === 'critical' ? 0 : 1)), criticalCount, warningCount, score, latestSyncAt };
 }

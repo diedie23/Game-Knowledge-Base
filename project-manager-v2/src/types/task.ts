@@ -104,6 +104,8 @@ export interface ChangeSnapshot {
     riskCount: number;
     highRiskCount: number;
     capacityRiskCount?: number;
+    dataQualityScore?: number;
+    dataQualityCriticalCount?: number;
     text: string;
   };
   // We could store the whole tasks state here if we wanted to actually revert,

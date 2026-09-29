@@ -25,4 +25,11 @@ describe('auditTaskDataQuality', () => {
     ], resources, new Date('2026-09-28'));
     expect(audit.issues.filter(issue => issue.type === 'unmapped-owner').map(issue => issue.task?.id)).toEqual([10]);
   });
+
+  it('keeps the quality score comparable on large workspaces', () => {
+    const tasks = Array.from({ length: 80 }, (_, index) => task(index + 100, { tapdWorkitemTypeName: undefined }));
+    const audit = auditTaskDataQuality(tasks, [], new Date('2026-09-28T12:00:00'));
+    expect(audit.warningCount).toBe(80);
+    expect(audit.score).toBe(70);
+  });
 });

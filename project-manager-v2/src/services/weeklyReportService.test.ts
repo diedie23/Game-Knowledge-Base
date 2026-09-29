@@ -40,5 +40,7 @@ describe('buildWeeklyUxReport', () => {
     expect(text).toContain('[任务10](https://tapd.example/story/10)');
     expect(text).toContain('风险与卡点');
     expect(text).toContain('岗位容量');
+    expect(text).toContain('数据质量');
+    expect(report.dataQuality.score).toBeLessThanOrEqual(100);
   });
 });

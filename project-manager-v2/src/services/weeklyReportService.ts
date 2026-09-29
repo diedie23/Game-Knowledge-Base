@@ -3,6 +3,7 @@ import type { Resource, Task } from '../types';
 import { isTaskTerminal } from '../utils/taskState';
 import { buildDemandRiskGroups, type DemandRiskGroup } from './tapdPlanningAssistant';
 import { buildStageCapacityForecast, type StageCapacityForecast } from './capacityForecastService';
+import { auditTaskDataQuality, type DataQualityAudit } from './dataQualityService';
 
 export interface WeeklyUxReport {
   weekStart: Date;
@@ -12,6 +13,7 @@ export interface WeeklyUxReport {
   nextWeek: Task[];
   risks: DemandRiskGroup[];
   capacityRisks: StageCapacityForecast[];
+  dataQuality: DataQualityAudit;
 }
 
 function logicalTaskKey(task: Task): string {
@@ -47,7 +49,8 @@ export function buildWeeklyUxReport(tasks: Task[], resources: Resource[], today:
   ));
   const risks = buildDemandRiskGroups(tasks, resources, today).slice(0, 5);
   const capacityRisks = buildStageCapacityForecast(tasks, resources, today).filter(item => item.status !== 'healthy');
-  return { weekStart, weekEnd, completed, inProgress, nextWeek, risks, capacityRisks };
+  const dataQuality = auditTaskDataQuality(tasks, resources, today);
+  return { weekStart, weekEnd, completed, inProgress, nextWeek, risks, capacityRisks, dataQuality };
 }
 
 function taskLine(task: Task): string {
@@ -75,6 +78,10 @@ export function formatWeeklyUxReport(report: WeeklyUxReport): string {
     '',
     `## 岗位容量（${report.capacityRisks.length} 个岗位需关注）`,
     ...(report.capacityRisks.length ? report.capacityRisks.map(item => `- ${item.label}：预计占用 ${item.projectedUtilization > 900 ? '无可用容量' : `${item.projectedUtilization}%`}，已排 ${item.scheduledHours}h，待排 ${item.pendingHours}h`) : ['- 未来两周岗位容量充足']),
+    '',
+    `## 数据质量（${report.dataQuality.score} 分）`,
+    `- 关键异常 ${report.dataQuality.criticalCount} 项，提醒 ${report.dataQuality.warningCount} 项`,
+    ...(report.dataQuality.issues.length ? report.dataQuality.issues.slice(0, 8).map(issue => `- ${issue.severity === 'critical' ? '【需先修复】' : ''}${issue.title}：${issue.detail}${issue.task ? `（${issue.task.title}）` : ''}`) : ['- 当前未发现明显数据问题']),
   ];
   return lines.join('\n');
 }

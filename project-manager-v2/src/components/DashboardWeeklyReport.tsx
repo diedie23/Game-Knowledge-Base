@@ -48,6 +48,8 @@ export function DashboardWeeklyReport({ tasks, resources, projectId }: Props) {
         riskCount: report.risks.length,
         highRiskCount,
         capacityRiskCount: report.capacityRisks.length,
+        dataQualityScore: report.dataQuality.score,
+        dataQualityCriticalCount: report.dataQuality.criticalCount,
         text: reportText,
       },
     });
@@ -66,6 +68,7 @@ export function DashboardWeeklyReport({ tasks, resources, projectId }: Props) {
     { label: '进行中', value: report.inProgress.length, tone: 'text-blue-300 bg-blue-500/10 border-blue-500/20' },
     { label: '下周计划', value: report.nextWeek.length, tone: 'text-violet-300 bg-violet-500/10 border-violet-500/20' },
     { label: '风险需求', value: report.risks.length, tone: 'text-orange-300 bg-orange-500/10 border-orange-500/20' },
+    { label: '数据质量', value: `${report.dataQuality.score}分`, tone: report.dataQuality.criticalCount ? 'text-red-300 bg-red-500/10 border-red-500/20' : 'text-cyan-300 bg-cyan-500/10 border-cyan-500/20' },
   ];
 
   return (
@@ -90,7 +93,7 @@ export function DashboardWeeklyReport({ tasks, resources, projectId }: Props) {
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-2 border-t border-gray-800 px-5 py-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 border-t border-gray-800 px-5 py-4 md:grid-cols-5">
         {stats.map(stat => <div key={stat.label} className={`rounded-lg border px-3 py-2 ${stat.tone}`}><div className="text-lg font-semibold">{stat.value}</div><div className="text-[11px] opacity-80">{stat.label}</div></div>)}
       </div>
       {previousSnapshot?.reportData && (
@@ -100,6 +103,7 @@ export function DashboardWeeklyReport({ tasks, resources, projectId }: Props) {
           <span className={report.risks.length - previousSnapshot.reportData.riskCount <= 0 ? 'text-emerald-300' : 'text-red-300'}>风险 {report.risks.length - previousSnapshot.reportData.riskCount >= 0 ? '+' : ''}{report.risks.length - previousSnapshot.reportData.riskCount}</span>
           <span className={report.risks.filter(group => group.level === 'critical' || group.level === 'high').length - previousSnapshot.reportData.highRiskCount <= 0 ? 'text-emerald-300' : 'text-red-300'}>高风险 {report.risks.filter(group => group.level === 'critical' || group.level === 'high').length - previousSnapshot.reportData.highRiskCount >= 0 ? '+' : ''}{report.risks.filter(group => group.level === 'critical' || group.level === 'high').length - previousSnapshot.reportData.highRiskCount}</span>
           <span className={report.capacityRisks.length - (previousSnapshot.reportData.capacityRiskCount || 0) <= 0 ? 'text-emerald-300' : 'text-red-300'}>容量预警 {report.capacityRisks.length - (previousSnapshot.reportData.capacityRiskCount || 0) >= 0 ? '+' : ''}{report.capacityRisks.length - (previousSnapshot.reportData.capacityRiskCount || 0)}</span>
+          {previousSnapshot.reportData.dataQualityScore !== undefined && <span className={report.dataQuality.score - previousSnapshot.reportData.dataQualityScore >= 0 ? 'text-emerald-300' : 'text-red-300'}>数据质量 {report.dataQuality.score - previousSnapshot.reportData.dataQualityScore >= 0 ? '+' : ''}{report.dataQuality.score - previousSnapshot.reportData.dataQualityScore}</span>}
         </div>
       )}
       {showHistory && (
@@ -120,7 +124,7 @@ export function DashboardWeeklyReport({ tasks, resources, projectId }: Props) {
         </div>
       )}
       {expanded && (
-        <div className="grid gap-4 border-t border-gray-800 bg-gray-950/25 p-5 xl:grid-cols-3">
+        <div className="grid gap-4 border-t border-gray-800 bg-gray-950/25 p-5 xl:grid-cols-4">
           {[
             { title: '本周完成', tasks: report.completed },
             { title: '下周计划', tasks: report.nextWeek },
@@ -153,6 +157,18 @@ export function DashboardWeeklyReport({ tasks, resources, projectId }: Props) {
                 </button>
               ))}
               {!report.risks.length && !report.capacityRisks.length && <div className="rounded-md border border-dashed border-gray-800 px-3 py-4 text-center text-xs text-gray-600">暂无显著风险</div>}
+            </div>
+          </div>
+          <div>
+            <h4 className="mb-2 text-xs font-semibold text-gray-300">数据质量</h4>
+            <div className="space-y-1.5">
+              {report.dataQuality.issues.slice(0, 8).map((issue, index) => (
+                <button key={`${issue.type}-${issue.task?.id || index}`} type="button" onClick={() => issue.task && openTask(issue.task)} className={`w-full rounded-md border px-2.5 py-2 text-left ${issue.severity === 'critical' ? 'border-red-500/15 bg-red-500/[0.05]' : 'border-amber-500/10 bg-amber-500/[0.04]'}`}>
+                  <span className={`block text-xs ${issue.severity === 'critical' ? 'text-red-200' : 'text-amber-200'}`}>{issue.title}</span>
+                  <span className="mt-0.5 block text-[11px] text-gray-500">{issue.detail}</span>
+                </button>
+              ))}
+              {!report.dataQuality.issues.length && <div className="rounded-md border border-dashed border-emerald-500/20 px-3 py-4 text-center text-xs text-emerald-400">当前数据检查通过</div>}
             </div>
           </div>
         </div>
