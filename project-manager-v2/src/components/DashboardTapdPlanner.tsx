@@ -85,6 +85,23 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     return selected.map(item => ({ ...item, suggestion: suggestions.get(item.task.id!) || buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date()) }));
   }, [planningEntries, selectedIds, tasks, resources]);
   const applicableSelectedItems = useMemo(() => selectedItems.filter(item => !item.suggestion.requiresReview), [selectedItems]);
+  const scenarioImpact = useMemo(() => {
+    if (!selectedItems.length) return null;
+    const proposedStarts = applicableSelectedItems.map(item => item.suggestion.startDate.getTime());
+    const proposedEnds = applicableSelectedItems.map(item => item.suggestion.endDate.getTime());
+    return {
+      currentMissingSchedule: selectedItems.filter(item => !item.task.startDate || !item.task.endDate).length,
+      currentUnassigned: selectedItems.filter(item => !item.task.assigneeIds?.length).length,
+      currentPeakParallel: Math.max(0, ...selectedItems.map(item => item.suggestion.currentConflictCount)),
+      applicable: applicableSelectedItems.length,
+      review: selectedItems.length - applicableSelectedItems.length,
+      proposedPeakParallel: Math.max(0, ...applicableSelectedItems.map(item => item.suggestion.suggestedConflictCount)),
+      deadlineLate: selectedItems.filter(item => item.suggestion.parentDeadlineStatus === 'late').length,
+      assigneeChanged: applicableSelectedItems.filter(item => item.suggestion.assigneeChanged).length,
+      rangeStart: proposedStarts.length ? new Date(Math.min(...proposedStarts)) : undefined,
+      rangeEnd: proposedEnds.length ? new Date(Math.max(...proposedEnds)) : undefined,
+    };
+  }, [selectedItems, applicableSelectedItems]);
   const checklist = useMemo(() => formatTapdAdjustmentChecklist(selectedItems, resources), [selectedItems, resources]);
   const toggleSelection = (taskId?: number) => {
     if (!taskId) return;
@@ -174,6 +191,35 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
       </div>
 
       {appliedMessage && <div className={`mt-3 flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-xs ${applyError ? 'border-red-500/20 bg-red-500/[0.07] text-red-300' : 'border-emerald-500/20 bg-emerald-500/[0.07] text-emerald-300'}`}><span>{appliedMessage}</span>{!applyError && <button onClick={openTapdModal} className="shrink-0 font-medium text-sky-300 hover:text-white">前往同步中心</button>}</div>}
+
+      {scenarioImpact && (
+        <div className="mt-4 overflow-hidden rounded-xl border border-indigo-500/25 bg-gray-950/30">
+          <div className="flex items-center justify-between gap-3 border-b border-gray-800 px-4 py-2.5">
+            <div><span className="text-xs font-medium text-white">当前数据 vs 推荐方案</span><span className="ml-2 text-[10px] text-gray-500">已选择 {selectedItems.length} 项</span></div>
+            <span className="text-[10px] text-gray-500">推荐区间 {formatDate(scenarioImpact.rangeStart)}–{formatDate(scenarioImpact.rangeEnd)}</span>
+          </div>
+          <div className="grid grid-cols-2 divide-x divide-gray-800">
+            <div className="p-3">
+              <div className="mb-2 text-[10px] font-medium text-gray-500">当前数据</div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-lg bg-gray-900/70 px-2 py-2"><div className="text-base font-semibold text-orange-300">{scenarioImpact.currentMissingSchedule}</div><div className="text-[10px] text-gray-500">缺少排期</div></div>
+                <div className="rounded-lg bg-gray-900/70 px-2 py-2"><div className="text-base font-semibold text-sky-300">{scenarioImpact.currentUnassigned}</div><div className="text-[10px] text-gray-500">未匹配人员</div></div>
+                <div className="rounded-lg bg-gray-900/70 px-2 py-2"><div className="text-base font-semibold text-gray-300">{scenarioImpact.currentPeakParallel}</div><div className="text-[10px] text-gray-500">峰值并行</div></div>
+              </div>
+            </div>
+            <div className="p-3">
+              <div className="mb-2 text-[10px] font-medium text-indigo-300">推荐方案</div>
+              <div className="grid grid-cols-5 gap-2 text-center">
+                <div className="rounded-lg bg-emerald-500/[0.07] px-2 py-2"><div className="text-base font-semibold text-emerald-300">{scenarioImpact.applicable}</div><div className="text-[10px] text-gray-500">可直接应用</div></div>
+                <div className="rounded-lg bg-orange-500/[0.07] px-2 py-2"><div className="text-base font-semibold text-orange-300">{scenarioImpact.review}</div><div className="text-[10px] text-gray-500">需确认</div></div>
+                <div className="rounded-lg bg-blue-500/[0.07] px-2 py-2"><div className="text-base font-semibold text-blue-300">{scenarioImpact.proposedPeakParallel}</div><div className="text-[10px] text-gray-500">峰值并行</div></div>
+                <div className="rounded-lg bg-violet-500/[0.07] px-2 py-2"><div className="text-base font-semibold text-violet-300">{scenarioImpact.assigneeChanged}</div><div className="text-[10px] text-gray-500">调整人员</div></div>
+                <div className={`rounded-lg px-2 py-2 ${scenarioImpact.deadlineLate ? 'bg-red-500/[0.08]' : 'bg-emerald-500/[0.07]'}`}><div className={`text-base font-semibold ${scenarioImpact.deadlineLate ? 'text-red-300' : 'text-emerald-300'}`}>{scenarioImpact.deadlineLate}</div><div className="text-[10px] text-gray-500">突破截止</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mt-4 grid grid-cols-2 gap-2">
         {items.length > 0 && <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-gray-500"><div className="flex items-center gap-2"><span>待排期任务清单</span>{filter !== 'all' && <button onClick={() => setFilter('all')} className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-indigo-300 hover:text-white">清除筛选</button>}<button onClick={selectVisible} className="hover:text-white">选择当前可排期项</button>{selectedIds.size > 0 && <button onClick={() => setSelectedIds(new Set())} className="hover:text-white">清空选择</button>}</div><div className="flex items-center gap-2"><span>显示前 {items.length} 项，共 {filteredItems.length} 项</span><button disabled={applicableSelectedItems.length === 0 || applyingId !== null} onClick={applySelectedDates} className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-medium text-emerald-300 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40">{applyingId === -1 ? '正在应用...' : `应用可排期日期（${applicableSelectedItems.length}）`}</button><button disabled={selectedItems.length === 0} onClick={() => setShowChecklist(true)} className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 font-medium text-indigo-300 hover:bg-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-40">生成排期清单（{selectedItems.length}）</button></div></div>}
