@@ -39,5 +39,6 @@ describe('buildWeeklyUxReport', () => {
     expect(text).toContain('UX 管线周报');
     expect(text).toContain('[任务10](https://tapd.example/story/10)');
     expect(text).toContain('风险与卡点');
+    expect(text).toContain('岗位容量');
   });
 });

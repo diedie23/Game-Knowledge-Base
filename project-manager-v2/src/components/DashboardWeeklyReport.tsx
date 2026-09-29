@@ -47,6 +47,7 @@ export function DashboardWeeklyReport({ tasks, resources, projectId }: Props) {
         nextWeek: report.nextWeek.length,
         riskCount: report.risks.length,
         highRiskCount,
+        capacityRiskCount: report.capacityRisks.length,
         text: reportText,
       },
     });
@@ -98,6 +99,7 @@ export function DashboardWeeklyReport({ tasks, resources, projectId }: Props) {
           <span className={report.completed.length - previousSnapshot.reportData.completed >= 0 ? 'text-emerald-300' : 'text-orange-300'}>完成 {report.completed.length - previousSnapshot.reportData.completed >= 0 ? '+' : ''}{report.completed.length - previousSnapshot.reportData.completed}</span>
           <span className={report.risks.length - previousSnapshot.reportData.riskCount <= 0 ? 'text-emerald-300' : 'text-red-300'}>风险 {report.risks.length - previousSnapshot.reportData.riskCount >= 0 ? '+' : ''}{report.risks.length - previousSnapshot.reportData.riskCount}</span>
           <span className={report.risks.filter(group => group.level === 'critical' || group.level === 'high').length - previousSnapshot.reportData.highRiskCount <= 0 ? 'text-emerald-300' : 'text-red-300'}>高风险 {report.risks.filter(group => group.level === 'critical' || group.level === 'high').length - previousSnapshot.reportData.highRiskCount >= 0 ? '+' : ''}{report.risks.filter(group => group.level === 'critical' || group.level === 'high').length - previousSnapshot.reportData.highRiskCount}</span>
+          <span className={report.capacityRisks.length - (previousSnapshot.reportData.capacityRiskCount || 0) <= 0 ? 'text-emerald-300' : 'text-red-300'}>容量预警 {report.capacityRisks.length - (previousSnapshot.reportData.capacityRiskCount || 0) >= 0 ? '+' : ''}{report.capacityRisks.length - (previousSnapshot.reportData.capacityRiskCount || 0)}</span>
         </div>
       )}
       {showHistory && (
@@ -144,7 +146,13 @@ export function DashboardWeeklyReport({ tasks, resources, projectId }: Props) {
                   <span className="mt-0.5 block text-[11px] text-orange-300/80">{group.summaryReasons.join('；')}</span>
                 </button>
               ))}
-              {!report.risks.length && <div className="rounded-md border border-dashed border-gray-800 px-3 py-4 text-center text-xs text-gray-600">暂无显著风险</div>}
+              {report.capacityRisks.map(item => (
+                <button key={item.stage} type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="w-full rounded-md border border-amber-500/10 bg-amber-500/[0.04] px-2.5 py-2 text-left">
+                  <span className="block text-xs text-amber-200">{item.label}岗位容量{item.status === 'danger' ? '不足' : '接近饱和'}</span>
+                  <span className="mt-0.5 block text-[11px] text-gray-500">预计占用 {item.projectedUtilization > 900 ? '无可用容量' : `${item.projectedUtilization}%`} · 待排 {item.pendingHours}h</span>
+                </button>
+              ))}
+              {!report.risks.length && !report.capacityRisks.length && <div className="rounded-md border border-dashed border-gray-800 px-3 py-4 text-center text-xs text-gray-600">暂无显著风险</div>}
             </div>
           </div>
         </div>

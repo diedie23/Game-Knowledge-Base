@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { AlertCircle, ArrowRight, CalendarClock, Check, Copy, ExternalLink, LocateFixed, RefreshCw, ShieldAlert, UserRoundX, X } from 'lucide-react';
+import { AlertCircle, ArrowRight, CalendarClock, Check, Copy, ExternalLink, GitBranch, LocateFixed, RefreshCw, ShieldAlert, UserRoundX, X } from 'lucide-react';
 import type { Resource, Task } from '../types';
-import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildTapdPlanningItems, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
+import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildTapdPlanningItems, buildTapdScheduleSuggestion, findDemandForTask, formatTapdAdjustmentChecklist, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
 import { updateTask } from '../services/taskService';
 import { useStore } from '../store/useStore';
 import { getPriorityLabel } from '../utils/priority';
@@ -37,6 +37,7 @@ function syncFreshness(timestamp: number | null) {
 export function DashboardTapdPlanner({ tasks, resources }: Props) {
   const { setCurrentView, setHighlightedTaskIds, openTapdModal, openTaskModal } = useStore();
   const [filter, setFilter] = useState<QueueFilter>('all');
+  const [stageFilter, setStageFilter] = useState<'all' | keyof typeof STAGE_LABEL>('all');
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [showChecklist, setShowChecklist] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -50,12 +51,13 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     readiness: assessTapdScheduleReadiness(item.task, item.tags, resources),
   })), [planningItems, resources]);
   const filteredItems = useMemo(() => planningEntries.filter(item => {
+    if (stageFilter !== 'all' && item.readiness.stage !== stageFilter) return false;
     if (filter === 'ready') return item.readiness.ready;
     if (filter === 'review') return !item.readiness.ready;
     if (filter === 'blocked') return item.tags.includes('blocked') || item.tags.includes('dependency');
     if (filter === 'unassigned') return item.tags.includes('unassigned');
     return true;
-  }), [planningEntries, filter]);
+  }), [planningEntries, filter, stageFilter]);
   const items = useMemo(() => {
     const visible = filteredItems.slice(0, 8);
     const suggestions = buildBatchTapdScheduleSuggestions(visible, tasks, resources, new Date());
@@ -112,6 +114,11 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     });
   };
   const selectVisible = () => setSelectedIds(current => new Set([...current, ...items.filter(item => !item.suggestion.requiresReview).map(item => item.task.id).filter((id): id is number => !!id)]));
+  const selectSameDemand = (task: Task) => {
+    const demand = findDemandForTask(task, tasks);
+    const sameDemandIds = planningEntries.filter(item => findDemandForTask(item.task, tasks).id === demand.id).map(item => item.task.id).filter((id): id is number => !!id);
+    setSelectedIds(current => new Set([...current, ...sameDemandIds]));
+  };
   const copyChecklist = async () => {
     await navigator.clipboard.writeText(checklist);
     setCopied(true);
@@ -222,7 +229,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
       )}
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        {items.length > 0 && <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-gray-500"><div className="flex items-center gap-2"><span>待排期任务清单</span>{filter !== 'all' && <button onClick={() => setFilter('all')} className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-indigo-300 hover:text-white">清除筛选</button>}<button onClick={selectVisible} className="hover:text-white">选择当前可排期项</button>{selectedIds.size > 0 && <button onClick={() => setSelectedIds(new Set())} className="hover:text-white">清空选择</button>}</div><div className="flex items-center gap-2"><span>显示前 {items.length} 项，共 {filteredItems.length} 项</span><button disabled={applicableSelectedItems.length === 0 || applyingId !== null} onClick={applySelectedDates} className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-medium text-emerald-300 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40">{applyingId === -1 ? '正在应用...' : `应用可排期日期（${applicableSelectedItems.length}）`}</button><button disabled={selectedItems.length === 0} onClick={() => setShowChecklist(true)} className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 font-medium text-indigo-300 hover:bg-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-40">生成排期清单（{selectedItems.length}）</button></div></div>}
+        {items.length > 0 && <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-gray-500"><div className="flex items-center gap-2"><span>待排期任务清单</span><select value={stageFilter} onChange={event => setStageFilter(event.target.value as typeof stageFilter)} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="all">全部岗位</option>{Object.entries(STAGE_LABEL).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select>{(filter !== 'all' || stageFilter !== 'all') && <button onClick={() => { setFilter('all'); setStageFilter('all'); }} className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-indigo-300 hover:text-white">清除筛选</button>}<button onClick={selectVisible} className="hover:text-white">选择当前可排期项</button>{selectedIds.size > 0 && <button onClick={() => setSelectedIds(new Set())} className="hover:text-white">清空选择</button>}</div><div className="flex items-center gap-2"><span>显示前 {items.length} 项，共 {filteredItems.length} 项</span><button disabled={applicableSelectedItems.length === 0 || applyingId !== null} onClick={applySelectedDates} className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-medium text-emerald-300 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40">{applyingId === -1 ? '正在应用...' : `应用可排期日期（${applicableSelectedItems.length}）`}</button><button disabled={selectedItems.length === 0} onClick={() => setShowChecklist(true)} className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 font-medium text-indigo-300 hover:bg-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-40">生成排期清单（{selectedItems.length}）</button></div></div>}
         {items.length === 0 && <div className="col-span-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-5 text-center text-sm text-emerald-300">当前没有缺少开始或结束日期的 TAPD 任务</div>}
         {items.map(item => {
           const style = LEVEL_STYLE[item.level];
@@ -230,6 +237,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
           const assignees = (item.task.assigneeIds || []).map(id => resourceById.get(id)?.name).filter(Boolean).join('、') || '未匹配处理人';
           const isSelected = !!item.task.id && selectedIds.has(item.task.id);
           const canApply = !suggestion.requiresReview;
+          const demand = findDemandForTask(item.task, tasks);
           const deadlineLabel = suggestion.parentDeadlineStatus === 'safe'
             ? `不晚于父需求 ${formatDate(suggestion.parentDeadline)}`
             : suggestion.parentDeadlineStatus === 'late'
@@ -245,6 +253,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
                   <span className="rounded border border-gray-700 bg-gray-800/70 px-1.5 py-0.5 text-[9px] text-gray-300">{getPriorityLabel(item.task.priority)}</span>
                   <span className="text-[10px] text-gray-500">{assignees}</span>
                 </div>
+                {demand.id !== item.task.id && <div className="mb-1 flex items-center gap-1.5 text-[10px] text-cyan-300/80"><GitBranch size={10} /><button type="button" onClick={() => demand.externalUrl ? window.open(demand.externalUrl, '_blank', 'noopener,noreferrer') : openTaskModal(demand.id)} className="max-w-[75%] truncate hover:text-cyan-200" title={demand.title}>{demand.title}</button><button type="button" onClick={() => selectSameDemand(item.task)} className="ml-auto rounded bg-cyan-500/10 px-1.5 py-0.5 text-cyan-300 hover:bg-cyan-500/20">选择同需求</button></div>}
                 <button onClick={() => openTaskModal(item.task.id)} title={item.task.title} className="line-clamp-1 text-left text-xs font-medium text-gray-200 hover:text-white">{item.task.title}</button>
                 <p className="mt-1 line-clamp-1 text-[10px] text-gray-400">{item.reasons.slice(0, 2).join('；')}</p>
                 <div className="mt-2 grid grid-cols-[36px_1fr] gap-x-2 gap-y-1 rounded-lg border border-white/[0.06] bg-black/15 px-2 py-1.5 text-[10px]">

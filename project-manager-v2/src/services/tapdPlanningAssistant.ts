@@ -94,6 +94,19 @@ function periodFrom(start: Date, duration: number): [Date, Date] {
   return [days[0], days[days.length - 1]];
 }
 
+function nextWorkingDayAfter(value: Date): Date {
+  const next = startOfDay(value);
+  next.setDate(next.getDate() + 1);
+  return getNextWorkingDays(next, 1)[0];
+}
+
+function dependencyConstraint(task: Task, tasks: Task[]): { readyAt?: Date; unresolved: string[] } {
+  const dependencies = (task.dependencies || []).map(id => tasks.find(candidate => candidate.id === id)).filter((item): item is Task => !!item);
+  const unresolved = dependencies.filter(item => !item.endDate && !isTaskTerminal(item)).map(item => item.title);
+  const dated = dependencies.map(item => item.endDate).filter((date): date is Date => !!date).sort((a, b) => b.getTime() - a.getTime());
+  return { readyAt: dated[0] ? nextWorkingDayAfter(dated[0]) : undefined, unresolved };
+}
+
 function logicalTaskKey(task: Task): string {
   return task.tapdId ? `tapd:${task.tapdId}` : `local:${task.id ?? task.syncId ?? task.title}`;
 }
@@ -201,7 +214,9 @@ export function buildTapdScheduleSuggestion(
   const expectedStage = taskStage(task, resources);
   const currentRoles = [...new Set(currentResources.map(resource => (resource.role || '').trim().toLowerCase()).filter(Boolean))];
   const expectedRole = expectedStage ? undefined : currentRoles.length === 1 ? currentRoles[0] : undefined;
-  const baseStart = !task.startDate || currentEnd < todayStart ? todayStart : currentStart;
+  const dependency = dependencyConstraint(task, tasks);
+  const preferredStart = !task.startDate || currentEnd < todayStart ? todayStart : currentStart;
+  const baseStart = dependency.readyAt && dependency.readyAt > preferredStart ? dependency.readyAt : preferredStart;
   const [previewStart, previewEnd] = periodFrom(baseStart, duration);
 
   const candidates = resources
@@ -233,6 +248,7 @@ export function buildTapdScheduleSuggestion(
   const reviewReasons = [...readiness.reasons];
   if (suggestedConflictCount > 2) reviewReasons.push(`建议时段仍有 ${suggestedConflictCount} 项任务`);
   if (parentDeadlineStatus === 'late') reviewReasons.push('建议完成时间晚于父需求截止日期');
+  if (dependency.unresolved.length > 0) reviewReasons.push(`前置任务尚未排期：${dependency.unresolved.slice(0, 2).join('、')}`);
   const assigneeChanged = !!selectedResource && selectedResource.id !== currentResource?.id;
   const scheduleChanged = !sameDay(task.startDate, startDate) || !sameDay(task.endDate, endDate);
   const reasons: string[] = [];
@@ -243,6 +259,7 @@ export function buildTapdScheduleSuggestion(
   else if (suggestedConflictCount < currentConflictCount) reasons.push(`并行任务由 ${currentConflictCount} 项降至 ${suggestedConflictCount} 项`);
   if (!selectedResource) reasons.push('暂无匹配岗位人员，需在 TAPD 手动指定');
   if (parentDeadlineStatus === 'late') reasons.push('建议排期将突破父需求截止日期');
+  if (dependency.readyAt) reasons.push(`已避让前置任务，最早从 ${dependency.readyAt.toLocaleDateString('zh-CN')} 开始`);
 
   return {
     resource: selectedResource,
@@ -271,20 +288,33 @@ export function buildBatchTapdScheduleSuggestions(
 ): Map<number, TapdScheduleSuggestion> {
   const result = new Map<number, TapdScheduleSuggestion>();
   const scenarioTasks = [...tasks];
-  [...items].sort((left, right) => right.score - left.score || (left.task.endDate?.getTime() || Infinity) - (right.task.endDate?.getTime() || Infinity)).forEach(item => {
+  const remaining = [...items];
+  const ordered: TapdPlanningItem[] = [];
+  const remainingIds = () => new Set(remaining.map(item => item.task.id).filter((id): id is number => !!id));
+  while (remaining.length > 0) {
+    const ids = remainingIds();
+    const ready = remaining.filter(item => !(item.task.dependencies || []).some(id => ids.has(id)));
+    const candidates = ready.length ? ready : remaining;
+    candidates.sort((left, right) => right.score - left.score || (left.task.endDate?.getTime() || Infinity) - (right.task.endDate?.getTime() || Infinity));
+    const next = candidates[0];
+    ordered.push(next);
+    remaining.splice(remaining.indexOf(next), 1);
+  }
+  ordered.forEach(item => {
     if (!item.task.id) return;
     const suggestion = buildTapdScheduleSuggestion(item.task, item.tags, scenarioTasks, resources, today);
     result.set(item.task.id, suggestion);
     if (!suggestion.resource) return;
-    scenarioTasks.push({
+    const scheduledTask: Task = {
       ...item.task,
-      id: -1_000_000 - item.task.id,
-      tapdId: `scenario:${item.task.tapdId || item.task.id}`,
       startDate: suggestion.startDate,
       endDate: suggestion.endDate,
       assigneeIds: [suggestion.resource.id!],
       status: item.task.status === 'done' ? 'todo' : item.task.status,
-    });
+    };
+    const scenarioIndex = scenarioTasks.findIndex(task => task.id === item.task.id);
+    if (scenarioIndex >= 0) scenarioTasks[scenarioIndex] = scheduledTask;
+    else scenarioTasks.push(scheduledTask);
   });
   return result;
 }
@@ -345,7 +375,8 @@ function isUiStory(task: Task): boolean {
   return type === 'uistory' || type === 'uistory父需求' || type === 'ui需求';
 }
 
-function demandFor(task: Task, taskById: Map<number, Task>): Task {
+export function findDemandForTask(task: Task, tasks: Task[]): Task {
+  const taskById = new Map(tasks.filter(candidate => candidate.id).map(candidate => [candidate.id!, candidate]));
   let current = task;
   let fallback = task;
   const visited = new Set<number>();
@@ -366,13 +397,12 @@ export function buildDemandRiskGroups(
   resources: Resource[],
   today: Date = new Date(),
 ): DemandRiskGroup[] {
-  const taskById = new Map(tasks.filter(task => task.id).map(task => [task.id!, task]));
   const items = buildTapdPlanningItems(tasks, resources, today);
   const groups = new Map<string, DemandRiskGroup>();
   const levelRank: Record<Exclude<RiskLevel, 'none'>, number> = { low: 1, medium: 2, high: 3, critical: 4 };
 
   const ensureGroup = (task: Task): DemandRiskGroup => {
-    const demand = demandFor(task, taskById);
+    const demand = findDemandForTask(task, tasks);
     const key = logicalTaskKey(demand);
     let group = groups.get(key);
     if (!group) {

@@ -273,4 +273,21 @@ describe('buildBatchTapdScheduleSuggestions', () => {
     expect(suggestions.get(201)?.suggestedConflictCount).toBe(1);
     expect(suggestions.get(202)?.suggestedConflictCount).toBe(1);
   });
+
+  it('schedules a dependent task after the suggested end of its unscheduled predecessor', () => {
+    const today = new Date('2026-09-28T09:00:00');
+    const resources: Resource[] = [
+      { id: 1, name: '交互', role: 'UX设计', type: 'internal' } as Resource,
+      { id: 2, name: '视觉', role: 'UI设计', type: 'internal' } as Resource,
+    ];
+    const predecessor = task(210, { title: '【交互设计】任务A', assigneeIds: [1], estimatedHours: 16 });
+    const dependent = task(211, { title: '【视觉设计】任务B', assigneeIds: [2], estimatedHours: 8, dependencies: [210] });
+    const items = [
+      { task: dependent, level: 'critical' as const, reasons: ['待排'], tags: ['unscheduled' as const], actionLabel: '补充 TAPD 排期', score: 500 },
+      { task: predecessor, level: 'medium' as const, reasons: ['待排'], tags: ['unscheduled' as const], actionLabel: '补充 TAPD 排期', score: 200 },
+    ];
+    const suggestions = buildBatchTapdScheduleSuggestions(items, [predecessor, dependent], resources, today);
+    expect(suggestions.get(210)?.endDate.getTime()).toBeLessThan(suggestions.get(211)?.startDate.getTime() || 0);
+    expect(suggestions.get(211)?.reasons.join('')).toContain('已避让前置任务');
+  });
 });

@@ -2,6 +2,7 @@ import { addWeeks, endOfWeek, format, isWithinInterval, startOfDay, startOfWeek 
 import type { Resource, Task } from '../types';
 import { isTaskTerminal } from '../utils/taskState';
 import { buildDemandRiskGroups, type DemandRiskGroup } from './tapdPlanningAssistant';
+import { buildStageCapacityForecast, type StageCapacityForecast } from './capacityForecastService';
 
 export interface WeeklyUxReport {
   weekStart: Date;
@@ -10,6 +11,7 @@ export interface WeeklyUxReport {
   inProgress: Task[];
   nextWeek: Task[];
   risks: DemandRiskGroup[];
+  capacityRisks: StageCapacityForecast[];
 }
 
 function logicalTaskKey(task: Task): string {
@@ -44,7 +46,8 @@ export function buildWeeklyUxReport(tasks: Task[], resources: Resource[], today:
     inRange(task.startDate, nextWeekStart, nextWeekEnd) || inRange(task.endDate, nextWeekStart, nextWeekEnd)
   ));
   const risks = buildDemandRiskGroups(tasks, resources, today).slice(0, 5);
-  return { weekStart, weekEnd, completed, inProgress, nextWeek, risks };
+  const capacityRisks = buildStageCapacityForecast(tasks, resources, today).filter(item => item.status !== 'healthy');
+  return { weekStart, weekEnd, completed, inProgress, nextWeek, risks, capacityRisks };
 }
 
 function taskLine(task: Task): string {
@@ -67,8 +70,11 @@ export function formatWeeklyUxReport(report: WeeklyUxReport): string {
     `## 风险与卡点（${report.risks.length} 个需求）`,
     ...(report.risks.length ? report.risks.map(group => {
       const title = group.demand.externalUrl ? `[${group.demand.title}](${group.demand.externalUrl})` : group.demand.title;
-      return `- ${title}：${group.summaryReasons.join('；') || '需关注'}`;
+      return `- ${group.escalation === 'escalate' ? '【升级处理】' : ''}${title}：${group.summaryReasons.join('；') || '需关注'}；责任人：${group.ownerNames.join('、') || '待明确'}`;
     }) : ['- 当前暂无显著风险']),
+    '',
+    `## 岗位容量（${report.capacityRisks.length} 个岗位需关注）`,
+    ...(report.capacityRisks.length ? report.capacityRisks.map(item => `- ${item.label}：预计占用 ${item.projectedUtilization > 900 ? '无可用容量' : `${item.projectedUtilization}%`}，已排 ${item.scheduledHours}h，待排 ${item.pendingHours}h`) : ['- 未来两周岗位容量充足']),
   ];
   return lines.join('\n');
 }
