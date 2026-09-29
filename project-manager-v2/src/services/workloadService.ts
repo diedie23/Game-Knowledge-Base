@@ -53,6 +53,10 @@ export interface TaskRiskContext {
   resourceById: Map<number, Resource>;
 }
 
+function logicalTaskKey(task: Task): string {
+  return task.tapdId ? `tapd:${task.tapdId}` : `local:${task.id ?? task.syncId ?? task.title}`;
+}
+
 export function buildTaskRiskContext(allTasks: Task[], allResources: Resource[]): TaskRiskContext {
   const taskById = new Map<number, Task>();
   const parentIds = new Set<number>();
@@ -111,9 +115,16 @@ export function calcMemberWorkload(
 
   // Find all tasks assigned to this resource that overlap with the given period
   const workloadCandidates = context?.tasksByAssigneeId.get(resourceId) || allTasks;
+  const excludedTask = excludeTaskId
+    ? context?.taskById.get(excludeTaskId) || allTasks.find(task => task.id === excludeTaskId)
+    : undefined;
+  const excludedKey = excludedTask ? logicalTaskKey(excludedTask) : undefined;
+  const seenTaskKeys = new Set<string>();
   const overlapping = workloadCandidates.filter(t => {
     if (!t.startDate || !t.endDate) return false;
     if (t.id === excludeTaskId) return false;
+    const taskKey = logicalTaskKey(t);
+    if (taskKey === excludedKey || seenTaskKeys.has(taskKey)) return false;
     if (!t.assigneeIds?.includes(resourceId)) return false;
     if (isTaskTerminal(t)) return false;
     // Only count leaf tasks (with parentId) to avoid double-counting parent tasks
@@ -122,7 +133,9 @@ export function calcMemberWorkload(
 
     const tStart = new Date(t.startDate);
     const tEnd = new Date(t.endDate);
-    return tStart <= endDate && tEnd >= startDate;
+    const overlaps = tStart <= endDate && tEnd >= startDate;
+    if (overlaps) seenTaskKeys.add(taskKey);
+    return overlaps;
   });
 
   const overlappingTaskCount = overlapping.length;
@@ -470,7 +483,7 @@ export function assessTaskRisk(
       addRisk('overdue', `已逾期${Math.abs(daysUntilDue)}天`, 'critical');
       shouldAutoAlert = true;
     } else if (daysUntilDue <= RISK_THRESHOLDS.DEADLINE_URGENT_DAYS) {
-      addRisk('deadline', `明天截止`, 'high');
+      addRisk('deadline', daysUntilDue === 0 ? '今天截止' : '明天截止', 'high');
       shouldAutoAlert = true;
     } else if (daysUntilDue <= RISK_THRESHOLDS.DEADLINE_WARN_DAYS) {
       addRisk('deadline', `${daysUntilDue}天后截止`, 'medium');
@@ -510,15 +523,21 @@ export function assessTaskRisk(
         const rName = resource?.name || '成员';
         // Count concurrent leaf tasks for this assignee during this task's period
         const overlapCandidates = context?.tasksByAssigneeId.get(rid) || allTasks;
+        const sourceTaskKey = logicalTaskKey(task);
+        const seenTaskKeys = new Set<string>();
         const concurrent = overlapCandidates.filter(t => {
           if (!t.startDate || !t.endDate || t.id === task.id) return false;
-          if (t.status === 'done') return false;
+          const taskKey = logicalTaskKey(t);
+          if (taskKey === sourceTaskKey || seenTaskKeys.has(taskKey)) return false;
+          if (isTaskTerminal(t)) return false;
           if (!t.assigneeIds?.includes(rid)) return false;
           const hasKids = context ? context.parentIds.has(t.id!) : allTasks.some(child => child.parentId === t.id);
           if (hasKids) return false;
           const tStart = new Date(t.startDate);
           const tEnd = new Date(t.endDate);
-          return tStart <= new Date(task.endDate!) && tEnd >= new Date(task.startDate!);
+          const overlaps = tStart <= new Date(task.endDate!) && tEnd >= new Date(task.startDate!);
+          if (overlaps) seenTaskKeys.add(taskKey);
+          return overlaps;
         });
         // Weighted overlap score: self-made tasks count as 1, CP follow-up tasks count as 0.5
         const currentTaskWeight = task.workCategory === 'cp_follow' ? 0.5 : 1;

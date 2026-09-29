@@ -51,6 +51,14 @@ describe('buildTapdPlanningItems', () => {
     expect(result.map(item => item.task.id)).toEqual([13]);
     expect(result[0].tags).toContain('unassigned');
   });
+
+  it('shows a duplicated TAPD item only once in the planning queue', () => {
+    const result = buildTapdPlanningItems([
+      task(20, { tapdId: 'same-tapd-item', assigneeIds: [1] }),
+      task(21, { tapdId: 'same-tapd-item', assigneeIds: [1] }),
+    ], resources, today);
+    expect(result).toHaveLength(1);
+  });
 });
 
 describe('latestTapdSyncAt', () => {
@@ -117,5 +125,31 @@ describe('buildTapdScheduleSuggestion', () => {
     expect([suggestion.startDate.getFullYear(), suggestion.startDate.getMonth() + 1, suggestion.startDate.getDate()]).toEqual([2026, 9, 28]);
     expect([suggestion.endDate.getFullYear(), suggestion.endDate.getMonth() + 1, suggestion.endDate.getDate()]).toEqual([2026, 9, 29]);
     expect(suggestion.reasons.join('')).toContain('原排期已过期');
+  });
+
+  it('counts one active item when parent rows and duplicate TAPD records overlap the source', () => {
+    const resources: Resource[] = [{ id: 1, name: '郭旭阳', role: 'UX设计', type: 'internal' } as Resource];
+    const source = task(20, {
+      tapdId: 'same-tapd-item',
+      parentId: 100,
+      assigneeIds: [1],
+      startDate: new Date('2026-09-28'),
+      endDate: new Date('2026-09-28'),
+    });
+    const duplicatedCache = task(21, {
+      tapdId: 'same-tapd-item',
+      parentId: 100,
+      assigneeIds: [1],
+      startDate: new Date('2026-09-28'),
+      endDate: new Date('2026-09-28'),
+    });
+    const parent = task(100, {
+      assigneeIds: [1],
+      startDate: new Date('2026-09-01'),
+      endDate: new Date('2026-09-30'),
+    });
+
+    const suggestion = buildTapdScheduleSuggestion(source, ['deadline'], [source, duplicatedCache, parent], resources, today);
+    expect(suggestion.currentConflictCount).toBe(1);
   });
 });

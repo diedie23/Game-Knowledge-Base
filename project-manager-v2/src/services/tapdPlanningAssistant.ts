@@ -65,12 +65,25 @@ function periodFrom(start: Date, duration: number): [Date, Date] {
   return [days[0], days[days.length - 1]];
 }
 
+function logicalTaskKey(task: Task): string {
+  return task.tapdId ? `tapd:${task.tapdId}` : `local:${task.id ?? task.syncId ?? task.title}`;
+}
+
 function overlapCount(resourceId: number | undefined, task: Task, tasks: Task[], start: Date, end: Date): number {
   if (!resourceId) return 0;
+  const parentIds = new Set(tasks.flatMap(candidate => candidate.parentId ? [candidate.parentId] : []));
+  const sourceIdentity = logicalTaskKey(task);
+  const seen = new Set<string>();
+
   return tasks.filter(candidate => {
     if (candidate.id === task.id || isTaskTerminal(candidate) || candidate.status === 'paused') return false;
+    if (candidate.id !== undefined && parentIds.has(candidate.id)) return false;
+    const candidateIdentity = logicalTaskKey(candidate);
+    if (candidateIdentity === sourceIdentity || seen.has(candidateIdentity)) return false;
     if (!candidate.assigneeIds?.includes(resourceId) || !candidate.startDate || !candidate.endDate) return false;
-    return startOfDay(candidate.startDate) <= end && startOfDay(candidate.endDate) >= start;
+    const overlaps = startOfDay(candidate.startDate) <= end && startOfDay(candidate.endDate) >= start;
+    if (overlaps) seen.add(candidateIdentity);
+    return overlaps;
   }).length;
 }
 
@@ -118,7 +131,10 @@ export function buildTapdScheduleSuggestion(
   const currentStart = task.startDate ? startOfDay(task.startDate) : todayStart;
   const currentEnd = task.endDate ? startOfDay(task.endDate) : periodFrom(currentStart, duration)[1];
   const currentResource = currentResources[0];
-  const currentConflictCount = overlapCount(currentResource?.id, task, tasks, currentStart, currentEnd);
+  // “并行”与资源矩阵保持同一口径：展示当天包含当前任务在内的有效任务总数。
+  const currentConflictCount = currentResource
+    ? overlapCount(currentResource.id, task, tasks, currentStart, currentEnd) + 1
+    : 0;
   const shouldReassign = !currentResource || tags.includes('overload') || tags.includes('overlap');
   const expectedType = candidateType(task, currentResources);
   const baseStart = !task.startDate || currentEnd < todayStart ? todayStart : currentStart;
@@ -139,7 +155,8 @@ export function buildTapdScheduleSuggestion(
 
   const best = candidates[0];
   const selectedResource = shouldReassign && best ? best.resource : currentResource || best?.resource;
-  const [startDate, endDate, suggestedConflictCount] = findSuggestedPeriod(selectedResource?.id, task, tasks, baseStart, duration);
+  const [startDate, endDate, suggestedOverlapCount] = findSuggestedPeriod(selectedResource?.id, task, tasks, baseStart, duration);
+  const suggestedConflictCount = selectedResource ? suggestedOverlapCount + 1 : 0;
   const assigneeChanged = !!selectedResource && selectedResource.id !== currentResource?.id;
   const scheduleChanged = !sameDay(task.startDate, startDate) || !sameDay(task.endDate, endDate);
   const reasons: string[] = [];
@@ -160,6 +177,7 @@ export function buildTapdPlanningItems(
   today: Date = new Date(),
 ): TapdPlanningItem[] {
   const context = buildTaskRiskContext(tasks, resources);
+  const seenTaskKeys = new Set<string>();
 
   return tasks.flatMap(task => {
     if (!task.id || context.parentIds.has(task.id) || isTaskTerminal(task) || task.status === 'paused') return [];
@@ -167,6 +185,9 @@ export function buildTapdPlanningItems(
     // Program integration, development and audio are cross-pipeline checkpoints.
     // They may block a UIStory, but their staffing is owned outside the UX pipeline.
     if (relatedCheckpointLabel(task, resources)) return [];
+    const taskKey = logicalTaskKey(task);
+    if (seenTaskKeys.has(taskKey)) return [];
+    seenTaskKeys.add(taskKey);
 
     const assessed = assessTaskRisk(task, tasks, resources, today, context);
     const missingSchedule = !task.startDate || !task.endDate;

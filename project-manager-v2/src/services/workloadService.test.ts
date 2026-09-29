@@ -231,6 +231,12 @@ describe('assessTaskRisk', () => {
     expect(result.level).toBe('high');
   });
 
+  it('labels work ending on the reference date as due today', () => {
+    const task = makeTask({ id: 1, status: 'in_progress', endDate: d('2026-05-05'), parentId: 100 });
+    const result = assessTaskRisk(task, [task], resources, new Date('2026-05-05T18:00:00'));
+    expect(result.riskReasons.find(r => r.tag === 'deadline')?.text).toBe('今天截止');
+  });
+
   it('detects dependency conflicts', () => {
     const upstream = makeTask({ id: 2, title: 'Proj-交互', startDate: d('2026-05-01'), endDate: d('2026-05-08') });
     const task = makeTask({ id: 1, title: 'Proj-Layout', startDate: d('2026-05-05'), endDate: d('2026-05-10'), dependencies: [2], parentId: 100 });
@@ -288,6 +294,21 @@ describe('assessTaskRisk', () => {
     ];
     const result = assessTaskRisk(tasks[0], tasks, resources, today);
     expect(result.riskReasons.some(r => r.tag === 'overlap')).toBe(true);
+  });
+
+  it('does not treat duplicate cached rows for the same TAPD item as parallel work', () => {
+    const tasks = [1, 2, 3, 4, 5, 6].map(id => makeTask({
+      id,
+      tapdId: 'same-tapd-item',
+      assigneeIds: [1],
+      startDate: d('2026-05-01'),
+      endDate: d('2026-05-10'),
+      status: 'in_progress',
+      parentId: 100,
+    }));
+    const result = assessTaskRisk(tasks[0], tasks, resources, today);
+    expect(result.riskReasons.some(r => r.tag === 'overlap')).toBe(false);
+    expect(result.riskReasons.some(r => r.tag === 'overload')).toBe(false);
   });
 
   it('returns identical risk results with the shared index', () => {

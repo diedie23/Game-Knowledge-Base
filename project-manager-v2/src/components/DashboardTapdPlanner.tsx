@@ -136,8 +136,8 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
                 <button onClick={() => openTaskModal(item.task.id)} title={item.task.title} className="line-clamp-1 text-left text-xs font-medium text-gray-200 hover:text-white">{item.task.title}</button>
                 <p className="mt-1 line-clamp-1 text-[10px] text-gray-400">{item.reasons.slice(0, 2).join('；')}</p>
                 <div className="mt-2 grid grid-cols-[36px_1fr] gap-x-2 gap-y-1 rounded-lg border border-white/[0.06] bg-black/15 px-2 py-1.5 text-[10px]">
-                  <span className="text-gray-500">当前</span><span className="truncate text-gray-400">{assignees} · {formatDate(item.task.startDate)}–{formatDate(item.task.endDate)} · {suggestion.currentConflictCount} 项并行</span>
-                  <span className="font-medium text-indigo-300">建议</span><span className="flex min-w-0 items-center gap-1 text-indigo-200"><span className="truncate">{suggestion.resource?.name || '待人工指定'} · {formatDate(suggestion.startDate)}–{formatDate(suggestion.endDate)} · {suggestion.suggestedConflictCount} 项并行</span><ArrowRight size={10} className="shrink-0" /></span>
+                  <span className="text-gray-500">当前</span><span className="truncate text-gray-400">{assignees} · {formatDate(item.task.startDate)}–{formatDate(item.task.endDate)} · 当期 {suggestion.currentConflictCount} 项任务</span>
+                  <span className="font-medium text-indigo-300">建议</span><span className="flex min-w-0 items-center gap-1 text-indigo-200"><span className="truncate">{suggestion.resource?.name || '待人工指定'} · {formatDate(suggestion.startDate)}–{formatDate(suggestion.endDate)} · 当期 {suggestion.suggestedConflictCount} 项任务</span><ArrowRight size={10} className="shrink-0" /></span>
                   <span className="text-gray-500">依据</span><span className="truncate text-gray-500" title={suggestion.reasons.join('；')}>{suggestion.reasons.join('；')}</span>
                 </div>
               </div>
