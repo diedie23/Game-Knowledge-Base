@@ -257,6 +257,33 @@ export function buildTapdScheduleSuggestion(
   };
 }
 
+/** Build suggestions as one scenario so earlier recommendations reserve capacity for later tasks. */
+export function buildBatchTapdScheduleSuggestions(
+  items: TapdPlanningItem[],
+  tasks: Task[],
+  resources: Resource[],
+  today: Date = new Date(),
+): Map<number, TapdScheduleSuggestion> {
+  const result = new Map<number, TapdScheduleSuggestion>();
+  const scenarioTasks = [...tasks];
+  [...items].sort((left, right) => right.score - left.score || (left.task.endDate?.getTime() || Infinity) - (right.task.endDate?.getTime() || Infinity)).forEach(item => {
+    if (!item.task.id) return;
+    const suggestion = buildTapdScheduleSuggestion(item.task, item.tags, scenarioTasks, resources, today);
+    result.set(item.task.id, suggestion);
+    if (!suggestion.resource) return;
+    scenarioTasks.push({
+      ...item.task,
+      id: -1_000_000 - item.task.id,
+      tapdId: `scenario:${item.task.tapdId || item.task.id}`,
+      startDate: suggestion.startDate,
+      endDate: suggestion.endDate,
+      assigneeIds: [suggestion.resource.id!],
+      status: item.task.status === 'done' ? 'todo' : item.task.status,
+    });
+  });
+  return result;
+}
+
 /** Build a TAPD-first planning queue from leaf tasks, using the same risk rules as the Gantt view. */
 export function buildTapdPlanningItems(
   tasks: Task[],

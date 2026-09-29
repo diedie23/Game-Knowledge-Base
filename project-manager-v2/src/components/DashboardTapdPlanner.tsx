@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { AlertCircle, ArrowRight, CalendarClock, Check, Copy, ExternalLink, LocateFixed, RefreshCw, ShieldAlert, UserRoundX, X } from 'lucide-react';
 import type { Resource, Task } from '../types';
-import { assessTapdScheduleReadiness, buildTapdPlanningItems, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
+import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildTapdPlanningItems, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
 import { updateTask } from '../services/taskService';
 import { useStore } from '../store/useStore';
 import { getPriorityLabel } from '../utils/priority';
@@ -56,10 +56,11 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     if (filter === 'unassigned') return item.tags.includes('unassigned');
     return true;
   }), [planningEntries, filter]);
-  const items = useMemo(() => filteredItems.slice(0, 8).map(item => ({
-    ...item,
-    suggestion: buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date()),
-  })), [filteredItems, tasks, resources]);
+  const items = useMemo(() => {
+    const visible = filteredItems.slice(0, 8);
+    const suggestions = buildBatchTapdScheduleSuggestions(visible, tasks, resources, new Date());
+    return visible.map(item => ({ ...item, suggestion: suggestions.get(item.task.id!) || buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date()) }));
+  }, [filteredItems, tasks, resources]);
   const latestSyncAt = useMemo(() => latestTapdSyncAt(tasks), [tasks]);
   const freshness = syncFreshness(latestSyncAt);
   const counts = useMemo(() => ({
@@ -78,9 +79,11 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     setHighlightedTaskIds(items.map(item => item.task.id).filter((id): id is number => !!id));
     setCurrentView('gantt');
   };
-  const selectedItems = useMemo(() => planningEntries
-    .filter(item => item.task.id && selectedIds.has(item.task.id))
-    .map(item => ({ ...item, suggestion: buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date()) })), [planningEntries, selectedIds, tasks, resources]);
+  const selectedItems = useMemo(() => {
+    const selected = planningEntries.filter(item => item.task.id && selectedIds.has(item.task.id));
+    const suggestions = buildBatchTapdScheduleSuggestions(selected, tasks, resources, new Date());
+    return selected.map(item => ({ ...item, suggestion: suggestions.get(item.task.id!) || buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date()) }));
+  }, [planningEntries, selectedIds, tasks, resources]);
   const applicableSelectedItems = useMemo(() => selectedItems.filter(item => !item.suggestion.requiresReview), [selectedItems]);
   const checklist = useMemo(() => formatTapdAdjustmentChecklist(selectedItems, resources), [selectedItems, resources]);
   const toggleSelection = (taskId?: number) => {
@@ -149,7 +152,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
             <h2 className="text-base font-bold text-white">TAPD 排期助手</h2>
             <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${freshness.tone}`}>{freshness.label}</span>
           </div>
-          <p className="mt-1 text-xs text-gray-400">聚焦缺少开始或结束日期的任务，按同工种人员负载生成 TAPD 排期建议。</p>
+          <p className="mt-1 text-xs text-gray-400">聚焦缺少开始或结束日期的任务，按同工种人员负载生成建议；同一批建议会相互避让，避免集中到同一人同一时段。</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={enterRiskGantt} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800/70 px-3 py-2 text-xs text-gray-300 hover:border-indigo-500/40 hover:text-white">

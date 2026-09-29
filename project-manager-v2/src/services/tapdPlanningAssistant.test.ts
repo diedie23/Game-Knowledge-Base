@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Resource, Task } from '../types';
-import { assessTapdScheduleReadiness, buildDemandRiskGroups, buildTapdPlanningItems, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, latestTapdSyncAt } from './tapdPlanningAssistant';
+import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildDemandRiskGroups, buildTapdPlanningItems, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, latestTapdSyncAt } from './tapdPlanningAssistant';
 import { resourceStage } from './uxStageView';
 
 const task = (id: number, overrides: Partial<Task> = {}): Task => ({
@@ -238,5 +238,26 @@ describe('buildTapdScheduleSuggestion', () => {
 
     const suggestion = buildTapdScheduleSuggestion(source, ['deadline'], [source, duplicatedCache, parent], resources, today);
     expect(suggestion.currentConflictCount).toBe(1);
+  });
+});
+
+describe('buildBatchTapdScheduleSuggestions', () => {
+  it('reserves the first recommendation so a second task for the same person uses another period', () => {
+    const today = new Date('2026-09-28T09:00:00');
+    const resources: Resource[] = [{ id: 1, name: '唯一视觉', role: 'UI设计', type: 'internal' } as Resource];
+    const first = task(201, { title: '【视觉设计】任务A', assigneeIds: [1], estimatedHours: 8 });
+    const second = task(202, { title: '【视觉设计】任务B', assigneeIds: [1], estimatedHours: 8 });
+    const items = [first, second].map((source, index) => ({
+      task: source,
+      level: 'high' as const,
+      reasons: ['缺少开始和结束日期'],
+      tags: ['unscheduled' as const],
+      actionLabel: '补充 TAPD 排期',
+      score: 400 - index,
+    }));
+    const suggestions = buildBatchTapdScheduleSuggestions(items, [first, second], resources, today);
+    expect(suggestions.get(201)?.startDate.toDateString()).not.toBe(suggestions.get(202)?.startDate.toDateString());
+    expect(suggestions.get(201)?.suggestedConflictCount).toBe(1);
+    expect(suggestions.get(202)?.suggestedConflictCount).toBe(1);
   });
 });
