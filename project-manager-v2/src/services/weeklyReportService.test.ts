@@ -41,6 +41,8 @@ describe('buildWeeklyUxReport', () => {
     expect(text).toContain('风险与卡点');
     expect(text).toContain('岗位容量');
     expect(text).toContain('数据质量');
+    expect(text).toContain('风险跟进行动');
+    expect(report.riskActions[0]).toMatchObject({ action: '核对 TAPD 状态并调整逾期排期' });
     expect(report.dataQuality.score).toBeLessThanOrEqual(100);
   });
 });

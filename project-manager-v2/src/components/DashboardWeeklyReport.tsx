@@ -25,6 +25,10 @@ export function DashboardWeeklyReport({ tasks, resources, projectId }: Props) {
     [projectId],
   ) || [];
   const previousSnapshot = snapshots.find(snapshot => snapshot.weekKey !== weekKey);
+  const previousRiskKeys = useMemo(() => new Set(previousSnapshot?.reportData?.riskKeys || []), [previousSnapshot]);
+  const currentRiskKeys = useMemo(() => new Set(report.riskActions.map(item => item.key)), [report.riskActions]);
+  const newRiskCount = report.riskActions.filter(item => !previousRiskKeys.has(item.key)).length;
+  const resolvedRiskCount = [...previousRiskKeys].filter(key => !currentRiskKeys.has(key)).length;
   const openTask = (task: Task) => task.externalUrl && window.open(task.externalUrl, '_blank', 'noopener,noreferrer');
   const copy = async () => {
     await navigator.clipboard.writeText(reportText);
@@ -50,6 +54,7 @@ export function DashboardWeeklyReport({ tasks, resources, projectId }: Props) {
         capacityRiskCount: report.capacityRisks.length,
         dataQualityScore: report.dataQuality.score,
         dataQualityCriticalCount: report.dataQuality.criticalCount,
+        riskKeys: report.riskActions.map(item => item.key),
         text: reportText,
       },
     });
@@ -103,6 +108,8 @@ export function DashboardWeeklyReport({ tasks, resources, projectId }: Props) {
           <span className={report.risks.length - previousSnapshot.reportData.riskCount <= 0 ? 'text-emerald-300' : 'text-red-300'}>风险 {report.risks.length - previousSnapshot.reportData.riskCount >= 0 ? '+' : ''}{report.risks.length - previousSnapshot.reportData.riskCount}</span>
           <span className={report.risks.filter(group => group.level === 'critical' || group.level === 'high').length - previousSnapshot.reportData.highRiskCount <= 0 ? 'text-emerald-300' : 'text-red-300'}>高风险 {report.risks.filter(group => group.level === 'critical' || group.level === 'high').length - previousSnapshot.reportData.highRiskCount >= 0 ? '+' : ''}{report.risks.filter(group => group.level === 'critical' || group.level === 'high').length - previousSnapshot.reportData.highRiskCount}</span>
           <span className={report.capacityRisks.length - (previousSnapshot.reportData.capacityRiskCount || 0) <= 0 ? 'text-emerald-300' : 'text-red-300'}>容量预警 {report.capacityRisks.length - (previousSnapshot.reportData.capacityRiskCount || 0) >= 0 ? '+' : ''}{report.capacityRisks.length - (previousSnapshot.reportData.capacityRiskCount || 0)}</span>
+          <span className={newRiskCount ? 'text-red-300' : 'text-emerald-300'}>新增风险 {newRiskCount}</span>
+          <span className="text-emerald-300">已解除 {resolvedRiskCount}</span>
           {previousSnapshot.reportData.dataQualityScore !== undefined && <span className={report.dataQuality.score - previousSnapshot.reportData.dataQualityScore >= 0 ? 'text-emerald-300' : 'text-red-300'}>数据质量 {report.dataQuality.score - previousSnapshot.reportData.dataQualityScore >= 0 ? '+' : ''}{report.dataQuality.score - previousSnapshot.reportData.dataQualityScore}</span>}
         </div>
       )}
@@ -144,10 +151,11 @@ export function DashboardWeeklyReport({ tasks, resources, projectId }: Props) {
           <div>
             <h4 className="mb-2 text-xs font-semibold text-gray-300">风险与卡点</h4>
             <div className="space-y-1.5">
-              {report.risks.map(group => (
-                <button key={group.demand.id || group.demand.tapdId} type="button" onClick={() => openTask(group.demand)} className="w-full rounded-md bg-gray-900/70 px-2.5 py-2 text-left hover:bg-orange-500/5">
-                  <span className="block truncate text-xs text-gray-300">{group.demand.title}</span>
-                  <span className="mt-0.5 block text-[11px] text-orange-300/80">{group.summaryReasons.join('；')}</span>
+              {report.riskActions.map(item => (
+                <button key={item.key} type="button" onClick={() => openTask(item.demand)} className="w-full rounded-md bg-gray-900/70 px-2.5 py-2 text-left hover:bg-orange-500/5">
+                  <span className="flex items-center gap-1.5 text-xs text-gray-300"><span className="truncate">{item.demand.title}</span>{!previousRiskKeys.has(item.key) && <span className="shrink-0 rounded bg-red-500/15 px-1 py-0.5 text-[9px] text-red-300">新增</span>}</span>
+                  <span className="mt-1 block text-[11px] text-orange-300/80">{item.action}</span>
+                  <span className="mt-0.5 block text-[10px] text-gray-500">责任人：{item.ownerNames.join('、') || '待明确'} · 目标 {format(item.targetDate, 'MM/dd')}</span>
                 </button>
               ))}
               {report.capacityRisks.map(item => (
@@ -156,7 +164,7 @@ export function DashboardWeeklyReport({ tasks, resources, projectId }: Props) {
                   <span className="mt-0.5 block text-[11px] text-gray-500">预计占用 {item.projectedUtilization > 900 ? '无可用容量' : `${item.projectedUtilization}%`} · 待排 {item.pendingHours}h</span>
                 </button>
               ))}
-              {!report.risks.length && !report.capacityRisks.length && <div className="rounded-md border border-dashed border-gray-800 px-3 py-4 text-center text-xs text-gray-600">暂无显著风险</div>}
+              {!report.riskActions.length && !report.capacityRisks.length && <div className="rounded-md border border-dashed border-gray-800 px-3 py-4 text-center text-xs text-gray-600">暂无显著风险</div>}
             </div>
           </div>
           <div>
