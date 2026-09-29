@@ -38,13 +38,14 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
   const [showChecklist, setShowChecklist] = useState(false);
   const [copied, setCopied] = useState(false);
   const allItems = useMemo(() => buildTapdPlanningItems(tasks, resources), [tasks, resources]);
-  const filteredItems = useMemo(() => allItems.filter(item => {
+  const planningItems = useMemo(() => allItems.filter(item => item.tags.includes('unscheduled')), [allItems]);
+  const filteredItems = useMemo(() => planningItems.filter(item => {
     if (filter === 'severe') return item.level === 'critical' || item.level === 'high';
     if (filter === 'unscheduled') return item.tags.includes('unscheduled');
     if (filter === 'blocked') return item.tags.includes('blocked') || item.tags.includes('dependency');
     if (filter === 'unassigned') return item.tags.includes('unassigned');
     return true;
-  }), [allItems, filter]);
+  }), [planningItems, filter]);
   const items = useMemo(() => filteredItems.slice(0, 8).map(item => ({
     ...item,
     suggestion: buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date()),
@@ -52,11 +53,11 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
   const latestSyncAt = useMemo(() => latestTapdSyncAt(tasks), [tasks]);
   const freshness = syncFreshness(latestSyncAt);
   const counts = useMemo(() => ({
-    severe: allItems.filter(item => item.level === 'critical' || item.level === 'high').length,
-    unscheduled: allItems.filter(item => item.tags.includes('unscheduled')).length,
-    blocked: allItems.filter(item => item.tags.includes('blocked') || item.tags.includes('dependency')).length,
-    unassigned: allItems.filter(item => item.tags.includes('unassigned')).length,
-  }), [allItems]);
+    severe: planningItems.filter(item => item.level === 'critical' || item.level === 'high').length,
+    unscheduled: planningItems.length,
+    blocked: planningItems.filter(item => item.tags.includes('blocked') || item.tags.includes('dependency')).length,
+    unassigned: planningItems.filter(item => item.tags.includes('unassigned')).length,
+  }), [planningItems]);
   const resourceById = useMemo(() => new Map(resources.filter(resource => resource.id).map(resource => [resource.id!, resource])), [resources]);
 
   const locateInGantt = (task: Task) => {
@@ -67,9 +68,9 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     setHighlightedTaskIds(items.map(item => item.task.id).filter((id): id is number => !!id));
     setCurrentView('gantt');
   };
-  const selectedItems = useMemo(() => allItems
+  const selectedItems = useMemo(() => planningItems
     .filter(item => item.task.id && selectedIds.has(item.task.id))
-    .map(item => ({ ...item, suggestion: buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date()) })), [allItems, selectedIds, tasks, resources]);
+    .map(item => ({ ...item, suggestion: buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date()) })), [planningItems, selectedIds, tasks, resources]);
   const checklist = useMemo(() => formatTapdAdjustmentChecklist(selectedItems, resources), [selectedItems, resources]);
   const toggleSelection = (taskId?: number) => {
     if (!taskId) return;
@@ -95,7 +96,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
             <h2 className="text-base font-bold text-white">TAPD 排期助手</h2>
             <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${freshness.tone}`}>{freshness.label}</span>
           </div>
-          <p className="mt-1 text-xs text-gray-400">本页用于识别风险和预判影响；负责人、日期与状态的最终调整以 TAPD 为准。</p>
+          <p className="mt-1 text-xs text-gray-400">聚焦缺少开始或结束日期的任务，按同工种人员负载生成 TAPD 排期建议。</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={enterRiskGantt} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800/70 px-3 py-2 text-xs text-gray-300 hover:border-indigo-500/40 hover:text-white">
@@ -109,16 +110,16 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
 
       <div className="mt-4 grid grid-cols-4 gap-2">
         {[
-          { filter: 'severe' as const, label: '严重 / 高风险', value: counts.severe, icon: AlertCircle, color: 'text-red-300' },
-          { filter: 'unscheduled' as const, label: '缺少排期', value: counts.unscheduled, icon: CalendarClock, color: 'text-purple-300' },
-          { filter: 'blocked' as const, label: '依赖 / 卡点', value: counts.blocked, icon: ShieldAlert, color: 'text-amber-300' },
-          { filter: 'unassigned' as const, label: '未匹配处理人', value: counts.unassigned, icon: UserRoundX, color: 'text-sky-300' },
+          { filter: 'severe' as const, label: '待排期高风险', value: counts.severe, icon: AlertCircle, color: 'text-red-300' },
+          { filter: 'unscheduled' as const, label: '待排期任务', value: counts.unscheduled, icon: CalendarClock, color: 'text-purple-300' },
+          { filter: 'blocked' as const, label: '待排期且有卡点', value: counts.blocked, icon: ShieldAlert, color: 'text-amber-300' },
+          { filter: 'unassigned' as const, label: '待排期未匹配人员', value: counts.unassigned, icon: UserRoundX, color: 'text-sky-300' },
         ].map(summary => <button key={summary.label} onClick={() => setFilter(filter === summary.filter ? 'all' : summary.filter)} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition-colors ${filter === summary.filter ? 'border-indigo-500/50 bg-indigo-500/15' : 'border-gray-700/60 bg-gray-950/30 hover:border-gray-600'}`}><summary.icon size={14} className={summary.color} /><span className="text-lg font-bold text-white">{summary.value}</span><span className="text-[11px] text-gray-500">{summary.label}</span></button>)}
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        {items.length > 0 && <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-gray-500"><div className="flex items-center gap-2"><span>优先处理清单</span>{filter !== 'all' && <button onClick={() => setFilter('all')} className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-indigo-300 hover:text-white">清除筛选</button>}<button onClick={selectVisible} className="hover:text-white">选择当前 {items.length} 项</button>{selectedIds.size > 0 && <button onClick={() => setSelectedIds(new Set())} className="hover:text-white">清空选择</button>}</div><div className="flex items-center gap-3"><span>显示前 {items.length} 项，共 {filteredItems.length} 项</span><button disabled={selectedItems.length === 0} onClick={() => setShowChecklist(true)} className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 font-medium text-indigo-300 hover:bg-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-40">生成调整清单（{selectedItems.length}）</button></div></div>}
-        {items.length === 0 && <div className="col-span-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-5 text-center text-sm text-emerald-300">当前没有需要优先调整的 TAPD 排期项</div>}
+        {items.length > 0 && <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-gray-500"><div className="flex items-center gap-2"><span>待排期任务清单</span>{filter !== 'all' && <button onClick={() => setFilter('all')} className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-indigo-300 hover:text-white">清除筛选</button>}<button onClick={selectVisible} className="hover:text-white">选择当前 {items.length} 项</button>{selectedIds.size > 0 && <button onClick={() => setSelectedIds(new Set())} className="hover:text-white">清空选择</button>}</div><div className="flex items-center gap-3"><span>显示前 {items.length} 项，共 {filteredItems.length} 项</span><button disabled={selectedItems.length === 0} onClick={() => setShowChecklist(true)} className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 font-medium text-indigo-300 hover:bg-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-40">生成排期清单（{selectedItems.length}）</button></div></div>}
+        {items.length === 0 && <div className="col-span-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-5 text-center text-sm text-emerald-300">当前没有缺少开始或结束日期的 TAPD 任务</div>}
         {items.map(item => {
           const style = LEVEL_STYLE[item.level];
           const suggestion = item.suggestion!;

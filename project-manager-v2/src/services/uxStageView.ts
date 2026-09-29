@@ -29,6 +29,10 @@ const RESOURCE_STAGE_PATTERNS: Array<{ stage: CoreUxStage; pattern: RegExp }> = 
   { stage: 'motion', pattern: /动效|动画|Motion|VFX|VX/i },
 ];
 
+export function resourceStage(resource: Resource): CoreUxStage | undefined {
+  return RESOURCE_STAGE_PATTERNS.find(rule => rule.pattern.test(resource.role || ''))?.stage;
+}
+
 /** Prefer an explicit title marker, then use the TAPD owner's configured role as a safe fallback. */
 export function taskStage(task: Task, resources: Resource[] = []): CoreUxStage | undefined {
   const detected = detectUxStage(task.title).stage;
@@ -44,8 +48,8 @@ export function taskStage(task: Task, resources: Resource[] = []): CoreUxStage |
   );
   const matchedStages = new Set<CoreUxStage>();
   assigned.forEach(resource => {
-    const matched = RESOURCE_STAGE_PATTERNS.find(rule => rule.pattern.test(resource.role || ''));
-    if (matched) matchedStages.add(matched.stage);
+    const matched = resourceStage(resource);
+    if (matched) matchedStages.add(matched);
   });
   return matchedStages.size === 1 ? [...matchedStages][0] : undefined;
 }

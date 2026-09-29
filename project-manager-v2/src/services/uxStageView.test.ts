@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Task } from '../types/task';
 import type { Resource } from '../types/resource';
-import { buildStageRows, relatedCheckpointItems, isDemandComplete, isUiStoryOverallComplete, stageStatus, taskStage, taskStatus } from './uxStageView';
+import { buildStageRows, relatedCheckpointItems, isDemandComplete, isUiStoryOverallComplete, resourceStage, stageStatus, taskStage, taskStatus } from './uxStageView';
 
 const task = (id: number, title: string, props: Partial<Task> = {}): Task => ({ id, title, status: 'todo', priority: 'medium', projectId: 1, progress: 0, dependencies: [], type: 'task', ...props });
 
@@ -58,6 +58,7 @@ describe('UX stage rows', () => {
     expect(taskStage(task(11, '动效稿', { assigneeIds: [1] }), resources)).toBe('motion');
     expect(taskStage(task(12, '策划配置', { assigneeIds: [4] }), resources)).toBeUndefined();
     expect(taskStage(task(13, '多人协作', { assigneeIds: [1, 2] }), resources)).toBeUndefined();
+    expect(resources.map(resourceStage)).toEqual(['ui_design', 'implementation', 'motion', undefined]);
   });
 
   it('places generic UI children by their handler role without classifying the parent itself', () => {

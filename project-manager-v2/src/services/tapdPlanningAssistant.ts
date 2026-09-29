@@ -2,7 +2,7 @@ import type { Resource, Task } from '../types';
 import { isTaskTerminal } from '../utils/taskState';
 import { countWorkingDays, getNextWorkingDays, isWorkingDay } from '../utils/dateUtils';
 import { smartAssignService } from './smartAssignService';
-import { relatedCheckpointLabel } from './uxStageView';
+import { relatedCheckpointLabel, resourceStage, taskStage } from './uxStageView';
 import { assessTaskRisk, buildTaskRiskContext, type RiskLevel, type RiskTag } from './workloadService';
 
 export interface TapdScheduleSuggestion {
@@ -137,12 +137,20 @@ export function buildTapdScheduleSuggestion(
     : 0;
   const shouldReassign = !currentResource || tags.includes('overload') || tags.includes('overlap');
   const expectedType = candidateType(task, currentResources);
+  const expectedStage = taskStage(task, resources);
+  const currentRoles = [...new Set(currentResources.map(resource => (resource.role || '').trim().toLowerCase()).filter(Boolean))];
+  const expectedRole = expectedStage ? undefined : currentRoles.length === 1 ? currentRoles[0] : undefined;
   const baseStart = !task.startDate || currentEnd < todayStart ? todayStart : currentStart;
   const [previewStart, previewEnd] = periodFrom(baseStart, duration);
 
   const candidates = resources
     .filter(resource => resource.id && resource.status !== 'departed')
     .filter(resource => expectedType ? resource.type === expectedType : resource.type !== 'cp')
+    .filter(resource => expectedStage
+      ? resourceStage(resource) === expectedStage
+      : expectedRole
+        ? (resource.role || '').trim().toLowerCase() === expectedRole
+        : false)
     .filter(resource => isAvailable(resource, previewStart, previewEnd))
     .map(resource => {
       const skill = smartAssignService.calcSkillScore(resource, task.title, tasks);

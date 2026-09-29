@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Resource, Task } from '../types';
 import { buildTapdPlanningItems, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, latestTapdSyncAt } from './tapdPlanningAssistant';
+import { resourceStage } from './uxStageView';
 
 const task = (id: number, overrides: Partial<Task> = {}): Task => ({
   id,
@@ -125,6 +126,39 @@ describe('buildTapdScheduleSuggestion', () => {
     expect([suggestion.startDate.getFullYear(), suggestion.startDate.getMonth() + 1, suggestion.startDate.getDate()]).toEqual([2026, 9, 28]);
     expect([suggestion.endDate.getFullYear(), suggestion.endDate.getMonth() + 1, suggestion.endDate.getDate()]).toEqual([2026, 9, 29]);
     expect(suggestion.reasons.join('')).toContain('原排期已过期');
+  });
+
+  it('never recommends a motion designer for a visual-design task', () => {
+    const resources: Resource[] = [
+      { id: 1, name: '当前视觉', role: 'UI设计', type: 'internal' } as Resource,
+      { id: 2, name: '空闲动效', role: '动效', type: 'internal' } as Resource,
+      { id: 3, name: '空闲视觉', role: 'UI设计', type: 'internal' } as Resource,
+    ];
+    const source = task(30, {
+      title: '【视觉设计】商城图标',
+      assigneeIds: [1],
+      startDate: new Date('2026-09-28'),
+      endDate: new Date('2026-09-29'),
+    });
+    const busy = task(31, {
+      assigneeIds: [1],
+      startDate: new Date('2026-09-28'),
+      endDate: new Date('2026-09-30'),
+    });
+    const suggestion = buildTapdScheduleSuggestion(source, ['overlap'], [source, busy], resources, today);
+    expect(resourceStage(suggestion.resource!)).toBe('ui_design');
+    expect(suggestion.resource?.id).not.toBe(2);
+  });
+
+  it('leaves an ambiguous unassigned task for manual role confirmation', () => {
+    const resources: Resource[] = [
+      { id: 1, name: '视觉', role: 'UI设计', type: 'internal' } as Resource,
+      { id: 2, name: '动效', role: '动效', type: 'internal' } as Resource,
+    ];
+    const source = task(32, { title: '待确认制作任务' });
+    const suggestion = buildTapdScheduleSuggestion(source, ['unscheduled', 'unassigned'], [source], resources, today);
+    expect(suggestion.resource).toBeUndefined();
+    expect(suggestion.reasons.join('')).toContain('手动指定');
   });
 
   it('counts one active item when parent rows and duplicate TAPD records overlap the source', () => {
