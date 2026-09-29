@@ -239,8 +239,7 @@ class SyncEngine {
     window.addEventListener('online', () => {
       this.isOnline = true;
       this.emit({ type: 'status', data: { online: true } });
-      // Auto-retry pending changes when back online
-      this.pushPendingChanges();
+      // Keep pending changes staged until the user reviews and confirms them in the sync center.
     });
 
     window.addEventListener('offline', () => {

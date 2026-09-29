@@ -1,0 +1,83 @@
+import React, { useMemo, useState } from 'react';
+import { Check, ChevronDown, ChevronUp, ClipboardCopy, ExternalLink, FileText } from 'lucide-react';
+import type { Resource, Task } from '../types';
+import { buildWeeklyUxReport, formatWeeklyUxReport } from '../services/weeklyReportService';
+
+interface Props {
+  tasks: Task[];
+  resources: Resource[];
+}
+
+export function DashboardWeeklyReport({ tasks, resources }: Props) {
+  const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const report = useMemo(() => buildWeeklyUxReport(tasks, resources), [tasks, resources]);
+  const reportText = useMemo(() => formatWeeklyUxReport(report), [report]);
+  const openTask = (task: Task) => task.externalUrl && window.open(task.externalUrl, '_blank', 'noopener,noreferrer');
+  const copy = async () => {
+    await navigator.clipboard.writeText(reportText);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  };
+
+  const stats = [
+    { label: '本周完成', value: report.completed.length, tone: 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20' },
+    { label: '进行中', value: report.inProgress.length, tone: 'text-blue-300 bg-blue-500/10 border-blue-500/20' },
+    { label: '下周计划', value: report.nextWeek.length, tone: 'text-violet-300 bg-violet-500/10 border-violet-500/20' },
+    { label: '风险需求', value: report.risks.length, tone: 'text-orange-300 bg-orange-500/10 border-orange-500/20' },
+  ];
+
+  return (
+    <section className="overflow-hidden rounded-2xl border border-gray-700/50 bg-gray-900/35 shadow-lg">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5">
+        <div>
+          <h3 className="flex items-center gap-2 text-base font-semibold text-white"><FileText size={18} className="text-violet-400" />UX 管线周报</h3>
+          <p className="mt-1 text-xs text-gray-500">自动汇总当前数据，可复制到周会或项目群，并通过 TAPD 链接核查。</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={copy} className="flex items-center gap-1.5 rounded-lg border border-violet-500/25 bg-violet-500/10 px-3 py-2 text-xs font-medium text-violet-200 hover:bg-violet-500/20">
+            {copied ? <Check size={14} /> : <ClipboardCopy size={14} />}{copied ? '已复制' : '复制周报'}
+          </button>
+          <button type="button" onClick={() => setExpanded(value => !value)} className="flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800/70 px-3 py-2 text-xs text-gray-300 hover:text-white">
+            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}{expanded ? '收起明细' : '查看明细'}
+          </button>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2 border-t border-gray-800 px-5 py-4 md:grid-cols-4">
+        {stats.map(stat => <div key={stat.label} className={`rounded-lg border px-3 py-2 ${stat.tone}`}><div className="text-lg font-semibold">{stat.value}</div><div className="text-[11px] opacity-80">{stat.label}</div></div>)}
+      </div>
+      {expanded && (
+        <div className="grid gap-4 border-t border-gray-800 bg-gray-950/25 p-5 xl:grid-cols-3">
+          {[
+            { title: '本周完成', tasks: report.completed },
+            { title: '下周计划', tasks: report.nextWeek },
+          ].map(section => (
+            <div key={section.title}>
+              <h4 className="mb-2 text-xs font-semibold text-gray-300">{section.title}</h4>
+              <div className="space-y-1.5">
+                {section.tasks.slice(0, 6).map(task => (
+                  <button key={task.id || task.tapdId} type="button" onClick={() => openTask(task)} className="flex w-full items-center gap-1.5 rounded-md bg-gray-900/70 px-2.5 py-2 text-left text-xs text-gray-300 hover:text-blue-300">
+                    <span className="truncate">{task.title}</span>{task.externalUrl && <ExternalLink size={11} className="ml-auto shrink-0" />}
+                  </button>
+                ))}
+                {!section.tasks.length && <div className="rounded-md border border-dashed border-gray-800 px-3 py-4 text-center text-xs text-gray-600">暂无内容</div>}
+              </div>
+            </div>
+          ))}
+          <div>
+            <h4 className="mb-2 text-xs font-semibold text-gray-300">风险与卡点</h4>
+            <div className="space-y-1.5">
+              {report.risks.map(group => (
+                <button key={group.demand.id || group.demand.tapdId} type="button" onClick={() => openTask(group.demand)} className="w-full rounded-md bg-gray-900/70 px-2.5 py-2 text-left hover:bg-orange-500/5">
+                  <span className="block truncate text-xs text-gray-300">{group.demand.title}</span>
+                  <span className="mt-0.5 block text-[11px] text-orange-300/80">{group.summaryReasons.join('；')}</span>
+                </button>
+              ))}
+              {!report.risks.length && <div className="rounded-md border border-dashed border-gray-800 px-3 py-4 text-center text-xs text-gray-600">暂无显著风险</div>}
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}

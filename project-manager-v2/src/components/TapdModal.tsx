@@ -4,8 +4,9 @@ import {
   Download, Upload, Wifi, WifiOff, Clock, GitMerge, ArrowUpDown,
   ChevronDown, ChevronRight, Shield, Trash2, History, Building2,
   FileSpreadsheet, Info, Filter, CheckSquare, Square, MinusSquare,
-  ArrowLeft, Search, Eye, ExternalLink
+  ArrowLeft, Search, Eye, ExternalLink, RotateCcw
 } from 'lucide-react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { useStore } from '../store/useStore';
 import { useSyncStore } from '../store/useSyncStore';
 import { db } from '../db/db';
@@ -20,8 +21,14 @@ import { syncAllParentDateRanges } from '../services/workloadService';
 import { getRoleOrderIndex } from './gantt/constants';
 import { getLocalPriorityLabel, mapTapdPriority } from '../utils/tapdPriority';
 import { parseTapdEffortHours } from '../utils/tapdFields';
+import { buildPendingSyncPreview, discardPendingSyncChanges } from '../services/syncPreflightService';
 
 type TabId = 'config' | 'sync' | 'conflicts' | 'log';
+
+const SYNC_FIELD_LABEL: Record<string, string> = {
+  startDate: '开始日期', endDate: '结束日期', assigneeIds: '处理人', status: '状态',
+  priority: '优先级', progress: '进度', title: '标题', estimatedHours: '预估工时',
+};
 
 export function TapdModal() {
   const { isTapdModalOpen, closeTapdModal, selectedProjectId } = useStore();
@@ -51,6 +58,20 @@ export function TapdModal() {
   const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
+  const [syncConfirmation, setSyncConfirmation] = useState<'full' | 'push' | null>(null);
+  const [confirmDiscardPending, setConfirmDiscardPending] = useState(false);
+
+  const pendingSyncBundle = useLiveQuery(async () => {
+    const [logs, tasks, resources] = await Promise.all([
+      db.changeLogs.where('synced').equals(0).sortBy('timestamp'),
+      db.tasks.toArray(),
+      db.resources.toArray(),
+    ]);
+    return { logs, tasks, resources };
+  }, [isTapdModalOpen, pendingChanges]);
+  const pendingSyncPreview = useMemo(() => pendingSyncBundle
+    ? buildPendingSyncPreview(pendingSyncBundle.logs, pendingSyncBundle.tasks, pendingSyncBundle.resources)
+    : [], [pendingSyncBundle]);
 
   // ─── Sync Range State ───
   const [syncRangeMode, setSyncRangeMode] = useState<SyncRangeConfig['mode']>('all');
@@ -1066,6 +1087,28 @@ export function TapdModal() {
     }
   };
 
+  const requestFullSync = () => {
+    if (pendingSyncPreview.length > 0) setSyncConfirmation('full');
+    else handleFullSync();
+  };
+
+  const requestPushOnly = () => setSyncConfirmation('push');
+
+  const confirmSync = async () => {
+    const action = syncConfirmation;
+    setSyncConfirmation(null);
+    if (action === 'full') await handleFullSync();
+    if (action === 'push') await handlePushOnly();
+  };
+
+  const discardPending = async () => {
+    if (!pendingSyncBundle?.logs.length) return;
+    await discardPendingSyncChanges(pendingSyncBundle.logs);
+    setConfirmDiscardPending(false);
+    setSyncConfirmation(null);
+    await refreshStats();
+  };
+
   const handlePullOnly = async () => {
     setIsSyncing(true);
     try {
@@ -1097,6 +1140,19 @@ export function TapdModal() {
     if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`;
     if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`;
     return d.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  const pendingResourceById = new Map((pendingSyncBundle?.resources || []).filter(resource => resource.id).map(resource => [resource.id!, resource]));
+  const formatPendingValue = (field: string, value: unknown) => {
+    if (value === undefined || value === null || value === '') return '空';
+    if (field === 'assigneeIds' && Array.isArray(value)) return value.map(id => pendingResourceById.get(Number(id))?.name || `#${id}`).join('、') || '未分配';
+    if ((field === 'startDate' || field === 'endDate') && value) {
+      const date = new Date(value as string | number | Date);
+      if (!Number.isNaN(date.getTime())) return date.toLocaleDateString('zh-CN');
+    }
+    if (field === 'progress') return `${value}%`;
+    if (typeof value === 'object') return JSON.stringify(value);
+    return String(value);
   };
 
   const tabs: { id: TabId; label: string; icon: React.ReactNode; badge?: number }[] = [
@@ -2213,6 +2269,77 @@ export function TapdModal() {
                 </span>
               </div>
 
+              {/* Pending changes preflight */}
+              {pendingSyncPreview.length > 0 && (
+                <div className="overflow-hidden rounded-lg border border-violet-500/20 bg-violet-500/[0.05]">
+                  <div className="flex items-center justify-between gap-3 border-b border-violet-500/15 px-3 py-2.5">
+                    <div>
+                      <div className="text-xs font-medium text-violet-200">同步前差异预览</div>
+                      <div className="mt-0.5 text-[10px] text-gray-500">{pendingSyncPreview.length} 个对象、{pendingChanges} 条本地修改尚未推送</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDiscardPending(true)}
+                      className="flex items-center gap-1 rounded-md border border-red-500/20 bg-red-500/10 px-2 py-1 text-[10px] text-red-300 hover:bg-red-500/20"
+                    >
+                      <RotateCcw size={11} />撤回待推送修改
+                    </button>
+                  </div>
+                  <div className="max-h-48 space-y-1.5 overflow-y-auto p-2.5">
+                    {pendingSyncPreview.slice(0, 8).map(item => (
+                      <div key={`${item.table}-${item.recordId}`} className="rounded-md border border-white/5 bg-gray-900/60 px-2.5 py-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`rounded px-1.5 py-0.5 text-[9px] ${item.action === 'delete' ? 'bg-red-500/15 text-red-300' : item.action === 'create' ? 'bg-emerald-500/15 text-emerald-300' : 'bg-blue-500/15 text-blue-300'}`}>
+                            {item.action === 'delete' ? '删除' : item.action === 'create' ? '新增' : '修改'}
+                          </span>
+                          <span className="min-w-0 flex-1 truncate text-[11px] text-gray-200">{item.title}</span>
+                          {item.task?.externalUrl && <button type="button" onClick={() => window.open(item.task!.externalUrl, '_blank', 'noopener,noreferrer')} className="text-[10px] text-sky-400 hover:text-sky-300">打开 TAPD</button>}
+                        </div>
+                        {item.fields.length > 0 && (
+                          <div className="mt-1.5 space-y-1">
+                            {item.fields.slice(0, 4).map(field => (
+                              <div key={field.field} className="flex items-start gap-1 text-[10px]">
+                                <span className="w-14 shrink-0 text-gray-500">{SYNC_FIELD_LABEL[field.field] || field.field}</span>
+                                <span className="truncate text-gray-500 line-through">{formatPendingValue(field.field, field.from)}</span>
+                                <span className="shrink-0 text-gray-600">→</span>
+                                <span className="truncate text-violet-200">{formatPendingValue(field.field, field.to)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {pendingSyncPreview.length > 8 && <div className="py-1 text-center text-[10px] text-gray-500">另有 {pendingSyncPreview.length - 8} 个对象，将在确认时一并推送</div>}
+                  </div>
+                </div>
+              )}
+
+              {confirmDiscardPending && (
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-red-500/25 bg-red-500/[0.08] p-3">
+                  <div>
+                    <div className="text-xs font-medium text-red-200">确认撤回全部待推送修改？</div>
+                    <div className="mt-0.5 text-[10px] text-gray-500">任务将恢复到这些本地修改之前，且不会推送到 TAPD。</div>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <button type="button" onClick={() => setConfirmDiscardPending(false)} className="rounded-md border border-gray-700 px-2.5 py-1.5 text-[10px] text-gray-300">取消</button>
+                    <button type="button" onClick={discardPending} className="rounded-md bg-red-600 px-2.5 py-1.5 text-[10px] font-medium text-white hover:bg-red-500">确认撤回</button>
+                  </div>
+                </div>
+              )}
+
+              {syncConfirmation && (
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-emerald-500/25 bg-emerald-500/[0.07] p-3">
+                  <div>
+                    <div className="text-xs font-medium text-emerald-200">确认将以上 {pendingSyncPreview.length} 个对象推送到 TAPD？</div>
+                    <div className="mt-0.5 text-[10px] text-gray-500">请重点核对处理人和日期；确认后 TAPD 将以这里的最终值为准。</div>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <button type="button" onClick={() => setSyncConfirmation(null)} className="rounded-md border border-gray-700 px-2.5 py-1.5 text-[10px] text-gray-300">返回检查</button>
+                    <button type="button" onClick={confirmSync} className="rounded-md bg-emerald-600 px-2.5 py-1.5 text-[10px] font-medium text-white hover:bg-emerald-500">确认推送</button>
+                  </div>
+                </div>
+              )}
+
               {/* Refresh result */}
               {refreshResult && (
                 <div className="bg-sky-500/10 rounded-lg border border-sky-500/20 overflow-hidden">
@@ -2676,7 +2803,7 @@ export function TapdModal() {
                   </button>
                 </div>
                 <button
-                  onClick={handleFullSync}
+                  onClick={requestFullSync}
                   disabled={isSyncing || !isOnline || !existingConfig}
                   className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-800/80 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed text-gray-300 text-xs font-medium rounded-lg transition-all duration-200 border border-white/10 hover:-translate-y-0.5"
                 >
@@ -2685,7 +2812,7 @@ export function TapdModal() {
                 </button>
                 <div className="grid grid-cols-2 gap-2">
                   <button
-                    onClick={handlePushOnly}
+                    onClick={requestPushOnly}
                     disabled={isSyncing || !isOnline || pendingChanges === 0}
                     className="flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-800/80 hover:bg-gray-700 disabled:opacity-30 text-gray-300 text-xs font-medium rounded-lg transition-all duration-200 border border-white/10 hover:-translate-y-0.5"
                   >

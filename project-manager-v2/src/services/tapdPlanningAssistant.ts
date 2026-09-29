@@ -2,7 +2,7 @@ import type { Resource, Task } from '../types';
 import { isTaskTerminal } from '../utils/taskState';
 import { countWorkingDays, getNextWorkingDays, isWorkingDay } from '../utils/dateUtils';
 import { smartAssignService } from './smartAssignService';
-import { relatedCheckpointLabel, resourceStage, taskStage } from './uxStageView';
+import { relatedCheckpointLabel, resourceStage, taskStage, taskStatus, type CoreUxStage } from './uxStageView';
 import { assessTaskRisk, buildTaskRiskContext, type RiskLevel, type RiskTag } from './workloadService';
 
 export interface TapdScheduleSuggestion {
@@ -14,6 +14,18 @@ export interface TapdScheduleSuggestion {
   assigneeChanged: boolean;
   scheduleChanged: boolean;
   reasons: string[];
+  stage?: CoreUxStage;
+  durationDays: number;
+  parentDeadline?: Date;
+  parentDeadlineStatus: 'safe' | 'late' | 'unknown';
+  requiresReview: boolean;
+  reviewReasons: string[];
+}
+
+export interface TapdScheduleReadiness {
+  ready: boolean;
+  stage?: CoreUxStage;
+  reasons: string[];
 }
 
 export interface TapdPlanningItem {
@@ -24,6 +36,18 @@ export interface TapdPlanningItem {
   actionLabel: string;
   score: number;
   suggestion?: TapdScheduleSuggestion;
+}
+
+export interface DemandRiskGroup {
+  demand: Task;
+  level: Exclude<RiskLevel, 'none'>;
+  items: TapdPlanningItem[];
+  checkpoints: Array<{ task: Task; label: string }>;
+  overdueCount: number;
+  blockedCount: number;
+  staffingCount: number;
+  summaryReasons: string[];
+  score: number;
 }
 
 const LEVEL_SCORE: Record<Exclude<RiskLevel, 'none'>, number> = {
@@ -102,6 +126,38 @@ function candidateType(task: Task, currentResources: Resource[]): Resource['type
   return types.length === 1 ? types[0] : undefined;
 }
 
+function matchingResources(task: Task, resources: Resource[]): Resource[] {
+  const resourceById = new Map(resources.filter(resource => resource.id).map(resource => [resource.id!, resource]));
+  const currentResources = (task.assigneeIds || []).map(id => resourceById.get(id)).filter((resource): resource is Resource => !!resource);
+  const expectedStage = taskStage(task, resources);
+  const currentRoles = [...new Set(currentResources.map(resource => (resource.role || '').trim().toLowerCase()).filter(Boolean))];
+  const expectedRole = expectedStage ? undefined : currentRoles.length === 1 ? currentRoles[0] : undefined;
+  const expectedType = candidateType(task, currentResources);
+  return resources
+    .filter(resource => resource.id && resource.status !== 'departed')
+    .filter(resource => expectedType ? resource.type === expectedType : resource.type !== 'cp')
+    .filter(resource => expectedStage
+      ? resourceStage(resource) === expectedStage
+      : expectedRole
+        ? (resource.role || '').trim().toLowerCase() === expectedRole
+        : false);
+}
+
+export function assessTapdScheduleReadiness(
+  task: Task,
+  tags: TapdPlanningItem['tags'],
+  resources: Resource[],
+): TapdScheduleReadiness {
+  const stage = taskStage(task, resources);
+  const reasons: string[] = [];
+  if (!stage && !(task.assigneeIds || []).length) reasons.push('无法确认任务工种');
+  if (matchingResources(task, resources).length === 0) reasons.push('没有匹配的同工种人员');
+  if (!task.estimatedHours || task.estimatedHours <= 0) reasons.push('缺少预估工时');
+  if (tags.includes('blocked')) reasons.push('任务存在卡点');
+  if (tags.includes('dependency')) reasons.push('存在未解决依赖');
+  return { ready: reasons.length === 0, stage, reasons };
+}
+
 function findSuggestedPeriod(resourceId: number | undefined, task: Task, tasks: Task[], preferredStart: Date, duration: number): [Date, Date, number] {
   const firstDay = isWorkingDay(preferredStart) ? startOfDay(preferredStart) : getNextWorkingDays(preferredStart, 1)[0];
   let fallback: [Date, Date, number] | null = null;
@@ -165,6 +221,13 @@ export function buildTapdScheduleSuggestion(
   const selectedResource = shouldReassign && best ? best.resource : currentResource || best?.resource;
   const [startDate, endDate, suggestedOverlapCount] = findSuggestedPeriod(selectedResource?.id, task, tasks, baseStart, duration);
   const suggestedConflictCount = selectedResource ? suggestedOverlapCount + 1 : 0;
+  const parent = task.parentId ? tasks.find(candidate => candidate.id === task.parentId) : undefined;
+  const parentDeadline = parent?.endDate ? startOfDay(parent.endDate) : undefined;
+  const parentDeadlineStatus = !parentDeadline ? 'unknown' : endDate <= parentDeadline ? 'safe' : 'late';
+  const readiness = assessTapdScheduleReadiness(task, tags, resources);
+  const reviewReasons = [...readiness.reasons];
+  if (suggestedConflictCount > 2) reviewReasons.push(`建议时段仍有 ${suggestedConflictCount} 项任务`);
+  if (parentDeadlineStatus === 'late') reviewReasons.push('建议完成时间晚于父需求截止日期');
   const assigneeChanged = !!selectedResource && selectedResource.id !== currentResource?.id;
   const scheduleChanged = !sameDay(task.startDate, startDate) || !sameDay(task.endDate, endDate);
   const reasons: string[] = [];
@@ -174,8 +237,24 @@ export function buildTapdScheduleSuggestion(
   else if (currentEnd < todayStart) reasons.push(`原排期已过期，按原工期顺延`);
   else if (suggestedConflictCount < currentConflictCount) reasons.push(`并行任务由 ${currentConflictCount} 项降至 ${suggestedConflictCount} 项`);
   if (!selectedResource) reasons.push('暂无匹配岗位人员，需在 TAPD 手动指定');
+  if (parentDeadlineStatus === 'late') reasons.push('建议排期将突破父需求截止日期');
 
-  return { resource: selectedResource, startDate, endDate, currentConflictCount, suggestedConflictCount, assigneeChanged, scheduleChanged, reasons };
+  return {
+    resource: selectedResource,
+    startDate,
+    endDate,
+    currentConflictCount,
+    suggestedConflictCount,
+    assigneeChanged,
+    scheduleChanged,
+    reasons,
+    stage: expectedStage,
+    durationDays: duration,
+    parentDeadline,
+    parentDeadlineStatus,
+    requiresReview: reviewReasons.length > 0,
+    reviewReasons: [...new Set(reviewReasons)],
+  };
 }
 
 /** Build a TAPD-first planning queue from leaf tasks, using the same risk rules as the Gantt view. */
@@ -223,6 +302,105 @@ export function buildTapdPlanningItems(
     const uniqueTags = [...new Set(tags)];
     return [{ task, level, reasons: [...new Set(reasons)], tags: uniqueTags, actionLabel: resolveAction(uniqueTags), score }];
   }).sort((left, right) => right.score - left.score || (left.task.endDate?.getTime() || Infinity) - (right.task.endDate?.getTime() || Infinity));
+}
+
+function normalizedWorkitemType(task: Task): string {
+  return String(task.tapdWorkitemTypeName || '').trim().toLowerCase().replace(/[\s·_\-—:：]/g, '');
+}
+
+function isUiStory(task: Task): boolean {
+  const type = normalizedWorkitemType(task);
+  return type === 'uistory' || type === 'uistory父需求' || type === 'ui需求';
+}
+
+function demandFor(task: Task, taskById: Map<number, Task>): Task {
+  let current = task;
+  let fallback = task;
+  const visited = new Set<number>();
+  while (current.parentId && !visited.has(current.parentId)) {
+    visited.add(current.parentId);
+    const parent = taskById.get(current.parentId);
+    if (!parent || parent.projectId !== task.projectId) break;
+    fallback = parent;
+    if (isUiStory(parent)) return parent;
+    current = parent;
+  }
+  return isUiStory(task) ? task : fallback;
+}
+
+/** Aggregate leaf risks and external pipeline checkpoints under their parent UIStory. */
+export function buildDemandRiskGroups(
+  tasks: Task[],
+  resources: Resource[],
+  today: Date = new Date(),
+): DemandRiskGroup[] {
+  const taskById = new Map(tasks.filter(task => task.id).map(task => [task.id!, task]));
+  const items = buildTapdPlanningItems(tasks, resources, today);
+  const groups = new Map<string, DemandRiskGroup>();
+  const levelRank: Record<Exclude<RiskLevel, 'none'>, number> = { low: 1, medium: 2, high: 3, critical: 4 };
+
+  const ensureGroup = (task: Task): DemandRiskGroup => {
+    const demand = demandFor(task, taskById);
+    const key = logicalTaskKey(demand);
+    let group = groups.get(key);
+    if (!group) {
+      group = {
+        demand,
+        level: 'low',
+        items: [],
+        checkpoints: [],
+        overdueCount: 0,
+        blockedCount: 0,
+        staffingCount: 0,
+        summaryReasons: [],
+        score: 0,
+      };
+      groups.set(key, group);
+    }
+    return group;
+  };
+
+  items.forEach(item => {
+    const group = ensureGroup(item.task);
+    group.items.push(item);
+    if (levelRank[item.level] > levelRank[group.level]) group.level = item.level;
+    if (item.tags.includes('overdue')) group.overdueCount += 1;
+    if (item.tags.includes('blocked') || item.tags.includes('dependency')) group.blockedCount += 1;
+    if (item.tags.includes('unassigned') || item.tags.includes('overload') || item.tags.includes('overlap')) group.staffingCount += 1;
+    group.score += item.score;
+  });
+
+  const seenCheckpoints = new Set<string>();
+  tasks.forEach(task => {
+    if (!task.id || isTaskTerminal(task) || task.status === 'paused') return;
+    const label = relatedCheckpointLabel(task, resources);
+    if (!label) return;
+    const key = logicalTaskKey(task);
+    if (seenCheckpoints.has(key)) return;
+    const status = taskStatus(task);
+    const overdue = !!task.endDate && startOfDay(task.endDate) < startOfDay(today);
+    if (status !== 'blocked' && status !== 'in_progress' && !overdue) return;
+    seenCheckpoints.add(key);
+    const group = ensureGroup(task);
+    group.checkpoints.push({ task, label });
+    group.blockedCount += status === 'blocked' ? 1 : 0;
+    group.overdueCount += overdue ? 1 : 0;
+    const checkpointLevel: DemandRiskGroup['level'] = status === 'blocked' || overdue ? 'high' : 'medium';
+    if (levelRank[checkpointLevel] > levelRank[group.level]) group.level = checkpointLevel;
+    group.score += LEVEL_SCORE[checkpointLevel] + (overdue ? 30 : 10);
+  });
+
+  return [...groups.values()].map(group => {
+    const reasons: string[] = [];
+    if (group.overdueCount) reasons.push(`${group.overdueCount} 项逾期`);
+    if (group.blockedCount) reasons.push(`${group.blockedCount} 项卡点/依赖`);
+    if (group.staffingCount) reasons.push(`${group.staffingCount} 项人员或并行风险`);
+    if (group.checkpoints.length) reasons.push(`${group.checkpoints.length} 个跨管线卡点`);
+    const unscheduled = group.items.filter(item => item.tags.includes('unscheduled')).length;
+    if (unscheduled) reasons.push(`${unscheduled} 项待排期`);
+    return { ...group, summaryReasons: reasons };
+  }).filter(group => group.items.length > 0 || group.checkpoints.length > 0)
+    .sort((left, right) => levelRank[right.level] - levelRank[left.level] || right.score - left.score);
 }
 
 export function latestTapdSyncAt(tasks: Task[]): number | null {

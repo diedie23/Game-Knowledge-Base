@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Resource, Task } from '../types';
-import { buildTapdPlanningItems, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, latestTapdSyncAt } from './tapdPlanningAssistant';
+import { assessTapdScheduleReadiness, buildDemandRiskGroups, buildTapdPlanningItems, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, latestTapdSyncAt } from './tapdPlanningAssistant';
 import { resourceStage } from './uxStageView';
 
 const task = (id: number, overrides: Partial<Task> = {}): Task => ({
@@ -72,6 +72,38 @@ describe('latestTapdSyncAt', () => {
   });
 });
 
+describe('buildDemandRiskGroups', () => {
+  const resources: Resource[] = [{ id: 1, name: '视觉', role: 'UI设计', type: 'internal' } as Resource];
+  const today = new Date('2026-09-28T09:00:00');
+
+  it('groups nested UX risks under the UIStory instead of the EPIC', () => {
+    const epic = task(100, { title: 'EPIC', tapdWorkitemTypeName: 'EPIC' });
+    const story = task(101, { title: '父需求', parentId: 100, tapdWorkitemTypeName: 'UIStory' });
+    const container = task(102, { title: '视觉阶段', parentId: 101 });
+    const child = task(103, { title: '【视觉设计】商城图标', parentId: 102, assigneeIds: [1] });
+    const groups = buildDemandRiskGroups([epic, story, container, child], resources, today);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].demand.id).toBe(101);
+    expect(groups[0].items.map(item => item.task.id)).toEqual([103]);
+  });
+
+  it('keeps an active program checkpoint as a parent-demand risk without treating it as UX staffing', () => {
+    const story = task(110, { title: '父需求', tapdWorkitemTypeName: 'UIStory' });
+    const checkpoint = task(111, {
+      title: '程序还原接入',
+      parentId: 110,
+      tapdWorkitemTypeName: '开发子需求',
+      status: 'in_progress',
+      startDate: new Date('2026-09-20'),
+      endDate: new Date('2026-09-30'),
+    });
+    const groups = buildDemandRiskGroups([story, checkpoint], resources, today);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].checkpoints.map(item => item.label)).toEqual(['程序接入']);
+    expect(groups[0].staffingCount).toBe(0);
+  });
+});
+
 describe('formatTapdAdjustmentChecklist', () => {
   it('creates a TAPD-first checklist with owner, reason and link', () => {
     const source = task(8, { tapdPriorityLabel: 'P0', assigneeIds: [1] });
@@ -91,6 +123,10 @@ describe('formatTapdAdjustmentChecklist', () => {
         assigneeChanged: false,
         scheduleChanged: true,
         reasons: ['按 2 个工作日补齐排期'],
+        durationDays: 2,
+        parentDeadlineStatus: 'unknown',
+        requiresReview: false,
+        reviewReasons: [],
       },
     }], [{ id: 1, name: '设计师', role: 'UI设计', type: 'internal' } as Resource]);
     expect(text).toContain('[P0] 任务8');
@@ -159,6 +195,23 @@ describe('buildTapdScheduleSuggestion', () => {
     const suggestion = buildTapdScheduleSuggestion(source, ['unscheduled', 'unassigned'], [source], resources, today);
     expect(suggestion.resource).toBeUndefined();
     expect(suggestion.reasons.join('')).toContain('手动指定');
+  });
+
+  it('requires review when effort is missing and allows a complete same-role task', () => {
+    const resources: Resource[] = [{ id: 1, name: '视觉', role: 'UI设计', type: 'internal' } as Resource];
+    const incomplete = task(40, { title: '【视觉设计】图标', assigneeIds: [1] });
+    const complete = task(41, { title: '【视觉设计】图标', assigneeIds: [1], estimatedHours: 16 });
+    expect(assessTapdScheduleReadiness(incomplete, ['unscheduled'], resources).ready).toBe(false);
+    expect(assessTapdScheduleReadiness(complete, ['unscheduled'], resources).ready).toBe(true);
+  });
+
+  it('marks a suggestion for review when it exceeds its parent deadline', () => {
+    const resources: Resource[] = [{ id: 1, name: '视觉', role: 'UI设计', type: 'internal' } as Resource];
+    const parent = task(50, { endDate: new Date('2026-09-28') });
+    const source = task(51, { title: '【视觉设计】图标', parentId: 50, assigneeIds: [1], estimatedHours: 16 });
+    const suggestion = buildTapdScheduleSuggestion(source, ['unscheduled'], [parent, source], resources, today);
+    expect(suggestion.parentDeadlineStatus).toBe('late');
+    expect(suggestion.requiresReview).toBe(true);
   });
 
   it('counts one active item when parent rows and duplicate TAPD records overlap the source', () => {
