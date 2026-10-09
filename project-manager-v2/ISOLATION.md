@@ -28,10 +28,12 @@ Run from `project-manager-v2/`:
 ```sh
 npm ci
 npm run build
-npm run preview -- --host 127.0.0.1 --port 4173
+npm run serve:local
 ```
 
-Open `http://127.0.0.1:4173/Game-Knowledge-Base/project-manager-v2/index.html`.
+`serve:local` serves the committed build and provides the `/tapd-api` REST proxy required by the TAPD connection test.
+
+Open `http://127.0.0.1:4173/Game-Knowledge-Base/project-manager-v2/`.
 
 Build output is restricted to the V2 directory. Do not use V1's build command for V2 development.
 

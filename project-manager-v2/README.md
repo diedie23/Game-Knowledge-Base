@@ -24,8 +24,11 @@ A local-first project management tool built with React + TypeScript + Dexie (Ind
 # Install dependencies
 npm install
 
-# Start dev server
+# Start dev server (includes Vite TAPD proxy)
 npm run dev
+
+# Serve the built V2 page locally (includes TAPD REST proxy)
+npm run serve:local
 
 # Build for production
 npm run build
@@ -102,8 +105,8 @@ src/
 - **What-If Scheduling** — AI-powered ghost schedule prediction
 - **Undo/Redo** — Command Pattern history stack (Ctrl+Z / Ctrl+Shift+Z)
 - **Data Export** — JSON snapshot + CSV export + JSON import
-- **TAPD Integration** — MCP proxy sync (no API keys needed)
-- **Local-First** — All data in IndexedDB, zero network dependency
+- **TAPD Integration** — MCP proxy sync and optional REST API sync
+- **Local-First** — All data in IndexedDB; TAPD REST requests use the local proxy
 
 ## Development Guide
 

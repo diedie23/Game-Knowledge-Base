@@ -342,6 +342,12 @@ function mcpGatewayExtractResult<T>(jsonRpcResponse: any): T {
 
 // ─── TAPD REST API Fetch Helper ──────────────────────────────────
 
+function isFetchTransportError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error ?? '');
+  return error instanceof TypeError
+    || /failed to fetch|networkerror|load failed|网络请求失败/i.test(message);
+}
+
 async function tapdRestFetch<T>(
   endpoint: string,
   config: TapdConfig,
@@ -413,13 +419,19 @@ async function tapdRestFetch<T>(
       }
       const errorText = await response.text().catch(() => '');
       console.error(`[TAPD] ${response.status} response:`, errorText);
+      if (response.status === 502) {
+        throw new Error(`本地 TAPD 代理无法连接上游服务，请确认已通过项目管理 V2 的本地启动脚本运行页面。${errorText ? `（${errorText.slice(0, 160)}）` : ''}`);
+      }
       throw new Error(`请求失败 (${response.status}): ${errorText || '未知错误'}`);
     }
 
     return await response.json() as T;
   } catch (error: any) {
     if (error.name === 'AbortError') {
-      throw new Error('请求超时，请检查网络连接');
+      throw new Error('TAPD 请求超时，请检查网络连接或公司内网访问状态');
+    }
+    if (isFetchTransportError(error)) {
+      throw new Error('无法连接本地 TAPD 代理。请运行 project-manager-v2/_start.js（或 npm run serve:local），不要直接使用 GitHub Pages 静态地址验证 REST API。');
     }
     throw error;
   } finally {
