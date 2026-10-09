@@ -118,18 +118,19 @@ function App() {
       });
       // Select the first available project (or create default if none exist)
       const allProjects = await db.projects.toArray();
+      let selectedProjectId: number;
       if (allProjects.length > 0) {
-        useStore.getState().setSelectedProjectId(allProjects[0].id!);
+        selectedProjectId = allProjects[0].id!;
       } else {
         // Create a default project if none exist
-        const id = await db.projects.add({ name: '项目 Alpha' });
-        useStore.getState().setSelectedProjectId(id as number);
+        selectedProjectId = await db.projects.add({ name: '项目 Alpha' }) as number;
       }
+      useStore.getState().setSelectedProjectId(selectedProjectId);
       // Auto-sync parent dates on load to fix any inconsistencies (e.g. after TAPD import)
       await syncAllParentDateRanges();
-      // Auto-inject TapdSyncAdapter if a TAPD config exists
+      // Auto-inject the TAPD adapter configured for the selected project.
       try {
-        const tapdConfig = await db.tapdConfigs.toCollection().first();
+        const tapdConfig = await db.tapdConfigs.where('projectId').equals(selectedProjectId).first();
         if (tapdConfig?.workspaceId) {
           syncEngine.setAdapter(new TapdSyncAdapter(tapdConfig.workspaceId));
           console.log('[App] TapdSyncAdapter auto-injected for workspace:', tapdConfig.workspaceId);

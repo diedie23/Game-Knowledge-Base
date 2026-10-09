@@ -1,4 +1,5 @@
 ﻿import type { Task, ChangeLog } from '../types';
+import { configContainsTapdWorkspace, parseTapdWorkspaceIds } from '../utils/tapdIdentity';
 
 /**
  * SyncAdapter interface - abstracts the remote data source for bidirectional sync.
@@ -62,10 +63,10 @@ export class TapdSyncAdapter implements SyncAdapter {
     const { tapdService } = await import('./tapdService');
     const { db } = await import('../db/db');
 
-    // Ensure config is loaded so credentials are available
-    // Support multi-workspace: config stores comma-separated IDs, match by first ID or contains
+    // Ensure config is loaded so credentials are available.
     const allConfigs = await db.tapdConfigs.toArray();
-    const config = allConfigs.find(c => c.workspaceId === this.workspaceId || c.workspaceId.includes(this.workspaceId));
+    const adapterWorkspaceIds = parseTapdWorkspaceIds(this.workspaceId);
+    const config = allConfigs.find(c => adapterWorkspaceIds.some(id => configContainsTapdWorkspace(c.workspaceId, id)));
     if (config) {
       await tapdService.loadConfig(config.projectId);
     }
@@ -94,7 +95,12 @@ export class TapdSyncAdapter implements SyncAdapter {
         }
 
         if (Object.keys(updates).length > 0) {
-          await tapdService.updateTask(this.workspaceId, task.tapdId, updates);
+          const workspaceId = task.tapdWorkspaceId || adapterWorkspaceIds[0];
+          if (!workspaceId) continue;
+          const updated = await tapdService.updateTask(workspaceId, task.tapdId, updates);
+          if (!updated) {
+            throw new Error(`TAPD 未确认任务 ${task.tapdId} 的更新`);
+          }
         }
       } catch (error) {
         console.error(`[TapdSyncAdapter] Failed to push change for task ${log.recordId}:`, error);
@@ -108,7 +114,8 @@ export class TapdSyncAdapter implements SyncAdapter {
     // Ensure config is loaded so credentials are available
     const { db } = await import('../db/db');
     const allConfigs = await db.tapdConfigs.toArray();
-    const config = allConfigs.find(c => c.workspaceId === this.workspaceId || c.workspaceId.includes(this.workspaceId));
+    const workspaceIds = parseTapdWorkspaceIds(this.workspaceId);
+    const config = allConfigs.find(c => workspaceIds.some(id => configContainsTapdWorkspace(c.workspaceId, id)));
     if (config) {
       await tapdService.loadConfig(config.projectId);
     }
@@ -120,7 +127,8 @@ export class TapdSyncAdapter implements SyncAdapter {
       const { tapdService } = await import('./tapdService');
       const { db } = await import('../db/db');
       const allConfigs = await db.tapdConfigs.toArray();
-      const config = allConfigs.find(c => c.workspaceId === this.workspaceId || c.workspaceId.includes(this.workspaceId));
+      const workspaceIds = parseTapdWorkspaceIds(this.workspaceId);
+      const config = allConfigs.find(c => workspaceIds.some(id => configContainsTapdWorkspace(c.workspaceId, id)));
       const result = await tapdService.testConnection(
         this.workspaceId,
         config?.apiUser,

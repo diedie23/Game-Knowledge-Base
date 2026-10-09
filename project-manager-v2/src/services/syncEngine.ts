@@ -3,6 +3,7 @@ import type { Task, ChangeLog, SyncMeta, SyncConflict, SyncEvent } from '../type
 import type { SyncStatus, SyncEventType } from '../types';
 import type { SyncAdapter } from './syncAdapter';
 import { MockSyncAdapter } from './syncAdapter';
+import { createTapdSyncId } from '../utils/tapdIdentity';
 
 // Re-export for consumers
 export type { SyncStatus, SyncEventType, SyncEvent };
@@ -68,8 +69,7 @@ export const changeTracker = {
   /** Get all unsynced changes */
   async getUnsyncedChanges(): Promise<ChangeLog[]> {
     return db.changeLogs
-      .where('synced')
-      .equals(0) // Dexie stores boolean as 0/1
+      .filter(log => !log.synced)
       .sortBy('timestamp');
   },
 
@@ -102,6 +102,24 @@ export const changeTracker = {
 
 // ─── Conflict Resolver ───────────────────────────────────────────
 // Three-way merge with automatic + manual conflict resolution
+
+export function buildConflictResolutionData(
+  conflict: Pick<SyncConflict, 'recordId' | 'localVersion' | 'remoteVersion'>,
+  resolution: 'local' | 'remote' | 'merged',
+  mergedResult?: any
+): any {
+  const selected = resolution === 'local'
+    ? conflict.localVersion
+    : resolution === 'remote'
+      ? conflict.remoteVersion
+      : mergedResult;
+  if (!selected) return selected;
+  return {
+    ...selected,
+    id: conflict.recordId,
+    projectId: conflict.localVersion?.projectId ?? selected.projectId,
+  };
+}
 
 export const conflictResolver = {
   /** Detect conflicts between local and remote versions */
@@ -185,18 +203,7 @@ export const conflictResolver = {
     const conflict = await db.syncConflicts.get(conflictId);
     if (!conflict) return;
 
-    let finalData: any;
-    switch (resolution) {
-      case 'local':
-        finalData = conflict.localVersion;
-        break;
-      case 'remote':
-        finalData = conflict.remoteVersion;
-        break;
-      case 'merged':
-        finalData = mergedResult;
-        break;
-    }
+    const finalData = buildConflictResolutionData(conflict, resolution, mergedResult);
 
     // Apply resolution to database
     if (conflict.table === 'tasks' && finalData) {
@@ -298,16 +305,24 @@ class SyncEngine {
   }
 
   // ─── Push: Local → Remote ────────────────────────────────────
-  async pushPendingChanges(): Promise<{ pushed: number; failed: number }> {
+  async pushPendingChanges(projectId?: number): Promise<{ pushed: number; failed: number }> {
     if (!this.isOnline) {
       this.setStatus('offline');
       return { pushed: 0, failed: 0 };
     }
 
-    const unsyncedLogs = await changeTracker.getUnsyncedChanges();
+    const allUnsyncedLogs = await changeTracker.getUnsyncedChanges();
+    const unsyncedLogs = projectId == null
+      ? allUnsyncedLogs
+      : (await Promise.all(allUnsyncedLogs.map(async log =>
+          (await this.getChangeProjectIds(log)).includes(projectId) ? log : null
+        ))).filter((log): log is ChangeLog => log !== null);
     if (unsyncedLogs.length === 0) {
       return { pushed: 0, failed: 0 };
     }
+    const affectedProjectIds = projectId == null
+      ? [...new Set((await Promise.all(unsyncedLogs.map(log => this.getChangeProjectIds(log)))).flat())]
+      : [projectId];
 
     this.setStatus('pushing');
     let pushed = 0;
@@ -347,8 +362,10 @@ class SyncEngine {
     this.setStatus(failed > 0 ? 'error' : 'idle');
     this.emit({ type: 'complete', data: { pushed, failed } });
 
-    // Update sync meta
-    await this.updateSyncMeta('tapd', { lastPushAt: Date.now() });
+    // Update sync meta for each affected project independently.
+    await Promise.all(affectedProjectIds.map(id =>
+      this.updateSyncMeta('tapd', id, { lastPushAt: Date.now() })
+    ));
 
     return { pushed, failed };
   }
@@ -372,15 +389,42 @@ class SyncEngine {
       const remoteChanges = await this.adapter.pullChanges(lastPullAt);
 
       for (const remoteTask of remoteChanges) {
-        // Find local version by syncId
-        const localTask = remoteTask.syncId
-          ? await db.tasks.where('syncId').equals(remoteTask.syncId).first()
+        const remoteSyncId = remoteTask.syncId || (
+          remoteTask.tapdWorkspaceId && remoteTask.tapdId
+            ? createTapdSyncId(remoteTask.tapdWorkspaceId, remoteTask.tapdId)
+            : undefined
+        );
+        let localTask = remoteSyncId
+          ? await db.tasks.where('syncId').equals(remoteSyncId).first()
           : undefined;
+
+        // Legacy fallback is intentionally restricted to the current project and
+        // records with no workspace identity, so equal TAPD IDs in other workspaces cannot collide.
+        if (!localTask && remoteTask.tapdId) {
+          const workspacePath = remoteTask.tapdWorkspaceId ? `/${remoteTask.tapdWorkspaceId}/` : '';
+          const legacyCandidates = (await db.tasks.where('tapdId').equals(remoteTask.tapdId)
+            .filter(task => task.projectId === projectId && !task.tapdWorkspaceId && !task.syncId)
+            .toArray())
+            .sort((left, right) => {
+              const leftMatchesWorkspace = workspacePath && left.externalUrl?.includes(workspacePath) ? 1 : 0;
+              const rightMatchesWorkspace = workspacePath && right.externalUrl?.includes(workspacePath) ? 1 : 0;
+              return rightMatchesWorkspace - leftMatchesWorkspace || left.id! - right.id!;
+            });
+          if (legacyCandidates.length > 0) {
+            localTask = legacyCandidates[0];
+            await db.tasks.update(localTask.id!, {
+              tapdWorkspaceId: remoteTask.tapdWorkspaceId,
+              syncId: remoteSyncId,
+            });
+            localTask = { ...localTask, tapdWorkspaceId: remoteTask.tapdWorkspaceId, syncId: remoteSyncId };
+          }
+        }
 
         if (!localTask) {
           // New remote task — create locally
           await db.tasks.add({
             ...remoteTask,
+            syncId: remoteSyncId,
             projectId,
             syncSource: 'tapd',
             updatedAt: Date.now(),
@@ -406,6 +450,8 @@ class SyncEngine {
             // Auto-merge successful — apply merged result
             await db.tasks.update(localTask.id!, {
               ...result.autoMerged,
+              tapdWorkspaceId: remoteTask.tapdWorkspaceId || localTask.tapdWorkspaceId,
+              syncId: remoteSyncId || localTask.syncId,
               updatedAt: Date.now(),
               syncedAt: Date.now(),
             });
@@ -415,7 +461,7 @@ class SyncEngine {
       }
 
       // Update sync meta
-      await this.updateSyncMeta('tapd', {
+      await this.updateSyncMeta('tapd', projectId, {
         lastPullAt: Date.now(),
         status: conflicts > 0 ? 'conflict' : 'idle',
       });
@@ -438,7 +484,7 @@ class SyncEngine {
     errors: number;
   }> {
     // Step 1: Push local changes first
-    const pushResult = await this.pushPendingChanges();
+    const pushResult = await this.pushPendingChanges(projectId);
 
     // Step 2: Pull remote changes
     const pullResult = await this.pullRemoteChanges(projectId);
@@ -465,17 +511,15 @@ class SyncEngine {
       });
   }
 
-  private async updateSyncMeta(source: string, updates: Partial<SyncMeta>) {
-    const existing = await db.syncMeta
-      .filter(m => m.source === source)
-      .first();
+  private async updateSyncMeta(source: string, projectId: number, updates: Partial<SyncMeta>) {
+    const existing = await this.getSyncMeta(source, projectId);
 
     if (existing?.id) {
       await db.syncMeta.update(existing.id, updates);
     } else {
       await db.syncMeta.add({
         source,
-        projectId: 1,
+        projectId,
         lastPullAt: 0,
         lastPushAt: 0,
         status: 'idle',
@@ -485,6 +529,17 @@ class SyncEngine {
   }
 
   // ─── Helpers ─────────────────────────────────────────────────
+  private async getChangeProjectIds(log: ChangeLog): Promise<number[]> {
+    if (log.table === 'tasks') {
+      const task = await db.tasks.get(log.recordId);
+      const projectId = task?.projectId ?? log.snapshot?.projectId;
+      return typeof projectId === 'number' ? [projectId] : [];
+    }
+    const resource = await db.resources.get(log.recordId);
+    const projectIds = resource?.projectIds ?? log.snapshot?.projectIds;
+    return Array.isArray(projectIds) ? projectIds.filter((id): id is number => typeof id === 'number') : [];
+  }
+
   private groupChangesByRecord(logs: ChangeLog[]): Map<string, ChangeLog[]> {
     const map = new Map<string, ChangeLog[]>();
     for (const log of logs) {
@@ -502,7 +557,7 @@ class SyncEngine {
     unresolvedConflicts: number;
     lastSyncAt: number | null;
   }> {
-    const pendingLogs = await db.changeLogs.where('synced').equals(0).count().catch(() => 0);
+    const pendingLogs = await db.changeLogs.filter(log => !log.synced).count().catch(() => 0);
     const totalLogs = await db.changeLogs.count();
     const unresolvedConflicts = await db.syncConflicts.filter(c => !c.resolvedAt).count();
     const syncMeta = await db.syncMeta.filter(m => m.source === 'tapd').first();

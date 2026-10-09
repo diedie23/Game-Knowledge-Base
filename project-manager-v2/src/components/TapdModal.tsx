@@ -71,7 +71,7 @@ export function TapdModal() {
 
   const pendingSyncBundle = useLiveQuery(async () => {
     const [logs, tasks, resources] = await Promise.all([
-      db.changeLogs.where('synced').equals(0).sortBy('timestamp'),
+      db.changeLogs.filter(log => !log.synced).sortBy('timestamp'),
       db.tasks.toArray(),
       db.resources.toArray(),
     ]);
@@ -1061,6 +1061,13 @@ export function TapdModal() {
     }
   };
 
+  const configureSyncAdapter = async () => {
+    const config = await tapdService.loadConfig(selectedProjectId);
+    if (!config?.workspaceId) throw new Error('当前项目未配置 TAPD 工作区');
+    syncEngine.setAdapter(new TapdSyncAdapter(config.workspaceId));
+    return config;
+  };
+
   const handleFullSync = async () => {
     if (!existingConfig) {
       setErrorMessage('请先保存配置');
@@ -1071,8 +1078,15 @@ export function TapdModal() {
     setErrorMessage('');
     setSyncResult(null);
     try {
-      await tapdService.loadConfig(selectedProjectId);
-      const result = await syncEngine.fullSync(selectedProjectId);
+      await configureSyncAdapter();
+      const pushResult = await syncEngine.pushPendingChanges(selectedProjectId);
+      const pullResult = await tapdService.syncTasksToLocalEnhanced(selectedProjectId);
+      const result = {
+        pushed: pushResult.pushed,
+        pulled: pullResult.total,
+        conflicts: 0,
+        errors: pushResult.failed,
+      };
       setSyncResult(result);
       setLocalSyncStatus(result.errors > 0 ? 'error' : 'success');
       // Auto-sync parent dates after sync
@@ -1090,7 +1104,8 @@ export function TapdModal() {
   const handlePushOnly = async () => {
     setIsSyncing(true);
     try {
-      const result = await syncEngine.pushPendingChanges();
+      await configureSyncAdapter();
+      const result = await syncEngine.pushPendingChanges(selectedProjectId);
       setSyncResult({ pushed: result.pushed, pulled: 0, conflicts: 0, errors: result.failed });
       await refreshStats();
     } catch {
@@ -1125,8 +1140,9 @@ export function TapdModal() {
   const handlePullOnly = async () => {
     setIsSyncing(true);
     try {
-      const result = await syncEngine.pullRemoteChanges(selectedProjectId);
-      setSyncResult({ pushed: 0, pulled: result.pulled, conflicts: result.conflicts, errors: 0 });
+      await configureSyncAdapter();
+      const result = await tapdService.syncTasksToLocalEnhanced(selectedProjectId);
+      setSyncResult({ pushed: 0, pulled: result.total, conflicts: 0, errors: 0 });
       // Auto-sync parent dates after pull
       await syncAllParentDateRanges();
       await refreshStats();

@@ -19,6 +19,7 @@ import {
 } from '../utils/cpSupplier';
 import { classifyTapdMember, resolveMemberTypeAfterTapdSync } from '../utils/memberClassification';
 import { isEpicWorkitemTypeName } from '../utils/taskHierarchy';
+import { configContainsTapdWorkspace, createTapdSyncId, parseTapdWorkspaceIds } from '../utils/tapdIdentity';
 
 // Re-export for consumers
 export type { SyncResult, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem };
@@ -565,8 +566,9 @@ export class TapdService {
     }
   }
 
-  private resolveStoryPriority(story: Record<string, unknown>): string {
-    const value = getTapdPriorityValue(story, [...this.activeCustomPriorityFields]);
+  private resolveStoryPriority(story: Record<string, unknown>, workspaceId: string): string {
+    const fields = this.customPriorityFieldsByWorkspace.get(workspaceId) || [];
+    const value = getTapdPriorityValue(story, fields);
     story._tapdResolvedPriority = value;
     return value;
   }
@@ -645,24 +647,19 @@ export class TapdService {
     return names;
   }
 
-  private resolveStoryStatus(rawStatus: unknown): string {
+  private resolveStoryStatus(rawStatus: unknown, workspaceId: string): string {
     const value = String(rawStatus ?? '').trim();
-    return this.activeStatusLabels.get(value) || value;
+    return this.statusLabelsByWorkspace.get(workspaceId)?.get(value) || value;
   }
 
-  private resolveStoryStep(rawStep: unknown): string {
+  private resolveStoryStep(rawStep: unknown, workspaceId: string): string {
     const value = String(rawStep ?? '').trim();
-    return this.activeStepLabels.get(value) || value;
+    return this.stepLabelsByWorkspace.get(workspaceId)?.get(value) || value;
   }
 
-  /** Load TAPD config for a given project (fallback: first available config) */
+  /** Load TAPD config for a given project. */
   async loadConfig(projectId: number): Promise<TapdConfig | null> {
-    // Try by projectId first
     this.config = (await db.tapdConfigs.where('projectId').equals(projectId).first()) || null;
-    // Fallback: try first available config (for cases where projectId doesn't match)
-    if (!this.config) {
-      this.config = (await db.tapdConfigs.toCollection().first()) || null;
-    }
     if (this.config) {
       console.log('[TapdService] Config loaded:', {
         workspaceId: this.config.workspaceId,
@@ -677,9 +674,10 @@ export class TapdService {
     return this.config;
   }
 
-  /** Load TAPD config by workspaceId */
+  /** Load TAPD config containing the given workspaceId. */
   async loadConfigByWorkspace(workspaceId: string): Promise<TapdConfig | null> {
-    this.config = (await db.tapdConfigs.where('workspaceId').equals(workspaceId).first()) || null;
+    const configs = await db.tapdConfigs.toArray();
+    this.config = configs.find(config => configContainsTapdWorkspace(config.workspaceId, workspaceId)) || null;
     return this.config;
   }
 
@@ -732,11 +730,12 @@ export class TapdService {
   }
 
   /** Keep structural EPIC ancestors out of local demand views even after ancestor completion. */
-  private filterEpicStories(stories: any[]): any[] {
+  private filterEpicStories(stories: any[], workspaceId: string): any[] {
+    const workitemTypeNames = this.workitemTypeNamesByWorkspace.get(workspaceId);
     return stories.filter(item => {
       const story = item?.Story || item;
       const typeId = String(story?.workitem_type_id || '');
-      const typeName = this.activeWorkitemTypeNames.get(typeId)
+      const typeName = workitemTypeNames?.get(typeId)
         || String(story?.workitem_type_name || story?.workitem_type || '');
       return !isEpicWorkitemTypeName(typeName);
     });
@@ -850,14 +849,14 @@ export class TapdService {
       .map((id: unknown) => String(id).trim()).filter((id: string) => id && id !== '0');
   }
 
-  private isUiStory(story: any): boolean {
-    const typeName = this.activeWorkitemTypeNames.get(String(story?.workitem_type_id || ''))
+  private isUiStory(story: any, workspaceId: string): boolean {
+    const typeName = this.workitemTypeNamesByWorkspace.get(workspaceId)?.get(String(story?.workitem_type_id || ''))
       || String(story?.workitem_type_name || story?.workitem_type || '');
     return UI_STORY_TYPE_PATTERN.test(typeName);
   }
 
-  private isRelatedCheckpointStory(story: any): boolean {
-    const typeName = this.activeWorkitemTypeNames.get(String(story?.workitem_type_id || ''))
+  private isRelatedCheckpointStory(story: any, workspaceId: string): boolean {
+    const typeName = this.workitemTypeNamesByWorkspace.get(workspaceId)?.get(String(story?.workitem_type_id || ''))
       || String(story?.workitem_type_name || story?.workitem_type || '');
     return RELATED_CHECKPOINT_PATTERN.test(`${typeName} ${story?.name || ''}`);
   }
@@ -871,7 +870,7 @@ export class TapdService {
   ): Promise<any[]> {
     const stories = [...initialStories];
     const knownIds = new Set(stories.map(item => String((item?.Story || item)?.id || '')).filter(Boolean));
-    let frontier = stories.filter(item => this.isUiStory(item?.Story || item));
+    let frontier = stories.filter(item => this.isUiStory(item?.Story || item, workspaceId));
     const fields = this.getStoryFields();
 
     for (let depth = 0; depth < 6 && frontier.length > 0; depth++) {
@@ -901,7 +900,7 @@ export class TapdService {
         if (!id || knownIds.has(id)) return;
         knownIds.add(id);
         frontier.push(item);
-        if (this.isRelatedCheckpointStory(story)) {
+        if (this.isRelatedCheckpointStory(story, workspaceId)) {
           story._tapdRelatedCheckpoint = true;
           stories.push(item);
         }
@@ -970,7 +969,7 @@ export class TapdService {
     groupCounts: Record<string, number>;
     groupMembers: Record<string, string[]>;
   }> {
-    const config = this.config || (await this.loadConfig(projectId));
+    const config = await this.loadConfig(projectId);
     if (!config) {
       throw new Error('未找到 TAPD 配置，请先保存配置');
     }
@@ -1133,7 +1132,7 @@ export class TapdService {
       }
 
       // Support multiple workspace IDs separated by comma or semicolon
-      const workspaceIds = workspaceId.split(/[,;，；]/).map(id => id.trim()).filter(Boolean);
+      const workspaceIds = parseTapdWorkspaceIds(workspaceId);
       
       if (workspaceIds.length > 1) {
         // Multiple workspaces: test each and merge results
@@ -1460,8 +1459,8 @@ export class TapdService {
 
           previewStories = await this.fetchStoryAncestors(workspaceId.trim(), previewStories, undefined, mcpAccessToken);
           previewStories = this.normalizeStoryHierarchy(previewStories);
-          previewStories = this.filterEpicStories(this.filterStoriesBySyncScope(previewStories, syncRange));
-          previewStories.forEach(item => this.resolveStoryPriority((item?.Story || item) as Record<string, unknown>));
+          previewStories = this.filterEpicStories(this.filterStoriesBySyncScope(previewStories, syncRange), workspaceId.trim());
+          previewStories.forEach(item => this.resolveStoryPriority((item?.Story || item) as Record<string, unknown>, workspaceId.trim()));
           count = previewStories.length;
 
           return {
@@ -1558,8 +1557,8 @@ export class TapdService {
           previewStories = this.filterStoriesByAdvancedFilters(previewStories, syncRange).slice(0, previewLimit);
           previewStories = await this.fetchStoryAncestors(workspaceId.trim(), previewStories, tempConfig);
           previewStories = this.normalizeStoryHierarchy(previewStories);
-          previewStories = this.filterEpicStories(this.filterStoriesBySyncScope(previewStories, syncRange));
-          previewStories.forEach(item => this.resolveStoryPriority((item?.Story || item) as Record<string, unknown>));
+          previewStories = this.filterEpicStories(this.filterStoriesBySyncScope(previewStories, syncRange), workspaceId.trim());
+          previewStories.forEach(item => this.resolveStoryPriority((item?.Story || item) as Record<string, unknown>, workspaceId.trim()));
           let workitemTypes: { id: string; name: string }[] = [];
           let releasePlans: { id: string; name: string; status?: string; startdate?: string; enddate?: string }[] = [];
           try {
@@ -1622,7 +1621,7 @@ export class TapdService {
   async fetchTasks(workspaceId: string): Promise<Partial<Task>[]> {
     try {
       // Support multiple workspace IDs separated by comma or semicolon
-      const workspaceIds = workspaceId.split(/[,;，；]/).map(id => id.trim()).filter(Boolean);
+      const workspaceIds = parseTapdWorkspaceIds(workspaceId);
       
       if (workspaceIds.length > 1) {
         // Multiple workspaces: fetch from each and merge results
@@ -1641,7 +1640,8 @@ export class TapdService {
       }
 
       // Single workspace: use original logic
-      return await this.fetchTasksFromSingleWorkspace(workspaceIds[0] || workspaceId.trim());
+      const singleWorkspaceId = workspaceIds[0];
+      return singleWorkspaceId ? await this.fetchTasksFromSingleWorkspace(singleWorkspaceId) : [];
     } catch (error: any) {
       console.error('[TapdService] fetchTasks error:', error);
       throw error;
@@ -1651,8 +1651,8 @@ export class TapdService {
   /** Fetch tasks from a single workspace */
   private async fetchTasksFromSingleWorkspace(workspaceId: string): Promise<Partial<Task>[]> {
     try {
-      // Ensure config is loaded if not already
-      if (!this.config || (!this.hasRestCredentials() && !this.hasMcpGatewayCredentials())) {
+      // A previous workspace fetch may have replaced the active config.
+      if (!this.config || !configContainsTapdWorkspace(this.config.workspaceId, workspaceId)) {
         await this.loadConfigByWorkspace(workspaceId);
       }
 
@@ -1970,11 +1970,11 @@ export class TapdService {
       );
       stories = await this.fetchStoryAncestors(workspaceId.trim(), stories, this.config || undefined);
       stories = this.normalizeStoryHierarchy(stories);
-      stories = this.filterEpicStories(this.filterStoriesBySyncScope(stories, syncRange));
+      stories = this.filterEpicStories(this.filterStoriesBySyncScope(stories, syncRange), workspaceId.trim());
 
       return stories.map(item => {
         const story = item?.Story || item;
-        return this.mapTapdStoryToTask(story);
+        return this.mapTapdStoryToTask(story, workspaceId);
       });
     } catch (error: any) {
       console.error(`[TapdService] fetchTasksFromSingleWorkspace failed for workspace ${workspaceId}:`, error);
@@ -1987,8 +1987,8 @@ export class TapdService {
    */
   async fetchIterations(workspaceId: string): Promise<TapdIteration['Iteration'][]> {
     try {
-      // Ensure config is loaded if not already
-      if (!this.config || (!this.hasRestCredentials() && !this.hasMcpGatewayCredentials())) {
+      // Ensure the active config belongs to the requested workspace.
+      if (!this.config || !configContainsTapdWorkspace(this.config.workspaceId, workspaceId)) {
         await this.loadConfigByWorkspace(workspaceId);
       }
 
@@ -2043,9 +2043,11 @@ export class TapdService {
    */
   async updateTask(workspaceId: string, tapdId: string, updates: Partial<Task>): Promise<boolean> {
     try {
-      const config = this.config || (await db.tapdConfigs.where('workspaceId').equals(workspaceId).first());
+      const config = this.config && configContainsTapdWorkspace(this.config.workspaceId, workspaceId)
+        ? this.config
+        : await this.loadConfigByWorkspace(workspaceId);
       if (!config) {
-        throw new Error('未找到 TAPD 配置');
+        throw new Error(`未找到 TAPD 工作区 ${workspaceId} 的配置`);
       }
 
       // Map local fields to TAPD fields
@@ -2057,7 +2059,12 @@ export class TapdService {
 
       if (updates.title !== undefined) tapdUpdates.name = updates.title;
       if (updates.description !== undefined) tapdUpdates.description = updates.description;
-      if (updates.status !== undefined && updates.status !== 'paused') tapdUpdates.status = this.mapLocalStatusToTapd(updates.status as 'todo' | 'in_progress' | 'done');
+      if (updates.status !== undefined) {
+        if (updates.status === 'paused' || updates.status === 'cancelled') {
+          throw new Error(`本地状态“${updates.status === 'paused' ? '已暂停' : '已取消'}”没有安全的 TAPD 反向映射，请先在 TAPD 中调整状态`);
+        }
+        tapdUpdates.status = this.mapLocalStatusToTapd(updates.status);
+      }
       if (updates.priority !== undefined) tapdUpdates.priority = this.mapLocalPriorityToTapd(updates.priority);
       
       // Format dates to YYYY-MM-DD
@@ -2164,9 +2171,10 @@ export class TapdService {
   }
 
   /** Map a single TAPD Story to a partial local Task (extended with parent/owner metadata) */
-  private mapTapdStoryToTask(story: TapdStory['Story']): Partial<Task> & { _tapdParentId?: string; _tapdOwner?: string } {
-    const tapdStatusLabel = this.resolveStoryStatus(story.status);
-    const tapdStepLabel = this.resolveStoryStep(story.step);
+  private mapTapdStoryToTask(story: TapdStory['Story'], workspaceId: string): Partial<Task> & { _tapdParentId?: string; _tapdOwner?: string } {
+    const normalizedWorkspaceId = workspaceId.trim();
+    const tapdStatusLabel = this.resolveStoryStatus(story.status, normalizedWorkspaceId);
+    const tapdStepLabel = this.resolveStoryStep(story.step, normalizedWorkspaceId);
     const mappedStatus = this.mapStatus(tapdStatusLabel);
     const completedAt = parseTapdDate(story.completed);
     // TAPD's completed timestamp is authoritative for custom terminal statuses.
@@ -2181,19 +2189,18 @@ export class TapdService {
     const effortUnit = this.config?.syncRange?.effortUnit || 'days';
     const hoursPerDay = this.config?.syncRange?.hoursPerDay || 8;
     const estimatedHours = parseTapdEffortHours(story.effort, effortUnit, hoursPerDay);
-    const priorityValue = this.resolveStoryPriority(story as unknown as Record<string, unknown>);
+    const priorityValue = this.resolveStoryPriority(story as unknown as Record<string, unknown>, normalizedWorkspaceId);
 
     // Build TAPD external URL for direct navigation
-    const workspaceId = this.config?.workspaceId || '';
-    const externalUrl = workspaceId && story.id
-      ? `https://tapd.woa.com/${workspaceId}/prong/stories/view/${story.id}`
+    const externalUrl = normalizedWorkspaceId && story.id
+      ? `https://tapd.woa.com/${normalizedWorkspaceId}/prong/stories/view/${story.id}`
       : undefined;
 
     // “模块分类” may be assigned to any TAPD field; its configured label is the source of truth.
     const module = getTapdModuleCategoryValue(
       story as unknown as Record<string, unknown>,
-      this.activeModuleCategoryFields,
-      this.activeCategoryNames
+      this.moduleCategoryFieldsByWorkspace.get(normalizedWorkspaceId) || [],
+      this.categoryNamesByWorkspace.get(normalizedWorkspaceId) || new Map<string, string>()
     );
 
     return {
@@ -2210,9 +2217,13 @@ export class TapdService {
       dependencies: [],
       assigneeIds: [],
       tapdId: String(story.id),
+      tapdWorkspaceId: normalizedWorkspaceId,
+      syncId: createTapdSyncId(normalizedWorkspaceId, story.id),
       tapdParentId: story.parent_id != null ? String(story.parent_id) : undefined,
       tapdWorkitemTypeId: story.workitem_type_id ? String(story.workitem_type_id) : undefined,
-      tapdWorkitemTypeName: story.workitem_type_id ? this.activeWorkitemTypeNames.get(String(story.workitem_type_id)) : undefined,
+      tapdWorkitemTypeName: story.workitem_type_id
+        ? this.workitemTypeNamesByWorkspace.get(normalizedWorkspaceId)?.get(String(story.workitem_type_id))
+        : undefined,
       externalUrl,
       module,
       estimatedHours,
@@ -2419,7 +2430,7 @@ export class TapdService {
    * but don't have a tapdId set (manually created tasks).
    */
   async detectDuplicates(projectId: number): Promise<DuplicateCandidate[]> {
-    const config = this.config || (await this.loadConfig(projectId));
+    const config = await this.loadConfig(projectId);
     if (!config) return [];
     
     const remoteTasks = await this.fetchTasks(config.workspaceId);
@@ -2434,8 +2445,10 @@ export class TapdService {
     
     for (const remote of remoteTasks) {
       if (!remote.tapdId) continue;
-      // Skip if already linked to a local task
-      const alreadyLinked = localTasks.find(t => t.tapdId === remote.tapdId);
+      // Skip if this workspace-scoped story is already linked to a local task.
+      const alreadyLinked = localTasks.find(task =>
+        remote.syncId ? task.syncId === remote.syncId : task.tapdId === remote.tapdId && !task.tapdWorkspaceId
+      );
       if (alreadyLinked) continue;
       
       for (const local of manualTasks) {
@@ -2486,13 +2499,13 @@ export class TapdService {
   /**
    * Enhanced sync: fetch TAPD tasks and insert/update into local DB.
    * Features:
-   * - Dedup by tapdId (exact) + title similarity (fuzzy)
+   * - Dedup by workspace-scoped syncId (exact) + title similarity (fuzzy)
    * - Parent-child relationship mapping
    * - Auto member matching (TAPD owner → local resource)
    * - Module-based project assignment
    */
   async syncTasksToLocalEnhanced(projectId: number, mergeDecisions?: Map<string, number | 'skip'>, selectedStoryIds?: Set<string>): Promise<SyncResult> {
-    const config = this.config || (await this.loadConfig(projectId));
+    const config = await this.loadConfig(projectId);
     if (!config) {
       throw new Error('未找到 TAPD 配置，请先绑定工作区');
     }
@@ -2536,44 +2549,65 @@ export class TapdService {
       if (details.length < 300) details.push(detail);
     };
 
-    // Phase 1: Build tapdId → localId mapping for parent-child resolution
-    const tapdIdToLocalId = new Map<string, number>();
-    
-    // Pre-load existing tapdId mappings
-    const existingTasks = await db.tasks.filter(t => !!t.tapdId).toArray();
-    const existingTaskByTapdId = new Map<string, Task>();
-    for (const t of existingTasks) {
-      if (t.tapdId && t.id) {
-        tapdIdToLocalId.set(t.tapdId, t.id);
-        existingTaskByTapdId.set(t.tapdId, t);
+    // Phase 1: Build workspace+tapdId → localId mapping for parent-child resolution.
+    const syncIdToLocalId = new Map<string, number>();
+    const existingTasks = await db.tasks.filter(t => !!t.tapdId || !!t.syncId).toArray();
+    const existingTaskBySyncId = new Map<string, Task>();
+    const legacyTasksByTapdId = new Map<string, Task[]>();
+    for (const task of existingTasks) {
+      if (!task.id) continue;
+      if (task.syncId) {
+        existingTaskBySyncId.set(task.syncId, task);
+        syncIdToLocalId.set(task.syncId, task.id);
+      } else if (task.tapdId && task.tapdWorkspaceId) {
+        const syncId = createTapdSyncId(task.tapdWorkspaceId, task.tapdId);
+        existingTaskBySyncId.set(syncId, task);
+        syncIdToLocalId.set(syncId, task.id);
+      } else if (task.tapdId && !task.tapdWorkspaceId) {
+        const candidates = legacyTasksByTapdId.get(task.tapdId) || [];
+        candidates.push(task);
+        legacyTasksByTapdId.set(task.tapdId, candidates);
       }
     }
 
-    // Pre-load all local tasks for title matching
-    const allLocalTasks = await db.tasks.where('projectId').equals(projectId).toArray();
+    // Pre-load manual tasks for title matching; candidates are consumed after a merge.
+    const allLocalTasks = await db.tasks.toArray();
     const syncResources = await db.resources.toArray();
     await this.ensureCpSuppliersFromTasks(remoteTasks, syncResources, projectId);
-    const manualTasksByTitle = new Map<string, number>();
-    for (const t of allLocalTasks) {
-      if (!t.tapdId && t.title) {
-        manualTasksByTitle.set(t.title.trim().toLowerCase(), t.id!);
+    const manualTasksByTitle = new Map<string, Task[]>();
+    for (const task of allLocalTasks) {
+      if (!task.tapdId && task.title && task.id) {
+        const titleKey = task.title.trim().toLowerCase();
+        const candidates = manualTasksByTitle.get(titleKey) || [];
+        candidates.push(task);
+        manualTasksByTitle.set(titleKey, candidates);
       }
     }
 
     // Phase 2: Insert/Update tasks (first pass - without parent relationships)
-    const tasksWithParent: { localId: number; tapdParentId: string }[] = [];
+    const tasksWithParent: { localId: number; workspaceId: string; tapdParentId: string }[] = [];
+    const remoteWorkspacesByTapdId = new Map<string, Set<string>>();
+    for (const task of remoteTasks) {
+      if (!task.tapdId || !task.tapdWorkspaceId) continue;
+      const workspaces = remoteWorkspacesByTapdId.get(task.tapdId) || new Set<string>();
+      workspaces.add(task.tapdWorkspaceId);
+      remoteWorkspacesByTapdId.set(task.tapdId, workspaces);
+    }
+    const consumedLegacyTaskIds = new Set<number>();
     let resolvedParentCount = 0;
 
     await db.transaction('rw', [db.tasks, db.projects], async () => {
     for (const remoteTask of remoteTasks) {
       const tapdId = remoteTask.tapdId;
-      if (!tapdId) continue;
+      const workspaceId = remoteTask.tapdWorkspaceId;
+      if (!tapdId || !workspaceId) continue;
+      const syncId = remoteTask.syncId || createTapdSyncId(workspaceId, tapdId);
 
       const tapdParentId = remoteTask.tapdParentId || (remoteTask as any)._tapdParentId as string | undefined;
       const tapdOwner = (remoteTask as any)._tapdOwner as string | undefined;
 
       // Clean extended metadata before DB operations
-      const cleanTask = { ...remoteTask };
+      const cleanTask = { ...remoteTask, tapdWorkspaceId: workspaceId, syncId };
       delete (cleanTask as any)._tapdParentId;
       delete (cleanTask as any)._tapdOwner;
       delete (cleanTask as any)._tapdModuleFeature;
@@ -2595,8 +2629,25 @@ export class TapdService {
         moduleMappings
       );
 
-      // Reuse the preloaded index instead of issuing one IndexedDB query per story.
-      const existing = existingTaskByTapdId.get(tapdId);
+      // Match by stable identity first. For legacy tapdId-only records, reuse one
+      // project-local candidate instead of creating another duplicate. Prefer a URL
+      // that already identifies the current workspace, then the oldest local record.
+      let existing = existingTaskBySyncId.get(syncId);
+      if (!existing && remoteWorkspacesByTapdId.get(tapdId)?.size === 1) {
+        const workspacePath = `/${workspaceId}/`;
+        const legacyCandidates = (legacyTasksByTapdId.get(tapdId) || []).filter(task =>
+          task.id && !consumedLegacyTaskIds.has(task.id) &&
+          (task.projectId === projectId || task.projectId === targetProjectId)
+        ).sort((left, right) => {
+          const leftMatchesWorkspace = left.externalUrl?.includes(workspacePath) ? 1 : 0;
+          const rightMatchesWorkspace = right.externalUrl?.includes(workspacePath) ? 1 : 0;
+          return rightMatchesWorkspace - leftMatchesWorkspace || left.id! - right.id!;
+        });
+        if (legacyCandidates.length > 0) {
+          existing = legacyCandidates[0];
+          consumedLegacyTaskIds.add(existing.id!);
+        }
+      }
 
       if (existing?.id) {
         // Update existing task (preserve local-only fields like sortOrder, notes, workCategory)
@@ -2624,19 +2675,28 @@ export class TapdService {
             ? cleanTask.assigneeIds
             : existing.assigneeIds, // Preserve existing assignments if no match
           externalUrl: cleanTask.externalUrl || existing.externalUrl,
+          tapdWorkspaceId: workspaceId,
+          syncId,
           projectId: targetProjectId,
           updatedAt: Date.now(),
           syncedAt: Date.now(),
           syncSource: 'tapd',
         });
-        tapdIdToLocalId.set(tapdId, existing.id);
-        if (tapdParentId !== undefined) tasksWithParent.push({ localId: existing.id, tapdParentId });
+        existingTaskBySyncId.set(syncId, { ...existing, ...cleanTask, projectId: targetProjectId, id: existing.id } as Task);
+        syncIdToLocalId.set(syncId, existing.id);
+        if (tapdParentId !== undefined) tasksWithParent.push({ localId: existing.id, workspaceId, tapdParentId });
         addDetail({ title: cleanTask.title || '', tapdId, action: 'updated', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
         updated++;
       } else {
-        // Check merge decisions (user-confirmed dedup)
-        if (mergeDecisions?.has(tapdId)) {
-          const decision = mergeDecisions.get(tapdId)!;
+        // Check merge decisions (user-confirmed dedup). Legacy tapdId keys are
+        // accepted only when that ID belongs to a single fetched workspace.
+        const mergeDecisionKey = mergeDecisions?.has(syncId)
+          ? syncId
+          : remoteWorkspacesByTapdId.get(tapdId)?.size === 1 && mergeDecisions?.has(tapdId)
+            ? tapdId
+            : undefined;
+        if (mergeDecisionKey) {
+          const decision = mergeDecisions!.get(mergeDecisionKey)!;
           if (decision === 'skip') {
             addDetail({ title: cleanTask.title || '', tapdId, action: 'skipped', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
             continue;
@@ -2665,9 +2725,12 @@ export class TapdService {
               ? cleanTask.assigneeIds
               : undefined,
             projectId: targetProjectId,
+            tapdWorkspaceId: workspaceId,
+            syncId,
+            externalUrl: cleanTask.externalUrl,
           });
-          tapdIdToLocalId.set(tapdId, decision);
-          if (tapdParentId !== undefined) tasksWithParent.push({ localId: decision, tapdParentId });
+          syncIdToLocalId.set(syncId, decision);
+          if (tapdParentId !== undefined) tasksWithParent.push({ localId: decision, workspaceId, tapdParentId });
           addDetail({ title: cleanTask.title || '', tapdId, action: 'merged', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
           merged++;
           continue;
@@ -2675,7 +2738,12 @@ export class TapdService {
 
         // Auto-dedup: check title similarity with manual tasks
         const titleKey = (cleanTask.title || '').trim().toLowerCase();
-        const matchedLocalId = manualTasksByTitle.get(titleKey);
+        const titleCandidates = manualTasksByTitle.get(titleKey) || [];
+        const matchedCandidateIndex = titleCandidates.findIndex(task =>
+          task.projectId === projectId || task.projectId === targetProjectId
+        );
+        const matchedLocalTask = matchedCandidateIndex >= 0 ? titleCandidates[matchedCandidateIndex] : undefined;
+        const matchedLocalId = matchedLocalTask?.id;
         if (matchedLocalId) {
           // Exact title match → auto-merge
           await this.mergeWithLocalTask(matchedLocalId, tapdId, {
@@ -2701,9 +2769,15 @@ export class TapdService {
               ? cleanTask.assigneeIds
               : undefined,
             projectId: targetProjectId,
+            tapdWorkspaceId: workspaceId,
+            syncId,
+            externalUrl: cleanTask.externalUrl,
           });
-          tapdIdToLocalId.set(tapdId, matchedLocalId);
-          if (tapdParentId !== undefined) tasksWithParent.push({ localId: matchedLocalId, tapdParentId });
+          titleCandidates.splice(matchedCandidateIndex, 1);
+          if (titleCandidates.length === 0) manualTasksByTitle.delete(titleKey);
+          else manualTasksByTitle.set(titleKey, titleCandidates);
+          syncIdToLocalId.set(syncId, matchedLocalId);
+          if (tapdParentId !== undefined) tasksWithParent.push({ localId: matchedLocalId, workspaceId, tapdParentId });
           addDetail({ title: cleanTask.title || '', tapdId, action: 'merged', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
           merged++;
           continue;
@@ -2720,17 +2794,17 @@ export class TapdService {
           syncedAt: Date.now(),
           syncSource: 'tapd',
         } as Task);
-        tapdIdToLocalId.set(tapdId, newId as number);
-        if (tapdParentId !== undefined) tasksWithParent.push({ localId: newId as number, tapdParentId });
+        syncIdToLocalId.set(syncId, newId as number);
+        if (tapdParentId !== undefined) tasksWithParent.push({ localId: newId as number, workspaceId, tapdParentId });
         addDetail({ title: cleanTask.title || '', tapdId, action: 'inserted', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
         inserted++;
       }
     }
 
     // Phase 3: Resolve and repair parent-child relationships after all TAPD IDs are known.
-    for (const { localId, tapdParentId } of tasksWithParent) {
+    for (const { localId, workspaceId, tapdParentId } of tasksWithParent) {
       const parentLocalId = tapdParentId && tapdParentId !== '0'
-        ? tapdIdToLocalId.get(tapdParentId)
+        ? syncIdToLocalId.get(createTapdSyncId(workspaceId, tapdParentId))
         : undefined;
       await db.tasks.update(localId, { tapdParentId, parentId: parentLocalId });
       if (parentLocalId) resolvedParentCount++;
@@ -2765,7 +2839,7 @@ export class TapdService {
   }
 
   private async performRefreshExistingTasks(projectId: number): Promise<RefreshResult> {
-    const config = this.config || (await this.loadConfig(projectId));
+    const config = await this.loadConfig(projectId);
     if (!config) {
       throw new Error('未找到 TAPD 配置，请先配置 TAPD 连接');
     }
@@ -2793,6 +2867,14 @@ export class TapdService {
     // 2. Data is fetched fresh from TAPD without any caching layer
     // 3. Faster execution (single batch query vs full list + filter)
     const remoteMap = new Map<string, Partial<Task> & { _tapdOwner?: string }>();
+    const remoteCandidatesByTapdId = (tapdId: string) => Array.from(remoteMap.values()).filter(task => task.tapdId === tapdId);
+    const getRemoteForLocalTask = (task: Task) => {
+      if (!task.tapdId) return undefined;
+      if (task.tapdWorkspaceId) return remoteMap.get(createTapdSyncId(task.tapdWorkspaceId, task.tapdId));
+      const candidates = remoteCandidatesByTapdId(task.tapdId);
+      return candidates.length === 1 ? candidates[0] : undefined;
+    };
+    const hasRemoteTapdId = (tapdId: string) => remoteCandidatesByTapdId(tapdId).length > 0;
     const allTapdIds = linkedTasks.map(t => t.tapdId!).filter(Boolean);
 
     let updatedCount = 0;
@@ -2805,7 +2887,7 @@ export class TapdService {
     const details: RefreshDetailItem[] = [];
 
     // Support multiple workspace IDs
-    const workspaceIds = config.workspaceId.split(/[,;，；]/).map(id => id.trim()).filter(Boolean);
+    const workspaceIds = parseTapdWorkspaceIds(config.workspaceId);
     if (this.hasRestCredentials()) {
       await Promise.all(workspaceIds.flatMap(workspaceId => [
         this.discoverCustomPriorityFields(config, workspaceId),
@@ -2827,7 +2909,7 @@ export class TapdService {
     // so unresolved IDs are retried in smaller batches before they are reported missing.
     const fetchRemoteBatch = async (batchIds: string[]): Promise<number> => {
       const before = remoteMap.size;
-      const stories: any[] = [];
+      const stories: { item: any; workspaceId: string }[] = [];
 
       for (const wsId of workspaceIds) {
         if (this.hasMcpGatewayCredentials()) {
@@ -2836,9 +2918,8 @@ export class TapdService {
             { workspace_id: wsId, id: batchIds.join(','), fields: this.getStoryFields() },
             config.mcpAccessToken!
           );
-          if (Array.isArray(data)) stories.push(...data);
-          else if (Array.isArray(data?.data)) stories.push(...data.data);
-          else if (data?.data) stories.push(data.data);
+          const batch = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : data?.data ? [data.data] : [];
+          stories.push(...batch.map(item => ({ item, workspaceId: wsId })));
         } else if (this.hasRestCredentials()) {
           const data = await tapdRestFetch<{ status: number; data: any; info: string }>(
             '/stories',
@@ -2849,25 +2930,26 @@ export class TapdService {
             throw new Error(data?.info || `TAPD workspace ${wsId} 查询失败`);
           }
           if (data?.data) {
-            stories.push(...(Array.isArray(data.data) ? data.data : [data.data]));
+            const batch = Array.isArray(data.data) ? data.data : [data.data];
+            stories.push(...batch.map(item => ({ item, workspaceId: wsId })));
           }
         } else {
           const data = await mcpFetch<{ data: any[] }>(
             '/tapd/stories_get',
             { workspace_id: wsId, id: batchIds.join(','), limit: String(Math.max(20, batchIds.length)), fields: this.getStoryFields() }
           );
-          if (data?.data) stories.push(...data.data);
+          if (data?.data) stories.push(...data.data.map(item => ({ item, workspaceId: wsId })));
         }
       }
 
-      for (const item of stories) {
+      for (const { item, workspaceId } of stories) {
         const story = item?.Story || item;
         const storyId = String(story?.id || '');
         if (!storyId) continue;
-        const mapped = this.mapTapdStoryToTask(story);
+        const mapped = this.mapTapdStoryToTask(story, workspaceId);
         if (mapped.tapdReleaseId) mapped.tapdReleaseName = refreshReleaseNameById.get(mapped.tapdReleaseId);
         (mapped as any)._tapdOwner = story.owner || undefined;
-        remoteMap.set(storyId, mapped as any);
+        remoteMap.set(createTapdSyncId(workspaceId, storyId), mapped as any);
       }
       return remoteMap.size - before;
     };
@@ -2878,7 +2960,7 @@ export class TapdService {
       const batchIds = uniqueTapdIds.slice(i, i + batchSize);
       try {
         await fetchRemoteBatch(batchIds);
-        const unresolved = batchIds.filter(id => !remoteMap.has(id));
+        const unresolved = batchIds.filter(id => !hasRemoteTapdId(id));
         if (unresolved.length > 0) {
           console.warn(`[TapdService] Batch returned ${batchIds.length - unresolved.length}/${batchIds.length}; retrying ${unresolved.length} IDs in smaller requests`);
           const retryBatchSize = 10;
@@ -2907,8 +2989,15 @@ export class TapdService {
     // TAPD keeps soft-deleted stories in a separate recycle-bin endpoint. A normal
     // story-by-ID query alone is insufficient because some deployments may still
     // return a recycled story from the ordinary endpoint for a period of time.
-    const confirmedDeletedIds = new Set<string>();
+    const confirmedDeletedSyncIds = new Set<string>();
     const linkedIdSet = new Set(uniqueTapdIds);
+    const isConfirmedDeleted = (task: Pick<Task, 'tapdId' | 'tapdWorkspaceId'>) => {
+      if (!task.tapdId) return false;
+      if (task.tapdWorkspaceId) return confirmedDeletedSyncIds.has(createTapdSyncId(task.tapdWorkspaceId, task.tapdId));
+      return workspaceIds.length > 0 && workspaceIds.every(workspaceId =>
+        confirmedDeletedSyncIds.has(createTapdSyncId(workspaceId, task.tapdId!))
+      );
+    };
     try {
       for (const wsId of workspaceIds) {
         for (let page = 1; page <= 100; page += 1) {
@@ -2926,16 +3015,16 @@ export class TapdService {
           }
           const removedIds = extractRemovedStoryIds(payload);
           removedIds.forEach(id => {
-            if (linkedIdSet.has(id)) confirmedDeletedIds.add(id);
+            if (linkedIdSet.has(id)) confirmedDeletedSyncIds.add(createTapdSyncId(wsId, id));
           });
-          if (removedIds.length < 200 || confirmedDeletedIds.size === linkedIdSet.size) break;
+          if (removedIds.length < 200) break;
         }
       }
       deletionAuditChecked = true;
-      deletionAuditMessage = confirmedDeletedIds.size > 0
-        ? `已在 TAPD 回收站确认 ${confirmedDeletedIds.size} 个需求`
+      deletionAuditMessage = confirmedDeletedSyncIds.size > 0
+        ? `已在 TAPD 回收站确认 ${confirmedDeletedSyncIds.size} 个需求`
         : '已核验 TAPD 回收站，未发现已删除需求';
-      confirmedDeletedIds.forEach(id => remoteMap.delete(id));
+      confirmedDeletedSyncIds.forEach(syncId => remoteMap.delete(syncId));
     } catch (error: any) {
       deletionAuditMessage = `回收站核验未完成：${error?.message || '接口不可用'}`;
       console.warn('[TapdService] Recycle-bin verification failed; keeping local cache unless exact-ID lookup confirms deletion', error);
@@ -2944,11 +3033,16 @@ export class TapdService {
     // A partial batch or transient network failure must never delete local data.
     // Confirm every unresolved ID with one final exact-ID request. Only a successful
     // response across all configured workspaces with no matching story proves deletion.
-    for (const tapdId of uniqueTapdIds.filter(id => !remoteMap.has(id))) {
-      if (confirmedDeletedIds.has(tapdId)) continue;
+    for (const tapdId of uniqueTapdIds.filter(id => !hasRemoteTapdId(id))) {
+      const deletedInAllWorkspaces = workspaceIds.length > 0 && workspaceIds.every(workspaceId =>
+        confirmedDeletedSyncIds.has(createTapdSyncId(workspaceId, tapdId))
+      );
+      if (deletedInAllWorkspaces) continue;
       try {
         await fetchRemoteBatch([tapdId]);
-        if (!remoteMap.has(tapdId)) confirmedDeletedIds.add(tapdId);
+        if (!hasRemoteTapdId(tapdId)) {
+          workspaceIds.forEach(workspaceId => confirmedDeletedSyncIds.add(createTapdSyncId(workspaceId, tapdId)));
+        }
       } catch (error) {
         console.warn(`[TapdService] Unable to confirm whether TAPD story ${tapdId} was deleted; keeping local cache`, error);
       }
@@ -2968,10 +3062,10 @@ export class TapdService {
     for (const localTask of linkedTasks) {
 
       const tapdId = localTask.tapdId!;
-      const remote = remoteMap.get(tapdId);
+      const remote = getRemoteForLocalTask(localTask);
 
       if (!remote) {
-        if (confirmedDeletedIds.has(tapdId)) {
+        if (isConfirmedDeleted(localTask)) {
           await db.tasks.delete(localTask.id!);
           deletedCount++;
           if (details.length < 200) {
@@ -3082,6 +3176,9 @@ export class TapdService {
       if (changes.length > 0) {
         // Apply updates to local DB
         const updateData: Partial<Task> = {
+          tapdWorkspaceId: remote.tapdWorkspaceId,
+          syncId: remote.syncId,
+          externalUrl: remote.externalUrl,
           updatedAt: Date.now(),
           syncedAt: Date.now(),
         };
@@ -3139,7 +3236,11 @@ export class TapdService {
         }
       } else {
         // Silently fix corrupted data and update module even when no other changes detected
-        const silentUpdates: Partial<Task> = {};
+        const silentUpdates: Partial<Task> = {
+          tapdWorkspaceId: remote.tapdWorkspaceId,
+          syncId: remote.syncId,
+          externalUrl: remote.externalUrl,
+        };
         if (remote.module !== localTask.module) silentUpdates.module = remote.module;
         if (remote.estimatedHours !== localTask.estimatedHours) silentUpdates.estimatedHours = remote.estimatedHours;
         if (remote.tapdReleaseId !== localTask.tapdReleaseId) silentUpdates.tapdReleaseId = remote.tapdReleaseId;
@@ -3167,15 +3268,20 @@ export class TapdService {
     }
 
     // Rebuild hierarchy for already imported tasks during quick refresh.
-    const refreshedTapdIdToLocalId = new Map<string, number>();
+    const refreshedSyncIdToLocalId = new Map<string, number>();
     allLocalTasks.forEach(task => {
-      if (task.tapdId && task.id && !confirmedDeletedIds.has(task.tapdId)) refreshedTapdIdToLocalId.set(task.tapdId, task.id);
+      if (!task.id || isConfirmedDeleted(task)) return;
+      const remote = getRemoteForLocalTask(task);
+      const syncId = task.syncId || remote?.syncId || (
+        task.tapdId && task.tapdWorkspaceId ? createTapdSyncId(task.tapdWorkspaceId, task.tapdId) : undefined
+      );
+      if (syncId) refreshedSyncIdToLocalId.set(syncId, task.id);
     });
     for (const localTask of linkedTasks) {
-      const remote = localTask.tapdId ? remoteMap.get(localTask.tapdId) : undefined;
-      if (!remote || remote.tapdParentId === undefined || !localTask.id) continue;
+      const remote = getRemoteForLocalTask(localTask);
+      if (!remote || remote.tapdParentId === undefined || !remote.tapdWorkspaceId || !localTask.id) continue;
       const parentId = remote.tapdParentId && remote.tapdParentId !== '0'
-        ? refreshedTapdIdToLocalId.get(remote.tapdParentId)
+        ? refreshedSyncIdToLocalId.get(createTapdSyncId(remote.tapdWorkspaceId, remote.tapdParentId))
         : undefined;
       if (localTask.tapdParentId !== remote.tapdParentId || localTask.parentId !== parentId) {
         await db.tasks.update(localTask.id, {

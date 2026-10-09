@@ -18,6 +18,8 @@ export interface Task {
   projectId: number;
   parentId?: number;
   tapdId?: string;
+  /** TAPD workspace that owns tapdId; required to distinguish identical IDs across workspaces. */
+  tapdWorkspaceId?: string;
   /** Original TAPD parent story ID, retained so hierarchy can be rebuilt after every sync. */
   tapdParentId?: string;
   /** TAPD requirement type retained so UIStory/UI can be shown explicitly. */

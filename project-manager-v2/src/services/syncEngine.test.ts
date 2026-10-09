@@ -8,7 +8,7 @@ vi.stubGlobal('window', {
 });
 
 // Dynamic import to ensure stubs are in place before module loads
-const { conflictResolver } = await import('./syncEngine');
+const { buildConflictResolutionData, conflictResolver } = await import('./syncEngine');
 
 // ─── conflictResolver.detectConflicts ───────────────────────────
 describe('conflictResolver.detectConflicts', () => {
@@ -84,11 +84,33 @@ describe('conflictResolver.detectConflicts', () => {
   it('auto-merges non-overlapping changes', () => {
     const base = { title: 'Task A', status: 'todo', priority: 'medium', startDate: '2026-05-01', endDate: '2026-05-10', progress: 0, assigneeIds: [1], description: 'abc' };
     const local = { ...base, title: 'Task A v2' }; // Changed title
-    const remote = { ...base, progress: 50 }; // Changed progress
+    const remote = { ...base, progress: 50 }; // Remote changed progress
 
     const result = conflictResolver.detectConflicts(local, remote, base);
     expect(result.hasConflict).toBe(false);
     expect(result.autoMerged.title).toBe('Task A v2');
     expect(result.autoMerged.progress).toBe(50);
+  });
+});
+
+describe('buildConflictResolutionData', () => {
+  it('preserves the existing record and project identity for remote resolution', () => {
+    const result = buildConflictResolutionData({
+      recordId: 17,
+      localVersion: { id: 17, projectId: 3, title: '本地任务' },
+      remoteVersion: { title: '远端任务', projectId: 99 },
+    }, 'remote');
+
+    expect(result).toMatchObject({ id: 17, projectId: 3, title: '远端任务' });
+  });
+
+  it('preserves identity for a merged result', () => {
+    const result = buildConflictResolutionData({
+      recordId: 21,
+      localVersion: { id: 21, projectId: 5 },
+      remoteVersion: { title: '远端任务' },
+    }, 'merged', { title: '合并任务' });
+
+    expect(result).toMatchObject({ id: 21, projectId: 5, title: '合并任务' });
   });
 });

@@ -2,6 +2,7 @@ import Dexie, { Table } from 'dexie';
 import type { Task, Resource, Project, TapdConfig, ChangeLog, SyncMeta, SyncConflict, ChangeSnapshot } from '../types';
 import type { ProjectNote } from '../types/projectNote';
 import type { ResourceCapacity } from '../types/scheduling';
+import { configContainsTapdWorkspace, createTapdSyncId, parseTapdWorkspaceIds } from '../utils/tapdIdentity';
 
 // Re-export all types so existing consumers can still import from db.ts
 export type { Task, Resource, Project, TapdConfig, ChangeLog, SyncMeta, SyncConflict, ChangeSnapshot };
@@ -477,6 +478,90 @@ export class LocalProjectManagerDB extends Dexie {
       syncConflicts: '++id, table, recordId, detectedAt, resolution',
       changeSnapshots: 'id, date',
       projectNotes: '++id, title, category, createdAt, updatedAt, pinned, projectId, *tags'
+    });
+
+    // Version 29: Isolate TAPD identities and sync metadata by workspace/project.
+    this.version(29).stores({
+      tasks: '++id, title, status, priority, *assigneeIds, startDate, endDate, projectId, parentId, syncId, updatedAt, tapdId, tapdWorkspaceId, sortOrder, workCategory, completedAt, module',
+      resources: '++id, name, role, sortOrder, type, avatarStyle, status, joinDate, departDate, tapdAccount, group',
+      resourceCapacities: 'resourceId, updatedAt',
+      projects: '++id, name, status',
+      tapdConfigs: '++id, workspaceId, projectId, authMode',
+      changeLogs: '++id, table, recordId, action, timestamp, synced',
+      syncMeta: '++id, source, projectId, [source+projectId]',
+      syncConflicts: '++id, table, recordId, detectedAt, resolution',
+      changeSnapshots: 'id, date',
+      projectNotes: '++id, title, category, createdAt, updatedAt, pinned, projectId, *tags'
+    }).upgrade(async tx => {
+      const configs = await tx.table('tapdConfigs').toArray() as TapdConfig[];
+      const workspaceIdsByProject = new Map<number, string[]>();
+      configs.forEach(config => workspaceIdsByProject.set(config.projectId, parseTapdWorkspaceIds(config.workspaceId)));
+
+      const taskTable = tx.table('tasks');
+      await taskTable.toCollection().modify((task: Task) => {
+        if (!task.tapdId) return;
+        let workspaceId = task.tapdWorkspaceId?.trim();
+        if (!workspaceId && task.externalUrl) {
+          const matchedWorkspace = task.externalUrl.match(/tapd\.woa\.com\/([^/]+)\/prong\/stories\/view\//)?.[1];
+          const configuredWorkspaceIds = workspaceIdsByProject.get(task.projectId) || [];
+          if (matchedWorkspace && (configuredWorkspaceIds.length === 0 || configContainsTapdWorkspace(configuredWorkspaceIds.join(','), matchedWorkspace))) {
+            workspaceId = matchedWorkspace;
+          }
+        }
+        if (!workspaceId) {
+          const configuredWorkspaceIds = workspaceIdsByProject.get(task.projectId) || [];
+          if (configuredWorkspaceIds.length === 1) workspaceId = configuredWorkspaceIds[0];
+        }
+        if (!workspaceId) return;
+        task.tapdWorkspaceId = workspaceId;
+        task.syncId = createTapdSyncId(workspaceId, task.tapdId);
+      });
+
+      // Older pull flows could insert the same TAPD story repeatedly. Consolidate only
+      // records with an unambiguous workspace-scoped identity and rewire task references.
+      const migratedTasks = await taskTable.toArray() as Task[];
+      const duplicateGroups = new Map<string, Task[]>();
+      migratedTasks.forEach(task => {
+        if (!task.syncId || !task.id) return;
+        duplicateGroups.set(task.syncId, [...(duplicateGroups.get(task.syncId) || []), task]);
+      });
+      const canonicalIdByDuplicateId = new Map<number, number>();
+      for (const group of duplicateGroups.values()) {
+        if (group.length < 2) continue;
+        const sorted = [...group].sort((left, right) => left.id! - right.id!);
+        const canonical = sorted[0];
+        const newest = [...sorted].sort((left, right) => (right.updatedAt || 0) - (left.updatedAt || 0))[0];
+        const assigneeIds = [...new Set(sorted.flatMap(task => task.assigneeIds || []))];
+        await taskTable.put({
+          ...newest,
+          id: canonical.id,
+          notes: sorted.find(task => task.notes?.trim())?.notes || newest.notes,
+          sortOrder: sorted.find(task => task.sortOrder != null)?.sortOrder ?? newest.sortOrder,
+          assigneeIds,
+        });
+        for (const duplicate of sorted.slice(1)) canonicalIdByDuplicateId.set(duplicate.id!, canonical.id!);
+      }
+      if (canonicalIdByDuplicateId.size > 0) {
+        await taskTable.toCollection().modify((task: Task) => {
+          if (task.parentId && canonicalIdByDuplicateId.has(task.parentId)) {
+            task.parentId = canonicalIdByDuplicateId.get(task.parentId);
+          }
+          if (task.dependencies?.length) {
+            task.dependencies = [...new Set(task.dependencies.map(id => canonicalIdByDuplicateId.get(id) || id))];
+          }
+        });
+        await tx.table('changeLogs').toCollection().modify((log: ChangeLog) => {
+          if (log.table === 'tasks' && canonicalIdByDuplicateId.has(log.recordId)) {
+            log.recordId = canonicalIdByDuplicateId.get(log.recordId)!;
+          }
+        });
+        await tx.table('syncConflicts').toCollection().modify((conflict: SyncConflict) => {
+          if (conflict.table === 'tasks' && canonicalIdByDuplicateId.has(conflict.recordId)) {
+            conflict.recordId = canonicalIdByDuplicateId.get(conflict.recordId)!;
+          }
+        });
+        await taskTable.bulkDelete([...canonicalIdByDuplicateId.keys()]);
+      }
     });
   }
 }
