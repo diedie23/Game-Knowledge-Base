@@ -410,28 +410,38 @@ async function tapdRestFetch<T>(
     }
 
     const response = await fetch(url.toString(), fetchOptions);
+    const responseText = await response.text().catch(() => '');
 
     if (!response.ok) {
       if (response.status === 401) {
-        const errorBody = await response.text().catch(() => '');
-        console.error('[TAPD Auth] 401 response body:', errorBody);
+        console.error('[TAPD Auth] 401 response body:', responseText);
         throw new Error('认证失败(401)：请确认 API 账号和口令是否正确。在 tapd.woa.com → 公司管理 → 安全与集成 → 开放平台 中获取。');
       }
-      const errorText = await response.text().catch(() => '');
-      console.error(`[TAPD] ${response.status} response:`, errorText);
+      console.error(`[TAPD] ${response.status} response:`, responseText);
       if (response.status === 502) {
-        throw new Error(`本地 TAPD 代理无法连接上游服务，请确认已通过项目管理 V2 的本地启动脚本运行页面。${errorText ? `（${errorText.slice(0, 160)}）` : ''}`);
+        throw new Error(`本地 TAPD 代理无法连接上游服务，请确认已通过项目管理 V2 的本地启动脚本运行页面。${responseText ? `（${responseText.slice(0, 160)}）` : ''}`);
       }
-      throw new Error(`请求失败 (${response.status}): ${errorText || '未知错误'}`);
+      throw new Error(`请求失败 (${response.status}): ${responseText || '未知错误'}`);
     }
 
-    return await response.json() as T;
+    if (!responseText.trim()) {
+      throw new Error(`TAPD 接口 ${endpoint} 返回空响应，请稍后重试`);
+    }
+
+    try {
+      return JSON.parse(responseText) as T;
+    } catch (parseError) {
+      const contentType = response.headers.get('content-type') || '未知类型';
+      const preview = responseText.replace(/[\u0000-\u001f\u007f-\u009f]/g, '').slice(0, 120);
+      console.error(`[TAPD] ${endpoint} returned invalid JSON:`, { contentType, preview, parseError });
+      throw new Error(`TAPD 接口 ${endpoint} 返回了无法解析的数据（${contentType}）。请重启本地服务后重试${preview ? `：${preview}` : ''}`);
+    }
   } catch (error: any) {
     if (error.name === 'AbortError') {
       throw new Error('TAPD 请求超时，请检查网络连接或公司内网访问状态');
     }
     if (isFetchTransportError(error)) {
-      throw new Error('无法连接本地 TAPD 代理。请运行 project-manager-v2/_start.js（或 npm run serve:local），不要直接使用 GitHub Pages 静态地址验证 REST API。');
+      throw new Error('无法连接本地 TAPD 代理。请运行 npm run start:local（或前台运行 npm run serve:local），不要直接使用 GitHub Pages 静态地址验证 REST API。');
     }
     throw error;
   } finally {

@@ -1,5 +1,6 @@
 import http from 'node:http';
 import https from 'node:https';
+import tls from 'node:tls';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -42,36 +43,95 @@ function proxyRequest(req, res, target, targetPrefix = '', sourcePrefix = '/tapd
   const headers = { ...req.headers };
   headers.host = target.host;
   headers.connection = 'close';
+  // Ask TAPD for an uncompressed body so JSON can be forwarded byte-for-byte.
+  headers['accept-encoding'] = 'identity';
   delete headers['content-length'];
 
-  const request = https.request({
+  const requestOptions = {
     protocol: target.protocol,
     hostname: target.hostname,
     port: target.port || 443,
     method: req.method,
     path: `${targetPath}${query}`,
     headers,
-  }, upstream => {
+  };
+
+  const handleResponse = upstream => {
     const responseHeaders = { ...upstream.headers };
-    delete responseHeaders['content-encoding'];
     if (upstream.statusCode === 401 && responseHeaders['www-authenticate']) {
       responseHeaders['x-www-authenticate'] = responseHeaders['www-authenticate'];
       delete responseHeaders['www-authenticate'];
     }
     res.writeHead(upstream.statusCode || 502, responseHeaders);
     upstream.pipe(res);
-  });
+  };
 
-  request.on('error', error => {
+  const handleError = error => {
     if (!res.headersSent) {
       sendText(res, 502, `TAPD 上游连接失败：${error.message}`);
     } else {
       res.destroy(error);
     }
+  };
+
+  const startForwarding = createRequest => {
+    const request = createRequest();
+    request.on('error', handleError);
+    req.on('aborted', () => request.destroy());
+    req.pipe(request);
+  };
+
+  const proxyUrlValue = process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy;
+  if (!proxyUrlValue || target.protocol !== 'https:') {
+    startForwarding(() => https.request(requestOptions, handleResponse));
+    return;
+  }
+
+  let proxyUrl;
+  try {
+    proxyUrl = new URL(proxyUrlValue);
+  } catch {
+    sendText(res, 502, '系统 HTTPS 代理地址无效，请检查 HTTPS_PROXY 配置');
+    return;
+  }
+
+  const tunnelHeaders = { Host: `${target.hostname}:${target.port || 443}` };
+  if (proxyUrl.username || proxyUrl.password) {
+    const proxyCredentials = `${decodeURIComponent(proxyUrl.username)}:${decodeURIComponent(proxyUrl.password)}`;
+    tunnelHeaders['Proxy-Authorization'] = `Basic ${Buffer.from(proxyCredentials).toString('base64')}`;
+  }
+  const proxyTransport = proxyUrl.protocol === 'https:' ? https : http;
+  const connectRequest = proxyTransport.request({
+    hostname: proxyUrl.hostname,
+    port: proxyUrl.port || (proxyUrl.protocol === 'https:' ? 443 : 80),
+    method: 'CONNECT',
+    path: `${target.hostname}:${target.port || 443}`,
+    headers: tunnelHeaders,
   });
 
-  req.on('aborted', () => request.destroy());
-  req.pipe(request);
+  connectRequest.on('connect', (connectResponse, socket, head) => {
+    if (connectResponse.statusCode !== 200) {
+      socket.destroy();
+      sendText(res, 502, `系统 HTTPS 代理建立隧道失败（${connectResponse.statusCode || '未知状态'}）`);
+      return;
+    }
+    if (head.length > 0) socket.unshift(head);
+    const secureSocket = tls.connect({
+      socket,
+      servername: target.hostname,
+    });
+    secureSocket.once('secureConnect', () => {
+      startForwarding(() => https.request({
+        ...requestOptions,
+        agent: false,
+        createConnection: () => secureSocket,
+      }, handleResponse));
+    });
+    secureSocket.on('error', handleError);
+  });
+  connectRequest.on('error', handleError);
+  req.on('aborted', () => connectRequest.destroy());
+  connectRequest.end();
 }
 
 function serveStatic(req, res, pathname) {
