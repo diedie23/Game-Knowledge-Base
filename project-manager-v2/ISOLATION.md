@@ -28,10 +28,10 @@ Run from `project-manager-v2/`:
 ```sh
 npm ci
 npm run build
-npm run serve:local
+npm run start:local
 ```
 
-`serve:local` serves the committed build and provides the `/tapd-api` REST proxy required by the TAPD connection test.
+`start:local` launches the committed build in the background at port 4173 and provides the `/tapd-api` REST proxy required by the TAPD connection test. Use `npm run serve:local` when a foreground process is preferred.
 
 Open `http://127.0.0.1:4173/Game-Knowledge-Base/project-manager-v2/`.
 

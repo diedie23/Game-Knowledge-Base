@@ -8,6 +8,8 @@ build/
 
 # Node
 node_modules/
+project-manager-v2/_vite.log
+project-manager-v2/_vite.pid
 /package-lock.json
 /package.json
 LocalProjectManager/package-lock.json

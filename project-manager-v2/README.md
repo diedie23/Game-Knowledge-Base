@@ -27,7 +27,10 @@ npm install
 # Start dev server (includes Vite TAPD proxy)
 npm run dev
 
-# Serve the built V2 page locally (includes TAPD REST proxy)
+# Start the built V2 page in the background (recommended for the 4173 URL)
+npm run start:local
+
+# Serve the built V2 page in the foreground (includes TAPD REST proxy)
 npm run serve:local
 
 # Build for production
