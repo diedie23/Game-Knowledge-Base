@@ -149,8 +149,9 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
       await updateTask(item.task.id, {
         startDate: item.suggestion.startDate,
         endDate: item.suggestion.endDate,
-      }, '应用 TAPD 排期助手建议日期');
-      setAppliedMessage(`已将「${item.task.title}」的建议日期加入本地待同步，请在 TAPD 同步中心确认推送。`);
+        assigneeIds: item.suggestion.resource?.id ? [item.suggestion.resource.id] : item.task.assigneeIds,
+      }, '应用 TAPD 排期助手建议');
+      setAppliedMessage(`已将「${item.task.title}」的建议人员与日期加入本地待同步，请在 TAPD 同步中心确认推送。`);
     } catch (error) {
       setApplyError(true);
       setAppliedMessage(`应用建议失败：${error instanceof Error ? error.message : '请稍后重试'}`);
@@ -170,7 +171,8 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
         await updateTask(item.task.id, {
           startDate: item.suggestion.startDate,
           endDate: item.suggestion.endDate,
-        }, '批量应用 TAPD 排期助手建议日期');
+          assigneeIds: item.suggestion.resource?.id ? [item.suggestion.resource.id] : item.task.assigneeIds,
+        }, '批量应用 TAPD 排期助手建议');
         applied += 1;
       } catch {
         failed += 1;
@@ -179,7 +181,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     setApplyError(failed > 0);
     setAppliedMessage(failed > 0
       ? `已加入 ${applied} 项，另有 ${failed} 项应用失败，请重新检查。`
-      : `已将 ${applied} 项建议日期加入本地待同步，请在 TAPD 同步中心确认推送。`);
+      : `已将 ${applied} 项建议人员与日期加入本地待同步，请在 TAPD 同步中心确认推送。`);
     setSelectedIds(new Set());
     setApplyingId(null);
   };
@@ -248,7 +250,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
       )}
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        {items.length > 0 && <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-gray-500"><div className="flex items-center gap-2"><span>待排期任务清单</span><select value={stageFilter} onChange={event => setStageFilter(event.target.value as typeof stageFilter)} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="all">全部岗位</option>{Object.entries(STAGE_LABEL).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select>{(filter !== 'all' || stageFilter !== 'all') && <button onClick={() => { setFilter('all'); setStageFilter('all'); }} className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-indigo-300 hover:text-white">清除筛选</button>}<button onClick={selectVisible} className="hover:text-white">选择当前可排期项</button>{selectedIds.size > 0 && <button onClick={() => setSelectedIds(new Set())} className="hover:text-white">清空选择</button>}</div><div className="flex items-center gap-2"><span>显示前 {items.length} 项，共 {filteredItems.length} 项</span><button disabled={applicableSelectedItems.length === 0 || applyingId !== null} onClick={applySelectedDates} className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-medium text-emerald-300 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40">{applyingId === -1 ? '正在应用...' : `应用可排期日期（${applicableSelectedItems.length}）`}</button><button disabled={selectedItems.length === 0} onClick={() => setShowChecklist(true)} className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 font-medium text-indigo-300 hover:bg-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-40">生成排期清单（{selectedItems.length}）</button></div></div>}
+        {items.length > 0 && <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-gray-500"><div className="flex items-center gap-2"><span>待排期任务清单</span><select value={stageFilter} onChange={event => setStageFilter(event.target.value as typeof stageFilter)} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="all">全部岗位</option>{Object.entries(STAGE_LABEL).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select>{(filter !== 'all' || stageFilter !== 'all') && <button onClick={() => { setFilter('all'); setStageFilter('all'); }} className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-indigo-300 hover:text-white">清除筛选</button>}<button onClick={selectVisible} className="hover:text-white">选择当前可排期项</button>{selectedIds.size > 0 && <button onClick={() => setSelectedIds(new Set())} className="hover:text-white">清空选择</button>}</div><div className="flex items-center gap-2"><span>显示前 {items.length} 项，共 {filteredItems.length} 项</span><button disabled={applicableSelectedItems.length === 0 || applyingId !== null} onClick={applySelectedDates} className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-medium text-emerald-300 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40">{applyingId === -1 ? '正在应用...' : `应用排期方案（${applicableSelectedItems.length}）`}</button><button disabled={selectedItems.length === 0} onClick={() => setShowChecklist(true)} className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 font-medium text-indigo-300 hover:bg-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-40">生成排期清单（{selectedItems.length}）</button></div></div>}
         {items.length === 0 && <div className="col-span-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-5 text-center text-sm text-emerald-300">当前没有缺少开始或结束日期的 TAPD 任务</div>}
         {items.map(item => {
           const style = LEVEL_STYLE[item.level];
@@ -294,7 +296,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
             </div>
             <div className="mt-2 flex items-center justify-end gap-3 border-t border-white/[0.05] pt-2">
               <button onClick={() => locateInGantt(item.task)} className="inline-flex items-center gap-1 text-[10px] text-gray-400 hover:text-indigo-300"><LocateFixed size={11} />甘特图定位</button>
-              <button disabled={applyingId !== null || !canApply} onClick={() => applySuggestedDates(item)} title={canApply ? '加入本地待同步' : [...qualityReasons, ...suggestion.reviewReasons].join('；')} className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"><CalendarClock size={11} />{applyingId === item.task.id ? '正在加入...' : canApply ? '应用建议日期' : qualityReasons.length ? '数据异常待修复' : '请先人工确认'}</button>
+              <button disabled={applyingId !== null || !canApply} onClick={() => applySuggestedDates(item)} title={canApply ? '加入本地待同步' : [...qualityReasons, ...suggestion.reviewReasons].join('；')} className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"><CalendarClock size={11} />{applyingId === item.task.id ? '正在加入...' : canApply ? '应用人员与日期' : qualityReasons.length ? '数据异常待修复' : '请先人工确认'}</button>
               {item.task.externalUrl ? <a href={item.task.externalUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[10px] font-medium text-sky-300 hover:text-white">打开 TAPD 调整<ExternalLink size={11} /></a> : <button onClick={() => openTaskModal(item.task.id)} className="text-[10px] font-medium text-sky-300 hover:text-white">查看本地详情</button>}
             </div>
           </article>;

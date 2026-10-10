@@ -1,5 +1,6 @@
 import { addDays, addWeeks, endOfWeek, format, isWithinInterval, startOfDay, startOfWeek } from 'date-fns';
 import type { Resource, Task } from '../types';
+import { getTaskIdentity } from '../utils/tapdIdentity';
 import { isTaskTerminal } from '../utils/taskState';
 import { buildDemandRiskGroups, type DemandRiskGroup } from './tapdPlanningAssistant';
 import { buildStageCapacityForecast, type StageCapacityForecast } from './capacityForecastService';
@@ -27,7 +28,7 @@ export interface WeeklyRiskAction {
 }
 
 function logicalTaskKey(task: Task): string {
-  return task.tapdId ? `tapd:${task.tapdId}` : `local:${task.id ?? task.syncId ?? task.title}`;
+  return getTaskIdentity(task);
 }
 
 function uniqueLeafTasks(tasks: Task[]): Task[] {

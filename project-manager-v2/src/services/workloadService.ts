@@ -2,6 +2,7 @@ import { db } from '../db/db';
 import type { Task, Resource } from '../types';
 import { differenceInDays, addDays, startOfDay } from 'date-fns';
 import { isWorkingDay } from '../utils/dateUtils';
+import { getTaskIdentity } from '../utils/tapdIdentity';
 import { isTaskOverdue, isTaskTerminal } from '../utils/taskState';
 
 // ─── Types ───────────────────────────────────────────────────────
@@ -54,7 +55,7 @@ export interface TaskRiskContext {
 }
 
 function logicalTaskKey(task: Task): string {
-  return task.tapdId ? `tapd:${task.tapdId}` : `local:${task.id ?? task.syncId ?? task.title}`;
+  return getTaskIdentity(task);
 }
 
 export function buildTaskRiskContext(allTasks: Task[], allResources: Resource[]): TaskRiskContext {

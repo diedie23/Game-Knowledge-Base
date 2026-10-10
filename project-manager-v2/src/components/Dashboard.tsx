@@ -20,7 +20,7 @@ import { DashboardCapacityForecast } from './DashboardCapacityForecast';
 import { DashboardDataQuality } from './DashboardDataQuality';
 
 export function Dashboard() {
-  const { setCurrentView, openTaskModal, selectedProjectId } = useStore();
+  const { setCurrentView, openTaskModal, openTapdModal, selectedProjectId } = useStore();
   const openDashboardTask = React.useCallback((task: { id?: number; externalUrl?: string }) => {
     if (task.externalUrl) {
       window.open(task.externalUrl, '_blank', 'noopener,noreferrer');
@@ -35,16 +35,35 @@ export function Dashboard() {
     [selectedProjectId]
   ) || [];
   const resources = useLiveQuery(() => db.resources.toArray()) || [];
+  const [tapdRefreshState, setTapdRefreshState] = useState<'idle' | 'refreshing' | 'success' | 'error'>('idle');
+  const [tapdRefreshMessage, setTapdRefreshMessage] = useState('');
 
   // Refresh TAPD-linked tasks when entering the dashboard so due/overdue data is current.
+  // Surface the refresh state instead of silently logging failures: scheduling decisions
+  // should always make the freshness and reliability of their source data visible.
   React.useEffect(() => {
     if (!selectedProjectId) return;
-    tapdService.refreshExistingTasks(selectedProjectId).catch(error => {
-      console.warn('[Dashboard] TAPD background refresh failed:', error);
+    let active = true;
+    setTapdRefreshState('refreshing');
+    setTapdRefreshMessage('正在刷新 TAPD 任务与成员数据...');
+    Promise.allSettled([
+      tapdService.refreshExistingTasks(selectedProjectId),
+      tapdService.syncProjectMembers(selectedProjectId),
+    ]).then(results => {
+      if (!active) return;
+      const failures = results.filter(result => result.status === 'rejected');
+      if (failures.length > 0) {
+        setTapdRefreshState('error');
+        setTapdRefreshMessage(`TAPD 后台刷新有 ${failures.length} 项失败，当前展示本地缓存数据，可前往同步中心重试。`);
+        failures.forEach(result => {
+          if (result.status === 'rejected') console.warn('[Dashboard] TAPD background refresh failed:', result.reason);
+        });
+      } else {
+        setTapdRefreshState('success');
+        setTapdRefreshMessage('TAPD 任务与成员数据已刷新');
+      }
     });
-    tapdService.syncProjectMembers(selectedProjectId).catch(error => {
-      console.warn('[Dashboard] TAPD member refresh failed:', error);
-    });
+    return () => { active = false; };
   }, [selectedProjectId]);
   // Exclude paused and cancelled tasks from dashboard statistics
   const tasks = useMemo(() => allTasks.filter(t => t.status !== 'paused' && !isTaskCancelled(t)), [allTasks]);
@@ -392,6 +411,12 @@ export function Dashboard() {
   }, [actionableTasks, today]);
   return (
     <div className="flex-1 overflow-y-auto p-8 bg-[#0f111a] text-gray-300 space-y-8 custom-scrollbar">
+      {tapdRefreshState !== 'idle' && (
+        <div className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-xs ${tapdRefreshState === 'error' ? 'border-red-500/25 bg-red-500/[0.07] text-red-200' : tapdRefreshState === 'success' ? 'border-emerald-500/20 bg-emerald-500/[0.06] text-emerald-200' : 'border-blue-500/20 bg-blue-500/[0.06] text-blue-200'}`}>
+          <span>{tapdRefreshMessage}</span>
+          {tapdRefreshState === 'error' && <button type="button" onClick={openTapdModal} className="shrink-0 font-medium text-sky-300 hover:text-white">打开同步中心</button>}
+        </div>
+      )}
       {/* 1. 顶部时间信息栏 — 橙色渐变横条 + 信息卡片 */}
       <div className="rounded-2xl overflow-hidden shadow-lg">
         {/* 橙色渐变横条 */}

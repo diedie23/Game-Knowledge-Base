@@ -18,6 +18,14 @@ describe('auditTaskDataQuality', () => {
     expect(audit.criticalCount).toBe(3);
   });
 
+  it('does not treat equal TAPD ids from different workspaces as duplicates', () => {
+    const audit = auditTaskDataQuality([
+      task(5, { tapdId: 'same', tapdWorkspaceId: '1001', syncId: 'tapd:1001:same', assigneeIds: [1] }),
+      task(6, { tapdId: 'same', tapdWorkspaceId: '1002', syncId: 'tapd:1002:same', assigneeIds: [1] }),
+    ], resources, new Date('2026-09-28'));
+    expect(audit.issues.filter(issue => issue.type === 'duplicate')).toHaveLength(0);
+  });
+
   it('flags an unmapped UX owner but ignores program integration staffing', () => {
     const audit = auditTaskDataQuality([
       task(10, { title: '【视觉设计】图标', assigneeIds: [], tapdOwner: 'unknown' }),

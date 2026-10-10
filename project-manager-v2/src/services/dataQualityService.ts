@@ -1,4 +1,5 @@
 import type { Resource, Task } from '../types';
+import { getTaskIdentity } from '../utils/tapdIdentity';
 import { relatedCheckpointLabel, taskStage } from './uxStageView';
 
 export type DataQualityIssueType = 'duplicate' | 'orphan' | 'invalid-date' | 'missing-type' | 'unmapped-owner' | 'stale-sync';
@@ -30,7 +31,10 @@ export function auditTaskDataQuality(tasks: Task[], resources: Resource[], now: 
   const byId = new Map(tasks.filter(task => task.id).map(task => [task.id!, task]));
   const childIds = new Set(tasks.flatMap(task => task.parentId ? [task.parentId] : []));
   const tapdGroups = new Map<string, Task[]>();
-  tasks.filter(task => task.tapdId).forEach(task => tapdGroups.set(task.tapdId!, [...(tapdGroups.get(task.tapdId!) || []), task]));
+  tasks.filter(task => task.tapdId).forEach(task => {
+    const identity = getTaskIdentity(task);
+    tapdGroups.set(identity, [...(tapdGroups.get(identity) || []), task]);
+  });
 
   tapdGroups.forEach(group => {
     if (group.length < 2) return;

@@ -184,11 +184,13 @@ export function GanttChart() {
   useEffect(() => {
     (async () => {
       try {
-        const config = await db.tapdConfigs.toCollection().first();
+        const config = selectedProjectId
+          ? await db.tapdConfigs.where('projectId').equals(selectedProjectId).first()
+          : undefined;
         setHasTapdConfig(!!config?.workspaceId);
       } catch { setHasTapdConfig(false); }
     })();
-  }, []);
+  }, [selectedProjectId]);
 
   // Project pause/resume state
   const currentProject = useLiveQuery(

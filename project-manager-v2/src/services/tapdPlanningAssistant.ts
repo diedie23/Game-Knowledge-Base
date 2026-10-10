@@ -1,4 +1,5 @@
 import type { Resource, Task } from '../types';
+import { getTaskIdentity } from '../utils/tapdIdentity';
 import { isTaskTerminal } from '../utils/taskState';
 import { countWorkingDays, getNextWorkingDays, isWorkingDay } from '../utils/dateUtils';
 import { smartAssignService } from './smartAssignService';
@@ -110,7 +111,7 @@ function dependencyConstraint(task: Task, tasks: Task[]): { readyAt?: Date; unre
 }
 
 function logicalTaskKey(task: Task): string {
-  return task.tapdId ? `tapd:${task.tapdId}` : `local:${task.id ?? task.syncId ?? task.title}`;
+  return getTaskIdentity(task);
 }
 
 function overlapCount(resourceId: number | undefined, task: Task, tasks: Task[], start: Date, end: Date): number {

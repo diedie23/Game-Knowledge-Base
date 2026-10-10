@@ -3,6 +3,7 @@ import { AlertTriangle, ChevronDown, ChevronRight, ExternalLink, GitBranch, Shie
 import type { Resource, Task } from '../types';
 import { buildDemandRiskGroups } from '../services/tapdPlanningAssistant';
 import { useStore } from '../store/useStore';
+import { getTaskIdentity } from '../utils/tapdIdentity';
 
 interface Props {
   tasks: Task[];
@@ -63,7 +64,7 @@ export function DashboardDemandRisks({ tasks, resources }: Props) {
 
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
         {groups.map(group => {
-          const key = group.demand.tapdId || String(group.demand.id || group.demand.title);
+          const key = getTaskIdentity(group.demand);
           const isExpanded = expanded.has(key);
           const style = LEVEL_STYLE[group.level];
           const children = [

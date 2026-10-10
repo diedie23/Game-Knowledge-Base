@@ -3741,28 +3741,24 @@ export class TapdImportService {
   ): Promise<ImportResult> {
     const result: ImportResult = { inserted: 0, updated: 0, skipped: 0, total: 0, errors: [] };
 
-    // Build tapdId → localId mapping for parent-child resolution
+    // Build TAPD id → local id mapping for parent-child resolution within this import.
     const tapdIdToLocalId = new Map<string, number>();
 
-    // Pre-load existing tapdId mappings
-    const existingTasks = await db.tasks.filter(t => !!t.tapdId).toArray();
-    const existingTaskByTapdId = new Map<string, Task>();
-    for (const t of existingTasks) {
-      if (t.tapdId && t.id) {
-        tapdIdToLocalId.set(t.tapdId, t.id);
-        existingTaskByTapdId.set(t.tapdId, t);
-      }
-    }
-
-    // Pre-load all local tasks for fuzzy matching
+    // Keep import matching inside the selected local project. A TAPD numeric ID is
+    // not globally unique and may legitimately exist in another workspace/project.
     const allProjectTasks = await db.tasks.where('projectId').equals(projectId).toArray();
+    for (const task of allProjectTasks) {
+      if (task.tapdId && task.id) tapdIdToLocalId.set(task.tapdId, task.id);
+    }
 
     // Pre-load resources for owner matching
     const allResources = await db.resources.toArray();
 
-    // Load TAPD config to get workspaceId for building external URLs
-    const tapdConfig = await (db as any).tapdConfigs.toCollection().first();
-    const workspaceId = tapdConfig?.workspaceId || '';
+    // CSV/preview rows do not carry workspace metadata. Only assign a stable remote
+    // identity when the selected project has exactly one configured workspace.
+    const tapdConfig = await db.tapdConfigs.where('projectId').equals(projectId).first();
+    const configuredWorkspaceIds = parseTapdWorkspaceIds(tapdConfig?.workspaceId);
+    const workspaceId = configuredWorkspaceIds.length === 1 ? configuredWorkspaceIds[0] : '';
 
     // Track rows with parent relationships for second pass
     const rowsWithParent: { localId: number; parentTapdId: string }[] = [];
@@ -3781,6 +3777,9 @@ export class TapdImportService {
           if (row.tapdId) {
             await db.tasks.update(row.localTaskId, {
               tapdId: row.tapdId,
+              tapdWorkspaceId: workspaceId || undefined,
+              syncId: workspaceId ? createTapdSyncId(workspaceId, row.tapdId) : undefined,
+              externalUrl: workspaceId ? `https://tapd.woa.com/${workspaceId}/prong/stories/view/${row.tapdId}` : undefined,
               syncSource: 'tapd-import',
               syncedAt: Date.now(),
               updatedAt: Date.now(),
@@ -3820,6 +3819,8 @@ export class TapdImportService {
           progress: row.progress,
           assigneeIds: matchedAssigneeIds.length > 0 ? matchedAssigneeIds : [],
           tapdId: row.tapdId || undefined,
+          tapdWorkspaceId: workspaceId || undefined,
+          syncId: workspaceId && row.tapdId ? createTapdSyncId(workspaceId, row.tapdId) : undefined,
           module: row.module,
           estimatedHours: row.estimatedHours,
           // Build TAPD external URL for direct navigation
@@ -3828,12 +3829,17 @@ export class TapdImportService {
             : undefined,
         };
 
-        // Enhanced dedup: first by tapdId, then exact title, then fuzzy title
+        // Enhanced dedup: stable workspace identity first, then a project-scoped
+        // legacy TAPD id match, then exact/fuzzy title matching.
         let existingId: number | undefined;
 
-        if (taskData.tapdId) {
-          const byTapdId = await db.tasks.where('tapdId').equals(taskData.tapdId).first();
-          if (byTapdId?.id) existingId = byTapdId.id;
+        if (taskData.syncId) {
+          const bySyncId = allProjectTasks.find(task => task.syncId === taskData.syncId);
+          if (bySyncId?.id) existingId = bySyncId.id;
+        }
+        if (!existingId && taskData.tapdId) {
+          const legacyMatches = allProjectTasks.filter(task => task.tapdId === taskData.tapdId && !task.tapdWorkspaceId && !task.syncId);
+          if (legacyMatches.length === 1) existingId = legacyMatches[0].id;
         }
 
         if (!existingId) {
@@ -3868,6 +3874,9 @@ export class TapdImportService {
             progress: taskData.progress,
             assigneeIds: matchedAssigneeIds.length > 0 ? matchedAssigneeIds : undefined,
             tapdId: taskData.tapdId || undefined,
+            tapdWorkspaceId: taskData.tapdWorkspaceId,
+            syncId: taskData.syncId,
+            externalUrl: taskData.externalUrl,
             module: taskData.module,
             estimatedHours: taskData.estimatedHours,
             updatedAt: Date.now(),
@@ -3929,6 +3938,11 @@ export class TapdImportService {
       return result;
     }
 
+    const tapdConfig = await db.tapdConfigs.where('projectId').equals(projectId).first();
+    const configuredWorkspaceIds = parseTapdWorkspaceIds(tapdConfig?.workspaceId);
+    const workspaceId = configuredWorkspaceIds.length === 1 ? configuredWorkspaceIds[0] : '';
+    const allProjectTasks = await db.tasks.where('projectId').equals(projectId).toArray();
+
     // Parse data rows
     for (let i = 1; i < lines.length; i++) {
       result.total++;
@@ -3941,22 +3955,26 @@ export class TapdImportService {
           continue;
         }
 
-        // Build TAPD external URL if tapdId is available
-        const tapdConfig2 = await (db as any).tapdConfigs.toCollection().first();
-        const wsId = tapdConfig2?.workspaceId || '';
-        const externalUrl = wsId && task.tapdId
-          ? `https://tapd.woa.com/${wsId}/prong/stories/view/${task.tapdId}`
+        // CSV rows do not identify their TAPD workspace. Use a stable identity only
+        // when the selected project maps to exactly one workspace.
+        const externalUrl = workspaceId && task.tapdId
+          ? `https://tapd.woa.com/${workspaceId}/prong/stories/view/${task.tapdId}`
           : undefined;
+        const syncId = workspaceId && task.tapdId ? createTapdSyncId(workspaceId, task.tapdId) : undefined;
 
-        // Upsert by tapdId if available, then fallback to title matching
+        // Upsert by workspace-scoped identity first. An ambiguous legacy TAPD id is
+        // only reusable when it has exactly one match inside the selected project.
         let existingId: number | undefined;
-        if (task.tapdId) {
-          const byTapdId = await db.tasks.where('tapdId').equals(task.tapdId).first();
-          if (byTapdId?.id) existingId = byTapdId.id;
+        if (syncId) {
+          const bySyncId = allProjectTasks.find(candidate => candidate.syncId === syncId);
+          if (bySyncId?.id) existingId = bySyncId.id;
         }
-        // Fallback: match by title + projectId when no tapdId match
+        if (!existingId && task.tapdId) {
+          const legacyMatches = allProjectTasks.filter(candidate => candidate.tapdId === task.tapdId && !candidate.tapdWorkspaceId && !candidate.syncId);
+          if (legacyMatches.length === 1) existingId = legacyMatches[0].id;
+        }
+        // Fallback: match by title + projectId when no remote identity match
         if (!existingId && task.title) {
-          const allProjectTasks = await db.tasks.where('projectId').equals(projectId).toArray();
           const byTitle = allProjectTasks.find(
             t => t.title.trim().toLowerCase() === task.title!.trim().toLowerCase()
           );
@@ -3973,6 +3991,8 @@ export class TapdImportService {
               endDate: task.endDate,
               progress: task.progress,
               tapdId: task.tapdId || undefined,
+              tapdWorkspaceId: workspaceId || undefined,
+              syncId,
               externalUrl,
               updatedAt: Date.now(),
               syncedAt: Date.now(),
@@ -3988,6 +4008,8 @@ export class TapdImportService {
           projectId,
           dependencies: [],
           type: 'task',
+          tapdWorkspaceId: workspaceId || undefined,
+          syncId,
           externalUrl,
           updatedAt: Date.now(),
           syncedAt: Date.now(),
