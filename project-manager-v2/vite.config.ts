@@ -46,6 +46,20 @@ export default defineConfig({
   build: {
     outDir: path.resolve(__dirname, '../docs/project-manager-v2'),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        // Keep the application entry below the browser's large-chunk warning
+        // threshold. These dependencies are shared by multiple lazy views and
+        // should be cached independently instead of inflating index-*.js.
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'zustand'],
+          'vendor-data': ['dexie', 'dexie-react-hooks', 'date-fns'],
+          'vendor-ui': ['lucide-react', '@hello-pangea/dnd', '@tanstack/react-virtual'],
+          'vendor-visual': ['echarts', 'echarts-for-react', 'html2canvas'],
+          'vendor-markdown': ['react-markdown', 'remark-breaks', 'remark-gfm'],
+        },
+      },
+    },
   },
   server: { proxy: tapdProxy },
   preview: { proxy: tapdProxy },
