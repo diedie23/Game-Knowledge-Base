@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Resource, Task } from '../types';
-import { auditTaskDataQuality } from './dataQualityService';
+import { auditTaskDataQuality, getScheduleGate } from './dataQualityService';
 
 const task = (id: number, overrides: Partial<Task> = {}): Task => ({ id, title: `任务${id}`, status: 'todo', progress: 0, dependencies: [], type: 'task', projectId: 1, tapdId: String(id), tapdWorkitemTypeName: 'UI子需求', syncedAt: new Date('2026-09-28').getTime(), ...overrides });
 
@@ -39,5 +39,14 @@ describe('auditTaskDataQuality', () => {
     const audit = auditTaskDataQuality(tasks, [], new Date('2026-09-28T12:00:00'));
     expect(audit.warningCount).toBe(80);
     expect(audit.score).toBe(70);
+  });
+
+  it('blocks affected tasks while leaving warning-only tasks eligible', () => {
+    const audit = auditTaskDataQuality([
+      task(20, { parentId: 999, assigneeIds: [1] }),
+      task(21, { tapdWorkitemTypeName: undefined, assigneeIds: [1] }),
+    ], resources, new Date('2026-09-28'));
+    expect(getScheduleGate(audit, [20])).toMatchObject({ allowed: false, blockingTaskIds: [20] });
+    expect(getScheduleGate(audit, [21]).allowed).toBe(true);
   });
 });

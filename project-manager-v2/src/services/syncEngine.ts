@@ -551,20 +551,34 @@ class SyncEngine {
   }
 
   // ─── Statistics ──────────────────────────────────────────────
-  async getStats(): Promise<{
+  async getStats(projectId?: number): Promise<{
     pendingChanges: number;
     totalChanges: number;
     unresolvedConflicts: number;
     lastSyncAt: number | null;
   }> {
-    const pendingLogs = await db.changeLogs.filter(log => !log.synced).count().catch(() => 0);
-    const totalLogs = await db.changeLogs.count();
-    const unresolvedConflicts = await db.syncConflicts.filter(c => !c.resolvedAt).count();
-    const syncMeta = await db.syncMeta.filter(m => m.source === 'tapd').first();
+    const allLogs = await db.changeLogs.toArray();
+    const projectLogs = projectId == null
+      ? allLogs
+      : (await Promise.all(allLogs.map(async log => (await this.getChangeProjectIds(log)).includes(projectId) ? log : null)))
+        .filter((log): log is ChangeLog => log !== null);
+    const pendingLogs = projectLogs.filter(log => !log.synced).length;
+    const unresolved = await db.syncConflicts.filter(c => !c.resolvedAt).toArray();
+    const unresolvedConflicts = projectId == null
+      ? unresolved.length
+      : (await Promise.all(unresolved.map(async conflict => {
+          const projectIds = conflict.table === 'tasks'
+            ? await this.getChangeProjectIds({ table: 'tasks', recordId: conflict.recordId, snapshot: conflict.localVersion } as ChangeLog)
+            : await this.getChangeProjectIds({ table: 'resources', recordId: conflict.recordId, snapshot: conflict.localVersion } as ChangeLog);
+          return projectIds.includes(projectId);
+        }))).filter(Boolean).length;
+    const syncMeta = projectId == null
+      ? await db.syncMeta.filter(m => m.source === 'tapd').first()
+      : await this.getSyncMeta('tapd', projectId);
 
     return {
       pendingChanges: pendingLogs,
-      totalChanges: totalLogs,
+      totalChanges: projectLogs.length,
       unresolvedConflicts,
       lastSyncAt: syncMeta ? Math.max(syncMeta.lastPullAt, syncMeta.lastPushAt) : null,
     };

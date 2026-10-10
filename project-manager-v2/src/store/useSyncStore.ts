@@ -17,8 +17,8 @@ interface SyncState {
   syncLog: Array<{ time: number; message: string; type: 'info' | 'success' | 'warning' | 'error' }>;
 
   // Actions
-  refreshStats: () => Promise<void>;
-  refreshConflicts: () => Promise<void>;
+  refreshStats: (projectId?: number) => Promise<void>;
+  refreshConflicts: (projectId?: number) => Promise<void>;
   addLogEntry: (message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
   setOnline: (online: boolean) => void;
   setSyncStatus: (status: SyncStatus) => void;
@@ -34,9 +34,9 @@ export const useSyncStore = create<SyncState>((set, get) => ({
   unresolvedConflicts: [],
   syncLog: [],
 
-  refreshStats: async () => {
+  refreshStats: async (projectId?: number) => {
     try {
-      const stats = await syncEngine.getStats();
+      const stats = await syncEngine.getStats(projectId);
       set({
         pendingChanges: stats.pendingChanges,
         lastSyncAt: stats.lastSyncAt,
@@ -46,12 +46,21 @@ export const useSyncStore = create<SyncState>((set, get) => ({
     }
   },
 
-  refreshConflicts: async () => {
+  refreshConflicts: async (projectId?: number) => {
     try {
       const conflicts = await db.syncConflicts
         .filter(c => !c.resolvedAt)
         .toArray();
-      set({ unresolvedConflicts: conflicts });
+      if (projectId == null) {
+        set({ unresolvedConflicts: conflicts });
+        return;
+      }
+      const projectConflicts = conflicts.filter(conflict => {
+        const version = conflict.localVersion;
+        if (conflict.table === 'tasks') return version?.projectId === projectId;
+        return Array.isArray(version?.projectIds) && version.projectIds.includes(projectId);
+      });
+      set({ unresolvedConflicts: projectConflicts });
     } catch (e) {
       console.warn('[SyncStore] Failed to refresh conflicts:', e);
     }

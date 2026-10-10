@@ -21,11 +21,21 @@ export interface PendingSyncPreview {
   impactReason: string;
 }
 
-export function buildPendingSyncPreview(logs: ChangeLog[], tasks: Task[], resources: Resource[]): PendingSyncPreview[] {
+export function buildPendingSyncPreview(logs: ChangeLog[], tasks: Task[], resources: Resource[], projectId?: number): PendingSyncPreview[] {
   const taskById = new Map(tasks.filter(task => task.id).map(task => [task.id!, task]));
   const resourceById = new Map(resources.filter(resource => resource.id).map(resource => [resource.id!, resource]));
+  const belongsToProject = (log: ChangeLog) => {
+    if (projectId == null) return true;
+    if (log.table === 'tasks') {
+      const task = taskById.get(log.recordId);
+      return (task?.projectId ?? log.snapshot?.projectId) === projectId;
+    }
+    const resource = resourceById.get(log.recordId);
+    const projectIds = resource?.projectIds ?? log.snapshot?.projectIds ?? [];
+    return Array.isArray(projectIds) && projectIds.includes(projectId);
+  };
   const grouped = new Map<string, ChangeLog[]>();
-  logs.filter(log => !log.synced).sort((a, b) => a.timestamp - b.timestamp).forEach(log => {
+  logs.filter(log => !log.synced && belongsToProject(log)).sort((a, b) => a.timestamp - b.timestamp).forEach(log => {
     const key = `${log.table}:${log.recordId}`;
     grouped.set(key, [...(grouped.get(key) || []), log]);
   });

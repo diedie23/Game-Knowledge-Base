@@ -227,7 +227,7 @@ export const trackedDb = {
         const oldRec = oldRecords.find(r => r.id === updates[i].id);
         const newRec = newRecords.find(r => r.id === updates[i].id);
         if (oldRec && newRec) {
-          changeTracker.trackUpdate('tasks', updates[i].id, oldRec, newRec).catch(() => {});
+          await changeTracker.trackUpdate('tasks', updates[i].id, oldRec, newRec);
         }
       }
 
@@ -248,7 +248,7 @@ export const trackedDb = {
 
       // Track creation for TAPD sync
       if (created) {
-        changeTracker.trackCreate('tasks', id, created).catch(() => {});
+        await changeTracker.trackCreate('tasks', id, created);
       }
 
       useHistoryStore.getState().pushCommand({
@@ -275,7 +275,7 @@ export const trackedDb = {
 
       // Track deletions for TAPD sync
       for (const t of allTasks) {
-        changeTracker.trackDelete('tasks', t.id!, t).catch(() => {});
+        await changeTracker.trackDelete('tasks', t.id!, t);
       }
 
       await db.tasks.bulkDelete(allIds);
@@ -299,7 +299,7 @@ export const trackedDb = {
 
       // Track deletions for TAPD sync
       for (const t of tasks) {
-        changeTracker.trackDelete('tasks', t.id!, t).catch(() => {});
+        await changeTracker.trackDelete('tasks', t.id!, t);
       }
 
       await db.tasks.bulkDelete(ids);

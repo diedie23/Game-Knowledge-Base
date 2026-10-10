@@ -7,7 +7,7 @@ import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildTa
 import { updateTask } from '../services/taskService';
 import { useStore } from '../store/useStore';
 import { getPriorityLabel } from '../utils/priority';
-import { auditTaskDataQuality } from '../services/dataQualityService';
+import { auditTaskDataQuality, getScheduleGate } from '../services/dataQualityService';
 
 interface Props {
   tasks: Task[];
@@ -57,6 +57,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
   const [pageSize, setPageSize] = useState(10);
   const capacities = useLiveQuery(() => db.resourceCapacities.toArray()) || [];
   const dataAudit = useMemo(() => auditTaskDataQuality(tasks, resources), [tasks, resources]);
+  const scheduleGate = useMemo(() => getScheduleGate(dataAudit), [dataAudit]);
   const criticalQualityByTask = useMemo(() => {
     const result = new Map<number, string[]>();
     dataAudit.issues.filter(issue => issue.severity === 'critical').forEach(issue => {
@@ -207,6 +208,13 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
             <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${freshness.tone}`}>{freshness.label}</span>
           </div>
           <p className="mt-1 text-xs text-gray-400">读取 TAPD 任务，在本地按工时、个人有效日产能、WIP、依赖和截止日生成预排建议；结果仅保存到本地，供您手动调整 TAPD。</p>
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px]">
+            <span className={`rounded border px-2 py-1 ${scheduleGate.allowed ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300' : 'border-red-500/25 bg-red-500/10 text-red-300'}`}>
+              {scheduleGate.allowed ? (dataAudit.warningCount > 0 ? '数据可排期，存在提醒' : '数据质量通过') : '存在关键问题，按任务阻断'}
+            </span>
+            <span className="rounded border border-gray-700 bg-gray-900/50 px-2 py-1 text-gray-400">质量分 {dataAudit.score}</span>
+            <span className="rounded border border-gray-700 bg-gray-900/50 px-2 py-1 text-gray-400">关键 {dataAudit.criticalCount} · 提醒 {dataAudit.warningCount}</span>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={enterRiskGantt} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800/70 px-3 py-2 text-xs text-gray-300 hover:border-indigo-500/40 hover:text-white">

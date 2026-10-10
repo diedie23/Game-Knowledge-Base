@@ -133,6 +133,11 @@ export async function createTask(data: CreateTaskDTO, reason?: string): Promise<
     updatedAt: Date.now(),
   };
 
+  const validation = validateTask(task, await db.tasks.toArray());
+  if (!validation.valid) {
+    throw new Error(`任务校验失败：${validation.errors.join('；')}`);
+  }
+
   const id = await trackedDb.tasks.add(task as Task, reason || `新建任务「${data.title}」`);
 
   // Auto-sync parent date range
@@ -147,6 +152,9 @@ export async function createTask(data: CreateTaskDTO, reason?: string): Promise<
  * Update an existing task with history tracking
  */
 export async function updateTask(id: number, data: UpdateTaskDTO, reason?: string): Promise<void> {
+  const existing = await db.tasks.get(id);
+  if (!existing) throw new Error(`找不到任务 #${id}`);
+
   const updateData: Partial<Task> = { ...data, updatedAt: Date.now() };
 
   // If marking as done, set completedAt
@@ -154,12 +162,16 @@ export async function updateTask(id: number, data: UpdateTaskDTO, reason?: strin
     updateData.completedAt = new Date();
   }
 
+  const validation = validateTask({ ...existing, ...updateData }, await db.tasks.toArray(), id);
+  if (!validation.valid) {
+    throw new Error(`任务校验失败：${validation.errors.join('；')}`);
+  }
+
   await trackedDb.tasks.update(id, updateData, reason || '编辑任务');
 
   // Auto-sync parent date range
-  const task = await db.tasks.get(id);
-  if (task?.parentId) {
-    await syncParentDateRange(task.parentId);
+  if (existing.parentId) {
+    await syncParentDateRange(existing.parentId);
   }
 }
 
@@ -168,11 +180,21 @@ export async function updateTask(id: number, data: UpdateTaskDTO, reason?: strin
  */
 export async function batchUpdateTasks(ids: number[], data: Partial<Task>, reason?: string): Promise<void> {
   const parentIdsToSync = new Set<number>();
+  const allTasks = await db.tasks.toArray();
+  const updateData = { ...data, updatedAt: Date.now() };
 
   for (const id of ids) {
-    const task = await db.tasks.get(id);
-    if (task?.parentId) parentIdsToSync.add(task.parentId);
-    await trackedDb.tasks.update(id, { ...data, updatedAt: Date.now() }, reason || '批量更新任务');
+    const task = allTasks.find(item => item.id === id);
+    if (!task) throw new Error(`找不到任务 #${id}`);
+    const validation = validateTask({ ...task, ...updateData }, allTasks, id);
+    if (!validation.valid) {
+      throw new Error(`任务校验失败：${validation.errors.join('；')}`);
+    }
+    if (task.parentId) parentIdsToSync.add(task.parentId);
+  }
+
+  for (const id of ids) {
+    await trackedDb.tasks.update(id, updateData, reason || '批量更新任务');
   }
 
   // Sync all affected parents

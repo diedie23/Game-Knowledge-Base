@@ -29,4 +29,12 @@ describe('buildPendingSyncPreview', () => {
   it('ignores already synced logs', () => {
     expect(buildPendingSyncPreview([{ ...log(1, {}, 1), synced: true }], [source], [])).toEqual([]);
   });
+
+  it('filters pending previews to the selected project', () => {
+    const otherProject = { ...source, id: 2, projectId: 2, title: '其他项目任务' };
+    expect(buildPendingSyncPreview([
+      log(1, { startDate: { from: undefined, to: new Date('2026-09-29') } }, 1),
+      { ...log(2, { startDate: { from: undefined, to: new Date('2026-09-29') } }, 2), recordId: 2 },
+    ], [source, otherProject], [], 1).map(item => item.recordId)).toEqual([1]);
+  });
 });

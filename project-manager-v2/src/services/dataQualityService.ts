@@ -22,6 +22,33 @@ export interface DataQualityAudit {
   latestSyncAt?: number;
 }
 
+export interface ScheduleGate {
+  allowed: boolean;
+  blockingTaskIds: number[];
+  reasons: string[];
+}
+
+/**
+ * Decide whether automatic scheduling may proceed without turning the score
+ * into a misleading global switch. Critical structural issues block only the
+ * affected tasks; warnings remain visible for manual review.
+ */
+export function getScheduleGate(audit: DataQualityAudit, taskIds?: number[]): ScheduleGate {
+  const selectedIds = taskIds ? new Set(taskIds) : undefined;
+  const blockingIssues = audit.issues.filter(issue => {
+    if (issue.severity !== 'critical') return false;
+    if (!selectedIds) return true;
+    const issueTaskIds = issue.taskIds || (issue.task?.id ? [issue.task.id] : []);
+    return issueTaskIds.length === 0 || issueTaskIds.some(id => selectedIds.has(id));
+  });
+  const blockingTaskIds = [...new Set(blockingIssues.flatMap(issue => issue.taskIds || (issue.task?.id ? [issue.task.id] : [])))];
+  return {
+    allowed: blockingIssues.length === 0,
+    blockingTaskIds,
+    reasons: [...new Set(blockingIssues.map(issue => `${issue.title}：${issue.detail}`))],
+  };
+}
+
 function isTapdTask(task: Task): boolean {
   return !!task.tapdId || task.syncSource === 'tapd' || task.syncSource === 'tapd-import';
 }

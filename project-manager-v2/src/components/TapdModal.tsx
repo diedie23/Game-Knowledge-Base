@@ -72,14 +72,14 @@ export function TapdModal() {
   const pendingSyncBundle = useLiveQuery(async () => {
     const [logs, tasks, resources] = await Promise.all([
       db.changeLogs.filter(log => !log.synced).sortBy('timestamp'),
-      db.tasks.toArray(),
+      selectedProjectId == null ? db.tasks.toArray() : db.tasks.where('projectId').equals(selectedProjectId).toArray(),
       db.resources.toArray(),
     ]);
     return { logs, tasks, resources };
-  }, [isTapdModalOpen, pendingChanges]);
+  }, [isTapdModalOpen, pendingChanges, selectedProjectId]);
   const pendingSyncPreview = useMemo(() => pendingSyncBundle
-    ? buildPendingSyncPreview(pendingSyncBundle.logs, pendingSyncBundle.tasks, pendingSyncBundle.resources)
-    : [], [pendingSyncBundle]);
+    ? buildPendingSyncPreview(pendingSyncBundle.logs, pendingSyncBundle.tasks, pendingSyncBundle.resources, selectedProjectId ?? undefined)
+    : [], [pendingSyncBundle, selectedProjectId]);
   const pendingImpactCounts = useMemo(() => ({
     high: pendingSyncPreview.filter(item => item.impact === 'high').length,
     medium: pendingSyncPreview.filter(item => item.impact === 'medium').length,
@@ -511,8 +511,8 @@ export function TapdModal() {
   useEffect(() => {
     if (isTapdModalOpen) {
       try {
-        refreshStats();
-        refreshConflicts();
+        refreshStats(selectedProjectId ?? undefined);
+        refreshConflicts(selectedProjectId ?? undefined);
       } catch (e) {
         console.error('[TapdModal] Failed to refresh stats/conflicts:', e);
       }
@@ -1079,23 +1079,16 @@ export function TapdModal() {
     setSyncResult(null);
     try {
       await configureSyncAdapter();
-      const pushResult = await syncEngine.pushPendingChanges(selectedProjectId);
-      const pullResult = await tapdService.syncTasksToLocalEnhanced(selectedProjectId);
-      const result = {
-        pushed: pushResult.pushed,
-        pulled: pullResult.total,
-        conflicts: 0,
-        errors: pushResult.failed,
-      };
+      const result = await syncEngine.fullSync(selectedProjectId);
       setSyncResult(result);
       setLocalSyncStatus(result.errors > 0 ? 'error' : 'success');
       // Auto-sync parent dates after sync
       await syncAllParentDateRanges();
-      await refreshStats();
-      await refreshConflicts();
-    } catch {
+      await refreshStats(selectedProjectId ?? undefined);
+      await refreshConflicts(selectedProjectId ?? undefined);
+    } catch (err: any) {
       setLocalSyncStatus('error');
-      setErrorMessage('同步过程中发生错误');
+      setErrorMessage(err?.message || '同步过程中发生错误');
     } finally {
       setIsSyncing(false);
     }
@@ -1106,10 +1099,12 @@ export function TapdModal() {
     try {
       await configureSyncAdapter();
       const result = await syncEngine.pushPendingChanges(selectedProjectId);
-      setSyncResult({ pushed: result.pushed, pulled: 0, conflicts: 0, errors: result.failed });
-      await refreshStats();
-    } catch {
-      setErrorMessage('推送失败');
+      await refreshConflicts(selectedProjectId ?? undefined);
+      const conflicts = (await conflictResolver.getUnresolvedConflicts()).length;
+      setSyncResult({ pushed: result.pushed, pulled: 0, conflicts, errors: result.failed });
+      await refreshStats(selectedProjectId ?? undefined);
+    } catch (err: any) {
+      setErrorMessage(err?.message || '推送失败');
     } finally {
       setIsSyncing(false);
     }
@@ -1134,7 +1129,7 @@ export function TapdModal() {
     await discardPendingSyncChanges(pendingSyncBundle.logs);
     setConfirmDiscardPending(false);
     setSyncConfirmation(null);
-    await refreshStats();
+    await refreshStats(selectedProjectId ?? undefined);
   };
 
   const handlePullOnly = async () => {
@@ -1145,8 +1140,8 @@ export function TapdModal() {
       setSyncResult({ pushed: 0, pulled: result.total, conflicts: 0, errors: 0 });
       // Auto-sync parent dates after pull
       await syncAllParentDateRanges();
-      await refreshStats();
-      await refreshConflicts();
+      await refreshStats(selectedProjectId ?? undefined);
+      await refreshConflicts(selectedProjectId ?? undefined);
     } catch {
       setErrorMessage('拉取失败');
     } finally {
@@ -1157,7 +1152,7 @@ export function TapdModal() {
   const handleResolveConflict = async (conflict: SyncConflict, resolution: 'local' | 'remote') => {
     if (!conflict.id) return;
     await conflictResolver.resolveConflict(conflict.id, resolution);
-    await refreshConflicts();
+    await refreshConflicts(selectedProjectId ?? undefined);
   };
 
   const formatTime = (ts: number | null) => {

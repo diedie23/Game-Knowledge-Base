@@ -51,6 +51,8 @@ export class MockSyncAdapter implements SyncAdapter {
  * TapdSyncAdapter - real TAPD integration via MCP proxy.
  * Delegates to tapdService for actual API calls.
  */
+const TAPD_WRITE_FIELDS = new Set(['title', 'description', 'status', 'priority', 'startDate', 'endDate']);
+
 export class TapdSyncAdapter implements SyncAdapter {
   readonly name = 'tapd';
   private workspaceId: string;
@@ -72,35 +74,37 @@ export class TapdSyncAdapter implements SyncAdapter {
     }
 
     for (const log of logs) {
-      if (log.table !== 'tasks') continue; // Only sync tasks to TAPD for now
-
       try {
+        if (log.table !== 'tasks') {
+          throw new Error(`TAPD 当前不支持同步 ${log.table} 表变更，请保留待同步记录并人工处理`);
+        }
+        if (log.action !== 'update') {
+          throw new Error(`TAPD 当前不支持本地 ${log.action === 'create' ? '新建' : '删除'}任务回写，请先在 TAPD 中操作`);
+        }
+
         const task = await db.tasks.get(log.recordId);
-        if (!task || !task.tapdId) {
-          // Skip tasks that don't exist or aren't linked to TAPD
-          continue;
+        if (!task) throw new Error(`本地任务 #${log.recordId} 不存在，无法确认 TAPD 回写对象`);
+        if (!task.tapdId) throw new Error(`本地任务「${task.title}」没有 TAPD ID，无法安全回写`);
+
+        const changedFields = Object.keys(log.changes || {});
+        const unsupportedFields = changedFields.filter(field => !TAPD_WRITE_FIELDS.has(field));
+        if (unsupportedFields.length > 0) {
+          throw new Error(`TAPD 暂不支持回写字段：${unsupportedFields.join('、')}`);
         }
 
-        // Extract the fields that actually changed
         const updates: Partial<Task> = {};
-        if (log.action === 'update' && log.changes) {
-          for (const [field, change] of Object.entries(log.changes)) {
-            (updates as any)[field] = change.to;
-          }
-        } else if (log.action === 'create' && log.snapshot) {
-           // For create, we might want to push the whole snapshot, but TAPD creation is complex.
-           // For now, we focus on updating existing TAPD stories.
-           console.warn('[TapdSyncAdapter] Creating new TAPD stories from local is not fully supported yet.');
-           continue;
+        for (const [field, change] of Object.entries(log.changes || {})) {
+          (updates as any)[field] = change.to;
+        }
+        if (Object.keys(updates).length === 0) {
+          throw new Error(`任务 #${log.recordId} 没有可回写的字段变化`);
         }
 
-        if (Object.keys(updates).length > 0) {
-          const workspaceId = task.tapdWorkspaceId || adapterWorkspaceIds[0];
-          if (!workspaceId) continue;
-          const updated = await tapdService.updateTask(workspaceId, task.tapdId, updates);
-          if (!updated) {
-            throw new Error(`TAPD 未确认任务 ${task.tapdId} 的更新`);
-          }
+        const workspaceId = task.tapdWorkspaceId || adapterWorkspaceIds[0];
+        if (!workspaceId) throw new Error(`任务「${task.title}」缺少 TAPD 工作区身份，无法安全回写`);
+        const updated = await tapdService.updateTask(workspaceId, task.tapdId, updates);
+        if (!updated) {
+          throw new Error(`TAPD 未确认任务 ${task.tapdId} 的更新`);
         }
       } catch (error) {
         console.error(`[TapdSyncAdapter] Failed to push change for task ${log.recordId}:`, error);
