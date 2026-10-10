@@ -579,6 +579,22 @@ export class LocalProjectManagerDB extends Dexie {
       changeSnapshots: 'id, date',
       projectNotes: '++id, title, category, createdAt, updatedAt, pinned, projectId, *tags'
     });
+
+    // Version 31: Add compound project-scoped indexes for large TAPD workspaces.
+    // These avoid loading every task and then filtering in JavaScript during sync.
+    this.version(31).stores({
+      tasks: '++id, title, status, priority, *assigneeIds, startDate, endDate, projectId, parentId, syncId, updatedAt, tapdId, tapdWorkspaceId, sortOrder, workCategory, completedAt, module, [projectId+syncId], [projectId+tapdId], [projectId+parentId], [projectId+updatedAt]',
+      resources: '++id, name, role, sortOrder, type, avatarStyle, status, joinDate, departDate, tapdAccount, group',
+      resourceCapacities: 'resourceId, updatedAt',
+      riskRecords: '++id, &riskId, projectId, status, ownerId, updatedAt, [projectId+status]',
+      projects: '++id, name, status',
+      tapdConfigs: '++id, workspaceId, projectId, authMode',
+      changeLogs: '++id, table, recordId, action, timestamp, synced',
+      syncMeta: '++id, source, projectId, [source+projectId]',
+      syncConflicts: '++id, table, recordId, detectedAt, resolution',
+      changeSnapshots: 'id, date',
+      projectNotes: '++id, title, category, createdAt, updatedAt, pinned, projectId, *tags'
+    });
   }
 }
 

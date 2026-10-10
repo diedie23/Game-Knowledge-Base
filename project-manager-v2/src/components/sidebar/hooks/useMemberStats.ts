@@ -34,7 +34,12 @@ interface MemberStats {
  */
 export function useMemberStats(projectId?: number | null) {
   const resources = useLiveQuery(() => db.resources.toArray());
-  const tasks = useLiveQuery(() => db.tasks.toArray());
+  const tasks = useLiveQuery(
+    () => projectId != null
+      ? db.tasks.where('projectId').equals(projectId).toArray()
+      : db.tasks.toArray(),
+    [projectId],
+  );
   const projects = useLiveQuery(() => db.projects.toArray());
   const today = useMemo(() => startOfToday(), []);
 

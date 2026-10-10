@@ -2846,7 +2846,7 @@ export class TapdService {
 
     // Get all local tasks for this project
     const allLocalTasks = await db.tasks
-      .filter(t => t.projectId === projectId)
+      .where('projectId').equals(projectId)
       .toArray();
 
     // Only refresh tasks that are already linked to TAPD (have tapdId)

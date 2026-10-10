@@ -395,15 +395,15 @@ class SyncEngine {
             : undefined
         );
         let localTask = remoteSyncId
-          ? await db.tasks.where('syncId').equals(remoteSyncId).first()
+          ? await db.tasks.where('[projectId+syncId]').equals([projectId, remoteSyncId]).first()
           : undefined;
 
         // Legacy fallback is intentionally restricted to the current project and
         // records with no workspace identity, so equal TAPD IDs in other workspaces cannot collide.
         if (!localTask && remoteTask.tapdId) {
           const workspacePath = remoteTask.tapdWorkspaceId ? `/${remoteTask.tapdWorkspaceId}/` : '';
-          const legacyCandidates = (await db.tasks.where('tapdId').equals(remoteTask.tapdId)
-            .filter(task => task.projectId === projectId && !task.tapdWorkspaceId && !task.syncId)
+          const legacyCandidates = (await db.tasks.where('[projectId+tapdId]').equals([projectId, remoteTask.tapdId])
+            .filter(task => !task.tapdWorkspaceId && !task.syncId)
             .toArray())
             .sort((left, right) => {
               const leftMatchesWorkspace = workspacePath && left.externalUrl?.includes(workspacePath) ? 1 : 0;
