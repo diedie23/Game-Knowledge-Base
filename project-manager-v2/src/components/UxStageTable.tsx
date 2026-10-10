@@ -8,6 +8,7 @@ import type { CoreUxStage } from '../services/uxStageView';
 import { buildStageRows, relatedCheckpointItems, isDemandComplete, isUiStoryOverallComplete, STAGES, STAGE_STATUS, stageStatus, taskStatus } from '../services/uxStageView';
 import { getPriorityLabel } from '../utils/priority';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
+import { getRequirementKindLabel } from '../utils/taskHierarchy';
 
 function dateLabel(value?: Date) {
   if (!value) return '未排期';
@@ -171,10 +172,10 @@ export function UxStageTable() {
           {STAGES.map((s, index) => <th key={s.key} className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 font-medium"><span className="mr-2 text-[10px] text-indigo-400">0{index + 1}</span><span className="text-gray-200">{s.label}</span><div className="mt-1 text-[10px] font-normal text-gray-500">负责人 / 状态</div></th>)}
           <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 text-center align-middle text-sm font-semibold text-gray-200"><button onClick={() => setDescending(!descending)} className="flex w-full items-center justify-center gap-1" aria-label={descending ? '截止日期降序，点击升序' : '截止日期升序，点击降序'}>截止日期<ArrowUpDown size={13} /></button></th>
         </tr></thead>
-        <tbody>{filtered.map(row => { const { root, stages } = row; const checkpoints = rowCheckpoints(row); const checkpointGroups = [...checkpoints.reduce((groups, item) => groups.set(item.label, [...(groups.get(item.label) || []), item.task]), new Map<string, Task[]>())]; const rootDone = isRowComplete(row); const rootCancelled = taskStatus(root) === 'cancelled'; return <tr key={root.id} className={'group ' + (rootCancelled ? 'bg-red-500/[0.07]' : rootDone ? 'bg-emerald-500/[0.07]' : '')}>
+        <tbody>{filtered.map(row => { const { root, stages } = row; const checkpoints = rowCheckpoints(row); const checkpointGroups = [...checkpoints.reduce((groups, item) => groups.set(item.label, [...(groups.get(item.label) || []), item.task]), new Map<string, Task[]>())]; const rootDone = isRowComplete(row); const rootCancelled = taskStatus(root) === 'cancelled'; const rootTypeLabel = root.tapdWorkitemTypeName || getRequirementKindLabel(root, true) || '需求'; return <tr key={root.id} className={'group ' + (rootCancelled ? 'bg-red-500/[0.07]' : rootDone ? 'bg-emerald-500/[0.07]' : '')}>
           <td className={'sticky left-0 z-10 border-b border-gray-800 px-4 py-3 ' + (rootCancelled ? 'bg-[#28171c] group-hover:bg-[#341b22]' : rootDone ? 'bg-[#10231d] group-hover:bg-[#153027]' : 'bg-[#11151d] group-hover:bg-[#191e2b]')}>
             <div className="mb-2 flex items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-1.5"><span className="rounded border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold text-sky-300">UIStory · 父需求</span>{rootCancelled ? <span className="rounded border border-red-500/30 bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-300">父需求已拒绝</span> : rootDone ? <span className="rounded border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">父需求已完成</span> : null}</div>
+              <div className="flex flex-wrap items-center gap-1.5"><span className="rounded border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold text-sky-300">{rootTypeLabel}</span>{rootCancelled ? <span className="rounded border border-red-500/30 bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-300">父需求已拒绝</span> : rootDone ? <span className="rounded border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">父需求已完成</span> : null}</div>
               {root.externalUrl && <a href={root.externalUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="inline-flex shrink-0 items-center gap-1 rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 text-[10px] font-medium text-indigo-300 hover:bg-indigo-500/20 hover:text-white">打开 TAPD<ExternalLink size={10} /></a>}
             </div>
             {root.externalUrl ? <a href={root.externalUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="line-clamp-2 text-left text-[13px] font-medium leading-5 text-gray-200 hover:text-indigo-300 hover:underline" title={`${root.title} · 点击前往 TAPD`}>{root.title}</a> : <button onClick={() => openTaskModal(root.id)} className="line-clamp-2 text-left text-[13px] font-medium leading-5 text-gray-200 hover:text-indigo-300" title={root.title}>{root.title}</button>}
@@ -187,6 +188,8 @@ export function UxStageTable() {
           {STAGES.map(s => {
             const items = stages[s.key];
             const summary = stageStatus(items);
+            const itemTypeLabels = [...new Set(items.map(item => item.tapdWorkitemTypeName).filter((value): value is string => Boolean(value)))];
+            const stageTypeLabel = itemTypeLabels.length === 1 ? itemTypeLabels[0] : '子需求';
             const firstTapdTask = items.find(item => item.externalUrl);
             const openStage = () => {
               if (items.length === 1 && firstTapdTask?.externalUrl) {
@@ -198,7 +201,7 @@ export function UxStageTable() {
             return <td key={s.key} className="border-b border-l border-gray-800/80 px-2 py-2 align-top group-hover:bg-white/[0.015]">
               {items.length ? <div className={'overflow-hidden rounded-lg border ' + STAGE_CARD_STYLE[summary]}>
                 <button aria-label={root.title + ' · ' + s.label + '：' + STAGE_STATUS[summary].label} onClick={openStage} className="w-full p-2 text-left transition-colors hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-indigo-400">
-                  <div className="mb-2 flex items-center justify-between gap-2"><span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-medium text-emerald-300">UI · 子需求 {items.length}</span><span className="whitespace-nowrap text-[11px] font-semibold text-gray-300">{taskRangeLabel(items)}</span></div>
+                  <div className="mb-2 flex items-center justify-between gap-2"><span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-medium text-emerald-300">{stageTypeLabel} · {items.length}项</span><span className="whitespace-nowrap text-[11px] font-semibold text-gray-300">{taskRangeLabel(items)}</span></div>
                   <div className={'mb-2 truncate text-xs ' + (items.some(t => !t.assigneeIds?.length) ? 'text-amber-200/80' : 'text-gray-300')} title={names(items)}>{names(items)}</div>
                   <div className="flex flex-wrap items-center gap-1"><StatusBadge status={summary} />{items.length > 1 && <span className="text-[10px] text-gray-500">{items.filter(t => t.status === 'done').length}/{items.length}</span>}</div>
                 </button>

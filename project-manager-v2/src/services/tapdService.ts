@@ -6,6 +6,7 @@ import {
   findTapdModuleCategoryFields,
   formatTapdCalendarDate,
   getTapdModuleCategoryValue,
+  getTapdWorkitemTypeName,
   parseTapdDate,
   parseTapdEffortHours,
 } from '../utils/tapdFields';
@@ -2227,9 +2228,10 @@ export class TapdService {
       syncId: createTapdSyncId(normalizedWorkspaceId, story.id),
       tapdParentId: story.parent_id != null ? String(story.parent_id) : undefined,
       tapdWorkitemTypeId: story.workitem_type_id ? String(story.workitem_type_id) : undefined,
-      tapdWorkitemTypeName: story.workitem_type_id
-        ? this.workitemTypeNamesByWorkspace.get(normalizedWorkspaceId)?.get(String(story.workitem_type_id))
-        : undefined,
+      tapdWorkitemTypeName: getTapdWorkitemTypeName(
+        story as unknown as Record<string, unknown>,
+        this.workitemTypeNamesByWorkspace.get(normalizedWorkspaceId) || new Map<string, string>(),
+      ),
       externalUrl,
       module,
       estimatedHours,
@@ -2666,6 +2668,7 @@ export class TapdService {
           endDate: cleanTask.endDate,
           progress: cleanTask.progress,
           completedAt: cleanTask.completedAt,
+          module: cleanTask.module,
           workCategory: cleanTask.workCategory || existing.workCategory,
           estimatedHours: cleanTask.estimatedHours,
           tapdReleaseId: cleanTask.tapdReleaseId,
@@ -2709,6 +2712,7 @@ export class TapdService {
           }
           // Merge: link tapdId to existing local task
           await this.mergeWithLocalTask(decision, tapdId, {
+            title: cleanTask.title,
             description: cleanTask.description,
             status: cleanTask.status,
             priority: cleanTask.priority,
@@ -2716,6 +2720,7 @@ export class TapdService {
             endDate: cleanTask.endDate,
             progress: cleanTask.progress,
             completedAt: cleanTask.completedAt,
+            module: cleanTask.module,
             workCategory: cleanTask.workCategory,
             estimatedHours: cleanTask.estimatedHours,
             tapdReleaseId: cleanTask.tapdReleaseId,
@@ -2753,6 +2758,7 @@ export class TapdService {
         if (matchedLocalId) {
           // Exact title match → auto-merge
           await this.mergeWithLocalTask(matchedLocalId, tapdId, {
+            title: cleanTask.title,
             description: cleanTask.description,
             status: cleanTask.status,
             priority: cleanTask.priority,
@@ -2760,6 +2766,7 @@ export class TapdService {
             endDate: cleanTask.endDate,
             progress: cleanTask.progress,
             completedAt: cleanTask.completedAt,
+            module: cleanTask.module,
             workCategory: cleanTask.workCategory,
             estimatedHours: cleanTask.estimatedHours,
             tapdReleaseId: cleanTask.tapdReleaseId,
@@ -3182,6 +3189,16 @@ export class TapdService {
       if (changes.length > 0) {
         // Apply updates to local DB
         const updateData: Partial<Task> = {
+          // Once linked, TAPD is authoritative for source-backed fields. Writing the
+          // complete canonical snapshot prevents a stale local date/status/title from
+          // surviving a refresh that was triggered by another changed field.
+          title: remote.title || localTask.title,
+          status: remote.status,
+          priority: remote.priority,
+          startDate: remote.startDate,
+          endDate: remote.endDate,
+          progress: remote.progress,
+          completedAt: remote.completedAt,
           tapdWorkspaceId: remote.tapdWorkspaceId,
           syncId: remote.syncId,
           externalUrl: remote.externalUrl,

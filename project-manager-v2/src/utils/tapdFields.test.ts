@@ -3,6 +3,7 @@ import {
   findTapdModuleCategoryFields,
   formatTapdCalendarDate,
   getTapdModuleCategoryValue,
+  getTapdWorkitemTypeName,
   parseTapdDate,
   parseTapdEffortHours,
 } from './tapdFields';
@@ -21,6 +22,10 @@ describe('TAPD field parsing', () => {
       custom_field_one: '11月版本',
       custom_field_three: '玩法关卡',
     }, fields)).toBe('玩法关卡');
+
+    expect(findTapdModuleCategoryFields({
+      Story: { custom_field_three: { label: '模块分类', options: { '42': '玩法关卡' } } },
+    })).toEqual(['custom_field_three']);
   });
 
   it('resolves standard module and category names without using unrelated fields', () => {
@@ -32,6 +37,17 @@ describe('TAPD field parsing', () => {
       new Map([['42', '玩法关卡']])
     )).toBe('玩法关卡');
     expect(getTapdModuleCategoryValue({ custom_field_one: '11月版本' }, fields)).toBeUndefined();
+  });
+
+  it('resolves work-item type from a display name before falling back to the ID map', () => {
+    expect(getTapdWorkitemTypeName({ workitem_type_id: '7', workitem_type_name: 'UIStory' })).toBe('UIStory');
+    expect(getTapdWorkitemTypeName({ workitem_type_id: '7' }, new Map([['7', 'UI']]))).toBe('UI');
+    expect(getTapdWorkitemTypeName({ workitem_type_id: '7', workitem_type: 'UIStory' })).toBe('UIStory');
+  });
+
+  it('unwraps option objects for module fields instead of showing [object Object]', () => {
+    const fields = findTapdModuleCategoryFields({ custom_field_three: '模块分类' });
+    expect(getTapdModuleCategoryValue({ custom_field_three: { label: '玩法关卡', value: '42' } }, fields)).toBe('玩法关卡');
   });
 
   it('parses TAPD calendar dates without a timezone shift', () => {

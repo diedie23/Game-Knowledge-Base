@@ -112,9 +112,12 @@ export interface TapdStory {
     module?: string;
     /** Category/module ID in TAPD */
     category_id?: string;
-    /** TAPD requirement type ID */
-    workitem_type_id?: string;
-    /** TAPD release plan ID */
+  /** TAPD requirement type ID */
+  workitem_type_id?: string;
+  /** Some TAPD REST/MCP responses include the display name directly. */
+  workitem_type_name?: string;
+  workitem_type?: string;
+  /** TAPD release plan ID */
     release_id?: string;
     /** Custom field: module feature (模块特性), e.g. "轻舟编辑器/主体" */
     custom_field_one?: string;

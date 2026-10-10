@@ -1,13 +1,31 @@
 export type TapdEffortUnit = 'days' | 'hours';
 
+function tapdFieldText(value: unknown): string {
+  if (Array.isArray(value)) {
+    return value.map(item => tapdFieldText(item)).find(Boolean) || '';
+  }
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    for (const key of ['label', 'name', 'text', 'value', 'id']) {
+      const text = tapdFieldText(record[key]);
+      if (text) return text;
+    }
+    return '';
+  }
+  return String(value ?? '').trim();
+}
+
 /** Locate TAPD fields whose configured display label is “模块分类”. */
 export function findTapdModuleCategoryFields(labels: Record<string, unknown>): string[] {
   const fields = new Set<string>();
   const visit = (value: unknown) => {
     if (!value || typeof value !== 'object') return;
     Object.entries(value as Record<string, unknown>).forEach(([fieldName, label]) => {
-      if (String(label ?? '').trim() === '模块分类') fields.add(fieldName);
-      else if (label && typeof label === 'object') visit(label);
+      // TAPD may return either a plain label or an option descriptor such as
+      // { label: '模块分类', options: ... }. Keep the owning field name.
+      if (!['label', 'name', 'text', 'value', 'options', 'option', 'values'].includes(fieldName)
+        && tapdFieldText(label) === '模块分类') fields.add(fieldName);
+      if (label && typeof label === 'object') visit(label);
     });
   };
   visit(labels);
@@ -25,13 +43,24 @@ export function getTapdModuleCategoryValue(
   categoryNames: ReadonlyMap<string, string> = new Map()
 ): string | undefined {
   for (const fieldName of fieldNames) {
-    const value = String(story[fieldName] ?? '').trim();
+    const value = tapdFieldText(story[fieldName]);
     if (value) return value;
   }
-  const standardModule = String(story.module ?? '').trim();
+  const standardModule = tapdFieldText(story.module);
   if (standardModule) return standardModule;
-  const categoryId = String(story.category_id ?? '').trim();
+  const categoryId = tapdFieldText(story.category_id);
   return categoryId ? categoryNames.get(categoryId) : undefined;
+}
+
+/** Resolve the display name of a TAPD work-item type without leaking its numeric ID into the UI. */
+export function getTapdWorkitemTypeName(
+  story: Record<string, unknown>,
+  typeNames: ReadonlyMap<string, string> = new Map()
+): string | undefined {
+  const directName = tapdFieldText(story.workitem_type_name ?? story.workitem_type);
+  if (directName && !/^\d+$/.test(directName)) return directName;
+  const typeId = tapdFieldText(story.workitem_type_id);
+  return typeId ? typeNames.get(typeId) || directName || undefined : directName || undefined;
 }
 
 export function parseTapdDate(value: unknown): Date | undefined {
