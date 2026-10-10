@@ -1,7 +1,9 @@
 import type { Resource, Task } from '../types';
+import type { ResourceCapacity } from '../types/scheduling';
 import { getTaskIdentity } from '../utils/tapdIdentity';
 import { isTaskTerminal } from '../utils/taskState';
 import { countWorkingDays, getNextWorkingDays, isWorkingDay } from '../utils/dateUtils';
+import { getEffectiveDailyCapacity, mergeCapacity } from './capacityService';
 import { smartAssignService } from './smartAssignService';
 import { relatedCheckpointLabel, resourceStage, taskStage, taskStatus, type CoreUxStage } from './uxStageView';
 import { assessTaskRisk, buildTaskRiskContext, type RiskLevel, type RiskTag } from './workloadService';
@@ -23,6 +25,12 @@ export interface TapdScheduleSuggestion {
   reviewReasons: string[];
   confidence: number;
   confidenceLevel: 'high' | 'medium' | 'low';
+  estimatedHours: number;
+  estimateSource: 'task' | 'existing_schedule' | 'stage_median' | 'fallback';
+  effectiveDailyHours: number;
+  currentPeakUtilization: number;
+  peakUtilization: number;
+  capacitySource: 'configured' | 'default';
 }
 
 export interface TapdScheduleReadiness {
@@ -85,11 +93,50 @@ function sameDay(left?: Date, right?: Date): boolean {
   return !!left && !!right && startOfDay(left).getTime() === startOfDay(right).getTime();
 }
 
-function taskDuration(task: Task): number {
+interface EffortEstimate {
+  hours: number;
+  source: TapdScheduleSuggestion['estimateSource'];
+}
+
+function estimateTaskEffort(task: Task, tasks: Task[], resources: Resource[]): EffortEstimate {
+  if (task.estimatedHours && task.estimatedHours > 0) {
+    return { hours: task.estimatedHours, source: 'task' };
+  }
+  if (task.startDate && task.endDate) {
+    return {
+      hours: Math.max(1, countWorkingDays(startOfDay(task.startDate), startOfDay(task.endDate))) * 8,
+      source: 'existing_schedule',
+    };
+  }
+  const stage = taskStage(task, resources);
+  const samples = tasks
+    .filter(candidate => candidate.id !== task.id && candidate.estimatedHours && candidate.estimatedHours > 0)
+    .filter(candidate => taskStage(candidate, resources) === stage)
+    .map(candidate => candidate.estimatedHours!)
+    .sort((left, right) => left - right);
+  if (samples.length > 0) {
+    const middle = Math.floor(samples.length / 2);
+    const median = samples.length % 2 === 0 ? (samples[middle - 1] + samples[middle]) / 2 : samples[middle];
+    return { hours: Math.max(1, median), source: 'stage_median' };
+  }
+  return { hours: 16, source: 'fallback' };
+}
+
+function resourceCapacity(resource: Resource | undefined, capacities: ResourceCapacity[]): ResourceCapacity | undefined {
+  if (!resource?.id) return undefined;
+  return capacities.find(capacity => capacity.resourceId === resource.id);
+}
+
+function effectiveDailyHours(resource: Resource | undefined, capacities: ResourceCapacity[]): number {
+  if (!resource?.id) return 8;
+  return Math.max(0.8, getEffectiveDailyCapacity(resourceCapacity(resource, capacities)) * 8);
+}
+
+function taskDuration(task: Task, effortHours: number, dailyHours: number): number {
   if (task.startDate && task.endDate) {
     return Math.max(1, countWorkingDays(startOfDay(task.startDate), startOfDay(task.endDate)));
   }
-  return Math.max(1, Math.min(10, Math.ceil((task.estimatedHours || 16) / 8)));
+  return Math.max(1, Math.min(20, Math.ceil(effortHours / Math.max(0.8, dailyHours))));
 }
 
 function periodFrom(start: Date, duration: number): [Date, Date] {
@@ -114,22 +161,57 @@ function logicalTaskKey(task: Task): string {
   return getTaskIdentity(task);
 }
 
-function overlapCount(resourceId: number | undefined, task: Task, tasks: Task[], start: Date, end: Date): number {
-  if (!resourceId) return 0;
+interface SlotMetrics {
+  activeCount: number;
+  peakUtilization: number;
+  overCapacity: boolean;
+}
+
+function taskHoursPerWorkingDay(task: Task): number {
+  if (!task.startDate || !task.endDate) return Math.max(1, task.estimatedHours || 8);
+  const days = Math.max(1, countWorkingDays(startOfDay(task.startDate), startOfDay(task.endDate)));
+  return Math.max(1, (task.estimatedHours || days * 8) / days);
+}
+
+function slotMetrics(
+  resource: Resource | undefined,
+  task: Task,
+  tasks: Task[],
+  start: Date,
+  end: Date,
+  candidateDailyHours: number,
+  capacities: ResourceCapacity[],
+): SlotMetrics {
+  if (!resource?.id) return { activeCount: 0, peakUtilization: 0, overCapacity: false };
   const parentIds = new Set(tasks.flatMap(candidate => candidate.parentId ? [candidate.parentId] : []));
   const sourceIdentity = logicalTaskKey(task);
   const seen = new Set<string>();
-
-  return tasks.filter(candidate => {
+  const relevant = tasks.filter(candidate => {
     if (candidate.id === task.id || isTaskTerminal(candidate) || candidate.status === 'paused') return false;
     if (candidate.id !== undefined && parentIds.has(candidate.id)) return false;
     const candidateIdentity = logicalTaskKey(candidate);
     if (candidateIdentity === sourceIdentity || seen.has(candidateIdentity)) return false;
-    if (!candidate.assigneeIds?.includes(resourceId) || !candidate.startDate || !candidate.endDate) return false;
+    if (!candidate.assigneeIds?.includes(resource.id!) || !candidate.startDate || !candidate.endDate) return false;
     const overlaps = startOfDay(candidate.startDate) <= end && startOfDay(candidate.endDate) >= start;
     if (overlaps) seen.add(candidateIdentity);
     return overlaps;
-  }).length;
+  });
+  const capacity = mergeCapacity(resource, resourceCapacity(resource, capacities));
+  const dailyHours = Math.max(0.8, getEffectiveDailyCapacity(capacity) * 8);
+  let peakUtilization = 0;
+  let activeCount = 1;
+  for (let cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
+    if (!isWorkingDay(cursor)) continue;
+    const active = relevant.filter(candidate => startOfDay(candidate.startDate!) <= cursor && startOfDay(candidate.endDate!) >= cursor);
+    const usedHours = active.reduce((sum, candidate) => sum + taskHoursPerWorkingDay(candidate), 0);
+    peakUtilization = Math.max(peakUtilization, (usedHours + candidateDailyHours) / dailyHours);
+    activeCount = Math.max(activeCount, active.length + 1);
+  }
+  return {
+    activeCount,
+    peakUtilization,
+    overCapacity: peakUtilization > 1 || activeCount > capacity.maxParallelTasks,
+  };
 }
 
 function isAvailable(resource: Resource, start: Date, end: Date): boolean {
@@ -179,19 +261,29 @@ export function assessTapdScheduleReadiness(
   return { ready: reasons.length === 0, stage, reasons };
 }
 
-function findSuggestedPeriod(resourceId: number | undefined, task: Task, tasks: Task[], preferredStart: Date, duration: number): [Date, Date, number] {
+function findSuggestedPeriod(
+  resource: Resource | undefined,
+  task: Task,
+  tasks: Task[],
+  preferredStart: Date,
+  duration: number,
+  candidateDailyHours: number,
+  capacities: ResourceCapacity[],
+): [Date, Date, SlotMetrics] {
   const firstDay = isWorkingDay(preferredStart) ? startOfDay(preferredStart) : getNextWorkingDays(preferredStart, 1)[0];
-  let fallback: [Date, Date, number] | null = null;
+  let fallback: [Date, Date, SlotMetrics] | null = null;
   for (let offset = 0; offset < 45; offset += 1) {
     const cursor = new Date(firstDay);
     cursor.setDate(cursor.getDate() + offset);
     if (!isWorkingDay(cursor)) continue;
     const [start, end] = periodFrom(cursor, duration);
-    const conflicts = overlapCount(resourceId, task, tasks, start, end);
-    if (!fallback || conflicts < fallback[2]) fallback = [start, end, conflicts];
-    if (conflicts === 0) return [start, end, conflicts];
+    const metrics = slotMetrics(resource, task, tasks, start, end, candidateDailyHours, capacities);
+    if (!fallback || metrics.peakUtilization < fallback[2].peakUtilization || (metrics.peakUtilization === fallback[2].peakUtilization && metrics.activeCount < fallback[2].activeCount)) {
+      fallback = [start, end, metrics];
+    }
+    if (!metrics.overCapacity) return [start, end, metrics];
   }
-  return fallback || [...periodFrom(firstDay, duration), 0];
+  return fallback || [...periodFrom(firstDay, duration), { activeCount: resource ? 1 : 0, peakUtilization: 0, overCapacity: false }];
 }
 
 export function buildTapdScheduleSuggestion(
@@ -200,19 +292,22 @@ export function buildTapdScheduleSuggestion(
   tasks: Task[],
   resources: Resource[],
   today: Date,
+  capacities: ResourceCapacity[] = [],
 ): TapdScheduleSuggestion {
   const resourceById = new Map(resources.filter(resource => resource.id).map(resource => [resource.id!, resource]));
   const currentResources = (task.assigneeIds || []).map(id => resourceById.get(id)).filter((resource): resource is Resource => !!resource);
-  const duration = taskDuration(task);
+  const currentResource = currentResources[0];
+  const effort = estimateTaskEffort(task, tasks, resources);
+  const currentDailyHours = effectiveDailyHours(currentResource, capacities);
+  const currentDuration = taskDuration(task, effort.hours, currentDailyHours);
   const todayStart = startOfDay(today);
   const currentStart = task.startDate ? startOfDay(task.startDate) : todayStart;
-  const currentEnd = task.endDate ? startOfDay(task.endDate) : periodFrom(currentStart, duration)[1];
-  const currentResource = currentResources[0];
-  // “并行”与资源矩阵保持同一口径：展示当天包含当前任务在内的有效任务总数。
-  const currentConflictCount = currentResource
-    ? overlapCount(currentResource.id, task, tasks, currentStart, currentEnd) + 1
-    : 0;
-  const shouldReassign = !currentResource || tags.includes('overload') || tags.includes('overlap');
+  const currentEnd = task.endDate ? startOfDay(task.endDate) : periodFrom(currentStart, currentDuration)[1];
+  const currentMetrics = currentResource
+    ? slotMetrics(currentResource, task, tasks, currentStart, currentEnd, effort.hours / currentDuration, capacities)
+    : { activeCount: 0, peakUtilization: 0, overCapacity: false };
+  const currentConflictCount = currentMetrics.activeCount;
+  const shouldReassign = !currentResource || tags.includes('overload') || tags.includes('overlap') || currentMetrics.overCapacity;
   const expectedType = candidateType(task, currentResources);
   const expectedStage = taskStage(task, resources);
   const currentRoles = [...new Set(currentResources.map(resource => (resource.role || '').trim().toLowerCase()).filter(Boolean))];
@@ -220,7 +315,6 @@ export function buildTapdScheduleSuggestion(
   const dependency = dependencyConstraint(task, tasks);
   const preferredStart = !task.startDate || currentEnd < todayStart ? todayStart : currentStart;
   const baseStart = dependency.readyAt && dependency.readyAt > preferredStart ? dependency.readyAt : preferredStart;
-  const [previewStart, previewEnd] = periodFrom(baseStart, duration);
 
   const candidates = resources
     .filter(resource => resource.id && resource.status !== 'departed')
@@ -230,34 +324,46 @@ export function buildTapdScheduleSuggestion(
       : expectedRole
         ? (resource.role || '').trim().toLowerCase() === expectedRole
         : false)
-    .filter(resource => isAvailable(resource, previewStart, previewEnd))
     .map(resource => {
+      const dailyHours = effectiveDailyHours(resource, capacities);
+      const duration = taskDuration(task, effort.hours, dailyHours);
+      const [previewStart, previewEnd] = periodFrom(baseStart, duration);
+      if (!isAvailable(resource, previewStart, previewEnd)) return null;
       const skill = smartAssignService.calcSkillScore(resource, task.title, tasks);
       const workload = smartAssignService.calcWorkloadScore(resource, tasks.filter(item => item.id !== task.id), previewStart, previewEnd);
       const availability = smartAssignService.calcAvailabilityScore(resource, tasks.filter(item => item.id !== task.id), previewStart, previewEnd);
+      const capacity = mergeCapacity(resource, resourceCapacity(resource, capacities));
+      const previewMetrics = slotMetrics(resource, task, tasks, previewStart, previewEnd, effort.hours / duration, capacities);
       const sameRoleBonus = currentResources.some(current => current.role === resource.role) ? 20 : 0;
-      return { resource, score: skill.score + workload.score + availability.score + sameRoleBonus, skill, workload };
+      const capacityScore = dailyHours * 4 - previewMetrics.peakUtilization * 40 - Math.max(0, previewMetrics.activeCount - capacity.maxParallelTasks) * 80;
+      return { resource, score: skill.score + workload.score + availability.score + sameRoleBonus + capacityScore, skill, workload, dailyHours, duration };
     })
+    .filter((candidate): candidate is NonNullable<typeof candidate> => !!candidate)
     .sort((left, right) => right.score - left.score || left.workload.activeCount - right.workload.activeCount || (left.resource.id || 0) - (right.resource.id || 0));
 
   const best = candidates[0];
   const selectedResource = shouldReassign && best ? best.resource : currentResource || best?.resource;
-  const [startDate, endDate, suggestedOverlapCount] = findSuggestedPeriod(selectedResource?.id, task, tasks, baseStart, duration);
-  const suggestedConflictCount = selectedResource ? suggestedOverlapCount + 1 : 0;
+  const selectedDailyHours = effectiveDailyHours(selectedResource, capacities);
+  const duration = taskDuration(task, effort.hours, selectedDailyHours);
+  const candidateDailyHours = effort.hours / duration;
+  const [startDate, endDate, suggestedMetrics] = findSuggestedPeriod(selectedResource, task, tasks, baseStart, duration, candidateDailyHours, capacities);
+  const suggestedConflictCount = suggestedMetrics.activeCount;
   const parent = task.parentId ? tasks.find(candidate => candidate.id === task.parentId) : undefined;
   const parentDeadline = parent?.endDate ? startOfDay(parent.endDate) : undefined;
   const parentDeadlineStatus = !parentDeadline ? 'unknown' : endDate <= parentDeadline ? 'safe' : 'late';
   const readiness = assessTapdScheduleReadiness(task, tags, resources);
   const reviewReasons = [...readiness.reasons];
-  if (suggestedConflictCount > 2) reviewReasons.push(`建议时段仍有 ${suggestedConflictCount} 项任务`);
+  const selectedCapacity = selectedResource ? mergeCapacity(selectedResource, resourceCapacity(selectedResource, capacities)) : undefined;
+  if (suggestedMetrics.peakUtilization > 1) reviewReasons.push(`建议时段峰值负载 ${Math.round(suggestedMetrics.peakUtilization * 100)}%`);
+  if (selectedCapacity && suggestedConflictCount > selectedCapacity.maxParallelTasks) reviewReasons.push(`建议时段并行任务 ${suggestedConflictCount} 项，超过 WIP 上限 ${selectedCapacity.maxParallelTasks} 项`);
   if (parentDeadlineStatus === 'late') reviewReasons.push('建议完成时间晚于父需求截止日期');
   if (dependency.unresolved.length > 0) reviewReasons.push(`前置任务尚未排期：${dependency.unresolved.slice(0, 2).join('、')}`);
   const assigneeChanged = !!selectedResource && selectedResource.id !== currentResource?.id;
   const scheduleChanged = !sameDay(task.startDate, startDate) || !sameDay(task.endDate, endDate);
   const reasons: string[] = [];
-  if (assigneeChanged) reasons.push(`同岗位候选中负载更低（${suggestedConflictCount} 项并行）`);
-  else if (selectedResource) reasons.push(`保留当前处理人，建议时段并行 ${suggestedConflictCount} 项`);
-  if (!task.startDate || !task.endDate) reasons.push(`按 ${duration} 个工作日补齐排期`);
+  if (assigneeChanged) reasons.push(`同岗位候选中容量更合适（峰值 ${Math.round(suggestedMetrics.peakUtilization * 100)}%）`);
+  else if (selectedResource) reasons.push(`保留当前处理人，建议时段峰值负载 ${Math.round(suggestedMetrics.peakUtilization * 100)}%`);
+  if (!task.startDate || !task.endDate) reasons.push(`按 ${effort.hours} 小时 / ${duration} 个工作日补齐排期`);
   else if (currentEnd < todayStart) reasons.push(`原排期已过期，按原工期顺延`);
   else if (suggestedConflictCount < currentConflictCount) reasons.push(`并行任务由 ${currentConflictCount} 项降至 ${suggestedConflictCount} 项`);
   if (!selectedResource) reasons.push('暂无匹配岗位人员，需在 TAPD 手动指定');
@@ -269,7 +375,8 @@ export function buildTapdScheduleSuggestion(
   if (!task.estimatedHours || task.estimatedHours <= 0) confidence -= 20;
   if (!expectedStage) confidence -= 20;
   if (parentDeadlineStatus === 'late') confidence -= 25;
-  if (suggestedConflictCount > 1) confidence -= Math.min(20, (suggestedConflictCount - 1) * 10);
+  if (suggestedMetrics.peakUtilization > 0.85) confidence -= Math.min(25, Math.round((suggestedMetrics.peakUtilization - 0.85) * 100));
+  if (selectedCapacity && suggestedConflictCount > selectedCapacity.maxParallelTasks) confidence -= 25;
   if (dependency.unresolved.length) confidence -= 30;
   if (tags.includes('blocked')) confidence -= 20;
   confidence = Math.max(10, confidence);
@@ -292,6 +399,12 @@ export function buildTapdScheduleSuggestion(
     reviewReasons: [...new Set(reviewReasons)],
     confidence,
     confidenceLevel,
+    estimatedHours: effort.hours,
+    estimateSource: effort.source,
+    effectiveDailyHours: selectedDailyHours,
+    currentPeakUtilization: currentMetrics.peakUtilization,
+    peakUtilization: suggestedMetrics.peakUtilization,
+    capacitySource: selectedResource && resourceCapacity(selectedResource, capacities) ? 'configured' : 'default',
   };
 }
 
@@ -301,6 +414,7 @@ export function buildBatchTapdScheduleSuggestions(
   tasks: Task[],
   resources: Resource[],
   today: Date = new Date(),
+  capacities: ResourceCapacity[] = [],
 ): Map<number, TapdScheduleSuggestion> {
   const result = new Map<number, TapdScheduleSuggestion>();
   const scenarioTasks = [...tasks];
@@ -318,7 +432,7 @@ export function buildBatchTapdScheduleSuggestions(
   }
   ordered.forEach(item => {
     if (!item.task.id) return;
-    const suggestion = buildTapdScheduleSuggestion(item.task, item.tags, scenarioTasks, resources, today);
+    const suggestion = buildTapdScheduleSuggestion(item.task, item.tags, scenarioTasks, resources, today, capacities);
     result.set(item.task.id, suggestion);
     if (!suggestion.resource) return;
     const scheduledTask: Task = {

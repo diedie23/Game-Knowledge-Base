@@ -124,6 +124,24 @@ export interface ScheduleSuggestion {
   risks: ScheduleRisk[];
 }
 
+export type RiskTrackingStatus = 'new' | 'confirmed' | 'handling' | 'verifying' | 'closed' | 'accepted';
+
+export interface RiskRecord {
+  id?: number;
+  riskId: string;
+  projectId: number;
+  sourceIdentity: string;
+  sourceTaskId?: number;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  status: RiskTrackingStatus;
+  ownerId?: number;
+  action?: string;
+  dueDate?: string;
+  firstDetectedAt: number;
+  updatedAt: number;
+  closedAt?: number;
+}
+
 /**
  * TAPD 父子需求解析结果。
  * 一个父需求对应一个 UX 需求包集合，而不是直接把父需求当作单个排期任务。

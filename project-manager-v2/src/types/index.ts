@@ -14,5 +14,5 @@ export type { TapdConfig, TapdWorkspaceInfo, TapdStory, TapdIteration, SyncResul
 export type { ChangeLog, SyncMeta, SyncConflict, CommandPayload, SyncEvent } from './sync';
 export type { Nullable, WithId, DeepPartial } from './common';
 
-export type { UxStage, WorkPackageStatus, WorkEstimateSource, UxWorkPackage, ResourceCapacity, ScheduleRisk, ScheduleSuggestion, UxDemandGroup } from './scheduling';
+export type { UxStage, WorkPackageStatus, WorkEstimateSource, UxWorkPackage, ResourceCapacity, ScheduleRisk, ScheduleSuggestion, UxDemandGroup, RiskRecord, RiskTrackingStatus } from './scheduling';
 export { UX_STAGE_META } from './scheduling';

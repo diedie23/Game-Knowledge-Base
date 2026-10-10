@@ -1,7 +1,7 @@
 import Dexie, { Table } from 'dexie';
 import type { Task, Resource, Project, TapdConfig, ChangeLog, SyncMeta, SyncConflict, ChangeSnapshot } from '../types';
 import type { ProjectNote } from '../types/projectNote';
-import type { ResourceCapacity } from '../types/scheduling';
+import type { ResourceCapacity, RiskRecord } from '../types/scheduling';
 import { configContainsTapdWorkspace, createTapdSyncId, parseTapdWorkspaceIds } from '../utils/tapdIdentity';
 
 // Re-export all types so existing consumers can still import from db.ts
@@ -19,6 +19,7 @@ export class LocalProjectManagerDB extends Dexie {
   changeSnapshots!: Table<ChangeSnapshot, string>;
   projectNotes!: Table<ProjectNote, number>;
   resourceCapacities!: Table<ResourceCapacity, number>;
+  riskRecords!: Table<RiskRecord, number>;
 
   constructor() {
     super('LocalProjectManagerV2DB');
@@ -562,6 +563,21 @@ export class LocalProjectManagerDB extends Dexie {
         });
         await taskTable.bulkDelete([...canonicalIdByDuplicateId.keys()]);
       }
+    });
+
+    // Version 30: Add local-only risk tracking for ownership and closure workflow.
+    this.version(30).stores({
+      tasks: '++id, title, status, priority, *assigneeIds, startDate, endDate, projectId, parentId, syncId, updatedAt, tapdId, tapdWorkspaceId, sortOrder, workCategory, completedAt, module',
+      resources: '++id, name, role, sortOrder, type, avatarStyle, status, joinDate, departDate, tapdAccount, group',
+      resourceCapacities: 'resourceId, updatedAt',
+      riskRecords: '++id, &riskId, projectId, status, ownerId, updatedAt, [projectId+status]',
+      projects: '++id, name, status',
+      tapdConfigs: '++id, workspaceId, projectId, authMode',
+      changeLogs: '++id, table, recordId, action, timestamp, synced',
+      syncMeta: '++id, source, projectId, [source+projectId]',
+      syncConflicts: '++id, table, recordId, detectedAt, resolution',
+      changeSnapshots: 'id, date',
+      projectNotes: '++id, title, category, createdAt, updatedAt, pinned, projectId, *tags'
     });
   }
 }

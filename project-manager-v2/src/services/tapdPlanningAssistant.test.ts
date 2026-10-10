@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Resource, Task } from '../types';
+import type { Resource, ResourceCapacity, Task } from '../types';
 import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildDemandRiskGroups, buildTapdPlanningItems, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, latestTapdSyncAt } from './tapdPlanningAssistant';
 import { resourceStage } from './uxStageView';
 
@@ -142,6 +142,12 @@ describe('formatTapdAdjustmentChecklist', () => {
         reviewReasons: [],
         confidence: 90,
         confidenceLevel: 'high',
+        estimatedHours: 16,
+        estimateSource: 'task',
+        effectiveDailyHours: 8,
+        currentPeakUtilization: 0,
+        peakUtilization: 0.5,
+        capacitySource: 'default',
       },
     }], [{ id: 1, name: '设计师', role: 'UI设计', type: 'internal' } as Resource]);
     expect(text).toContain('[P0] 任务8');
@@ -256,6 +262,38 @@ describe('buildTapdScheduleSuggestion', () => {
 
     const suggestion = buildTapdScheduleSuggestion(source, ['deadline'], [source, duplicatedCache, parent], resources, today);
     expect(suggestion.currentConflictCount).toBe(1);
+  });
+
+  it('uses configured effective capacity when estimating duration and avoiding overloaded slots', () => {
+    const resources: Resource[] = [{ id: 1, name: '半日视觉', role: 'UI设计', type: 'internal' } as Resource];
+    const busy = task(61, {
+      title: '【视觉设计】当天已有任务',
+      assigneeIds: [1],
+      estimatedHours: 8,
+      startDate: new Date('2026-09-28'),
+      endDate: new Date('2026-09-28'),
+    });
+    const source = task(62, {
+      title: '【视觉设计】待排任务',
+      assigneeIds: [1],
+      estimatedHours: 8,
+    });
+    const capacities: ResourceCapacity[] = [{
+      resourceId: 1,
+      dailyCapacity: 1,
+      capacityFactor: 1,
+      availabilityRatio: 0.5,
+      maxParallelTasks: 2,
+      updatedAt: 1,
+    }];
+
+    const suggestion = buildTapdScheduleSuggestion(source, ['unscheduled'], [busy, source], resources, today, capacities);
+
+    expect(suggestion.effectiveDailyHours).toBe(4);
+    expect(suggestion.durationDays).toBe(2);
+    expect(suggestion.startDate.toDateString()).toBe(new Date('2026-09-29').toDateString());
+    expect(suggestion.peakUtilization).toBe(1);
+    expect(suggestion.capacitySource).toBe('configured');
   });
 });
 

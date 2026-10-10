@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { AlertCircle, ArrowRight, CalendarClock, Check, Copy, ExternalLink, GitBranch, LocateFixed, RefreshCw, ShieldAlert, UserRoundX, X } from 'lucide-react';
+import { AlertCircle, ArrowRight, CalendarClock, Check, ChevronLeft, ChevronRight, Copy, ExternalLink, GitBranch, LocateFixed, RefreshCw, ShieldAlert, UserRoundX, X } from 'lucide-react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import type { Resource, Task } from '../types';
+import { db } from '../db/db';
 import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildTapdPlanningItems, buildTapdScheduleSuggestion, findDemandForTask, formatTapdAdjustmentChecklist, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
 import { updateTask } from '../services/taskService';
 import { useStore } from '../store/useStore';
@@ -51,6 +53,9 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
   const [applyingId, setApplyingId] = useState<number | null>(null);
   const [appliedMessage, setAppliedMessage] = useState('');
   const [applyError, setApplyError] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const capacities = useLiveQuery(() => db.resourceCapacities.toArray()) || [];
   const dataAudit = useMemo(() => auditTaskDataQuality(tasks, resources), [tasks, resources]);
   const criticalQualityByTask = useMemo(() => {
     const result = new Map<number, string[]>();
@@ -75,11 +80,17 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     if (filter === 'unassigned') return item.tags.includes('unassigned');
     return true;
   }), [planningEntries, filter, stageFilter]);
-  const items = useMemo(() => {
-    const visible = filteredItems.slice(0, 8);
-    const suggestions = buildBatchTapdScheduleSuggestions(visible, tasks, resources, new Date());
-    return visible.map(item => ({ ...item, suggestion: suggestions.get(item.task.id!) || buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date()) }));
-  }, [filteredItems, tasks, resources]);
+  const suggestedItems = useMemo(() => {
+    const suggestions = buildBatchTapdScheduleSuggestions(filteredItems, tasks, resources, new Date(), capacities);
+    return filteredItems.map(item => ({
+      ...item,
+      suggestion: suggestions.get(item.task.id!) || buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date(), capacities),
+    }));
+  }, [filteredItems, tasks, resources, capacities]);
+  const pageCount = Math.max(1, Math.ceil(suggestedItems.length / pageSize));
+  React.useEffect(() => setPage(current => Math.min(current, pageCount)), [pageCount]);
+  React.useEffect(() => setPage(1), [filter, stageFilter, pageSize]);
+  const items = useMemo(() => suggestedItems.slice((page - 1) * pageSize, page * pageSize), [suggestedItems, page, pageSize]);
   const latestSyncAt = useMemo(() => latestTapdSyncAt(tasks), [tasks]);
   const freshness = syncFreshness(latestSyncAt);
   const counts = useMemo(() => ({
@@ -100,9 +111,9 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
   };
   const selectedItems = useMemo(() => {
     const selected = planningEntries.filter(item => item.task.id && selectedIds.has(item.task.id));
-    const suggestions = buildBatchTapdScheduleSuggestions(selected, tasks, resources, new Date());
-    return selected.map(item => ({ ...item, suggestion: suggestions.get(item.task.id!) || buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date()) }));
-  }, [planningEntries, selectedIds, tasks, resources]);
+    const suggestions = buildBatchTapdScheduleSuggestions(selected, tasks, resources, new Date(), capacities);
+    return selected.map(item => ({ ...item, suggestion: suggestions.get(item.task.id!) || buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date(), capacities) }));
+  }, [planningEntries, selectedIds, tasks, resources, capacities]);
   const applicableSelectedItems = useMemo(() => selectedItems.filter(item => !item.suggestion.requiresReview && !criticalQualityByTask.has(item.task.id!)), [selectedItems, criticalQualityByTask]);
   const scenarioImpact = useMemo(() => {
     if (!selectedItems.length) return null;
@@ -111,10 +122,10 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     return {
       currentMissingSchedule: selectedItems.filter(item => !item.task.startDate || !item.task.endDate).length,
       currentUnassigned: selectedItems.filter(item => !item.task.assigneeIds?.length).length,
-      currentPeakParallel: Math.max(0, ...selectedItems.map(item => item.suggestion.currentConflictCount)),
+      currentPeakUtilization: Math.max(0, ...selectedItems.map(item => item.suggestion.currentPeakUtilization)),
       applicable: applicableSelectedItems.length,
       review: selectedItems.length - applicableSelectedItems.length,
-      proposedPeakParallel: Math.max(0, ...applicableSelectedItems.map(item => item.suggestion.suggestedConflictCount)),
+      proposedPeakUtilization: Math.max(0, ...applicableSelectedItems.map(item => item.suggestion.peakUtilization)),
       deadlineLate: selectedItems.filter(item => item.suggestion.parentDeadlineStatus === 'late').length,
       assigneeChanged: applicableSelectedItems.filter(item => item.suggestion.assigneeChanged).length,
       rangeStart: proposedStarts.length ? new Date(Math.min(...proposedStarts)) : undefined,
@@ -150,8 +161,8 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
         startDate: item.suggestion.startDate,
         endDate: item.suggestion.endDate,
         assigneeIds: item.suggestion.resource?.id ? [item.suggestion.resource.id] : item.task.assigneeIds,
-      }, '应用 TAPD 排期助手建议');
-      setAppliedMessage(`已将「${item.task.title}」的建议人员与日期加入本地待同步，请在 TAPD 同步中心确认推送。`);
+      }, '应用本地排期助手建议');
+      setAppliedMessage(`已将「${item.task.title}」的建议人员与日期保存到本地排期；不会自动回写 TAPD。`);
     } catch (error) {
       setApplyError(true);
       setAppliedMessage(`应用建议失败：${error instanceof Error ? error.message : '请稍后重试'}`);
@@ -172,7 +183,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
           startDate: item.suggestion.startDate,
           endDate: item.suggestion.endDate,
           assigneeIds: item.suggestion.resource?.id ? [item.suggestion.resource.id] : item.task.assigneeIds,
-        }, '批量应用 TAPD 排期助手建议');
+        }, '批量应用本地排期助手建议');
         applied += 1;
       } catch {
         failed += 1;
@@ -181,7 +192,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     setApplyError(failed > 0);
     setAppliedMessage(failed > 0
       ? `已加入 ${applied} 项，另有 ${failed} 项应用失败，请重新检查。`
-      : `已将 ${applied} 项建议人员与日期加入本地待同步，请在 TAPD 同步中心确认推送。`);
+      : `已将 ${applied} 项建议人员与日期保存到本地排期；不会自动回写 TAPD。`);
     setSelectedIds(new Set());
     setApplyingId(null);
   };
@@ -192,17 +203,17 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
         <div>
           <div className="flex items-center gap-2">
             <ShieldAlert size={19} className="text-indigo-300" />
-            <h2 className="text-base font-bold text-white">TAPD 排期助手</h2>
+            <h2 className="text-base font-bold text-white">排期决策工作台</h2>
             <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${freshness.tone}`}>{freshness.label}</span>
           </div>
-          <p className="mt-1 text-xs text-gray-400">聚焦缺少开始或结束日期的任务，按同工种人员负载生成建议；同一批建议会相互避让，避免集中到同一人同一时段。</p>
+          <p className="mt-1 text-xs text-gray-400">读取 TAPD 任务，在本地按工时、个人有效日产能、WIP、依赖和截止日生成预排建议；结果仅保存到本地，供您手动调整 TAPD。</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={enterRiskGantt} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800/70 px-3 py-2 text-xs text-gray-300 hover:border-indigo-500/40 hover:text-white">
             <CalendarClock size={14} />进入甘特预排
           </button>
           <button onClick={openTapdModal} className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-500/30 bg-indigo-500/15 px-3 py-2 text-xs font-medium text-indigo-200 hover:bg-indigo-500/25 hover:text-white">
-            <RefreshCw size={14} />打开 TAPD 同步中心
+            <RefreshCw size={14} />TAPD 数据读取
           </button>
         </div>
       </div>
@@ -216,7 +227,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
         ].map(summary => <button key={summary.label} onClick={() => setFilter(filter === summary.filter ? 'all' : summary.filter)} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition-colors ${filter === summary.filter ? 'border-indigo-500/50 bg-indigo-500/15' : 'border-gray-700/60 bg-gray-950/30 hover:border-gray-600'}`}><summary.icon size={14} className={summary.color} /><span className="text-lg font-bold text-white">{summary.value}</span><span className="text-[11px] text-gray-500">{summary.label}</span></button>)}
       </div>
 
-      {appliedMessage && <div className={`mt-3 flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-xs ${applyError ? 'border-red-500/20 bg-red-500/[0.07] text-red-300' : 'border-emerald-500/20 bg-emerald-500/[0.07] text-emerald-300'}`}><span>{appliedMessage}</span>{!applyError && <button onClick={openTapdModal} className="shrink-0 font-medium text-sky-300 hover:text-white">前往同步中心</button>}</div>}
+      {appliedMessage && <div className={`mt-3 flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-xs ${applyError ? 'border-red-500/20 bg-red-500/[0.07] text-red-300' : 'border-emerald-500/20 bg-emerald-500/[0.07] text-emerald-300'}`}><span>{appliedMessage}</span><button onClick={() => setAppliedMessage('')} className="shrink-0 text-gray-400 hover:text-white">关闭</button></div>}
 
       {dataAudit.criticalCount > 0 && <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-red-500/25 bg-red-500/[0.07] px-3 py-2 text-xs text-red-200"><span><strong>{dataAudit.criticalCount} 项关键数据异常</strong>，相关任务已禁止直接应用排期，需先修复重复记录、父子关系或日期错误。</span><button onClick={openTapdModal} className="shrink-0 font-medium text-sky-300 hover:text-white">前往核查</button></div>}
 
@@ -232,7 +243,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div className="rounded-lg bg-gray-900/70 px-2 py-2"><div className="text-base font-semibold text-orange-300">{scenarioImpact.currentMissingSchedule}</div><div className="text-[10px] text-gray-500">缺少排期</div></div>
                 <div className="rounded-lg bg-gray-900/70 px-2 py-2"><div className="text-base font-semibold text-sky-300">{scenarioImpact.currentUnassigned}</div><div className="text-[10px] text-gray-500">未匹配人员</div></div>
-                <div className="rounded-lg bg-gray-900/70 px-2 py-2"><div className="text-base font-semibold text-gray-300">{scenarioImpact.currentPeakParallel}</div><div className="text-[10px] text-gray-500">峰值并行</div></div>
+                <div className="rounded-lg bg-gray-900/70 px-2 py-2"><div className="text-base font-semibold text-gray-300">{Math.round(scenarioImpact.currentPeakUtilization * 100)}%</div><div className="text-[10px] text-gray-500">峰值负载</div></div>
               </div>
             </div>
             <div className="p-3">
@@ -240,7 +251,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
               <div className="grid grid-cols-5 gap-2 text-center">
                 <div className="rounded-lg bg-emerald-500/[0.07] px-2 py-2"><div className="text-base font-semibold text-emerald-300">{scenarioImpact.applicable}</div><div className="text-[10px] text-gray-500">可直接应用</div></div>
                 <div className="rounded-lg bg-orange-500/[0.07] px-2 py-2"><div className="text-base font-semibold text-orange-300">{scenarioImpact.review}</div><div className="text-[10px] text-gray-500">需确认</div></div>
-                <div className="rounded-lg bg-blue-500/[0.07] px-2 py-2"><div className="text-base font-semibold text-blue-300">{scenarioImpact.proposedPeakParallel}</div><div className="text-[10px] text-gray-500">峰值并行</div></div>
+                <div className="rounded-lg bg-blue-500/[0.07] px-2 py-2"><div className="text-base font-semibold text-blue-300">{Math.round(scenarioImpact.proposedPeakUtilization * 100)}%</div><div className="text-[10px] text-gray-500">峰值负载</div></div>
                 <div className="rounded-lg bg-violet-500/[0.07] px-2 py-2"><div className="text-base font-semibold text-violet-300">{scenarioImpact.assigneeChanged}</div><div className="text-[10px] text-gray-500">调整人员</div></div>
                 <div className={`rounded-lg px-2 py-2 ${scenarioImpact.deadlineLate ? 'bg-red-500/[0.08]' : 'bg-emerald-500/[0.07]'}`}><div className={`text-base font-semibold ${scenarioImpact.deadlineLate ? 'text-red-300' : 'text-emerald-300'}`}>{scenarioImpact.deadlineLate}</div><div className="text-[10px] text-gray-500">突破截止</div></div>
               </div>
@@ -250,7 +261,23 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
       )}
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        {items.length > 0 && <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-gray-500"><div className="flex items-center gap-2"><span>待排期任务清单</span><select value={stageFilter} onChange={event => setStageFilter(event.target.value as typeof stageFilter)} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="all">全部岗位</option>{Object.entries(STAGE_LABEL).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select>{(filter !== 'all' || stageFilter !== 'all') && <button onClick={() => { setFilter('all'); setStageFilter('all'); }} className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-indigo-300 hover:text-white">清除筛选</button>}<button onClick={selectVisible} className="hover:text-white">选择当前可排期项</button>{selectedIds.size > 0 && <button onClick={() => setSelectedIds(new Set())} className="hover:text-white">清空选择</button>}</div><div className="flex items-center gap-2"><span>显示前 {items.length} 项，共 {filteredItems.length} 项</span><button disabled={applicableSelectedItems.length === 0 || applyingId !== null} onClick={applySelectedDates} className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-medium text-emerald-300 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40">{applyingId === -1 ? '正在应用...' : `应用排期方案（${applicableSelectedItems.length}）`}</button><button disabled={selectedItems.length === 0} onClick={() => setShowChecklist(true)} className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 font-medium text-indigo-300 hover:bg-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-40">生成排期清单（{selectedItems.length}）</button></div></div>}
+        {items.length > 0 && <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-gray-500">
+          <div className="flex flex-wrap items-center gap-2">
+            <span>完整待排队列</span>
+            <select value={stageFilter} onChange={event => setStageFilter(event.target.value as typeof stageFilter)} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="all">全部岗位</option>{Object.entries(STAGE_LABEL).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select>
+            <select value={pageSize} onChange={event => setPageSize(Number(event.target.value))} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value={10}>每页 10 项</option><option value={20}>每页 20 项</option><option value={50}>每页 50 项</option></select>
+            {(filter !== 'all' || stageFilter !== 'all') && <button onClick={() => { setFilter('all'); setStageFilter('all'); }} className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-indigo-300 hover:text-white">清除筛选</button>}
+            <button onClick={selectVisible} className="hover:text-white">选择本页可排期项</button>
+            {selectedIds.size > 0 && <button onClick={() => setSelectedIds(new Set())} className="hover:text-white">清空选择</button>}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span>第 {page}/{pageCount} 页 · 共 {filteredItems.length} 项</span>
+            <button disabled={page <= 1} onClick={() => setPage(current => Math.max(1, current - 1))} className="rounded border border-gray-700 p-1 text-gray-300 hover:border-gray-500 disabled:opacity-30" aria-label="上一页"><ChevronLeft size={12} /></button>
+            <button disabled={page >= pageCount} onClick={() => setPage(current => Math.min(pageCount, current + 1))} className="rounded border border-gray-700 p-1 text-gray-300 hover:border-gray-500 disabled:opacity-30" aria-label="下一页"><ChevronRight size={12} /></button>
+            <button disabled={applicableSelectedItems.length === 0 || applyingId !== null} onClick={applySelectedDates} className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-medium text-emerald-300 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40">{applyingId === -1 ? '正在应用...' : `保存到本地排期（${applicableSelectedItems.length}）`}</button>
+            <button disabled={selectedItems.length === 0} onClick={() => setShowChecklist(true)} className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 font-medium text-indigo-300 hover:bg-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-40">生成手动调整清单（{selectedItems.length}）</button>
+          </div>
+        </div>}
         {items.length === 0 && <div className="col-span-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-5 text-center text-sm text-emerald-300">当前没有缺少开始或结束日期的 TAPD 任务</div>}
         {items.map(item => {
           const style = LEVEL_STYLE[item.level];
@@ -265,6 +292,13 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
             : suggestion.parentDeadlineStatus === 'late'
               ? `晚于父需求 ${formatDate(suggestion.parentDeadline)}`
               : '父需求未设置截止日期';
+          const estimateLabel = suggestion.estimateSource === 'task'
+            ? `${suggestion.estimatedHours}h TAPD/本地工时`
+            : suggestion.estimateSource === 'existing_schedule'
+              ? `${suggestion.estimatedHours}h 按原排期`
+              : suggestion.estimateSource === 'stage_median'
+                ? `${suggestion.estimatedHours}h 岗位中位数估算`
+                : `${suggestion.estimatedHours}h 默认估算`;
           return <article key={item.task.id} className={`rounded-xl border p-3 ${isSelected ? 'ring-1 ring-indigo-400/60' : ''} ${style.card}`}>
             <div className="flex items-start gap-2">
               <button onClick={() => toggleSelection(item.task.id)} className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border ${isSelected ? 'border-indigo-400 bg-indigo-500 text-white' : 'border-gray-600 bg-gray-900/60 text-transparent hover:border-indigo-400'}`} aria-label={isSelected ? '取消选择' : '选择任务'}><Check size={11} /></button>
@@ -286,8 +320,8 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-1.5 text-[10px]">
                   <div className="rounded-md border border-white/[0.05] bg-black/10 px-2 py-1.5"><span className="text-gray-500">工种</span><span className="ml-2 font-medium text-gray-300">{suggestion.stage ? STAGE_LABEL[suggestion.stage] : '待确认'}</span></div>
-                  <div className="rounded-md border border-white/[0.05] bg-black/10 px-2 py-1.5"><span className="text-gray-500">工期</span><span className="ml-2 font-medium text-gray-300">{suggestion.durationDays} 个工作日{item.task.estimatedHours ? ` · ${item.task.estimatedHours}h` : ' · 默认估算'}</span></div>
-                  <div className="rounded-md border border-white/[0.05] bg-black/10 px-2 py-1.5"><span className="text-gray-500">人员负载</span><span className="ml-2 font-medium text-gray-300">当期 {suggestion.currentConflictCount} → {suggestion.suggestedConflictCount} 项</span></div>
+                  <div className="rounded-md border border-white/[0.05] bg-black/10 px-2 py-1.5"><span className="text-gray-500">工期</span><span className="ml-2 font-medium text-gray-300">{suggestion.durationDays} 个工作日 · {estimateLabel}</span></div>
+                  <div className="rounded-md border border-white/[0.05] bg-black/10 px-2 py-1.5"><span className="text-gray-500">人员负载</span><span className="ml-2 font-medium text-gray-300">{Math.round(suggestion.currentPeakUtilization * 100)}% → {Math.round(suggestion.peakUtilization * 100)}% · 日产能 {suggestion.effectiveDailyHours.toFixed(1)}h</span></div>
                   <div className={`rounded-md border px-2 py-1.5 ${suggestion.parentDeadlineStatus === 'late' ? 'border-red-500/20 bg-red-500/[0.06] text-red-300' : 'border-white/[0.05] bg-black/10 text-gray-300'}`}><span className="text-gray-500">截止影响</span><span className="ml-2 font-medium">{deadlineLabel}</span></div>
                 </div>
                 {!canApply && <p className="mt-2 rounded-md border border-orange-500/20 bg-orange-500/[0.06] px-2 py-1.5 text-[10px] text-orange-300">需确认：{[...qualityReasons, ...suggestion.reviewReasons].join('；')}</p>}
@@ -296,7 +330,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
             </div>
             <div className="mt-2 flex items-center justify-end gap-3 border-t border-white/[0.05] pt-2">
               <button onClick={() => locateInGantt(item.task)} className="inline-flex items-center gap-1 text-[10px] text-gray-400 hover:text-indigo-300"><LocateFixed size={11} />甘特图定位</button>
-              <button disabled={applyingId !== null || !canApply} onClick={() => applySuggestedDates(item)} title={canApply ? '加入本地待同步' : [...qualityReasons, ...suggestion.reviewReasons].join('；')} className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"><CalendarClock size={11} />{applyingId === item.task.id ? '正在加入...' : canApply ? '应用人员与日期' : qualityReasons.length ? '数据异常待修复' : '请先人工确认'}</button>
+              <button disabled={applyingId !== null || !canApply} onClick={() => applySuggestedDates(item)} title={canApply ? '仅保存到本地排期，不回写 TAPD' : [...qualityReasons, ...suggestion.reviewReasons].join('；')} className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"><CalendarClock size={11} />{applyingId === item.task.id ? '正在保存...' : canApply ? '保存本地方案' : qualityReasons.length ? '数据异常待修复' : '请先人工确认'}</button>
               {item.task.externalUrl ? <a href={item.task.externalUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[10px] font-medium text-sky-300 hover:text-white">打开 TAPD 调整<ExternalLink size={11} /></a> : <button onClick={() => openTaskModal(item.task.id)} className="text-[10px] font-medium text-sky-300 hover:text-white">查看本地详情</button>}
             </div>
           </article>;
