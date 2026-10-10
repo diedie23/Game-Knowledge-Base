@@ -31,7 +31,7 @@ npm run build
 npm run start:local
 ```
 
-`start:local` launches the committed build in the background at port 4173 and provides the `/tapd-api` REST proxy required by the TAPD connection test. Use `npm run serve:local` when a foreground process is preferred.
+`start:local` runs the committed build in the foreground at port 4173 and provides the `/tapd-api` REST proxy required by the TAPD connection test. Keep this terminal window open while using the site; closing it stops the local service. `npm run serve:local` is retained as an equivalent foreground alias.
 
 Open `http://127.0.0.1:4173/Game-Knowledge-Base/project-manager-v2/`.
 
