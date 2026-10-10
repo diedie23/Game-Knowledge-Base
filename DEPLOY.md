@@ -1,39 +1,47 @@
-# 🚀 部署到 GitHub Pages（3 步完成）
+# 稳定发布与访问说明
 
-## 第 1 步：在 GitHub 上创建一个新仓库
+## 固定访问地址
 
-1. 打开 https://github.com/new
-2. 仓库名填：`game-knowledge-base`（或你喜欢的名字）
-3. 选择 **Public**（公开）
-4. **不要**勾选 README / .gitignore / License
-5. 点击 **Create repository**
+本知识库使用 GitHub Pages 提供稳定静态访问，不依赖本机进程、Cloudflare Quick Tunnel 或临时公网地址。
 
-## 第 2 步：在终端中执行推送命令
+- 知识库首页：<https://diedie23.github.io/Game-Knowledge-Base/>
+- Project Manager V2：<https://diedie23.github.io/Game-Knowledge-Base/project-manager-v2/index.html>
 
-创建完仓库后，把下面命令中的 `你的GitHub用户名` 替换成你的真实用户名，然后在终端中执行：
+`trycloudflare.com` 地址属于临时隧道，进程停止或隧道重启后就会失效，不再作为对外入口。
+
+## 发布约定
+
+仓库：`diedie23/Game-Knowledge-Base`
+
+GitHub Pages 配置：
+
+- Source：`Deploy from a branch`
+- Branch：`main`
+- Folder：`/docs`
+
+每次更新线上内容前：
+
+1. 确认本地已完成修改。
+2. 在项目管理器目录构建生产版本：
 
 ```bash
-cd c:\Users\v_zhyszhang.TENCENT\CodeBuddy\20260331174644
-git add .
-git commit -m "发布游戏项目知识库"
-git branch -M main
-git remote add origin https://github.com/你的GitHub用户名/game-knowledge-base.git
-git push -u origin main
+npm --prefix "project-manager-v2" run build
 ```
 
-## 第 3 步：开启 GitHub Pages
+3. 将构建产物和必要源码提交到 `main`。
+4. 推送成功后，等待 GitHub Pages 完成更新。
 
-1. 打开你的仓库页面 `https://github.com/你的GitHub用户名/game-knowledge-base`
-2. 点击 **Settings**（设置）
-3. 左侧找到 **Pages**
-4. Source 选择 **Deploy from a branch**
-5. Branch 选择 **main**，文件夹选择 **/docs**
-6. 点击 **Save**
+GitHub Pages 只发布 `docs/`，因此不能只修改 `project-manager-v2/src/` 后直接期待线上变化；必须先构建，把最新产物写入 `docs/project-manager-v2/`。
 
-等待 1~2 分钟，你的知识库就可以通过以下链接访问了：
+## 一键更新
 
-```
-https://你的GitHub用户名.github.io/game-knowledge-base/
-```
+Windows 可运行项目根目录的 `update.bat`。脚本会先构建 Project Manager V2，再提交 `docs/` 和 `project-manager-v2/`，最后推送到 `main`。
 
-把这个链接发给任何人，对方打开浏览器就能直接看！🎉
+如果推送出现用户名或认证错误，需要先在当前 Git 环境配置 GitHub 写入凭据；匿名读取正常不代表具备推送权限。
+
+## 访问故障排查
+
+- 首页打不开：检查 GitHub Pages 是否仍指向 `main` 的 `/docs`。
+- Project Manager V2 打不开：确认访问路径包含 `/Game-Knowledge-Base/project-manager-v2/index.html`。
+- 页面能打开但 TAPD 无法同步：GitHub Pages 是静态托管，不提供 Vite 开发服务器的 `/tapd-api` 代理；需要在可访问的环境运行本地/服务端代理，或使用已配置的 TAPD MCP 网关模式。
+- 不要把 `trycloudflare.com` 地址写入对外文档，它只是临时通道，不是永久域名。
