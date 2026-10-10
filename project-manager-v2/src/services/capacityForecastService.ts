@@ -1,7 +1,9 @@
 import type { Resource, Task } from '../types';
+import type { ResourceCapacity } from '../types/scheduling';
 import { countWorkingDays, getNextWorkingDays } from '../utils/dateUtils';
 import { isTaskTerminal } from '../utils/taskState';
 import { resourceStage, STAGES, taskStage, type CoreUxStage } from './uxStageView';
+import { createScheduleScenario, getResourceDailyHours } from './schedulingKernel';
 
 export interface StageCapacityForecast {
   stage: CoreUxStage;
@@ -35,19 +37,21 @@ export function buildStageCapacityForecast(
   resources: Resource[],
   today: Date = new Date(),
   workingDays = 10,
+  capacities: ResourceCapacity[] = [],
 ): StageCapacityForecast[] {
   const start = startOfDay(today);
   const days = getNextWorkingDays(start, workingDays);
   const end = days[days.length - 1];
   const parentIds = new Set(tasks.flatMap(task => task.parentId ? [task.parentId] : []));
   const activeLeaves = tasks.filter(task => (!task.id || !parentIds.has(task.id)) && !isTaskTerminal(task) && task.status !== 'paused');
+  const scenario = createScheduleScenario(tasks, resources, capacities, start);
 
   return STAGES.map(({ key, label }) => {
     const stageResources = resources.filter(resource => resource.status !== 'departed' && resourceStage(resource) === key);
     const stageTasks = activeLeaves.filter(task => taskStage(task, resources) === key);
     const scheduled = stageTasks.filter(task => task.startDate && task.endDate && startOfDay(task.startDate) <= end && startOfDay(task.endDate) >= start);
     const pending = stageTasks.filter(task => !task.startDate || !task.endDate);
-    const capacityHours = stageResources.length * days.length * 8;
+    const capacityHours = Math.round(stageResources.reduce((sum, resource) => sum + getResourceDailyHours(resource, scenario), 0) * days.length);
     const scheduledHours = scheduled.reduce((sum, task) => sum + taskHours(task), 0);
     const pendingHours = pending.reduce((sum, task) => sum + taskHours(task), 0);
     const utilization = capacityHours ? Math.round((scheduledHours / capacityHours) * 100) : scheduledHours ? 999 : 0;

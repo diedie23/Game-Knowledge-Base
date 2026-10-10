@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { Activity, ArrowRight, Users } from 'lucide-react';
 import type { Resource, Task } from '../types';
+import { db } from '../db/db';
 import { buildStageCapacityForecast } from '../services/capacityForecastService';
 import { useStore } from '../store/useStore';
 
@@ -14,7 +16,11 @@ const STATUS_STYLE = {
 
 export function DashboardCapacityForecast({ tasks, resources }: Props) {
   const { setCurrentView } = useStore();
-  const forecasts = useMemo(() => buildStageCapacityForecast(tasks, resources), [tasks, resources]);
+  const capacities = useLiveQuery(() => db.resourceCapacities.toArray());
+  const forecasts = useMemo(
+    () => buildStageCapacityForecast(tasks, resources, new Date(), 10, capacities || []),
+    [tasks, resources, capacities],
+  );
   return (
     <section className="rounded-2xl border border-gray-700/50 bg-gray-900/35 p-5 shadow-lg">
       <div className="mb-4 flex items-start justify-between gap-3">

@@ -6,7 +6,8 @@ import type {
   UxWorkPackage,
   UxStage,
 } from '../types/scheduling';
-import { getEffectiveDailyCapacity, buildCapacitySnapshot } from './capacityService';
+import { buildCapacitySnapshot } from './capacityService';
+import { createScheduleScenario, getResourceDailyHours, getScenarioCapacity, type ScheduleScenario } from './schedulingKernel';
 
 export interface SchedulingInput {
   packages: UxWorkPackage[];
@@ -72,18 +73,10 @@ function nextWorkday(date: Date): Date {
   return result;
 }
 
-function findCapacity(
-  capacities: ResourceCapacity[],
-  resourceId: number,
-): ResourceCapacity | undefined {
-  return capacities.find(item => item.resourceId === resourceId);
-}
-
 function selectBestResource(
   workPackage: UxWorkPackage,
   resources: Resource[],
-  tasks: Task[],
-  capacities: ResourceCapacity[],
+  scenario: ScheduleScenario,
 ): { resource?: Resource; risks: ScheduleRisk[] } {
   const candidates = resources
     .filter(resource => resource.id !== undefined)
@@ -102,9 +95,9 @@ function selectBestResource(
 
   const ranked = candidates
     .map(resource => {
-      const capacity = findCapacity(capacities, resource.id!);
-      const snapshot = buildCapacitySnapshot(resource, tasks, capacity);
-      const effectiveCapacity = getEffectiveDailyCapacity(capacity);
+      const capacity = getScenarioCapacity(resource, scenario);
+      const snapshot = buildCapacitySnapshot(resource, scenario.tasks, capacity);
+      const effectiveCapacity = getResourceDailyHours(resource, scenario) / 8;
       const score =
         effectiveCapacity * 100 -
         snapshot.activeTaskCount * 20 -
@@ -151,6 +144,7 @@ export function generateScheduleSuggestions(
   const start = nextWorkday(
     input.startDate ? toDate(input.startDate) : new Date(),
   );
+  const scenario = createScheduleScenario(input.tasks, input.resources, input.capacities, start);
 
   const ordered = [...input.packages]
     .filter(item => item.status !== 'done' && item.status !== 'cancelled')
@@ -167,8 +161,7 @@ export function generateScheduleSuggestions(
     const { resource, risks } = selectBestResource(
       workPackage,
       input.resources,
-      input.tasks,
-      input.capacities,
+      scenario,
     );
 
     if (!resource?.id) {
@@ -178,8 +171,7 @@ export function generateScheduleSuggestions(
       };
     }
 
-    const capacity = findCapacity(input.capacities, resource.id);
-    const effectiveDailyCapacity = getEffectiveDailyCapacity(capacity);
+    const effectiveDailyCapacity = getResourceDailyHours(resource, scenario) / 8;
     const personDays = Math.max(workPackage.estimatedPersonDays, 1);
     const duration = personDays / Math.max(effectiveDailyCapacity, 0.1);
 
