@@ -130,6 +130,28 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
     return active;
   }, [sortedResources, memberGroupMode, memberSearchQuery]);
   const departedResources = useMemo(() => sortedResources?.filter(r => isResourceDeparted(r)) || [], [sortedResources]);
+  const getSubgroupLabel = useCallback((item: Resource) => {
+    if (item.type === 'cp') return item.supplierAffiliation || item.group || '其他供应商';
+    return memberGroupMode === 'group' ? item.group || '未分组' : item.role || '其他';
+  }, [memberGroupMode]);
+  const resourceTypeCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    activeResources.forEach(resource => {
+      const type = resource.type || 'internal';
+      counts.set(type, (counts.get(type) || 0) + 1);
+    });
+    return counts;
+  }, [activeResources]);
+  const resourceSubgroupCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    activeResources.forEach(resource => {
+      const type = resource.type || 'internal';
+      const subgroup = getSubgroupLabel(resource);
+      const key = `${type}:${subgroup}`;
+      counts.set(key, (counts.get(key) || 0) + 1);
+    });
+    return counts;
+  }, [activeResources, getSubgroupLabel]);
 
   // Compute member overview data on demand
   const memberOverview = overviewMemberId !== null ? getMemberOverview(overviewMemberId) : null;
@@ -698,22 +720,14 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                         const resourceType = resource.type || 'internal';
                         const prevType = prevResource?.type || 'internal';
                         const showTypeDivider = !prevResource || prevType !== resourceType;
-                        const typeCount = activeResources.filter(r => (r.type || 'internal') === resourceType).length;
+                        const typeCount = resourceTypeCounts.get(resourceType) || 0;
 
                         // Keep members nested by role/project group, and CP people by supplier.
-                        const getSubgroupLabel = (item: Resource) => {
-                          if (item.type === 'cp') return item.supplierAffiliation || item.group || '其他供应商';
-                          if (memberGroupMode === 'group') return item.group || '未分组';
-                          return item.role || '其他';
-                        };
                         const roleGroupLabel = getSubgroupLabel(resource);
                         const showRoleGroupDivider = !prevResource
                           || prevType !== resourceType
                           || roleGroupLabel !== getSubgroupLabel(prevResource);
-                        const roleGroupCount = activeResources.filter(item =>
-                          (item.type || 'internal') === resourceType
-                          && getSubgroupLabel(item) === roleGroupLabel
-                        ).length;
+                        const roleGroupCount = resourceSubgroupCounts.get(`${resourceType}:${roleGroupLabel}`) || 0;
                         // Use hook-provided stats for micro indicator
                         const { inProgress: memberInProgress, todo: memberTodo, done: memberDone, overdue: memberOverdue } = getMemberTaskStats(resource.id!);
                         

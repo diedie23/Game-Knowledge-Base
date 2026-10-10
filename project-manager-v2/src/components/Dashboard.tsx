@@ -70,16 +70,50 @@ export function Dashboard() {
 
   const parentTaskIds = useMemo(() => {
     const ids = new Set<number>();
-    allTasks.forEach(task => { if (task.parentId) ids.add(task.parentId); });
+    allTasks.forEach(task => { if (task.parentId !== undefined) ids.add(task.parentId); });
     return ids;
   }, [allTasks]);
+  const taskById = useMemo(
+    () => new Map(allTasks.filter(task => task.id !== undefined).map(task => [task.id!, task])),
+    [allTasks],
+  );
+  const tasksByAssigneeId = useMemo(() => {
+    const result = new Map<number, typeof tasks>();
+    tasks.forEach(task => {
+      (task.assigneeIds || []).forEach(resourceId => {
+        const bucket = result.get(resourceId) || [];
+        bucket.push(task);
+        result.set(resourceId, bucket);
+      });
+    });
+    return result;
+  }, [tasks]);
   const actionableTasks = useMemo(
     () => tasks.filter(task => !task.id || !parentTaskIds.has(task.id)),
     [tasks, parentTaskIds]
   );
+  const memberTasksByResourceId = useMemo(() => {
+    const result = new Map<number, typeof tasks>();
+    resources.forEach(resource => {
+      if (resource.id === undefined) return;
+      const seen = new Set<number>();
+      const memberTasks: typeof tasks = [];
+      getResourceAliasIds(resource, resources).forEach(aliasId => {
+        (tasksByAssigneeId.get(aliasId) || []).forEach(task => {
+          if (task.id === undefined || seen.has(task.id)) return;
+          seen.add(task.id);
+          memberTasks.push(task);
+        });
+      });
+      result.set(resource.id, memberTasks);
+    });
+    return result;
+  }, [resources, tasksByAssigneeId]);
 
   // 1. 顶部一行：今天是几号、本周第几天、距离下个版本节点还有几天
-  const today = new Date();
+  // Keep the day reference stable; a new Date() on every render invalidates
+  // several expensive dashboard memoizations when a local control changes.
+  const today = useMemo(() => new Date(), []);
   const todayStr = format(today, 'yyyy年MM月dd日 EEEE', { locale: zhCN });
   const weekDay = today.getDay() === 0 ? 7 : today.getDay(); // 1-7
   
@@ -165,14 +199,14 @@ export function Dashboard() {
       const groups = new Map<string, { parentTitle: string, items: any[], isStandalone?: boolean, parentTask?: any, isParentInList?: boolean }>();
       taskList.forEach(task => {
         if (task.parentId) {
-          const parent = tasks.find(t => t.id === task.parentId);
+          const parent = taskById.get(task.parentId);
           const parentTitle = parent ? parent.title : '独立子任务';
           if (!groups.has(task.parentId)) {
             groups.set(task.parentId, { parentTitle, items: [], parentTask: parent });
           }
           groups.get(task.parentId)!.items.push(task);
         } else {
-          const hasChildren = tasks.some(t => t.parentId === task.id);
+          const hasChildren = task.id !== undefined && parentTaskIds.has(task.id);
           if (hasChildren) {
             if (!groups.has(task.id)) {
               groups.set(task.id, { parentTitle: task.title, items: [], parentTask: task, isParentInList: true });
@@ -203,7 +237,7 @@ export function Dashboard() {
       dueTodayCount,
       totalCount: dueToday.length + startToday.length
     };
-  }, [tasks, actionableTasks]);
+  }, [tasks, actionableTasks, taskById, parentTaskIds, today]);
 
   // Smart default tab: auto-select based on data
   React.useEffect(() => {
@@ -232,8 +266,7 @@ export function Dashboard() {
       if (!resource.id) return;
       // Skip conflict detection for CP resources — they only track workload, not schedule conflicts
       if (resource.type === 'cp') return;
-      const resourceTasks = tasks.filter(t => 
-        t.assigneeIds?.includes(resource.id!) && 
+      const resourceTasks = (tasksByAssigneeId.get(resource.id) || []).filter(t =>
         !isTaskTerminal(t) &&
         t.startDate && t.endDate &&
         new Date(t.startDate) <= next3Days &&
@@ -278,7 +311,7 @@ export function Dashboard() {
     });
 
     return Array.from(warningsByResource.values());
-  }, [tasks, resources, today]);
+  }, [tasks, tasksByAssigneeId, resources, today]);
 
   // 4. 未排期任务:所有还没有开始时间的任务列表
   const unscheduledTasksGrouped = useMemo(() => {
@@ -311,7 +344,7 @@ export function Dashboard() {
     });
     
     return Array.from(groups.values());
-  }, [tasks, actionableTasks]);
+  }, [tasks, actionableTasks, taskById, parentTaskIds]);
 
   // 5. 底部一行：成员今日状态
   const memberStatus = useMemo(() => {
@@ -333,16 +366,10 @@ export function Dashboard() {
       return 99;
     };
 
-    // Pre-compute parent task IDs to exclude them from member task counts
-    const parentTaskIds = new Set<number>();
-    tasks.forEach(t => {
-      if (t.parentId) parentTaskIds.add(t.parentId);
-    });
-
     const visibleResources = dedupeResourcesForDisplay(resources.filter(r => r.status !== 'departed'));
     const statuses = visibleResources.map(resource => {
-      const aliasIds = getResourceAliasIds(resource, resources);
-      const memberTasks = tasks.filter(t => t.assigneeIds?.some(id => aliasIds.includes(id)) && !parentTaskIds.has(t.id!));
+      const memberTasks = (memberTasksByResourceId.get(resource.id!) || [])
+        .filter(task => !parentTaskIds.has(task.id!));
       const memberInProgress = memberTasks.filter(t => t.status === 'in_progress' && !isTaskTerminal(t)).length;
       const memberTodo = memberTasks.filter(t => t.status === 'todo' && !isTaskTerminal(t)).length;
       const memberOverdue = memberTasks.filter(t => isTaskOverdue(t, today)).length;
@@ -368,7 +395,7 @@ export function Dashboard() {
       || a.weight - b.weight
       || (a.role || '其他岗位').localeCompare(b.role || '其他岗位', 'zh-CN')
     );
-  }, [resources, tasks, today]);
+  }, [resources, tasks, today, memberTasksByResourceId, parentTaskIds]);
 
   // 6. 数据概览统计
   const stats = useMemo(() => {

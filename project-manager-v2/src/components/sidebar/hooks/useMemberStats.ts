@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../../db/db';
-import { addDays, startOfToday, isWeekend, format } from 'date-fns';
+import { addDays, startOfToday, isWeekend } from 'date-fns';
 import type { Task, Resource } from '../../../types';
 import { isHoliday } from '../../../utils/dateUtils';
 import { compareResources } from '../../gantt/constants';
@@ -20,33 +20,137 @@ export interface MemberOverviewData {
   myTasks: Task[];
 }
 
+interface MemberStats {
+  inProgress: number;
+  todo: number;
+  done: number;
+  overdue: number;
+}
+
+/**
+ * Sidebar member indicators are visible on every view. Keep all expensive task
+ * indexing here so switching views does not repeatedly scan the whole task tree
+ * once per member (the old path was O(member * task * parent-checks)).
+ */
 export function useMemberStats(projectId?: number | null) {
   const resources = useLiveQuery(() => db.resources.toArray());
   const tasks = useLiveQuery(() => db.tasks.toArray());
   const projects = useLiveQuery(() => db.projects.toArray());
-  const today = startOfToday();
+  const today = useMemo(() => startOfToday(), []);
 
-  // Get dominant task type color for a resource
-  const getResourceColor = useMemo(() => {
-    return (resourceId: number) => {
-      if (!tasks) return '#5b5fc7';
-      const resource = resources?.find(item => item.id === resourceId);
-      const aliasIds = resource ? getResourceAliasIds(resource, resources || []) : [resourceId];
-      const myTasks = tasks.filter(t => t.assigneeIds?.some(id => aliasIds.includes(id)) && t.parentId);
-      if (myTasks.length === 0) return '#5b5fc7';
-      const colorCount = new Map<string, number>();
-      myTasks.forEach(t => {
-        const c = getTaskTypeColorValue(t.title);
-        colorCount.set(c, (colorCount.get(c) || 0) + 1);
+  const archivedProjectIds = useMemo(
+    () => new Set((projects || []).filter(project => project.status === 'archived').map(project => project.id)),
+    [projects],
+  );
+
+  const parentTaskIds = useMemo(() => {
+    const ids = new Set<number>();
+    (tasks || []).forEach(task => {
+      if (task.parentId !== undefined) ids.add(task.parentId);
+    });
+    return ids;
+  }, [tasks]);
+
+  const resourceAliasesById = useMemo(() => {
+    const result = new Map<number, number[]>();
+    if (!resources) return result;
+    resources.forEach(resource => {
+      if (resource.id !== undefined) {
+        result.set(resource.id, getResourceAliasIds(resource, resources));
+      }
+    });
+    return result;
+  }, [resources]);
+
+  // Index leaf tasks once by direct assignee. Member aliases are merged below.
+  const tasksByAssigneeId = useMemo(() => {
+    const result = new Map<number, Task[]>();
+    (tasks || []).forEach(task => {
+      if (!task.id || parentTaskIds.has(task.id)) return;
+      if (task.projectId !== undefined && archivedProjectIds.has(task.projectId)) return;
+      if (projectId != null && task.projectId !== projectId) return;
+      (task.assigneeIds || []).forEach(resourceId => {
+        const bucket = result.get(resourceId) || [];
+        bucket.push(task);
+        result.set(resourceId, bucket);
       });
+    });
+    return result;
+  }, [tasks, parentTaskIds, archivedProjectIds, projectId]);
+
+  const memberTasksById = useMemo(() => {
+    const result = new Map<number, Task[]>();
+    if (!resources) return result;
+
+    resources.forEach(resource => {
+      if (resource.id === undefined) return;
+      const seen = new Set<number>();
+      const memberTasks: Task[] = [];
+      const aliasIds = resourceAliasesById.get(resource.id) || [resource.id];
+      aliasIds.forEach(aliasId => {
+        (tasksByAssigneeId.get(aliasId) || []).forEach(task => {
+          if (task.id === undefined || seen.has(task.id)) return;
+          seen.add(task.id);
+          memberTasks.push(task);
+        });
+      });
+      result.set(resource.id, memberTasks);
+    });
+    return result;
+  }, [resources, resourceAliasesById, tasksByAssigneeId]);
+
+  const allTasksByResourceId = useMemo(() => {
+    const result = new Map<number, Task[]>();
+    if (!resources) return result;
+    const directTasksByAssignee = new Map<number, Task[]>();
+    (tasks || []).forEach(task => {
+      (task.assigneeIds || []).forEach(resourceId => {
+        const bucket = directTasksByAssignee.get(resourceId) || [];
+        bucket.push(task);
+        directTasksByAssignee.set(resourceId, bucket);
+      });
+    });
+
+    resources.forEach(resource => {
+      if (resource.id === undefined) return;
+      const seen = new Set<number>();
+      const memberTasks: Task[] = [];
+      const aliasIds = resourceAliasesById.get(resource.id) || [resource.id];
+      aliasIds.forEach(aliasId => {
+        (directTasksByAssignee.get(aliasId) || []).forEach(task => {
+          if (task.id === undefined || seen.has(task.id)) return;
+          seen.add(task.id);
+          memberTasks.push(task);
+        });
+      });
+      result.set(resource.id, memberTasks);
+    });
+    return result;
+  }, [tasks, resources, resourceAliasesById]);
+
+  const getResourceColor = useMemo(() => {
+    const colors = new Map<number, string>();
+    (resources || []).forEach(resource => {
+      if (resource.id === undefined) return;
+      const colorCount = new Map<string, number>();
+      (allTasksByResourceId.get(resource.id) || [])
+        .filter(task => task.parentId !== undefined)
+        .forEach(task => {
+          const color = getTaskTypeColorValue(task.title);
+          colorCount.set(color, (colorCount.get(color) || 0) + 1);
+        });
       let maxColor = '#5b5fc7';
       let maxCount = 0;
       colorCount.forEach((count, color) => {
-        if (count > maxCount) { maxCount = count; maxColor = color; }
+        if (count > maxCount) {
+          maxCount = count;
+          maxColor = color;
+        }
       });
-      return maxColor;
-    };
-  }, [resources, tasks]);
+      colors.set(resource.id, maxColor);
+    });
+    return (resourceId: number) => colors.get(resourceId) || '#5b5fc7';
+  }, [resources, allTasksByResourceId]);
 
   // Sorted resources: type (internal→cp) → role order (UX→UI→Layout→…) → sortOrder
   // Include explicit project members as well as legacy resources with tasks in that project.
@@ -54,82 +158,71 @@ export function useMemberStats(projectId?: number | null) {
     if (!resources) return [];
     let filtered = [...resources];
     if (projectId != null && tasks) {
-      filtered = filtered.filter(r =>
-        r.projectIds?.includes(projectId) ||
-        tasks.some(t => t.assigneeIds?.includes(r.id!) && t.projectId === projectId)
+      const projectAssigneeIds = new Set<number>();
+      tasks.forEach(task => {
+        if (task.projectId === projectId) {
+          (task.assigneeIds || []).forEach(id => projectAssigneeIds.add(id));
+        }
+      });
+      filtered = filtered.filter(resource =>
+        resource.projectIds?.includes(projectId) || projectAssigneeIds.has(resource.id!),
       );
     }
     return dedupeResourcesForDisplay(filtered).sort(compareResources);
   }, [resources, tasks, projectId]);
 
-  // Compute member overview data
+  const memberStatsById = useMemo(() => {
+    const result = new Map<number, MemberStats>();
+    memberTasksById.forEach((memberTasks, resourceId) => {
+      result.set(resourceId, {
+        inProgress: memberTasks.filter(task => task.status === 'in_progress' && !isTaskTerminal(task)).length,
+        todo: memberTasks.filter(task => task.status === 'todo' && !isTaskTerminal(task)).length,
+        done: memberTasks.filter(isTaskCompleted).length,
+        overdue: memberTasks.filter(task => isTaskOverdue(task, today)).length,
+      });
+    });
+    return result;
+  }, [memberTasksById, today]);
+
+  // Compute member overview data on demand, but read from the shared index.
   const getMemberOverview = useMemo(() => {
     return (memberId: number): MemberOverviewData | null => {
-      const resource = resources?.find(r => r.id === memberId);
-      if (!resource || !tasks) return null;
+      const resource = resources?.find(item => item.id === memberId);
+      const myTasks = memberTasksById.get(memberId);
+      if (!resource || !myTasks) return null;
 
-      const aliasIds = getResourceAliasIds(resource, resources || []);
-
-      // Build archived project id set
-      const archivedProjectIds = new Set(
-        (projects || []).filter(p => p.status === 'archived').map(p => p.id)
-      );
-
-      // Leaf tasks only (exclude parent tasks to match heatmap stats, exclude archived project tasks, filter by selected project)
-      const myTasks = tasks.filter(t => {
-        if (!t.assigneeIds?.some(id => aliasIds.includes(id))) return false;
-        if (t.projectId !== undefined && archivedProjectIds.has(t.projectId)) return false;
-        if (projectId != null && t.projectId !== projectId) return false;
-        const hasChildren = tasks.some(child => child.parentId === t.id);
-        return !hasChildren;
-      });
-      const todo = myTasks.filter(t => t.status === 'todo' && !isTaskTerminal(t));
-      const inProgress = myTasks.filter(t => t.status === 'in_progress' && !isTaskTerminal(t));
-      const done = myTasks.filter(isTaskCompleted);
-      const overdue = myTasks.filter(t => isTaskOverdue(t, today));
-
-      // Find free days in the next 14 days (excluding weekends and holidays)
       const freeDays: Date[] = [];
       for (let i = 0; i < 14; i++) {
         const day = addDays(today, i);
         if (isWeekend(day) || isHoliday(day)) continue;
-        const hasTasks = myTasks.some(t => {
-          if (!t.startDate || !t.endDate) return false;
-          const start = new Date(t.startDate);
-          const end = new Date(t.endDate);
-          return day >= start && day <= end && !isTaskTerminal(t);
+        const hasTasks = myTasks.some(task => {
+          if (!task.startDate || !task.endDate) return false;
+          return day >= new Date(task.startDate) && day <= new Date(task.endDate) && !isTaskTerminal(task);
         });
         if (!hasTasks) freeDays.push(day);
       }
 
-      return { resource, total: myTasks.length, todo, inProgress, done, overdue, freeDays, myTasks };
-    };
-  }, [resources, tasks, projects, today, projectId]);
-
-  // Get task stats for a single member (for micro indicators, leaf tasks only)
-  const getMemberTaskStats = useMemo(() => {
-    return (resourceId: number) => {
-      const resource = resources?.find(item => item.id === resourceId);
-      const aliasIds = resource ? getResourceAliasIds(resource, resources || []) : [resourceId];
-      const archivedProjectIds = new Set(
-        (projects || []).filter(p => p.status === 'archived').map(p => p.id)
-      );
-      const memberTasks = tasks?.filter(t => {
-        if (!t.assigneeIds?.some(id => aliasIds.includes(id))) return false;
-        if (t.projectId !== undefined && archivedProjectIds.has(t.projectId)) return false;
-        if (projectId != null && t.projectId !== projectId) return false;
-        // Exclude parent tasks
-        const hasChildren = tasks.some(child => child.parentId === t.id);
-        return !hasChildren;
-      }) || [];
       return {
-        inProgress: memberTasks.filter(t => t.status === 'in_progress' && !isTaskTerminal(t)).length,
-        todo: memberTasks.filter(t => t.status === 'todo' && !isTaskTerminal(t)).length,
-        done: memberTasks.filter(isTaskCompleted).length,
-        overdue: memberTasks.filter(t => isTaskOverdue(t, today)).length,
+        resource,
+        total: myTasks.length,
+        todo: myTasks.filter(task => task.status === 'todo' && !isTaskTerminal(task)),
+        inProgress: myTasks.filter(task => task.status === 'in_progress' && !isTaskTerminal(task)),
+        done: myTasks.filter(isTaskCompleted),
+        overdue: myTasks.filter(task => isTaskOverdue(task, today)),
+        freeDays,
+        myTasks,
       };
     };
-  }, [resources, tasks, projects, today, projectId]);
+  }, [resources, memberTasksById, today]);
+
+  const getMemberTaskStats = useMemo(() => {
+    return (resourceId: number) => memberStatsById.get(resourceId) || {
+      inProgress: 0,
+      todo: 0,
+      done: 0,
+      overdue: 0,
+    };
+  }, [memberStatsById]);
 
   return {
     resources,
