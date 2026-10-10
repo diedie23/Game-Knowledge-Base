@@ -54,6 +54,9 @@ export function extractRemovedStoryIds(payload: unknown): string[] {
 
 // ─── MCP Gateway Configuration (streamable-http) ─────────────────
 const MCP_GATEWAY_PROXY = '/mcp-gateway/'; // Uses Vite proxy → https://mcpgw.knot.woa.com/tapd/
+const isGitHubPagesHost = typeof window !== 'undefined'
+  && /(^|\.)github\.io$/i.test(window.location.hostname);
+const STATIC_TAPD_PROXY_MESSAGE = '当前是 GitHub Pages 静态地址，不提供 TAPD 代理；请使用本地启动地址并保持服务窗口运行后再刷新。';
 
 // ─── MCP Proxy Fetch Helper ──────────────────────────────────────
 
@@ -61,6 +64,7 @@ async function mcpFetch<T>(
   endpoint: string,
   body: Record<string, unknown>
 ): Promise<T> {
+  if (isGitHubPagesHost) throw new Error(STATIC_TAPD_PROXY_MESSAGE);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
@@ -169,6 +173,7 @@ async function mcpGatewayFetch<T>(
   accessToken: string,
   gatewayUrl?: string
 ): Promise<T> {
+  if (isGitHubPagesHost) throw new Error(STATIC_TAPD_PROXY_MESSAGE);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), MCP_GATEWAY_TIMEOUT_MS);
 
@@ -356,6 +361,7 @@ async function tapdRestFetch<T>(
   method: 'GET' | 'POST' = 'GET',
   body?: any
 ): Promise<T> {
+  if (isGitHubPagesHost) throw new Error(STATIC_TAPD_PROXY_MESSAGE);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 

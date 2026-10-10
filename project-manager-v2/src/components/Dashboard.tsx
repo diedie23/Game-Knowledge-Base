@@ -20,6 +20,14 @@ import { DashboardCapacityForecast } from './DashboardCapacityForecast';
 import { DashboardDataQuality } from './DashboardDataQuality';
 import { buildReleasePlanProgress, releasePlanDateValue, selectCurrentReleasePlan, type TapdReleasePlan } from '../services/releasePlanService';
 
+const isStaticHostedEnvironment = typeof window !== 'undefined'
+  && /(^|\.)github\.io$/i.test(window.location.hostname);
+
+function getRefreshFailureMessage(reason: unknown): string {
+  if (reason instanceof Error && reason.message.trim()) return reason.message.trim();
+  return String(reason || '未知错误');
+}
+
 export function Dashboard() {
   const { setCurrentView, openTaskModal, openTapdModal, selectedProjectId } = useStore();
   const openDashboardTask = React.useCallback((task: { id?: number; externalUrl?: string }) => {
@@ -57,18 +65,28 @@ export function Dashboard() {
       return;
     }
     let active = true;
+    if (isStaticHostedEnvironment) {
+      setReleasePlans([]);
+      setReleasePlanState('empty');
+      setTapdRefreshState('error');
+      setTapdRefreshMessage('当前是 GitHub Pages 静态地址，不提供 TAPD 代理；现展示本地缓存数据。需要刷新 TAPD 时，请使用本地启动地址并保持服务窗口运行。');
+      return () => { active = false; };
+    }
     setTapdRefreshState('refreshing');
     setTapdRefreshMessage('正在刷新 TAPD 任务、成员与发布计划...');
     setReleasePlanState('loading');
-    Promise.allSettled([
-      tapdService.refreshExistingTasks(selectedProjectId),
-      tapdService.syncProjectMembers(selectedProjectId),
-      tapdService.getReleasePlans(selectedProjectId),
-    ]).then(results => {
+    const refreshOperations = [
+      { label: '任务刷新', run: () => tapdService.refreshExistingTasks(selectedProjectId) },
+      { label: '成员同步', run: () => tapdService.syncProjectMembers(selectedProjectId) },
+      { label: '发布计划读取', run: () => tapdService.getReleasePlans(selectedProjectId) },
+    ];
+    Promise.allSettled(refreshOperations.map(operation => operation.run())).then(results => {
       if (!active) return;
-      const failures = results.filter(result => result.status === 'rejected');
-      const releaseResult = results[2];
-      if (releaseResult?.status === 'fulfilled') {
+      const failures = results
+        .map((result, index) => ({ result, label: refreshOperations[index].label }))
+        .filter(item => item.result.status === 'rejected');
+      const releaseResult = results[2] as PromiseSettledResult<TapdReleasePlan[]>;
+      if (releaseResult.status === 'fulfilled') {
         setReleasePlans(releaseResult.value);
         setReleasePlanState(releaseResult.value.length > 0 ? 'success' : 'empty');
       } else {
@@ -76,9 +94,13 @@ export function Dashboard() {
       }
       if (failures.length > 0) {
         setTapdRefreshState('error');
-        setTapdRefreshMessage(`TAPD 后台刷新有 ${failures.length} 项失败，当前展示本地缓存数据，可前往同步中心重试。`);
-        failures.forEach(result => {
-          if (result.status === 'rejected') console.warn('[Dashboard] TAPD background refresh failed:', result.reason);
+        const failureDetails = failures.map(({ label, result }) => {
+          const reason = result.status === 'rejected' ? getRefreshFailureMessage(result.reason) : '未知错误';
+          return `${label}：${reason}`;
+        });
+        setTapdRefreshMessage(`TAPD 后台刷新有 ${failures.length} 项失败。${failureDetails.join('；')}。当前展示本地缓存数据，可前往同步中心重试。`);
+        failures.forEach(({ label, result }) => {
+          if (result.status === 'rejected') console.warn(`[Dashboard] TAPD ${label} failed:`, result.reason);
         });
       } else {
         setTapdRefreshState('success');
