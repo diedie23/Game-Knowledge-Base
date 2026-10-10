@@ -17,6 +17,9 @@ LocalProjectManager/package-lock.json
 # Environment
 .env
 
+# Local browser review profile (contains cookies, login data, and caches)
+.workbuddy/edge-review-profile/
+
 # Tunnel/deploy temp files
 cf_output.txt
 lt_output.txt
