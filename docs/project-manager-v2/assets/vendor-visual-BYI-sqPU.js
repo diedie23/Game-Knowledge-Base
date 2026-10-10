@@ -1,4 +1,4 @@
-import"./vendor-ui-DZcJx5p_.js";/*!
+import"./vendor-ui-B4_JLHD8.js";/*!
  * html2canvas 1.4.1 <https://html2canvas.hertzen.com>
  * Copyright (c) 2022 Niklas von Hertzen <https://hertzen.com>
  * Released under MIT License

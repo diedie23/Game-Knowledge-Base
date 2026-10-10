@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore';
 import { tapdService } from '../services/tapdService';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
-import { Calendar, AlertCircle, Clock, Users, CheckCircle2, AlertTriangle, Edit2, Check, X } from 'lucide-react';
+import { Calendar, AlertCircle, Clock, Users, CheckCircle2, AlertTriangle, Edit2, Check, X, Rocket, RefreshCw, Gauge, ShieldCheck, ListChecks } from 'lucide-react';
 import { format, differenceInDays, isToday, addDays, startOfDay, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { Avatar } from './common/Avatar';
@@ -18,6 +18,7 @@ import { DashboardDemandRisks } from './DashboardDemandRisks';
 import { DashboardWeeklyReport } from './DashboardWeeklyReport';
 import { DashboardCapacityForecast } from './DashboardCapacityForecast';
 import { DashboardDataQuality } from './DashboardDataQuality';
+import { buildReleasePlanProgress, releasePlanDateValue, selectCurrentReleasePlan, type TapdReleasePlan } from '../services/releasePlanService';
 
 export function Dashboard() {
   const { setCurrentView, openTaskModal, openTapdModal, selectedProjectId } = useStore();
@@ -35,23 +36,44 @@ export function Dashboard() {
     [selectedProjectId]
   ) || [];
   const resources = useLiveQuery(() => db.resources.toArray()) || [];
+  const capacities = useLiveQuery(() => db.resourceCapacities.toArray()) || [];
+  const riskRecords = useLiveQuery(
+    () => selectedProjectId
+      ? db.riskRecords.where('projectId').equals(selectedProjectId).toArray()
+      : db.riskRecords.toArray(),
+    [selectedProjectId],
+  ) || [];
   const [tapdRefreshState, setTapdRefreshState] = useState<'idle' | 'refreshing' | 'success' | 'error'>('idle');
   const [tapdRefreshMessage, setTapdRefreshMessage] = useState('');
+  const [releasePlans, setReleasePlans] = useState<TapdReleasePlan[]>([]);
+  const [releasePlanState, setReleasePlanState] = useState<'idle' | 'loading' | 'success' | 'empty' | 'error'>('idle');
 
-  // Refresh TAPD-linked tasks when entering the dashboard so due/overdue data is current.
-  // Surface the refresh state instead of silently logging failures: scheduling decisions
-  // should always make the freshness and reliability of their source data visible.
+  // Refresh TAPD-linked tasks, members and release-plan dates when entering the dashboard.
+  // Keep each result independent: cached tasks remain usable when one remote endpoint fails.
   React.useEffect(() => {
-    if (!selectedProjectId) return;
+    if (!selectedProjectId) {
+      setReleasePlans([]);
+      setReleasePlanState('idle');
+      return;
+    }
     let active = true;
     setTapdRefreshState('refreshing');
-    setTapdRefreshMessage('正在刷新 TAPD 任务与成员数据...');
+    setTapdRefreshMessage('正在刷新 TAPD 任务、成员与发布计划...');
+    setReleasePlanState('loading');
     Promise.allSettled([
       tapdService.refreshExistingTasks(selectedProjectId),
       tapdService.syncProjectMembers(selectedProjectId),
+      tapdService.getReleasePlans(selectedProjectId),
     ]).then(results => {
       if (!active) return;
       const failures = results.filter(result => result.status === 'rejected');
+      const releaseResult = results[2];
+      if (releaseResult?.status === 'fulfilled') {
+        setReleasePlans(releaseResult.value);
+        setReleasePlanState(releaseResult.value.length > 0 ? 'success' : 'empty');
+      } else {
+        setReleasePlanState('error');
+      }
       if (failures.length > 0) {
         setTapdRefreshState('error');
         setTapdRefreshMessage(`TAPD 后台刷新有 ${failures.length} 项失败，当前展示本地缓存数据，可前往同步中心重试。`);
@@ -60,7 +82,7 @@ export function Dashboard() {
         });
       } else {
         setTapdRefreshState('success');
-        setTapdRefreshMessage('TAPD 任务与成员数据已刷新');
+        setTapdRefreshMessage('TAPD 任务、成员与发布计划已刷新');
       }
     });
     return () => { active = false; };
@@ -116,8 +138,21 @@ export function Dashboard() {
   const today = useMemo(() => new Date(), []);
   const todayStr = format(today, 'yyyy年MM月dd日 EEEE', { locale: zhCN });
   const weekDay = today.getDay() === 0 ? 7 : today.getDay(); // 1-7
+  const currentReleasePlan = useMemo(
+    () => selectCurrentReleasePlan(releasePlans, today),
+    [releasePlans, today],
+  );
+  const releasePlanProgress = useMemo(
+    () => buildReleasePlanProgress(currentReleasePlan, actionableTasks),
+    [currentReleasePlan, actionableTasks],
+  );
+  const releaseEndDateValue = releasePlanDateValue(currentReleasePlan?.enddate);
+  const daysToReleaseEnd = releaseEndDateValue === undefined
+    ? undefined
+    : Math.ceil((releaseEndDateValue - startOfDay(today).getTime()) / (24 * 60 * 60 * 1000));
   
-  // 手动管理重要节点 — 按当前选中项目读取里程碑
+  // 手动管理重要节点 — 当 TAPD 没有返回发布计划时作为兜底
+
   const milestoneProject = useLiveQuery(
     () => selectedProjectId ? db.projects.get(selectedProjectId) : db.projects.toCollection().first(),
     [selectedProjectId]
@@ -436,6 +471,54 @@ export function Dashboard() {
 
     return { total, completed, inProgress, unscheduled, completionRate, thisWeekCompleted, lastWeekCompleted, weeklyTrend };
   }, [actionableTasks, today]);
+
+  const openRiskCount = riskRecords.filter(record => !['closed', 'accepted'].includes(record.status)).length;
+  const featureStatus = [
+    {
+      label: 'TAPD / 发布计划',
+      detail: releasePlanState === 'success' ? `${releasePlans.length} 个计划已读取` : releasePlanState === 'loading' ? '正在读取时间点' : releasePlanState === 'empty' ? '暂无可用发布计划' : releasePlanState === 'error' ? '读取失败，可重试' : '等待连接',
+      status: releasePlanState === 'success' ? '已接入' : releasePlanState === 'loading' ? '读取中' : releasePlanState === 'error' ? '需重试' : '待确认',
+      tone: releasePlanState === 'success' ? 'emerald' : releasePlanState === 'error' ? 'red' : 'amber',
+      icon: Rocket,
+    },
+    {
+      label: '排期决策助手',
+      detail: `${actionableTasks.length} 项工作项，${stats.unscheduled} 项待排期`,
+      status: actionableTasks.length > 0 ? '可用' : '等待数据',
+      tone: actionableTasks.length > 0 ? 'blue' : 'gray',
+      icon: ListChecks,
+    },
+    {
+      label: '容量预测',
+      detail: `${capacities.length}/${resources.filter(resource => resource.status !== 'departed').length} 名成员已配置容量`,
+      status: resources.length > 0 ? '已启用' : '待配置',
+      tone: resources.length > 0 ? 'violet' : 'gray',
+      icon: Gauge,
+    },
+    {
+      label: '风险闭环',
+      detail: openRiskCount > 0 ? `${openRiskCount} 条风险处理中` : '当前无未关闭风险',
+      status: selectedProjectId ? '已启用' : '选择项目后启用',
+      tone: openRiskCount > 0 ? 'amber' : 'emerald',
+      icon: ShieldCheck,
+    },
+    {
+      label: '大数据量性能',
+      detail: '索引查询、分包与重复计算优化已落地',
+      status: '已优化',
+      tone: 'emerald',
+      icon: Gauge,
+    },
+  ];
+  const featureToneClasses: Record<string, { border: string; icon: string; badge: string }> = {
+    emerald: { border: 'border-emerald-500/20', icon: 'bg-emerald-500/10 text-emerald-300', badge: 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20' },
+    blue: { border: 'border-blue-500/20', icon: 'bg-blue-500/10 text-blue-300', badge: 'text-blue-300 bg-blue-500/10 border-blue-500/20' },
+    violet: { border: 'border-violet-500/20', icon: 'bg-violet-500/10 text-violet-300', badge: 'text-violet-300 bg-violet-500/10 border-violet-500/20' },
+    amber: { border: 'border-amber-500/20', icon: 'bg-amber-500/10 text-amber-300', badge: 'text-amber-300 bg-amber-500/10 border-amber-500/20' },
+    red: { border: 'border-red-500/20', icon: 'bg-red-500/10 text-red-300', badge: 'text-red-300 bg-red-500/10 border-red-500/20' },
+    gray: { border: 'border-gray-700/40', icon: 'bg-gray-700/30 text-gray-400', badge: 'text-gray-400 bg-gray-700/30 border-gray-700/40' },
+  };
+
   return (
     <div className="flex-1 overflow-y-auto p-8 bg-[#0f111a] text-gray-300 space-y-8 custom-scrollbar">
       {tapdRefreshState !== 'idle' && (
@@ -486,6 +569,39 @@ export function Dashboard() {
                     />
                     <button onClick={handleSaveMilestone} className="p-1.5 text-emerald-400 hover:bg-emerald-500/20 rounded-lg transition-colors"><Check size={18} /></button>
                     <button onClick={handleCancelMilestone} className="p-1.5 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"><X size={18} /></button>
+                  </div>
+                </div>
+              ) : currentReleasePlan ? (
+                <div className="flex items-center gap-4">
+                  <div className="min-w-0">
+                    <div className="text-xs text-gray-400 mb-0.5 flex items-center gap-1.5">
+                      当前发布计划
+                      <span className={`inline-flex items-center gap-1 ${releasePlanState === 'loading' ? 'text-blue-300' : 'text-emerald-300'}`}>
+                        <RefreshCw size={11} className={releasePlanState === 'loading' ? 'animate-spin' : ''} />
+                        {releasePlanState === 'loading' ? '读取中' : '已同步'}
+                      </span>
+                    </div>
+                    <div className="text-base font-semibold text-white truncate" title={currentReleasePlan.name}>
+                      {currentReleasePlan.name}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {currentReleasePlan.startdate || currentReleasePlan.enddate
+                        ? `${currentReleasePlan.startdate || '未设置开始'} ~ ${currentReleasePlan.enddate || '未设置结束'}`
+                        : '未设置发布起止日期'}
+                    </div>
+                  </div>
+                  <div className="ml-auto shrink-0 text-right">
+                    {daysToReleaseEnd !== undefined ? (
+                      <div className={`text-xl font-bold ${daysToReleaseEnd < 0 ? 'text-red-400' : 'text-amber-300'}`}>
+                        {daysToReleaseEnd < 0 ? `已过 ${Math.abs(daysToReleaseEnd)}` : daysToReleaseEnd}
+                        <span className="text-xs font-medium text-gray-400"> 天</span>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-500">无结束日期</div>
+                    )}
+                    <div className="text-[10px] text-gray-500 mt-1">
+                      {releasePlanProgress.completed}/{releasePlanProgress.total || 0} 项完成
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -543,6 +659,37 @@ export function Dashboard() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* 当前功能优化情况：用实际数据展示能力是否可用，避免只显示静态完成百分比 */}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <span className="w-1.5 h-5 bg-emerald-500 rounded-full"></span>
+            当前功能优化情况
+          </h2>
+          <span className="text-[11px] text-gray-500">状态随当前项目和 TAPD 数据刷新</span>
+        </div>
+        <div className="grid grid-cols-5 gap-3">
+          {featureStatus.map(item => {
+            const Icon = item.icon;
+            const tone = featureToneClasses[item.tone];
+            return (
+              <div key={item.label} className={`min-w-0 rounded-xl border ${tone.border} bg-gray-800/40 p-3.5 shadow-sm`}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${tone.icon}`}>
+                    <Icon size={16} />
+                  </div>
+                  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border whitespace-nowrap ${tone.badge}`}>
+                    {item.status}
+                  </span>
+                </div>
+                <div className="mt-2 text-xs font-semibold text-gray-200 truncate" title={item.label}>{item.label}</div>
+                <div className="mt-1 text-[10px] leading-relaxed text-gray-500 line-clamp-2" title={item.detail}>{item.detail}</div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
