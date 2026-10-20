@@ -12,6 +12,7 @@ import { useSyncStore } from '../store/useSyncStore';
 import { db } from '../db/db';
 import type { SyncConflict, SyncResult, ImportResult } from '../types';
 import { tapdService, TapdImportService } from '../services/tapdService';
+import { refreshCoordinator } from '../services/refreshCoordinator';
 import type { PreviewRow, PreviewResult } from '../services/tapdService';
 import type { TapdAuthMode, SyncRangeConfig, ModuleMapping, DuplicateCandidate, RefreshResult, RefreshDetailItem } from '../types/tapd';
 import { syncEngine } from '../services/syncEngine';
@@ -968,7 +969,7 @@ export function TapdModal() {
     setRefreshResult(null);
     setRefreshDetailExpanded(false);
     try {
-      const result = await tapdService.refreshExistingTasks(selectedProjectId);
+      const result = (await refreshCoordinator.refreshTasks(selectedProjectId, { force: true })).value;
       setRefreshResult(result);
       // Keep large refresh results collapsed; users can expand the capped detail list on demand.
       setRefreshDetailExpanded(false);
@@ -2382,7 +2383,7 @@ export function TapdModal() {
                         </button>
                       )}
                     </div>
-                    <div className="grid grid-cols-6 gap-2 text-[11px]">
+                    <div className="grid grid-cols-7 gap-2 text-[11px]">
                       <div className="text-center">
                         <div className="text-lg font-bold font-mono tabular-nums text-sky-400">{refreshResult.totalChecked}</div>
                         <div className="text-gray-500">已检查</div>
@@ -2400,6 +2401,10 @@ export function TapdModal() {
                         <div className="text-gray-500">无变化</div>
                       </div>
                       <div className="text-center">
+                        <div className="text-lg font-bold font-mono tabular-nums text-amber-300">{refreshResult.protectedCount || 0}</div>
+                        <div className="text-gray-500">本地待推送</div>
+                      </div>
+                      <div className="text-center">
                         <div className="text-lg font-bold font-mono tabular-nums text-red-400">{refreshResult.deletedCount}</div>
                         <div className="text-gray-500">已清理</div>
                       </div>
@@ -2411,6 +2416,11 @@ export function TapdModal() {
                     <div className={`mt-2 rounded-lg border px-3 py-2 text-[10px] ${refreshResult.deletionAuditChecked ? 'border-emerald-500/20 bg-emerald-500/[0.06] text-emerald-300' : 'border-amber-500/20 bg-amber-500/[0.06] text-amber-300'}`}>
                       {refreshResult.deletionAuditChecked ? '✓' : '⚠'} {refreshResult.deletionAuditMessage || (refreshResult.deletionAuditChecked ? '已完成 TAPD 回收站核验' : '本次未完成 TAPD 回收站核验')}
                     </div>
+                    {(refreshResult.protectedCount || 0) > 0 && (
+                      <div className="mt-2 rounded-lg border border-amber-500/20 bg-amber-500/[0.06] px-3 py-2 text-[10px] text-amber-200">
+                        已跳过 {refreshResult.protectedCount} 条存在本地未推送修改的任务，避免 TAPD 刷新覆盖本地排期。
+                      </div>
+                    )}
                   </div>
 
                   {/* Expandable refresh detail list */}

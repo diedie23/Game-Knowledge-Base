@@ -12,8 +12,9 @@ import { getEffectiveStatus } from '../types/resource';
 import { getRoleBadgeStyle } from '../constants/theme';
 import type { Task, Resource } from '../types';
 import EmptyState from './common/EmptyState';
-import { dedupeResourcesForDisplay, getResourceAliasIds } from '../utils/resourceDedup';
+import { dedupeResourcesForDisplay } from '../utils/resourceDedup';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
+import { buildResourceLoadIndex } from '../services/resourceLoadIndex';
 
 // --- Continuous Heatmap Color Engine ---
 function getHeatColor(load: number, maxLoad: number): string {
@@ -340,9 +341,12 @@ export function ResourceMatrix() {
     [selectedProjectId]
   );
 
-  const today = startOfToday();
+  const today = useMemo(() => startOfToday(), []);
   const startDate = addDays(today, -5);
-  const days = Array.from({ length: 30 }).map((_, i) => addDays(startDate, i));
+  const days = useMemo(
+    () => Array.from({ length: 30 }).map((_, i) => addDays(startDate, i)),
+    [today],
+  );
 
   // Pre-compute parent task IDs (tasks that have children) to exclude from stats
   const parentTaskIds = React.useMemo(() => {
@@ -354,28 +358,12 @@ export function ResourceMatrix() {
     return ids;
   }, [tasks]);
 
-  // Compute global max load for normalization (leaf tasks only)
-  const maxLoad = React.useMemo(() => {
-    if (!resources || !tasks) return 3;
-    let max = 0;
-    for (const res of dedupeResourcesForDisplay(resources)) {
-      const aliasIds = getResourceAliasIds(res, resources);
-      for (const day of days) {
-        const count = tasks.filter((t) => {
-          if (t.status === 'done') return false;
-          if (parentTaskIds.has(t.id!)) return false; // Exclude parent tasks
-          if (!t.assigneeIds?.some(id => aliasIds.includes(id)) || !t.startDate || !t.endDate) return false;
-          const s = new Date(t.startDate);
-          s.setHours(0, 0, 0, 0);
-          const e = new Date(t.endDate);
-          e.setHours(23, 59, 59, 999);
-          return day >= s && day <= e;
-        }).length;
-        if (count > max) max = count;
-      }
-    }
-    return Math.max(max, 3);
-  }, [resources, tasks, days, parentTaskIds]);
+  // Build the resource/date index once instead of filtering every task for every cell.
+  const resourceLoadIndex = useMemo(
+    () => buildResourceLoadIndex(tasks || [], resources || [], days, parentTaskIds),
+    [resources, tasks, days, parentTaskIds],
+  );
+  const maxLoad = resourceLoadIndex.maxLoad;
 
   const showHoverTip = useCallback(
     (e: React.MouseEvent, resourceName: string, date: Date, load: number, selfMade: number, cpFollow: number, isLeave: boolean) => {
@@ -446,38 +434,18 @@ export function ResourceMatrix() {
 
   // Role badge style: now imported from constants/theme
 
-  // Calculate total load for each resource, sorted by type→role order→load
+  // Calculate total load for each resource, sorted by type→role order→load.
+  // The load values come from the shared resource/date index.
   const sortedResources = React.useMemo(() => {
     if (!resources) return [];
-    // Filter out departed members
     const activeResources = dedupeResourcesForDisplay(resources.filter(r => r.status !== 'departed'));
-    // Pre-compute total load per resource
-    const loadMap = new Map<number, number>();
-    activeResources.forEach(r => {
-      const aliasIds = getResourceAliasIds(r, resources);
-      const load = days.reduce((acc, day) => {
-        const dayTasks = tasks?.filter((t) => {
-          if (t.status === 'done') return false;
-          if (parentTaskIds.has(t.id!)) return false;
-          if (!t.assigneeIds?.some(id => aliasIds.includes(id)) || !t.startDate || !t.endDate) return false;
-          const taskStart = new Date(t.startDate);
-          taskStart.setHours(0, 0, 0, 0);
-          const taskEnd = new Date(t.endDate);
-          taskEnd.setHours(23, 59, 59, 999);
-          return day >= taskStart && day <= taskEnd;
-        }) || [];
-        return acc + dayTasks.length;
-      }, 0);
-      loadMap.set(r.id!, load);
-    });
     return [...activeResources].sort((a, b) => {
-      // Primary: compareResources (type → role order → sortOrder)
       const cmp = compareResources(a, b);
       if (cmp !== 0) return cmp;
-      // Tie-break within same role: higher load first
-      return (loadMap.get(b.id!) || 0) - (loadMap.get(a.id!) || 0);
+      return (resourceLoadIndex.totalTasksByResource.get(b.id!) || 0)
+        - (resourceLoadIndex.totalTasksByResource.get(a.id!) || 0);
     });
-  }, [resources, tasks, days, parentTaskIds]);
+  }, [resources, resourceLoadIndex]);
 
   // Compute personnel-source counts for group dividers
   const typeCounts = useMemo(() => ({
@@ -565,7 +533,9 @@ export function ResourceMatrix() {
               const prevType = prevResource?.type || 'internal';
               const showTypeHeader = !prevResource || prevType !== resourceType;
               const typeCount = typeCounts[resourceType];
-              const resourceAliasIds = getResourceAliasIds(resource, resources || []);
+              const resourceLoadDates = resourceLoadIndex.loadByResourceDate.get(resource.id!) || new Map<string, number>();
+              const resourceTasks = resourceLoadIndex.tasksByResource.get(resource.id!) || [];
+              const resourceTasksByDate = resourceLoadIndex.tasksByResourceDate.get(resource.id!) || new Map<string, Task[]>();
 
               return (
                 <React.Fragment key={resource.id}>
@@ -627,23 +597,9 @@ export function ResourceMatrix() {
                   </div>
                   {/* Overload Warning Indicator */}
                   {(() => {
-                    const totalLoad = days.reduce((acc, day) => {
-                      const dayTasks = tasks?.filter((t) => {
-                        if (t.status === 'done') return false;
-                        if (parentTaskIds.has(t.id!)) return false; // Exclude parent tasks
-                        if (!t.assigneeIds?.some(id => resourceAliasIds.includes(id)) || !t.startDate || !t.endDate) return false;
-                        const taskStart = new Date(t.startDate);
-                        taskStart.setHours(0, 0, 0, 0);
-                        const taskEnd = new Date(t.endDate);
-                        taskEnd.setHours(23, 59, 59, 999);
-                        return day >= taskStart && day <= taskEnd;
-                      }) || [];
-                      return acc + (dayTasks.length >= 3 ? 1 : 0);
-                    }, 0);
-                    
-                    // Calculate total tasks for this resource
-                    const activeTasks = tasks?.filter(t => t.assigneeIds?.some(id => resourceAliasIds.includes(id)) && t.status !== 'done' && !parentTaskIds.has(t.id!)) || [];
-                    const totalTasks = activeTasks.length;
+                    const totalLoad = resourceLoadIndex.overloadDaysByResource.get(resource.id!) || 0;
+                    const activeTasks = resourceTasks;
+                    const totalTasks = resourceLoadIndex.totalTasksByResource.get(resource.id!) || 0;
                     const selfMadeCount = activeTasks.filter(t => t.workCategory !== 'cp_follow').length;
                     const cpFollowCount = activeTasks.filter(t => t.workCategory === 'cp_follow').length;
 
@@ -684,21 +640,11 @@ export function ResourceMatrix() {
                     const isActualOffDay = isNonWorkingDay(day);
                     const isMakeupWorkDay = isWkend && !isActualOffDay;
 
-                    const dayTasks =
-                      tasks?.filter((t) => {
-                        if (t.status === 'done') return false;
-                        if (parentTaskIds.has(t.id!)) return false; // Exclude parent tasks
-                        if (!t.assigneeIds?.some(id => resourceAliasIds.includes(id)) || !t.startDate || !t.endDate) return false;
-                        const taskStart = new Date(t.startDate);
-                        taskStart.setHours(0, 0, 0, 0);
-                        const taskEnd = new Date(t.endDate);
-                        taskEnd.setHours(23, 59, 59, 999);
-                        return day >= taskStart && day <= taskEnd;
-                      }) || [];
-                    
                     const formattedDay = format(day, 'yyyy-MM-dd');
+                    const dayTasks = resourceTasksByDate.get(formattedDay) || [];
+                    const indexedLoad = resourceLoadDates.get(formattedDay) || 0;
                     const isLeave = (resource as any).leaveDates?.includes(formattedDay) || dayTasks.some(t => t.title.includes('请假') || t.title.includes('休假'));
-                    const load = isLeave ? 0 : dayTasks.length; // Don't count leave as normal load
+                    const load = isLeave ? 0 : indexedLoad; // Don't count leave as normal load
                     const isOverload = load >= 3;
 
                     return (

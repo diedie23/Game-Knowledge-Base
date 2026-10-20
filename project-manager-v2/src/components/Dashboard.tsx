@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useStore } from '../store/useStore';
-import { tapdService } from '../services/tapdService';
+import { refreshCoordinator } from '../services/refreshCoordinator';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
 import { Calendar, AlertCircle, Clock, Users, CheckCircle2, AlertTriangle, Edit2, Check, X, Rocket, RefreshCw, Gauge, ShieldCheck, ListChecks } from 'lucide-react';
@@ -53,6 +53,8 @@ export function Dashboard() {
   ) || [];
   const [tapdRefreshState, setTapdRefreshState] = useState<'idle' | 'refreshing' | 'success' | 'error'>('idle');
   const [tapdRefreshMessage, setTapdRefreshMessage] = useState('');
+  const [tapdLastRefreshedAt, setTapdLastRefreshedAt] = useState<number | null>(null);
+  const [tapdServedFromCache, setTapdServedFromCache] = useState(false);
   const [releasePlans, setReleasePlans] = useState<TapdReleasePlan[]>([]);
   const [releasePlanState, setReleasePlanState] = useState<'idle' | 'loading' | 'success' | 'empty' | 'error'>('idle');
 
@@ -76,19 +78,30 @@ export function Dashboard() {
     setTapdRefreshMessage('正在刷新 TAPD 任务、成员与发布计划...');
     setReleasePlanState('loading');
     const refreshOperations = [
-      { label: '任务刷新', run: () => tapdService.refreshExistingTasks(selectedProjectId) },
-      { label: '成员同步', run: () => tapdService.syncProjectMembers(selectedProjectId) },
-      { label: '发布计划读取', run: () => tapdService.getReleasePlans(selectedProjectId) },
+      { label: '任务刷新', run: () => refreshCoordinator.refreshTasks(selectedProjectId) },
+      { label: '成员同步', run: () => refreshCoordinator.refreshMembers(selectedProjectId) },
+      { label: '发布计划读取', run: () => refreshCoordinator.refreshReleasePlans(selectedProjectId) },
     ];
     Promise.allSettled(refreshOperations.map(operation => operation.run())).then(results => {
       if (!active) return;
+      const fulfilledSnapshots = results
+        .filter((result): result is PromiseFulfilledResult<{ refreshedAt: number; servedFromCache: boolean }> =>
+          result.status === 'fulfilled'
+          && !!result.value
+          && typeof result.value.refreshedAt === 'number',
+        )
+        .map(result => result.value);
+      if (fulfilledSnapshots.length > 0) {
+        setTapdLastRefreshedAt(Math.max(...fulfilledSnapshots.map(snapshot => snapshot.refreshedAt)));
+        setTapdServedFromCache(fulfilledSnapshots.every(snapshot => snapshot.servedFromCache));
+      }
       const failures = results
         .map((result, index) => ({ result, label: refreshOperations[index].label }))
         .filter(item => item.result.status === 'rejected');
-      const releaseResult = results[2] as PromiseSettledResult<TapdReleasePlan[]>;
+      const releaseResult = results[2] as PromiseSettledResult<Awaited<ReturnType<typeof refreshCoordinator.refreshReleasePlans>>>;
       if (releaseResult.status === 'fulfilled') {
-        setReleasePlans(releaseResult.value);
-        setReleasePlanState(releaseResult.value.length > 0 ? 'success' : 'empty');
+        setReleasePlans(releaseResult.value.value);
+        setReleasePlanState(releaseResult.value.value.length > 0 ? 'success' : 'empty');
       } else {
         setReleasePlanState('error');
       }
@@ -103,8 +116,11 @@ export function Dashboard() {
           if (result.status === 'rejected') console.warn(`[Dashboard] TAPD ${label} failed:`, result.reason);
         });
       } else {
+        const servedFromCache = fulfilledSnapshots.length > 0 && fulfilledSnapshots.every(snapshot => snapshot.servedFromCache);
         setTapdRefreshState('success');
-        setTapdRefreshMessage('TAPD 任务、成员与发布计划已刷新');
+        setTapdRefreshMessage(servedFromCache
+          ? 'TAPD 任务、成员与发布计划使用最近缓存，数据仍在刷新间隔内'
+          : 'TAPD 任务、成员与发布计划已刷新');
       }
     });
     return () => { active = false; };
@@ -545,7 +561,14 @@ export function Dashboard() {
     <div className="flex-1 overflow-y-auto p-8 bg-[#0f111a] text-gray-300 space-y-8 custom-scrollbar">
       {tapdRefreshState !== 'idle' && (
         <div className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-xs ${tapdRefreshState === 'error' ? 'border-red-500/25 bg-red-500/[0.07] text-red-200' : tapdRefreshState === 'success' ? 'border-emerald-500/20 bg-emerald-500/[0.06] text-emerald-200' : 'border-blue-500/20 bg-blue-500/[0.06] text-blue-200'}`}>
-          <span>{tapdRefreshMessage}</span>
+          <div className="min-w-0">
+            <div>{tapdRefreshMessage}</div>
+            {tapdLastRefreshedAt && tapdRefreshState !== 'refreshing' && (
+              <div className="mt-0.5 text-[10px] opacity-70">
+                最近同步：{format(new Date(tapdLastRefreshedAt), 'MM-dd HH:mm')}{tapdServedFromCache ? ' · 当前为缓存结果' : ' · 当前为最新拉取结果'}
+              </div>
+            )}
+          </div>
           {tapdRefreshState === 'error' && <button type="button" onClick={openTapdModal} className="shrink-0 font-medium text-sky-300 hover:text-white">打开同步中心</button>}
         </div>
       )}

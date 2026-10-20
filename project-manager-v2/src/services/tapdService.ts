@@ -782,8 +782,18 @@ export class TapdService {
     return stories;
   }
 
+  /** Resolve the same TAPD module value used by mapping, preview, and filtering. */
+  private resolveStoryModule(story: Record<string, unknown>, workspaceId?: string): string {
+    const normalizedWorkspaceId = String(workspaceId || '').trim();
+    return getTapdModuleCategoryValue(
+      story,
+      normalizedWorkspaceId ? this.moduleCategoryFieldsByWorkspace.get(normalizedWorkspaceId) || [] : [],
+      normalizedWorkspaceId ? this.categoryNamesByWorkspace.get(normalizedWorkspaceId) || new Map<string, string>() : new Map<string, string>(),
+    ) || '';
+  }
+
   /** Apply user-facing filter dimensions. Values inside a dimension use OR; active dimensions default to AND. */
-  private filterStoriesByAdvancedFilters(stories: any[], syncRange?: SyncRangeConfig): any[] {
+  private filterStoriesByAdvancedFilters(stories: any[], syncRange?: SyncRangeConfig, workspaceId?: string): any[] {
     const keywords = (syncRange?.categoryKeywords || []).map(value => value.toLowerCase().trim()).filter(Boolean);
     const modules = (syncRange?.moduleFeatureFilter || []).map(value => value.toLowerCase().trim()).filter(Boolean);
     const owners = (syncRange?.ownerFilter || []).map(value => value.toLowerCase().trim()).filter(Boolean);
@@ -791,7 +801,13 @@ export class TapdService {
     return stories.filter(item => {
       const story = item?.Story || item;
       const title = String(story?.name || '').toLowerCase();
-      const moduleText = [story?.custom_field_one, story?.custom_field_two, story?.category_id, story?.category].filter(Boolean).join(' ').toLowerCase();
+      const moduleText = [
+        this.resolveStoryModule(story as Record<string, unknown>, workspaceId),
+        story?.custom_field_one,
+        story?.custom_field_two,
+        story?.custom_field_three,
+        story?.category,
+      ].filter(Boolean).join(' ').toLowerCase();
       const ownerNames = String(story?.owner || '').toLowerCase().split(/[;；]/).map(value => value.trim()).filter(Boolean);
       const matches: boolean[] = [];
       if (keywords.length > 0) matches.push(keywords.some(keyword => title.includes(keyword)));
@@ -1581,7 +1597,7 @@ export class TapdService {
           }
 
           let previewStories = this.filterStoriesBySyncScope(Array.isArray(data?.data) ? data.data : [], syncRange);
-          previewStories = this.filterStoriesByAdvancedFilters(previewStories, syncRange).slice(0, previewLimit);
+          previewStories = this.filterStoriesByAdvancedFilters(previewStories, syncRange, workspaceId.trim()).slice(0, previewLimit);
           previewStories = await this.fetchStoryAncestors(workspaceId.trim(), previewStories, tempConfig);
           previewStories = this.normalizeStoryHierarchy(previewStories);
           previewStories = this.filterEpicStories(this.filterStoriesBySyncScope(previewStories, syncRange), workspaceId.trim());
@@ -1811,9 +1827,9 @@ export class TapdService {
         stories = stories.filter(item => {
           const story = item?.Story || item;
           const title = (story?.name || '').toLowerCase();
-          const moduleFeature = (story?.custom_field_one || '').toLowerCase();
-          const customField2 = (story?.custom_field_two || '').toLowerCase();
-          const category = (story?.category_id || story?.category || '').toLowerCase();
+          const moduleFeature = this.resolveStoryModule(story as Record<string, unknown>, workspaceId).toLowerCase();
+          const customFields = [story?.custom_field_one, story?.custom_field_two, story?.custom_field_three, story?.category]
+            .filter(Boolean).join(' ').toLowerCase();
 
           // Keyword match: title contains any keyword (supports fuzzy matching)
           // Match logic: title.includes(kw) OR kw.includes(title) OR sub-tokens of kw found in title
@@ -1830,11 +1846,10 @@ export class TapdService {
             return false;
           });
 
-          // Module match: custom_field_one/two OR title bracket tags contain module name
+          // Module match: use the same resolved TAPD module value as task mapping.
           const moduleMatch = moduleFilters.length > 0 && moduleFilters.some(mf => {
             if (moduleFeature && moduleFeature.includes(mf)) return true;
-            if (customField2 && customField2.includes(mf)) return true;
-            if (category && category.includes(mf)) return true;
+            if (customFields && customFields.includes(mf)) return true;
             // Match bracket tags in title like 【UGC小游戏】【运营】
             const bracketContent = title.match(/[【\[](.*?)[】\]]/g);
             if (bracketContent) {
@@ -3039,12 +3054,17 @@ export class TapdService {
     // Manual tasks without tapdId should NOT be auto-bound during refresh
     // Paused tasks are skipped to preserve their paused state (project-level pause)
     const linkedTasks = allLocalTasks.filter(t => !!t.tapdId && t.status !== 'paused');
+    const pendingTaskLogs = await db.changeLogs
+      .where('synced').equals(false)
+      .filter(log => log.table === 'tasks')
+      .toArray();
+    const protectedTaskIds = new Set(pendingTaskLogs.map(log => log.recordId));
 
     if (linkedTasks.length === 0) {
-      return { totalChecked: 0, updatedCount: 0, unchangedCount: 0, failedCount: 0, deletedCount: 0, deletionAuditChecked: false, deletionAuditMessage: '没有需要核验的 TAPD 任务', newlyBoundCount: 0, details: [] };
+      return { totalChecked: 0, updatedCount: 0, unchangedCount: 0, protectedCount: 0, failedCount: 0, deletedCount: 0, deletionAuditChecked: false, deletionAuditMessage: '没有需要核验的 TAPD 任务', newlyBoundCount: 0, details: [] };
     }
 
-    console.log(`[TapdService] Refreshing: ${linkedTasks.length} linked tasks for project ${projectId} (manual tasks are skipped)`);
+    console.log(`[TapdService] Refreshing: ${linkedTasks.length} linked tasks for project ${projectId} (manual tasks are skipped; ${protectedTaskIds.size} have pending local changes)`);
 
     // --- Direct ID-based fetch: Skip fetchTasks entirely for maximum freshness ---
     // Instead of calling fetchTasks (which applies filter conditions and may return stale data),
@@ -3061,10 +3081,14 @@ export class TapdService {
       return candidates.length === 1 ? candidates[0] : undefined;
     };
     const hasRemoteTapdId = (tapdId: string) => remoteCandidatesByTapdId(tapdId).length > 0;
-    const allTapdIds = linkedTasks.map(t => t.tapdId!).filter(Boolean);
+    const allTapdIds = linkedTasks
+      .filter(task => !protectedTaskIds.has(task.id!))
+      .map(t => t.tapdId!)
+      .filter(Boolean);
 
     let updatedCount = 0;
     let unchangedCount = 0;
+    let protectedCount = 0;
     let failedCount = 0;
     let deletedCount = 0;
     let deletionAuditChecked = false;
@@ -3246,6 +3270,10 @@ export class TapdService {
     // the batch instead of re-rendering all views once per TAPD story.
     await db.transaction('rw', db.tasks, async () => {
     for (const localTask of linkedTasks) {
+      if (localTask.id != null && protectedTaskIds.has(localTask.id)) {
+        protectedCount++;
+        continue;
+      }
 
       const tapdId = localTask.tapdId!;
       const remote = getRemoteForLocalTask(localTask);
@@ -3492,12 +3520,13 @@ export class TapdService {
     });
 
     const totalChecked = linkedTasks.length + newlyBoundCount;
-    console.log(`[TapdService] Refresh complete: ${newlyBoundCount} newly bound, ${updatedCount} updated, ${unchangedCount} unchanged, ${deletedCount} deleted, ${failedCount} unresolved`);
+    console.log(`[TapdService] Refresh complete: ${newlyBoundCount} newly bound, ${updatedCount} updated, ${unchangedCount} unchanged, ${protectedCount} protected, ${deletedCount} deleted, ${failedCount} unresolved`);
 
     return {
       totalChecked,
       updatedCount,
       unchangedCount,
+      protectedCount,
       failedCount,
       deletedCount,
       deletionAuditChecked,

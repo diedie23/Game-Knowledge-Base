@@ -382,8 +382,10 @@ export const KanbanBoard: React.FC = () => {
           }
         }
       }
-      // Refresh
-      const updated = await db.tasks.toArray();
+      // Refresh only the current project; never reload the whole task table after a drag.
+      const updated = selectedProjectId
+        ? await db.tasks.where('projectId').equals(selectedProjectId).toArray()
+        : [];
       setTasks(updated);
     } else if (groupBy === 'priority') {
       const destColId = destination.droppableId;
@@ -393,7 +395,9 @@ export const KanbanBoard: React.FC = () => {
       else if (destColId === 'priority-low') newPriority = 'low';
 
       await trackedDb.tasks.update(taskId, { priority: newPriority as any }, `变更任务优先级为「${newPriority === 'high' ? 'P0' : newPriority === 'medium' ? 'P1' : newPriority === 'low' ? 'P2' : '无'}」`);
-      const updated = await db.tasks.toArray();
+      const updated = selectedProjectId
+        ? await db.tasks.where('projectId').equals(selectedProjectId).toArray()
+        : [];
       setTasks(updated);
     }
   };

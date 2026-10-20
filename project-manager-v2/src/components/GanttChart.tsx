@@ -4,7 +4,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, Task } from '../db/db';
 import { trackedDb, useHistoryStore } from '../store/useHistoryStore';
-import { tapdService } from '../services/tapdService';
+import { refreshCoordinator } from '../services/refreshCoordinator';
 import type { RefreshResult, RefreshDetailItem } from '../types/tapd';
 import { differenceInDays, addDays, startOfToday, startOfDay, format, isWeekend, isSameMonth } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
@@ -232,7 +232,7 @@ export function GanttChart() {
     setTapdRefreshError(null);
     setTapdRefreshResult(null);
     try {
-      const result = await tapdService.refreshExistingTasks(projectId);
+      const result = (await refreshCoordinator.refreshTasks(projectId, { force: true })).value;
       setTapdRefreshResult(result);
       setShowTapdRefreshModal(true);
     } catch (err: any) {
@@ -249,7 +249,7 @@ export function GanttChart() {
   // does not start a second large request.
   useEffect(() => {
     if (!selectedProjectId) return;
-    tapdService.refreshExistingTasks(selectedProjectId).catch(error => {
+    refreshCoordinator.refreshTasks(selectedProjectId).catch(error => {
       console.warn('[GanttChart] TAPD background refresh failed:', error);
     });
   }, [selectedProjectId]);

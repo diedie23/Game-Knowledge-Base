@@ -222,6 +222,8 @@ export interface RefreshResult {
   updatedCount: number;
   /** Tasks with no changes */
   unchangedCount: number;
+  /** Tasks intentionally skipped because they have unsynced local changes. */
+  protectedCount?: number;
   /** Tasks that failed to fetch from TAPD (may have been deleted) */
   failedCount: number;
   /** Local cached tasks removed after TAPD confirmed the story no longer exists. */
