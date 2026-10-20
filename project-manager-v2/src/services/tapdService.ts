@@ -26,7 +26,12 @@ import {
   resolveMemberTypeAfterTapdSync,
 } from '../utils/memberClassification';
 import { isEpicWorkitemTypeName } from '../utils/taskHierarchy';
-import { configContainsTapdWorkspace, createTapdSyncId, parseTapdWorkspaceIds } from '../utils/tapdIdentity';
+import {
+  configContainsTapdWorkspace,
+  createTapdSyncId,
+  isTapdTaskOutsideSelectedScope,
+  parseTapdWorkspaceIds,
+} from '../utils/tapdIdentity';
 
 // Re-export for consumers
 export type { SyncResult, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem };
@@ -2536,6 +2541,119 @@ export class TapdService {
     await db.tasks.update(localTaskId, updates);
   }
 
+  private isTapdManagedTask(task: Pick<Task, 'tapdId' | 'tapdWorkspaceId' | 'syncId' | 'syncSource'>): boolean {
+    return Boolean(
+      task.tapdId
+      && (task.syncId || task.tapdWorkspaceId || task.syncSource === 'tapd' || task.syncSource === 'tapd-import'),
+    );
+  }
+
+  /** Remove duplicate linked records without touching local-only/manual tasks. */
+  private async deduplicateProjectTapdTasks(projectId: number, config: TapdConfig): Promise<number> {
+    const tasks = await db.tasks.where('projectId').equals(projectId).toArray();
+    const configuredWorkspaceIds = parseTapdWorkspaceIds(config.workspaceId);
+    const singleWorkspaceId = configuredWorkspaceIds.length === 1 ? configuredWorkspaceIds[0] : undefined;
+    const groups = new Map<string, Task[]>();
+    for (const task of tasks) {
+      if (!this.isTapdManagedTask(task) || !task.tapdId) continue;
+      const identity = task.syncId
+        || (task.tapdWorkspaceId ? createTapdSyncId(task.tapdWorkspaceId, task.tapdId) : '')
+        || (singleWorkspaceId ? createTapdSyncId(singleWorkspaceId, task.tapdId) : '');
+      if (!identity) continue;
+      const group = groups.get(identity) || [];
+      group.push(task);
+      groups.set(identity, group);
+    }
+
+    const canonicalByDuplicateId = new Map<number, number>();
+    for (const group of groups.values()) {
+      if (group.length < 2) continue;
+      const ordered = [...group].sort((left, right) =>
+        (left.syncSource === 'tapd' ? 0 : left.syncSource === 'tapd-import' ? 1 : 2)
+        - (right.syncSource === 'tapd' ? 0 : right.syncSource === 'tapd-import' ? 1 : 2)
+        || (left.id || 0) - (right.id || 0),
+      );
+      const canonicalId = ordered[0].id;
+      if (!canonicalId) continue;
+      ordered.slice(1).forEach(task => {
+        if (task.id) canonicalByDuplicateId.set(task.id, canonicalId);
+      });
+    }
+    if (canonicalByDuplicateId.size === 0) return 0;
+
+    await db.transaction('rw', db.tasks, async () => {
+      const allTasks = await db.tasks.toArray();
+      for (const task of allTasks) {
+        if (!task.id) continue;
+        const replacementParent = task.parentId ? canonicalByDuplicateId.get(task.parentId) : undefined;
+        const replacementDependencies = task.dependencies?.map(id => canonicalByDuplicateId.get(id) || id);
+        if (replacementParent || replacementDependencies?.some((id, index) => id !== task.dependencies?.[index])) {
+          await db.tasks.update(task.id, {
+            ...(replacementParent ? { parentId: replacementParent } : {}),
+            ...(replacementDependencies ? { dependencies: replacementDependencies } : {}),
+          });
+        }
+      }
+      for (const duplicateId of canonicalByDuplicateId.keys()) {
+        await db.tasks.delete(duplicateId);
+      }
+    });
+    return canonicalByDuplicateId.size;
+  }
+
+  /**
+   * Remove TAPD-linked tasks whose stored type/release proves they are outside
+   * the current selected scope. Unknown legacy metadata is retained safely.
+   */
+  private async cleanupOutOfScopeProjectTasks(
+    projectId: number,
+    config: TapdConfig,
+    remoteTasks: Array<Partial<Task>>,
+    selectedStoryIds?: Set<string>,
+  ): Promise<number> {
+    const hasScopeFilter = Boolean(config.syncRange?.workitemTypeFilter?.length || config.syncRange?.releaseFilter?.length);
+    if (!hasScopeFilter || (selectedStoryIds && selectedStoryIds.size > 0)) return 0;
+
+    const workspaceIds = new Set(parseTapdWorkspaceIds(config.workspaceId));
+    const remoteSyncIds = new Set(
+      remoteTasks
+        .filter(task => task.tapdId && task.tapdWorkspaceId)
+        .map(task => task.syncId || createTapdSyncId(task.tapdWorkspaceId!, task.tapdId!)),
+    );
+    const localTasks = await db.tasks.where('projectId').equals(projectId).toArray();
+    const staleIds = localTasks
+      .filter(task => this.isTapdManagedTask(task))
+      .filter(task => task.tapdWorkspaceId
+        ? workspaceIds.has(task.tapdWorkspaceId)
+        : workspaceIds.size === 1)
+      .filter(task => {
+        const identity = task.syncId || (task.tapdWorkspaceId && task.tapdId
+          ? createTapdSyncId(task.tapdWorkspaceId, task.tapdId)
+          : '');
+        return !remoteSyncIds.has(identity)
+          && isTapdTaskOutsideSelectedScope(task, config.syncRange);
+      })
+      .map(task => task.id)
+      .filter((id): id is number => id != null);
+    if (staleIds.length === 0) return 0;
+
+    await db.transaction('rw', db.tasks, async () => {
+      const staleSet = new Set(staleIds);
+      const allTasks = await db.tasks.toArray();
+      for (const task of allTasks) {
+        if (!task.id || staleSet.has(task.id)) continue;
+        const filteredDependencies = task.dependencies?.filter(id => !staleSet.has(id));
+        if (task.parentId && staleSet.has(task.parentId)) {
+          await db.tasks.update(task.id, { parentId: undefined, dependencies: filteredDependencies });
+        } else if (filteredDependencies && filteredDependencies.length !== task.dependencies?.length) {
+          await db.tasks.update(task.id, { dependencies: filteredDependencies });
+        }
+      }
+      for (const id of staleIds) await db.tasks.delete(id);
+    });
+    return staleIds.length;
+  }
+
   /**
    * Enhanced sync: fetch TAPD tasks and insert/update into local DB.
    * Features:
@@ -2543,6 +2661,7 @@ export class TapdService {
    * - Parent-child relationship mapping
    * - Auto member matching (TAPD owner → local resource)
    * - Module-based project assignment
+   * - Scope reconciliation for selected requirement types/releases
    */
   async syncTasksToLocalEnhanced(projectId: number, mergeDecisions?: Map<string, number | 'skip'>, selectedStoryIds?: Set<string>): Promise<SyncResult> {
     const config = await this.loadConfig(projectId);
@@ -2584,14 +2703,28 @@ export class TapdService {
     let inserted = 0;
     let updated = 0;
     let merged = 0;
+    const deduplicated = await this.deduplicateProjectTapdTasks(projectId, config);
+    const cleaned = await this.cleanupOutOfScopeProjectTasks(projectId, config, remoteTasks, selectedStoryIds);
+    if (deduplicated > 0 || cleaned > 0) {
+      console.log(`[TapdService] Scope reconciliation: removed ${deduplicated} duplicates and ${cleaned} out-of-scope tasks`);
+    }
     const details: SyncDetailItem[] = [];
     const addDetail = (detail: SyncDetailItem) => {
       if (details.length < 300) details.push(detail);
     };
 
     // Phase 1: Build workspace+tapdId → localId mapping for parent-child resolution.
+    // Keep matching project-scoped; a TAPD ID can legitimately appear in another
+    // local project and must not overwrite that project's task.
+    const relevantProjectIds = new Set<number>([
+      projectId,
+      ...(config.syncRange?.moduleMappings || [])
+        .map(mapping => mapping.targetProjectId)
+        .filter((id): id is number => id != null),
+    ]);
     const syncIdToLocalId = new Map<string, number>();
-    const existingTasks = await db.tasks.filter(t => !!t.tapdId || !!t.syncId).toArray();
+    const existingTasks = (await db.tasks.filter(t => !!t.tapdId || !!t.syncId).toArray())
+      .filter(task => relevantProjectIds.has(task.projectId));
     const existingTaskBySyncId = new Map<string, Task>();
     const legacyTasksByTapdId = new Map<string, Task[]>();
     for (const task of existingTasks) {
@@ -2611,7 +2744,8 @@ export class TapdService {
     }
 
     // Pre-load manual tasks for title matching; candidates are consumed after a merge.
-    const allLocalTasks = await db.tasks.toArray();
+    const allLocalTasks = (await db.tasks.toArray())
+      .filter(task => relevantProjectIds.has(task.projectId));
     const syncResources = await db.resources.toArray();
     await this.ensureCpSuppliersFromTasks(remoteTasks, syncResources, projectId);
     const manualTasksByTitle = new Map<string, Task[]>();
@@ -2868,6 +3002,8 @@ export class TapdService {
       updated,
       merged,
       total: inserted + updated + merged,
+      cleaned,
+      deduplicated,
       details,
     };
   }

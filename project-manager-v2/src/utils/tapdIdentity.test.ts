@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { configContainsTapdWorkspace, createTapdSyncId, getTaskIdentity, parseTapdWorkspaceIds } from './tapdIdentity';
+import { configContainsTapdWorkspace, createTapdSyncId, getTaskIdentity, isTapdTaskOutsideSelectedScope, parseTapdWorkspaceIds } from './tapdIdentity';
 
 describe('TAPD workspace identity', () => {
   it('parses comma and semicolon separated workspace IDs consistently', () => {
@@ -25,5 +25,28 @@ describe('TAPD workspace identity', () => {
     expect(getTaskIdentity({ tapdId: '42', tapdWorkspaceId: '1001', projectId: 1, title: 'A' })).toBe('tapd:1001:42');
     expect(getTaskIdentity({ tapdId: '42', tapdWorkspaceId: '1002', projectId: 1, title: 'B' })).toBe('tapd:1002:42');
     expect(getTaskIdentity({ tapdId: '42', projectId: 2, title: 'C' })).toBe('tapd-legacy:2:42');
+  });
+
+  it('identifies only known out-of-scope type or release records for cleanup', () => {
+    expect(isTapdTaskOutsideSelectedScope(
+      { tapdWorkitemTypeId: 'bug', tapdReleaseId: 'r1' },
+      { workitemTypeFilter: ['story'], releaseFilter: ['r1'] },
+    )).toBe(true);
+    expect(isTapdTaskOutsideSelectedScope(
+      { tapdWorkitemTypeId: undefined, tapdReleaseId: 'r1' },
+      { workitemTypeFilter: ['story'], releaseFilter: ['r1'] },
+    )).toBe(false);
+    expect(isTapdTaskOutsideSelectedScope(
+      { tapdWorkitemTypeId: 'story', tapdReleaseId: 'r1' },
+      { workitemTypeFilter: ['story'], releaseFilter: ['r1'] },
+    )).toBe(false);
+    expect(isTapdTaskOutsideSelectedScope(
+      { tapdWorkitemTypeId: 'story', tapdReleaseId: 'r2' },
+      { workitemTypeFilter: [], releaseFilter: ['r1'] },
+    )).toBe(true);
+    expect(isTapdTaskOutsideSelectedScope(
+      { tapdWorkitemTypeId: 'story', tapdReleaseId: 'r2' },
+      undefined,
+    )).toBe(false);
   });
 });

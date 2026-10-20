@@ -2506,7 +2506,7 @@ export function TapdModal() {
                         </button>
                       )}
                     </div>
-                    <div className="grid grid-cols-4 gap-2 text-[11px]">
+                    <div className="grid grid-cols-6 gap-2 text-[11px]">
                       <div className="text-center">
                         <div className="text-lg font-bold font-mono tabular-nums text-emerald-400">{upsertResult.inserted}</div>
                         <div className="text-gray-500">新增</div>
@@ -2523,7 +2523,16 @@ export function TapdModal() {
                         <div className="text-lg font-bold font-mono tabular-nums text-white">{upsertResult.total}</div>
                         <div className="text-gray-500">合计</div>
                       </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold font-mono tabular-nums text-amber-300">{(upsertResult.cleaned || 0) + (upsertResult.deduplicated || 0)}</div>
+                        <div className="text-gray-500">清理</div>
+                      </div>
                     </div>
+                    {((upsertResult.cleaned || 0) > 0 || (upsertResult.deduplicated || 0) > 0) && (
+                      <div className="pt-1 text-[10px] text-amber-200/80 text-center">
+                        已清理范围外需求 {(upsertResult.cleaned || 0)} 条，重复记录 {(upsertResult.deduplicated || 0)} 条
+                      </div>
+                    )}
                   </div>
 
                   {/* Expandable detail list */}

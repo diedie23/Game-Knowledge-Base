@@ -160,6 +160,10 @@ export interface SyncResult {
   updated: number;
   merged: number;
   total: number;
+  /** Number of previously linked tasks removed because their type/release is outside the current scope. */
+  cleaned?: number;
+  /** Number of duplicate linked records removed before upsert. */
+  deduplicated?: number;
   /** Detailed list of each task operation */
   details?: SyncDetailItem[];
 }
