@@ -19,6 +19,7 @@ import { DashboardWeeklyReport } from './DashboardWeeklyReport';
 import { DashboardCapacityForecast } from './DashboardCapacityForecast';
 import { DashboardDataQuality } from './DashboardDataQuality';
 import { buildReleasePlanProgress, releasePlanDateValue, selectCurrentReleasePlan, type TapdReleasePlan } from '../services/releasePlanService';
+import { buildTaskHierarchyIndex, getTaskParent } from '../utils/taskHierarchy';
 
 const isStaticHostedEnvironment = typeof window !== 'undefined'
   && /(^|\.)github\.io$/i.test(window.location.hostname);
@@ -128,15 +129,8 @@ export function Dashboard() {
   // Exclude paused and cancelled tasks from dashboard statistics
   const tasks = useMemo(() => allTasks.filter(t => t.status !== 'paused' && !isTaskCancelled(t)), [allTasks]);
 
-  const parentTaskIds = useMemo(() => {
-    const ids = new Set<number>();
-    allTasks.forEach(task => { if (task.parentId !== undefined) ids.add(task.parentId); });
-    return ids;
-  }, [allTasks]);
-  const taskById = useMemo(
-    () => new Map(allTasks.filter(task => task.id !== undefined).map(task => [task.id!, task])),
-    [allTasks],
-  );
+  const hierarchy = useMemo(() => buildTaskHierarchyIndex(allTasks), [allTasks]);
+  const parentTaskIds = hierarchy.parentTaskIds;
   const tasksByAssigneeId = useMemo(() => {
     const result = new Map<number, typeof tasks>();
     tasks.forEach(task => {
@@ -271,25 +265,15 @@ export function Dashboard() {
     const groupTasksByParent = (taskList: any[]) => {
       const groups = new Map<string, { parentTitle: string, items: any[], isStandalone?: boolean, parentTask?: any, isParentInList?: boolean }>();
       taskList.forEach(task => {
-        if (task.parentId) {
-          const parent = taskById.get(task.parentId);
-          const parentTitle = parent ? parent.title : '独立子任务';
-          if (!groups.has(task.parentId)) {
-            groups.set(task.parentId, { parentTitle, items: [], parentTask: parent });
+        const parent = getTaskParent(task, hierarchy);
+        if (parent?.id !== undefined) {
+          const parentTitle = parent.title || '独立子任务';
+          if (!groups.has(parent.id)) {
+            groups.set(parent.id, { parentTitle, items: [], parentTask: parent });
           }
-          groups.get(task.parentId)!.items.push(task);
+          groups.get(parent.id)!.items.push(task);
         } else {
-          const hasChildren = task.id !== undefined && parentTaskIds.has(task.id);
-          if (hasChildren) {
-            if (!groups.has(task.id)) {
-              groups.set(task.id, { parentTitle: task.title, items: [], parentTask: task, isParentInList: true });
-            } else {
-              groups.get(task.id)!.isParentInList = true;
-              groups.get(task.id)!.parentTask = task;
-            }
-          } else {
-            groups.set(`standalone_${task.id}`, { parentTitle: task.title, items: [task], isStandalone: true });
-          }
+          groups.set(`standalone_${task.id}`, { parentTitle: task.title, items: [task], isStandalone: true });
         }
       });
       return Array.from(groups.values());
@@ -310,7 +294,7 @@ export function Dashboard() {
       dueTodayCount,
       totalCount: dueToday.length + startToday.length
     };
-  }, [tasks, actionableTasks, taskById, parentTaskIds, today]);
+  }, [tasks, actionableTasks, parentTaskIds, hierarchy, today]);
 
   // Smart default tab: auto-select based on data
   React.useEffect(() => {
@@ -392,32 +376,21 @@ export function Dashboard() {
     const groups = new Map<string, { parentTitle: string, items: any[], isStandalone?: boolean, parentTask?: any, isParentInList?: boolean }>();
     
     unscheduled.forEach(task => {
-      if (task.parentId) {
-        const parent = tasks.find(t => t.id === task.parentId);
-        const parentTitle = parent ? parent.title : '独立子任务';
-        const key = String(task.parentId);
+      const parent = getTaskParent(task, hierarchy);
+      if (parent?.id !== undefined) {
+        const parentTitle = parent.title || '独立子任务';
+        const key = String(parent.id);
         if (!groups.has(key)) {
           groups.set(key, { parentTitle, items: [], parentTask: parent });
         }
         groups.get(key)!.items.push(task);
       } else {
-        const hasChildren = tasks.some(t => t.parentId === task.id);
-        if (hasChildren) {
-          const key = String(task.id);
-          if (!groups.has(key)) {
-            groups.set(key, { parentTitle: task.title, items: [], parentTask: task, isParentInList: true });
-          } else {
-            groups.get(key)!.isParentInList = true;
-            groups.get(key)!.parentTask = task;
-          }
-        } else {
-          groups.set(`standalone_${task.id}`, { parentTitle: task.title, items: [task], isStandalone: true });
-        }
+        groups.set(`standalone_${task.id}`, { parentTitle: task.title, items: [task], isStandalone: true });
       }
     });
     
     return Array.from(groups.values());
-  }, [tasks, actionableTasks, taskById, parentTaskIds]);
+  }, [tasks, actionableTasks, parentTaskIds, hierarchy]);
 
   // 5. 底部一行：成员今日状态
   const memberStatus = useMemo(() => {

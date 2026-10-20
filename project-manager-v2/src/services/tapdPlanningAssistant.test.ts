@@ -42,6 +42,24 @@ describe('buildTapdPlanningItems', () => {
     expect(result).toEqual([]);
   });
 
+  it('counts only the TAPD child when both parent and child are unscheduled', () => {
+    const result = buildTapdPlanningItems([
+      task(4, { tapdId: 'parent-4', tapdWorkitemTypeName: 'UIStory' }),
+      task(5, { tapdId: 'child-5', tapdParentId: 'parent-4', tapdWorkitemTypeName: 'UI子需求', title: '【视觉设计】子需求' }),
+    ], resources, today);
+
+    expect(result.map(item => item.task.id)).toEqual([5]);
+    expect(result[0].tags).toContain('unscheduled');
+  });
+
+  it('does not count a parent row when only its parent type is available', () => {
+    const result = buildTapdPlanningItems([
+      task(6, { tapdWorkitemTypeName: 'UIStory', title: '父需求' }),
+    ], resources, today);
+
+    expect(result).toEqual([]);
+  });
+
   it('excludes program integration and audio checkpoints from UX assignee risks', () => {
     const result = buildTapdPlanningItems([
       task(10, { title: '【系统】【11月版本】商业化表现优化 - 还原接入', tapdWorkitemTypeName: '开发子需求' }),

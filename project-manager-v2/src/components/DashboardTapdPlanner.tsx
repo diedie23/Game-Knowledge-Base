@@ -8,6 +8,7 @@ import { updateTask } from '../services/taskService';
 import { useStore } from '../store/useStore';
 import { getPriorityLabel } from '../utils/priority';
 import { auditTaskDataQuality, getScheduleGate } from '../services/dataQualityService';
+import { buildTaskHierarchyIndex } from '../utils/taskHierarchy';
 
 interface Props {
   tasks: Task[];
@@ -67,6 +68,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     });
     return result;
   }, [dataAudit]);
+  const hierarchy = useMemo(() => buildTaskHierarchyIndex(tasks), [tasks]);
   const allItems = useMemo(() => buildTapdPlanningItems(tasks, resources), [tasks, resources]);
   const planningItems = useMemo(() => allItems.filter(item => item.tags.includes('unscheduled')), [allItems]);
   const planningEntries = useMemo(() => planningItems.map(item => ({
@@ -81,17 +83,33 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     if (filter === 'unassigned') return item.tags.includes('unassigned');
     return true;
   }), [planningEntries, filter, stageFilter]);
-  const suggestedItems = useMemo(() => {
-    const suggestions = buildBatchTapdScheduleSuggestions(filteredItems, tasks, resources, new Date(), capacities);
-    return filteredItems.map(item => ({
-      ...item,
-      suggestion: suggestions.get(item.task.id!) || buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date(), capacities),
-    }));
-  }, [filteredItems, tasks, resources, capacities]);
-  const pageCount = Math.max(1, Math.ceil(suggestedItems.length / pageSize));
+  const pageCount = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   React.useEffect(() => setPage(current => Math.min(current, pageCount)), [pageCount]);
   React.useEffect(() => setPage(1), [filter, stageFilter, pageSize]);
-  const items = useMemo(() => suggestedItems.slice((page - 1) * pageSize, page * pageSize), [suggestedItems, page, pageSize]);
+  const visibleEntries = useMemo(
+    () => filteredItems.slice((page - 1) * pageSize, page * pageSize),
+    [filteredItems, page, pageSize],
+  );
+  const suggestionById = useMemo(() => {
+    const targetById = new Map<number, typeof planningEntries[number]>();
+    visibleEntries.forEach(item => { if (item.task.id) targetById.set(item.task.id, item); });
+    planningEntries.forEach(item => {
+      if (item.task.id && selectedIds.has(item.task.id)) targetById.set(item.task.id, item);
+    });
+    const targets = [...targetById.values()];
+    const suggestions = buildBatchTapdScheduleSuggestions(targets, tasks, resources, new Date(), capacities);
+    targets.forEach(item => {
+      if (!item.task.id) return;
+      const suggestion = suggestions.get(item.task.id)
+        || buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date(), capacities);
+      suggestions.set(item.task.id, suggestion);
+    });
+    return suggestions;
+  }, [visibleEntries, planningEntries, selectedIds, tasks, resources, capacities]);
+  const items = useMemo(
+    () => visibleEntries.map(item => ({ ...item, suggestion: item.task.id ? suggestionById.get(item.task.id) : undefined })).filter(item => item.suggestion),
+    [visibleEntries, suggestionById],
+  ) as Array<typeof visibleEntries[number] & { suggestion: NonNullable<ReturnType<typeof buildTapdScheduleSuggestion>> }>;
   const latestSyncAt = useMemo(() => latestTapdSyncAt(tasks), [tasks]);
   const freshness = syncFreshness(latestSyncAt);
   const counts = useMemo(() => ({
@@ -110,11 +128,11 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     setHighlightedTaskIds(items.map(item => item.task.id).filter((id): id is number => !!id));
     setCurrentView('gantt');
   };
-  const selectedItems = useMemo(() => {
-    const selected = planningEntries.filter(item => item.task.id && selectedIds.has(item.task.id));
-    const suggestions = buildBatchTapdScheduleSuggestions(selected, tasks, resources, new Date(), capacities);
-    return selected.map(item => ({ ...item, suggestion: suggestions.get(item.task.id!) || buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date(), capacities) }));
-  }, [planningEntries, selectedIds, tasks, resources, capacities]);
+  const selectedItems = useMemo(() => planningEntries
+    .filter(item => item.task.id && selectedIds.has(item.task.id))
+    .map(item => ({ ...item, suggestion: item.task.id ? suggestionById.get(item.task.id) : undefined }))
+    .filter((item): item is typeof item & { suggestion: NonNullable<typeof item.suggestion> } => !!item.suggestion),
+  [planningEntries, selectedIds, suggestionById]);
   const applicableSelectedItems = useMemo(() => selectedItems.filter(item => !item.suggestion.requiresReview && !criticalQualityByTask.has(item.task.id!)), [selectedItems, criticalQualityByTask]);
   const scenarioImpact = useMemo(() => {
     if (!selectedItems.length) return null;
@@ -144,8 +162,8 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
   };
   const selectVisible = () => setSelectedIds(current => new Set([...current, ...items.filter(item => !item.suggestion.requiresReview && !criticalQualityByTask.has(item.task.id!)).map(item => item.task.id).filter((id): id is number => !!id)]));
   const selectSameDemand = (task: Task) => {
-    const demand = findDemandForTask(task, tasks);
-    const sameDemandIds = planningEntries.filter(item => findDemandForTask(item.task, tasks).id === demand.id).map(item => item.task.id).filter((id): id is number => !!id);
+    const demand = findDemandForTask(task, tasks, hierarchy);
+    const sameDemandIds = planningEntries.filter(item => findDemandForTask(item.task, tasks, hierarchy).id === demand.id).map(item => item.task.id).filter((id): id is number => !!id);
     setSelectedIds(current => new Set([...current, ...sameDemandIds]));
   };
   const copyChecklist = async () => {

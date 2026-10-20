@@ -2,6 +2,7 @@ import type { Resource, Task } from '../types';
 import type { ResourceCapacity } from '../types/scheduling';
 import { getTaskIdentity } from '../utils/tapdIdentity';
 import { isTaskTerminal } from '../utils/taskState';
+import { buildTaskHierarchyIndex, getTaskParent, type TaskHierarchyIndex } from '../utils/taskHierarchy';
 import { getNextWorkingDays, isWorkingDay } from '../utils/dateUtils';
 import { smartAssignService } from './smartAssignService';
 import { estimateTaskEffort, getResourceDailyHours, getScenarioCapacity, taskDurationDays, taskHoursPerWorkingDay as sharedTaskHoursPerWorkingDay, createScheduleScenario, type ScheduleScenario } from './schedulingKernel';
@@ -122,6 +123,36 @@ interface SlotMetrics {
   overCapacity: boolean;
 }
 
+interface TapdPlanningContext {
+  hierarchy: TaskHierarchyIndex;
+  tasksByResourceId: Map<number, Task[]>;
+}
+
+function buildTapdPlanningContext(tasks: Task[]): TapdPlanningContext {
+  const tasksByResourceId = new Map<number, Task[]>();
+  tasks.forEach(task => {
+    (task.assigneeIds || []).forEach(resourceId => {
+      const bucket = tasksByResourceId.get(resourceId) || [];
+      bucket.push(task);
+      tasksByResourceId.set(resourceId, bucket);
+    });
+  });
+  return { hierarchy: buildTaskHierarchyIndex(tasks), tasksByResourceId };
+}
+
+function replaceTaskInPlanningContext(context: TapdPlanningContext, taskId: number, nextTask: Task): void {
+  context.tasksByResourceId.forEach((bucket, resourceId) => {
+    const filtered = bucket.filter(task => task.id !== taskId);
+    if (filtered.length > 0) context.tasksByResourceId.set(resourceId, filtered);
+    else context.tasksByResourceId.delete(resourceId);
+  });
+  (nextTask.assigneeIds || []).forEach(resourceId => {
+    const bucket = context.tasksByResourceId.get(resourceId) || [];
+    bucket.push(nextTask);
+    context.tasksByResourceId.set(resourceId, bucket);
+  });
+}
+
 function slotMetrics(
   resource: Resource | undefined,
   task: Task,
@@ -130,12 +161,15 @@ function slotMetrics(
   end: Date,
   candidateDailyHours: number,
   scenario: ScheduleScenario,
+  context?: TapdPlanningContext,
 ): SlotMetrics {
   if (!resource?.id) return { activeCount: 0, peakUtilization: 0, overCapacity: false };
-  const parentIds = new Set(tasks.flatMap(candidate => candidate.parentId ? [candidate.parentId] : []));
+  const planningContext = context || buildTapdPlanningContext(tasks);
+  const candidates = planningContext.tasksByResourceId.get(resource.id) || tasks;
+  const parentIds = planningContext.hierarchy.parentTaskIds;
   const sourceIdentity = logicalTaskKey(task);
   const seen = new Set<string>();
-  const relevant = tasks.filter(candidate => {
+  const relevant = candidates.filter(candidate => {
     if (candidate.id === task.id || isTaskTerminal(candidate) || candidate.status === 'paused') return false;
     if (candidate.id !== undefined && parentIds.has(candidate.id)) return false;
     const candidateIdentity = logicalTaskKey(candidate);
@@ -218,6 +252,7 @@ function findSuggestedPeriod(
   duration: number,
   candidateDailyHours: number,
   scenario: ScheduleScenario,
+  context?: TapdPlanningContext,
 ): [Date, Date, SlotMetrics] {
   const firstDay = isWorkingDay(preferredStart) ? startOfDay(preferredStart) : getNextWorkingDays(preferredStart, 1)[0];
   let fallback: [Date, Date, SlotMetrics] | null = null;
@@ -226,7 +261,7 @@ function findSuggestedPeriod(
     cursor.setDate(cursor.getDate() + offset);
     if (!isWorkingDay(cursor)) continue;
     const [start, end] = periodFrom(cursor, duration);
-    const metrics = slotMetrics(resource, task, tasks, start, end, candidateDailyHours, scenario);
+    const metrics = slotMetrics(resource, task, tasks, start, end, candidateDailyHours, scenario, context);
     if (!fallback || metrics.peakUtilization < fallback[2].peakUtilization || (metrics.peakUtilization === fallback[2].peakUtilization && metrics.activeCount < fallback[2].activeCount)) {
       fallback = [start, end, metrics];
     }
@@ -243,8 +278,10 @@ export function buildTapdScheduleSuggestion(
   today: Date,
   capacities: ResourceCapacity[] = [],
   scenario?: ScheduleScenario,
+  planningContext?: TapdPlanningContext,
 ): TapdScheduleSuggestion {
   const scheduleScenario = scenario || createScheduleScenario(tasks, resources, capacities, today);
+  const context = planningContext || buildTapdPlanningContext(tasks);
   const resourceById = new Map(resources.filter(resource => resource.id).map(resource => [resource.id!, resource]));
   const currentResources = (task.assigneeIds || []).map(id => resourceById.get(id)).filter((resource): resource is Resource => !!resource);
   const currentResource = currentResources[0];
@@ -255,7 +292,7 @@ export function buildTapdScheduleSuggestion(
   const currentStart = task.startDate ? startOfDay(task.startDate) : todayStart;
   const currentEnd = task.endDate ? startOfDay(task.endDate) : periodFrom(currentStart, currentDuration)[1];
   const currentMetrics = currentResource
-    ? slotMetrics(currentResource, task, tasks, currentStart, currentEnd, effort.hours / currentDuration, scheduleScenario)
+    ? slotMetrics(currentResource, task, tasks, currentStart, currentEnd, effort.hours / currentDuration, scheduleScenario, context)
     : { activeCount: 0, peakUtilization: 0, overCapacity: false };
   const currentConflictCount = currentMetrics.activeCount;
   const shouldReassign = !currentResource || tags.includes('overload') || tags.includes('overlap') || currentMetrics.overCapacity;
@@ -284,7 +321,7 @@ export function buildTapdScheduleSuggestion(
       const workload = smartAssignService.calcWorkloadScore(resource, tasks.filter(item => item.id !== task.id), previewStart, previewEnd);
       const availability = smartAssignService.calcAvailabilityScore(resource, tasks.filter(item => item.id !== task.id), previewStart, previewEnd);
       const capacity = getScenarioCapacity(resource, scheduleScenario);
-      const previewMetrics = slotMetrics(resource, task, tasks, previewStart, previewEnd, effort.hours / duration, scheduleScenario);
+      const previewMetrics = slotMetrics(resource, task, tasks, previewStart, previewEnd, effort.hours / duration, scheduleScenario, context);
       const sameRoleBonus = currentResources.some(current => current.role === resource.role) ? 20 : 0;
       const capacityScore = dailyHours * 4 - previewMetrics.peakUtilization * 40 - Math.max(0, previewMetrics.activeCount - capacity.maxParallelTasks) * 80;
       return { resource, score: skill.score + workload.score + availability.score + sameRoleBonus + capacityScore, skill, workload, dailyHours, duration };
@@ -297,9 +334,9 @@ export function buildTapdScheduleSuggestion(
   const selectedDailyHours = selectedResource ? getResourceDailyHours(selectedResource, scheduleScenario) : 8;
   const duration = taskDurationDays(task, effort.hours, selectedDailyHours);
   const candidateDailyHours = effort.hours / duration;
-  const [startDate, endDate, suggestedMetrics] = findSuggestedPeriod(selectedResource, task, tasks, baseStart, duration, candidateDailyHours, scheduleScenario);
+  const [startDate, endDate, suggestedMetrics] = findSuggestedPeriod(selectedResource, task, tasks, baseStart, duration, candidateDailyHours, scheduleScenario, context);
   const suggestedConflictCount = suggestedMetrics.activeCount;
-  const parent = task.parentId ? tasks.find(candidate => candidate.id === task.parentId) : undefined;
+  const parent = getTaskParent(task, context.hierarchy);
   const parentDeadline = parent?.endDate ? startOfDay(parent.endDate) : undefined;
   const parentDeadlineStatus = !parentDeadline ? 'unknown' : endDate <= parentDeadline ? 'safe' : 'late';
   const readiness = assessTapdScheduleReadiness(task, tags, resources);
@@ -369,6 +406,7 @@ export function buildBatchTapdScheduleSuggestions(
 ): Map<number, TapdScheduleSuggestion> {
   const result = new Map<number, TapdScheduleSuggestion>();
   const scenarioTasks = [...tasks];
+  const planningContext = buildTapdPlanningContext(scenarioTasks);
   const remaining = [...items];
   const ordered: TapdPlanningItem[] = [];
   const remainingIds = () => new Set(remaining.map(item => item.task.id).filter((id): id is number => !!id));
@@ -391,6 +429,7 @@ export function buildBatchTapdScheduleSuggestions(
       today,
       capacities,
       createScheduleScenario(scenarioTasks, resources, capacities, today),
+      planningContext,
     );
     result.set(item.task.id, suggestion);
     if (!suggestion.resource) return;
@@ -404,6 +443,7 @@ export function buildBatchTapdScheduleSuggestions(
     const scenarioIndex = scenarioTasks.findIndex(task => task.id === item.task.id);
     if (scenarioIndex >= 0) scenarioTasks[scenarioIndex] = scheduledTask;
     else scenarioTasks.push(scheduledTask);
+    replaceTaskInPlanningContext(planningContext, item.task.id, scheduledTask);
   });
   return result;
 }
@@ -464,15 +504,14 @@ function isUiStory(task: Task): boolean {
   return type === 'uistory' || type === 'uistory父需求' || type === 'ui需求';
 }
 
-export function findDemandForTask(task: Task, tasks: Task[]): Task {
-  const taskById = new Map(tasks.filter(candidate => candidate.id).map(candidate => [candidate.id!, candidate]));
+export function findDemandForTask(task: Task, tasks: Task[], hierarchy = buildTaskHierarchyIndex(tasks)): Task {
   let current = task;
   let fallback = task;
   const visited = new Set<number>();
-  while (current.parentId && !visited.has(current.parentId)) {
-    visited.add(current.parentId);
-    const parent = taskById.get(current.parentId);
-    if (!parent || parent.projectId !== task.projectId) break;
+  while (true) {
+    const parent = getTaskParent(current, hierarchy);
+    if (!parent || parent.projectId !== task.projectId || parent.id === undefined || visited.has(parent.id)) break;
+    visited.add(parent.id);
     fallback = parent;
     if (isUiStory(parent)) return parent;
     current = parent;
@@ -487,11 +526,12 @@ export function buildDemandRiskGroups(
   today: Date = new Date(),
 ): DemandRiskGroup[] {
   const items = buildTapdPlanningItems(tasks, resources, today);
+  const hierarchy = buildTaskHierarchyIndex(tasks);
   const groups = new Map<string, DemandRiskGroup>();
   const levelRank: Record<Exclude<RiskLevel, 'none'>, number> = { low: 1, medium: 2, high: 3, critical: 4 };
 
   const ensureGroup = (task: Task): DemandRiskGroup => {
-    const demand = findDemandForTask(task, tasks);
+    const demand = findDemandForTask(task, tasks, hierarchy);
     const key = logicalTaskKey(demand);
     let group = groups.get(key);
     if (!group) {

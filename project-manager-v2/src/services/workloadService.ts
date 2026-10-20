@@ -4,6 +4,7 @@ import { differenceInDays, addDays, startOfDay } from 'date-fns';
 import { isWorkingDay } from '../utils/dateUtils';
 import { getTaskIdentity } from '../utils/tapdIdentity';
 import { isTaskOverdue, isTaskTerminal } from '../utils/taskState';
+import { buildTaskHierarchyIndex } from '../utils/taskHierarchy';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -59,8 +60,9 @@ function logicalTaskKey(task: Task): string {
 }
 
 export function buildTaskRiskContext(allTasks: Task[], allResources: Resource[]): TaskRiskContext {
-  const taskById = new Map<number, Task>();
-  const parentIds = new Set<number>();
+  const hierarchy = buildTaskHierarchyIndex(allTasks);
+  const taskById = hierarchy.taskById;
+  const parentIds = hierarchy.parentTaskIds;
   const tasksByAssigneeId = new Map<number, Task[]>();
   const resourceById = new Map<number, Resource>();
 
