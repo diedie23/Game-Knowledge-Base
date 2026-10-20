@@ -31,9 +31,9 @@ npm run build
 npm run start:local
 ```
 
-`start:local` runs the committed build in the foreground at port 4173 and provides the `/tapd-api` REST proxy required by the TAPD connection test. Keep this terminal window open while using the site; closing it stops the local service. `npm run serve:local` is retained as an equivalent foreground alias.
+`start:local` runs the committed build in the foreground at the stable local port 4174 and provides the `/tapd-api` REST proxy required by the TAPD connection test. Port 4173 is reserved by the enterprise SmartVPN client on this machine. Keep this terminal window open while using the site; closing it stops the local service. `npm run serve:local` is retained as an equivalent foreground alias.
 
-Open `http://127.0.0.1:4173/Game-Knowledge-Base/project-manager-v2/`.
+Open `http://127.0.0.1:4174/Game-Knowledge-Base/project-manager-v2/`. This is the stable local origin for the current installation.
 
 Build output is restricted to the V2 directory. Do not use V1's build command for V2 development.
 

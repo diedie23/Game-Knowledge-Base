@@ -39,9 +39,25 @@ Windows 可运行项目根目录的 `update.bat`。脚本会先构建 Project Ma
 
 如果推送出现用户名或认证错误，需要先在当前 Git 环境配置 GitHub 写入凭据；匿名读取正常不代表具备推送权限。
 
+## 本地稳定访问地址
+
+Project Manager V2 的本地稳定入口固定为：
+
+<http://127.0.0.1:4174/Game-Knowledge-Base/project-manager-v2/>
+
+启动命令：
+
+```powershell
+Set-Location "H:\游戏项目知识库\project-manager-v2"
+npm run start:local
+```
+
+本机的 4173 端口由企业 SmartVPN 占用，因此本地服务默认使用 4174。该服务同时提供 `/tapd-api` REST 代理，页面与 TAPD 同步必须保持启动窗口运行。
+
 ## 访问故障排查
 
 - 首页打不开：检查 GitHub Pages 是否仍指向 `main` 的 `/docs`。
-- Project Manager V2 打不开：确认访问路径包含 `/Game-Knowledge-Base/project-manager-v2/index.html`。
-- 页面能打开但 TAPD 无法同步：GitHub Pages 是静态托管，不提供 Vite 开发服务器的 `/tapd-api` 代理；需要在可访问的环境运行本地/服务端代理，或使用已配置的 TAPD MCP 网关模式。
+- Project Manager V2 线上只读入口：确认访问路径包含 `/Game-Knowledge-Base/project-manager-v2/index.html`。
+- Project Manager V2 本地入口：使用 `http://127.0.0.1:4174/Game-Knowledge-Base/project-manager-v2/`，不要再使用被 SmartVPN 占用的 4173。
+- 页面能打开但 TAPD 无法同步：确认本地服务窗口仍在运行；GitHub Pages 是静态托管，不提供 `/tapd-api` 代理。
 - 不要把 `trycloudflare.com` 地址写入对外文档，它只是临时通道，不是永久域名。

@@ -8,7 +8,9 @@ import { fileURLToPath } from 'node:url';
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const staticRoot = path.resolve(directory, '../docs/project-manager-v2');
 const host = process.env.HOST || '127.0.0.1';
-const port = Number(process.env.PORT || 4173);
+// 4173 is reserved by the enterprise SmartVPN client on this machine.
+// Keep a stable local origin on 4174 so the app can be opened reliably.
+const port = Number(process.env.PORT || 4174);
 const appPrefix = '/Game-Knowledge-Base/project-manager-v2';
 const tapdTarget = new URL(process.env.TAPD_API_TARGET || 'https://apiv2.tapd.woa.com');
 const mcpTarget = new URL(process.env.MCP_GATEWAY_TARGET || 'https://mcpgw.knot.woa.com');
