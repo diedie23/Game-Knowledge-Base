@@ -1,3 +1,4 @@
+import Dexie from 'dexie';
 import { db } from '../db/db';
 import type { Task, ChangeLog, SyncMeta, SyncConflict, SyncEvent } from '../types';
 import type { SyncStatus, SyncEventType } from '../types';
@@ -16,6 +17,7 @@ export const changeTracker = {
     await db.changeLogs.add({
       table,
       recordId,
+      projectId: typeof snapshot?.projectId === 'number' ? snapshot.projectId : snapshot?.projectIds?.[0],
       action: 'create',
       changes: {},
       snapshot,
@@ -44,8 +46,16 @@ export const changeTracker = {
     await db.changeLogs.add({
       table,
       recordId,
+      projectId: typeof newRecord?.projectId === 'number'
+        ? newRecord.projectId
+        : typeof oldRecord?.projectId === 'number'
+          ? oldRecord.projectId
+          : newRecord?.projectIds?.[0] ?? oldRecord?.projectIds?.[0],
       action: 'update',
       changes,
+      // Keep the pre-edit record as the base for a later three-way pull merge.
+      snapshot: oldRecord,
+      baseSnapshot: oldRecord,
       timestamp: Date.now(),
       synced: false,
       syncAttempts: 0,
@@ -57,6 +67,7 @@ export const changeTracker = {
     await db.changeLogs.add({
       table,
       recordId,
+      projectId: typeof snapshot?.projectId === 'number' ? snapshot.projectId : snapshot?.projectIds?.[0],
       action: 'delete',
       changes: {},
       snapshot,
@@ -66,11 +77,23 @@ export const changeTracker = {
     });
   },
 
-  /** Get all unsynced changes */
-  async getUnsyncedChanges(): Promise<ChangeLog[]> {
-    return db.changeLogs
-      .filter(log => !log.synced)
-      .sortBy('timestamp');
+  /** Get unsynced changes using the project/time compound indexes. */
+  async getUnsyncedChanges(projectId?: number): Promise<ChangeLog[]> {
+    try {
+      const range = projectId == null
+        ? db.changeLogs.where('[synced+timestamp]').between([false, Dexie.minKey], [false, Dexie.maxKey])
+        : db.changeLogs.where('[projectId+synced+timestamp]').between(
+          [projectId, false, Dexie.minKey],
+          [projectId, false, Dexie.maxKey],
+        );
+      return await range.toArray();
+    } catch {
+      // Keep old databases usable while Dexie finishes opening/migrating.
+      const logs = await db.changeLogs.where('synced').equals(false).toArray();
+      return logs
+        .filter(log => projectId == null || log.projectId === projectId)
+        .sort((left, right) => left.timestamp - right.timestamp);
+    }
   },
 
   /** Mark changes as synced */
@@ -181,11 +204,24 @@ export const conflictResolver = {
     localVersion: any,
     remoteVersion: any,
     conflictFields: string[],
-    baseVersion?: any
+    baseVersion?: any,
+    projectId?: number,
   ): Promise<number> {
+    const resolvedProjectId = projectId ?? localVersion?.projectId ?? localVersion?.projectIds?.[0];
+    const conflictKey = [
+      table,
+      recordId,
+      JSON.stringify([...conflictFields].sort()),
+      JSON.stringify(localVersion || {}),
+      JSON.stringify(remoteVersion || {}),
+    ].join('|');
+    const existing = await db.syncConflicts.where('conflictKey').equals(conflictKey).first().catch(() => undefined);
+    if (existing?.id && !existing.resolvedAt) return existing.id;
     return db.syncConflicts.add({
       table,
       recordId,
+      projectId: resolvedProjectId,
+      conflictKey,
       localVersion,
       remoteVersion,
       baseVersion,
@@ -311,12 +347,7 @@ class SyncEngine {
       return { pushed: 0, failed: 0 };
     }
 
-    const allUnsyncedLogs = await changeTracker.getUnsyncedChanges();
-    const unsyncedLogs = projectId == null
-      ? allUnsyncedLogs
-      : (await Promise.all(allUnsyncedLogs.map(async log =>
-          (await this.getChangeProjectIds(log)).includes(projectId) ? log : null
-        ))).filter((log): log is ChangeLog => log !== null);
+    const unsyncedLogs = await changeTracker.getUnsyncedChanges(projectId);
     if (unsyncedLogs.length === 0) {
       return { pushed: 0, failed: 0 };
     }
@@ -331,32 +362,28 @@ class SyncEngine {
     // Group changes by record to deduplicate
     const grouped = this.groupChangesByRecord(unsyncedLogs);
 
-    for (const [key, logs] of grouped.entries()) {
+    const processGroup = async ([key, logs]: [string, ChangeLog[]]) => {
       try {
-        // Push via adapter
         await this.adapter.pushChanges(logs);
-
-        // Mark all logs in this group as synced
         const ids = logs.map(l => l.id!).filter(Boolean);
         await changeTracker.markSynced(ids);
-
-        // Update task syncedAt timestamp
         const [table, recordIdStr] = key.split(':');
-        const recordId = parseInt(recordIdStr);
-        if (table === 'tasks') {
-          await db.tasks.update(recordId, { syncedAt: Date.now() });
-        }
-
+        const recordId = parseInt(recordIdStr, 10);
+        if (table === 'tasks') await db.tasks.update(recordId, { syncedAt: Date.now() });
         pushed += logs.length;
         this.emit({ type: 'progress', data: { pushed, total: unsyncedLogs.length } });
       } catch (error: any) {
         failed += logs.length;
-        for (const log of logs) {
-          if (log.id) {
-            await changeTracker.recordSyncError(log.id, error.message || 'Push failed');
-          }
-        }
+        await Promise.all(logs.filter(log => log.id).map(log =>
+          changeTracker.recordSyncError(log.id!, error.message || 'Push failed')
+        ));
       }
+    };
+
+    // Keep network pressure bounded while allowing independent tasks to push in parallel.
+    const groups = [...grouped.entries()];
+    for (let offset = 0; offset < groups.length; offset += 4) {
+      await Promise.all(groups.slice(offset, offset + 4).map(processGroup));
     }
 
     this.setStatus(failed > 0 ? 'error' : 'idle');
@@ -384,6 +411,14 @@ class SyncEngine {
     try {
       const syncMeta = await this.getSyncMeta('tapd', projectId);
       const lastPullAt = syncMeta?.lastPullAt || 0;
+      const pendingLogs = await changeTracker.getUnsyncedChanges(projectId);
+      const baseSnapshotByTask = new Map<number, any>();
+      pendingLogs
+        .filter(log => log.table === 'tasks' && log.baseSnapshot)
+        .sort((left, right) => left.timestamp - right.timestamp)
+        .forEach(log => {
+          if (!baseSnapshotByTask.has(log.recordId)) baseSnapshotByTask.set(log.recordId, log.baseSnapshot);
+        });
 
       // Pull remote changes via adapter
       const remoteChanges = await this.adapter.pullChanges(lastPullAt);
@@ -432,20 +467,22 @@ class SyncEngine {
           } as Task);
           pulled++;
         } else {
-          // Existing task — check for conflicts
-          const result = conflictResolver.detectConflicts(localTask, remoteTask);
+          // Existing task — use the oldest unsynced local base when available.
+          const baseRecord = localTask.id != null ? baseSnapshotByTask.get(localTask.id) : undefined;
+          const result = conflictResolver.detectConflicts(localTask, remoteTask, baseRecord);
 
           if (result.hasConflict) {
-            // Create conflict record for manual resolution
-            await conflictResolver.createConflict(
+            const conflictId = await conflictResolver.createConflict(
               'tasks',
               localTask.id!,
               localTask,
               remoteTask,
-              result.conflictFields
+              result.conflictFields,
+              baseRecord,
+              projectId,
             );
             conflicts++;
-            this.emit({ type: 'conflict', data: { recordId: localTask.id, fields: result.conflictFields } });
+            this.emit({ type: 'conflict', data: { recordId: localTask.id, conflictId, fields: result.conflictFields } });
           } else {
             // Auto-merge successful — apply merged result
             await db.tasks.update(localTask.id!, {
@@ -530,6 +567,7 @@ class SyncEngine {
 
   // ─── Helpers ─────────────────────────────────────────────────
   private async getChangeProjectIds(log: ChangeLog): Promise<number[]> {
+    if (typeof log.projectId === 'number') return [log.projectId];
     if (log.table === 'tasks') {
       const task = await db.tasks.get(log.recordId);
       const projectId = task?.projectId ?? log.snapshot?.projectId;
@@ -557,21 +595,14 @@ class SyncEngine {
     unresolvedConflicts: number;
     lastSyncAt: number | null;
   }> {
-    const allLogs = await db.changeLogs.toArray();
     const projectLogs = projectId == null
-      ? allLogs
-      : (await Promise.all(allLogs.map(async log => (await this.getChangeProjectIds(log)).includes(projectId) ? log : null)))
-        .filter((log): log is ChangeLog => log !== null);
-    const pendingLogs = projectLogs.filter(log => !log.synced).length;
-    const unresolved = await db.syncConflicts.filter(c => !c.resolvedAt).toArray();
-    const unresolvedConflicts = projectId == null
-      ? unresolved.length
-      : (await Promise.all(unresolved.map(async conflict => {
-          const projectIds = conflict.table === 'tasks'
-            ? await this.getChangeProjectIds({ table: 'tasks', recordId: conflict.recordId, snapshot: conflict.localVersion } as ChangeLog)
-            : await this.getChangeProjectIds({ table: 'resources', recordId: conflict.recordId, snapshot: conflict.localVersion } as ChangeLog);
-          return projectIds.includes(projectId);
-        }))).filter(Boolean).length;
+      ? await db.changeLogs.toArray()
+      : await db.changeLogs.where('projectId').equals(projectId).toArray().catch(async () => db.changeLogs.toArray());
+    const pendingLogs = projectLogs.filter(log => !log.synced && (projectId == null || log.projectId === projectId)).length;
+    const unresolved = projectId == null
+      ? await db.syncConflicts.filter(c => !c.resolvedAt).toArray()
+      : await db.syncConflicts.where('projectId').equals(projectId).filter(c => !c.resolvedAt).toArray();
+    const unresolvedConflicts = unresolved.length;
     const syncMeta = projectId == null
       ? await db.syncMeta.filter(m => m.source === 'tapd').first()
       : await this.getSyncMeta('tapd', projectId);

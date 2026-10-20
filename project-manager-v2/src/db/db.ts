@@ -595,6 +595,53 @@ export class LocalProjectManagerDB extends Dexie {
       changeSnapshots: 'id, date',
       projectNotes: '++id, title, category, createdAt, updatedAt, pinned, projectId, *tags'
     });
+
+    // Version 32: Make the sync queue and conflict list project-aware.
+    // The compound indexes let large workspaces read only pending records instead of
+    // filtering the complete change-log/conflict tables in JavaScript.
+    this.version(32).stores({
+      tasks: '++id, title, status, priority, *assigneeIds, startDate, endDate, projectId, parentId, syncId, updatedAt, tapdId, tapdWorkspaceId, sortOrder, workCategory, completedAt, module, [projectId+syncId], [projectId+tapdId], [projectId+parentId], [projectId+updatedAt]',
+      resources: '++id, name, role, sortOrder, type, avatarStyle, status, joinDate, departDate, tapdAccount, group',
+      resourceCapacities: 'resourceId, updatedAt',
+      riskRecords: '++id, &riskId, projectId, status, ownerId, updatedAt, [projectId+status]',
+      projects: '++id, name, status',
+      tapdConfigs: '++id, workspaceId, projectId, authMode',
+      changeLogs: '++id, table, recordId, projectId, action, timestamp, synced, [synced+timestamp], [projectId+synced+timestamp]',
+      syncMeta: '++id, source, projectId, [source+projectId]',
+      syncConflicts: '++id, table, recordId, projectId, detectedAt, resolvedAt, resolution, conflictKey, [table+recordId+resolution], [projectId+resolvedAt]',
+      changeSnapshots: 'id, date',
+      projectNotes: '++id, title, category, createdAt, updatedAt, pinned, projectId, *tags'
+    }).upgrade(async tx => {
+      const tasks = await tx.table('tasks').toArray() as Task[];
+      const resources = await tx.table('resources').toArray() as Resource[];
+      const taskProjectById = new Map(tasks.filter(task => task.id != null).map(task => [task.id!, task.projectId]));
+      const resourceProjectsById = new Map(resources.filter(resource => resource.id != null).map(resource => [resource.id!, resource.projectIds || []]));
+
+      await tx.table('changeLogs').toCollection().modify((log: ChangeLog) => {
+        if (typeof log.projectId === 'number') return;
+        const projectId = log.table === 'tasks'
+          ? taskProjectById.get(log.recordId) ?? log.snapshot?.projectId
+          : log.snapshot?.projectId ?? resourceProjectsById.get(log.recordId)?.[0];
+        if (typeof projectId === 'number') log.projectId = projectId;
+        if (!log.baseSnapshot && log.action === 'update' && log.snapshot) log.baseSnapshot = log.snapshot;
+      });
+
+      await tx.table('syncConflicts').toCollection().modify((conflict: SyncConflict) => {
+        const projectId = conflict.projectId
+          ?? conflict.localVersion?.projectId
+          ?? conflict.localVersion?.projectIds?.[0];
+        if (typeof projectId === 'number') conflict.projectId = projectId;
+        if (!conflict.conflictKey) {
+          conflict.conflictKey = [
+            conflict.table,
+            conflict.recordId,
+            JSON.stringify(conflict.conflictFields || []),
+            JSON.stringify(conflict.localVersion || {}),
+            JSON.stringify(conflict.remoteVersion || {}),
+          ].join('|');
+        }
+      });
+    });
   }
 }
 

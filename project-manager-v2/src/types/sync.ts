@@ -8,11 +8,16 @@ export interface ChangeLog {
   id?: number;
   table: SyncableTable;
   recordId: number;
+  /** Project context captured at write time so sync can stay project-scoped without table scans. */
+  projectId?: number;
   action: ChangeAction;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   changes: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   snapshot?: any;
+  /** The record state before the local edit; used as the three-way merge base. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  baseSnapshot?: any;
   timestamp: number;
   synced: boolean;
   syncAttempts: number;
@@ -38,6 +43,9 @@ export interface SyncConflict {
   id?: number;
   table: SyncableTable;
   recordId: number;
+  projectId?: number;
+  /** Stable fingerprint used to avoid creating the same unresolved conflict repeatedly. */
+  conflictKey?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   localVersion: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

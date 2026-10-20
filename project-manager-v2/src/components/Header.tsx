@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useStore } from '../store/useStore';
 import { useHistoryStore } from '../store/useHistoryStore';
-import { BarChart2, Calendar, Columns, Table as TableIcon, Plus, Link as LinkIcon, Search, Undo2, Redo2, History, Clock, Wifi, WifiOff, RefreshCw, Download, Upload, FileDown, Copy, Check, LayoutDashboard, BookOpen } from 'lucide-react';
+import { BarChart2, Calendar, Columns, Table as TableIcon, Plus, Link as LinkIcon, Search, Undo2, Redo2, History, Clock, Wifi, WifiOff, RefreshCw, Download, Upload, FileDown, Copy, Check, LayoutDashboard, BookOpen, MoreHorizontal } from 'lucide-react';
 import { useSyncStore } from '../store/useSyncStore';
 import { dataExportService, BACKUP_STORAGE_KEY } from '../services/dataExportService';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -17,6 +17,7 @@ export function Header() {
   const { isOnline, syncStatus, pendingChanges } = useSyncStore();
   const [showHistory, setShowHistory] = useState(false);
   const [showDataMenu, setShowDataMenu] = useState(false);
+  const [showViewMenu, setShowViewMenu] = useState(false);
   const [showWeeklyReportModal, setShowWeeklyReportModal] = useState(false);
   const [weeklyReportContent, setWeeklyReportContent] = useState('');
   const [copied, setCopied] = useState(false);
@@ -35,6 +36,7 @@ export function Header() {
   const projectStatus = project?.status;
   const historyRef = useRef<HTMLDivElement>(null);
   const dataMenuRef = useRef<HTMLDivElement>(null);
+  const viewMenuRef = useRef<HTMLDivElement>(null);
   const dataMenuBtnRef = useRef<HTMLButtonElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -53,10 +55,13 @@ export function Header() {
           setShowDataMenu(false);
         }
       }
+      if (viewMenuRef.current && !viewMenuRef.current.contains(e.target as Node)) {
+        setShowViewMenu(false);
+      }
     };
-    if (showHistory || showDataMenu) document.addEventListener('mousedown', handler);
+    if (showHistory || showDataMenu || showViewMenu) document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [showHistory, showDataMenu]);
+  }, [showHistory, showDataMenu, showViewMenu]);
 
   const handleExportJSON = async () => {
     await dataExportService.exportJSON();
@@ -94,13 +99,18 @@ export function Header() {
     e.target.value = '';
   };
 
+  // Keep the primary navigation focused on the three daily workflows:
+  // planning, execution, and demand list. Low-frequency views stay discoverable
+  // under "更多视图" instead of competing for first-level attention.
   const views = [
-    { id: 'dashboard', name: '仪表盘', icon: LayoutDashboard },
-    { id: 'gantt', name: '甘特图', icon: Calendar },
-    { id: 'board', name: '看板', icon: Columns },
-    { id: 'matrix', name: '矩阵', icon: BarChart2 },
-    { id: 'table', name: '表格', icon: TableIcon },
-    { id: 'notes', name: '记事本', icon: BookOpen },
+    { id: 'dashboard', name: '排期工作台', icon: LayoutDashboard },
+    { id: 'gantt', name: '时间排期', icon: Calendar },
+    { id: 'board', name: '执行看板', icon: Columns },
+    { id: 'table', name: '需求清单', icon: TableIcon },
+  ] as const;
+  const secondaryViews = [
+    { id: 'matrix', name: '资源负载', icon: BarChart2 },
+    { id: 'notes', name: '项目记录', icon: BookOpen },
   ] as const;
 
   return (
@@ -129,20 +139,48 @@ export function Header() {
                 key={view.id}
                 onClick={() => setCurrentView(view.id)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 relative ${
-                  isActive 
-                    ? 'bg-gray-800 text-white shadow-sm' 
+                  isActive
+                    ? 'bg-gray-800 text-white shadow-sm'
                     : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/40'
                 }`}
                 title={view.name}
               >
                 <Icon size={14} className={isActive ? 'text-indigo-400' : ''} />
                 <span className="hidden xl:inline">{view.name}</span>
-                {isActive && (
-                  <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-indigo-500 rounded-full" />
-                )}
+                {isActive && <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-indigo-500 rounded-full" />}
               </button>
             );
           })}
+          <div className="relative" ref={viewMenuRef}>
+            <button
+              onClick={() => setShowViewMenu(value => !value)}
+              className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
+                secondaryViews.some(view => currentView === view.id)
+                  ? 'bg-gray-800 text-white'
+                  : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/40'
+              }`}
+              title="更多视图"
+            >
+              <MoreHorizontal size={14} />
+              <span className="hidden xl:inline">更多</span>
+            </button>
+            {showViewMenu && (
+              <div className="absolute top-full right-0 mt-2 min-w-36 rounded-lg border border-gray-700/70 bg-gray-900 shadow-xl z-50 p-1">
+                {secondaryViews.map(view => {
+                  const Icon = view.icon;
+                  return (
+                    <button
+                      key={view.id}
+                      onClick={() => { setCurrentView(view.id); setShowViewMenu(false); }}
+                      className={`w-full flex items-center gap-2 px-2.5 py-2 text-xs rounded-md text-left ${currentView === view.id ? 'bg-indigo-500/15 text-indigo-300' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'}`}
+                    >
+                      <Icon size={13} />{view.name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </nav>
       </div>
 

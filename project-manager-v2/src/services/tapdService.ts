@@ -485,6 +485,17 @@ export class TapdService {
   private workitemTypeNamesByWorkspace = new Map<string, Map<string, string>>();
   private activeWorkitemTypeNames = new Map<string, string>();
   private refreshRequestsByProject = new Map<number, Promise<RefreshResult>>();
+  private metadataCacheAt = new Map<string, number>();
+  private readonly metadataCacheTtlMs = 10 * 60 * 1000;
+
+  private isMetadataCacheFresh(key: string): boolean {
+    const cachedAt = this.metadataCacheAt.get(key);
+    return cachedAt != null && Date.now() - cachedAt < this.metadataCacheTtlMs;
+  }
+
+  private markMetadataCacheFresh(key: string): void {
+    this.metadataCacheAt.set(key, Date.now());
+  }
 
   private getStoryFields(): string {
     return [...new Set([
@@ -495,8 +506,9 @@ export class TapdService {
   }
 
   private async discoverModuleCategoryFields(config: TapdConfig, workspaceId: string): Promise<string[]> {
+    const cacheKey = `module:${workspaceId}`;
     const cached = this.moduleCategoryFieldsByWorkspace.get(workspaceId);
-    if (cached) {
+    if (cached && this.isMetadataCacheFresh(cacheKey)) {
       cached.forEach(fieldName => this.activeModuleCategoryFields.add(fieldName));
       return cached;
     }
@@ -509,6 +521,7 @@ export class TapdService {
       const labels = response?.data && typeof response.data === 'object' ? response.data : {};
       const fields = findTapdModuleCategoryFields(labels);
       this.moduleCategoryFieldsByWorkspace.set(workspaceId, fields);
+      this.markMetadataCacheFresh(cacheKey);
       fields.forEach(fieldName => this.activeModuleCategoryFields.add(fieldName));
       if (fields.length > 0) {
         console.log('[TapdService] Module category field detected:', workspaceId, fields);
@@ -517,13 +530,15 @@ export class TapdService {
     } catch (error) {
       console.warn('[TapdService] Failed to discover 模块分类 field:', error);
       this.moduleCategoryFieldsByWorkspace.set(workspaceId, []);
+      this.markMetadataCacheFresh(cacheKey);
       return [];
     }
   }
 
   private async discoverStoryCategories(config: TapdConfig, workspaceId: string): Promise<Map<string, string>> {
+    const cacheKey = `categories:${workspaceId}`;
     const cached = this.categoryNamesByWorkspace.get(workspaceId);
-    if (cached) {
+    if (cached && this.isMetadataCacheFresh(cacheKey)) {
       cached.forEach((name, id) => this.activeCategoryNames.set(id, name));
       return cached;
     }
@@ -546,13 +561,15 @@ export class TapdService {
       console.warn('[TapdService] Failed to discover TAPD story categories:', error);
     }
     this.categoryNamesByWorkspace.set(workspaceId, names);
+    this.markMetadataCacheFresh(cacheKey);
     names.forEach((name, id) => this.activeCategoryNames.set(id, name));
     return names;
   }
 
   private async discoverCustomPriorityFields(config: TapdConfig, workspaceId: string): Promise<string[]> {
+    const cacheKey = `priority:${workspaceId}`;
     const cached = this.customPriorityFieldsByWorkspace.get(workspaceId);
-    if (cached) return cached;
+    if (cached && this.isMetadataCacheFresh(cacheKey)) return cached;
     try {
       const response = await tapdRestFetch<{ status: number; data: Record<string, unknown>; info: string }>(
         '/stories/get_fields_lable',
@@ -572,6 +589,7 @@ export class TapdService {
         })
         .map(([fieldName]) => fieldName);
       this.customPriorityFieldsByWorkspace.set(workspaceId, fields);
+      this.markMetadataCacheFresh(cacheKey);
       fields.forEach(fieldName => this.activeCustomPriorityFields.add(fieldName));
       if (fields.length > 0) {
         console.log('[TapdService] Custom priority field detected:', workspaceId, fields);
@@ -580,6 +598,7 @@ export class TapdService {
     } catch (error) {
       console.warn('[TapdService] Failed to discover custom priority field, using priority_label:', error);
       this.customPriorityFieldsByWorkspace.set(workspaceId, []);
+      this.markMetadataCacheFresh(cacheKey);
       return [];
     }
   }
@@ -619,8 +638,9 @@ export class TapdService {
   }
 
   private async discoverStatusLabels(config: TapdConfig, workspaceId: string): Promise<Map<string, string>> {
+    const cacheKey = `status:${workspaceId}`;
     const cached = this.statusLabelsByWorkspace.get(workspaceId);
-    if (cached) {
+    if (cached && this.isMetadataCacheFresh(cacheKey)) {
       cached.forEach((label, value) => this.activeStatusLabels.set(value, label));
       this.stepLabelsByWorkspace.get(workspaceId)?.forEach((label, value) => this.activeStepLabels.set(value, label));
       return cached;
@@ -638,14 +658,16 @@ export class TapdService {
     }
     this.statusLabelsByWorkspace.set(workspaceId, labels);
     this.stepLabelsByWorkspace.set(workspaceId, stepLabels);
+    this.markMetadataCacheFresh(cacheKey);
     labels.forEach((label, value) => this.activeStatusLabels.set(value, label));
     stepLabels.forEach((label, value) => this.activeStepLabels.set(value, label));
     return labels;
   }
 
   private async discoverWorkitemTypes(config: TapdConfig, workspaceId: string): Promise<Map<string, string>> {
+    const cacheKey = `workitem-types:${workspaceId}`;
     const cached = this.workitemTypeNamesByWorkspace.get(workspaceId);
-    if (cached) {
+    if (cached && this.isMetadataCacheFresh(cacheKey)) {
       cached.forEach((name, id) => this.activeWorkitemTypeNames.set(id, name));
       return cached;
     }
@@ -661,6 +683,7 @@ export class TapdService {
       console.warn('[TapdService] Failed to discover TAPD requirement types:', error);
     }
     this.workitemTypeNamesByWorkspace.set(workspaceId, names);
+    this.markMetadataCacheFresh(cacheKey);
     names.forEach((name, id) => this.activeWorkitemTypeNames.set(id, name));
     return names;
   }
