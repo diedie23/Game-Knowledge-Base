@@ -18,7 +18,13 @@ import {
   matchCpResourcesFromTitle,
   normalizeSupplierName,
 } from '../utils/cpSupplier';
-import { classifyTapdMember, resolveMemberTypeAfterTapdSync } from '../utils/memberClassification';
+import {
+  classifyTapdMember,
+  extractTapdMemberGroups,
+  extractTapdRoleNames,
+  normalizeTapdGroupName,
+  resolveMemberTypeAfterTapdSync,
+} from '../utils/memberClassification';
 import { isEpicWorkitemTypeName } from '../utils/taskHierarchy';
 import { configContainsTapdWorkspace, createTapdSyncId, parseTapdWorkspaceIds } from '../utils/tapdIdentity';
 
@@ -32,7 +38,7 @@ const MCP_GATEWAY_TIMEOUT_MS = 20_000;
 
 // ─── TAPD REST API Configuration ─────────────────────────────────
 const TAPD_API_BASE = '/tapd-api'; // Uses Vite proxy
-const STORY_FIELDS = 'id,name,owner,status,created,modified,completed,module,custom_field_one,custom_field_two,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,progress,effort,effort_completed,remain,exceed,begin,due,step';
+const STORY_FIELDS = 'id,name,owner,status,created,modified,completed,module,custom_field_one,custom_field_two,custom_field_three,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,progress,effort,effort_completed,remain,exceed,begin,due,step';
 const RELATED_CHECKPOINT_PATTERN = /开发|程序|客户端|前端|工程|接入|音频|声音|配音|音乐|音效|development|developer|client|audio|sound|music|voice/i;
 const UI_STORY_TYPE_PATTERN = /ui\s*story|uistory|ui需求/i;
 
@@ -1004,9 +1010,21 @@ export class TapdService {
     if (rolesResponse?.status !== 1) {
       throw new Error(rolesResponse?.info || '无法读取 TAPD 成员分组');
     }
-    if (usersResponse?.status !== 1 || !Array.isArray(usersResponse?.data)) {
+    if (usersResponse?.status !== 1 || !usersResponse?.data) {
       throw new Error(usersResponse?.info || '无法读取 TAPD 项目成员');
     }
+    const rawUsers = usersResponse.data as any;
+    const userItems: any[] = Array.isArray(rawUsers)
+      ? rawUsers
+      : Array.isArray(rawUsers?.users)
+        ? rawUsers.users
+        : Array.isArray(rawUsers?.UserWorkspace)
+          ? rawUsers.UserWorkspace
+          : rawUsers?.UserWorkspace
+            ? [rawUsers]
+            : rawUsers && typeof rawUsers === 'object'
+              ? Object.values(rawUsers)
+              : [];
 
     const targetGroupRoles: Record<string, string> = {
       'UX-交互': 'UX设计',
@@ -1015,9 +1033,7 @@ export class TapdService {
       'UX-还原': '还原',
     };
     const targetGroupOrder = Object.keys(targetGroupRoles);
-    const roleNames: Record<string, string> = Object.fromEntries(
-      Object.entries(rolesResponse.data || {}).map(([id, name]) => [String(id), String(name).trim()])
-    );
+    const roleNames = extractTapdRoleNames(rolesResponse.data);
     const existingResources = await db.resources.toArray();
     let nextSortOrder = existingResources.reduce((max, item) => Math.max(max, item.sortOrder || 0), 0) + 1;
     let inserted = 0;
@@ -1029,24 +1045,23 @@ export class TapdService {
       ? { klaudzhang: 'UX-交互', v_zypgzhang: 'UX-还原' }
       : {};
 
-    for (const item of usersResponse.data) {
+    for (const item of userItems) {
       const member = item?.UserWorkspace || item;
       if (!member || String(member.status ?? '1') === '0') continue;
 
-      const roleIds = Array.isArray(member.role_id)
-        ? member.role_id.map(String)
-        : String(member.role_id || '').split(',').map((value: string) => value.trim()).filter(Boolean);
-      const memberGroups: string[] = Array.from(new Set(
-        roleIds
-          .map((roleId: string) => roleNames[roleId]?.trim())
-          .filter((name: string | undefined): name is string => Boolean(name))
-      ));
-      const rawName = String(member.name || member.user || '').trim();
+      const memberGroups = extractTapdMemberGroups(member, roleNames);
+      const rawName = String(member.name || member.real_name || member.user || '').trim();
       const normalizedName = rawName.replace(/\s+/g, '');
-      const account = String(member.user || '').trim();
+      const account = String(member.user || member.account || member.username || '').trim();
       const accountKey = account.toLowerCase();
       const explicitGroup = accountGroupOverrides[accountKey];
-      const tapdGroup = explicitGroup || targetGroupOrder.find(group => memberGroups.includes(group));
+      const tapdGroup = explicitGroup || targetGroupOrder.find(group => {
+        const target = normalizeTapdGroupName(group);
+        return memberGroups.some(candidate => {
+          const normalized = normalizeTapdGroupName(candidate);
+          return normalized === target || normalized.startsWith(`${target}-`) || normalized.startsWith(`${target}：`);
+        });
+      });
       if (!tapdGroup) continue;
 
       const userId = String(member.user_id || '').trim();
@@ -2285,7 +2300,7 @@ export class TapdService {
    * Match TAPD owner string to local resource IDs.
    * TAPD owner format: "张三;李四" or "张三" (semicolon-separated Chinese names)
    */
-  private async matchOwnerToResources(ownerStr: string, cachedResources?: Resource[]): Promise<number[]> {
+  private async matchOwnerToResources(ownerStr: string, cachedResources?: Resource[], projectId?: number): Promise<number[]> {
     if (!ownerStr || !ownerStr.trim()) return [];
     
     const ownerNames = ownerStr.split(/[;；,，]/).map(n => n.trim()).filter(Boolean);
@@ -2294,31 +2309,48 @@ export class TapdService {
     const allResources = cachedResources || await db.resources.toArray();
     const matchedIds: number[] = [];
     
+    const preferProjectResource = (candidates: Resource[]): Resource | undefined => candidates
+      .filter(resource => resource.id != null)
+      .sort((left, right) => {
+        const leftInProject = projectId != null && left.projectIds?.includes(projectId) ? 1 : 0;
+        const rightInProject = projectId != null && right.projectIds?.includes(projectId) ? 1 : 0;
+        return rightInProject - leftInProject
+          || (left.status === 'departed' ? 1 : 0) - (right.status === 'departed' ? 1 : 0)
+          || (left.id || 0) - (right.id || 0);
+      })[0];
+
     for (const name of ownerNames) {
-      // Try exact match by tapdAccount first (TAPD returns English account IDs like "eugenejin")
-      const byAccount = allResources.find(r => 
-        r.tapdAccount && r.tapdAccount.toLowerCase() === name.toLowerCase()
-      );
+      const normalizedName = name.trim().toLowerCase();
+      // TAPD normally returns the English account ID. Prefer a project-scoped
+      // exact account match so duplicate names/accounts do not steal assignments.
+      const byAccount = preferProjectResource(allResources.filter(resource =>
+        resource.tapdAccount?.trim().toLowerCase() === normalizedName,
+      ));
       if (byAccount?.id) {
         matchedIds.push(byAccount.id);
         continue;
       }
-      // Try exact match by Chinese name
-      const exact = allResources.find(r => r.name === name);
+      // Then match the exact display name, preserving CP/base resource types.
+      const exact = preferProjectResource(allResources.filter(resource => resource.name.trim() === name));
       if (exact?.id) {
         matchedIds.push(exact.id);
         continue;
       }
-      // Try partial match (name contains or is contained, also check tapdAccount partial)
-      const partial = allResources.find(r => 
-        r.name.includes(name) || name.includes(r.name) ||
-        (r.tapdAccount && (r.tapdAccount.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(r.tapdAccount.toLowerCase())))
-      );
-      if (partial?.id) {
-        matchedIds.push(partial.id);
-        continue;
+      // Partial matching is a last resort and requires at least two characters
+      // to avoid assigning a short TAPD token such as "UI" to the wrong person.
+      if (name.length >= 2) {
+        const partial = preferProjectResource(allResources.filter(resource =>
+          resource.name.includes(name) || name.includes(resource.name) ||
+          (resource.tapdAccount && (
+            resource.tapdAccount.toLowerCase().includes(normalizedName)
+            || normalizedName.includes(resource.tapdAccount.toLowerCase())
+          )),
+        ));
+        if (partial?.id) {
+          matchedIds.push(partial.id);
+          continue;
+        }
       }
-      // Log unmatched owner for debugging
       console.log(`[TapdService] Owner "${name}" could not be matched to any local resource`);
     }
     
@@ -2342,7 +2374,7 @@ export class TapdService {
       const supplierNames = extractCpSupplierNames(task.title || '');
       if (supplierNames.length === 0) continue;
       const ownerIds = task._tapdOwner
-        ? await this.matchOwnerToResources(task._tapdOwner, resources)
+        ? await this.matchOwnerToResources(task._tapdOwner, resources, projectId)
         : [];
       const ownerResources = ownerIds
         .map(id => resources.find(resource => resource.id === id))
@@ -2623,12 +2655,17 @@ export class TapdService {
       // Keep the TAPD owner as the internal coordinator and append any configured
       // CP supplier explicitly named in the story title.
       const ownerIds = tapdOwner
-        ? await this.matchOwnerToResources(tapdOwner, syncResources)
+        ? await this.matchOwnerToResources(tapdOwner, syncResources, projectId)
         : [];
       const supplierIds = matchCpResourcesFromTitle(cleanTask.title || '', syncResources);
       const matchedIds = Array.from(new Set([...ownerIds, ...supplierIds]));
       if (matchedIds.length > 0) cleanTask.assigneeIds = matchedIds;
-      if (hasFollowupAssignment(matchedIds, syncResources)) cleanTask.workCategory = 'cp_follow';
+      const hasCpAssignee = matchedIds.some(id => syncResources.find(resource => resource.id === id)?.type === 'cp');
+      if (hasCpAssignee || supplierIds.length > 0 || hasFollowupAssignment(matchedIds, syncResources)) {
+        cleanTask.workCategory = 'cp_follow';
+      } else if (matchedIds.length > 0) {
+        cleanTask.workCategory = 'self_made';
+      }
 
       // Resolve target project based on module mappings
       const targetProjectId = await this.resolveTargetProject(
@@ -3161,7 +3198,7 @@ export class TapdService {
       const validLocalIds = (localTask.assigneeIds || []).filter(id => !isNaN(id));
       const supplierIds = matchCpResourcesFromTitle(remote.title || localTask.title, cachedResources);
       const ownerIds = tapdOwner
-        ? await this.matchOwnerToResources(tapdOwner, cachedResources)
+        ? await this.matchOwnerToResources(tapdOwner, cachedResources, projectId)
         : [];
       const existingCoordinatorIds = validLocalIds.filter(id => {
         const resource = cachedResources.find(item => item.id === id);
@@ -3169,6 +3206,7 @@ export class TapdService {
       });
       const coordinatorIds = ownerIds.length > 0 ? ownerIds : existingCoordinatorIds;
       const matchedIds = Array.from(new Set([...coordinatorIds, ...supplierIds]));
+      const hasCpAssignee = matchedIds.some(id => cachedResources.find(resource => resource.id === id)?.type === 'cp');
       const followupAssignment = hasFollowupAssignment(matchedIds, cachedResources);
       let resolvedAssigneeIds: number[] | null = null;
       if ((tapdOwner || supplierIds.length > 0) && matchedIds.length > 0) {
@@ -3217,7 +3255,8 @@ export class TapdService {
         updateData.tapdWorkitemTypeId = remote.tapdWorkitemTypeId;
         updateData.tapdWorkitemTypeName = remote.tapdWorkitemTypeName;
         updateData.completedAt = remote.completedAt;
-        if (followupAssignment) updateData.workCategory = 'cp_follow';
+        if (hasCpAssignee || supplierIds.length > 0 || followupAssignment) updateData.workCategory = 'cp_follow';
+        else if (matchedIds.length > 0) updateData.workCategory = 'self_made';
         updateData.syncSource = 'tapd';
         for (const change of changes) {
           switch (change.field) {
@@ -3275,7 +3314,8 @@ export class TapdService {
         if (remote.tapdWorkitemTypeId !== localTask.tapdWorkitemTypeId) silentUpdates.tapdWorkitemTypeId = remote.tapdWorkitemTypeId;
         if (remote.tapdWorkitemTypeName !== localTask.tapdWorkitemTypeName) silentUpdates.tapdWorkitemTypeName = remote.tapdWorkitemTypeName;
         if (remote.completedAt?.getTime() !== localTask.completedAt?.getTime()) silentUpdates.completedAt = remote.completedAt;
-        if (followupAssignment && localTask.workCategory !== 'cp_follow') silentUpdates.workCategory = 'cp_follow';
+        if (hasCpAssignee || supplierIds.length > 0 || followupAssignment) silentUpdates.workCategory = 'cp_follow';
+        else if (matchedIds.length > 0 && localTask.workCategory !== 'self_made') silentUpdates.workCategory = 'self_made';
         silentUpdates.syncedAt = Date.now();
         silentUpdates.syncSource = 'tapd';
         // Fix corrupted assigneeIds containing NaN values
