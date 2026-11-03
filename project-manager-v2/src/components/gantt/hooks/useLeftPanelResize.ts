@@ -26,11 +26,20 @@ export function useLeftPanelResize({
   const effectiveLpWidth = leftPanelCollapsed ? 48 : leftPanelWidth;
 
   const resizeRef = useRef<{ startX: number; startWidth: number } | null>(null);
+  const previousBodyStyle = useRef<{ cursor: string; userSelect: string } | null>(null);
+
+  const restoreBodyStyle = useCallback(() => {
+    if (!previousBodyStyle.current) return;
+    document.body.style.cursor = previousBodyStyle.current.cursor;
+    document.body.style.userSelect = previousBodyStyle.current.userSelect;
+    previousBodyStyle.current = null;
+  }, []);
 
   const handleLpResizeStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     resizeRef.current = { startX: e.clientX, startWidth: leftPanelWidth };
+    previousBodyStyle.current = { cursor: document.body.style.cursor, userSelect: document.body.style.userSelect };
     setIsResizing(true);
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
@@ -49,8 +58,7 @@ export function useLeftPanelResize({
     const handleMouseUp = () => {
       resizeRef.current = null;
       setIsResizing(false);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
+      restoreBodyStyle();
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -58,8 +66,9 @@ export function useLeftPanelResize({
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      restoreBodyStyle();
     };
-  }, [isResizing, minWidth, maxWidth]);
+  }, [isResizing, minWidth, maxWidth, restoreBodyStyle]);
 
   return {
     leftPanelWidth,

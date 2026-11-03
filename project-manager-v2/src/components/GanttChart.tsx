@@ -105,18 +105,36 @@ export function GanttChart() {
   const ganttScrollRef = useRef<HTMLDivElement>(null);
   const { zoomIndex, zoomConfig, dayWidth, visibleDays, handleZoomIn, handleZoomOut, handleZoomReset } = useGanttZoom(ganttScrollRef);
 
-  // Dynamic start date: 2 weeks before the earliest task, or fallback to fixed date
+  // Keep historical TAPD records from expanding the working canvas back to 2024.
+  // The project currently has an effective planning window from July 2026 onward;
+  // older records remain visible in the task list but do not define the timeline.
+  const projectTimelineFloor = useMemo(() => new Date(2026, 6, 1), []);
+  const scheduledTimelineDates = useMemo(() => (tasks || [])
+    .flatMap(task => task.startDate && task.endDate ? [{
+      start: new Date(task.startDate),
+      end: new Date(task.endDate),
+    }] : [])
+    .filter(range => !Number.isNaN(range.start.getTime()) && !Number.isNaN(range.end.getTime()) && range.end >= projectTimelineFloor),
+    [tasks, projectTimelineFloor]);
+  const timelineRange = useMemo(() => {
+    if (!scheduledTimelineDates.length) return undefined;
+    return {
+      start: new Date(Math.min(...scheduledTimelineDates.map(range => range.start.getTime()))),
+      end: new Date(Math.max(...scheduledTimelineDates.map(range => range.end.getTime()))),
+    };
+  }, [scheduledTimelineDates]);
   const startDate = useMemo(() => {
-    if (tasks && tasks.length > 0) {
-      const datesWithStart = tasks.filter(t => t.startDate).map(t => t.startDate!.getTime());
-      if (datesWithStart.length > 0) {
-        const earliest = new Date(Math.min(...datesWithStart));
-        // Start 14 days before the earliest task
-        return addDays(earliest, -14);
-      }
-    }
-    return new Date(2026, 3, 10); // Fallback
-  }, [tasks]);
+    if (!timelineRange) return new Date(projectTimelineFloor);
+    return new Date(Math.max(
+      projectTimelineFloor.getTime(),
+      addDays(timelineRange.start, -14).getTime(),
+    ));
+  }, [projectTimelineFloor, timelineRange]);
+  const timelineFocusDate = useMemo(() => {
+    if (!timelineRange) return today;
+    if (today >= timelineRange.start && today <= timelineRange.end) return today;
+    return timelineRange.start < projectTimelineFloor ? projectTimelineFloor : timelineRange.start;
+  }, [projectTimelineFloor, timelineRange, today]);
   const days = useMemo(() => Array.from({ length: visibleDays }).map((_, i) => addDays(startDate, i)), [startDate, visibleDays]);
 
   // Adjust scroll proportionally on zoom
@@ -142,14 +160,17 @@ export function GanttChart() {
     }
   }, [dayWidth, today, startDate]);
 
-  // Open the timeline around today so the current month is immediately visible.
-  const hasAutoFocused = useRef(false);
+  // Focus the current date when it falls inside the project range; otherwise focus
+  // the first effective task date. This prevents an empty-looking viewport when all
+  // scheduled work is in a future release window.
+  const autoFocusKey = `${startDate.getTime()}-${timelineFocusDate.getTime()}`;
+  const lastAutoFocusKey = useRef<string | null>(null);
   useEffect(() => {
-    if (hasAutoFocused.current || !tasks || tasks.length === 0 || !ganttScrollRef.current) return;
-    const todayOffset = differenceInDays(today, startDate);
-    ganttScrollRef.current.scrollLeft = Math.max(0, (todayOffset - 2) * dayWidth);
-    hasAutoFocused.current = true;
-  }, [tasks, startDate, dayWidth, today]);
+    if (lastAutoFocusKey.current === autoFocusKey || !tasks || tasks.length === 0 || !ganttScrollRef.current) return;
+    const focusOffset = differenceInDays(timelineFocusDate, startDate);
+    ganttScrollRef.current.scrollLeft = Math.max(0, (focusOffset - 2) * dayWidth);
+    lastAutoFocusKey.current = autoFocusKey;
+  }, [autoFocusKey, tasks, startDate, dayWidth, timelineFocusDate]);
   const [draggingTaskId, setDraggingTaskId] = useState<number | null>(null);
   const [conflictTaskId, setConflictTaskId] = useState<number | null>(null);
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
@@ -665,7 +686,6 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
       scrollLeft: ganttScrollRef.current?.scrollLeft || 0,
       scrollTop: ganttScrollRef.current?.scrollTop || 0,
     };
-    document.body.style.cursor = 'grabbing';
   }, []);
 
   useEffect(() => {
@@ -679,7 +699,6 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     };
     const handleMouseUp = () => {
       setIsDraggingCanvas(false);
-      document.body.style.cursor = '';
     };
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
@@ -2617,7 +2636,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
             {/* Scrollable gantt content */}
             <div
               ref={ganttScrollRef}
-              className={`flex-1 overflow-x-auto overflow-y-auto ${isDraggingCanvas ? 'cursor-grabbing select-none' : ''}`}
+              className={`${!tasks || scheduledTimelineDates.length === 0 ? 'hidden ' : ''}flex-1 overflow-x-auto overflow-y-auto ${isDraggingCanvas ? 'cursor-grabbing select-none' : ''}`}
               id="gantt-scroll-container"
               onMouseDown={handleCanvasMouseDown}
             >
@@ -2779,6 +2798,17 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                 />
               </div>
             </div>
+
+            {(!tasks || scheduledTimelineDates.length === 0) && (
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#12141e] px-6 text-center">
+                <div className="max-w-md rounded-2xl border border-gray-800 bg-[#171b25] px-8 py-10 shadow-xl">
+                  <CalendarDays size={30} className="mx-auto mb-4 text-indigo-300" />
+                  <h3 className="text-base font-semibold text-gray-200">{tasks === undefined ? '正在加载时间排期…' : '当前项目暂无可展示的排期'}</h3>
+                  <p className="mt-2 text-xs leading-5 text-gray-500">{tasks === undefined ? '正在读取本地缓存和 TAPD 数据，页面位置会保持稳定。' : '请先同步 TAPD 任务，或在任务中补充开始时间和结束时间后再查看甘特图。'}</p>
+                  {tasks !== undefined && hasTapdConfig && <button onClick={handleTapdQuickRefresh} disabled={isTapdRefreshing} className="mt-5 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"><RefreshCw size={13} className={isTapdRefreshing ? 'animate-spin' : ''} />{isTapdRefreshing ? '同步中…' : '立即同步 TAPD'}</button>}
+                </div>
+              </div>
+            )}
 
             {/* GanttScrollbar removed — navigation handled by native scroll + keyboard/wheel */}
           </div>

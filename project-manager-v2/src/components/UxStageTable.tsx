@@ -5,7 +5,7 @@ import { db } from '../db/db';
 import { useStore } from '../store/useStore';
 import type { Task } from '../types/task';
 import type { CoreUxStage } from '../services/uxStageView';
-import { buildStageRows, relatedCheckpointItems, isDemandComplete, isUiStoryOverallComplete, STAGES, STAGE_STATUS, stageStatus, taskStatus } from '../services/uxStageView';
+import { buildStageRows, getDemandProgressSummary, relatedCheckpointItems, STAGES, STAGE_STATUS, stageStatus, taskStatus, type DemandDisplayState } from '../services/uxStageView';
 import { getPriorityLabel } from '../utils/priority';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 import { getRequirementKindLabel } from '../utils/taskHierarchy';
@@ -58,6 +58,24 @@ function StatusBadge({ status }: { status: keyof typeof STAGE_STATUS }) {
   </span>;
 }
 
+const DEMAND_STATE_META: Record<DemandDisplayState, { label: string; color: string }> = {
+  blocked: { label: '阻塞', color: 'border-red-500/30 bg-red-500/10 text-red-300' },
+  overdue: { label: '已逾期', color: 'border-orange-500/30 bg-orange-500/10 text-orange-300' },
+  due_soon: { label: '7天内到期', color: 'border-amber-500/30 bg-amber-500/10 text-amber-300' },
+  unscheduled: { label: '未排期', color: 'border-violet-500/30 bg-violet-500/10 text-violet-300' },
+  in_progress: { label: '进行中', color: 'border-blue-500/30 bg-blue-500/10 text-blue-300' },
+  todo: { label: '待开始', color: 'border-slate-500/30 bg-slate-500/10 text-slate-300' },
+  cancelled: { label: '已取消', color: 'border-gray-500/30 bg-gray-500/10 text-gray-400' },
+  done: { label: '已完成', color: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' },
+};
+
+function demandStageLabel(stage: ReturnType<typeof getDemandProgressSummary>['currentStage']) {
+  if (stage === 'completed') return '已完成';
+  if (stage === 'cancelled') return '已取消';
+  if (stage === 'other') return '其他卡点';
+  return STAGES.find(item => item.key === stage)?.label || '待识别';
+}
+
 export function UxStageTable() {
   const { selectedProjectId, openTaskModal } = useStore();
   const tasks = useLiveQuery(() => selectedProjectId ? db.tasks.where('projectId').equals(selectedProjectId).toArray() : db.tasks.toArray(), [selectedProjectId]);
@@ -71,6 +89,11 @@ export function UxStageTable() {
   const [descending, setDescending] = useState(false);
   const [detail, setDetail] = useState<{ rootId: number; stage: CoreUxStage } | null>(null);
   const rows = useMemo(() => buildStageRows(tasks || [], resources), [tasks, resources]);
+  const summaryByRootId = useMemo(() => new Map(rows.map(row => [
+    row.root.id!,
+    getDemandProgressSummary(row, resources, tasks || []),
+  ])), [rows, resources, tasks]);
+  const getSummary = (row: typeof rows[number]) => summaryByRootId.get(row.root.id!) || getDemandProgressSummary(row, resources, tasks || []);
   const moduleCategories = useMemo(() => [...new Set(
     rows.map(row => row.root.module?.trim()).filter((value): value is string => Boolean(value))
   )].sort((left, right) => left.localeCompare(right, 'zh-CN')), [rows]);
@@ -84,8 +107,7 @@ export function UxStageTable() {
     return result.join('、') || '—';
   };
   const rowCheckpoints = (row: typeof rows[number]) => relatedCheckpointItems(row.descendants, resources);
-  const isRowComplete = (row: typeof rows[number]) =>
-    isUiStoryOverallComplete(row.root) || (isDemandComplete(row.stages) && rowCheckpoints(row).length === 0);
+  const isRowComplete = (row: typeof rows[number]) => getSummary(row).state === 'done';
   const filtered = rows.filter(row => {
     const text = query.trim().toLowerCase();
     if (text && ![row.root, ...row.descendants].some(t => `${t.title} ${t.tapdId || ''} ${t.module || ''}`.toLowerCase().includes(text))) return false;
@@ -113,18 +135,27 @@ export function UxStageTable() {
       ));
     });
   }).sort((a, b) => {
-    const aDone = isRowComplete(a);
-    const bDone = isRowComplete(b);
-    if (aDone !== bDone) return aDone ? 1 : -1;
+    const aSummary = getSummary(a);
+    const bSummary = getSummary(b);
+    const stateRank: Record<DemandDisplayState, number> = {
+      blocked: 0,
+      overdue: 1,
+      due_soon: 2,
+      unscheduled: 3,
+      in_progress: 4,
+      todo: 5,
+      cancelled: 6,
+      done: 7,
+    };
+    const stateDifference = stateRank[aSummary.state] - stateRank[bSummary.state];
+    if (stateDifference !== 0) return stateDifference;
 
     const priorityRank: Record<string, number> = { high: 0, medium: 1, low: 2 };
-    if (!aDone) {
-      const priorityDifference = (priorityRank[a.root.priority || ''] ?? 3) - (priorityRank[b.root.priority || ''] ?? 3);
-      if (priorityDifference !== 0) return priorityDifference;
-    }
+    const priorityDifference = (priorityRank[a.root.priority || ''] ?? 3) - (priorityRank[b.root.priority || ''] ?? 3);
+    if (priorityDifference !== 0) return priorityDifference;
 
-    const left = a.root.endDate ? new Date(a.root.endDate).getTime() : Infinity;
-    const right = b.root.endDate ? new Date(b.root.endDate).getTime() : Infinity;
+    const left = aSummary.deadline ? new Date(aSummary.deadline).getTime() : Infinity;
+    const right = bSummary.deadline ? new Date(bSummary.deadline).getTime() : Infinity;
     if (left === right) return (a.root.id || 0) - (b.root.id || 0);
     if (!Number.isFinite(left)) return 1;
     if (!Number.isFinite(right)) return -1;
@@ -161,18 +192,19 @@ export function UxStageTable() {
         {hasFilters && <button onClick={clearFilters} className="h-9 px-2 text-xs text-indigo-300 hover:text-white">清除筛选</button>}
       </div>
     </div>
-    <div className="flex items-center justify-between gap-3 px-5 py-3 text-xs text-gray-500"><span>显示 <strong className="text-gray-200">{filtered.length}</strong> / {rows.length} 个需求</span><span>已完成 = 父需求进入测试阶段，或交互、视觉、还原、动效全部完成 · — 表示未建任务</span></div>
+    <div className="flex items-center justify-between gap-3 px-5 py-3 text-xs text-gray-500"><span>显示 <strong className="text-gray-200">{filtered.length}</strong> / {rows.length} 个需求</span><span>默认按阻塞、逾期、临近到期、未排期、进行中排序 · TAPD 父需求终态优先</span></div>
     <div className="min-h-0 flex-1 overflow-auto px-5 pb-5">
-      <table className="w-full min-w-[1100px] table-fixed border-separate border-spacing-0 text-left text-xs">
-        <colgroup><col style={{ width: '21%' }} /><col style={{ width: '9%' }} /><col style={{ width: '6%' }} />{STAGES.map(s => <col key={s.key} style={{ width: '14%' }} />)}<col style={{ width: '8%' }} /></colgroup>
+      <table className="w-full min-w-[1320px] table-fixed border-separate border-spacing-0 text-left text-xs">
+        <colgroup><col style={{ width: '20%' }} /><col style={{ width: '15%' }} /><col style={{ width: '7%' }} /><col style={{ width: '5%' }} />{STAGES.map(s => <col key={s.key} style={{ width: '12%' }} />)}<col style={{ width: '5%' }} /></colgroup>
         <thead className="sticky top-0 z-20"><tr className="text-gray-400">
           <th className="sticky left-0 z-30 border-y border-gray-800 bg-[#171b25] px-4 py-3 font-medium">UIStory</th>
-          <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 text-center align-middle text-sm font-semibold text-gray-200">模块分类</th>
+          <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 font-medium"><span className="text-sm font-semibold text-gray-200">排期判断</span><div className="mt-1 text-[10px] font-normal text-gray-500">当前环节 / 进度 / 卡点</div></th>
+          <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 text-center align-middle text-sm font-semibold text-gray-200">模块</th>
           <th className="border-y border-gray-800 bg-[#171b25] px-2 py-3 text-center align-middle text-sm font-semibold text-gray-200">优先级</th>
           {STAGES.map((s, index) => <th key={s.key} className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 font-medium"><span className="mr-2 text-[10px] text-indigo-400">0{index + 1}</span><span className="text-gray-200">{s.label}</span><div className="mt-1 text-[10px] font-normal text-gray-500">负责人 / 状态</div></th>)}
           <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 text-center align-middle text-sm font-semibold text-gray-200"><button onClick={() => setDescending(!descending)} className="flex w-full items-center justify-center gap-1" aria-label={descending ? '截止日期降序，点击升序' : '截止日期升序，点击降序'}>截止日期<ArrowUpDown size={13} /></button></th>
         </tr></thead>
-        <tbody>{filtered.map(row => { const { root, stages } = row; const checkpoints = rowCheckpoints(row); const checkpointGroups = [...checkpoints.reduce((groups, item) => groups.set(item.label, [...(groups.get(item.label) || []), item.task]), new Map<string, Task[]>())]; const rootDone = isRowComplete(row); const rootCancelled = taskStatus(root) === 'cancelled'; const rootTypeLabel = root.tapdWorkitemTypeName || getRequirementKindLabel(root, true) || '需求'; return <tr key={root.id} className={'group ' + (rootCancelled ? 'bg-red-500/[0.07]' : rootDone ? 'bg-emerald-500/[0.07]' : '')}>
+        <tbody>{filtered.map(row => { const { root, stages } = row; const progressSummary = getSummary(row); const checkpoints = rowCheckpoints(row); const checkpointGroups = [...checkpoints.reduce((groups, item) => groups.set(item.label, [...(groups.get(item.label) || []), item.task]), new Map<string, Task[]>())]; const rootDone = progressSummary.state === 'done'; const rootCancelled = progressSummary.state === 'cancelled'; const rootTypeLabel = root.tapdWorkitemTypeName || getRequirementKindLabel(root, true) || '需求'; return <tr key={root.id} className={'group ' + (rootCancelled ? 'bg-red-500/[0.07]' : rootDone ? 'bg-emerald-500/[0.07]' : '')}>
           <td className={'sticky left-0 z-10 border-b border-gray-800 px-4 py-3 ' + (rootCancelled ? 'bg-[#28171c] group-hover:bg-[#341b22]' : rootDone ? 'bg-[#10231d] group-hover:bg-[#153027]' : 'bg-[#11151d] group-hover:bg-[#191e2b]')}>
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="flex flex-wrap items-center gap-1.5"><span className="rounded border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold text-sky-300">{rootTypeLabel}</span>{rootCancelled ? <span className="rounded border border-red-500/30 bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-300">父需求已拒绝</span> : rootDone ? <span className="rounded border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">父需求已完成</span> : null}</div>
@@ -182,6 +214,14 @@ export function UxStageTable() {
             <div className="mt-1.5 flex items-center gap-2 text-[10px] text-gray-500">{root.tapdId && <span>#{root.tapdId}</span>}<button onClick={() => openTaskModal(root.id)} className="text-gray-400 hover:text-white">本地详情</button></div>
             {checkpointGroups.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{checkpointGroups.map(([label, items]) => { const primary = items[0]; const checkpointStatus = taskStatus(primary); const statusLabel = checkpointStatus === 'blocked' ? '阻塞' : checkpointStatus === 'paused' ? '暂停' : checkpointStatus === 'in_progress' ? '进行中' : '待开始'; const content = <><AlertTriangle size={11} /><span className="truncate">卡点：{label} · {statusLabel}{items.length > 1 ? `（${items.length}项）` : ''}</span></>; return primary.externalUrl ? <a key={label} href={primary.externalUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} title={primary.title} className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[10px] font-medium text-amber-300 hover:bg-amber-500/20 hover:text-amber-200">{content}<ExternalLink size={10} className="shrink-0" /></a> : <button key={label} onClick={() => openTaskModal(primary.id)} title={primary.title} className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[10px] font-medium text-amber-300 hover:bg-amber-500/20 hover:text-amber-200">{content}</button>; })}</div>}
 
+          </td>
+          <td className="border-b border-l border-gray-800 px-3 py-3 align-top">
+            <div className="flex items-center justify-between gap-2">
+              <span className={`inline-flex items-center rounded border px-2 py-1 text-[10px] font-semibold ${DEMAND_STATE_META[progressSummary.state].color}`}>{DEMAND_STATE_META[progressSummary.state].label}</span>
+              <span className="whitespace-nowrap text-[11px] font-semibold text-gray-300">当前：{demandStageLabel(progressSummary.currentStage)}</span>
+            </div>
+            <div className="mt-2 flex items-center gap-2 text-[10px] text-gray-500"><span className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-800"><span className={`block h-full rounded-full ${progressSummary.state === 'done' ? 'bg-emerald-400' : progressSummary.state === 'blocked' ? 'bg-red-400' : 'bg-indigo-400'}`} style={{ width: `${progressSummary.progress}%` }} /></span><span className="tabular-nums text-gray-300">{progressSummary.progress}%</span><span>({progressSummary.doneCount}/{progressSummary.totalCount})</span></div>
+            <div className={`mt-2 line-clamp-2 text-[10px] leading-4 ${progressSummary.blockers.length ? 'text-amber-300' : 'text-gray-500'}`} title={progressSummary.blockers.join('；')}>{progressSummary.blockers.length ? progressSummary.blockers.join('；') : '暂无卡点'}</div>
           </td>
           <td className="border-b border-l border-gray-800 px-3 py-5 text-center align-middle text-sm font-semibold text-blue-300">{root.module || '未分类'}</td>
           <td className="border-b border-gray-800 px-2 py-3 text-center align-middle"><span className={`inline-flex min-w-9 justify-center rounded px-2.5 py-1 text-xs font-semibold ${root.priority === 'high' ? 'bg-red-500/10 text-red-300' : root.priority === 'medium' ? 'bg-amber-500/10 text-amber-300' : 'bg-gray-800 text-gray-400'}`}>{getPriorityLabel(root.priority)}</span></td>

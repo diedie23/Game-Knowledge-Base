@@ -1684,7 +1684,7 @@ export class TapdService {
    * Fetch stories (requirements) from TAPD via MCP proxy.
    * Supports optional sync range filtering (time range, status, limit).
    */
-  async fetchTasks(workspaceId: string): Promise<Partial<Task>[]> {
+  async fetchTasks(workspaceId: string, modifiedSince?: number): Promise<Partial<Task>[]> {
     try {
       // Support multiple workspace IDs separated by comma or semicolon
       const workspaceIds = parseTapdWorkspaceIds(workspaceId);
@@ -1695,7 +1695,7 @@ export class TapdService {
         const allTasks: Partial<Task>[] = [];
         for (const wsId of workspaceIds) {
           try {
-            const tasks = await this.fetchTasksFromSingleWorkspace(wsId);
+            const tasks = await this.fetchTasksFromSingleWorkspace(wsId, modifiedSince);
             allTasks.push(...tasks);
           } catch (err: any) {
             console.warn(`[TapdService] Failed to fetch from workspace ${wsId}:`, err.message);
@@ -1707,15 +1707,15 @@ export class TapdService {
 
       // Single workspace: use original logic
       const singleWorkspaceId = workspaceIds[0];
-      return singleWorkspaceId ? await this.fetchTasksFromSingleWorkspace(singleWorkspaceId) : [];
+      return singleWorkspaceId ? await this.fetchTasksFromSingleWorkspace(singleWorkspaceId, modifiedSince) : [];
     } catch (error: any) {
       console.error('[TapdService] fetchTasks error:', error);
       throw error;
     }
   }
 
-  /** Fetch tasks from a single workspace */
-  private async fetchTasksFromSingleWorkspace(workspaceId: string): Promise<Partial<Task>[]> {
+  /** Fetch tasks from a single workspace. A since timestamp narrows TAPD's modified range. */
+  private async fetchTasksFromSingleWorkspace(workspaceId: string, modifiedSince?: number): Promise<Partial<Task>[]> {
     try {
       // A previous workspace fetch may have replaced the active config.
       if (!this.config || !configContainsTapdWorkspace(this.config.workspaceId, workspaceId)) {
@@ -1767,6 +1767,14 @@ export class TapdService {
         if (syncRange.ownerFilter && syncRange.ownerFilter.length > 0 && syncRange.ownerFilterMode !== 'client' && !hasClientFiltersForOwner) {
           extraParams.owner = syncRange.ownerFilter.join(';');
         }
+      }
+
+      // Incremental sync wins over the configured broad range. TAPD's modified
+      // filter is day-granular, so include the previous day to avoid missing
+      // changes made later on the same day as the last pull.
+      if (modifiedSince && modifiedSince > 0) {
+        const startDate = new Date(modifiedSince - 86_400_000);
+        extraParams.modified = `${startDate.toISOString().slice(0, 10)}~${new Date().toISOString().slice(0, 10)}`;
       }
 
       let stories: any[] = [];

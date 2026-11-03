@@ -1,5 +1,6 @@
 import type { Task } from '../types/task';
 import type { Resource } from '../types/resource';
+import { isTaskCancelled, isTaskCompleted, isTaskOverdue } from '../utils/taskState';
 import { detectUxStage } from './uxWorkPackageService';
 
 export type CoreUxStage = 'interaction' | 'ui_design' | 'implementation' | 'motion';
@@ -55,7 +56,11 @@ export function taskStage(task: Task, resources: Resource[] = []): CoreUxStage |
 }
 
 export function taskStatus(task: Task): StageStatus {
-  return task.isBlocked && task.status !== 'done' && task.status !== 'cancelled' ? 'blocked' : task.status;
+  // TAPD terminal fields are authoritative for synced tasks. This keeps the
+  // table consistent even when the local status was not updated by an older sync.
+  if (isTaskCancelled(task)) return 'cancelled';
+  if (isTaskCompleted(task)) return 'done';
+  return task.isBlocked ? 'blocked' : task.status;
 }
 
 const CHECKPOINT_RULES = [
@@ -87,7 +92,7 @@ export function relatedCheckpointLabel(task: Task, resources: Resource[] = []): 
 export function relatedCheckpointItems(tasks: Task[], resources: Resource[] = []): RelatedCheckpoint[] {
   const rank: Record<StageStatus, number> = { blocked: 0, in_progress: 1, todo: 2, paused: 3, missing: 4, done: 5, cancelled: 6 };
   return tasks.flatMap(task => {
-    if (task.status === 'done' || task.status === 'cancelled' || taskStage(task, resources)) return [];
+    if (isTaskCompleted(task) || isTaskCancelled(task) || taskStage(task, resources)) return [];
     const label = relatedCheckpointLabel(task, resources);
     return label ? [{ task, label }] : [];
   }).sort((left, right) => (rank[taskStatus(left.task)] ?? 9) - (rank[taskStatus(right.task)] ?? 9));
@@ -95,12 +100,13 @@ export function relatedCheckpointItems(tasks: Task[], resources: Resource[] = []
 
 export function stageStatus(tasks: Task[]): StageStatus {
   if (!tasks.length) return 'missing';
-  const active = tasks.filter(t => t.status !== 'cancelled');
+  const statuses = tasks.map(taskStatus);
+  const active = statuses.filter(status => status !== 'cancelled');
   if (!active.length) return 'cancelled';
-  if (active.every(t => t.status === 'done')) return 'done';
-  if (active.some(t => taskStatus(t) === 'blocked')) return 'blocked';
-  if (active.some(t => t.status === 'paused')) return 'paused';
-  if (active.some(t => t.status === 'in_progress' || t.status === 'done')) return 'in_progress';
+  if (active.every(status => status === 'done')) return 'done';
+  if (active.some(status => status === 'blocked')) return 'blocked';
+  if (active.some(status => status === 'paused')) return 'paused';
+  if (active.some(status => status === 'in_progress' || status === 'done')) return 'in_progress';
   return 'todo';
 }
 
@@ -112,8 +118,8 @@ export function isDemandComplete(stages: Record<CoreUxStage, Task[]>): boolean {
 const COMPLETED_WORKFLOW_STAGE = /测试|提测|验收|发布|部署|上线|\btest(?:ing)?\b|\bqa\b|acceptance|release|deploy/i;
 
 export function isUiStoryOverallComplete(task: Task): boolean {
-  if (task.status === 'cancelled') return false;
-  if (task.status === 'done') return true;
+  if (isTaskCancelled(task)) return false;
+  if (isTaskCompleted(task)) return true;
   return COMPLETED_WORKFLOW_STAGE.test(`${task.tapdStep || ''} ${task.tapdStatus || ''}`);
 }
 
@@ -130,7 +136,13 @@ function isExplicitEpic(task: Task): boolean {
   return /epic|史诗/i.test(String(task.tapdWorkitemTypeName || '').trim());
 }
 
-export function buildStageRows(tasks: Task[], resources: Resource[] = []) {
+export interface StageRow {
+  root: Task;
+  stages: Record<CoreUxStage, Task[]>;
+  descendants: Task[];
+}
+
+export function buildStageRows(tasks: Task[], resources: Resource[] = []): StageRow[] {
   const byId = new Map(tasks.map(t => [t.id, t]));
   const children = new Map<number, Task[]>();
   tasks.forEach(t => {
@@ -163,4 +175,94 @@ export function buildStageRows(tasks: Task[], resources: Resource[] = []) {
     visit(root);
     return { root, stages, descendants };
   });
+}
+
+export type DemandDisplayState = 'blocked' | 'overdue' | 'due_soon' | 'unscheduled' | 'in_progress' | 'todo' | 'done' | 'cancelled';
+
+export interface DemandProgressSummary {
+  state: DemandDisplayState;
+  currentStage: CoreUxStage | 'other' | 'completed' | 'cancelled';
+  progress: number;
+  doneCount: number;
+  totalCount: number;
+  deadline?: Date;
+  blockers: string[];
+  isOverdue: boolean;
+  isDueSoon: boolean;
+  isUnscheduled: boolean;
+}
+
+/** Derive the small, action-oriented summary shown before the detailed stage cards. */
+export function getDemandProgressSummary(
+  row: StageRow,
+  resources: Resource[] = [],
+  allTasks: Task[] = [],
+  referenceDate = new Date(),
+): DemandProgressSummary {
+  const rootStatus = taskStatus(row.root);
+  const checkpoints = relatedCheckpointItems(row.descendants, resources);
+  const stageTasks = STAGES.flatMap(stage => row.stages[stage.key]);
+  const activeTasks = stageTasks.filter(task => taskStatus(task) !== 'cancelled');
+  const doneCount = activeTasks.filter(task => taskStatus(task) === 'done').length;
+  const totalCount = activeTasks.length;
+  const hasTapdCompletion = isUiStoryOverallComplete(row.root);
+  const rootCancelled = rootStatus === 'cancelled';
+  const stageSummaries = STAGES.map(stage => ({ stage, status: stageStatus(row.stages[stage.key]) }));
+  const blockers = new Set<string>();
+
+  checkpoints.slice(0, 3).forEach(item => blockers.add(`卡点：${item.label}`));
+  activeTasks.filter(task => taskStatus(task) === 'blocked').slice(0, 3).forEach(task => blockers.add(task.blockReason || '任务已阻塞'));
+  activeTasks.filter(task => taskStage(task, resources) && !task.assigneeIds?.length).slice(0, 2).forEach(() => blockers.add('环节未分配负责人'));
+  stageSummaries.filter(item => item.status === 'missing').forEach(item => blockers.add(`缺少${item.stage.label}任务`));
+
+  const taskById = new Map([...allTasks, ...row.descendants].filter(task => task.id != null).map(task => [task.id!, task]));
+  activeTasks.forEach(task => {
+    (task.dependencies || []).forEach(dependencyId => {
+      const dependency = taskById.get(dependencyId);
+      if (!dependency) blockers.add('前置依赖未找到');
+      else if (!isTaskCompleted(dependency) && !isTaskCancelled(dependency)) blockers.add('前置依赖未完成');
+    });
+  });
+
+  const dates = [row.root, ...row.descendants].map(task => task.endDate).filter((value): value is Date => !!value && !Number.isNaN(new Date(value).getTime()));
+  const deadline = row.root.endDate || (dates.length ? new Date(Math.max(...dates.map(date => new Date(date).getTime()))) : undefined);
+  const isOverdue = !!deadline && !hasTapdCompletion && isTaskOverdue({ ...row.root, endDate: deadline }, referenceDate);
+  const isDueSoon = !!deadline && !hasTapdCompletion && !isOverdue && (new Date(deadline).getTime() - referenceDate.getTime()) <= 7 * 86_400_000;
+  const isUnscheduled = !hasTapdCompletion && activeTasks.some(task => !task.startDate || !task.endDate);
+  const allDone = hasTapdCompletion || (totalCount > 0 && isDemandComplete(row.stages) && checkpoints.length === 0);
+  const blocked = !allDone && blockers.size > 0;
+  const inProgress = activeTasks.some(task => taskStatus(task) === 'in_progress' || taskStatus(task) === 'done');
+  const currentStage = rootCancelled
+    ? 'cancelled'
+    : allDone
+      ? 'completed'
+      : stageSummaries.find(item => item.status === 'blocked' || item.status === 'in_progress' || item.status === 'todo' || item.status === 'missing')?.stage.key || (checkpoints.length ? 'other' : 'completed');
+  const state: DemandDisplayState = rootCancelled
+    ? 'cancelled'
+    : allDone
+      ? 'done'
+      : blocked
+        ? 'blocked'
+        : isOverdue
+          ? 'overdue'
+          : isDueSoon
+            ? 'due_soon'
+            : isUnscheduled
+              ? 'unscheduled'
+              : inProgress
+                ? 'in_progress'
+                : 'todo';
+
+  return {
+    state,
+    currentStage,
+    progress: hasTapdCompletion ? 100 : totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0,
+    doneCount,
+    totalCount,
+    deadline,
+    blockers: [...blockers],
+    isOverdue,
+    isDueSoon,
+    isUnscheduled,
+  };
 }

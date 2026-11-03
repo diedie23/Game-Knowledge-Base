@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense, useRef, useState } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { Layout } from './components/Layout';
 import { useStore } from './store/useStore';
 import { initMockData } from './db/mockData';
@@ -31,24 +31,12 @@ import { BACKUP_STORAGE_KEY } from './services/dataExportService';
 import { toast } from './store/useToastStore';
 import { isEpicRequirement } from './utils/taskHierarchy';
 
-// View transition wrapper — triggers fade-in animation on view change
-function ViewTransition({ viewKey, children }: { viewKey: string; children: React.ReactNode }) {
-  const [animClass, setAnimClass] = useState('view-enter');
-  const prevKey = useRef(viewKey);
-
-  useEffect(() => {
-    if (prevKey.current !== viewKey) {
-      setAnimClass('view-exit');
-      const timer = setTimeout(() => {
-        setAnimClass('view-enter');
-        prevKey.current = viewKey;
-      }, 150); // match exit animation duration
-      return () => clearTimeout(timer);
-    }
-  }, [viewKey]);
-
+// Keep one stable viewport container while switching views. Remounting the whole
+// page with an exit animation caused height/scroll changes during data refresh,
+// which made the pointer appear to drift away from the control being used.
+function ViewTransition({ children }: { children: React.ReactNode }) {
   return (
-    <div key={viewKey} className={animClass} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="h-full min-h-0 flex flex-col">
       {children}
     </div>
   );
@@ -161,7 +149,7 @@ function App() {
   return (
     <Layout>
       <div className="h-full text-gray-300 flex flex-col">
-        <ViewTransition viewKey={currentView}>
+        <ViewTransition>
           <Suspense fallback={<ViewSkeleton />}>
             {currentView === 'dashboard' && (
               <ErrorBoundary label="仪表盘">

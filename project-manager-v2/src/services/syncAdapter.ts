@@ -113,7 +113,7 @@ export class TapdSyncAdapter implements SyncAdapter {
     }
   }
 
-  async pullChanges(_since: number): Promise<Partial<Task>[]> {
+  async pullChanges(since: number): Promise<Partial<Task>[]> {
     const { tapdService } = await import('./tapdService');
     // Ensure config is loaded so credentials are available
     const { db } = await import('../db/db');
@@ -123,7 +123,7 @@ export class TapdSyncAdapter implements SyncAdapter {
     if (config) {
       await tapdService.loadConfig(config.projectId);
     }
-    return tapdService.fetchTasks(this.workspaceId);
+    return tapdService.fetchTasks(this.workspaceId, since);
   }
 
   async isAvailable(): Promise<boolean> {
