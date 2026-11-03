@@ -25,6 +25,9 @@ export interface Task {
   /** TAPD requirement type retained so UIStory/UI can be shown explicitly. */
   tapdWorkitemTypeId?: string;
   tapdWorkitemTypeName?: string;
+  /** TAPD requirement template metadata; used to distinguish interface and icon-template orders. */
+  tapdTemplateId?: string;
+  tapdTemplateName?: string;
   /** External URL (e.g. TAPD story/bug link). When set, clicking the task name opens this URL. */
   externalUrl?: string;
 

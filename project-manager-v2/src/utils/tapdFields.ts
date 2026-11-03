@@ -63,6 +63,23 @@ export function getTapdWorkitemTypeName(
   return typeId ? typeNames.get(typeId) || directName || undefined : directName || undefined;
 }
 
+/** Read the TAPD requirement template identity without assuming a workspace-specific field name. */
+export function getTapdTemplateId(story: Record<string, unknown>): string | undefined {
+  const value = tapdFieldText(story.templated_id ?? story.template_id ?? story.templatedId ?? story.templateId);
+  return value || undefined;
+}
+
+/** Resolve the template display name from a direct response value or a workspace template map. */
+export function getTapdTemplateName(
+  story: Record<string, unknown>,
+  templateNames: ReadonlyMap<string, string> = new Map()
+): string | undefined {
+  const directName = tapdFieldText(story.templated_name ?? story.template_name ?? story.template);
+  if (directName && !/^\d+$/.test(directName)) return directName;
+  const templateId = getTapdTemplateId(story);
+  return templateId ? templateNames.get(templateId) || directName || undefined : directName || undefined;
+}
+
 export function parseTapdDate(value: unknown): Date | undefined {
   if (value instanceof Date) return Number.isNaN(value.getTime()) ? undefined : new Date(value.getTime());
   const text = String(value ?? '').trim();

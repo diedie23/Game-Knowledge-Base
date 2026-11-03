@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Task } from '../types/task';
 import type { Resource } from '../types/resource';
-import { buildStageRows, relatedCheckpointItems, isDemandComplete, isUiStoryOverallComplete, resourceStage, stageStatus, taskStage, taskStatus } from './uxStageView';
+import { buildStageRows, getDemandKind, getDemandProgressSummary, getRequiredStages, relatedCheckpointItems, isDemandComplete, isUiStoryOverallComplete, resourceStage, stageStatus, taskStage, taskStatus } from './uxStageView';
 
 const task = (id: number, title: string, props: Partial<Task> = {}): Task => ({ id, title, status: 'todo', priority: 'medium', projectId: 1, progress: 0, dependencies: [], type: 'task', ...props });
 
@@ -47,6 +47,22 @@ describe('UX stage rows', () => {
     expect(isDemandComplete(full)).toBe(false);
     full.motion = [];
     expect(isDemandComplete(full)).toBe(false);
+  });
+  it('classifies icon-template demands separately and does not require interaction', () => {
+    const done = (id: number, title: string) => task(id, title, { status: 'done', parentId: 100 });
+    const tasks = [
+      task(100, '模板化资源需求', { tapdTemplateName: '图标模板发单' }),
+      done(101, '【视觉设计】图标模板'),
+      done(102, '【还原】图标模板'),
+      done(103, '【动效】图标模板'),
+    ];
+    const row = buildStageRows(tasks)[0];
+    expect(getDemandKind(row.root, row.descendants)).toBe('icon_template');
+    expect(getRequiredStages('icon_template')).toEqual(['ui_design', 'implementation', 'motion']);
+    const summary = getDemandProgressSummary(row, [], tasks, new Date('2026-11-03'));
+    expect(summary.kind).toBe('icon_template');
+    expect(summary.state).toBe('done');
+    expect(summary.blockers).not.toContain('缺少交互任务');
   });
   it('preserves orphan tasks and rejects cross-project parents', () => {
     expect(buildStageRows([task(1, '父需求'), task(2, '【动效】孤立任务', { parentId: 99 }), task(3, '【还原】其他项目', { parentId: 1, projectId: 2 })])).toHaveLength(3);

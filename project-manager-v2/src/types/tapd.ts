@@ -117,6 +117,12 @@ export interface TapdStory {
   /** Some TAPD REST/MCP responses include the display name directly. */
   workitem_type_name?: string;
   workitem_type?: string;
+  /** TAPD requirement template ID (templated_id in the open API). */
+  templated_id?: string;
+  /** Some gateways return the template display name directly. */
+  templated_name?: string;
+  template_id?: string;
+  template_name?: string;
   /** TAPD release plan ID */
     release_id?: string;
     /** Custom field: module feature (模块特性), e.g. "轻舟编辑器/主体" */

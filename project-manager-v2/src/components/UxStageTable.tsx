@@ -76,6 +76,34 @@ function demandStageLabel(stage: ReturnType<typeof getDemandProgressSummary>['cu
   return STAGES.find(item => item.key === stage)?.label || '待识别';
 }
 
+function CurrentStageFlow({ row, summary }: { row: ReturnType<typeof buildStageRows>[number]; summary: ReturnType<typeof getDemandProgressSummary> }) {
+  const stages = STAGES.filter(stage => summary.requiredStages.includes(stage.key));
+  return <div className="mt-2 flex min-w-0 items-center gap-1" aria-label={`${summary.kind === 'icon_template' ? '图标模板类' : '界面类'}流程：${demandStageLabel(summary.currentStage)}`}>
+    {stages.map((stage, index) => {
+      const rawStatus = stageStatus(row.stages[stage.key]);
+      const nodeStatus = summary.state === 'done' ? 'done' : rawStatus;
+      const nodeStyle = nodeStatus === 'done'
+        ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-300'
+        : nodeStatus === 'in_progress'
+          ? 'border-blue-400/60 bg-blue-500/15 text-blue-300'
+          : nodeStatus === 'blocked'
+            ? 'border-red-400/60 bg-red-500/15 text-red-300'
+            : nodeStatus === 'paused'
+              ? 'border-amber-400/60 bg-amber-500/15 text-amber-300'
+              : nodeStatus === 'missing'
+                ? 'border-gray-700 border-dashed bg-gray-900/40 text-gray-600'
+                : 'border-gray-600/70 bg-gray-800/70 text-gray-400';
+      return <div key={stage.key} className="flex min-w-0 items-center gap-1">
+        <div title={`${stage.label}：${STAGE_STATUS[nodeStatus].label}`} className={`flex min-w-0 items-center gap-1 rounded-md border px-1.5 py-1 text-[10px] font-medium ${nodeStyle}`}>
+          <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-current text-[9px]">{nodeStatus === 'done' ? '✓' : index + 1}</span>
+          <span className="truncate">{stage.label}</span>
+        </div>
+        {index < stages.length - 1 && <span className={`text-[11px] ${nodeStatus === 'done' ? 'text-emerald-400' : 'text-gray-700'}`}>→</span>}
+      </div>;
+    })}
+  </div>;
+}
+
 export function UxStageTable() {
   const { selectedProjectId, openTaskModal } = useStore();
   const tasks = useLiveQuery(() => selectedProjectId ? db.tasks.where('projectId').equals(selectedProjectId).toArray() : db.tasks.toArray(), [selectedProjectId]);
@@ -198,7 +226,7 @@ export function UxStageTable() {
         <colgroup><col style={{ width: '20%' }} /><col style={{ width: '15%' }} /><col style={{ width: '7%' }} /><col style={{ width: '5%' }} />{STAGES.map(s => <col key={s.key} style={{ width: '12%' }} />)}<col style={{ width: '5%' }} /></colgroup>
         <thead className="sticky top-0 z-20"><tr className="text-gray-400">
           <th className="sticky left-0 z-30 border-y border-gray-800 bg-[#171b25] px-4 py-3 font-medium">UIStory</th>
-          <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 font-medium"><span className="text-sm font-semibold text-gray-200">排期判断</span><div className="mt-1 text-[10px] font-normal text-gray-500">当前环节 / 进度 / 卡点</div></th>
+          <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 font-medium"><span className="text-sm font-semibold text-gray-200">当前阶段</span><div className="mt-1 text-[10px] font-normal text-gray-500">流程节点 / 进度 / 卡点</div></th>
           <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 text-center align-middle text-sm font-semibold text-gray-200">模块</th>
           <th className="border-y border-gray-800 bg-[#171b25] px-2 py-3 text-center align-middle text-sm font-semibold text-gray-200">优先级</th>
           {STAGES.map((s, index) => <th key={s.key} className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 font-medium"><span className="mr-2 text-[10px] text-indigo-400">0{index + 1}</span><span className="text-gray-200">{s.label}</span><div className="mt-1 text-[10px] font-normal text-gray-500">负责人 / 状态</div></th>)}
@@ -207,7 +235,7 @@ export function UxStageTable() {
         <tbody>{filtered.map(row => { const { root, stages } = row; const progressSummary = getSummary(row); const checkpoints = rowCheckpoints(row); const checkpointGroups = [...checkpoints.reduce((groups, item) => groups.set(item.label, [...(groups.get(item.label) || []), item.task]), new Map<string, Task[]>())]; const rootDone = progressSummary.state === 'done'; const rootCancelled = progressSummary.state === 'cancelled'; const rootTypeLabel = root.tapdWorkitemTypeName || getRequirementKindLabel(root, true) || '需求'; return <tr key={root.id} className={'group ' + (rootCancelled ? 'bg-red-500/[0.07]' : rootDone ? 'bg-emerald-500/[0.07]' : '')}>
           <td className={'sticky left-0 z-10 border-b border-gray-800 px-4 py-3 ' + (rootCancelled ? 'bg-[#28171c] group-hover:bg-[#341b22]' : rootDone ? 'bg-[#10231d] group-hover:bg-[#153027]' : 'bg-[#11151d] group-hover:bg-[#191e2b]')}>
             <div className="mb-2 flex items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-1.5"><span className="rounded border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold text-sky-300">{rootTypeLabel}</span>{rootCancelled ? <span className="rounded border border-red-500/30 bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-300">父需求已拒绝</span> : rootDone ? <span className="rounded border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">父需求已完成</span> : null}</div>
+              <div className="flex flex-wrap items-center gap-1.5"><span className="rounded border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold text-sky-300">{rootTypeLabel}</span>{root.tapdTemplateName && <span title={`TAPD 发单模板：${root.tapdTemplateName}`} className="max-w-[180px] truncate rounded border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold text-violet-300">模板：{root.tapdTemplateName}</span>}{rootCancelled ? <span className="rounded border border-red-500/30 bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-300">父需求已拒绝</span> : rootDone ? <span className="rounded border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">父需求已完成</span> : null}</div>
               {root.externalUrl && <a href={root.externalUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="inline-flex shrink-0 items-center gap-1 rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 text-[10px] font-medium text-indigo-300 hover:bg-indigo-500/20 hover:text-white">打开 TAPD<ExternalLink size={10} /></a>}
             </div>
             {root.externalUrl ? <a href={root.externalUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="line-clamp-2 text-left text-[13px] font-medium leading-5 text-gray-200 hover:text-indigo-300 hover:underline" title={`${root.title} · 点击前往 TAPD`}>{root.title}</a> : <button onClick={() => openTaskModal(root.id)} className="line-clamp-2 text-left text-[13px] font-medium leading-5 text-gray-200 hover:text-indigo-300" title={root.title}>{root.title}</button>}
@@ -217,11 +245,13 @@ export function UxStageTable() {
           </td>
           <td className="border-b border-l border-gray-800 px-3 py-3 align-top">
             <div className="flex items-center justify-between gap-2">
+              <span className={`inline-flex items-center rounded border px-2 py-1 text-[10px] font-semibold ${progressSummary.kind === 'icon_template' ? 'border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-300' : 'border-sky-500/30 bg-sky-500/10 text-sky-300'}`}>{progressSummary.kind === 'icon_template' ? '图标模板类' : '界面类'}</span>
               <span className={`inline-flex items-center rounded border px-2 py-1 text-[10px] font-semibold ${DEMAND_STATE_META[progressSummary.state].color}`}>{DEMAND_STATE_META[progressSummary.state].label}</span>
-              <span className="whitespace-nowrap text-[11px] font-semibold text-gray-300">当前：{demandStageLabel(progressSummary.currentStage)}</span>
             </div>
+            <CurrentStageFlow row={row} summary={progressSummary} />
             <div className="mt-2 flex items-center gap-2 text-[10px] text-gray-500"><span className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-800"><span className={`block h-full rounded-full ${progressSummary.state === 'done' ? 'bg-emerald-400' : progressSummary.state === 'blocked' ? 'bg-red-400' : 'bg-indigo-400'}`} style={{ width: `${progressSummary.progress}%` }} /></span><span className="tabular-nums text-gray-300">{progressSummary.progress}%</span><span>({progressSummary.doneCount}/{progressSummary.totalCount})</span></div>
-            <div className={`mt-2 line-clamp-2 text-[10px] leading-4 ${progressSummary.blockers.length ? 'text-amber-300' : 'text-gray-500'}`} title={progressSummary.blockers.join('；')}>{progressSummary.blockers.length ? progressSummary.blockers.join('；') : '暂无卡点'}</div>
+            <div className="mt-1 text-[10px] font-medium text-gray-400">当前：{demandStageLabel(progressSummary.currentStage)}</div>
+            <div className={`mt-1 line-clamp-2 text-[10px] leading-4 ${progressSummary.blockers.length ? 'text-amber-300' : 'text-gray-500'}`} title={progressSummary.blockers.join('；')}>{progressSummary.blockers.length ? progressSummary.blockers.join('；') : '暂无卡点'}</div>
           </td>
           <td className="border-b border-l border-gray-800 px-3 py-5 text-center align-middle text-sm font-semibold text-blue-300">{root.module || '未分类'}</td>
           <td className="border-b border-gray-800 px-2 py-3 text-center align-middle"><span className={`inline-flex min-w-9 justify-center rounded px-2.5 py-1 text-xs font-semibold ${root.priority === 'high' ? 'bg-red-500/10 text-red-300' : root.priority === 'medium' ? 'bg-amber-500/10 text-amber-300' : 'bg-gray-800 text-gray-400'}`}>{getPriorityLabel(root.priority)}</span></td>

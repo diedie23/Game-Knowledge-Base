@@ -12,6 +12,26 @@ export const STAGES: { key: CoreUxStage; label: string }[] = [
   { key: 'motion', label: '动效' },
 ];
 
+export type DemandKind = 'interface' | 'icon_template';
+
+const ICON_TEMPLATE_PATTERN = /图标(?:模板|类|设计|制作|资源|规范)|小图标|icon(?:[\s_-]*(?:template|asset|design|制作|模板))?/i;
+
+/**
+ * Distinguish ordinary interface work from icon-template work. When TAPD
+ * exposes a named template, it is checked first; title/type markers remain the
+ * fallback because older workspaces may not return template metadata.
+ */
+export function getDemandKind(task: Task, relatedTasks: Task[] = []): DemandKind {
+  const descriptors = [task, ...relatedTasks].map(item => `${item.tapdTemplateName || ''} ${item.title || ''} ${item.tapdWorkitemTypeName || ''}`);
+  return descriptors.some(value => ICON_TEMPLATE_PATTERN.test(value)) ? 'icon_template' : 'interface';
+}
+
+export function getRequiredStages(kind: DemandKind): CoreUxStage[] {
+  return kind === 'icon_template'
+    ? ['ui_design', 'implementation', 'motion']
+    : STAGES.map(stage => stage.key);
+}
+
 export type StageStatus = Task['status'] | 'blocked' | 'missing';
 export const STAGE_STATUS: Record<StageStatus, { label: string; color: string }> = {
   missing: { label: '未建任务', color: 'text-gray-500 bg-gray-800/40' },
@@ -36,8 +56,9 @@ export function resourceStage(resource: Resource): CoreUxStage | undefined {
 
 /** Prefer an explicit title marker, then use the TAPD owner's configured role as a safe fallback. */
 export function taskStage(task: Task, resources: Resource[] = []): CoreUxStage | undefined {
+  const isIconTemplateTask = getDemandKind(task) === 'icon_template';
   const detected = detectUxStage(task.title).stage;
-  if (detected && STAGES.some(stage => stage.key === detected)) return detected as CoreUxStage;
+  if (detected && STAGES.some(stage => stage.key === detected) && !(isIconTemplateTask && detected === 'interaction')) return detected as CoreUxStage;
   // Local templates use these names instead of TAPD's bracketed titles.
   if (/^(?:【|\[)?交互设计/.test(task.title)) return 'interaction';
   if (/^(?:【|\[)?UI设计/i.test(task.title)) return 'ui_design';
@@ -110,9 +131,12 @@ export function stageStatus(tasks: Task[]): StageStatus {
   return 'todo';
 }
 
-/** A demand is complete only when every UX stage exists and every active child is done. */
-export function isDemandComplete(stages: Record<CoreUxStage, Task[]>): boolean {
-  return STAGES.every(({ key }) => stages[key].length > 0 && stageStatus(stages[key]) === 'done');
+/** A demand is complete only when every applicable stage exists and is done. */
+export function isDemandComplete(
+  stages: Record<CoreUxStage, Task[]>,
+  requiredStages: CoreUxStage[] = STAGES.map(stage => stage.key),
+): boolean {
+  return requiredStages.every(key => stages[key].length > 0 && stageStatus(stages[key]) === 'done');
 }
 
 const COMPLETED_WORKFLOW_STAGE = /测试|提测|验收|发布|部署|上线|\btest(?:ing)?\b|\bqa\b|acceptance|release|deploy/i;
@@ -180,6 +204,8 @@ export function buildStageRows(tasks: Task[], resources: Resource[] = []): Stage
 export type DemandDisplayState = 'blocked' | 'overdue' | 'due_soon' | 'unscheduled' | 'in_progress' | 'todo' | 'done' | 'cancelled';
 
 export interface DemandProgressSummary {
+  kind: DemandKind;
+  requiredStages: CoreUxStage[];
   state: DemandDisplayState;
   currentStage: CoreUxStage | 'other' | 'completed' | 'cancelled';
   progress: number;
@@ -200,14 +226,19 @@ export function getDemandProgressSummary(
   referenceDate = new Date(),
 ): DemandProgressSummary {
   const rootStatus = taskStatus(row.root);
+  const kind = getDemandKind(row.root, row.descendants);
+  const requiredStages = getRequiredStages(kind);
   const checkpoints = relatedCheckpointItems(row.descendants, resources);
-  const stageTasks = STAGES.flatMap(stage => row.stages[stage.key]);
+  const stageTasks = requiredStages.flatMap(stage => row.stages[stage]);
   const activeTasks = stageTasks.filter(task => taskStatus(task) !== 'cancelled');
   const doneCount = activeTasks.filter(task => taskStatus(task) === 'done').length;
   const totalCount = activeTasks.length;
   const hasTapdCompletion = isUiStoryOverallComplete(row.root);
   const rootCancelled = rootStatus === 'cancelled';
-  const stageSummaries = STAGES.map(stage => ({ stage, status: stageStatus(row.stages[stage.key]) }));
+  const stageSummaries = requiredStages.map(stageKey => {
+    const stage = STAGES.find(item => item.key === stageKey)!;
+    return { stage, status: stageStatus(row.stages[stageKey]) };
+  });
   const blockers = new Set<string>();
 
   checkpoints.slice(0, 3).forEach(item => blockers.add(`卡点：${item.label}`));
@@ -229,7 +260,7 @@ export function getDemandProgressSummary(
   const isOverdue = !!deadline && !hasTapdCompletion && isTaskOverdue({ ...row.root, endDate: deadline }, referenceDate);
   const isDueSoon = !!deadline && !hasTapdCompletion && !isOverdue && (new Date(deadline).getTime() - referenceDate.getTime()) <= 7 * 86_400_000;
   const isUnscheduled = !hasTapdCompletion && activeTasks.some(task => !task.startDate || !task.endDate);
-  const allDone = hasTapdCompletion || (totalCount > 0 && isDemandComplete(row.stages) && checkpoints.length === 0);
+  const allDone = hasTapdCompletion || (totalCount > 0 && isDemandComplete(row.stages, requiredStages) && checkpoints.length === 0);
   const blocked = !allDone && blockers.size > 0;
   const inProgress = activeTasks.some(task => taskStatus(task) === 'in_progress' || taskStatus(task) === 'done');
   const currentStage = rootCancelled
@@ -254,6 +285,8 @@ export function getDemandProgressSummary(
                 : 'todo';
 
   return {
+    kind,
+    requiredStages,
     state,
     currentStage,
     progress: hasTapdCompletion ? 100 : totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0,

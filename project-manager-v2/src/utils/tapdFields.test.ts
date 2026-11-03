@@ -3,6 +3,8 @@ import {
   findTapdModuleCategoryFields,
   formatTapdCalendarDate,
   getTapdModuleCategoryValue,
+  getTapdTemplateId,
+  getTapdTemplateName,
   getTapdWorkitemTypeName,
   parseTapdDate,
   parseTapdEffortHours,
@@ -48,6 +50,12 @@ describe('TAPD field parsing', () => {
   it('unwraps option objects for module fields instead of showing [object Object]', () => {
     const fields = findTapdModuleCategoryFields({ custom_field_three: '模块分类' });
     expect(getTapdModuleCategoryValue({ custom_field_three: { label: '玩法关卡', value: '42' } }, fields)).toBe('玩法关卡');
+  });
+
+  it('resolves the TAPD story template id and display name', () => {
+    expect(getTapdTemplateId({ templated_id: 'tpl-7' })).toBe('tpl-7');
+    expect(getTapdTemplateName({ templated_id: 'tpl-7' }, new Map([['tpl-7', '图标模板发单']]))).toBe('图标模板发单');
+    expect(getTapdTemplateName({ template_name: '界面发单模板' })).toBe('界面发单模板');
   });
 
   it('parses TAPD calendar dates without a timezone shift', () => {

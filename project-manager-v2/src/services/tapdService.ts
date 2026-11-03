@@ -6,6 +6,8 @@ import {
   findTapdModuleCategoryFields,
   formatTapdCalendarDate,
   getTapdModuleCategoryValue,
+  getTapdTemplateId,
+  getTapdTemplateName,
   getTapdWorkitemTypeName,
   parseTapdDate,
   parseTapdEffortHours,
@@ -43,7 +45,7 @@ const MCP_GATEWAY_TIMEOUT_MS = 20_000;
 
 // ─── TAPD REST API Configuration ─────────────────────────────────
 const TAPD_API_BASE = '/tapd-api'; // Uses Vite proxy
-const STORY_FIELDS = 'id,name,owner,status,created,modified,completed,module,custom_field_one,custom_field_two,custom_field_three,category_id,workitem_type_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,progress,effort,effort_completed,remain,exceed,begin,due,step';
+const STORY_FIELDS = 'id,name,owner,status,created,modified,completed,module,custom_field_one,custom_field_two,custom_field_three,category_id,workitem_type_id,templated_id,parent_id,children_id,release_id,iteration_id,priority,priority_label,description,progress,effort,effort_completed,remain,exceed,begin,due,step';
 const RELATED_CHECKPOINT_PATTERN = /开发|程序|客户端|前端|工程|接入|音频|声音|配音|音乐|音效|development|developer|client|audio|sound|music|voice/i;
 const UI_STORY_TYPE_PATTERN = /ui\s*story|uistory|ui需求/i;
 
@@ -484,6 +486,7 @@ export class TapdService {
   private activeStepLabels = new Map<string, string>();
   private workitemTypeNamesByWorkspace = new Map<string, Map<string, string>>();
   private activeWorkitemTypeNames = new Map<string, string>();
+  private templateNamesByWorkspace = new Map<string, Map<string, string>>();
   private refreshRequestsByProject = new Map<number, Promise<RefreshResult>>();
   private metadataCacheAt = new Map<string, number>();
   private readonly metadataCacheTtlMs = 10 * 60 * 1000;
@@ -685,6 +688,36 @@ export class TapdService {
     this.workitemTypeNamesByWorkspace.set(workspaceId, names);
     this.markMetadataCacheFresh(cacheKey);
     names.forEach((name, id) => this.activeWorkitemTypeNames.set(id, name));
+    return names;
+  }
+
+  private async discoverStoryTemplates(config: TapdConfig, workspaceId: string): Promise<Map<string, string>> {
+    const cacheKey = `templates:${workspaceId}`;
+    const cached = this.templateNamesByWorkspace.get(workspaceId);
+    if (cached && this.isMetadataCacheFresh(cacheKey)) {
+      return cached;
+    }
+    const names = new Map<string, string>();
+    try {
+      const response = await tapdRestFetch<{ status: number; data: any[]; info: string }>(
+        '/stories/template_list',
+        config,
+        { workspace_id: workspaceId }
+      );
+      (Array.isArray(response?.data) ? response.data : [])
+        .map(item => item?.WorkitemTemplate || item)
+        .filter(item => item?.id != null && item?.name)
+        .forEach(item => names.set(String(item.id), String(item.name).trim()));
+    } catch (error) {
+      // Template metadata is optional. Title/type detection remains the fallback
+      // when this endpoint is unavailable or the workspace has no templates.
+      console.warn('[TapdService] Failed to discover TAPD story templates:', error);
+    }
+    this.templateNamesByWorkspace.set(workspaceId, names);
+    this.markMetadataCacheFresh(cacheKey);
+    if (names.size > 0) {
+      console.log('[TapdService] Story templates detected:', workspaceId, names.size);
+    }
     return names;
   }
 
@@ -1595,6 +1628,7 @@ export class TapdService {
             this.discoverStoryCategories(tempConfig, workspaceId.trim()),
             this.discoverStatusLabels(tempConfig, workspaceId.trim()),
             this.discoverWorkitemTypes(tempConfig, workspaceId.trim()),
+            this.discoverStoryTemplates(tempConfig, workspaceId.trim()),
           ]);
           const previewLimit = syncRange?.limit || 1000;
           const previewData = await this.fetchRestStoriesForSyncScope(
@@ -1805,6 +1839,7 @@ export class TapdService {
           this.discoverStoryCategories(this.config!, workspaceId.trim()),
           this.discoverStatusLabels(this.config!, workspaceId.trim()),
           this.discoverWorkitemTypes(this.config!, workspaceId.trim()),
+          this.discoverStoryTemplates(this.config!, workspaceId.trim()),
         ]);
         const restParams: Record<string, string> = {
           workspace_id: workspaceId.trim(),
@@ -2297,6 +2332,11 @@ export class TapdService {
       tapdWorkitemTypeName: getTapdWorkitemTypeName(
         story as unknown as Record<string, unknown>,
         this.workitemTypeNamesByWorkspace.get(normalizedWorkspaceId) || new Map<string, string>(),
+      ),
+      tapdTemplateId: getTapdTemplateId(story as unknown as Record<string, unknown>),
+      tapdTemplateName: getTapdTemplateName(
+        story as unknown as Record<string, unknown>,
+        this.templateNamesByWorkspace.get(normalizedWorkspaceId) || new Map<string, string>(),
       ),
       externalUrl,
       module,
