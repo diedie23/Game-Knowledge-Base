@@ -13,22 +13,45 @@ export const STAGES: { key: CoreUxStage; label: string }[] = [
 ];
 
 export type DemandKind = 'interface' | 'icon_template';
+export type IconTemplateSubstage = 'design' | 'implementation' | 'configuration';
+export type CurrentDemandStage = CoreUxStage | 'icon_configuration' | 'other' | 'completed' | 'cancelled';
 
-const ICON_TEMPLATE_PATTERN = /图标(?:模板|类|设计|制作|资源|规范)|小图标|icon(?:[\s_-]*(?:template|asset|design|制作|模板))?/i;
+const ICON_TEMPLATE_PATTERN = /图标(?:模板|类|发单|需求|设计|制作|资源|规范)|小图标|icon(?:[\s_-]*(?:template|asset|design|制作|模板|config|setting))?/i;
+const ICON_TEMPLATE_SUBSTAGE_PATTERNS: Array<{ stage: IconTemplateSubstage; pattern: RegExp }> = [
+  { stage: 'design', pattern: /(?:图标.*(?:设计|制作)|(?:设计|制作).*图标)|icon[\s_-]*(?:design|asset)/i },
+  { stage: 'implementation', pattern: /(?:图标.*(?:入版|入包|入库|导入|接入)|(?:入版|入包|入库|导入|接入).*图标)|icon[\s_-]*(?:import|integrat|implementation)/i },
+  { stage: 'configuration', pattern: /(?:图标.*(?:配置|配表)|(?:配置|配表).*图标)|icon[\s_-]*(?:config|setting)/i },
+];
 
-/**
- * Distinguish ordinary interface work from icon-template work. When TAPD
- * exposes a named template, it is checked first; title/type markers remain the
- * fallback because older workspaces may not return template metadata.
- */
-export function getDemandKind(task: Task, relatedTasks: Task[] = []): DemandKind {
-  const descriptors = [task, ...relatedTasks].map(item => `${item.tapdTemplateName || ''} ${item.title || ''} ${item.tapdWorkitemTypeName || ''}`);
-  return descriptors.some(value => ICON_TEMPLATE_PATTERN.test(value)) ? 'icon_template' : 'interface';
+/** Identify the standard icon-order substage from a child title or template name. */
+export function iconTemplateSubstage(task: Task): IconTemplateSubstage | undefined {
+  const descriptor = `${task.tapdTemplateName || ''} ${task.title || ''} ${task.tapdWorkitemTypeName || ''}`;
+  return ICON_TEMPLATE_SUBSTAGE_PATTERNS.find(rule => rule.pattern.test(descriptor))?.stage;
 }
 
+/**
+ * Distinguish ordinary interface work from icon-template work. A named TAPD
+ * template or explicit icon marker wins. For older/generic parent titles, the
+ * usual three-child structure (图标设计 / 图标入版 / 图标配置) is also enough
+ * to classify the demand without relying on the parent title.
+ */
+export function getDemandKind(task: Task, relatedTasks: Task[] = []): DemandKind {
+  const rootDescriptor = `${task.tapdTemplateName || ''} ${task.title || ''} ${task.tapdWorkitemTypeName || ''}`;
+  const hasExplicitRootMarker = ICON_TEMPLATE_PATTERN.test(rootDescriptor);
+  const substages = relatedTasks.map(iconTemplateSubstage).filter((stage): stage is IconTemplateSubstage => Boolean(stage));
+  const substageSet = new Set(substages);
+  const hasStandardThreeChildren = relatedTasks.length === 3
+    && substageSet.has('design')
+    && substageSet.has('implementation')
+    && substageSet.has('configuration');
+  const hasExplicitChildMarker = relatedTasks.some(child => /图标(?:模板|类|发单)|icon[\s_-]*(?:template|asset)/i.test(`${child.tapdTemplateName || ''} ${child.title || ''} ${child.tapdWorkitemTypeName || ''}`));
+  return hasExplicitRootMarker || hasStandardThreeChildren || hasExplicitChildMarker ? 'icon_template' : 'interface';
+}
+
+/** Core UX stages required by a demand. Icon orders intentionally omit motion. */
 export function getRequiredStages(kind: DemandKind): CoreUxStage[] {
   return kind === 'icon_template'
-    ? ['ui_design', 'implementation', 'motion']
+    ? ['ui_design', 'implementation']
     : STAGES.map(stage => stage.key);
 }
 
@@ -56,6 +79,11 @@ export function resourceStage(resource: Resource): CoreUxStage | undefined {
 
 /** Prefer an explicit title marker, then use the TAPD owner's configured role as a safe fallback. */
 export function taskStage(task: Task, resources: Resource[] = []): CoreUxStage | undefined {
+  const iconStage = iconTemplateSubstage(task);
+  if (iconStage === 'design') return 'ui_design';
+  if (iconStage === 'implementation') return 'implementation';
+  // Configuration is tracked as an icon-order substage, not as a core UX column.
+  if (iconStage === 'configuration') return undefined;
   const isIconTemplateTask = getDemandKind(task) === 'icon_template';
   const detected = detectUxStage(task.title).stage;
   if (detected && STAGES.some(stage => stage.key === detected) && !(isIconTemplateTask && detected === 'interaction')) return detected as CoreUxStage;
@@ -207,7 +235,7 @@ export interface DemandProgressSummary {
   kind: DemandKind;
   requiredStages: CoreUxStage[];
   state: DemandDisplayState;
-  currentStage: CoreUxStage | 'other' | 'completed' | 'cancelled';
+  currentStage: CurrentDemandStage;
   progress: number;
   doneCount: number;
   totalCount: number;
@@ -230,7 +258,11 @@ export function getDemandProgressSummary(
   const requiredStages = getRequiredStages(kind);
   const checkpoints = relatedCheckpointItems(row.descendants, resources);
   const stageTasks = requiredStages.flatMap(stage => row.stages[stage]);
-  const activeTasks = stageTasks.filter(task => taskStatus(task) !== 'cancelled');
+  const iconSubstageTasks = kind === 'icon_template'
+    ? row.descendants.filter(task => iconTemplateSubstage(task))
+    : [];
+  const trackedTasks = [...new Map([...stageTasks, ...iconSubstageTasks].map(task => [task.id ?? `${task.title}-${task.updatedAt ?? ''}`, task])).values()];
+  const activeTasks = trackedTasks.filter(task => taskStatus(task) !== 'cancelled');
   const doneCount = activeTasks.filter(task => taskStatus(task) === 'done').length;
   const totalCount = activeTasks.length;
   const hasTapdCompletion = isUiStoryOverallComplete(row.root);
@@ -239,12 +271,22 @@ export function getDemandProgressSummary(
     const stage = STAGES.find(item => item.key === stageKey)!;
     return { stage, status: stageStatus(row.stages[stageKey]) };
   });
+  const iconSubstageSummaries = kind === 'icon_template'
+    ? (['design', 'implementation', 'configuration'] as IconTemplateSubstage[]).map(substage => ({
+      substage,
+      status: stageStatus(iconSubstageTasks.filter(task => iconTemplateSubstage(task) === substage)),
+    }))
+    : [];
   const blockers = new Set<string>();
 
   checkpoints.slice(0, 3).forEach(item => blockers.add(`卡点：${item.label}`));
   activeTasks.filter(task => taskStatus(task) === 'blocked').slice(0, 3).forEach(task => blockers.add(task.blockReason || '任务已阻塞'));
   activeTasks.filter(task => taskStage(task, resources) && !task.assigneeIds?.length).slice(0, 2).forEach(() => blockers.add('环节未分配负责人'));
   stageSummaries.filter(item => item.status === 'missing').forEach(item => blockers.add(`缺少${item.stage.label}任务`));
+  iconSubstageSummaries.filter(item => item.status === 'missing').forEach(item => {
+    const labels: Record<IconTemplateSubstage, string> = { design: '图标设计', implementation: '图标入版', configuration: '图标配置' };
+    blockers.add(`缺少${labels[item.substage]}任务`);
+  });
 
   const taskById = new Map([...allTasks, ...row.descendants].filter(task => task.id != null).map(task => [task.id!, task]));
   activeTasks.forEach(task => {
@@ -260,14 +302,17 @@ export function getDemandProgressSummary(
   const isOverdue = !!deadline && !hasTapdCompletion && isTaskOverdue({ ...row.root, endDate: deadline }, referenceDate);
   const isDueSoon = !!deadline && !hasTapdCompletion && !isOverdue && (new Date(deadline).getTime() - referenceDate.getTime()) <= 7 * 86_400_000;
   const isUnscheduled = !hasTapdCompletion && activeTasks.some(task => !task.startDate || !task.endDate);
-  const allDone = hasTapdCompletion || (totalCount > 0 && isDemandComplete(row.stages, requiredStages) && checkpoints.length === 0);
+  const iconSubstagesDone = kind !== 'icon_template' || iconSubstageSummaries.every(item => item.status === 'done');
+  const allDone = hasTapdCompletion || (totalCount > 0 && isDemandComplete(row.stages, requiredStages) && iconSubstagesDone && checkpoints.length === 0);
   const blocked = !allDone && blockers.size > 0;
   const inProgress = activeTasks.some(task => taskStatus(task) === 'in_progress' || taskStatus(task) === 'done');
-  const currentStage = rootCancelled
+  const currentCoreStage = stageSummaries.find(item => item.status === 'blocked' || item.status === 'in_progress' || item.status === 'todo' || item.status === 'missing')?.stage.key;
+  const currentIconSubstage = iconSubstageSummaries.find(item => item.status === 'blocked' || item.status === 'in_progress' || item.status === 'todo' || item.status === 'missing')?.substage;
+  const currentStage: CurrentDemandStage = rootCancelled
     ? 'cancelled'
     : allDone
       ? 'completed'
-      : stageSummaries.find(item => item.status === 'blocked' || item.status === 'in_progress' || item.status === 'todo' || item.status === 'missing')?.stage.key || (checkpoints.length ? 'other' : 'completed');
+      : currentCoreStage || (currentIconSubstage === 'configuration' ? 'icon_configuration' : currentIconSubstage === 'design' ? 'ui_design' : currentIconSubstage === 'implementation' ? 'implementation' : (checkpoints.length ? 'other' : 'completed'));
   const state: DemandDisplayState = rootCancelled
     ? 'cancelled'
     : allDone

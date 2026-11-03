@@ -48,21 +48,36 @@ describe('UX stage rows', () => {
     full.motion = [];
     expect(isDemandComplete(full)).toBe(false);
   });
-  it('classifies icon-template demands separately and does not require interaction', () => {
+  it('classifies the standard three-child icon order and omits interaction and motion', () => {
     const done = (id: number, title: string) => task(id, title, { status: 'done', parentId: 100 });
     const tasks = [
-      task(100, '模板化资源需求', { tapdTemplateName: '图标模板发单' }),
-      done(101, '【视觉设计】图标模板'),
-      done(102, '【还原】图标模板'),
-      done(103, '【动效】图标模板'),
+      task(100, '模板化资源需求'),
+      done(101, '图标设计'),
+      done(102, '图标入版'),
+      done(103, '图标配置'),
     ];
     const row = buildStageRows(tasks)[0];
     expect(getDemandKind(row.root, row.descendants)).toBe('icon_template');
-    expect(getRequiredStages('icon_template')).toEqual(['ui_design', 'implementation', 'motion']);
+    expect(getRequiredStages('icon_template')).toEqual(['ui_design', 'implementation']);
     const summary = getDemandProgressSummary(row, [], tasks, new Date('2026-11-03'));
     expect(summary.kind).toBe('icon_template');
     expect(summary.state).toBe('done');
+    expect(summary.progress).toBe(100);
+    expect(summary.currentStage).toBe('completed');
     expect(summary.blockers).not.toContain('缺少交互任务');
+    expect(summary.blockers).not.toContain('缺少动效任务');
+  });
+
+  it('does not classify a generic three-child interface order as an icon order', () => {
+    const tasks = [
+      task(110, '商城界面需求'),
+      task(111, '【交互案】商城', { parentId: 110 }),
+      task(112, '【视觉设计】商城', { parentId: 110 }),
+      task(113, '【还原】商城', { parentId: 110 }),
+    ];
+    const row = buildStageRows(tasks)[0];
+    expect(getDemandKind(row.root, row.descendants)).toBe('interface');
+    expect(getRequiredStages('interface')).toEqual(['interaction', 'ui_design', 'implementation', 'motion']);
   });
   it('preserves orphan tasks and rejects cross-project parents', () => {
     expect(buildStageRows([task(1, '父需求'), task(2, '【动效】孤立任务', { parentId: 99 }), task(3, '【还原】其他项目', { parentId: 1, projectId: 2 })])).toHaveLength(3);

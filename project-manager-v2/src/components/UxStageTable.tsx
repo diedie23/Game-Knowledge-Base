@@ -5,7 +5,7 @@ import { db } from '../db/db';
 import { useStore } from '../store/useStore';
 import type { Task } from '../types/task';
 import type { CoreUxStage } from '../services/uxStageView';
-import { buildStageRows, getDemandProgressSummary, relatedCheckpointItems, STAGES, STAGE_STATUS, stageStatus, taskStatus, type DemandDisplayState } from '../services/uxStageView';
+import { buildStageRows, getDemandProgressSummary, iconTemplateSubstage, relatedCheckpointItems, STAGES, STAGE_STATUS, stageStatus, taskStatus, type DemandDisplayState } from '../services/uxStageView';
 import { getPriorityLabel } from '../utils/priority';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 import { getRequirementKindLabel } from '../utils/taskHierarchy';
@@ -73,15 +73,22 @@ function demandStageLabel(stage: ReturnType<typeof getDemandProgressSummary>['cu
   if (stage === 'completed') return '已完成';
   if (stage === 'cancelled') return '已取消';
   if (stage === 'other') return '其他卡点';
+  if (stage === 'icon_configuration') return '图标配置';
   return STAGES.find(item => item.key === stage)?.label || '待识别';
 }
 
 function CurrentStageFlow({ row, summary }: { row: ReturnType<typeof buildStageRows>[number]; summary: ReturnType<typeof getDemandProgressSummary> }) {
-  const stages = STAGES.filter(stage => summary.requiredStages.includes(stage.key));
+  const flowNodes = summary.kind === 'icon_template'
+    ? [
+      { key: 'icon_design', label: '图标设计', status: stageStatus(row.stages.ui_design) },
+      { key: 'icon_implementation', label: '入版', status: stageStatus(row.stages.implementation) },
+      { key: 'icon_configuration', label: '配置', status: stageStatus(row.descendants.filter(task => iconTemplateSubstage(task) === 'configuration')) },
+    ]
+    : STAGES.filter(stage => summary.requiredStages.includes(stage.key)).map(stage => ({ key: stage.key, label: stage.label, status: stageStatus(row.stages[stage.key]) }));
+
   return <div className="mt-2 flex min-w-0 items-center gap-1" aria-label={`${summary.kind === 'icon_template' ? '图标模板类' : '界面类'}流程：${demandStageLabel(summary.currentStage)}`}>
-    {stages.map((stage, index) => {
-      const rawStatus = stageStatus(row.stages[stage.key]);
-      const nodeStatus = summary.state === 'done' ? 'done' : rawStatus;
+    {flowNodes.map((flowNode, index) => {
+      const nodeStatus = summary.state === 'done' ? 'done' : flowNode.status;
       const nodeStyle = nodeStatus === 'done'
         ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-300'
         : nodeStatus === 'in_progress'
@@ -93,12 +100,12 @@ function CurrentStageFlow({ row, summary }: { row: ReturnType<typeof buildStageR
               : nodeStatus === 'missing'
                 ? 'border-gray-700 border-dashed bg-gray-900/40 text-gray-600'
                 : 'border-gray-600/70 bg-gray-800/70 text-gray-400';
-      return <div key={stage.key} className="flex min-w-0 items-center gap-1">
-        <div title={`${stage.label}：${STAGE_STATUS[nodeStatus].label}`} className={`flex min-w-0 items-center gap-1 rounded-md border px-1.5 py-1 text-[10px] font-medium ${nodeStyle}`}>
+      return <div key={flowNode.key} className="flex min-w-0 items-center gap-1">
+        <div title={`${flowNode.label}：${STAGE_STATUS[nodeStatus].label}`} className={`flex min-w-0 items-center gap-1 rounded-md border px-1.5 py-1 text-[10px] font-medium ${nodeStyle}`}>
           <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-current text-[9px]">{nodeStatus === 'done' ? '✓' : index + 1}</span>
-          <span className="truncate">{stage.label}</span>
+          <span className="truncate">{flowNode.label}</span>
         </div>
-        {index < stages.length - 1 && <span className={`text-[11px] ${nodeStatus === 'done' ? 'text-emerald-400' : 'text-gray-700'}`}>→</span>}
+        {index < flowNodes.length - 1 && <span className={`text-[11px] ${nodeStatus === 'done' ? 'text-emerald-400' : 'text-gray-700'}`}>→</span>}
       </div>;
     })}
   </div>;
