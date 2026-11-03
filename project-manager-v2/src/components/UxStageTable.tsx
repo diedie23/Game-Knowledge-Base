@@ -73,7 +73,6 @@ function demandStageLabel(stage: ReturnType<typeof getDemandProgressSummary>['cu
   if (stage === 'completed') return '已完成';
   if (stage === 'cancelled') return '已取消';
   if (stage === 'other') return '其他卡点';
-  if (stage === 'icon_configuration') return '图标配置';
   return STAGES.find(item => item.key === stage)?.label || '待识别';
 }
 

@@ -14,7 +14,7 @@ export const STAGES: { key: CoreUxStage; label: string }[] = [
 
 export type DemandKind = 'interface' | 'icon_template';
 export type IconTemplateSubstage = 'design' | 'implementation' | 'configuration';
-export type CurrentDemandStage = CoreUxStage | 'icon_configuration' | 'other' | 'completed' | 'cancelled';
+export type CurrentDemandStage = CoreUxStage | 'other' | 'completed' | 'cancelled';
 
 const ICON_TEMPLATE_PATTERN = /图标(?:模板|类|发单|需求|设计|制作|资源|规范)|小图标|icon(?:[\s_-]*(?:template|asset|design|制作|模板|config|setting))?/i;
 const ICON_TEMPLATE_SUBSTAGE_PATTERNS: Array<{ stage: IconTemplateSubstage; pattern: RegExp }> = [
@@ -350,8 +350,8 @@ export function getDemandProgressSummary(
   activeTasks.filter(task => taskStage(task, resources) && !task.assigneeIds?.length).slice(0, 2).forEach(() => blockers.add('环节未分配负责人'));
   stageSummaries.filter(item => item.status === 'missing').forEach(item => blockers.add(`缺少${item.stage.label}任务`));
   iconSubstageSummaries.filter(item => item.status === 'missing').forEach(item => {
-    const labels: Record<IconTemplateSubstage, string> = { design: '图标设计', implementation: '图标入版', configuration: '图标配置' };
-    blockers.add(`缺少${labels[item.substage]}任务`);
+    const label = item.substage === 'design' ? '图标设计' : '图标入版';
+    blockers.add(`缺少${label}任务`);
   });
   const trackedTaskIds = new Set(activeTasks.map(task => task.id).filter((id): id is number => id !== undefined));
   const untrackedActiveDescendants = unfinishedDescendants.filter(task => !task.id || !trackedTaskIds.has(task.id));
@@ -381,7 +381,7 @@ export function getDemandProgressSummary(
     ? 'cancelled'
     : allDone
       ? 'completed'
-      : currentCoreStage || (currentIconSubstage === 'configuration' ? 'icon_configuration' : currentIconSubstage === 'design' ? 'ui_design' : currentIconSubstage === 'implementation' ? 'implementation' : (checkpoints.length ? 'other' : 'completed'));
+      : currentCoreStage || (currentIconSubstage === 'design' ? 'ui_design' : currentIconSubstage === 'implementation' ? 'implementation' : (checkpoints.length ? 'other' : 'completed'));
   const state: DemandDisplayState = rootCancelled
     ? 'cancelled'
     : allDone
