@@ -1,5 +1,6 @@
 import type { Resource, Task } from '../types';
 import { getTaskIdentity } from '../utils/tapdIdentity';
+import { buildTaskHierarchyIndex, getTaskParent } from '../utils/taskHierarchy';
 import { relatedCheckpointLabel, taskStage } from './uxStageView';
 
 export type DataQualityIssueType = 'duplicate' | 'orphan' | 'invalid-date' | 'missing-type' | 'unmapped-owner' | 'stale-sync';
@@ -56,7 +57,8 @@ function isTapdTask(task: Task): boolean {
 export function auditTaskDataQuality(tasks: Task[], resources: Resource[], now: Date = new Date()): DataQualityAudit {
   const issues: DataQualityIssue[] = [];
   const byId = new Map(tasks.filter(task => task.id).map(task => [task.id!, task]));
-  const childIds = new Set(tasks.flatMap(task => task.parentId ? [task.parentId] : []));
+  const hierarchy = buildTaskHierarchyIndex(tasks);
+  const childIds = hierarchy.parentTaskIds;
   const tapdGroups = new Map<string, Task[]>();
   tasks.filter(task => task.tapdId).forEach(task => {
     const identity = getTaskIdentity(task);
@@ -77,7 +79,11 @@ export function auditTaskDataQuality(tasks: Task[], resources: Resource[], now: 
   });
 
   tasks.forEach(task => {
-    if (task.parentId && !byId.has(task.parentId)) issues.push({ type: 'orphan', severity: 'critical', title: '父子关系断开', detail: `找不到父任务 #${task.parentId}`, task, taskIds: task.id ? [task.id] : [] });
+    if (task.parentId && !byId.has(task.parentId)) {
+      issues.push({ type: 'orphan', severity: 'critical', title: '父子关系断开', detail: `找不到父任务 #${task.parentId}`, task, taskIds: task.id ? [task.id] : [] });
+    } else if (task.tapdParentId && task.tapdParentId !== '0' && !getTaskParent(task, hierarchy)) {
+      issues.push({ type: 'orphan', severity: 'critical', title: 'TAPD 父子关系未解析', detail: `找不到 TAPD 父需求 #${task.tapdParentId}`, task, taskIds: task.id ? [task.id] : [] });
+    }
     if (task.startDate && task.endDate && task.startDate > task.endDate) issues.push({ type: 'invalid-date', severity: 'critical', title: '排期日期错误', detail: '开始日期晚于结束日期', task, taskIds: task.id ? [task.id] : [] });
     if (!isTapdTask(task)) return;
     if (!task.tapdWorkitemTypeName) issues.push({ type: 'missing-type', severity: 'warning', title: 'TAPD 类型缺失', detail: '无法确认是 UIStory、UI 子需求还是其他需求类型', task });

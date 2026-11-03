@@ -2797,7 +2797,7 @@ export class TapdService {
     }
 
     // Phase 2: Insert/Update tasks (first pass - without parent relationships)
-    const tasksWithParent: { localId: number; workspaceId: string; tapdParentId: string }[] = [];
+    const tasksWithParent: { localId: number; workspaceId: string; tapdParentId?: string }[] = [];
     const remoteWorkspacesByTapdId = new Map<string, Set<string>>();
     for (const task of remoteTasks) {
       if (!task.tapdId || !task.tapdWorkspaceId) continue;
@@ -2815,6 +2815,8 @@ export class TapdService {
       if (!tapdId || !workspaceId) continue;
       const syncId = remoteTask.syncId || createTapdSyncId(workspaceId, tapdId);
 
+      const hasTapdParentField = Object.prototype.hasOwnProperty.call(remoteTask, 'tapdParentId')
+        || Object.prototype.hasOwnProperty.call(remoteTask, '_tapdParentId');
       const tapdParentId = remoteTask.tapdParentId || (remoteTask as any)._tapdParentId as string | undefined;
       const tapdOwner = (remoteTask as any)._tapdOwner as string | undefined;
 
@@ -2902,7 +2904,7 @@ export class TapdService {
         });
         existingTaskBySyncId.set(syncId, { ...existing, ...cleanTask, projectId: targetProjectId, id: existing.id } as Task);
         syncIdToLocalId.set(syncId, existing.id);
-        if (tapdParentId !== undefined) tasksWithParent.push({ localId: existing.id, workspaceId, tapdParentId });
+        if (hasTapdParentField) tasksWithParent.push({ localId: existing.id, workspaceId, tapdParentId });
         addDetail({ title: cleanTask.title || '', tapdId, action: 'updated', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
         updated++;
       } else {
@@ -2950,7 +2952,7 @@ export class TapdService {
             externalUrl: cleanTask.externalUrl,
           });
           syncIdToLocalId.set(syncId, decision);
-          if (tapdParentId !== undefined) tasksWithParent.push({ localId: decision, workspaceId, tapdParentId });
+          if (hasTapdParentField) tasksWithParent.push({ localId: decision, workspaceId, tapdParentId });
           addDetail({ title: cleanTask.title || '', tapdId, action: 'merged', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
           merged++;
           continue;
@@ -2999,7 +3001,7 @@ export class TapdService {
           if (titleCandidates.length === 0) manualTasksByTitle.delete(titleKey);
           else manualTasksByTitle.set(titleKey, titleCandidates);
           syncIdToLocalId.set(syncId, matchedLocalId);
-          if (tapdParentId !== undefined) tasksWithParent.push({ localId: matchedLocalId, workspaceId, tapdParentId });
+          if (hasTapdParentField) tasksWithParent.push({ localId: matchedLocalId, workspaceId, tapdParentId });
           addDetail({ title: cleanTask.title || '', tapdId, action: 'merged', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
           merged++;
           continue;
@@ -3017,7 +3019,7 @@ export class TapdService {
           syncSource: 'tapd',
         } as Task);
         syncIdToLocalId.set(syncId, newId as number);
-        if (tapdParentId !== undefined) tasksWithParent.push({ localId: newId as number, workspaceId, tapdParentId });
+        if (hasTapdParentField) tasksWithParent.push({ localId: newId as number, workspaceId, tapdParentId });
         addDetail({ title: cleanTask.title || '', tapdId, action: 'inserted', owner: tapdOwner, externalUrl: cleanTask.externalUrl });
         inserted++;
       }

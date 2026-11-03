@@ -46,4 +46,15 @@ describe('task hierarchy labels', () => {
 
     expect(hierarchy.leafTasks).toEqual([]);
   });
+
+  it('does not connect equal TAPD IDs across workspaces', () => {
+    const parentA = task({ id: 30, tapdId: 'parent', tapdWorkspaceId: 'ws-a', tapdWorkitemTypeName: 'UIStory' });
+    const parentB = task({ id: 40, tapdId: 'parent', tapdWorkspaceId: 'ws-b', tapdWorkitemTypeName: 'UIStory' });
+    const childA = task({ id: 31, tapdId: 'child-a', tapdWorkspaceId: 'ws-a', tapdParentId: 'parent' });
+    const childB = task({ id: 41, tapdId: 'child-b', tapdWorkspaceId: 'ws-b', tapdParentId: 'parent' });
+    const hierarchy = buildTaskHierarchyIndex([parentA, parentB, childA, childB]);
+
+    expect(hierarchy.childrenByParentId.get(30)?.map(item => item.id)).toEqual([31]);
+    expect(hierarchy.childrenByParentId.get(40)?.map(item => item.id)).toEqual([41]);
+  });
 });

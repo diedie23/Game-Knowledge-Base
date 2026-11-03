@@ -4,7 +4,10 @@ export type RequirementKind = 'parent' | 'child' | 'standalone';
 
 export interface TaskHierarchyIndex {
   taskById: Map<number, Task>;
+  /** Exact TAPD identity, keyed by workspace and TAPD ID. */
   taskByTapdId: Map<string, Task>;
+  /** Raw TAPD ID candidates, used only when the relation is unambiguous. */
+  tasksByTapdId: Map<string, Task[]>;
   childrenByParentId: Map<number, Task[]>;
   parentTaskIds: Set<number>;
   leafTasks: Task[];
@@ -14,6 +17,13 @@ function normalizeRelationId(value?: number | string): string | undefined {
   if (value === undefined || value === null) return undefined;
   const normalized = String(value).trim();
   return normalized || undefined;
+}
+
+function tapdIdentityKey(task: Pick<Task, 'tapdWorkspaceId' | 'tapdId'>): string | undefined {
+  const tapdId = normalizeRelationId(task.tapdId);
+  if (!tapdId) return undefined;
+  const workspaceId = normalizeRelationId(task.tapdWorkspaceId);
+  return workspaceId ? `${workspaceId}:${tapdId}` : undefined;
 }
 
 /** EPIC is a structural ancestor in TAPD and must not become a local UX demand. */
@@ -53,13 +63,20 @@ export function getRequirementKindLabel(task: Task, hasChildren = false): string
 export function buildTaskHierarchyIndex(tasks: Task[]): TaskHierarchyIndex {
   const taskById = new Map<number, Task>();
   const taskByTapdId = new Map<string, Task>();
+  const tasksByTapdId = new Map<string, Task[]>();
   const childrenByParentId = new Map<number, Task[]>();
   const parentTaskIds = new Set<number>();
 
   for (const task of tasks) {
     if (task.id !== undefined) taskById.set(task.id, task);
     const tapdId = normalizeRelationId(task.tapdId);
-    if (tapdId && !taskByTapdId.has(tapdId)) taskByTapdId.set(tapdId, task);
+    if (tapdId) {
+      const candidates = tasksByTapdId.get(tapdId) || [];
+      candidates.push(task);
+      tasksByTapdId.set(tapdId, candidates);
+      const exactKey = tapdIdentityKey(task);
+      if (exactKey && !taskByTapdId.has(exactKey)) taskByTapdId.set(exactKey, task);
+    }
   }
 
   const addChild = (parentId: number, child: Task) => {
@@ -75,7 +92,13 @@ export function buildTaskHierarchyIndex(tasks: Task[]): TaskHierarchyIndex {
 
     const tapdParentId = normalizeRelationId(task.tapdParentId);
     if (!tapdParentId) continue;
-    const parent = taskByTapdId.get(tapdParentId);
+    const workspaceId = normalizeRelationId(task.tapdWorkspaceId);
+    const exactParent = workspaceId ? taskByTapdId.get(`${workspaceId}:${tapdParentId}`) : undefined;
+    const candidates = tasksByTapdId.get(tapdParentId) || [];
+    const matchingParents = workspaceId
+      ? candidates.filter(candidate => normalizeRelationId(candidate.tapdWorkspaceId) === workspaceId)
+      : candidates;
+    const parent = exactParent || (matchingParents.length === 1 ? matchingParents[0] : undefined);
     if (parent?.id !== undefined) addChild(parent.id, task);
   }
 
@@ -86,7 +109,7 @@ export function buildTaskHierarchyIndex(tasks: Task[]): TaskHierarchyIndex {
   }
 
   const leafTasks = tasks.filter(task => task.id === undefined || !parentTaskIds.has(task.id));
-  return { taskById, taskByTapdId, childrenByParentId, parentTaskIds, leafTasks };
+  return { taskById, taskByTapdId, tasksByTapdId, childrenByParentId, parentTaskIds, leafTasks };
 }
 
 export function isParentTask(task: Task, hierarchy: TaskHierarchyIndex): boolean {
@@ -99,5 +122,13 @@ export function getTaskParent(task: Task, hierarchy: TaskHierarchyIndex): Task |
     if (localParent) return localParent;
   }
   const tapdParentId = normalizeRelationId(task.tapdParentId);
-  return tapdParentId ? hierarchy.taskByTapdId.get(tapdParentId) : undefined;
+  if (!tapdParentId) return undefined;
+  const workspaceId = normalizeRelationId(task.tapdWorkspaceId);
+  const exactParent = workspaceId ? hierarchy.taskByTapdId.get(`${workspaceId}:${tapdParentId}`) : undefined;
+  if (exactParent) return exactParent;
+  const candidates = hierarchy.tasksByTapdId.get(tapdParentId) || [];
+  const matchingParents = workspaceId
+    ? candidates.filter(candidate => normalizeRelationId(candidate.tapdWorkspaceId) === workspaceId)
+    : candidates;
+  return matchingParents.length === 1 ? matchingParents[0] : undefined;
 }

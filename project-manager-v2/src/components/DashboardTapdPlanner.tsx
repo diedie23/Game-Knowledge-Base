@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { AlertCircle, ArrowRight, CalendarClock, Check, ChevronLeft, ChevronRight, Copy, ExternalLink, GitBranch, LocateFixed, RefreshCw, ShieldAlert, UserRoundX, X } from 'lucide-react';
+import { AlertCircle, ArrowRight, CalendarClock, Check, ChevronLeft, ChevronRight, Copy, ExternalLink, GitBranch, LocateFixed, RefreshCw, Search, ShieldAlert, UserRoundX, X } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { Resource, Task } from '../types';
 import { db } from '../db/db';
@@ -16,6 +16,7 @@ interface Props {
 }
 
 type QueueFilter = 'all' | 'ready' | 'review' | 'blocked' | 'unassigned';
+type FocusFilter = 'all' | 'urgent' | 'dueSoon' | 'unassigned' | 'hasOwner';
 
 const STAGE_LABEL = { interaction: '交互', ui_design: '视觉', implementation: '还原', motion: '动效' } as const;
 
@@ -47,7 +48,9 @@ function syncFreshness(timestamp: number | null) {
 export function DashboardTapdPlanner({ tasks, resources }: Props) {
   const { setCurrentView, setHighlightedTaskIds, openTapdModal, openTaskModal } = useStore();
   const [filter, setFilter] = useState<QueueFilter>('all');
+  const [focusFilter, setFocusFilter] = useState<FocusFilter>('all');
   const [stageFilter, setStageFilter] = useState<'all' | keyof typeof STAGE_LABEL>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [showChecklist, setShowChecklist] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -57,7 +60,12 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const capacities = useLiveQuery(() => db.resourceCapacities.toArray()) || [];
-  const dataAudit = useMemo(() => auditTaskDataQuality(tasks, resources), [tasks, resources]);
+  const today = useMemo(() => {
+    const value = new Date();
+    value.setHours(0, 0, 0, 0);
+    return value;
+  }, []);
+  const dataAudit = useMemo(() => auditTaskDataQuality(tasks, resources, today), [tasks, resources, today]);
   const scheduleGate = useMemo(() => getScheduleGate(dataAudit), [dataAudit]);
   const criticalQualityByTask = useMemo(() => {
     const result = new Map<number, string[]>();
@@ -69,23 +77,38 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     return result;
   }, [dataAudit]);
   const hierarchy = useMemo(() => buildTaskHierarchyIndex(tasks), [tasks]);
-  const allItems = useMemo(() => buildTapdPlanningItems(tasks, resources), [tasks, resources]);
+  const allItems = useMemo(() => buildTapdPlanningItems(tasks, resources, today), [tasks, resources, today]);
   const planningItems = useMemo(() => allItems.filter(item => item.tags.includes('unscheduled')), [allItems]);
   const planningEntries = useMemo(() => planningItems.map(item => ({
     ...item,
     readiness: assessTapdScheduleReadiness(item.task, item.tags, resources),
   })), [planningItems, resources]);
-  const filteredItems = useMemo(() => planningEntries.filter(item => {
-    if (stageFilter !== 'all' && item.readiness.stage !== stageFilter) return false;
-    if (filter === 'ready') return item.readiness.ready;
-    if (filter === 'review') return !item.readiness.ready;
-    if (filter === 'blocked') return item.tags.includes('blocked') || item.tags.includes('dependency');
-    if (filter === 'unassigned') return item.tags.includes('unassigned');
-    return true;
-  }), [planningEntries, filter, stageFilter]);
+  const filteredItems = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return planningEntries.filter(item => {
+      const task = item.task;
+      if (stageFilter !== 'all' && item.readiness.stage !== stageFilter) return false;
+      if (filter === 'ready' && !item.readiness.ready) return false;
+      if (filter === 'review' && item.readiness.ready) return false;
+      if (filter === 'blocked' && !item.tags.includes('blocked') && !item.tags.includes('dependency')) return false;
+      if (filter === 'unassigned' && !item.tags.includes('unassigned')) return false;
+      const deadline = task.endDate ? new Date(task.endDate) : undefined;
+      const daysToDeadline = deadline ? Math.ceil((deadline.getTime() - today.getTime()) / 86_400_000) : undefined;
+      const urgent = task.priority === 'high' || item.tags.includes('overdue') || (daysToDeadline !== undefined && daysToDeadline <= 3);
+      const dueSoon = daysToDeadline !== undefined && daysToDeadline <= 7;
+      if (focusFilter === 'urgent' && !urgent) return false;
+      if (focusFilter === 'dueSoon' && !dueSoon) return false;
+      if (focusFilter === 'unassigned' && !!task.assigneeIds?.length) return false;
+      if (focusFilter === 'hasOwner' && !task.assigneeIds?.length) return false;
+      if (!query) return true;
+      const searchable = [task.title, task.tapdId, task.tapdOwner, task.module, task.tapdWorkitemTypeName]
+        .filter(Boolean).join(' ').toLowerCase();
+      return searchable.includes(query);
+    });
+  }, [planningEntries, filter, focusFilter, stageFilter, searchQuery, today]);
   const pageCount = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   React.useEffect(() => setPage(current => Math.min(current, pageCount)), [pageCount]);
-  React.useEffect(() => setPage(1), [filter, stageFilter, pageSize]);
+  React.useEffect(() => setPage(1), [filter, focusFilter, stageFilter, searchQuery, pageSize]);
   const visibleEntries = useMemo(
     () => filteredItems.slice((page - 1) * pageSize, page * pageSize),
     [filteredItems, page, pageSize],
@@ -97,15 +120,15 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
       if (item.task.id && selectedIds.has(item.task.id)) targetById.set(item.task.id, item);
     });
     const targets = [...targetById.values()];
-    const suggestions = buildBatchTapdScheduleSuggestions(targets, tasks, resources, new Date(), capacities);
+    const suggestions = buildBatchTapdScheduleSuggestions(targets, tasks, resources, today, capacities);
     targets.forEach(item => {
       if (!item.task.id) return;
       const suggestion = suggestions.get(item.task.id)
-        || buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, new Date(), capacities);
+        || buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, today, capacities);
       suggestions.set(item.task.id, suggestion);
     });
     return suggestions;
-  }, [visibleEntries, planningEntries, selectedIds, tasks, resources, capacities]);
+  }, [visibleEntries, planningEntries, selectedIds, tasks, resources, capacities, today]);
   const items = useMemo(
     () => visibleEntries.map(item => ({ ...item, suggestion: item.task.id ? suggestionById.get(item.task.id) : undefined })).filter(item => item.suggestion),
     [visibleEntries, suggestionById],
@@ -290,9 +313,14 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
         {items.length > 0 && <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-gray-500">
           <div className="flex flex-wrap items-center gap-2">
             <span>完整待排队列</span>
+            <div className="flex items-center gap-1 rounded border border-gray-700 bg-gray-900 px-2 py-1">
+              <Search size={11} className="text-gray-500" />
+              <input value={searchQuery} onChange={event => setSearchQuery(event.target.value)} placeholder="搜标题 / TAPD / 模块" className="w-32 bg-transparent text-[10px] text-gray-300 outline-none placeholder:text-gray-600" />
+            </div>
+            <select value={focusFilter} onChange={event => setFocusFilter(event.target.value as FocusFilter)} className="rounded border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 text-[10px] text-indigo-200 outline-none"><option value="all">全部待排</option><option value="urgent">优先处理</option><option value="dueSoon">7天内截止</option><option value="unassigned">未分配处理人</option><option value="hasOwner">已有处理人</option></select>
             <select value={stageFilter} onChange={event => setStageFilter(event.target.value as typeof stageFilter)} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="all">全部岗位</option>{Object.entries(STAGE_LABEL).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select>
             <select value={pageSize} onChange={event => setPageSize(Number(event.target.value))} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value={10}>每页 10 项</option><option value={20}>每页 20 项</option><option value={50}>每页 50 项</option></select>
-            {(filter !== 'all' || stageFilter !== 'all') && <button onClick={() => { setFilter('all'); setStageFilter('all'); }} className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-indigo-300 hover:text-white">清除筛选</button>}
+            {(filter !== 'all' || focusFilter !== 'all' || stageFilter !== 'all' || searchQuery) && <button onClick={() => { setFilter('all'); setFocusFilter('all'); setStageFilter('all'); setSearchQuery(''); }} className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-indigo-300 hover:text-white">清除筛选</button>}
             <button onClick={selectVisible} className="hover:text-white">选择本页可排期项</button>
             {selectedIds.size > 0 && <button onClick={() => setSelectedIds(new Set())} className="hover:text-white">清空选择</button>}
           </div>
