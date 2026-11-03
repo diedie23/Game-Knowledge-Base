@@ -7,12 +7,13 @@ const state = vi.hoisted(() => ({ open: vi.fn(), tasks: [
   { id: 1, title: '商城需求', projectId: 1, status: 'todo', priority: 'high', module: '商城' },
   { id: 2, parentId: 1, title: '【视觉设计】商城初稿', status: 'done', projectId: 1, assigneeIds: [1] },
   { id: 3, parentId: 1, title: '【视觉设计】商城修改', status: 'todo', projectId: 1, assigneeIds: [2], isBlocked: true, blockReason: '等待素材' },
+  { id: 8, parentId: 1, title: '【交互案】商城', status: 'todo', projectId: 1, tapdOwner: 'v_xiaozhao' },
   { id: 6, parentId: 1, title: '商城程序接入', status: 'in_progress', projectId: 1, tapdWorkitemTypeName: '开发子需求', externalUrl: 'https://tapd.example/story/6' },
   { id: 7, parentId: 1, title: '商城环境音效', status: 'todo', projectId: 1, tapdWorkitemTypeName: '音频子需求', externalUrl: 'https://tapd.example/story/7' },
   { id: 4, title: '活动需求', projectId: 1, status: 'done', priority: 'medium', module: '活动' },
   { id: 5, title: '拒绝需求', projectId: 1, status: 'cancelled', priority: 'low', module: '活动' },
 ] }));
-vi.mock('../db/db', () => ({ db: { tasks: { toArray: () => state.tasks }, resources: { toArray: () => [{ id: 1, name: '小林', role: 'UI设计' }, { id: 2, name: '小陈', role: 'UI设计' }] } } }));
+vi.mock('../db/db', () => ({ db: { tasks: { toArray: () => state.tasks }, resources: { toArray: () => [{ id: 1, name: '小林', role: 'UI设计' }, { id: 2, name: '小陈', role: 'UI设计' }, { id: 3, name: '小赵', role: 'UX设计', tapdAccount: 'v_xiaozhao' }] } } }));
 vi.mock('dexie-react-hooks', () => ({ useLiveQuery: (query: () => unknown) => query() }));
 vi.mock('../store/useStore', () => ({ useStore: () => ({ selectedProjectId: null, openTaskModal: state.open }) }));
 
@@ -26,6 +27,12 @@ describe('UX stage table', () => {
     expect(screen.getByText('等待素材')).toBeTruthy();
     fireEvent.click(screen.getAllByText('查看 / 编辑任务')[1]);
     expect(state.open).toHaveBeenCalledWith(3);
+  });
+  it('uses the TAPD owner when local assigneeIds are not populated', () => {
+    render(<UxStageTable />);
+    expect(screen.getByText('UX设计-小赵')).toBeTruthy();
+    expect(screen.queryByText('待分配')).toBeNull();
+    expect(screen.queryByText('环节未分配负责人')).toBeNull();
   });
   it('shows an unfinished development child as a compact program-integration checkpoint', () => {
     render(<UxStageTable />);

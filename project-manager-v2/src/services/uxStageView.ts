@@ -232,6 +232,15 @@ function normalizedWorkitemType(task: Task): string {
   return String(task.tapdWorkitemTypeName || '').trim().toLowerCase().replace(/[\s·_\-—:：]/g, '');
 }
 
+/** TAPD can carry the owner even when local resource matching has not populated assigneeIds. */
+export function hasTaskAssignee(task: Task): boolean {
+  if (task.assigneeIds?.some(id => Number.isFinite(id))) return true;
+  return String(task.tapdOwner || '')
+    .split(/[;,，；]/)
+    .map(value => value.trim().toLowerCase())
+    .some(value => value && !['0', '-', 'none', 'null', 'undefined', '未分配', '待分配'].includes(value));
+}
+
 function isExplicitUiStory(task: Task): boolean {
   const typeName = normalizedWorkitemType(task);
   return typeName === 'uistory' || typeName === 'uistory父需求' || typeName === 'ui需求';
@@ -347,7 +356,7 @@ export function getDemandProgressSummary(
 
   checkpoints.slice(0, 3).forEach(item => blockers.add(`卡点：${item.label}`));
   activeTasks.filter(task => taskStatus(task) === 'blocked').slice(0, 3).forEach(task => blockers.add(task.blockReason || '任务已阻塞'));
-  activeTasks.filter(task => taskStage(task, resources) && !task.assigneeIds?.length).slice(0, 2).forEach(() => blockers.add('环节未分配负责人'));
+  activeTasks.filter(task => taskStage(task, resources) && !hasTaskAssignee(task)).slice(0, 2).forEach(() => blockers.add('环节未分配负责人'));
   stageSummaries.filter(item => item.status === 'missing').forEach(item => blockers.add(`缺少${item.stage.label}任务`));
   iconSubstageSummaries.filter(item => item.status === 'missing').forEach(item => {
     const label = item.substage === 'design' ? '图标设计' : '图标入版';

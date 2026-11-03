@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Task } from '../types/task';
 import type { Resource } from '../types/resource';
-import { buildStageRows, childDemandComposition, getDemandKind, getDemandProgressSummary, getRequiredStages, relatedCheckpointItems, isDemandComplete, isUiStoryOverallComplete, resourceStage, stageStatus, taskStage, taskStatus } from './uxStageView';
+import { buildStageRows, childDemandComposition, getDemandKind, getDemandProgressSummary, getRequiredStages, hasTaskAssignee, relatedCheckpointItems, isDemandComplete, isUiStoryOverallComplete, resourceStage, stageStatus, taskStage, taskStatus } from './uxStageView';
 
 const task = (id: number, title: string, props: Partial<Task> = {}): Task => ({ id, title, status: 'todo', priority: 'medium', projectId: 1, progress: 0, dependencies: [], type: 'task', ...props });
 
@@ -177,6 +177,11 @@ describe('UX stage rows', () => {
     expect(taskStage(task(12, '策划配置', { assigneeIds: [4] }), resources)).toBeUndefined();
     expect(taskStage(task(13, '多人协作', { assigneeIds: [1, 2] }), resources)).toBeUndefined();
     expect(resources.map(resourceStage)).toEqual(['ui_design', 'implementation', 'motion', undefined]);
+  });
+  it('treats a TAPD owner as assigned even before local assigneeIds are mapped', () => {
+    expect(hasTaskAssignee(task(14, '视觉设计', { tapdOwner: 'v_zypgzhang' }))).toBe(true);
+    expect(hasTaskAssignee(task(15, '视觉设计', { tapdOwner: '待分配' }))).toBe(false);
+    expect(hasTaskAssignee(task(16, '视觉设计'))).toBe(false);
   });
 
   it('places generic UI children by their handler role without classifying the parent itself', () => {

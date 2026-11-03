@@ -5,7 +5,7 @@ import { db } from '../db/db';
 import { useStore } from '../store/useStore';
 import type { Task } from '../types/task';
 import type { CoreUxStage } from '../services/uxStageView';
-import { buildStageRows, getDemandProgressSummary, relatedCheckpointItems, STAGES, STAGE_STATUS, stageStatus, taskStatus, type DemandDisplayState } from '../services/uxStageView';
+import { buildStageRows, getDemandProgressSummary, hasTaskAssignee, relatedCheckpointItems, STAGES, STAGE_STATUS, stageStatus, taskStatus, type DemandDisplayState } from '../services/uxStageView';
 import { getPriorityLabel } from '../utils/priority';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 import { getRequirementKindLabel } from '../utils/taskHierarchy';
@@ -137,7 +137,27 @@ export function UxStageTable() {
       const resource = resources.find(r => r.id === id);
       return resource ? formatResourceDisplayName(resource) : `未知成员 #${id}`;
     });
-    if (items.some(t => !t.assigneeIds?.length)) result.push('待分配');
+    const displayedResourceIds = new Set(ids);
+    const ownerTokens = items.flatMap(task => String(task.tapdOwner || '')
+      .split(/[;,，；]/)
+      .map(value => value.trim())
+      .filter(Boolean));
+    ownerTokens.forEach(owner => {
+      const normalizedOwner = owner.toLowerCase();
+      const matchedResource = resources.find(resource =>
+        resource.tapdAccount?.trim().toLowerCase() === normalizedOwner
+        || resource.name.trim().toLowerCase() === normalizedOwner,
+      );
+      if (matchedResource?.id != null) {
+        if (!displayedResourceIds.has(matchedResource.id)) {
+          displayedResourceIds.add(matchedResource.id);
+          result.push(formatResourceDisplayName(matchedResource));
+        }
+      } else if (!result.includes(`TAPD-${owner}`)) {
+        result.push(`TAPD-${owner}`);
+      }
+    });
+    if (items.some(task => !hasTaskAssignee(task))) result.push('待分配');
     return result.join('、') || '—';
   };
   const rowCheckpoints = (row: typeof rows[number]) => relatedCheckpointItems(row.descendants, resources);
