@@ -34,14 +34,18 @@ describe('UX stage table', () => {
     expect(screen.getByText('卡点：音频制作 · 待开始').closest('a')?.getAttribute('href')).toBe('https://tapd.example/story/7');
     expect(screen.queryByText('开发')).toBeNull();
   });
-  it('shows a completed parent with the same overall treatment in green', () => {
+  it('keeps completed demands out of active follow-up until the archive is opened', () => {
     render(<UxStageTable />);
+    expect(screen.queryByText('活动需求')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /显示已完成与已取消需求/ }));
     const completedLabel = screen.getByText('父需求已完成');
     expect(completedLabel.closest('tr')?.className).toContain('bg-emerald');
     expect(completedLabel.className).toContain('text-emerald');
   });
   it('shows a rejected parent as an overall rejected row', () => {
     render(<UxStageTable />);
+    expect(screen.queryByText('父需求已拒绝')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /显示已完成与已取消需求/ }));
     const rejectedLabel = screen.getByText('父需求已拒绝');
     expect(rejectedLabel.closest('tr')?.className).toContain('bg-red');
     fireEvent.change(screen.getByLabelText('环节状态筛选'), { target: { value: 'cancelled' } });
@@ -60,14 +64,18 @@ describe('UX stage table', () => {
     fireEvent.change(screen.getByLabelText('搜索需求'), { target: { value: '初稿' } });
     expect(screen.queryByRole('button', { name: '活动需求' })).toBeNull();
     fireEvent.click(screen.getByText('清除筛选'));
+    expect(screen.queryByRole('button', { name: '活动需求' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /显示已完成与已取消需求/ }));
     expect(screen.getByRole('button', { name: '活动需求' })).toBeTruthy();
   });
   it('filters by module category and places completed demands after unfinished work', () => {
     render(<UxStageTable />);
     const titles = screen.getAllByText(/商城需求|活动需求/).map(node => node.textContent);
-    expect(titles).toEqual(['商城需求', '活动需求']);
+    expect(titles).toEqual(['商城需求']);
     fireEvent.change(screen.getByLabelText('模块分类筛选'), { target: { value: '活动' } });
     expect(screen.queryByRole('button', { name: '商城需求' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '活动需求' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /显示已完成与已取消需求/ }));
     expect(screen.getByRole('button', { name: '活动需求' })).toBeTruthy();
   });
   it('filters missing work by the selected stage', () => {

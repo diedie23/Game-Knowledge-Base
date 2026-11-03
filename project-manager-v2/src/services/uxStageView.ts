@@ -1,6 +1,6 @@
 import type { Task } from '../types/task';
 import type { Resource } from '../types/resource';
-import { isTaskCancelled, isTaskCompleted, isTaskOverdue } from '../utils/taskState';
+import { isTaskCancelled, isTaskCompleted, isTaskOverdue, isTaskTerminal } from '../utils/taskState';
 import { detectUxStage } from './uxWorkPackageService';
 
 export type CoreUxStage = 'interaction' | 'ui_design' | 'implementation' | 'motion';
@@ -265,7 +265,11 @@ export function getDemandProgressSummary(
   const activeTasks = trackedTasks.filter(task => taskStatus(task) !== 'cancelled');
   const doneCount = activeTasks.filter(task => taskStatus(task) === 'done').length;
   const totalCount = activeTasks.length;
-  const hasTapdCompletion = isUiStoryOverallComplete(row.root);
+  // A completed TAPD parent is not enough to archive a demand when one of its
+  // children is still active. This protects follow-up work from a stale or
+  // prematurely advanced parent workflow state.
+  const unfinishedDescendants = row.descendants.filter(task => !isTaskTerminal(task));
+  const hasTapdCompletion = isUiStoryOverallComplete(row.root) && unfinishedDescendants.length === 0;
   const rootCancelled = rootStatus === 'cancelled';
   const stageSummaries = requiredStages.map(stageKey => {
     const stage = STAGES.find(item => item.key === stageKey)!;
@@ -287,6 +291,9 @@ export function getDemandProgressSummary(
     const labels: Record<IconTemplateSubstage, string> = { design: '图标设计', implementation: '图标入版', configuration: '图标配置' };
     blockers.add(`缺少${labels[item.substage]}任务`);
   });
+  const trackedTaskIds = new Set(activeTasks.map(task => task.id).filter((id): id is number => id !== undefined));
+  const untrackedActiveDescendants = unfinishedDescendants.filter(task => !task.id || !trackedTaskIds.has(task.id));
+  if (untrackedActiveDescendants.length > 0) blockers.add(`存在${untrackedActiveDescendants.length}项未完成子需求`);
 
   const taskById = new Map([...allTasks, ...row.descendants].filter(task => task.id != null).map(task => [task.id!, task]));
   activeTasks.forEach(task => {
@@ -303,7 +310,7 @@ export function getDemandProgressSummary(
   const isDueSoon = !!deadline && !hasTapdCompletion && !isOverdue && (new Date(deadline).getTime() - referenceDate.getTime()) <= 7 * 86_400_000;
   const isUnscheduled = !hasTapdCompletion && activeTasks.some(task => !task.startDate || !task.endDate);
   const iconSubstagesDone = kind !== 'icon_template' || iconSubstageSummaries.every(item => item.status === 'done');
-  const allDone = hasTapdCompletion || (totalCount > 0 && isDemandComplete(row.stages, requiredStages) && iconSubstagesDone && checkpoints.length === 0);
+  const allDone = hasTapdCompletion || (unfinishedDescendants.length === 0 && totalCount > 0 && isDemandComplete(row.stages, requiredStages) && iconSubstagesDone && checkpoints.length === 0);
   const blocked = !allDone && blockers.size > 0;
   const inProgress = activeTasks.some(task => taskStatus(task) === 'in_progress' || taskStatus(task) === 'done');
   const currentCoreStage = stageSummaries.find(item => item.status === 'blocked' || item.status === 'in_progress' || item.status === 'todo' || item.status === 'missing')?.stage.key;

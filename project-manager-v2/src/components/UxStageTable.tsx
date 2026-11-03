@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Search, Plus, X, ArrowUpDown, ExternalLink, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Search, Plus, X, ArrowUpDown, ExternalLink, ChevronRight, AlertTriangle, Archive } from 'lucide-react';
 import { db } from '../db/db';
 import { useStore } from '../store/useStore';
 import type { Task } from '../types/task';
@@ -121,6 +121,7 @@ export function UxStageTable() {
   const [status, setStatus] = useState('all');
   const [stageOwners, setStageOwners] = useState<StageOwnerFilters>(EMPTY_STAGE_OWNERS);
   const [priority, setPriority] = useState('all');
+  const [showArchived, setShowArchived] = useState(false);
   const [descending, setDescending] = useState(false);
   const [detail, setDetail] = useState<{ rootId: number; stage: CoreUxStage } | null>(null);
   const rows = useMemo(() => buildStageRows(tasks || [], resources), [tasks, resources]);
@@ -143,7 +144,15 @@ export function UxStageTable() {
   };
   const rowCheckpoints = (row: typeof rows[number]) => relatedCheckpointItems(row.descendants, resources);
   const isRowComplete = (row: typeof rows[number]) => getSummary(row).state === 'done';
-  const filtered = rows.filter(row => {
+  const archivedRows = rows.filter(row => {
+    const state = getSummary(row).state;
+    return state === 'done' || state === 'cancelled';
+  });
+  // Active follow-up is the default view. Explicit status filters and the
+  // archive toggle can still bring completed/rejected demands back for audit.
+  const includeArchived = showArchived || status !== 'all';
+  const visibleRows = includeArchived ? rows : rows.filter(row => !archivedRows.includes(row));
+  const filtered = visibleRows.filter(row => {
     const text = query.trim().toLowerCase();
     if (text && ![row.root, ...row.descendants].some(t => `${t.title} ${t.tapdId || ''} ${t.module || ''}`.toLowerCase().includes(text))) return false;
     if (priority !== 'all' && row.root.priority !== priority) return false;
@@ -198,8 +207,8 @@ export function UxStageTable() {
   });
   const detailRow = rows.find(row => row.root.id === detail?.rootId);
   const detailTasks = detail && detailRow ? detailRow.stages[detail.stage] : [];
-  const hasFilters = query || stage !== 'all' || moduleCategory !== 'all' || status !== 'all' || Object.values(stageOwners).some(value => value !== 'all') || priority !== 'all';
-  const clearFilters = () => { setQuery(''); setStage('all'); setModuleCategory('all'); setStatus('all'); setStageOwners(EMPTY_STAGE_OWNERS); setPriority('all'); };
+  const hasFilters = query || stage !== 'all' || moduleCategory !== 'all' || status !== 'all' || Object.values(stageOwners).some(value => value !== 'all') || priority !== 'all' || showArchived;
+  const clearFilters = () => { setQuery(''); setStage('all'); setModuleCategory('all'); setStatus('all'); setStageOwners(EMPTY_STAGE_OWNERS); setPriority('all'); setShowArchived(false); };
   const selectClass = 'h-9 bg-[#151923] border border-gray-700/60 rounded-lg px-3 py-2 text-xs text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500';
 
   return <div className="flex min-h-0 flex-1 flex-col bg-[#0f1115]">
@@ -224,10 +233,11 @@ export function UxStageTable() {
         </label>)}
         <label className="flex min-w-[120px] flex-col gap-1"><span className="px-1 text-[10px] font-medium text-gray-500">环节状态</span><select aria-label="环节状态筛选" className={selectClass} value={status} onChange={e => setStatus(e.target.value)}><option value="all">全部</option>{Object.entries(STAGE_STATUS).map(([key, meta]) => <option key={key} value={key}>{meta.label}</option>)}</select></label>
         <label className="flex min-w-[96px] flex-col gap-1"><span className="px-1 text-[10px] font-medium text-gray-500">优先级</span><select aria-label="优先级筛选" className={selectClass} value={priority} onChange={e => setPriority(e.target.value)}><option value="all">全部</option><option value="high">P0</option><option value="medium">P1</option><option value="low">P2</option></select></label>
+        <button aria-label={showArchived ? '隐藏已完成与已取消需求' : '显示已完成与已取消需求'} onClick={() => setShowArchived(current => !current)} className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs ${showArchived ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' : 'border-gray-700/60 bg-[#151923] text-gray-400 hover:border-gray-600 hover:text-gray-200'}`}><Archive size={13} />{showArchived ? '隐藏归档' : `显示归档（${archivedRows.length}）`}</button>
         {hasFilters && <button onClick={clearFilters} className="h-9 px-2 text-xs text-indigo-300 hover:text-white">清除筛选</button>}
       </div>
     </div>
-    <div className="flex items-center justify-between gap-3 px-5 py-3 text-xs text-gray-500"><span>显示 <strong className="text-gray-200">{filtered.length}</strong> / {rows.length} 个需求</span><span>默认按阻塞、逾期、临近到期、未排期、进行中排序 · TAPD 父需求终态优先</span></div>
+    <div className="flex items-center justify-between gap-3 px-5 py-3 text-xs text-gray-500"><span>显示 <strong className="text-gray-200">{filtered.length}</strong> / {visibleRows.length} 个需求{!includeArchived && archivedRows.length > 0 ? ` · 已归档 ${archivedRows.length} 项未计入跟进` : ''}</span><span>默认只看未完成跟进 · 按阻塞、逾期、临近到期、未排期、进行中排序</span></div>
     <div className="min-h-0 flex-1 overflow-auto px-5 pb-5">
       <table className="w-full min-w-[1320px] table-fixed border-separate border-spacing-0 text-left text-xs">
         <colgroup><col style={{ width: '20%' }} /><col style={{ width: '15%' }} /><col style={{ width: '7%' }} /><col style={{ width: '5%' }} />{STAGES.map(s => <col key={s.key} style={{ width: '12%' }} />)}<col style={{ width: '5%' }} /></colgroup>

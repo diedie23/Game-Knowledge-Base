@@ -146,6 +146,12 @@ export function Dashboard() {
     () => tasks.filter(task => !task.id || !parentTaskIds.has(task.id)),
     [tasks, parentTaskIds]
   );
+  // Keep completed/cancelled work available for historical totals and release
+  // progress, but exclude it from active follow-up and unscheduled planning.
+  const activeActionableTasks = useMemo(
+    () => actionableTasks.filter(task => !isTaskTerminal(task)),
+    [actionableTasks]
+  );
   const memberTasksByResourceId = useMemo(() => {
     const result = new Map<number, typeof tasks>();
     resources.forEach(resource => {
@@ -235,8 +241,8 @@ export function Dashboard() {
 
   // 2. 今日需要关注:今天到期的任务，已延期的任务，今天新开始的任务
   const todayTasksGrouped = useMemo(() => {
-    const dueToday = actionableTasks.filter(t => isTaskDueToday(t, today) || isTaskOverdue(t, today));
-    const startToday = actionableTasks.filter(t => t.startDate && isToday(new Date(t.startDate)) && !isTaskTerminal(t));
+    const dueToday = activeActionableTasks.filter(t => isTaskDueToday(t, today) || isTaskOverdue(t, today));
+    const startToday = activeActionableTasks.filter(t => t.startDate && isToday(new Date(t.startDate)));
     
     // 红色=已延期，橙色=今日到期，绿色=正常
     const getTaskColor = (task: any) => {
@@ -294,7 +300,7 @@ export function Dashboard() {
       dueTodayCount,
       totalCount: dueToday.length + startToday.length
     };
-  }, [tasks, actionableTasks, parentTaskIds, hierarchy, today]);
+  }, [tasks, activeActionableTasks, parentTaskIds, hierarchy, today]);
 
   // Smart default tab: auto-select based on data
   React.useEffect(() => {
@@ -372,7 +378,7 @@ export function Dashboard() {
 
   // 4. 未排期任务:所有还没有开始时间的任务列表
   const unscheduledTasksGrouped = useMemo(() => {
-    const unscheduled = actionableTasks.filter(t => !t.startDate || !t.endDate);
+    const unscheduled = activeActionableTasks.filter(t => !t.startDate || !t.endDate);
     const groups = new Map<string, { parentTitle: string, items: any[], isStandalone?: boolean, parentTask?: any, isParentInList?: boolean }>();
     
     unscheduled.forEach(task => {
@@ -390,7 +396,7 @@ export function Dashboard() {
     });
     
     return Array.from(groups.values());
-  }, [tasks, actionableTasks, parentTaskIds, hierarchy]);
+  }, [tasks, activeActionableTasks, parentTaskIds, hierarchy]);
 
   // 5. 底部一行：成员今日状态
   const memberStatus = useMemo(() => {
@@ -451,8 +457,8 @@ export function Dashboard() {
     
     const total = workItems.length;
     const completed = workItems.filter(isTaskCompleted).length;
-    const inProgress = workItems.filter(t => t.status === 'in_progress' && !isTaskTerminal(t)).length;
-    const unscheduled = workItems.filter(t => !t.startDate || !t.endDate).length;
+    const inProgress = activeActionableTasks.filter(t => t.status === 'in_progress').length;
+    const unscheduled = activeActionableTasks.filter(t => !t.startDate || !t.endDate).length;
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     // Weekly completion trend: this week vs last week
@@ -481,7 +487,7 @@ export function Dashboard() {
     const weeklyTrend = thisWeekCompleted - lastWeekCompleted; // positive = up, negative = down
 
     return { total, completed, inProgress, unscheduled, completionRate, thisWeekCompleted, lastWeekCompleted, weeklyTrend };
-  }, [actionableTasks, today]);
+  }, [actionableTasks, activeActionableTasks, today]);
 
   const openRiskCount = riskRecords.filter(record => !['closed', 'accepted'].includes(record.status)).length;
   const featureStatus = [
@@ -494,9 +500,9 @@ export function Dashboard() {
     },
     {
       label: '排期决策助手',
-      detail: `${actionableTasks.length} 项工作项，${stats.unscheduled} 项待排期`,
-      status: actionableTasks.length > 0 ? '可用' : '等待数据',
-      tone: actionableTasks.length > 0 ? 'blue' : 'gray',
+      detail: `${activeActionableTasks.length} 项未完成工作项，${stats.unscheduled} 项待排期`,
+      status: activeActionableTasks.length > 0 ? '可用' : '等待数据',
+      tone: activeActionableTasks.length > 0 ? 'blue' : 'gray',
       icon: ListChecks,
     },
     {

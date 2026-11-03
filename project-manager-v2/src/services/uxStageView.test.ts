@@ -48,6 +48,15 @@ describe('UX stage rows', () => {
     full.motion = [];
     expect(isDemandComplete(full)).toBe(false);
   });
+  it('does not archive a completed parent while a child is still unfinished', () => {
+    const root = task(90, '已完成父需求', { status: 'done', tapdStep: '测试阶段' });
+    const child = task(91, '【视觉设计】仍需跟进', { parentId: 90, status: 'todo' });
+    const row = buildStageRows([root, child])[0];
+    const summary = getDemandProgressSummary(row, [], [root, child], new Date('2026-11-03'));
+    expect(summary.state).not.toBe('done');
+    expect(summary.blockers).toContain('缺少交互任务');
+  });
+
   it('classifies the standard three-child icon order and omits interaction and motion', () => {
     const done = (id: number, title: string) => task(id, title, { status: 'done', parentId: 100 });
     const tasks = [
