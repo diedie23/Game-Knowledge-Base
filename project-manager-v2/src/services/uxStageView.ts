@@ -40,18 +40,35 @@ export function getDemandKind(task: Task, relatedTasks: Task[] = []): DemandKind
   const hasExplicitRootMarker = ICON_TEMPLATE_PATTERN.test(rootDescriptor);
   const substages = relatedTasks.map(iconTemplateSubstage).filter((stage): stage is IconTemplateSubstage => Boolean(stage));
   const substageSet = new Set(substages);
-  const hasStandardThreeChildren = relatedTasks.length === 3
+  // TAPD may add a note, review, or handoff child to the usual three-step
+  // icon order. The three semantic icon substages are the strong signal; do
+  // not require the parent to have exactly three children.
+  const hasStandardIconChildren = substages.length >= 3
     && substageSet.has('design')
     && substageSet.has('implementation')
     && substageSet.has('configuration');
   const hasExplicitChildMarker = relatedTasks.some(child => /图标(?:模板|类|发单)|icon[\s_-]*(?:template|asset)/i.test(`${child.tapdTemplateName || ''} ${child.title || ''} ${child.tapdWorkitemTypeName || ''}`));
-  return hasExplicitRootMarker || hasStandardThreeChildren || hasExplicitChildMarker ? 'icon_template' : 'interface';
+  return hasExplicitRootMarker || hasStandardIconChildren || hasExplicitChildMarker ? 'icon_template' : 'interface';
 }
 
-/** Core UX stages required by a demand. Icon orders intentionally omit motion. */
-export function getRequiredStages(kind: DemandKind): CoreUxStage[] {
-  return kind === 'icon_template'
-    ? ['ui_design', 'implementation']
+/**
+ * Return only the stages that are applicable to this demand. Interface orders
+ * are not forced to contain interaction or motion when TAPD has no matching
+ * child; those stages are treated as not applicable rather than missing.
+ */
+export function getRequiredStages(
+  kind: DemandKind,
+  relatedTasks: Task[] = [],
+  resources: Resource[] = [],
+): CoreUxStage[] {
+  if (kind === 'icon_template') return ['ui_design', 'implementation'];
+  const detectedStages = [...new Set(
+    relatedTasks
+      .map(task => taskStage(task, resources))
+      .filter((stage): stage is CoreUxStage => Boolean(stage)),
+  )];
+  return detectedStages.length > 0
+    ? STAGES.map(stage => stage.key).filter(stage => detectedStages.includes(stage))
     : STAGES.map(stage => stage.key);
 }
 
@@ -255,7 +272,7 @@ export function getDemandProgressSummary(
 ): DemandProgressSummary {
   const rootStatus = taskStatus(row.root);
   const kind = getDemandKind(row.root, row.descendants);
-  const requiredStages = getRequiredStages(kind);
+  const requiredStages = getRequiredStages(kind, row.descendants, resources);
   const checkpoints = relatedCheckpointItems(row.descendants, resources);
   const stageTasks = requiredStages.flatMap(stage => row.stages[stage]);
   const iconSubstageTasks = kind === 'icon_template'

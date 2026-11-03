@@ -54,7 +54,36 @@ describe('UX stage rows', () => {
     const row = buildStageRows([root, child])[0];
     const summary = getDemandProgressSummary(row, [], [root, child], new Date('2026-11-03'));
     expect(summary.state).not.toBe('done');
-    expect(summary.blockers).toContain('缺少交互任务');
+    expect(summary.currentStage).toBe('ui_design');
+    expect(summary.blockers).not.toContain('缺少交互任务');
+  });
+
+  it('does not require an interaction stage when an interface demand only has visual and implementation children', () => {
+    const tasks = [
+      task(95, '纯界面需求'),
+      task(96, '【视觉设计】纯界面需求', { parentId: 95, status: 'done' }),
+      task(97, '【还原】纯界面需求', { parentId: 95, status: 'done' }),
+    ];
+    const row = buildStageRows(tasks)[0];
+    const summary = getDemandProgressSummary(row, [], tasks, new Date('2026-11-03'));
+    expect(summary.kind).toBe('interface');
+    expect(summary.requiredStages).toEqual(['ui_design', 'implementation']);
+    expect(summary.state).toBe('done');
+    expect(summary.blockers).not.toContain('缺少交互任务');
+    expect(summary.blockers).not.toContain('缺少动效任务');
+  });
+
+  it('keeps icon classification when the standard icon order has an extra child', () => {
+    const tasks = [
+      task(98, '资源需求'),
+      task(99, '图标设计', { parentId: 98, status: 'done' }),
+      task(100, '图标入版', { parentId: 98, status: 'done' }),
+      task(101, '图标配置', { parentId: 98, status: 'done' }),
+      task(102, '图标验收备注', { parentId: 98, status: 'todo' }),
+    ];
+    const row = buildStageRows(tasks)[0];
+    expect(getDemandKind(row.root, row.descendants)).toBe('icon_template');
+    expect(getDemandProgressSummary(row, [], tasks, new Date('2026-11-03')).requiredStages).toEqual(['ui_design', 'implementation']);
   });
 
   it('classifies the standard three-child icon order and omits interaction and motion', () => {

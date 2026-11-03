@@ -214,7 +214,7 @@ export function UxStageTable() {
   return <div className="flex min-h-0 flex-1 flex-col bg-[#0f1115]">
     <div className="shrink-0 border-b border-gray-800 px-5 py-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><h2 className="text-lg font-semibold text-gray-100">UX 环节总览</h2><p className="mt-1 text-xs text-gray-500">一行一个需求 · 点击环节查看子任务与排期</p></div>
+        <div><h2 className="text-lg font-semibold text-gray-100">UX 环节总览</h2><p className="mt-1 text-xs text-gray-500">一行一个需求 · 只按该需求实际存在的适用环节判定 · 点击环节查看子任务与排期</p></div>
         <button onClick={() => openTaskModal()} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm text-white hover:bg-indigo-500"><Plus size={15} />新建任务</button>
       </div>
       <div className="mt-4 flex flex-wrap items-end gap-2">
