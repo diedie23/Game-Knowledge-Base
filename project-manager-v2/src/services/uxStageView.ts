@@ -311,9 +311,18 @@ export function getDemandProgressSummary(
   const requiredStages = getRequiredStages(kind, row.descendants, resources);
   const checkpoints = relatedCheckpointItems(row.descendants, resources);
   const stageTasks = requiredStages.flatMap(stage => row.stages[stage]);
+  // CONFIG identifies an icon demand but belongs to the downstream content
+  // pipeline, not UX. Only icon design and icon placement are included in UX
+  // progress, blockers, completion, and current-stage calculations.
   const iconSubstageTasks = kind === 'icon_template'
-    ? row.descendants.filter(task => iconTemplateSubstage(task))
+    ? row.descendants.filter(task => {
+      const substage = iconTemplateSubstage(task);
+      return substage === 'design' || substage === 'implementation';
+    })
     : [];
+  const uxDescendants = kind === 'icon_template'
+    ? row.descendants.filter(task => iconTemplateSubstage(task) !== 'configuration')
+    : row.descendants;
   const trackedTasks = [...new Map([...stageTasks, ...iconSubstageTasks].map(task => [task.id ?? `${task.title}-${task.updatedAt ?? ''}`, task])).values()];
   const activeTasks = trackedTasks.filter(task => taskStatus(task) !== 'cancelled');
   const doneCount = activeTasks.filter(task => taskStatus(task) === 'done').length;
@@ -321,7 +330,7 @@ export function getDemandProgressSummary(
   // A completed TAPD parent is not enough to archive a demand when one of its
   // children is still active. This protects follow-up work from a stale or
   // prematurely advanced parent workflow state.
-  const unfinishedDescendants = row.descendants.filter(task => !isTaskTerminal(task));
+  const unfinishedDescendants = uxDescendants.filter(task => !isTaskTerminal(task));
   const hasTapdCompletion = isUiStoryOverallComplete(row.root) && unfinishedDescendants.length === 0;
   const rootCancelled = rootStatus === 'cancelled';
   const stageSummaries = requiredStages.map(stageKey => {
@@ -329,7 +338,7 @@ export function getDemandProgressSummary(
     return { stage, status: stageStatus(row.stages[stageKey]) };
   });
   const iconSubstageSummaries = kind === 'icon_template'
-    ? (['design', 'implementation', 'configuration'] as IconTemplateSubstage[]).map(substage => ({
+    ? (['design', 'implementation'] as IconTemplateSubstage[]).map(substage => ({
       substage,
       status: stageStatus(iconSubstageTasks.filter(task => iconTemplateSubstage(task) === substage)),
     }))
@@ -357,7 +366,7 @@ export function getDemandProgressSummary(
     });
   });
 
-  const dates = [row.root, ...row.descendants].map(task => task.endDate).filter((value): value is Date => !!value && !Number.isNaN(new Date(value).getTime()));
+  const dates = [row.root, ...uxDescendants].map(task => task.endDate).filter((value): value is Date => !!value && !Number.isNaN(new Date(value).getTime()));
   const deadline = row.root.endDate || (dates.length ? new Date(Math.max(...dates.map(date => new Date(date).getTime()))) : undefined);
   const isOverdue = !!deadline && !hasTapdCompletion && isTaskOverdue({ ...row.root, endDate: deadline }, referenceDate);
   const isDueSoon = !!deadline && !hasTapdCompletion && !isOverdue && (new Date(deadline).getTime() - referenceDate.getTime()) <= 7 * 86_400_000;

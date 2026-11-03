@@ -5,7 +5,7 @@ import { db } from '../db/db';
 import { useStore } from '../store/useStore';
 import type { Task } from '../types/task';
 import type { CoreUxStage } from '../services/uxStageView';
-import { buildStageRows, getDemandProgressSummary, iconTemplateSubstage, relatedCheckpointItems, STAGES, STAGE_STATUS, stageStatus, taskStatus, type DemandDisplayState } from '../services/uxStageView';
+import { buildStageRows, getDemandProgressSummary, relatedCheckpointItems, STAGES, STAGE_STATUS, stageStatus, taskStatus, type DemandDisplayState } from '../services/uxStageView';
 import { getPriorityLabel } from '../utils/priority';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 import { getRequirementKindLabel } from '../utils/taskHierarchy';
@@ -82,7 +82,6 @@ function CurrentStageFlow({ row, summary }: { row: ReturnType<typeof buildStageR
     ? [
       { key: 'icon_design', label: '图标设计', status: stageStatus(row.stages.ui_design) },
       { key: 'icon_implementation', label: '入版', status: stageStatus(row.stages.implementation) },
-      { key: 'icon_configuration', label: '配置', status: stageStatus(row.descendants.filter(task => iconTemplateSubstage(task) === 'configuration')) },
     ]
     : STAGES.filter(stage => summary.requiredStages.includes(stage.key)).map(stage => ({ key: stage.key, label: stage.label, status: stageStatus(row.stages[stage.key]) }));
 

@@ -104,6 +104,24 @@ describe('UX stage rows', () => {
     expect(summary.blockers).not.toContain('缺少动效任务');
   });
 
+  it('does not count CONFIG work in icon UX progress or completion', () => {
+    const root = task(125, '图标资源需求');
+    const children = [
+      task(126, '图标设计', { parentId: 125, tapdWorkitemTypeName: 'UI子需求', status: 'done' }),
+      task(127, '图标入版', { parentId: 125, tapdWorkitemTypeName: 'UI子需求', status: 'done' }),
+      task(128, '配置', { parentId: 125, tapdWorkitemTypeName: 'CONFIG', status: 'todo' }),
+    ];
+    const row = buildStageRows([root, ...children])[0];
+    const summary = getDemandProgressSummary(row, [], [root, ...children]);
+    expect(summary.kind).toBe('icon_template');
+    expect(summary.totalCount).toBe(2);
+    expect(summary.doneCount).toBe(2);
+    expect(summary.progress).toBe(100);
+    expect(summary.state).toBe('done');
+    expect(summary.blockers).not.toContain('缺少图标配置任务');
+    expect(summary.currentStage).toBe('completed');
+  });
+
   it('keeps icon classification when the standard icon order has an extra child', () => {
     const tasks = [
       task(98, '资源需求'),
