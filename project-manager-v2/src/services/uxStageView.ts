@@ -23,8 +23,42 @@ const ICON_TEMPLATE_SUBSTAGE_PATTERNS: Array<{ stage: IconTemplateSubstage; patt
   { stage: 'configuration', pattern: /(?:图标.*(?:配置|配表)|(?:配置|配表).*图标)|icon[\s_-]*(?:config|setting)/i },
 ];
 
+function isUiChildType(task: Task): boolean {
+  const typeName = normalizedWorkitemType(task);
+  return typeName === 'ui' || typeName === 'ui子需求' || (typeName.startsWith('ui') && !typeName.includes('story'));
+}
+
+function isSubstoryChildType(task: Task): boolean {
+  const typeName = normalizedWorkitemType(task);
+  return typeName.includes('substory') || typeName.includes('开发子需求') || typeName === '开发';
+}
+
+function isConfigChildType(task: Task): boolean {
+  const typeName = normalizedWorkitemType(task);
+  return typeName.includes('config') || typeName.includes('配置');
+}
+
+export type ChildDemandComposition = 'interface' | 'icon_template' | undefined;
+
+/**
+ * Infer the demand kind from the parent's child workitem types. In this TAPD
+ * workspace, UI + SUBSTORY means an interface pipeline, while UI + CONFIG
+ * means an icon/template pipeline. This is stronger than title inference.
+ */
+export function childDemandComposition(relatedTasks: Task[]): ChildDemandComposition {
+  const hasUiChild = relatedTasks.some(isUiChildType);
+  const hasSubstoryChild = relatedTasks.some(isSubstoryChildType);
+  const hasConfigChild = relatedTasks.some(isConfigChildType);
+  if (hasUiChild && hasSubstoryChild) return 'interface';
+  if (hasUiChild && hasConfigChild) return 'icon_template';
+  return undefined;
+}
+
 /** Identify the standard icon-order substage from a child title or template name. */
 export function iconTemplateSubstage(task: Task): IconTemplateSubstage | undefined {
+  // CONFIG is the authoritative TAPD child type for the icon configuration
+  // step, even when the title is abbreviated to just "配置".
+  if (isConfigChildType(task)) return 'configuration';
   const descriptor = `${task.tapdTemplateName || ''} ${task.title || ''} ${task.tapdWorkitemTypeName || ''}`;
   return ICON_TEMPLATE_SUBSTAGE_PATTERNS.find(rule => rule.pattern.test(descriptor))?.stage;
 }
@@ -36,6 +70,8 @@ export function iconTemplateSubstage(task: Task): IconTemplateSubstage | undefin
  * to classify the demand without relying on the parent title.
  */
 export function getDemandKind(task: Task, relatedTasks: Task[] = []): DemandKind {
+  const childComposition = childDemandComposition(relatedTasks);
+  if (childComposition) return childComposition;
   const rootDescriptor = `${task.tapdTemplateName || ''} ${task.title || ''} ${task.tapdWorkitemTypeName || ''}`;
   const hasExplicitRootMarker = ICON_TEMPLATE_PATTERN.test(rootDescriptor);
   const substages = relatedTasks.map(iconTemplateSubstage).filter((stage): stage is IconTemplateSubstage => Boolean(stage));

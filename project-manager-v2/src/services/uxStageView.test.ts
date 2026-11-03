@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Task } from '../types/task';
 import type { Resource } from '../types/resource';
-import { buildStageRows, getDemandKind, getDemandProgressSummary, getRequiredStages, relatedCheckpointItems, isDemandComplete, isUiStoryOverallComplete, resourceStage, stageStatus, taskStage, taskStatus } from './uxStageView';
+import { buildStageRows, childDemandComposition, getDemandKind, getDemandProgressSummary, getRequiredStages, relatedCheckpointItems, isDemandComplete, isUiStoryOverallComplete, resourceStage, stageStatus, taskStage, taskStatus } from './uxStageView';
 
 const task = (id: number, title: string, props: Partial<Task> = {}): Task => ({ id, title, status: 'todo', priority: 'medium', projectId: 1, progress: 0, dependencies: [], type: 'task', ...props });
 
@@ -55,6 +55,37 @@ describe('UX stage rows', () => {
     const summary = getDemandProgressSummary(row, [], [root, child], new Date('2026-11-03'));
     expect(summary.state).not.toBe('done');
     expect(summary.currentStage).toBe('ui_design');
+    expect(summary.blockers).not.toContain('缺少交互任务');
+  });
+
+  it('uses UI plus SUBSTORY children to classify an interface demand', () => {
+    const root = task(115, '系统组版本需求');
+    const children = [
+      task(116, '交互案', { parentId: 115, tapdWorkitemTypeName: 'UI子需求' }),
+      task(117, '视觉设计', { parentId: 115, tapdWorkitemTypeName: 'UI子需求' }),
+      task(118, '还原接入', { parentId: 115, tapdWorkitemTypeName: 'SUBSTORY' }),
+      task(119, '动效接入', { parentId: 115, tapdWorkitemTypeName: 'SUBSTORY' }),
+    ];
+    expect(childDemandComposition(children)).toBe('interface');
+    expect(getDemandKind(root, children)).toBe('interface');
+    const row = buildStageRows([root, ...children])[0];
+    expect(getDemandProgressSummary(row, [], [root, ...children]).requiredStages).toEqual(['interaction', 'ui_design', 'implementation', 'motion']);
+  });
+
+  it('uses UI plus CONFIG children to classify an icon demand', () => {
+    const root = task(120, 'UI资源需求总单');
+    const children = [
+      task(121, '图标设计', { parentId: 120, tapdWorkitemTypeName: 'UI子需求', status: 'done' }),
+      task(122, '图标入版', { parentId: 120, tapdWorkitemTypeName: 'UI子需求', status: 'done' }),
+      task(123, '配置', { parentId: 120, tapdWorkitemTypeName: 'CONFIG', status: 'done' }),
+    ];
+    expect(childDemandComposition(children)).toBe('icon_template');
+    expect(getDemandKind(root, children)).toBe('icon_template');
+    const row = buildStageRows([root, ...children])[0];
+    const summary = getDemandProgressSummary(row, [], [root, ...children]);
+    expect(summary.requiredStages).toEqual(['ui_design', 'implementation']);
+    expect(summary.state).toBe('done');
+    expect(summary.currentStage).toBe('completed');
     expect(summary.blockers).not.toContain('缺少交互任务');
   });
 
