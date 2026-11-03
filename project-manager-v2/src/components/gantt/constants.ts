@@ -392,7 +392,7 @@ export const PIPELINE_STAGES: PipelineStage[] = [
   { id: 'func_blueprint',    label: '功能蓝图',       keywords: ['功能蓝图', '白模蓝图', '白模'],              order: 1, dependsOn: ['interaction'] },
   { id: 'layout',            label: '还原',           keywords: ['还原', 'layout', 'Layout', 'LAYOUT'],               order: 2, dependsOn: ['ui_design'] },
   { id: 'formal_blueprint',  label: '正式蓝图',       keywords: ['正式蓝图'],                                 order: 3, dependsOn: ['layout'] },
-  { id: 'motion_design',     label: '动效设计',       keywords: ['动效', '动画', 'VX'],                       order: 3, dependsOn: ['ui_design'] },
+  { id: 'motion_design',     label: '动效设计',       keywords: ['动效', '动画', 'VX'],                       order: 3, dependsOn: ['layout'] },
   { id: 'client_dev',        label: '客户端功能制作', keywords: ['客户端功能', '客户端制作', '功能制作'],       order: 1, dependsOn: ['interaction'] },
 ];
 

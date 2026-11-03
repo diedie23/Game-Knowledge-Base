@@ -6,14 +6,14 @@ export const defaultTemplates: TaskTemplate[] = [
   {
     id: 'standard-dev',
     name: '标准开发流程',
-    description: '包含交互、功能蓝图、UI设计、正式蓝图、动效设计的完整流程',
+    description: '包含交互、UI设计、还原、动效设计的完整流程',
     icon: 'Code2',
     subTasks: [
       { title: '交互设计', durationDays: 2, roleRequired: 'Designer', type: 'Design' },
       { title: '功能蓝图', durationDays: 3, roleRequired: 'Product', dependsOnIndex: 0, type: 'task' },
       { title: 'UI设计', durationDays: 3, roleRequired: 'Designer', dependsOnIndex: 0, type: 'Design' },
       { title: '正式蓝图', durationDays: 4, roleRequired: 'Developer', dependsOnIndex: 2, type: 'Frontend' },
-      { title: '动效设计', durationDays: 2, roleRequired: 'Designer', dependsOnIndex: 2, type: 'Design' }
+      { title: '动效设计', durationDays: 2, roleRequired: 'Designer', dependsOnIndex: 3, type: 'Design' }
     ]
   },
   {

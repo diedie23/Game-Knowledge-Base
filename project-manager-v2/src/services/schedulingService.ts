@@ -19,11 +19,8 @@ export interface SchedulingInput {
 
 const ROLE_STAGE_KEYWORDS: Record<UxStage, string[]> = {
   interaction: ['交互', 'interaction', 'ux'],
-  interaction_review: ['交互'],
   ui_design: ['ui', '视觉', 'visual'],
   implementation: ['还原', 'layout', '实现'],
-  requester_confirmation: [],
-  ui_acceptance: [],
   motion: ['动效', 'motion', 'animation'],
 };
 

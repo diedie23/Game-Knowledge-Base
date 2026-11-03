@@ -2,17 +2,9 @@
 
 /**
  * UX 管线阶段。
- * 与当前实际流程保持一致：
- * 需求策划/交互并行 → 交互评审 → UI设计 → 还原落地 → 需求方确认 → 界面验收
+ * 整体排期的强依赖链为：交互 → UI → 还原 → 动效。
  */
-export type UxStage =
-  | 'interaction'
-  | 'interaction_review'
-  | 'ui_design'
-  | 'implementation'
-  | 'requester_confirmation'
-  | 'ui_acceptance'
-  | 'motion';
+export type UxStage = 'interaction' | 'ui_design' | 'implementation' | 'motion';
 
 export const UX_STAGE_META: Record<UxStage, {
   label: string;
@@ -26,17 +18,11 @@ export const UX_STAGE_META: Record<UxStage, {
     roleKeywords: ['交互', 'interaction', 'ux'],
     dependsOn: [],
   },
-  interaction_review: {
-    label: '交互评审',
-    shortLabel: '交互评审',
-    roleKeywords: [],
-    dependsOn: ['interaction'],
-  },
   ui_design: {
     label: 'UI设计',
     shortLabel: 'UI',
     roleKeywords: ['ui', '视觉', 'visual'],
-    dependsOn: ['interaction_review'],
+    dependsOn: ['interaction'],
   },
   implementation: {
     label: '还原落地',
@@ -44,23 +30,11 @@ export const UX_STAGE_META: Record<UxStage, {
     roleKeywords: ['还原', 'layout', '实现'],
     dependsOn: ['ui_design'],
   },
-  requester_confirmation: {
-    label: '需求方确认',
-    shortLabel: '需求确认',
-    roleKeywords: [],
-    dependsOn: ['implementation'],
-  },
-  ui_acceptance: {
-    label: '界面验收',
-    shortLabel: '验收',
-    roleKeywords: [],
-    dependsOn: ['requester_confirmation'],
-  },
   motion: {
     label: '动效',
     shortLabel: '动效',
     roleKeywords: ['动效', 'motion', 'animation'],
-    dependsOn: ['ui_design'],
+    dependsOn: ['implementation'],
   },
 };
 

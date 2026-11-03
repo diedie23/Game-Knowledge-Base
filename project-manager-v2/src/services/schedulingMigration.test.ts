@@ -3,6 +3,7 @@ import { buildUxDemandGroups } from './uxWorkPackageService';
 import { getEffectiveDailyCapacity } from './capacityService';
 import { generateScheduleSuggestions } from './schedulingService';
 import type { TapdStory } from '../types/tapd';
+import { UX_STAGE_META } from '../types/scheduling';
 
 describe('migrated UX scheduling core', () => {
   const stories = [
@@ -16,6 +17,12 @@ describe('migrated UX scheduling core', () => {
     expect(groups).toHaveLength(1);
     expect(groups[0].packages.map(p => p.stage)).toEqual(['interaction', 'ui_design', 'implementation', 'motion']);
     expect(groups[0].packages[0].estimatedPersonDays).toBe(4);
+  });
+  it('uses the confirmed overall pipeline order: interaction → UI → implementation → motion', () => {
+    expect(UX_STAGE_META.interaction.dependsOn).toEqual([]);
+    expect(UX_STAGE_META.ui_design.dependsOn).toEqual(['interaction']);
+    expect(UX_STAGE_META.implementation.dependsOn).toEqual(['ui_design']);
+    expect(UX_STAGE_META.motion.dependsOn).toEqual(['implementation']);
   });
   it('combines personal capacity and available time', () => {
     expect(getEffectiveDailyCapacity({ resourceId: 1, dailyCapacity: 1, capacityFactor: 1.2, availabilityRatio: 0.8, maxParallelTasks: 3, updatedAt: 0 })).toBe(0.96);

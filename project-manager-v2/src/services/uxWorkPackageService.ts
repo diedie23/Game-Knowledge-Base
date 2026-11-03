@@ -175,12 +175,9 @@ export function buildUxDemandGroups(stories: TapdStory[]): UxDemandGroup[] {
 export function sortWorkPackagesByPipeline(packages: UxWorkPackage[]): UxWorkPackage[] {
   const order: UxStage[] = [
     'interaction',
-    'interaction_review',
     'ui_design',
     'implementation',
     'motion',
-    'requester_confirmation',
-    'ui_acceptance',
   ];
 
   return [...packages].sort(
