@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Resource, ResourceCapacity, Task } from '../types';
-import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildDemandRiskGroups, buildTapdPlanningItems, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, latestTapdSyncAt } from './tapdPlanningAssistant';
+import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildDemandRiskGroups, buildDemandSchedulePlan, buildTapdPlanningItems, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, latestTapdSyncAt } from './tapdPlanningAssistant';
 import { resourceStage } from './uxStageView';
 
 const task = (id: number, overrides: Partial<Task> = {}): Task => ({
@@ -312,6 +312,45 @@ describe('buildTapdScheduleSuggestion', () => {
     expect(suggestion.startDate.toDateString()).toBe(new Date('2026-09-29').toDateString());
     expect(suggestion.peakUtilization).toBe(1);
     expect(suggestion.capacitySource).toBe('configured');
+    expect(suggestion.dailyCapacityStatus).toBe('available');
+    expect(suggestion.availableWorkingDays).toBeGreaterThanOrEqual(suggestion.durationDays);
+  });
+});
+
+describe('buildDemandSchedulePlan', () => {
+  it('plans one demand group in dependency order and reports unresolved predecessors', () => {
+    const today = new Date('2026-09-28T09:00:00');
+    const resources: Resource[] = [
+      { id: 1, name: '交互', role: 'UX设计', type: 'internal' } as Resource,
+      { id: 2, name: '视觉', role: 'UI设计', type: 'internal' } as Resource,
+    ];
+    const demand = task(300, { title: '整体需求', tapdWorkitemTypeName: 'UIStory' });
+    const predecessor = task(301, { title: '【交互设计】前置', parentId: 300, assigneeIds: [1], estimatedHours: 8 });
+    const successor = task(302, { title: '【视觉设计】后置', parentId: 300, assigneeIds: [2], estimatedHours: 8, dependencies: [301] });
+    const items = [predecessor, successor].map(source => ({
+      task: source,
+      level: 'medium' as const,
+      reasons: ['缺少排期'],
+      tags: ['unscheduled' as const],
+      actionLabel: '补充 TAPD 排期',
+      score: 200,
+    }));
+    const plan = buildDemandSchedulePlan(demand, items, [demand, predecessor, successor], resources, today);
+
+    expect(plan.orderedItems.map(item => item.task.id)).toEqual([301, 302]);
+    expect(plan.suggestions.get(301)?.endDate.getTime()).toBeLessThan(plan.suggestions.get(302)?.startDate.getTime() || 0);
+    expect(plan.unresolvedDependencies).toHaveLength(0);
+  });
+
+  it('reports an external predecessor that has no confirmed end date', () => {
+    const today = new Date('2026-09-28T09:00:00');
+    const resources: Resource[] = [{ id: 1, name: '视觉', role: 'UI设计', type: 'internal' } as Resource];
+    const demand = task(310, { title: '需求', tapdWorkitemTypeName: 'UIStory' });
+    const external = task(311, { title: '外部前置', status: 'in_progress' });
+    const item = task(312, { title: '【视觉设计】后置', parentId: 310, assigneeIds: [1], estimatedHours: 8, dependencies: [311] });
+    const plan = buildDemandSchedulePlan(demand, [{ task: item, level: 'high', reasons: ['待排'], tags: ['unscheduled'], actionLabel: '补充 TAPD 排期', score: 300 }], [demand, external, item], resources, today);
+
+    expect(plan.unresolvedDependencies.map(entry => entry.dependencyId)).toEqual([311]);
   });
 });
 

@@ -3,7 +3,7 @@ import { AlertCircle, ArrowRight, CalendarClock, Check, ChevronLeft, ChevronRigh
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { Resource, Task } from '../types';
 import { db } from '../db/db';
-import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildTapdPlanningItems, buildTapdScheduleSuggestion, findDemandForTask, formatTapdAdjustmentChecklist, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
+import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildDemandSchedulePlan, buildTapdPlanningItems, buildTapdScheduleSuggestion, findDemandForTask, formatTapdAdjustmentChecklist, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
 import { updateTask } from '../services/taskService';
 import { useStore } from '../store/useStore';
 import { getPriorityLabel } from '../utils/priority';
@@ -157,6 +157,12 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     .filter((item): item is typeof item & { suggestion: NonNullable<typeof item.suggestion> } => !!item.suggestion),
   [planningEntries, selectedIds, suggestionById]);
   const applicableSelectedItems = useMemo(() => selectedItems.filter(item => !item.suggestion.requiresReview && !criticalQualityByTask.has(item.task.id!)), [selectedItems, criticalQualityByTask]);
+  const selectedDemandPlan = useMemo(() => {
+    const anchor = selectedItems[0];
+    if (!anchor || selectedItems.length < 2) return null;
+    const demand = findDemandForTask(anchor.task, tasks, hierarchy);
+    return buildDemandSchedulePlan(demand, planningItems, tasks, resources, today, capacities);
+  }, [selectedItems, planningItems, tasks, resources, today, capacities, hierarchy]);
   const scenarioImpact = useMemo(() => {
     if (!selectedItems.length) return null;
     const proposedStarts = applicableSelectedItems.map(item => item.suggestion.startDate.getTime());
@@ -280,6 +286,21 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
 
       {dataAudit.criticalCount > 0 && <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-red-500/25 bg-red-500/[0.07] px-3 py-2 text-xs text-red-200"><span><strong>{dataAudit.criticalCount} 项关键数据异常</strong>，相关任务已禁止直接应用排期，需先修复重复记录、父子关系或日期错误。</span><button onClick={openTapdModal} className="shrink-0 font-medium text-sky-300 hover:text-white">前往核查</button></div>}
 
+      {selectedDemandPlan && (
+        <div className="mt-4 rounded-xl border border-cyan-500/25 bg-cyan-500/[0.04] px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div><span className="text-xs font-medium text-cyan-200">整体排期方案</span><span className="ml-2 text-[10px] text-gray-500">以「{selectedDemandPlan.demand.title}」为一组，按前置依赖和每日空余安排</span></div>
+            <span className="text-[10px] text-gray-400">{formatDate(selectedDemandPlan.startDate)}–{formatDate(selectedDemandPlan.endDate)}</span>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2 text-[10px]">
+            <span className="rounded border border-cyan-500/20 bg-cyan-500/10 px-2 py-1 text-cyan-200">子需求 {selectedDemandPlan.orderedItems.length} 项</span>
+            <span className={`rounded border px-2 py-1 ${selectedDemandPlan.blockedByCapacity > 0 ? 'border-red-500/25 bg-red-500/10 text-red-300' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'}`}>{selectedDemandPlan.blockedByCapacity > 0 ? `${selectedDemandPlan.blockedByCapacity} 项当日无足够空余` : '每日空余满足'}</span>
+            <span className={`rounded border px-2 py-1 ${selectedDemandPlan.unresolvedDependencies.length > 0 ? 'border-orange-500/25 bg-orange-500/10 text-orange-300' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'}`}>{selectedDemandPlan.unresolvedDependencies.length > 0 ? `${selectedDemandPlan.unresolvedDependencies.length} 项前置未确认` : '前置依赖已满足'}</span>
+          </div>
+          {selectedDemandPlan.unresolvedDependencies.length > 0 && <p className="mt-2 text-[10px] text-orange-300">前置任务：{selectedDemandPlan.unresolvedDependencies.slice(0, 3).map(item => `${item.task.title} ← ${item.dependencyTitle || `#${item.dependencyId}`}`).join('；')}</p>}
+        </div>
+      )}
+
       {scenarioImpact && (
         <div className="mt-4 overflow-hidden rounded-xl border border-indigo-500/25 bg-gray-950/30">
           <div className="flex items-center justify-between gap-3 border-b border-gray-800 px-4 py-2.5">
@@ -340,7 +361,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
           const isSelected = !!item.task.id && selectedIds.has(item.task.id);
           const qualityReasons = item.task.id ? (criticalQualityByTask.get(item.task.id) || []) : [];
           const canApply = !suggestion.requiresReview && qualityReasons.length === 0;
-          const demand = findDemandForTask(item.task, tasks);
+          const demand = findDemandForTask(item.task, tasks, hierarchy);
           const deadlineLabel = suggestion.parentDeadlineStatus === 'safe'
             ? `不晚于父需求 ${formatDate(suggestion.parentDeadline)}`
             : suggestion.parentDeadlineStatus === 'late'
@@ -364,13 +385,14 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
                   <span className={`rounded border px-1.5 py-0.5 text-[9px] font-medium ${CONFIDENCE_STYLE[suggestion.confidenceLevel]}`}>置信度 {suggestion.confidence}%</span>
                   <span className="text-[10px] text-gray-500">{assignees}</span>
                 </div>
-                {demand.id !== item.task.id && <div className="mb-1 flex items-center gap-1.5 text-[10px] text-cyan-300/80"><GitBranch size={10} /><button type="button" onClick={() => demand.externalUrl ? window.open(demand.externalUrl, '_blank', 'noopener,noreferrer') : openTaskModal(demand.id)} className="max-w-[75%] truncate hover:text-cyan-200" title={demand.title}>{demand.title}</button><button type="button" onClick={() => selectSameDemand(item.task)} className="ml-auto rounded bg-cyan-500/10 px-1.5 py-0.5 text-cyan-300 hover:bg-cyan-500/20">选择同需求</button></div>}
+                {demand.id !== item.task.id && <div className="mb-1 flex items-center gap-1.5 text-[10px] text-cyan-300/80"><GitBranch size={10} /><button type="button" onClick={() => demand.externalUrl ? window.open(demand.externalUrl, '_blank', 'noopener,noreferrer') : openTaskModal(demand.id)} className="max-w-[75%] truncate hover:text-cyan-200" title={demand.title}>{demand.title}</button><button type="button" onClick={() => selectSameDemand(item.task)} className="ml-auto rounded bg-cyan-500/10 px-1.5 py-0.5 text-cyan-300 hover:bg-cyan-500/20">整组排期</button></div>}
                 <button onClick={() => openTaskModal(item.task.id)} title={item.task.title} className="line-clamp-1 text-left text-xs font-medium text-gray-200 hover:text-white">{item.task.title}</button>
                 <p className="mt-1 line-clamp-1 text-[10px] text-gray-400">{item.reasons.slice(0, 2).join('；')}</p>
                 <div className="mt-2 grid grid-cols-[36px_1fr] gap-x-2 gap-y-1 rounded-lg border border-white/[0.06] bg-black/15 px-2 py-1.5 text-[10px]">
                   <span className="text-gray-500">当前</span><span className="truncate text-gray-400">{assignees} · {formatDate(item.task.startDate)}–{formatDate(item.task.endDate)} · 当期 {suggestion.currentConflictCount} 项任务</span>
                   <span className="font-medium text-indigo-300">建议</span><span className="flex min-w-0 items-center gap-1 text-indigo-200"><span className="truncate">{suggestion.resource?.name || '待人工指定'} · {formatDate(suggestion.startDate)}–{formatDate(suggestion.endDate)} · 当期 {suggestion.suggestedConflictCount} 项任务</span><ArrowRight size={10} className="shrink-0" /></span>
                   <span className="text-gray-500">依据</span><span className="truncate text-gray-500" title={suggestion.reasons.join('；')}>{suggestion.reasons.join('；')}</span>
+                  <span className="text-gray-500">空余</span><span className={`truncate ${suggestion.dailyCapacityStatus === 'overloaded' ? 'text-red-300' : suggestion.dailyCapacityStatus === 'tight' ? 'text-orange-300' : 'text-emerald-300'}`}>{suggestion.dailyCapacityStatus === 'overloaded' ? '当日无足够空余' : suggestion.dailyCapacityStatus === 'tight' ? `仅 ${suggestion.availableWorkingDays || 0}/${suggestion.durationDays} 天满足空余` : `每日最低空余 ${(suggestion.minimumAvailableHours || 0).toFixed(1)}h`}</span>
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-1.5 text-[10px]">
                   <div className="rounded-md border border-white/[0.05] bg-black/10 px-2 py-1.5"><span className="text-gray-500">工种</span><span className="ml-2 font-medium text-gray-300">{suggestion.stage ? STAGE_LABEL[suggestion.stage] : '待确认'}</span></div>

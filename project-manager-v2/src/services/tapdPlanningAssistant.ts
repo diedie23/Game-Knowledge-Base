@@ -32,6 +32,21 @@ export interface TapdScheduleSuggestion {
   currentPeakUtilization: number;
   peakUtilization: number;
   capacitySource: 'configured' | 'default';
+  /** Minimum free hours on the suggested working days after existing load. */
+  minimumAvailableHours?: number;
+  /** Number of suggested working days with enough capacity for this task. */
+  availableWorkingDays?: number;
+  dailyCapacityStatus?: 'available' | 'tight' | 'overloaded';
+}
+
+export interface TapdDemandSchedulePlan {
+  demand: Task;
+  orderedItems: TapdPlanningItem[];
+  suggestions: Map<number, TapdScheduleSuggestion>;
+  unresolvedDependencies: Array<{ task: Task; dependencyId: number; dependencyTitle?: string }>;
+  blockedByCapacity: number;
+  startDate?: Date;
+  endDate?: Date;
 }
 
 export interface TapdScheduleReadiness {
@@ -106,8 +121,8 @@ function nextWorkingDayAfter(value: Date): Date {
   return getNextWorkingDays(next, 1)[0];
 }
 
-function dependencyConstraint(task: Task, tasks: Task[]): { readyAt?: Date; unresolved: string[] } {
-  const dependencies = (task.dependencies || []).map(id => tasks.find(candidate => candidate.id === id)).filter((item): item is Task => !!item);
+function dependencyConstraint(task: Task, tasks: Task[], taskById?: Map<number, Task>): { readyAt?: Date; unresolved: string[] } {
+  const dependencies = (task.dependencies || []).map(id => taskById?.get(id) || tasks.find(candidate => candidate.id === id)).filter((item): item is Task => !!item);
   const unresolved = dependencies.filter(item => !item.endDate && !isTaskTerminal(item)).map(item => item.title);
   const dated = dependencies.map(item => item.endDate).filter((date): date is Date => !!date).sort((a, b) => b.getTime() - a.getTime());
   return { readyAt: dated[0] ? nextWorkingDayAfter(dated[0]) : undefined, unresolved };
@@ -121,6 +136,8 @@ interface SlotMetrics {
   activeCount: number;
   peakUtilization: number;
   overCapacity: boolean;
+  minimumAvailableHours: number;
+  availableWorkingDays: number;
 }
 
 interface TapdPlanningContext {
@@ -141,6 +158,7 @@ function buildTapdPlanningContext(tasks: Task[]): TapdPlanningContext {
 }
 
 function replaceTaskInPlanningContext(context: TapdPlanningContext, taskId: number, nextTask: Task): void {
+  context.hierarchy.taskById.set(taskId, nextTask);
   context.tasksByResourceId.forEach((bucket, resourceId) => {
     const filtered = bucket.filter(task => task.id !== taskId);
     if (filtered.length > 0) context.tasksByResourceId.set(resourceId, filtered);
@@ -163,7 +181,7 @@ function slotMetrics(
   scenario: ScheduleScenario,
   context?: TapdPlanningContext,
 ): SlotMetrics {
-  if (!resource?.id) return { activeCount: 0, peakUtilization: 0, overCapacity: false };
+  if (!resource?.id) return { activeCount: 0, peakUtilization: 0, overCapacity: false, minimumAvailableHours: 0, availableWorkingDays: 0 };
   const planningContext = context || buildTapdPlanningContext(tasks);
   const candidates = planningContext.tasksByResourceId.get(resource.id) || tasks;
   const parentIds = planningContext.hierarchy.parentTaskIds;
@@ -183,10 +201,15 @@ function slotMetrics(
   const dailyHours = getResourceDailyHours(resource, scenario);
   let peakUtilization = 0;
   let activeCount = 1;
+  let minimumAvailableHours = dailyHours;
+  let availableWorkingDays = 0;
   for (let cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
     if (!isWorkingDay(cursor)) continue;
     const active = relevant.filter(candidate => startOfDay(candidate.startDate!) <= cursor && startOfDay(candidate.endDate!) >= cursor);
     const usedHours = active.reduce((sum, candidate) => sum + sharedTaskHoursPerWorkingDay(candidate), 0);
+    const freeHours = Math.max(0, dailyHours - usedHours);
+    minimumAvailableHours = Math.min(minimumAvailableHours, freeHours);
+    if (freeHours >= candidateDailyHours && active.length + 1 <= capacity.maxParallelTasks) availableWorkingDays += 1;
     peakUtilization = Math.max(peakUtilization, (usedHours + candidateDailyHours) / dailyHours);
     activeCount = Math.max(activeCount, active.length + 1);
   }
@@ -194,6 +217,8 @@ function slotMetrics(
     activeCount,
     peakUtilization,
     overCapacity: peakUtilization > 1 || activeCount > capacity.maxParallelTasks,
+    minimumAvailableHours,
+    availableWorkingDays,
   };
 }
 
@@ -267,7 +292,7 @@ function findSuggestedPeriod(
     }
     if (!metrics.overCapacity) return [start, end, metrics];
   }
-  return fallback || [...periodFrom(firstDay, duration), { activeCount: resource ? 1 : 0, peakUtilization: 0, overCapacity: false }];
+  return fallback || [...periodFrom(firstDay, duration), { activeCount: resource ? 1 : 0, peakUtilization: 0, overCapacity: false, minimumAvailableHours: resource ? 0 : 0, availableWorkingDays: 0 }];
 }
 
 export function buildTapdScheduleSuggestion(
@@ -293,14 +318,14 @@ export function buildTapdScheduleSuggestion(
   const currentEnd = task.endDate ? startOfDay(task.endDate) : periodFrom(currentStart, currentDuration)[1];
   const currentMetrics = currentResource
     ? slotMetrics(currentResource, task, tasks, currentStart, currentEnd, effort.hours / currentDuration, scheduleScenario, context)
-    : { activeCount: 0, peakUtilization: 0, overCapacity: false };
+    : { activeCount: 0, peakUtilization: 0, overCapacity: false, minimumAvailableHours: 0, availableWorkingDays: 0 };
   const currentConflictCount = currentMetrics.activeCount;
   const shouldReassign = !currentResource || tags.includes('overload') || tags.includes('overlap') || currentMetrics.overCapacity;
   const expectedType = candidateType(task, currentResources);
   const expectedStage = taskStage(task, resources);
   const currentRoles = [...new Set(currentResources.map(resource => (resource.role || '').trim().toLowerCase()).filter(Boolean))];
   const expectedRole = expectedStage ? undefined : currentRoles.length === 1 ? currentRoles[0] : undefined;
-  const dependency = dependencyConstraint(task, tasks);
+  const dependency = dependencyConstraint(task, tasks, context.hierarchy.taskById);
   const preferredStart = !task.startDate || currentEnd < todayStart ? todayStart : currentStart;
   const baseStart = dependency.readyAt && dependency.readyAt > preferredStart ? dependency.readyAt : preferredStart;
 
@@ -336,6 +361,11 @@ export function buildTapdScheduleSuggestion(
   const candidateDailyHours = effort.hours / duration;
   const [startDate, endDate, suggestedMetrics] = findSuggestedPeriod(selectedResource, task, tasks, baseStart, duration, candidateDailyHours, scheduleScenario, context);
   const suggestedConflictCount = suggestedMetrics.activeCount;
+  const dailyCapacityStatus: TapdScheduleSuggestion['dailyCapacityStatus'] = suggestedMetrics.overCapacity
+    ? 'overloaded'
+    : suggestedMetrics.availableWorkingDays < duration
+      ? 'tight'
+      : 'available';
   const parent = getTaskParent(task, context.hierarchy);
   const parentDeadline = parent?.endDate ? startOfDay(parent.endDate) : undefined;
   const parentDeadlineStatus = !parentDeadline ? 'unknown' : endDate <= parentDeadline ? 'safe' : 'late';
@@ -343,6 +373,8 @@ export function buildTapdScheduleSuggestion(
   const reviewReasons = [...readiness.reasons];
   const selectedCapacity = selectedResource ? getScenarioCapacity(selectedResource, scheduleScenario) : undefined;
   if (suggestedMetrics.peakUtilization > 1) reviewReasons.push(`建议时段峰值负载 ${Math.round(suggestedMetrics.peakUtilization * 100)}%`);
+  if (dailyCapacityStatus === 'tight') reviewReasons.push(`建议时段仅 ${suggestedMetrics.availableWorkingDays}/${duration} 个工作日有足够空余`);
+  if (dailyCapacityStatus === 'overloaded') reviewReasons.push(`建议时段每日空余不足，最低仅 ${suggestedMetrics.minimumAvailableHours.toFixed(1)} 小时`);
   if (selectedCapacity && suggestedConflictCount > selectedCapacity.maxParallelTasks) reviewReasons.push(`建议时段并行任务 ${suggestedConflictCount} 项，超过 WIP 上限 ${selectedCapacity.maxParallelTasks} 项`);
   if (parentDeadlineStatus === 'late') reviewReasons.push('建议完成时间晚于父需求截止日期');
   if (dependency.unresolved.length > 0) reviewReasons.push(`前置任务尚未排期：${dependency.unresolved.slice(0, 2).join('、')}`);
@@ -364,6 +396,8 @@ export function buildTapdScheduleSuggestion(
   if (!expectedStage) confidence -= 20;
   if (parentDeadlineStatus === 'late') confidence -= 25;
   if (suggestedMetrics.peakUtilization > 0.85) confidence -= Math.min(25, Math.round((suggestedMetrics.peakUtilization - 0.85) * 100));
+  if (dailyCapacityStatus === 'tight') confidence -= 15;
+  if (dailyCapacityStatus === 'overloaded') confidence -= 25;
   if (selectedCapacity && suggestedConflictCount > selectedCapacity.maxParallelTasks) confidence -= 25;
   if (dependency.unresolved.length) confidence -= 30;
   if (tags.includes('blocked')) confidence -= 20;
@@ -393,6 +427,9 @@ export function buildTapdScheduleSuggestion(
     currentPeakUtilization: currentMetrics.peakUtilization,
     peakUtilization: suggestedMetrics.peakUtilization,
     capacitySource: selectedResource && scheduleScenario.capacityByResourceId.has(selectedResource.id || 0) ? 'configured' : 'default',
+    minimumAvailableHours: suggestedMetrics.minimumAvailableHours,
+    availableWorkingDays: suggestedMetrics.availableWorkingDays,
+    dailyCapacityStatus,
   };
 }
 
@@ -407,17 +444,37 @@ export function buildBatchTapdScheduleSuggestions(
   const result = new Map<number, TapdScheduleSuggestion>();
   const scenarioTasks = [...tasks];
   const planningContext = buildTapdPlanningContext(scenarioTasks);
-  const remaining = [...items];
+  const itemById = new Map(items.map(item => [item.task.id, item]).filter(([id]) => id !== undefined) as Array<[number, TapdPlanningItem]>);
+  const indegree = new Map<number, number>();
+  const dependents = new Map<number, number[]>();
+  itemById.forEach((item, id) => {
+    const internalDependencies = (item.task.dependencies || []).filter(dependencyId => itemById.has(dependencyId));
+    indegree.set(id, internalDependencies.length);
+    internalDependencies.forEach(dependencyId => {
+      const bucket = dependents.get(dependencyId) || [];
+      bucket.push(id);
+      dependents.set(dependencyId, bucket);
+    });
+  });
+  const ready: TapdPlanningItem[] = [...itemById.values()].filter(item => indegree.get(item.task.id!) === 0);
   const ordered: TapdPlanningItem[] = [];
-  const remainingIds = () => new Set(remaining.map(item => item.task.id).filter((id): id is number => !!id));
-  while (remaining.length > 0) {
-    const ids = remainingIds();
-    const ready = remaining.filter(item => !(item.task.dependencies || []).some(id => ids.has(id)));
-    const candidates = ready.length ? ready : remaining;
-    candidates.sort((left, right) => right.score - left.score || (left.task.endDate?.getTime() || Infinity) - (right.task.endDate?.getTime() || Infinity));
-    const next = candidates[0];
+  const sortByPriority = (left: TapdPlanningItem, right: TapdPlanningItem) => right.score - left.score || (left.task.endDate?.getTime() || Infinity) - (right.task.endDate?.getTime() || Infinity);
+  while (ready.length > 0) {
+    ready.sort(sortByPriority);
+    const next = ready.shift()!;
     ordered.push(next);
-    remaining.splice(remaining.indexOf(next), 1);
+    (dependents.get(next.task.id!) || []).forEach(dependentId => {
+      const nextDegree = (indegree.get(dependentId) || 0) - 1;
+      indegree.set(dependentId, nextDegree);
+      if (nextDegree === 0) ready.push(itemById.get(dependentId)!);
+    });
+  }
+  // Keep cyclic or malformed dependency groups visible instead of silently dropping them.
+  if (ordered.length < itemById.size) {
+    [...itemById.values()]
+      .filter(item => !ordered.some(existing => existing.task.id === item.task.id))
+      .sort(sortByPriority)
+      .forEach(item => ordered.push(item));
   }
   ordered.forEach(item => {
     if (!item.task.id) return;
@@ -446,6 +503,53 @@ export function buildBatchTapdScheduleSuggestions(
     replaceTaskInPlanningContext(planningContext, item.task.id, scheduledTask);
   });
   return result;
+}
+
+/**
+ * Generate one complete plan for a demand group. Only leaf planning items are
+ * accepted; the batch scheduler then reserves each suggested slot in dependency
+ * order so later work cannot consume capacity before its predecessors finish.
+ */
+export function buildDemandSchedulePlan(
+  demand: Task,
+  items: TapdPlanningItem[],
+  tasks: Task[],
+  resources: Resource[],
+  today: Date = new Date(),
+  capacities: ResourceCapacity[] = [],
+): TapdDemandSchedulePlan {
+  const hierarchy = buildTaskHierarchyIndex(tasks);
+  const groupItems = items.filter(item => findDemandForTask(item.task, tasks, hierarchy).id === demand.id);
+  const suggestions = buildBatchTapdScheduleSuggestions(groupItems, tasks, resources, today, capacities);
+  const orderedItems = [...groupItems].sort((left, right) => {
+    const leftSuggestion = left.task.id ? suggestions.get(left.task.id) : undefined;
+    const rightSuggestion = right.task.id ? suggestions.get(right.task.id) : undefined;
+    return (leftSuggestion?.startDate.getTime() || Infinity) - (rightSuggestion?.startDate.getTime() || Infinity)
+      || right.score - left.score;
+  });
+  const groupIds = new Set(groupItems.map(item => item.task.id).filter((id): id is number => id !== undefined));
+  const unresolvedDependencies: TapdDemandSchedulePlan['unresolvedDependencies'] = [];
+  groupItems.forEach(item => {
+    (item.task.dependencies || []).forEach(dependencyId => {
+      if (groupIds.has(dependencyId)) return;
+      const dependency = tasks.find(candidate => candidate.id === dependencyId);
+      if (!dependency || (!dependency.endDate && !isTaskTerminal(dependency))) {
+        unresolvedDependencies.push({ task: item.task, dependencyId, dependencyTitle: dependency?.title });
+      }
+    });
+  });
+  const ranges = [...suggestions.values()];
+  const startTimes = ranges.map(suggestion => suggestion.startDate.getTime());
+  const endTimes = ranges.map(suggestion => suggestion.endDate.getTime());
+  return {
+    demand,
+    orderedItems,
+    suggestions,
+    unresolvedDependencies,
+    blockedByCapacity: ranges.filter(suggestion => suggestion.dailyCapacityStatus === 'overloaded').length,
+    startDate: startTimes.length ? new Date(Math.min(...startTimes)) : undefined,
+    endDate: endTimes.length ? new Date(Math.max(...endTimes)) : undefined,
+  };
 }
 
 /** Build a TAPD-first planning queue from leaf tasks, using the same risk rules as the Gantt view. */
