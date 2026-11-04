@@ -123,6 +123,52 @@ describe('UX stage rows', () => {
     expect(summary.blockers).not.toContain('存在1项未完成子需求');
   });
 
+  it('recognizes a completed generic icon placement child as 入版', () => {
+    const root = task(1240, '图标资源需求');
+    const children = [
+      task(1241, 'UI设计-资源', { parentId: 1240, tapdWorkitemTypeName: 'UI子需求', status: 'done' }),
+      task(1242, '还原入版', { parentId: 1240, tapdWorkitemTypeName: 'UI子需求', status: 'done' }),
+      task(1243, '策划配置', { parentId: 1240, tapdWorkitemTypeName: 'CONFIG', status: 'todo' }),
+    ];
+    const row = buildStageRows([root, ...children])[0];
+    const summary = getDemandProgressSummary(row, [], [root, ...children]);
+    expect(row.stages.implementation.map(item => item.id)).toEqual([1242]);
+    expect(summary.totalCount).toBe(2);
+    expect(summary.doneCount).toBe(2);
+    expect(summary.progress).toBe(100);
+    expect(summary.blockers).not.toContain('缺少图标入版任务');
+  });
+
+  it('keeps an interface-template demand as interface after only design and restore remain', () => {
+    const root = task(1244, '图标功能界面', { tapdTemplateName: '界面模板' });
+    const children = [
+      task(1245, 'UI设计', { parentId: 1244, tapdWorkitemTypeName: 'UI子需求', status: 'done' }),
+      task(1246, '还原入版', { parentId: 1244, tapdWorkitemTypeName: 'UI子需求', status: 'done' }),
+    ];
+    const row = buildStageRows([root, ...children])[0];
+    const summary = getDemandProgressSummary(row, [], [root, ...children]);
+    expect(summary.kind).toBe('interface');
+    expect(summary.requiredStages).toEqual(['ui_design', 'implementation']);
+    expect(summary.blockers).not.toContain('缺少图标入版任务');
+    expect(summary.state).toBe('done');
+  });
+
+  it('uses icon template metadata when the title is not icon-specific', () => {
+    const root = task(1247, '商业化资源配置', { tapdTemplateName: '图标模板' });
+    const children = [
+      task(1248, 'UI设计-资源', { parentId: 1247, tapdWorkitemTypeName: 'UI子需求', status: 'done' }),
+      task(1249, '还原入版', { parentId: 1247, tapdWorkitemTypeName: 'UI子需求', status: 'todo' }),
+      task(1250, '配置资源', { parentId: 1247, tapdWorkitemTypeName: 'CONFIG', status: 'todo' }),
+    ];
+    const row = buildStageRows([root, ...children])[0];
+    const summary = getDemandProgressSummary(row, [], [root, ...children]);
+    expect(summary.kind).toBe('icon_template');
+    expect(summary.requiredStages).toEqual(['ui_design', 'implementation']);
+    expect(summary.blockers).not.toContain('缺少图标设计任务');
+    expect(summary.blockers).not.toContain('缺少图标入版任务');
+    expect(summary.currentStage).toBe('implementation');
+  });
+
   it('does not count CONFIG work in icon UX progress or completion', () => {
     const root = task(125, '图标资源需求');
     const children = [

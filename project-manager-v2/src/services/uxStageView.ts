@@ -54,13 +54,45 @@ export function childDemandComposition(relatedTasks: Task[]): ChildDemandComposi
   return undefined;
 }
 
+function detectGenericTaskStage(task: Task, resources: Resource[] = []): CoreUxStage | undefined {
+  const detected = detectUxStage(task.title).stage;
+  if (detected && STAGES.some(stage => stage.key === detected)) return detected as CoreUxStage;
+  // TAPD titles are not always wrapped in the standard brackets. Keep these
+  // aliases narrow so downstream "程序接入" is not mistaken for 还原.
+  if (/^(?:【|\[)?交互设计/.test(task.title)) return 'interaction';
+  if (/(?:UI|视觉|美术).*设计|^设计(?:稿|需求)?$/i.test(task.title)) return 'ui_design';
+  if (/(?:还原|入版|Layout|排版|实现)/i.test(task.title)) return 'implementation';
+  if (/(?:动效|动画|Motion|VFX|VX)/i.test(task.title)) return 'motion';
+
+  const ownerTokens = String(task.tapdOwner || '').split(/[;,，；]/).map(value => value.trim().toLowerCase()).filter(Boolean);
+  const assigned = resources.filter(resource =>
+    task.assigneeIds?.includes(resource.id || -1) ||
+    ownerTokens.some(token => token === String(resource.tapdAccount || '').toLowerCase() || token === resource.name.trim().toLowerCase())
+  );
+  const matchedStages = new Set<CoreUxStage>();
+  assigned.forEach(resource => {
+    const matched = resourceStage(resource);
+    if (matched) matchedStages.add(matched);
+  });
+  return matchedStages.size === 1 ? [...matchedStages][0] : undefined;
+}
+
 /** Identify the standard icon-order substage from a child title or template name. */
-export function iconTemplateSubstage(task: Task): IconTemplateSubstage | undefined {
+export function iconTemplateSubstage(task: Task, resources: Resource[] = []): IconTemplateSubstage | undefined {
   // CONFIG is the authoritative TAPD child type for the icon configuration
   // step, even when the title is abbreviated to just "配置".
   if (isConfigChildType(task)) return 'configuration';
   const descriptor = `${task.tapdTemplateName || ''} ${task.title || ''} ${task.tapdWorkitemTypeName || ''}`;
-  return ICON_TEMPLATE_SUBSTAGE_PATTERNS.find(rule => rule.pattern.test(descriptor))?.stage;
+  const explicit = ICON_TEMPLATE_SUBSTAGE_PATTERNS.find(rule => rule.pattern.test(descriptor))?.stage;
+  if (explicit) return explicit;
+
+  // Icon-template children are often named only "UI设计" / "还原入版".
+  // Reuse the same generic stage detection used by interface demands; the
+  // parent/template type decides whether those stages are icon stages.
+  const genericStage = detectGenericTaskStage(task, resources);
+  if (genericStage === 'ui_design') return 'design';
+  if (genericStage === 'implementation') return 'implementation';
+  return undefined;
 }
 
 /**
@@ -69,12 +101,19 @@ export function iconTemplateSubstage(task: Task): IconTemplateSubstage | undefin
  * usual three-child structure (图标设计 / 图标入版 / 图标配置) is also enough
  * to classify the demand without relying on the parent title.
  */
-export function getDemandKind(task: Task, relatedTasks: Task[] = []): DemandKind {
+export function getDemandKind(task: Task, relatedTasks: Task[] = [], resources: Resource[] = []): DemandKind {
   const childComposition = childDemandComposition(relatedTasks);
   if (childComposition) return childComposition;
   const rootDescriptor = `${task.tapdTemplateName || ''} ${task.title || ''} ${task.tapdWorkitemTypeName || ''}`;
   const hasExplicitRootMarker = ICON_TEMPLATE_PATTERN.test(rootDescriptor);
-  const substages = relatedTasks.map(iconTemplateSubstage).filter((stage): stage is IconTemplateSubstage => Boolean(stage));
+  const hasUiChildren = relatedTasks.some(isUiChildType);
+  const hasConfigChildren = relatedTasks.some(isConfigChildType);
+  const hasStructuredUxChildren = relatedTasks.some(child => Boolean(detectGenericTaskStage(child, resources)));
+  // A generic interface template may retain only UI设计/还原 children after
+  // other stages are deleted. Structured UI children without CONFIG are a
+  // stronger signal than an accidental icon word in the parent title.
+  if (hasUiChildren && !hasConfigChildren && hasStructuredUxChildren) return 'interface';
+  const substages = relatedTasks.map(child => iconTemplateSubstage(child, resources)).filter((stage): stage is IconTemplateSubstage => Boolean(stage));
   const substageSet = new Set(substages);
   // TAPD may add a note, review, or handoff child to the usual three-step
   // icon order. The three semantic icon substages are the strong signal; do
@@ -133,29 +172,12 @@ export function resourceStage(resource: Resource): CoreUxStage | undefined {
 
 /** Prefer an explicit title marker, then use the TAPD owner's configured role as a safe fallback. */
 export function taskStage(task: Task, resources: Resource[] = []): CoreUxStage | undefined {
-  const iconStage = iconTemplateSubstage(task);
+  const iconStage = iconTemplateSubstage(task, resources);
   if (iconStage === 'design') return 'ui_design';
   if (iconStage === 'implementation') return 'implementation';
   // Configuration is tracked as an icon-order substage, not as a core UX column.
   if (iconStage === 'configuration') return undefined;
-  const isIconTemplateTask = getDemandKind(task) === 'icon_template';
-  const detected = detectUxStage(task.title).stage;
-  if (detected && STAGES.some(stage => stage.key === detected) && !(isIconTemplateTask && detected === 'interaction')) return detected as CoreUxStage;
-  // Local templates use these names instead of TAPD's bracketed titles.
-  if (/^(?:【|\[)?交互设计/.test(task.title)) return 'interaction';
-  if (/^(?:【|\[)?UI设计/i.test(task.title)) return 'ui_design';
-
-  const ownerTokens = String(task.tapdOwner || '').split(/[;,，；]/).map(value => value.trim().toLowerCase()).filter(Boolean);
-  const assigned = resources.filter(resource =>
-    task.assigneeIds?.includes(resource.id || -1) ||
-    ownerTokens.some(token => token === String(resource.tapdAccount || '').toLowerCase() || token === resource.name.trim().toLowerCase())
-  );
-  const matchedStages = new Set<CoreUxStage>();
-  assigned.forEach(resource => {
-    const matched = resourceStage(resource);
-    if (matched) matchedStages.add(matched);
-  });
-  return matchedStages.size === 1 ? [...matchedStages][0] : undefined;
+  return detectGenericTaskStage(task, resources);
 }
 
 export function taskStatus(task: Task): StageStatus {
@@ -193,10 +215,13 @@ export function relatedCheckpointLabel(task: Task, resources: Resource[] = []): 
 
 /** Only the four UX pipeline stages participate in this overview. */
 export function isUxTrackedTask(task: Task, resources: Resource[] = []): boolean {
-  const iconSubstage = iconTemplateSubstage(task);
+  // Cross-pipeline detection must run before generic "还原/入版" aliases;
+  // otherwise "待还原接入" would be promoted into the UX 还原 column.
+  if (isDownstreamCheckpointTask(task, resources)) return false;
+  const iconSubstage = iconTemplateSubstage(task, resources);
   if (iconSubstage === 'design' || iconSubstage === 'implementation') return true;
   if (iconSubstage === 'configuration') return false;
-  return !isDownstreamCheckpointTask(task, resources) && Boolean(taskStage(task, resources));
+  return Boolean(taskStage(task, resources));
 }
 
 /** Find unfinished cross-category children without adding them to the four UX stage columns. */
@@ -335,7 +360,7 @@ export function getDemandProgressSummary(
   referenceDate = new Date(),
 ): DemandProgressSummary {
   const rootStatus = taskStatus(row.root);
-  const kind = getDemandKind(row.root, row.descendants);
+  const kind = getDemandKind(row.root, row.descendants, resources);
   const requiredStages = getRequiredStages(kind, row.descendants, resources);
   const stageTasks = requiredStages.flatMap(stage => row.stages[stage]);
   // CONFIG identifies an icon demand but belongs to the downstream content
@@ -343,7 +368,7 @@ export function getDemandProgressSummary(
   // progress, blockers, completion, and current-stage calculations.
   const iconSubstageTasks = kind === 'icon_template'
     ? row.descendants.filter(task => {
-      const substage = iconTemplateSubstage(task);
+      const substage = iconTemplateSubstage(task, resources);
       return substage === 'design' || substage === 'implementation';
     })
     : [];
@@ -365,7 +390,7 @@ export function getDemandProgressSummary(
   const iconSubstageSummaries = kind === 'icon_template'
     ? (['design', 'implementation'] as IconTemplateSubstage[]).map(substage => ({
       substage,
-      status: stageStatus(iconSubstageTasks.filter(task => iconTemplateSubstage(task) === substage)),
+      status: stageStatus(iconSubstageTasks.filter(task => iconTemplateSubstage(task, resources) === substage)),
     }))
     : [];
   const blockers = new Set<string>();

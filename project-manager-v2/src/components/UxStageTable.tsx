@@ -132,32 +132,35 @@ export function UxStageTable() {
     rows.map(row => row.root.module?.trim()).filter((value): value is string => Boolean(value))
   )].sort((left, right) => left.localeCompare(right, 'zh-CN')), [rows]);
   const names = (items: Task[]) => {
-    const ids = [...new Set(items.flatMap(t => t.assigneeIds || []))];
-    const result = ids.map(id => {
-      const resource = resources.find(r => r.id === id);
-      return resource ? formatResourceDisplayName(resource) : `未知成员 #${id}`;
-    });
-    // TAPD owner is a fallback only when the local assignment list is empty.
-    // Do not append a second "TAPD-..." label beside an already assigned task.
-    if (ids.length === 0) {
-      const ownerTokens = items.flatMap(task => String(task.tapdOwner || '')
-        .split(/[;,，；]/)
-        .map(value => value.trim())
-        .filter(Boolean));
-      ownerTokens.forEach(owner => {
-        const normalizedOwner = owner.toLowerCase();
-        const matchedResource = resources.find(resource =>
-          resource.tapdAccount?.trim().toLowerCase() === normalizedOwner
-          || resource.name.trim().toLowerCase() === normalizedOwner,
-        );
-        if (matchedResource?.id != null) {
-          result.push(formatResourceDisplayName(matchedResource));
-        } else if (!result.includes(owner)) {
-          result.push(owner);
-        }
+    const result: string[] = [];
+    const append = (value: string) => {
+      if (value && !result.includes(value)) result.push(value);
+    };
+    items.forEach(task => {
+      const localIds = task.assigneeIds || [];
+      localIds.forEach(id => {
+        const resource = resources.find(r => r.id === id);
+        if (resource) append(formatResourceDisplayName(resource));
+        else if (!task.tapdOwner) append(`未知成员 #${id}`);
       });
-    }
-    if (items.some(task => !hasTaskAssignee(task))) result.push('待分配');
+      // A TAPD owner is shown only when this task has no mapped local owner.
+      // This avoids both false "待分配" labels and duplicate TAPD-* labels.
+      if (localIds.length === 0) {
+        String(task.tapdOwner || '')
+          .split(/[;,，；]/)
+          .map(value => value.trim())
+          .filter(Boolean)
+          .forEach(owner => {
+            const normalizedOwner = owner.toLowerCase();
+            const matchedResource = resources.find(resource =>
+              resource.tapdAccount?.trim().toLowerCase() === normalizedOwner
+              || resource.name.trim().toLowerCase() === normalizedOwner,
+            );
+            append(matchedResource ? formatResourceDisplayName(matchedResource) : owner);
+          });
+      }
+    });
+    if (items.some(task => !hasTaskAssignee(task))) append('待分配');
     return result.join('、') || '—';
   };
   const isRowComplete = (row: typeof rows[number]) => getSummary(row).state === 'done';
@@ -179,7 +182,7 @@ export function UxStageTable() {
       const selectedOwner = stageOwners[s.key];
       if (selectedOwner === 'all') return true;
       const items = row.stages[s.key];
-      if (selectedOwner === 'unassigned') return items.some(t => !t.assigneeIds?.length);
+      if (selectedOwner === 'unassigned') return items.some(t => !hasTaskAssignee(t));
       return items.some(t => t.assigneeIds?.includes(Number(selectedOwner)));
     });
     if (!ownersMatch) return false;
@@ -192,7 +195,7 @@ export function UxStageTable() {
       const selectedOwner = stageOwners[s.key];
       return row.stages[s.key].some(t => taskStatus(t) === status && (
         selectedOwner === 'all' ||
-        (selectedOwner === 'unassigned' ? !t.assigneeIds?.length : t.assigneeIds?.includes(Number(selectedOwner)))
+        (selectedOwner === 'unassigned' ? !hasTaskAssignee(t) : t.assigneeIds?.includes(Number(selectedOwner)))
       ));
     });
   }).sort((a, b) => {
@@ -305,7 +308,7 @@ export function UxStageTable() {
               {items.length ? <div className={'overflow-hidden rounded-lg border ' + STAGE_CARD_STYLE[summary]}>
                 <button aria-label={root.title + ' · ' + s.label + '：' + STAGE_STATUS[summary].label} onClick={openStage} className="w-full p-2 text-left transition-colors hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-indigo-400">
                   <div className="mb-2 flex items-center justify-between gap-2"><span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-medium text-emerald-300">{stageTypeLabel} · {items.length}项</span><span className="whitespace-nowrap text-[11px] font-semibold text-gray-300">{taskRangeLabel(items)}</span></div>
-                  <div className={'mb-2 truncate text-xs ' + (items.some(t => !t.assigneeIds?.length) ? 'text-amber-200/80' : 'text-gray-300')} title={names(items)}>{names(items)}</div>
+                  <div className={'mb-2 truncate text-xs ' + (items.some(t => !hasTaskAssignee(t)) ? 'text-amber-200/80' : 'text-gray-300')} title={names(items)}>{names(items)}</div>
                   <div className="flex flex-wrap items-center gap-1"><StatusBadge status={summary} />{items.length > 1 && <span className="text-[10px] text-gray-500">{items.filter(t => t.status === 'done').length}/{items.length}</span>}</div>
                 </button>
                 {firstTapdTask?.externalUrl && <a href={firstTapdTask.externalUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} className="flex items-center justify-center gap-1 border-t border-white/[0.06] px-2 py-1.5 text-[10px] text-indigo-300 hover:bg-indigo-500/10 hover:text-white">{items.length > 1 ? '打开首个 TAPD' : '打开 TAPD'}<ExternalLink size={10} /></a>}
