@@ -190,9 +190,23 @@ function nextWorkingDayAfter(value: Date): Date {
 }
 
 function dependencyConstraint(task: Task, tasks: Task[], taskById?: Map<number, Task>): { readyAt?: Date; unresolved: string[] } {
-  const dependencies = (task.dependencies || []).map(id => taskById?.get(id) || tasks.find(candidate => candidate.id === id)).filter((item): item is Task => !!item);
-  const unresolved = dependencies.filter(item => !item.endDate && !isTaskTerminal(item)).map(item => item.title);
-  const dated = dependencies.map(item => item.endDate).filter((date): date is Date => !!date).sort((a, b) => b.getTime() - a.getTime());
+  const dependencies = task.dependencies || [];
+  const unresolved: string[] = [];
+  const dated: Date[] = [];
+  dependencies.forEach(dependencyId => {
+    const dependency = taskById?.get(dependencyId) || tasks.find(candidate => candidate.id === dependencyId);
+    if (!dependency) {
+      unresolved.push(`#${dependencyId}`);
+      return;
+    }
+    if (isTaskTerminal(dependency)) return;
+    if (!dependency.endDate) {
+      unresolved.push(dependency.title);
+      return;
+    }
+    dated.push(new Date(dependency.endDate));
+  });
+  dated.sort((left, right) => right.getTime() - left.getTime());
   return { readyAt: dated[0] ? nextWorkingDayAfter(dated[0]) : undefined, unresolved };
 }
 

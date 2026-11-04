@@ -1,4 +1,5 @@
 import type { Task } from '../types';
+import { isTaskTerminal } from './taskState';
 
 export type RequirementKind = 'parent' | 'child' | 'standalone';
 
@@ -114,6 +115,14 @@ export function buildTaskHierarchyIndex(tasks: Task[]): TaskHierarchyIndex {
 
 export function isParentTask(task: Task, hierarchy: TaskHierarchyIndex): boolean {
   return task.id !== undefined && hierarchy.parentTaskIds.has(task.id);
+}
+
+/**
+ * Canonical active-leaf set used by capacity, WIP and risk consumers.
+ * Parent rows are structural summaries and terminal rows never consume capacity.
+ */
+export function getActiveLeafTasks(tasks: Task[], hierarchy = buildTaskHierarchyIndex(tasks)): Task[] {
+  return hierarchy.leafTasks.filter(task => !isTaskTerminal(task) && task.status !== 'paused');
 }
 
 export function getTaskParent(task: Task, hierarchy: TaskHierarchyIndex): Task | undefined {

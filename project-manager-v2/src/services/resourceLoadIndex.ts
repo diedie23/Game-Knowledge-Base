@@ -1,6 +1,9 @@
 import { format } from 'date-fns';
 import type { Resource, Task } from '../types';
 import { dedupeResourcesForDisplay, getResourceAliasIds } from '../utils/resourceDedup';
+import { getActiveLeafTasks } from '../utils/taskHierarchy';
+import { DEFAULT_RESOURCE_CAPACITY, mergeCapacity } from './capacityService';
+import type { ResourceCapacity } from '../types/scheduling';
 
 export interface ResourceLoadIndex {
   /** Tasks grouped by visible resource and calendar day. */
@@ -41,12 +44,14 @@ export function buildResourceLoadIndex(
   tasks: Task[],
   resources: Resource[],
   days: Date[],
-  parentTaskIds: Set<number>,
+  _parentTaskIds: Set<number>,
+  capacities: ResourceCapacity[] = [],
 ): ResourceLoadIndex {
   const visibleResources = dedupeResourcesForDisplay(
     resources.filter(resource => resource.status !== 'departed' && resource.id != null),
   );
   const visibleByAssignmentId = new Map<number, number>();
+  const capacityByResourceId = new Map(capacities.map(capacity => [capacity.resourceId, capacity]));
   const tasksByResourceDate = new Map<number, Map<string, Task[]>>();
   const loadByResourceDate = new Map<number, Map<string, number>>();
   const tasksByResource = new Map<number, Task[]>();
@@ -67,16 +72,10 @@ export function buildResourceLoadIndex(
 
   const requestedDays = days.map(day => ({ date: day, key: dayKey(day) }));
 
+  const activeLeafIds = new Set(getActiveLeafTasks(tasks).map(task => task.id).filter((id): id is number => id !== undefined));
   for (const task of tasks) {
-    if (
-      task.status === 'done'
-      || (task.id != null && parentTaskIds.has(task.id))
-      || !task.startDate
-      || !task.endDate
-      || !task.assigneeIds?.length
-    ) {
-      continue;
-    }
+    if (task.id !== undefined && (!activeLeafIds.has(task.id) || _parentTaskIds.has(task.id))) continue;
+    if (!task.startDate || !task.endDate || !task.assigneeIds?.length) continue;
 
     const assignedResourceIds = new Set<number>();
     for (const assignmentId of task.assigneeIds) {
@@ -103,13 +102,17 @@ export function buildResourceLoadIndex(
   }
 
   let maxLoad = 0;
-  for (const resourceId of visibleResources.map(resource => resource.id!)) {
+  let maxConfiguredWip = DEFAULT_RESOURCE_CAPACITY.maxParallelTasks;
+  for (const resource of visibleResources) {
+    const resourceId = resource.id!;
     const loadDates = loadByResourceDate.get(resourceId)!;
+    const wipLimit = mergeCapacity(resource, capacityByResourceId.get(resourceId)).maxParallelTasks;
+    maxConfiguredWip = Math.max(maxConfiguredWip, wipLimit);
     let overloadDays = 0;
     for (const requestedDay of requestedDays) {
       const load = loadDates.get(requestedDay.key) || 0;
       if (load > maxLoad) maxLoad = load;
-      if (load >= 3) overloadDays += 1;
+      if (load >= wipLimit) overloadDays += 1;
     }
     overloadDaysByResource.set(resourceId, overloadDays);
   }
@@ -120,6 +123,6 @@ export function buildResourceLoadIndex(
     tasksByResource,
     totalTasksByResource,
     overloadDaysByResource,
-    maxLoad: Math.max(maxLoad, 3),
+    maxLoad: Math.max(maxLoad, maxConfiguredWip),
   };
 }

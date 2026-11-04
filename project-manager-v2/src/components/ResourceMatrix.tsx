@@ -15,6 +15,7 @@ import EmptyState from './common/EmptyState';
 import { dedupeResourcesForDisplay } from '../utils/resourceDedup';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 import { buildResourceLoadIndex } from '../services/resourceLoadIndex';
+import { buildTaskHierarchyIndex } from '../utils/taskHierarchy';
 
 // --- Continuous Heatmap Color Engine ---
 function getHeatColor(load: number, maxLoad: number): string {
@@ -333,6 +334,7 @@ export function ResourceMatrix() {
   const hoverTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const resources = useLiveQuery(() => db.resources.toArray());
+  const capacities = useLiveQuery(() => db.resourceCapacities.toArray());
   const tasks = useLiveQuery(
     () =>
       selectedProjectId
@@ -348,20 +350,16 @@ export function ResourceMatrix() {
     [today],
   );
 
-  // Pre-compute parent task IDs (tasks that have children) to exclude from stats
-  const parentTaskIds = React.useMemo(() => {
-    if (!tasks) return new Set<number>();
-    const ids = new Set<number>();
-    tasks.forEach(t => {
-      if (t.parentId) ids.add(t.parentId);
-    });
-    return ids;
-  }, [tasks]);
+  // Use the same TAPD-aware hierarchy as the scheduling and capacity services.
+  const parentTaskIds = React.useMemo(
+    () => buildTaskHierarchyIndex(tasks || []).parentTaskIds,
+    [tasks],
+  );
 
   // Build the resource/date index once instead of filtering every task for every cell.
   const resourceLoadIndex = useMemo(
-    () => buildResourceLoadIndex(tasks || [], resources || [], days, parentTaskIds),
-    [resources, tasks, days, parentTaskIds],
+    () => buildResourceLoadIndex(tasks || [], resources || [], days, parentTaskIds, capacities || []),
+    [resources, tasks, days, parentTaskIds, capacities],
   );
   const maxLoad = resourceLoadIndex.maxLoad;
 

@@ -361,8 +361,8 @@ export function checkDependencyConflicts(
     const upstream = taskMap.get(depId);
     if (!upstream || !upstream.endDate) continue;
 
-    // Skip conflict check if upstream is already done (completed tasks don't block)
-    if (upstream.status === 'done') continue;
+    // Any terminal source (local/TAPD done, cancelled, completedAt or 100%) no longer blocks.
+    if (isTaskTerminal(upstream)) continue;
 
     const upEnd = new Date(upstream.endDate);
     if (startDate < upEnd) {

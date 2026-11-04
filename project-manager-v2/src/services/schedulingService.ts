@@ -7,6 +7,7 @@ import type {
   UxStage,
 } from '../types/scheduling';
 import { buildCapacitySnapshot } from './capacityService';
+import { getNextWorkingDays } from '../utils/dateUtils';
 import { createScheduleScenario, getResourceDailyHours, getScenarioCapacity, type ScheduleScenario } from './schedulingKernel';
 
 export interface SchedulingInput {
@@ -52,22 +53,12 @@ function formatDate(date: Date): string {
 }
 
 function addWorkingDays(start: Date, days: number): Date {
-  const result = new Date(start);
-  let remaining = Math.max(0, Math.ceil(days));
-  while (remaining > 0) {
-    result.setDate(result.getDate() + 1);
-    const day = result.getDay();
-    if (day !== 0 && day !== 6) remaining--;
-  }
-  return result;
+  const count = Math.max(1, Math.ceil(days) + 1);
+  return getNextWorkingDays(start, count)[count - 1];
 }
 
 function nextWorkday(date: Date): Date {
-  const result = new Date(date);
-  while (result.getDay() === 0 || result.getDay() === 6) {
-    result.setDate(result.getDate() + 1);
-  }
-  return result;
+  return getNextWorkingDays(date, 1)[0];
 }
 
 function selectBestResource(

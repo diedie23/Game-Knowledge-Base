@@ -64,6 +64,7 @@ export function GanttChart() {
     [selectedProjectId]
   );
   const resources = useLiveQuery(() => db.resources.toArray());
+  const capacities = useLiveQuery(() => db.resourceCapacities.toArray());
   const taskIndex = useMemo(() => {
     const byId = new Map<number, Task>();
     const childrenByParentId = new Map<number, Task[]>();
@@ -1444,7 +1445,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
       // "未分类" group for tasks without module
       if (noModuleTasks.length > 0) {
         const noModuleGroup: Task = {
-          id: groupIdCounter--,
+          id: groupIdCounter,
           title: `📋 未分类 (${noModuleTasks.length})`,
           status: 'todo',
           priority: '' as any,
@@ -1635,7 +1636,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
         const toY = toRowIdx * ROW_HEIGHT + ROW_HEIGHT / 2 + 2;
 
         // Detect conflict: downstream starts before upstream ends
-        const isConflict = !!(task.startDate && depTask.endDate && task.startDate < depTask.endDate);
+        const isConflict = !!(!isTaskTerminal(depTask) && task.startDate && depTask.endDate && task.startDate < depTask.endDate);
 
         lines.push({ fromX, fromY, toX, toY, isConflict, fromTaskId: depId, toTaskId: task.id! });
       });
@@ -2795,6 +2796,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                   effectiveLpWidth={effectiveLpWidth}
                   tasks={tasks}
                   resources={resources}
+                  capacities={capacities}
                 />
               </div>
             </div>

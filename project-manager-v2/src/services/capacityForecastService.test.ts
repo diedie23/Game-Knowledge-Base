@@ -36,6 +36,33 @@ describe('buildStageCapacityForecast', () => {
     expect(visual.projectedUtilization).toBe(40);
   });
 
+  it('uses TAPD parent links and excludes the parent row from capacity counts', () => {
+    const result = buildStageCapacityForecast([
+      task(5, { tapdId: 'story-5', tapdWorkitemTypeName: 'UIStory', title: '父需求' }),
+      task(6, { tapdId: 'child-6', tapdParentId: 'story-5', title: '【视觉设计】子需求', estimatedHours: 8 }),
+    ], resources, new Date('2026-09-28'), 10);
+    const visual = result.find(item => item.stage === 'ui_design')!;
+    expect(visual.pendingTaskCount).toBe(1);
+    expect(visual.pendingHours).toBe(8);
+  });
+
+  it('does not manufacture capacity when configured availability is zero', () => {
+    const capacities: ResourceCapacity[] = [{
+      resourceId: 1,
+      dailyCapacity: 1,
+      capacityFactor: 1,
+      maxParallelTasks: 3,
+      availabilityRatio: 0,
+      updatedAt: 1,
+    }];
+    const result = buildStageCapacityForecast([
+      task(7, { title: '【视觉设计】待排', estimatedHours: 8 }),
+    ], resources, new Date('2026-09-28'), 10, capacities);
+    const visual = result.find(item => item.stage === 'ui_design')!;
+    expect(visual.capacityHours).toBe(0);
+    expect(visual.projectedUtilization).toBe(999);
+  });
+
   it('marks a trade with pending work and no resources as danger', () => {
     const result = buildStageCapacityForecast([task(4, { title: '【动效】待排', estimatedHours: 8 })], [], new Date('2026-09-28'));
     expect(result.find(item => item.stage === 'motion')?.status).toBe('danger');

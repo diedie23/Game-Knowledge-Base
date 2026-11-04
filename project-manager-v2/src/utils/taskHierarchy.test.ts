@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Task } from '../types';
-import { buildTaskHierarchyIndex, getRequirementKind, getRequirementKindLabel, isEpicRequirement, isEpicWorkitemTypeName } from './taskHierarchy';
+import { buildTaskHierarchyIndex, getActiveLeafTasks, getRequirementKind, getRequirementKindLabel, isEpicRequirement, isEpicWorkitemTypeName } from './taskHierarchy';
 
 const task = (overrides: Partial<Task> = {}): Task => ({
   title: '需求', status: 'todo', progress: 0, dependencies: [], type: 'task', projectId: 1, ...overrides,
@@ -45,6 +45,16 @@ describe('task hierarchy labels', () => {
     const hierarchy = buildTaskHierarchyIndex([parent]);
 
     expect(hierarchy.leafTasks).toEqual([]);
+  });
+
+  it('returns only active TAPD-aware leaf tasks for capacity calculations', () => {
+    const parent = task({ id: 60, tapdId: 'parent-60', tapdWorkitemTypeName: 'UIStory' });
+    const child = task({ id: 61, tapdId: 'child-61', tapdParentId: 'parent-60' });
+    const cancelled = task({ id: 62, status: 'cancelled' });
+    const paused = task({ id: 63, status: 'paused' });
+    const completedFromTapd = task({ id: 64, tapdStatus: 'done' });
+
+    expect(getActiveLeafTasks([parent, child, cancelled, paused, completedFromTapd]).map(item => item.id)).toEqual([61]);
   });
 
   it('does not connect equal TAPD IDs across workspaces', () => {

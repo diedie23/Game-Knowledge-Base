@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import type { Task } from '../../../db/db';
 import type { Resource } from '../../../types/resource';
 import { getTaskTypeColor } from '../constants';
+import { isTaskTerminal } from '../../../utils/taskState';
 
 export function useConflictDetection(tasks: Task[] | undefined, resources?: Resource[]) {
   const getShortTaskName = useCallback((title: string, task?: Task) => {
@@ -48,8 +49,9 @@ export function useConflictDetection(tasks: Task[] | undefined, resources?: Reso
         const upstream = taskMap.get(depId);
         if (!upstream) return;
 
-        // Skip conflict check if upstream is already done (completed tasks don't block)
-        if (upstream.status === 'done') return;
+        // Use the shared terminal-state rule so TAPD-completed/cancelled items
+        // do not keep blocking downstream work.
+        if (isTaskTerminal(upstream)) return;
 
         // Skip if upstream is also a CP-tracked task
         if (isCpTrackedTask(upstream)) return;

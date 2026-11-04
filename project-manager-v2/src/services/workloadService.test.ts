@@ -184,6 +184,15 @@ describe('checkDependencyConflicts', () => {
     expect(conflicts[0].upstreamTaskId).toBe(2);
   });
 
+  it('does not treat TAPD-completed upstream work as a dependency conflict', () => {
+    const tasks = [
+      makeTask({ id: 1, title: 'Parent-Layout', startDate: d('2026-05-03'), endDate: d('2026-05-08') }),
+      makeTask({ id: 2, title: 'Parent-交互', tapdStatus: 'done', startDate: d('2026-05-01'), endDate: d('2026-05-06') }),
+    ];
+
+    expect(checkDependencyConflicts(1, d('2026-05-03'), [2], tasks)).toHaveLength(0);
+  });
+
   it('skips same-type parallel tasks', () => {
     const tasks = [
       makeTask({ id: 1, title: 'Parent-交互', startDate: d('2026-05-03'), endDate: d('2026-05-08') }),

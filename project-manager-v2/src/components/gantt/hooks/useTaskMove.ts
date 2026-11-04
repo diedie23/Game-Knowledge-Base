@@ -3,6 +3,7 @@ import { addDays, differenceInDays } from 'date-fns';
 import { trackedDb } from '../../../store/useHistoryStore';
 import { Task } from '../../../db/db';
 import { syncParentDateRange } from '../../../services/workloadService';
+import { isTaskTerminal } from '../../../utils/taskState';
 
 export function useTaskMove(dayWidth: number, tasks: Task[] | undefined) {
   const [movingTask, setMovingTask] = useState<{
@@ -113,7 +114,7 @@ export function useTaskMove(dayWidth: number, tasks: Task[] | undefined) {
               const newStartDate = addDays(task.startDate, daysDelta);
               hasConflict = task.dependencies.some(depId => {
                 const dep = tasks.find(t => t.id === depId);
-                return dep && dep.endDate && newStartDate < dep.endDate;
+                return dep && !isTaskTerminal(dep) && dep.endDate && newStartDate < dep.endDate;
               });
             }
           }

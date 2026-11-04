@@ -1,5 +1,7 @@
 import type { Resource, Task } from '../types';
 import type { ResourceCapacity } from '../types/scheduling';
+import { format } from 'date-fns';
+import { getActiveLeafTasks } from '../utils/taskHierarchy';
 
 export const DEFAULT_RESOURCE_CAPACITY: Omit<ResourceCapacity, 'resourceId' | 'updatedAt'> = {
   dailyCapacity: 1,
@@ -27,11 +29,23 @@ export function getEffectiveDailyCapacity(capacity?: ResourceCapacity): number {
     updatedAt: 0,
   } satisfies ResourceCapacity);
 
-  return Number((
+  return Math.max(0, Number((
     value.dailyCapacity *
     value.capacityFactor *
     value.availabilityRatio
-  ).toFixed(2));
+  ).toFixed(2)));
+}
+
+export function isResourceAvailableOn(resource: Resource, date: Date): boolean {
+  if (resource.status === 'departed') return false;
+  const dateKey = format(date, 'yyyy-MM-dd');
+  // leaveDates is the date-specific source of truth. A stale static `leave`
+  // status without a matching date must not remove future capacity.
+  return !(resource.leaveDates || []).includes(dateKey);
+}
+
+export function countAvailableWorkingDays(resource: Resource, days: Date[]): number {
+  return days.filter(day => isResourceAvailableOn(resource, day)).length;
 }
 
 export function mergeCapacity(
@@ -47,11 +61,7 @@ export function mergeCapacity(
 }
 
 export function countActiveTasks(tasks: Task[], resourceId: number): number {
-  return tasks.filter(task =>
-    task.assigneeIds?.includes(resourceId) &&
-    task.status !== 'done' &&
-    task.status !== 'cancelled'
-  ).length;
+  return getActiveLeafTasks(tasks).filter(task => task.assigneeIds?.includes(resourceId)).length;
 }
 
 export function buildCapacitySnapshot(
@@ -70,10 +80,7 @@ export function buildCapacitySnapshot(
 
   let status: CapacitySnapshot['status'] = 'available';
 
-  if (
-    resource.status === 'departed' ||
-    resource.status === 'leave'
-  ) {
+  if (!isResourceAvailableOn(resource, new Date())) {
     status = 'unavailable';
   } else if (activeTaskCount >= capacity.maxParallelTasks) {
     status = 'overloaded';

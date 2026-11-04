@@ -375,6 +375,18 @@ describe('buildDemandSchedulePlan', () => {
     expect(plan.unresolvedDependencies).toHaveLength(0);
   });
 
+  it('does not delay a successor for a terminal predecessor with a stale date', () => {
+    const today = new Date('2026-09-28T09:00:00');
+    const resources: Resource[] = [{ id: 1, name: '视觉', role: 'UI设计', type: 'internal' } as Resource];
+    const demand = task(309, { title: '需求', tapdWorkitemTypeName: 'UIStory' });
+    const predecessor = task(310, { title: '已完成前置', status: 'done', endDate: new Date('2026-10-10') });
+    const successor = task(311, { title: '【视觉设计】后置', parentId: 309, assigneeIds: [1], estimatedHours: 8, dependencies: [310] });
+    const plan = buildDemandSchedulePlan(demand, [{ task: successor, level: 'high', reasons: ['待排'], tags: ['unscheduled'], actionLabel: '补充 TAPD 排期', score: 300 }], [demand, predecessor, successor], resources, today);
+
+    expect(plan.unresolvedDependencies).toHaveLength(0);
+    expect(plan.suggestions.get(311)?.startDate.toDateString()).toBe(today.toDateString());
+  });
+
   it('reports an external predecessor that has no confirmed end date', () => {
     const today = new Date('2026-09-28T09:00:00');
     const resources: Resource[] = [{ id: 1, name: '视觉', role: 'UI设计', type: 'internal' } as Resource];

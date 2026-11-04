@@ -2,8 +2,8 @@ import type { Resource, Task } from '../types';
 import type { ResourceCapacity } from '../types/scheduling';
 import { countWorkingDays } from '../utils/dateUtils';
 import { getEffectiveDailyCapacity, mergeCapacity } from './capacityService';
-import { isTaskTerminal } from '../utils/taskState';
 import { taskStage } from './uxStageView';
+import { getActiveLeafTasks as getCanonicalActiveLeafTasks } from '../utils/taskHierarchy';
 
 export type TaskEffortSource = 'task' | 'existing_schedule' | 'stage_median' | 'fallback';
 
@@ -67,7 +67,9 @@ export function getResourceDailyHours(
   resource: Resource,
   scenario: Pick<ScheduleScenario, 'capacityByResourceId'>,
 ): number {
-  return Math.max(0.8, getEffectiveDailyCapacity(getScenarioCapacity(resource, scenario)) * 8);
+  // Zero availability is a real capacity state (leave / unavailable), not a
+  // reason to manufacture a minimum 6.4h workday.
+  return Math.max(0, getEffectiveDailyCapacity(getScenarioCapacity(resource, scenario)) * 8);
 }
 
 export function estimateTaskEffort(
@@ -112,7 +114,7 @@ export function taskDurationDays(
   if (task.startDate && task.endDate) {
     return Math.max(1, countWorkingDays(new Date(task.startDate), new Date(task.endDate)));
   }
-  return Math.max(1, Math.min(maxDays, Math.ceil(effortHours / Math.max(0.8, dailyHours))));
+  return Math.max(1, Math.min(maxDays, Math.ceil(effortHours / Math.max(0.1, dailyHours))));
 }
 
 export function taskHoursPerWorkingDay(task: Task): number {
@@ -122,13 +124,5 @@ export function taskHoursPerWorkingDay(task: Task): number {
 }
 
 export function getActiveLeafTasks(tasks: Task[]): Task[] {
-  const parentIds = new Set<number>();
-  tasks.forEach(task => {
-    if (task.parentId !== undefined) parentIds.add(task.parentId);
-  });
-  return tasks.filter(task =>
-    (!task.id || !parentIds.has(task.id)) &&
-    !isTaskTerminal(task) &&
-    task.status !== 'paused',
-  );
+  return getCanonicalActiveLeafTasks(tasks);
 }

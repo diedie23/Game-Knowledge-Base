@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
-import type { Task, Resource } from '../../types';
+import type { Task, Resource, ResourceCapacity } from '../../types';
 import { AlertTriangle, User, Building2 } from 'lucide-react';
+import { DEFAULT_RESOURCE_CAPACITY, mergeCapacity } from '../../services/capacityService';
+import { getActiveLeafTasks } from '../../utils/taskHierarchy';
 import { Avatar } from '../common/Avatar';
 import { compareResources } from './constants';
 
@@ -10,6 +12,7 @@ interface GanttResourceHeatRowProps {
   effectiveLpWidth: number;
   tasks: Task[] | undefined;
   resources: Resource[] | undefined;
+  capacities?: ResourceCapacity[];
 }
 
 // ─── Load Level Helpers ──────────────────────────────────────────
@@ -29,12 +32,12 @@ function getLoadLevel(taskCount: number): LoadLevel {
   return { bg: 'bg-red-900/30', text: 'text-red-400 font-bold', label: 'critical', severity: 'critical' };
 }
 
-function getMemberLoadLevel(taskCount: number): LoadLevel {
+function getMemberLoadLevel(taskCount: number, wipLimit = DEFAULT_RESOURCE_CAPACITY.maxParallelTasks): LoadLevel {
   if (taskCount === 0) return { bg: 'bg-gray-800/30', text: 'text-gray-600', label: '空闲', severity: 'idle' };
-  if (taskCount === 1) return { bg: 'bg-emerald-500/15', text: 'text-emerald-400', label: '正常', severity: 'normal' };
-  if (taskCount === 2) return { bg: 'bg-amber-500/15', text: 'text-amber-400', label: '较忙', severity: 'busy' };
-  if (taskCount === 3) return { bg: 'bg-orange-500/20', text: 'text-orange-400', label: '过载', severity: 'overloaded' };
-  return { bg: 'bg-red-500/25', text: 'text-red-400', label: '严重过载', severity: 'critical' };
+  if (taskCount >= Math.max(1, wipLimit + 1)) return { bg: 'bg-red-500/25', text: 'text-red-400', label: '严重过载', severity: 'critical' };
+  if (taskCount >= Math.max(1, wipLimit)) return { bg: 'bg-orange-500/20', text: 'text-orange-400', label: '过载', severity: 'overloaded' };
+  if (taskCount >= Math.max(1, wipLimit - 1)) return { bg: 'bg-amber-500/15', text: 'text-amber-400', label: '较忙', severity: 'busy' };
+  return { bg: 'bg-emerald-500/15', text: 'text-emerald-400', label: '正常', severity: 'normal' };
 }
 
 // ─── Pre-computed Heatmap Matrix ─────────────────────────────────
@@ -68,11 +71,8 @@ function buildHeatmapMatrix(
   const dailyTotals = new Map<string, number>();
   const memberPeaks = new Map<number, number>();
 
-  // Pre-compute leaf task set (parent IDs)
-  const parentIds = new Set<number>();
-  for (const t of tasks) {
-    if (t.parentId) parentIds.add(t.parentId);
-  }
+  // Use the same TAPD-aware hierarchy and terminal-state rules as capacity/WIP.
+  const activeLeaves = getActiveLeafTasks(tasks);
 
   // Build day key set for quick range check
   const dayKeySet = new Set<string>();
@@ -88,10 +88,8 @@ function buildHeatmapMatrix(
   const lastDay = days[days.length - 1];
 
   // Single pass over all tasks: O(T × avg_task_duration_in_visible_range)
-  for (const task of tasks) {
+  for (const task of activeLeaves) {
     if (!task.startDate || !task.endDate) continue;
-    if (task.status === 'done') continue;
-    if (task.id !== undefined && parentIds.has(task.id)) continue; // skip parent tasks
     if (!task.assigneeIds || task.assigneeIds.length === 0) continue;
 
     // Quick range rejection
@@ -160,12 +158,13 @@ function buildHeatmapMatrix(
 
 // ─── Per-Member Load Bar ─────────────────────────────────────────
 
-function MemberLoadBar({ resource, days, dayWidth, resMap, catMap }: {
+function MemberLoadBar({ resource, days, dayWidth, resMap, catMap, wipLimit }: {
   resource: Resource;
   days: Date[];
   dayWidth: number;
   resMap: Map<string, number> | undefined;
   catMap: Map<string, { selfMade: number; cpFollow: number }> | undefined;
+  wipLimit: number;
 }) {
   return (
     <div className="flex items-center group/member">
@@ -175,7 +174,7 @@ function MemberLoadBar({ resource, days, dayWidth, resMap, catMap }: {
         const cat = catMap?.get(dk);
         const selfMade = cat?.selfMade || 0;
         const cpFollow = cat?.cpFollow || 0;
-        const level = getMemberLoadLevel(count);
+        const level = getMemberLoadLevel(count, wipLimit);
         const catDetail = count > 0 ? (selfMade > 0 && cpFollow > 0 ? `(自制${selfMade}+CP${cpFollow})` : cpFollow > 0 ? `(CP${cpFollow})` : `(自制${selfMade})`) : '';
         return (
           <div
@@ -215,7 +214,12 @@ export const GanttResourceHeatRow = React.memo(function GanttResourceHeatRow({
   effectiveLpWidth,
   tasks,
   resources,
+  capacities = [],
 }: GanttResourceHeatRowProps) {
+  const capacityByResourceId = useMemo(
+    () => new Map(capacities.map(capacity => [capacity.resourceId, capacity])),
+    [capacities],
+  );
   const [expanded, setExpanded] = React.useState(false);
 
   // Pre-compute the entire heatmap matrix in a single pass — O(T × avg_duration + R × D)
@@ -228,10 +232,10 @@ export const GanttResourceHeatRow = React.memo(function GanttResourceHeatRow({
 
   const overloadedMembers = useMemo(() => {
     return Array.from(heatmap.memberPeaks.entries())
-      .filter(([_, count]) => count >= 3)
+      .filter(([id, count]) => count >= mergeCapacity(resources?.find(resource => resource.id === id) || { id, name: '', role: '' }, capacityByResourceId.get(id)).maxParallelTasks)
       .map(([id]) => resources?.find(r => r.id === id)?.name)
       .filter(Boolean);
-  }, [heatmap.memberPeaks, resources]);
+  }, [heatmap.memberPeaks, resources, capacityByResourceId]);
 
   return (
     <div className="border-t border-gray-800/50 bg-[#0e1018]">
@@ -261,7 +265,8 @@ export const GanttResourceHeatRow = React.memo(function GanttResourceHeatRow({
               ? breakdown.map(b => {
                   const r = resources?.find(r => r.id === b.resourceId);
                   const catInfo = b.selfMade > 0 && b.cpFollow > 0 ? ` [自制${b.selfMade}+CP${b.cpFollow}]` : b.cpFollow > 0 ? ` [CP${b.cpFollow}]` : '';
-                  return `${r?.name || '?'}: ${b.count}个任务${catInfo} (${getMemberLoadLevel(b.count).label})`;
+                  const limit = r ? mergeCapacity(r, capacityByResourceId.get(b.resourceId)).maxParallelTasks : DEFAULT_RESOURCE_CAPACITY.maxParallelTasks;
+                  return `${r?.name || '?'}: ${b.count}个任务${catInfo} (${getMemberLoadLevel(b.count, limit).label})`;
                 }).join('\n')
               : '';
             return (
@@ -289,7 +294,8 @@ export const GanttResourceHeatRow = React.memo(function GanttResourceHeatRow({
         <div className="border-t border-gray-800/30">
           {[...resources].filter(r => r.status !== 'departed').sort(compareResources).map(r => {
             const peakLoad = heatmap.memberPeaks.get(r.id!) || 0;
-            const peakLevel = getMemberLoadLevel(peakLoad);
+            const wipLimit = mergeCapacity(r, capacityByResourceId.get(r.id!)).maxParallelTasks;
+            const peakLevel = getMemberLoadLevel(peakLoad, wipLimit);
             return (
               <div key={r.id} className="flex border-b border-gray-800/20 last:border-b-0">
                 <div
@@ -315,6 +321,7 @@ export const GanttResourceHeatRow = React.memo(function GanttResourceHeatRow({
                   dayWidth={dayWidth}
                   resMap={heatmap.matrix.get(r.id!)}
                   catMap={heatmap.categoryMatrix.get(r.id!)}
+                  wipLimit={wipLimit}
                 />
               </div>
             );
