@@ -5,7 +5,7 @@ import {
   Download, Upload, Wifi, WifiOff, Clock, GitMerge, ArrowUpDown,
   ChevronDown, ChevronRight, Shield, Trash2, History, Building2,
   FileSpreadsheet, Info, Filter, CheckSquare, Square, MinusSquare,
-  ArrowLeft, Search, Eye, ExternalLink, RotateCcw
+  ArrowLeft, Search, Eye, ExternalLink, RotateCcw, Database, CircleAlert
 } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useStore } from '../store/useStore';
@@ -24,6 +24,7 @@ import { getRoleOrderIndex } from './gantt/constants';
 import { getLocalPriorityLabel, mapTapdPriority } from '../utils/tapdPriority';
 import { parseTapdEffortHours } from '../utils/tapdFields';
 import { buildPendingSyncPreview, discardPendingSyncChanges } from '../services/syncPreflightService';
+import { getTapdSyncHealth } from '../services/syncHealthService';
 import { TapdConflictsTab, TapdLogTab } from './tapd';
 
 type TabId = 'config' | 'sync' | 'conflicts' | 'log';
@@ -164,6 +165,11 @@ export function TapdModal() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshResult, setRefreshResult] = useState<RefreshResult | null>(null);
   const [refreshDetailExpanded, setRefreshDetailExpanded] = useState(false);
+
+  const syncHealth = useLiveQuery(
+    () => selectedProjectId == null ? undefined : getTapdSyncHealth(selectedProjectId),
+    [isTapdModalOpen, selectedProjectId, pendingChanges, unresolvedConflicts.length, upsertResult, refreshResult, syncStatus],
+  );
 
   // ─── Load team members for owner filter tags ───
   const [teamResources, setTeamResources] = useState<{ id?: number; name: string; role?: string; tapdAccount?: string; projectIds?: number[]; workforceType?: string }[]>([]);
@@ -2257,6 +2263,73 @@ export function TapdModal() {
           {/* ─── Sync Tab ─── */}
           {activeTab === 'sync' && (
             <>
+              {/* P0 data credibility center */}
+              {syncHealth && (
+                <div className={`rounded-lg border overflow-hidden ${
+                  syncHealth.status === 'aligned' ? 'border-emerald-500/25 bg-emerald-500/[0.06]' :
+                  syncHealth.status === 'attention' ? 'border-amber-500/30 bg-amber-500/[0.07]' :
+                  syncHealth.status === 'partial' ? 'border-sky-500/25 bg-sky-500/[0.06]' :
+                  'border-gray-700/50 bg-gray-800/30'
+                }`}>
+                  <div className="flex items-start justify-between gap-3 px-3 py-2.5 border-b border-white/5">
+                    <div className="flex items-start gap-2 min-w-0">
+                      {syncHealth.status === 'aligned' ? <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-emerald-400" /> : <CircleAlert size={15} className="mt-0.5 shrink-0 text-amber-300" />}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-gray-200">数据可信度</span>
+                          <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${
+                            syncHealth.status === 'aligned' ? 'bg-emerald-500/15 text-emerald-300' :
+                            syncHealth.status === 'partial' ? 'bg-sky-500/15 text-sky-300' :
+                            'bg-amber-500/15 text-amber-300'
+                          }`}>{syncHealth.statusLabel}</span>
+                        </div>
+                        <div className="mt-1 text-[10px] leading-relaxed text-gray-400">{syncHealth.statusReason}</div>
+                      </div>
+                    </div>
+                    <Database size={14} className="shrink-0 text-gray-500" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 px-3 py-2.5 text-[10px] sm:grid-cols-4">
+                    <div className="min-w-0">
+                      <div className="text-gray-500">数据来源</div>
+                      <div className="mt-0.5 truncate text-gray-200" title={syncHealth.workspaceIds.join(', ')}>
+                        {syncHealth.configured ? `TAPD · ${syncHealth.workspaceName || syncHealth.workspaceIds.join(', ') || '已绑定'}` : '未绑定 TAPD'}
+                      </div>
+                      {syncHealth.configured && <div className="mt-0.5 text-gray-600">{syncHealth.authMode === 'rest' ? 'REST API' : 'MCP 网关'}</div>}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-gray-500">当前同步范围</div>
+                      <div className="mt-0.5 truncate text-gray-200" title={syncHealth.scopeLabel}>{syncHealth.scopeLabel}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-500">最近成功同步</div>
+                      <div className="mt-0.5 text-gray-200">{formatTime(syncHealth.lastSuccessfulSyncAt)}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-500">最近操作</div>
+                      <div className="mt-0.5 text-gray-200">{syncHealth.lastOperation === 'refresh' ? '刷新状态' : syncHealth.lastOperation === 'push' ? '推送本地修改' : syncHealth.lastOperation === 'pull' ? '拉取任务' : syncHealth.lastOperation === 'full' ? '双向同步' : '暂无记录'}</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 border-t border-white/5 px-3 py-2.5 text-center text-[10px] sm:grid-cols-6">
+                    <div><div className="text-base font-bold font-mono tabular-nums text-sky-300">{syncHealth.localTaskCount}</div><div className="text-gray-500">本地任务</div></div>
+                    <div><div className="text-base font-bold font-mono tabular-nums text-blue-300">{syncHealth.linkedTaskCount}</div><div className="text-gray-500">已关联 TAPD</div></div>
+                    <div><div className="text-base font-bold font-mono tabular-nums text-gray-400">{syncHealth.lastRemoteTaskCount ?? '—'}</div><div className="text-gray-500">上次 TAPD 返回</div></div>
+                    <div><div className={`text-base font-bold font-mono tabular-nums ${syncHealth.unmatchedOwnerCount > 0 ? 'text-amber-300' : 'text-emerald-300'}`}>{syncHealth.unmatchedOwnerCount}</div><div className="text-gray-500">未匹配负责人</div></div>
+                    <div><div className={`text-base font-bold font-mono tabular-nums ${syncHealth.pendingChanges > 0 ? 'text-amber-300' : 'text-gray-300'}`}>{syncHealth.pendingChanges}</div><div className="text-gray-500">待推送</div></div>
+                    <div><div className={`text-base font-bold font-mono tabular-nums ${syncHealth.unresolvedConflicts > 0 ? 'text-red-300' : 'text-emerald-300'}`}>{syncHealth.unresolvedConflicts}</div><div className="text-gray-500">未解决冲突</div></div>
+                  </div>
+                  {syncHealth.summary && (
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 border-t border-white/5 px-3 py-2 text-[10px] text-gray-400">
+                      <span>本次拉取 {syncHealth.summary.fetched ?? syncHealth.summary.pulled ?? 0}</span>
+                      <span className="text-emerald-300">新增 {syncHealth.summary.inserted ?? 0}</span>
+                      <span className="text-blue-300">更新 {syncHealth.summary.updated ?? 0}</span>
+                      <span className="text-purple-300">合并 {syncHealth.summary.merged ?? 0}</span>
+                      <span className="text-amber-300">清理 {(syncHealth.summary.cleaned ?? 0) + (syncHealth.summary.deduplicated ?? 0)}</span>
+                      <span className={syncHealth.summary.failed ? 'text-red-300' : ''}>失败/待确认 {syncHealth.summary.failed ?? 0}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Status dashboard */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="bg-gray-800/40 backdrop-blur-sm rounded-lg p-4 border border-white/10 flex flex-col items-center justify-center hover:bg-gray-800/60 transition-all duration-200 min-h-[72px]">

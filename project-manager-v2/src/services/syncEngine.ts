@@ -5,6 +5,7 @@ import type { SyncStatus, SyncEventType } from '../types';
 import type { SyncAdapter } from './syncAdapter';
 import { MockSyncAdapter } from './syncAdapter';
 import { createTapdSyncId } from '../utils/tapdIdentity';
+import { recordTapdSyncMeta } from './syncHealthService';
 
 // Re-export for consumers
 export type { SyncStatus, SyncEventType, SyncEvent };
@@ -390,8 +391,17 @@ class SyncEngine {
     this.emit({ type: 'complete', data: { pushed, failed } });
 
     // Update sync meta for each affected project independently.
+    const pushCompletedAt = Date.now();
     await Promise.all(affectedProjectIds.map(id =>
-      this.updateSyncMeta('tapd', id, { lastPushAt: Date.now() })
+      this.updateSyncMeta('tapd', id, { lastPushAt: pushCompletedAt })
+    ));
+    await Promise.all(affectedProjectIds.map(id =>
+      recordTapdSyncMeta(id, {
+        lastPushAt: pushCompletedAt,
+        lastSyncOperation: 'push',
+        status: failed > 0 ? 'error' : 'idle',
+        lastSyncSummary: { operation: 'push', pushed, failed },
+      })
     ));
 
     return { pushed, failed };
@@ -498,9 +508,24 @@ class SyncEngine {
       }
 
       // Update sync meta
+      const pullCompletedAt = Date.now();
       await this.updateSyncMeta('tapd', projectId, {
-        lastPullAt: Date.now(),
+        lastPullAt: pullCompletedAt,
         status: conflicts > 0 ? 'conflict' : 'idle',
+      });
+      await recordTapdSyncMeta(projectId, {
+        lastPullAt: pullCompletedAt,
+        lastSuccessfulSyncAt: pullCompletedAt,
+        lastRemoteTaskCount: remoteChanges.length,
+        lastSyncComparable: false,
+        lastSyncOperation: 'pull',
+        status: conflicts > 0 ? 'conflict' : 'idle',
+        lastSyncSummary: {
+          operation: 'pull',
+          fetched: remoteChanges.length,
+          pulled,
+          conflicts,
+        },
       });
 
       this.setStatus(conflicts > 0 ? 'resolving' : 'idle');

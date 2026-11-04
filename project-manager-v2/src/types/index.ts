@@ -11,7 +11,7 @@ export { isOnLeaveToday, getEffectiveStatus } from './resource';
 export type { Project } from './project';
 export type { ProjectNote, TodoItem } from './projectNote';
 export type { TapdConfig, TapdWorkspaceInfo, TapdStory, TapdIteration, SyncResult, SyncDetailItem, ImportResult, ModuleMapping, DuplicateCandidate, RefreshResult, RefreshDetailItem } from './tapd';
-export type { ChangeLog, SyncMeta, SyncConflict, CommandPayload, SyncEvent } from './sync';
+export type { ChangeLog, SyncMeta, SyncConflict, CommandPayload, SyncEvent, SyncOperation, SyncSummary } from './sync';
 export type { Nullable, WithId, DeepPartial } from './common';
 
 export type { UxStage, WorkPackageStatus, WorkEstimateSource, UxWorkPackage, ResourceCapacity, ScheduleRisk, ScheduleSuggestion, UxDemandGroup, RiskRecord, RiskTrackingStatus } from './scheduling';

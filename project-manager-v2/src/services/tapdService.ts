@@ -34,6 +34,7 @@ import {
   isTapdTaskOutsideSelectedScope,
   parseTapdWorkspaceIds,
 } from '../utils/tapdIdentity';
+import { countWorkspaceLinkedTasks, recordTapdSyncMeta } from './syncHealthService';
 
 // Re-export for consumers
 export type { SyncResult, ImportResult, DuplicateCandidate, RefreshResult, RefreshDetailItem };
@@ -3085,6 +3086,28 @@ export class TapdService {
 
     console.log(`[TapdService] Sync complete: ${inserted} inserted, ${updated} updated, ${merged} merged, ${resolvedParentCount} parent relationships resolved`);
 
+    const syncCompletedAt = Date.now();
+    const linkedTaskCount = await countWorkspaceLinkedTasks(projectId, parseTapdWorkspaceIds(config.workspaceId));
+    await recordTapdSyncMeta(projectId, {
+      lastPullAt: syncCompletedAt,
+      lastSuccessfulSyncAt: syncCompletedAt,
+      lastRemoteTaskCount: remoteTasks.length,
+      lastSyncComparable: !selectedStoryIds || selectedStoryIds.size === 0,
+      lastSyncOperation: 'pull',
+      status: 'idle',
+      lastSyncSummary: {
+        operation: 'pull',
+        fetched: remoteTasks.length,
+        inserted,
+        updated,
+        merged,
+        cleaned,
+        deduplicated,
+        pulled: inserted + updated + merged,
+      },
+    });
+    console.log(`[TapdService] Sync credibility snapshot: remote ${remoteTasks.length}, local linked ${linkedTaskCount}`);
+
     return {
       inserted,
       updated,
@@ -3594,6 +3617,27 @@ export class TapdService {
 
     const totalChecked = linkedTasks.length + newlyBoundCount;
     console.log(`[TapdService] Refresh complete: ${newlyBoundCount} newly bound, ${updatedCount} updated, ${unchangedCount} unchanged, ${protectedCount} protected, ${deletedCount} deleted, ${failedCount} unresolved`);
+
+    const refreshCompletedAt = Date.now();
+    const linkedTaskCount = await countWorkspaceLinkedTasks(projectId, workspaceIds);
+    await recordTapdSyncMeta(projectId, {
+      lastPullAt: refreshCompletedAt,
+      lastSuccessfulSyncAt: refreshCompletedAt,
+      lastRemoteTaskCount: remoteMap.size,
+      lastSyncComparable: true,
+      lastSyncOperation: 'refresh',
+      status: failedCount > 0 ? 'error' : 'idle',
+      errorMessage: failedCount > 0 ? `${failedCount} 条任务未能从 TAPD 确认` : undefined,
+      lastSyncSummary: {
+        operation: 'refresh',
+        fetched: remoteMap.size,
+        updated: updatedCount,
+        protected: protectedCount,
+        deleted: deletedCount,
+        failed: failedCount,
+      },
+    });
+    console.log(`[TapdService] Refresh credibility snapshot: remote ${remoteMap.size}, local linked ${linkedTaskCount}`);
 
     return {
       totalChecked,

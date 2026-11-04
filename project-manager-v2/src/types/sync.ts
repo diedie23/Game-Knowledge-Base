@@ -26,6 +26,24 @@ export interface ChangeLog {
 
 // --- Sync Meta ---
 
+export type SyncOperation = 'pull' | 'refresh' | 'push' | 'full';
+
+export interface SyncSummary {
+  operation: SyncOperation;
+  fetched?: number;
+  inserted?: number;
+  updated?: number;
+  merged?: number;
+  cleaned?: number;
+  deduplicated?: number;
+  protected?: number;
+  deleted?: number;
+  failed?: number;
+  conflicts?: number;
+  pushed?: number;
+  pulled?: number;
+}
+
 export interface SyncMeta {
   id?: number;
   source: string;
@@ -35,6 +53,16 @@ export interface SyncMeta {
   lastCursor?: string;
   status: SyncMetaStatus;
   errorMessage?: string;
+  /** Last completed sync operation, kept for the data credibility panel. */
+  lastSyncOperation?: SyncOperation;
+  /** Transport completed successfully, even when the result needs review. */
+  lastSuccessfulSyncAt?: number;
+  /** Number of TAPD records returned by the last comparable pull/refresh. */
+  lastRemoteTaskCount?: number;
+  /** Whether the remote/local count comparison covers the full configured scope. */
+  lastSyncComparable?: boolean;
+  /** Snapshot of the last operation's outcome for audit-friendly display. */
+  lastSyncSummary?: SyncSummary;
 }
 
 // --- Sync Conflict ---
