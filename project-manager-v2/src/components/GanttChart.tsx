@@ -52,6 +52,7 @@ import { confirmDialog, alertDialog } from './common/ConfirmDialog';
 import { toast } from '../store/useToastStore';
 import { isTaskCompleted, isTaskOverdue, isTaskTerminal } from '../utils/taskState';
 import { getRequirementKindLabel } from '../utils/taskHierarchy';
+import { formatGanttValidationMessage } from '../services/ganttScheduleValidator';
 
 // Constants, types, and sub-components are now imported from ./gantt/ sub-modules
 
@@ -645,10 +646,11 @@ export function GanttChart() {
 const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpResizeStart, isResizing: isLpResizing } = useLeftPanelResize();
 
   // Resize (edge drag) — delegated to useGanttDrag hook
-  const { resizing, handleResizeStart } = useGanttDrag(dayWidth);
+  const { resizing, scheduleValidation: resizeValidation, handleResizeStart } = useGanttDrag(dayWidth, tasks, resources || [], capacities || []);
 
   // Move (whole task drag with cascade) — delegated to useTaskMove hook
-  const { movingTask, cascadeShifts, handleMoveStart, justMovedRef } = useTaskMove(dayWidth, tasks);
+  const { movingTask, cascadeShifts, scheduleValidation: moveValidation, handleMoveStart, justMovedRef } = useTaskMove(dayWidth, tasks, resources || [], capacities || []);
+  const activeScheduleValidation = resizeValidation || moveValidation;
 
   // Auto-expand all tasks that have children (at any depth) by default
   useEffect(() => {
@@ -2619,6 +2621,19 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
             >
               恢复项目
             </button>
+          </div>
+        )}
+
+        {activeScheduleValidation && (
+          <div className={`px-5 py-2 flex items-center justify-between text-[11px] border-b ${
+            activeScheduleValidation.valid
+              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
+              : 'bg-red-500/10 border-red-500/20 text-red-300'
+          }`}>
+            <span>{formatGanttValidationMessage(activeScheduleValidation)}</span>
+            <span className="text-[10px] opacity-70">
+              {activeScheduleValidation.valid ? '松开鼠标保存' : '松开鼠标将取消调整'}
+            </span>
           </div>
         )}
 

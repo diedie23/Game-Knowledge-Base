@@ -3,10 +3,19 @@ import { addDays } from 'date-fns';
 import { trackedDb } from '../../../store/useHistoryStore';
 import { db } from '../../../db/db';
 import type { ResizeState } from '../types';
+import type { Resource, ResourceCapacity, Task } from '../../../types';
 import { syncParentDateRange } from '../../../services/workloadService';
+import { validateGanttScheduleChanges, formatGanttValidationMessage, type GanttScheduleValidation } from '../../../services/ganttScheduleValidator';
+import { toast } from '../../../store/useToastStore';
 
-export function useGanttDrag(dayWidth: number) {
+export function useGanttDrag(
+  dayWidth: number,
+  tasks: Task[] | undefined,
+  resources: Resource[] = [],
+  capacities: ResourceCapacity[] = [],
+) {
   const [resizing, setResizing] = useState<ResizeState | null>(null);
+  const [scheduleValidation, setScheduleValidation] = useState<GanttScheduleValidation | null>(null);
 
   useEffect(() => {
     if (!resizing) return;
@@ -17,32 +26,48 @@ export function useGanttDrag(dayWidth: number) {
       const roundedDays = Math.round(rawDays);
       // Snap if within 20% of a day width
       const daysDelta = Math.abs(rawDays - roundedDays) < 0.2 ? roundedDays : rawDays;
-      // For UI rendering, we still want integer days to avoid sub-pixel blur, but let's keep it integer for now
-      setResizing(prev => prev ? { ...prev, daysDelta: Math.round(daysDelta) } : null);
+      // Keep resize previews on whole day boundaries and validate the proposed edge immediately.
+      const nextDaysDelta = Math.round(daysDelta);
+      setResizing(prev => prev ? { ...prev, daysDelta: nextDaysDelta } : null);
+      const nextStart = resizing.edge === 'left' ? addDays(resizing.initialStartDate, nextDaysDelta) : resizing.initialStartDate;
+      const nextEnd = resizing.edge === 'right' ? addDays(resizing.initialEndDate, nextDaysDelta) : resizing.initialEndDate;
+      setScheduleValidation(validateGanttScheduleChanges({
+        tasks: tasks || [],
+        resources,
+        capacities,
+        changes: [{ taskId: resizing.taskId, startDate: nextStart, endDate: nextEnd }],
+      }));
     };
     const handleMouseUp = async () => {
       if (resizing) {
         const { taskId, edge, initialStartDate, initialEndDate, daysDelta } = resizing;
         if (daysDelta !== 0) {
-          if (edge === 'left') {
-            const newStart = addDays(initialStartDate, daysDelta);
-            if (newStart <= initialEndDate) {
-              await trackedDb.tasks.update(taskId, { startDate: newStart }, '拖拽调整任务开始时间');
-            }
+          const newStart = edge === 'left' ? addDays(initialStartDate, daysDelta) : initialStartDate;
+          const newEnd = edge === 'right' ? addDays(initialEndDate, daysDelta) : initialEndDate;
+          const validation = validateGanttScheduleChanges({
+            tasks: tasks || [],
+            resources,
+            capacities,
+            changes: [{ taskId, startDate: newStart, endDate: newEnd }],
+          });
+          if (!validation.valid) {
+            toast.error(formatGanttValidationMessage(validation));
           } else {
-            const newEnd = addDays(initialEndDate, daysDelta);
-            if (newEnd >= initialStartDate) {
+            if (edge === 'left') {
+              await trackedDb.tasks.update(taskId, { startDate: newStart }, '拖拽调整任务开始时间');
+            } else {
               await trackedDb.tasks.update(taskId, { endDate: newEnd }, '拖拽调整任务结束时间');
             }
-          }
-          // Auto-sync parent date range
-          const task = await db.tasks.get(taskId);
-          if (task?.parentId) {
-            await syncParentDateRange(task.parentId);
+            const task = await db.tasks.get(taskId);
+            if (task?.parentId) {
+              await syncParentDateRange(task.parentId);
+            }
+            toast.success(formatGanttValidationMessage(validation));
           }
         }
       }
       setResizing(null);
+      setScheduleValidation(null);
     };
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
@@ -50,7 +75,7 @@ export function useGanttDrag(dayWidth: number) {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [resizing, dayWidth]);
+  }, [resizing, dayWidth, tasks, resources, capacities]);
 
   const handleResizeStart = useCallback((
     e: React.MouseEvent,
@@ -71,5 +96,5 @@ export function useGanttDrag(dayWidth: number) {
     });
   }, []);
 
-  return { resizing, handleResizeStart };
+  return { resizing, scheduleValidation, handleResizeStart };
 }

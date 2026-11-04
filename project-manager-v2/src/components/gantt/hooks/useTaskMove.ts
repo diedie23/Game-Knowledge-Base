@@ -2,10 +2,17 @@
 import { addDays, differenceInDays } from 'date-fns';
 import { trackedDb } from '../../../store/useHistoryStore';
 import { Task } from '../../../db/db';
+import type { Resource, ResourceCapacity } from '../../../types';
 import { syncParentDateRange } from '../../../services/workloadService';
-import { isTaskTerminal } from '../../../utils/taskState';
+import { validateGanttScheduleChanges, formatGanttValidationMessage, type GanttScheduleValidation } from '../../../services/ganttScheduleValidator';
+import { toast } from '../../../store/useToastStore';
 
-export function useTaskMove(dayWidth: number, tasks: Task[] | undefined) {
+export function useTaskMove(
+  dayWidth: number,
+  tasks: Task[] | undefined,
+  resources: Resource[] = [],
+  capacities: ResourceCapacity[] = [],
+) {
   const [movingTask, setMovingTask] = useState<{
     taskId: number;
     initialX: number;
@@ -15,6 +22,23 @@ export function useTaskMove(dayWidth: number, tasks: Task[] | undefined) {
   } | null>(null);
 
   const [cascadeShifts, setCascadeShifts] = useState<Map<number, number>>(new Map());
+  const [scheduleValidation, setScheduleValidation] = useState<GanttScheduleValidation | null>(null);
+
+  const buildDateChanges = useCallback((shifts: Map<number, number>) => {
+    if (!tasks) return [];
+    return [...shifts.entries()]
+      .filter(([, shift]) => shift !== 0)
+      .map(([taskId, shift]) => {
+        const task = tasks.find(candidate => candidate.id === taskId);
+        if (!task?.startDate || !task.endDate) return null;
+        return {
+          taskId,
+          startDate: addDays(task.startDate, shift),
+          endDate: addDays(task.endDate, shift),
+        };
+      })
+      .filter((change): change is NonNullable<typeof change> => change !== null);
+  }, [tasks]);
 
   // Track if a move just completed to prevent click from firing
   const justMovedRef = useRef(false);
@@ -23,6 +47,7 @@ export function useTaskMove(dayWidth: number, tasks: Task[] | undefined) {
   useEffect(() => {
     if (!movingTask || !tasks) {
       setCascadeShifts(new Map());
+      setScheduleValidation(null);
       return;
     }
 
@@ -79,7 +104,13 @@ export function useTaskMove(dayWidth: number, tasks: Task[] | undefined) {
     }
 
     setCascadeShifts(shifts);
-  }, [movingTask?.daysDelta, movingTask?.taskId, tasks]);
+    setScheduleValidation(validateGanttScheduleChanges({
+      tasks,
+      resources,
+      capacities,
+      changes: buildDateChanges(shifts),
+    }));
+  }, [movingTask?.daysDelta, movingTask?.taskId, tasks, resources, capacities, buildDateChanges]);
 
   useEffect(() => {
     if (!movingTask) return;
@@ -106,21 +137,17 @@ export function useTaskMove(dayWidth: number, tasks: Task[] | undefined) {
           // Apply cascade shifts
           const shiftsToApply = cascadeShifts;
           
-          // Check for conflicts if moving left (negative delta)
-          let hasConflict = false;
-          if (daysDelta < 0) {
-            const task = tasks.find(t => t.id === taskId);
-            if (task && task.startDate) {
-              const newStartDate = addDays(task.startDate, daysDelta);
-              hasConflict = task.dependencies.some(depId => {
-                const dep = tasks.find(t => t.id === depId);
-                return dep && !isTaskTerminal(dep) && dep.endDate && newStartDate < dep.endDate;
-              });
-            }
-          }
+          const validation = validateGanttScheduleChanges({
+            tasks,
+            resources,
+            capacities,
+            changes: buildDateChanges(shiftsToApply),
+          });
 
-          if (!hasConflict) {
-            // Apply all shifts
+          if (!validation.valid) {
+            toast.error(formatGanttValidationMessage(validation));
+          } else {
+            // Apply all shifts only after the complete cascade passes one shared validation.
             const affectedParentIds = new Set<number>();
             for (const [id, shift] of shiftsToApply.entries()) {
               if (shift !== 0) {
@@ -130,20 +157,20 @@ export function useTaskMove(dayWidth: number, tasks: Task[] | undefined) {
                     startDate: addDays(t.startDate, shift),
                     endDate: addDays(t.endDate, shift)
                   }, id === taskId ? '拖拽移动任务排期' : (shift > 0 ? '级联顺延依赖任务' : '级联提前依赖任务'));
-                  // Track parent for date range sync
                   if (t.parentId) affectedParentIds.add(t.parentId);
                 }
               }
             }
-            // Auto-sync parent date ranges
             for (const pid of affectedParentIds) {
               await syncParentDateRange(pid);
             }
+            toast.success(formatGanttValidationMessage(validation));
           }
         }
       }
       setMovingTask(null);
       setCascadeShifts(new Map());
+      setScheduleValidation(null);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -152,7 +179,7 @@ export function useTaskMove(dayWidth: number, tasks: Task[] | undefined) {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [movingTask, dayWidth, cascadeShifts, tasks]);
+  }, [movingTask, dayWidth, cascadeShifts, tasks, resources, capacities, buildDateChanges]);
 
   const handleMoveStart = useCallback((
     e: React.MouseEvent,
@@ -172,5 +199,5 @@ export function useTaskMove(dayWidth: number, tasks: Task[] | undefined) {
     });
   }, []);
 
-  return { movingTask, cascadeShifts, handleMoveStart, justMovedRef };
+  return { movingTask, cascadeShifts, scheduleValidation, handleMoveStart, justMovedRef };
 }
