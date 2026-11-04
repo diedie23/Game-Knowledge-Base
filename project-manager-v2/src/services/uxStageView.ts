@@ -100,6 +100,7 @@ export function getRequiredStages(
   if (kind === 'icon_template') return ['ui_design', 'implementation'];
   const detectedStages = [...new Set(
     relatedTasks
+      .filter(task => isUxTrackedTask(task, resources))
       .map(task => taskStage(task, resources))
       .filter((stage): stage is CoreUxStage => Boolean(stage)),
   )];
@@ -190,11 +191,29 @@ export function relatedCheckpointLabel(task: Task, resources: Resource[] = []): 
   return CHECKPOINT_RULES.find(item => item.task.test(descriptor) || item.role.test(roleText))?.label;
 }
 
+/** Only the four UX pipeline stages participate in this overview. */
+export function isUxTrackedTask(task: Task, resources: Resource[] = []): boolean {
+  const iconSubstage = iconTemplateSubstage(task);
+  if (iconSubstage === 'design' || iconSubstage === 'implementation') return true;
+  if (iconSubstage === 'configuration') return false;
+  return !isDownstreamCheckpointTask(task, resources) && Boolean(taskStage(task, resources));
+}
+
 /** Find unfinished cross-category children without adding them to the four UX stage columns. */
+function isDownstreamCheckpointTask(task: Task, resources: Resource[] = []): boolean {
+  const label = relatedCheckpointLabel(task, resources);
+  if (!label) return false;
+  // “还原接入” is a downstream handoff even though its title contains the
+  // name of a UX stage. Other titles that already resolve to a real UX stage
+  // remain in the four-stage pipeline (for example “动效接入”).
+  const descriptor = `${task.tapdWorkitemTypeName || ''} ${task.title || ''}`;
+  return /还原接入|待还原接入/i.test(descriptor) || !taskStage(task, resources);
+}
+
 export function relatedCheckpointItems(tasks: Task[], resources: Resource[] = []): RelatedCheckpoint[] {
   const rank: Record<StageStatus, number> = { blocked: 0, in_progress: 1, todo: 2, paused: 3, missing: 4, done: 5, cancelled: 6 };
   return tasks.flatMap(task => {
-    if (isTaskCompleted(task) || isTaskCancelled(task) || taskStage(task, resources)) return [];
+    if (isTaskCompleted(task) || isTaskCancelled(task) || !isDownstreamCheckpointTask(task, resources)) return [];
     const label = relatedCheckpointLabel(task, resources);
     return label ? [{ task, label }] : [];
   }).sort((left, right) => (rank[taskStatus(left.task)] ?? 9) - (rank[taskStatus(right.task)] ?? 9));
@@ -282,7 +301,7 @@ export function buildStageRows(tasks: Task[], resources: Resource[] = []): Stage
       if (task.id === undefined || visited.has(task.id)) return;
       visited.add(task.id);
       if (task !== root) descendants.push(task);
-      const stage = task === root ? undefined : taskStage(task, resources);
+      const stage = task === root || !isUxTrackedTask(task, resources) ? undefined : taskStage(task, resources);
       if (stage) stages[stage].push(task);
       (children.get(task.id) || []).forEach(visit);
     };
@@ -318,7 +337,6 @@ export function getDemandProgressSummary(
   const rootStatus = taskStatus(row.root);
   const kind = getDemandKind(row.root, row.descendants);
   const requiredStages = getRequiredStages(kind, row.descendants, resources);
-  const checkpoints = relatedCheckpointItems(row.descendants, resources);
   const stageTasks = requiredStages.flatMap(stage => row.stages[stage]);
   // CONFIG identifies an icon demand but belongs to the downstream content
   // pipeline, not UX. Only icon design and icon placement are included in UX
@@ -329,9 +347,7 @@ export function getDemandProgressSummary(
       return substage === 'design' || substage === 'implementation';
     })
     : [];
-  const uxDescendants = kind === 'icon_template'
-    ? row.descendants.filter(task => iconTemplateSubstage(task) !== 'configuration')
-    : row.descendants;
+  const uxDescendants = row.descendants.filter(task => isUxTrackedTask(task, resources));
   const trackedTasks = [...new Map([...stageTasks, ...iconSubstageTasks].map(task => [task.id ?? `${task.title}-${task.updatedAt ?? ''}`, task])).values()];
   const activeTasks = trackedTasks.filter(task => taskStatus(task) !== 'cancelled');
   const doneCount = activeTasks.filter(task => taskStatus(task) === 'done').length;
@@ -354,7 +370,6 @@ export function getDemandProgressSummary(
     : [];
   const blockers = new Set<string>();
 
-  checkpoints.slice(0, 3).forEach(item => blockers.add(`卡点：${item.label}`));
   activeTasks.filter(task => taskStatus(task) === 'blocked').slice(0, 3).forEach(task => blockers.add(task.blockReason || '任务已阻塞'));
   activeTasks.filter(task => taskStage(task, resources) && !hasTaskAssignee(task)).slice(0, 2).forEach(() => blockers.add('环节未分配负责人'));
   stageSummaries.filter(item => item.status === 'missing').forEach(item => blockers.add(`缺少${item.stage.label}任务`));
@@ -362,16 +377,12 @@ export function getDemandProgressSummary(
     const label = item.substage === 'design' ? '图标设计' : '图标入版';
     blockers.add(`缺少${label}任务`);
   });
-  const trackedTaskIds = new Set(activeTasks.map(task => task.id).filter((id): id is number => id !== undefined));
-  const untrackedActiveDescendants = unfinishedDescendants.filter(task => !task.id || !trackedTaskIds.has(task.id));
-  if (untrackedActiveDescendants.length > 0) blockers.add(`存在${untrackedActiveDescendants.length}项未完成子需求`);
-
   const taskById = new Map([...allTasks, ...row.descendants].filter(task => task.id != null).map(task => [task.id!, task]));
   activeTasks.forEach(task => {
     (task.dependencies || []).forEach(dependencyId => {
       const dependency = taskById.get(dependencyId);
       if (!dependency) blockers.add('前置依赖未找到');
-      else if (!isTaskCompleted(dependency) && !isTaskCancelled(dependency)) blockers.add('前置依赖未完成');
+      else if (isUxTrackedTask(dependency, resources) && !isTaskCompleted(dependency) && !isTaskCancelled(dependency)) blockers.add('前置依赖未完成');
     });
   });
 
@@ -381,7 +392,7 @@ export function getDemandProgressSummary(
   const isDueSoon = !!deadline && !hasTapdCompletion && !isOverdue && (new Date(deadline).getTime() - referenceDate.getTime()) <= 7 * 86_400_000;
   const isUnscheduled = !hasTapdCompletion && activeTasks.some(task => !task.startDate || !task.endDate);
   const iconSubstagesDone = kind !== 'icon_template' || iconSubstageSummaries.every(item => item.status === 'done');
-  const allDone = hasTapdCompletion || (unfinishedDescendants.length === 0 && totalCount > 0 && isDemandComplete(row.stages, requiredStages) && iconSubstagesDone && checkpoints.length === 0);
+  const allDone = hasTapdCompletion || (unfinishedDescendants.length === 0 && totalCount > 0 && isDemandComplete(row.stages, requiredStages) && iconSubstagesDone);
   const blocked = !allDone && blockers.size > 0;
   const inProgress = activeTasks.some(task => taskStatus(task) === 'in_progress' || taskStatus(task) === 'done');
   const currentCoreStage = stageSummaries.find(item => item.status === 'blocked' || item.status === 'in_progress' || item.status === 'todo' || item.status === 'missing')?.stage.key;
@@ -390,7 +401,7 @@ export function getDemandProgressSummary(
     ? 'cancelled'
     : allDone
       ? 'completed'
-      : currentCoreStage || (currentIconSubstage === 'design' ? 'ui_design' : currentIconSubstage === 'implementation' ? 'implementation' : (checkpoints.length ? 'other' : 'completed'));
+      : currentCoreStage || (currentIconSubstage === 'design' ? 'ui_design' : currentIconSubstage === 'implementation' ? 'implementation' : 'completed');
   const state: DemandDisplayState = rootCancelled
     ? 'cancelled'
     : allDone

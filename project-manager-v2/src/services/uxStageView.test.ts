@@ -63,8 +63,9 @@ describe('UX stage rows', () => {
     const children = [
       task(116, '交互案', { parentId: 115, tapdWorkitemTypeName: 'UI子需求' }),
       task(117, '视觉设计', { parentId: 115, tapdWorkitemTypeName: 'UI子需求' }),
-      task(118, '还原接入', { parentId: 115, tapdWorkitemTypeName: 'SUBSTORY' }),
-      task(119, '动效接入', { parentId: 115, tapdWorkitemTypeName: 'SUBSTORY' }),
+      task(118, '还原', { parentId: 115, tapdWorkitemTypeName: 'UI子需求' }),
+      task(119, '动效', { parentId: 115, tapdWorkitemTypeName: 'UI子需求' }),
+      task(120, '程序接入', { parentId: 115, tapdWorkitemTypeName: 'SUBSTORY' }),
     ];
     expect(childDemandComposition(children)).toBe('interface');
     expect(getDemandKind(root, children)).toBe('interface');
@@ -102,6 +103,24 @@ describe('UX stage rows', () => {
     expect(summary.state).toBe('done');
     expect(summary.blockers).not.toContain('缺少交互任务');
     expect(summary.blockers).not.toContain('缺少动效任务');
+  });
+
+  it('ignores downstream integration children when calculating UX completion', () => {
+    const root = task(124, '界面需求');
+    const children = [
+      task(125, '交互', { parentId: 124, status: 'done' }),
+      task(126, '视觉设计', { parentId: 124, status: 'done' }),
+      task(127, '还原', { parentId: 124, status: 'done' }),
+      task(128, '动效', { parentId: 124, status: 'done' }),
+      task(129, '待还原接入', { parentId: 124, status: 'todo', tapdWorkitemTypeName: 'SUBSTORY' }),
+    ];
+    const row = buildStageRows([root, ...children])[0];
+    const summary = getDemandProgressSummary(row, [], [root, ...children]);
+    expect(row.stages.implementation.map(item => item.id)).toEqual([127]);
+    expect(summary.progress).toBe(100);
+    expect(summary.state).toBe('done');
+    expect(summary.blockers).not.toContain('卡点：程序接入');
+    expect(summary.blockers).not.toContain('存在1项未完成子需求');
   });
 
   it('does not count CONFIG work in icon UX progress or completion', () => {

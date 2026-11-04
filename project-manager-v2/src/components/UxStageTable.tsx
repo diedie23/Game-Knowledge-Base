@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Search, Plus, X, ArrowUpDown, ExternalLink, ChevronRight, AlertTriangle, Archive } from 'lucide-react';
+import { Search, Plus, X, ArrowUpDown, ExternalLink, ChevronRight, Archive } from 'lucide-react';
 import { db } from '../db/db';
 import { useStore } from '../store/useStore';
 import type { Task } from '../types/task';
 import type { CoreUxStage } from '../services/uxStageView';
-import { buildStageRows, getDemandProgressSummary, hasTaskAssignee, relatedCheckpointItems, STAGES, STAGE_STATUS, stageStatus, taskStatus, type DemandDisplayState } from '../services/uxStageView';
+import { buildStageRows, getDemandProgressSummary, hasTaskAssignee, STAGES, STAGE_STATUS, stageStatus, taskStatus, type DemandDisplayState } from '../services/uxStageView';
 import { getPriorityLabel } from '../utils/priority';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 import { getRequirementKindLabel } from '../utils/taskHierarchy';
@@ -84,7 +84,7 @@ function CurrentStageFlow({ row, summary }: { row: ReturnType<typeof buildStageR
     ]
     : STAGES.filter(stage => summary.requiredStages.includes(stage.key)).map(stage => ({ key: stage.key, label: stage.label, status: stageStatus(row.stages[stage.key]) }));
 
-  return <div className="mt-2 flex min-w-0 items-center gap-1" aria-label={`${summary.kind === 'icon_template' ? '图标模板类' : '界面类'}流程：${demandStageLabel(summary.currentStage)}`}>
+  return <div className="mt-3 flex min-w-0 flex-wrap items-center gap-1.5" aria-label={`${summary.kind === 'icon_template' ? '图标模板类' : '界面类'}流程：${demandStageLabel(summary.currentStage)}`}>
     {flowNodes.map((flowNode, index) => {
       const nodeStatus = summary.state === 'done' ? 'done' : flowNode.status;
       const nodeStyle = nodeStatus === 'done'
@@ -98,10 +98,10 @@ function CurrentStageFlow({ row, summary }: { row: ReturnType<typeof buildStageR
               : nodeStatus === 'missing'
                 ? 'border-gray-700 border-dashed bg-gray-900/40 text-gray-600'
                 : 'border-gray-600/70 bg-gray-800/70 text-gray-400';
-      return <div key={flowNode.key} className="flex min-w-0 items-center gap-1">
-        <div title={`${flowNode.label}：${STAGE_STATUS[nodeStatus].label}`} className={`flex min-w-0 items-center gap-1 rounded-md border px-1.5 py-1 text-[10px] font-medium ${nodeStyle}`}>
-          <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-current text-[9px]">{nodeStatus === 'done' ? '✓' : index + 1}</span>
-          <span className="truncate">{flowNode.label}</span>
+      return <div key={flowNode.key} className="flex shrink-0 items-center gap-1.5">
+        <div title={`${flowNode.label}：${STAGE_STATUS[nodeStatus].label}`} className={`flex items-center gap-1.5 rounded-md border px-2 py-1.5 text-[11px] font-semibold ${nodeStyle}`}>
+          <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-current text-[9px]">{nodeStatus === 'done' ? '✓' : index + 1}</span>
+          <span className="whitespace-nowrap">{flowNode.label}</span>
         </div>
         {index < flowNodes.length - 1 && <span className={`text-[11px] ${nodeStatus === 'done' ? 'text-emerald-400' : 'text-gray-700'}`}>→</span>}
       </div>;
@@ -137,30 +137,29 @@ export function UxStageTable() {
       const resource = resources.find(r => r.id === id);
       return resource ? formatResourceDisplayName(resource) : `未知成员 #${id}`;
     });
-    const displayedResourceIds = new Set(ids);
-    const ownerTokens = items.flatMap(task => String(task.tapdOwner || '')
-      .split(/[;,，；]/)
-      .map(value => value.trim())
-      .filter(Boolean));
-    ownerTokens.forEach(owner => {
-      const normalizedOwner = owner.toLowerCase();
-      const matchedResource = resources.find(resource =>
-        resource.tapdAccount?.trim().toLowerCase() === normalizedOwner
-        || resource.name.trim().toLowerCase() === normalizedOwner,
-      );
-      if (matchedResource?.id != null) {
-        if (!displayedResourceIds.has(matchedResource.id)) {
-          displayedResourceIds.add(matchedResource.id);
+    // TAPD owner is a fallback only when the local assignment list is empty.
+    // Do not append a second "TAPD-..." label beside an already assigned task.
+    if (ids.length === 0) {
+      const ownerTokens = items.flatMap(task => String(task.tapdOwner || '')
+        .split(/[;,，；]/)
+        .map(value => value.trim())
+        .filter(Boolean));
+      ownerTokens.forEach(owner => {
+        const normalizedOwner = owner.toLowerCase();
+        const matchedResource = resources.find(resource =>
+          resource.tapdAccount?.trim().toLowerCase() === normalizedOwner
+          || resource.name.trim().toLowerCase() === normalizedOwner,
+        );
+        if (matchedResource?.id != null) {
           result.push(formatResourceDisplayName(matchedResource));
+        } else if (!result.includes(owner)) {
+          result.push(owner);
         }
-      } else if (!result.includes(`TAPD-${owner}`)) {
-        result.push(`TAPD-${owner}`);
-      }
-    });
+      });
+    }
     if (items.some(task => !hasTaskAssignee(task))) result.push('待分配');
     return result.join('、') || '—';
   };
-  const rowCheckpoints = (row: typeof rows[number]) => relatedCheckpointItems(row.descendants, resources);
   const isRowComplete = (row: typeof rows[number]) => getSummary(row).state === 'done';
   const archivedRows = rows.filter(row => {
     const state = getSummary(row).state;
@@ -258,7 +257,7 @@ export function UxStageTable() {
     <div className="flex items-center justify-between gap-3 px-5 py-3 text-xs text-gray-500"><span>显示 <strong className="text-gray-200">{filtered.length}</strong> / {visibleRows.length} 个需求{!includeArchived && archivedRows.length > 0 ? ` · 已归档 ${archivedRows.length} 项未计入跟进` : ''}</span><span>默认只看未完成跟进 · 按阻塞、逾期、临近到期、未排期、进行中排序</span></div>
     <div className="min-h-0 flex-1 overflow-auto px-5 pb-5">
       <table className="w-full min-w-[1320px] table-fixed border-separate border-spacing-0 text-left text-xs">
-        <colgroup><col style={{ width: '20%' }} /><col style={{ width: '15%' }} /><col style={{ width: '7%' }} /><col style={{ width: '5%' }} />{STAGES.map(s => <col key={s.key} style={{ width: '12%' }} />)}<col style={{ width: '5%' }} /></colgroup>
+        <colgroup><col style={{ width: '19%' }} /><col style={{ width: '18%' }} /><col style={{ width: '7%' }} /><col style={{ width: '5%' }} />{STAGES.map(s => <col key={s.key} style={{ width: '11.5%' }} />)}<col style={{ width: '5%' }} /></colgroup>
         <thead className="sticky top-0 z-20"><tr className="text-gray-400">
           <th className="sticky left-0 z-30 border-y border-gray-800 bg-[#171b25] px-4 py-3 font-medium">UIStory</th>
           <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 font-medium"><span className="text-sm font-semibold text-gray-200">当前阶段</span><div className="mt-1 text-[10px] font-normal text-gray-500">流程节点 / 进度 / 卡点</div></th>
@@ -267,7 +266,7 @@ export function UxStageTable() {
           {STAGES.map((s, index) => <th key={s.key} className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 font-medium"><span className="mr-2 text-[10px] text-indigo-400">0{index + 1}</span><span className="text-gray-200">{s.label}</span><div className="mt-1 text-[10px] font-normal text-gray-500">负责人 / 状态</div></th>)}
           <th className="border-y border-l border-gray-800 bg-[#171b25] px-3 py-3 text-center align-middle text-sm font-semibold text-gray-200"><button onClick={() => setDescending(!descending)} className="flex w-full items-center justify-center gap-1" aria-label={descending ? '截止日期降序，点击升序' : '截止日期升序，点击降序'}>截止日期<ArrowUpDown size={13} /></button></th>
         </tr></thead>
-        <tbody>{filtered.map(row => { const { root, stages } = row; const progressSummary = getSummary(row); const checkpoints = rowCheckpoints(row); const checkpointGroups = [...checkpoints.reduce((groups, item) => groups.set(item.label, [...(groups.get(item.label) || []), item.task]), new Map<string, Task[]>())]; const rootDone = progressSummary.state === 'done'; const rootCancelled = progressSummary.state === 'cancelled'; const rootTypeLabel = root.tapdWorkitemTypeName || getRequirementKindLabel(root, true) || '需求'; return <tr key={root.id} className={'group ' + (rootCancelled ? 'bg-red-500/[0.07]' : rootDone ? 'bg-emerald-500/[0.07]' : '')}>
+        <tbody>{filtered.map(row => { const { root, stages } = row; const progressSummary = getSummary(row); const rootDone = progressSummary.state === 'done'; const rootCancelled = progressSummary.state === 'cancelled'; const rootTypeLabel = root.tapdWorkitemTypeName || getRequirementKindLabel(root, true) || '需求'; return <tr key={root.id} className={'group ' + (rootCancelled ? 'bg-red-500/[0.07]' : rootDone ? 'bg-emerald-500/[0.07]' : '')}>
           <td className={'sticky left-0 z-10 border-b border-gray-800 px-4 py-3 ' + (rootCancelled ? 'bg-[#28171c] group-hover:bg-[#341b22]' : rootDone ? 'bg-[#10231d] group-hover:bg-[#153027]' : 'bg-[#11151d] group-hover:bg-[#191e2b]')}>
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="flex flex-wrap items-center gap-1.5"><span className="rounded border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold text-sky-300">{rootTypeLabel}</span>{root.tapdTemplateName && <span title={`TAPD 发单模板：${root.tapdTemplateName}`} className="max-w-[180px] truncate rounded border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold text-violet-300">模板：{root.tapdTemplateName}</span>}{rootCancelled ? <span className="rounded border border-red-500/30 bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-300">父需求已拒绝</span> : rootDone ? <span className="rounded border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">父需求已完成</span> : null}</div>
@@ -275,18 +274,17 @@ export function UxStageTable() {
             </div>
             {root.externalUrl ? <a href={root.externalUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="line-clamp-2 text-left text-[13px] font-medium leading-5 text-gray-200 hover:text-indigo-300 hover:underline" title={`${root.title} · 点击前往 TAPD`}>{root.title}</a> : <button onClick={() => openTaskModal(root.id)} className="line-clamp-2 text-left text-[13px] font-medium leading-5 text-gray-200 hover:text-indigo-300" title={root.title}>{root.title}</button>}
             <div className="mt-1.5 flex items-center gap-2 text-[10px] text-gray-500">{root.tapdId && <span>#{root.tapdId}</span>}<button onClick={() => openTaskModal(root.id)} className="text-gray-400 hover:text-white">本地详情</button></div>
-            {checkpointGroups.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{checkpointGroups.map(([label, items]) => { const primary = items[0]; const checkpointStatus = taskStatus(primary); const statusLabel = checkpointStatus === 'blocked' ? '阻塞' : checkpointStatus === 'paused' ? '暂停' : checkpointStatus === 'in_progress' ? '进行中' : '待开始'; const content = <><AlertTriangle size={11} /><span className="truncate">卡点：{label} · {statusLabel}{items.length > 1 ? `（${items.length}项）` : ''}</span></>; return primary.externalUrl ? <a key={label} href={primary.externalUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} title={primary.title} className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[10px] font-medium text-amber-300 hover:bg-amber-500/20 hover:text-amber-200">{content}<ExternalLink size={10} className="shrink-0" /></a> : <button key={label} onClick={() => openTaskModal(primary.id)} title={primary.title} className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[10px] font-medium text-amber-300 hover:bg-amber-500/20 hover:text-amber-200">{content}</button>; })}</div>}
 
           </td>
           <td className="border-b border-l border-gray-800 px-3 py-3 align-top">
-            <div className="flex items-center justify-between gap-2">
+            <CurrentStageFlow row={row} summary={progressSummary} />
+            <div className="mt-3 flex items-center justify-between gap-2">
               <span className={`inline-flex items-center rounded border px-2 py-1 text-[10px] font-semibold ${progressSummary.kind === 'icon_template' ? 'border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-300' : 'border-sky-500/30 bg-sky-500/10 text-sky-300'}`}>{progressSummary.kind === 'icon_template' ? '图标模板类' : '界面类'}</span>
               <span className={`inline-flex items-center rounded border px-2 py-1 text-[10px] font-semibold ${DEMAND_STATE_META[progressSummary.state].color}`}>{DEMAND_STATE_META[progressSummary.state].label}</span>
             </div>
-            <CurrentStageFlow row={row} summary={progressSummary} />
-            <div className="mt-2 flex items-center gap-2 text-[10px] text-gray-500"><span className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-800"><span className={`block h-full rounded-full ${progressSummary.state === 'done' ? 'bg-emerald-400' : progressSummary.state === 'blocked' ? 'bg-red-400' : 'bg-indigo-400'}`} style={{ width: `${progressSummary.progress}%` }} /></span><span className="tabular-nums text-gray-300">{progressSummary.progress}%</span><span>({progressSummary.doneCount}/{progressSummary.totalCount})</span></div>
-            <div className="mt-1 text-[10px] font-medium text-gray-400">当前：{demandStageLabel(progressSummary.currentStage)}</div>
-            <div className={`mt-1 line-clamp-2 text-[10px] leading-4 ${progressSummary.blockers.length ? 'text-amber-300' : 'text-gray-500'}`} title={progressSummary.blockers.join('；')}>{progressSummary.blockers.length ? progressSummary.blockers.join('；') : '暂无卡点'}</div>
+            <div className="mt-2 flex items-center gap-2 text-[10px] font-medium text-gray-400"><span className="shrink-0">当前：{demandStageLabel(progressSummary.currentStage)}</span><span className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-gray-800"><span className={`block h-full rounded-full ${progressSummary.state === 'done' ? 'bg-emerald-400' : progressSummary.state === 'blocked' ? 'bg-red-400' : 'bg-indigo-400'}`} style={{ width: `${progressSummary.progress}%` }} /></span><span className="shrink-0 tabular-nums text-gray-200">{progressSummary.progress}%</span></div>
+            <div className="mt-1 text-right text-[10px] text-gray-500">已完成 {progressSummary.doneCount} / {progressSummary.totalCount} 项</div>
+            <div className={`mt-2 line-clamp-2 text-[10px] leading-4 ${progressSummary.blockers.length ? 'text-amber-300' : 'text-gray-500'}`} title={progressSummary.blockers.join('；')}>{progressSummary.blockers.length ? progressSummary.blockers.join('；') : '暂无卡点'}</div>
           </td>
           <td className="border-b border-l border-gray-800 px-3 py-5 text-center align-middle text-sm font-semibold text-blue-300">{root.module || '未分类'}</td>
           <td className="border-b border-gray-800 px-2 py-3 text-center align-middle"><span className={`inline-flex min-w-9 justify-center rounded px-2.5 py-1 text-xs font-semibold ${root.priority === 'high' ? 'bg-red-500/10 text-red-300' : root.priority === 'medium' ? 'bg-amber-500/10 text-amber-300' : 'bg-gray-800 text-gray-400'}`}>{getPriorityLabel(root.priority)}</span></td>

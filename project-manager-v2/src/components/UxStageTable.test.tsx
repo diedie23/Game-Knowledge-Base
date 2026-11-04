@@ -8,6 +8,7 @@ const state = vi.hoisted(() => ({ open: vi.fn(), tasks: [
   { id: 2, parentId: 1, title: '【视觉设计】商城初稿', status: 'done', projectId: 1, assigneeIds: [1] },
   { id: 3, parentId: 1, title: '【视觉设计】商城修改', status: 'todo', projectId: 1, assigneeIds: [2], isBlocked: true, blockReason: '等待素材' },
   { id: 8, parentId: 1, title: '【交互案】商城', status: 'todo', projectId: 1, tapdOwner: 'v_xiaozhao' },
+  { id: 9, parentId: 1, title: '【还原】商城', status: 'in_progress', projectId: 1, assigneeIds: [2], tapdOwner: 'v_unknown_restore' },
   { id: 6, parentId: 1, title: '商城程序接入', status: 'in_progress', projectId: 1, tapdWorkitemTypeName: '开发子需求', externalUrl: 'https://tapd.example/story/6' },
   { id: 7, parentId: 1, title: '商城环境音效', status: 'todo', projectId: 1, tapdWorkitemTypeName: '音频子需求', externalUrl: 'https://tapd.example/story/7' },
   { id: 4, title: '活动需求', projectId: 1, status: 'done', priority: 'medium', module: '活动' },
@@ -24,7 +25,7 @@ describe('UX stage table', () => {
     expect(screen.getByText('UI设计-小林、UI设计-小陈')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: '商城需求 · 视觉：阻塞' }));
     expect(screen.getByRole('dialog')).toBeTruthy();
-    expect(screen.getByText('等待素材')).toBeTruthy();
+    expect(screen.getAllByText('等待素材').length).toBeGreaterThan(0);
     fireEvent.click(screen.getAllByText('查看 / 编辑任务')[1]);
     expect(state.open).toHaveBeenCalledWith(3);
   });
@@ -34,11 +35,15 @@ describe('UX stage table', () => {
     expect(screen.queryByText('待分配')).toBeNull();
     expect(screen.queryByText('环节未分配负责人')).toBeNull();
   });
-  it('shows an unfinished development child as a compact program-integration checkpoint', () => {
+  it('does not append a TAPD owner beside an existing local assignment', () => {
     render(<UxStageTable />);
-    const checkpoint = screen.getByText('卡点：程序接入 · 进行中');
-    expect(checkpoint.closest('a')?.getAttribute('href')).toBe('https://tapd.example/story/6');
-    expect(screen.getByText('卡点：音频制作 · 待开始').closest('a')?.getAttribute('href')).toBe('https://tapd.example/story/7');
+    expect(screen.getByText('UI设计-小陈')).toBeTruthy();
+    expect(screen.queryByText('TAPD-v_unknown_restore')).toBeNull();
+  });
+  it('does not show downstream integration as a UX card point', () => {
+    render(<UxStageTable />);
+    expect(screen.queryByText(/卡点：程序接入/)).toBeNull();
+    expect(screen.queryByText(/卡点：音频制作/)).toBeNull();
     expect(screen.queryByText('开发')).toBeNull();
   });
   it('keeps completed demands out of active follow-up until the archive is opened', () => {
