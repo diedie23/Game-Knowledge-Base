@@ -3,7 +3,7 @@ import { AlertCircle, ArrowRight, CalendarClock, Check, ChevronLeft, ChevronRigh
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { Resource, Task } from '../types';
 import { db } from '../db/db';
-import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildDemandSchedulePlan, buildTapdPlanningItems, buildTapdPlanningSummary, buildTapdScheduleSuggestion, findDemandForTask, formatTapdAdjustmentChecklist, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
+import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildDemandSchedulePlan, buildTapdPlanningItems, buildTapdPlanningSummary, buildTapdScheduleSuggestion, findDemandForTask, formatTapdAdjustmentChecklist, getTapdScheduleDecision, getTapdScheduleDecisionLabel, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
 import { updateTask } from '../services/taskService';
 import { useStore } from '../store/useStore';
 import { getPriorityLabel } from '../utils/priority';
@@ -381,7 +381,13 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
           const assignees = (item.task.assigneeIds || []).map(id => resourceById.get(id)?.name).filter(Boolean).join('、') || '未匹配处理人';
           const isSelected = !!item.task.id && selectedIds.has(item.task.id);
           const qualityReasons = item.task.id ? (criticalQualityByTask.get(item.task.id) || []) : [];
-          const canApply = !suggestion.requiresReview && qualityReasons.length === 0;
+          const decision = suggestion.decision || getTapdScheduleDecision(suggestion, qualityReasons.length > 0);
+          const canApply = decision !== 'manual';
+          const decisionStyle = decision === 'ready'
+            ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+            : decision === 'adjust'
+              ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-300'
+              : 'border-orange-500/30 bg-orange-500/10 text-orange-300';
           const demand = findDemandForTask(item.task, tasks, hierarchy);
           const deadlineLabel = suggestion.parentDeadlineStatus === 'safe'
             ? `不晚于父需求 ${formatDate(suggestion.parentDeadline)}`
@@ -401,7 +407,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
               <div className="min-w-0 flex-1">
                 <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
                   <span className={`rounded border px-1.5 py-0.5 text-[9px] font-semibold ${style.badge}`}>{style.label}</span>
-                  <span className={`rounded border px-1.5 py-0.5 text-[9px] font-semibold ${canApply ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' : 'border-orange-500/30 bg-orange-500/10 text-orange-300'}`}>{canApply ? '可直接排期' : '需要人工确认'}</span>
+                  <span className={`rounded border px-1.5 py-0.5 text-[9px] font-semibold ${decisionStyle}`}>{getTapdScheduleDecisionLabel(decision)}</span>
                   <span className="rounded border border-gray-700 bg-gray-800/70 px-1.5 py-0.5 text-[9px] text-gray-300">{getPriorityLabel(item.task.priority)}</span>
                   <span className={`rounded border px-1.5 py-0.5 text-[9px] font-medium ${CONFIDENCE_STYLE[suggestion.confidenceLevel]}`}>置信度 {suggestion.confidence}%</span>
                   <span className="text-[10px] text-gray-500">{assignees}</span>
@@ -421,13 +427,14 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
                   <div className="rounded-md border border-white/[0.05] bg-black/10 px-2 py-1.5"><span className="text-gray-500">人员负载</span><span className="ml-2 font-medium text-gray-300">{Math.round(suggestion.currentPeakUtilization * 100)}% → {Math.round(suggestion.peakUtilization * 100)}% · 日产能 {suggestion.effectiveDailyHours.toFixed(1)}h</span></div>
                   <div className={`rounded-md border px-2 py-1.5 ${suggestion.parentDeadlineStatus === 'late' ? 'border-red-500/20 bg-red-500/[0.06] text-red-300' : 'border-white/[0.05] bg-black/10 text-gray-300'}`}><span className="text-gray-500">截止影响</span><span className="ml-2 font-medium">{deadlineLabel}</span></div>
                 </div>
-                {!canApply && <p className="mt-2 rounded-md border border-orange-500/20 bg-orange-500/[0.06] px-2 py-1.5 text-[10px] text-orange-300">需确认：{[...qualityReasons, ...suggestion.reviewReasons].join('；')}</p>}
+                {decision === 'manual' && <p className="mt-2 rounded-md border border-orange-500/20 bg-orange-500/[0.06] px-2 py-1.5 text-[10px] text-orange-300">人工确认原因：{[...qualityReasons, ...suggestion.reviewReasons].join('；') || '缺少可验证的人员、工时或依赖信息'}</p>}
+                {decision === 'adjust' && <p className="mt-2 rounded-md border border-indigo-500/20 bg-indigo-500/[0.06] px-2 py-1.5 text-[10px] text-indigo-300">调整建议：{suggestion.reasons.join('；') || '需要按推荐日期或推荐人员调整'}{suggestion.alternatives?.length ? `。可替代：${suggestion.alternatives.map(alternative => `${alternative.resource.name} ${formatDate(alternative.startDate)}–${formatDate(alternative.endDate)}`).join('；')}` : ''}</p>}
               </div>
               <span className="shrink-0 rounded bg-white/[0.05] px-2 py-1 text-[10px] font-medium text-gray-300">{item.actionLabel}</span>
             </div>
             <div className="mt-2 flex items-center justify-end gap-3 border-t border-white/[0.05] pt-2">
               <button onClick={() => locateInGantt(item.task)} className="inline-flex items-center gap-1 text-[10px] text-gray-400 hover:text-indigo-300"><LocateFixed size={11} />甘特图定位</button>
-              <button disabled={applyingId !== null || !canApply} onClick={() => applySuggestedDates(item)} title={canApply ? '仅保存到本地排期，不回写 TAPD' : [...qualityReasons, ...suggestion.reviewReasons].join('；')} className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"><CalendarClock size={11} />{applyingId === item.task.id ? '正在保存...' : canApply ? '保存本地方案' : qualityReasons.length ? '数据异常待修复' : '请先人工确认'}</button>
+              <button disabled={applyingId !== null || !canApply} onClick={() => applySuggestedDates(item)} title={canApply ? '仅保存到本地排期，不回写 TAPD' : [...qualityReasons, ...suggestion.reviewReasons].join('；')} className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"><CalendarClock size={11} />{applyingId === item.task.id ? '正在保存...' : canApply ? decision === 'adjust' ? '保存调整方案' : '保存本地方案' : qualityReasons.length ? '数据异常待修复' : '请先人工确认'}</button>
               {item.task.externalUrl ? <a href={item.task.externalUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[10px] font-medium text-sky-300 hover:text-white">打开 TAPD 调整<ExternalLink size={11} /></a> : <button onClick={() => openTaskModal(item.task.id)} className="text-[10px] font-medium text-sky-300 hover:text-white">查看本地详情</button>}
             </div>
           </article>;

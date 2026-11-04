@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Resource, ResourceCapacity, Task } from '../types';
-import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildDemandRiskGroups, buildDemandSchedulePlan, buildTapdPlanningItems, buildTapdPlanningSummary, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, latestTapdSyncAt } from './tapdPlanningAssistant';
+import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildDemandRiskGroups, buildDemandSchedulePlan, buildTapdPlanningItems, buildTapdPlanningSummary, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, getTapdScheduleDecision, getTapdScheduleDecisionLabel, latestTapdSyncAt } from './tapdPlanningAssistant';
 import { resourceStage } from './uxStageView';
 
 const task = (id: number, overrides: Partial<Task> = {}): Task => ({
@@ -120,6 +120,15 @@ describe('buildTapdPlanningSummary', () => {
       unassigned: 0,
       todayMustHandle: 3,
     });
+  });
+});
+
+describe('getTapdScheduleDecision', () => {
+  it('distinguishes direct scheduling, adjustments and manual review', () => {
+    expect(getTapdScheduleDecision({ resource: { id: 1 } as Resource, requiresReview: false, assigneeChanged: false, scheduleChanged: false })).toBe('ready');
+    expect(getTapdScheduleDecision({ resource: { id: 1 } as Resource, requiresReview: false, assigneeChanged: true, scheduleChanged: false })).toBe('adjust');
+    expect(getTapdScheduleDecision({ resource: { id: 1 } as Resource, requiresReview: true, assigneeChanged: false, scheduleChanged: false })).toBe('manual');
+    expect(getTapdScheduleDecisionLabel('adjust')).toBe('需要调整');
   });
 });
 

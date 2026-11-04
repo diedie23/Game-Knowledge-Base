@@ -9,6 +9,17 @@ import { estimateTaskEffort, getResourceDailyHours, getScenarioCapacity, taskDur
 import { relatedCheckpointLabel, resourceStage, taskStage, taskStatus, type CoreUxStage } from './uxStageView';
 import { assessTaskRisk, buildTaskRiskContext, type RiskLevel, type RiskTag } from './workloadService';
 
+export interface TapdScheduleAlternative {
+  resource: Resource;
+  startDate: Date;
+  endDate: Date;
+  peakUtilization: number;
+  dailyCapacityStatus: 'available' | 'tight' | 'overloaded';
+  availableWorkingDays: number;
+}
+
+export type TapdScheduleDecision = 'ready' | 'adjust' | 'manual';
+
 export interface TapdScheduleSuggestion {
   resource?: Resource;
   startDate: Date;
@@ -37,6 +48,8 @@ export interface TapdScheduleSuggestion {
   /** Number of suggested working days with enough capacity for this task. */
   availableWorkingDays?: number;
   dailyCapacityStatus?: 'available' | 'tight' | 'overloaded';
+  decision?: TapdScheduleDecision;
+  alternatives?: TapdScheduleAlternative[];
 }
 
 export interface TapdDemandSchedulePlan {
@@ -76,6 +89,19 @@ export interface TapdPlanningSummary {
   capacityRisk: number;
   unassigned: number;
   todayMustHandle: number;
+}
+
+export function getTapdScheduleDecision(
+  suggestion: Pick<TapdScheduleSuggestion, 'resource' | 'requiresReview' | 'assigneeChanged' | 'scheduleChanged'>,
+  blockedByDataQuality = false,
+): TapdScheduleDecision {
+  if (blockedByDataQuality || suggestion.requiresReview || !suggestion.resource) return 'manual';
+  if (suggestion.assigneeChanged || suggestion.scheduleChanged) return 'adjust';
+  return 'ready';
+}
+
+export function getTapdScheduleDecisionLabel(decision: TapdScheduleDecision): string {
+  return decision === 'ready' ? '可直接排' : decision === 'adjust' ? '需要调整' : '需要人工确认';
 }
 
 export interface DemandRiskGroup {
@@ -377,6 +403,14 @@ function findSuggestedPeriod(
   return fallback || [...periodFrom(firstDay, duration), { activeCount: resource ? 1 : 0, peakUtilization: 0, overCapacity: false, minimumAvailableHours: resource ? 0 : 0, availableWorkingDays: 0 }];
 }
 
+function getDailyCapacityStatus(metrics: SlotMetrics, duration: number): 'available' | 'tight' | 'overloaded' {
+  return metrics.overCapacity
+    ? 'overloaded'
+    : metrics.availableWorkingDays < duration
+      ? 'tight'
+      : 'available';
+}
+
 export function buildTapdScheduleSuggestion(
   task: Task,
   tags: TapdPlanningItem['tags'],
@@ -443,11 +477,7 @@ export function buildTapdScheduleSuggestion(
   const candidateDailyHours = effort.hours / duration;
   const [startDate, endDate, suggestedMetrics] = findSuggestedPeriod(selectedResource, task, tasks, baseStart, duration, candidateDailyHours, scheduleScenario, context);
   const suggestedConflictCount = suggestedMetrics.activeCount;
-  const dailyCapacityStatus: TapdScheduleSuggestion['dailyCapacityStatus'] = suggestedMetrics.overCapacity
-    ? 'overloaded'
-    : suggestedMetrics.availableWorkingDays < duration
-      ? 'tight'
-      : 'available';
+  const dailyCapacityStatus = getDailyCapacityStatus(suggestedMetrics, duration);
   const parent = getTaskParent(task, context.hierarchy);
   const parentDeadline = parent?.endDate ? startOfDay(parent.endDate) : undefined;
   const parentDeadlineStatus = !parentDeadline ? 'unknown' : endDate <= parentDeadline ? 'safe' : 'late';
@@ -462,6 +492,37 @@ export function buildTapdScheduleSuggestion(
   if (dependency.unresolved.length > 0) reviewReasons.push(`前置任务尚未排期：${dependency.unresolved.slice(0, 2).join('、')}`);
   const assigneeChanged = !!selectedResource && selectedResource.id !== currentResource?.id;
   const scheduleChanged = !sameDay(task.startDate, startDate) || !sameDay(task.endDate, endDate);
+  const alternatives: TapdScheduleAlternative[] = candidates
+    .filter(candidate => candidate.resource.id !== selectedResource?.id)
+    .slice(0, 2)
+    .map(candidate => {
+      const alternativeDuration = taskDurationDays(task, effort.hours, candidate.dailyHours);
+      const alternativeDailyHours = effort.hours / alternativeDuration;
+      const [alternativeStart, alternativeEnd, alternativeMetrics] = findSuggestedPeriod(
+        candidate.resource,
+        task,
+        tasks,
+        baseStart,
+        alternativeDuration,
+        alternativeDailyHours,
+        scheduleScenario,
+        context,
+      );
+      return {
+        resource: candidate.resource,
+        startDate: alternativeStart,
+        endDate: alternativeEnd,
+        peakUtilization: alternativeMetrics.peakUtilization,
+        dailyCapacityStatus: getDailyCapacityStatus(alternativeMetrics, alternativeDuration),
+        availableWorkingDays: alternativeMetrics.availableWorkingDays,
+      };
+    });
+  const decision = getTapdScheduleDecision({
+    resource: selectedResource,
+    requiresReview: reviewReasons.length > 0,
+    assigneeChanged,
+    scheduleChanged,
+  });
   const reasons: string[] = [];
   if (assigneeChanged) reasons.push(`同岗位候选中容量更合适（峰值 ${Math.round(suggestedMetrics.peakUtilization * 100)}%）`);
   else if (selectedResource) reasons.push(`保留当前处理人，建议时段峰值负载 ${Math.round(suggestedMetrics.peakUtilization * 100)}%`);
@@ -512,6 +573,8 @@ export function buildTapdScheduleSuggestion(
     minimumAvailableHours: suggestedMetrics.minimumAvailableHours,
     availableWorkingDays: suggestedMetrics.availableWorkingDays,
     dailyCapacityStatus,
+    decision,
+    alternatives,
   };
 }
 
@@ -828,8 +891,10 @@ export function formatTapdAdjustmentChecklist(items: TapdPlanningItem[], resourc
       .join('、') || '未匹配处理人';
     const priority = item.task.tapdPriorityLabel || (item.task.priority === 'high' ? 'P0' : item.task.priority === 'medium' ? 'P1' : item.task.priority === 'low' ? 'P2' : '无');
     const suggestion = item.suggestion;
+    const decision = suggestion ? (suggestion.decision || getTapdScheduleDecision(suggestion)) : 'manual';
     lines.push(
       `${index + 1}. [${priority}] ${item.task.title}`,
+      `   - 排期结论：${getTapdScheduleDecisionLabel(decision)}`,
       `   - 问题：${item.reasons.join('；')}`,
       `   - 建议动作：${item.actionLabel}`,
       `   - 当前处理人：${assignees}`,
@@ -838,6 +903,7 @@ export function formatTapdAdjustmentChecklist(items: TapdPlanningItem[], resourc
       `   - 建议排期：${suggestion ? `${suggestion.startDate.toLocaleDateString('zh-CN')} → ${suggestion.endDate.toLocaleDateString('zh-CN')}` : '待评估'}`,
       `   - 建议置信度：${suggestion ? `${suggestion.confidence}%` : '待评估'}`,
       `   - 调整依据：${suggestion?.reasons.join('；') || '需结合当前负载人工确认'}`,
+      `   - 替代方案：${suggestion?.alternatives?.length ? suggestion.alternatives.map(alternative => `${alternative.resource.name} ${alternative.startDate.toLocaleDateString('zh-CN')} → ${alternative.endDate.toLocaleDateString('zh-CN')}`).join('；') : '暂无可验证替代方案'}`,
       `   - TAPD：${item.task.externalUrl || item.task.tapdId || '无链接'}`,
       '',
     );
