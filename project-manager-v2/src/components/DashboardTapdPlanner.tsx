@@ -3,7 +3,7 @@ import { AlertCircle, ArrowRight, CalendarClock, Check, ChevronLeft, ChevronRigh
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { Resource, Task } from '../types';
 import { db } from '../db/db';
-import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildDemandSchedulePlan, buildTapdPlanningItems, buildTapdScheduleSuggestion, findDemandForTask, formatTapdAdjustmentChecklist, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
+import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildDemandSchedulePlan, buildTapdPlanningItems, buildTapdPlanningSummary, buildTapdScheduleSuggestion, findDemandForTask, formatTapdAdjustmentChecklist, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
 import { updateTask } from '../services/taskService';
 import { useStore } from '../store/useStore';
 import { getPriorityLabel } from '../utils/priority';
@@ -15,8 +15,8 @@ interface Props {
   resources: Resource[];
 }
 
-type QueueFilter = 'all' | 'ready' | 'review' | 'blocked' | 'unassigned';
-type FocusFilter = 'all' | 'urgent' | 'dueSoon' | 'unassigned' | 'hasOwner';
+type QueueFilter = 'all' | 'ready' | 'review' | 'blocked' | 'capacity' | 'unassigned';
+type FocusFilter = 'action' | 'all' | 'today' | 'urgent' | 'dueSoon' | 'capacity' | 'unassigned' | 'hasOwner';
 
 const STAGE_LABEL = { interaction: '交互', ui_design: '视觉', implementation: '还原', motion: '动效' } as const;
 
@@ -48,7 +48,7 @@ function syncFreshness(timestamp: number | null) {
 export function DashboardTapdPlanner({ tasks, resources }: Props) {
   const { setCurrentView, setHighlightedTaskIds, openTapdModal, openTaskModal } = useStore();
   const [filter, setFilter] = useState<QueueFilter>('all');
-  const [focusFilter, setFocusFilter] = useState<FocusFilter>('all');
+  const [focusFilter, setFocusFilter] = useState<FocusFilter>('action');
   const [stageFilter, setStageFilter] = useState<'all' | keyof typeof STAGE_LABEL>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -59,7 +59,8 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
   const [applyError, setApplyError] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const capacities = useLiveQuery(() => db.resourceCapacities.toArray()) || [];
+  const capacityRows = useLiveQuery(() => db.resourceCapacities.toArray());
+  const capacities = useMemo(() => capacityRows || [], [capacityRows]);
   const today = useMemo(() => {
     const value = new Date();
     value.setHours(0, 0, 0, 0);
@@ -78,34 +79,58 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
   }, [dataAudit]);
   const hierarchy = useMemo(() => buildTaskHierarchyIndex(tasks), [tasks]);
   const allItems = useMemo(() => buildTapdPlanningItems(tasks, resources, today), [tasks, resources, today]);
-  const planningItems = useMemo(() => allItems.filter(item => item.tags.includes('unscheduled')), [allItems]);
+  // The cockpit is a risk queue, not only an unscheduled queue. Scheduled tasks
+  // with overdue, dependency or capacity risks must remain visible for follow-up.
+  const planningItems = useMemo(() => allItems, [allItems]);
   const planningEntries = useMemo(() => planningItems.map(item => ({
     ...item,
     readiness: assessTapdScheduleReadiness(item.task, item.tags, resources),
   })), [planningItems, resources]);
+  const allSuggestions = useMemo(
+    () => buildBatchTapdScheduleSuggestions(planningEntries, tasks, resources, today, capacities),
+    [planningEntries, tasks, resources, today, capacities],
+  );
+  const planningSummary = useMemo(
+    () => buildTapdPlanningSummary(planningItems, allSuggestions, today),
+    [planningItems, allSuggestions, today],
+  );
   const filteredItems = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     return planningEntries.filter(item => {
       const task = item.task;
+      const deadline = task.endDate ? new Date(task.endDate) : undefined;
+      const daysToDeadline = deadline ? Math.ceil((deadline.getTime() - today.getTime()) / 86_400_000) : undefined;
+      const capacityRisk = item.tags.includes('overload')
+        || item.tags.includes('overlap')
+        || allSuggestions.get(task.id || 0)?.dailyCapacityStatus === 'tight'
+        || allSuggestions.get(task.id || 0)?.dailyCapacityStatus === 'overloaded';
+      const todayMustHandle = item.tags.includes('overdue')
+        || item.tags.includes('blocked')
+        || item.tags.includes('dependency')
+        || capacityRisk
+        || (daysToDeadline !== undefined && daysToDeadline <= 0)
+        || (item.tags.includes('unassigned') && (daysToDeadline === undefined || daysToDeadline <= 7));
+      const urgent = task.priority === 'high' || item.tags.includes('overdue') || item.tags.includes('blocked') || (daysToDeadline !== undefined && daysToDeadline <= 3);
+      const dueSoon = daysToDeadline !== undefined && daysToDeadline >= 0 && daysToDeadline <= 7;
       if (stageFilter !== 'all' && item.readiness.stage !== stageFilter) return false;
       if (filter === 'ready' && !item.readiness.ready) return false;
       if (filter === 'review' && item.readiness.ready) return false;
       if (filter === 'blocked' && !item.tags.includes('blocked') && !item.tags.includes('dependency')) return false;
+      if (filter === 'capacity' && !capacityRisk) return false;
       if (filter === 'unassigned' && !item.tags.includes('unassigned')) return false;
-      const deadline = task.endDate ? new Date(task.endDate) : undefined;
-      const daysToDeadline = deadline ? Math.ceil((deadline.getTime() - today.getTime()) / 86_400_000) : undefined;
-      const urgent = task.priority === 'high' || item.tags.includes('overdue') || (daysToDeadline !== undefined && daysToDeadline <= 3);
-      const dueSoon = daysToDeadline !== undefined && daysToDeadline <= 7;
+      if (focusFilter === 'today' && !todayMustHandle) return false;
       if (focusFilter === 'urgent' && !urgent) return false;
       if (focusFilter === 'dueSoon' && !dueSoon) return false;
+      if (focusFilter === 'capacity' && !capacityRisk) return false;
       if (focusFilter === 'unassigned' && !!task.assigneeIds?.length) return false;
       if (focusFilter === 'hasOwner' && !task.assigneeIds?.length) return false;
+      if (focusFilter === 'action' && !todayMustHandle && !dueSoon && !item.tags.includes('unscheduled')) return false;
       if (!query) return true;
       const searchable = [task.title, task.tapdId, task.tapdOwner, task.module, task.tapdWorkitemTypeName]
         .filter(Boolean).join(' ').toLowerCase();
       return searchable.includes(query);
     });
-  }, [planningEntries, filter, focusFilter, stageFilter, searchQuery, today]);
+  }, [planningEntries, filter, focusFilter, stageFilter, searchQuery, today, allSuggestions]);
   const pageCount = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   React.useEffect(() => setPage(current => Math.min(current, pageCount)), [pageCount]);
   React.useEffect(() => setPage(1), [filter, focusFilter, stageFilter, searchQuery, pageSize]);
@@ -113,22 +138,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     () => filteredItems.slice((page - 1) * pageSize, page * pageSize),
     [filteredItems, page, pageSize],
   );
-  const suggestionById = useMemo(() => {
-    const targetById = new Map<number, typeof planningEntries[number]>();
-    visibleEntries.forEach(item => { if (item.task.id) targetById.set(item.task.id, item); });
-    planningEntries.forEach(item => {
-      if (item.task.id && selectedIds.has(item.task.id)) targetById.set(item.task.id, item);
-    });
-    const targets = [...targetById.values()];
-    const suggestions = buildBatchTapdScheduleSuggestions(targets, tasks, resources, today, capacities);
-    targets.forEach(item => {
-      if (!item.task.id) return;
-      const suggestion = suggestions.get(item.task.id)
-        || buildTapdScheduleSuggestion(item.task, item.tags, tasks, resources, today, capacities);
-      suggestions.set(item.task.id, suggestion);
-    });
-    return suggestions;
-  }, [visibleEntries, planningEntries, selectedIds, tasks, resources, capacities, today]);
+  const suggestionById = allSuggestions;
   const items = useMemo(
     () => visibleEntries.map(item => ({ ...item, suggestion: item.task.id ? suggestionById.get(item.task.id) : undefined })).filter(item => item.suggestion),
     [visibleEntries, suggestionById],
@@ -273,12 +283,23 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-4 gap-2">
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
+        {[
+          { focus: 'today' as const, label: '今日必须处理', value: planningSummary.todayMustHandle, icon: ShieldAlert, color: 'text-red-300' },
+          { focus: 'dueSoon' as const, label: '未来7天到期', value: planningSummary.dueNext7Days, icon: CalendarClock, color: 'text-orange-300' },
+          { focus: 'capacity' as const, label: '未来7天容量风险', value: planningSummary.capacityRisk, icon: AlertCircle, color: 'text-amber-300' },
+          { focus: 'all' as const, label: '待处理风险', value: planningSummary.total, icon: GitBranch, color: 'text-indigo-300' },
+          { focus: 'unassigned' as const, label: '未分配处理人', value: planningSummary.unassigned, icon: UserRoundX, color: 'text-sky-300' },
+        ].map(summary => <button key={summary.label} onClick={() => setFocusFilter(focusFilter === summary.focus ? 'action' : summary.focus)} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition-colors ${focusFilter === summary.focus ? 'border-indigo-500/50 bg-indigo-500/15' : 'border-gray-700/60 bg-gray-950/30 hover:border-gray-600'}`}><summary.icon size={14} className={summary.color} /><span className="text-lg font-bold text-white">{summary.value}</span><span className="text-[11px] text-gray-500">{summary.label}</span></button>)}
+      </div>
+
+      <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-5">
         {[
           { filter: 'ready' as const, label: '可直接排期', value: counts.ready, icon: Check, color: 'text-emerald-300' },
           { filter: 'review' as const, label: '需要人工确认', value: counts.review, icon: AlertCircle, color: 'text-orange-300' },
-          { filter: 'blocked' as const, label: '待排期且有卡点', value: counts.blocked, icon: ShieldAlert, color: 'text-amber-300' },
-          { filter: 'unassigned' as const, label: '待排期未匹配人员', value: counts.unassigned, icon: UserRoundX, color: 'text-sky-300' },
+          { filter: 'blocked' as const, label: '有卡点/依赖', value: counts.blocked, icon: ShieldAlert, color: 'text-amber-300' },
+          { filter: 'capacity' as const, label: '容量需调整', value: planningSummary.capacityRisk, icon: CalendarClock, color: 'text-yellow-300' },
+          { filter: 'unassigned' as const, label: '未匹配人员', value: counts.unassigned, icon: UserRoundX, color: 'text-sky-300' },
         ].map(summary => <button key={summary.label} onClick={() => setFilter(filter === summary.filter ? 'all' : summary.filter)} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition-colors ${filter === summary.filter ? 'border-indigo-500/50 bg-indigo-500/15' : 'border-gray-700/60 bg-gray-950/30 hover:border-gray-600'}`}><summary.icon size={14} className={summary.color} /><span className="text-lg font-bold text-white">{summary.value}</span><span className="text-[11px] text-gray-500">{summary.label}</span></button>)}
       </div>
 
@@ -331,17 +352,17 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
       )}
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        {items.length > 0 && <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-gray-500">
+        {planningEntries.length > 0 && <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-gray-500">
           <div className="flex flex-wrap items-center gap-2">
-            <span>完整待排队列</span>
+            <span>风险任务队列（父需求不计入）</span>
             <div className="flex items-center gap-1 rounded border border-gray-700 bg-gray-900 px-2 py-1">
               <Search size={11} className="text-gray-500" />
               <input value={searchQuery} onChange={event => setSearchQuery(event.target.value)} placeholder="搜标题 / TAPD / 模块" className="w-32 bg-transparent text-[10px] text-gray-300 outline-none placeholder:text-gray-600" />
             </div>
-            <select value={focusFilter} onChange={event => setFocusFilter(event.target.value as FocusFilter)} className="rounded border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 text-[10px] text-indigo-200 outline-none"><option value="all">全部待排</option><option value="urgent">优先处理</option><option value="dueSoon">7天内截止</option><option value="unassigned">未分配处理人</option><option value="hasOwner">已有处理人</option></select>
+            <select value={focusFilter} onChange={event => setFocusFilter(event.target.value as FocusFilter)} className="rounded border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 text-[10px] text-indigo-200 outline-none"><option value="action">需要处理</option><option value="today">今日必须处理</option><option value="all">全部风险任务</option><option value="urgent">优先处理</option><option value="dueSoon">未来7天到期</option><option value="capacity">容量风险</option><option value="unassigned">未分配处理人</option><option value="hasOwner">已有处理人</option></select>
             <select value={stageFilter} onChange={event => setStageFilter(event.target.value as typeof stageFilter)} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="all">全部岗位</option>{Object.entries(STAGE_LABEL).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select>
             <select value={pageSize} onChange={event => setPageSize(Number(event.target.value))} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value={10}>每页 10 项</option><option value={20}>每页 20 项</option><option value={50}>每页 50 项</option></select>
-            {(filter !== 'all' || focusFilter !== 'all' || stageFilter !== 'all' || searchQuery) && <button onClick={() => { setFilter('all'); setFocusFilter('all'); setStageFilter('all'); setSearchQuery(''); }} className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-indigo-300 hover:text-white">清除筛选</button>}
+            {(filter !== 'all' || focusFilter !== 'action' || stageFilter !== 'all' || searchQuery) && <button onClick={() => { setFilter('all'); setFocusFilter('action'); setStageFilter('all'); setSearchQuery(''); }} className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-indigo-300 hover:text-white">清除筛选</button>}
             <button onClick={selectVisible} className="hover:text-white">选择本页可排期项</button>
             {selectedIds.size > 0 && <button onClick={() => setSelectedIds(new Set())} className="hover:text-white">清空选择</button>}
           </div>
@@ -353,7 +374,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
             <button disabled={selectedItems.length === 0} onClick={() => setShowChecklist(true)} className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-1 font-medium text-indigo-300 hover:bg-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-40">生成手动调整清单（{selectedItems.length}）</button>
           </div>
         </div>}
-        {items.length === 0 && <div className="col-span-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-5 text-center text-sm text-emerald-300">当前没有缺少开始或结束日期的 TAPD 任务</div>}
+        {items.length === 0 && <div className="col-span-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-5 text-center text-sm text-emerald-300">{planningEntries.length === 0 ? '当前没有需要跟进的 TAPD 叶子任务' : '当前筛选条件下没有任务；可切换为“全部风险任务”查看'}</div>}
         {items.map(item => {
           const style = LEVEL_STYLE[item.level];
           const suggestion = item.suggestion!;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Resource, ResourceCapacity, Task } from '../types';
-import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildDemandRiskGroups, buildDemandSchedulePlan, buildTapdPlanningItems, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, latestTapdSyncAt } from './tapdPlanningAssistant';
+import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildDemandRiskGroups, buildDemandSchedulePlan, buildTapdPlanningItems, buildTapdPlanningSummary, buildTapdScheduleSuggestion, formatTapdAdjustmentChecklist, latestTapdSyncAt } from './tapdPlanningAssistant';
 import { resourceStage } from './uxStageView';
 
 const task = (id: number, overrides: Partial<Task> = {}): Task => ({
@@ -87,6 +87,39 @@ describe('latestTapdSyncAt', () => {
       task(2, { syncedAt: 20 }),
       task(3, { tapdId: undefined, externalUrl: undefined, syncSource: 'local', syncedAt: 99 }),
     ])).toBe(20);
+  });
+});
+
+describe('buildTapdPlanningSummary', () => {
+  const today = new Date('2026-09-28T09:00:00');
+  const item = (id: number, tags: Array<'overdue' | 'deadline' | 'dependency' | 'overload' | 'overlap' | 'blocked' | 'progress' | 'unscheduled' | 'unassigned'>, overrides: Partial<Task> = {}) => ({
+    task: task(id, overrides),
+    level: 'high' as const,
+    reasons: tags,
+    tags,
+    actionLabel: '处理风险',
+    score: 300,
+  });
+
+  it('separates overdue, near-term deadlines, capacity risks and today actions', () => {
+    const overdue = item(1, ['overdue'], { endDate: new Date('2026-09-27') });
+    const dueSoon = item(2, ['deadline'], { endDate: new Date('2026-10-02') });
+    const blocked = item(3, ['blocked', 'unscheduled']);
+    const capacity = item(4, ['unscheduled'], { endDate: new Date('2026-10-08') });
+    const suggestions = new Map([[4, { dailyCapacityStatus: 'overloaded', startDate: new Date('2026-09-29') } as ReturnType<typeof buildTapdScheduleSuggestion>]]);
+
+    expect(buildTapdPlanningSummary([overdue, dueSoon, blocked, capacity], suggestions, today)).toEqual({
+      total: 4,
+      unscheduled: 2,
+      overdue: 1,
+      dueToday: 0,
+      dueNext7Days: 1,
+      blocked: 1,
+      dependency: 0,
+      capacityRisk: 1,
+      unassigned: 0,
+      todayMustHandle: 3,
+    });
   });
 });
 

@@ -65,6 +65,19 @@ export interface TapdPlanningItem {
   suggestion?: TapdScheduleSuggestion;
 }
 
+export interface TapdPlanningSummary {
+  total: number;
+  unscheduled: number;
+  overdue: number;
+  dueToday: number;
+  dueNext7Days: number;
+  blocked: number;
+  dependency: number;
+  capacityRisk: number;
+  unassigned: number;
+  todayMustHandle: number;
+}
+
 export interface DemandRiskGroup {
   demand: Task;
   level: Exclude<RiskLevel, 'none'>;
@@ -109,6 +122,61 @@ function sameDay(left?: Date, right?: Date): boolean {
   return !!left && !!right && startOfDay(left).getTime() === startOfDay(right).getTime();
 }
 
+function daysToDeadline(task: Task, today: Date): number | undefined {
+  if (!task.endDate) return undefined;
+  return Math.ceil((startOfDay(new Date(task.endDate)).getTime() - startOfDay(today).getTime()) / 86_400_000);
+}
+
+export function buildTapdPlanningSummary(
+  items: TapdPlanningItem[],
+  suggestions: ReadonlyMap<number, TapdScheduleSuggestion> = new Map(),
+  today: Date = new Date(),
+): TapdPlanningSummary {
+  const summary: TapdPlanningSummary = {
+    total: items.length,
+    unscheduled: 0,
+    overdue: 0,
+    dueToday: 0,
+    dueNext7Days: 0,
+    blocked: 0,
+    dependency: 0,
+    capacityRisk: 0,
+    unassigned: 0,
+    todayMustHandle: 0,
+  };
+  items.forEach(item => {
+    const days = daysToDeadline(item.task, today);
+    const overdue = item.tags.includes('overdue') || (days !== undefined && days < 0);
+    const dueToday = days === 0;
+    const dueNext7Days = days !== undefined && days > 0 && days <= 7;
+    const blocked = item.tags.includes('blocked');
+    const dependency = item.tags.includes('dependency');
+    const unassigned = item.tags.includes('unassigned');
+    const suggestion = item.task.id === undefined ? undefined : suggestions.get(item.task.id);
+    const capacityRiskDetected = item.tags.includes('overload')
+      || item.tags.includes('overlap')
+      || suggestion?.dailyCapacityStatus === 'tight'
+      || suggestion?.dailyCapacityStatus === 'overloaded';
+    const capacityStart = suggestion?.startDate || item.task.startDate || item.task.endDate;
+    const capacityDays = capacityStart
+      ? Math.ceil((startOfDay(new Date(capacityStart)).getTime() - startOfDay(today).getTime()) / 86_400_000)
+      : undefined;
+    const capacityRisk = capacityRiskDetected && (capacityDays === undefined || capacityDays <= 7);
+
+    if (item.tags.includes('unscheduled')) summary.unscheduled += 1;
+    if (overdue) summary.overdue += 1;
+    if (dueToday) summary.dueToday += 1;
+    if (dueNext7Days) summary.dueNext7Days += 1;
+    if (blocked) summary.blocked += 1;
+    if (dependency) summary.dependency += 1;
+    if (capacityRisk) summary.capacityRisk += 1;
+    if (unassigned) summary.unassigned += 1;
+    if (overdue || dueToday || blocked || dependency || capacityRisk || (unassigned && (days === undefined || days <= 7))) {
+      summary.todayMustHandle += 1;
+    }
+  });
+  return summary;
+}
 
 function periodFrom(start: Date, duration: number): [Date, Date] {
   const days = getNextWorkingDays(startOfDay(start), duration);
