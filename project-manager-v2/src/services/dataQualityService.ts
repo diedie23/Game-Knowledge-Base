@@ -2,6 +2,7 @@ import type { Resource, Task } from '../types';
 import { getTaskIdentity } from '../utils/tapdIdentity';
 import { buildTaskHierarchyIndex, getTaskParent } from '../utils/taskHierarchy';
 import { relatedCheckpointLabel, taskStage } from './uxStageView';
+import { getTaskAssigneeIds } from '../utils/taskAssignee';
 
 export type DataQualityIssueType = 'duplicate' | 'orphan' | 'invalid-date' | 'missing-type' | 'unmapped-owner' | 'stale-sync';
 
@@ -88,7 +89,7 @@ export function auditTaskDataQuality(tasks: Task[], resources: Resource[], now: 
     if (!isTapdTask(task)) return;
     if (!task.tapdWorkitemTypeName) issues.push({ type: 'missing-type', severity: 'warning', title: 'TAPD 类型缺失', detail: '无法确认是 UIStory、UI 子需求还是其他需求类型', task });
     const isLeaf = !task.id || !childIds.has(task.id);
-    if (isLeaf && taskStage(task, resources) && !relatedCheckpointLabel(task, resources) && !task.assigneeIds?.length) {
+    if (isLeaf && taskStage(task, resources) && !relatedCheckpointLabel(task, resources) && getTaskAssigneeIds(task).length === 0) {
       issues.push({ type: 'unmapped-owner', severity: 'warning', title: 'UX 处理人未映射', detail: task.tapdOwner ? `TAPD 处理人“${task.tapdOwner}”未映射到团队成员` : 'TAPD 未提供可识别的处理人', task });
     }
   });

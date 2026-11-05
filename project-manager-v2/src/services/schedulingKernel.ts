@@ -4,6 +4,7 @@ import { countWorkingDays } from '../utils/dateUtils';
 import { getEffectiveDailyCapacity, mergeCapacity } from './capacityService';
 import { taskStage } from './uxStageView';
 import { getActiveLeafTasks as getCanonicalActiveLeafTasks } from '../utils/taskHierarchy';
+import { getTaskAssigneeIds } from '../utils/taskAssignee';
 
 export type TaskEffortSource = 'task' | 'existing_schedule' | 'stage_median' | 'fallback';
 
@@ -37,7 +38,7 @@ export function createScheduleScenario(
   const tasksByResourceId = new Map<number, Task[]>();
   tasks.forEach(task => {
     if (task.id !== undefined) taskById.set(task.id, task);
-    (task.assigneeIds || []).forEach(resourceId => {
+    getTaskAssigneeIds(task).forEach(resourceId => {
       const bucket = tasksByResourceId.get(resourceId) || [];
       bucket.push(task);
       tasksByResourceId.set(resourceId, bucket);

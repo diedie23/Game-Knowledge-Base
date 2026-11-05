@@ -2,6 +2,7 @@ import type { Task } from '../types/task';
 import type { Resource } from '../types/resource';
 import { isTaskCancelled, isTaskCompleted, isTaskOverdue, isTaskTerminal } from '../utils/taskState';
 import { detectUxStage } from './uxWorkPackageService';
+import { getTaskAssigneeIds, getTaskOwnerTokens, hasTaskAssignee as hasNormalizedTaskAssignee } from '../utils/taskAssignee';
 
 export type CoreUxStage = 'interaction' | 'ui_design' | 'implementation' | 'motion';
 
@@ -91,10 +92,10 @@ function detectGenericTaskStage(task: Task, resources: Resource[] = []): CoreUxS
   if (/(?:还原|入版|Layout|排版|实现)/i.test(task.title)) return 'implementation';
   if (/(?:动效|动画|Motion|VFX|VX)/i.test(task.title)) return 'motion';
 
-  const ownerTokens = String(task.tapdOwner || '').split(/[;,，；]/).map(value => value.trim().toLowerCase()).filter(Boolean);
+  const ownerTokens = getTaskOwnerTokens(task.tapdOwner);
   const resourceIndex = getResourceStageIndex(resources);
   const matchedStages = new Set<CoreUxStage>();
-  (task.assigneeIds || []).forEach(resourceId => {
+  getTaskAssigneeIds(task).forEach(resourceId => {
     const matched = resourceIndex.byId.get(resourceId);
     if (matched) matchedStages.add(matched);
   });
@@ -227,10 +228,11 @@ export interface RelatedCheckpoint {
 }
 
 function assignedRoleText(task: Task, resources: Resource[]): string {
-  const ownerTokens = String(task.tapdOwner || '').split(/[;,，；]/).map(value => value.trim().toLowerCase()).filter(Boolean);
+  const ownerTokens = getTaskOwnerTokens(task.tapdOwner);
+  const assigneeIds = new Set(getTaskAssigneeIds(task));
   return resources.filter(resource =>
-    task.assigneeIds?.includes(resource.id || -1) ||
-    ownerTokens.some(token => token === String(resource.tapdAccount || '').toLowerCase() || token === resource.name.trim().toLowerCase())
+    assigneeIds.has(resource.id || -1) ||
+    ownerTokens.some(token => token === String(resource.tapdAccount || '').trim().toLowerCase() || token === resource.name.trim().toLowerCase())
   ).map(resource => resource.role || '').join(' ');
 }
 
@@ -306,11 +308,7 @@ function normalizedWorkitemType(task: Task): string {
 
 /** TAPD can carry the owner even when local resource matching has not populated assigneeIds. */
 export function hasTaskAssignee(task: Task): boolean {
-  if (task.assigneeIds?.some(id => Number.isFinite(id))) return true;
-  return String(task.tapdOwner || '')
-    .split(/[;,，；]/)
-    .map(value => value.trim().toLowerCase())
-    .some(value => value && !['0', '-', 'none', 'null', 'undefined', '未分配', '待分配'].includes(value));
+  return hasNormalizedTaskAssignee(task);
 }
 
 function isExplicitUiStory(task: Task): boolean {

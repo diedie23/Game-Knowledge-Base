@@ -28,6 +28,7 @@ import {
   resolveMemberTypeAfterTapdSync,
 } from '../utils/memberClassification';
 import { isEpicWorkitemTypeName } from '../utils/taskHierarchy';
+import { getTaskAssigneeIds } from '../utils/taskAssignee';
 import {
   configContainsTapdWorkspace,
   createTapdSyncId,
@@ -2948,7 +2949,7 @@ export class TapdService {
           tapdParentId,
           assigneeIds: cleanTask.assigneeIds && cleanTask.assigneeIds.length > 0
             ? cleanTask.assigneeIds
-            : existing.assigneeIds, // Preserve existing assignments if no match
+            : getTaskAssigneeIds(existing), // Preserve existing assignments if no match
           externalUrl: cleanTask.externalUrl || existing.externalUrl,
           tapdWorkspaceId: workspaceId,
           syncId,
@@ -3460,7 +3461,7 @@ export class TapdService {
 
       // Combine the TAPD owner with any configured CP supplier named in the title.
       const tapdOwner = (remote as any)._tapdOwner as string | undefined;
-      const validLocalIds = (localTask.assigneeIds || []).filter(id => !isNaN(id));
+      const validLocalIds = getTaskAssigneeIds(localTask);
       const supplierIds = matchCpResourcesFromTitle(remote.title || localTask.title, cachedResources);
       const ownerIds = tapdOwner
         ? await this.matchOwnerToResources(tapdOwner, cachedResources, projectId)
@@ -3583,10 +3584,16 @@ export class TapdService {
         else if (matchedIds.length > 0 && localTask.workCategory !== 'self_made') silentUpdates.workCategory = 'self_made';
         silentUpdates.syncedAt = Date.now();
         silentUpdates.syncSource = 'tapd';
-        // Fix corrupted assigneeIds containing NaN values
-        if (localTask.assigneeIds && localTask.assigneeIds.some(id => isNaN(id))) {
-          const validIds = localTask.assigneeIds.filter(id => !isNaN(id));
-          silentUpdates.assigneeIds = validIds.length > 0 ? validIds : [];
+        // Normalize IDs from older imports, including numeric strings and legacy assigneeId.
+        const normalizedLocalIds = getTaskAssigneeIds(localTask);
+        const rawLocalIds: unknown[] = Array.isArray((localTask as Task & { assigneeIds?: unknown }).assigneeIds)
+          ? (localTask as Task & { assigneeIds?: unknown }).assigneeIds as unknown[]
+          : [];
+        const idsChanged = rawLocalIds.length !== normalizedLocalIds.length
+          || rawLocalIds.some((value, index) => Number(value) !== normalizedLocalIds[index]);
+        if (idsChanged || localTask.assigneeId !== undefined) {
+          silentUpdates.assigneeIds = normalizedLocalIds;
+          silentUpdates.assigneeId = undefined;
         }
         if (Object.keys(silentUpdates).length > 0) {
           await db.tasks.update(localTask.id!, silentUpdates);

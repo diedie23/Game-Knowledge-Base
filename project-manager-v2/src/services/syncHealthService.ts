@@ -2,6 +2,7 @@ import { db } from '../db/db';
 import type { TapdConfig, SyncRangeConfig } from '../types/tapd';
 import type { SyncMeta, SyncOperation, SyncSummary } from '../types/sync';
 import { parseTapdWorkspaceIds } from '../utils/tapdIdentity';
+import { getTaskAssigneeIds } from '../utils/taskAssignee';
 
 export type SyncHealthStatus = 'aligned' | 'attention' | 'partial' | 'unknown' | 'not_configured';
 
@@ -187,7 +188,7 @@ export async function getTapdSyncHealth(projectId: number): Promise<TapdSyncHeal
   );
   const linkedTasks = tasks.filter(isLinked);
   const manualTasks = tasks.filter(task => !isLinked(task));
-  const unmatchedOwnerCount = linkedTasks.filter(task => String(task.tapdOwner || '').trim() && !(task.assigneeIds || []).length).length;
+  const unmatchedOwnerCount = linkedTasks.filter(task => String(task.tapdOwner || '').trim() && getTaskAssigneeIds(task).length === 0).length;
   const status = evaluateTapdSyncStatus({
     meta,
     linkedTaskCount: linkedTasks.length,

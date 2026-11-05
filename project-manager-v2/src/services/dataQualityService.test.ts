@@ -34,6 +34,14 @@ describe('auditTaskDataQuality', () => {
     expect(audit.issues.filter(issue => issue.type === 'unmapped-owner').map(issue => issue.task?.id)).toEqual([10]);
   });
 
+  it('does not report string or legacy assignee IDs as unmapped owners', () => {
+    const audit = auditTaskDataQuality([
+      task(12, { title: '【视觉设计】字符串负责人', assigneeIds: ['1'] as unknown as number[] }),
+      task(13, { title: '【视觉设计】历史负责人', assigneeId: 1 }),
+    ], resources, new Date('2026-09-28'));
+    expect(audit.issues.filter(issue => issue.type === 'unmapped-owner')).toHaveLength(0);
+  });
+
   it('keeps the quality score comparable on large workspaces', () => {
     const tasks = Array.from({ length: 80 }, (_, index) => task(index + 100, { tapdWorkitemTypeName: undefined }));
     const audit = auditTaskDataQuality(tasks, [], new Date('2026-09-28T12:00:00'));

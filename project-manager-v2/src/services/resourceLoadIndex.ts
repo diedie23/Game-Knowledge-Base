@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import type { Resource, Task } from '../types';
 import { dedupeResourcesForDisplay, getResourceAliasIds } from '../utils/resourceDedup';
 import { getActiveLeafTasks } from '../utils/taskHierarchy';
+import { getTaskAssigneeIds } from '../utils/taskAssignee';
 import { DEFAULT_RESOURCE_CAPACITY, mergeCapacity } from './capacityService';
 import type { ResourceCapacity } from '../types/scheduling';
 
@@ -75,10 +76,11 @@ export function buildResourceLoadIndex(
   const activeLeafIds = new Set(getActiveLeafTasks(tasks).map(task => task.id).filter((id): id is number => id !== undefined));
   for (const task of tasks) {
     if (task.id !== undefined && (!activeLeafIds.has(task.id) || _parentTaskIds.has(task.id))) continue;
-    if (!task.startDate || !task.endDate || !task.assigneeIds?.length) continue;
+    const taskAssigneeIds = getTaskAssigneeIds(task);
+    if (!task.startDate || !task.endDate || taskAssigneeIds.length === 0) continue;
 
     const assignedResourceIds = new Set<number>();
-    for (const assignmentId of task.assigneeIds) {
+    for (const assignmentId of taskAssigneeIds) {
       const visibleResourceId = visibleByAssignmentId.get(assignmentId);
       if (visibleResourceId != null) assignedResourceIds.add(visibleResourceId);
     }

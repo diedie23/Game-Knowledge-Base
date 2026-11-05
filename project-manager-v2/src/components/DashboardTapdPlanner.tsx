@@ -10,6 +10,7 @@ import { getPriorityLabel } from '../utils/priority';
 import { auditTaskDataQuality, getScheduleGate } from '../services/dataQualityService';
 import { buildTaskHierarchyIndex } from '../utils/taskHierarchy';
 import { createScheduleSnapshot, type ScheduleSnapshotChange, type ScheduleSnapshotRecommendation } from '../services/scheduleSnapshotService';
+import { getTaskAssigneeIds, getTaskOwnerTokens, hasTaskAssignee } from '../utils/taskAssignee';
 
 interface Props {
   tasks: Task[];
@@ -124,8 +125,8 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
       if (focusFilter === 'urgent' && !urgent) return false;
       if (focusFilter === 'dueSoon' && !dueSoon) return false;
       if (focusFilter === 'capacity' && !capacityRisk) return false;
-      if (focusFilter === 'unassigned' && !!task.assigneeIds?.length) return false;
-      if (focusFilter === 'hasOwner' && !task.assigneeIds?.length) return false;
+      if (focusFilter === 'unassigned' && hasTaskAssignee(task)) return false;
+      if (focusFilter === 'hasOwner' && !hasTaskAssignee(task)) return false;
       if (focusFilter === 'action' && !todayMustHandle && !dueSoon && !item.tags.includes('unscheduled')) return false;
       if (!query) return true;
       const searchable = [task.title, task.tapdId, task.tapdOwner, task.module, task.tapdWorkitemTypeName]
@@ -181,7 +182,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     const proposedEnds = applicableSelectedItems.map(item => item.suggestion.endDate.getTime());
     return {
       currentMissingSchedule: selectedItems.filter(item => !item.task.startDate || !item.task.endDate).length,
-      currentUnassigned: selectedItems.filter(item => !item.task.assigneeIds?.length).length,
+      currentUnassigned: selectedItems.filter(item => !hasTaskAssignee(item.task)).length,
       currentPeakUtilization: Math.max(0, ...selectedItems.map(item => item.suggestion.currentPeakUtilization)),
       applicable: applicableSelectedItems.length,
       review: selectedItems.length - applicableSelectedItems.length,
@@ -447,7 +448,9 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
         {items.map(item => {
           const style = LEVEL_STYLE[item.level];
           const suggestion = item.suggestion!;
-          const assignees = (item.task.assigneeIds || []).map(id => resourceById.get(id)?.name).filter(Boolean).join('、') || '未匹配处理人';
+          const assignees = getTaskAssigneeIds(item.task).map(id => resourceById.get(id)?.name || `#${id}`).join('、')
+            || getTaskOwnerTokens(item.task.tapdOwner).join('、')
+            || '未匹配处理人';
           const isSelected = !!item.task.id && selectedIds.has(item.task.id);
           const qualityReasons = item.task.id ? (criticalQualityByTask.get(item.task.id) || []) : [];
           const decision = suggestion.decision || getTapdScheduleDecision(suggestion, qualityReasons.length > 0);

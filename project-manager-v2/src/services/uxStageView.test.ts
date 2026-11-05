@@ -249,6 +249,12 @@ describe('UX stage rows', () => {
     expect(hasTaskAssignee(task(16, '视觉设计'))).toBe(false);
   });
 
+  it('normalizes legacy and string assignee IDs before deciding whether a stage is unassigned', () => {
+    expect(hasTaskAssignee(task(17, '视觉设计', { assigneeIds: ['123'] as unknown as number[] }))).toBe(true);
+    expect(hasTaskAssignee(task(18, '视觉设计', { assigneeId: '123' }))).toBe(true);
+    expect(hasTaskAssignee(task(19, '视觉设计', { tapdOwner: '姓名（v_zypgzhang）' }))).toBe(true);
+  });
+
   it('places generic UI children by their handler role without classifying the parent itself', () => {
     const rows = buildStageRows([
       task(20, '【会议流程】图标', { status: 'done', tapdWorkitemTypeName: 'UIStory' }),

@@ -7,6 +7,7 @@ import { getNextWorkingDays, isWorkingDay } from '../utils/dateUtils';
 import { smartAssignService } from './smartAssignService';
 import { estimateTaskEffort, getResourceDailyHours, getScenarioCapacity, taskDurationDays, taskHoursPerWorkingDay as sharedTaskHoursPerWorkingDay, createScheduleScenario, type ScheduleScenario } from './schedulingKernel';
 import { relatedCheckpointLabel, resourceStage, taskStage, taskStatus, type CoreUxStage } from './uxStageView';
+import { getTaskAssigneeIds, hasTaskAssignee } from '../utils/taskAssignee';
 import { assessTaskRisk, buildTaskRiskContext, type RiskLevel, type RiskTag } from './workloadService';
 
 export interface TapdScheduleAlternative {
@@ -347,7 +348,7 @@ function candidateType(task: Task, currentResources: Resource[]): Resource['type
 
 function matchingResources(task: Task, resources: Resource[]): Resource[] {
   const resourceById = new Map(resources.filter(resource => resource.id).map(resource => [resource.id!, resource]));
-  const currentResources = (task.assigneeIds || []).map(id => resourceById.get(id)).filter((resource): resource is Resource => !!resource);
+  const currentResources = getTaskAssigneeIds(task).map(id => resourceById.get(id)).filter((resource): resource is Resource => !!resource);
   const expectedStage = taskStage(task, resources);
   const currentRoles = [...new Set(currentResources.map(resource => (resource.role || '').trim().toLowerCase()).filter(Boolean))];
   const expectedRole = expectedStage ? undefined : currentRoles.length === 1 ? currentRoles[0] : undefined;
@@ -369,7 +370,7 @@ export function assessTapdScheduleReadiness(
 ): TapdScheduleReadiness {
   const stage = taskStage(task, resources);
   const reasons: string[] = [];
-  if (!stage && !(task.assigneeIds || []).length) reasons.push('无法确认任务工种');
+  if (!stage && getTaskAssigneeIds(task).length === 0) reasons.push('无法确认任务工种');
   if (matchingResources(task, resources).length === 0) reasons.push('没有匹配的同工种人员');
   if (!task.estimatedHours || task.estimatedHours <= 0) reasons.push('缺少预估工时');
   if (tags.includes('blocked')) reasons.push('任务存在卡点');
@@ -424,7 +425,7 @@ export function buildTapdScheduleSuggestion(
   const scheduleScenario = scenario || createScheduleScenario(tasks, resources, capacities, today);
   const context = planningContext || buildTapdPlanningContext(tasks);
   const resourceById = new Map(resources.filter(resource => resource.id).map(resource => [resource.id!, resource]));
-  const currentResources = (task.assigneeIds || []).map(id => resourceById.get(id)).filter((resource): resource is Resource => !!resource);
+  const currentResources = getTaskAssigneeIds(task).map(id => resourceById.get(id)).filter((resource): resource is Resource => !!resource);
   const currentResource = currentResources[0];
   const effort = estimateTaskEffort(task, tasks, resources);
   const currentDailyHours = currentResource ? getResourceDailyHours(currentResource, scheduleScenario) : 8;
@@ -718,7 +719,7 @@ export function buildTapdPlanningItems(
 
     const assessed = assessTaskRisk(task, tasks, resources, today, context);
     const missingSchedule = !task.startDate || !task.endDate;
-    const missingAssignee = !task.assigneeIds?.length;
+    const missingAssignee = !hasTaskAssignee(task);
     const reasons = assessed.riskReasons.map(reason => reason.text);
     const tags: TapdPlanningItem['tags'] = assessed.riskReasons.map(reason => reason.tag);
 

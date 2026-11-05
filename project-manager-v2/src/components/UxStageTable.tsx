@@ -9,6 +9,7 @@ import { buildStageRows, getDemandProgressSummary, hasTaskAssignee, STAGES, STAG
 import { getPriorityLabel } from '../utils/priority';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 import { getRequirementKindLabel } from '../utils/taskHierarchy';
+import { getTaskAssigneeIds, getTaskOwnerTokens } from '../utils/taskAssignee';
 
 function dateLabel(value?: Date) {
   if (!value) return '未排期';
@@ -137,7 +138,7 @@ export function UxStageTable() {
       if (value && !result.includes(value)) result.push(value);
     };
     items.forEach(task => {
-      const localIds = task.assigneeIds || [];
+      const localIds = getTaskAssigneeIds(task);
       localIds.forEach(id => {
         const resource = resources.find(r => r.id === id);
         if (resource) append(formatResourceDisplayName(resource));
@@ -146,15 +147,11 @@ export function UxStageTable() {
       // A TAPD owner is shown only when this task has no mapped local owner.
       // This avoids both false "待分配" labels and duplicate TAPD-* labels.
       if (localIds.length === 0) {
-        String(task.tapdOwner || '')
-          .split(/[;,，；]/)
-          .map(value => value.trim())
-          .filter(Boolean)
+        getTaskOwnerTokens(task.tapdOwner)
           .forEach(owner => {
-            const normalizedOwner = owner.toLowerCase();
             const matchedResource = resources.find(resource =>
-              resource.tapdAccount?.trim().toLowerCase() === normalizedOwner
-              || resource.name.trim().toLowerCase() === normalizedOwner,
+              resource.tapdAccount?.trim().toLowerCase() === owner
+              || resource.name.trim().toLowerCase() === owner,
             );
             append(matchedResource ? formatResourceDisplayName(matchedResource) : owner);
           });
@@ -183,7 +180,7 @@ export function UxStageTable() {
       if (selectedOwner === 'all') return true;
       const items = row.stages[s.key];
       if (selectedOwner === 'unassigned') return items.some(t => !hasTaskAssignee(t));
-      return items.some(t => t.assigneeIds?.includes(Number(selectedOwner)));
+      return items.some(t => getTaskAssigneeIds(t).includes(Number(selectedOwner)));
     });
     if (!ownersMatch) return false;
     // “已完成” follows TAPD workflow progress, with all-stage completion as a fallback.
@@ -195,7 +192,7 @@ export function UxStageTable() {
       const selectedOwner = stageOwners[s.key];
       return row.stages[s.key].some(t => taskStatus(t) === status && (
         selectedOwner === 'all' ||
-        (selectedOwner === 'unassigned' ? !hasTaskAssignee(t) : t.assigneeIds?.includes(Number(selectedOwner)))
+        (selectedOwner === 'unassigned' ? !hasTaskAssignee(t) : getTaskAssigneeIds(t).includes(Number(selectedOwner)))
       ));
     });
   }).sort((a, b) => {

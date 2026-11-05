@@ -12,6 +12,8 @@ export interface Task {
   /** Undefined means TAPD has no requirement priority; do not invent a local default. */
   priority?: TaskPriority;
   assigneeIds?: number[];
+  /** Legacy single-assignee field retained for runtime compatibility with older local records. */
+  assigneeId?: number | string;
   startDate?: Date;
   endDate?: Date;
   progress: number;
