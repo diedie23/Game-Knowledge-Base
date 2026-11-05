@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { AlertTriangle, AlertCircle, Clock, ChevronDown, ChevronRight, X, ShieldAlert, Users } from 'lucide-react';
+import { AlertTriangle, AlertCircle, Clock, ChevronDown, ChevronRight, X, ShieldAlert, Users, ArrowRight, UserRound, Split, Flag, CalendarClock, CircleHelp } from 'lucide-react';
 import type { Task } from '../../db/db';
 import type { Resource } from '../../types';
-import { type TaskRisk, type RiskLevel, type RiskTag, RISK_THRESHOLDS } from '../../services/workloadService';
+import { type TaskRisk, type RiskLevel, type RiskTag } from '../../services/workloadService';
+import { getRiskActionPlan, type RiskActionType } from '../../services/riskActionService';
 
 interface RiskEntry {
   task: Task;
@@ -63,6 +64,15 @@ const RISK_LEVEL_CONFIG: Record<Exclude<RiskLevel, 'none'>, {
 };
 
 const RISK_ORDER: Exclude<RiskLevel, 'none'>[] = ['critical', 'high', 'medium', 'low'];
+
+const ACTION_ICON: Record<RiskActionType, React.ReactNode> = {
+  delay: <CalendarClock size={10} />,
+  reassign: <UserRound size={10} />,
+  split: <Split size={10} />,
+  reprioritize: <Flag size={10} />,
+  move_downstream: <ArrowRight size={10} />,
+  confirm_blocker: <CircleHelp size={10} />,
+};
 
 /** Risk tag display configuration */
 const RISK_TAG_CONFIG: { tag: RiskTag; label: string; icon: string }[] = [
@@ -314,6 +324,28 @@ export const GanttRiskPanel = React.memo(function GanttRiskPanel({
                                 </span>
                               );
                             })}
+                          </div>
+
+                          {/* Action plan */}
+                          <div className="mt-2 rounded-md border border-indigo-500/20 bg-indigo-500/[0.06] px-2 py-1.5">
+                            <div className="mb-1 flex items-center gap-1 text-[9px] font-semibold text-indigo-300">
+                              <ArrowRight size={10} />建议行动
+                            </div>
+                            <div className="space-y-1">
+                              {getRiskActionPlan(task, risk).map(action => (
+                                <button
+                                  key={action.type}
+                                  type="button"
+                                  onClick={(event) => { event.stopPropagation(); onOpenTask(task.id); }}
+                                  title={action.reason}
+                                  className={`flex w-full items-center gap-1.5 rounded px-1.5 py-1 text-left text-[9px] transition-colors hover:bg-indigo-500/15 ${action.priority === 'primary' ? 'text-indigo-200' : 'text-gray-400'}`}
+                                >
+                                  <span className="shrink-0">{ACTION_ICON[action.type]}</span>
+                                  <span className="font-medium">{action.label}</span>
+                                  <span className="min-w-0 flex-1 truncate">{action.reason}</span>
+                                </button>
+                              ))}
+                            </div>
                           </div>
 
                           {/* Assignees */}
