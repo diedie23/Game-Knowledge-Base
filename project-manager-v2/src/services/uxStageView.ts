@@ -54,6 +54,33 @@ export function childDemandComposition(relatedTasks: Task[]): ChildDemandComposi
   return undefined;
 }
 
+interface ResourceStageIndex {
+  byId: Map<number, CoreUxStage | undefined>;
+  byAccount: Map<string, CoreUxStage | undefined>;
+  byName: Map<string, CoreUxStage | undefined>;
+}
+
+const resourceStageCache = new WeakMap<Resource[], ResourceStageIndex>();
+
+function getResourceStageIndex(resources: Resource[]): ResourceStageIndex {
+  const cached = resourceStageCache.get(resources);
+  if (cached) return cached;
+  const byId = new Map<number, CoreUxStage | undefined>();
+  const byAccount = new Map<string, CoreUxStage | undefined>();
+  const byName = new Map<string, CoreUxStage | undefined>();
+  resources.forEach(resource => {
+    const stage = resourceStage(resource);
+    if (resource.id != null) byId.set(resource.id, stage);
+    const name = resource.name.trim().toLowerCase();
+    if (name) byName.set(name, stage);
+    const account = String(resource.tapdAccount || '').trim().toLowerCase();
+    if (account) byAccount.set(account, stage);
+  });
+  const index = { byId, byAccount, byName };
+  resourceStageCache.set(resources, index);
+  return index;
+}
+
 function detectGenericTaskStage(task: Task, resources: Resource[] = []): CoreUxStage | undefined {
   const detected = detectUxStage(task.title).stage;
   if (detected && STAGES.some(stage => stage.key === detected)) return detected as CoreUxStage;
@@ -65,13 +92,14 @@ function detectGenericTaskStage(task: Task, resources: Resource[] = []): CoreUxS
   if (/(?:动效|动画|Motion|VFX|VX)/i.test(task.title)) return 'motion';
 
   const ownerTokens = String(task.tapdOwner || '').split(/[;,，；]/).map(value => value.trim().toLowerCase()).filter(Boolean);
-  const assigned = resources.filter(resource =>
-    task.assigneeIds?.includes(resource.id || -1) ||
-    ownerTokens.some(token => token === String(resource.tapdAccount || '').toLowerCase() || token === resource.name.trim().toLowerCase())
-  );
+  const resourceIndex = getResourceStageIndex(resources);
   const matchedStages = new Set<CoreUxStage>();
-  assigned.forEach(resource => {
-    const matched = resourceStage(resource);
+  (task.assigneeIds || []).forEach(resourceId => {
+    const matched = resourceIndex.byId.get(resourceId);
+    if (matched) matchedStages.add(matched);
+  });
+  ownerTokens.forEach(token => {
+    const matched = resourceIndex.byAccount.get(token) ?? resourceIndex.byName.get(token);
     if (matched) matchedStages.add(matched);
   });
   return matchedStages.size === 1 ? [...matchedStages][0] : undefined;
@@ -305,7 +333,9 @@ export function buildStageRows(tasks: Task[], resources: Resource[] = []): Stage
   const children = new Map<number, Task[]>();
   tasks.forEach(t => {
     if (t.parentId && byId.get(t.parentId)?.projectId === t.projectId) {
-      children.set(t.parentId, [...(children.get(t.parentId) || []), t]);
+      const siblings = children.get(t.parentId) || [];
+      siblings.push(t);
+      children.set(t.parentId, siblings);
     }
   });
   const explicitUiStories = tasks.filter(isExplicitUiStory);

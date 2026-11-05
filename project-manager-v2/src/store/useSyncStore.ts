@@ -114,10 +114,18 @@ syncEngine.on((event: SyncEvent) => {
 
     case 'complete':
       if (event.data.pushed !== undefined) {
+        const retryLabel = event.data.retries > 0 ? `, ${event.data.retries} retries` : '';
         store.addLogEntry(
-          `Push complete: ${event.data.pushed} synced, ${event.data.failed} failed`,
+          `Push complete: ${event.data.pushed} synced, ${event.data.failed} failed${retryLabel}`,
           event.data.failed > 0 ? 'warning' : 'success'
         );
+        if (event.data.failures?.length > 0) {
+          const firstFailure = event.data.failures[0];
+          store.addLogEntry(
+            `Push detail: ${firstFailure.title || `record #${firstFailure.recordId}`} — ${firstFailure.message}`,
+            'error'
+          );
+        }
       }
       if (event.data.pulled !== undefined) {
         store.addLogEntry(

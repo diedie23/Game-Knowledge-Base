@@ -51,7 +51,41 @@ export class MockSyncAdapter implements SyncAdapter {
  * TapdSyncAdapter - real TAPD integration via MCP proxy.
  * Delegates to tapdService for actual API calls.
  */
-const TAPD_WRITE_FIELDS = new Set(['title', 'description', 'status', 'priority', 'startDate', 'endDate']);
+export const TAPD_WRITE_FIELDS = new Set(['title', 'description', 'status', 'priority', 'startDate', 'endDate']);
+
+export interface TapdWriteValidation {
+  valid: boolean;
+  changedFields: string[];
+  unsupportedFields: string[];
+  workspaceId?: string;
+  reason?: string;
+}
+
+export function validateTapdWrite(
+  log: ChangeLog,
+  task: Task | undefined,
+  adapterWorkspaceIds: string[],
+): TapdWriteValidation {
+  const changedFields = Object.keys(log.changes || {});
+  const unsupportedFields = changedFields.filter(field => !TAPD_WRITE_FIELDS.has(field));
+  const fail = (reason: string): TapdWriteValidation => ({
+    valid: false,
+    changedFields,
+    unsupportedFields,
+    reason,
+  });
+
+  if (log.table !== 'tasks') return fail(`TAPD 当前不支持同步 ${log.table} 表变更，请保留待同步记录并人工处理`);
+  if (log.action !== 'update') return fail(`TAPD 当前不支持本地 ${log.action === 'create' ? '新建' : '删除'}任务回写，请先在 TAPD 中操作`);
+  if (!task) return fail(`本地任务 #${log.recordId} 不存在，无法确认 TAPD 回写对象`);
+  if (!task.tapdId) return fail(`本地任务「${task.title}」没有 TAPD ID，无法安全回写`);
+  if (unsupportedFields.length > 0) return fail(`TAPD 暂不支持回写字段：${unsupportedFields.join('、')}`);
+  if (changedFields.length === 0) return fail(`任务 #${log.recordId} 没有可回写的字段变化`);
+
+  const workspaceId = task.tapdWorkspaceId || adapterWorkspaceIds[0];
+  if (!workspaceId) return fail(`任务「${task.title}」缺少 TAPD 工作区身份，无法安全回写`);
+  return { valid: true, changedFields, unsupportedFields, workspaceId };
+}
 
 export class TapdSyncAdapter implements SyncAdapter {
   readonly name = 'tapd';
@@ -75,36 +109,17 @@ export class TapdSyncAdapter implements SyncAdapter {
 
     for (const log of logs) {
       try {
-        if (log.table !== 'tasks') {
-          throw new Error(`TAPD 当前不支持同步 ${log.table} 表变更，请保留待同步记录并人工处理`);
-        }
-        if (log.action !== 'update') {
-          throw new Error(`TAPD 当前不支持本地 ${log.action === 'create' ? '新建' : '删除'}任务回写，请先在 TAPD 中操作`);
-        }
-
         const task = await db.tasks.get(log.recordId);
-        if (!task) throw new Error(`本地任务 #${log.recordId} 不存在，无法确认 TAPD 回写对象`);
-        if (!task.tapdId) throw new Error(`本地任务「${task.title}」没有 TAPD ID，无法安全回写`);
-
-        const changedFields = Object.keys(log.changes || {});
-        const unsupportedFields = changedFields.filter(field => !TAPD_WRITE_FIELDS.has(field));
-        if (unsupportedFields.length > 0) {
-          throw new Error(`TAPD 暂不支持回写字段：${unsupportedFields.join('、')}`);
-        }
+        const validation = validateTapdWrite(log, task, adapterWorkspaceIds);
+        if (!validation.valid) throw new Error(validation.reason);
 
         const updates: Partial<Task> = {};
         for (const [field, change] of Object.entries(log.changes || {})) {
           (updates as any)[field] = change.to;
         }
-        if (Object.keys(updates).length === 0) {
-          throw new Error(`任务 #${log.recordId} 没有可回写的字段变化`);
-        }
-
-        const workspaceId = task.tapdWorkspaceId || adapterWorkspaceIds[0];
-        if (!workspaceId) throw new Error(`任务「${task.title}」缺少 TAPD 工作区身份，无法安全回写`);
-        const updated = await tapdService.updateTask(workspaceId, task.tapdId, updates);
+        const updated = await tapdService.updateTask(validation.workspaceId!, task!.tapdId!, updates);
         if (!updated) {
-          throw new Error(`TAPD 未确认任务 ${task.tapdId} 的更新`);
+          throw new Error(`TAPD 未确认任务 ${task!.tapdId} 的更新`);
         }
       } catch (error) {
         console.error(`[TapdSyncAdapter] Failed to push change for task ${log.recordId}:`, error);

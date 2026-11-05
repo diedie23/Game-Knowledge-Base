@@ -11,7 +11,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useStore } from '../store/useStore';
 import { useSyncStore } from '../store/useSyncStore';
 import { db } from '../db/db';
-import type { SyncConflict, SyncResult, ImportResult } from '../types';
+import type { SyncConflict, SyncResult, ImportResult, SyncFailure } from '../types';
 import { tapdService, TapdImportService } from '../services/tapdService';
 import { refreshCoordinator } from '../services/refreshCoordinator';
 import type { PreviewRow, PreviewResult } from '../services/tapdService';
@@ -65,7 +65,7 @@ export function TapdModal() {
   const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [localSyncStatus, setLocalSyncStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  const [syncResult, setSyncResult] = useState<{ pushed: number; pulled: number; conflicts: number; errors: number } | null>(null);
+  const [syncResult, setSyncResult] = useState<{ pushed: number; pulled: number; conflicts: number; errors: number; retries: number; failures: SyncFailure[] } | null>(null);
   const [upsertResult, setUpsertResult] = useState<SyncResult | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
@@ -1112,7 +1112,7 @@ export function TapdModal() {
       const result = await syncEngine.pushPendingChanges(selectedProjectId);
       await refreshConflicts(selectedProjectId ?? undefined);
       const conflicts = (await conflictResolver.getUnresolvedConflicts()).length;
-      setSyncResult({ pushed: result.pushed, pulled: 0, conflicts, errors: result.failed });
+      setSyncResult({ pushed: result.pushed, pulled: 0, conflicts, errors: result.failed, retries: result.retries, failures: result.failures });
       await refreshStats(selectedProjectId ?? undefined);
     } catch (err: any) {
       setErrorMessage(err?.message || '推送失败');
@@ -1148,7 +1148,7 @@ export function TapdModal() {
     try {
       await configureSyncAdapter();
       const result = await tapdService.syncTasksToLocalEnhanced(selectedProjectId);
-      setSyncResult({ pushed: 0, pulled: result.total, conflicts: 0, errors: 0 });
+      setSyncResult({ pushed: 0, pulled: result.total, conflicts: 0, errors: 0, retries: 0, failures: [] });
       // Auto-sync parent dates after pull
       await syncAllParentDateRanges();
       await refreshStats(selectedProjectId ?? undefined);
@@ -2325,6 +2325,7 @@ export function TapdModal() {
                       <span className="text-purple-300">合并 {syncHealth.summary.merged ?? 0}</span>
                       <span className="text-amber-300">清理 {(syncHealth.summary.cleaned ?? 0) + (syncHealth.summary.deduplicated ?? 0)}</span>
                       <span className={syncHealth.summary.failed ? 'text-red-300' : ''}>失败/待确认 {syncHealth.summary.failed ?? 0}</span>
+                      {(syncHealth.summary.retries ?? 0) > 0 && <span className="text-sky-300">自动重试 {syncHealth.summary.retries} 次</span>}
                     </div>
                   )}
                 </div>
@@ -2743,7 +2744,30 @@ export function TapdModal() {
                         {syncResult.errors} 条
                       </span>
                     </div>
+                    <div className="flex items-center gap-1.5">
+                      <RefreshCw size={11} className="text-sky-400" />
+                      <span className="text-gray-400">重试:</span>
+                      <span className={`font-medium font-mono tabular-nums ${syncResult.retries > 0 ? 'text-sky-300' : 'text-white'}`}>
+                        {syncResult.retries} 次
+                      </span>
+                    </div>
                   </div>
+                  {syncResult.failures.length > 0 && (
+                    <div className="mt-2 border-t border-red-500/15 pt-2 space-y-1">
+                      <div className="text-[10px] font-medium text-red-300">回写失败明细（保留在本地队列）</div>
+                      {syncResult.failures.slice(0, 5).map((failure, index) => (
+                        <div key={`${failure.table}-${failure.recordId}-${index}`} className="rounded border border-red-500/10 bg-red-500/[0.05] px-2 py-1.5 text-[10px]">
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-300 truncate">{failure.title || `${failure.table} #${failure.recordId}`}</span>
+                            <span className="ml-auto shrink-0 text-gray-500">{failure.attempts} 次尝试</span>
+                          </div>
+                          <div className="mt-0.5 text-red-200/80 break-all">{failure.message}</div>
+                          <div className="mt-0.5 text-gray-500">{failure.retryable ? '临时网络错误，已执行自动重试' : '业务门禁错误，不会重复覆盖 TAPD'}{failure.fields.length > 0 ? ` · 字段：${failure.fields.map(field => SYNC_FIELD_LABEL[field] || field).join('、')}` : ''}</div>
+                        </div>
+                      ))}
+                      {syncResult.failures.length > 5 && <div className="text-[10px] text-gray-500">另有 {syncResult.failures.length - 5} 条失败明细，可在同步前差异预览中继续处理。</div>}
+                    </div>
+                  )}
                 </div>
               )}
 

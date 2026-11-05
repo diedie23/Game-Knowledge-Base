@@ -85,13 +85,10 @@ export function Dashboard() {
     ];
     Promise.allSettled(refreshOperations.map(operation => operation.run())).then(results => {
       if (!active) return;
-      const fulfilledSnapshots = results
-        .filter((result): result is PromiseFulfilledResult<{ refreshedAt: number; servedFromCache: boolean }> =>
-          result.status === 'fulfilled'
-          && !!result.value
-          && typeof result.value.refreshedAt === 'number',
-        )
-        .map(result => result.value);
+      const fulfilledSnapshots = results.flatMap(result => {
+        if (result.status !== 'fulfilled' || !result.value || typeof result.value.refreshedAt !== 'number') return [];
+        return [{ refreshedAt: result.value.refreshedAt, servedFromCache: result.value.servedFromCache }];
+      });
       if (fulfilledSnapshots.length > 0) {
         setTapdLastRefreshedAt(Math.max(...fulfilledSnapshots.map(snapshot => snapshot.refreshedAt)));
         setTapdServedFromCache(fulfilledSnapshots.every(snapshot => snapshot.servedFromCache));
@@ -99,10 +96,11 @@ export function Dashboard() {
       const failures = results
         .map((result, index) => ({ result, label: refreshOperations[index].label }))
         .filter(item => item.result.status === 'rejected');
-      const releaseResult = results[2] as PromiseSettledResult<Awaited<ReturnType<typeof refreshCoordinator.refreshReleasePlans>>>;
+      const releaseResult = results[2];
       if (releaseResult.status === 'fulfilled') {
-        setReleasePlans(releaseResult.value.value);
-        setReleasePlanState(releaseResult.value.value.length > 0 ? 'success' : 'empty');
+        const releaseValue = (releaseResult.value as { value: typeof releasePlans }).value;
+        setReleasePlans(releaseValue);
+        setReleasePlanState(releaseValue.length > 0 ? 'success' : 'empty');
       } else {
         setReleasePlanState('error');
       }
@@ -269,7 +267,7 @@ export function Dashboard() {
     const dueTodayCount = dueToday.filter(t => isTaskDueToday(t, today)).length;
 
     const groupTasksByParent = (taskList: any[]) => {
-      const groups = new Map<string, { parentTitle: string, items: any[], isStandalone?: boolean, parentTask?: any, isParentInList?: boolean }>();
+      const groups = new Map<number | string, { parentTitle: string, items: any[], isStandalone?: boolean, parentTask?: any, isParentInList?: boolean }>();
       taskList.forEach(task => {
         const parent = getTaskParent(task, hierarchy);
         if (parent?.id !== undefined) {

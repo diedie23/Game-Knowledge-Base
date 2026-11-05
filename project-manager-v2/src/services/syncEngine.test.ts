@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import { validateTapdWrite } from './syncAdapter';
 
 // Mock browser globals before importing syncEngine (which references window/navigator)
 vi.stubGlobal('navigator', { onLine: true });
@@ -8,7 +9,7 @@ vi.stubGlobal('window', {
 });
 
 // Dynamic import to ensure stubs are in place before module loads
-const { buildConflictResolutionData, conflictResolver } = await import('./syncEngine');
+const { buildConflictResolutionData, conflictResolver, isRetryableSyncError, runSyncWithRetry, SyncOperationError } = await import('./syncEngine');
 
 // ─── conflictResolver.detectConflicts ───────────────────────────
 describe('conflictResolver.detectConflicts', () => {
@@ -90,6 +91,63 @@ describe('conflictResolver.detectConflicts', () => {
     expect(result.hasConflict).toBe(false);
     expect(result.autoMerged.title).toBe('Task A v2');
     expect(result.autoMerged.progress).toBe(50);
+  });
+});
+
+describe('sync retry policy', () => {
+  it('recognizes transient gateway and network errors', () => {
+    expect(isRetryableSyncError(new Error('MCP 网关请求失败 (503)'))).toBe(true);
+    expect(isRetryableSyncError(new Error('TAPD 暂不支持回写字段'))).toBe(false);
+  });
+
+  it('returns the successful attempt count without waiting when no retry is configured', async () => {
+    const result = await runSyncWithRetry(async () => 'ok', { maxAttempts: 1, baseDelayMs: 0 });
+    expect(result).toEqual({ value: 'ok', attempts: 1 });
+  });
+
+  it('retries transient errors and reports the successful attempt count', async () => {
+    let calls = 0;
+    const result = await runSyncWithRetry(async () => {
+      calls += 1;
+      if (calls === 1) throw new Error('temporary network timeout');
+      return 'ok';
+    }, { maxAttempts: 2, baseDelayMs: 0 });
+
+    expect(result).toEqual({ value: 'ok', attempts: 2 });
+  });
+
+  it('preserves retry metadata when a transient error remains unavailable', async () => {
+    await expect(runSyncWithRetry(async () => {
+      throw new Error('gateway 503');
+    }, { maxAttempts: 2, baseDelayMs: 0 })).rejects.toMatchObject({
+      name: 'SyncOperationError',
+      attempts: 2,
+      retryable: true,
+      message: 'gateway 503',
+    });
+    expect(SyncOperationError).toBeDefined();
+  });
+});
+
+describe('TAPD write validation', () => {
+  const task = { id: 7, title: '视觉任务', tapdId: 'T-7', tapdWorkspaceId: 'workspace-a' } as any;
+
+  it('allows only supported fields for a TAPD task update', () => {
+    expect(validateTapdWrite({ table: 'tasks', recordId: 7, action: 'update', changes: { endDate: { from: 'a', to: 'b' } } } as any, task, ['workspace-a'])).toMatchObject({
+      valid: true,
+      changedFields: ['endDate'],
+      workspaceId: 'workspace-a',
+    });
+  });
+
+  it('blocks unsupported fields and missing TAPD identity', () => {
+    const unsupported = validateTapdWrite({ table: 'tasks', recordId: 7, action: 'update', changes: { capacityRisk: { from: false, to: true } } } as any, task, ['workspace-a']);
+    expect(unsupported.valid).toBe(false);
+    expect(unsupported.reason).toContain('capacityRisk');
+
+    const missingWorkspace = validateTapdWrite({ table: 'tasks', recordId: 7, action: 'update', changes: { title: { from: 'a', to: 'b' } } } as any, { ...task, tapdWorkspaceId: undefined } as any, []);
+    expect(missingWorkspace.valid).toBe(false);
+    expect(missingWorkspace.reason).toContain('工作区身份');
   });
 });
 

@@ -1,6 +1,6 @@
 import Dexie from 'dexie';
 import { db } from '../db/db';
-import type { Task, ChangeLog, SyncMeta, SyncConflict, SyncEvent } from '../types';
+import type { Task, ChangeLog, SyncMeta, SyncConflict, SyncEvent, SyncFailure } from '../types';
 import type { SyncStatus, SyncEventType } from '../types';
 import type { SyncAdapter } from './syncAdapter';
 import { MockSyncAdapter } from './syncAdapter';
@@ -90,7 +90,7 @@ export const changeTracker = {
       return await range.toArray();
     } catch {
       // Keep old databases usable while Dexie finishes opening/migrating.
-      const logs = await db.changeLogs.where('synced').equals(false).toArray();
+      const logs = await db.changeLogs.filter(log => !log.synced).toArray();
       return logs
         .filter(log => projectId == null || log.projectId === projectId)
         .sort((left, right) => left.timestamp - right.timestamp);
@@ -103,11 +103,11 @@ export const changeTracker = {
   },
 
   /** Increment sync attempt count and record error */
-  async recordSyncError(id: number, error: string) {
+  async recordSyncError(id: number, error: string, attempts = 1) {
     const log = await db.changeLogs.get(id);
     if (log) {
       await db.changeLogs.update(id, {
-        syncAttempts: (log.syncAttempts || 0) + 1,
+        syncAttempts: (log.syncAttempts || 0) + Math.max(1, attempts),
         lastError: error,
       });
     }
@@ -142,6 +142,65 @@ export function buildConflictResolutionData(
     ...selected,
     id: conflict.recordId,
     projectId: conflict.localVersion?.projectId ?? selected.projectId,
+  };
+}
+
+export const SYNC_RETRY_MAX_ATTEMPTS = 3;
+
+export function isRetryableSyncError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error || '');
+  return /network|timeout|timed out|fetch failed|temporar|503|502|504|429|连接|网关/i.test(message);
+}
+
+/** Keeps retry metadata attached to a failed push without hiding the original reason. */
+export class SyncOperationError extends Error {
+  readonly attempts: number;
+  readonly retryable: boolean;
+  readonly originalError: unknown;
+
+  constructor(error: unknown, attempts: number, retryable: boolean) {
+    const message = error instanceof Error ? error.message : String(error || '同步操作失败');
+    super(message);
+    this.name = 'SyncOperationError';
+    this.attempts = attempts;
+    this.retryable = retryable;
+    this.originalError = error;
+  }
+}
+
+export async function runSyncWithRetry<T>(
+  operation: () => Promise<T>,
+  options: { maxAttempts?: number; baseDelayMs?: number } = {},
+): Promise<{ value: T; attempts: number }> {
+  const maxAttempts = Math.max(1, options.maxAttempts ?? SYNC_RETRY_MAX_ATTEMPTS);
+  const baseDelayMs = Math.max(0, options.baseDelayMs ?? 250);
+  let attempts = 0;
+  while (attempts < maxAttempts) {
+    attempts += 1;
+    try {
+      return { value: await operation(), attempts };
+    } catch (error) {
+      const retryable = isRetryableSyncError(error);
+      const canRetry = attempts < maxAttempts && retryable;
+      if (!canRetry) throw new SyncOperationError(error, attempts, retryable);
+      await new Promise(resolve => setTimeout(resolve, baseDelayMs * 2 ** (attempts - 1)));
+    }
+  }
+  throw new SyncOperationError(new Error('同步操作未完成'), attempts, false);
+}
+
+function getSyncOperationFailure(error: unknown): Pick<SyncFailure, 'attempts' | 'retryable' | 'message'> {
+  if (error instanceof SyncOperationError) {
+    return {
+      attempts: error.attempts,
+      retryable: error.retryable,
+      message: error.message,
+    };
+  }
+  return {
+    attempts: 1,
+    retryable: isRetryableSyncError(error),
+    message: error instanceof Error ? error.message : String(error || '同步操作失败'),
   };
 }
 
@@ -342,15 +401,15 @@ class SyncEngine {
   }
 
   // ─── Push: Local → Remote ────────────────────────────────────
-  async pushPendingChanges(projectId?: number): Promise<{ pushed: number; failed: number }> {
+  async pushPendingChanges(projectId?: number): Promise<{ pushed: number; failed: number; retries: number; failures: SyncFailure[] }> {
     if (!this.isOnline) {
       this.setStatus('offline');
-      return { pushed: 0, failed: 0 };
+      return { pushed: 0, failed: 0, retries: 0, failures: [] };
     }
 
     const unsyncedLogs = await changeTracker.getUnsyncedChanges(projectId);
     if (unsyncedLogs.length === 0) {
-      return { pushed: 0, failed: 0 };
+      return { pushed: 0, failed: 0, retries: 0, failures: [] };
     }
     const affectedProjectIds = projectId == null
       ? [...new Set((await Promise.all(unsyncedLogs.map(log => this.getChangeProjectIds(log)))).flat())]
@@ -359,25 +418,41 @@ class SyncEngine {
     this.setStatus('pushing');
     let pushed = 0;
     let failed = 0;
+    let retries = 0;
+    const failures: SyncFailure[] = [];
 
     // Group changes by record to deduplicate
     const grouped = this.groupChangesByRecord(unsyncedLogs);
 
     const processGroup = async ([key, logs]: [string, ChangeLog[]]) => {
       try {
-        await this.adapter.pushChanges(logs);
+        const pushResult = await runSyncWithRetry(() => this.adapter.pushChanges(logs));
+        retries += Math.max(0, pushResult.attempts - 1);
         const ids = logs.map(l => l.id!).filter(Boolean);
         await changeTracker.markSynced(ids);
         const [table, recordIdStr] = key.split(':');
         const recordId = parseInt(recordIdStr, 10);
         if (table === 'tasks') await db.tasks.update(recordId, { syncedAt: Date.now() });
         pushed += logs.length;
-        this.emit({ type: 'progress', data: { pushed, total: unsyncedLogs.length } });
-      } catch (error: any) {
+        this.emit({ type: 'progress', data: { pushed, retries, total: unsyncedLogs.length } });
+      } catch (error: unknown) {
+        const failure = getSyncOperationFailure(error);
+        retries += Math.max(0, failure.attempts - 1);
         failed += logs.length;
+        const task = logs[0]?.table === 'tasks' ? await db.tasks.get(logs[0].recordId) : undefined;
+        const title = task?.title || logs[0]?.snapshot?.title;
         await Promise.all(logs.filter(log => log.id).map(log =>
-          changeTracker.recordSyncError(log.id!, error.message || 'Push failed')
+          changeTracker.recordSyncError(log.id!, failure.message, failure.attempts)
         ));
+        logs.forEach(log => failures.push({
+          table: log.table,
+          recordId: log.recordId,
+          title,
+          fields: Object.keys(log.changes || {}),
+          message: failure.message,
+          attempts: failure.attempts,
+          retryable: failure.retryable,
+        }));
       }
     };
 
@@ -388,7 +463,7 @@ class SyncEngine {
     }
 
     this.setStatus(failed > 0 ? 'error' : 'idle');
-    this.emit({ type: 'complete', data: { pushed, failed } });
+    this.emit({ type: 'complete', data: { pushed, failed, retries, failures } });
 
     // Update sync meta for each affected project independently.
     const pushCompletedAt = Date.now();
@@ -400,11 +475,11 @@ class SyncEngine {
         lastPushAt: pushCompletedAt,
         lastSyncOperation: 'push',
         status: failed > 0 ? 'error' : 'idle',
-        lastSyncSummary: { operation: 'push', pushed, failed },
+        lastSyncSummary: { operation: 'push', pushed, failed, retries, failures: failures.slice(0, 50) },
       })
     ));
 
-    return { pushed, failed };
+    return { pushed, failed, retries, failures };
   }
 
   // ─── Pull: Remote → Local ────────────────────────────────────
@@ -544,6 +619,8 @@ class SyncEngine {
     pulled: number;
     conflicts: number;
     errors: number;
+    retries: number;
+    failures: SyncFailure[];
   }> {
     // Step 1: Push local changes first
     const pushResult = await this.pushPendingChanges(projectId);
@@ -556,6 +633,8 @@ class SyncEngine {
       pulled: pullResult.pulled,
       conflicts: pullResult.conflicts,
       errors: pushResult.failed,
+      retries: pushResult.retries,
+      failures: pushResult.failures,
     };
   }
 

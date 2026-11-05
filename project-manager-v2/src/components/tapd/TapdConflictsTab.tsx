@@ -10,6 +10,18 @@ interface Props {
   onResolveConflict: (conflict: SyncConflict, resolution: 'local' | 'remote') => void;
 }
 
+const FIELD_LABEL: Record<string, string> = {
+  title: '标题', description: '描述', status: '状态', priority: '优先级',
+  startDate: '开始日期', endDate: '结束日期', progress: '进度', assigneeIds: '处理人',
+};
+
+function formatConflictValue(value: unknown): string {
+  if (value === undefined || value === null || value === '') return '—';
+  if (Array.isArray(value)) return value.join('、') || '—';
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
 export function TapdConflictsTab({ unresolvedConflicts, onResolveConflict }: Props) {
   if (unresolvedConflicts.length === 0) {
     return (
@@ -74,13 +86,16 @@ function ConflictCard({
         <div className="px-3 pb-3 space-y-2 border-t border-white/10 pt-2">
           <div className="space-y-1.5">
             {conflict.conflictFields.map(field => (
-              <div key={field} className="grid grid-cols-[80px_1fr_1fr] gap-1.5 text-[10px]">
-                <div className="text-gray-500 font-medium py-1">{field}</div>
-                <div className="bg-blue-500/10 border border-blue-500/15 rounded px-2 py-1 text-blue-300 truncate">
-                  本地: {JSON.stringify(conflict.localVersion?.[field]) || '—'}
+              <div key={field} className="grid grid-cols-[88px_1fr_1fr_1fr] gap-1.5 text-[10px]">
+                <div className="text-gray-500 font-medium py-1" title={field}>{FIELD_LABEL[field] || field}</div>
+                <div className="bg-blue-500/10 border border-blue-500/15 rounded px-2 py-1 text-blue-300 truncate" title={formatConflictValue(conflict.localVersion?.[field])}>
+                  本地: {formatConflictValue(conflict.localVersion?.[field])}
                 </div>
-                <div className="bg-purple-500/10 border border-purple-500/15 rounded px-2 py-1 text-purple-300 truncate">
-                  远程: {JSON.stringify(conflict.remoteVersion?.[field]) || '—'}
+                <div className="bg-purple-500/10 border border-purple-500/15 rounded px-2 py-1 text-purple-300 truncate" title={formatConflictValue(conflict.remoteVersion?.[field])}>
+                  远程: {formatConflictValue(conflict.remoteVersion?.[field])}
+                </div>
+                <div className="bg-gray-700/20 border border-gray-600/20 rounded px-2 py-1 text-gray-400 truncate" title={formatConflictValue(conflict.baseVersion?.[field])}>
+                  基线: {conflict.baseVersion ? formatConflictValue(conflict.baseVersion[field]) : '无基线'}
                 </div>
               </div>
             ))}

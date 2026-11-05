@@ -33,7 +33,7 @@ export function extractTapdRoleNames(rawData: unknown): Map<string, string> {
   if (Array.isArray(source)) {
     source.forEach(item => {
       const roleItems = Array.isArray(item?.Role) ? item.Role : [item?.Role ?? item?.role ?? item];
-      roleItems.forEach(role => {
+      roleItems.forEach((role: any) => {
         if (role && typeof role === 'object') {
           entries.push({
             id: role.id ?? role.role_id ?? role.key,

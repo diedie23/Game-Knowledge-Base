@@ -61,7 +61,12 @@ export function getRequirementKindLabel(task: Task, hasChildren = false): string
  * through the child's tapdId so a freshly imported dataset can still identify
  * parent rows before local parentId backfill finishes.
  */
+const hierarchyCache = new WeakMap<Task[], TaskHierarchyIndex>();
+
 export function buildTaskHierarchyIndex(tasks: Task[]): TaskHierarchyIndex {
+  const cached = hierarchyCache.get(tasks);
+  if (cached) return cached;
+
   const taskById = new Map<number, Task>();
   const taskByTapdId = new Map<string, Task>();
   const tasksByTapdId = new Map<string, Task[]>();
@@ -110,7 +115,9 @@ export function buildTaskHierarchyIndex(tasks: Task[]): TaskHierarchyIndex {
   }
 
   const leafTasks = tasks.filter(task => task.id === undefined || !parentTaskIds.has(task.id));
-  return { taskById, taskByTapdId, tasksByTapdId, childrenByParentId, parentTaskIds, leafTasks };
+  const index = { taskById, taskByTapdId, tasksByTapdId, childrenByParentId, parentTaskIds, leafTasks };
+  hierarchyCache.set(tasks, index);
+  return index;
 }
 
 export function isParentTask(task: Task, hierarchy: TaskHierarchyIndex): boolean {

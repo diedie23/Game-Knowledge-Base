@@ -28,6 +28,16 @@ export interface ChangeLog {
 
 export type SyncOperation = 'pull' | 'refresh' | 'push' | 'full';
 
+export interface SyncFailure {
+  table: SyncableTable;
+  recordId: number;
+  title?: string;
+  fields: string[];
+  message: string;
+  attempts: number;
+  retryable: boolean;
+}
+
 export interface SyncSummary {
   operation: SyncOperation;
   fetched?: number;
@@ -39,9 +49,12 @@ export interface SyncSummary {
   protected?: number;
   deleted?: number;
   failed?: number;
+  retries?: number;
   conflicts?: number;
   pushed?: number;
   pulled?: number;
+  /** Structured per-record write failures for audit and recovery guidance. */
+  failures?: SyncFailure[];
 }
 
 export interface SyncMeta {
