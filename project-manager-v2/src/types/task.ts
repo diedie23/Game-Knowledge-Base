@@ -1,4 +1,6 @@
 import type { TaskStatus, TaskPriority, TaskType, SyncSource, WorkCategory } from './enums';
+import type { Resource } from './resource';
+import type { ResourceCapacity } from './scheduling';
 
 // ─── Task ────────────────────────────────────────────────────────
 
@@ -99,9 +101,45 @@ export interface ChangeSnapshot {
   date: number; // timestamp
   reason: string;
   description?: string;
-  kind?: 'change' | 'weekly-report';
+  kind?: 'change' | 'weekly-report' | 'schedule-plan';
   projectId?: number;
   weekKey?: string;
+  scheduleData?: {
+    source: 'tapd-planner' | 'gantt-move' | 'gantt-resize';
+    status: 'generated' | 'applied' | 'rejected';
+    generatedAt: number;
+    appliedAt?: number;
+    taskIds: number[];
+    tasksBefore: Task[];
+    tasksAfter?: Task[];
+    resources: Resource[];
+    capacities: ResourceCapacity[];
+    recommendations?: Array<{
+      taskId: number;
+      resourceId?: number;
+      startDate?: Date;
+      endDate?: Date;
+      decision?: string;
+      reasons?: string[];
+    }>;
+    changes?: Array<{
+      taskId: number;
+      startDate: Date;
+      endDate: Date;
+      assigneeIds?: number[];
+    }>;
+    validation?: {
+      valid: boolean;
+      reasons: string[];
+      warnings: string[];
+      beforeAfter?: {
+        beforeEndDate?: Date;
+        afterEndDate?: Date;
+        shiftedTaskCount: number;
+        shiftedWorkingDays: number;
+      };
+    };
+  };
   reportData?: {
     completed: number;
     inProgress: number;

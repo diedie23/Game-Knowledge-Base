@@ -7,6 +7,7 @@ import type { Resource, ResourceCapacity, Task } from '../../../types';
 import { syncParentDateRange } from '../../../services/workloadService';
 import { validateGanttScheduleChanges, formatGanttValidationMessage, type GanttScheduleValidation } from '../../../services/ganttScheduleValidator';
 import { toast } from '../../../store/useToastStore';
+import { createScheduleSnapshot } from '../../../services/scheduleSnapshotService';
 
 export function useGanttDrag(
   dayWidth: number,
@@ -61,6 +62,24 @@ export function useGanttDrag(
             const task = await db.tasks.get(taskId);
             if (task?.parentId) {
               await syncParentDateRange(task.parentId);
+            }
+            const savedTask = await db.tasks.get(taskId);
+            if (task && savedTask) {
+              await createScheduleSnapshot({
+                source: 'gantt-resize',
+                status: 'applied',
+                projectId: task.projectId,
+                reason: `甘特图调整任务：${task.title}`,
+                description: '记录甘特图拉伸、成员与容量快照，以及保存后的实际结果。',
+                taskIds: [taskId],
+                tasksBefore: [task],
+                tasksAfter: [savedTask],
+                resources,
+                capacities,
+                changes: [{ taskId, startDate: newStart, endDate: newEnd }],
+                validation,
+                appliedAt: Date.now(),
+              });
             }
             toast.success(formatGanttValidationMessage(validation));
           }

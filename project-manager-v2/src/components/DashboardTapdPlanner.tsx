@@ -9,6 +9,7 @@ import { useStore } from '../store/useStore';
 import { getPriorityLabel } from '../utils/priority';
 import { auditTaskDataQuality, getScheduleGate } from '../services/dataQualityService';
 import { buildTaskHierarchyIndex } from '../utils/taskHierarchy';
+import { createScheduleSnapshot, type ScheduleSnapshotChange, type ScheduleSnapshotRecommendation } from '../services/scheduleSnapshotService';
 
 interface Props {
   tasks: Task[];
@@ -90,6 +91,7 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     () => buildBatchTapdScheduleSuggestions(planningEntries, tasks, resources, today, capacities),
     [planningEntries, tasks, resources, today, capacities],
   );
+  const suggestionsGeneratedAt = useMemo(() => Date.now(), [planningEntries, tasks, resources, today, capacities]);
   const planningSummary = useMemo(
     () => buildTapdPlanningSummary(planningItems, allSuggestions, today),
     [planningItems, allSuggestions, today],
@@ -215,12 +217,43 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     setApplyingId(item.task.id);
     setApplyError(false);
     try {
-      await updateTask(item.task.id, {
+      const change: ScheduleSnapshotChange = {
+        taskId: item.task.id,
         startDate: item.suggestion.startDate,
         endDate: item.suggestion.endDate,
         assigneeIds: item.suggestion.resource?.id ? [item.suggestion.resource.id] : item.task.assigneeIds,
+      };
+      const recommendation: ScheduleSnapshotRecommendation = {
+        taskId: item.task.id,
+        resourceId: item.suggestion.resource?.id,
+        startDate: item.suggestion.startDate,
+        endDate: item.suggestion.endDate,
+        decision: item.suggestion.decision,
+        reasons: item.suggestion.reasons,
+      };
+      await updateTask(item.task.id, {
+        startDate: change.startDate,
+        endDate: change.endDate,
+        assigneeIds: change.assigneeIds,
       }, '应用本地排期助手建议');
-      setAppliedMessage(`已将「${item.task.title}」的建议人员与日期保存到本地排期；不会自动回写 TAPD。`);
+      const savedTask = await db.tasks.get(item.task.id);
+      await createScheduleSnapshot({
+        source: 'tapd-planner',
+        status: 'applied',
+        projectId: item.task.projectId,
+        reason: `应用排期建议：${item.task.title}`,
+        description: '记录排期助手生成的建议、容量快照及实际保存结果；不会自动回写 TAPD。',
+        taskIds: [item.task.id],
+        tasksBefore: [item.task],
+        tasksAfter: savedTask ? [savedTask] : undefined,
+        resources,
+        capacities,
+        recommendations: [recommendation],
+        changes: [change],
+        generatedAt: suggestionsGeneratedAt,
+        appliedAt: Date.now(),
+      });
+      setAppliedMessage(`已将「${item.task.title}」的建议人员与日期保存到本地排期；已记录排期方案快照，不会自动回写 TAPD。`);
     } catch (error) {
       setApplyError(true);
       setAppliedMessage(`应用建议失败：${error instanceof Error ? error.message : '请稍后重试'}`);
@@ -234,18 +267,54 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     setApplyError(false);
     let applied = 0;
     let failed = 0;
+    const tasksBefore: Task[] = [];
+    const taskIds: number[] = [];
+    const changes: ScheduleSnapshotChange[] = [];
+    const recommendations: ScheduleSnapshotRecommendation[] = [];
     for (const item of applicableSelectedItems) {
       if (!item.task.id || !item.suggestion) continue;
       try {
-        await updateTask(item.task.id, {
+        const change: ScheduleSnapshotChange = {
+          taskId: item.task.id,
           startDate: item.suggestion.startDate,
           endDate: item.suggestion.endDate,
           assigneeIds: item.suggestion.resource?.id ? [item.suggestion.resource.id] : item.task.assigneeIds,
-        }, '批量应用本地排期助手建议');
+        };
+        tasksBefore.push(item.task);
+        taskIds.push(item.task.id);
+        changes.push(change);
+        recommendations.push({
+          taskId: item.task.id,
+          resourceId: item.suggestion.resource?.id,
+          startDate: item.suggestion.startDate,
+          endDate: item.suggestion.endDate,
+          decision: item.suggestion.decision,
+          reasons: item.suggestion.reasons,
+        });
+        await updateTask(item.task.id, change, '批量应用本地排期助手建议');
         applied += 1;
       } catch {
         failed += 1;
       }
+    }
+    if (applied > 0) {
+      const tasksAfter = await db.tasks.where('id').anyOf(taskIds).toArray();
+      await createScheduleSnapshot({
+        source: 'tapd-planner',
+        status: failed > 0 ? 'rejected' : 'applied',
+        projectId: tasksBefore[0]?.projectId,
+        reason: `批量应用排期建议：${applied} 项`,
+        description: '记录批量排期建议、成员与容量快照，以及应用后的实际任务结果。',
+        taskIds,
+        tasksBefore,
+        tasksAfter,
+        resources,
+        capacities,
+        recommendations,
+        changes,
+        generatedAt: suggestionsGeneratedAt,
+        appliedAt: Date.now(),
+      });
     }
     setApplyError(failed > 0);
     setAppliedMessage(failed > 0

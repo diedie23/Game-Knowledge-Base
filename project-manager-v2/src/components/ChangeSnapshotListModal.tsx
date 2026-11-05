@@ -56,10 +56,21 @@ export const ChangeSnapshotListModal = () => {
                         <span className="text-sm font-medium text-white">
                           {snapshot.reason}
                         </span>
+                        {snapshot.kind === 'schedule-plan' && (
+                          <span className="rounded border border-indigo-500/30 bg-indigo-500/10 px-1.5 py-0.5 text-[10px] text-indigo-300">排期方案</span>
+                        )}
                         <span className="text-xs text-gray-500">
                           {format(snapshot.date, 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}
                         </span>
                       </div>
+                      {snapshot.kind === 'schedule-plan' && snapshot.scheduleData && (
+                        <div className="mb-2 flex flex-wrap gap-1.5 text-[10px] text-gray-400">
+                          <span className="rounded bg-gray-800 px-1.5 py-0.5">{snapshot.scheduleData.source === 'tapd-planner' ? 'TAPD 排期助手' : snapshot.scheduleData.source === 'gantt-move' ? '甘特图移动' : '甘特图拉伸'}</span>
+                          <span className={`rounded px-1.5 py-0.5 ${snapshot.scheduleData.status === 'applied' ? 'bg-emerald-500/10 text-emerald-300' : snapshot.scheduleData.status === 'rejected' ? 'bg-red-500/10 text-red-300' : 'bg-amber-500/10 text-amber-300'}`}>{snapshot.scheduleData.status === 'applied' ? '已应用' : snapshot.scheduleData.status === 'rejected' ? '未通过校验' : '已生成'}</span>
+                          <span className="rounded bg-gray-800 px-1.5 py-0.5">影响 {snapshot.scheduleData.taskIds.length} 项任务</span>
+                          {snapshot.scheduleData.validation?.beforeAfter?.afterEndDate && <span className="rounded bg-gray-800 px-1.5 py-0.5">结束日 {format(snapshot.scheduleData.validation.beforeAfter.afterEndDate, 'MM月dd日')}</span>}
+                        </div>
+                      )}
                       {snapshot.description && (
                         <p className="text-sm text-gray-400 whitespace-pre-wrap">
                           {snapshot.description}

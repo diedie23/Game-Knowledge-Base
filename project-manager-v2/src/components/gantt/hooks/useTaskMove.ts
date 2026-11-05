@@ -1,11 +1,12 @@
 ﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import { addDays, differenceInDays } from 'date-fns';
 import { trackedDb } from '../../../store/useHistoryStore';
-import { Task } from '../../../db/db';
+import { db, Task } from '../../../db/db';
 import type { Resource, ResourceCapacity } from '../../../types';
 import { syncParentDateRange } from '../../../services/workloadService';
 import { validateGanttScheduleChanges, formatGanttValidationMessage, type GanttScheduleValidation } from '../../../services/ganttScheduleValidator';
 import { toast } from '../../../store/useToastStore';
+import { createScheduleSnapshot } from '../../../services/scheduleSnapshotService';
 
 export function useTaskMove(
   dayWidth: number,
@@ -164,6 +165,25 @@ export function useTaskMove(
             for (const pid of affectedParentIds) {
               await syncParentDateRange(pid);
             }
+            const affectedTaskIds = [...shiftsToApply.entries()]
+              .filter(([, shift]) => shift !== 0)
+              .map(([id]) => id);
+            const tasksAfter = await db.tasks.where('id').anyOf(affectedTaskIds).toArray();
+            await createScheduleSnapshot({
+              source: 'gantt-move',
+              status: 'applied',
+              projectId: tasks.find(task => task.id === taskId)?.projectId,
+              reason: `甘特图移动任务：${tasks.find(task => task.id === taskId)?.title || `#${taskId}`}`,
+              description: '记录甘特图拖拽、级联影响、成员与容量快照，以及保存后的实际结果。',
+              taskIds: affectedTaskIds,
+              tasksBefore: tasks.filter(task => affectedTaskIds.includes(task.id!)),
+              tasksAfter,
+              resources,
+              capacities,
+              changes: buildDateChanges(shiftsToApply),
+              validation,
+              appliedAt: Date.now(),
+            });
             toast.success(formatGanttValidationMessage(validation));
           }
         }
