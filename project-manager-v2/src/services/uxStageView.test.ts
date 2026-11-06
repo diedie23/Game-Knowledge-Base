@@ -58,6 +58,14 @@ describe('UX stage rows', () => {
     expect(summary.blockers).not.toContain('缺少交互任务');
   });
 
+  it('does not report an owner blocker for a completed stage task without an owner', () => {
+    const root = task(92, '已完成视觉需求');
+    const child = task(93, '【视觉设计】已完成', { parentId: 92, status: 'done' });
+    const row = buildStageRows([root, child])[0];
+    const summary = getDemandProgressSummary(row, [], [root, child], new Date('2026-11-03'));
+    expect(summary.blockers).not.toContain('环节未分配负责人');
+  });
+
   it('uses UI plus SUBSTORY children to classify an interface demand', () => {
     const root = task(115, '系统组版本需求');
     const children = [

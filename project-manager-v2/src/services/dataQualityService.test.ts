@@ -42,6 +42,13 @@ describe('auditTaskDataQuality', () => {
     expect(audit.issues.filter(issue => issue.type === 'unmapped-owner')).toHaveLength(0);
   });
 
+  it('does not report completed UX work as an active owner mapping issue', () => {
+    const audit = auditTaskDataQuality([
+      task(14, { title: '【视觉设计】已完成', status: 'done', assigneeIds: [] }),
+    ], resources, new Date('2026-09-28'));
+    expect(audit.issues.filter(issue => issue.type === 'unmapped-owner')).toHaveLength(0);
+  });
+
   it('keeps the quality score comparable on large workspaces', () => {
     const tasks = Array.from({ length: 80 }, (_, index) => task(index + 100, { tapdWorkitemTypeName: undefined }));
     const audit = auditTaskDataQuality(tasks, [], new Date('2026-09-28T12:00:00'));

@@ -10,6 +10,7 @@ import { getPriorityLabel } from '../utils/priority';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 import { getRequirementKindLabel } from '../utils/taskHierarchy';
 import { getTaskAssigneeIds, getTaskOwnerTokens } from '../utils/taskAssignee';
+import { isTaskTerminal } from '../utils/taskState';
 
 function dateLabel(value?: Date) {
   if (!value) return '未排期';
@@ -157,7 +158,7 @@ export function UxStageTable() {
           });
       }
     });
-    if (items.some(task => !hasTaskAssignee(task))) append('待分配');
+    if (items.some(task => !isTaskTerminal(task) && !hasTaskAssignee(task))) append('待分配');
     return result.join('、') || '—';
   };
   const isRowComplete = (row: typeof rows[number]) => getSummary(row).state === 'done';
@@ -305,7 +306,7 @@ export function UxStageTable() {
               {items.length ? <div className={'overflow-hidden rounded-lg border ' + STAGE_CARD_STYLE[summary]}>
                 <button aria-label={root.title + ' · ' + s.label + '：' + STAGE_STATUS[summary].label} onClick={openStage} className="w-full p-2 text-left transition-colors hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-indigo-400">
                   <div className="mb-2 flex items-center justify-between gap-2"><span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-medium text-emerald-300">{stageTypeLabel} · {items.length}项</span><span className="whitespace-nowrap text-[11px] font-semibold text-gray-300">{taskRangeLabel(items)}</span></div>
-                  <div className={'mb-2 truncate text-xs ' + (items.some(t => !hasTaskAssignee(t)) ? 'text-amber-200/80' : 'text-gray-300')} title={names(items)}>{names(items)}</div>
+                  <div className={'mb-2 truncate text-xs ' + (items.some(t => !isTaskTerminal(t) && !hasTaskAssignee(t)) ? 'text-amber-200/80' : 'text-gray-300')} title={names(items)}>{names(items)}</div>
                   <div className="flex flex-wrap items-center gap-1"><StatusBadge status={summary} />{items.length > 1 && <span className="text-[10px] text-gray-500">{items.filter(t => t.status === 'done').length}/{items.length}</span>}</div>
                 </button>
                 {firstTapdTask?.externalUrl && <a href={firstTapdTask.externalUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} className="flex items-center justify-center gap-1 border-t border-white/[0.06] px-2 py-1.5 text-[10px] text-indigo-300 hover:bg-indigo-500/10 hover:text-white">{items.length > 1 ? '打开首个 TAPD' : '打开 TAPD'}<ExternalLink size={10} /></a>}

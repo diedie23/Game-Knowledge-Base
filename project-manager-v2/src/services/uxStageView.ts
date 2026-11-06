@@ -424,7 +424,13 @@ export function getDemandProgressSummary(
   const blockers = new Set<string>();
 
   activeTasks.filter(task => taskStatus(task) === 'blocked').slice(0, 3).forEach(task => blockers.add(task.blockReason || '任务已阻塞'));
-  activeTasks.filter(task => taskStage(task, resources) && !hasTaskAssignee(task)).slice(0, 2).forEach(() => blockers.add('环节未分配负责人'));
+  // Completed/cancelled stage tasks no longer need staffing follow-up. Only
+  // unfinished work can create an owner blocker; otherwise a historical task
+  // without an owner would keep an otherwise healthy demand in a blocked state.
+  activeTasks
+    .filter(task => !isTaskTerminal(task) && taskStage(task, resources) && !hasTaskAssignee(task))
+    .slice(0, 2)
+    .forEach(() => blockers.add('环节未分配负责人'));
   stageSummaries.filter(item => item.status === 'missing').forEach(item => blockers.add(`缺少${item.stage.label}任务`));
   iconSubstageSummaries.filter(item => item.status === 'missing').forEach(item => {
     const label = item.substage === 'design' ? '图标设计' : '图标入版';
