@@ -39,7 +39,7 @@ const STATUS_STYLE: Record<string, string> = {
 
 const DAY_COUNT = 21;
 const DAY_WIDTH = 40;
-const TASK_INFO_WIDTH = 320;
+const TASK_INFO_WIDTH = 360;
 type CalendarFocusMode = 'demand' | 'task' | 'dependencies';
 
 function dayLabel(day: Date) {
@@ -60,6 +60,10 @@ function taskOwnerNames(task: Task, resources: Resource[] | Map<number, Resource
 
 function taskRange(task: Task): string {
   return `${task.startDate ? dayLabel(new Date(task.startDate)) : '未定'}–${task.endDate ? dayLabel(new Date(task.endDate)) : '未定'}`;
+}
+
+function hasTaskSchedule(task: Task): boolean {
+  return Boolean(task.startDate || task.endDate);
 }
 
 function taskTiming(task: Task): string {
@@ -321,30 +325,32 @@ export function ScheduleWorkspace() {
             <div className="min-w-0 flex-1 overflow-auto">
               {selectedGroup ? <div style={{ minWidth: DAY_COUNT * DAY_WIDTH + TASK_INFO_WIDTH }}>
                 <div className="border-b border-gray-800 bg-gray-950/25">
-                  <div className="flex"><div className="w-[320px] shrink-0 border-r border-gray-800 px-3 py-2 text-[10px] text-gray-500">子需求 / 环节 / 负责人</div><div className="flex">{days.map(day => <div key={day.toISOString()} className={`w-[40px] shrink-0 border-r border-gray-800/70 px-1 py-2 text-center text-[9px] ${isSameDay(day, new Date()) ? 'bg-indigo-500/15 text-indigo-300' : 'text-gray-500'}`}>{dayLabel(day)}</div>)}</div></div>
+                  <div className="flex"><div className="w-[360px] shrink-0 border-r border-gray-800 px-3 py-2 text-[10px] text-gray-500">子需求 / 当前阶段 / 负责人</div><div className="flex">{days.map(day => <div key={day.toISOString()} className={`w-[40px] shrink-0 border-r border-gray-800/70 px-1 py-2 text-center text-[9px] ${isSameDay(day, new Date()) ? 'bg-indigo-500/15 text-indigo-300' : 'text-gray-500'}`}>{dayLabel(day)}</div>)}</div></div>
                 </div>
                 <div className="divide-y divide-gray-800/70">
                   {selectedGroup.tasks.map(task => {
                     const stage = taskStage(task, resources);
                     const style = stage ? STAGE_STYLE[stage] : { text: 'text-gray-400', bg: 'bg-gray-500/10', bar: 'bg-gray-500' };
                     const bar = getTaskBar(task, windowStart);
+                    const hasSchedule = hasTaskSchedule(task);
                     const status = taskStatus(task);
                     const dependencyTasks = (task.dependencies || []).map(id => taskById.get(id)).filter((dependency): dependency is Task => Boolean(dependency));
                     const isSelected = task.id !== undefined && task.id === selectedTaskId;
                     return <div key={task.id} className={`flex min-h-[70px] transition-colors ${isSelected ? 'bg-indigo-500/[0.08]' : ''}`}>
-                      <div role="button" tabIndex={0} onClick={() => selectTask(task)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectTask(task); } }} className={`group relative w-[320px] shrink-0 border-r px-3 py-2 text-left outline-none transition-colors ${isSelected ? 'border-indigo-400/70 bg-indigo-500/15 ring-1 ring-inset ring-indigo-400/40' : 'border-gray-800 hover:bg-white/[0.04]'}`}>
+                      <div role="button" tabIndex={0} onClick={() => selectTask(task)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectTask(task); } }} className={`group relative w-[360px] shrink-0 border-r px-3 py-2 text-left outline-none transition-colors ${isSelected ? 'border-indigo-400/70 bg-indigo-500/15 ring-1 ring-inset ring-indigo-400/40' : 'border-gray-800 hover:bg-white/[0.04]'}`}>
                         <div className="flex items-center gap-1.5 pr-5"><span className={`rounded px-1.5 py-0.5 text-[9px] ${style.bg} ${style.text}`}>{stage ? STAGE_LABEL[stage] : '其他'}</span><span className={`rounded border px-1 py-0.5 text-[9px] ${STATUS_STYLE[status] || STATUS_STYLE.todo}`}>{status === 'in_progress' ? '进行中' : status === 'done' ? '已完成' : status === 'blocked' ? '阻塞' : '待开始'}</span></div>
                         <div className={`mt-1 line-clamp-2 break-words text-[11px] leading-4 ${isSelected ? 'font-semibold text-indigo-100' : 'text-gray-200'}`} title={task.title}>{task.externalUrl ? <a href={task.externalUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} className="inline-flex max-w-full items-center gap-1 truncate text-inherit underline decoration-gray-600/70 underline-offset-2 hover:text-cyan-200 hover:decoration-cyan-300" title="打开对应 TAPD 单">{task.title}<ExternalLink size={10} className="shrink-0" /></a> : task.title}</div>
-                        <div className="mt-0.5 truncate text-[9px] text-gray-600">{taskOwnerNames(task, resourceById)} · {taskTiming(task)} · <span className={task.estimatedHours == null ? 'text-amber-400/80' : 'text-cyan-500/90'}>预估 {taskEstimate(task)}</span></div>
+                        <div className="mt-0.5 truncate text-[9px] text-gray-600">{taskOwnerNames(task, resourceById)} · <span className={task.estimatedHours == null ? 'text-amber-400/80' : 'text-cyan-500/90'}>预估 {taskEstimate(task)}</span></div>
                         {dependencyTasks.length > 0 && <div className="mt-0.5 truncate text-[9px] text-cyan-500/80">前置：{dependencyTasks.map(dependency => dependency.title).join('、')}</div>}
                         {isSelected && <span className="absolute right-2 top-2 rounded bg-indigo-400/20 px-1 text-[9px] text-indigo-200">已选</span>}
                         <button type="button" onClick={event => { event.stopPropagation(); if (task.id !== undefined) openTaskModal(task.id); }} className="absolute bottom-1.5 right-2 hidden rounded border border-gray-700 bg-gray-900/90 px-1.5 py-0.5 text-[9px] text-gray-400 group-hover:block hover:border-gray-500 hover:text-white" title="打开任务详情">详情</button>
                       </div>
                       <div className="relative h-[70px] flex" style={{ width: DAY_COUNT * DAY_WIDTH }}>
                         {days.map(day => <div key={day.toISOString()} className={`h-full w-[40px] shrink-0 border-r border-gray-800/60 ${isSameDay(day, new Date()) ? 'bg-indigo-500/[0.06]' : ''}`} />)}
-                        {bar && <button type="button" onClick={() => selectTask(task)} title={`${task.title} · 预估 ${taskEstimate(task)} · 点击查看负责人和前置排期`} className={`absolute top-2 h-8 rounded border px-2 text-left text-[9px] font-medium text-white/90 shadow-sm transition-all ${isTaskCompleted(task) ? 'bg-emerald-500/70' : style.bar} ${isTaskTerminal(task) ? 'opacity-60' : ''} ${isSelected ? 'z-10 border-white/80 ring-2 ring-indigo-300/70' : 'border-white/10 hover:brightness-125'}`} style={{ left: bar.left + 2, width: bar.width }}><span className="block truncate">{task.title}</span></button>}
-                        {!bar && isTaskCompleted(task) && <div className="absolute inset-0 flex items-center px-2 text-[10px] font-medium text-emerald-300/90">已完成</div>}
-                        {!bar && !isTaskCompleted(task) && <div className="absolute inset-0 flex items-center px-2 text-[9px] text-amber-400/80">未排期</div>}
+                        {bar && <button type="button" onClick={() => selectTask(task)} title={`${task.title} · 预估 ${taskEstimate(task)} · 点击查看负责人和前置排期`} className={`absolute top-2 h-8 rounded border px-2 text-left text-[9px] font-medium text-white/90 shadow-sm transition-all ${isTaskCompleted(task) ? 'bg-emerald-500/70' : style.bar} ${isTaskTerminal(task) ? 'opacity-60' : ''} ${isSelected ? 'z-10 border-white/80 ring-2 ring-indigo-300/70' : 'border-white/10 hover:brightness-125'}`} style={{ left: bar.left + 2, width: bar.width }}><span className="block truncate">{isTaskCompleted(task) ? taskTiming(task) : task.title}</span></button>}
+                        {!bar && isTaskCompleted(task) && <div className="absolute inset-0 flex items-center px-2 text-[10px] font-medium text-emerald-300/90">{taskTiming(task)}</div>}
+                        {!bar && !isTaskCompleted(task) && hasSchedule && <div className="absolute inset-0 flex items-center px-2 text-[9px] text-cyan-300/90">已排期：{taskRange(task)}</div>}
+                        {!bar && !isTaskCompleted(task) && !hasSchedule && <div className="absolute inset-0 flex items-center px-2 text-[9px] text-amber-400/80">未排期</div>}
                       </div>
                     </div>;
                   })}

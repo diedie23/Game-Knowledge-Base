@@ -34,6 +34,7 @@ const state = vi.hoisted(() => {
       makeTask({ id: 4, parentId: 1, title: '商城还原开发', status: 'todo', assigneeIds: [10], startDate: dateAt(4), endDate: dateAt(6), dependencies: [3], estimatedHours: 20 }),
       makeTask({ id: 7, parentId: 1, title: '商城程序接入', status: 'todo', assigneeIds: [12], tapdWorkitemTypeName: '开发子需求', startDate: dateAt(2), endDate: dateAt(5) }),
       makeTask({ id: 8, parentId: 1, title: '【交互】商城历史完成环节', status: 'done', assigneeIds: [12], completedAt: dateAt(-3) }),
+      makeTask({ id: 9, parentId: 1, title: '商城窗口外排期任务', status: 'todo', assigneeIds: [11], startDate: dateAt(30), endDate: dateAt(32) }),
       makeTask({ id: 5, title: '活动界面需求', tapdWorkitemTypeName: 'UIStory', module: '活动' }),
       makeTask({ id: 6, parentId: 5, title: '活动视觉设计', status: 'todo', assigneeIds: [11], startDate: dateAt(2), endDate: dateAt(5) }),
     ] as Task[],
@@ -124,6 +125,15 @@ describe('ScheduleWorkspace', () => {
     expect(screen.getByRole('button', { name: /商城界面需求/ })).toBeTruthy();
     expect(screen.queryByRole('button', { name: /活动界面需求/ })).toBeNull();
     expect(screen.getByText('商城界面需求')).toBeTruthy();
+  });
+
+  it('shows the real schedule when a task is outside the current window', () => {
+    render(<ScheduleWorkspace />);
+
+    fireEvent.click(screen.getByRole('button', { name: /商城界面需求/ }));
+    expect(screen.getByText(/已排期：\d{2}\/\d{2}–\d{2}\/\d{2}/)).toBeTruthy();
+    expect(screen.queryByText('未排期')).toBeNull();
+    expect(screen.getByText('子需求 / 当前阶段 / 负责人')).toBeTruthy();
   });
 
   it('moves the calendar window and supports member filtering', () => {
