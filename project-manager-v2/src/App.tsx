@@ -4,6 +4,7 @@ import { useStore } from './store/useStore';
 import { initMockData } from './db/mockData';
 // Lazy-loaded view components for code-splitting
 const Dashboard = React.lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
+const ScheduleWorkspace = React.lazy(() => import('./components/ScheduleWorkspace').then(m => ({ default: m.ScheduleWorkspace })));
 const GanttChart = React.lazy(() => import('./components/GanttChart').then(m => ({ default: m.GanttChart })));
 const KanbanBoard = React.lazy(() => import('./components/KanbanBoard').then(m => ({ default: m.KanbanBoard })));
 const ResourceMatrix = React.lazy(() => import('./components/ResourceMatrix').then(m => ({ default: m.ResourceMatrix })));
@@ -154,6 +155,11 @@ function App() {
             {currentView === 'dashboard' && (
               <ErrorBoundary label="仪表盘">
                 <Dashboard />
+              </ErrorBoundary>
+            )}
+            {currentView === 'planning' && (
+              <ErrorBoundary label="协同排期工作台">
+                <ScheduleWorkspace />
               </ErrorBoundary>
             )}
             {currentView === 'gantt' && (

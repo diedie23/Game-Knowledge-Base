@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useStore } from '../store/useStore';
 import { useHistoryStore } from '../store/useHistoryStore';
-import { BarChart2, Calendar, Columns, Table as TableIcon, Plus, Link as LinkIcon, Search, Undo2, Redo2, History, Clock, Wifi, WifiOff, RefreshCw, Download, Upload, FileDown, Copy, Check, LayoutDashboard, BookOpen, MoreHorizontal } from 'lucide-react';
+import { BarChart2, Calendar, Columns, Table as TableIcon, Plus, Link as LinkIcon, Search, Undo2, Redo2, History, Clock, Wifi, WifiOff, RefreshCw, Download, Upload, FileDown, Copy, Check, LayoutDashboard, BookOpen, MoreHorizontal, SplitSquareHorizontal } from 'lucide-react';
 import { useSyncStore } from '../store/useSyncStore';
 import { dataExportService, BACKUP_STORAGE_KEY } from '../services/dataExportService';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -104,6 +104,7 @@ export function Header() {
   // under "更多视图" instead of competing for first-level attention.
   const views = [
     { id: 'dashboard', name: '排期工作台', icon: LayoutDashboard },
+    { id: 'planning', name: '协同排期', icon: SplitSquareHorizontal },
     { id: 'gantt', name: '时间排期', icon: Calendar },
     { id: 'board', name: '执行看板', icon: Columns },
     { id: 'table', name: '需求清单', icon: TableIcon },

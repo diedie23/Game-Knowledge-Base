@@ -59,7 +59,7 @@ export type SyncSource = 'local' | 'tapd' | 'tapd-import' | (string & {});
 // ─── View Enums ──────────────────────────────────────────────────
 
 /** Application view modes */
-export type ViewMode = 'dashboard' | 'gantt' | 'board' | 'matrix' | 'table' | 'notes';
+export type ViewMode = 'dashboard' | 'planning' | 'gantt' | 'board' | 'matrix' | 'table' | 'notes';
 
 // ─── History Enums ───────────────────────────────────────────────
 

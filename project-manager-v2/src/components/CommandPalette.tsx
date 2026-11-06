@@ -141,6 +141,7 @@ export function CommandPalette() {
 
     // Navigation commands
     cmds.push(
+      { id: 'nav-planning', label: '协同排期工作台', description: '同时查看需求时间与团队日历负荷', category: 'navigation', icon: <Calendar size={16} className="text-cyan-400" />, keywords: ['协同','排期','团队日历','负荷','需求时间'], action: () => { setCurrentView('planning'); setIsOpen(false); } },
       { id: 'nav-gantt',   label: '甘特图视图',   description: '切换到甘特图', category: 'navigation', icon: <Calendar size={16} className="text-indigo-400" />,  keywords: ['gantt','甘特','视图','切换'], action: () => { setCurrentView('gantt'); setIsOpen(false); } },
       { id: 'nav-board',   label: '看板视图',     description: '切换到看板',   category: 'navigation', icon: <Columns size={16} className="text-purple-400" />,   keywords: ['kanban','看板','视图','切换'], action: () => { setCurrentView('board'); setIsOpen(false); } },
       { id: 'nav-matrix',  label: '资源矩阵视图', description: '切换到资源矩阵', category: 'navigation', icon: <BarChart2 size={16} className="text-amber-400" />,  keywords: ['matrix','矩阵','资源','视图','切换'], action: () => { setCurrentView('matrix'); setIsOpen(false); } },
