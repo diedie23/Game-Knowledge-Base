@@ -28,11 +28,11 @@ const state = vi.hoisted(() => {
     setView: vi.fn(),
     dateAt,
     tasks: [
-      makeTask({ id: 1, title: '商城界面需求', tapdWorkitemTypeName: 'UIStory' }),
+      makeTask({ id: 1, title: '商城界面需求', tapdWorkitemTypeName: 'UIStory', module: '商城' }),
       makeTask({ id: 2, parentId: 1, title: '商城交互方案', status: 'done', assigneeIds: [10], startDate: dateAt(-2), endDate: dateAt(-1), estimatedHours: 6 }),
       makeTask({ id: 3, parentId: 1, title: '商城视觉设计', status: 'in_progress', assigneeIds: [11], startDate: dateAt(1), endDate: dateAt(3), dependencies: [2], estimatedHours: 12.5 }),
       makeTask({ id: 4, parentId: 1, title: '商城还原开发', status: 'todo', assigneeIds: [10], startDate: dateAt(4), endDate: dateAt(6), dependencies: [3], estimatedHours: 20 }),
-      makeTask({ id: 5, title: '活动界面需求', tapdWorkitemTypeName: 'UIStory' }),
+      makeTask({ id: 5, title: '活动界面需求', tapdWorkitemTypeName: 'UIStory', module: '活动' }),
       makeTask({ id: 6, parentId: 5, title: '活动视觉设计', status: 'todo', assigneeIds: [11], startDate: dateAt(2), endDate: dateAt(5) }),
     ] as Task[],
     resources: [
@@ -84,6 +84,7 @@ describe('ScheduleWorkspace', () => {
     expect(screen.getByText('前置链 2 项')).toBeTruthy();
     expect(screen.getByText('商城交互方案').closest('[role="button"]')).toBeTruthy();
     fireEvent.click(screen.getAllByRole('button', { name: /商城视觉设计/ })[0]);
+    expect((screen.getByLabelText('团队成员筛选') as HTMLSelectElement).value).toBe('11');
     expect(screen.getByText('当前查看任务')).toBeTruthy();
     expect(screen.getByText('当前任务：商城视觉设计')).toBeTruthy();
     expect(screen.getAllByText('预估 12.5h').length).toBeGreaterThan(0);
@@ -104,6 +105,15 @@ describe('ScheduleWorkspace', () => {
     fireEvent.click(screen.getAllByTitle('活动视觉设计 · 点击查看任务上下文')[0]);
     expect(screen.getByText('当前任务：活动视觉设计')).toBeTruthy();
     expect(screen.getAllByText('活动界面需求')[0].closest('button')).toBeTruthy();
+  });
+
+  it('filters demands by category before scheduling', () => {
+    render(<ScheduleWorkspace />);
+
+    fireEvent.change(screen.getByLabelText('需求分类筛选'), { target: { value: '商城' } });
+    expect(screen.getByRole('button', { name: /商城界面需求/ })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /活动界面需求/ })).toBeNull();
+    expect(screen.getByText('商城界面需求')).toBeTruthy();
   });
 
   it('moves the calendar window and supports member filtering', () => {
