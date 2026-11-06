@@ -50,6 +50,7 @@ vi.mock('../db/db', () => ({
   db: {
     tasks: { toArray: () => state.tasks },
     resources: { toArray: () => state.resources },
+    resourceCapacities: { toArray: () => [] },
   },
 }));
 vi.mock('dexie-react-hooks', () => ({ useLiveQuery: (query: () => unknown) => query() }));
@@ -144,6 +145,8 @@ describe('ScheduleWorkspace', () => {
     render(<ScheduleWorkspace />);
 
     expect(screen.getByText('28天窗口')).toBeTruthy();
+    expect(screen.getAllByText('周末').length).toBeGreaterThan(0);
+    expect(screen.getAllByTitle(/可排/).length).toBeGreaterThan(0);
     const initialHeader = screen.getByText(/团队日历负荷/).parentElement?.textContent;
     fireEvent.click(screen.getByTitle('后 7 天'));
     const movedHeader = screen.getByText(/团队日历负荷/).parentElement?.textContent;
