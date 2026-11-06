@@ -63,8 +63,9 @@ function taskRange(task: Task): string {
 
 function taskEstimate(task: Task): string {
   if (task.estimatedHours === undefined || task.estimatedHours === null) return '未设置';
-  const hours = Number.isInteger(task.estimatedHours) ? String(task.estimatedHours) : task.estimatedHours.toFixed(1);
-  return `${hours}h`;
+  const personDays = task.estimatedHours / 8;
+  const formatted = Number.isInteger(personDays) ? String(personDays) : personDays.toFixed(1);
+  return `${formatted}人日`;
 }
 
 function getTaskBar(task: Task, windowStart: Date) {
@@ -87,7 +88,7 @@ export function ScheduleWorkspace() {
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [focusMode, setFocusMode] = useState<CalendarFocusMode>('demand');
   const [windowStart, setWindowStart] = useState(() => startOfDay(new Date()));
-  const [ownerFilter, setOwnerFilter] = useState<number | 'all'>('all');
+  const [ownerFilter, setOwnerFilter] = useState<number | 'all' | 'demand'>('all');
   const deferredQuery = useDeferredValue(query);
 
   const allTasks = tasks || [];
@@ -177,10 +178,11 @@ export function ScheduleWorkspace() {
     () => resources.filter(resource => resource.status !== 'departed' && resource.id != null).sort(compareResources),
     [resources],
   );
-  const activeResources = useMemo(
-    () => ownerFilter === 'all' ? availableResources : availableResources.filter(resource => resource.id === ownerFilter),
-    [availableResources, ownerFilter],
-  );
+  const activeResources = useMemo(() => {
+    if (ownerFilter === 'all') return availableResources;
+    if (ownerFilter === 'demand') return availableResources.filter(resource => selectedOwners.has(resource.id!));
+    return availableResources.filter(resource => resource.id === ownerFilter);
+  }, [availableResources, ownerFilter, selectedOwners]);
 
   const tasksByResourceAndDay = useMemo(() => {
     const map = new Map<string, Task[]>();
@@ -211,7 +213,7 @@ export function ScheduleWorkspace() {
   const focusDemand = () => {
     if (!selectedRange?.start) return;
     setFocusMode('demand');
-    setOwnerFilter('all');
+    setOwnerFilter('demand');
     setWindowStart(startOfDay(selectedRange.start));
   };
 
@@ -219,7 +221,7 @@ export function ScheduleWorkspace() {
     setSelectedDemandId(demandId);
     setSelectedTaskId(null);
     setFocusMode('demand');
-    setOwnerFilter('all');
+    setOwnerFilter('demand');
   };
 
   const selectTask = (task: Task) => {
@@ -228,7 +230,7 @@ export function ScheduleWorkspace() {
     if (demand.id !== undefined) setSelectedDemandId(demand.id);
     setSelectedTaskId(task.id);
     setFocusMode('task');
-    setOwnerFilter(getTaskAssigneeIds(task)[0] ?? 'all');
+    setOwnerFilter(getTaskAssigneeIds(task)[0] ?? 'demand');
   };
 
   const focusTaskCalendar = (mode: Exclude<CalendarFocusMode, 'demand'>) => {
@@ -238,7 +240,7 @@ export function ScheduleWorkspace() {
       const ownerId = getTaskAssigneeIds(selectedTask)[0];
       setOwnerFilter(ownerId ?? 'all');
     } else {
-      setOwnerFilter('all');
+      setOwnerFilter('demand');
     }
     const dates = [selectedTask, ...(mode === 'dependencies' ? dependencyTasks : [])]
       .flatMap(task => [task.startDate, task.endDate])
@@ -266,7 +268,7 @@ export function ScheduleWorkspace() {
         <section className="flex min-h-[360px] min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121722] xl:min-w-[620px]">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-gray-800 px-3 py-2.5">
             <div className="flex min-w-0 items-center gap-2"><GitBranch size={14} className="shrink-0 text-cyan-300" /><span className="text-xs font-semibold text-gray-200">需求前后置时间</span><span className="text-[10px] text-gray-600">{visibleDemands.length} 个需求</span>{selectedGroup && <span className="max-w-[280px] truncate text-[10px] text-gray-500">当前：{selectedGroup.demand.title}</span>}</div>
-            <div className="flex items-center gap-1.5"><label htmlFor="schedule-category" className="text-[10px] text-gray-500">分类</label><select id="schedule-category" aria-label="需求分类筛选" value={categoryFilter} onChange={event => { setCategoryFilter(event.target.value); setSelectedDemandId(null); setSelectedTaskId(null); setFocusMode('demand'); setOwnerFilter('all'); }} className="max-w-[150px] rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-[10px] text-gray-300 outline-none focus:border-indigo-500"><option value="all">全部分类</option>{categoryOptions.map(category => <option key={category} value={category}>{category}</option>)}</select><div className="relative"><Search size={12} className="absolute left-2 top-2 text-gray-600" /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索需求" className="w-36 rounded border border-gray-700 bg-gray-900/80 py-1.5 pl-7 pr-2 text-[10px] text-gray-300 outline-none focus:border-indigo-500" /></div></div>
+            <div className="flex items-center gap-1.5"><label htmlFor="schedule-category" className="text-[10px] text-gray-500">分类</label><select id="schedule-category" aria-label="需求分类筛选" value={categoryFilter} onChange={event => { setCategoryFilter(event.target.value); setSelectedDemandId(null); setSelectedTaskId(null); setFocusMode('demand'); setOwnerFilter('demand'); }} className="max-w-[150px] rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-[10px] text-gray-300 outline-none focus:border-indigo-500"><option value="all">全部分类</option>{categoryOptions.map(category => <option key={category} value={category}>{category}</option>)}</select><div className="relative"><Search size={12} className="absolute left-2 top-2 text-gray-600" /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索需求" className="w-36 rounded border border-gray-700 bg-gray-900/80 py-1.5 pl-7 pr-2 text-[10px] text-gray-300 outline-none focus:border-indigo-500" /></div></div>
           </div>
           {selectedTask && <div className="shrink-0 border-b border-indigo-500/25 bg-indigo-500/[0.08] px-3 py-2.5" aria-label="当前任务上下文">
             <div className="flex items-start justify-between gap-3">
@@ -275,7 +277,7 @@ export function ScheduleWorkspace() {
                 <div className="mt-1 truncate text-xs font-semibold text-gray-100" title={selectedTask.title}>{selectedTask.title}</div>
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-400"><span>{taskOwnerNames(selectedTask, resourceById)}</span><span>{taskRange(selectedTask)}</span><span className={selectedTask.estimatedHours == null ? 'text-amber-300' : 'text-cyan-200'}>预估 {taskEstimate(selectedTask)}</span><span>{dependencyTasks.length ? `前置 ${dependencyTasks.length} 项` : '无前置任务'}</span></div>
               </div>
-              <button type="button" onClick={() => { setSelectedTaskId(null); setFocusMode('demand'); setOwnerFilter('all'); }} className="shrink-0 rounded p-1 text-gray-500 hover:bg-white/[0.08] hover:text-gray-200" title="清除当前任务"><X size={13} /></button>
+              <button type="button" onClick={() => { setSelectedTaskId(null); setFocusMode('demand'); setOwnerFilter('demand'); }} className="shrink-0 rounded p-1 text-gray-500 hover:bg-white/[0.08] hover:text-gray-200" title="清除当前任务"><X size={13} /></button>
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
               <button type="button" onClick={() => focusTaskCalendar('task')} className="inline-flex items-center gap-1 rounded border border-indigo-400/30 bg-indigo-500/15 px-2 py-1 text-[10px] text-indigo-100 hover:bg-indigo-500/25"><UserRound size={12} />看负责人排期</button>
@@ -312,7 +314,7 @@ export function ScheduleWorkspace() {
                     return <div key={task.id} className={`flex min-h-[54px] transition-colors ${isSelected ? 'bg-indigo-500/[0.08]' : ''}`}>
                       <div role="button" tabIndex={0} onClick={() => selectTask(task)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectTask(task); } }} className={`group relative w-[250px] shrink-0 border-r px-3 py-2 text-left outline-none transition-colors ${isSelected ? 'border-indigo-400/70 bg-indigo-500/15 ring-1 ring-inset ring-indigo-400/40' : 'border-gray-800 hover:bg-white/[0.04]'}`}>
                         <div className="flex items-center gap-1.5 pr-5"><span className={`rounded px-1.5 py-0.5 text-[9px] ${style.bg} ${style.text}`}>{stage ? STAGE_LABEL[stage] : '其他'}</span><span className={`rounded border px-1 py-0.5 text-[9px] ${STATUS_STYLE[status] || STATUS_STYLE.todo}`}>{status === 'in_progress' ? '进行中' : status === 'done' ? '已完成' : status === 'blocked' ? '阻塞' : '待开始'}</span></div>
-                        <div className={`mt-1 truncate text-[11px] ${isSelected ? 'font-semibold text-indigo-100' : 'text-gray-200'}`} title={task.title}>{task.title}</div>
+                        <div className={`mt-1 truncate text-[11px] ${isSelected ? 'font-semibold text-indigo-100' : 'text-gray-200'}`} title={task.title}>{task.externalUrl ? <a href={task.externalUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} className="inline-flex max-w-full items-center gap-1 truncate text-inherit underline decoration-gray-600/70 underline-offset-2 hover:text-cyan-200 hover:decoration-cyan-300" title="打开对应 TAPD 单">{task.title}<ExternalLink size={10} className="shrink-0" /></a> : task.title}</div>
                         <div className="mt-0.5 truncate text-[9px] text-gray-600">{taskOwnerNames(task, resourceById)} · {taskRange(task)} · <span className={task.estimatedHours == null ? 'text-amber-400/80' : 'text-cyan-500/90'}>预估 {taskEstimate(task)}</span></div>
                         {dependencyTasks.length > 0 && <div className="mt-0.5 truncate text-[9px] text-cyan-500/80">前置：{dependencyTasks.map(dependency => dependency.title).join('、')}</div>}
                         {isSelected && <span className="absolute right-2 top-2 rounded bg-indigo-400/20 px-1 text-[9px] text-indigo-200">已选</span>}
@@ -334,7 +336,7 @@ export function ScheduleWorkspace() {
         <section className="flex min-h-[360px] min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121722] xl:min-w-[520px]">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-gray-800 px-3 py-2.5">
             <div className="min-w-0 flex items-center gap-2"><Users size={14} className="shrink-0 text-emerald-300" /><span className="text-xs font-semibold text-gray-200">团队日历负荷</span><span className="text-[10px] text-gray-500">{dayLabel(windowStart)}–{dayLabel(days[days.length - 1])}</span><span className="rounded border border-gray-700 px-1 py-0.5 text-[9px] text-gray-500">{DAY_COUNT}天窗口</span>{selectedTask && <span className="truncate rounded border border-indigo-400/25 bg-indigo-500/10 px-1.5 py-0.5 text-[9px] text-indigo-200">正在看：{focusLabel}</span>}</div>
-            <div className="flex items-center gap-1.5"><select aria-label="团队成员筛选" value={ownerFilter} onChange={event => setOwnerFilter(event.target.value === 'all' ? 'all' : Number(event.target.value))} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="all">全部成员</option>{availableResources.map(resource => <option key={resource.id} value={resource.id}>{resource.name}</option>)}</select><button type="button" onClick={() => moveWindow(-7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="前 7 天"><ArrowLeft size={13} /></button><button type="button" onClick={() => moveWindow(7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="后 7 天"><ArrowRight size={13} /></button></div>
+            <div className="flex items-center gap-1.5"><select aria-label="团队成员筛选" value={ownerFilter} onChange={event => { const value = event.target.value; setOwnerFilter(value === 'all' || value === 'demand' ? value : Number(value)); }} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="demand">本需求相关人员</option><option value="all">全部成员</option>{availableResources.map(resource => <option key={resource.id} value={resource.id}>{resource.name}</option>)}</select><button type="button" onClick={() => moveWindow(-7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="前 7 天"><ArrowLeft size={13} /></button><button type="button" onClick={() => moveWindow(7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="后 7 天"><ArrowRight size={13} /></button></div>
           </div>
           {selectedGroup && <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-gray-800/70 px-3 py-2 text-[10px]"><span className="text-gray-500">已选需求</span><span className="max-w-[260px] truncate text-indigo-200">{selectedGroup.demand.title}</span><span className="text-gray-600">相关人员 {selectedOwners.size} 人</span><span className="text-gray-600">前置链 {selectedGroup.tasks.filter(task => (task.dependencies || []).length > 0).length} 项</span>{selectedTask && <><span className="text-gray-700">|</span><span className="max-w-[250px] truncate text-cyan-200">当前任务：{selectedTask.title}</span></>}</div>}
           <div className="min-h-0 flex-1 overflow-auto">
