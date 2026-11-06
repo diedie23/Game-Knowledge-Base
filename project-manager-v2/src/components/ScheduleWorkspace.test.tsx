@@ -76,19 +76,33 @@ describe('ScheduleWorkspace', () => {
     expect(screen.queryByText('暂无匹配的未完成需求')).toBeNull();
   });
 
-  it('highlights the selected demand in the team calendar and opens tasks', () => {
+  it('selects a task, focuses its owner and prerequisite schedule, then opens details explicitly', () => {
     render(<ScheduleWorkspace />);
 
     fireEvent.click(screen.getByRole('button', { name: /商城界面需求/ }));
     expect(screen.getByText('相关人员 2 人')).toBeTruthy();
     expect(screen.getByText('前置链 2 项')).toBeTruthy();
-    expect(screen.getByText('商城交互方案').closest('button')).toBeTruthy();
+    expect(screen.getByText('商城交互方案').closest('[role="button"]')).toBeTruthy();
     fireEvent.click(screen.getAllByRole('button', { name: /商城视觉设计/ })[0]);
-    expect(screen.getAllByText('商城界面需求').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('活动界面需求').length).toBeGreaterThan(0);
+    expect(screen.getByText('当前查看任务')).toBeTruthy();
+    expect(screen.getByText('当前任务：商城视觉设计')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: '看负责人排期' }));
+    expect((screen.getByLabelText('团队成员筛选') as HTMLSelectElement).value).toBe('11');
+    fireEvent.click(screen.getByRole('button', { name: '看前置排期' }));
+    expect(screen.getByText('正在看：当前任务 + 前置链')).toBeTruthy();
 
     fireEvent.click(screen.getAllByRole('button', { name: /商城还原开发/ })[0]);
+    fireEvent.click(screen.getByRole('button', { name: '打开详情' }));
     expect(state.open).toHaveBeenCalledWith(4);
+  });
+
+  it('lets a calendar cell switch to the task and demand it belongs to', () => {
+    render(<ScheduleWorkspace />);
+
+    fireEvent.click(screen.getAllByTitle('活动视觉设计 · 点击查看任务上下文')[0]);
+    expect(screen.getByText('当前任务：活动视觉设计')).toBeTruthy();
+    expect(screen.getAllByText('活动界面需求')[0].closest('button')).toBeTruthy();
   });
 
   it('moves the calendar window and supports member filtering', () => {
