@@ -9,8 +9,8 @@ import type { Resource, Task } from '../types';
 import { getTaskAssigneeIds } from '../utils/taskAssignee';
 import { buildTaskHierarchyIndex, getActiveLeafTasks } from '../utils/taskHierarchy';
 import { findDemandForTask } from '../services/tapdPlanningAssistant';
-import { taskStage, taskStatus, type CoreUxStage } from '../services/uxStageView';
-import { isTaskCancelled, isTaskTerminal } from '../utils/taskState';
+import { isUxTrackedTask, taskStage, taskStatus, type CoreUxStage } from '../services/uxStageView';
+import { isTaskCancelled, isTaskCompleted, isTaskTerminal } from '../utils/taskState';
 import { compareResources } from './gantt/constants';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 
@@ -39,6 +39,7 @@ const STATUS_STYLE: Record<string, string> = {
 
 const DAY_COUNT = 21;
 const DAY_WIDTH = 40;
+const TASK_INFO_WIDTH = 320;
 type CalendarFocusMode = 'demand' | 'task' | 'dependencies';
 
 function dayLabel(day: Date) {
@@ -61,6 +62,12 @@ function taskRange(task: Task): string {
   return `${task.startDate ? dayLabel(new Date(task.startDate)) : '未定'}–${task.endDate ? dayLabel(new Date(task.endDate)) : '未定'}`;
 }
 
+function taskTiming(task: Task): string {
+  if (!isTaskCompleted(task)) return taskRange(task);
+  const completedDate = task.completedAt || task.endDate || task.startDate;
+  return completedDate ? `完成于 ${dayLabel(new Date(completedDate))}` : '已完成（时间未同步）';
+}
+
 function taskEstimate(task: Task): string {
   if (task.estimatedHours === undefined || task.estimatedHours === null) return '未设置';
   const personDays = task.estimatedHours / 8;
@@ -69,8 +76,9 @@ function taskEstimate(task: Task): string {
 }
 
 function getTaskBar(task: Task, windowStart: Date) {
-  const start = dateValue(task.startDate);
-  const end = dateValue(task.endDate) ?? start;
+  const completionDate = isTaskCompleted(task) ? task.completedAt || task.endDate || task.startDate : undefined;
+  const start = dateValue(task.startDate) ?? dateValue(completionDate);
+  const end = dateValue(task.endDate) ?? dateValue(completionDate) ?? start;
   if (start === undefined || end === undefined) return null;
   const leftDay = Math.max(0, differenceInCalendarDays(new Date(start), windowStart));
   const rightDay = Math.min(DAY_COUNT, differenceInCalendarDays(new Date(end), windowStart) + 1);
@@ -94,9 +102,18 @@ export function ScheduleWorkspace() {
   const allTasks = tasks || [];
   const hierarchy = useMemo(() => buildTaskHierarchyIndex(allTasks), [allTasks]);
   const activeLeaves = useMemo(() => getActiveLeafTasks(allTasks, hierarchy), [allTasks, hierarchy]);
-  // The demand timeline keeps completed leaf tasks (but not cancelled work) so
-  // earlier stages remain visible when a later stage is planned after a gap.
-  const timelineLeaves = useMemo(() => hierarchy.leafTasks.filter(task => !isTaskCancelled(task)), [hierarchy]);
+  // The collaborative view is intentionally limited to the UX pipeline. Downstream
+  // work such as program integration and audio remains available in TAPD, but it
+  // should not distort UX sequencing or the people-load view here.
+  const schedulableLeaves = useMemo(
+    () => activeLeaves.filter(task => isUxTrackedTask(task, resources)),
+    [activeLeaves, resources],
+  );
+  // Keep completed UX stages for history, but exclude cancelled and downstream work.
+  const timelineLeaves = useMemo(
+    () => hierarchy.leafTasks.filter(task => !isTaskCancelled(task) && isUxTrackedTask(task, resources)),
+    [hierarchy, resources],
+  );
 
   const demandByTaskId = useMemo(() => {
     const map = new Map<number, Task>();
@@ -108,7 +125,7 @@ export function ScheduleWorkspace() {
 
   const demandGroups = useMemo(() => {
     const activeDemandIds = new Set(
-      activeLeaves
+      schedulableLeaves
         .map(task => task.id === undefined ? undefined : demandByTaskId.get(task.id)?.id)
         .filter((id): id is number => id !== undefined),
     );
@@ -126,7 +143,7 @@ export function ScheduleWorkspace() {
       tasks: [...group.tasks].sort((left, right) => (dateValue(left.startDate) || Infinity) - (dateValue(right.startDate) || Infinity)),
       endDate: group.tasks.reduce<number | undefined>((latest, task) => Math.max(latest || 0, dateValue(task.endDate) || 0) || latest, undefined),
     })).sort((left, right) => (left.endDate || Infinity) - (right.endDate || Infinity));
-  }, [activeLeaves, demandByTaskId, timelineLeaves]);
+  }, [demandByTaskId, schedulableLeaves, timelineLeaves]);
 
   const categoryOptions = useMemo(
     () => [...new Set(demandGroups.map(group => group.category))].sort((left, right) => left.localeCompare(right, 'zh-CN')),
@@ -166,7 +183,10 @@ export function ScheduleWorkspace() {
     if (focusMode === 'dependencies') return new Set([selectedTask.id, ...dependencyTasks.map(task => task.id).filter((id): id is number => id !== undefined)]);
     return selectedTaskIds;
   }, [dependencyTasks, focusMode, selectedTask, selectedTaskIds]);
-  const selectedOwners = useMemo(() => new Set(selectedGroup?.tasks.flatMap(getTaskAssigneeIds) || []), [selectedGroup]);
+  const selectedOwners = useMemo(
+    () => new Set(selectedGroup?.tasks.filter(task => !isTaskCompleted(task)).flatMap(getTaskAssigneeIds) || []),
+    [selectedGroup],
+  );
   const focusOwners = useMemo(() => {
     if (!selectedTask || focusMode === 'demand') return selectedOwners;
     const tasks = focusMode === 'dependencies' ? [selectedTask, ...dependencyTasks] : [selectedTask];
@@ -186,7 +206,7 @@ export function ScheduleWorkspace() {
 
   const tasksByResourceAndDay = useMemo(() => {
     const map = new Map<string, Task[]>();
-    activeLeaves.forEach(task => {
+    schedulableLeaves.forEach(task => {
       const assignees = getTaskAssigneeIds(task);
       if (!task.startDate || !task.endDate || assignees.length === 0) return;
       const start = startOfDay(new Date(task.startDate));
@@ -202,7 +222,7 @@ export function ScheduleWorkspace() {
       });
     });
     return map;
-  }, [activeLeaves, days]);
+  }, [days, schedulableLeaves]);
 
   const selectedRange = selectedGroup?.tasks.reduce<{ start?: Date; end?: Date }>((range, task) => {
     if (task.startDate && (!range.start || new Date(task.startDate) < range.start)) range.start = new Date(task.startDate);
@@ -230,7 +250,7 @@ export function ScheduleWorkspace() {
     if (demand.id !== undefined) setSelectedDemandId(demand.id);
     setSelectedTaskId(task.id);
     setFocusMode('task');
-    setOwnerFilter(getTaskAssigneeIds(task)[0] ?? 'demand');
+    setOwnerFilter(isTaskCompleted(task) ? 'demand' : getTaskAssigneeIds(task)[0] ?? 'demand');
   };
 
   const focusTaskCalendar = (mode: Exclude<CalendarFocusMode, 'demand'>) => {
@@ -275,7 +295,7 @@ export function ScheduleWorkspace() {
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-wide text-indigo-300"><span className="h-1.5 w-1.5 rounded-full bg-indigo-300" />当前查看任务</div>
                 <div className="mt-1 truncate text-xs font-semibold text-gray-100" title={selectedTask.title}>{selectedTask.title}</div>
-                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-400"><span>{taskOwnerNames(selectedTask, resourceById)}</span><span>{taskRange(selectedTask)}</span><span className={selectedTask.estimatedHours == null ? 'text-amber-300' : 'text-cyan-200'}>预估 {taskEstimate(selectedTask)}</span><span>{dependencyTasks.length ? `前置 ${dependencyTasks.length} 项` : '无前置任务'}</span></div>
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-400"><span>{taskOwnerNames(selectedTask, resourceById)}</span><span>{taskTiming(selectedTask)}</span><span className={selectedTask.estimatedHours == null ? 'text-amber-300' : 'text-cyan-200'}>预估 {taskEstimate(selectedTask)}</span><span>{dependencyTasks.length ? `前置 ${dependencyTasks.length} 项` : '无前置任务'}</span></div>
               </div>
               <button type="button" onClick={() => { setSelectedTaskId(null); setFocusMode('demand'); setOwnerFilter('demand'); }} className="shrink-0 rounded p-1 text-gray-500 hover:bg-white/[0.08] hover:text-gray-200" title="清除当前任务"><X size={13} /></button>
             </div>
@@ -299,9 +319,9 @@ export function ScheduleWorkspace() {
             </div>
 
             <div className="min-w-0 flex-1 overflow-auto">
-              {selectedGroup ? <div style={{ minWidth: DAY_COUNT * DAY_WIDTH + 250 }}>
+              {selectedGroup ? <div style={{ minWidth: DAY_COUNT * DAY_WIDTH + TASK_INFO_WIDTH }}>
                 <div className="border-b border-gray-800 bg-gray-950/25">
-                  <div className="flex"><div className="w-[250px] shrink-0 border-r border-gray-800 px-3 py-2 text-[10px] text-gray-500">子需求 / 环节 / 负责人</div><div className="flex">{days.map(day => <div key={day.toISOString()} className={`w-[40px] shrink-0 border-r border-gray-800/70 px-1 py-2 text-center text-[9px] ${isSameDay(day, new Date()) ? 'bg-indigo-500/15 text-indigo-300' : 'text-gray-500'}`}>{dayLabel(day)}</div>)}</div></div>
+                  <div className="flex"><div className="w-[320px] shrink-0 border-r border-gray-800 px-3 py-2 text-[10px] text-gray-500">子需求 / 环节 / 负责人</div><div className="flex">{days.map(day => <div key={day.toISOString()} className={`w-[40px] shrink-0 border-r border-gray-800/70 px-1 py-2 text-center text-[9px] ${isSameDay(day, new Date()) ? 'bg-indigo-500/15 text-indigo-300' : 'text-gray-500'}`}>{dayLabel(day)}</div>)}</div></div>
                 </div>
                 <div className="divide-y divide-gray-800/70">
                   {selectedGroup.tasks.map(task => {
@@ -311,19 +331,20 @@ export function ScheduleWorkspace() {
                     const status = taskStatus(task);
                     const dependencyTasks = (task.dependencies || []).map(id => taskById.get(id)).filter((dependency): dependency is Task => Boolean(dependency));
                     const isSelected = task.id !== undefined && task.id === selectedTaskId;
-                    return <div key={task.id} className={`flex min-h-[54px] transition-colors ${isSelected ? 'bg-indigo-500/[0.08]' : ''}`}>
-                      <div role="button" tabIndex={0} onClick={() => selectTask(task)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectTask(task); } }} className={`group relative w-[250px] shrink-0 border-r px-3 py-2 text-left outline-none transition-colors ${isSelected ? 'border-indigo-400/70 bg-indigo-500/15 ring-1 ring-inset ring-indigo-400/40' : 'border-gray-800 hover:bg-white/[0.04]'}`}>
+                    return <div key={task.id} className={`flex min-h-[70px] transition-colors ${isSelected ? 'bg-indigo-500/[0.08]' : ''}`}>
+                      <div role="button" tabIndex={0} onClick={() => selectTask(task)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectTask(task); } }} className={`group relative w-[320px] shrink-0 border-r px-3 py-2 text-left outline-none transition-colors ${isSelected ? 'border-indigo-400/70 bg-indigo-500/15 ring-1 ring-inset ring-indigo-400/40' : 'border-gray-800 hover:bg-white/[0.04]'}`}>
                         <div className="flex items-center gap-1.5 pr-5"><span className={`rounded px-1.5 py-0.5 text-[9px] ${style.bg} ${style.text}`}>{stage ? STAGE_LABEL[stage] : '其他'}</span><span className={`rounded border px-1 py-0.5 text-[9px] ${STATUS_STYLE[status] || STATUS_STYLE.todo}`}>{status === 'in_progress' ? '进行中' : status === 'done' ? '已完成' : status === 'blocked' ? '阻塞' : '待开始'}</span></div>
-                        <div className={`mt-1 truncate text-[11px] ${isSelected ? 'font-semibold text-indigo-100' : 'text-gray-200'}`} title={task.title}>{task.externalUrl ? <a href={task.externalUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} className="inline-flex max-w-full items-center gap-1 truncate text-inherit underline decoration-gray-600/70 underline-offset-2 hover:text-cyan-200 hover:decoration-cyan-300" title="打开对应 TAPD 单">{task.title}<ExternalLink size={10} className="shrink-0" /></a> : task.title}</div>
-                        <div className="mt-0.5 truncate text-[9px] text-gray-600">{taskOwnerNames(task, resourceById)} · {taskRange(task)} · <span className={task.estimatedHours == null ? 'text-amber-400/80' : 'text-cyan-500/90'}>预估 {taskEstimate(task)}</span></div>
+                        <div className={`mt-1 line-clamp-2 break-words text-[11px] leading-4 ${isSelected ? 'font-semibold text-indigo-100' : 'text-gray-200'}`} title={task.title}>{task.externalUrl ? <a href={task.externalUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} className="inline-flex max-w-full items-center gap-1 truncate text-inherit underline decoration-gray-600/70 underline-offset-2 hover:text-cyan-200 hover:decoration-cyan-300" title="打开对应 TAPD 单">{task.title}<ExternalLink size={10} className="shrink-0" /></a> : task.title}</div>
+                        <div className="mt-0.5 truncate text-[9px] text-gray-600">{taskOwnerNames(task, resourceById)} · {taskTiming(task)} · <span className={task.estimatedHours == null ? 'text-amber-400/80' : 'text-cyan-500/90'}>预估 {taskEstimate(task)}</span></div>
                         {dependencyTasks.length > 0 && <div className="mt-0.5 truncate text-[9px] text-cyan-500/80">前置：{dependencyTasks.map(dependency => dependency.title).join('、')}</div>}
                         {isSelected && <span className="absolute right-2 top-2 rounded bg-indigo-400/20 px-1 text-[9px] text-indigo-200">已选</span>}
                         <button type="button" onClick={event => { event.stopPropagation(); if (task.id !== undefined) openTaskModal(task.id); }} className="absolute bottom-1.5 right-2 hidden rounded border border-gray-700 bg-gray-900/90 px-1.5 py-0.5 text-[9px] text-gray-400 group-hover:block hover:border-gray-500 hover:text-white" title="打开任务详情">详情</button>
                       </div>
-                      <div className="relative h-[54px] flex" style={{ width: DAY_COUNT * DAY_WIDTH }}>
+                      <div className="relative h-[70px] flex" style={{ width: DAY_COUNT * DAY_WIDTH }}>
                         {days.map(day => <div key={day.toISOString()} className={`h-full w-[40px] shrink-0 border-r border-gray-800/60 ${isSameDay(day, new Date()) ? 'bg-indigo-500/[0.06]' : ''}`} />)}
-                        {bar && <button type="button" onClick={() => selectTask(task)} title={`${task.title} · 预估 ${taskEstimate(task)} · 点击查看负责人和前置排期`} className={`absolute top-2 h-8 rounded border px-2 text-left text-[9px] font-medium text-white/90 shadow-sm transition-all ${style.bar} ${isTaskTerminal(task) ? 'opacity-60' : ''} ${isSelected ? 'z-10 border-white/80 ring-2 ring-indigo-300/70' : 'border-white/10 hover:brightness-125'}`} style={{ left: bar.left + 2, width: bar.width }}><span className="block truncate">{task.title}</span></button>}
-                        {!bar && <div className="absolute inset-0 flex items-center px-2 text-[9px] text-amber-400/80">未排期</div>}
+                        {bar && <button type="button" onClick={() => selectTask(task)} title={`${task.title} · 预估 ${taskEstimate(task)} · 点击查看负责人和前置排期`} className={`absolute top-2 h-8 rounded border px-2 text-left text-[9px] font-medium text-white/90 shadow-sm transition-all ${isTaskCompleted(task) ? 'bg-emerald-500/70' : style.bar} ${isTaskTerminal(task) ? 'opacity-60' : ''} ${isSelected ? 'z-10 border-white/80 ring-2 ring-indigo-300/70' : 'border-white/10 hover:brightness-125'}`} style={{ left: bar.left + 2, width: bar.width }}><span className="block truncate">{task.title}</span></button>}
+                        {!bar && isTaskCompleted(task) && <div className="absolute inset-0 flex items-center px-2 text-[10px] font-medium text-emerald-300/90">已完成</div>}
+                        {!bar && !isTaskCompleted(task) && <div className="absolute inset-0 flex items-center px-2 text-[9px] text-amber-400/80">未排期</div>}
                       </div>
                     </div>;
                   })}
@@ -338,7 +359,7 @@ export function ScheduleWorkspace() {
             <div className="min-w-0 flex items-center gap-2"><Users size={14} className="shrink-0 text-emerald-300" /><span className="text-xs font-semibold text-gray-200">团队日历负荷</span><span className="text-[10px] text-gray-500">{dayLabel(windowStart)}–{dayLabel(days[days.length - 1])}</span><span className="rounded border border-gray-700 px-1 py-0.5 text-[9px] text-gray-500">{DAY_COUNT}天窗口</span>{selectedTask && <span className="truncate rounded border border-indigo-400/25 bg-indigo-500/10 px-1.5 py-0.5 text-[9px] text-indigo-200">正在看：{focusLabel}</span>}</div>
             <div className="flex items-center gap-1.5"><select aria-label="团队成员筛选" value={ownerFilter} onChange={event => { const value = event.target.value; setOwnerFilter(value === 'all' || value === 'demand' ? value : Number(value)); }} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="demand">本需求相关人员</option><option value="all">全部成员</option>{availableResources.map(resource => <option key={resource.id} value={resource.id}>{resource.name}</option>)}</select><button type="button" onClick={() => moveWindow(-7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="前 7 天"><ArrowLeft size={13} /></button><button type="button" onClick={() => moveWindow(7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="后 7 天"><ArrowRight size={13} /></button></div>
           </div>
-          {selectedGroup && <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-gray-800/70 px-3 py-2 text-[10px]"><span className="text-gray-500">已选需求</span><span className="max-w-[260px] truncate text-indigo-200">{selectedGroup.demand.title}</span><span className="text-gray-600">相关人员 {selectedOwners.size} 人</span><span className="text-gray-600">前置链 {selectedGroup.tasks.filter(task => (task.dependencies || []).length > 0).length} 项</span>{selectedTask && <><span className="text-gray-700">|</span><span className="max-w-[250px] truncate text-cyan-200">当前任务：{selectedTask.title}</span></>}</div>}
+          {selectedGroup && <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-gray-800/70 px-3 py-2 text-[10px]"><span className="text-gray-500">已选需求</span><span className="max-w-[260px] truncate text-indigo-200">{selectedGroup.demand.title}</span><span className="text-gray-600">相关人员 {selectedOwners.size} 人</span><span className="text-gray-600">前置链 {selectedGroup.tasks.filter(task => (task.dependencies || []).length > 0).length} 项</span>{selectedTask && <><span className="text-gray-700">|</span><span className="max-w-[320px] truncate text-cyan-200">当前任务：{selectedTask.title}</span></>}</div>}
           <div className="min-h-0 flex-1 overflow-auto">
             <div className="min-w-0" style={{ minWidth: 176 + DAY_COUNT * DAY_WIDTH }}>
               <div className="flex border-b border-gray-800 bg-gray-950/25 sticky top-0 z-10"><div className="w-44 shrink-0 border-r border-gray-800 px-3 py-2 text-[10px] text-gray-500">成员 / 工种</div><div className="flex">{days.map(day => <div key={day.toISOString()} className={`w-[40px] shrink-0 border-r border-gray-800/70 px-1 py-2 text-center text-[9px] ${isSameDay(day, new Date()) ? 'bg-indigo-500/15 text-indigo-300' : 'text-gray-500'}`}>{dayLabel(day)}</div>)}</div></div>

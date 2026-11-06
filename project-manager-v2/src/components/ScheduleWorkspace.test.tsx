@@ -32,6 +32,8 @@ const state = vi.hoisted(() => {
       makeTask({ id: 2, parentId: 1, title: '商城交互方案', status: 'done', assigneeIds: [10], startDate: dateAt(-2), endDate: dateAt(-1), estimatedHours: 6 }),
       makeTask({ id: 3, parentId: 1, title: '商城视觉设计', status: 'in_progress', assigneeIds: [11], startDate: dateAt(1), endDate: dateAt(3), dependencies: [2], estimatedHours: 12.5, externalUrl: 'https://tapd.example/story/3' }),
       makeTask({ id: 4, parentId: 1, title: '商城还原开发', status: 'todo', assigneeIds: [10], startDate: dateAt(4), endDate: dateAt(6), dependencies: [3], estimatedHours: 20 }),
+      makeTask({ id: 7, parentId: 1, title: '商城程序接入', status: 'todo', assigneeIds: [12], tapdWorkitemTypeName: '开发子需求', startDate: dateAt(2), endDate: dateAt(5) }),
+      makeTask({ id: 8, parentId: 1, title: '【交互】商城历史完成环节', status: 'done', assigneeIds: [12], completedAt: dateAt(-3) }),
       makeTask({ id: 5, title: '活动界面需求', tapdWorkitemTypeName: 'UIStory', module: '活动' }),
       makeTask({ id: 6, parentId: 5, title: '活动视觉设计', status: 'todo', assigneeIds: [11], startDate: dateAt(2), endDate: dateAt(5) }),
     ] as Task[],
@@ -74,6 +76,9 @@ describe('ScheduleWorkspace', () => {
     expect(screen.getByText('商城交互方案')).toBeTruthy();
     expect(screen.getAllByText('商城视觉设计').length).toBeGreaterThan(0);
     expect(screen.getAllByText('商城还原开发').length).toBeGreaterThan(0);
+    expect(screen.queryByText('商城程序接入')).toBeNull();
+    expect(screen.getByText(/完成于/)).toBeTruthy();
+    expect(screen.queryByText('未排期')).toBeNull();
     expect(screen.queryByText('暂无匹配的未完成需求')).toBeNull();
   });
 
