@@ -29,9 +29,9 @@ const state = vi.hoisted(() => {
     dateAt,
     tasks: [
       makeTask({ id: 1, title: '商城界面需求', tapdWorkitemTypeName: 'UIStory' }),
-      makeTask({ id: 2, parentId: 1, title: '商城交互方案', status: 'done', assigneeIds: [10], startDate: dateAt(-2), endDate: dateAt(-1) }),
-      makeTask({ id: 3, parentId: 1, title: '商城视觉设计', status: 'in_progress', assigneeIds: [11], startDate: dateAt(1), endDate: dateAt(3), dependencies: [2] }),
-      makeTask({ id: 4, parentId: 1, title: '商城还原开发', status: 'todo', assigneeIds: [10], startDate: dateAt(4), endDate: dateAt(6), dependencies: [3] }),
+      makeTask({ id: 2, parentId: 1, title: '商城交互方案', status: 'done', assigneeIds: [10], startDate: dateAt(-2), endDate: dateAt(-1), estimatedHours: 6 }),
+      makeTask({ id: 3, parentId: 1, title: '商城视觉设计', status: 'in_progress', assigneeIds: [11], startDate: dateAt(1), endDate: dateAt(3), dependencies: [2], estimatedHours: 12.5 }),
+      makeTask({ id: 4, parentId: 1, title: '商城还原开发', status: 'todo', assigneeIds: [10], startDate: dateAt(4), endDate: dateAt(6), dependencies: [3], estimatedHours: 20 }),
       makeTask({ id: 5, title: '活动界面需求', tapdWorkitemTypeName: 'UIStory' }),
       makeTask({ id: 6, parentId: 5, title: '活动视觉设计', status: 'todo', assigneeIds: [11], startDate: dateAt(2), endDate: dateAt(5) }),
     ] as Task[],
@@ -86,6 +86,7 @@ describe('ScheduleWorkspace', () => {
     fireEvent.click(screen.getAllByRole('button', { name: /商城视觉设计/ })[0]);
     expect(screen.getByText('当前查看任务')).toBeTruthy();
     expect(screen.getByText('当前任务：商城视觉设计')).toBeTruthy();
+    expect(screen.getAllByText('预估 12.5h').length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole('button', { name: '看负责人排期' }));
     expect((screen.getByLabelText('团队成员筛选') as HTMLSelectElement).value).toBe('11');
@@ -108,6 +109,7 @@ describe('ScheduleWorkspace', () => {
   it('moves the calendar window and supports member filtering', () => {
     render(<ScheduleWorkspace />);
 
+    expect(screen.getByText('21天窗口')).toBeTruthy();
     const initialHeader = screen.getByText(/团队日历负荷/).parentElement?.textContent;
     fireEvent.click(screen.getByTitle('后 7 天'));
     const movedHeader = screen.getByText(/团队日历负荷/).parentElement?.textContent;

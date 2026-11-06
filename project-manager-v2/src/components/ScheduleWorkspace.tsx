@@ -37,8 +37,8 @@ const STATUS_STYLE: Record<string, string> = {
   cancelled: 'text-gray-500 bg-gray-500/10 border-gray-700',
 };
 
-const DAY_COUNT = 14;
-const DAY_WIDTH = 44;
+const DAY_COUNT = 21;
+const DAY_WIDTH = 40;
 type CalendarFocusMode = 'demand' | 'task' | 'dependencies';
 
 function dayLabel(day: Date) {
@@ -59,6 +59,12 @@ function taskOwnerNames(task: Task, resources: Resource[]): string {
 
 function taskRange(task: Task): string {
   return `${task.startDate ? dayLabel(new Date(task.startDate)) : '未定'}–${task.endDate ? dayLabel(new Date(task.endDate)) : '未定'}`;
+}
+
+function taskEstimate(task: Task): string {
+  if (task.estimatedHours === undefined || task.estimatedHours === null) return '未设置';
+  const hours = Number.isInteger(task.estimatedHours) ? String(task.estimatedHours) : task.estimatedHours.toFixed(1);
+  return `${hours}h`;
 }
 
 function getTaskBar(task: Task, windowStart: Date) {
@@ -239,7 +245,7 @@ export function ScheduleWorkspace() {
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-wide text-indigo-300"><span className="h-1.5 w-1.5 rounded-full bg-indigo-300" />当前查看任务</div>
                 <div className="mt-1 truncate text-xs font-semibold text-gray-100" title={selectedTask.title}>{selectedTask.title}</div>
-                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-400"><span>{taskOwnerNames(selectedTask, resources)}</span><span>{taskRange(selectedTask)}</span><span>{dependencyTasks.length ? `前置 ${dependencyTasks.length} 项` : '无前置任务'}</span></div>
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-400"><span>{taskOwnerNames(selectedTask, resources)}</span><span>{taskRange(selectedTask)}</span><span className={selectedTask.estimatedHours == null ? 'text-amber-300' : 'text-cyan-200'}>预估 {taskEstimate(selectedTask)}</span><span>{dependencyTasks.length ? `前置 ${dependencyTasks.length} 项` : '无前置任务'}</span></div>
               </div>
               <button type="button" onClick={() => { setSelectedTaskId(null); setFocusMode('demand'); setOwnerFilter('all'); }} className="shrink-0 rounded p-1 text-gray-500 hover:bg-white/[0.08] hover:text-gray-200" title="清除当前任务"><X size={13} /></button>
             </div>
@@ -265,7 +271,7 @@ export function ScheduleWorkspace() {
             <div className="min-w-0 flex-1 overflow-auto">
               {selectedGroup ? <div style={{ minWidth: DAY_COUNT * DAY_WIDTH + 250 }}>
                 <div className="border-b border-gray-800 bg-gray-950/25">
-                  <div className="flex"><div className="w-[250px] shrink-0 border-r border-gray-800 px-3 py-2 text-[10px] text-gray-500">子需求 / 环节 / 负责人</div><div className="flex">{days.map(day => <div key={day.toISOString()} className={`w-[44px] shrink-0 border-r border-gray-800/70 px-1 py-2 text-center text-[9px] ${isSameDay(day, new Date()) ? 'bg-indigo-500/15 text-indigo-300' : 'text-gray-500'}`}>{dayLabel(day)}</div>)}</div></div>
+                  <div className="flex"><div className="w-[250px] shrink-0 border-r border-gray-800 px-3 py-2 text-[10px] text-gray-500">子需求 / 环节 / 负责人</div><div className="flex">{days.map(day => <div key={day.toISOString()} className={`w-[40px] shrink-0 border-r border-gray-800/70 px-1 py-2 text-center text-[9px] ${isSameDay(day, new Date()) ? 'bg-indigo-500/15 text-indigo-300' : 'text-gray-500'}`}>{dayLabel(day)}</div>)}</div></div>
                 </div>
                 <div className="divide-y divide-gray-800/70">
                   {selectedGroup.tasks.map(task => {
@@ -279,14 +285,14 @@ export function ScheduleWorkspace() {
                       <div role="button" tabIndex={0} onClick={() => selectTask(task)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectTask(task); } }} className={`group relative w-[250px] shrink-0 border-r px-3 py-2 text-left outline-none transition-colors ${isSelected ? 'border-indigo-400/70 bg-indigo-500/15 ring-1 ring-inset ring-indigo-400/40' : 'border-gray-800 hover:bg-white/[0.04]'}`}>
                         <div className="flex items-center gap-1.5 pr-5"><span className={`rounded px-1.5 py-0.5 text-[9px] ${style.bg} ${style.text}`}>{stage ? STAGE_LABEL[stage] : '其他'}</span><span className={`rounded border px-1 py-0.5 text-[9px] ${STATUS_STYLE[status] || STATUS_STYLE.todo}`}>{status === 'in_progress' ? '进行中' : status === 'done' ? '已完成' : status === 'blocked' ? '阻塞' : '待开始'}</span></div>
                         <div className={`mt-1 truncate text-[11px] ${isSelected ? 'font-semibold text-indigo-100' : 'text-gray-200'}`} title={task.title}>{task.title}</div>
-                        <div className="mt-0.5 truncate text-[9px] text-gray-600">{taskOwnerNames(task, resources)} · {taskRange(task)}</div>
+                        <div className="mt-0.5 truncate text-[9px] text-gray-600">{taskOwnerNames(task, resources)} · {taskRange(task)} · <span className={task.estimatedHours == null ? 'text-amber-400/80' : 'text-cyan-500/90'}>预估 {taskEstimate(task)}</span></div>
                         {dependencyTasks.length > 0 && <div className="mt-0.5 truncate text-[9px] text-cyan-500/80">前置：{dependencyTasks.map(dependency => dependency.title).join('、')}</div>}
                         {isSelected && <span className="absolute right-2 top-2 rounded bg-indigo-400/20 px-1 text-[9px] text-indigo-200">已选</span>}
                         <button type="button" onClick={event => { event.stopPropagation(); if (task.id !== undefined) openTaskModal(task.id); }} className="absolute bottom-1.5 right-2 hidden rounded border border-gray-700 bg-gray-900/90 px-1.5 py-0.5 text-[9px] text-gray-400 group-hover:block hover:border-gray-500 hover:text-white" title="打开任务详情">详情</button>
                       </div>
                       <div className="relative h-[54px] flex" style={{ width: DAY_COUNT * DAY_WIDTH }}>
-                        {days.map(day => <div key={day.toISOString()} className={`h-full w-[44px] shrink-0 border-r border-gray-800/60 ${isSameDay(day, new Date()) ? 'bg-indigo-500/[0.06]' : ''}`} />)}
-                        {bar && <button type="button" onClick={() => selectTask(task)} title={`${task.title} · 点击查看负责人和前置排期`} className={`absolute top-2 h-8 rounded border px-2 text-left text-[9px] font-medium text-white/90 shadow-sm transition-all ${style.bar} ${isTaskTerminal(task) ? 'opacity-60' : ''} ${isSelected ? 'z-10 border-white/80 ring-2 ring-indigo-300/70' : 'border-white/10 hover:brightness-125'}`} style={{ left: bar.left + 2, width: bar.width }}><span className="block truncate">{task.title}</span></button>}
+                        {days.map(day => <div key={day.toISOString()} className={`h-full w-[40px] shrink-0 border-r border-gray-800/60 ${isSameDay(day, new Date()) ? 'bg-indigo-500/[0.06]' : ''}`} />)}
+                        {bar && <button type="button" onClick={() => selectTask(task)} title={`${task.title} · 预估 ${taskEstimate(task)} · 点击查看负责人和前置排期`} className={`absolute top-2 h-8 rounded border px-2 text-left text-[9px] font-medium text-white/90 shadow-sm transition-all ${style.bar} ${isTaskTerminal(task) ? 'opacity-60' : ''} ${isSelected ? 'z-10 border-white/80 ring-2 ring-indigo-300/70' : 'border-white/10 hover:brightness-125'}`} style={{ left: bar.left + 2, width: bar.width }}><span className="block truncate">{task.title}</span></button>}
                         {!bar && <div className="absolute inset-0 flex items-center px-2 text-[9px] text-amber-400/80">未排期</div>}
                       </div>
                     </div>;
@@ -299,13 +305,13 @@ export function ScheduleWorkspace() {
 
         <section className="flex min-h-[360px] min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121722] xl:min-w-[520px]">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-gray-800 px-3 py-2.5">
-            <div className="min-w-0 flex items-center gap-2"><Users size={14} className="shrink-0 text-emerald-300" /><span className="text-xs font-semibold text-gray-200">团队日历负荷</span><span className="text-[10px] text-gray-500">{dayLabel(windowStart)}–{dayLabel(days[days.length - 1])}</span>{selectedTask && <span className="truncate rounded border border-indigo-400/25 bg-indigo-500/10 px-1.5 py-0.5 text-[9px] text-indigo-200">正在看：{focusLabel}</span>}</div>
+            <div className="min-w-0 flex items-center gap-2"><Users size={14} className="shrink-0 text-emerald-300" /><span className="text-xs font-semibold text-gray-200">团队日历负荷</span><span className="text-[10px] text-gray-500">{dayLabel(windowStart)}–{dayLabel(days[days.length - 1])}</span><span className="rounded border border-gray-700 px-1 py-0.5 text-[9px] text-gray-500">{DAY_COUNT}天窗口</span>{selectedTask && <span className="truncate rounded border border-indigo-400/25 bg-indigo-500/10 px-1.5 py-0.5 text-[9px] text-indigo-200">正在看：{focusLabel}</span>}</div>
             <div className="flex items-center gap-1.5"><select aria-label="团队成员筛选" value={ownerFilter} onChange={event => setOwnerFilter(event.target.value === 'all' ? 'all' : Number(event.target.value))} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="all">全部成员</option>{resources.filter(resource => resource.id != null && resource.status !== 'departed').sort(compareResources).map(resource => <option key={resource.id} value={resource.id}>{resource.name}</option>)}</select><button type="button" onClick={() => moveWindow(-7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="前 7 天"><ArrowLeft size={13} /></button><button type="button" onClick={() => moveWindow(7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="后 7 天"><ArrowRight size={13} /></button></div>
           </div>
           {selectedGroup && <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-gray-800/70 px-3 py-2 text-[10px]"><span className="text-gray-500">已选需求</span><span className="max-w-[260px] truncate text-indigo-200">{selectedGroup.demand.title}</span><span className="text-gray-600">相关人员 {selectedOwners.size} 人</span><span className="text-gray-600">前置链 {selectedGroup.tasks.filter(task => (task.dependencies || []).length > 0).length} 项</span>{selectedTask && <><span className="text-gray-700">|</span><span className="max-w-[250px] truncate text-cyan-200">当前任务：{selectedTask.title}</span></>}</div>}
           <div className="min-h-0 flex-1 overflow-auto">
-            <div className="min-w-[760px]">
-              <div className="flex border-b border-gray-800 bg-gray-950/25 sticky top-0 z-10"><div className="w-44 shrink-0 border-r border-gray-800 px-3 py-2 text-[10px] text-gray-500">成员 / 工种</div><div className="flex">{days.map(day => <div key={day.toISOString()} className={`w-[44px] shrink-0 border-r border-gray-800/70 px-1 py-2 text-center text-[9px] ${isSameDay(day, new Date()) ? 'bg-indigo-500/15 text-indigo-300' : 'text-gray-500'}`}>{dayLabel(day)}</div>)}</div></div>
+            <div className="min-w-0" style={{ minWidth: 176 + DAY_COUNT * DAY_WIDTH }}>
+              <div className="flex border-b border-gray-800 bg-gray-950/25 sticky top-0 z-10"><div className="w-44 shrink-0 border-r border-gray-800 px-3 py-2 text-[10px] text-gray-500">成员 / 工种</div><div className="flex">{days.map(day => <div key={day.toISOString()} className={`w-[40px] shrink-0 border-r border-gray-800/70 px-1 py-2 text-center text-[9px] ${isSameDay(day, new Date()) ? 'bg-indigo-500/15 text-indigo-300' : 'text-gray-500'}`}>{dayLabel(day)}</div>)}</div></div>
               <div className="divide-y divide-gray-800/70">
                 {activeResources.map(resource => <div key={resource.id} className="flex min-h-[48px]">
                   <div className={`w-44 shrink-0 border-r border-gray-800 px-3 py-2 ${focusOwners.has(resource.id!) ? 'bg-indigo-500/[0.08]' : ''}`}><div className="flex items-center gap-1.5"><span className={`h-1.5 w-1.5 rounded-full ${focusOwners.has(resource.id!) ? 'bg-indigo-400' : 'bg-gray-600'}`} /><span className={`truncate text-[11px] ${focusOwners.has(resource.id!) ? 'text-indigo-200' : 'text-gray-300'}`}>{formatResourceDisplayName(resource)}</span></div><div className="mt-0.5 truncate text-[9px] text-gray-600">{resource.role || '未设置工种'}</div></div>
@@ -317,7 +323,7 @@ export function ScheduleWorkspace() {
                     const load = dayTasks.length;
                     const isSelectedDay = related.length > 0;
                     const isOverload = load >= 3;
-                    return <button type="button" key={key} onClick={() => dayTasks[0] && selectTask(dayTasks[0])} title={dayTasks.length ? `${dayTasks.map(task => task.title).join('、')} · 点击查看任务上下文` : '当日空闲'} className={`h-12 w-[44px] shrink-0 border-r border-gray-800/60 px-0.5 transition-colors hover:bg-white/[0.06] ${primary ? 'bg-cyan-500/35 ring-2 ring-inset ring-cyan-300/80' : isSelectedDay ? 'bg-indigo-500/25 ring-1 ring-inset ring-indigo-400/60' : isOverload ? 'bg-red-500/20' : load === 2 ? 'bg-amber-500/15' : load === 1 ? 'bg-emerald-500/10' : 'bg-gray-900/10'}`}><span className={`inline-flex min-h-5 min-w-5 items-center justify-center rounded text-[10px] font-semibold ${primary ? 'bg-cyan-500/50 text-cyan-50' : isSelectedDay ? 'bg-indigo-500/40 text-indigo-100' : isOverload ? 'text-red-300' : load ? 'text-gray-300' : 'text-gray-700'}`}>{load || '·'}</span>{related.length > 0 && <span className={`mx-auto mt-0.5 block h-1 w-3 rounded-full ${primary ? 'bg-cyan-200' : 'bg-indigo-300'}`} />}</button>;
+                    return <button type="button" key={key} onClick={() => dayTasks[0] && selectTask(dayTasks[0])} title={dayTasks.length ? `${dayTasks.map(task => task.title).join('、')} · 点击查看任务上下文` : '当日空闲'} className={`h-12 w-[40px] shrink-0 border-r border-gray-800/60 px-0.5 transition-colors hover:bg-white/[0.06] ${primary ? 'bg-cyan-500/35 ring-2 ring-inset ring-cyan-300/80' : isSelectedDay ? 'bg-indigo-500/25 ring-1 ring-inset ring-indigo-400/60' : isOverload ? 'bg-red-500/20' : load === 2 ? 'bg-amber-500/15' : load === 1 ? 'bg-emerald-500/10' : 'bg-gray-900/10'}`}><span className={`inline-flex min-h-5 min-w-5 items-center justify-center rounded text-[10px] font-semibold ${primary ? 'bg-cyan-500/50 text-cyan-50' : isSelectedDay ? 'bg-indigo-500/40 text-indigo-100' : isOverload ? 'text-red-300' : load ? 'text-gray-300' : 'text-gray-700'}`}>{load || '·'}</span>{related.length > 0 && <span className={`mx-auto mt-0.5 block h-1 w-3 rounded-full ${primary ? 'bg-cyan-200' : 'bg-indigo-300'}`} />}</button>;
                   })}</div>
                 </div>)}
                 {activeResources.length === 0 && <div className="p-8 text-center text-xs text-gray-600">暂无成员资源</div>}
