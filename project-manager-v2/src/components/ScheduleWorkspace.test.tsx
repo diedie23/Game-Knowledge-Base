@@ -131,9 +131,11 @@ describe('ScheduleWorkspace', () => {
     render(<ScheduleWorkspace />);
 
     fireEvent.click(screen.getByRole('button', { name: /商城界面需求/ }));
-    expect(screen.getByText(/已排期：\d{2}\/\d{2}–\d{2}\/\d{2}/)).toBeTruthy();
+    expect(screen.getAllByText(/已排期：\d{2}\/\d{2}–\d{2}\/\d{2}/).length).toBeGreaterThan(0);
     expect(screen.queryByText('未排期')).toBeNull();
-    expect(screen.getByText('子需求 / 当前阶段 / 负责人')).toBeTruthy();
+    expect(screen.getByText('需求前后置链')).toBeTruthy();
+    expect(screen.queryByText('需求前后置时间')).toBeNull();
+    expect(screen.getByText('子需求 / 当前阶段 / 负责人 / 预估人日 / 排期状态')).toBeTruthy();
   });
 
   it('moves the calendar window and supports member filtering', () => {

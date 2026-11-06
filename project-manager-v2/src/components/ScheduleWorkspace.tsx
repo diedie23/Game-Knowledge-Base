@@ -1,6 +1,6 @@
 import React, { useDeferredValue, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { addDays, differenceInCalendarDays, format, isSameDay, startOfDay } from 'date-fns';
+import { addDays, format, isSameDay, startOfDay } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { ArrowLeft, ArrowRight, CalendarDays, ExternalLink, FileText, GitBranch, ListTree, LocateFixed, Search, UserRound, Users, X } from 'lucide-react';
 import { db } from '../db/db';
@@ -10,7 +10,7 @@ import { getTaskAssigneeIds } from '../utils/taskAssignee';
 import { buildTaskHierarchyIndex, getActiveLeafTasks } from '../utils/taskHierarchy';
 import { findDemandForTask } from '../services/tapdPlanningAssistant';
 import { isUxTrackedTask, taskStage, taskStatus, type CoreUxStage } from '../services/uxStageView';
-import { isTaskCancelled, isTaskCompleted, isTaskTerminal } from '../utils/taskState';
+import { isTaskCancelled, isTaskCompleted } from '../utils/taskState';
 import { compareResources } from './gantt/constants';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 
@@ -39,7 +39,7 @@ const STATUS_STYLE: Record<string, string> = {
 
 const DAY_COUNT = 21;
 const DAY_WIDTH = 40;
-const TASK_INFO_WIDTH = 360;
+const DEMAND_LIST_WIDTH = 280;
 type CalendarFocusMode = 'demand' | 'task' | 'dependencies';
 
 function dayLabel(day: Date) {
@@ -67,7 +67,7 @@ function hasTaskSchedule(task: Task): boolean {
 }
 
 function taskTiming(task: Task): string {
-  if (!isTaskCompleted(task)) return taskRange(task);
+  if (!isTaskCompleted(task)) return hasTaskSchedule(task) ? `已排期：${taskRange(task)}` : '未排期';
   const completedDate = task.completedAt || task.endDate || task.startDate;
   return completedDate ? `完成于 ${dayLabel(new Date(completedDate))}` : '已完成（时间未同步）';
 }
@@ -79,15 +79,9 @@ function taskEstimate(task: Task): string {
   return `${formatted}人日`;
 }
 
-function getTaskBar(task: Task, windowStart: Date) {
-  const completionDate = isTaskCompleted(task) ? task.completedAt || task.endDate || task.startDate : undefined;
-  const start = dateValue(task.startDate) ?? dateValue(completionDate);
-  const end = dateValue(task.endDate) ?? dateValue(completionDate) ?? start;
-  if (start === undefined || end === undefined) return null;
-  const leftDay = Math.max(0, differenceInCalendarDays(new Date(start), windowStart));
-  const rightDay = Math.min(DAY_COUNT, differenceInCalendarDays(new Date(end), windowStart) + 1);
-  if (rightDay <= 0 || leftDay >= DAY_COUNT) return null;
-  return { left: leftDay * DAY_WIDTH, width: Math.max(DAY_WIDTH * 0.8, (rightDay - leftDay) * DAY_WIDTH - 4) };
+function taskScheduleState(task: Task): string {
+  if (isTaskCompleted(task)) return '已完成';
+  return hasTaskSchedule(task) ? '已排期' : '未排期';
 }
 
 export function ScheduleWorkspace() {
@@ -289,9 +283,9 @@ export function ScheduleWorkspace() {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden p-3 xl:flex-row">
-        <section className="flex min-h-[360px] min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121722] xl:min-w-[620px]">
+        <section className="flex min-h-[360px] min-w-0 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121722] xl:min-w-[680px] xl:flex-[0.9]">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-gray-800 px-3 py-2.5">
-            <div className="flex min-w-0 items-center gap-2"><GitBranch size={14} className="shrink-0 text-cyan-300" /><span className="text-xs font-semibold text-gray-200">需求前后置时间</span><span className="text-[10px] text-gray-600">{visibleDemands.length} 个需求</span>{selectedGroup && <span className="max-w-[280px] truncate text-[10px] text-gray-500">当前：{selectedGroup.demand.title}</span>}</div>
+            <div className="flex min-w-0 items-center gap-2"><GitBranch size={14} className="shrink-0 text-cyan-300" /><span className="text-xs font-semibold text-gray-200">需求前后置链</span><span className="text-[10px] text-gray-600">{visibleDemands.length} 个需求</span>{selectedGroup && <span className="max-w-[280px] truncate text-[10px] text-gray-500">当前：{selectedGroup.demand.title}</span>}</div>
             <div className="flex items-center gap-1.5"><label htmlFor="schedule-category" className="text-[10px] text-gray-500">分类</label><select id="schedule-category" aria-label="需求分类筛选" value={categoryFilter} onChange={event => { setCategoryFilter(event.target.value); setSelectedDemandId(null); setSelectedTaskId(null); setFocusMode('demand'); setOwnerFilter('demand'); }} className="max-w-[150px] rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-[10px] text-gray-300 outline-none focus:border-indigo-500"><option value="all">全部分类</option>{categoryOptions.map(category => <option key={category} value={category}>{category}</option>)}</select><div className="relative"><Search size={12} className="absolute left-2 top-2 text-gray-600" /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索需求" className="w-36 rounded border border-gray-700 bg-gray-900/80 py-1.5 pl-7 pr-2 text-[10px] text-gray-300 outline-none focus:border-indigo-500" /></div></div>
           </div>
           {selectedTask && <div className="shrink-0 border-b border-indigo-500/25 bg-indigo-500/[0.08] px-3 py-2.5" aria-label="当前任务上下文">
@@ -310,7 +304,7 @@ export function ScheduleWorkspace() {
             </div>
           </div>}
           <div className="flex min-h-0 flex-1 overflow-hidden">
-            <div className="w-52 shrink-0 overflow-y-auto border-r border-gray-800 bg-gray-950/20">
+            <div className="w-[280px] shrink-0 overflow-y-auto border-r border-gray-800 bg-gray-950/20" style={{ width: DEMAND_LIST_WIDTH }}>
               {visibleDemands.map(group => {
                 const selected = group.demand.id === selectedGroup?.demand.id;
                 const hasUnscheduled = group.tasks.some(task => !task.startDate || !task.endDate);
@@ -323,34 +317,24 @@ export function ScheduleWorkspace() {
             </div>
 
             <div className="min-w-0 flex-1 overflow-auto">
-              {selectedGroup ? <div style={{ minWidth: DAY_COUNT * DAY_WIDTH + TASK_INFO_WIDTH }}>
-                <div className="border-b border-gray-800 bg-gray-950/25">
-                  <div className="flex"><div className="w-[360px] shrink-0 border-r border-gray-800 px-3 py-2 text-[10px] text-gray-500">子需求 / 当前阶段 / 负责人</div><div className="flex">{days.map(day => <div key={day.toISOString()} className={`w-[40px] shrink-0 border-r border-gray-800/70 px-1 py-2 text-center text-[9px] ${isSameDay(day, new Date()) ? 'bg-indigo-500/15 text-indigo-300' : 'text-gray-500'}`}>{dayLabel(day)}</div>)}</div></div>
-                </div>
+              {selectedGroup ? <div className="min-w-0">
+                <div className="border-b border-gray-800 bg-gray-950/25 px-3 py-2 text-[10px] text-gray-500">子需求 / 当前阶段 / 负责人 / 预估人日 / 排期状态</div>
                 <div className="divide-y divide-gray-800/70">
                   {selectedGroup.tasks.map(task => {
                     const stage = taskStage(task, resources);
                     const style = stage ? STAGE_STYLE[stage] : { text: 'text-gray-400', bg: 'bg-gray-500/10', bar: 'bg-gray-500' };
-                    const bar = getTaskBar(task, windowStart);
-                    const hasSchedule = hasTaskSchedule(task);
                     const status = taskStatus(task);
                     const dependencyTasks = (task.dependencies || []).map(id => taskById.get(id)).filter((dependency): dependency is Task => Boolean(dependency));
                     const isSelected = task.id !== undefined && task.id === selectedTaskId;
-                    return <div key={task.id} className={`flex min-h-[70px] transition-colors ${isSelected ? 'bg-indigo-500/[0.08]' : ''}`}>
-                      <div role="button" tabIndex={0} onClick={() => selectTask(task)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectTask(task); } }} className={`group relative w-[360px] shrink-0 border-r px-3 py-2 text-left outline-none transition-colors ${isSelected ? 'border-indigo-400/70 bg-indigo-500/15 ring-1 ring-inset ring-indigo-400/40' : 'border-gray-800 hover:bg-white/[0.04]'}`}>
-                        <div className="flex items-center gap-1.5 pr-5"><span className={`rounded px-1.5 py-0.5 text-[9px] ${style.bg} ${style.text}`}>{stage ? STAGE_LABEL[stage] : '其他'}</span><span className={`rounded border px-1 py-0.5 text-[9px] ${STATUS_STYLE[status] || STATUS_STYLE.todo}`}>{status === 'in_progress' ? '进行中' : status === 'done' ? '已完成' : status === 'blocked' ? '阻塞' : '待开始'}</span></div>
-                        <div className={`mt-1 line-clamp-2 break-words text-[11px] leading-4 ${isSelected ? 'font-semibold text-indigo-100' : 'text-gray-200'}`} title={task.title}>{task.externalUrl ? <a href={task.externalUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} className="inline-flex max-w-full items-center gap-1 truncate text-inherit underline decoration-gray-600/70 underline-offset-2 hover:text-cyan-200 hover:decoration-cyan-300" title="打开对应 TAPD 单">{task.title}<ExternalLink size={10} className="shrink-0" /></a> : task.title}</div>
-                        <div className="mt-0.5 truncate text-[9px] text-gray-600">{taskOwnerNames(task, resourceById)} · <span className={task.estimatedHours == null ? 'text-amber-400/80' : 'text-cyan-500/90'}>预估 {taskEstimate(task)}</span></div>
-                        {dependencyTasks.length > 0 && <div className="mt-0.5 truncate text-[9px] text-cyan-500/80">前置：{dependencyTasks.map(dependency => dependency.title).join('、')}</div>}
+                    const scheduleState = taskScheduleState(task);
+                    return <div key={task.id} className={`flex min-h-[78px] transition-colors ${isSelected ? 'bg-indigo-500/[0.08]' : ''}`}>
+                      <div role="button" tabIndex={0} onClick={() => selectTask(task)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectTask(task); } }} className={`group relative min-w-0 flex-1 border-b border-gray-800/70 px-4 py-2.5 text-left outline-none transition-colors ${isSelected ? 'border-indigo-400/70 bg-indigo-500/15 ring-1 ring-inset ring-indigo-400/40' : 'hover:bg-white/[0.04]'}`}>
+                        <div className="flex flex-wrap items-center gap-1.5 pr-5"><span className={`rounded px-1.5 py-0.5 text-[9px] ${style.bg} ${style.text}`}>{stage ? STAGE_LABEL[stage] : '其他'}</span><span className={`rounded border px-1 py-0.5 text-[9px] ${STATUS_STYLE[status] || STATUS_STYLE.todo}`}>{status === 'in_progress' ? '进行中' : status === 'done' ? '已完成' : status === 'blocked' ? '阻塞' : '待开始'}</span><span className={`rounded border px-1 py-0.5 text-[9px] ${isTaskCompleted(task) ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300' : hasTaskSchedule(task) ? 'border-cyan-500/25 bg-cyan-500/10 text-cyan-300' : 'border-amber-500/25 bg-amber-500/10 text-amber-300'}`}>{scheduleState}</span></div>
+                        <div className={`mt-1 line-clamp-2 break-words text-[12px] leading-5 ${isSelected ? 'font-semibold text-indigo-100' : 'text-gray-200'}`} title={task.title}>{task.externalUrl ? <a href={task.externalUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} className="inline-flex max-w-full items-center gap-1 text-inherit underline decoration-gray-600/70 underline-offset-2 hover:text-cyan-200 hover:decoration-cyan-300" title="打开对应 TAPD 单">{task.title}<ExternalLink size={10} className="shrink-0" /></a> : task.title}</div>
+                        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-500"><span>负责人：{taskOwnerNames(task, resourceById)}</span><span className={task.estimatedHours == null ? 'text-amber-400/80' : 'text-cyan-500/90'}>预估 {taskEstimate(task)}</span><span className={isTaskCompleted(task) ? 'text-emerald-300/80' : hasTaskSchedule(task) ? 'text-cyan-300/80' : 'text-amber-300/80'}>{taskTiming(task)}</span></div>
+                        {dependencyTasks.length > 0 && <div className="mt-1 line-clamp-2 break-words text-[10px] text-cyan-500/80">前置：{dependencyTasks.map(dependency => dependency.title).join('、')}</div>}
                         {isSelected && <span className="absolute right-2 top-2 rounded bg-indigo-400/20 px-1 text-[9px] text-indigo-200">已选</span>}
-                        <button type="button" onClick={event => { event.stopPropagation(); if (task.id !== undefined) openTaskModal(task.id); }} className="absolute bottom-1.5 right-2 hidden rounded border border-gray-700 bg-gray-900/90 px-1.5 py-0.5 text-[9px] text-gray-400 group-hover:block hover:border-gray-500 hover:text-white" title="打开任务详情">详情</button>
-                      </div>
-                      <div className="relative h-[70px] flex" style={{ width: DAY_COUNT * DAY_WIDTH }}>
-                        {days.map(day => <div key={day.toISOString()} className={`h-full w-[40px] shrink-0 border-r border-gray-800/60 ${isSameDay(day, new Date()) ? 'bg-indigo-500/[0.06]' : ''}`} />)}
-                        {bar && <button type="button" onClick={() => selectTask(task)} title={`${task.title} · 预估 ${taskEstimate(task)} · 点击查看负责人和前置排期`} className={`absolute top-2 h-8 rounded border px-2 text-left text-[9px] font-medium text-white/90 shadow-sm transition-all ${isTaskCompleted(task) ? 'bg-emerald-500/70' : style.bar} ${isTaskTerminal(task) ? 'opacity-60' : ''} ${isSelected ? 'z-10 border-white/80 ring-2 ring-indigo-300/70' : 'border-white/10 hover:brightness-125'}`} style={{ left: bar.left + 2, width: bar.width }}><span className="block truncate">{isTaskCompleted(task) ? taskTiming(task) : task.title}</span></button>}
-                        {!bar && isTaskCompleted(task) && <div className="absolute inset-0 flex items-center px-2 text-[10px] font-medium text-emerald-300/90">{taskTiming(task)}</div>}
-                        {!bar && !isTaskCompleted(task) && hasSchedule && <div className="absolute inset-0 flex items-center px-2 text-[9px] text-cyan-300/90">已排期：{taskRange(task)}</div>}
-                        {!bar && !isTaskCompleted(task) && !hasSchedule && <div className="absolute inset-0 flex items-center px-2 text-[9px] text-amber-400/80">未排期</div>}
+                        <button type="button" onClick={event => { event.stopPropagation(); if (task.id !== undefined) openTaskModal(task.id); }} className="absolute bottom-2 right-2 hidden rounded border border-gray-700 bg-gray-900/90 px-1.5 py-0.5 text-[9px] text-gray-400 group-hover:block hover:border-gray-500 hover:text-white" title="打开任务详情">详情</button>
                       </div>
                     </div>;
                   })}
@@ -360,7 +344,7 @@ export function ScheduleWorkspace() {
           </div>
         </section>
 
-        <section className="flex min-h-[360px] min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121722] xl:min-w-[520px]">
+        <section className="flex min-h-[360px] min-w-0 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121722] xl:min-w-[820px] xl:flex-[1.35]">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-gray-800 px-3 py-2.5">
             <div className="min-w-0 flex items-center gap-2"><Users size={14} className="shrink-0 text-emerald-300" /><span className="text-xs font-semibold text-gray-200">团队日历负荷</span><span className="text-[10px] text-gray-500">{dayLabel(windowStart)}–{dayLabel(days[days.length - 1])}</span><span className="rounded border border-gray-700 px-1 py-0.5 text-[9px] text-gray-500">{DAY_COUNT}天窗口</span>{selectedTask && <span className="truncate rounded border border-indigo-400/25 bg-indigo-500/10 px-1.5 py-0.5 text-[9px] text-indigo-200">正在看：{focusLabel}</span>}</div>
             <div className="flex items-center gap-1.5"><select aria-label="团队成员筛选" value={ownerFilter} onChange={event => { const value = event.target.value; setOwnerFilter(value === 'all' || value === 'demand' ? value : Number(value)); }} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="demand">本需求相关人员</option><option value="all">全部成员</option>{availableResources.map(resource => <option key={resource.id} value={resource.id}>{resource.name}</option>)}</select><button type="button" onClick={() => moveWindow(-7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="前 7 天"><ArrowLeft size={13} /></button><button type="button" onClick={() => moveWindow(7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="后 7 天"><ArrowRight size={13} /></button></div>
