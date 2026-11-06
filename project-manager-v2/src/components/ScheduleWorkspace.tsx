@@ -37,7 +37,7 @@ const STATUS_STYLE: Record<string, string> = {
   cancelled: 'text-gray-500 bg-gray-500/10 border-gray-700',
 };
 
-const DAY_COUNT = 21;
+const DAY_COUNT = 28;
 const DAY_WIDTH = 40;
 const DEMAND_LIST_WIDTH = 280;
 type CalendarFocusMode = 'demand' | 'task' | 'dependencies';
@@ -77,11 +77,6 @@ function taskEstimate(task: Task): string {
   const personDays = task.estimatedHours / 8;
   const formatted = Number.isInteger(personDays) ? String(personDays) : personDays.toFixed(1);
   return `${formatted}人日`;
-}
-
-function taskScheduleState(task: Task): string {
-  if (isTaskCompleted(task)) return '已完成';
-  return hasTaskSchedule(task) ? '已排期' : '未排期';
 }
 
 export function ScheduleWorkspace() {
@@ -326,12 +321,11 @@ export function ScheduleWorkspace() {
                     const status = taskStatus(task);
                     const dependencyTasks = (task.dependencies || []).map(id => taskById.get(id)).filter((dependency): dependency is Task => Boolean(dependency));
                     const isSelected = task.id !== undefined && task.id === selectedTaskId;
-                    const scheduleState = taskScheduleState(task);
-                    return <div key={task.id} className={`flex min-h-[78px] transition-colors ${isSelected ? 'bg-indigo-500/[0.08]' : ''}`}>
+                    return <div key={task.id} className={`flex min-h-[92px] transition-colors ${isSelected ? 'bg-indigo-500/[0.08]' : ''}`}>
                       <div role="button" tabIndex={0} onClick={() => selectTask(task)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectTask(task); } }} className={`group relative min-w-0 flex-1 border-b border-gray-800/70 px-4 py-2.5 text-left outline-none transition-colors ${isSelected ? 'border-indigo-400/70 bg-indigo-500/15 ring-1 ring-inset ring-indigo-400/40' : 'hover:bg-white/[0.04]'}`}>
-                        <div className="flex flex-wrap items-center gap-1.5 pr-5"><span className={`rounded px-1.5 py-0.5 text-[9px] ${style.bg} ${style.text}`}>{stage ? STAGE_LABEL[stage] : '其他'}</span><span className={`rounded border px-1 py-0.5 text-[9px] ${STATUS_STYLE[status] || STATUS_STYLE.todo}`}>{status === 'in_progress' ? '进行中' : status === 'done' ? '已完成' : status === 'blocked' ? '阻塞' : '待开始'}</span><span className={`rounded border px-1 py-0.5 text-[9px] ${isTaskCompleted(task) ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300' : hasTaskSchedule(task) ? 'border-cyan-500/25 bg-cyan-500/10 text-cyan-300' : 'border-amber-500/25 bg-amber-500/10 text-amber-300'}`}>{scheduleState}</span></div>
+                        <div className="flex flex-wrap items-center gap-1.5 pr-5"><span className={`rounded px-1.5 py-0.5 text-[9px] ${style.bg} ${style.text}`}>{stage ? STAGE_LABEL[stage] : '其他'}</span><span className={`rounded border px-1.5 py-0.5 text-[9px] ${STATUS_STYLE[status] || STATUS_STYLE.todo}`}>{status === 'in_progress' ? '进行中' : status === 'done' ? '已完成' : status === 'blocked' ? '阻塞' : '待开始'}</span>{!isTaskCompleted(task) && <span className={`rounded border px-1.5 py-0.5 text-[9px] ${hasTaskSchedule(task) ? 'border-cyan-500/25 bg-cyan-500/10 text-cyan-300' : 'border-amber-500/25 bg-amber-500/10 text-amber-300'}`}>{hasTaskSchedule(task) ? '已排期' : '未排期'}</span>}</div>
                         <div className={`mt-1 line-clamp-2 break-words text-[12px] leading-5 ${isSelected ? 'font-semibold text-indigo-100' : 'text-gray-200'}`} title={task.title}>{task.externalUrl ? <a href={task.externalUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} className="inline-flex max-w-full items-center gap-1 text-inherit underline decoration-gray-600/70 underline-offset-2 hover:text-cyan-200 hover:decoration-cyan-300" title="打开对应 TAPD 单">{task.title}<ExternalLink size={10} className="shrink-0" /></a> : task.title}</div>
-                        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-500"><span>负责人：{taskOwnerNames(task, resourceById)}</span><span className={task.estimatedHours == null ? 'text-amber-400/80' : 'text-cyan-500/90'}>预估 {taskEstimate(task)}</span><span className={isTaskCompleted(task) ? 'text-emerald-300/80' : hasTaskSchedule(task) ? 'text-cyan-300/80' : 'text-amber-300/80'}>{taskTiming(task)}</span></div>
+                        <div className="mt-2 grid grid-cols-[minmax(0,1.2fr)_minmax(76px,0.8fr)_minmax(0,1.2fr)] gap-2 text-[10px]"><div className="min-w-0"><div className="text-[9px] text-gray-600">负责人</div><div className="mt-0.5 truncate text-gray-400">{taskOwnerNames(task, resourceById)}</div></div><div className="min-w-0"><div className="text-[9px] text-gray-600">预估人日</div><div className={`mt-0.5 truncate font-medium ${task.estimatedHours == null ? 'text-amber-300' : 'text-cyan-200'}`}>{taskEstimate(task)}</div></div><div className="min-w-0"><div className="text-[9px] text-gray-600">时间节点</div><div className={`mt-0.5 truncate font-medium ${isTaskCompleted(task) ? 'text-emerald-300' : hasTaskSchedule(task) ? 'text-cyan-300' : 'text-amber-300'}`}>{taskTiming(task)}</div></div></div>
                         {dependencyTasks.length > 0 && <div className="mt-1 line-clamp-2 break-words text-[10px] text-cyan-500/80">前置：{dependencyTasks.map(dependency => dependency.title).join('、')}</div>}
                         {isSelected && <span className="absolute right-2 top-2 rounded bg-indigo-400/20 px-1 text-[9px] text-indigo-200">已选</span>}
                         <button type="button" onClick={event => { event.stopPropagation(); if (task.id !== undefined) openTaskModal(task.id); }} className="absolute bottom-2 right-2 hidden rounded border border-gray-700 bg-gray-900/90 px-1.5 py-0.5 text-[9px] text-gray-400 group-hover:block hover:border-gray-500 hover:text-white" title="打开任务详情">详情</button>
@@ -344,7 +338,7 @@ export function ScheduleWorkspace() {
           </div>
         </section>
 
-        <section className="flex min-h-[360px] min-w-0 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121722] xl:min-w-[820px] xl:flex-[1.35]">
+        <section aria-label="团队日历负荷面板" className="flex min-h-[360px] min-w-0 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121722] xl:min-w-[820px] xl:flex-[1.35]">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-gray-800 px-3 py-2.5">
             <div className="min-w-0 flex items-center gap-2"><Users size={14} className="shrink-0 text-emerald-300" /><span className="text-xs font-semibold text-gray-200">团队日历负荷</span><span className="text-[10px] text-gray-500">{dayLabel(windowStart)}–{dayLabel(days[days.length - 1])}</span><span className="rounded border border-gray-700 px-1 py-0.5 text-[9px] text-gray-500">{DAY_COUNT}天窗口</span>{selectedTask && <span className="truncate rounded border border-indigo-400/25 bg-indigo-500/10 px-1.5 py-0.5 text-[9px] text-indigo-200">正在看：{focusLabel}</span>}</div>
             <div className="flex items-center gap-1.5"><select aria-label="团队成员筛选" value={ownerFilter} onChange={event => { const value = event.target.value; setOwnerFilter(value === 'all' || value === 'demand' ? value : Number(value)); }} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="demand">本需求相关人员</option><option value="all">全部成员</option>{availableResources.map(resource => <option key={resource.id} value={resource.id}>{resource.name}</option>)}</select><button type="button" onClick={() => moveWindow(-7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="前 7 天"><ArrowLeft size={13} /></button><button type="button" onClick={() => moveWindow(7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="后 7 天"><ArrowRight size={13} /></button></div>

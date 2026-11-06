@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import type { Resource, Task } from '../types';
 import { ScheduleWorkspace } from './ScheduleWorkspace';
 
@@ -79,6 +79,7 @@ describe('ScheduleWorkspace', () => {
     expect(screen.getAllByText('商城还原开发').length).toBeGreaterThan(0);
     expect(screen.queryByText('商城程序接入')).toBeNull();
     expect(screen.getByText(/完成于/)).toBeTruthy();
+    expect(screen.getAllByText('已完成')).toHaveLength(1);
     expect(screen.queryByText('未排期')).toBeNull();
     expect(screen.queryByText('暂无匹配的未完成需求')).toBeNull();
   });
@@ -88,8 +89,9 @@ describe('ScheduleWorkspace', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /商城界面需求/ }));
     expect((screen.getByLabelText('团队成员筛选') as HTMLSelectElement).value).toBe('demand');
-    expect(screen.getByText('视觉设计-小陈')).toBeTruthy();
-    expect(screen.queryByText('程序开发-小赵')).toBeNull();
+    const calendarPanel = within(screen.getByLabelText('团队日历负荷面板'));
+    expect(calendarPanel.getByText('视觉设计-小陈')).toBeTruthy();
+    expect(calendarPanel.queryByText('程序开发-小赵')).toBeNull();
     expect(screen.getByText('相关人员 2 人')).toBeTruthy();
     expect(screen.getByText('前置链 2 项')).toBeTruthy();
     expect(screen.getByText('商城交互方案').closest('[role="button"]')).toBeTruthy();
@@ -141,15 +143,16 @@ describe('ScheduleWorkspace', () => {
   it('moves the calendar window and supports member filtering', () => {
     render(<ScheduleWorkspace />);
 
-    expect(screen.getByText('21天窗口')).toBeTruthy();
+    expect(screen.getByText('28天窗口')).toBeTruthy();
     const initialHeader = screen.getByText(/团队日历负荷/).parentElement?.textContent;
     fireEvent.click(screen.getByTitle('后 7 天'));
     const movedHeader = screen.getByText(/团队日历负荷/).parentElement?.textContent;
     expect(movedHeader).not.toBe(initialHeader);
 
     fireEvent.change(screen.getByDisplayValue('全部成员'), { target: { value: '10' } });
-    expect(screen.getByText('交互设计-小林')).toBeTruthy();
-    expect(screen.queryByText('视觉设计-小陈')).toBeNull();
+    const calendarPanel = within(screen.getByLabelText('团队日历负荷面板'));
+    expect(calendarPanel.getByText('交互设计-小林')).toBeTruthy();
+    expect(calendarPanel.queryByText('视觉设计-小陈')).toBeNull();
   });
 
   it('navigates to the gantt view for detailed adjustments', () => {
