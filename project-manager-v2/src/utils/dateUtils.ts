@@ -44,16 +44,30 @@ export const CHINESE_WORKING_DAY_OVERRIDES: Record<number, string[]> = {
 
 const workingDayOverrideSet = new Set<string>(Object.values(CHINESE_WORKING_DAY_OVERRIDES).flat());
 
+type CalendarSets = {
+  holidays: Set<string>;
+  workingDays: Set<string>;
+  nonWorkingDays: Set<string>;
+};
+
+// Date checks run once per visible calendar cell. Cache the merged sets by
+// config object so large scheduling views do not rebuild three Sets per cell.
+const calendarSetCache = new WeakMap<object, CalendarSets>();
+
 function dateKey(date: Date): string {
   return format(date, 'yyyy-MM-dd');
 }
 
-function calendarSets(calendar: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR) {
-  return {
+function calendarSets(calendar: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR): CalendarSets {
+  const cached = calendarSetCache.get(calendar);
+  if (cached) return cached;
+  const sets: CalendarSets = {
     holidays: new Set([...holidaySet, ...(calendar.holidayDates || [])]),
     workingDays: new Set([...workingDayOverrideSet, ...(calendar.workingDayOverrides || [])]),
     nonWorkingDays: new Set(calendar.nonWorkingDayOverrides || []),
   };
+  calendarSetCache.set(calendar, sets);
+  return sets;
 }
 
 /** Check if a date is a Chinese public holiday. */
