@@ -44,6 +44,7 @@ const DAY_WIDTH = 40;
 const DEMAND_LIST_WIDTH = 280;
 type CalendarFocusMode = 'demand' | 'task' | 'dependencies';
 type PlanningView = 'all' | 'unscheduled' | 'capacity' | 'dependency' | 'overdue';
+type ResourceLoadFilter = 'all' | 'free' | 'full' | 'overload' | 'unavailable' | 'unknown';
 
 function dayLabel(day: Date) {
   return format(day, 'MM/dd', { locale: zhCN });
@@ -110,6 +111,7 @@ export function ScheduleWorkspace() {
   const [focusMode, setFocusMode] = useState<CalendarFocusMode>('demand');
   const [windowStart, setWindowStart] = useState(() => startOfDay(new Date()));
   const [ownerFilter, setOwnerFilter] = useState<number | 'all' | 'demand'>('all');
+  const [resourceLoadFilter, setResourceLoadFilter] = useState<ResourceLoadFilter>('all');
   const deferredQuery = useDeferredValue(query);
 
   const allTasks = tasks || [];
@@ -215,12 +217,6 @@ export function ScheduleWorkspace() {
     () => new Map(capacities.map(capacity => [capacity.resourceId, capacity])),
     [capacities],
   );
-  const activeResources = useMemo(() => {
-    if (ownerFilter === 'all') return availableResources;
-    if (ownerFilter === 'demand') return availableResources.filter(resource => selectedOwners.has(resource.id!));
-    return availableResources.filter(resource => resource.id === ownerFilter);
-  }, [availableResources, ownerFilter, selectedOwners]);
-
   const tasksByResourceAndDay = useMemo(() => {
     const map = new Map<string, Task[]>();
     schedulableLeaves.forEach(task => {
@@ -240,6 +236,42 @@ export function ScheduleWorkspace() {
     });
     return map;
   }, [days, schedulableLeaves]);
+
+  const resourceLoadFlags = useMemo(() => {
+    const flagsByResource = new Map<number, Set<Exclude<ResourceLoadFilter, 'all'>>>();
+    availableResources.forEach(resource => {
+      const resourceId = resource.id;
+      if (resourceId === undefined) return;
+      const flags = new Set<Exclude<ResourceLoadFilter, 'all'>>();
+      days.forEach(day => {
+        if (isNonWorkingDay(day)) return;
+        if (!isResourceAvailableOn(resource, day)) {
+          flags.add('unavailable');
+          return;
+        }
+        const dayTasks = tasksByResourceAndDay.get(`${resourceId}:${format(day, 'yyyy-MM-dd')}`) || [];
+        if (dayTasks.some(task => taskPersonDaysOn(task, day) === undefined)) {
+          flags.add('unknown');
+          return;
+        }
+        const capacity = getEffectiveDailyCapacity(mergeCapacity(resource, capacityByResourceId.get(resourceId)));
+        const load = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day) || 0), 0);
+        if (load > capacity + 0.05) flags.add('overload');
+        else if (capacity - load >= 0.05) flags.add('free');
+        else flags.add('full');
+      });
+      flagsByResource.set(resourceId, flags);
+    });
+    return flagsByResource;
+  }, [availableResources, capacityByResourceId, days, tasksByResourceAndDay]);
+
+  const activeResources = useMemo(() => {
+    let scoped = availableResources;
+    if (ownerFilter === 'demand') scoped = scoped.filter(resource => selectedOwners.has(resource.id!));
+    else if (ownerFilter !== 'all') scoped = scoped.filter(resource => resource.id === ownerFilter);
+    if (resourceLoadFilter === 'all') return scoped;
+    return scoped.filter(resource => resource.id !== undefined && resourceLoadFlags.get(resource.id)?.has(resourceLoadFilter));
+  }, [availableResources, ownerFilter, resourceLoadFilter, resourceLoadFlags, selectedOwners]);
 
   const selectedRange = selectedGroup?.tasks.reduce<{ start?: Date; end?: Date }>((range, task) => {
     if (task.startDate && (!range.start || new Date(task.startDate) < range.start)) range.start = new Date(task.startDate);
@@ -474,7 +506,7 @@ export function ScheduleWorkspace() {
         <section aria-label="团队日历负荷面板" className="flex min-h-[360px] min-w-0 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121722] xl:min-w-[820px] xl:flex-[1.35]">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-gray-800 px-3 py-2.5">
             <div className="min-w-0 flex items-center gap-2"><Users size={14} className="shrink-0 text-emerald-300" /><span className="text-xs font-semibold text-gray-200">团队日历负荷</span><span className="text-[10px] text-gray-500">{dayLabel(windowStart)}–{dayLabel(days[days.length - 1])}</span><span className="rounded border border-gray-700 px-1 py-0.5 text-[9px] text-gray-500">{DAY_COUNT}天窗口</span>{selectedTask && <span className="truncate rounded border border-indigo-400/25 bg-indigo-500/10 px-1.5 py-0.5 text-[9px] text-indigo-200">正在看：{focusLabel}</span>}</div>
-            <div className="flex items-center gap-1.5"><select aria-label="团队成员筛选" value={ownerFilter} onChange={event => { const value = event.target.value; setOwnerFilter(value === 'all' || value === 'demand' ? value : Number(value)); }} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="demand">本需求相关人员</option><option value="all">全部成员</option>{availableResources.map(resource => <option key={resource.id} value={resource.id}>{resource.name}</option>)}</select><button type="button" onClick={() => moveWindow(-7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="前 7 天"><ArrowLeft size={13} /></button><button type="button" onClick={() => moveWindow(7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="后 7 天"><ArrowRight size={13} /></button></div>
+            <div className="flex items-center gap-1.5"><select aria-label="团队成员筛选" value={ownerFilter} onChange={event => { const value = event.target.value; setOwnerFilter(value === 'all' || value === 'demand' ? value : Number(value)); }} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="demand">本需求相关人员</option><option value="all">全部成员</option>{availableResources.map(resource => <option key={resource.id} value={resource.id}>{resource.name}</option>)}</select><select aria-label="成员负荷筛选" value={resourceLoadFilter} onChange={event => setResourceLoadFilter(event.target.value as ResourceLoadFilter)} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="all">全部负荷</option><option value="free">有可排空档</option><option value="full">容量已满</option><option value="overload">容量超载</option><option value="unknown">容量待确认</option><option value="unavailable">请假/不可用</option></select><button type="button" onClick={() => moveWindow(-7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="前 7 天"><ArrowLeft size={13} /></button><button type="button" onClick={() => moveWindow(7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="后 7 天"><ArrowRight size={13} /></button></div>
           </div>
           {selectedGroup && <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-gray-800/70 px-3 py-2 text-[10px]"><span className="text-gray-500">已选需求</span><span className="max-w-[260px] truncate text-indigo-200">{selectedGroup.demand.title}</span><span className="text-gray-600">相关人员 {selectedOwners.size} 人</span><span className="text-gray-600">前置链 {selectedGroup.tasks.filter(task => (task.dependencies || []).length > 0).length} 项</span>{selectedTask && <><span className="text-gray-700">|</span><span className="max-w-[320px] truncate text-cyan-200">当前任务：{selectedTask.title}</span></>}</div>}
           <div className="min-h-0 flex-1 overflow-auto">

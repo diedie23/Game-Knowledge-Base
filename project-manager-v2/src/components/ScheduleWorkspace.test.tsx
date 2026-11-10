@@ -173,6 +173,17 @@ describe('ScheduleWorkspace', () => {
     expect(screen.getByText('当前任务：商城还原开发')).toBeTruthy();
   });
 
+  it('filters team members by capacity state', () => {
+    render(<ScheduleWorkspace />);
+
+    fireEvent.click(screen.getByRole('button', { name: /活动界面需求/ }));
+    fireEvent.change(screen.getByLabelText('团队成员筛选'), { target: { value: 'all' } });
+    fireEvent.change(screen.getByLabelText('成员负荷筛选'), { target: { value: 'unknown' } });
+    const calendarPanel = within(screen.getByLabelText('团队日历负荷面板'));
+    expect(calendarPanel.getByText('视觉设计-小陈')).toBeTruthy();
+    expect(calendarPanel.queryByText('交互设计-小林')).toBeNull();
+  });
+
   it('navigates to the gantt view for detailed adjustments', () => {
     render(<ScheduleWorkspace />);
 
