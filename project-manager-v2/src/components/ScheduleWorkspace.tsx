@@ -43,6 +43,7 @@ const DAY_COUNT = 28;
 const DAY_WIDTH = 40;
 const DEMAND_LIST_WIDTH = 280;
 type CalendarFocusMode = 'demand' | 'task' | 'dependencies';
+type PlanningView = 'all' | 'unscheduled' | 'capacity' | 'dependency' | 'overdue';
 
 function dayLabel(day: Date) {
   return format(day, 'MM/dd', { locale: zhCN });
@@ -105,6 +106,7 @@ export function ScheduleWorkspace() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [selectedDemandId, setSelectedDemandId] = useState<number | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  const [planningView, setPlanningView] = useState<PlanningView>('all');
   const [focusMode, setFocusMode] = useState<CalendarFocusMode>('demand');
   const [windowStart, setWindowStart] = useState(() => startOfDay(new Date()));
   const [ownerFilter, setOwnerFilter] = useState<number | 'all' | 'demand'>('all');
@@ -293,8 +295,45 @@ export function ScheduleWorkspace() {
     return { availablePersonDays, overloadDays, unknownDays };
   }, [activeResources, capacityByResourceId, days, tasksByResourceAndDay]);
 
+  const overloadedTaskIds = useMemo(() => {
+    const ids = new Set<number>();
+    tasksByResourceAndDay.forEach((dayTasks, key) => {
+      const [resourceIdText, dateText] = key.split(':');
+      const resourceId = Number(resourceIdText);
+      const resource = resources.find(item => item.id === resourceId);
+      const day = new Date(`${dateText}T00:00:00`);
+      if (!resource || isNonWorkingDay(day) || !isResourceAvailableOn(resource, day)) return;
+      if (dayTasks.some(task => taskPersonDaysOn(task, day) === undefined)) return;
+      const capacity = getEffectiveDailyCapacity(mergeCapacity(resource, capacityByResourceId.get(resourceId)));
+      const load = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day) || 0), 0);
+      if (load <= capacity + 0.05) return;
+      dayTasks.forEach(task => {
+        if (task.id !== undefined) ids.add(task.id);
+      });
+    });
+    return ids;
+  }, [capacityByResourceId, resources, tasksByResourceAndDay]);
+
+  const visiblePlanningTasks = useMemo(() => {
+    const tasks = selectedGroup?.tasks || [];
+    if (planningView === 'all') return tasks;
+    const today = startOfDay(new Date());
+    return tasks.filter(task => {
+      if (isTaskCompleted(task)) return false;
+      if (planningView === 'unscheduled') return !task.startDate || !task.endDate;
+      if (planningView === 'capacity') return task.estimatedHours == null || (task.id !== undefined && overloadedTaskIds.has(task.id));
+      if (planningView === 'overdue') return Boolean(task.endDate && startOfDay(new Date(task.endDate)) < today);
+      return (task.dependencies || []).some(dependencyId => {
+        const dependency = taskById.get(dependencyId);
+        if (!dependency || !isTaskCompleted(dependency)) return true;
+        return Boolean(task.startDate && dependency.endDate && new Date(dependency.endDate) > new Date(task.startDate));
+      });
+    });
+  }, [overloadedTaskIds, planningView, selectedGroup, taskById]);
+
   const focusDemand = () => {
     if (!selectedRange?.start) return;
+    setPlanningView('all');
     setFocusMode('demand');
     setOwnerFilter('demand');
     setWindowStart(startOfDay(selectedRange.start));
@@ -314,13 +353,16 @@ export function ScheduleWorkspace() {
     setSelectedTaskId(task.id);
     setFocusMode('task');
     setOwnerFilter(isTaskCompleted(task) ? 'demand' : getTaskAssigneeIds(task)[0] ?? 'demand');
+    if (task.startDate) setWindowStart(startOfDay(new Date(task.startDate)));
   };
 
-  const focusSummary = (task?: Task) => {
+  const focusSummary = (task?: Task, view: PlanningView = 'all') => {
+    setPlanningView(view);
     if (task) {
       selectTask(task);
       return;
     }
+    setSelectedTaskId(null);
     setFocusMode('demand');
     setOwnerFilter('demand');
   };
@@ -358,10 +400,10 @@ export function ScheduleWorkspace() {
 
       <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-gray-800 bg-[#111722] px-4 py-2" aria-label="排期风险摘要">
         <span className="mr-1 text-[10px] font-medium text-gray-500">{selectedGroup ? `当前需求：${selectedGroup.demand.title}` : '排期摘要'}</span>
-        <button type="button" onClick={() => focusSummary(unscheduledTasks[0])} className="rounded border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[10px] text-amber-200 hover:bg-amber-500/20">未排期 <strong>{unscheduledTasks.length}</strong></button>
-        <button type="button" onClick={() => focusSummary(unknownEstimateTasks[0])} className="rounded border border-yellow-500/25 bg-yellow-500/10 px-2 py-1 text-[10px] text-yellow-200 hover:bg-yellow-500/20">容量待确认 <strong>{unknownEstimateTasks.length}项</strong>{capacitySummary.unknownDays > 0 && <span className="ml-1">/ {capacitySummary.unknownDays}天</span>}</button>
-        <button type="button" onClick={() => focusSummary(dependencyRiskTasks[0])} className="rounded border border-red-500/25 bg-red-500/10 px-2 py-1 text-[10px] text-red-200 hover:bg-red-500/20">依赖风险 <strong>{dependencyRiskTasks.length}</strong></button>
-        <button type="button" onClick={() => focusSummary(overdueTasks[0])} className="rounded border border-orange-500/25 bg-orange-500/10 px-2 py-1 text-[10px] text-orange-200 hover:bg-orange-500/20">已逾期 <strong>{overdueTasks.length}</strong></button>
+        <button type="button" onClick={() => focusSummary(unscheduledTasks[0], 'unscheduled')} className="rounded border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[10px] text-amber-200 hover:bg-amber-500/20">未排期 <strong>{unscheduledTasks.length}</strong></button>
+        <button type="button" onClick={() => focusSummary(unknownEstimateTasks[0], 'capacity')} className="rounded border border-yellow-500/25 bg-yellow-500/10 px-2 py-1 text-[10px] text-yellow-200 hover:bg-yellow-500/20">容量待确认 <strong>{unknownEstimateTasks.length}项</strong>{capacitySummary.unknownDays > 0 && <span className="ml-1">/ {capacitySummary.unknownDays}天</span>}</button>
+        <button type="button" onClick={() => focusSummary(dependencyRiskTasks[0], 'dependency')} className="rounded border border-red-500/25 bg-red-500/10 px-2 py-1 text-[10px] text-red-200 hover:bg-red-500/20">依赖风险 <strong>{dependencyRiskTasks.length}</strong></button>
+        <button type="button" onClick={() => focusSummary(overdueTasks[0], 'overdue')} className="rounded border border-orange-500/25 bg-orange-500/10 px-2 py-1 text-[10px] text-orange-200 hover:bg-orange-500/20">已逾期 <strong>{overdueTasks.length}</strong></button>
         <button type="button" onClick={() => focusSummary()} className="rounded border border-emerald-500/25 bg-emerald-500/10 px-2 py-1 text-[10px] text-emerald-200 hover:bg-emerald-500/20">当前窗口可排 <strong>{formatPersonDays(Number(capacitySummary.availablePersonDays.toFixed(1)))}</strong></button>
         {capacitySummary.overloadDays > 0 && <span className="rounded border border-red-500/25 bg-red-500/10 px-2 py-1 text-[10px] text-red-300">容量超载 {capacitySummary.overloadDays} 天</span>}
         {unassignedTasks.length > 0 && <span className="rounded border border-gray-600 bg-gray-800/60 px-2 py-1 text-[10px] text-gray-400">待分配 {unassignedTasks.length}</span>}
@@ -371,7 +413,7 @@ export function ScheduleWorkspace() {
         <section className="flex min-h-[360px] min-w-0 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121722] xl:min-w-[680px] xl:flex-[0.9]">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-gray-800 px-3 py-2.5">
             <div className="flex min-w-0 items-center gap-2"><GitBranch size={14} className="shrink-0 text-cyan-300" /><span className="text-xs font-semibold text-gray-200">需求前后置链</span><span className="text-[10px] text-gray-600">{visibleDemands.length} 个需求</span>{selectedGroup && <span className="max-w-[280px] truncate text-[10px] text-gray-500">当前：{selectedGroup.demand.title}</span>}</div>
-            <div className="flex items-center gap-1.5"><label htmlFor="schedule-category" className="text-[10px] text-gray-500">分类</label><select id="schedule-category" aria-label="需求分类筛选" value={categoryFilter} onChange={event => { setCategoryFilter(event.target.value); setSelectedDemandId(null); setSelectedTaskId(null); setFocusMode('demand'); setOwnerFilter('demand'); }} className="max-w-[150px] rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-[10px] text-gray-300 outline-none focus:border-indigo-500"><option value="all">全部分类</option>{categoryOptions.map(category => <option key={category} value={category}>{category}</option>)}</select><div className="relative"><Search size={12} className="absolute left-2 top-2 text-gray-600" /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索需求" className="w-36 rounded border border-gray-700 bg-gray-900/80 py-1.5 pl-7 pr-2 text-[10px] text-gray-300 outline-none focus:border-indigo-500" /></div></div>
+            <div className="flex items-center gap-1.5"><label htmlFor="schedule-view" className="text-[10px] text-gray-500">视图</label><select id="schedule-view" aria-label="排期工作模式" value={planningView} onChange={event => { setPlanningView(event.target.value as PlanningView); setSelectedTaskId(null); setFocusMode('demand'); }} className="max-w-[120px] rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-[10px] text-gray-300 outline-none focus:border-indigo-500"><option value="all">全部任务</option><option value="unscheduled">待排期</option><option value="capacity">容量风险</option><option value="dependency">依赖风险</option><option value="overdue">已逾期</option></select><label htmlFor="schedule-category" className="text-[10px] text-gray-500">分类</label><select id="schedule-category" aria-label="需求分类筛选" value={categoryFilter} onChange={event => { setCategoryFilter(event.target.value); setSelectedDemandId(null); setSelectedTaskId(null); setPlanningView('all'); setFocusMode('demand'); setOwnerFilter('demand'); }} className="max-w-[150px] rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-[10px] text-gray-300 outline-none focus:border-indigo-500"><option value="all">全部分类</option>{categoryOptions.map(category => <option key={category} value={category}>{category}</option>)}</select><div className="relative"><Search size={12} className="absolute left-2 top-2 text-gray-600" /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索需求" className="w-36 rounded border border-gray-700 bg-gray-900/80 py-1.5 pl-7 pr-2 text-[10px] text-gray-300 outline-none focus:border-indigo-500" /></div></div>
           </div>
           {selectedTask && <div className="shrink-0 border-b border-indigo-500/25 bg-indigo-500/[0.08] px-3 py-2.5" aria-label="当前任务上下文">
             <div className="flex items-start justify-between gap-3">
@@ -405,7 +447,7 @@ export function ScheduleWorkspace() {
               {selectedGroup ? <div className="min-w-0">
                 <div className="border-b border-gray-800 bg-gray-950/25 px-3 py-2 text-[10px] text-gray-500">子需求 / 当前阶段 / 负责人 / 预估人日 / 排期状态</div>
                 <div className="divide-y divide-gray-800/70">
-                  {selectedGroup.tasks.map(task => {
+                  {visiblePlanningTasks.map(task => {
                     const stage = taskStage(task, resources);
                     const style = stage ? STAGE_STYLE[stage] : { text: 'text-gray-400', bg: 'bg-gray-500/10', bar: 'bg-gray-500' };
                     const status = taskStatus(task);
@@ -422,6 +464,7 @@ export function ScheduleWorkspace() {
                       </div>
                     </div>;
                   })}
+                  {visiblePlanningTasks.length === 0 && <div className="p-8 text-center text-xs text-gray-600">当前视图暂无匹配任务</div>}
                 </div>
               </div> : <div className="flex h-full items-center justify-center text-xs text-gray-600">请选择一个需求</div>}
             </div>

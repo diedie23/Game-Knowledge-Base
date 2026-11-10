@@ -160,6 +160,19 @@ describe('ScheduleWorkspace', () => {
     expect(calendarPanel.queryByText('视觉设计-小陈')).toBeNull();
   });
 
+  it('switches risk views and locates the dependency task', () => {
+    render(<ScheduleWorkspace />);
+
+    fireEvent.click(screen.getByRole('button', { name: /商城界面需求/ }));
+    fireEvent.change(screen.getByLabelText('排期工作模式'), { target: { value: 'dependency' } });
+    expect(screen.getByText('商城还原开发')).toBeTruthy();
+    expect(screen.queryByText('商城视觉设计')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: /依赖风险/ }));
+    expect(screen.getByText('当前查看任务')).toBeTruthy();
+    expect(screen.getByText('当前任务：商城还原开发')).toBeTruthy();
+  });
+
   it('navigates to the gantt view for detailed adjustments', () => {
     render(<ScheduleWorkspace />);
 
