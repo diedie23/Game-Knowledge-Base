@@ -418,6 +418,15 @@ export function ScheduleWorkspace() {
     overscan: 8,
     initialRect: { width: 0, height: 600 },
   });
+  const calendarBodyRef = useRef<HTMLDivElement>(null);
+  const calendarHeaderDaysRef = useRef<HTMLDivElement>(null);
+  const calendarRowVirtualizer = useVirtualizer({
+    count: activeResources.length,
+    getScrollElement: () => calendarBodyRef.current,
+    estimateSize: () => 48,
+    overscan: 6,
+    initialRect: { width: 0, height: 600 },
+  });
 
   const focusDemand = () => {
     if (!selectedRange?.start) return;
@@ -478,6 +487,14 @@ export function ScheduleWorkspace() {
   const taskRows = visiblePlanningTasks.length > 20
     ? taskVirtualizer.getVirtualItems()
     : visiblePlanningTasks.map((_, index) => ({ index, start: index * 112, size: 112, key: index }));
+  const calendarRows = activeResources.length > 20
+    ? calendarRowVirtualizer.getVirtualItems()
+    : activeResources.map((_, index) => ({ index, start: index * 48, size: 48, key: index }));
+  const handleCalendarScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    if (calendarHeaderDaysRef.current) {
+      calendarHeaderDaysRef.current.style.transform = `translateX(-${event.currentTarget.scrollLeft}px)`;
+    }
+  };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-[#0f1115] text-gray-300">
@@ -608,35 +625,43 @@ export function ScheduleWorkspace() {
             <div className="flex items-center gap-1.5"><select aria-label="团队成员筛选" value={ownerFilter} onChange={event => { const value = event.target.value; setOwnerFilter(value === 'all' || value === 'demand' ? value : Number(value)); }} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="demand">本需求相关人员</option><option value="all">全部成员</option>{availableResources.map(resource => <option key={resource.id} value={resource.id}>{resource.name}</option>)}</select><select aria-label="成员负荷筛选" value={resourceLoadFilter} onChange={event => setResourceLoadFilter(event.target.value as ResourceLoadFilter)} className="rounded border border-gray-700 bg-gray-900 px-2 py-1 text-[10px] text-gray-300 outline-none"><option value="all">全部负荷</option><option value="free">有可排空档</option><option value="full">容量已满</option><option value="overload">容量超载</option><option value="unknown">容量待确认</option><option value="unavailable">请假/不可用</option></select><button type="button" onClick={() => moveWindow(-7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="前 7 天"><ArrowLeft size={13} /></button><button type="button" onClick={() => moveWindow(7)} className="rounded border border-gray-700 p-1 text-gray-400 hover:text-white" title="后 7 天"><ArrowRight size={13} /></button></div>
           </div>
           {selectedGroup && <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-gray-800/70 px-3 py-2 text-[10px]"><span className="text-gray-500">已选需求</span><span className="max-w-[260px] truncate text-indigo-200">{selectedGroup.demand.title}</span><span className="text-gray-600">相关人员 {selectedOwners.size} 人</span><span className="text-gray-600">前置链 {selectedGroup.tasks.filter(task => (task.dependencies || []).length > 0).length} 项</span>{selectedTask && <><span className="text-gray-700">|</span><span className="max-w-[320px] truncate text-cyan-200">当前任务：{selectedTask.title}</span></>}</div>}
-          <div className="min-h-0 flex-1 overflow-auto">
-            <div className="min-w-0" style={{ minWidth: 176 + DAY_COUNT * DAY_WIDTH }}>
-              <div className="flex border-b border-gray-800 bg-gray-950/25 sticky top-0 z-10"><div className="sticky left-0 z-20 w-44 shrink-0 border-r border-gray-800 bg-gray-950/95 px-3 py-2 text-[10px] text-gray-500">成员 / 工种</div><div className="flex">{days.map(day => { const nonWorking = isNonWorkingDay(day, projectCalendar); const holiday = isHoliday(day, projectCalendar); return <div key={day.toISOString()} title={holiday ? `${dayLabel(day)} 节假日` : nonWorking ? `${dayLabel(day)} 周末` : `${dayLabel(day)} 工作日`} className={`w-[40px] shrink-0 border-r border-gray-800/70 px-1 py-1.5 text-center ${isSameDay(day, new Date()) ? 'bg-indigo-500/15 text-indigo-300' : nonWorking ? 'bg-slate-800/70 text-slate-500' : 'text-gray-500'}`}><div className="text-[9px]">{dayLabel(day)}</div><div className={`mt-0.5 text-[8px] ${holiday ? 'text-amber-300' : nonWorking ? 'text-slate-400' : 'text-gray-600'}`}>{calendarDayLabel(day, projectCalendar)}</div></div>; })}</div></div>
-              <div className="divide-y divide-gray-800/70">
-                {activeResources.map(resource => <div key={resource.id} className="flex min-h-[48px]">
-                  <div className={`sticky left-0 z-10 w-44 shrink-0 border-r border-gray-800 bg-[#121722] px-3 py-2 ${focusOwners.has(resource.id!) ? 'bg-indigo-500/[0.08]' : ''}`}><div className="flex items-center gap-1.5"><span className={`h-1.5 w-1.5 rounded-full ${focusOwners.has(resource.id!) ? 'bg-indigo-400' : 'bg-gray-600'}`} /><span className={`truncate text-[11px] ${focusOwners.has(resource.id!) ? 'text-indigo-200' : 'text-gray-300'}`}>{formatResourceDisplayName(resource)}</span></div><div className="mt-0.5 truncate text-[9px] text-gray-600">{resource.role || '未设置工种'}</div></div>
-                  <div className="flex">{days.map(day => {
-                    const key = `${resource.id}:${format(day, 'yyyy-MM-dd')}`;
-                    const dayTasks = tasksByResourceAndDay.get(key) || [];
-                    const related = dayTasks.filter(task => task.id !== undefined && focusTaskIds.has(task.id));
-                    const primary = selectedTask?.id !== undefined && dayTasks.some(task => task.id === selectedTask.id);
-                    const load = dayTasks.length;
-                    const estimatedLoad = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day, projectCalendar) || 0), 0);
-                    const workingDay = !isNonWorkingDay(day, projectCalendar);
-                    const available = workingDay && isResourceAvailableOn(resource, day);
-                    const dailyCapacity = available ? getEffectiveDailyCapacity(mergeCapacity(resource, resource.id === undefined ? undefined : capacityByResourceId.get(resource.id))) : 0;
-                    const hasUnestimated = dayTasks.some(task => taskPersonDaysOn(task, day, projectCalendar) === undefined && !isNonWorkingDay(day, projectCalendar));
-                    const capacityKnown = !hasUnestimated;
-                    const remaining = capacityKnown ? Math.max(0, dailyCapacity - estimatedLoad) : undefined;
-                    const isSelectedDay = related.length > 0;
-                    const isOverload = available && capacityKnown && estimatedLoad > dailyCapacity + 0.05;
-                    const isFree = available && capacityKnown && remaining !== undefined && remaining >= 0.05;
-                    const dayKind = isHoliday(day, projectCalendar) ? '节假日' : isWeekend(day) ? '周末' : !available ? '请假/不可用' : '工作日';
-                    const loadLabel = estimatedLoad > 0 ? formatPersonDays(estimatedLoad) : '无排期';
-                    const freeLabel = !capacityKnown ? '容量待确认' : isFree ? `可排 ${formatPersonDays(remaining || 0)}` : isOverload ? `超载 ${formatPersonDays(estimatedLoad - dailyCapacity)}` : '已满';
-                    const title = `${dayLabel(day)} ${dayKind} · ${dayTasks.length ? `${dayTasks.map(task => task.title).join('、')}；` : ''}${loadLabel} · ${freeLabel}${hasUnestimated ? ' · 含未设置人日任务' : ''}`;
-                    return <button type="button" key={key} onClick={() => dayTasks[0] && selectTask(dayTasks[0])} title={dayTasks.length ? `${dayTasks.map(task => task.title).join('、')} · 点击查看任务上下文` : title} aria-label={title} className={`relative h-12 w-[40px] shrink-0 overflow-hidden border-r border-gray-800/60 px-0.5 transition-colors hover:bg-white/[0.06] ${primary ? 'bg-cyan-500/35 ring-2 ring-inset ring-cyan-300/80' : isSelectedDay ? 'bg-indigo-500/25 ring-1 ring-inset ring-indigo-400/60' : isOverload ? 'bg-red-500/25' : !workingDay ? 'bg-slate-800/75' : !available ? 'bg-amber-950/40' : !capacityKnown ? 'bg-amber-500/15' : isFree ? 'bg-emerald-500/15' : 'bg-gray-900/10'}`}><span className={`inline-flex min-h-5 min-w-5 items-center justify-center rounded text-[9px] font-semibold ${primary ? 'bg-cyan-500/50 text-cyan-50' : isSelectedDay ? 'bg-indigo-500/40 text-indigo-100' : isOverload ? 'text-red-300' : !workingDay ? 'text-slate-400' : !available ? 'text-amber-300' : !capacityKnown ? 'text-amber-200' : isFree ? 'text-emerald-200' : 'text-gray-300'}`}>{!workingDay ? (isHoliday(day, projectCalendar) ? '节' : '休') : !available ? '假' : !capacityKnown ? '?' : load || '·'}</span><span className={`mt-0.5 block truncate text-[8px] ${isFree ? 'text-emerald-300' : isOverload ? 'text-red-300' : !available ? 'text-amber-300' : !capacityKnown ? 'text-amber-200' : 'text-gray-600'}`}>{!workingDay ? (load ? `${load}项` : '休息') : !available ? '不可排' : !capacityKnown ? '待确认' : isFree ? `空${(remaining || 0).toFixed(1)}` : load ? `${estimatedLoad.toFixed(1)}` : '满'}</span>{related.length > 0 && <span className={`absolute bottom-0.5 left-1/2 block h-1 w-3 -translate-x-1/2 rounded-full ${primary ? 'bg-cyan-200' : 'bg-indigo-300'}`} />}{isFree && <span className="absolute bottom-0 left-0 h-0.5 w-full bg-emerald-400/70" />}</button>;
-                  })}</div>
-                </div>)}
+          <div className="min-h-0 flex-1 overflow-hidden">
+            <div className="shrink-0 overflow-hidden border-b border-gray-800 bg-gray-950/25">
+              <div className="flex" style={{ minWidth: 176 + DAY_COUNT * DAY_WIDTH }}>
+                <div className="w-44 shrink-0 border-r border-gray-800 bg-gray-950/95 px-3 py-2 text-[10px] text-gray-500">成员 / 工种</div>
+                <div ref={calendarHeaderDaysRef} className="flex will-change-transform">{days.map(day => { const nonWorking = isNonWorkingDay(day, projectCalendar); const holiday = isHoliday(day, projectCalendar); return <div key={day.toISOString()} title={holiday ? `${dayLabel(day)} 节假日` : nonWorking ? `${dayLabel(day)} 周末` : `${dayLabel(day)} 工作日`} className={`w-[40px] shrink-0 border-r border-gray-800/70 px-1 py-1.5 text-center ${isSameDay(day, new Date()) ? 'bg-indigo-500/15 text-indigo-300' : nonWorking ? 'bg-slate-800/70 text-slate-500' : 'text-gray-500'}`}><div className="text-[9px]">{dayLabel(day)}</div><div className={`mt-0.5 text-[8px] ${holiday ? 'text-amber-300' : nonWorking ? 'text-slate-400' : 'text-gray-600'}`}>{calendarDayLabel(day, projectCalendar)}</div></div>; })}</div>
+              </div>
+            </div>
+            <div ref={calendarBodyRef} onScroll={handleCalendarScroll} className="min-h-0 h-full overflow-auto">
+              <div className="relative min-w-0 divide-y divide-gray-800/70" style={{ minWidth: 176 + DAY_COUNT * DAY_WIDTH, height: activeResources.length > 20 ? calendarRowVirtualizer.getTotalSize() : activeResources.length * 48 }}>
+                {calendarRows.map(virtualRow => {
+                  const resource = activeResources[virtualRow.index];
+                  return <div ref={calendarRowVirtualizer.measureElement} data-index={virtualRow.index} key={resource.id} className="absolute left-0 top-0 flex min-h-[48px] w-full" style={{ transform: `translateY(${virtualRow.start}px)` }}>
+                    <div className={`sticky left-0 z-10 w-44 shrink-0 border-r border-gray-800 bg-[#121722] px-3 py-2 ${focusOwners.has(resource.id!) ? 'bg-indigo-500/[0.08]' : ''}`}><div className="flex items-center gap-1.5"><span className={`h-1.5 w-1.5 rounded-full ${focusOwners.has(resource.id!) ? 'bg-indigo-400' : 'bg-gray-600'}`} /><span className={`truncate text-[11px] ${focusOwners.has(resource.id!) ? 'text-indigo-200' : 'text-gray-300'}`}>{formatResourceDisplayName(resource)}</span></div><div className="mt-0.5 truncate text-[9px] text-gray-600">{resource.role || '未设置工种'}</div></div>
+                    <div className="flex">{days.map(day => {
+                      const key = `${resource.id}:${format(day, 'yyyy-MM-dd')}`;
+                      const dayTasks = tasksByResourceAndDay.get(key) || [];
+                      const related = dayTasks.filter(task => task.id !== undefined && focusTaskIds.has(task.id));
+                      const primary = selectedTask?.id !== undefined && dayTasks.some(task => task.id === selectedTask.id);
+                      const load = dayTasks.length;
+                      const estimatedLoad = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day, projectCalendar) || 0), 0);
+                      const workingDay = !isNonWorkingDay(day, projectCalendar);
+                      const available = workingDay && isResourceAvailableOn(resource, day);
+                      const dailyCapacity = available ? getEffectiveDailyCapacity(mergeCapacity(resource, resource.id === undefined ? undefined : capacityByResourceId.get(resource.id))) : 0;
+                      const hasUnestimated = dayTasks.some(task => taskPersonDaysOn(task, day, projectCalendar) === undefined && !isNonWorkingDay(day, projectCalendar));
+                      const capacityKnown = !hasUnestimated;
+                      const remaining = capacityKnown ? Math.max(0, dailyCapacity - estimatedLoad) : undefined;
+                      const isSelectedDay = related.length > 0;
+                      const isOverload = available && capacityKnown && estimatedLoad > dailyCapacity + 0.05;
+                      const isFree = available && capacityKnown && remaining !== undefined && remaining >= 0.05;
+                      const dayKind = isHoliday(day, projectCalendar) ? '节假日' : isWeekend(day) ? '周末' : !available ? '请假/不可用' : '工作日';
+                      const loadLabel = estimatedLoad > 0 ? formatPersonDays(estimatedLoad) : '无排期';
+                      const freeLabel = !capacityKnown ? '容量待确认' : isFree ? `可排 ${formatPersonDays(remaining || 0)}` : isOverload ? `超载 ${formatPersonDays(estimatedLoad - dailyCapacity)}` : '已满';
+                      const title = `${dayLabel(day)} ${dayKind} · ${dayTasks.length ? `${dayTasks.map(task => task.title).join('、')}；` : ''}${loadLabel} · ${freeLabel}${hasUnestimated ? ' · 含未设置人日任务' : ''}`;
+                      return <button type="button" key={key} onClick={() => dayTasks[0] && selectTask(dayTasks[0])} title={dayTasks.length ? `${dayTasks.map(task => task.title).join('、')} · 点击查看任务上下文` : title} aria-label={title} className={`relative h-12 w-[40px] shrink-0 overflow-hidden border-r border-gray-800/60 px-0.5 transition-colors hover:bg-white/[0.06] ${primary ? 'bg-cyan-500/35 ring-2 ring-inset ring-cyan-300/80' : isSelectedDay ? 'bg-indigo-500/25 ring-1 ring-inset ring-indigo-400/60' : isOverload ? 'bg-red-500/25' : !workingDay ? 'bg-slate-800/75' : !available ? 'bg-amber-950/40' : !capacityKnown ? 'bg-amber-500/15' : isFree ? 'bg-emerald-500/15' : 'bg-gray-900/10'}`}><span className={`inline-flex min-h-5 min-w-5 items-center justify-center rounded text-[9px] font-semibold ${primary ? 'bg-cyan-500/50 text-cyan-50' : isSelectedDay ? 'bg-indigo-500/40 text-indigo-100' : isOverload ? 'text-red-300' : !workingDay ? 'text-slate-400' : !available ? 'text-amber-300' : !capacityKnown ? 'text-amber-200' : isFree ? 'text-emerald-200' : 'text-gray-300'}`}>{!workingDay ? (isHoliday(day, projectCalendar) ? '节' : '休') : !available ? '假' : !capacityKnown ? '?' : load || '·'}</span><span className={`mt-0.5 block truncate text-[8px] ${isFree ? 'text-emerald-300' : isOverload ? 'text-red-300' : !available ? 'text-amber-300' : !capacityKnown ? 'text-amber-200' : 'text-gray-600'}`}>{!workingDay ? (load ? `${load}项` : '休息') : !available ? '不可排' : !capacityKnown ? '待确认' : isFree ? `空${(remaining || 0).toFixed(1)}` : load ? `${estimatedLoad.toFixed(1)}` : '满'}</span>{related.length > 0 && <span className={`absolute bottom-0.5 left-1/2 block h-1 w-3 -translate-x-1/2 rounded-full ${primary ? 'bg-cyan-200' : 'bg-indigo-300'}`} />}{isFree && <span className="absolute bottom-0 left-0 h-0.5 w-full bg-emerald-400/70" />}</button>;
+                    })}</div>
+                  </div>;
+                })}
                 {activeResources.length === 0 && <div className="p-8 text-center text-xs text-gray-600">暂无成员资源</div>}
               </div>
             </div>
