@@ -157,6 +157,7 @@ describe('ScheduleWorkspace', () => {
     fireEvent.change(screen.getByDisplayValue('全部成员'), { target: { value: '10' } });
     const calendarPanel = within(screen.getByLabelText('团队日历负荷面板'));
     expect(calendarPanel.getByText('交互设计-小林')).toBeTruthy();
+    expect(screen.getByLabelText('团队日历负荷面板').querySelector('.sticky.left-0')).toBeTruthy();
     expect(calendarPanel.queryByText('视觉设计-小陈')).toBeNull();
   });
 
