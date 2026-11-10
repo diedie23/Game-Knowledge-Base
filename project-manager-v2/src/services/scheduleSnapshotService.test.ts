@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Resource, Task } from '../types';
-import { buildScheduleSnapshot } from './scheduleSnapshotService';
+import { buildScheduleSnapshot, compareScheduleSnapshots } from './scheduleSnapshotService';
 
 const task = (id: number): Task => ({
   id,
@@ -60,5 +60,25 @@ describe('scheduleSnapshotService', () => {
     expect(snapshot.scheduleData?.status).toBe('rejected');
     expect(snapshot.scheduleData?.tasksAfter).toBeUndefined();
     expect(snapshot.scheduleData?.validation?.reasons).toEqual(['突破父需求截止时间']);
+  });
+
+  it('compares immutable schedule states without changing either snapshot', () => {
+    const firstTask = { ...task(1), assigneeIds: [1] };
+    const secondTask = { ...firstTask, startDate: new Date('2026-07-08'), assigneeIds: [2] };
+    const first = buildScheduleSnapshot({
+      source: 'tapd-planner', status: 'applied', projectId: 7, reason: '方案 A', taskIds: [1],
+      tasksBefore: [firstTask], tasksAfter: [firstTask], resources: [resource], capacities: [],
+    });
+    const second = buildScheduleSnapshot({
+      source: 'tapd-planner', status: 'applied', projectId: 7, reason: '方案 B', taskIds: [1],
+      tasksBefore: [firstTask], tasksAfter: [secondTask], resources: [resource], capacities: [],
+    });
+
+    const result = compareScheduleSnapshots(first, second);
+
+    expect(result.changedCount).toBe(1);
+    expect(result.rows[0]).toMatchObject({ taskId: 1, startChanged: true, assigneesChanged: true, state: 'changed' });
+    expect(first.scheduleData?.tasksAfter?.[0].startDate).toEqual(firstTask.startDate);
+    expect(second.scheduleData?.tasksAfter?.[0].startDate).toEqual(secondTask.startDate);
   });
 });

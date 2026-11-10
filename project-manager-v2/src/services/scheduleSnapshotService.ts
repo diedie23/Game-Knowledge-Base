@@ -92,3 +92,98 @@ export async function listScheduleSnapshots(projectId?: number): Promise<ChangeS
   return snapshots.filter(snapshot => snapshot.kind === 'schedule-plan'
     && (projectId === undefined || snapshot.projectId === projectId));
 }
+
+export interface ScheduleSnapshotTaskComparison {
+  taskId: number;
+  title: string;
+  first?: Task;
+  second?: Task;
+  startChanged: boolean;
+  endChanged: boolean;
+  assigneesChanged: boolean;
+  changed: boolean;
+  state: 'added' | 'removed' | 'changed' | 'unchanged';
+}
+
+export interface ScheduleSnapshotComparison {
+  first: ChangeSnapshot;
+  second: ChangeSnapshot;
+  rows: ScheduleSnapshotTaskComparison[];
+  changedCount: number;
+  unchangedCount: number;
+  addedCount: number;
+  removedCount: number;
+}
+
+function snapshotTaskState(snapshot: ChangeSnapshot): Map<number, Task> {
+  const scheduleData = snapshot.scheduleData;
+  if (!scheduleData) return new Map();
+  const before = new Map(scheduleData.tasksBefore.filter(task => task.id !== undefined).map(task => [task.id!, clone(task)]));
+  if (scheduleData.tasksAfter && scheduleData.tasksAfter.length > 0) {
+    return new Map(scheduleData.tasksAfter.filter(task => task.id !== undefined).map(task => [task.id!, clone(task)]));
+  }
+  // Generated snapshots may not have persisted after-state. Reconstruct the
+  // proposed state from the immutable before-state plus recorded changes.
+  scheduleData.changes?.forEach(change => {
+    const task = before.get(change.taskId);
+    if (!task) return;
+    before.set(change.taskId, {
+      ...task,
+      startDate: clone(change.startDate),
+      endDate: clone(change.endDate),
+      assigneeIds: change.assigneeIds ? [...change.assigneeIds] : task.assigneeIds,
+    });
+  });
+  return before;
+}
+
+function sameDate(left?: Date, right?: Date): boolean {
+  const leftTime = left ? new Date(left).getTime() : undefined;
+  const rightTime = right ? new Date(right).getTime() : undefined;
+  return leftTime === rightTime;
+}
+
+function sameAssignees(left?: number[], right?: number[]): boolean {
+  const normalize = (value?: number[]) => [...new Set((value || []).map(Number))].sort((a, b) => a - b);
+  const first = normalize(left);
+  const second = normalize(right);
+  return first.length === second.length && first.every((id, index) => id === second[index]);
+}
+
+export function compareScheduleSnapshots(
+  first: ChangeSnapshot,
+  second: ChangeSnapshot,
+): ScheduleSnapshotComparison {
+  const firstTasks = snapshotTaskState(first);
+  const secondTasks = snapshotTaskState(second);
+  const taskIds = [...new Set([...firstTasks.keys(), ...secondTasks.keys()])].sort((a, b) => a - b);
+  const rows = taskIds.map(taskId => {
+    const before = firstTasks.get(taskId);
+    const after = secondTasks.get(taskId);
+    const startChanged = !sameDate(before?.startDate, after?.startDate);
+    const endChanged = !sameDate(before?.endDate, after?.endDate);
+    const assigneesChanged = !sameAssignees(before?.assigneeIds, after?.assigneeIds);
+    const changed = startChanged || endChanged || assigneesChanged;
+    const state = !before ? 'added' : !after ? 'removed' : changed ? 'changed' : 'unchanged';
+    return {
+      taskId,
+      title: after?.title || before?.title || `任务 #${taskId}`,
+      first: before,
+      second: after,
+      startChanged,
+      endChanged,
+      assigneesChanged,
+      changed,
+      state,
+    } satisfies ScheduleSnapshotTaskComparison;
+  });
+  return {
+    first,
+    second,
+    rows,
+    changedCount: rows.filter(row => row.state === 'changed').length,
+    unchangedCount: rows.filter(row => row.state === 'unchanged').length,
+    addedCount: rows.filter(row => row.state === 'added').length,
+    removedCount: rows.filter(row => row.state === 'removed').length,
+  };
+}

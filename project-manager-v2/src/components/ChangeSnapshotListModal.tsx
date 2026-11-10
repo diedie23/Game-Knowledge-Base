@@ -1,19 +1,63 @@
-import React from 'react';
-import { X, Clock, Trash2 } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { X, Clock, Trash2, ArrowRight, GitBranch } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { db } from '../db/db';
 import { useStore } from '../store/useStore';
+import { compareScheduleSnapshots, type ScheduleSnapshotComparison } from '../services/scheduleSnapshotService';
+import type { ChangeSnapshot, Task } from '../types';
 import { confirmDialog } from './common/ConfirmDialog';
 
+function snapshotTitle(snapshot: ChangeSnapshot): string {
+  return `${snapshot.reason} · ${format(snapshot.date, 'MM/dd HH:mm', { locale: zhCN })}`;
+}
+
+function taskDate(value?: Date): string {
+  return value ? format(new Date(value), 'yyyy-MM-dd') : '未排期';
+}
+
+function taskRange(task?: Task): string {
+  if (!task) return '无此任务';
+  return `${taskDate(task.startDate)} 至 ${taskDate(task.endDate)}`;
+}
+
+function comparisonStateLabel(state: ScheduleSnapshotComparison['rows'][number]['state']): string {
+  return state === 'changed' ? '已变化' : state === 'added' ? '新增任务' : state === 'removed' ? '已移除' : '无变化';
+}
+
 export const ChangeSnapshotListModal = () => {
-  const { isSnapshotListModalOpen, closeSnapshotListModal } = useStore();
+  const { isSnapshotListModalOpen, closeSnapshotListModal, selectedProjectId } = useStore();
+  const [firstSnapshotId, setFirstSnapshotId] = useState<string>('');
+  const [secondSnapshotId, setSecondSnapshotId] = useState<string>('');
+  const [showUnchanged, setShowUnchanged] = useState(true);
   
   const snapshots = useLiveQuery(
     () => db.changeSnapshots.orderBy('date').reverse().toArray(),
     []
   );
+  const scheduleSnapshots = useMemo(
+    () => (snapshots || []).filter(snapshot => snapshot.kind === 'schedule-plan'
+      && (selectedProjectId === null || snapshot.projectId === selectedProjectId)),
+    [selectedProjectId, snapshots],
+  );
+  useEffect(() => {
+    if (scheduleSnapshots.length === 0) {
+      setFirstSnapshotId('');
+      setSecondSnapshotId('');
+      return;
+    }
+    setFirstSnapshotId(current => current && scheduleSnapshots.some(snapshot => snapshot.id === current)
+      ? current : (scheduleSnapshots[1]?.id || scheduleSnapshots[0].id));
+    setSecondSnapshotId(current => current && scheduleSnapshots.some(snapshot => snapshot.id === current)
+      ? current : scheduleSnapshots[0].id);
+  }, [scheduleSnapshots]);
+  const comparison = useMemo(() => {
+    const first = scheduleSnapshots.find(snapshot => snapshot.id === firstSnapshotId);
+    const second = scheduleSnapshots.find(snapshot => snapshot.id === secondSnapshotId);
+    return first && second && first.id !== second.id ? compareScheduleSnapshots(first, second) : undefined;
+  }, [firstSnapshotId, scheduleSnapshots, secondSnapshotId]);
+  const comparisonRows = comparison?.rows.filter(row => showUnchanged || row.changed || row.state !== 'unchanged') || [];
 
   if (!isSnapshotListModalOpen) return null;
 
@@ -39,6 +83,44 @@ export const ChangeSnapshotListModal = () => {
             <X size={20} />
           </button>
         </div>
+
+        <section aria-label="排期方案快照对比" className="shrink-0 border-b border-indigo-500/20 bg-indigo-500/[0.05] p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2 text-sm font-semibold text-indigo-100"><GitBranch size={16} className="text-indigo-300" />排期方案快照对比</div>
+              <p className="mt-1 text-[10px] text-gray-500">只读取快照中的任务状态进行对比，不会修改当前任务或 TAPD 数据。</p>
+            </div>
+            <label className="flex items-center gap-1.5 text-[10px] text-gray-400"><input type="checkbox" checked={showUnchanged} onChange={event => setShowUnchanged(event.target.checked)} />显示未变化任务</label>
+          </div>
+          {scheduleSnapshots.length < 2 ? (
+            <div className="mt-3 rounded border border-gray-700/70 bg-gray-950/30 px-3 py-2 text-[10px] text-gray-500">当前项目至少需要两份排期方案快照后才能进行对比。</div>
+          ) : (
+            <>
+              <div className="mt-3 grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-end">
+                <label className="min-w-0 text-[10px] text-gray-400">基准方案<select aria-label="基准排期方案" value={firstSnapshotId} onChange={event => setFirstSnapshotId(event.target.value)} className="mt-1 w-full truncate rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-[10px] text-gray-200 outline-none focus:border-indigo-400">{scheduleSnapshots.map(snapshot => <option key={snapshot.id} value={snapshot.id}>{snapshotTitle(snapshot)}</option>)}</select></label>
+                <ArrowRight size={14} className="hidden text-indigo-300 md:block" />
+                <label className="min-w-0 text-[10px] text-gray-400">对比方案<select aria-label="对比排期方案" value={secondSnapshotId} onChange={event => setSecondSnapshotId(event.target.value)} className="mt-1 w-full truncate rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-[10px] text-gray-200 outline-none focus:border-indigo-400">{scheduleSnapshots.map(snapshot => <option key={snapshot.id} value={snapshot.id}>{snapshotTitle(snapshot)}</option>)}</select></label>
+              </div>
+              {comparison && <div className="mt-3">
+                <div className="flex flex-wrap gap-1.5 text-[10px]">
+                  <span className="rounded border border-gray-700 bg-gray-900/70 px-2 py-1 text-gray-300">共 {comparison.rows.length} 项</span>
+                  <span className="rounded border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-amber-200">变化 {comparison.changedCount} 项</span>
+                  <span className="rounded border border-emerald-500/25 bg-emerald-500/10 px-2 py-1 text-emerald-200">未变化 {comparison.unchangedCount} 项</span>
+                  {comparison.addedCount > 0 && <span className="rounded border border-sky-500/25 bg-sky-500/10 px-2 py-1 text-sky-200">新增 {comparison.addedCount} 项</span>}
+                  {comparison.removedCount > 0 && <span className="rounded border border-red-500/25 bg-red-500/10 px-2 py-1 text-red-200">移除 {comparison.removedCount} 项</span>}
+                </div>
+                <div className="mt-2 max-h-56 space-y-1.5 overflow-y-auto pr-1">
+                  {comparisonRows.length === 0 && <div className="rounded border border-gray-700/70 bg-gray-950/30 px-3 py-2 text-[10px] text-gray-500">两份方案没有可展示的变化。</div>}
+                  {comparisonRows.map(row => <div key={row.taskId} className={`rounded border px-2.5 py-2 ${row.changed ? 'border-amber-500/25 bg-amber-500/[0.06]' : row.state === 'unchanged' ? 'border-gray-800 bg-gray-950/20' : 'border-sky-500/25 bg-sky-500/[0.05]'}`}>
+                    <div className="flex items-center justify-between gap-2"><span className="min-w-0 truncate text-[11px] text-gray-200" title={row.title}>{row.title}</span><span className={`shrink-0 rounded px-1.5 py-0.5 text-[9px] ${row.changed ? 'bg-amber-500/15 text-amber-200' : row.state === 'unchanged' ? 'bg-gray-800 text-gray-500' : 'bg-sky-500/15 text-sky-200'}`}>{comparisonStateLabel(row.state)}</span></div>
+                    <div className="mt-1 grid gap-1 text-[9px] text-gray-500 md:grid-cols-2"><div>基准：{taskRange(row.first)} · 负责人 {row.first?.assigneeIds?.join('、') || '未分配'}</div><div>对比：{taskRange(row.second)} · 负责人 {row.second?.assigneeIds?.join('、') || '未分配'}</div></div>
+                    {row.changed && <div className="mt-1 text-[9px] text-amber-300">变化字段：{[row.startChanged && '开始日期', row.endChanged && '结束日期', row.assigneesChanged && '负责人'].filter(Boolean).join('、')}</div>}
+                  </div>)}
+                </div>
+              </div>}
+            </>
+          )}
+        </section>
 
         <div className="p-4 overflow-y-auto custom-scrollbar flex-1">
           {!snapshots || snapshots.length === 0 ? (
