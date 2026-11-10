@@ -1,9 +1,9 @@
-import type { Resource, Task } from '../types';
+import type { ProjectCalendarConfig, Resource, Task } from '../types';
 import type { ResourceCapacity } from '../types/scheduling';
 import { getTaskIdentity } from '../utils/tapdIdentity';
 import { isTaskTerminal } from '../utils/taskState';
 import { buildTaskHierarchyIndex, getTaskParent, type TaskHierarchyIndex } from '../utils/taskHierarchy';
-import { getNextWorkingDays, isWorkingDay } from '../utils/dateUtils';
+import { DEFAULT_PROJECT_CALENDAR, getNextWorkingDays, isWorkingDay } from '../utils/dateUtils';
 import { smartAssignService } from './smartAssignService';
 import { estimateTaskEffort, getResourceDailyHours, getScenarioCapacity, taskDurationDays, taskHoursPerWorkingDay as sharedTaskHoursPerWorkingDay, createScheduleScenario, type ScheduleScenario } from './schedulingKernel';
 import { relatedCheckpointLabel, resourceStage, taskStage, taskStatus, type CoreUxStage } from './uxStageView';
@@ -205,18 +205,30 @@ export function buildTapdPlanningSummary(
   return summary;
 }
 
-function periodFrom(start: Date, duration: number): [Date, Date] {
-  const days = getNextWorkingDays(startOfDay(start), duration);
+function periodFrom(
+  start: Date,
+  duration: number,
+  calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
+): [Date, Date] {
+  const days = getNextWorkingDays(startOfDay(start), duration, calendarConfig);
   return [days[0], days[days.length - 1]];
 }
 
-function nextWorkingDayAfter(value: Date): Date {
+function nextWorkingDayAfter(
+  value: Date,
+  calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
+): Date {
   const next = startOfDay(value);
   next.setDate(next.getDate() + 1);
-  return getNextWorkingDays(next, 1)[0];
+  return getNextWorkingDays(next, 1, calendarConfig)[0];
 }
 
-function dependencyConstraint(task: Task, tasks: Task[], taskById?: Map<number, Task>): { readyAt?: Date; unresolved: string[] } {
+function dependencyConstraint(
+  task: Task,
+  tasks: Task[],
+  taskById?: Map<number, Task>,
+  calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
+): { readyAt?: Date; unresolved: string[] } {
   const dependencies = task.dependencies || [];
   const unresolved: string[] = [];
   const dated: Date[] = [];
@@ -234,7 +246,7 @@ function dependencyConstraint(task: Task, tasks: Task[], taskById?: Map<number, 
     dated.push(new Date(dependency.endDate));
   });
   dated.sort((left, right) => right.getTime() - left.getTime());
-  return { readyAt: dated[0] ? nextWorkingDayAfter(dated[0]) : undefined, unresolved };
+  return { readyAt: dated[0] ? nextWorkingDayAfter(dated[0], calendarConfig) : undefined, unresolved };
 }
 
 function logicalTaskKey(task: Task): string {
@@ -313,7 +325,7 @@ function slotMetrics(
   let minimumAvailableHours = dailyHours;
   let availableWorkingDays = 0;
   for (let cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
-    if (!isWorkingDay(cursor)) continue;
+    if (!isWorkingDay(cursor, scenario.calendarConfig)) continue;
     const active = relevant.filter(candidate => startOfDay(candidate.startDate!) <= cursor && startOfDay(candidate.endDate!) >= cursor);
     const usedHours = active.reduce((sum, candidate) => sum + sharedTaskHoursPerWorkingDay(candidate), 0);
     const freeHours = Math.max(0, dailyHours - usedHours);
@@ -331,11 +343,16 @@ function slotMetrics(
   };
 }
 
-function isAvailable(resource: Resource, start: Date, end: Date): boolean {
+function isAvailable(
+  resource: Resource,
+  start: Date,
+  end: Date,
+  calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
+): boolean {
   if (resource.status === 'departed') return false;
   const leaveDates = new Set(resource.leaveDates || []);
   for (let cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
-    if (isWorkingDay(cursor) && leaveDates.has(`${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`)) return false;
+    if (isWorkingDay(cursor, calendarConfig) && leaveDates.has(`${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`)) return false;
   }
   return true;
 }
@@ -388,20 +405,22 @@ function findSuggestedPeriod(
   scenario: ScheduleScenario,
   context?: TapdPlanningContext,
 ): [Date, Date, SlotMetrics] {
-  const firstDay = isWorkingDay(preferredStart) ? startOfDay(preferredStart) : getNextWorkingDays(preferredStart, 1)[0];
+  const firstDay = isWorkingDay(preferredStart, scenario.calendarConfig)
+    ? startOfDay(preferredStart)
+    : getNextWorkingDays(preferredStart, 1, scenario.calendarConfig)[0];
   let fallback: [Date, Date, SlotMetrics] | null = null;
   for (let offset = 0; offset < 45; offset += 1) {
     const cursor = new Date(firstDay);
     cursor.setDate(cursor.getDate() + offset);
-    if (!isWorkingDay(cursor)) continue;
-    const [start, end] = periodFrom(cursor, duration);
+    if (!isWorkingDay(cursor, scenario.calendarConfig)) continue;
+    const [start, end] = periodFrom(cursor, duration, scenario.calendarConfig);
     const metrics = slotMetrics(resource, task, tasks, start, end, candidateDailyHours, scenario, context);
     if (!fallback || metrics.peakUtilization < fallback[2].peakUtilization || (metrics.peakUtilization === fallback[2].peakUtilization && metrics.activeCount < fallback[2].activeCount)) {
       fallback = [start, end, metrics];
     }
     if (!metrics.overCapacity) return [start, end, metrics];
   }
-  return fallback || [...periodFrom(firstDay, duration), { activeCount: resource ? 1 : 0, peakUtilization: 0, overCapacity: false, minimumAvailableHours: resource ? 0 : 0, availableWorkingDays: 0 }];
+  return fallback || [...periodFrom(firstDay, duration, scenario.calendarConfig), { activeCount: resource ? 1 : 0, peakUtilization: 0, overCapacity: false, minimumAvailableHours: resource ? 0 : 0, availableWorkingDays: 0 }];
 }
 
 function getDailyCapacityStatus(metrics: SlotMetrics, duration: number): 'available' | 'tight' | 'overloaded' {
@@ -421,18 +440,20 @@ export function buildTapdScheduleSuggestion(
   capacities: ResourceCapacity[] = [],
   scenario?: ScheduleScenario,
   planningContext?: TapdPlanningContext,
+  calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
 ): TapdScheduleSuggestion {
-  const scheduleScenario = scenario || createScheduleScenario(tasks, resources, capacities, today);
+  const scheduleScenario = scenario || createScheduleScenario(tasks, resources, capacities, today, calendarConfig);
   const context = planningContext || buildTapdPlanningContext(tasks);
+  const effectiveCalendar = scheduleScenario.calendarConfig;
   const resourceById = new Map(resources.filter(resource => resource.id).map(resource => [resource.id!, resource]));
   const currentResources = getTaskAssigneeIds(task).map(id => resourceById.get(id)).filter((resource): resource is Resource => !!resource);
   const currentResource = currentResources[0];
-  const effort = estimateTaskEffort(task, tasks, resources);
+  const effort = estimateTaskEffort(task, tasks, resources, effectiveCalendar);
   const currentDailyHours = currentResource ? getResourceDailyHours(currentResource, scheduleScenario) : 8;
-  const currentDuration = taskDurationDays(task, effort.hours, currentDailyHours);
+  const currentDuration = taskDurationDays(task, effort.hours, currentDailyHours, 20, effectiveCalendar);
   const todayStart = startOfDay(today);
   const currentStart = task.startDate ? startOfDay(task.startDate) : todayStart;
-  const currentEnd = task.endDate ? startOfDay(task.endDate) : periodFrom(currentStart, currentDuration)[1];
+  const currentEnd = task.endDate ? startOfDay(task.endDate) : periodFrom(currentStart, currentDuration, effectiveCalendar)[1];
   const currentMetrics = currentResource
     ? slotMetrics(currentResource, task, tasks, currentStart, currentEnd, effort.hours / currentDuration, scheduleScenario, context)
     : { activeCount: 0, peakUtilization: 0, overCapacity: false, minimumAvailableHours: 0, availableWorkingDays: 0 };
@@ -442,7 +463,7 @@ export function buildTapdScheduleSuggestion(
   const expectedStage = taskStage(task, resources);
   const currentRoles = [...new Set(currentResources.map(resource => (resource.role || '').trim().toLowerCase()).filter(Boolean))];
   const expectedRole = expectedStage ? undefined : currentRoles.length === 1 ? currentRoles[0] : undefined;
-  const dependency = dependencyConstraint(task, tasks, context.hierarchy.taskById);
+  const dependency = dependencyConstraint(task, tasks, context.hierarchy.taskById, effectiveCalendar);
   const preferredStart = !task.startDate || currentEnd < todayStart ? todayStart : currentStart;
   const baseStart = dependency.readyAt && dependency.readyAt > preferredStart ? dependency.readyAt : preferredStart;
 
@@ -456,12 +477,12 @@ export function buildTapdScheduleSuggestion(
         : false)
     .map(resource => {
       const dailyHours = getResourceDailyHours(resource, scheduleScenario);
-      const duration = taskDurationDays(task, effort.hours, dailyHours);
-      const [previewStart, previewEnd] = periodFrom(baseStart, duration);
-      if (!isAvailable(resource, previewStart, previewEnd)) return null;
+      const duration = taskDurationDays(task, effort.hours, dailyHours, 20, effectiveCalendar);
+      const [previewStart, previewEnd] = periodFrom(baseStart, duration, effectiveCalendar);
+      if (!isAvailable(resource, previewStart, previewEnd, effectiveCalendar)) return null;
       const skill = smartAssignService.calcSkillScore(resource, task.title, tasks);
       const workload = smartAssignService.calcWorkloadScore(resource, tasks.filter(item => item.id !== task.id), previewStart, previewEnd);
-      const availability = smartAssignService.calcAvailabilityScore(resource, tasks.filter(item => item.id !== task.id), previewStart, previewEnd);
+      const availability = smartAssignService.calcAvailabilityScore(resource, tasks.filter(item => item.id !== task.id), previewStart, previewEnd, effectiveCalendar);
       const capacity = getScenarioCapacity(resource, scheduleScenario);
       const previewMetrics = slotMetrics(resource, task, tasks, previewStart, previewEnd, effort.hours / duration, scheduleScenario, context);
       const sameRoleBonus = currentResources.some(current => current.role === resource.role) ? 20 : 0;
@@ -474,7 +495,7 @@ export function buildTapdScheduleSuggestion(
   const best = candidates[0];
   const selectedResource = shouldReassign && best ? best.resource : currentResource || best?.resource;
   const selectedDailyHours = selectedResource ? getResourceDailyHours(selectedResource, scheduleScenario) : 8;
-  const duration = taskDurationDays(task, effort.hours, selectedDailyHours);
+  const duration = taskDurationDays(task, effort.hours, selectedDailyHours, 20, effectiveCalendar);
   const candidateDailyHours = effort.hours / duration;
   const [startDate, endDate, suggestedMetrics] = findSuggestedPeriod(selectedResource, task, tasks, baseStart, duration, candidateDailyHours, scheduleScenario, context);
   const suggestedConflictCount = suggestedMetrics.activeCount;
@@ -497,7 +518,7 @@ export function buildTapdScheduleSuggestion(
     .filter(candidate => candidate.resource.id !== selectedResource?.id)
     .slice(0, 2)
     .map(candidate => {
-      const alternativeDuration = taskDurationDays(task, effort.hours, candidate.dailyHours);
+      const alternativeDuration = taskDurationDays(task, effort.hours, candidate.dailyHours, 20, effectiveCalendar);
       const alternativeDailyHours = effort.hours / alternativeDuration;
       const [alternativeStart, alternativeEnd, alternativeMetrics] = findSuggestedPeriod(
         candidate.resource,
@@ -586,6 +607,7 @@ export function buildBatchTapdScheduleSuggestions(
   resources: Resource[],
   today: Date = new Date(),
   capacities: ResourceCapacity[] = [],
+  calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
 ): Map<number, TapdScheduleSuggestion> {
   const result = new Map<number, TapdScheduleSuggestion>();
   const scenarioTasks = [...tasks];
@@ -631,8 +653,9 @@ export function buildBatchTapdScheduleSuggestions(
       resources,
       today,
       capacities,
-      createScheduleScenario(scenarioTasks, resources, capacities, today),
+      createScheduleScenario(scenarioTasks, resources, capacities, today, calendarConfig),
       planningContext,
+      calendarConfig,
     );
     result.set(item.task.id, suggestion);
     if (!suggestion.resource) return;
@@ -663,10 +686,11 @@ export function buildDemandSchedulePlan(
   resources: Resource[],
   today: Date = new Date(),
   capacities: ResourceCapacity[] = [],
+  calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
 ): TapdDemandSchedulePlan {
   const hierarchy = buildTaskHierarchyIndex(tasks);
   const groupItems = items.filter(item => findDemandForTask(item.task, tasks, hierarchy).id === demand.id);
-  const suggestions = buildBatchTapdScheduleSuggestions(groupItems, tasks, resources, today, capacities);
+  const suggestions = buildBatchTapdScheduleSuggestions(groupItems, tasks, resources, today, capacities, calendarConfig);
   const orderedItems = [...groupItems].sort((left, right) => {
     const leftSuggestion = left.task.id ? suggestions.get(left.task.id) : undefined;
     const rightSuggestion = right.task.id ? suggestions.get(right.task.id) : undefined;
@@ -703,6 +727,7 @@ export function buildTapdPlanningItems(
   tasks: Task[],
   resources: Resource[],
   today: Date = new Date(),
+  _calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
 ): TapdPlanningItem[] {
   const context = buildTaskRiskContext(tasks, resources);
   const seenTaskKeys = new Set<string>();
@@ -774,8 +799,9 @@ export function buildDemandRiskGroups(
   tasks: Task[],
   resources: Resource[],
   today: Date = new Date(),
+  calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
 ): DemandRiskGroup[] {
-  const items = buildTapdPlanningItems(tasks, resources, today);
+  const items = buildTapdPlanningItems(tasks, resources, today, calendarConfig);
   const hierarchy = buildTaskHierarchyIndex(tasks);
   const groups = new Map<string, DemandRiskGroup>();
   const levelRank: Record<Exclude<RiskLevel, 'none'>, number> = { low: 1, medium: 2, high: 3, critical: 4 };

@@ -2,7 +2,7 @@
 import { addDays, differenceInDays } from 'date-fns';
 import { trackedDb } from '../../../store/useHistoryStore';
 import { db, Task } from '../../../db/db';
-import type { Resource, ResourceCapacity } from '../../../types';
+import type { ProjectCalendarConfig, Resource, ResourceCapacity } from '../../../types';
 import { syncParentDateRange } from '../../../services/workloadService';
 import { validateGanttScheduleChanges, formatGanttValidationMessage, type GanttScheduleValidation } from '../../../services/ganttScheduleValidator';
 import { toast } from '../../../store/useToastStore';
@@ -13,6 +13,7 @@ export function useTaskMove(
   tasks: Task[] | undefined,
   resources: Resource[] = [],
   capacities: ResourceCapacity[] = [],
+  calendarConfig?: ProjectCalendarConfig,
 ) {
   const [movingTask, setMovingTask] = useState<{
     taskId: number;
@@ -109,9 +110,10 @@ export function useTaskMove(
       tasks,
       resources,
       capacities,
+      calendarConfig,
       changes: buildDateChanges(shifts),
     }));
-  }, [movingTask?.daysDelta, movingTask?.taskId, tasks, resources, capacities, buildDateChanges]);
+  }, [movingTask?.daysDelta, movingTask?.taskId, tasks, resources, capacities, calendarConfig, buildDateChanges]);
 
   useEffect(() => {
     if (!movingTask) return;
@@ -142,6 +144,7 @@ export function useTaskMove(
             tasks,
             resources,
             capacities,
+            calendarConfig,
             changes: buildDateChanges(shiftsToApply),
           });
 
@@ -199,7 +202,7 @@ export function useTaskMove(
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [movingTask, dayWidth, cascadeShifts, tasks, resources, capacities, buildDateChanges]);
+  }, [movingTask, dayWidth, cascadeShifts, tasks, resources, capacities, calendarConfig, buildDateChanges]);
 
   const handleMoveStart = useCallback((
     e: React.MouseEvent,

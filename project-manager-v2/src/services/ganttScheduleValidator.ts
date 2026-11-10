@@ -1,7 +1,7 @@
 import { addDays, startOfDay } from 'date-fns';
-import type { Resource, Task } from '../types';
+import type { ProjectCalendarConfig, Resource, Task } from '../types';
 import type { ResourceCapacity } from '../types/scheduling';
-import { countWorkingDays, isWorkingDay } from '../utils/dateUtils';
+import { countWorkingDays, DEFAULT_PROJECT_CALENDAR, isWorkingDay } from '../utils/dateUtils';
 import { getActiveLeafTasks } from '../utils/taskHierarchy';
 import { isTaskTerminal } from '../utils/taskState';
 import { isResourceAvailableOn } from './capacityService';
@@ -17,6 +17,7 @@ export interface GanttScheduleValidationInput {
   tasks: Task[];
   resources?: Resource[];
   capacities?: ResourceCapacity[];
+  calendarConfig?: ProjectCalendarConfig;
   changes: GanttDateChange[];
 }
 
@@ -60,18 +61,18 @@ function buildMergedTasks(tasks: Task[], changes: GanttDateChange[]): Map<number
   );
 }
 
-function listWorkingDays(startDate: Date, endDate: Date): Date[] {
+function listWorkingDays(startDate: Date, endDate: Date, calendarConfig: ProjectCalendarConfig): Date[] {
   const days: Date[] = [];
   let cursor = startOfDay(startDate);
   const end = startOfDay(endDate);
   while (cursor <= end) {
-    if (isWorkingDay(cursor)) days.push(new Date(cursor));
+    if (isWorkingDay(cursor, calendarConfig)) days.push(new Date(cursor));
     cursor = addDays(cursor, 1);
   }
   return days;
 }
 
-function compareDateRange(tasks: Map<number, Task>, changes: GanttDateChange[]) {
+function compareDateRange(tasks: Map<number, Task>, changes: GanttDateChange[], calendarConfig: ProjectCalendarConfig) {
   const changedTasks = changes
     .map(change => ({ change, task: tasks.get(change.taskId) }))
     .filter((entry): entry is { change: GanttDateChange; task: Task } => !!entry.task);
@@ -83,8 +84,8 @@ function compareDateRange(tasks: Map<number, Task>, changes: GanttDateChange[]) 
   const shiftedWorkingDays = changedTasks.reduce((sum, { task, change }) => {
     if (!task.startDate || !task.endDate) return sum;
     return sum + Math.abs(
-      countWorkingDays(task.startDate, task.endDate)
-      - countWorkingDays(change.startDate, change.endDate),
+      countWorkingDays(task.startDate, task.endDate, calendarConfig)
+      - countWorkingDays(change.startDate, change.endDate, calendarConfig),
     );
   }, 0);
   return {
@@ -100,6 +101,7 @@ function validateWorkingDayBoundaries(
   changes: GanttDateChange[],
   warnings: string[],
   reasons: string[],
+  calendarConfig: ProjectCalendarConfig,
 ): void {
   for (const change of changes) {
     const task = tasks.get(change.taskId);
@@ -108,7 +110,7 @@ function validateWorkingDayBoundaries(
       reasons.push(`${taskLabel(task, change.taskId)} 的开始时间不能晚于结束时间`);
       continue;
     }
-    if (!isWorkingDay(change.startDate) || !isWorkingDay(change.endDate)) {
+    if (!isWorkingDay(change.startDate, calendarConfig) || !isWorkingDay(change.endDate, calendarConfig)) {
       reasons.push(`${taskLabel(task, change.taskId)} 的排期边界必须落在工作日`);
     }
     if (task.startDate && task.endDate && (
@@ -178,6 +180,7 @@ function validateCapacity(
   changes: GanttDateChange[],
   reasons: string[],
   overloadedResourceIds: number[],
+  calendarConfig: ProjectCalendarConfig,
 ): void {
   const activeLeaves = getActiveLeafTasks([...tasks.values()]);
   const changedIds = new Set(changes.map(change => change.taskId));
@@ -192,7 +195,7 @@ function validateCapacity(
     const relevantDays = new Set<number>();
     assignedTasks.forEach(task => {
       if (!task.startDate || !task.endDate) return;
-      listWorkingDays(task.startDate, task.endDate).forEach(day => relevantDays.add(dateKey(day)));
+      listWorkingDays(task.startDate, task.endDate, calendarConfig).forEach(day => relevantDays.add(dateKey(day)));
     });
     const dailyHours = getResourceDailyHours(resource, { capacityByResourceId: capacityByResource });
     const maxParallelTasks = capacityByResource.get(resource.id)?.maxParallelTasks ?? 3;
@@ -219,9 +222,9 @@ function validateCapacity(
         continue;
       }
       const usedHours = activeOnDay.reduce((sum, task) => {
-        const effort = estimateTaskEffort(task, [...tasks.values()], resources).hours;
+        const effort = estimateTaskEffort(task, [...tasks.values()], resources, calendarConfig).hours;
         const taskDays = task.startDate && task.endDate
-          ? Math.max(1, countWorkingDays(task.startDate, task.endDate))
+          ? Math.max(1, countWorkingDays(task.startDate, task.endDate, calendarConfig))
           : 1;
         return sum + effort / taskDays;
       }, 0);
@@ -234,6 +237,7 @@ function validateCapacity(
 }
 
 export function validateGanttScheduleChanges(input: GanttScheduleValidationInput): GanttScheduleValidation {
+  const calendarConfig = input.calendarConfig || DEFAULT_PROJECT_CALENDAR;
   const changes = input.changes.filter(change => Number.isFinite(change.taskId));
   const tasks = buildMergedTasks(input.tasks, changes);
   const reasons: string[] = [];
@@ -242,10 +246,10 @@ export function validateGanttScheduleChanges(input: GanttScheduleValidationInput
   const deadlineTaskIds: number[] = [];
   const overloadedResourceIds: number[] = [];
 
-  validateWorkingDayBoundaries(tasks, changes, warnings, reasons);
+  validateWorkingDayBoundaries(tasks, changes, warnings, reasons, calendarConfig);
   validateDependencies(tasks, changes, reasons, dependencyTaskIds);
   validateParentDeadlines(tasks, changes, reasons, deadlineTaskIds);
-  validateCapacity(tasks, input.resources || [], input.capacities || [], changes, reasons, overloadedResourceIds);
+  validateCapacity(tasks, input.resources || [], input.capacities || [], changes, reasons, overloadedResourceIds, calendarConfig);
 
   return {
     valid: reasons.length === 0,
@@ -255,7 +259,7 @@ export function validateGanttScheduleChanges(input: GanttScheduleValidationInput
     overloadedResourceIds: [...new Set(overloadedResourceIds)],
     deadlineTaskIds: [...new Set(deadlineTaskIds)],
     dependencyTaskIds: [...new Set(dependencyTaskIds)],
-    beforeAfter: compareDateRange(new Map(input.tasks.filter(task => task.id !== undefined).map(task => [task.id!, task])), changes),
+    beforeAfter: compareDateRange(new Map(input.tasks.filter(task => task.id !== undefined).map(task => [task.id!, task])), changes, calendarConfig),
   };
 }
 

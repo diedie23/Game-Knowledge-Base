@@ -105,6 +105,10 @@ export function TaskModal() {
     type: 'task',
     projectId: 1,
   });
+  const project = useLiveQuery(
+    () => formData.projectId ? db.projects.get(formData.projectId) : undefined,
+    [formData.projectId],
+  );
 
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -485,7 +489,8 @@ export function TaskModal() {
       const results = await smartAssignService.recommend(
         formData.title,
         new Date(formData.startDate),
-        new Date(formData.endDate)
+        new Date(formData.endDate),
+        project?.calendarConfig,
       );
       setRecommendations(results);
     } catch (e) {
@@ -493,7 +498,7 @@ export function TaskModal() {
     } finally {
       setIsRecommending(false);
     }
-  }, [formData.title, formData.startDate, formData.endDate]);
+  }, [formData.title, formData.startDate, formData.endDate, project?.calendarConfig]);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-emerald-400';

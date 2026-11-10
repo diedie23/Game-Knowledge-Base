@@ -1,7 +1,7 @@
 import { db } from '../db/db';
-import type { Task, Resource } from '../types';
+import type { ProjectCalendarConfig, Task, Resource } from '../types';
 import { addDays, startOfToday, isWeekend, differenceInDays, format } from 'date-fns';
-import { isHoliday, isWorkingDay } from '../utils/dateUtils';
+import { DEFAULT_PROJECT_CALENDAR, isWorkingDay } from '../utils/dateUtils';
 
 // ─── Skill / Role Mapping ────────────────────────────────────────
 // Maps task title keywords to required skill categories
@@ -29,7 +29,7 @@ const ROLE_SKILL_MAP: Record<string, string[]> = {
   'QA': ['testing'],
 };
 
-const isWorkday = (date: Date) => isWorkingDay(date);
+const isWorkday = (date: Date, calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR) => isWorkingDay(date, calendarConfig);
 
 // ─── Types ───────────────────────────────────────────────────────
 export interface RecommendationScore {
@@ -144,7 +144,13 @@ export class SmartAssignService {
   /**
    * Calculate availability score (0-30, more free workdays = higher score)
    */
-  calcAvailabilityScore(resource: Resource, allTasks: Task[], taskStart: Date, taskEnd: Date): { score: number; reason: string; freeDays: number; totalWorkdays: number } {
+  calcAvailabilityScore(
+    resource: Resource,
+    allTasks: Task[],
+    taskStart: Date,
+    taskEnd: Date,
+    calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
+  ): { score: number; reason: string; freeDays: number; totalWorkdays: number } {
     const days = differenceInDays(taskEnd, taskStart) + 1;
     let totalWorkdays = 0;
     let freeDays = 0;
@@ -155,7 +161,7 @@ export class SmartAssignService {
 
     for (let i = 0; i < days; i++) {
       const day = addDays(taskStart, i);
-      if (!isWorkday(day)) continue;
+      if (!isWorkday(day, calendarConfig)) continue;
       totalWorkdays++;
 
       const busyOnDay = myActiveTasks.some(t => {
@@ -187,7 +193,12 @@ export class SmartAssignService {
   /**
    * Generate ranked recommendations for a task
    */
-  async recommend(taskTitle: string, taskStart: Date, taskEnd: Date): Promise<RecommendationScore[]> {
+  async recommend(
+    taskTitle: string,
+    taskStart: Date,
+    taskEnd: Date,
+    calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
+  ): Promise<RecommendationScore[]> {
     const [resources, allTasks] = await Promise.all([
       db.resources.toArray(),
       db.tasks.toArray(),
@@ -199,7 +210,7 @@ export class SmartAssignService {
     const recommendations: RecommendationScore[] = activeResources.map(resource => {
       const skill = this.calcSkillScore(resource, taskTitle, allTasks);
       const workload = this.calcWorkloadScore(resource, allTasks, taskStart, taskEnd);
-      const availability = this.calcAvailabilityScore(resource, allTasks, taskStart, taskEnd);
+      const availability = this.calcAvailabilityScore(resource, allTasks, taskStart, taskEnd, calendarConfig);
 
       const totalScore = skill.score + workload.score + availability.score;
       const reasons = [skill.reason, workload.reason, availability.reason];

@@ -3,7 +3,7 @@ import { addDays } from 'date-fns';
 import { trackedDb } from '../../../store/useHistoryStore';
 import { db } from '../../../db/db';
 import type { ResizeState } from '../types';
-import type { Resource, ResourceCapacity, Task } from '../../../types';
+import type { ProjectCalendarConfig, Resource, ResourceCapacity, Task } from '../../../types';
 import { syncParentDateRange } from '../../../services/workloadService';
 import { validateGanttScheduleChanges, formatGanttValidationMessage, type GanttScheduleValidation } from '../../../services/ganttScheduleValidator';
 import { toast } from '../../../store/useToastStore';
@@ -14,6 +14,7 @@ export function useGanttDrag(
   tasks: Task[] | undefined,
   resources: Resource[] = [],
   capacities: ResourceCapacity[] = [],
+  calendarConfig?: ProjectCalendarConfig,
 ) {
   const [resizing, setResizing] = useState<ResizeState | null>(null);
   const [scheduleValidation, setScheduleValidation] = useState<GanttScheduleValidation | null>(null);
@@ -36,6 +37,7 @@ export function useGanttDrag(
         tasks: tasks || [],
         resources,
         capacities,
+        calendarConfig,
         changes: [{ taskId: resizing.taskId, startDate: nextStart, endDate: nextEnd }],
       }));
     };
@@ -49,6 +51,7 @@ export function useGanttDrag(
             tasks: tasks || [],
             resources,
             capacities,
+            calendarConfig,
             changes: [{ taskId, startDate: newStart, endDate: newEnd }],
           });
           if (!validation.valid) {
@@ -94,7 +97,7 @@ export function useGanttDrag(
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [resizing, dayWidth, tasks, resources, capacities]);
+  }, [resizing, dayWidth, tasks, resources, capacities, calendarConfig]);
 
   const handleResizeStart = useCallback((
     e: React.MouseEvent,

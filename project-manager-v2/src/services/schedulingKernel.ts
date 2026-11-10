@@ -1,6 +1,6 @@
-import type { Resource, Task } from '../types';
+import type { ProjectCalendarConfig, Resource, Task } from '../types';
 import type { ResourceCapacity } from '../types/scheduling';
-import { countWorkingDays } from '../utils/dateUtils';
+import { countWorkingDays, DEFAULT_PROJECT_CALENDAR } from '../utils/dateUtils';
 import { getEffectiveDailyCapacity, mergeCapacity } from './capacityService';
 import { taskStage } from './uxStageView';
 import { getActiveLeafTasks as getCanonicalActiveLeafTasks } from '../utils/taskHierarchy';
@@ -23,6 +23,7 @@ export interface ScheduleScenario {
   resources: Resource[];
   capacities: ResourceCapacity[];
   today: Date;
+  calendarConfig: ProjectCalendarConfig;
   taskById: Map<number, Task>;
   tasksByResourceId: Map<number, Task[]>;
   capacityByResourceId: Map<number, ResourceCapacity>;
@@ -33,6 +34,7 @@ export function createScheduleScenario(
   resources: Resource[],
   capacities: ResourceCapacity[] = [],
   today: Date = new Date(),
+  calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
 ): ScheduleScenario {
   const taskById = new Map<number, Task>();
   const tasksByResourceId = new Map<number, Task[]>();
@@ -50,6 +52,7 @@ export function createScheduleScenario(
     resources,
     capacities,
     today,
+    calendarConfig,
     taskById,
     tasksByResourceId,
     capacityByResourceId: new Map(capacities.map(capacity => [capacity.resourceId, capacity])),
@@ -77,13 +80,14 @@ export function estimateTaskEffort(
   task: Task,
   tasks: Task[],
   resources: Resource[],
+  calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
 ): TaskEffortEstimate {
   if (task.estimatedHours && task.estimatedHours > 0) {
     return { hours: task.estimatedHours, source: 'task' };
   }
   if (task.startDate && task.endDate) {
     return {
-      hours: Math.max(1, countWorkingDays(new Date(task.startDate), new Date(task.endDate))) * 8,
+      hours: Math.max(1, countWorkingDays(new Date(task.startDate), new Date(task.endDate), calendarConfig)) * 8,
       source: 'existing_schedule',
     };
   }
@@ -111,16 +115,17 @@ export function taskDurationDays(
   effortHours: number,
   dailyHours: number,
   maxDays = 20,
+  calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
 ): number {
   if (task.startDate && task.endDate) {
-    return Math.max(1, countWorkingDays(new Date(task.startDate), new Date(task.endDate)));
+    return Math.max(1, countWorkingDays(new Date(task.startDate), new Date(task.endDate), calendarConfig));
   }
   return Math.max(1, Math.min(maxDays, Math.ceil(effortHours / Math.max(0.1, dailyHours))));
 }
 
-export function taskHoursPerWorkingDay(task: Task): number {
+export function taskHoursPerWorkingDay(task: Task, calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR): number {
   if (!task.startDate || !task.endDate) return Math.max(1, task.estimatedHours || 8);
-  const days = Math.max(1, countWorkingDays(new Date(task.startDate), new Date(task.endDate)));
+  const days = Math.max(1, countWorkingDays(new Date(task.startDate), new Date(task.endDate), calendarConfig));
   return Math.max(1, (task.estimatedHours || days * 8) / days);
 }
 

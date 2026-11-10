@@ -7,7 +7,7 @@ import { useStore } from '../store/useStore';
 import { Avatar } from './common/Avatar';
 import { Building2, User, X, Calendar, Eye, Plane, XCircle, ExternalLink } from 'lucide-react';
 import { compareResources, getRoleOrderIndex } from './gantt/constants';
-import { CHINESE_HOLIDAYS, isHoliday, isNonWorkingDay } from '../utils/dateUtils';
+import { CHINESE_HOLIDAYS, isHoliday, isMakeupWorkingDay, isNonWorkingDay } from '../utils/dateUtils';
 import { getEffectiveStatus } from '../types/resource';
 import { getRoleBadgeStyle } from '../constants/theme';
 import type { Task, Resource } from '../types';
@@ -333,6 +333,8 @@ export function ResourceMatrix() {
   const [hoverTip, setHoverTip] = useState<HoverTooltipData | null>(null);
   const hoverTimer = useRef<ReturnType<typeof setTimeout>>();
 
+  const project = useLiveQuery(() => selectedProjectId ? db.projects.get(selectedProjectId) : undefined, [selectedProjectId]);
+  const calendarConfig = project?.calendarConfig;
   const resources = useLiveQuery(() => db.resources.toArray());
   const capacities = useLiveQuery(() => db.resourceCapacities.toArray());
   const tasks = useLiveQuery(
@@ -479,9 +481,9 @@ export function ResourceMatrix() {
                 const dateStr = format(day, 'yyyy-MM-dd');
                 
                 // Determine if it's an actual off day (weekend or holiday, but not a makeup work day)
-                const isActualOffDay = isNonWorkingDay(day);
-                const isMakeupWorkDay = isWkend && !isActualOffDay; // If it's a weekend but working day, it's a makeup day
-                const isStatutoryHoliday = isHoliday(day);
+                const isActualOffDay = isNonWorkingDay(day, calendarConfig);
+                const isMakeupWorkDay = isMakeupWorkingDay(day, calendarConfig); // If it's a weekend but working day, it's a makeup day
+                const isStatutoryHoliday = isHoliday(day, calendarConfig);
                 
                 return (
                   <div
@@ -635,8 +637,8 @@ export function ResourceMatrix() {
                     const isToday_ = isSameDay(day, today);
                     const dateStr = format(day, 'yyyy-MM-dd');
                     const isWkend = isWeekend(day);
-                    const isActualOffDay = isNonWorkingDay(day);
-                    const isMakeupWorkDay = isWkend && !isActualOffDay;
+                    const isActualOffDay = isNonWorkingDay(day, calendarConfig);
+                    const isMakeupWorkDay = isMakeupWorkingDay(day, calendarConfig);
 
                     const formattedDay = format(day, 'yyyy-MM-dd');
                     const dayTasks = resourceTasksByDate.get(formattedDay) || [];

@@ -1,6 +1,6 @@
-import type { Resource, Task } from '../types';
+import type { ProjectCalendarConfig, Resource, Task } from '../types';
 import type { ResourceCapacity } from '../types/scheduling';
-import { getNextWorkingDays } from '../utils/dateUtils';
+import { DEFAULT_PROJECT_CALENDAR, getNextWorkingDays } from '../utils/dateUtils';
 import { resourceStage, STAGES, taskStage, type CoreUxStage } from './uxStageView';
 import { countAvailableWorkingDays } from './capacityService';
 import { createScheduleScenario, estimateTaskEffort, getActiveLeafTasks, getResourceDailyHours } from './schedulingKernel';
@@ -32,12 +32,13 @@ export function buildStageCapacityForecast(
   today: Date = new Date(),
   workingDays = 10,
   capacities: ResourceCapacity[] = [],
+  calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
 ): StageCapacityForecast[] {
   const start = startOfDay(today);
-  const days = getNextWorkingDays(start, workingDays);
+  const days = getNextWorkingDays(start, workingDays, calendarConfig);
   const end = days[days.length - 1];
   const activeLeaves = getActiveLeafTasks(tasks);
-  const scenario = createScheduleScenario(tasks, resources, capacities, start);
+  const scenario = createScheduleScenario(tasks, resources, capacities, start, calendarConfig);
 
   return STAGES.map(({ key, label }) => {
     const stageResources = resources.filter(resource => resourceStage(resource) === key && resource.status !== 'departed');
@@ -48,8 +49,8 @@ export function buildStageCapacityForecast(
       (sum, resource) => sum + getResourceDailyHours(resource, scenario) * countAvailableWorkingDays(resource, days),
       0,
     ));
-    const scheduledHours = scheduled.reduce((sum, task) => sum + estimateTaskEffort(task, tasks, resources).hours, 0);
-    const pendingHours = pending.reduce((sum, task) => sum + estimateTaskEffort(task, tasks, resources).hours, 0);
+    const scheduledHours = scheduled.reduce((sum, task) => sum + estimateTaskEffort(task, tasks, resources, calendarConfig).hours, 0);
+    const pendingHours = pending.reduce((sum, task) => sum + estimateTaskEffort(task, tasks, resources, calendarConfig).hours, 0);
     const utilization = capacityHours ? Math.round((scheduledHours / capacityHours) * 100) : scheduledHours ? 999 : 0;
     const projectedUtilization = capacityHours ? Math.round(((scheduledHours + pendingHours) / capacityHours) * 100) : scheduledHours + pendingHours ? 999 : 0;
     const status: StageCapacityForecast['status'] = projectedUtilization > 100 ? 'danger' : projectedUtilization >= 85 ? 'warning' : 'healthy';

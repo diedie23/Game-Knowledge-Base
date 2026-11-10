@@ -202,4 +202,17 @@ describe('SmartAssignService.calcAvailabilityScore', () => {
     const result = service.calcAvailabilityScore(r, [], d('2026-05-16'), d('2026-05-17'));
     expect(result.score).toBe(15);
   });
+
+  it('uses project calendar overrides when scoring availability', () => {
+    const r = makeResource(1, 'Alice', 'Designer');
+    const result = service.calcAvailabilityScore(
+      r,
+      [],
+      d('2026-05-16'),
+      d('2026-05-17'),
+      { workingDayOverrides: ['2026-05-16', '2026-05-17'] },
+    );
+    expect(result.totalWorkdays).toBe(2);
+    expect(result.freeDays).toBe(2);
+  });
 });

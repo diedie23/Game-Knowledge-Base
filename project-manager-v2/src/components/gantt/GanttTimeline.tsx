@@ -2,7 +2,9 @@ import React from 'react';
 import { differenceInDays, isWeekend, format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { ChevronsLeft, ChevronsRight, CheckSquare, ArrowRight, AlignEndHorizontal, Copy, Trash2, X, Settings2, GitMerge, MousePointerClick } from 'lucide-react';
-import { isHoliday } from './constants';
+import { isHoliday } from '../../utils/dateUtils';
+import { isMakeupWorkingDay, isNonWorkingDay } from '../../utils/dateUtils';
+import type { ProjectCalendarConfig } from '../../types';
 import type { ZoomConfig } from './constants';
 
 interface GanttTimelineProps {
@@ -10,6 +12,7 @@ interface GanttTimelineProps {
   dayWidth: number;
   effectiveLpWidth: number;
   today: Date;
+  calendarConfig?: ProjectCalendarConfig;
   zoomConfig: ZoomConfig;
   monthGroups: { month: string; count: number }[];
   leftPanelCollapsed: boolean;
@@ -38,6 +41,7 @@ export const GanttTimeline = React.memo(function GanttTimeline({
   dayWidth,
   effectiveLpWidth,
   today,
+  calendarConfig,
   zoomConfig,
   monthGroups,
   leftPanelCollapsed,
@@ -239,14 +243,17 @@ export const GanttTimeline = React.memo(function GanttTimeline({
           {days.map(day => {
             const isToday = differenceInDays(day, today) === 0;
             const isDayWeekend = isWeekend(day);
-            const isDayHoliday = isHoliday(day);
+            const isDayHoliday = isHoliday(day, calendarConfig);
+            const isDayNonWorking = isNonWorkingDay(day, calendarConfig);
+            const isDayMakeup = isMakeupWorkingDay(day, calendarConfig);
             return (
               <div
                 key={day.toISOString()}
                 className={`shrink-0 text-center py-2 border-l border-gray-700/30 transition-colors flex flex-col justify-center ${
                   isToday ? 'bg-indigo-500/15' :
                   isDayHoliday ? 'gantt-holiday-header' :
-                  isDayWeekend ? 'gantt-weekend-header' : ''
+                  isDayMakeup ? 'gantt-makeup-header' :
+                  isDayNonWorking || isDayWeekend ? 'gantt-weekend-header' : ''
                 }`}
                 style={{ width: `${dayWidth}px` }}
               >

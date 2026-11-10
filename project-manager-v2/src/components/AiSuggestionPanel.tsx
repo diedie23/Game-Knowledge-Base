@@ -27,6 +27,10 @@ export function AiSuggestionPanel() {
       : db.tasks.toArray(),
     [selectedProjectId]
   );
+  const project = useLiveQuery(
+    () => selectedProjectId ? db.projects.get(selectedProjectId) : undefined,
+    [selectedProjectId],
+  );
 
   const eligibleTasks = React.useMemo(() => {
     if (!tasks) return [];
@@ -53,7 +57,8 @@ export function AiSuggestionPanel() {
           const recs = await smartAssignService.recommend(
             task.title,
             new Date(task.startDate || new Date()),
-            new Date(task.endDate || new Date())
+            new Date(task.endDate || new Date()),
+            project?.calendarConfig,
           );
           results.push({ task, recommendations: recs.slice(0, 3), loading: false });
         } catch {
@@ -72,7 +77,7 @@ export function AiSuggestionPanel() {
 
     analyze();
     return () => { cancelled = true; };
-  }, [isAiPanelOpen, eligibleTasks]);
+  }, [isAiPanelOpen, eligibleTasks, project?.calendarConfig]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {

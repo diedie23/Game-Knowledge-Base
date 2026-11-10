@@ -1,5 +1,5 @@
 import { addDays, addWeeks, endOfWeek, format, isWithinInterval, startOfDay, startOfWeek } from 'date-fns';
-import type { Resource, Task } from '../types';
+import type { ProjectCalendarConfig, Resource, Task } from '../types';
 import { getTaskIdentity } from '../utils/tapdIdentity';
 import { isTaskTerminal } from '../utils/taskState';
 import { buildDemandRiskGroups, type DemandRiskGroup } from './tapdPlanningAssistant';
@@ -47,7 +47,12 @@ function inRange(date: Date | undefined, start: Date, end: Date): boolean {
   return !!date && isWithinInterval(startOfDay(date), { start, end });
 }
 
-export function buildWeeklyUxReport(tasks: Task[], resources: Resource[], today: Date = new Date()): WeeklyUxReport {
+export function buildWeeklyUxReport(
+  tasks: Task[],
+  resources: Resource[],
+  today: Date = new Date(),
+  calendarConfig?: ProjectCalendarConfig,
+): WeeklyUxReport {
   const weekStart = startOfWeek(startOfDay(today), { weekStartsOn: 1 });
   const weekEnd = endOfWeek(startOfDay(today), { weekStartsOn: 1 });
   const nextWeekStart = addWeeks(weekStart, 1);
@@ -58,8 +63,8 @@ export function buildWeeklyUxReport(tasks: Task[], resources: Resource[], today:
   const nextWeek = leafTasks.filter(task => !isTaskTerminal(task) && (
     inRange(task.startDate, nextWeekStart, nextWeekEnd) || inRange(task.endDate, nextWeekStart, nextWeekEnd)
   ));
-  const risks = buildDemandRiskGroups(tasks, resources, today).slice(0, 5);
-  const capacityRisks = buildStageCapacityForecast(tasks, resources, today).filter(item => item.status !== 'healthy');
+  const risks = buildDemandRiskGroups(tasks, resources, today, calendarConfig).slice(0, 5);
+  const capacityRisks = buildStageCapacityForecast(tasks, resources, today, 10, [], calendarConfig).filter(item => item.status !== 'healthy');
   const dataQuality = auditTaskDataQuality(tasks, resources, today);
   const riskActions = risks.map(group => {
     const action = group.blockedCount > 0

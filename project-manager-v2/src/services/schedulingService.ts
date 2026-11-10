@@ -1,4 +1,4 @@
-import type { Resource, Task } from '../types';
+import type { ProjectCalendarConfig, Resource, Task } from '../types';
 import type {
   ResourceCapacity,
   ScheduleRisk,
@@ -7,7 +7,7 @@ import type {
   UxStage,
 } from '../types/scheduling';
 import { buildCapacitySnapshot } from './capacityService';
-import { getNextWorkingDays } from '../utils/dateUtils';
+import { DEFAULT_PROJECT_CALENDAR, getNextWorkingDays } from '../utils/dateUtils';
 import { createScheduleScenario, getResourceDailyHours, getScenarioCapacity, type ScheduleScenario } from './schedulingKernel';
 
 export interface SchedulingInput {
@@ -16,6 +16,7 @@ export interface SchedulingInput {
   tasks: Task[];
   capacities: ResourceCapacity[];
   startDate?: string;
+  calendarConfig?: ProjectCalendarConfig;
 }
 
 const ROLE_STAGE_KEYWORDS: Record<UxStage, string[]> = {
@@ -52,13 +53,13 @@ function formatDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-function addWorkingDays(start: Date, days: number): Date {
+function addWorkingDays(start: Date, days: number, calendarConfig: ProjectCalendarConfig): Date {
   const count = Math.max(1, Math.ceil(days) + 1);
-  return getNextWorkingDays(start, count)[count - 1];
+  return getNextWorkingDays(start, count, calendarConfig)[count - 1];
 }
 
-function nextWorkday(date: Date): Date {
-  return getNextWorkingDays(date, 1)[0];
+function nextWorkday(date: Date, calendarConfig: ProjectCalendarConfig): Date {
+  return getNextWorkingDays(date, 1, calendarConfig)[0];
 }
 
 function selectBestResource(
@@ -129,10 +130,12 @@ function selectBestResource(
 export function generateScheduleSuggestions(
   input: SchedulingInput,
 ): ScheduleSuggestion[] {
+  const calendarConfig = input.calendarConfig || DEFAULT_PROJECT_CALENDAR;
   const start = nextWorkday(
     input.startDate ? toDate(input.startDate) : new Date(),
+    calendarConfig,
   );
-  const scenario = createScheduleScenario(input.tasks, input.resources, input.capacities, start);
+  const scenario = createScheduleScenario(input.tasks, input.resources, input.capacities, start, calendarConfig);
 
   const ordered = [...input.packages]
     .filter(item => item.status !== 'done' && item.status !== 'cancelled')
@@ -164,10 +167,10 @@ export function generateScheduleSuggestions(
     const duration = personDays / Math.max(effectiveDailyCapacity, 0.1);
 
     const requestedStart = workPackage.beginDate
-      ? nextWorkday(toDate(workPackage.beginDate))
+      ? nextWorkday(toDate(workPackage.beginDate), calendarConfig)
       : start;
 
-    const endDate = addWorkingDays(requestedStart, duration - 1);
+    const endDate = addWorkingDays(requestedStart, duration - 1, calendarConfig);
 
     if (workPackage.dueDate && endDate > toDate(workPackage.dueDate)) {
       risks.push({

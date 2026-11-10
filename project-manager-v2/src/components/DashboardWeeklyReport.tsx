@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Check, ChevronDown, ChevronUp, ClipboardCopy, ExternalLink, FileText, History, Save } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { format } from 'date-fns';
-import type { Resource, Task } from '../types';
+import type { ProjectCalendarConfig, Resource, Task } from '../types';
 import { buildWeeklyUxReport, formatWeeklyUxReport } from '../services/weeklyReportService';
 import { db } from '../db/db';
 
@@ -10,14 +10,15 @@ interface Props {
   tasks: Task[];
   resources: Resource[];
   projectId?: number;
+  calendarConfig?: ProjectCalendarConfig;
 }
 
-export function DashboardWeeklyReport({ tasks, resources, projectId }: Props) {
+export function DashboardWeeklyReport({ tasks, resources, projectId, calendarConfig }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
-  const report = useMemo(() => buildWeeklyUxReport(tasks, resources), [tasks, resources]);
+  const report = useMemo(() => buildWeeklyUxReport(tasks, resources, new Date(), calendarConfig), [tasks, resources, calendarConfig]);
   const reportText = useMemo(() => formatWeeklyUxReport(report), [report]);
   const weekKey = format(report.weekStart, 'yyyy-MM-dd');
   const snapshots = useLiveQuery(

@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../../db/db';
-import { addDays, startOfToday, isWeekend } from 'date-fns';
+import { addDays, startOfToday } from 'date-fns';
 import type { Task, Resource } from '../../../types';
-import { isHoliday } from '../../../utils/dateUtils';
+import { DEFAULT_PROJECT_CALENDAR, isNonWorkingDay } from '../../../utils/dateUtils';
 import { compareResources } from '../../gantt/constants';
 import { getTaskTypeColorValue } from '../../../constants/theme';
 import { isTaskCompleted, isTaskOverdue, isTaskTerminal } from '../../../utils/taskState';
@@ -41,6 +41,11 @@ export function useMemberStats(projectId?: number | null) {
     [projectId],
   );
   const projects = useLiveQuery(() => db.projects.toArray());
+  const project = useLiveQuery(
+    () => projectId != null ? db.projects.get(projectId) : undefined,
+    [projectId],
+  );
+  const projectCalendar = project?.calendarConfig || DEFAULT_PROJECT_CALENDAR;
   const today = useMemo(() => startOfToday(), []);
 
   const archivedProjectIds = useMemo(
@@ -199,7 +204,7 @@ export function useMemberStats(projectId?: number | null) {
       const freeDays: Date[] = [];
       for (let i = 0; i < 14; i++) {
         const day = addDays(today, i);
-        if (isWeekend(day) || isHoliday(day)) continue;
+        if (isNonWorkingDay(day, projectCalendar)) continue;
         const hasTasks = myTasks.some(task => {
           if (!task.startDate || !task.endDate) return false;
           return day >= new Date(task.startDate) && day <= new Date(task.endDate) && !isTaskTerminal(task);
@@ -218,7 +223,7 @@ export function useMemberStats(projectId?: number | null) {
         myTasks,
       };
     };
-  }, [resources, memberTasksById, today]);
+  }, [resources, memberTasksById, today, projectCalendar]);
 
   const getMemberTaskStats = useMemo(() => {
     return (resourceId: number) => memberStatsById.get(resourceId) || {

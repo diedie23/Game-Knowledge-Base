@@ -16,10 +16,12 @@ const STATUS_STYLE = {
 
 export function DashboardCapacityForecast({ tasks, resources }: Props) {
   const { setCurrentView } = useStore();
+  const selectedProjectId = useStore(state => state.selectedProjectId);
+  const project = useLiveQuery(() => selectedProjectId ? db.projects.get(selectedProjectId) : undefined, [selectedProjectId]);
   const capacities = useLiveQuery(() => db.resourceCapacities.toArray());
   const forecasts = useMemo(
-    () => buildStageCapacityForecast(tasks, resources, new Date(), 10, capacities || []),
-    [tasks, resources, capacities],
+    () => buildStageCapacityForecast(tasks, resources, new Date(), 10, capacities || [], project?.calendarConfig),
+    [tasks, resources, capacities, project?.calendarConfig],
   );
   return (
     <section className="rounded-2xl border border-gray-700/50 bg-gray-900/35 p-5 shadow-lg">

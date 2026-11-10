@@ -25,7 +25,7 @@ import { Avatar, getMemberColor } from './common/Avatar';
 import {
   ZOOM_PRESETS, DEFAULT_ZOOM_INDEX, LEFT_PANEL_WIDTH, ROW_HEIGHT,
   TASK_TYPE_COLORS,
-  isHoliday, getTaskTypeColor, getStatusConfig,
+  getTaskTypeColor, getStatusConfig,
   dependencyLineStyles,
   inferPipelineDependencies,
   compareResources, getRoleOrderIndex,
@@ -53,6 +53,7 @@ import { toast } from '../store/useToastStore';
 import { isTaskCompleted, isTaskOverdue, isTaskTerminal } from '../utils/taskState';
 import { getRequirementKindLabel } from '../utils/taskHierarchy';
 import { formatGanttValidationMessage } from '../services/ganttScheduleValidator';
+import { isHoliday as isProjectHoliday, isMakeupWorkingDay, isNonWorkingDay } from '../utils/dateUtils';
 
 // Constants, types, and sub-components are now imported from ./gantt/ sub-modules
 
@@ -646,10 +647,10 @@ export function GanttChart() {
 const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpResizeStart, isResizing: isLpResizing } = useLeftPanelResize();
 
   // Resize (edge drag) — delegated to useGanttDrag hook
-  const { resizing, scheduleValidation: resizeValidation, handleResizeStart } = useGanttDrag(dayWidth, tasks, resources || [], capacities || []);
+  const { resizing, scheduleValidation: resizeValidation, handleResizeStart } = useGanttDrag(dayWidth, tasks, resources || [], capacities || [], currentProject?.calendarConfig);
 
   // Move (whole task drag with cascade) — delegated to useTaskMove hook
-  const { movingTask, cascadeShifts, scheduleValidation: moveValidation, handleMoveStart, justMovedRef } = useTaskMove(dayWidth, tasks, resources || [], capacities || []);
+  const { movingTask, cascadeShifts, scheduleValidation: moveValidation, handleMoveStart, justMovedRef } = useTaskMove(dayWidth, tasks, resources || [], capacities || [], currentProject?.calendarConfig);
   const activeScheduleValidation = resizeValidation || moveValidation;
 
   // Auto-expand all tasks that have children (at any depth) by default
@@ -2151,14 +2152,17 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
             {days.map(day => {
               const isToday = differenceInDays(day, today) === 0;
               const isDayWeekend = isWeekend(day);
-              const isDayHoliday = isHoliday(day);
+              const isDayHoliday = isProjectHoliday(day, currentProject?.calendarConfig);
+              const isDayNonWorking = isNonWorkingDay(day, currentProject?.calendarConfig);
+              const isDayMakeup = isMakeupWorkingDay(day, currentProject?.calendarConfig);
               return (
                 <div
                   key={day.toISOString()}
                   className={`shrink-0 border-l border-gray-800/10 ${
                     isToday ? 'bg-indigo-500/[0.08]' :
                     isDayHoliday ? 'gantt-holiday-col' :
-                    isDayWeekend ? 'gantt-weekend-col' : ''
+                    isDayMakeup ? 'gantt-makeup-col' :
+                    isDayNonWorking || isDayWeekend ? 'gantt-weekend-col' : ''
                   }`}
                   style={{ width: `${dayWidth}px` }}
                   onDrop={e => !hasChildren && handleDrop(e, day)}
@@ -2663,6 +2667,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                   dayWidth={dayWidth}
                   effectiveLpWidth={effectiveLpWidth}
                   today={today}
+                  calendarConfig={currentProject?.calendarConfig}
                   zoomConfig={zoomConfig}
                   monthGroups={monthGroups}
                   leftPanelCollapsed={leftPanelCollapsed}

@@ -20,6 +20,7 @@ import { DashboardCapacityForecast } from './DashboardCapacityForecast';
 import { DashboardDataQuality } from './DashboardDataQuality';
 import { buildReleasePlanProgress, releasePlanDateValue, selectCurrentReleasePlan, type TapdReleasePlan } from '../services/releasePlanService';
 import { buildTaskHierarchyIndex, getTaskParent } from '../utils/taskHierarchy';
+import type { ProjectCalendarConfig } from '../types';
 
 const isStaticHostedEnvironment = typeof window !== 'undefined'
   && /(^|\.)github\.io$/i.test(window.location.hostname);
@@ -44,6 +45,11 @@ export function Dashboard() {
       : db.tasks.toArray(),
     [selectedProjectId]
   ) || [];
+  const project = useLiveQuery(
+    () => selectedProjectId ? db.projects.get(selectedProjectId) : undefined,
+    [selectedProjectId],
+  );
+  const projectCalendar: ProjectCalendarConfig | undefined = project?.calendarConfig;
   const resources = useLiveQuery(() => db.resources.toArray()) || [];
   const capacities = useLiveQuery(() => db.resourceCapacities.toArray()) || [];
   const riskRecords = useLiveQuery(
@@ -761,15 +767,15 @@ export function Dashboard() {
         </div>
       </div>
 
-      <DashboardTapdPlanner tasks={tasks} resources={resources} />
+      <DashboardTapdPlanner tasks={tasks} resources={resources} calendarConfig={projectCalendar} />
 
       <DashboardDataQuality tasks={tasks} resources={resources} />
 
       <DashboardCapacityForecast tasks={tasks} resources={resources} />
 
-      <DashboardDemandRisks tasks={tasks} resources={resources} projectId={selectedProjectId || undefined} />
+      <DashboardDemandRisks tasks={tasks} resources={resources} projectId={selectedProjectId || undefined} calendarConfig={projectCalendar} />
 
-      <DashboardWeeklyReport tasks={tasks} resources={resources} projectId={selectedProjectId || undefined} />
+      <DashboardWeeklyReport tasks={tasks} resources={resources} projectId={selectedProjectId || undefined} calendarConfig={projectCalendar} />
 
       <div className="grid grid-cols-3 gap-8 h-[620px]" style={{ gridAutoRows: '1fr' }}>
         {/* 2. 今日到期 / 逾期未完成 — Tab 切换 */}

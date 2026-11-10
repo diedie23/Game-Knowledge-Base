@@ -39,6 +39,16 @@ describe('ganttScheduleValidator', () => {
     expect(formatGanttValidationMessage(result)).toContain('调整 1 项任务');
   });
 
+  it('honors project calendar overrides when validating boundaries', () => {
+    const result = validateGanttScheduleChanges({
+      tasks: [task(1)],
+      calendarConfig: { workingDayOverrides: ['2026-07-11'] },
+      changes: [{ taskId: 1, startDate: new Date('2026-07-11'), endDate: new Date('2026-07-13') }],
+    });
+
+    expect(result.valid).toBe(true);
+  });
+
   it('blocks a weekend boundary so Gantt edits stay on working days', () => {
     const result = validateGanttScheduleChanges({
       tasks: [task(1)],

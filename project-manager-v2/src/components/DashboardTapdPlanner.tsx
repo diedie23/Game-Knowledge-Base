@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { AlertCircle, ArrowRight, CalendarClock, Check, ChevronLeft, ChevronRight, Copy, ExternalLink, GitBranch, LocateFixed, RefreshCw, Search, ShieldAlert, UserRoundX, X } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import type { Resource, Task } from '../types';
+import type { ProjectCalendarConfig, Resource, Task } from '../types';
 import { db } from '../db/db';
 import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildDemandSchedulePlan, buildTapdPlanningItems, buildTapdPlanningSummary, buildTapdScheduleSuggestion, findDemandForTask, formatTapdAdjustmentChecklist, getTapdScheduleDecision, getTapdScheduleDecisionLabel, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
 import { updateTask } from '../services/taskService';
@@ -15,6 +15,7 @@ import { getTaskAssigneeIds, getTaskOwnerTokens, hasTaskAssignee } from '../util
 interface Props {
   tasks: Task[];
   resources: Resource[];
+  calendarConfig?: ProjectCalendarConfig;
 }
 
 type QueueFilter = 'all' | 'ready' | 'review' | 'blocked' | 'capacity' | 'unassigned';
@@ -47,7 +48,7 @@ function syncFreshness(timestamp: number | null) {
   return { label: `${hours} 小时前同步，建议刷新`, tone: 'text-red-300 bg-red-500/10 border-red-500/20' };
 }
 
-export function DashboardTapdPlanner({ tasks, resources }: Props) {
+export function DashboardTapdPlanner({ tasks, resources, calendarConfig }: Props) {
   const { setCurrentView, setHighlightedTaskIds, openTapdModal, openTaskModal } = useStore();
   const [filter, setFilter] = useState<QueueFilter>('all');
   const [focusFilter, setFocusFilter] = useState<FocusFilter>('action');
@@ -89,8 +90,8 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     readiness: assessTapdScheduleReadiness(item.task, item.tags, resources),
   })), [planningItems, resources]);
   const allSuggestions = useMemo(
-    () => buildBatchTapdScheduleSuggestions(planningEntries, tasks, resources, today, capacities),
-    [planningEntries, tasks, resources, today, capacities],
+    () => buildBatchTapdScheduleSuggestions(planningEntries, tasks, resources, today, capacities, calendarConfig),
+    [planningEntries, tasks, resources, today, capacities, calendarConfig],
   );
   const suggestionsGeneratedAt = useMemo(() => Date.now(), [planningEntries, tasks, resources, today, capacities]);
   const planningSummary = useMemo(
@@ -174,8 +175,8 @@ export function DashboardTapdPlanner({ tasks, resources }: Props) {
     const anchor = selectedItems[0];
     if (!anchor || selectedItems.length < 2) return null;
     const demand = findDemandForTask(anchor.task, tasks, hierarchy);
-    return buildDemandSchedulePlan(demand, planningItems, tasks, resources, today, capacities);
-  }, [selectedItems, planningItems, tasks, resources, today, capacities, hierarchy]);
+    return buildDemandSchedulePlan(demand, planningItems, tasks, resources, today, capacities, calendarConfig);
+  }, [selectedItems, planningItems, tasks, resources, today, capacities, hierarchy, calendarConfig]);
   const scenarioImpact = useMemo(() => {
     if (!selectedItems.length) return null;
     const proposedStarts = applicableSelectedItems.map(item => item.suggestion.startDate.getTime());
