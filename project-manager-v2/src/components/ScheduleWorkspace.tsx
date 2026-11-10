@@ -1,11 +1,11 @@
-import React, { useDeferredValue, useMemo, useState } from 'react';
+import React, { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { addDays, format, isSameDay, isWeekend, startOfDay } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { ArrowLeft, ArrowRight, CalendarDays, ExternalLink, FileText, GitBranch, ListTree, LocateFixed, Search, UserRound, Users, X } from 'lucide-react';
 import { db } from '../db/db';
 import { useStore } from '../store/useStore';
-import type { Resource, Task } from '../types';
+import type { ProjectCalendarConfig, Resource, Task } from '../types';
 import { getTaskAssigneeIds } from '../utils/taskAssignee';
 import { buildTaskHierarchyIndex, getActiveLeafTasks } from '../utils/taskHierarchy';
 import { findDemandForTask } from '../services/tapdPlanningAssistant';
@@ -13,7 +13,7 @@ import { isUxTrackedTask, taskStage, taskStatus, type CoreUxStage } from '../ser
 import { isTaskCancelled, isTaskCompleted } from '../utils/taskState';
 import { compareResources } from './gantt/constants';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
-import { countWorkingDays, isHoliday, isNonWorkingDay } from '../utils/dateUtils';
+import { countWorkingDays, DEFAULT_PROJECT_CALENDAR, isHoliday, isMakeupWorkingDay, isNonWorkingDay } from '../utils/dateUtils';
 import { isResourceAvailableOn, getEffectiveDailyCapacity, mergeCapacity } from '../services/capacityService';
 
 const STAGE_LABEL: Record<CoreUxStage, string> = {
@@ -86,23 +86,39 @@ function taskEstimate(task: Task): string {
   return formatPersonDays(task.estimatedHours / 8);
 }
 
-function taskPersonDaysOn(task: Task, day: Date): number | undefined {
-  if (task.estimatedHours === undefined || task.estimatedHours === null || !task.startDate || !task.endDate || isNonWorkingDay(day)) return undefined;
-  const workingDays = countWorkingDays(new Date(task.startDate), new Date(task.endDate));
+function taskPersonDaysOn(
+  task: Task,
+  day: Date,
+  calendar: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
+): number | undefined {
+  if (task.estimatedHours === undefined || task.estimatedHours === null || !task.startDate || !task.endDate || isNonWorkingDay(day, calendar)) return undefined;
+  const workingDays = countWorkingDays(new Date(task.startDate), new Date(task.endDate), calendar);
   return workingDays > 0 ? task.estimatedHours / 8 / workingDays : undefined;
 }
 
-function calendarDayLabel(day: Date): string {
-  if (isHoliday(day)) return '节假';
+function calendarDayLabel(day: Date, calendar: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR): string {
+  if (isHoliday(day, calendar)) return '节假';
+  if (isMakeupWorkingDay(day, calendar)) return '调休';
   if (isWeekend(day)) return '周末';
   return format(day, 'EEE', { locale: zhCN });
+}
+
+function parseCalendarDates(value: string): string[] {
+  return [...new Set(
+    value
+      .split(/[\s,，、;；]+/)
+      .map(item => item.trim())
+      .filter(item => /^\d{4}-\d{2}-\d{2}$/.test(item)),
+  )];
 }
 
 export function ScheduleWorkspace() {
   const { selectedProjectId, openTaskModal, setCurrentView } = useStore();
   const tasks = useLiveQuery(() => selectedProjectId ? db.tasks.where('projectId').equals(selectedProjectId).toArray() : db.tasks.toArray(), [selectedProjectId]);
+  const project = useLiveQuery(() => selectedProjectId ? db.projects.get(selectedProjectId) : undefined, [selectedProjectId]);
   const resources = useLiveQuery(() => db.resources.toArray()) || [];
   const capacities = useLiveQuery(() => db.resourceCapacities.toArray()) || [];
+  const projectCalendar = project?.calendarConfig || DEFAULT_PROJECT_CALENDAR;
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [selectedDemandId, setSelectedDemandId] = useState<number | null>(null);
@@ -112,7 +128,29 @@ export function ScheduleWorkspace() {
   const [windowStart, setWindowStart] = useState(() => startOfDay(new Date()));
   const [ownerFilter, setOwnerFilter] = useState<number | 'all' | 'demand'>('all');
   const [resourceLoadFilter, setResourceLoadFilter] = useState<ResourceLoadFilter>('all');
+  const [calendarEditorOpen, setCalendarEditorOpen] = useState(false);
+  const [calendarDraft, setCalendarDraft] = useState({ holidayDates: '', workingDayOverrides: '', nonWorkingDayOverrides: '' });
   const deferredQuery = useDeferredValue(query);
+
+  useEffect(() => {
+    const config = project?.calendarConfig || DEFAULT_PROJECT_CALENDAR;
+    setCalendarDraft({
+      holidayDates: (config.holidayDates || []).join('\n'),
+      workingDayOverrides: (config.workingDayOverrides || []).join('\n'),
+      nonWorkingDayOverrides: (config.nonWorkingDayOverrides || []).join('\n'),
+    });
+  }, [project?.calendarConfig, project?.id]);
+
+  const saveCalendarConfig = async () => {
+    if (!selectedProjectId) return;
+    const config: ProjectCalendarConfig = {
+      holidayDates: parseCalendarDates(calendarDraft.holidayDates),
+      workingDayOverrides: parseCalendarDates(calendarDraft.workingDayOverrides),
+      nonWorkingDayOverrides: parseCalendarDates(calendarDraft.nonWorkingDayOverrides),
+    };
+    await db.projects.update(selectedProjectId, { calendarConfig: config });
+    setCalendarEditorOpen(false);
+  };
 
   const allTasks = tasks || [];
   const hierarchy = useMemo(() => buildTaskHierarchyIndex(allTasks), [allTasks]);
@@ -244,18 +282,18 @@ export function ScheduleWorkspace() {
       if (resourceId === undefined) return;
       const flags = new Set<Exclude<ResourceLoadFilter, 'all'>>();
       days.forEach(day => {
-        if (isNonWorkingDay(day)) return;
+        if (isNonWorkingDay(day, projectCalendar)) return;
         if (!isResourceAvailableOn(resource, day)) {
           flags.add('unavailable');
           return;
         }
         const dayTasks = tasksByResourceAndDay.get(`${resourceId}:${format(day, 'yyyy-MM-dd')}`) || [];
-        if (dayTasks.some(task => taskPersonDaysOn(task, day) === undefined)) {
+        if (dayTasks.some(task => taskPersonDaysOn(task, day, projectCalendar) === undefined)) {
           flags.add('unknown');
           return;
         }
         const capacity = getEffectiveDailyCapacity(mergeCapacity(resource, capacityByResourceId.get(resourceId)));
-        const load = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day) || 0), 0);
+        const load = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day, projectCalendar) || 0), 0);
         if (load > capacity + 0.05) flags.add('overload');
         else if (capacity - load >= 0.05) flags.add('free');
         else flags.add('full');
@@ -263,7 +301,7 @@ export function ScheduleWorkspace() {
       flagsByResource.set(resourceId, flags);
     });
     return flagsByResource;
-  }, [availableResources, capacityByResourceId, days, tasksByResourceAndDay]);
+  }, [availableResources, capacityByResourceId, days, projectCalendar, tasksByResourceAndDay]);
 
   const activeResources = useMemo(() => {
     let scoped = availableResources;
@@ -312,20 +350,20 @@ export function ScheduleWorkspace() {
     let overloadDays = 0;
     let unknownDays = 0;
     activeResources.forEach(resource => days.forEach(day => {
-      if (isNonWorkingDay(day) || !isResourceAvailableOn(resource, day)) return;
+      if (isNonWorkingDay(day, projectCalendar) || !isResourceAvailableOn(resource, day)) return;
       const dayTasks = tasksByResourceAndDay.get(`${resource.id}:${format(day, 'yyyy-MM-dd')}`) || [];
-      const hasUnknown = dayTasks.some(task => taskPersonDaysOn(task, day) === undefined);
+      const hasUnknown = dayTasks.some(task => taskPersonDaysOn(task, day, projectCalendar) === undefined);
       if (hasUnknown) {
         unknownDays++;
         return;
       }
       const capacity = getEffectiveDailyCapacity(mergeCapacity(resource, resource.id === undefined ? undefined : capacityByResourceId.get(resource.id)));
-      const load = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day) || 0), 0);
+      const load = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day, projectCalendar) || 0), 0);
       if (load > capacity + 0.05) overloadDays++;
       else availablePersonDays += Math.max(0, capacity - load);
     }));
     return { availablePersonDays, overloadDays, unknownDays };
-  }, [activeResources, capacityByResourceId, days, tasksByResourceAndDay]);
+  }, [activeResources, capacityByResourceId, days, projectCalendar, tasksByResourceAndDay]);
 
   const overloadedTaskIds = useMemo(() => {
     const ids = new Set<number>();
@@ -334,17 +372,17 @@ export function ScheduleWorkspace() {
       const resourceId = Number(resourceIdText);
       const resource = resources.find(item => item.id === resourceId);
       const day = new Date(`${dateText}T00:00:00`);
-      if (!resource || isNonWorkingDay(day) || !isResourceAvailableOn(resource, day)) return;
-      if (dayTasks.some(task => taskPersonDaysOn(task, day) === undefined)) return;
+      if (!resource || isNonWorkingDay(day, projectCalendar) || !isResourceAvailableOn(resource, day)) return;
+      if (dayTasks.some(task => taskPersonDaysOn(task, day, projectCalendar) === undefined)) return;
       const capacity = getEffectiveDailyCapacity(mergeCapacity(resource, capacityByResourceId.get(resourceId)));
-      const load = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day) || 0), 0);
+      const load = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day, projectCalendar) || 0), 0);
       if (load <= capacity + 0.05) return;
       dayTasks.forEach(task => {
         if (task.id !== undefined) ids.add(task.id);
       });
     });
     return ids;
-  }, [capacityByResourceId, resources, tasksByResourceAndDay]);
+  }, [capacityByResourceId, projectCalendar, resources, tasksByResourceAndDay]);
 
   const visiblePlanningTasks = useMemo(() => {
     const tasks = selectedGroup?.tasks || [];
@@ -426,9 +464,28 @@ export function ScheduleWorkspace() {
         </div>
         <div className="flex items-center gap-2 text-[11px]">
           <button type="button" onClick={focusDemand} disabled={!selectedRange?.start} className="inline-flex items-center gap-1.5 rounded border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1.5 text-indigo-200 hover:bg-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-40"><LocateFixed size={13} />定位所选需求</button>
+          <button type="button" onClick={() => setCalendarEditorOpen(open => !open)} disabled={!selectedProjectId} className="inline-flex items-center gap-1.5 rounded border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-amber-200 hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-40"><CalendarDays size={13} />项目日历</button>
           <button type="button" onClick={() => setCurrentView('gantt')} className="inline-flex items-center gap-1.5 rounded border border-gray-700 bg-gray-800/70 px-2.5 py-1.5 text-gray-300 hover:border-indigo-500/40 hover:text-white"><ExternalLink size={13} />去甘特图调整</button>
         </div>
       </header>
+
+      {calendarEditorOpen && <section aria-label="项目日历配置" className="shrink-0 border-b border-amber-500/20 bg-amber-500/[0.06] px-4 py-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="text-xs font-semibold text-amber-100">项目日历配置</div>
+            <div className="mt-1 text-[10px] text-gray-500">填写 yyyy-MM-dd 日期，支持换行、逗号或顿号分隔。配置会同时影响本页面的工作日、人日分摊和容量判断。</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setCalendarEditorOpen(false)} className="rounded border border-gray-700 bg-gray-900/70 px-2.5 py-1.5 text-[10px] text-gray-400 hover:text-white">取消</button>
+            <button type="button" onClick={saveCalendarConfig} className="rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1.5 text-[10px] text-amber-100 hover:bg-amber-500/25">保存日历</button>
+          </div>
+        </div>
+        <div className="mt-3 grid gap-2 md:grid-cols-3">
+          <label className="text-[10px] text-gray-400">项目节假日<textarea aria-label="项目节假日" value={calendarDraft.holidayDates} onChange={event => setCalendarDraft(draft => ({ ...draft, holidayDates: event.target.value }))} placeholder="2026-12-31\n2027-01-01" className="mt-1 min-h-16 w-full resize-y rounded border border-gray-700 bg-gray-950/70 px-2 py-1.5 text-[10px] text-gray-200 outline-none focus:border-amber-400/60" /></label>
+          <label className="text-[10px] text-gray-400">调休工作日<textarea aria-label="调休工作日" value={calendarDraft.workingDayOverrides} onChange={event => setCalendarDraft(draft => ({ ...draft, workingDayOverrides: event.target.value }))} placeholder="2026-12-26" className="mt-1 min-h-16 w-full resize-y rounded border border-gray-700 bg-gray-950/70 px-2 py-1.5 text-[10px] text-gray-200 outline-none focus:border-amber-400/60" /></label>
+          <label className="text-[10px] text-gray-400">特殊休息日<textarea aria-label="特殊休息日" value={calendarDraft.nonWorkingDayOverrides} onChange={event => setCalendarDraft(draft => ({ ...draft, nonWorkingDayOverrides: event.target.value }))} placeholder="2026-12-28" className="mt-1 min-h-16 w-full resize-y rounded border border-gray-700 bg-gray-950/70 px-2 py-1.5 text-[10px] text-gray-200 outline-none focus:border-amber-400/60" /></label>
+        </div>
+      </section>}
 
       <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-gray-800 bg-[#111722] px-4 py-2" aria-label="排期风险摘要">
         <span className="mr-1 text-[10px] font-medium text-gray-500">{selectedGroup ? `当前需求：${selectedGroup.demand.title}` : '排期摘要'}</span>
@@ -511,7 +568,7 @@ export function ScheduleWorkspace() {
           {selectedGroup && <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-gray-800/70 px-3 py-2 text-[10px]"><span className="text-gray-500">已选需求</span><span className="max-w-[260px] truncate text-indigo-200">{selectedGroup.demand.title}</span><span className="text-gray-600">相关人员 {selectedOwners.size} 人</span><span className="text-gray-600">前置链 {selectedGroup.tasks.filter(task => (task.dependencies || []).length > 0).length} 项</span>{selectedTask && <><span className="text-gray-700">|</span><span className="max-w-[320px] truncate text-cyan-200">当前任务：{selectedTask.title}</span></>}</div>}
           <div className="min-h-0 flex-1 overflow-auto">
             <div className="min-w-0" style={{ minWidth: 176 + DAY_COUNT * DAY_WIDTH }}>
-              <div className="flex border-b border-gray-800 bg-gray-950/25 sticky top-0 z-10"><div className="sticky left-0 z-20 w-44 shrink-0 border-r border-gray-800 bg-gray-950/95 px-3 py-2 text-[10px] text-gray-500">成员 / 工种</div><div className="flex">{days.map(day => { const nonWorking = isNonWorkingDay(day); const holiday = isHoliday(day); return <div key={day.toISOString()} title={holiday ? `${dayLabel(day)} 节假日` : nonWorking ? `${dayLabel(day)} 周末` : `${dayLabel(day)} 工作日`} className={`w-[40px] shrink-0 border-r border-gray-800/70 px-1 py-1.5 text-center ${isSameDay(day, new Date()) ? 'bg-indigo-500/15 text-indigo-300' : nonWorking ? 'bg-slate-800/70 text-slate-500' : 'text-gray-500'}`}><div className="text-[9px]">{dayLabel(day)}</div><div className={`mt-0.5 text-[8px] ${holiday ? 'text-amber-300' : nonWorking ? 'text-slate-400' : 'text-gray-600'}`}>{calendarDayLabel(day)}</div></div>; })}</div></div>
+              <div className="flex border-b border-gray-800 bg-gray-950/25 sticky top-0 z-10"><div className="sticky left-0 z-20 w-44 shrink-0 border-r border-gray-800 bg-gray-950/95 px-3 py-2 text-[10px] text-gray-500">成员 / 工种</div><div className="flex">{days.map(day => { const nonWorking = isNonWorkingDay(day, projectCalendar); const holiday = isHoliday(day, projectCalendar); return <div key={day.toISOString()} title={holiday ? `${dayLabel(day)} 节假日` : nonWorking ? `${dayLabel(day)} 周末` : `${dayLabel(day)} 工作日`} className={`w-[40px] shrink-0 border-r border-gray-800/70 px-1 py-1.5 text-center ${isSameDay(day, new Date()) ? 'bg-indigo-500/15 text-indigo-300' : nonWorking ? 'bg-slate-800/70 text-slate-500' : 'text-gray-500'}`}><div className="text-[9px]">{dayLabel(day)}</div><div className={`mt-0.5 text-[8px] ${holiday ? 'text-amber-300' : nonWorking ? 'text-slate-400' : 'text-gray-600'}`}>{calendarDayLabel(day, projectCalendar)}</div></div>; })}</div></div>
               <div className="divide-y divide-gray-800/70">
                 {activeResources.map(resource => <div key={resource.id} className="flex min-h-[48px]">
                   <div className={`sticky left-0 z-10 w-44 shrink-0 border-r border-gray-800 bg-[#121722] px-3 py-2 ${focusOwners.has(resource.id!) ? 'bg-indigo-500/[0.08]' : ''}`}><div className="flex items-center gap-1.5"><span className={`h-1.5 w-1.5 rounded-full ${focusOwners.has(resource.id!) ? 'bg-indigo-400' : 'bg-gray-600'}`} /><span className={`truncate text-[11px] ${focusOwners.has(resource.id!) ? 'text-indigo-200' : 'text-gray-300'}`}>{formatResourceDisplayName(resource)}</span></div><div className="mt-0.5 truncate text-[9px] text-gray-600">{resource.role || '未设置工种'}</div></div>
@@ -521,21 +578,21 @@ export function ScheduleWorkspace() {
                     const related = dayTasks.filter(task => task.id !== undefined && focusTaskIds.has(task.id));
                     const primary = selectedTask?.id !== undefined && dayTasks.some(task => task.id === selectedTask.id);
                     const load = dayTasks.length;
-                    const estimatedLoad = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day) || 0), 0);
-                    const workingDay = !isNonWorkingDay(day);
+                    const estimatedLoad = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day, projectCalendar) || 0), 0);
+                    const workingDay = !isNonWorkingDay(day, projectCalendar);
                     const available = workingDay && isResourceAvailableOn(resource, day);
                     const dailyCapacity = available ? getEffectiveDailyCapacity(mergeCapacity(resource, resource.id === undefined ? undefined : capacityByResourceId.get(resource.id))) : 0;
-                    const hasUnestimated = dayTasks.some(task => taskPersonDaysOn(task, day) === undefined && !isNonWorkingDay(day));
+                    const hasUnestimated = dayTasks.some(task => taskPersonDaysOn(task, day, projectCalendar) === undefined && !isNonWorkingDay(day, projectCalendar));
                     const capacityKnown = !hasUnestimated;
                     const remaining = capacityKnown ? Math.max(0, dailyCapacity - estimatedLoad) : undefined;
                     const isSelectedDay = related.length > 0;
                     const isOverload = available && capacityKnown && estimatedLoad > dailyCapacity + 0.05;
                     const isFree = available && capacityKnown && remaining !== undefined && remaining >= 0.05;
-                    const dayKind = isHoliday(day) ? '节假日' : isWeekend(day) ? '周末' : !available ? '请假/不可用' : '工作日';
+                    const dayKind = isHoliday(day, projectCalendar) ? '节假日' : isWeekend(day) ? '周末' : !available ? '请假/不可用' : '工作日';
                     const loadLabel = estimatedLoad > 0 ? formatPersonDays(estimatedLoad) : '无排期';
                     const freeLabel = !capacityKnown ? '容量待确认' : isFree ? `可排 ${formatPersonDays(remaining || 0)}` : isOverload ? `超载 ${formatPersonDays(estimatedLoad - dailyCapacity)}` : '已满';
                     const title = `${dayLabel(day)} ${dayKind} · ${dayTasks.length ? `${dayTasks.map(task => task.title).join('、')}；` : ''}${loadLabel} · ${freeLabel}${hasUnestimated ? ' · 含未设置人日任务' : ''}`;
-                    return <button type="button" key={key} onClick={() => dayTasks[0] && selectTask(dayTasks[0])} title={dayTasks.length ? `${dayTasks.map(task => task.title).join('、')} · 点击查看任务上下文` : title} aria-label={title} className={`relative h-12 w-[40px] shrink-0 overflow-hidden border-r border-gray-800/60 px-0.5 transition-colors hover:bg-white/[0.06] ${primary ? 'bg-cyan-500/35 ring-2 ring-inset ring-cyan-300/80' : isSelectedDay ? 'bg-indigo-500/25 ring-1 ring-inset ring-indigo-400/60' : isOverload ? 'bg-red-500/25' : !workingDay ? 'bg-slate-800/75' : !available ? 'bg-amber-950/40' : !capacityKnown ? 'bg-amber-500/15' : isFree ? 'bg-emerald-500/15' : 'bg-gray-900/10'}`}><span className={`inline-flex min-h-5 min-w-5 items-center justify-center rounded text-[9px] font-semibold ${primary ? 'bg-cyan-500/50 text-cyan-50' : isSelectedDay ? 'bg-indigo-500/40 text-indigo-100' : isOverload ? 'text-red-300' : !workingDay ? 'text-slate-400' : !available ? 'text-amber-300' : !capacityKnown ? 'text-amber-200' : isFree ? 'text-emerald-200' : 'text-gray-300'}`}>{!workingDay ? (isHoliday(day) ? '节' : '休') : !available ? '假' : !capacityKnown ? '?' : load || '·'}</span><span className={`mt-0.5 block truncate text-[8px] ${isFree ? 'text-emerald-300' : isOverload ? 'text-red-300' : !available ? 'text-amber-300' : !capacityKnown ? 'text-amber-200' : 'text-gray-600'}`}>{!workingDay ? (load ? `${load}项` : '休息') : !available ? '不可排' : !capacityKnown ? '待确认' : isFree ? `空${(remaining || 0).toFixed(1)}` : load ? `${estimatedLoad.toFixed(1)}` : '满'}</span>{related.length > 0 && <span className={`absolute bottom-0.5 left-1/2 block h-1 w-3 -translate-x-1/2 rounded-full ${primary ? 'bg-cyan-200' : 'bg-indigo-300'}`} />}{isFree && <span className="absolute bottom-0 left-0 h-0.5 w-full bg-emerald-400/70" />}</button>;
+                    return <button type="button" key={key} onClick={() => dayTasks[0] && selectTask(dayTasks[0])} title={dayTasks.length ? `${dayTasks.map(task => task.title).join('、')} · 点击查看任务上下文` : title} aria-label={title} className={`relative h-12 w-[40px] shrink-0 overflow-hidden border-r border-gray-800/60 px-0.5 transition-colors hover:bg-white/[0.06] ${primary ? 'bg-cyan-500/35 ring-2 ring-inset ring-cyan-300/80' : isSelectedDay ? 'bg-indigo-500/25 ring-1 ring-inset ring-indigo-400/60' : isOverload ? 'bg-red-500/25' : !workingDay ? 'bg-slate-800/75' : !available ? 'bg-amber-950/40' : !capacityKnown ? 'bg-amber-500/15' : isFree ? 'bg-emerald-500/15' : 'bg-gray-900/10'}`}><span className={`inline-flex min-h-5 min-w-5 items-center justify-center rounded text-[9px] font-semibold ${primary ? 'bg-cyan-500/50 text-cyan-50' : isSelectedDay ? 'bg-indigo-500/40 text-indigo-100' : isOverload ? 'text-red-300' : !workingDay ? 'text-slate-400' : !available ? 'text-amber-300' : !capacityKnown ? 'text-amber-200' : isFree ? 'text-emerald-200' : 'text-gray-300'}`}>{!workingDay ? (isHoliday(day, projectCalendar) ? '节' : '休') : !available ? '假' : !capacityKnown ? '?' : load || '·'}</span><span className={`mt-0.5 block truncate text-[8px] ${isFree ? 'text-emerald-300' : isOverload ? 'text-red-300' : !available ? 'text-amber-300' : !capacityKnown ? 'text-amber-200' : 'text-gray-600'}`}>{!workingDay ? (load ? `${load}项` : '休息') : !available ? '不可排' : !capacityKnown ? '待确认' : isFree ? `空${(remaining || 0).toFixed(1)}` : load ? `${estimatedLoad.toFixed(1)}` : '满'}</span>{related.length > 0 && <span className={`absolute bottom-0.5 left-1/2 block h-1 w-3 -translate-x-1/2 rounded-full ${primary ? 'bg-cyan-200' : 'bg-indigo-300'}`} />}{isFree && <span className="absolute bottom-0 left-0 h-0.5 w-full bg-emerald-400/70" />}</button>;
                   })}</div>
                 </div>)}
                 {activeResources.length === 0 && <div className="p-8 text-center text-xs text-gray-600">暂无成员资源</div>}

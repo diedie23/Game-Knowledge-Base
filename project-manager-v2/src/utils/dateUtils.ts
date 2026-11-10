@@ -1,10 +1,7 @@
 ﻿import { format, isWeekend, addDays } from 'date-fns';
+import type { ProjectCalendarConfig } from '../types/project';
 
-export interface ProjectCalendarConfig {
-  holidayDates?: string[];
-  workingDayOverrides?: string[];
-  nonWorkingDayOverrides?: string[];
-}
+export type { ProjectCalendarConfig };
 
 export const DEFAULT_PROJECT_CALENDAR: Required<ProjectCalendarConfig> = {
   holidayDates: [],

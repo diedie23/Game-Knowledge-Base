@@ -46,6 +46,17 @@ describe('dateUtils', () => {
       expect(isMakeupWorkingDay(new Date('2026-09-20'))).toBe(true);
       expect(isWorkingDay(new Date('2026-09-20'))).toBe(true);
     });
+
+    it('should honor project calendar overrides', () => {
+      const calendar = {
+        holidayDates: ['2026-03-09'],
+        workingDayOverrides: ['2026-03-07'],
+        nonWorkingDayOverrides: ['2026-03-10'],
+      };
+      expect(isWorkingDay(new Date('2026-03-07'), calendar)).toBe(true);
+      expect(isNonWorkingDay(new Date('2026-03-09'), calendar)).toBe(true);
+      expect(isWorkingDay(new Date('2026-03-10'), calendar)).toBe(false);
+    });
   });
 
   describe('isWorkingDay', () => {

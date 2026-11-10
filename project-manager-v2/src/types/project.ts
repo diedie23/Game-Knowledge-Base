@@ -1,5 +1,14 @@
 import type { ProjectStatus } from './enums';
 
+export interface ProjectCalendarConfig {
+  /** Project-specific holiday dates, in yyyy-MM-dd format. */
+  holidayDates?: string[];
+  /** Weekend dates that should be treated as working days. */
+  workingDayOverrides?: string[];
+  /** Dates that should be treated as non-working days. */
+  nonWorkingDayOverrides?: string[];
+}
+
 // ─── Project ─────────────────────────────────────────────────────
 
 export interface Project {
@@ -16,4 +25,6 @@ export interface Project {
   pausedAt?: Date;
   /** Reason for pausing/archiving (e.g. 'project cancelled', 'priority shift') */
   pauseReason?: string;
+  /** Project-level calendar overrides used by scheduling views. */
+  calendarConfig?: ProjectCalendarConfig;
 }

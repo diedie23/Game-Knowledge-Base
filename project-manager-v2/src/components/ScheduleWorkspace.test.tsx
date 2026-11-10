@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { Resource, Task } from '../types';
 import { ScheduleWorkspace } from './ScheduleWorkspace';
 
@@ -26,6 +26,9 @@ const state = vi.hoisted(() => {
   return {
     open: vi.fn(),
     setView: vi.fn(),
+    selectedProjectId: null as number | null,
+    project: { id: 1, name: '测试项目' },
+    projectUpdate: vi.fn(async (..._args: unknown[]) => 1),
     dateAt,
     tasks: [
       makeTask({ id: 1, title: '商城界面需求', tapdWorkitemTypeName: 'UIStory', module: '商城' }),
@@ -48,15 +51,22 @@ const state = vi.hoisted(() => {
 
 vi.mock('../db/db', () => ({
   db: {
-    tasks: { toArray: () => state.tasks },
+    tasks: {
+      toArray: () => state.tasks,
+      where: () => ({ equals: () => ({ toArray: () => state.tasks }) }),
+    },
     resources: { toArray: () => state.resources },
+    projects: {
+      get: () => state.project,
+      update: (...args: unknown[]) => state.projectUpdate(...args),
+    },
     resourceCapacities: { toArray: () => [] },
   },
 }));
 vi.mock('dexie-react-hooks', () => ({ useLiveQuery: (query: () => unknown) => query() }));
 vi.mock('../store/useStore', () => ({
   useStore: () => ({
-    selectedProjectId: null,
+    selectedProjectId: state.selectedProjectId,
     openTaskModal: state.open,
     setCurrentView: state.setView,
   }),
@@ -64,6 +74,8 @@ vi.mock('../store/useStore', () => ({
 
 beforeEach(() => {
   cleanup();
+  state.selectedProjectId = null;
+  state.projectUpdate.mockClear();
   state.open.mockClear();
   state.setView.mockClear();
 });
@@ -121,6 +133,26 @@ describe('ScheduleWorkspace', () => {
     fireEvent.click(screen.getAllByTitle('活动视觉设计 · 点击查看任务上下文')[0]);
     expect(screen.getByText('当前任务：活动视觉设计')).toBeTruthy();
     expect(screen.getAllByText('活动界面需求')[0].closest('button')).toBeTruthy();
+  });
+
+  it('saves project calendar overrides', async () => {
+    state.selectedProjectId = 1;
+    render(<ScheduleWorkspace />);
+
+    fireEvent.click(screen.getByRole('button', { name: '项目日历' }));
+    await waitFor(() => expect(screen.getByLabelText('项目节假日')).toBeTruthy());
+    fireEvent.change(screen.getByLabelText('项目节假日'), { target: { value: '2026-12-31\n2027-01-01' } });
+    fireEvent.change(screen.getByLabelText('调休工作日'), { target: { value: '2026-12-26' } });
+    fireEvent.change(screen.getByLabelText('特殊休息日'), { target: { value: '2026-12-28' } });
+    fireEvent.click(screen.getByRole('button', { name: '保存日历' }));
+
+    await waitFor(() => expect(state.projectUpdate).toHaveBeenCalledWith(1, {
+      calendarConfig: {
+        holidayDates: ['2026-12-31', '2027-01-01'],
+        workingDayOverrides: ['2026-12-26'],
+        nonWorkingDayOverrides: ['2026-12-28'],
+      },
+    }));
   });
 
   it('filters demands by category before scheduling', () => {
