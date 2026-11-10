@@ -402,6 +402,14 @@ export function ScheduleWorkspace() {
     });
   }, [overloadedTaskIds, planningView, selectedGroup, taskById]);
 
+  const demandListRef = useRef<HTMLDivElement>(null);
+  const demandVirtualizer = useVirtualizer({
+    count: visibleDemands.length,
+    getScrollElement: () => demandListRef.current,
+    estimateSize: () => 64,
+    overscan: 8,
+    initialRect: { width: 0, height: 600 },
+  });
   const taskListRef = useRef<HTMLDivElement>(null);
   const taskVirtualizer = useVirtualizer({
     count: visiblePlanningTasks.length,
@@ -464,6 +472,9 @@ export function ScheduleWorkspace() {
   };
 
   const moveWindow = (daysToMove: number) => setWindowStart(current => addDays(current, daysToMove));
+  const demandRows = visibleDemands.length > 20
+    ? demandVirtualizer.getVirtualItems()
+    : visibleDemands.map((_, index) => ({ index, start: index * 64, size: 64, key: index }));
   const taskRows = visiblePlanningTasks.length > 20
     ? taskVirtualizer.getVirtualItems()
     : visiblePlanningTasks.map((_, index) => ({ index, start: index * 112, size: 112, key: index }));
@@ -533,16 +544,27 @@ export function ScheduleWorkspace() {
             </div>
           </div>}
           <div className="flex min-h-0 flex-1 overflow-hidden">
-            <div className="w-[280px] shrink-0 overflow-y-auto border-r border-gray-800 bg-gray-950/20" style={{ width: DEMAND_LIST_WIDTH }}>
-              {visibleDemands.map(group => {
-                const selected = group.demand.id === selectedGroup?.demand.id;
-                const hasUnscheduled = group.tasks.some(task => !task.startDate || !task.endDate);
-                return <button key={group.demand.id} type="button" onClick={() => group.demand.id !== undefined && selectDemand(group.demand.id)} className={`w-full border-b border-gray-800/70 px-3 py-2.5 text-left transition-colors ${selected ? 'bg-indigo-500/15' : 'hover:bg-white/[0.03]'}`}>
-                  <div className="flex items-start gap-1.5"><span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${selected ? 'bg-indigo-400' : 'bg-gray-600'}`} /><span className={`line-clamp-2 text-[11px] leading-4 ${selected ? 'text-indigo-100' : 'text-gray-300'}`}>{group.demand.title}</span></div>
-                  <div className="mt-1.5 flex items-center justify-between text-[9px] text-gray-600"><span>{group.tasks.length} 个叶子任务</span>{hasUnscheduled && <span className="text-amber-400">有未排期</span>}</div>
-                </button>;
-              })}
-              {visibleDemands.length === 0 && <div className="p-4 text-center text-[11px] text-gray-600">暂无匹配的未完成需求</div>}
+            <div ref={demandListRef} className="w-[280px] shrink-0 overflow-y-auto border-r border-gray-800 bg-gray-950/20" style={{ width: DEMAND_LIST_WIDTH }}>
+              <div className="relative" style={{ height: visibleDemands.length > 20 ? demandVirtualizer.getTotalSize() : visibleDemands.length * 64 }}>
+                {demandRows.map(virtualRow => {
+                  const group = visibleDemands[virtualRow.index];
+                  const selected = group.demand.id === selectedGroup?.demand.id;
+                  const hasUnscheduled = group.tasks.some(task => !task.startDate || !task.endDate);
+                  return <button
+                    key={group.demand.id}
+                    ref={demandVirtualizer.measureElement}
+                    data-index={virtualRow.index}
+                    type="button"
+                    onClick={() => group.demand.id !== undefined && selectDemand(group.demand.id)}
+                    className={`absolute left-0 top-0 w-full border-b border-gray-800/70 px-3 py-2.5 text-left transition-colors ${selected ? 'bg-indigo-500/15' : 'hover:bg-white/[0.03]'}`}
+                    style={{ transform: `translateY(${virtualRow.start}px)` }}
+                  >
+                    <div className="flex items-start gap-1.5"><span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${selected ? 'bg-indigo-400' : 'bg-gray-600'}`} /><span className={`line-clamp-2 text-[11px] leading-4 ${selected ? 'text-indigo-100' : 'text-gray-300'}`}>{group.demand.title}</span></div>
+                    <div className="mt-1.5 flex items-center justify-between text-[9px] text-gray-600"><span>{group.tasks.length} 个叶子任务</span>{hasUnscheduled && <span className="text-amber-400">有未排期</span>}</div>
+                  </button>;
+                })}
+                {visibleDemands.length === 0 && <div className="p-4 text-center text-[11px] text-gray-600">暂无匹配的未完成需求</div>}
+              </div>
             </div>
 
             <div ref={taskListRef} className="min-w-0 flex-1 overflow-auto">
