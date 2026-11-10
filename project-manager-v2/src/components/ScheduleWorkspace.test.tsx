@@ -81,8 +81,10 @@ describe('ScheduleWorkspace', () => {
     expect(screen.queryByText('商城程序接入')).toBeNull();
     expect(screen.getByText(/完成于/)).toBeTruthy();
     expect(screen.getAllByText('已完成')).toHaveLength(1);
-    expect(screen.queryByText('未排期')).toBeNull();
+    expect(screen.queryByText('未排期', { selector: 'span' })).toBeNull();
     expect(screen.queryByText('暂无匹配的未完成需求')).toBeNull();
+    expect(screen.getByLabelText('排期风险摘要')).toBeTruthy();
+    expect(screen.getByText(/当前窗口可排/)).toBeTruthy();
   });
 
   it('selects a task, focuses its owner and prerequisite schedule, then opens details explicitly', () => {
@@ -135,7 +137,7 @@ describe('ScheduleWorkspace', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /商城界面需求/ }));
     expect(screen.getAllByText(/已排期：\d{2}\/\d{2}–\d{2}\/\d{2}/).length).toBeGreaterThan(0);
-    expect(screen.queryByText('未排期')).toBeNull();
+    expect(screen.queryByText('未排期', { selector: 'span' })).toBeNull();
     expect(screen.getByText('需求前后置链')).toBeTruthy();
     expect(screen.queryByText('需求前后置时间')).toBeNull();
     expect(screen.getByText('子需求 / 当前阶段 / 负责人 / 预估人日 / 排期状态')).toBeTruthy();

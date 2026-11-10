@@ -1,5 +1,5 @@
 ﻿import { describe, it, expect } from 'vitest';
-import { isHoliday, isNonWorkingDay, isWorkingDay, countWorkingDays, getNextWorkingDays, findFreeDays } from './dateUtils';
+import { isHoliday, isMakeupWorkingDay, isNonWorkingDay, isWorkingDay, countWorkingDays, getNextWorkingDays, findFreeDays } from './dateUtils';
 
 describe('dateUtils', () => {
   describe('isHoliday', () => {
@@ -32,6 +32,19 @@ describe('dateUtils', () => {
 
     it('should return false for regular working days', () => {
       expect(isNonWorkingDay(new Date('2026-03-09'))).toBe(false); // Monday
+    });
+  });
+
+  describe('make-up working days', () => {
+    it('should treat an official Saturday make-up day as working', () => {
+      expect(isMakeupWorkingDay(new Date('2026-02-14'))).toBe(true);
+      expect(isWorkingDay(new Date('2026-02-14'))).toBe(true);
+      expect(isNonWorkingDay(new Date('2026-02-14'))).toBe(false);
+    });
+
+    it('should treat a Sunday make-up day as working', () => {
+      expect(isMakeupWorkingDay(new Date('2026-09-20'))).toBe(true);
+      expect(isWorkingDay(new Date('2026-09-20'))).toBe(true);
     });
   });
 
@@ -68,8 +81,8 @@ describe('dateUtils', () => {
       // 2026-01-01 is Thursday (holiday)
       const start = new Date('2025-12-29'); // Monday
       const end = new Date('2026-01-02');   // Friday
-      // Mon, Tue, Wed = 3 working days (Thu is holiday, Fri is working)
-      expect(countWorkingDays(start, end)).toBe(4);
+      // Mon, Tue, Wed = 3 working days; Thu is holiday and Fri is also part of the New Year break.
+      expect(countWorkingDays(start, end)).toBe(3);
     });
   });
 

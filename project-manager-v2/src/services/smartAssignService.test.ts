@@ -198,8 +198,8 @@ describe('SmartAssignService.calcAvailabilityScore', () => {
 
   it('returns 15 when no workdays in period', () => {
     const r = makeResource(1, 'Alice', 'Designer');
-    // Sat-Sun, 9-10 May 2026
-    const result = service.calcAvailabilityScore(r, [], d('2026-05-09'), d('2026-05-10'));
+    // Sat-Sun, 16-17 May 2026 (9 May is an official make-up working day)
+    const result = service.calcAvailabilityScore(r, [], d('2026-05-16'), d('2026-05-17'));
     expect(result.score).toBe(15);
   });
 });

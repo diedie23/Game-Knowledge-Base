@@ -244,6 +244,54 @@ export function ScheduleWorkspace() {
     if (task.endDate && (!range.end || new Date(task.endDate) > range.end)) range.end = new Date(task.endDate);
     return range;
   }, {});
+  const selectedPlanningTasks = useMemo(
+    () => selectedGroup?.tasks.filter(task => !isTaskCompleted(task)) || [],
+    [selectedGroup],
+  );
+  const unscheduledTasks = useMemo(
+    () => selectedPlanningTasks.filter(task => !task.startDate || !task.endDate),
+    [selectedPlanningTasks],
+  );
+  const unassignedTasks = useMemo(
+    () => selectedPlanningTasks.filter(task => getTaskAssigneeIds(task).length === 0),
+    [selectedPlanningTasks],
+  );
+  const unknownEstimateTasks = useMemo(
+    () => selectedPlanningTasks.filter(task => task.estimatedHours === undefined || task.estimatedHours === null),
+    [selectedPlanningTasks],
+  );
+  const dependencyRiskTasks = useMemo(
+    () => selectedPlanningTasks.filter(task => (task.dependencies || []).some(dependencyId => {
+      const dependency = taskById.get(dependencyId);
+      if (!dependency) return true;
+      if (!isTaskCompleted(dependency)) return true;
+      return Boolean(task.startDate && dependency.endDate && new Date(dependency.endDate) > new Date(task.startDate));
+    })),
+    [selectedPlanningTasks, taskById],
+  );
+  const overdueTasks = useMemo(() => {
+    const today = startOfDay(new Date());
+    return selectedPlanningTasks.filter(task => task.endDate && startOfDay(new Date(task.endDate)) < today);
+  }, [selectedPlanningTasks]);
+  const capacitySummary = useMemo(() => {
+    let availablePersonDays = 0;
+    let overloadDays = 0;
+    let unknownDays = 0;
+    activeResources.forEach(resource => days.forEach(day => {
+      if (isNonWorkingDay(day) || !isResourceAvailableOn(resource, day)) return;
+      const dayTasks = tasksByResourceAndDay.get(`${resource.id}:${format(day, 'yyyy-MM-dd')}`) || [];
+      const hasUnknown = dayTasks.some(task => taskPersonDaysOn(task, day) === undefined);
+      if (hasUnknown) {
+        unknownDays++;
+        return;
+      }
+      const capacity = getEffectiveDailyCapacity(mergeCapacity(resource, resource.id === undefined ? undefined : capacityByResourceId.get(resource.id)));
+      const load = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day) || 0), 0);
+      if (load > capacity + 0.05) overloadDays++;
+      else availablePersonDays += Math.max(0, capacity - load);
+    }));
+    return { availablePersonDays, overloadDays, unknownDays };
+  }, [activeResources, capacityByResourceId, days, tasksByResourceAndDay]);
 
   const focusDemand = () => {
     if (!selectedRange?.start) return;
@@ -266,6 +314,15 @@ export function ScheduleWorkspace() {
     setSelectedTaskId(task.id);
     setFocusMode('task');
     setOwnerFilter(isTaskCompleted(task) ? 'demand' : getTaskAssigneeIds(task)[0] ?? 'demand');
+  };
+
+  const focusSummary = (task?: Task) => {
+    if (task) {
+      selectTask(task);
+      return;
+    }
+    setFocusMode('demand');
+    setOwnerFilter('demand');
   };
 
   const focusTaskCalendar = (mode: Exclude<CalendarFocusMode, 'demand'>) => {
@@ -298,6 +355,17 @@ export function ScheduleWorkspace() {
           <button type="button" onClick={() => setCurrentView('gantt')} className="inline-flex items-center gap-1.5 rounded border border-gray-700 bg-gray-800/70 px-2.5 py-1.5 text-gray-300 hover:border-indigo-500/40 hover:text-white"><ExternalLink size={13} />去甘特图调整</button>
         </div>
       </header>
+
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-gray-800 bg-[#111722] px-4 py-2" aria-label="排期风险摘要">
+        <span className="mr-1 text-[10px] font-medium text-gray-500">{selectedGroup ? `当前需求：${selectedGroup.demand.title}` : '排期摘要'}</span>
+        <button type="button" onClick={() => focusSummary(unscheduledTasks[0])} className="rounded border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[10px] text-amber-200 hover:bg-amber-500/20">未排期 <strong>{unscheduledTasks.length}</strong></button>
+        <button type="button" onClick={() => focusSummary(unknownEstimateTasks[0])} className="rounded border border-yellow-500/25 bg-yellow-500/10 px-2 py-1 text-[10px] text-yellow-200 hover:bg-yellow-500/20">容量待确认 <strong>{unknownEstimateTasks.length}项</strong>{capacitySummary.unknownDays > 0 && <span className="ml-1">/ {capacitySummary.unknownDays}天</span>}</button>
+        <button type="button" onClick={() => focusSummary(dependencyRiskTasks[0])} className="rounded border border-red-500/25 bg-red-500/10 px-2 py-1 text-[10px] text-red-200 hover:bg-red-500/20">依赖风险 <strong>{dependencyRiskTasks.length}</strong></button>
+        <button type="button" onClick={() => focusSummary(overdueTasks[0])} className="rounded border border-orange-500/25 bg-orange-500/10 px-2 py-1 text-[10px] text-orange-200 hover:bg-orange-500/20">已逾期 <strong>{overdueTasks.length}</strong></button>
+        <button type="button" onClick={() => focusSummary()} className="rounded border border-emerald-500/25 bg-emerald-500/10 px-2 py-1 text-[10px] text-emerald-200 hover:bg-emerald-500/20">当前窗口可排 <strong>{formatPersonDays(Number(capacitySummary.availablePersonDays.toFixed(1)))}</strong></button>
+        {capacitySummary.overloadDays > 0 && <span className="rounded border border-red-500/25 bg-red-500/10 px-2 py-1 text-[10px] text-red-300">容量超载 {capacitySummary.overloadDays} 天</span>}
+        {unassignedTasks.length > 0 && <span className="rounded border border-gray-600 bg-gray-800/60 px-2 py-1 text-[10px] text-gray-400">待分配 {unassignedTasks.length}</span>}
+      </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden p-3 xl:flex-row">
         <section className="flex min-h-[360px] min-w-0 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121722] xl:min-w-[680px] xl:flex-[0.9]">
@@ -379,26 +447,27 @@ export function ScheduleWorkspace() {
                     const primary = selectedTask?.id !== undefined && dayTasks.some(task => task.id === selectedTask.id);
                     const load = dayTasks.length;
                     const estimatedLoad = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day) || 0), 0);
-                    const hasUnestimated = dayTasks.some(task => taskPersonDaysOn(task, day) === undefined && !isNonWorkingDay(day));
                     const workingDay = !isNonWorkingDay(day);
                     const available = workingDay && isResourceAvailableOn(resource, day);
                     const dailyCapacity = available ? getEffectiveDailyCapacity(mergeCapacity(resource, resource.id === undefined ? undefined : capacityByResourceId.get(resource.id))) : 0;
-                    const remaining = Math.max(0, dailyCapacity - estimatedLoad);
+                    const hasUnestimated = dayTasks.some(task => taskPersonDaysOn(task, day) === undefined && !isNonWorkingDay(day));
+                    const capacityKnown = !hasUnestimated;
+                    const remaining = capacityKnown ? Math.max(0, dailyCapacity - estimatedLoad) : undefined;
                     const isSelectedDay = related.length > 0;
-                    const isOverload = available && estimatedLoad > dailyCapacity + 0.05;
-                    const isFree = available && remaining >= 0.05;
+                    const isOverload = available && capacityKnown && estimatedLoad > dailyCapacity + 0.05;
+                    const isFree = available && capacityKnown && remaining !== undefined && remaining >= 0.05;
                     const dayKind = isHoliday(day) ? '节假日' : isWeekend(day) ? '周末' : !available ? '请假/不可用' : '工作日';
                     const loadLabel = estimatedLoad > 0 ? formatPersonDays(estimatedLoad) : '无排期';
-                    const freeLabel = isFree ? `可排 ${formatPersonDays(remaining)}` : isOverload ? `超载 ${formatPersonDays(estimatedLoad - dailyCapacity)}` : '已满';
+                    const freeLabel = !capacityKnown ? '容量待确认' : isFree ? `可排 ${formatPersonDays(remaining || 0)}` : isOverload ? `超载 ${formatPersonDays(estimatedLoad - dailyCapacity)}` : '已满';
                     const title = `${dayLabel(day)} ${dayKind} · ${dayTasks.length ? `${dayTasks.map(task => task.title).join('、')}；` : ''}${loadLabel} · ${freeLabel}${hasUnestimated ? ' · 含未设置人日任务' : ''}`;
-                    return <button type="button" key={key} onClick={() => dayTasks[0] && selectTask(dayTasks[0])} title={dayTasks.length ? `${dayTasks.map(task => task.title).join('、')} · 点击查看任务上下文` : title} aria-label={title} className={`relative h-12 w-[40px] shrink-0 overflow-hidden border-r border-gray-800/60 px-0.5 transition-colors hover:bg-white/[0.06] ${primary ? 'bg-cyan-500/35 ring-2 ring-inset ring-cyan-300/80' : isSelectedDay ? 'bg-indigo-500/25 ring-1 ring-inset ring-indigo-400/60' : isOverload ? 'bg-red-500/25' : !workingDay ? 'bg-slate-800/75' : !available ? 'bg-amber-950/40' : isFree ? 'bg-emerald-500/15' : 'bg-gray-900/10'}`}><span className={`inline-flex min-h-5 min-w-5 items-center justify-center rounded text-[9px] font-semibold ${primary ? 'bg-cyan-500/50 text-cyan-50' : isSelectedDay ? 'bg-indigo-500/40 text-indigo-100' : isOverload ? 'text-red-300' : !workingDay ? 'text-slate-400' : !available ? 'text-amber-300' : isFree ? 'text-emerald-200' : 'text-gray-300'}`}>{!workingDay ? (isHoliday(day) ? '节' : '休') : !available ? '假' : load || '·'}</span><span className={`mt-0.5 block truncate text-[8px] ${isFree ? 'text-emerald-300' : isOverload ? 'text-red-300' : !available ? 'text-amber-300' : 'text-gray-600'}`}>{!workingDay ? (load ? `${load}项` : '休息') : !available ? '不可排' : isFree ? `空${remaining.toFixed(1)}` : load ? `${estimatedLoad.toFixed(1)}` : '满'}</span>{related.length > 0 && <span className={`absolute bottom-0.5 left-1/2 block h-1 w-3 -translate-x-1/2 rounded-full ${primary ? 'bg-cyan-200' : 'bg-indigo-300'}`} />}{isFree && <span className="absolute bottom-0 left-0 h-0.5 w-full bg-emerald-400/70" />}</button>;
+                    return <button type="button" key={key} onClick={() => dayTasks[0] && selectTask(dayTasks[0])} title={dayTasks.length ? `${dayTasks.map(task => task.title).join('、')} · 点击查看任务上下文` : title} aria-label={title} className={`relative h-12 w-[40px] shrink-0 overflow-hidden border-r border-gray-800/60 px-0.5 transition-colors hover:bg-white/[0.06] ${primary ? 'bg-cyan-500/35 ring-2 ring-inset ring-cyan-300/80' : isSelectedDay ? 'bg-indigo-500/25 ring-1 ring-inset ring-indigo-400/60' : isOverload ? 'bg-red-500/25' : !workingDay ? 'bg-slate-800/75' : !available ? 'bg-amber-950/40' : !capacityKnown ? 'bg-amber-500/15' : isFree ? 'bg-emerald-500/15' : 'bg-gray-900/10'}`}><span className={`inline-flex min-h-5 min-w-5 items-center justify-center rounded text-[9px] font-semibold ${primary ? 'bg-cyan-500/50 text-cyan-50' : isSelectedDay ? 'bg-indigo-500/40 text-indigo-100' : isOverload ? 'text-red-300' : !workingDay ? 'text-slate-400' : !available ? 'text-amber-300' : !capacityKnown ? 'text-amber-200' : isFree ? 'text-emerald-200' : 'text-gray-300'}`}>{!workingDay ? (isHoliday(day) ? '节' : '休') : !available ? '假' : !capacityKnown ? '?' : load || '·'}</span><span className={`mt-0.5 block truncate text-[8px] ${isFree ? 'text-emerald-300' : isOverload ? 'text-red-300' : !available ? 'text-amber-300' : !capacityKnown ? 'text-amber-200' : 'text-gray-600'}`}>{!workingDay ? (load ? `${load}项` : '休息') : !available ? '不可排' : !capacityKnown ? '待确认' : isFree ? `空${(remaining || 0).toFixed(1)}` : load ? `${estimatedLoad.toFixed(1)}` : '满'}</span>{related.length > 0 && <span className={`absolute bottom-0.5 left-1/2 block h-1 w-3 -translate-x-1/2 rounded-full ${primary ? 'bg-cyan-200' : 'bg-indigo-300'}`} />}{isFree && <span className="absolute bottom-0 left-0 h-0.5 w-full bg-emerald-400/70" />}</button>;
                   })}</div>
                 </div>)}
                 {activeResources.length === 0 && <div className="p-8 text-center text-xs text-gray-600">暂无成员资源</div>}
               </div>
             </div>
           </div>
-          <div className="flex shrink-0 flex-wrap items-center gap-3 border-t border-gray-800 px-3 py-2 text-[10px] text-gray-500"><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-emerald-400" />可排空档（人日）</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-amber-400" />请假/不可用</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-slate-500" />周末/节假日</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-red-500/60" />容量超载</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-indigo-400" />当前查看范围</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-cyan-300" />当前任务</span></div>
+          <div className="flex shrink-0 flex-wrap items-center gap-3 border-t border-gray-800 px-3 py-2 text-[10px] text-gray-500"><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-emerald-400" />可排空档（人日）</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-amber-400" />请假/不可用</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-amber-300" />容量待确认</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-slate-500" />周末/节假日</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-red-500/60" />容量超载</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-indigo-400" />当前查看范围</span><span><i className="mr-1 inline-block h-2 w-2 rounded-sm bg-cyan-300" />当前任务</span></div>
         </section>
       </div>
     </div>
