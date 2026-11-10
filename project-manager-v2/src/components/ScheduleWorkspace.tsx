@@ -371,7 +371,7 @@ export function ScheduleWorkspace() {
     tasksByResourceAndDay.forEach((dayTasks, key) => {
       const [resourceIdText, dateText] = key.split(':');
       const resourceId = Number(resourceIdText);
-      const resource = resources.find(item => item.id === resourceId);
+      const resource = resourceById.get(resourceId);
       const day = new Date(`${dateText}T00:00:00`);
       if (!resource || isNonWorkingDay(day, projectCalendar) || !isResourceAvailableOn(resource, day)) return;
       if (dayTasks.some(task => taskPersonDaysOn(task, day, projectCalendar) === undefined)) return;
@@ -383,7 +383,7 @@ export function ScheduleWorkspace() {
       });
     });
     return ids;
-  }, [capacityByResourceId, projectCalendar, resources, tasksByResourceAndDay]);
+  }, [capacityByResourceId, projectCalendar, resourceById, tasksByResourceAndDay]);
 
   const visiblePlanningTasks = useMemo(() => {
     const tasks = selectedGroup?.tasks || [];
