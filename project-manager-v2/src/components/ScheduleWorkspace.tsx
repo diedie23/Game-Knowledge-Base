@@ -1,4 +1,4 @@
-import React, { useDeferredValue, useEffect, useMemo, useState } from 'react';
+import React, { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { addDays, format, isSameDay, isWeekend, startOfDay } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
@@ -15,6 +15,7 @@ import { compareResources } from './gantt/constants';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 import { countWorkingDays, DEFAULT_PROJECT_CALENDAR, isHoliday, isMakeupWorkingDay, isNonWorkingDay } from '../utils/dateUtils';
 import { isResourceAvailableOn, getEffectiveDailyCapacity, mergeCapacity } from '../services/capacityService';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 const STAGE_LABEL: Record<CoreUxStage, string> = {
   interaction: '交互',
@@ -401,6 +402,15 @@ export function ScheduleWorkspace() {
     });
   }, [overloadedTaskIds, planningView, selectedGroup, taskById]);
 
+  const taskListRef = useRef<HTMLDivElement>(null);
+  const taskVirtualizer = useVirtualizer({
+    count: visiblePlanningTasks.length,
+    getScrollElement: () => taskListRef.current,
+    estimateSize: () => 112,
+    overscan: 8,
+    initialRect: { width: 0, height: 600 },
+  });
+
   const focusDemand = () => {
     if (!selectedRange?.start) return;
     setPlanningView('all');
@@ -454,6 +464,9 @@ export function ScheduleWorkspace() {
   };
 
   const moveWindow = (daysToMove: number) => setWindowStart(current => addDays(current, daysToMove));
+  const taskRows = visiblePlanningTasks.length > 20
+    ? taskVirtualizer.getVirtualItems()
+    : visiblePlanningTasks.map((_, index) => ({ index, start: index * 112, size: 112, key: index }));
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-[#0f1115] text-gray-300">
@@ -532,17 +545,24 @@ export function ScheduleWorkspace() {
               {visibleDemands.length === 0 && <div className="p-4 text-center text-[11px] text-gray-600">暂无匹配的未完成需求</div>}
             </div>
 
-            <div className="min-w-0 flex-1 overflow-auto">
+            <div ref={taskListRef} className="min-w-0 flex-1 overflow-auto">
               {selectedGroup ? <div className="min-w-0">
                 <div className="border-b border-gray-800 bg-gray-950/25 px-3 py-2 text-[10px] text-gray-500">子需求 / 当前阶段 / 负责人 / 预估人日 / 排期状态</div>
-                <div className="divide-y divide-gray-800/70">
-                  {visiblePlanningTasks.map(task => {
+                <div className="relative" style={{ height: visiblePlanningTasks.length > 20 ? taskVirtualizer.getTotalSize() : visiblePlanningTasks.length * 112 }}>
+                  {taskRows.map(virtualRow => {
+                    const task = visiblePlanningTasks[virtualRow.index];
                     const stage = taskStage(task, resources);
                     const style = stage ? STAGE_STYLE[stage] : { text: 'text-gray-400', bg: 'bg-gray-500/10', bar: 'bg-gray-500' };
                     const status = taskStatus(task);
                     const dependencyTasks = (task.dependencies || []).map(id => taskById.get(id)).filter((dependency): dependency is Task => Boolean(dependency));
                     const isSelected = task.id !== undefined && task.id === selectedTaskId;
-                    return <div key={task.id} className={`flex min-h-[92px] transition-colors ${isSelected ? 'bg-indigo-500/[0.08]' : ''}`}>
+                    return <div
+                      key={task.id}
+                      ref={taskVirtualizer.measureElement}
+                      data-index={virtualRow.index}
+                      className={`absolute left-0 top-0 flex min-h-[92px] w-full transition-colors ${isSelected ? 'bg-indigo-500/[0.08]' : ''}`}
+                      style={{ transform: `translateY(${virtualRow.start}px)` }}
+                    >
                       <div role="button" tabIndex={0} onClick={() => selectTask(task)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectTask(task); } }} className={`group relative min-w-0 flex-1 border-b border-gray-800/70 px-4 py-2.5 text-left outline-none transition-colors ${isSelected ? 'border-indigo-400/70 bg-indigo-500/15 ring-1 ring-inset ring-indigo-400/40' : 'hover:bg-white/[0.04]'}`}>
                         <div className="flex flex-wrap items-center gap-1.5 pr-5"><span className={`rounded px-1.5 py-0.5 text-[9px] ${style.bg} ${style.text}`}>{stage ? STAGE_LABEL[stage] : '其他'}</span><span className={`rounded border px-1.5 py-0.5 text-[9px] ${STATUS_STYLE[status] || STATUS_STYLE.todo}`}>{status === 'in_progress' ? '进行中' : status === 'done' ? '已完成' : status === 'blocked' ? '阻塞' : '待开始'}</span>{!isTaskCompleted(task) && <span className={`rounded border px-1.5 py-0.5 text-[9px] ${hasTaskSchedule(task) ? 'border-cyan-500/25 bg-cyan-500/10 text-cyan-300' : 'border-amber-500/25 bg-amber-500/10 text-amber-300'}`}>{hasTaskSchedule(task) ? '已排期' : '未排期'}</span>}</div>
                         <div className={`mt-1 line-clamp-2 break-words text-[12px] leading-5 ${isSelected ? 'font-semibold text-indigo-100' : 'text-gray-200'}`} title={task.title}>{task.externalUrl ? <a href={task.externalUrl} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()} className="inline-flex max-w-full items-center gap-1 text-inherit underline decoration-gray-600/70 underline-offset-2 hover:text-cyan-200 hover:decoration-cyan-300" title="打开对应 TAPD 单">{task.title}<ExternalLink size={10} className="shrink-0" /></a> : task.title}</div>
