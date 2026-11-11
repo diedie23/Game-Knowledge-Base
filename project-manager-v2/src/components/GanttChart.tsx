@@ -140,6 +140,69 @@ export function GanttChart() {
   }, [projectTimelineFloor, timelineRange, today]);
   const days = useMemo(() => Array.from({ length: visibleDays }).map((_, i) => addDays(startDate, i)), [startDate, visibleDays]);
 
+  // Precompute resource/day occupancy once for the assignee heatmap. The old
+  // renderer scanned every task for every resource and day, which became
+  // quadratic as TAPD data grew.
+  const resourceDayTaskCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    if (!tasks || days.length === 0) return counts;
+    const firstDay = startOfDay(days[0]);
+    const lastDay = startOfDay(days[days.length - 1]);
+    tasks.forEach(task => {
+      if (!task.startDate || !task.endDate || !task.assigneeIds?.length) return;
+      const taskStart = startOfDay(new Date(task.startDate));
+      const taskEnd = startOfDay(new Date(task.endDate));
+      if (taskEnd < firstDay || taskStart > lastDay) return;
+      const firstIndex = Math.max(0, differenceInDays(taskStart, firstDay));
+      const lastIndex = Math.min(days.length - 1, differenceInDays(taskEnd, firstDay));
+      for (const resourceId of task.assigneeIds) {
+        for (let index = firstIndex; index <= lastIndex; index++) {
+          const key = `${resourceId}:${format(days[index], 'yyyy-MM-dd')}`;
+          counts.set(key, (counts.get(key) || 0) + 1);
+        }
+      }
+    });
+    return counts;
+  }, [days, tasks]);
+
+  // Cache the full descendant date range for every task once per task snapshot.
+  // Parent bars then use O(1) lookups instead of recursively walking the same
+  // subtree during every row render.
+  const taskDateRanges = useMemo(() => {
+    const ranges = new Map<number, { start: Date; end: Date }>();
+    const visiting = new Set<number>();
+    const resolve = (task: Task): { start: Date; end: Date } | undefined => {
+      if (task.id === undefined) return undefined;
+      const cached = ranges.get(task.id);
+      if (cached) return cached;
+      if (visiting.has(task.id)) return undefined;
+      visiting.add(task.id);
+      const dates: Date[] = [];
+      if (task.startDate) dates.push(startOfDay(new Date(task.startDate)));
+      if (task.endDate) dates.push(startOfDay(new Date(task.endDate)));
+      const descendants = taskIndex.childrenByParentId.get(task.id) || [];
+      descendants.forEach(child => {
+        const childRange = resolve(child);
+        if (childRange) dates.push(childRange.start, childRange.end);
+      });
+      const virtualRoots = (task as any)._groupRoots as Task[] | undefined;
+      virtualRoots?.forEach(child => {
+        const childRange = resolve(child);
+        if (childRange) dates.push(childRange.start, childRange.end);
+      });
+      visiting.delete(task.id);
+      if (dates.length === 0) return undefined;
+      const range = {
+        start: new Date(Math.min(...dates.map(date => date.getTime()))),
+        end: new Date(Math.max(...dates.map(date => date.getTime()))),
+      };
+      ranges.set(task.id, range);
+      return range;
+    };
+    (tasks || []).forEach(resolve);
+    return ranges;
+  }, [taskIndex.childrenByParentId, tasks]);
+
   // Adjust scroll proportionally on zoom
   const prevDayWidth = useRef(dayWidth);
   useEffect(() => {
@@ -1893,25 +1956,10 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
     let displayEndDate = task.endDate;
 
     if (hasChildren) {
-      // Recursively collect ALL descendant dates for accurate parent bracket
-      const collectAllDescendantDates = (parentId: number): { starts: number[]; ends: number[] } => {
-        const directChildren = getChildren(parentId);
-        let starts: number[] = [];
-        let ends: number[] = [];
-        directChildren.forEach(c => {
-          if (c.startDate) starts.push(startOfDay(new Date(c.startDate)).getTime());
-          if (c.endDate) ends.push(startOfDay(new Date(c.endDate)).getTime());
-          // Recurse into grandchildren
-          const nested = collectAllDescendantDates(c.id!);
-          starts = starts.concat(nested.starts);
-          ends = ends.concat(nested.ends);
-        });
-        return { starts, ends };
-      };
-      const { starts, ends } = collectAllDescendantDates(task.id!);
-      if (starts.length > 0) {
-        displayStartDate = new Date(Math.min(...starts));
-        displayEndDate = new Date(Math.max(...ends));
+      const range = taskDateRanges.get(task.id!);
+      if (range) {
+        displayStartDate = range.start;
+        displayEndDate = range.end;
       }
     }
 
@@ -2208,8 +2256,7 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                   <div className="absolute top-1/2 -translate-y-1/2 h-1 flex items-center" style={{ left: 0, width: `${days.length * dayWidth}px` }}>
                     {days.map((day, i) => {
                       const resourceId = -task.id!;
-                      const resourceTasks = tasks?.filter(t => t.assigneeIds?.includes(resourceId) && t.startDate && t.endDate && day >= startOfDay(new Date(t.startDate)) && day <= startOfDay(new Date(t.endDate))) || [];
-                      const count = resourceTasks.length;
+                      const count = resourceDayTaskCounts.get(`${resourceId}:${format(day, 'yyyy-MM-dd')}`) || 0;
                       if (count === 0) return null;
 
                       let colorClass = 'bg-emerald-500';
