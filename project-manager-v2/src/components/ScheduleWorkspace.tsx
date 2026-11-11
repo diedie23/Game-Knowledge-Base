@@ -87,14 +87,17 @@ function taskEstimate(task: Task): string {
   return formatPersonDays(task.estimatedHours / 8);
 }
 
-function taskPersonDaysOn(
-  task: Task,
-  day: Date,
-  calendar: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
-): number | undefined {
-  if (task.estimatedHours === undefined || task.estimatedHours === null || !task.startDate || !task.endDate || isNonWorkingDay(day, calendar)) return undefined;
-  const workingDays = countWorkingDays(new Date(task.startDate), new Date(task.endDate), calendar);
-  return workingDays > 0 ? task.estimatedHours / 8 / workingDays : undefined;
+interface ScheduleCellMetrics {
+  dayTasks: Task[];
+  estimatedLoad: number;
+  hasUnestimated: boolean;
+  workingDay: boolean;
+  available: boolean;
+  dailyCapacity: number;
+  capacityKnown: boolean;
+  remaining?: number;
+  isOverload: boolean;
+  isFree: boolean;
 }
 
 function calendarDayLabel(day: Date, calendar: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR): string {
@@ -276,6 +279,55 @@ export function ScheduleWorkspace() {
     return map;
   }, [days, schedulableLeaves]);
 
+  const taskPersonDaysById = useMemo(() => {
+    const result = new Map<number, number | undefined>();
+    schedulableLeaves.forEach(task => {
+      if (task.id === undefined || task.estimatedHours == null || !task.startDate || !task.endDate) {
+        if (task.id !== undefined) result.set(task.id, undefined);
+        return;
+      }
+      const workingDays = countWorkingDays(new Date(task.startDate), new Date(task.endDate), projectCalendar);
+      result.set(task.id, workingDays > 0 ? task.estimatedHours / 8 / workingDays : undefined);
+    });
+    return result;
+  }, [projectCalendar, schedulableLeaves]);
+
+  // Build all calendar-cell load metrics once. The calendar, summary, filters,
+  // and overload highlighting all read this same matrix instead of recalculating
+  // task estimates for every consumer and every rendered cell.
+  const cellMetrics = useMemo(() => {
+    const result = new Map<string, ScheduleCellMetrics>();
+    availableResources.forEach(resource => {
+      if (resource.id === undefined) return;
+      days.forEach(day => {
+        const key = `${resource.id}:${format(day, 'yyyy-MM-dd')}`;
+        const dayTasks = tasksByResourceAndDay.get(key) || [];
+        const workingDay = !isNonWorkingDay(day, projectCalendar);
+        const available = workingDay && isResourceAvailableOn(resource, day);
+        const hasUnestimated = workingDay && dayTasks.some(task => task.id === undefined || taskPersonDaysById.get(task.id) === undefined);
+        const estimatedLoad = workingDay
+          ? dayTasks.reduce((total, task) => total + (task.id === undefined ? 0 : taskPersonDaysById.get(task.id) || 0), 0)
+          : 0;
+        const dailyCapacity = available ? getEffectiveDailyCapacity(mergeCapacity(resource, capacityByResourceId.get(resource.id!))) : 0;
+        const capacityKnown = !hasUnestimated;
+        const remaining = capacityKnown ? Math.max(0, dailyCapacity - estimatedLoad) : undefined;
+        result.set(key, {
+          dayTasks,
+          estimatedLoad,
+          hasUnestimated,
+          workingDay,
+          available,
+          dailyCapacity,
+          capacityKnown,
+          remaining,
+          isOverload: available && capacityKnown && estimatedLoad > dailyCapacity + 0.05,
+          isFree: available && capacityKnown && remaining !== undefined && remaining >= 0.05,
+        });
+      });
+    });
+    return result;
+  }, [availableResources, capacityByResourceId, days, projectCalendar, taskPersonDaysById, tasksByResourceAndDay]);
+
   const resourceLoadFlags = useMemo(() => {
     const flagsByResource = new Map<number, Set<Exclude<ResourceLoadFilter, 'all'>>>();
     availableResources.forEach(resource => {
@@ -283,26 +335,19 @@ export function ScheduleWorkspace() {
       if (resourceId === undefined) return;
       const flags = new Set<Exclude<ResourceLoadFilter, 'all'>>();
       days.forEach(day => {
-        if (isNonWorkingDay(day, projectCalendar)) return;
-        if (!isResourceAvailableOn(resource, day)) {
-          flags.add('unavailable');
-          return;
-        }
-        const dayTasks = tasksByResourceAndDay.get(`${resourceId}:${format(day, 'yyyy-MM-dd')}`) || [];
-        if (dayTasks.some(task => taskPersonDaysOn(task, day, projectCalendar) === undefined)) {
-          flags.add('unknown');
-          return;
-        }
-        const capacity = getEffectiveDailyCapacity(mergeCapacity(resource, capacityByResourceId.get(resourceId)));
-        const load = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day, projectCalendar) || 0), 0);
-        if (load > capacity + 0.05) flags.add('overload');
-        else if (capacity - load >= 0.05) flags.add('free');
+        const key = `${resourceId}:${format(day, 'yyyy-MM-dd')}`;
+        const metrics = cellMetrics.get(key);
+        if (!metrics || !metrics.workingDay) return;
+        if (!metrics.available) flags.add('unavailable');
+        else if (metrics.hasUnestimated) flags.add('unknown');
+        else if (metrics.isOverload) flags.add('overload');
+        else if (metrics.isFree) flags.add('free');
         else flags.add('full');
       });
       flagsByResource.set(resourceId, flags);
     });
     return flagsByResource;
-  }, [availableResources, capacityByResourceId, days, projectCalendar, tasksByResourceAndDay]);
+  }, [availableResources, cellMetrics, days]);
 
   const activeResources = useMemo(() => {
     let scoped = availableResources;
@@ -351,39 +396,29 @@ export function ScheduleWorkspace() {
     let overloadDays = 0;
     let unknownDays = 0;
     activeResources.forEach(resource => days.forEach(day => {
-      if (isNonWorkingDay(day, projectCalendar) || !isResourceAvailableOn(resource, day)) return;
-      const dayTasks = tasksByResourceAndDay.get(`${resource.id}:${format(day, 'yyyy-MM-dd')}`) || [];
-      const hasUnknown = dayTasks.some(task => taskPersonDaysOn(task, day, projectCalendar) === undefined);
-      if (hasUnknown) {
+      const metrics = cellMetrics.get(`${resource.id}:${format(day, 'yyyy-MM-dd')}`);
+      if (!metrics || !metrics.workingDay || !metrics.available) return;
+      if (metrics.hasUnestimated) {
         unknownDays++;
         return;
       }
-      const capacity = getEffectiveDailyCapacity(mergeCapacity(resource, resource.id === undefined ? undefined : capacityByResourceId.get(resource.id)));
-      const load = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day, projectCalendar) || 0), 0);
-      if (load > capacity + 0.05) overloadDays++;
-      else availablePersonDays += Math.max(0, capacity - load);
+      if (metrics.isOverload) overloadDays++;
+      else availablePersonDays += Math.max(0, metrics.remaining || 0);
     }));
     return { availablePersonDays, overloadDays, unknownDays };
-  }, [activeResources, capacityByResourceId, days, projectCalendar, tasksByResourceAndDay]);
+  }, [activeResources, cellMetrics, days]);
 
   const overloadedTaskIds = useMemo(() => {
     const ids = new Set<number>();
     tasksByResourceAndDay.forEach((dayTasks, key) => {
-      const [resourceIdText, dateText] = key.split(':');
-      const resourceId = Number(resourceIdText);
-      const resource = resourceById.get(resourceId);
-      const day = new Date(`${dateText}T00:00:00`);
-      if (!resource || isNonWorkingDay(day, projectCalendar) || !isResourceAvailableOn(resource, day)) return;
-      if (dayTasks.some(task => taskPersonDaysOn(task, day, projectCalendar) === undefined)) return;
-      const capacity = getEffectiveDailyCapacity(mergeCapacity(resource, capacityByResourceId.get(resourceId)));
-      const load = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day, projectCalendar) || 0), 0);
-      if (load <= capacity + 0.05) return;
+      const metrics = cellMetrics.get(key);
+      if (!metrics?.isOverload || metrics.hasUnestimated) return;
       dayTasks.forEach(task => {
         if (task.id !== undefined) ids.add(task.id);
       });
     });
     return ids;
-  }, [capacityByResourceId, projectCalendar, resourceById, tasksByResourceAndDay]);
+  }, [cellMetrics, tasksByResourceAndDay]);
 
   const visiblePlanningTasks = useMemo(() => {
     const tasks = selectedGroup?.tasks || [];
@@ -640,20 +675,21 @@ export function ScheduleWorkspace() {
                     <div className={`sticky left-0 z-10 w-44 shrink-0 border-r border-gray-800 bg-[#121722] px-3 py-2 ${focusOwners.has(resource.id!) ? 'bg-indigo-500/[0.08]' : ''}`}><div className="flex items-center gap-1.5"><span className={`h-1.5 w-1.5 rounded-full ${focusOwners.has(resource.id!) ? 'bg-indigo-400' : 'bg-gray-600'}`} /><span className={`truncate text-[11px] ${focusOwners.has(resource.id!) ? 'text-indigo-200' : 'text-gray-300'}`}>{formatResourceDisplayName(resource)}</span></div><div className="mt-0.5 truncate text-[9px] text-gray-600">{resource.role || '未设置工种'}</div></div>
                     <div className="flex">{days.map(day => {
                       const key = `${resource.id}:${format(day, 'yyyy-MM-dd')}`;
-                      const dayTasks = tasksByResourceAndDay.get(key) || [];
+                      const metrics = cellMetrics.get(key);
+                      const dayTasks = metrics?.dayTasks || [];
                       const related = dayTasks.filter(task => task.id !== undefined && focusTaskIds.has(task.id));
                       const primary = selectedTask?.id !== undefined && dayTasks.some(task => task.id === selectedTask.id);
                       const load = dayTasks.length;
-                      const estimatedLoad = dayTasks.reduce((total, task) => total + (taskPersonDaysOn(task, day, projectCalendar) || 0), 0);
-                      const workingDay = !isNonWorkingDay(day, projectCalendar);
-                      const available = workingDay && isResourceAvailableOn(resource, day);
-                      const dailyCapacity = available ? getEffectiveDailyCapacity(mergeCapacity(resource, resource.id === undefined ? undefined : capacityByResourceId.get(resource.id))) : 0;
-                      const hasUnestimated = dayTasks.some(task => taskPersonDaysOn(task, day, projectCalendar) === undefined && !isNonWorkingDay(day, projectCalendar));
-                      const capacityKnown = !hasUnestimated;
-                      const remaining = capacityKnown ? Math.max(0, dailyCapacity - estimatedLoad) : undefined;
+                      const estimatedLoad = metrics?.estimatedLoad || 0;
+                      const workingDay = metrics?.workingDay ?? !isNonWorkingDay(day, projectCalendar);
+                      const available = metrics?.available ?? false;
+                      const dailyCapacity = metrics?.dailyCapacity || 0;
+                      const hasUnestimated = metrics?.hasUnestimated ?? false;
+                      const capacityKnown = metrics?.capacityKnown ?? true;
+                      const remaining = metrics?.remaining;
                       const isSelectedDay = related.length > 0;
-                      const isOverload = available && capacityKnown && estimatedLoad > dailyCapacity + 0.05;
-                      const isFree = available && capacityKnown && remaining !== undefined && remaining >= 0.05;
+                      const isOverload = metrics?.isOverload ?? false;
+                      const isFree = metrics?.isFree ?? false;
                       const dayKind = isHoliday(day, projectCalendar) ? '节假日' : isWeekend(day) ? '周末' : !available ? '请假/不可用' : '工作日';
                       const loadLabel = estimatedLoad > 0 ? formatPersonDays(estimatedLoad) : '无排期';
                       const freeLabel = !capacityKnown ? '容量待确认' : isFree ? `可排 ${formatPersonDays(remaining || 0)}` : isOverload ? `超载 ${formatPersonDays(estimatedLoad - dailyCapacity)}` : '已满';

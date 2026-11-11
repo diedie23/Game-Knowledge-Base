@@ -69,41 +69,43 @@ function TaskTableView() {
   const [groupBy, setGroupBy] = useState<GroupBy>('status');
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<number>>(new Set());
 
+  const taskIndexes = useMemo(() => {
+    const childrenByParentId = new Map<number, Task[]>();
+    const byResourceId = new Map<number, Resource>();
+    (tasks || []).forEach(task => {
+      if (task.parentId) {
+        const children = childrenByParentId.get(task.parentId) || [];
+        children.push(task);
+        childrenByParentId.set(task.parentId, children);
+      }
+    });
+    resources.forEach(resource => {
+      if (resource.id !== undefined) byResourceId.set(resource.id, resource);
+    });
+    return { childrenByParentId, byResourceId };
+  }, [resources, tasks]);
+
   const rootTasks = useMemo(() => tasks?.filter(t => !t.parentId) || [], [tasks]);
-  const getChildren = (parentId: number) => tasks?.filter(t => t.parentId === parentId) || [];
+  const getChildren = useCallback((parentId: number) => taskIndexes.childrenByParentId.get(parentId) || [], [taskIndexes]);
 
   const filteredRootTasks = useMemo(() => {
     let result = [...rootTasks];
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      const matchingIds = new Set<number>();
-      tasks?.forEach(t => {
-        if (t.title.toLowerCase().includes(query)) {
-          matchingIds.add(t.id!);
-          if (t.parentId) matchingIds.add(t.parentId);
-        }
+    const query = searchQuery.trim().toLowerCase();
+    if (query || filterStatus !== 'all' || filterPriority !== 'all') {
+      const searchRootIds = new Set<number>();
+      const statusRootIds = new Set<number>();
+      const priorityRootIds = new Set<number>();
+      (tasks || []).forEach(task => {
+        const rootId = task.parentId || task.id;
+        if (rootId === undefined) return;
+        if (!query || task.title.toLowerCase().includes(query)) searchRootIds.add(rootId);
+        if (filterStatus === 'all' || task.status === filterStatus) statusRootIds.add(rootId);
+        if (filterPriority === 'all' || task.priority === filterPriority) priorityRootIds.add(rootId);
       });
-      result = result.filter(t => matchingIds.has(t.id!));
-    }
-    if (filterStatus !== 'all') {
-      const matchingParentIds = new Set<number>();
-      tasks?.forEach(t => {
-        if (t.status === filterStatus) {
-          matchingParentIds.add(t.id!);
-          if (t.parentId) matchingParentIds.add(t.parentId);
-        }
-      });
-      result = result.filter(t => matchingParentIds.has(t.id!));
-    }
-    if (filterPriority !== 'all') {
-      const matchingParentIds = new Set<number>();
-      tasks?.forEach(t => {
-        if (t.priority === filterPriority) {
-          matchingParentIds.add(t.id!);
-          if (t.parentId) matchingParentIds.add(t.parentId);
-        }
-      });
-      result = result.filter(t => matchingParentIds.has(t.id!));
+      result = result.filter(task => task.id !== undefined
+        && searchRootIds.has(task.id)
+        && statusRootIds.has(task.id)
+        && priorityRootIds.has(task.id));
     }
     result.sort((a, b) => {
       let comparison = 0;
@@ -298,7 +300,7 @@ function TaskTableView() {
 
   const getAssigneeNames = (assigneeIds?: number[]) => {
     if (!assigneeIds || assigneeIds.length === 0) return [];
-    const result = assigneeIds.map(id => resources.find(r => r.id === id)).filter(Boolean) as Resource[];
+    const result = assigneeIds.map(id => taskIndexes.byResourceId.get(id)).filter(Boolean) as Resource[];
     // Sort by role order (UX→UI→Layout→…)
     result.sort((a, b) => getRoleOrderIndex(a.role) - getRoleOrderIndex(b.role));
     return result;

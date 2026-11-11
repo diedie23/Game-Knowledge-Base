@@ -93,10 +93,16 @@ function App() {
   useEffect(() => {
     const init = async () => {
       await initMockData();
-      // Repair title-generated supplier duplicates and remove only the legacy demo members.
-      const resourceRepair = await repairResourceData();
-      if (resourceRepair.mergedResources > 0 || resourceRepair.removedLegacyResources > 0) {
-        console.warn('[App] Resource data repaired:', resourceRepair);
+      // Run the expensive resource cleanup once per migration version. Keeping
+      // it out of every startup avoids scanning all tasks/resources on every
+      // page refresh after the data set has grown.
+      const resourceMaintenanceKey = 'project-manager-v2:resource-maintenance:v1';
+      if (localStorage.getItem(resourceMaintenanceKey) !== 'done') {
+        const resourceRepair = await repairResourceData();
+        localStorage.setItem(resourceMaintenanceKey, 'done');
+        if (resourceRepair.mergedResources > 0 || resourceRepair.removedLegacyResources > 0) {
+          console.warn('[App] Resource data repaired:', resourceRepair);
+        }
       }
       // Remove TAPD EPIC ancestors imported by previous versions; they are hierarchy scaffolding.
       const staleEpicIds = (await db.tasks.toArray())
@@ -121,8 +127,13 @@ function App() {
         selectedProjectId = await db.projects.add({ name: '项目 Alpha' }) as number;
       }
       useStore.getState().setSelectedProjectId(selectedProjectId);
-      // Auto-sync parent dates on load to fix any inconsistencies (e.g. after TAPD import)
-      await syncAllParentDateRanges();
+      // Parent ranges are synchronized after TAPD operations. Avoid scanning
+      // the entire task table on every ordinary application startup.
+      const parentRangeMaintenanceKey = 'project-manager-v2:parent-range-maintenance:v1';
+      if (localStorage.getItem(parentRangeMaintenanceKey) !== 'done') {
+        await syncAllParentDateRanges();
+        localStorage.setItem(parentRangeMaintenanceKey, 'done');
+      }
       // Auto-inject the TAPD adapter configured for the selected project.
       try {
         const tapdConfig = await db.tapdConfigs.where('projectId').equals(selectedProjectId).first();

@@ -77,8 +77,11 @@ function parsePastedText(
 
 export function TaskModal() {
   const { isTaskModalOpen, closeTaskModal, editingTaskId, setHighlightedTaskIds, toggleTaskExpansion } = useStore();
-  const resources = useLiveQuery(() => db.resources.toArray());
-  const allTasks = useLiveQuery(() => db.tasks.toArray());
+  // Keep the modal mounted for state continuity, but do not subscribe to the
+  // full resource/task tables while it is hidden. Large TAPD refreshes should
+  // not fan out into an unused editor.
+  const resources = useLiveQuery(() => isTaskModalOpen ? db.resources.toArray() : [], [isTaskModalOpen]);
+  const allTasks = useLiveQuery(() => isTaskModalOpen ? db.tasks.toArray() : [], [isTaskModalOpen]);
   
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [selectedSubTaskIndices, setSelectedSubTaskIndices] = useState<number[]>([]);
