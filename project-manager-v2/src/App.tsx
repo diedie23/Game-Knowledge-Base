@@ -31,6 +31,7 @@ import { TapdSyncAdapter } from './services/syncAdapter';
 import { BACKUP_STORAGE_KEY } from './services/dataExportService';
 import { toast } from './store/useToastStore';
 import { isEpicRequirement } from './utils/taskHierarchy';
+import { repairResourceData } from './services/resourceMaintenance';
 
 // Keep one stable viewport container while switching views. Remounting the whole
 // page with an exit animation caused height/scroll changes during data refresh,
@@ -92,6 +93,11 @@ function App() {
   useEffect(() => {
     const init = async () => {
       await initMockData();
+      // Repair title-generated supplier duplicates and remove only the legacy demo members.
+      const resourceRepair = await repairResourceData();
+      if (resourceRepair.mergedResources > 0 || resourceRepair.removedLegacyResources > 0) {
+        console.warn('[App] Resource data repaired:', resourceRepair);
+      }
       // Remove TAPD EPIC ancestors imported by previous versions; they are hierarchy scaffolding.
       const staleEpicIds = (await db.tasks.toArray())
         .filter(task => Boolean(task.tapdId) && isEpicRequirement(task))

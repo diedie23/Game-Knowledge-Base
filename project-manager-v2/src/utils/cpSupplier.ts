@@ -8,13 +8,31 @@ export function normalizeSupplierName(value: string): string {
   return value.normalize('NFKC').toLowerCase().replace(/[\s_\-—–·•:：/\\()[\]【】<>《》]+/g, '');
 }
 
+/**
+ * Normalize a supplier identity across title and member-record variants.
+ *
+ * TAPD titles commonly spell the same supplier as `CP-全速`, `CP：全速`,
+ * or `供应商全速`. Keep normalizeSupplierName available for general matching,
+ * while this stronger key removes only known supplier labels so real names are
+ * not accidentally collapsed.
+ */
+export function normalizeSupplierIdentity(value: string): string {
+  let normalized = normalizeSupplierName(value || '');
+  let previous = '';
+  while (normalized && normalized !== previous) {
+    previous = normalized;
+    normalized = normalized.replace(/^(?:cp|供应商|外包|合作方|外协|第三方|厂商)+/i, '');
+  }
+  return normalized;
+}
+
 /** Extract supplier names from markers such as （CP全速）, (CP-全速), or 【CP：全速】. */
 export function extractCpSupplierNames(title: string): string[] {
   const names: string[] = [];
   const pattern = /[（(【[]\s*CP\s*[-—_:：]?\s*([^）)】\]]+?)\s*[）)】\]]/gi;
   for (const match of title.matchAll(pattern)) {
     const name = String(match[1] || '').trim().replace(/^供应商\s*[:：]?\s*/, '');
-    const key = normalizeSupplierName(name);
+    const key = normalizeSupplierIdentity(name);
     if (key.length >= 2 && !GENERIC_LABELS.has(key)) names.push(name);
   }
   return Array.from(new Set(names));
@@ -44,20 +62,21 @@ export function matchCpResourcesFromTitle(title: string, resources: Resource[]):
   const normalizedTitle = normalizeSupplierName(title || '');
   if (!normalizedTitle) return [];
 
-  const markerKeys = extractCpSupplierNames(title).map(normalizeSupplierName);
+  const markerKeys = extractCpSupplierNames(title).map(normalizeSupplierIdentity);
   const candidates = resources
     .filter((resource): resource is Resource & { id: number } => resource.type === 'cp' && !!resource.id)
-    .map(resource => ({ resource, key: normalizeSupplierName(resource.name || '') }))
-    .filter(({ key }) =>
-      key.length >= 2
-      && !GENERIC_LABELS.has(key)
-      && (normalizedTitle.includes(key) || markerKeys.includes(key))
-    )
+    .map(resource => {
+      const keys = [resource.name, resource.supplierAffiliation]
+        .map(value => normalizeSupplierIdentity(value || ''))
+        .filter(key => key.length >= 2 && !GENERIC_LABELS.has(key));
+      return { resource, keys, key: keys.sort((a, b) => b.length - a.length)[0] || '' };
+    })
+    .filter(({ keys }) => keys.some(key => normalizedTitle.includes(key) || markerKeys.includes(key)))
     .sort((a, b) => b.key.length - a.key.length);
 
   const selected: typeof candidates = [];
   for (const candidate of candidates) {
-    if (selected.some(item => item.key.includes(candidate.key))) continue;
+    if (selected.some(item => item.keys.some(left => candidate.keys.some(right => left.includes(right) || right.includes(left))))) continue;
     selected.push(candidate);
   }
   return selected.map(({ resource }) => resource.id);

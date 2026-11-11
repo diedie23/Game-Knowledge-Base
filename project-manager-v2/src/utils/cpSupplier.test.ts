@@ -28,6 +28,18 @@ describe('CP supplier title handling', () => {
     expect(matchCpResourcesFromTitle('【RED】【画加】商城界面-UI资源', resources)).toEqual([2]);
   });
 
+  it('matches a CP person through supplier affiliation without creating a placeholder', () => {
+    const supplierPerson: Resource = {
+      id: 7,
+      name: '张三',
+      role: 'CP-UI设计',
+      type: 'cp',
+      supplierAffiliation: '全速',
+      tapdAccount: 'zhangsan',
+    };
+    expect(matchCpResourcesFromTitle('登录界面（CP-全速）', [...resources, supplierPerson])).toContain(7);
+  });
+
   it('keeps the more specific supplier when names overlap', () => {
     expect(matchCpResourcesFromTitle('[网易雷火] 登录动效', resources)).toEqual([3]);
   });

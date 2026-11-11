@@ -18,7 +18,7 @@ import {
   hasFollowupAssignment,
   inferCpSupplierRole,
   matchCpResourcesFromTitle,
-  normalizeSupplierName,
+  normalizeSupplierIdentity,
 } from '../utils/cpSupplier';
 import {
   classifyTapdMember,
@@ -2481,12 +2481,18 @@ export class TapdService {
       const role = inferCpSupplierRole(task.title || '', ownerResources);
 
       for (const supplierName of supplierNames) {
-        const key = normalizeSupplierName(supplierName);
-        const existing = resources.find(resource => {
-          if (resource.type !== 'cp') return false;
-          const existingKey = normalizeSupplierName(resource.name || '');
-          return existingKey === key || existingKey === `cp${key}` || `cp${existingKey}` === key;
-        });
+        const key = normalizeSupplierIdentity(supplierName);
+        if (!key) continue;
+        const existing = resources
+          .filter(resource => resource.type === 'cp')
+          .map(resource => {
+            const nameKey = normalizeSupplierIdentity(resource.name || '');
+            const affiliationKey = normalizeSupplierIdentity(resource.supplierAffiliation || '');
+            const isMatch = nameKey === key || affiliationKey === key;
+            return { resource, isMatch, exactName: nameKey === key };
+          })
+          .filter(item => item.isMatch)
+          .sort((left, right) => Number(right.exactName) - Number(left.exactName))[0]?.resource;
         if (existing?.id) {
           const projectIds = Array.from(new Set([...(existing.projectIds || []), projectId]));
           if (!existing.projectIds?.includes(projectId)) {
@@ -2497,7 +2503,7 @@ export class TapdService {
         }
 
         const newResource: Resource = {
-          name: supplierName,
+          name: supplierName.trim(),
           role,
           type: 'cp',
           workforceType: '供应商',

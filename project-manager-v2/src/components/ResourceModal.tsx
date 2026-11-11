@@ -6,7 +6,9 @@ import { X, User, Building2, Users2, Calendar as CalendarIcon, UserX, Plus, Chev
 import { Avatar } from './common/Avatar';
 import type { ResourceType, AvatarStyle } from '../types/resource';
 import { AVATAR_STYLES } from '../types/resource';
+import { normalizeSupplierIdentity } from '../utils/cpSupplier';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { toast } from '../store/useToastStore';
 
 /** Default preset groups */
 const PRESET_GROUPS = ['2D Avatar', '轻舟编辑器', 'UGC小游戏', '元梦之星'];
@@ -178,10 +180,33 @@ export function ResourceModal() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const name = String(formData.name || '').trim();
+    if (!name) return;
+
+    const normalizedName = formData.type === 'cp'
+      ? normalizeSupplierIdentity(name)
+      : name.normalize('NFKC').replace(/\s+/g, '').toLowerCase();
+    const normalizedAccount = String(formData.tapdAccount || '').trim().toLowerCase();
+    const existingResources = await db.resources.toArray();
+    const duplicate = existingResources.find(resource => {
+      if (!resource.id || resource.id === editingResourceId || resource.type !== (formData.type || 'internal')) return false;
+      const sameAccount = normalizedAccount
+        && resource.tapdAccount?.trim().toLowerCase() === normalizedAccount;
+      const candidateName = resource.type === 'cp'
+        ? normalizeSupplierIdentity(resource.name || '')
+        : resource.name.trim().replace(/\s+/g, '').toLowerCase();
+      return Boolean(sameAccount || (normalizedName.length >= 2 && candidateName === normalizedName));
+    });
+    if (duplicate) {
+      toast.warning(`已存在同类型成员「${duplicate.name}」，请直接编辑已有成员，避免重复记录`);
+      return;
+    }
+
+    const payload = { ...formData, name, typeLocked: true };
     if (editingResourceId) {
-      await trackedDb.resources.update(editingResourceId, { ...formData, typeLocked: true }, '编辑成员信息');
+      await trackedDb.resources.update(editingResourceId, payload, '编辑成员信息');
     } else {
-      await trackedDb.resources.add({ ...formData, typeLocked: true } as Resource, `新建成员「${formData.name}」`);
+      await trackedDb.resources.add(payload as Resource, `新建成员「${name}」`);
     }
     closeResourceModal();
   };
