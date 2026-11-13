@@ -60,9 +60,9 @@ import { isHoliday as isProjectHoliday, isMakeupWorkingDay, isNonWorkingDay } fr
 export function GanttChart() {
   const { openTaskModal, expandedTaskIds, toggleTaskExpansion, highlightedTaskIds, selectedMemberId, setSelectedMemberId, selectedProjectId } = useStore();
   const tasks = useLiveQuery(
-    () => selectedProjectId
+    () => selectedProjectId != null
       ? db.tasks.where('projectId').equals(selectedProjectId).toArray()
-      : db.tasks.toArray(),
+      : [] as Task[],
     [selectedProjectId]
   );
   const resources = useLiveQuery(() => db.resources.toArray());

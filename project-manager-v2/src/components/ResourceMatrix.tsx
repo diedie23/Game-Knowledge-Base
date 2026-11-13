@@ -339,9 +339,9 @@ export function ResourceMatrix() {
   const capacities = useLiveQuery(() => db.resourceCapacities.toArray());
   const tasks = useLiveQuery(
     () =>
-      selectedProjectId
+      selectedProjectId != null
         ? db.tasks.where('projectId').equals(selectedProjectId).toArray()
-        : db.tasks.toArray(),
+        : [] as Task[],
     [selectedProjectId]
   );
 

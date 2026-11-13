@@ -38,7 +38,7 @@ export function DashboardDemandRisks({ tasks, resources, projectId, calendarConf
   const [page, setPage] = useState(1);
   const pageSize = 8;
   const riskRecords = useLiveQuery<RiskRecord[]>(
-    () => projectId ? db.riskRecords.where('projectId').equals(projectId).toArray() : Promise.resolve([] as RiskRecord[]),
+    () => projectId ? db.riskRecords.where('projectId').equals(projectId).toArray() : [] as RiskRecord[],
     [projectId],
   ) || [];
   const recordByRiskId = useMemo(() => new Map(riskRecords.map(record => [record.riskId, record])), [riskRecords]);

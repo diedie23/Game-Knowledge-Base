@@ -11,7 +11,7 @@ import { getEffectiveStatus } from '../types/resource';
 import { getRoleBadgeStyle } from '../constants/theme';
 import EmptyState from './common/EmptyState';
 import { isTaskCancelled, isTaskCompleted, isTaskDueToday, isTaskOverdue, isTaskTerminal } from '../utils/taskState';
-import { dedupeResourcesForDisplay, getResourceAliasIds } from '../utils/resourceDedup';
+import { buildResourceAliasIndex, dedupeResourcesForDisplay } from '../utils/resourceDedup';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 import { DashboardTapdPlanner } from './DashboardTapdPlanner';
 import { DashboardDemandRisks } from './DashboardDemandRisks';
@@ -20,7 +20,7 @@ import { DashboardCapacityForecast } from './DashboardCapacityForecast';
 import { DashboardDataQuality } from './DashboardDataQuality';
 import { buildReleasePlanProgress, releasePlanDateValue, selectCurrentReleasePlan, type TapdReleasePlan } from '../services/releasePlanService';
 import { buildTaskHierarchyIndex, getTaskParent } from '../utils/taskHierarchy';
-import type { ProjectCalendarConfig } from '../types';
+import type { ProjectCalendarConfig, Task, RiskRecord } from '../types';
 
 const isStaticHostedEnvironment = typeof window !== 'undefined'
   && /(^|\.)github\.io$/i.test(window.location.hostname);
@@ -40,9 +40,9 @@ export function Dashboard() {
     openTaskModal(task.id);
   }, [openTaskModal]);
   const allTasks = useLiveQuery(
-    () => selectedProjectId
+    () => selectedProjectId != null
       ? db.tasks.where('projectId').equals(selectedProjectId).toArray()
-      : db.tasks.toArray(),
+      : [] as Task[],
     [selectedProjectId]
   ) || [];
   const project = useLiveQuery(
@@ -51,11 +51,15 @@ export function Dashboard() {
   );
   const projectCalendar: ProjectCalendarConfig | undefined = project?.calendarConfig;
   const resources = useLiveQuery(() => db.resources.toArray()) || [];
+  const resourceById = useMemo(
+    () => new Map(resources.filter(resource => resource.id !== undefined).map(resource => [resource.id!, resource])),
+    [resources],
+  );
   const capacities = useLiveQuery(() => db.resourceCapacities.toArray()) || [];
   const riskRecords = useLiveQuery(
-    () => selectedProjectId
+    () => selectedProjectId != null
       ? db.riskRecords.where('projectId').equals(selectedProjectId).toArray()
-      : db.riskRecords.toArray(),
+      : [] as RiskRecord[],
     [selectedProjectId],
   ) || [];
   const [tapdRefreshState, setTapdRefreshState] = useState<'idle' | 'refreshing' | 'success' | 'error'>('idle');
@@ -156,13 +160,17 @@ export function Dashboard() {
     () => actionableTasks.filter(task => !isTaskTerminal(task)),
     [actionableTasks]
   );
+  const resourceAliasesById = useMemo(
+    () => buildResourceAliasIndex(resources),
+    [resources],
+  );
   const memberTasksByResourceId = useMemo(() => {
     const result = new Map<number, typeof tasks>();
     resources.forEach(resource => {
       if (resource.id === undefined) return;
       const seen = new Set<number>();
       const memberTasks: typeof tasks = [];
-      getResourceAliasIds(resource, resources).forEach(aliasId => {
+      (resourceAliasesById.get(resource.id) || [resource.id]).forEach(aliasId => {
         (tasksByAssigneeId.get(aliasId) || []).forEach(task => {
           if (task.id === undefined || seen.has(task.id)) return;
           seen.add(task.id);
@@ -172,7 +180,7 @@ export function Dashboard() {
       result.set(resource.id, memberTasks);
     });
     return result;
-  }, [resources, tasksByAssigneeId]);
+  }, [resources, resourceAliasesById, tasksByAssigneeId]);
 
   // 1. 顶部一行：今天是几号、本周第几天、距离下个版本节点还有几天
   // Keep the day reference stable; a new Date() on every render invalidates
@@ -879,7 +887,7 @@ export function Dashboard() {
                               {task.startDate ? format(new Date(task.startDate), 'MM-dd') : ''} ~ {task.endDate ? format(new Date(task.endDate), 'MM-dd') : ''}
                             </span>
                             {task.assigneeIds?.map((id: number) => {
-                              const res = resources.find(r => r.id === id);
+                              const res = resourceById.get(id);
 return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type={(res as any).type || 'internal'} avatarStyle={(res as any).avatarStyle} role={res.role} /> : null;
                             })}
                           </div>
@@ -930,7 +938,7 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
                                       {task.startDate ? format(new Date(task.startDate), 'MM-dd') : ''} ~ {task.endDate ? format(new Date(task.endDate), 'MM-dd') : ''}
                                     </span>
                                     {task.assigneeIds?.map((id: number) => {
-                                      const res = resources.find(r => r.id === id);
+                                      const res = resourceById.get(id);
 return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type={(res as any).type || 'internal'} avatarStyle={(res as any).avatarStyle} role={res.role} /> : null;
                                     })}
                                   </div>
@@ -998,7 +1006,7 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
                     </div>
                     <div className="flex -space-x-2 shrink-0">
                       {task.assigneeIds?.map((id: number) => {
-                        const res = resources.find(r => r.id === id);
+                        const res = resourceById.get(id);
 return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type={(res as any).type || 'internal'} avatarStyle={(res as any).avatarStyle} role={res.role} /> : null;
                       })}
                     </div>
@@ -1039,7 +1047,7 @@ return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type
                             </div>
                             <div className="flex -space-x-2 shrink-0">
                               {task.assigneeIds?.map((id: number) => {
-                                const res = resources.find(r => r.id === id);
+                                const res = resourceById.get(id);
 return res ? <Avatar key={id} name={res.name} avatar={res.avatar} size="xs" type={(res as any).type || 'internal'} avatarStyle={(res as any).avatarStyle} role={res.role} /> : null;
                               })}
                             </div>

@@ -12,7 +12,7 @@ import { getEffectiveStatus } from '../types/resource';
 import { syncParentDateRange } from '../services/workloadService';
 import EmptyState from './common/EmptyState';
 import { confirmDialog } from './common/ConfirmDialog';
-import { dedupeResourcesForDisplay, getResourceAliasIds } from '../utils/resourceDedup';
+import { buildResourceAliasIndex, dedupeResourcesForDisplay } from '../utils/resourceDedup';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 
 const KANBAN_INITIAL_BATCH = 20;
@@ -134,14 +134,15 @@ export const KanbanBoard: React.FC = () => {
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const rawTasks = useLiveQuery(
-    () => selectedProjectId
+    () => selectedProjectId != null
       ? db.tasks.where('projectId').equals(selectedProjectId).toArray()
-      : db.tasks.toArray(),
+      : [] as Task[],
     [selectedProjectId]
   );
 
   const resources = useLiveQuery(() => db.resources.toArray(), []) || [];
   const visibleResources = useMemo(() => dedupeResourcesForDisplay(resources.filter(r => r.status !== 'departed')), [resources]);
+  const resourceAliasesById = useMemo(() => buildResourceAliasIndex(resources), [resources]);
 
   useEffect(() => {
     if (rawTasks) {
@@ -178,7 +179,9 @@ export const KanbanBoard: React.FC = () => {
     let result = tasks;
     if (filterPersonId !== null) {
       const selected = visibleResources.find(r => r.id === filterPersonId) || resources.find(r => r.id === filterPersonId);
-      const aliasIds = selected ? getResourceAliasIds(selected, resources) : [filterPersonId];
+      const aliasIds = selected
+        ? resourceAliasesById.get(selected.id!) || [selected.id!]
+        : [filterPersonId];
       result = result.filter(t => t.assigneeIds?.some(id => aliasIds.includes(id)));
     }
     if (searchQuery.trim()) {
@@ -186,7 +189,7 @@ export const KanbanBoard: React.FC = () => {
       result = result.filter(t => t.title.toLowerCase().includes(query) || (t.description && t.description.toLowerCase().includes(query)));
     }
     return result;
-  }, [tasks, filterPersonId, searchQuery, resources, visibleResources]);
+  }, [tasks, filterPersonId, searchQuery, resources, visibleResources, resourceAliasesById]);
 
   const filteredTasks = useMemo(() => {
     if (groupBy === 'status' || statusFilter === 'all') return baseFilteredTasks;
@@ -246,7 +249,7 @@ export const KanbanBoard: React.FC = () => {
           color: 'bg-indigo-900/15',
           borderColor: 'border-indigo-800/40',
           filterFn: (t: Task) => {
-            const aliasIds = getResourceAliasIds(r, resources);
+            const aliasIds = resourceAliasesById.get(r.id!) || [r.id!];
             return t.assigneeIds?.some(id => aliasIds.includes(id)) || false;
           },
         }));
@@ -276,7 +279,7 @@ export const KanbanBoard: React.FC = () => {
           { id: 'cancelled', title: '已拒绝 / 已关闭', subtitle: '', color: 'bg-red-900/20', borderColor: 'border-red-700/40', filterFn: (t: Task) => t.status === 'cancelled' },
         ];
     }
-  }, [groupBy, resources, visibleResources]);
+  }, [groupBy, resources, visibleResources, resourceAliasesById]);
 
   useEffect(() => {
     setVisibleTaskCounts({});

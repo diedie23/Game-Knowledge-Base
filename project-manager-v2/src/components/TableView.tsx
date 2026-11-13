@@ -50,9 +50,9 @@ function TaskTableView() {
   const { selectedProjectId, openTaskModal, expandedTaskIds, toggleTaskExpansion } = useStore();
 
   const tasks = useLiveQuery(
-    () => selectedProjectId
+    () => selectedProjectId != null
       ? db.tasks.where('projectId').equals(selectedProjectId).toArray()
-      : db.tasks.toArray(),
+      : [] as Task[],
     [selectedProjectId]
   );
 

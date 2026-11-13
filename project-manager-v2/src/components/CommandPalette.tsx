@@ -90,15 +90,15 @@ export function CommandPalette() {
   // ── Live data ────────────────────────────────────────────────
   const tasks = useLiveQuery(
     () => {
-      if (!isOpen) return Promise.resolve([] as Task[]);
-      return selectedProjectId
+      if (!isOpen) return [] as Task[];
+      return selectedProjectId != null
         ? db.tasks.where('projectId').equals(selectedProjectId).toArray()
-        : db.tasks.toArray();
+        : [] as Task[];
     },
     [isOpen, selectedProjectId]
   ) ?? [];
   const resources = useLiveQuery(
-    () => isOpen ? db.resources.toArray() : Promise.resolve([] as Resource[]),
+    () => isOpen ? db.resources.toArray() : [] as Resource[],
     [isOpen]
   ) ?? [];
 

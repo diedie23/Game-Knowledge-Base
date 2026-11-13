@@ -7,7 +7,7 @@ import { DEFAULT_PROJECT_CALENDAR, isNonWorkingDay } from '../../../utils/dateUt
 import { compareResources } from '../../gantt/constants';
 import { getTaskTypeColorValue } from '../../../constants/theme';
 import { isTaskCompleted, isTaskOverdue, isTaskTerminal } from '../../../utils/taskState';
-import { dedupeResourcesForDisplay, getResourceAliasIds } from '../../../utils/resourceDedup';
+import { buildResourceAliasIndex, dedupeResourcesForDisplay } from '../../../utils/resourceDedup';
 
 export interface MemberOverviewData {
   resource: Resource;
@@ -37,7 +37,7 @@ export function useMemberStats(projectId?: number | null) {
   const tasks = useLiveQuery(
     () => projectId != null
       ? db.tasks.where('projectId').equals(projectId).toArray()
-      : db.tasks.toArray(),
+      : [] as Task[],
     [projectId],
   );
   const projects = useLiveQuery(() => db.projects.toArray());
@@ -61,31 +61,35 @@ export function useMemberStats(projectId?: number | null) {
     return ids;
   }, [tasks]);
 
-  const resourceAliasesById = useMemo(() => {
-    const result = new Map<number, number[]>();
-    if (!resources) return result;
-    resources.forEach(resource => {
-      if (resource.id !== undefined) {
-        result.set(resource.id, getResourceAliasIds(resource, resources));
-      }
-    });
-    return result;
-  }, [resources]);
+  const resourceAliasesById = useMemo(
+    () => buildResourceAliasIndex(resources || []),
+    [resources],
+  );
 
-  // Index leaf tasks once by direct assignee. Member aliases are merged below.
-  const tasksByAssigneeId = useMemo(() => {
-    const result = new Map<number, Task[]>();
+  // Build both direct-assignee indexes in one task pass. The leaf index drives
+  // member status; the complete index keeps historical/parent tasks available
+  // for the member color indicator without scanning the task table twice.
+  const taskIndexes = useMemo(() => {
+    const leafTasksByAssigneeId = new Map<number, Task[]>();
+    const allTasksByAssigneeId = new Map<number, Task[]>();
+
     (tasks || []).forEach(task => {
-      if (!task.id || parentTaskIds.has(task.id)) return;
-      if (task.projectId !== undefined && archivedProjectIds.has(task.projectId)) return;
-      if (projectId != null && task.projectId !== projectId) return;
-      (task.assigneeIds || []).forEach(resourceId => {
-        const bucket = result.get(resourceId) || [];
-        bucket.push(task);
-        result.set(resourceId, bucket);
+      const assigneeIds = task.assigneeIds || [];
+      assigneeIds.forEach(resourceId => {
+        const allBucket = allTasksByAssigneeId.get(resourceId) || [];
+        allBucket.push(task);
+        allTasksByAssigneeId.set(resourceId, allBucket);
+
+        if (!task.id || parentTaskIds.has(task.id)) return;
+        if (task.projectId !== undefined && archivedProjectIds.has(task.projectId)) return;
+        if (projectId != null && task.projectId !== projectId) return;
+        const leafBucket = leafTasksByAssigneeId.get(resourceId) || [];
+        leafBucket.push(task);
+        leafTasksByAssigneeId.set(resourceId, leafBucket);
       });
     });
-    return result;
+
+    return { leafTasksByAssigneeId, allTasksByAssigneeId };
   }, [tasks, parentTaskIds, archivedProjectIds, projectId]);
 
   const memberTasksById = useMemo(() => {
@@ -98,7 +102,7 @@ export function useMemberStats(projectId?: number | null) {
       const memberTasks: Task[] = [];
       const aliasIds = resourceAliasesById.get(resource.id) || [resource.id];
       aliasIds.forEach(aliasId => {
-        (tasksByAssigneeId.get(aliasId) || []).forEach(task => {
+        (taskIndexes.leafTasksByAssigneeId.get(aliasId) || []).forEach(task => {
           if (task.id === undefined || seen.has(task.id)) return;
           seen.add(task.id);
           memberTasks.push(task);
@@ -107,19 +111,11 @@ export function useMemberStats(projectId?: number | null) {
       result.set(resource.id, memberTasks);
     });
     return result;
-  }, [resources, resourceAliasesById, tasksByAssigneeId]);
+  }, [resources, resourceAliasesById, taskIndexes.leafTasksByAssigneeId]);
 
   const allTasksByResourceId = useMemo(() => {
     const result = new Map<number, Task[]>();
     if (!resources) return result;
-    const directTasksByAssignee = new Map<number, Task[]>();
-    (tasks || []).forEach(task => {
-      (task.assigneeIds || []).forEach(resourceId => {
-        const bucket = directTasksByAssignee.get(resourceId) || [];
-        bucket.push(task);
-        directTasksByAssignee.set(resourceId, bucket);
-      });
-    });
 
     resources.forEach(resource => {
       if (resource.id === undefined) return;
@@ -127,7 +123,7 @@ export function useMemberStats(projectId?: number | null) {
       const memberTasks: Task[] = [];
       const aliasIds = resourceAliasesById.get(resource.id) || [resource.id];
       aliasIds.forEach(aliasId => {
-        (directTasksByAssignee.get(aliasId) || []).forEach(task => {
+        (taskIndexes.allTasksByAssigneeId.get(aliasId) || []).forEach(task => {
           if (task.id === undefined || seen.has(task.id)) return;
           seen.add(task.id);
           memberTasks.push(task);
@@ -136,7 +132,7 @@ export function useMemberStats(projectId?: number | null) {
       result.set(resource.id, memberTasks);
     });
     return result;
-  }, [tasks, resources, resourceAliasesById]);
+  }, [resources, resourceAliasesById, taskIndexes.allTasksByAssigneeId]);
 
   const getResourceColor = useMemo(() => {
     const colors = new Map<number, string>();

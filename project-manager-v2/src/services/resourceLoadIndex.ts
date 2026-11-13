@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import type { Resource, Task } from '../types';
-import { dedupeResourcesForDisplay, getResourceAliasIds } from '../utils/resourceDedup';
+import { buildResourceAliasIndex, dedupeResourcesForDisplay } from '../utils/resourceDedup';
 import { getActiveLeafTasks } from '../utils/taskHierarchy';
 import { getTaskAssigneeIds } from '../utils/taskAssignee';
 import { DEFAULT_RESOURCE_CAPACITY, mergeCapacity } from './capacityService';
@@ -52,6 +52,7 @@ export function buildResourceLoadIndex(
     resources.filter(resource => resource.status !== 'departed' && resource.id != null),
   );
   const visibleByAssignmentId = new Map<number, number>();
+  const resourceAliasesById = buildResourceAliasIndex(resources);
   const capacityByResourceId = new Map(capacities.map(capacity => [capacity.resourceId, capacity]));
   const tasksByResourceDate = new Map<number, Map<string, Task[]>>();
   const loadByResourceDate = new Map<number, Map<string, number>>();
@@ -66,7 +67,7 @@ export function buildResourceLoadIndex(
     tasksByResource.set(resourceId, []);
     totalTasksByResource.set(resourceId, 0);
     overloadDaysByResource.set(resourceId, 0);
-    for (const aliasId of getResourceAliasIds(resource, resources)) {
+    for (const aliasId of resourceAliasesById.get(resourceId) || [resourceId]) {
       visibleByAssignmentId.set(aliasId, resourceId);
     }
   }

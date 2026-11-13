@@ -86,11 +86,43 @@ export function dedupeResourcesForDisplay(resources: Resource[]): Resource[] {
 }
 
 /** Task assignments on hidden duplicate records count toward the visible CP member. */
+export type ResourceAliasIndex = Map<number, number[]>;
+
+/**
+ * Build the resource alias map once for a resource collection.
+ *
+ * Supplier assignments may still point at an older duplicate record, so all
+ * same-name supplier records must resolve to the same alias set. Building the
+ * name buckets once keeps callers from doing a full resource scan per member.
+ */
+export function buildResourceAliasIndex(resources: Resource[]): ResourceAliasIndex {
+  const idsByName = new Map<string, number[]>();
+
+  // Keep the historical alias semantics: a supplier/CP record can still point
+  // at tasks assigned to a same-name internal record. Non-supplier records do
+  // not inherit aliases, which prevents unrelated same-name employees from
+  // being merged with one another.
+  resources.forEach(resource => {
+    if (!resource.id) return;
+    const key = nameKey(resource);
+    const ids = idsByName.get(key) || [];
+    ids.push(resource.id);
+    idsByName.set(key, ids);
+  });
+
+  const result: ResourceAliasIndex = new Map();
+  resources.forEach(resource => {
+    if (!resource.id) return;
+    if (!isSupplierPersonResource(resource)) {
+      result.set(resource.id, [resource.id]);
+      return;
+    }
+    result.set(resource.id, idsByName.get(nameKey(resource)) || [resource.id]);
+  });
+  return result;
+}
+
 export function getResourceAliasIds(resource: Resource, allResources: Resource[]): number[] {
   if (!resource.id) return [];
-  if (!isSupplierPersonResource(resource)) return [resource.id];
-  const key = nameKey(resource);
-  return allResources
-    .filter(candidate => candidate.id && nameKey(candidate) === key)
-    .map(candidate => candidate.id!);
+  return buildResourceAliasIndex(allResources).get(resource.id) || [resource.id];
 }
