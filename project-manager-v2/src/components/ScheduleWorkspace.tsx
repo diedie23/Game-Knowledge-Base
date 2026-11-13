@@ -222,9 +222,14 @@ export function ScheduleWorkspace() {
   }, [categoryFilter, demandGroups, deferredQuery]);
 
   const selectedGroup = useMemo(() => {
-    const selected = selectedDemandId ? demandGroups.find(group => group.demand.id === selectedDemandId) : undefined;
-    return selected || demandGroups[0];
-  }, [demandGroups, selectedDemandId]);
+    // The category/search scope must apply to the active detail panel as well
+    // as the left demand list. Otherwise the list can show one category while
+    // the task cards and team calendar remain bound to the previous first group.
+    const selected = selectedDemandId
+      ? visibleDemands.find(group => group.demand.id === selectedDemandId)
+      : undefined;
+    return selected || visibleDemands[0];
+  }, [selectedDemandId, visibleDemands]);
 
   const selectedTask = useMemo(
     () => selectedTaskId === null ? undefined : selectedGroup?.tasks.find(task => task.id === selectedTaskId),

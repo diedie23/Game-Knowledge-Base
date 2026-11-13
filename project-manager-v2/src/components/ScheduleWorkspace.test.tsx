@@ -135,6 +135,18 @@ describe('ScheduleWorkspace', () => {
     expect(screen.getAllByText('活动界面需求')[0].closest('button')).toBeTruthy();
   });
 
+  it('keeps the detail cards and team calendar inside the selected category', () => {
+    render(<ScheduleWorkspace />);
+
+    fireEvent.change(screen.getByLabelText('需求分类筛选'), { target: { value: '商城' } });
+
+    expect(screen.getAllByText('商城界面需求').length).toBeGreaterThan(0);
+    expect(screen.getByText('商城视觉设计')).toBeTruthy();
+    expect(screen.queryByText('活动界面需求')).toBeNull();
+    expect(screen.queryByText('活动视觉设计')).toBeNull();
+    expect(screen.getByText('当前需求：商城界面需求')).toBeTruthy();
+  });
+
   it('saves project calendar overrides', async () => {
     state.selectedProjectId = 1;
     render(<ScheduleWorkspace />);
@@ -161,7 +173,7 @@ describe('ScheduleWorkspace', () => {
     fireEvent.change(screen.getByLabelText('需求分类筛选'), { target: { value: '商城' } });
     expect(screen.getByRole('button', { name: /商城界面需求/ })).toBeTruthy();
     expect(screen.queryByRole('button', { name: /活动界面需求/ })).toBeNull();
-    expect(screen.getByText('商城界面需求')).toBeTruthy();
+    expect(screen.getAllByText('商城界面需求').length).toBeGreaterThan(0);
   });
 
   it('shows the real schedule when a task is outside the current window', () => {
