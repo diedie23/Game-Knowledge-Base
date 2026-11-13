@@ -34,6 +34,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   private handleRetry = (): void => {
+    const message = this.state.error?.message || '';
+    if (/dynamically imported module|module script failed|imported module/i.test(message)) {
+      window.location.replace(`${window.location.pathname}?reload=${Date.now()}${window.location.hash}`);
+      return;
+    }
     this.setState({ hasError: false, error: null });
   };
 
