@@ -9,7 +9,7 @@ const child = spawn(process.execPath, [path.join(directory, 'local-server.mjs')]
   detached: true,
   windowsHide: true,
   stdio: ['ignore', log, log],
-  env: { ...process.env, HOST: '127.0.0.1', PORT: '4173' },
+  env: { ...process.env, HOST: '127.0.0.1', PORT: '4174' },
 });
 child.unref();
 writeFileSync(path.join(directory, '_vite.pid'), String(child.pid));
