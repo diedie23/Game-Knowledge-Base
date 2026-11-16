@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { AlertCircle, ArrowRight, CalendarClock, Check, ChevronLeft, ChevronRight, Copy, ExternalLink, GitBranch, LocateFixed, RefreshCw, Search, ShieldAlert, UserRoundX, X } from 'lucide-react';
-import { useLiveQuery } from 'dexie-react-hooks';
 import type { ProjectCalendarConfig, Resource, Task } from '../types';
+import type { ResourceCapacity } from '../types/scheduling';
 import { db } from '../db/db';
 import { assessTapdScheduleReadiness, buildBatchTapdScheduleSuggestions, buildDemandSchedulePlan, buildTapdPlanningItems, buildTapdPlanningSummary, buildTapdScheduleSuggestion, findDemandForTask, formatTapdAdjustmentChecklist, getTapdScheduleDecision, getTapdScheduleDecisionLabel, latestTapdSyncAt } from '../services/tapdPlanningAssistant';
 import { updateTask } from '../services/taskService';
@@ -15,6 +15,7 @@ import { getTaskAssigneeIds, getTaskOwnerTokens, hasTaskAssignee } from '../util
 interface Props {
   tasks: Task[];
   resources: Resource[];
+  capacities: ResourceCapacity[];
   calendarConfig?: ProjectCalendarConfig;
 }
 
@@ -48,7 +49,7 @@ function syncFreshness(timestamp: number | null) {
   return { label: `${hours} 小时前同步，建议刷新`, tone: 'text-red-300 bg-red-500/10 border-red-500/20' };
 }
 
-export function DashboardTapdPlanner({ tasks, resources, calendarConfig }: Props) {
+export function DashboardTapdPlanner({ tasks, resources, capacities, calendarConfig }: Props) {
   const { setCurrentView, setHighlightedTaskIds, openTapdModal, openTaskModal } = useStore();
   const [filter, setFilter] = useState<QueueFilter>('all');
   const [focusFilter, setFocusFilter] = useState<FocusFilter>('action');
@@ -62,8 +63,6 @@ export function DashboardTapdPlanner({ tasks, resources, calendarConfig }: Props
   const [applyError, setApplyError] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const capacityRows = useLiveQuery(() => db.resourceCapacities.toArray());
-  const capacities = useMemo(() => capacityRows || [], [capacityRows]);
   const today = useMemo(() => {
     const value = new Date();
     value.setHours(0, 0, 0, 0);

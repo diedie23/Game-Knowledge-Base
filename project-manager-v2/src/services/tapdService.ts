@@ -767,34 +767,45 @@ export class TapdService {
   async getWorkitemTypes(projectId: number): Promise<{ id: string; name: string }[]> {
     const config = await this.loadConfig(projectId);
     if (!config || config.authMode !== 'rest' || !this.hasRestCredentials()) return [];
-    const response = await tapdRestFetch<{ status: number; data: any[]; info: string }>(
+    const workspaceIds = parseTapdWorkspaceIds(config.workspaceId);
+    const responses = await Promise.all(workspaceIds.map(workspaceId => tapdRestFetch<{ status: number; data: any[]; info: string }>(
       '/workitem_types',
       config,
-      { workspace_id: config.workspaceId.trim(), limit: '200', fields: 'id,name,entity_type,status' }
-    );
-    if (response?.status !== 1) throw new Error(response?.info || '无法读取 TAPD 需求类别');
-    return (Array.isArray(response.data) ? response.data : [])
+      { workspace_id: workspaceId, limit: '200', fields: 'id,name,entity_type,status' },
+    )));
+    const failed = responses.find(response => response?.status !== 1);
+    if (failed) throw new Error(failed.info || '无法读取 TAPD 需求类别');
+    const items = responses.flatMap(response => Array.isArray(response.data) ? response.data : []);
+    const unique = new Map<string, { id: string; name: string }>();
+    items
       .map(item => item?.WorkitemType || item)
       .filter(item => item?.id && item?.name && String(item.status || '3') !== '2')
-      .map(item => ({ id: String(item.id), name: String(item.name) }));
+      .forEach(item => unique.set(String(item.id), { id: String(item.id), name: String(item.name) }));
+    return [...unique.values()];
   }
 
   /** Read TAPD release plans for the current workspace. */
   async getReleasePlans(projectId: number): Promise<{ id: string; name: string; status?: string; startdate?: string; enddate?: string }[]> {
     const config = await this.loadConfig(projectId);
     if (!config || config.authMode !== 'rest' || !this.hasRestCredentials()) return [];
-    const response = await tapdRestFetch<{ status: number; data: any[]; info: string }>(
+    const workspaceIds = parseTapdWorkspaceIds(config.workspaceId);
+    const responses = await Promise.all(workspaceIds.map(workspaceId => tapdRestFetch<{ status: number; data: any[]; info: string }>(
       '/releases', config,
-      { workspace_id: config.workspaceId.trim(), limit: '200', fields: 'id,name,status,startdate,enddate', order: 'startdate desc' }
-    );
-    if (response?.status !== 1) throw new Error(response?.info || '无法读取 TAPD 发布计划');
-    return (Array.isArray(response.data) ? response.data : []).map(item => item?.Release || item)
-      .filter(item => item?.id && item?.name).map(item => ({
+      { workspace_id: workspaceId, limit: '200', fields: 'id,name,status,startdate,enddate', order: 'startdate desc' },
+    )));
+    const failed = responses.find(response => response?.status !== 1);
+    if (failed) throw new Error(failed.info || '无法读取 TAPD 发布计划');
+    const unique = new Map<string, { id: string; name: string; status?: string; startdate?: string; enddate?: string }>();
+    responses.flatMap(response => Array.isArray(response.data) ? response.data : [])
+      .map(item => item?.Release || item)
+      .filter(item => item?.id && item?.name)
+      .forEach(item => unique.set(String(item.id), {
         id: String(item.id), name: String(item.name),
         status: item.status ? String(item.status) : undefined,
         startdate: item.startdate ? String(item.startdate) : undefined,
         enddate: item.enddate ? String(item.enddate) : undefined,
       }));
+    return [...unique.values()].sort((left, right) => String(right.startdate || '').localeCompare(String(left.startdate || '')));
   }
 
   /** Enforce work-item type and release filters even if TAPD ignores combined server parameters. */
@@ -1075,41 +1086,46 @@ export class TapdService {
       throw new Error('成员分组同步目前需要 REST API 账号和密钥');
     }
 
-    const workspaceId = config.workspaceId.trim();
-    const [rolesResponse, usersResponse] = await Promise.all([
-      tapdRestFetch<{ status: number; data: Record<string, string>; info: string }>(
-        '/roles',
-        config,
-        { workspace_id: workspaceId }
-      ),
-      tapdRestFetch<{ status: number; data: any[]; info: string }>(
-        '/workspaces/users',
-        config,
-        {
-          workspace_id: workspaceId,
-          fields: 'user,user_id,role_id,name,email,real_join_time',
-        }
-      ),
-    ]);
+    const workspaceIds = parseTapdWorkspaceIds(config.workspaceId);
+    const workspaceResponses = await Promise.all(workspaceIds.map(async workspaceId => {
+      const [rolesResponse, usersResponse] = await Promise.all([
+        tapdRestFetch<{ status: number; data: Record<string, string>; info: string }>(
+          '/roles',
+          config,
+          { workspace_id: workspaceId },
+        ),
+        tapdRestFetch<{ status: number; data: any[]; info: string }>(
+          '/workspaces/users',
+          config,
+          {
+            workspace_id: workspaceId,
+            fields: 'user,user_id,role_id,name,email,real_join_time',
+          },
+        ),
+      ]);
+      if (rolesResponse?.status !== 1) {
+        throw new Error(rolesResponse?.info || `无法读取 TAPD 成员分组（工作区 ${workspaceId}）`);
+      }
+      if (usersResponse?.status !== 1 || !usersResponse?.data) {
+        throw new Error(usersResponse?.info || `无法读取 TAPD 项目成员（工作区 ${workspaceId}）`);
+      }
+      return { rolesResponse, usersResponse };
+    }));
 
-    if (rolesResponse?.status !== 1) {
-      throw new Error(rolesResponse?.info || '无法读取 TAPD 成员分组');
-    }
-    if (usersResponse?.status !== 1 || !usersResponse?.data) {
-      throw new Error(usersResponse?.info || '无法读取 TAPD 项目成员');
-    }
-    const rawUsers = usersResponse.data as any;
-    const userItems: any[] = Array.isArray(rawUsers)
-      ? rawUsers
-      : Array.isArray(rawUsers?.users)
-        ? rawUsers.users
-        : Array.isArray(rawUsers?.UserWorkspace)
-          ? rawUsers.UserWorkspace
-          : rawUsers?.UserWorkspace
-            ? [rawUsers]
-            : rawUsers && typeof rawUsers === 'object'
-              ? Object.values(rawUsers)
-              : [];
+    const userItems: any[] = workspaceResponses.flatMap(({ usersResponse }) => {
+      const rawUsers = usersResponse.data as any;
+      return Array.isArray(rawUsers)
+        ? rawUsers
+        : Array.isArray(rawUsers?.users)
+          ? rawUsers.users
+          : Array.isArray(rawUsers?.UserWorkspace)
+            ? rawUsers.UserWorkspace
+            : rawUsers?.UserWorkspace
+              ? [rawUsers]
+              : rawUsers && typeof rawUsers === 'object'
+                ? Object.values(rawUsers)
+                : [];
+    });
 
     const targetGroupRoles: Record<string, string> = {
       'UX-交互': 'UX设计',
@@ -1118,7 +1134,10 @@ export class TapdService {
       'UX-还原': '还原',
     };
     const targetGroupOrder = Object.keys(targetGroupRoles);
-    const roleNames = extractTapdRoleNames(rolesResponse.data);
+    const roleNames = new Map<string, string>();
+    workspaceResponses.forEach(({ rolesResponse }) => {
+      extractTapdRoleNames(rolesResponse.data).forEach((name, id) => roleNames.set(id, name));
+    });
     const existingResources = await db.resources.toArray();
     let nextSortOrder = existingResources.reduce((max, item) => Math.max(max, item.sortOrder || 0), 0) + 1;
     let inserted = 0;
@@ -1126,7 +1145,7 @@ export class TapdService {
     const groupCounts: Record<string, number> = Object.fromEntries(targetGroupOrder.map(group => [group, 0]));
     const groupMembers: Record<string, string[]> = Object.fromEntries(targetGroupOrder.map(group => [group, []]));
     const processedMemberKeys = new Set<string>();
-    const accountGroupOverrides: Record<string, string> = workspaceId === '70182144'
+    const accountGroupOverrides: Record<string, string> = workspaceIds.includes('70182144')
       ? { klaudzhang: 'UX-交互', v_zypgzhang: 'UX-还原' }
       : {};
 

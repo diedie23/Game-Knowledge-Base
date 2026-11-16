@@ -1,6 +1,6 @@
 import type { ProjectCalendarConfig, Resource, Task } from '../types';
 import type { ResourceCapacity } from '../types/scheduling';
-import { DEFAULT_PROJECT_CALENDAR, getNextWorkingDays } from '../utils/dateUtils';
+import { countWorkingDays, DEFAULT_PROJECT_CALENDAR, getNextWorkingDays } from '../utils/dateUtils';
 import { resourceStage, STAGES, taskStage, type CoreUxStage } from './uxStageView';
 import { countAvailableWorkingDays } from './capacityService';
 import { createScheduleScenario, estimateTaskEffort, getActiveLeafTasks, getResourceDailyHours } from './schedulingKernel';
@@ -26,6 +26,31 @@ function startOfDay(value: Date): Date {
   return date;
 }
 
+/**
+ * Allocate only the part of a scheduled task that falls inside the forecast
+ * window. Pending work intentionally keeps its full estimate elsewhere.
+ */
+export function estimateTaskEffortInWindow(
+  task: Task,
+  windowStart: Date,
+  windowEnd: Date,
+  tasks: Task[],
+  resources: Resource[],
+  calendarConfig: ProjectCalendarConfig = DEFAULT_PROJECT_CALENDAR,
+): number {
+  if (!task.startDate || !task.endDate) return 0;
+  const taskStart = startOfDay(new Date(task.startDate));
+  const taskEnd = startOfDay(new Date(task.endDate));
+  const overlapStart = taskStart > startOfDay(windowStart) ? taskStart : startOfDay(windowStart);
+  const overlapEnd = taskEnd < startOfDay(windowEnd) ? taskEnd : startOfDay(windowEnd);
+  if (overlapStart > overlapEnd) return 0;
+  const totalWorkingDays = Math.max(1, countWorkingDays(taskStart, taskEnd, calendarConfig));
+  const overlapWorkingDays = countWorkingDays(overlapStart, overlapEnd, calendarConfig);
+  if (overlapWorkingDays <= 0) return 0;
+  const totalHours = estimateTaskEffort(task, tasks, resources, calendarConfig).hours;
+  return totalHours * Math.min(1, overlapWorkingDays / totalWorkingDays);
+}
+
 export function buildStageCapacityForecast(
   tasks: Task[],
   resources: Resource[],
@@ -36,7 +61,7 @@ export function buildStageCapacityForecast(
 ): StageCapacityForecast[] {
   const start = startOfDay(today);
   const days = getNextWorkingDays(start, workingDays, calendarConfig);
-  const end = days[days.length - 1];
+  const end = days[days.length - 1] || start;
   const activeLeaves = getActiveLeafTasks(tasks);
   const scenario = createScheduleScenario(tasks, resources, capacities, start, calendarConfig);
 
@@ -49,7 +74,10 @@ export function buildStageCapacityForecast(
       (sum, resource) => sum + getResourceDailyHours(resource, scenario) * countAvailableWorkingDays(resource, days),
       0,
     ));
-    const scheduledHours = scheduled.reduce((sum, task) => sum + estimateTaskEffort(task, tasks, resources, calendarConfig).hours, 0);
+    const scheduledHours = scheduled.reduce(
+      (sum, task) => sum + estimateTaskEffortInWindow(task, start, end, tasks, resources, calendarConfig),
+      0,
+    );
     const pendingHours = pending.reduce((sum, task) => sum + estimateTaskEffort(task, tasks, resources, calendarConfig).hours, 0);
     const utilization = capacityHours ? Math.round((scheduledHours / capacityHours) * 100) : scheduledHours ? 999 : 0;
     const projectedUtilization = capacityHours ? Math.round(((scheduledHours + pendingHours) / capacityHours) * 100) : scheduledHours + pendingHours ? 999 : 0;

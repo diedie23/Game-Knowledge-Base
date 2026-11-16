@@ -2309,9 +2309,11 @@ export function TapdModal() {
                       <div className="mt-0.5 text-gray-200">{syncHealth.lastOperation === 'refresh' ? '刷新状态' : syncHealth.lastOperation === 'push' ? '推送本地修改' : syncHealth.lastOperation === 'pull' ? '拉取任务' : syncHealth.lastOperation === 'full' ? '双向同步' : '暂无记录'}</div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 border-t border-white/5 px-3 py-2.5 text-center text-[10px] sm:grid-cols-6">
+                  <div className="grid grid-cols-2 gap-2 border-t border-white/5 px-3 py-2.5 text-center text-[10px] sm:grid-cols-8">
                     <div><div className="text-base font-bold font-mono tabular-nums text-sky-300">{syncHealth.localTaskCount}</div><div className="text-gray-500">本地任务</div></div>
-                    <div><div className="text-base font-bold font-mono tabular-nums text-blue-300">{syncHealth.linkedTaskCount}</div><div className="text-gray-500">已关联 TAPD</div></div>
+                    <div><div className="text-base font-bold font-mono tabular-nums text-blue-300">{syncHealth.linkedTaskCount}</div><div className="text-gray-500">已确认工作区</div></div>
+                    <div><div className={`text-base font-bold font-mono tabular-nums ${syncHealth.missingWorkspaceCount > 0 ? 'text-amber-300' : 'text-gray-400'}`}>{syncHealth.missingWorkspaceCount}</div><div className="text-gray-500">来源待确认</div></div>
+                    <div><div className={`text-base font-bold font-mono tabular-nums ${syncHealth.otherWorkspaceCount > 0 ? 'text-orange-300' : 'text-gray-400'}`}>{syncHealth.otherWorkspaceCount}</div><div className="text-gray-500">其他工作区</div></div>
                     <div><div className="text-base font-bold font-mono tabular-nums text-gray-400">{syncHealth.lastRemoteTaskCount ?? '—'}</div><div className="text-gray-500">上次 TAPD 返回</div></div>
                     <div><div className={`text-base font-bold font-mono tabular-nums ${syncHealth.unmatchedOwnerCount > 0 ? 'text-amber-300' : 'text-emerald-300'}`}>{syncHealth.unmatchedOwnerCount}</div><div className="text-gray-500">未匹配负责人</div></div>
                     <div><div className={`text-base font-bold font-mono tabular-nums ${syncHealth.pendingChanges > 0 ? 'text-amber-300' : 'text-gray-300'}`}>{syncHealth.pendingChanges}</div><div className="text-gray-500">待推送</div></div>

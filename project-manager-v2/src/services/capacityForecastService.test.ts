@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Resource, ResourceCapacity, Task } from '../types';
-import { buildStageCapacityForecast } from './capacityForecastService';
+import { buildStageCapacityForecast, estimateTaskEffortInWindow } from './capacityForecastService';
 import { getResourceAvailability, isResourceAvailableOn } from './capacityService';
 
 const task = (id: number, overrides: Partial<Task> = {}): Task => ({ id, title: `任务${id}`, status: 'todo', priority: 'medium', progress: 0, dependencies: [], type: 'task', projectId: 1, tapdId: String(id), ...overrides });
@@ -35,6 +35,44 @@ describe('buildStageCapacityForecast', () => {
     const visual = result.find(item => item.stage === 'ui_design')!;
     expect(visual.capacityHours).toBe(40);
     expect(visual.projectedUtilization).toBe(40);
+  });
+
+  it('allocates only the scheduled work that overlaps the forecast window', () => {
+    const scheduled = task(8, {
+      title: '【视觉设计】跨窗口',
+      estimatedHours: 40,
+      startDate: new Date('2026-08-03'),
+      endDate: new Date('2026-08-07'),
+    });
+    expect(estimateTaskEffortInWindow(
+      scheduled,
+      new Date('2026-08-04'),
+      new Date('2026-08-06'),
+      [scheduled],
+      resources,
+    )).toBe(24);
+    expect(estimateTaskEffortInWindow(
+      scheduled,
+      new Date('2026-08-10'),
+      new Date('2026-08-14'),
+      [scheduled],
+      resources,
+    )).toBe(0);
+  });
+
+  it('clips date-derived effort by working-day overlap', () => {
+    const scheduled = task(9, {
+      title: '【视觉设计】按日期估算',
+      startDate: new Date('2026-08-03'),
+      endDate: new Date('2026-08-07'),
+    });
+    expect(estimateTaskEffortInWindow(
+      scheduled,
+      new Date('2026-08-05'),
+      new Date('2026-08-07'),
+      [scheduled],
+      resources,
+    )).toBe(24);
   });
 
   it('uses TAPD parent links and excludes the parent row from capacity counts', () => {

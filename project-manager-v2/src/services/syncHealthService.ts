@@ -19,6 +19,10 @@ export interface TapdSyncHealth {
   localTaskCount: number;
   linkedTaskCount: number;
   manualTaskCount: number;
+  /** TAPD-linked tasks whose source workspace cannot be proven. */
+  missingWorkspaceCount: number;
+  /** TAPD-linked tasks explicitly belonging to another workspace. */
+  otherWorkspaceCount: number;
   unmatchedOwnerCount: number;
   pendingChanges: number;
   unresolvedConflicts: number;
@@ -72,9 +76,12 @@ export async function countWorkspaceLinkedTasks(projectId: number, workspaceIds:
   const tasks = await db.tasks.where('projectId').equals(projectId).toArray();
   return tasks.filter(task => {
     if (!task.tapdId && !task.syncId) return false;
-    return workspaceSet.size === 0
-      || !task.tapdWorkspaceId
-      || workspaceSet.has(task.tapdWorkspaceId);
+    // A configured workspace must be proven by the task's own identity.
+    // Legacy rows without a workspace are intentionally excluded so that
+    // sync health cannot claim alignment across ambiguous records.
+    return workspaceSet.size === 0 || Boolean(
+      task.tapdWorkspaceId && workspaceSet.has(task.tapdWorkspaceId),
+    );
   }).length;
 }
 
@@ -105,8 +112,17 @@ export function evaluateTapdSyncStatus(params: {
   linkedTaskCount: number;
   pendingChanges: number;
   unresolvedConflicts: number;
+  missingWorkspaceCount?: number;
+  otherWorkspaceCount?: number;
 }): Pick<TapdSyncHealth, 'status' | 'statusLabel' | 'statusReason'> {
-  const { meta, linkedTaskCount, pendingChanges, unresolvedConflicts } = params;
+  const {
+    meta,
+    linkedTaskCount,
+    pendingChanges,
+    unresolvedConflicts,
+    missingWorkspaceCount = 0,
+    otherWorkspaceCount = 0,
+  } = params;
   if (!meta?.lastSuccessfulSyncAt) {
     return {
       status: 'unknown',
@@ -117,7 +133,7 @@ export function evaluateTapdSyncStatus(params: {
   const summary = meta.lastSyncSummary;
   const failed = summary?.failed || 0;
   const comparable = meta.lastSyncComparable !== false && meta.lastRemoteTaskCount !== undefined;
-  if (pendingChanges > 0 || unresolvedConflicts > 0 || failed > 0) {
+  if (pendingChanges > 0 || unresolvedConflicts > 0 || failed > 0 || missingWorkspaceCount > 0 || otherWorkspaceCount > 0) {
     return {
       status: 'attention',
       statusLabel: '需要处理同步异常',
@@ -125,6 +141,8 @@ export function evaluateTapdSyncStatus(params: {
         pendingChanges > 0 ? `${pendingChanges} 条本地修改待推送` : '',
         unresolvedConflicts > 0 ? `${unresolvedConflicts} 个冲突待解决` : '',
         failed > 0 ? `${failed} 条记录未能确认` : '',
+        missingWorkspaceCount > 0 ? `${missingWorkspaceCount} 条 TAPD 任务缺少来源工作区` : '',
+        otherWorkspaceCount > 0 ? `${otherWorkspaceCount} 条 TAPD 任务属于其他工作区` : '',
       ].filter(Boolean).join('；'),
     };
   }
@@ -172,6 +190,8 @@ export async function getTapdSyncHealth(projectId: number): Promise<TapdSyncHeal
       localTaskCount: tasks.length,
       linkedTaskCount: 0,
       manualTaskCount: tasks.length,
+      missingWorkspaceCount: 0,
+      otherWorkspaceCount: 0,
       unmatchedOwnerCount: 0,
       pendingChanges: changeLogs.length,
       unresolvedConflicts: conflicts.length,
@@ -182,18 +202,31 @@ export async function getTapdSyncHealth(projectId: number): Promise<TapdSyncHeal
   }
 
   const workspaceIds = parseTapdWorkspaceIds(config.workspaceId);
+  const isTapdLinked = (task: typeof tasks[number]) => Boolean(task.tapdId || task.syncId);
   const isLinked = (task: typeof tasks[number]) => Boolean(
-    (task.tapdId || task.syncId)
-      && (workspaceIds.length === 0 || !task.tapdWorkspaceId || workspaceIds.includes(task.tapdWorkspaceId)),
+    isTapdLinked(task)
+      && (workspaceIds.length === 0 || Boolean(
+        task.tapdWorkspaceId && workspaceIds.includes(task.tapdWorkspaceId),
+      )),
   );
   const linkedTasks = tasks.filter(isLinked);
-  const manualTasks = tasks.filter(task => !isLinked(task));
+  const missingWorkspaceCount = workspaceIds.length > 0
+    ? tasks.filter(task => isTapdLinked(task) && !task.tapdWorkspaceId).length
+    : 0;
+  const otherWorkspaceCount = workspaceIds.length > 0
+    ? tasks.filter(task => isTapdLinked(task) && Boolean(
+      task.tapdWorkspaceId && !workspaceIds.includes(task.tapdWorkspaceId),
+    )).length
+    : 0;
+  const manualTasks = tasks.filter(task => !isTapdLinked(task));
   const unmatchedOwnerCount = linkedTasks.filter(task => String(task.tapdOwner || '').trim() && getTaskAssigneeIds(task).length === 0).length;
   const status = evaluateTapdSyncStatus({
     meta,
     linkedTaskCount: linkedTasks.length,
     pendingChanges: changeLogs.length,
     unresolvedConflicts: conflicts.length,
+    missingWorkspaceCount,
+    otherWorkspaceCount,
   });
   const lastSyncAt = meta ? Math.max(meta.lastPullAt || 0, meta.lastPushAt || 0) || null : null;
 
@@ -210,6 +243,8 @@ export async function getTapdSyncHealth(projectId: number): Promise<TapdSyncHeal
     localTaskCount: tasks.length,
     linkedTaskCount: linkedTasks.length,
     manualTaskCount: manualTasks.length,
+    missingWorkspaceCount,
+    otherWorkspaceCount,
     unmatchedOwnerCount,
     pendingChanges: changeLogs.length,
     unresolvedConflicts: conflicts.length,

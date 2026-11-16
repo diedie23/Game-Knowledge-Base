@@ -59,4 +59,18 @@ describe('syncHealthService', () => {
       unresolvedConflicts: 0,
     }).status).toBe('partial');
   });
+
+  it('flags TAPD tasks whose workspace identity is missing or outside the scope', () => {
+    const result = evaluateTapdSyncStatus({
+      meta: syncedMeta({ lastRemoteTaskCount: 2 }),
+      linkedTaskCount: 2,
+      pendingChanges: 0,
+      unresolvedConflicts: 0,
+      missingWorkspaceCount: 1,
+      otherWorkspaceCount: 1,
+    });
+    expect(result.status).toBe('attention');
+    expect(result.statusReason).toContain('缺少来源工作区');
+    expect(result.statusReason).toContain('属于其他工作区');
+  });
 });

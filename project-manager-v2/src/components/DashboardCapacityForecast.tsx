@@ -1,12 +1,16 @@
 import React, { useMemo } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { Activity, ArrowRight, Users } from 'lucide-react';
-import type { Resource, Task } from '../types';
-import { db } from '../db/db';
+import type { ProjectCalendarConfig, Resource, Task } from '../types';
+import type { ResourceCapacity } from '../types/scheduling';
 import { buildStageCapacityForecast } from '../services/capacityForecastService';
 import { useStore } from '../store/useStore';
 
-interface Props { tasks: Task[]; resources: Resource[] }
+interface Props {
+  tasks: Task[];
+  resources: Resource[];
+  capacities: ResourceCapacity[];
+  calendarConfig?: ProjectCalendarConfig;
+}
 
 const STATUS_STYLE = {
   healthy: { label: '容量充足', text: 'text-emerald-300', bar: 'bg-emerald-400', card: 'border-emerald-500/15' },
@@ -14,14 +18,11 @@ const STATUS_STYLE = {
   danger: { label: '容量不足', text: 'text-red-300', bar: 'bg-red-400', card: 'border-red-500/30' },
 } as const;
 
-export function DashboardCapacityForecast({ tasks, resources }: Props) {
+export function DashboardCapacityForecast({ tasks, resources, capacities, calendarConfig }: Props) {
   const { setCurrentView } = useStore();
-  const selectedProjectId = useStore(state => state.selectedProjectId);
-  const project = useLiveQuery(() => selectedProjectId ? db.projects.get(selectedProjectId) : undefined, [selectedProjectId]);
-  const capacities = useLiveQuery(() => db.resourceCapacities.toArray());
   const forecasts = useMemo(
-    () => buildStageCapacityForecast(tasks, resources, new Date(), 10, capacities || [], project?.calendarConfig),
-    [tasks, resources, capacities, project?.calendarConfig],
+    () => buildStageCapacityForecast(tasks, resources, new Date(), 10, capacities, calendarConfig),
+    [tasks, resources, capacities, calendarConfig],
   );
   return (
     <section className="rounded-2xl border border-gray-700/50 bg-gray-900/35 p-5 shadow-lg">

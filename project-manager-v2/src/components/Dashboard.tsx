@@ -205,10 +205,7 @@ export function Dashboard() {
   
   // 手动管理重要节点 — 当 TAPD 没有返回发布计划时作为兜底
 
-  const milestoneProject = useLiveQuery(
-    () => selectedProjectId ? db.projects.get(selectedProjectId) : undefined,
-    [selectedProjectId]
-  );
+  const milestoneProject = project;
   const milestoneName = milestoneProject?.milestoneName || '下个版本';
   const milestoneDate = milestoneProject?.milestoneDate || '';
   const [isEditingMilestone, setIsEditingMilestone] = useState(false);
@@ -789,11 +786,11 @@ export function Dashboard() {
         </div>
       </div>
 
-      <DashboardTapdPlanner tasks={tasks} resources={resources} calendarConfig={projectCalendar} />
+      <DashboardTapdPlanner tasks={tasks} resources={resources} capacities={capacities} calendarConfig={projectCalendar} />
 
       <DashboardDataQuality tasks={tasks} resources={resources} />
 
-      <DashboardCapacityForecast tasks={tasks} resources={resources} />
+      <DashboardCapacityForecast tasks={tasks} resources={resources} capacities={capacities} calendarConfig={projectCalendar} />
 
       <DashboardDemandRisks tasks={tasks} resources={resources} projectId={selectedProjectId || undefined} calendarConfig={projectCalendar} riskRecords={riskRecords} />
 
