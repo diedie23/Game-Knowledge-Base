@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import type { Task } from '../types';
+import type { Resource, Task } from '../types';
 import type { TaskRisk } from './workloadService';
-import { getRiskActionPlan, getRiskActionPlanForTags, getRiskActionSummary } from './riskActionService';
+import {
+  getRiskActionPlan,
+  getRiskActionPlanForTags,
+  getRiskActionSummary,
+  validateRiskReassignment,
+} from './riskActionService';
 
 const task: Task = {
   id: 1,
@@ -56,5 +61,46 @@ describe('riskActionService', () => {
     expect(getRiskActionPlanForTags(task, ['overload', 'unassigned']).map(action => action.type)).toEqual([
       'reassign', 'split', 'reprioritize',
     ]);
+  });
+
+  it('rejects reassignment when the candidate role does not match the task stage', () => {
+    const uiTask: Task = {
+      ...task,
+      title: 'UI视觉设计',
+      startDate: new Date('2026-07-06'),
+      endDate: new Date('2026-07-06'),
+      estimatedHours: 4,
+    };
+    const developer: Resource = { id: 2, name: '动效同学', role: '动效动画', type: 'internal' };
+    expect(validateRiskReassignment({
+      task: uiTask,
+      resource: developer,
+      tasks: [uiTask],
+      resources: [developer],
+      capacities: [],
+    })).toContain('角色');
+  });
+
+  it('rejects reassignment when the candidate is unavailable on a scheduled day', () => {
+    const scheduledTask: Task = {
+      ...task,
+      startDate: new Date('2026-07-06'),
+      endDate: new Date('2026-07-06'),
+      estimatedHours: 4,
+    };
+    const onLeave: Resource = {
+      id: 3,
+      name: '休假成员',
+      role: 'UI视觉',
+      type: 'internal',
+      leaveDates: ['2026-07-06'],
+    };
+    expect(validateRiskReassignment({
+      task: scheduledTask,
+      resource: onLeave,
+      tasks: [scheduledTask],
+      resources: [onLeave],
+      capacities: [],
+    })).toContain('休假');
   });
 });

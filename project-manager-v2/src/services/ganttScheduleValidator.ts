@@ -11,6 +11,8 @@ export interface GanttDateChange {
   taskId: number;
   startDate: Date;
   endDate: Date;
+  /** Optional assignee replacement used by resource-matrix drag operations. */
+  assigneeIds?: number[];
 }
 
 export interface GanttScheduleValidationInput {
@@ -56,7 +58,12 @@ function buildMergedTasks(tasks: Task[], changes: GanttDateChange[]): Map<number
       .filter(task => task.id !== undefined)
       .map(task => {
         const change = changeById.get(task.id!);
-        return [task.id!, change ? { ...task, startDate: change.startDate, endDate: change.endDate } : task] as const;
+        return [task.id!, change ? {
+          ...task,
+          startDate: change.startDate,
+          endDate: change.endDate,
+          ...(change.assigneeIds ? { assigneeIds: [...change.assigneeIds] } : {}),
+        } : task] as const;
       }),
   );
 }
@@ -94,6 +101,16 @@ function compareDateRange(tasks: Map<number, Task>, changes: GanttDateChange[], 
     shiftedTaskCount: changedTasks.length,
     shiftedWorkingDays,
   };
+}
+
+function validateTaskIds(
+  tasks: Map<number, Task>,
+  changes: GanttDateChange[],
+  reasons: string[],
+): void {
+  changes.forEach(change => {
+    if (!tasks.has(change.taskId)) reasons.push(`找不到要调整的任务 #${change.taskId}，未保存本次排期变更`);
+  });
 }
 
 function validateWorkingDayBoundaries(
@@ -246,6 +263,7 @@ export function validateGanttScheduleChanges(input: GanttScheduleValidationInput
   const deadlineTaskIds: number[] = [];
   const overloadedResourceIds: number[] = [];
 
+  validateTaskIds(tasks, changes, reasons);
   validateWorkingDayBoundaries(tasks, changes, warnings, reasons, calendarConfig);
   validateDependencies(tasks, changes, reasons, dependencyTaskIds);
   validateParentDeadlines(tasks, changes, reasons, deadlineTaskIds);

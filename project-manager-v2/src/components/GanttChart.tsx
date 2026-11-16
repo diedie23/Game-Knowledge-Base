@@ -56,7 +56,14 @@ import { applyScheduleChanges } from '../services/scheduleChangeService';
 import { isTaskCompleted, isTaskOverdue, isTaskTerminal } from '../utils/taskState';
 import { getRequirementKindLabel } from '../utils/taskHierarchy';
 import { formatGanttValidationMessage } from '../services/ganttScheduleValidator';
-import { isHoliday as isProjectHoliday, isMakeupWorkingDay, isNonWorkingDay } from '../utils/dateUtils';
+import {
+  isHoliday as isProjectHoliday,
+  isMakeupWorkingDay,
+  isNonWorkingDay,
+  isWorkingDay,
+  countWorkingDays,
+  getNextWorkingDays,
+} from '../utils/dateUtils';
 
 // Constants, types, and sub-components are now imported from ./gantt/ sub-modules
 
@@ -558,32 +565,73 @@ export function GanttChart() {
     setContextMenu(null);
   };
 
-  const handleBatchShift = async (days: number) => {
-    for (const id of selectedTaskIds) {
-      const task = tasks?.find(t => t.id === id);
-      if (task && task.startDate && task.endDate) {
-        await trackedDb.tasks.update(id, {
-          startDate: addDays(task.startDate, days),
-          endDate: addDays(task.endDate, days)
-        }, `批量顺延 ${days} 天`);
-      }
+  const shiftWorkingDate = (date: Date, offset: number, calendarConfig?: Parameters<typeof isWorkingDay>[1]): Date => {
+    let cursor = new Date(date);
+    let remaining = Math.abs(offset);
+    const direction = offset >= 0 ? 1 : -1;
+    while (remaining > 0) {
+      cursor = addDays(cursor, direction);
+      if (isWorkingDay(cursor, calendarConfig)) remaining -= 1;
     }
+    return cursor;
+  };
+
+  const getWorkingRangeShifted = (task: Task, offset: number, calendarConfig?: Parameters<typeof isWorkingDay>[1]) => {
+    if (!task.startDate || !task.endDate) return undefined;
+    const duration = Math.max(1, countWorkingDays(task.startDate, task.endDate, calendarConfig));
+    const startDate = shiftWorkingDate(task.startDate, offset, calendarConfig);
+    const workingDays = getNextWorkingDays(startDate, duration, calendarConfig);
+    return { startDate, endDate: workingDays[workingDays.length - 1] || startDate };
+  };
+
+  const handleBatchShift = async (days: number) => {
+    const selectedTasks = tasks?.filter(task => selectedTaskIds.has(task.id!) && task.startDate && task.endDate) || [];
+    const changes = selectedTasks.flatMap(task => {
+      const range = getWorkingRangeShifted(task, days, currentProject?.calendarConfig);
+      return range && task.id !== undefined ? [{ taskId: task.id, ...range }] : [];
+    });
+    const result = await applyScheduleChanges({
+      source: 'gantt-move',
+      tasks: tasks || [],
+      resources: resources || [],
+      capacities: capacities || [],
+      calendarConfig: currentProject?.calendarConfig,
+      changes,
+      reason: `批量顺延 ${days} 个工作日`,
+      description: '通过甘特图批量顺延，统一执行项目日历、依赖、容量和父需求日期校验。',
+      projectId: selectedProjectId || undefined,
+    });
+    if (result.applied) toast.success(result.message);
+    else toast.error(result.message);
     setContextMenu(null);
   };
 
   const handleBatchAlignEnd = async () => {
     if (selectedTaskIds.size === 0) return;
-    const selectedTasks = tasks?.filter(t => selectedTaskIds.has(t.id!) && t.startDate && t.endDate) || [];
+    const selectedTasks = tasks?.filter(task => selectedTaskIds.has(task.id!) && task.startDate && task.endDate) || [];
     if (selectedTasks.length === 0) return;
-    const maxEndDate = new Date(Math.max(...selectedTasks.map(t => t.endDate!.getTime())));
-    for (const task of selectedTasks) {
-      const duration = differenceInDays(task.endDate!, task.startDate!);
-      const newStartDate = addDays(maxEndDate, -duration);
-      await trackedDb.tasks.update(task.id!, {
-        startDate: newStartDate,
-        endDate: maxEndDate
-      }, '批量对齐结束时间');
-    }
+    let maxEndDate = new Date(Math.max(...selectedTasks.map(task => task.endDate!.getTime())));
+    while (!isWorkingDay(maxEndDate, currentProject?.calendarConfig)) maxEndDate = addDays(maxEndDate, -1);
+    const changes = selectedTasks.flatMap(task => {
+      const duration = Math.max(1, countWorkingDays(task.startDate!, task.endDate!, currentProject?.calendarConfig));
+      const candidateDays = getNextWorkingDays(addDays(maxEndDate, -30), 60, currentProject?.calendarConfig);
+      const endIndex = candidateDays.findIndex(day => day.getTime() === maxEndDate.getTime());
+      const startDate = endIndex >= duration - 1 ? candidateDays[endIndex - duration + 1] : undefined;
+      return startDate && task.id !== undefined ? [{ taskId: task.id, startDate, endDate: maxEndDate }] : [];
+    });
+    const result = await applyScheduleChanges({
+      source: 'gantt-move',
+      tasks: tasks || [],
+      resources: resources || [],
+      capacities: capacities || [],
+      calendarConfig: currentProject?.calendarConfig,
+      changes,
+      reason: '批量对齐结束时间',
+      description: '通过甘特图批量对齐结束时间，统一执行项目日历、依赖、容量和父需求日期校验。',
+      projectId: selectedProjectId || undefined,
+    });
+    if (result.applied) toast.success(result.message);
+    else toast.error(result.message);
     setContextMenu(null);
   };
 

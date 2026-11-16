@@ -10,6 +10,7 @@ import {
 } from './ganttScheduleValidator';
 import {
   createScheduleSnapshot,
+  type ScheduleSnapshotRecommendation,
   type ScheduleSnapshotSource,
 } from './scheduleSnapshotService';
 
@@ -23,6 +24,7 @@ export interface ApplyScheduleChangesInput {
   reason: string;
   description?: string;
   projectId?: number;
+  recommendations?: ScheduleSnapshotRecommendation[];
   generatedAt?: number;
 }
 
@@ -80,6 +82,7 @@ export async function applyScheduleChanges(input: ApplyScheduleChangesInput): Pr
       resources: input.resources,
       capacities: input.capacities,
       changes,
+      recommendations: input.recommendations,
       validation,
       generatedAt: input.generatedAt,
     });
@@ -98,6 +101,7 @@ export async function applyScheduleChanges(input: ApplyScheduleChangesInput): Pr
       changes: {
         startDate: change.startDate,
         endDate: change.endDate,
+        ...(change.assigneeIds ? { assigneeIds: [...change.assigneeIds] } : {}),
       },
     })),
     input.reason,
@@ -121,6 +125,7 @@ export async function applyScheduleChanges(input: ApplyScheduleChangesInput): Pr
     resources: input.resources,
     capacities: input.capacities,
     changes,
+    recommendations: input.recommendations,
     validation,
     generatedAt: input.generatedAt,
     appliedAt: Date.now(),

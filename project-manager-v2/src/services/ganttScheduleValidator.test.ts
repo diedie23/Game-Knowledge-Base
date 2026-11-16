@@ -124,4 +124,38 @@ describe('ganttScheduleValidator', () => {
     expect(result.overloadedResourceIds).toEqual([1]);
     expect(result.reasons.join('')).toContain('WIP 上限');
   });
+
+  it('rejects a date change for a task that is not in the loaded project snapshot', () => {
+    const result = validateGanttScheduleChanges({
+      tasks: [task(1)],
+      changes: [{ taskId: 999, startDate: new Date('2026-07-06'), endDate: new Date('2026-07-07') }],
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.reasons.join('')).toContain('找不到要调整的任务');
+  });
+
+  it('validates assignee changes against availability after resource-matrix drag', () => {
+    const unavailable: Resource = {
+      id: 2,
+      name: '休假成员',
+      role: 'UI设计',
+      type: 'internal',
+      leaveDates: ['2026-07-06'],
+    };
+    const result = validateGanttScheduleChanges({
+      tasks: [task(1)],
+      resources: [resource, unavailable],
+      capacities: [{ resourceId: 2, dailyCapacity: 1, capacityFactor: 1, availabilityRatio: 1, maxParallelTasks: 3, updatedAt: Date.now() }],
+      changes: [{
+        taskId: 1,
+        startDate: new Date('2026-07-06'),
+        endDate: new Date('2026-07-07'),
+        assigneeIds: [2],
+      }],
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.reasons.join('')).toContain('休假');
+  });
 });

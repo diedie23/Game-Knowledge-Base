@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
 import { trackedDb } from '../store/useHistoryStore';
-import { addDays, startOfToday, format, differenceInDays, isSameDay, isWeekend } from 'date-fns';
+import { addDays, startOfToday, format, isSameDay, isWeekend } from 'date-fns';
 import { useStore } from '../store/useStore';
 import { Avatar } from './common/Avatar';
 import { Building2, User, X, Calendar, Eye, Plane, XCircle, ExternalLink } from 'lucide-react';
@@ -16,6 +16,9 @@ import { dedupeResourcesForDisplay } from '../utils/resourceDedup';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 import { buildResourceLoadIndex } from '../services/resourceLoadIndex';
 import { buildTaskHierarchyIndex } from '../utils/taskHierarchy';
+import { countWorkingDays, getNextWorkingDays } from '../utils/dateUtils';
+import { applyScheduleChanges } from '../services/scheduleChangeService';
+import { toast } from '../store/useToastStore';
 
 // --- Continuous Heatmap Color Engine ---
 function getHeatColor(load: number, maxLoad: number): string {
@@ -418,18 +421,35 @@ export function ResourceMatrix() {
   const handleDrop = async (e: React.DragEvent, resourceId: number, date: Date) => {
     e.preventDefault();
     const taskId = Number(e.dataTransfer.getData('text/plain'));
-    if (!taskId) return;
+    if (!taskId || !selectedProjectId) return;
     const task = await db.tasks.get(taskId);
-    if (!task) return;
-    const duration = (task.startDate && task.endDate) ? differenceInDays(task.endDate, task.startDate) : 0;
+    const targetResource = resources?.find(resource => resource.id === resourceId);
+    if (!task || !targetResource || task.projectId !== selectedProjectId) return;
+    const duration = task.startDate && task.endDate
+      ? Math.max(1, countWorkingDays(new Date(task.startDate), new Date(task.endDate), calendarConfig))
+      : 1;
+    const workingDays = getNextWorkingDays(date, duration, calendarConfig);
     const newAssigneeIds = task.assigneeIds?.includes(resourceId)
-      ? task.assigneeIds
+      ? [...task.assigneeIds]
       : [...(task.assigneeIds || []), resourceId];
-    await trackedDb.tasks.update(taskId, {
-      assigneeIds: newAssigneeIds,
-      startDate: date,
-      endDate: addDays(date, duration),
-    }, '矩阵拖拽调整任务排期');
+    const result = await applyScheduleChanges({
+      source: 'gantt-move',
+      tasks: tasks || [],
+      resources: resources || [],
+      capacities: capacities || [],
+      calendarConfig,
+      changes: [{
+        taskId,
+        startDate: date,
+        endDate: workingDays[workingDays.length - 1] || date,
+        assigneeIds: newAssigneeIds,
+      }],
+      reason: '资源矩阵拖拽调整任务排期',
+      description: '通过资源矩阵将任务分配给成员并调整日期，统一执行项目日历、依赖、容量和父需求日期校验。',
+      projectId: selectedProjectId,
+    });
+    if (result.applied) toast.success(result.message);
+    else toast.error(result.message);
   };
 
   // Role badge style: now imported from constants/theme

@@ -1,6 +1,11 @@
 import { addDays } from 'date-fns';
 import type { ProjectCalendarConfig, Resource, ResourceCapacity, Task } from '../types';
 import { countWorkingDays, DEFAULT_PROJECT_CALENDAR, getNextWorkingDays, isWorkingDay } from '../utils/dateUtils';
+import { getResourceAvailability, mergeCapacity } from './capacityService';
+import { estimateTaskEffort } from './schedulingKernel';
+import { getActiveLeafTasks } from '../utils/taskHierarchy';
+import { isTaskTerminal } from '../utils/taskState';
+import { resourceStage, taskStage } from './uxStageView';
 import type { RiskTag, TaskRisk } from './workloadService';
 
 export type RiskActionType =
@@ -134,6 +139,86 @@ function shiftDateRange(task: Task, calendarConfig: ProjectCalendarConfig): { st
   return { startDate, endDate: workingDays[workingDays.length - 1] || startDate };
 }
 
+function datesInRange(task: Task, calendarConfig: ProjectCalendarConfig): Date[] {
+  if (!task.startDate || !task.endDate) return [new Date()];
+  const dates: Date[] = [];
+  let cursor = new Date(task.startDate);
+  const end = new Date(task.endDate);
+  while (cursor <= end) {
+    if (isWorkingDay(cursor, calendarConfig)) dates.push(new Date(cursor));
+    cursor = addDays(cursor, 1);
+  }
+  return dates.length > 0 ? dates : [new Date(task.startDate)];
+}
+
+export interface RiskReassignmentValidationInput {
+  task: Task;
+  resource: Resource;
+  tasks: Task[];
+  resources: Resource[];
+  capacities: ResourceCapacity[];
+  calendarConfig?: ProjectCalendarConfig;
+}
+
+/**
+ * Validate a proposed risk-action reassignment against the same role, WIP,
+ * daily-capacity and per-day availability rules used by scheduling surfaces.
+ * Returns a user-facing reason when the reassignment must be rejected.
+ */
+export function validateRiskReassignment(input: RiskReassignmentValidationInput): string | undefined {
+  const calendarConfig = input.calendarConfig || DEFAULT_PROJECT_CALENDAR;
+  const { task, resource } = input;
+  if (resource.id === undefined) return '所选成员缺少本地 ID，未执行改派';
+  if (resource.status === 'departed') return '所选成员已离职，未执行改派';
+
+  const requiredStage = taskStage(task, input.resources);
+  const candidateStage = resourceStage(resource);
+  if (requiredStage && candidateStage && requiredStage !== candidateStage) {
+    const stageLabels = { interaction: '交互', ui_design: '视觉', implementation: '还原', motion: '动效' } as const;
+    return `所选成员角色为${stageLabels[candidateStage]}，与任务所需的${stageLabels[requiredStage]}不匹配`;
+  }
+
+  const capacity = mergeCapacity(resource, input.capacities.find(item => item.resourceId === resource.id));
+  const activeTasks = getActiveLeafTasks(input.tasks).filter(candidate =>
+    candidate.id !== task.id
+    && !isTaskTerminal(candidate)
+    && candidate.assigneeIds?.includes(resource.id!),
+  );
+  const taskEffort = estimateTaskEffort(task, input.tasks, input.resources, calendarConfig).hours;
+  const taskDays = task.startDate && task.endDate
+    ? Math.max(1, countWorkingDays(new Date(task.startDate), new Date(task.endDate), calendarConfig))
+    : 1;
+  const taskDailyHours = taskEffort / taskDays;
+
+  for (const day of datesInRange(task, calendarConfig)) {
+    const availability = getResourceAvailability(resource, day);
+    if (!availability.available) {
+      return `${resource.name} 在 ${day.toLocaleDateString('zh-CN')} ${availability.reason || '不可用'}，未执行改派`;
+    }
+    const overlapping = activeTasks.filter(candidate =>
+      candidate.startDate && candidate.endDate
+      && new Date(candidate.startDate) <= day
+      && new Date(candidate.endDate) >= day,
+    );
+    const parallelCount = overlapping.length + 1;
+    if (parallelCount > capacity.maxParallelTasks) {
+      return `${resource.name} 在 ${day.toLocaleDateString('zh-CN')} 将达到 ${parallelCount} 个并行任务，超过 WIP 上限 ${capacity.maxParallelTasks}`;
+    }
+    const usedHours = overlapping.reduce((sum, candidate) => {
+      const effort = estimateTaskEffort(candidate, input.tasks, input.resources, calendarConfig).hours;
+      const days = candidate.startDate && candidate.endDate
+        ? Math.max(1, countWorkingDays(new Date(candidate.startDate), new Date(candidate.endDate), calendarConfig))
+        : 1;
+      return sum + effort / days;
+    }, taskDailyHours);
+    const dailyHours = capacity.dailyCapacity * capacity.capacityFactor * capacity.availabilityRatio * availability.capacityMultiplier * 8;
+    if (dailyHours <= 0 || usedHours > dailyHours + 0.01) {
+      return `${resource.name} 在 ${day.toLocaleDateString('zh-CN')} 预计占用 ${usedHours.toFixed(1)}h，超过可用日产能 ${Math.max(0, dailyHours).toFixed(1)}h`;
+    }
+  }
+  return undefined;
+}
+
 /** Execute a risk action against local planning data; TAPD is never written here. */
 export async function executeRiskAction(input: ExecuteRiskActionInput): Promise<ExecuteRiskActionResult> {
   const calendarConfig = input.calendarConfig || DEFAULT_PROJECT_CALENDAR;
@@ -157,27 +242,47 @@ export async function executeRiskAction(input: ExecuteRiskActionInput): Promise<
 
   if (input.action === 'reassign') {
     if (!input.resourceId) return { applied: false, message: '请先选择要改派的成员' };
+    if (input.task.assigneeIds?.includes(input.resourceId)) {
+      return { applied: false, message: '所选成员已经是该任务负责人，无需重复改派' };
+    }
     const resource = input.resources?.find(item => item.id === input.resourceId);
-    if (!resource || resource.status === 'departed') return { applied: false, message: '所选成员不可用，未执行改派' };
+    if (!resource) return { applied: false, message: '所选成员不存在，未执行改派' };
+    const validationMessage = validateRiskReassignment({
+      task: input.task,
+      resource,
+      tasks: input.tasks,
+      resources: input.resources || [],
+      capacities: input.capacities || [],
+      calendarConfig,
+    });
+    if (validationMessage) return { applied: false, message: validationMessage };
     await trackedDb.tasks.update(input.task.id, { assigneeIds: [input.resourceId] }, '风险处置：改派任务负责人');
     return { applied: true, message: `已将「${input.task.title}」改派给${resource.name}` };
   }
 
   if (input.action === 'split') {
+    const splitTitle = `${input.task.title} · 拆分执行项`;
+    const duplicate = input.tasks.find(candidate =>
+      candidate.parentId === input.task.id
+      && (candidate.title === splitTitle || candidate.notes?.includes(`原任务：${input.task.title}`)),
+    );
+    if (duplicate) return { applied: false, message: `「${input.task.title}」已有风险拆分执行项，未重复创建` };
     const estimatedHours = Math.max(1, Math.ceil((input.task.estimatedHours || 16) / 2));
     const createdTaskId = await trackedDb.tasks.add({
-      title: `${input.task.title} · 拆分执行项`,
+      title: splitTitle,
       description: input.task.description,
       notes: `由风险处置拆分生成，原任务：${input.task.title}`,
       status: 'todo',
       priority: input.task.priority,
       progress: 0,
-      dependencies: [],
+      dependencies: input.task.dependencies ? [...input.task.dependencies] : [],
       type: input.task.type,
       projectId: input.task.projectId,
       parentId: input.task.id,
       assigneeIds: input.task.assigneeIds ? [...input.task.assigneeIds] : undefined,
       estimatedHours,
+      workCategory: input.task.workCategory,
+      module: input.task.module,
     }, '风险处置：拆分任务');
     return { applied: true, createdTaskId, message: `已为「${input.task.title}」创建本地拆分执行项` };
   }
