@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, GitBranch, ShieldAlert } from 'lucide-react';
-import { useLiveQuery } from 'dexie-react-hooks';
 import type { ProjectCalendarConfig, Resource, RiskRecord, RiskTrackingStatus, Task } from '../types';
 import { db } from '../db/db';
 import { buildDemandRiskGroups } from '../services/tapdPlanningAssistant';
@@ -12,6 +11,7 @@ interface Props {
   resources: Resource[];
   projectId?: number;
   calendarConfig?: ProjectCalendarConfig;
+  riskRecords: RiskRecord[];
 }
 
 const LEVEL_STYLE = {
@@ -32,15 +32,11 @@ const RISK_STATUS_LABEL: Record<RiskTrackingStatus, string> = {
 
 const demandRiskId = (task: Task) => `demand:${getTaskIdentity(task)}`;
 
-export function DashboardDemandRisks({ tasks, resources, projectId, calendarConfig }: Props) {
+export function DashboardDemandRisks({ tasks, resources, projectId, calendarConfig, riskRecords }: Props) {
   const { openTaskModal } = useStore();
   const [filter, setFilter] = useState<'all' | 'escalate' | 'checkpoint' | 'unowned'>('all');
   const [page, setPage] = useState(1);
   const pageSize = 8;
-  const riskRecords = useLiveQuery<RiskRecord[]>(
-    () => projectId ? db.riskRecords.where('projectId').equals(projectId).toArray() : [] as RiskRecord[],
-    [projectId],
-  ) || [];
   const recordByRiskId = useMemo(() => new Map(riskRecords.map(record => [record.riskId, record])), [riskRecords]);
   const allGroups = useMemo(() => buildDemandRiskGroups(tasks, resources, new Date(), calendarConfig), [tasks, resources, calendarConfig]);
   const filteredGroups = useMemo(() => allGroups.filter(group => {

@@ -19,6 +19,8 @@ import { DashboardWeeklyReport } from './DashboardWeeklyReport';
 import { DashboardCapacityForecast } from './DashboardCapacityForecast';
 import { DashboardDataQuality } from './DashboardDataQuality';
 import { buildReleasePlanProgress, releasePlanDateValue, selectCurrentReleasePlan, type TapdReleasePlan } from '../services/releasePlanService';
+import { buildDemandRiskGroups } from '../services/tapdPlanningAssistant';
+import { getTaskIdentity } from '../utils/tapdIdentity';
 import { buildTaskHierarchyIndex, getTaskParent } from '../utils/taskHierarchy';
 import type { ProjectCalendarConfig, Task, RiskRecord } from '../types';
 
@@ -204,7 +206,7 @@ export function Dashboard() {
   // 手动管理重要节点 — 当 TAPD 没有返回发布计划时作为兜底
 
   const milestoneProject = useLiveQuery(
-    () => selectedProjectId ? db.projects.get(selectedProjectId) : db.projects.toCollection().first(),
+    () => selectedProjectId ? db.projects.get(selectedProjectId) : undefined,
     [selectedProjectId]
   );
   const milestoneName = milestoneProject?.milestoneName || '下个版本';
@@ -501,7 +503,19 @@ export function Dashboard() {
     return { total, completed, inProgress, unscheduled, completionRate, thisWeekCompleted, lastWeekCompleted, weeklyTrend };
   }, [actionableTasks, activeActionableTasks, today]);
 
-  const openRiskCount = riskRecords.filter(record => !['closed', 'accepted'].includes(record.status)).length;
+  const liveRiskGroups = useMemo(
+    () => selectedProjectId == null ? [] : buildDemandRiskGroups(tasks, resources, today, projectCalendar),
+    [selectedProjectId, tasks, resources, today, projectCalendar],
+  );
+  const activeRiskGroupIds = useMemo(
+    () => new Set(liveRiskGroups
+      .filter(group => group.escalation !== 'normal')
+      .map(group => `demand:${getTaskIdentity(group.demand)}`)),
+    [liveRiskGroups],
+  );
+  const openRiskCount = activeRiskGroupIds.size + riskRecords.filter(record =>
+    !['closed', 'accepted'].includes(record.status) && !activeRiskGroupIds.has(record.riskId),
+  ).length;
   const featureStatus = [
     {
       label: 'TAPD / 发布计划',
@@ -781,7 +795,7 @@ export function Dashboard() {
 
       <DashboardCapacityForecast tasks={tasks} resources={resources} />
 
-      <DashboardDemandRisks tasks={tasks} resources={resources} projectId={selectedProjectId || undefined} calendarConfig={projectCalendar} />
+      <DashboardDemandRisks tasks={tasks} resources={resources} projectId={selectedProjectId || undefined} calendarConfig={projectCalendar} riskRecords={riskRecords} />
 
       <DashboardWeeklyReport tasks={tasks} resources={resources} projectId={selectedProjectId || undefined} calendarConfig={projectCalendar} />
 
