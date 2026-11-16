@@ -243,7 +243,8 @@ export const trackedDb = {
 
     /** Add a task with history tracking, returns new id */
     async add(task: Task, label?: string): Promise<number> {
-      const id = await db.tasks.add(task);
+      const taskToAdd: Task = task.createdAt ? task : { ...task, createdAt: new Date() };
+      const id = await db.tasks.add(taskToAdd);
       const created = await db.tasks.get(id);
 
       // Track creation for TAPD sync

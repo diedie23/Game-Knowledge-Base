@@ -63,6 +63,9 @@ export interface Task {
   tapdPriorityLabel?: string;
   tapdOwner?: string;
 
+  /** Source creation date; TAPD tasks use the authoritative TAPD created field. */
+  createdAt?: Date;
+
   /** Actual completion date (set when task is marked as done) */
   completedAt?: Date;
 

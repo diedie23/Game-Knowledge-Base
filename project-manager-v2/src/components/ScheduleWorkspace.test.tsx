@@ -31,15 +31,15 @@ const state = vi.hoisted(() => {
     projectUpdate: vi.fn(async (..._args: unknown[]) => 1),
     dateAt,
     tasks: [
-      makeTask({ id: 1, title: '商城界面需求', tapdWorkitemTypeName: 'UIStory', module: '商城' }),
-      makeTask({ id: 2, parentId: 1, title: '商城交互方案', status: 'done', assigneeIds: [10], startDate: dateAt(-2), endDate: dateAt(-1), estimatedHours: 6 }),
-      makeTask({ id: 3, parentId: 1, title: '商城视觉设计', status: 'in_progress', assigneeIds: [11], startDate: dateAt(1), endDate: dateAt(3), dependencies: [2], estimatedHours: 12.5, externalUrl: 'https://tapd.example/story/3' }),
-      makeTask({ id: 4, parentId: 1, title: '商城还原开发', status: 'todo', assigneeIds: [10], startDate: dateAt(4), endDate: dateAt(6), dependencies: [3], estimatedHours: 20 }),
+      makeTask({ id: 1, title: '商城界面需求', tapdWorkitemTypeName: 'UIStory', module: '商城', createdAt: dateAt(-100) }),
+      makeTask({ id: 2, parentId: 1, title: '商城交互方案', status: 'done', assigneeIds: [10], startDate: dateAt(-2), endDate: dateAt(-1), estimatedHours: 6, createdAt: dateAt(-3) }),
+      makeTask({ id: 3, parentId: 1, title: '商城视觉设计', status: 'in_progress', assigneeIds: [11], startDate: dateAt(1), endDate: dateAt(3), dependencies: [2], estimatedHours: 12.5, externalUrl: 'https://tapd.example/story/3', createdAt: dateAt(-2) }),
+      makeTask({ id: 4, parentId: 1, title: '商城还原开发', status: 'todo', assigneeIds: [10], startDate: dateAt(4), endDate: dateAt(6), dependencies: [3], estimatedHours: 20, createdAt: dateAt(-1) }),
       makeTask({ id: 7, parentId: 1, title: '商城程序接入', status: 'todo', assigneeIds: [12], tapdWorkitemTypeName: '开发子需求', startDate: dateAt(2), endDate: dateAt(5) }),
       makeTask({ id: 8, parentId: 1, title: '【交互】商城历史完成环节', status: 'done', assigneeIds: [12], completedAt: dateAt(-3) }),
       makeTask({ id: 9, parentId: 1, title: '商城窗口外排期任务', status: 'todo', assigneeIds: [11], startDate: dateAt(30), endDate: dateAt(32) }),
-      makeTask({ id: 5, title: '活动界面需求', tapdWorkitemTypeName: 'UIStory', module: '活动' }),
-      makeTask({ id: 6, parentId: 5, title: '活动视觉设计', status: 'todo', assigneeIds: [11], startDate: dateAt(2), endDate: dateAt(5) }),
+      makeTask({ id: 5, title: '活动界面需求', tapdWorkitemTypeName: 'UIStory', module: '活动', createdAt: dateAt(-5) }),
+      makeTask({ id: 6, parentId: 5, title: '活动视觉设计', status: 'todo', assigneeIds: [11], startDate: dateAt(2), endDate: dateAt(5), createdAt: dateAt(-4) }),
     ] as Task[],
     resources: [
       { id: 10, name: '小林', role: '交互设计', status: 'active' },
@@ -174,6 +174,85 @@ describe('ScheduleWorkspace', () => {
     expect(screen.getByRole('button', { name: /商城界面需求/ })).toBeTruthy();
     expect(screen.queryByRole('button', { name: /活动界面需求/ })).toBeNull();
     expect(screen.getAllByText('商城界面需求').length).toBeGreaterThan(0);
+  });
+
+  it('filters the complete demand list by source creation time', () => {
+    render(<ScheduleWorkspace />);
+
+    fireEvent.change(screen.getByLabelText('创建时间筛选'), { target: { value: '7d' } });
+    expect(screen.getByRole('button', { name: /活动界面需求/ })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /商城界面需求/ })).toBeNull();
+
+    fireEvent.change(screen.getByLabelText('创建时间筛选'), { target: { value: 'older' } });
+    expect(screen.getByRole('button', { name: /商城界面需求/ })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /活动界面需求/ })).toBeNull();
+  });
+
+  it('sorts demand groups and their child tasks by source creation time', () => {
+    render(<ScheduleWorkspace />);
+    const demandSection = screen.getByText('需求前后置链').closest('section');
+    if (!demandSection) throw new Error('需求列表区域未渲染');
+    const demandButtons = () => within(demandSection)
+      .getAllByRole('button')
+      .filter(button => /界面需求/.test(button.textContent || ''));
+
+    fireEvent.change(screen.getByLabelText('需求排序方式'), { target: { value: 'created_desc' } });
+    expect(demandButtons()[0].textContent).toContain('活动界面需求');
+    fireEvent.click(screen.getByRole('button', { name: /商城界面需求/ }));
+    const childRows = Array.from(demandSection.querySelectorAll('[role="button"]'))
+      .filter(row => ['商城交互方案', '商城视觉设计', '商城还原开发'].some(title => row.textContent?.includes(title)));
+    expect(childRows[0].textContent).toContain('商城还原开发');
+    expect(childRows[1].textContent).toContain('商城视觉设计');
+    expect(childRows[2].textContent).toContain('商城交互方案');
+
+    fireEvent.change(screen.getByLabelText('需求排序方式'), { target: { value: 'created_asc' } });
+    expect(demandButtons()[0].textContent).toContain('商城界面需求');
+  });
+
+  it('keeps demand groups without source creation dates at the end of a creation sort', () => {
+    const originalTasks = state.tasks;
+    state.tasks = [
+      ...originalTasks,
+      {
+        id: 20,
+        title: '历史界面需求',
+        status: 'todo',
+        progress: 0,
+        dependencies: [],
+        type: 'story',
+        projectId: 1,
+        tapdWorkitemTypeName: 'UIStory',
+        module: '历史',
+      },
+      {
+        id: 21,
+        parentId: 20,
+        title: '历史视觉设计',
+        status: 'todo',
+        progress: 0,
+        dependencies: [],
+        type: 'story',
+        projectId: 1,
+        assigneeIds: [11],
+        startDate: state.dateAt(2),
+        endDate: state.dateAt(3),
+      },
+    ];
+
+    try {
+      render(<ScheduleWorkspace />);
+      fireEvent.change(screen.getByLabelText('需求排序方式'), { target: { value: 'created_desc' } });
+      const demandSection = screen.getByText('需求前后置链').closest('section');
+      if (!demandSection) throw new Error('需求列表区域未渲染');
+      const demandButtons = within(demandSection)
+        .getAllByRole('button')
+        .filter(button => /界面需求/.test(button.textContent || ''));
+      expect(demandButtons[demandButtons.length - 1]?.textContent).toContain('历史界面需求');
+      expect(within(demandSection).getByText('创建时间未知')).toBeTruthy();
+    } finally {
+      cleanup();
+      state.tasks = originalTasks;
+    }
   });
 
   it('shows the real schedule when a task is outside the current window', () => {

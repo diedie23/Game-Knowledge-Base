@@ -93,6 +93,8 @@ export interface TapdStory {
     status: string;
     /** Current TAPD workflow stage. */
     step?: string;
+    /** TAPD story creation timestamp used by the collaborative list sort/filter. */
+    created?: string;
     /** Actual completion timestamp returned by TAPD. */
     completed?: string;
     priority: string;

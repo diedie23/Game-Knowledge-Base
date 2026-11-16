@@ -46,6 +46,8 @@ const DEMAND_LIST_WIDTH = 280;
 type CalendarFocusMode = 'demand' | 'task' | 'dependencies';
 type PlanningView = 'all' | 'unscheduled' | 'capacity' | 'dependency' | 'overdue';
 type ResourceLoadFilter = 'all' | 'free' | 'full' | 'overload' | 'unavailable' | 'unknown';
+type ScheduleListSort = 'schedule' | 'created_desc' | 'created_asc';
+type CreationFilter = 'all' | '7d' | '30d' | '90d' | 'older';
 
 function dayLabel(day: Date) {
   return format(day, 'MM/dd', { locale: zhCN });
@@ -53,6 +55,25 @@ function dayLabel(day: Date) {
 
 function dateValue(value?: Date) {
   return value ? startOfDay(new Date(value)).getTime() : undefined;
+}
+
+function createdTimestamp(task?: Task): number | undefined {
+  if (!task?.createdAt) return undefined;
+  const timestamp = new Date(task.createdAt).getTime();
+  return Number.isFinite(timestamp) ? timestamp : undefined;
+}
+
+function compareCreatedTasks(left: Task, right: Task, direction: 'asc' | 'desc'): number {
+  const leftCreated = createdTimestamp(left);
+  const rightCreated = createdTimestamp(right);
+  // Keep records with an unknown source creation time at the end of either
+  // direction; do not pretend updatedAt is TAPD's creation timestamp.
+  if (leftCreated === undefined && rightCreated !== undefined) return 1;
+  if (leftCreated !== undefined && rightCreated === undefined) return -1;
+  if (leftCreated !== undefined && rightCreated !== undefined && leftCreated !== rightCreated) {
+    return direction === 'asc' ? leftCreated - rightCreated : rightCreated - leftCreated;
+  }
+  return (left.id ?? 0) - (right.id ?? 0);
 }
 
 function taskOwnerNames(task: Task, resources: Resource[] | Map<number, Resource>): string {
@@ -130,6 +151,8 @@ export function ScheduleWorkspace() {
   const projectCalendar = project?.calendarConfig || DEFAULT_PROJECT_CALENDAR;
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [creationFilter, setCreationFilter] = useState<CreationFilter>('all');
+  const [listSort, setListSort] = useState<ScheduleListSort>('schedule');
   const [selectedDemandId, setSelectedDemandId] = useState<number | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [planningView, setPlanningView] = useState<PlanningView>('all');
@@ -199,13 +222,35 @@ export function ScheduleWorkspace() {
       if (!current.tasks.some(item => item.id === task.id)) current.tasks.push(task);
       grouped.set(demand.id, current);
     });
-    return [...grouped.values()].map(group => ({
-      ...group,
-      category: group.demand.module?.trim() || '未分类',
-      tasks: [...group.tasks].sort((left, right) => (dateValue(left.startDate) || Infinity) - (dateValue(right.startDate) || Infinity)),
-      endDate: group.tasks.reduce<number | undefined>((latest, task) => Math.max(latest || 0, dateValue(task.endDate) || 0) || latest, undefined),
-    })).sort((left, right) => (left.endDate || Infinity) - (right.endDate || Infinity));
-  }, [demandByTaskId, schedulableLeaves, timelineLeaves]);
+    return [...grouped.values()].map(group => {
+      const allGroupTasks = [group.demand, ...group.tasks];
+      const createdAt = allGroupTasks
+        .map(createdTimestamp)
+        .filter((value): value is number => value !== undefined)
+        .sort((left, right) => left - right)[0];
+      const tasks = [...group.tasks].sort((left, right) => {
+        if (listSort === 'created_asc') return compareCreatedTasks(left, right, 'asc');
+        if (listSort === 'created_desc') return compareCreatedTasks(left, right, 'desc');
+        return (dateValue(left.startDate) || Infinity) - (dateValue(right.startDate) || Infinity);
+      });
+      return {
+        ...group,
+        category: group.demand.module?.trim() || '未分类',
+        tasks,
+        createdAt,
+        endDate: group.tasks.reduce<number | undefined>((latest, task) => Math.max(latest || 0, dateValue(task.endDate) || 0) || latest, undefined),
+      };
+    }).sort((left, right) => {
+      if (listSort === 'created_asc' || listSort === 'created_desc') {
+        if (left.createdAt === undefined && right.createdAt !== undefined) return 1;
+        if (left.createdAt !== undefined && right.createdAt === undefined) return -1;
+        if (left.createdAt !== undefined && right.createdAt !== undefined && left.createdAt !== right.createdAt) {
+          return listSort === 'created_asc' ? left.createdAt - right.createdAt : right.createdAt - left.createdAt;
+        }
+      }
+      return (left.endDate || Infinity) - (right.endDate || Infinity);
+    });
+  }, [demandByTaskId, listSort, schedulableLeaves, timelineLeaves]);
 
   const categoryOptions = useMemo(
     () => [...new Set(demandGroups.map(group => group.category))].sort((left, right) => left.localeCompare(right, 'zh-CN')),
@@ -214,12 +259,23 @@ export function ScheduleWorkspace() {
 
   const visibleDemands = useMemo(() => {
     const normalized = deferredQuery.trim().toLowerCase();
+    const now = startOfDay(new Date()).getTime();
+    const filterDays = creationFilter === '7d' ? 7 : creationFilter === '30d' ? 30 : creationFilter === '90d' ? 90 : undefined;
+    const filterStart = filterDays === undefined ? undefined : now - filterDays * 86_400_000;
     return demandGroups.filter(group => {
       if (categoryFilter !== 'all' && group.category !== categoryFilter) return false;
+      if (creationFilter !== 'all') {
+        if (group.createdAt === undefined) return false;
+        if (creationFilter === 'older') {
+          if (group.createdAt >= now - 90 * 86_400_000) return false;
+        } else if (filterStart === undefined || group.createdAt < filterStart || group.createdAt > now) {
+          return false;
+        }
+      }
       if (!normalized) return true;
       return [group.demand.title, group.demand.tapdId, group.demand.module].filter(Boolean).join(' ').toLowerCase().includes(normalized);
     });
-  }, [categoryFilter, demandGroups, deferredQuery]);
+  }, [categoryFilter, creationFilter, demandGroups, deferredQuery]);
 
   const selectedGroup = useMemo(() => {
     // The category/search scope must apply to the active detail panel as well
@@ -588,7 +644,7 @@ export function ScheduleWorkspace() {
         <section className="flex min-h-[360px] min-w-0 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121722] xl:min-w-[680px] xl:flex-[0.9]">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-gray-800 px-3 py-2.5">
             <div className="flex min-w-0 items-center gap-2"><GitBranch size={14} className="shrink-0 text-cyan-300" /><span className="text-xs font-semibold text-gray-200">需求前后置链</span><span className="text-[10px] text-gray-600">{visibleDemands.length} 个需求</span>{selectedGroup && <span className="max-w-[280px] truncate text-[10px] text-gray-500">当前：{selectedGroup.demand.title}</span>}</div>
-            <div className="flex items-center gap-1.5"><label htmlFor="schedule-view" className="text-[10px] text-gray-500">视图</label><select id="schedule-view" aria-label="排期工作模式" value={planningView} onChange={event => { setPlanningView(event.target.value as PlanningView); setSelectedTaskId(null); setFocusMode('demand'); }} className="max-w-[120px] rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-[10px] text-gray-300 outline-none focus:border-indigo-500"><option value="all">全部任务</option><option value="unscheduled">待排期</option><option value="capacity">容量风险</option><option value="dependency">依赖风险</option><option value="overdue">已逾期</option></select><label htmlFor="schedule-category" className="text-[10px] text-gray-500">分类</label><select id="schedule-category" aria-label="需求分类筛选" value={categoryFilter} onChange={event => { setCategoryFilter(event.target.value); setSelectedDemandId(null); setSelectedTaskId(null); setPlanningView('all'); setFocusMode('demand'); setOwnerFilter('demand'); }} className="max-w-[150px] rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-[10px] text-gray-300 outline-none focus:border-indigo-500"><option value="all">全部分类</option>{categoryOptions.map(category => <option key={category} value={category}>{category}</option>)}</select><div className="relative"><Search size={12} className="absolute left-2 top-2 text-gray-600" /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索需求" className="w-36 rounded border border-gray-700 bg-gray-900/80 py-1.5 pl-7 pr-2 text-[10px] text-gray-300 outline-none focus:border-indigo-500" /></div></div>
+            <div className="flex flex-wrap items-center gap-1.5"><label htmlFor="schedule-view" className="text-[10px] text-gray-500">视图</label><select id="schedule-view" aria-label="排期工作模式" value={planningView} onChange={event => { setPlanningView(event.target.value as PlanningView); setSelectedTaskId(null); setFocusMode('demand'); }} className="max-w-[120px] rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-[10px] text-gray-300 outline-none focus:border-indigo-500"><option value="all">全部任务</option><option value="unscheduled">待排期</option><option value="capacity">容量风险</option><option value="dependency">依赖风险</option><option value="overdue">已逾期</option></select><label htmlFor="schedule-category" className="text-[10px] text-gray-500">分类</label><select id="schedule-category" aria-label="需求分类筛选" value={categoryFilter} onChange={event => { setCategoryFilter(event.target.value); setSelectedDemandId(null); setSelectedTaskId(null); setPlanningView('all'); setFocusMode('demand'); setOwnerFilter('demand'); }} className="max-w-[150px] rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-[10px] text-gray-300 outline-none focus:border-indigo-500"><option value="all">全部分类</option>{categoryOptions.map(category => <option key={category} value={category}>{category}</option>)}</select><label htmlFor="schedule-created-filter" className="text-[10px] text-gray-500">创建筛选</label><select id="schedule-created-filter" aria-label="创建时间筛选" value={creationFilter} onChange={event => { setCreationFilter(event.target.value as CreationFilter); setSelectedDemandId(null); setSelectedTaskId(null); }} className="max-w-[120px] rounded border border-gray-700 bg-gray-900 px-2 py-1.5 text-[10px] text-gray-300 outline-none focus:border-indigo-500"><option value="all">全部创建时间</option><option value="7d">最近 7 天</option><option value="30d">最近 30 天</option><option value="90d">最近 90 天</option><option value="older">90 天以前</option></select><label htmlFor="schedule-list-sort" className="text-[10px] text-gray-500">排序</label><select id="schedule-list-sort" aria-label="需求排序方式" value={listSort} onChange={event => { setListSort(event.target.value as ScheduleListSort); setSelectedDemandId(null); setSelectedTaskId(null); }} className="max-w-[140px] rounded border border-indigo-500/30 bg-indigo-500/[0.08] px-2 py-1.5 text-[10px] text-indigo-100 outline-none focus:border-indigo-500"><option value="schedule">按排期结束时间</option><option value="created_desc">创建时间：新到旧</option><option value="created_asc">创建时间：旧到新</option></select><div className="relative"><Search size={12} className="absolute left-2 top-2 text-gray-600" /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索需求 / TAPD ID" aria-label="搜索需求" className="w-40 rounded border border-gray-700 bg-gray-900/80 py-1.5 pl-7 pr-2 text-[10px] text-gray-300 outline-none focus:border-indigo-500" /></div></div>
           </div>
           {selectedTask && <div className="shrink-0 border-b border-indigo-500/25 bg-indigo-500/[0.08] px-3 py-2.5" aria-label="当前任务上下文">
             <div className="flex items-start justify-between gap-3">
@@ -622,7 +678,7 @@ export function ScheduleWorkspace() {
                     style={{ transform: `translateY(${virtualRow.start}px)` }}
                   >
                     <div className="flex items-start gap-1.5"><span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${selected ? 'bg-indigo-400' : 'bg-gray-600'}`} /><span className={`line-clamp-2 text-[11px] leading-4 ${selected ? 'text-indigo-100' : 'text-gray-300'}`}>{group.demand.title}</span></div>
-                    <div className="mt-1.5 flex items-center justify-between text-[9px] text-gray-600"><span>{group.tasks.length} 个叶子任务</span>{hasUnscheduled && <span className="text-amber-400">有未排期</span>}</div>
+                    <div className="mt-1.5 flex items-center justify-between text-[9px] text-gray-600"><span>{group.tasks.length} 个叶子任务</span>{hasUnscheduled && <span className="text-amber-400">有未排期</span>}</div><div className="mt-1 text-[9px] text-gray-600">{group.createdAt ? `创建 ${format(new Date(group.createdAt), 'yyyy-MM-dd')}` : '创建时间未知'}</div>
                   </button>;
                 })}
                 {visibleDemands.length === 0 && <div className="p-4 text-center text-[11px] text-gray-600">暂无匹配的未完成需求</div>}

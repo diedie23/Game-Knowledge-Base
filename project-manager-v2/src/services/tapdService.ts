@@ -2347,6 +2347,7 @@ export class TapdService {
       startDate: parseTapdDate(story.begin),
       endDate: parseTapdDate(story.due),
       progress,
+      createdAt: parseTapdDate(story.created),
       completedAt,
       type: 'task',
       dependencies: [],
