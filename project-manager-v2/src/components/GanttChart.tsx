@@ -614,10 +614,13 @@ export function GanttChart() {
     while (!isWorkingDay(maxEndDate, currentProject?.calendarConfig)) maxEndDate = addDays(maxEndDate, -1);
     const changes = selectedTasks.flatMap(task => {
       const duration = Math.max(1, countWorkingDays(task.startDate!, task.endDate!, currentProject?.calendarConfig));
-      const candidateDays = getNextWorkingDays(addDays(maxEndDate, -30), 60, currentProject?.calendarConfig);
-      const endIndex = candidateDays.findIndex(day => day.getTime() === maxEndDate.getTime());
-      const startDate = endIndex >= duration - 1 ? candidateDays[endIndex - duration + 1] : undefined;
-      return startDate && task.id !== undefined ? [{ taskId: task.id, startDate, endDate: maxEndDate }] : [];
+      let cursor = new Date(maxEndDate);
+      let remaining = duration - 1;
+      while (remaining > 0) {
+        cursor = addDays(cursor, -1);
+        if (isWorkingDay(cursor, currentProject?.calendarConfig)) remaining -= 1;
+      }
+      return task.id !== undefined ? [{ taskId: task.id, startDate: cursor, endDate: maxEndDate }] : [];
     });
     const result = await applyScheduleChanges({
       source: 'gantt-move',
