@@ -1,12 +1,10 @@
 ﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import { addDays, differenceInDays } from 'date-fns';
-import { trackedDb } from '../../../store/useHistoryStore';
 import { db, Task } from '../../../db/db';
 import type { ProjectCalendarConfig, Resource, ResourceCapacity } from '../../../types';
-import { syncParentDateRange } from '../../../services/workloadService';
 import { validateGanttScheduleChanges, formatGanttValidationMessage, type GanttScheduleValidation } from '../../../services/ganttScheduleValidator';
+import { applyScheduleChanges } from '../../../services/scheduleChangeService';
 import { toast } from '../../../store/useToastStore';
-import { createScheduleSnapshot } from '../../../services/scheduleSnapshotService';
 
 export function useTaskMove(
   dayWidth: number,
@@ -151,43 +149,22 @@ export function useTaskMove(
           if (!validation.valid) {
             toast.error(formatGanttValidationMessage(validation));
           } else {
-            // Apply all shifts only after the complete cascade passes one shared validation.
-            const affectedParentIds = new Set<number>();
-            for (const [id, shift] of shiftsToApply.entries()) {
-              if (shift !== 0) {
-                const t = tasks.find(t => t.id === id);
-                if (t && t.startDate && t.endDate) {
-                  await trackedDb.tasks.update(id, {
-                    startDate: addDays(t.startDate, shift),
-                    endDate: addDays(t.endDate, shift)
-                  }, id === taskId ? '拖拽移动任务排期' : (shift > 0 ? '级联顺延依赖任务' : '级联提前依赖任务'));
-                  if (t.parentId) affectedParentIds.add(t.parentId);
-                }
-              }
-            }
-            for (const pid of affectedParentIds) {
-              await syncParentDateRange(pid);
-            }
-            const affectedTaskIds = [...shiftsToApply.entries()]
-              .filter(([, shift]) => shift !== 0)
-              .map(([id]) => id);
-            const tasksAfter = await db.tasks.where('id').anyOf(affectedTaskIds).toArray();
-            await createScheduleSnapshot({
+            const result = await applyScheduleChanges({
               source: 'gantt-move',
-              status: 'applied',
-              projectId: tasks.find(task => task.id === taskId)?.projectId,
-              reason: `甘特图移动任务：${tasks.find(task => task.id === taskId)?.title || `#${taskId}`}`,
-              description: '记录甘特图拖拽、级联影响、成员与容量快照，以及保存后的实际结果。',
-              taskIds: affectedTaskIds,
-              tasksBefore: tasks.filter(task => affectedTaskIds.includes(task.id!)),
-              tasksAfter,
+              tasks,
               resources,
               capacities,
+              calendarConfig,
               changes: buildDateChanges(shiftsToApply),
-              validation,
-              appliedAt: Date.now(),
+              reason: `甘特图移动任务：${tasks.find(task => task.id === taskId)?.title || `#${taskId}`}`,
+              description: '记录甘特图拖拽、级联影响、成员与容量快照，以及保存后的实际结果。',
+              projectId: tasks.find(task => task.id === taskId)?.projectId,
             });
-            toast.success(formatGanttValidationMessage(validation));
+            if (result.applied) {
+              toast.success(result.message);
+            } else {
+              toast.error(result.message);
+            }
           }
         }
       }

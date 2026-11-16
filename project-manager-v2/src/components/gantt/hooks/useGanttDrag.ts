@@ -1,13 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { addDays } from 'date-fns';
-import { trackedDb } from '../../../store/useHistoryStore';
-import { db } from '../../../db/db';
 import type { ResizeState } from '../types';
 import type { ProjectCalendarConfig, Resource, ResourceCapacity, Task } from '../../../types';
-import { syncParentDateRange } from '../../../services/workloadService';
 import { validateGanttScheduleChanges, formatGanttValidationMessage, type GanttScheduleValidation } from '../../../services/ganttScheduleValidator';
+import { applyScheduleChanges } from '../../../services/scheduleChangeService';
 import { toast } from '../../../store/useToastStore';
-import { createScheduleSnapshot } from '../../../services/scheduleSnapshotService';
 
 export function useGanttDrag(
   dayWidth: number,
@@ -57,34 +54,22 @@ export function useGanttDrag(
           if (!validation.valid) {
             toast.error(formatGanttValidationMessage(validation));
           } else {
-            if (edge === 'left') {
-              await trackedDb.tasks.update(taskId, { startDate: newStart }, '拖拽调整任务开始时间');
+            const result = await applyScheduleChanges({
+              source: 'gantt-resize',
+              tasks: tasks || [],
+              resources,
+              capacities,
+              calendarConfig,
+              changes: [{ taskId, startDate: newStart, endDate: newEnd }],
+              reason: edge === 'left' ? '拖拽调整任务开始时间' : '拖拽调整任务结束时间',
+              description: '记录甘特图拉伸、成员与容量快照，以及保存后的实际结果。',
+              projectId: tasks?.find(task => task.id === taskId)?.projectId,
+            });
+            if (result.applied) {
+              toast.success(result.message);
             } else {
-              await trackedDb.tasks.update(taskId, { endDate: newEnd }, '拖拽调整任务结束时间');
+              toast.error(result.message);
             }
-            const task = await db.tasks.get(taskId);
-            if (task?.parentId) {
-              await syncParentDateRange(task.parentId);
-            }
-            const savedTask = await db.tasks.get(taskId);
-            if (task && savedTask) {
-              await createScheduleSnapshot({
-                source: 'gantt-resize',
-                status: 'applied',
-                projectId: task.projectId,
-                reason: `甘特图调整任务：${task.title}`,
-                description: '记录甘特图拉伸、成员与容量快照，以及保存后的实际结果。',
-                taskIds: [taskId],
-                tasksBefore: [task],
-                tasksAfter: [savedTask],
-                resources,
-                capacities,
-                changes: [{ taskId, startDate: newStart, endDate: newEnd }],
-                validation,
-                appliedAt: Date.now(),
-              });
-            }
-            toast.success(formatGanttValidationMessage(validation));
           }
         }
       }
