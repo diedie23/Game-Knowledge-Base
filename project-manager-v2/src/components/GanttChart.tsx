@@ -21,6 +21,8 @@ import {
 import { WhatIfPanel, GhostSchedule } from './WhatIfPanel';
 import { Avatar, getMemberColor } from './common/Avatar';
 
+const GANTT_DATE_DRAG_TYPE = 'application/x-gantt-date';
+
 // --- Gantt sub-modules ---
 import {
   ZOOM_PRESETS, DEFAULT_ZOOM_INDEX, LEFT_PANEL_WIDTH, ROW_HEIGHT,
@@ -50,6 +52,7 @@ import { assessTaskRisk, buildTaskRiskContext, type TaskRisk, RISK_THRESHOLDS, s
 import { getEffectiveStatus } from '../types/resource';
 import { confirmDialog, alertDialog } from './common/ConfirmDialog';
 import { toast } from '../store/useToastStore';
+import { applyScheduleChanges } from '../services/scheduleChangeService';
 import { isTaskCompleted, isTaskOverdue, isTaskTerminal } from '../utils/taskState';
 import { getRequirementKindLabel } from '../utils/taskHierarchy';
 import { formatGanttValidationMessage } from '../services/ganttScheduleValidator';
@@ -1117,12 +1120,16 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
 
   const handleDragStart = (e: React.DragEvent, taskId: number) => {
     setDraggingTaskId(taskId);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData(GANTT_DATE_DRAG_TYPE, taskId.toString());
+    // Keep the legacy type for browsers that strip custom MIME types.
     e.dataTransfer.setData('text/plain', taskId.toString());
   };
 
   const handleDrop = async (e: React.DragEvent, day: Date) => {
     e.preventDefault();
-    const taskId = Number(e.dataTransfer.getData('text/plain'));
+    const rawTaskId = e.dataTransfer.getData(GANTT_DATE_DRAG_TYPE) || e.dataTransfer.getData('text/plain');
+    const taskId = Number(rawTaskId);
     if (!taskId) return;
     const task = await db.tasks.get(taskId);
     if (!task) return;
@@ -1141,21 +1148,38 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
       setConflictTaskId(taskId);
       setTimeout(() => setConflictTaskId(null), 2000);
     } else {
-      await trackedDb.tasks.update(taskId, { startDate: newStartDate, endDate: newEndDate }, '拖拽移动任务排期');
+      const changes = [{ taskId, startDate: newStartDate, endDate: newEndDate }];
       if (daysShifted !== 0) {
         const dependentTasks = tasks?.filter(t => t.dependencies.includes(taskId)) || [];
         if (dependentTasks.length > 0) {
           const shouldShift = await confirmDialog({ title: '顺延依赖任务', message: `该任务有 ${dependentTasks.length} 个后置依赖任务。是否将它们自动顺延 ${daysShifted} 天？` });
           if (shouldShift) {
-            for (const depTask of dependentTasks) {
-              if (!depTask.startDate || !depTask.endDate) continue; // Skip unscheduled
-              await trackedDb.tasks.update(depTask.id!, {
+            dependentTasks.forEach(depTask => {
+              if (!depTask.id || !depTask.startDate || !depTask.endDate) return;
+              changes.push({
+                taskId: depTask.id,
                 startDate: addDays(depTask.startDate, daysShifted),
-                endDate: addDays(depTask.endDate, daysShifted)
-              }, '自动顺延依赖任务');
-            }
+                endDate: addDays(depTask.endDate, daysShifted),
+              });
+            });
           }
         }
+      }
+      const result = await applyScheduleChanges({
+        source: 'gantt-move',
+        tasks: tasks || [],
+        resources: resources || [],
+        capacities: capacities || [],
+        calendarConfig: currentProject?.calendarConfig,
+        changes,
+        reason: '拖拽移动任务排期',
+        description: '记录甘特图日期格拖拽、依赖影响、成员与容量快照，以及保存后的实际结果。',
+        projectId: task.projectId,
+      });
+      if (result.applied) {
+        toast.success(result.message);
+      } else {
+        toast.error(result.message);
       }
     }
     setDraggingTaskId(null);
@@ -2213,6 +2237,12 @@ const { leftPanelCollapsed, setLeftPanelCollapsed, effectiveLpWidth, handleLpRes
                     isDayNonWorking || isDayWeekend ? 'gantt-weekend-col' : ''
                   }`}
                   style={{ width: `${dayWidth}px` }}
+                  onDragOver={e => {
+                    if (e.dataTransfer.types.includes(GANTT_DATE_DRAG_TYPE) || e.dataTransfer.types.includes('text/plain')) {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                    }
+                  }}
                   onDrop={e => !hasChildren && handleDrop(e, day)}
                 />
               );
