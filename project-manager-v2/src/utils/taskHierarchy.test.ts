@@ -67,4 +67,11 @@ describe('task hierarchy labels', () => {
     expect(hierarchy.childrenByParentId.get(30)?.map(item => item.id)).toEqual([31]);
     expect(hierarchy.childrenByParentId.get(40)?.map(item => item.id)).toEqual([41]);
   });
+
+  it('records parent cycles without recursing forever', () => {
+    const first = task({ id: 70, parentId: 71 });
+    const second = task({ id: 71, parentId: 70 });
+    const hierarchy = buildTaskHierarchyIndex([first, second]);
+    expect(hierarchy.cycleTaskIds).toEqual(new Set([70, 71]));
+  });
 });

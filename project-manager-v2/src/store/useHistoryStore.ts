@@ -354,6 +354,7 @@ export const trackedDb = {
       const snapshot = { ...old };
       await db.resources.update(resourceId, changes);
       const updated = await db.resources.get(resourceId);
+      if (updated) await changeTracker.trackUpdate('resources', resourceId, snapshot, updated);
 
       useHistoryStore.getState().pushCommand({
         id: genId(),
@@ -369,6 +370,7 @@ export const trackedDb = {
     async add(resource: Resource, label?: string): Promise<number> {
       const id = await db.resources.add(resource);
       const created = await db.resources.get(id);
+      if (created) await changeTracker.trackCreate('resources', id, created);
 
       useHistoryStore.getState().pushCommand({
         id: genId(),
@@ -388,6 +390,7 @@ export const trackedDb = {
       const resource = await db.resources.get(resourceId);
       if (!resource) return;
 
+      await changeTracker.trackDelete('resources', resourceId, resource);
       await db.resources.delete(resourceId);
 
       useHistoryStore.getState().pushCommand({
@@ -410,6 +413,12 @@ export const trackedDb = {
       await Promise.all(updates.map((u) => db.resources.update(u.id, u.changes)));
 
       const newRecords = await db.resources.where('id').anyOf(ids).toArray();
+      for (const oldRecord of oldRecords) {
+        const newRecord = newRecords.find(record => record.id === oldRecord.id);
+        if (newRecord && oldRecord.id !== undefined) {
+          await changeTracker.trackUpdate('resources', oldRecord.id, oldRecord, newRecord);
+        }
+      }
 
       useHistoryStore.getState().pushCommand({
         id: genId(),

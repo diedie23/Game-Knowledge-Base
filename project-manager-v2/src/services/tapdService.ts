@@ -2287,7 +2287,7 @@ export class TapdService {
   }
 
   /** Map a single TAPD Story to a partial local Task (extended with parent/owner metadata) */
-  private mapTapdStoryToTask(story: TapdStory['Story'], workspaceId: string): Partial<Task> & { _tapdParentId?: string; _tapdOwner?: string } {
+  private mapTapdStoryToTask(story: TapdStory['Story'], workspaceId: string): Partial<Task> & { _tapdParentId?: string; _tapdOwner?: string; _tapdOwnerPresent?: boolean } {
     const normalizedWorkspaceId = workspaceId.trim();
     const tapdStatusLabel = this.resolveStoryStatus(story.status, normalizedWorkspaceId);
     const tapdStepLabel = this.resolveStoryStep(story.step, normalizedWorkspaceId);
@@ -2359,6 +2359,7 @@ export class TapdService {
       // Extended metadata (stripped before DB insert)
       _tapdParentId: story.parent_id ? String(story.parent_id) : undefined,
       _tapdOwner: story.owner || undefined,
+      _tapdOwnerPresent: Object.prototype.hasOwnProperty.call(story, 'owner'),
       _tapdModuleFeature: module,
     } as any;
   }
@@ -2880,12 +2881,19 @@ export class TapdService {
       const hasTapdParentField = Object.prototype.hasOwnProperty.call(remoteTask, 'tapdParentId')
         || Object.prototype.hasOwnProperty.call(remoteTask, '_tapdParentId');
       const tapdParentId = remoteTask.tapdParentId || (remoteTask as any)._tapdParentId as string | undefined;
-      const tapdOwner = (remoteTask as any)._tapdOwner as string | undefined;
+      const ownerPresenceMarker = (remoteTask as any)._tapdOwnerPresent;
+      const hasTapdOwnerField = ownerPresenceMarker !== undefined
+        ? ownerPresenceMarker === true
+        : Object.prototype.hasOwnProperty.call(remoteTask, 'tapdOwner')
+          || Object.prototype.hasOwnProperty.call(remoteTask, '_tapdOwner');
+      const tapdOwner = ((remoteTask as any)._tapdOwner ?? remoteTask.tapdOwner) as string | undefined;
+      const hasExplicitUnassignedOwner = hasTapdOwnerField && !String(tapdOwner || '').trim();
 
       // Clean extended metadata before DB operations
       const cleanTask = { ...remoteTask, tapdWorkspaceId: workspaceId, syncId };
       delete (cleanTask as any)._tapdParentId;
       delete (cleanTask as any)._tapdOwner;
+      delete (cleanTask as any)._tapdOwnerPresent;
       delete (cleanTask as any)._tapdModuleFeature;
 
       // Keep the TAPD owner as the internal coordinator and append any configured
@@ -2895,7 +2903,10 @@ export class TapdService {
         : [];
       const supplierIds = matchCpResourcesFromTitle(cleanTask.title || '', syncResources);
       const matchedIds = Array.from(new Set([...ownerIds, ...supplierIds]));
-      if (matchedIds.length > 0) cleanTask.assigneeIds = matchedIds;
+      // An explicit empty TAPD owner means "unassigned" and must clear the
+      // local owner. Only preserve local assignments when the source omitted
+      // the owner field entirely (legacy/partial responses).
+      if (hasExplicitUnassignedOwner || ownerIds.length > 0 || supplierIds.length > 0) cleanTask.assigneeIds = matchedIds;
       const hasCpAssignee = matchedIds.some(id => syncResources.find(resource => resource.id === id)?.type === 'cp');
       if (hasCpAssignee || supplierIds.length > 0 || hasFollowupAssignment(matchedIds, syncResources)) {
         cleanTask.workCategory = 'cp_follow';
@@ -2953,9 +2964,9 @@ export class TapdService {
           tapdWorkitemTypeId: cleanTask.tapdWorkitemTypeId,
           tapdWorkitemTypeName: cleanTask.tapdWorkitemTypeName,
           tapdParentId,
-          assigneeIds: cleanTask.assigneeIds && cleanTask.assigneeIds.length > 0
+          assigneeIds: cleanTask.assigneeIds !== undefined
             ? cleanTask.assigneeIds
-            : getTaskAssigneeIds(existing), // Preserve existing assignments if no match
+            : getTaskAssigneeIds(existing), // Preserve only when TAPD omitted the owner field
           externalUrl: cleanTask.externalUrl || existing.externalUrl,
           tapdWorkspaceId: workspaceId,
           syncId,
@@ -3005,7 +3016,7 @@ export class TapdService {
             tapdWorkitemTypeId: cleanTask.tapdWorkitemTypeId,
             tapdWorkitemTypeName: cleanTask.tapdWorkitemTypeName,
             tapdParentId,
-            assigneeIds: cleanTask.assigneeIds && cleanTask.assigneeIds.length > 0
+            assigneeIds: cleanTask.assigneeIds !== undefined
               ? cleanTask.assigneeIds
               : undefined,
             projectId: targetProjectId,
@@ -3051,7 +3062,7 @@ export class TapdService {
             tapdWorkitemTypeId: cleanTask.tapdWorkitemTypeId,
             tapdWorkitemTypeName: cleanTask.tapdWorkitemTypeName,
             tapdParentId,
-            assigneeIds: cleanTask.assigneeIds && cleanTask.assigneeIds.length > 0
+            assigneeIds: cleanTask.assigneeIds !== undefined
               ? cleanTask.assigneeIds
               : undefined,
             projectId: targetProjectId,
@@ -3267,6 +3278,7 @@ export class TapdService {
         const mapped = this.mapTapdStoryToTask(story, workspaceId);
         if (mapped.tapdReleaseId) mapped.tapdReleaseName = refreshReleaseNameById.get(mapped.tapdReleaseId);
         (mapped as any)._tapdOwner = story.owner || undefined;
+        (mapped as any)._tapdOwnerPresent = Object.prototype.hasOwnProperty.call(story, 'owner');
         remoteMap.set(createTapdSyncId(workspaceId, storyId), mapped as any);
       }
       return remoteMap.size - before;
@@ -3466,7 +3478,15 @@ export class TapdService {
       }
 
       // Combine the TAPD owner with any configured CP supplier named in the title.
-      const tapdOwner = (remote as any)._tapdOwner as string | undefined;
+      // An explicit empty owner is authoritative and clears stale local owners;
+      // only an omitted owner field falls back to the existing coordinator.
+      const ownerPresenceMarker = (remote as any)._tapdOwnerPresent;
+      const hasTapdOwnerField = ownerPresenceMarker !== undefined
+        ? ownerPresenceMarker === true
+        : Object.prototype.hasOwnProperty.call(remote, 'tapdOwner')
+          || Object.prototype.hasOwnProperty.call(remote, '_tapdOwner');
+      const tapdOwner = ((remote as any)._tapdOwner ?? remote.tapdOwner) as string | undefined;
+      const hasExplicitUnassignedOwner = hasTapdOwnerField && !String(tapdOwner || '').trim();
       const validLocalIds = getTaskAssigneeIds(localTask);
       const supplierIds = matchCpResourcesFromTitle(remote.title || localTask.title, cachedResources);
       const ownerIds = tapdOwner
@@ -3476,12 +3496,14 @@ export class TapdService {
         const resource = cachedResources.find(item => item.id === id);
         return resource?.type !== 'cp';
       });
-      const coordinatorIds = ownerIds.length > 0 ? ownerIds : existingCoordinatorIds;
+      const coordinatorIds = ownerIds.length > 0
+        ? ownerIds
+        : hasExplicitUnassignedOwner ? [] : existingCoordinatorIds;
       const matchedIds = Array.from(new Set([...coordinatorIds, ...supplierIds]));
       const hasCpAssignee = matchedIds.some(id => cachedResources.find(resource => resource.id === id)?.type === 'cp');
       const followupAssignment = hasFollowupAssignment(matchedIds, cachedResources);
       let resolvedAssigneeIds: number[] | null = null;
-      if ((tapdOwner || supplierIds.length > 0) && matchedIds.length > 0) {
+      if (hasExplicitUnassignedOwner || ownerIds.length > 0 || supplierIds.length > 0) {
         const localAssignees = [...validLocalIds].sort((a, b) => a - b).join(',');
         const remoteAssignees = [...matchedIds].sort((a, b) => a - b).join(',');
         if (localAssignees !== remoteAssignees) {
@@ -3527,6 +3549,7 @@ export class TapdService {
         updateData.tapdWorkitemTypeId = remote.tapdWorkitemTypeId;
         updateData.tapdWorkitemTypeName = remote.tapdWorkitemTypeName;
         updateData.completedAt = remote.completedAt;
+        if (resolvedAssigneeIds) updateData.assigneeIds = resolvedAssigneeIds;
         if (hasCpAssignee || supplierIds.length > 0 || followupAssignment) updateData.workCategory = 'cp_follow';
         else if (matchedIds.length > 0) updateData.workCategory = 'self_made';
         updateData.syncSource = 'tapd';

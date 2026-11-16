@@ -88,16 +88,42 @@ export function validateTask(data: Partial<Task>, allTasks: Task[], editingId?: 
     }
   }
 
-  // Date validation
-  if (data.startDate && data.endDate) {
-    if (data.startDate > data.endDate) {
-      errors.push('开始日期不能晚于结束日期');
+  // Date validation, including malformed dates from CSV/imported records.
+  const hasInvalidStart = data.startDate instanceof Date && Number.isNaN(data.startDate.getTime());
+  const hasInvalidEnd = data.endDate instanceof Date && Number.isNaN(data.endDate.getTime());
+  if (hasInvalidStart || hasInvalidEnd) {
+    errors.push('任务日期格式无效');
+  } else if (data.startDate && data.endDate && data.startDate > data.endDate) {
+    errors.push('开始日期不能晚于结束日期');
+  }
+
+  const taskId = editingId ?? data.id;
+  const parentId = data.parentId;
+  if (parentId !== undefined && parentId !== null) {
+    if (taskId !== undefined && parentId === taskId) {
+      errors.push('任务不能将自己设为父任务');
+    }
+    const parent = allTasks.find(task => task.id === parentId);
+    if (!parent) {
+      errors.push(`父任务 #${parentId} 不存在`);
+    } else {
+      if (data.projectId !== undefined && parent.projectId !== data.projectId) {
+        errors.push('父任务必须属于同一个项目');
+      }
+      if (taskId !== undefined && createsParentCycle(taskId, parentId, allTasks)) {
+        errors.push('父子关系形成循环，无法保存');
+      }
     }
   }
 
+  const dependencies = [...new Set(data.dependencies || [])];
+  if (taskId !== undefined && hasDependencyCycle(taskId, dependencies, allTasks)) {
+    errors.push('前置依赖形成循环，无法保存');
+  }
+
   // Dependency conflict check
-  if (data.dependencies && data.dependencies.length > 0 && data.startDate) {
-    for (const depId of data.dependencies) {
+  if (dependencies.length > 0 && data.startDate) {
+    for (const depId of dependencies) {
       const depTask = allTasks.find(t => t.id === depId);
       if (depTask?.endDate && data.startDate < depTask.endDate) {
         warnings.push(`依赖任务「${depTask.title}」的结束日期晚于本任务开始日期`);
@@ -106,6 +132,41 @@ export function validateTask(data: Partial<Task>, allTasks: Task[], editingId?: 
   }
 
   return { valid: errors.length === 0, errors, warnings };
+}
+
+function createsParentCycle(taskId: number, parentId: number, allTasks: Task[]): boolean {
+  const byId = new Map(allTasks.filter(task => task.id !== undefined).map(task => [task.id!, task]));
+  const visited = new Set<number>();
+  let current: number | undefined = parentId;
+  while (current !== undefined) {
+    if (current === taskId) return true;
+    if (visited.has(current)) return true;
+    visited.add(current);
+    current = byId.get(current)?.parentId;
+  }
+  return false;
+}
+
+function hasDependencyCycle(taskId: number, dependencies: number[], allTasks: Task[]): boolean {
+  if (dependencies.includes(taskId)) return true;
+  const byId = new Map(allTasks.filter(task => task.id !== undefined).map(task => [task.id!, task]));
+  byId.set(taskId, { ...(byId.get(taskId) || {}), id: taskId, dependencies } as Task);
+  const visiting = new Set<number>();
+  const visited = new Set<number>();
+
+  const visit = (currentId: number): boolean => {
+    if (visiting.has(currentId)) return true;
+    if (visited.has(currentId)) return false;
+    visiting.add(currentId);
+    for (const dependencyId of byId.get(currentId)?.dependencies || []) {
+      if (byId.has(dependencyId) && visit(dependencyId)) return true;
+    }
+    visiting.delete(currentId);
+    visited.add(currentId);
+    return false;
+  };
+
+  return visit(taskId);
 }
 
 // ─── CRUD Operations ───
@@ -217,12 +278,15 @@ export async function deleteTask(id: number, includeChildren = true): Promise<Ta
 
   if (includeChildren) {
     // Recursively collect all descendant IDs
-    const collectDescendants = async (parentId: number): Promise<number[]> => {
+    const collectDescendants = async (parentId: number, visited = new Set<number>()): Promise<number[]> => {
+      if (visited.has(parentId)) return [];
+      visited.add(parentId);
       const children = await db.tasks.where('parentId').equals(parentId).toArray();
-      let ids = children.map(c => c.id!);
-      for (const childId of ids) {
-        const subIds = await collectDescendants(childId);
-        ids = [...ids, ...subIds];
+      const ids: number[] = [];
+      for (const child of children) {
+        if (child.id === undefined || visited.has(child.id)) continue;
+        ids.push(child.id);
+        ids.push(...await collectDescendants(child.id, visited));
       }
       return ids;
     };
@@ -277,12 +341,15 @@ export async function getTaskChildren(parentId: number): Promise<Task[]> {
 /**
  * Get all descendants of a task (recursive)
  */
-export async function getTaskDescendants(parentId: number): Promise<Task[]> {
+export async function getTaskDescendants(parentId: number, visited = new Set<number>()): Promise<Task[]> {
+  if (visited.has(parentId)) return [];
+  visited.add(parentId);
   const children = await db.tasks.where('parentId').equals(parentId).toArray();
-  let all = [...children];
+  const all: Task[] = [];
   for (const child of children) {
-    const descendants = await getTaskDescendants(child.id!);
-    all = [...all, ...descendants];
+    if (child.id === undefined || visited.has(child.id)) continue;
+    all.push(child);
+    all.push(...await getTaskDescendants(child.id, visited));
   }
   return all;
 }

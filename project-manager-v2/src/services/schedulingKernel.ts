@@ -1,7 +1,7 @@
 import type { ProjectCalendarConfig, Resource, Task } from '../types';
 import type { ResourceCapacity } from '../types/scheduling';
 import { countWorkingDays, DEFAULT_PROJECT_CALENDAR } from '../utils/dateUtils';
-import { getEffectiveDailyCapacity, mergeCapacity } from './capacityService';
+import { getEffectiveDailyCapacity, getResourceAvailability, mergeCapacity } from './capacityService';
 import { taskStage } from './uxStageView';
 import { getActiveLeafTasks as getCanonicalActiveLeafTasks } from '../utils/taskHierarchy';
 import { getTaskAssigneeIds } from '../utils/taskAssignee';
@@ -69,11 +69,12 @@ export function getScenarioCapacity(
 /** Effective daily work hours, shared by forecast, auto-scheduling and risk scoring. */
 export function getResourceDailyHours(
   resource: Resource,
-  scenario: Pick<ScheduleScenario, 'capacityByResourceId'>,
+  scenario: Pick<ScheduleScenario, 'capacityByResourceId'> & { today?: Date },
 ): number {
   // Zero availability is a real capacity state (leave / unavailable), not a
   // reason to manufacture a minimum 6.4h workday.
-  return Math.max(0, getEffectiveDailyCapacity(getScenarioCapacity(resource, scenario)) * 8);
+  const availability = getResourceAvailability(resource, scenario.today || new Date());
+  return Math.max(0, getEffectiveDailyCapacity(getScenarioCapacity(resource, scenario)) * availability.capacityMultiplier * 8);
 }
 
 export function estimateTaskEffort(

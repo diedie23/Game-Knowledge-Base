@@ -3,6 +3,8 @@ import { buildUxDemandGroups } from './uxWorkPackageService';
 import { getEffectiveDailyCapacity } from './capacityService';
 import { generateScheduleSuggestions } from './schedulingService';
 import type { TapdStory } from '../types/tapd';
+import type { Resource, ResourceCapacity } from '../types';
+import type { UxWorkPackage } from '../types/scheduling';
 import { UX_STAGE_META } from '../types/scheduling';
 
 describe('migrated UX scheduling core', () => {
@@ -33,5 +35,31 @@ describe('migrated UX scheduling core', () => {
     const result = generateScheduleSuggestions({ packages, resources: [], capacities: [], tasks: [], startDate: '2026-09-11' });
     expect(result).toHaveLength(3);
     expect(result.every(p => p.risks.some(r => r.type === 'unassigned'))).toBe(true);
+  });
+
+  it('reserves earlier suggestions when checking WIP for later suggestions', () => {
+    const resource: Resource = { id: 1, name: '视觉', role: 'UI设计', type: 'internal' };
+    const capacity: ResourceCapacity = { resourceId: 1, dailyCapacity: 1, capacityFactor: 1, availabilityRatio: 1, maxParallelTasks: 1, updatedAt: 1 };
+    const packageFor = (id: string): UxWorkPackage => ({
+      id,
+      parentTapdId: 'parent',
+      tapdId: id,
+      parentTitle: '商城',
+      title: `【视觉设计】${id}`,
+      stage: 'ui_design',
+      estimatedPersonDays: 1,
+      estimateSource: 'manual',
+      status: 'not_started',
+      updatedAt: 1,
+    });
+    const result = generateScheduleSuggestions({
+      packages: [packageFor('a'), packageFor('b')],
+      resources: [resource],
+      tasks: [],
+      capacities: [capacity],
+      startDate: '2026-09-11',
+    });
+    expect(result[0].resourceId).toBe(1);
+    expect(result[1].risks.some(risk => risk.type === 'wip_limit')).toBe(true);
   });
 });

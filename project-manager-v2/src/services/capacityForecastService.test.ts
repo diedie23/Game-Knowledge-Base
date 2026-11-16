@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Resource, ResourceCapacity, Task } from '../types';
 import { buildStageCapacityForecast } from './capacityForecastService';
+import { getResourceAvailability, isResourceAvailableOn } from './capacityService';
 
 const task = (id: number, overrides: Partial<Task> = {}): Task => ({ id, title: `任务${id}`, status: 'todo', priority: 'medium', progress: 0, dependencies: [], type: 'task', projectId: 1, tapdId: String(id), ...overrides });
 
@@ -66,5 +67,13 @@ describe('buildStageCapacityForecast', () => {
   it('marks a trade with pending work and no resources as danger', () => {
     const result = buildStageCapacityForecast([task(4, { title: '【动效】待排', estimatedHours: 8 })], [], new Date('2026-09-28'));
     expect(result.find(item => item.stage === 'motion')?.status).toBe('danger');
+  });
+
+  it('honours employment dates and static unavailable statuses', () => {
+    const joinedLater: Resource = { ...resources[0], joinDate: '2026-10-01' };
+    const departed: Resource = { ...resources[0], status: 'departed', departDate: '2026-09-30' };
+    expect(isResourceAvailableOn(joinedLater, new Date('2026-09-28'))).toBe(false);
+    expect(isResourceAvailableOn(joinedLater, new Date('2026-10-01'))).toBe(true);
+    expect(getResourceAvailability(departed, new Date('2026-09-28'))).toMatchObject({ available: false, capacityMultiplier: 0 });
   });
 });

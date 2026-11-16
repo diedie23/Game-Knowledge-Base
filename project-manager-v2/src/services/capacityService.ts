@@ -3,6 +3,13 @@ import type { ResourceCapacity } from '../types/scheduling';
 import { format } from 'date-fns';
 import { getActiveLeafTasks } from '../utils/taskHierarchy';
 
+export interface ResourceAvailability {
+  available: boolean;
+  /** Capacity multiplier for non-full-time modes. */
+  capacityMultiplier: number;
+  reason?: string;
+}
+
 export const DEFAULT_RESOURCE_CAPACITY: Omit<ResourceCapacity, 'resourceId' | 'updatedAt'> = {
   dailyCapacity: 1,
   capacityFactor: 1,
@@ -22,26 +29,45 @@ export interface CapacitySnapshot {
   status: 'available' | 'busy' | 'overloaded' | 'unavailable';
 }
 
-export function getEffectiveDailyCapacity(capacity?: ResourceCapacity): number {
+export function getEffectiveDailyCapacity(capacity?: ResourceCapacity, resource?: Resource): number {
   const value = capacity ?? ({
     resourceId: 0,
     ...DEFAULT_RESOURCE_CAPACITY,
     updatedAt: 0,
   } satisfies ResourceCapacity);
+  const modeMultiplier = resource
+    ? getResourceAvailability(resource, new Date()).capacityMultiplier
+    : 1;
 
   return Math.max(0, Number((
     value.dailyCapacity *
     value.capacityFactor *
-    value.availabilityRatio
+    value.availabilityRatio *
+    modeMultiplier
   ).toFixed(2)));
 }
 
-export function isResourceAvailableOn(resource: Resource, date: Date): boolean {
-  if (resource.status === 'departed') return false;
+export function getResourceAvailability(resource: Resource, date: Date): ResourceAvailability {
   const dateKey = format(date, 'yyyy-MM-dd');
-  // leaveDates is the date-specific source of truth. A stale static `leave`
-  // status without a matching date must not remove future capacity.
-  return !(resource.leaveDates || []).includes(dateKey);
+  if (resource.status === 'departed') return { available: false, capacityMultiplier: 0, reason: '已离职' };
+  if (resource.joinDate && dateKey < resource.joinDate) {
+    return { available: false, capacityMultiplier: 0, reason: '尚未入职' };
+  }
+  if (resource.departDate && dateKey > resource.departDate) {
+    return { available: false, capacityMultiplier: 0, reason: '已过离职日期' };
+  }
+  if ((resource.leaveDates || []).includes(dateKey)) {
+    return { available: false, capacityMultiplier: 0, reason: '休假' };
+  }
+  if (resource.status === 'sick') return { available: false, capacityMultiplier: 0, reason: '病假' };
+  if (resource.status === 'leave') return { available: false, capacityMultiplier: 0, reason: '休假' };
+  if (resource.status === 'focus') return { available: true, capacityMultiplier: 0.7, reason: '专注模式' };
+  if (resource.status === 'wfh') return { available: true, capacityMultiplier: 0.8, reason: '居家办公' };
+  return { available: true, capacityMultiplier: 1 };
+}
+
+export function isResourceAvailableOn(resource: Resource, date: Date): boolean {
+  return getResourceAvailability(resource, date).available;
 }
 
 export function countAvailableWorkingDays(resource: Resource, days: Date[]): number {
@@ -93,7 +119,7 @@ export function buildCapacitySnapshot(
     resourceName: resource.name,
     role: resource.role,
     dailyCapacity: capacity.dailyCapacity,
-    effectiveDailyCapacity: getEffectiveDailyCapacity(capacity),
+    effectiveDailyCapacity: getEffectiveDailyCapacity(capacity, resource),
     maxParallelTasks: capacity.maxParallelTasks,
     activeTaskCount,
     wipUtilization,

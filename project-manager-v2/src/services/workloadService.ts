@@ -259,26 +259,23 @@ export function calcParentDateRange(childTasks: Array<{ startDate?: Date; endDat
  * Returns true if the parent was updated.
  */
 export async function syncParentDateRange(parentId: number): Promise<boolean> {
-  const children = await db.tasks.where('parentId').equals(parentId).toArray();
-  if (children.length === 0) return false;
-
-  const { startDate, endDate } = calcParentDateRange(children);
   const parent = await db.tasks.get(parentId);
-  if (!parent) return false;
+  if (!parent || parent.tapdId) return false;
 
-  const needsUpdate =
-    (startDate && (!parent.startDate || new Date(parent.startDate).getTime() !== startDate.getTime())) ||
-    (endDate && (!parent.endDate || new Date(parent.endDate).getTime() !== endDate.getTime()));
+  const children = await db.tasks.where('parentId').equals(parentId).toArray();
+  const { startDate, endDate } = calcParentDateRange(children);
+  const currentStart = parent.startDate ? new Date(parent.startDate).getTime() : undefined;
+  const currentEnd = parent.endDate ? new Date(parent.endDate).getTime() : undefined;
+  const nextStart = startDate?.getTime();
+  const nextEnd = endDate?.getTime();
+  const needsUpdate = currentStart !== nextStart || currentEnd !== nextEnd;
 
-  if (needsUpdate) {
-    const updates: Partial<Task> = {};
-    if (startDate) updates.startDate = startDate;
-    if (endDate) updates.endDate = endDate;
-    await db.tasks.update(parentId, updates);
-    return true;
-  }
+  if (!needsUpdate) return false;
 
-  return false;
+  // Local parent dates are derived from children. Clear stale values when the
+  // last dated child is removed instead of leaving an old range behind.
+  await db.tasks.update(parentId, { startDate, endDate });
+  return true;
 }
 
 /**

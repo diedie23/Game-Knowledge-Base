@@ -12,6 +12,8 @@ export interface TaskHierarchyIndex {
   childrenByParentId: Map<number, Task[]>;
   parentTaskIds: Set<number>;
   leafTasks: Task[];
+  /** IDs participating in a local or TAPD parent-child cycle. */
+  cycleTaskIds: Set<number>;
 }
 
 function normalizeRelationId(value?: number | string): string | undefined {
@@ -72,6 +74,7 @@ export function buildTaskHierarchyIndex(tasks: Task[]): TaskHierarchyIndex {
   const tasksByTapdId = new Map<string, Task[]>();
   const childrenByParentId = new Map<number, Task[]>();
   const parentTaskIds = new Set<number>();
+  const cycleTaskIds = new Set<number>();
 
   for (const task of tasks) {
     if (task.id !== undefined) taskById.set(task.id, task);
@@ -108,6 +111,27 @@ export function buildTaskHierarchyIndex(tasks: Task[]): TaskHierarchyIndex {
     if (parent?.id !== undefined) addChild(parent.id, task);
   }
 
+  // Detect cycles before consumers recurse through the hierarchy. Keep the
+  // index usable so the data-quality screen can explain the bad records.
+  const visit = (taskId: number, path: number[], pathSet: Set<number>) => {
+    if (pathSet.has(taskId)) {
+      const cycleStart = path.indexOf(taskId);
+      path.slice(cycleStart >= 0 ? cycleStart : 0).forEach(id => cycleTaskIds.add(id));
+      cycleTaskIds.add(taskId);
+      return;
+    }
+    const children = childrenByParentId.get(taskId) || [];
+    if (children.length === 0) return;
+    const nextPath = [...path, taskId];
+    const nextPathSet = new Set(pathSet).add(taskId);
+    for (const child of children) {
+      if (child.id !== undefined) visit(child.id, nextPath, nextPathSet);
+    }
+  };
+  for (const task of tasks) {
+    if (task.id !== undefined) visit(task.id, [], new Set());
+  }
+
   // TAPD can return the parent row without its children. Its work-item type is
   // still a reliable structural signal, so keep it out of leaf-only queues.
   for (const task of tasks) {
@@ -115,7 +139,7 @@ export function buildTaskHierarchyIndex(tasks: Task[]): TaskHierarchyIndex {
   }
 
   const leafTasks = tasks.filter(task => task.id === undefined || !parentTaskIds.has(task.id));
-  const index = { taskById, taskByTapdId, tasksByTapdId, childrenByParentId, parentTaskIds, leafTasks };
+  const index = { taskById, taskByTapdId, tasksByTapdId, childrenByParentId, parentTaskIds, leafTasks, cycleTaskIds };
   hierarchyCache.set(tasks, index);
   return index;
 }

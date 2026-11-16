@@ -64,4 +64,13 @@ describe('auditTaskDataQuality', () => {
     expect(getScheduleGate(audit, [20])).toMatchObject({ allowed: false, blockingTaskIds: [20] });
     expect(getScheduleGate(audit, [21]).allowed).toBe(true);
   });
+
+  it('flags hierarchy cycles and invalid resource assignments', () => {
+    const audit = auditTaskDataQuality([
+      task(30, { parentId: 31, assigneeIds: [999], syncId: 'tapd:ws:30', tapdWorkspaceId: 'ws' }),
+      task(31, { parentId: 30, assigneeIds: [1], syncId: 'tapd:ws:31', tapdWorkspaceId: 'ws' }),
+    ], resources, new Date('2026-09-28'));
+    expect(audit.issues.map(issue => issue.type)).toEqual(expect.arrayContaining(['cycle', 'invalid-owner']));
+    expect(getScheduleGate(audit, [30]).allowed).toBe(false);
+  });
 });

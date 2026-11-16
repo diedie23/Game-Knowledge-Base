@@ -647,44 +647,5 @@ export class LocalProjectManagerDB extends Dexie {
 
 export const db = new LocalProjectManagerDB();
 
-// ============================================================================
-// 自动级联关闭：包装 db.projects.update
-// 当项目状态变为 'archived' 时，自动将所有非 done/cancelled 任务设为 'cancelled'
-// ============================================================================
-{
-  const _origUpdate = db.projects.update.bind(db.projects);
-  db.projects.update = async function (
-    projectId: number,
-    changes: { status?: string; [key: string]: any }
-  ): Promise<number> {
-    // 仅拦截状态改为 'archived' 的调用
-    if (changes.status === 'archived') {
-      const project = await db.projects.get(projectId);
-      if (project && project.status !== 'archived') {
-        // 先执行原版更新
-        const result = await _origUpdate(projectId, changes);
-
-        // 级联关闭所有非 done/cancelled 的任务
-        const tasks = await db.tasks
-          .where('projectId').equals(projectId)
-          .filter((t: any) => t.status !== 'done' && t.status !== 'cancelled')
-          .toArray();
-
-        if (tasks.length > 0) {
-          // Dexie 3.2.x 没有 bulkUpdate（4.x 才有），用 bulkPut 整条写回实现部分字段更新
-          const updated = tasks.map((t: any) => ({
-            ...t,
-            status: 'cancelled' as const,
-            previousStatus: t.status,
-            pausedAt: new Date(),
-          }));
-          await db.tasks.bulkPut(updated);
-        }
-
-        return result;
-      }
-    }
-    // 非归档更新，直接走原版
-    return await _origUpdate(projectId, changes);
-  } as typeof db.projects.update;
-}
+// Project archive cascading is intentionally owned by projectPauseService. Keeping
+// raw project updates side-effect free preserves history/change-log guarantees.

@@ -6,7 +6,7 @@ import type {
   UxWorkPackage,
   UxStage,
 } from '../types/scheduling';
-import { buildCapacitySnapshot } from './capacityService';
+import { buildCapacitySnapshot, isResourceAvailableOn } from './capacityService';
 import { DEFAULT_PROJECT_CALENDAR, getNextWorkingDays } from '../utils/dateUtils';
 import { createScheduleScenario, getResourceDailyHours, getScenarioCapacity, type ScheduleScenario } from './schedulingKernel';
 
@@ -62,6 +62,40 @@ function nextWorkday(date: Date, calendarConfig: ProjectCalendarConfig): Date {
   return getNextWorkingDays(date, 1, calendarConfig)[0];
 }
 
+function reserveScenarioCapacity(
+  scenario: ScheduleScenario,
+  workPackage: UxWorkPackage,
+  resource: Resource,
+  startDate: Date,
+  endDate: Date,
+  sequence: number,
+): void {
+  // Suggestions are evaluated incrementally. A synthetic active leaf keeps the
+  // next candidate from being selected as if the previous suggestion did not exist.
+  const reservedTask: Task = {
+    id: -1_000_000 - sequence,
+    title: `[排期建议] ${workPackage.title}`,
+    status: 'in_progress',
+    progress: 0,
+    dependencies: [],
+    type: 'task',
+    projectId: 0,
+    assigneeIds: resource.id ? [resource.id] : [],
+    startDate,
+    endDate,
+    estimatedHours: Math.max(1, workPackage.estimatedPersonDays * 8),
+    workCategory: 'self_made',
+  };
+  // Replace the array so hierarchy indexes keyed by array identity cannot keep
+  // returning the pre-reservation snapshot.
+  scenario.tasks = [...scenario.tasks, reservedTask];
+  if (resource.id !== undefined) {
+    const bucket = scenario.tasksByResourceId.get(resource.id) || [];
+    bucket.push(reservedTask);
+    scenario.tasksByResourceId.set(resource.id, bucket);
+  }
+}
+
 function selectBestResource(
   workPackage: UxWorkPackage,
   resources: Resource[],
@@ -69,7 +103,7 @@ function selectBestResource(
 ): { resource?: Resource; risks: ScheduleRisk[] } {
   const candidates = resources
     .filter(resource => resource.id !== undefined)
-    .filter(resource => resource.status !== 'departed')
+    .filter(resource => isResourceAvailableOn(resource, scenario.today))
     .filter(resource => isResourceSuitable(resource, workPackage.stage));
 
   if (!candidates.length) {
@@ -148,7 +182,7 @@ export function generateScheduleSuggestions(
       return aDue - bDue;
     });
 
-  return ordered.map(workPackage => {
+  return ordered.map((workPackage, index) => {
     const { resource, risks } = selectBestResource(
       workPackage,
       input.resources,
@@ -179,6 +213,8 @@ export function generateScheduleSuggestions(
         message: `预计完成 ${formatDate(endDate)}，晚于截止日期 ${workPackage.dueDate}`,
       });
     }
+
+    reserveScenarioCapacity(scenario, workPackage, resource, requestedStart, endDate, index);
 
     return {
       workPackageId: workPackage.id ?? `tapd-${workPackage.tapdId}`,
