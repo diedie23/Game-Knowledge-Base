@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, GitBranch, ShieldAlert } from 'lucide-react';
-import type { ProjectCalendarConfig, Resource, RiskRecord, RiskTrackingStatus, Task } from '../types';
+import { AlertTriangle, ArrowRight, CalendarClock, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, ExternalLink, Flag, GitBranch, ShieldAlert, Split, UserRound } from 'lucide-react';
+import type { ProjectCalendarConfig, Resource, ResourceCapacity, RiskRecord, RiskTrackingStatus, Task } from '../types';
 import { db } from '../db/db';
 import { buildDemandRiskGroups } from '../services/tapdPlanningAssistant';
+import { executeRiskAction, getRiskActionPlanForTags, type RiskActionType } from '../services/riskActionService';
 import { useStore } from '../store/useStore';
 import { getTaskIdentity } from '../utils/tapdIdentity';
 
@@ -11,6 +12,7 @@ interface Props {
   resources: Resource[];
   projectId?: number;
   calendarConfig?: ProjectCalendarConfig;
+  capacities: ResourceCapacity[];
   riskRecords: RiskRecord[];
 }
 
@@ -32,10 +34,22 @@ const RISK_STATUS_LABEL: Record<RiskTrackingStatus, string> = {
 
 const demandRiskId = (task: Task) => `demand:${getTaskIdentity(task)}`;
 
-export function DashboardDemandRisks({ tasks, resources, projectId, calendarConfig, riskRecords }: Props) {
+const ACTION_ICON: Record<RiskActionType, React.ReactNode> = {
+  delay: <CalendarClock size={11} />,
+  reassign: <UserRound size={11} />,
+  split: <Split size={11} />,
+  reprioritize: <Flag size={11} />,
+  move_downstream: <ArrowRight size={11} />,
+  confirm_blocker: <CircleHelp size={11} />,
+};
+
+export function DashboardDemandRisks({ tasks, resources, projectId, calendarConfig, capacities, riskRecords }: Props) {
   const { openTaskModal } = useStore();
   const [filter, setFilter] = useState<'all' | 'escalate' | 'checkpoint' | 'unowned'>('all');
   const [page, setPage] = useState(1);
+  const [executingAction, setExecutingAction] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState('');
+  const [reassignIds, setReassignIds] = useState<Record<number, string>>({});
   const pageSize = 8;
   const recordByRiskId = useMemo(() => new Map(riskRecords.map(record => [record.riskId, record])), [riskRecords]);
   const allGroups = useMemo(() => buildDemandRiskGroups(tasks, resources, new Date(), calendarConfig), [tasks, resources, calendarConfig]);
@@ -83,6 +97,37 @@ export function DashboardDemandRisks({ tasks, resources, projectId, calendarConf
     });
   };
 
+  const runRiskAction = async (
+    demand: Task,
+    task: Task,
+    severity: RiskRecord['severity'],
+    action: RiskActionType,
+  ) => {
+    const actionKey = `${demandRiskId(demand)}:${task.id || task.title}:${action}`;
+    setExecutingAction(actionKey);
+    setActionMessage('');
+    try {
+      const result = await executeRiskAction({
+        action,
+        task,
+        tasks,
+        resources,
+        capacities,
+        calendarConfig,
+        resourceId: task.id ? Number(reassignIds[task.id] || 0) || undefined : undefined,
+      });
+      await updateRiskRecord(demand, severity, {
+        status: result.applied ? 'handling' : 'confirmed',
+        action: `${action === 'confirm_blocker' ? '确认卡点' : action === 'delay' ? '顺延' : action === 'reassign' ? '改派' : action === 'split' ? '拆分' : action === 'reprioritize' ? '降低优先级' : '推动后置阶段'}：${result.message}`,
+      });
+      setActionMessage(result.message);
+    } catch (error) {
+      setActionMessage(`风险动作执行失败：${error instanceof Error ? error.message : '请稍后重试'}`);
+    } finally {
+      setExecutingAction(null);
+    }
+  };
+
   if (!allGroups.length) return null;
 
   return (
@@ -114,8 +159,8 @@ export function DashboardDemandRisks({ tasks, resources, projectId, calendarConf
           const isExpanded = expanded.has(key);
           const style = LEVEL_STYLE[group.level];
           const children = [
-            ...group.items.map(item => ({ task: item.task, label: item.actionLabel, detail: item.reasons.slice(0, 2).join('；') })),
-            ...group.checkpoints.map(item => ({ task: item.task, label: item.label, detail: item.task.blockReason || '跨管线环节尚未完成' })),
+            ...group.items.map(item => ({ task: item.task, label: item.actionLabel, detail: item.reasons.slice(0, 2).join('；'), tags: item.tags })),
+            ...group.checkpoints.map(item => ({ task: item.task, label: item.label, detail: item.task.blockReason || '跨管线环节尚未完成', tags: ['blocked' as const] })),
           ];
           return (
             <article key={key} className={`overflow-hidden rounded-xl border bg-gray-900/50 ${style.border}`}>
@@ -175,24 +220,54 @@ export function DashboardDemandRisks({ tasks, resources, projectId, calendarConf
                       <input type="date" value={record?.dueDate || ''} onChange={event => updateRiskRecord(group.demand, group.level, { dueDate: event.target.value || undefined })} className="rounded-md border border-gray-700 bg-gray-950 px-2 py-1.5 text-xs text-gray-200 outline-none focus:border-blue-500" aria-label="风险目标日期" />
                       <input value={record?.action || ''} onChange={event => updateRiskRecord(group.demand, group.level, { action: event.target.value })} placeholder="填写处置动作，例如：调整负责人并确认交付日" className="rounded-md border border-gray-700 bg-gray-950 px-2 py-1.5 text-xs text-gray-200 outline-none focus:border-blue-500" />
                     </div>
-                    <p className="mt-2 text-[10px] text-gray-500">处置信息仅保存在本地，不会回写 TAPD。</p>
+                    <p className="mt-2 text-[10px] text-gray-500">处置信息仅保存在本地，不会回写 TAPD；执行排期动作后会立即重新计算风险。</p>
                   </div>
+                  {actionMessage && <div className="mb-3 rounded-lg border border-indigo-500/20 bg-indigo-500/[0.06] px-3 py-2 text-[11px] text-indigo-200">{actionMessage}</div>}
                   <div className="space-y-2">
-                    {children.map(({ task, label, detail }) => (
-                      <button
-                        key={`${task.id || task.tapdId}-${label}`}
-                        type="button"
-                        onClick={() => openTask(task)}
-                        className="group flex w-full items-start gap-2 rounded-lg border border-gray-800 bg-gray-900/60 px-3 py-2 text-left hover:border-blue-500/30 hover:bg-blue-500/5"
-                      >
-                        <GitBranch size={13} className="mt-0.5 shrink-0 text-gray-500 group-hover:text-blue-400" />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-xs text-gray-200">{task.title}</span>
-                          <span className="mt-0.5 block text-[11px] text-gray-500">{label} · {detail}</span>
-                        </span>
-                        <ExternalLink size={12} className="mt-0.5 shrink-0 text-gray-600 group-hover:text-blue-400" />
-                      </button>
-                    ))}
+                    {children.map(({ task, label, detail, tags }) => {
+                      const actions = getRiskActionPlanForTags(task, tags);
+                      return (
+                        <div key={`${task.id || task.tapdId}-${label}`} className="rounded-lg border border-gray-800 bg-gray-900/60 px-3 py-2 hover:border-blue-500/30 hover:bg-blue-500/5">
+                          <div className="flex items-start gap-2">
+                            <GitBranch size={13} className="mt-0.5 shrink-0 text-gray-500" />
+                            <button type="button" onClick={() => openTask(task)} className="min-w-0 flex-1 text-left">
+                              <span className="block truncate text-xs text-gray-200">{task.title}</span>
+                              <span className="mt-0.5 block text-[11px] text-gray-500">{label} · {detail}</span>
+                            </button>
+                            <ExternalLink size={12} className="mt-0.5 shrink-0 text-gray-600" />
+                          </div>
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-gray-800/80 pt-2">
+                            {actions.map(action => {
+                              const actionKey = `${key}:${task.id || task.title}:${action.type}`;
+                              const isRunning = executingAction === actionKey;
+                              return (
+                                <React.Fragment key={action.type}>
+                                  {action.type === 'reassign' && <select
+                                    value={task.id ? (reassignIds[task.id] || '') : ''}
+                                    onChange={event => task.id && setReassignIds(current => ({ ...current, [task.id!]: event.target.value }))}
+                                    onClick={event => event.stopPropagation()}
+                                    className="max-w-28 rounded border border-gray-700 bg-gray-950 px-1.5 py-1 text-[10px] text-gray-300 outline-none"
+                                    aria-label="选择改派成员"
+                                  >
+                                    <option value="">改派成员</option>
+                                    {resources.filter(resource => resource.id && resource.status !== 'departed').map(resource => <option key={resource.id} value={resource.id}>{resource.name}</option>)}
+                                  </select>}
+                                  <button
+                                    type="button"
+                                    disabled={isRunning || (action.type === 'reassign' && !task.id)}
+                                    onClick={() => runRiskAction(group.demand, task, group.level, action.type)}
+                                    title={action.reason}
+                                    className={`inline-flex items-center gap-1 rounded border px-1.5 py-1 text-[10px] transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${action.priority === 'primary' ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-200 hover:bg-indigo-500/20' : 'border-gray-700 bg-gray-950/60 text-gray-400 hover:text-gray-200'}`}
+                                  >
+                                    {ACTION_ICON[action.type]}{isRunning ? '执行中' : action.label}
+                                  </button>
+                                </React.Fragment>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

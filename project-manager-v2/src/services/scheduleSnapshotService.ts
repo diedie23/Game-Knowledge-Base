@@ -2,7 +2,7 @@ import { db } from '../db/db';
 import type { Resource, ResourceCapacity, Task } from '../types';
 import type { ChangeSnapshot } from '../types';
 
-export type ScheduleSnapshotSource = 'tapd-planner' | 'gantt-move' | 'gantt-resize';
+export type ScheduleSnapshotSource = 'tapd-planner' | 'gantt-move' | 'gantt-resize' | 'risk-action';
 
 export interface ScheduleSnapshotRecommendation {
   taskId: number;

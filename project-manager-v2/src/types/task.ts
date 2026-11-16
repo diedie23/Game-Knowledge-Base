@@ -107,7 +107,7 @@ export interface ChangeSnapshot {
   projectId?: number;
   weekKey?: string;
   scheduleData?: {
-    source: 'tapd-planner' | 'gantt-move' | 'gantt-resize';
+    source: 'tapd-planner' | 'gantt-move' | 'gantt-resize' | 'risk-action';
     status: 'generated' | 'applied' | 'rejected';
     generatedAt: number;
     appliedAt?: number;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Task } from '../types';
 import type { TaskRisk } from './workloadService';
-import { getRiskActionPlan, getRiskActionSummary } from './riskActionService';
+import { getRiskActionPlan, getRiskActionPlanForTags, getRiskActionSummary } from './riskActionService';
 
 const task: Task = {
   id: 1,
@@ -50,5 +50,11 @@ describe('riskActionService', () => {
     ));
     expect(actions.map(action => action.type)).toContain('delay');
     expect(actions.map(action => action.type)).toContain('split');
+  });
+
+  it('builds executable actions from planning-item tags without browser dependencies', () => {
+    expect(getRiskActionPlanForTags(task, ['overload', 'unassigned']).map(action => action.type)).toEqual([
+      'reassign', 'split', 'reprioritize',
+    ]);
   });
 });

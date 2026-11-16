@@ -792,7 +792,7 @@ export function Dashboard() {
 
       <DashboardCapacityForecast tasks={tasks} resources={resources} capacities={capacities} calendarConfig={projectCalendar} />
 
-      <DashboardDemandRisks tasks={tasks} resources={resources} projectId={selectedProjectId || undefined} calendarConfig={projectCalendar} riskRecords={riskRecords} />
+      <DashboardDemandRisks tasks={tasks} resources={resources} capacities={capacities} projectId={selectedProjectId || undefined} calendarConfig={projectCalendar} riskRecords={riskRecords} />
 
       <DashboardWeeklyReport tasks={tasks} resources={resources} projectId={selectedProjectId || undefined} calendarConfig={projectCalendar} />
 
