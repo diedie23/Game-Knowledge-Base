@@ -127,6 +127,22 @@ describe('ScheduleWorkspace', () => {
     expect(state.open).toHaveBeenCalledWith(4);
   });
 
+  it('maps legacy string dates into the selected demand calendar', () => {
+    const originalTasks = state.tasks;
+    state.tasks = originalTasks.map(task => task.id === 3
+      ? { ...task, startDate: state.dateAt(1).toISOString() as unknown as Date, endDate: state.dateAt(3).toISOString() as unknown as Date }
+      : task);
+
+    try {
+      render(<ScheduleWorkspace />);
+      fireEvent.click(screen.getByRole('button', { name: /商城界面需求/ }));
+      expect(screen.getAllByTitle(/商城视觉设计 · 点击查看任务上下文/).length).toBeGreaterThan(0);
+    } finally {
+      cleanup();
+      state.tasks = originalTasks;
+    }
+  });
+
   it('lets a calendar cell switch to the task and demand it belongs to', () => {
     render(<ScheduleWorkspace />);
 

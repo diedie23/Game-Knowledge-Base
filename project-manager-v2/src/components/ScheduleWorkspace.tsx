@@ -10,7 +10,7 @@ import { getTaskAssigneeIds } from '../utils/taskAssignee';
 import { buildTaskHierarchyIndex, getActiveLeafTasks } from '../utils/taskHierarchy';
 import { findDemandForTask } from '../services/tapdPlanningAssistant';
 import { isUxTrackedTask, taskStage, taskStatus, type CoreUxStage } from '../services/uxStageView';
-import { isTaskCancelled, isTaskCompleted } from '../utils/taskState';
+import { isTaskCancelled, isTaskCompleted, isTaskTerminal } from '../utils/taskState';
 import { compareResources } from './gantt/constants';
 import { formatResourceDisplayName } from '../utils/resourceDisplay';
 import { countWorkingDays, DEFAULT_PROJECT_CALENDAR, isHoliday, isMakeupWorkingDay, isNonWorkingDay } from '../utils/dateUtils';
@@ -53,8 +53,21 @@ function dayLabel(day: Date) {
   return format(day, 'MM/dd', { locale: zhCN });
 }
 
+function scheduleDate(value?: Date): Date | undefined {
+  if (!value) return undefined;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : startOfDay(parsed);
+}
+
 function dateValue(value?: Date) {
-  return value ? startOfDay(new Date(value)).getTime() : undefined;
+  return scheduleDate(value)?.getTime();
+}
+
+function getTaskScheduleRange(task: Task): { start: Date; end: Date } | undefined {
+  const start = scheduleDate(task.startDate);
+  const end = scheduleDate(task.endDate);
+  if (!start || !end || end < start) return undefined;
+  return { start, end };
 }
 
 function createdTimestamp(task?: Task): number | undefined {
@@ -85,11 +98,13 @@ function taskOwnerNames(task: Task, resources: Resource[] | Map<number, Resource
 }
 
 function taskRange(task: Task): string {
-  return `${task.startDate ? dayLabel(new Date(task.startDate)) : '未定'}–${task.endDate ? dayLabel(new Date(task.endDate)) : '未定'}`;
+  const start = scheduleDate(task.startDate);
+  const end = scheduleDate(task.endDate);
+  return `${start ? dayLabel(start) : '未定'}–${end ? dayLabel(end) : '未定'}`;
 }
 
 function hasTaskSchedule(task: Task): boolean {
-  return Boolean(task.startDate || task.endDate);
+  return Boolean(getTaskScheduleRange(task));
 }
 
 function taskTiming(task: Task): string {
@@ -198,6 +213,14 @@ export function ScheduleWorkspace() {
   const timelineLeaves = useMemo(
     () => hierarchy.leafTasks.filter(task => !isTaskCancelled(task) && isUxTrackedTask(task, resources)),
     [hierarchy, resources],
+  );
+  // The calendar reads from the same UX leaf set rendered in the left task list,
+  // then removes terminal/paused rows from current load. This avoids a mismatch
+  // where a scheduled task is visible on the left but is missing from the right
+  // because the active-leaf index was built from a stale/legacy hierarchy shape.
+  const calendarLeaves = useMemo(
+    () => timelineLeaves.filter(task => !isTaskTerminal(task) && task.status !== 'paused' && Boolean(getTaskScheduleRange(task))),
+    [timelineLeaves],
   );
 
   const demandByTaskId = useMemo(() => {
@@ -327,13 +350,12 @@ export function ScheduleWorkspace() {
   );
   const tasksByResourceAndDay = useMemo(() => {
     const map = new Map<string, Task[]>();
-    schedulableLeaves.forEach(task => {
+    calendarLeaves.forEach(task => {
       const assignees = getTaskAssigneeIds(task);
-      if (!task.startDate || !task.endDate || assignees.length === 0) return;
-      const start = startOfDay(new Date(task.startDate));
-      const end = startOfDay(new Date(task.endDate));
+      const range = getTaskScheduleRange(task);
+      if (!range || assignees.length === 0) return;
       days.forEach(day => {
-        if (day < start || day > end) return;
+        if (day < range.start || day > range.end) return;
         assignees.forEach(resourceId => {
           const key = `${resourceId}:${format(day, 'yyyy-MM-dd')}`;
           const existing = map.get(key);
@@ -343,20 +365,21 @@ export function ScheduleWorkspace() {
       });
     });
     return map;
-  }, [days, schedulableLeaves]);
+  }, [calendarLeaves, days]);
 
   const taskPersonDaysById = useMemo(() => {
     const result = new Map<number, number | undefined>();
-    schedulableLeaves.forEach(task => {
-      if (task.id === undefined || task.estimatedHours == null || !task.startDate || !task.endDate) {
+    calendarLeaves.forEach(task => {
+      const range = getTaskScheduleRange(task);
+      if (task.id === undefined || task.estimatedHours == null || !range) {
         if (task.id !== undefined) result.set(task.id, undefined);
         return;
       }
-      const workingDays = countWorkingDays(new Date(task.startDate), new Date(task.endDate), projectCalendar);
+      const workingDays = countWorkingDays(range.start, range.end, projectCalendar);
       result.set(task.id, workingDays > 0 ? task.estimatedHours / 8 / workingDays : undefined);
     });
     return result;
-  }, [projectCalendar, schedulableLeaves]);
+  }, [calendarLeaves, projectCalendar]);
 
   // Build all calendar-cell load metrics once. The calendar, summary, filters,
   // and overload highlighting all read this same matrix instead of recalculating
