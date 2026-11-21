@@ -26,7 +26,7 @@ const state = vi.hoisted(() => {
   return {
     open: vi.fn(),
     setView: vi.fn(),
-    selectedProjectId: null as number | null,
+    selectedProjectId: 1 as number | null,
     project: { id: 1, name: '测试项目' },
     projectUpdate: vi.fn(async (..._args: unknown[]) => 1),
     dateAt,
@@ -74,7 +74,7 @@ vi.mock('../store/useStore', () => ({
 
 beforeEach(() => {
   cleanup();
-  state.selectedProjectId = null;
+  state.selectedProjectId = 1;
   state.projectUpdate.mockClear();
   state.open.mockClear();
   state.setView.mockClear();

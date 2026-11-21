@@ -15,9 +15,12 @@ const state = vi.hoisted(() => ({ open: vi.fn(), tasks: [
   { id: 4, title: '活动需求', projectId: 1, status: 'done', priority: 'medium', module: '活动' },
   { id: 5, title: '拒绝需求', projectId: 1, status: 'cancelled', priority: 'low', module: '活动' },
 ] }));
-vi.mock('../db/db', () => ({ db: { tasks: { toArray: () => state.tasks }, resources: { toArray: () => [{ id: 1, name: '小林', role: 'UI设计' }, { id: 2, name: '小陈', role: 'UI设计' }, { id: 3, name: '小赵', role: 'UX设计', tapdAccount: 'v_xiaozhao' }] } } }));
+vi.mock('../db/db', () => ({ db: {
+  tasks: { where: () => ({ equals: () => ({ toArray: () => state.tasks }) }) },
+  resources: { toArray: () => [{ id: 1, name: '小林', role: 'UI设计' }, { id: 2, name: '小陈', role: 'UI设计' }, { id: 3, name: '小赵', role: 'UX设计', tapdAccount: 'v_xiaozhao' }] },
+} }));
 vi.mock('dexie-react-hooks', () => ({ useLiveQuery: (query: () => unknown) => query() }));
-vi.mock('../store/useStore', () => ({ useStore: () => ({ selectedProjectId: null, openTaskModal: state.open }) }));
+vi.mock('../store/useStore', () => ({ useStore: () => ({ selectedProjectId: 1, openTaskModal: state.open }) }));
 
 beforeEach(() => { cleanup(); state.open.mockClear(); });
 describe('UX stage table', () => {

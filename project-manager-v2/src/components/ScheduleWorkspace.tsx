@@ -155,9 +155,10 @@ function parseCalendarDates(value: string): string[] {
 export function ScheduleWorkspace() {
   const { selectedProjectId, openTaskModal, setCurrentView } = useStore();
   const tasks = useLiveQuery(
-    () => selectedProjectId
-      ? db.tasks.where('projectId').equals(selectedProjectId).toArray()
-      : db.tasks.toArray(),
+    // No project means no schedule data. Never fall back to a full task-table read.
+    () => selectedProjectId == null
+      ? []
+      : db.tasks.where('projectId').equals(selectedProjectId).toArray(),
     [selectedProjectId],
   );
   const project = useLiveQuery(() => selectedProjectId ? db.projects.get(selectedProjectId) : undefined, [selectedProjectId]);

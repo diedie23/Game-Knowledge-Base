@@ -78,7 +78,7 @@ export function TapdModal() {
       db.changeLogs.where('[synced+timestamp]').between([false, Dexie.minKey], [false, Dexie.maxKey]).toArray().catch(() =>
         db.changeLogs.filter(log => !log.synced).sortBy('timestamp')
       ),
-      selectedProjectId == null ? db.tasks.toArray() : db.tasks.where('projectId').equals(selectedProjectId).toArray(),
+      selectedProjectId == null ? Promise.resolve([]) : db.tasks.where('projectId').equals(selectedProjectId).toArray(),
       db.resources.toArray(),
     ]);
     return { logs, tasks, resources };

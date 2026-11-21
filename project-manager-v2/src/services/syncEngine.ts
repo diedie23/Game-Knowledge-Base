@@ -334,6 +334,11 @@ class SyncEngine {
   private isOnline: boolean = navigator.onLine;
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
   private autoSyncInterval: ReturnType<typeof setInterval> | null = null;
+  /**
+   * Deduplicates sync operations without blocking independent projects.
+   * The special `sync:all` key conflicts with every project-scoped operation.
+   */
+  private readonly inFlight = new Map<string, Promise<unknown>>();
   private adapter: SyncAdapter;
 
   constructor(adapter?: SyncAdapter) {
@@ -402,6 +407,10 @@ class SyncEngine {
 
   // ─── Push: Local → Remote ────────────────────────────────────
   async pushPendingChanges(projectId?: number): Promise<{ pushed: number; failed: number; retries: number; failures: SyncFailure[] }> {
+    return this.runExclusive(projectId, () => this.pushPendingChangesInternal(projectId));
+  }
+
+  private async pushPendingChangesInternal(projectId?: number): Promise<{ pushed: number; failed: number; retries: number; failures: SyncFailure[] }> {
     if (!this.isOnline) {
       this.setStatus('offline');
       return { pushed: 0, failed: 0, retries: 0, failures: [] };
@@ -484,6 +493,10 @@ class SyncEngine {
 
   // ─── Pull: Remote → Local ────────────────────────────────────
   async pullRemoteChanges(projectId: number): Promise<{ pulled: number; conflicts: number }> {
+    return this.runExclusive(projectId, () => this.pullRemoteChangesInternal(projectId));
+  }
+
+  private async pullRemoteChangesInternal(projectId: number): Promise<{ pulled: number; conflicts: number }> {
     if (!this.isOnline) {
       this.setStatus('offline');
       return { pulled: 0, conflicts: 0 };
@@ -606,8 +619,27 @@ class SyncEngine {
       this.setStatus(conflicts > 0 ? 'resolving' : 'idle');
       this.emit({ type: 'complete', data: { pulled, conflicts } });
     } catch (error: any) {
+      const message = error instanceof Error ? error.message : String(error || '远端拉取失败');
       this.setStatus('error');
-      this.emit({ type: 'error', data: { message: error.message } });
+      this.emit({ type: 'error', data: { message, projectId } });
+      await this.updateSyncMeta('tapd', projectId, {
+        status: 'error',
+        errorMessage: message,
+      }).catch(() => undefined);
+      await recordTapdSyncMeta(projectId, {
+        lastSyncOperation: 'pull',
+        status: 'error',
+        lastSyncSummary: {
+          operation: 'pull',
+          fetched: 0,
+          pulled,
+          conflicts,
+          failed: 1,
+        },
+      }).catch(() => undefined);
+      // Do not return an empty successful-looking result. Callers need to show
+      // the failure and keep the previous local/remote credibility state.
+      throw error instanceof Error ? error : new Error(message);
     }
 
     return { pulled, conflicts };
@@ -622,11 +654,23 @@ class SyncEngine {
     retries: number;
     failures: SyncFailure[];
   }> {
-    // Step 1: Push local changes first
-    const pushResult = await this.pushPendingChanges(projectId);
+    return this.runExclusive(projectId, () => this.fullSyncInternal(projectId));
+  }
+
+  private async fullSyncInternal(projectId: number): Promise<{
+    pushed: number;
+    pulled: number;
+    conflicts: number;
+    errors: number;
+    retries: number;
+    failures: SyncFailure[];
+  }> {
+    // Step 1: Push local changes first. Use the internal methods so the full
+    // operation keeps one project lock from push through pull.
+    const pushResult = await this.pushPendingChangesInternal(projectId);
 
     // Step 2: Pull remote changes
-    const pullResult = await this.pullRemoteChanges(projectId);
+    const pullResult = await this.pullRemoteChangesInternal(projectId);
 
     return {
       pushed: pushResult.pushed,
@@ -636,6 +680,33 @@ class SyncEngine {
       retries: pushResult.retries,
       failures: pushResult.failures,
     };
+  }
+
+  private syncLockKey(projectId?: number): string {
+    return projectId == null ? 'sync:all' : `sync:project:${projectId}`;
+  }
+
+  private existingSyncOperation(projectId?: number): Promise<unknown> | undefined {
+    if (projectId == null) {
+      return this.inFlight.values().next().value as Promise<unknown> | undefined;
+    }
+    return this.inFlight.get('sync:all') || this.inFlight.get(this.syncLockKey(projectId));
+  }
+
+  private runExclusive<T>(projectId: number | undefined, operation: () => Promise<T>): Promise<T> {
+    const existing = this.existingSyncOperation(projectId);
+    if (existing) return existing as Promise<T>;
+
+    const key = this.syncLockKey(projectId);
+    const operationPromise = operation();
+    this.inFlight.set(key, operationPromise);
+    const clearOperation = () => {
+      if (this.inFlight.get(key) === operationPromise) {
+        this.inFlight.delete(key);
+      }
+    };
+    void operationPromise.then(clearOperation, clearOperation);
+    return operationPromise;
   }
 
   // ─── Sync Meta Management ───────────────────────────────────

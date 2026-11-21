@@ -539,9 +539,9 @@ interface WhatIfPanelProps {
 export function WhatIfPanel({ onGhostScheduleChange, isOpen, onClose }: WhatIfPanelProps) {
   const { selectedProjectId } = useStore();
   const tasks = useLiveQuery(
-    () => selectedProjectId
-      ? db.tasks.where('projectId').equals(selectedProjectId).toArray()
-      : db.tasks.toArray(),
+    () => selectedProjectId == null
+      ? []
+      : db.tasks.where('projectId').equals(selectedProjectId).toArray(),
     [selectedProjectId]
   ) || [];
   const [input, setInput] = useState('');

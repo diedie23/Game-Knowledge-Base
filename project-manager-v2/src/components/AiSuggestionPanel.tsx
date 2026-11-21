@@ -22,9 +22,9 @@ export function AiSuggestionPanel() {
   const panelRef = useRef<HTMLDivElement>(null);
 
   const tasks = useLiveQuery(
-    () => selectedProjectId
-      ? db.tasks.where('projectId').equals(selectedProjectId).toArray()
-      : db.tasks.toArray(),
+    () => selectedProjectId == null
+      ? []
+      : db.tasks.where('projectId').equals(selectedProjectId).toArray(),
     [selectedProjectId]
   );
   const project = useLiveQuery(

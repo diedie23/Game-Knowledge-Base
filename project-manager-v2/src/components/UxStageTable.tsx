@@ -113,7 +113,7 @@ function CurrentStageFlow({ row, summary }: { row: ReturnType<typeof buildStageR
 
 export function UxStageTable() {
   const { selectedProjectId, openTaskModal } = useStore();
-  const tasks = useLiveQuery(() => selectedProjectId ? db.tasks.where('projectId').equals(selectedProjectId).toArray() : db.tasks.toArray(), [selectedProjectId]);
+  const tasks = useLiveQuery(() => selectedProjectId == null ? [] : db.tasks.where('projectId').equals(selectedProjectId).toArray(), [selectedProjectId]);
   const resources = useLiveQuery(() => db.resources.toArray()) || [];
   const [query, setQuery] = useState('');
   const [stage, setStage] = useState('all');
